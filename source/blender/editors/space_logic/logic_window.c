@@ -1067,12 +1067,12 @@ static void draw_default_sensor_header(bSensor *sens,
 	
 	/* value or shift? */
 	uiBlockBeginAlign(block);
-	but= uiDefButS(block, TOG, 1, "Level",
+	but = uiDefButS(block, TOG, 1, "Level",
 			 (short)(x + 10 + 0.5 * (w-20)), (short)(y - 21), (short)(0.20 * (w-20)), 19,
 			 &sens->level, 0.0, 0.0, 0, 0,
 			 "Level detector, trigger controllers of new states (only applicable upon logic state transition)");
 	uiButSetFunc(but, verify_logicbutton_func, sens, &(sens->level));
-	but= uiDefButS(block, TOG, 1, "Tap",
+	but = uiDefButS(block, TOG, 1, "Tap",
 			 (short)(x + 10 + 0.702 * (w-20)), (short)(y - 21), (short)(0.12 * (w-20)), 19,
 			 &sens->tap, 0.0, 0.0, 0, 0,
 			 "Trigger controllers only for an instant, even while the sensor remains true");
@@ -1302,14 +1302,14 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 			
 			if ((ks->type&1)==0) { /* is All Keys option off? */
 				/* line 2: hotkey and allkeys toggle */
-				but= uiDefKeyevtButS(block, 0, "", xco+40, yco-44, (width)/2, 19, &ks->key, "Key code");
+				but = uiDefKeyevtButS(block, 0, "", xco+40, yco-44, (width)/2, 19, &ks->key, "Key code");
 				uiButSetFunc(but, test_keyboard_event, ks, NULL);
 				
 				/* line 3: two key modifyers (qual1, qual2) */
 				uiDefBut(block, LABEL, 0, "Hold",	  xco, yco-68, 40, 19, NULL, 0, 0, 0, 0, "");
-				but= uiDefKeyevtButS(block, 0, "", xco+40, yco-68, (width-50)/2, 19, &ks->qual, "Modifier key code");
+				but = uiDefKeyevtButS(block, 0, "", xco+40, yco-68, (width-50)/2, 19, &ks->qual, "Modifier key code");
 				uiButSetFunc(but, test_keyboard_event, ks, NULL);
-				but= uiDefKeyevtButS(block, 0, "", xco+40+(width-50)/2, yco-68, (width-50)/2, 19, &ks->qual2, "Second Modifier key code");
+				but = uiDefKeyevtButS(block, 0, "", xco+40+(width-50)/2, yco-68, (width-50)/2, 19, &ks->qual2, "Second Modifier key code");
 				uiButSetFunc(but, test_keyboard_event, ks, NULL);
 			}
 			
@@ -4627,7 +4627,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			/* put link button to the right */
 			col = uiLayoutColumn(subsplit, 0);
 			uiLayoutSetAlignment(col, UI_LAYOUT_ALIGN_LEFT);
-			but= uiDefIconBut(block, LINK, 0, ICON_LINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			but = uiDefIconBut(block, LINK, 0, ICON_LINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 			uiSetButLink(but, NULL, (void ***)&(cont->links), &cont->totlinks, LINK_CONTROLLER, LINK_ACTUATOR);
 		}
 	}
@@ -4693,7 +4693,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 				/* put link button to the right */
 				col = uiLayoutColumn(split, 0);
 				/* use old-school uiButtons for links for now */
-				but= uiDefIconBut(block, LINK, 0, ICON_LINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+				but = uiDefIconBut(block, LINK, 0, ICON_LINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 				uiSetButLink(but, NULL, (void ***)&(sens->links), &sens->totlinks, LINK_SENSOR, LINK_CONTROLLER);
 			}
 		}
@@ -4927,7 +4927,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 						if(cont->flag & CONT_SHOW) {
 							cont->otype= cont->type;
 							uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 70, UI_UNIT_Y, &cont->type, 0, 0, 0, 0, "Controller type");
-							but= uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-158), UI_UNIT_Y, cont->name, 0, MAX_NAME, 0, 0, "Controller name");
+							but = uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-158), UI_UNIT_Y, cont->name, 0, MAX_NAME, 0, 0, "Controller name");
 							uiButSetFunc(but, make_unique_prop_names_cb, cont->name, (void*) 0);
 				
 							ycoo= yco;
@@ -4937,22 +4937,22 @@ void logic_buttons(bContext *C, ARegion *ar)
 						else {
 							cpack(0x999999);
 							glRecti(xco+22, yco, xco+width-22,yco+19);
-							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller type");
+							but = uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller type");
 							//uiButSetFunc(but, old_sca_move_controller, cont, NULL);
-							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-158), UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller name");
+							but = uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-158), UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller name");
 							//uiButSetFunc(but, old_sca_move_controller, cont, NULL);
 
 							uiBlockBeginAlign(block);
-							but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(110+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+							but = uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(110+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
 							uiButSetFunc(but, old_sca_move_controller, cont, (void *)TRUE);
-							but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(88+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+							but = uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(88+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
 							uiButSetFunc(but, old_sca_move_controller, cont, (void *)FALSE);
 							uiBlockEndAlign(block);
 
 							ycoo= yco;
 						}
 				
-						but= uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width), ycoo, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+						but = uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width), ycoo, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 						uiSetButLink(but, NULL, (void ***)&(cont->links), &cont->totlinks, LINK_CONTROLLER, LINK_ACTUATOR);
 				
 						uiDefIconBut(block, INLINK, 0, ICON_INLINK,(short)(xco-19), ycoo, UI_UNIT_X, UI_UNIT_Y, cont, LINK_CONTROLLER, 0, 0, 0, "");
@@ -5018,7 +5018,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 					ycoo= yco;
 					if (sens->flag & SENS_SHOW) {
 						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 80, UI_UNIT_Y, &sens->type, 0, 0, 0, 0, "Sensor type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens->name, 0, MAX_NAME, 0, 0, "Sensor name");
+						but = uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens->name, 0, MAX_NAME, 0, 0, "Sensor name");
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);
 
 						sens->otype= sens->type;
@@ -5028,20 +5028,20 @@ void logic_buttons(bContext *C, ARegion *ar)
 					else {
 						set_col_sensor(sens->type, 1);
 						glRecti(xco+22, yco, xco+width-22,yco+19);
-						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, UI_UNIT_Y, sens, 0, 0, 0, 0, "");
+						but = uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, UI_UNIT_Y, sens, 0, 0, 0, 0, "");
 						//uiButSetFunc(but, old_sca_move_sensor, sens, NULL);
-						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens, 0, MAX_NAME, 0, 0, "");
+						but = uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens, 0, MAX_NAME, 0, 0, "");
 						//uiButSetFunc(but, old_sca_move_sensor, sens, NULL);
 
 						uiBlockBeginAlign(block);
-						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+						but = uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
 						uiButSetFunc(but, old_sca_move_sensor, sens, (void *)TRUE);
-						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+						but = uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
 						uiButSetFunc(but, old_sca_move_sensor, sens, (void *)FALSE);
 						uiBlockEndAlign(block);
 					}
 
-					but= uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width), ycoo, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+					but = uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width), ycoo, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 					uiSetButLink(but, NULL, (void ***)&(sens->links), &sens->totlinks, LINK_SENSOR, LINK_CONTROLLER);
 
 					yco-=20;
@@ -5096,7 +5096,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 					if(act->flag & ACT_SHOW) {
 						act->otype= act->type;
 						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 90, UI_UNIT_Y, &act->type, 0, 0, 0, 0, "Actuator type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-(pin?156:134)), UI_UNIT_Y, act->name, 0, MAX_NAME, 0, 0, "Actuator name");
+						but = uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-(pin?156:134)), UI_UNIT_Y, act->name, 0, MAX_NAME, 0, 0, "Actuator name");
 						uiButSetFunc(but, make_unique_prop_names_cb, act->name, (void*) 0);
 
 						ycoo= yco;
@@ -5112,9 +5112,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 						// uiButSetFunc(but, old_sca_move_actuator, act, NULL);
 
 						uiBlockBeginAlign(block);
-						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+						but = uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
 						uiButSetFunc(but, old_sca_move_actuator, act, (void *)TRUE);
-						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+						but = uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
 						uiButSetFunc(but, old_sca_move_actuator, act, (void *)FALSE);
 						uiBlockEndAlign(block);
 

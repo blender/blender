@@ -58,7 +58,7 @@ typedef struct BMBVHTree {
 	float maxdist; //for nearest point search
 	float uv[2];
 	
-	/*stuff for topological vert search*/
+	/* stuff for topological vert search */
 	BMVert *v, *curv;
 	GHash *gh;
 	float curw, curd;
@@ -101,7 +101,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	tree->scene = scene;
 	tree->em = em;
 	tree->bm = em->bm;
-	tree->epsilon = FLT_EPSILON*2.0f;
+	tree->epsilon = FLT_EPSILON * 2.0f;
 	tree->flag = flag;
 	
 	tree->tree = BLI_bvhtree_new(em->tottri, tree->epsilon, 8, 8);
@@ -111,7 +111,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 		BMVert *v;
 		void *data[3];
 		
-		tree->cos = MEM_callocN(sizeof(float)*3*em->bm->totvert, "bmbvh cos");
+		tree->cos = MEM_callocN(sizeof(float) * 3 * em->bm->totvert, "bmbvh cos");
 		BM_ITER_INDEX(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL, i) {
 			BM_elem_index_set(v, i); /* set_inline */
 			copy_v3_v3(tree->cos[i], v->co);
@@ -120,7 +120,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 
 
 		cage = editbmesh_get_derived_cage_and_final(scene, obedit, em, &final, CD_MASK_DERIVEDMESH);
-		cagecos = MEM_callocN(sizeof(float)*3*em->bm->totvert, "bmbvh cagecos");
+		cagecos = MEM_callocN(sizeof(float) * 3 * em->bm->totvert, "bmbvh cagecos");
 		
 		data[0] = em;
 		data[1] = cagecos;
@@ -131,18 +131,19 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	
 	tree->cagecos = cagecos;
 	
-	for (i=0; i<em->tottri; i++) {
+	for (i = 0; i < em->tottri; i++) {
 		if (flag & BMBVH_USE_CAGE) {
 			copy_v3_v3(cos[0], cagecos[BM_elem_index_get(em->looptris[i][0]->v)]);
 			copy_v3_v3(cos[1], cagecos[BM_elem_index_get(em->looptris[i][1]->v)]);
 			copy_v3_v3(cos[2], cagecos[BM_elem_index_get(em->looptris[i][2]->v)]);
-		} else {
+		}
+		else {
 			copy_v3_v3(cos[0], em->looptris[i][0]->v->co);
 			copy_v3_v3(cos[1], em->looptris[i][1]->v->co);
 			copy_v3_v3(cos[2], em->looptris[i][2]->v->co);
 		}
 
-		BLI_bvhtree_insert(tree->tree, i, (float*)cos, 3);
+		BLI_bvhtree_insert(tree->tree, i, (float *)cos, 3);
 	}
 	
 	BLI_bvhtree_balance(tree->tree);
@@ -163,14 +164,15 @@ void BMBVH_FreeBVH(BMBVHTree *tree)
 	MEM_freeN(tree);
 }
 
-/*taken from bvhutils.c*/
+/* taken from bvhutils.c */
 static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), float *v0, 
 				  float *v1, float *v2, float *uv, float UNUSED(e))
 {
 	float dist;
 
-	if(isect_ray_tri_v3((float*)ray->origin, (float*)ray->direction, v0, v1, v2, &dist, uv))
+	if (isect_ray_tri_v3((float *)ray->origin, (float *)ray->direction, v0, v1, v2, &dist, uv)) {
 		return dist;
+	}
 
 	return FLT_MAX;
 }
@@ -222,8 +224,9 @@ BMFace *BMBVH_RayCast(BMBVHTree *tree, float *co, float *dir, float *hitout, flo
 				v2 = tree->em->looptris[hit.index][1]->v;
 				v3 = tree->em->looptris[hit.index][2]->v;
 				
-				for (i=0; i<3; i++) {
-					co[i] = v1->co[i] + (v2->co[i] - v1->co[i])*tree->uv[0] + (v3->co[i]-v1->co[i])*tree->uv[1];
+				for (i = 0; i < 3; i++) {
+					co[i] = v1->co[i] + ((v2->co[i] - v1->co[i]) * tree->uv[0]) +
+					                    ((v3->co[i] - v1->co[i]) * tree->uv[1]);
 				}
 				copy_v3_v3(hitout, co);
 			} else {
@@ -254,10 +257,10 @@ static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co
 
 	maxdist = tree->maxdist;
 
-	for (i=0; i<3; i++) {
+	for (i = 0; i < 3; i++) {
 		sub_v3_v3v3(v, hit->co, ls[i]->v->co);
 
-		dist = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+		dist = len_v3(v);
 		if (dist < hit->dist && dist < maxdist) {
 			copy_v3_v3(hit->co, ls[i]->v->co);
 			copy_v3_v3(hit->no, ls[i]->v->no);
@@ -272,7 +275,7 @@ BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, float *co, float maxdist)
 	BVHTreeNearest hit;
 
 	copy_v3_v3(hit.co, co);
-	hit.dist = maxdist*5;
+	hit.dist = maxdist * 5;
 	hit.index = -1;
 
 	tree->maxdist = maxdist;
@@ -281,14 +284,14 @@ BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, float *co, float maxdist)
 	if (hit.dist != FLT_MAX && hit.index != -1) {
 		BMLoop **ls = tree->em->looptris[hit.index];
 		float dist, curdist = tree->maxdist, v[3];
-		int cur=0, i;
+		int cur = 0, i;
 
 		maxdist = tree->maxdist;
 
-		for (i=0; i<3; i++) {
+		for (i = 0; i < 3; i++) {
 			sub_v3_v3v3(v, hit.co, ls[i]->v->co);
 
-			dist = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+			dist = len_v3(v);
 			if (dist < curdist) {
 				cur = i;
 				curdist = dist;
@@ -308,7 +311,7 @@ typedef struct walklist {
 	float w, r;
 	int totwalked;
 
-	/*state data*/
+	/* state data */
 	BMVert *lastv;
 	BMLoop *curl, *firstl;
 	BMEdge *cure;
@@ -317,17 +320,19 @@ typedef struct walklist {
 /* UNUSED */
 #if 0
 static short winding(float *v1, float *v2, float *v3)
-/* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
+/* is v3 to the right of (v1 - v2) ? With exception: v3 == v1 || v3 == v2 */
 {
 	double inp;
 
-	//inp= (v2[cox]-v1[cox])*(v1[coy]-v3[coy]) +(v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
-	inp= (v2[0]-v1[0])*(v1[1]-v3[1]) +(v1[1]-v2[1])*(v1[0]-v3[0]);
+	//inp = (v2[cox] - v1[cox]) * (v1[coy] - v3[coy]) + (v1[coy] - v2[coy]) * (v1[cox] - v3[cox]);
+	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
 
-	if(inp<0.0) return 0;
-	else if(inp==0) {
-		if(v1[0]==v3[0] && v1[1]==v3[1]) return 0;
-		if(v2[0]==v3[0] && v2[1]==v3[1]) return 0;
+	if (inp < 0.0) {
+		return 0;
+	}
+	else if (inp == 0) {
+		if (v1[0] == v3[0] && v1[1] == v3[1]) return 0;
+		if (v2[0] == v3[0] && v2[1] == v3[1]) return 0;
 	}
 	return 1;
 }
@@ -371,8 +376,8 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Obje
 		return 0;
 	}
 	
-	mval_f[0] = ar->winx/2.0;
-	mval_f[1] = ar->winy/2.0;
+	mval_f[0] = ar->winx / 2.0f;
+	mval_f[1] = ar->winy / 2.0f;
 	ED_view3d_win_to_segment_clip(ar, v3d, mval_f, origin, end);
 	
 	invert_m4_m4(invmat, obedit->obmat);
@@ -410,7 +415,7 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Obje
 	normalize_v3(dir2);
 	normalize_v3(dir3);
 
-	/*do three samplings: left, middle, right*/
+	/* do three samplings: left, middle, right */
 	f = edge_ray_cast(tree, co1, dir1, NULL, e);
 	if (f && !edge_ray_cast(tree, co2, dir2, NULL, e))
 		return 1;

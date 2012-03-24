@@ -5168,10 +5168,10 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 
 static void butspace_version_132(SpaceButs *buts)
 {
-	buts->v2d.tot.xmin= 0.0f;
-	buts->v2d.tot.ymin= 0.0f;
-	buts->v2d.tot.xmax= 1279.0f;
-	buts->v2d.tot.ymax= 228.0f;
+	buts->v2d.tot.xmin = 0.0f;
+	buts->v2d.tot.ymin = 0.0f;
+	buts->v2d.tot.xmax = 1279.0f;
+	buts->v2d.tot.ymax = 228.0f;
 
 	buts->v2d.min[0]= 256.0f;
 	buts->v2d.min[1]= 42.0f;
@@ -6876,10 +6876,10 @@ static void sequencer_init_preview_region(ARegion* ar)
 	ar->v2d.keepzoom= V2D_KEEPASPECT | V2D_KEEPZOOM;
 	ar->v2d.minzoom= 0.00001f;
 	ar->v2d.maxzoom= 100000.0f;
-	ar->v2d.tot.xmin= -960.0f; /* 1920 width centered */
-	ar->v2d.tot.ymin= -540.0f; /* 1080 height centered */
-	ar->v2d.tot.xmax= 960.0f;
-	ar->v2d.tot.ymax= 540.0f;
+	ar->v2d.tot.xmin = -960.0f; /* 1920 width centered */
+	ar->v2d.tot.ymin = -540.0f; /* 1080 height centered */
+	ar->v2d.tot.xmax = 960.0f;
+	ar->v2d.tot.ymax = 540.0f;
 	ar->v2d.min[0]= 0.0f;
 	ar->v2d.min[1]= 0.0f;
 	ar->v2d.max[0]= 12000.0f;
@@ -7048,7 +7048,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.align |= V2D_ALIGN_NO_NEG_Y;
 				ar->v2d.keepofs |= V2D_LOCKOFS_Y;
 				ar->v2d.keepzoom |= V2D_LOCKZOOM_Y;
-				ar->v2d.tot.ymin= ar->v2d.cur.ymin= -10.0;
+				ar->v2d.tot.ymin = ar->v2d.cur.ymin = -10.0;
 				ar->v2d.min[1]= ar->v2d.max[1]= 20.0;
 			}
 				break;
@@ -7075,8 +7075,8 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceNla *snla= (SpaceNla *)sl;
 				memcpy(&ar->v2d, &snla->v2d, sizeof(View2D));
 				
-				ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
-				ar->v2d.tot.ymax= 0.0f;
+				ar->v2d.tot.ymin = (float)(-sa->winy)/3.0f;
+				ar->v2d.tot.ymax = 0.0f;
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
@@ -7089,10 +7089,10 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceAction *saction= (SpaceAction *)sl;
 				
 				/* we totally reinit the view for the Action Editor, as some old instances had some weird cruft set */
-				ar->v2d.tot.xmin= -20.0f;
-				ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
-				ar->v2d.tot.xmax= (float)((sa->winx > 120)? (sa->winx) : 120);
-				ar->v2d.tot.ymax= 0.0f;
+				ar->v2d.tot.xmin = -20.0f;
+				ar->v2d.tot.ymin = (float)(-sa->winy)/3.0f;
+				ar->v2d.tot.xmax = (float)((sa->winx > 120)? (sa->winx) : 120);
+				ar->v2d.tot.ymax = 0.0f;
 				
 				ar->v2d.cur= ar->v2d.tot;
 				
@@ -9808,11 +9808,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if(sl->spacetype==SPACE_ACTION) {
 							SpaceAction *saction= (SpaceAction*) sl;
 							
-							saction->v2d.tot.ymin= -1000.0;
-							saction->v2d.tot.ymax= 0.0;
+							saction->v2d.tot.ymin = -1000.0;
+							saction->v2d.tot.ymax = 0.0;
 							
-							saction->v2d.cur.ymin= -75.0;
-							saction->v2d.cur.ymax= 5.0;
+							saction->v2d.cur.ymin = -75.0;
+							saction->v2d.cur.ymax = 5.0;
 						}
 					}
 					sa = sa->next;
@@ -11772,8 +11772,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_NLA)) {
 						for (ar = (ARegion*)regionbase->first; ar; ar = ar->next) {
 							if (ar->regiontype == RGN_TYPE_WINDOW) {
-								ar->v2d.cur.ymax= ar->v2d.tot.ymax= 0.0f;
-								ar->v2d.cur.ymin= ar->v2d.tot.ymin= (float)(-sa->winy) / 3.0f;
+								ar->v2d.cur.ymax = ar->v2d.tot.ymax = 0.0f;
+								ar->v2d.cur.ymin = ar->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
 							}
 						}
 					}
@@ -11822,10 +11822,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			if(sce->r.border.xmin == 0.0f && sce->r.border.ymin == 0.0f &&
 			   sce->r.border.xmax == 0.0f && sce->r.border.ymax == 0.0f) {
-				sce->r.border.xmin= 0.0f;
-				sce->r.border.ymin= 0.0f;
-				sce->r.border.xmax= 1.0f;
-				sce->r.border.ymax= 1.0f;
+				sce->r.border.xmin = 0.0f;
+				sce->r.border.ymin = 0.0f;
+				sce->r.border.xmax = 1.0f;
+				sce->r.border.ymax = 1.0f;
 			}
 
 			if((sce->r.ffcodecdata.flags & FFMPEG_MULTIPLEX_AUDIO) == 0)
@@ -13391,7 +13391,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	for(keymap=user->user_keymaps.first; keymap; keymap=keymap->next) {
 		keymap->modal_items= NULL;
-		keymap->poll= NULL;
+		keymap->poll = NULL;
 		keymap->flag &= ~KEYMAP_UPDATE;
 
 		link_list(fd, &keymap->diff_items);

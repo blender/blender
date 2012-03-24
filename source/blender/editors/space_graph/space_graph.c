@@ -142,10 +142,10 @@ static SpaceLink *graph_new(const bContext *C)
 	BLI_addtail(&sipo->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin= 0.0f;
-	ar->v2d.tot.ymin= (float)scene->r.sfra - 10.0f;
-	ar->v2d.tot.xmax= (float)scene->r.efra;
-	ar->v2d.tot.ymax= 10.0f;
+	ar->v2d.tot.xmin = 0.0f;
+	ar->v2d.tot.ymin = (float)scene->r.sfra - 10.0f;
+	ar->v2d.tot.xmax = (float)scene->r.efra;
+	ar->v2d.tot.ymax = 10.0f;
 	
 	ar->v2d.cur= ar->v2d.tot;
 	
@@ -211,9 +211,9 @@ static void graph_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Graph Editor", SPACE_IPO, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Graph Editor", SPACE_IPO, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_find(wm->defaultconf, "Graph Editor Generic", SPACE_IPO, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Graph Editor Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -310,9 +310,9 @@ static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Animation Channels", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Animation Channels", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_find(wm->defaultconf, "Graph Editor Generic", SPACE_IPO, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Graph Editor Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -362,7 +362,7 @@ static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Graph Editor Generic", SPACE_IPO, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Graph Editor Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

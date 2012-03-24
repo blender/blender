@@ -123,7 +123,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 
 #define BUTTON_HEADER_CTX(_ctx, _icon, _tip) \
 	if(sbuts->pathflag & (1<<_ctx)) { \
-		but= uiDefIconButS(block, ROW, B_CONTEXT_SWITCH, _icon, xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)_ctx, 0, 0, TIP_(_tip)); \
+		but = uiDefIconButS(block, ROW, B_CONTEXT_SWITCH, _icon, xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)_ctx, 0, 0, TIP_(_tip)); \
 		uiButClearFlag(but, UI_BUT_UNDO); \
 	} \
 

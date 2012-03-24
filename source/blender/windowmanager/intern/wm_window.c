@@ -138,8 +138,8 @@ static void wm_window_check_position(rcti *rect)
 		rect->ymin -= d;
 	}
 	
-	if(rect->xmin < 0) rect->xmin= 0;
-	if(rect->ymin < 0) rect->ymin= 0;
+	if(rect->xmin < 0) rect->xmin = 0;
+	if(rect->ymin < 0) rect->ymin = 0;
 }
 
 
@@ -437,13 +437,13 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 			win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
 
 		/* add keymap handlers (1 handler for all keys in map!) */
-		keymap= WM_keymap_find(wm->defaultconf, "Window", 0, 0);
+		keymap = WM_keymap_find(wm->defaultconf, "Window", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
 		
-		keymap= WM_keymap_find(wm->defaultconf, "Screen", 0, 0);
+		keymap = WM_keymap_find(wm->defaultconf, "Screen", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
 
-		keymap= WM_keymap_find(wm->defaultconf, "Screen Editing", 0, 0);
+		keymap = WM_keymap_find(wm->defaultconf, "Screen Editing", 0, 0);
 		WM_event_add_keymap_handler(&win->modalhandlers, keymap);
 		
 		/* add drop boxes */

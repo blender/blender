@@ -119,15 +119,15 @@ static SpaceLink *logic_new(const bContext *UNUSED(C))
 	BLI_addtail(&slogic->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 
-	ar->v2d.tot.xmin=  0.0f;
-	ar->v2d.tot.ymin=  0.0f;
-	ar->v2d.tot.xmax= 1280;
-	ar->v2d.tot.ymax= 240.0f;
+	ar->v2d.tot.xmin =  0.0f;
+	ar->v2d.tot.ymin =  0.0f;
+	ar->v2d.tot.xmax = 1280;
+	ar->v2d.tot.ymax = 240.0f;
 	
-	ar->v2d.cur.xmin=  0.0f;
-	ar->v2d.cur.ymin=  0.0f;
-	ar->v2d.cur.xmax= 1280.0f;
-	ar->v2d.cur.ymax= 240.0f;
+	ar->v2d.cur.xmin =  0.0f;
+	ar->v2d.cur.ymin =  0.0f;
+	ar->v2d.cur.xmax = 1280.0f;
+	ar->v2d.cur.ymax = 240.0f;
 	
 	ar->v2d.min[0]= 1.0f;
 	ar->v2d.min[1]= 1.0f;
@@ -178,7 +178,7 @@ static void logic_operatortypes(void)
 
 static void logic_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Logic Editor", SPACE_LOGIC, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "Logic Editor", SPACE_LOGIC, 0);
 	
 	WM_keymap_add_item(keymap, "LOGIC_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "LOGIC_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
@@ -236,7 +236,7 @@ static void logic_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymaps */
-	keymap= WM_keymap_find(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -275,7 +275,7 @@ static void logic_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 

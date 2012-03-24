@@ -53,10 +53,10 @@ CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 			cbuf->rect= MEM_mapallocN(sizeof(float)*sizex*sizey, "compbuf Fac rect");
 		cbuf->malloc= 1;
 	}
-	cbuf->disprect.xmin= 0;
-	cbuf->disprect.ymin= 0;
-	cbuf->disprect.xmax= sizex;
-	cbuf->disprect.ymax= sizey;
+	cbuf->disprect.xmin = 0;
+	cbuf->disprect.ymin = 0;
+	cbuf->disprect.xmax = sizex;
+	cbuf->disprect.ymax = sizey;
 	
 	return cbuf;
 }
@@ -138,8 +138,8 @@ CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, in
 	float *outfp;
 	int dx, y;
 	
-	if(disprect.xmax>rectx) disprect.xmax= rectx;
-	if(disprect.ymax>recty) disprect.ymax= recty;
+	if(disprect.xmax>rectx) disprect.xmax = rectx;
+	if(disprect.ymax>recty) disprect.ymax = recty;
 	if(disprect.xmin>= disprect.xmax) return NULL;
 	if(disprect.ymin>= disprect.ymax) return NULL;
 	

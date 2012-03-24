@@ -3100,7 +3100,7 @@ void BKE_mesh_ensure_navmesh(Mesh *me)
 	if (!CustomData_has_layer(&me->pdata, CD_RECAST)) {
 		int i;
 		int numFaces = me->totpoly;
-		int* recastData;
+		int *recastData;
 		CustomData_add_layer_named(&me->pdata, CD_RECAST, CD_CALLOC, NULL, numFaces, "recastData");
 		recastData = (int*)CustomData_get_layer(&me->pdata, CD_RECAST);
 		for (i=0; i<numFaces; i++) {

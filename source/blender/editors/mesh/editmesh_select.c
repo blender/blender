@@ -337,7 +337,7 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, int x, int y
 	}
 
 	if (data->dist > 3) {
-		int temp = abs(data->mval[0] - x) + abs(data->mval[1]- y);
+		int temp = abs(data->mval[0] - x) + abs(data->mval[1] - y);
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT) == data->select) {
 			if (data->strict == 1) {
 				return;
@@ -1606,8 +1606,8 @@ void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
 			/* select all edges associated with every selected vertex */
 			eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 			for ( ; eed; eed = BM_iter_step(&iter)) {
-				if ( (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-				      BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
+				if ((BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
+				     BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
 				{
 					BM_elem_select_set(em->bm, eed, TRUE);
 				}
@@ -2094,7 +2094,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 	ese = (BMEditSelection *)em->bm->selected.last;
 
 	if (ese) {
-		switch(ese->htype) {
+		switch (ese->htype) {
 		case BM_VERT:
 			*r_eve = (BMVert *)ese->ele;
 			return;
@@ -2210,6 +2210,7 @@ int EM_view3d_poll(bContext *C)
 {
 	if (ED_operator_editmesh(C) && ED_operator_view3d_active(C))
 		return 1;
+
 	return 0;
 }
 

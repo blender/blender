@@ -97,7 +97,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 		ymax= renrect->ymax - ymin + rr->crop;
 		if(ymax<2)
 			return;
-		renrect->ymin= renrect->ymax;
+		renrect->ymin = renrect->ymax;
 
 	}
 	else {

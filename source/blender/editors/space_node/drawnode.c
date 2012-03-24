@@ -512,15 +512,15 @@ static int node_resize_area_default(bNode *node, int x, int y)
 	if (node->flag & NODE_HIDDEN) {
 		rctf totr= node->totr;
 		/* right part of node */
-		totr.xmin= node->totr.xmax-20.0f;
+		totr.xmin = node->totr.xmax-20.0f;
 		return BLI_in_rctf(&totr, x, y);
 	}
 	else {
 		/* rect we're interested in is just the bottom right corner */
 		rctf totr= node->totr;
 		/* bottom right corner */
-		totr.xmin= totr.xmax-10.0f;
-		totr.ymax= totr.ymin+10.0f;
+		totr.xmin = totr.xmax-10.0f;
+		totr.ymax = totr.ymin+10.0f;
 		return BLI_in_rctf(&totr, x, y);
 	}
 }
@@ -952,13 +952,13 @@ static void node_update_frame(const bContext *UNUSED(C), bNodeTree *UNUSED(ntree
 	/* get "global" coords */
 	nodeSpaceCoords(node, &locx, &locy);
 
-	node->prvr.xmin= locx + NODE_DYS;
-	node->prvr.xmax= locx + node->width- NODE_DYS;
+	node->prvr.xmin = locx + NODE_DYS;
+	node->prvr.xmax = locx + node->width- NODE_DYS;
 
-	node->totr.xmin= locx;
-	node->totr.xmax= locx + node->width;
-	node->totr.ymax= locy;
-	node->totr.ymin= locy - node->height;
+	node->totr.xmin = locx;
+	node->totr.xmax = locx + node->width;
+	node->totr.ymax = locy;
+	node->totr.ymin = locy - node->height;
 }
 
 static void node_common_set_butfunc(bNodeType *ntype)

@@ -848,10 +848,10 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 	
 	mval[0]= rect.xmin;
 	mval[1]= rect.ymin;

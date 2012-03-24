@@ -388,7 +388,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 				if(layer_used & (1<<(a+b*colbuts))) icon= ICON_LAYER_USED;
 				else icon= ICON_BLANK1;
 
-				but= uiDefAutoButR(block, ptr, prop, a+b*colbuts, "", icon, x + butw*a, y+buth, butw, buth);
+				but = uiDefAutoButR(block, ptr, prop, a+b*colbuts, "", icon, x + butw*a, y+buth, butw, buth);
 				if(subtype == PROP_LAYER_MEMBER)
 					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+b*colbuts));
 			}
@@ -396,7 +396,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 				if(layer_used & (1<<(a+len/2+b*colbuts))) icon= ICON_LAYER_USED;
 				else icon= ICON_BLANK1;
 
-				but= uiDefAutoButR(block, ptr, prop, a+len/2+b*colbuts, "", icon, x + butw*a, y, butw, buth);
+				but = uiDefAutoButR(block, ptr, prop, a+len/2+b*colbuts, "", icon, x + butw*a, y, butw, buth);
 				if(subtype == PROP_LAYER_MEMBER)
 					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+len/2+b*colbuts));
 			}
@@ -421,7 +421,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 			col= a % dim_size[0];
 			row= a / dim_size[0];
 			
-			but= uiDefAutoButR(block, ptr, prop, a, "", ICON_NONE, x + w*col, y+(dim_size[1]*UI_UNIT_Y)-(row*UI_UNIT_Y), w, UI_UNIT_Y);
+			but = uiDefAutoButR(block, ptr, prop, a, "", ICON_NONE, x + w*col, y+(dim_size[1]*UI_UNIT_Y)-(row*UI_UNIT_Y), w, UI_UNIT_Y);
 			if(slider && but->type==NUM)
 				but->type= NUMSLI;
 		}
@@ -460,7 +460,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 			for(a=0; a<len; a++) {
 				if(!icon_only) str[0]= RNA_property_array_item_char(prop, a);
 				if(boolarr) icon= boolarr[a] ? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
-				but= uiDefAutoButR(block, ptr, prop, a, str, icon, 0, 0, w, UI_UNIT_Y);
+				but = uiDefAutoButR(block, ptr, prop, a, str, icon, 0, 0, w, UI_UNIT_Y);
 				if(slider && but->type==NUM)
 					but->type= NUMSLI;
 				if(toggle && but->type==OPTION)
@@ -496,11 +496,11 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 		itemw= ui_text_icon_width(block->curlayout, name, icon, 0);
 
 		if(icon && name[0] && !icon_only)
-			but= uiDefIconTextButR_prop(block, ROW, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
+			but = uiDefIconTextButR_prop(block, ROW, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 		else if(icon)
-			but= uiDefIconButR_prop(block, ROW, 0, icon, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
+			but = uiDefIconButR_prop(block, ROW, 0, icon, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 		else
-			but= uiDefButR_prop(block, ROW, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
+			but = uiDefButR_prop(block, ROW, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 
 		if(ui_layout_local_dir(layout) != UI_LAYOUT_HORIZONTAL)
 			but->flag |= UI_TEXT_LEFT;
@@ -554,7 +554,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w-UI_UNIT_X, h);
 
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
-		but= uiDefIconButO(block, BUT, subtype==PROP_DIRPATH ?
+		but = uiDefIconButO(block, BUT, subtype==PROP_DIRPATH ?
 		                       "BUTTONS_OT_directory_browse" :
 		                       "BUTTONS_OT_file_browse",
 		                   WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
@@ -568,14 +568,14 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 
 			WM_keymap_item_to_string(ptr->data, buf, sizeof(buf));
 
-			but= uiDefButR_prop(block, HOTKEYEVT, 0, buf, x, y, w, h, ptr, prop, 0, 0, 0, -1, -1, NULL);
+			but = uiDefButR_prop(block, HOTKEYEVT, 0, buf, x, y, w, h, ptr, prop, 0, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, ui_keymap_but_cb, but, NULL);
 			if (flag & UI_ITEM_R_IMMEDIATE)
 				uiButSetFlag(but, UI_BUT_IMMEDIATE);
 		}
 	}
 	else
-		but= uiDefAutoButR(block, ptr, prop, index, (type == PROP_ENUM && !(flag & UI_ITEM_R_ICON_ONLY))? NULL: "", icon, x, y, w, h);
+		but = uiDefAutoButR(block, ptr, prop, index, (type == PROP_ENUM && !(flag & UI_ITEM_R_ICON_ONLY))? NULL: "", icon, x, y, w, h);
 
 	uiBlockSetCurLayout(block, layout);
 	return but;
@@ -625,7 +625,7 @@ static void ui_item_disabled(uiLayout *layout, const char *name)
 
 	w= ui_text_icon_width(layout, name, 0, 0);
 
-	but= uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	but = uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	but->flag |= UI_BUT_DISABLED;
 	but->lock = 1;
 	but->lockstr = "";
@@ -666,7 +666,7 @@ PointerRNA uiItemFullO_ptr(uiLayout *layout, wmOperatorType *ot, const char *nam
 		}
 	}
 	else {
-		but= uiDefButO_ptr(block, BUT, ot, context, name, 0, 0, w, UI_UNIT_Y, NULL);
+		but = uiDefButO_ptr(block, BUT, ot, context, name, 0, 0, w, UI_UNIT_Y, NULL);
 	}
 
 	assert(but->optype != NULL);
@@ -1105,7 +1105,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	}
 	/* single button */
 	else {
-		but= uiDefAutoButR(block, ptr, prop, index, name, icon, 0, 0, w, h);
+		but = uiDefAutoButR(block, ptr, prop, index, name, icon, 0, 0, w, h);
 
 		if(slider && but->type==NUM)
 			but->type= NUMSLI;
@@ -1463,11 +1463,11 @@ static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCre
 		w -= 10;
 
 	if(name[0] && icon)
-		but= uiDefIconTextMenuBut(block, func, arg, icon, name, 0, 0, w, h, tip);
+		but = uiDefIconTextMenuBut(block, func, arg, icon, name, 0, 0, w, h, tip);
 	else if(icon)
-		but= uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, tip);
+		but = uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, tip);
 	else
-		but= uiDefMenuBut(block, func, arg, name, 0, 0, w, h, tip);
+		but = uiDefMenuBut(block, func, arg, name, 0, 0, w, h, tip);
 
 	if(argN) { /* ugly .. */
 		but->poin= (char*)but;
@@ -1486,7 +1486,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 {
 	MenuType *mt;
 
-	mt= WM_menutype_find(menuname, FALSE);
+	mt = WM_menutype_find(menuname, FALSE);
 
 	if(mt==NULL) {
 		RNA_warning("not found %s", menuname);
@@ -1494,7 +1494,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 	}
 
 	if(!name) {
-		name= IFACE_(mt->label);
+		name = IFACE_(mt->label);
 	}
 
 	if(layout->root->type == UI_LAYOUT_MENU && !icon)
@@ -1520,11 +1520,11 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
 	w= ui_text_icon_width(layout, name, icon, 0);
 
 	if(icon && name[0])
-		but= uiDefIconTextBut(block, LABEL, 0, icon, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+		but = uiDefIconTextBut(block, LABEL, 0, icon, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	else if(icon)
-		but= uiDefIconBut(block, LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+		but = uiDefIconBut(block, LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	else
-		but= uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+		but = uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	
 	return but;
 }

@@ -93,7 +93,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 		/* don't use totrect set, as the width stays the same 
 		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 		 */
-		v2d->tot.ymin= (float)(-height);
+		v2d->tot.ymin = (float)(-height);
 	}
 	/* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
 	UI_view2d_sync(NULL, ac->sa, v2d, V2D_LOCK_COPY);
@@ -209,7 +209,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	/* don't use totrect set, as the width stays the same 
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
-	v2d->tot.ymin= (float)(-height);
+	v2d->tot.ymin = (float)(-height);
 	
 	/* first backdrop strips */
 	y= (float)(-ACHANNEL_HEIGHT);

@@ -553,12 +553,12 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
 	int extend= RNA_boolean_get(op->ptr, "extend");
 	
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 	
 	for(node= snode->edittree->nodes.first; node; node= node->next) {

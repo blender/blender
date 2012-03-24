@@ -441,7 +441,7 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 	Panel *panel= block->panel;
 	rcti hrect;
 	int  pnl_icons;
-	const char *activename= IFACE_(panel->drawname[0] ? panel->drawname : panel->panelname);
+	const char *activename = IFACE_(panel->drawname[0] ? panel->drawname : panel->panelname);
 
 	/* + 0.001f to avoid flirting with float inaccuracy */
 	if(panel->control & UI_PNL_CLOSE) pnl_icons=(panel->labelofs+2*PNL_ICON+5)/block->aspect + 0.001f;
@@ -453,7 +453,7 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 	
 	hrect= *rect;
 	if(dir == 'h') {
-		hrect.xmin= rect->xmin+pnl_icons;
+		hrect.xmin = rect->xmin+pnl_icons;
 		hrect.ymin += 2.0f/block->aspect;
 		uiStyleFontDraw(&style->paneltitle, &hrect, activename);
 	}
@@ -461,7 +461,7 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 		/* ignore 'pnl_icons', otherwise the text gets offset horizontally 
 		 * + 0.001f to avoid flirting with float inaccuracy
 		 */
-		hrect.xmin= rect->xmin + (PNL_ICON+5)/block->aspect + 0.001f;
+		hrect.xmin = rect->xmin + (PNL_ICON+5)/block->aspect + 0.001f;
 		uiStyleFontDrawRotated(&style->paneltitle, &hrect, activename);
 	}
 }
@@ -473,10 +473,10 @@ static void rectf_scale(rctf *rect, float scale)
 	float sizex= 0.5f*scale*(rect->xmax - rect->xmin);
 	float sizey= 0.5f*scale*(rect->ymax - rect->ymin);
 	
-	rect->xmin= centx - sizex;
-	rect->xmax= centx + sizex;
-	rect->ymin= centy - sizey;
-	rect->ymax= centy + sizey;
+	rect->xmin = centx - sizex;
+	rect->xmax = centx + sizex;
+	rect->ymin = centy - sizey;
+	rect->ymax = centy + sizey;
 }
 
 /* panel integrated in buttonswindow, tool/property lists etc */
@@ -494,8 +494,8 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	/* calculate header rect */
 	/* + 0.001f to prevent flicker due to float inaccuracy */
 	headrect= *rect;
-	headrect.ymin= headrect.ymax;
-	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
+	headrect.ymin = headrect.ymax;
+	headrect.ymax = headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
 	
 	{
 		float minx= rect->xmin;
@@ -533,10 +533,10 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
 		
 		/* itemrect smaller */	
-		itemrect.xmax= headrect.xmax - 5.0f/block->aspect;
-		itemrect.xmin= itemrect.xmax - (headrect.ymax-headrect.ymin);
-		itemrect.ymin= headrect.ymin;
-		itemrect.ymax= headrect.ymax;
+		itemrect.xmax = headrect.xmax - 5.0f/block->aspect;
+		itemrect.xmin = itemrect.xmax - (headrect.ymax-headrect.ymin);
+		itemrect.ymin = headrect.ymin;
+		itemrect.ymax = headrect.ymax;
 
 		rectf_scale(&itemrect, 0.7f);
 		ui_draw_panel_dragwidget(&itemrect);
@@ -582,10 +582,10 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	UI_ThemeColor(TH_TEXT);
 	
 	/* itemrect smaller */	
-	itemrect.xmin= headrect.xmin + 5.0f/block->aspect;
-	itemrect.xmax= itemrect.xmin + (headrect.ymax-headrect.ymin);
-	itemrect.ymin= headrect.ymin;
-	itemrect.ymax= headrect.ymax;
+	itemrect.xmin = headrect.xmin + 5.0f/block->aspect;
+	itemrect.xmax = itemrect.xmin + (headrect.ymax-headrect.ymin);
+	itemrect.ymin = headrect.ymin;
+	itemrect.ymax = headrect.ymax;
 	
 	rectf_scale(&itemrect, 0.35f);
 	

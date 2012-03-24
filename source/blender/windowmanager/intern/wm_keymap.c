@@ -335,11 +335,11 @@ wmKeyMapItem *WM_keymap_verify_item(wmKeyMap *keymap, const char *idname, int ty
 {
 	wmKeyMapItem *kmi;
 	
-	for(kmi= keymap->items.first; kmi; kmi= kmi->next)
+	for(kmi = keymap->items.first; kmi; kmi = kmi->next)
 		if(strncmp(kmi->idname, idname, OP_MAX_TYPENAME)==0)
 			break;
 	if(kmi==NULL) {
-		kmi= MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
+		kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 		
 		BLI_addtail(&keymap->items, kmi);
 		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
@@ -355,7 +355,7 @@ wmKeyMapItem *WM_keymap_verify_item(wmKeyMap *keymap, const char *idname, int ty
 /* always add item */
 wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
 {
-	wmKeyMapItem *kmi= MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
+	wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 	
 	BLI_addtail(&keymap->items, kmi);
 	BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
@@ -373,7 +373,7 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, const char *idname, int type,
 /* menu wrapper for WM_keymap_add_item */
 wmKeyMapItem *WM_keymap_add_menu(wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
 {
-	wmKeyMapItem *kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", type, val, modifier, keymodifier);
+	wmKeyMapItem *kmi = WM_keymap_add_item(keymap, "WM_OT_call_menu", type, val, modifier, keymodifier);
 	RNA_string_set(kmi->ptr, "name", idname);
 	return kmi;
 }
@@ -695,7 +695,7 @@ wmKeyMap *WM_modalkeymap_get(wmKeyConfig *keyconf, const char *idname)
 
 wmKeyMapItem *WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value)
 {
-	wmKeyMapItem *kmi= MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
+	wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 	
 	BLI_addtail(&km->items, kmi);
 	kmi->propvalue= value;
@@ -874,7 +874,7 @@ char *WM_key_event_operator_string(
         const bContext *C, const char *opname, int opcontext,
         IDProperty *properties, const short sloppy, char *str, int len)
 {
-	wmKeyMapItem *kmi= wm_keymap_item_find(C, opname, opcontext, properties, 0, sloppy, NULL);
+	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, 0, sloppy, NULL);
 	
 	if(kmi) {
 		WM_keymap_item_to_string(kmi, str, len);
@@ -888,7 +888,7 @@ int WM_key_event_operator_id(
         const bContext *C, const char *opname, int opcontext,
         IDProperty *properties, int hotkey, wmKeyMap **keymap_r)
 {
-	wmKeyMapItem *kmi= wm_keymap_item_find(C, opname, opcontext, properties, hotkey, TRUE, keymap_r);
+	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, hotkey, TRUE, keymap_r);
 	
 	if(kmi)
 		return kmi->id;

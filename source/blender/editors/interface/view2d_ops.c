@@ -1116,12 +1116,12 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		 *	  if zoom is allowed to be changed
 		 */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
-			v2d->cur.xmin= rect.xmin;
-			v2d->cur.xmax= rect.xmax;
+			v2d->cur.xmin = rect.xmin;
+			v2d->cur.xmax = rect.xmax;
 		}
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
-			v2d->cur.ymin= rect.ymin;
-			v2d->cur.ymax= rect.ymax;
+			v2d->cur.ymin = rect.ymin;
+			v2d->cur.ymax = rect.ymax;
 		}
 	}
 	else /* if (gesture_mode == GESTURE_MODAL_OUT) */ {
@@ -1138,16 +1138,16 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 			zoom= size / (rect.xmax - rect.xmin);
 			center= (v2d->cur.xmax + v2d->cur.xmin) * 0.5f;
 			
-			v2d->cur.xmin= center - (size * zoom);
-			v2d->cur.xmax= center + (size * zoom);
+			v2d->cur.xmin = center - (size * zoom);
+			v2d->cur.xmax = center + (size * zoom);
 		}
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
 			size= (v2d->cur.ymax - v2d->cur.ymin);
 			zoom= size / (rect.ymax - rect.ymin);
 			center= (v2d->cur.ymax + v2d->cur.ymin) * 0.5f;
 			
-			v2d->cur.ymin= center - (size * zoom);
-			v2d->cur.ymax= center + (size * zoom);
+			v2d->cur.ymin = center - (size * zoom);
+			v2d->cur.ymax = center + (size * zoom);
 		}
 	}
 	
@@ -1616,29 +1616,29 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 	winx= (float)(v2d->mask.xmax - v2d->mask.xmin + 1);
 	winy= (float)(v2d->mask.ymax - v2d->mask.ymin + 1);
 
-	v2d->cur.xmax= v2d->cur.xmin + winx;
-	v2d->cur.ymax= v2d->cur.ymin + winy;
+	v2d->cur.xmax = v2d->cur.xmin + winx;
+	v2d->cur.ymax = v2d->cur.ymin + winy;
 	
 	/* align */
 	if (v2d->align) {
 		/* posx and negx flags are mutually exclusive, so watch out */
 		if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
-			v2d->cur.xmax= 0.0f;
-			v2d->cur.xmin= -winx*style->panelzoom;
+			v2d->cur.xmax = 0.0f;
+			v2d->cur.xmin = -winx*style->panelzoom;
 		}
 		else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
-			v2d->cur.xmax= winx*style->panelzoom;
-			v2d->cur.xmin= 0.0f;
+			v2d->cur.xmax = winx*style->panelzoom;
+			v2d->cur.xmin = 0.0f;
 		}
 
 		/* - posx and negx flags are mutually exclusive, so watch out */
 		if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
-			v2d->cur.ymax= 0.0f;
-			v2d->cur.ymin= -winy*style->panelzoom;
+			v2d->cur.ymax = 0.0f;
+			v2d->cur.ymin = -winy*style->panelzoom;
 		}
 		else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
-			v2d->cur.ymax= winy*style->panelzoom;
-			v2d->cur.ymin= 0.0f;
+			v2d->cur.ymax = winy*style->panelzoom;
+			v2d->cur.ymin = 0.0f;
 		}
 	}
 
@@ -1689,7 +1689,7 @@ void UI_view2d_operatortypes(void)
 
 void UI_view2d_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "View2D", 0, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "View2D", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* scrollers */
@@ -1742,7 +1742,7 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_border", BKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* Alternative keymap for buttons listview */
-	keymap= WM_keymap_find(keyconf, "View2D Buttons List", 0, 0);
+	keymap = WM_keymap_find(keyconf, "View2D Buttons List", 0, 0);
 
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", MIDDLEMOUSE, KM_PRESS, 0, 0);

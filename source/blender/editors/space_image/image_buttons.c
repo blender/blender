@@ -289,10 +289,10 @@ static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
 	areamouseco_to_ipoco(v2d, mval, &dispf.xmax, &dispf.ymax);
 	
 	/* map to render coordinates */
-	disprect->xmin= dispf.xmin;
-	disprect->xmax= dispf.xmax;
-	disprect->ymin= dispf.ymin;
-	disprect->ymax= dispf.ymax;
+	disprect->xmin = dispf.xmin;
+	disprect->xmax = dispf.xmax;
+	disprect->ymin = dispf.ymin;
+	disprect->ymax = dispf.ymax;
 	
 	CLAMP(disprect->xmin, 0, winx);
 	CLAMP(disprect->xmax, 0, winx);
@@ -532,14 +532,14 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, Image
 	/* menu buts */
 	if(render_slot) {
 		strp= slot_menu();
-		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu1, UI_UNIT_Y, render_slot, 0,0,0,0, "Select Slot");
+		but = uiDefButS(block, MENU, 0, strp,					0, 0, wmenu1, UI_UNIT_Y, render_slot, 0,0,0,0, "Select Slot");
 		uiButSetFunc(but, image_multi_cb, rr, iuser);
 		MEM_freeN(strp);
 	}
 
 	if(rr) {
 		strp= layer_menu(rr, &iuser->layer);
-		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu2, UI_UNIT_Y, &iuser->layer, 0,0,0,0, "Select Layer");
+		but = uiDefButS(block, MENU, 0, strp,					0, 0, wmenu2, UI_UNIT_Y, &iuser->layer, 0,0,0,0, "Select Layer");
 		uiButSetFunc(but, image_multi_cb, rr, iuser);
 		MEM_freeN(strp);
 
@@ -549,7 +549,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, Image
 		
 		rl= BLI_findlink(&rr->layers, layer); /* return NULL is meant to be */
 		strp= pass_menu(rl, &iuser->pass);
-		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu3, UI_UNIT_Y, &iuser->pass, 0,0,0,0, "Select Pass");
+		but = uiDefButS(block, MENU, 0, strp,					0, 0, wmenu3, UI_UNIT_Y, &iuser->pass, 0,0,0,0, "Select Pass");
 		uiButSetFunc(but, image_multi_cb, rr, iuser);
 		MEM_freeN(strp);	
 	}
@@ -572,17 +572,17 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 	}
 
 	/* decrease, increase arrows */
-	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_LEFT,	0,0,17,20, NULL, 0, 0, 0, 0, "Previous Layer");
+	but = uiDefIconBut(block, BUT, 0, ICON_TRIA_LEFT,	0,0,17,20, NULL, 0, 0, 0, 0, "Previous Layer");
 	uiButSetFunc(but, image_multi_declay_cb, rr, iuser);
-	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_RIGHT,	0,0,18,20, NULL, 0, 0, 0, 0, "Next Layer");
+	but = uiDefIconBut(block, BUT, 0, ICON_TRIA_RIGHT,	0,0,18,20, NULL, 0, 0, 0, 0, "Next Layer");
 	uiButSetFunc(but, image_multi_inclay_cb, rr, iuser);
 
 	uiblock_layer_pass_buttons(row, rr, iuser, 230 * dpi_fac, render_slot);
 
 	/* decrease, increase arrows */
-	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_LEFT,	0,0,17,20, NULL, 0, 0, 0, 0, "Previous Pass");
+	but = uiDefIconBut(block, BUT, 0, ICON_TRIA_LEFT,	0,0,17,20, NULL, 0, 0, 0, 0, "Previous Pass");
 	uiButSetFunc(but, image_multi_decpass_cb, rr, iuser);
-	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_RIGHT,	0,0,18,20, NULL, 0, 0, 0, 0, "Next Pass");
+	but = uiDefIconBut(block, BUT, 0, ICON_TRIA_RIGHT,	0,0,18,20, NULL, 0, 0, 0, 0, "Next Pass");
 	uiButSetFunc(but, image_multi_incpass_cb, rr, iuser);
 
 	uiBlockEndAlign(block);
@@ -677,7 +677,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					uiBlockBeginAlign(block);
 					uiDefIconTextBut(block, BUT, B_SIMA_RECORD, ICON_REC, "Record",	10,120,100,20, 0, 0, 0, 0, 0, "");
 					uiDefIconTextBut(block, BUT, B_SIMA_PLAY, ICON_PLAY, "Play",	110,120,100,20, 0, 0, 0, 0, 0, "");
-					but= uiDefBut(block, BUT, B_NOP, "Free Cache",	210,120,100,20, 0, 0, 0, 0, 0, "");
+					but = uiDefBut(block, BUT, B_NOP, "Free Cache",	210,120,100,20, 0, 0, 0, 0, 0, "");
 					uiButSetFunc(but, image_freecache_cb, ima, NULL);
 					
 					if(iuser->frames)
@@ -766,7 +766,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				uiItemR(col, userptr, "frame_duration", 0, str, ICON_NONE);
 				if(ima->anim) {
 					block= uiLayoutGetBlock(col);
-					but= uiDefBut(block, BUT, 0, "Match Movie Length", 0, 0, UI_UNIT_X*2, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Set the number of frames to match the movie or sequence");
+					but = uiDefBut(block, BUT, 0, "Match Movie Length", 0, 0, UI_UNIT_X*2, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Set the number of frames to match the movie or sequence");
 					uiButSetFunc(but, set_frames_cb, ima, iuser);
 				}
 

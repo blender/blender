@@ -280,13 +280,13 @@ static const char *wm_drag_name(wmDrag *drag)
 static void drag_rect_minmax(rcti *rect, int x1, int y1, int x2, int y2)
 {
 	if(rect->xmin > x1)
-		rect->xmin= x1;
+		rect->xmin = x1;
 	if(rect->xmax < x2)
-		rect->xmax= x2;
+		rect->xmax = x2;
 	if(rect->ymin > y1)
-		rect->ymin= y1;
+		rect->ymin = y1;
 	if(rect->ymax < y2)
-		rect->ymax= y2;
+		rect->ymax = y2;
 }
 
 /* called in wm_draw.c */
@@ -300,8 +300,8 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 	cursorx= win->eventstate->x;
 	cursory= win->eventstate->y;
 	if(rect) {
-		rect->xmin= rect->xmax= cursorx;
-		rect->ymin= rect->ymax= cursory;
+		rect->xmin = rect->xmax = cursorx;
+		rect->ymin = rect->ymax = cursory;
 	}
 	
 	/* XXX todo, multiline drag draws... but maybe not, more types mixed wont work well */

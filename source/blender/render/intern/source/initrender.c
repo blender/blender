@@ -594,23 +594,23 @@ void initparts(Render *re)
 		xd= (nr % xparts);
 		yd= (nr-xd)/xparts;
 		
-		disprect.xmin= xminb+ xd*partx;
-		disprect.ymin= yminb+ yd*party;
+		disprect.xmin = xminb+ xd*partx;
+		disprect.ymin = yminb+ yd*party;
 		
 		/* ensure we cover the entire picture, so last parts go to end */
 		if(xd<xparts-1) {
-			disprect.xmax= disprect.xmin + partx;
+			disprect.xmax = disprect.xmin + partx;
 			if(disprect.xmax > xmaxb)
 				disprect.xmax = xmaxb;
 		}
-		else disprect.xmax= xmaxb;
+		else disprect.xmax = xmaxb;
 		
 		if(yd<yparts-1) {
-			disprect.ymax= disprect.ymin + party;
+			disprect.ymax = disprect.ymin + party;
 			if(disprect.ymax > ymaxb)
 				disprect.ymax = ymaxb;
 		}
-		else disprect.ymax= ymaxb;
+		else disprect.ymax = ymaxb;
 		
 		rectx= disprect.xmax - disprect.xmin;
 		recty= disprect.ymax - disprect.ymin;

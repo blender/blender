@@ -651,12 +651,12 @@ static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, wmEvent *event)
 	
 	ui_window_to_block(ar, but->block, &x, &y);
 	
-	rect.xmin= but->x1; rect.xmax= but->x2;
-	rect.ymin= but->y1; rect.ymax= but->y2;
+	rect.xmin = but->x1; rect.xmax = but->x2;
+	rect.ymin = but->y1; rect.ymax = but->y2;
 	
 	if(but->imb); /* use button size itself */
 	else if(but->flag & UI_ICON_LEFT) {
-		rect.xmax= rect.xmin + (rect.ymax-rect.ymin);
+		rect.xmax = rect.xmin + (rect.ymax-rect.ymin);
 	}
 	else {
 		int delta= (rect.xmax-rect.xmin) - (rect.ymax-rect.ymin);
@@ -3295,8 +3295,8 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	float rgb[3];
 	float hsv[3];
 	
-	rect.xmin= but->x1; rect.xmax= but->x2;
-	rect.ymin= but->y1; rect.ymax= but->y2;
+	rect.xmin = but->x1; rect.xmax = but->x2;
+	rect.ymin = but->y1; rect.ymax = but->y2;
 	
 	ui_get_but_vectorf(but, rgb);
 	copy_v3_v3(hsv, ui_block_hsv_get(but->block));
@@ -3801,8 +3801,8 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 	int changed= 1;
 	float /* dx, */ dy, yfac=1.f; /* UNUSED */
 	
-	/* rect.xmin= but->x1; rect.xmax= but->x2; */
-	/* rect.ymin= but->y1; rect.ymax= but->y2; */
+	/* rect.xmin = but->x1; rect.xmax = but->x2; */
+	/* rect.ymin = but->y1; rect.ymax = but->y2; */
 	
 	/* dx = mx - data->draglastx; */ /* UNUSED */
 	dy = my - data->draglasty;
@@ -3884,8 +3884,8 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 	int changed= 1;
 	float /* dx, */ dy /* , yfac=1.f */; /* UNUSED */
 
-	/* rect.xmin= but->x1; rect.xmax= but->x2; */
-	/* rect.ymin= but->y1; rect.ymax= but->y2; */
+	/* rect.xmin = but->x1; rect.xmax = but->x2; */
+	/* rect.ymin = but->y1; rect.ymax = but->y2; */
 
 	/* dx = mx - data->draglastx; */ /* UNUSED */
 	dy = my - data->draglasty;
@@ -3967,8 +3967,8 @@ static int ui_numedit_but_VECTORSCOPE(uiBut *but, uiHandleButtonData *data, int 
 	int changed= 1;
 	/* float dx, dy; */
 
-	/* rect.xmin= but->x1; rect.xmax= but->x2; */
-	/* rect.ymin= but->y1; rect.ymax= but->y2; */
+	/* rect.xmin = but->x1; rect.xmax = but->x2; */
+	/* rect.ymin = but->y1; rect.ymax = but->y2; */
 
 	/* dx = mx - data->draglastx; */
 	/* dy = my - data->draglasty; */
@@ -4507,11 +4507,11 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 		int w = uiLayoutGetWidth(layout);
 		wmKeyMap *km;
-		wmKeyMapItem *kmi= NULL;
+		wmKeyMapItem *kmi = NULL;
 		int kmi_id= WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
 
 		if (kmi_id)
-			kmi= WM_keymap_item_find_id(km, kmi_id);
+			kmi = WM_keymap_item_find_id(km, kmi_id);
 
 		/* keyboard shortcuts */
 		if ((kmi) && ISKEYBOARD(kmi->type)) {
@@ -4882,22 +4882,22 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 		ui_window_to_region(ar, &mx, &my);
 		
 		/* make a copy of the mask rect, and tweak accordingly for hidden scrollbars */
-		mask_rct.xmin= v2d->mask.xmin;
-		mask_rct.xmax= v2d->mask.xmax;
-		mask_rct.ymin= v2d->mask.ymin;
-		mask_rct.ymax= v2d->mask.ymax;
+		mask_rct.xmin = v2d->mask.xmin;
+		mask_rct.xmax = v2d->mask.xmax;
+		mask_rct.ymin = v2d->mask.ymin;
+		mask_rct.ymax = v2d->mask.ymax;
 		
 		if (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE|V2D_SCROLL_VERTICAL_FULLR)) {
 			if (v2d->scroll & V2D_SCROLL_LEFT)
-				mask_rct.xmin= v2d->vert.xmin;
+				mask_rct.xmin = v2d->vert.xmin;
 			else if (v2d->scroll & V2D_SCROLL_RIGHT)
-				mask_rct.xmax= v2d->vert.xmax;
+				mask_rct.xmax = v2d->vert.xmax;
 		}
 		if (v2d->scroll & (V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_HORIZONTAL_FULLR)) {
 			if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O))
-				mask_rct.ymin= v2d->hor.ymin;
+				mask_rct.ymin = v2d->hor.ymin;
 			else if (v2d->scroll & V2D_SCROLL_TOP)
-				mask_rct.ymax= v2d->hor.ymax;
+				mask_rct.ymax = v2d->hor.ymax;
 		}
 		
 		/* check if in the rect */

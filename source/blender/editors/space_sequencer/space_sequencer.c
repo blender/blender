@@ -134,10 +134,10 @@ static SpaceLink *sequencer_new(const bContext *C)
 	ar->v2d.keepzoom= V2D_KEEPASPECT | V2D_KEEPZOOM;
 	ar->v2d.minzoom= 0.00001f;
 	ar->v2d.maxzoom= 100000.0f;
-	ar->v2d.tot.xmin= -960.0f; /* 1920 width centered */
-	ar->v2d.tot.ymin= -540.0f; /* 1080 height centered */
-	ar->v2d.tot.xmax= 960.0f;
-	ar->v2d.tot.ymax= 540.0f;
+	ar->v2d.tot.xmin = -960.0f; /* 1920 width centered */
+	ar->v2d.tot.ymin = -540.0f; /* 1080 height centered */
+	ar->v2d.tot.xmax = 960.0f;
+	ar->v2d.tot.ymax = 540.0f;
 	ar->v2d.min[0]= 0.0f;
 	ar->v2d.min[1]= 0.0f;
 	ar->v2d.max[0]= 12000.0f;
@@ -156,10 +156,10 @@ static SpaceLink *sequencer_new(const bContext *C)
 	
 	/* seq space goes from (0,8) to (0, efra) */
 	
-	ar->v2d.tot.xmin= 0.0f;
-	ar->v2d.tot.ymin= 0.0f;
-	ar->v2d.tot.xmax= scene->r.efra;
-	ar->v2d.tot.ymax= 8.0f;
+	ar->v2d.tot.xmin = 0.0f;
+	ar->v2d.tot.ymin = 0.0f;
+	ar->v2d.tot.xmax = scene->r.efra;
+	ar->v2d.tot.ymax = 8.0f;
 	
 	ar->v2d.cur= ar->v2d.tot;
 	
@@ -300,11 +300,11 @@ static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Sequencer", SPACE_SEQ, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Sequencer", SPACE_SEQ, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	
 	/* add drop boxes */
@@ -424,11 +424,11 @@ static void sequencer_preview_area_init(wmWindowManager *wm, ARegion *ar)
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "SequencerPreview", SPACE_SEQ, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "SequencerPreview", SPACE_SEQ, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

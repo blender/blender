@@ -231,10 +231,10 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 	short selecting= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
 	//int mval[2];
 
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 
 #if 0
 	mval[0]= rect.xmin;

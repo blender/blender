@@ -582,10 +582,10 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	}
 	col[3]= 255;
 
-	rect.xmin= x1;
-	rect.ymin= y1;
-	rect.xmax= x2;
-	rect.ymax= y2;
+	rect.xmin = x1;
+	rect.ymin = y1;
+	rect.xmax = x2;
+	rect.ymax = y2;
 	UI_view2d_text_cache_rectf(v2d, &rect, str, col);
 }
 
@@ -883,10 +883,10 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	if(frame_ofs) {
 		rctf tot_clip;
-		tot_clip.xmin= v2d->tot.xmin + (ABS(v2d->tot.xmax - v2d->tot.xmin) * scene->ed->over_border.xmin);
-		tot_clip.ymin= v2d->tot.ymin + (ABS(v2d->tot.ymax - v2d->tot.ymin) * scene->ed->over_border.ymin);
-		tot_clip.xmax= v2d->tot.xmin + (ABS(v2d->tot.xmax - v2d->tot.xmin) * scene->ed->over_border.xmax);
-		tot_clip.ymax= v2d->tot.ymin + (ABS(v2d->tot.ymax - v2d->tot.ymin) * scene->ed->over_border.ymax);
+		tot_clip.xmin = v2d->tot.xmin + (ABS(v2d->tot.xmax - v2d->tot.xmin) * scene->ed->over_border.xmin);
+		tot_clip.ymin = v2d->tot.ymin + (ABS(v2d->tot.ymax - v2d->tot.ymin) * scene->ed->over_border.ymin);
+		tot_clip.xmax = v2d->tot.xmin + (ABS(v2d->tot.xmax - v2d->tot.xmin) * scene->ed->over_border.xmax);
+		tot_clip.ymax = v2d->tot.ymin + (ABS(v2d->tot.ymax - v2d->tot.ymin) * scene->ed->over_border.ymax);
 
 		glTexCoord2f(scene->ed->over_border.xmin, scene->ed->over_border.ymin);glVertex2f(tot_clip.xmin, tot_clip.ymin);
 		glTexCoord2f(scene->ed->over_border.xmin, scene->ed->over_border.ymax);glVertex2f(tot_clip.xmin, tot_clip.ymax);

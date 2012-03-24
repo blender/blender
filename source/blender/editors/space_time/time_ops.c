@@ -147,8 +147,8 @@ static int time_view_all_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 		
 	/* set extents of view to start/end frames (Preview Range too) */
-	v2d->cur.xmin= (float)PSFRA;
-	v2d->cur.xmax= (float)PEFRA;
+	v2d->cur.xmin = (float)PSFRA;
+	v2d->cur.xmax = (float)PEFRA;
 	
 	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
 	extra= 0.01f * (v2d->cur.xmax - v2d->cur.xmin);
@@ -187,7 +187,7 @@ void time_operatortypes(void)
 
 void time_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Timeline", SPACE_TIME, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "Timeline", SPACE_TIME, 0);
 	
 	WM_keymap_add_item(keymap, "TIME_OT_start_frame_set", SKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_end_frame_set", EKEY, KM_PRESS, 0, 0);

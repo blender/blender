@@ -495,7 +495,7 @@ static void image_operatortypes(void)
 
 static void image_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Image Generic", SPACE_IMAGE, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "Image Generic", SPACE_IMAGE, 0);
 	wmKeyMapItem *kmi;
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
@@ -509,7 +509,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, KM_ALT, 0)->ptr, "reverse", TRUE);
 	
-	keymap= WM_keymap_find(keyconf, "Image", SPACE_IMAGE, 0);
+	keymap = WM_keymap_find(keyconf, "Image", SPACE_IMAGE, 0);
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
@@ -540,7 +540,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
 
 	/* toggle editmode is handy to have while UV unwrapping */
-	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
 	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 }
@@ -724,14 +724,14 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 	winx= ar->winrct.xmax - ar->winrct.xmin + 1;
 	winy= ar->winrct.ymax - ar->winrct.ymin + 1;
 		
-	ar->v2d.tot.xmin= 0;
-	ar->v2d.tot.ymin= 0;
-	ar->v2d.tot.xmax= w;
-	ar->v2d.tot.ymax= h;
+	ar->v2d.tot.xmin = 0;
+	ar->v2d.tot.ymin = 0;
+	ar->v2d.tot.xmax = w;
+	ar->v2d.tot.ymax = h;
 	
-	ar->v2d.mask.xmin= ar->v2d.mask.ymin= 0;
-	ar->v2d.mask.xmax= winx;
-	ar->v2d.mask.ymax= winy;
+	ar->v2d.mask.xmin = ar->v2d.mask.ymin = 0;
+	ar->v2d.mask.xmax = winx;
+	ar->v2d.mask.ymax = winy;
 
 	/* which part of the image space do we see? */
 	x1= ar->winrct.xmin+(winx-sima->zoom*w)/2.0f;
@@ -741,12 +741,12 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 	y1-= sima->zoom*sima->yof;
 	
 	/* relative display right */
-	ar->v2d.cur.xmin= ((ar->winrct.xmin - (float)x1)/sima->zoom);
-	ar->v2d.cur.xmax= ar->v2d.cur.xmin + ((float)winx/sima->zoom);
+	ar->v2d.cur.xmin = ((ar->winrct.xmin - (float)x1)/sima->zoom);
+	ar->v2d.cur.xmax = ar->v2d.cur.xmin + ((float)winx/sima->zoom);
 	
 	/* relative display left */
-	ar->v2d.cur.ymin= ((ar->winrct.ymin-(float)y1)/sima->zoom);
-	ar->v2d.cur.ymax= ar->v2d.cur.ymin + ((float)winy/sima->zoom);
+	ar->v2d.cur.ymin = ((ar->winrct.ymin-(float)y1)/sima->zoom);
+	ar->v2d.cur.ymax = ar->v2d.cur.ymin + ((float)winy/sima->zoom);
 	
 	/* normalize 0.0..1.0 */
 	ar->v2d.cur.xmin /= w;
@@ -764,19 +764,19 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	// UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
 	/* image paint polls for mode */
-	keymap= WM_keymap_find(wm->defaultconf, "Image Paint", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Image Paint", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_find(wm->defaultconf, "UV Editor", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "UV Editor", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "UV Sculpt", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "UV Sculpt", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* own keymaps */
-	keymap= WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	keymap= WM_keymap_find(wm->defaultconf, "Image", SPACE_IMAGE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Image", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 }
@@ -851,7 +851,7 @@ static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -890,7 +890,7 @@ static void image_scope_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 

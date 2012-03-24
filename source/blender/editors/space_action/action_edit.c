@@ -355,8 +355,8 @@ static int actkeys_viewall(bContext *C, const short onlySel)
 	v2d->cur.xmax += extra;
 	
 	/* set vertical range */
-	v2d->cur.ymax= 0.0f;
-	v2d->cur.ymin= (float)-(v2d->mask.ymax - v2d->mask.ymin);
+	v2d->cur.ymax = 0.0f;
+	v2d->cur.ymin = (float)-(v2d->mask.ymax - v2d->mask.ymin);
 	
 	/* do View2D syncing */
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);

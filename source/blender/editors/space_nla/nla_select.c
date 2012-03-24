@@ -294,10 +294,10 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 		deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_SUBTRACT);
 
 	/* get settings from operator */
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 		
 	if (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT)
 		selectmode = SELECT_ADD;

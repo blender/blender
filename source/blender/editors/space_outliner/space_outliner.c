@@ -66,7 +66,7 @@ static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
 	/* don't pass on view2d mask, it's always set with scrollbar space, hide fails */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, &ar->winrct);
 

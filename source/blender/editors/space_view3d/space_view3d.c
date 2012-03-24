@@ -384,72 +384,72 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	/* object ops. */
 	
 	/* important to be before Pose keymap since they can both be enabled at once */
-	keymap= WM_keymap_find(wm->defaultconf, "Face Mask", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Face Mask", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Weight Paint Vertex Selection", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Weight Paint Vertex Selection", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* pose is not modal, operator poll checks for this */
-	keymap= WM_keymap_find(wm->defaultconf, "Pose", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Pose", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Object Mode", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Object Mode", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Image Paint", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Image Paint", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Vertex Paint", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Vertex Paint", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Weight Paint", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Weight Paint", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Sculpt", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Sculpt", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Mesh", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Mesh", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Curve", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Curve", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Armature", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Armature", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Pose", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Pose", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Metaball", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Metaball", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Lattice", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Lattice", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* armature sketching needs to take over mouse */
-	keymap= WM_keymap_find(wm->defaultconf, "Armature Sketch", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Armature Sketch", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Particle", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Particle", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* editfont keymap swallows all... */
-	keymap= WM_keymap_find(wm->defaultconf, "Font", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Font", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Object Non-modal", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Object Non-modal", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* own keymap, last so modes can override it */
-	keymap= WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "3D View", SPACE_VIEW3D, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "3D View", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	/* add drop boxes */
@@ -812,7 +812,7 @@ static void view3d_main_area_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion 
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
+	wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
 	
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
@@ -856,7 +856,7 @@ static void view3d_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -955,7 +955,7 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 

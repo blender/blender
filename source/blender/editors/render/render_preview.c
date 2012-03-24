@@ -505,8 +505,8 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		
 		if(ABS(rres.rectx-newx)<2 && ABS(rres.recty-newy)<2) {
 
-			newrect->xmax= MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
-			newrect->ymax= MAX2(newrect->ymax, rect->ymin + rres.recty);
+			newrect->xmax = MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
+			newrect->ymax = MAX2(newrect->ymax, rect->ymin + rres.recty);
 
 			if(rres.rectx && rres.recty) {
 				/* temporary conversion to byte for drawing */
@@ -549,10 +549,10 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		int ok;
 		int newx= rect->xmax-rect->xmin, newy= rect->ymax-rect->ymin;
 
-		newrect.xmin= rect->xmin;
-		newrect.xmax= rect->xmin;
-		newrect.ymin= rect->ymin;
-		newrect.ymax= rect->ymin;
+		newrect.xmin = rect->xmin;
+		newrect.xmax = rect->xmin;
+		newrect.ymin = rect->ymin;
+		newrect.ymax = rect->ymin;
 
 		if(parent) {
 			ok = ed_preview_draw_rect(sa, sce, id, 1, 1, rect, &newrect);

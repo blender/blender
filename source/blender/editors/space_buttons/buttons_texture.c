@@ -395,11 +395,11 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 	BLI_snprintf(name, UI_MAX_NAME_STR, "%s", user->name);
 
 	if(user->icon) {
-		but= uiDefIconTextMenuBut(block, template_texture_user_menu, NULL,
+		but = uiDefIconTextMenuBut(block, template_texture_user_menu, NULL,
 			user->icon, name, 0, 0, UI_UNIT_X*4, UI_UNIT_Y, "");
 	}
 	else {
-		but= uiDefMenuBut(block, template_texture_user_menu, NULL,
+		but = uiDefMenuBut(block, template_texture_user_menu, NULL,
 			name, 0, 0, UI_UNIT_X*4, UI_UNIT_Y, "");
 	}
 
@@ -459,7 +459,7 @@ void uiTemplateTextureShow(uiLayout *layout, bContext *C, PointerRNA *ptr, Prope
 		uiBlock *block = uiLayoutGetBlock(layout);
 		uiBut *but;
 		
-		but= uiDefIconBut(block, BUT, 0, ICON_BUTS, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+		but = uiDefIconBut(block, BUT, 0, ICON_BUTS, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			NULL, 0.0, 0.0, 0.0, 0.0, "Show texture in texture tab");
 		uiButSetFunc(but, template_texture_show, user->ptr.data, user->prop);
 	}

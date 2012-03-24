@@ -2431,10 +2431,10 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	int change, pinned, select, faces, extend;
 
 	/* get rectangle from operator */
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 		
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
@@ -3571,8 +3571,8 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	
-	keymap= WM_keymap_find(keyconf, "UV Editor", 0, 0);
-	keymap->poll= ED_operator_uvedit_can_uv_sculpt;
+	keymap = WM_keymap_find(keyconf, "UV Editor", 0, 0);
+	keymap->poll = ED_operator_uvedit_can_uv_sculpt;
 
 	/* Uv sculpt toggle */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);

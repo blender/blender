@@ -252,7 +252,7 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 	/* flush drag item */
 	if(rect.xmin!=rect.xmax) {
 		wm_flush_regions_down(screen, &rect);
-		rect.xmin= rect.xmax = 0;
+		rect.xmin = rect.xmax = 0;
 	}
 	if(wm->drags.first) {
 		/* doesnt draw, fills rect with boundbox */

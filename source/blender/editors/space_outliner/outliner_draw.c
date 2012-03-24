@@ -584,7 +584,7 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 static void operator_call_cb(struct bContext *UNUSED(C), void *arg_kmi, void *arg2)
 {
 	wmOperatorType *ot= arg2;
-	wmKeyMapItem *kmi= arg_kmi;
+	wmKeyMapItem *kmi = arg_kmi;
 	
 	if(ot)
 		BLI_strncpy(kmi->idname, ot->idname, OP_MAX_TYPENAME);
@@ -616,7 +616,7 @@ static uiBlock *operator_search_menu(bContext *C, ARegion *ar, void *arg_kmi)
 	static char search[OP_MAX_TYPENAME];
 	wmEvent event;
 	wmWindow *win= CTX_wm_window(C);
-	wmKeyMapItem *kmi= arg_kmi;
+	wmKeyMapItem *kmi = arg_kmi;
 	wmOperatorType *ot= WM_operatortype_find(kmi->idname, 0);
 	uiBlock *block;
 	uiBut *but;
@@ -630,7 +630,7 @@ static uiBlock *operator_search_menu(bContext *C, ARegion *ar, void *arg_kmi)
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, 150, UI_UNIT_Y, 0, 0, "");
+	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, 150, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, arg_kmi, operator_call_cb, ot);
 	
 	uiBoundsBlock(block, 6);
@@ -735,7 +735,7 @@ static const char *keymap_tweak_dir_menu(void)
 
 static void keymap_type_cb(bContext *C, void *kmi_v, void *UNUSED(arg_v))
 {
-	wmKeyMapItem *kmi= kmi_v;
+	wmKeyMapItem *kmi = kmi_v;
 	short maptype= keymap_menu_type(kmi->type);
 	
 	if(maptype!=kmi->maptype) {
@@ -778,7 +778,7 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 			int butw3= 43; /* modifiers */
 
 			if(tselem->type == TSE_KEYMAP_ITEM) {
-				wmKeyMapItem *kmi= te->directdata;
+				wmKeyMapItem *kmi = te->directdata;
 				
 				/* modal map? */
 				if(kmi->propvalue);
@@ -791,7 +791,7 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 				kmi->maptype= keymap_menu_type(kmi->type);
 				
 				str= keymap_type_menu();
-				but= uiDefButS(block, MENU, 0, str,	xstart, (int)te->ys+1, butw2, UI_UNIT_Y-1, &kmi->maptype, 0, 0, 0, 0, "Event type");
+				but = uiDefButS(block, MENU, 0, str,	xstart, (int)te->ys+1, butw2, UI_UNIT_Y-1, &kmi->maptype, 0, 0, 0, 0, "Event type");
 				uiButSetFunc(but, keymap_type_cb, kmi, NULL);
 				xstart+= butw2+5;
 				
@@ -902,7 +902,7 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 	} else {
 		/* XXX investigate: button placement of icons is way different than UI_icon_draw? */
 		float ufac= UI_UNIT_X/20.0f;
-		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-3.0f*ufac, arg->y, UI_UNIT_X-4.0f*ufac, UI_UNIT_Y-4.0f*ufac, NULL, 0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
+		uiBut *but = uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-3.0f*ufac, arg->y, UI_UNIT_X-4.0f*ufac, UI_UNIT_Y-4.0f*ufac, NULL, 0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
 		
 		if(arg->id)
 			uiButSetDragID(but, arg->id);
@@ -917,7 +917,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 	/* make function calls a bit compacter */
 	arg.block= block;
 	arg.id= tselem->id;
-	arg.xmax= xmax;
+	arg.xmax = xmax;
 	arg.x= x;
 	arg.y= y;
 	arg.alpha= alpha;

@@ -428,10 +428,10 @@ int mouse_mball(bContext *C, const int mval[2], int extend)
 
 	view3d_set_viewcontext(C, &vc);
 
-	rect.xmin= mval[0]-12;
-	rect.xmax= mval[0]+12;
-	rect.ymin= mval[1]-12;
-	rect.ymax= mval[1]+12;
+	rect.xmin = mval[0]-12;
+	rect.xmax = mval[0]+12;
+	rect.ymin = mval[1]-12;
+	rect.ymax = mval[1]+12;
 
 	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 

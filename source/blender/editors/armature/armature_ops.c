@@ -170,31 +170,31 @@ void ED_operatormacros_armature(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot= WM_operatortype_append_macro("ARMATURE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("ARMATURE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		ot->description = "Make copies of the selected bones within the same armature and move them";
 		WM_operatortype_macro_define(ot, "ARMATURE_OT_duplicate");
-		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
 	}
 
-	ot= WM_operatortype_append_macro("ARMATURE_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("ARMATURE_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		ot->description = "Create new bones from the selected joints and move them";
 		otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
 		RNA_boolean_set(otmacro->ptr, "forked", FALSE);
-		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
 	}
 	
 	// XXX would it be nicer to just be able to have standard extrude_move, but set the forked property separate?
 	// that would require fixing a properties bug 19733
-	ot= WM_operatortype_append_macro("ARMATURE_OT_extrude_forked", "Extrude Forked", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("ARMATURE_OT_extrude_forked", "Extrude Forked", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		ot->description = "Create new bones from the selected joints and move them";
 		otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
 		RNA_boolean_set(otmacro->ptr, "forked", TRUE);
-		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
 	}
 }
@@ -205,8 +205,8 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 	
 	/* Armature ------------------------ */
-	keymap= WM_keymap_find(keyconf, "Armature", 0, 0);
-	keymap->poll= ED_operator_editarmature;
+	keymap = WM_keymap_find(keyconf, "Armature", 0, 0);
+	keymap->poll = ED_operator_editarmature;
 	
 	/* Armature -> Etch-A-Ton ------------------------ */
 	WM_keymap_add_item(keymap, "SKETCH_OT_delete", XKEY, KM_PRESS, 0, 0);
@@ -228,7 +228,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	/* only set in editmode armature, by space_view3d listener */
 	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
-	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
 
 	WM_keymap_add_item(keymap, "ARMATURE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
@@ -247,17 +247,17 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
 		RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 	
-	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
 		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
 		RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	
-	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
 		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
 		RNA_boolean_set(kmi->ptr, "extend", TRUE);
 
@@ -286,10 +286,10 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 		/* special transforms: */
 		/* 	1) envelope/b-bone size */
-	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
 		/* 	2) set roll */
-	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", RKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", RKEY, KM_PRESS, KM_CTRL, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONE_ROLL);
 		
 		/* menus */
@@ -297,8 +297,8 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
 	/* Pose ------------------------ */
 	/* only set in posemode, by space_view3d listener */
-	keymap= WM_keymap_find(keyconf, "Pose", 0, 0);
-	keymap->poll= ED_operator_posemode;
+	keymap = WM_keymap_find(keyconf, "Pose", 0, 0);
+	keymap->poll = ED_operator_posemode;
 	
 	/* set parent and add object are object-based operators, but we make them
 	 * available here because it's useful to do in pose mode too */
@@ -327,7 +327,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "flipped", FALSE);
 
-	kmi= WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "flipped", TRUE);
 	
 	kmi = WM_keymap_add_item(keymap, "POSE_OT_select_all", AKEY, KM_PRESS, 0, 0);
@@ -337,17 +337,17 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "POSE_OT_select_parent", PKEY, KM_PRESS, KM_SHIFT, 0);
 
-	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
 		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
 		RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	
-	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
 		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
 		RNA_boolean_set(kmi->ptr, "extend", TRUE);
 
@@ -374,7 +374,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 		/* special transforms: */
 		/* 	1) envelope/b-bone size */
-	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
 	
 		/* keyframes management */

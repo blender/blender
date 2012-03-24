@@ -940,10 +940,10 @@ static void gp_stroke_doeraser (tGPsdata *p)
 	rcti rect;
 	
 	/* rect is rectangle of eraser */
-	rect.xmin= p->mval[0] - p->radius;
-	rect.ymin= p->mval[1] - p->radius;
-	rect.xmax= p->mval[0] + p->radius;
-	rect.ymax= p->mval[1] + p->radius;
+	rect.xmin = p->mval[0] - p->radius;
+	rect.ymin = p->mval[1] - p->radius;
+	rect.xmax = p->mval[0] + p->radius;
+	rect.ymax = p->mval[1] + p->radius;
 	
 	/* loop over strokes, checking segments for intersections */
 	for (gps= gpf->strokes.first; gps; gps= gpn) {

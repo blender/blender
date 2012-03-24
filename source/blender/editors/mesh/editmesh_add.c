@@ -55,7 +55,7 @@
 /* returns standard diameter */
 static float new_primitive_matrix(bContext *C, float *loc, float *rot, float primmat[][4])
 {
-	Object *obedit= CTX_data_edit_object(C);
+	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
 	
@@ -85,11 +85,11 @@ static void make_prim_init(bContext *C, const char *idname,
                            float *dia, float mat[][4],
                            int *state, float *loc, float *rot, unsigned int layer)
 {
-	Object *obedit= CTX_data_edit_object(C);
+	Object *obedit = CTX_data_edit_object(C);
 
 	*state = 0;
-	if(obedit==NULL || obedit->type!=OB_MESH) {
-		obedit= ED_object_add_type(C, OB_MESH, loc, rot, FALSE, layer);
+	if (obedit == NULL || obedit->type != OB_MESH) {
+		obedit = ED_object_add_type(C, OB_MESH, loc, rot, FALSE, layer);
 		
 		rename_id((ID *)obedit, idname);
 		rename_id((ID *)obedit->data, idname);
@@ -186,7 +186,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, "Cube", &dia, mat, &state, loc, rot, layer);
 
-	obedit= CTX_data_edit_object(C);
+	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
 	em = me->edit_btmesh;
 
@@ -235,7 +235,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	
 	cap_end = RNA_enum_get(op->ptr, "fill_type");
-	cap_tri = cap_end==2;
+	cap_tri = (cap_end == 2);
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, "Circle", &dia, mat, &state, loc, rot, layer);
@@ -294,7 +294,7 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	
 	cap_end = RNA_enum_get(op->ptr, "end_fill_type");
-	cap_tri = cap_end==2;
+	cap_tri = (cap_end == 2);
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, "Cylinder", &dia, mat, &state, loc, rot, layer);
@@ -359,7 +359,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	
 	cap_end = RNA_enum_get(op->ptr, "end_fill_type");
-	cap_tri = cap_end==2;
+	cap_tri = (cap_end == 2);
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, "Cone", &dia, mat, &state, loc, rot, layer);
@@ -480,7 +480,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &view_aligned);
 	if (!view_aligned)
-		rot[0] += M_PI/2.0f;
+		rot[0] += M_PI / 2.0f;
 	
 	make_prim_init(C, "Monkey", &dia, mat, &state, loc, rot, layer);
 
@@ -534,7 +534,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	if (!EDBM_CallAndSelectOpf(em, op, "vertout",
 	                           "create_uvsphere segments=%i revolutions=%i diameter=%f mat=%m4",
 	                           RNA_int_get(op->ptr, "segments"), RNA_int_get(op->ptr, "ring_count"),
-	                           RNA_float_get(op->ptr,"size"), mat))
+	                           RNA_float_get(op->ptr, "size"), mat))
 	{
 		return OPERATOR_CANCELLED;
 	}

@@ -1462,10 +1462,10 @@ typedef struct BSPFace {
 /* boxes are in lamp projection */
 static void init_box(Boxf *box)
 {
-	box->xmin= 1000000.0f;
-	box->xmax= 0;
-	box->ymin= 1000000.0f;
-	box->ymax= 0;
+	box->xmin = 1000000.0f;
+	box->xmax = 0;
+	box->ymin = 1000000.0f;
+	box->ymax = 0;
 	box->zmin= 0x7FFFFFFF;
 	box->zmax= - 0x7FFFFFFF;
 }
@@ -1473,10 +1473,10 @@ static void init_box(Boxf *box)
 /* use v1 to calculate boundbox */
 static void bound_boxf(Boxf *box, const float v1[3])
 {
-	if(v1[0] < box->xmin) box->xmin= v1[0];
-	if(v1[0] > box->xmax) box->xmax= v1[0];
-	if(v1[1] < box->ymin) box->ymin= v1[1];
-	if(v1[1] > box->ymax) box->ymax= v1[1];
+	if(v1[0] < box->xmin) box->xmin = v1[0];
+	if(v1[0] > box->xmax) box->xmax = v1[0];
+	if(v1[1] < box->ymin) box->ymin = v1[1];
+	if(v1[1] > box->ymax) box->ymax = v1[1];
 	if(v1[2] < box->zmin) box->zmin= v1[2];
 	if(v1[2] > box->zmax) box->zmax= v1[2];
 }
@@ -1484,10 +1484,10 @@ static void bound_boxf(Boxf *box, const float v1[3])
 /* use v1 to calculate boundbox */
 static void bound_rectf(rctf *box, const float v1[2])
 {
-	if(v1[0] < box->xmin) box->xmin= v1[0];
-	if(v1[0] > box->xmax) box->xmax= v1[0];
-	if(v1[1] < box->ymin) box->ymin= v1[1];
-	if(v1[1] > box->ymax) box->ymax= v1[1];
+	if(v1[0] < box->xmin) box->xmin = v1[0];
+	if(v1[0] > box->xmax) box->xmax = v1[0];
+	if(v1[1] < box->ymin) box->ymin = v1[1];
+	if(v1[1] > box->ymax) box->ymax = v1[1];
 }
 
 
@@ -1517,12 +1517,12 @@ static void isb_bsp_split_init(ISBBranch *root, MemArena *mem, int level)
 		left->box= root->box;
 		right->box= root->box;
 		if(i==0) {
-			left->box.xmax= root->divider[0];
-			right->box.xmin= root->divider[0];
+			left->box.xmax = root->divider[0];
+			right->box.xmin = root->divider[0];
 		}
 		else {
-			left->box.ymax= root->divider[1];
-			right->box.ymin= root->divider[1];
+			left->box.ymax = root->divider[1];
+			right->box.ymin = root->divider[1];
 		}
 		isb_bsp_split_init(left, mem, level-1);
 		isb_bsp_split_init(right, mem, level-1);
@@ -1591,12 +1591,12 @@ static void isb_bsp_split(ISBBranch *root, MemArena *mem)
 	left->box= root->box;
 	right->box= root->box;
 	if(i==0) {
-		left->box.xmax= root->divider[0];
-		right->box.xmin= root->divider[0];
+		left->box.xmax = root->divider[0];
+		right->box.xmin = root->divider[0];
 	}
 	else {
-		left->box.ymax= root->divider[1];
-		right->box.ymin= root->divider[1];
+		left->box.ymax = root->divider[1];
+		right->box.ymin = root->divider[1];
 	}
 }
 
@@ -2224,8 +2224,8 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 	
 	/* setup bsp root */
 	memset(&root, 0, sizeof(ISBBranch));
-	root.box.xmin= (float)shb->size;
-	root.box.ymin= (float)shb->size;
+	root.box.xmin = (float)shb->size;
+	root.box.ymin = (float)shb->size;
 	
 	/* create the sample buffers */
 	for(sindex=0, y=0; y<pa->recty; y++) {
@@ -2428,8 +2428,8 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 	
 	/* setup bsp root */
 	memset(&root, 0, sizeof(ISBBranch));
-	root.box.xmin= (float)shb->size;
-	root.box.ymin= (float)shb->size;
+	root.box.xmin = (float)shb->size;
+	root.box.ymin = (float)shb->size;
 
 	/* create the sample buffers */
 	for(ap= apixbuf, sindex=0, y=0; y<pa->recty; y++) {

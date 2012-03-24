@@ -152,8 +152,8 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	scopesptr= RNA_property_pointer_get(ptr, prop);
 	scopes= (MovieClipScopes *)scopesptr.data;
 
-	rect.xmin= 0; rect.xmax= 200;
-	rect.ymin= 0; rect.ymax= 120;
+	rect.xmin = 0; rect.xmax = 200;
+	rect.ymin = 0; rect.ymax = 120;
 
 	block= uiLayoutAbsoluteBlock(layout);
 

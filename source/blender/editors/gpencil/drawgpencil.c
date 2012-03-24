@@ -791,10 +791,10 @@ void draw_gpencil_view3d (Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 		BLI_copy_rcti_rctf(&rect, &rectf);
 	}
 	else {
-		rect.xmin= 0;
-		rect.ymin= 0;
-		rect.xmax= ar->winx;
-		rect.ymax= ar->winy;
+		rect.xmin = 0;
+		rect.ymin = 0;
+		rect.xmax = ar->winx;
+		rect.ymax = ar->winy;
 	}
 	
 	/* draw it! */

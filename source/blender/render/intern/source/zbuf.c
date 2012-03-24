@@ -3449,10 +3449,10 @@ void zbuffer_abuf_shadow(Render *re, LampRen *lar, float winmat[][4], APixstr *A
 	memset(&pa, 0, sizeof(RenderPart));
 	pa.rectx= size;
 	pa.recty= size;
-	pa.disprect.xmin= 0;
-	pa.disprect.ymin= 0;
-	pa.disprect.xmax= size;
-	pa.disprect.ymax= size;
+	pa.disprect.xmin = 0;
+	pa.disprect.ymin = 0;
+	pa.disprect.xmax = size;
+	pa.disprect.ymax = size;
 
 	zbuffer_abuf(re, &pa, APixbuf, apsmbase, lay, 0, winmat, size, size, samples, jit, 1.0f, 1);
 	if(APixbufstrand)
@@ -4034,8 +4034,8 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	}
 	
 	/* init scanline updates */
-	rr->renrect.ymin= 0;
-	rr->renrect.ymax= -pa->crop;
+	rr->renrect.ymin = 0;
+	rr->renrect.ymax = -pa->crop;
 	rr->renlay= rl;
 				
 	/* render the tile */

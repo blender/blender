@@ -312,10 +312,10 @@ void camera_params_compute_viewplane(CameraParams *params, int winx, int winy, f
 
 	/* compute view plane:
 	 * fully centered, zbuffer fills in jittered between -.5 and +.5 */
-	viewplane.xmin= -0.5f*(float)winx;
-	viewplane.ymin= -0.5f*params->ycor*(float)winy;
-	viewplane.xmax=  0.5f*(float)winx;
-	viewplane.ymax=  0.5f*params->ycor*(float)winy;
+	viewplane.xmin = -0.5f*(float)winx;
+	viewplane.ymin = -0.5f*params->ycor*(float)winy;
+	viewplane.xmax =  0.5f*(float)winx;
+	viewplane.ymax =  0.5f*params->ycor*(float)winy;
 
 	/* lens shift and offset */
 	dx= params->shiftx*viewfac + winx*params->offsetx;

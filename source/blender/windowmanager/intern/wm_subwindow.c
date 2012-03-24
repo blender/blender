@@ -220,9 +220,9 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 		 */
 		
 		if (swin->winrct.xmax > win->sizex)
-			swin->winrct.xmax= win->sizex;
+			swin->winrct.xmax = win->sizex;
 		if (swin->winrct.ymax > win->sizey)
-			swin->winrct.ymax= win->sizey;
+			swin->winrct.ymax = win->sizey;
 		
 		/* extra service */
 		wmSubWindowSet(win, swinid);

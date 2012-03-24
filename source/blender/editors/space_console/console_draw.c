@@ -214,8 +214,8 @@ static int console_textview_main__internal(struct SpaceConsole *sc, struct ARegi
 	tvc.sel_start= sc->sel_start;
 	tvc.sel_end= sc->sel_end;
 	tvc.lheight= sc->lheight;
-	tvc.ymin= v2d->cur.ymin;
-	tvc.ymax= v2d->cur.ymax;
+	tvc.ymin = v2d->cur.ymin;
+	tvc.ymax = v2d->cur.ymax;
 	tvc.winx= ar->winx;
 
 	console_scrollback_prompt_begin(sc, &cl_dummy);

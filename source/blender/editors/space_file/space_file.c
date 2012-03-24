@@ -272,10 +272,10 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymaps */
-	keymap= WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_find(wm->defaultconf, "File Browser Main", SPACE_FILE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser Main", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 							   
 
@@ -335,7 +335,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		/* view2d has no type specific for filewindow case, which doesnt scroll vertically */
 		if(v2d->cur.ymax < 0) {
 			v2d->cur.ymin -= v2d->cur.ymax;
-			v2d->cur.ymax= 0;
+			v2d->cur.ymax = 0;
 		}
 	}
 	/* v2d has initialized flag, so this call will only set the mask correct */
@@ -395,7 +395,7 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMapItem *kmi;
 	/* keys for all areas */
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "File Browser", SPACE_FILE, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "File Browser", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_bookmark_toggle", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_bookmark_add", BKEY, KM_PRESS, KM_CTRL, 0);
@@ -408,8 +408,8 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "FILE_OT_smoothscroll", TIMER1, KM_ANY, KM_ANY, 0);
 
 	/* keys for main area */
-	keymap= WM_keymap_find(keyconf, "File Browser Main", SPACE_FILE, 0);
-	kmi= WM_keymap_add_item(keymap, "FILE_OT_execute", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
+	keymap = WM_keymap_find(keyconf, "File Browser Main", SPACE_FILE, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_execute", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
 	RNA_boolean_set(kmi->ptr, "need_active", TRUE);
 	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, KM_SHIFT, 0);
@@ -438,7 +438,7 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 	
 	
 	/* keys for button area (top) */
-	keymap= WM_keymap_find(keyconf, "File Browser Buttons", SPACE_FILE, 0);
+	keymap = WM_keymap_find(keyconf, "File Browser Buttons", SPACE_FILE, 0);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "increment", 1);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_SHIFT, 0);
@@ -461,7 +461,7 @@ static void file_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	ED_region_panels_init(wm, ar);
 
 	/* own keymaps */
-	keymap= WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);	
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);	
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -485,7 +485,7 @@ static void file_header_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	ED_region_header_init(ar);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);	
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);	
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -502,10 +502,10 @@ static void file_ui_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_find(wm->defaultconf, "File Browser Buttons", SPACE_FILE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser Buttons", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -518,8 +518,8 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* scrolling here is just annoying, disable it */
-	ar->v2d.cur.ymax= ar->v2d.cur.ymax - ar->v2d.cur.ymin;
-	ar->v2d.cur.ymin= 0;
+	ar->v2d.cur.ymax = ar->v2d.cur.ymax - ar->v2d.cur.ymin;
+	ar->v2d.cur.ymin = 0;
 
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(&ar->v2d);

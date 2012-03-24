@@ -1931,7 +1931,7 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int status = 0, uvs = RNA_boolean_get(op->ptr, "uvs");
 
-	switch(RNA_enum_get(op->ptr, "type")) {
+	switch (RNA_enum_get(op->ptr, "type")) {
 		case 3:
 			status = merge_target(em, scene, v3d, obedit, 0, uvs, op);
 			break;
@@ -2052,7 +2052,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s", count, (count==1)?"ex":"ices");
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s", count, (count == 1) ? "ex" : "ices");
 
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
@@ -2630,7 +2630,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 
 		BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(ev, BM_ELEM_HIDDEN)) {
-				switch(mode) {
+				switch (mode) {
 				case -1: /* aligned */
 					if (fabs(ev->co[axis] - value) < limit)
 						BM_elem_select_set(em->bm, ev, TRUE);
@@ -2820,7 +2820,7 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 
 	*isected = 0;
 
-	/* check for *exact* vertex intersection first */
+	/* check for _exact_ vertex intersection first */
 	if (mode != KNIFE_MULTICUT) {
 		for (i = 0; i < len; i++) {
 			if (i > 0) {
@@ -2937,7 +2937,7 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 		}	
 		lastdist = dist;
 	}
-	return(perc);
+	return perc;
 } 
 
 #define MAX_CUTS 2048
@@ -2973,7 +2973,9 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 		
 		RNA_float_get_array(&itemptr, "loc", (float *)&curve[len]);
 		len++;
-		if (len >= MAX_CUTS) break;
+		if (len >= MAX_CUTS) {
+			break;
+		}
 	}
 	RNA_END;
 	

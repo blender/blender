@@ -74,10 +74,10 @@ static void region_draw_emboss(ARegion *ar, rcti *scirct)
 	rcti rect;
 	
 	/* translate scissor rect to region space */
-	rect.xmin= scirct->xmin - ar->winrct.xmin;
-	rect.ymin= scirct->ymin - ar->winrct.ymin;
-	rect.xmax= scirct->xmax - ar->winrct.xmin;
-	rect.ymax= scirct->ymax - ar->winrct.ymin;
+	rect.xmin = scirct->xmin - ar->winrct.xmin;
+	rect.ymin = scirct->ymin - ar->winrct.ymin;
+	rect.xmax = scirct->xmax - ar->winrct.xmin;
+	rect.ymax = scirct->ymax - ar->winrct.ymin;
 	
 	/* set transp line */
 	glEnable( GL_BLEND );
@@ -406,10 +406,10 @@ void region_scissor_winrct(ARegion *ar, rcti *winrct)
 			if(ar->flag & RGN_FLAG_HIDDEN);
 			else if(ar->alignment & RGN_SPLIT_PREV);
 			else if(ar->alignment==RGN_OVERLAP_LEFT) {
-				winrct->xmin= ar->winrct.xmax + 1;
+				winrct->xmin = ar->winrct.xmax + 1;
 			}
 			else if(ar->alignment==RGN_OVERLAP_RIGHT) {
-				winrct->xmax= ar->winrct.xmin - 1;
+				winrct->xmax = ar->winrct.xmin - 1;
 			}
 			else break;
 		}
@@ -458,10 +458,10 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		ar->drawrct= winrct;
 	else {
 		/* extra clip for safety */
-		ar->drawrct.xmin= MAX2(winrct.xmin, ar->drawrct.xmin);
-		ar->drawrct.ymin= MAX2(winrct.ymin, ar->drawrct.ymin);
-		ar->drawrct.xmax= MIN2(winrct.xmax, ar->drawrct.xmax);
-		ar->drawrct.ymax= MIN2(winrct.ymax, ar->drawrct.ymax);
+		ar->drawrct.xmin = MAX2(winrct.xmin, ar->drawrct.xmin);
+		ar->drawrct.ymin = MAX2(winrct.ymin, ar->drawrct.ymin);
+		ar->drawrct.xmax = MIN2(winrct.xmax, ar->drawrct.xmax);
+		ar->drawrct.ymax = MIN2(winrct.ymax, ar->drawrct.ymax);
 	}
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
@@ -525,10 +525,10 @@ void ED_region_tag_redraw_partial(ARegion *ar, rcti *rct)
 		}
 		else if(ar->drawrct.xmin != ar->drawrct.xmax) {
 			/* partial redraw already set, expand region */
-			ar->drawrct.xmin= MIN2(ar->drawrct.xmin, rct->xmin);
-			ar->drawrct.ymin= MIN2(ar->drawrct.ymin, rct->ymin);
-			ar->drawrct.xmax= MAX2(ar->drawrct.xmax, rct->xmax);
-			ar->drawrct.ymax= MAX2(ar->drawrct.ymax, rct->ymax);
+			ar->drawrct.xmin = MIN2(ar->drawrct.xmin, rct->xmin);
+			ar->drawrct.ymin = MIN2(ar->drawrct.ymin, rct->ymin);
+			ar->drawrct.xmax = MAX2(ar->drawrct.xmax, rct->xmax);
+			ar->drawrct.ymax = MAX2(ar->drawrct.ymax, rct->ymax);
 		}
 	}
 }
@@ -961,12 +961,12 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 			ar->winrct= *remainder;
 			
 			if(alignment==RGN_ALIGN_TOP) {
-				ar->winrct.ymin= ar->winrct.ymax - prefsizey + 1;
-				remainder->ymax= ar->winrct.ymin - 1;
+				ar->winrct.ymin = ar->winrct.ymax - prefsizey + 1;
+				remainder->ymax = ar->winrct.ymin - 1;
 			}
 			else {
-				ar->winrct.ymax= ar->winrct.ymin + prefsizey - 1;
-				remainder->ymin= ar->winrct.ymax + 1;
+				ar->winrct.ymax = ar->winrct.ymin + prefsizey - 1;
+				remainder->ymin = ar->winrct.ymax + 1;
 			}
 		}
 	}
@@ -984,14 +984,14 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 			ar->winrct= *remainder;
 			
 			if(ELEM(alignment, RGN_ALIGN_RIGHT, RGN_OVERLAP_RIGHT)) {
-				ar->winrct.xmin= ar->winrct.xmax - prefsizex + 1;
+				ar->winrct.xmin = ar->winrct.xmax - prefsizex + 1;
 				if(alignment==RGN_ALIGN_RIGHT)
-					remainder->xmax= ar->winrct.xmin - 1;
+					remainder->xmax = ar->winrct.xmin - 1;
 			}
 			else {
-				ar->winrct.xmax= ar->winrct.xmin + prefsizex - 1;
+				ar->winrct.xmax = ar->winrct.xmin + prefsizex - 1;
 				if(alignment==RGN_ALIGN_LEFT)
-					remainder->xmin= ar->winrct.xmax + 1;
+					remainder->xmin = ar->winrct.xmax + 1;
 			}
 		}
 	}
@@ -1001,8 +1001,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		
 		if(alignment==RGN_ALIGN_HSPLIT) {
 			if( rct_fits(remainder, 'h', prefsizex) > 4) {
-				ar->winrct.xmax= (remainder->xmin+remainder->xmax)/2;
-				remainder->xmin= ar->winrct.xmax+1;
+				ar->winrct.xmax = (remainder->xmin+remainder->xmax)/2;
+				remainder->xmin = ar->winrct.xmax+1;
 			}
 			else {
 				BLI_init_rcti(remainder, 0, 0, 0, 0);
@@ -1010,8 +1010,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		}
 		else {
 			if( rct_fits(remainder, 'v', prefsizey) > 4) {
-				ar->winrct.ymax= (remainder->ymin+remainder->ymax)/2;
-				remainder->ymin= ar->winrct.ymax+1;
+				ar->winrct.ymax = (remainder->ymin+remainder->ymax)/2;
+				remainder->ymin = ar->winrct.ymax+1;
 			}
 			else {
 				BLI_init_rcti(remainder, 0, 0, 0, 0);
@@ -1072,15 +1072,15 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		ar->winrct= *remainder;
 		
 		if(alignment==RGN_ALIGN_TOP)
-			ar->winrct.ymin= ar->winrct.ymax;
+			ar->winrct.ymin = ar->winrct.ymax;
 		else if(alignment==RGN_ALIGN_BOTTOM)
-			ar->winrct.ymax= ar->winrct.ymin;
+			ar->winrct.ymax = ar->winrct.ymin;
 		else if(ELEM(alignment, RGN_ALIGN_RIGHT, RGN_OVERLAP_RIGHT))
-			ar->winrct.xmin= ar->winrct.xmax;
+			ar->winrct.xmin = ar->winrct.xmax;
 		else if(ELEM(alignment, RGN_ALIGN_LEFT, RGN_OVERLAP_LEFT))
-			ar->winrct.xmax= ar->winrct.xmin;
+			ar->winrct.xmax = ar->winrct.xmin;
 		else /* prevent winrct to be valid */
-			ar->winrct.xmax= ar->winrct.xmin;
+			ar->winrct.xmax = ar->winrct.xmin;
 	}
 
 	/* restore prev-split exception */
@@ -1113,15 +1113,15 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 {
 	short rt= 0; // CLAMPIS(G.rt, 0, 16);
 
-	if(sa->v1->vec.x>0) sa->totrct.xmin= sa->v1->vec.x+1+rt;
-	else sa->totrct.xmin= sa->v1->vec.x;
-	if(sa->v4->vec.x<sizex-1) sa->totrct.xmax= sa->v4->vec.x-1-rt;
-	else sa->totrct.xmax= sa->v4->vec.x;
+	if(sa->v1->vec.x>0) sa->totrct.xmin = sa->v1->vec.x+1+rt;
+	else sa->totrct.xmin = sa->v1->vec.x;
+	if(sa->v4->vec.x<sizex-1) sa->totrct.xmax = sa->v4->vec.x-1-rt;
+	else sa->totrct.xmax = sa->v4->vec.x;
 	
-	if(sa->v1->vec.y>0) sa->totrct.ymin= sa->v1->vec.y+1+rt;
-	else sa->totrct.ymin= sa->v1->vec.y;
-	if(sa->v2->vec.y<sizey-1) sa->totrct.ymax= sa->v2->vec.y-1-rt;
-	else sa->totrct.ymax= sa->v2->vec.y;
+	if(sa->v1->vec.y>0) sa->totrct.ymin = sa->v1->vec.y+1+rt;
+	else sa->totrct.ymin = sa->v1->vec.y;
+	if(sa->v2->vec.y<sizey-1) sa->totrct.ymax = sa->v2->vec.y-1-rt;
+	else sa->totrct.ymax = sa->v2->vec.y;
 	
 	/* for speedup */
 	sa->winx= sa->totrct.xmax-sa->totrct.xmin+1;
@@ -1154,12 +1154,12 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 	}
 	if(flag & ED_KEYMAP_VIEW2D) {
 		/* 2d-viewport handling+manipulation */
-		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "View2D", 0, 0);
+		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "View2D", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_MARKERS) {
 		/* time-markers */
-		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Markers", 0, 0);
+		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "Markers", 0, 0);
 		
 		/* time space only has this keymap, the others get a boundbox restricted map */
 		if(sa->spacetype!=SPACE_TIME) {
@@ -1175,22 +1175,22 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 	}
 	if(flag & ED_KEYMAP_ANIMATION) {
 		/* frame changing and timeline operators (for time spaces) */
-		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Animation", 0, 0);
+		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "Animation", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_FRAMES) {
 		/* frame changing/jumping (for all spaces) */
-		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
+		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_GPENCIL) {
 		/* grease pencil */
-		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Grease Pencil", 0, 0);
+		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "Grease Pencil", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_HEADER) {
 		/* standard keymap for headers regions */
-		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Header", 0, 0);
+		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "Header", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 }
@@ -1505,7 +1505,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	uiBut *but;
 	int xco= 8;
 	
-	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
+	but = uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 						   editortype_pup(), xco, yco, UI_UNIT_X+10, UI_UNIT_Y, 
 						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
 						   TIP_("Displays current editor type. Click for menu of available types"));
@@ -1527,14 +1527,14 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
 	if (sa->flag & HEADER_NO_PULLDOWN) {
-		but= uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
+		but = uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
 						 ICON_DISCLOSURE_TRI_RIGHT,
 						 xco,yco,UI_UNIT_X,UI_UNIT_Y-2,
 						 &(sa->flag), 0, 0, 0, 0, 
 						 "Show pulldown menus");
 	}
 	else {
-		but= uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
+		but = uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
 						 ICON_DISCLOSURE_TRI_DOWN,
 						 xco,yco,UI_UNIT_X,UI_UNIT_Y-2,
 						 &(sa->flag), 0, 0, 0, 0, 
@@ -1709,7 +1709,7 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 
-	keymap= WM_keymap_find(wm->defaultconf, "View2D Buttons List", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "View2D Buttons List", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -1788,17 +1788,17 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 
 	/* background box */
 	rect= ar->winrct;
-	rect.xmin= 0;
-	rect.ymin= ar->winrct.ymax - ar->winrct.ymin - header_height;
+	rect.xmin = 0;
+	rect.ymin = ar->winrct.ymax - ar->winrct.ymin - header_height;
 
 	if(block) {
-		rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
+		rect.xmax = ar->winrct.xmax - ar->winrct.xmin;
 	}
 	else {
-		rect.xmax= rect.xmin + BLF_width(fontid, text) + 24;
+		rect.xmax = rect.xmin + BLF_width(fontid, text) + 24;
 	}
 
-	rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
+	rect.ymax = ar->winrct.ymax - ar->winrct.ymin;
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);

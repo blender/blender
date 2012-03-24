@@ -386,8 +386,8 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	/* draw text */
 	uiStyleFontSet(&data->fstyle);
 
-	bbox.ymax= bbox.ymax - 0.5f*((bbox.ymax - bbox.ymin) - data->toth);
-	bbox.ymin= bbox.ymax - data->lineh;
+	bbox.ymax = bbox.ymax - 0.5f*((bbox.ymax - bbox.ymin) - data->toth);
+	bbox.ymin = bbox.ymax - data->lineh;
 
 	for (i = 0; i < data->totline; i++) {
 		glColor3fv(tip_colors[data->color_id[i]]);
@@ -656,16 +656,16 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 
 	/* widget rect, in region coords */
-	data->bbox.xmin= MENU_SHADOW_SIDE;
-	data->bbox.xmax= x2-x1 + MENU_SHADOW_SIDE;
-	data->bbox.ymin= MENU_SHADOW_BOTTOM;
-	data->bbox.ymax= y2-y1 + MENU_SHADOW_BOTTOM;
+	data->bbox.xmin = MENU_SHADOW_SIDE;
+	data->bbox.xmax = x2-x1 + MENU_SHADOW_SIDE;
+	data->bbox.ymin = MENU_SHADOW_BOTTOM;
+	data->bbox.ymax = y2-y1 + MENU_SHADOW_BOTTOM;
 	
 	/* region bigger for shadow */
-	ar->winrct.xmin= x1 - MENU_SHADOW_SIDE;
-	ar->winrct.xmax= x2 + MENU_SHADOW_SIDE;
-	ar->winrct.ymin= y1 - MENU_SHADOW_BOTTOM;
-	ar->winrct.ymax= y2 + MENU_TOP;
+	ar->winrct.xmin = x1 - MENU_SHADOW_SIDE;
+	ar->winrct.xmax = x2 + MENU_SHADOW_SIDE;
+	ar->winrct.ymin = y1 - MENU_SHADOW_BOTTOM;
+	ar->winrct.ymax = y2 + MENU_TOP;
 
 	/* adds subwindow */
 	ED_region_init(C, ar);
@@ -812,11 +812,11 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 		int buth= (data->bbox.ymax-data->bbox.ymin - 2*MENU_TOP)/SEARCH_ITEMS;
 		
 		*rect= data->bbox;
-		rect->xmin= data->bbox.xmin + 3.0f;
-		rect->xmax= data->bbox.xmax - 3.0f;
+		rect->xmin = data->bbox.xmin + 3.0f;
+		rect->xmax = data->bbox.xmax - 3.0f;
 		
-		rect->ymax= data->bbox.ymax - MENU_TOP - itemnr*buth;
-		rect->ymin= rect->ymax - buth;
+		rect->ymax = data->bbox.ymax - MENU_TOP - itemnr*buth;
+		rect->ymin = rect->ymax - buth;
 	}
 	
 }
@@ -1099,10 +1099,10 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		ar->winrct= butregion->winrct;
 		
 		/* widget rect, in region coords */
-		data->bbox.xmin= MENU_SHADOW_SIDE;
-		data->bbox.xmax= (ar->winrct.xmax-ar->winrct.xmin) - MENU_SHADOW_SIDE;
-		data->bbox.ymin= MENU_SHADOW_BOTTOM;
-		data->bbox.ymax= (ar->winrct.ymax-ar->winrct.ymin) - MENU_SHADOW_BOTTOM;
+		data->bbox.xmin = MENU_SHADOW_SIDE;
+		data->bbox.xmax = (ar->winrct.xmax-ar->winrct.xmin) - MENU_SHADOW_SIDE;
+		data->bbox.ymin = MENU_SHADOW_BOTTOM;
+		data->bbox.ymax = (ar->winrct.ymax-ar->winrct.ymin) - MENU_SHADOW_BOTTOM;
 		
 		/* check if button is lower half */
 		if( but->y2 < (but->block->miny+but->block->maxy)/2 ) {
@@ -1166,16 +1166,16 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 
 		/* widget rect, in region coords */
-		data->bbox.xmin= MENU_SHADOW_SIDE;
-		data->bbox.xmax= x2-x1 + MENU_SHADOW_SIDE;
-		data->bbox.ymin= MENU_SHADOW_BOTTOM;
-		data->bbox.ymax= y2-y1 + MENU_SHADOW_BOTTOM;
+		data->bbox.xmin = MENU_SHADOW_SIDE;
+		data->bbox.xmax = x2-x1 + MENU_SHADOW_SIDE;
+		data->bbox.ymin = MENU_SHADOW_BOTTOM;
+		data->bbox.ymax = y2-y1 + MENU_SHADOW_BOTTOM;
 		
 		/* region bigger for shadow */
-		ar->winrct.xmin= x1 - MENU_SHADOW_SIDE;
-		ar->winrct.xmax= x2 + MENU_SHADOW_SIDE;
-		ar->winrct.ymin= y1 - MENU_SHADOW_BOTTOM;
-		ar->winrct.ymax= y2;
+		ar->winrct.xmin = x1 - MENU_SHADOW_SIDE;
+		ar->winrct.xmax = x2 + MENU_SHADOW_SIDE;
+		ar->winrct.ymin = y1 - MENU_SHADOW_BOTTOM;
+		ar->winrct.ymax = y2;
 	}
 	
 	/* adds subwindow */
@@ -1262,8 +1262,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	short dir1= 0, dir2=0;
 	
 	/* transform to window coordinates, using the source button region/block */
-	butrct.xmin= but->x1; butrct.xmax= but->x2;
-	butrct.ymin= but->y1; butrct.ymax= but->y2;
+	butrct.xmin = but->x1; butrct.xmax = but->x2;
+	butrct.ymin = but->y1; butrct.ymax = but->y2;
 
 	ui_block_to_window_fl(butregion, but->block, &butrct.xmin, &butrct.ymin);
 	ui_block_to_window_fl(butregion, but->block, &butrct.xmax, &butrct.ymax);
@@ -1443,31 +1443,31 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		/* when you are outside parent button, safety there should be smaller */
 		
 		// parent button to left
-		if( midx < block->minx ) block->safety.xmin= block->minx-3; 
-		else block->safety.xmin= block->minx-40;
+		if( midx < block->minx ) block->safety.xmin = block->minx-3; 
+		else block->safety.xmin = block->minx-40;
 		// parent button to right
-		if( midx > block->maxx ) block->safety.xmax= block->maxx+3; 
-		else block->safety.xmax= block->maxx+40;
+		if( midx > block->maxx ) block->safety.xmax = block->maxx+3; 
+		else block->safety.xmax = block->maxx+40;
 		
 		// parent button on bottom
-		if( midy < block->miny ) block->safety.ymin= block->miny-3; 
-		else block->safety.ymin= block->miny-40;
+		if( midy < block->miny ) block->safety.ymin = block->miny-3; 
+		else block->safety.ymin = block->miny-40;
 		// parent button on top
-		if( midy > block->maxy ) block->safety.ymax= block->maxy+3; 
-		else block->safety.ymax= block->maxy+40;
+		if( midy > block->maxy ) block->safety.ymax = block->maxy+3; 
+		else block->safety.ymax = block->maxy+40;
 		
 		// exception for switched pulldowns...
 		if(dir1 && (dir1 & block->direction)==0) {
-			if(dir2==UI_RIGHT) block->safety.xmax= block->maxx+3; 
-			if(dir2==UI_LEFT) block->safety.xmin= block->minx-3; 
+			if(dir2==UI_RIGHT) block->safety.xmax = block->maxx+3; 
+			if(dir2==UI_LEFT) block->safety.xmin = block->minx-3; 
 		}
 		block->direction= dir1;
 	}
 	else {
-		block->safety.xmin= block->minx-40;
-		block->safety.ymin= block->miny-40;
-		block->safety.xmax= block->maxx+40;
-		block->safety.ymax= block->maxy+40;
+		block->safety.xmin = block->minx-40;
+		block->safety.ymin = block->miny-40;
+		block->safety.xmax = block->maxx+40;
+		block->safety.ymax = block->maxy+40;
 	}
 
 	/* keep a list of these, needed for pulldown menus */
@@ -1615,10 +1615,10 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	/* the block and buttons were positioned in window space as in 2.4x, now
 	 * these menu blocks are regions so we bring it back to region space.
 	 * additionally we add some padding for the menu shadow or rounded menus */
-	ar->winrct.xmin= block->minx - MENU_SHADOW_SIDE;
-	ar->winrct.xmax= block->maxx + MENU_SHADOW_SIDE;
-	ar->winrct.ymin= block->miny - MENU_SHADOW_BOTTOM;
-	ar->winrct.ymax= block->maxy + MENU_TOP;
+	ar->winrct.xmin = block->minx - MENU_SHADOW_SIDE;
+	ar->winrct.xmax = block->maxx + MENU_SHADOW_SIDE;
+	ar->winrct.ymin = block->miny - MENU_SHADOW_BOTTOM;
+	ar->winrct.ymax = block->maxy + MENU_TOP;
 	
 	block->minx -= ar->winrct.xmin;
 	block->maxx -= ar->winrct.xmin;
@@ -2457,7 +2457,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 			uiDefIconTextBut(pup->block, LABEL, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		}
 		else {
-			but= uiDefBut(pup->block, LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+			but = uiDefBut(pup->block, LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 			but->flag= UI_TEXT_LEFT;
 		}
 	}
@@ -2629,7 +2629,7 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	Menu menu;
-	MenuType *mt= WM_menutype_find(idname, TRUE);
+	MenuType *mt = WM_menutype_find(idname, TRUE);
 
 	if(mt==NULL) {
 		printf("%s: named menu \"%s\" not found\n", __func__, idname);

@@ -1303,10 +1303,10 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	
 	/* need scissor test, curve can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
-	scissor_new.xmin= ar->winrct.xmin + rect->xmin;
-	scissor_new.ymin= ar->winrct.ymin + rect->ymin;
-	scissor_new.xmax= ar->winrct.xmin + rect->xmax;
-	scissor_new.ymax= ar->winrct.ymin + rect->ymax;
+	scissor_new.xmin = ar->winrct.xmin + rect->xmin;
+	scissor_new.ymin = ar->winrct.ymin + rect->ymin;
+	scissor_new.xmax = ar->winrct.xmin + rect->xmax;
+	scissor_new.ymax = ar->winrct.ymin + rect->ymax;
 	BLI_isect_rcti(&scissor_new, &ar->winrct, &scissor_new);
 	glScissor(scissor_new.xmin, scissor_new.ymin, scissor_new.xmax-scissor_new.xmin, scissor_new.ymax-scissor_new.ymin);
 	

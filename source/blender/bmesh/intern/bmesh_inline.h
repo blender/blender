@@ -68,8 +68,8 @@ BLI_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b)
 	head_a->hflag = head_b->hflag = head_a->hflag | head_b->hflag;
 }
 
-
-/* notes on BM_elem_index_set(...) usage,
+/**
+ * notes on #BM_elem_index_set(...) usage,
  * Set index is sometimes abused as temp storage, other times we cant be
  * sure if the index values are valid because certain operations have modified
  * the mesh structure.
@@ -78,8 +78,8 @@ BLI_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b)
  * rather then adding inline loops, however there are cases where we still
  * set the index directly
  *
- * In an attempt to manage this, here are 3 tags Im adding to uses of
- * 'BM_elem_index_set'
+ * In an attempt to manage this,
+ * here are 5 tags I'm adding to uses of #BM_elem_index_set
  *
  * - 'set_inline'  -- since the data is already being looped over set to a
  *                    valid value inline.
@@ -96,6 +96,7 @@ BLI_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b)
  *
  * - 'set_loop'    -- currently loop index values are not used used much so
  *                    assume each case they are dirty.
+ *
  * - campbell */
 
 #define BM_elem_index_get(ele)           _bm_elem_index_get(&(ele)->head)

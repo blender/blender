@@ -430,15 +430,15 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	rr= MEM_callocN(sizeof(RenderResult), "new render result");
 	rr->rectx= rectx;
 	rr->recty= recty;
-	rr->renrect.xmin= 0; rr->renrect.xmax= rectx-2*crop;
+	rr->renrect.xmin = 0; rr->renrect.xmax = rectx-2*crop;
 	/* crop is one or two extra pixels rendered for filtering, is used for merging and display too */
 	rr->crop= crop;
 	
 	/* tilerect is relative coordinates within render disprect. do not subtract crop yet */
-	rr->tilerect.xmin= partrct->xmin - re->disprect.xmin;
-	rr->tilerect.xmax= partrct->xmax - re->disprect.xmax;
-	rr->tilerect.ymin= partrct->ymin - re->disprect.ymin;
-	rr->tilerect.ymax= partrct->ymax - re->disprect.ymax;
+	rr->tilerect.xmin = partrct->xmin - re->disprect.xmin;
+	rr->tilerect.xmax = partrct->xmax - re->disprect.xmax;
+	rr->tilerect.ymin = partrct->ymin - re->disprect.ymin;
+	rr->tilerect.ymax = partrct->ymax - re->disprect.ymax;
 	
 	if(savebuffers) {
 		rr->exrhandle= IMB_exr_get_handle();

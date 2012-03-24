@@ -137,10 +137,10 @@ void ui_block_to_window_rct(const ARegion *ar, uiBlock *block, rctf *graph, rcti
 	ui_block_to_window_fl(ar, block, &tmpr.xmin, &tmpr.ymin);
 	ui_block_to_window_fl(ar, block, &tmpr.xmax, &tmpr.ymax);
 
-	winr->xmin= tmpr.xmin;
-	winr->ymin= tmpr.ymin;
-	winr->xmax= tmpr.xmax;
-	winr->ymax= tmpr.ymax;
+	winr->xmin = tmpr.xmin;
+	winr->ymin = tmpr.ymin;
+	winr->xmax = tmpr.xmax;
+	winr->ymax = tmpr.ymax;
 }
 
 void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y)	/* for mouse cursor */
@@ -295,10 +295,10 @@ void ui_bounds_block(uiBlock *block)
 	if(bt && strncmp(bt->str, "ERROR", 5)==0) xof= 10;
 	else xof= 40;
 	
-	block->safety.xmin= block->minx-xof;
-	block->safety.ymin= block->miny-xof;
-	block->safety.xmax= block->maxx+xof;
-	block->safety.ymax= block->maxy+xof;
+	block->safety.xmin = block->minx-xof;
+	block->safety.ymin = block->miny-xof;
+	block->safety.xmax = block->maxx+xof;
+	block->safety.ymax = block->maxy+xof;
 }
 
 static void ui_centered_bounds_block(const bContext *C, uiBlock *block)
@@ -504,10 +504,10 @@ static void ui_draw_linkline(uiLinkLine *line)
 
 	if(line->from==NULL || line->to==NULL) return;
 	
-	rect.xmin= (line->from->x1+line->from->x2)/2.0f;
-	rect.ymin= (line->from->y1+line->from->y2)/2.0f;
-	rect.xmax= (line->to->x1+line->to->x2)/2.0f;
-	rect.ymax= (line->to->y1+line->to->y2)/2.0f;
+	rect.xmin = (line->from->x1+line->from->x2)/2.0f;
+	rect.ymin = (line->from->y1+line->from->y2)/2.0f;
+	rect.xmax = (line->to->x1+line->to->x2)/2.0f;
+	rect.ymax = (line->to->y1+line->to->y2)/2.0f;
 	
 	if(line->flag & UI_SELECT) 
 		glColor3ub(100,100,100);
@@ -975,14 +975,14 @@ static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, u
 	gx= (but?but->x1:block->minx) + (block->panel?block->panel->ofsx:0.0f);
 	gy= (but?but->y1:block->miny) + (block->panel?block->panel->ofsy:0.0f);
 	
-	rect->xmin= floorf(getsizex*(0.5f+ 0.5f*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
-	rect->ymin= floorf(getsizey*(0.5f+ 0.5f*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
+	rect->xmin = floorf(getsizex*(0.5f+ 0.5f*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
+	rect->ymin = floorf(getsizey*(0.5f+ 0.5f*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
 	
 	gx= (but?but->x2:block->maxx) + (block->panel?block->panel->ofsx:0.0f);
 	gy= (but?but->y2:block->maxy) + (block->panel?block->panel->ofsy:0.0f);
 	
-	rect->xmax= floorf(getsizex*(0.5f+ 0.5f*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
-	rect->ymax= floorf(getsizey*(0.5f+ 0.5f*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
+	rect->xmax = floorf(getsizex*(0.5f+ 0.5f*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
+	rect->ymax = floorf(getsizey*(0.5f+ 0.5f*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
 
 }
 

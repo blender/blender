@@ -614,11 +614,11 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	/* general actions - management */
 	col= uiLayoutColumn(pa->layout, 0);
 	block= uiLayoutGetBlock(col);
-		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Update Dependencies"), 0, 0, 10*UI_UNIT_X, 22,
+		but = uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Update Dependencies"), 0, 0, 10*UI_UNIT_X, 22,
 		              NULL, 0.0, 0.0, 0, 0, TIP_("Force updates of dependencies"));
 		uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
 		
-		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Remove Driver"), 0, 0, 10*UI_UNIT_X, 18,
+		but = uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Remove Driver"), 0, 0, 10*UI_UNIT_X, 18,
 		              NULL, 0.0, 0.0, 0, 0, TIP_("Remove this driver"));
 		uiButSetNFunc(but, driver_remove_cb, MEM_dupallocN(ale), NULL);
 		
@@ -662,7 +662,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	/* add driver variables */
 	col= uiLayoutColumn(pa->layout, 0);
 	block= uiLayoutGetBlock(col);
-		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Add Variable"), 0, 0, 10*UI_UNIT_X, UI_UNIT_Y,
+		but = uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Add Variable"), 0, 0, 10*UI_UNIT_X, UI_UNIT_Y,
 		              NULL, 0.0, 0.0, 0, 0, TIP_("Add a new target variable for this Driver"));
 		uiButSetFunc(but, driver_add_var_cb, driver, NULL);
 	
@@ -686,7 +686,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 				
 				/* remove button */
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-					but= uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y,
+					but = uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y,
 					                  NULL, 0.0, 0.0, 0.0, 0.0, IFACE_("Delete target variable"));
 					uiButSetFunc(but, driver_delete_var_cb, driver, dvar);
 				uiBlockSetEmboss(block, UI_EMBOSS);

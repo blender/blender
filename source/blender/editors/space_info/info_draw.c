@@ -270,8 +270,8 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo, struct ARegion 
 	tvc.sel_start= 0;
 	tvc.sel_end= 0;
 	tvc.lheight= 14; //sc->lheight;
-	tvc.ymin= v2d->cur.ymin;
-	tvc.ymax= v2d->cur.ymax;
+	tvc.ymin = v2d->cur.ymin;
+	tvc.ymax = v2d->cur.ymax;
 	tvc.winx= ar->winx;
 
 	ret= textview_draw(&tvc, draw, mval, mouse_pick, pos_pick);

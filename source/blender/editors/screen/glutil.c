@@ -710,10 +710,10 @@ gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect)
 	if (world_rect) {
 		di->world_rect= *world_rect;
 	} else {
-		di->world_rect.xmin= di->screen_rect.xmin;
-		di->world_rect.ymin= di->screen_rect.ymin;
-		di->world_rect.xmax= di->screen_rect.xmax;
-		di->world_rect.ymax= di->screen_rect.ymax;
+		di->world_rect.xmin = di->screen_rect.xmin;
+		di->world_rect.ymin = di->screen_rect.ymin;
+		di->world_rect.xmax = di->screen_rect.xmax;
+		di->world_rect.ymax = di->screen_rect.ymax;
 	}
 
 	sc_w= (di->screen_rect.xmax-di->screen_rect.xmin);

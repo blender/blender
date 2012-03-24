@@ -285,7 +285,7 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 	
 	/*if (icon == ICON_FILE_BLANK) alpha = 0.375f;*/
 
-	but= uiDefIconBut(block, LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "");
+	but = uiDefIconBut(block, LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "");
 	uiButSetDragPath(but, path);
 }
 
@@ -376,7 +376,7 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 		}
 		
 		/* dragregion */
-		but= uiDefBut(block, LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, "");
+		but = uiDefBut(block, LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, "");
 		uiButSetDragImage(but, file->path, get_file_icon(file), imb, scale);
 		
 		glDisable(GL_BLEND);

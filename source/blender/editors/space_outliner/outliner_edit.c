@@ -612,8 +612,8 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 		ytop= (int)(te->ys + (v2d->mask.ymax - v2d->mask.ymin)/2);
 		if (ytop>0) ytop= 0;
 		
-		v2d->cur.ymax= (float)ytop;
-		v2d->cur.ymin= (float)(ytop-(v2d->mask.ymax - v2d->mask.ymin));
+		v2d->cur.ymax = (float)ytop;
+		v2d->cur.ymin = (float)(ytop-(v2d->mask.ymax - v2d->mask.ymin));
 		
 		/* make te->xs ==> te->xend center of view */
 		xdelta = (int)(te->xs - v2d->cur.xmin);
@@ -791,8 +791,8 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 			/* make te->ys center of view */
 			ytop= (int)(te->ys + (ar->v2d.mask.ymax-ar->v2d.mask.ymin)/2);
 			if(ytop>0) ytop= 0;
-			ar->v2d.cur.ymax= (float)ytop;
-			ar->v2d.cur.ymin= (float)(ytop-(ar->v2d.mask.ymax-ar->v2d.mask.ymin));
+			ar->v2d.cur.ymax = (float)ytop;
+			ar->v2d.cur.ymin = (float)(ytop-(ar->v2d.mask.ymax-ar->v2d.mask.ymin));
 			
 			/* make te->xs ==> te->xend center of view */
 			xdelta = (int)(te->xs - ar->v2d.cur.xmin);

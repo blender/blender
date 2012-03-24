@@ -430,9 +430,9 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 		re->recty= disprect->ymax-disprect->ymin;
 	}
 	else {
-		re->disprect.xmin= re->disprect.ymin= 0;
-		re->disprect.xmax= winx;
-		re->disprect.ymax= winy;
+		re->disprect.xmin = re->disprect.ymin = 0;
+		re->disprect.xmax = winx;
+		re->disprect.ymax = winy;
 		re->rectx= winx;
 		re->recty= winy;
 	}
@@ -1209,9 +1209,9 @@ static void do_render_fields_blur_3d(Render *re)
 				
 				/* this copying sequence could become function? */
 				/* weak is: it chances disprect from border */
-				re->disprect.xmin= re->disprect.ymin= 0;
-				re->disprect.xmax= re->winx;
-				re->disprect.ymax= re->winy;
+				re->disprect.xmin = re->disprect.ymin = 0;
+				re->disprect.xmax = re->winx;
+				re->disprect.ymax = re->winy;
 				re->rectx= re->winx;
 				re->recty= re->winy;
 				
@@ -1928,16 +1928,16 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	
 	/* we always render smaller part, inserting it in larger image is compositor bizz, it uses disprect for it */
 	if(scene->r.mode & R_BORDER) {
-		disprect.xmin= scene->r.border.xmin*winx;
-		disprect.xmax= scene->r.border.xmax*winx;
+		disprect.xmin = scene->r.border.xmin*winx;
+		disprect.xmax = scene->r.border.xmax*winx;
 		
-		disprect.ymin= scene->r.border.ymin*winy;
-		disprect.ymax= scene->r.border.ymax*winy;
+		disprect.ymin = scene->r.border.ymin*winy;
+		disprect.ymax = scene->r.border.ymax*winy;
 	}
 	else {
-		disprect.xmin= disprect.ymin= 0;
-		disprect.xmax= winx;
-		disprect.ymax= winy;
+		disprect.xmin = disprect.ymin = 0;
+		disprect.xmax = winx;
+		disprect.ymax = winy;
 	}
 	
 	re->main= bmain;
@@ -2282,16 +2282,16 @@ int RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	
 	/* only in movie case we render smaller part */
 	if(scene->r.mode & R_BORDER) {
-		disprect.xmin= scene->r.border.xmin*winx;
-		disprect.xmax= scene->r.border.xmax*winx;
+		disprect.xmin = scene->r.border.xmin*winx;
+		disprect.xmax = scene->r.border.xmax*winx;
 		
-		disprect.ymin= scene->r.border.ymin*winy;
-		disprect.ymax= scene->r.border.ymax*winy;
+		disprect.ymin = scene->r.border.ymin*winy;
+		disprect.ymax = scene->r.border.ymax*winy;
 	}
 	else {
-		disprect.xmin= disprect.ymin= 0;
-		disprect.xmax= winx;
-		disprect.ymax= winy;
+		disprect.xmin = disprect.ymin = 0;
+		disprect.xmax = winx;
+		disprect.ymax = winy;
 	}
 	
 	if(scenode)

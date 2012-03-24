@@ -31,13 +31,13 @@
 
 
 #ifndef _WIN32 
-	#include <unistd.h> // for read close
+#  include <unistd.h> // for read close
 #else
-	#include <io.h> // for open close read
-	#define open _open
-	#define read _read
-	#define close _close
-	#define write _write
+#  include <io.h> // for open close read
+#  define open _open
+#  define read _read
+#  define close _close
+#  define write _write
 #endif
 
 #include <stdlib.h>

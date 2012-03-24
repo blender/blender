@@ -416,8 +416,8 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 
 						for (ar= sa->regionbase.first; ar; ar= ar->next) {
 							if (ar->regiontype==RGN_TYPE_WINDOW) {
-								ar->v2d.tot.xmin= (float)(SFRA - 4);
-								ar->v2d.tot.xmax= (float)(EFRA + 4);
+								ar->v2d.tot.xmin = (float)(SFRA - 4);
+								ar->v2d.tot.xmax = (float)(EFRA + 4);
 								break;
 							}
 						}
@@ -449,7 +449,7 @@ static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Timeline", SPACE_TIME, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Timeline", SPACE_TIME, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -599,10 +599,10 @@ static SpaceLink *time_new(const bContext *C)
 	BLI_addtail(&stime->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin= (float)(SFRA - 4);
-	ar->v2d.tot.ymin= 0.0f;
-	ar->v2d.tot.xmax= (float)(EFRA + 4);
-	ar->v2d.tot.ymax= 50.0f;
+	ar->v2d.tot.xmin = (float)(SFRA - 4);
+	ar->v2d.tot.ymin = 0.0f;
+	ar->v2d.tot.xmax = (float)(EFRA + 4);
+	ar->v2d.tot.ymax = 50.0f;
 	
 	ar->v2d.cur= ar->v2d.tot;
 

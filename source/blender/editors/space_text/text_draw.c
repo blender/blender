@@ -1103,15 +1103,15 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 	blank_lines = st->viewlines / 2;
 	
 	/* nicer code: use scroll rect for entire bar */
-	back->xmin= ar->winx -18;
-	back->xmax= ar->winx;
-	back->ymin= 0;
-	back->ymax= ar->winy;
+	back->xmin = ar->winx -18;
+	back->xmax = ar->winx;
+	back->ymin = 0;
+	back->ymax = ar->winy;
 	
-	scroll->xmin= ar->winx - 17;
-	scroll->xmax= ar->winx - 5;
-	scroll->ymin= 4;
-	scroll->ymax= 4+pix_available;
+	scroll->xmin = ar->winx - 17;
+	scroll->xmax = ar->winx - 5;
+	scroll->ymin = 4;
+	scroll->ymax = 4+pix_available;
 	
 	/* when re-sizing a view-port with the bar at the bottom to a greater height more blank lines will be added */
 	if(ltexth + blank_lines < st->top + st->viewlines) {
@@ -1196,8 +1196,8 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 	}
 	
 	st->txtscroll= *scroll;
-	st->txtscroll.ymax= ar->winy - pix_top_margin - hlstart;
-	st->txtscroll.ymin= ar->winy - pix_top_margin - hlend;
+	st->txtscroll.ymax = ar->winy - pix_top_margin - hlstart;
+	st->txtscroll.ymin = ar->winy - pix_top_margin - hlend;
 
 	CLAMP(st->txtscroll.ymin, pix_bottom_margin, ar->winy - pix_top_margin);
 	CLAMP(st->txtscroll.ymax, pix_bottom_margin, ar->winy - pix_top_margin);

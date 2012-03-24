@@ -152,10 +152,10 @@ void render_view_open(bContext *C, int mx, int my)
 		if(sizey < 256) sizey= 256;
 
 		/* XXX some magic to calculate postition */
-		rect.xmin= mx + win->posx - sizex/2;
-		rect.ymin= my + win->posy - sizey/2;
-		rect.xmax= rect.xmin + sizex;
-		rect.ymax= rect.ymin + sizey;
+		rect.xmin = mx + win->posx - sizex/2;
+		rect.ymin = my + win->posy - sizey/2;
+		rect.xmax = rect.xmin + sizex;
+		rect.ymax = rect.ymin + sizey;
 
 		/* changes context! */
 		WM_window_open_temp(C, &rect, WM_WINDOW_RENDER);

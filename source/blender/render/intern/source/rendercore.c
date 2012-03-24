@@ -832,8 +832,8 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	}
 	
 	/* scanline updates have to be 2 lines behind */
-	rr->renrect.ymin= 0;
-	rr->renrect.ymax= -2*crop;
+	rr->renrect.ymin = 0;
+	rr->renrect.ymax = -2*crop;
 	rr->renlay= rl;
 				
 	for(y=pa->disprect.ymin+crop; y<pa->disprect.ymax-crop; y++, rr->renrect.ymax++) {
@@ -1293,7 +1293,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 	MEM_freeN(pa->rectz); pa->rectz= NULL;
 	
 	/* display active layer */
-	rr->renrect.ymin=rr->renrect.ymax= 0;
+	rr->renrect.ymin=rr->renrect.ymax = 0;
 	rr->renlay= render_get_active_layer(&R, rr);
 }
 
@@ -1339,7 +1339,7 @@ void zbufshade_tile(RenderPart *pa)
 			}
 			
 			/* initialize scanline updates for main thread */
-			rr->renrect.ymin= 0;
+			rr->renrect.ymin = 0;
 			rr->renlay= rl;
 			
 			if(rl->layflag & SCE_LAY_SOLID) {
@@ -1448,7 +1448,7 @@ void zbufshade_tile(RenderPart *pa)
 	}
 
 	/* display active layer */
-	rr->renrect.ymin=rr->renrect.ymax= 0;
+	rr->renrect.ymin=rr->renrect.ymax = 0;
 	rr->renlay= render_get_active_layer(&R, rr);
 	
 	MEM_freeN(pa->recto); pa->recto= NULL;
@@ -1674,7 +1674,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 
 	if(display) {
 		/* initialize scanline updates for main thread */
-		rr->renrect.ymin= 0;
+		rr->renrect.ymin = 0;
 		rr->renlay= rl;
 	}
 	
@@ -1784,7 +1784,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 		
 	if(display) {
 		/* display active layer */
-		rr->renrect.ymin=rr->renrect.ymax= 0;
+		rr->renrect.ymin=rr->renrect.ymax = 0;
 		rr->renlay= render_get_active_layer(&R, rr);
 	}
 	

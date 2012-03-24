@@ -67,7 +67,7 @@ static void snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode* snode)
 	oldwidth= cur->xmax - cur->xmin;
 	oldheight= cur->ymax - cur->ymin;
 	
-	cur->xmin= cur->ymin= 0.0f;
+	cur->xmin = cur->ymin = 0.0f;
 	cur->xmax=ar->winx;
 	cur->ymax=ar->winy;
 	
@@ -91,14 +91,14 @@ static void snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode* snode)
 	if(width > height) {
 		float newheight;
 		newheight= oldheight * width/oldwidth;
-		cur->ymin= cur->ymin - newheight/4;
-		cur->ymax= cur->ymax + newheight/4;
+		cur->ymin = cur->ymin - newheight/4;
+		cur->ymax = cur->ymax + newheight/4;
 	}
 	else {
 		float newwidth;
 		newwidth= oldwidth * height/oldheight;
-		cur->xmin= cur->xmin - newwidth/4;
-		cur->xmax= cur->xmax + newwidth/4;
+		cur->xmin = cur->xmin - newwidth/4;
+		cur->xmax = cur->xmax + newwidth/4;
 	}
 
 	ar->v2d.tot= ar->v2d.cur;

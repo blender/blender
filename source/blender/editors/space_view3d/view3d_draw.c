@@ -956,10 +956,10 @@ static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 	rect_camera= params.viewplane;
 
 	/* get camera border within viewport */
-	viewborder_r->xmin= ((rect_camera.xmin - rect_view.xmin)/(rect_view.xmax - rect_view.xmin))*ar->winx;
-	viewborder_r->xmax= ((rect_camera.xmax - rect_view.xmin)/(rect_view.xmax - rect_view.xmin))*ar->winx;
-	viewborder_r->ymin= ((rect_camera.ymin - rect_view.ymin)/(rect_view.ymax - rect_view.ymin))*ar->winy;
-	viewborder_r->ymax= ((rect_camera.ymax - rect_view.ymin)/(rect_view.ymax - rect_view.ymin))*ar->winy;
+	viewborder_r->xmin = ((rect_camera.xmin - rect_view.xmin)/(rect_view.xmax - rect_view.xmin))*ar->winx;
+	viewborder_r->xmax = ((rect_camera.xmax - rect_view.xmin)/(rect_view.xmax - rect_view.xmin))*ar->winx;
+	viewborder_r->ymin = ((rect_camera.ymin - rect_view.ymin)/(rect_view.ymax - rect_view.ymin))*ar->winy;
+	viewborder_r->ymax = ((rect_camera.ymax - rect_view.ymin)/(rect_view.ymax - rect_view.ymin))*ar->winy;
 }
 
 void ED_view3d_calc_camera_border_size(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, float size_r[2])
@@ -1236,19 +1236,19 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 				float sensor_scale = (x2i-x1i) / sensor_x;
 				float sensor_height = sensor_scale * sensor_y;
 
-				rect.xmin= x1i;
-				rect.xmax= x2i;
-				rect.ymin= (y1i + y2i)*0.5f - sensor_height*0.5f;
-				rect.ymax= rect.ymin + sensor_height;
+				rect.xmin = x1i;
+				rect.xmax = x2i;
+				rect.ymin = (y1i + y2i)*0.5f - sensor_height*0.5f;
+				rect.ymax = rect.ymin + sensor_height;
 			}
 			else {
 				float sensor_scale = (y2i-y1i) / sensor_y;
 				float sensor_width = sensor_scale * sensor_x;
 
-				rect.xmin= (x1i + x2i)*0.5f - sensor_width*0.5f;
-				rect.xmax= rect.xmin + sensor_width;
-				rect.ymin= y1i;
-				rect.ymax= y2i;
+				rect.xmin = (x1i + x2i)*0.5f - sensor_width*0.5f;
+				rect.xmax = rect.xmin + sensor_width;
+				rect.ymin = y1i;
+				rect.ymax = y2i;
 			}
 
 			/* draw */
@@ -1908,10 +1908,10 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 	rcti r;
 	/* clamp rect by area */
 
-	r.xmin= 0;
-	r.xmax= ar->winx-1;
-	r.ymin= 0;
-	r.ymax= ar->winy-1;
+	r.xmin = 0;
+	r.xmax = ar->winx-1;
+	r.ymin = 0;
+	r.ymax = ar->winy-1;
 
 	/* Constrain rect to depth bounds */
 	BLI_isect_rcti(&r, rect, rect);
@@ -2403,10 +2403,10 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	
 	ar->winx= winx;
 	ar->winy= winy;	
-	ar->winrct.xmin= 0;
-	ar->winrct.ymin= 0;
-	ar->winrct.xmax= winx;
-	ar->winrct.ymax= winy;
+	ar->winrct.xmin = 0;
+	ar->winrct.ymin = 0;
+	ar->winrct.xmax = winx;
+	ar->winrct.ymax = winy;
 	
 	
 	/* set flags */

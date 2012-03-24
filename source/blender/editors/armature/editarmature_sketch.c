@@ -2166,10 +2166,10 @@ static int sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], in
 
 	view3d_set_viewcontext(C, &vc);
 
-	rect.xmin= mval[0]-5;
-	rect.xmax= mval[0]+5;
-	rect.ymin= mval[1]-5;
-	rect.ymax= mval[1]+5;
+	rect.xmin = mval[0]-5;
+	rect.xmax = mval[0]+5;
+	rect.ymin = mval[1]-5;
+	rect.ymax = mval[1]+5;
 
 	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 

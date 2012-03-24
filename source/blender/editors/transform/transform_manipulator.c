@@ -1545,10 +1545,10 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 
 	G.f |= G_PICKSEL;
 
-	rect.xmin= mval[0]-hotspot;
-	rect.xmax= mval[0]+hotspot;
-	rect.ymin= mval[1]-hotspot;
-	rect.ymax= mval[1]+hotspot;
+	rect.xmin = mval[0]-hotspot;
+	rect.xmax = mval[0]+hotspot;
+	rect.ymin = mval[1]-hotspot;
+	rect.ymax = mval[1]+hotspot;
 
 	setwinmatrixview3d(ar, v3d, &rect);
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);

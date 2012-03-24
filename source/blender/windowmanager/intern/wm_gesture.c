@@ -79,17 +79,17 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 		rcti *rect= MEM_callocN(sizeof(rcti), "gesture rect new");
 		
 		gesture->customdata= rect;
-		rect->xmin= event->x - sx;
-		rect->ymin= event->y - sy;
+		rect->xmin = event->x - sx;
+		rect->ymin = event->y - sy;
 		if(type==WM_GESTURE_CIRCLE) {
 #ifdef GESTURE_MEMORY
-			rect->xmax= circle_select_size;
+			rect->xmax = circle_select_size;
 #else
-			rect->xmax= 25;	// XXX temp
+			rect->xmax = 25;	// XXX temp
 #endif
 		} else {
-			rect->xmax= event->x - sx;
-			rect->ymax= event->y - sy;
+			rect->xmax = event->x - sx;
+			rect->ymax = event->y - sy;
 		}
 	}
 	else if (ELEM(type, WM_GESTURE_LINES, WM_GESTURE_LASSO)) {

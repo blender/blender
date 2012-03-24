@@ -306,18 +306,18 @@ static void clipx_rctf_swap(rctf *stack, short *count, float x1, float x2)
 				rf->xmax+= (x2-x1);
 			}
 			else {
-				if(rf->xmax>x2) rf->xmax= x2;
+				if(rf->xmax>x2) rf->xmax = x2;
 				newrct= stack+ *count;
 				(*count)++;
 
-				newrct->xmax= x2;
-				newrct->xmin= rf->xmin+(x2-x1);
-				newrct->ymin= rf->ymin;
-				newrct->ymax= rf->ymax;
+				newrct->xmax = x2;
+				newrct->xmin = rf->xmin+(x2-x1);
+				newrct->ymin = rf->ymin;
+				newrct->ymax = rf->ymax;
 				
-				if(newrct->xmin==newrct->xmax) (*count)--;
+				if(newrct->xmin ==newrct->xmax) (*count)--;
 				
-				rf->xmin= x1;
+				rf->xmin = x1;
 			}
 		}
 		else if(rf->xmax>x2) {
@@ -326,18 +326,18 @@ static void clipx_rctf_swap(rctf *stack, short *count, float x1, float x2)
 				rf->xmax-= (x2-x1);
 			}
 			else {
-				if(rf->xmin<x1) rf->xmin= x1;
+				if(rf->xmin<x1) rf->xmin = x1;
 				newrct= stack+ *count;
 				(*count)++;
 
-				newrct->xmin= x1;
-				newrct->xmax= rf->xmax-(x2-x1);
-				newrct->ymin= rf->ymin;
-				newrct->ymax= rf->ymax;
+				newrct->xmin = x1;
+				newrct->xmax = rf->xmax-(x2-x1);
+				newrct->ymin = rf->ymin;
+				newrct->ymax = rf->ymax;
 
-				if(newrct->xmin==newrct->xmax) (*count)--;
+				if(newrct->xmin ==newrct->xmax) (*count)--;
 
-				rf->xmax= x2;
+				rf->xmax = x2;
 			}
 		}
 		rf++;
@@ -359,18 +359,18 @@ static void clipy_rctf_swap(rctf *stack, short *count, float y1, float y2)
 				rf->ymax+= (y2-y1);
 			}
 			else {
-				if(rf->ymax>y2) rf->ymax= y2;
+				if(rf->ymax>y2) rf->ymax = y2;
 				newrct= stack+ *count;
 				(*count)++;
 
-				newrct->ymax= y2;
-				newrct->ymin= rf->ymin+(y2-y1);
-				newrct->xmin= rf->xmin;
-				newrct->xmax= rf->xmax;
+				newrct->ymax = y2;
+				newrct->ymin = rf->ymin+(y2-y1);
+				newrct->xmin = rf->xmin;
+				newrct->xmax = rf->xmax;
 
 				if(newrct->ymin==newrct->ymax) (*count)--;
 
-				rf->ymin= y1;
+				rf->ymin = y1;
 			}
 		}
 		else if(rf->ymax>y2) {
@@ -379,18 +379,18 @@ static void clipy_rctf_swap(rctf *stack, short *count, float y1, float y2)
 				rf->ymax-= (y2-y1);
 			}
 			else {
-				if(rf->ymin<y1) rf->ymin= y1;
+				if(rf->ymin<y1) rf->ymin = y1;
 				newrct= stack+ *count;
 				(*count)++;
 
-				newrct->ymin= y1;
-				newrct->ymax= rf->ymax-(y2-y1);
-				newrct->xmin= rf->xmin;
-				newrct->xmax= rf->xmax;
+				newrct->ymin = y1;
+				newrct->ymax = rf->ymax-(y2-y1);
+				newrct->xmin = rf->xmin;
+				newrct->xmax = rf->xmax;
 
 				if(newrct->ymin==newrct->ymax) (*count)--;
 
-				rf->ymax= y2;
+				rf->ymax = y2;
 			}
 		}
 		rf++;
@@ -413,10 +413,10 @@ static float clipx_rctf(rctf *rf, float x1, float x2)
 	size= rf->xmax - rf->xmin;
 
 	if(rf->xmin<x1) {
-		rf->xmin= x1;
+		rf->xmin = x1;
 	}
 	if(rf->xmax>x2) {
-		rf->xmax= x2;
+		rf->xmax = x2;
 	}
 	if(rf->xmin > rf->xmax) {
 		rf->xmin = rf->xmax;
@@ -435,10 +435,10 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
 	size= rf->ymax - rf->ymin;
 
 	if(rf->ymin<y1) {
-		rf->ymin= y1;
+		rf->ymin = y1;
 	}
 	if(rf->ymax>y2) {
-		rf->ymax= y2;
+		rf->ymax = y2;
 	}
 
 	if(rf->ymin > rf->ymax) {
@@ -552,10 +552,10 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	short count=1;
 
 	rf= stack;
-	rf->xmin= minx*(ibuf->x);
-	rf->xmax= maxx*(ibuf->x);
-	rf->ymin= miny*(ibuf->y);
-	rf->ymax= maxy*(ibuf->y);
+	rf->xmin = minx*(ibuf->x);
+	rf->xmax = maxx*(ibuf->x);
+	rf->ymin = miny*(ibuf->y);
+	rf->ymax = maxy*(ibuf->y);
 
 	texr.talpha= texres->talpha;	/* is read by boxsample_clip */
 	
@@ -979,10 +979,10 @@ static void alpha_clip_aniso(ImBuf *ibuf, float minx, float miny, float maxx, fl
 	// if this is actually correct for the all the filtering algorithms ..
 
 	if(!(extflag == TXC_REPT || extflag == TXC_EXTD)) {
-		rf.xmin= minx*(ibuf->x);
-		rf.xmax= maxx*(ibuf->x);
-		rf.ymin= miny*(ibuf->y);
-		rf.ymax= maxy*(ibuf->y);
+		rf.xmin = minx*(ibuf->x);
+		rf.xmax = maxx*(ibuf->x);
+		rf.ymin = miny*(ibuf->y);
+		rf.ymax = maxy*(ibuf->y);
 
 		alphaclip = clipx_rctf(&rf, 0.0, (float)(ibuf->x));
 		alphaclip*= clipy_rctf(&rf, 0.0, (float)(ibuf->y));

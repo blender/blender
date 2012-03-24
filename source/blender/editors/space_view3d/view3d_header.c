@@ -538,11 +538,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		block= uiLayoutGetBlock(row);
 		
 		if (v3d->twflag & V3D_USE_MANIPULATOR) {
-			but= uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Translate manipulator - Shift-Click for multiple modes"));
+			but = uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Translate manipulator - Shift-Click for multiple modes"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-			but= uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Rotate manipulator - Shift-Click for multiple modes"));
+			but = uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Rotate manipulator - Shift-Click for multiple modes"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-			but= uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Scale manipulator - Shift-Click for multiple modes"));
+			but = uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Scale manipulator - Shift-Click for multiple modes"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 		}
 			
@@ -551,7 +551,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 			
 		str_menu = BIF_menustringTransformOrientation(C, "Orientation");
-		but= uiDefButC(block, MENU, B_MAN_MODE, str_menu,0,0,70 * dpi_fac, UI_UNIT_Y, &v3d->twmode, 0, 0, 0, 0, TIP_("Transform Orientation"));
+		but = uiDefButC(block, MENU, B_MAN_MODE, str_menu,0,0,70 * dpi_fac, UI_UNIT_Y, &v3d->twmode, 0, 0, 0, 0, TIP_("Transform Orientation"));
 		uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 		MEM_freeN((void *)str_menu);
 	}

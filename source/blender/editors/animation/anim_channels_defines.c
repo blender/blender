@@ -3115,17 +3115,17 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 	if (ptr && flag) {
 		switch (ptrsize) {
 			case sizeof(int):	/* integer pointer for setting */
-				but= uiDefIconButBitI(block, butType, flag, 0, icon, 
+				but = uiDefIconButBitI(block, butType, flag, 0, icon, 
 						xpos, ypos, ICON_WIDTH, ICON_WIDTH, ptr, 0, 0, 0, 0, tooltip);
 				break;
 				
 			case sizeof(short):	/* short pointer for setting */
-				but= uiDefIconButBitS(block, butType, flag, 0, icon, 
+				but = uiDefIconButBitS(block, butType, flag, 0, icon, 
 						xpos, ypos, ICON_WIDTH, ICON_WIDTH, ptr, 0, 0, 0, 0, tooltip);
 				break;
 				
 			case sizeof(char):	/* char pointer for setting */
-				but= uiDefIconButBitC(block, butType, flag, 0, icon, 
+				but = uiDefIconButBitC(block, butType, flag, 0, icon, 
 						xpos, ypos, ICON_WIDTH, ICON_WIDTH, ptr, 0, 0, 0, 0, tooltip);
 				break;
 		}
@@ -3320,7 +3320,7 @@ void ANIM_channel_draw_widgets (bContext *C, bAnimContext *ac, bAnimListElem *al
 						uiBut *but;
 						
 						/* create the slider button, and assign relevant callback to ensure keyframes are inserted... */
-						but= uiDefAutoButR(block, &ptr, prop, array_index, "", ICON_NONE, (int)v2d->cur.xmax-offset, ymid, SLIDER_WIDTH, (int)ymaxc-yminc);
+						but = uiDefAutoButR(block, &ptr, prop, array_index, "", ICON_NONE, (int)v2d->cur.xmax-offset, ymid, SLIDER_WIDTH, (int)ymaxc-yminc);
 						
 						/* assign keyframing function according to slider type */
 						if (ale->type == ANIMTYPE_SHAPEKEY)

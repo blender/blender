@@ -223,10 +223,10 @@ static void partialvis_update_grids(Object *ob,
 
 static void rect_from_props(rcti *rect, PointerRNA *ptr)
 {
-	rect->xmin= RNA_int_get(ptr, "xmin");
-	rect->ymin= RNA_int_get(ptr, "ymin");
-	rect->xmax= RNA_int_get(ptr, "xmax");
-	rect->ymax= RNA_int_get(ptr, "ymax");
+	rect->xmin = RNA_int_get(ptr, "xmin");
+	rect->ymin = RNA_int_get(ptr, "ymin");
+	rect->xmax = RNA_int_get(ptr, "xmax");
+	rect->ymax = RNA_int_get(ptr, "ymax");
 }
 
 static void clip_planes_from_rect(bContext *C,

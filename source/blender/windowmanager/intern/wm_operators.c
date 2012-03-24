@@ -740,7 +740,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
 	//uiDefBut(block, LABEL, 0, op->type->name, 10, 10, 180, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, ""); // ok, this isn't so easy...
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
+	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
 
 	/* fake button, it holds space for search items */
@@ -1238,7 +1238,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiStyle *style= UI_GetStyle();
 	struct RecentFile *recent;
 	int i;
-	MenuType *mt= WM_menutype_find("USERPREF_MT_splash", TRUE);
+	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", TRUE);
 	char url[96];
 
 #ifndef WITH_HEADLESS
@@ -1269,7 +1269,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 	
-	but= uiDefBut(block, BUT_IMAGE, 0, "", 0, 10, 501, 282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
+	but = uiDefBut(block, BUT_IMAGE, 0, "", 0, 10, 501, 282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
 	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
 	
@@ -1408,7 +1408,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
+	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
 	
 	/* fake button, it holds space for search items */
@@ -2296,7 +2296,7 @@ static int border_apply_rect(wmOperator *op)
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	
-	if(rect->xmin==rect->xmax || rect->ymin==rect->ymax)
+	if(rect->xmin ==rect->xmax || rect->ymin==rect->ymax)
 		return 0;
 
 	
@@ -2360,12 +2360,12 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 		wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
 		if(gesture->type==WM_GESTURE_CROSS_RECT && gesture->mode==0) {
-			rect->xmin= rect->xmax= event->x - sx;
-			rect->ymin= rect->ymax= event->y - sy;
+			rect->xmin = rect->xmax = event->x - sx;
+			rect->ymin = rect->ymax = event->y - sy;
 		}
 		else {
-			rect->xmax= event->x - sx;
-			rect->ymax= event->y - sy;
+			rect->xmax = event->x - sx;
+			rect->ymax = event->y - sy;
 		}
 		border_apply_rect(op);
 
@@ -2460,8 +2460,8 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 	if(event->type== MOUSEMOVE) {
 		wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
-		rect->xmin= event->x - sx;
-		rect->ymin= event->y - sy;
+		rect->xmin = event->x - sx;
+		rect->ymin = event->y - sy;
 
 		wm_gesture_tag_redraw(C);
 
@@ -2476,7 +2476,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		case GESTURE_MODAL_CIRCLE_SUB:
 			rect->xmax -= 2 + rect->xmax/10;
-			if(rect->xmax < 1) rect->xmax= 1;
+			if(rect->xmax < 1) rect->xmax = 1;
 			wm_gesture_tag_redraw(C);
 			break;
 		case GESTURE_MODAL_SELECT:
@@ -2549,8 +2549,8 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 			
 			wm_subwindow_getorigin(window, gesture->swinid, &sx, &sy);
 			
-			rect->xmax= event->x - sx;
-			rect->ymax= event->y - sy;
+			rect->xmax = event->x - sx;
+			rect->ymax = event->y - sy;
 			
 			if((val= wm_gesture_evaluate(gesture))) {
 				wmEvent tevent;
@@ -2786,7 +2786,7 @@ static int straightline_apply(bContext *C, wmOperator *op)
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	
-	if(rect->xmin==rect->xmax && rect->ymin==rect->ymax)
+	if(rect->xmin ==rect->xmax && rect->ymin==rect->ymax)
 		return 0;
 	
 	/* operator arguments and storage. */
@@ -2827,12 +2827,12 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, wmEvent *event)
 		wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 		
 		if(gesture->mode==0) {
-			rect->xmin= rect->xmax= event->x - sx;
-			rect->ymin= rect->ymax= event->y - sy;
+			rect->xmin = rect->xmax = event->x - sx;
+			rect->ymin = rect->ymax = event->y - sy;
 		}
 		else {
-			rect->xmax= event->x - sx;
-			rect->ymax= event->y - sy;
+			rect->xmax = event->x - sx;
+			rect->ymax = event->y - sy;
 			straightline_apply(C, op);
 		}
 		
@@ -3858,7 +3858,7 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 /* default keymap for windows and screens, only call once per WM */
 void wm_window_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "Window", 0, 0);
 	wmKeyMapItem *kmi;
 	
 	/* note, this doesn't replace existing keymap items */
@@ -3877,7 +3877,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "WM_OT_link_append", OKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	kmi= WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "link", FALSE);
 	RNA_boolean_set(kmi->ptr, "instance_groups", FALSE);
 
@@ -3885,7 +3885,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
-	kmi= WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "copy", TRUE);
 
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_ALT, 0);
@@ -3945,19 +3945,19 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "value", "DOPESHEET_EDITOR");
 	
 	/* ndof speed */
-	kmi= WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_PLUS, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_PLUS, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "decrease", FALSE);
 	RNA_boolean_set(kmi->ptr, "fast", FALSE);
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_MINUS, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_MINUS, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "decrease", TRUE);
 	RNA_boolean_set(kmi->ptr, "fast", FALSE);
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_PLUS, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_PLUS, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "decrease", FALSE);
 	RNA_boolean_set(kmi->ptr, "fast", TRUE);
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_MINUS, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_MINUS, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "decrease", TRUE);
 	RNA_boolean_set(kmi->ptr, "fast", TRUE);
 

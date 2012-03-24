@@ -219,10 +219,10 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, const char *str)
 	angle= 90.0f;
 
 	/* translate rect to vertical */
-	txtrect.xmin= rect->xmin - (rect->ymax - rect->ymin);
-	txtrect.ymin= rect->ymin - (rect->xmax - rect->xmin);
-	txtrect.xmax= rect->xmin;
-	txtrect.ymax= rect->ymin;
+	txtrect.xmin = rect->xmin - (rect->ymax - rect->ymin);
+	txtrect.ymin = rect->ymin - (rect->xmax - rect->xmin);
+	txtrect.xmax = rect->xmin;
+	txtrect.ymax = rect->ymin;
 
 	/* clip is very strict, so we give it some space */
 	/* clipping is done without rotation, so make rect big enough to contain both positions */

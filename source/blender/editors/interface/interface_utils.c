@@ -64,11 +64,11 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 				return NULL;
 			
 			if(icon && name && name[0] == '\0')
-				but= uiDefIconButR_prop(block, ICONTOG, 0, icon, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefIconButR_prop(block, ICONTOG, 0, icon, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			else if(icon)
-				but= uiDefIconTextButR_prop(block, ICONTOG, 0, icon, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefIconTextButR_prop(block, ICONTOG, 0, icon, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			else
-				but= uiDefButR_prop(block, OPTION, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefButR_prop(block, OPTION, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			break;
 		}
 		case PROP_INT:
@@ -78,29 +78,29 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 
 			if(arraylen && index == -1) {
 				if(ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA))
-					but= uiDefButR_prop(block, COL, 0, name, x1, y1, x2, y2, ptr, prop, 0, 0, 0, -1, -1, NULL);
+					but = uiDefButR_prop(block, COL, 0, name, x1, y1, x2, y2, ptr, prop, 0, 0, 0, -1, -1, NULL);
 			}
 			else if(RNA_property_subtype(prop) == PROP_PERCENTAGE || RNA_property_subtype(prop) == PROP_FACTOR)
-				but= uiDefButR_prop(block, NUMSLI, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefButR_prop(block, NUMSLI, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			else
-				but= uiDefButR_prop(block, NUM, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefButR_prop(block, NUM, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			break;
 		}
 		case PROP_ENUM:
 			if(icon && name && name[0] == '\0')
-				but= uiDefIconButR_prop(block, MENU, 0, icon, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefIconButR_prop(block, MENU, 0, icon, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			else if(icon)
-				but= uiDefIconTextButR_prop(block, MENU, 0, icon, NULL, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefIconTextButR_prop(block, MENU, 0, icon, NULL, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			else
-				but= uiDefButR_prop(block, MENU, 0, NULL, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefButR_prop(block, MENU, 0, NULL, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			break;
 		case PROP_STRING:
 			if(icon && name && name[0] == '\0')
-				but= uiDefIconButR_prop(block, TEX, 0, icon, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefIconButR_prop(block, TEX, 0, icon, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			else if(icon)
-				but= uiDefIconTextButR_prop(block, TEX, 0, icon, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefIconTextButR_prop(block, TEX, 0, icon, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			else
-				but= uiDefButR_prop(block, TEX, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+				but = uiDefButR_prop(block, TEX, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			break;
 		case PROP_POINTER: {
 			PointerRNA pptr;
@@ -112,13 +112,13 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			if(icon == ICON_DOT)
 				icon= 0;
 
-			but= uiDefIconTextButR_prop(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+			but = uiDefIconTextButR_prop(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			break;
 		}
 		case PROP_COLLECTION: {
 			char text[256];
 			BLI_snprintf(text, sizeof(text), IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
-			but= uiDefBut(block, LABEL, 0, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, NULL);
+			but = uiDefBut(block, LABEL, 0, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, NULL);
 			uiButSetFlag(but, UI_BUT_DISABLED);
 			break;
 		}

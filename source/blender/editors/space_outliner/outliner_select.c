@@ -644,7 +644,7 @@ static int tree_element_active_sequence_dup(Scene *scene, TreeElement *te, TreeS
 
 static int tree_element_active_keymap_item(bContext *UNUSED(C), TreeElement *te, TreeStoreElem *UNUSED(tselem), int set)
 {
-	wmKeyMapItem *kmi= te->directdata;
+	wmKeyMapItem *kmi = te->directdata;
 	
 	if(set==0) {
 		if(kmi->flag & KMI_INACTIVE) return 0;
@@ -909,12 +909,12 @@ static int outliner_border_select_exec(bContext *C, wmOperator *op)
 	rctf rectf;
 	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
 
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
 	for(te= soops->tree.first; te; te= te->next) {

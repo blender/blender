@@ -316,10 +316,10 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	incl_handles = RNA_boolean_get(op->ptr, "include_handles");
 	
 	/* get settings from operator */
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 	
 	/* selection 'mode' depends on whether borderselect region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {

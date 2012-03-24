@@ -1051,8 +1051,8 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 						continue;
 					if (kcd->prev.vert && len_squared_v3v3(kcd->prev.vert->cageco, p) < depsilon_squared)
 						continue;
-					if ( len_squared_v3v3(kcd->prev.cage, p) < depsilon_squared ||
-					     len_squared_v3v3(kcd->cur.cage, p) < depsilon_squared)
+					if (len_squared_v3v3(kcd->prev.cage, p) < depsilon_squared ||
+					    len_squared_v3v3(kcd->cur.cage, p) < depsilon_squared)
 					{
 						continue;
 					}
@@ -1561,10 +1561,10 @@ static int knife_update_active(knifetool_opdata *kcd)
 		kcd->cur.edge = knife_find_closest_edge(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
 	}
 
-	/* if no hits are found this would normally default to (0,0,0) so instead
+	/* if no hits are found this would normally default to (0, 0, 0) so instead
 	 * get a point at the mouse ray closest to the previous point.
 	 * Note that drawing lines in `free-space` isn't properly supported
-	 * but theres no guarantee (0,0,0) has any geometry either - campbell */
+	 * but theres no guarantee (0, 0, 0) has any geometry either - campbell */
 	if (kcd->cur.vert == NULL && kcd->cur.edge == NULL) {
 		float origin[3], ray[3], co[3];
 
@@ -1601,7 +1601,7 @@ static void rnd_offset_co(float co[3], float scale)
 	int i;
 
 	for (i = 0; i < 3; i++) {
-		co[i] += (BLI_drand()-0.5)*scale;
+		co[i] += (BLI_drand() - 0.5) * scale;
 	}
 }
 
@@ -2231,8 +2231,8 @@ static int find_hole_chains(knifetool_opdata *kcd, ListBase *hole, BMFace *f, Li
 		j++;
 	}
 
-	/* For first diagonal (m==0), want shortest length.
-	 * For second diagonal (m==1), want max separation of index of hole
+	/* For first diagonal  (m == 0), want shortest length.
+	 * For second diagonal (m == 1), want max separation of index of hole
 	 * vertex from the hole vertex used in the first diagonal, and from there
 	 * want the one with shortest length not to the same vertex as the first diagonal. */
 	for (m = 0; m < 2; m++) {
@@ -2765,8 +2765,8 @@ static int knifetool_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	kcd->vc.mval[1] = evt->mval[1];
 
 	ED_area_headerprint(CTX_wm_area(C),
-		"LMB: define cut lines, Return or RMB: confirm, E: new cut, Ctrl: midpoint snap,"
-		" Shift: ignore snap, C: angle constrain, Turn off limit selection to visibile: cut through");
+	                    "LMB: define cut lines, Return or RMB: confirm, E: new cut, Ctrl: midpoint snap, "
+	                    "Shift: ignore snap, C: angle constrain, Turn off limit selection to visibile: cut through");
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -2795,8 +2795,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 		{KNF_MODAL_ANGLE_SNAP_TOGGLE, "ANGLE_SNAP_TOGGLE", 0, "Toggle Angle Snapping", ""},
 		{KNF_MODAL_NEW_CUT, "NEW_CUT", 0, "End Current Cut", ""},
 		{KNF_MODAL_ADD_CUT, "ADD_CUT", 0, "Add Cut", ""},
-
-	{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Knife Tool Modal Map");
 

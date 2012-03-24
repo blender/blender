@@ -112,7 +112,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	int i;
 	
 	if (lcd->totedge > 0) {
-		if(v3d && v3d->zbuf)
+		if (v3d && v3d->zbuf)
 			glDisable(GL_DEPTH_TEST);
 
 		glPushMatrix();
@@ -120,20 +120,20 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 		glColor3ub(255, 0, 255);
 		glBegin(GL_LINES);
-		for (i=0; i<lcd->totedge; i++) {
+		for (i = 0; i < lcd->totedge; i++) {
 			glVertex3fv(lcd->edges[i][0]);
 			glVertex3fv(lcd->edges[i][1]);
 		}
 		glEnd();
 
 		glPopMatrix();
-		if(v3d && v3d->zbuf)
+		if (v3d && v3d->zbuf)
 			glEnable(GL_DEPTH_TEST);
 	}
 }
 
 /* given two opposite edges in a face, finds the ordering of their vertices so
- * that cut preview lines won't cross each other*/
+ * that cut preview lines won't cross each other */
 static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed, 
                                 BMVert *lastv1, BMVert *v[2][2])
 {
@@ -143,7 +143,7 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 
 	l = eed->l;
 
-	/*find correct order for v[1]*/
+	/* find correct order for v[1] */
 	if (!(BM_edge_in_face(l->f, eed) && BM_edge_in_face(l->f, lasteed))) {
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_LOOP, l) {
 			if (BM_edge_in_face(l->f, eed) && BM_edge_in_face(l->f, lasteed))
@@ -151,7 +151,7 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 		}
 	}
 	
-	/*this should never happen*/
+	/* this should never happen */
 	if (!l) {
 		v[0][0] = eed->v1;
 		v[0][1] = eed->v2;
@@ -169,7 +169,8 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 	if (l2->v == lastv1) {
 		v[0][0] = eed->v1;
 		v[0][1] = eed->v2;
-	} else {
+	}
+	else {
 		v[0][0] = eed->v2;
 		v[0][1] = eed->v1;
 	}
@@ -185,7 +186,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	float (*edges)[2][3] = NULL;
 	BLI_array_declare(edges);
 	float co[2][3];
-	int i, tot=0;
+	int i, tot = 0;
 	
 	memset(v, 0, sizeof(v));
 	
@@ -208,7 +209,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 		         BMW_NIL_LAY);
 
 		eed = BMW_begin(&walker, startedge);
-		for (; eed; eed=BMW_step(&walker)) {
+		for ( ; eed; eed = BMW_step(&walker)) {
 			BM_elem_select_set(em->bm, eed, TRUE);
 		}
 		BMW_end(&walker);
@@ -222,12 +223,13 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 	eed = startedge = BMW_begin(&walker, startedge);
 	lastv1 = NULL;
-	for (lasteed=NULL; eed; eed=BMW_step(&walker)) {
+	for (lasteed = NULL; eed; eed = BMW_step(&walker)) {
 		if (lasteed) {
 			if (lastv1) {
 				v[1][0] = v[0][0];
 				v[1][1] = v[0][1];
-			} else {
+			}
+			else {
 				v[1][0] = lasteed->v1;
 				v[1][1] = lasteed->v2;
 				lastv1 = lasteed->v1;
@@ -236,14 +238,14 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 			edgering_find_order(em, lasteed, eed, lastv1, v);
 			lastv1 = v[0][0];
 
-			for(i=1;i<=previewlines;i++){
-				co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
-				co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
-				co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
+			for (i = 1; i <= previewlines; i++) {
+				co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0]) * (i / ((float)previewlines + 1)) + v[0][0]->co[0];
+				co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1]) * (i / ((float)previewlines + 1)) + v[0][0]->co[1];
+				co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2]) * (i / ((float)previewlines + 1)) + v[0][0]->co[2];
 
-				co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
-				co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
-				co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
+				co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0]) * (i / ((float)previewlines + 1)) + v[1][0]->co[0];
+				co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1]) * (i / ((float)previewlines + 1)) + v[1][0]->co[1];
+				co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2]) * (i / ((float)previewlines + 1)) + v[1][0]->co[2];
 
 				BLI_array_growone(edges);
 				copy_v3_v3(edges[tot][0], co[0]);
@@ -260,17 +262,17 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 		edgering_find_order(em, lasteed, startedge, lastv1, v);
 		
-		for(i=1;i<=previewlines;i++){
+		for (i = 1; i <= previewlines; i++) {
 			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1])
 				continue;
 			
-			co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
-			co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
-			co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
+			co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0]) * (i / ((float)previewlines + 1)) + v[0][0]->co[0];
+			co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1]) * (i / ((float)previewlines + 1)) + v[0][0]->co[1];
+			co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2]) * (i / ((float)previewlines + 1)) + v[0][0]->co[2];
 
-			co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
-			co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
-			co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
+			co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0]) * (i / ((float)previewlines + 1)) + v[1][0]->co[0];
+			co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1]) * (i / ((float)previewlines + 1)) + v[1][0]->co[1];
+			co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2]) * (i / ((float)previewlines + 1)) + v[1][0]->co[2];
 			
 			BLI_array_growone(edges);
 			copy_v3_v3(edges[tot][0], co[0]);
@@ -298,8 +300,8 @@ static void ringsel_find_edge(tringselOpData *lcd, int cuts)
 
 static void ringsel_finish(bContext *C, wmOperator *op)
 {
-	tringselOpData *lcd= op->customdata;
-	int cuts= RNA_int_get(op->ptr, "number_cuts");
+	tringselOpData *lcd = op->customdata;
+	int cuts = RNA_int_get(op->ptr, "number_cuts");
 
 	if (lcd->eed) {
 		BMEditMesh *em = lcd->em;
@@ -317,7 +319,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 					em->selectmode = SCE_SELECT_EDGE;
 				else
 					em->selectmode &= ~SCE_SELECT_FACE;
-				CTX_data_tool_settings(C)->selectmode= em->selectmode;
+				CTX_data_tool_settings(C)->selectmode = em->selectmode;
 				EDBM_selectmode_set(em);
 
 				WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, CTX_data_scene(C));
@@ -331,9 +333,9 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		else {
 			
 			/* sets as active, useful for other tools */
-			if(em->selectmode & SCE_SELECT_VERTEX)
+			if (em->selectmode & SCE_SELECT_VERTEX)
 				EDBM_store_selection(em, lcd->eed->v1); /* low priority TODO, get vertrex close to mouse */
-			if(em->selectmode & SCE_SELECT_EDGE)
+			if (em->selectmode & SCE_SELECT_EDGE)
 				EDBM_store_selection(em, lcd->eed);
 			
 			EDBM_selectmode_flush(lcd->em);
@@ -345,7 +347,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 /* called when modal loop selection is done... */
 static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 {
-	tringselOpData *lcd= op->customdata;
+	tringselOpData *lcd = op->customdata;
 
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(lcd->ar->type, lcd->draw_handle);
@@ -357,7 +359,7 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 
 	/* free the custom data */
 	MEM_freeN(lcd);
-	op->customdata= NULL;
+	op->customdata = NULL;
 }
 
 /* called when modal loop selection gets set up... */
@@ -366,11 +368,11 @@ static int ringsel_init (bContext *C, wmOperator *op, int do_cut)
 	tringselOpData *lcd;
 	
 	/* alloc new customdata */
-	lcd= op->customdata= MEM_callocN(sizeof(tringselOpData), "ringsel Modal Op Data");
+	lcd = op->customdata = MEM_callocN(sizeof(tringselOpData), "ringsel Modal Op Data");
 	
 	/* assign the drawing handle for drawing preview line... */
-	lcd->ar= CTX_wm_region(C);
-	lcd->draw_handle= ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
+	lcd->ar = CTX_wm_region(C);
+	lcd->draw_handle = ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
 	lcd->ob = CTX_data_edit_object(C);
 	lcd->em = BMEdit_FromObject(lcd->ob);
 	lcd->extend = do_cut ? 0 : RNA_boolean_get(op->ptr, "extend");
@@ -396,12 +398,12 @@ static int ringcut_cancel (bContext *C, wmOperator *op)
 
 static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	Object *obedit= CTX_data_edit_object(C);
+	Object *obedit = CTX_data_edit_object(C);
 	tringselOpData *lcd;
 	BMEdge *edge;
 	int dist = 75;
 
-	if(modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
+	if (modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
 		BKE_report(op->reports, RPT_WARNING, "Loop cut doesn't work well on deformed edit mesh display");
 	
 	view3d_operator_needs_opengl(C);
@@ -428,8 +430,8 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
-	int cuts= RNA_int_get(op->ptr,"number_cuts");
-	tringselOpData *lcd= op->customdata;
+	int cuts = RNA_int_get(op->ptr, "number_cuts");
+	tringselOpData *lcd = op->customdata;
 	int show_cuts = 0;
 
 	view3d_operator_needs_opengl(C);
@@ -475,7 +477,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 				break;
 
 			cuts++;
-			RNA_int_set(op->ptr,"number_cuts",cuts);
+			RNA_int_set(op->ptr, "number_cuts", cuts);
 			ringsel_find_edge(lcd, cuts);
 			show_cuts = TRUE;
 			
@@ -487,8 +489,8 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			if (event->val == KM_RELEASE)
 				break;
 
-			cuts=MAX2(cuts-1,1);
-			RNA_int_set(op->ptr,"number_cuts",cuts);
+			cuts = MAX2(cuts - 1, 1);
+			RNA_int_set(op->ptr, "number_cuts", cuts);
 			ringsel_find_edge(lcd, cuts);
 			show_cuts = TRUE;
 			
@@ -513,15 +515,15 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	/* using the keyboard to input the number of cuts */
-	if (event->val==KM_PRESS) {
+	if (event->val == KM_PRESS) {
 		float value;
 		
 		if (handleNumInput(&lcd->num, event)) {
 			applyNumInput(&lcd->num, &value);
 			
-			cuts= CLAMPIS(value, 1, 130);
+			cuts = CLAMPIS(value, 1, 130);
 			
-			RNA_int_set(op->ptr,"number_cuts",cuts);
+			RNA_int_set(op->ptr, "number_cuts", cuts);
 			ringsel_find_edge(lcd, cuts);
 			show_cuts = TRUE;
 			

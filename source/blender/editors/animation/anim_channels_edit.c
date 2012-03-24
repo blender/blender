@@ -1901,10 +1901,10 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* get settings from operator */
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 	
 	gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
 	extend= RNA_boolean_get(op->ptr, "extend");

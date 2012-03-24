@@ -131,7 +131,7 @@ static void info_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Info", SPACE_INFO, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Info", SPACE_INFO, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -196,12 +196,12 @@ static void info_operatortypes(void)
 
 static void info_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "Window", 0, 0);
 	
 	WM_keymap_verify_item(keymap, "INFO_OT_reports_display_update", TIMERREPORT, KM_ANY, KM_ANY, 0);
 
 	/* info space */
-	keymap= WM_keymap_find(keyconf, "Info", SPACE_INFO, 0);
+	keymap = WM_keymap_find(keyconf, "Info", SPACE_INFO, 0);
 	
 	
 	/* report selection */

@@ -458,14 +458,14 @@ static void lasso_select_boundbox(rcti *rect, int mcords[][2], short moves)
 {
 	short a;
 	
-	rect->xmin= rect->xmax= mcords[0][0];
-	rect->ymin= rect->ymax= mcords[0][1];
+	rect->xmin = rect->xmax = mcords[0][0];
+	rect->ymin = rect->ymax = mcords[0][1];
 	
 	for (a=1; a<moves; a++) {
-		if (mcords[a][0]<rect->xmin) rect->xmin= mcords[a][0];
-		else if (mcords[a][0]>rect->xmax) rect->xmax= mcords[a][0];
-		if (mcords[a][1]<rect->ymin) rect->ymin= mcords[a][1];
-		else if (mcords[a][1]>rect->ymax) rect->ymax= mcords[a][1];
+		if (mcords[a][0]<rect->xmin) rect->xmin = mcords[a][0];
+		else if (mcords[a][0]>rect->xmax) rect->xmax = mcords[a][0];
+		if (mcords[a][1]<rect->ymin) rect->ymin = mcords[a][1];
+		else if (mcords[a][1]>rect->ymax) rect->ymax = mcords[a][1];
 	}
 }
 
@@ -2063,10 +2063,10 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	view3d_set_viewcontext(C, &vc);
 	
 	select= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 	extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (vc.obedit) {

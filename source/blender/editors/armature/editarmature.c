@@ -1354,9 +1354,9 @@ static void *get_nearest_bone (bContext *C, short findunsel, int x, int y)
 	
 	view3d_set_viewcontext(C, &vc);
 	
-	// rect.xmin= ... mouseco!
-	rect.xmin= rect.xmax= x;
-	rect.ymin= rect.ymax= y;
+	// rect.xmin = ... mouseco!
+	rect.xmin = rect.xmax = x;
+	rect.ymin = rect.ymax = y;
 	
 	glInitNames();
 	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
@@ -1590,17 +1590,17 @@ static EditBone *get_nearest_editbonepoint (ViewContext *vc, const int mval[2], 
 
 	glInitNames();
 	
-	rect.xmin= mval[0]-5;
-	rect.xmax= mval[0]+5;
-	rect.ymin= mval[1]-5;
-	rect.ymax= mval[1]+5;
+	rect.xmin = mval[0]-5;
+	rect.xmax = mval[0]+5;
+	rect.ymin = mval[1]-5;
+	rect.ymax = mval[1]+5;
 	
 	hits= view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect);
 	if(hits==0) {
-		rect.xmin= mval[0]-12;
-		rect.xmax= mval[0]+12;
-		rect.ymin= mval[1]-12;
-		rect.ymax= mval[1]+12;
+		rect.xmin = mval[0]-12;
+		rect.xmax = mval[0]+12;
+		rect.ymin = mval[1]-12;
+		rect.ymax = mval[1]+12;
 		hits= view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect);
 	}
 	/* See if there are any selected bones in this group */

@@ -1087,7 +1087,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 
 	retval = wm_operator_call_internal(C, ot, properties, reports, context, FALSE);
 	
-	if (wm == CTX_wm_manager(C)) wm->op_undo_depth--;
+	if (wm && (wm == CTX_wm_manager(C))) wm->op_undo_depth--;
 
 	/* keep the reports around if needed later */
 	if (	(retval & OPERATOR_RUNNING_MODAL) ||
@@ -1331,7 +1331,7 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 		wmKeyMap *keymap= WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
 
-		for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
+		for(kmi = keymap->items.first; kmi; kmi = kmi->next) {
 			if(wm_eventmatch(event, kmi)) {
 					
 				event->type= EVT_MODAL_MAP;
@@ -1663,7 +1663,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				wmKeyMapItem *kmi;
 				
 				if(!keymap->poll || keymap->poll(C)) {
-					for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
+					for(kmi = keymap->items.first; kmi; kmi = kmi->next) {
 						if(wm_eventmatch(event, kmi)) {
 
 							/* weak, but allows interactive callback to not use rawkey */

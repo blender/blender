@@ -2347,35 +2347,35 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	
 	if(horizontal) {
 		fac= (rect->xmax - rect->xmin)/(size);
-		rect1.xmin= rect1.xmin + ceilf(fac*((float)value - but->softmin));
-		rect1.xmax= rect1.xmin + ceilf(fac*(but->a1 - but->softmin));
+		rect1.xmin = rect1.xmin + ceilf(fac*((float)value - but->softmin));
+		rect1.xmax = rect1.xmin + ceilf(fac*(but->a1 - but->softmin));
 
 		/* ensure minimium size */
 		min= rect->ymax - rect->ymin;
 
 		if(rect1.xmax - rect1.xmin < min) {
-			rect1.xmax= rect1.xmin + min;
+			rect1.xmax = rect1.xmin + min;
 
 			if(rect1.xmax > rect->xmax) {
-				rect1.xmax= rect->xmax;
-				rect1.xmin= MAX2(rect1.xmax - min, rect->xmin);
+				rect1.xmax = rect->xmax;
+				rect1.xmin = MAX2(rect1.xmax - min, rect->xmin);
 			}
 		}
 	}
 	else {
 		fac= (rect->ymax - rect->ymin)/(size);
-		rect1.ymax= rect1.ymax - ceilf(fac*((float)value - but->softmin));
-		rect1.ymin= rect1.ymax - ceilf(fac*(but->a1 - but->softmin));
+		rect1.ymax = rect1.ymax - ceilf(fac*((float)value - but->softmin));
+		rect1.ymin = rect1.ymax - ceilf(fac*(but->a1 - but->softmin));
 
 		/* ensure minimium size */
 		min= rect->xmax - rect->xmin;
 
 		if(rect1.ymax - rect1.ymin < min) {
-			rect1.ymax= rect1.ymin + min;
+			rect1.ymax = rect1.ymin + min;
 
 			if(rect1.ymax > rect->ymax) {
-				rect1.ymax= rect->ymax;
-				rect1.ymin= MAX2(rect1.ymax - min, rect->ymin);
+				rect1.ymax = rect->ymax;
+				rect1.ymin = MAX2(rect1.ymax - min, rect->ymin);
 			}
 		}
 	}
@@ -2421,10 +2421,10 @@ static void widget_link(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect, in
 		
 		UI_ThemeColor(TH_TEXT_HI);
 		
-		rectlink.xmin= (rect->xmin+rect->xmax)/2;
-		rectlink.ymin= (rect->ymin+rect->ymax)/2;
-		rectlink.xmax= but->linkto[0];
-		rectlink.ymax= but->linkto[1];
+		rectlink.xmin = (rect->xmin+rect->xmax)/2;
+		rectlink.ymin = (rect->ymin+rect->ymax)/2;
+		rectlink.xmax = but->linkto[0];
+		rectlink.ymax = but->linkto[1];
 		
 		ui_draw_link_bezier(&rectlink);
 	}
@@ -2468,13 +2468,13 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 		fac= ((float)value-but->softmin)*(rect1.xmax - rect1.xmin - offs)/(but->softmax - but->softmin);
 		
 		/* left part of slider, always rounded */
-		rect1.xmax= rect1.xmin + ceil(offs+1.0f);
+		rect1.xmax = rect1.xmin + ceil(offs+1.0f);
 		round_box_edges(&wtb1, roundboxalign & ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT), &rect1, offs);
 		wtb1.outline= 0;
 		widgetbase_draw(&wtb1, wcol);
 		
 		/* right part of slider, interpolate roundness */
-		rect1.xmax= rect1.xmin + fac + offs;
+		rect1.xmax = rect1.xmin + fac + offs;
 		rect1.xmin+=  floor(offs-1.0f);
 		if(rect1.xmax + offs > rect->xmax)
 			offs*= (rect1.xmax + offs - rect->xmax)/offs;
@@ -2687,7 +2687,7 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UN
 	widget_init(&wtb);
 	
 	/* square */
-	recttemp.xmax= recttemp.xmin + (recttemp.ymax-recttemp.ymin);
+	recttemp.xmax = recttemp.xmin + (recttemp.ymax-recttemp.ymin);
 	
 	/* smaller */
 	delta= 1 + (recttemp.ymax-recttemp.ymin)/8;
@@ -3313,7 +3313,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 	/* part text right aligned */
 	if(cpoin) {
 		fstyle->align= UI_STYLE_TEXT_RIGHT;
-		rect->xmax= _rect.xmax - 5;
+		rect->xmax = _rect.xmax - 5;
 		uiStyleFontDraw(fstyle, rect, cpoin+1);
 		*cpoin= '|';
 	}

@@ -125,15 +125,15 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 	BLI_addtail(&snode->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin=  -256.0f;
-	ar->v2d.tot.ymin=  -256.0f;
-	ar->v2d.tot.xmax= 768.0f;
-	ar->v2d.tot.ymax= 768.0f;
+	ar->v2d.tot.xmin =  -256.0f;
+	ar->v2d.tot.ymin =  -256.0f;
+	ar->v2d.tot.xmax = 768.0f;
+	ar->v2d.tot.ymax = 768.0f;
 	
-	ar->v2d.cur.xmin=  -256.0f;
-	ar->v2d.cur.ymin=  -256.0f;
-	ar->v2d.cur.xmax= 768.0f;
-	ar->v2d.cur.ymax= 768.0f;
+	ar->v2d.cur.xmin =  -256.0f;
+	ar->v2d.cur.ymin =  -256.0f;
+	ar->v2d.cur.xmax = 768.0f;
+	ar->v2d.cur.ymax = 768.0f;
 	
 	ar->v2d.min[0]= 1.0f;
 	ar->v2d.min[1]= 1.0f;
@@ -330,7 +330,7 @@ static void node_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -348,10 +348,10 @@ static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymaps */
-	keymap= WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Node Editor", SPACE_NODE, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Node Editor", SPACE_NODE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	
 	/* add drop boxes */

@@ -2352,18 +2352,18 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	rctf vb;
 
 	/* get border select values using rna */
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 
 	/* calculate range */
 	ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, FALSE);
 
-	scene->r.border.xmin= ((float)rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
-	scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
-	scene->r.border.xmax= ((float)rect.xmax-vb.xmin)/(vb.xmax-vb.xmin);
-	scene->r.border.ymax= ((float)rect.ymax-vb.ymin)/(vb.ymax-vb.ymin);
+	scene->r.border.xmin = ((float)rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
+	scene->r.border.ymin = ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
+	scene->r.border.xmax = ((float)rect.xmax-vb.xmin)/(vb.xmax-vb.xmin);
+	scene->r.border.ymax = ((float)rect.ymax-vb.ymin)/(vb.ymax-vb.ymin);
 
 	/* actually set border */
 	CLAMP(scene->r.border.xmin, 0.0f, 1.0f);
@@ -2441,10 +2441,10 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	view3d_operator_needs_opengl(C);
 
 	/* get border select values using rna */
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
@@ -3180,10 +3180,10 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	bglMats mats;
 	rcti rect;
 
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 
 	rv3d->rflag |= RV3D_CLIPPING;
 	rv3d->clipbb= MEM_callocN(sizeof(BoundBox), "clipbb");
@@ -3415,10 +3415,10 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
 
 	if (margin==0) {
 		/* Get Z Depths, needed for perspective, nice for ortho */
-		rect.xmin= mval[0];
-		rect.ymin= mval[1];
-		rect.xmax= mval[0] + 1;
-		rect.ymax= mval[1] + 1;
+		rect.xmin = mval[0];
+		rect.ymin = mval[1];
+		rect.xmax = mval[0] + 1;
+		rect.ymax = mval[1] + 1;
 	}
 	else {
 		rect.xmax = mval[0] + margin;

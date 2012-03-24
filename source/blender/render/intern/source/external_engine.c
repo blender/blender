@@ -166,10 +166,10 @@ RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, 
 		h= re->result->recty - y;
 
 	/* allocate a render result */
-	disprect.xmin= x;
-	disprect.xmax= x+w;
-	disprect.ymin= y;
-	disprect.ymax= y+h;
+	disprect.xmin = x;
+	disprect.xmax = x+w;
+	disprect.ymin = y;
+	disprect.ymax = y+h;
 
 	result= render_result_new(re, &disprect, 0, RR_USE_MEM);
 	BLI_addtail(&engine->fullresult, result);

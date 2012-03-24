@@ -242,8 +242,8 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		}
 	}
 
-	node->prvr.xmin= locx + NODE_DYS;
-	node->prvr.xmax= locx + node->width- NODE_DYS;
+	node->prvr.xmin = locx + NODE_DYS;
+	node->prvr.xmax = locx + node->width- NODE_DYS;
 
 	/* preview rect? */
 	if(node->flag & NODE_PREVIEW) {
@@ -257,14 +257,14 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 				aspect= (float)node->preview->ysize/(float)node->preview->xsize;
 			
 			dy-= NODE_DYS/2;
-			node->prvr.ymax= dy;
+			node->prvr.ymax = dy;
 			
 			if(aspect <= 1.0f)
-				node->prvr.ymin= dy - aspect*(node->width-NODE_DY);
+				node->prvr.ymin = dy - aspect*(node->width-NODE_DY);
 			else {
 				float dx= (node->width - NODE_DYS) - (node->width- NODE_DYS)/aspect;	/* width correction of image */
 				
-				node->prvr.ymin= dy - (node->width-NODE_DY);
+				node->prvr.ymin = dy - (node->width-NODE_DY);
 				
 				node->prvr.xmin+= 0.5f*dx;
 				node->prvr.xmax-= 0.5f*dx;
@@ -281,8 +281,8 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 			if(oldh==0.0f)
 				oldh= 0.6f*node->width-NODE_DY;
 			dy-= NODE_DYS/2;
-			node->prvr.ymax= dy;
-			node->prvr.ymin= dy - oldh;
+			node->prvr.ymax = dy;
+			node->prvr.ymin = dy - oldh;
 			dy= node->prvr.ymin - NODE_DYS/2;
 		}
 
@@ -294,10 +294,10 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		dy-= NODE_DYS/2;
 
 		/* set this for uifunc() that don't use layout engine yet */
-		node->butr.xmin= 0;
-		node->butr.xmax= node->width - 2*NODE_DYS;
-		node->butr.ymin= 0;
-		node->butr.ymax= 0;
+		node->butr.xmin = 0;
+		node->butr.xmax = node->width - 2*NODE_DYS;
+		node->butr.ymin = 0;
+		node->butr.ymax = 0;
 		
 		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 		
@@ -325,10 +325,10 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 	if(node->inputs.first || (node->flag & (NODE_OPTIONS|NODE_PREVIEW))==0 )
 		dy-= NODE_DYS/2;
 
-	node->totr.xmin= locx;
-	node->totr.xmax= locx + node->width;
-	node->totr.ymax= locy;
-	node->totr.ymin= MIN2(dy, locy-2*NODE_DY);
+	node->totr.xmin = locx;
+	node->totr.xmax = locx + node->width;
+	node->totr.ymax = locy;
+	node->totr.ymin = MIN2(dy, locy-2*NODE_DY);
 	
 	/* Set the block bounds to clip mouse events from underlying nodes.
 	 * Add a margin for sockets on each side.
@@ -364,10 +364,10 @@ static void node_update_hidden(bNode *node)
 		hiddenrad += 5.0f*(float)(tot-4);
 	}
 	
-	node->totr.xmin= locx;
-	node->totr.xmax= locx + 3*hiddenrad + node->miniwidth;
-	node->totr.ymax= locy + (hiddenrad - 0.5f*NODE_DY);
-	node->totr.ymin= node->totr.ymax - 2*hiddenrad;
+	node->totr.xmin = locx;
+	node->totr.xmax = locx + 3*hiddenrad + node->miniwidth;
+	node->totr.ymax = locy + (hiddenrad - 0.5f*NODE_DY);
+	node->totr.ymin = node->totr.ymax - 2*hiddenrad;
 	
 	/* output sockets */
 	rad=drad= (float)M_PI/(1.0f + (float)totout);

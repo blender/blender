@@ -126,7 +126,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 	/* col= uiLayoutColumn(layout, 1); */ /* UNUSED */
 	block= uiLayoutGetBlock(layout);
 	uiBlockBeginAlign(block);
-		but= uiDefButR(block, MENU, B_FMODIFIER_REDRAW, NULL, 0, 0, width-30, UI_UNIT_Y, &ptr, "mode", -1, 0, 0, -1, -1, NULL);
+		but = uiDefButR(block, MENU, B_FMODIFIER_REDRAW, NULL, 0, 0, width-30, UI_UNIT_Y, &ptr, "mode", -1, 0, 0, -1, -1, NULL);
 		uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
 		
 		uiDefButR(block, TOG, B_FMODIFIER_REDRAW, NULL, 0, 0, width-30, UI_UNIT_Y, &ptr, "use_additive", -1, 0, 0, -1, -1, NULL);
@@ -143,7 +143,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			/* draw polynomial order selector */
 			row= uiLayoutRow(layout, 0);
 			block= uiLayoutGetBlock(row);
-				but= uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 10, 0, width-30, 19,
+				but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 10, 0, width-30, 19,
 				               &data->poly_order, 1, 100, 0, 0,
 				               TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
 				uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
@@ -196,7 +196,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			/* draw polynomial order selector */
 			row= uiLayoutRow(layout, 0);
 			block= uiLayoutGetBlock(row);
-				but= uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 0, 0, width-30, 19,
+				but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 0, 0, width-30, 19,
 				               &data->poly_order, 1, 100, 0, 0,
 				               TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
 				uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
@@ -515,7 +515,7 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 		
 		uiDefBut(block, LABEL, 1, IFACE_("Control Points:"), 0, 0, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
 		
-		but= uiDefBut(block, BUT, B_FMODIFIER_REDRAW, IFACE_("Add Point"), 0, 0, 150, 19,
+		but = uiDefBut(block, BUT, B_FMODIFIER_REDRAW, IFACE_("Add Point"), 0, 0, 150, 19,
 		              NULL, 0, 0, 0, 0, TIP_("Add a new control-point to the envelope on the current frame"));
 		uiButSetFunc(but, fmod_envelope_addpoint_cb, env, NULL);
 		
@@ -535,7 +535,7 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Max:"), 0, 0, 100, 20,
 			          &fed->max, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, TIP_("Maximum bound of envelope at this point"));
 			
-			but= uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 0, 0, 18, 20,
+			but = uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 0, 0, 18, 20,
 			                  NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Delete envelope control point"));
 			uiButSetFunc(but, fmod_envelope_deletepoint_cb, env, SET_INT_IN_POINTER(i));
 		uiBlockBeginAlign(block);
@@ -674,7 +674,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* delete button */
-		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+		but = uiDefIconBut(block, BUT, B_REDR, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 		                  NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Delete F-Curve Modifier"));
 		uiButSetFunc(but, delete_fmodifier_cb, modifiers, fcm);
 		

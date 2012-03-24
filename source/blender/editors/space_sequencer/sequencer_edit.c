@@ -223,12 +223,12 @@ static void seq_proxy_build_job(const bContext *C)
 
 void seq_rectf(Sequence *seq, rctf *rectf)
 {
-	if(seq->startstill) rectf->xmin= seq->start;
-	else rectf->xmin= seq->startdisp;
-	rectf->ymin= seq->machine+SEQ_STRIP_OFSBOTTOM;
-	if(seq->endstill) rectf->xmax= seq->start+seq->len;
-	else rectf->xmax= seq->enddisp;
-	rectf->ymax= seq->machine+SEQ_STRIP_OFSTOP;
+	if(seq->startstill) rectf->xmin = seq->start;
+	else rectf->xmin = seq->startdisp;
+	rectf->ymin = seq->machine+SEQ_STRIP_OFSBOTTOM;
+	if(seq->endstill) rectf->xmax = seq->start+seq->len;
+	else rectf->xmax = seq->enddisp;
+	rectf->ymax = seq->machine+SEQ_STRIP_OFSTOP;
 }
 
 static void UNUSED_FUNCTION(change_plugin_seq)(Scene *scene, char *str) /* called from fileselect */
@@ -276,10 +276,10 @@ void boundbox_seq(Scene *scene, rctf *rect)
 		seq= seq->next;
 	}
 
-	rect->xmin= min[0];
-	rect->xmax= max[0];
-	rect->ymin= min[1];
-	rect->ymax= max[1];
+	rect->xmin = min[0];
+	rect->xmax = max[0];
+	rect->ymin = min[1];
+	rect->ymax = max[1];
 
 }
 
@@ -2223,18 +2223,18 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 		orig_height= v2d->cur.ymax - v2d->cur.ymin;
 
-		v2d->cur.xmin= xmin;
-		v2d->cur.xmax= xmax;
+		v2d->cur.xmin = xmin;
+		v2d->cur.xmax = xmax;
 
-		v2d->cur.ymin= ymin;
-		v2d->cur.ymax= ymax;
+		v2d->cur.ymin = ymin;
+		v2d->cur.ymax = ymax;
 
 		/* only zoom out vertically */
 		if (orig_height > v2d->cur.ymax - v2d->cur.ymin) {
 			ymid= (v2d->cur.ymax + v2d->cur.ymin) / 2;
 
-			v2d->cur.ymin= ymid - (orig_height/2);
-			v2d->cur.ymax= ymid + (orig_height/2);
+			v2d->cur.ymin = ymid - (orig_height/2);
+			v2d->cur.ymax = ymid + (orig_height/2);
 		}
 
 		UI_view2d_curRect_validate(v2d);

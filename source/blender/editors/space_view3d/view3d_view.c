@@ -1049,13 +1049,13 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)		/* rect: for pick
 	
 	if (rect) {		/* picking */
 		rect->xmin/= (float)ar->winx;
-		rect->xmin= x1+rect->xmin*(x2-x1);
+		rect->xmin = x1+rect->xmin*(x2-x1);
 		rect->ymin/= (float)ar->winy;
-		rect->ymin= y1+rect->ymin*(y2-y1);
+		rect->ymin = y1+rect->ymin*(y2-y1);
 		rect->xmax/= (float)ar->winx;
-		rect->xmax= x1+rect->xmax*(x2-x1);
+		rect->xmax = x1+rect->xmax*(x2-x1);
 		rect->ymax/= (float)ar->winy;
-		rect->ymax= y1+rect->ymax*(y2-y1);
+		rect->ymax = y1+rect->ymax*(y2-y1);
 		
 		if (orth) wmOrtho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, -clipend, clipend);
 		else wmFrustum(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
@@ -1210,17 +1210,17 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	G.f |= G_PICKSEL;
 	
 	/* case not a border select */
-	if (input->xmin==input->xmax) {
-		rect.xmin= input->xmin-12;	// seems to be default value for bones only now
-		rect.xmax= input->xmin+12;
-		rect.ymin= input->ymin-12;
-		rect.ymax= input->ymin+12;
+	if (input->xmin ==input->xmax) {
+		rect.xmin = input->xmin-12;	// seems to be default value for bones only now
+		rect.xmax = input->xmin+12;
+		rect.ymin = input->ymin-12;
+		rect.ymax = input->ymin+12;
 	}
 	else {
-		rect.xmin= input->xmin;
-		rect.xmax= input->xmax;
-		rect.ymin= input->ymin;
-		rect.ymax= input->ymax;
+		rect.xmin = input->xmin;
+		rect.xmax = input->xmax;
+		rect.ymin = input->ymin;
+		rect.ymax = input->ymax;
 	}
 	
 	setwinmatrixview3d(ar, v3d, &rect);

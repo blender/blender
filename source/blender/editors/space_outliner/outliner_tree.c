@@ -1075,7 +1075,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		if(TSELEM_OPEN(tselem,soops)) {
 			a= 0;
 			
-			for (kmi= km->items.first; kmi; kmi= kmi->next, a++) {
+			for (kmi = km->items.first; kmi; kmi = kmi->next, a++) {
 				const char *key= WM_key_event_string(kmi->type);
 				
 				if(key[0]) {
