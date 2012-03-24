@@ -3511,9 +3511,9 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	ot->idname = "NODE_OT_add_file";
 	
 	/* callbacks */
-    ot->exec = node_add_file_exec;
+	ot->exec = node_add_file_exec;
 	ot->invoke = node_add_file_invoke;
-    ot->poll = ED_operator_node_active;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;

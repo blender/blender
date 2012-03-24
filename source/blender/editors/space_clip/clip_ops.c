@@ -877,12 +877,12 @@ static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undisto
 	int build_count = 0;
 	int size_flags[2][4] = {{MCLIP_PROXY_SIZE_25,
 	                         MCLIP_PROXY_SIZE_50,
-                             MCLIP_PROXY_SIZE_75,
-                             MCLIP_PROXY_SIZE_100},
-                            {MCLIP_PROXY_UNDISTORTED_SIZE_25,
-                             MCLIP_PROXY_UNDISTORTED_SIZE_50,
-                             MCLIP_PROXY_UNDISTORTED_SIZE_75,
-                             MCLIP_PROXY_UNDISTORTED_SIZE_100}};
+	                         MCLIP_PROXY_SIZE_75,
+	                         MCLIP_PROXY_SIZE_100},
+	                        {MCLIP_PROXY_UNDISTORTED_SIZE_25,
+	                         MCLIP_PROXY_UNDISTORTED_SIZE_50,
+	                         MCLIP_PROXY_UNDISTORTED_SIZE_75,
+	                         MCLIP_PROXY_UNDISTORTED_SIZE_100}};
 	int size_nr = undistort ? 1 : 0;
 
 	if (size_flag & size_flags[size_nr][0]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_25;

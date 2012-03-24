@@ -147,7 +147,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
         mesh = bpy.data.meshes.new("Torus")
 
         mesh.vertices.add(len(verts_loc) // 3)
-        
+
         # BMESH_TODO, use polygons
         mesh.faces.add(len(faces) // 4)
 

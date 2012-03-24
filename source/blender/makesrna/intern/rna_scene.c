@@ -201,7 +201,7 @@ EnumPropertyItem image_only_type_items[] = {
 
 	IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
-    {0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem image_type_items[] = {
 	{0, "", 0, "Image", NULL},

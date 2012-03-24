@@ -538,8 +538,7 @@ typedef struct  FT_Outline_
 	short*      contours;        /* the contour end points             */
 
 	int         flags;           /* outline masks                      */
-
-  } FT_Outline;
+} FT_Outline;
 
 #endif
 

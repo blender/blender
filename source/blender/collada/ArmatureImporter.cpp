@@ -574,7 +574,7 @@ void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node
 { 
 	char * bone_name = (char *) bc_get_joint_name ( root_node);
 	float mat[4][4];
-   float obmat[4][4];
+	float obmat[4][4];
 
 	float ax[3];
 	float angle = 0.0f;

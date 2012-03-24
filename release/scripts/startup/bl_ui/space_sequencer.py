@@ -728,7 +728,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
             col = layout.column()
             col.label(text="Distortion:")
             col.prop(strip, "undistort")
-   
+
         row = layout.row()
         row.label(text="Flip:")
         row.prop(strip, "use_flip_x", text="X")

@@ -449,7 +449,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 				if (item[i].identifier[0] && item[i].value == value) {
 					if (item[i].description && item[i].description[0]) {
 						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s", item[i].name, item[i].description);
-                        data->color_id[data->totline] = UI_TIP_LC_SUBMENU;
+						data->color_id[data->totline] = UI_TIP_LC_SUBMENU;
 						data->totline++;
 					}
 					break;

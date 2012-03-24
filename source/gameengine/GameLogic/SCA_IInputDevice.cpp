@@ -62,7 +62,7 @@ void SCA_IInputDevice::ClearStatusTable(int tableid)
 
 const SCA_InputEvent& SCA_IInputDevice::GetEventValue(SCA_IInputDevice::KX_EnumInputs inputcode)
 {
-  //	cerr << "SCA_IInputDevice::GetEventValue" << endl;
+//	cerr << "SCA_IInputDevice::GetEventValue" << endl;
 	return m_eventStatusTables[m_currentTable][inputcode];
 }
 

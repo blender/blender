@@ -227,10 +227,10 @@ static void rna_tracking_trackerAlgorithm_update(Main *UNUSED(bmain), Scene *UNU
 {
 	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
 
-        if (track->tracker == TRACKER_KLT)
-          BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
-        else
-          BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
+	if (track->tracker == TRACKER_KLT)
+		BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
+	else
+		BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
 }
 
 static void rna_tracking_trackerPyramid_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

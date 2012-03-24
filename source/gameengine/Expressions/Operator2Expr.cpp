@@ -244,10 +244,7 @@ CExpression* COperator2Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlink
 /		
 
   */
-  return Release();
-
-  
-	
+	return Release();
 }
 
 

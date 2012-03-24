@@ -131,7 +131,7 @@ def handle_args():
                         dest="sphinx_theme",
                         type=str,
                         default='default',
-                        help=
+                        help =
                         # see SPHINX_THEMES below
                         "Sphinx theme (default='default')\n"
                         "Available themes\n"
@@ -448,6 +448,7 @@ else:
 def is_struct_seq(value):
     return isinstance(value, tuple) and type(tuple) != tuple and hasattr(value, "n_fields")
 
+
 def undocumented_message(module_name, type_name, identifier):
     if str(type_name).startswith('<module'):
         preloadtitle = '%s.%s' % (module_name, identifier)
@@ -503,7 +504,7 @@ def example_extract_docstring(filepath):
 
 def title_string(text, heading_char, double=False):
     filler = len(text) * heading_char
-    
+
     if double:
         return "%s\n%s\n%s\n\n" % (filler, text, filler)
     else:
@@ -692,6 +693,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
     # TODO - currently only used for classes
     # grouping support
     module_grouping = MODULE_GROUPING.get(module_name)
+
     def module_grouping_index(name):
         if module_grouping is not None:
             try:
@@ -706,11 +708,10 @@ def pymodule2sphinx(basepath, module_name, module, title):
             if i >= 0 and type(module_grouping[i]) == tuple:
                 return module_grouping[i]
         return None, None
-        
+
     def module_grouping_sort_key(name):
         return module_grouping_index(name)
     # done grouping support
-    
 
     file = open(filepath, "w", encoding="utf-8")
 
@@ -866,7 +867,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
 
     # write collected classes now
     for (type_name, value) in classes:
-        
+
         if module_grouping is not None:
             heading, heading_char = module_grouping_heading(type_name)
             if heading:
@@ -1778,7 +1779,7 @@ def main():
         bpy_logfilehandler = logging.FileHandler(bpy_logfile, mode="w")
         bpy_logfilehandler.setLevel(logging.DEBUG)
         BPY_LOGGER.addHandler(bpy_logfilehandler)
-    
+
         # using a FileHandler seems to disable the stdout, so we add a StreamHandler
         bpy_log_stdout_handler = logging.StreamHandler(stream=sys.stdout)
         bpy_log_stdout_handler.setLevel(logging.DEBUG)
@@ -1872,7 +1873,7 @@ def main():
             # zip REFERENCE_PATH
             basename = os.path.join(ARGS.output_dir, REFERENCE_NAME)
             tmp_path = shutil.make_archive(basename, 'zip',
-                                           root_dir=ARGS.output_dir, 
+                                           root_dir=ARGS.output_dir,
                                            base_dir=REFERENCE_NAME)
             final_path = os.path.join(REFERENCE_PATH, BLENDER_ZIP_FILENAME)
             os.rename(tmp_path, final_path)

@@ -1050,7 +1050,7 @@ class VIEW3D_MT_brush(Menu):
         layout.prop(ups, "use_unified_size", text="Unified Size")
         layout.prop(ups, "use_unified_strength", text="Unified Strength")
         layout.separator()
-        
+
         # brush paint modes
         layout.menu("VIEW3D_MT_brush_paint_modes")
 
@@ -1087,6 +1087,7 @@ class VIEW3D_MT_brush(Menu):
                 if sculpt_tool == 'LAYER':
                     layout.prop(brush, "use_persistent")
                     layout.operator("sculpt.set_persistent_base")
+
 
 class VIEW3D_MT_brush_paint_modes(Menu):
     bl_label = "Enabled Modes"
@@ -1242,7 +1243,7 @@ class VIEW3D_MT_hide(Menu):
         op = layout.operator("paint.hide_show", text="Show Bounding Box")
         op.action = 'SHOW'
         op.area = 'INSIDE'
-    
+
 
 # ********** Particle menu **********
 

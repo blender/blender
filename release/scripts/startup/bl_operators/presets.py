@@ -22,6 +22,7 @@ import bpy
 from bpy.types import Menu, Operator
 from bpy.props import StringProperty, BoolProperty
 
+
 class AddPresetBase():
     '''Base preset class, only for subclassing
     subclasses must define

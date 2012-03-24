@@ -359,7 +359,7 @@ static int setBackground (PyImage * self, PyObject * value, void * closure)
 	getImageRender(self)->setBackground((unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
 		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))),
 		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2))),
-        (unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 3))));
+		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 3))));
 	// success
 	return 0;
 }

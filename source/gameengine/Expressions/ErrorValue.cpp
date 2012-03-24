@@ -39,10 +39,10 @@ pre:
 effect: constructs a new CErrorValue containing errormessage errmsg
 */
 {
-  m_strErrorText = "[";
-  m_strErrorText += errmsg;
-  m_strErrorText += "]";
-  SetError(true);
+	m_strErrorText = "[";
+	m_strErrorText += errmsg;
+	m_strErrorText += "]";
+	SetError(true);
 }
 
 

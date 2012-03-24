@@ -73,15 +73,15 @@ static GPUBufferState GLStates = 0;
 static GPUAttrib attribData[MAX_GPU_ATTRIB_DATA] = { { -1, 0, 0 } };
 
 /* stores recently-deleted buffers so that new buffers won't have to
-   be recreated as often
-
-   only one instance of this pool is created, stored in
-   gpu_buffer_pool
-
-   note that the number of buffers in the pool is usually limited to
-   MAX_FREE_GPU_BUFFERS, but this limit may be exceeded temporarily
-   when a GPUBuffer is released outside the main thread; due to OpenGL
-   restrictions it cannot be immediately released
+ * be recreated as often
+ *
+ * only one instance of this pool is created, stored in
+ * gpu_buffer_pool
+ *
+ * note that the number of buffers in the pool is usually limited to
+ * MAX_FREE_GPU_BUFFERS, but this limit may be exceeded temporarily
+ * when a GPUBuffer is released outside the main thread; due to OpenGL
+ * restrictions it cannot be immediately released
  */
 typedef struct GPUBufferPool {
 	/* number of allocated buffers stored */
@@ -160,7 +160,7 @@ static void gpu_buffer_pool_free(GPUBufferPool *pool)
 	if (!pool)
 		return;
 	
-	while(pool->totbuf)
+	while (pool->totbuf)
 		gpu_buffer_pool_delete_last(pool);
 
 	MEM_freeN(pool->buffers);
@@ -248,7 +248,7 @@ GPUBuffer *GPU_buffer_alloc(int size)
 		   out-of-memory errors? looks a bit iffy to me
 		   though, at least on Linux I expect malloc() would
 		   just overcommit. --nicholas */
-		while(!buf->pointer && pool->totbuf > 0) {
+		while (!buf->pointer && pool->totbuf > 0) {
 			gpu_buffer_pool_delete_last(pool);
 			buf->pointer = MEM_mallocN(size, "GPUBuffer.pointer");
 		}
@@ -279,7 +279,7 @@ void GPU_buffer_free(GPUBuffer *buffer)
 	if (BLI_thread_is_main()) {
 		/* in main thread, safe to decrease size of pool back
 		   down to MAX_FREE_GPU_BUFFERS */
-		while(pool->totbuf >= MAX_FREE_GPU_BUFFERS)
+		while (pool->totbuf >= MAX_FREE_GPU_BUFFERS)
 			gpu_buffer_pool_delete_last(pool);
 	}
 	else {
@@ -507,7 +507,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	if (useVBOs) {
 		success = 0;
 
-		while(!success) {
+		while (!success) {
 			/* bind the buffer and discard previous data,
 			   avoids stalling gpu */
 			glBindBufferARB(target, buffer->id);
@@ -543,7 +543,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 		if (dm->drawObject->legacy == 0) {
 			uploaded = GL_FALSE;
 			/* attempt to upload the data to the VBO */
-			while(uploaded == GL_FALSE) {
+			while (uploaded == GL_FALSE) {
 				(*copy_f)(dm, varray, cur_index_per_mat, mat_orig_to_new, user);
 				/* glUnmapBuffer returns GL_FALSE if
 				 * the data store is corrupted; retry
@@ -1161,8 +1161,8 @@ void GPU_buffer_unbind(void)
 }
 
 /* confusion: code in cdderivedmesh calls both GPU_color_setup and
-   GPU_color3_upload; both of these set the `colors' buffer, so seems
-   like it will just needlessly overwrite? --nicholas */
+ * GPU_color3_upload; both of these set the `colors' buffer, so seems
+ * like it will just needlessly overwrite? --nicholas */
 void GPU_color3_upload(DerivedMesh *dm, unsigned char *data)
 {
 	if (dm->drawObject == 0)
@@ -1494,27 +1494,27 @@ static int gpu_count_grid_quads(BLI_bitmap *grid_hidden,
 
 /* Build the element array buffer of grid indices using either
    unsigned shorts or unsigned ints. */
-#define FILL_QUAD_BUFFER(type_, tot_quad_, buffer_)						\
+#define FILL_QUAD_BUFFER(type_, tot_quad_, buffer_)                     \
 	{                                                                   \
 		type_ *quad_data;                                               \
 		int offset = 0;                                                 \
-        int i, j, k;                                                    \
-                                                                        \
+		int i, j, k;                                                    \
+		                                                                \
 		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,                    \
-						sizeof(type_) * (tot_quad_) * 4, NULL,			\
+						sizeof(type_) * (tot_quad_) * 4, NULL,          \
 						GL_STATIC_DRAW_ARB);                            \
-                                                                        \
+		                                                                \
 		/* Fill the quad buffer */                                      \
 		quad_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,         \
 								   GL_WRITE_ONLY_ARB);                  \
-		if (quad_data) {                                                 \
+		if (quad_data) {                                                \
 			for (i = 0; i < totgrid; ++i) {								\
 				BLI_bitmap gh = NULL;									\
-				if (grid_hidden)											\
+				if (grid_hidden)										\
 					gh = grid_hidden[(grid_indices)[i]];				\
 																		\
-				for (j = 0; j < gridsize-1; ++j) {                       \
-					for (k = 0; k < gridsize-1; ++k) {                   \
+				for (j = 0; j < gridsize-1; ++j) {                      \
+					for (k = 0; k < gridsize-1; ++k) {                  \
 						/* Skip hidden grid face */						\
 						if (gh &&										\
 						   paint_is_grid_face_hidden(gh,				\

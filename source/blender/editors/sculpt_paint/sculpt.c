@@ -2960,7 +2960,7 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 
 		/* compute 3d coordinate at same z from original location + mouse */
 		mul_v3_m4v3(loc, ob->obmat, cache->orig_grab_location);
- 		initgrabz(cache->vc->rv3d, loc[0], loc[1], loc[2]);
+		initgrabz(cache->vc->rv3d, loc[0], loc[1], loc[2]);
 
 		ED_view3d_win_to_3d(cache->vc->ar, loc, mouse, grab_location);
 

@@ -48,7 +48,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	float scale[3] = {1.0f, 1.0f, 1.0f};
 	float dist = BMO_slot_float_get(op, "mergedist");
 	int i, ototvert /*, ototedge */;
-    int axis = BMO_slot_int_get(op, "axis");
+	int axis = BMO_slot_int_get(op, "axis");
 	int mirroru = BMO_slot_bool_get(op, "mirror_u");
 	int mirrorv = BMO_slot_bool_get(op, "mirror_v");
 

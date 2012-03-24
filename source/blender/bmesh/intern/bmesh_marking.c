@@ -288,9 +288,9 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) bm->totedgesel -= 1;
 		BM_elem_flag_disable(e, BM_ELEM_SELECT);
 
-		if ( bm->selectmode == SCE_SELECT_EDGE ||
-		     bm->selectmode == SCE_SELECT_FACE ||
-		     bm->selectmode == (SCE_SELECT_EDGE | SCE_SELECT_FACE))
+		if (bm->selectmode == SCE_SELECT_EDGE ||
+		    bm->selectmode == SCE_SELECT_FACE ||
+		    bm->selectmode == (SCE_SELECT_EDGE | SCE_SELECT_FACE))
 		{
 
 			BMIter iter;
@@ -312,9 +312,9 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 					}
 				}
 
-                if (deselect) {
-                    BM_vert_select_set(bm, verts[i], FALSE);
-                }
+				if (deselect) {
+					BM_vert_select_set(bm, verts[i], FALSE);
+				}
 			}
 		}
 		else {

@@ -399,7 +399,7 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 
 PyObject *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size)
 {
-    PyObject *result = PyUnicode_FromStringAndSize(str, size);
+	PyObject *result = PyUnicode_FromStringAndSize(str, size);
 	if (result) {
 		/* 99% of the time this is enough but we better support non unicode
 		 * chars since blender doesnt limit this */

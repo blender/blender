@@ -359,16 +359,16 @@ int BLI_str_utf8_size(const char *p)
  **/
 unsigned int BLI_str_utf8_as_unicode(const char *p)
 {
-  int i, mask = 0, len;
-  unsigned int result;
-  unsigned char c = (unsigned char) *p;
+	int i, mask = 0, len;
+	unsigned int result;
+	unsigned char c = (unsigned char) *p;
 
-  UTF8_COMPUTE (c, mask, len);
-  if (len == -1)
-    return BLI_UTF8_ERR;
-  UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+	UTF8_COMPUTE (c, mask, len);
+	if (len == -1)
+		return BLI_UTF8_ERR;
+	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
 
-  return result;
+	return result;
 }
 
 /* variant that increments the length */
