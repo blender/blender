@@ -448,11 +448,12 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 
 int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 {
+	CustomData *ldata = GET_CD_DATA(me, ldata);
 	CustomDataLayer *cdl;
 	int index;
 
-	index= CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
-	cdl= (index == -1)? NULL: &me->ldata.layers[index];
+	index= CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
+	cdl= (index == -1)? NULL: &ldata->layers[index];
 
 	if (!cdl)
 		return 0;
@@ -466,11 +467,12 @@ int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 
 int ED_mesh_color_remove_named(bContext *C, Object *ob, Mesh *me, const char *name)
 {
+	CustomData *ldata = GET_CD_DATA(me, ldata);
 	CustomDataLayer *cdl;
 	int index;
 
-	index= CustomData_get_named_layer_index(&me->ldata, CD_MLOOPCOL, name);
-	cdl= (index == -1)? NULL: &me->ldata.layers[index];
+	index= CustomData_get_named_layer_index(ldata, CD_MLOOPCOL, name);
+	cdl = (index == -1) ? NULL : &ldata->layers[index];
 
 	if (!cdl)
 		return 0;
