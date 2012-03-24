@@ -393,7 +393,7 @@ static int console_insert_exec(bContext *C, wmOperator *op)
 
 static int console_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	// if(!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
+	// if (!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if (!RNA_string_length(op->ptr, "text")) {
 		/* if alt/ctrl/super are pressed pass through */
 		if (event->ctrl || event->oskey) {
@@ -512,12 +512,12 @@ static int console_clear_exec(bContext *C, wmOperator *op)
 	/*ConsoleLine *ci= */ console_history_verify(C);
 	
 	if (scrollback) { /* last item in mistory */
-		while(sc->scrollback.first)
+		while (sc->scrollback.first)
 			console_scrollback_free(sc, sc->scrollback.first);
 	}
 	
 	if (history) {
-		while(sc->history.first)
+		while (sc->history.first)
 			console_history_free(sc, sc->history.first);
 	}
 
@@ -577,7 +577,7 @@ static int console_history_cycle_exec(bContext *C, wmOperator *op)
 
 	{	/* add a duplicate of the new arg and remove all other instances */
 		ConsoleLine *cl;
-		while((cl= console_history_find(sc, ci->line, ci)))
+		while ((cl= console_history_find(sc, ci->line, ci)))
 			console_history_free(sc, cl);
 
 		console_history_add(C, (ConsoleLine *)sc->history.last);
@@ -626,7 +626,7 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
 	if (rem_dupes) {
 		ConsoleLine *cl;
 
-		while((cl= console_history_find(sc, ci->line, ci)))
+		while ((cl= console_history_find(sc, ci->line, ci)))
 			console_history_free(sc, cl);
 
 		if (strcmp(str, ci->line)==0) {
@@ -815,7 +815,7 @@ static int console_paste_exec(bContext *C, wmOperator *UNUSED(op))
 
 	buf_step= buf_str;
 
-	while((buf_next=buf_step) && buf_next[0] != '\0') {
+	while ((buf_next=buf_step) && buf_next[0] != '\0') {
 		buf_step= strchr(buf_next, '\n');
 		if (buf_step) {
 			*buf_step= '\0';

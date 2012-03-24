@@ -114,7 +114,7 @@ static void check_unused_keys(MovieCache *cache)
 	GHashIterator *iter;
 
 	iter= BLI_ghashIterator_new(cache->hash);
-	while(!BLI_ghashIterator_isDone(iter)) {
+	while (!BLI_ghashIterator_isDone(iter)) {
 		MovieCacheKey *key= BLI_ghashIterator_getKey(iter);
 		MovieCacheItem *item= BLI_ghashIterator_getValue(iter);
 
@@ -322,7 +322,7 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 
 		iter= BLI_ghashIterator_new(cache->hash);
 		a= 0;
-		while(!BLI_ghashIterator_isDone(iter)) {
+		while (!BLI_ghashIterator_isDone(iter)) {
 			MovieCacheKey *key= BLI_ghashIterator_getKey(iter);
 			MovieCacheItem *item= BLI_ghashIterator_getValue(iter);
 			int framenr, curproxy, curflags;

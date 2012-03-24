@@ -1049,7 +1049,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 	else looking= 1;
 
 	/* iterate */
-	while(looking) {
+	while (looking) {
 		looking= 0;
 
 		/* find correct valence edges which are not tagged yet, but connect to tagged one */
@@ -1177,7 +1177,7 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 		}
 	}
 
-	while(stacksize > 0) {
+	while (stacksize > 0) {
 		int j;
 
 		stacksize--;

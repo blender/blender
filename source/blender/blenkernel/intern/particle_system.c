@@ -920,7 +920,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 				cpa->w[i]=0.0f;
 			}
 
-			if (totw>0.0f) for(w=0; w<4; w++)
+			if (totw>0.0f) for (w=0; w<4; w++)
 				cpa->w[w]/=totw;
 
 			cpa->parent=cpa->pa[0];

@@ -405,7 +405,7 @@ void RE_FreeRender(Render *re)
 /* exit blender */
 void RE_FreeAllRender(void)
 {
-	while(RenderGlobal.renderlist.first) {
+	while (RenderGlobal.renderlist.first) {
 		RE_FreeRender(RenderGlobal.renderlist.first);
 	}
 }
@@ -811,7 +811,7 @@ static void threaded_tile_processor(Render *re)
 	else
 		nextpa= find_next_part(re, 0);
 	
-	while(rendering) {
+	while (rendering) {
 		
 		if (re->test_break(re->tbh))
 			PIL_sleep_ms(50);
@@ -1030,7 +1030,7 @@ static void do_render_blur_3d(Render *re)
 	rres= render_result_new(re, &re->disprect, 0, RR_USE_MEM);
 	
 	/* do the blur steps */
-	while(blur--) {
+	while (blur--) {
 		re->mblur_offs = re->r.blurfac*((float)(re->r.mblur_samples-blur))/(float)re->r.mblur_samples;
 		
 		re->i.curblur= re->r.mblur_samples-blur;	/* stats */
@@ -1743,7 +1743,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 
 			check_comp= 0;
 
-			while(seq) {
+			while (seq) {
 				if (seq->type == SEQ_SCENE && seq->scene) {
 					if (!seq->scene_camera) {
 						if (!seq->scene->camera && !scene_find_camera(seq->scene)) {
@@ -1768,7 +1768,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 		if (scene->r.scemode&R_DOCOMP && scene->use_nodes) {
 			bNode *node= scene->nodetree->nodes.first;
 
-			while(node) {
+			while (node) {
 				if (node->type == CMP_NODE_R_LAYERS) {
 					Scene *sce= node->id ? (Scene*)node->id : scene;
 

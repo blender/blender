@@ -109,7 +109,7 @@ bool SCA_JoystickSensor::Evaluate()
 	bool result = false;
 	bool reset = m_reset && m_level;
 	
-	if(js==NULL) /* no joystick - don't do anything */
+	if (js==NULL) /* no joystick - don't do anything */
 		return false;
 	
 	m_reset = false;
@@ -134,22 +134,22 @@ bool SCA_JoystickSensor::Evaluate()
 			
 			js->cSetPrecision(m_precision);
 			if (m_bAllEvents) {
-				if(js->aAxisPairIsPositive(m_axis-1)){ /* use zero based axis index internally */
+				if (js->aAxisPairIsPositive(m_axis-1)){ /* use zero based axis index internally */
 					m_istrig = 1;
 					result = true;
 				}else{
-					if(m_istrig){
+					if (m_istrig){
 						m_istrig = 0;
 						result = true;
 					}
 				}
 			}
 			else {
-				if(js->aAxisPairDirectionIsPositive(m_axis-1, m_axisf)){ /* use zero based axis index internally */
+				if (js->aAxisPairDirectionIsPositive(m_axis-1, m_axisf)){ /* use zero based axis index internally */
 					m_istrig = 1;
 					result = true;
 				}else{
-					if(m_istrig){
+					if (m_istrig){
 						m_istrig = 0;
 						result = true;
 					}
@@ -165,11 +165,11 @@ bool SCA_JoystickSensor::Evaluate()
 			
 			/* No need for 'm_bAllEvents' check here since were only checking 1 axis */
 			js->cSetPrecision(m_precision);
-			if(js->aAxisIsPositive(m_axis-1)){ /* use zero based axis index internally */
+			if (js->aAxisIsPositive(m_axis-1)){ /* use zero based axis index internally */
 				m_istrig = 1;
 				result = true;
 			}else{
-				if(m_istrig){
+				if (m_istrig){
 					m_istrig = 0;
 					result = true;
 				}
@@ -185,11 +185,11 @@ bool SCA_JoystickSensor::Evaluate()
 			if (!js->IsTrigButton() && !reset) /* No events from SDL? - don't bother */
 				return false;
 			
-			if(( m_bAllEvents && js->aAnyButtonPressIsPositive()) || (!m_bAllEvents && js->aButtonPressIsPositive(m_button))) {
+			if (( m_bAllEvents && js->aAnyButtonPressIsPositive()) || (!m_bAllEvents && js->aButtonPressIsPositive(m_button))) {
 				m_istrig = 1;
 				result = true;
 			}else {
-				if(m_istrig){
+				if (m_istrig){
 					m_istrig = 0;
 					result = true;
 				}
@@ -206,11 +206,11 @@ bool SCA_JoystickSensor::Evaluate()
 			if (!js->IsTrigHat() && !reset) /* No events from SDL? - don't bother */
 				return false;
 			
-			if((m_bAllEvents && js->GetHat(m_hat-1)) || js->aHatIsPositive(m_hat-1, m_hatf)) {
+			if ((m_bAllEvents && js->GetHat(m_hat-1)) || js->aHatIsPositive(m_hat-1, m_hatf)) {
 				m_istrig = 1;
 				result = true;
 			}else{
-				if(m_istrig){
+				if (m_istrig){
 					m_istrig = 0;
 					result = true;
 				}
@@ -310,7 +310,7 @@ PyObject* SCA_JoystickSensor::PyGetButtonActiveList( )
 	PyObject *value;
 	int i;
 	
-	if(joy) {
+	if (joy) {
 		for (i=0; i < joy->GetNumberOfButtons(); i++) {
 			if (joy->aButtonPressIsPositive(i)) {
 				value = PyLong_FromSsize_t(i);
@@ -331,10 +331,10 @@ PyObject* SCA_JoystickSensor::PyGetButtonStatus( PyObject* args )
 	SCA_Joystick *joy = ((SCA_JoystickManager *)m_eventmgr)->GetJoystickDevice(m_joyindex);
 	int index;
 	
-	if(!PyArg_ParseTuple(args, "i:getButtonStatus", &index)){
+	if (!PyArg_ParseTuple(args, "i:getButtonStatus", &index)){
 		return NULL;
 	}
-	if(joy && index >= 0 && index < joy->GetNumberOfButtons()) {
+	if (joy && index >= 0 && index < joy->GetNumberOfButtons()) {
 		return PyBool_FromLong(joy->aButtonPressIsPositive(index) ? 1 : 0);
 	}
 	return PyBool_FromLong(0);
@@ -360,7 +360,7 @@ PyObject* SCA_JoystickSensor::pyattr_get_axis_single(void *self_v, const KX_PYAT
 	SCA_JoystickSensor* self= static_cast<SCA_JoystickSensor*>(self_v);
 	SCA_Joystick *joy = ((SCA_JoystickManager *)self->m_eventmgr)->GetJoystickDevice(self->m_joyindex);
 	
-	if(self->m_joymode != KX_JOYSENSORMODE_AXIS_SINGLE) {
+	if (self->m_joymode != KX_JOYSENSORMODE_AXIS_SINGLE) {
 		PyErr_SetString(PyExc_TypeError, "val = sensor.axisSingle: Joystick Sensor, not 'Single Axis' type");
 		return NULL;
 	}

@@ -120,42 +120,42 @@ SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_B
 	KX_IInterpolator *interpolator;
 	KX_IScalarInterpolator *interp;
 		
-	for(int i=0; i<3; i++) {
+	for (int i=0; i<3; i++) {
 		if ((interp = adtList->GetScalarInterpolator("location", i))) {
 			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetPosition()[i]), interp);
 			ipocontr->AddInterpolator(interpolator);
 			ipocontr->SetIPOChannelActive(OB_LOC_X+i, true);
 		}
 	}
-	for(int i=0; i<3; i++) {
+	for (int i=0; i<3; i++) {
 		if ((interp = adtList->GetScalarInterpolator("delta_location", i))) {
 			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetDeltaPosition()[i]), interp);
 			ipocontr->AddInterpolator(interpolator);
 			ipocontr->SetIPOChannelActive(OB_DLOC_X+i, true);
 		}
 	}
-	for(int i=0; i<3; i++) {
+	for (int i=0; i<3; i++) {
 		if ((interp = adtList->GetScalarInterpolator(rotmode, i))) {
 			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetEulerAngles()[i]), interp);
 			ipocontr->AddInterpolator(interpolator);
 			ipocontr->SetIPOChannelActive(OB_ROT_X+i, true);
 		}
 	}
-	for(int i=0; i<3; i++) {
+	for (int i=0; i<3; i++) {
 		if ((interp = adtList->GetScalarInterpolator(drotmode, i))) {
 			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetDeltaEulerAngles()[i]), interp);
 			ipocontr->AddInterpolator(interpolator);
 			ipocontr->SetIPOChannelActive(OB_DROT_X+i, true);
 		}
 	}
-	for(int i=0; i<3; i++) {
+	for (int i=0; i<3; i++) {
 		if ((interp = adtList->GetScalarInterpolator("scale", i))) {
 			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetScaling()[i]), interp);
 			ipocontr->AddInterpolator(interpolator);
 			ipocontr->SetIPOChannelActive(OB_SIZE_X+i, true);
 		}
 	}
-	for(int i=0; i<3; i++) {
+	for (int i=0; i<3; i++) {
 		if ((interp = adtList->GetScalarInterpolator("delta_scale", i))) {
 			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetDeltaScaling()[i]), interp);
 			ipocontr->AddInterpolator(interpolator);
@@ -166,7 +166,7 @@ SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_B
 	{
 		KX_ObColorIpoSGController* ipocontr_obcol=NULL;
 			
-		for(int i=0; i<4; i++) {
+		for (int i=0; i<4; i++) {
 			if ((interp = adtList->GetScalarInterpolator("color", i))) {
 				if (!ipocontr_obcol) {
 					ipocontr_obcol = new KX_ObColorIpoSGController();
@@ -223,7 +223,7 @@ SG_Controller *BL_CreateLampIPO(struct bAction *action, KX_GameObject*  lightobj
 		ipocontr->SetModifyDist(true);
 	}
 		
-	for(int i=0; i<3; i++) {
+	for (int i=0; i<3; i++) {
 		if ((interp = adtList->GetScalarInterpolator("color", i))) {
 			interpolator= new KX_ScalarInterpolator(&ipocontr->m_col_rgb[i], interp);
 			ipocontr->AddInterpolator(interpolator);
@@ -323,7 +323,7 @@ void BL_ConvertWorldIpos(struct World* blenderworld,KX_BlenderSceneConverter *co
 		KX_IInterpolator *interpolator;
 		KX_IScalarInterpolator *interp;
 		
-		for(int i=0; i<3; i++) {
+		for (int i=0; i<3; i++) {
 			if ((interp = adtList->GetScalarInterpolator("horizon_color", i))) {
 				interpolator= new KX_ScalarInterpolator(&ipocontr->m_mist_rgb[i], interp);
 				ipocontr->AddInterpolator(interpolator);
@@ -379,7 +379,7 @@ static void ConvertMaterialIpos(
 		KX_IScalarInterpolator *sinterp;
 		
 		// --
-		for(int i=0; i<3; i++) {
+		for (int i=0; i<3; i++) {
 			if ((sinterp = adtList->GetScalarInterpolator("diffuse_color", i))) {
 				if (!ipocontr) {
 					ipocontr = new KX_MaterialIpoController(matname_hash);
@@ -401,7 +401,7 @@ static void ConvertMaterialIpos(
 			ipocontr->AddInterpolator(interpolator);
 		}
 
-		for(int i=0; i<3; i++) {
+		for (int i=0; i<3; i++) {
 			if ((sinterp = adtList->GetScalarInterpolator("specular_color", i))) {
 				if (!ipocontr) {
 					ipocontr = new KX_MaterialIpoController(matname_hash);
@@ -467,7 +467,7 @@ void BL_ConvertMaterialIpos(
 		// if there is only one material attached to the mesh then set material_index in BL_ConvertMaterialIpos to NULL
 		// --> this makes the UpdateMaterialData function in KX_GameObject.cpp use the old hack of using SetObjectColor
 		// because this yields a better performance as not all the vertex colors need to be edited
-		if(mat) ConvertMaterialIpos(mat, 0, gameobj, converter);
+		if (mat) ConvertMaterialIpos(mat, 0, gameobj, converter);
 	}
 	else
 	{
@@ -475,7 +475,7 @@ void BL_ConvertMaterialIpos(
 		{
 			Material *mat = give_current_material(blenderobject, material_index);
 			STR_HashedString matname;
-			if(mat) {
+			if (mat) {
 				matname= mat->id.name; // who is using this name? can we remove the MA here?
 				ConvertMaterialIpos(mat, matname.hash(), gameobj, converter);
 			}

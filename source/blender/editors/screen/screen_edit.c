@@ -599,11 +599,11 @@ void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 		oneselected= 0;
 		while (se) {
 			if (se->v1->flag + se->v2->flag==1) {
-				if (dir=='h') if(se->v1->vec.y==se->v2->vec.y) {
+				if (dir=='h') if (se->v1->vec.y==se->v2->vec.y) {
 					se->v1->flag= se->v2->flag= 1;
 					oneselected= 1;
 				}
-					if (dir=='v') if(se->v1->vec.x==se->v2->vec.x) {
+					if (dir=='v') if (se->v1->vec.x==se->v2->vec.x) {
 						se->v1->flag= se->v2->flag= 1;
 						oneselected= 1;
 					}

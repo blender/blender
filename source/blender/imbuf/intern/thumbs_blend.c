@@ -76,7 +76,7 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 
 	endian_switch = ((ENDIAN_ORDER != endian)) ? 1 : 0;
 
-	while(gzread(gzfile, bhead, sizeof_bhead) == sizeof_bhead) {
+	while (gzread(gzfile, bhead, sizeof_bhead) == sizeof_bhead) {
 		if (endian_switch)
 			SWITCH_INT(bhead[1]); /* length */
 

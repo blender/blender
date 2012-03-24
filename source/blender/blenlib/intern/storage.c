@@ -262,7 +262,7 @@ static void bli_builddir(const char *dirname, const char *relname)
 
 			if (files) {
 				dlink = (struct dirlink *) dirbase->first;
-				while(dlink) {
+				while (dlink) {
 					memset(&files[actnum], 0 , sizeof(struct direntry));
 					files[actnum].relname = dlink->name;
 					files[actnum].path = BLI_strdupcat(dirname, dlink->name);

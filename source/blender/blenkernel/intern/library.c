@@ -1138,7 +1138,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 	char left[MAX_ID_NAME + 8], leftest[MAX_ID_NAME + 8];
 
 	/* make sure input name is terminated properly */
-	/* if( strlen(name) > MAX_ID_NAME-3 ) name[MAX_ID_NAME-3]= 0; */
+	/* if ( strlen(name) > MAX_ID_NAME-3 ) name[MAX_ID_NAME-3]= 0; */
 	/* removed since this is only ever called from one place - campbell */
 
 	while (1) {
@@ -1452,7 +1452,7 @@ void test_idbutton(char *name)
 	/* search for id */
 	idtest= BLI_findstring(lb, name, offsetof(ID, name) + 2);
 
-	if (idtest) if( new_id(lb, idtest, name)==0 ) sort_alpha_id(lb, idtest);
+	if (idtest) if ( new_id(lb, idtest, name)==0 ) sort_alpha_id(lb, idtest);
 }
 
 void text_idbutton(struct ID *id, char *text)

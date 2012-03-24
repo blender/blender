@@ -50,7 +50,7 @@ RAS_ListSlot::~RAS_ListSlot()
 
 void RAS_ListSlot::RemoveList()
 {
-	if(m_list != 0) {
+	if (m_list != 0) {
 		spit("Releasing display list (" << m_list << ")");
 		glDeleteLists((GLuint)m_list, 1);
 		m_list =0;
@@ -59,19 +59,19 @@ void RAS_ListSlot::RemoveList()
 
 void RAS_ListSlot::DrawList()
 {
-	if(m_flag &LIST_STREAM || m_flag& LIST_NOCREATE) {
+	if (m_flag &LIST_STREAM || m_flag& LIST_NOCREATE) {
 		RemoveList();
 		return;
 	}
-	if(m_flag &LIST_MODIFY) {
-		if(m_flag &LIST_CREATE) {
-			if(m_list == 0) {
+	if (m_flag &LIST_MODIFY) {
+		if (m_flag &LIST_CREATE) {
+			if (m_list == 0) {
 				m_list = (unsigned int)glGenLists(1);
 				m_flag =  m_flag &~ LIST_CREATE;
 				spit("Created display list (" << m_list << ")");
 			}
 		}
-		if(m_list != 0)
+		if (m_list != 0)
 			glNewList((GLuint)m_list, GL_COMPILE);
 	
 		m_flag |= LIST_BEGIN;
@@ -82,7 +82,7 @@ void RAS_ListSlot::DrawList()
 
 void RAS_ListSlot::EndList()
 {
-	if(m_flag & LIST_BEGIN) {
+	if (m_flag & LIST_BEGIN) {
 		glEndList();
 		m_flag = m_flag &~(LIST_BEGIN|LIST_MODIFY);
 		m_flag |= LIST_END;
@@ -92,7 +92,7 @@ void RAS_ListSlot::EndList()
 
 void RAS_ListSlot::SetModified(bool mod)
 {
-	if(mod && !(m_flag & LIST_MODIFY)) {
+	if (mod && !(m_flag & LIST_MODIFY)) {
 		spit("Modifying list (" << m_list << ")");
 		m_flag = m_flag &~ LIST_END;
 		m_flag |= LIST_STREAM;
@@ -164,7 +164,7 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 	 * :: sorted by mesh slot
 	 */
 	RAS_ListSlot* localSlot = (RAS_ListSlot*)ms.m_DisplayList;
-	if(!localSlot) {
+	if (!localSlot) {
 		if (ms.m_pDerivedMesh) {
 			// that means that we draw based on derived mesh, a display list is possible
 			// Note that we come here only for static derived mesh
@@ -172,7 +172,7 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 			RAS_ListSlot* nullSlot = NULL;
 			RAS_ListSlots *listVector;
 			RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.find(ms.m_pDerivedMesh);
-			if(it == mDerivedMeshLists.end()) {
+			if (it == mDerivedMeshLists.end()) {
 				listVector = new RAS_ListSlots(matnr+4, nullSlot);
 				localSlot = new RAS_ListSlot(this);
 				localSlot->m_flag |= LIST_DERIVEDMESH;
@@ -194,7 +194,7 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 			}
 		} else {
 			RAS_ArrayLists::iterator it = mArrayLists.find(ms.m_displayArrays);
-			if(it == mArrayLists.end()) {
+			if (it == mArrayLists.end()) {
 				localSlot = new RAS_ListSlot(this);
 				mArrayLists.insert(std::pair<RAS_DisplayArrayList, RAS_ListSlot*>(ms.m_displayArrays, localSlot));
 			} else {
@@ -208,7 +208,7 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 
 void RAS_ListRasterizer::ReleaseAlloc()
 {
-	for(RAS_ArrayLists::iterator it = mArrayLists.begin();it != mArrayLists.end();++it)
+	for (RAS_ArrayLists::iterator it = mArrayLists.begin();it != mArrayLists.end();++it)
 		delete it->second;
 	mArrayLists.clear();
 	for (RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.begin();it != mDerivedMeshLists.end();++it) {
@@ -228,10 +228,10 @@ void RAS_ListRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
 {
 	RAS_ListSlot* localSlot =0;
 
-	if(ms.m_bDisplayList) {
+	if (ms.m_bDisplayList) {
 		localSlot = FindOrAdd(ms);
 		localSlot->DrawList();
-		if(localSlot->End()) {
+		if (localSlot->End()) {
 			// save slot here too, needed for replicas and object using same mesh
 			// => they have the same vertexarray but different mesh slot
 			ms.m_DisplayList = localSlot;
@@ -244,7 +244,7 @@ void RAS_ListRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
 	else
 		RAS_OpenGLRasterizer::IndexPrimitives(ms);
 
-	if(ms.m_bDisplayList) {
+	if (ms.m_bDisplayList) {
 		localSlot->EndList();
 		ms.m_DisplayList = localSlot;
 	}
@@ -255,11 +255,11 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
 {
 	RAS_ListSlot* localSlot =0;
 
-	if(ms.m_bDisplayList) {
+	if (ms.m_bDisplayList) {
 		localSlot = FindOrAdd(ms);
 		localSlot->DrawList();
 
-		if(localSlot->End()) {
+		if (localSlot->End()) {
 			// save slot here too, needed for replicas and object using same mesh
 			// => they have the same vertexarray but different mesh slot
 			ms.m_DisplayList = localSlot;
@@ -275,7 +275,7 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
 	else
 		RAS_OpenGLRasterizer::IndexPrimitivesMulti(ms);
 
-	if(ms.m_bDisplayList) {
+	if (ms.m_bDisplayList) {
 		localSlot->EndList();
 		ms.m_DisplayList = localSlot;
 	}

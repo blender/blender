@@ -158,7 +158,7 @@ KX_Dome::KX_Dome (
 
 	CreateGLImages();
 
-	if(warp.usemesh)
+	if (warp.usemesh)
 		fboSupported = CreateFBO();
 
 	dlistSupported = CreateDL();
@@ -169,16 +169,16 @@ KX_Dome::~KX_Dome (void)
 {
 	ClearGLImages();
 
-	if(fboSupported)
+	if (fboSupported)
 		glDeleteFramebuffersEXT(1, &warp.fboId);
 
-	if(dlistSupported)
+	if (dlistSupported)
 		glDeleteLists(dlistId, (GLsizei) m_numimages);
 }
 
 void KX_Dome::SetViewPort(GLuint viewport[4])
 {
-	if(canvaswidth != m_viewport.GetWidth() || canvasheight != m_viewport.GetHeight())
+	if (canvaswidth != m_viewport.GetWidth() || canvasheight != m_viewport.GetHeight())
 	{
 		m_viewport.SetLeft(viewport[0]); 
 		m_viewport.SetBottom(viewport[1]);
@@ -203,7 +203,7 @@ void KX_Dome::CreateGLImages(void)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
-	if(warp.usemesh){
+	if (warp.usemesh){
 		glBindTexture(GL_TEXTURE_2D, domefacesId[m_numfaces]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, warp.imagesize, warp.imagesize, 0, GL_RGB8,
 				GL_UNSIGNED_BYTE, 0);
@@ -220,7 +220,7 @@ void KX_Dome::ClearGLImages(void)
 	glDeleteTextures(m_numimages, (GLuint*)&domefacesId);
 #if 0
 	for (int i=0;i<m_numimages;i++)
-		if(glIsTexture(domefacesId[i]))
+		if (glIsTexture(domefacesId[i]))
 			glDeleteTextures(1, (GLuint*)&domefacesId[i]);
 #endif
 }
@@ -259,7 +259,7 @@ bool KX_Dome::CreateDL()
 {
 	dlistId = glGenLists((GLsizei) m_numimages);
 	if (dlistId != 0) {
-		if(m_mode == DOME_FISHEYE || m_mode == DOME_TRUNCATED_FRONT || m_mode == DOME_TRUNCATED_REAR){
+		if (m_mode == DOME_FISHEYE || m_mode == DOME_TRUNCATED_FRONT || m_mode == DOME_TRUNCATED_REAR){
 			glNewList(dlistId, GL_COMPILE);
 				GLDrawTriangles(cubetop, nfacestop);
 			glEndList();
@@ -309,7 +309,7 @@ bool KX_Dome::CreateDL()
 			glEndList();
 		}
 
-		if(warp.usemesh){
+		if (warp.usemesh){
 			glNewList((dlistId + m_numfaces), GL_COMPILE);
 				GLDrawWarpQuads();
 			glEndList();
@@ -340,7 +340,7 @@ bool KX_Dome::CreateFBO(void)
 	}
 
 	glGenFramebuffersEXT(1, &warp.fboId);
-	if(warp.fboId==0)
+	if (warp.fboId==0)
 	{
 		printf("Dome Error: Invalid frame buffer object. Using low resolution warp image.");
 		return false;
@@ -353,12 +353,12 @@ bool KX_Dome::CreateFBO(void)
 
 	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 
-	if(status == GL_FRAMEBUFFER_UNSUPPORTED_EXT)
+	if (status == GL_FRAMEBUFFER_UNSUPPORTED_EXT)
 	{
 		printf("Dome Error: FrameBuffer settings unsupported. Using low resolution warp image.");
 		return false;
 	}
-	else if(status != GL_FRAMEBUFFER_COMPLETE_EXT)
+	else if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
 	{
 		glDeleteFramebuffersEXT(1, &warp.fboId);
 		return false;
@@ -391,11 +391,11 @@ void KX_Dome::GLDrawWarpQuads(void)
 	float uv_width = (float)(warp.bufferwidth) / warp.imagesize;
 	float uv_height = (float)(warp.bufferheight) / warp.imagesize;
 
-	if(warp.mode ==2 ){
+	if (warp.mode ==2 ){
 		glBegin(GL_QUADS);
 		for (i=0;i<warp.n_height-1;i++) {
 			for (j=0;j<warp.n_width-1;j++) {
-				if(warp.nodes[i][j].i < 0 || warp.nodes[i+1][j].i < 0 || warp.nodes[i+1][j+1].i < 0 || warp.nodes[i][j+1].i < 0)
+				if (warp.nodes[i][j].i < 0 || warp.nodes[i+1][j].i < 0 || warp.nodes[i+1][j+1].i < 0 || warp.nodes[i][j+1].i < 0)
 					continue;
 
 				glColor3f(warp.nodes[i][j].i, warp.nodes[i][j].i, warp.nodes[i][j].i);
@@ -481,15 +481,15 @@ bool KX_Dome::ParseWarpMesh(STR_String text)
 	vector<STR_String> columns, lines;
 
 	lines = text.Explode('\n');
-	if(lines.size() < 6){
+	if (lines.size() < 6){
 		printf("Dome Error: Warp Mesh File with insufficient data!\n");
 		return false;
 	}
 	columns = lines[1].Explode(' ');
-	if(columns.size() == 1)
+	if (columns.size() == 1)
 		columns = lines[1].Explode('\t');
 
-	if(columns.size() !=2){
+	if (columns.size() !=2){
 		printf("Dome Error: Warp Mesh File incorrect. The second line should contain: width height.\n");
 		return false;
 	}
@@ -505,9 +505,9 @@ bool KX_Dome::ParseWarpMesh(STR_String text)
 	}else{
 		warp.nodes = vector<vector<WarpMeshNode> > (warp.n_height, vector<WarpMeshNode>(warp.n_width));
 
-		for(i=2; i-2 < (warp.n_width*warp.n_height); i++){
+		for (i=2; i-2 < (warp.n_width*warp.n_height); i++){
 			columns = lines[i].Explode(' ');
-			if(columns.size() == 1)
+			if (columns.size() == 1)
 				columns = lines[i].Explode('\t');
 
 			if (columns.size() == 5){
@@ -674,7 +674,7 @@ void KX_Dome::CreateMeshDome180(void)
 	//Refine a triangular mesh by bisecting each edge forms 3 new triangles for each existing triangle on each iteration
 	//Could be made more efficient for drawing if the triangles were ordered in a fan. Not that important since we are using DisplayLists
 
-	for(i=0;i<m_resolution;i++){
+	for (i=0;i<m_resolution;i++){
 		cubetop.resize(4*nfacestop);
 		SplitFace(cubetop,&nfacestop);
 		cubebottom.resize(4*nfacesbottom);
@@ -686,25 +686,25 @@ void KX_Dome::CreateMeshDome180(void)
 	}		
 
 	// Turn into a hemisphere
-	for(j=0;j<3;j++){
-		for(i=0;i<nfacestop;i++)
+	for (j=0;j<3;j++){
+		for (i=0;i<nfacestop;i++)
 			cubetop[i].verts[j].normalize();
-		for(i=0;i<nfacesbottom;i++)
+		for (i=0;i<nfacesbottom;i++)
 			cubebottom[i].verts[j].normalize();
-		for(i=0;i<nfacesleft;i++)
+		for (i=0;i<nfacesleft;i++)
 			cubeleft[i].verts[j].normalize();
-		for(i=0;i<nfacesright;i++)
+		for (i=0;i<nfacesright;i++)
 			cuberight[i].verts[j].normalize();
 	}
 
 	//flatten onto xz plane
-	for(i=0;i<nfacestop;i++)
+	for (i=0;i<nfacestop;i++)
 		FlattenDome(cubetop[i].verts);
-	for(i=0;i<nfacesbottom;i++)
+	for (i=0;i<nfacesbottom;i++)
 		FlattenDome(cubebottom[i].verts);
-	for(i=0;i<nfacesleft;i++)
+	for (i=0;i<nfacesleft;i++)
 		FlattenDome(cubeleft[i].verts);
-	for(i=0;i<nfacesright;i++)
+	for (i=0;i<nfacesright;i++)
 		FlattenDome(cuberight[i].verts);
 
 }
@@ -953,7 +953,7 @@ void KX_Dome::CreateMeshDome250(void)
 	//Refine a triangular mesh by bisecting each edge forms 3 new triangles for each existing triangle on each iteration
 	//It could be made more efficient for drawing if the triangles were ordered in a strip!
 
-	for(i=0;i<m_resolution;i++){
+	for (i=0;i<m_resolution;i++){
 		cubefront.resize(4*nfacesfront);
 		SplitFace(cubefront,&nfacesfront);
 		cubetop.resize(4*nfacestop);
@@ -967,29 +967,29 @@ void KX_Dome::CreateMeshDome250(void)
 	}
 
 	// Turn into a hemisphere/sphere
-	for(j=0;j<3;j++){
-		for(i=0;i<nfacesfront;i++)
+	for (j=0;j<3;j++){
+		for (i=0;i<nfacesfront;i++)
 			cubefront[i].verts[j].normalize();
-		for(i=0;i<nfacestop;i++)
+		for (i=0;i<nfacestop;i++)
 			cubetop[i].verts[j].normalize();
-		for(i=0;i<nfacesbottom;i++)
+		for (i=0;i<nfacesbottom;i++)
 			cubebottom[i].verts[j].normalize();
-		for(i=0;i<nfacesleft;i++)
+		for (i=0;i<nfacesleft;i++)
 			cubeleft[i].verts[j].normalize();
-		for(i=0;i<nfacesright;i++)
+		for (i=0;i<nfacesright;i++)
 			cuberight[i].verts[j].normalize();
 	}
 
 	//flatten onto xz plane
-	for(i=0;i<nfacesfront;i++)
+	for (i=0;i<nfacesfront;i++)
 		FlattenDome(cubefront[i].verts);	
-	for(i=0;i<nfacestop;i++)
+	for (i=0;i<nfacestop;i++)
 		FlattenDome(cubetop[i].verts);
-	for(i=0;i<nfacesbottom;i++)
+	for (i=0;i<nfacesbottom;i++)
 		FlattenDome(cubebottom[i].verts);
-	for(i=0;i<nfacesleft;i++)
+	for (i=0;i<nfacesleft;i++)
 		FlattenDome(cubeleft[i].verts);		
-	for(i=0;i<nfacesright;i++)
+	for (i=0;i<nfacesright;i++)
 		FlattenDome(cuberight[i].verts);
 }
 
@@ -1252,7 +1252,7 @@ void KX_Dome::CreateMeshPanorama(void)
 	nfacesrightback = 2;
 
 	// Subdivide the faces
-	for(i=0;i<m_resolution;i++)
+	for (i=0;i<m_resolution;i++)
 	{
 		cubetop.resize(4*nfacestop);
 		SplitFace(cubetop,&nfacestop);
@@ -1274,44 +1274,44 @@ void KX_Dome::CreateMeshPanorama(void)
 	}
 
 	// Spherize the cube
-	for(j=0;j<3;j++)
+	for (j=0;j<3;j++)
 	{
-		for(i=0;i<nfacestop;i++)
+		for (i=0;i<nfacestop;i++)
 			cubetop[i].verts[j].normalize();
 
-		for(i=0;i<nfacesbottom;i++)
+		for (i=0;i<nfacesbottom;i++)
 			cubebottom[i].verts[j].normalize();
 
-		for(i=0;i<nfacesleftback;i++)
+		for (i=0;i<nfacesleftback;i++)
 			cubeleftback[i].verts[j].normalize();
 
-		for(i=0;i<nfacesleft;i++)
+		for (i=0;i<nfacesleft;i++)
 			cubeleft[i].verts[j].normalize();
 
-		for(i=0;i<nfacesright;i++)
+		for (i=0;i<nfacesright;i++)
 			cuberight[i].verts[j].normalize();
 
-		for(i=0;i<nfacesrightback;i++)
+		for (i=0;i<nfacesrightback;i++)
 			cuberightback[i].verts[j].normalize();
 	}
 
 	//Flatten onto xz plane
-	for(i=0;i<nfacesleftback;i++)
+	for (i=0;i<nfacesleftback;i++)
 		FlattenPanorama(cubeleftback[i].verts);
 
-	for(i=0;i<nfacesleft;i++)
+	for (i=0;i<nfacesleft;i++)
 		FlattenPanorama(cubeleft[i].verts);
 
-	for(i=0;i<nfacesright;i++)
+	for (i=0;i<nfacesright;i++)
 		FlattenPanorama(cuberight[i].verts);
 
-	for(i=0;i<nfacesrightback;i++)
+	for (i=0;i<nfacesrightback;i++)
 		FlattenPanorama(cuberightback[i].verts);
 
-	for(i=0;i<nfacestop;i++)
+	for (i=0;i<nfacestop;i++)
 		FlattenPanorama(cubetop[i].verts);
 
-	for(i=0;i<nfacesbottom;i++)
+	for (i=0;i<nfacesbottom;i++)
 		FlattenPanorama(cubebottom[i].verts);
 }
 
@@ -1358,18 +1358,18 @@ void KX_Dome::FlattenPanorama(MT_Vector3 verts[3])
 		verts[i][2] = atan2(verts[i][2], 1.0);
 		verts[i][2] /= MT_PI / 2;
 	}
-	if(edge){
+	if (edge){
 		bool right=false;
 
 		for (i=0;i<3;i++){
-			if(fmod(verts[i][0],1.0) > 0.0){
+			if (fmod(verts[i][0],1.0) > 0.0){
 				right=true;
 				break;
 			}
 		}
-		if(right){
+		if (right){
 			for (i=0;i<3;i++){
-				if(verts[i][0] < 0.0)
+				if (verts[i][0] < 0.0)
 					verts[i][0] *= -1.0;
 			}
 		}
@@ -1383,7 +1383,7 @@ void KX_Dome::SplitFace(vector <DomeFace>& face, int *nfaces)
 
 	n1 = n2 = *nfaces;
 
-	for(i=0;i<n1;i++){
+	for (i=0;i<n1;i++){
 
 		face[n2].verts[0] = (face[i].verts[0] + face[i].verts[1]) /2;
 		face[n2].verts[1] =  face[i].verts[1];
@@ -1635,9 +1635,9 @@ void KX_Dome::Draw(void)
 			break;
 	}
 
-	if(warp.usemesh)
+	if (warp.usemesh)
 	{
-		if(fboSupported)
+		if (fboSupported)
 		{
 			m_canvas->SetViewPort(0, 0, m_canvas->GetWidth(), m_canvas->GetHeight());
 			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
@@ -1793,7 +1793,7 @@ void KX_Dome::DrawDomeFisheye(void)
 
 	float ortho_width, ortho_height;
 
-	if(m_mode == DOME_FISHEYE) {
+	if (m_mode == DOME_FISHEYE) {
 		if (warp.usemesh)
 			glOrtho((-1.0), 1.0, (-1.0), 1.0, -20.0, 10.0); //stretch the image to reduce resolution lost
 
@@ -1809,7 +1809,7 @@ void KX_Dome::DrawDomeFisheye(void)
 			glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
 		}
 	}
-	else if(m_mode == DOME_TRUNCATED_FRONT)
+	else if (m_mode == DOME_TRUNCATED_FRONT)
 	{
 		ortho_width = 1.0;
 		ortho_height = 2 * ((float)can_height / can_width) - 1.0;
@@ -1829,7 +1829,7 @@ void KX_Dome::DrawDomeFisheye(void)
 	glLoadIdentity();
 	gluLookAt(0.0,-1.0,0.0, 0.0,0.0,0.0, 0.0,0.0,1.0);
 
-	if(m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
+	if (m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
 		glPolygonMode(GL_FRONT, GL_LINE);
 	else
 		glPolygonMode(GL_FRONT, GL_FILL);
@@ -1842,7 +1842,7 @@ void KX_Dome::DrawDomeFisheye(void)
 	glColor3f(1.0,1.0,1.0);
 
 	if (dlistSupported){
-		for(i=0;i<m_numfaces;i++){
+		for (i=0;i<m_numfaces;i++){
 			glBindTexture(GL_TEXTURE_2D, domefacesId[i]);
 			glCallList(dlistId+i);
 		}
@@ -1911,7 +1911,7 @@ void KX_Dome::DrawPanorama(void)
 	glLoadIdentity();
 	gluLookAt(0.0,-1.0,0.0, 0.0,0.0,0.0, 0.0,0.0,1.0);
 
-	if(m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
+	if (m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
 		glPolygonMode(GL_FRONT, GL_LINE);
 	else
 		glPolygonMode(GL_FRONT, GL_FILL);
@@ -1924,7 +1924,7 @@ void KX_Dome::DrawPanorama(void)
 	glColor3f(1.0,1.0,1.0);
 
 	if (dlistSupported){
-		for(i=0;i<m_numfaces;i++){
+		for (i=0;i<m_numfaces;i++){
 			glBindTexture(GL_TEXTURE_2D, domefacesId[i]);
 			glCallList(dlistId+i);
 		}
@@ -1979,7 +1979,7 @@ void KX_Dome::DrawDomeWarped(void)
 	glLoadIdentity();
 	gluLookAt(0.0, 0.0, 1.0, 0.0,0.0,0.0, 0.0,1.0,0.0);
 
-	if(m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
+	if (m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
 		glPolygonMode(GL_FRONT, GL_LINE);
 	else
 		glPolygonMode(GL_FRONT, GL_FILL);

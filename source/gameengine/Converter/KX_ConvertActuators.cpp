@@ -396,7 +396,7 @@ void BL_ConvertActuators(const char* maggiename,
 					settings.reference_distance = soundact->sound3D.reference_distance;
 					settings.rolloff_factor = soundact->sound3D.rolloff_factor;
 
-					if(!sound)
+					if (!sound)
 					{
 						std::cout <<	"WARNING: Sound actuator \"" << bact->name <<
 										"\" from object \"" <<  blenderobject->id.name+2 <<
@@ -407,12 +407,12 @@ void BL_ConvertActuators(const char* maggiename,
 						snd_sound = *reinterpret_cast<AUD_Reference<AUD_IFactory>*>(sound->playback_handle);
 
 						// if sound shall be 3D but isn't mono, we have to make it mono!
-						if(is3d)
+						if (is3d)
 						{
 							try
 							{
 								AUD_Reference<AUD_IReader> reader = snd_sound->createReader();
-								if(reader->getSpecs().channels != AUD_CHANNELS_MONO)
+								if (reader->getSpecs().channels != AUD_CHANNELS_MONO)
 								{
 									AUD_DeviceSpecs specs;
 									specs.channels = AUD_CHANNELS_MONO;

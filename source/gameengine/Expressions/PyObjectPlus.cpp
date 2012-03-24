@@ -55,7 +55,7 @@
 PyObjectPlus::~PyObjectPlus()
 {
 #ifdef WITH_PYTHON
-	if(m_proxy) {
+	if (m_proxy) {
 		BGE_PROXY_REF(m_proxy)= NULL;
 		Py_DECREF(m_proxy);			/* Remove own reference, python may still have 1 */
 	}
@@ -90,7 +90,7 @@ void PyObjectPlus::ProcessReplica()
 void PyObjectPlus::InvalidateProxy()		// check typename of each parent
 {
 #ifdef WITH_PYTHON
-	if(m_proxy) {
+	if (m_proxy) {
 		BGE_PROXY_REF(m_proxy)=NULL;
 		Py_DECREF(m_proxy);
 		m_proxy= NULL;
@@ -137,7 +137,7 @@ PyTypeObject PyObjectPlus::Type = {
 PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the entry in Type.
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-	if(self_plus==NULL) {
+	if (self_plus==NULL) {
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
@@ -173,13 +173,13 @@ PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObjec
 	while(base_type && !BGE_PROXY_CHECK_TYPE(base_type))
 		base_type= base_type->tp_base;
 
-	if(base_type==NULL || !BGE_PROXY_CHECK_TYPE(base_type)) {
+	if (base_type==NULL || !BGE_PROXY_CHECK_TYPE(base_type)) {
 		PyErr_SetString(PyExc_TypeError, "can't subclass from a blender game type because the argument given is not a game class or subclass");
 		return NULL;
 	}
 
 	/* use base_type rather than Py_TYPE(base) because we could already be subtyped */
-	if(!PyType_IsSubtype(type, base_type)) {
+	if (!PyType_IsSubtype(type, base_type)) {
 		PyErr_Format(PyExc_TypeError, "can't subclass blender game type <%s> from <%s> because it is not a subclass", base_type->tp_name, type->tp_name);
 		return NULL;
 	}
@@ -228,8 +228,8 @@ void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 
 	if (BGE_PROXY_PYREF(self)) {
 		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-		if(self_plus) {
-			if(BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
+		if (self_plus) {
+			if (BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
 				self_plus->m_proxy = NULL; /* Need this to stop ~PyObjectPlus from decrefing m_proxy otherwise its decref'd twice and py-debug crashes */
 				delete self_plus;
 			}
@@ -239,8 +239,8 @@ void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 		BGE_PROXY_PTR(self)= NULL; // not really needed
 	} else {
 		void *ptr= BGE_PROXY_PTR(self);
-		if(ptr) {
-			if(BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
+		if (ptr) {
+			if (BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
 				// generic structure owned by python MUST be created though MEM_alloc
 				MEM_freeN(ptr);
 			}
@@ -280,8 +280,8 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 {
 	PyObjectPlus *ref= (BGE_PROXY_REF(self_py));
 	char* ptr = (attrdef->m_usePtr) ? (char*)BGE_PROXY_PTR(self_py) : (char*)ref;
-	if(ptr == NULL || (BGE_PROXY_PYREF(self_py) && (ref==NULL || !ref->py_is_valid()))) {
-		if(attrdef == attr_invalid)
+	if (ptr == NULL || (BGE_PROXY_PYREF(self_py) && (ref==NULL || !ref->py_is_valid()))) {
+		if (attrdef == attr_invalid)
 			Py_RETURN_TRUE; // don't bother running the function
 
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
@@ -512,7 +512,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 {
 	PyObjectPlus *ref= (BGE_PROXY_REF(self_py));
 	char* ptr = (attrdef->m_usePtr) ? (char*)BGE_PROXY_PTR(self_py) : (char*)ref;
-	if(ref==NULL || !ref->py_is_valid() || ptr==NULL) {
+	if (ref==NULL || !ref->py_is_valid() || ptr==NULL) {
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return PY_SET_ATTR_FAIL;
 	}
@@ -1150,7 +1150,7 @@ PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 	}
 	if (self->m_proxy)
 	{
-		if(py_owns)
+		if (py_owns)
 		{	/* Free */
 			BGE_PROXY_REF(self->m_proxy) = NULL;
 			Py_DECREF(self->m_proxy);
@@ -1164,7 +1164,7 @@ PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 	}
 	
 	GetProxyPlus_Ext(self, tp, ptr);
-	if(py_owns) {
+	if (py_owns) {
 		BGE_PROXY_PYOWNS(self->m_proxy) = py_owns;
 		Py_DECREF(self->m_proxy); /* could avoid thrashing here but for now its ok */
 	}

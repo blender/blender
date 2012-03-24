@@ -47,7 +47,7 @@ void SceneExporter::exportHierarchy(Scene *sce)
 		Object *ob = base->object;
 
 		if (!ob->parent) {
-			if(sce->lay & ob->lay) {
+			if (sce->lay & ob->lay) {
 				switch(ob->type) {
 					case OB_MESH:
 					case OB_CAMERA:
@@ -144,17 +144,17 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 
 	// empty object
 	else if (ob->type == OB_EMPTY) { // TODO: handle groups (OB_DUPLIGROUP
-		if((ob->transflag & OB_DUPLIGROUP) == OB_DUPLIGROUP && ob->dup_group) {
+		if ((ob->transflag & OB_DUPLIGROUP) == OB_DUPLIGROUP && ob->dup_group) {
 			GroupObject *go = NULL;
 			Group *gr = ob->dup_group;
 			/* printf("group detected '%s'\n", gr->id.name+2); */
-			for(go = (GroupObject*)(gr->gobject.first); go; go=go->next) {
+			for (go = (GroupObject*)(gr->gobject.first); go; go=go->next) {
 				printf("\t%s\n", go->ob->id.name);
 			}
 		}
 	}
 
-	for(std::list<Object*>::iterator i= child_objects.begin(); i != child_objects.end(); ++i)
+	for (std::list<Object*>::iterator i= child_objects.begin(); i != child_objects.end(); ++i)
 	{
 		writeNodes(*i, sce);
 	}

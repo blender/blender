@@ -140,7 +140,7 @@ static void zbuf_add_to_span(ZSpan *zspan, float *v1, float *v2)
 	if (my0<0) my0= 0;
 	
 	if (my0>my2) return;
-	/* if(my0>my2) should still fill in, that way we get spans that skip nicely */
+	/* if (my0>my2) should still fill in, that way we get spans that skip nicely */
 	
 	xx1= maxv[1]-minv[1];
 	if (xx1>FLT_EPSILON) {
@@ -253,7 +253,7 @@ int testclip(const float v[4])
 	if ( v[1] > abs4) c+=4;
 	else if ( v[1] < -abs4) c+=8;
 	
-	if (v[2] < -abs4) c+=16;			/* this used to be " if(v[2]<0) ", see clippz() */
+	if (v[2] < -abs4) c+=16;			/* this used to be " if (v[2]<0) ", see clippz() */
 	else if (v[2]> abs4) c+= 32;
 	
 	return c;
@@ -1882,7 +1882,7 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 							clippyra(labda[2], vlzp[v][2],vlzp[v][0], &b2,&b3, arg, zspan->clipcrop);
 
 							if (b2==0 && b3==1) {
-								/* completely 'in', but we copy because of last for() loop in this section */;
+								/* completely 'in', but we copy because of last for () loop in this section */;
 								vlzp[clvl][0]= vlzp[v][0];
 								vlzp[clvl][1]= vlzp[v][1];
 								vlzp[clvl][2]= vlzp[v][2];

@@ -73,7 +73,7 @@ void LightsExporter::operator()(Object *ob)
 	
 	constatt = 1.0f;
 	
-	if(la->falloff_type==LA_FALLOFF_INVLINEAR) {
+	if (la->falloff_type==LA_FALLOFF_INVLINEAR) {
 		linatt = 1.0f / d;
 		quadatt = 0.0f;
 	}

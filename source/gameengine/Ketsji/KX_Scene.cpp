@@ -102,7 +102,7 @@ void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	KX_GameObject* replica = ((KX_Scene*)scene)->AddNodeReplicaObject(node,(KX_GameObject*)gameobj);
 
-	if(replica)
+	if (replica)
 		replica->Release();
 
 	return (void*)replica;
@@ -251,7 +251,7 @@ KX_Scene::~KX_Scene()
 	if (m_obstacleSimulation)
 		delete m_obstacleSimulation;
 
-	if(m_objectlist)
+	if (m_objectlist)
 		m_objectlist->Release();
 
 	if (m_parentlist)
@@ -688,7 +688,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	m_groupGameObjects.clear();
 
 	group = blgroupobj->dup_group;
-	for(go=(GroupObject*)group->gobject.first; go; go=(GroupObject*)go->next) 
+	for (go=(GroupObject*)group->gobject.first; go; go=(GroupObject*)go->next) 
 	{
 		Object* blenderobj = go->ob;
 		if (blgroupobj == blenderobj)
@@ -1066,12 +1066,12 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 	KX_GameObject* gameobj = static_cast<KX_GameObject*>(obj);
 	RAS_MeshObject* mesh = static_cast<RAS_MeshObject*>(meshobj);
 
-	if(!gameobj) {
+	if (!gameobj) {
 		std::cout << "KX_Scene::ReplaceMesh Warning: invalid object, doing nothing" << std::endl;
 		return;
 	}
 
-	if(use_gfx && mesh != NULL)
+	if (use_gfx && mesh != NULL)
 	{		
 	gameobj->RemoveMeshes();
 	gameobj->AddMesh(mesh);
@@ -1207,7 +1207,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 #endif
 
 			// release parent reference if its not being used 
-			if( releaseParent && parentobj)
+			if ( releaseParent && parentobj)
 				parentobj->Release();
 		}
 	}
@@ -1216,7 +1216,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 	}
 
 #ifdef USE_BULLET
-	if(use_phys) { /* update the new assigned mesh with the physics mesh */
+	if (use_phys) { /* update the new assigned mesh with the physics mesh */
 		KX_ReInstanceBulletShapeFromMesh(gameobj, NULL, use_gfx?NULL:mesh);
 	}
 #endif
@@ -1393,7 +1393,7 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 		return;
 	
 	// Shadow lamp layers
-	if(layer && !(gameobj->GetLayer() & layer)) {
+	if (layer && !(gameobj->GetLayer() & layer)) {
 		gameobj->SetCulled(true);
 		gameobj->UpdateBuckets(false);
 		return;
@@ -1455,7 +1455,7 @@ void KX_Scene::PhysicsCullingCallback(KX_ClientObjectInfo* objectInfo, void* cul
 	if (!gameobj->GetVisible())
 		// ideally, invisible objects should be removed from the culling tree temporarily
 		return;
-	if(((CullingInfo*)cullingInfo)->m_layer && !(gameobj->GetLayer() & ((CullingInfo*)cullingInfo)->m_layer))
+	if (((CullingInfo*)cullingInfo)->m_layer && !(gameobj->GetLayer() & ((CullingInfo*)cullingInfo)->m_layer))
 		// used for shadow: object is not in shadow layer
 		return;
 
@@ -1688,7 +1688,7 @@ void KX_Scene::SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter)
 void KX_Scene::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* physEnv)
 {
 	m_physicsEnvironment = physEnv;
-	if(m_physicsEnvironment) {
+	if (m_physicsEnvironment) {
 		KX_TouchEventManager* touchmgr = new KX_TouchEventManager(m_logicmgr, physEnv);
 		m_logicmgr->RegisterEventManager(touchmgr);
 	}
@@ -1728,14 +1728,14 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	brick->Replace_NetworkScene(to->GetNetworkScene());
 
 	SCA_ISensor *sensor=  dynamic_cast<class SCA_ISensor *>(brick);
-	if(sensor) {
+	if (sensor) {
 		sensor->Replace_EventManager(logicmgr);
 	}
 
 	/* near sensors have physics controllers */
 #ifdef USE_BULLET
 	KX_TouchSensor *touch_sensor = dynamic_cast<class KX_TouchSensor *>(brick);
-	if(touch_sensor) {
+	if (touch_sensor) {
 		touch_sensor->GetPhysicsController()->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 	}
 #endif
@@ -1794,15 +1794,15 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 
 	/* graphics controller */
 	PHY_IGraphicController *ctrl = gameobj->GetGraphicController();
-	if(ctrl) {
+	if (ctrl) {
 		/* SHOULD update the m_cullingTree */
 		ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 	}
 
 	/* SG_Node can hold a scene reference */
 	SG_Node *sg= gameobj->GetSGNode();
-	if(sg) {
-		if(sg->GetSGClientInfo() == from) {
+	if (sg) {
+		if (sg->GetSGClientInfo() == from) {
 			sg->SetSGClientInfo(to);
 
 			/* Make sure to grab the children too since they might not be tied to a game object */
@@ -1839,7 +1839,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	CcdPhysicsEnvironment *env=			dynamic_cast<CcdPhysicsEnvironment *>(this->GetPhysicsEnvironment());
 	CcdPhysicsEnvironment *env_other=	dynamic_cast<CcdPhysicsEnvironment *>(other->GetPhysicsEnvironment());
 
-	if((env==NULL) != (env_other==NULL)) /* TODO - even when both scenes have NONE physics, the other is loaded with bullet enabled, ??? */
+	if ((env==NULL) != (env_other==NULL)) /* TODO - even when both scenes have NONE physics, the other is loaded with bullet enabled, ??? */
 	{
 		printf("KX_Scene::MergeScene: physics scenes type differ, aborting\n");
 		printf("\tsource %d, terget %d\n", (int)(env!=NULL), (int)(env_other!=NULL));
@@ -1847,7 +1847,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	}
 #endif // USE_BULLET
 
-	if(GetSceneConverter() != other->GetSceneConverter()) {
+	if (GetSceneConverter() != other->GetSceneConverter()) {
 		printf("KX_Scene::MergeScene: converters differ, aborting\n");
 		return false;
 	}
@@ -1889,7 +1889,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	other->GetLightList()->ReleaseAndRemoveAll();
 
 #ifdef USE_BULLET
-	if(env) /* bullet scene? - dummy scenes don't need touching */
+	if (env) /* bullet scene? - dummy scenes don't need touching */
 		env->MergeEnvironment(env_other);
 #endif
 	
@@ -1904,10 +1904,10 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		//SCA_EventManager *evtmgr;
 		SCA_EventManager *evtmgr_other;
 
-		for(unsigned int i= 0; i < evtmgrs.size(); i++) {
+		for (unsigned int i= 0; i < evtmgrs.size(); i++) {
 			evtmgr_other= logicmgr_other->FindEventManager(evtmgrs[i]->GetType());
 
-			if(evtmgr_other) /* unlikely but possible one scene has a joystick and not the other */
+			if (evtmgr_other) /* unlikely but possible one scene has a joystick and not the other */
 				evtmgr_other->Replace_LogicManager(logicmgr);
 
 			/* when merging objects sensors are moved across into the new manager, don't need to do this here */
@@ -1918,7 +1918,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		SCA_TimeEventManager *timemgr_other=	other->GetTimeEventManager();
 		vector<CValue*> times = timemgr_other->GetTimeValues();
 
-		for(unsigned int i= 0; i < times.size(); i++) {
+		for (unsigned int i= 0; i < times.size(); i++) {
 			timemgr->AddTimeProperty(times[i]);
 		}
 		
@@ -2028,7 +2028,7 @@ static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 		return pyconvert;
 	}
 	else {
-		if(attr_str)	PyErr_Format(PyExc_KeyError, "value = scene[key]: KX_Scene, key \"%s\" does not exist", attr_str);
+		if (attr_str)	PyErr_Format(PyExc_KeyError, "value = scene[key]: KX_Scene, key \"%s\" does not exist", attr_str);
 		else			PyErr_SetString(PyExc_KeyError, "value = scene[key]: KX_Scene, key does not exist");
 		return NULL;
 	}
@@ -2039,7 +2039,7 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 {
 	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
 	const char *attr_str= _PyUnicode_AsString(key);
-	if(attr_str==NULL)
+	if (attr_str==NULL)
 		PyErr_Clear();
 	
 	if (self==NULL) {
@@ -2050,11 +2050,11 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 	if (val==NULL) { /* del ob["key"] */
 		int del= 0;
 		
-		if(self->m_attr_dict)
+		if (self->m_attr_dict)
 			del |= (PyDict_DelItem(self->m_attr_dict, key)==0) ? 1:0;
 		
 		if (del==0) {
-			if(attr_str)	PyErr_Format(PyExc_KeyError, "scene[key] = value: KX_Scene, key \"%s\" could not be set", attr_str);
+			if (attr_str)	PyErr_Format(PyExc_KeyError, "scene[key] = value: KX_Scene, key \"%s\" could not be set", attr_str);
 			else			PyErr_SetString(PyExc_KeyError, "del scene[key]: KX_Scene, key could not be deleted");
 			return -1;
 		}
@@ -2069,12 +2069,12 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 			self->m_attr_dict= PyDict_New();
 		
 		
-		if(PyDict_SetItem(self->m_attr_dict, key, val)==0)
+		if (PyDict_SetItem(self->m_attr_dict, key, val)==0)
 			set= 1;
 		else
 			PyErr_SetString(PyExc_KeyError, "scene[key] = value: KX_Scene, key not be added to internal dictionary");
 	
-		if(set==0)
+		if (set==0)
 			return -1; /* pythons error value */
 		
 	}
@@ -2184,7 +2184,7 @@ PyObject* KX_Scene::pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATT
 {
 	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 
-	if(self->m_draw_call_pre==NULL)
+	if (self->m_draw_call_pre==NULL)
 		self->m_draw_call_pre= PyList_New(0);
 	Py_INCREF(self->m_draw_call_pre);
 	return self->m_draw_call_pre;
@@ -2194,7 +2194,7 @@ PyObject* KX_Scene::pyattr_get_drawing_callback_post(void *self_v, const KX_PYAT
 {
 	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 
-	if(self->m_draw_call_post==NULL)
+	if (self->m_draw_call_post==NULL)
 		self->m_draw_call_post= PyList_New(0);
 	Py_INCREF(self->m_draw_call_post);
 	return self->m_draw_call_post;

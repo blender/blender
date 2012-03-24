@@ -141,7 +141,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 	/* clear the error list */
 	BLI_dynlib_get_error_as_string(NULL);
 
-	/* if(pis->handle) BLI_dynlib_close(pis->handle); */
+	/* if (pis->handle) BLI_dynlib_close(pis->handle); */
 	/* pis->handle= 0; */
 
 	/* open the needed object */

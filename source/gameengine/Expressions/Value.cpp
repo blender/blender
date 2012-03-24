@@ -325,7 +325,7 @@ bool CValue::RemoveProperty(const char *inName)
 vector<STR_String> CValue::GetPropertyNames()
 {
 	vector<STR_String> result;
-	if(!m_pNamedPropertyArray) return result;
+	if (!m_pNamedPropertyArray) return result;
 	result.reserve(m_pNamedPropertyArray->size());
 	
 	std::map<STR_String,CValue*>::iterator it;
@@ -366,7 +366,7 @@ void CValue::ClearProperties()
 //
 void CValue::SetPropertiesModified(bool inModified)
 {
-	if(!m_pNamedPropertyArray) return;
+	if (!m_pNamedPropertyArray) return;
 	std::map<STR_String,CValue*>::iterator it;
 	
 	for (it= m_pNamedPropertyArray->begin();(it != m_pNamedPropertyArray->end()); it++)
@@ -380,7 +380,7 @@ void CValue::SetPropertiesModified(bool inModified)
 //
 bool CValue::IsAnyPropertyModified()
 {
-	if(!m_pNamedPropertyArray) return false;
+	if (!m_pNamedPropertyArray) return false;
 	std::map<STR_String,CValue*>::iterator it;
 	
 	for (it= m_pNamedPropertyArray->begin();(it != m_pNamedPropertyArray->end()); it++)

@@ -331,7 +331,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 
 		/* soft area */
 		/* not needed because t0 has been used for p1/p2 as well */
-		/* if(doclip && t0<t2) { */
+		/* if (doclip && t0<t2) { */
 		/* 	*intens *= (t0-t1)/(t2-t1); */
 		/* } */
 		
@@ -736,7 +736,7 @@ static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough 
 	normalize_v3(h);
 	
 	/* nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; */ /* Dot product between surface normal and half-way vector */
-	/* if(nh<0.0f) nh = 0.0f; */
+	/* if (nh<0.0f) nh = 0.0f; */
 	
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector */
 	if (nv<=0.0f) nv= 0.0f;
@@ -746,7 +746,7 @@ static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough 
 	if (nl<0.0f) return 0.0f;		/* value from area light */
 	
 	/* vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; */ /* Dot product between view vector and halfway vector */
-	/* if(vh<=0.0f) vh= 0.0f; */
+	/* if (vh<=0.0f) vh= 0.0f; */
 	
 	Lit_A = saacos(realnl);
 	View_A = saacos( nv );
@@ -1537,7 +1537,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 			/* yafray: ignore shading by photonlights, not used in Blender */
 			if (lar->type==LA_YF_PHOTON) continue;
 			
-			if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) continue;
+			if (lar->mode & LA_LAYER) if ((lar->lay & shi->obi->lay)==0) continue;
 			if ((lar->lay & shi->lay)==0) continue;
 			
 			if (lar->shb || (lar->mode & LA_SHAD_RAY)) {
@@ -1759,7 +1759,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			if (lar->type==LA_YF_PHOTON) continue;
 			
 			/* test for lamp layer */
-			if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) continue;
+			if (lar->mode & LA_LAYER) if ((lar->lay & shi->obi->lay)==0) continue;
 			if ((lar->lay & shi->lay)==0) continue;
 			
 			/* accumulates in shr->diff and shr->spec and shr->shad (diffuse with shadow!) */

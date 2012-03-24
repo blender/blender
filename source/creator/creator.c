@@ -411,7 +411,7 @@ static int set_env(int argc, const char **argv, void *UNUSED(data))
 		exit(1);
 	}
 
-	for(; *ch_src; ch_src++, ch_dst++) {
+	for (; *ch_src; ch_src++, ch_dst++) {
 		*ch_dst= (*ch_src == '-') ? '_' : (*ch_src)-32; /* toupper() */
 	}
 
@@ -552,7 +552,7 @@ static int set_engine(int argc, const char **argv, void *data)
 		if (!strcmp(argv[1], "help")) {
 			RenderEngineType *type = NULL;
 			printf("Blender Engine Listing:\n");
-			for( type = R_engines.first; type; type = type->next ) {
+			for ( type = R_engines.first; type; type = type->next ) {
 				printf("\t%s\n", type->idname);
 			}
 			exit(0);
@@ -1150,7 +1150,7 @@ int main(int argc, const char **argv)
 	wchar_t ** argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);
 	int argci = 0;
 	char ** argv = MEM_mallocN(argc * sizeof(char*),"argv array");
-	for(argci=0; argci<argc; argci++)
+	for (argci=0; argci<argc; argci++)
 	{
 		argv[argci] = alloc_utf_8_from_16(argv_16[argci],0);
 	}
@@ -1290,7 +1290,7 @@ int main(int argc, const char **argv)
 	BLI_argsFree(ba);
 
 #ifdef WIN32
-	while(argci)
+	while (argci)
 	{
 		free(argv[--argci]);
 	}

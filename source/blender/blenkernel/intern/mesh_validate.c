@@ -93,7 +93,7 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
 	return sp1->loopstart > sp2->loopstart ? 1 : sp1->loopstart < sp2->loopstart ? -1 : 0;
 }
 
-#define PRINT if(do_verbose) printf
+#define PRINT if (do_verbose) printf
 
 int BKE_mesh_validate_arrays(Mesh *mesh,
                              MVert *mverts, unsigned int totvert,

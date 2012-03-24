@@ -306,7 +306,7 @@ static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *UNUSED(ref
 	x= imgx*imgy;
 	dest= new->rect;
 	wb= wbuf->rect;
-	while(x--) {
+	while (x--) {
 		val= 1.0f/wb[0];
 		dest[0]*= val;
 		dest[1]*= val;

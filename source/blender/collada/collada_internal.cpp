@@ -206,7 +206,7 @@ std::string translate_id(const std::string &id)
 	{
 		id_translated[i] = translate_name_map[(unsigned int)id_translated[i]];
 	}
-	// It's so much workload now, the if() should speed up things.
+	// It's so much workload now, the if () should speed up things.
 	if (id_translated != id)
 	{
 		// Search duplicates

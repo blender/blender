@@ -83,7 +83,7 @@ static bNodeType *node_dynamic_find_typeinfo(ListBase *list, ID *id)
 {
 	bNodeType *ntype = list->first;
 
-	while(ntype) {
+	while (ntype) {
 		if (ntype->type == NODE_DYNAMIC && ntype->id == id)
 			break;
 		ntype = ntype->next;

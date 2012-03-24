@@ -866,7 +866,7 @@ static void UNUSED_FUNCTION(touch_seq_files)(Scene *scene)
 	
 	if (ed==NULL) return;
 
-	// XXX25 if(okee("Touch and print selected movies")==0) return;
+	// XXX25 if (okee("Touch and print selected movies")==0) return;
 
 	WM_cursor_wait(1);
 
@@ -1739,7 +1739,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 			/* remove seq so overlap tests don't conflict,
 			 * see seq_free_sequence below for the real free'ing */
 			BLI_remlink(ed->seqbasep, seq);
-			/* if(seq->ipo) seq->ipo->id.us--; */
+			/* if (seq->ipo) seq->ipo->id.us--; */
 			/* XXX, remove fcurve and assign to split image strips */
 
 			start_ofs = cfra = seq_tx_get_final_left(seq, 0);

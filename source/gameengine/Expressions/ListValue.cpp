@@ -329,7 +329,7 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 		CValue *item = ((CListValue*) list)->FindValue(_PyUnicode_AsString(pyindex));
 		if (item) {
 			PyObject* pyobj = item->ConvertValueToPython();
-			if(pyobj)
+			if (pyobj)
 				return pyobj;
 			else
 				return item->GetProxy();
@@ -437,7 +437,7 @@ static PyObject *listvalue_buffer_concat(PyObject * self, PyObject * other)
 	else if (PyObject_TypeCheck(other, &CListValue::Type)) {
 		// add items from otherlist to this list
 		CListValue* otherval = static_cast<CListValue *>(BGE_PROXY_REF(other));
-		if(otherval==NULL) {
+		if (otherval==NULL) {
 			listval_new->Release();
 			PyErr_SetString(PyExc_SystemError, "CList+other, "BGE_PROXY_ERROR_MSG);
 			return NULL;

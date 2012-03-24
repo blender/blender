@@ -119,7 +119,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 					bez.vec[1][1] = bc_get_float_value(output, j * dim + i);
 
 
-					if( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
+					if ( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
 						curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP) 
 					{
 						COLLADAFW::FloatOrDoubleArray& intan = curve->getInTangentValues();
@@ -132,7 +132,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 						// outtangent
 						bez.vec[2][0] = bc_get_float_value(outtan, (j * 2 * dim ) + (2 * i)) * fps;
 						bez.vec[2][1] = bc_get_float_value(outtan, (j * 2 * dim )+ (2 * i) + 1);
-						if(curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER) 
+						if (curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER) 
 							bez.ipo = BEZT_IPO_BEZ;
 						else 
 							bez.ipo = BEZT_IPO_CONST;
@@ -964,25 +964,25 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 				if (ef != NULL) { /* can be NULL [#28909] */
 					const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
 					COLLADAFW::EffectCommon *efc = commonEffects[0];
-					if((animType->material & MATERIAL_SHININESS) != 0){
+					if ((animType->material & MATERIAL_SHININESS) != 0){
 						const COLLADAFW::FloatOrParam *shin = &(efc->getShininess());
 						const COLLADAFW::UniqueId& listid =  shin->getAnimationList();
 						Assign_float_animations( listid, AnimCurves , "specular_hardness" );
 					}
 
-					if((animType->material & MATERIAL_IOR) != 0){
+					if ((animType->material & MATERIAL_IOR) != 0){
 						const COLLADAFW::FloatOrParam *ior = &(efc->getIndexOfRefraction());
 						const COLLADAFW::UniqueId& listid =  ior->getAnimationList();
 						Assign_float_animations( listid, AnimCurves , "raytrace_transparency.ior" );
 					}
 
-					if((animType->material & MATERIAL_SPEC_COLOR) != 0){
+					if ((animType->material & MATERIAL_SPEC_COLOR) != 0){
 						const COLLADAFW::ColorOrTexture *cot = &(efc->getSpecular());
 						const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
 						Assign_color_animations( listid, AnimCurves , "specular_color" );
 					}
 
-					if((animType->material & MATERIAL_DIFF_COLOR) != 0){
+					if ((animType->material & MATERIAL_DIFF_COLOR) != 0){
 						const COLLADAFW::ColorOrTexture *cot = &(efc->getDiffuse());
 						const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
 						Assign_color_animations( listid, AnimCurves , "diffuse_color" );
@@ -1185,7 +1185,7 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 			const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
 			if (ef != NULL) { /* can be NULL [#28909] */
 				const COLLADAFW::CommonEffectPointerArray& commonEffects = ef->getCommonEffects();
-				if(!commonEffects.empty()) {
+				if (!commonEffects.empty()) {
 					COLLADAFW::EffectCommon *efc = commonEffects[0];
 					types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
 					types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);

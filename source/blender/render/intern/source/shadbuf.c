@@ -1042,8 +1042,8 @@ static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int 
 	char *ct, *cz;
 
 	/* simpleclip */
-	/* if(xs<0 || ys<0) return 1.0; */
-	/* if(xs>=shb->size || ys>=shb->size) return 1.0; */
+	/* if (xs<0 || ys<0) return 1.0; */
+	/* if (xs>=shb->size || ys>=shb->size) return 1.0; */
 	
 	/* always test borders of shadowbuffer */
 	if (xs<0) xs= 0; else if (xs>=shb->size) xs= shb->size-1;

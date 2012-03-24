@@ -121,7 +121,7 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 
 		// fails to link, props are not used in the BGE yet.
 #if 0
-		if(pchan->prop)
+		if (pchan->prop)
 			pchan->prop= IDP_CopyProperty(pchan->prop);
 #endif
 		pchan->prop= NULL;
@@ -186,7 +186,7 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 			if (schan->rotmode)
 				dchan->eul[i] = (dchan->eul[i]*dstweight) + (schan->eul[i]*srcweight);
 		}
-		for(dcon= (bConstraint*)dchan->constraints.first, scon= (bConstraint*)schan->constraints.first; dcon && scon; dcon= (bConstraint*)dcon->next, scon= (bConstraint*)scon->next) {
+		for (dcon= (bConstraint*)dchan->constraints.first, scon= (bConstraint*)schan->constraints.first; dcon && scon; dcon= (bConstraint*)dcon->next, scon= (bConstraint*)scon->next) {
 			/* no 'add' option for constraint blending */
 			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
 		}
@@ -469,7 +469,7 @@ void BL_ArmatureObject::ApplyPose()
 	// in the GE, we use ctime to store the timestep
 	m_pose->ctime = (float)m_timestep;
 	//m_scene->r.cfra++;
-	if(m_lastapplyframe != m_lastframe) {
+	if (m_lastapplyframe != m_lastframe) {
 		// update the constraint if any, first put them all off so that only the active ones will be updated
 		SG_DList::iterator<BL_ArmatureConstraint> cit(m_controlledConstraints);
 		for (cit.begin(); !cit.end(); ++cit) {
@@ -591,7 +591,7 @@ bool BL_ArmatureObject::GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix)
 
 	ApplyPose();
 	pchan = get_pose_channel(m_objArma->pose, bone->name);
-	if(pchan)
+	if (pchan)
 		matrix.setValue(&pchan->pose_mat[0][0]);
 	RestorePose();
 

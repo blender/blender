@@ -121,7 +121,7 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 		fp = stackbuf->rect;
 
 		a = stackbuf->x * stackbuf->y;
-		while(a--) {
+		while (a--) {
 			copy_v4_v4(fp, in[0]->vec);
 			fp += 4;
 		}

@@ -44,7 +44,7 @@ static SingletonSystem *_system_instance = NULL;
 
 SYS_SystemHandle SYS_GetSystem()
 {
-	if(!_system_instance)
+	if (!_system_instance)
 		_system_instance = new SingletonSystem();
 
 	return (SYS_SystemHandle)_system_instance;
@@ -52,7 +52,7 @@ SYS_SystemHandle SYS_GetSystem()
 
 void SYS_DeleteSystem(SYS_SystemHandle sys)
 {
-	if(_system_instance) {
+	if (_system_instance) {
 		delete _system_instance;
 		_system_instance = NULL;
 	}
@@ -61,7 +61,7 @@ void SYS_DeleteSystem(SYS_SystemHandle sys)
 int SYS_GetCommandLineInt(SYS_SystemHandle sys, const char *paramname, int defaultvalue)
 {
 	int *result = ((SingletonSystem *)sys)->int_params[paramname];
-	if(result)
+	if (result)
 		return *result;
 
 	return defaultvalue;
@@ -70,7 +70,7 @@ int SYS_GetCommandLineInt(SYS_SystemHandle sys, const char *paramname, int defau
 float SYS_GetCommandLineFloat(SYS_SystemHandle sys, const char *paramname, float defaultvalue)
 {
 	float *result = ((SingletonSystem *)sys)->float_params[paramname];
-	if(result)
+	if (result)
 		return *result;
 
 	return defaultvalue;
@@ -79,7 +79,7 @@ float SYS_GetCommandLineFloat(SYS_SystemHandle sys, const char *paramname, float
 const char *SYS_GetCommandLineString(SYS_SystemHandle sys, const char *paramname, const char *defaultvalue)
 {
 	STR_String *result = ((SingletonSystem *)sys)->string_params[paramname];
-	if(result)
+	if (result)
 		return *result;
 
 	return defaultvalue;

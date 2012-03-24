@@ -614,7 +614,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 
 			effectors = pdInitEffectors(scene, ob, psys, part->effector_weights);
 
-			if (effectors) for(eff = effectors->first; eff; eff=eff->next) {
+			if (effectors) for (eff = effectors->first; eff; eff=eff->next) {
 				if (eff->psys) {
 					node2 = dag_get_node(dag, eff->ob);
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Field");

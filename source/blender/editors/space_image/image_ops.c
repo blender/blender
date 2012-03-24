@@ -2260,7 +2260,7 @@ static int image_record_composite_exec(bContext *C, wmOperator *op)
 	if (!image_record_composite_init(C, op))
 		return OPERATOR_CANCELLED;
 	
-	while(image_record_composite_apply(C, op))
+	while (image_record_composite_apply(C, op))
 		;
 	
 	image_record_composite_exit(C, op);

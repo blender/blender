@@ -62,7 +62,7 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 	if (ibuf->rect) {
 		size = ibuf->x * ibuf->y;
 
-		while(size-- > 0) {
+		while (size-- > 0) {
 			rt= cp[0];
 			cp[0]= cp[3];
 			cp[3]= rt;
@@ -76,7 +76,7 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 	if (ibuf->rect_float) {
 		size = ibuf->x * ibuf->y;
 
-		while(size-- > 0) {
+		while (size-- > 0) {
 			rtf= cpf[0];
 			cpf[0]= cpf[3];
 			cpf[3]= rtf;

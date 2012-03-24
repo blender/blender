@@ -2305,7 +2305,7 @@ wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers,
 	return handler;
 }
 
-/* set "postpone" for win->modalhandlers, this is in a running for() loop in wm_handlers_do() */
+/* set "postpone" for win->modalhandlers, this is in a running for () loop in wm_handlers_do() */
 void WM_event_remove_ui_handler(ListBase *handlers,
                                 wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata, int postpone)
 {

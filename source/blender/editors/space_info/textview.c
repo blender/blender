@@ -292,7 +292,7 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 
 			tvc->iter_index++;
 
-		} while(tvc->step(tvc));
+		} while (tvc->step(tvc));
 	}
 
 	tvc->end(tvc);

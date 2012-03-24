@@ -724,7 +724,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				if (nu->type == CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
-					while(a--)
+					while (a--)
 					{
 						/* exception */
 						if ((bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT) {

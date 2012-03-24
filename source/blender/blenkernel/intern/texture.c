@@ -109,7 +109,7 @@ void open_plugin_tex(PluginTex *pit)
 	BLI_dynlib_get_error_as_string(NULL);
 
 	/* no BLI_dynlib_close! multiple opened plugins... */
-	/* if(pit->handle) BLI_dynlib_close(pit->handle); */
+	/* if (pit->handle) BLI_dynlib_close(pit->handle); */
 	/* pit->handle= 0; */
 
 	/* open the needed object */
@@ -376,7 +376,7 @@ int do_colorband(const ColorBand *coba, float in, float out[4])
 			CBData left, right;
 			
 			/* we're looking for first pos > in */
-			for (a=0; a<coba->tot; a++, cbd1++) if(cbd1->pos > in) break;
+			for (a=0; a<coba->tot; a++, cbd1++) if (cbd1->pos > in) break;
 				
 			if (a==coba->tot) {
 				cbd2= cbd1-1;

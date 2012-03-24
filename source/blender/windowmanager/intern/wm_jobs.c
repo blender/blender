@@ -298,7 +298,7 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 	
 	/* possible suspend ourselfs, waiting for other jobs, or de-suspend */
 	test->suspended= suspend;
-	// if(suspend) printf("job suspended: %s\n", test->name);
+	// if (suspend) printf("job suspended: %s\n", test->name);
 }
 
 /* if job running, the same owner gave it a new job */
@@ -459,7 +459,7 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 					steve->run_customdata= NULL;
 					steve->run_free= NULL;
 					
-					// if(steve->stop) printf("job ready but stopped %s\n", steve->name);
+					// if (steve->stop) printf("job ready but stopped %s\n", steve->name);
 					// else printf("job finished %s\n", steve->name);
 
 					steve->running= 0;

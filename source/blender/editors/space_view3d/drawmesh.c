@@ -294,7 +294,8 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 	if (textured!=c_textured || texface!=c_texface) {
 		if (textured ) {
 			c_badtex= !GPU_set_tpage(texface, !(litob->mode & OB_MODE_TEXTURE_PAINT), alphablend);
-		}else {
+		}
+		else {
 			GPU_set_tpage(NULL, 0, 0);
 			c_badtex= 0;
 		}

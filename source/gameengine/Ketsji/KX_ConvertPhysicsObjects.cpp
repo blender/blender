@@ -544,17 +544,17 @@ bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *fro
 
 	/* if this is the child of a compound shape this can happen
 	 * don't support compound shapes for now */
-	if(spc==NULL)
+	if (spc==NULL)
 		return false;
 	
 	shapeInfo = spc->GetShapeInfo();
 	
-	if(shapeInfo->m_shapeType != PHY_SHAPE_MESH/* || spc->GetSoftBody()*/)
+	if (shapeInfo->m_shapeType != PHY_SHAPE_MESH/* || spc->GetSoftBody()*/)
 		return false;
 	
 	spc->DeleteControllerShape();
 	
-	if(from_gameobj==NULL && from_meshobj==NULL)
+	if (from_gameobj==NULL && from_meshobj==NULL)
 		from_gameobj= gameobj;
 	
 	/* updates the arrays used for making the new bullet mesh */

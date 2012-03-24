@@ -227,7 +227,7 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 			/* currently editmode isn't supported by mesh so
 			 * ignore here for now too */
 
-			/* if(lt->editlatt) lt= lt->editlatt->latt; */
+			/* if (lt->editlatt) lt= lt->editlatt->latt; */
 
 			for (w=0; w<lt->pntsw; w++) {
 				for (v=0; v<lt->pntsv; v++) {

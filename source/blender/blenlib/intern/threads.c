@@ -79,7 +79,7 @@ static void *thread_tls_data;
  *     BLI_init_threads(&lb, do_something_func, maxthreads);
  * 
  *     while (cont) {
- *         if(BLI_available_threads(&lb) && !(escape loop event)) {
+ *         if (BLI_available_threads(&lb) && !(escape loop event)) {
  *             // get new job (data pointer)
  *             // tag job 'processed 
  *             BLI_insert_thread(&lb, job);
@@ -88,17 +88,17 @@ static void *thread_tls_data;
  *         
  *         // find if a job is ready, this the do_something_func() should write in job somewhere
  *         cont= 0;
- *         for(go over all jobs)
- *             if(job is ready) {
- *                 if(job was not removed) {
+ *         for (go over all jobs)
+ *             if (job is ready) {
+ *                 if (job was not removed) {
  *                     BLI_remove_thread(&lb, job);
  *                 }
  *             }
  *             else cont= 1;
  *         }
  *         // conditions to exit loop 
- *         if(if escape loop event) {
- *             if(BLI_available_threadslots(&lb)==maxthreads)
+ *         if (if escape loop event) {
+ *             if (BLI_available_threadslots(&lb)==maxthreads)
  *                 break;
  *         }
  *     }

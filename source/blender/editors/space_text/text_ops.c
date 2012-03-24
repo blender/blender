@@ -2566,10 +2566,10 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 		y-= txt_get_span(text->lines.first, *linep) - st->top;
 		
 		if (y>0) {
-			while (y-- != 0) if((*linep)->next) *linep= (*linep)->next;
+			while (y-- != 0) if ((*linep)->next) *linep= (*linep)->next;
 		}
 		else if (y<0) {
-			while (y++ != 0) if((*linep)->prev) *linep= (*linep)->prev;
+			while (y++ != 0) if ((*linep)->prev) *linep= (*linep)->prev;
 		}
 
 		
@@ -2856,7 +2856,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int ret;
 
-	// if(!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
+	// if (!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if (!RNA_string_length(op->ptr, "text")) {
 		/* if alt/ctrl/super are pressed pass through */
 		if (event->ctrl || event->oskey) {

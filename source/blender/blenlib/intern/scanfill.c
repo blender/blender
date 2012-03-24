@@ -657,7 +657,7 @@ static int scanfill(PolyFill *pf)
 			ed2= ed1->next;
 			
 			/* commented out... the ESC here delivers corrupted memory (and doesnt work during grab) */
-			/* if(callLocalInterruptCallBack()) break; */
+			/* if (callLocalInterruptCallBack()) break; */
 			if (totface>maxface) {
 				/* printf("Fill error: endless loop. Escaped at vert %d,  tot: %d.\n", a, verts); */
 				a= verts;

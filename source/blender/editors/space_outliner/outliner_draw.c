@@ -95,7 +95,7 @@
 static void outliner_height(SpaceOops *soops, ListBase *lb, int *h)
 {
 	TreeElement *te= lb->first;
-	while(te) {
+	while (te) {
 		TreeStoreElem *tselem= TREESTORE(te);
 		if (TSELEM_OPEN(tselem,soops))
 			outliner_height(soops, &te->subtree, h);
@@ -108,7 +108,7 @@ static void outliner_height(SpaceOops *soops, ListBase *lb, int *h)
 static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
 {
 	TreeElement *te= lb->first;
-	while(te) {
+	while (te) {
 //		TreeStoreElem *tselem= TREESTORE(te);
 		
 		// XXX fixme... te->xend is not set yet
@@ -125,7 +125,7 @@ static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
 static void outliner_rna_width(SpaceOops *soops, ListBase *lb, int *w, int startx)
 {
 	TreeElement *te= lb->first;
-	while(te) {
+	while (te) {
 		TreeStoreElem *tselem= TREESTORE(te);
 		// XXX fixme... (currently, we're using a fixed length of 100)!
 #if 0
@@ -1550,7 +1550,7 @@ static void outliner_back(ARegion *ar)
 	ystart= (int)ar->v2d.tot.ymax;
 	ystart= UI_UNIT_Y*(ystart/(UI_UNIT_Y))-OL_Y_OFFSET;
 	
-	while(ystart+2*UI_UNIT_Y > ar->v2d.cur.ymin) {
+	while (ystart+2*UI_UNIT_Y > ar->v2d.cur.ymin) {
 		glRecti(0, ystart, (int)ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, ystart+UI_UNIT_Y);
 		ystart-= 2*UI_UNIT_Y;
 	}
@@ -1568,7 +1568,7 @@ static void outliner_draw_restrictcols(ARegion *ar)
 	ystart= (int)ar->v2d.tot.ymax;
 	ystart= UI_UNIT_Y*(ystart/(UI_UNIT_Y))-OL_Y_OFFSET;
 	
-	while(ystart+2*UI_UNIT_Y > ar->v2d.cur.ymin) {
+	while (ystart+2*UI_UNIT_Y > ar->v2d.cur.ymin) {
 		glRecti((int)ar->v2d.cur.xmax-OL_TOGW, ystart, (int)ar->v2d.cur.xmax, ystart+UI_UNIT_Y);
 		ystart-= 2*UI_UNIT_Y;
 	}

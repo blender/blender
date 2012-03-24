@@ -965,7 +965,7 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 			continue;
 
 		/* hair needs to be included in id-list for cache edit mode to work */
-		/* if(psys->part->type == PART_HAIR && (psys->flag & PSYS_HAIR_DYNAMICS)==0) */
+		/* if (psys->part->type == PART_HAIR && (psys->flag & PSYS_HAIR_DYNAMICS)==0) */
 		/*	continue; */
 			
 		if (psys->part->type == PART_FLUID)
@@ -2003,7 +2003,7 @@ static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
 	if (cache->flag & PTCACHE_DISK_CACHE) {
 		error += !ptcache_mem_frame_to_disk(pid, pm);
 
-		// if(pm) /* pm is always set */
+		// if (pm) /* pm is always set */
 		{
 			ptcache_data_free(pm);
 			ptcache_extra_free(pm);
@@ -2839,7 +2839,7 @@ void BKE_ptcache_bake(PTCacheBaker* baker)
 			cache->flag &= ~PTCACHE_BAKED;
 		}
 	}
-	else for(SETLOOPER(scene, sce_iter, base)) {
+	else for (SETLOOPER(scene, sce_iter, base)) {
 		/* cache/bake everything in the scene */
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
@@ -2928,7 +2928,7 @@ void BKE_ptcache_bake(PTCacheBaker* baker)
 				BKE_ptcache_write(pid, 0);
 		}
 	}
-	else for(SETLOOPER(scene, sce_iter, base)) {
+	else for (SETLOOPER(scene, sce_iter, base)) {
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 		for (pid=pidlist.first; pid; pid=pid->next) {

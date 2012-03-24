@@ -145,7 +145,7 @@ void WVDataWrapper::print()
 void UVDataWrapper::getUV(int uv_index, float *uv)
 {
 	int stride = mVData->getStride(0);
-	if(stride==0) stride = 2;
+	if (stride==0) stride = 2;
 
 	switch(mVData->getType()) {
 	case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
@@ -281,7 +281,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)	// checks if mesh has sup
 			COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons*)mp;
 			COLLADAFW::Polygons::VertexCountArray& vca = mpvc->getGroupedVerticesVertexCountArray();
 			
-			for(unsigned int j = 0; j < vca.getCount(); j++){
+			for (unsigned int j = 0; j < vca.getCount(); j++){
 				int count = vca[j];
 				if (count < 3) {
 					fprintf(stderr, "Primitive %s in %s has at least one face with vertex count < 3\n",
@@ -291,7 +291,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)	// checks if mesh has sup
 			}
 				
 		}
-		else if(type != COLLADAFW::MeshPrimitive::TRIANGLES && type!= COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
+		else if (type != COLLADAFW::MeshPrimitive::TRIANGLES && type!= COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
 			fprintf(stderr, "Primitive type %s is not supported.\n", type_str);
 			return false;
 		}
@@ -310,7 +310,7 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
 	// vertices
 	COLLADAFW::MeshVertexData& pos = mesh->getPositions();
 	int stride = pos.getStride(0);
-	if(stride==0) stride = 3;
+	if (stride==0) stride = 3;
 	
 	me->totvert = mesh->getPositions().getFloatValues()->getCount() / stride;
 	me->mvert = (MVert*)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
@@ -742,12 +742,12 @@ MTex *MeshImporter::assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBindi
 	size_t setindex = ctexture.getSetIndex();
 	std::string uvname = ctexture.getSemantic();
 	
-	if(setindex==-1) return NULL;
+	if (setindex==-1) return NULL;
 	
 	const CustomData *data = &me->fdata;
 	int layer_index = CustomData_get_layer_index(data, CD_MTFACE);
 
-	if(layer_index == -1) return NULL;
+	if (layer_index == -1) return NULL;
 
 	CustomDataLayer *cdl = &data->layers[layer_index+setindex];
 	
@@ -798,7 +798,7 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId>::iterator it;
 	it=materials_mapped_to_geom.find(*geom_uid);
 	while(it!=materials_mapped_to_geom.end()) {
-		if(it->second == ma_uid && it->first == *geom_uid) return NULL; // do nothing if already found
+		if (it->second == ma_uid && it->first == *geom_uid) return NULL; // do nothing if already found
 		it++;
 	}
 	// first time we get geom_uid, ma_uid pair. Save for later check.
@@ -913,7 +913,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	// loop through geom's materials
 	for (unsigned int i = 0; i < mat_array.getCount(); i++)	{
 		
-		if(mat_array[i].getReferencedMaterial().isValid()) {
+		if (mat_array[i].getReferencedMaterial().isValid()) {
 			texture_face = assign_material_to_geom(mat_array[i], uid_material_map, ob, geom_uid,
 												   &color_texture, layername, texture_face,
 												   material_texture_mapping_map, i);

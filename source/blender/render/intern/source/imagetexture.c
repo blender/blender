@@ -591,7 +591,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 
 	if (count>1) {
 		tot= texres->tr= texres->tb= texres->tg= texres->ta= 0.0;
-		while(count--) {
+		while (count--) {
 			boxsampleclip(ibuf, rf, &texr);
 			
 			opp= square_rctf(rf);
@@ -1639,7 +1639,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		
 		curmap= 0;
 		previbuf= curibuf= ibuf;
-		while(curmap<IB_MIPMAP_LEVELS && ibuf->mipmap[curmap]) {
+		while (curmap<IB_MIPMAP_LEVELS && ibuf->mipmap[curmap]) {
 			if (maxd < pixsize) break;
 			previbuf= curibuf;
 			curibuf= ibuf->mipmap[curmap];

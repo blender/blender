@@ -475,7 +475,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const 
 	float hitco[3], *atten_co;
 	float p, ref_col[3];
 	
-	if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) return;
+	if (lar->mode & LA_LAYER) if ((lar->lay & shi->obi->lay)==0) return;
 	if ((lar->lay & shi->lay)==0) return;
 	if (lar->energy == 0.0f) return;
 	

@@ -677,7 +677,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 		GPU_link(mat, "shade_tangent_v_spec", GPU_attribute(CD_TANGENT, ""), &vn);
 #endif
 
-	/* this replaces if(i > 0.0) conditional until that is supported */
+	/* this replaces if (i > 0.0) conditional until that is supported */
 	// done in shade_visifac now, GPU_link(mat, "mtex_value_clamp_positive", i, &i);
 
 	if ((ma->mode & MA_SHADOW) && GPU_lamp_has_shadow_buffer(lamp)) {
@@ -1640,7 +1640,7 @@ void GPU_lamp_free(Object *ob)
 	for (link=ob->gpulamp.first; link; link=link->next) {
 		lamp = link->data;
 
-		while(lamp->materials.first) {
+		while (lamp->materials.first) {
 			nlink = lamp->materials.first;
 			ma = nlink->data;
 			BLI_freelinkN(&lamp->materials, nlink);

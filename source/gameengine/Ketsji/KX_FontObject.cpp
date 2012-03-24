@@ -60,7 +60,7 @@ std::vector<STR_String> split_string(STR_String str)
 	int begin=0, end=0;
 	while (end < str.Length())
 	{
-		if(str.GetAt(end) == '\n')
+		if (str.GetAt(end) == '\n')
 		{
 			text.push_back(str.Mid(begin, end-begin));
 			begin = end+1;
@@ -165,11 +165,11 @@ int GetFontId (VFont *font)
 void KX_FontObject::DrawText()
 {
 	/* Allow for some logic brick control */
-	if(this->GetProperty("Text"))
+	if (this->GetProperty("Text"))
 		m_text = split_string(this->GetProperty("Text")->GetText());
 
 	/* only draws the text if visible */
-	if(this->GetVisible() == 0) return;
+	if (this->GetVisible() == 0) return;
 
 	/* update the animated color */
 	this->GetObjectColor().getValue(m_color);
@@ -193,7 +193,7 @@ void KX_FontObject::DrawText()
 	spacing = this->NodeGetWorldOrientation() * spacing * this->NodeGetWorldScaling()[1];
 
 	/* Draw each line, taking spacing into consideration */
-	for(int i=0; i<m_text.size(); ++i)
+	for (int i=0; i<m_text.size(); ++i)
 	{
 		if (i!=0)
 		{
@@ -256,9 +256,9 @@ PyObject* KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF 
 {
 	KX_FontObject* self= static_cast<KX_FontObject*>(self_v);
 	STR_String str = STR_String();
-	for(int i=0; i<self->m_text.size(); ++i)
+	for (int i=0; i<self->m_text.size(); ++i)
 	{
-		if(i!=0)
+		if (i!=0)
 			str += '\n';
 		str += self->m_text[i];
 	}
@@ -268,13 +268,13 @@ PyObject* KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF 
 int KX_FontObject::pyattr_set_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_FontObject* self= static_cast<KX_FontObject*>(self_v);
-	if(!PyUnicode_Check(value))
+	if (!PyUnicode_Check(value))
 		return PY_SET_ATTR_FAIL;
 	char* chars = _PyUnicode_AsString(value);
 
 	/* Allow for some logic brick control */
 	CValue* tprop = self->GetProperty("Text");
-	if(tprop) {
+	if (tprop) {
 		CValue *newstringprop = new CStringValue(STR_String(chars), "Text");
 		self->SetProperty("Text", newstringprop);
 		newstringprop->Release();

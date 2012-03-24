@@ -267,7 +267,7 @@ static void mywrite( WriteData *wd, void *adr, int len)
 			writedata_do_write(wd, adr, writelen);
 			adr = (char*)adr + writelen;
 			len -= writelen;
-		} while(len > 0);
+		} while (len > 0);
 
 		return;
 	}
@@ -853,7 +853,7 @@ static void write_boid_state(WriteData *wd, BoidState *state)
 				break;
 		}
 	}
-	//for(; cond; cond=cond->next)
+	//for (; cond; cond=cond->next)
 	//	writestruct(wd, DATA, "BoidCondition", 1, cond);
 }
 
@@ -915,7 +915,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 	int a;
 
 	part= idbase->first;
-	while(part) {
+	while (part) {
 		if (part->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
@@ -931,7 +931,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 				dw->index = 0;
 				if (part->dup_group) { /* can be NULL if lining fails or set to None */
 					go = part->dup_group->gobject.first;
-					while(go && go->ob != dw->ob) {
+					while (go && go->ob != dw->ob) {
 						go=go->next;
 						dw->index++;
 					}
@@ -1004,7 +1004,7 @@ static void write_properties(WriteData *wd, ListBase *lb)
 	bProperty *prop;
 
 	prop= lb->first;
-	while(prop) {
+	while (prop) {
 		writestruct(wd, DATA, "bProperty", 1, prop);
 
 		if (prop->poin && prop->poin != &prop->data)
@@ -1019,7 +1019,7 @@ static void write_sensors(WriteData *wd, ListBase *lb)
 	bSensor *sens;
 
 	sens= lb->first;
-	while(sens) {
+	while (sens) {
 		writestruct(wd, DATA, "bSensor", 1, sens);
 
 		writedata(wd, DATA, sizeof(void *)*sens->totlinks, sens->links);
@@ -1080,7 +1080,7 @@ static void write_controllers(WriteData *wd, ListBase *lb)
 	bController *cont;
 
 	cont= lb->first;
-	while(cont) {
+	while (cont) {
 		writestruct(wd, DATA, "bController", 1, cont);
 
 		writedata(wd, DATA, sizeof(void *)*cont->totlinks, cont->links);
@@ -1105,7 +1105,7 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 	bActuator *act;
 
 	act= lb->first;
-	while(act) {
+	while (act) {
 		writestruct(wd, DATA, "bActuator", 1, act);
 
 		switch(act->type) {
@@ -1412,7 +1412,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 	Object *ob;
 	
 	ob= idbase->first;
-	while(ob) {
+	while (ob) {
 		if (ob->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_OB, "Object", 1, ob);
@@ -1469,7 +1469,7 @@ static void write_vfonts(WriteData *wd, ListBase *idbase)
 	PackedFile * pf;
 
 	vf= idbase->first;
-	while(vf) {
+	while (vf) {
 		if (vf->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_VF, "VFont", 1, vf);
@@ -1495,7 +1495,7 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 	KeyBlock *kb;
 
 	key= idbase->first;
-	while(key) {
+	while (key) {
 		if (key->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_KE, "Key", 1, key);
@@ -1505,7 +1505,7 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 			
 			/* direct data */
 			kb= key->block.first;
-			while(kb) {
+			while (kb) {
 				writestruct(wd, DATA, "KeyBlock", 1, kb);
 				if (kb->data) writedata(wd, DATA, kb->totelem*key->elemsize, kb->data);
 				kb= kb->next;
@@ -1523,7 +1523,7 @@ static void write_cameras(WriteData *wd, ListBase *idbase)
 	Camera *cam;
 
 	cam= idbase->first;
-	while(cam) {
+	while (cam) {
 		if (cam->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CA, "Camera", 1, cam);
@@ -1542,7 +1542,7 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 	MetaElem *ml;
 
 	mb= idbase->first;
-	while(mb) {
+	while (mb) {
 		if (mb->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MB, "MetaBall", 1, mb);
@@ -1553,7 +1553,7 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 			if (mb->adt) write_animdata(wd, mb->adt);
 
 			ml= mb->elems.first;
-			while(ml) {
+			while (ml) {
 				writestruct(wd, DATA, "MetaElem", 1, ml);
 				ml= ml->next;
 			}
@@ -1575,7 +1575,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 	Nurb *nu;
 
 	cu= idbase->first;
-	while(cu) {
+	while (cu) {
 		if (cu->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CU, "Curve", 1, cu);
@@ -1593,12 +1593,12 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			else {
 				/* is also the order of reading */
 				nu= cu->nurb.first;
-				while(nu) {
+				while (nu) {
 					writestruct(wd, DATA, "Nurb", 1, nu);
 					nu= nu->next;
 				}
 				nu= cu->nurb.first;
-				while(nu) {
+				while (nu) {
 					if (nu->type == CU_BEZIER)
 						writestruct(wd, DATA, "BezTriple", nu->pntsu, nu->bezt);
 					else {
@@ -1705,7 +1705,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 #endif
 
 	mesh= idbase->first;
-	while(mesh) {
+	while (mesh) {
 		if (mesh->id.us>0 || wd->current) {
 			/* write LibData */
 			if (!save_for_old_blender) {
@@ -1837,7 +1837,7 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 	Lattice *lt;
 	
 	lt= idbase->first;
-	while(lt) {
+	while (lt) {
 		if (lt->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LT, "Lattice", 1, lt);
@@ -1888,7 +1888,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 
 
 	ima= idbase->first;
-	while(ima) {
+	while (ima) {
 		if (ima->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_IM, "Image", 1, ima);
@@ -1913,7 +1913,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 	Tex *tex;
 
 	tex= idbase->first;
-	while(tex) {
+	while (tex) {
 		if (tex->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_TE, "Tex", 1, tex);
@@ -1954,7 +1954,7 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 	int a;
 
 	ma= idbase->first;
-	while(ma) {
+	while (ma) {
 		if (ma->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MA, "Material", 1, ma);
@@ -1992,7 +1992,7 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 	int a;
 
 	wrld= idbase->first;
-	while(wrld) {
+	while (wrld) {
 		if (wrld->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_WO, "World", 1, wrld);
@@ -2022,7 +2022,7 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 	int a;
 
 	la= idbase->first;
-	while(la) {
+	while (la) {
 		if (la->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LA, "Lamp", 1, la);
@@ -2066,7 +2066,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	ToolSettings *tos;
 	
 	sce= scebase->first;
-	while(sce) {
+	while (sce) {
 		/* write LibData */
 		writestruct(wd, ID_SCE, "Scene", 1, sce);
 		if (sce->id.properties) IDP_WriteProperty(sce->id.properties, wd);
@@ -2076,7 +2076,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		
 		/* direct data */
 		base= sce->base.first;
-		while(base) {
+		while (base) {
 			writestruct(wd, DATA, "Base", 1, base);
 			base= base->next;
 		}
@@ -2279,7 +2279,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 	ScrEdge *se;
 
 	sc= scrbase->first;
-	while(sc) {
+	while (sc) {
 		
 		/* write LibData */
 		/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
@@ -2309,7 +2309,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 			}
 			
 			sl= sa->spacedata.first;
-			while(sl) {
+			while (sl) {
 				for (ar= sl->regionbase.first; ar; ar= ar->next)
 					write_region(wd, ar, sl->spacetype);
 				
@@ -2431,7 +2431,7 @@ static void write_libraries(WriteData *wd, Main *main)
 
 		/* test: is lib being used */
 		foundone= 0;
-		while(tot--) {
+		while (tot--) {
 			for (id= lbarray[tot]->first; id; id= id->next) {
 				if (id->us>0 && (id->flag & LIB_EXTERN)) {
 					foundone= 1;
@@ -2444,7 +2444,7 @@ static void write_libraries(WriteData *wd, Main *main)
 		if (foundone) {
 			writestruct(wd, ID_LI, "Library", 1, main->curlib);
 
-			while(a--) {
+			while (a--) {
 				for (id= lbarray[a]->first; id; id= id->next) {
 					if (id->us>0 && (id->flag & LIB_EXTERN)) {
 						writestruct(wd, ID_ID, "ID", 1, id);
@@ -2472,7 +2472,7 @@ static void write_bone(WriteData *wd, Bone* bone)
 	
 	// Write Children
 	cbone= bone->childbase.first;
-	while(cbone) {
+	while (cbone) {
 		write_bone(wd, cbone);
 		cbone= cbone->next;
 	}
@@ -2493,7 +2493,7 @@ static void write_armatures(WriteData *wd, ListBase *idbase)
 
 			/* Direct data */
 			bone= arm->bonebase.first;
-			while(bone) {
+			while (bone) {
 				write_bone(wd, bone);
 				bone=bone->next;
 			}
@@ -2512,7 +2512,7 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 	TextMarker *mrk;
 
 	text= idbase->first;
-	while(text) {
+	while (text) {
 		if ( (text->flags & TXT_ISMEM) && (text->flags & TXT_ISEXT)) text->flags &= ~TXT_ISEXT;
 
 		/* write LibData */
@@ -2555,7 +2555,7 @@ static void write_speakers(WriteData *wd, ListBase *idbase)
 	Speaker *spk;
 
 	spk= idbase->first;
-	while(spk) {
+	while (spk) {
 		if (spk->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_SPK, "Speaker", 1, spk);
@@ -2574,7 +2574,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 	PackedFile * pf;
 
 	sound= idbase->first;
-	while(sound) {
+	while (sound) {
 		if (sound->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_SO, "bSound", 1, sound);
@@ -2605,7 +2605,7 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 			if (group->id.properties) IDP_WriteProperty(group->id.properties, wd);
 
 			go= group->gobject.first;
-			while(go) {
+			while (go) {
 				writestruct(wd, DATA, "GroupObject", 1, go);
 				go= go->next;
 			}
@@ -2663,7 +2663,7 @@ static void write_movieTracks(WriteData *wd, ListBase *tracks)
 	MovieTrackingTrack *track;
 
 	track= tracks->first;
-	while(track) {
+	while (track) {
 		writestruct(wd, DATA, "MovieTrackingTrack", 1, track);
 
 		if (track->markers)
@@ -2684,7 +2684,7 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 	MovieClip *clip;
 
 	clip= idbase->first;
-	while(clip) {
+	while (clip) {
 		if (clip->id.us>0 || wd->current) {
 			MovieTracking *tracking= &clip->tracking;
 			MovieTrackingObject *object;
@@ -2697,7 +2697,7 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 			write_movieReconstruction(wd, &tracking->reconstruction);
 
 			object= tracking->objects.first;
-			while(object) {
+			while (object) {
 				writestruct(wd, DATA, "MovieTrackingObject", 1, object);
 
 				write_movieTracks(wd, &object->tracks);
@@ -2855,7 +2855,7 @@ static int do_history(const char *name, ReportList *reports)
 		return 1;
 	}
 		
-	while(hisnr > 1) {
+	while (hisnr > 1) {
 		BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr-1);
 		BLI_snprintf(tempname2, sizeof(tempname2), "%s%d", name, hisnr);
 	

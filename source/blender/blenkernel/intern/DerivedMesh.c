@@ -1165,7 +1165,7 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 			if (indices) {
 				w = MEM_callocN(sizeof(float)*numVerts, "Temp weight array DM_update_weight_mcol");
 				i = num;
-				while(i--)
+				while (i--)
 					w[indices[i]] = weights[i];
 			}
 
@@ -2906,7 +2906,7 @@ static void navmesh_drawColored(DerivedMesh *dm)
 #endif
 
 	glDisable(GL_LIGHTING);
-	/*  if(GPU_buffer_legacy(dm) ) */ { /* TODO - VBO draw code, not high priority - campbell */
+	/*  if (GPU_buffer_legacy(dm) ) */ { /* TODO - VBO draw code, not high priority - campbell */
 		DEBUG_VBO( "Using legacy code. drawNavMeshColored\n" );
 		//glShadeModel(GL_SMOOTH);
 		glBegin(glmode = GL_QUADS);

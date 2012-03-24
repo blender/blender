@@ -161,12 +161,12 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	glGetFloatv(GL_CURRENT_COLOR, color);
 
 	/* 'shade' defines strength of shading */	
-	coltop[0]= color[0]+shadetop; if(coltop[0]>1.0f) coltop[0]= 1.0f;
-	coltop[1]= color[1]+shadetop; if(coltop[1]>1.0f) coltop[1]= 1.0f;
-	coltop[2]= color[2]+shadetop; if(coltop[2]>1.0f) coltop[2]= 1.0f;
-	coldown[0]= color[0]+shadedown; if(coldown[0]<0.0f) coldown[0]= 0.0f;
-	coldown[1]= color[1]+shadedown; if(coldown[1]<0.0f) coldown[1]= 0.0f;
-	coldown[2]= color[2]+shadedown; if(coldown[2]<0.0f) coldown[2]= 0.0f;
+	coltop[0]= color[0]+shadetop; if (coltop[0]>1.0f) coltop[0]= 1.0f;
+	coltop[1]= color[1]+shadetop; if (coltop[1]>1.0f) coltop[1]= 1.0f;
+	coltop[2]= color[2]+shadetop; if (coltop[2]>1.0f) coltop[2]= 1.0f;
+	coldown[0]= color[0]+shadedown; if (coldown[0]<0.0f) coldown[0]= 0.0f;
+	coldown[1]= color[1]+shadedown; if (coldown[1]<0.0f) coldown[1]= 0.0f;
+	coldown[2]= color[2]+shadedown; if (coldown[2]<0.0f) coldown[2]= 0.0f;
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);
@@ -269,12 +269,12 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	glGetFloatv(GL_CURRENT_COLOR, color);
 
 	/* 'shade' defines strength of shading */	
-	colLeft[0]= color[0]+shadeLeft; if(colLeft[0]>1.0f) colLeft[0]= 1.0f;
-	colLeft[1]= color[1]+shadeLeft; if(colLeft[1]>1.0f) colLeft[1]= 1.0f;
-	colLeft[2]= color[2]+shadeLeft; if(colLeft[2]>1.0f) colLeft[2]= 1.0f;
-	colRight[0]= color[0]+shadeRight; if(colRight[0]<0.0f) colRight[0]= 0.0f;
-	colRight[1]= color[1]+shadeRight; if(colRight[1]<0.0f) colRight[1]= 0.0f;
-	colRight[2]= color[2]+shadeRight; if(colRight[2]<0.0f) colRight[2]= 0.0f;
+	colLeft[0]= color[0]+shadeLeft; if (colLeft[0]>1.0f) colLeft[0]= 1.0f;
+	colLeft[1]= color[1]+shadeLeft; if (colLeft[1]>1.0f) colLeft[1]= 1.0f;
+	colLeft[2]= color[2]+shadeLeft; if (colLeft[2]>1.0f) colLeft[2]= 1.0f;
+	colRight[0]= color[0]+shadeRight; if (colRight[0]<0.0f) colRight[0]= 0.0f;
+	colRight[1]= color[1]+shadeRight; if (colRight[1]<0.0f) colRight[1]= 0.0f;
+	colRight[2]= color[2]+shadeRight; if (colRight[2]<0.0f) colRight[2]= 0.0f;
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);

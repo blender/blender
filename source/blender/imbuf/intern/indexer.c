@@ -863,7 +863,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 	frame_rate = av_q2d(context->iStream->r_frame_rate);
 	pts_time_base = av_q2d(context->iStream->time_base);
 
-	while(av_read_frame(context->iFormatCtx, &next_packet) >= 0) {
+	while (av_read_frame(context->iFormatCtx, &next_packet) >= 0) {
 		int frame_finished = 0;
 		float next_progress =  (float)((int)floor(((double) next_packet.pos) * 100 /
 		                                   ((double) stream_size)+0.5)) / 100;

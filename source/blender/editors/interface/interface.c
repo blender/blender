@@ -81,7 +81,7 @@
 
 /* avoid unneeded calls to ui_get_but_val */
 #define UI_BUT_VALUE_UNSET DBL_MAX
-#define UI_GET_BUT_VALUE_INIT(_but, _value) if(_value == DBL_MAX) {  (_value)= ui_get_but_val(_but); }
+#define UI_GET_BUT_VALUE_INIT(_but, _value) if (_value == DBL_MAX) {  (_value)= ui_get_but_val(_but); }
 
 /* 
  * a full doc with API notes can be found in bf-blender/trunk/blender/doc/guides/interface_API.txt

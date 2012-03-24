@@ -509,7 +509,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		xo= mval[0]; 
 		yo= mval[1];
 		
-		while(get_mbut()) {		
+		while (get_mbut()) {
 //			getmouseco_areawin(mval);
 			if (abs(mval[0]-xo)+abs(mval[1]-yo) > 4) {
 				transform_markers('g', 0);

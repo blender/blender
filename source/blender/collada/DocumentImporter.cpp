@@ -126,7 +126,7 @@ bool DocumentImporter::import()
 		return false;
 	}
 	
-	if(errorHandler.hasError())
+	if (errorHandler.hasError())
 		return false;
 	
 	/** TODO set up scene graph and such here */
@@ -161,7 +161,7 @@ void DocumentImporter::start(){}
 
 void DocumentImporter::finish()
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return;
 		
 	/** TODO Break up and put into 2-pass parsing of DAE */
@@ -339,7 +339,7 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 		// transformation matrix and apply it to the newly instantiated
 		// object to account for node hierarchy transforms in
 		// .dae
-		if(source_node) {
+		if (source_node) {
 			COLLADABU::Math::Matrix4 mat4 = source_node->getTransformationMatrix();
 			COLLADABU::Math::Matrix4 bmat4 = mat4.transpose(); // transpose to get blender row-major order
 			float mat[4][4];
@@ -492,7 +492,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeVisualScene ( const COLLADAFW::VisualScene* visualScene ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	// this method called on post process after writeGeometry, writeMaterial, etc.
@@ -515,7 +515,7 @@ bool DocumentImporter::writeVisualScene ( const COLLADAFW::VisualScene* visualSc
 	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeLibraryNodes ( const COLLADAFW::LibraryNodes* libraryNodes ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	Scene *sce = CTX_data_scene(mContext);
@@ -533,7 +533,7 @@ bool DocumentImporter::writeLibraryNodes ( const COLLADAFW::LibraryNodes* librar
 	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeGeometry ( const COLLADAFW::Geometry* geom ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	return mesh_importer.write_geometry(geom);
@@ -543,7 +543,7 @@ bool DocumentImporter::writeGeometry ( const COLLADAFW::Geometry* geom )
 	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	const std::string& str_mat_id = cmat->getName().size() ? cmat->getName() : cmat->getOriginalId();
@@ -699,10 +699,10 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 		}
 	}
 	
-	if(ef->getOpacity().isTexture()) {
+	if (ef->getOpacity().isTexture()) {
 		COLLADAFW::Texture ctex = ef->getOpacity().getTexture();
 		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
-		if(mtex != NULL) {
+		if (mtex != NULL) {
 			mtex->mapto = MAP_ALPHA;
 			mtex->tex->imaflag |= TEX_USEALPHA;
 			i++;
@@ -732,7 +732,7 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 
 bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 	
 	const COLLADAFW::UniqueId& uid = effect->getUniqueId();
@@ -744,7 +744,7 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 	
 	Material *ma = uid_effect_map[uid];
 	std::map<COLLADAFW::UniqueId, Material*>::iterator  iter;
-	for(iter = uid_material_map.begin(); iter != uid_material_map.end() ; iter++ )
+	for (iter = uid_material_map.begin(); iter != uid_material_map.end() ; iter++ )
 	{
 		if ( iter->second == ma ) {
 			this->FW_object_map[iter->first] = effect;
@@ -770,7 +770,7 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	Camera *cam = NULL;
@@ -886,7 +886,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeImage( const COLLADAFW::Image* image ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	// XXX maybe it is necessary to check if the path is absolute or relative
@@ -911,7 +911,7 @@ bool DocumentImporter::writeImage( const COLLADAFW::Image* image )
 	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeLight( const COLLADAFW::Light* light ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 
 	Lamp *lamp = NULL;
@@ -920,7 +920,7 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 	TagsMap::iterator etit;
 	ExtraTags *et = 0;
 	etit = uid_tags_map.find(light->getUniqueId().toAscii());
-	if(etit != uid_tags_map.end())
+	if (etit != uid_tags_map.end())
 		et = etit->second;
 
 	la_id = light->getOriginalId();
@@ -934,7 +934,7 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 	}
 
 	// if we find an ExtraTags for this, use that instead.
-	if(et && et->isProfile("blender")) {
+	if (et && et->isProfile("blender")) {
 		et->setData("type", &(lamp->type));
 		et->setData("flag", &(lamp->flag));
 		et->setData("mode", &(lamp->mode));
@@ -1007,12 +1007,12 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 			lamp->b = col.getBlue();
 		}
 
-		if(IS_EQ(linatt, 0.0f) && quadatt > 0.0f) {
+		if (IS_EQ(linatt, 0.0f) && quadatt > 0.0f) {
 			att2 = quadatt;
 			d = sqrt(1.0f/quadatt);
 		}
 		// linear light
-		else if(IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
+		else if (IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
 			att1 = linatt;
 			d = (1.0f/linatt);
 		}
@@ -1041,9 +1041,9 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 					lamp->type = LA_SPOT;
 					lamp->att1 = att1;
 					lamp->att2 = att2;
-					if(IS_EQ(att1, 0.0f) && att2 > 0)
+					if (IS_EQ(att1, 0.0f) && att2 > 0)
 						lamp->falloff_type = LA_FALLOFF_INVSQUARE;
-					if(IS_EQ(att2, 0.0f) && att1 > 0)
+					if (IS_EQ(att2, 0.0f) && att1 > 0)
 						lamp->falloff_type = LA_FALLOFF_INVLINEAR;
 					lamp->spotsize = light->getFallOffAngle().getValue();
 					lamp->spotblend = light->getFallOffExponent().getValue();
@@ -1061,9 +1061,9 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 					lamp->type = LA_LOCAL;
 					lamp->att1 = att1;
 					lamp->att2 = att2;
-					if(IS_EQ(att1, 0.0f) && att2 > 0)
+					if (IS_EQ(att1, 0.0f) && att2 > 0)
 						lamp->falloff_type = LA_FALLOFF_INVSQUARE;
-					if(IS_EQ(att2, 0.0f) && att1 > 0)
+					if (IS_EQ(att2, 0.0f) && att1 > 0)
 						lamp->falloff_type = LA_FALLOFF_INVLINEAR;
 				}
 				break;
@@ -1084,7 +1084,7 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 // this function is called only for animations that pass COLLADAFW::validate
 bool DocumentImporter::writeAnimation( const COLLADAFW::Animation* anim ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	// return true;
@@ -1094,7 +1094,7 @@ bool DocumentImporter::writeAnimation( const COLLADAFW::Animation* anim )
 // called on post-process stage after writeVisualScenes
 bool DocumentImporter::writeAnimationList( const COLLADAFW::AnimationList* animationList ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	// return true;
@@ -1111,7 +1111,7 @@ bool DocumentImporter::writeSkinControllerData( const COLLADAFW::SkinControllerD
 // this is called on postprocess, before writeVisualScenes
 bool DocumentImporter::writeController( const COLLADAFW::Controller* controller ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	return armature_importer.write_controller(controller);
@@ -1129,7 +1129,7 @@ bool DocumentImporter::writeKinematicsScene( const COLLADAFW::KinematicsScene* k
 
 ExtraTags* DocumentImporter::getExtraTags(const COLLADAFW::UniqueId &uid)
 {
-	if(uid_tags_map.find(uid.toAscii())==uid_tags_map.end()) {
+	if (uid_tags_map.find(uid.toAscii())==uid_tags_map.end()) {
 		return NULL;
 	}
 	return uid_tags_map[uid.toAscii()];

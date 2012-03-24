@@ -90,15 +90,15 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys);
 #define KEY_K					PTCacheEditKey *key; int k
 #define POINT_P					PTCacheEditPoint *point; int p
 #define LOOP_POINTS				for (p=0, point=edit->points; p<edit->totpoint; p++, point++)
-#define LOOP_VISIBLE_POINTS		for (p=0, point=edit->points; p<edit->totpoint; p++, point++) if(!(point->flag & PEP_HIDE))
-#define LOOP_SELECTED_POINTS	for (p=0, point=edit->points; p<edit->totpoint; p++, point++) if(point_is_selected(point))
-#define LOOP_UNSELECTED_POINTS	for (p=0, point=edit->points; p<edit->totpoint; p++, point++) if(!point_is_selected(point))
-#define LOOP_EDITED_POINTS		for (p=0, point=edit->points; p<edit->totpoint; p++, point++) if(point->flag & PEP_EDIT_RECALC)
-#define LOOP_TAGGED_POINTS		for (p=0, point=edit->points; p<edit->totpoint; p++, point++) if(point->flag & PEP_TAG)
+#define LOOP_VISIBLE_POINTS		for (p=0, point=edit->points; p<edit->totpoint; p++, point++) if (!(point->flag & PEP_HIDE))
+#define LOOP_SELECTED_POINTS	for (p=0, point=edit->points; p<edit->totpoint; p++, point++) if (point_is_selected(point))
+#define LOOP_UNSELECTED_POINTS	for (p=0, point=edit->points; p<edit->totpoint; p++, point++) if (!point_is_selected(point))
+#define LOOP_EDITED_POINTS		for (p=0, point=edit->points; p<edit->totpoint; p++, point++) if (point->flag & PEP_EDIT_RECALC)
+#define LOOP_TAGGED_POINTS		for (p=0, point=edit->points; p<edit->totpoint; p++, point++) if (point->flag & PEP_TAG)
 #define LOOP_KEYS				for (k=0, key=point->keys; k<point->totkey; k++, key++)
-#define LOOP_VISIBLE_KEYS		for (k=0, key=point->keys; k<point->totkey; k++, key++) if(!(key->flag & PEK_HIDE))
-#define LOOP_SELECTED_KEYS		for (k=0, key=point->keys; k<point->totkey; k++, key++) if((key->flag & PEK_SELECT) && !(key->flag & PEK_HIDE))
-#define LOOP_TAGGED_KEYS		for (k=0, key=point->keys; k<point->totkey; k++, key++) if(key->flag & PEK_TAG)
+#define LOOP_VISIBLE_KEYS		for (k=0, key=point->keys; k<point->totkey; k++, key++) if (!(key->flag & PEK_HIDE))
+#define LOOP_SELECTED_KEYS		for (k=0, key=point->keys; k<point->totkey; k++, key++) if ((key->flag & PEK_SELECT) && !(key->flag & PEK_HIDE))
+#define LOOP_TAGGED_KEYS		for (k=0, key=point->keys; k<point->totkey; k++, key++) if (key->flag & PEK_TAG)
 
 #define KEY_WCO					(key->flag & PEK_USE_WCO ? key->world_co : key->co)
 
@@ -2152,7 +2152,7 @@ static void remove_tagged_keys(Object *ob, ParticleSystem *psys)
 
 			hkey= pa->hair;
 			LOOP_KEYS {
-				while(key->flag & PEK_TAG && hkey < pa->hair + pa->totkey) {
+				while (key->flag & PEK_TAG && hkey < pa->hair + pa->totkey) {
 					key++;
 					hkey++;
 				}
@@ -2366,7 +2366,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 		/* remove tagged particles - don't do mirror here! */
 		remove_tagged_particles(ob, psys, 0);
 		totremoved += removed;
-	} while(removed);
+	} while (removed);
 
 	if (totremoved == 0)
 		return OPERATOR_CANCELLED;
@@ -2645,7 +2645,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 			newpa->fuv[1]= pa->fuv[1];
 			newpa->fuv[2]= pa->fuv[0];
 			newpa->fuv[3]= pa->fuv[3];
-			while(rotation-- > 0)
+			while (rotation-- > 0)
 				if (me->mface[pa->num].v4) {
 					SHIFT4(float, newpa->fuv[0], newpa->fuv[1], newpa->fuv[2], newpa->fuv[3]);
 				}
@@ -3214,7 +3214,7 @@ static int brush_add(PEData *data, short number)
 	for (i=0; i<number; i++) {
 		if (number>1) {
 			dmx=dmy=size;
-			while(dmx*dmx+dmy*dmy>size2) {
+			while (dmx*dmx+dmy*dmy>size2) {
 				dmx=(short)((2.0f*BLI_frand()-1.0f)*size);
 				dmy=(short)((2.0f*BLI_frand()-1.0f)*size);
 			}
@@ -3891,7 +3891,7 @@ void PE_undo_push(Scene *scene, const char *str)
 	if (!edit) return;
 
 	/* remove all undos after (also when curundo==NULL) */
-	while(edit->undo.last != edit->curundo) {
+	while (edit->undo.last != edit->curundo) {
 		undo= edit->undo.last;
 		BLI_remlink(&edit->undo, undo);
 		free_PTCacheUndo(undo);
@@ -3906,13 +3906,13 @@ void PE_undo_push(Scene *scene, const char *str)
 	/* and limit amount to the maximum */
 	nr= 0;
 	undo= edit->undo.last;
-	while(undo) {
+	while (undo) {
 		nr++;
 		if (nr==U.undosteps) break;
 		undo= undo->prev;
 	}
 	if (undo) {
-		while(edit->undo.first!=undo) {
+		while (edit->undo.first!=undo) {
 			PTCacheUndo *first= edit->undo.first;
 			BLI_remlink(&edit->undo, first);
 			free_PTCacheUndo(first);
@@ -3973,7 +3973,7 @@ static void PTCacheUndo_clear(PTCacheEdit *edit)
 	if (edit==NULL) return;
 	
 	undo= edit->undo.first;
-	while(undo) {
+	while (undo) {
 		free_PTCacheUndo(undo);
 		undo= undo->next;
 	}

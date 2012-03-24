@@ -1289,7 +1289,7 @@ static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int UNUS
 	/* when called while moving in mixed mode, do not draw when... */
 	if ((drawflags & MAN_TRANS_C)==0) return;
 
-	// XXX if(moving) glTranslatef(t->vec[0], t->vec[1], t->vec[2]);
+	// XXX if (moving) glTranslatef(t->vec[0], t->vec[1], t->vec[2]);
 	glDisable(GL_DEPTH_TEST);
 
 	qobj= gluNewQuadric();

@@ -247,7 +247,7 @@ DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3],
 // due to non-commutative nature of floating point ops this makes the sim give
 // different results each time you run it!
 // schedule(guided, 2)
-//#pragma omp parallel for reduction(+: temp) if(verts > CLOTH_OPENMP_LIMIT)
+//#pragma omp parallel for reduction(+: temp) if (verts > CLOTH_OPENMP_LIMIT)
 	for (i = 0; i < (long)verts; i++) {
 		temp += dot_v3v3(fLongVectorA[i], fLongVectorB[i]);
 	}
@@ -597,7 +597,7 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector
 	
 	zero_lfvector(to, vcount);
 
-#pragma omp parallel sections private(i) if(vcount > CLOTH_OPENMP_LIMIT)
+#pragma omp parallel sections private(i) if (vcount > CLOTH_OPENMP_LIMIT)
 	{
 #pragma omp section
 		{
@@ -978,7 +978,7 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 	unsigned int i = 0;
 	
 	// Take only the diagonal blocks of A
-// #pragma omp parallel for private(i) if(lA[0].vcount > CLOTH_OPENMP_LIMIT)
+// #pragma omp parallel for private(i) if (lA[0].vcount > CLOTH_OPENMP_LIMIT)
 	for (i = 0; i<lA[0].vcount; i++)
 	{
 		// block diagonalizer
@@ -1472,7 +1472,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 	}
 
 	/* gather velocities & density */
-	if (smoothfac > 0.0f) for(v = 0; v < numverts; v++) {
+	if (smoothfac > 0.0f) for (v = 0; v < numverts; v++) {
 		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
 		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
 		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
@@ -1486,7 +1486,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 	}
 
 	/* gather colliders */
-	if (colliders && collfac > 0.0f) for(col = colliders->first; col; col = col->next)
+	if (colliders && collfac > 0.0f) for (col = colliders->first; col; col = col->next)
 	{
 		MVert *loc0 = col->collmd->x;
 		MVert *loc1 = col->collmd->xnew;
@@ -1695,7 +1695,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	while (search)
 	{
 		// only handle active springs
-		// if(((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED)) {}
+		// if (((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED)) {}
 		cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
 
 		search = search->next;
@@ -1706,7 +1706,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	while (search)
 	{
 		// only handle active springs
-		// if(((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED))	
+		// if (((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED))	
 		cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
 		search = search->next;
 	}

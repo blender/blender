@@ -152,22 +152,22 @@ void make_unique_prop_names(bContext *C, char *str)
 	for (a=0; a<obcount; a++) {
 		ob= (Object *)idar[a];
 		prop= ob->prop.first;
-		while(prop) {
+		while (prop) {
 			names[nr++]= prop->name;
 			prop= prop->next;
 		}
 		sens= ob->sensors.first;
-		while(sens) {
+		while (sens) {
 			names[nr++]= sens->name;
 			sens= sens->next;
 		}
 		cont= ob->controllers.first;
-		while(cont) {
+		while (cont) {
 			names[nr++]= cont->name;
 			cont= cont->next;
 		}
 		act= ob->actuators.first;
-		while(act) {
+		while (act) {
 			names[nr++]= act->name;
 			act= act->next;
 		}
@@ -211,10 +211,10 @@ static void old_sca_move_sensor(bContext *C, void *datav, void *move_up)
 	if (val>0) {
 		/* now find out which object has this ... */
 		base= FIRSTBASE;
-		while(base) {
+		while (base) {
 		
 			sens= base->object->sensors.first;
-			while(sens) {
+			while (sens) {
 				if (sens == sens_to_delete) break;
 				sens= sens->next;
 			}
@@ -264,10 +264,10 @@ static void old_sca_move_controller(bContext *C, void *datav, void *move_up)
 	if (val>0) {
 		/* now find out which object has this ... */
 		base= FIRSTBASE;
-		while(base) {
+		while (base) {
 		
 			cont= base->object->controllers.first;
-			while(cont) {
+			while (cont) {
 				if (cont == controller_to_del) break;
 				cont= cont->next;
 			}
@@ -276,7 +276,7 @@ static void old_sca_move_controller(bContext *C, void *datav, void *move_up)
 				if ( val==1 && cont->prev) {
 					/* locate the controller that has the same state mask but is earlier in the list */
 					tmp = cont->prev;
-					while(tmp) {
+					while (tmp) {
 						if (tmp->state_mask & cont->state_mask)
 							break;
 						tmp = tmp->prev;
@@ -288,7 +288,7 @@ static void old_sca_move_controller(bContext *C, void *datav, void *move_up)
 				}
 				else if ( val==2 && cont->next) {
 					tmp = cont->next;
-					while(tmp) {
+					while (tmp) {
 						if (tmp->state_mask & cont->state_mask)
 							break;
 						tmp = tmp->next;
@@ -320,10 +320,10 @@ static void old_sca_move_actuator(bContext *C, void *datav, void *move_up)
 	if (val>0) {
 		/* now find out which object has this ... */
 		base= FIRSTBASE;
-		while(base) {
+		while (base) {
 		
 			act= base->object->actuators.first;
-			while(act) {
+			while (act) {
 				if (act == actuator_to_move) break;
 				act= act->next;
 			}
@@ -401,7 +401,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 	case B_CHANGE_SENS:
 		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			sens= ob->sensors.first;
-			while(sens) {
+			while (sens) {
 				if (sens->type != sens->otype) {
 					init_sensor(sens);
 					sens->otype= sens->type;
@@ -415,7 +415,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 	case B_DEL_SENS:
 		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			sens= ob->sensors.first;
-			while(sens) {
+			while (sens) {
 				if (sens->flag & SENS_DEL) {
 					BLI_remlink(&(ob->sensors), sens);
 					free_sensor(sens);
@@ -475,7 +475,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 	case B_CHANGE_CONT:
 		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			cont= ob->controllers.first;
-			while(cont) {
+			while (cont) {
 				if (cont->type != cont->otype) {
 					init_controller(cont);
 					cont->otype= cont->type;
@@ -490,7 +490,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 	case B_DEL_CONT:
 		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			cont= ob->controllers.first;
-			while(cont) {
+			while (cont) {
 				if (cont->flag & CONT_DEL) {
 					BLI_remlink(&(ob->controllers), cont);
 					unlink_controller(cont);
@@ -519,7 +519,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 	case B_CHANGE_ACT:
 		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			act= ob->actuators.first;
-			while(act) {
+			while (act) {
 				if (act->type != act->otype) {
 					init_actuator(act);
 					act->otype= act->type;
@@ -533,7 +533,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 	case B_DEL_ACT:
 		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			act= ob->actuators.first;
-			while(act) {
+			while (act) {
 				if (act->flag & ACT_DEL) {
 					BLI_remlink(&(ob->actuators), act);
 					unlink_actuator(act);
@@ -551,7 +551,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		didit= 0;
 		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			act= ob->actuators.first;
-			while(act)
+			while (act)
 			{
 				if (act->type==ACT_SOUND)
 				{
@@ -567,7 +567,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 							break;
 						}
 
-						while(sound)
+						while (sound)
 						{
 							if (nr==sa->sndnr)
 								break;
@@ -759,12 +759,12 @@ static void set_sca_ob(Object *ob)
 	bActuator *act;
 
 	cont= ob->controllers.first;
-	while(cont) {
+	while (cont) {
 		cont->mynew= (bController *)ob;
 		cont= cont->next;
 	}
 	act= ob->actuators.first;
-	while(act) {
+	while (act) {
 		act->mynew= (bActuator *)ob;
 		act= act->next;
 	}
@@ -791,7 +791,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	if (scene==NULL) return NULL;
 	
 	ob= bmain->object.first;
-	while(ob) {
+	while (ob) {
 		ob->scavisflag= 0;
 		set_sca_ob(ob);
 		ob= ob->id.next;
@@ -801,7 +801,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	lay= scene->lay;
 	
 	base= FIRSTBASE;
-	while(base) {
+	while (base) {
 		if (base->lay & lay) {
 			if (base->flag & SELECT) {
 				if (scavisflag & BUTS_SENS_SEL) base->object->scavisflag |= OB_VIS_SENS;
@@ -821,16 +821,16 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	/* BUTS_XXX_STATE are similar to BUTS_XXX_LINK for selecting the object */
 	if (scavisflag & (BUTS_SENS_LINK|BUTS_CONT_LINK|BUTS_ACT_LINK|BUTS_SENS_STATE|BUTS_ACT_STATE)) {
 		doit= 1;
-		while(doit) {
+		while (doit) {
 			doit= 0;
 			
 			ob= bmain->object.first;
-			while(ob) {
+			while (ob) {
 			
 				/* 1st case: select sensor when controller selected */
 				if ((scavisflag & (BUTS_SENS_LINK|BUTS_SENS_STATE)) && (ob->scavisflag & OB_VIS_SENS)==0) {
 					sens= ob->sensors.first;
-					while(sens) {
+					while (sens) {
 						for (a=0; a<sens->totlinks; a++) {
 							if (sens->links[a]) {
 								obt= (Object *)sens->links[a]->mynew;
@@ -849,7 +849,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 				/* 2nd case: select cont when act selected */
 				if ((scavisflag & BUTS_CONT_LINK)  && (ob->scavisflag & OB_VIS_CONT)==0) {
 					cont= ob->controllers.first;
-					while(cont) {
+					while (cont) {
 						for (a=0; a<cont->totlinks; a++) {
 							if (cont->links[a]) {
 								obt= (Object *)cont->links[a]->mynew;
@@ -868,7 +868,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 				/* 3rd case: select controller when sensor selected */
 				if ((scavisflag & BUTS_CONT_LINK) && (ob->scavisflag & OB_VIS_SENS)) {
 					sens= ob->sensors.first;
-					while(sens) {
+					while (sens) {
 						for (a=0; a<sens->totlinks; a++) {
 							if (sens->links[a]) {
 								obt= (Object *)sens->links[a]->mynew;
@@ -885,7 +885,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 				/* 4th case: select actuator when controller selected */
 				if ( (scavisflag & (BUTS_ACT_LINK|BUTS_ACT_STATE))  && (ob->scavisflag & OB_VIS_CONT)) {
 					cont= ob->controllers.first;
-					while(cont) {
+					while (cont) {
 						for (a=0; a<cont->totlinks; a++) {
 							if (cont->links[a]) {
 								obt= (Object *)cont->links[a]->mynew;
@@ -906,7 +906,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	
 	/* now we count */
 	ob= bmain->object.first;
-	while(ob) {
+	while (ob) {
 		if ( ob->scavisflag ) (*count)++;
 		ob= ob->id.next;
 	}
@@ -925,7 +925,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 		nr++;
 	}
 
-	while(ob) {
+	while (ob) {
 		if ( (ob->scavisflag) && (ob != obact)) {
 			idar[nr]= (ID *)ob;
 			nr++;
@@ -2973,7 +2973,7 @@ static void do_sensor_menu(bContext *C, void *UNUSED(arg), int event)
 	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		sens= ob->sensors.first;
-		while(sens) {
+		while (sens) {
 			if (event==2) sens->flag |= SENS_SHOW;
 			else if (event==3) sens->flag &= ~SENS_SHOW;
 			sens= sens->next;
@@ -3022,7 +3022,7 @@ static void do_controller_menu(bContext *C, void *UNUSED(arg), int event)
 	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		cont= ob->controllers.first;
-		while(cont) {
+		while (cont) {
 			if (event==2) cont->flag |= CONT_SHOW;
 			else if (event==3) cont->flag &= ~CONT_SHOW;
 			cont= cont->next;
@@ -3071,7 +3071,7 @@ static void do_actuator_menu(bContext *C, void *UNUSED(arg), int event)
 	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		act= ob->actuators.first;
-		while(act) {
+		while (act) {
 			if (event==2) act->flag |= ACT_SHOW;
 			else if (event==3) act->flag &= ~ACT_SHOW;
 			act= act->next;
@@ -4511,20 +4511,20 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		
 		/* clean ACT_LINKED and ACT_VISIBLE of all potentially visible actuators so that we can determine which is actually linked/visible */
 		act = ob->actuators.first;
-		while(act) {
+		while (act) {
 			act->flag &= ~(ACT_LINKED|ACT_VISIBLE);
 			act = act->next;
 		}
 		/* same for sensors */
 		sens= ob->sensors.first;
-		while(sens) {
+		while (sens) {
 			sens->flag &= ~(SENS_VISIBLE);
 			sens = sens->next;
 		}
 
 		/* mark the linked and visible actuators */
 		cont= ob->controllers.first;
-		while(cont) {
+		while (cont) {
 			flag = ACT_LINKED;
 
 			/* this controller is visible, mark all its actuator */
@@ -4826,13 +4826,13 @@ void logic_buttons(bContext *C, ARegion *ar)
 	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		act= ob->actuators.first;
-		while(act) {
+		while (act) {
 			act->flag &= ~(ACT_LINKED|ACT_VISIBLE);
 			act = act->next;
 		}
 		/* same for sensors */
 		sens= ob->sensors.first;
-		while(sens) {
+		while (sens) {
 			sens->flag &= ~(SENS_VISIBLE);
 			sens = sens->next;
 		}
@@ -4871,7 +4871,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		/* note that some of these actuators could be from objects that are not in the display list.
 		 * It's ok because those actuators will not be displayed here */
 		cont= ob->controllers.first;
-		while(cont) {
+		while (cont) {
 			for (iact=0; iact<cont->totlinks; iact++) {
 				act = cont->links[iact];
 				if (act)
@@ -4918,7 +4918,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 					yco -= 6;
 				}
 				cont= ob->controllers.first;
-				while(cont) {
+				while (cont) {
 					if (cont->state_mask & (1<<stbit)) {
 						/* this controller is visible, mark all its actuator */
 						for (iact=0; iact<cont->totlinks; iact++) {
@@ -5008,7 +5008,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		if (ob->scaflag & OB_SHOWSENS) {
 			
 			sens= ob->sensors.first;
-			while(sens) {
+			while (sens) {
 				if (!(slogic->scaflag & BUTS_SENS_STATE) ||
 					 (sens->totlinks == 0) ||		/* always display sensor without links so that is can be edited */
 					 (sens->flag & SENS_PIN && slogic->scaflag & BUTS_SENS_STATE) || /* states can hide some sensors, pinned sensors ignore the visible state */
@@ -5088,7 +5088,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		if (ob->scaflag & OB_SHOWACT) {
 			
 			act= ob->actuators.first;
-			while(act) {
+			while (act) {
 				if (!(slogic->scaflag & BUTS_ACT_STATE) ||
 					!(act->flag & ACT_LINKED) ||		/* always display actuators without links so that is can be edited */
 					 (act->flag & ACT_VISIBLE) ||		/* this actuator has visible connection, display it */

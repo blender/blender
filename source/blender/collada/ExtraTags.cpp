@@ -56,7 +56,7 @@ bool ExtraTags::addTag( std::string tag,  std::string data)
 
 int ExtraTags::asInt( std::string tag, bool *ok)
 {
-	if(tags.find(tag) == tags.end()) {
+	if (tags.find(tag) == tags.end()) {
 		*ok = false;
 		return -1;
 	}
@@ -66,7 +66,7 @@ int ExtraTags::asInt( std::string tag, bool *ok)
 
 float ExtraTags::asFloat( std::string tag, bool *ok)
 {
-	if(tags.find(tag) == tags.end()) {
+	if (tags.find(tag) == tags.end()) {
 		*ok = false;
 		return -1.0f;
 	}
@@ -76,7 +76,7 @@ float ExtraTags::asFloat( std::string tag, bool *ok)
 
 std::string ExtraTags::asString( std::string tag, bool *ok)
 {
-	if(tags.find(tag) == tags.end()) {
+	if (tags.find(tag) == tags.end()) {
 		*ok = false;
 		return "";
 	}
@@ -89,28 +89,28 @@ void ExtraTags::setData(std::string tag, short *data)
 {
 	bool ok = false;
 	int tmp = asInt(tag, &ok);
-	if(ok)
+	if (ok)
 		*data = (short)tmp;
 }
 void ExtraTags::setData(std::string tag, int *data)
 {
 	bool ok = false;
 	int tmp = asInt(tag, &ok);
-	if(ok)
+	if (ok)
 		*data = tmp;
 }
 void ExtraTags::setData(std::string tag, float *data)
 {
 	bool ok = false;
 	float tmp = asFloat(tag, &ok);
-	if(ok)
+	if (ok)
 		*data = tmp;
 }
 void ExtraTags::setData(std::string tag, char *data)
 {
 	bool ok = false;
 	int tmp = asInt(tag, &ok);
-	if(ok)
+	if (ok)
 		*data = (char)tmp;
 }
 	

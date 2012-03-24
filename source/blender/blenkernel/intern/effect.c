@@ -975,7 +975,7 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 	/* Cycle through collected objects, get total of (1/(gravity_strength * dist^gravity_power)) */
 	/* Check for min distance here? (yes would be cool to add that, ton) */
 	
-	if (effectors) for(eff = effectors->first; eff; eff=eff->next) {
+	if (effectors) for (eff = effectors->first; eff; eff=eff->next) {
 		/* object effectors were fully checked to be OK to evaluate! */
 
 		get_effector_tot(eff, &efd, point, &tot, &p, &step);

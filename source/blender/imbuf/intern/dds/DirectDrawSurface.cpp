@@ -803,7 +803,7 @@ void DDSHeader::swapBytes()
 	this->depth = POSH_LittleU32(this->depth);
 	this->mipmapcount = POSH_LittleU32(this->mipmapcount);
 	
-	for(int i = 0; i < 11; i++) {
+	for (int i = 0; i < 11; i++) {
 		this->reserved[i] = POSH_LittleU32(this->reserved[i]);
 	}
 
@@ -899,7 +899,7 @@ bool DirectDrawSurface::isValid() const
 	}
 	
 	const uint required = (DDSD_WIDTH|DDSD_HEIGHT/*|DDSD_CAPS|DDSD_PIXELFORMAT*/);
-	if( (header.flags & required) != required ) {
+	if ( (header.flags & required) != required ) {
 		return false;
 	}
 	
@@ -909,7 +909,7 @@ bool DirectDrawSurface::isValid() const
 
 	/* in some files DDSCAPS_TEXTURE is missing: silently ignore */
 	/*
-	if( !(header.caps.caps1 & DDSCAPS_TEXTURE) ) {
+	if ( !(header.caps.caps1 & DDSCAPS_TEXTURE) ) {
 		return false;
 	}
 	*/

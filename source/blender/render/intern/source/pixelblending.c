@@ -309,7 +309,7 @@ void add_filt_fmask_coord(float filt[][3], float *col, float *rowbuf, int row_w,
 	
 	
 	/* loop unroll */
-#define MASKFILT(i, j) 	val= lfilt[i][j]; if(val!=0.0f) {float *fp= fpoin[i][j]; fp[0]+= val*r; fp[1]+= val*g; fp[2]+= val*b; fp[3]+= val*al; }
+#define MASKFILT(i, j) 	val= lfilt[i][j]; if (val!=0.0f) {float *fp= fpoin[i][j]; fp[0]+= val*r; fp[1]+= val*g; fp[2]+= val*b; fp[3]+= val*al; }
 	
 	MASKFILT(0, 0)
 	MASKFILT(0, 1)

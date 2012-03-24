@@ -83,7 +83,7 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 	pd_point_from_particle(bbd->sim, pa, &pa->state, &epoint);
 
 	/* first find out goal/predator with highest priority */
-	if (effectors) for(cur = effectors->first; cur; cur=cur->next) {
+	if (effectors) for (cur = effectors->first; cur; cur=cur->next) {
 		Object *eob = cur->ob;
 		PartDeflect *pd = cur->pd;
 
@@ -252,7 +252,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 	//check boids in own system
 	if (acbr->options & BRULE_ACOLL_WITH_BOIDS) {
 		neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, acbr->look_ahead * len_v3(pa->prev_state.vel), pa->prev_state.co, pa->prev_state.ave, &ptn);
-		if (neighbors > 1) for(n=1; n<neighbors; n++) {
+		if (neighbors > 1) for (n=1; n<neighbors; n++) {
 			copy_v3_v3(co1, pa->prev_state.co);
 			copy_v3_v3(vel1, pa->prev_state.vel);
 			copy_v3_v3(co2, (bbd->sim->psys->particles + ptn[n].index)->prev_state.co);
@@ -298,7 +298,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 
 		if (epsys) {
 			neighbors = BLI_kdtree_range_search(epsys->tree, acbr->look_ahead * len_v3(pa->prev_state.vel), pa->prev_state.co, pa->prev_state.ave, &ptn);
-			if (neighbors > 0) for(n=0; n<neighbors; n++) {
+			if (neighbors > 0) for (n=0; n<neighbors; n++) {
 				copy_v3_v3(co1, pa->prev_state.co);
 				copy_v3_v3(vel1, pa->prev_state.vel);
 				copy_v3_v3(co2, (epsys->particles + ptn[n].index)->prev_state.co);
@@ -945,7 +945,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 
 	//planned for near future
 	//cond = state->conditions.first;
-	//for(; cond; cond=cond->next) {
+	//for (; cond; cond=cond->next) {
 	//	if (boid_condition_is_true(cond)) {
 	//		pa->boid->state_id = cond->state_id;
 	//		state = get_boid_state(boids, pa);

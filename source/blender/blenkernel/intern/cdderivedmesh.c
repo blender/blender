@@ -36,7 +36,6 @@
 
 #include "GL/glew.h"
 
-#include "BLI_scanfill.h"
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
@@ -45,6 +44,7 @@
 #include "BLI_array.h"
 #include "BLI_smallhash.h"
 #include "BLI_utildefines.h"
+#include "BLI_scanfill.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
@@ -629,13 +629,13 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			else {
 				if (index) {
 					orig = *index++;
-					if (orig == ORIGINDEX_NONE)		{ if(nors) nors += 3; continue; }
+					if (orig == ORIGINDEX_NONE)		{ if (nors) nors += 3; continue; }
 					if (drawParamsMapped) draw_option = drawParamsMapped(userData, orig);
-					else	{ if(nors) nors += 3; continue; }
+					else	{ if (nors) nors += 3; continue; }
 				}
 				else
 					if (drawParamsMapped) draw_option = drawParamsMapped(userData, i);
-					else	{ if(nors) nors += 3; continue; }
+					else	{ if (nors) nors += 3; continue; }
 			}
 			
 			if (draw_option != DM_DRAW_OPTION_SKIP) {

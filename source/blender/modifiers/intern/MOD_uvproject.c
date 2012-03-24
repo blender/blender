@@ -227,7 +227,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					perspective_m4( perspmat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
 					mult_m4_m4m4(tmpmat, perspmat, projectors[i].projmat);
 				}
-				else { /* if(cam->type == CAM_ORTHO) */
+				else { /* if (cam->type == CAM_ORTHO) */
 					float orthomat[4][4];
 					orthographic_m4( orthomat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
 					mult_m4_m4m4(tmpmat, orthomat, projectors[i].projmat);

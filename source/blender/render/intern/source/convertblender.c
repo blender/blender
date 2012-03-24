@@ -766,7 +766,7 @@ static int as_testvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, float 
 	if (vlr==0) return 0;
 	
 	asf= asv->faces.first;
-	while(asf) {
+	while (asf) {
 		for (a=0; a<4; a++) {
 			if (asf->vlr[a] && asf->vlr[a]!=vlr) {
 				inp = fabsf(dot_v3v3(vlr->n, asf->vlr[a]->n));
@@ -787,7 +787,7 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, f
 	int a;
 	
 	asf= asv->faces.first;
-	while(asf) {
+	while (asf) {
 		for (a=0; a<4; a++) {
 			if (asf->vlr[a] && asf->vlr[a]!=vlr) {
 				/* this face already made a copy for this vertex! */
@@ -844,7 +844,7 @@ static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[][4], int d
 			ver= RE_findOrAddVert(obr, a);
 
 			asf= asv->faces.first;
-			while(asf) {
+			while (asf) {
 				for (b=0; b<4; b++) {
 				
 					/* is there a reason to make a new vertex? */
@@ -2400,7 +2400,7 @@ static void do_displacement(Render *re, ObjectRen *obr, float mat[][4], float im
 		
 	/* Object Size with parenting */
 	obt=obr->ob;
-	while(obt) {
+	while (obt) {
 		mul_v3_v3v3(temp, obt->size, obt->dscale);
 		scale[0]*=temp[0]; scale[1]*=temp[1]; scale[2]*=temp[2];
 		obt=obt->parent;
@@ -2913,7 +2913,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		  orco= get_object_orco(re, ob);
 		}
 
-		while(dl) {
+		while (dl) {
 			if (dl->col > ob->totcol) {
 				/* pass */
 			}
@@ -2988,7 +2988,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 					startvert= obr->totvert;
 					nr= dl->nr*dl->parts;
 
-					while(nr--) {
+					while (nr--) {
 						ver= RE_findOrAddVert(obr, obr->totvert++);
 
 						copy_v3_v3(ver->co, fp);
@@ -3583,7 +3583,7 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	struct ShadBuf *shb;
 	float viewinv[4][4];
 	
-	/* if(la->spsi<16) return; */
+	/* if (la->spsi<16) return; */
 	
 	/* memory alloc */
 	shb= (struct ShadBuf *)MEM_callocN( sizeof(struct ShadBuf),"initshadbuf");
@@ -4025,7 +4025,7 @@ void init_render_world(Render *re)
 		
 		/* AO samples should be OSA minimum */
 		if (re->osa)
-			while(re->wrld.aosamp*re->wrld.aosamp < re->osa) 
+			while (re->wrld.aosamp*re->wrld.aosamp < re->osa)
 				re->wrld.aosamp++;
 		if (!(re->r.mode & R_RAYTRACE) && (re->wrld.ao_gather_method == WO_AOGATHER_RAYTRACE))
 			re->wrld.mode &= ~(WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT);

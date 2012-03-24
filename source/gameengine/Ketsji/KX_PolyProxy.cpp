@@ -259,7 +259,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterial,
 "getMaterial() : returns a material\n")
 {
 	RAS_IPolyMaterial *polymat = m_polygon->GetMaterial()->GetPolyMaterial();
-	if(polymat->GetFlag() & RAS_BLENDERMAT)
+	if (polymat->GetFlag() & RAS_BLENDERMAT)
 	{
 		KX_BlenderMaterial* mat = static_cast<KX_BlenderMaterial*>(polymat);
 		return mat->GetProxy();

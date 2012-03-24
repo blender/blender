@@ -908,7 +908,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
 
-		/* if(base->object->type==OB_LAMP) islamp= 1; */
+		/* if (base->object->type==OB_LAMP) islamp= 1; */
 
 		/* deselect object -- it could be used in other scenes */
 		base->object->flag &= ~SELECT;

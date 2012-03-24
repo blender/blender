@@ -453,7 +453,7 @@ void freeNurb(Nurb *nu)
 	nu->knotsu= NULL;
 	if (nu->knotsv) MEM_freeN(nu->knotsv);
 	nu->knotsv= NULL;
-	/* if(nu->trim.first) freeNurblist(&(nu->trim)); */
+	/* if (nu->trim.first) freeNurblist(&(nu->trim)); */
 
 	MEM_freeN(nu);
 
@@ -1025,7 +1025,7 @@ void makeNurbcurve(Nurb *nu, float *coord_array, float *tilt_array, float *radiu
 			*fp= basisu[i]*bp->vec[3];
 			sumdiv+= *fp;
 		}
-		if (sumdiv != 0.0f) if(sumdiv < 0.999f || sumdiv > 1.001f) {
+		if (sumdiv != 0.0f) if (sumdiv < 0.999f || sumdiv > 1.001f) {
 			/* is normalizing needed? */
 			fp= sum;
 			for (i= istart; i<=iend; i++, fp++) {

@@ -196,7 +196,7 @@ static int writetab(FILE *outf, unsigned int *tab, int len)
 {
 	int r = 0;
 
-	while(len) {
+	while (len) {
 		r = putlong(outf,*tab++);
 		len -= 4;
 	}
@@ -205,7 +205,7 @@ static int writetab(FILE *outf, unsigned int *tab, int len)
 
 static void readtab(FILE *inf, unsigned int *tab, int len)
 {
-	while(len) {
+	while (len) {
 		*tab++ = getlong(inf);
 		len -= 4;
 	}
@@ -222,7 +222,7 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
 	len= ibuf->x*ibuf->y;
 	zval= ibuf->zbuf;
 	
-	while(len--) {
+	while (len--) {
 		zval[0]= BIG_LONG(zval[0]);
 		zval++;
 	}
@@ -540,7 +540,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n)
 {
 	lptr += z;
-	while(n--) {
+	while (n--) {
 		*lptr = *cptr++;
 		lptr += 4;
 	}
@@ -549,7 +549,7 @@ static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n
 static void interleaverow2(float *lptr, unsigned char *cptr, int z, int n)
 {
 	lptr += z;
-	while(n--) {
+	while (n--) {
 		*lptr = ((cptr[0]<<8) | (cptr[1]<<0)) / (float)0xFFFF;		
 		cptr += 2;
 		lptr += 4;
@@ -562,14 +562,14 @@ static void expandrow2(float *optr, unsigned char *iptr, int z)
 	float pixel_f;
 
 	optr += z;
-	while(1) {
+	while (1) {
 		pixel = (iptr[0]<<8) | (iptr[1]<<0);
 		iptr += 2;
 		
 		if ( !(count = (pixel & 0x7f)) )
 			return;
 		if (pixel & 0x80) {
-			while(count>=8) {
+			while (count>=8) {
 				optr[0*4] = ((iptr[0]<<8) | (iptr[1]<<0))/(float)0xFFFF;
 				optr[1*4] = ((iptr[2]<<8) | (iptr[3]<<0))/(float)0xFFFF;
 				optr[2*4] = ((iptr[4]<<8) | (iptr[5]<<0))/(float)0xFFFF;
@@ -582,7 +582,7 @@ static void expandrow2(float *optr, unsigned char *iptr, int z)
 				iptr += 8*2;
 				count -= 8;
 			}
-			while(count--) {
+			while (count--) {
 				*optr = ((iptr[0]<<8) | (iptr[1]<<0))/(float)0xFFFF;
 				iptr+=2;
 				optr+=4;
@@ -592,7 +592,7 @@ static void expandrow2(float *optr, unsigned char *iptr, int z)
 			pixel_f = ((iptr[0]<<8) | (iptr[1]<<0))/(float)0xFFFF;
 			iptr += 2;
 
-			while(count>=8) {
+			while (count>=8) {
 				optr[0*4] = pixel_f;
 				optr[1*4] = pixel_f;
 				optr[2*4] = pixel_f;
@@ -604,7 +604,7 @@ static void expandrow2(float *optr, unsigned char *iptr, int z)
 				optr += 8*4;
 				count -= 8;
 			}
-			while(count--) {
+			while (count--) {
 				*optr = pixel_f;
 				optr+=4;
 			}
@@ -617,12 +617,12 @@ static void expandrow(unsigned char *optr, unsigned char *iptr, int z)
 	unsigned char pixel, count;
 
 	optr += z;
-	while(1) {
+	while (1) {
 		pixel = *iptr++;
 		if ( !(count = (pixel & 0x7f)) )
 			return;
 		if (pixel & 0x80) {
-			while(count>=8) {
+			while (count>=8) {
 				optr[0*4] = iptr[0];
 				optr[1*4] = iptr[1];
 				optr[2*4] = iptr[2];
@@ -635,14 +635,14 @@ static void expandrow(unsigned char *optr, unsigned char *iptr, int z)
 				iptr += 8;
 				count -= 8;
 			}
-			while(count--) {
+			while (count--) {
 				*optr = *iptr++;
 				optr+=4;
 			}
 		}
 		else {
 			pixel = *iptr++;
-			while(count>=8) {
+			while (count>=8) {
 				optr[0*4] = pixel;
 				optr[1*4] = pixel;
 				optr[2*4] = pixel;
@@ -654,7 +654,7 @@ static void expandrow(unsigned char *optr, unsigned char *iptr, int z)
 				optr += 8*4;
 				count -= 8;
 			}
-			while(count--) {
+			while (count--) {
 				*optr = pixel;
 				optr+=4;
 			}
@@ -764,7 +764,7 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n)
 {
 	lumptr += CHANOFFSET(0);
-	while(n--) {
+	while (n--) {
 		*lumptr = ILUM(rgbptr[OFFSET_R],rgbptr[OFFSET_G],rgbptr[OFFSET_B]);
 		lumptr += 4;
 		rgbptr += 4;
@@ -782,18 +782,18 @@ static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cn
 	ibufend = iptr+cnt*4;
 	optr = rlebuf;
 
-	while(iptr<ibufend) {
+	while (iptr<ibufend) {
 		sptr = iptr;
 		iptr += 8;
-		while((iptr<ibufend)&& ((iptr[-8]!=iptr[-4])||(iptr[-4]!=iptr[0])))
+		while ((iptr<ibufend)&& ((iptr[-8]!=iptr[-4])||(iptr[-4]!=iptr[0])))
 			iptr+=4;
 		iptr -= 8;
 		count = (iptr-sptr)/4;
-		while(count) {
+		while (count) {
 			todo = count>126 ? 126:count;
 			count -= todo;
 			*optr++ = 0x80|todo;
-			while(todo>8) {
+			while (todo>8) {
 				optr[0] = sptr[0*4];
 				optr[1] = sptr[1*4];
 				optr[2] = sptr[2*4];
@@ -807,7 +807,7 @@ static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cn
 				sptr += 8*4;
 				todo -= 8;
 			}
-			while(todo--) {
+			while (todo--) {
 				*optr++ = *sptr;
 				sptr += 4;
 			}
@@ -815,10 +815,10 @@ static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cn
 		sptr = iptr;
 		cc = *iptr;
 		iptr += 4;
-		while( (iptr<ibufend) && (*iptr == cc) )
+		while ( (iptr<ibufend) && (*iptr == cc) )
 			iptr += 4;
 		count = (iptr-sptr)/4;
-		while(count) {
+		while (count) {
 			todo = count>126 ? 126:count;
 			count -= todo;
 			*optr++ = todo;

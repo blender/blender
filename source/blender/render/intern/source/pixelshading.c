@@ -93,7 +93,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 		lar= go->lampren;
 		
 		/* test for lamplayer */
-		if (lar->mode & LA_LAYER) if((lar->lay & har->lay)==0) continue;
+		if (lar->mode & LA_LAYER) if ((lar->lay & har->lay)==0) continue;
 		
 		/* lampdist cacluation */
 		if (lar->type==LA_SUN || lar->type==LA_HEMI) {
@@ -186,7 +186,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 					inpr*= soft;
 				}
 				if (lar->mode & LA_ONLYSHADOW) {
-					/* if(ma->mode & MA_SHADOW) { */
+					/* if (ma->mode & MA_SHADOW) { */
 					/* dot product positive: front side face! */
 					inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 					if (inp>0.0f) {

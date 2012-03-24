@@ -114,7 +114,7 @@ bool KX_MouseFocusSensor::Evaluate()
 			if (!m_mouse_over_in_previous_frame) {
 				result = true;
 			}
-			else if(m_bTouchPulse && (m_hitObject != m_hitObject_Last)) {
+			else if (m_bTouchPulse && (m_hitObject != m_hitObject_Last)) {
 				result = true;
 			}
 		} 
@@ -303,7 +303,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus()
 	
 	KX_Camera *cam= m_kxscene->GetActiveCamera();
 	
-	if(ParentObjectHasFocusCamera(cam))
+	if (ParentObjectHasFocusCamera(cam))
 		return true;
 
 	list<class KX_Camera*>* cameras = m_kxscene->GetCameras();
@@ -311,7 +311,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus()
 	
 	while(it != cameras->end())
 	{
-		if(((*it) != cam) && (*it)->GetViewport())
+		if (((*it) != cam) && (*it)->GetViewport())
 			if (ParentObjectHasFocusCamera(*it))
 				return true;
 		
@@ -408,7 +408,7 @@ PyObject* KX_MouseFocusSensor::pyattr_get_ray_direction(void *self_v, const KX_P
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	MT_Vector3 dir = self->RayTarget() - self->RaySource();
-	if(MT_fuzzyZero(dir))	dir.setValue(0,0,0);
+	if (MT_fuzzyZero(dir))	dir.setValue(0,0,0);
 	else					dir.normalize();
 	return PyObjectFrom(dir);
 }
@@ -417,7 +417,7 @@ PyObject* KX_MouseFocusSensor::pyattr_get_hit_object(void *self_v, const KX_PYAT
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	
-	if(self->m_hitObject)
+	if (self->m_hitObject)
 		return self->m_hitObject->GetProxy();
 	
 	Py_RETURN_NONE;

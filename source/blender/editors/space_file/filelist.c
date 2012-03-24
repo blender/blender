@@ -1179,7 +1179,7 @@ void filelist_from_main(struct FileList *filelist)
 		
 		id= lb->first;
 		filelist->numfiles= 0;
-		while(id) {
+		while (id) {
 			if (!filelist->hide_dot || id->name[2] != '.') {
 				filelist->numfiles++;
 			}
@@ -1204,7 +1204,7 @@ void filelist_from_main(struct FileList *filelist)
 		id= lb->first;
 		totlib= totbl= 0;
 		
-		while(id) {
+		while (id) {
 			ok = 1;
 			if (ok) {
 				if (!filelist->hide_dot || id->name[2] != '.') {

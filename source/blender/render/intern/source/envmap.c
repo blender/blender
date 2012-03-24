@@ -399,7 +399,7 @@ static void env_set_imats(Render *re)
 	float mat[4][4];
 	
 	base= re->scene->base.first;
-	while(base) {
+	while (base) {
 		mult_m4_m4m4(mat, re->viewmat, base->object->obmat);
 		invert_m4_m4(base->object->imat, mat);
 		
@@ -519,9 +519,9 @@ void make_envmaps(Render *re)
 	re->stats_draw(re->sdh, &re->i);
 	
 	/* 5 = hardcoded max recursion level */
-	while(depth<5) {
+	while (depth<5) {
 		tex= re->main->tex.first;
-		while(tex) {
+		while (tex) {
 			if (tex->id.us && tex->type==TEX_ENVMAP) {
 				if (tex->env && tex->env->object) {
 					EnvMap *env= tex->env;

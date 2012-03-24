@@ -140,7 +140,7 @@ void init_render_textures(Render *re)
 	Tex *tex;
 	
 	tex= re->main->tex.first;
-	while(tex) {
+	while (tex) {
 		if (tex->id.us) init_render_texture(re, tex);
 		tex= tex->id.next;
 	}
@@ -733,7 +733,7 @@ static int texnoise(Tex *tex, TexResult *texres)
 	val= (ran & 3);
 	
 	loop= tex->noisedepth;
-	while(loop--) {
+	while (loop--) {
 		ran= (ran>>2);
 		val*= (ran & 3);
 		div*= 3.0f;
@@ -3038,7 +3038,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 			
 			tex= mtex->tex;
 			if (tex==0) continue;
-			/* if(mtex->mapto==0) continue; */
+			/* if (mtex->mapto==0) continue; */
 			
 			/* which coords */
 			co= lo;

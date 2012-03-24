@@ -9299,7 +9299,7 @@ void GetRawLoadingAnimation(unsigned char **data, int *dataSize)
 	*data = new unsigned char[138801];
 	// and copy it. Now we are certain that the calling function
 	// can control the memory location
-	for(int i = 0; i < 138801 /* tmp array size */; i++)
+	for (int i = 0; i < 138801 /* tmp array size */; i++)
 	{
 		(*data)[i] = load_blend[i];
 	}

@@ -67,7 +67,7 @@ KX_LightObject::~KX_LightObject()
 {
 	GPULamp *lamp;
 
-	if((lamp = GetGPULamp())) {
+	if ((lamp = GetGPULamp())) {
 		float obmat[4][4] = {{0}};
 		GPU_lamp_update(lamp, 0, 0, obmat);
 	}
@@ -95,18 +95,18 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 	float vec[4];
 	int scenelayer = ~0;
 
-	if(kxscene && kxscene->GetBlenderScene())
+	if (kxscene && kxscene->GetBlenderScene())
 		scenelayer = kxscene->GetBlenderScene()->lay;
 	
 	/* only use lights in the same layer as the object */
-	if(!(m_lightobj.m_layer & oblayer))
+	if (!(m_lightobj.m_layer & oblayer))
 		return false;
 	/* only use lights in the same scene, and in a visible layer */
-	if(kxscene != lightscene || !(m_lightobj.m_layer & scenelayer))
+	if (kxscene != lightscene || !(m_lightobj.m_layer & scenelayer))
 		return false;
 
 	// lights don't get their openGL matrix updated, do it now
-	if(GetSGNode()->IsDirty())
+	if (GetSGNode()->IsDirty())
 		GetOpenGLMatrix();
 
 	MT_CmMatrix4x4& worldmatrix= *GetOpenGLMatrixPtr();
@@ -116,7 +116,7 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 	vec[2] = worldmatrix(2,3);
 	vec[3] = 1.0f;
 
-	if(m_lightobj.m_type==RAS_LightObject::LIGHT_SUN) {
+	if (m_lightobj.m_type==RAS_LightObject::LIGHT_SUN) {
 		
 		vec[0] = worldmatrix(0,2);
 		vec[1] = worldmatrix(1,2);
@@ -136,7 +136,7 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 		//attennuation still is acceptable 
 		glLightf((GLenum)(GL_LIGHT0+slot), GL_QUADRATIC_ATTENUATION, m_lightobj.m_att2/(m_lightobj.m_distance*m_lightobj.m_distance)); 
 		
-		if(m_lightobj.m_type==RAS_LightObject::LIGHT_SPOT) {
+		if (m_lightobj.m_type==RAS_LightObject::LIGHT_SPOT) {
 			vec[0] = -worldmatrix(0,2);
 			vec[1] = -worldmatrix(1,2);
 			vec[2] = -worldmatrix(2,2);
@@ -162,7 +162,7 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 	}
 
 	glLightfv((GLenum)(GL_LIGHT0+slot), GL_DIFFUSE, vec);
-	if(m_lightobj.m_nospecular)
+	if (m_lightobj.m_nospecular)
 	{
 		vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
 	}
@@ -181,7 +181,7 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 
 GPULamp *KX_LightObject::GetGPULamp()
 {
-	if(m_glsl)
+	if (m_glsl)
 		return GPU_lamp_from_blender(m_blenderscene, GetBlenderObject(), GetBlenderGroupObject());
 	else
 		return NULL;
@@ -191,15 +191,15 @@ void KX_LightObject::Update()
 {
 	GPULamp *lamp;
 
-	if((lamp = GetGPULamp()) != NULL && GetSGNode()) {
+	if ((lamp = GetGPULamp()) != NULL && GetSGNode()) {
 		float obmat[4][4];
 		// lights don't get their openGL matrix updated, do it now
 		if (GetSGNode()->IsDirty())
 			GetOpenGLMatrix();
 		double *dobmat = GetOpenGLMatrixPtr()->getPointer();
 
-		for(int i=0; i<4; i++)
-			for(int j=0; j<4; j++, dobmat++)
+		for (int i=0; i<4; i++)
+			for (int j=0; j<4; j++, dobmat++)
 				obmat[i][j] = (float)*dobmat;
 
 		GPU_lamp_update(lamp, m_lightobj.m_layer, 0, obmat);
@@ -212,7 +212,7 @@ bool KX_LightObject::HasShadowBuffer()
 {
 	GPULamp *lamp;
 
-	if((lamp = GetGPULamp()))
+	if ((lamp = GetGPULamp()))
 		return GPU_lamp_has_shadow_buffer(lamp);
 	else
 		return false;
@@ -222,7 +222,7 @@ int KX_LightObject::GetShadowLayer()
 {
 	GPULamp *lamp;
 
-	if((lamp = GetGPULamp()))
+	if ((lamp = GetGPULamp()))
 		return GPU_lamp_shadow_layer(lamp);
 	else
 		return 0;
@@ -347,7 +347,7 @@ PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUT
 
 	const char* type = attrdef->m_name;
 
-	if(!strcmp(type, "SPOT")) {
+	if (!strcmp(type, "SPOT")) {
 		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_SPOT);
 	} else if (!strcmp(type, "SUN")) {
 		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_SUN);
@@ -373,7 +373,7 @@ int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attr
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 	int val = PyLong_AsSsize_t(value);
-	if((val==-1 && PyErr_Occurred()) || val<0 || val>2) {
+	if ((val==-1 && PyErr_Occurred()) || val<0 || val>2) {
 		PyErr_SetString(PyExc_ValueError, "light.type= val: KX_LightObject, expected an int between 0 and 2");
 		return PY_SET_ATTR_FAIL;
 	}

@@ -2135,7 +2135,7 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 	float guidetime, radius, weight, angle, totstrength = 0.0f;
 	float vec_to_point[3];
 
-	if (effectors) for(eff = effectors->first; eff; eff=eff->next) {
+	if (effectors) for (eff = effectors->first; eff; eff=eff->next) {
 		pd = eff->pd;
 
 		if (pd->forcefield != PFIELD_GUIDE)
@@ -3747,9 +3747,9 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, co
 	return 1;
 }
 
-#define SET_PARTICLE_TEXTURE(type, pvalue, texfac) if((event & mtex->mapto) & type) {pvalue = texture_value_blend(def, pvalue, value, texfac, blend);}
-#define CLAMP_PARTICLE_TEXTURE_POS(type, pvalue) if(event & type) { if(pvalue < 0.f) pvalue = 1.f+pvalue; CLAMP(pvalue, 0.0f, 1.0f); }
-#define CLAMP_PARTICLE_TEXTURE_POSNEG(type, pvalue) if(event & type) { CLAMP(pvalue, -1.0f, 1.0f); }
+#define SET_PARTICLE_TEXTURE(type, pvalue, texfac) if ((event & mtex->mapto) & type) {pvalue = texture_value_blend(def, pvalue, value, texfac, blend);}
+#define CLAMP_PARTICLE_TEXTURE_POS(type, pvalue) if (event & type) { if (pvalue < 0.f) pvalue = 1.f+pvalue; CLAMP(pvalue, 0.0f, 1.0f); }
+#define CLAMP_PARTICLE_TEXTURE_POSNEG(type, pvalue) if (event & type) { CLAMP(pvalue, -1.0f, 1.0f); }
 
 static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSettings *part, ParticleData *par, int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra)
 {

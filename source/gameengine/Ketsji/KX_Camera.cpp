@@ -387,7 +387,7 @@ bool KX_Camera::PointInsideFrustum(const MT_Point3& x)
 {
 	ExtractClipPlanes();
 	
-	for( unsigned int i = 0; i < 6 ; i++ )
+	for ( unsigned int i = 0; i < 6 ; i++ )
 	{
 		if (m_planes[i][0]*x[0] + m_planes[i][1]*x[1] + m_planes[i][2]*x[2] + m_planes[i][3] < 0.)
 			return false;
@@ -401,7 +401,7 @@ int KX_Camera::BoxInsideFrustum(const MT_Point3 *box)
 	
 	unsigned int insideCount = 0;
 	// 6 view frustum planes
-	for( unsigned int p = 0; p < 6 ; p++ )
+	for ( unsigned int p = 0; p < 6 ; p++ )
 	{
 		unsigned int behindCount = 0;
 		// 8 box vertices.
@@ -944,7 +944,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 	{
 		PyErr_Clear();
 
-		if(ConvertPythonToGameObject(value, &obj, true, ""))
+		if (ConvertPythonToGameObject(value, &obj, true, ""))
 		{
 			PyErr_Clear();
 			vect = MT_Vector3(obj->NodeGetWorldPosition());
@@ -977,7 +977,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 	vect[1] = 1.0 - vect[1]; //to follow Blender window coordinate system (Top-Down)
 
 	PyObject* ret = PyTuple_New(2);
-	if(ret){
+	if (ret){
 		PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(vect[0]));
 		PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(vect[1]));
 		return ret;
@@ -1044,7 +1044,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
 	PyTuple_SET_ITEM(argValue, 0, PyFloat_FromDouble(x));
 	PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(y));
 
-	if(!PyVecTo(PygetScreenVect(argValue), vect))
+	if (!PyVecTo(PygetScreenVect(argValue), vect))
 	{
 		Py_DECREF(argValue);
 		PyErr_SetString(PyExc_TypeError,

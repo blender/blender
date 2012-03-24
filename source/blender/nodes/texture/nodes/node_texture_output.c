@@ -87,7 +87,7 @@ static void unique_name(bNode *node)
 	char *name = tno->name;
 	
 	i = node;
-	while(i->prev) i = i->prev;
+	while (i->prev) i = i->prev;
 	for (; i; i=i->next) {
 		if (
 			i == node ||
@@ -127,7 +127,7 @@ static void assign_index(struct bNode *node)
 	int index = 1;
 	
 	tnode = node;
-	while(tnode->prev)
+	while (tnode->prev)
 		tnode = tnode->prev;
 	
 	check_index:

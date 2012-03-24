@@ -953,7 +953,7 @@ static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 	// if there are problems because of this, then rna needs changed update functions.
 	// 
 	// object_test_constraints(ob);
-	// if(ob->pose) update_pose_constraint_flags(ob->pose);
+	// if (ob->pose) update_pose_constraint_flags(ob->pose);
 	
 	if (ob->type==OB_ARMATURE) DAG_id_tag_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
 	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);

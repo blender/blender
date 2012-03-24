@@ -229,7 +229,7 @@ static void imapaint_tri_weights(Object *ob,
 	h[1]= (co[1] - view[1])*2.0f/view[3] - 1;
 	h[2]= 1.0f;
 
-	/* solve for(w1,w2,w3)/perspdiv in:
+	/* solve for (w1,w2,w3)/perspdiv in:
 	 * h * perspdiv = Project * Model * (w1 * v1 + w2 * v2 + w3 * v3) */
 
 	wmat[0][0]= pv1[0];  wmat[1][0]= pv2[0];  wmat[2][0]= pv3[0];

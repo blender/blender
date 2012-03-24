@@ -1115,7 +1115,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			base->object->lay= lay;
 			base->object->flag &= ~SELECT;
 			base->flag &= ~SELECT;
-			/* if(base->object->type==OB_LAMP) islamp= 1; */
+			/* if (base->object->type==OB_LAMP) islamp= 1; */
 		}
 		CTX_DATA_END;
 	}
@@ -1127,7 +1127,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			local= base->lay & 0xFF000000;  
 			base->lay= lay + local;
 			base->object->lay= lay;
-			/* if(base->object->type==OB_LAMP) islamp= 1; */
+			/* if (base->object->type==OB_LAMP) islamp= 1; */
 		}
 		CTX_DATA_END;
 	}

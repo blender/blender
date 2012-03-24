@@ -153,7 +153,7 @@ static short makebody_tga(ImBuf * ibuf, FILE * file, int (*out)(unsigned int, FI
 					if (fputc(last-1,file) == EOF) return(0);
 					do {
 						if (out(*rect++,file) == EOF) return(0);
-					} while(--last != 0);
+					} while (--last != 0);
 				}
 				rectstart = rect;
 				rect = temp;
@@ -204,14 +204,14 @@ static int dumptarga(struct ImBuf * ibuf, FILE * file)
 	rect = (uchar *) ibuf->rect;
 
 	if (ibuf->planes <= 8) {
-		while(size > 0) {
+		while (size > 0) {
 			if (putc(*rect, file) == EOF) return (0);
 			size--;
 			rect += 4;
 		}
 	}
 	else if (ibuf->planes <= 16) {
-		while(size > 0) {
+		while (size > 0) {
 			putc(rect[0], file);
 			if (putc(rect[1], file) == EOF) return (0);
 			size--;
@@ -219,7 +219,7 @@ static int dumptarga(struct ImBuf * ibuf, FILE * file)
 		}
 	}
 	else if (ibuf->planes <= 24) {
-		while(size > 0) {
+		while (size > 0) {
 			putc(rect[2], file);
 			putc(rect[1], file);
 			if (putc(rect[0], file) == EOF) return (0);
@@ -228,7 +228,7 @@ static int dumptarga(struct ImBuf * ibuf, FILE * file)
 		}
 	}
 	else if (ibuf->planes <= 32) {
-		while(size > 0) {
+		while (size > 0) {
 			putc(rect[2], file);
 			putc(rect[1], file);
 			putc(rect[0], file);
@@ -384,7 +384,7 @@ static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, size_t mem_size,
 	cp[0] = 0xff;
 	cp[1] = cp[2] = 0;
 
-	while(size > 0) {
+	while (size > 0) {
 		count = *mem++;
 
 		if (mem>mem_end)
@@ -502,7 +502,7 @@ static void ldtarga(struct ImBuf * ibuf,unsigned char * mem, size_t mem_size, in
 	cp[0] = 0xff;
 	cp[1] = cp[2] = 0;
 
-	while(size > 0) {
+	while (size > 0) {
 		if (mem>mem_end)
 			goto partial_load;
 

@@ -63,7 +63,7 @@ bool EffectsExporter::hasEffects(Scene *sce)
 	while(base) {
 		Object *ob= base->object;
 		int a;
-		for(a = 0; a < ob->totcol; a++)
+		for (a = 0; a < ob->totcol; a++)
 		{
 			Material *ma = give_current_material(ob, a+1);
 
@@ -79,7 +79,7 @@ bool EffectsExporter::hasEffects(Scene *sce)
 
 void EffectsExporter::exportEffects(Scene *sce)
 {
-	if(hasEffects(sce)) {
+	if (hasEffects(sce)) {
 		this->scene = sce;
 		openLibrary();
 		MaterialFunctor mf;
@@ -129,7 +129,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	ep.setProfileType(COLLADASW::EffectProfile::COMMON);
 	ep.openProfile();
 	// set shader type - one of three blinn, phong or lambert
-	if(ma->spec>0.0f) {
+	if (ma->spec>0.0f) {
 		if (ma->spec_shader == MA_SPEC_BLINN) {
 			writeBlinn(ep, ma);
 		}
@@ -140,7 +140,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		}
 	}
 	else {
-		if(ma->diff_shader == MA_DIFF_LAMBERT) {
+		if (ma->diff_shader == MA_DIFF_LAMBERT) {
 			writeLambert(ep, ma);
 		}
 		else {
@@ -177,7 +177,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 	// ambient
 	/* ma->ambX is calculated only on render, so lets do it here manually and not rely on ma->ambX. */
-	if(this->scene->world)
+	if (this->scene->world)
 		cot = getcol(this->scene->world->ambr*ma->amb, this->scene->world->ambg*ma->amb, this->scene->world->ambb*ma->amb, 1.0f);
 	else
 		cot = getcol(ma->amb, ma->amb, ma->amb, 1.0f);
@@ -220,7 +220,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		Image *ima = t->tex->ima;
 		
 		// Image not set for texture
-		if(!ima) continue;
+		if (!ima) continue;
 		
 		std::string key(id_name(ima));
 		key = translate_id(key);
@@ -266,7 +266,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		Image *ima = t->tex->ima;
 		
 		// Image not set for texture
-		if(!ima) continue;
+		if (!ima) continue;
 
 		// we assume map input is always TEXCO_UV
 

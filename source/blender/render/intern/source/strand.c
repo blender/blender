@@ -551,7 +551,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 
 #define CHECK_ADD(n) \
 	if (apn->p[n]==strnr && apn->obi[n]==obi && apn->seg[n]==seg) \
-	{ if(!(apn->mask[n] & mask)) { apn->mask[n] |= mask; apn->v[n] += t; apn->u[n] += s; } break; }
+	{ if (!(apn->mask[n] & mask)) { apn->mask[n] |= mask; apn->v[n] += t; apn->u[n] += s; } break; }
 #define CHECK_ASSIGN(n) \
 	if (apn->p[n]==0) \
 	{apn->obi[n]= obi; apn->p[n]= strnr; apn->z[n]= zverg; apn->mask[n]= mask; apn->v[n]= t; apn->u[n]= s; apn->seg[n]= seg; break; }

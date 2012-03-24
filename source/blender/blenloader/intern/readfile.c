@@ -432,7 +432,7 @@ static void add_main_to_main(Main *mainvar, Main *from)
 
 	set_listbasepointers(mainvar, lbarray);
 	a= set_listbasepointers(from, fromarray);
-	while(a--) {
+	while (a--) {
 		BLI_movelisttolist(lbarray[a], fromarray[a]);
 	}
 }
@@ -457,11 +457,11 @@ static void split_libdata(ListBase *lb, Main *first)
 	Main *mainvar;
 
 	id= lb->first;
-	while(id) {
+	while (id) {
 		idnext= id->next;
 		if (id->lib) {
 			mainvar= first;
-			while(mainvar) {
+			while (mainvar) {
 				if (mainvar->curlib==id->lib) {
 					lbn= which_libbase(mainvar, GS(id->name));
 					BLI_remlink(lb, id);
@@ -495,7 +495,7 @@ void blo_split_main(ListBase *mainlist, Main *main)
 	}
 
 	i= set_listbasepointers(main, lbarray);
-	while(i--)
+	while (i--)
 		split_libdata(lbarray[i], main->next);
 }
 
@@ -908,7 +908,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, unsigned int s
 		chunk= filedata->memfile->chunks.first;
 		seek= 0;
 		
-		while(chunk) {
+		while (chunk) {
 			if (seek + chunk->size > (unsigned) filedata->seek) break;
 			seek+= chunk->size;
 			chunk= chunk->next;
@@ -946,7 +946,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, unsigned int s
 			totread += readsize;
 			filedata->seek += readsize;
 			seek += readsize;
-		} while(totread < size);
+		} while (totread < size);
 		
 		return totread;
 	}
@@ -1363,7 +1363,7 @@ void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd)
 	
 	for (ptr= ptr->next; ptr; ptr= ptr->next) {
 		int i= set_listbasepointers(ptr, lbarray);
-		while(i--) {
+		while (i--) {
 			ID *id;
 			for (id= lbarray[i]->first; id; id= id->next)
 				oldnewmap_insert(fd->libmap, id, id, GS(id->name));
@@ -1384,7 +1384,7 @@ static void switch_endian_structs(struct SDNA *filesdna, BHead *bhead)
 	blocksize= filesdna->typelens[ filesdna->structs[bhead->SDNAnr][0] ];
 
 	nblocks= bhead->nr;
-	while(nblocks--) {
+	while (nblocks--) {
 		DNA_struct_switch_endian(filesdna, bhead->SDNAnr, data);
 
 		data+= blocksize;
@@ -1423,7 +1423,7 @@ static void link_list(FileData *fd, ListBase *lb)		/* only direct data */
 	lb->first= newdataadr(fd, lb->first);
 	ln= lb->first;
 	prev= NULL;
-	while(ln) {
+	while (ln) {
 		ln->next= newdataadr(fd, ln->next);
 		ln->prev= prev;
 		prev= ln;
@@ -1446,7 +1446,7 @@ static void link_glob_list(FileData *fd, ListBase *lb)		/* for glob data */
 
 	ln= lb->first;
 	prev= NULL;
-	while(ln) {
+	while (ln) {
 		poin= newdataadr(fd, ln->next);
 		if (ln->next) {
 			oldnewmap_insert(fd->globmap, ln->next, poin, 0);
@@ -1480,7 +1480,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 			ipoin=imat= MEM_mallocN( len*4, "newmatar");
 			lpoin= *mat;
 
-			while(len-- > 0) {
+			while (len-- > 0) {
 				if ((fd->flags & FD_FLAGS_SWITCH_ENDIAN))
 					SWITCH_LONGINT(*lpoin);
 				*ipoin= (int) ((*lpoin) >> 3);
@@ -1495,7 +1495,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 			lpoin=lmat= MEM_mallocN( len*8, "newmatar");
 			ipoin= *mat;
 
-			while(len-- > 0) {
+			while (len-- > 0) {
 				*lpoin= *ipoin;
 				ipoin++;
 				lpoin++;
@@ -1724,7 +1724,7 @@ static void lib_link_ipo(FileData *fd, Main *main)
 	Ipo *ipo;
 
 	ipo= main->ipo.first;
-	while(ipo) {
+	while (ipo) {
 		if (ipo->id.flag & LIB_NEEDLINK) {
 			IpoCurve *icu;
 			for (icu= ipo->curve.first; icu; icu= icu->next) {
@@ -1744,7 +1744,7 @@ static void direct_link_ipo(FileData *fd, Ipo *ipo)
 
 	link_list(fd, &(ipo->curve));
 	icu= ipo->curve.first;
-	while(icu) {
+	while (icu) {
 		icu->bezt= newdataadr(fd, icu->bezt);
 		icu->bp= newdataadr(fd, icu->bp);
 		icu->driver= newdataadr(fd, icu->driver);
@@ -2582,7 +2582,7 @@ static void lib_link_armature(FileData *fd, Main *main)
 
 	arm= main->armature.first;
 
-	while(arm) {
+	while (arm) {
 		if (arm->id.flag & LIB_NEEDLINK) {
 			if (arm->adt) lib_link_animdata(fd, &arm->id, arm->adt);
 			arm->id.flag -= LIB_NEEDLINK;
@@ -2636,7 +2636,7 @@ static void lib_link_camera(FileData *fd, Main *main)
 	Camera *ca;
 
 	ca= main->camera.first;
-	while(ca) {
+	while (ca) {
 		if (ca->id.flag & LIB_NEEDLINK) {
 			if (ca->adt) lib_link_animdata(fd, &ca->id, ca->adt);
 			
@@ -2666,7 +2666,7 @@ static void lib_link_lamp(FileData *fd, Main *main)
 	int a;
 
 	la= main->lamp.first;
-	while(la) {
+	while (la) {
 		if (la->id.flag & LIB_NEEDLINK) {
 			if (la->adt) lib_link_animdata(fd, &la->id, la->adt);
 			
@@ -2718,7 +2718,7 @@ static void lib_link_key(FileData *fd, Main *main)
 	Key *key;
 
 	key= main->key.first;
-	while(key) {
+	while (key) {
 		/*check if we need to generate unique ids for the shapekeys*/
 		if (!key->uidgen) {
 			KeyBlock *block;
@@ -2754,14 +2754,14 @@ static void switch_endian_keyblock(Key *key, KeyBlock *kb)
 		cp= key->elemstr;
 		poin= data;
 
-		while( cp[0] ) {	/* cp[0]==amount */
+		while ( cp[0] ) {	/* cp[0]==amount */
 
 			switch(cp[1]) {		/* cp[1]= type */
 			case IPO_FLOAT:
 			case IPO_BPOINT:
 			case IPO_BEZTRIPLE:
 				b= cp[0];
-				while(b--) {
+				while (b--) {
 					SWITCH_INT((*poin));
 					poin+= 4;
 				}
@@ -2787,7 +2787,7 @@ static void direct_link_key(FileData *fd, Key *key)
 	key->refkey= newdataadr(fd, key->refkey);
 
 	kb= key->block.first;
-	while(kb) {
+	while (kb) {
 
 		kb->data= newdataadr(fd, kb->data);
 		
@@ -2806,7 +2806,7 @@ static void lib_link_mball(FileData *fd, Main *main)
 	int a;
 
 	mb= main->mball.first;
-	while(mb) {
+	while (mb) {
 		if (mb->id.flag & LIB_NEEDLINK) {
 			if (mb->adt) lib_link_animdata(fd, &mb->id, mb->adt);
 			
@@ -2846,7 +2846,7 @@ static void lib_link_world(FileData *fd, Main *main)
 	int a;
 
 	wrld= main->world.first;
-	while(wrld) {
+	while (wrld) {
 		if (wrld->id.flag & LIB_NEEDLINK) {
 			if (wrld->adt) lib_link_animdata(fd, &wrld->id, wrld->adt);
 			
@@ -2895,7 +2895,7 @@ static void lib_link_vfont(FileData *UNUSED(fd), Main *main)
 	VFont *vf;
 
 	vf= main->vfont.first;
-	while(vf) {
+	while (vf) {
 		if (vf->id.flag & LIB_NEEDLINK) {
 			vf->id.flag -= LIB_NEEDLINK;
 		}
@@ -2916,7 +2916,7 @@ static void lib_link_text(FileData *UNUSED(fd), Main *main)
 	Text *text;
 
 	text= main->text.first;
-	while(text) {
+	while (text) {
 		if (text->id.flag & LIB_NEEDLINK) {
 			text->id.flag -= LIB_NEEDLINK;
 		}
@@ -2950,7 +2950,7 @@ static void direct_link_text(FileData *fd, Text *text)
 	text->sell= newdataadr(fd, text->sell);
 
 	ln= text->lines.first;
-	while(ln) {
+	while (ln) {
 		ln->line= newdataadr(fd, ln->line);
 		ln->format= NULL;
 		
@@ -2993,7 +2993,7 @@ static void link_ibuf_list(FileData *fd, ListBase *lb)
 	lb->first= newimaadr(fd, lb->first);
 	ln= lb->first;
 	prev= NULL;
-	while(ln) {
+	while (ln) {
 		ln->next= newimaadr(fd, ln->next);
 		ln->prev= prev;
 		prev= ln;
@@ -3046,7 +3046,7 @@ static void lib_link_curve(FileData *fd, Main *main)
 	int a;
 
 	cu= main->curve.first;
-	while(cu) {
+	while (cu) {
 		if (cu->id.flag & LIB_NEEDLINK) {
 			if (cu->adt) lib_link_animdata(fd, &cu->id, cu->adt);
 
@@ -3076,13 +3076,13 @@ static void switch_endian_knots(Nurb *nu)
 
 	if (nu->knotsu) {
 		len= KNOTSU(nu);
-		while(len--) {
+		while (len--) {
 			SWITCH_INT(nu->knotsu[len]);
 		}
 	}
 	if (nu->knotsv) {
 		len= KNOTSV(nu);
-		while(len--) {
+		while (len--) {
 			SWITCH_INT(nu->knotsv[len]);
 		}
 	}
@@ -3129,7 +3129,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->editfont= NULL;
 	
 	nu= cu->nurb.first;
-	while(nu) {
+	while (nu) {
 		nu->bezt= newdataadr(fd, nu->bezt);
 		nu->bp= newdataadr(fd, nu->bp);
 		nu->knotsu= newdataadr(fd, nu->knotsu);
@@ -3152,7 +3152,7 @@ static void lib_link_texture(FileData *fd, Main *main)
 	Tex *tex;
 
 	tex= main->tex.first;
-	while(tex) {
+	while (tex) {
 		if (tex->id.flag & LIB_NEEDLINK) {
 			if (tex->adt) lib_link_animdata(fd, &tex->id, tex->adt);
 
@@ -3238,7 +3238,7 @@ static void lib_link_material(FileData *fd, Main *main)
 	int a;
 
 	ma= main->mat.first;
-	while(ma) {
+	while (ma) {
 		if (ma->id.flag & LIB_NEEDLINK) {
 			if (ma->adt) lib_link_animdata(fd, &ma->id, ma->adt);
 
@@ -3383,7 +3383,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 	int a;
 
 	part= main->particle.first;
-	while(part) {
+	while (part) {
 		if (part->id.flag & LIB_NEEDLINK) {
 			if (part->adt) lib_link_animdata(fd, &part->id, part->adt);
 			part->ipo= newlibadr_us(fd, part->id.lib, part->ipo); // XXX depreceated - old animation system
@@ -3679,7 +3679,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 	Mesh *me;
 
 	me= main->mesh.first;
-	while(me) {
+	while (me) {
 		if (me->id.flag & LIB_NEEDLINK) {
 			int i;
 
@@ -3951,7 +3951,7 @@ static void lib_link_latt(FileData *fd, Main *main)
 	Lattice *lt;
 	
 	lt= main->latt.first;
-	while(lt) {
+	while (lt) {
 		if (lt->id.flag & LIB_NEEDLINK) {
 			if (lt->adt) lib_link_animdata(fd, &lt->id, lt->adt);
 			
@@ -4006,7 +4006,7 @@ static void lib_link_object(FileData *fd, Main *main)
 	int warn=0, a;
 
 	ob= main->object.first;
-	while(ob) {
+	while (ob) {
 		if (ob->id.flag & LIB_NEEDLINK) {
 			if (ob->id.properties) IDP_LibLinkProperty(ob->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			if (ob->adt) lib_link_animdata(fd, &ob->id, ob->adt);
@@ -4095,7 +4095,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			}				
 
 			sens= ob->sensors.first;
-			while(sens) {
+			while (sens) {
 				for (a=0; a<sens->totlinks; a++)
 					sens->links[a]= newglobadr(fd, sens->links[a]);
 
@@ -4112,7 +4112,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			}
 
 			cont= ob->controllers.first;
-			while(cont) {
+			while (cont) {
 				for (a=0; a<cont->totlinks; a++)
 					cont->links[a]= newglobadr(fd, cont->links[a]);
 
@@ -4127,7 +4127,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			}
 
 			act= ob->actuators.first;
-			while(act) {
+			while (act) {
 				if (act->type==ACT_SOUND) {
 					bSoundActuator *sa= act->data;
 					sa->sound= newlibadr_us(fd, ob->id.lib, sa->sound);
@@ -4591,7 +4591,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	link_list(fd, &ob->effect);
 	paf= ob->effect.first;
-	while(paf) {
+	while (paf) {
 		if (paf->type==EFF_PARTICLE) {
 			paf->keys= NULL;
 		}
@@ -4674,7 +4674,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	link_list(fd, &ob->prop);
 	prop= ob->prop.first;
-	while(prop) {
+	while (prop) {
 		prop->poin= newdataadr(fd, prop->poin);
 		if (prop->poin==NULL) prop->poin= &prop->data;
 		prop= prop->next;
@@ -4682,7 +4682,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	link_list(fd, &ob->sensors);
 	sens= ob->sensors.first;
-	while(sens) {
+	while (sens) {
 		sens->data= newdataadr(fd, sens->data);
 		sens->links= newdataadr(fd, sens->links);
 		test_pointer_array(fd, (void **)&sens->links);
@@ -4700,7 +4700,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		ob->state = 1;
 	}
 	cont= ob->controllers.first;
-	while(cont) {
+	while (cont) {
 		cont->data= newdataadr(fd, cont->data);
 		cont->links= newdataadr(fd, cont->links);
 		test_pointer_array(fd, (void **)&cont->links);
@@ -4711,7 +4711,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	link_glob_list(fd, &ob->actuators);
 	act= ob->actuators.first;
-	while(act) {
+	while (act) {
 		act->data= newdataadr(fd, act->data);
 		act= act->next;
 	}
@@ -4793,7 +4793,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 	TimeMarker *marker;
 	
 	sce= main->scene.first;
-	while(sce) {
+	while (sce) {
 		if (sce->id.flag & LIB_NEEDLINK) {
 			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
 			of library blocks that implement this.*/
@@ -5227,7 +5227,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 			sc->animtimer= NULL; /* saved in rare cases */
 			
 			sa= sc->areabase.first;
-			while(sa) {
+			while (sa) {
 				SpaceLink *sl;
 				
 				sa->full= newlibadr(fd, sc->id.lib, sa->full);
@@ -5398,7 +5398,7 @@ static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 			ID *idn= lb->first;
 			char *name= id->name+2;
 			
-			while(idn) {
+			while (idn) {
 				if (idn->name[2]==name[0] && strcmp(idn->name+2, name)==0) {
 					if (idn->lib==id->lib) {
 						if (user && idn->us==0) idn->us++;
@@ -5471,7 +5471,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 		copy_v3_v3(sc->scene->cursor, oldscene->cursor);
 
 		sa= sc->areabase.first;
-		while(sa) {
+		while (sa) {
 			SpaceLink *sl;
 
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
@@ -5906,7 +5906,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				link_list(fd, &sconsole->scrollback);
 				link_list(fd, &sconsole->history);
 				
-				//for(cl= sconsole->scrollback.first; cl; cl= cl->next)
+				//for (cl= sconsole->scrollback.first; cl; cl= cl->next)
 				//	cl->line= newdataadr(fd, cl->line);
 				
 				/*comma expressions, (e.g. expr1, expr2, expr3) evalutate each expression,
@@ -6032,7 +6032,7 @@ static void lib_link_speaker(FileData *fd, Main *main)
 	Speaker *spk;
 
 	spk= main->speaker.first;
-	while(spk) {
+	while (spk) {
 		if (spk->id.flag & LIB_NEEDLINK) {
 			if (spk->adt) lib_link_animdata(fd, &spk->id, spk->adt);
 
@@ -6080,7 +6080,7 @@ static void lib_link_sound(FileData *fd, Main *main)
 	bSound *sound;
 
 	sound= main->sound.first;
-	while(sound) {
+	while (sound) {
 		if (sound->id.flag & LIB_NEEDLINK) {
 			sound->id.flag -= LIB_NEEDLINK;
 			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
@@ -6103,14 +6103,14 @@ static void lib_link_group(FileData *fd, Main *main)
 	GroupObject *go;
 	int add_us;
 	
-	while(group) {
+	while (group) {
 		if (group->id.flag & LIB_NEEDLINK) {
 			group->id.flag -= LIB_NEEDLINK;
 			
 			add_us= 0;
 			
 			go= group->gobject.first;
-			while(go) {
+			while (go) {
 				go->ob= newlibadr(fd, group->id.lib, go->ob);
 				if (go->ob) {
 					go->ob->flag |= OB_FROMGROUP;
@@ -6142,7 +6142,7 @@ static void direct_link_movieTracks(FileData *fd, ListBase *tracksbase)
 	link_list(fd, tracksbase);
 
 	track= tracksbase->first;
-	while(track) {
+	while (track) {
 		track->markers= newdataadr(fd, track->markers);
 
 		track= track->next;
@@ -6178,7 +6178,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	link_list(fd, &tracking->objects);
 
 	object= tracking->objects.first;
-	while(object) {
+	while (object) {
 		direct_link_movieTracks(fd, &object->tracks);
 		direct_link_movieReconstruction(fd, &object->reconstruction);
 
@@ -6191,7 +6191,7 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 	MovieClip *clip;
 
 	clip= main->movieclip.first;
-	while(clip) {
+	while (clip) {
 		if (clip->id.flag & LIB_NEEDLINK) {
 			if (clip->adt)
 				lib_link_animdata(fd, &clip->id, clip->adt);
@@ -6248,7 +6248,7 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 {
 	bhead = blo_nextbhead(fd, bhead);
 
-	while(bhead && bhead->code==DATA) {
+	while (bhead && bhead->code==DATA) {
 		void *data;
 #if 0
 		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
@@ -6615,7 +6615,7 @@ static void sort_shape_fix(Main *main)
 	KeyBlock *kb;
 	int sorted= 0;
 	
-	while(sorted==0) {
+	while (sorted==0) {
 		sorted= 1;
 		for (key= main->key.first; key; key= key->id.next) {
 			for (kb= key->block.first; kb; kb= kb->next) {
@@ -7303,7 +7303,7 @@ static PartEff *do_version_give_parteff_245(Object *ob)
 	PartEff *paf;
 
 	paf= ob->effect.first;
-	while(paf) {
+	while (paf) {
 		if (paf->type==EFF_PARTICLE) return paf;
 		paf= paf->next;
 	}
@@ -7324,7 +7324,7 @@ static void do_version_free_effects_245(ListBase *lb)
 	Effect *eff;
 
 	eff= lb->first;
-	while(eff) {
+	while (eff) {
 		BLI_remlink(lb, eff);
 		do_version_free_effect_245(eff);
 		eff= lb->first;
@@ -7471,7 +7471,7 @@ static void do_versions_seq_unique_name_all_strips(
 {
 	Sequence * seq = seqbasep->first;
 
-	while(seq) {
+	while (seq) {
 		seqbase_unique_name_recursive(&sce->ed->seqbase, seq);
 		if (seq->seqbase.first) {
 			do_versions_seq_unique_name_all_strips(
@@ -7812,7 +7812,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile == 100) {
 		/* tex->extend and tex->imageflag have changed: */
 		Tex *tex = main->tex.first;
-		while(tex) {
+		while (tex) {
 			if (tex->id.flag & LIB_NEEDLINK) {
 
 				if (tex->extend==0) {
@@ -7830,7 +7830,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 101) {
 		/* frame mapping */
 		Scene *sce = main->scene.first;
-		while(sce) {
+		while (sce) {
 			sce->r.framapto= 100;
 			sce->r.images= 100;
 			sce->r.framelen= 1.0;
@@ -7840,7 +7840,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 102) {
 		/* init halo's at 1.0 */
 		Material *ma = main->mat.first;
-		while(ma) {
+		while (ma) {
 			ma->add= 1.0;
 			ma= ma->id.next;
 		}
@@ -7849,7 +7849,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* new variable in object: colbits */
 		Object *ob = main->object.first;
 		int a;
-		while(ob) {
+		while (ob) {
 			ob->colbits= 0;
 			if (ob->totcol) {
 				for (a=0; a<ob->totcol; a++) {
@@ -7862,7 +7862,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 104) {
 		/* timeoffs moved */
 		Object *ob = main->object.first;
-		while(ob) {
+		while (ob) {
 			if (ob->transflag & 1) {
 				ob->transflag -= 1;
 				//ob->ipoflag |= OB_OFFS_OB;
@@ -7872,7 +7872,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if (main->versionfile <= 105) {
 		Object *ob = main->object.first;
-		while(ob) {
+		while (ob) {
 			ob->dupon= 1; ob->dupoff= 0;
 			ob->dupsta= 1; ob->dupend= 100;
 			ob= ob->id.next;
@@ -7881,7 +7881,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 106) {
 		/* mcol changed */
 		Mesh *me = main->mesh.first;
-		while(me) {
+		while (me) {
 			if (me->mcol) vcol_to_fcol(me);
 			me= me->id.next;
 		}
@@ -7890,12 +7890,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 107) {
 		Object *ob;
 		Scene *sce = main->scene.first;
-		while(sce) {
+		while (sce) {
 			sce->r.mode |= R_GAMMA;
 			sce= sce->id.next;
 		}
 		ob= main->object.first;
-		while(ob) {
+		while (ob) {
 			//ob->ipoflag |= OB_OFFS_PARENT;
 			if (ob->dt==0) ob->dt= OB_SOLID;
 			ob= ob->id.next;
@@ -7905,9 +7905,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 109) {
 		/* new variable: gridlines */
 		bScreen *sc = main->screen.first;
-		while(sc) {
+		while (sc) {
 			ScrArea *sa= sc->areabase.first;
-			while(sa) {
+			while (sa) {
 				SpaceLink *sl= sa->spacedata.first;
 				while (sl) {
 					if (sl->spacetype==SPACE_VIEW3D) {
@@ -7924,7 +7924,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if (main->versionfile <= 113) {
 		Material *ma = main->mat.first;
-		while(ma) {
+		while (ma) {
 			if (ma->flaresize==0.0f) ma->flaresize= 1.0f;
 			ma->subsize= 1.0f;
 			ma->flareboost= 1.0f;
@@ -7963,21 +7963,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if (main->versionfile <= 153) {
 		Scene *sce = main->scene.first;
-		while(sce) {
+		while (sce) {
 			if (sce->r.blurfac==0.0f) sce->r.blurfac= 1.0f;
 			sce= sce->id.next;
 		}
 	}
 	if (main->versionfile <= 163) {
 		Scene *sce = main->scene.first;
-		while(sce) {
+		while (sce) {
 			if (sce->r.frs_sec==0) sce->r.frs_sec= 25;
 			sce= sce->id.next;
 		}
 	}
 	if (main->versionfile <= 164) {
 		Mesh *me= main->mesh.first;
-		while(me) {
+		while (me) {
 			me->smoothresh= 30;
 			me= me->id.next;
 		}
@@ -7988,11 +7988,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		int nr;
 		char *cp;
 
-		while(me) {
+		while (me) {
 			if (me->tface) {
 				nr= me->totface;
 				tface= me->tface;
-				while(nr--) {
+				while (nr--) {
 					cp= (char *)&tface->col[0];
 					if (cp[1]>126) cp[1]= 255; else cp[1]*=2;
 					if (cp[2]>126) cp[2]= 255; else cp[2]*=2;
@@ -8019,7 +8019,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile <= 169) {
 		Mesh *me= main->mesh.first;
-		while(me) {
+		while (me) {
 			if (me->subdiv==0) me->subdiv= 1;
 			me= me->id.next;
 		}
@@ -8027,11 +8027,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile <= 169) {
 		bScreen *sc= main->screen.first;
-		while(sc) {
+		while (sc) {
 			ScrArea *sa= sc->areabase.first;
-			while(sa) {
+			while (sa) {
 				SpaceLink *sl= sa->spacedata.first;
-				while(sl) {
+				while (sl) {
 					if (sl->spacetype==SPACE_IPO) {
 						SpaceIpo *sipo= (SpaceIpo*) sl;
 						sipo->v2d.max[0]= 15000.0;
@@ -8060,11 +8060,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile <= 171) {
 		bScreen *sc= main->screen.first;
-		while(sc) {
+		while (sc) {
 			ScrArea *sa= sc->areabase.first;
-			while(sa) {
+			while (sa) {
 				SpaceLink *sl= sa->spacedata.first;
-				while(sl) {
+				while (sl) {
 					if (sl->spacetype==SPACE_TEXT) {
 						SpaceText *st= (SpaceText*) sl;
 						st->lheight= 12;
@@ -8080,7 +8080,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 173) {
 		int a, b;
 		Mesh *me= main->mesh.first;
-		while(me) {
+		while (me) {
 			if (me->tface) {
 				TFace *tface= me->tface;
 				for (a=0; a<me->totface; a++, tface++) {
@@ -8099,12 +8099,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Material *ma = main->mat.first;
 
 		/* let faces have default add factor of 0.0 */
-		while(ma) {
+		while (ma) {
 		  if (!(ma->mode & MA_HALO)) ma->add = 0.0;
 		  ma = ma->id.next;
 		}
 
-		while(ob) {
+		while (ob) {
 			ob->mass= 1.0f;
 			ob->damping= 0.1f;
 			/*ob->quat[1]= 1.0f;*/ /* quats arnt used yet */
@@ -8114,7 +8114,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile <= 193) {
 		Object *ob= main->object.first;
-		while(ob) {
+		while (ob) {
 			ob->inertia= 1.0f;
 			ob->rdamping= 0.1f;
 			ob= ob->id.next;
@@ -8124,7 +8124,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 196) {
 		Mesh *me= main->mesh.first;
 		int a, b;
-		while(me) {
+		while (me) {
 			if (me->tface) {
 				TFace *tface= me->tface;
 				for (a=0; a<me->totface; a++, tface++) {
@@ -8140,7 +8140,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile <= 200) {
 		Object *ob= main->object.first;
-		while(ob) {
+		while (ob) {
 			ob->scaflag = ob->gameflag & (OB_DO_FH|OB_ROT_FH|OB_ANISOTROPIC_FRICTION|OB_GHOST|OB_RIGID_BODY|OB_BOUNDS);
 				/* 64 is do_fh */
 			ob->gameflag &= ~(OB_ROT_FH|OB_ANISOTROPIC_FRICTION|OB_GHOST|OB_RIGID_BODY|OB_BOUNDS);
@@ -8194,9 +8194,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob= main->object.first;
 		bActuator *act;
 		bObjectActuator *oa;
-		while(ob) {
+		while (ob) {
 			act= ob->actuators.first;
-			while(act) {
+			while (act) {
 				if (act->type==ACT_OBJECT) {
 					oa= act->data;
 					oa->flag &= ~(ACT_TORQUE_LOCAL|ACT_DROT_LOCAL);		/* this actuator didn't do local/glob rot before */
@@ -8213,13 +8213,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bActuator *act;
 		bObjectActuator *oa;
 		bSound *sound;
-		while(ob) {
+		while (ob) {
 
 			/* please check this for demo20 files like
 			 * original Egypt levels etc.  converted
 			 * rotation factor of 50 is not workable */
 			act= ob->actuators.first;
-			while(act) {
+			while (act) {
 				if (act->type==ACT_OBJECT) {
 					oa= act->data;
 
@@ -8253,7 +8253,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bEditObjectActuator *oa;
 		bRaySensor *rs;
 		bCollisionSensor *cs;
-		while(ob) {
+		while (ob) {
 			/* Set anisotropic friction off for old objects,
 			 * values to 1.0.  */
 			ob->gameflag &= ~OB_ANISOTROPIC_FRICTION;
@@ -8262,7 +8262,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ob->anisotropicFriction[2] = 1.0;
 
 			act= ob->actuators.first;
-			while(act) {
+			while (act) {
 				if (act->type==ACT_EDIT_OBJECT) {
 					/* Zero initial velocity for newly
 					 * added objects */
@@ -8323,16 +8323,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		/* added alpha in obcolor */
 		ob= main->object.first;
-		while(ob) {
+		while (ob) {
 			ob->col[3]= 1.0;
 			ob= ob->id.next;
 		}
 
 		/* added alpha in obcolor */
 		ob= main->object.first;
-		while(ob) {
+		while (ob) {
 			act= ob->actuators.first;
-			while(act) {
+			while (act) {
 				if (act->type==ACT_OBJECT) {
 					/* multiply velocity with 50 in old files */
 					oa= act->data;
@@ -8381,7 +8381,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		while (ob) {
 			prop= ob->prop.first;
-			while(prop) {
+			while (prop) {
 				if (prop->type == GPROP_TIME) {
 					// convert old GPROP_TIME values from int to float
 					*((float *)&prop->data) = (float) prop->data;
@@ -8466,7 +8466,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce= main->scene.first;
 
 		// new variables for std-alone player and runtime
-		while(sce) {
+		while (sce) {
 
 			sce->r.xplay= 640;
 			sce->r.yplay= 480;
@@ -8480,7 +8480,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce= main->scene.first;
 
 		// new variables for std-alone player and runtime
-		while(sce) {
+		while (sce) {
 
 			sce->r.depth= 32;
 
@@ -8803,9 +8803,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 231) {
 		/* new bit flags for showing/hiding grid floor and axes */
 		bScreen *sc = main->screen.first;
-		while(sc) {
+		while (sc) {
 			ScrArea *sa= sc->areabase.first;
-			while(sa) {
+			while (sa) {
 				SpaceLink *sl= sa->spacedata.first;
 				while (sl) {
 					if (sl->spacetype==SPACE_VIEW3D) {
@@ -8833,7 +8833,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		World *wrld;
 
 		/* introduction of raytrace */
-		while(ma) {
+		while (ma) {
 			if (ma->fresnel_tra_i==0.0f) ma->fresnel_tra_i= 1.25f;
 			if (ma->fresnel_mir_i==0.0f) ma->fresnel_mir_i= 1.25f;
 
@@ -8846,12 +8846,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ma= ma->id.next;
 		}
 		sce= main->scene.first;
-		while(sce) {
+		while (sce) {
 			if (sce->r.gauss==0.0f) sce->r.gauss= 1.0f;
 			sce= sce->id.next;
 		}
 		la= main->lamp.first;
-		while(la) {
+		while (la) {
 			if (la->k==0.0f) la->k= 1.0;
 			if (la->ray_samp==0) la->ray_samp= 1;
 			if (la->ray_sampy==0) la->ray_sampy= 1;
@@ -8862,7 +8862,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			la= la->id.next;
 		}
 		wrld= main->world.first;
-		while(wrld) {
+		while (wrld) {
 			if (wrld->range==0.0f) {
 				wrld->range= 1.0f/wrld->exposure;
 			}
@@ -8871,9 +8871,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		/* new bit flags for showing/hiding grid floor and axes */
 
-		while(sc) {
+		while (sc) {
 			ScrArea *sa= sc->areabase.first;
-			while(sa) {
+			while (sa) {
 				SpaceLink *sl= sa->spacedata.first;
 				while (sl) {
 					if (sl->spacetype==SPACE_VIEW3D) {
@@ -8899,7 +8899,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bScreen *sc;
 		Scene *sce;
 
-		while(tex) {
+		while (tex) {
 			if ((tex->flag & (TEX_CHECKER_ODD+TEX_CHECKER_EVEN))==0) {
 				tex->flag |= TEX_CHECKER_ODD;
 			}
@@ -8921,7 +8921,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			tex= tex->id.next;
 		}
 
-		while(wrld) {
+		while (wrld) {
 			if (wrld->aodist==0.0f) {
 				wrld->aodist= 10.0f;
 				wrld->aobias= 0.05f;
@@ -8950,7 +8950,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		sce= main->scene.first;
-		while(sce) {
+		while (sce) {
 			if (sce->r.ocres==0) sce->r.ocres= 64;
 			sce= sce->id.next;
 		}
@@ -8961,7 +8961,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Material *ma= main->mat.first;
 		/* Object *ob= main->object.first; */
 		
-		while(ma) {
+		while (ma) {
 			if (ma->rampfac_col==0.0f) ma->rampfac_col= 1.0;
 			if (ma->rampfac_spec==0.0f) ma->rampfac_spec= 1.0;
 			if (ma->pr_lamp==0) ma->pr_lamp= 3;
@@ -8970,7 +8970,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		/* this should have been done loooong before! */
 #if 0   /* deprecated in 2.5+ */
-		while(ob) {
+		while (ob) {
 			if (ob->ipowin==0) ob->ipowin= ID_OB;
 			ob= ob->id.next;
 		}
@@ -9024,11 +9024,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Sequence *seq;
 		Editing *ed;
 		
-		while(tex) {
+		while (tex) {
 			if (tex->nabla==0.0f) tex->nabla= 0.025f;
 			tex= tex->id.next;
 		}
-		while(sce) {
+		while (sce) {
 			ed= sce->ed;
 			if (ed) {
 				SEQ_BEGIN(sce->ed, seq) {
@@ -9047,7 +9047,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Material *ma;
 		bScreen *sc;
 
-		while(cam) {
+		while (cam) {
 			if (cam->ortho_scale==0.0f) {
 				cam->ortho_scale= 256.0f/cam->lens;
 				if (cam->type==CAM_ORTHO) printf("NOTE: ortho render has changed, tweak new Camera 'scale' value.\n");
@@ -9176,7 +9176,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Key *key;
 		Scene *sce= main->scene.first;
 
-		while(sce) {
+		while (sce) {
 			if (sce->toolsettings == NULL) {
 				sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");	
 				sce->toolsettings->cornertype=0;
@@ -9506,7 +9506,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
 			sa= sc->areabase.first;
-			while(sa) {
+			while (sa) {
 				SpaceLink *sl;
 
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
@@ -9832,7 +9832,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (sc= main->screen.first; sc; sc= sc->id.next) {
 				ScrArea *sa;
 				sa= sc->areabase.first;
-				while(sa) {
+				while (sa) {
 					SpaceLink *sl;
 
 					for (sl= sa->spacedata.first; sl; sl= sl->next) {
@@ -10810,7 +10810,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Sequence *seq;
 		Editing *ed;
 		
-		while(sce) {
+		while (sce) {
 			ed= sce->ed;
 			if (ed) {
 				SEQP_BEGIN(ed, seq) {
@@ -10994,7 +10994,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			//BKE_ptcache_ids_from_object(&pidlist, ob);
 
-			//for(pid=pidlist.first; pid; pid=pid->next)
+			//for (pid=pidlist.first; pid; pid=pid->next)
 			//	pid->cache->flag |= PTCACHE_DISK_CACHE;
 
 			//BLI_freelistN(&pidlist);
@@ -11023,7 +11023,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			//BKE_ptcache_ids_from_object(&pidlist, ob);
 
-			//for(pid=pidlist.first; pid; pid=pid->next) {
+			//for (pid=pidlist.first; pid; pid=pid->next) {
 			//	if (pid->ptcaches->first == NULL)
 			//		pid->ptcaches->first = pid->ptcaches->last = pid->cache;
 			//}
@@ -11290,7 +11290,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		/* Assign proper global gravity weights for dynamics (only z-coordinate is taken into account) */
-		if (do_gravity) for(part= main->particle.first; part; part= part->id.next)
+		if (do_gravity) for (part= main->particle.first; part; part= part->id.next)
 			part->effector_weights->global_gravity = part->acc[2]/-9.81f;
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -11412,7 +11412,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		{
 			Scene *sce= main->scene.first;
-			while(sce) {
+			while (sce) {
 				if (sce->r.frame_step==0)
 					sce->r.frame_step= 1;
 				if (sce->r.mblur_samples==0)
@@ -11429,10 +11429,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		{
 			/* ensure all nodes have unique names */
 			bNodeTree *ntree= main->nodetree.first;
-			while(ntree) {
+			while (ntree) {
 				bNode *node=ntree->nodes.first;
 				
-				while(node) {
+				while (node) {
 					nodeUniqueName(ntree, node);
 					node= node->next;
 				}
@@ -11487,7 +11487,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			
 			if (convert) {
-				while(ma) {
+				while (ma) {
 					if (ma->ramp_col) {
 						ColorBand *band = (ColorBand *)ma->ramp_col;
 						for (i=0; i<band->tot; i++) {
@@ -11510,7 +11510,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ma=ma->id.next;
 				}
 				
-				while(tex) {
+				while (tex) {
 					if (tex->coba) {
 						ColorBand *band = (ColorBand *)tex->coba;
 						for (i=0; i<band->tot; i++) {
@@ -11521,7 +11521,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					tex=tex->id.next;
 				}
 				
-				while(wo) {
+				while (wo) {
 					srgb_to_linearrgb_v3_v3(&wo->ambr, &wo->ambr);
 					srgb_to_linearrgb_v3_v3(&wo->horr, &wo->horr);
 					srgb_to_linearrgb_v3_v3(&wo->zenr, &wo->zenr);
@@ -11967,7 +11967,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (scene->nodetree) {
 				bNode *node=scene->nodetree->nodes.first;
 				
-				while(node) {
+				while (node) {
 					if (node->type == CMP_NODE_COLORBALANCE) {
 						NodeColorBalance *n= (NodeColorBalance *)node->storage;
 						n->lift[0] += 1.f;
@@ -11982,7 +11982,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (ntree= main->nodetree.first; ntree; ntree=ntree->id.next) {
 			bNode *node=ntree->nodes.first;
 			
-			while(node) {
+			while (node) {
 				if (node->type == CMP_NODE_COLORBALANCE) {
 					NodeColorBalance *n= (NodeColorBalance *)node->storage;
 					n->lift[0] += 1.f;
@@ -12331,7 +12331,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		 * since before blender went opensource this strange scalar was used: (1 / 0.02) * 2 * math.pi/360 */
 		for (ob= main->object.first; ob; ob= ob->id.next) {
 			bActuator *act= ob->actuators.first;
-			while(act) {
+			while (act) {
 				if (act->type==ACT_OBJECT) {
 					/* multiply velocity with 50 in old files */
 					bObjectActuator *oa= act->data;
@@ -12383,7 +12383,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* Fix for sample line scope initializing with no height */
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			sa= sc->areabase.first;
-			while(sa) {
+			while (sa) {
 				SpaceLink *sl;
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if (sl->spacetype==SPACE_IMAGE) {
@@ -12954,7 +12954,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					clip->tracking.camera.pixel_aspect= 1.f;
 
 				track= clip->tracking.tracks.first;
-				while(track) {
+				while (track) {
 					if (track->pyramid_levels==0)
 						track->pyramid_levels= 2;
 
@@ -13100,7 +13100,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if (tracking->objects.first == NULL)
 					BKE_tracking_new_object(tracking, "Camera");
 
-				while(tracking_object) {
+				while (tracking_object) {
 					if (!tracking_object->scale)
 						tracking_object->scale= 1.0f;
 
@@ -13472,7 +13472,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	bfd->type= BLENFILETYPE_BLEND;
 	BLI_strncpy(bfd->main->name, filepath, sizeof(bfd->main->name));
 
-	while(bhead) {
+	while (bhead) {
 		switch(bhead->code) {
 		case DATA:
 		case DNA1:
@@ -13651,7 +13651,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				if (id==NULL) {
 					read_libblock(fd, ptr, bhead, LIB_READ+LIB_INDIRECT, NULL);
 					// commented because this can print way too much
-					// if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
+					// if (G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
 					
 					/* for outliner dependency only */
 					ptr->curlib->parent= mainvar->curlib;
@@ -13671,7 +13671,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					
 					change_idid_adr_fd(fd, bhead->old, id);
 					// commented because this can print way too much
-					// if(G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
+					// if (G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
 				}
 				
 				MEM_freeN(lib);
@@ -13687,7 +13687,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				   happens which invokes same ID... in that case the lookup table needs this entry */
 				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 				// commented because this can print way too much
-				// if(G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
+				// if (G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
 			}
 		}
 	}
@@ -14174,7 +14174,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, psys->part);
 
 	sens= ob->sensors.first;
-	while(sens) {
+	while (sens) {
 		if (sens->type==SENS_TOUCH) {
 			bTouchSensor *ts= sens->data;
 			expand_doit(fd, mainvar, ts->ma);
@@ -14187,7 +14187,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	}
 
 	cont= ob->controllers.first;
-	while(cont) {
+	while (cont) {
 		if (cont->type==CONT_PYTHON) {
 			bPythonCont *pc= cont->data;
 			expand_doit(fd, mainvar, pc->text);
@@ -14196,7 +14196,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	}
 
 	act= ob->actuators.first;
-	while(act) {
+	while (act) {
 		if (act->type==ACT_SOUND) {
 			bSoundActuator *sa= act->data;
 			expand_doit(fd, mainvar, sa->sound);
@@ -14357,14 +14357,14 @@ static void expand_main(FileData *fd, Main *mainvar)
 
 	if (fd==NULL) return;
 
-	while(doit) {
+	while (doit) {
 		doit= 0;
 
 		a= set_listbasepointers(mainvar, lbarray);
-		while(a--) {
+		while (a--) {
 			id= lbarray[a]->first;
 
-			while(id) {
+			while (id) {
 				if (id->flag & LIB_TEST) {
 
 					switch(GS(id->name)) {
@@ -14770,7 +14770,7 @@ static int mainvar_count_libread_blocks(Main *mainvar)
 	int a, tot= 0;
 
 	a= set_listbasepointers(mainvar, lbarray);
-	while(a--) {
+	while (a--) {
 		ID *id;
 
 		for (id= lbarray[a]->first; id; id= id->next)
@@ -14787,12 +14787,12 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a, doit= 1;
 
-	while(doit) {
+	while (doit) {
 		doit= 0;
 
 		/* test 1: read libdata */
 		mainptr= mainl->next;
-		while(mainptr) {
+		while (mainptr) {
 			int tot= mainvar_count_libread_blocks(mainptr);
 			
 			// printf("found LIB_READ %s\n", mainptr->curlib->name);
@@ -14810,7 +14810,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					
 					/* allow typing in a new lib path */
 					if (G.rt==-666) {
-						while(fd==NULL) {
+						while (fd==NULL) {
 							char newlib_path[FILE_MAX] = { 0 };
 							printf("Missing library...'\n");
 							printf("	current file: %s\n", G.main->name);
@@ -14857,10 +14857,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if (fd) {
 					doit= 1;
 					a= set_listbasepointers(mainptr, lbarray);
-					while(a--) {
+					while (a--) {
 						ID *id= lbarray[a]->first;
 
-						while(id) {
+						while (id) {
 							ID *idn= id->next;
 							if (id->flag & LIB_READ) {
 								ID *realid= NULL;
@@ -14886,7 +14886,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					
 					/* dang FileData... now new libraries need to be appended to original filedata,
 					 * it is not a good replacement for the old global (ton) */
-					while( fd->mainlist.first ) {
+					while ( fd->mainlist.first ) {
 						Main *mp= fd->mainlist.first;
 						BLI_remlink(&fd->mainlist, mp);
 						BLI_addtail(&basefd->mainlist, mp);
@@ -14901,9 +14901,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 	/* test if there are unread libblocks */
 	for (mainptr= mainl->next; mainptr; mainptr= mainptr->next) {
 		a= set_listbasepointers(mainptr, lbarray);
-		while(a--) {
+		while (a--) {
 			ID *id= lbarray[a]->first;
-			while(id) {
+			while (id) {
 				ID *idn= id->next;
 				if (id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);

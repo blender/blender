@@ -214,13 +214,13 @@ Scene *KX_BlenderSceneConverter::GetBlenderSceneForName(const STR_String& name)
 	 * Find the specified scene by name, or the first
 	 * scene if nothing matches (shouldn't happen).
 	 */
-	if((sce= (Scene *)BLI_findstring(&m_maggie->scene, name.ReadPtr(), offsetof(ID, name) + 2)))
+	if ((sce= (Scene *)BLI_findstring(&m_maggie->scene, name.ReadPtr(), offsetof(ID, name) + 2)))
 		return sce;
 
 	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++) {
 		Main *main= *it;
 
-		if((sce= (Scene *)BLI_findstring(&main->scene, name.ReadPtr(), offsetof(ID, name) + 2)))
+		if ((sce= (Scene *)BLI_findstring(&main->scene, name.ReadPtr(), offsetof(ID, name) + 2)))
 			return sce;
 	}
 
@@ -537,7 +537,7 @@ void KX_BlenderSceneConverter::RegisterGameMesh(
 									RAS_MeshObject *gamemesh,
 									struct Mesh *for_blendermesh)
 {
-	if(for_blendermesh) { /* dynamically loaded meshes we don't want to keep lookups for */
+	if (for_blendermesh) { /* dynamically loaded meshes we don't want to keep lookups for */
 		m_map_mesh_to_gamemesh.insert(CHashedPtr(for_blendermesh),gamemesh);
 	}
 	m_meshobjects.push_back(pair<KX_Scene*,RAS_MeshObject*>(m_currentScene,gamemesh));
@@ -665,13 +665,13 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 							IpoCurve *icu1;
 														
 							int numCurves = 0;
-							for( icu1 = (IpoCurve*)ipo->curve.first; icu1;  ) {
+							for ( icu1 = (IpoCurve*)ipo->curve.first; icu1;  ) {
 							
 								IpoCurve* tmpicu = icu1;
 								
 								/*int i;
 								BezTriple *bezt;
-								for( bezt = tmpicu->bezt, i = 0;	i < tmpicu->totvert; i++, bezt++){
+								for ( bezt = tmpicu->bezt, i = 0;	i < tmpicu->totvert; i++, bezt++){
 									printf("(%f,%f,%f),(%f,%f,%f),(%f,%f,%f)\n",bezt->vec[0][0],bezt->vec[0][1],bezt->vec[0][2],bezt->vec[1][0],bezt->vec[1][1],bezt->vec[1][2],bezt->vec[2][0],bezt->vec[2][1],bezt->vec[2][2]);
 								}*/
 								
@@ -679,7 +679,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 								numCurves++;
 			
 								BLI_remlink( &( blenderObject->ipo->curve ), tmpicu );
-								if( tmpicu->bezt )
+								if ( tmpicu->bezt )
 									MEM_freeN( tmpicu->bezt );
 								MEM_freeN( tmpicu );
 								localDel_ipoCurve( tmpicu );
@@ -769,7 +769,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 			{
 				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 
-				if(blenderObject->adt==NULL)
+				if (blenderObject->adt==NULL)
 					BKE_id_add_animdata(&blenderObject->id);
 
 				if (blenderObject->adt)
@@ -807,37 +807,37 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 					IpoCurve *icu_lx = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
 					if (!icu_lx) {
 						icu_lx = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X, 1);
-						if(icu_lx) icu_lx->ipo = IPO_LIN;
+						if (icu_lx) icu_lx->ipo = IPO_LIN;
 					}
 					IpoCurve *icu_ly = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
 					if (!icu_ly) {
 						icu_ly = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y, 1);
-						if(icu_ly) icu_ly->ipo = IPO_LIN;
+						if (icu_ly) icu_ly->ipo = IPO_LIN;
 					}
 					IpoCurve *icu_lz = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
 					if (!icu_lz) {
 						icu_lz = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z, 1);
-						if(icu_lz) icu_lz->ipo = IPO_LIN;
+						if (icu_lz) icu_lz->ipo = IPO_LIN;
 					}
 					IpoCurve *icu_rx = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
 					if (!icu_rx) {
 						icu_rx = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X, 1);
-						if(icu_rx) icu_rx->ipo = IPO_LIN;
+						if (icu_rx) icu_rx->ipo = IPO_LIN;
 					}
 					IpoCurve *icu_ry = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
 					if (!icu_ry) {
 						icu_ry = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y, 1);
-						if(icu_ry) icu_ry->ipo = IPO_LIN;
+						if (icu_ry) icu_ry->ipo = IPO_LIN;
 					}
 					IpoCurve *icu_rz = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
 					if (!icu_rz) {
 						icu_rz = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z, 1);
-						if(icu_rz) icu_rz->ipo = IPO_LIN;
+						if (icu_rz) icu_rz->ipo = IPO_LIN;
 					}
 					
-					if(icu_rx) eulerAnglesOld[0]= eval_icu( icu_rx, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
-					if(icu_ry) eulerAnglesOld[1]= eval_icu( icu_ry, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
-					if(icu_rz) eulerAnglesOld[2]= eval_icu( icu_rz, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if (icu_rx) eulerAnglesOld[0]= eval_icu( icu_rx, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if (icu_ry) eulerAnglesOld[1]= eval_icu( icu_ry, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if (icu_rz) eulerAnglesOld[2]= eval_icu( icu_rz, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
 					
 					// orn.getValue((float *)tmat); // uses the wrong ordering, cant use this
 					for (int r=0;r<3;r++)
@@ -848,7 +848,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 					mat3_to_compatible_eul( eulerAngles, eulerAnglesOld,tmat);
 					
 					//eval_icu
-					for(int x = 0; x < 3; x++)
+					for (int x = 0; x < 3; x++)
 						eulerAngles[x] *= (float) ((180 / 3.14159265f) / 10.0);
 					
 					//fill the curves with data
@@ -925,7 +925,7 @@ vector<Main*> &KX_BlenderSceneConverter::GetMainDynamic()
 Main* KX_BlenderSceneConverter::GetMainDynamicPath(const char *path)
 {
 	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++)
-		if(BLI_path_cmp((*it)->name, path) == 0)
+		if (BLI_path_cmp((*it)->name, path) == 0)
 			return *it;
 	
 	return NULL;
@@ -958,21 +958,21 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 	static char err_local[255];
 	
 	/* only scene and mesh supported right now */
-	if(idcode!=ID_SCE && idcode!=ID_ME &&idcode!=ID_AC) {
+	if (idcode!=ID_SCE && idcode!=ID_ME &&idcode!=ID_AC) {
 		snprintf(err_local, sizeof(err_local), "invalid ID type given \"%s\"\n", group);
 		*err_str= err_local;
 		BLO_blendhandle_close(bpy_openlib);
 		return false;
 	}
 	
-	if(GetMainDynamicPath(path)) {
+	if (GetMainDynamicPath(path)) {
 		snprintf(err_local, sizeof(err_local), "blend file already open \"%s\"\n", path);
 		*err_str= err_local;
 		BLO_blendhandle_close(bpy_openlib);
 		return false;
 	}
 
-	if(bpy_openlib==NULL) {
+	if (bpy_openlib==NULL) {
 		snprintf(err_local, sizeof(err_local), "could not open blendfile \"%s\"\n", path);
 		*err_str= err_local;
 		return false;
@@ -1027,31 +1027,31 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 	strncpy(main_newlib->name, path, sizeof(main_newlib->name));	
 	
 	
-	if(idcode==ID_ME) {
+	if (idcode==ID_ME) {
 		/* Convert all new meshes into BGE meshes */
 		ID* mesh;
 	
-		for(mesh= (ID *)main_newlib->mesh.first; mesh; mesh= (ID *)mesh->next ) {
+		for (mesh= (ID *)main_newlib->mesh.first; mesh; mesh= (ID *)mesh->next ) {
 			if (options & LIB_LOAD_VERBOSE)
 				printf("MeshName: %s\n", mesh->name+2);
 			RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)mesh, NULL, scene_merge, this);
 			scene_merge->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
 		}
 	}
-	else if(idcode==ID_AC) {
+	else if (idcode==ID_AC) {
 		/* Convert all actions */
 		ID *action;
 
-		for(action= (ID *)main_newlib->action.first; action; action= (ID *)action->next) {
+		for (action= (ID *)main_newlib->action.first; action; action= (ID *)action->next) {
 			if (options & LIB_LOAD_VERBOSE)
 				printf("ActionName: %s\n", action->name+2);
 			scene_merge->GetLogicManager()->RegisterActionName(action->name+2, action);
 		}
 	}
-	else if(idcode==ID_SCE) {		
+	else if (idcode==ID_SCE) {		
 		/* Merge all new linked in scene into the existing one */
 		ID *scene;
-		for(scene= (ID *)main_newlib->scene.first; scene; scene= (ID *)scene->next ) {
+		for (scene= (ID *)main_newlib->scene.first; scene; scene= (ID *)scene->next ) {
 			if (options & LIB_LOAD_VERBOSE)
 				printf("SceneName: %s\n", scene->name+2);
 			
@@ -1067,7 +1067,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 		if (options & LIB_LOAD_LOAD_ACTIONS) {
 			ID *action;
 
-			for(action= (ID *)main_newlib->action.first; action; action= (ID *)action->next) {
+			for (action= (ID *)main_newlib->action.first; action; action= (ID *)action->next) {
 				if (options & LIB_LOAD_VERBOSE)
 					printf("ActionName: %s\n", action->name+2);
 				scene_merge->GetLogicManager()->RegisterActionName(action->name+2, action);
@@ -1085,13 +1085,13 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 	int maggie_index= -1;
 	int i=0;
 
-	if(maggie==NULL)
+	if (maggie==NULL)
 		return false;
 	
 	/* tag all false except the one we remove */
 	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++) {
 		Main *main= *it;
-		if(main != maggie) {
+		if (main != maggie) {
 			tag_main(main, 0);
 		}
 		else {
@@ -1101,7 +1101,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 	}
 
 	/* should never happen but just to be safe */
-	if(maggie_index == -1)
+	if (maggie_index == -1)
 		return false;
 
 	m_DynamicMaggie.erase(m_DynamicMaggie.begin() + maggie_index);
@@ -1116,7 +1116,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 	for (int scene_idx=0;scene_idx<numScenes;scene_idx++)
 	{
 		KX_Scene* scene = scenes->at(scene_idx);
-		if(IS_TAGGED(scene->GetBlenderScene())) {
+		if (IS_TAGGED(scene->GetBlenderScene())) {
 			RemoveScene(scene); // XXX - not tested yet
 			scene_idx--;
 			numScenes--;
@@ -1127,10 +1127,10 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 			{
 				CTR_Map<STR_HashedString,void*> &mapStringToMeshes = scene->GetLogicManager()->GetMeshMap();
 				
-				for(int i=0; i<mapStringToMeshes.size(); i++)
+				for (int i=0; i<mapStringToMeshes.size(); i++)
 				{
 					RAS_MeshObject *meshobj= (RAS_MeshObject *) *mapStringToMeshes.at(i);
-					if(meshobj && IS_TAGGED(meshobj->GetMesh()))
+					if (meshobj && IS_TAGGED(meshobj->GetMesh()))
 					{	
 						STR_HashedString mn = meshobj->GetName();
 						mapStringToMeshes.remove(mn);
@@ -1144,11 +1144,11 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 			{
 				CTR_Map<STR_HashedString,void*> &mapStringToActions = scene->GetLogicManager()->GetActionMap();
 
-				for(int i=0; i<mapStringToActions.size(); i++)
+				for (int i=0; i<mapStringToActions.size(); i++)
 				{
 					ID *action= (ID*) *mapStringToActions.at(i);
 
-					if(IS_TAGGED(action))
+					if (IS_TAGGED(action))
 					{
 						STR_HashedString an = action->name+2;
 						mapStringToActions.remove(an);
@@ -1160,7 +1160,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 			//scene->FreeTagged(); /* removed tagged objects and meshes*/
 			CListValue *obj_lists[] = {scene->GetObjectList(), scene->GetInactiveList(), NULL};
 
-			for(int ob_ls_idx=0; obj_lists[ob_ls_idx]; ob_ls_idx++)
+			for (int ob_ls_idx=0; obj_lists[ob_ls_idx]; ob_ls_idx++)
 			{
 				CListValue *obs= obj_lists[ob_ls_idx];
 				RAS_MeshObject* mesh;
@@ -1168,7 +1168,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 				for (int ob_idx = 0; ob_idx < obs->GetCount(); ob_idx++)
 				{
 					KX_GameObject* gameobj = (KX_GameObject*)obs->GetValue(ob_idx);
-					if(IS_TAGGED(gameobj->GetBlenderObject())) {
+					if (IS_TAGGED(gameobj->GetBlenderObject())) {
 
 						int size_before = obs->GetCount();
 
@@ -1176,7 +1176,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 						 * frees m_map_gameobject_to_blender from UnregisterGameObject */
 						scene->RemoveObject(gameobj);
 
-						if(size_before != obs->GetCount())
+						if (size_before != obs->GetCount())
 							ob_idx--;
 						else {
 							printf("ERROR COULD NOT REMOVE \"%s\"\n", gameobj->GetName().ReadPtr());
@@ -1187,7 +1187,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 						int mesh_index= gameobj->GetMeshCount();
 						while(mesh_index--) {
 							mesh= gameobj->GetMesh(mesh_index);
-							if(IS_TAGGED(mesh->GetMesh())) {
+							if (IS_TAGGED(mesh->GetMesh())) {
 								gameobj->RemoveMeshes(); /* XXX - slack, should only remove meshes that are library items but mostly objects only have 1 mesh */
 								break;
 							}
@@ -1199,7 +1199,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 							if (gameobj->GetActuators()[act_idx]->IsType(SCA_IActuator::KX_ACT_ACTION))
 							{
 								BL_ActionActuator *act = (BL_ActionActuator*)gameobj->GetActuators()[act_idx];
-								if(IS_TAGGED(act->GetAction()))
+								if (IS_TAGGED(act->GetAction()))
 									act->SetAction(NULL);
 							}
 						}
@@ -1237,7 +1237,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 	for (int scene_idx=0;scene_idx<numScenes;scene_idx++)
 	{
 		KX_Scene* scene = scenes->at(scene_idx);
-		if(scene->GetWorldInfo())
+		if (scene->GetWorldInfo())
 			worldset.insert( scene->GetWorldInfo() );
 	}
 
@@ -1270,7 +1270,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		Material *bmat= NULL;
 
 		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject*)? - Campbell */
-		if(mat->GetFlag() & RAS_BLENDERMAT) {
+		if (mat->GetFlag() & RAS_BLENDERMAT) {
 			KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
 			bmat= bl_mat->GetBlenderMaterial();
 
@@ -1295,7 +1295,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		Material *bmat= NULL;
 
 		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject*)? - Campbell */
-		if(mat->GetFlag() & RAS_BLENDERMAT) {
+		if (mat->GetFlag() & RAS_BLENDERMAT) {
 			KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
 			bmat= bl_mat->GetBlenderMaterial();
 
@@ -1304,7 +1304,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 			bmat= kx_mat->GetBlenderMaterial();
 		}
 
-		if(bmat) {
+		if (bmat) {
 			//printf("FOUND MAT '%s' !!! ", ((ID*)bmat)->name+2);
 		}
 		else {
@@ -1419,13 +1419,13 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene,
 	/* Find a mesh in the current main */
 	ID *me= static_cast<ID *>(BLI_findstring(&m_maggie->mesh, name, offsetof(ID, name) + 2));
 	
-	if(me==NULL) {
+	if (me==NULL) {
 		printf("Could not be found \"%s\"\n", name);
 		return NULL;
 	}
 	
 	/* Watch this!, if its used in the original scene can cause big troubles */
-	if(me->us > 0) {
+	if (me->us > 0) {
 		printf("Mesh has a user \"%s\"\n", name);
 		me = (ID*)copy_mesh((Mesh*)me);
 		me->us--;
@@ -1439,16 +1439,16 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene,
 		Mesh *mesh= (Mesh *)me;
 		
 		/* ensure all materials are tagged */
-		for(int i=0; i<mesh->totcol; i++)
-			if(mesh->mat[i])
+		for (int i=0; i<mesh->totcol; i++)
+			if (mesh->mat[i])
 				mesh->mat[i]->id.flag &= ~LIB_DOIT;
 		
-		for(int i=0; i<mesh->totcol; i++)
+		for (int i=0; i<mesh->totcol; i++)
 		{
 			Material *mat_old= mesh->mat[i];
 			
 			/* if its tagged its a replaced material */
-			if(mat_old && (mat_old->id.flag & LIB_DOIT)==0)
+			if (mat_old && (mat_old->id.flag & LIB_DOIT)==0)
 			{
 				Material *mat_old= mesh->mat[i];
 				Material *mat_new= copy_material( mat_old );
@@ -1462,9 +1462,9 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene,
 				mesh->mat[i]= mat_new;
 				
 				/* the same material may be used twice */
-				for(int j=i+1; j<mesh->totcol; j++)
+				for (int j=i+1; j<mesh->totcol; j++)
 				{
-					if(mesh->mat[j]==mat_old)
+					if (mesh->mat[j]==mat_old)
 					{
 						mesh->mat[j]= mat_new;
 						mat_new->id.us++;

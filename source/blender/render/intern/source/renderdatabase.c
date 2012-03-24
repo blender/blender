@@ -1210,7 +1210,7 @@ static int panotestclip(Render *re, int do_pano, float *v)
 
 	abs4= fabs(v[3]);
 
-	if (v[2]< -abs4) c=16;		/* this used to be " if(v[2]<0) ", see clippz() */
+	if (v[2]< -abs4) c=16;		/* this used to be " if (v[2]<0) ", see clippz() */
 	else if (v[2]> abs4) c+= 32;
 
 	if ( v[1]>abs4) c+=4;

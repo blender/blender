@@ -353,7 +353,7 @@ int is_basis_mball(Object *ob)
 }
 
 /* return nonzero if ob1 is a basis mball for ob */
-int is_mball_basis_for(Object *ob1, Object *ob2)
+int is_mball_basis_for (Object *ob1, Object *ob2)
 {
 	int basis1nr, basis2nr;
 	char basis1name[MAX_ID_NAME], basis2name[MAX_ID_NAME];

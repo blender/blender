@@ -517,8 +517,8 @@ static short UNUSED_FUNCTION(do_textmarkers)(SpaceText *st, char ascii, unsigned
 				break;
 
 			/* Events that should clear markers */
-			case UKEY: if(!(qual & LR_ALTKEY)) break;
-			case ZKEY: if(evnt==ZKEY && !(qual & LR_CTRLKEY)) break;
+			case UKEY: if (!(qual & LR_ALTKEY)) break;
+			case ZKEY: if (evnt==ZKEY && !(qual & LR_CTRLKEY)) break;
 			case RETKEY:
 			case ESCKEY:
 				if (marker->flags & (TMARK_EDITALL | TMARK_TEMP))

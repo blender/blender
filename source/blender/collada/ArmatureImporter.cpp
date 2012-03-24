@@ -278,7 +278,7 @@ void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW:
 	TagsMap::iterator etit;
 	ExtraTags *et = 0;
 	etit = uid_tags_map.find(node->getUniqueId().toAscii());
-	if(etit !=  uid_tags_map.end())
+	if (etit !=  uid_tags_map.end())
 	{
 		et = etit->second;
 		//else return;
@@ -306,7 +306,7 @@ void ArmatureImporter::fix_leaf_bones( )
 		float vec[3] = {0.0f, 0.0f, 0.1f};
 		
 		// if parent: take parent length and direction
-		if(leaf.bone->parent) sub_v3_v3v3(vec, leaf.bone->parent->tail, leaf.bone->parent->head);
+		if (leaf.bone->parent) sub_v3_v3v3(vec, leaf.bone->parent->tail, leaf.bone->parent->head);
 
 		copy_v3_v3(leaf.bone->tail, leaf.bone->head);
 		add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
@@ -767,7 +767,7 @@ Object *ArmatureImporter::get_armature_for_joint(COLLADAFW::Node *node)
 
 	std::map<COLLADAFW::UniqueId, Object*>::iterator arm;
 	for (arm = unskinned_armature_map.begin(); arm != unskinned_armature_map.end(); arm++) {
-		if(arm->first == node->getUniqueId() )
+		if (arm->first == node->getUniqueId() )
 			return arm->second;
 	}
 	return NULL;

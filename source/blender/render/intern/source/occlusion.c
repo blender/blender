@@ -466,7 +466,7 @@ static void occ_build_split(OcclusionTree *tree, int begin, int end, int *split)
 
 	a= begin;
 	enda= end;
-	while(a<enda) {
+	while (a<enda) {
 		if (tree->co[a][axis] > mid) {
 			enda--;
 			SWAP(OccFace, tree->face[a], tree->face[enda]);
@@ -1226,7 +1226,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 	stack[0]= tree->root;
 	totstack= 1;
 
-	while(totstack) {
+	while (totstack) {
 		/* pop point off the stack */
 		node= stack[--totstack];
 

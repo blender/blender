@@ -2055,7 +2055,7 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int f
 		// printf("loaded new result %p\n", ima->rr);
 		/* free result if new one found */
 		if (ima->rr) {
-			// if(oldrr) printf("freed previous result %p\n", oldrr);
+			// if (oldrr) printf("freed previous result %p\n", oldrr);
 			if (oldrr) RE_FreeRenderResult(oldrr);
 		}
 		else {
