@@ -19,9 +19,14 @@
  * All rights reserved.
  *
  * 
- * Contributor(s): Joseph Eagar, Joshua Leung, Howard Trickey
+ * Contributor(s): Joseph Eagar, Joshua Leung, Howard Trickey,
+ *                 Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/editors/mesh/editmesh_knife.c
+ *  \ingroup edmesh
  */
 
 #define _USE_MATH_DEFINES
