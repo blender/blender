@@ -1074,7 +1074,7 @@ static float fcurve_samplingcb_sound (FCurve *UNUSED(fcu), void *data, float eva
 	tSoundBakeInfo *sbi= (tSoundBakeInfo *)data;
 
 	int position = evaltime - sbi->cfra;
-	if((position < 0) || (position >= sbi->length))
+	if ((position < 0) || (position >= sbi->length))
 		return 0.0f;
 
 	return sbi->samples[position];

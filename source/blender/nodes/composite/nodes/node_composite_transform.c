@@ -77,14 +77,14 @@ CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, f
 	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
 	obuf= IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0);
 
-	if(ibuf && obuf) {
+	if (ibuf && obuf) {
 		int i, j;
 
 		ibuf->rect_float= cbuf->rect;
 		obuf->rect_float= stackbuf->rect;
 
-		for(j=0; j<cbuf->y; j++) {
-			for(i=0; i<cbuf->x;i++) {
+		for (j=0; j<cbuf->y; j++) {
+			for (i=0; i<cbuf->x;i++) {
 				float vec[3]= {i, j, 0};
 
 				mul_v3_m4v3(vec, mat, vec);
@@ -113,7 +113,7 @@ CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, f
 
 static void node_composit_exec_transform(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	if(in[0]->data) {
+	if (in[0]->data) {
 		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 		CompBuf *stackbuf;
 
@@ -122,7 +122,7 @@ static void node_composit_exec_transform(void *UNUSED(data), bNode *node, bNodeS
 		/* pass on output and free */
 		out[0]->data= stackbuf;
 
-		if(cbuf!=in[0]->data)
+		if (cbuf!=in[0]->data)
 			free_compbuf(cbuf);
 	}
 }

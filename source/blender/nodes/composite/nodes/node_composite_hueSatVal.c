@@ -48,12 +48,12 @@ static void do_hue_sat_fac(bNode *node, float *out, float *in, float *fac)
 {
 	NodeHueSat *nhs= node->storage;
 	
-	if(*fac!=0.0f && (nhs->hue!=0.5f || nhs->sat!=1.0f || nhs->val!=1.0f)) {
+	if (*fac!=0.0f && (nhs->hue!=0.5f || nhs->sat!=1.0f || nhs->val!=1.0f)) {
 		float col[3], hsv[3], mfac= 1.0f - *fac;
 		
 		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
 		hsv[0]+= (nhs->hue - 0.5f);
-		if(hsv[0]>1.0f) hsv[0]-=1.0f; else if(hsv[0]<0.0f) hsv[0]+= 1.0f;
+		if (hsv[0]>1.0f) hsv[0]-=1.0f; else if (hsv[0]<0.0f) hsv[0]+= 1.0f;
 		hsv[1]*= nhs->sat;
 		hsv[2]*= nhs->val;
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
@@ -72,10 +72,10 @@ static void node_composit_exec_hue_sat(void *UNUSED(data), bNode *node, bNodeSta
 {
 	/* stack order in: Fac, Image */
 	/* stack order out: Image */
-	if(out[0]->hasoutput==0) return;
+	if (out[0]->hasoutput==0) return;
 	
 	/* input no image? then only color operation */
-	if(in[1]->data==NULL) {
+	if (in[1]->data==NULL) {
 		do_hue_sat_fac(node, out[0]->vec, in[1]->vec, in[0]->vec);
 	}
 	else {
@@ -88,7 +88,7 @@ static void node_composit_exec_hue_sat(void *UNUSED(data), bNode *node, bNodeSta
 		out[0]->data= stackbuf;
 
 		/* get rid of intermediary cbuf if it's extra */		
-		if(stackbuf!=cbuf)
+		if (stackbuf!=cbuf)
 			free_compbuf(cbuf);
 	}
 }

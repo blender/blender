@@ -589,7 +589,7 @@ static short mirror_gpf_marker (bGPDframe *gpf, Scene *scene)
 		else {
 			/* try to find a marker */
 			marker= ED_markers_get_first_selected(&scene->markers);
-			if(marker) {
+			if (marker) {
 				initialized= 1;
 			}
 		}

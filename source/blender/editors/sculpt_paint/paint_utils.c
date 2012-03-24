@@ -84,14 +84,14 @@ int paint_convert_bb_to_rect(rcti *rect,
 	rect->xmax = rect->ymax = INT_MIN;
 
 	/* return zero if the bounding box has non-positive volume */
-	if(bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2])
+	if (bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2])
 		return 0;
 
 	ED_view3d_ob_project_mat_get(rv3d, ob, projection_mat);
 
-	for(i = 0; i < 2; ++i) {
-		for(j = 0; j < 2; ++j) {
-			for(k = 0; k < 2; ++k) {
+	for (i = 0; i < 2; ++i) {
+		for (j = 0; j < 2; ++j) {
+			for (k = 0; k < 2; ++k) {
 				float vec[3], proj[2];
 				vec[0] = i ? bb_min[0] : bb_max[0];
 				vec[1] = j ? bb_min[1] : bb_max[1];
@@ -243,7 +243,7 @@ static void imapaint_tri_weights(Object *ob,
 
 	/* w is still divided by perspdiv, make it sum to one */
 	divw= w[0] + w[1] + w[2];
-	if(divw != 0.0f) {
+	if (divw != 0.0f) {
 		mul_v3_fl(w, 1.0f/divw);
 	}
 }
@@ -263,16 +263,16 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 	uv[0] = uv[1] = 0.0;
 
 	/* test all faces in the derivedmesh with the original index of the picked face */
-	for(a = 0; a < numfaces; a++) {
+	for (a = 0; a < numfaces; a++) {
 		findex= index ? index[a]: a;
 
-		if(findex == faceindex) {
+		if (findex == faceindex) {
 			dm->getTessFace(dm, a, &mf);
 
 			dm->getVert(dm, mf.v1, &mv[0]);
 			dm->getVert(dm, mf.v2, &mv[1]);
 			dm->getVert(dm, mf.v3, &mv[2]);
-			if(mf.v4)
+			if (mf.v4)
 				dm->getVert(dm, mf.v4, &mv[3]);
 
 			tf= &tface[a];
@@ -280,12 +280,12 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 			p[0]= xy[0];
 			p[1]= xy[1];
 
-			if(mf.v4) {
+			if (mf.v4) {
 				/* the triangle with the largest absolute values is the one
 				 * with the most negative weights */
 				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[3].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
-				if(absw < minabsw) {
+				if (absw < minabsw) {
 					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[3][0]*w[2];
 					uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[3][1]*w[2];
 					minabsw = absw;
@@ -293,7 +293,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 
 				imapaint_tri_weights(ob, mv[1].co, mv[2].co, mv[3].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
-				if(absw < minabsw) {
+				if (absw < minabsw) {
 					uv[0]= tf->uv[1][0]*w[0] + tf->uv[2][0]*w[1] + tf->uv[3][0]*w[2];
 					uv[1]= tf->uv[1][1]*w[0] + tf->uv[2][1]*w[1] + tf->uv[3][1]*w[2];
 					minabsw = absw;
@@ -302,7 +302,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 			else {
 				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[2].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
-				if(absw < minabsw) {
+				if (absw < minabsw) {
 					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[2][0]*w[2];
 					uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[2][1]*w[2];
 					minabsw = absw;
@@ -317,13 +317,13 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 ///* returns 0 if not found, otherwise 1 */
 int imapaint_pick_face(ViewContext *vc, Mesh *me, const int mval[2], unsigned int *index)
 {
-	if(!me || me->totface==0)
+	if (!me || me->totface==0)
 		return 0;
 
 	/* sample only on the exact position */
 	*index = view3d_sample_backbuf(vc, mval[0], mval[1]);
 
-	if((*index)<=0 || (*index)>(unsigned int)me->totface)
+	if ((*index)<=0 || (*index)>(unsigned int)me->totface)
 		return 0;
 
 	(*index)--;
@@ -347,7 +347,7 @@ void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)	/* frontbuf */
 
 	cp = (char *)&col;
 	
-	if(br) {
+	if (br) {
 		br->rgb[0]= cp[0]/255.0f;
 		br->rgb[1]= cp[1]/255.0f;
 		br->rgb[2]= cp[2]/255.0f;

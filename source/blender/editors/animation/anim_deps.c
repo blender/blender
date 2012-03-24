@@ -88,7 +88,7 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 		
 		RNA_id_pointer_create(id, &id_ptr);
 			
-		if(RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop))
+		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop))
 			RNA_property_update_main(G.main, scene, &ptr, prop);
 	}
 	else {

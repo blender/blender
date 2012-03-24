@@ -454,7 +454,7 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *UNUSED(op))
 	
 	/* delete tracks */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		if(ale->type == ANIMTYPE_NLATRACK) {
+		if (ale->type == ANIMTYPE_NLATRACK) {
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			AnimData *adt= ale->adt;
 			

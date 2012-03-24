@@ -82,15 +82,15 @@ static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float locatio
 		width*= sc->zoom;
 		height*= sc->zoom;
 
-		if((width < 4) && (height < 4))
+		if ((width < 4) && (height < 4))
 			sc->zoom= oldzoom;
-		else if((ar->winrct.xmax - ar->winrct.xmin) <= sc->zoom)
+		else if ((ar->winrct.xmax - ar->winrct.xmin) <= sc->zoom)
 			sc->zoom= oldzoom;
-		else if((ar->winrct.ymax - ar->winrct.ymin) <= sc->zoom)
+		else if ((ar->winrct.ymax - ar->winrct.ymin) <= sc->zoom)
 			sc->zoom= oldzoom;
 	}
 
-	if((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
+	if ((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
 		ED_space_clip_size(sc, &width, &height);
 
 		sc->xof+= ((location[0]-0.5f)*width-sc->xof)*(sc->zoom-oldzoom)/sc->zoom;
@@ -158,8 +158,8 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	clip= BKE_add_movieclip_file(str);
 
-	if(!clip) {
-		if(op->customdata)
+	if (!clip) {
+		if (op->customdata)
 			MEM_freeN(op->customdata);
 
 		BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", str, errno ? strerror(errno) : "Unsupported movie clip format");
@@ -167,13 +167,13 @@ static int open_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if(!op->customdata)
+	if (!op->customdata)
 		open_init(C, op);
 
 	/* hook into UI */
 	pprop= op->customdata;
 
-	if(pprop->prop) {
+	if (pprop->prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
 		clip->id.us--;
@@ -182,7 +182,7 @@ static int open_exec(bContext *C, wmOperator *op)
 		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
 	}
-	else if(sc) {
+	else if (sc) {
 		ED_space_clip_set(C, sc, clip);
 	}
 
@@ -199,16 +199,16 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	char *path= U.textudir;
 	MovieClip *clip= NULL;
 
-	if(sc)
+	if (sc)
 		clip= ED_space_clip(sc);
 
-	if(clip)
+	if (clip)
 		path= clip->name;
 
-	if(!RNA_struct_property_is_set(op->ptr, "relative_path"))
+	if (!RNA_struct_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
-	if(RNA_struct_property_is_set(op->ptr, "filepath"))
+	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
 
 	open_init(C, op);
@@ -243,7 +243,7 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	MovieClip *clip= CTX_data_edit_movieclip(C);
 
-	if(!clip)
+	if (!clip)
 		return OPERATOR_CANCELLED;
 
 	BKE_movieclip_reload(clip);
@@ -284,7 +284,7 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->x= event->x;
 	vpd->y= event->y;
 
-	if(sc->flag&SC_LOCK_SELECTION) vpd->vec= &sc->xlockof;
+	if (sc->flag&SC_LOCK_SELECTION) vpd->vec= &sc->xlockof;
 	else vpd->vec= &sc->xof;
 
 	copy_v2_v2(&vpd->xof, vpd->vec);
@@ -299,7 +299,7 @@ static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
 {
 	ViewPanData *vpd= op->customdata;
 
-	if(cancel) {
+	if (cancel) {
 		copy_v2_v2(vpd->vec, &vpd->xorig);
 
 		ED_region_tag_redraw(CTX_wm_region(C));
@@ -316,10 +316,11 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 
 	RNA_float_get_array(op->ptr, "offset", offset);
 
-	if(sc->flag&SC_LOCK_SELECTION) {
+	if (sc->flag&SC_LOCK_SELECTION) {
 		sc->xlockof+= offset[0];
 		sc->ylockof+= offset[1];
-	} else {
+	}
+	else {
 		sc->xof+= offset[0];
 		sc->yof+= offset[1];
 	}
@@ -370,7 +371,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			view_pan_exit(C, op, 0);
 			return OPERATOR_FINISHED;
 		default:
-			if(event->type==vpd->event_type &&  event->val==KM_RELEASE) {
+			if (event->type==vpd->event_type &&  event->val==KM_RELEASE) {
 				view_pan_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
@@ -440,7 +441,7 @@ static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	ViewZoomData *vpd= op->customdata;
 
-	if(cancel) {
+	if (cancel) {
 		sc->zoom= vpd->zoom;
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
@@ -495,7 +496,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 			ED_region_tag_redraw(CTX_wm_region(C));
 			break;
 		default:
-			if(event->type==vpd->event_type && event->val==KM_RELEASE) {
+			if (event->type==vpd->event_type && event->val==KM_RELEASE) {
 				view_zoom_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
@@ -672,7 +673,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	width= ar->winrct.xmax - ar->winrct.xmin + 1;
 	height= ar->winrct.ymax - ar->winrct.ymin + 1;
 
-	if(fit_view) {
+	if (fit_view) {
 		const int margin = 5; /* margin from border */
 
 		zoomx= (float)width / (w + 2*margin);
@@ -681,7 +682,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 		sclip_zoom_set(sc, ar, MIN2(zoomx, zoomy), NULL);
 	}
 	else {
-		if((w >= width || h >= height) && (width > 0 && height > 0)) {
+		if ((w >= width || h >= height) && (width > 0 && height > 0)) {
 			zoomx= (float)width/w;
 			zoomy= (float)height/h;
 
@@ -745,7 +746,7 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 static int change_frame_poll(bContext *C)
 {
 	/* prevent changes during render */
-	if(G.rendering)
+	if (G.rendering)
 		return 0;
 
 	return ED_space_clip_poll(C);
@@ -778,11 +779,12 @@ static int frame_from_event(bContext *C, wmEvent *event)
 	Scene *scene= CTX_data_scene(C);
 	int framenr= 0;
 
-	if(ar->regiontype == RGN_TYPE_WINDOW) {
+	if (ar->regiontype == RGN_TYPE_WINDOW) {
 		float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1);
 
 		framenr= sfra+event->mval[0]/framelen;
-	} else {
+	}
+	else {
 		float viewx, viewy;
 
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
@@ -797,8 +799,8 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 
-	if(ar->regiontype == RGN_TYPE_WINDOW) {
-		if(event->mval[1]>16)
+	if (ar->regiontype == RGN_TYPE_WINDOW) {
+		if (event->mval[1]>16)
 			return OPERATOR_PASS_THROUGH;
 	}
 
@@ -883,10 +885,10 @@ static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undisto
                              MCLIP_PROXY_UNDISTORTED_SIZE_100}};
 	int size_nr = undistort ? 1 : 0;
 
-	if(size_flag & size_flags[size_nr][0]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_25;
-	if(size_flag & size_flags[size_nr][1]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_50;
-	if(size_flag & size_flags[size_nr][2]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_75;
-	if(size_flag & size_flags[size_nr][3]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_100;
+	if (size_flag & size_flags[size_nr][0]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_25;
+	if (size_flag & size_flags[size_nr][1]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_50;
+	if (size_flag & size_flags[size_nr][2]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_75;
+	if (size_flag & size_flags[size_nr][3]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_100;
 
 	return build_count;
 }
@@ -908,11 +910,11 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	build_count= proxy_bitflag_to_array(size_flag, build_sizes, 0);
 	build_undistort_count= proxy_bitflag_to_array(size_flag, build_undistort_sizes, 1);
 
-	if(clip->source == MCLIP_SRC_MOVIE) {
+	if (clip->source == MCLIP_SRC_MOVIE) {
 		if (pj->index_context)
 			IMB_anim_index_rebuild(pj->index_context, stop, do_update, progress);
 
-		if(!build_undistort_count) {
+		if (!build_undistort_count) {
 			if (*stop)
 				pj->stop = 1;
 
@@ -924,23 +926,23 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 		}
 	}
 
-	if(build_undistort_count)
+	if (build_undistort_count)
 		distortion= BKE_tracking_distortion_create();
 
-	for(cfra= sfra; cfra<=efra; cfra++) {
-		if(clip->source != MCLIP_SRC_MOVIE)
+	for (cfra= sfra; cfra<=efra; cfra++) {
+		if (clip->source != MCLIP_SRC_MOVIE)
 			BKE_movieclip_build_proxy_frame(clip, pj->clip_flag, NULL, cfra, build_sizes, build_count, 0);
 
 		BKE_movieclip_build_proxy_frame(clip, pj->clip_flag, distortion, cfra, build_undistort_sizes, build_undistort_count, 1);
 
-		if(*stop || G.afbreek)
+		if (*stop || G.afbreek)
 			break;
 
 		*do_update= 1;
 		*progress= ((float)cfra)/(efra-sfra);
 	}
 
-	if(distortion)
+	if (distortion)
 		BKE_tracking_distortion_destroy(distortion);
 
 	if (*stop)
@@ -971,7 +973,7 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 
-	if((clip->flag&MCLIP_USE_PROXY)==0)
+	if ((clip->flag&MCLIP_USE_PROXY)==0)
 		return OPERATOR_CANCELLED;
 
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies", WM_JOB_PROGRESS);
@@ -1022,10 +1024,11 @@ static int mode_set_exec(bContext *C, wmOperator *op)
 	int mode= RNA_enum_get(op->ptr, "mode");
 	int toggle= RNA_boolean_get(op->ptr, "toggle");
 
-	if(sc->mode==mode) {
-		if(toggle)
+	if (sc->mode==mode) {
+		if (toggle)
 			sc->mode= SC_MODE_TRACKING;
-	} else {
+	}
+	else {
 		sc->mode= mode;
 	}
 

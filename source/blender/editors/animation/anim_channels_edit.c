@@ -1909,7 +1909,7 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 	gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
 	extend= RNA_boolean_get(op->ptr, "extend");
 
-	if(!extend)
+	if (!extend)
 		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 1, ACHANNEL_SETFLAG_CLEAR);
 
 	if (gesture_mode == GESTURE_MODAL_SELECT)

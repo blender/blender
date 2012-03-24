@@ -75,33 +75,33 @@ static void do_node_add(bContext *C, bNodeTemplate *ntemp)
 	bNode *node;
 	
 	/* get location to add node at mouse */
-	for(ar=sa->regionbase.first; ar; ar=ar->next) {
-		if(ar->regiontype == RGN_TYPE_WINDOW) {
+	for (ar=sa->regionbase.first; ar; ar=ar->next) {
+		if (ar->regiontype == RGN_TYPE_WINDOW) {
 			wmWindow *win= CTX_wm_window(C);
 			int x= win->eventstate->x - ar->winrct.xmin;
 			int y= win->eventstate->y - ar->winrct.ymin;
 			
-			if(y < 60) y+= 60;
+			if (y < 60) y+= 60;
 			UI_view2d_region_to_view(&ar->v2d, x, y, &snode->mx, &snode->my);
 		}
 	}
 	
 	/* store selection in temp test flag */
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(node->flag & NODE_SELECT) node->flag |= NODE_TEST;
+	for (node= snode->edittree->nodes.first; node; node= node->next) {
+		if (node->flag & NODE_SELECT) node->flag |= NODE_TEST;
 		else node->flag &= ~NODE_TEST;
 	}
 	
 	/* node= */ node_add_node(snode, bmain, scene, ntemp, snode->mx, snode->my);
 	
 	/* select previous selection before autoconnect */
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(node->flag & NODE_TEST) node->flag |= NODE_SELECT;
+	for (node= snode->edittree->nodes.first; node; node= node->next) {
+		if (node->flag & NODE_TEST) node->flag |= NODE_SELECT;
 	}
 	
 	/* deselect after autoconnection */
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(node->flag & NODE_TEST) node->flag &= ~NODE_SELECT;
+	for (node= snode->edittree->nodes.first; node; node= node->next) {
+		if (node->flag & NODE_TEST) node->flag &= ~NODE_SELECT;
 	}
 		
 	snode_notify(C, snode);
@@ -195,13 +195,13 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 	
 	ntree = snode->nodetree;
 	
-	if(!ntree) {
+	if (!ntree) {
 		uiItemS(layout);
 		return;
 	}
 
-	if(ntree->type == NTREE_SHADER) {
-		if(scene_use_new_shading_nodes(scene))
+	if (ntree->type == NTREE_SHADER) {
+		if (scene_use_new_shading_nodes(scene))
 			compatibility= NODE_NEW_SHADING;
 		else
 			compatibility= NODE_OLD_SHADING;
@@ -221,7 +221,7 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 			uiItemV(layout, IFACE_("New While Loop"), 0, -NODE_WHILELOOP);
 		uiItemS(layout);
 		
-		for(ngroup=bmain->nodetree.first, event=0; ngroup; ngroup= ngroup->id.next, ++event) {
+		for (ngroup=bmain->nodetree.first, event=0; ngroup; ngroup= ngroup->id.next, ++event) {
 			/* only use group trees */
 			if (ngroup->type==ntree->type && ELEM3(ngroup->nodetype, NODE_GROUP, NODE_FORLOOP, NODE_WHILELOOP)) {
 				uiItemV(layout, ngroup->id.name+2, 0, event);
@@ -257,10 +257,10 @@ static void node_menu_add(const bContext *C, Menu *menu)
 	uiLayout *layout= menu->layout;
 	bNodeTreeType *ntreetype= ntreeGetType(snode->treetype);
 
-	if(!snode->nodetree)
+	if (!snode->nodetree)
 		uiLayoutSetActive(layout, 0);
 	
-	if(ntreetype && ntreetype->foreach_nodeclass)
+	if (ntreetype && ntreetype->foreach_nodeclass)
 		ntreetype->foreach_nodeclass(scene, layout, node_menu_add_foreach_cb);
 }
 

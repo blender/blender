@@ -175,9 +175,9 @@ static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 	struct Brush *brush = paint_brush(paint);
 	Object *ob = CTX_data_active_object(C);
 
-	if(!ob) return OPERATOR_CANCELLED;
+	if (!ob) return OPERATOR_CANCELLED;
 
-	if(ob->mode & OB_MODE_SCULPT)
+	if (ob->mode & OB_MODE_SCULPT)
 		brush_reset_sculpt(brush);
 	/* TODO: other modes */
 
@@ -208,15 +208,15 @@ static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, c
 {
 	struct Brush *brush;
 
-	if(!brush_orig && !(brush_orig= bmain->brush.first)) {
+	if (!brush_orig && !(brush_orig= bmain->brush.first)) {
 		return NULL;
 	}
 
 	/* get the next brush with the active tool */
-	for(brush= brush_orig->id.next ? brush_orig->id.next : bmain->brush.first;
+	for (brush= brush_orig->id.next ? brush_orig->id.next : bmain->brush.first;
 		brush != brush_orig;
 		brush= brush->id.next ? brush->id.next : bmain->brush.first) {
-		if((brush->ob_mode & ob_mode) &&
+		if ((brush->ob_mode & ob_mode) &&
 		   (brush_tool(brush, tool_offset) == tool)) {
 			return brush;
 		}
@@ -231,7 +231,7 @@ static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool, con
 
 	brush= brush_tool_cycle(bmain, brush_orig, tool, tool_offset, ob_mode);
 
-	if(brush) {
+	if (brush) {
 		paint_brush_set(paint, brush);
 		WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 		return OPERATOR_FINISHED;
@@ -252,7 +252,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 	int tool, paint_mode= RNA_enum_get(op->ptr, "paint_mode");
 	size_t tool_offset;
 
-	if(paint_mode == OB_MODE_ACTIVE) {
+	if (paint_mode == OB_MODE_ACTIVE) {
 		/* select current paint mode */
 		paint_mode = CTX_data_active_object(C)->mode &
 			(OB_MODE_SCULPT|
@@ -487,7 +487,7 @@ static void set_brush_rc_props(PointerRNA *ptr, const char *paint,
 	brush_path = BLI_sprintfN("tool_settings.%s.brush", paint);
 
 	set_brush_rc_path(ptr, brush_path, "data_path_primary", prop);
-	if(secondary_prop) {
+	if (secondary_prop) {
 		set_brush_rc_path(ptr, ups_path, "use_secondary", secondary_prop);
 		set_brush_rc_path(ptr, ups_path, "data_path_secondary", prop);
 	}
@@ -499,11 +499,11 @@ static void set_brush_rc_props(PointerRNA *ptr, const char *paint,
 	set_brush_rc_path(ptr, brush_path, "rotation_path", "texture_slot.angle");
 	RNA_string_set(ptr, "image_id", brush_path);
 
-	if(flags & RC_COLOR)
+	if (flags & RC_COLOR)
 		set_brush_rc_path(ptr, brush_path, "fill_color_path", "color");
 	else
 		RNA_string_set(ptr, "fill_color_path", "");
-	if(flags & RC_ZOOM)
+	if (flags & RC_ZOOM)
 		RNA_string_set(ptr, "zoom_path", "space_data.zoom");
 	else
 		RNA_string_set(ptr, "zoom_path", "");
@@ -522,7 +522,7 @@ static void ed_keymap_paint_brush_radial_control(wmKeyMap *keymap, const char *p
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
 	set_brush_rc_props(kmi->ptr, paint, "strength", "use_unified_strength", flags);
 
-	if(flags & RC_ROTATION) {
+	if (flags & RC_ROTATION) {
 		kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_CTRL, 0);
 		set_brush_rc_props(kmi->ptr, paint, "texture_slot.angle", NULL, flags);
 	}
@@ -561,7 +561,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	/* Partial visibility, sculpt-only for now */
 	paint_partial_visibility_keys(keymap);
 
-	for(i=0; i<=5; i++)
+	for (i=0; i<=5; i++)
 		RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY+i, KM_PRESS, KM_CTRL, 0)->ptr, "level", i);
 
 	/* multires switch */

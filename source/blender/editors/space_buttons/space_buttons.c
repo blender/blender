@@ -97,10 +97,10 @@ static void buttons_free(SpaceLink *sl)
 {	
 	SpaceButs *sbuts= (SpaceButs*) sl;
 
-	if(sbuts->path)
+	if (sbuts->path)
 		MEM_freeN(sbuts->path);
 	
-	if(sbuts->texuser) {
+	if (sbuts->texuser) {
 		ButsContextTexture *ct= sbuts->texuser;
 		BLI_freelistN(&ct->users);
 		MEM_freeN(ct);
@@ -113,8 +113,8 @@ static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 	SpaceButs *sbuts= sa->spacedata.first;
 
 	/* auto-align based on size */
-	if(sbuts->align == BUT_AUTO || !sbuts->align) {
-		if(sa->winx > sa->winy)
+	if (sbuts->align == BUT_AUTO || !sbuts->align) {
+		if (sa->winx > sa->winy)
 			sbuts->align= BUT_HORIZONTAL;
 		else
 			sbuts->align= BUT_VERTICAL;
@@ -151,31 +151,31 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 
 	buttons_context_compute(C, sbuts);
 
-	if(sbuts->mainb == BCONTEXT_SCENE)
+	if (sbuts->mainb == BCONTEXT_SCENE)
 		ED_region_panels(C, ar, vertical, "scene", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_RENDER)
+	else if (sbuts->mainb == BCONTEXT_RENDER)
 		ED_region_panels(C, ar, vertical, "render", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_WORLD)
+	else if (sbuts->mainb == BCONTEXT_WORLD)
 		ED_region_panels(C, ar, vertical, "world", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_OBJECT)
+	else if (sbuts->mainb == BCONTEXT_OBJECT)
 		ED_region_panels(C, ar, vertical, "object", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_DATA)
+	else if (sbuts->mainb == BCONTEXT_DATA)
 		ED_region_panels(C, ar, vertical, "data", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_MATERIAL)
+	else if (sbuts->mainb == BCONTEXT_MATERIAL)
 		ED_region_panels(C, ar, vertical, "material", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_TEXTURE)
+	else if (sbuts->mainb == BCONTEXT_TEXTURE)
 		ED_region_panels(C, ar, vertical, "texture", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_PARTICLE)
+	else if (sbuts->mainb == BCONTEXT_PARTICLE)
 		ED_region_panels(C, ar, vertical, "particle", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_PHYSICS)
+	else if (sbuts->mainb == BCONTEXT_PHYSICS)
 		ED_region_panels(C, ar, vertical, "physics", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_BONE)
+	else if (sbuts->mainb == BCONTEXT_BONE)
 		ED_region_panels(C, ar, vertical, "bone", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_MODIFIER)
+	else if (sbuts->mainb == BCONTEXT_MODIFIER)
 		ED_region_panels(C, ar, vertical, "modifier", sbuts->mainb);
 	else if (sbuts->mainb == BCONTEXT_CONSTRAINT)
 		ED_region_panels(C, ar, vertical, "constraint", sbuts->mainb);
-	else if(sbuts->mainb == BCONTEXT_BONE_CONSTRAINT)
+	else if (sbuts->mainb == BCONTEXT_BONE_CONSTRAINT)
 		ED_region_panels(C, ar, vertical, "bone_constraint", sbuts->mainb);
 
 	sbuts->re_align= 0;
@@ -224,7 +224,7 @@ static void buttons_area_redraw(ScrArea *sa, short buttons)
 	SpaceButs *sbuts= sa->spacedata.first;
 	
 	/* if the area's current button set is equal to the one to redraw */
-	if(sbuts->mainb == buttons)
+	if (sbuts->mainb == buttons)
 		ED_area_tag_redraw(sa);
 }
 
@@ -276,7 +276,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					buttons_area_redraw(sa, BCONTEXT_DATA);
 					break;
 				case ND_MODIFIER:
-					if(wmn->action == NA_RENAME)
+					if (wmn->action == NA_RENAME)
 						ED_area_tag_redraw(sa);
 					else
 						buttons_area_redraw(sa, BCONTEXT_MODIFIER);
@@ -342,11 +342,11 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			sbuts->preview= 1;
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_PROPERTIES)
+			if (wmn->data == ND_SPACE_PROPERTIES)
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_ANIMATION:
@@ -358,10 +358,10 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_NODE:
-			if(wmn->action==NA_SELECTED) {
+			if (wmn->action==NA_SELECTED) {
 				ED_area_tag_redraw(sa);
 				/* new active node, update texture preview */
-				if(sbuts->mainb == BCONTEXT_TEXTURE)
+				if (sbuts->mainb == BCONTEXT_TEXTURE)
 					sbuts->preview= 1;
 			}
 			break;
@@ -372,7 +372,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 	}
 
-	if(wmn->data == ND_KEYS)
+	if (wmn->data == ND_KEYS)
 		ED_area_tag_redraw(sa);
 }
 

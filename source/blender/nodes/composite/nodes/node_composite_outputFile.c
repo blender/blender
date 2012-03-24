@@ -55,7 +55,7 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree, bNode *node, con
 	sock->storage = sockdata;
 	sock->struct_type = SOCK_STRUCT_OUTPUT_FILE;
 	
-	if(im_format) {
+	if (im_format) {
 		sockdata->format= *im_format;
 		if (BKE_imtype_is_movie(sockdata->format.imtype)) {
 			sockdata->format.imtype= R_IMF_IMTYPE_OPENEXR;
@@ -186,7 +186,7 @@ static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack
 			BLI_join_dirfile(path, FILE_MAX, nimf->base_path, sock->name);
 			BKE_makepicstring(filename, path, bmain->name, rd->cfra, format->imtype, (rd->scemode & R_EXTENSION), TRUE);
 			
-			if(0 == BKE_write_ibuf(ibuf, filename, format))
+			if (0 == BKE_write_ibuf(ibuf, filename, format))
 				printf("Cannot save Node File Output to %s\n", filename);
 			else
 				printf("Saved: %s\n", filename);
@@ -199,7 +199,7 @@ static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack
 				has_preview = 1;
 			}
 			
-			if(in[i]->data != cbuf) 
+			if (in[i]->data != cbuf) 
 				free_compbuf(cbuf);
 		}
 	}
@@ -287,7 +287,7 @@ static void exec_output_file_multilayer(RenderData *rd, bNode *node, bNodeStack 
 	}
 	
 	/* when the filename has no permissions, this can fail */
-	if(IMB_exr_begin_write(exrhandle, filename, rectx, recty, nimf->format.exr_codec)) {
+	if (IMB_exr_begin_write(exrhandle, filename, rectx, recty, nimf->format.exr_codec)) {
 		IMB_exr_write_channels(exrhandle);
 	}
 	else {

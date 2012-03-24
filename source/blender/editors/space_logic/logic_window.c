@@ -132,15 +132,15 @@ void make_unique_prop_names(bContext *C, char *str)
 	/* for each object, make properties and sca names unique */
 	
 	/* count total names */
-	for(a=0; a<obcount; a++) {
+	for (a=0; a<obcount; a++) {
 		ob= (Object *)idar[a];
 		propcount+= BLI_countlist(&ob->prop);
 		propcount+= BLI_countlist(&ob->sensors);
 		propcount+= BLI_countlist(&ob->controllers);
 		propcount+= BLI_countlist(&ob->actuators);
 	}	
-	if(propcount==0) {
-		if(idar) MEM_freeN(idar);
+	if (propcount==0) {
+		if (idar) MEM_freeN(idar);
 		return;
 	}
 	
@@ -149,7 +149,7 @@ void make_unique_prop_names(bContext *C, char *str)
 	
 	/* count total names */
 	nr= 0;
-	for(a=0; a<obcount; a++) {
+	for (a=0; a<obcount; a++) {
 		ob= (Object *)idar[a];
 		prop= ob->prop.first;
 		while(prop) {
@@ -177,8 +177,8 @@ void make_unique_prop_names(bContext *C, char *str)
 	
 	/* now we check for double names, and change them */
 	
-	for(nr=0; nr<propcount; nr++) {
-		if(names[nr]!=str && strcmp( names[nr], str )==0 ) {
+	for (nr=0; nr<propcount; nr++) {
+		if (names[nr]!=str && strcmp( names[nr], str )==0 ) {
 			BLI_newname(str, +1);
 		}
 	}
@@ -208,19 +208,19 @@ static void old_sca_move_sensor(bContext *C, void *datav, void *move_up)
 	// val= pupmenu("Move up%x1|Move down %x2");
 	val = move_up ? 1:2;
 	
-	if(val>0) {
+	if (val>0) {
 		/* now find out which object has this ... */
 		base= FIRSTBASE;
 		while(base) {
 		
 			sens= base->object->sensors.first;
 			while(sens) {
-				if(sens == sens_to_delete) break;
+				if (sens == sens_to_delete) break;
 				sens= sens->next;
 			}
 			
-			if(sens) {
-				if( val==1 && sens->prev) {
+			if (sens) {
+				if ( val==1 && sens->prev) {
 					for (tmp=sens->prev; tmp; tmp=tmp->prev) {
 						if (tmp->flag & SENS_VISIBLE)
 							break;
@@ -230,7 +230,7 @@ static void old_sca_move_sensor(bContext *C, void *datav, void *move_up)
 						BLI_insertlinkbefore(&base->object->sensors, tmp, sens);
 					}
 				}
-				else if( val==2 && sens->next) {
+				else if ( val==2 && sens->next) {
 					for (tmp=sens->next; tmp; tmp=tmp->next) {
 						if (tmp->flag & SENS_VISIBLE)
 							break;
@@ -261,23 +261,23 @@ static void old_sca_move_controller(bContext *C, void *datav, void *move_up)
 	//val= pupmenu("Move up%x1|Move down %x2");
 	val = move_up ? 1:2;
 	
-	if(val>0) {
+	if (val>0) {
 		/* now find out which object has this ... */
 		base= FIRSTBASE;
 		while(base) {
 		
 			cont= base->object->controllers.first;
 			while(cont) {
-				if(cont == controller_to_del) break;
+				if (cont == controller_to_del) break;
 				cont= cont->next;
 			}
 			
-			if(cont) {
-				if( val==1 && cont->prev) {
+			if (cont) {
+				if ( val==1 && cont->prev) {
 					/* locate the controller that has the same state mask but is earlier in the list */
 					tmp = cont->prev;
 					while(tmp) {
-						if(tmp->state_mask & cont->state_mask) 
+						if (tmp->state_mask & cont->state_mask)
 							break;
 						tmp = tmp->prev;
 					}
@@ -286,10 +286,10 @@ static void old_sca_move_controller(bContext *C, void *datav, void *move_up)
 						BLI_insertlinkbefore(&base->object->controllers, tmp, cont);
 					}
 				}
-				else if( val==2 && cont->next) {
+				else if ( val==2 && cont->next) {
 					tmp = cont->next;
 					while(tmp) {
-						if(tmp->state_mask & cont->state_mask) 
+						if (tmp->state_mask & cont->state_mask)
 							break;
 						tmp = tmp->next;
 					}
@@ -317,19 +317,19 @@ static void old_sca_move_actuator(bContext *C, void *datav, void *move_up)
 	//val= pupmenu("Move up%x1|Move down %x2");
 	val = move_up ? 1:2;
 	
-	if(val>0) {
+	if (val>0) {
 		/* now find out which object has this ... */
 		base= FIRSTBASE;
 		while(base) {
 		
 			act= base->object->actuators.first;
 			while(act) {
-				if(act == actuator_to_move) break;
+				if (act == actuator_to_move) break;
 				act= act->next;
 			}
 			
-			if(act) {
-				if( val==1 && act->prev) {
+			if (act) {
+				if ( val==1 && act->prev) {
 					/* locate the first visible actuators before this one */
 					for (tmp = act->prev; tmp; tmp=tmp->prev) {
 						if (tmp->flag & ACT_VISIBLE)
@@ -340,7 +340,7 @@ static void old_sca_move_actuator(bContext *C, void *datav, void *move_up)
 						BLI_insertlinkbefore(&base->object->actuators, tmp, act);
 					}
 				}
-				else if( val==2 && act->next) {
+				else if ( val==2 && act->next) {
 					for (tmp=act->next; tmp; tmp=tmp->next) {
 						if (tmp->flag & ACT_VISIBLE)
 							break;
@@ -369,7 +369,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 	int didit, bit;
 	
 	ob= CTX_data_active_object(C);
-	if(ob==NULL) return;
+	if (ob==NULL) return;
 	
 	switch(event) {
 
@@ -385,8 +385,8 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		break;
 	
 	case B_ADD_SENS:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
-			if(ob->scaflag & OB_ADDSENS) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
+			if (ob->scaflag & OB_ADDSENS) {
 				ob->scaflag &= ~OB_ADDSENS;
 				sens= new_sensor(SENS_ALWAYS);
 				BLI_addtail(&(ob->sensors), sens);
@@ -399,10 +399,10 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		break;
 
 	case B_CHANGE_SENS:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			sens= ob->sensors.first;
 			while(sens) {
-				if(sens->type != sens->otype) {
+				if (sens->type != sens->otype) {
 					init_sensor(sens);
 					sens->otype= sens->type;
 					break;
@@ -413,10 +413,10 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		break;
 	
 	case B_DEL_SENS:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			sens= ob->sensors.first;
 			while(sens) {
-				if(sens->flag & SENS_DEL) {
+				if (sens->flag & SENS_DEL) {
 					BLI_remlink(&(ob->sensors), sens);
 					free_sensor(sens);
 					break;
@@ -428,8 +428,8 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		break;
 	
 	case B_ADD_CONT:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
-			if(ob->scaflag & OB_ADDCONT) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
+			if (ob->scaflag & OB_ADDCONT) {
 				ob->scaflag &= ~OB_ADDCONT;
 				cont= new_controller(CONT_LOGIC_AND);
 				make_unique_prop_names(C, cont->name);
@@ -453,8 +453,8 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		break;
 
 	case B_SET_STATE_BIT:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
-			if(ob->scaflag & OB_ALLSTATE) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
+			if (ob->scaflag & OB_ALLSTATE) {
 				ob->scaflag &= ~OB_ALLSTATE;
 				ob->state = 0x3FFFFFFF;
 			}
@@ -462,8 +462,8 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		break;
 
 	case B_INIT_STATE_BIT:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
-			if(ob->scaflag & OB_INITSTBIT) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
+			if (ob->scaflag & OB_INITSTBIT) {
 				ob->scaflag &= ~OB_INITSTBIT;
 				ob->state = ob->init_state;
 				if (!ob->state)
@@ -473,10 +473,10 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		break;
 
 	case B_CHANGE_CONT:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			cont= ob->controllers.first;
 			while(cont) {
-				if(cont->type != cont->otype) {
+				if (cont->type != cont->otype) {
 					init_controller(cont);
 					cont->otype= cont->type;
 					break;
@@ -488,10 +488,10 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 	
 
 	case B_DEL_CONT:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			cont= ob->controllers.first;
 			while(cont) {
-				if(cont->flag & CONT_DEL) {
+				if (cont->flag & CONT_DEL) {
 					BLI_remlink(&(ob->controllers), cont);
 					unlink_controller(cont);
 					free_controller(cont);
@@ -504,8 +504,8 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		break;
 
 	case B_ADD_ACT:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
-			if(ob->scaflag & OB_ADDACT) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
+			if (ob->scaflag & OB_ADDACT) {
 				ob->scaflag &= ~OB_ADDACT;
 				act= new_actuator(ACT_OBJECT);
 				make_unique_prop_names(C, act->name);
@@ -517,10 +517,10 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		break;
 
 	case B_CHANGE_ACT:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			act= ob->actuators.first;
 			while(act) {
-				if(act->type != act->otype) {
+				if (act->type != act->otype) {
 					init_actuator(act);
 					act->otype= act->type;
 					break;
@@ -531,10 +531,10 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		break;
 
 	case B_DEL_ACT:
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			act= ob->actuators.first;
 			while(act) {
-				if(act->flag & ACT_DEL) {
+				if (act->flag & ACT_DEL) {
 					BLI_remlink(&(ob->actuators), act);
 					unlink_actuator(act);
 					free_actuator(act);
@@ -549,19 +549,19 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 	case B_SOUNDACT_BROWSE:
 		/* since we don't know which... */
 		didit= 0;
-		for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			act= ob->actuators.first;
 			while(act)
 			{
-				if(act->type==ACT_SOUND)
+				if (act->type==ACT_SOUND)
 				{
 					bSoundActuator *sa= act->data;
-					if(sa->sndnr)
+					if (sa->sndnr)
 					{
 						ID *sound= bmain->sound.first;
 						int nr= 1;
 
-						if(sa->sndnr == -2) {
+						if (sa->sndnr == -2) {
 // XXX							activate_databrowse((ID *)bmain->sound.first, ID_SO, 0, B_SOUNDACT_BROWSE,
 //											&sa->sndnr, do_logic_buts);
 							break;
@@ -569,18 +569,18 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 
 						while(sound)
 						{
-							if(nr==sa->sndnr)
+							if (nr==sa->sndnr)
 								break;
 							nr++;
 							sound= sound->next;
 						}
 						
-						if(sa->sound)
+						if (sa->sound)
 							((ID *)sa->sound)->us--;
 						
 						sa->sound= (struct bSound *)sound;
 						
-						if(sound)
+						if (sound)
 							sound->us++;
 						
 						sa->sndnr= 0;
@@ -589,7 +589,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 				}
 				act= act->next;
 			}
-			if(didit)
+			if (didit)
 				break;
 		}
 
@@ -788,7 +788,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	
 	*count= 0;
 	
-	if(scene==NULL) return NULL;
+	if (scene==NULL) return NULL;
 	
 	ob= bmain->object.first;
 	while(ob) {
@@ -802,24 +802,24 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	
 	base= FIRSTBASE;
 	while(base) {
-		if(base->lay & lay) {
-			if(base->flag & SELECT) {
-				if(scavisflag & BUTS_SENS_SEL) base->object->scavisflag |= OB_VIS_SENS;
-				if(scavisflag & BUTS_CONT_SEL) base->object->scavisflag |= OB_VIS_CONT;
-				if(scavisflag & BUTS_ACT_SEL) base->object->scavisflag |= OB_VIS_ACT;
+		if (base->lay & lay) {
+			if (base->flag & SELECT) {
+				if (scavisflag & BUTS_SENS_SEL) base->object->scavisflag |= OB_VIS_SENS;
+				if (scavisflag & BUTS_CONT_SEL) base->object->scavisflag |= OB_VIS_CONT;
+				if (scavisflag & BUTS_ACT_SEL) base->object->scavisflag |= OB_VIS_ACT;
 			}
 		}
 		base= base->next;
 	}
 
-	if(obact) {
-		if(scavisflag & BUTS_SENS_ACT) obact->scavisflag |= OB_VIS_SENS;
-		if(scavisflag & BUTS_CONT_ACT) obact->scavisflag |= OB_VIS_CONT;
-		if(scavisflag & BUTS_ACT_ACT) obact->scavisflag |= OB_VIS_ACT;
+	if (obact) {
+		if (scavisflag & BUTS_SENS_ACT) obact->scavisflag |= OB_VIS_SENS;
+		if (scavisflag & BUTS_CONT_ACT) obact->scavisflag |= OB_VIS_CONT;
+		if (scavisflag & BUTS_ACT_ACT) obact->scavisflag |= OB_VIS_ACT;
 	}
 	
 	/* BUTS_XXX_STATE are similar to BUTS_XXX_LINK for selecting the object */
-	if(scavisflag & (BUTS_SENS_LINK|BUTS_CONT_LINK|BUTS_ACT_LINK|BUTS_SENS_STATE|BUTS_ACT_STATE)) {
+	if (scavisflag & (BUTS_SENS_LINK|BUTS_CONT_LINK|BUTS_ACT_LINK|BUTS_SENS_STATE|BUTS_ACT_STATE)) {
 		doit= 1;
 		while(doit) {
 			doit= 0;
@@ -828,51 +828,51 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 			while(ob) {
 			
 				/* 1st case: select sensor when controller selected */
-				if((scavisflag & (BUTS_SENS_LINK|BUTS_SENS_STATE)) && (ob->scavisflag & OB_VIS_SENS)==0) {
+				if ((scavisflag & (BUTS_SENS_LINK|BUTS_SENS_STATE)) && (ob->scavisflag & OB_VIS_SENS)==0) {
 					sens= ob->sensors.first;
 					while(sens) {
-						for(a=0; a<sens->totlinks; a++) {
-							if(sens->links[a]) {
+						for (a=0; a<sens->totlinks; a++) {
+							if (sens->links[a]) {
 								obt= (Object *)sens->links[a]->mynew;
-								if(obt && (obt->scavisflag & OB_VIS_CONT)) {
+								if (obt && (obt->scavisflag & OB_VIS_CONT)) {
 									doit= 1;
 									ob->scavisflag |= OB_VIS_SENS;
 									break;
 								}
 							}
 						}
-						if(doit) break;
+						if (doit) break;
 						sens= sens->next;
 					}
 				}
 				
 				/* 2nd case: select cont when act selected */
-				if((scavisflag & BUTS_CONT_LINK)  && (ob->scavisflag & OB_VIS_CONT)==0) {
+				if ((scavisflag & BUTS_CONT_LINK)  && (ob->scavisflag & OB_VIS_CONT)==0) {
 					cont= ob->controllers.first;
 					while(cont) {
-						for(a=0; a<cont->totlinks; a++) {
-							if(cont->links[a]) {
+						for (a=0; a<cont->totlinks; a++) {
+							if (cont->links[a]) {
 								obt= (Object *)cont->links[a]->mynew;
-								if(obt && (obt->scavisflag & OB_VIS_ACT)) {
+								if (obt && (obt->scavisflag & OB_VIS_ACT)) {
 									doit= 1;
 									ob->scavisflag |= OB_VIS_CONT;
 									break;
 								}
 							}
 						}
-						if(doit) break;
+						if (doit) break;
 						cont= cont->next;
 					}
 				}
 				
 				/* 3rd case: select controller when sensor selected */
-				if((scavisflag & BUTS_CONT_LINK) && (ob->scavisflag & OB_VIS_SENS)) {
+				if ((scavisflag & BUTS_CONT_LINK) && (ob->scavisflag & OB_VIS_SENS)) {
 					sens= ob->sensors.first;
 					while(sens) {
-						for(a=0; a<sens->totlinks; a++) {
-							if(sens->links[a]) {
+						for (a=0; a<sens->totlinks; a++) {
+							if (sens->links[a]) {
 								obt= (Object *)sens->links[a]->mynew;
-								if(obt && (obt->scavisflag & OB_VIS_CONT)==0) {
+								if (obt && (obt->scavisflag & OB_VIS_CONT)==0) {
 									doit= 1;
 									obt->scavisflag |= OB_VIS_CONT;
 								}
@@ -883,13 +883,13 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 				}
 				
 				/* 4th case: select actuator when controller selected */
-				if( (scavisflag & (BUTS_ACT_LINK|BUTS_ACT_STATE))  && (ob->scavisflag & OB_VIS_CONT)) {
+				if ( (scavisflag & (BUTS_ACT_LINK|BUTS_ACT_STATE))  && (ob->scavisflag & OB_VIS_CONT)) {
 					cont= ob->controllers.first;
 					while(cont) {
-						for(a=0; a<cont->totlinks; a++) {
-							if(cont->links[a]) {
+						for (a=0; a<cont->totlinks; a++) {
+							if (cont->links[a]) {
 								obt= (Object *)cont->links[a]->mynew;
-								if(obt && (obt->scavisflag & OB_VIS_ACT)==0) {
+								if (obt && (obt->scavisflag & OB_VIS_ACT)==0) {
 									doit= 1;
 									obt->scavisflag |= OB_VIS_ACT;
 								}
@@ -907,12 +907,12 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	/* now we count */
 	ob= bmain->object.first;
 	while(ob) {
-		if( ob->scavisflag ) (*count)++;
+		if ( ob->scavisflag ) (*count)++;
 		ob= ob->id.next;
 	}
 
-	if(*count==0) return NULL;
-	if(*count>24) *count= 24;		/* temporal */
+	if (*count==0) return NULL;
+	if (*count>24) *count= 24;		/* temporal */
 	
 	idar= MEM_callocN( (*count)*sizeof(void *), "idar");
 	
@@ -926,11 +926,11 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	}
 
 	while(ob) {
-		if( (ob->scavisflag) && (ob != obact)) {
+		if ( (ob->scavisflag) && (ob != obact)) {
 			idar[nr]= (ID *)ob;
 			nr++;
 		}
-		if(nr>=24) break;
+		if (nr>=24) break;
 		ob= ob->id.next;
 	}
 	
@@ -975,8 +975,8 @@ static void verify_logicbutton_func(bContext *UNUSED(C), void *data1, void *data
 {
 	bSensor *sens= (bSensor*)data1;
 	
-	if(sens->level && sens->tap) {
-		if(data2 == &(sens->level))	
+	if (sens->level && sens->tap) {
+		if (data2 == &(sens->level))
 			sens->tap= 0;
 		else
 			sens->level= 0;
@@ -991,7 +991,7 @@ static void test_scriptpoin_but(struct bContext *C, const char *name, ID **idpp)
 static void test_actionpoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->action, name, offsetof(ID, name) + 2);
-	if(*idpp)
+	if (*idpp)
 		id_us_plus(*idpp);
 }
 
@@ -999,28 +999,28 @@ static void test_actionpoin_but(struct bContext *C, const char *name, ID **idpp)
 static void test_obpoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->object, name, offsetof(ID, name) + 2);
-	if(*idpp)
+	if (*idpp)
 		id_lib_extern(*idpp);	/* checks lib data, sets correct flag for saving then */
 }
 
 static void test_meshpoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->mesh, name, offsetof(ID, name) + 2);
-	if(*idpp)
+	if (*idpp)
 		id_us_plus(*idpp);
 }
 
 static void test_matpoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->mat, name, offsetof(ID, name) + 2);
-	if(*idpp)
+	if (*idpp)
 		id_us_plus(*idpp);
 }
 
 static void test_scenepoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->scene, name, offsetof(ID, name) + 2);
-	if(*idpp)
+	if (*idpp)
 		id_us_plus(*idpp);
 }
 
@@ -1028,11 +1028,11 @@ static void test_keyboard_event(struct bContext *UNUSED(C), void *arg_ks, void *
 {
 	bKeyboardSensor *ks= (bKeyboardSensor*)arg_ks;
 	
-	if(!ISKEYBOARD(ks->key))
+	if (!ISKEYBOARD(ks->key))
 		ks->key= 0;
-	if(!ISKEYBOARD(ks->qual))
+	if (!ISKEYBOARD(ks->qual))
 		ks->qual= 0;
-	if(!ISKEYBOARD(ks->qual2))
+	if (!ISKEYBOARD(ks->qual2))
 		ks->qual2= 0;
 }
 
@@ -1090,9 +1090,9 @@ static void get_armature_bone_constraint(Object *ob, const char *posechannel, co
 	/* check that bone exist in the active object */
 	if (ob->type == OB_ARMATURE && ob->pose) {
 		bPoseChannel *pchan= get_pose_channel(ob->pose, posechannel);
-		if(pchan) {
+		if (pchan) {
 			bConstraint *con= BLI_findstring(&pchan->constraints, constraint_name, offsetof(bConstraint, name));
-			if(con) {
+			if (con) {
 				*constraint= con;
 			}
 		}
@@ -1218,7 +1218,8 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 				uiDefBut(block, TEX, 1, "Material:", (short)(xco + 10 + 0.40 * (width-20)),
 					(short)(yco-44), (short)(0.6*(width-20)), 19, &cs->materialName, 0, MAX_NAME, 0, 0,
 					"Only look for Objects with this material");
-			} else {
+			}
+			else {
 				uiDefBut(block, TEX, 1, "Property:", (short)(xco + 10 + 0.40 * (width-20)), (short)(yco-44),
 					(short)(0.6*(width-20)), 19, &cs->name, 0, MAX_NAME, 0, 0,
 					"Only look for Objects with this property");
@@ -1352,14 +1353,14 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 					ps->name, 0, MAX_NAME, 0, 0,  "Property name");
 			}
 			
-			if(ps->type == SENS_PROP_INTERVAL)
+			if (ps->type == SENS_PROP_INTERVAL)
 			{
 				uiDefBut(block, TEX, 1, "Min: ",		xco,yco-92,width/2, 19,
 					ps->value, 0, MAX_NAME, 0, 0, "check for min value");
 				uiDefBut(block, TEX, 1, "Max: ",		xco+width/2,yco-92,width/2, 19,
 					ps->maxvalue, 0, MAX_NAME, 0, 0, "check for max value");
 			}
-			else if(ps->type == SENS_PROP_CHANGED) {
+			else if (ps->type == SENS_PROP_CHANGED) {
 				/* pass */
 			}
 			else {
@@ -1469,7 +1470,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 				&ms->type, 0, 31, 0, 0,
 				"Specify the type of event this mouse sensor should trigger on");
 			
-			if(ms->type==32) {
+			if (ms->type==32) {
 				uiDefButBitS(block, TOG, SENS_MOUSE_FOCUS_PULSE, B_REDR, "Pulse",(short)(xco + 10) + (width*0.8f)-20,(short)(yco - 44),
 					(short)(0.20 * (width-20)), 19, &ms->flag, 0.0, 0.0, 0, 0,
 					"Moving the mouse over a different object generates a pulse");	
@@ -1599,7 +1600,8 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 						str = "All Hat Events";
 						break;
 					}
-				} else {
+				}
+				else {
 					str = "All";
 				}
 				
@@ -1608,7 +1610,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 					&joy->flag, 0, 0, 0, 0,
 					"Triggered by all events on this joysticks current type (axis/button/hat)");
 			}
-			if(joy->type == SENS_JOY_BUTTON)
+			if (joy->type == SENS_JOY_BUTTON)
 			{
 				if ((joy->flag & SENS_JOY_ANY_EVENT)==0) {
 					uiDefButI(block, NUM, 1, "Number:", xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
@@ -1616,7 +1618,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 					"Specify which button to use");
 				}
 			}
-			else if(joy->type == SENS_JOY_AXIS) {
+			else if (joy->type == SENS_JOY_AXIS) {
 				uiDefButS(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
 				&joy->axis, 1, 8.0, 100, 0,
 				"Specify which axis pair to use, 1 is useually the main direction input");
@@ -1689,7 +1691,7 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 	case CONT_PYTHON:
 		ysize= 28;
 		
-		if(cont->data==NULL) init_controller(cont);
+		if (cont->data==NULL) init_controller(cont);
 		pc= cont->data;
 		
 		UI_ThemeColor(TH_PANEL);
@@ -1699,7 +1701,7 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 	
 		uiBlockBeginAlign(block);
 		uiDefButI(block, MENU, B_REDR, "Execution Method%t|Script%x0|Module%x1", xco+4,yco-23, 66, 19, &pc->mode, 0, 0, 0, 0, "Python script type (textblock or module - faster)");
-		if(pc->mode==0)
+		if (pc->mode==0)
 			uiDefIDPoinBut(block, test_scriptpoin_but, ID_TXT, 1, "", xco+70,yco-23,width-74, 19, &pc->text, "Blender textblock to run as a script");
 		else {
 			uiDefBut(block, TEX, 1, "", xco+70,yco-23,(width-70)-25, 19, pc->module, 0, sizeof(pc->module), 0, 0, "Module name and function to run e.g. \"someModule.main\". Internal texts and external python files can be used");
@@ -1945,7 +1947,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 				
 					uiDefButBitS(block, TOG, ACT_ADD_LIN_VEL, 0, "use_additive",xco+45+3*wval+15, yco-129, 35, 19, &oa->flag, 0.0, 0.0, 0, 0, "Toggles between ADD and SET linV");
 				}				
-			} else if (oa->type == ACT_OBJECT_SERVO)
+			}
+			else if (oa->type == ACT_OBJECT_SERVO)
 			{
 				ysize= 195;
 				
@@ -2026,7 +2029,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					 &aa->end_reset, 0.0, 0.0, 0, 0, "Restore last frame when switching on/off, otherwise play from the start each time");
 			
 			
-			if(aa->type == ACT_ACTION_FROM_PROP) {
+			if (aa->type == ACT_ACTION_FROM_PROP) {
 				uiDefBut(block, TEX, 0, "Prop: ",xco+10, yco-44, width-20, 19, aa->name, 0.0, MAX_NAME, 0, 0, "Use this property to define the Action position");
 			}
 			else {
@@ -2084,7 +2087,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					"Let the ipo acts in local coordinates, used in Force and Add mode"); 
 			}
 
-			if(ia->type==ACT_IPO_FROM_PROP) {
+			if (ia->type==ACT_IPO_FROM_PROP) {
 				uiDefBut(block, TEX, 0, 
 					"Prop: ",		xco+10, yco-44, width-80, 19, 
 					ia->name, 0.0, MAX_NAME, 0, 0,
@@ -2127,11 +2130,11 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			uiDefBut(block, TEX, 1, "Prop: ",		xco+30,yco-44,width-60, 19, pa->name, 0, MAX_NAME, 0, 0, "Property name");
 			
 			
-			if(pa->type==ACT_PROP_TOGGLE) {
+			if (pa->type==ACT_PROP_TOGGLE) {
 				/* no ui */
 				ysize -= 22;
 			}
-			else if(pa->type==ACT_PROP_COPY) {
+			else if (pa->type==ACT_PROP_COPY) {
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",	xco+10, yco-64, (width-20)/2, 19, &(pa->ob), "Copy from this Object");
 				uiDefBut(block, TEX, 1, "Prop: ",		xco+10+(width-20)/2, yco-64, (width-20)/2, 19, pa->value, 0, MAX_NAME, 0, 0, "Copy this property");
 			}
@@ -2147,7 +2150,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			sa = act->data;
 			sa->sndnr = 0;
 			
-			if(sa->flag & ACT_SND_3D_SOUND)
+			if (sa->flag & ACT_SND_3D_SOUND)
 				ysize = 180;
 			else
 				ysize = 92;
@@ -2156,7 +2159,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 			
-			if(bmain->sound.first) {
+			if (bmain->sound.first) {
 				IDnames_to_pupstring(&str, "Sound files", NULL, &(bmain->sound), (ID *)sa->sound, &(sa->sndnr));
 				/* reset this value, it is for handling the event */
 				sa->sndnr = 0;
@@ -2164,7 +2167,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+wval+10, yco-22, wval, 19,
 				          "Load a sound file (remember to set caching on for small sounds that are played often)");
 
-				if(sa->sound) {
+				if (sa->sound) {
 					char dummy_str[] = "Sound mode %t|Play Stop %x0|Play End %x1|Loop Stop %x2|"
 					                   "Loop End %x3|Loop Ping Pong Stop %x5|Loop Ping Pong %x4";
 					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,wval-20,19,
@@ -2177,7 +2180,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					          12.0, 0, 0, "Sets the pitch of this sound");
 					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19,
 					          &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space");
-					if(sa->flag & ACT_SND_3D_SOUND) {
+					if (sa->flag & ACT_SND_3D_SOUND) {
 						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19,
 						          &sa->sound3D.min_gain, 0.0, 1.0, 0.0, 0.0,
 						          "The minimum gain of the sound, no matter how far it is away");
@@ -2229,7 +2232,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		
 		uiDefButF(block, NUM, 0, "Min:",	xco+10, yco-44, (width-60)/2, 19, &ca->min, 0.0, 20.0, 0, 0, "");
 		
-		if(ca->axis==0) ca->axis= 'x';
+		if (ca->axis==0) ca->axis= 'x';
 		uiDefButS(block, ROW, 0, "X",	xco+10+(width-60)/2, yco-44, 20, 19, &ca->axis, 4.0, (float)'x', 0, 0, "Camera tries to get behind the X axis");
 		uiDefButS(block, ROW, 0, "Y",	xco+30+(width-60)/2, yco-44, 20, 19, &ca->axis, 4.0, (float)'y', 0, 0, "Camera tries to get behind the Y axis");
 		
@@ -2243,7 +2246,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		
 		eoa= act->data;
 
-		if(eoa->type==ACT_EDOB_ADD_OBJECT) {
+		if (eoa->type==ACT_EDOB_ADD_OBJECT) {
 			ysize = 92;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
@@ -2287,12 +2290,12 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					 
 
 		}
-		else if(eoa->type==ACT_EDOB_END_OBJECT) {
+		else if (eoa->type==ACT_EDOB_END_OBJECT) {
 			ysize= 28;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 		}
-		else if(eoa->type==ACT_EDOB_REPLACE_MESH) {
+		else if (eoa->type==ACT_EDOB_REPLACE_MESH) {
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
@@ -2302,7 +2305,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			uiDefButBitS(block, TOGN, ACT_EDOB_REPLACE_MESH_NOGFX, 0, "Gfx",	xco+40 + (width-80)/2, yco-44, (width-80)/4, 19, &eoa->flag, 0, 0, 0, 0, "Replace the display mesh");
 			uiDefButBitS(block, TOG, ACT_EDOB_REPLACE_MESH_PHYS, 0, "Phys",	xco+40 + (width-80)/2 +(width-80)/4, yco-44, (width-80)/4, 19, &eoa->flag, 0, 0, 0, 0, "Replace the physics mesh (triangle bounds only. compound shapes not supported)");
 		}
-		else if(eoa->type==ACT_EDOB_TRACK_TO) {
+		else if (eoa->type==ACT_EDOB_TRACK_TO) {
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
@@ -2311,14 +2314,14 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			uiDefButI(block, NUM, 0, "Time:",	xco+10+(width-20)/2, yco-44, (width-20)/2-40, 19, &eoa->time, 0.0, 2000.0, 0, 0, "Duration the tracking takes");
 			uiDefButS(block, TOG, 0, "3D",	xco+width-50, yco-44, 40, 19, &eoa->flag, 0.0, 0.0, 0, 0, "Enable 3D tracking");
 		}
-		else if(eoa->type==ACT_EDOB_DYNAMICS) {
+		else if (eoa->type==ACT_EDOB_DYNAMICS) {
 			ysize= 69;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 			
 			str= "Dynamic Operation %t|Restore Dynamics %x0|Suspend Dynamics %x1|Enable Rigid Body %x2|Disable Rigid Body %x3|Set Mass %x4";
 			uiDefButS(block, MENU, B_REDR, str,		xco+40, yco-44, (width-80), 19,  &(eoa->dyn_operation), 0.0, 0.0, 0, 0, "");
-			if(eoa->dyn_operation==4) {
+			if (eoa->dyn_operation==4) {
 				uiDefButF(block, NUM, 0, "",		xco+40, yco-63, width-80, 19,
 					 &eoa->mass, 0.0, 10000.0, 10, 0,
 					 "Mass for object");
@@ -2351,16 +2354,17 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			uiDefBut(block, LABEL,			0, "Min",	xco+80, yco-45, (width-90)/2, 19, NULL, 0.0, 0.0, 0, 0, "");
 			uiDefBut(block, LABEL,			0, "Max",	xco+80+(width-90)/2, yco-45, (width-90)/2, 19, NULL, 0.0, 0.0, 0, 0, "");
 
-			if(coa->flag & ACT_CONST_LOCX) fp= coa->minloc;
-			else if(coa->flag & ACT_CONST_LOCY) fp= coa->minloc+1;
-			else if(coa->flag & ACT_CONST_LOCZ) fp= coa->minloc+2;
-			else if(coa->flag & ACT_CONST_ROTX) fp= coa->minrot;
-			else if(coa->flag & ACT_CONST_ROTY) fp= coa->minrot+1;
+			if (coa->flag & ACT_CONST_LOCX) fp= coa->minloc;
+			else if (coa->flag & ACT_CONST_LOCY) fp= coa->minloc+1;
+			else if (coa->flag & ACT_CONST_LOCZ) fp= coa->minloc+2;
+			else if (coa->flag & ACT_CONST_ROTX) fp= coa->minrot;
+			else if (coa->flag & ACT_CONST_ROTY) fp= coa->minrot+1;
 			else fp= coa->minrot+2;
 			
 			uiDefButF(block, NUM, 0, "",		xco+80, yco-65, (width-90)/2, 19, fp, -2000.0, 2000.0, 10, 0, "");
 			uiDefButF(block, NUM, 0, "",		xco+80+(width-90)/2, yco-65, (width-90)/2, 19, fp+3, -2000.0, 2000.0, 10, 0, "");
-		} else if (coa->type == ACT_CONST_TYPE_DIST) {
+		}
+		else if (coa->type == ACT_CONST_TYPE_DIST) {
 			ysize= 106;
 
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2375,8 +2379,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			uiDefButBitS(block, TOG, ACT_CONST_LOCAL, 0, "L", xco+80+(width-115), yco-45, 25, 19,
 					 &coa->flag, 0.0, 0.0, 0, 0, "Set ray along object's axis or global axis");
 
-			if(coa->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= coa->minloc;
-			else if(coa->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= coa->minloc+1;
+			if (coa->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= coa->minloc;
+			else if (coa->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= coa->minloc+1;
 			else fp= coa->minloc+2;
 
 			uiDefButF(block, NUM, 0, "",		xco+80, yco-65, (width-115)/2, 19, fp+3, 0.0, 2000.0, 10, 0, "Maximum length of ray");
@@ -2400,7 +2404,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 				&coa->flag, 0.0, 0.0, 0, 0, "Persistent actuator: stays active even if ray does not reach target");
 			uiDefButS(block, NUM, 0, "time", xco+50, yco-103, (width-60)/2, 19, &(coa->time), 0.0, 1000.0, 0, 0, "Maximum activation time in frame, 0 for unlimited");
 			uiDefButS(block, NUM, 0, "rotDamp", xco+50+(width-60)/2, yco-103, (width-60)/2, 19, &(coa->rotdamp), 0.0, 100.0, 0, 0, "Use a different damping for orientation");
-		} else if (coa->type == ACT_CONST_TYPE_ORI) {
+		}
+		else if (coa->type == ACT_CONST_TYPE_ORI) {
 			ysize= 87;
 
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2421,7 +2426,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			uiDefButS(block, NUM, 0, "time", xco+10, yco-84, 70, 19, &(coa->time), 0.0, 1000.0, 0, 0, "Maximum activation time in frame, 0 for unlimited");
 			uiDefButF(block, NUM, 0, "min", xco+80, yco-84, (width-115)/2, 19, &(coa->minloc[0]), 0.0, 180.0, 10, 1, "Minimum angle (in degree) to maintain with target direction. No correction is done if angle with target direction is between min and max");
 			uiDefButF(block, NUM, 0, "max", xco+80+(width-115)/2, yco-84, (width-115)/2, 19, &(coa->maxloc[0]), 0.0, 180.0, 10, 1, "Maximum angle (in degree) allowed with target direction. No correction is done if angle with target direction is between min and max");
-		} else if (coa->type == ACT_CONST_TYPE_FH) {
+		}
+		else if (coa->type == ACT_CONST_TYPE_FH) {
 			ysize= 106;
 
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2430,8 +2436,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			str= "Direction %t|None %x0|X axis %x1|Y axis %x2|Z axis %x4|-X axis %x8|-Y axis %x16|-Z axis %x32";
 			uiDefButS(block, MENU, B_REDR, str,		xco+10, yco-65, 70, 19, &coa->mode, 0.0, 0.0, 0, 0, "Set the direction of the ray (in world coordinate)");
 
-			if(coa->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= coa->minloc;
-			else if(coa->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= coa->minloc+1;
+			if (coa->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= coa->minloc;
+			else if (coa->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= coa->minloc+1;
 			else fp= coa->minloc+2;
 
 			uiDefButF(block, NUM,		0, "damp",	xco+10, yco-45, (width-70)/2, 19, &coa->maxrot[0], 0.0, 1.0, 1, 0, "Damping factor of the Fh spring force");
@@ -2466,12 +2472,12 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 	case ACT_SCENE:
 		sca= act->data;
 		
-		if(sca->type==ACT_SCENE_RESTART) {
+		if (sca->type==ACT_SCENE_RESTART) {
 			ysize= 28;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 		}
-		else if(sca->type==ACT_SCENE_CAMERA) {
+		else if (sca->type==ACT_SCENE_CAMERA) {
 
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2479,7 +2485,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 
 			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(sca->camera), "Set this Camera. Leave empty to refer to self object");
 		}
-		else if(sca->type==ACT_SCENE_SET) {
+		else if (sca->type==ACT_SCENE_SET) {
 			
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2487,7 +2493,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 
 			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Set this Scene");
 		}
-		else if(sca->type==ACT_SCENE_ADD_FRONT) { 
+		else if (sca->type==ACT_SCENE_ADD_FRONT) {
 			
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2495,7 +2501,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 
 			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Add an Overlay Scene");
 		}
-		else if(sca->type==ACT_SCENE_ADD_BACK) { 
+		else if (sca->type==ACT_SCENE_ADD_BACK) {
 			
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2503,7 +2509,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 
 			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Add a Background Scene");
 		}
-		else if(sca->type==ACT_SCENE_REMOVE) { 
+		else if (sca->type==ACT_SCENE_REMOVE) {
 			
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2511,7 +2517,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 
 			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Remove a Scene");
 		}
-		else if(sca->type==ACT_SCENE_SUSPEND) { 
+		else if (sca->type==ACT_SCENE_SUSPEND) {
 			
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2519,7 +2525,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 
 			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Pause a Scene");
 		}
-		else if(sca->type==ACT_SCENE_RESUME) { 
+		else if (sca->type==ACT_SCENE_RESUME) {
 			
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2578,11 +2584,11 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		str= "GroupKey types   %t|Set Key %x6|Play %x0|Ping Pong %x1|Flipper %x2|Loop Stop %x3|Loop End %x4|Property %x5";
 
 		uiDefButS(block, MENU, 1, str,			xco+20, yco-24, width-40, 19, &ga->type, 0, 0, 0, 0, "");
-		if(ga->type==ACT_GROUP_SET) {
+		if (ga->type==ACT_GROUP_SET) {
 			uiDefBut(block, TEX, 0, "Key: ",		xco+20, yco-44, (width-10)/2, 19, ga->name, 0.0, MAX_NAME, 0, 0, "This name defines groupkey to be set");
 			uiDefButI(block, NUM, 0, "Frame:",	xco+20+(width-10)/2, yco-44, (width-70)/2, 19, &ga->sta, 0.0, 2500.0, 0, 0, "Set this frame");
 		}
-		else if(ga->type==ACT_GROUP_FROM_PROP) {
+		else if (ga->type==ACT_GROUP_FROM_PROP) {
 			uiDefBut(block, TEX, 0, "Prop: ",		xco+20, yco-44, width-40, 19, ga->name, 0.0, MAX_NAME, 0, 0, "Use this property to define the Group position");
 		}
 		else {
@@ -2860,7 +2866,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 	case ACT_PARENT:
 		parAct = act->data;
 
-		if(parAct->type==ACT_PARENT_SET) {
+		if (parAct->type==ACT_PARENT_SET) {
 			
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2879,7 +2885,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			"Make this object ghost while parented (only if not compound)");
 			uiBlockEndAlign(block);
 		}
-		else if(parAct->type==ACT_PARENT_REMOVE) {
+		else if (parAct->type==ACT_PARENT_REMOVE) {
 
 			ysize= 28;
 			glRects(xco, yco-ysize, xco+width, yco);
@@ -2958,23 +2964,23 @@ static void do_sensor_menu(bContext *C, void *UNUSED(arg), int event)
 	
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
 	
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
-		if(event==0 || event==2) ob->scaflag |= OB_SHOWSENS;
-		else if(event==1) ob->scaflag &= ~OB_SHOWSENS;
+		if (event==0 || event==2) ob->scaflag |= OB_SHOWSENS;
+		else if (event==1) ob->scaflag &= ~OB_SHOWSENS;
 	}
 		
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		sens= ob->sensors.first;
 		while(sens) {
-			if(event==2) sens->flag |= SENS_SHOW;
-			else if(event==3) sens->flag &= ~SENS_SHOW;
+			if (event==2) sens->flag |= SENS_SHOW;
+			else if (event==3) sens->flag &= ~SENS_SHOW;
 			sens= sens->next;
 		}
 	}
 
-	if(idar) MEM_freeN(idar);
+	if (idar) MEM_freeN(idar);
 }
 
 static uiBlock *sensor_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
@@ -3007,23 +3013,23 @@ static void do_controller_menu(bContext *C, void *UNUSED(arg), int event)
 	
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
 	
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
-		if(event==0 || event==2) ob->scaflag |= OB_SHOWCONT;
-		else if(event==1) ob->scaflag &= ~OB_SHOWCONT;
+		if (event==0 || event==2) ob->scaflag |= OB_SHOWCONT;
+		else if (event==1) ob->scaflag &= ~OB_SHOWCONT;
 	}
 
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		cont= ob->controllers.first;
 		while(cont) {
-			if(event==2) cont->flag |= CONT_SHOW;
-			else if(event==3) cont->flag &= ~CONT_SHOW;
+			if (event==2) cont->flag |= CONT_SHOW;
+			else if (event==3) cont->flag &= ~CONT_SHOW;
 			cont= cont->next;
 		}
 	}
 
-	if(idar) MEM_freeN(idar);
+	if (idar) MEM_freeN(idar);
 }
 
 static uiBlock *controller_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
@@ -3056,23 +3062,23 @@ static void do_actuator_menu(bContext *C, void *UNUSED(arg), int event)
 	
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
 	
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
-		if(event==0 || event==2) ob->scaflag |= OB_SHOWACT;
-		else if(event==1) ob->scaflag &= ~OB_SHOWACT;
+		if (event==0 || event==2) ob->scaflag |= OB_SHOWACT;
+		else if (event==1) ob->scaflag &= ~OB_SHOWACT;
 	}
 
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		act= ob->actuators.first;
 		while(act) {
-			if(event==2) act->flag |= ACT_SHOW;
-			else if(event==3) act->flag &= ~ACT_SHOW;
+			if (event==2) act->flag |= ACT_SHOW;
+			else if (event==3) act->flag &= ~ACT_SHOW;
 			act= act->next;
 		}
 	}
 
-	if(idar) MEM_freeN(idar);
+	if (idar) MEM_freeN(idar);
 }
 
 static uiBlock *actuator_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
@@ -3212,10 +3218,11 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 	row= uiLayoutRow(box, 0);
 	
 	uiItemR(row, ptr, "show_expanded", UI_ITEM_R_NO_BG, "", ICON_NONE);
-	if(RNA_boolean_get(ptr, "show_expanded")) {
+	if (RNA_boolean_get(ptr, "show_expanded")) {
 		uiItemR(row, ptr, "type", 0, "", ICON_NONE);
 		uiItemR(row, ptr, "name", 0, "", ICON_NONE);
-	} else {
+	}
+	else {
 		uiItemL(row, sensor_name(sens->type), ICON_NONE);
 		uiItemL(row, sens->name, ICON_NONE);
 	}
@@ -3225,7 +3232,7 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 							&& RNA_boolean_get(ptr, "show_expanded")) || RNA_boolean_get(ptr, "pin")));
 	uiItemR(sub, ptr, "pin", UI_ITEM_R_NO_BG, "", ICON_NONE);
 
-	if(RNA_boolean_get(ptr, "show_expanded")==0) {
+	if (RNA_boolean_get(ptr, "show_expanded")==0) {
 		sub= uiLayoutRow(row, 1);
 		uiItemEnumO(sub, "LOGIC_OT_sensor_move", "", ICON_TRIA_UP, "direction", 1); // up
 		uiItemEnumO(sub, "LOGIC_OT_sensor_move", "", ICON_TRIA_DOWN, "direction", 2); // down
@@ -3276,7 +3283,7 @@ static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 	PropertyRNA *bones_prop= NULL;
 	uiLayout *row;
 
-	if(ob->type != OB_ARMATURE){
+	if (ob->type != OB_ARMATURE) {
 		uiItemL(layout, "Sensor only available for armatures", ICON_NONE);
 		return;
 	}
@@ -3569,12 +3576,13 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr, int xco, i
 	row= uiLayoutRow(box, 0);
 	
 	uiItemR(row, ptr, "show_expanded", UI_ITEM_R_NO_BG, "", ICON_NONE);
-	if(RNA_boolean_get(ptr, "show_expanded")) {
+	if (RNA_boolean_get(ptr, "show_expanded")) {
 		uiItemR(row, ptr, "type", 0, "", ICON_NONE);
 		uiItemR(row, ptr, "name", 0, "", ICON_NONE);
 		/* XXX provisory for Blender 2.50Beta */
 		uiDefBlockBut(uiLayoutGetBlock(layout), controller_state_mask_menu, cont, state, (short)(xco+width-44), yco, 22+22, UI_UNIT_Y, "Set controller state index (from 1 to 30)");
-	} else {
+	}
+	else {
 		uiItemL(row, controller_name(cont->type), ICON_NONE);
 		uiItemL(row, cont->name, ICON_NONE);
 		uiItemL(row, state, ICON_NONE);
@@ -3582,7 +3590,7 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr, int xco, i
 
 	uiItemR(row, ptr, "use_priority", 0, "", ICON_NONE);
 
-	if(RNA_boolean_get(ptr, "show_expanded")==0) {
+	if (RNA_boolean_get(ptr, "show_expanded")==0) {
 		sub= uiLayoutRow(row, 1);
 		uiItemEnumO(sub, "LOGIC_OT_controller_move", "", ICON_TRIA_UP, "direction", 1); // up
 		uiItemEnumO(sub, "LOGIC_OT_controller_move", "", ICON_TRIA_DOWN, "direction", 2); // down
@@ -3659,10 +3667,11 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *
 	row= uiLayoutRow(box, 0);
 	
 	uiItemR(row, ptr, "show_expanded", UI_ITEM_R_NO_BG, "", ICON_NONE);
-	if(RNA_boolean_get(ptr, "show_expanded")) {
+	if (RNA_boolean_get(ptr, "show_expanded")) {
 		uiItemR(row, ptr, "type", 0, "", ICON_NONE);
 		uiItemR(row, ptr, "name", 0, "", ICON_NONE);
-	} else {
+	}
+	else {
 		uiItemL(row, actuator_name(act->type), ICON_NONE);
 		uiItemL(row, act->name, ICON_NONE);
 	}
@@ -3672,7 +3681,7 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *
 							&& RNA_boolean_get(ptr, "show_expanded")) || RNA_boolean_get(ptr, "pin")));
 	uiItemR(sub, ptr, "pin", UI_ITEM_R_NO_BG, "", ICON_NONE);
 
-	if(RNA_boolean_get(ptr, "show_expanded")==0) {
+	if (RNA_boolean_get(ptr, "show_expanded")==0) {
 		sub= uiLayoutRow(row, 1);
 		uiItemEnumO(sub, "LOGIC_OT_actuator_move", "", ICON_TRIA_UP, "direction", 1); // up
 		uiItemEnumO(sub, "LOGIC_OT_actuator_move", "", ICON_TRIA_DOWN, "direction", 2); // down
@@ -3704,7 +3713,7 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "use_continue_last_frame", 0, NULL, ICON_NONE);
 
 	row= uiLayoutRow(layout, 0);
-	if((RNA_enum_get(ptr, "play_mode") == ACT_ACTION_FROM_PROP))
+	if ((RNA_enum_get(ptr, "play_mode") == ACT_ACTION_FROM_PROP))
 		uiItemPointerR(row, ptr, "property", &settings_ptr, "properties", NULL, ICON_NONE);
 
 	else {
@@ -3738,7 +3747,7 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 	PointerRNA pose_ptr, pchan_ptr;
 	PropertyRNA *bones_prop = NULL;
 
-	if(ob->type != OB_ARMATURE){
+	if (ob->type != OB_ARMATURE) {
 		uiItemL(layout, "Actuator only available for armatures", ICON_NONE);
 		return;
 	}
@@ -3945,7 +3954,7 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 		case ACT_EDOB_END_OBJECT:
 			break;
 		case ACT_EDOB_REPLACE_MESH:
-			if(ob->type != OB_MESH) {
+			if (ob->type != OB_MESH) {
 				uiItemL(layout, "Mode only available for mesh objects", ICON_NONE);
 				break;
 			}
@@ -3963,7 +3972,7 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(sub, ptr, "use_3d_tracking", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 			break;
 		case ACT_EDOB_DYNAMICS:
-			if(ob->type != OB_MESH) {
+			if (ob->type != OB_MESH) {
 				uiItemL(layout, "Mode only available for mesh objects", ICON_NONE);
 				break;
 			}
@@ -4022,7 +4031,7 @@ static void draw_actuator_message(uiLayout *layout, PointerRNA *ptr, bContext *C
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "body_type", 0, NULL, ICON_NONE);
 
-	if(RNA_enum_get(ptr, "body_type") == ACT_MESG_MESG)
+	if (RNA_enum_get(ptr, "body_type") == ACT_MESG_MESG)
 		uiItemR(row, ptr, "body_message", 0, "", ICON_NONE);
 	else // mode == ACT_MESG_PROP
 		uiItemPointerR(row, ptr, "body_property", &settings_ptr, "properties", "", ICON_NONE);
@@ -4199,7 +4208,7 @@ static void draw_actuator_random(uiLayout *layout, PointerRNA *ptr)
 
 	row = uiLayoutRow(layout, 0);
 
-	switch (RNA_enum_get(ptr, "distribution")){
+	switch (RNA_enum_get(ptr, "distribution")) {
 		case ACT_RANDOM_BOOL_CONST:
 			uiItemR(row, ptr, "use_always_true", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 			break;
@@ -4267,7 +4276,7 @@ static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 	PointerRNA settings_ptr;
 	uiLayout *row;
 
-	if(ob->type != OB_MESH){
+	if (ob->type != OB_MESH) {
 		uiItemL(layout, "Actuator only available for mesh objects", ICON_NONE);
 		return;
 	}
@@ -4280,7 +4289,7 @@ static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "use_continue_last_frame", 0, NULL, ICON_NONE);
 
 	row= uiLayoutRow(layout, 0);
-	if((RNA_enum_get(ptr, "mode") == ACT_ACTION_FROM_PROP))
+	if ((RNA_enum_get(ptr, "mode") == ACT_ACTION_FROM_PROP))
 		uiItemPointerR(row, ptr, "property", &settings_ptr, "properties", NULL, ICON_NONE);
 
 	else {
@@ -4481,7 +4490,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	short a, count;
 	int xco, yco, width;
 	
-	if(ob==NULL) return;
+	if (ob==NULL) return;
 	
 	RNA_pointer_create(NULL, &RNA_SpaceLogicEditor, slogic, &logic_ptr);
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
@@ -4491,7 +4500,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 	
 	/* loop over all objects and set visible/linked flags for the logic bricks */
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		bActuator *act;
 		bSensor *sens;
 		bController *cont;
@@ -4543,7 +4552,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	uiItemR(row, &logic_ptr, "show_controllers_active_object", 0, "Act", ICON_NONE);
 	uiItemR(row, &logic_ptr, "show_controllers_linked_controller", 0, "Link", ICON_NONE);
 
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		bController *cont;
 		PointerRNA ptr;
 		uiLayout *split, *subsplit, *col;
@@ -4552,7 +4561,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		ob= (Object *)idar[a];
 
 		/* only draw the controller common header if "use_visible" */
-		if( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
+		if ( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
 	
 		/* Drawing the Controller Header common to all Selected Objects */
 
@@ -4595,7 +4604,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 		uiItemS(layout);
 		
-		for(cont= ob->controllers.first; cont; cont=cont->next) {
+		for (cont= ob->controllers.first; cont; cont=cont->next) {
 			RNA_pointer_create((ID *)ob, &RNA_Controller, cont, &ptr);
 			
 			if (!(ob->scaflag & OB_ALLSTATE) && !(ob->state & cont->state_mask))
@@ -4647,14 +4656,14 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	uiItemR(row, &logic_ptr, "show_sensors_linked_controller", 0, "Link", ICON_NONE);
 	uiItemR(row, &logic_ptr, "show_sensors_active_states", 0, "State", ICON_NONE);
 	
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		bSensor *sens;
 		PointerRNA ptr;
 		
 		ob= (Object *)idar[a];
 
 		/* only draw the sensor common header if "use_visible" */
-		if((ob->scavisflag & OB_VIS_SENS) == 0) continue;
+		if ((ob->scavisflag & OB_VIS_SENS) == 0) continue;
 
 		row = uiLayoutRow(layout, 1);
 		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
@@ -4665,7 +4674,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		
 		uiItemS(layout);
 		
-		for(sens= ob->sensors.first; sens; sens=sens->next) {
+		for (sens= ob->sensors.first; sens; sens=sens->next) {
 			RNA_pointer_create((ID *)ob, &RNA_Sensor, sens, &ptr);
 			
 			if ((ob->scaflag & OB_ALLSTATE) ||
@@ -4713,14 +4722,14 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	uiItemR(row, &logic_ptr, "show_actuators_linked_controller", 0, "Link", ICON_NONE);
 	uiItemR(row, &logic_ptr, "show_actuators_active_states", 0, "State", ICON_NONE);
 	
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		bActuator *act;
 		PointerRNA ptr;
 		
 		ob= (Object *)idar[a];
 
 		/* only draw the actuator common header if "use_visible" */
-		if( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
+		if ( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
 
 		row = uiLayoutRow(layout, 1);
 		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
@@ -4731,7 +4740,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		
 		uiItemS(layout);
 		
-		for(act= ob->actuators.first; act; act=act->next) {
+		for (act= ob->actuators.first; act; act=act->next) {
 			
 			RNA_pointer_create((ID *)ob, &RNA_Actuator, act, &ptr);
 			
@@ -4773,7 +4782,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 	
-	if(idar) MEM_freeN(idar);
+	if (idar) MEM_freeN(idar);
 }
 
 void logic_buttons(bContext *C, ARegion *ar)
@@ -4801,7 +4810,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		return;
 	}
 	
-	if(ob==NULL) return;
+	if (ob==NULL) return;
 //	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 	BLI_snprintf(numstr, sizeof(numstr), "buttonswin %p", (void *)ar);
@@ -4814,7 +4823,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 
 	/* clean ACT_LINKED and ACT_VISIBLE of all potentially visible actuators so that 
 	 * we can determine which is actually linked/visible */
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		act= ob->actuators.first;
 		while(act) {
@@ -4841,19 +4850,19 @@ void logic_buttons(bContext *C, ARegion *ar)
 	uiDefButBitS(block, TOG, BUTS_CONT_LINK, B_REDR, "Link", xco+110+2*(width-100)/3, yco+35, (width-100)/3, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show linked Objects to Sensor/Actuator");
 	uiBlockEndAlign(block);
 	
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		unsigned int controller_state_mask = 0; /* store a bitmask for states that are used */
 		
 		ob= (Object *)idar[a];
 //		uiClearButLock();
 //		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-		if( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
+		if ( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
 
 		/* presume it is only objects for now */
 		uiBlockBeginAlign(block);
-//		if(ob->controllers.first) uiSetCurFont(block, UI_HELVB);
+//		if (ob->controllers.first) uiSetCurFont(block, UI_HELVB);
 		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Active Object name");
-//		if(ob->controllers.first) uiSetCurFont(block, UI_HELV);
+//		if (ob->controllers.first) uiSetCurFont(block, UI_HELV);
 		uiDefButBitS(block, TOG, OB_ADDCONT, B_ADD_CONT, "Add",(short)(xco+width-40), yco, 50, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Add a new Controller");
 		uiBlockEndAlign(block);
 		yco-=20;
@@ -4872,7 +4881,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 			cont = cont->next;
 		}
 
-		if(ob->scaflag & OB_SHOWCONT) {
+		if (ob->scaflag & OB_SHOWCONT) {
 
 			/* first show the state */
 			uiDefBlockBut(block, object_state_mask_menu, ob, "State", (short)(xco-10), (short)(yco-10), 36, UI_UNIT_Y, "Object state menu: store and retrieve initial state");
@@ -4924,7 +4933,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 						sprintf(numstr, "%d", first_bit(cont->state_mask)+1);
 						uiDefBlockBut(block, controller_state_mask_menu, cont, numstr, (short)(xco+width-44), yco, 22, UI_UNIT_Y, "Set controller state index (from 1 to 30)");
 				
-						if(cont->flag & CONT_SHOW) {
+						if (cont->flag & CONT_SHOW) {
 							cont->otype= cont->type;
 							uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 70, UI_UNIT_Y, &cont->type, 0, 0, 0, 0, "Controller type");
 							but = uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-158), UI_UNIT_Y, cont->name, 0, MAX_NAME, 0, 0, "Controller name");
@@ -4932,7 +4941,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 				
 							ycoo= yco;
 							yco= draw_controllerbuttons(cont, block, xco, yco, width);
-							if(yco-6 < ycoo) ycoo= (yco+ycoo-20)/2;
+							if (yco-6 < ycoo) ycoo= (yco+ycoo-20)/2;
 						}
 						else {
 							cpack(0x999999);
@@ -4980,23 +4989,23 @@ void logic_buttons(bContext *C, ARegion *ar)
 	uiDefButBitS(block, TOG, BUTS_SENS_STATE, B_REDR, "State", xco+80+3*(width-70)/4, yco+35, (width-70)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show only sensors connected to active states");
 	uiBlockEndAlign(block);
 	
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 //		uiClearButLock();
 //		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		
-		if( (ob->scavisflag & OB_VIS_SENS) == 0) continue;
+		if ( (ob->scavisflag & OB_VIS_SENS) == 0) continue;
 		
 		/* presume it is only objects for now */
 		uiBlockBeginAlign(block);
-//		if(ob->sensors.first) uiSetCurFont(block, UI_HELVB);
+//		if (ob->sensors.first) uiSetCurFont(block, UI_HELVB);
 		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
-//		if(ob->sensors.first) uiSetCurFont(block, UI_HELV);
+//		if (ob->sensors.first) uiSetCurFont(block, UI_HELV);
 		uiDefButBitS(block, TOG, OB_ADDSENS, B_ADD_SENS, "Add",(short)(xco+width-40), yco, 50, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Add a new Sensor");
 		uiBlockEndAlign(block);
 		yco-=20;
 		
-		if(ob->scaflag & OB_SHOWSENS) {
+		if (ob->scaflag & OB_SHOWSENS) {
 			
 			sens= ob->sensors.first;
 			while(sens) {
@@ -5023,7 +5032,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 
 						sens->otype= sens->type;
 						yco= draw_sensorbuttons(ob, sens, block, xco, yco, width);
-						if(yco-6 < ycoo) ycoo= (yco+ycoo-20)/2;
+						if (yco-6 < ycoo) ycoo= (yco+ycoo-20)/2;
 					}
 					else {
 						set_col_sensor(sens->type, 1);
@@ -5061,22 +5070,22 @@ void logic_buttons(bContext *C, ARegion *ar)
 	uiDefButBitS(block, TOG, BUTS_ACT_LINK, B_REDR, "Link", xco+110+2*(width-100)/4, yco+35, (width-100)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
 	uiDefButBitS(block, TOG, BUTS_ACT_STATE, B_REDR, "State", xco+110+3*(width-100)/4, yco+35, (width-100)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show only actuators connected to active states");
 	uiBlockEndAlign(block);
-	for(a=0; a<count; a++) {
+	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 //		uiClearButLock();
 //		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-		if( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
+		if ( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
 
 		/* presume it is only objects for now */
 		uiBlockBeginAlign(block);
-//		if(ob->actuators.first) uiSetCurFont(block, UI_HELVB);
+//		if (ob->actuators.first) uiSetCurFont(block, UI_HELVB);
 		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco,(short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
-//		if(ob->actuators.first) uiSetCurFont(block, UI_HELV);
+//		if (ob->actuators.first) uiSetCurFont(block, UI_HELV);
 		uiDefButBitS(block, TOG, OB_ADDACT, B_ADD_ACT, "Add",(short)(xco+width-40), yco, 50, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Add a new Actuator");
 		uiBlockEndAlign(block);
 		yco-=20;
 		
-		if(ob->scaflag & OB_SHOWACT) {
+		if (ob->scaflag & OB_SHOWACT) {
 			
 			act= ob->actuators.first;
 			while(act) {
@@ -5093,7 +5102,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 						uiDefIconButBitS(block, ICONTOG, ACT_PIN, B_REDR, ICON_PINNED, (short)(xco+width-44), yco, 22, UI_UNIT_Y, &act->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
 					uiDefIconButBitS(block, ICONTOG, ACT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, UI_UNIT_Y, &act->flag, 0, 0, 0, 0, "Display the actuator");
 					
-					if(act->flag & ACT_SHOW) {
+					if (act->flag & ACT_SHOW) {
 						act->otype= act->type;
 						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 90, UI_UNIT_Y, &act->type, 0, 0, 0, 0, "Actuator type");
 						but = uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-(pin?156:134)), UI_UNIT_Y, act->name, 0, MAX_NAME, 0, 0, "Actuator name");
@@ -5101,7 +5110,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 
 						ycoo= yco;
 						yco= draw_actuatorbuttons(bmain, ob, act, block, xco, yco, width);
-						if(yco-6 < ycoo) ycoo= (yco+ycoo-20)/2;
+						if (yco-6 < ycoo) ycoo= (yco+ycoo-20)/2;
 					}
 					else {
 						set_col_actuator(act->type, 1);
@@ -5136,7 +5145,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 
-	if(idar) MEM_freeN(idar);
+	if (idar) MEM_freeN(idar);
 }
 
 

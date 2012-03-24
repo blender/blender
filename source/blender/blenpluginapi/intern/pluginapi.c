@@ -186,7 +186,7 @@ LIBEXPORT int ispic(char * name)
 }
 
 /* still the same name */
-/*  void (*ditherfunc)(struct ImBuf *, short, short){} */
+/*  void (*ditherfunc)(struct ImBuf *, short, short) {} */
 
 LIBEXPORT struct ImBuf *scaleImBuf(struct ImBuf *ib,
 						 short nx,

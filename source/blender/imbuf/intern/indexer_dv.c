@@ -139,7 +139,8 @@ static void parse_packet(indexer_dv_context * This, unsigned char * p)
 			This->rec_curr_year = parse_bcd(&b, 8);
 			if (This->rec_curr_year < 25) {
 				This->rec_curr_year += 2000;
-			} else {
+			}
+			else {
 				This->rec_curr_year += 1900;
 			}
 			This->got_record_date = 1;
@@ -201,7 +202,7 @@ static void parse_audio_headers(
 {
 	int i;
 
-	for(i = 0; i < 9; i++) {
+	for (i = 0; i < 9; i++) {
 		if (target[3] != 0xff) {
 			parse_packet(This, target + 3);
 		}
@@ -238,7 +239,8 @@ static void inc_frame(int * frame, time_t * t, int isPAL)
 	if (isPAL && *frame >= 25) {
 		(*t)++;
 		*frame = 0;
-	} else if (!isPAL && *frame >= 30) {
+	}
+	else if (!isPAL && *frame >= 30) {
 		(*t)++;
 		*frame = 0;
 	}
@@ -308,7 +310,8 @@ static void proc_frame(indexer_dv_context * This,
 	if (This->ref_time_read < 0) {
 		This->ref_time_read = This->ref_time_read_new;
 		This->curr_frame = 0;
-	} else {
+	}
+	else {
 		if (This->ref_time_read_new - This->ref_time_read == 1) {
 			This->curr_frame = 0;
 			This->ref_time_read = This->ref_time_read_new;
@@ -316,9 +319,11 @@ static void proc_frame(indexer_dv_context * This,
 				fill_gap(This, isPAL);
 				This->gap_frame = -1;
 			}
-		} else if (This->ref_time_read_new  == This->ref_time_read) {
+		}
+		else if (This->ref_time_read_new  == This->ref_time_read) {
 			// do nothing
-		} else {
+		}
+		else {
 			This->gap_start = This->ref_time_read;
 			This->gap_frame = This->curr_frame;
 			This->ref_time_read = This->ref_time_read_new;
@@ -347,7 +352,8 @@ static void indexer_dv_proc_frame(anim_index_builder * idx,
 	if (This->curr_frame >= 0) {
 		write_index(This, entry);
 		inc_frame(&This->curr_frame, &This->ref_time_read, isPAL);
-	} else {
+	}
+	else {
 		This->backbuffer[This->fsize++] = *entry;
 		if (This->fsize >= 31) {
 			int i;

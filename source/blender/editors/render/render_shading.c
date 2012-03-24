@@ -95,7 +95,7 @@ static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
 	object_add_material_slot(ob);
@@ -124,11 +124,11 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= ED_object_context(C);
 
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
 	/* Removing material slots in edit mode screws things up, see bug #21822.*/
-	if(ob == CTX_data_edit_object(C)) {
+	if (ob == CTX_data_edit_object(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Unable to remove material slot in edit mode");
 		return OPERATOR_CANCELLED;
 	}
@@ -160,38 +160,38 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
-	if(ob && ob->actcol>0) {
-		if(ob->type == OB_MESH) {
+	if (ob && ob->actcol>0) {
+		if (ob->type == OB_MESH) {
 			BMEditMesh *em = BMEdit_FromObject(ob);
 			BMFace *efa;
 			BMIter iter;
 
-			if(em) {
+			if (em) {
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-					if(BM_elem_flag_test(efa, BM_ELEM_SELECT))
+					if (BM_elem_flag_test(efa, BM_ELEM_SELECT))
 						efa->mat_nr= ob->actcol-1;
 				}
 			}
 		}
-		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Nurb *nu;
 			ListBase *nurbs= curve_editnurbs((Curve*)ob->data);
 
-			if(nurbs) {
-				for(nu= nurbs->first; nu; nu= nu->next)
-					if(isNurbsel(nu))
+			if (nurbs) {
+				for (nu= nurbs->first; nu; nu= nu->next)
+					if (isNurbsel(nu))
 						nu->mat_nr= nu->charidx= ob->actcol-1;
 			}
 		}
-		else if(ob->type == OB_FONT) {
+		else if (ob->type == OB_FONT) {
 			EditFont *ef= ((Curve*)ob->data)->editfont;
 			int i, selstart, selend;
 
-			if(ef && BKE_font_getselection(ob, &selstart, &selend)) {
-				for(i=selstart; i<=selend; i++)
+			if (ef && BKE_font_getselection(ob, &selstart, &selend)) {
+				for (i=selstart; i<=selend; i++)
 					ef->textbufinfo[i].mat_nr = ob->actcol;
 			}
 		}
@@ -222,13 +222,13 @@ static int material_slot_de_select(bContext *C, int select)
 {
 	Object *ob = ED_object_context(C);
 
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
-	if(ob->type == OB_MESH) {
+	if (ob->type == OB_MESH) {
 		BMEditMesh *em = BMEdit_FromObject(ob);
 
-		if(em) {
+		if (em) {
 			EDBM_deselect_by_material(em, ob->actcol-1, select);
 		}
 	}
@@ -239,15 +239,15 @@ static int material_slot_de_select(bContext *C, int select)
 		BezTriple *bezt;
 		int a;
 
-		if(nurbs) {
-			for(nu= nurbs->first; nu; nu=nu->next) {
-				if(nu->mat_nr==ob->actcol-1) {
-					if(nu->bezt) {
+		if (nurbs) {
+			for (nu= nurbs->first; nu; nu=nu->next) {
+				if (nu->mat_nr==ob->actcol-1) {
+					if (nu->bezt) {
 						a= nu->pntsu;
 						bezt= nu->bezt;
-						while(a--) {
-							if(bezt->hide==0) {
-								if(select) {
+						while (a--) {
+							if (bezt->hide==0) {
+								if (select) {
 									bezt->f1 |= SELECT;
 									bezt->f2 |= SELECT;
 									bezt->f3 |= SELECT;
@@ -261,12 +261,12 @@ static int material_slot_de_select(bContext *C, int select)
 							bezt++;
 						}
 					}
-					else if(nu->bp) {
+					else if (nu->bp) {
 						a= nu->pntsu*nu->pntsv;
 						bp= nu->bp;
-						while(a--) {
-							if(bp->hide==0) {
-								if(select) bp->f1 |= SELECT;
+						while (a--) {
+							if (bp->hide==0) {
+								if (select) bp->f1 |= SELECT;
 								else bp->f1 &= ~SELECT;
 							}
 							bp++;
@@ -326,15 +326,15 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_context(C);
 	Material ***matar;
 
-	if(!ob || !(matar= give_matarar(ob)))
+	if (!ob || !(matar= give_matarar(ob)))
 		return OPERATOR_CANCELLED;
 
 	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
-		if(ob != ob_iter && give_matarar(ob_iter)) {
+		if (ob != ob_iter && give_matarar(ob_iter)) {
 			if (ob->data != ob_iter->data)
 				assign_matarar(ob_iter, matar, ob->totcol);
 			
-			if(ob_iter->totcol==ob->totcol) {
+			if (ob_iter->totcol==ob->totcol) {
 				ob_iter->actcol= ob->actcol;
 				WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob_iter);
 			}
@@ -370,13 +370,13 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy material */
-	if(ma) {
+	if (ma) {
 		ma= copy_material(ma);
 	}
 	else {
 		ma= add_material("Material");
 
-		if(scene_use_new_shading_nodes(scene)) {
+		if (scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(scene, &ma->id);
 			ma->use_nodes= 1;
 		}
@@ -385,7 +385,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
 
-	if(prop) {
+	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
 		ma->id.us--;
@@ -423,7 +423,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy texture */
-	if(tex)
+	if (tex)
 		tex= copy_texture(tex);
 	else
 		tex= add_texture("Texture");
@@ -431,7 +431,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
 
-	if(prop) {
+	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
 		tex->id.us--;
@@ -470,13 +470,13 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy world */
-	if(wo) {
+	if (wo) {
 		wo= copy_world(wo);
 	}
 	else {
 		wo= add_world("World");
 
-		if(scene_use_new_shading_nodes(scene)) {
+		if (scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(scene, &wo->id);
 			wo->use_nodes= 1;
 		}
@@ -485,7 +485,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
 
-	if(prop) {
+	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
 		wo->id.us--;
@@ -547,7 +547,7 @@ static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *rl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 
-	if(!scene_remove_render_layer(CTX_data_main(C), scene, rl))
+	if (!scene_remove_render_layer(CTX_data_main(C), scene, rl))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
@@ -573,7 +573,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 {
 	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
 
-	if(id) {
+	if (id) {
 		MTex **mtex_ar, *mtexswap;
 		short act;
 		int type= RNA_enum_get(op->ptr, "type");
@@ -581,8 +581,8 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 
 		give_active_mtex(id, &mtex_ar, &act);
 
-		if(type == -1) { /* Up */
-			if(act > 0) {
+		if (type == -1) { /* Up */
+			if (act > 0) {
 				mtexswap = mtex_ar[act];
 				mtex_ar[act] = mtex_ar[act-1];
 				mtex_ar[act-1] = mtexswap;
@@ -591,7 +591,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act, act-1, 0);
 				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, -1, act, 0);
 
-				if(GS(id->name)==ID_MA) {
+				if (GS(id->name)==ID_MA) {
 					Material *ma= (Material *)id;
 					int mtexuse = ma->septex & (1<<act);
 					ma->septex &= ~(1<<act);
@@ -604,7 +604,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 			}
 		}
 		else { /* Down */
-			if(act < MAX_MTEX-1) {
+			if (act < MAX_MTEX-1) {
 				mtexswap = mtex_ar[act];
 				mtex_ar[act] = mtex_ar[act+1];
 				mtex_ar[act+1] = mtexswap;
@@ -613,7 +613,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act, act+1, 0);
 				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, -1, act, 0);
 
-				if(GS(id->name)==ID_MA) {
+				if (GS(id->name)==ID_MA) {
 					Material *ma= (Material *)id;
 					int mtexuse = ma->septex & (1<<act);
 					ma->septex &= ~(1<<act);
@@ -686,7 +686,7 @@ static int envmap_save_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "filepath", path);
 	
-	if(scene->r.scemode & R_EXTENSION) {
+	if (scene->r.scemode & R_EXTENSION) {
 		BKE_add_image_extension(path, imtype);
 	}
 	
@@ -705,7 +705,7 @@ static int envmap_save_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event
 {
 	//Scene *scene= CTX_data_scene(C);
 	
-	if(RNA_struct_property_is_set(op->ptr, "filepath"))
+	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return envmap_save_exec(C, op);
 
 	//RNA_enum_set(op->ptr, "file_type", scene->r.im_format.imtype);
@@ -828,7 +828,7 @@ static int copy_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 
-	if(ma==NULL)
+	if (ma==NULL)
 		return OPERATOR_CANCELLED;
 
 	copy_matcopybuf(ma);
@@ -854,7 +854,7 @@ static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 
-	if(ma==NULL)
+	if (ma==NULL)
 		return OPERATOR_CANCELLED;
 
 	paste_matcopybuf(ma);
@@ -908,7 +908,7 @@ static void copy_mtex_copybuf(ID *id)
 			break;
 	}
 	
-	if(mtex && *mtex) {
+	if (mtex && *mtex) {
 		memcpy(&mtexcopybuf, *mtex, sizeof(MTex));
 		mtexcopied= 1;
 	}
@@ -921,7 +921,7 @@ static void paste_mtex_copybuf(ID *id)
 {
 	MTex **mtex= NULL;
 	
-	if(mtexcopied == 0 || mtexcopybuf.tex==NULL)
+	if (mtexcopied == 0 || mtexcopybuf.tex==NULL)
 		return;
 	
 	switch(GS(id->name)) {
@@ -944,11 +944,11 @@ static void paste_mtex_copybuf(ID *id)
 			return;
 	}
 	
-	if(mtex) {
-		if(*mtex==NULL) {
+	if (mtex) {
+		if (*mtex==NULL) {
 			*mtex= MEM_mallocN(sizeof(MTex), "mtex copy");
 		}
-		else if((*mtex)->tex) {
+		else if ((*mtex)->tex) {
 			(*mtex)->tex->id.us--;
 		}
 		
@@ -963,7 +963,7 @@ static int copy_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
 
-	if(id==NULL) {
+	if (id==NULL) {
 		/* copying empty slot */
 		ED_render_clear_mtex_copybuf();
 		return OPERATOR_CANCELLED;
@@ -1000,7 +1000,7 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
 
-	if(id==NULL) {
+	if (id==NULL) {
 		Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 		Lamp *la= CTX_data_pointer_get_type(C, "lamp", &RNA_Lamp).data;
 		World *wo= CTX_data_pointer_get_type(C, "world", &RNA_World).data;

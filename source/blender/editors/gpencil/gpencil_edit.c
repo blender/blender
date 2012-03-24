@@ -143,7 +143,7 @@ bGPdata **gpencil_data_get_pointers (bContext *C, PointerRNA *ptr)
 				SpaceClip *sc= (SpaceClip *)CTX_wm_space_data(C);
 				MovieClip *clip= ED_space_clip(sc);
 
-				if(clip) {
+				if (clip) {
 					/* for now, as long as there's a clip, default to using that in Clip Editor */
 					if (ptr) RNA_id_pointer_create(&clip->id, ptr);
 					return &clip->gpd;
@@ -402,7 +402,7 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 			VECCOPY2D(mvalf, mvali);
 		}
 		else {
-			if(subrect) {
+			if (subrect) {
 				mvalf[0]= (((float)pt->x/100.0f) * (subrect->xmax - subrect->xmin)) + subrect->xmin;
 				mvalf[1]= (((float)pt->y/100.0f) * (subrect->ymax - subrect->ymin)) + subrect->ymin;
 			}
@@ -561,7 +561,7 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 		return;
 
 	/* initialize camera framing */
-	if(gp_camera_view_subrect(C, &subrect)) {
+	if (gp_camera_view_subrect(C, &subrect)) {
 		subrect_ptr= &subrect;
 	}
 

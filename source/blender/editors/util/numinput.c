@@ -84,7 +84,7 @@ void outputNumInput(NumInput *n, char *str)
 		else
 			inv[0] = 0;
 
-		if( n->val[i] > 1e10f || n->val[i] < -1e10f )
+		if ( n->val[i] > 1e10f || n->val[i] < -1e10f )
 			BLI_snprintf(&str[j*20], 20, "%s%.4e%c", inv, n->val[i], cur);
 		else
 			switch (n->ctrl[i]) {
@@ -181,7 +181,8 @@ char handleNumInput(NumInput *n, wmEvent *event)
 		default:
 			return 0;
 		}
-	} else {
+	}
+	else {
 		switch (event->type) {
 		case BACKSPACEKEY:
 			if (n->ctrl[idx] == 0) {
@@ -217,7 +218,7 @@ char handleNumInput(NumInput *n, wmEvent *event)
 			}
 			break;
 		case PADMINUS:
-			if(event->alt)
+			if (event->alt)
 				break;
 		case MINUSKEY:
 			if (n->flag & NUM_NO_NEGATIVE)
@@ -289,7 +290,7 @@ char handleNumInput(NumInput *n, wmEvent *event)
 			}
 			else {
 				/* float resolution breaks when over six digits after comma */
-				if( ABS(n->ctrl[idx]) < 10000000) {
+				if ( ABS(n->ctrl[idx]) < 10000000) {
 					n->val[idx] += Val / (float)n->ctrl[idx];
 					n->ctrl[idx] *= 10;
 				}

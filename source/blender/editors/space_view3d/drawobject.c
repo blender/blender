@@ -3970,7 +3970,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 						GPU_end_object_materials();
 					}
 				}
-				else{
+				else {
 					/* MetaBalls use DL_INDEX4 type of DispList */
 					retval= drawDispListwire(lb);
 				}
@@ -4451,7 +4451,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					weight_to_rgb(ma_col, intensity);
 				}
 			}
-			else{
+			else {
 				ChildParticle *cpa= &psys->child[a-totpart];
 
 				pa_time=psys_get_child_time(psys,cpa,cfra,&pa_birthtime,&pa_dietime);
@@ -4732,7 +4732,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			glNormalPointer(GL_FLOAT, 0, pdd->ndata);
 			glEnable(GL_LIGHTING);
 		}
-		else{
+		else {
 			glDisableClientState(GL_NORMAL_ARRAY);
 			glDisable(GL_LIGHTING);
 		}
@@ -4899,7 +4899,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 					if (key->flag&PEK_SELECT) {
 						copy_v3_v3(cd,sel_col);
 					}
-					else{
+					else {
 						copy_v3_v3(cd,nosel_col);
 					}
 

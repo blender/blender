@@ -91,19 +91,19 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
 	
 	/* only geometry objects should be able to get modifiers [#25291] */
-	if(!ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+	if (!ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
 		BKE_reportf(reports, RPT_WARNING, "Modifiers cannot be added to Object '%s'", ob->id.name+2);
 		return NULL;
 	}
 	
-	if(mti->flags&eModifierTypeFlag_Single) {
-		if(modifiers_findByType(ob, type)) {
+	if (mti->flags&eModifierTypeFlag_Single) {
+		if (modifiers_findByType(ob, type)) {
 			BKE_report(reports, RPT_WARNING, "Only one modifier of this type allowed");
 			return NULL;
 		}
 	}
 	
-	if(type == eModifierType_ParticleSystem) {
+	if (type == eModifierType_ParticleSystem) {
 		/* don't need to worry about the new modifier's name, since that is set to the number
 		 * of particle systems which shouldn't have too many duplicates 
 		 */
@@ -113,10 +113,10 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		/* get new modifier data to add */
 		new_md= modifier_new(type);
 		
-		if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
+		if (mti->flags&eModifierTypeFlag_RequiresOriginalData) {
 			md = ob->modifiers.first;
 			
-			while(md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform)
+			while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform)
 				md = md->next;
 			
 			BLI_insertlinkbefore(&ob->modifiers, md, new_md);
@@ -124,7 +124,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		else
 			BLI_addtail(&ob->modifiers, new_md);
 
-		if(name)
+		if (name)
 			BLI_strncpy(new_md->name, name, sizeof(new_md->name));
 
 		/* make sure modifier data has unique name */
@@ -132,22 +132,22 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		modifier_unique_name(&ob->modifiers, new_md);
 		
 		/* special cases */
-		if(type == eModifierType_Softbody) {
-			if(!ob->soft) {
+		if (type == eModifierType_Softbody) {
+			if (!ob->soft) {
 				ob->soft= sbNew(scene);
 				ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
 			}
 		}
-		else if(type == eModifierType_Collision) {
-			if(!ob->pd)
+		else if (type == eModifierType_Collision) {
+			if (!ob->pd)
 				ob->pd= object_add_collision_fields(0);
 			
 			ob->pd->deflect= 1;
 			DAG_scene_sort(bmain, scene);
 		}
-		else if(type == eModifierType_Surface)
+		else if (type == eModifierType_Surface)
 			DAG_scene_sort(bmain, scene);
-		else if(type == eModifierType_Multires)
+		else if (type == eModifierType_Multires)
 			/* set totlvl from existing MDISPS layer if object already had it */
 			multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
 	}
@@ -164,60 +164,60 @@ static int object_modifier_remove(Object *ob, ModifierData *md, int *sort_depsgr
 	/* It seems on rapid delete it is possible to
 	 * get called twice on same modifier, so make
 	 * sure it is in list. */
-	for(obmd=ob->modifiers.first; obmd; obmd=obmd->next)
-		if(obmd==md)
+	for (obmd=ob->modifiers.first; obmd; obmd=obmd->next)
+		if (obmd==md)
 			break;
 
-	if(!obmd)
+	if (!obmd)
 		return 0;
 
 	/* special cases */
-	if(md->type == eModifierType_ParticleSystem) {
+	if (md->type == eModifierType_ParticleSystem) {
 		ParticleSystemModifierData *psmd=(ParticleSystemModifierData*)md;
 
 		BLI_remlink(&ob->particlesystem, psmd->psys);
 		psys_free(ob, psmd->psys);
 		psmd->psys= NULL;
 	}
-	else if(md->type == eModifierType_Softbody) {
-		if(ob->soft) {
+	else if (md->type == eModifierType_Softbody) {
+		if (ob->soft) {
 			sbFree(ob->soft);
 			ob->soft= NULL;
 			ob->softflag= 0;
 		}
 	}
-	else if(md->type == eModifierType_Collision) {
-		if(ob->pd)
+	else if (md->type == eModifierType_Collision) {
+		if (ob->pd)
 			ob->pd->deflect= 0;
 
 		*sort_depsgraph = 1;
 	}
-	else if(md->type == eModifierType_Surface) {
-		if(ob->pd && ob->pd->shape == PFIELD_SHAPE_SURFACE)
+	else if (md->type == eModifierType_Surface) {
+		if (ob->pd && ob->pd->shape == PFIELD_SHAPE_SURFACE)
 			ob->pd->shape = PFIELD_SHAPE_PLANE;
 
 		*sort_depsgraph = 1;
 	}
-	else if(md->type == eModifierType_Smoke) {
+	else if (md->type == eModifierType_Smoke) {
 		ob->dt = OB_TEXTURE;
 	}
-	else if(md->type == eModifierType_Multires) {
+	else if (md->type == eModifierType_Multires) {
 		int ok= 1;
 		ModifierData *tmpmd;
 
 		/* ensure MDISPS CustomData layer isn't used by another multires modifiers */
-		for(tmpmd= ob->modifiers.first; tmpmd; tmpmd= tmpmd->next)
-			if(tmpmd!=md && tmpmd->type == eModifierType_Multires) {
+		for (tmpmd= ob->modifiers.first; tmpmd; tmpmd= tmpmd->next)
+			if (tmpmd!=md && tmpmd->type == eModifierType_Multires) {
 				ok= 0;
 				break;
 			}
 
-		if(ok) {
+		if (ok) {
 			multires_customdata_delete(ob->data);
 		}
 	}
 
-	if(ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth) &&
+	if (ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth) &&
 		ob->particlesystem.first == NULL) {
 		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 	}
@@ -235,7 +235,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 
 	ok= object_modifier_remove(ob, md, &sort_depsgraph);
 
-	if(!ok) {
+	if (!ok) {
 		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", ob->id.name, md->name);
 		return 0;
 	}
@@ -243,7 +243,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* sorting has to be done after the update so that dynamic systems can react properly */
-	if(sort_depsgraph)
+	if (sort_depsgraph)
 		DAG_scene_sort(bmain, scene);
 
 	return 1;
@@ -254,10 +254,10 @@ void ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
 	ModifierData *md = ob->modifiers.first;
 	int sort_depsgraph = 0;
 
-	if(!md)
+	if (!md)
 		return;
 
-	while(md) {
+	while (md) {
 		ModifierData *next_md;
 
 		next_md= md->next;
@@ -270,19 +270,19 @@ void ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* sorting has to be done after the update so that dynamic systems can react properly */
-	if(sort_depsgraph)
+	if (sort_depsgraph)
 		DAG_scene_sort(bmain, scene);
 }
 
 int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md)
 {
-	if(md->prev) {
+	if (md->prev) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if(mti->type!=eModifierTypeType_OnlyDeform) {
+		if (mti->type!=eModifierTypeType_OnlyDeform) {
 			ModifierTypeInfo *nmti = modifierType_getInfo(md->prev->type);
 
-			if(nmti->flags&eModifierTypeFlag_RequiresOriginalData) {
+			if (nmti->flags&eModifierTypeFlag_RequiresOriginalData) {
 				BKE_report(reports, RPT_WARNING, "Cannot move above a modifier requiring original data");
 				return 0;
 			}
@@ -297,13 +297,13 @@ int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md
 
 int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *md)
 {
-	if(md->next) {
+	if (md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
+		if (mti->flags&eModifierTypeFlag_RequiresOriginalData) {
 			ModifierTypeInfo *nmti = modifierType_getInfo(md->next->type);
 
-			if(nmti->type!=eModifierTypeType_OnlyDeform) {
+			if (nmti->type!=eModifierTypeType_OnlyDeform) {
 				BKE_report(reports, RPT_WARNING, "Cannot move beyond a non-deforming modifier");
 				return 0;
 			}
@@ -329,43 +329,43 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	int totvert=0, totedge=0, cvert=0;
 	int totpart=0, totchild=0;
 
-	if(md->type != eModifierType_ParticleSystem) return 0;
-	if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) return 0;
+	if (md->type != eModifierType_ParticleSystem) return 0;
+	if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) return 0;
 
 	psys=((ParticleSystemModifierData *)md)->psys;
 	part= psys->part;
 
-	if(part->ren_as != PART_DRAW_PATH || psys->pathcache == NULL)
+	if (part->ren_as != PART_DRAW_PATH || psys->pathcache == NULL)
 		return 0;
 
 	totpart= psys->totcached;
 	totchild= psys->totchildcache;
 
-	if(totchild && (part->draw&PART_DRAW_PARENT)==0)
+	if (totchild && (part->draw&PART_DRAW_PARENT)==0)
 		totpart= 0;
 
 	/* count */
 	cache= psys->pathcache;
-	for(a=0; a<totpart; a++) {
+	for (a=0; a<totpart; a++) {
 		key= cache[a];
 
-		if(key->steps > 0) {
+		if (key->steps > 0) {
 			totvert+= key->steps+1;
 			totedge+= key->steps;
 		}
 	}
 
 	cache= psys->childcache;
-	for(a=0; a<totchild; a++) {
+	for (a=0; a<totchild; a++) {
 		key= cache[a];
 
-		if(key->steps > 0) {
+		if (key->steps > 0) {
 			totvert+= key->steps+1;
 			totedge+= key->steps;
 		}
 	}
 
-	if(totvert==0) return 0;
+	if (totvert==0) return 0;
 
 	/* add new mesh */
 	obn= add_object(scene, OB_MESH);
@@ -383,12 +383,12 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 
 	/* copy coordinates */
 	cache= psys->pathcache;
-	for(a=0; a<totpart; a++) {
+	for (a=0; a<totpart; a++) {
 		key= cache[a];
 		kmax= key->steps;
-		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+		for (k=0; k<=kmax; k++,key++,cvert++,mvert++) {
 			copy_v3_v3(mvert->co,key->co);
-			if(k) {
+			if (k) {
 				medge->v1= cvert-1;
 				medge->v2= cvert;
 				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
@@ -402,12 +402,12 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	}
 
 	cache=psys->childcache;
-	for(a=0; a<totchild; a++) {
+	for (a=0; a<totchild; a++) {
 		key=cache[a];
 		kmax=key->steps;
-		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+		for (k=0; k<=kmax; k++,key++,cvert++,mvert++) {
 			copy_v3_v3(mvert->co,key->co);
-			if(k) {
+			if (k) {
 				medge->v1=cvert-1;
 				medge->v2=cvert;
 				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
@@ -453,7 +453,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		Key *key=me->key;
 		KeyBlock *kb;
 		
-		if(!modifier_sameTopology(md) || mti->type == eModifierTypeType_NonGeometrical) {
+		if (!modifier_sameTopology(md) || mti->type == eModifierTypeType_NonGeometrical) {
 			BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to Shapes");
 			return 0;
 		}
@@ -464,7 +464,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 			return 0;
 		}
 		
-		if(key == NULL) {
+		if (key == NULL) {
 			key= me->key= add_key((ID *)me);
 			key->type= KEY_RELATIVE;
 			/* if that was the first key block added, then it was the basis.
@@ -501,21 +501,22 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		Mesh *me = ob->data;
 		MultiresModifierData *mmd= find_multires_modifier_before(scene, md);
 
-		if(me->key && mti->type != eModifierTypeType_NonGeometrical) {
+		if (me->key && mti->type != eModifierTypeType_NonGeometrical) {
 			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
 			return 0;
 		}
 
 		/* Multires: ensure that recent sculpting is applied */
-		if(md->type == eModifierType_Multires)
+		if (md->type == eModifierType_Multires)
 			multires_force_update(ob);
 
 		if (mmd && mmd->totlvl && mti->type==eModifierTypeType_OnlyDeform) {
-			if(!multiresModifier_reshapeFromDeformMod (scene, mmd, ob, md)) {
+			if (!multiresModifier_reshapeFromDeformMod (scene, mmd, ob, md)) {
 				BKE_report(reports, RPT_ERROR, "Multires modifier returned error, skipping apply");
 				return 0;
 			}
-		} else {
+		}
+		else {
 			dm = mesh_create_derived_for_modifier(scene, ob, md, 1);
 			if (!dm) {
 				BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
@@ -526,7 +527,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 
 			dm->release(dm);
 
-			if(md->type == eModifierType_Multires)
+			if (md->type == eModifierType_Multires)
 				multires_customdata_delete(me);
 		}
 	}
@@ -557,13 +558,13 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 	}
 
 	/* lattice modifier can be applied to particle system too */
-	if(ob->particlesystem.first) {
+	if (ob->particlesystem.first) {
 
 		ParticleSystem *psys = ob->particlesystem.first;
 
-		for(; psys; psys=psys->next) {
+		for (; psys; psys=psys->next) {
 			
-			if(psys->part->type != PART_HAIR)
+			if (psys->part->type != PART_HAIR)
 				continue;
 
 			psys_apply_hair_lattice(scene, ob, psys);
@@ -580,7 +581,8 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	if (scene->obedit) {
 		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in editmode");
 		return 0;
-	} else if (((ID*) ob->data)->us>1) {
+	}
+	else if (((ID*) ob->data)->us>1) {
 		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
 		return 0;
 	}
@@ -597,7 +599,8 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 			md->mode= prev_mode;
 			return 0;
 		}
-	} else {
+	}
+	else {
 		if (!modifier_apply_obdata(reports, scene, ob, md)) {
 			md->mode= prev_mode;
 			return 0;
@@ -631,7 +634,7 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	int type= RNA_enum_get(op->ptr, "type");
 
-	if(!ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, type))
+	if (!ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, type))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
@@ -646,19 +649,19 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr)
 	ModifierTypeInfo *mti;
 	int totitem= 0, a;
 	
-	if(!ob)
+	if (!ob)
 		return modifier_type_items;
 
-	for(a=0; modifier_type_items[a].identifier; a++) {
+	for (a=0; modifier_type_items[a].identifier; a++) {
 		md_item= &modifier_type_items[a];
 
-		if(md_item->identifier[0]) {
+		if (md_item->identifier[0]) {
 			mti= modifierType_getInfo(md_item->value);
 
-			if(mti->flags & eModifierTypeFlag_NoUserAdd)
+			if (mti->flags & eModifierTypeFlag_NoUserAdd)
 				continue;
 
-			if(!object_support_modifier_type(ob, md_item->value))
+			if (!object_support_modifier_type(ob, md_item->value))
 				continue;
 		}
 		else {
@@ -668,7 +671,7 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr)
 			continue;
 		}
 
-		if(group_item) {
+		if (group_item) {
 			RNA_enum_item_add(&item, &totitem, group_item);
 			group_item= NULL;
 		}
@@ -770,15 +773,15 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	int mode_orig = ob ? ob->mode : 0;
 	
-	if(!ob || !md || !ED_object_modifier_remove(op->reports, bmain, scene, ob, md))
+	if (!ob || !md || !ED_object_modifier_remove(op->reports, bmain, scene, ob, md))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 
 	/* if cloth/softbody was removed, particle mode could be cleared */
-	if(mode_orig & OB_MODE_PARTICLE_EDIT)
-		if((ob->mode & OB_MODE_PARTICLE_EDIT)==0)
-			if(scene->basact && scene->basact->object==ob)
+	if (mode_orig & OB_MODE_PARTICLE_EDIT)
+		if ((ob->mode & OB_MODE_PARTICLE_EDIT)==0)
+			if (scene->basact && scene->basact->object==ob)
 				WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -814,7 +817,7 @@ static int modifier_move_up_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 
-	if(!ob || !md || !ED_object_modifier_move_up(op->reports, ob, md))
+	if (!ob || !md || !ED_object_modifier_move_up(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -853,7 +856,7 @@ static int modifier_move_down_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 
-	if(!ob || !md || !ED_object_modifier_move_down(op->reports, ob, md))
+	if (!ob || !md || !ED_object_modifier_move_down(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -894,7 +897,7 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	int apply_as= RNA_enum_get(op->ptr, "apply_as");
 	
-	if(!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md, apply_as)) {
+	if (!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md, apply_as)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -943,7 +946,7 @@ static int modifier_convert_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	
-	if(!ob || !md || !ED_object_modifier_convert(op->reports, bmain, scene, ob, md))
+	if (!ob || !md || !ED_object_modifier_convert(op->reports, bmain, scene, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -982,7 +985,7 @@ static int modifier_copy_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 
-	if(!ob || !md || !ED_object_modifier_copy(op->reports, ob, md))
+	if (!ob || !md || !ED_object_modifier_copy(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -1111,25 +1114,25 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 	if (!mmd)
 		return OPERATOR_CANCELLED;
 
-	if(mmd->lvl==0) {
+	if (mmd->lvl==0) {
 		BKE_report(op->reports, RPT_ERROR, "Reshape can work only with higher levels of subdivisions");
 		return OPERATOR_CANCELLED;
 	}
 
 	CTX_DATA_BEGIN(C, Object*, selob, selected_editable_objects) {
-		if(selob->type == OB_MESH && selob != ob) {
+		if (selob->type == OB_MESH && selob != ob) {
 			secondob= selob;
 			break;
 		}
 	}
 	CTX_DATA_END;
 
-	if(!secondob) {
+	if (!secondob) {
 		BKE_report(op->reports, RPT_ERROR, "Second selected mesh object require to copy shape from");
 		return OPERATOR_CANCELLED;
 	}
 
-	if(!multiresModifier_reshape(scene, mmd, ob, secondob)) {
+	if (!multiresModifier_reshape(scene, mmd, ob, secondob)) {
 		BKE_report(op->reports, RPT_ERROR, "Objects do not have the same number of vertices");
 		return OPERATOR_CANCELLED;
 	}
@@ -1174,15 +1177,15 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
 	char path[FILE_MAX];
 	int relative= RNA_boolean_get(op->ptr, "relative_path");
 
-	if(!me)
+	if (!me)
 		return OPERATOR_CANCELLED;
 
-	if(CustomData_external_test(&me->ldata, CD_MDISPS))
+	if (CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 	
 	RNA_string_get(op->ptr, "filepath", path);
 
-	if(relative)
+	if (relative)
 		BLI_path_rel(path, G.main->name);
 
 	CustomData_external_add(&me->ldata, &me->id, CD_MDISPS, me->totloop, path);
@@ -1206,10 +1209,10 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, wmEvent *U
 	if (!mmd)
 		return OPERATOR_CANCELLED;
 	
-	if(CustomData_external_test(&me->ldata, CD_MDISPS))
+	if (CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
-	if(RNA_struct_property_is_set(op->ptr, "filepath"))
+	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return multires_external_save_exec(C, op);
 	
 	op->customdata= me;
@@ -1247,7 +1250,7 @@ static int multires_external_pack_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_active_context(C);
 	Mesh *me= ob->data;
 
-	if(!CustomData_external_test(&me->ldata, CD_MDISPS))
+	if (!CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
 	// XXX don't remove..
@@ -1327,15 +1330,15 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 	if (!mmd)
 		return OPERATOR_CANCELLED;
 
-	if(mmd->bindcagecos) {
+	if (mmd->bindcagecos) {
 		MEM_freeN(mmd->bindcagecos);
-		if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
-		if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
-		if(mmd->bindinfluences) MEM_freeN(mmd->bindinfluences);
-		if(mmd->bindoffsets) MEM_freeN(mmd->bindoffsets);
-		if(mmd->dynverts) MEM_freeN(mmd->dynverts);
-		if(mmd->bindweights) MEM_freeN(mmd->bindweights); /* deprecated */
-		if(mmd->bindcos) MEM_freeN(mmd->bindcos); /* deprecated */
+		if (mmd->dyngrid) MEM_freeN(mmd->dyngrid);
+		if (mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
+		if (mmd->bindinfluences) MEM_freeN(mmd->bindinfluences);
+		if (mmd->bindoffsets) MEM_freeN(mmd->bindoffsets);
+		if (mmd->dynverts) MEM_freeN(mmd->dynverts);
+		if (mmd->bindweights) MEM_freeN(mmd->bindweights); /* deprecated */
+		if (mmd->bindcos) MEM_freeN(mmd->bindcos); /* deprecated */
 
 		mmd->bindcagecos= NULL;
 		mmd->dyngrid= NULL;
@@ -1359,17 +1362,17 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		mmd->bindfunc= mesh_deform_bind;
 		mmd->modifier.mode |= eModifierMode_Realtime;
 
-		if(ob->type == OB_MESH) {
+		if (ob->type == OB_MESH) {
 			dm= mesh_create_derived_view(scene, ob, 0);
 			dm->release(dm);
 		}
-		else if(ob->type == OB_LATTICE) {
+		else if (ob->type == OB_LATTICE) {
 			lattice_calc_modifiers(scene, ob);
 		}
-		else if(ob->type==OB_MBALL) {
+		else if (ob->type==OB_MBALL) {
 			makeDispListMBall(scene, ob);
 		}
-		else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+		else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 			makeDispListCurveTypes(scene, ob, 0);
 		}
 

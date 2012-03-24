@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_flip_out[]= {
 
 static void node_composit_exec_flip(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	if(in[0]->data) {
+	if (in[0]->data) {
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1);	/* note, this returns zero'd image */
 		int i, src_pix, src_width, src_height, srcydelt, outydelt, x, y;
@@ -59,20 +59,20 @@ static void node_composit_exec_flip(void *UNUSED(data), bNode *node, bNodeStack 
 		srcydelt= src_width*src_pix;
 		outydelt= srcydelt;
 		
-		if(node->custom1) {		/*set up output pointer for y flip*/
+		if (node->custom1) {		/*set up output pointer for y flip*/
 			outfp+= (src_height-1)*outydelt;
 			outydelt= -outydelt;
 		}
 
-		for(y=0; y<src_height; y++) {
-			if(node->custom1 == 1) {	/* no x flip so just copy line*/
+		for (y=0; y<src_height; y++) {
+			if (node->custom1 == 1) {	/* no x flip so just copy line*/
 				memcpy(outfp, srcfp, sizeof(float) * src_pix * src_width);
 				srcfp+=srcydelt;
 			}
 			else {
 				outfp += (src_width-1)*src_pix;
-				for(x=0; x<src_width; x++) {
-					for(i=0; i<src_pix; i++) {
+				for (x=0; x<src_width; x++) {
+					for (i=0; i<src_pix; i++) {
 						outfp[i]= srcfp[i];
 					}
 					outfp -= src_pix;

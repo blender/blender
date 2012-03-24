@@ -174,32 +174,36 @@ static MenuData *decompose_menu_string(const char *str)
 
 				*s= '\0';
 				s++;
-			} else if (s[1]=='t') {
+			}
+			else if (s[1]=='t') {
 				nitem_is_title= (s != instr); /* check for empty title */
 
 				*s= '\0';
 				s++;
-			} else if (s[1]=='l') {
+			}
+			else if (s[1]=='l') {
 				nitem_is_sepr= 1;
-				if(!nitem) nitem= "";
+				if (!nitem) nitem= "";
 
 				*s= '\0';
 				s++;
-			} else if (s[1]=='i') {
+			}
+			else if (s[1]=='i') {
 				nicon= atoi(s+2);
 				
 				*s= '\0';
 				s++;
 			}
-		} else if (c=='|' || c == '\n' || c=='\0') {
+		}
+		else if (c=='|' || c == '\n' || c=='\0') {
 			if (nitem) {
 				*s= '\0';
 
-				if(nitem_is_title) {
+				if (nitem_is_title) {
 					menudata_set_title(md, nitem, nicon);
 					nitem_is_title= 0;
 				}
-				else if(nitem_is_sepr) {
+				else if (nitem_is_sepr) {
 					/* prevent separator to get a value */
 					menudata_add_item(md, nitem, -1, nicon, 1);
 					nretval= md->nitems+1;
@@ -217,7 +221,8 @@ static MenuData *decompose_menu_string(const char *str)
 			if (c=='\0') {
 				break;
 			}
-		} else if (!nitem) {
+		}
+		else if (!nitem) {
 			nitem= s;
 		}
 
@@ -254,20 +259,20 @@ int ui_step_name_menu(uiBut *but, int step)
 		if (md->items[i].retval==value)
 			break;
 	
-	if(step==1) {
+	if (step==1) {
 		/* skip separators */
-		for(; i<md->nitems-1; i++) {
-			if(md->items[i+1].retval != -1) {
+		for (; i<md->nitems-1; i++) {
+			if (md->items[i+1].retval != -1) {
 				value= md->items[i+1].retval;
 				break;
 			}
 		}
 	}
 	else {
-		if(i>0) {
+		if (i>0) {
 			/* skip separators */
-			for(; i>0; i--) {
-				if(md->items[i-1].retval != -1) {
+			for (; i>0; i--) {
+				if (md->items[i-1].retval != -1) {
 					value= md->items[i-1].retval;
 					break;
 				}
@@ -298,7 +303,7 @@ static ARegion *ui_add_temporary_region(bScreen *sc)
 
 static void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 {
-	if(CTX_wm_window(C))
+	if (CTX_wm_window(C))
 		wm_draw_region_clear(CTX_wm_window(C), ar);
 
 	ED_region_exit(C, ar);
@@ -418,31 +423,31 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	float x1f, x2f, y1f, y2f;
 	int x1, x2, y1, y2, winx, winy, ofsx, ofsy, w, h, a;
 
-	if(but->flag & UI_BUT_NO_TOOLTIP)
+	if (but->flag & UI_BUT_NO_TOOLTIP)
 		return NULL;
 
 	/* create tooltip data */
 	data= MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
 	/* special case, enum rna buttons only have enum item description, use general enum description too before the specific one */
-	if(but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
+	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
 		const char *descr= RNA_property_description(but->rnaprop);
-		if(descr && descr[0]) {
+		if (descr && descr[0]) {
 			BLI_strncpy(data->lines[data->totline], descr, sizeof(data->lines[0]));
 			data->color_id[data->totline] = UI_TIP_LC_MAIN;
 			data->totline++;
 		}
 
-		if(ELEM(but->type, ROW, MENU)) {
+		if (ELEM(but->type, ROW, MENU)) {
 			EnumPropertyItem *item;
 			int i, totitem, free;
 			int value = (but->type == ROW)? but->hardmax: ui_get_but_val(but);
 
 			RNA_property_enum_items_gettexted(C, &but->rnapoin, but->rnaprop, &item, &totitem, &free);
 
-			for(i=0; i<totitem; i++) {
-				if(item[i].identifier[0] && item[i].value == value) {
-					if(item[i].description && item[i].description[0]) {
+			for (i=0; i<totitem; i++) {
+				if (item[i].identifier[0] && item[i].value == value) {
+					if (item[i].description && item[i].description[0]) {
 						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s", item[i].name, item[i].description);
                         data->color_id[data->totline] = UI_TIP_LC_SUBMENU;
 						data->totline++;
@@ -457,17 +462,17 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 	}
 	
-	if(but->tip && but->tip[0] != '\0') {
+	if (but->tip && but->tip[0] != '\0') {
 		BLI_strncpy(data->lines[data->totline], but->tip, sizeof(data->lines[0]));
 		data->color_id[data->totline] = UI_TIP_LC_MAIN;
 		data->totline++;
 	}
 
-	if(but->optype && !(but->block->flag & UI_BLOCK_LOOP)) {
+	if (but->optype && !(but->block->flag & UI_BLOCK_LOOP)) {
 		/* operator keymap (not menus, they already have it) */
 		prop= (but->opptr)? but->opptr->data: NULL;
 
-		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
+		if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
 		                                buf, sizeof(buf)))
 		{
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), buf);
@@ -476,17 +481,17 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 	}
 
-	if(ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
+	if (ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		/* full string */
 		ui_get_but_string(but, buf, sizeof(buf));
-		if(buf[0]) {
+		if (buf[0]) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Value: %s"), buf);
 			data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 			data->totline++;
 		}
 	}
 
-	if(but->rnaprop) {
+	if (but->rnaprop) {
 		int unit_type= uiButGetUnitType(but);
 		
 		if (unit_type == PROP_UNIT_ROTATION) {
@@ -498,8 +503,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			}
 		}
 		
-		if(but->flag & UI_BUT_DRIVEN) {
-			if(ui_but_anim_expression_get(but, buf, sizeof(buf))) {
+		if (but->flag & UI_BUT_DRIVEN) {
+			if (ui_but_anim_expression_get(but, buf, sizeof(buf))) {
 				/* expression */
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Expression: %s"), buf);
 				data->color_id[data->totline] = UI_TIP_LC_NORMAL;
@@ -514,9 +519,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			data->totline++;
 		}
 		
-		if(but->rnapoin.id.data) {
+		if (but->rnapoin.id.data) {
 			ID *id= but->rnapoin.id.data;
-			if(id->lib && id->lib->name) {
+			if (id->lib && id->lib->name) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Library: %s"), id->lib->name);
 				data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 				data->totline++;
@@ -540,12 +545,12 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		MEM_freeN(str);
 
 		/* second check if we are disabled - why */
-		if(but->flag & UI_BUT_DISABLED) {
+		if (but->flag & UI_BUT_DISABLED) {
 			const char *poll_msg;
 			CTX_wm_operator_poll_msg_set(C, NULL);
 			WM_operator_poll_context(C, but->optype, but->opcontext);
 			poll_msg= CTX_wm_operator_poll_msg_get(C);
-			if(poll_msg) {
+			if (poll_msg) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Disabled: %s"), poll_msg);
 				data->color_id[data->totline] = UI_TIP_LC_ALERT; /* alert */
 				data->totline++;			
@@ -566,7 +571,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	assert(data->totline < MAX_TOOLTIP_LINES);
 	
-	if(data->totline == 0) {
+	if (data->totline == 0) {
 		MEM_freeN(data);
 		return NULL;
 	}
@@ -591,7 +596,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	h= BLF_height_max(data->fstyle.uifont_id);
 
-	for(a=0, fontw=0, fonth=0; a<data->totline; a++) {
+	for (a=0, fontw=0, fonth=0; a<data->totline; a++) {
 		w= BLF_width(data->fstyle.uifont_id, data->lines[a]);
 		fontw= MAX2(fontw, w);
 		fonth += (a == 0)? h: h+TIP_MARGIN_Y;
@@ -622,9 +627,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* copy to int, gets projected if possible too */
 	x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
 	
-	if(butregion) {
+	if (butregion) {
 		/* XXX temp, region v2ds can be empty still */
-		if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
+		if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
 			UI_view2d_to_region_no_clip(&butregion->v2d, x1f, y1f, &x1, &y1);
 			UI_view2d_to_region_no_clip(&butregion->v2d, x2f, y2f, &x2, &y2);
 		}
@@ -637,9 +642,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	wm_window_get_size(CTX_wm_window(C), &winx, &winy);
 
-	if(x2 > winx) {
+	if (x2 > winx) {
 		/* super size */
-		if(x2 > winx + x1) {
+		if (x2 > winx + x1) {
 			x2= winx;
 			x1= 0;
 		}
@@ -650,7 +655,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 	/* ensure at least 5 px above screen bounds
 	 * 25 is just a guess to be above the menu item */
-	if(y1 < 5) {
+	if (y1 < 5) {
 		y2 += (-y1) + 30;
 		y1 = 30;
 	}
@@ -715,35 +720,35 @@ typedef struct uiSearchboxData {
 int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid)
 {
 	/* hijack for autocomplete */
-	if(items->autocpl) {
+	if (items->autocpl) {
 		autocomplete_do_name(items->autocpl, name);
 		return 1;
 	}
 	
 	/* hijack for finding active item */
-	if(items->active) {
-		if(poin==items->active)
+	if (items->active) {
+		if (poin==items->active)
 			items->offset_i= items->totitem;
 		items->totitem++;
 		return 1;
 	}
 	
-	if(items->totitem>=items->maxitem) {
+	if (items->totitem>=items->maxitem) {
 		items->more= 1;
 		return 0;
 	}
 	
 	/* skip first items in list */
-	if(items->offset_i > 0) {
+	if (items->offset_i > 0) {
 		items->offset_i--;
 		return 1;
 	}
 	
-	if(items->names)
+	if (items->names)
 		BLI_strncpy(items->names[items->totitem], name, items->maxstrlen);
-	if(items->pointers)
+	if (items->pointers)
 		items->pointers[items->totitem]= poin;
-	if(items->icons)
+	if (items->icons)
 		items->icons[items->totitem]= iconid;
 	
 	items->totitem++;
@@ -764,10 +769,10 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
 	/* apply step */
 	data->active+= step;
 	
-	if(data->items.totitem==0)
+	if (data->items.totitem==0)
 		data->active= 0;
-	else if(data->active > data->items.totitem) {
-		if(data->items.more) {
+	else if (data->active > data->items.totitem) {
+		if (data->items.more) {
 			data->items.offset++;
 			data->active= data->items.totitem;
 			ui_searchbox_update(C, ar, but, 0);
@@ -775,13 +780,13 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
 		else
 			data->active= data->items.totitem;
 	}
-	else if(data->active < 1) {
-		if(data->items.offset) {
+	else if (data->active < 1) {
+		if (data->items.offset) {
 			data->items.offset--;
 			data->active= 1;
 			ui_searchbox_update(C, ar, but, 0);
 		}
-		else if(data->active < 0)
+		else if (data->active < 0)
 			data->active= 0;
 	}
 	
@@ -836,13 +841,13 @@ void ui_searchbox_apply(uiBut *but, ARegion *ar)
 
 	but->func_arg2= NULL;
 	
-	if(data->active) {
+	if (data->active) {
 		char *name= data->items.names[data->active-1];
 		char *cpoin= strchr(name, '|');
 		
-		if(cpoin) cpoin[0]= 0;
+		if (cpoin) cpoin[0]= 0;
 		BLI_strncpy(but->editstr, name, data->items.maxstrlen);
-		if(cpoin) cpoin[0]= '|';
+		if (cpoin) cpoin[0]= '|';
 		
 		but->func_arg2= data->items.pointers[data->active-1];
 	}
@@ -862,14 +867,14 @@ void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, wmEvent *event)
 			ui_searchbox_select(C, ar, but, 1);
 			break;
 		case MOUSEMOVE:
-			if(BLI_in_rcti(&ar->winrct, event->x, event->y)) {
+			if (BLI_in_rcti(&ar->winrct, event->x, event->y)) {
 				rcti rect;
 				int a;
 				
-				for(a=0; a<data->items.totitem; a++) {
+				for (a=0; a<data->items.totitem; a++) {
 					ui_searchbox_butrect(&rect, data, a);
-					if(BLI_in_rcti(&rect, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin)) {
-						if( data->active!= a+1) {
+					if (BLI_in_rcti(&rect, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin)) {
+						if ( data->active!= a+1) {
 							data->active= a+1;
 							ui_searchbox_select(C, ar, but, 0);
 							break;
@@ -889,7 +894,7 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, int reset)
 	/* reset vars */
 	data->items.totitem= 0;
 	data->items.more= 0;
-	if(reset==0) {
+	if (reset==0) {
 		data->items.offset_i= data->items.offset;
 	}
 	else {
@@ -897,21 +902,21 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, int reset)
 		data->active= 0;
 		
 		/* handle active */
-		if(but->search_func && but->func_arg2) {
+		if (but->search_func && but->func_arg2) {
 			data->items.active= but->func_arg2;
 			but->search_func(C, but->search_arg, but->editstr, &data->items);
 			data->items.active= NULL;
 			
 			/* found active item, calculate real offset by centering it */
-			if(data->items.totitem) {
+			if (data->items.totitem) {
 				/* first case, begin of list */
-				if(data->items.offset_i < data->items.maxitem) {
+				if (data->items.offset_i < data->items.maxitem) {
 					data->active= data->items.offset_i+1;
 					data->items.offset_i= 0;
 				}
 				else {
 					/* second case, end of list */
-					if(data->items.totitem - data->items.offset_i <= data->items.maxitem) {
+					if (data->items.totitem - data->items.offset_i <= data->items.maxitem) {
 						data->active= 1 + data->items.offset_i - data->items.totitem + data->items.maxitem;
 						data->items.offset_i= data->items.totitem - data->items.maxitem;
 					}
@@ -928,22 +933,22 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, int reset)
 	}
 	
 	/* callback */
-	if(but->search_func)
+	if (but->search_func)
 		but->search_func(C, but->search_arg, but->editstr, &data->items);
 	
 	/* handle case where editstr is equal to one of items */
-	if(reset && data->active==0) {
+	if (reset && data->active==0) {
 		int a;
 		
-		for(a=0; a<data->items.totitem; a++) {
+		for (a=0; a<data->items.totitem; a++) {
 			char *cpoin= strchr(data->items.names[a], '|');
 			
-			if(cpoin) cpoin[0]= 0;
-			if(0==strcmp(but->editstr, data->items.names[a]))
+			if (cpoin) cpoin[0]= 0;
+			if (0==strcmp(but->editstr, data->items.names[a]))
 				data->active= a+1;
-			if(cpoin) cpoin[0]= '|';
+			if (cpoin) cpoin[0]= '|';
 		}
-		if(data->items.totitem==1 && but->editstr[0])
+		if (data->items.totitem==1 && but->editstr[0])
 			data->active= 1;
 	}
 
@@ -957,7 +962,7 @@ void ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
 {
 	uiSearchboxData *data= ar->regiondata;
 
-	if(str[0]) {
+	if (str[0]) {
 		data->items.autocpl= autocomplete_begin(str, ui_get_but_string_max_length(but));
 
 		but->search_func(C, but->search_arg, but->editstr, &data->items);
@@ -974,17 +979,17 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	/* pixel space */
 	wmOrtho2(-0.01f, ar->winx-0.01f, -0.01f, ar->winy-0.01f);
 
-	if(!data->noback)
+	if (!data->noback)
 		ui_draw_search_back(NULL, NULL, &data->bbox); /* style not used yet */
 	
 	/* draw text */
-	if(data->items.totitem) {
+	if (data->items.totitem) {
 		rcti rect;
 		int a;
 		
 		if (data->preview) {
 			/* draw items */
-			for(a=0; a<data->items.totitem; a++) {
+			for (a=0; a<data->items.totitem; a++) {
 				ui_searchbox_butrect(&rect, data, a);
 				
 				/* widget itself */
@@ -995,22 +1000,23 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 			}
 			
 			/* indicate more */
-			if(data->items.more) {
+			if (data->items.more) {
 				ui_searchbox_butrect(&rect, data, data->items.maxitem-1);
 				glEnable(GL_BLEND);
 				UI_icon_draw(rect.xmax-18, rect.ymin-7, ICON_TRIA_DOWN);
 				glDisable(GL_BLEND);
 			}
-			if(data->items.offset) {
+			if (data->items.offset) {
 				ui_searchbox_butrect(&rect, data, 0);
 				glEnable(GL_BLEND);
 				UI_icon_draw(rect.xmin, rect.ymax-9, ICON_TRIA_UP);
 				glDisable(GL_BLEND);
 			}
 			
-		} else {
+		}
+		else {
 			/* draw items */
-			for(a=0; a<data->items.totitem; a++) {
+			for (a=0; a<data->items.totitem; a++) {
 				ui_searchbox_butrect(&rect, data, a);
 				
 				/* widget itself */
@@ -1018,13 +1024,13 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 				
 			}
 			/* indicate more */
-			if(data->items.more) {
+			if (data->items.more) {
 				ui_searchbox_butrect(&rect, data, data->items.maxitem-1);
 				glEnable(GL_BLEND);
 				UI_icon_draw((rect.xmax-rect.xmin)/2, rect.ymin-9, ICON_TRIA_DOWN);
 				glDisable(GL_BLEND);
 			}
-			if(data->items.offset) {
+			if (data->items.offset) {
 				ui_searchbox_butrect(&rect, data, 0);
 				glEnable(GL_BLEND);
 				UI_icon_draw((rect.xmax-rect.xmin)/2, rect.ymax-7, ICON_TRIA_UP);
@@ -1082,7 +1088,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	
 	/* special case, hardcoded feature, not draw backdrop when called from menus,
 	 * assume for design that popup already added it */
-	if(but->block->flag & UI_BLOCK_LOOP)
+	if (but->block->flag & UI_BLOCK_LOOP)
 		data->noback= 1;
 	
 	if (but->a1 > 0 && but->a2 > 0) {
@@ -1092,7 +1098,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 	
 	/* compute position */
-	if(but->block->flag & UI_BLOCK_LOOP) {
+	if (but->block->flag & UI_BLOCK_LOOP) {
 		/* this case is search menu inside other menu */
 		/* we copy region size */
 
@@ -1105,7 +1111,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->bbox.ymax = (ar->winrct.ymax-ar->winrct.ymin) - MENU_SHADOW_BOTTOM;
 		
 		/* check if button is lower half */
-		if( but->y2 < (but->block->miny+but->block->maxy)/2 ) {
+		if ( but->y2 < (but->block->miny+but->block->maxy)/2 ) {
 			data->bbox.ymin += (but->y2-but->y1);
 		}
 		else {
@@ -1127,12 +1133,12 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		y2f += ofsy;
 	
 		/* minimal width */
-		if(x2f - x1f < 150) x2f= x1f+150; // XXX arbitrary
+		if (x2f - x1f < 150) x2f= x1f+150; // XXX arbitrary
 		
 		/* copy to int, gets projected if possible too */
 		x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
 		
-		if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
+		if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
 			UI_view2d_to_region_no_clip(&butregion->v2d, x1f, y1f, &x1, &y1);
 			UI_view2d_to_region_no_clip(&butregion->v2d, x2f, y2f, &x2, &y2);
 		}
@@ -1144,9 +1150,9 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		wm_window_get_size(CTX_wm_window(C), &winx, &winy);
 		
-		if(x2 > winx) {
+		if (x2 > winx) {
 			/* super size */
-			if(x2 > winx + x1) {
+			if (x2 > winx + x1) {
 				x2= winx;
 				x1= 0;
 			}
@@ -1156,7 +1162,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 			}
 		}
 
-		if(y1 < 0) {
+		if (y1 < 0) {
 			int newy1;
 			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->y2 + ofsy, NULL, &newy1);
 			newy1 += butregion->winrct.ymin;
@@ -1187,7 +1193,8 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* prepare search data */
 	if (data->preview) {
 		data->items.maxitem= data->prv_rows * data->prv_cols;
-	} else {
+	}
+	else {
 		data->items.maxitem= SEARCH_ITEMS;
 	}
 	data->items.maxstrlen= but->hardmax;
@@ -1195,7 +1202,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->items.names= MEM_callocN(data->items.maxitem*sizeof(void *), "search names");
 	data->items.pointers= MEM_callocN(data->items.maxitem*sizeof(void *), "search pointers");
 	data->items.icons= MEM_callocN(data->items.maxitem*sizeof(int), "search icons");
-	for(x1=0; x1<data->items.maxitem; x1++)
+	for (x1=0; x1<data->items.maxitem; x1++)
 		data->items.names[x1]= MEM_callocN(but->hardmax+1, "search pointers");
 	
 	return ar;
@@ -1215,7 +1222,7 @@ void ui_but_search_test(uiBut *but)
 
 	/* possibly very large lists (such as ID datablocks) only
 	 * only validate string RNA buts (not pointers) */
-	if(but->rnaprop && RNA_property_type(but->rnaprop) != PROP_STRING) {
+	if (but->rnaprop && RNA_property_type(but->rnaprop) != PROP_STRING) {
 		return;
 	}
 
@@ -1225,19 +1232,19 @@ void ui_but_search_test(uiBut *but)
 	items->maxitem= 10;
 	items->maxstrlen= 256;
 	items->names= MEM_callocN(items->maxitem*sizeof(void *), "search names");
-	for(x1=0; x1<items->maxitem; x1++)
+	for (x1=0; x1<items->maxitem; x1++)
 		items->names[x1]= MEM_callocN(but->hardmax+1, "search names");
 	
 	but->search_func(but->block->evil_C, but->search_arg, but->drawstr, items);
 	
 	/* only redalert when we are sure of it, this can miss cases when >10 matches */
-	if(items->totitem==0)
+	if (items->totitem==0)
 		uiButSetFlag(but, UI_BUT_REDALERT);
-	else if(items->more==0) {
-		for(x1= 0; x1<items->totitem; x1++)
-			if(strcmp(but->drawstr, items->names[x1])==0)
+	else if (items->more==0) {
+		for (x1= 0; x1<items->totitem; x1++)
+			if (strcmp(but->drawstr, items->names[x1])==0)
 				break;
-		if(x1==items->totitem)
+		if (x1==items->totitem)
 			uiButSetFlag(but, UI_BUT_REDALERT);
 	}
 	
@@ -1269,18 +1276,18 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	ui_block_to_window_fl(butregion, but->block, &butrct.xmax, &butrct.ymax);
 
 	/* calc block rect */
-	if(block->minx == 0.0f && block->maxx == 0.0f) {
-		if(block->buttons.first) {
+	if (block->minx == 0.0f && block->maxx == 0.0f) {
+		if (block->buttons.first) {
 			block->minx= block->miny= 10000;
 			block->maxx= block->maxy= -10000;
 			
 			bt= block->buttons.first;
-			while(bt) {
-				if(bt->x1 < block->minx) block->minx= bt->x1;
-				if(bt->y1 < block->miny) block->miny= bt->y1;
+			while (bt) {
+				if (bt->x1 < block->minx) block->minx= bt->x1;
+				if (bt->y1 < block->miny) block->miny= bt->y1;
 
-				if(bt->x2 > block->maxx) block->maxx= bt->x2;
-				if(bt->y2 > block->maxy) block->maxy= bt->y2;
+				if (bt->x2 > block->maxx) block->maxx= bt->x2;
+				if (bt->y2 > block->maxy) block->maxy= bt->y2;
 				
 				bt= bt->next;
 			}
@@ -1310,16 +1317,16 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 
 		wm_window_get_size(window, &winx, &winy);
 
-		if(block->direction & UI_CENTER) center= ysize/2;
+		if (block->direction & UI_CENTER) center= ysize/2;
 		else center= 0;
 		
 		/* check if there's space at all */
-		if( butrct.xmin-xsize > 0.0f) left= 1;
-		if( butrct.xmax+xsize < winx) right= 1;
-		if( butrct.ymin-ysize+center > 0.0f) down= 1;
-		if( butrct.ymax+ysize-center < winy) top= 1;
+		if ( butrct.xmin-xsize > 0.0f) left= 1;
+		if ( butrct.xmax+xsize < winx) right= 1;
+		if ( butrct.ymin-ysize+center > 0.0f) down= 1;
+		if ( butrct.ymax+ysize-center < winy) top= 1;
 		
-		if(top==0 && down==0) {
+		if (top==0 && down==0) {
 			if (butrct.ymin-ysize < winy-butrct.ymax-ysize)
 				top= 1;
 			else
@@ -1329,74 +1336,74 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		dir1= block->direction & UI_DIRECTION;
 
 		/* secundary directions */
-		if(dir1 & (UI_TOP|UI_DOWN)) {
-			if(dir1 & UI_LEFT) dir2= UI_LEFT;
-			else if(dir1 & UI_RIGHT) dir2= UI_RIGHT;
+		if (dir1 & (UI_TOP|UI_DOWN)) {
+			if (dir1 & UI_LEFT) dir2= UI_LEFT;
+			else if (dir1 & UI_RIGHT) dir2= UI_RIGHT;
 			dir1 &= (UI_TOP|UI_DOWN);
 		}
 
-		if(dir2==0) if(dir1==UI_LEFT || dir1==UI_RIGHT) dir2= UI_DOWN;
-		if(dir2==0) if(dir1==UI_TOP || dir1==UI_DOWN) dir2= UI_LEFT;
+		if (dir2==0) if(dir1==UI_LEFT || dir1==UI_RIGHT) dir2= UI_DOWN;
+		if (dir2==0) if(dir1==UI_TOP || dir1==UI_DOWN) dir2= UI_LEFT;
 		
 		/* no space at all? don't change */
-		if(left || right) {
-			if(dir1==UI_LEFT && left==0) dir1= UI_RIGHT;
-			if(dir1==UI_RIGHT && right==0) dir1= UI_LEFT;
+		if (left || right) {
+			if (dir1==UI_LEFT && left==0) dir1= UI_RIGHT;
+			if (dir1==UI_RIGHT && right==0) dir1= UI_LEFT;
 			/* this is aligning, not append! */
-			if(dir2==UI_LEFT && right==0) dir2= UI_RIGHT;
-			if(dir2==UI_RIGHT && left==0) dir2= UI_LEFT;
+			if (dir2==UI_LEFT && right==0) dir2= UI_RIGHT;
+			if (dir2==UI_RIGHT && left==0) dir2= UI_LEFT;
 		}
-		if(down || top) {
-			if(dir1==UI_TOP && top==0) dir1= UI_DOWN;
-			if(dir1==UI_DOWN && down==0) dir1= UI_TOP;
-			if(dir2==UI_TOP && top==0) dir2= UI_DOWN;
-			if(dir2==UI_DOWN && down==0) dir2= UI_TOP;
+		if (down || top) {
+			if (dir1==UI_TOP && top==0) dir1= UI_DOWN;
+			if (dir1==UI_DOWN && down==0) dir1= UI_TOP;
+			if (dir2==UI_TOP && top==0) dir2= UI_DOWN;
+			if (dir2==UI_DOWN && down==0) dir2= UI_TOP;
 		}
 		
-		if(dir1==UI_LEFT) {
+		if (dir1==UI_LEFT) {
 			xof= butrct.xmin - block->maxx;
-			if(dir2==UI_TOP) yof= butrct.ymin - block->miny-center;
+			if (dir2==UI_TOP) yof= butrct.ymin - block->miny-center;
 			else yof= butrct.ymax - block->maxy+center;
 		}
-		else if(dir1==UI_RIGHT) {
+		else if (dir1==UI_RIGHT) {
 			xof= butrct.xmax - block->minx;
-			if(dir2==UI_TOP) yof= butrct.ymin - block->miny-center;
+			if (dir2==UI_TOP) yof= butrct.ymin - block->miny-center;
 			else yof= butrct.ymax - block->maxy+center;
 		}
-		else if(dir1==UI_TOP) {
+		else if (dir1==UI_TOP) {
 			yof= butrct.ymax - block->miny;
-			if(dir2==UI_RIGHT) xof= butrct.xmax - block->maxx;
+			if (dir2==UI_RIGHT) xof= butrct.xmax - block->maxx;
 			else xof= butrct.xmin - block->minx;
 			// changed direction? 
-			if((dir1 & block->direction)==0) {
-				if(block->direction & UI_SHIFT_FLIPPED)
+			if ((dir1 & block->direction)==0) {
+				if (block->direction & UI_SHIFT_FLIPPED)
 					xof+= dir2==UI_LEFT?25:-25;
 				uiBlockFlipOrder(block);
 			}
 		}
-		else if(dir1==UI_DOWN) {
+		else if (dir1==UI_DOWN) {
 			yof= butrct.ymin - block->maxy;
-			if(dir2==UI_RIGHT) xof= butrct.xmax - block->maxx;
+			if (dir2==UI_RIGHT) xof= butrct.xmax - block->maxx;
 			else xof= butrct.xmin - block->minx;
 			// changed direction?
-			if((dir1 & block->direction)==0) {
-				if(block->direction & UI_SHIFT_FLIPPED)
+			if ((dir1 & block->direction)==0) {
+				if (block->direction & UI_SHIFT_FLIPPED)
 					xof+= dir2==UI_LEFT?25:-25;
 				uiBlockFlipOrder(block);
 			}
 		}
 
 		/* and now we handle the exception; no space below or to top */
-		if(top==0 && down==0) {
-			if(dir1==UI_LEFT || dir1==UI_RIGHT) {
+		if (top==0 && down==0) {
+			if (dir1==UI_LEFT || dir1==UI_RIGHT) {
 				// align with bottom of screen 
 				// yof= ysize; (not with menu scrolls)
 			}
 		}
 		
 		/* or no space left or right */
-		if(left==0 && right==0) {
-			if(dir1==UI_TOP || dir1==UI_DOWN) {
+		if (left==0 && right==0) {
+			if (dir1==UI_TOP || dir1==UI_DOWN) {
 				// align with left size of screen 
 				xof= -block->minx+5;
 			}
@@ -1407,16 +1414,16 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		yof += block->yofs/block->aspect;
 #if 0
 		/* clamp to window bounds, could be made into an option if its ever annoying */
-		if(     (offscreen= (block->miny+yof)) < 0)      yof -= offscreen; /* bottom */
-		else if((offscreen= (block->maxy+yof)-winy) > 0) yof -= offscreen; /* top */
-		if(     (offscreen= (block->minx+xof)) < 0)      xof -= offscreen; /* left */
-		else if((offscreen= (block->maxx+xof)-winx) > 0) xof -= offscreen; /* right */
+		if (     (offscreen= (block->miny+yof)) < 0)      yof -= offscreen; /* bottom */
+		else if ((offscreen= (block->maxy+yof)-winy) > 0) yof -= offscreen; /* top */
+		if (     (offscreen= (block->minx+xof)) < 0)      xof -= offscreen; /* left */
+		else if ((offscreen= (block->maxx+xof)-winx) > 0) xof -= offscreen; /* right */
 #endif
 	}
 	
 	/* apply offset, buttons in window coords */
 	
-	for(bt= block->buttons.first; bt; bt= bt->next) {
+	for (bt= block->buttons.first; bt; bt= bt->next) {
 		ui_block_to_window_fl(butregion, but->block, &bt->x1, &bt->y1);
 		ui_block_to_window_fl(butregion, but->block, &bt->x2, &bt->y2);
 
@@ -1436,30 +1443,30 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	block->maxy += yof;
 
 	/* safety calculus */
-	if(but) {
+	if (but) {
 		float midx= (butrct.xmin+butrct.xmax)/2.0f;
 		float midy= (butrct.ymin+butrct.ymax)/2.0f;
 		
 		/* when you are outside parent button, safety there should be smaller */
 		
 		// parent button to left
-		if( midx < block->minx ) block->safety.xmin = block->minx-3; 
+		if ( midx < block->minx ) block->safety.xmin = block->minx-3; 
 		else block->safety.xmin = block->minx-40;
 		// parent button to right
-		if( midx > block->maxx ) block->safety.xmax = block->maxx+3; 
+		if ( midx > block->maxx ) block->safety.xmax = block->maxx+3; 
 		else block->safety.xmax = block->maxx+40;
 		
 		// parent button on bottom
-		if( midy < block->miny ) block->safety.ymin = block->miny-3; 
+		if ( midy < block->miny ) block->safety.ymin = block->miny-3; 
 		else block->safety.ymin = block->miny-40;
 		// parent button on top
-		if( midy > block->maxy ) block->safety.ymax = block->maxy+3; 
+		if ( midy > block->maxy ) block->safety.ymax = block->maxy+3; 
 		else block->safety.ymax = block->maxy+40;
 		
 		// exception for switched pulldowns...
-		if(dir1 && (dir1 & block->direction)==0) {
-			if(dir2==UI_RIGHT) block->safety.xmax = block->maxx+3; 
-			if(dir2==UI_LEFT) block->safety.xmin = block->minx-3; 
+		if (dir1 && (dir1 & block->direction)==0) {
+			if (dir2==UI_RIGHT) block->safety.xmax = block->maxx+3; 
+			if (dir2==UI_LEFT) block->safety.xmin = block->minx-3; 
 		}
 		block->direction= dir1;
 	}
@@ -1475,7 +1482,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	saferct->parent= butrct;
 	saferct->safety= block->safety;
 	BLI_freelistN(&block->saferct);
-	if(but)
+	if (but)
 		BLI_duplicatelist(&block->saferct, &but->block->saferct);
 	BLI_addhead(&block->saferct, saferct);
 }
@@ -1484,7 +1491,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 {
 	uiBlock *block;
 
-	for(block=ar->uiblocks.first; block; block=block->next)
+	for (block=ar->uiblocks.first; block; block=block->next)
 		uiDrawBlock(C, block);
 }
 
@@ -1494,14 +1501,14 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 	
 	wm_window_get_size(window, &winx, &winy);
 	
-	if(block->minx < MENU_SHADOW_SIDE)
+	if (block->minx < MENU_SHADOW_SIDE)
 		block->minx= MENU_SHADOW_SIDE;
-	if(block->maxx > winx-MENU_SHADOW_SIDE)
+	if (block->maxx > winx-MENU_SHADOW_SIDE)
 		block->maxx= winx-MENU_SHADOW_SIDE;
 	
-	if(block->miny < MENU_SHADOW_BOTTOM)
+	if (block->miny < MENU_SHADOW_BOTTOM)
 		block->miny= MENU_SHADOW_BOTTOM;
-	if(block->maxy > winy-MENU_TOP)
+	if (block->maxy > winy-MENU_TOP)
 		block->maxy= winy-MENU_TOP;
 }
 
@@ -1513,33 +1520,33 @@ void ui_popup_block_scrolltest(uiBlock *block)
 	
 	block->flag &= ~(UI_BLOCK_CLIPBOTTOM|UI_BLOCK_CLIPTOP);
 	
-	for(bt= block->buttons.first; bt; bt= bt->next)
+	for (bt= block->buttons.first; bt; bt= bt->next)
 		bt->flag &= ~UI_SCROLLED;
 	
-	if(block->buttons.first==block->buttons.last)
+	if (block->buttons.first==block->buttons.last)
 		return;
 	
 	/* mark buttons that are outside boundary and the ones next to it for arrow(s) */
-	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(bt->y1 < block->miny) {
+	for (bt= block->buttons.first; bt; bt= bt->next) {
+		if (bt->y1 < block->miny) {
 			bt->flag |= UI_SCROLLED;
 			block->flag |= UI_BLOCK_CLIPBOTTOM;
 			/* make space for arrow */
-			if(bt->y2 < block->miny +10) {
-				if(is_flip && bt->next && bt->next->y1 > bt->y1)
+			if (bt->y2 < block->miny +10) {
+				if (is_flip && bt->next && bt->next->y1 > bt->y1)
 					bt->next->flag |= UI_SCROLLED;
-				else if(!is_flip && bt->prev && bt->prev->y1 > bt->y1)
+				else if (!is_flip && bt->prev && bt->prev->y1 > bt->y1)
 					bt->prev->flag |= UI_SCROLLED;
 			}
 		}
-		if(bt->y2 > block->maxy) {
+		if (bt->y2 > block->maxy) {
 			bt->flag |= UI_SCROLLED;
 			block->flag |= UI_BLOCK_CLIPTOP;
 			/* make space for arrow */
-			if(bt->y1 > block->maxy -10) {
-				if(!is_flip && bt->next && bt->next->y2 < bt->y2)
+			if (bt->y1 > block->maxy -10) {
+				if (!is_flip && bt->next && bt->next->y2 < bt->y2)
 					bt->next->flag |= UI_SCROLLED;
-				else if(is_flip && bt->prev && bt->prev->y2 < bt->y2)
+				else if (is_flip && bt->prev && bt->prev->y2 < bt->y2)
 					bt->prev->flag |= UI_SCROLLED;
 			}
 		}
@@ -1574,12 +1581,12 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	UI_add_region_handlers(&ar->handlers);
 
 	/* create ui block */
-	if(create_func)
+	if (create_func)
 		block= create_func(C, handle->region, arg);
 	else
 		block= handle_create_func(C, handle, arg);
 	
-	if(block->handle) {
+	if (block->handle) {
 		memcpy(block->handle, handle, sizeof(uiPopupBlockHandle));
 		MEM_freeN(handle);
 		handle= block->handle;
@@ -1589,12 +1596,12 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	ar->regiondata= handle;
 
-	if(!block->endblock)
+	if (!block->endblock)
 		uiEndBlock(C, block);
 
 	/* if this is being created from a button */
-	if(but) {
-		if(ELEM(but->type, BLOCK, PULLDOWN))
+	if (but) {
+		if (ELEM(but->type, BLOCK, PULLDOWN))
 			block->xofs = -2;	/* for proper alignment */
 
 		block->aspect = but->block->aspect;
@@ -1625,7 +1632,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	block->miny -= ar->winrct.ymin;
 	block->maxy -= ar->winrct.ymin;
 
-	for(bt= block->buttons.first; bt; bt= bt->next) {
+	for (bt= block->buttons.first; bt; bt= bt->next) {
 		bt->x1 -= ar->winrct.xmin;
 		bt->x2 -= ar->winrct.xmin;
 		bt->y1 -= ar->winrct.ymin;
@@ -1655,7 +1662,7 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
 	ui_remove_temporary_region(C, CTX_wm_screen(C), handle->region);
 	
-	if(handle->scrolltimer)
+	if (handle->scrolltimer)
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), handle->scrolltimer);
 	
 	MEM_freeN(handle);
@@ -1682,20 +1689,20 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 
 	/* columns and row estimation */
 	columns= (md->nitems+20)/20;
-	if(columns<1)
+	if (columns<1)
 		columns= 1;
-	if(columns>8)
+	if (columns>8)
 		columns= (md->nitems+25)/25;
 	
 	rows= md->nitems/columns;
-	if(rows<1)
+	if (rows<1)
 		rows= 1;
-	while(rows*columns<md->nitems)
+	while (rows*columns<md->nitems)
 		rows++;
 
 	/* create title */
-	if(md->title) {
-		if(md->titleicon) {
+	if (md->title) {
+		if (md->titleicon) {
 			uiItemL(layout, md->title, md->titleicon);
 		}
 		else {
@@ -1707,8 +1714,8 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 
 	/* inconsistent, but menus with labels do not look good flipped */
 	entry= md->items;
-	for(a=0; a<md->nitems; a++, entry++) {
-		if(entry->sepr && entry->str[0]) {
+	for (a=0; a<md->nitems; a++, entry++) {
+		if (entry->sepr && entry->str[0]) {
 			block->flag |= UI_BLOCK_NO_FLIP;
 			break;
 		}
@@ -1717,18 +1724,18 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	/* create items */
 	split= uiLayoutSplit(layout, 0, 0);
 
-	for(a=0; a<md->nitems; a++) {
-		if(a == column_end) {
+	for (a=0; a<md->nitems; a++) {
+		if (a == column_end) {
 			/* start new column, and find out where it ends in advance, so we
 			 * can flip the order of items properly per column */
 			column_start= a;
 			column_end= md->nitems;
 
-			for(b=a+1; b<md->nitems; b++) {
+			for (b=a+1; b<md->nitems; b++) {
 				entry= &md->items[b];
 
 				/* new column on N rows or on separation label */
-				if(((b-a) % rows == 0) || (entry->sepr && entry->str[0])) {
+				if (((b-a) % rows == 0) || (entry->sepr && entry->str[0])) {
 					column_end = b;
 					break;
 				}
@@ -1737,17 +1744,17 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			column= uiLayoutColumn(split, 0);
 		}
 
-		if(block->flag & UI_BLOCK_NO_FLIP)
+		if (block->flag & UI_BLOCK_NO_FLIP)
 			entry= &md->items[a];
 		else
 			entry= &md->items[column_start + column_end-1-a];
 
-		if(entry->sepr) {
+		if (entry->sepr) {
 			uiItemL(column, entry->str, entry->icon);
 			bt= block->buttons.last;
 			bt->flag= UI_TEXT_LEFT;
 		}
-		else if(entry->icon) {
+		else if (entry->icon) {
 			uiDefIconTextButF(block, BUTM|FLO, B_NOP, entry->icon, entry->str, 0, 0,
 				UI_UNIT_X*5, UI_UNIT_Y, &handle->retvalue, (float) entry->retval, 0.0, 0, 0, "");
 		}
@@ -1769,7 +1776,7 @@ void ui_block_func_ICONROW(bContext *UNUSED(C), uiLayout *layout, void *arg_but)
 	
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
-	for(a=(int)but->hardmin; a<=(int)but->hardmax; a++)
+	for (a=(int)but->hardmin; a<=(int)but->hardmax; a++)
 		uiDefIconButF(block, BUTM|FLO, B_NOP, but->icon+(a-but->hardmin), 0, 0, UI_UNIT_X*5, UI_UNIT_Y,
 			&handle->retvalue, (float)a, 0.0, 0, 0, "");
 }
@@ -1788,16 +1795,16 @@ void ui_block_func_ICONTEXTROW(bContext *UNUSED(C), uiLayout *layout, void *arg_
 	md= decompose_menu_string(but->str);
 
 	/* title */
-	if(md->title) {
+	if (md->title) {
 		bt= uiDefBut(block, LABEL, 0, md->title, 0, 0, UI_UNIT_X*5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		bt->flag= UI_TEXT_LEFT;
 	}
 
 	/* loop through the menu options and draw them out with icons & text labels */
-	for(a=0; a<md->nitems; a++) {
+	for (a=0; a<md->nitems; a++) {
 		entry= &md->items[md->nitems-a-1];
 
-		if(entry->sepr)
+		if (entry->sepr)
 			uiItemS(layout);
 		else
 			uiDefIconTextButF(block, BUTM|FLO, B_NOP, (short)((but->icon)+(entry->retval-but->hardmin)), entry->str,
@@ -1849,13 +1856,13 @@ static void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	// this updates button strings, is hackish... but button pointers are on stack of caller function
-	for(bt= block->buttons.first; bt; bt= bt->next) {
+	for (bt= block->buttons.first; bt; bt= bt->next) {
 		if (bt->rnaprop) {
 			
 			ui_set_but_vectorf(bt, rgb);
 			
 		}
-		else if(strcmp(bt->str, "Hex: ")==0) {
+		else if (strcmp(bt->str, "Hex: ")==0) {
 			float rgb_gamma[3];
 			double intpart;
 			char col[16];
@@ -1864,7 +1871,8 @@ static void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 			
 			if (block->color_profile == BLI_PR_NONE) {
 				copy_v3_v3(rgb_gamma, rgb);
-			} else {
+			}
+			else {
 				/* make an sRGB version, for Hex code */
 				linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
 			}
@@ -1877,23 +1885,23 @@ static void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 			
 			strcpy(bt->poin, col);
 		}
-		else if(bt->str[1]==' ') {
-			if(bt->str[0]=='R') {
+		else if (bt->str[1]==' ') {
+			if (bt->str[0]=='R') {
 				ui_set_but_val(bt, rgb[0]);
 			}
-			else if(bt->str[0]=='G') {
+			else if (bt->str[0]=='G') {
 				ui_set_but_val(bt, rgb[1]);
 			}
-			else if(bt->str[0]=='B') {
+			else if (bt->str[0]=='B') {
 				ui_set_but_val(bt, rgb[2]);
 			}
-			else if(bt->str[0]=='H') {
+			else if (bt->str[0]=='H') {
 				ui_set_but_val(bt, hsv[0]);
 			}
-			else if(bt->str[0]=='S') {
+			else if (bt->str[0]=='S') {
 				ui_set_but_val(bt, hsv[1]);
 			}
-			else if(bt->str[0]=='V') {
+			else if (bt->str[0]=='V') {
 				ui_set_but_val(bt, hsv[2]);
 			}
 		}		
@@ -1915,7 +1923,7 @@ static void do_picker_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 		ui_update_block_buts_rgb(but->block, rgb);
 	}
 	
-	if(popup)
+	if (popup)
 		popup->menuretval= UI_RETURN_UPDATE;
 }
 
@@ -1930,7 +1938,7 @@ static void do_hsv_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 	
 	ui_update_block_buts_rgb(but->block, rgb);
 	
-	if(popup)
+	if (popup)
 		popup->menuretval= UI_RETURN_UPDATE;
 }
 
@@ -1951,7 +1959,7 @@ static void do_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexcl)
 	
 	ui_update_block_buts_rgb(but->block, rgb);
 	
-	if(popup)
+	if (popup)
 		popup->menuretval= UI_RETURN_UPDATE;
 }
 
@@ -1960,7 +1968,7 @@ static void close_popup_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 	uiBut *but= (uiBut *)bt1;
 	uiPopupBlockHandle *popup= but->block->handle;
 	
-	if(popup)
+	if (popup)
 		popup->menuretval= UI_RETURN_OK;
 }
 
@@ -1969,26 +1977,26 @@ static void picker_new_hide_reveal(uiBlock *block, short colormode)
 	uiBut *bt;
 	
 	/* tag buttons */
-	for(bt= block->buttons.first; bt; bt= bt->next) {
+	for (bt= block->buttons.first; bt; bt= bt->next) {
 		
 		if (bt->type == LABEL) {
-			if( bt->str[1]=='G') {
-				if(colormode==2) bt->flag &= ~UI_HIDDEN;
+			if ( bt->str[1]=='G') {
+				if (colormode==2) bt->flag &= ~UI_HIDDEN;
 				else bt->flag |= UI_HIDDEN;
 			}
 		}
 		
-		if(bt->type==NUMSLI || bt->type==TEX) {
-			if( bt->str[1]=='e') {
-				if(colormode==2) bt->flag &= ~UI_HIDDEN;
+		if (bt->type==NUMSLI || bt->type==TEX) {
+			if ( bt->str[1]=='e') {
+				if (colormode==2) bt->flag &= ~UI_HIDDEN;
 				else bt->flag |= UI_HIDDEN;
 			}
-			else if( ELEM3(bt->str[0], 'R', 'G', 'B')) {
-				if(colormode==0) bt->flag &= ~UI_HIDDEN;
+			else if ( ELEM3(bt->str[0], 'R', 'G', 'B')) {
+				if (colormode==0) bt->flag &= ~UI_HIDDEN;
 				else bt->flag |= UI_HIDDEN;
 			}
-			else if( ELEM3(bt->str[0], 'H', 'S', 'V')) {
-				if(colormode==1) bt->flag &= ~UI_HIDDEN;
+			else if ( ELEM3(bt->str[0], 'H', 'S', 'V')) {
+				if (colormode==1) bt->flag &= ~UI_HIDDEN;
 				else bt->flag |= UI_HIDDEN;
 			}
 		}
@@ -2063,7 +2071,8 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	if (block->color_profile == BLI_PR_NONE) {
 		BLI_strncpy(tip, "Value in Display Color Space", sizeof(tip));
 		copy_v3_v3(rgb_gamma, rgb);
-	} else {
+	}
+	else {
 		BLI_strncpy(tip, "Value in Linear RGB Color Space", sizeof(tip));
 		/* make an sRGB version, for Hex code */
 		linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
@@ -2125,7 +2134,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
 
-	if(rgb[3] != FLT_MAX) {
+	if (rgb[3] != FLT_MAX) {
 		bt= uiDefButR_prop(block, NUMSLI, 0, "A ",	0, -120, butwidth, UI_UNIT_Y, ptr, prop, 3, 0.0, 0.0, 0, 0, "Alpha");
 		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	}
@@ -2149,16 +2158,16 @@ static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, w
 {
 	float add= 0.0f;
 	
-	if(event->type==WHEELUPMOUSE)
+	if (event->type==WHEELUPMOUSE)
 		add= 0.05f;
-	else if(event->type==WHEELDOWNMOUSE)
+	else if (event->type==WHEELDOWNMOUSE)
 		add= -0.05f;
 	
-	if(add!=0.0f) {
+	if (add!=0.0f) {
 		uiBut *but;
 		
-		for(but= block->buttons.first; but; but= but->next) {
-			if(but->type==HSVCUBE && but->active==NULL) {
+		for (but= block->buttons.first; but; but= but->next) {
+			if (but->type==HSVCUBE && but->active==NULL) {
 				uiPopupBlockHandle *popup= block->handle;
 				float col[3];
 				float *hsv= ui_block_hsv_get(block);
@@ -2172,7 +2181,7 @@ static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, w
 				ui_set_but_vectorf(but, col);
 				
 				ui_update_block_buts_rgb(block, col);
-				if(popup)
+				if (popup)
 					popup->menuretval= UI_RETURN_UPDATE;
 				
 				return 1;
@@ -2220,9 +2229,9 @@ static int ui_popup_string_hash(char *str)
 	int hash;
 	char *delimit= strchr(str, '|');
 
-	if(delimit) *delimit= 0;
+	if (delimit) *delimit= 0;
 	hash= BLI_ghashutil_strhash(str);
-	if(delimit) *delimit= '|';
+	if (delimit) *delimit= '|';
 
 	return hash;
 }
@@ -2238,21 +2247,21 @@ uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but)
 	static int mem[256], first=1;
 	int hash= block->puphash;
 	
-	if(first) {
+	if (first) {
 		/* init */
 		memset(mem, -1, sizeof(mem));
 		first= 0;
 	}
 
-	if(but) {
+	if (but) {
 		/* set */
 		mem[hash & 255 ]= ui_popup_string_hash(but->str);
 		return NULL;
 	}
 	else {
 		/* get */
-		for(but=block->buttons.first; but; but=but->next)
-			if(ui_popup_string_hash(but->str) == mem[hash & 255])
+		for (but=block->buttons.first; but; but=but->next)
+			if (ui_popup_string_hash(but->str) == mem[hash & 255])
 				return but;
 
 		return NULL;
@@ -2280,17 +2289,17 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	uiPopupMenu *pup= arg_pup;
 	int offset[2], direction, minwidth, width, height, flip;
 
-	if(pup->menu_func) {
+	if (pup->menu_func) {
 		pup->block->handle= handle;
 		pup->menu_func(C, pup->layout, pup->menu_arg);
 		pup->block->handle= NULL;
 	}
 
-	if(pup->but) {
+	if (pup->but) {
 		/* minimum width to enforece */
 		minwidth= pup->but->x2 - pup->but->x1;
 
-		if(pup->but->type == PULLDOWN || pup->but->menu_create_func) {
+		if (pup->but->type == PULLDOWN || pup->but->menu_create_func) {
 			direction= UI_DOWN;
 			flip= 1;
 		}
@@ -2309,7 +2318,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	
 	/* in some cases we create the block before the region,
 	 * so we set it delayed here if necessary */
-	if(BLI_findindex(&handle->region->uiblocks, block) == -1)
+	if (BLI_findindex(&handle->region->uiblocks, block) == -1)
 		uiBlockSetRegion(block, handle->region);
 
 	block->direction= direction;
@@ -2318,12 +2327,12 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
-	if(pup->popup) {
+	if (pup->popup) {
 		uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_RET_1);
 		uiBlockSetDirection(block, direction);
 
 		/* offset the mouse position, possibly based on earlier selection */
-		if((block->flag & UI_BLOCK_POPUP_MEMORY) &&
+		if ((block->flag & UI_BLOCK_POPUP_MEMORY) &&
 			(bt= ui_popup_menu_memory(block, NULL))) {
 			/* position mouse on last clicked item, at 0.8*width of the
 			 * button, so it doesn't overlap the text too much, also note
@@ -2336,7 +2345,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			/* position mouse at 0.8*width of the button and below the tile
 			 * on the first item */
 			offset[0]= 0;
-			for(bt=block->buttons.first; bt; bt=bt->next)
+			for (bt=block->buttons.first; bt; bt=bt->next)
 				offset[0]= MIN2(offset[0], -(bt->x1 + 0.8f*(bt->x2 - bt->x1)));
 
 			offset[1]= 1.5*UI_UNIT_Y;
@@ -2347,11 +2356,11 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	}
 	else {
 		/* for a header menu we set the direction automatic */
-		if(!pup->slideout && flip) {
+		if (!pup->slideout && flip) {
 			ScrArea *sa= CTX_wm_area(C);
-			if(sa && sa->headertype==HEADERDOWN) {
+			if (sa && sa->headertype==HEADERDOWN) {
 				ARegion *ar= CTX_wm_region(C);
-				if(ar && ar->regiontype == RGN_TYPE_HEADER) {
+				if (ar && ar->regiontype == RGN_TYPE_HEADER) {
 					uiBlockSetDirection(block, UI_TOP);
 					uiBlockFlipOrder(block);
 				}
@@ -2363,7 +2372,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	}
 
 	/* if menu slides out of other menu, override direction */
-	if(pup->slideout)
+	if (pup->slideout)
 		uiBlockSetDirection(block, UI_RIGHT);
 
 	uiEndBlock(C, block);
@@ -2384,7 +2393,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	pup->but= but;
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
 
-	if(!but) {
+	if (!but) {
 		/* no button to start from, means we are a popup */
 		pup->mx= window->eventstate->x;
 		pup->my= window->eventstate->y;
@@ -2399,13 +2408,13 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 		/* if this is an rna button then we can assume its an enum
 		 * flipping enums is generally not good since the order can be
 		 * important [#28786] */
-		if(but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
+		if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
 			pup->block->flag |= UI_BLOCK_NO_FLIP;
 		}
 	}
 #endif
 
-	if(str) {
+	if (str) {
 		/* menu is created from a string */
 		pup->menu_func= ui_block_func_MENUSTR;
 		pup->menu_arg= str;
@@ -2418,7 +2427,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	
 	handle= ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup);
 
-	if(!but) {
+	if (!but) {
 		handle->popup= 1;
 
 		UI_add_popup_handlers(C, &window->modalhandlers, handle);
@@ -2449,10 +2458,10 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 	pup->block->handle= MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
 	
 	/* create title button */
-	if(title && title[0]) {
+	if (title && title[0]) {
 		char titlestr[256];
 		
-		if(icon) {
+		if (icon) {
 			BLI_snprintf(titlestr, sizeof(titlestr), " %s", title);
 			uiDefIconTextBut(pup->block, LABEL, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		}
@@ -2495,7 +2504,7 @@ static void operator_name_cb(bContext *C, void *arg, int retval)
 {
 	const char *opname= arg;
 
-	if(opname && retval > 0)
+	if (opname && retval > 0)
 		WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
 }
 
@@ -2503,7 +2512,7 @@ static void operator_cb(bContext *C, void *arg, int retval)
 {
 	wmOperator *op= arg;
 	
-	if(op && retval > 0)
+	if (op && retval > 0)
 		WM_operator_call(C, op);
 	else
 		WM_operator_free(op);
@@ -2598,26 +2607,26 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	DynStr *ds;
 	char *str;
 
-	if(!reports || !reports->list.first)
+	if (!reports || !reports->list.first)
 		return;
-	if(!CTX_wm_window(C))
+	if (!CTX_wm_window(C))
 		return;
 
 	ds= BLI_dynstr_new();
 
-	for(report=reports->list.first; report; report=report->next) {
-		if(report->type < reports->printlevel)
+	for (report=reports->list.first; report; report=report->next) {
+		if (report->type < reports->printlevel)
 			; /* pass */
-		else if(report->type >= RPT_ERROR)
+		else if (report->type >= RPT_ERROR)
 			BLI_dynstr_appendf(ds, "Error %%i%d%%t|%s", ICON_ERROR, report->message);
-		else if(report->type >= RPT_WARNING)
+		else if (report->type >= RPT_WARNING)
 			BLI_dynstr_appendf(ds, "Warning %%i%d%%t|%s", ICON_ERROR, report->message);
-		else if(report->type >= RPT_INFO)
+		else if (report->type >= RPT_INFO)
 			BLI_dynstr_appendf(ds, "Info %%i%d%%t|%s", ICON_INFO, report->message);
 	}
 
 	str= BLI_dynstr_get_cstring(ds);
-	if(str[0] != '\0')
+	if (str[0] != '\0')
 		ui_popup_menu_create(C, NULL, NULL, NULL, NULL, str);
 	MEM_freeN(str);
 
@@ -2631,12 +2640,12 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 	Menu menu;
 	MenuType *mt = WM_menutype_find(idname, TRUE);
 
-	if(mt==NULL) {
+	if (mt==NULL) {
 		printf("%s: named menu \"%s\" not found\n", __func__, idname);
 		return;
 	}
 
-	if(mt->poll && mt->poll(C, mt)==0)
+	if (mt->poll && mt->poll(C, mt)==0)
 		return;
 
 	pup= uiPupMenuBegin(C, mt->label, ICON_NONE);
@@ -2712,11 +2721,11 @@ void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int
 
 void uiPupBlockClose(bContext *C, uiBlock *block)
 {
-	if(block->handle) {
+	if (block->handle) {
 		wmWindow *win = CTX_wm_window(C);
 
 		/* if loading new .blend while popup is open, window will be NULL */
-		if(win) {
+		if (win) {
 			UI_remove_popup_handlers(&win->modalhandlers, block->handle);
 			ui_popup_block_free(C, block->handle);
 		}

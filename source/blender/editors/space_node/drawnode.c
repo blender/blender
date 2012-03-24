@@ -85,7 +85,7 @@ static void node_sync_cb(bContext *UNUSED(C), void *snode_v, void *node_v)
 {
 	SpaceNode *snode= snode_v;
 	
-	if(snode->treetype==NTREE_SHADER) {
+	if (snode->treetype==NTREE_SHADER) {
 		nodeShaderSynchronizeID(node_v, 1);
 		// allqueue(REDRAWBUTSSHADING, 0);
 	}
@@ -283,7 +283,7 @@ static void node_draw_socket_new(bNodeSocket *sock, float size)
 	glColor3ub(180, 180, 180);
 	
 	glBegin(GL_POLYGON);
-	for(a=0; a<16; a++)
+	for (a=0; a<16; a++)
 		glVertex2f(x+size*si[a], y+size*co[a]);
 	glEnd();
 	
@@ -291,7 +291,7 @@ static void node_draw_socket_new(bNodeSocket *sock, float size)
 	glEnable(GL_BLEND);
 	glEnable( GL_LINE_SMOOTH );
 	glBegin(GL_LINE_LOOP);
-	for(a=0; a<16; a++)
+	for (a=0; a<16; a++)
 		glVertex2f(x+size*si[a], y+size*co[a]);
 	glEnd();
 	glDisable( GL_LINE_SMOOTH );
@@ -336,7 +336,7 @@ static void node_buts_mix_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA 
 
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "blend_type", 0, "", ICON_NONE);
-	if(ntree->type == NTREE_COMPOSIT)
+	if (ntree->type == NTREE_COMPOSIT)
 		uiItemR(row, ptr, "use_alpha", 0, "", ICON_IMAGE_RGB_ALPHA);
 }
 
@@ -348,9 +348,9 @@ static void node_buts_time(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
 	bNode *node= ptr->data;
 	CurveMapping *cumap= node->storage;
 	
-	if(cumap) {
+	if (cumap) {
 		cumap->flag |= CUMA_DRAW_CFRA;
-		if(node->custom1<node->custom2)
+		if (node->custom1<node->custom2)
 			cumap->sample[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
 	}
 #endif
@@ -385,7 +385,7 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 	bNode *node= ptr->data;
 	CurveMapping *cumap= node->storage;
 
-	if(_sample_col) {
+	if (_sample_col) {
 		cumap->flag |= CUMA_DRAW_SAMPLE;
 		copy_v3_v3(cumap->sample, _sample_col);
 	}
@@ -427,9 +427,9 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 	bNode *node= node_v;
 	Tex *tex;
 	
-	if(node->menunr<1) return;
+	if (node->menunr<1) return;
 	
-	if(node->id) {
+	if (node->id) {
 		node->id->us--;
 		node->id= NULL;
 	}
@@ -441,7 +441,7 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 	
 	nodeSetActive(ntree, node);
 	
-	if( ntree->type == NTREE_TEXTURE )
+	if ( ntree->type == NTREE_TEXTURE )
 		ntreeTexCheckCyclics( ntree );
 	
 	// allqueue(REDRAWBUTSSHADING, 0);
@@ -496,7 +496,7 @@ static void node_buts_texture(uiLayout *layout, bContext *UNUSED(C), PointerRNA 
 	
 	uiItemR(layout, ptr, "texture", 0, "", ICON_NONE);
 	
-	if(multi) {
+	if (multi) {
 		/* Number Drawing not optimal here, better have a list*/
 		uiItemR(layout, ptr, "node_output", 0, "", ICON_NONE);
 	}
@@ -559,8 +559,8 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		rect->ymin = rect->ymax = locy;
 		
 		counter= 1;
-		for(node= ngroup->nodes.first; node; node= node->next) {
-			if(counter) {
+		for (node= ngroup->nodes.first; node; node= node->next) {
+			if (counter) {
 				*rect= node->totr;
 				counter= 0;
 			}
@@ -994,9 +994,9 @@ static void node_browse_text_cb(bContext *C, void *ntree_v, void *node_v)
 	bNode *node= node_v;
 	/* ID *oldid; */ /* UNUSED */
 	
-	if(node->menunr<1) return;
+	if (node->menunr<1) return;
 	
-	if(node->id) {
+	if (node->id) {
 		node->id->us--;
 	}
 	/* oldid= node->id; */ /* UNUSED */
@@ -1021,7 +1021,7 @@ static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA 
 	
 	uiTemplateID(layout, C, ptr, "material", "MATERIAL_OT_new", NULL, NULL);
 	
-	if(!node->id) return;
+	if (!node->id) return;
 	
 	col= uiLayoutColumn(layout, 0);
 	uiItemR(col, ptr, "use_diffuse", 0, NULL, ICON_NONE);
@@ -1066,7 +1066,7 @@ static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA 
 
 	col= uiLayoutColumn(layout, 0);
 
-	if(obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+	if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
 		PointerRNA dataptr= RNA_pointer_get(&obptr, "data");
 
 		uiItemPointerR(col, ptr, "uv_layer", &dataptr, "uv_textures", "", ICON_NONE);
@@ -1146,7 +1146,7 @@ static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *
 	int xoff=0;
 
 	/* B_NODE_EXEC is handled in butspace.c do_node_buts */
-	if(!node->id) {
+	if (!node->id) {
 			const char *strp;
 			IDnames_to_pupstring(&strp, NULL, "", &(bmain->text), NULL, NULL);
 			node->menunr= 0;
@@ -1155,7 +1155,7 @@ static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *
 							&node->menunr, 0, 0, 0, 0, "Browses existing choices");
 			uiButSetFunc(bt, node_browse_text_cb, ntree, node);
 			xoff=19;
-			if(strp) MEM_freeN((void *)strp);
+			if (strp) MEM_freeN((void *)strp);
 	}
 	else {
 		bt = uiDefBut(block, BUT, B_NOP, "Update",
@@ -1269,7 +1269,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	
-	if(!node->id) return;
+	if (!node->id) return;
 	
 	prop = RNA_struct_find_property(ptr, "image");
 	if (!prop || RNA_property_type(prop) != PROP_POINTER) return;
@@ -1281,7 +1281,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	
 	source= RNA_enum_get(&imaptr, "source");
 
-	if(source == IMA_SRC_SEQUENCE) {
+	if (source == IMA_SRC_SEQUENCE) {
 		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
 		Scene *scene= CTX_data_scene(C);
 		ImageUser *iuser= node->storage;
@@ -1321,7 +1321,7 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 
 	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL);
 	
-	if(!node->id) return;
+	if (!node->id) return;
 
 	col= uiLayoutColumn(layout, 0);
 	row = uiLayoutRow(col, 0);
@@ -1534,12 +1534,13 @@ static void node_composit_buts_crop(uiLayout *layout, bContext *UNUSED(C), Point
 	uiItemR(layout, ptr, "relative", 0, NULL, ICON_NONE);
 
 	col= uiLayoutColumn(layout, 1);
-	if (RNA_boolean_get(ptr, "relative")){
+	if (RNA_boolean_get(ptr, "relative")) {
 		uiItemR(col, ptr, "rel_min_x", 0, "Left", ICON_NONE);
 		uiItemR(col, ptr, "rel_max_x", 0, "Right", ICON_NONE);
 		uiItemR(col, ptr, "rel_min_y", 0, "Up", ICON_NONE);
 		uiItemR(col, ptr, "rel_max_y", 0, "Down", ICON_NONE);
-	} else {
+	}
+	else {
 		uiItemR(col, ptr, "min_x", 0, "Left", ICON_NONE);
 		uiItemR(col, ptr, "max_x", 0, "Right", ICON_NONE);
 		uiItemR(col, ptr, "min_y", 0, "Up", ICON_NONE);
@@ -1652,7 +1653,7 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
 	col= uiLayoutColumn(layout, 0);
 	uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
 
-	if(RNA_enum_get(ptr, "limit_method")==0) {
+	if (RNA_enum_get(ptr, "limit_method")==0) {
 		uiItemL(col, "Limiting Channel:", ICON_NONE);
 		row=uiLayoutRow(col,0);
 		uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
@@ -1707,7 +1708,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext *UNUSED(
 	col = uiLayoutColumn(layout, 0);
 
 	uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
-	if(RNA_enum_get(ptr, "limit_method")==0) {
+	if (RNA_enum_get(ptr, "limit_method")==0) {
 		uiItemL(col, "Limiting Channel:", ICON_NONE);
 		row=uiLayoutRow(col,0);
 		uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
@@ -1843,7 +1844,8 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C
 		row = uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "gain", 0, NULL, ICON_NONE);
 
-	} else {
+	}
+	else {
 		
 		split = uiLayoutSplit(layout, 0, 0);
 		col = uiLayoutColumn(split, 0);
@@ -1877,7 +1879,8 @@ static void node_composit_buts_colorbalance_but(uiLayout *layout, bContext *UNUS
 
 		uiTemplateColorWheel(layout, ptr, "gain", 1, 1, 1, 1);
 		uiItemR(layout, ptr, "gain", 0, NULL, ICON_NONE);
-	} else {
+	}
+	else {
 		uiTemplateColorWheel(layout, ptr, "offset", 1, 1, 0, 1);
 		uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
 
@@ -1911,7 +1914,7 @@ static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, Pointe
 
 	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
 
-	if(!node->id)
+	if (!node->id)
 		return;
 
 	uiItemR(layout, ptr, "filter_type", 0, "", 0);
@@ -1928,7 +1931,7 @@ static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, Po
 
 	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
 
-	if(!node->id)
+	if (!node->id)
 		return;
 
 	uiItemR(layout, ptr, "distortion_type", 0, "", 0);
@@ -2194,7 +2197,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 			break;
 		case TEX_VORONOI:
 			uiItemR(col, &tex_ptr, "distance_metric", 0, "", ICON_NONE);
-			if(tex->vn_distm == TEX_MINKOVSKY) {
+			if (tex->vn_distm == TEX_MINKOVSKY) {
 				uiItemR(col, &tex_ptr, "minkovsky_exponent", 0, NULL, ICON_NONE);
 			}
 			uiItemR(col, &tex_ptr, "color_mode", 0, "", ICON_NONE);
@@ -2216,7 +2219,7 @@ static void node_texture_buts_output(uiLayout *layout, bContext *UNUSED(C), Poin
 static void node_texture_set_butfunc(bNodeType *ntype)
 {
 	ntype->uifuncbut = NULL;
-	if( ntype->type >= TEX_NODE_PROC && ntype->type < TEX_NODE_PROC_MAX ) {
+	if ( ntype->type >= TEX_NODE_PROC && ntype->type < TEX_NODE_PROC_MAX ) {
 		ntype->uifunc = node_texture_buts_proc;
 	}
 	else switch(ntype->type) {
@@ -2329,11 +2332,11 @@ void ED_init_node_butfuncs(void)
 void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 {
 	
-	if((snode->flag & SNODE_BACKDRAW) && snode->treetype==NTREE_COMPOSIT) {
+	if ((snode->flag & SNODE_BACKDRAW) && snode->treetype==NTREE_COMPOSIT) {
 		Image *ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 		void *lock;
 		ImBuf *ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
-		if(ibuf) {
+		if (ibuf) {
 			float x, y; 
 			
 			glMatrixMode(GL_PROJECTION);
@@ -2342,7 +2345,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			glPushMatrix();
 
 			/* keep this, saves us from a version patch */
-			if(snode->zoom==0.0f) snode->zoom= 1.0f;
+			if (snode->zoom==0.0f) snode->zoom= 1.0f;
 			
 			/* somehow the offset has to be calculated inverse */
 			
@@ -2353,26 +2356,27 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			x = (ar->winx-snode->zoom*ibuf->x)/2 + snode->xof;
 			y = (ar->winy-snode->zoom*ibuf->y)/2 + snode->yof;
 			
-			if(!ibuf->rect) {
-				if(color_manage)
+			if (!ibuf->rect) {
+				if (color_manage)
 					ibuf->profile = IB_PROFILE_LINEAR_RGB;
 				else
 					ibuf->profile = IB_PROFILE_NONE;
 				IMB_rect_from_float(ibuf);
 			}
 
-			if(ibuf->rect) {
+			if (ibuf->rect) {
 				if (snode->flag & SNODE_SHOW_ALPHA) {
 					glPixelZoom(snode->zoom, snode->zoom);
 					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-					if(ENDIAN_ORDER == B_ENDIAN)
+					if (ENDIAN_ORDER == B_ENDIAN)
 						glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
 					
 					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT, ibuf->rect);
 					
 					glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 					glPixelZoom(1.0f, 1.0f);
-				} else if (snode->flag & SNODE_USE_ALPHA) {
+				}
+				else if (snode->flag & SNODE_USE_ALPHA) {
 					glEnable(GL_BLEND);
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glPixelZoom(snode->zoom, snode->zoom);
@@ -2381,7 +2385,8 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 					
 					glPixelZoom(1.0f, 1.0f);
 					glDisable(GL_BLEND);
-				} else {
+				}
+				else {
 					glPixelZoom(snode->zoom, snode->zoom);
 					
 					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
@@ -2407,10 +2412,10 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 
 	draw_nodespace_grid(snode);
 	
-	if(snode->flag & SNODE_BACKDRAW) {
+	if (snode->flag & SNODE_BACKDRAW) {
 		Image *ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-		if(ibuf) {
+		if (ibuf) {
 			int x, y;
 			float zoom = 1.0;
 
@@ -2421,7 +2426,7 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 			
 			glaDefine2DArea(&sa->winrct);
 
-			if(ibuf->x > sa->winx || ibuf->y > sa->winy) {
+			if (ibuf->x > sa->winx || ibuf->y > sa->winy) {
 				float zoomx, zoomy;
 				zoomx= (float)sa->winx/ibuf->x;
 				zoomy= (float)sa->winy/ibuf->y;
@@ -2434,9 +2439,9 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 			glPixelZoom(zoom, zoom);
 
 			glColor4f(1.0, 1.0, 1.0, 1.0);
-			if(ibuf->rect)
+			if (ibuf->rect)
 				glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
-			else if(ibuf->channels==4)
+			else if (ibuf->channels==4)
 				glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_FLOAT, ibuf->rect_float);
 
 			glPixelZoom(1.0, 1.0);
@@ -2456,21 +2461,21 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 	float dist, vec[4][2];
 	
 	/* in v0 and v3 we put begin/end points */
-	if(link->fromsock) {
+	if (link->fromsock) {
 		vec[0][0]= link->fromsock->locx;
 		vec[0][1]= link->fromsock->locy;
 	}
 	else {
-		if(snode==NULL) return 0;
+		if (snode==NULL) return 0;
 		vec[0][0]= snode->mx;
 		vec[0][1]= snode->my;
 	}
-	if(link->tosock) {
+	if (link->tosock) {
 		vec[3][0]= link->tosock->locx;
 		vec[3][1]= link->tosock->locy;
 	}
 	else {
-		if(snode==NULL) return 0;
+		if (snode==NULL) return 0;
 		vec[3][0]= snode->mx;
 		vec[3][1]= snode->my;
 	}
@@ -2484,7 +2489,7 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 	vec[2][0]= vec[3][0]-dist;
 	vec[2][1]= vec[3][1];
 	
-	if(v2d && MIN4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > v2d->cur.xmax); /* clipped */	
+	if (v2d && MIN4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > v2d->cur.xmax); /* clipped */
 	else if (v2d && MAX4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < v2d->cur.xmin); /* clipped */
 	else {
 		
@@ -2502,7 +2507,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 {
 	float coord_array[LINK_RESOL+1][2];
 	
-	if(node_link_bezier_points(v2d, snode, link, coord_array, LINK_RESOL)) {
+	if (node_link_bezier_points(v2d, snode, link, coord_array, LINK_RESOL)) {
 		float dist, spline_step = 0.0f;
 		int i;
 		
@@ -2515,12 +2520,12 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 		
 		glEnable(GL_LINE_SMOOTH);
 		
-		if(do_triple) {
+		if (do_triple) {
 			UI_ThemeColorShadeAlpha(th_col3, -80, -120);
 			glLineWidth(4.0f);
 			
 			glBegin(GL_LINE_STRIP);
-			for(i=0; i<=LINK_RESOL; i++) {
+			for (i=0; i<=LINK_RESOL; i++) {
 				glVertex2fv(coord_array[i]);
 			}
 			glEnd();
@@ -2531,9 +2536,9 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 		 * changing color in begin/end blocks.
 		 */
 		glLineWidth(1.5f);
-		if(do_shaded) {
+		if (do_shaded) {
 			glBegin(GL_LINES);
-			for(i=0; i<LINK_RESOL; i++) {
+			for (i=0; i<LINK_RESOL; i++) {
 				UI_ThemeColorBlend(th_col1, th_col2, spline_step);
 				glVertex2fv(coord_array[i]);
 				
@@ -2547,7 +2552,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 		else {
 			UI_ThemeColor(th_col1);
 			glBegin(GL_LINE_STRIP);
-			for(i=0; i<=LINK_RESOL; i++) {
+			for (i=0; i<=LINK_RESOL; i++) {
 				glVertex2fv(coord_array[i]);
 			}
 			glEnd();
@@ -2562,21 +2567,21 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 
 static void node_link_straight_points(View2D *UNUSED(v2d), SpaceNode *snode, bNodeLink *link, float coord_array[][2])
 {
-	if(link->fromsock) {
+	if (link->fromsock) {
 		coord_array[0][0]= link->fromsock->locx;
 		coord_array[0][1]= link->fromsock->locy;
 	}
 	else {
-		if(snode==NULL) return;
+		if (snode==NULL) return;
 		coord_array[0][0]= snode->mx;
 		coord_array[0][1]= snode->my;
 	}
-	if(link->tosock) {
+	if (link->tosock) {
 		coord_array[1][0]= link->tosock->locx;
 		coord_array[1][1]= link->tosock->locy;
 	}
 	else {
-		if(snode==NULL) return;
+		if (snode==NULL) return;
 		coord_array[1][0]= snode->mx;
 		coord_array[1][1]= snode->my;
 	}
@@ -2595,7 +2600,7 @@ void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int
 	
 	glEnable(GL_LINE_SMOOTH);
 	
-	if(do_triple) {
+	if (do_triple) {
 		UI_ThemeColorShadeAlpha(th_col3, -80, -120);
 		glLineWidth(4.0f);
 		
@@ -2612,7 +2617,7 @@ void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int
 	 * for Intel hardware, this breaks with GL_LINE_STRIP and
 	 * changing color in begin/end blocks.
 	 */
-	if(do_shaded) {
+	if (do_shaded) {
 		glBegin(GL_LINES);
 		for (i=0; i < LINK_RESOL-1; ++i) {
 			float t= (float)i/(float)(LINK_RESOL-1);
@@ -2646,38 +2651,38 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 	int do_shaded= 0, th_col1= TH_HEADER, th_col2= TH_HEADER;
 	int do_triple= 0, th_col3= TH_WIRE;
 	
-	if(link->fromsock==NULL && link->tosock==NULL)
+	if (link->fromsock==NULL && link->tosock==NULL)
 		return;
 	
 	/* new connection */
-	if(!link->fromsock || !link->tosock) {
+	if (!link->fromsock || !link->tosock) {
 		th_col1 = TH_ACTIVE;
 		do_triple = 1;
 	}
 	else {
 		/* going to give issues once... */
-		if(link->tosock->flag & SOCK_UNAVAIL)
+		if (link->tosock->flag & SOCK_UNAVAIL)
 			return;
-		if(link->fromsock->flag & SOCK_UNAVAIL)
+		if (link->fromsock->flag & SOCK_UNAVAIL)
 			return;
 		
 		/* a bit ugly... but thats how we detect the internal group links */
-		if(!link->fromnode || !link->tonode) {
+		if (!link->fromnode || !link->tonode) {
 			UI_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5f);
 			do_shaded= 0;
 		}
 		else {
 			/* check cyclic */
-			if((link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) && (link->flag & NODE_LINK_VALID)) {
+			if ((link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) && (link->flag & NODE_LINK_VALID)) {
 				/* special indicated link, on drop-node */
-				if(link->flag & NODE_LINKFLAG_HILITE) {
+				if (link->flag & NODE_LINKFLAG_HILITE) {
 					th_col1= th_col2= TH_ACTIVE;
 				}
 				else {
 					/* regular link */
-					if(link->fromnode->flag & SELECT)
+					if (link->fromnode->flag & SELECT)
 						th_col1= TH_EDGE_SELECT;
-					if(link->tonode->flag & SELECT)
+					if (link->tonode->flag & SELECT)
 						th_col2= TH_EDGE_SELECT;
 				}
 				do_shaded= 1;

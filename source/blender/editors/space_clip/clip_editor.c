@@ -59,7 +59,7 @@ int ED_space_clip_poll(bContext *C)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 
-	if(sc && sc->clip)
+	if (sc && sc->clip)
 		return 1;
 
 	return 0;
@@ -69,10 +69,10 @@ void ED_space_clip_set(bContext *C, SpaceClip *sc, MovieClip *clip)
 {
 	sc->clip= clip;
 
-	if(sc->clip && sc->clip->id.us==0)
+	if (sc->clip && sc->clip->id.us==0)
 		sc->clip->id.us= 1;
 
-	if(C)
+	if (C)
 		WM_event_add_notifier(C, NC_MOVIECLIP|NA_SELECTED, sc->clip);
 }
 
@@ -83,15 +83,15 @@ MovieClip *ED_space_clip(SpaceClip *sc)
 
 ImBuf *ED_space_clip_get_buffer(SpaceClip *sc)
 {
-	if(sc->clip) {
+	if (sc->clip) {
 		ImBuf *ibuf;
 
 		ibuf= BKE_movieclip_get_postprocessed_ibuf(sc->clip, &sc->user, sc->postproc_flag);
 
-		if(ibuf && (ibuf->rect || ibuf->rect_float))
+		if (ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
 
-		if(ibuf)
+		if (ibuf)
 			IMB_freeImBuf(ibuf);
 	}
 
@@ -100,15 +100,15 @@ ImBuf *ED_space_clip_get_buffer(SpaceClip *sc)
 
 ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale, float *angle)
 {
-	if(sc->clip) {
+	if (sc->clip) {
 		ImBuf *ibuf;
 
 		ibuf= BKE_movieclip_get_stable_ibuf(sc->clip, &sc->user, loc, scale, angle, sc->postproc_flag);
 
-		if(ibuf && (ibuf->rect || ibuf->rect_float))
+		if (ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
 
-		if(ibuf)
+		if (ibuf)
 			IMB_freeImBuf(ibuf);
 	}
 
@@ -117,11 +117,12 @@ ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale
 
 void ED_space_clip_size(SpaceClip *sc, int *width, int *height)
 {
-	if(!sc->clip) {
-		*width= 0;
-		*height= 0;
-	} else
+	if (!sc->clip) {
+		*width = *height = 0;
+	}
+	else {
 		BKE_movieclip_get_size(sc->clip, &sc->user, width, height);
+	}
 }
 
 void ED_space_clip_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy)
@@ -138,7 +139,7 @@ void ED_space_clip_aspect(SpaceClip *sc, float *aspx, float *aspy)
 {
 	MovieClip *clip= ED_space_clip(sc);
 
-	if(clip)
+	if (clip)
 		BKE_movieclip_aspect(clip, aspx, aspy);
 	else
 		*aspx= *aspy= 1.0f;
@@ -150,11 +151,11 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 	wmWindow *win;
 
 	/* image window, compo node users */
-	for(wm=mainp->wm.first; wm; wm= wm->id.next) { /* only 1 wm */
-		for(win= wm->windows.first; win; win= win->next) {
+	for (wm=mainp->wm.first; wm; wm= wm->id.next) { /* only 1 wm */
+		for (win= wm->windows.first; win; win= win->next) {
 			ScrArea *sa;
-			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-				if(sa->spacetype==SPACE_CLIP) {
+			for (sa= win->screen->areabase.first; sa; sa= sa->next) {
+				if (sa->spacetype==SPACE_CLIP) {
 					SpaceClip *sc= sa->spacedata.first;
 
 					sc->scopes.ok= 0;
@@ -178,11 +179,11 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 	ED_space_clip_size(sc, &width, &height);
 
 	track= tracksbase->first;
-	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track)) {
+	while (track) {
+		if (TRACK_VIEW_SELECTED(sc, track)) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
-			if(marker) {
+			if (marker) {
 				float pos[3];
 
 				pos[0]= marker->pos[0]+track->offset[0];
@@ -190,7 +191,7 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 				pos[2]= 0.0f;
 
 				/* undistortion happens for normalized coords */
-				if(sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT)
+				if (sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT)
 					/* undistortion happens for normalized coords */
 					ED_clip_point_undistorted_pos(sc, pos, pos);
 
@@ -218,9 +219,9 @@ int ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 
 	ED_space_clip_size(sc, &frame_width, &frame_height);
 
-	if(frame_width==0 || frame_height==0) return 0;
+	if (frame_width==0 || frame_height==0) return 0;
 
-	if(!selected_boundbox(sc, min, max))
+	if (!selected_boundbox(sc, min, max))
 		return 0;
 
 	/* center view */
@@ -230,7 +231,7 @@ int ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 	h= max[1]-min[1];
 
 	/* set zoom to see all selection */
-	if(w>0 && h>0) {
+	if (w>0 && h>0) {
 		int width, height;
 		float zoomx, zoomy, newzoom, aspx, aspy;
 
@@ -244,7 +245,7 @@ int ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 
 		newzoom= 1.0f/power_of_2(1/MIN2(zoomx, zoomy));
 
-		if(fit || sc->zoom>newzoom)
+		if (fit || sc->zoom>newzoom)
 			sc->zoom= newzoom;
 	}
 
@@ -255,7 +256,7 @@ void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2])
 {
 	copy_v2_v2(nco, co);
 
-	if(sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
+	if (sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
 		MovieClip *clip= ED_space_clip(sc);
 		float aspy= 1.0f/clip->tracking.camera.pixel_aspect;
 		int width, height;
@@ -292,7 +293,7 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 	*xr= pos[0]/width;
 	*yr= pos[1]/height;
 
-	if(sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
+	if (sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
 		MovieClip *clip= ED_space_clip(sc);
 		MovieTracking *tracking= &clip->tracking;
 		float aspy= 1.0f/tracking->camera.pixel_aspect;

@@ -2565,7 +2565,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 		draw_ebones(v3d, ar, ob, dt);
 		arm->flag &= ~ARM_EDITMODE;
 	}
-	else{
+	else {
 		/*	Draw Pose */
 		if (ob->pose && ob->pose->chanbase.first) {
 			/* drawing posemode selection indices or colors only in these cases */

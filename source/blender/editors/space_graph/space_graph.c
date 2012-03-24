@@ -70,7 +70,7 @@ ARegion *graph_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 	
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if(ar) return ar;
+	if (ar) return ar;
 
 	/* add subdiv level; after main */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
@@ -400,7 +400,7 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_MODIFIER:
-					if(wmn->action == NA_RENAME)
+					if (wmn->action == NA_RENAME)
 						ED_region_tag_redraw(ar);
 					break;
 			}
@@ -414,11 +414,11 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 				
 	}
@@ -474,13 +474,13 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 				break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_GRAPH)
+			if (wmn->data == ND_SPACE_GRAPH)
 				ED_area_tag_redraw(sa);
 			break;
 		
 		// XXX: restore the case below if not enough updates occur...
 		//default:
-		//	if(wmn->data==ND_KEYS)
+		//	if (wmn->data==ND_KEYS)
 		//		ED_area_tag_redraw(sa);
 	}
 }

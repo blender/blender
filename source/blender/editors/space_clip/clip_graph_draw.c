@@ -155,10 +155,11 @@ void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track, int co
 
 	copy_v3_v3(col, colors[coord]);
 
-	if(track==userdata) {
+	if (track==userdata) {
 		col[3]= 1.0f;
 		glLineWidth(2.0f);
-	} else {
+	}
+	else {
 		col[3]= 0.5f;
 		glLineWidth(1.0f);
 	}
@@ -181,14 +182,14 @@ static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
 	struct { MovieTrackingTrack *act_track; int sel; float xscale, yscale, hsize; } *data = userdata;
 	int sel= 0, sel_flag;
 
-	if(track!=data->act_track)
+	if (track!=data->act_track)
 		return;
 
 	sel_flag= coord == 0 ? MARKER_GRAPH_SEL_X : MARKER_GRAPH_SEL_Y;
 	sel= (marker->flag & sel_flag) ? 1 : 0;
 
-	if(sel == data->sel) {
-		if(sel) UI_ThemeColor(TH_HANDLE_VERTEX_SELECT);
+	if (sel == data->sel) {
+		if (sel) UI_ThemeColor(TH_HANDLE_VERTEX_SELECT);
 		else UI_ThemeColor(TH_HANDLE_VERTEX);
 
 		draw_curve_knot(marker->framenr, val, data->xscale, data->yscale, data->hsize);
@@ -205,7 +206,7 @@ static void draw_tracks_curves(View2D *v2d, SpaceClip *sc)
 
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
-	if(!width || !height)
+	if (!width || !height)
 		return;
 
 	/* non-selected knot handles */
@@ -234,15 +235,15 @@ static void draw_frame_curves(SpaceClip *sc)
 
 	glColor3f(0.0f, 0.0f, 1.0f);
 
-	for(i= 0; i<reconstruction->camnr; i++) {
+	for (i= 0; i<reconstruction->camnr; i++) {
 		MovieReconstructedCamera *camera= &reconstruction->cameras[i];
 
-		if(lines && camera->framenr!=prevfra+1) {
+		if (lines && camera->framenr!=prevfra+1) {
 			glEnd();
 			lines= 0;
 		}
 
-		if(!lines) {
+		if (!lines) {
 			glBegin(GL_LINE_STRIP);
 			lines= 1;
 		}
@@ -252,7 +253,7 @@ static void draw_frame_curves(SpaceClip *sc)
 		prevfra= camera->framenr;
 	}
 
-	if(lines)
+	if (lines)
 		glEnd();
 }
 
@@ -268,11 +269,11 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
 
-	if(clip) {
-		if(sc->flag&SC_SHOW_GRAPH_TRACKS)
+	if (clip) {
+		if (sc->flag&SC_SHOW_GRAPH_TRACKS)
 			draw_tracks_curves(v2d, sc);
 
-		if(sc->flag&SC_SHOW_GRAPH_FRAMES)
+		if (sc->flag&SC_SHOW_GRAPH_FRAMES)
 			draw_frame_curves(sc);
 	}
 

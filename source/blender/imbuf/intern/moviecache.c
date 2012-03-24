@@ -120,7 +120,7 @@ static void check_unused_keys(MovieCache *cache)
 
 		BLI_ghashIterator_step(iter);
 
-		if(!item->ibuf)
+		if (!item->ibuf)
 			BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
 	}
 
@@ -154,22 +154,22 @@ static size_t IMB_get_size_in_memory(ImBuf *ibuf)
 
 	size+= sizeof(ImBuf);
 
-	if(ibuf->rect)
+	if (ibuf->rect)
 		channel_size+= sizeof(char);
 
-	if(ibuf->rect_float)
+	if (ibuf->rect_float)
 		channel_size+= sizeof(float);
 
 	size+= channel_size*ibuf->x*ibuf->y*ibuf->channels;
 
-	if(ibuf->miptot) {
-		for(a= 0; a<ibuf->miptot; a++) {
-			if(ibuf->mipmap[a])
+	if (ibuf->miptot) {
+		for (a= 0; a<ibuf->miptot; a++) {
+			if (ibuf->mipmap[a])
 				size+= IMB_get_size_in_memory(ibuf->mipmap[a]);
 		}
 	}
 
-	if(ibuf->tiles) {
+	if (ibuf->tiles) {
 		size+= sizeof(unsigned int)*ibuf->ytiles*ibuf->xtiles;
 	}
 
@@ -181,7 +181,7 @@ static size_t get_item_size (void *p)
 	size_t size= sizeof(MovieCacheItem);
 	MovieCacheItem *item= (MovieCacheItem *) p;
 
-	if(item->ibuf)
+	if (item->ibuf)
 		size+= IMB_get_size_in_memory(item->ibuf);
 
 	return size;
@@ -194,7 +194,7 @@ void IMB_moviecache_init(void)
 
 void IMB_moviecache_destruct(void)
 {
-	if(limitor)
+	if (limitor)
 		delete_MEM_CacheLimiter(limitor);
 }
 
@@ -223,7 +223,7 @@ void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 	MovieCacheKey *key;
 	MovieCacheItem *item;
 
-	if(!limitor)
+	if (!limitor)
 		IMB_moviecache_init();
 
 	IMB_refImBuf(ibuf);
@@ -251,7 +251,7 @@ void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 	/* cache limiter can't remove unused keys which points to destoryed values */
 	check_unused_keys(cache);
 
-	if(cache->points) {
+	if (cache->points) {
 		MEM_freeN(cache->points);
 		cache->points= NULL;
 	}
@@ -266,10 +266,10 @@ ImBuf* IMB_moviecache_get(MovieCache *cache, void *userkey)
 	key.userkey= userkey;
 	item= (MovieCacheItem*)BLI_ghash_lookup(cache->hash, &key);
 
-	if(item) {
+	if (item) {
 		item->last_access= cache->curtime++;
 
-		if(item->ibuf) {
+		if (item->ibuf) {
 			MEM_CacheLimiter_touch(item->c_handle);
 			IMB_refImBuf(item->ibuf);
 
@@ -288,7 +288,7 @@ void IMB_moviecache_free(MovieCache *cache)
 	BLI_mempool_destroy(cache->items_pool);
 	BLI_mempool_destroy(cache->userkeys_pool);
 
-	if(cache->points)
+	if (cache->points)
 		MEM_freeN(cache->points);
 
 	MEM_freeN(cache);
@@ -300,20 +300,21 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 	*totseg_r= 0;
 	*points_r= NULL;
 
-	if(!cache->getdatafp)
+	if (!cache->getdatafp)
 		return;
 
-	if(cache->proxy!=proxy || cache->render_flags!=render_flags) {
-		if(cache->points)
+	if (cache->proxy!=proxy || cache->render_flags!=render_flags) {
+		if (cache->points)
 			MEM_freeN(cache->points);
 
 		cache->points= NULL;
 	}
 
-	if(cache->points) {
+	if (cache->points) {
 		*totseg_r= cache->totseg;
 		*points_r= cache->points;
-	} else {
+	}
+	else {
 		int totframe= BLI_ghash_size(cache->hash);
 		int *frames= MEM_callocN(totframe*sizeof(int), "movieclip cache frames");
 		int a, totseg= 0;
@@ -326,10 +327,10 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 			MovieCacheItem *item= BLI_ghashIterator_getValue(iter);
 			int framenr, curproxy, curflags;
 
-			if(item->ibuf) {
+			if (item->ibuf) {
 				cache->getdatafp(key->userkey, &framenr, &curproxy, &curflags);
 
-				if(curproxy==proxy && curflags==render_flags)
+				if (curproxy==proxy && curflags==render_flags)
 					frames[a++]= framenr;
 			}
 
@@ -341,30 +342,30 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 		qsort(frames, totframe, sizeof(int), compare_int);
 
 		/* count */
-		for(a= 0; a<totframe; a++) {
-			if(a && frames[a]-frames[a-1]!=1)
+		for (a= 0; a<totframe; a++) {
+			if (a && frames[a]-frames[a-1]!=1)
 				totseg++;
 
-			if(a==totframe-1)
+			if (a==totframe-1)
 				totseg++;
 		}
 
-		if(totseg) {
+		if (totseg) {
 			int b, *points;
 
 			points= MEM_callocN(2*sizeof(int)*totseg, "movieclip cache segments");
 
 			/* fill */
-			for(a= 0, b= 0; a<totframe; a++) {
-				if(a==0)
+			for (a= 0, b= 0; a<totframe; a++) {
+				if (a==0)
 					points[b++]= frames[a];
 
-				if(a && frames[a]-frames[a-1]!=1) {
+				if (a && frames[a]-frames[a-1]!=1) {
 					points[b++]= frames[a-1];
 					points[b++]= frames[a];
 				}
 
-				if(a==totframe-1)
+				if (a==totframe-1)
 					points[b++]= frames[a];
 			}
 

@@ -63,13 +63,13 @@ ARegion *logic_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if(ar) return ar;
+	if (ar) return ar;
 	
 	/* add subdiv level; after header */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if(ar==NULL) return NULL;
+	if (ar==NULL) return NULL;
 	
 	arnew= MEM_callocN(sizeof(ARegion), "buttons for image");
 	
@@ -151,7 +151,7 @@ static void logic_free(SpaceLink *UNUSED(sl))
 {	
 //	Spacelogic *slogic= (SpaceLogic*) sl;
 	
-//	if(slogic->gpd)
+//	if (slogic->gpd)
 // XXX		free_gpencil_data(slogic->gpd);
 	
 }
@@ -213,7 +213,7 @@ static void logic_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_OBJECT:
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}

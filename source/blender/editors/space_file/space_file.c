@@ -113,7 +113,7 @@ static void file_free(SpaceLink *sl)
 {	
 	SpaceFile *sfile= (SpaceFile *) sl;
 	
-	if(sfile->files) {
+	if (sfile->files) {
 		// XXXXX would need to do thumbnails_stop here, but no context available
 		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
@@ -121,13 +121,13 @@ static void file_free(SpaceLink *sl)
 		sfile->files= NULL;
 	}
 
-	if(sfile->folders_prev) {
+	if (sfile->folders_prev) {
 		folderlist_free(sfile->folders_prev);
 		MEM_freeN(sfile->folders_prev);
 		sfile->folders_prev= NULL;
 	}
 
-	if(sfile->folders_next) {
+	if (sfile->folders_next) {
 		folderlist_free(sfile->folders_next);
 		MEM_freeN(sfile->folders_next);
 		sfile->folders_next= NULL;
@@ -151,7 +151,7 @@ static void file_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
 	//printf("file_init\n");
 
-	if(sfile->layout) sfile->layout->dirty= TRUE;
+	if (sfile->layout) sfile->layout->dirty= TRUE;
 }
 
 
@@ -169,10 +169,10 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 		filelist_setdir(sfilen->files, sfilen->params->dir);
 	}
 
-	if(sfileo->folders_prev)
+	if (sfileo->folders_prev)
 		sfilen->folders_prev = folderlist_duplicate(sfileo->folders_prev);
 
-	if(sfileo->folders_next)
+	if (sfileo->folders_next)
 		sfilen->folders_next = folderlist_duplicate(sfileo->folders_next);
 	
 	if (sfileo->layout) {
@@ -200,26 +200,29 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	if (filelist_empty(sfile->files)) {
 		thumbnails_stop(sfile->files, C);
 		filelist_readdir(sfile->files);
-		if(params->sort!=FILE_SORT_NONE) {
+		if (params->sort!=FILE_SORT_NONE) {
 			filelist_sort(sfile->files, params->sort);
 		}
 		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
-		if(params->display == FILE_IMGDISPLAY) {
+		if (params->display == FILE_IMGDISPLAY) {
 			thumbnails_start(sfile->files, C);
 		}
-	} else {
-		if(params->sort!=FILE_SORT_NONE) {
+	}
+	else {
+		if (params->sort!=FILE_SORT_NONE) {
 			thumbnails_stop(sfile->files, C);
 			filelist_sort(sfile->files, params->sort);
-			if(params->display == FILE_IMGDISPLAY) {
+			if (params->display == FILE_IMGDISPLAY) {
 				thumbnails_start(sfile->files, C);
 			}
-		} else {
-			if(params->display == FILE_IMGDISPLAY) {
+		}
+		else {
+			if (params->display == FILE_IMGDISPLAY) {
 				if (!thumbnails_running(sfile->files,C)) {
 					thumbnails_start(sfile->files, C);
 				}
-			} else {
+			}
+			else {
 				/* stop any running thumbnail jobs if we're not 
 				 * displaying them - speedup for NFS */
 				thumbnails_stop(sfile->files, C);
@@ -333,7 +336,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		
 		/* XXX this happens on scaling down Screen (like from startup.blend) */
 		/* view2d has no type specific for filewindow case, which doesnt scroll vertically */
-		if(v2d->cur.ymax < 0) {
+		if (v2d->cur.ymax < 0) {
 			v2d->cur.ymin -= v2d->cur.ymax;
 			v2d->cur.ymax = 0;
 		}

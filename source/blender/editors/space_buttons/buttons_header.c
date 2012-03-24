@@ -63,7 +63,7 @@ static void set_texture_context(bContext *C, SpaceButs *sbuts)
 		case BCONTEXT_DATA:
 		{
 			Object *ob = CTX_data_active_object(C);
-			if(ob && ob->type==OB_LAMP)
+			if (ob && ob->type==OB_LAMP)
 				sbuts->texture_context = SB_TEXC_MAT_OR_LAMP;
 			break;
 		}
@@ -80,7 +80,7 @@ static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
 
-	if(!sbuts) /* editor type switch */
+	if (!sbuts) /* editor type switch */
 		return;
 
 	switch(event) {
@@ -122,7 +122,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockBeginAlign(block);
 
 #define BUTTON_HEADER_CTX(_ctx, _icon, _tip) \
-	if(sbuts->pathflag & (1<<_ctx)) { \
+	if (sbuts->pathflag & (1<<_ctx)) { \
 		but = uiDefIconButS(block, ROW, B_CONTEXT_SWITCH, _icon, xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)_ctx, 0, 0, TIP_(_tip)); \
 		uiButClearFlag(but, UI_BUT_UNDO); \
 	} \

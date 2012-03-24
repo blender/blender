@@ -405,17 +405,17 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 			else if (curcon->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
 				bFollowTrackConstraint *data = curcon->data;
 
-				if((data->flag&CAMERASOLVER_ACTIVECLIP)==0) {
-					if(data->clip != NULL && data->track[0]) {
+				if ((data->flag&CAMERASOLVER_ACTIVECLIP)==0) {
+					if (data->clip != NULL && data->track[0]) {
 						MovieTracking *tracking= &data->clip->tracking;
 						MovieTrackingObject *tracking_object;
 
-						if(data->object[0])
+						if (data->object[0])
 							tracking_object= BKE_tracking_named_object(tracking, data->object);
 						else
 							tracking_object= BKE_tracking_get_camera_object(tracking);
 
-						if(!tracking_object) {
+						if (!tracking_object) {
 							curcon->flag |= CONSTRAINT_DISABLE;
 						}
 						else {
@@ -429,13 +429,13 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 			else if (curcon->type == CONSTRAINT_TYPE_CAMERASOLVER) {
 				bCameraSolverConstraint *data = curcon->data;
 
-				if((data->flag&CAMERASOLVER_ACTIVECLIP)==0 && data->clip == NULL)
+				if ((data->flag&CAMERASOLVER_ACTIVECLIP)==0 && data->clip == NULL)
 					curcon->flag |= CONSTRAINT_DISABLE;
 			}
 			else if (curcon->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
 				bObjectSolverConstraint *data = curcon->data;
 
-				if((data->flag&CAMERASOLVER_ACTIVECLIP)==0 && data->clip == NULL)
+				if ((data->flag&CAMERASOLVER_ACTIVECLIP)==0 && data->clip == NULL)
 					curcon->flag |= CONSTRAINT_DISABLE;
 			}
 			
@@ -833,7 +833,7 @@ static int childof_clear_inverse_exec (bContext *C, wmOperator *op)
 	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_CHILDOF);
 	bChildOfConstraint *data= (con) ? (bChildOfConstraint *)con->data : NULL;
 	
-	if(data==NULL) {
+	if (data==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Childof constraint not found");
 		return OPERATOR_CANCELLED;
 	}
@@ -923,7 +923,7 @@ static int objectsolver_clear_inverse_exec (bContext *C, wmOperator *op)
 	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_OBJECTSOLVER);
 	bObjectSolverConstraint *data= (con) ? (bObjectSolverConstraint *)con->data : NULL;
 
-	if(data==NULL) {
+	if (data==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Childof constraint not found");
 		return OPERATOR_CANCELLED;
 	}
@@ -977,11 +977,11 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 void ED_object_constraint_update(Object *ob)
 {
 
-	if(ob->pose) update_pose_constraint_flags(ob->pose);
+	if (ob->pose) update_pose_constraint_flags(ob->pose);
 
 	object_test_constraints(ob);
 
-	if(ob->type==OB_ARMATURE) DAG_id_tag_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
+	if (ob->type==OB_ARMATURE) DAG_id_tag_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
 	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
@@ -989,7 +989,7 @@ void ED_object_constraint_dependency_update(Main *bmain, Scene *scene, Object *o
 {
 	ED_object_constraint_update(ob);
 
-	if(ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
+	if (ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 	DAG_scene_sort(bmain, scene);
 }
 
@@ -1015,7 +1015,7 @@ static int constraint_delete_exec (bContext *C, wmOperator *UNUSED(op))
 		ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
 
 		/* ITASC needs to be rebuilt once a constraint is removed [#26920] */
-		if(is_ik) {
+		if (is_ik) {
 			BIK_clear_data(ob->pose);
 		}
 

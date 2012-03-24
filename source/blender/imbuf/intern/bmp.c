@@ -78,7 +78,8 @@ static int checkbmp(unsigned char *mem)
 		if ((mem[0] == 'B') && (mem[1] == 'M')) {
 			/* skip fileheader */
 			mem += BMP_FILEHEADER_SIZE;
-		} else {
+		}
+		else {
 		}
 
 		/* for systems where an int needs to be 4 bytes aligned */
@@ -138,7 +139,8 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 
 	if (flags & IB_test) {
 		ibuf = IMB_allocImBuf(x, y, depth, 0);
-	} else {
+	}
+	else {
 		ibuf = IMB_allocImBuf(x, y, depth, IB_rect);
 		bmp = mem + skip;
 		rect = (unsigned char *) ibuf->rect;
@@ -154,7 +156,8 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 				rect += 4; bmp += 2;
 			}
 
-		} else if (depth == 24) {
+		}
+		else if (depth == 24) {
 			for (i = y; i > 0; i--) {
 				int j;
 				for (j = x ; j > 0; j--) {
@@ -168,7 +171,8 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 				/* for 24-bit images, rows are padded to multiples of 4 */
 				bmp += x % 4;	
 			}
-		} else if (depth == 32) {
+		}
+		else if (depth == 32) {
 			for (i = x * y; i > 0; i--) {
 				rect[0] = bmp[2];
 				rect[1] = bmp[1];

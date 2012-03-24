@@ -548,7 +548,8 @@ void AnimationExporter::add_source_parameters(COLLADASW::SourceBase::ParameterNa
 					if ( transform )
 					{
 						param.push_back("TRANSFORM");  
-					}else{ //assumes if axis isn't specified all axises are added
+					}
+					else { //assumes if axis isn't specified all axises are added
 						param.push_back("X");
 						param.push_back("Y");
 						param.push_back("Z");
@@ -592,7 +593,8 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 			}
 			else if (rotation) {
 				values[1] = RAD2DEGF(bezt->vec[0][1]);
-			} else {
+			}
+			else {
 				values[1] = bezt->vec[0][1];
 			}
 			break;
@@ -607,7 +609,8 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 			}
 			else if (rotation) {
 				values[1] = RAD2DEGF(bezt->vec[2][1]);
-			} else {
+			}
+			else {
 				values[1] = bezt->vec[2][1];
 			}
 			break;
@@ -858,9 +861,11 @@ std::string AnimationExporter::create_interpolation_source(FCurve *fcu, const st
 		if (fcu->bezt[i].ipo==BEZT_IPO_BEZ) {
 			source.appendValues(BEZIER_NAME);
 			*has_tangents = true;
-		} else if (fcu->bezt[i].ipo==BEZT_IPO_CONST) {
+		}
+		else if (fcu->bezt[i].ipo==BEZT_IPO_CONST) {
 			source.appendValues(STEP_NAME);
-		} else { // BEZT_IPO_LIN
+		}
+		else { // BEZT_IPO_LIN
 			source.appendValues(LINEAR_NAME);
 		}
 	}

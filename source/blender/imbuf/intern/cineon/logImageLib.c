@@ -56,7 +56,8 @@ logImageOpen(const char* filename, int cineon)
 {
 	if (cineon) {
 		return cineonOpen(filename);
-	} else {
+	}
+	else {
 		return dpxOpen(filename);
 	}
 	return 0;
@@ -67,7 +68,8 @@ logImageOpenFromMem(unsigned char *buffer, unsigned int size, int cineon)
 {
 	if (cineon) {
 		return cineonOpenFromMem(buffer, size);
-	} else {
+	}
+	else {
 		return dpxOpenFromMem(buffer, size);
 	}
 	return 0;
@@ -78,7 +80,8 @@ logImageCreate(const char* filename, int cineon, int width, int height, int dept
 {
 	if (cineon) {
 		return cineonCreate(filename, width, height, depth);
-	} else {
+	}
+	else {
 		return dpxCreate(filename, width, height, depth);
 	}
 	return 0;
@@ -171,7 +174,8 @@ logImageDump(const char* filename)
 #if 0
 		cineonDump(filename);
 #endif
-	} else if (magic == ntohl(DPX_FILE_MAGIC)) {
+	}
+	else if (magic == ntohl(DPX_FILE_MAGIC)) {
 		dpxDump(filename);
 	}
 }

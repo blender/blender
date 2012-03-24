@@ -42,12 +42,12 @@ CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 	cbuf->yrad= sizey/2;
 	
 	cbuf->type= type;
-	if(alloc) {
-		if(cbuf->type==CB_RGBA)
+	if (alloc) {
+		if (cbuf->type==CB_RGBA)
 			cbuf->rect= MEM_mapallocN(4*sizeof(float)*sizex*sizey, "compbuf RGBA rect");
-		else if(cbuf->type==CB_VEC3)
+		else if (cbuf->type==CB_VEC3)
 			cbuf->rect= MEM_mapallocN(3*sizeof(float)*sizex*sizey, "compbuf Vector3 rect");
-		else if(cbuf->type==CB_VEC2)
+		else if (cbuf->type==CB_VEC2)
 			cbuf->rect= MEM_mapallocN(2*sizeof(float)*sizex*sizey, "compbuf Vector2 rect");
 		else
 			cbuf->rect= MEM_mapallocN(sizeof(float)*sizex*sizey, "compbuf Fac rect");
@@ -64,7 +64,7 @@ CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 CompBuf *dupalloc_compbuf(CompBuf *cbuf)
 {
 	CompBuf *dupbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1);
-	if(dupbuf) {
+	if (dupbuf) {
 		memcpy(dupbuf->rect, cbuf->rect, cbuf->type*sizeof(float)*cbuf->x*cbuf->y);
 	
 		dupbuf->xof= cbuf->xof;
@@ -79,15 +79,15 @@ CompBuf *pass_on_compbuf(CompBuf *cbuf)
 	CompBuf *dupbuf= (cbuf)? alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 0): NULL;
 	CompBuf *lastbuf;
 	
-	if(dupbuf) {
+	if (dupbuf) {
 		dupbuf->rect= cbuf->rect;
 		dupbuf->xof= cbuf->xof;
 		dupbuf->yof= cbuf->yof;
 		dupbuf->malloc= 0;
 		
 		/* get last buffer in list, and append dupbuf */
-		for(lastbuf= cbuf; lastbuf; lastbuf= lastbuf->next)
-			if(lastbuf->next==NULL)
+		for (lastbuf= cbuf; lastbuf; lastbuf= lastbuf->next)
+			if (lastbuf->next==NULL)
 				break;
 		lastbuf->next= dupbuf;
 		dupbuf->prev= lastbuf;
@@ -99,13 +99,13 @@ CompBuf *pass_on_compbuf(CompBuf *cbuf)
 void free_compbuf(CompBuf *cbuf)
 {
 	/* check referencing, then remove from list and set malloc tag */
-	if(cbuf->prev || cbuf->next) {
-		if(cbuf->prev)
+	if (cbuf->prev || cbuf->next) {
+		if (cbuf->prev)
 			cbuf->prev->next= cbuf->next;
-		if(cbuf->next)
+		if (cbuf->next)
 			cbuf->next->prev= cbuf->prev;
-		if(cbuf->malloc) {
-			if(cbuf->prev)
+		if (cbuf->malloc) {
+			if (cbuf->prev)
 				cbuf->prev->malloc= 1;
 			else
 				cbuf->next->malloc= 1;
@@ -113,7 +113,7 @@ void free_compbuf(CompBuf *cbuf)
 		}
 	}
 	
-	if(cbuf->malloc && cbuf->rect)
+	if (cbuf->malloc && cbuf->rect)
 		MEM_freeN(cbuf->rect);
 
 	MEM_freeN(cbuf);
@@ -138,16 +138,16 @@ CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, in
 	float *outfp;
 	int dx, y;
 	
-	if(disprect.xmax>rectx) disprect.xmax = rectx;
-	if(disprect.ymax>recty) disprect.ymax = recty;
-	if(disprect.xmin>= disprect.xmax) return NULL;
-	if(disprect.ymin>= disprect.ymax) return NULL;
+	if (disprect.xmax>rectx) disprect.xmax = rectx;
+	if (disprect.ymax>recty) disprect.ymax = recty;
+	if (disprect.xmin>= disprect.xmax) return NULL;
+	if (disprect.ymin>= disprect.ymax) return NULL;
 	
 	cbuf= alloc_compbuf(disprect.xmax-disprect.xmin, disprect.ymax-disprect.ymin, type, 1);
 	outfp= cbuf->rect;
 	rectf += type*(disprect.ymin*rectx + disprect.xmin);
 	dx= type*cbuf->x;
-	for(y=cbuf->y; y>0; y--, outfp+=dx, rectf+=type*rectx)
+	for (y=cbuf->y; y>0; y--, outfp+=dx, rectf+=type*rectx)
 		memcpy(outfp, rectf, sizeof(float)*dx);
 	
 	return cbuf;
@@ -160,7 +160,7 @@ CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy)
 	int x, y, c, pixsize= inbuf->type;
 	int ofsx, ofsy, stepx, stepy;
 	
-	if(inbuf->x==newx && inbuf->y==newy)
+	if (inbuf->x==newx && inbuf->y==newy)
 		return dupalloc_compbuf(inbuf);
 	
 	outbuf= alloc_compbuf(newx, newy, inbuf->type, 1);
@@ -170,7 +170,7 @@ CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy)
 	stepy = (65536.0 * (inbuf->y - 1.0) / (newy - 1.0)) + 0.5;
 	ofsy = 32768;
 	
-	for (y = newy; y > 0 ; y--){
+	for (y = newy; y > 0 ; y--) {
 		rectf = inbuf->rect;
 		rectf += pixsize * (ofsy >> 16) * inbuf->x;
 
@@ -180,7 +180,7 @@ CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy)
 		for (x = newx ; x>0 ; x--) {
 			
 			rf= rectf + pixsize*(ofsx >> 16);
-			for(c=0; c<pixsize; c++)
+			for (c=0; c<pixsize; c++)
 				newrectf[c] = rf[c];
 			
 			newrectf+= pixsize;
@@ -194,65 +194,65 @@ CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy)
 
 void typecheck_compbuf_color(float *out, float *in, int outtype, int intype)
 {
-	if(intype == outtype) {
+	if (intype == outtype) {
 		memcpy(out, in, sizeof(float)*outtype);
 	}
-	else if(outtype==CB_VAL) {
-		if(intype==CB_VEC2) {
+	else if (outtype==CB_VAL) {
+		if (intype==CB_VEC2) {
 			*out= 0.5f*(in[0]+in[1]);
 		}
-		else if(intype==CB_VEC3) {
+		else if (intype==CB_VEC3) {
 			*out= 0.333333f*(in[0]+in[1]+in[2]);
 		}
-		else if(intype==CB_RGBA) {
+		else if (intype==CB_RGBA) {
 			*out= in[0]*0.35f + in[1]*0.45f + in[2]*0.2f;
 		}
 	}
-	else if(outtype==CB_VEC2) {
-		if(intype==CB_VAL) {
+	else if (outtype==CB_VEC2) {
+		if (intype==CB_VAL) {
 			out[0]= in[0];
 			out[1]= in[0];
 		}
-		else if(intype==CB_VEC3) {
+		else if (intype==CB_VEC3) {
 			out[0]= in[0];
 			out[1]= in[1];
 		}
-		else if(intype==CB_RGBA) {
+		else if (intype==CB_RGBA) {
 			out[0]= in[0];
 			out[1]= in[1];
 		}
 	}
-	else if(outtype==CB_VEC3) {
-		if(intype==CB_VAL) {
+	else if (outtype==CB_VEC3) {
+		if (intype==CB_VAL) {
 			out[0]= in[0];
 			out[1]= in[0];
 			out[2]= in[0];
 		}
-		else if(intype==CB_VEC2) {
+		else if (intype==CB_VEC2) {
 			out[0]= in[0];
 			out[1]= in[1];
 			out[2]= 0.0f;
 		}
-		else if(intype==CB_RGBA) {
+		else if (intype==CB_RGBA) {
 			out[0]= in[0];
 			out[1]= in[1];
 			out[2]= in[2];
 		}
 	}
-	else if(outtype==CB_RGBA) {
-		if(intype==CB_VAL) {
+	else if (outtype==CB_RGBA) {
+		if (intype==CB_VAL) {
 			out[0]= in[0];
 			out[1]= in[0];
 			out[2]= in[0];
 			out[3]= 1.0f;
 		}
-		else if(intype==CB_VEC2) {
+		else if (intype==CB_VEC2) {
 			out[0]= in[0];
 			out[1]= in[1];
 			out[2]= 0.0f;
 			out[3]= 1.0f;
 		}
-		else if(intype==CB_VEC3) {
+		else if (intype==CB_VEC3) {
 			out[0]= in[0];
 			out[1]= in[1];
 			out[2]= in[2];
@@ -263,7 +263,7 @@ void typecheck_compbuf_color(float *out, float *in, int outtype, int intype)
 
 CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 {
-	if(inbuf && inbuf->type!=type) {
+	if (inbuf && inbuf->type!=type) {
 		CompBuf *outbuf;
 		float *inrf, *outrf;
 		int x;
@@ -274,7 +274,7 @@ CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 		outbuf->xof= inbuf->xof;
 		outbuf->yof= inbuf->yof;
 
-		if(inbuf->rect_procedural) {
+		if (inbuf->rect_procedural) {
 			outbuf->rect_procedural= inbuf->rect_procedural;
 			copy_v3_v3(outbuf->procedural_size, inbuf->procedural_size);
 			copy_v3_v3(outbuf->procedural_offset, inbuf->procedural_offset);
@@ -287,82 +287,82 @@ CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 		outrf= outbuf->rect;
 		x= inbuf->x*inbuf->y;
 		
-		if(type==CB_VAL) {
-			if(inbuf->type==CB_VEC2) {
-				for(; x>0; x--, outrf+= 1, inrf+= 2)
+		if (type==CB_VAL) {
+			if (inbuf->type==CB_VEC2) {
+				for (; x>0; x--, outrf+= 1, inrf+= 2)
 					*outrf= 0.5f*(inrf[0]+inrf[1]);
 			}
-			else if(inbuf->type==CB_VEC3) {
-				for(; x>0; x--, outrf+= 1, inrf+= 3)
+			else if (inbuf->type==CB_VEC3) {
+				for (; x>0; x--, outrf+= 1, inrf+= 3)
 					*outrf= 0.333333f*(inrf[0]+inrf[1]+inrf[2]);
 			}
-			else if(inbuf->type==CB_RGBA) {
-				for(; x>0; x--, outrf+= 1, inrf+= 4)
+			else if (inbuf->type==CB_RGBA) {
+				for (; x>0; x--, outrf+= 1, inrf+= 4)
 					*outrf= inrf[0]*0.35f + inrf[1]*0.45f + inrf[2]*0.2f;
 			}
 		}
-		else if(type==CB_VEC2) {
-			if(inbuf->type==CB_VAL) {
-				for(; x>0; x--, outrf+= 2, inrf+= 1) {
+		else if (type==CB_VEC2) {
+			if (inbuf->type==CB_VAL) {
+				for (; x>0; x--, outrf+= 2, inrf+= 1) {
 					outrf[0]= inrf[0];
 					outrf[1]= inrf[0];
 				}
 			}
-			else if(inbuf->type==CB_VEC3) {
-				for(; x>0; x--, outrf+= 2, inrf+= 3) {
+			else if (inbuf->type==CB_VEC3) {
+				for (; x>0; x--, outrf+= 2, inrf+= 3) {
 					outrf[0]= inrf[0];
 					outrf[1]= inrf[1];
 				}
 			}
-			else if(inbuf->type==CB_RGBA) {
-				for(; x>0; x--, outrf+= 2, inrf+= 4) {
+			else if (inbuf->type==CB_RGBA) {
+				for (; x>0; x--, outrf+= 2, inrf+= 4) {
 					outrf[0]= inrf[0];
 					outrf[1]= inrf[1];
 				}
 			}
 		}
-		else if(type==CB_VEC3) {
-			if(inbuf->type==CB_VAL) {
-				for(; x>0; x--, outrf+= 3, inrf+= 1) {
+		else if (type==CB_VEC3) {
+			if (inbuf->type==CB_VAL) {
+				for (; x>0; x--, outrf+= 3, inrf+= 1) {
 					outrf[0]= inrf[0];
 					outrf[1]= inrf[0];
 					outrf[2]= inrf[0];
 				}
 			}
-			else if(inbuf->type==CB_VEC2) {
-				for(; x>0; x--, outrf+= 3, inrf+= 2) {
+			else if (inbuf->type==CB_VEC2) {
+				for (; x>0; x--, outrf+= 3, inrf+= 2) {
 					outrf[0]= inrf[0];
 					outrf[1]= inrf[1];
 					outrf[2]= 0.0f;
 				}
 			}
-			else if(inbuf->type==CB_RGBA) {
-				for(; x>0; x--, outrf+= 3, inrf+= 4) {
+			else if (inbuf->type==CB_RGBA) {
+				for (; x>0; x--, outrf+= 3, inrf+= 4) {
 					outrf[0]= inrf[0];
 					outrf[1]= inrf[1];
 					outrf[2]= inrf[2];
 				}
 			}
 		}
-		else if(type==CB_RGBA) {
-			if(inbuf->type==CB_VAL) {
-				for(; x>0; x--, outrf+= 4, inrf+= 1) {
+		else if (type==CB_RGBA) {
+			if (inbuf->type==CB_VAL) {
+				for (; x>0; x--, outrf+= 4, inrf+= 1) {
 					outrf[0]= inrf[0];
 					outrf[1]= inrf[0];
 					outrf[2]= inrf[0];
 					outrf[3]= 1.0f;
 				}
 			}
-			else if(inbuf->type==CB_VEC2) {
-				for(; x>0; x--, outrf+= 4, inrf+= 2) {
+			else if (inbuf->type==CB_VEC2) {
+				for (; x>0; x--, outrf+= 4, inrf+= 2) {
 					outrf[0]= inrf[0];
 					outrf[1]= inrf[1];
 					outrf[2]= 0.0f;
 					outrf[3]= 1.0f;
 				}
 			}
-			else if(inbuf->type==CB_VEC3) {
-				for(; x>0; x--, outrf+= 4, inrf+= 3) {
+			else if (inbuf->type==CB_VEC3) {
+				for (; x>0; x--, outrf+= 4, inrf+= 3) {
 					outrf[0]= inrf[0];
 					outrf[1]= inrf[1];
 					outrf[2]= inrf[2];
@@ -378,8 +378,8 @@ CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 
 float *compbuf_get_pixel(CompBuf *cbuf, float *defcol, float *use, int x, int y, int xrad, int yrad)
 {
-	if(cbuf) {
-		if(cbuf->rect_procedural) {
+	if (cbuf) {
+		if (cbuf->rect_procedural) {
 			cbuf->rect_procedural(cbuf, use, (float)x/(float)xrad, (float)y/(float)yrad);
 			return use;
 		}
@@ -390,8 +390,8 @@ float *compbuf_get_pixel(CompBuf *cbuf, float *defcol, float *use, int x, int y,
 			x-= cbuf->xof;
 			y-= cbuf->yof;
 			
-			if(y<-cbuf->yrad || y>= -cbuf->yrad+cbuf->y) return col;
-			if(x<-cbuf->xrad || x>= -cbuf->xrad+cbuf->x) return col;
+			if (y<-cbuf->yrad || y>= -cbuf->yrad+cbuf->y) return col;
+			if (x<-cbuf->xrad || x>= -cbuf->xrad+cbuf->x) return col;
 			
 			return cbuf->rect + cbuf->type*( (cbuf->yrad+y)*cbuf->x + (cbuf->xrad+x) );
 		}
@@ -407,7 +407,7 @@ static CompBuf *composit_check_compbuf(CompBuf *cbuf, int type, CompBuf *outbuf)
 	CompBuf *dbuf= typecheck_compbuf(cbuf, type);
 
 	/* if same as output and translated, duplicate so pixels don't interfere */
-	if(dbuf == outbuf && !dbuf->rect_procedural && (dbuf->xof || dbuf->yof))
+	if (dbuf == outbuf && !dbuf->rect_procedural && (dbuf->xof || dbuf->yof))
 		dbuf= dupalloc_compbuf(dbuf);
 	
 	return dbuf;
@@ -428,14 +428,14 @@ void composit1_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, floa
 	xrad= out->xrad;
 	yrad= out->yrad;
 	
-	for(y= -yrad; y<-yrad+out->y; y++) {
-		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
+	for (y= -yrad; y<-yrad+out->y; y++) {
+		for (x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
 			srcfp= compbuf_get_pixel(src_use, src_col, color, x, y, xrad, yrad);
 			func(node, outfp, srcfp);
 		}
 	}
 	
-	if(src_use!=src_buf)
+	if (src_use!=src_buf)
 		free_compbuf(src_use);
 }
 
@@ -455,17 +455,17 @@ void composit2_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, floa
 	xrad= out->xrad;
 	yrad= out->yrad;
 	
-	for(y= -yrad; y<-yrad+out->y; y++) {
-		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
+	for (y= -yrad; y<-yrad+out->y; y++) {
+		for (x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
 			srcfp= compbuf_get_pixel(src_use, src_col, color, x, y, xrad, yrad);
 			facfp= compbuf_get_pixel(fac_use, fac, color, x, y, xrad, yrad);
 			
 			func(node, outfp, srcfp, facfp);
 		}
 	}
-	if(src_use!=src_buf)
+	if (src_use!=src_buf)
 		free_compbuf(src_use);
-	if(fac_use!=fac_buf)
+	if (fac_use!=fac_buf)
 		free_compbuf(fac_use);
 }
 
@@ -486,8 +486,8 @@ void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 	xrad= out->xrad;
 	yrad= out->yrad;
 	
-	for(y= -yrad; y<-yrad+out->y; y++) {
-		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
+	for (y= -yrad; y<-yrad+out->y; y++) {
+		for (x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
 			src1fp= compbuf_get_pixel(src1_use, src1_col, color, x, y, xrad, yrad);
 			src2fp= compbuf_get_pixel(src2_use, src2_col, color, x, y, xrad, yrad);
 			facfp= compbuf_get_pixel(fac_use, fac, color, x, y, xrad, yrad);
@@ -496,11 +496,11 @@ void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 		}
 	}
 	
-	if(src1_use!=src1_buf)
+	if (src1_use!=src1_buf)
 		free_compbuf(src1_use);
-	if(src2_use!=src2_buf)
+	if (src2_use!=src2_buf)
 		free_compbuf(src2_use);
-	if(fac_use!=fac_buf)
+	if (fac_use!=fac_buf)
 		free_compbuf(fac_use);
 }
 
@@ -523,8 +523,8 @@ void composit4_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 	xrad= out->xrad;
 	yrad= out->yrad;
 	
-	for(y= -yrad; y<-yrad+out->y; y++) {
-		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
+	for (y= -yrad; y<-yrad+out->y; y++) {
+		for (x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
 			src1fp= compbuf_get_pixel(src1_use, src1_col, color, x, y, xrad, yrad);
 			src2fp= compbuf_get_pixel(src2_use, src2_col, color, x, y, xrad, yrad);
 			fac1fp= compbuf_get_pixel(fac1_use, fac1, color, x, y, xrad, yrad);
@@ -534,13 +534,13 @@ void composit4_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 		}
 	}
 	
-	if(src1_use!=src1_buf)
+	if (src1_use!=src1_buf)
 		free_compbuf(src1_use);
-	if(src2_use!=src2_buf)
+	if (src2_use!=src2_buf)
 		free_compbuf(src2_use);
-	if(fac1_use!=fac1_buf)
+	if (fac1_use!=fac1_buf)
 		free_compbuf(fac1_use);
-	if(fac2_use!=fac2_buf)
+	if (fac2_use!=fac2_buf)
 		free_compbuf(fac2_use);
 }
 
@@ -562,7 +562,7 @@ CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel)
 
 	rectf= cbuf->rect + channel;
 	
-	for(tot= cbuf->x*cbuf->y; tot>0; tot--, valf++, rectf+=4)
+	for (tot= cbuf->x*cbuf->y; tot>0; tot--, valf++, rectf+=4)
 		*valf= *rectf;
 	
 	return valbuf;
@@ -580,8 +580,8 @@ static CompBuf *generate_procedural_preview(CompBuf *cbuf, int newx, int newy)
 	xrad= outbuf->xrad;
 	yrad= outbuf->yrad;
 	
-	for(y= -yrad; y<-yrad+outbuf->y; y++)
-		for(x= -xrad; x<-xrad+outbuf->x; x++, outfp+=outbuf->type)
+	for (y= -yrad; y<-yrad+outbuf->y; y++)
+		for (x= -xrad; x<-xrad+outbuf->x; x++, outfp+=outbuf->type)
 			cbuf->rect_procedural(cbuf, outfp, (float)x/(float)xrad, (float)y/(float)yrad);
 
 	return outbuf;
@@ -597,14 +597,14 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 	int dither= 0;
 	unsigned char *rect;
 	
-	if(preview && stackbuf) {
+	if (preview && stackbuf) {
 		CompBuf *cbuf, *stackbuf_use;
 		
-		if(stackbuf->rect==NULL && stackbuf->rect_procedural==NULL) return;
+		if (stackbuf->rect==NULL && stackbuf->rect_procedural==NULL) return;
 		
 		stackbuf_use= typecheck_compbuf(stackbuf, CB_RGBA);
 
-		if(stackbuf->x > stackbuf->y) {
+		if (stackbuf->x > stackbuf->y) {
 			xsize= 140;
 			ysize= (140*stackbuf->y)/stackbuf->x;
 		}
@@ -613,7 +613,7 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 			xsize= (140*stackbuf->x)/stackbuf->y;
 		}
 		
-		if(stackbuf_use->rect_procedural)
+		if (stackbuf_use->rect_procedural)
 			cbuf= generate_procedural_preview(stackbuf_use, xsize, ysize);
 		else
 			cbuf= scalefast_compbuf(stackbuf_use, xsize, ysize);
@@ -626,12 +626,12 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 			xsize, ysize, xsize, xsize);
 		
 		free_compbuf(cbuf);
-		if(stackbuf_use!=stackbuf)
+		if (stackbuf_use!=stackbuf)
 			free_compbuf(stackbuf_use);
 
 		BLI_lock_thread(LOCK_PREVIEW);
 
-		if(preview->rect)
+		if (preview->rect)
 			MEM_freeN(preview->rect);
 		preview->xsize= xsize;
 		preview->ysize= ysize;
@@ -705,21 +705,21 @@ void gamma_correct_compbuf(CompBuf *img, int inversed)
 	float *drect;
 	int x;
 
-	if(img->type!=CB_RGBA) return;
+	if (img->type!=CB_RGBA) return;
 
 	drect= img->rect;
-	if(inversed) {
-		for(x=img->x*img->y; x>0; x--, drect+=4) {
-			if(drect[0]>0.0f) drect[0]= sqrt(drect[0]); else drect[0]= 0.0f;
-			if(drect[1]>0.0f) drect[1]= sqrt(drect[1]); else drect[1]= 0.0f;
-			if(drect[2]>0.0f) drect[2]= sqrt(drect[2]); else drect[2]= 0.0f;
+	if (inversed) {
+		for (x=img->x*img->y; x>0; x--, drect+=4) {
+			if (drect[0]>0.0f) drect[0]= sqrt(drect[0]); else drect[0]= 0.0f;
+			if (drect[1]>0.0f) drect[1]= sqrt(drect[1]); else drect[1]= 0.0f;
+			if (drect[2]>0.0f) drect[2]= sqrt(drect[2]); else drect[2]= 0.0f;
 		}
 	}
 	else {
-		for(x=img->x*img->y; x>0; x--, drect+=4) {
-			if(drect[0]>0.0f) drect[0]*= drect[0]; else drect[0]= 0.0f;
-			if(drect[1]>0.0f) drect[1]*= drect[1]; else drect[1]= 0.0f;
-			if(drect[2]>0.0f) drect[2]*= drect[2]; else drect[2]= 0.0f;
+		for (x=img->x*img->y; x>0; x--, drect+=4) {
+			if (drect[0]>0.0f) drect[0]*= drect[0]; else drect[0]= 0.0f;
+			if (drect[1]>0.0f) drect[1]*= drect[1]; else drect[1]= 0.0f;
+			if (drect[2]>0.0f) drect[2]*= drect[2]; else drect[2]= 0.0f;
 		}
 	}
 }
@@ -729,12 +729,12 @@ void premul_compbuf(CompBuf *img, int inversed)
 	float *drect;
 	int x;
 
-	if(img->type!=CB_RGBA) return;
+	if (img->type!=CB_RGBA) return;
 
 	drect= img->rect;
-	if(inversed) {
-		for(x=img->x*img->y; x>0; x--, drect+=4) {
-			if(fabsf(drect[3]) < 1e-5f) {
+	if (inversed) {
+		for (x=img->x*img->y; x>0; x--, drect+=4) {
+			if (fabsf(drect[3]) < 1e-5f) {
 				drect[0]= 0.0f;
 				drect[1]= 0.0f;
 				drect[2]= 0.0f;
@@ -747,7 +747,7 @@ void premul_compbuf(CompBuf *img, int inversed)
 		}
 	}
 	else {
-		for(x=img->x*img->y; x>0; x--, drect+=4) {
+		for (x=img->x*img->y; x>0; x--, drect+=4) {
 			drect[0] *= drect[3];
 			drect[1] *= drect[3];
 			drect[2] *= drect[3];
@@ -1104,11 +1104,11 @@ void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2)
 // sets fcol to pixelcolor at (x, y)
 void qd_getPixel(CompBuf* src, int x, int y, float* col)
 {
-	if(src->rect_procedural) {
+	if (src->rect_procedural) {
 		float bc[4];
 		src->rect_procedural(src, bc, (float)x/(float)src->xrad, (float)y/(float)src->yrad);
 
-		switch(src->type){
+		switch(src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: col[3]=bc[3]; 
 			case CB_VEC3: col[2]=bc[2];
@@ -1118,7 +1118,7 @@ void qd_getPixel(CompBuf* src, int x, int y, float* col)
 	}
 	else if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
 		float* bc = &src->rect[(x + y*src->x)*src->type];
-		switch(src->type){
+		switch(src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: col[3]=bc[3]; 
 			case CB_VEC3: col[2]=bc[2];
@@ -1127,7 +1127,7 @@ void qd_getPixel(CompBuf* src, int x, int y, float* col)
 		}
 	}
 	else {
-		switch(src->type){
+		switch(src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: col[3]=0.0; 
 			case CB_VEC3: col[2]=0.0; 
@@ -1142,7 +1142,7 @@ void qd_setPixel(CompBuf* src, int x, int y, float* col)
 {
 	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
 		float* bc = &src->rect[(x + y*src->x)*src->type];
-		switch(src->type){
+		switch(src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: bc[3]=col[3]; 
 			case CB_VEC3: bc[2]=col[2];

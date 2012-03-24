@@ -91,9 +91,9 @@ static Lattice *vgroup_edit_lattice(Object *ob)
 
 int ED_vgroup_object_is_edit_mode(Object *ob)
 {
-	if(ob->type == OB_MESH)
+	if (ob->type == OB_MESH)
 		return (BMEdit_FromObject(ob) != NULL);
-	else if(ob->type == OB_LATTICE)
+	else if (ob->type == OB_LATTICE)
 		return (((Lattice*)ob->data)->editlatt != NULL);
 
 	return 0;
@@ -103,7 +103,7 @@ bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
 {
 	bDeformGroup *defgroup;
 
-	if(!ob || !OB_TYPE_SUPPORT_VGROUP(ob->type))
+	if (!ob || !OB_TYPE_SUPPORT_VGROUP(ob->type))
 		return NULL;
 	
 	defgroup = MEM_callocN(sizeof(bDeformGroup), "add deformGroup");
@@ -136,7 +136,7 @@ void ED_vgroup_delete(Object *ob, bDeformGroup *defgroup)
 	if (dg == NULL)
 		return;
 
-	if(ED_vgroup_object_is_edit_mode(ob))
+	if (ED_vgroup_object_is_edit_mode(ob))
 		vgroup_delete_edit_mode(ob, dg);
 	else
 		vgroup_delete_object_mode(ob, dg);
@@ -150,7 +150,7 @@ void ED_vgroup_clear(Object *ob)
 	while (dg) {
 		bDeformGroup *next_dg= dg->next;
 
-		if(edit_mode)
+		if (edit_mode)
 			vgroup_delete_edit_mode(ob, dg);
 		else
 			vgroup_delete_object_mode(ob, dg);
@@ -163,12 +163,12 @@ int ED_vgroup_data_create(ID *id)
 {
 	/* create deform verts */
 
-	if(GS(id->name)==ID_ME) {
+	if (GS(id->name)==ID_ME) {
 		Mesh *me= (Mesh *)id;
 		me->dvert= CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, me->totvert);
 		return TRUE;
 	}
-	else if(GS(id->name)==ID_LT) {
+	else if (GS(id->name)==ID_LT) {
 		Lattice *lt= (Lattice *)id;
 		lt->dvert= MEM_callocN(sizeof(MDeformVert)*lt->pntsu*lt->pntsv*lt->pntsw, "lattice deformVert");
 		return TRUE;
@@ -183,13 +183,13 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 	*dvert_tot = 0;
 	*dvert_arr = NULL;
 
-	if(id) {
+	if (id) {
 		switch(GS(id->name)) {
 			case ID_ME:
 			{
 				Mesh *me = (Mesh *)id;
 
-				if(me->edit_btmesh) {
+				if (me->edit_btmesh) {
 					BMEditMesh *em = me->edit_btmesh;
 					BMIter iter;
 					BMVert *eve;
@@ -221,7 +221,7 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 
 					return 1;
 				}
-				else if(me->dvert) {
+				else if (me->dvert) {
 					MVert *mvert= me->mvert;
 					MDeformVert *dvert= me->dvert;
 					int i;
@@ -254,7 +254,7 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 				Lattice *lt= (Lattice *)id;
 				lt= (lt->editlatt)? lt->editlatt->latt: lt;
 
-				if(lt->dvert) {
+				if (lt->dvert) {
 					BPoint *def= lt->def;
 					*dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
 					*dvert_arr= MEM_mallocN(sizeof(void*)*(*dvert_tot), "vgroup parray from me");
@@ -286,7 +286,7 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 /* returns true if the id type supports weights */
 int ED_vgroup_give_array(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
 {
-	if(id) {
+	if (id) {
 		switch(GS(id->name)) {
 			case ID_ME:
 			{
@@ -326,16 +326,16 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	ED_vgroup_give_parray(ob_from->data, &dvert_array_from, &dvert_tot_from, FALSE);
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, FALSE);
 
-	if((dvert_array == NULL) && (dvert_array_from != NULL) && ED_vgroup_data_create(ob->data)) {
+	if ((dvert_array == NULL) && (dvert_array_from != NULL) && ED_vgroup_data_create(ob->data)) {
 		ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, FALSE);
 		new_vgroup= TRUE;
 	}
 
-	if(ob==ob_from || dvert_tot==0 || (dvert_tot != dvert_tot_from) || dvert_array_from==NULL || dvert_array==NULL) {
+	if (ob==ob_from || dvert_tot==0 || (dvert_tot != dvert_tot_from) || dvert_array_from==NULL || dvert_array==NULL) {
 		if (dvert_array) MEM_freeN(dvert_array);
 		if (dvert_array_from) MEM_freeN(dvert_array_from);
 
-		if(new_vgroup == TRUE) {
+		if (new_vgroup == TRUE) {
 			/* free the newly added vgroup since it wasn't compatible */
 			vgroup_delete_all(ob);
 		}
@@ -347,11 +347,11 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	BLI_duplicatelist(&ob->defbase, &ob_from->defbase);
 	ob->actdef= ob_from->actdef;
 
-	if(defbase_tot_from < defbase_tot) {
+	if (defbase_tot_from < defbase_tot) {
 		/* correct vgroup indices because the number of vgroups is being reduced. */
 		int *remap= MEM_mallocN(sizeof(int) * (defbase_tot + 1), __func__);
-		for(i=0; i<=defbase_tot_from; i++) remap[i]= i;
-		for(; i<=defbase_tot; i++) remap[i]= 0; /* can't use these, so disable */
+		for (i=0; i<=defbase_tot_from; i++) remap[i]= i;
+		for (; i<=defbase_tot; i++) remap[i]= 0; /* can't use these, so disable */
 
 		vgroup_remap_update_users(ob, remap);
 		MEM_freeN(remap);
@@ -360,13 +360,13 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	dvf= dvert_array_from;
 	dv= dvert_array;
 
-	for(i=0; i<dvert_tot; i++, dvf++, dv++) {
-		if((*dv)->dw)
+	for (i=0; i<dvert_tot; i++, dvf++, dv++) {
+		if ((*dv)->dw)
 			MEM_freeN((*dv)->dw);
 
 		*(*dv)= *(*dvf);
 
-		if((*dv)->dw)
+		if ((*dv)->dw)
 			(*dv)->dw= MEM_dupallocN((*dv)->dw);
 	}
 
@@ -392,7 +392,7 @@ static void ED_vgroup_nr_vert_add(Object *ob,
 	/* get the vert */
 	ED_vgroup_give_array(ob->data, &dvert, &tot);
 	
-	if(dvert==NULL)
+	if (dvert==NULL)
 		return;
 
 	/* check that vertnum is valid before trying to get the relevant dvert */
@@ -418,7 +418,7 @@ static void ED_vgroup_nr_vert_add(Object *ob,
 				break;
 			case WEIGHT_ADD:
 				dw->weight += weight;
-				if(dw->weight >= 1.0f)
+				if (dw->weight >= 1.0f)
 					dw->weight = 1.0f;
 				break;
 			case WEIGHT_SUBTRACT:
@@ -426,7 +426,7 @@ static void ED_vgroup_nr_vert_add(Object *ob,
 				/* if the weight is zero or less then
 				 * remove the vert from the deform group
 				 */
-				if(dw->weight <= 0.0f) {
+				if (dw->weight <= 0.0f) {
 					defvert_remove_group(dv, dw);
 				}
 				break;
@@ -471,11 +471,11 @@ void ED_vgroup_vert_add(Object *ob, bDeformGroup *dg, int vertnum, float weight,
 	/* get the deform group number, exit if
 	 * it can't be found
 	 */
-	if(def_nr < 0) return;
+	if (def_nr < 0) return;
 
 	/* if there's no deform verts then create some,
 	 */
-	if(ED_vgroup_give_array(ob->data, &dv, &tot) && dv==NULL)
+	if (ED_vgroup_give_array(ob->data, &dv, &tot) && dv==NULL)
 		ED_vgroup_data_create(ob->data);
 
 	/* call another function to do the work
@@ -493,7 +493,7 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup	*dg, int vertnum)
 	/* TODO, this is slow in a loop, better pass def_nr directly, but leave for later... - campbell */
 	const int def_nr= BLI_findindex(&ob->defbase, dg);
 
-	if(def_nr != -1) {
+	if (def_nr != -1) {
 		MDeformVert *dvert= NULL;
 		int tot;
 
@@ -502,7 +502,7 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup	*dg, int vertnum)
 		 */
 		ED_vgroup_give_array(ob->data, &dvert, &tot);
 
-		if(dvert) {
+		if (dvert) {
 			MDeformVert *dv= &dvert[vertnum];
 			MDeformWeight *dw;
 
@@ -519,28 +519,28 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 	Mesh *me;
 
 	/* get the deform vertices corresponding to the vertnum */
-	if(ob->type==OB_MESH) {
+	if (ob->type==OB_MESH) {
 		me= ob->data;
 
-		if(me->edit_btmesh) {
+		if (me->edit_btmesh) {
 			eve= BM_vert_at_index(me->edit_btmesh->bm, vertnum);
-			if(!eve) {
+			if (!eve) {
 				return 0.0f;
 			}
 			dv= CustomData_bmesh_get(&me->edit_btmesh->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 		}
 		else {
-			if(vertnum >= me->totvert) {
+			if (vertnum >= me->totvert) {
 				return 0.0f;
 			}
 			dv = &me->dvert[vertnum];
 		}
 	}
-	else if(ob->type==OB_LATTICE) {
+	else if (ob->type==OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
 
-		if(lt->dvert) {
-			if(vertnum >= lt->pntsu*lt->pntsv*lt->pntsw) {
+		if (lt->dvert) {
+			if (vertnum >= lt->pntsu*lt->pntsv*lt->pntsw) {
 				return 0.0f;
 			}
 			dv = &lt->dvert[vertnum];
@@ -561,7 +561,7 @@ float ED_vgroup_vert_weight(Object *ob, bDeformGroup *dg, int vertnum)
 {
 	const int def_nr= BLI_findindex(&ob->defbase, dg);
 
-	if(def_nr == -1) {
+	if (def_nr == -1) {
 		return -1;
 	}
 
@@ -585,7 +585,7 @@ static void vgroup_select_verts(Object *ob, int select)
 		return;
 	}
 
-	if(ob->type == OB_MESH) {
+	if (ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 
 		if (me->edit_btmesh) {
@@ -603,7 +603,7 @@ static void vgroup_select_verts(Object *ob, int select)
 			}
 
 			/* this has to be called, because this function operates on vertices only */
-			if(select) EDBM_select_flush(em);	// vertices to edges/faces
+			if (select) EDBM_select_flush(em);	// vertices to edges/faces
 			else EDBM_deselect_flush(em);
 		}
 		else {
@@ -628,17 +628,17 @@ static void vgroup_select_verts(Object *ob, int select)
 			}
 		}
 	}
-	else if(ob->type == OB_LATTICE) {
+	else if (ob->type == OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
 		
-		if(lt->dvert) {
+		if (lt->dvert) {
 			BPoint *bp;
 			int a, tot;
 			
 			dv= lt->dvert;
 
 			tot= lt->pntsu*lt->pntsv*lt->pntsw;
-			for(a=0, bp= lt->def; a<tot; a++, bp++, dv++) {
+			for (a=0, bp= lt->def; a<tot; a++, bp++, dv++) {
 				if (defvert_find_index(dv, def_nr)) {
 					if (select)  bp->f1 |=  SELECT;
 					else         bp->f1 &= ~SELECT;
@@ -657,10 +657,10 @@ static void vgroup_duplicate(Object *ob)
 	int i, idg, icdg, dvert_tot=0;
 
 	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
-	if(!dg)
+	if (!dg)
 		return;
 	
-	if(!strstr(dg->name, "_copy")) {
+	if (!strstr(dg->name, "_copy")) {
 		BLI_snprintf(name, sizeof(name), "%s_copy", dg->name);
 	}
 	else {
@@ -681,10 +681,10 @@ static void vgroup_duplicate(Object *ob)
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, FALSE);
 
 	if (dvert_array) {
-		for(i = 0; i < dvert_tot; i++) {
+		for (i = 0; i < dvert_tot; i++) {
 			MDeformVert *dv= dvert_array[i];
 			dw_org = defvert_find_index(dv, idg);
-			if(dw_org) {
+			if (dw_org) {
 				/* defvert_verify_index re-allocs org so need to store the weight first */
 				dw_cpy = defvert_verify_index(dv, icdg);
 				dw_cpy->weight = dw_org->weight;
@@ -713,7 +713,7 @@ static void vgroup_normalize(Object *ob)
 	if (dvert_array) {
 		float weight_max = 0.0f;
 
-		for(i = 0; i < dvert_tot; i++) {
+		for (i = 0; i < dvert_tot; i++) {
 
 			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
@@ -721,13 +721,13 @@ static void vgroup_normalize(Object *ob)
 			}
 
 			dw = defvert_find_index(dv, def_nr);
-			if(dw) {
+			if (dw) {
 				weight_max = MAX2(dw->weight, weight_max);
 			}
 		}
 
-		if(weight_max > 0.0f) {
-			for(i = 0; i < dvert_tot; i++) {
+		if (weight_max > 0.0f) {
+			for (i = 0; i < dvert_tot; i++) {
 				
 				/* in case its not selected */
 				if (!(dv = dvert_array[i])) {
@@ -735,7 +735,7 @@ static void vgroup_normalize(Object *ob)
 				}
 
 				dw = defvert_find_index(dv, def_nr);
-				if(dw) {
+				if (dw) {
 					dw->weight /= weight_max;
 					
 					/* in case of division errors with very low weights */
@@ -762,21 +762,21 @@ static int* getSurroundingVerts(Mesh *me, int vert, int *count)
 	BLI_array_declare(verts);
 
 	BLI_array_reserve(verts, 8);
-	while(i--) {
+	while (i--) {
 		int j = mp->totloop;
 		int first_l = mp->totloop - 1;
 		MLoop *ml = &me->mloop[mp->loopstart];
-		while(j--) {
+		while (j--) {
 			/* XXX This assume a vert can only be once in a poly, even though
 			 *     it seems logical to me, not totally sure of that. */
 			if (ml->v == vert) {
 				int a, b, k;
-				if(j == first_l) {
+				if (j == first_l) {
 					/* We are on the first corner. */
 					a = ml[1].v;
 					b = ml[j].v;
 				}
-				else if(!j) {
+				else if (!j) {
 					/* We are on the last corner. */
 					a = (ml-1)->v;
 					b = me->mloop[mp->loopstart].v;
@@ -789,15 +789,15 @@ static int* getSurroundingVerts(Mesh *me, int vert, int *count)
 				/* Append a and b verts to array, if not yet present. */
 				k = BLI_array_count(verts);
 				/* XXX Maybe a == b is enough? */
-				while(k-- && !(a == b && a == -1)) {
-					if(verts[k] == a)
+				while (k-- && !(a == b && a == -1)) {
+					if (verts[k] == a)
 						a = -1;
-					else if(verts[k] == b)
+					else if (verts[k] == b)
 						b = -1;
 				}
-				if(a != -1)
+				if (a != -1)
 					BLI_array_append(verts, a);
-				if(b != -1)
+				if (b != -1)
 					BLI_array_append(verts, b);
 
 				/* Vert found in this poly, we can go to next one! */
@@ -820,7 +820,7 @@ static void getSingleCoordinate(MVert *points, int count, float coord[3])
 {
 	int i;
 	zero_v3(coord);
-	for(i = 0; i < count; i++) {
+	for (i = 0; i < count; i++) {
 		add_v3_v3(coord, points[i].co);
 	}
 	mul_v3_fl(coord, 1.0f/count);
@@ -853,12 +853,12 @@ static void getVerticalAndHorizontalChange(const float norm[3], float d, const f
 // I need the derived mesh to be forgotten so the positions are recalculated with weight changes (see dm_deform_recalc)
 static void dm_deform_clear(DerivedMesh *dm, Object *ob)
 {
-	if(ob->derivedDeform && (ob->derivedDeform)==dm) {
+	if (ob->derivedDeform && (ob->derivedDeform)==dm) {
 		ob->derivedDeform->needsFree = 1;
 		ob->derivedDeform->release(ob->derivedDeform);
 		ob->derivedDeform = NULL;
 	}
-	else if(dm) {
+	else if (dm) {
 		dm->needsFree = 1;
 		dm->release(dm);
 	}
@@ -911,56 +911,59 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 		copy_v3_v3(oldPos, m.co);
 		distToStart = dot_v3v3(norm, oldPos) + d;
 
-		if(distToBe == originalDistToBe) {
+		if (distToBe == originalDistToBe) {
 			distToBe += distToStart - distToStart*strength;
 		}
-		for(i = 0; i < totweight; i++) {
+		for (i = 0; i < totweight; i++) {
 			dwIndices[i] = i;
 			dw = (dvert->dw+i);
 			vc = hc = 0;
-			if(!dw->weight) {
+			if (!dw->weight) {
 				changes[i][0] = 0;
 				changes[i][1] = 0;
 				dists[i] = distToStart;
 				continue;
 			}
-			for(k = 0; k < 2; k++) {
-				if(dm) {
+			for (k = 0; k < 2; k++) {
+				if (dm) {
 					dm_deform_clear(dm, ob); dm = NULL;
 				}
 				oldw = dw->weight;
-				if(k) {
+				if (k) {
 					dw->weight *= 1+cp;
-				} else {
+				}
+				else {
 					dw->weight /= 1+cp;
 				}
-				if(dw->weight == oldw) {
+				if (dw->weight == oldw) {
 					changes[i][0] = 0;
 					changes[i][1] = 0;
 					dists[i] = distToStart;
 					break;
 				}
-				if(dw->weight > 1) {
+				if (dw->weight > 1) {
 					dw->weight = 1;
 				}
 				dm = dm_deform_recalc(scene, ob);
 				dm->getVert(dm, index, &m);
 				getVerticalAndHorizontalChange(norm, d, coord, oldPos, distToStart, m.co, changes, dists, i);
 				dw->weight = oldw;
-				if(!k) {
+				if (!k) {
 					vc = changes[i][0];
 					hc = changes[i][1];
 					dist = dists[i];
-				} else {
-					if(fabs(dist - distToBe) < fabs(dists[i] - distToBe)) {
+				}
+				else {
+					if (fabs(dist - distToBe) < fabs(dists[i] - distToBe)) {
 						upDown[i] = 0;
 						changes[i][0] = vc;
 						changes[i][1] = hc;
 						dists[i] = dist;
-					} else {
+					}
+					else {
 						upDown[i] = 1;
 					}
-					if(fabs(dists[i] - distToBe) > fabs(distToStart - distToBe)) {
+					if (fabs(dists[i] - distToBe) > fabs(distToStart - distToBe)) {
 						changes[i][0] = 0;
 						changes[i][1] = 0;
 						dists[i] = distToStart;
@@ -969,19 +972,19 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 			}
 		}
 		// sort the changes by the vertical change
-		for(k = 0; k < totweight; k++) {
+		for (k = 0; k < totweight; k++) {
 			float tf;
 			int ti;
 			bestIndex = k;
-			for(i = k+1; i < totweight; i++) {
+			for (i = k+1; i < totweight; i++) {
 				dist = dists[i];
 
-				if(fabs(dist) > fabs(dists[i])) {
+				if (fabs(dist) > fabs(dists[i])) {
 					bestIndex = i;
 				}
 			}
 			// switch with k
-			if(bestIndex != k) {
+			if (bestIndex != k) {
 				ti = upDown[k];
 				upDown[k] = upDown[bestIndex];
 				upDown[bestIndex] = ti;
@@ -1005,18 +1008,18 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 		}
 		bestIndex = -1;
 		// find the best change with an acceptable horizontal change
-		for(i = 0; i < totweight; i++) {
-			if(fabs(changes[i][0]) > fabs(changes[i][1]*2.0f)) {
+		for (i = 0; i < totweight; i++) {
+			if (fabs(changes[i][0]) > fabs(changes[i][1]*2.0f)) {
 				bestIndex = i;
 				break;
 			}
 		}
-		if(bestIndex != -1) {
+		if (bestIndex != -1) {
 			wasChange = TRUE;
 			// it is a good place to stop if it tries to move the opposite direction
 			// (relative to the plane) of last time
-			if(lastIndex != -1) {
-				if(wasUp != upDown[bestIndex]) {
+			if (lastIndex != -1) {
+				if (wasUp != upDown[bestIndex]) {
 					wasChange = FALSE;
 				}
 			}
@@ -1024,22 +1027,23 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 			wasUp = upDown[bestIndex];
 			dw = (dvert->dw+dwIndices[bestIndex]);
 			oldw = dw->weight;
-			if(upDown[bestIndex]) {
+			if (upDown[bestIndex]) {
 				dw->weight *= 1+cp;
-			} else {
+			}
+			else {
 				dw->weight /= 1+cp;
 			}
-			if(dw->weight > 1) {
+			if (dw->weight > 1) {
 				dw->weight = 1;
 			}
-			if(oldw == dw->weight) {
+			if (oldw == dw->weight) {
 				wasChange = FALSE;
 			}
-			if(dm) {
+			if (dm) {
 				dm_deform_clear(dm, ob); dm = NULL;
 			}
 		}
-	} while(wasChange && (distToStart-distToBe)/fabsf(distToStart-distToBe) ==
+	} while (wasChange && (distToStart-distToBe)/fabsf(distToStart-distToBe) ==
 	                     (dists[bestIndex]-distToBe)/fabsf(dists[bestIndex]-distToBe));
 	MEM_freeN(upDown);
 	MEM_freeN(changes);
@@ -1056,24 +1060,24 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
 	int *verts = NULL;
-	if(!(me->editflag & ME_EDIT_VERT_SEL))
+	if (!(me->editflag & ME_EDIT_VERT_SEL))
 		return;
-	for(i = 0; i < me->totvert && mvert; i++, mvert++) {
-		if(mvert->flag & SELECT) {
+	for (i = 0; i < me->totvert && mvert; i++, mvert++) {
+		if (mvert->flag & SELECT) {
 			int count=0;
-			if((verts = getSurroundingVerts(me, i, &count))) {
+			if ((verts = getSurroundingVerts(me, i, &count))) {
 				MVert m;
 				MVert *p = MEM_callocN(sizeof(MVert)*(count), "deformedPoints");
 				int k;
 
 				DerivedMesh *dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 				k = count;
-				while(k--) {
+				while (k--) {
 					dm->getVert(dm, verts[k], &m);
 					p[k] = m;
 				}
 				
-				if(count >= 3) {
+				if (count >= 3) {
 					float d /*, dist */ /* UNUSED */, mag;
 					float coord[3];
 					float norm[3];
@@ -1081,7 +1085,7 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 					dm->getVert(dm, i, &m);
 					sub_v3_v3v3(norm, m.co, coord);
 					mag= normalize_v3(norm);
-					if(mag) { /* zeros fix */
+					if (mag) { /* zeros fix */
 						d = -dot_v3v3(norm, coord);
 						/* dist = (dot_v3v3(norm, m.co) + d); */ /* UNUSED */
 						moveCloserToDistanceFromPlane(scene, ob, me, i, norm, coord, d, distToBe, strength, cp);
@@ -1111,7 +1115,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
-		for(i = 0; i < dvert_tot; i++) {
+		for (i = 0; i < dvert_tot; i++) {
 
 			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
@@ -1119,7 +1123,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 			}
 
 			dw = defvert_find_index(dv, def_nr);
-			if(dw) {
+			if (dw) {
 				dw->weight = gain * (dw->weight + offset);
 
 				CLAMP(dw->weight, 0.0f, 1.0f);
@@ -1146,9 +1150,9 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
-		if(lock_active) {
+		if (lock_active) {
 
-			for(i = 0; i < dvert_tot; i++) {
+			for (i = 0; i < dvert_tot; i++) {
 				/* in case its not selected */
 				if (!(dv = dvert_array[i])) {
 					continue;
@@ -1158,7 +1162,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 			}
 		}
 		else {
-			for(i = 0; i < dvert_tot; i++) {
+			for (i = 0; i < dvert_tot; i++) {
 
 				/* in case its not selected */
 				if (!(dv = dvert_array[i])) {
@@ -1178,17 +1182,17 @@ static void vgroup_lock_all(Object *ob, int action)
 {
 	bDeformGroup *dg;
 
-	if(action == SEL_TOGGLE) {
+	if (action == SEL_TOGGLE) {
 		action= SEL_SELECT;
-		for(dg= ob->defbase.first; dg; dg= dg->next) {
-			if(dg->flag & DG_LOCK_WEIGHT) {
+		for (dg= ob->defbase.first; dg; dg= dg->next) {
+			if (dg->flag & DG_LOCK_WEIGHT) {
 				action= SEL_DESELECT;
 				break;
 			}
 		}
 	}
 
-	for(dg= ob->defbase.first; dg; dg= dg->next) {
+	for (dg= ob->defbase.first; dg; dg= dg->next) {
 		switch(action) {
 			case SEL_SELECT:
 				dg->flag |= DG_LOCK_WEIGHT;
@@ -1218,7 +1222,7 @@ static void vgroup_invert(Object *ob, const short auto_assign, const short auto_
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
-		for(i = 0; i < dvert_tot; i++) {
+		for (i = 0; i < dvert_tot; i++) {
 
 			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
@@ -1232,10 +1236,10 @@ static void vgroup_invert(Object *ob, const short auto_assign, const short auto_
 				dw= defvert_find_index(dv, def_nr);
 			}
 
-			if(dw) {
+			if (dw) {
 				dw->weight = 1.0f - dw->weight;
 
-				if(auto_remove && dw->weight <= 0.0f) {
+				if (auto_remove && dw->weight <= 0.0f) {
 					defvert_remove_group(dv, dw);
 				}
 			}
@@ -1280,9 +1284,9 @@ static void vgroup_blend(Object *ob)
 			sel1= BM_elem_flag_test(eed->v1, BM_ELEM_SELECT);
 			sel2= BM_elem_flag_test(eed->v2, BM_ELEM_SELECT);
 
-			if(sel1 != sel2) {
+			if (sel1 != sel2) {
 				/* i1 is always the selected one */
-				if(sel1==TRUE && sel2==FALSE) {
+				if (sel1==TRUE && sel2==FALSE) {
 					i1= BM_elem_index_get(eed->v1);
 					i2= BM_elem_index_get(eed->v2);
 					eve= eed->v2;
@@ -1308,7 +1312,7 @@ static void vgroup_blend(Object *ob)
 
 				dw = defvert_find_index(dvert, def_nr);
 
-				if(dw) {
+				if (dw) {
 					vg_weights[i1] += dw->weight;
 				}
 			}
@@ -1316,9 +1320,9 @@ static void vgroup_blend(Object *ob)
 
 		i= 0;
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if(BM_elem_flag_test(eve, BM_ELEM_SELECT) && vg_users[i] > 0) {
+			if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && vg_users[i] > 0) {
 				/* TODO, we may want object mode blending */
-				if(em)  dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+				if (em)  dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 				else	dvert= dvert_array+i;
 
 				dw= defvert_verify_index(dvert, def_nr);
@@ -1351,7 +1355,7 @@ static void vgroup_clean(Object *ob, const float epsilon, int keep_single)
 
 	if (dvert_array) {
 		/* only the active group */
-		for(i = 0; i < dvert_tot; i++) {
+		for (i = 0; i < dvert_tot; i++) {
 
 			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
@@ -1362,7 +1366,7 @@ static void vgroup_clean(Object *ob, const float epsilon, int keep_single)
 
 			if (dw) {
 				if (dw->weight <= epsilon) {
-					if(keep_single==FALSE || dv->totweight > 1) {
+					if (keep_single==FALSE || dv->totweight > 1) {
 						defvert_remove_group(dv, dw); /* dw can be NULL */
 					}
 				}
@@ -1385,7 +1389,7 @@ static void vgroup_clean_all(Object *ob, const float epsilon, const int keep_sin
 		MDeformVert *dv;
 		MDeformWeight *dw;
 
-		for(i = 0; i < dvert_tot; i++) {
+		for (i = 0; i < dvert_tot; i++) {
 			int j;
 
 			/* in case its not selected */
@@ -1395,14 +1399,14 @@ static void vgroup_clean_all(Object *ob, const float epsilon, const int keep_sin
 
 			j= dv->totweight;
 
-			while(j--) {
+			while (j--) {
 
-				if(keep_single && dv->totweight == 1)
+				if (keep_single && dv->totweight == 1)
 					break;
 
 				dw= dv->dw + j;
 
-				if(dw->weight <= epsilon) {
+				if (dw->weight <= epsilon) {
 					defvert_remove_group(dv, dw);
 				}
 			}
@@ -1421,9 +1425,9 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 {
 	BLI_assert(sel || sel_mirr);
 
-	if(sel_mirr && sel) {
+	if (sel_mirr && sel) {
 		/* swap */
-		if(mirror_weights) {
+		if (mirror_weights) {
 			if (all_vgroups) {
 				SWAP(MDeformVert, *dvert, *dvert_mirr);
 			}
@@ -1442,18 +1446,18 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 			}
 		}
 
-		if(flip_vgroups) {
+		if (flip_vgroups) {
 			defvert_flip(dvert, flip_map, flip_map_len);
 			defvert_flip(dvert_mirr, flip_map, flip_map_len);
 		}
 	}
 	else {
 		/* dvert should always be the target, only swaps pointer */
-		if(sel_mirr) {
+		if (sel_mirr) {
 			SWAP(MDeformVert *, dvert, dvert_mirr);
 		}
 
-		if(mirror_weights) {
+		if (mirror_weights) {
 			if (all_vgroups) {
 				defvert_copy(dvert, dvert_mirr);
 			}
@@ -1463,7 +1467,7 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 		}
 
 		/* flip map already modified for 'all_vgroups' */
-		if(flip_vgroups) {
+		if (flip_vgroups) {
 			defvert_flip(dvert, flip_map, flip_map_len);
 		}
 	}
@@ -1512,14 +1516,14 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 	}
 
 	/* only the active group */
-	if(ob->type == OB_MESH) {
+	if (ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 		BMEditMesh *em = me->edit_btmesh;
 
 		if (em) {
 			BMIter iter;
 
-			if(!CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)) {
+			if (!CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)) {
 				goto cleanup;
 			}
 
@@ -1527,14 +1531,14 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 
 			/* Go through the list of editverts and assign them */
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				if((eve_mirr= EDBM_GetMirrorVert(em, eve))) {
+				if ((eve_mirr= EDBM_GetMirrorVert(em, eve))) {
 					sel= BM_elem_flag_test(eve, BM_ELEM_SELECT);
 					sel_mirr= BM_elem_flag_test(eve_mirr, BM_ELEM_SELECT);
 
-					if((sel || sel_mirr) && (eve != eve_mirr)) {
+					if ((sel || sel_mirr) && (eve != eve_mirr)) {
 						dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 						dvert_mirr= CustomData_bmesh_get(&em->bm->vdata, eve_mirr->head.data, CD_MDEFORMVERT);
-						if(dvert && dvert_mirr) {
+						if (dvert && dvert_mirr) {
 							VGROUP_MIRR_OP;
 						}
 					}
@@ -1561,11 +1565,11 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 			}
 
 			/* tag verts we have used */
-			for(vidx= 0, mv= me->mvert; vidx < me->totvert; vidx++, mv++) {
+			for (vidx= 0, mv= me->mvert; vidx < me->totvert; vidx++, mv++) {
 				mv->flag &= ~ME_VERT_TMP_TAG;
 			}
 
-			for(vidx= 0, mv= me->mvert; vidx < me->totvert; vidx++, mv++) {
+			for (vidx= 0, mv= me->mvert; vidx < me->totvert; vidx++, mv++) {
 				if (    ((mv->flag & ME_VERT_TMP_TAG) == 0) &&
 				        ((vidx_mirr= mesh_get_x_mirror_vert(ob, vidx)) != -1) &&
 				        (vidx != vidx_mirr) &&
@@ -1597,7 +1601,7 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 		int pntsu_half;
 		/* half but found up odd value */
 
-		if(lt->pntsu == 1 || lt->dvert == NULL) {
+		if (lt->pntsu == 1 || lt->dvert == NULL) {
 			goto cleanup;
 		}
 
@@ -1606,11 +1610,11 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 		 * ok in this case */
 		pntsu_half= lt->pntsu / 2;
 
-		for(w=0; w<lt->pntsw; w++) {
-			for(v=0; v<lt->pntsv; v++) {
-				for(u=0; u<pntsu_half; u++) {
+		for (w=0; w<lt->pntsw; w++) {
+			for (v=0; v<lt->pntsv; v++) {
+				for (u=0; u<pntsu_half; u++) {
 					int u_inv= (lt->pntsu - 1) - u;
-					if(u != u_inv) {
+					if (u != u_inv) {
 						BPoint *bp, *bp_mirr;
 
 						i1= LT_INDEX(lt, u, v, w);
@@ -1622,7 +1626,7 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 						sel= bp->f1 & SELECT;
 						sel_mirr= bp_mirr->f1 & SELECT;
 
-						if(sel || sel_mirr) {
+						if (sel || sel_mirr) {
 							dvert= &lt->dvert[i1];
 							dvert_mirr= &lt->dvert[i2];
 
@@ -1653,19 +1657,19 @@ static void vgroup_remap_update_users(Object *ob, int *map)
 	/* these cases don't use names to refer to vertex groups, so when
 	 * they get deleted the numbers get out of sync, this corrects that */
 
-	if(ob->soft)
+	if (ob->soft)
 		ob->soft->vertgroup= map[ob->soft->vertgroup];
 
-	for(md=ob->modifiers.first; md; md=md->next) {
-		if(md->type == eModifierType_Explode) {
+	for (md=ob->modifiers.first; md; md=md->next) {
+		if (md->type == eModifierType_Explode) {
 			emd= (ExplodeModifierData*)md;
 			emd->vgroup= map[emd->vgroup];
 		}
-		else if(md->type == eModifierType_Cloth) {
+		else if (md->type == eModifierType_Cloth) {
 			clmd= (ClothModifierData*)md;
 			clsim= clmd->sim_parms;
 
-			if(clsim) {
+			if (clsim) {
 				clsim->vgroup_mass= map[clsim->vgroup_mass];
 				clsim->vgroup_bend= map[clsim->vgroup_bend];
 				clsim->vgroup_struct= map[clsim->vgroup_struct];
@@ -1673,8 +1677,8 @@ static void vgroup_remap_update_users(Object *ob, int *map)
 		}
 	}
 
-	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		for(a=0; a<PSYS_TOT_VG; a++)
+	for (psys=ob->particlesystem.first; psys; psys=psys->next) {
+		for (a=0; a<PSYS_TOT_VG; a++)
 			psys->vgroup[a]= map[psys->vgroup[a]];
 	}
 }
@@ -1686,8 +1690,8 @@ static void vgroup_delete_update_users(Object *ob, int id)
 	int *map= MEM_mallocN(sizeof(int) * defbase_tot, "vgroup del");
 
 	map[id]= map[0]= 0;
-	for(i=1; i<id; i++) map[i]=i;
-	for(i=id+1; i<defbase_tot; i++) map[i]=i-1;
+	for (i=1; i<id; i++) map[i]=i;
+	for (i=id+1; i<defbase_tot; i++) map[i]=i-1;
 
 	vgroup_remap_update_users(ob, map);
 	MEM_freeN(map);
@@ -1704,18 +1708,18 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 
 	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
 
-	if(dvert_array) {
+	if (dvert_array) {
 		int i, j;
 		MDeformVert *dv;
-		for(i= 0, dv= dvert_array; i < dvert_tot; i++, dv++) {
+		for (i= 0, dv= dvert_array; i < dvert_tot; i++, dv++) {
 			MDeformWeight *dw;
 
 			dw= defvert_find_index(dv, def_nr);
 			defvert_remove_group(dv, dw); /* dw can be NULL */
 
 			/* inline, make into a function if anything else needs to do this */
-			for(j = 0; j < dv->totweight; j++) {
-				if(dv->dw[j].def_nr > def_nr) {
+			for (j = 0; j < dv->totweight; j++) {
+				if (dv->dw[j].def_nr > def_nr) {
 					dv->dw[j].def_nr--;
 				}
 			}
@@ -1729,9 +1733,9 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 	BLI_freelinkN(&ob->defbase, dg);
 
 	/* Update the active deform index if necessary */
-	if(ob->actdef > def_nr)
+	if (ob->actdef > def_nr)
 		ob->actdef--;
-	if(ob->actdef < 1 && ob->defbase.first)
+	if (ob->actdef < 1 && ob->defbase.first)
 		ob->actdef= 1;
 
 }
@@ -1743,7 +1747,7 @@ static void vgroup_active_remove_verts(Object *ob, const int allverts, bDeformGr
 	MDeformVert *dv;
 	const int def_nr= BLI_findindex(&ob->defbase, dg);
 
-	if(ob->type == OB_MESH) {
+	if (ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 
 		if (me->edit_btmesh) {
@@ -1754,7 +1758,7 @@ static void vgroup_active_remove_verts(Object *ob, const int allverts, bDeformGr
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				dv= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 
-				if(dv && dv->dw && (allverts || BM_elem_flag_test(eve, BM_ELEM_SELECT))) {
+				if (dv && dv->dw && (allverts || BM_elem_flag_test(eve, BM_ELEM_SELECT))) {
 					MDeformWeight *dw = defvert_find_index(dv, def_nr);
 					defvert_remove_group(dv, dw); /* dw can be NULL */
 				}
@@ -1782,15 +1786,15 @@ static void vgroup_active_remove_verts(Object *ob, const int allverts, bDeformGr
 			}
 		}
 	}
-	else if(ob->type == OB_LATTICE) {
+	else if (ob->type == OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
 		
-		if(lt->dvert) {
+		if (lt->dvert) {
 			BPoint *bp;
 			int i, tot= lt->pntsu*lt->pntsv*lt->pntsw;
 				
-			for(i=0, bp= lt->def; i<tot; i++, bp++) {
-				if(allverts || (bp->f1 & SELECT)) {
+			for (i=0, bp= lt->def; i<tot; i++, bp++) {
+				if (allverts || (bp->f1 & SELECT)) {
 					MDeformWeight *dw;
 
 					dv= &lt->dvert[i];
@@ -1814,7 +1818,7 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 	vgroup_active_remove_verts(ob, TRUE, dg);
 
 	/* Make sure that any verts with higher indices are adjusted accordingly */
-	if(ob->type==OB_MESH) {
+	if (ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 		BMEditMesh *em = me->edit_btmesh;
 		BMIter iter;
@@ -1824,23 +1828,23 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 
-			if(dvert)
-				for(i=0; i<dvert->totweight; i++)
-					if(dvert->dw[i].def_nr > dg_index)
+			if (dvert)
+				for (i=0; i<dvert->totweight; i++)
+					if (dvert->dw[i].def_nr > dg_index)
 						dvert->dw[i].def_nr--;
 		}
 	}
-	else if(ob->type==OB_LATTICE) {
+	else if (ob->type==OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
 		BPoint *bp;
 		MDeformVert *dvert= lt->dvert;
 		int a, tot;
 		
-		if(dvert) {
+		if (dvert) {
 			tot= lt->pntsu*lt->pntsv*lt->pntsw;
-			for(a=0, bp= lt->def; a<tot; a++, bp++, dvert++) {
-				for(i=0; i<dvert->totweight; i++){
-					if(dvert->dw[i].def_nr > dg_index)
+			for (a=0, bp= lt->def; a<tot; a++, bp++, dvert++) {
+				for (i=0; i<dvert->totweight; i++) {
+					if (dvert->dw[i].def_nr > dg_index)
 						dvert->dw[i].def_nr--;
 				}
 			}
@@ -1853,21 +1857,21 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 	BLI_freelinkN (&ob->defbase, dg);
 
 	/* Update the active deform index if necessary */
-	if(ob->actdef > dg_index)
+	if (ob->actdef > dg_index)
 		ob->actdef--;
-	if(ob->actdef < 1 && ob->defbase.first)
+	if (ob->actdef < 1 && ob->defbase.first)
 		ob->actdef= 1;
 
 	/* remove all dverts */
-	if(ob->defbase.first == NULL) {
-		if(ob->type==OB_MESH) {
+	if (ob->defbase.first == NULL) {
+		if (ob->type==OB_MESH) {
 			Mesh *me= ob->data;
 			CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
 			me->dvert= NULL;
 		}
-		else if(ob->type==OB_LATTICE) {
+		else if (ob->type==OB_LATTICE) {
 			Lattice *lt= vgroup_edit_lattice(ob);
-			if(lt->dvert) {
+			if (lt->dvert) {
 				MEM_freeN(lt->dvert);
 				lt->dvert= NULL;
 			}
@@ -1877,9 +1881,9 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 
 static int vgroup_object_in_edit_mode(Object *ob)
 {
-	if(ob->type == OB_MESH)
+	if (ob->type == OB_MESH)
 		return (BMEdit_FromObject(ob) != NULL);
-	else if(ob->type == OB_LATTICE)
+	else if (ob->type == OB_LATTICE)
 		return (((Lattice*)ob->data)->editlatt != NULL);
 	
 	return 0;
@@ -1900,10 +1904,10 @@ static int vgroup_object_in_wpaint_vert_select(Object *ob)
 static void vgroup_delete(Object *ob)
 {
 	bDeformGroup *dg = BLI_findlink(&ob->defbase, ob->actdef-1);
-	if(!dg)
+	if (!dg)
 		return;
 
-	if(vgroup_object_in_edit_mode(ob))
+	if (vgroup_object_in_edit_mode(ob))
 		vgroup_delete_edit_mode(ob, dg);
 	else
 		vgroup_delete_object_mode(ob, dg);
@@ -1912,14 +1916,14 @@ static void vgroup_delete(Object *ob)
 static void vgroup_delete_all(Object *ob)
 {
 	/* Remove all DVerts */
-	if(ob->type==OB_MESH) {
+	if (ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 		CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
 		me->dvert= NULL;
 	}
-	else if(ob->type==OB_LATTICE) {
+	else if (ob->type==OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
-		if(lt->dvert) {
+		if (lt->dvert) {
 			MEM_freeN(lt->dvert);
 			lt->dvert= NULL;
 		}
@@ -1938,10 +1942,10 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 	MDeformVert *dv;
 	const int def_nr= ob->actdef-1;
 
-	if(!BLI_findlink(&ob->defbase, def_nr))
+	if (!BLI_findlink(&ob->defbase, def_nr))
 		return;
 
-	if(ob->type == OB_MESH) {
+	if (ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 
 		if (me->edit_btmesh) {
@@ -1949,7 +1953,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 			BMIter iter;
 			BMVert *eve;
 
-			if(!CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT))
+			if (!CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT))
 				BM_data_layer_add(em->bm, &em->bm->vdata, CD_MDEFORMVERT);
 
 			/* Go through the list of editverts and assign them */
@@ -1987,19 +1991,19 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 			}
 		}
 	}
-	else if(ob->type == OB_LATTICE) {
+	else if (ob->type == OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
 		BPoint *bp;
 		int a, tot;
 
-		if(lt->dvert==NULL)
+		if (lt->dvert==NULL)
 			ED_vgroup_data_create(&lt->id);
 
 		dv= lt->dvert;
 
 		tot= lt->pntsu*lt->pntsv*lt->pntsw;
-		for(a=0, bp= lt->def; a<tot; a++, bp++, dv++) {
-			if(bp->f1 & SELECT) {
+		for (a=0, bp= lt->def; a<tot; a++, bp++, dv++) {
+			if (bp->f1 & SELECT) {
 				MDeformWeight *dw;
 
 				dw= defvert_verify_index(dv, def_nr);
@@ -2020,7 +2024,7 @@ static void vgroup_remove_verts(Object *ob, int allverts)
 	 * active group index
 	 */
 	bDeformGroup *dg;
-	for(dg= ob->defbase.first; dg; dg= dg->next) {
+	for (dg= ob->defbase.first; dg; dg= dg->next) {
 		vgroup_active_remove_verts(ob, allverts, dg);
 	}
 }
@@ -2039,7 +2043,7 @@ static int vertex_group_poll_edit(bContext *C)
 	Object *ob= ED_object_context(C);
 	ID *data= (ob)? ob->data: NULL;
 
-	if(!(ob && !ob->id.lib && data && !data->lib))
+	if (!(ob && !ob->id.lib && data && !data->lib))
 		return 0;
 
 	return vgroup_object_in_edit_mode(ob);
@@ -2051,7 +2055,7 @@ static int vertex_group_poll_edit_or_wpaint_vert_select(bContext *C)
 	Object *ob= ED_object_context(C);
 	ID *data= (ob)? ob->data: NULL;
 
-	if(!(ob && !ob->id.lib && data && !data->lib))
+	if (!(ob && !ob->id.lib && data && !data->lib))
 		return 0;
 
 	return ( vgroup_object_in_edit_mode(ob) ||
@@ -2088,7 +2092,7 @@ static int vertex_group_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= ED_object_context(C);
 
-	if(RNA_boolean_get(op->ptr, "all"))
+	if (RNA_boolean_get(op->ptr, "all"))
 		vgroup_delete_all(ob);
 	else
 		vgroup_delete(ob);
@@ -2125,7 +2129,7 @@ static int vertex_group_assign_exec(bContext *C, wmOperator *op)
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *ob= ED_object_context(C);
 
-	if(RNA_boolean_get(op->ptr, "new"))
+	if (RNA_boolean_get(op->ptr, "new"))
 		ED_vgroup_add(ob);
 
 	vgroup_assign_verts(ob, ts->vgroup_weight);
@@ -2159,12 +2163,12 @@ static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= ED_object_context(C);
 
-	if(RNA_boolean_get(op->ptr, "all"))
+	if (RNA_boolean_get(op->ptr, "all"))
 		vgroup_remove_verts(ob, 0);
 	else {
 		bDeformGroup *dg= BLI_findlink(&ob->defbase, ob->actdef - 1);
 
-		if(dg == NULL) {
+		if (dg == NULL) {
 			return OPERATOR_CANCELLED;
 		}
 
@@ -2201,7 +2205,7 @@ static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 
-	if(!ob || ob->id.lib)
+	if (!ob || ob->id.lib)
 		return OPERATOR_CANCELLED;
 
 	vgroup_select_verts(ob, 1);
@@ -2375,14 +2379,14 @@ static int vertex_group_fix_exec(bContext *C, wmOperator *op)
 	float cp= RNA_float_get(op->ptr, "accuracy");
 	ModifierData *md= ob->modifiers.first;
 
-	while(md) {
-		if(md->type == eModifierType_Mirror && (md->mode&eModifierMode_Realtime)) {
+	while (md) {
+		if (md->type == eModifierType_Mirror && (md->mode&eModifierMode_Realtime)) {
 			break;
 		}
 		md = md->next;
 	}
 	
-	if(md && md->type == eModifierType_Mirror) {
+	if (md && md->type == eModifierType_Mirror) {
 		BKE_report(op->reports, RPT_ERROR_INVALID_CONTEXT, "This operator does not support an active mirror modifier");
 		return OPERATOR_CANCELLED;
 	}
@@ -2515,7 +2519,7 @@ static int vertex_group_clean_exec(bContext *C, wmOperator *op)
 	int all_groups= RNA_boolean_get(op->ptr,"all_groups");
 	int keep_single= RNA_boolean_get(op->ptr,"keep_single");
 
-	if(all_groups)	vgroup_clean_all(ob, limit, keep_single);
+	if (all_groups)	vgroup_clean_all(ob, limit, keep_single);
 	else			vgroup_clean(ob, limit, keep_single);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -2591,9 +2595,9 @@ static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *UNUSED(op))
 	Base *base;
 	int retval= OPERATOR_CANCELLED;
 
-	for(base=scene->base.first; base; base= base->next) {
-		if(base->object->type==ob->type) {
-			if(base->object!=ob && base->object->data==ob->data) {
+	for (base=scene->base.first; base; base= base->next) {
+		if (base->object->type==ob->type) {
+			if (base->object!=ob && base->object->data==ob->data) {
 				BLI_freelistN(&base->object->defbase);
 				BLI_duplicatelist(&base->object->defbase, &ob->defbase);
 				base->object->actdef= ob->actdef;
@@ -2633,14 +2637,14 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)
 	{
-		if(obact != ob) {
-			if(ED_vgroup_copy_array(ob, obact)) change++;
+		if (obact != ob) {
+			if (ED_vgroup_copy_array(ob, obact)) change++;
 			else                                fail++;
 		}
 	}
 	CTX_DATA_END;
 
-	if((change == 0 && fail == 0) || fail) {
+	if ((change == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
 		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indices",
 		            change, fail);
@@ -2690,10 +2694,10 @@ static EnumPropertyItem *vgroup_itemf(bContext *C, PointerRNA *UNUSED(ptr), Prop
 	bDeformGroup *def;
 	int a, totitem= 0;
 	
-	if(!ob)
+	if (!ob)
 		return vgroup_items;
 	
-	for(a=0, def=ob->defbase.first; def; def=def->next, a++) {
+	for (a=0, def=ob->defbase.first; def; def=def->next, a++) {
 		tmp.value= a;
 		tmp.icon= ICON_GROUP_VERTEX;
 		tmp.identifier= def->name;
@@ -2740,7 +2744,7 @@ static char *vgroup_init_remap(Object *ob)
 	char *name;
 
 	name= name_array;
-	for(def = ob->defbase.first; def; def=def->next) {
+	for (def = ob->defbase.first; def; def=def->next) {
 		BLI_strncpy(name, def->name, MAX_VGROUP_NAME);
 		name += MAX_VGROUP_NAME;
 	}
@@ -2762,22 +2766,22 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 	int i;
 
 	name= name_array;
-	for(def= ob->defbase.first, i=0; def; def=def->next, i++){
+	for (def= ob->defbase.first, i=0; def; def=def->next, i++) {
 		sort_map[i]= BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name));
 		name += MAX_VGROUP_NAME;
 
 		BLI_assert(sort_map[i] != -1);
 	}
 
-	if(ob->mode == OB_MODE_EDIT) {
-		if(ob->type==OB_MESH) {
+	if (ob->mode == OB_MODE_EDIT) {
+		if (ob->type==OB_MESH) {
 			BMEditMesh *em = BMEdit_FromObject(ob);
 			BMIter iter;
 			BMVert *eve;
 
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
-				if(dvert && dvert->totweight){
+				if (dvert && dvert->totweight) {
 					defvert_remap(dvert, sort_map, defbase_tot);
 				}
 			}
@@ -2794,15 +2798,15 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 		ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
 
 		/*create as necessary*/
-		while(dvert && dvert_tot--) {
-			if(dvert->totweight)
+		while (dvert && dvert_tot--) {
+			if (dvert->totweight)
 				defvert_remap(dvert, sort_map, defbase_tot);
 			dvert++;
 		}
 	}
 
 	/* update users */
-	for(i=0; i<defbase_tot; i++)
+	for (i=0; i<defbase_tot; i++)
 		sort_map[i]++;
 
 	sort_map_update[0]= 0;
@@ -2882,7 +2886,8 @@ static int vgroup_move_exec(bContext *C, wmOperator *op)
 
 		BLI_remlink(&ob->defbase, def);
 		BLI_insertlinkbefore(&ob->defbase, prev, def);
-	} else { /*down*/
+	}
+	else { /*down*/
 		void *next = def->next;
 
 		BLI_remlink(&ob->defbase, def);

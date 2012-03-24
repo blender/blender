@@ -1102,7 +1102,7 @@ static void pose_propagate_fcurve (wmOperator *op, Object *ob, FCurve *fcu,
 	 * doesn't need to firstly keyframe the pose (though this doesn't mean that 
 	 * they can't either)
 	 */
-	if( !pose_propagate_get_refVal(ob, fcu, &refVal))
+	if ( !pose_propagate_get_refVal(ob, fcu, &refVal))
 		return;
 	
 	/* find the first keyframe to start propagating from 

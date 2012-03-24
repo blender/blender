@@ -48,7 +48,7 @@ static bNodeSocketTemplate cmp_node_translate_out[]= {
 
 static void node_composit_exec_translate(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, bNodeStack **out)
 {
-	if(in[0]->data) {
+	if (in[0]->data) {
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= pass_on_compbuf(cbuf);
 	

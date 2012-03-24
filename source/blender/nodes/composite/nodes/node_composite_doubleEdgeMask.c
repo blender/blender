@@ -792,7 +792,7 @@ static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *l
 		pix_nextRow=a-rw;
 		pix_prevCol=a+1;
 		pix_nextCol=a-1;
-		while(a>dx-2) {
+		while (a>dx-2) {
 			if (!limask[a]) {			// if the inner mask is empty
 				if (lomask[a]) {		// if the outer mask is full
 					/*
@@ -854,7 +854,7 @@ static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned i
 		pix_nextRow=a-rw;
 		pix_prevCol=a+1;
 		pix_nextCol=a-1;
-		while(a>dx-2) {
+		while (a>dx-2) {
 			if (!limask[a]) {			// if the inner mask is empty
 				if (lomask[a]) {		// if the outer mask is full
 					/*

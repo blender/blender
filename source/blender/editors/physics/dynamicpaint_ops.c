@@ -73,7 +73,7 @@ static int surface_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* set preview for this surface only and set active */
 	canvas->active_sur = 0;
-	for(surface=surface->prev; surface; surface=surface->prev) {
+	for (surface=surface->prev; surface; surface=surface->prev) {
 				surface->flags &= ~MOD_DPAINT_PREVIEW;
 				canvas->active_sur++;
 	}
@@ -113,8 +113,8 @@ static int surface_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	surface = canvas->surfaces.first;
 
 	/* find active surface and remove it */
-	for(; surface; surface=surface->next) {
-		if(id == canvas->active_sur) {
+	for (; surface; surface=surface->next) {
+		if (id == canvas->active_sur) {
 				canvas->active_sur -= 1;
 				dynamicPaint_freeSurface(surface);
 				break;
@@ -408,7 +408,7 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 static int dynamicpaint_bake_exec(bContext *C, wmOperator *op)
 {
 	/* Bake dynamic paint */
-	if(!dynamicPaint_initBake(C, op)) {
+	if (!dynamicPaint_initBake(C, op)) {
 		return OPERATOR_CANCELLED;}
 
 	return OPERATOR_FINISHED;

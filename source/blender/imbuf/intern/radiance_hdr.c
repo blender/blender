@@ -262,7 +262,8 @@ static int fwritecolrs(FILE* file, int width, int channels, unsigned char* ibufs
 			fcol[RED] = fpscan[j];
 			fcol[GRN] = (channels >= 2)? fpscan[j+1]: fpscan[j];
 			fcol[BLU] = (channels >= 3)? fpscan[j+2]: fpscan[j];
-		} else {
+		}
+		else {
 			fcol[RED] = (float)ibufscan[j] / 255.f;
 			fcol[GRN] = (float)((channels >= 2)? ibufscan[j+1]: ibufscan[j]) / 255.f;
 			fcol[BLU] = (float)((channels >= 3)? ibufscan[j+2]: ibufscan[j]) / 255.f;
@@ -343,9 +344,9 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 
 	writeHeader(file, width, height);
 
-	if(ibuf->rect)
+	if (ibuf->rect)
 		cp= (unsigned char *)ibuf->rect + ibuf->channels*(height-1)*width;
-	if(ibuf->rect_float)
+	if (ibuf->rect_float)
 		fp= ibuf->rect_float + ibuf->channels*(height-1)*width;
 	
 	for (y=height-1;y>=0;y--) {
@@ -354,8 +355,8 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 			printf("HDR write error\n");
 			return 0;
 		}
-		if(cp) cp-= ibuf->channels*width;
-		if(fp) fp-= ibuf->channels*width;
+		if (cp) cp-= ibuf->channels*width;
+		if (fp) fp-= ibuf->channels*width;
 	}
 
 	fclose(file);

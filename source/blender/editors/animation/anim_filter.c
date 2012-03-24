@@ -1188,7 +1188,7 @@ static size_t animfilter_block_data (bAnimContext *ac, ListBase *anim_data, bDop
 	size_t items = 0;
 
 	/* image object datablocks have no anim-data so check for NULL */
-	if(adt) {
+	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate*)id;
 
 		/* NOTE: this macro is used instead of inlining the logic here, since this sort of filtering is still needed

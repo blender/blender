@@ -1870,7 +1870,7 @@ int sk_detectCommandGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UN
 		SK_Intersection *isect, *self_isect;
 
 		/* get the the last intersection of the first pair */
-		for( isect = gest->intersections.first; isect; isect = isect->next )
+		for ( isect = gest->intersections.first; isect; isect = isect->next )
 		{
 			if (isect->stroke == isect->next->stroke)
 			{
@@ -1897,7 +1897,7 @@ void sk_applyCommandGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UN
 
 //	XXX
 //	command = pupmenu("Action %t|Flatten %x1|Straighten %x2|Polygonize %x3");
-	if(command < 1) return;
+	if (command < 1) return;
 
 	for (isect = gest->intersections.first; isect; isect = isect->next)
 	{
@@ -2177,7 +2177,7 @@ static int sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], in
 	{
 		int besthitresult = -1;
 
-		if(hits == 1) {
+		if (hits == 1) {
 			besthitresult = buffer[3];
 		}
 		else {

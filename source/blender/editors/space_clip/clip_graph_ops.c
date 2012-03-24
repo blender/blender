@@ -65,7 +65,7 @@ static int ED_space_clip_graph_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
-	if(sc && sc->clip) {
+	if (sc && sc->clip) {
 		ARegion *ar = CTX_wm_region(C);
 
 		return ar->regiontype == RGN_TYPE_PREVIEW;
@@ -116,10 +116,10 @@ static void find_nearest_tracking_segment_cb(void *userdata, MovieTrackingTrack 
 	MouseSelectUserData *data= userdata;
 	float co[2]= {marker->framenr, val};
 
-	if(data->has_prev) {
+	if (data->has_prev) {
 		float d= dist_to_line_segment_v2(data->mouse_co, data->prev_co, co);
 
-		if(data->track==NULL || d<data->min_dist) {
+		if (data->track==NULL || d<data->min_dist) {
 			data->track= track;
 			data->min_dist= d;
 			data->coord= coord;
@@ -145,7 +145,7 @@ static void find_nearest_tracking_knot_cb(void *userdata, MovieTrackingTrack *tr
 	float dx= marker->framenr-data->mouse_co[0], dy= val-data->mouse_co[1];
 	float d= dx*dx+dy*dy;
 
-	if(data->marker==NULL || d<data->min_dist) {
+	if (data->marker==NULL || d<data->min_dist) {
 		float co[2]= {marker->framenr, val};
 
 		data->track= track;
@@ -174,26 +174,26 @@ static int mouse_select_knot(bContext *C, float co[2], int extend)
 	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
 	static const int delta= 6;
 
-	if(act_track) {
+	if (act_track) {
 		MouseSelectUserData userdata;
 
 		mouse_select_init_data(&userdata, co);
 		clip_graph_tracking_values_iterate_track(sc, act_track,
 					&userdata, find_nearest_tracking_knot_cb, NULL, NULL);
 
-		if(userdata.marker) {
+		if (userdata.marker) {
 			int x1, y1, x2, y2;
 
 			UI_view2d_view_to_region(v2d, co[0], co[1], &x1, &y1);
 			UI_view2d_view_to_region(v2d, userdata.min_co[0], userdata.min_co[1], &x2, &y2);
 
-			if(abs(x2-x1)<=delta && abs(y2-y1)<=delta) {
-				if(!extend) {
+			if (abs(x2-x1)<=delta && abs(y2-y1)<=delta) {
+				if (!extend) {
 					SelectUserData selectdata = {SEL_DESELECT};
 					clip_graph_tracking_iterate(sc, &selectdata, toggle_selection_cb);
 				}
 
-				if(userdata.coord==0)
+				if (userdata.coord==0)
 					userdata.marker->flag|= MARKER_GRAPH_SEL_X;
 				else
 					userdata.marker->flag|= MARKER_GRAPH_SEL_Y;
@@ -217,14 +217,14 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 	mouse_select_init_data(&userdata, co);
 	clip_graph_tracking_values_iterate(sc, &userdata, find_nearest_tracking_segment_cb, NULL, find_nearest_tracking_segment_end_cb);
 
-	if(userdata.track) {
-		if(extend) {
-			if(act_track==userdata.track) {
+	if (userdata.track) {
+		if (extend) {
+			if (act_track==userdata.track) {
 				/* currently only single curve can be selected (selected curve represents active track) */
 				act_track= NULL;
 			}
 		}
-		else if(act_track!=userdata.track) {
+		else if (act_track!=userdata.track) {
 			MovieTrackingMarker *marker;
 			SelectUserData selectdata = {SEL_DESELECT};
 
@@ -252,12 +252,12 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	/* first try to select knot on selected curves */
 	sel= mouse_select_knot(C, co, extend);
 
-	if(!sel) {
+	if (!sel) {
 		/* if there's no close enough knot to mouse osition, select nearest curve */
 		sel= mouse_select_curve(C, co, extend);
 	}
 
-	if(sel)
+	if (sel)
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
 
 	return OPERATOR_FINISHED;
@@ -468,7 +468,7 @@ static int delete_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
 
-	if(act_track)
+	if (act_track)
 		clip_delete_track(C, clip, tracksbase, act_track);
 
 	return OPERATOR_FINISHED;
@@ -500,13 +500,13 @@ static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
 	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
 
-	if(act_track) {
+	if (act_track) {
 		int a= 0;
 
-		while(a<act_track->markersnr) {
+		while (a<act_track->markersnr) {
 			MovieTrackingMarker *marker= &act_track->markers[a];
 
-			if(marker->flag & MARKER_GRAPH_SEL)
+			if (marker->flag & MARKER_GRAPH_SEL)
 				clip_delete_marker(C, clip, tracksbase, act_track, marker);
 			else
 				a++;
@@ -542,8 +542,8 @@ static void view_all_cb(void *userdata, MovieTrackingTrack *UNUSED(track), Movie
 {
 	ViewAllUserData *data = (ViewAllUserData *)userdata;
 
-	if(val < data->min) data->min = val;
-	if(val > data->max) data->max = val;
+	if (val < data->min) data->min = val;
+	if (val > data->max) data->max = val;
 }
 
 static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -656,7 +656,7 @@ static int graph_disable_markers_exec(bContext *C, wmOperator *op)
 		if (marker->flag & MARKER_GRAPH_SEL) {
 			if (action==0)
 				marker->flag |= MARKER_DISABLED;
-			else if(action==1)
+			else if (action==1)
 				marker->flag &= ~MARKER_DISABLED;
 			else
 				marker->flag ^= MARKER_DISABLED;

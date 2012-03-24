@@ -110,7 +110,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	str= RNA_string_get_alloc(op->ptr, path_prop, NULL, 0);
 
 	/* add slash for directories, important for some properties */
-	if(RNA_property_subtype(fbo->prop) == PROP_DIRPATH) {
+	if (RNA_property_subtype(fbo->prop) == PROP_DIRPATH) {
 		char name[FILE_MAX];
 		
 		id = fbo->ptr.id.data;
@@ -118,7 +118,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 		BLI_strncpy(path, str, FILE_MAX);
 		BLI_path_abs(path, id ? ID_BLEND_PATH(G.main, id) : G.main->name);
 		
-		if(BLI_is_dir(path)) {
+		if (BLI_is_dir(path)) {
 			str = MEM_reallocN(str, strlen(str)+2);
 			BLI_add_slash(str);
 		}
@@ -134,8 +134,8 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	/* special, annoying exception, filesel on redo panel [#26618] */
 	{
 		wmOperator *redo_op= WM_operator_last_redo(C);
-		if(redo_op) {
-			if(fbo->ptr.data == redo_op->ptr->data) {
+		if (redo_op) {
+			if (fbo->ptr.data == redo_op->ptr->data) {
 				ED_undo_operator_repeat(C, redo_op);
 			}
 		}
@@ -168,19 +168,19 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	uiFileBrowseContextProperty(C, &ptr, &prop);
 
-	if(!prop)
+	if (!prop)
 		return OPERATOR_CANCELLED;
 
 	str= RNA_property_string_get_alloc(&ptr, prop, NULL, 0, NULL);
 
 	/* useful yet irritating feature, Shift+Click to open the file
 	 * Alt+Click to browse a folder in the OS's browser */
-	if(event->shift || event->alt) {
+	if (event->shift || event->alt) {
 		PointerRNA props_ptr;
 
-		if(event->alt) {
+		if (event->alt) {
 			char *lslash= BLI_last_slash(str);
-			if(lslash)
+			if (lslash)
 				*lslash= '\0';
 		}
 
@@ -205,8 +205,8 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* normally ED_fileselect_get_params would handle this but we need to because of stupid
 		 * user-prefs exception - campbell */
-		if(RNA_struct_find_property(op->ptr, "relative_path")) {
-			if(!RNA_struct_property_is_set(op->ptr, "relative_path")) {
+		if (RNA_struct_find_property(op->ptr, "relative_path")) {
+			if (!RNA_struct_property_is_set(op->ptr, "relative_path")) {
 				/* annoying exception!, if were dealign with the user prefs, default relative to be off */
 				RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS && (ptr.data != &U));
 			}

@@ -158,24 +158,26 @@ static int compare_name(const void *a1, const void *a2)
 
 	/* type is equal to stat.st_mode */
 
-	if (S_ISDIR(entry1->type)){
+	if (S_ISDIR(entry1->type)) {
 		if (S_ISDIR(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISDIR(entry2->type)) return (1);
 	}
-	if (S_ISREG(entry1->type)){
+	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISREG(entry2->type)) return (1);
 	}
 	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
 	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
 	
 	/* make sure "." and ".." are always first */
-	if( strcmp(entry1->relname, ".")==0 ) return (-1);
-	if( strcmp(entry2->relname, ".")==0 ) return (1);
-	if( strcmp(entry1->relname, "..")==0 ) return (-1);
-	if( strcmp(entry2->relname, "..")==0 ) return (1);
+	if ( strcmp(entry1->relname, ".")==0 ) return (-1);
+	if ( strcmp(entry2->relname, ".")==0 ) return (1);
+	if ( strcmp(entry1->relname, "..")==0 ) return (-1);
+	if ( strcmp(entry2->relname, "..")==0 ) return (1);
 	
 	return (BLI_natstrcmp(entry1->relname,entry2->relname));
 }
@@ -186,24 +188,26 @@ static int compare_date(const void *a1, const void *a2)
 	
 	/* type is equal to stat.st_mode */
 
-	if (S_ISDIR(entry1->type)){
+	if (S_ISDIR(entry1->type)) {
 		if (S_ISDIR(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISDIR(entry2->type)) return (1);
 	}
-	if (S_ISREG(entry1->type)){
+	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISREG(entry2->type)) return (1);
 	}
 	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
 	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
 
 	/* make sure "." and ".." are always first */
-	if( strcmp(entry1->relname, ".")==0 ) return (-1);
-	if( strcmp(entry2->relname, ".")==0 ) return (1);
-	if( strcmp(entry1->relname, "..")==0 ) return (-1);
-	if( strcmp(entry2->relname, "..")==0 ) return (1);
+	if ( strcmp(entry1->relname, ".")==0 ) return (-1);
+	if ( strcmp(entry2->relname, ".")==0 ) return (1);
+	if ( strcmp(entry1->relname, "..")==0 ) return (-1);
+	if ( strcmp(entry2->relname, "..")==0 ) return (1);
 	
 	if ( entry1->s.st_mtime < entry2->s.st_mtime) return 1;
 	if ( entry1->s.st_mtime > entry2->s.st_mtime) return -1;
@@ -217,24 +221,26 @@ static int compare_size(const void *a1, const void *a2)
 
 	/* type is equal to stat.st_mode */
 
-	if (S_ISDIR(entry1->type)){
+	if (S_ISDIR(entry1->type)) {
 		if (S_ISDIR(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISDIR(entry2->type)) return (1);
 	}
-	if (S_ISREG(entry1->type)){
+	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISREG(entry2->type)) return (1);
 	}
 	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
 	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
 
 	/* make sure "." and ".." are always first */
-	if( strcmp(entry1->relname, ".")==0 ) return (-1);
-	if( strcmp(entry2->relname, ".")==0 ) return (1);
-	if( strcmp(entry1->relname, "..")==0 ) return (-1);
-	if( strcmp(entry2->relname, "..")==0 ) return (1);
+	if ( strcmp(entry1->relname, ".")==0 ) return (-1);
+	if ( strcmp(entry2->relname, ".")==0 ) return (1);
+	if ( strcmp(entry1->relname, "..")==0 ) return (-1);
+	if ( strcmp(entry2->relname, "..")==0 ) return (1);
 	
 	if ( entry1->s.st_size < entry2->s.st_size) return 1;
 	if ( entry1->s.st_size > entry2->s.st_size) return -1;
@@ -256,24 +262,26 @@ static int compare_extension(const void *a1, const void *a2)
 
 	/* type is equal to stat.st_mode */
 
-	if (S_ISDIR(entry1->type)){
+	if (S_ISDIR(entry1->type)) {
 		if (S_ISDIR(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISDIR(entry2->type)) return (1);
 	}
-	if (S_ISREG(entry1->type)){
+	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISREG(entry2->type)) return (1);
 	}
 	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
 	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
 	
 	/* make sure "." and ".." are always first */
-	if( strcmp(entry1->relname, ".")==0 ) return (-1);
-	if( strcmp(entry2->relname, ".")==0 ) return (1);
-	if( strcmp(entry1->relname, "..")==0 ) return (-1);
-	if( strcmp(entry2->relname, "..")==0 ) return (1);
+	if ( strcmp(entry1->relname, ".")==0 ) return (-1);
+	if ( strcmp(entry2->relname, ".")==0 ) return (1);
+	if ( strcmp(entry1->relname, "..")==0 ) return (-1);
+	if ( strcmp(entry2->relname, "..")==0 ) return (1);
 	
 	return (BLI_strcasecmp(sufix1, sufix2));
 }
@@ -283,17 +291,20 @@ static int is_hidden_file(const char* filename, short hide_dot)
 	int is_hidden=0;
 
 	if (hide_dot) {
-		if(filename[0]=='.' && filename[1]!='.' && filename[1]!=0) {
+		if (filename[0]=='.' && filename[1]!='.' && filename[1]!=0) {
 			is_hidden=1; /* ignore .file */
-		} else if (((filename[0] == '.') && (filename[1] == 0) )) {
+		}
+		else if (((filename[0] == '.') && (filename[1] == 0) )) {
 			is_hidden=1; /* ignore . */
-		} else {
+		}
+		else {
 			int len=strlen(filename);
-			if( (len>0) && (filename[len-1]=='~') ) {
+			if ( (len>0) && (filename[len-1]=='~') ) {
 				is_hidden=1;  /* ignore file~ */
 			}
 		} 
-	} else {
+	}
+	else {
 		if (((filename[0] == '.') && (filename[1] == 0) )) {
 			is_hidden=1; /* ignore . */
 		}
@@ -307,12 +318,14 @@ static int is_filtered_file(struct direntry* file, const char* UNUSED(dir), unsi
 	if (filter) {
 		if (file->flags & filter) {
 			is_filtered=1;
-		} else if (file->type & S_IFDIR) {
+		}
+		else if (file->type & S_IFDIR) {
 			if (filter & FOLDERFILE) {
 				is_filtered = 1;
 			}
 		}
-	} else {
+	}
+	else {
 		is_filtered = 1;
 	}
 	return is_filtered && !is_hidden_file(file->relname, hide_dot);
@@ -324,7 +337,8 @@ static int is_filtered_lib(struct direntry* file, const char* dir, unsigned int 
 	char tdir[FILE_MAX], tgroup[GROUP_MAX];
 	if (BLO_is_a_library(dir, tdir, tgroup)) {
 		is_filtered = !is_hidden_file(file->relname, hide_dot);
-	} else {
+	}
+	else {
 		is_filtered = is_filtered_file(file, dir, filter, hide_dot);
 	}
 	return is_filtered;
@@ -415,13 +429,13 @@ void folderlist_popdir(struct ListBase* folderlist, char *dir)
 	struct FolderList *folder;
 	folder = folderlist->last;
 
-	if(folder){
+	if (folder) {
 		// remove the current directory
 		MEM_freeN(folder->foldername);
 		BLI_freelinkN(folderlist, folder);
 
 		folder = folderlist->last;
-		if(folder){
+		if (folder) {
 			prev_dir = folder->foldername;
 			BLI_strncpy(dir, prev_dir, FILE_MAXDIR);
 		}
@@ -435,8 +449,8 @@ void folderlist_pushdir(ListBase* folderlist, const char *dir)
 	previous_folder = folderlist->last;
 
 	// check if already exists
-	if(previous_folder && previous_folder->foldername){
-		if(BLI_path_cmp(previous_folder->foldername, dir)==0){
+	if (previous_folder && previous_folder->foldername) {
+		if (BLI_path_cmp(previous_folder->foldername, dir)==0) {
 			return;
 		}
 	}
@@ -472,9 +486,9 @@ int folderlist_clear_next(struct SpaceFile *sfile)
 /* not listbase itself */
 void folderlist_free(ListBase* folderlist)
 {
-	if (folderlist){
+	if (folderlist) {
 		FolderList *folder;
-		for(folder= folderlist->first; folder; folder= folder->next)
+		for (folder= folderlist->first; folder; folder= folder->next)
 			MEM_freeN(folder->foldername);
 		BLI_freelistN(folderlist);
 	}
@@ -489,7 +503,7 @@ ListBase *folderlist_duplicate(ListBase* folderlist)
 		
 		BLI_duplicatelist(folderlistn, folderlist);
 		
-		for(folder= folderlistn->first; folder; folder= folder->next) {
+		for (folder= folderlistn->first; folder; folder= folder->next) {
 			folder->foldername= MEM_dupallocN(folder->foldername);
 		}
 		return folderlistn;
@@ -564,7 +578,7 @@ void filelist_free(struct FileList* filelist)
 
 void filelist_freelib(struct FileList* filelist)
 {
-	if(filelist->libfiledata)	
+	if (filelist->libfiledata)
 		BLO_blendhandle_close(filelist->libfiledata);
 	filelist->libfiledata= NULL;
 }
@@ -626,28 +640,37 @@ struct ImBuf * filelist_geticon(struct FileList* filelist, int index)
 	if (file->type & S_IFDIR) {
 		if ( strcmp(filelist->filelist[fidx].relname, "..") == 0) {
 			ibuf = gSpecialFileImages[SPECIAL_IMG_PARENT];
-		} else if  ( strcmp(filelist->filelist[fidx].relname, ".") == 0) {
+		}
+		else if  ( strcmp(filelist->filelist[fidx].relname, ".") == 0) {
 			ibuf = gSpecialFileImages[SPECIAL_IMG_REFRESH];
-		} else {
+		}
+		else {
 			ibuf = gSpecialFileImages[SPECIAL_IMG_FOLDER];
 		}
-	} else {
+	}
+	else {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_UNKNOWNFILE];
 	}
 
 	if (file->flags & BLENDERFILE) {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_BLENDFILE];
-	} else if ( (file->flags & MOVIEFILE) || (file->flags & MOVIEFILE_ICON) ) {
+	}
+	else if ( (file->flags & MOVIEFILE) || (file->flags & MOVIEFILE_ICON) ) {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_MOVIEFILE];
-	} else if (file->flags & SOUNDFILE) {
+	}
+	else if (file->flags & SOUNDFILE) {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_SOUNDFILE];
-	} else if (file->flags & PYSCRIPTFILE) {
+	}
+	else if (file->flags & PYSCRIPTFILE) {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_PYTHONFILE];
-	} else if (file->flags & FTFONTFILE) {
+	}
+	else if (file->flags & FTFONTFILE) {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_FONTFILE];
-	} else if (file->flags & TEXTFILE) {
+	}
+	else if (file->flags & TEXTFILE) {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_TEXTFILE];
-	} else if (file->flags & IMAGEFILE) {
+	}
+	else if (file->flags & IMAGEFILE) {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_LOADING];
 	}
 
@@ -715,17 +738,17 @@ static int file_is_blend_backup(const char *str)
 	a= strlen(str);
 	b= 7;
 	
-	if(a==0 || b>=a);
+	if (a==0 || b>=a);
 	else {
 		char *loc;
 		
-		if(a > b+1)
+		if (a > b+1)
 			b++;
 		
 		/* allow .blend1 .blend2 .blend32 */
 		loc= BLI_strcasestr(str+a-b, ".blend");
 		
-		if(loc)
+		if (loc)
 			retval= 1;
 	}
 	
@@ -735,32 +758,41 @@ static int file_is_blend_backup(const char *str)
 
 static int file_extension_type(const char *relname)
 {
-	if(BLO_has_bfile_extension(relname)) {
+	if (BLO_has_bfile_extension(relname)) {
 		return BLENDERFILE;
-	} else if(file_is_blend_backup(relname)) {
+	}
+	else if (file_is_blend_backup(relname)) {
 		return BLENDERFILE_BACKUP;
-	} else if(BLI_testextensie(relname, ".py")) {
+	}
+	else if (BLI_testextensie(relname, ".py")) {
 		return PYSCRIPTFILE;
-	} else if(BLI_testextensie(relname, ".txt")
+	}
+	else if (BLI_testextensie(relname, ".txt")
 			  || BLI_testextensie(relname, ".glsl")
 			  || BLI_testextensie(relname, ".data")) {
 		return TEXTFILE;
-	} else if( BLI_testextensie(relname, ".ttf")
+	}
+	else if ( BLI_testextensie(relname, ".ttf")
 			  || BLI_testextensie(relname, ".ttc")
 			  || BLI_testextensie(relname, ".pfb")
 			  || BLI_testextensie(relname, ".otf")
 			  || BLI_testextensie(relname, ".otc")) {
 		return FTFONTFILE;			
-	} else if(BLI_testextensie(relname, ".btx")) {
+	}
+	else if (BLI_testextensie(relname, ".btx")) {
 		return BTXFILE;
-	} else if(BLI_testextensie(relname, ".dae")) {
+	}
+	else if (BLI_testextensie(relname, ".dae")) {
 		return COLLADAFILE;
-	} else if(BLI_testextensie_array(relname, imb_ext_image)
+	}
+	else if (BLI_testextensie_array(relname, imb_ext_image)
 			  || (G.have_quicktime && BLI_testextensie_array(relname, imb_ext_image_qt))) {
 		return IMAGEFILE;			
-	} else if(BLI_testextensie_array(relname, imb_ext_movie)) {
+	}
+	else if (BLI_testextensie_array(relname, imb_ext_movie)) {
 		return MOVIEFILE;			
-	} else if(BLI_testextensie_array(relname, imb_ext_audio)) {
+	}
+	else if (BLI_testextensie_array(relname, imb_ext_audio)) {
 		return SOUNDFILE;
 	} 
 	return 0;
@@ -797,7 +829,7 @@ static void filelist_setfiletypes(struct FileList* filelist)
 	
 	file= filelist->filelist;
 	
-	for(num=0; num<filelist->numfiles; num++, file++) {
+	for (num=0; num<filelist->numfiles; num++, file++) {
 		file->type= file->s.st_mode;	/* restore the mess below */ 
 		
 		/* Don't check extensions for directories */ 
@@ -806,7 +838,7 @@ static void filelist_setfiletypes(struct FileList* filelist)
 		}
 		file->flags = file_extension_type(file->relname);
 		
-		if(filelist->filter_glob
+		if (filelist->filter_glob
 		   && BLI_testextensie_glob(file->relname, filelist->filter_glob)) {
 			file->flags= OPERATORFILE;
 		}
@@ -827,7 +859,7 @@ static void filelist_read_dir(struct FileList* filelist)
 	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist->numfiles = BLI_dir_contents(filelist->dir, &(filelist->filelist));
 
-	if(!chdir(wdir)) {} /* fix warning about not checking return value */
+	if (!chdir(wdir)) {} /* fix warning about not checking return value */
 	filelist_setfiletypes(filelist);
 	filelist_filter(filelist);
 }
@@ -843,15 +875,15 @@ static void filelist_read_library(struct FileList* filelist)
 	if (!filelist) return;
 	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist_from_library(filelist);
-	if(!filelist->libfiledata) {
+	if (!filelist->libfiledata) {
 		int num;
 		struct direntry *file;
 
 		BLI_make_exist(filelist->dir);
 		filelist_read_dir(filelist);
 		file = filelist->filelist;
-		for(num=0; num<filelist->numfiles; num++, file++) {
-			if(BLO_has_bfile_extension(file->relname)) {
+		for (num=0; num<filelist->numfiles; num++, file++) {
+			if (BLO_has_bfile_extension(file->relname)) {
 				char name[FILE_MAX];
 
 				BLI_join_dirfile(name, sizeof(name), filelist->dir, file->relname);
@@ -994,7 +1026,7 @@ void filelist_from_library(struct FileList* filelist)
 	ok= filelist_islibrary(filelist, dir, group);
 	if (!ok) {
 		/* free */
-		if(filelist->libfiledata) BLO_blendhandle_close(filelist->libfiledata);
+		if (filelist->libfiledata) BLO_blendhandle_close(filelist->libfiledata);
 		filelist->libfiledata= NULL;
 		return;
 	}
@@ -1005,7 +1037,7 @@ void filelist_from_library(struct FileList* filelist)
 	/* for the time being only read filedata when libfiledata==0 */
 	if (filelist->libfiledata == NULL) {
 		filelist->libfiledata= BLO_blendhandle_from_file(dir, NULL);
-		if(filelist->libfiledata == NULL) return;
+		if (filelist->libfiledata == NULL) return;
 	}
 	
 	idcode= groupname_to_code(group);
@@ -1019,7 +1051,8 @@ void filelist_from_library(struct FileList* filelist)
 		BLO_blendhandle_close(filelist->libfiledata);
 		filelist->libfiledata= BLO_blendhandle_from_file(dir, NULL);
 		
-	} else {
+	}
+	else {
 		previews= NULL;
 		nprevs= 0;
 		names= BLO_blendhandle_get_linkable_groups(filelist->libfiledata);
@@ -1039,15 +1072,16 @@ void filelist_from_library(struct FileList* filelist)
 		filelist->filelist[i + 1].relname= BLI_strdup(blockname);
 		if (idcode) {
 			filelist->filelist[i + 1].type |= S_IFREG;
-		} else {
+		}
+		else {
 			filelist->filelist[i + 1].type |= S_IFDIR;
 		}
 	}
 	
-	if(previews && (nnames != nprevs)) {
+	if (previews && (nnames != nprevs)) {
 		printf("filelist_from_library: error, found %d items, %d previews\n", nnames, nprevs);
 	}
-	else if(previews) {
+	else if (previews) {
 		for (i=0, l= previews; i<nnames; i++, l= l->next) {
 			PreviewImage *img= l->link;
 			
@@ -1092,20 +1126,20 @@ void filelist_from_main(struct FileList *filelist)
 	
 	// filelist->type = FILE_MAIN; // XXXXX TODO: add modes to filebrowser
 
-	if(filelist->dir[0]=='/') filelist->dir[0]= 0;
+	if (filelist->dir[0]=='/') filelist->dir[0]= 0;
 	
-	if(filelist->dir[0]) {
+	if (filelist->dir[0]) {
 		idcode= groupname_to_code(filelist->dir);
-		if(idcode==0) filelist->dir[0]= 0;
+		if (idcode==0) filelist->dir[0]= 0;
 	}
 	
-	if( filelist->dir[0]==0) {
+	if ( filelist->dir[0]==0) {
 		
 		/* make directories */
 		filelist->numfiles= 24;
 		filelist->filelist= (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry));
 		
-		for(a=0; a<filelist->numfiles; a++) {
+		for (a=0; a<filelist->numfiles; a++) {
 			memset( &(filelist->filelist[a]), 0 , sizeof(struct direntry));
 			filelist->filelist[a].type |= S_IFDIR;
 		}
@@ -1141,7 +1175,7 @@ void filelist_from_main(struct FileList *filelist)
 		idcode= groupname_to_code(filelist->dir);
 		
 		lb= which_libbase(G.main, idcode );
-		if(lb == NULL) return;
+		if (lb == NULL) return;
 		
 		id= lb->first;
 		filelist->numfiles= 0;
@@ -1172,10 +1206,10 @@ void filelist_from_main(struct FileList *filelist)
 		
 		while(id) {
 			ok = 1;
-			if(ok) {
+			if (ok) {
 				if (!filelist->hide_dot || id->name[2] != '.') {
 					memset( files, 0 , sizeof(struct direntry));
-					if(id->lib==NULL)
+					if (id->lib==NULL)
 						files->relname= BLI_strdup(id->name+2);
 					else {
 						files->relname= MEM_mallocN(FILE_MAX+32, "filename for lib");
@@ -1183,28 +1217,28 @@ void filelist_from_main(struct FileList *filelist)
 					}
 					files->type |= S_IFREG;
 #if 0				// XXXXX TODO show the selection status of the objects
-					if(!filelist->has_func) { /* F4 DATA BROWSE */
-						if(idcode==ID_OB) {
-							if( ((Object *)id)->flag & SELECT) files->selflag |= SELECTED_FILE;
+					if (!filelist->has_func) { /* F4 DATA BROWSE */
+						if (idcode==ID_OB) {
+							if ( ((Object *)id)->flag & SELECT) files->selflag |= SELECTED_FILE;
 						}
-						else if(idcode==ID_SCE) {
-							if( ((Scene *)id)->r.scemode & R_BG_RENDER) files->selflag |= SELECTED_FILE;
+						else if (idcode==ID_SCE) {
+							if ( ((Scene *)id)->r.scemode & R_BG_RENDER) files->selflag |= SELECTED_FILE;
 						}					
 					}
 #endif
 					files->nr= totbl+1;
 					files->poin= id;
 					fake= id->flag & LIB_FAKEUSER;
-					if(idcode == ID_MA || idcode == ID_TE || idcode == ID_LA || idcode == ID_WO || idcode == ID_IM) {
+					if (idcode == ID_MA || idcode == ID_TE || idcode == ID_LA || idcode == ID_WO || idcode == ID_IM) {
 						files->flags |= IMAGEFILE;
 					}
-					if(id->lib && fake) BLI_snprintf(files->extra, sizeof(files->extra), "LF %d", id->us);
-					else if(id->lib) BLI_snprintf(files->extra, sizeof(files->extra), "L    %d", id->us);
-					else if(fake) BLI_snprintf(files->extra, sizeof(files->extra), "F    %d", id->us);
+					if (id->lib && fake) BLI_snprintf(files->extra, sizeof(files->extra), "LF %d", id->us);
+					else if (id->lib) BLI_snprintf(files->extra, sizeof(files->extra), "L    %d", id->us);
+					else if (fake) BLI_snprintf(files->extra, sizeof(files->extra), "F    %d", id->us);
 					else BLI_snprintf(files->extra, sizeof(files->extra), "      %d", id->us);
 					
-					if(id->lib) {
-						if(totlib==0) firstlib= files;
+					if (id->lib) {
+						if (totlib==0) firstlib= files;
 						totlib++;
 					}
 					
@@ -1217,7 +1251,7 @@ void filelist_from_main(struct FileList *filelist)
 		}
 		
 		/* only qsort of library blocks */
-		if(totlib>1) {
+		if (totlib>1) {
 			qsort(firstlib, totlib, sizeof(struct direntry), compare_name);
 		}
 	}
@@ -1230,7 +1264,7 @@ static void thumbnail_joblist_free(ThumbnailJob *tj)
 	FileImage* limg = tj->loadimages.first;
 	
 	/* free the images not yet copied to the filelist -> these will get freed with the filelist */
-	for( ; limg; limg= limg->next) {
+	for ( ; limg; limg= limg->next) {
 		if ((limg->img) && (!limg->done)) {
 			IMB_freeImBuf(limg->img);
 		}
@@ -1249,9 +1283,11 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float 
 	while ( (*stop==0) && (limg) ) {
 		if ( limg->flags & IMAGEFILE ) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_IMAGE);
-		} else if ( limg->flags & BLENDERFILE ) {
+		}
+		else if ( limg->flags & BLENDERFILE ) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_BLEND);
-		} else if ( limg->flags & MOVIEFILE ) {
+		}
+		else if ( limg->flags & MOVIEFILE ) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_MOVIE);
 			if (!limg->img) {
 					/* remember that file can't be loaded via IMB_open_anim */

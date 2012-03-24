@@ -82,20 +82,20 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	unsigned char *rectc;
 
 	/* if renrect argument, we only refresh scanlines */
-	if(renrect) {
+	if (renrect) {
 		/* if ymax==recty, rendering of layer is ready, we should not draw, other things happen... */
-		if(rr->renlay==NULL || renrect->ymax>=rr->recty)
+		if (rr->renlay==NULL || renrect->ymax>=rr->recty)
 			return;
 
 		/* xmin here is first subrect x coord, xmax defines subrect width */
 		xmin = renrect->xmin + rr->crop;
 		xmax = renrect->xmax - xmin + rr->crop;
-		if(xmax<2)
+		if (xmax<2)
 			return;
 
 		ymin= renrect->ymin + rr->crop;
 		ymax= renrect->ymax - ymin + rr->crop;
-		if(ymax<2)
+		if (ymax<2)
 			return;
 		renrect->ymin = renrect->ymax;
 
@@ -108,37 +108,37 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 
 	/* xmin ymin is in tile coords. transform to ibuf */
 	rxmin= rr->tilerect.xmin + xmin;
-	if(rxmin >= ibuf->x) return;
+	if (rxmin >= ibuf->x) return;
 	rymin= rr->tilerect.ymin + ymin;
-	if(rymin >= ibuf->y) return;
+	if (rymin >= ibuf->y) return;
 
-	if(rxmin + xmax > ibuf->x)
+	if (rxmin + xmax > ibuf->x)
 		xmax= ibuf->x - rxmin;
-	if(rymin + ymax > ibuf->y)
+	if (rymin + ymax > ibuf->y)
 		ymax= ibuf->y - rymin;
 
-	if(xmax < 1 || ymax < 1) return;
+	if (xmax < 1 || ymax < 1) return;
 
 	/* find current float rect for display, first case is after composite... still weak */
-	if(rr->rectf)
+	if (rr->rectf)
 		rectf= rr->rectf;
 	else {
-		if(rr->rect32)
+		if (rr->rect32)
 			return;
 		else {
-			if(rr->renlay==NULL || rr->renlay->rectf==NULL) return;
+			if (rr->renlay==NULL || rr->renlay->rectf==NULL) return;
 			rectf= rr->renlay->rectf;
 		}
 	}
-	if(rectf==NULL) return;
+	if (rectf==NULL) return;
 
-	if(ibuf->rect==NULL)
+	if (ibuf->rect==NULL)
 		imb_addrectImBuf(ibuf);
 	
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (unsigned char*)(ibuf->rect + ibuf->x*rymin + rxmin);
 
-	if(scene && (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
+	if (scene && (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
 		profile_from= IB_PROFILE_LINEAR_RGB;
 		predivide= (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
 	}
@@ -160,7 +160,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **scene, SceneRenderLayer **srl)
 {
 	/* single layer re-render */
-	if(RNA_struct_property_is_set(op->ptr, "scene")) {
+	if (RNA_struct_property_is_set(op->ptr, "scene")) {
 		Scene *scn;
 		char scene_name[MAX_ID_NAME-2];
 
@@ -176,7 +176,7 @@ static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **s
 		}
 	}
 
-	if(RNA_struct_property_is_set(op->ptr, "layer")) {
+	if (RNA_struct_property_is_set(op->ptr, "layer")) {
 		SceneRenderLayer *rl;
 		char rl_name[RE_MAXNAME];
 
@@ -205,7 +205,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	/* custom scene and single layer re-render */
 	screen_render_scene_layer_set(op, mainp, &scene, &srl);
 
-	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
+	if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
 	}
@@ -228,7 +228,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
 	RE_SetReports(re, op->reports);
 
-	if(is_animation)
+	if (is_animation)
 		RE_BlenderAnim(re, mainp, scene, camera_override, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 	else
 		RE_BlenderFrame(re, mainp, scene, srl, camera_override, lay, scene->r.cfra, is_write_still);
@@ -283,40 +283,40 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
 	megs_peak_memory = (peak_memory)/(1024.0*1024.0);
 
-	if(scene->lay & 0xFF000000)
+	if (scene->lay & 0xFF000000)
 		spos+= sprintf(spos, "Localview | ");
-	else if(scene->r.scemode & R_SINGLE_LAYER)
+	else if (scene->r.scemode & R_SINGLE_LAYER)
 		spos+= sprintf(spos, "Single Layer | ");
 
-	if(rs->statstr) {
+	if (rs->statstr) {
 		spos+= sprintf(spos, "%s ", rs->statstr);
 	}
 	else {
 		spos+= sprintf(spos, "Fra:%d  ", (scene->r.cfra));
-		if(rs->totvert) spos+= sprintf(spos, "Ve:%d ", rs->totvert);
-		if(rs->totface) spos+= sprintf(spos, "Fa:%d ", rs->totface);
-		if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
-		if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
-		if(rs->totlamp) spos+= sprintf(spos, "La:%d ", rs->totlamp);
+		if (rs->totvert) spos+= sprintf(spos, "Ve:%d ", rs->totvert);
+		if (rs->totface) spos+= sprintf(spos, "Fa:%d ", rs->totface);
+		if (rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
+		if (rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
+		if (rs->totlamp) spos+= sprintf(spos, "La:%d ", rs->totlamp);
 		spos+= sprintf(spos, "Mem:%.2fM (%.2fM, peak %.2fM) ", megs_used_memory, mmap_used_memory, megs_peak_memory);
 
-		if(rs->curfield)
+		if (rs->curfield)
 			spos+= sprintf(spos, "Field %d ", rs->curfield);
-		if(rs->curblur)
+		if (rs->curblur)
 			spos+= sprintf(spos, "Blur %d ", rs->curblur);
 	}
 
 	BLI_timestr(rs->lastframetime, info_time_str);
 	spos+= sprintf(spos, "Time:%s ", info_time_str);
 
-	if(rs->curfsa)
+	if (rs->curfsa)
 		spos+= sprintf(spos, "| Full Sample %d ", rs->curfsa);
 	
-	if(rs->infostr && rs->infostr[0])
+	if (rs->infostr && rs->infostr[0])
 		spos+= sprintf(spos, "| %s ", rs->infostr);
 
 	/* very weak... but 512 characters is quite safe */
-	if(spos >= str+IMA_MAX_RENDER_TEXT)
+	if (spos >= str+IMA_MAX_RENDER_TEXT)
 		if (G.f & G_DEBUG)
 			printf("WARNING! renderwin text beyond limit \n");
 
@@ -329,9 +329,9 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 
 	rr= RE_AcquireResultRead(rj->re);
 
-	if(rr) {
+	if (rr) {
 		/* malloc OK here, stats_draw is not in tile threads */
-		if(rr->text==NULL)
+		if (rr->text==NULL)
 			rr->text= MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext");
 
 		make_renderinfo_string(rs, rj->scene, rr->text);
@@ -348,7 +348,7 @@ static void render_progress_update(void *rjv, float progress)
 {
 	RenderJob *rj= rjv;
 	
-	if(rj->progress && *rj->progress != progress) {
+	if (rj->progress && *rj->progress != progress) {
 		*rj->progress = progress;
 
 		/* make jobs timer to send notifier */
@@ -364,11 +364,11 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 	void *lock;
 
 	/* only update if we are displaying the slot being rendered */
-	if(ima->render_slot != ima->last_render_slot)
+	if (ima->render_slot != ima->last_render_slot)
 		return;
 
 	ibuf= BKE_image_acquire_ibuf(ima, &rj->iuser, &lock);
-	if(ibuf) {
+	if (ibuf) {
 		image_buffer_rect_update(rj->scene, rr, ibuf, renrect);
 
 		/* make jobs timer to send notifier */
@@ -387,7 +387,7 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
 
 	RE_SetReports(rj->re, rj->reports);
 
-	if(rj->anim)
+	if (rj->anim)
 		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->camera_override, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step);
 	else
 		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->srl, rj->camera_override, rj->lay, rj->scene->r.cfra, rj->write_still);
@@ -403,11 +403,11 @@ static void render_endjob(void *rjv)
 	 * would be re-assigned. assign dummy callbacks to avoid referencing freed renderjobs bug [#24508] */
 	RE_InitRenderCB(rj->re);
 
-	if(rj->main != G.main)
+	if (rj->main != G.main)
 		free_main(rj->main);
 
 	/* else the frame will not update for the original value */
-	if(!(rj->scene->r.scemode & R_NO_FRAME_UPDATE))
+	if (!(rj->scene->r.scemode & R_NO_FRAME_UPDATE))
 		ED_update_for_newframe(G.main, rj->scene, rj->win->screen, 1);
 	
 	/* XXX above function sets all tags in nodes */
@@ -416,7 +416,7 @@ static void render_endjob(void *rjv)
 	/* potentially set by caller */
 	rj->scene->r.scemode &= ~R_NO_FRAME_UPDATE;
 	
-	if(rj->srl) {
+	if (rj->srl) {
 		nodeUpdateID(rj->scene->nodetree, &rj->scene->id);
 		WM_main_add_notifier(NC_NODE|NA_EDITED, rj->scene);
 	}
@@ -431,9 +431,9 @@ static int render_breakjob(void *rjv)
 {
 	RenderJob *rj= rjv;
 
-	if(G.afbreek)
+	if (G.afbreek)
 		return 1;
-	if(rj->stop && *(rj->stop))
+	if (rj->stop && *(rj->stop))
 		return 1;
 	return 0;
 }
@@ -450,7 +450,7 @@ static void render_drawlock(void *UNUSED(rjv), int lock)
 static int screen_render_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running blender, remove handler and pass through */
-	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C))) {
+	if (0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C))) {
 		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 	}
 
@@ -483,14 +483,14 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	const char *name;
 	
 	/* only one render job at a time */
-	if(WM_jobs_test(CTX_wm_manager(C), scene))
+	if (WM_jobs_test(CTX_wm_manager(C), scene))
 		return OPERATOR_CANCELLED;
 
-	if(!RE_is_rendering_allowed(scene, camera_override, op->reports)) {
+	if (!RE_is_rendering_allowed(scene, camera_override, op->reports)) {
 		return OPERATOR_CANCELLED;
 	}
 
-	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
+	if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
 	}	
@@ -499,7 +499,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_jobs_stop_all(CTX_wm_manager(C));
 
 	/* get main */
-	if(G.rt == 101) {
+	if (G.rt == 101) {
 		/* thread-safety experiment, copy main from the undo buffer */
 		mainp= BKE_undo_get_main(&scene);
 	}
@@ -537,7 +537,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* custom scene and single layer re-render */
 	screen_render_scene_layer_set(op, mainp, &scene, &srl);
 
-	if(RNA_struct_property_is_set(op->ptr, "layer"))
+	if (RNA_struct_property_is_set(op->ptr, "layer"))
 		jobflag |= WM_JOB_SUSPEND;
 
 	/* job custom data */
@@ -555,7 +555,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->reports= op->reports;
 
 	/* setup job */
-	if(RE_seq_render_active(scene, &scene->r)) name= "Sequence Render";
+	if (RE_seq_render_active(scene, &scene->r)) name= "Sequence Render";
 	else name= "Render";
 
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, name, jobflag);

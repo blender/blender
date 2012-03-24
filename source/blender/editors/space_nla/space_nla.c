@@ -69,7 +69,7 @@ ARegion *nla_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if(ar) return ar;
+	if (ar) return ar;
 
 	/* add subdiv level; after main */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
@@ -371,7 +371,7 @@ static void nla_region_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -413,11 +413,11 @@ static void nla_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 	}
 }
@@ -446,12 +446,12 @@ static void nla_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 	}
 }
@@ -487,7 +487,7 @@ static void nla_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_NLA)
+			if (wmn->data == ND_SPACE_NLA)
 				ED_area_tag_redraw(sa);
 			break;
 	}

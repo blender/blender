@@ -85,7 +85,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs, int *nverts_r, float
 	ntris = 0;
 
 	/* calculate number of verts and tris */
-	for(oblink = obs; oblink; oblink= oblink->next) {
+	for (oblink = obs; oblink; oblink= oblink->next) {
 		ob= (Object*) oblink->link;
 		dm= mesh_create_derived_no_virtual(scene, ob, NULL, CD_MASK_MESH);
 		BLI_linklist_append(&dms, (void*)dm);
@@ -96,9 +96,9 @@ static void createVertsTrisData(bContext *C, LinkNode *obs, int *nverts_r, float
 
 		/* resolve quad faces */
 		mface= dm->getTessFaceArray(dm);
-		for(i= 0; i<nfaces; i++) {
+		for (i= 0; i<nfaces; i++) {
 			MFace *mf= &mface[i];
-			if(mf->v4)
+			if (mf->v4)
 				ntris+=1;
 		}
 	}
@@ -109,7 +109,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs, int *nverts_r, float
 
 	basenverts= 0;
 	tri= tris;
-	for(oblink= obs, dmlink= dms; oblink && dmlink;
+	for (oblink= obs, dmlink= dms; oblink && dmlink;
 			oblink= oblink->next, dmlink= dmlink->next) {
 		ob= (Object*) oblink->link;
 		dm= (DerivedMesh*) dmlink->link;
@@ -118,7 +118,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs, int *nverts_r, float
 		mvert= dm->getVertArray(dm);
 
 		/* copy verts */
-		for(i= 0; i<curnverts; i++) {
+		for (i= 0; i<curnverts; i++) {
 			MVert *v= &mvert[i];
 
 			copy_v3_v3(co, v->co);
@@ -133,7 +133,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs, int *nverts_r, float
 		curnfaces= dm->getNumTessFaces(dm);
 		mface= dm->getTessFaceArray(dm);
 
-		for(i= 0; i<curnfaces; i++) {
+		for (i= 0; i<curnfaces; i++) {
 			MFace *mf= &mface[i];
 
 			tri[0]= basenverts + mf->v1;
@@ -141,7 +141,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs, int *nverts_r, float
 			tri[2]= basenverts + mf->v2;
 			tri += 3;
 
-			if(mf->v4) {
+			if (mf->v4) {
 				tri[0]= basenverts + mf->v1;
 				tri[1]= basenverts + mf->v4;
 				tri[2]= basenverts + mf->v3;
@@ -153,7 +153,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs, int *nverts_r, float
 	}
 
 	/* release derived mesh */
-	for(dmlink= dms; dmlink; dmlink= dmlink->next) {
+	for (dmlink= dms; dmlink; dmlink= dmlink->next) {
 		dm= (DerivedMesh*) dmlink->link;
 		dm->release(dm);
 	}
@@ -198,7 +198,7 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	/* Allocate voxel heightfield where we rasterize our input data to */
 	solid= recast_newHeightfield();
 
-	if(!recast_createHeightfield(solid, width, height, bmin, bmax, recastParams->cellsize, recastParams->cellheight)) {
+	if (!recast_createHeightfield(solid, width, height, bmin, bmax, recastParams->cellsize, recastParams->cellheight)) {
 		recast_destroyHeightfield(solid);
 
 		return 0;
@@ -220,7 +220,7 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	/* ** Step 4: Partition walkable surface to simple regions ** */
 
 	chf= recast_newCompactHeightfield();
-	if(!recast_buildCompactHeightfield(walkableHeight, walkableClimb, solid, chf)) {
+	if (!recast_buildCompactHeightfield(walkableHeight, walkableClimb, solid, chf)) {
 		recast_destroyHeightfield(solid);
 		recast_destroyCompactHeightfield(chf);
 
@@ -237,14 +237,14 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	}
 
 	/* Prepare for region partitioning, by calculating distance field along the walkable surface */
-	if(!recast_buildDistanceField(chf)) {
+	if (!recast_buildDistanceField(chf)) {
 		recast_destroyCompactHeightfield(chf);
 
 		return 0;
 	}
 
 	/* Partition the walkable surface into simple regions without holes */
-	if(!recast_buildRegions(chf, 0, minRegionArea, mergeRegionArea)) {
+	if (!recast_buildRegions(chf, 0, minRegionArea, mergeRegionArea)) {
 		recast_destroyCompactHeightfield(chf);
 
 		return 0;
@@ -254,7 +254,7 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	/* Create contours */
 	cset= recast_newContourSet();
 
-	if(!recast_buildContours(chf, recastParams->edgemaxerror, maxEdgeLen, cset)) {
+	if (!recast_buildContours(chf, recastParams->edgemaxerror, maxEdgeLen, cset)) {
 		recast_destroyCompactHeightfield(chf);
 		recast_destroyContourSet(cset);
 
@@ -263,7 +263,7 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 
 	/* ** Step 6: Build polygons mesh from contours ** */
 	*pmesh= recast_newPolyMesh();
-	if(!recast_buildPolyMesh(cset, recastParams->vertsperpoly, *pmesh)) {
+	if (!recast_buildPolyMesh(cset, recastParams->vertsperpoly, *pmesh)) {
 		recast_destroyCompactHeightfield(chf);
 		recast_destroyContourSet(cset);
 		recast_destroyPolyMesh(*pmesh);
@@ -275,7 +275,7 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	/* ** Step 7: Create detail mesh which allows to access approximate height on each polygon ** */
 
 	*dmesh= recast_newPolyMeshDetail();
-	if(!recast_buildPolyMeshDetail(*pmesh, chf, detailSampleDist, detailSampleMaxError, *dmesh)) {
+	if (!recast_buildPolyMeshDetail(*pmesh, chf, detailSampleDist, detailSampleMaxError, *dmesh)) {
 		recast_destroyCompactHeightfield(chf);
 		recast_destroyContourSet(cset);
 		recast_destroyPolyMesh(*pmesh);
@@ -309,7 +309,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	zero_v3(co);
 	zero_v3(rot);
 
-	if(createob) {
+	if (createob) {
 		/* create new object */
 		obedit= ED_object_add_type(C, OB_MESH, co, rot, FALSE, 1);
 	}
@@ -323,7 +323,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER);
 	em = BMEdit_FromObject(obedit);
 
-	if(!createob) {
+	if (!createob) {
 		/* clear */
 		EDBM_ClearMesh(em);
 	}
@@ -333,7 +333,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	recast_polyMeshGetBoundbox(pmesh, bmin, NULL);
 	recast_polyMeshGetCell(pmesh, &cs, &ch);
 
-	for(i= 0; i<nverts; i++) {
+	for (i= 0; i<nverts; i++) {
 		v= &verts[3*i];
 		co[0]= bmin[0] + v[0]*cs;
 		co[1]= bmin[1] + v[1]*ch;
@@ -351,7 +351,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	dverts= recast_polyMeshDetailGetVerts(dmesh, NULL);
 	tris= recast_polyMeshDetailGetTris(dmesh, NULL);
 
-	for(i= 0; i<nmeshes; i++) {
+	for (i= 0; i<nmeshes; i++) {
 		int uniquevbase= em->bm->totvert;
 		unsigned int vbase= meshes[4*i+0];
 		unsigned short ndv= meshes[4*i+1];
@@ -360,13 +360,13 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		const unsigned short *p= &polys[i*nvp*2];
 		int nv= 0;
 
-		for(j= 0; j < nvp; ++j) {
-			if(p[j]==0xffff) break;
+		for (j= 0; j < nvp; ++j) {
+			if (p[j]==0xffff) break;
 			nv++;
 		}
 
 		/* create unique verts  */
-		for(j= nv; j<ndv; j++) {
+		for (j= nv; j<ndv; j++) {
 			copy_v3_v3(co, &dverts[3*(vbase + j)]);
 			SWAP(float, co[1], co[2]);
 			BM_vert_create(em->bm, co, NULL);
@@ -375,13 +375,13 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		EDBM_init_index_arrays(em, 1, 0, 0);
 
 		/* create faces */
-		for(j= 0; j<trinum; j++) {
+		for (j= 0; j<trinum; j++) {
 			unsigned char *tri= &tris[4*(tribase+j)];
 			BMFace *newFace;
 			int *polygonIdx;
 
-			for(k= 0; k<3; k++) {
-				if(tri[k]<nv)
+			for (k= 0; k<3; k++) {
+				if (tri[k]<nv)
 					face[k] = p[tri[k]]; /* shared vertex */
 				else
 					face[k] = uniquevbase+tri[k]-nv; /* unique vertex */
@@ -410,7 +410,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	ED_object_exit_editmode(C, EM_FREEDATA); 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 
-	if(createob) {
+	if (createob) {
 		obedit->gameflag&= ~OB_COLLISION;
 		obedit->gameflag|= OB_NAVMESH;
 		obedit->body_type= OB_BODY_TYPE_NAVMESH;
@@ -489,17 +489,17 @@ static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
 	/* do work here */
 	BMFace *efa_act= BM_active_face_get(em->bm, FALSE);
 
-	if(efa_act) {
-		if(CustomData_has_layer(&em->bm->pdata, CD_RECAST)) {
+	if (efa_act) {
+		if (CustomData_has_layer(&em->bm->pdata, CD_RECAST)) {
 			BMFace *efa;
 			BMIter iter;
 			int targetPolyIdx= *(int*)CustomData_bmesh_get(&em->bm->pdata, efa_act->head.data, CD_RECAST);
 			targetPolyIdx= targetPolyIdx>=0? targetPolyIdx : -targetPolyIdx;
 
-			if(targetPolyIdx > 0) {
+			if (targetPolyIdx > 0) {
 				/* set target poly idx to other selected faces */
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-					if(BM_elem_flag_test(efa, BM_ELEM_SELECT) && efa != efa_act) {
+					if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && efa != efa_act) {
 						int *recastDataBlock = (int*)CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_RECAST);
 						*recastDataBlock = targetPolyIdx;
 					}
@@ -557,10 +557,10 @@ static int findFreeNavPolyIndex(BMEditMesh *em)
 
 	/* search first free index */
 	freeIdx = 1;
-	for(i = 0; i<numfaces; i++) {
-		if(indices[i]==freeIdx)
+	for (i = 0; i<numfaces; i++) {
+		if (indices[i]==freeIdx)
 			freeIdx++;
-		else if(indices[i]>freeIdx)
+		else if (indices[i]>freeIdx)
 			break;
 	}
 
@@ -576,15 +576,15 @@ static int navmesh_face_add_exec(bContext *C, wmOperator *UNUSED(op))
 	BMFace *ef;
 	BMIter iter;
 	
-	if(CustomData_has_layer(&em->bm->pdata, CD_RECAST)) {
+	if (CustomData_has_layer(&em->bm->pdata, CD_RECAST)) {
 		int targetPolyIdx = findFreeNavPolyIndex(em);
 
-		if(targetPolyIdx>0) {
+		if (targetPolyIdx>0) {
 			/* set target poly idx to selected faces */
 			/*XXX this originally went last to first, but that isn't possible anymore*/
 			
 			BM_ITER(ef, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-				if(BM_elem_flag_test(ef, BM_ELEM_SELECT)) {
+				if (BM_elem_flag_test(ef, BM_ELEM_SELECT)) {
 					int *recastDataBlock = (int*)CustomData_bmesh_get(&em->bm->pdata, ef->head.data, CD_RECAST);
 					*recastDataBlock = targetPolyIdx;
 				}

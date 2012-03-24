@@ -184,26 +184,26 @@ static float compute_reduced_albedo(ScatterSettings *ss)
 	fxn= f_Rd(xn, ss->A, ss->ro);
 	fxn_1= f_Rd(xn_1, ss->A, ss->ro);
 
-	for(i= 0; i < max_iteration_count; i++) {
+	for (i= 0; i < max_iteration_count; i++) {
 		fsub= (fxn - fxn_1);
-		if(fabsf(fsub) < tolerance)
+		if (fabsf(fsub) < tolerance)
 			break;
 		d= ((xn - xn_1)/fsub)*fxn;
-		if(fabsf(d) < tolerance)
+		if (fabsf(d) < tolerance)
 			break;
 
 		xn_1= xn;
 		fxn_1= fxn;
 		xn= xn - d;
 
-		if(xn > 1.0f) xn= 1.0f;
-		if(xn_1 > 1.0f) xn_1= 1.0f;
+		if (xn > 1.0f) xn= 1.0f;
+		if (xn_1 > 1.0f) xn_1= 1.0f;
 		
 		fxn= f_Rd(xn, ss->A, ss->ro);
 	}
 
 	/* avoid division by zero later */
-	if(xn <= 0.0f)
+	if (xn <= 0.0f)
 		xn= 0.00001f;
 
 	return xn;
@@ -240,15 +240,15 @@ static void approximate_Rd_rgb(ScatterSettings **ss, float rr, float *rd)
 	float indexf, t, idxf;
 	int index;
 
-	if(rr > (RD_TABLE_RANGE_2*RD_TABLE_RANGE_2));
-	else if(rr > RD_TABLE_RANGE) {
+	if (rr > (RD_TABLE_RANGE_2*RD_TABLE_RANGE_2));
+	else if (rr > RD_TABLE_RANGE) {
 		rr= sqrt(rr);
 		indexf= rr*(RD_TABLE_SIZE/RD_TABLE_RANGE_2);
 		index= (int)indexf;
 		idxf= (float)index;
 		t= indexf - idxf;
 
-		if(index >= 0 && index < RD_TABLE_SIZE) {
+		if (index >= 0 && index < RD_TABLE_SIZE) {
 			rd[0]= (ss[0]->tableRd2[index]*(1-t) + ss[0]->tableRd2[index+1]*t);
 			rd[1]= (ss[1]->tableRd2[index]*(1-t) + ss[1]->tableRd2[index+1]*t);
 			rd[2]= (ss[2]->tableRd2[index]*(1-t) + ss[2]->tableRd2[index+1]*t);
@@ -261,7 +261,7 @@ static void approximate_Rd_rgb(ScatterSettings **ss, float rr, float *rd)
 		idxf= (float)index;
 		t= indexf - idxf;
 
-		if(index >= 0 && index < RD_TABLE_SIZE) {
+		if (index >= 0 && index < RD_TABLE_SIZE) {
 			rd[0]= (ss[0]->tableRd[index]*(1-t) + ss[0]->tableRd[index+1]*t);
 			rd[1]= (ss[1]->tableRd[index]*(1-t) + ss[1]->tableRd[index+1]*t);
 			rd[2]= (ss[2]->tableRd[index]*(1-t) + ss[2]->tableRd[index+1]*t);
@@ -283,7 +283,7 @@ static void build_Rd_table(ScatterSettings *ss)
 	ss->tableRd= MEM_mallocN(sizeof(float)*size, "scatterTableRd");
 	ss->tableRd2= MEM_mallocN(sizeof(float)*size, "scatterTableRd");
 
-	for(i= 0; i < size; i++) {
+	for (i= 0; i < size; i++) {
 		r= i*(RD_TABLE_RANGE/RD_TABLE_SIZE);
 		/*if(r < ss->invsigma_t_*ss->invsigma_t_)
 			r= ss->invsigma_t_*ss->invsigma_t_;*/
@@ -353,7 +353,7 @@ static void add_radiance(ScatterTree *tree, float *frontrad, float *backrad, flo
 
 	approximate_Rd_rgb(tree->ss, rr, rd);
 
-	if(frontrad && area) {
+	if (frontrad && area) {
 		frontrd[0] = rd[0]*area;
 		frontrd[1] = rd[1]*area;
 		frontrd[2] = rd[2]*area;
@@ -366,7 +366,7 @@ static void add_radiance(ScatterTree *tree, float *frontrad, float *backrad, flo
 		result->rdsum[1] += frontrd[1];
 		result->rdsum[2] += frontrd[2];
 	}
-	if(backrad && backarea) {
+	if (backrad && backarea) {
 		backrd[0] = rd[0]*backarea;
 		backrd[1] = rd[1]*backarea;
 		backrd[2] = rd[2]*backarea;
@@ -386,15 +386,15 @@ static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int
 	float sub[3], dist;
 	int i, index = 0;
 
-	if(node->totpoint > 0) {
+	if (node->totpoint > 0) {
 		/* leaf - add radiance from all samples */
-		for(i=0; i<node->totpoint; i++) {
+		for (i=0; i<node->totpoint; i++) {
 			ScatterPoint *p= &node->points[i];
 
 			sub_v3_v3v3(sub, co, p->co);
 			dist= dot_v3v3(sub, sub);
 
-			if(p->back)
+			if (p->back)
 				add_radiance(tree, NULL, p->rad, 0.0f, p->area, dist, result);
 			else
 				add_radiance(tree, p->rad, NULL, p->area, 0.0f, dist, result);
@@ -405,11 +405,11 @@ static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int
 		if (self)
 			index = SUBNODE_INDEX(co, node->split);
 
-		for(i=0; i<8; i++) {
-			if(node->child[i]) {
+		for (i=0; i<8; i++) {
+			if (node->child[i]) {
 				ScatterNode *subnode= node->child[i];
 
-				if(self && index == i) {
+				if (self && index == i) {
 					/* always traverse node containing the point */
 					traverse_octree(tree, subnode, co, 1, result);
 				}
@@ -419,7 +419,7 @@ static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int
 					dist= dot_v3v3(sub, sub);
 
 					/* actually area/dist > error, but this avoids division */
-					if(subnode->area+subnode->backarea>tree->error*dist) {
+					if (subnode->area+subnode->backarea>tree->error*dist) {
 						traverse_octree(tree, subnode, co, 0, result);
 					}
 					else {
@@ -456,13 +456,13 @@ static void compute_radiance(ScatterTree *tree, float *co, float *rad)
 	copy_v3_v3(rdsum, result.rdsum);
 	add_v3_v3v3(backrdsum, result.rdsum, result.backrdsum);
 
-	if(rdsum[0] > 1e-16f) rad[0]= tree->ss[0]->color*rad[0]/rdsum[0];
-	if(rdsum[1] > 1e-16f) rad[1]= tree->ss[1]->color*rad[1]/rdsum[1];
-	if(rdsum[2] > 1e-16f) rad[2]= tree->ss[2]->color*rad[2]/rdsum[2];
+	if (rdsum[0] > 1e-16f) rad[0]= tree->ss[0]->color*rad[0]/rdsum[0];
+	if (rdsum[1] > 1e-16f) rad[1]= tree->ss[1]->color*rad[1]/rdsum[1];
+	if (rdsum[2] > 1e-16f) rad[2]= tree->ss[2]->color*rad[2]/rdsum[2];
 
-	if(backrdsum[0] > 1e-16f) backrad[0]= tree->ss[0]->color*backrad[0]/backrdsum[0];
-	if(backrdsum[1] > 1e-16f) backrad[1]= tree->ss[1]->color*backrad[1]/backrdsum[1];
-	if(backrdsum[2] > 1e-16f) backrad[2]= tree->ss[2]->color*backrad[2]/backrdsum[2];
+	if (backrdsum[0] > 1e-16f) backrad[0]= tree->ss[0]->color*backrad[0]/backrdsum[0];
+	if (backrdsum[1] > 1e-16f) backrad[1]= tree->ss[1]->color*backrad[1]/backrdsum[1];
+	if (backrdsum[2] > 1e-16f) backrad[2]= tree->ss[2]->color*backrad[2]/backrdsum[2];
 
 	rad[0]= MAX2(rad[0], backrad[0]);
 	rad[1]= MAX2(rad[1], backrad[1]);
@@ -483,7 +483,7 @@ static void sum_leaf_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 
 	/* compute total rad, rad weighted average position,
 	 * and total area */
-	for(i=0; i<node->totpoint; i++) {
+	for (i=0; i<node->totpoint; i++) {
 		p= &node->points[i];
 
 		rad= p->area*fabsf(p->rad[0] + p->rad[1] + p->rad[2]);
@@ -493,7 +493,7 @@ static void sum_leaf_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 		node->co[1] += rad*p->co[1];
 		node->co[2] += rad*p->co[2];
 
-		if(p->back) {
+		if (p->back) {
 			node->backrad[0] += p->rad[0]*p->area;
 			node->backrad[1] += p->rad[1]*p->area;
 			node->backrad[2] += p->rad[2]*p->area;
@@ -509,20 +509,20 @@ static void sum_leaf_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 		}
 	}
 
-	if(node->area > 1e-16f) {
+	if (node->area > 1e-16f) {
 		inv= 1.0f/node->area;
 		node->rad[0] *= inv;
 		node->rad[1] *= inv;
 		node->rad[2] *= inv;
 	}
-	if(node->backarea > 1e-16f) {
+	if (node->backarea > 1e-16f) {
 		inv= 1.0f/node->backarea;
 		node->backrad[0] *= inv;
 		node->backrad[1] *= inv;
 		node->backrad[2] *= inv;
 	}
 
-	if(totrad > 1e-16f) {
+	if (totrad > 1e-16f) {
 		inv= 1.0f/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
@@ -531,7 +531,7 @@ static void sum_leaf_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 	else {
 		/* make sure that if radiance is 0.0f, we still have these points in
 		 * the tree at a good position, they count for rdsum too */
-		for(i=0; i<node->totpoint; i++) {
+		for (i=0; i<node->totpoint; i++) {
 			p= &node->points[i];
 
 			node->co[0] += p->co[0];
@@ -557,8 +557,8 @@ static void sum_branch_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 
 	/* compute total rad, rad weighted average position,
 	 * and total area */
-	for(i=0; i<8; i++) {
-		if(node->child[i] == NULL)
+	for (i=0; i<8; i++) {
+		if (node->child[i] == NULL)
 			continue;
 
 		subnode= node->child[i];
@@ -583,20 +583,20 @@ static void sum_branch_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 		node->backarea += subnode->backarea;
 	}
 
-	if(node->area > 1e-16f) {
+	if (node->area > 1e-16f) {
 		inv= 1.0f/node->area;
 		node->rad[0] *= inv;
 		node->rad[1] *= inv;
 		node->rad[2] *= inv;
 	}
-	if(node->backarea > 1e-16f) {
+	if (node->backarea > 1e-16f) {
 		inv= 1.0f/node->backarea;
 		node->backrad[0] *= inv;
 		node->backrad[1] *= inv;
 		node->backrad[2] *= inv;
 	}
 
-	if(totrad > 1e-16f) {
+	if (totrad > 1e-16f) {
 		inv= 1.0f/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
@@ -607,8 +607,8 @@ static void sum_branch_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 		 * the tree at a good position, they count for rdsum too */
 		totnode= 0;
 
-		for(i=0; i<8; i++) {
-			if(node->child[i]) {
+		for (i=0; i<8; i++) {
+			if (node->child[i]) {
 				subnode= node->child[i];
 
 				node->co[0] += subnode->co[0];
@@ -627,14 +627,14 @@ static void sum_branch_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 
 static void sum_radiance(ScatterTree *tree, ScatterNode *node)
 {
-	if(node->totpoint > 0) {
+	if (node->totpoint > 0) {
 		sum_leaf_radiance(tree, node);
 	}
 	else {
 		int i;
 
-		for(i=0; i<8; i++)
-			if(node->child[i])
+		for (i=0; i<8; i++)
+			if (node->child[i])
 				sum_radiance(tree, node->child[i]);
 
 		sum_branch_radiance(tree, node);
@@ -658,8 +658,8 @@ static void create_octree_node(ScatterTree *tree, ScatterNode *node, float *mid,
 	float submid[3], subsize[3];
 
 	/* stopping condition */
-	if(node->totpoint <= MAX_OCTREE_NODE_POINTS || depth == MAX_OCTREE_DEPTH) {
-		for(i=0; i<node->totpoint; i++)
+	if (node->totpoint <= MAX_OCTREE_NODE_POINTS || depth == MAX_OCTREE_DEPTH) {
+		for (i=0; i<node->totpoint; i++)
 			node->points[i]= *(refpoints[i]);
 
 		return;
@@ -677,7 +677,7 @@ static void create_octree_node(ScatterTree *tree, ScatterNode *node, float *mid,
 	memset(noffset, 0, sizeof(noffset));
 
 	/* count points in subnodes */
-	for(i=0; i<node->totpoint; i++) {
+	for (i=0; i<node->totpoint; i++) {
 		index= SUBNODE_INDEX(refpoints[i]->co, node->split);
 		tmppoints[i]= refpoints[i];
 		nsize[index]++;
@@ -686,31 +686,31 @@ static void create_octree_node(ScatterTree *tree, ScatterNode *node, float *mid,
 	/* here we check if only one subnode is used. if this is the case, we don't
 	 * create a new node, but rather call this function again, with different
 	 * size and middle position for the same node. */
-	for(usedi=0, usednodes=0, i=0; i<8; i++) {
-		if(nsize[i]) {
+	for (usedi=0, usednodes=0, i=0; i<8; i++) {
+		if (nsize[i]) {
 			usednodes++;
 			usedi = i;
 		}
-		if(i != 0)
+		if (i != 0)
 			noffset[i]= noffset[i-1]+nsize[i-1];
 	}
 	
-	if(usednodes<=1) {
+	if (usednodes<=1) {
 		subnode_middle(usedi, mid, subsize, submid);
 		create_octree_node(tree, node, submid, subsize, refpoints, depth+1);
 		return;
 	}
 
 	/* reorder refpoints by subnode */
-	for(i=0; i<node->totpoint; i++) {
+	for (i=0; i<node->totpoint; i++) {
 		index= SUBNODE_INDEX(tmppoints[i]->co, node->split);
 		refpoints[noffset[index]]= tmppoints[i];
 		noffset[index]++;
 	}
 
 	/* create subnodes */
-	for(subco=0, i=0; i<8; subco+=nsize[i], i++) {
-		if(nsize[i] > 0) {
+	for (subco=0, i=0; i<8; subco+=nsize[i], i++) {
+		if (nsize[i] > 0) {
 			subnode= BLI_memarena_alloc(tree->arena, sizeof(ScatterNode));
 			node->child[i]= subnode;
 			subnode->points= node->points + subco;
@@ -758,7 +758,7 @@ ScatterTree *scatter_tree_new(ScatterSettings *ss[3], float scale, float error,
 	/* build points */
 	INIT_MINMAX(tree->min, tree->max);
 
-	for(i=0; i<totpoint; i++) {
+	for (i=0; i<totpoint; i++) {
 		copy_v3_v3(points[i].co, co[i]);
 		copy_v3_v3(points[i].rad, color[i]);
 		points[i].area= fabsf(area[i])/(tree->scale*tree->scale);
@@ -857,7 +857,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	float (*co)[3] = NULL, (*color)[3] = NULL, *area = NULL;
 	int totpoint = 0, osa, osaflag, partsdone;
 
-	if(re->test_break(re->tbh))
+	if (re->test_break(re->tbh))
 		return;
 	
 	points.first= points.last= NULL;
@@ -878,14 +878,14 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->sss_mat= mat;
 	re->i.partsdone= 0;
 
-	if(!(re->r.scemode & R_PREVIEWBUTS))
+	if (!(re->r.scemode & R_PREVIEWBUTS))
 		re->result= NULL;
 	BLI_rw_mutex_unlock(&re->resultmutex);
 
 	RE_TileProcessor(re);
 	
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-	if(!(re->r.scemode & R_PREVIEWBUTS)) {
+	if (!(re->r.scemode & R_PREVIEWBUTS)) {
 		RE_FreeRenderResult(re->result);
 		re->result= rr;
 	}
@@ -898,19 +898,19 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	if (osaflag) re->r.mode |= R_OSA;
 
 	/* no points? no tree */
-	if(!points.first)
+	if (!points.first)
 		return;
 
 	/* merge points together into a single buffer */
-	if(!re->test_break(re->tbh)) {
-		for(totpoint=0, p=points.first; p; p=p->next)
+	if (!re->test_break(re->tbh)) {
+		for (totpoint=0, p=points.first; p; p=p->next)
 			totpoint += p->totpoint;
 		
 		co= MEM_mallocN(sizeof(*co)*totpoint, "SSSCo");
 		color= MEM_mallocN(sizeof(*color)*totpoint, "SSSColor");
 		area= MEM_mallocN(sizeof(*area)*totpoint, "SSSArea");
 
-		for(totpoint=0, p=points.first; p; p=p->next) {
+		for (totpoint=0, p=points.first; p; p=p->next) {
 			memcpy(co+totpoint, p->co, sizeof(*co)*p->totpoint);
 			memcpy(color+totpoint, p->color, sizeof(*color)*p->totpoint);
 			memcpy(area+totpoint, p->area, sizeof(*area)*p->totpoint);
@@ -919,7 +919,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	}
 
 	/* free points */
-	for(p=points.first; p; p=p->next) {
+	for (p=points.first; p; p=p->next) {
 		MEM_freeN(p->co);
 		MEM_freeN(p->color);
 		MEM_freeN(p->area);
@@ -927,7 +927,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	BLI_freelistN(&points);
 
 	/* build tree */
-	if(!re->test_break(re->tbh)) {
+	if (!re->test_break(re->tbh)) {
 		SSSData *sss= MEM_callocN(sizeof(*sss), "SSSData");
 		float ior= mat->sss_ior, cfac= mat->sss_colfac;
 		float *radius= mat->sss_radius;
@@ -935,7 +935,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		float error = mat->sss_error;
 
 		error= get_render_aosss_error(&re->r, error);
-		if((re->r.scemode & R_PREVIEWBUTS) && error < 0.5f)
+		if ((re->r.scemode & R_PREVIEWBUTS) && error < 0.5f)
 			error= 0.5f;
 		
 		sss->ss[0]= scatter_settings_new(mat->sss_col[0], radius[0], ior, cfac, fw, bw);
@@ -963,7 +963,7 @@ void sss_add_points(Render *re, float (*co)[3], float (*color)[3], float *area, 
 {
 	SSSPoints *p;
 	
-	if(totpoint > 0) {
+	if (totpoint > 0) {
 		p= MEM_callocN(sizeof(SSSPoints), "SSSPoints");
 
 		p->co= co;
@@ -997,15 +997,15 @@ void make_sss_tree(Render *re)
 	re->i.infostr= "SSS preprocessing";
 	re->stats_draw(re->sdh, &re->i);
 	
-	for(mat= re->main->mat.first; mat; mat= mat->id.next)
-		if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
+	for (mat= re->main->mat.first; mat; mat= mat->id.next)
+		if (mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
 			sss_create_tree_mat(re, mat);
 	
 	/* XXX preview exception */
 	/* localizing preview render data is not fun for node trees :( */
-	if(re->main!=G.main) {
-		for(mat= G.main->mat.first; mat; mat= mat->id.next)
-			if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
+	if (re->main!=G.main) {
+		for (mat= G.main->mat.first; mat; mat= mat->id.next)
+			if (mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
 				sss_create_tree_mat(re, mat);
 	}
 	
@@ -1013,10 +1013,10 @@ void make_sss_tree(Render *re)
 
 void free_sss(Render *re)
 {
-	if(re->sss_hash) {
+	if (re->sss_hash) {
 		GHashIterator *it= BLI_ghashIterator_new(re->sss_hash);
 
-		while(!BLI_ghashIterator_isDone(it)) {
+		while (!BLI_ghashIterator_isDone(it)) {
 			sss_free_tree(BLI_ghashIterator_getValue(it));
 			BLI_ghashIterator_step(it);
 		}
@@ -1029,10 +1029,10 @@ void free_sss(Render *re)
 
 int sample_sss(Render *re, Material *mat, float *co, float *color)
 {
-	if(re->sss_hash) {
+	if (re->sss_hash) {
 		SSSData *sss= BLI_ghash_lookup(re->sss_hash, mat);
 
-		if(sss) {
+		if (sss) {
 			scatter_tree_sample(sss->tree, co, color);
 			return 1;
 		}

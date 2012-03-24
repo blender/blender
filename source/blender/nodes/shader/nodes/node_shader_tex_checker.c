@@ -54,7 +54,7 @@ static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode* node, 
 
 static int node_shader_gpu_tex_checker(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
-	if(!in[0].link)
+	if (!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);

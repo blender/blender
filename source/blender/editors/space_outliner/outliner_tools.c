@@ -115,13 +115,13 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	
-	for(te= lb->first; te; te= te->next) {
+	for (te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(tselem->flag & TSE_SELECTED) {
-			if(tselem->type) {
-				if(*datalevel==0) 
+		if (tselem->flag & TSE_SELECTED) {
+			if (tselem->type) {
+				if (*datalevel==0)
 					*datalevel= tselem->type;
-				else if(*datalevel!=tselem->type) 
+				else if (*datalevel!=tselem->type)
 					*datalevel= -1;
 			}
 			else {
@@ -139,13 +139,13 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 					case ID_MA: case ID_TE: case ID_IP: case ID_IM:
 					case ID_SO: case ID_KE: case ID_WO: case ID_AC:
 					case ID_NLA: case ID_TXT: case ID_GR:
-						if(*idlevel==0) *idlevel= idcode;
-						else if(*idlevel!=idcode) *idlevel= -1;
+						if (*idlevel==0) *idlevel= idcode;
+						else if (*idlevel!=idcode) *idlevel= -1;
 							break;
 				}
 			}
 		}
-		if(TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem,soops)) {
 			set_operation_types(soops, &te->subtree,
 								scenelevel, objectlevel, idlevel, datalevel);
 		}
@@ -163,29 +163,29 @@ static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEl
 	Material **matar=NULL;
 	int a, totcol=0;
 	
-	if( GS(tsep->id->name)==ID_OB) {
+	if ( GS(tsep->id->name)==ID_OB) {
 		Object *ob= (Object *)tsep->id;
 		totcol= ob->totcol;
 		matar= ob->mat;
 	}
-	else if( GS(tsep->id->name)==ID_ME) {
+	else if ( GS(tsep->id->name)==ID_ME) {
 		Mesh *me= (Mesh *)tsep->id;
 		totcol= me->totcol;
 		matar= me->mat;
 	}
-	else if( GS(tsep->id->name)==ID_CU) {
+	else if ( GS(tsep->id->name)==ID_CU) {
 		Curve *cu= (Curve *)tsep->id;
 		totcol= cu->totcol;
 		matar= cu->mat;
 	}
-	else if( GS(tsep->id->name)==ID_MB) {
+	else if ( GS(tsep->id->name)==ID_MB) {
 		MetaBall *mb= (MetaBall *)tsep->id;
 		totcol= mb->totcol;
 		matar= mb->mat;
 	}
 
-	for(a=0; a<totcol; a++) {
-		if(a==te->index && matar[a]) {
+	for (a=0; a<totcol; a++) {
+		if (a==te->index && matar[a]) {
 			matar[a]->id.us--;
 			matar[a]= NULL;
 		}
@@ -197,23 +197,23 @@ static void unlink_texture_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEle
 	MTex **mtex= NULL;
 	int a;
 	
-	if( GS(tsep->id->name)==ID_MA) {
+	if ( GS(tsep->id->name)==ID_MA) {
 		Material *ma= (Material *)tsep->id;
 		mtex= ma->mtex;
 	}
-	else if( GS(tsep->id->name)==ID_LA) {
+	else if ( GS(tsep->id->name)==ID_LA) {
 		Lamp *la= (Lamp *)tsep->id;
 		mtex= la->mtex;
 	}
-	else if( GS(tsep->id->name)==ID_WO) {
+	else if ( GS(tsep->id->name)==ID_WO) {
 		World *wrld= (World *)tsep->id;
 		mtex= wrld->mtex;
 	}
 	else return;
 	
-	for(a=0; a<MAX_MTEX; a++) {
-		if(a==te->index && mtex[a]) {
-			if(mtex[a]->tex) {
+	for (a=0; a<MAX_MTEX; a++) {
+		if (a==te->index && mtex[a]) {
+			if (mtex[a]->tex) {
 				mtex[a]->tex->id.us--;
 				mtex[a]->tex= NULL;
 			}
@@ -225,8 +225,8 @@ static void unlink_group_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEleme
 {
 	Group *group= (Group *)tselem->id;
 	
-	if(tsep) {
-		if( GS(tsep->id->name)==ID_OB) {
+	if (tsep) {
+		if ( GS(tsep->id->name)==ID_OB) {
 			Object *ob= (Object *)tsep->id;
 			ob->dup_group= NULL;
 		}
@@ -252,15 +252,15 @@ static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	
-	for(te=lb->first; te; te= te->next) {
+	for (te=lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(tselem->flag & TSE_SELECTED) {
-			if(tselem->type==0) {
+		if (tselem->flag & TSE_SELECTED) {
+			if (tselem->type==0) {
 				TreeStoreElem *tsep= TREESTORE(te->parent);
 				operation_cb(C, scene, te, tsep, tselem);
 			}
 		}
-		if(TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem,soops)) {
 			outliner_do_libdata_operation(C, scene, soops, &te->subtree, operation_cb);
 		}
 	}
@@ -272,8 +272,8 @@ static void object_select_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
 {
 	Base *base= (Base *)te->directdata;
 	
-	if(base==NULL) base= object_in_scene((Object *)tselem->id, scene);
-	if(base && ((base->object->restrictflag & OB_RESTRICT_VIEW)==0)) {
+	if (base==NULL) base= object_in_scene((Object *)tselem->id, scene);
+	if (base && ((base->object->restrictflag & OB_RESTRICT_VIEW)==0)) {
 		base->flag |= SELECT;
 		base->object->flag |= SELECT;
 	}
@@ -283,8 +283,8 @@ static void object_deselect_cb(bContext *UNUSED(C), Scene *scene, TreeElement *t
 {
 	Base *base= (Base *)te->directdata;
 	
-	if(base==NULL) base= object_in_scene((Object *)tselem->id, scene);
-	if(base) {
+	if (base==NULL) base= object_in_scene((Object *)tselem->id, scene);
+	if (base) {
 		base->flag &= ~SELECT;
 		base->object->flag &= ~SELECT;
 	}
@@ -294,11 +294,11 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 {
 	Base *base= (Base *)te->directdata;
 	
-	if(base==NULL) 
+	if (base==NULL)
 		base= object_in_scene((Object *)tselem->id, scene);
-	if(base) {
+	if (base) {
 		// check also library later
-		if(scene->obedit==base->object) 
+		if (scene->obedit==base->object)
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 		
 		ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
@@ -378,12 +378,13 @@ static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 	GroupObject *gob;
 	Base *base;
 	
-	for(gob=group->gobject.first; gob; gob=gob->next) {
+	for (gob=group->gobject.first; gob; gob=gob->next) {
 		base= object_in_scene(gob->ob, scene);
 		if (base) {
 			base->object->flag |= SELECT;
 			base->flag |= SELECT;
-		} else {
+		}
+		else {
 			/* link to scene */
 			base= MEM_callocN( sizeof(Base), "add_base");
 			BLI_addhead(&scene->base, base);
@@ -402,13 +403,13 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	
-	for(te=lb->first; te; te= te->next) {
+	for (te=lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(tselem->flag & TSE_SELECTED) {
-			if(tselem->type==0 && te->idcode==ID_OB) {
+		if (tselem->flag & TSE_SELECTED) {
+			if (tselem->type==0 && te->idcode==ID_OB) {
 				// when objects selected in other scenes... dunno if that should be allowed
 				Scene *scene_owner= (Scene *)outliner_search_back(soops, te, ID_SCE);
-				if(scene_owner && scene_act != scene_owner) {
+				if (scene_owner && scene_act != scene_owner) {
 					ED_screen_set_scene(C, CTX_wm_screen(C), scene_owner);
 				}
 				/* important to use 'scene_owner' not scene_act else deleting objects can crash.
@@ -417,7 +418,7 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 				operation_cb(C, scene_owner ? scene_owner : scene_act, te, NULL, tselem);
 			}
 		}
-		if(TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem,soops)) {
 			outliner_do_object_operation(C, scene_act, soops, &te->subtree, operation_cb);
 		}
 	}
@@ -459,15 +460,15 @@ static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
 {
 	bPoseChannel *pchan= (bPoseChannel *)te->directdata;
 	
-	if(event==1)
+	if (event==1)
 		pchan->bone->flag |= BONE_SELECTED;
-	else if(event==2)
+	else if (event==2)
 		pchan->bone->flag &= ~BONE_SELECTED;
-	else if(event==3) {
+	else if (event==3) {
 		pchan->bone->flag |= BONE_HIDDEN_P;
 		pchan->bone->flag &= ~BONE_SELECTED;
 	}
-	else if(event==4)
+	else if (event==4)
 		pchan->bone->flag &= ~BONE_HIDDEN_P;
 }
 
@@ -475,15 +476,15 @@ static void bone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
 {
 	Bone *bone= (Bone *)te->directdata;
 	
-	if(event==1)
+	if (event==1)
 		bone->flag |= BONE_SELECTED;
-	else if(event==2)
+	else if (event==2)
 		bone->flag &= ~BONE_SELECTED;
-	else if(event==3) {
+	else if (event==3) {
 		bone->flag |= BONE_HIDDEN_P;
 		bone->flag &= ~BONE_SELECTED;
 	}
-	else if(event==4)
+	else if (event==4)
 		bone->flag &= ~BONE_HIDDEN_P;
 }
 
@@ -491,22 +492,22 @@ static void ebone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
 {
 	EditBone *ebone= (EditBone *)te->directdata;
 	
-	if(event==1)
+	if (event==1)
 		ebone->flag |= BONE_SELECTED;
-	else if(event==2)
+	else if (event==2)
 		ebone->flag &= ~BONE_SELECTED;
-	else if(event==3) {
+	else if (event==3) {
 		ebone->flag |= BONE_HIDDEN_A;
 		ebone->flag &= ~BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 	}
-	else if(event==4)
+	else if (event==4)
 		ebone->flag &= ~BONE_HIDDEN_A;
 }
 
 static void sequence_cb(int event, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tselem))
 {
 //	Sequence *seq= (Sequence*) te->directdata;
-	if(event==1) {
+	if (event==1) {
 // XXX		select_single_seq(seq, 1);
 	}
 }
@@ -517,14 +518,14 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	
-	for(te=lb->first; te; te= te->next) {
+	for (te=lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(tselem->flag & TSE_SELECTED) {
-			if(tselem->type==type) {
+		if (tselem->flag & TSE_SELECTED) {
+			if (tselem->type==type) {
 				operation_cb(event, te, tselem);
 			}
 		}
-		if(TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem,soops)) {
 			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb);
 		}
 	}
@@ -557,22 +558,22 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 	
 	event= RNA_enum_get(op->ptr, "type");
 
-	if(event==1) {
+	if (event==1) {
 		Scene *sce= scene;	// to be able to delete, scenes are set...
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_select_cb);
-		if(scene != sce) {
+		if (scene != sce) {
 			ED_screen_set_scene(C, CTX_wm_screen(C), sce);
 		}
 		
 		str= "Select Objects";
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
-	else if(event==2) {
+	else if (event==2) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_deselect_cb);
 		str= "Deselect Objects";
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
-	else if(event==4) {
+	else if (event==4) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
 
 		/* XXX: tree management normally happens from draw_outliner(), but when
@@ -586,26 +587,26 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		str= "Delete Objects";
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 	}
-	else if(event==5) {	/* disabled, see above enum (ton) */
+	else if (event==5) {	/* disabled, see above enum (ton) */
 		outliner_do_object_operation(C, scene, soops, &soops->tree, id_local_cb);
 		str= "Localized Objects";
 	}
-	else if(event==6) {
+	else if (event==6) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_visibility_cb);
 		str= "Toggle Visibility";
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_VISIBLE, scene);
 	}
-	else if(event==7) {
+	else if (event==7) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_selectability_cb);
 		str= "Toggle Selectability";
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
-	else if(event==8) {
+	else if (event==8) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_renderability_cb);
 		str= "Toggle Renderability";
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_RENDER, scene);
 	}
-	else if(event==9) {
+	else if (event==9) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, item_rename_cb);
 		str= "Rename Object";
 	}
@@ -659,31 +660,31 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	
 	event= RNA_enum_get(op->ptr, "type");
 	
-	if(event==1) {
+	if (event==1) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_group_cb);
 		str= "Unlink group";
 	}
-	else if(event==2) {
+	else if (event==2) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb);
 		str= "Localized Data";
 	}
-	else if(event==3) {
+	else if (event==3) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb);
 		str= "Link Group Objects to Scene";
 	}
-	else if(event==4) {
+	else if (event==4) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_visibility_cb);
 		str= "Toggle Visibility";
 	}
-	else if(event==5) {
+	else if (event==5) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_selectability_cb);
 		str= "Toggle Selectability";
 	}
-	else if(event==6) {
+	else if (event==6) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_renderability_cb);
 		str= "Toggle Renderability";
 	}
-	else if(event==7) {
+	else if (event==7) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb);
 		str= "Rename";
 	}
@@ -894,7 +895,7 @@ static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *l
 	for (te=lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
 		if (tselem->flag & TSE_SELECTED) {
-			if(tselem->type==type) {
+			if (tselem->type==type) {
 				TreeStoreElem *tsep = TREESTORE(te->parent);
 				operation_cb(te, tselem, tsep, newid);
 			}
@@ -1124,29 +1125,29 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 	event= RNA_enum_get(op->ptr, "type");
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 	
-	if(datalevel==TSE_POSE_CHANNEL) {
-		if(event>0) {
+	if (datalevel==TSE_POSE_CHANNEL) {
+		if (event>0) {
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, pchan_cb);
 			WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 			ED_undo_push(C, "PoseChannel operation");
 		}
 	}
-	else if(datalevel==TSE_BONE) {
-		if(event>0) {
+	else if (datalevel==TSE_BONE) {
+		if (event>0) {
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, bone_cb);
 			WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 			ED_undo_push(C, "Bone operation");
 		}
 	}
-	else if(datalevel==TSE_EBONE) {
-		if(event>0) {
+	else if (datalevel==TSE_EBONE) {
+		if (event>0) {
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, ebone_cb);
 			WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 			ED_undo_push(C, "EditBone operation");
 		}
 	}
-	else if(datalevel==TSE_SEQUENCE) {
-		if(event>0) {
+	else if (datalevel==TSE_SEQUENCE) {
+		if (event>0) {
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb);
 		}
 	}
@@ -1180,7 +1181,7 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 {
 	ReportList *reports = CTX_wm_reports(C); // XXX...
 	
-	if(mval[1]>te->ys && mval[1]<te->ys+UI_UNIT_Y) {
+	if (mval[1]>te->ys && mval[1]<te->ys+UI_UNIT_Y) {
 		int scenelevel=0, objectlevel=0, idlevel=0, datalevel=0;
 		TreeStoreElem *tselem= TREESTORE(te);
 		
@@ -1198,15 +1199,15 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 		
 		set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 		
-		if(scenelevel) {
+		if (scenelevel) {
 			//if(objectlevel || datalevel || idlevel) error("Mixed selection");
 			//else pupmenu("Scene Operations%t|Delete");
 		}
-		else if(objectlevel) {
+		else if (objectlevel) {
 			WM_operator_name_call(C, "OUTLINER_OT_object_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 		}
-		else if(idlevel) {
-			if(idlevel==-1 || datalevel) BKE_report(reports, RPT_WARNING, "Mixed selection");
+		else if (idlevel) {
+			if (idlevel==-1 || datalevel) BKE_report(reports, RPT_WARNING, "Mixed selection");
 			else {
 				if (idlevel==ID_GR)
 					WM_operator_name_call(C, "OUTLINER_OT_group_operation", WM_OP_INVOKE_REGION_WIN, NULL);
@@ -1214,8 +1215,8 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 					WM_operator_name_call(C, "OUTLINER_OT_id_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 			}
 		}
-		else if(datalevel) {
-			if(datalevel==-1) BKE_report(reports, RPT_WARNING, "Mixed selection");
+		else if (datalevel) {
+			if (datalevel==-1) BKE_report(reports, RPT_WARNING, "Mixed selection");
 			else {
 				if (datalevel == TSE_ANIM_DATA)
 					WM_operator_name_call(C, "OUTLINER_OT_animdata_operation", WM_OP_INVOKE_REGION_WIN, NULL);
@@ -1231,8 +1232,8 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 		return 1;
 	}
 	
-	for(te= te->subtree.first; te; te= te->next) {
-		if(do_outliner_operation_event(C, scene, ar, soops, te, event, mval)) 
+	for (te= te->subtree.first; te; te= te->next) {
+		if (do_outliner_operation_event(C, scene, ar, soops, te, event, mval))
 			return 1;
 	}
 	return 0;
@@ -1249,8 +1250,8 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 	
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval+1);
 	
-	for(te= soops->tree.first; te; te= te->next) {
-		if(do_outliner_operation_event(C, scene, ar, soops, te, event, fmval)) break;
+	for (te= soops->tree.first; te; te= te->next) {
+		if (do_outliner_operation_event(C, scene, ar, soops, te, event, fmval)) break;
 	}
 	
 	return OPERATOR_FINISHED;

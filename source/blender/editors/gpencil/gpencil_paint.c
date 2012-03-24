@@ -902,7 +902,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 			}
 #endif
 			else {
-				if(p->subrect == NULL) { /* normal 3D view */
+				if (p->subrect == NULL) { /* normal 3D view */
 					x0= (int)(pt1->x / 100 * p->ar->winx);
 					y0= (int)(pt1->y / 100 * p->ar->winy);
 					x1= (int)(pt2->x / 100 * p->ar->winx);
@@ -1204,7 +1204,7 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 	if (p->gpl == NULL) {
 		p->gpl= gpencil_layer_addnew(p->gpd);
 
-		if(p->custom_color[3])
+		if (p->custom_color[3])
 			copy_v3_v3(p->gpl->color, p->custom_color);
 	}
 	if (p->gpl->flag & GP_LAYER_LOCKED) {
@@ -1756,7 +1756,7 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	if (gp_session_initdata(C, p))
 		gp_paint_initstroke(p, p->paintmode);
 
-	if(p->status != GP_STATUS_ERROR)
+	if (p->status != GP_STATUS_ERROR)
 		p->status= GP_STATUS_PAINTING;
 
 	return op->customdata;

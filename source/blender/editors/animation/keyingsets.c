@@ -607,7 +607,7 @@ void ANIM_keyingset_info_unregister (Main *bmain, KeyingSetInfo *ksi)
 			BKE_keyingset_free(ks);
 			BLI_remlink(&builtin_keyingsets, ks);
 
-			for(scene= bmain->scene.first; scene; scene= scene->id.next)
+			for (scene= bmain->scene.first; scene; scene= scene->id.next)
 				BLI_remlink_safe(&scene->keyingsets, ks);
 
 			MEM_freeN(ks);

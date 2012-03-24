@@ -153,7 +153,7 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 	ConsoleLine *cl_iter= (ConsoleLine *)tvc->iter;
 
 	/* annoying hack, to draw the prompt */
-	if(tvc->iter_index == 0) {
+	if (tvc->iter_index == 0) {
 		const SpaceConsole *sc= (SpaceConsole *)tvc->arg1;
 		const ConsoleLine *cl= (ConsoleLine *)sc->history.last;
 		const int prompt_len= strlen(sc->prompt);
@@ -163,7 +163,7 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 		xy[1] += tvc->lheight/6;
 
 		/* account for wrapping */
-		if(cl->len < tvc->console_width) {
+		if (cl->len < tvc->console_width) {
 			/* simple case, no wrapping */
 			pen[0]= tvc->cwidth * cursor_loc;
 			pen[1]= -2;

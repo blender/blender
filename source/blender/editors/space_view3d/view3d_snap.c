@@ -176,7 +176,7 @@ static void special_transvert_update(Object *obedit)
 						copy_v3_v3(ebo->head, ebo->parent->tail);
 					}
 					/* If this bone has a parent tip that has NOT been moved */
-					else{
+					else {
 						copy_v3_v3(ebo->parent->tail, ebo->head);
 					}
 				}

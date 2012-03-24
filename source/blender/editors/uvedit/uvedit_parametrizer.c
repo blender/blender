@@ -800,12 +800,12 @@ static PBool p_edge_implicit_seam(PEdge *e, PEdge *ep)
 		uvp2 = ep->orig_uv;
 	}
 
-	if((fabsf(uv1[0]-uvp1[0]) > limit[0]) || (fabsf(uv1[1]-uvp1[1]) > limit[1])) {
+	if ((fabsf(uv1[0]-uvp1[0]) > limit[0]) || (fabsf(uv1[1]-uvp1[1]) > limit[1])) {
 		e->flag |= PEDGE_SEAM;
 		ep->flag |= PEDGE_SEAM;
 		return P_TRUE;
 	}
-	if((fabsf(uv2[0]-uvp2[0]) > limit[0]) || (fabsf(uv2[1]-uvp2[1]) > limit[1])) {
+	if ((fabsf(uv2[0]-uvp2[0]) > limit[0]) || (fabsf(uv2[1]-uvp2[1]) > limit[1])) {
 		e->flag |= PEDGE_SEAM;
 		ep->flag |= PEDGE_SEAM;
 		return P_TRUE;
@@ -866,7 +866,7 @@ static PBool p_edge_connect_pair(PHandle *handle, PEdge *e, PEdge ***stack, PBoo
 {
 	PEdge *pair = NULL;
 
-	if(!e->pair && p_edge_has_pair(handle, e, &pair, impl)) {
+	if (!e->pair && p_edge_has_pair(handle, e, &pair, impl)) {
 		if (e->vert == pair->vert)
 			p_face_flip(pair->face);
 
@@ -1162,7 +1162,7 @@ static void p_chart_boundaries(PChart *chart, int *nboundaries, PEdge **outer)
 			be->flag |= PEDGE_DONE;
 			len += p_edge_length(be);
 			be = be->next->vert->edge;
-		} while(be != e);
+		} while (be != e);
 
 		if (outer && (len > maxlen)) {
 			*outer = e;
@@ -1213,7 +1213,7 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
 		e->u.heaplink = BLI_heap_insert(heap, angle, e);
 
 		e = p_boundary_edge_next(e);
-	} while(e != be);
+	} while (e != be);
 
 	if (nedges == 2) {
 		/* no real boundary, but an isolated seam */
@@ -1297,7 +1297,7 @@ static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
 			be->flag |= PEDGE_FILLED;
 			be = be->next->vert->edge;
 			nedges++;
-		} while(be != e);
+		} while (be != e);
 
 		if (e != outer)
 			p_chart_fill_boundary(chart, e, nedges);
@@ -2847,7 +2847,7 @@ static PBool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PV
 
 		lastbe = be;
 		be = nextbe;
-	} while(be != outer);
+	} while (be != outer);
 
 	/* make sure we also count a series of splits over the starting point */
 	if (cure && (cure != outer)) {
@@ -3180,7 +3180,7 @@ static void p_stretch_pin_boundary(PChart *chart)
 {
 	PVert *v;
 
-	for(v=chart->verts; v; v=v->nextlink)
+	for (v=chart->verts; v; v=v->nextlink)
 		if (v->edge->pair == NULL)
 			v->flag |= PVERT_PIN;
 		else
@@ -3261,8 +3261,8 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 	float orig_stretch, low, stretch_low, high, stretch_high, mid, stretch;
 	float orig_uv[2], dir[2], random_angle, trusted_radius;
 
-	for(v=chart->verts; v; v=v->nextlink) {
-		if((v->flag & PVERT_PIN) || !(v->flag & PVERT_SELECT))
+	for (v=chart->verts; v; v=v->nextlink) {
+		if ((v->flag & PVERT_PIN) || !(v->flag & PVERT_SELECT))
 			continue;
 
 		orig_stretch = p_stretch_compute_vertex(v);
@@ -3313,7 +3313,7 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 		}
 
 		/* no luck, stretch has increased, reset to old values */
-		if(stretch >= orig_stretch)
+		if (stretch >= orig_stretch)
 			copy_v2_v2(v->uv, orig_uv);
 	}
 }
@@ -3357,7 +3357,7 @@ static PBool p_chart_convex_hull(PChart *chart, PVert ***verts, int *nverts, int
 	do {
 		npoints++;
 		e = p_boundary_edge_next(e);
-	} while(e != be);
+	} while (e != be);
 
 	p = points = (PVert**)MEM_mallocN(sizeof(PVert*)*npoints*2, "PCHullpoints");
 	U = (PVert**)MEM_mallocN(sizeof(PVert*)*npoints, "PCHullU");
@@ -3368,7 +3368,7 @@ static PBool p_chart_convex_hull(PChart *chart, PVert ***verts, int *nverts, int
 		*p = e->vert;
 		p++;
 		e = p_boundary_edge_next(e);
-	} while(e != be);
+	} while (e != be);
 
 	qsort(points, npoints, sizeof(PVert*), p_compare_geometric_uv);
 
@@ -3792,7 +3792,7 @@ static void p_smooth(PChart *chart)
 			nwheel++;
 
 			e = e->next->next->pair;
-		} while(e && (e != v->edge));
+		} while (e && (e != v->edge));
 
 		v->u.distortion /= nwheel;
 	}
@@ -4344,7 +4344,7 @@ void param_pack(ParamHandle *handle, float margin)
 	if (phandle->ncharts == 0)
 		return;
 	
-	if(phandle->aspx != phandle->aspy)
+	if (phandle->aspx != phandle->aspy)
 		param_scale(handle, 1.0f/phandle->aspx, 1.0f/phandle->aspy);
 	
 	/* we may not use all these boxes */
@@ -4372,11 +4372,11 @@ void param_pack(ParamHandle *handle, float margin)
 		box->h =  chart->u.pack.size[1] + trans[1];
 		box->index = i; /* warning this index skips PCHART_NOPACK boxes */
 		
-		if(margin>0.0f)
+		if (margin>0.0f)
 			area += sqrt(box->w*box->h);
 	}	
 	
-	if(margin>0.0f) {
+	if (margin>0.0f) {
 		/* multiply the margin by the area to give predictable results not dependent on UV scale,
 		 * ...Without using the area running pack multiple times also gives a bad feedback loop.
 		 * multiply by 0.1 so the margin value from the UI can be from 0.0 to 1.0 but not give a massive margin */
@@ -4417,7 +4417,7 @@ void param_pack(ParamHandle *handle, float margin)
 	}
 	MEM_freeN(boxarray);
 
-	if(phandle->aspx != phandle->aspy)
+	if (phandle->aspx != phandle->aspy)
 		param_scale(handle, phandle->aspx, phandle->aspy);
 }
 

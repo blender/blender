@@ -61,11 +61,11 @@ static void blend_color_add(char *cp, char *cp1, char *cp2, int fac)
 	int temp;
 
 	temp= cp1[0] + ((fac*cp2[0])/255);
-	if(temp>254) cp[0]= 255; else cp[0]= temp;
+	if (temp>254) cp[0]= 255; else cp[0]= temp;
 	temp= cp1[1] + ((fac*cp2[1])/255);
-	if(temp>254) cp[1]= 255; else cp[1]= temp;
+	if (temp>254) cp[1]= 255; else cp[1]= temp;
 	temp= cp1[2] + ((fac*cp2[2])/255);
-	if(temp>254) cp[2]= 255; else cp[2]= temp;
+	if (temp>254) cp[2]= 255; else cp[2]= temp;
 }
 
 static void blend_color_sub(char *cp, char *cp1, char *cp2, int fac)
@@ -73,11 +73,11 @@ static void blend_color_sub(char *cp, char *cp1, char *cp2, int fac)
 	int temp;
 
 	temp= cp1[0] - ((fac*cp2[0])/255);
-	if(temp<0) cp[0]= 0; else cp[0]= temp;
+	if (temp<0) cp[0]= 0; else cp[0]= temp;
 	temp= cp1[1] - ((fac*cp2[1])/255);
-	if(temp<0) cp[1]= 0; else cp[1]= temp;
+	if (temp<0) cp[1]= 0; else cp[1]= temp;
 	temp= cp1[2] - ((fac*cp2[2])/255);
-	if(temp<0) cp[2]= 0; else cp[2]= temp;
+	if (temp<0) cp[2]= 0; else cp[2]= temp;
 }
 
 static void blend_color_mul(char *cp, char *cp1, char *cp2, int fac)
@@ -348,7 +348,8 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 		if (do_char) srect = sbuf->rect + srcy * sbuf->x + srcx;
 		if (do_float) srectf = sbuf->rect_float + (srcy * sbuf->x + srcx)*4;
 		srcskip = sbuf->x;
-	} else {
+	}
+	else {
 		srect = drect;
 		srectf = drectf;
 		srcskip = destskip;
@@ -452,7 +453,7 @@ void IMB_rectfill(struct ImBuf *drect, const float col[4])
 {
 	int num;
 
-	if(drect->rect) {
+	if (drect->rect) {
 		unsigned int *rrect = drect->rect;
 		char ccol[4];
 		
@@ -466,7 +467,7 @@ void IMB_rectfill(struct ImBuf *drect, const float col[4])
 			*rrect++ = *((unsigned int*)ccol);
 	}
 	
-	if(drect->rect_float) {
+	if (drect->rect_float) {
 		float *rrectf = drect->rect_float;
 		
 		num = drect->x * drect->y;
@@ -514,7 +515,8 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 			chr = FTOCHAR(col[0]);
 			chg = FTOCHAR(col[1]);
 			chb = FTOCHAR(col[2]);
-		} else {
+		}
+		else {
 			fr = col[0]*a;
 			fg = col[1]*a;
 			fb = col[2]*a;
@@ -528,7 +530,8 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 						pixel[1] = chg;
 						pixel[2] = chb;
 						pixel[3] = 255;
-					} else {
+					}
+					else {
 						int alphatest;
 						pixel[0] = (char)((fr + ((float)pixel[0]*aich))*255.0f);
 						pixel[1] = (char)((fg + ((float)pixel[1]*aich))*255.0f);
@@ -550,7 +553,8 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 					pixel[1] = col[1];
 					pixel[2] = col[2];
 					pixel[3] = 1.0f;
-				} else {
+				}
+				else {
 					float alphatest;
 					pixel[0] = (col[0]*a) + (pixel[0]*ai);
 					pixel[1] = (col[1]*a) + (pixel[1]*ai);

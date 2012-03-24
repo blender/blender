@@ -98,7 +98,9 @@ static void make_prim_init(bContext *C, const char *idname,
 		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		*state = 1;
 	}
-	else DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	else {
+		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	}
 
 	*dia *= new_primitive_matrix(C, loc, rot, mat);
 }

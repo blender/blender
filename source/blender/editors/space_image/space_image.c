@@ -92,16 +92,16 @@ void ED_space_image_set(SpaceImage *sima, Scene *scene, Object *obedit, Image *i
 	 * to check if the face is displayed in UV-localview */
 	sima->image= ima;
 	
-	if(ima == NULL || ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
+	if (ima == NULL || ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
 		sima->flag &= ~SI_DRAWTOOL;
 	
-	if(sima->image)
+	if (sima->image)
 		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
 	
-	if(sima->image && sima->image->id.us==0)
+	if (sima->image && sima->image->id.us==0)
 		sima->image->id.us= 1;
 	
-	if(obedit)
+	if (obedit)
 		WM_main_add_notifier(NC_GEOM|ND_DATA, obedit->data);
 
 	WM_main_add_notifier(NC_SPACE|ND_SPACE_IMAGE, NULL);
@@ -111,15 +111,15 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
 {
 	ImBuf *ibuf;
 	
-	if(sima && sima->image) {
+	if (sima && sima->image) {
 #if 0
-		if(sima->image->type==IMA_TYPE_R_RESULT && BIF_show_render_spare())
+		if (sima->image->type==IMA_TYPE_R_RESULT && BIF_show_render_spare())
 			return BIF_render_spare_imbuf();
 		else
 #endif
 			ibuf= BKE_image_acquire_ibuf(sima->image, &sima->iuser, lock_r);
 		
-		if(ibuf && (ibuf->rect || ibuf->rect_float))
+		if (ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
 	}
 	
@@ -128,7 +128,7 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
 
 void ED_space_image_release_buffer(SpaceImage *sima, void *lock)
 {
-	if(sima && sima->image)
+	if (sima && sima->image)
 		BKE_image_release_ibuf(sima->image, lock);
 }
 
@@ -150,10 +150,10 @@ void ED_image_size(Image *ima, int *width, int *height)
 	ImBuf *ibuf= NULL;
 	void *lock;
 	
-	if(ima)
+	if (ima)
 		ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
 	
-	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
+	if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
 		*width= ibuf->x;
 		*height= ibuf->y;
 	}
@@ -162,7 +162,7 @@ void ED_image_size(Image *ima, int *width, int *height)
 		*height= 256;
 	}
 	
-	if(ima)
+	if (ima)
 		BKE_image_release_ibuf(ima, lock);
 }
 
@@ -174,23 +174,23 @@ void ED_space_image_size(SpaceImage *sima, int *width, int *height)
 	
 	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	
-	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
+	if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
 		*width= ibuf->x;
 		*height= ibuf->y;
 	}
-	else if(sima->image && sima->image->type==IMA_TYPE_R_RESULT && scene) {
+	else if (sima->image && sima->image->type==IMA_TYPE_R_RESULT && scene) {
 		/* not very important, just nice */
 		*width= (scene->r.xsch*scene->r.size)/100;
 		*height= (scene->r.ysch*scene->r.size)/100;
 
-		if((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
+		if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
 			*width *= (scene->r.border.xmax - scene->r.border.xmin);
 			*height *= (scene->r.border.ymax - scene->r.border.ymin);
 		}
 
 	}
 	/* I know a bit weak... but preview uses not actual image size */
-	// XXX else if(image_preview_active(sima, width, height));
+	// XXX else if (image_preview_active(sima, width, height));
 	else {
 		*width= 256;
 		*height= 256;
@@ -203,7 +203,7 @@ void ED_image_aspect(Image *ima, float *aspx, float *aspy)
 {
 	*aspx= *aspy= 1.0;
 	
-	if((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
+	if ((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
 	   (ima->aspx==0.0f || ima->aspy==0.0f))
 		return;
 	
@@ -236,7 +236,7 @@ void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
 	*aspx *= (float)w;
 	*aspy *= (float)h;
 	
-	if(*aspx < *aspy) {
+	if (*aspx < *aspy) {
 		*aspy= *aspy / *aspx;
 		*aspx= 1.0f;
 	}
@@ -264,7 +264,7 @@ int ED_space_image_show_render(SpaceImage *sima)
 
 int ED_space_image_show_paint(SpaceImage *sima)
 {
-	if(ED_space_image_show_render(sima))
+	if (ED_space_image_show_render(sima))
 		return 0;
 	
 	return (sima->flag & SI_DRAWTOOL);
@@ -272,10 +272,10 @@ int ED_space_image_show_paint(SpaceImage *sima)
 
 int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 {
-	if(sima && (ED_space_image_show_render(sima) || ED_space_image_show_paint(sima)))
+	if (sima && (ED_space_image_show_render(sima) || ED_space_image_show_paint(sima)))
 		return 0;
 
-	if(obedit && obedit->type == OB_MESH) {
+	if (obedit && obedit->type == OB_MESH) {
 		struct BMEditMesh *em = BMEdit_FromObject(obedit);
 		int ret;
 		
@@ -289,11 +289,11 @@ int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 
 int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 {
-	if(ED_space_image_show_render(sima))
+	if (ED_space_image_show_render(sima))
 		return 0;
 	
-	if(ED_space_image_show_paint(sima))
-		if(obedit && obedit->type == OB_MESH) {
+	if (ED_space_image_show_paint(sima))
+		if (obedit && obedit->type == OB_MESH) {
 			struct BMEditMesh *em = BMEdit_FromObject(obedit);
 			int ret;
 			
@@ -328,13 +328,13 @@ ARegion *image_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if(ar) return ar;
+	if (ar) return ar;
 	
 	/* add subdiv level; after header */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if(ar==NULL) return NULL;
+	if (ar==NULL) return NULL;
 	
 	arnew= MEM_callocN(sizeof(ARegion), "buttons for image");
 	
@@ -352,13 +352,13 @@ ARegion *image_has_scope_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
-	if(ar) return ar;
+	if (ar) return ar;
 
 	/* add subdiv level; after buttons */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
 
 	/* is error! */
-	if(ar==NULL) return NULL;
+	if (ar==NULL) return NULL;
 	
 	arnew= MEM_callocN(sizeof(ARegion), "scopes for image");
 	
@@ -429,7 +429,7 @@ static void image_free(SpaceLink *sl)
 {	
 	SpaceImage *simage= (SpaceImage*) sl;
 	
-	if(simage->cumap)
+	if (simage->cumap)
 		curvemapping_free(simage->cumap);
 	scopes_free(&simage->scopes);
 }
@@ -450,7 +450,7 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
 	SpaceImage *simagen= MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
-	if(simagen->cumap)
+	if (simagen->cumap)
 		simagen->cumap= curvemapping_copy(simagen->cumap);
 
 	scopes_new(&simagen->scopes);
@@ -548,8 +548,8 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 /* dropboxes */
 static int image_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
-	if(drag->type==WM_DRAG_PATH)
-		if(ELEM3(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
+	if (drag->type==WM_DRAG_PATH)
+		if (ELEM3(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
 			return 1;
 	return 0;
 }
@@ -579,25 +579,25 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 
 	ima= ED_space_image(sima);
 
-	if(sima->iuser.flag & IMA_ANIM_ALWAYS)
+	if (sima->iuser.flag & IMA_ANIM_ALWAYS)
 		BKE_image_user_calc_frame(&sima->iuser, scene->r.cfra, 0);
 	
 	/* check if we have to set the image from the editmesh */
-	if(ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
-	else if(obedit && obedit->type == OB_MESH) {
+	if (ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
+	else if (obedit && obedit->type == OB_MESH) {
 		Mesh *me= (Mesh*)obedit->data;
 		struct BMEditMesh *em= me->edit_btmesh;
 		int sloppy= 1; /* partially selected face is ok */
 
-		if(scene_use_new_shading_nodes(scene)) {
+		if (scene_use_new_shading_nodes(scene)) {
 			/* new shading system, get image from material */
 			BMFace *efa = BM_active_face_get(em->bm, sloppy);
 
-			if(efa) {
+			if (efa) {
 				Image *node_ima;
 				ED_object_get_active_image(obedit, efa->mat_nr, &node_ima, NULL, NULL);
 
-				if(node_ima)
+				if (node_ima)
 					sima->image= node_ima;
 			}
 		}
@@ -605,16 +605,16 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 			/* old shading system, we set texface */
 			MTexPoly *tf;
 			
-			if(em && EDBM_texFaceCheck(em)) {
+			if (em && EDBM_texFaceCheck(em)) {
 				sima->image= NULL;
 				
 				tf = EDBM_get_active_mtexpoly(em, NULL, TRUE); /* partially selected face is ok */
 				
-				if(tf) {
+				if (tf) {
 					/* don't need to check for pin here, see above */
 					sima->image= tf->tpage;
 					
-					if(sima->flag & SI_EDITTILE);
+					if (sima->flag & SI_EDITTILE);
 					else sima->curtile= tf->tile;
 				}
 			}
@@ -653,7 +653,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_SPACE:	
-			if(wmn->data == ND_SPACE_IMAGE) {
+			if (wmn->data == ND_SPACE_IMAGE) {
 				image_scopes_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
 			}
@@ -673,7 +673,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_TRANSFORM:
 				case ND_MODIFIER:
-					if(ob && (ob->mode & OB_MODE_EDIT) && sima->lock && (sima->flag & SI_DRAWSHADOW)) {
+					if (ob && (ob->mode & OB_MODE_EDIT) && sima->lock && (sima->flag & SI_DRAWSHADOW)) {
 						ED_area_tag_refresh(sa);
 						ED_area_tag_redraw(sa);
 					}
@@ -689,10 +689,10 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 
-	if(CTX_data_dir(member)) {
+	if (CTX_data_dir(member)) {
 		CTX_data_dir_set(result, image_context_dir);
 	}
-	else if(CTX_data_equals(member, "edit_image")) {
+	else if (CTX_data_equals(member, "edit_image")) {
 		CTX_data_id_pointer_set(result, (ID*)ED_space_image(sima));
 		return 1;
 	}
@@ -710,7 +710,7 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 	int width, height, winx, winy;
 	
 #if 0
-	if(image_preview_active(curarea, &width, &height));
+	if (image_preview_active(curarea, &width, &height));
 	else
 #endif
 	ED_space_image_size(sima, &width, &height);
@@ -718,7 +718,7 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 	w= width;
 	h= height;
 	
-	if(ima)
+	if (ima)
 		h *= ima->aspy/ima->aspx;
 
 	winx= ar->winrct.xmax - ar->winrct.xmin + 1;
@@ -869,7 +869,7 @@ static void image_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_BRUSH:
-			if(wmn->action==NA_EDITED)
+			if (wmn->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_TEXTURE:
@@ -900,7 +900,7 @@ static void image_scope_area_draw(const bContext *C, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	void *lock;
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
-	if(ibuf) {
+	if (ibuf) {
 		scopes_update(&sima->scopes, ibuf, scene->r.color_mgt_flag & R_COLOR_MANAGEMENT );
 	}
 	ED_space_image_release_buffer(sima, lock);

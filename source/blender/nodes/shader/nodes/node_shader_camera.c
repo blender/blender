@@ -43,7 +43,7 @@ static bNodeSocketTemplate sh_node_camera_out[]= {
 
 static void node_shader_exec_camera(void *data, bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **out)
 {
-	if(data) {
+	if (data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;  /* Data we need for shading. */
 		
 		copy_v3_v3(out[0]->vec, shi->co);		/* get view vector */

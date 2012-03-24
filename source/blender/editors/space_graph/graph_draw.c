@@ -499,7 +499,7 @@ static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2
 	/* when opening a blend file on a different sized screen or while dragging the toolbar this can happen
 	 * best just bail out in this case */
 	UI_view2d_grid_size(grid, &dx, &dy);
-	if(dx <= 0.0f)
+	if (dx <= 0.0f)
 		return;
 
 

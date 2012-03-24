@@ -79,21 +79,23 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 {
 	float visibility = 1.f;
 	
-	if(lar->shb) {
+	if (lar->shb) {
 		float dxco[3]={0.f, 0.f, 0.f}, dyco[3]={0.f, 0.f, 0.f};
 		
 		visibility = testshadowbuf(&R, lar->shb, co, dxco, dyco, 1.0, 0.0);		
-	} else if (lar->mode & LA_SHAD_RAY) {
+	}
+	else if (lar->mode & LA_SHAD_RAY) {
 		/* trace shadow manually, no good lamp api atm */
 		Isect is;
 		
 		copy_v3_v3(is.start, co);
-		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
+		if (lar->type==LA_SUN || lar->type==LA_HEMI) {
 			is.dir[0] = -lar->vec[0];
 			is.dir[1] = -lar->vec[1];
 			is.dir[2] = -lar->vec[2];
 			is.dist = R.maxdist;
-		} else {
+		}
+		else {
 			sub_v3_v3v3(is.dir, lar->co, is.start);
 			is.dist = normalize_v3( is.dir );
 		}
@@ -102,7 +104,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 		is.check = RE_CHECK_VLR_NON_SOLID_MATERIAL;
 		is.skip = 0;
 		
-		if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
+		if (lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
 			is.lay= lar->lay;	
 		else
 			is.lay= -1;
@@ -111,7 +113,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 		is.orig.face = NULL;
 		is.last_hit = lar->last_hit[shi->thread];
 		
-		if(RE_rayobject_raycast(R.raytree,&is)) {
+		if (RE_rayobject_raycast(R.raytree,&is)) {
 			visibility = 0.f;
 		}
 		
@@ -142,7 +144,7 @@ static int vol_get_bounds(ShadeInput *shi, const float co[3], const float vec[3]
 		isect->orig.ob = NULL;
 	}
 	
-	if(RE_rayobject_raycast(R.raytree, isect)) {
+	if (RE_rayobject_raycast(R.raytree, isect)) {
 		hitco[0] = isect->start[0] + isect->dist*isect->dir[0];
 		hitco[1] = isect->start[1] + isect->dist*isect->dir[1];
 		hitco[2] = isect->start[2] + isect->dist*isect->dir[2];
@@ -203,9 +205,10 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, const float co[3], f
 	isect.lay= -1;
 	
 	/* check to see if there's anything behind the volume, otherwise shade the sky */
-	if(RE_rayobject_raycast(R.raytree, &isect)) {
+	if (RE_rayobject_raycast(R.raytree, &isect)) {
 		shade_intersection(shi, col_r, &isect);
-	} else {
+	}
+	else {
 		shadeSkyView(col_r, co, shi->view, NULL, shi->thread);
 		shadeSunView(col_r, shi->view);
 	} 
@@ -377,7 +380,8 @@ static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3
 	
 	if (g == 0.f) {	/* isotropic */
 		return normalize * 1.f;
-	} else {		/* schlick */
+	}
+	else {		/* schlick */
 		const float k = 1.55f * g - .55f * g * g * g;
 		const float kcostheta = k * dot_v3v3(w, wp);
 		return normalize * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta));
@@ -479,7 +483,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const 
 	
 	copy_v3_v3(lacol, &lar->r);
 	
-	if(lar->mode & LA_TEXTURE) {
+	if (lar->mode & LA_TEXTURE) {
 		shi->osatex= 0;
 		do_lamp_tex(lar, lv, shi, lacol, LA_TEXTURE);
 	}
@@ -517,7 +521,8 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const 
 				atten_co = hitco;
 			else if ( lampdist < dist ) {
 				atten_co = lar->co;
-			} else
+			}
+			else
 				atten_co = hitco;
 			
 			vol_get_transmittance(shi, tr, co, atten_co);
@@ -554,7 +559,7 @@ void vol_get_scattering(ShadeInput *shi, float scatter_col[3], const float co[3]
 	zero_v3(scatter_col);
 
 	lights= get_lights(shi);
-	for(go=lights->first; go; go= go->next)
+	for (go=lights->first; go; go= go->next)
 	{
 		float lacol[3] = {0.f, 0.f, 0.f};
 		lar= go->lampren;
@@ -627,7 +632,8 @@ static void volumeintegrate(struct ShadeInput *shi, float col[4], const float co
 				p2[2] = p[2] + (step_vec[2] * 0.5f);
 				
 				vol_get_precached_scattering(&R, shi, scatter_col, p2);
-			} else
+			}
+			else
 				vol_get_scattering(shi, scatter_col, p, shi->view);
 			
 			radiance[0] += stepd * tr[0] * (emit_col[0] + scatter_col[0]);
@@ -694,7 +700,8 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 			if (!ztransp)
 				/* trace behind the volume object */
 				vol_trace_behind(shi, shi->vlr, endco, col);
-		} else {
+		}
+		else {
 			/* we're tracing through the volume between the camera 
 			 * and a solid surface, so use that pre-shaded radiance */
 			copy_v4_v4(col, shr->combined);
@@ -716,7 +723,8 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 			if (vlr->mat == shi->mat) {
 				/* trace behind the 2nd (raytrace) hit point */
 				vol_trace_behind(shi, (VlakRen *)is.hit.face, endco, col);
-			} else {
+			}
+			else {
 				shade_intersection(shi, col, &is);
 			}
 		}

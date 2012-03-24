@@ -109,16 +109,16 @@ static void node_composit_exec_huecorrect(void *UNUSED(data), bNode *node, bNode
 	/* stack order input:  fac, image, black level, white level */
 	/* stack order output: image */
 	
-	if(out[0]->hasoutput==0)
+	if (out[0]->hasoutput==0)
 		return;
 
-	if(in[0]->vec[0] == 0.f && in[0]->data == NULL) {
+	if (in[0]->vec[0] == 0.f && in[0]->data == NULL) {
 		out[0]->data = pass_on_compbuf(cbuf);
 		return;
 	}
 	
 	/* input no image? then only color operation */
-	if(in[1]->data==NULL) {
+	if (in[1]->data==NULL) {
 		do_huecorrect_fac(node, out[0]->vec, in[1]->vec, in[0]->vec);
 	}
 	

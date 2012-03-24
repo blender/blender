@@ -70,7 +70,7 @@ static int particle_system_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
 
-	if(!scene || !ob)
+	if (!scene || !ob)
 		return OPERATOR_CANCELLED;
 
 	object_add_particle_system(scene, ob, NULL);
@@ -101,7 +101,7 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
 	int mode_orig = ob->mode;
-	if(!scene || !ob)
+	if (!scene || !ob)
 		return OPERATOR_CANCELLED;
 
 	object_remove_particle_system(scene, ob);
@@ -109,9 +109,9 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	/* possible this isn't the active object
 	 * object_remove_particle_system() clears the mode on the last psys
 	 * */
-	if(mode_orig & OB_MODE_PARTICLE_EDIT)
-		if((ob->mode & OB_MODE_PARTICLE_EDIT)==0)
-			if(scene->basact && scene->basact->object==ob)
+	if (mode_orig & OB_MODE_PARTICLE_EDIT)
+		if ((ob->mode & OB_MODE_PARTICLE_EDIT)==0)
+			if (scene->basact && scene->basact->object==ob)
 				WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
@@ -157,14 +157,14 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 	psys = ptr.data;
 
 	/* add or copy particle setting */
-	if(psys->part)
+	if (psys->part)
 		part= psys_copy_settings(psys->part);
 	else
 		part= psys_new_settings("ParticleSettings", bmain);
 
 	ob= ptr.id.data;
 
-	if(psys->part)
+	if (psys->part)
 		psys->part->id.us--;
 
 	psys->part = part;
@@ -206,11 +206,11 @@ static int new_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ParticleTarget *pt;
 
-	if(!psys)
+	if (!psys)
 		return OPERATOR_CANCELLED;
 
 	pt = psys->targets.first;
-	for(; pt; pt=pt->next)
+	for (; pt; pt=pt->next)
 		pt->flag &= ~PTARGET_CURRENT;
 
 	pt = MEM_callocN(sizeof(ParticleTarget), "keyed particle target");
@@ -252,12 +252,12 @@ static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ParticleTarget *pt;
 
-	if(!psys)
+	if (!psys)
 		return OPERATOR_CANCELLED;
 
 	pt = psys->targets.first;
-	for(; pt; pt=pt->next) {
-		if(pt->flag & PTARGET_CURRENT) {
+	for (; pt; pt=pt->next) {
+		if (pt->flag & PTARGET_CURRENT) {
 			BLI_remlink(&psys->targets, pt);
 			MEM_freeN(pt);
 			break;
@@ -266,7 +266,7 @@ static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	pt = psys->targets.last;
 
-	if(pt)
+	if (pt)
 		pt->flag |= PTARGET_CURRENT;
 
 	DAG_scene_sort(bmain, scene);
@@ -300,12 +300,12 @@ static int target_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ptr.id.data;
 	ParticleTarget *pt;
 
-	if(!psys)
+	if (!psys)
 		return OPERATOR_CANCELLED;
 	
 	pt = psys->targets.first;
-	for(; pt; pt=pt->next) {
-		if(pt->flag & PTARGET_CURRENT && pt->prev) {
+	for (; pt; pt=pt->next) {
+		if (pt->flag & PTARGET_CURRENT && pt->prev) {
 			BLI_remlink(&psys->targets, pt);
 			BLI_insertlink(&psys->targets, pt->prev->prev, pt);
 
@@ -339,11 +339,11 @@ static int target_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ptr.id.data;
 	ParticleTarget *pt;
 
-	if(!psys)
+	if (!psys)
 		return OPERATOR_CANCELLED;
 	pt = psys->targets.first;
-	for(; pt; pt=pt->next) {
-		if(pt->flag & PTARGET_CURRENT && pt->next) {
+	for (; pt; pt=pt->next) {
+		if (pt->flag & PTARGET_CURRENT && pt->next) {
 			BLI_remlink(&psys->targets, pt);
 			BLI_insertlink(&psys->targets, pt->next, pt);
 
@@ -377,12 +377,12 @@ static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 	ParticleSettings *part;
 	ParticleDupliWeight *dw;
 
-	if(!psys)
+	if (!psys)
 		return OPERATOR_CANCELLED;
 
 	part = psys->part;
-	for(dw=part->dupliweights.first; dw; dw=dw->next) {
-		if(dw->flag & PART_DUPLIW_CURRENT && dw->prev) {
+	for (dw=part->dupliweights.first; dw; dw=dw->next) {
+		if (dw->flag & PART_DUPLIW_CURRENT && dw->prev) {
 			BLI_remlink(&part->dupliweights, dw);
 			BLI_insertlink(&part->dupliweights, dw->prev->prev, dw);
 
@@ -415,11 +415,11 @@ static int copy_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 	ParticleSettings *part;
 	ParticleDupliWeight *dw;
 
-	if(!psys)
+	if (!psys)
 		return OPERATOR_CANCELLED;
 	part = psys->part;
-	for(dw=part->dupliweights.first; dw; dw=dw->next) {
-		if(dw->flag & PART_DUPLIW_CURRENT) {
+	for (dw=part->dupliweights.first; dw; dw=dw->next) {
+		if (dw->flag & PART_DUPLIW_CURRENT) {
 			dw->flag &= ~PART_DUPLIW_CURRENT;
 			dw = MEM_dupallocN(dw);
 			dw->flag |= PART_DUPLIW_CURRENT;
@@ -454,12 +454,12 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 	ParticleSettings *part;
 	ParticleDupliWeight *dw;
 
-	if(!psys)
+	if (!psys)
 		return OPERATOR_CANCELLED;
 
 	part = psys->part;
-	for(dw=part->dupliweights.first; dw; dw=dw->next) {
-		if(dw->flag & PART_DUPLIW_CURRENT) {
+	for (dw=part->dupliweights.first; dw; dw=dw->next) {
+		if (dw->flag & PART_DUPLIW_CURRENT) {
 			BLI_remlink(&part->dupliweights, dw);
 			MEM_freeN(dw);
 			break;
@@ -468,7 +468,7 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	dw = part->dupliweights.last;
 
-	if(dw)
+	if (dw)
 		dw->flag |= PART_DUPLIW_CURRENT;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
@@ -499,12 +499,12 @@ static int dupliob_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 	ParticleSettings *part;
 	ParticleDupliWeight *dw;
 
-	if(!psys)
+	if (!psys)
 		return OPERATOR_CANCELLED;
 
 	part = psys->part;
-	for(dw=part->dupliweights.first; dw; dw=dw->next) {
-		if(dw->flag & PART_DUPLIW_CURRENT && dw->next) {
+	for (dw=part->dupliweights.first; dw; dw=dw->next) {
+		if (dw->flag & PART_DUPLIW_CURRENT && dw->next) {
 			BLI_remlink(&part->dupliweights, dw);
 			BLI_insertlink(&part->dupliweights, dw->next, dw);
 
@@ -542,27 +542,27 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	int i, k;
 	float hairmat[4][4];
 
-	if(!ob || !psys || psys->flag & PSYS_GLOBAL_HAIR)
+	if (!ob || !psys || psys->flag & PSYS_GLOBAL_HAIR)
 		return;
 
-	if(!psys->part || psys->part->type != PART_HAIR)
+	if (!psys->part || psys->part->type != PART_HAIR)
 		return;
 	
 	edit = psys->edit;
 	point= edit ? edit->points : NULL;
 
-	for(i=0, pa=psys->particles; i<psys->totpart; i++,pa++) {
-		if(point) {
+	for (i=0, pa=psys->particles; i<psys->totpart; i++,pa++) {
+		if (point) {
 			ekey = point->keys;
 			point++;
 		}
 
 		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
 
-		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
+		for (k=0,key=pa->hair; k<pa->totkey; k++,key++) {
 			mul_m4_v3(hairmat,key->co);
 			
-			if(ekey) {
+			if (ekey) {
 				ekey->flag &= ~PEK_USE_WCO;
 				ekey++;
 			}
@@ -573,7 +573,7 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	psys->flag |= PSYS_GLOBAL_HAIR;
 
-	if(ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_PUFF))
+	if (ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_PUFF))
 		pset->brushtype = PE_BRUSH_NONE;
 
 	PE_update_object(scene, ob, 0);
@@ -587,11 +587,11 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 	ParticleSystem *psys= NULL;
 	int all = RNA_boolean_get(op->ptr, "all");
 
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
-	if(all) {
-		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+	if (all) {
+		for (psys=ob->particlesystem.first; psys; psys=psys->next) {
 			disconnect_hair(scene, ob, psys);
 		}
 	}
@@ -637,13 +637,13 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	float hairmat[4][4], imat[4][4];
 	float v[4][3], vec[3];
 
-	if(!psys || !psys->part || psys->part->type != PART_HAIR)
+	if (!psys || !psys->part || psys->part->type != PART_HAIR)
 		return;
 	
 	edit= psys->edit;
 	point=  edit ? edit->points : NULL;
 	
-	if(psmd->dm->deformedOnly)
+	if (psmd->dm->deformedOnly)
 		/* we don't want to mess up psmd->dm when converting to global coordinates below */
 		dm= CDDM_copy(psmd->dm);
 	else
@@ -661,7 +661,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	bvhtree_from_mesh_faces(&bvhtree, dm, 0.0, 2, 6);
 
-	for(i=0, pa= psys->particles; i<psys->totpart; i++,pa++) {
+	for (i=0, pa= psys->particles; i<psys->totpart; i++,pa++) {
 		key = pa->hair;
 
 		nearest.index = -1;
@@ -669,7 +669,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 		BLI_bvhtree_find_nearest(bvhtree.tree, key->co, &nearest, bvhtree.nearest_callback, &bvhtree);
 
-		if(nearest.index == -1) {
+		if (nearest.index == -1) {
 			if (G.f & G_DEBUG)
 				printf("No nearest point found for hair root!");
 			continue;
@@ -680,7 +680,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 		copy_v3_v3(v[0], CDDM_get_vert(dm,mface->v1)->co);
 		copy_v3_v3(v[1], CDDM_get_vert(dm,mface->v2)->co);
 		copy_v3_v3(v[2], CDDM_get_vert(dm,mface->v3)->co);
-		if(mface->v4) {
+		if (mface->v4) {
 			copy_v3_v3(v[3], CDDM_get_vert(dm,mface->v4)->co);
 			interp_weights_poly_v3( pa->fuv,v, 4, nearest.co);
 		}
@@ -695,16 +695,16 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 		sub_v3_v3v3(vec, nearest.co, key->co);
 
-		if(point) {
+		if (point) {
 			ekey = point->keys;
 			point++;
 		}
 
-		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
+		for (k=0,key=pa->hair; k<pa->totkey; k++,key++) {
 			add_v3_v3(key->co, vec);
 			mul_m4_v3(imat,key->co);
 
-			if(ekey) {
+			if (ekey) {
 				ekey->flag |= PEK_USE_WCO;
 				ekey++;
 			}
@@ -729,11 +729,11 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 	ParticleSystem *psys= NULL;
 	int all = RNA_boolean_get(op->ptr, "all");
 
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
-	if(all) {
-		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+	if (all) {
+		for (psys=ob->particlesystem.first; psys; psys=psys->next) {
 			connect_hair(scene, ob, psys);
 		}
 	}

@@ -89,14 +89,14 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 	
 	vn= har->no;
 	
-	for(go=R.lights.first; go; go= go->next) {
+	for (go=R.lights.first; go; go= go->next) {
 		lar= go->lampren;
 		
 		/* test for lamplayer */
-		if(lar->mode & LA_LAYER) if((lar->lay & har->lay)==0) continue;
+		if (lar->mode & LA_LAYER) if((lar->lay & har->lay)==0) continue;
 		
 		/* lampdist cacluation */
-		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
+		if (lar->type==LA_SUN || lar->type==LA_HEMI) {
 			copy_v3_v3(lv, lar->vec);
 			lampdist= 1.0;
 		}
@@ -111,11 +111,11 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 			
 			/* ld is re-used further on (texco's) */
 			
-			if(lar->mode & LA_QUAD) {
+			if (lar->mode & LA_QUAD) {
 				t= 1.0;
-				if(lar->ld1>0.0f)
+				if (lar->ld1>0.0f)
 					t= lar->dist/(lar->dist+lar->ld1*ld);
-				if(lar->ld2>0.0f)
+				if (lar->ld2>0.0f)
 					t*= lar->distkw/(lar->distkw+lar->ld2*ld*ld);
 				
 				lampdist= t;
@@ -124,9 +124,9 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 				lampdist= (lar->dist/(lar->dist+ld));
 			}
 			
-			if(lar->mode & LA_SPHERE) {
+			if (lar->mode & LA_SPHERE) {
 				t= lar->dist - ld;
-				if(t<0.0f) continue;
+				if (t<0.0f) continue;
 				
 				t/= lar->dist;
 				lampdist*= (t);
@@ -138,7 +138,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 		lacol[1]= lar->g;
 		lacol[2]= lar->b;
 		
-		if(lar->mode & LA_TEXTURE) {
+		if (lar->mode & LA_TEXTURE) {
 			ShadeInput shi;
 			
 			/* Warning, This is not that nice, and possibly a bit slow,
@@ -152,10 +152,10 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 			do_lamp_tex(lar, lv, &shi, lacol, LA_TEXTURE);
 		}
 		
-		if(lar->type==LA_SPOT) {
+		if (lar->type==LA_SPOT) {
 			
-			if(lar->mode & LA_SQUARE) {
-				if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0f) {
+			if (lar->mode & LA_SQUARE) {
+				if (lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0f) {
 					float x, lvrot[3];
 					
 					/* rotate view to lampspace */
@@ -174,25 +174,25 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 			}
 			
 			t= lar->spotsi;
-			if(inpr<t) continue;
+			if (inpr<t) continue;
 			else {
 				t= inpr-t;
 				soft= 1.0;
-				if(t<lar->spotbl && lar->spotbl!=0.0f) {
+				if (t<lar->spotbl && lar->spotbl!=0.0f) {
 					/* soft area */
 					i= t/lar->spotbl;
 					t= i*i;
 					soft= (3.0f*t-2.0f*t*i);
 					inpr*= soft;
 				}
-				if(lar->mode & LA_ONLYSHADOW) {
+				if (lar->mode & LA_ONLYSHADOW) {
 					/* if(ma->mode & MA_SHADOW) { */
 					/* dot product positive: front side face! */
 					inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
-					if(inp>0.0f) {
+					if (inp>0.0f) {
 						/* testshadowbuf==0.0 : 100% shadow */
 						shadfac = testshadowbuf(&R, lar->shb, rco, dco, dco, inp, 0.0f);
-						if( shadfac>0.0f ) {
+						if ( shadfac>0.0f ) {
 							shadfac*= inp*soft*lar->energy;
 							ir -= shadfac;
 							ig -= shadfac;
@@ -205,7 +205,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 				}
 				lampdist*=inpr;
 			}
-			if(lar->mode & LA_ONLYSHADOW) continue;
+			if (lar->mode & LA_ONLYSHADOW) continue;
 			
 		}
 		
@@ -217,32 +217,32 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 		
 		i= inp;
 		
-		if(lar->type==LA_HEMI) {
+		if (lar->type==LA_HEMI) {
 			i= 0.5f*i+0.5f;
 		}
-		if(i>0.0f) {
+		if (i>0.0f) {
 			i*= lampdist;
 		}
 		
 		/* shadow  */
-		if(i> -0.41f) { /* heuristic valua! */
-			if(lar->shb) {
+		if (i> -0.41f) { /* heuristic valua! */
+			if (lar->shb) {
 				shadfac = testshadowbuf(&R, lar->shb, rco, dco, dco, inp, 0.0f);
-				if(shadfac==0.0f) continue;
+				if (shadfac==0.0f) continue;
 				i*= shadfac;
 			}
 		}
 		
-		if(i>0.0f) {
+		if (i>0.0f) {
 			ir+= i*lacol[0];
 			ig+= i*lacol[1];
 			ib+= i*lacol[2];
 		}
 	}
 	
-	if(ir<0.0f) ir= 0.0f;
-	if(ig<0.0f) ig= 0.0f;
-	if(ib<0.0f) ib= 0.0f;
+	if (ir<0.0f) ir= 0.0f;
+	if (ig<0.0f) ig= 0.0f;
+	if (ib<0.0f) ib= 0.0f;
 
 	col_r[0]*= ir;
 	col_r[1]*= ig;
@@ -260,11 +260,11 @@ static float haloZtoDist(int z)
 {
 	float zco = 0;
 
-	if(z >= 0x7FFFFF)
+	if (z >= 0x7FFFFF)
 		return 10e10;
 	else {
 		zco = (float)z/(float)0x7FFFFF;
-		if(R.r.mode & R_ORTHO)
+		if (R.r.mode & R_ORTHO)
 			return (R.winmat[3][2] - zco*R.winmat[3][3])/(R.winmat[2][2]);
 		else
 			return (R.winmat[3][2])/(R.winmat[2][2] - R.winmat[2][3]*zco);
@@ -287,8 +287,8 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	float t, zn, radist, ringf=0.0f, linef=0.0f, alpha, si, co;
 	int a;
    
-	if(R.wrld.mode & WO_MIST) {
-		if(har->type & HA_ONLYSKY) {
+	if (R.wrld.mode & WO_MIST) {
+		if (har->type & HA_ONLYSKY) {
 			/* stars but no mist */
 			alpha= har->alfa;
 		}
@@ -299,37 +299,37 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	}
 	else alpha= har->alfa;
 	
-	if(alpha==0.0f)
+	if (alpha==0.0f)
 		return 0;
 
 	/* soften the halo if it intersects geometry */
-	if(har->mat && har->mat->mode & MA_HALO_SOFT) {
+	if (har->mat && har->mat->mode & MA_HALO_SOFT) {
 		float segment_length, halo_depth, distance_from_z /* , visible_depth */ /* UNUSED */, soften;
 		
 		/* calculate halo depth */
 		segment_length= har->hasize*sasqrt(1.0f - dist/(har->rad*har->rad));
 		halo_depth= 2.0f*segment_length;
 
-		if(halo_depth < FLT_EPSILON)
+		if (halo_depth < FLT_EPSILON)
 			return 0;
 
 		/* calculate how much of this depth is visible */
 		distance_from_z = haloZtoDist(zz) - haloZtoDist(har->zs);
 		/* visible_depth = halo_depth; */ /* UNUSED */
-		if(distance_from_z < segment_length) {
+		if (distance_from_z < segment_length) {
 			soften= (segment_length + distance_from_z)/halo_depth;
 
 			/* apply softening to alpha */
-			if(soften < 1.0f)
+			if (soften < 1.0f)
 				alpha *= soften;
-			if(alpha <= 0.0f)
+			if (alpha <= 0.0f)
 				return 0;
 		}
 	}
 	else {
 		/* not a soft halo. use the old softening code */
 		/* halo being intersected? */
-		if(har->zs> zz-har->zd) {
+		if (har->zs> zz-har->zd) {
 			t= ((float)(zz-har->zs))/(float)har->zd;
 			alpha*= sqrtf(sqrtf(t));
 		}
@@ -338,31 +338,31 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	radist= sqrt(dist);
 
 	/* watch it: not used nicely: flarec is set at zero in pixstruct */
-	if(flarec) har->pixels+= (int)(har->rad-radist);
+	if (flarec) har->pixels+= (int)(har->rad-radist);
 
-	if(har->ringc) {
+	if (har->ringc) {
 		float *rc, fac;
 		int ofs;
 		
 		/* per ring an antialised circle */
 		ofs= har->seed;
 		
-		for(a= har->ringc; a>0; a--, ofs+=2) {
+		for (a= har->ringc; a>0; a--, ofs+=2) {
 			
 			rc= hashvectf + (ofs % 768);
 			
 			fac= fabsf( rc[1]*(har->rad*fabsf(rc[0]) - radist) );
 			
-			if(fac< 1.0f) {
+			if (fac< 1.0f) {
 				ringf+= (1.0f-fac);
 			}
 		}
 	}
 
-	if(har->type & HA_VECT) {
+	if (har->type & HA_VECT) {
 		dist= fabsf( har->cos*(yn) - har->sin*(xn) )/har->rad;
-		if(dist>1.0f) dist= 1.0f;
-		if(har->tex) {
+		if (dist>1.0f) dist= 1.0f;
+		if (har->tex) {
 			zn= har->sin*xn - har->cos*yn;
 			yn= har->cos*xn + har->sin*yn;
 			xn= zn;
@@ -370,49 +370,49 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	}
 	else dist= dist/har->radsq;
 
-	if(har->type & HA_FLARECIRC) {
+	if (har->type & HA_FLARECIRC) {
 		
 		dist= 0.5+fabs(dist-0.5f);
 		
 	}
 
-	if(har->hard>=30) {
+	if (har->hard>=30) {
 		dist= sqrt(dist);
-		if(har->hard>=40) {
+		if (har->hard>=40) {
 			dist= sinf(dist*(float)M_PI_2);
-			if(har->hard>=50) {
+			if (har->hard>=50) {
 				dist= sqrt(dist);
 			}
 		}
 	}
-	else if(har->hard<20) dist*=dist;
+	else if (har->hard<20) dist*=dist;
 
-	if(dist < 1.0f)
+	if (dist < 1.0f)
 		dist= (1.0f-dist);
 	else
 		dist= 0.0f;
 	
-	if(har->linec) {
+	if (har->linec) {
 		float *rc, fac;
 		int ofs;
 		
 		/* per starpoint an antialiased line */
 		ofs= har->seed;
 		
-		for(a= har->linec; a>0; a--, ofs+=3) {
+		for (a= har->linec; a>0; a--, ofs+=3) {
 			
 			rc= hashvectf + (ofs % 768);
 			
 			fac= fabs( (xn)*rc[0]+(yn)*rc[1]);
 			
-			if(fac< 1.0f )
+			if (fac< 1.0f )
 				linef+= (1.0f-fac);
 		}
 		
 		linef*= dist;
 	}
 
-	if(har->starpoints) {
+	if (har->starpoints) {
 		float ster, angle;
 		/* rotation */
 		angle= atan2(yn, xn);
@@ -424,15 +424,15 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 		angle= (co*xn+si*yn)*(co*yn-si*xn);
 		
 		ster= fabs(angle);
-		if(ster>1.0f) {
+		if (ster>1.0f) {
 			ster= (har->rad)/(ster);
 			
-			if(ster<1.0f) dist*= sqrtf(ster);
+			if (ster<1.0f) dist*= sqrtf(ster);
 		}
 	}
 
 	/* disputable optimize... (ton) */
-	if(dist<=0.00001f)
+	if (dist<=0.00001f)
 		return 0;
 	
 	dist*= alpha;
@@ -441,7 +441,7 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	
 	/* The color is either the rgb spec-ed by the user, or extracted from   */
 	/* the texture                                                           */
-	if(har->tex) {
+	if (har->tex) {
 		col[0]= har->r; 
 		col[1]= har->g; 
 		col[2]= har->b;
@@ -458,41 +458,41 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 		col[0]= dist*har->r;
 		col[1]= dist*har->g;
 		col[2]= dist*har->b;
-		if(har->type & HA_XALPHA) col[3]= dist*dist;
+		if (har->type & HA_XALPHA) col[3]= dist*dist;
 		else col[3]= dist;
 	}
 
-	if(har->mat) {
-		if(har->mat->mode & MA_HALO_SHADE) {
+	if (har->mat) {
+		if (har->mat->mode & MA_HALO_SHADE) {
 			/* we test for lights because of preview... */
-			if(R.lights.first) render_lighting_halo(har, col);
+			if (R.lights.first) render_lighting_halo(har, col);
 		}
 
 		/* Next, we do the line and ring factor modifications. */
-		if(linef!=0.0f) {
+		if (linef!=0.0f) {
 			Material *ma= har->mat;
 			
 			col[0]+= linef * ma->specr;
 			col[1]+= linef * ma->specg;
 			col[2]+= linef * ma->specb;
 			
-			if(har->type & HA_XALPHA) col[3]+= linef*linef;
+			if (har->type & HA_XALPHA) col[3]+= linef*linef;
 			else col[3]+= linef;
 		}
-		if(ringf!=0.0f) {
+		if (ringf!=0.0f) {
 			Material *ma= har->mat;
 
 			col[0]+= ringf * ma->mirr;
 			col[1]+= ringf * ma->mirg;
 			col[2]+= ringf * ma->mirb;
 			
-			if(har->type & HA_XALPHA) col[3]+= ringf*ringf;
+			if (har->type & HA_XALPHA) col[3]+= ringf*ringf;
 			else col[3]+= ringf;
 		}
 	}
 	
 	/* alpha requires clip, gives black dots */
-	if(col[3] > 1.0f)
+	if (col[3] > 1.0f)
 		col[3]= 1.0f;
 
 	return 1;
@@ -510,15 +510,15 @@ void shadeSkyView(float col_r[3], const float rco[3], const float view[3], const
 	skyflag = WO_ZENUP;
 	
 	/* Some view vector stuff. */
-	if(R.wrld.skytype & WO_SKYREAL) {
+	if (R.wrld.skytype & WO_SKYREAL) {
 		
 		blend = dot_v3v3(view, R.grvec);
 		
-		if(blend<0.0f) skyflag= 0;
+		if (blend<0.0f) skyflag= 0;
 		
 		blend= fabs(blend);
 	}
-	else if(R.wrld.skytype & WO_SKYPAPER) {
+	else if (R.wrld.skytype & WO_SKYPAPER) {
 		blend= 0.5f + 0.5f * view[1];
 	}
 	else {
@@ -531,9 +531,9 @@ void shadeSkyView(float col_r[3], const float rco[3], const float view[3], const
 
 	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
 	/* SKYBLEND is active, the texture and color blend are added.           */
-	if(R.wrld.skytype & WO_SKYTEX) {
+	if (R.wrld.skytype & WO_SKYTEX) {
 		copy_v3_v3(lo, view);
-		if(R.wrld.skytype & WO_SKYREAL) {
+		if (R.wrld.skytype & WO_SKYREAL) {
 			
 			mul_m3_v3(R.imat, lo);
 			
@@ -543,15 +543,16 @@ void shadeSkyView(float col_r[3], const float rco[3], const float view[3], const
 		do_sky_tex(rco, lo, dxyview, hor, zen, &blend, skyflag, thread);
 	}
 	
-	if(blend>1.0f) blend= 1.0f;
+	if (blend>1.0f) blend= 1.0f;
 	blendm= 1.0f-blend;
 	
 	/* No clipping, no conversion! */
-	if(R.wrld.skytype & WO_SKYBLEND) {
+	if (R.wrld.skytype & WO_SKYBLEND) {
 		col_r[0] = (blendm*hor[0] + blend*zen[0]);
 		col_r[1] = (blendm*hor[1] + blend*zen[1]);
 		col_r[2] = (blendm*hor[2] + blend*zen[2]);
-	} else {
+	}
+	else {
 		/* Done when a texture was grabbed. */
 		col_r[0]= hor[0];
 		col_r[1]= hor[1];
@@ -567,13 +568,13 @@ void shadeSunView(float col_r[3], const float view[3])
 	float sview[3];
 	int do_init= 1;
 	
-	for(go=R.lights.first; go; go= go->next) {
+	for (go=R.lights.first; go; go= go->next) {
 		lar= go->lampren;
-		if(lar->type==LA_SUN &&	lar->sunsky && (lar->sunsky->effect_type & LA_SUN_EFFECT_SKY)){
+		if (lar->type==LA_SUN &&	lar->sunsky && (lar->sunsky->effect_type & LA_SUN_EFFECT_SKY)) {
 			float sun_collector[3];
 			float colorxyz[3];
 			
-			if(do_init) {
+			if (do_init) {
 
 				normalize_v3_v3(sview, view);
 				mul_m3_v3(R.imat, sview);
@@ -608,7 +609,7 @@ void shadeSkyPixel(float collector[4], float fx, float fy, short thread)
 
 	float fac;
 
-	if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
+	if ((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		/* 1. solid color */
 		copy_v3_v3(collector, &R.wrld.horr);
 
@@ -618,7 +619,7 @@ void shadeSkyPixel(float collector[4], float fx, float fy, short thread)
 		/* 2. */
 
 		/* This one true because of the context of this routine  */
-		if(R.wrld.skytype & WO_SKYPAPER) {
+		if (R.wrld.skytype & WO_SKYPAPER) {
 			view[0]= -1.0f + 2.0f*(fx/(float)R.winx);
 			view[1]= -1.0f + 2.0f*(fy/(float)R.winy);
 			view[2]= 0.0;
@@ -630,7 +631,7 @@ void shadeSkyPixel(float collector[4], float fx, float fy, short thread)
 			calc_view_vector(view, fx, fy);
 			fac= normalize_v3(view);
 			
-			if(R.wrld.skytype & WO_SKYTEX) {
+			if (R.wrld.skytype & WO_SKYTEX) {
 				dxyview[0]= -R.viewdx/fac;
 				dxyview[1]= -R.viewdy/fac;
 			}

@@ -67,13 +67,13 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	Group *group;
 	int ok = 0;
 	
-	if(!ob) return OPERATOR_CANCELLED;
+	if (!ob) return OPERATOR_CANCELLED;
 	
 	/* linking to same group requires its own loop so we can avoid
 	 * looking up the active objects groups each time */
 
-	for(group= bmain->group.first; group; group=group->id.next) {
-		if(object_in_group(ob, group)) {
+	for (group= bmain->group.first; group; group=group->id.next) {
+		if (object_in_group(ob, group)) {
 			/* Assign groups to selected objects */
 			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 				add_to_group(group, base->object, scene, base);
@@ -83,7 +83,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	if(!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
+	if (!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
 	
 	DAG_scene_sort(bmain, scene);
 	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
@@ -114,13 +114,13 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	Group *group;
 	int ok = 0;
 	
-	if(!ob) return OPERATOR_CANCELLED;
+	if (!ob) return OPERATOR_CANCELLED;
 	
 	/* linking to same group requires its own loop so we can avoid
 	 * looking up the active objects groups each time */
 
-	for(group= bmain->group.first; group; group=group->id.next) {
-		if(object_in_group(ob, group)) {
+	for (group= bmain->group.first; group; group=group->id.next) {
+		if (object_in_group(ob, group)) {
 			/* Assign groups to selected objects */
 			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 				rem_from_group(group, base->object, scene, base);
@@ -130,7 +130,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	if(!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
+	if (!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
 	
 	DAG_scene_sort(bmain, scene);
 	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
@@ -161,7 +161,7 @@ static int group_objects_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		group = NULL;
-		while((group = find_group(base->object, group)))
+		while ((group = find_group(base->object, group)))
 			rem_from_group(group, base->object, scene, base);
 	}
 	CTX_DATA_END;
@@ -234,7 +234,7 @@ static int group_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_context(C);
 	Group *group;
 
-	if(ob == NULL)
+	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 
 	group= add_group("Group");
@@ -265,7 +265,7 @@ static int group_link_exec(bContext *C, wmOperator *op)
 	Object *ob= ED_object_context(C);
 	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "group"));
 
-	if(ELEM(NULL, ob, group))
+	if (ELEM(NULL, ob, group))
 		return OPERATOR_CANCELLED;
 
 	add_to_group(group, ob, scene, NULL);
@@ -303,7 +303,7 @@ static int group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_context(C);
 	Group *group= CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
 
-	if(!ob || !group)
+	if (!ob || !group)
 		return OPERATOR_CANCELLED;
 
 	rem_from_group(group, ob, scene, NULL); /* base will be used if found */

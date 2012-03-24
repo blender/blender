@@ -533,11 +533,13 @@ static int set_output(int argc, const char **argv, void *data)
 		Scene *scene= CTX_data_scene(C);
 		if (scene) {
 			BLI_strncpy(scene->r.pic, argv[1], sizeof(scene->r.pic));
-		} else {
+		}
+		else {
 			printf("\nError: no blend loaded. cannot use '-o / --render-output'.\n");
 		}
 		return 1;
-	} else {
+	}
+	else {
 		printf("\nError: you must specify a path after '-o  / --render-output'.\n");
 		return 0;
 	}
@@ -560,7 +562,7 @@ static int set_engine(int argc, const char **argv, void *data)
 			if (scene) {
 				RenderData *rd = &scene->r;
 
-				if(BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
+				if (BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
 					BLI_strncpy_utf8(rd->engine, argv[1], sizeof(rd->engine));
 				}
 			}
@@ -597,7 +599,8 @@ static int set_image_type(int argc, const char **argv, void *data)
 			printf("\nError: no blend loaded. order the arguments so '-F  / --render-format' is after the blend is loaded.\n");
 		}
 		return 1;
-	} else {
+	}
+	else {
 		printf("\nError: you must specify a format after '-F  / --render-foramt'.\n");
 		return 0;
 	}
@@ -606,13 +609,15 @@ static int set_image_type(int argc, const char **argv, void *data)
 static int set_threads(int argc, const char **argv, void *UNUSED(data))
 {
 	if (argc >= 1) {
-		if(G.background) {
+		if (G.background) {
 			RE_set_max_threads(atoi(argv[1]));
-		} else {
+		}
+		else {
 			printf("Warning: threads can only be set in background mode\n");
 		}
 		return 1;
-	} else {
+	}
+	else {
 		printf("\nError: you must specify a number of threads between 0 and 8 '-t  / --threads'.\n");
 		return 0;
 	}
@@ -626,16 +631,20 @@ static int set_extension(int argc, const char **argv, void *data)
 		if (scene) {
 			if (argv[1][0] == '0') {
 				scene->r.scemode &= ~R_EXTENSION;
-			} else if (argv[1][0] == '1') {
+			}
+			else if (argv[1][0] == '1') {
 				scene->r.scemode |= R_EXTENSION;
-			} else {
+			}
+			else {
 				printf("\nError: Use '-x 1 / -x 0' To set the extension option or '--use-extension'\n");
 			}
-		} else {
+		}
+		else {
 			printf("\nError: no blend loaded. order the arguments so '-o ' is after '-x '.\n");
 		}
 		return 1;
-	} else {
+	}
+	else {
 		printf("\nError: you must specify a path after '- '.\n");
 		return 0;
 	}
@@ -677,7 +686,8 @@ static int set_ge_parameters(int argc, const char **argv, void *data)
 			}
 			/* name arg eaten */
 
-		} else {
+		}
+		else {
 #ifdef WITH_GAMEENGINE
 			SYS_WriteCommandLineInt(syshandle,argv[a],1);
 #endif
@@ -729,11 +739,13 @@ static int render_frame(int argc, const char **argv, void *data)
 			RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step);
 			RE_SetReports(re, NULL);
 			return 1;
-		} else {
+		}
+		else {
 			printf("\nError: frame number must follow '-f / --render-frame'.\n");
 			return 0;
 		}
-	} else {
+	}
+	else {
 		printf("\nError: no blend loaded. cannot use '-f / --render-frame'.\n");
 		return 0;
 	}
@@ -760,14 +772,15 @@ static int render_animation(int UNUSED(argc), const char **UNUSED(argv), void *d
 
 static int set_scene(int argc, const char **argv, void *data)
 {
-	if(argc > 1) {
+	if (argc > 1) {
 		bContext *C= data;
 		Scene *scene= set_scene_name(CTX_data_main(C), argv[1]);
-		if(scene) {
+		if (scene) {
 			CTX_data_scene_set(C, scene);
 		}
 		return 1;
-	} else {
+	}
+	else {
 		printf("\nError: Scene name must follow '-S / --scene'.\n");
 		return 0;
 	}
@@ -782,11 +795,13 @@ static int set_start_frame(int argc, const char **argv, void *data)
 			int frame = atoi(argv[1]);
 			(scene->r.sfra) = CLAMPIS(frame, MINFRAME, MAXFRAME);
 			return 1;
-		} else {
+		}
+		else {
 			printf("\nError: frame number must follow '-s / --frame-start'.\n");
 			return 0;
 		}
-	} else {
+	}
+	else {
 		printf("\nError: no blend loaded. cannot use '-s / --frame-start'.\n");
 		return 0;
 	}
@@ -801,11 +816,13 @@ static int set_end_frame(int argc, const char **argv, void *data)
 			int frame = atoi(argv[1]);
 			(scene->r.efra) = CLAMPIS(frame, MINFRAME, MAXFRAME);
 			return 1;
-		} else {
+		}
+		else {
 			printf("\nError: frame number must follow '-e / --frame-end'.\n");
 			return 0;
 		}
-	} else {
+	}
+	else {
 		printf("\nError: no blend loaded. cannot use '-e / --frame-end'.\n");
 		return 0;
 	}
@@ -820,11 +837,13 @@ static int set_skip_frame(int argc, const char **argv, void *data)
 			int frame = atoi(argv[1]);
 			(scene->r.frame_step) = CLAMPIS(frame, 1, MAXFRAME);
 			return 1;
-		} else {
+		}
+		else {
 			printf("\nError: number of frames to step must follow '-j / --frame-jump'.\n");
 			return 0;
 		}
-	} else {
+	}
+	else {
 		printf("\nError: no blend loaded. cannot use '-j / --frame-jump'.\n");
 		return 0;
 	}
@@ -837,7 +856,7 @@ static int set_skip_frame(int argc, const char **argv, void *data)
 	wmWindowManager *wm= CTX_wm_manager(C);                                   \
 	wmWindow *prevwin= CTX_wm_window(C);                                      \
 	Scene *prevscene= CTX_data_scene(C);                                      \
-	if(wm->windows.first) {                                                   \
+	if (wm->windows.first) {                                                  \
 		CTX_wm_window_set(C, wm->windows.first);                              \
 		_cmd;                                                                 \
 		CTX_wm_window_set(C, prevwin);                                        \
@@ -867,7 +886,8 @@ static int run_python(int argc, const char **argv, void *data)
 		BPY_CTX_SETUP(BPY_filepath_exec(C, filename, NULL))
 
 		return 1;
-	} else {
+	}
+	else {
 		printf("\nError: you must specify a Python script after '-P / --python'.\n");
 		return 0;
 	}
@@ -940,7 +960,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 			wmWindowManager *wm= CTX_wm_manager(C);
 
 			/* special case, 2.4x files */
-			if(wm==NULL && CTX_data_main(C)->wm.first==NULL) {
+			if (wm==NULL && CTX_data_main(C)->wm.first==NULL) {
 				extern void wm_add_default(bContext *C);
 
 				/* wm_add_default() needs the screen to be set. */
@@ -971,7 +991,8 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 		/* happens for the UI on file reading too (huh? (ton))*/
 	// XXX			BKE_reset_undo();
 	//				BKE_write_undo("original");	/* save current state */
-	} else {
+	}
+	else {
 		/* we are not running in background mode here, but start blender in UI mode with
 		 * a file - this should do everything a 'load file' does */
 		ReportList reports;
@@ -1213,7 +1234,7 @@ int main(int argc, const char **argv)
 	G.background= 1; /* python module mode ALWAYS runs in background mode (for now) */
 #else
 	/* for all platforms, even windos has it! */
-	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
+	if (G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
 #endif
 
 	/* background render uses this font too */
@@ -1225,7 +1246,7 @@ int main(int argc, const char **argv)
 	
 	init_def_material();
 
-	if(G.background==0) {
+	if (G.background==0) {
 		BLI_argsParse(ba, 2, NULL, NULL);
 		BLI_argsParse(ba, 3, NULL, NULL);
 
@@ -1286,11 +1307,11 @@ int main(int argc, const char **argv)
 		WM_exit(C);
 	}
 	else {
-		if((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC)) {
-			if(WM_init_game(C))
+		if ((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC)) {
+			if (WM_init_game(C))
 				return 0;
 		}
-		else if(!G.file_loaded) {
+		else if (!G.file_loaded) {
 			WM_init_splash(C);
 		}
 	}

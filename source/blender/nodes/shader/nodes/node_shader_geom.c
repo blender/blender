@@ -53,17 +53,17 @@ static bNodeSocketTemplate sh_node_geom_out[]= {
 /* node execute callback */
 static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
-	if(data) {
+	if (data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
 		NodeGeometry *ngeo= (NodeGeometry*)node->storage;
 		ShadeInputUV *suv= &shi->uv[shi->actuv];
 		static float defaultvcol[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 		int i;
 
-		if(ngeo->uvname[0]) {
+		if (ngeo->uvname[0]) {
 			/* find uv map by name */
-			for(i = 0; i < shi->totuv; i++) {
-				if(strcmp(shi->uv[i].name, ngeo->uvname)==0) {
+			for (i = 0; i < shi->totuv; i++) {
+				if (strcmp(shi->uv[i].name, ngeo->uvname)==0) {
 					suv= &shi->uv[i];
 					break;
 				}
@@ -82,9 +82,9 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 			/* find vertex color layer by name */
 			ShadeInputCol *scol= &shi->col[0];
 
-			if(ngeo->colname[0]) {
-				for(i = 0; i < shi->totcol; i++) {
-					if(strcmp(shi->col[i].name, ngeo->colname)==0) {
+			if (ngeo->colname[0]) {
+				for (i = 0; i < shi->totcol; i++) {
+					if (strcmp(shi->col[i].name, ngeo->colname)==0) {
 						scol= &shi->col[i];
 						break;
 					}
@@ -100,7 +100,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 			out[GEOM_OUT_VCOL_ALPHA]->vec[0]= 1.0f;
 		}
 		
-		if(shi->osatex) {
+		if (shi->osatex) {
 			out[GEOM_OUT_GLOB]->data= shi->dxgl;
 			out[GEOM_OUT_GLOB]->datatype= NS_OSA_VECTORS;
 			out[GEOM_OUT_LOCAL]->data= shi->dxco;

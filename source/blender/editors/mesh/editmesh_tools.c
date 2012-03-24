@@ -3767,11 +3767,14 @@ static int edbm_select_by_number_vertices_exec(bContext *C, wmOperator *op)
 
 		if (type == 0 && efa->len < numverts) {
 			select = 1;
-		}else if (type == 1 && efa->len == numverts) {
+		}
+		else if (type == 1 && efa->len == numverts) {
 			select = 1;
-		}else if (type == 2 && efa->len > numverts) {
+		}
+		else if (type == 2 && efa->len > numverts) {
 			select = 1;
-		}else if (type == 3 && efa->len != numverts) {
+		}
+		else if (type == 3 && efa->len != numverts) {
 			select = 1;
 		}
 

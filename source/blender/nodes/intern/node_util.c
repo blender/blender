@@ -110,7 +110,7 @@ ListBase node_internal_connect_default(bNodeTree *ntree, bNode *node)
 	ret.first = ret.last = NULL;
 
 	/* Security check! */
-	if(!ntree)
+	if (!ntree)
 		return ret;
 
 	for (datatype=0; datatype < NUM_SOCKET_TYPES; ++datatype) {

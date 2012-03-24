@@ -147,13 +147,13 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->type= type;
 
-	if(type == ICON_TYPE_TEXTURE) {
+	if (type == ICON_TYPE_TEXTURE) {
 		di->data.texture.x= xofs;
 		di->data.texture.y= yofs;
 		di->data.texture.w= size;
 		di->data.texture.h= size;
 	}
-	else if(type == ICON_TYPE_BUFFER) {
+	else if (type == ICON_TYPE_BUFFER) {
 		iimg = MEM_mallocN(sizeof(IconImage), "icon_img");
 		iimg->rect = MEM_mallocN(size*size*sizeof(unsigned int), "icon_rect");
 		iimg->w = size;
@@ -517,7 +517,7 @@ static void init_internal_icons(void)
 		if (icondir) {
 			BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
 			bbuf = IMB_loadiffname(iconfilestr, IB_rect); /* if the image is missing bbuf will just be NULL */
-			if(bbuf && (bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H)) {
+			if (bbuf && (bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H)) {
 				printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
 				IMB_freeImBuf(bbuf);
 				bbuf= NULL;
@@ -527,21 +527,21 @@ static void init_internal_icons(void)
 			printf("%s: 'icons' data path not found, continuing\n", __func__);
 		}
 	}
-	if(bbuf==NULL)
+	if (bbuf==NULL)
 		bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_blender_icons_png, datatoc_blender_icons_png_size, IB_rect, "<blender icons>");
 
-	if(bbuf) {
+	if (bbuf) {
 		/* free existing texture if any */
-		if(icongltex.id) {
+		if (icongltex.id) {
 			glDeleteTextures(1, &icongltex.id);
 			icongltex.id= 0;
 		}
 
 		/* we only use a texture for cards with non-power of two */
-		if(GPU_non_power_of_two_support()) {
+		if (GPU_non_power_of_two_support()) {
 			glGenTextures(1, &icongltex.id);
 
-			if(icongltex.id) {
+			if (icongltex.id) {
 				icongltex.w = bbuf->x;
 				icongltex.h = bbuf->y;
 				icongltex.invw = 1.0f/bbuf->x;
@@ -553,7 +553,7 @@ static void init_internal_icons(void)
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glBindTexture(GL_TEXTURE_2D, 0);
 
-				if(glGetError() == GL_OUT_OF_MEMORY) {
+				if (glGetError() == GL_OUT_OF_MEMORY) {
 					glDeleteTextures(1, &icongltex.id);
 					icongltex.id= 0;
 				}
@@ -561,12 +561,12 @@ static void init_internal_icons(void)
 		}
 	}
 
-	if(icongltex.id)
+	if (icongltex.id)
 		icontype= ICON_TYPE_TEXTURE;
 	else
 		icontype= ICON_TYPE_BUFFER;
 	
-	if(bbuf) {
+	if (bbuf) {
 		for (y=0; y<ICON_GRID_ROWS; y++) {
 			for (x=0; x<ICON_GRID_COLS; x++) {
 				def_internal_icon(bbuf, BIFICONID_FIRST + y*ICON_GRID_COLS + x,
@@ -604,21 +604,21 @@ static void init_iconfile_list(struct ListBase *list)
 	list->first = list->last = NULL;
 	icondir = BLI_get_folder(BLENDER_DATAFILES, "icons");
 
-	if(icondir==NULL)
+	if (icondir==NULL)
 		return;
 	
 	/* since BLI_dir_contents changes the current working directory, restore it 
 	 * back to old value afterwards */
-	if(!BLI_current_working_dir(olddir, sizeof(olddir))) 
+	if (!BLI_current_working_dir(olddir, sizeof(olddir))) 
 		restoredir = 0;
 	totfile = BLI_dir_contents(icondir, &dir);
 	if (restoredir && !chdir(olddir)) {} /* fix warning about checking return value */
 
-	for(i=0; i<totfile; i++) {
-		if( (dir[i].type & S_IFREG) ) {
+	for (i=0; i<totfile; i++) {
+		if ( (dir[i].type & S_IFREG) ) {
 			char *filename = dir[i].relname;
 			
-			if(BLI_testextensie(filename, ".png")) {
+			if (BLI_testextensie(filename, ".png")) {
 				/* loading all icons on file start is overkill & slows startup
 				 * its possible they change size after blender load anyway. */
 #if 0
@@ -631,7 +631,7 @@ static void init_iconfile_list(struct ListBase *list)
 				BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, filename);
 				bbuf= IMB_loadiffname(iconfilestr, IB_rect);
 
-				if(bbuf) {
+				if (bbuf) {
 					ifilex = bbuf->x;
 					ifiley = bbuf->y;
 					IMB_freeImBuf(bbuf);
@@ -678,7 +678,7 @@ static void free_iconfile_list(struct ListBase *list)
 {
 	IconFile *ifile=NULL, *next_ifile=NULL;
 	
-	for(ifile=list->first; ifile; ifile=next_ifile) {
+	for (ifile=list->first; ifile; ifile=next_ifile) {
 		next_ifile = ifile->next;
 		BLI_freelinkN(list, ifile);
 	}
@@ -689,7 +689,7 @@ int UI_iconfile_get_index(const char *filename)
 	IconFile *ifile;
 	ListBase *list=&(iconfilelist);
 	
-	for(ifile=list->first; ifile; ifile=ifile->next) {
+	for (ifile=list->first; ifile; ifile=ifile->next) {
 		if (BLI_path_cmp(filename, ifile->filename) == 0) {
 			return ifile->index;
 		}
@@ -709,7 +709,7 @@ ListBase *UI_iconfile_list(void)
 void UI_icons_free(void)
 {
 #ifndef WITH_HEADLESS
-	if(icongltex.id) {
+	if (icongltex.id) {
 		glDeleteTextures(1, &icongltex.id);
 		icongltex.id= 0;
 	}
@@ -723,9 +723,9 @@ void UI_icons_free_drawinfo(void *drawinfo)
 {
 	DrawInfo *di = drawinfo;
 
-	if(di) {
-		if(di->type == ICON_TYPE_BUFFER) {
-			if(di->data.buffer.image) {
+	if (di) {
+		if (di->type == ICON_TYPE_BUFFER) {
+			if (di->data.buffer.image) {
 				MEM_freeN(di->data.buffer.image->rect);
 				MEM_freeN(di->data.buffer.image);
 			}
@@ -860,24 +860,24 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	ImBuf *ima= NULL;
 
 	/* sanity check */
-	if(w<=0 || h<=0 || w>2000 || h>2000) {
+	if (w<=0 || h<=0 || w>2000 || h>2000) {
 		printf("%s: icons are %i x %i pixels?\n", __func__, w, h);
 		BLI_assert(!"invalid icon size");
 		return;
 	}
 
 	/* modulate color */
-	if(alpha != 1.0f)
+	if (alpha != 1.0f)
 		glPixelTransferf(GL_ALPHA_SCALE, alpha);
 
-	if(rgb) {
+	if (rgb) {
 		glPixelTransferf(GL_RED_SCALE, rgb[0]);
 		glPixelTransferf(GL_GREEN_SCALE, rgb[1]);
 		glPixelTransferf(GL_BLUE_SCALE, rgb[2]);
 	}
 
 	/* rect contains image in 'rendersize', we only scale if needed */
-	if(rw!=w && rh!=h) {
+	if (rw!=w && rh!=h) {
 		/* first allocate imbuf for scaling and copy preview into it */
 		ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
 		memcpy(ima->rect, rect, rw*rh*sizeof(unsigned int));	
@@ -886,7 +886,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	}
 
 	/* draw */
-	if(is_preview) {
+	if (is_preview) {
 		glaDrawPixelsSafe(x, y, w, h, w, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 	}
 	else {
@@ -894,14 +894,14 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 	}
 
-	if(ima)
+	if (ima)
 		IMB_freeImBuf(ima);
 
 	/* restore color */
-	if(alpha != 0.0f)
+	if (alpha != 0.0f)
 		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 	
-	if(rgb) {
+	if (rgb) {
 		glPixelTransferf(GL_RED_SCALE, 1.0f);
 		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
 		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
@@ -912,7 +912,7 @@ static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy
 {
 	float x1, x2, y1, y2;
 
-	if(rgb) glColor4f(rgb[0], rgb[1], rgb[2], alpha);
+	if (rgb) glColor4f(rgb[0], rgb[1], rgb[2], alpha);
 	else glColor4f(1.0f, 1.0f, 1.0f, alpha);
 
 	x1= ix*icongltex.invw;
@@ -982,29 +982,29 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	w = (int)(fdraw_size/aspect + 0.5f);
 	h = (int)(fdraw_size/aspect + 0.5f);
 	
-	if(di->type == ICON_TYPE_VECTOR) {
+	if (di->type == ICON_TYPE_VECTOR) {
 		/* vector icons use the uiBlock transformation, they are not drawn
 		 * with untransformed coordinates like the other icons */
 		di->data.vector.func((int)x, (int)y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
 	} 
-	else if(di->type == ICON_TYPE_TEXTURE) {
+	else if (di->type == ICON_TYPE_TEXTURE) {
 		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
 			di->data.texture.w, di->data.texture.h, alpha, rgb);
 	}
-	else if(di->type == ICON_TYPE_BUFFER) {
+	else if (di->type == ICON_TYPE_BUFFER) {
 		/* it is a builtin icon */		
 		iimg= di->data.buffer.image;
 
-		if(!iimg->rect) return; /* something has gone wrong! */
+		if (!iimg->rect) return; /* something has gone wrong! */
 
 		icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, rgb, is_preview);
 	}
-	else if(di->type == ICON_TYPE_PREVIEW) {
+	else if (di->type == ICON_TYPE_PREVIEW) {
 		PreviewImage* pi = BKE_previewimg_get((ID*)icon->obj); 
 
-		if(pi) {			
+		if (pi) {			
 			/* no create icon on this level in code */
-			if(!pi->rect[size]) return; /* something has gone wrong! */
+			if (!pi->rect[size]) return; /* something has gone wrong! */
 			
 			/* preview images use premul alpha ... */
 			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -1041,13 +1041,13 @@ static void ui_id_brush_render(bContext *C, ID *id)
 	PreviewImage *pi = BKE_previewimg_get(id); 
 	enum eIconSizes i;
 	
-	if(!pi)
+	if (!pi)
 		return;
 	
-	for(i = 0; i < NUM_ICON_SIZES; i++) {
+	for (i = 0; i < NUM_ICON_SIZES; i++) {
 		/* check if rect needs to be created; changed
 		 * only set by dynamic icons */
-		if((pi->changed[i] || !pi->rect[i])) {
+		if ((pi->changed[i] || !pi->rect[i])) {
 			icon_set_image(C, id, pi, i);
 			pi->changed[i] = 0;
 		}
@@ -1059,7 +1059,7 @@ static int ui_id_brush_get_icon(bContext *C, ID *id)
 {
 	Brush *br = (Brush*)id;
 
-	if(br->flag & BRUSH_CUSTOM_ICON) {
+	if (br->flag & BRUSH_CUSTOM_ICON) {
 		BKE_icon_getid(id);
 		ui_id_brush_render(C, id);
 	}
@@ -1073,34 +1073,34 @@ static int ui_id_brush_get_icon(bContext *C, ID *id)
 		 * be strictly in one paint mode only to avoid
 		 * checking various context stuff here */
 
-		if(CTX_wm_view3d(C) && ob) {
-			if(ob->mode & OB_MODE_SCULPT)
+		if (CTX_wm_view3d(C) && ob) {
+			if (ob->mode & OB_MODE_SCULPT)
 				mode = OB_MODE_SCULPT;
-			else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))
+			else if (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))
 				mode = OB_MODE_VERTEX_PAINT;
-			else if(ob->mode & OB_MODE_TEXTURE_PAINT)
+			else if (ob->mode & OB_MODE_TEXTURE_PAINT)
 				mode = OB_MODE_TEXTURE_PAINT;
 		}
-		else if((sima = CTX_wm_space_image(C)) &&
+		else if ((sima = CTX_wm_space_image(C)) &&
 			(sima->flag & SI_DRAWTOOL)) {
 			mode = OB_MODE_TEXTURE_PAINT;
 		}
 
 		/* reset the icon */
-		if(mode == OB_MODE_SCULPT) {
+		if (mode == OB_MODE_SCULPT) {
 			items = brush_sculpt_tool_items;
 			tool = br->sculpt_tool;
 		}
-		else if(mode == OB_MODE_VERTEX_PAINT) {
+		else if (mode == OB_MODE_VERTEX_PAINT) {
 			items = brush_vertex_tool_items;
 			tool = br->vertexpaint_tool;
 		}
-		else if(mode == OB_MODE_TEXTURE_PAINT) {
+		else if (mode == OB_MODE_TEXTURE_PAINT) {
 			items = brush_image_tool_items;
 			tool = br->imagepaint_tool;
 		}
 
-		if(!items || !RNA_enum_icon_from_value(items, tool, &id->icon_id))
+		if (!items || !RNA_enum_icon_from_value(items, tool, &id->icon_id))
 			id->icon_id = 0;
 	}
 

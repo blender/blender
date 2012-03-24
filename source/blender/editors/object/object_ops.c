@@ -222,7 +222,7 @@ void ED_operatormacros_object(void)
 	wmOperatorTypeMacro *otmacro;
 	
 	ot = WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate Objects", OPTYPE_UNDO|OPTYPE_REGISTER);
-	if(ot) {
+	if (ot) {
 		ot->description = "Duplicate selected objects and move them";
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
@@ -231,7 +231,7 @@ void ED_operatormacros_object(void)
 
 	/* grr, should be able to pass options on... */
 	ot = WM_operatortype_append_macro("OBJECT_OT_duplicate_move_linked", "Duplicate Linked", OPTYPE_UNDO|OPTYPE_REGISTER);
-	if(ot) {
+	if (ot) {
 		ot->description = "Duplicate selected objects and move them";
 		otmacro = WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		RNA_boolean_set(otmacro->ptr, "linked", TRUE);
@@ -241,7 +241,7 @@ void ED_operatormacros_object(void)
 	
 	/* XXX */
 	ot = WM_operatortype_append_macro("OBJECT_OT_add_named_cursor", "Add named object at cursor", OPTYPE_UNDO|OPTYPE_REGISTER);
-	if(ot) {
+	if (ot) {
 		ot->description = "Add named object at cursor";
 		RNA_def_string(ot->srna, "name", "Cube", MAX_ID_NAME-2, "Name", "Object name to add");
 
@@ -391,7 +391,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_object_specials", WKEY, KM_PRESS, 0, 0);
 
-	for(i=0; i<=5; i++) {
+	for (i=0; i<=5; i++) {
 		kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY+i, KM_PRESS, KM_CTRL, 0);
 		RNA_int_set(kmi->ptr, "level", i);
 	}
@@ -421,7 +421,7 @@ void ED_object_generic_keymap(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyM
 	wmKeyMapItem *kmi;
 
 	/* used by mesh, curve & lattice only */
-	if(do_pet) {
+	if (do_pet) {
 		/* context ops */
 		kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_edit_falloff");
@@ -432,7 +432,8 @@ void ED_object_generic_keymap(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyM
 			kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, 0, 0);
 			RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_proportional_edit_objects");
 
-		} else { // Edit mode
+		}
+		else { // Edit mode
 
 			kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, 0, 0);
 			RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_edit");

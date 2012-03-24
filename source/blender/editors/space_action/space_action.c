@@ -289,17 +289,17 @@ static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_MODIFIER:
-					if(wmn->action == NA_RENAME)
+					if (wmn->action == NA_RENAME)
 						ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 	}
 }
@@ -341,12 +341,12 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 				
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 	}
 }
@@ -438,7 +438,7 @@ static void action_header_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}

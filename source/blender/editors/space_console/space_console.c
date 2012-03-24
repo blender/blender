@@ -101,10 +101,10 @@ static void console_free(SpaceLink *sl)
 {
 	SpaceConsole *sc= (SpaceConsole*) sl;
 	
-	while(sc->scrollback.first)
+	while (sc->scrollback.first)
 		console_scrollback_free(sc, sc->scrollback.first);
 	
-	while(sc->history.first)
+	while (sc->history.first)
 		console_history_free(sc, sc->history.first);
 }
 
@@ -141,7 +141,7 @@ static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* always keep the bottom part of the view aligned, less annoying */
-	if(prev_y_min != ar->v2d.cur.ymin) {
+	if (prev_y_min != ar->v2d.cur.ymin) {
 		const float cur_y_range= ar->v2d.cur.ymax - ar->v2d.cur.ymin;
 		ar->v2d.cur.ymin = prev_y_min;
 		ar->v2d.cur.ymax = prev_y_min + cur_y_range;
@@ -163,7 +163,7 @@ static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 static int id_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 //	SpaceConsole *sc= CTX_wm_space_console(C);
-	if(drag->type==WM_DRAG_ID)
+	if (drag->type==WM_DRAG_ID)
 		return 1;
 	return 0;
 }
@@ -185,7 +185,7 @@ static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
 static int path_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 //    SpaceConsole *sc= CTX_wm_space_console(C);
-	if(drag->type==WM_DRAG_PATH)
+	if (drag->type==WM_DRAG_PATH)
 		return 1;
 	return 0;
 }
@@ -216,7 +216,7 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 
-	if(sc->scrollback.first==NULL)
+	if (sc->scrollback.first==NULL)
 		WM_operator_name_call((bContext *)C, "CONSOLE_OT_banner", WM_OP_EXEC_DEFAULT, NULL);
 
 	/* clear and setup matrix */
@@ -357,7 +357,7 @@ static void console_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_CONSOLE) { /* generic redraw request */
+			if (wmn->data == ND_SPACE_CONSOLE) { /* generic redraw request */
 				ED_region_tag_redraw(ar);
 			}
 			break;

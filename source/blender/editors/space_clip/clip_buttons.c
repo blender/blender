@@ -85,17 +85,17 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 	uiLayout *row, *split;
 	uiBlock *block;
 
-	if(!ptr->data)
+	if (!ptr->data)
 		return;
 
 	prop= RNA_struct_find_property(ptr, propname);
-	if(!prop) {
+	if (!prop) {
 		printf("%s: property not found: %s.%s\n",
 		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
-	if(RNA_property_type(prop) != PROP_POINTER) {
+	if (RNA_property_type(prop) != PROP_POINTER) {
 		printf("%s: expected pointer property for %s.%s\n",
 		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
@@ -106,10 +106,10 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 
 	uiLayoutSetContextPointer(layout, "edit_movieclip", &clipptr);
 
-	if(!compact)
+	if (!compact)
 		uiTemplateID(layout, C, ptr, propname, NULL, "CLIP_OT_open", NULL);
 
-	if(clip) {
+	if (clip) {
 		row= uiLayoutRow(layout, 0);
 		block= uiLayoutGetBlock(row);
 		uiDefBut(block, LABEL, 0, "File Path:", 0, 19, 145, 19, NULL, 0, 0, 0, 0, "");
@@ -133,17 +133,17 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	rctf rect;
 	MovieClipScopes *scopes;
 
-	if(!ptr->data)
+	if (!ptr->data)
 		return;
 
 	prop= RNA_struct_find_property(ptr, propname);
-	if(!prop) {
+	if (!prop) {
 		printf("%s: property not found: %s.%s\n",
 		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
-	if(RNA_property_type(prop) != PROP_POINTER) {
+	if (RNA_property_type(prop) != PROP_POINTER) {
 		printf("%s: expected pointer property for %s.%s\n",
 		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
@@ -198,7 +198,7 @@ static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 	MarkerUpdateCb *cb= (MarkerUpdateCb*) arg_cb;
 	MovieTrackingMarker *marker;
 
-	if(!cb->compact)
+	if (!cb->compact)
 		return;
 
 	marker= BKE_tracking_ensure_marker(cb->track, cb->framenr);
@@ -218,7 +218,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 	marker= BKE_tracking_ensure_marker(cb->track, cb->framenr);
 
-	if(event==B_MARKER_POS) {
+	if (event==B_MARKER_POS) {
 		marker->pos[0]= cb->marker_pos[0]/width;
 		marker->pos[1]= cb->marker_pos[1]/height;
 
@@ -228,7 +228,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 		ok= 1;
 	}
-	else if(event==B_MARKER_PAT_DIM) {
+	else if (event==B_MARKER_PAT_DIM) {
 		float dim[2], pat_dim[2];
 
 		sub_v2_v2v2(pat_dim, cb->track->pat_max, cb->track->pat_min);
@@ -249,7 +249,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 		ok= 1;
 	}
-	else if(event==B_MARKER_SEARCH_POS) {
+	else if (event==B_MARKER_SEARCH_POS) {
 		float delta[2], side[2];
 
 		sub_v2_v2v2(side, cb->track->search_max, cb->track->search_min);
@@ -265,7 +265,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 		ok= 1;
 	}
-	else if(event==B_MARKER_SEARCH_DIM) {
+	else if (event==B_MARKER_SEARCH_DIM) {
 		float dim[2], search_dim[2];
 
 		sub_v2_v2v2(search_dim, cb->track->search_max, cb->track->search_min);
@@ -285,11 +285,13 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 		BKE_tracking_clamp_track(cb->track, CLAMP_SEARCH_DIM);
 
 		ok= 1;
-	} else if(event==B_MARKER_FLAG) {
+	}
+	else if (event==B_MARKER_FLAG) {
 		marker->flag= cb->marker_flag;
 
 		ok= 1;
-	} else if(event==B_MARKER_OFFSET) {
+	}
+	else if (event==B_MARKER_OFFSET) {
 		float offset[2], delta[2];
 		int i;
 
@@ -299,7 +301,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 		sub_v2_v2v2(delta, offset, cb->track->offset);
 		copy_v2_v2(cb->track->offset, offset);
 
-		for(i=0; i<cb->track->markersnr; i++)
+		for (i=0; i<cb->track->markersnr; i++)
 			sub_v2_v2(cb->track->markers[i].pos, delta);
 
 		/* to update position of "parented" objects */
@@ -309,7 +311,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 		ok= 1;
 	}
 
-	if(ok)
+	if (ok)
 		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, cb->clip);
 }
 
@@ -326,17 +328,17 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 	MarkerUpdateCb *cb;
 	const char *tip;
 
-	if(!ptr->data)
+	if (!ptr->data)
 		return;
 
 	prop= RNA_struct_find_property(ptr, propname);
-	if(!prop) {
+	if (!prop) {
 		printf("%s: property not found: %s.%s\n",
 		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
-	if(RNA_property_type(prop) != PROP_POINTER) {
+	if (RNA_property_type(prop) != PROP_POINTER) {
 		printf("%s: expected pointer property for %s.%s\n",
 		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
@@ -357,24 +359,25 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 	cb->marker_flag= marker->flag;
 	cb->framenr= user->framenr;
 
-	if(compact) {
+	if (compact) {
 		block= uiLayoutGetBlock(layout);
 
-		if(cb->marker_flag&MARKER_DISABLED)
+		if (cb->marker_flag&MARKER_DISABLED)
 			tip= "Marker is disabled at current frame";
 		else
 			tip= "Marker is enabled at current frame";
 
 		bt= uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_RESTRICT_VIEW_OFF, 0, 0, 20, 20, &cb->marker_flag, 0, 0, 1, 0, tip);
 		uiButSetNFunc(bt, marker_update_cb, cb, NULL);
-	} else {
+	}
+	else {
 		int width, height, step, digits;
 		float pat_dim[2], pat_pos[2], search_dim[2], search_pos[2];
 		uiLayout *col;
 
 		BKE_movieclip_get_size(clip, user, &width, &height);
 
-		if(track->flag&TRACK_LOCKED) {
+		if (track->flag&TRACK_LOCKED) {
 			uiLayoutSetActive(layout, 0);
 			block= uiLayoutAbsoluteBlock(layout);
 			uiDefBut(block, LABEL, 0, "Track is locked", 0, 0, 300, 19, NULL, 0, 0, 0, 0, "");
@@ -406,7 +409,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		uiBlockSetHandleFunc(block, marker_block_handler, cb);
 		uiBlockSetNFunc(block, marker_update_cb, cb, NULL);
 
-		if(cb->marker_flag&MARKER_DISABLED)
+		if (cb->marker_flag&MARKER_DISABLED)
 			tip= "Marker is disabled at current frame";
 		else
 			tip= "Marker is enabled at current frame";

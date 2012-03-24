@@ -114,7 +114,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	compression= compression < 0 ? 0 : (compression > 9 ? 9 : compression);
 
 	/* for prints */
-	if(flags & IB_mem)
+	if (flags & IB_mem)
 		name= "<memory>";
 
 	bytesperpixel = (ibuf->planes + 7) >> 3;
@@ -256,7 +256,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 
 	}
 
-	if(ibuf->ppm[0] > 0.0 && ibuf->ppm[1] > 0.0) {
+	if (ibuf->ppm[0] > 0.0 && ibuf->ppm[1] > 0.0) {
 		png_set_pHYs(png_ptr, info_ptr, (unsigned int)(ibuf->ppm[0] + 0.5), (unsigned int)(ibuf->ppm[1] + 0.5), PNG_RESOLUTION_METER);
 	}
 
@@ -366,7 +366,8 @@ struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 		png_set_palette_to_rgb(png_ptr);
 		if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
 			bytesperpixel = 4;
-		} else {
+		}
+		else {
 			bytesperpixel = 3;
 		}
 		break;
@@ -392,8 +393,8 @@ struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 			int unit_type;
 			png_uint_32 xres, yres;
 
-			if(png_get_pHYs(png_ptr, info_ptr, &xres, &yres, &unit_type))
-			if(unit_type == PNG_RESOLUTION_METER) {
+			if (png_get_pHYs(png_ptr, info_ptr, &xres, &yres, &unit_type))
+			if (unit_type == PNG_RESOLUTION_METER) {
 				ibuf->ppm[0]= xres;
 				ibuf->ppm[1]= yres;
 			}
@@ -470,7 +471,7 @@ struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 		if (flags & IB_metadata) {
 			png_text* text_chunks;
 			int count = png_get_text(png_ptr, info_ptr, &text_chunks, NULL);
-			for(i = 0; i < count; i++) {
+			for (i = 0; i < count; i++) {
 				IMB_metadata_add_field(ibuf, text_chunks[i].key, text_chunks[i].text);
 				ibuf->flags |= IB_metadata;				
 			 }

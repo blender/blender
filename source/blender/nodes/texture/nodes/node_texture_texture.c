@@ -63,11 +63,11 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		zero_v3(dyt);
 	}
 	
-	if(node->custom2 || node->need_exec==0) {
+	if (node->custom2 || node->need_exec==0) {
 		/* this node refers to its own texture tree! */
 		copy_v4_v4(out, (fabs(co[0] - co[1]) < .01) ? white : red );
 	}
-	else if(nodetex) {
+	else if (nodetex) {
 		TexResult texres;
 		int textype;
 		float nor[] = {0,0,0};
@@ -80,7 +80,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		textype = multitex_nodes(nodetex, co, dxt, dyt, p->osatex,
 			&texres, thread, 0, p->shi, p->mtex);
 		
-		if(textype & TEX_RGB) {
+		if (textype & TEX_RGB) {
 			copy_v4_v4(out, &texres.tr);
 		}
 		else {

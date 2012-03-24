@@ -76,7 +76,7 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 	
 	/* after lock we test cube[1], if set the other thread has done it fine */
 	BLI_lock_thread(LOCK_IMAGE);
-	if(env->cube[1]==NULL) {
+	if (env->cube[1]==NULL) {
 
 		BKE_free_envmapdata(env);	
 	
@@ -85,18 +85,20 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 		if (3*dx == ibuf->x) {
 			env->type = ENV_CUBE;
 			env->ok= ENV_OSA;
-		} else if (ibuf->x == ibuf->y) {
+		}
+		else if (ibuf->x == ibuf->y) {
 			env->type = ENV_PLANE;
 			env->ok= ENV_OSA;
-		} else {
+		}
+		else {
 			printf("Incorrect envmap size\n");
 			env->ok= 0;
 			env->ima->ok= 0;
 		}
 		
-		if(env->ok) {
+		if (env->ok) {
 			if (env->type == ENV_CUBE) {
-				for(part=0; part<6; part++) {
+				for (part=0; part<6; part++) {
 					env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect|IB_rectfloat);
 				}
 				IMB_float_from_rect(ibuf);
@@ -214,19 +216,24 @@ static void envmap_transmatrix(float mat[][4], int part)
 	
 	eul[0]= eul[1]= eul[2]= 0.0;
 	
-	if(part==0) {			/* neg z */
+	if (part==0) {			/* neg z */
 		;
-	} else if(part==1) {	/* pos z */
+	}
+	else if (part==1) {	/* pos z */
 		eul[0]= M_PI;
-	} else if(part==2) {	/* pos y */
+	}
+	else if (part==2) {	/* pos y */
 		eul[0]= M_PI/2.0;
-	} else if(part==3) {	/* neg x */
+	}
+	else if (part==3) {	/* neg x */
 		eul[0]= M_PI/2.0;
 		eul[2]= M_PI/2.0;
-	} else if(part==4) {	/* neg y */
+	}
+	else if (part==4) {	/* neg y */
 		eul[0]= M_PI/2.0;
 		eul[2]= M_PI;
-	} else {				/* pos x */
+	}
+	else {				/* pos x */
 		eul[0]= M_PI/2.0;
 		eul[2]= -M_PI/2.0;
 	}
@@ -250,7 +257,7 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 	float imat[3][3], pmat[4][4], smat[4][4], tmat[4][4], cmat[3][3], tmpmat[4][4];
 	int a;
 	
-	if(mode==0) {
+	if (mode==0) {
 		invert_m4_m4(tmat, mat);
 		copy_m3_m4(imat, tmat);
 	}
@@ -259,13 +266,13 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 		copy_m3_m4(imat, mat);
 	}
 
-	for(obi=re->instancetable.first; obi; obi=obi->next) {
+	for (obi=re->instancetable.first; obi; obi=obi->next) {
 		/* append or set matrix depending on dupli */
-		if(obi->flag & R_DUPLI_TRANSFORMED) {
+		if (obi->flag & R_DUPLI_TRANSFORMED) {
 			copy_m4_m4(tmpmat, obi->mat);
 			mult_m4_m4m4(obi->mat, tmat, tmpmat);
 		}
-		else if(mode==1)
+		else if (mode==1)
 			copy_m4_m4(obi->mat, tmat);
 		else
 			unit_m4(obi->mat);
@@ -275,23 +282,23 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 		transpose_m3(obi->nmat);
 
 		/* indicate the renderer has to use transform matrices */
-		if(mode==0)
+		if (mode==0)
 			obi->flag &= ~R_ENV_TRANSFORMED;
 		else
 			obi->flag |= R_ENV_TRANSFORMED;
 	}
 	
 
-	for(obr=re->objecttable.first; obr; obr=obr->next) {
-		for(a=0; a<obr->tothalo; a++) {
-			if((a & 255)==0) har= obr->bloha[a>>8];
+	for (obr=re->objecttable.first; obr; obr=obr->next) {
+		for (a=0; a<obr->tothalo; a++) {
+			if ((a & 255)==0) har= obr->bloha[a>>8];
 			else har++;
 		
 			mul_m4_v3(tmat, har->co);
 		}
 	}
 	
-	for(go=re->lights.first; go; go= go->next) {
+	for (go=re->lights.first; go; go= go->next) {
 		lar= go->lampren;
 		
 		/* removed here some horrible code of someone in NaN who tried to fix
@@ -309,8 +316,8 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 		mul_m3_v3(lar->imat, lar->sh_invcampos);
 		lar->sh_invcampos[2]*= lar->sh_zfac;
 		
-		if(lar->shb) {
-			if(mode==1) {
+		if (lar->shb) {
+			if (mode==1) {
 				invert_m4_m4(pmat, mat);
 				mult_m4_m4m4(smat, lar->shb->viewmat, pmat);
 				mult_m4_m4m4(lar->shb->persmat, lar->shb->winmat, smat);
@@ -339,10 +346,10 @@ static void env_layerflags(Render *re, unsigned int notlay)
 	
 	notlay= ~notlay;
 	
-	for(obr=re->objecttable.first; obr; obr=obr->next) {
-		if((obr->lay & notlay)==0) {
-			for(a=0; a<obr->totvlak; a++) {
-				if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
+	for (obr=re->objecttable.first; obr; obr=obr->next) {
+		if ((obr->lay & notlay)==0) {
+			for (a=0; a<obr->totvlak; a++) {
+				if ((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
 				else vlr++;
 
 				vlr->flag |= R_HIDDEN;
@@ -357,12 +364,12 @@ static void env_hideobject(Render *re, Object *ob)
 	VlakRen *vlr = NULL;
 	int a;
 	
-	for(obr=re->objecttable.first; obr; obr=obr->next) {
-		for(a=0; a<obr->totvlak; a++) {
-			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
+	for (obr=re->objecttable.first; obr; obr=obr->next) {
+		for (a=0; a<obr->totvlak; a++) {
+			if ((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
 			else vlr++;
 
-			if(obr->ob == ob)
+			if (obr->ob == ob)
 				vlr->flag |= R_HIDDEN;
 		}
 	}
@@ -374,9 +381,9 @@ static void env_showobjects(Render *re)
 	VlakRen *vlr = NULL;
 	int a;
 	
-	for(obr=re->objecttable.first; obr; obr=obr->next) {
-		for(a=0; a<obr->totvlak; a++) {
-			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
+	for (obr=re->objecttable.first; obr; obr=obr->next) {
+		for (a=0; a<obr->totvlak; a++) {
+			if ((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
 			else vlr++;
 
 			vlr->flag &= ~R_HIDDEN;
@@ -426,8 +433,8 @@ static void render_envmap(Render *re, EnvMap *env)
 	invert_m4_m4(tmat, mat);
 	copy_m3_m4(env->obimat, tmat);
 
-	for(part=0; part<6; part++) {
-		if(env->type==ENV_PLANE && part!=1)
+	for (part=0; part<6; part++) {
+		if (env->type==ENV_PLANE && part!=1)
 			continue;
 		
 		re->display_clear(re->dch, envre->result);
@@ -451,7 +458,7 @@ static void render_envmap(Render *re, EnvMap *env)
 		env_hideobject(envre, env->object);
 		env_set_imats(envre);
 				
-		if(re->test_break(re->tbh)==0) {
+		if (re->test_break(re->tbh)==0) {
 			RE_TileProcessor(envre);
 		}
 		
@@ -459,7 +466,7 @@ static void render_envmap(Render *re, EnvMap *env)
 		env_showobjects(envre);
 		env_rotate_scene(envre, tmat, 0);
 
-		if(re->test_break(re->tbh)==0) {
+		if (re->test_break(re->tbh)==0) {
 			RenderLayer *rl= envre->result->layers.first;
 			int y;
 			float *alpha;
@@ -472,19 +479,19 @@ static void render_envmap(Render *re, EnvMap *env)
 			
 			/* envmap renders without alpha */
 			alpha= ((float *)ibuf->rect_float)+3;
-			for(y= ibuf->x*ibuf->y - 1; y>=0; y--, alpha+=4)
+			for (y= ibuf->x*ibuf->y - 1; y>=0; y--, alpha+=4)
 				*alpha= 1.0;
 			
 			env->cube[part]= ibuf;
 		}
 		
-		if(re->test_break(re->tbh)) break;
+		if (re->test_break(re->tbh)) break;
 
 	}
 	
-	if(re->test_break(re->tbh)) BKE_free_envmapdata(env);
+	if (re->test_break(re->tbh)) BKE_free_envmapdata(env);
 	else {
-		if(envre->r.mode & R_OSA) env->ok= ENV_OSA;
+		if (envre->r.mode & R_OSA) env->ok= ENV_OSA;
 		else env->ok= ENV_NORMAL;
 		env->lastframe= re->scene->r.cfra;
 	}
@@ -515,12 +522,12 @@ void make_envmaps(Render *re)
 	while(depth<5) {
 		tex= re->main->tex.first;
 		while(tex) {
-			if(tex->id.us && tex->type==TEX_ENVMAP) {
-				if(tex->env && tex->env->object) {
+			if (tex->id.us && tex->type==TEX_ENVMAP) {
+				if (tex->env && tex->env->object) {
 					EnvMap *env= tex->env;
 					
-					if(env->object->lay & re->lay) {
-						if(env->stype==ENV_LOAD) {
+					if (env->object->lay & re->lay) {
+						if (env->stype==ENV_LOAD) {
 							float orthmat[4][4], mat[4][4], tmat[4][4];
 							
 							/* precalc orthmat for object */
@@ -535,29 +542,29 @@ void make_envmaps(Render *re)
 						else {
 							
 							/* decide if to render an envmap (again) */
-							if(env->depth >= depth) {
+							if (env->depth >= depth) {
 								
 								/* set 'recalc' to make sure it does an entire loop of recalcs */
 								
-								if(env->ok) {
+								if (env->ok) {
 										/* free when OSA, and old one isn't OSA */
-									if((re->r.mode & R_OSA) && env->ok==ENV_NORMAL) 
+									if ((re->r.mode & R_OSA) && env->ok==ENV_NORMAL)
 										BKE_free_envmapdata(env);
 										/* free when size larger */
-									else if(env->lastsize < re->r.size) 
+									else if (env->lastsize < re->r.size)
 										BKE_free_envmapdata(env);
 										/* free when env is in recalcmode */
-									else if(env->recalc)
+									else if (env->recalc)
 										BKE_free_envmapdata(env);
 								}
 								
-								if(env->ok==0 && depth==0) env->recalc= 1;
+								if (env->ok==0 && depth==0) env->recalc= 1;
 								
-								if(env->ok==0) {
+								if (env->ok==0) {
 									do_init= 1;
 									render_envmap(re, env);
 									
-									if(depth==env->depth) env->recalc= 0;
+									if (depth==env->depth) env->recalc= 0;
 								}
 							}
 						}
@@ -569,7 +576,7 @@ void make_envmaps(Render *re)
 		depth++;
 	}
 
-	if(do_init) {
+	if (do_init) {
 		re->display_init(re->dih, re->result);
 		re->display_clear(re->dch, re->result);
 		// re->flag |= R_REDRAW_PRV;
@@ -586,7 +593,7 @@ static int envcube_isect(EnvMap *env, float *vec, float *answ)
 	float labda;
 	int face;
 	
-	if(env->type==ENV_PLANE) {
+	if (env->type==ENV_PLANE) {
 		face= 1;
 		
 		labda= 1.0f/vec[2];
@@ -595,7 +602,7 @@ static int envcube_isect(EnvMap *env, float *vec, float *answ)
 	}
 	else {
 		/* which face */
-		if( vec[2] <= -fabsf(vec[0]) && vec[2] <= -fabsf(vec[1]) ) {
+		if ( vec[2] <= -fabsf(vec[0]) && vec[2] <= -fabsf(vec[1]) ) {
 			face= 0;
 			labda= -1.0f/vec[2];
 			answ[0]= labda*vec[0];
@@ -642,13 +649,13 @@ static int envcube_isect(EnvMap *env, float *vec, float *answ)
 
 static void set_dxtdyt(float *dxts, float *dyts, float *dxt, float *dyt, int face)
 {
-	if(face==2 || face==4) {
+	if (face==2 || face==4) {
 		dxts[0]= dxt[0];
 		dyts[0]= dyt[0];
 		dxts[1]= dxt[2];
 		dyts[1]= dyt[2];
 	}
-	else if(face==3 || face==5) {
+	else if (face==3 || face==5) {
 		dxts[0]= dxt[1];
 		dxts[1]= dxt[2];
 		dyts[0]= dyt[1];
@@ -674,17 +681,17 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	int face, face1;
 	
 	env= tex->env;
-	if(env==NULL || (env->stype!=ENV_LOAD && env->object==NULL)) {
+	if (env==NULL || (env->stype!=ENV_LOAD && env->object==NULL)) {
 		texres->tin= 0.0;
 		return 0;
 	}
 	
-	if(env->stype==ENV_LOAD) {
+	if (env->stype==ENV_LOAD) {
 		env->ima= tex->ima;
-		if(env->ima && env->ima->ok) {
-			if(env->cube[1]==NULL) {
+		if (env->ima && env->ima->ok) {
+			if (env->cube[1]==NULL) {
 				ImBuf *ibuf_ima= BKE_image_get_ibuf(env->ima, NULL);
-				if(ibuf_ima)
+				if (ibuf_ima)
 					envmap_split_ima(env, ibuf_ima);
 				else
 					env->ok= 0;
@@ -692,21 +699,21 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		}
 	}
 
-	if(env->ok==0) {
+	if (env->ok==0) {
 		texres->tin= 0.0;
 		return 0;
 	}
 	
 	/* rotate to envmap space, if object is set */
 	copy_v3_v3(vec, texvec);
-	if(env->object) mul_m3_v3(env->obimat, vec);
+	if (env->object) mul_m3_v3(env->obimat, vec);
 	else mul_mat3_m4_v3(R.viewinv, vec);
 	
 	face= envcube_isect(env, vec, sco);
 	ibuf= env->cube[face];
 	
-	if(osatex) {
-		if(env->object) {
+	if (osatex) {
+		if (env->object) {
 			mul_m3_v3(env->obimat, dxt);
 			mul_m3_v3(env->obimat, dyt);
 		}
@@ -719,7 +726,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		
 		/* edges? */
 		
-		if(texres->ta<1.0f) {
+		if (texres->ta<1.0f) {
 			TexResult texr1, texr2;
 	
 			texr1.nor= texr2.nor= NULL;
@@ -729,7 +736,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			face1= envcube_isect(env, vec, sco);
 			sub_v3_v3(vec, dxt);
 			
-			if(face!=face1) {
+			if (face!=face1) {
 				ibuf= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
 				imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, &texr1);
@@ -742,7 +749,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			face1= envcube_isect(env, vec, sco);
 			sub_v3_v3(vec, dyt);
 			
-			if(face!=face1) {
+			if (face!=face1) {
 				ibuf= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
 				imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, &texr2);
@@ -750,7 +757,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			else texr2.tr= texr2.tg= texr2.tb= texr2.ta= 0.0;
 			
 			fac= (texres->ta+texr1.ta+texr2.ta);
-			if(fac!=0.0f) {
+			if (fac!=0.0f) {
 				fac= 1.0f/fac;
 
 				texres->tr= fac*(texres->ta*texres->tr + texr1.ta*texr1.tr + texr2.ta*texr2.tr );

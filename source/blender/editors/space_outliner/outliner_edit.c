@@ -158,24 +158,24 @@ static void outliner_open_reveal(SpaceOops *soops, ListBase *lb, TreeElement *te
 static int do_outliner_item_openclose(bContext *C, SpaceOops *soops, TreeElement *te, int all, const float mval[2])
 {
 	
-	if(mval[1]>te->ys && mval[1]<te->ys+UI_UNIT_Y) {
+	if (mval[1]>te->ys && mval[1]<te->ys+UI_UNIT_Y) {
 		TreeStoreElem *tselem= TREESTORE(te);
 		
 		/* all below close/open? */
-		if(all) {
+		if (all) {
 			tselem->flag &= ~TSE_CLOSED;
 			outliner_set_flag(soops, &te->subtree, TSE_CLOSED, !outliner_has_one_flag(soops, &te->subtree, TSE_CLOSED, 1));
 		}
 		else {
-			if(tselem->flag & TSE_CLOSED) tselem->flag &= ~TSE_CLOSED;
+			if (tselem->flag & TSE_CLOSED) tselem->flag &= ~TSE_CLOSED;
 			else tselem->flag |= TSE_CLOSED;
 		}
 		
 		return 1;
 	}
 	
-	for(te= te->subtree.first; te; te= te->next) {
-		if(do_outliner_item_openclose(C, soops, te, all, mval)) 
+	for (te= te->subtree.first; te; te= te->next) {
+		if (do_outliner_item_openclose(C, soops, te, all, mval)) 
 			return 1;
 	}
 	return 0;
@@ -193,8 +193,8 @@ static int outliner_item_openclose(bContext *C, wmOperator *op, wmEvent *event)
 	
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval+1);
 	
-	for(te= soops->tree.first; te; te= te->next) {
-		if(do_outliner_item_openclose(C, soops, te, all, fmval)) 
+	for (te= soops->tree.first; te; te= te->next) {
+		if (do_outliner_item_openclose(C, soops, te, all, fmval)) 
 			break;
 	}
 
@@ -221,21 +221,21 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, ReportList *reports)
 {
 	/* can't rename rna datablocks entries */
-	if(ELEM3(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
+	if (ELEM3(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
 			/* do nothing */;
 	}
-	else if(ELEM10(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE,
+	else if (ELEM10(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE,
 	                             TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS))
 	{
 			BKE_report(reports, RPT_WARNING, "Cannot edit builtin name");
 	}
-	else if(ELEM3(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
+	else if (ELEM3(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit sequence name");
 	}
-	else if(tselem->id->lib) {
+	else if (tselem->id->lib) {
 		// XXX						error_libdata();
 	} 
-	else if(te->idcode == ID_LI && te->parent) {
+	else if (te->idcode == ID_LI && te->parent) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit the path of an indirectly linked library");
 	} 
 	else {
@@ -255,19 +255,19 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 {	
 	ReportList *reports= CTX_wm_reports(C); // XXX
 	
-	if(mval[1]>te->ys && mval[1]<te->ys+UI_UNIT_Y) {
+	if (mval[1]>te->ys && mval[1]<te->ys+UI_UNIT_Y) {
 		TreeStoreElem *tselem= TREESTORE(te);
 		
 		/* name and first icon */
-		if(mval[0]>te->xs+UI_UNIT_X && mval[0]<te->xend) {
+		if (mval[0]>te->xs+UI_UNIT_X && mval[0]<te->xend) {
 			
 			do_item_rename(ar, te, tselem, reports);
 		}
 		return 1;
 	}
 	
-	for(te= te->subtree.first; te; te= te->next) {
-		if(do_outliner_item_rename(C, ar, soops, te, mval)) return 1;
+	for (te= te->subtree.first; te; te= te->next) {
+		if (do_outliner_item_rename(C, ar, soops, te, mval)) return 1;
 	}
 	return 0;
 }
@@ -281,8 +281,8 @@ static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 	
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval+1);
 	
-	for(te= soops->tree.first; te; te= te->next) {
-		if(do_outliner_item_rename(C, ar, soops, te, fmval)) break;
+	for (te= soops->tree.first; te; te= te->next) {
+		if (do_outliner_item_rename(C, ar, soops, te, fmval)) break;
 	}
 	
 	return OPERATOR_FINISHED;
@@ -313,10 +313,10 @@ static int outliner_count_levels(SpaceOops *soops, ListBase *lb, int curlevel)
 	TreeElement *te;
 	int level=curlevel, lev;
 	
-	for(te= lb->first; te; te= te->next) {
+	for (te= lb->first; te; te= te->next) {
 		
 		lev= outliner_count_levels(soops, &te->subtree, curlevel+1);
-		if(lev>level) level= lev;
+		if (lev>level) level= lev;
 	}
 	return level;
 }
@@ -327,12 +327,12 @@ int outliner_has_one_flag(SpaceOops *soops, ListBase *lb, short flag, short curl
 	TreeStoreElem *tselem;
 	int level;
 	
-	for(te= lb->first; te; te= te->next) {
+	for (te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(tselem->flag & flag) return curlevel;
+		if (tselem->flag & flag) return curlevel;
 		
 		level= outliner_has_one_flag(soops, &te->subtree, flag, curlevel+1);
-		if(level) return level;
+		if (level) return level;
 	}
 	return 0;
 }
@@ -342,9 +342,9 @@ void outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short set)
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	
-	for(te= lb->first; te; te= te->next) {
+	for (te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(set==0) tselem->flag &= ~flag;
+		if (set==0) tselem->flag &= ~flag;
 		else tselem->flag |= flag;
 		outliner_set_flag(soops, &te->subtree, flag, set);
 	}
@@ -385,10 +385,10 @@ void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te, Tre
 	Object *ob = (Object *)tselem->id;
 	
 	/* add check for edit mode */
-	if(!common_restrict_check(C, ob)) return;
+	if (!common_restrict_check(C, ob)) return;
 	
-	if(base || (base= object_in_scene(ob, scene))) {
-		if((base->object->restrictflag ^= OB_RESTRICT_VIEW)) {
+	if (base || (base= object_in_scene(ob, scene))) {
+		if ((base->object->restrictflag ^= OB_RESTRICT_VIEW)) {
 			ED_base_object_select(base, BA_DESELECT);
 		}
 	}
@@ -434,8 +434,8 @@ void object_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeEleme
 {
 	Base *base= (Base *)te->directdata;
 	
-	if(base==NULL) base= object_in_scene((Object *)tselem->id, scene);
-	if(base) {
+	if (base==NULL) base= object_in_scene((Object *)tselem->id, scene);
+	if (base) {
 		base->object->restrictflag^=OB_RESTRICT_SELECT;
 	}
 }
@@ -480,8 +480,8 @@ void object_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeEleme
 {
 	Base *base= (Base *)te->directdata;
 	
-	if(base==NULL) base= object_in_scene((Object *)tselem->id, scene);
-	if(base) {
+	if (base==NULL) base= object_in_scene((Object *)tselem->id, scene);
+	if (base) {
 		base->object->restrictflag^=OB_RESTRICT_RENDER;
 	}
 }
@@ -648,10 +648,10 @@ static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
 	int dy= ar->v2d.mask.ymax - ar->v2d.mask.ymin;
 	int up= 0;
 	
-	if(RNA_boolean_get(op->ptr, "up"))
+	if (RNA_boolean_get(op->ptr, "up"))
 		up= 1;
 
-	if(up == 0) dy= -dy;
+	if (up == 0) dy= -dy;
 	ar->v2d.cur.ymin+= dy;
 	ar->v2d.cur.ymax+= dy;
 	
@@ -691,9 +691,9 @@ static void outliner_set_coordinates_element(SpaceOops *soops, TreeElement *te, 
 	te->ys= (float)(*starty);
 	*starty-= UI_UNIT_Y;
 	
-	if(TSELEM_OPEN(tselem,soops)) {
+	if (TSELEM_OPEN(tselem,soops)) {
 		TreeElement *ten;
-		for(ten= te->subtree.first; ten; ten= ten->next) {
+		for (ten= te->subtree.first; ten; ten= ten->next) {
 			outliner_set_coordinates_element(soops, ten, startx+UI_UNIT_X, starty);
 		}
 	}
@@ -707,7 +707,7 @@ static void outliner_set_coordinates(ARegion *ar, SpaceOops *soops)
 	int starty= (int)(ar->v2d.tot.ymax)-UI_UNIT_Y;
 	int startx= 0;
 	
-	for(te= soops->tree.first; te; te= te->next) {
+	for (te= soops->tree.first; te; te= te->next) {
 		outliner_set_coordinates_element(soops, te, startx, &starty);
 	}
 }
@@ -720,7 +720,7 @@ static TreeElement *outliner_find_named(SpaceOops *soops, ListBase *lb, char *na
 	for (te= lb->first; te; te= te->next) {
 		int found = outliner_filter_has_name(te, name, flags);
 		
-		if(found) {
+		if (found) {
 			/* name is right, but is element the previous one? */
 			if (prev) {
 				if ((te != prev) && (*prevFound)) 
@@ -734,7 +734,7 @@ static TreeElement *outliner_find_named(SpaceOops *soops, ListBase *lb, char *na
 		}
 		
 		tes= outliner_find_named(soops, &te->subtree, name, flags, prev, prevFound);
-		if(tes) return tes;
+		if (tes) return tes;
 	}
 
 	/* nothing valid found */
@@ -781,7 +781,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 		tselem= TREESTORE(te);
 		if (tselem) {
 			/* expand branches so that it will be visible, we need to get correct coordinates */
-			if( outliner_open_back(soops, te))
+			if ( outliner_open_back(soops, te))
 				outliner_set_coordinates(ar, soops);
 			
 			/* deselect all visible, and select found element */
@@ -790,7 +790,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 			
 			/* make te->ys center of view */
 			ytop= (int)(te->ys + (ar->v2d.mask.ymax-ar->v2d.mask.ymin)/2);
-			if(ytop>0) ytop= 0;
+			if (ytop>0) ytop= 0;
 			ar->v2d.cur.ymax = (float)ytop;
 			ar->v2d.cur.ymin = (float)(ytop-(ar->v2d.mask.ymax-ar->v2d.mask.ymin));
 			
@@ -824,14 +824,14 @@ static void outliner_openclose_level(SpaceOops *soops, ListBase *lb, int curleve
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	
-	for(te= lb->first; te; te= te->next) {
+	for (te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
 		
-		if(open) {
-			if(curlevel<=level) tselem->flag &= ~TSE_CLOSED;
+		if (open) {
+			if (curlevel<=level) tselem->flag &= ~TSE_CLOSED;
 		}
 		else {
-			if(curlevel>=level) tselem->flag |= TSE_CLOSED;
+			if (curlevel>=level) tselem->flag |= TSE_CLOSED;
 		}
 		
 		outliner_openclose_level(soops, &te->subtree, curlevel+1, level, open);
@@ -846,12 +846,12 @@ static int outliner_one_level_exec(bContext *C, wmOperator *op)
 	int level;
 	
 	level= outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1);
-	if(add==1) {
-		if(level) outliner_openclose_level(soops, &soops->tree, 1, level, 1);
+	if (add==1) {
+		if (level) outliner_openclose_level(soops, &soops->tree, 1, level, 1);
 	}
 	else {
-		if(level==0) level= outliner_count_levels(soops, &soops->tree, 0);
-		if(level) outliner_openclose_level(soops, &soops->tree, 1, level-1, 0);
+		if (level==0) level= outliner_count_levels(soops, &soops->tree, 0);
+		if (level) outliner_openclose_level(soops, &soops->tree, 1, level-1, 0);
 	}
 	
 	ED_region_tag_redraw(ar);
@@ -884,10 +884,10 @@ static int subtree_has_objects(SpaceOops *soops, ListBase *lb)
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	
-	for(te= lb->first; te; te= te->next) {
+	for (te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(tselem->type==0 && te->idcode==ID_OB) return 1;
-		if( subtree_has_objects(soops, &te->subtree)) return 1;
+		if (tselem->type==0 && te->idcode==ID_OB) return 1;
+		if ( subtree_has_objects(soops, &te->subtree)) return 1;
 	}
 	return 0;
 }
@@ -899,22 +899,22 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOops *soops, ListBase
 	TreeStoreElem *tselem;
 
 	/* open all object elems, close others */
-	for(te= lb->first; te; te= te->next) {
+	for (te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
 		
-		if(tselem->type==0) {
-			if(te->idcode==ID_SCE) {
-				if(tselem->id!=(ID *)scene) tselem->flag |= TSE_CLOSED;
+		if (tselem->type==0) {
+			if (te->idcode==ID_SCE) {
+				if (tselem->id!=(ID *)scene) tselem->flag |= TSE_CLOSED;
 					else tselem->flag &= ~TSE_CLOSED;
 			}
-			else if(te->idcode==ID_OB) {
-				if(subtree_has_objects(soops, &te->subtree)) tselem->flag &= ~TSE_CLOSED;
+			else if (te->idcode==ID_OB) {
+				if (subtree_has_objects(soops, &te->subtree)) tselem->flag &= ~TSE_CLOSED;
 				else tselem->flag |= TSE_CLOSED;
 			}
 		}
 		else tselem->flag |= TSE_CLOSED;
 		
-		if(TSELEM_OPEN(tselem,soops)) tree_element_show_hierarchy(scene, soops, &te->subtree);
+		if (TSELEM_OPEN(tselem,soops)) tree_element_show_hierarchy(scene, soops, &te->subtree);
 	}
 }
 
@@ -1013,12 +1013,12 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* just 'append' property to path 
 			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
-			if(tse->type == TSE_RNA_PROPERTY) {
-				if(RNA_property_type(prop) == PROP_POINTER) {
+			if (tse->type == TSE_RNA_PROPERTY) {
+				if (RNA_property_type(prop) == PROP_POINTER) {
 					/* for pointer we just append property name */
 					newpath= RNA_path_append(*path, ptr, prop, 0, NULL);
 				}
-				else if(RNA_property_type(prop) == PROP_COLLECTION) {
+				else if (RNA_property_type(prop) == PROP_COLLECTION) {
 					char buf[128], *name;
 					
 					temnext= (TreeElement*)(ld->next->data);
@@ -1027,19 +1027,19 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 					nextptr= &temnext->rnaptr;
 					name= RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf), NULL);
 					
-					if(name) {
+					if (name) {
 						/* if possible, use name as a key in the path */
 						newpath= RNA_path_append(*path, NULL, prop, 0, name);
 						
-						if(name != buf)
+						if (name != buf)
 							MEM_freeN(name);
 					}
 					else {
 						/* otherwise use index */
 						int index= 0;
 						
-						for(temsub=tem->subtree.first; temsub; temsub=temsub->next, index++)
-							if(temsub == temnext)
+						for (temsub=tem->subtree.first; temsub; temsub=temsub->next, index++)
+							if (temsub == temnext)
 								break;
 						
 						newpath= RNA_path_append(*path, NULL, prop, index, NULL);
@@ -1049,7 +1049,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 				}
 			}
 			
-			if(newpath) {
+			if (newpath) {
 				if (*path) MEM_freeN(*path);
 				*path= newpath;
 				newpath= NULL;
@@ -1059,11 +1059,11 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* no ID, so check if entry is RNA-struct, and if that RNA-struct is an ID datablock to extract info from */
 			if (tse->type == TSE_RNA_STRUCT) {
 				/* ptr->data not ptr->id.data seems to be the one we want, since ptr->data is sometimes the owner of this ID? */
-				if(RNA_struct_is_ID(ptr->type)) {
+				if (RNA_struct_is_ID(ptr->type)) {
 					*id= (ID *)ptr->data;
 					
 					/* clear path */
-					if(*path) {
+					if (*path) {
 						MEM_freeN(*path);
 						path= NULL;
 					}
@@ -1508,7 +1508,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if (te_found) break;
 	}
 
-	if(te_found) {
+	if (te_found) {
 		RNA_string_set(op->ptr, "parent", te_found->name);
 		/* Identify parent and child */
 		RNA_string_get(op->ptr, "child", childname);

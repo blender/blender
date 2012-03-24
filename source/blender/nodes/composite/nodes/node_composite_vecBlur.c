@@ -52,21 +52,21 @@ static void node_composit_exec_vecblur(void *UNUSED(data), bNode *node, bNodeSta
 	NodeBlurData *nbd= node->storage;
 	CompBuf *new, *img= in[0]->data, *vecbuf= in[2]->data, *zbuf= in[1]->data;
 	
-	if(img==NULL || vecbuf==NULL || zbuf==NULL || out[0]->hasoutput==0)
+	if (img==NULL || vecbuf==NULL || zbuf==NULL || out[0]->hasoutput==0)
 		return;
-	if(vecbuf->x!=img->x || vecbuf->y!=img->y) {
+	if (vecbuf->x!=img->x || vecbuf->y!=img->y) {
 		printf("ERROR: cannot do different sized vecbuf yet\n");
 		return;
 	}
-	if(vecbuf->type!=CB_VEC4) {
+	if (vecbuf->type!=CB_VEC4) {
 		printf("ERROR: input should be vecbuf\n");
 		return;
 	}
-	if(zbuf->type!=CB_VAL) {
+	if (zbuf->type!=CB_VAL) {
 		printf("ERROR: input should be zbuf\n");
 		return;
 	}
-	if(zbuf->x!=img->x || zbuf->y!=img->y) {
+	if (zbuf->x!=img->x || zbuf->y!=img->y) {
 		printf("ERROR: cannot do different sized zbuf yet\n");
 		return;
 	}
@@ -81,7 +81,7 @@ static void node_composit_exec_vecblur(void *UNUSED(data), bNode *node, bNodeSta
 	
 	out[0]->data= new;
 	
-	if(img!=in[0]->data)
+	if (img!=in[0]->data)
 		free_compbuf(img);
 }
 

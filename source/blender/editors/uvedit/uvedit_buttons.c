@@ -81,7 +81,7 @@ static int uvedit_center(Scene *scene, BMEditMesh *em, Image *UNUSED(ima), float
 		}
 	}
 
-	if(tot > 0) {
+	if (tot > 0) {
 		center[0] /= tot;
 		center[1] /= tot;
 	}
@@ -124,15 +124,15 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 	
 	em = BMEdit_FromObject(obedit);
 
-	if(uvedit_center(scene, em, ima, center)) {
+	if (uvedit_center(scene, em, ima, center)) {
 		copy_v2_v2(uvedit_old_center, center);
 
-		if(!(sima->flag & SI_COORDFLOATS)) {
+		if (!(sima->flag & SI_COORDFLOATS)) {
 			uvedit_old_center[0] *= imx;
 			uvedit_old_center[1] *= imy;
 		}
 
-		if(sima->flag & SI_COORDFLOATS) {
+		if (sima->flag & SI_COORDFLOATS) {
 			step= 1;
 			digits= 3;
 		}
@@ -158,7 +158,7 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 	float center[2], delta[2];
 	int imx, imy;
 
-	if(event != B_UVEDIT_VERTEX)
+	if (event != B_UVEDIT_VERTEX)
 		return;
 
 	em = BMEdit_FromObject(obedit);
@@ -166,7 +166,7 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 	ED_space_image_size(sima, &imx, &imy);
 	uvedit_center(scene, em, ima, center);
 
-	if(sima->flag & SI_COORDFLOATS) {
+	if (sima->flag & SI_COORDFLOATS) {
 		delta[0]= uvedit_old_center[0] - center[0];
 		delta[1]= uvedit_old_center[1] - center[1];
 	}

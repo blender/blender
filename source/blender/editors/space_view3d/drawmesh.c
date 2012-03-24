@@ -152,7 +152,7 @@ static DMDrawOption draw_mesh_face_select__setHiddenOpts(void *userData, int ind
 		else
 			return DM_DRAW_OPTION_SKIP;
 	}
-	else if(flags & eEdge_Select)
+	else if (flags & eEdge_Select)
 		return DM_DRAW_OPTION_NORMAL;
 	else
 		return DM_DRAW_OPTION_SKIP;

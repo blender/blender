@@ -1015,9 +1015,11 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 		else if(IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
 			att1 = linatt;
 			d = (1.0f/linatt);
-		} else if (IS_EQ(constatt, 1.0f)) {
+		}
+		else if (IS_EQ(constatt, 1.0f)) {
 			att1 = 1.0f;
-		} else {
+		}
+		else {
 			// assuming point light (const att = 1.0);
 			att1 = 1.0f;
 		}

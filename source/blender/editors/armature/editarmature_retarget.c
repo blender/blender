@@ -323,7 +323,7 @@ static RigGraph *newRigGraph(void)
 	rg->free_node = NULL;
 	
 #ifdef USE_THREADS
-//	if(G.scene->r.mode & R_FIXED_THREADS)
+//	if (G.scene->r.mode & R_FIXED_THREADS)
 //	{
 //		totthread = G.scene->r.threads;
 //	}
@@ -1008,7 +1008,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 			/* look on deform bones first */
 			BLI_ghashIterator_init(&ghi, rg->bones_map);
 			
-			for( ; !BLI_ghashIterator_isDone(&ghi); BLI_ghashIterator_step(&ghi))
+			for ( ; !BLI_ghashIterator_isDone(&ghi); BLI_ghashIterator_step(&ghi))
 			{
 				EditBone *bone = (EditBone*)BLI_ghashIterator_getValue(&ghi);
 				
@@ -1298,7 +1298,7 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 	RigArc *arc = NULL;
 	int contain_head = 0;
 	
-	for(bone = root_bone; bone; bone = nextEditBoneChild(list, bone, 0))
+	for (bone = root_bone; bone; bone = nextEditBoneChild(list, bone, 0))
 	{
 		int nb_children;
 		
@@ -1550,7 +1550,7 @@ RigGraph *RIG_graphFromArmature(const bContext *C, Object *ob, bArmature *arm)
 	rg->ob = ob;
 
 	/* Do the rotations */
-	for (ebone = rg->editbones->first; ebone; ebone=ebone->next){
+	for (ebone = rg->editbones->first; ebone; ebone=ebone->next) {
 		if (ebone->parent == NULL)
 		{
 			RIG_arcFromBoneChain(rg, rg->editbones, ebone, NULL, 0);
@@ -1602,7 +1602,7 @@ static RigGraph *armatureSelectedToGraph(bContext *C, Object *ob, bArmature *arm
 	rg->ob = ob;
 
 	/* Do the rotations */
-	for (ebone = rg->editbones->first; ebone; ebone=ebone->next){
+	for (ebone = rg->editbones->first; ebone; ebone=ebone->next) {
 		if (ebone->parent == NULL)
 		{
 			RIG_arcFromBoneChain(rg, rg->editbones, ebone, NULL, 1);
@@ -2488,7 +2488,7 @@ static void markMultiResolutionChildArc(ReebNode *end_enode, ReebNode *enode)
 {
 	int i;
 	
-	for(i = 0; i < enode->degree; i++)
+	for (i = 0; i < enode->degree; i++)
 	{
 		ReebArc *earc = (ReebArc*)enode->arcs[i];
 		
@@ -2593,7 +2593,7 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 //		RIG_printArcBones(next_iarc);
 //	}
 	
-	for(i = 0; i < enode->degree; i++)
+	for (i = 0; i < enode->degree; i++)
 	{
 		next_earc = (ReebArc*)enode->arcs[i];
 		
@@ -2644,14 +2644,14 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 //		printf("flag %i -- level %i -- flag %i -- group %i\n", ARC_FREE, symmetry_level, symmetry_flag, symmetry_group);
 //		
 //		printf("CANDIDATES\n");
-//		for(i = 0; i < enode->degree; i++)
+//		for (i = 0; i < enode->degree; i++)
 //		{
 //			next_earc = (ReebArc*)enode->arcs[i];
 //			printf("flag %i -- level %i -- flag %i -- group %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag, next_earc->symmetry_group);
 //		}
 		
 		/* Emergency matching */
-		for(i = 0; i < enode->degree; i++)
+		for (i = 0; i < enode->degree; i++)
 		{
 			next_earc = (ReebArc*)enode->arcs[i];
 			
@@ -2687,7 +2687,7 @@ static void retargetSubgraph(bContext *C, RigGraph *rigg, RigArc *start_arc, Rig
 		matchMultiResolutionNode(rigg, inode, enode);
 	}
 	
-	for(i = 0; i < inode->degree; i++)
+	for (i = 0; i < inode->degree; i++)
 	{
 		RigArc *next_iarc = (RigArc*)inode->arcs[i];
 		

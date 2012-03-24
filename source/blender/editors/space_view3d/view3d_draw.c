@@ -1488,7 +1488,7 @@ unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int 
 							goto exit; 
 						}						
 					}
-					else{
+					else {
 						*dist= (short) sqrt( (float)distance ); // XXX, this distance is wrong - 
 						index = *tbuf - min+1; // messy yah, but indices start at 1
 						goto exit;

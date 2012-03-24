@@ -410,7 +410,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		}
 		else {
 			UI_ThemeColor(TH_TEXT);
-			if((marker->frame <= cfra) && (marker->frame+5 > cfra)) {
+			if ((marker->frame <= cfra) && (marker->frame+5 > cfra)) {
 				x= xpos*xscale + 4.0f;
 				y= (ypixels <= 39.0f)? (ypixels - 10.0f) : 29.0f;
 			}
@@ -421,7 +421,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		}
 
 #ifdef DURIAN_CAMERA_SWITCH
-		if(marker->camera && (marker->camera->restrictflag & OB_RESTRICT_RENDER)) {
+		if (marker->camera && (marker->camera->restrictflag & OB_RESTRICT_RENDER)) {
 			float col[4];
 			glGetFloatv(GL_CURRENT_COLOR, col);
 			col[3]= 0.4;
@@ -638,7 +638,7 @@ static int ed_marker_move_init(bContext *C, wmOperator *op)
 	int totmark=0;
 	int a;
 
-	if(markers == NULL) return 0;
+	if (markers == NULL) return 0;
 	
 	for (marker= markers->first; marker; marker= marker->next)
 		if (marker->flag & SELECT) totmark++;
@@ -681,7 +681,7 @@ static void ed_marker_move_exit(bContext *C, wmOperator *op)
 
 static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 {
-	if(ed_marker_move_init(C, op)) {
+	if (ed_marker_move_init(C, op)) {
 		MarkerMove *mm= op->customdata;
 		
 		mm->evtx= evt->x;
@@ -872,7 +872,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 
 static int ed_marker_move_exec(bContext *C, wmOperator *op)
 {
-	if(ed_marker_move_init(C, op)) {
+	if (ed_marker_move_init(C, op)) {
 		ed_marker_move_apply(op);
 		ed_marker_move_exit(C, op);
 		return OPERATOR_FINISHED;
@@ -1051,7 +1051,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 			scene_deselect_all(scene);
 		
 		for (marker= markers->first; marker; marker= marker->next) {
-			if(marker->frame==cfra) {
+			if (marker->frame==cfra) {
 				sel= (marker->flag & SELECT);
 				break;
 			}
@@ -1063,7 +1063,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 					base= object_in_scene(marker->camera, scene);
 					if (base) {
 						ED_base_object_select(base, sel);
-						if(sel)
+						if (sel)
 							ED_base_object_activate(C, base);
 					}
 				}
@@ -1223,7 +1223,7 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 		action = (ED_markers_get_first_selected(markers) != NULL) ? SEL_DESELECT : SEL_SELECT;
 	}
 	
-	for(marker= markers->first; marker; marker= marker->next) {
+	for (marker= markers->first; marker; marker= marker->next) {
 		switch (action) {
 		case SEL_SELECT:
 			marker->flag |= SELECT;
@@ -1431,7 +1431,7 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 	TimeMarker *marker;
 
 	marker= ED_markers_get_first_selected(markers);
-	if(marker == NULL)
+	if (marker == NULL)
 		return OPERATOR_CANCELLED;
 
 	marker->camera= ob;

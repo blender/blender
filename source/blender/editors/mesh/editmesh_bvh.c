@@ -229,7 +229,8 @@ BMFace *BMBVH_RayCast(BMBVHTree *tree, float *co, float *dir, float *hitout, flo
 					                    ((v3->co[i] - v1->co[i]) * tree->uv[1]);
 				}
 				copy_v3_v3(hitout, co);
-			} else {
+			}
+			else {
 				copy_v3_v3(hitout, hit.co);
 			}
 

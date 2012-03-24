@@ -71,17 +71,20 @@
 static void update_cb(PBVHNode *node, void *rebuild)
 {
 	BLI_pbvh_node_mark_update(node);
-	if(*((int*)rebuild))
+	if (*((int*)rebuild))
 		BLI_pbvh_node_mark_rebuild_draw(node);
 	BLI_pbvh_node_fully_hidden_set(node, 0);
 }
 
 static void sculpt_undo_restore_deformed(SculptSession *ss, SculptUndoNode *unode, int uindex, int oindex, float coord[3])
 {
-	if(unode->orig_co) {
+	if (unode->orig_co) {
 		swap_v3_v3(coord, unode->orig_co[uindex]);
 		copy_v3_v3(unode->co[uindex], ss->deform_cos[oindex]);
-	} else swap_v3_v3(coord, unode->co[uindex]);
+	}
+	else {
+		swap_v3_v3(coord, unode->co[uindex]);
+	}
 }
 
 static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNode *unode)
@@ -93,7 +96,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 	MVert *mvert;
 	int *index, i, j;	
 	
-	if(unode->maxvert) {
+	if (unode->maxvert) {
 		/* regular mesh restore */
 
 		if (ss->kb && strcmp(ss->kb->name, unode->shapeName)) {
@@ -107,7 +110,8 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 
 				sculpt_update_mesh_elements(scene, sd, ob, 0);
 				WM_event_add_notifier(C, NC_OBJECT|ND_DATA, ob);
-			} else {
+			}
+			else {
 				/* key has been removed -- skip this undo node */
 				return 0;
 			}
@@ -120,10 +124,10 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 			float (*vertCos)[3];
 			vertCos= key_to_vertcos(ob, ss->kb);
 
-			for(i=0; i<unode->totvert; i++) {
-				if(ss->modifiers_active) sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
+			for (i=0; i<unode->totvert; i++) {
+				if (ss->modifiers_active) sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
 				else {
-					if(unode->orig_co) swap_v3_v3(vertCos[index[i]], unode->orig_co[i]);
+					if (unode->orig_co) swap_v3_v3(vertCos[index[i]], unode->orig_co[i]);
 					else swap_v3_v3(vertCos[index[i]], unode->co[i]);
 				}
 			}
@@ -136,18 +140,19 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 			BLI_pbvh_apply_vertCos(ss->pbvh, vertCos);
 
 			MEM_freeN(vertCos);
-		} else {
-			for(i=0; i<unode->totvert; i++) {
-				if(ss->modifiers_active) sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
+		}
+		else {
+			for (i=0; i<unode->totvert; i++) {
+				if (ss->modifiers_active) sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
 				else {
-					if(unode->orig_co) swap_v3_v3(mvert[index[i]].co, unode->orig_co[i]);
+					if (unode->orig_co) swap_v3_v3(mvert[index[i]].co, unode->orig_co[i]);
 					else swap_v3_v3(mvert[index[i]].co, unode->co[i]);
 				}
 				mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
 			}
 		}
 	}
-	else if(unode->maxgrid && dm->getGridData) {
+	else if (unode->maxgrid && dm->getGridData) {
 		/* multires restore */
 		DMGridData **grids, *grid;
 		float (*co)[3];
@@ -157,10 +162,10 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 		gridsize= dm->getGridSize(dm);
 
 		co = unode->co;
-		for(j=0; j<unode->totgrid; j++) {
+		for (j=0; j<unode->totgrid; j++) {
 			grid= grids[unode->grids[j]];
 
-			for(i=0; i<gridsize*gridsize; i++, co++)
+			for (i=0; i<gridsize*gridsize; i++, co++)
 				swap_v3_v3(grid[i].co, co[0]);
 		}
 	}
@@ -175,16 +180,16 @@ static int sculpt_undo_restore_hidden(bContext *C, DerivedMesh *dm,
 	SculptSession *ss = ob->sculpt;
 	int i;
 
-	if(unode->maxvert) {
+	if (unode->maxvert) {
 		MVert *mvert= ss->mvert;
 		
-		for(i=0; i<unode->totvert; i++) {
+		for (i=0; i<unode->totvert; i++) {
 			MVert *v = &mvert[unode->index[i]];
 			int uval= BLI_BITMAP_GET(unode->vert_hidden, i);
 
 			BLI_BITMAP_MODIFY(unode->vert_hidden, i,
 							  v->flag & ME_HIDE);
-			if(uval)
+			if (uval)
 				v->flag |= ME_HIDE;
 			else
 				v->flag &= ~ME_HIDE;
@@ -192,10 +197,10 @@ static int sculpt_undo_restore_hidden(bContext *C, DerivedMesh *dm,
 			v->flag |= ME_VERT_PBVH_UPDATE;
 		}
 	}
-	else if(unode->maxgrid && dm->getGridData) {
+	else if (unode->maxgrid && dm->getGridData) {
 		BLI_bitmap *grid_hidden = dm->getGridHidden(dm);
 		
-		for(i=0; i<unode->totgrid; i++) {
+		for (i=0; i<unode->totgrid; i++) {
 			SWAP(BLI_bitmap,
 				 unode->grid_hidden[i],
 				 grid_hidden[unode->grids[i]]);
@@ -219,18 +224,18 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 
 	sculpt_update_mesh_elements(scene, sd, ob, 0);
 
-	for(unode=lb->first; unode; unode=unode->next) {
-		if(!(strcmp(unode->idname, ob->id.name)==0))
+	for (unode=lb->first; unode; unode=unode->next) {
+		if (!(strcmp(unode->idname, ob->id.name)==0))
 			continue;
 
 		/* check if undo data matches current data well enough to
 		 * continue */
-		if(unode->maxvert) {
-			if(ss->totvert != unode->maxvert)
+		if (unode->maxvert) {
+			if (ss->totvert != unode->maxvert)
 				continue;
 		}
-		else if(unode->maxgrid && dm->getGridData) {
-			if((dm->getNumGrids(dm) != unode->maxgrid) ||
+		else if (unode->maxgrid && dm->getGridData) {
+			if ((dm->getNumGrids(dm) != unode->maxgrid) ||
 			   (dm->getGridSize(dm) != unode->gridsize))
 				continue;
 		}
@@ -240,17 +245,17 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 
 		switch(unode->type) {
 		case SCULPT_UNDO_COORDS:
-			if(sculpt_undo_restore_coords(C, dm, unode))
+			if (sculpt_undo_restore_coords(C, dm, unode))
 				update= 1;
 			break;
 		case SCULPT_UNDO_HIDDEN:
-			if(sculpt_undo_restore_hidden(C, dm, unode))
+			if (sculpt_undo_restore_hidden(C, dm, unode))
 				rebuild= 1;
 			break;
 		}
 	}
 
-	if(update || rebuild) {
+	if (update || rebuild) {
 		int tag_update= 0;
 		/* we update all nodes still, should be more clever, but also
 		 * needs to work correct when exiting/entering sculpt mode and
@@ -258,8 +263,8 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		BLI_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, &rebuild);
 		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw, NULL);
 
-		if((mmd=sculpt_multires_active(scene, ob))) {
-			if(rebuild)
+		if ((mmd=sculpt_multires_active(scene, ob))) {
+			if (rebuild)
 				multires_mark_as_modified(ob, MULTIRES_HIDDEN_MODIFIED);
 			else
 				multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
@@ -267,7 +272,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 
 		tag_update= ((Mesh*)ob->data)->id.us > 1;
 
-		if(ss->modifiers_active) {
+		if (ss->modifiers_active) {
 			Mesh *mesh= ob->data;
 			mesh_calc_normals_mapping(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
 
@@ -275,7 +280,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			tag_update|= 1;
 		}
 
-		if(tag_update)
+		if (tag_update)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 		/* for non-PBVH drawing, need to recreate VBOs */
@@ -288,24 +293,24 @@ static void sculpt_undo_free(ListBase *lb)
 	SculptUndoNode *unode;
 	int i;
 
-	for(unode=lb->first; unode; unode=unode->next) {
-		if(unode->co)
+	for (unode=lb->first; unode; unode=unode->next) {
+		if (unode->co)
 			MEM_freeN(unode->co);
-		if(unode->no)
+		if (unode->no)
 			MEM_freeN(unode->no);
-		if(unode->index)
+		if (unode->index)
 			MEM_freeN(unode->index);
-		if(unode->grids)
+		if (unode->grids)
 			MEM_freeN(unode->grids);
-		if(unode->layer_disp)
+		if (unode->layer_disp)
 			MEM_freeN(unode->layer_disp);
-		if(unode->orig_co)
+		if (unode->orig_co)
 			MEM_freeN(unode->orig_co);
-		if(unode->vert_hidden)
+		if (unode->vert_hidden)
 			MEM_freeN(unode->vert_hidden);
-		if(unode->grid_hidden) {
-			for(i=0; i<unode->totgrid; i++) {
-				if(unode->grid_hidden[i])
+		if (unode->grid_hidden) {
+			for (i=0; i<unode->totgrid; i++) {
+				if (unode->grid_hidden[i])
 					MEM_freeN(unode->grid_hidden[i]);
 			}
 			MEM_freeN(unode->grid_hidden);
@@ -318,11 +323,11 @@ SculptUndoNode *sculpt_undo_get_node(PBVHNode *node)
 	ListBase *lb= undo_paint_push_get_list(UNDO_PAINT_MESH);
 	SculptUndoNode *unode;
 
-	if(!lb)
+	if (!lb)
 		return NULL;
 
-	for(unode=lb->first; unode; unode=unode->next)
-		if(unode->node == node)
+	for (unode=lb->first; unode; unode=unode->next)
+		if (unode->node == node)
 			return unode;
 
 	return NULL;
@@ -343,8 +348,8 @@ static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh,
 	unode->grid_hidden= MEM_mapallocN(sizeof(BLI_bitmap) * totgrid,
 									  "unode->grid_hidden");
 		
-	for(i = 0; i < totgrid; i++) {
-		if(grid_hidden[grid_indices[i]])
+	for (i = 0; i < totgrid; i++) {
+		if (grid_hidden[grid_indices[i]])
 			unode->grid_hidden[i] = MEM_dupallocN(grid_hidden[grid_indices[i]]);
 		else
 			unode->grid_hidden[i] = NULL;
@@ -380,7 +385,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node,
 		undo_paint_push_count_alloc(UNDO_PAINT_MESH, (sizeof(float)*3 + sizeof(short)*3 + sizeof(int))*allvert);
 		break;
 	case SCULPT_UNDO_HIDDEN:
-		if(maxgrid)
+		if (maxgrid)
 			sculpt_undo_alloc_and_store_hidden(ss->pbvh, unode);
 		else
 			unode->vert_hidden= BLI_BITMAP_NEW(allvert, "SculptUndoNode.vert_hidden");
@@ -390,7 +395,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node,
 	
 	BLI_addtail(lb, unode);
 
-	if(maxgrid) {
+	if (maxgrid) {
 		/* multires */
 		unode->maxgrid= maxgrid;
 		unode->totgrid= totgrid;
@@ -403,7 +408,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node,
 		unode->index= MEM_mapallocN(sizeof(int)*allvert, "SculptUndoNode.index");
 	}
 
-	if(ss->modifiers_active)
+	if (ss->modifiers_active)
 		unode->orig_co= MEM_callocN(allvert*sizeof(*unode->orig_co), "undoSculpt orig_cos");
 
 	return unode;
@@ -416,10 +421,10 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
 
 	BLI_pbvh_vertex_iter_begin(ss->pbvh, unode->node, vd, PBVH_ITER_ALL) {
 		copy_v3_v3(unode->co[vd.i], vd.co);
-		if(vd.no) copy_v3_v3_short(unode->no[vd.i], vd.no);
+		if (vd.no) copy_v3_v3_short(unode->no[vd.i], vd.no);
 		else normal_float_to_short_v3(unode->no[vd.i], vd.fno);
 
-		if(ss->modifiers_active)
+		if (ss->modifiers_active)
 			copy_v3_v3(unode->orig_co[vd.i], ss->orig_cos[unode->index[vd.i]]);
 	}
 	BLI_pbvh_vertex_iter_end;
@@ -430,7 +435,7 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
 	PBVH *pbvh= ob->sculpt->pbvh;
 	PBVHNode *node= unode->node;
 
-	if(unode->grids) {
+	if (unode->grids) {
 		/* already stored during allocation */
  	}
 	else {
@@ -440,7 +445,7 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
 		
 		BLI_pbvh_node_num_verts(pbvh, node, NULL, &allvert);
 		BLI_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
-		for(i = 0; i < allvert; i++) {
+		for (i = 0; i < allvert; i++) {
 			BLI_BITMAP_MODIFY(unode->vert_hidden, i,
 							  mvert[vert_indices[i]].flag & ME_HIDE);
 		}
@@ -456,7 +461,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 	/* list is manipulated by multiple threads, so we lock */
 	BLI_lock_thread(LOCK_CUSTOM1);
 
-	if((unode= sculpt_undo_get_node(node))) {
+	if ((unode= sculpt_undo_get_node(node))) {
 		BLI_unlock_thread(LOCK_CUSTOM1);
 		return unode;
 	}
@@ -475,7 +480,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 		break;
 	}
 
-	if(unode->grids) {
+	if (unode->grids) {
 		int totgrid, *grids;
 		BLI_pbvh_node_get_grids(ss->pbvh, node, &grids, &totgrid,
 								NULL, NULL, NULL, NULL);
@@ -489,7 +494,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 	}
 
 	/* store active shape key */
-	if(ss->kb) BLI_strncpy(unode->shapeName, ss->kb->name, sizeof(ss->kb->name));
+	if (ss->kb) BLI_strncpy(unode->shapeName, ss->kb->name, sizeof(ss->kb->name));
 	else unode->shapeName[0]= '\0';
 
 	return unode;
@@ -507,13 +512,13 @@ void sculpt_undo_push_end(void)
 	SculptUndoNode *unode;
 
 	/* we don't need normals in the undo stack */
-	for(unode=lb->first; unode; unode=unode->next) {
-		if(unode->no) {
+	for (unode=lb->first; unode; unode=unode->next) {
+		if (unode->no) {
 			MEM_freeN(unode->no);
 			unode->no= NULL;
 		}
 
-		if(unode->layer_disp) {
+		if (unode->layer_disp) {
 			MEM_freeN(unode->layer_disp);
 			unode->layer_disp= NULL;
 		}

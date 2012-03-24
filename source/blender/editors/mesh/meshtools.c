@@ -110,20 +110,20 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	MDeformVert *dvert;
 	CustomData vdata, edata, fdata, ldata, pdata;
 
-	if(scene->obedit) {
+	if (scene->obedit) {
 		BKE_report(op->reports, RPT_WARNING, "Cant join while in editmode");
 		return OPERATOR_CANCELLED;
 	}
 	
 	/* ob is the object we are adding geometry to */
-	if(!ob || ob->type!=OB_MESH) {
+	if (!ob || ob->type!=OB_MESH) {
 		BKE_report(op->reports, RPT_WARNING, "Active object is not a mesh");
 		return OPERATOR_CANCELLED;
 	}
 	
 	/* count & check */
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		if(base->object->type==OB_MESH) {
+		if (base->object->type==OB_MESH) {
 			me= base->object->data;
 			
 			totvert+= me->totvert;
@@ -132,18 +132,18 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			totpoly+= me->totpoly;
 			totmat+= base->object->totcol;
 			
-			if(base->object == ob)
+			if (base->object == ob)
 				ok= 1;
 			
 			/* check for shapekeys */
-			if(me->key)
+			if (me->key)
 				haskey++;
 		}
 	}
 	CTX_DATA_END;
 	
 	/* that way the active object is always selected */ 
-	if(ok==0) {
+	if (ok==0) {
 		BKE_report(op->reports, RPT_WARNING, "Active object is not a selected mesh");
 		return OPERATOR_CANCELLED;
 	}
@@ -152,12 +152,12 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	me= (Mesh *)ob->data;
 	key= me->key;
 
-	if(totvert==0 || totvert==me->totvert) {
+	if (totvert==0 || totvert==me->totvert) {
 		BKE_report(op->reports, RPT_WARNING, "No mesh data to join");
 		return OPERATOR_CANCELLED;
 	}
 	
-	if(totvert > MESH_MAX_VERTS) {
+	if (totvert > MESH_MAX_VERTS) {
 		BKE_reportf(op->reports, RPT_WARNING, "Joining results in %d vertices, limit is " STRINGIFY(MESH_MAX_VERTS), totvert);
 		return OPERATOR_CANCELLED;		
 	}
@@ -168,7 +168,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	totcol= ob->totcol;
 	
 	/* obact materials in new main array, is nicer start! */
-	for(a=0; a<ob->totcol; a++) {
+	for (a=0; a<ob->totcol; a++) {
 		matar[a]= give_current_material(ob, a+1);
 		id_us_plus((ID *)matar[a]);
 		/* increase id->us : will be lowered later */
@@ -179,19 +179,19 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	 * -	if destination mesh didn't have shapekeys, but we encountered some in the meshes we're 
 	 *	joining, set up a new keyblock and assign to the mesh
 	 */
-	if(key) {
+	if (key) {
 		/* make a duplicate copy that will only be used here... (must remember to free it!) */
 		nkey= copy_key(key);
 		
 		/* for all keys in old block, clear data-arrays */
-		for(kb= key->block.first; kb; kb= kb->next) {
-			if(kb->data) MEM_freeN(kb->data);
+		for (kb= key->block.first; kb; kb= kb->next) {
+			if (kb->data) MEM_freeN(kb->data);
 			kb->data= MEM_callocN(sizeof(float)*3*totvert, "join_shapekey");
 			kb->totelem= totvert;
 			kb->weights= NULL;
 		}
 	}
-	else if(haskey) {
+	else if (haskey) {
 		/* add a new key-block and add to the mesh */
 		key= me->key= add_key((ID *)me);
 		key->type = KEY_RELATIVE;
@@ -200,48 +200,48 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	/* first pass over objects - copying materials and vertexgroups across */
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		/* only act if a mesh, and not the one we're joining to */
-		if((ob!=base->object) && (base->object->type==OB_MESH)) {
+		if ((ob!=base->object) && (base->object->type==OB_MESH)) {
 			me= base->object->data;
 			
 			/* Join this object's vertex groups to the base one's */
-			for(dg=base->object->defbase.first; dg; dg=dg->next) {
+			for (dg=base->object->defbase.first; dg; dg=dg->next) {
 				/* See if this group exists in the object (if it doesn't, add it to the end) */
-				if(!defgroup_find_name(ob, dg->name)) {
+				if (!defgroup_find_name(ob, dg->name)) {
 					odg = MEM_callocN(sizeof(bDeformGroup), "join deformGroup");
 					memcpy(odg, dg, sizeof(bDeformGroup));
 					BLI_addtail(&ob->defbase, odg);
 				}
 			}
-			if(ob->defbase.first && ob->actdef==0)
+			if (ob->defbase.first && ob->actdef==0)
 				ob->actdef=1;
 			
 			
-			if(me->totvert) {
+			if (me->totvert) {
 				/* Add this object's materials to the base one's if they don't exist already (but only if limits not exceeded yet) */
-				if(totcol < MAXMAT) {
-					for(a=1; a<=base->object->totcol; a++) {
+				if (totcol < MAXMAT) {
+					for (a=1; a<=base->object->totcol; a++) {
 						ma= give_current_material(base->object, a);
 
-						for(b=0; b<totcol; b++) {
-							if(ma == matar[b]) break;
+						for (b=0; b<totcol; b++) {
+							if (ma == matar[b]) break;
 						}
-						if(b==totcol) {
+						if (b==totcol) {
 							matar[b]= ma;
-							if(ma) {
+							if (ma) {
 								id_us_plus(&ma->id);
 							}
 							totcol++;
 						}
-						if(totcol >= MAXMAT)
+						if (totcol >= MAXMAT)
 							break;
 					}
 				}
 				
 				/* if this mesh has shapekeys, check if destination mesh already has matching entries too */
-				if(me->key && key) {
-					for(kb= me->key->block.first; kb; kb= kb->next) {
+				if (me->key && key) {
+					for (kb= me->key->block.first; kb; kb= kb->next) {
 						/* if key doesn't exist in destination mesh, add it */
-						if(key_get_named_keyblock(key, kb->name) == NULL) {
+						if (key_get_named_keyblock(key, kb->name) == NULL) {
 							/* copy this existing one over to the new shapekey block */
 							kbn= MEM_dupallocN(kb);
 							kbn->prev= kbn->next= NULL;
@@ -253,7 +253,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							
 							okb= key->block.last;
 							curpos= (okb) ? okb->pos : -0.1f;
-							if(key->type == KEY_RELATIVE)
+							if (key->type == KEY_RELATIVE)
 								kbn->pos= curpos + 0.1f;
 							else
 								kbn->pos= curpos;
@@ -261,12 +261,12 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							BLI_addtail(&key->block, kbn);
 							kbn->adrcode= key->totkey;
 							key->totkey++;
-							if(key->totkey==1) key->refkey= kbn;
+							if (key->totkey==1) key->refkey= kbn;
 							
 							// XXX 2.5 Animato
 #if 0
 							/* also, copy corresponding ipo-curve to ipo-block if applicable */
-							if(me->key->ipo && key->ipo) {
+							if (me->key->ipo && key->ipo) {
 								// FIXME... this is a luxury item!
 								puts("FIXME: ignoring IPO's when joining shapekeys on Meshes for now...");
 							}
@@ -301,10 +301,10 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		/* only join if this is a mesh */
-		if(base->object->type==OB_MESH) {
+		if (base->object->type==OB_MESH) {
 			me= base->object->data;
 			
-			if(me->totvert) {
+			if (me->totvert) {
 				/* standard data */
 				CustomData_merge(&me->vdata, &vdata, CD_MASK_MESH, CD_DEFAULT, totvert);
 				CustomData_copy_data(&me->vdata, &vdata, 0, vertofs, me->totvert);
@@ -313,15 +313,15 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				dvert= CustomData_get(&vdata, vertofs, CD_MDEFORMVERT);
 				
 				/* NB: vertex groups here are new version */
-				if(dvert) {
-					for(i=0; i<me->totvert; i++) {
-						for(j=0; j<dvert[i].totweight; j++) {
+				if (dvert) {
+					for (i=0; i<me->totvert; i++) {
+						for (j=0; j<dvert[i].totweight; j++) {
 							/*	Find the old vertex group */
 							odg = BLI_findlink(&base->object->defbase, dvert[i].dw[j].def_nr);
-							if(odg) {
+							if (odg) {
 								/*	Search for a match in the new object, and set new index */
-								for(dg=ob->defbase.first, index=0; dg; dg=dg->next, index++) {
-									if(!strcmp(dg->name, odg->name)) {
+								for (dg=ob->defbase.first, index=0; dg; dg=dg->next, index++) {
+									if (!strcmp(dg->name, odg->name)) {
 										dvert[i].dw[j].def_nr = index;
 										break;
 									}
@@ -332,12 +332,12 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				}
 				
 				/* if this is the object we're merging into, no need to do anything */
-				if(base->object != ob) {
+				if (base->object != ob) {
 					/* watch this: switch matmul order really goes wrong */
 					mult_m4_m4m4(cmat, imat, base->object->obmat);
 					
 					/* transform vertex coordinates into new space */
-					for(a=0, mv=mvert; a < me->totvert; a++, mv++) {
+					for (a=0, mv=mvert; a < me->totvert; a++, mv++) {
 						mul_m4_v3(cmat, mv->co);
 					}
 					
@@ -345,18 +345,18 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					 *	- if there's a matching one, copy it across (will need to transform vertices into new space...)
 					 *	- otherwise, just copy own coordinates of mesh (no need to transform vertex coordinates into new space)
 					 */
-					if(key) {
+					if (key) {
 						/* if this mesh has any shapekeys, check first, otherwise just copy coordinates */
-						for(kb= key->block.first; kb; kb= kb->next) {
+						for (kb= key->block.first; kb; kb= kb->next) {
 							/* get pointer to where to write data for this mesh in shapekey's data array */
 							fp1= ((float *)kb->data) + (vertofs*3);	
 							
 							/* check if this mesh has such a shapekey */
 							okb= key_get_named_keyblock(me->key, kb->name);
-							if(okb) {
+							if (okb) {
 								/* copy this mesh's shapekey to the destination shapekey (need to transform first) */
 								fp2= ((float *)(okb->data));
-								for(a=0; a < me->totvert; a++, fp1+=3, fp2+=3) {
+								for (a=0; a < me->totvert; a++, fp1+=3, fp2+=3) {
 									copy_v3_v3(fp1, fp2);
 									mul_m4_v3(cmat, fp1);
 								}
@@ -364,7 +364,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							else {
 								/* copy this mesh's vertex coordinates to the destination shapekey */
 								mv= mvert;
-								for(a=0; a < me->totvert; a++, fp1+=3, mv++) {
+								for (a=0; a < me->totvert; a++, fp1+=3, mv++) {
 									copy_v3_v3(fp1, mv->co);
 								}
 							}
@@ -376,24 +376,24 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					 *	- if it was an 'original', copy the appropriate data from nkey
 					 *	- otherwise, copy across plain coordinates (no need to transform coordinates)
 					 */
-					if(key) {
-						for(kb= key->block.first; kb; kb= kb->next) {
+					if (key) {
+						for (kb= key->block.first; kb; kb= kb->next) {
 							/* get pointer to where to write data for this mesh in shapekey's data array */
 							fp1= ((float *)kb->data) + (vertofs*3);	
 							
 							/* check if this was one of the original shapekeys */
 							okb= key_get_named_keyblock(nkey, kb->name);
-							if(okb) {
+							if (okb) {
 								/* copy this mesh's shapekey to the destination shapekey */
 								fp2= ((float *)(okb->data));
-								for(a=0; a < me->totvert; a++, fp1+=3, fp2+=3) {
+								for (a=0; a < me->totvert; a++, fp1+=3, fp2+=3) {
 									copy_v3_v3(fp1, fp2);
 								}
 							}
 							else {
 								/* copy base-coordinates to the destination shapekey */
 								mv= mvert;
-								for(a=0; a < me->totvert; a++, fp1+=3, mv++) {
+								for (a=0; a < me->totvert; a++, fp1+=3, mv++) {
 									copy_v3_v3(fp1, mv->co);
 								}
 							}
@@ -405,36 +405,36 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				mvert+= me->totvert;
 			}
 			
-			if(me->totedge) {
+			if (me->totedge) {
 				CustomData_merge(&me->edata, &edata, CD_MASK_MESH, CD_DEFAULT, totedge);
 				CustomData_copy_data(&me->edata, &edata, 0, edgeofs, me->totedge);
 				
-				for(a=0; a<me->totedge; a++, medge++) {
+				for (a=0; a<me->totedge; a++, medge++) {
 					medge->v1+= vertofs;
 					medge->v2+= vertofs;
 				}
 			}
 
 			if (me->totloop) {
-				if(base->object!=ob)
+				if (base->object!=ob)
 					multiresModifier_prepare_join(scene, base->object, ob);
 				
 				CustomData_merge(&me->ldata, &ldata, CD_MASK_MESH, CD_DEFAULT, totloop);
 				CustomData_copy_data(&me->ldata, &ldata, 0, loopofs, me->totloop);
 				
-				for(a=0; a<me->totloop; a++, mloop++) {
+				for (a=0; a<me->totloop; a++, mloop++) {
 					mloop->v += vertofs;
 					mloop->e += edgeofs;
 				}
 			}
 			
-			if(me->totpoly) {
+			if (me->totpoly) {
 				/* make mapping for materials */
-				for(a=1; a<=base->object->totcol; a++) {
+				for (a=1; a<=base->object->totcol; a++) {
 					ma= give_current_material(base->object, a);
 
-					for(b=0; b<totcol; b++) {
-						if(ma == matar[b]) {
+					for (b=0; b<totcol; b++) {
+						if (ma == matar[b]) {
 							matmap[a-1]= b;
 							break;
 						}
@@ -444,7 +444,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				CustomData_merge(&me->pdata, &pdata, CD_MASK_MESH, CD_DEFAULT, totpoly);
 				CustomData_copy_data(&me->pdata, &pdata, 0, polyofs, me->totpoly);
 				
-				for(a=0; a<me->totpoly; a++, mpoly++) {
+				for (a=0; a<me->totpoly; a++, mpoly++) {
 					mpoly->loopstart += loopofs;
 					mpoly->mat_nr= matmap ? matmap[(int)mpoly->mat_nr] : 0;
 				}
@@ -460,7 +460,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			loopofs += me->totloop;
 			
 			/* free base, now that data is merged */
-			if(base->object != ob)
+			if (base->object != ob)
 				ED_base_object_free_and_unlink(bmain, scene, base);
 		}
 	}
@@ -487,21 +487,21 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	mesh_update_customdata_pointers(me, TRUE); /* BMESH_TODO, check if this arg can be failse, non urgent - campbell */
 	
 	/* old material array */
-	for(a=1; a<=ob->totcol; a++) {
+	for (a=1; a<=ob->totcol; a++) {
 		ma= ob->mat[a-1];
-		if(ma) ma->id.us--;
+		if (ma) ma->id.us--;
 	}
-	for(a=1; a<=me->totcol; a++) {
+	for (a=1; a<=me->totcol; a++) {
 		ma= me->mat[a-1];
-		if(ma) ma->id.us--;
+		if (ma) ma->id.us--;
 	}
-	if(ob->mat) MEM_freeN(ob->mat);
-	if(ob->matbits) MEM_freeN(ob->matbits);
-	if(me->mat) MEM_freeN(me->mat);
+	if (ob->mat) MEM_freeN(ob->mat);
+	if (ob->matbits) MEM_freeN(ob->matbits);
+	if (me->mat) MEM_freeN(me->mat);
 	ob->mat= me->mat= NULL;
 	ob->matbits= NULL;
 	
-	if(totcol) {
+	if (totcol) {
 		me->mat= matar;
 		ob->mat= MEM_callocN(sizeof(void *)*totcol, "join obmatar");
 		ob->matbits= MEM_callocN(sizeof(char)*totcol, "join obmatbits");
@@ -517,11 +517,11 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	test_object_materials((ID *)me);
 	
 	/* free temp copy of destination shapekeys (if applicable) */
-	if(nkey) {
+	if (nkey) {
 		// XXX 2.5 Animato
 #if 0
 		/* free it's ipo too - both are not actually freed from memory yet as ID-blocks */
-		if(nkey->ipo) {
+		if (nkey->ipo) {
 			free_ipo(nkey->ipo);
 			BLI_remlink(&bmain->ipo, nkey->ipo);
 			MEM_freeN(nkey->ipo);
@@ -590,7 +590,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	if(key == NULL) {
+	if (key == NULL) {
 		key= me->key= add_key((ID *)me);
 		key->type= KEY_RELATIVE;
 
@@ -603,7 +603,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		if (base->object == ob) continue;
 		
-		if(base->object->type==OB_MESH) {
+		if (base->object->type==OB_MESH) {
 			selme = (Mesh *)base->object->data;
 			
 			if (selme->totvert==me->totvert) {
@@ -656,16 +656,16 @@ static int mesh_octree_get_base_offs(float *co, float *offs, float *div)
 
 static void mesh_octree_add_node(MocNode **bt, intptr_t index)
 {
-	if(*bt==NULL) {
+	if (*bt==NULL) {
 		*bt= MEM_callocN(sizeof(MocNode), "MocNode");
 		(*bt)->index[0]= index;
 	}
 	else {
 		int a;
-		for(a=0; a<MOC_NODE_RES; a++) {
-			if((*bt)->index[a]==index)
+		for (a=0; a<MOC_NODE_RES; a++) {
+			if ((*bt)->index[a]==index)
 				return;
-			else if((*bt)->index[a]==0) {
+			else if ((*bt)->index[a]==0) {
 				(*bt)->index[a]= index;
 				return;
 			}
@@ -676,7 +676,7 @@ static void mesh_octree_add_node(MocNode **bt, intptr_t index)
 
 static void mesh_octree_free_node(MocNode **bt)
 {
-	if( (*bt)->next ) {
+	if ( (*bt)->next ) {
 		mesh_octree_free_node(&(*bt)->next);
 	}
 	MEM_freeN(*bt);
@@ -739,26 +739,26 @@ static intptr_t mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 	float *vec;
 	int a;
 	
-	if(*bt==NULL)
+	if (*bt==NULL)
 		return -1;
 	
-	for(a=0; a<MOC_NODE_RES; a++) {
-		if((*bt)->index[a]) {
+	for (a=0; a<MOC_NODE_RES; a++) {
+		if ((*bt)->index[a]) {
 			/* does mesh verts and editmode, code looks potential dangerous, octree should really be filled OK! */
-			if(mvert) {
+			if (mvert) {
 				vec= (mvert+(*bt)->index[a]-1)->co;
-				if(compare_v3v3(vec, co, MOC_THRESH))
+				if (compare_v3v3(vec, co, MOC_THRESH))
 					return (*bt)->index[a]-1;
 			}
 			else {
 				BMVert *eve= (BMVert *)((*bt)->index[a]);
-				if(compare_v3v3(eve->co, co, MOC_THRESH))
+				if (compare_v3v3(eve->co, co, MOC_THRESH))
 					return (*bt)->index[a];
 			}
 		}
 		else return -1;
 	}
-	if( (*bt)->next)
+	if ( (*bt)->next)
 		return mesh_octree_find_index(&(*bt)->next, mvert, co);
 	
 	return -1;
@@ -775,21 +775,21 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 {
 	MocNode **bt;
 	
-	if(mode=='u') {		/* use table */
-		if(MeshOctree.table==NULL)
+	if (mode=='u') {		/* use table */
+		if (MeshOctree.table==NULL)
 			mesh_octree_table(ob, em, NULL, 's');
 
-		if(MeshOctree.table) {
+		if (MeshOctree.table) {
 			Mesh *me= ob->data;
 			bt= MeshOctree.table + mesh_octree_get_base_offs(co, MeshOctree.offs, MeshOctree.div);
-			if(em)
+			if (em)
 				return mesh_octree_find_index(bt, NULL, co);
 			else
 				return mesh_octree_find_index(bt, me->mvert, co);
 		}
 		return -1;
 	}
-	else if(mode=='s') {	/* start table */
+	else if (mode=='s') {	/* start table */
 		Mesh *me= ob->data;
 		float min[3], max[3];
 
@@ -797,7 +797,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 		 * we are using the undeformed coordinates*/
 		INIT_MINMAX(min, max);
 
-		if(em && me->edit_btmesh==em) {
+		if (em && me->edit_btmesh==em) {
 			BMIter iter;
 			BMVert *eve;
 			
@@ -809,7 +809,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 			MVert *mvert;
 			int a;
 			
-			for(a=0, mvert= me->mvert; a<me->totvert; a++, mvert++)
+			for (a=0, mvert= me->mvert; a<me->totvert; a++, mvert++)
 				DO_MINMAX(mvert->co, min, max);
 		}
 		
@@ -825,16 +825,16 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 		MeshOctree.div[2]+= 2*MOC_THRESH;
 		
 		mul_v3_fl(MeshOctree.div, 1.0f/MOC_RES);
-		if(MeshOctree.div[0]==0.0f) MeshOctree.div[0]= 1.0f;
-		if(MeshOctree.div[1]==0.0f) MeshOctree.div[1]= 1.0f;
-		if(MeshOctree.div[2]==0.0f) MeshOctree.div[2]= 1.0f;
+		if (MeshOctree.div[0]==0.0f) MeshOctree.div[0]= 1.0f;
+		if (MeshOctree.div[1]==0.0f) MeshOctree.div[1]= 1.0f;
+		if (MeshOctree.div[2]==0.0f) MeshOctree.div[2]= 1.0f;
 			
-		if(MeshOctree.table) /* happens when entering this call without ending it */
+		if (MeshOctree.table) /* happens when entering this call without ending it */
 			mesh_octree_table(ob, em, co, 'e');
 		
 		MeshOctree.table= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
 		
-		if(em && me->edit_btmesh==em) {
+		if (em && me->edit_btmesh==em) {
 			BMVert *eve;
 			BMIter iter;
 
@@ -846,16 +846,16 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 			MVert *mvert;
 			int a;
 			
-			for(a=0, mvert= me->mvert; a<me->totvert; a++, mvert++)
+			for (a=0, mvert= me->mvert; a<me->totvert; a++, mvert++)
 				mesh_octree_add_nodes(MeshOctree.table, mvert->co, MeshOctree.offs, MeshOctree.div, a+1);
 		}
 	}
-	else if(mode=='e') { /* end table */
-		if(MeshOctree.table) {
+	else if (mode=='e') { /* end table */
+		if (MeshOctree.table) {
 			int a;
 			
-			for(a=0, bt=MeshOctree.table; a<MOC_RES*MOC_RES*MOC_RES; a++, bt++) {
-				if(*bt) mesh_octree_free_node(bt);
+			for (a=0, bt=MeshOctree.table; a<MOC_RES*MOC_RES*MOC_RES; a++, bt++) {
+				if (*bt) mesh_octree_free_node(bt);
 			}
 			MEM_freeN(MeshOctree.table);
 			MeshOctree.table= NULL;
@@ -871,15 +871,15 @@ MirrTopoStore_t mesh_topo_store= {NULL, -1. -1, -1};
 /* note, is supposed return -1 on error, which callers are currently checking for, but is not used so far */
 int mesh_mirrtopo_table(Object *ob, char mode)
 {
-	if(mode=='u') {		/* use table */
+	if (mode=='u') {		/* use table */
 		if (ED_mesh_mirrtopo_recalc_check(ob->data, ob->mode, &mesh_topo_store)) {
 			mesh_mirrtopo_table(ob, 's');
 		}
 	}
-	else if(mode=='s') { /* start table */
+	else if (mode=='s') { /* start table */
 		ED_mesh_mirrtopo_init(ob->data, ob->mode, &mesh_topo_store, FALSE);
 	}
-	else if(mode=='e') { /* end table */
+	else if (mode=='e') { /* end table */
 		ED_mesh_mirrtopo_free(&mesh_topo_store);
 	}
 	return 0;
@@ -911,7 +911,8 @@ int mesh_get_x_mirror_vert(Object *ob, int index)
 {
 	if (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_TOPO) {
 		return mesh_get_x_mirror_vert_topo(ob, index);
-	} else {
+	}
+	else {
 		return mesh_get_x_mirror_vert_spacial(ob, index);
 	}
 	return 0;
@@ -934,7 +935,7 @@ static BMVert *editbmesh_get_x_mirror_vert_spacial(Object *ob, BMEditMesh *em, f
 	vec[2]= co[2];
 	
 	poinval= mesh_octree_table(ob, em, vec, 'u');
-	if(poinval != -1)
+	if (poinval != -1)
 		return (BMVert *)(poinval);
 	return NULL;
 }
@@ -963,7 +964,7 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, struct BMEditMesh *e
 
 	poinval= mesh_topo_store.index_lookup[index];
 
-	if(poinval != -1)
+	if (poinval != -1)
 		return (BMVert *)(poinval);
 	return NULL;
 }	
@@ -998,7 +999,8 @@ static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float 
 
 		cent_vec[0] = face_cent[0];
 		cent_vec[1]= -((face_cent[1])-mirrCent[1]) + mirrCent[1];
-	} else {
+	}
+	else {
 		vec[0]= -((uv[0])-mirrCent[0]) + mirrCent[0];
 		vec[1]= uv[1];
 
@@ -1039,7 +1041,7 @@ static unsigned int mirror_facehash(const void *ptr)
 	const MFace *mf= ptr;
 	int v0, v1;
 
-	if(mf->v4) {
+	if (mf->v4) {
 		v0= MIN4(mf->v1, mf->v2, mf->v3, mf->v4);
 		v1= MAX4(mf->v1, mf->v2, mf->v3, mf->v4);
 	}
@@ -1053,22 +1055,22 @@ static unsigned int mirror_facehash(const void *ptr)
 
 static int mirror_facerotation(MFace *a, MFace *b)
 {
-	if(b->v4) {
-		if(a->v1==b->v1 && a->v2==b->v2 && a->v3==b->v3 && a->v4==b->v4)
+	if (b->v4) {
+		if (a->v1==b->v1 && a->v2==b->v2 && a->v3==b->v3 && a->v4==b->v4)
 			return 0;
-		else if(a->v4==b->v1 && a->v1==b->v2 && a->v2==b->v3 && a->v3==b->v4)
+		else if (a->v4==b->v1 && a->v1==b->v2 && a->v2==b->v3 && a->v3==b->v4)
 			return 1;
-		else if(a->v3==b->v1 && a->v4==b->v2 && a->v1==b->v3 && a->v2==b->v4)
+		else if (a->v3==b->v1 && a->v4==b->v2 && a->v1==b->v3 && a->v2==b->v4)
 			return 2;
-		else if(a->v2==b->v1 && a->v3==b->v2 && a->v4==b->v3 && a->v1==b->v4)
+		else if (a->v2==b->v1 && a->v3==b->v2 && a->v4==b->v3 && a->v1==b->v4)
 			return 3;
 	}
 	else {
-		if(a->v1==b->v1 && a->v2==b->v2 && a->v3==b->v3)
+		if (a->v1==b->v1 && a->v2==b->v2 && a->v3==b->v3)
 			return 0;
-		else if(a->v3==b->v1 && a->v1==b->v2 && a->v2==b->v3)
+		else if (a->v3==b->v1 && a->v1==b->v2 && a->v2==b->v3)
 			return 1;
-		else if(a->v2==b->v1 && a->v3==b->v2 && a->v1==b->v3)
+		else if (a->v2==b->v1 && a->v3==b->v2 && a->v1==b->v3)
 			return 2;
 	}
 	
@@ -1095,29 +1097,29 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
 
 	mesh_octree_table(ob, em, NULL, 's');
 
-	for(a=0, mv=mvert; a<me->totvert; a++, mv++)
+	for (a=0, mv=mvert; a<me->totvert; a++, mv++)
 		mirrorverts[a]= mesh_get_x_mirror_vert(ob, a);
 
 	mesh_octree_table(ob, em, NULL, 'e');
 
 	fhash= BLI_ghash_new(mirror_facehash, mirror_facecmp, "mirror_facehash gh");
-	for(a=0, mf=mface; a<me->totface; a++, mf++)
+	for (a=0, mf=mface; a<me->totface; a++, mf++)
 		BLI_ghash_insert(fhash, mf, mf);
 
-	for(a=0, mf=mface; a<me->totface; a++, mf++) {
+	for (a=0, mf=mface; a<me->totface; a++, mf++) {
 		mirrormf.v1= mirrorverts[mf->v3];
 		mirrormf.v2= mirrorverts[mf->v2];
 		mirrormf.v3= mirrorverts[mf->v1];
 		mirrormf.v4= (mf->v4)? mirrorverts[mf->v4]: 0;
 
 		/* make sure v4 is not 0 if a quad */
-		if(mf->v4 && mirrormf.v4==0) {
+		if (mf->v4 && mirrormf.v4==0) {
 			SWAP(unsigned int, mirrormf.v1, mirrormf.v3);
 			SWAP(unsigned int, mirrormf.v2, mirrormf.v4);
 		}
 
 		hashmf= BLI_ghash_lookup(fhash, &mirrormf);
-		if(hashmf) {
+		if (hashmf) {
 			mirrorfaces[a*2]= hashmf - mface;
 			mirrorfaces[a*2+1]= mirror_facerotation(&mirrormf, hashmf);
 		}

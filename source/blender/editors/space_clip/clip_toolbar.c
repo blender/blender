@@ -61,14 +61,14 @@ static ARegion *clip_has_properties_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if(ar)
+	if (ar)
 		return ar;
 
 	/* add subdiv level; after header */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if(ar==NULL)
+	if (ar==NULL)
 		return NULL;
 
 	arnew= MEM_callocN(sizeof(ARegion), "clip properties region");
@@ -92,7 +92,7 @@ static int properties_exec(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= clip_has_properties_region(sa);
 
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
@@ -116,23 +116,23 @@ static ARegion *clip_has_tools_region(ScrArea *sa)
 {
 	ARegion *ar, *artool=NULL, *arprops=NULL, *arhead;
 
-	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		if(ar->regiontype==RGN_TYPE_TOOLS)
+	for (ar= sa->regionbase.first; ar; ar= ar->next) {
+		if (ar->regiontype==RGN_TYPE_TOOLS)
 			artool= ar;
-		if(ar->regiontype==RGN_TYPE_TOOL_PROPS)
+		if (ar->regiontype==RGN_TYPE_TOOL_PROPS)
 			arprops= ar;
 	}
 
 	/* tool region hide/unhide also hides props */
-	if(arprops && artool)
+	if (arprops && artool)
 		return artool;
 
-	if(artool==NULL) {
+	if (artool==NULL) {
 		/* add subdiv level; after header */
 		arhead= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 		/* is error! */
-		if(arhead==NULL)
+		if (arhead==NULL)
 			return NULL;
 
 		artool= MEM_callocN(sizeof(ARegion), "clip tools region");
@@ -144,7 +144,7 @@ static ARegion *clip_has_tools_region(ScrArea *sa)
 		artool->flag= RGN_FLAG_HIDDEN;
 	}
 
-	if(arprops==NULL) {
+	if (arprops==NULL) {
 		/* add extra subdivided region for tool properties */
 		arprops= MEM_callocN(sizeof(ARegion), "tool props for clip");
 
@@ -166,7 +166,7 @@ static int tools_exec(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= clip_has_tools_region(sa);
 
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
@@ -195,14 +195,14 @@ static void clip_panel_operator_redo_header(const bContext *C, Panel *pa)
 {
 	wmOperator *op= WM_operator_last_redo(C);
 
-	if(op) BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
+	if (op) BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
 	else BLI_strncpy(pa->drawname, "Operator", sizeof(pa->drawname));
 }
 
 static void clip_panel_operator_redo_operator(const bContext *C, Panel *pa, wmOperator *op)
 {
-	if(op->type->flag & OPTYPE_MACRO) {
-		for(op= op->macro.first; op; op= op->next) {
+	if (op->type->flag & OPTYPE_MACRO) {
+		for (op= op->macro.first; op; op= op->next) {
 			uiItemL(pa->layout, op->type->name, ICON_NONE);
 			clip_panel_operator_redo_operator(C, pa, op);
 		}
@@ -218,9 +218,9 @@ static void clip_panel_operator_redo(const bContext *C, Panel *pa)
 	wmOperator *op= WM_operator_last_redo(C);
 	uiBlock *block;
 
-	if(op==NULL)
+	if (op==NULL)
 		return;
-	if(WM_operator_poll((bContext*)C, op->type) == 0)
+	if (WM_operator_poll((bContext*)C, op->type) == 0)
 		return;
 
 	block= uiLayoutGetBlock(pa->layout);

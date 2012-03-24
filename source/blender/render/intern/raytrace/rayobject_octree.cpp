@@ -158,7 +158,8 @@ static void calc_ocval_ray(OcVal *ov, float xo, float yo, float zo, float *vec1,
 	if(vec1[0]<vec2[0]) {
 		ocmin= OCVALRES*(vec1[0] - xo);
 		ocmax= OCVALRES*(vec2[0] - xo);
-	} else {
+	}
+	else {
 		ocmin= OCVALRES*(vec2[0] - xo);
 		ocmax= OCVALRES*(vec1[0] - xo);
 	}
@@ -167,7 +168,8 @@ static void calc_ocval_ray(OcVal *ov, float xo, float yo, float zo, float *vec1,
 	if(vec1[1]<vec2[1]) {
 		ocmin= OCVALRES*(vec1[1] - yo);
 		ocmax= OCVALRES*(vec2[1] - yo);
-	} else {
+	}
+	else {
 		ocmin= OCVALRES*(vec2[1] - yo);
 		ocmax= OCVALRES*(vec1[1] - yo);
 	}
@@ -176,7 +178,8 @@ static void calc_ocval_ray(OcVal *ov, float xo, float yo, float zo, float *vec1,
 	if(vec1[2]<vec2[2]) {
 		ocmin= OCVALRES*(vec1[2] - zo);
 		ocmax= OCVALRES*(vec2[2] - zo);
-	} else {
+	}
+	else {
 		ocmin= OCVALRES*(vec2[2] - zo);
 		ocmax= OCVALRES*(vec1[2] - zo);
 	}
@@ -348,12 +351,14 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 			labdax= (ox1-ocx1-1.0f)/(ox1-ox2);
 			ldx= -1.0f/(ox1-ox2);
 			dx= 1;
-		} else {
+		}
+		else {
 			labdax= (ox1-ocx1)/(ox1-ox2);
 			ldx= 1.0f/(ox1-ox2);
 			dx= -1;
 		}
-	} else {
+	}
+	else {
 		labdax=1.0f;
 		ldx=0;
 	}
@@ -363,12 +368,14 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 			labday= (oy1-ocy1-1.0f)/(oy1-oy2);
 			ldy= -1.0f/(oy1-oy2);
 			dy= 1;
-		} else {
+		}
+		else {
 			labday= (oy1-ocy1)/(oy1-oy2);
 			ldy= 1.0f/(oy1-oy2);
 			dy= -1;
 		}
-	} else {
+	}
+	else {
 		labday=1.0f;
 		ldy=0;
 	}
@@ -387,11 +394,13 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 			x+=dx;
 			labday+=ldy;
 			y+=dy;
-		} else {
+		}
+		else {
 			if(labdax<labday) {
 				labdax+=ldx;
 				x+=dx;
-			} else {
+			}
+			else {
 				labday+=ldy;
 				y+=dy;
 			}
@@ -940,11 +949,13 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 			ldx= -1.0f/dox;
 			labdax= (ocx1-ox1+1.0f)*ldx;
 			dx= 1;
-		} else if(dox>FLT_EPSILON) {
+		}
+		else if(dox>FLT_EPSILON) {
 			ldx= 1.0f/dox;
 			labdax= (ox1-ocx1)*ldx;
 			dx= -1;
-		} else {
+		}
+		else {
 			labdax=1.0f;
 			ldx=0;
 			dx= 0;
@@ -954,11 +965,13 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 			ldy= -1.0f/doy;
 			labday= (ocy1-oy1+1.0f)*ldy;
 			dy= 1;
-		} else if(doy>FLT_EPSILON) {
+		}
+		else if(doy>FLT_EPSILON) {
 			ldy= 1.0f/doy;
 			labday= (oy1-ocy1)*ldy;
 			dy= -1;
-		} else {
+		}
+		else {
 			labday=1.0f;
 			ldy=0;
 			dy= 0;
@@ -968,11 +981,13 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 			ldz= -1.0f/doz;
 			labdaz= (ocz1-oz1+1.0f)*ldz;
 			dz= 1;
-		} else if(doz>FLT_EPSILON) {
+		}
+		else if(doz>FLT_EPSILON) {
 			ldz= 1.0f/doz;
 			labdaz= (oz1-ocz1)*ldz;
 			dz= -1;
-		} else {
+		}
+		else {
 			labdaz=1.0f;
 			ldz=0;
 			dz= 0;

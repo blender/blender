@@ -372,7 +372,8 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 		unsigned int method = toolsettings->uv_relax_method;
 		if (method == UV_SCULPT_TOOL_RELAX_HC) {
 			HC_relaxation_iteration_uv(em, sculptdata, co, alpha, radius, aspectRatio);
-		}else{
+		}
+		else {
 			laplacian_relaxation_iteration_uv(em, sculptdata, co, alpha, radius, aspectRatio);
 		}
 	}
@@ -501,13 +502,16 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 			/* We will need island information */
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
 				data->elementMap = EDBM_make_uv_element_map(em, 0, 1);
-			}else{
+			}
+			else {
 				data->elementMap = EDBM_make_uv_element_map(em, 1, 1);
 			}
-		}else {
+		}
+		else {
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
 				data->elementMap = EDBM_make_uv_element_map(em, 0, 0);
-			}else{
+			}
+			else {
 				data->elementMap = EDBM_make_uv_element_map(em, 1, 0);
 			}
 		}
@@ -610,7 +614,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 					edges[counter].uv1 = offset1;
 					edges[counter].uv2 = offset2;
 				}
-				else{
+				else {
 					edges[counter].uv1 = offset2;
 					edges[counter].uv2 = offset1;
 				}
@@ -619,7 +623,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 					char *flag = BLI_ghash_lookup(edgeHash, &edges[counter]);
 					*flag = 1;
 				}
-				else{
+				else {
 					/* Hack mentioned */
 					BLI_ghash_insert(edgeHash, &edges[counter], &edges[counter].flag);
 				}

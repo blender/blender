@@ -54,13 +54,13 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, GPUNodeStack
 	Image *ima= (Image*)node->id;
 	ImageUser *iuser= NULL;
 
-	if(!ima) {
+	if (!ima) {
 		float black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 		GPUNodeLink *vec = GPU_uniform(black);
 		return GPU_stack_link(mat, "set_rgba", out, out, vec);
 	}
 	
-	if(!in[0].link)
+	if (!in[0].link)
 		in[0].link = GPU_attribute(CD_MTFACE, "");
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);

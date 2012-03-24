@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_output_in[]= {
 
 static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
-	if(data) {
+	if (data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
 		float col[4];
 		
@@ -49,12 +49,12 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 		nodestack_get_vec(col, SOCK_VECTOR, in[0]);
 		nodestack_get_vec(col+3, SOCK_FLOAT, in[1]);
 		
-		if(shi->do_preview) {
+		if (shi->do_preview) {
 			nodeAddToPreview(node, col, shi->xs, shi->ys, shi->do_manage);
 			node->lasty= shi->ys;
 		}
 		
-		if(node->flag & NODE_DO_OUTPUT) {
+		if (node->flag & NODE_DO_OUTPUT) {
 			ShadeResult *shr= ((ShaderCallData *)data)->shr;
 			
 			copy_v4_v4(shr->combined, col);
@@ -70,7 +70,7 @@ static int gpu_shader_output(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack
 	GPUNodeLink *outlink;
 
 #if 0
-	if(in[1].hasinput)
+	if (in[1].hasinput)
 		GPU_material_enable_alpha(mat);
 #endif
 

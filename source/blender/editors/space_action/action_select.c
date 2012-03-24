@@ -785,7 +785,7 @@ static void actkeys_select_leftright (bAnimContext *ac, short leftright, short s
 			TimeMarker *marker;
 			
 			for (marker= markers->first; marker; marker= marker->next) {
-				if(	((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
+				if (	((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
 					((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA)) ) 
 				{
 					marker->flag |= SELECT;

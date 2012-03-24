@@ -156,11 +156,11 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *o
 	wy[2] = P(b-  1);
 	wy[3] = P(b-  2);
 	
-	for(n= -1; n<= 2; n++){
+	for (n= -1; n<= 2; n++) {
 		x1= i+n;
 		CLAMP(x1, 0, in->x-1);
 		wx = P(n-a);
-		for(m= -1; m<= 2; m++){
+		for (m= -1; m<= 2; m++) {
 			y1= j+m;
 			CLAMP(y1, 0, in->y-1);
 			/* normally we could do this */
@@ -189,8 +189,8 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *o
 	
 #if 0 
 	/* older, slower function, works the same as above */
-	for(n= -1; n<= 2; n++){
-		for(m= -1; m<= 2; m++){
+	for (n= -1; n<= 2; n++) {
+		for (m= -1; m<= 2; m++) {
 			x1= i+n;
 			y1= j+m;
 			if (x1>0 && x1 < in->x && y1>0 && y1<in->y) {
@@ -338,11 +338,11 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 	if (x2<0 || x1>in->x-1 || y2<0 || y1>in->y-1) return;
 	
 	/* wrap interpolation pixels - main difference from bilinear_interpolation_color  */
-	if(x1<0)x1= in->x+x1;
-	if(y1<0)y1= in->y+y1;
+	if (x1<0)x1= in->x+x1;
+	if (y1<0)y1= in->y+y1;
 	
-	if(x2>=in->x)x2= x2-in->x;
-	if(y2>=in->y)y2= y2-in->y;
+	if (x2>=in->x)x2= x2-in->x;
+	if (y2>=in->y)y2= y2-in->y;
 
 	if (outF) {
 		// sample including outside of edges of image 
@@ -423,7 +423,8 @@ void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 			outF[2]= 0.0f;
 			outF[3]= 0.0f;
 		}
-	} else {
+	}
+	else {
 		dataI= (unsigned char *)in->rect + in->x * y1 * 4 + 4*x1;
 		if (outI) {
 			outI[0]= dataI[0];

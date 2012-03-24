@@ -437,7 +437,8 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 						BM_face_kill(bm, f);
 						BM_edge_kill(bm, fe);
 					}
-				} /* else if (f->len == 3) {
+				}
+				/* else if (f->len == 3) {
 					BMEdge *ed[3];
 					BMVert *vt[3];
 					BMLoop *lp[3];

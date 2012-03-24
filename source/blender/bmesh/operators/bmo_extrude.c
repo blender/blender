@@ -131,7 +131,7 @@ static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e
 		if (l2 == l) {
 			l2 = newedge->l;
 
-			if(l2 != l) {
+			if (l2 != l) {
 				BM_elem_attrs_copy(bm, bm, l2->f, l->f);
 
 				BM_elem_attrs_copy(bm, bm, l2, l);

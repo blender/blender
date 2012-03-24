@@ -99,7 +99,7 @@ static int sequencer_properties(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= sequencer_has_buttons_region(sa);
 	
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;

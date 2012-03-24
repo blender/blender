@@ -152,17 +152,17 @@ static int IMB_ispic_name(const char *name)
 	struct stat st;
 	int fp, buf[10];
 
-	if(UTIL_DEBUG) printf("IMB_ispic_name: loading %s\n", name);
+	if (UTIL_DEBUG) printf("IMB_ispic_name: loading %s\n", name);
 	
-	if(stat(name,&st) == -1)
+	if (stat(name,&st) == -1)
 		return FALSE;
-	if(((st.st_mode) & S_IFMT) != S_IFREG)
-		return FALSE;
-
-	if((fp = BLI_open(name,O_BINARY|O_RDONLY, 0)) < 0)
+	if (((st.st_mode) & S_IFMT) != S_IFREG)
 		return FALSE;
 
-	if(read(fp, buf, 32) != 32) {
+	if ((fp = BLI_open(name,O_BINARY|O_RDONLY, 0)) < 0)
+		return FALSE;
+
+	if (read(fp, buf, 32) != 32) {
 		close(fp);
 		return FALSE;
 	}
@@ -170,11 +170,11 @@ static int IMB_ispic_name(const char *name)
 	close(fp);
 
 	/* XXX move this exception */
-	if((BIG_LONG(buf[0]) & 0xfffffff0) == 0xffd8ffe0)
+	if ((BIG_LONG(buf[0]) & 0xfffffff0) == 0xffd8ffe0)
 		return JPG;
 
-	for(type=IMB_FILE_TYPES; type->is_a; type++)
-		if(type->is_a((uchar*)buf))
+	for (type=IMB_FILE_TYPES; type->is_a; type++)
+		if (type->is_a((uchar*)buf))
 			return type->filetype;
 
 	return FALSE;
@@ -182,8 +182,8 @@ static int IMB_ispic_name(const char *name)
 
 int IMB_ispic(const char *filename)
 {
-	if(U.uiflag & USER_FILTERFILEEXTS) {
-		if(	(BLI_testextensie_array(filename, imb_ext_image)) ||
+	if (U.uiflag & USER_FILTERFILEEXTS) {
+		if (	(BLI_testextensie_array(filename, imb_ext_image)) ||
 			(G.have_quicktime && BLI_testextensie_array(filename, imb_ext_image_qt))
 		) {
 			return IMB_ispic_name(filename);
@@ -234,7 +234,8 @@ void do_init_ffmpeg(void)
 		
 		if ((G.f & G_DEBUG) == 0) {
 			silence_log_ffmpeg(1);
-		} else {
+		}
+		else {
 			silence_log_ffmpeg(0);
 		}
 	}
@@ -250,7 +251,7 @@ static int isffmpeg (const char *filename)
 
 	do_init_ffmpeg();
 
-	if( BLI_testextensie(filename, ".swf") ||
+	if ( BLI_testextensie(filename, ".swf") ||
 		BLI_testextensie(filename, ".jpg") ||
 		BLI_testextensie(filename, ".png") ||
 		BLI_testextensie(filename, ".dds") ||
@@ -260,24 +261,24 @@ static int isffmpeg (const char *filename)
 		BLI_testextensie(filename, ".cin") ||
 		BLI_testextensie(filename, ".wav")) return 0;
 
-	if(av_open_input_file(&pFormatCtx, filename, NULL, 0, NULL)!=0) {
-		if(UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
+	if (av_open_input_file(&pFormatCtx, filename, NULL, 0, NULL)!=0) {
+		if (UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
 		return 0;
 	}
 
-	if(av_find_stream_info(pFormatCtx)<0) {
-		if(UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_find_stream_info failed\n");
+	if (av_find_stream_info(pFormatCtx)<0) {
+		if (UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_find_stream_info failed\n");
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
 
-	if(UTIL_DEBUG) av_dump_format(pFormatCtx, 0, filename, 0);
+	if (UTIL_DEBUG) av_dump_format(pFormatCtx, 0, filename, 0);
 
 
 		/* Find the first video stream */
 	videoStream=-1;
-	for(i=0; i<pFormatCtx->nb_streams; i++)
-		if(pFormatCtx->streams[i] &&
+	for (i=0; i<pFormatCtx->nb_streams; i++)
+		if (pFormatCtx->streams[i] &&
 		   pFormatCtx->streams[i]->codec && 
 		  (pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO))
 		{
@@ -285,7 +286,7 @@ static int isffmpeg (const char *filename)
 			break;
 		}
 
-	if(videoStream==-1) {
+	if (videoStream==-1) {
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
@@ -294,12 +295,12 @@ static int isffmpeg (const char *filename)
 
 		/* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
-	if(pCodec==NULL) {
+	if (pCodec==NULL) {
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
 
-	if(avcodec_open(pCodecCtx, pCodec)<0) {
+	if (avcodec_open(pCodecCtx, pCodec)<0) {
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
@@ -329,7 +330,7 @@ int imb_get_anim_type(const char * name)
 	int type;
 	struct stat st;
 
-	if(UTIL_DEBUG) printf("in getanimtype: %s\n", name);
+	if (UTIL_DEBUG) printf("in getanimtype: %s\n", name);
 
 #ifndef _WIN32
 #	ifdef WITH_QUICKTIME
@@ -370,9 +371,9 @@ int IMB_isanim(const char *filename)
 {
 	int type;
 	
-	if(U.uiflag & USER_FILTERFILEEXTS) {
-		if (G.have_quicktime){
-			if(		BLI_testextensie(filename, ".avi")
+	if (U.uiflag & USER_FILTERFILEEXTS) {
+		if (G.have_quicktime) {
+			if (		BLI_testextensie(filename, ".avi")
 				||	BLI_testextensie(filename, ".flc")
 				||	BLI_testextensie(filename, ".dv")
 				||	BLI_testextensie(filename, ".r3d")
@@ -380,11 +381,13 @@ int IMB_isanim(const char *filename)
 				||	BLI_testextensie(filename, ".movie")
 				||	BLI_testextensie(filename, ".mv")) {
 				type = imb_get_anim_type(filename);
-			} else {
+			}
+			else {
 				return(FALSE);			
 			}
-		} else { // no quicktime
-			if(		BLI_testextensie(filename, ".avi")
+		}
+		else { // no quicktime
+			if (		BLI_testextensie(filename, ".avi")
 				||	BLI_testextensie(filename, ".dv")
 				||	BLI_testextensie(filename, ".r3d")
 				||	BLI_testextensie(filename, ".mv")) {
@@ -394,7 +397,8 @@ int IMB_isanim(const char *filename)
 				return(FALSE);
 			}
 		}
-	} else { // no FILTERFILEEXTS
+	}
+	else { // no FILTERFILEEXTS
 		type = imb_get_anim_type(filename);
 	}
 	

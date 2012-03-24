@@ -62,15 +62,15 @@ static void do_distance_matte(bNode *node, float *out, float *in)
 	copy_v3_v3(out, in);
 
 	/*make 100% transparent */
-	if(distance < tolerence) {
+	if (distance < tolerence) {
 		out[3]=0.0;
 	}
 	/*in the falloff region, make partially transparent */
-	else if(distance < falloff+tolerence){
+	else if (distance < falloff+tolerence) {
 		distance=distance-tolerence;
 		alpha=distance/falloff;
 		/*only change if more transparent than before */
-		if(alpha < in[3]) {
+		if (alpha < in[3]) {
 			out[3]=alpha;
 		}
 		else { /* leave as before */
@@ -93,9 +93,9 @@ static void node_composit_exec_distance_matte(void *data, bNode *node, bNodeStac
 	NodeChroma *c;
 	
 	/*is anything connected?*/
-	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
+	if (out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
 	/*must have an image imput*/
-	if(in[0]->data==NULL) return;
+	if (in[0]->data==NULL) return;
 	
 	inbuf=typecheck_compbuf(in[0]->data, CB_RGBA);
 	
@@ -112,11 +112,11 @@ static void node_composit_exec_distance_matte(void *data, bNode *node, bNodeStac
 	
 	
 	out[0]->data=workbuf;
-	if(out[1]->hasoutput)
+	if (out[1]->hasoutput)
 		out[1]->data=valbuf_from_rgbabuf(workbuf, CHAN_A);
 	generate_preview(data, node, workbuf);
 
-	if(inbuf!=in[0]->data)
+	if (inbuf!=in[0]->data)
 		free_compbuf(inbuf);
 }
 

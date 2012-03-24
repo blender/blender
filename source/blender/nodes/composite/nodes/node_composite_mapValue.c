@@ -47,11 +47,11 @@ static void do_map_value(bNode *node, float *out, float *src)
 	TexMapping *texmap= node->storage;
 	
 	out[0]= (src[0] + texmap->loc[0])*texmap->size[0];
-	if(texmap->flag & TEXMAP_CLIP_MIN)
-		if(out[0]<texmap->min[0])
+	if (texmap->flag & TEXMAP_CLIP_MIN)
+		if (out[0]<texmap->min[0])
 			out[0]= texmap->min[0];
-	if(texmap->flag & TEXMAP_CLIP_MAX)
-		if(out[0]>texmap->max[0])
+	if (texmap->flag & TEXMAP_CLIP_MAX)
+		if (out[0]>texmap->max[0])
 			out[0]= texmap->max[0];
 }
 
@@ -59,10 +59,10 @@ static void node_composit_exec_map_value(void *UNUSED(data), bNode *node, bNodeS
 {
 	/* stack order in: valbuf */
 	/* stack order out: valbuf */
-	if(out[0]->hasoutput==0) return;
+	if (out[0]->hasoutput==0) return;
 	
 	/* input no image? then only value operation */
-	if(in[0]->data==NULL) {
+	if (in[0]->data==NULL) {
 		do_map_value(node, out[0]->vec, in[0]->vec);
 	}
 	else {

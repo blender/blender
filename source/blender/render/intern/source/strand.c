@@ -74,8 +74,8 @@ static float strand_eval_width(Material *ma, float strandco)
 
 	strandco= 0.5f*(strandco + 1.0f);
 
-	if(ma->strand_ease!=0.0f) {
-		if(ma->strand_ease<0.0f)
+	if (ma->strand_ease!=0.0f) {
+		if (ma->strand_ease<0.0f)
 			fac= pow(strandco, 1.0f+ma->strand_ease);
 		else
 			fac= pow(strandco, 1.0f/(1.0f-ma->strand_ease));
@@ -103,27 +103,27 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 	copy_v3_v3(p[2], sseg->v[2]->co);
 	copy_v3_v3(p[3], sseg->v[3]->co);
 
-	if(sseg->obi->flag & R_TRANSFORMED) {
+	if (sseg->obi->flag & R_TRANSFORMED) {
 		mul_m4_v3(sseg->obi->mat, p[0]);
 		mul_m4_v3(sseg->obi->mat, p[1]);
 		mul_m4_v3(sseg->obi->mat, p[2]);
 		mul_m4_v3(sseg->obi->mat, p[3]);
 	}
 
-	if(t == 0.0f) {
+	if (t == 0.0f) {
 		copy_v3_v3(spoint->co, p[1]);
 		spoint->strandco= sseg->v[1]->strandco;
 
 		spoint->dtstrandco= (sseg->v[2]->strandco - sseg->v[0]->strandco);
-		if(sseg->v[0] != sseg->v[1])
+		if (sseg->v[0] != sseg->v[1])
 			spoint->dtstrandco *= 0.5f;
 	}
-	else if(t == 1.0f) {
+	else if (t == 1.0f) {
 		copy_v3_v3(spoint->co, p[2]);
 		spoint->strandco= sseg->v[2]->strandco;
 
 		spoint->dtstrandco= (sseg->v[3]->strandco - sseg->v[1]->strandco);
-		if(sseg->v[3] != sseg->v[2])
+		if (sseg->v[3] != sseg->v[2])
 			spoint->dtstrandco *= 0.5f;
 	}
 	else {
@@ -157,17 +157,17 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 	dy= strandbuf->winy*cross[1]*strandbuf->winmat[1][1]/w;
 	w= sqrt(dx*dx + dy*dy);
 
-	if(w > 0.0f) {
-		if(strandbuf->flag & R_STRAND_B_UNITS) {
+	if (w > 0.0f) {
+		if (strandbuf->flag & R_STRAND_B_UNITS) {
 			const float crosslen= len_v3(cross);
 			w= 2.0f*crosslen*strandbuf->minwidth/w;
 
-			if(spoint->width < w) {
+			if (spoint->width < w) {
 				spoint->alpha= spoint->width/w;
 				spoint->width= w;
 			}
 
-			if(simplify)
+			if (simplify)
 				/* squared because we only change width, not length */
 				spoint->width *= simplify[0]*simplify[0];
 
@@ -211,45 +211,45 @@ static void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float
 
 	interpolate_vec4(shr1->combined, shr2->combined, t, negt, shr->combined);
 
-	if(addpassflag & SCE_PASS_VECTOR) {
+	if (addpassflag & SCE_PASS_VECTOR) {
 		interpolate_vec4(shr1->winspeed, shr2->winspeed, t, negt, shr->winspeed);
 	}
 	/* optim... */
-	if(addpassflag & ~(SCE_PASS_VECTOR)) {
-		if(addpassflag & SCE_PASS_Z)
+	if (addpassflag & ~(SCE_PASS_VECTOR)) {
+		if (addpassflag & SCE_PASS_Z)
 			interpolate_vec1(&shr1->z, &shr2->z, t, negt, &shr->z);
-		if(addpassflag & SCE_PASS_RGBA)
+		if (addpassflag & SCE_PASS_RGBA)
 			interpolate_vec4(shr1->col, shr2->col, t, negt, shr->col);
-		if(addpassflag & SCE_PASS_NORMAL) {
+		if (addpassflag & SCE_PASS_NORMAL) {
 			interpolate_vec3(shr1->nor, shr2->nor, t, negt, shr->nor);
 			normalize_v3(shr->nor);
 		}
-		if(addpassflag & SCE_PASS_EMIT)
+		if (addpassflag & SCE_PASS_EMIT)
 			interpolate_vec3(shr1->emit, shr2->emit, t, negt, shr->emit);
-		if(addpassflag & SCE_PASS_DIFFUSE)
+		if (addpassflag & SCE_PASS_DIFFUSE)
 			interpolate_vec3(shr1->diff, shr2->diff, t, negt, shr->diff);
-		if(addpassflag & SCE_PASS_SPEC)
+		if (addpassflag & SCE_PASS_SPEC)
 			interpolate_vec3(shr1->spec, shr2->spec, t, negt, shr->spec);
-		if(addpassflag & SCE_PASS_SHADOW)
+		if (addpassflag & SCE_PASS_SHADOW)
 			interpolate_vec3(shr1->shad, shr2->shad, t, negt, shr->shad);
-		if(addpassflag & SCE_PASS_AO)
+		if (addpassflag & SCE_PASS_AO)
 			interpolate_vec3(shr1->ao, shr2->ao, t, negt, shr->ao);
-		if(addpassflag & SCE_PASS_ENVIRONMENT)
+		if (addpassflag & SCE_PASS_ENVIRONMENT)
 			interpolate_vec3(shr1->env, shr2->env, t, negt, shr->env);
-		if(addpassflag & SCE_PASS_INDIRECT)
+		if (addpassflag & SCE_PASS_INDIRECT)
 			interpolate_vec3(shr1->indirect, shr2->indirect, t, negt, shr->indirect);
-		if(addpassflag & SCE_PASS_REFLECT)
+		if (addpassflag & SCE_PASS_REFLECT)
 			interpolate_vec3(shr1->refl, shr2->refl, t, negt, shr->refl);
-		if(addpassflag & SCE_PASS_REFRACT)
+		if (addpassflag & SCE_PASS_REFRACT)
 			interpolate_vec3(shr1->refr, shr2->refr, t, negt, shr->refr);
-		if(addpassflag & SCE_PASS_MIST)
+		if (addpassflag & SCE_PASS_MIST)
 			interpolate_vec1(&shr1->mist, &shr2->mist, t, negt, &shr->mist);
 	}
 }
 
 static void strand_apply_shaderesult_alpha(ShadeResult *shr, float alpha)
 {
-	if(alpha < 1.0f) {
+	if (alpha < 1.0f) {
 		shr->combined[0] *= alpha;
 		shr->combined[1] *= alpha;
 		shr->combined[2] *= alpha;
@@ -273,7 +273,7 @@ static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *ss
 
 	memset(&vlr, 0, sizeof(vlr));
 	vlr.flag= R_SMOOTH;
-	if(sseg->buffer->ma->mode & MA_TANGENT_STR)
+	if (sseg->buffer->ma->mode & MA_TANGENT_STR)
 		vlr.flag |= R_TANGENT;
 
 	shi->vlr= &vlr;
@@ -308,8 +308,8 @@ static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *ss
 	strand_apply_shaderesult_alpha(shr, spoint->alpha);
 
 	/* include lamphalos for strand, since halo layer was added already */
-	if(re->flag & R_LAMPHALO)
-		if(shi->layflag & SCE_LAY_HALO)
+	if (re->flag & R_LAMPHALO)
+		if (shi->layflag & SCE_LAY_HALO)
 			renderspothalo(shi, shr->combined, shr->combined[3]);
 	
 	shi->strand= NULL;
@@ -352,7 +352,7 @@ static void strand_shade_get(Render *re, StrandShadeCache *cache, ShadeSample *s
 	hashshr= BLI_ghash_lookup(cache->resulthash, svert);
 	refcount= BLI_ghash_lookup(cache->refcounthash, svert);
 
-	if(!hashshr) {
+	if (!hashshr) {
 		/* not shaded yet, shade and insert into hash */
 		p.t= (sseg->v[1] == svert)? 0.0f: 1.0f;
 		strand_eval_point(sseg, &p);
@@ -368,7 +368,7 @@ static void strand_shade_get(Render *re, StrandShadeCache *cache, ShadeSample *s
 	
 	/* lower reference count and remove if not needed anymore by any samples */
 	(*refcount)--;
-	if(*refcount == 0) {
+	if (*refcount == 0) {
 		BLI_ghash_remove(cache->resulthash, svert, NULL, (GHashValFreeFP)MEM_freeN);
 		BLI_ghash_remove(cache->refcounthash, svert, NULL, NULL);
 	}
@@ -387,7 +387,7 @@ void strand_shade_segment(Render *re, StrandShadeCache *cache, StrandSegment *ss
 	interpolate_shade_result(&shr1, &shr2, t, ssamp->shr, addpassflag);
 
 	/* apply alpha along width */
-	if(sseg->buffer->widthfade != 0.0f) {
+	if (sseg->buffer->widthfade != 0.0f) {
 		s = 1.0f - pow(fabs(s), sseg->buffer->widthfade);
 
 		strand_apply_shaderesult_alpha(ssamp->shr, s);
@@ -402,7 +402,7 @@ void strand_shade_unref(StrandShadeCache *cache, StrandVert *svert)
 	refcount= BLI_ghash_lookup(cache->refcounthash, svert);
 
 	(*refcount)--;
-	if(*refcount == 0) {
+	if (*refcount == 0) {
 		BLI_ghash_remove(cache->resulthash, svert, NULL, (GHashValFreeFP)MEM_freeN);
 		BLI_ghash_remove(cache->refcounthash, svert, NULL, NULL);
 	}
@@ -412,7 +412,7 @@ static void strand_shade_refcount(StrandShadeCache *cache, StrandVert *svert)
 {
 	int *refcount= BLI_ghash_lookup(cache->refcounthash, svert);
 
-	if(!refcount) {
+	if (!refcount) {
 		refcount= BLI_memarena_alloc(cache->memarena, sizeof(int));
 		*refcount= 1;
 		BLI_ghash_insert(cache->refcounthash, svert, refcount);
@@ -454,9 +454,9 @@ static int compare_strand_segment(const void *poin1, const void *poin2)
 	const StrandSortSegment *seg1= (const StrandSortSegment*)poin1;
 	const StrandSortSegment *seg2= (const StrandSortSegment*)poin2;
 
-	if(seg1->z < seg2->z)
+	if (seg1->z < seg2->z)
 		return -1;
-	else if(seg1->z == seg2->z)
+	else if (seg1->z == seg2->z)
 		return 0;
 	else
 		return 1;
@@ -493,7 +493,7 @@ static APixstrand *addpsmainAstrand(ListBase *lb)
 static APixstrand *addpsAstrand(ZSpan *zspan)
 {
 	/* make new PS */
-	if(zspan->apstrandmcounter==0) {
+	if (zspan->apstrandmcounter==0) {
 		zspan->curpstrand= addpsmainAstrand(zspan->apsmbase);
 		zspan->apstrandmcounter= 4095;
 	}
@@ -524,19 +524,19 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 	/* check against solid z-buffer */
 	zverg= (int)z;
 
-	if(spart->rectdaps) {
+	if (spart->rectdaps) {
 		/* find the z of the sample */
 		PixStr *ps;
 		intptr_t *rd= spart->rectdaps + offset;
 		
 		bufferz= 0x7FFFFFFF;
-		if(spart->rectmask) maskz= 0x7FFFFFFF;
+		if (spart->rectmask) maskz= 0x7FFFFFFF;
 		
-		if(*rd) {	
-			for(ps= (PixStr *)(*rd); ps; ps= ps->next) {
-				if(mask & ps->mask) {
+		if (*rd) {	
+			for (ps= (PixStr *)(*rd); ps; ps= ps->next) {
+				if (mask & ps->mask) {
 					bufferz= ps->z;
-					if(spart->rectmask)
+					if (spart->rectmask)
 						maskz= ps->maskz;
 					break;
 				}
@@ -545,25 +545,25 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 	}
 	else {
 		bufferz= (spart->rectz)? spart->rectz[offset]: 0x7FFFFFFF;
-		if(spart->rectmask)
+		if (spart->rectmask)
 			maskz= spart->rectmask[offset];
 	}
 
 #define CHECK_ADD(n) \
-	if(apn->p[n]==strnr && apn->obi[n]==obi && apn->seg[n]==seg) \
+	if (apn->p[n]==strnr && apn->obi[n]==obi && apn->seg[n]==seg) \
 	{ if(!(apn->mask[n] & mask)) { apn->mask[n] |= mask; apn->v[n] += t; apn->u[n] += s; } break; }
 #define CHECK_ASSIGN(n) \
-	if(apn->p[n]==0) \
+	if (apn->p[n]==0) \
 	{apn->obi[n]= obi; apn->p[n]= strnr; apn->z[n]= zverg; apn->mask[n]= mask; apn->v[n]= t; apn->u[n]= s; apn->seg[n]= seg; break; }
 
 	/* add to pixel list */
-	if(zverg < bufferz && (spart->totapixbuf[offset] < MAX_ZROW)) {
-		if(!spart->rectmask || zverg > maskz) {
+	if (zverg < bufferz && (spart->totapixbuf[offset] < MAX_ZROW)) {
+		if (!spart->rectmask || zverg > maskz) {
 			t = u*spart->t[0] + v*spart->t[1] + (1.0f-u-v)*spart->t[2];
 			s = fabs(u*spart->s[0] + v*spart->s[1] + (1.0f-u-v)*spart->s[2]);
 
 			apn= spart->apixbuf + offset;
-			while(apn) {
+			while (apn) {
 				CHECK_ADD(0);
 				CHECK_ADD(1);
 				CHECK_ADD(2);
@@ -579,7 +579,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 				CHECK_ASSIGN(0);
 			}
 
-			if(cache) {
+			if (cache) {
 				strand_shade_refcount(cache, sseg->v[1]);
 				strand_shade_refcount(cache, sseg->v[2]);
 			}
@@ -599,11 +599,11 @@ static int strand_test_clip(float winmat[][4], ZSpan *UNUSED(zspan), float *boun
 	/* we compare z without perspective division for segment sorting */
 	*zcomp= hoco[2];
 
-	if(hoco[0]+widthx < bounds[0]*hoco[3]) clipflag |= 1;
-	else if(hoco[0]-widthx > bounds[1]*hoco[3]) clipflag |= 2;
+	if (hoco[0]+widthx < bounds[0]*hoco[3]) clipflag |= 1;
+	else if (hoco[0]-widthx > bounds[1]*hoco[3]) clipflag |= 2;
 	
-	if(hoco[1]-widthy > bounds[3]*hoco[3]) clipflag |= 4;
-	else if(hoco[1]+widthy < bounds[2]*hoco[3]) clipflag |= 8;
+	if (hoco[1]-widthy > bounds[3]*hoco[3]) clipflag |= 4;
+	else if (hoco[1]+widthy < bounds[2]*hoco[3]) clipflag |= 8;
 
 	clipflag |= testclip(hoco);
 
@@ -619,7 +619,7 @@ static void do_scanconvert_strand(Render *UNUSED(re), StrandPart *spart, ZSpan *
 	copy_v3_v3(jco3, co3);
 	copy_v3_v3(jco4, co4);
 
-	if(spart->jit) {
+	if (spart->jit) {
 		jx= -spart->jit[sample][0];
 		jy= -spart->jit[sample][1];
 
@@ -651,13 +651,13 @@ static void do_scanconvert_strand(Render *UNUSED(re), StrandPart *spart, ZSpan *
 
 static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandPoint *p1, StrandPoint *p2)
 {
-	if(spart) {
+	if (spart) {
 		float t= p2->t;
 		float dt= p2->t - p1->t;
 		int a;
 
-		if(re->osa) {
-			for(a=0; a<re->osa; a++)
+		if (re->osa) {
+			for (a=0; a<re->osa; a++)
 				do_scanconvert_strand(re, spart, zspan, t, dt, p1->zco2, p1->zco1, p2->zco1, p2->zco2, a);
 		}
 		else
@@ -674,7 +674,7 @@ static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], St
 		projectvert(p2->co, winmat, hoco2);
 
   
-		for(a=0; a<totzspan; a++) {
+		for (a=0; a<totzspan; a++) {
 #if 0
 			/* render both strand and single pixel wire to counter aliasing */
 			zbufclip4(re, &zspan[a], obi, index, p1->hoco2, p1->hoco1, p2->hoco1, p2->hoco2, p1->clip2, p1->clip1, p2->clip1, p2->clip2);
@@ -692,7 +692,7 @@ static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *s
 	StrandBuffer *buffer= sseg->buffer;
 	float dot, d1[2], d2[2], len1, len2;
 
-	if(depth == buffer->maxdepth)
+	if (depth == buffer->maxdepth)
 		return 0;
 
 	p.t= (p1->t + p2->t)*0.5f;
@@ -707,14 +707,14 @@ static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *s
 	d2[1]= (p2->y - p.y);
 	len2= d2[0]*d2[0] + d2[1]*d2[1];
 
-	if(len1 == 0.0f || len2 == 0.0f)
+	if (len1 == 0.0f || len2 == 0.0f)
 		return 0;
 	
 	dot= d1[0]*d2[0] + d1[1]*d2[1];
-	if(dot*dot > sseg->sqadaptcos*len1*len2)
+	if (dot*dot > sseg->sqadaptcos*len1*len2)
 		return 0;
 
-	if(spart) {
+	if (spart) {
 		do_strand_point_project(winmat, zspan, p.co1, p.hoco1, p.zco1);
 		do_strand_point_project(winmat, zspan, p.co2, p.hoco2, p.zco2);
 	}
@@ -727,9 +727,9 @@ static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *s
 #endif
 	}
 
-	if(!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, p1, &p, depth+1))
+	if (!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, p1, &p, depth+1))
 		strand_render(re, sseg, winmat, spart, zspan, totzspan, p1, &p);
-	if(!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, &p, p2, depth+1))
+	if (!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, &p, p2, depth+1))
 		strand_render(re, sseg, winmat, spart, zspan, totzspan, &p, p2);
 	
 	return 1;
@@ -749,7 +749,7 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 	strand_eval_point(sseg, p2);
 	strand_project_point(buffer->winmat, buffer->winx, buffer->winy, p2);
 
-	if(spart) {
+	if (spart) {
 		do_strand_point_project(winmat, zspan, p1->co1, p1->hoco1, p1->zco1);
 		do_strand_point_project(winmat, zspan, p1->co2, p1->hoco2, p1->zco2);
 		do_strand_point_project(winmat, zspan, p2->co1, p2->hoco1, p2->zco1);
@@ -768,7 +768,7 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 #endif
 	}
 
-	if(!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, p1, p2, 0))
+	if (!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, p1, p2, 0))
 		strand_render(re, sseg, winmat, spart, zspan, totzspan, p1, p2);
 }
 
@@ -788,9 +788,9 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 	float z[4], bounds[4], obwinmat[4][4];
 	int a, b, c, i, totsegment, clip[4];
 
-	if(re->test_break(re->tbh))
+	if (re->test_break(re->tbh))
 		return 0;
-	if(re->totstrand == 0)
+	if (re->totstrand == 0)
 		return 0;
 
 	/* setup StrandPart */
@@ -818,7 +818,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 	zspan.zofsy= -pa->disprect.ymin;
 
 	/* to center the sample position */
-	if(!shadow) {
+	if (!shadow) {
 		zspan.zofsx -= 0.5f;
 		zspan.zofsy -= 0.5f;
 	}
@@ -836,17 +836,17 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 	totsegment= 0;
 
 	/* for all object instances */
-	for(obi=re->instancetable.first, i=0; obi; obi=obi->next, i++) {
+	for (obi=re->instancetable.first, i=0; obi; obi=obi->next, i++) {
 		Material *ma;
 		float widthx, widthy;
 
 		obr= obi->obr;
 
-		if(!obr->strandbuf || !(obr->strandbuf->lay & lay))
+		if (!obr->strandbuf || !(obr->strandbuf->lay & lay))
 			continue;
 
 		/* compute matrix and try clipping whole object */
-		if(obi->flag & R_TRANSFORMED)
+		if (obi->flag & R_TRANSFORMED)
 			mult_m4_m4m4(obwinmat, winmat, obi->mat);
 		else
 			copy_m4_m4(obwinmat, winmat);
@@ -854,12 +854,12 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 		/* test if we should skip it */
 		ma = obr->strandbuf->ma;
 
-		if(shadow && !(ma->mode & MA_SHADBUF))
+		if (shadow && !(ma->mode & MA_SHADBUF))
 			continue;
-		else if(!shadow && (ma->mode & MA_ONLYCAST))
+		else if (!shadow && (ma->mode & MA_ONLYCAST))
 			continue;
 
-		if(clip_render_object(obi->obr->boundbox, bounds, obwinmat))
+		if (clip_render_object(obi->obr->boundbox, bounds, obwinmat))
 			continue;
 		
 		widthx= obr->strandbuf->maxwidth*obwinmat[0][0];
@@ -867,12 +867,12 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 
 		/* for each bounding box containing a number of strands */
 		sbound= obr->strandbuf->bound;
-		for(c=0; c<obr->strandbuf->totbound; c++, sbound++) {
-			if(clip_render_object(sbound->boundbox, bounds, obwinmat))
+		for (c=0; c<obr->strandbuf->totbound; c++, sbound++) {
+			if (clip_render_object(sbound->boundbox, bounds, obwinmat))
 				continue;
 
 			/* for each strand in this bounding box */
-			for(a=sbound->start; a<sbound->end; a++) {
+			for (a=sbound->start; a<sbound->end; a++) {
 				strand= RE_findOrAddStrand(obr, a);
 				svert= strand->vert;
 
@@ -881,9 +881,9 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 				clip[2]= strand_test_clip(obwinmat, &zspan, bounds, (svert+1)->co, &z[2], widthx, widthy);
 				clip[0]= clip[1]; z[0]= z[1];
 
-				for(b=0; b<strand->totvert-1; b++, svert++) {
+				for (b=0; b<strand->totvert-1; b++, svert++) {
 					/* compute 4th point clipping and z depth */
-					if(b < strand->totvert-2) {
+					if (b < strand->totvert-2) {
 						clip[3]= strand_test_clip(obwinmat, &zspan, bounds, (svert+2)->co, &z[3], widthx, widthy);
 					}
 					else {
@@ -891,7 +891,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 					}
 
 					/* check clipping and add to sortsegments buffer */
-					if(!(clip[0] & clip[1] & clip[2] & clip[3])) {
+					if (!(clip[0] & clip[1] & clip[2] & clip[3])) {
 						sortseg= BLI_memarena_alloc(memarena, sizeof(StrandSortSegment));
 						sortseg->obi= i;
 						sortseg->strand= strand->index;
@@ -913,10 +913,10 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 		}
 	}
 
-	if(!re->test_break(re->tbh)) {
+	if (!re->test_break(re->tbh)) {
 		/* convert list to array and sort */
 		sortsegments= MEM_mallocN(sizeof(StrandSortSegment)*totsegment, "StrandSortSegment");
-		for(a=0, sortseg=firstseg; a<totsegment; a++, sortseg=sortseg->next)
+		for (a=0, sortseg=firstseg; a<totsegment; a++, sortseg=sortseg->next)
 			sortsegments[a]= *sortseg;
 		qsort(sortsegments, totsegment, sizeof(StrandSortSegment), compare_strand_segment);
 	}
@@ -925,11 +925,11 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 
 	spart.totapixbuf= MEM_callocN(sizeof(int)*pa->rectx*pa->recty, "totapixbuf");
 
-	if(!re->test_break(re->tbh)) {
+	if (!re->test_break(re->tbh)) {
 		/* render segments in sorted order */
 		sortseg= sortsegments;
-		for(a=0; a<totsegment; a++, sortseg++) {
-			if(re->test_break(re->tbh))
+		for (a=0; a<totsegment; a++, sortseg++) {
+			if (re->test_break(re->tbh))
 				break;
 
 			obi= &re->objectinstance[sortseg->obi];
@@ -954,7 +954,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 		}
 	}
 
-	if(sortsegments)
+	if (sortsegments)
 		MEM_freeN(sortsegments);
 	MEM_freeN(spart.totapixbuf);
 	
@@ -976,12 +976,12 @@ StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm,
 	totvert= dm->getNumVerts(dm);
 	totface= dm->getNumTessFaces(dm);
 
-	for(mesh=re->strandsurface.first; mesh; mesh=mesh->next)
-		if(mesh->obr.ob == obr->ob && mesh->obr.par == obr->par
+	for (mesh=re->strandsurface.first; mesh; mesh=mesh->next)
+		if (mesh->obr.ob == obr->ob && mesh->obr.par == obr->par
 			&& mesh->obr.index == obr->index && mesh->totvert==totvert && mesh->totface==totface)
 			break;
 
-	if(!mesh) {
+	if (!mesh) {
 		mesh= MEM_callocN(sizeof(StrandSurface), "StrandSurface");
 		mesh->obr= *obr;
 		mesh->totvert= totvert;
@@ -993,23 +993,23 @@ StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm,
 		BLI_addtail(&re->strandsurface, mesh);
 	}
 
-	if(timeoffset == -1 && !mesh->prevco)
+	if (timeoffset == -1 && !mesh->prevco)
 		mesh->prevco= co= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfCo");
-	else if(timeoffset == 0 && !mesh->co)
+	else if (timeoffset == 0 && !mesh->co)
 		mesh->co= co= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfCo");
-	else if(timeoffset == 1 && !mesh->nextco)
+	else if (timeoffset == 1 && !mesh->nextco)
 		mesh->nextco= co= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfCo");
 	else
 		return mesh;
 
 	mvert= dm->getVertArray(dm);
-	for(a=0; a<mesh->totvert; a++, mvert++) {
+	for (a=0; a<mesh->totvert; a++, mvert++) {
 		copy_v3_v3(co[a], mvert->co);
 		mul_m4_v3(mat, co[a]);
 	}
 
 	mface= dm->getTessFaceArray(dm);
-	for(a=0; a<mesh->totface; a++, mface++) {
+	for (a=0; a<mesh->totface; a++, mface++) {
 		mesh->face[a][0]= mface->v1;
 		mesh->face[a][1]= mface->v2;
 		mesh->face[a][2]= mface->v3;
@@ -1023,14 +1023,14 @@ void free_strand_surface(Render *re)
 {
 	StrandSurface *mesh;
 
-	for(mesh=re->strandsurface.first; mesh; mesh=mesh->next) {
-		if(mesh->co) MEM_freeN(mesh->co);
-		if(mesh->prevco) MEM_freeN(mesh->prevco);
-		if(mesh->nextco) MEM_freeN(mesh->nextco);
-		if(mesh->ao) MEM_freeN(mesh->ao);
-		if(mesh->env) MEM_freeN(mesh->env);
-		if(mesh->indirect) MEM_freeN(mesh->indirect);
-		if(mesh->face) MEM_freeN(mesh->face);
+	for (mesh=re->strandsurface.first; mesh; mesh=mesh->next) {
+		if (mesh->co) MEM_freeN(mesh->co);
+		if (mesh->prevco) MEM_freeN(mesh->prevco);
+		if (mesh->nextco) MEM_freeN(mesh->nextco);
+		if (mesh->ao) MEM_freeN(mesh->ao);
+		if (mesh->env) MEM_freeN(mesh->env);
+		if (mesh->indirect) MEM_freeN(mesh->indirect);
+		if (mesh->face) MEM_freeN(mesh->face);
 	}
 
 	BLI_freelistN(&re->strandsurface);
@@ -1042,11 +1042,11 @@ void strand_minmax(StrandRen *strand, float *min, float *max, float width)
 	float vec[3], width2= 2.0f*width;
 	int a;
 
-	for(a=0, svert=strand->vert; a<strand->totvert; a++, svert++) {
+	for (a=0, svert=strand->vert; a<strand->totvert; a++, svert++) {
 		copy_v3_v3(vec, svert->co);
 		DO_MINMAX(vec, min, max);
 		
-		if(width!=0.0f) {
+		if (width!=0.0f) {
 			vec[0]+= width; vec[1]+= width; vec[2]+= width;
 			DO_MINMAX(vec, min, max);
 			vec[0]-= width2; vec[1]-= width2; vec[2]-= width2;

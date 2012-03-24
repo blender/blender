@@ -54,15 +54,15 @@ static void node_shader_exec_mapping(void *UNUSED(data), bNode *node, bNodeStack
 	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
 	mul_m4_v3(texmap->mat, vec);
 	
-	if(texmap->flag & TEXMAP_CLIP_MIN) {
-		if(vec[0]<texmap->min[0]) vec[0]= texmap->min[0];
-		if(vec[1]<texmap->min[1]) vec[1]= texmap->min[1];
-		if(vec[2]<texmap->min[2]) vec[2]= texmap->min[2];
+	if (texmap->flag & TEXMAP_CLIP_MIN) {
+		if (vec[0]<texmap->min[0]) vec[0]= texmap->min[0];
+		if (vec[1]<texmap->min[1]) vec[1]= texmap->min[1];
+		if (vec[2]<texmap->min[2]) vec[2]= texmap->min[2];
 	}
-	if(texmap->flag & TEXMAP_CLIP_MAX) {
-		if(vec[0]>texmap->max[0]) vec[0]= texmap->max[0];
-		if(vec[1]>texmap->max[1]) vec[1]= texmap->max[1];
-		if(vec[2]>texmap->max[2]) vec[2]= texmap->max[2];
+	if (texmap->flag & TEXMAP_CLIP_MAX) {
+		if (vec[0]>texmap->max[0]) vec[0]= texmap->max[0];
+		if (vec[1]>texmap->max[1]) vec[1]= texmap->max[1];
+		if (vec[2]>texmap->max[2]) vec[2]= texmap->max[2];
 	}
 }
 

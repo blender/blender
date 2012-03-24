@@ -917,7 +917,8 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 			texture_face = assign_material_to_geom(mat_array[i], uid_material_map, ob, geom_uid,
 												   &color_texture, layername, texture_face,
 												   material_texture_mapping_map, i);
-		} else {
+		}
+		else {
 			fprintf(stderr, "invalid referenced material for %s\n", mat_array[i].getName().c_str());
 		}
 	}

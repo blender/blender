@@ -62,7 +62,7 @@ static bNode *node_under_mouse(bNodeTree *ntree, int mx, int my)
 {
 	bNode *node;
 	
-	for(node=ntree->nodes.last; node; node=node->prev) {
+	for (node=ntree->nodes.last; node; node=node->prev) {
 		/* node body (header and scale are in other operators) */
 		if (BLI_in_rctf(&node->totr, mx, my))
 			return node;
@@ -247,7 +247,7 @@ void node_deselect_all(SpaceNode *snode)
 {
 	bNode *node;
 	
-	for(node= snode->edittree->nodes.first; node; node= node->next)
+	for (node= snode->edittree->nodes.first; node; node= node->next)
 		node_deselect(node);
 }
 
@@ -561,14 +561,14 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	rect.ymax = RNA_int_get(op->ptr, "ymax");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 	
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(BLI_isect_rctf(&rectf, &node->totr, NULL)) {
-			if(gesture_mode==GESTURE_MODAL_SELECT)
+	for (node= snode->edittree->nodes.first; node; node= node->next) {
+		if (BLI_isect_rctf(&rectf, &node->totr, NULL)) {
+			if (gesture_mode==GESTURE_MODAL_SELECT)
 				node_select(node);
 			else
 				node_deselect(node);
 		}
-		else if(!extend) {
+		else if (!extend) {
 			node_deselect(node);
 		}
 	}
@@ -632,16 +632,16 @@ static int node_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 	bNode *node;
 	int count= 0;
 
-	for(node=first; node; node=node->next)
-		if(node->flag & NODE_SELECT)
+	for (node=first; node; node=node->next)
+		if (node->flag & NODE_SELECT)
 			count++;
 
-	if(count) {
-		for(node=first; node; node=node->next)
+	if (count) {
+		for (node=first; node; node=node->next)
 			node_deselect(node);
 	}
 	else {
-		for(node=first; node; node=node->next)
+		for (node=first; node; node=node->next)
 			node_select(node);
 	}
 	
@@ -716,16 +716,16 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeLink *link;
 	bNode *node;
 	
-	for(node=snode->edittree->nodes.first; node; node=node->next)
+	for (node=snode->edittree->nodes.first; node; node=node->next)
 		node->flag &= ~NODE_TEST;
 
-	for(link=snode->edittree->links.first; link; link=link->next) {
-		if(link->fromnode && link->tonode && (link->tonode->flag & NODE_SELECT))
+	for (link=snode->edittree->links.first; link; link=link->next) {
+		if (link->fromnode && link->tonode && (link->tonode->flag & NODE_SELECT))
 			link->fromnode->flag |= NODE_TEST;
 	}
 	
-	for(node=snode->edittree->nodes.first; node; node=node->next) {
-		if(node->flag & NODE_TEST)
+	for (node=snode->edittree->nodes.first; node; node=node->next) {
+		if (node->flag & NODE_TEST)
 			node_select(node);
 	}
 	

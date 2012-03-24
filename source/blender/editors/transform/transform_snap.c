@@ -169,7 +169,8 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			for (p = t->tsnap.points.first; p; p = p->next) {
 				if (p == t->tsnap.selectedPoint) {
 					glColor4ubv(selectedCol);
-				} else {
+				}
+				else {
 					glColor4ubv(col);
 				}
 
@@ -195,7 +196,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 				glEnd();
 			}
 			
-			if(v3d->zbuf)
+			if (v3d->zbuf)
 				glEnable(GL_DEPTH_TEST);
 		}
 		else if (t->spacetype==SPACE_IMAGE) {
@@ -265,12 +266,12 @@ void applyProject(TransInfo *t)
 		float imat[4][4];
 		int i;
 	
-		if(t->flag & (T_EDIT|T_POSE)) {
+		if (t->flag & (T_EDIT|T_POSE)) {
 			Object *ob = t->obedit?t->obedit:t->poseobj;
 			invert_m4_m4(imat, ob->obmat);
 		}
 
-		for(i = 0 ; i < t->total; i++, td++) {
+		for (i = 0 ; i < t->total; i++, td++) {
 			float iloc[3], loc[3], no[3];
 			float mval[2];
 			int dist = 1000;
@@ -297,7 +298,7 @@ void applyProject(TransInfo *t)
 			
 			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect))
 			{
-//				if(t->flag & (T_EDIT|T_POSE)) {
+//				if (t->flag & (T_EDIT|T_POSE)) {
 //					mul_m4_v3(imat, loc);
 //				}
 //				
@@ -476,7 +477,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 	}
 	/* use scene defaults only when transform is modal */
 	else if (t->flag & T_MODAL) {
-		if(ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
+		if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
 			if (ts->snap_flag & SCE_SNAP) {
 				t->modifiers |= MOD_SNAP;
 			}
@@ -569,7 +570,7 @@ int updateSelectedSnapPoint(TransInfo *t)
 		int closest_dist = 0;
 		int screen_loc[2];
 
-		for( p = t->tsnap.points.first; p; p = p->next ) {
+		for ( p = t->tsnap.points.first; p; p = p->next ) {
 			int dx, dy;
 			int dist;
 
@@ -631,7 +632,8 @@ void getSnapPoint(TransInfo *t, float vec[3])
 		}
 
 		mul_v3_fl(vec, 1.0f / total);
-	} else {
+	}
+	else {
 		copy_v3_v3(vec, t->tsnap.snapPoint);
 	}
 }
@@ -681,7 +683,7 @@ static float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 	float angle, start[3], end[3], center[3];
 	
 	copy_v3_v3(center, t->center);	
-	if(t->flag & (T_EDIT|T_POSE)) {
+	if (t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= t->obedit?t->obedit:t->poseobj;
 		mul_m4_v3(ob->obmat, center);
 	}
@@ -737,7 +739,7 @@ static float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 	float d1[3], d2[3], center[3], len_d1;
 	
 	copy_v3_v3(center, t->center);	
-	if(t->flag & (T_EDIT|T_POSE)) {
+	if (t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= t->obedit?t->obedit:t->poseobj;
 		mul_m4_v3(ob->obmat, center);
 	}
@@ -897,7 +899,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		
 		UI_view2d_region_to_view(&t->ar->v2d, t->mval[0], t->mval[1], co, co+1);
 
-		if(ED_uvedit_nearest_uv(t->scene, t->obedit, ima, co, t->tsnap.snapPoint))
+		if (ED_uvedit_nearest_uv(t->scene, t->obedit, ima, co, t->tsnap.snapPoint))
 		{
 			ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 			t->tsnap.snapPoint[0] *= aspx;
@@ -919,7 +921,7 @@ static void TargetSnapCenter(TransInfo *t)
 	if ((t->tsnap.status & TARGET_INIT) == 0)
 	{
 		copy_v3_v3(t->tsnap.snapTarget, t->center);	
-		if(t->flag & (T_EDIT|T_POSE)) {
+		if (t->flag & (T_EDIT|T_POSE)) {
 			Object *ob= t->obedit?t->obedit:t->poseobj;
 			mul_m4_v3(ob->obmat, t->tsnap.snapTarget);
 		}
@@ -937,7 +939,7 @@ static void TargetSnapActive(TransInfo *t)
 		TransData *active_td = NULL;
 		int i;
 
-		for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
+		for (td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 		{
 			if (td->flag & TD_ACTIVE)
 			{
@@ -950,7 +952,7 @@ static void TargetSnapActive(TransInfo *t)
 		{	
 			copy_v3_v3(t->tsnap.snapTarget, active_td->center);
 				
-			if(t->flag & (T_EDIT|T_POSE)) {
+			if (t->flag & (T_EDIT|T_POSE)) {
 				Object *ob= t->obedit?t->obedit:t->poseobj;
 				mul_m4_v3(ob->obmat, t->tsnap.snapTarget);
 			}
@@ -978,14 +980,14 @@ static void TargetSnapMedian(TransInfo *t)
 		t->tsnap.snapTarget[1] = 0;
 		t->tsnap.snapTarget[2] = 0;
 		
-		for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
+		for (td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 		{
 			add_v3_v3(t->tsnap.snapTarget, td->center);
 		}
 		
 		mul_v3_fl(t->tsnap.snapTarget, 1.0 / i);
 		
-		if(t->flag & (T_EDIT|T_POSE)) {
+		if (t->flag & (T_EDIT|T_POSE)) {
 			Object *ob= t->obedit?t->obedit:t->poseobj;
 			mul_m4_v3(ob->obmat, t->tsnap.snapTarget);
 		}
@@ -1005,7 +1007,7 @@ static void TargetSnapClosest(TransInfo *t)
 		if (t->flag & T_OBJECT)
 		{
 			int i;
-			for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
+			for (td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 			{
 				struct BoundBox *bb = object_get_boundbox(td->ob);
 				
@@ -1050,13 +1052,13 @@ static void TargetSnapClosest(TransInfo *t)
 		}
 		else {
 			int i;
-			for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++) {
+			for (td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++) {
 				float loc[3];
 				float dist;
 				
 				copy_v3_v3(loc, td->center);
 				
-				if(t->flag & (T_EDIT|T_POSE)) {
+				if (t->flag & (T_EDIT|T_POSE)) {
 					Object *ob= t->obedit?t->obedit:t->poseobj;
 					mul_m4_v3(ob->obmat, loc);
 				}
@@ -1278,7 +1280,7 @@ static int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm
 	mul_m4_v3(imat, ray_start_local);
 	mul_mat3_m4_v3(imat, ray_normal_local);
 
-	if(arm->edbo)
+	if (arm->edbo)
 	{
 		EditBone *eBone;
 
@@ -1381,9 +1383,9 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					hit.index = -1;
 					hit.dist = *r_depth * (*r_depth == FLT_MAX ? 1.0f : local_scale);
 
-					if(treeData.tree && BLI_bvhtree_ray_cast(treeData.tree, ray_start_local, ray_normal_local, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1)
+					if (treeData.tree && BLI_bvhtree_ray_cast(treeData.tree, ray_start_local, ray_normal_local, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1)
 					{
-						if(hit.dist/local_scale <= *r_depth) {
+						if (hit.dist/local_scale <= *r_depth) {
 							*r_depth= hit.dist/local_scale;
 							copy_v3_v3(r_loc, hit.co);
 							copy_v3_v3(r_no, hit.no);
@@ -1413,7 +1415,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 						EDBM_init_index_arrays(em, 0, 0, 1);
 					}
 					
-					for( i = 0; i < totface; i++) {
+					for ( i = 0; i < totface; i++) {
 						BMFace *efa = NULL;
 						MFace *f = faces + i;
 						
@@ -1437,7 +1439,8 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 								if (efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 								{
 									test = 0;
-								} else if (efa) {
+								}
+								else if (efa) {
 									BMIter iter;
 									BMLoop *l;
 									
@@ -1493,7 +1496,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 						EDBM_init_index_arrays(em, 1, 0, 0);
 					}
 					
-					for( i = 0; i < totvert; i++) {
+					for ( i = 0; i < totvert; i++) {
 						BMVert *eve = NULL;
 						MVert *v = verts + i;
 						
@@ -1548,7 +1551,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 						EDBM_init_index_arrays(em, 0, 1, 0);
 					}
 					
-					for( i = 0; i < totedge; i++) {
+					for ( i = 0; i < totedge; i++) {
 						BMEdge *eed = NULL;
 						MEdge *e = edges + i;
 						
@@ -1670,7 +1673,7 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, c
 				DupliObject *dupli_ob;
 				ListBase *lb = object_duplilist(scene, ob);
 				
-				for(dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next)
+				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next)
 				{
 					Object *dob = dupli_ob->ob;
 					
@@ -1792,7 +1795,7 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
 			MFace *faces = dm->getTessFaceArray(dm);
 			int i;
 			
-			for( i = 0; i < totface; i++) {
+			for ( i = 0; i < totface; i++) {
 				MFace *f = faces + i;
 				float lambda;
 				int result;
@@ -1879,7 +1882,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 				DupliObject *dupli_ob;
 				ListBase *lb = object_duplilist(scene, ob);
 				
-				for(dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next)
+				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next)
 				{
 					Object *dob = dupli_ob->ob;
 					
@@ -1992,7 +1995,7 @@ static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], Gea
 	int i;
 	float asp[3] = {1.0f, 1.0f, 1.0f}; // TODO: Remove hard coded limit here (3)
 
-	if(max_index > 2) {
+	if (max_index > 2) {
 		printf("applyGrid: invalid index %d, clamping\n", max_index);
 		max_index= 2;
 	}
@@ -2002,7 +2005,7 @@ static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], Gea
 		return;
 	
 	/* evil hack - snapping needs to be adapted for image aspect ratio */
-	if((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
+	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		ED_space_image_uv_aspect(t->sa->spacedata.first, asp, asp+1);
 	}
 

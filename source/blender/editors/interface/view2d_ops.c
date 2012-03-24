@@ -418,7 +418,7 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 	RNA_int_set(op->ptr, "deltax", 0);
 	RNA_int_set(op->ptr, "deltay", -40);
 	
-	if(RNA_boolean_get(op->ptr, "page")) {
+	if (RNA_boolean_get(op->ptr, "page")) {
 		ARegion *ar= CTX_wm_region(C);
 		RNA_int_set(op->ptr, "deltay", ar->v2d.mask.ymin - ar->v2d.mask.ymax);
 	}
@@ -468,7 +468,7 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 	RNA_int_set(op->ptr, "deltax", 0);
 	RNA_int_set(op->ptr, "deltay", 40);
 	
-	if(RNA_boolean_get(op->ptr, "page")) {
+	if (RNA_boolean_get(op->ptr, "page")) {
 		ARegion *ar= CTX_wm_region(C);
 		RNA_int_set(op->ptr, "deltay", ar->v2d.mask.ymax - ar->v2d.mask.ymin);
 	}
@@ -753,7 +753,7 @@ static int view_zoomout_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	vzd= op->customdata;
 	
-	if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+	if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
 		ARegion *ar= CTX_wm_region(C);
 		
 		/* store initial mouse position (in view space) */
@@ -867,7 +867,7 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
 	if (op->customdata) {
 		v2dViewZoomData *vzd= op->customdata;
 		
-		if(vzd->timer)
+		if (vzd->timer)
 			WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), vzd->timer);
 		
 		MEM_freeN(op->customdata);
@@ -975,7 +975,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->type == TIMER && event->customdata == vzd->timer) {
 		view_zoomdrag_apply(C, op);
 	}
-	else if(event->type == MOUSEMOVE) {
+	else if (event->type == MOUSEMOVE) {
 		float dx, dy;
 		
 		/* calculate new delta transform, based on zooming mode */

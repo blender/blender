@@ -65,13 +65,13 @@ ARegion *sequencer_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if(ar) return ar;
+	if (ar) return ar;
 	
 	/* add subdiv level; after header */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if(ar==NULL) return NULL;
+	if (ar==NULL) return NULL;
 	
 	arnew= MEM_callocN(sizeof(ARegion), "buttons for sequencer");
 	
@@ -88,8 +88,8 @@ static ARegion *sequencer_find_region(ScrArea *sa, short type)
 {
 	ARegion *ar=NULL;
 	
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
-		if(ar->regiontype==type)
+	for (ar= sa->regionbase.first; ar; ar= ar->next)
+		if (ar->regiontype==type)
 			return ar;
 
 	return ar;
@@ -186,7 +186,7 @@ static void sequencer_free(SpaceLink *UNUSED(sl))
 {	
 //	SpaceSeq *sseq= (SpaceSequencer*) sl;
 	
-// XXX	if(sseq->gpd) free_gpencil_data(sseq->gpd);
+// XXX	if (sseq->gpd) free_gpencil_data(sseq->gpd);
 
 }
 
@@ -273,7 +273,7 @@ static void sequencer_refresh(const bContext *C, ScrArea *sa)
 			break;
 	}
 
-	if(view_changed) {
+	if (view_changed) {
 		ED_area_initialize(wm, window, sa);
 		ED_area_tag_redraw(sa);
 	}
@@ -326,24 +326,24 @@ static void sequencer_main_area_draw(const bContext *C, ARegion *ar)
 
 static int image_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
-	if(drag->type==WM_DRAG_PATH)
-		if(ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
+	if (drag->type==WM_DRAG_PATH)
+		if (ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
 			return 1;
 	return 0;
 }
 
 static int movie_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
-	if(drag->type==WM_DRAG_PATH)
-		if(ELEM3(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK))	/* rule might not work? */
+	if (drag->type==WM_DRAG_PATH)
+		if (ELEM3(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK))	/* rule might not work? */
 			return 1;
 	return 0;
 }
 
 static int sound_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
-	if(drag->type==WM_DRAG_PATH)
-		if(ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK))	/* rule might not work? */
+	if (drag->type==WM_DRAG_PATH)
+		if (ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK))	/* rule might not work? */
 			return 1;
 	return 0;
 }
@@ -351,10 +351,10 @@ static int sound_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(ev
 static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	/* copy drag path to properties */
-	if(RNA_struct_find_property(drop->ptr, "filepath"))
+	if (RNA_struct_find_property(drop->ptr, "filepath"))
 		RNA_string_set(drop->ptr, "filepath", drag->path);
 
-	if(RNA_struct_find_property(drop->ptr, "directory")) {
+	if (RNA_struct_find_property(drop->ptr, "directory")) {
 		PointerRNA itemptr;
 		char dir[FILE_MAX], file[FILE_MAX];
 
@@ -407,11 +407,11 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_SEQUENCER)
+			if (wmn->data == ND_SPACE_SEQUENCER)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -443,15 +443,15 @@ static void sequencer_preview_area_draw(const bContext *C, ARegion *ar)
 
 	draw_image_seq(C, scene, ar, sseq, scene->r.cfra, 0);
 
-	if(scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+	if (scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 		int over_cfra;
 
-		if(scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS)
+		if (scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS)
 			over_cfra= scene->ed->over_cfra;
 		else
 			over_cfra= scene->r.cfra + scene->ed->over_ofs;
 
-		if(over_cfra != scene->r.cfra)
+		if (over_cfra != scene->r.cfra)
 			draw_image_seq(C, scene, ar, sseq, scene->r.cfra, over_cfra - scene->r.cfra);
 	}
 
@@ -471,7 +471,7 @@ static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_SEQUENCER)
+			if (wmn->data == ND_SPACE_SEQUENCER)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
@@ -512,11 +512,11 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 		}
 		break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_SEQUENCER)
+			if (wmn->data == ND_SPACE_SEQUENCER)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -590,7 +590,7 @@ void ED_spacetype_sequencer(void)
 	BKE_spacetype_register(st);
 
 	/* set the sequencer callback when not in background mode */
-	if(G.background==0) {
+	if (G.background==0) {
 		sequencer_view3d_cb = ED_view3d_draw_offscreen_imbuf_simple;
 	}
 }

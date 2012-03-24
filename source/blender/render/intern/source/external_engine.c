@@ -91,13 +91,13 @@ void RE_engines_exit(void)
 {
 	RenderEngineType *type, *next;
 
-	for(type=R_engines.first; type; type=next) {
+	for (type=R_engines.first; type; type=next) {
 		next= type->next;
 
 		BLI_remlink(&R_engines, type);
 
-		if(!(type->flag & RE_INTERNAL)) {
-			if(type->ext.free)
+		if (!(type->flag & RE_INTERNAL)) {
+			if (type->ext.free)
 				type->ext.free(type->ext.data);
 
 			MEM_freeN(type);
@@ -110,7 +110,7 @@ RenderEngineType *RE_engines_find(const char *idname)
 	RenderEngineType *type;
 	
 	type= BLI_findstring(&R_engines, idname, offsetof(RenderEngineType, idname));
-	if(!type)
+	if (!type)
 		type= &internal_render_type;
 
 	return type;
@@ -135,12 +135,12 @@ RenderEngine *RE_engine_create(RenderEngineType *type)
 void RE_engine_free(RenderEngine *engine)
 {
 #ifdef WITH_PYTHON
-	if(engine->py_instance) {
+	if (engine->py_instance) {
 		BPY_DECREF(engine->py_instance);
 	}
 #endif
 
-	if(engine->text)
+	if (engine->text)
 		MEM_freeN(engine->text);
 
 	MEM_freeN(engine);
@@ -160,9 +160,9 @@ RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, 
 	CLAMP(w, 0, re->result->rectx);
 	CLAMP(h, 0, re->result->recty);
 
-	if(x + w > re->result->rectx)
+	if (x + w > re->result->rectx)
 		w= re->result->rectx - x;
-	if(y + h > re->result->recty)
+	if (y + h > re->result->recty)
 		h= re->result->recty - y;
 
 	/* allocate a render result */
@@ -186,7 +186,7 @@ void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
 {
 	Render *re= engine->re;
 
-	if(result) {
+	if (result) {
 		result->renlay= result->layers.first; // weak, draws first layer always
 		re->display_draw(re->ddh, result, NULL);
 	}
@@ -196,15 +196,15 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result)
 {
 	Render *re= engine->re;
 
-	if(!result)
+	if (!result)
 		return;
 
 	/* merge. on break, don't merge in result for preview renders, looks nicer */
-	if(!(re->test_break(re->tbh) && (re->r.scemode & R_PREVIEWBUTS)))
+	if (!(re->test_break(re->tbh) && (re->r.scemode & R_PREVIEWBUTS)))
 		render_result_merge(re->result, result);
 
 	/* draw */
-	if(!re->test_break(re->tbh)) {
+	if (!re->test_break(re->tbh)) {
 		result->renlay= result->layers.first; // weak, draws first layer always
 		re->display_draw(re->ddh, result, NULL);
 	}
@@ -219,7 +219,7 @@ int RE_engine_test_break(RenderEngine *engine)
 {
 	Render *re= engine->re;
 
-	if(re)
+	if (re)
 		return re->test_break(re->tbh);
 	
 	return 0;
@@ -232,7 +232,7 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 	Render *re= engine->re;
 
 	/* stats draw callback */
-	if(re) {
+	if (re) {
 		re->i.statstr= stats;
 		re->i.infostr= info;
 		re->stats_draw(re->sdh, &re->i);
@@ -241,16 +241,16 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 	}
 
 	/* set engine text */
-	if(engine->text) {
+	if (engine->text) {
 		MEM_freeN(engine->text);
 		engine->text= NULL;
 	}
 
-	if(stats && stats[0] && info && info[0])
+	if (stats && stats[0] && info && info[0])
 		engine->text= BLI_sprintfN("%s | %s", stats, info);
-	else if(info && info[0])
+	else if (info && info[0])
 		engine->text= BLI_strdup(info);
-	else if(stats && stats[0])
+	else if (stats && stats[0])
 		engine->text= BLI_strdup(stats);
 }
 
@@ -258,7 +258,7 @@ void RE_engine_update_progress(RenderEngine *engine, float progress)
 {
 	Render *re= engine->re;
 
-	if(re) {
+	if (re) {
 		CLAMP(progress, 0.0f, 1.0f);
 		re->progress(re->prh, progress);
 	}
@@ -277,25 +277,25 @@ int RE_engine_render(Render *re, int do_all)
 	RenderEngine *engine;
 
 	/* verify if we can render */
-	if(!type->render)
+	if (!type->render)
 		return 0;
-	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_USE_PREVIEW))
+	if ((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_USE_PREVIEW))
 		return 0;
-	if(do_all && !(type->flag & RE_USE_POSTPROCESS))
+	if (do_all && !(type->flag & RE_USE_POSTPROCESS))
 		return 0;
-	if(!do_all && (type->flag & RE_USE_POSTPROCESS))
+	if (!do_all && (type->flag & RE_USE_POSTPROCESS))
 		return 0;
 
 	/* create render result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
-		if(re->result)
+	if (re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
+		if (re->result)
 			render_result_free(re->result);
 		re->result= render_result_new(re, &re->disprect, 0, 0);
 	}
 	BLI_rw_mutex_unlock(&re->resultmutex);
 	
-	if(re->result==NULL)
+	if (re->result==NULL)
 		return 1;
 
 	/* set render info */
@@ -307,24 +307,24 @@ int RE_engine_render(Render *re, int do_all)
 	engine = RE_engine_create(type);
 	engine->re= re;
 
-	if(re->flag & R_ANIMATION)
+	if (re->flag & R_ANIMATION)
 		engine->flag |= RE_ENGINE_ANIMATION;
-	if(re->r.scemode & R_PREVIEWBUTS)
+	if (re->r.scemode & R_PREVIEWBUTS)
 		engine->flag |= RE_ENGINE_PREVIEW;
 
-	if((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
+	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
 		scene_update_for_newframe(re->main, re->scene, re->lay);
 
-	if(type->update)
+	if (type->update)
 		type->update(engine, re->main, re->scene);
-	if(type->render)
+	if (type->render)
 		type->render(engine, re->scene);
 
 	render_result_free_list(&engine->fullresult, engine->fullresult.first);
 
 	RE_engine_free(engine);
 
-	if(BKE_reports_contain(re->reports, RPT_ERROR))
+	if (BKE_reports_contain(re->reports, RPT_ERROR))
 		G.afbreek = 1;
 	
 	return 1;

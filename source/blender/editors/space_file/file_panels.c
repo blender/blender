@@ -80,7 +80,7 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 	*nr= -1;
 
 	/* hide if no entries */
-	if(nentries == 0)
+	if (nentries == 0)
 		return;
 
 	/* layout */
@@ -100,8 +100,8 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 		entry = fsmenu_get_entry(fsmenu, category, i);
 		
 		/* set this list item as active if we have a match */
-		if(sfile->params) {
-			if(BLI_path_cmp(sfile->params->dir, entry) == 0) {
+		if (sfile->params) {
+			if (BLI_path_cmp(sfile->params->dir, entry) == 0) {
 				*nr= i;
 			}
 		}
@@ -112,7 +112,7 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 		BLI_getlastdir(temp, dir, FILE_MAX);
 		BLI_del_slash(dir);
 
-		if(dir[0] == 0)
+		if (dir[0] == 0)
 			BLI_strncpy(dir, entry, FILE_MAX);
 
 		/* create list item */
@@ -121,7 +121,7 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 		uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
 
 		/* create delete button */
-		if(allow_delete && fsmenu_can_save(fsmenu, category, i)) {
+		if (allow_delete && fsmenu_can_save(fsmenu, category, i)) {
 			uiBlockSetEmboss(block, UI_EMBOSSN);
 			uiItemIntO(layout, "", ICON_X, "FILE_OT_delete_bookmark", "index", i);
 			uiBlockSetEmboss(block, UI_EMBOSS);
@@ -133,7 +133,7 @@ static void file_panel_system(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
-	if(sfile)
+	if (sfile)
 		file_panel_category(C, pa, FS_CATEGORY_SYSTEM, &sfile->systemnr, ICON_DISK_DRIVE, 0, 0);
 }
 
@@ -142,7 +142,7 @@ static void file_panel_bookmarks(const bContext *C, Panel *pa)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	uiLayout *row;
 
-	if(sfile) {
+	if (sfile) {
 		row= uiLayoutRow(pa->layout, 0);
 		uiItemO(row, IFACE_("Add"), ICON_ZOOMIN, "file.bookmark_add");
 		uiItemL(row, NULL, ICON_NONE);
@@ -155,7 +155,7 @@ static void file_panel_recent(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
-	if(sfile) {
+	if (sfile) {
 		if ( !(U.uiflag & USER_HIDE_RECENT) ) {
 			file_panel_category(C, pa, FS_CATEGORY_RECENT, &sfile->recentnr, ICON_FILE_FOLDER, 0, 1);
 		}

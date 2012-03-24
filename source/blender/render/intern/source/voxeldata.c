@@ -83,15 +83,15 @@ static int load_frame_blendervoxel(VoxelData *vd, FILE *fp, int frame)
 	const size_t size = vd_resol_size(vd);
 	size_t offset = sizeof(VoxelDataHeader);
 	
-	if(is_vd_res_ok(vd) == FALSE)
+	if (is_vd_res_ok(vd) == FALSE)
 		return 0;
 
 	vd->dataset = MEM_mapallocN(sizeof(float)*size, "voxel dataset");
-	if(vd->dataset == NULL) return 0;
+	if (vd->dataset == NULL) return 0;
 
-	if(fseek(fp, frame*size*sizeof(float)+offset, 0) == -1)
+	if (fseek(fp, frame*size*sizeof(float)+offset, 0) == -1)
 		return 0;
-	if(fread(vd->dataset, sizeof(float), size, fp) != size)
+	if (fread(vd->dataset, sizeof(float), size, fp) != size)
 		return 0;
 	
 	vd->cachedframe = frame;
@@ -105,25 +105,25 @@ static int load_frame_raw8(VoxelData *vd, FILE *fp, int frame)
 	char *data_c;
 	int i;
 
-	if(is_vd_res_ok(vd) == FALSE)
+	if (is_vd_res_ok(vd) == FALSE)
 		return 0;
 
 	vd->dataset = MEM_mapallocN(sizeof(float)*size, "voxel dataset");
-	if(vd->dataset == NULL) return 0;
+	if (vd->dataset == NULL) return 0;
 	data_c = (char *)MEM_mallocN(sizeof(char)*size, "temporary voxel file reading storage");
-	if(data_c == NULL) {
+	if (data_c == NULL) {
 		MEM_freeN(vd->dataset);
 		vd->dataset= NULL;
 		return 0;
 	}
 
-	if(fseek(fp,(frame-1)*size*sizeof(char),0) == -1) {
+	if (fseek(fp,(frame-1)*size*sizeof(char),0) == -1) {
 		MEM_freeN(data_c);
 		MEM_freeN(vd->dataset);
 		vd->dataset= NULL;
 		return 0;
 	}
-	if(fread(data_c, sizeof(char), size, fp) != size) {
+	if (fread(data_c, sizeof(char), size, fp) != size) {
 		MEM_freeN(data_c);
 		MEM_freeN(vd->dataset);
 		vd->dataset= NULL;
@@ -204,7 +204,7 @@ static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 	VoxelDataHeader *h=(VoxelDataHeader *)MEM_mallocN(sizeof(VoxelDataHeader), "voxel data header");
 	
 	rewind(fp);
-	if(fread(h,sizeof(VoxelDataHeader),1,fp) != 1) {
+	if (fread(h,sizeof(VoxelDataHeader),1,fp) != 1) {
 		MEM_freeN(h);
 		return 0;
 	}
@@ -232,8 +232,8 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 
 		
-		if(smd->domain && smd->domain->fluid) {
-			if(cfra < smd->domain->point_cache[0]->startframe)
+		if (smd->domain && smd->domain->fluid) {
+			if (cfra < smd->domain->point_cache[0]->startframe)
 				; /* don't show smoke before simulation starts, this could be made an option in the future */
 			else if (vd->smoked_type == TEX_VD_SMOKEHEAT) {
 				size_t totRes;
@@ -284,7 +284,8 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 				if (smd->domain->flags & MOD_SMOKE_HIGHRES) {
 					smoke_turbulence_get_res(smd->domain->wt, vd->resol);
 					density = smoke_turbulence_get_density(smd->domain->wt);
-				} else {
+				}
+				else {
 					copy_v3_v3_int(vd->resol, smd->domain->res);
 					density = smoke_get_density(smd->domain->fluid);
 				}
@@ -345,7 +346,7 @@ void cache_voxeldata(Tex *tex, int scene_frame)
 			fp = BLI_fopen(path,"rb");
 			if (!fp) return;
 			
-			if(read_voxeldata_header(fp, vd))
+			if (read_voxeldata_header(fp, vd))
 				load_frame_blendervoxel(vd, fp, curframe-1);
 
 			fclose(fp);
@@ -371,7 +372,7 @@ void make_voxeldata(struct Render *re)
 	
 	/* XXX: should be doing only textures used in this render */
 	for (tex= re->main->tex.first; tex; tex= tex->id.next) {
-		if(tex->id.us && tex->type==TEX_VOXELDATA) {
+		if (tex->id.us && tex->type==TEX_VOXELDATA) {
 			cache_voxeldata(tex, re->r.cfra);
 		}
 	}

@@ -83,16 +83,16 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 	int a;
 	
 	/* mult */
-	for(a=0; a<7; a++) {
+	for (a=0; a<7; a++) {
 		vec[a][0]*= rad; vec[a][1]*= rad;
 	}
 
 	glBegin(mode);
 
 	/* start with corner right-bottom */
-	if(roundboxtype & UI_CNR_BOTTOM_RIGHT) {
+	if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
 		glVertex2f(maxx-rad, miny);
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			glVertex2f(maxx-rad+vec[a][0], miny+vec[a][1]);
 		}
 		glVertex2f(maxx, miny+rad);
@@ -100,9 +100,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 	else glVertex2f(maxx, miny);
 	
 	/* corner right-top */
-	if(roundboxtype & UI_CNR_TOP_RIGHT) {
+	if (roundboxtype & UI_CNR_TOP_RIGHT) {
 		glVertex2f(maxx, maxy-rad);
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			glVertex2f(maxx-vec[a][1], maxy-rad+vec[a][0]);
 		}
 		glVertex2f(maxx-rad, maxy);
@@ -110,9 +110,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 	else glVertex2f(maxx, maxy);
 	
 	/* corner left-top */
-	if(roundboxtype & UI_CNR_TOP_LEFT) {
+	if (roundboxtype & UI_CNR_TOP_LEFT) {
 		glVertex2f(minx+rad, maxy);
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			glVertex2f(minx+rad-vec[a][0], maxy-vec[a][1]);
 		}
 		glVertex2f(minx, maxy-rad);
@@ -120,9 +120,9 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 	else glVertex2f(minx, maxy);
 	
 	/* corner left-bottom */
-	if(roundboxtype & UI_CNR_BOTTOM_LEFT) {
+	if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
 		glVertex2f(minx, miny+rad);
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			glVertex2f(minx+vec[a][1], miny+rad-vec[a][0]);
 		}
 		glVertex2f(minx+rad, miny);
@@ -154,7 +154,7 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	int a;
 	
 	/* mult */
-	for(a=0; a<7; a++) {
+	for (a=0; a<7; a++) {
 		vec[a][0]*= rad; vec[a][1]*= rad;
 	}
 	/* get current color, needs to be outside of glBegin/End */
@@ -172,12 +172,12 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	glBegin(mode);
 
 	/* start with corner right-bottom */
-	if(roundboxtype & UI_CNR_BOTTOM_RIGHT) {
+	if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
 		
 		round_box_shade_col(coltop, coldown, 0.0);
 		glVertex2f(maxx-rad, miny);
 		
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			round_box_shade_col(coltop, coldown, vec[a][1]*idiv);
 			glVertex2f(maxx-rad+vec[a][0], miny+vec[a][1]);
 		}
@@ -191,12 +191,12 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	}
 	
 	/* corner right-top */
-	if(roundboxtype & UI_CNR_TOP_RIGHT) {
+	if (roundboxtype & UI_CNR_TOP_RIGHT) {
 		
 		round_box_shade_col(coltop, coldown, (div-rad)*idiv);
 		glVertex2f(maxx, maxy-rad);
 		
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			round_box_shade_col(coltop, coldown, (div-rad+vec[a][1])*idiv);
 			glVertex2f(maxx-vec[a][1], maxy-rad+vec[a][0]);
 		}
@@ -209,12 +209,12 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	}
 	
 	/* corner left-top */
-	if(roundboxtype & UI_CNR_TOP_LEFT) {
+	if (roundboxtype & UI_CNR_TOP_LEFT) {
 		
 		round_box_shade_col(coltop, coldown, 1.0);
 		glVertex2f(minx+rad, maxy);
 		
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			round_box_shade_col(coltop, coldown, (div-vec[a][1])*idiv);
 			glVertex2f(minx+rad-vec[a][0], maxy-vec[a][1]);
 		}
@@ -228,12 +228,12 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	}
 	
 	/* corner left-bottom */
-	if(roundboxtype & UI_CNR_BOTTOM_LEFT) {
+	if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
 		
 		round_box_shade_col(coltop, coldown, rad*idiv);
 		glVertex2f(minx, miny+rad);
 		
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			round_box_shade_col(coltop, coldown, (rad-vec[a][1])*idiv);
 			glVertex2f(minx+vec[a][1], miny+rad-vec[a][0]);
 		}
@@ -262,7 +262,7 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	int a;
 	
 	/* mult */
-	for(a=0; a<7; a++) {
+	for (a=0; a<7; a++) {
 		vec[a][0]*= rad; vec[a][1]*= rad;
 	}
 	/* get current color, needs to be outside of glBegin/End */
@@ -280,11 +280,11 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	glBegin(mode);
 
 	/* start with corner right-bottom */
-	if(roundboxtype & UI_CNR_BOTTOM_RIGHT) {
+	if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
 		round_box_shade_col(colLeft, colRight, 0.0);
 		glVertex2f(maxx-rad, miny);
 		
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			round_box_shade_col(colLeft, colRight, vec[a][0]*idiv);
 			glVertex2f(maxx-rad+vec[a][0], miny+vec[a][1]);
 		}
@@ -298,11 +298,11 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	}
 	
 	/* corner right-top */
-	if(roundboxtype & UI_CNR_TOP_RIGHT) {
+	if (roundboxtype & UI_CNR_TOP_RIGHT) {
 		round_box_shade_col(colLeft, colRight, 0.0);
 		glVertex2f(maxx, maxy-rad);
 		
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			
 			round_box_shade_col(colLeft, colRight, (div-rad-vec[a][0])*idiv);
 			glVertex2f(maxx-vec[a][1], maxy-rad+vec[a][0]);
@@ -316,11 +316,11 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	}
 	
 	/* corner left-top */
-	if(roundboxtype & UI_CNR_TOP_LEFT) {
+	if (roundboxtype & UI_CNR_TOP_LEFT) {
 		round_box_shade_col(colLeft, colRight, (div-rad)*idiv);
 		glVertex2f(minx+rad, maxy);
 		
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			round_box_shade_col(colLeft, colRight, (div-rad+vec[a][0])*idiv);
 			glVertex2f(minx+rad-vec[a][0], maxy-vec[a][1]);
 		}
@@ -334,11 +334,11 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	}
 	
 	/* corner left-bottom */
-	if(roundboxtype & UI_CNR_BOTTOM_LEFT) {
+	if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
 		round_box_shade_col(colLeft, colRight, 1.0);
 		glVertex2f(minx, miny+rad);
 		
-		for(a=0; a<7; a++) {
+		for (a=0; a<7; a++) {
 			round_box_shade_col(colLeft, colRight, (vec[a][0])*idiv);
 			glVertex2f(minx+vec[a][1], miny+rad-vec[a][0]);
 		}
@@ -360,7 +360,7 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 {
 	float color[4];
 	
-	if(roundboxtype & UI_RB_ALPHA) {
+	if (roundboxtype & UI_RB_ALPHA) {
 		glGetFloatv(GL_CURRENT_COLOR, color);
 		color[3]= 0.5;
 		glColor4fv(color);
@@ -382,7 +382,7 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 {
 	float color[4];
 	
-	if(roundboxtype & UI_RB_ALPHA) {
+	if (roundboxtype & UI_RB_ALPHA) {
 		glGetFloatv(GL_CURRENT_COLOR, color);
 		color[3]= 0.5;
 		glColor4fv(color);
@@ -401,7 +401,7 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 {
 	
 	/* below */
-	if(sel) glColor3ub(200,200,200);
+	if (sel) glColor3ub(200,200,200);
 	else glColor3ub(50,50,50);
 	fdrawline(x1, y1, x2, y1);
 
@@ -409,7 +409,7 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 	fdrawline(x2, y1, x2, y2);
 	
 	/* top */
-	if(sel) glColor3ub(50,50,50);
+	if (sel) glColor3ub(50,50,50);
 	else glColor3ub(200,200,200);
 	fdrawline(x1, y2, x2, y2);
 
@@ -477,8 +477,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	int charmax = G.charmax;
 	
 	/* FO_BUILTIN_NAME font in use. There are TTF FO_BUILTIN_NAME and non-TTF FO_BUILTIN_NAME fonts */
-	if(!strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
-		if(G.ui_international == TRUE) {
+	if (!strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
+		if (G.ui_international == TRUE) {
 			charmax = 0xff;
 		}
 		else {
@@ -487,7 +487,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	}
 
 	/* Category list exited without selecting the area */
-	if(G.charmax == 0)
+	if (G.charmax == 0)
 		charmax = G.charmax = 0xffff;
 
 	/* Calculate the size of the button */
@@ -506,9 +506,9 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	cs = G.charstart;
 
 	/* Set the font, in case it is not FO_BUILTIN_NAME font */
-	if(G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
+	if (G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
 		// Is the font file packed, if so then use the packed file
-		if(G.selfont->packedfile) {
+		if (G.selfont->packedfile) {
 			pf = G.selfont->packedfile;		
 			FTF_SetFont(pf->data, pf->size, 14.0);
 		}
@@ -522,7 +522,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 		}
 	}
 	else {
-		if(G.ui_international == TRUE) {
+		if (G.ui_international == TRUE) {
 			FTF_SetFont((unsigned char *) datatoc_bfont_ttf, datatoc_bfont_ttf_size, 14.0);
 		}
 	}
@@ -534,14 +534,14 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	glRectf((rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
 
 	glColor3ub(0,  0,  0);
-	for(y = 0; y < 6; y++) {
+	for (y = 0; y < 6; y++) {
 		// Do not draw more than the category allows
-		if(cs > charmax) break;
+		if (cs > charmax) break;
 
-		for(x = 0; x < 12; x++)
+		for (x = 0; x < 12; x++)
 		{
 			// Do not draw more than the category allows
-			if(cs > charmax) break;
+			if (cs > charmax) break;
 
 			// Draw one grid cell
 			glBegin(GL_LINE_LOOP);
@@ -610,7 +610,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	glShadeModel(GL_FLAT);
 
 	/* Return Font Settings to original */
-	if(U.fontsize && U.fontname[0]) {
+	if (U.fontsize && U.fontname[0]) {
 		result = FTF_SetFont((unsigned char *)U.fontname, 0, U.fontsize);
 	}
 	else if (U.fontsize) {
@@ -622,7 +622,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	}
 	
 	/* resets the font size */
-	if(G.ui_international == TRUE) {
+	if (G.ui_international == TRUE) {
 		// uiSetCurFont(but->block, UI_HELV);
 	}
 }
@@ -769,8 +769,8 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	/* log scale for alpha */
 	alpha = scopes->wavefrm_alpha*scopes->wavefrm_alpha;
 	
-	for(c=0; c<3; c++) {
-		for(i=0; i<3; i++) {
+	for (c=0; c<3; c++) {
+		for (i=0; i<3; i++) {
 			colors_alpha[c][i] = colors[c][i] * alpha;
 			colorsycc_alpha[c][i] = colorsycc[c][i] * alpha;
 		}
@@ -811,7 +811,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	fdrawline(rect.xmin+w, rect.ymin, rect.xmin+w, rect.ymax);
 	/* 16-235-240 level in case of ITU-R BT601/709 */
 	glColor4f(1.f, 0.4f, 0.f, 0.2f);
-	if (ELEM(scopes->wavefrm_mode, SCOPES_WAVEFRM_YCC_601, SCOPES_WAVEFRM_YCC_709)){
+	if (ELEM(scopes->wavefrm_mode, SCOPES_WAVEFRM_YCC_601, SCOPES_WAVEFRM_YCC_709)) {
 		fdrawline(rect.xmin+22, yofs+h*16.0f/255.0f, rect.xmax+1, yofs+h*16.0f/255.0f);
 		fdrawline(rect.xmin+22, yofs+h*235.0f/255.0f, rect.xmin+w3, yofs+h*235.0f/255.0f);
 		fdrawline(rect.xmin+3*w3, yofs+h*235.0f/255.0f, rect.xmax+1, yofs+h*235.0f/255.0f);
@@ -826,7 +826,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 		/* LUMA (1 channel) */
 		glBlendFunc(GL_ONE,GL_ONE);
 		glColor3f(alpha, alpha, alpha);
-		if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUMA){
+		if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUMA) {
 
 			glBlendFunc(GL_ONE,GL_ONE);
 			
@@ -1004,9 +1004,9 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	fdrawline(centerx - (diam/2)-5, centery, centerx + (diam/2)+5, centery);
 	fdrawline(centerx, centery - (diam/2)-5, centerx, centery + (diam/2)+5);
 	/* circles */
-	for(j=0; j<5; j++) {
+	for (j=0; j<5; j++) {
 		glBegin(GL_LINE_STRIP);
-		for(i=0; i<=360; i=i+15) {
+		for (i=0; i<=360; i=i+15) {
 			const float a= DEG2RADF((float)i);
 			const float r= (j+1)/10.0f;
 			glVertex2f(polar_to_x(centerx,diam,r,a), polar_to_y(centery,diam,r,a));
@@ -1018,7 +1018,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	fdrawline(polar_to_x(centerx, diam, 0.5f, skin_rad), polar_to_y(centery,diam,0.5,skin_rad),
 	          polar_to_x(centerx, diam, 0.1f, skin_rad), polar_to_y(centery,diam,0.1,skin_rad));
 	/* saturation points */
-	for(i=0; i<6; i++)
+	for (i=0; i<6; i++)
 		vectorscope_draw_target(centerx, centery, diam, colors[i]);
 	
 	if (scopes->ok && scopes->vecscope != NULL) {
@@ -1055,7 +1055,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 	float pos, colf[4]= {0,0,0,0}; /* initialize in case the colorband isn't valid */
 		
 	coba= (ColorBand *)(but->editcoba? but->editcoba: but->poin);
-	if(coba==NULL) return;
+	if (coba==NULL) return;
 	
 	x1= rect->xmin;
 	y1= rect->ymin;
@@ -1086,7 +1086,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 	glColor4fv( &cbd->r );
 	glVertex2fv(v1); glVertex2fv(v2);
 	
-	for( a = 1; a <= sizex; a++ ) {
+	for ( a = 1; a <= sizex; a++ ) {
 		pos = ((float)a) / (sizex-1);
 		do_colorband(coba, pos, colf);
 		if (but->block->color_profile != BLI_PR_NONE)
@@ -1117,10 +1117,10 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 	
 	cbd= coba->data;
 	glBegin(GL_LINES);
-	for(a=0; a<coba->tot; a++, cbd++) {
+	for (a=0; a<coba->tot; a++, cbd++) {
 		v1[0]=v2[0]=v3[0]=v1a[0]=v2a[0]= x1+ cbd->pos*sizex;
 		
-		if(a==coba->cur) {
+		if (a==coba->cur) {
 			glColor3ub(0, 0, 0);
 			glVertex2fv(v1);
 			glVertex2fv(v3);
@@ -1185,7 +1185,7 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
 	
 	/* disable blender light */
-	for(a=0; a<8; a++) {
+	for (a=0; a<8; a++) {
 		old[a]= glIsEnabled(GL_LIGHT0+a);
 		glDisable(GL_LIGHT0+a);
 	}
@@ -1207,14 +1207,14 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glPushMatrix();
 	glTranslatef(rect->xmin + 0.5f*(rect->xmax-rect->xmin), rect->ymin+ 0.5f*(rect->ymax-rect->ymin), 0.0f);
 	
-	if( rect->xmax-rect->xmin < rect->ymax-rect->ymin)
+	if ( rect->xmax-rect->xmin < rect->ymax-rect->ymin)
 		size= (rect->xmax-rect->xmin)/200.f;
 	else
 		size= (rect->ymax-rect->ymin)/200.f;
 	
 	glScalef(size, size, size);
 	
-	if(displist==0) {
+	if (displist==0) {
 		GLUquadricObj	*qobj;
 		
 		displist= glGenLists(1);
@@ -1249,8 +1249,8 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glPopMatrix();
 
 	/* enable blender light */
-	for(a=0; a<8; a++) {
-		if(old[a])
+	for (a=0; a<8; a++) {
+		if (old[a])
 			glEnable(GL_LIGHT0+a);
 	}
 }
@@ -1262,8 +1262,8 @@ static void ui_draw_but_curve_grid(rcti *rect, float zoomx, float zoomy, float o
 	glBegin(GL_LINES);
 	dx= step*zoomx;
 	fx= rect->xmin + zoomx*(-offsx);
-	if(fx > rect->xmin) fx -= dx*(floorf(fx-rect->xmin));
-	while(fx < rect->xmax) {
+	if (fx > rect->xmin) fx -= dx*(floorf(fx-rect->xmin));
+	while (fx < rect->xmax) {
 		glVertex2f(fx, rect->ymin); 
 		glVertex2f(fx, rect->ymax);
 		fx+= dx;
@@ -1271,8 +1271,8 @@ static void ui_draw_but_curve_grid(rcti *rect, float zoomx, float zoomy, float o
 	
 	dy= step*zoomy;
 	fy= rect->ymin + zoomy*(-offsy);
-	if(fy > rect->ymin) fy -= dy*(floorf(fy-rect->ymin));
-	while(fy < rect->ymax) {
+	if (fy > rect->ymin) fy -= dy*(floorf(fy-rect->ymin));
+	while (fy < rect->ymax) {
 		glVertex2f(rect->xmin, fy); 
 		glVertex2f(rect->xmax, fy);
 		fy+= dy;
@@ -1317,7 +1317,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	offsy= cumap->curr.ymin-but->aspect/zoomy;
 	
 	/* backdrop */
-	if(cumap->flag & CUMA_DO_CLIP) {
+	if (cumap->flag & CUMA_DO_CLIP) {
 		glColor3ubvShade((unsigned char *)wcol->inner, -20);
 		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		glColor3ubv((unsigned char*)wcol->inner);
@@ -1367,7 +1367,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	/* cfra option */
 	/* XXX 2.48 */
 #if 0
-	if(cumap->flag & CUMA_DRAW_CFRA) {
+	if (cumap->flag & CUMA_DRAW_CFRA) {
 		glColor3ub(0x60, 0xc0, 0x40);
 		glBegin(GL_LINES);
 		glVertex2f(rect->xmin + zoomx*(cumap->sample[0]-offsx), rect->ymin);
@@ -1379,8 +1379,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 
 	/* XXX 2.48 */
 #if 0
-	if(cumap->flag & CUMA_DRAW_SAMPLE) {
-		if(cumap->cur==3) {
+	if (cumap->flag & CUMA_DRAW_SAMPLE) {
+		if (cumap->cur==3) {
 			float lum= cumap->sample[0]*0.35f + cumap->sample[1]*0.45f + cumap->sample[2]*0.2f;
 			glColor3ub(240, 240, 240);
 			
@@ -1390,9 +1390,9 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 			glEnd();
 		}
 		else {
-			if(cumap->cur==0)
+			if (cumap->cur==0)
 				glColor3ub(240, 100, 100);
-			else if(cumap->cur==1)
+			else if (cumap->cur==1)
 				glColor3ub(100, 240, 100);
 			else
 				glColor3ub(100, 100, 240);
@@ -1411,25 +1411,25 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	glEnable(GL_BLEND);
 	glBegin(GL_LINE_STRIP);
 	
-	if(cuma->table==NULL)
+	if (cuma->table==NULL)
 		curvemapping_changed(cumap, 0);	/* 0 = no remove doubles */
 	cmp= cuma->table;
 	
 	/* first point */
-	if((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0)
+	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0)
 		glVertex2f(rect->xmin, rect->ymin + zoomy*(cmp[0].y-offsy));
 	else {
 		fx= rect->xmin + zoomx*(cmp[0].x-offsx + cuma->ext_in[0]);
 		fy= rect->ymin + zoomy*(cmp[0].y-offsy + cuma->ext_in[1]);
 		glVertex2f(fx, fy);
 	}
-	for(a=0; a<=CM_TABLE; a++) {
+	for (a=0; a<=CM_TABLE; a++) {
 		fx= rect->xmin + zoomx*(cmp[a].x-offsx);
 		fy= rect->ymin + zoomy*(cmp[a].y-offsy);
 		glVertex2f(fx, fy);
 	}
 	/* last point */
-	if((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0)
+	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0)
 		glVertex2f(rect->xmax, rect->ymin + zoomy*(cmp[CM_TABLE].y-offsy));	
 	else {
 		fx= rect->xmin + zoomx*(cmp[CM_TABLE].x-offsx - cuma->ext_out[0]);
@@ -1444,8 +1444,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	cmp= cuma->curve;
 	glPointSize(3.0f);
 	bglBegin(GL_POINTS);
-	for(a=0; a<cuma->totpoint; a++) {
-		if(cmp[a].flag & SELECT)
+	for (a=0; a<cuma->totpoint; a++) {
+		if (cmp[a].flag & SELECT)
 			UI_ThemeColor(TH_TEXT_HI);
 		else
 			UI_ThemeColor(TH_TEXT);
@@ -1475,7 +1475,7 @@ static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float track_pos[2], int width
 
 	scaleibuf= IMB_allocImBuf(width, height, 32, IB_rect);
 
-	for(y= 0; y<height; y++) {
+	for (y= 0; y<height; y++) {
 		for (x= 0; x<width; x++) {
 			float src_x= scalex*(x)+margin-off_x;
 			float src_y= scaley*(y)+margin-off_y;
@@ -1506,14 +1506,14 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	glGetIntegerv(GL_VIEWPORT, scissor);
 	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
 
-	if(scopes->track_disabled) {
+	if (scopes->track_disabled) {
 		glColor4f(0.7f, 0.3f, 0.3f, 0.3f);
 		uiSetRoundBox(15);
 		uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin, rect.xmax+1, rect.ymax+1, 3.0f);
 
 		ok= 1;
 	}
-	else if(scopes->track_preview) {
+	else if (scopes->track_preview) {
 		/* additional margin around image */
 		/* NOTE: should be kept in sync with value from BKE_movieclip_update_scopes */
 		const int margin= 3;
@@ -1532,7 +1532,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		width= rect.xmax-rect.xmin+1;
 		height = rect.ymax-rect.ymin;
 
-		if(width > 0 && height > 0) {
+		if (width > 0 && height > 0) {
 			zoomx= (float)width / (scopes->track_preview->x-2*margin);
 			zoomy= (float)height / (scopes->track_preview->y-2*margin);
 
@@ -1549,8 +1549,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			glTranslatef(off_x+rect.xmin+track_pos[0]*zoomx, off_y+rect.ymin+track_pos[1]*zoomy, 0.f);
 			glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin+rect.ymin, rect.xmax-rect.xmin, rect.ymax-rect.ymin);
 
-			for(a= 0; a< 2; a++) {
-				if(a==1) {
+			for (a= 0; a< 2; a++) {
+				if (a==1) {
 					glLineStipple(3, 0xaaaa);
 					glEnable(GL_LINE_STIPPLE);
 					UI_ThemeColor(TH_SEL_MARKER);
@@ -1574,7 +1574,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		ok= 1;
 	}
 
-	if(!ok) {
+	if (!ok) {
 		glColor4f(0.f, 0.f, 0.f, 0.3f);
 		uiSetRoundBox(15);
 		uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin, rect.xmax+1, rect.ymax+1, 3.0f);
@@ -1647,14 +1647,14 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, int UNUSED(select))
 	
 	glEnable(GL_BLEND);
 	
-	if(radius > (rct->ymax-rct->ymin-10.0f)/2.0f)
+	if (radius > (rct->ymax-rct->ymin-10.0f)/2.0f)
 		rad= (rct->ymax-rct->ymin-10.0f)/2.0f;
 	else
 		rad= radius;
 
 	i= 12;
 #if 0
-	if(select) {
+	if (select) {
 		a= i*aspect; /* same as below */
 	}
 	else
@@ -1663,7 +1663,7 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, int UNUSED(select))
 		a= i*aspect;
 	}
 
-	for(; i--; a-=aspect) {
+	for (; i--; a-=aspect) {
 		/* alpha ranges from 2 to 20 or so */
 		glColor4ub(0, 0, 0, alpha);
 		alpha+= 2;

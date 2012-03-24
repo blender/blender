@@ -109,7 +109,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 
 void ED_armature_exit_posemode(bContext *C, Base *base)
 {
-	if(base) {
+	if (base) {
 		Object *ob= base->object;
 		
 		ob->restore_mode = ob->mode;
@@ -154,18 +154,18 @@ static int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan, int level)
 	
 	/* No need to check if constraint is active (has influence),
 	 * since all constraints with CONSTRAINT_IK_AUTO are active */
-	for(con= pchan->constraints.first; con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+	for (con= pchan->constraints.first; con; con= con->next) {
+		if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
 			bKinematicConstraint *data= con->data;
-			if(data->rootbone == 0 || data->rootbone > level) {
-				if((data->flag & CONSTRAINT_IK_AUTO)==0)
+			if (data->rootbone == 0 || data->rootbone > level) {
+				if ((data->flag & CONSTRAINT_IK_AUTO)==0)
 					return 1;
 			}
 		}
 	}
-	for(bone= pchan->bone->childbase.first; bone; bone= bone->next) {
+	for (bone= pchan->bone->childbase.first; bone; bone= bone->next) {
 		pchan= get_pose_channel(ob->pose, bone->name);
-		if(pchan && pose_channel_in_IK_chain(ob, pchan, level + 1))
+		if (pchan && pose_channel_in_IK_chain(ob, pchan, level + 1))
 			return 1;
 	}
 	return 0;
@@ -338,7 +338,7 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 					for (ct= targets.first; ct; ct= ct->next) {
 						if ((ct->tar == ob) && (ct->subtarget[0])) {
 							bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
-							if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
+							if ((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
 								pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 								found= 1;
 							}
@@ -687,23 +687,23 @@ static int pose_bone_flip_active_exec (bContext *C, wmOperator *UNUSED(op))
 	Object *ob_act= CTX_data_active_object(C);
 	Object *ob= object_pose_armature_get(ob_act);
 
-	if(ob && (ob->mode & OB_MODE_POSE)) {
+	if (ob && (ob->mode & OB_MODE_POSE)) {
 		bArmature *arm= ob->data;
 
-		if(arm->act_bone) {
+		if (arm->act_bone) {
 			bPoseChannel *pchanf;
 			char name[MAXBONENAME];
 			flip_side_name(name, arm->act_bone->name, TRUE);
 
 			pchanf= get_pose_channel(ob->pose, name);
-			if(pchanf && pchanf->bone != arm->act_bone) {
+			if (pchanf && pchanf->bone != arm->act_bone) {
 				arm->act_bone->flag &= ~BONE_SELECTED;
 				pchanf->bone->flag |= BONE_SELECTED;
 
 				arm->act_bone= pchanf->bone;
 
 				/* in weightpaint we select the associated vertex group too */
-				if(ob_act->mode & OB_MODE_WEIGHT_PAINT) {
+				if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
 					ED_vgroup_select_by_name(ob_act, name);
 					DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
 				}
@@ -876,7 +876,7 @@ static void pose_copy_menu(Scene *scene)
 		BLI_duplicatelist(&const_copy, &(pchanact->constraints));
 		
 		/* build the puplist of constraints */
-		for (con = pchanact->constraints.first, i=0; con; con=con->next, i++){
+		for (con = pchanact->constraints.first, i=0; con; con=con->next, i++) {
 			const_toggle[i]= 1;
 //			add_numbut(i, TOG|INT, con->name, 0, 0, &(const_toggle[i]), "");
 		}
@@ -946,7 +946,7 @@ void free_posebuf(void)
 		bPoseChannel *pchan;
 		
 		for (pchan= g_posebuf->chanbase.first; pchan; pchan= pchan->next) {
-			if(pchan->prop) {
+			if (pchan->prop) {
 				IDP_FreeProperty(pchan->prop);
 				MEM_freeN(pchan->prop);
 			}
@@ -968,8 +968,8 @@ static void set_pose_keys (Object *ob)
 	bArmature *arm= ob->data;
 	bPoseChannel *chan;
 
-	if (ob->pose){
-		for (chan=ob->pose->chanbase.first; chan; chan=chan->next){
+	if (ob->pose) {
+		for (chan=ob->pose->chanbase.first; chan; chan=chan->next) {
 			Bone *bone= chan->bone;
 			if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer))
 				chan->flag |= POSE_KEY;	
@@ -1789,7 +1789,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
 		BLI_strncpy(newname, pchan->name, sizeof(newname));
-		if(bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]))
+		if (bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]))
 			ED_armature_bone_rename(arm, pchan->name, newname);
 	}
 	CTX_DATA_END;
@@ -2046,7 +2046,7 @@ static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 	PointerRNA ptr;
 	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
-	if(ob==NULL || ob->data==NULL) {
+	if (ob==NULL || ob->data==NULL) {
 		return OPERATOR_CANCELLED;
 	}
 

@@ -72,13 +72,13 @@ ARegion *node_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if(ar) return ar;
+	if (ar) return ar;
 	
 	/* add subdiv level; after header */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if(ar==NULL) return NULL;
+	if (ar==NULL) return NULL;
 	
 	arnew= MEM_callocN(sizeof(ARegion), "buttons for node");
 	
@@ -183,8 +183,8 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_redraw(sa);
 					break;
 				case ND_TRANSFORM_DONE:
-					if(type==NTREE_COMPOSIT) {
-						if(snode->flag & SNODE_AUTO_RENDER) {
+					if (type==NTREE_COMPOSIT) {
+						if (snode->flag & SNODE_AUTO_RENDER) {
 							snode->recalc= 1;
 							ED_area_tag_refresh(sa);
 						}
@@ -193,48 +193,48 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_WM:
-			if(wmn->data==ND_FILEREAD)
+			if (wmn->data==ND_FILEREAD)
 				ED_area_tag_refresh(sa);
 			break;
 		
 		/* future: add ID checks? */
 		case NC_MATERIAL:
-			if(type==NTREE_SHADER) {
-				if(wmn->data==ND_SHADING)
+			if (type==NTREE_SHADER) {
+				if (wmn->data==ND_SHADING)
 					ED_area_tag_refresh(sa);
-				else if(wmn->data==ND_SHADING_DRAW)
+				else if (wmn->data==ND_SHADING_DRAW)
 					ED_area_tag_refresh(sa);
-				else if(wmn->action==NA_ADDED && snode->edittree)
+				else if (wmn->action==NA_ADDED && snode->edittree)
 					nodeSetActiveID(snode->edittree, ID_MA, wmn->reference);
 					
 			}
 			break;
 		case NC_TEXTURE:
-			if(type==NTREE_SHADER || type==NTREE_TEXTURE) {
-				if(wmn->data==ND_NODES)
+			if (type==NTREE_SHADER || type==NTREE_TEXTURE) {
+				if (wmn->data==ND_NODES)
 					ED_area_tag_refresh(sa);
 			}
 			break;
 		case NC_WORLD:
-			if(type==NTREE_SHADER && shader_type==SNODE_SHADER_WORLD) {
+			if (type==NTREE_SHADER && shader_type==SNODE_SHADER_WORLD) {
 				ED_area_tag_refresh(sa);	
 			}
 			break;
 		case NC_OBJECT:
-			if(type==NTREE_SHADER) {
-				if(wmn->data==ND_OB_SHADING)
+			if (type==NTREE_SHADER) {
+				if (wmn->data==ND_OB_SHADING)
 					ED_area_tag_refresh(sa);
 			}
 			break;
 		case NC_TEXT:
 			/* pynodes */
-			if(wmn->data==ND_SHADING)
+			if (wmn->data==ND_SHADING)
 				ED_area_tag_refresh(sa);
 			break;
 		case NC_SPACE:
-			if(wmn->data==ND_SPACE_NODE)
+			if (wmn->data==ND_SPACE_NODE)
 				ED_area_tag_refresh(sa);
-			else if(wmn->data==ND_SPACE_NODE_VIEW)
+			else if (wmn->data==ND_SPACE_NODE_VIEW)
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_NODE:
@@ -253,11 +253,11 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 
 		case NC_IMAGE:
 			if (wmn->action == NA_EDITED) {
-				if(type==NTREE_COMPOSIT) {
+				if (type==NTREE_COMPOSIT) {
 					/* note that nodeUpdateID is already called by BKE_image_signal() on all
 					 * scenes so really this is just to know if the images is used in the compo else
 					 * painting on images could become very slow when the compositor is open. */
-					if(nodeUpdateID(snode->nodetree, wmn->reference))
+					if (nodeUpdateID(snode->nodetree, wmn->reference))
 						ED_area_tag_refresh(sa);
 				}
 			}
@@ -272,29 +272,29 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 
 	snode_set_context(snode, CTX_data_scene(C));
 	
-	if(snode->nodetree) {
-		if(snode->treetype==NTREE_SHADER) {
-			if(GS(snode->id->name) == ID_MA) {
+	if (snode->nodetree) {
+		if (snode->treetype==NTREE_SHADER) {
+			if (GS(snode->id->name) == ID_MA) {
 				Material *ma= (Material *)snode->id;
-				if(ma->use_nodes)
+				if (ma->use_nodes)
 					ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
 			}
-			else if(GS(snode->id->name) == ID_LA) {
+			else if (GS(snode->id->name) == ID_LA) {
 				Lamp *la= (Lamp *)snode->id;
-				if(la->use_nodes)
+				if (la->use_nodes)
 					ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
 			}
-			else if(GS(snode->id->name) == ID_WO) {
+			else if (GS(snode->id->name) == ID_WO) {
 				World *wo= (World *)snode->id;
-				if(wo->use_nodes)
+				if (wo->use_nodes)
 					ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
 			}
 		}
-		else if(snode->treetype==NTREE_COMPOSIT) {
+		else if (snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene *)snode->id;
-			if(scene->use_nodes) {
+			if (scene->use_nodes) {
 				/* recalc is set on 3d view changes for auto compo */
-				if(snode->recalc) {
+				if (snode->recalc) {
 					snode->recalc= 0;
 					node_render_changed_exec((struct bContext*)C, NULL);
 				}
@@ -302,9 +302,9 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 					snode_composite_job(C, sa);
 			}
 		}
-		else if(snode->treetype==NTREE_TEXTURE) {
+		else if (snode->treetype==NTREE_TEXTURE) {
 			Tex *tex= (Tex *)snode->id;
-			if(tex->use_nodes) {
+			if (tex->use_nodes) {
 				ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
 			}
 		}
@@ -372,13 +372,13 @@ static void node_main_area_draw(const bContext *C, ARegion *ar)
 
 static int node_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
-	if(drag->type==WM_DRAG_ID) {
+	if (drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
-		if( GS(id->name)==ID_IM )
+		if ( GS(id->name)==ID_IM )
 			return 1;
 	}
-	else if(drag->type==WM_DRAG_PATH){
-		if(ELEM(drag->icon, 0, ICON_FILE_IMAGE))	/* rule might not work? */
+	else if (drag->type==WM_DRAG_PATH) {
+		if (ELEM(drag->icon, 0, ICON_FILE_IMAGE))	/* rule might not work? */
 			return 1;
 	}
 	return 0;
@@ -388,7 +388,7 @@ static void node_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	ID *id= (ID *)drag->poin;
 	
-	if(id) {
+	if (id) {
 		RNA_string_set(drop->ptr, "name", id->name+2);
 	}
 	if (drag->path[0]) {
@@ -431,11 +431,11 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SPACE:
-			if(wmn->data==ND_SPACE_NODE)
+			if (wmn->data==ND_SPACE_NODE)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCREEN:
-			if(wmn->data == ND_GPENCIL)	
+			if (wmn->data == ND_GPENCIL)	
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCENE:
@@ -445,11 +445,11 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_OBJECT:
-			if(wmn->data==ND_OB_SHADING)
+			if (wmn->data==ND_OB_SHADING)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -461,16 +461,16 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
-	if(CTX_data_dir(member)) {
+	if (CTX_data_dir(member)) {
 		CTX_data_dir_set(result, node_context_dir);
 		return 1;
 	}
-	else if(CTX_data_equals(member, "selected_nodes")) {
+	else if (CTX_data_equals(member, "selected_nodes")) {
 		bNode *node;
 		
-		if(snode->edittree) {
-			for(node=snode->edittree->nodes.last; node; node=node->prev) {
-				if(node->flag & NODE_SELECT) {
+		if (snode->edittree) {
+			for (node=snode->edittree->nodes.last; node; node=node->prev) {
+				if (node->flag & NODE_SELECT) {
 					CTX_data_list_add(result, &snode->edittree->id, &RNA_Node, node);
 				}
 			}
@@ -478,12 +478,12 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
 		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
-	else if(CTX_data_equals(member, "active_node")) {
+	else if (CTX_data_equals(member, "active_node")) {
 		bNode *node;
 		
-		if(snode->edittree) {
-			for(node=snode->edittree->nodes.last; node; node=node->prev) {
-				if(node->flag & NODE_ACTIVE) {
+		if (snode->edittree) {
+			for (node=snode->edittree->nodes.last; node; node=node->prev) {
+				if (node->flag & NODE_ACTIVE) {
 					CTX_data_pointer_set(result, &snode->edittree->id, &RNA_Node, node);
 					break;
 				}

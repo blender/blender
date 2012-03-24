@@ -85,9 +85,9 @@ static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 	 * NOTE: if float buffer changes, we have to manually remove the rect
 	 */
 
-	if(ibuf->rect_float && (ibuf->rect==NULL || (ibuf->userflags & IB_RECT_INVALID)) ) {
-		if(color_manage) {
-			if(ima && ima->source == IMA_SRC_VIEWER)
+	if (ibuf->rect_float && (ibuf->rect==NULL || (ibuf->userflags & IB_RECT_INVALID)) ) {
+		if (color_manage) {
+			if (ima && ima->source == IMA_SRC_VIEWER)
 				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 		}
 		else
@@ -103,7 +103,7 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar)
 	
 	rr= BKE_image_acquire_renderresult(scene, ima);
 
-	if(rr && rr->text) {
+	if (rr && rr->text) {
 		ED_region_info_draw(ar, rr->text, 1, 0.25);
 	}
 
@@ -147,14 +147,14 @@ void ED_image_draw_info(ARegion *ar, int color_manage, int channels, int x, int 
 	BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 	dx += BLF_width(blf_mono_font, str);
 
-	if(zp) {
+	if (zp) {
 		glColor3ub(255, 255, 255);
 		BLI_snprintf(str, sizeof(str), " Z:%-.4f |", 0.5f+0.5f*(((float)*zp)/(float)0x7fffffff));
 		BLF_position(blf_mono_font, dx, 6, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 	}
-	if(zpf) {
+	if (zpf) {
 		glColor3ub(255, 255, 255);
 		BLI_snprintf(str, sizeof(str), " Z:%-.3f |", *zpf);
 		BLF_position(blf_mono_font, dx, 6, 0);
@@ -162,7 +162,7 @@ void ED_image_draw_info(ARegion *ar, int color_manage, int channels, int x, int 
 		dx += BLF_width(blf_mono_font, str);
 	}
 
-	if(channels >= 3) {
+	if (channels >= 3) {
 		glColor3ubv(red);
 		if (fp)
 			BLI_snprintf(str, sizeof(str), "  R:%-.4f", fp[0]);
@@ -196,7 +196,7 @@ void ED_image_draw_info(ARegion *ar, int color_manage, int channels, int x, int 
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 		
-		if(channels == 4) {
+		if (channels == 4) {
 			glColor3ub(255, 255, 255);
 			if (fp)
 				BLI_snprintf(str, sizeof(str), "  A:%-.4f", fp[3]);
@@ -278,7 +278,7 @@ void ED_image_draw_info(ARegion *ar, int color_manage, int channels, int x, int 
 	dx += 35;
 
 	glColor3ub(255, 255, 255);
-	if(channels == 1) {
+	if (channels == 1) {
 		if (fp) {
 			rgb_to_hsv(fp[0], fp[0], fp[0], &hue, &sat, &val);
 			rgb_to_yuv(fp[0], fp[0], fp[0], &lum, &u, &v);
@@ -298,7 +298,7 @@ void ED_image_draw_info(ARegion *ar, int color_manage, int channels, int x, int 
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 	}
-	else if(channels >= 3) {
+	else if (channels >= 3) {
 		if (fp) {
 			rgb_to_hsv(fp[0], fp[1], fp[2], &hue, &sat, &val);
 			rgb_to_yuv(fp[0], fp[1], fp[2], &lum, &u, &v);
@@ -349,16 +349,16 @@ static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
 
 	/* gridsize adapted to zoom level */
 	gridsize= 0.5f*(zoomx+zoomy);
-	if(gridsize<=0.0f) return;
+	if (gridsize<=0.0f) return;
 	
-	if(gridsize<1.0f) {
-		while(gridsize<1.0f) {
+	if (gridsize<1.0f) {
+		while (gridsize<1.0f) {
 			gridsize*= 4.0f;
 			gridstep*= 4.0f;
 		}
 	}
 	else {
-		while(gridsize>=4.0f) {
+		while (gridsize>=4.0f) {
 			gridsize/= 4.0f;
 			gridstep/= 4.0f;
 		}
@@ -371,7 +371,7 @@ static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
 	
 	fac= 0.0f;
 	glBegin(GL_LINES);
-	while(fac<1.0f) {
+	while (fac<1.0f) {
 		glVertex2f(x1, y1*(1.0f-fac) + y2*fac);
 		glVertex2f(x2, y1*(1.0f-fac) + y2*fac);
 		glVertex2f(x1*(1.0f-fac) + x2*fac, y1);
@@ -383,7 +383,7 @@ static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
 	UI_ThemeColor(TH_BACK);
 	
 	fac= 0.0f;
-	while(fac<1.0f) {
+	while (fac<1.0f) {
 		glVertex2f(x1, y1*(1.0f-fac) + y2*fac);
 		glVertex2f(x2, y1*(1.0f-fac) + y2*fac);
 		glVertex2f(x1*(1.0f-fac) + x2*fac, y1);
@@ -421,7 +421,7 @@ static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, uns
 {
 	
 	/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-	if(ENDIAN_ORDER == B_ENDIAN)
+	if (ENDIAN_ORDER == B_ENDIAN)
 		glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
 
 	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_UNSIGNED_INT, recti);
@@ -433,7 +433,7 @@ static void sima_draw_alpha_pixelsf(float x1, float y1, int rectx, int recty, fl
 	float *trectf= MEM_mallocN(rectx*recty*4, "temp");
 	int a, b;
 	
-	for(a= rectx*recty -1, b= 4*a+3; a>=0; a--, b-=4)
+	for (a= rectx*recty -1, b= 4*a+3; a>=0; a--, b-=4)
 		trectf[a]= rectf[b];
 	
 	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_FLOAT, trectf);
@@ -473,7 +473,7 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 	float bias, scale, *rectf, clipend;
 	int a;
 	
-	if(scene->camera && scene->camera->type==OB_CAMERA) {
+	if (scene->camera && scene->camera->type==OB_CAMERA) {
 		bias= ((Camera *)scene->camera->data)->clipsta;
 		clipend= ((Camera *)scene->camera->data)->clipend;
 		scale= 1.0f/(clipend-bias);
@@ -485,10 +485,10 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 	}
 	
 	rectf= MEM_mallocN(rectx*recty*4, "temp");
-	for(a= rectx*recty -1; a>=0; a--) {
-		if(rect_float[a]>clipend)
+	for (a= rectx*recty -1; a>=0; a--) {
+		if (rect_float[a]>clipend)
 			rectf[a]= 0.0f;
-		else if(rect_float[a]<bias)
+		else if (rect_float[a]<bias)
 			rectf[a]= 1.0f;
 		else {
 			rectf[a]= 1.0f - (rect_float[a]-bias)*scale;
@@ -512,22 +512,22 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 	UI_view2d_to_region_no_clip(&ar->v2d, fx, fy, &x, &y);
 
 	/* this part is generic image display */
-	if(sima->flag & SI_SHOW_ALPHA) {
-		if(ibuf->rect)
+	if (sima->flag & SI_SHOW_ALPHA) {
+		if (ibuf->rect)
 			sima_draw_alpha_pixels(x, y, ibuf->x, ibuf->y, ibuf->rect);
-		else if(ibuf->rect_float && ibuf->channels==4)
+		else if (ibuf->rect_float && ibuf->channels==4)
 			sima_draw_alpha_pixelsf(x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
-	else if(sima->flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1))) {
-		if(ibuf->zbuf)
+	else if (sima->flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1))) {
+		if (ibuf->zbuf)
 			sima_draw_zbuf_pixels(x, y, ibuf->x, ibuf->y, ibuf->zbuf);
-		else if(ibuf->zbuf_float)
+		else if (ibuf->zbuf_float)
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->zbuf_float);
-		else if(ibuf->channels==1)
+		else if (ibuf->channels==1)
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
 	else {
-		if(sima->flag & SI_USE_ALPHA) {
+		if (sima->flag & SI_USE_ALPHA) {
 			unsigned char col1[3]= {100, 100, 100}, col2[3]= {160, 160, 160};
 			sima_draw_alpha_backdrop(x, y, ibuf->x, ibuf->y, zoomx, zoomy, col1, col2);
 
@@ -539,14 +539,14 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 		 * convert them, and optionally apply curves */
 		image_verify_buffer_float(ima, ibuf, color_manage);
 
-		if(ibuf->rect)
+		if (ibuf->rect)
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 #if 0
 		else
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
 #endif
 		
-		if(sima->flag & SI_USE_ALPHA)
+		if (sima->flag & SI_USE_ALPHA)
 			glDisable(GL_BLEND);
 	}
 
@@ -568,7 +568,7 @@ static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty,
 
 	rp=rectmain= MEM_mallocN(heigth*len*sizeof(int), "rect");
 	
-	for(y=0; y<heigth; y++) {
+	for (y=0; y<heigth; y++) {
 		memcpy(rp, rt, len*4);
 		rt+= ibuf->x;
 		rp+= len;
@@ -583,12 +583,12 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 
 	/* verify valid values, just leave this a while */
-	if(ima->xrep<1) return;
-	if(ima->yrep<1) return;
+	if (ima->xrep<1) return;
+	if (ima->yrep<1) return;
 	
 	glPixelZoom(zoomx, zoomy);
 
-	if(sima->curtile >= ima->xrep*ima->yrep) 
+	if (sima->curtile >= ima->xrep*ima->yrep) 
 		sima->curtile = ima->xrep*ima->yrep - 1; 
 	
 	/* create char buffer from float if needed */
@@ -602,8 +602,8 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 	rect= get_part_from_ibuf(ibuf, sx, sy, sx+dx, sy+dy);
 	
 	/* draw repeated */
-	for(sy=0; sy+dy<=ibuf->y; sy+= dy) {
-		for(sx=0; sx+dx<=ibuf->x; sx+= dx) {
+	for (sy=0; sy+dy<=ibuf->y; sy+= dy) {
+		for (sx=0; sx+dx<=ibuf->x; sx+= dx) {
 			UI_view2d_to_region_no_clip(&ar->v2d, fx + (float)sx/(float)ibuf->x, fy + (float)sy/(float)ibuf->y, &x, &y);
 
 			glaDrawPixelsSafe(x, y, dx, dy, dx, GL_RGBA, GL_UNSIGNED_BYTE, rect);
@@ -626,16 +626,16 @@ static void draw_image_buffer_repeated(SpaceImage *sima, ARegion *ar, Scene *sce
 
 	int x;
 
-	for(x=xmin; x<xmax; x++) {
+	for (x=xmin; x<xmax; x++) {
 		int y;
-		for(y=ymin; y<ymax; y++) { 
-			if(ima && (ima->tpageflag & IMA_TILES))
+		for (y=ymin; y<ymax; y++) { 
+			if (ima && (ima->tpageflag & IMA_TILES))
 				draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
 			else
 				draw_image_buffer(sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
 
 			/* only draw until running out of time */
-			if((PIL_check_seconds_timer() - time_current) > 0.25)
+			if ((PIL_check_seconds_timer() - time_current) > 0.25)
 				return;
 		}
 	}
@@ -679,15 +679,15 @@ static void draw_image_view_tool(Scene *scene)
 	float radius;
 	int draw= 0;
 
-	if(brush) {
-		if(settings->imapaint.flag & IMAGEPAINT_DRAWING) {
-			if(settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL_DRAWING)
+	if (brush) {
+		if (settings->imapaint.flag & IMAGEPAINT_DRAWING) {
+			if (settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL_DRAWING)
 				draw= 1;
 		}
-		else if(settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL)
+		else if (settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL)
 			draw= 1;
 		
-		if(draw) {
+		if (draw) {
 			getmouseco_areawin(mval);
 
 			radius= brush_size(brush)*G.sima->zoom;
@@ -709,16 +709,16 @@ static unsigned char *get_alpha_clone_image(Scene *scene, int *width, int *heigh
 	unsigned int size, alpha;
 	unsigned char *rect, *cp;
 
-	if(!brush || !brush->clone.image)
+	if (!brush || !brush->clone.image)
 		return NULL;
 	
 	ibuf= BKE_image_get_ibuf(brush->clone.image, NULL);
 
-	if(!ibuf || !ibuf->rect)
+	if (!ibuf || !ibuf->rect)
 		return NULL;
 
 	rect= MEM_dupallocN(ibuf->rect);
-	if(!rect)
+	if (!rect)
 		return NULL;
 
 	*width= ibuf->x;
@@ -728,7 +728,7 @@ static unsigned char *get_alpha_clone_image(Scene *scene, int *width, int *heigh
 	alpha= (unsigned char)255*brush->clone.alpha;
 	cp= rect;
 
-	while(size-- > 0) {
+	while (size-- > 0) {
 		cp[3]= alpha;
 		cp += 4;
 	}
@@ -744,12 +744,12 @@ static void draw_image_paint_helpers(ARegion *ar, Scene *scene, float zoomx, flo
 
 	brush= paint_brush(&scene->toolsettings->imapaint.paint);
 
-	if(brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
+	if (brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
 		/* this is not very efficient, but glDrawPixels doesn't allow
 		 * drawing with alpha */
 		clonerect= get_alpha_clone_image(scene, &w, &h);
 
-		if(clonerect) {
+		if (clonerect) {
 			UI_view2d_to_region_no_clip(&ar->v2d, brush->clone.offset[0], brush->clone.offset[1], &x, &y);
 
 			glPixelZoom(zoomx, zoomy);
@@ -780,13 +780,13 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 #if 0
 	what_image(sima);
 	
-	if(sima->image) {
+	if (sima->image) {
 		ED_image_aspect(sima->image, &xuser_asp, &yuser_asp);
 		
 		/* UGLY hack? until now iusers worked fine... but for flipbook viewer we need this */
-		if(sima->image->type==IMA_TYPE_COMPOSITE) {
+		if (sima->image->type==IMA_TYPE_COMPOSITE) {
 			ImageUser *iuser= ntree_get_active_iuser(scene->nodetree);
-			if(iuser) {
+			if (iuser) {
 				BKE_image_user_calc_imanr(iuser, scene->r.cfra, 0);
 				sima->iuser= *iuser;
 			}
@@ -805,26 +805,26 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	show_render= (show_viewer && ima->type == IMA_TYPE_R_RESULT);
 
 	/* draw the image or grid */
-	if(ibuf==NULL)
+	if (ibuf==NULL)
 		draw_image_grid(ar, zoomx, zoomy);
-	else if(sima->flag & SI_DRAW_TILE)
+	else if (sima->flag & SI_DRAW_TILE)
 		draw_image_buffer_repeated(sima, ar, scene, ima, ibuf, zoomx, zoomy);
-	else if(ima && (ima->tpageflag & IMA_TILES))
+	else if (ima && (ima->tpageflag & IMA_TILES))
 		draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, 0.0f, 0.0, zoomx, zoomy);
 	else
 		draw_image_buffer(sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 	/* paint helpers */
-	if(sima->flag & SI_DRAWTOOL)
+	if (sima->flag & SI_DRAWTOOL)
 		draw_image_paint_helpers(ar, scene, zoomx, zoomy);
 
 
 	/* XXX integrate this code */
 #if 0
-	if(ibuf) {
+	if (ibuf) {
 		float xoffs=0.0f, yoffs= 0.0f;
 		
-		if(image_preview_active(sa, &xim, &yim)) {
+		if (image_preview_active(sa, &xim, &yim)) {
 			xoffs= scene->r.disprect.xmin;
 			yoffs= scene->r.disprect.ymin;
 			glColor3ub(0,0,0);
@@ -839,7 +839,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	ED_space_image_release_buffer(sima, lock);
 
 	/* render info */
-	if(ima && show_render)
+	if (ima && show_render)
 		draw_render_info(scene, ima, ar);
 }
 

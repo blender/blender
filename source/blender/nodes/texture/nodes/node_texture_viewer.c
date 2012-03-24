@@ -46,7 +46,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 {
 	TexCallData *cdata = (TexCallData *)data;
 
-	if(cdata->do_preview) {
+	if (cdata->do_preview) {
 		TexParams params;
 		float col[4];
 		params_from_cdata(&params, cdata);

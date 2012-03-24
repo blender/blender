@@ -108,12 +108,12 @@ static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **
 	
 	/* try to find 'active' F-Curve */
 	elem= get_active_fcurve_channel(&ac);
-	if(elem == NULL) 
+	if (elem == NULL) 
 		return 0;
 	
-	if(fcu)
+	if (fcu)
 		*fcu= (FCurve*)elem->data;
-	if(ale)
+	if (ale)
 		*ale= elem;
 	else
 		MEM_freeN(elem);
@@ -452,7 +452,7 @@ static int graph_panel_drivers_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
 
-	if(sipo->mode != SIPO_MODE_DRIVERS)
+	if (sipo->mode != SIPO_MODE_DRIVERS)
 		return 0;
 
 	return graph_panel_context(C, NULL, NULL);
@@ -831,7 +831,7 @@ static int graph_properties(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= graph_has_buttons_region(sa);
 	
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;

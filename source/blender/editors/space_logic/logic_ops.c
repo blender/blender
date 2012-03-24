@@ -293,7 +293,7 @@ static int sensor_add_exec(bContext *C, wmOperator *op)
 	prop = RNA_struct_find_property(&sens_ptr, "type");
 
 	RNA_string_get(op->ptr, "name", name);
-	if(BLI_strnlen(name, MAX_NAME) < 1){
+	if (BLI_strnlen(name, MAX_NAME) < 1) {
 		RNA_property_enum_name(C, &sens_ptr, prop, RNA_property_enum_get(&sens_ptr, prop), &sens_name);
 		BLI_strncpy(sens->name, sens_name, sizeof(sens->name));
 	}
@@ -386,7 +386,7 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 	int type= RNA_enum_get(op->ptr, "type");
 
 	ob= edit_object_property_get(C, op);
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 	
 	cont= new_controller(type);
@@ -397,7 +397,7 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 	prop = RNA_struct_find_property(&cont_ptr, "type");
 
 	RNA_string_get(op->ptr, "name", name);
-	if(BLI_strnlen(name, MAX_NAME) < 1){
+	if (BLI_strnlen(name, MAX_NAME) < 1) {
 		RNA_property_enum_name(C, &cont_ptr, prop, RNA_property_enum_get(&cont_ptr, prop), &cont_name);
 		BLI_strncpy(cont->name, cont_name, sizeof(cont->name));
 	}
@@ -499,7 +499,7 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 	int type= RNA_enum_get(op->ptr, "type");
 		
 	ob= edit_object_property_get(C, op);
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
 	act= new_actuator(type);
@@ -510,7 +510,7 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 	prop = RNA_struct_find_property(&act_ptr, "type");
 
 	RNA_string_get(op->ptr, "name", name);
-	if (BLI_strnlen(name, MAX_NAME) < 1){
+	if (BLI_strnlen(name, MAX_NAME) < 1) {
 		RNA_property_enum_name(C, &act_ptr, prop, RNA_property_enum_get(&act_ptr, prop), &act_name);
 		BLI_strncpy(act->name, act_name, sizeof(act->name));
 	}

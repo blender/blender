@@ -107,7 +107,7 @@ static UndoElem *curundo= NULL;
 
 static void undo_restore(UndoElem *undo, void *editdata, void *obdata)
 {
-	if(undo) {
+	if (undo) {
 		undo->to_editmode(undo->undodata, editdata, obdata);	
 	}
 }
@@ -130,7 +130,7 @@ void undo_editmode_push(bContext *C, const char *name,
 	 * this was giving conflicts for example when mesh changed due to keys or apply */
 	
 	/* remove all undos after (also when curundo==NULL) */
-	while(undobase.last != curundo) {
+	while (undobase.last != curundo) {
 		uel= undobase.last;
 		uel->freedata(uel->undodata);
 		BLI_freelinkN(&undobase, uel);
@@ -150,13 +150,13 @@ void undo_editmode_push(bContext *C, const char *name,
 	/* limit amount to the maximum amount*/
 	nr= 0;
 	uel= undobase.last;
-	while(uel) {
+	while (uel) {
 		nr++;
-		if(nr==U.undosteps) break;
+		if (nr==U.undosteps) break;
 		uel= uel->prev;
 	}
-	if(uel) {
-		while(undobase.first!=uel) {
+	if (uel) {
+		while (undobase.first!=uel) {
 			UndoElem *first= undobase.first;
 			first->freedata(first->undodata);
 			BLI_freelinkN(&undobase, first);
@@ -172,23 +172,23 @@ void undo_editmode_push(bContext *C, const char *name,
 	curundo->id= obedit->id;
 	curundo->type= obedit->type;
 
-	if(U.undomemory != 0) {
+	if (U.undomemory != 0) {
 		/* limit to maximum memory (afterwards, we can't know in advance) */
 		totmem= 0;
 		maxmem= ((uintptr_t)U.undomemory)*1024*1024;
 
 		uel= undobase.last;
-		while(uel && uel->prev) {
+		while (uel && uel->prev) {
 			totmem+= uel->undosize;
-			if(totmem>maxmem) break;
+			if (totmem>maxmem) break;
 			uel= uel->prev;
 		}
 
-		if(uel) {
-			if(uel->prev && uel->prev->prev)
+		if (uel) {
+			if (uel->prev && uel->prev->prev)
 				uel= uel->prev;
 
-			while(undobase.first!=uel) {
+			while (undobase.first!=uel) {
 				UndoElem *first= undobase.first;
 				first->freedata(first->undodata);
 				BLI_freelinkN(&undobase, first);
@@ -207,24 +207,24 @@ static void undo_clean_stack(bContext *C)
 	/* side effect: when deleting/renaming object and start editing new one with same name */
 	
 	uel= undobase.first; 
-	while(uel) {
+	while (uel) {
 		void *editdata= uel->getdata(C);
 		int isvalid= 0;
 		next= uel->next;
 		
 		/* for when objects are converted, renamed, or global undo changes pointers... */
-		if(uel->type==obedit->type) {
-			if(strcmp(uel->id.name, obedit->id.name)==0) {
-				if(uel->validate_undo==NULL)
+		if (uel->type==obedit->type) {
+			if (strcmp(uel->id.name, obedit->id.name)==0) {
+				if (uel->validate_undo==NULL)
 					isvalid= 1;
-				else if(uel->validate_undo(uel->undodata, editdata))
+				else if (uel->validate_undo(uel->undodata, editdata))
 					isvalid= 1;
 			}
 		}
-		if(isvalid) 
+		if (isvalid) 
 			uel->ob= obedit;
 		else {
-			if(uel == curundo)
+			if (uel == curundo)
 				curundo= NULL;
 
 			uel->freedata(uel->undodata);
@@ -234,7 +234,7 @@ static void undo_clean_stack(bContext *C)
 		uel= next;
 	}
 	
-	if(curundo == NULL) curundo= undobase.last;
+	if (curundo == NULL) curundo= undobase.last;
 }
 
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
@@ -245,14 +245,14 @@ void undo_editmode_step(bContext *C, int step)
 	/* prevent undo to happen on wrong object, stack can be a mix */
 	undo_clean_stack(C);
 	
-	if(step==0) {
+	if (step==0) {
 		undo_restore(curundo, curundo->getdata(C), obedit->data);
 	}
-	else if(step==1) {
+	else if (step==1) {
 		
-		if(curundo==NULL || curundo->prev==NULL) error("No more steps to undo");
+		if (curundo==NULL || curundo->prev==NULL) error("No more steps to undo");
 		else {
-			if(G.f & G_DEBUG) printf("undo %s\n", curundo->name);
+			if (G.f & G_DEBUG) printf("undo %s\n", curundo->name);
 			curundo= curundo->prev;
 			undo_restore(curundo, curundo->getdata(C), obedit->data);
 		}
@@ -260,16 +260,16 @@ void undo_editmode_step(bContext *C, int step)
 	else {
 		/* curundo has to remain current situation! */
 		
-		if(curundo==NULL || curundo->next==NULL) error("No more steps to redo");
+		if (curundo==NULL || curundo->next==NULL) error("No more steps to redo");
 		else {
 			undo_restore(curundo->next, curundo->getdata(C), obedit->data);
 			curundo= curundo->next;
-			if(G.f & G_DEBUG) printf("redo %s\n", curundo->name);
+			if (G.f & G_DEBUG) printf("redo %s\n", curundo->name);
 		}
 	}
 	
 	/* special case for editmesh, mode must be copied back to the scene */
-	if(obedit->type == OB_MESH) {
+	if (obedit->type == OB_MESH) {
 		EDBM_selectmode_to_scene(C);
 	}
 
@@ -283,7 +283,7 @@ void undo_editmode_clear(void)
 	UndoElem *uel;
 	
 	uel= undobase.first;
-	while(uel) {
+	while (uel) {
 		uel->freedata(uel->undodata);
 		uel= uel->next;
 	}
@@ -297,8 +297,8 @@ void undo_editmode_number(bContext *C, int nr)
 	UndoElem *uel;
 	int a=1;
 	
-	for(uel= undobase.first; uel; uel= uel->next, a++) {
-		if(a==nr) break;
+	for (uel= undobase.first; uel; uel= uel->next, a++) {
+		if (a==nr) break;
 	}
 	curundo= uel;
 	undo_editmode_step(C, 0);
@@ -308,11 +308,11 @@ void undo_editmode_name(bContext *C, const char *undoname)
 {
 	UndoElem *uel;
 	
-	for(uel= undobase.last; uel; uel= uel->prev) {
-		if(strcmp(undoname, uel->name)==0)
+	for (uel= undobase.last; uel; uel= uel->prev) {
+		if (strcmp(undoname, uel->name)==0)
 			break;
 	}
-	if(uel && uel->prev) {
+	if (uel && uel->prev) {
 		curundo= uel->prev;
 		undo_editmode_step(C, 0);
 	}
@@ -321,11 +321,11 @@ void undo_editmode_name(bContext *C, const char *undoname)
 /* undoname optionally, if NULL it just checks for existing undo steps */
 int undo_editmode_valid(const char *undoname)
 {
-	if(undoname) {
+	if (undoname) {
 		UndoElem *uel;
 		
-		for(uel= undobase.last; uel; uel= uel->prev) {
-			if(strcmp(undoname, uel->name)==0)
+		for (uel= undobase.last; uel; uel= uel->prev) {
+			if (strcmp(undoname, uel->name)==0)
 				break;
 		}
 		return uel != NULL;
@@ -343,11 +343,11 @@ const char *undo_editmode_get_name(bContext *C, int nr, int *active)
 	/* prevent wrong numbers to be returned */
 	undo_clean_stack(C);
 	
-	if(active) *active= 0;
+	if (active) *active= 0;
 	
 	uel= BLI_findlink(&undobase, nr);
-	if(uel) {
-		if(active && uel==curundo)
+	if (uel) {
+		if (active && uel==curundo)
 			*active= 1;
 		return uel->name;
 	}
@@ -358,6 +358,6 @@ const char *undo_editmode_get_name(bContext *C, int nr, int *active)
 void *undo_editmode_get_prev(Object *ob)
 {
 	UndoElem *ue= undobase.last;
-	if(ue && ue->prev && ue->prev->ob==ob) return ue->prev->undodata;
+	if (ue && ue->prev && ue->prev->ob==ob) return ue->prev->undodata;
 	return NULL;
 }

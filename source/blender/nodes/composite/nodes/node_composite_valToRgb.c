@@ -54,12 +54,12 @@ static void node_composit_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeSt
 	/* stack order in: fac */
 	/* stack order out: col, alpha */
 	
-	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) 
+	if (out[0]->hasoutput==0 && out[1]->hasoutput==0) 
 		return;
 	
-	if(node->storage) {
+	if (node->storage) {
 		/* input no image? then only color operation */
-		if(in[0]->data==NULL) {
+		if (in[0]->data==NULL) {
 			do_colorband(node->storage, in[0]->vec[0], out[0]->vec);
 		}
 		else {
@@ -71,7 +71,7 @@ static void node_composit_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeSt
 			
 			out[0]->data= stackbuf;
 			
-			if(out[1]->hasoutput)
+			if (out[1]->hasoutput)
 				out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
 
 		}
@@ -119,11 +119,11 @@ static void node_composit_exec_rgbtobw(void *UNUSED(data), bNode *node, bNodeSta
 	/* stack order out: bw */
 	/* stack order in: col */
 	
-	if(out[0]->hasoutput==0)
+	if (out[0]->hasoutput==0)
 		return;
 	
 	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
+	if (in[0]->data==NULL) {
 		do_rgbtobw(node, out[0]->vec, in[0]->vec);
 	}
 	else {

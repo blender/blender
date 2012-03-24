@@ -95,7 +95,8 @@ int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* value
 	if (!img->metadata) {
 		img->metadata = MEM_callocN(sizeof(ImMetaData), "ImMetaData");
 		info = img->metadata;
-	} else {
+	}
+	else {
 		info = img->metadata;
 		last = info;
 		while (info) {

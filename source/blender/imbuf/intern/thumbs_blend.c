@@ -53,23 +53,23 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 	int sizeof_bhead;
 
 	/* read the blend file header */
-	if(gzread(gzfile, buf, 12) != 12)
+	if (gzread(gzfile, buf, 12) != 12)
 		return NULL;
-	if(strncmp(buf, "BLENDER", 7))
+	if (strncmp(buf, "BLENDER", 7))
 		return NULL;
 
-	if(buf[7]=='-')
+	if (buf[7]=='-')
 		pointer_size= 8;
-	else if(buf[7]=='_')
+	else if (buf[7]=='_')
 		pointer_size= 4;
 	else
 		return NULL;
 
 	sizeof_bhead = 16 + pointer_size;
 
-	if(buf[8]=='V')
+	if (buf[8]=='V')
 		endian= B_ENDIAN; /* big: PPC */
-	else if(buf[8]=='v')
+	else if (buf[8]=='v')
 		endian= L_ENDIAN; /* little: x86 */
 	else
 		return NULL;
@@ -77,7 +77,7 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 	endian_switch = ((ENDIAN_ORDER != endian)) ? 1 : 0;
 
 	while(gzread(gzfile, bhead, sizeof_bhead) == sizeof_bhead) {
-		if(endian_switch)
+		if (endian_switch)
 			SWITCH_INT(bhead[1]); /* length */
 
 		if (bhead[0]==REND) {
@@ -89,14 +89,14 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 	}
 
 	/* using 'TEST' since new names segfault when loading in old blenders */
-	if(bhead[0] == TEST) {
+	if (bhead[0] == TEST) {
 		ImBuf *img= NULL;
 		int size[2];
 
-		if(gzread(gzfile, size, sizeof(size)) != sizeof(size))
+		if (gzread(gzfile, size, sizeof(size)) != sizeof(size))
 			return NULL;
 
-		if(endian_switch) {
+		if (endian_switch) {
 			SWITCH_INT(size[0]);
 			SWITCH_INT(size[1]);
 		}
@@ -104,13 +104,13 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 		bhead[1] -= sizeof(int) * 2;
 
 		/* inconsistent image size, quit early */
-		if(bhead[1] != size[0] * size[1] * sizeof(int))
+		if (bhead[1] != size[0] * size[1] * sizeof(int))
 			return NULL;
 	
 		/* finally malloc and read the data */
 		img= IMB_allocImBuf(size[0], size[1], 32, IB_rect | IB_metadata);
 	
-		if(gzread(gzfile, img->rect, bhead[1]) != bhead[1]) {
+		if (gzread(gzfile, img->rect, bhead[1]) != bhead[1]) {
 			IMB_freeImBuf(img);
 			img= NULL;
 		}
@@ -151,7 +151,7 @@ void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float as
 	int margin_r = width - MARGIN;
 	int margin_t = height - MARGIN;
 
-	if(aspect < 1.0f) {
+	if (aspect < 1.0f) {
 		margin_l= (int)((width - ((float)width * aspect)) / 2.0f);
 		margin_l += MARGIN;
 		CLAMP(margin_l, MARGIN, (width/2));
@@ -168,18 +168,19 @@ void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float as
 		int x, y;
 		int stride_x= (margin_r - margin_l) - 2;
 		
-		for(y=0; y < height; y++) {
-			for(x=0; x < width; x++, px+=4) {
+		for (y=0; y < height; y++) {
+			for (x=0; x < width; x++, px+=4) {
 				int hline= 0, vline= 0;
-				if((x > margin_l && x < margin_r) && (y > margin_b && y < margin_t)) {
+				if ((x > margin_l && x < margin_r) && (y > margin_b && y < margin_t)) {
 					/* interior. skip */
 					x  += stride_x;
 					px += stride_x * 4;
-				} else if(	(hline=(((x == margin_l || x == margin_r)) && y >= margin_b && y <= margin_t)) ||
-							(vline=(((y == margin_b || y == margin_t)) && x >= margin_l && x <= margin_r))
-				) {
+				}
+				else if ((hline=(((x == margin_l || x == margin_r)) && y >= margin_b && y <= margin_t)) ||
+				        (vline=(((y == margin_b || y == margin_t)) && x >= margin_l && x <= margin_r)))
+				{
 					/* dashed line */
-					if((hline && y % 2) || (vline && x % 2)) {
+					if ((hline && y % 2) || (vline && x % 2)) {
 						px[0]= px[1]= px[2]= 0;
 						px[3] = 255;
 					}

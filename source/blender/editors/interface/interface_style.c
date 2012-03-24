@@ -132,8 +132,8 @@ static uiFont *uifont_to_blfont(int id)
 {
 	uiFont *font= U.uifonts.first;
 	
-	for(; font; font= font->next) {
-		if(font->uifont_id==id) {
+	for (; font; font= font->next) {
+		if (font->uifont_id==id) {
 			return font;
 		}
 	}
@@ -154,14 +154,14 @@ void uiStyleFontDrawExt(uiFontStyle *fs, rcti *rect, const char *str,
 	height= BLF_ascender(fs->uifont_id);
 	yofs= ceil( 0.5f*(rect->ymax - rect->ymin - height));
 
-	if(fs->align==UI_STYLE_TEXT_CENTER) {
+	if (fs->align==UI_STYLE_TEXT_CENTER) {
 		xofs= floor( 0.5f*(rect->xmax - rect->xmin - BLF_width(fs->uifont_id, str)));
 		/* don't center text if it chops off the start of the text, 2 gives some margin */
-		if(xofs < 2) {
+		if (xofs < 2) {
 			xofs= 2;
 		}
 	}
-	else if(fs->align==UI_STYLE_TEXT_RIGHT) {
+	else if (fs->align==UI_STYLE_TEXT_RIGHT) {
 		xofs= rect->xmax - rect->xmin - BLF_width(fs->uifont_id, str) - 1;
 	}
 	
@@ -306,12 +306,12 @@ void uiStyleInit(void)
 	uiStyle *style= U.uistyles.first;
 	
 	/* recover from uninitialized dpi */
-	if(U.dpi == 0)
+	if (U.dpi == 0)
 		U.dpi= 72;
 	CLAMP(U.dpi, 48, 128);
 	
 	/* default builtin */
-	if(font==NULL) {
+	if (font==NULL) {
 		font= MEM_callocN(sizeof(uiFont), "ui font");
 		BLI_addtail(&U.uifonts, font);
 		
@@ -319,19 +319,19 @@ void uiStyleInit(void)
 		font->uifont_id= UIFONT_DEFAULT;
 	}
 	
-	for(font= U.uifonts.first; font; font= font->next) {
+	for (font= U.uifonts.first; font; font= font->next) {
 		
-		if(font->uifont_id==UIFONT_DEFAULT) {
+		if (font->uifont_id==UIFONT_DEFAULT) {
 #ifdef WITH_INTERNATIONAL
 			int font_size= datatoc_bfont_ttf_size;
 			unsigned char *font_ttf= (unsigned char*)datatoc_bfont_ttf;
 			static int last_font_size = 0;
 
 			/* use unicode font for translation */
-			if(U.transopts & USER_DOTRANSLATE) {
+			if (U.transopts & USER_DOTRANSLATE) {
 				font_ttf= BLF_get_unifont(&font_size);
 
-				if(!font_ttf) {
+				if (!font_ttf) {
 					/* fall back if not found */
 					font_size= datatoc_bfont_ttf_size;
 					font_ttf= (unsigned char*)datatoc_bfont_ttf;
@@ -339,7 +339,7 @@ void uiStyleInit(void)
 			}
 
 			/* relload only if needed */
-			if(last_font_size != font_size) {
+			if (last_font_size != font_size) {
 				BLF_unload("default");
 				last_font_size = font_size;
 			}
@@ -351,7 +351,7 @@ void uiStyleInit(void)
 		}		
 		else {
 			font->blf_id= BLF_load(font->filename);
-			if(font->blf_id == -1)
+			if (font->blf_id == -1)
 				font->blf_id= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 		}
 
@@ -370,7 +370,7 @@ void uiStyleInit(void)
 		}
 	}
 	
-	if(style==NULL) {
+	if (style==NULL) {
 		ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT );
 	}
 	

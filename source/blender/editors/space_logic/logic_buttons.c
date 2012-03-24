@@ -108,7 +108,7 @@ static int logic_properties(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= logic_has_buttons_region(sa);
 	
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
@@ -142,10 +142,10 @@ static int cut_links_intersect(uiLinkLine *line, float mcoords[][2], int tot)
 	rectlink.xmax = (int) (line->to->x1 + line->to->x2) / 2;
 	rectlink.ymax = (int) (line->to->y1 + line->to->y2) / 2;
 
-	if(ui_link_bezier_points(&rectlink, coord_array, LINK_RESOL)){
-		for(i=0; i<tot-1; i++)
-			for(b=0; b<LINK_RESOL-1; b++)
-				if(isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
+	if (ui_link_bezier_points(&rectlink, coord_array, LINK_RESOL)) {
+		for (i=0; i<tot-1; i++)
+			for (b=0; b<LINK_RESOL-1; b++)
+				if (isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
 					return 1;
 	}
 	return 0;
@@ -164,7 +164,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		UI_view2d_region_to_view(&ar->v2d, (short)loc[0], (short)loc[1], 
 								 &mcoords[i][0], &mcoords[i][1]);
 		i++;
-		if(i>= 256) break;
+		if (i>= 256) break;
 	}
 	RNA_END;
 
@@ -172,15 +172,15 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		uiBlock *block;
 		uiLinkLine *line, *nline;
 		uiBut *but;
-		for(block= ar->uiblocks.first; block; block= block->next)
+		for (block= ar->uiblocks.first; block; block= block->next)
 		{
 			but= block->buttons.first;
-			while(but) {
-				if(but->type==LINK && but->link) {
-					for(line= but->link->lines.first; line; line= nline) {
+			while (but) {
+				if (but->type==LINK && but->link) {
+					for (line= but->link->lines.first; line; line= nline) {
 						nline= line->next;
 
-						if(cut_links_intersect(line, mcoords, i)) {
+						if (cut_links_intersect(line, mcoords, i)) {
 							ui_delete_linkline(line, but);
 						}
 					}

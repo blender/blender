@@ -125,7 +125,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 
 		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
 
-		if(RNA_struct_find_property(op->ptr, "filemode"))
+		if (RNA_struct_find_property(op->ptr, "filemode"))
 			params->type = RNA_int_get(op->ptr, "filemode");
 		else
 			params->type = FILE_SPECIAL;
@@ -152,12 +152,12 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			}
 		}
 
-		if(params->dir[0]) {
+		if (params->dir[0]) {
 			BLI_cleanup_dir(G.main->name, params->dir);
 			BLI_path_abs(params->dir, G.main->name);
 		}
 
-		if(is_directory==TRUE && is_filename==FALSE && is_filepath==FALSE && is_files==FALSE) {
+		if (is_directory==TRUE && is_filename==FALSE && is_filepath==FALSE && is_files==FALSE) {
 			params->flag |= FILE_DIRSEL_ONLY;
 		}
 		else {
@@ -165,27 +165,27 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		}
 
 		params->filter = 0;
-		if(RNA_struct_find_property(op->ptr, "filter_blender"))
+		if (RNA_struct_find_property(op->ptr, "filter_blender"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_blender") ? BLENDERFILE : 0;
-		if(RNA_struct_find_property(op->ptr, "filter_image"))
+		if (RNA_struct_find_property(op->ptr, "filter_image"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_image") ? IMAGEFILE : 0;
-		if(RNA_struct_find_property(op->ptr, "filter_movie"))
+		if (RNA_struct_find_property(op->ptr, "filter_movie"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_movie") ? MOVIEFILE : 0;
-		if(RNA_struct_find_property(op->ptr, "filter_text"))
+		if (RNA_struct_find_property(op->ptr, "filter_text"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
-		if(RNA_struct_find_property(op->ptr, "filter_python"))
+		if (RNA_struct_find_property(op->ptr, "filter_python"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_python") ? PYSCRIPTFILE : 0;
-		if(RNA_struct_find_property(op->ptr, "filter_font"))
+		if (RNA_struct_find_property(op->ptr, "filter_font"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_font") ? FTFONTFILE : 0;
-		if(RNA_struct_find_property(op->ptr, "filter_sound"))
+		if (RNA_struct_find_property(op->ptr, "filter_sound"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_sound") ? SOUNDFILE : 0;
-		if(RNA_struct_find_property(op->ptr, "filter_text"))
+		if (RNA_struct_find_property(op->ptr, "filter_text"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
-		if(RNA_struct_find_property(op->ptr, "filter_folder"))
+		if (RNA_struct_find_property(op->ptr, "filter_folder"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_folder") ? FOLDERFILE : 0;
-		if(RNA_struct_find_property(op->ptr, "filter_btx"))
+		if (RNA_struct_find_property(op->ptr, "filter_btx"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_btx") ? BTXFILE : 0;
-		if(RNA_struct_find_property(op->ptr, "filter_collada"))
+		if (RNA_struct_find_property(op->ptr, "filter_collada"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_collada") ? COLLADAFILE : 0;
 		if (RNA_struct_find_property(op->ptr, "filter_glob")) {
 			RNA_string_get(op->ptr, "filter_glob", params->filter_glob);
@@ -198,14 +198,16 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		if (params->filter != 0) {
 			if (U.uiflag & USER_FILTERFILEEXTS) {
 				params->flag |= FILE_FILTER;
-			} else {
+			}
+			else {
 				params->flag &= ~FILE_FILTER;
 			}
 		}
 
 		if (U.uiflag & USER_HIDE_DOT) {
 			params->flag |= FILE_HIDE_DOT;
-		} else {
+		}
+		else {
 			params->flag &= ~FILE_HIDE_DOT;
 		}
 		
@@ -216,16 +218,17 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->flag |= RNA_boolean_get(op->ptr, "active_layer") ? FILE_ACTIVELAY : 0;
 		}
 
-		if(RNA_struct_find_property(op->ptr, "display_type"))
+		if (RNA_struct_find_property(op->ptr, "display_type"))
 			params->display= RNA_enum_get(op->ptr, "display_type");
 
-		if(params->display==FILE_DEFAULTDISPLAY) {
+		if (params->display==FILE_DEFAULTDISPLAY) {
 			if (U.uiflag & USER_SHOW_THUMBNAILS) {
-				if(params->filter & (IMAGEFILE|MOVIEFILE))
+				if (params->filter & (IMAGEFILE|MOVIEFILE))
 					params->display= FILE_IMGDISPLAY;
 				else
 					params->display= FILE_SHORTDISPLAY;
-			} else {
+			}
+			else {
 				params->display= FILE_SHORTDISPLAY;
 			}
 		}
@@ -276,7 +279,8 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 		int width = (int)(ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x);
 		numfiles = (int)((float)width / (float)layout->tile_w + 0.5f);
 		return numfiles*layout->rows;
-	} else {
+	}
+	else {
 		int height = (int)(ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y);
 		numfiles = (int)((float)height/(float)layout->tile_h + 0.5f);
 		return numfiles*layout->columns;
@@ -312,7 +316,8 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout* layout, const rcti* r
 	
 	if  ( (colmin > layout->columns-1) || (rowmin > layout->rows-1) ) {
 		sel.first = -1;
-	} else {
+	}
+	else {
 		if (layout->flag & FILE_LAYOUT_HOR) 
 			sel.first = layout->rows*colmin + rowmin;
 		else
@@ -320,7 +325,8 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout* layout, const rcti* r
 	}
 	if  ( (colmax > layout->columns-1) || (rowmax > layout->rows-1) ) {
 		sel.last = -1;
-	} else {
+	}
+	else {
 		if (layout->flag & FILE_LAYOUT_HOR) 
 			sel.last = layout->rows*colmax + rowmax;
 		else
@@ -356,7 +362,8 @@ void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, int *x, int *y)
 	if (layout->flag == FILE_LAYOUT_HOR) {
 		*x = layout->tile_border_x + (tile/layout->rows)*(layout->tile_w+2*layout->tile_border_x);
 		*y = layout->tile_border_y + (tile%layout->rows)*(layout->tile_h+2*layout->tile_border_y);
-	} else {
+	}
+	else {
 		*x = layout->tile_border_x + ((tile)%layout->columns)*(layout->tile_w+2*layout->tile_border_x);
 		*y = layout->tile_border_y + ((tile)/layout->columns)*(layout->tile_h+2*layout->tile_border_y);
 	}
@@ -393,7 +400,8 @@ float file_shorten_string(char* string, float w, int front)
 			temp[slen+4] = '\0';
 			BLI_strncpy(string, temp, slen+4);
 		}
-	} else {
+	}
+	else {
 		char *s = string;
 		while (sw>w) {
 			int slen = strlen(string);
@@ -482,7 +490,8 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 	if (sfile->layout == NULL) {
 		sfile->layout = MEM_callocN(sizeof(struct FileLayout), "file_layout");
 		sfile->layout->dirty = TRUE;
-	} else if (sfile->layout->dirty == FALSE) {
+	}
+	else if (sfile->layout->dirty == FALSE) {
 		return;
 	}
 
@@ -502,7 +511,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		layout->tile_h = layout->prv_h + 2*layout->prv_border_y + textheight;
 		layout->width= (int)(v2d->cur.xmax - v2d->cur.xmin - 2*layout->tile_border_x);
 		layout->columns= layout->width / (layout->tile_w + 2*layout->tile_border_x);
-		if(layout->columns > 0)
+		if (layout->columns > 0)
 			layout->rows= numfiles/layout->columns + 1; // XXX dirty, modulo is zero
 		else {
 			layout->columns = 1;
@@ -510,7 +519,8 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		}
 		layout->height= sfile->layout->rows*(layout->tile_h+2*layout->tile_border_y) + layout->tile_border_y*2;
 		layout->flag = FILE_LAYOUT_VER;
-	} else {
+	}
+	else {
 		layout->prv_w = 0;
 		layout->prv_h = 0;
 		layout->tile_border_x = 8;
@@ -527,7 +537,8 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 			maxlen = ICON_DEFAULT_WIDTH_SCALE + 4 +
 					 (int)layout->column_widths[COLUMN_NAME] + 12 +
 					 (int)layout->column_widths[COLUMN_SIZE] + 12;
-		} else {
+		}
+		else {
 			maxlen = ICON_DEFAULT_WIDTH_SCALE + 4 +
 					 (int)layout->column_widths[COLUMN_NAME] + 12 +
 #ifndef WIN32
@@ -542,7 +553,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 
 		}
 		layout->tile_w = maxlen;
-		if(layout->rows > 0)
+		if (layout->rows > 0)
 			layout->columns = numfiles/layout->rows + 1; // XXX dirty, modulo is zero
 		else {
 			layout->rows = 1;
@@ -570,13 +581,13 @@ void file_change_dir(bContext *C, int checkdir)
 
 		ED_fileselect_clear(C, sfile);
 
-		if(checkdir && BLI_is_dir(sfile->params->dir)==0) {
+		if (checkdir && BLI_is_dir(sfile->params->dir)==0) {
 			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), sizeof(sfile->params->dir));
 			/* could return but just refresh the current dir */
 		}
 		filelist_setdir(sfile->files, sfile->params->dir);
 		
-		if(folderlist_clear_next(sfile))
+		if (folderlist_clear_next(sfile))
 			folderlist_free(sfile->folders_next);
 
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
@@ -608,7 +619,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
 	/* search if str matches the beginning of name */
-	if(str[0] && sfile->files) {
+	if (str[0] && sfile->files) {
 		char dirname[FILE_MAX];
 
 		DIR *dir;
@@ -618,7 +629,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 
 		dir = opendir(dirname);
 
-		if(dir) {
+		if (dir) {
 			AutoComplete *autocpl= autocomplete_begin(str, FILE_MAX);
 
 			while ((de = readdir(dir)) != NULL) {
@@ -643,7 +654,8 @@ void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 			autocomplete_end(autocpl, str);
 			if (BLI_exists(str)) {
 				BLI_add_slash(str);
-			} else {
+			}
+			else {
 				BLI_strncpy(sfile->params->dir, str, sizeof(sfile->params->dir));
 			}
 		}
@@ -655,12 +667,12 @@ void autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
 	/* search if str matches the beginning of name */
-	if(str[0] && sfile->files) {
+	if (str[0] && sfile->files) {
 		AutoComplete *autocpl= autocomplete_begin(str, FILE_MAX);
 		int nentries = filelist_numfiles(sfile->files);
 		int i;
 
-		for(i= 0; i<nentries; ++i) {
+		for (i= 0; i<nentries; ++i) {
 			struct direntry* file = filelist_file(sfile->files, i);
 			if (file && S_ISREG(file->type)) {
 				autocomplete_do_name(autocpl, file->relname);
@@ -685,8 +697,8 @@ void ED_fileselect_clear(struct bContext *C, struct SpaceFile *sfile)
 
 void ED_fileselect_exit(struct bContext *C, struct SpaceFile *sfile)
 {
-	if(!sfile) return;
-	if(sfile->op) {
+	if (!sfile) return;
+	if (sfile->op) {
 		WM_event_fileselect_event(C, sfile->op, EVT_FILESELECT_EXTERNAL_CANCEL);
 		sfile->op = NULL;
 	}

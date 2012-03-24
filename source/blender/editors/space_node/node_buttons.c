@@ -142,10 +142,10 @@ static void node_sockets_panel(const bContext *C, Panel *pa)
 	uiLayout *layout= pa->layout, *split;
 	char name[UI_MAX_NAME_STR];
 	
-	if(ELEM(NULL, ntree, node))
+	if (ELEM(NULL, ntree, node))
 		return;
 	
-	for(sock=node->inputs.first; sock; sock=sock->next) {
+	for (sock=node->inputs.first; sock; sock=sock->next) {
 		BLI_snprintf(name, sizeof(name), "%s:", sock->name);
 
 		split = uiLayoutSplit(layout, 0.35f, 0);
@@ -187,7 +187,7 @@ static int node_properties(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= node_has_buttons_region(sa);
 	
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;

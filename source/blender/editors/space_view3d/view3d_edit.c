@@ -2833,7 +2833,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 					smooth_view(C, v3d, ar, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
 
 				}
-				else{
+				else {
 					/* return to settings of last view */
 					/* does smooth_view too */
 					axis_set_view(C, v3d, ar,

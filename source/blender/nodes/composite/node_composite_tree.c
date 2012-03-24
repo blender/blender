@@ -63,8 +63,8 @@
 static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 {
 	Scene *sce;
-	for(sce= main->scene.first; sce; sce= sce->id.next) {
-		if(sce->nodetree) {
+	for (sce= main->scene.first; sce; sce= sce->id.next) {
+		if (sce->nodetree) {
 			func(calldata, &sce->id, sce->nodetree);
 		}
 	}
@@ -88,8 +88,8 @@ static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	bNodeSocket *sock;
 	
-	for(sock= node->outputs.first; sock; sock= sock->next) {
-		if(sock->cache) {
+	for (sock= node->outputs.first; sock; sock= sock->next) {
+		if (sock->cache) {
 			free_compbuf(sock->cache);
 			sock->cache= NULL;
 		}
@@ -99,7 +99,7 @@ static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
 static void free_cache(bNodeTree *ntree)
 {
 	bNode *node;
-	for(node= ntree->nodes.first; node; node= node->next)
+	for (node= ntree->nodes.first; node; node= node->next)
 		free_node_cache(ntree, node);
 }
 
@@ -107,8 +107,8 @@ static void update_node(bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock;
 
-	for(sock= node->outputs.first; sock; sock= sock->next) {
-		if(sock->cache) {
+	for (sock= node->outputs.first; sock; sock= sock->next) {
+		if (sock->cache) {
 			//free_compbuf(sock->cache);
 			//sock->cache= NULL;
 		}
@@ -126,23 +126,23 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	bNode *node, *node_next;
 	bNodeSocket *sock;
 	
-	for(node= ntree->nodes.first; node; node= node->next) {
+	for (node= ntree->nodes.first; node; node= node->next) {
 		/* ensure new user input gets handled ok */
 		node->need_exec= 0;
 		
 		/* move over the compbufs */
 		/* right after ntreeCopyTree() oldsock pointers are valid */
 		
-		if(ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
-			if(node->id) {
-				if(node->flag & NODE_DO_OUTPUT)
+		if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+			if (node->id) {
+				if (node->flag & NODE_DO_OUTPUT)
 					node->new_node->id= (ID *)copy_image((Image *)node->id);
 				else
 					node->new_node->id= NULL;
 			}
 		}
 		
-		for(sock= node->outputs.first; sock; sock= sock->next) {
+		for (sock= node->outputs.first; sock; sock= sock->next) {
 			sock->new_sock->cache= sock->cache;
 			compbuf_set_node(sock->new_sock->cache, node->new_node);
 			
@@ -177,11 +177,11 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 	bNode *lnode;
 	
 	/* move over the compbufs and previews */
-	for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
-		if( (lnode->exec & NODE_READY) && !(lnode->exec & NODE_SKIPPED) ) {
-			if(ntreeNodeExists(ntree, lnode->new_node)) {
+	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+		if ( (lnode->exec & NODE_READY) && !(lnode->exec & NODE_SKIPPED) ) {
+			if (ntreeNodeExists(ntree, lnode->new_node)) {
 				
-				if(lnode->preview && lnode->preview->rect) {
+				if (lnode->preview && lnode->preview->rect) {
 					nodeFreePreview(lnode->new_node);
 					lnode->new_node->preview= lnode->preview;
 					lnode->preview= NULL;
@@ -197,28 +197,28 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 	bNodeSocket *lsock;
 	
 	/* move over the compbufs and previews */
-	for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
-		if(ntreeNodeExists(ntree, lnode->new_node)) {
-			if(ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
-				if(lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
+	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+		if (ntreeNodeExists(ntree, lnode->new_node)) {
+			if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+				if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
 					/* image_merge does sanity check for pointers */
 					BKE_image_merge((Image *)lnode->new_node->id, (Image *)lnode->id);
 				}
 			}
-			else if(lnode->type==CMP_NODE_MOVIEDISTORTION) {
+			else if (lnode->type==CMP_NODE_MOVIEDISTORTION) {
 				/* special case for distortion node: distortion context is allocating in exec function
 				   and to achive much better performance on further calls this context should be
 				   copied back to original node */
-				if(lnode->storage) {
-					if(lnode->new_node->storage)
+				if (lnode->storage) {
+					if (lnode->new_node->storage)
 						BKE_tracking_distortion_destroy(lnode->new_node->storage);
 
 					lnode->new_node->storage= BKE_tracking_distortion_copy(lnode->storage);
 				}
 			}
 			
-			for(lsock= lnode->outputs.first; lsock; lsock= lsock->next) {
-				if(ntreeOutputExists(lnode->new_node, lsock->new_sock)) {
+			for (lsock= lnode->outputs.first; lsock; lsock= lsock->next) {
+				if (ntreeOutputExists(lnode->new_node, lsock->new_sock)) {
 					lsock->new_sock->cache= lsock->cache;
 					compbuf_set_node(lsock->new_sock->cache, lnode->new_node);
 					lsock->cache= NULL;
@@ -276,21 +276,21 @@ struct bNodeTreeExec *ntreeCompositBeginExecTree(bNodeTree *ntree, int use_tree_
 	
 	exec = ntree_exec_begin(ntree);
 	
-	for(node= exec->nodetree->nodes.first; node; node= node->next) {
+	for (node= exec->nodetree->nodes.first; node; node= node->next) {
 		/* initialize needed for groups */
 		node->exec= 0;	
 		
-		for(sock= node->outputs.first; sock; sock= sock->next) {
+		for (sock= node->outputs.first; sock; sock= sock->next) {
 			bNodeStack *ns= node_get_socket_stack(exec->stack, sock);
-			if(ns && sock->cache) {
+			if (ns && sock->cache) {
 				ns->data= sock->cache;
 				sock->cache= NULL;
 			}
 		}
 		/* cannot initialize them while using in threads */
-		if(ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT)) {
+		if (ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT)) {
 			curvemapping_initialize(node->storage);
-			if(node->type==CMP_NODE_CURVE_RGB)
+			if (node->type==CMP_NODE_CURVE_RGB)
 				curvemapping_premultiply(node->storage, 0);
 		}
 	}
@@ -310,22 +310,22 @@ struct bNodeTreeExec *ntreeCompositBeginExecTree(bNodeTree *ntree, int use_tree_
  */
 void ntreeCompositEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 {
-	if(exec) {
+	if (exec) {
 		bNodeTree *ntree= exec->nodetree;
 		bNode *node;
 		bNodeStack *ns;
 		
-		for(node= exec->nodetree->nodes.first; node; node= node->next) {
+		for (node= exec->nodetree->nodes.first; node; node= node->next) {
 			bNodeSocket *sock;
 			
-			for(sock= node->outputs.first; sock; sock= sock->next) {
+			for (sock= node->outputs.first; sock; sock= sock->next) {
 				ns = node_get_socket_stack(exec->stack, sock);
-				if(ns && ns->data) {
+				if (ns && ns->data) {
 					sock->cache= ns->data;
 					ns->data= NULL;
 				}
 			}
-			if(node->type==CMP_NODE_CURVE_RGB)
+			if (node->type==CMP_NODE_CURVE_RGB)
 				curvemapping_premultiply(node->storage, 1);
 			
 			node->need_exec= 0;
@@ -347,14 +347,14 @@ static int node_only_value(bNode *node)
 {
 	bNodeSocket *sock;
 	
-	if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_VALUE, CMP_NODE_RGB))
+	if (ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_VALUE, CMP_NODE_RGB))
 		return 1;
 	
 	/* doing this for all node types goes wrong. memory free errors */
-	if(node->inputs.first && node->type==CMP_NODE_MAP_VALUE) {
+	if (node->inputs.first && node->type==CMP_NODE_MAP_VALUE) {
 		int retval= 1;
-		for(sock= node->inputs.first; sock; sock= sock->next) {
-			if(sock->link)
+		for (sock= node->inputs.first; sock; sock= sock->next) {
+			if (sock->link)
 				retval &= node_only_value(sock->link->fromnode);
 		}
 		return retval;
@@ -378,7 +378,7 @@ static void *exec_composite_node(void *nodeexec_v)
 	
 	node_get_stack(node, thd->stack, nsin, nsout);
 	
-	if(node->typeinfo->execfunc)
+	if (node->typeinfo->execfunc)
 		node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
 	else if (node->typeinfo->newexecfunc)
 		node->typeinfo->newexecfunc(thd->rd, 0, node, nodeexec->data, nsin, nsout);
@@ -399,13 +399,13 @@ static int setExecutableNodes(bNodeTreeExec *exec, ThreadData *thd)
 	int n, totnode= 0, group_edit= 0;
 	
 	/* if we are in group edit, viewer nodes get skipped when group has viewer */
-	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
-			if(ntreeHasType((bNodeTree *)node->id, CMP_NODE_VIEWER))
+	for (node= ntree->nodes.first; node; node= node->next)
+		if (node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
+			if (ntreeHasType((bNodeTree *)node->id, CMP_NODE_VIEWER))
 				group_edit= 1;
 	
 	/* NB: using the exec data list here to have valid dependency sort */
-	for(n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+	for (n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 		int a;
 		node = nodeexec->node;
 		
@@ -413,9 +413,9 @@ static int setExecutableNodes(bNodeTreeExec *exec, ThreadData *thd)
 		
 		/* test the outputs */
 		/* skip value-only nodes (should be in type!) */
-		if(!node_only_value(node)) {
-			for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
-				if(nsout[a]->data==NULL && nsout[a]->hasoutput) {
+		if (!node_only_value(node)) {
+			for (a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+				if (nsout[a]->data==NULL && nsout[a]->hasoutput) {
 					node->need_exec= 1;
 					break;
 				}
@@ -423,18 +423,18 @@ static int setExecutableNodes(bNodeTreeExec *exec, ThreadData *thd)
 		}
 		
 		/* test the inputs */
-		for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+		for (a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
 			/* skip viewer nodes in bg render or group edit */
-			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) && (G.background || group_edit))
+			if ( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) && (G.background || group_edit))
 				node->need_exec= 0;
 			/* is sock in use? */
-			else if(sock->link) {
+			else if (sock->link) {
 				bNodeLink *link= sock->link;
 				
 				/* this is the test for a cyclic case */
-				if(link->fromnode==NULL || link->tonode==NULL);
-				else if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
-					if(link->fromnode->need_exec) {
+				if (link->fromnode==NULL || link->tonode==NULL);
+				else if (link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
+					if (link->fromnode->need_exec) {
 						node->need_exec= 1;
 						break;
 					}
@@ -446,11 +446,11 @@ static int setExecutableNodes(bNodeTreeExec *exec, ThreadData *thd)
 			}
 		}
 		
-		if(node->need_exec) {
+		if (node->need_exec) {
 			
 			/* free output buffers */
-			for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
-				if(nsout[a]->data) {
+			for (a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+				if (nsout[a]->data) {
 					free_compbuf(nsout[a]->data);
 					nsout[a]->data= NULL;
 				}
@@ -470,11 +470,11 @@ static int setExecutableNodes(bNodeTreeExec *exec, ThreadData *thd)
 	
 	/* last step: set the stack values for only-value nodes */
 	/* just does all now, compared to a full buffer exec this is nothing */
-	if(totnode) {
-		for(n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+	if (totnode) {
+		for (n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 			node = nodeexec->node;
-			if(node->need_exec==0 && node_only_value(node)) {
-				if(node->typeinfo->execfunc) {
+			if (node->need_exec==0 && node_only_value(node)) {
+				if (node->typeinfo->execfunc) {
 					node_get_stack(node, exec->stack, nsin, nsout);
 					node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
 				}
@@ -499,28 +499,28 @@ static void freeExecutableNode(bNodeTreeExec *exec)
 	int n;
 	
 	/* set exec flag for finished nodes that might need freed */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type!=CMP_NODE_R_LAYERS)
-			if(node->exec & NODE_FINISHED)
+	for (node= ntree->nodes.first; node; node= node->next) {
+		if (node->type!=CMP_NODE_R_LAYERS)
+			if (node->exec & NODE_FINISHED)
 				node->exec |= NODE_FREEBUFS;
 	}
 	/* clear this flag for input links that are not done yet.
 	 * Using the exec data for valid dependency sort.
 	 */
-	for(n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+	for (n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 		node = nodeexec->node;
-		if((node->exec & NODE_FINISHED)==0) {
-			for(sock= node->inputs.first; sock; sock= sock->next)
-				if(sock->link)
+		if ((node->exec & NODE_FINISHED)==0) {
+			for (sock= node->inputs.first; sock; sock= sock->next)
+				if (sock->link)
 					sock->link->fromnode->exec &= ~NODE_FREEBUFS;
 		}
 	}
 	/* now we can free buffers */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->exec & NODE_FREEBUFS) {
-			for(sock= node->outputs.first; sock; sock= sock->next) {
+	for (node= ntree->nodes.first; node; node= node->next) {
+		if (node->exec & NODE_FREEBUFS) {
+			for (sock= node->outputs.first; sock; sock= sock->next) {
 				bNodeStack *ns= node_get_socket_stack(exec->stack, sock);
-				if(ns && ns->data) {
+				if (ns && ns->data) {
 					free_compbuf(ns->data);
 					ns->data= NULL;
 					// printf("freed buf node %s \n", node->name);
@@ -536,15 +536,15 @@ static bNodeExec *getExecutableNode(bNodeTreeExec *exec)
 	bNodeSocket *sock;
 	int n;
 	
-	for(n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
-		if(nodeexec->node->exec==0) {
+	for (n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+		if (nodeexec->node->exec==0) {
 			/* input sockets should be ready */
-			for(sock= nodeexec->node->inputs.first; sock; sock= sock->next) {
-				if(sock->link && sock->link->fromnode)
-					if((sock->link->fromnode->exec & NODE_READY)==0)
+			for (sock= nodeexec->node->inputs.first; sock; sock= sock->next) {
+				if (sock->link && sock->link->fromnode)
+					if ((sock->link->fromnode->exec & NODE_READY)==0)
 						break;
 			}
-			if(sock==NULL)
+			if (sock==NULL)
 				return nodeexec;
 		}
 	}
@@ -556,12 +556,12 @@ static  void ntree_composite_texnode(bNodeTree *ntree, int init)
 {
 	bNode *node;
 	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type==CMP_NODE_TEXTURE && node->id) {
+	for (node= ntree->nodes.first; node; node= node->next) {
+		if (node->type==CMP_NODE_TEXTURE && node->id) {
 			Tex *tex= (Tex *)node->id;
-			if(tex->nodetree && tex->use_nodes) {
+			if (tex->nodetree && tex->use_nodes) {
 				/* has internal flag to detect it only does it once */
-				if(init) {
+				if (init) {
 					if (!tex->nodetree->execdata)
 						tex->nodetree->execdata = ntreeTexBeginExecTree(tex->nodetree, 1); 
 				}
@@ -584,11 +584,11 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	int totnode, curnode, rendering= 1, n;
 	bNodeTreeExec *exec;
 
-	if(ntree==NULL) return;
+	if (ntree==NULL) return;
 
 	exec = ntree->execdata;
 
-	if(do_preview)
+	if (do_preview)
 		ntreeInitPreview(ntree, 0, 0);
 	
 	if (!ntree->execdata) {
@@ -598,7 +598,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	ntree_composite_texnode(ntree, 1);
 	
 	/* prevent unlucky accidents */
-	if(G.background)
+	if (G.background)
 		rd->scemode &= ~R_COMP_CROP;
 	
 	/* setup callerdata for thread callback */
@@ -613,15 +613,15 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 
 	BLI_init_threads(&threads, exec_composite_node, rd->threads);
 	
-	while(rendering) {
+	while (rendering) {
 		
-		if(BLI_available_threads(&threads)) {
+		if (BLI_available_threads(&threads)) {
 			nodeexec= getExecutableNode(exec);
-			if(nodeexec) {
+			if (nodeexec) {
 				node = nodeexec->node;
-				if(ntree->progress && totnode)
+				if (ntree->progress && totnode)
 					ntree->progress(ntree->prh, (1.0f - curnode/(float)totnode));
-				if(ntree->stats_draw) {
+				if (ntree->stats_draw) {
 					char str[128];
 					BLI_snprintf(str, sizeof(str), "Compositing %d %s", curnode, node->name);
 					ntree->stats_draw(ntree->sdh, str);
@@ -640,21 +640,21 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		
 		rendering= 0;
 		/* test for ESC */
-		if(ntree->test_break && ntree->test_break(ntree->tbh)) {
-			for(node= ntree->nodes.first; node; node= node->next)
+		if (ntree->test_break && ntree->test_break(ntree->tbh)) {
+			for (node= ntree->nodes.first; node; node= node->next)
 				node->exec |= NODE_READY;
 		}
 		
 		/* check for ready ones, and if we need to continue */
-		for(n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+		for (n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 			node = nodeexec->node;
-			if(node->exec & NODE_READY) {
-				if((node->exec & NODE_FINISHED)==0) {
+			if (node->exec & NODE_READY) {
+				if ((node->exec & NODE_FINISHED)==0) {
 					BLI_remove_thread(&threads, nodeexec); /* this waits for running thread to finish btw */
 					node->exec |= NODE_FINISHED;
 					
 					/* freeing unused buffers */
-					if(rd->scemode & R_COMP_FREE)
+					if (rd->scemode & R_COMP_FREE)
 						freeExecutableNode(exec);
 				}
 			}
@@ -675,10 +675,10 @@ static void force_hidden_passes(bNode *node, int passflag)
 {
 	bNodeSocket *sock;
 	
-	for(sock= node->outputs.first; sock; sock= sock->next)
+	for (sock= node->outputs.first; sock; sock= sock->next)
 		sock->flag &= ~SOCK_UNAVAIL;
 	
-	if(!(passflag & SCE_PASS_COMBINED)) {
+	if (!(passflag & SCE_PASS_COMBINED)) {
 		sock= BLI_findlink(&node->outputs, RRES_OUT_IMAGE);
 		sock->flag |= SOCK_UNAVAIL;
 		sock= BLI_findlink(&node->outputs, RRES_OUT_ALPHA);
@@ -686,60 +686,60 @@ static void force_hidden_passes(bNode *node, int passflag)
 	}
 	
 	sock= BLI_findlink(&node->outputs, RRES_OUT_Z);
-	if(!(passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_NORMAL);
-	if(!(passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_VEC);
-	if(!(passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_UV);
-	if(!(passflag & SCE_PASS_UV)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_UV)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_RGBA);
-	if(!(passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF);
-	if(!(passflag & SCE_PASS_DIFFUSE)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_DIFFUSE)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_SPEC);
-	if(!(passflag & SCE_PASS_SPEC)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_SPEC)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_SHADOW);
-	if(!(passflag & SCE_PASS_SHADOW)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_SHADOW)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_AO);
-	if(!(passflag & SCE_PASS_AO)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_AO)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_REFLECT);
-	if(!(passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_REFRACT);
-	if(!(passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_INDIRECT);
-	if(!(passflag & SCE_PASS_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
-	if(!(passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXMA);
-	if(!(passflag & SCE_PASS_INDEXMA)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_INDEXMA)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_MIST);
-	if(!(passflag & SCE_PASS_MIST)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_MIST)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_EMIT);
-	if(!(passflag & SCE_PASS_EMIT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_EMIT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_ENV);
-	if(!(passflag & SCE_PASS_ENVIRONMENT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_ENVIRONMENT)) sock->flag |= SOCK_UNAVAIL;
 
 	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF_DIRECT);
-	if(!(passflag & SCE_PASS_DIFFUSE_DIRECT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_DIFFUSE_DIRECT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF_INDIRECT);
-	if(!(passflag & SCE_PASS_DIFFUSE_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_DIFFUSE_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF_COLOR);
-	if(!(passflag & SCE_PASS_DIFFUSE_COLOR)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_DIFFUSE_COLOR)) sock->flag |= SOCK_UNAVAIL;
 
 	sock= BLI_findlink(&node->outputs, RRES_OUT_GLOSSY_DIRECT);
-	if(!(passflag & SCE_PASS_GLOSSY_DIRECT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_GLOSSY_DIRECT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_GLOSSY_INDIRECT);
-	if(!(passflag & SCE_PASS_GLOSSY_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_GLOSSY_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_GLOSSY_COLOR);
-	if(!(passflag & SCE_PASS_GLOSSY_COLOR)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_GLOSSY_COLOR)) sock->flag |= SOCK_UNAVAIL;
 
 	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_DIRECT);
-	if(!(passflag & SCE_PASS_TRANSM_DIRECT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_TRANSM_DIRECT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_INDIRECT);
-	if(!(passflag & SCE_PASS_TRANSM_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_TRANSM_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_COLOR);
-	if(!(passflag & SCE_PASS_TRANSM_COLOR)) sock->flag |= SOCK_UNAVAIL;
+	if (!(passflag & SCE_PASS_TRANSM_COLOR)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_COLOR);
 }
 
@@ -748,27 +748,27 @@ void ntreeCompositForceHidden(bNodeTree *ntree, Scene *curscene)
 {
 	bNode *node;
 	
-	if(ntree==NULL) return;
+	if (ntree==NULL) return;
 	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if( node->type==CMP_NODE_R_LAYERS) {
+	for (node= ntree->nodes.first; node; node= node->next) {
+		if ( node->type==CMP_NODE_R_LAYERS) {
 			Scene *sce= node->id?(Scene *)node->id:curscene;
 			SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
-			if(srl)
+			if (srl)
 				force_hidden_passes(node, srl->passflag);
 		}
-		else if( node->type==CMP_NODE_IMAGE) {
+		else if ( node->type==CMP_NODE_IMAGE) {
 			Image *ima= (Image *)node->id;
-			if(ima) {
-				if(ima->rr) {
+			if (ima) {
+				if (ima->rr) {
 					ImageUser *iuser= node->storage;
 					RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
-					if(rl)
+					if (rl)
 						force_hidden_passes(node, rl->passflag);
 					else
 						force_hidden_passes(node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
 				}
-				else if(ima->type!=IMA_TYPE_MULTILAYER) {	/* if ->rr not yet read we keep inputs */
+				else if (ima->type!=IMA_TYPE_MULTILAYER) {	/* if ->rr not yet read we keep inputs */
 					force_hidden_passes(node, RRES_OUT_IMAGE|RRES_OUT_ALPHA|RRES_OUT_Z);
 				}
 				else
@@ -787,14 +787,14 @@ void ntreeCompositTagRender(Scene *curscene)
 {
 	Scene *sce;
 	
-	for(sce= G.main->scene.first; sce; sce= sce->id.next) {
-		if(sce->nodetree) {
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if (sce->nodetree) {
 			bNode *node;
 			
-			for(node= sce->nodetree->nodes.first; node; node= node->next) {
-				if(node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
+			for (node= sce->nodetree->nodes.first; node; node= node->next) {
+				if (node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
 					nodeUpdate(sce->nodetree, node);
-				else if(node->type==CMP_NODE_TEXTURE) /* uses scene sizex/sizey */
+				else if (node->type==CMP_NODE_TEXTURE) /* uses scene sizex/sizey */
 					nodeUpdate(sce->nodetree, node);
 			}
 		}
@@ -856,31 +856,31 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 	bNode *node;
 	int tagged= 0;
 	
-	if(ntree==NULL) return 0;
+	if (ntree==NULL) return 0;
 	
-	for(node= ntree->nodes.first; node; node= node->next) {
+	for (node= ntree->nodes.first; node; node= node->next) {
 		
 		tagged = node_animation_properties(ntree, node);
 		
 		/* otherwise always tag these node types */
-		if(node->type==CMP_NODE_IMAGE) {
+		if (node->type==CMP_NODE_IMAGE) {
 			Image *ima= (Image *)node->id;
-			if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+			if (ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				nodeUpdate(ntree, node);
 				tagged= 1;
 			}
 		}
-		else if(node->type==CMP_NODE_TIME) {
+		else if (node->type==CMP_NODE_TIME) {
 			nodeUpdate(ntree, node);
 			tagged= 1;
 		}
 		/* here was tag render layer, but this is called after a render, so re-composites fail */
-		else if(node->type==NODE_GROUP) {
-			if( ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
+		else if (node->type==NODE_GROUP) {
+			if ( ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
 				nodeUpdate(ntree, node);
 			}
 		}
-		else if(ELEM(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_TRANSFORM)) {
+		else if (ELEM(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_TRANSFORM)) {
 			nodeUpdate(ntree, node);
 			tagged= 1;
 		}
@@ -895,10 +895,10 @@ void ntreeCompositTagGenerators(bNodeTree *ntree)
 {
 	bNode *node;
 	
-	if(ntree==NULL) return;
+	if (ntree==NULL) return;
 	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
+	for (node= ntree->nodes.first; node; node= node->next) {
+		if ( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
 			nodeUpdate(ntree, node);
 	}
 }
@@ -908,11 +908,11 @@ void ntreeCompositClearTags(bNodeTree *ntree)
 {
 	bNode *node;
 	
-	if(ntree==NULL) return;
+	if (ntree==NULL) return;
 	
-	for(node= ntree->nodes.first; node; node= node->next) {
+	for (node= ntree->nodes.first; node; node= node->next) {
 		node->need_exec= 0;
-		if(node->type==NODE_GROUP)
+		if (node->type==NODE_GROUP)
 			ntreeCompositClearTags((bNodeTree *)node->id);
 	}
 }

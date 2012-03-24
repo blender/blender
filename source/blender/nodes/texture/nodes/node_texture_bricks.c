@@ -91,7 +91,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	
 	rownum = (int)floor(y / row_height);
 	
-	if( node->custom1 && node->custom2 ) {
+	if ( node->custom1 && node->custom2 ) {
 		brick_width *= ((int)(rownum) % node->custom2 ) ? 1.0f : node->custom4;      /* squash */
 		offset = ((int)(rownum) % node->custom1 ) ? 0 : (brick_width*node->custom3); /* offset */
 	}
@@ -104,11 +104,12 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	tint = noise((rownum << 16) + (bricknum & 0xFFFF)) + bias;
 	CLAMP(tint,0.0f,1.0f);
 	
-	if( ins_x < mortar_thickness || ins_y < mortar_thickness ||
+	if ( ins_x < mortar_thickness || ins_y < mortar_thickness ||
 		ins_x > (brick_width - mortar_thickness) ||
 		ins_y > (row_height - mortar_thickness) ) {
 		copy_v4_v4( out, mortar );
-	} else {
+	}
+	else {
 		copy_v4_v4( out, bricks1 );
 		ramp_blend( MA_RAMP_BLEND, out, tint, bricks2 );
 	}

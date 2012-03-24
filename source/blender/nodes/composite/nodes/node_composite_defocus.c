@@ -376,7 +376,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 				wts->rect[px] = 0.f;
 			}
 			// esc set by main calling process
-			if(node->exec & NODE_BREAK)
+			if (node->exec & NODE_BREAK)
 				break;
 		}
 	}
@@ -400,7 +400,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		#pragma omp critical
 		{
 			if (((ydone & 7)==0) || (ydone==(img->y-1))) {
-				if(G.background==0) {
+				if (G.background==0) {
 					printf("\rdefocus: Processing Line %d of %d ... ", ydone+1, img->y);
 					fflush(stdout);
 				}
@@ -411,7 +411,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 
 		// esc set by main calling process. don't break because openmp doesn't
 		// allow it, just continue and do nothing 
-		if(node->exec & NODE_BREAK)
+		if (node->exec & NODE_BREAK)
 			continue;
 
 		zp = y * img->x;
@@ -850,7 +850,7 @@ static void node_composit_exec_defocus(void *UNUSED(data), bNode *node, bNodeSta
 		premul_compbuf(new, 0);
 		free_compbuf(old);
 	}
-	if(node->exec & NODE_BREAK) {
+	if (node->exec & NODE_BREAK) {
 		free_compbuf(new);
 		new= NULL;
 	}	

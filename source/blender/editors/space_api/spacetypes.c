@@ -117,8 +117,8 @@ void ED_spacetypes_init(void)
 	
 	/* register operators */
 	spacetypes = BKE_spacetypes_list();
-	for(type=spacetypes->first; type; type=type->next) {
-		if(type->operatortypes)
+	for (type=spacetypes->first; type; type=type->next) {
+		if (type->operatortypes)
 			type->operatortypes();
 	}
 
@@ -136,8 +136,8 @@ void ED_spacetypes_init(void)
 	
 	/* register dropboxes (can use macros) */
 	spacetypes = BKE_spacetypes_list();
-	for(type=spacetypes->first; type; type=type->next) {
-		if(type->dropboxes)
+	for (type=spacetypes->first; type; type=type->next) {
+		if (type->dropboxes)
 			type->dropboxes();
 	}
 	
@@ -169,11 +169,11 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 	UI_view2d_keymap(keyconf);
 
 	spacetypes = BKE_spacetypes_list();
-	for(stype=spacetypes->first; stype; stype=stype->next) {
-		if(stype->keymap)
+	for (stype=spacetypes->first; stype; stype=stype->next) {
+		if (stype->keymap)
 			stype->keymap(keyconf);
-		for(atype=stype->regiontypes.first; atype; atype=atype->next) {
-			if(atype->keymap)
+		for (atype=stype->regiontypes.first; atype; atype=atype->next) {
+			if (atype->keymap)
 				atype->keymap(keyconf);
 		}
 	}
@@ -209,8 +209,8 @@ void ED_region_draw_cb_exit(ARegionType *art, void *handle)
 {
 	RegionDrawCB *rdc;
 	
-	for(rdc= art->drawcalls.first; rdc; rdc= rdc->next) {
-		if(rdc==(RegionDrawCB *)handle) {
+	for (rdc= art->drawcalls.first; rdc; rdc= rdc->next) {
+		if (rdc==(RegionDrawCB *)handle) {
 			BLI_remlink(&art->drawcalls, rdc);
 			MEM_freeN(rdc);
 			return;
@@ -227,8 +227,8 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *ar, int type)
 {
 	RegionDrawCB *rdc;
 	
-	for(rdc= ar->type->drawcalls.first; rdc; rdc= rdc->next) {
-		if(rdc->type==type)
+	for (rdc= ar->type->drawcalls.first; rdc; rdc= rdc->next) {
+		if (rdc->type==type)
 			rdc->draw(C, ar, rdc->customdata);
 	}		
 }

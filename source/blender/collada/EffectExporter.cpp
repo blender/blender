@@ -138,7 +138,8 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			// for now set phong in case spec shader is not blinn
 			writePhong(ep, ma);
 		}
-	} else {
+	}
+	else {
 		if(ma->diff_shader == MA_DIFF_LAMBERT) {
 			writeLambert(ep, ma);
 		}
