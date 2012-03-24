@@ -93,7 +93,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	smokeModifier_do(smd, md->scene, ob, dm);
 
-	if(dm != derivedData)
+	if (dm != derivedData)
 		dm->release(dm);
 }
 
@@ -113,7 +113,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		if (smd->domain->fluid_group || smd->domain->coll_group) {
 			GroupObject *go = NULL;
 			
-			if(smd->domain->fluid_group)
+			if (smd->domain->fluid_group)
 				for (go = smd->domain->fluid_group->gobject.first; go; go = go->next) {
 					if (go->ob) {
 						SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
@@ -126,7 +126,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 					}
 				}
 
-			if(smd->domain->coll_group)
+			if (smd->domain->coll_group)
 				for (go = smd->domain->coll_group->gobject.first; go; go = go->next) {
 					if (go->ob) {
 						SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
@@ -159,12 +159,12 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 {
 	SmokeModifierData *smd = (SmokeModifierData*) md;
 
-	if(smd->type==MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
+	if (smd->type==MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
 		walk(userData, ob, (ID **)&smd->domain->coll_group);
 		walk(userData, ob, (ID **)&smd->domain->fluid_group);
 		walk(userData, ob, (ID **)&smd->domain->eff_group);
 
-		if(smd->domain->effector_weights) {
+		if (smd->domain->effector_weights) {
 			walk(userData, ob, (ID **)&smd->domain->effector_weights->group);
 		}
 	}

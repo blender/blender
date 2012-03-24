@@ -191,7 +191,7 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
 
 		/*
 		ibuf= BKE_image_get_ibuf(image, NULL);
-		if(ibuf)
+		if (ibuf)
 			ibuf->ftype= ftype;
 		*/
 

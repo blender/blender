@@ -83,9 +83,9 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 {
 	wmDropBoxMap *dm;
 	
-	for(dm= dropboxes.first; dm; dm= dm->next)
-		if(dm->spaceid==spaceid && dm->regionid==regionid)
-			if(0==strncmp(idname, dm->idname, KMAP_MAX_NAME))
+	for (dm= dropboxes.first; dm; dm= dm->next)
+		if (dm->spaceid==spaceid && dm->regionid==regionid)
+			if (0==strncmp(idname, dm->idname, KMAP_MAX_NAME))
 				return &dm->dropboxes;
 	
 	dm= MEM_callocN(sizeof(struct wmDropBoxMap), "dropmap list");
@@ -109,7 +109,7 @@ wmDropBox *WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(bContext
 	drop->ot= WM_operatortype_find(idname, 0);
 	drop->opcontext= WM_OP_INVOKE_DEFAULT;
 	
-	if(drop->ot==NULL) {
+	if (drop->ot==NULL) {
 		MEM_freeN(drop);
 		printf("Error: dropbox with unknown operator: %s\n", idname);
 		return NULL;
@@ -125,11 +125,11 @@ void wm_dropbox_free(void)
 {
 	wmDropBoxMap *dm;
 	
-	for(dm= dropboxes.first; dm; dm= dm->next) {
+	for (dm= dropboxes.first; dm; dm= dm->next) {
 		wmDropBox *drop;
 		
-		for(drop= dm->dropboxes.first; drop; drop= drop->next) {
-			if(drop->ptr) {
+		for (drop= dm->dropboxes.first; drop; drop= drop->next) {
+			if (drop->ptr) {
 				WM_operator_properties_free(drop->ptr);
 				MEM_freeN(drop->ptr);
 			}
@@ -154,7 +154,7 @@ wmDrag *WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, 
 	BLI_addtail(&wm->drags, drag);
 	drag->icon= icon;
 	drag->type= type;
-	if(type==WM_DRAG_PATH)
+	if (type==WM_DRAG_PATH)
 		BLI_strncpy(drag->path, poin, FILE_MAX);
 	else
 		drag->poin= poin;
@@ -175,11 +175,11 @@ void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale, int sx, int sy)
 static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, wmEvent *event)
 {
 	wmEventHandler *handler= handlers->first;
-	for(; handler; handler= handler->next) {
-		if(handler->dropboxes) {
+	for (; handler; handler= handler->next) {
+		if (handler->dropboxes) {
 			wmDropBox *drop= handler->dropboxes->first;
-			for(; drop; drop= drop->next) {
-				if(drop->poll(C, drag, event)) 
+			for (; drop; drop= drop->next) {
+				if (drop->poll(C, drag, event)) 
 					return drop->ot->name;
 			}
 		}
@@ -196,13 +196,13 @@ static const char *wm_dropbox_active(bContext *C, wmDrag *drag, wmEvent *event)
 	const char *name;
 	
 	name= dropbox_active(C, &win->handlers, drag, event);
-	if(name) return name;
+	if (name) return name;
 	
 	name= dropbox_active(C, &sa->handlers, drag, event);
-	if(name) return name;
+	if (name) return name;
 	
 	name= dropbox_active(C, &ar->handlers, drag, event);
-	if(name) return name;
+	if (name) return name;
 
 	return NULL;
 }
@@ -213,19 +213,19 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, wmEvent *event)
 	wmWindow *win= CTX_wm_window(C);
 	
 	/* for multiwin drags, we only do this if mouse inside */
-	if(event->x<0 || event->y<0 || event->x>win->sizex || event->y>win->sizey)
+	if (event->x<0 || event->y<0 || event->x>win->sizex || event->y>win->sizey)
 		return;
 	
 	drag->opname[0]= 0;
 	
 	/* check buttons (XXX todo rna and value) */
-	if( UI_but_active_drop_name(C) ) {
+	if ( UI_but_active_drop_name(C) ) {
 		strcpy(drag->opname, "Paste name");
 	}
 	else {
 		const char *opname= wm_dropbox_active(C, drag, event);
 		
-		if(opname) {
+		if (opname) {
 			BLI_strncpy(drag->opname, opname, FILE_MAX);
 			// WM_cursor_modal(win, CURSOR_COPY);
 		}
@@ -241,7 +241,7 @@ void wm_drags_check_ops(bContext *C, wmEvent *event)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmDrag *drag;
 	
-	for(drag= wm->drags.first; drag; drag= drag->next) {
+	for (drag= wm->drags.first; drag; drag= drag->next) {
 		wm_drop_operator_options(C, drag, event);
 	}
 }
@@ -279,13 +279,13 @@ static const char *wm_drag_name(wmDrag *drag)
 
 static void drag_rect_minmax(rcti *rect, int x1, int y1, int x2, int y2)
 {
-	if(rect->xmin > x1)
+	if (rect->xmin > x1)
 		rect->xmin = x1;
-	if(rect->xmax < x2)
+	if (rect->xmax < x2)
 		rect->xmax = x2;
-	if(rect->ymin > y1)
+	if (rect->ymin > y1)
 		rect->ymin = y1;
-	if(rect->ymax < y2)
+	if (rect->ymax < y2)
 		rect->ymax = y2;
 }
 
@@ -299,21 +299,21 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 	
 	cursorx= win->eventstate->x;
 	cursory= win->eventstate->y;
-	if(rect) {
+	if (rect) {
 		rect->xmin = rect->xmax = cursorx;
 		rect->ymin = rect->ymax = cursory;
 	}
 	
 	/* XXX todo, multiline drag draws... but maybe not, more types mixed wont work well */
 	glEnable(GL_BLEND);
-	for(drag= wm->drags.first; drag; drag= drag->next) {
+	for (drag= wm->drags.first; drag; drag= drag->next) {
 		
 		/* image or icon */
-		if(drag->imb) {
+		if (drag->imb) {
 			x= cursorx - drag->sx/2;
 			y= cursory - drag->sy/2;
 			
-			if(rect)
+			if (rect)
 				drag_rect_minmax(rect, x, y, x+drag->sx, y+drag->sy);
 			else {
 				glColor4f(1.0, 1.0, 1.0, 0.65);	/* this blends texture */
@@ -325,14 +325,14 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			y= cursory - 2;
 			
 			/* icons assumed to be 16 pixels */
-			if(rect)
+			if (rect)
 				drag_rect_minmax(rect, x, y, x+16, y+16);
 			else
 				UI_icon_draw_aspect(x, y, drag->icon, 1.0, 0.8);
 		}
 		
 		/* item name */
-		if(drag->imb) {
+		if (drag->imb) {
 			x= cursorx - drag->sx/2;
 			y= cursory - drag->sy/2 - 16;
 		}
@@ -341,7 +341,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			y= cursory + 1;
 		}
 		
-		if(rect) {
+		if (rect) {
 			int w=  UI_GetStringWidth(wm_drag_name(drag));
 			drag_rect_minmax(rect, x, y, x+w, y+16);
 		}
@@ -351,8 +351,8 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 		}
 		
 		/* operator name with roundbox */
-		if(drag->opname[0]) {
-			if(drag->imb) {
+		if (drag->opname[0]) {
+			if (drag->imb) {
 				x= cursorx - drag->sx/2;
 				y= cursory + drag->sy/2 + 4;
 			}
@@ -361,7 +361,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 				y= cursory + 16;
 			}
 			
-			if(rect) {
+			if (rect) {
 				int w=  UI_GetStringWidth(wm_drag_name(drag));
 				drag_rect_minmax(rect, x, y, x+w, y+16);
 			}

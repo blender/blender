@@ -157,7 +157,7 @@ int BLF_translate_tooltips(void)
 const char *BLF_translate_do_iface(const char *context, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
-	if(BLF_translate_iface()) {
+	if (BLF_translate_iface()) {
 		if (context)
 			return BLF_pgettext(context, msgid);
 		else
@@ -174,7 +174,7 @@ const char *BLF_translate_do_iface(const char *context, const char *msgid)
 const char *BLF_translate_do_tooltip(const char *context, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
-	if(BLF_translate_tooltips()) {
+	if (BLF_translate_tooltips()) {
 		if (context)
 			return BLF_pgettext(context, msgid);
 		else

@@ -77,8 +77,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 	DerivedMesh *result;
 	Mesh *me= (Mesh*)ob->data;
 
-	if(mmd->totlvl) {
-		if(!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
+	if (mmd->totlvl) {
+		if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
 			/* multires always needs a displacement layer */
 			CustomData_add_layer(&me->ldata, CD_MDISPS, CD_CALLOC, NULL, me->totloop);
 		}
@@ -86,19 +86,19 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 
 	result = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams);
 
-	if(result == dm)
+	if (result == dm)
 		return dm;
 
-	if(useRenderParams || !isFinalCalc) {
+	if (useRenderParams || !isFinalCalc) {
 		DerivedMesh *cddm;
 		
 		cddm= CDDM_copy(result);
 
 		/* copy hidden flag to vertices */
-		if(!useRenderParams) {
+		if (!useRenderParams) {
 			struct MDisps *mdisps;
 			mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
-			if(mdisps) {
+			if (mdisps) {
 				subsurf_copy_grid_hidden(result, me->mpoly,
 										 cddm->getVertArray(cddm),
 										 mdisps);

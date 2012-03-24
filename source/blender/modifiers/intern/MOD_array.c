@@ -149,14 +149,14 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
 	float min_co, max_co;
 
 	/* if there are no vertices, width is 0 */
-	if(numVerts == 0) return 0;
+	if (numVerts == 0) return 0;
 
 	/* find the minimum and maximum coordinates on the desired axis */
 	min_co = max_co = mvert->co[axis];
 	++mvert;
-	for(i = 1; i < numVerts; ++i, ++mvert) {
-		if(mvert->co[axis] < min_co) min_co = mvert->co[axis];
-		if(mvert->co[axis] > max_co) max_co = mvert->co[axis];
+	for (i = 1; i < numVerts; ++i, ++mvert) {
+		if (mvert->co[axis] < min_co) min_co = mvert->co[axis];
+		if (mvert->co[axis] > max_co) max_co = mvert->co[axis];
 	}
 
 	return max_co - min_co;
@@ -204,9 +204,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	MVert *src_mvert;
 
 	/* need to avoid infinite recursion here */
-	if(amd->start_cap && amd->start_cap != ob)
+	if (amd->start_cap && amd->start_cap != ob)
 		start_cap = mesh_get_derived_final(scene, amd->start_cap, CD_MASK_MESH);
-	if(amd->end_cap && amd->end_cap != ob)
+	if (amd->end_cap && amd->end_cap != ob)
 		end_cap = mesh_get_derived_final(scene, amd->end_cap, CD_MASK_MESH);
 
 	unit_m4(offset);
@@ -214,19 +214,19 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	src_mvert = dm->getVertArray(dm);
 	maxVerts = dm->getNumVerts(dm);
 
-	if(amd->offset_type & MOD_ARR_OFF_CONST)
+	if (amd->offset_type & MOD_ARR_OFF_CONST)
 		add_v3_v3v3(offset[3], offset[3], amd->offset);
-	if(amd->offset_type & MOD_ARR_OFF_RELATIVE) {
-		for(j = 0; j < 3; j++)
+	if (amd->offset_type & MOD_ARR_OFF_RELATIVE) {
+		for (j = 0; j < 3; j++)
 			offset[3][j] += amd->scale[j] * vertarray_size(src_mvert,
 					maxVerts, j);
 	}
 
-	if((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)) {
+	if ((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)) {
 		float obinv[4][4];
 		float result_mat[4][4];
 
-		if(ob)
+		if (ob)
 			invert_m4_m4(obinv, ob->obmat);
 		else
 			unit_m4(obinv);
@@ -240,36 +240,36 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	/* calculate the offset matrix of the final copy (for merging) */
 	unit_m4(final_offset);
 
-	for(j=0; j < count - 1; j++) {
+	for (j=0; j < count - 1; j++) {
 		mult_m4_m4m4(tmp_mat, offset, final_offset);
 		copy_m4_m4(final_offset, tmp_mat);
 	}
 
-	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
+	if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
-		if(cu) {
+		if (cu) {
 			float tmp_mat[3][3];
 			float scale;
 			
 			object_to_mat3(amd->curve_ob, tmp_mat);
 			scale = mat3_to_scale(tmp_mat);
 				
-			if(!cu->path) {
+			if (!cu->path) {
 				cu->flag |= CU_PATH; // needed for path & bevlist
 				makeDispListCurveTypes(scene, amd->curve_ob, 0);
 			}
-			if(cu->path)
+			if (cu->path)
 				length = scale*cu->path->totdist;
 		}
 	}
 
 	/* calculate the maximum number of copies which will fit within the
 	 * prescribed length */
-	if(amd->fit_type == MOD_ARR_FITLENGTH
+	if (amd->fit_type == MOD_ARR_FITLENGTH
 		  || amd->fit_type == MOD_ARR_FITCURVE) {
 		float dist = sqrt(dot_v3v3(offset[3], offset[3]));
 
-		if(dist > 1e-6f)
+		if (dist > 1e-6f)
 			/* this gives length = first copy start to last copy end
 			 * add a tiny offset for floating point rounding errors */
 			count = (length + 1e-6f) / dist;
@@ -278,7 +278,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			count = 1;
 	}
 
-	if(count < 1)
+	if (count < 1)
 		count = 1;
 
 	/* BMESH_TODO: bumping up the stack level avoids computing the normals

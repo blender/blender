@@ -570,7 +570,8 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
 			return BLI_sprintfN("force_field_1");
 		else if (part->pd2 == pd)
 			return BLI_sprintfN("force_field_2");
-	} else {
+	}
+	else {
 		/* object force field */
 		Object *ob = (Object*)ptr->id.data;
 		
@@ -607,7 +608,8 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 		
 		if (part->effector_weights == ew)
 			return BLI_sprintfN("effector_weights");
-	} else {
+	}
+	else {
 		Object *ob = (Object*)ptr->id.data;
 		ModifierData *md;
 		

@@ -430,7 +430,8 @@ static double EulerAngleFromMatrix(const KDL::Rotation& R, int axis)
 		if (axis == 0) return -KDL::atan2(R(1,2), R(2,2));
         else if(axis == 1) return KDL::atan2(-R(0,2), t);
         else return -KDL::atan2(R(0,1), R(0,0));
-    } else {
+	}
+	else {
 		if (axis == 0) return -KDL::atan2(-R(2,1), R(1,1));
         else if(axis == 1) return KDL::atan2(-R(0,2), t);
         else return 0.0f;
@@ -476,7 +477,8 @@ static void GetEulerXZY(const KDL::Rotation& R, double& X,double& Z,double& Y)
         X = -KDL::sign(R(0,1)) * KDL::atan2(R(1,2), R(1,0));
         Z = -KDL::sign(R(0,1)) * KDL::PI / 2;
         Y = 0.0;
-    } else {
+	}
+	else {
         X = KDL::atan2(R(2,1), R(1,1));
         Z = KDL::atan2(-R(0,1), KDL::sqrt( KDL::sqr(R(0,0)) + KDL::sqr(R(0,2))));
         Y = KDL::atan2(R(0,2), R(0,0));
@@ -489,7 +491,8 @@ static void GetEulerXYZ(const KDL::Rotation& R, double& X,double& Y,double& Z)
         X = KDL::sign(R(0,2)) * KDL::atan2(-R(1,0), R(1,1));
         Y = KDL::sign(R(0,2)) * KDL::PI / 2;
         Z = 0.0;
-    } else {
+	}
+	else {
         X = KDL::atan2(-R(1,2), R(2,2));
         Y = KDL::atan2(R(0,2), KDL::sqrt( KDL::sqr(R(0,0)) + KDL::sqr(R(0,1))));
         Z = KDL::atan2(-R(0,1), R(0,0));
@@ -691,7 +694,8 @@ static bool copypose_callback(const iTaSC::Timestamp& timestamp, iTaSC::Constrai
 			values->action = iTaSC::ACT_ALPHA;
 			values++;
 		}
-	} else {
+	}
+	else {
 		if (iktarget->controlType & iTaSC::CopyPose::CTL_POSITION) {
 			// update error
 			values->alpha = condata->weight;
@@ -745,7 +749,8 @@ static bool distance_callback(const iTaSC::Timestamp& timestamp, iTaSC::Constrai
 	// update weight according to mode
 	if (iktarget->blenderConstraint->flag & CONSTRAINT_OFF) {
 		values->alpha = 0.0;
-	} else {
+	}
+	else {
 		switch (condata->mode) {
 		case LIMITDIST_INSIDE:
 			values->alpha = (values->values[0].y > condata->dist) ? condata->weight : 0.0;
@@ -996,7 +1001,8 @@ static void convert_pose(IK_Scene *ikscene)
 		if (pchan->parent) {
 			unit_m4(bmat);
 			mul_m4_m4m3(bmat, pchan->parent->pose_mat, bone->bone_mat);
-		} else {
+		}
+		else {
 			copy_m4_m4(bmat, bone->arm_mat);
 		}
 		invert_m4_m4(rmat, bmat);
@@ -1076,7 +1082,8 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 	if (!ikparam) {
 		// you must have our own copy
 		ikparam = &DefIKParam;
-	} else if (ingame) {
+	}
+	else if (ingame) {
 		// tweak the param when in game to have efficient stepping
 		// using fixed substep is not effecient since frames in the GE are often
 		// shorter than in animation => move to auto step automatically and set
@@ -1120,7 +1127,8 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		// in the GE, set the initial joint angle to match the current pose
 		// this will update the jointArray in ikscene
 		convert_pose(ikscene);
-	} else {
+	}
+	else {
 		// in Blender, the rest pose is always 0 for joints
 		rest_pose(ikscene);
 	}
@@ -1393,7 +1401,8 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		// move to the tail and scale to get rest pose of armature base
 		copy_v3_v3(baseFrame[3], pchan->bone->arm_tail);
 		invert_m4_m4(invBaseFrame, baseFrame);
-	} else {
+	}
+	else {
 		unit_m4(invBaseFrame);
 	}
 	// finally add the constraint
@@ -1538,7 +1547,8 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 			ikchan->pchan->flag |= (POSE_DONE|POSE_CHAIN);
 			ikchan->jointValid = 0;
 		}
-	} else {
+	}
+	else {
 		// in animation mode, we must get the bone position from action and constraints
 		for(i=0, ikchan=ikscene->channels; i<ikscene->numchan; i++, ++ikchan) {
 			if (!(ikchan->pchan->flag & POSE_DONE))
@@ -1589,7 +1599,8 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 			// the cache is empty before this time, reiterate
 			if (ikparam->flag & ITASC_INITIAL_REITERATION)
 				reiterate = true;
-		} else {
+		}
+		else {
 			// can take the cache as a start point.
 			sts -= cts;
 			timestep = sts/1000.0;
@@ -1780,7 +1791,8 @@ void itasc_update_param(struct bPose *pose)
 				ikscene->scene->setParam(iTaSC::Scene::MAX_TIMESTEP, ikparam->maxstep);
 				ikscene->solver->setParam(iTaSC::Solver::DLS_QMAX, ikparam->maxvel);
 				ikscene->armature->setControlParameter(CONSTRAINT_ID_ALL, iTaSC::Armature::ID_JOINT, iTaSC::ACT_FEEDBACK, ikparam->feedback);
-			} else {
+			}
+			else {
 				// in animation mode timestep is 1s by convention => 
 				// qmax becomes radiant and feedback becomes fraction of error gap corrected in one iteration
 				ikscene->scene->setParam(iTaSC::Scene::MIN_TIMESTEP, 1.0);

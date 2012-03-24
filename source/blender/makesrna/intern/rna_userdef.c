@@ -790,7 +790,7 @@ static void rna_def_userdef_theme_space_generic(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	/* buttons */
-/*	if(! ELEM(spacetype, SPACE_BUTS, SPACE_OUTLINER)) { */
+/*	if (! ELEM(spacetype, SPACE_BUTS, SPACE_OUTLINER)) { */
 	prop = RNA_def_property(srna, "button", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Region Background", "");

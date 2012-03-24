@@ -146,7 +146,8 @@ EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, PropertyRN
 
 	if (ptr->type == &RNA_Sensor || RNA_struct_is_a(ptr->type, &RNA_Sensor)) {
 		ob = (Object *)ptr->id.data;
-	} else {
+	}
+	else {
 		/* can't use ob from ptr->id.data because that enum is also used by operators */
 		ob = CTX_data_active_object(C);
 	}

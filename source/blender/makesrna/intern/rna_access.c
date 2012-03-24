@@ -1179,7 +1179,8 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 
 		if (*free) {
 			nitem = *item;
-		} else {
+		}
+		else {
 			int totitem = 0;
 
 			/* count */
@@ -2721,7 +2722,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 
 	/* py api calls directly */
 #if 0
-	else if (cprop->add){
+	else if (cprop->add) {
 		if (!(cprop->add->flag & FUNC_USE_CONTEXT)) { /* XXX check for this somewhere else */
 			ParameterList params;
 			RNA_parameter_list_create(&params, ptr, cprop->add);
@@ -2778,7 +2779,7 @@ int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 
 	/* py api calls directly */
 #if 0
-	else if (cprop->remove){
+	else if (cprop->remove) {
 		if (!(cprop->remove->flag & FUNC_USE_CONTEXT)) { /* XXX check for this somewhere else */
 			ParameterList params;
 			RNA_parameter_list_create(&params, ptr, cprop->remove);

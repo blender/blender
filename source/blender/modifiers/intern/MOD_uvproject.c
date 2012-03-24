@@ -61,7 +61,7 @@ static void initData(ModifierData *md)
 	UVProjectModifierData *umd = (UVProjectModifierData*) md;
 	int i;
 
-	for(i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
+	for (i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
 		umd->projectors[i] = NULL;
 	umd->image = NULL;
 	umd->flags = 0;
@@ -76,7 +76,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	UVProjectModifierData *tumd = (UVProjectModifierData*) target;
 	int i;
 
-	for(i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
+	for (i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
 		tumd->projectors[i] = umd->projectors[i];
 	tumd->image = umd->image;
 	tumd->flags = umd->flags;
@@ -104,7 +104,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 	UVProjectModifierData *umd = (UVProjectModifierData*) md;
 	int i;
 
-	for(i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
+	for (i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
 		walk(userData, ob, &umd->projectors[i]);
 }
 
@@ -127,8 +127,8 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	UVProjectModifierData *umd = (UVProjectModifierData*) md;
 	int i;
 
-	for(i = 0; i < umd->num_projectors; ++i) {
-		if(umd->projectors[i]) {
+	for (i = 0; i < umd->num_projectors; ++i) {
+		if (umd->projectors[i]) {
 			DagNode *curNode = dag_get_node(forest, umd->projectors[i]);
 
 			dag_add_relation(forest, curNode, obNode,
@@ -167,21 +167,21 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
 	aspect = aspx / aspy;
 
-	for(i = 0; i < umd->num_projectors; ++i)
-		if(umd->projectors[i])
+	for (i = 0; i < umd->num_projectors; ++i)
+		if (umd->projectors[i])
 			projectors[num_projectors++].ob = umd->projectors[i];
 
-	if(num_projectors == 0) return dm;
+	if (num_projectors == 0) return dm;
 
 	/* make sure there are UV Maps available */
 
-	if(!CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) return dm;
+	if (!CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) return dm;
 
 	/* make sure we're using an existing layer */
 	CustomData_validate_layer_name(&dm->loopData, CD_MLOOPUV, umd->uvlayer_name, uvname);
 
 	/* calculate a projection matrix and normal for each projector */
-	for(i = 0; i < num_projectors; ++i) {
+	for (i = 0; i < num_projectors; ++i) {
 		float tmpmat[4][4];
 		float offsetmat[4][4];
 		Camera *cam = NULL;
@@ -190,10 +190,10 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
 		projectors[i].uci= NULL;
 
-		if(projectors[i].ob->type == OB_CAMERA) {
+		if (projectors[i].ob->type == OB_CAMERA) {
 			
 			cam = (Camera *)projectors[i].ob->data;
-			if(cam->flag & CAM_PANORAMA) {
+			if (cam->flag & CAM_PANORAMA) {
 				projectors[i].uci= project_camera_info(projectors[i].ob, NULL, aspx, aspy);
 				project_camera_info_scale(projectors[i].uci, scax, scay);
 				free_uci= 1;
@@ -204,7 +204,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				float scale= (cam->type == CAM_PERSP) ? cam->clipsta * sensor / cam->lens : cam->ortho_scale;
 				float xmax, xmin, ymax, ymin;
 
-				if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
+				if (sensor_fit==CAMERA_SENSOR_FIT_HOR) {
 					xmax = 0.5f * scale;
 					ymax = xmax / aspect;
 				}
@@ -222,17 +222,19 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				ymin *= scay;
 				ymax *= scay;
 
-				if(cam->type == CAM_PERSP) {
+				if (cam->type == CAM_PERSP) {
 					float perspmat[4][4];
 					perspective_m4( perspmat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
 					mult_m4_m4m4(tmpmat, perspmat, projectors[i].projmat);
-				} else { /* if(cam->type == CAM_ORTHO) */
+				}
+				else { /* if(cam->type == CAM_ORTHO) */
 					float orthomat[4][4];
 					orthographic_m4( orthomat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
 					mult_m4_m4m4(tmpmat, orthomat, projectors[i].projmat);
 				}
 			}
-		} else {
+		}
+		else {
 			copy_m4_m4(tmpmat, projectors[i].projmat);
 		}
 
@@ -282,22 +284,22 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	dm->getVertCos(dm, coords);
 
 	/* convert coords to world space */
-	for(i = 0, co = coords; i < numVerts; ++i, ++co)
+	for (i = 0, co = coords; i < numVerts; ++i, ++co)
 		mul_m4_v3(ob->obmat, *co);
 	
 	/* if only one projector, project coords to UVs */
-	if(num_projectors == 1 && projectors[0].uci==NULL)
-		for(i = 0, co = coords; i < numVerts; ++i, ++co)
+	if (num_projectors == 1 && projectors[0].uci==NULL)
+		for (i = 0, co = coords; i < numVerts; ++i, ++co)
 			mul_project_m4_v3(projectors[0].projmat, *co);
 
 	mpoly = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
 
 	/* apply coords as UVs, and apply image if tfaces are new */
-	for(i = 0, mp = mpoly; i < numPolys; ++i, ++mp, ++mt) {
-		if(override_image || !image || (mtexpoly == NULL || mt->tpage == image)) {
-			if(num_projectors == 1) {
-				if(projectors[0].uci) {
+	for (i = 0, mp = mpoly; i < numPolys; ++i, ++mp, ++mt) {
+		if (override_image || !image || (mtexpoly == NULL || mt->tpage == image)) {
+			if (num_projectors == 1) {
+				if (projectors[0].uci) {
 					unsigned int fidx= mp->totloop - 1;
 					do {
 						unsigned int lidx= mp->loopstart + fidx;
@@ -314,7 +316,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 						copy_v2_v2(mloop_uv[lidx].uv, coords[vidx]);
 					} while (fidx--);
 				}
-			} else {
+			}
+			else {
 				/* multiple projectors, select the closest to face normal direction */
 				float face_no[3];
 				int j;
@@ -330,16 +333,16 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				best_dot = dot_v3v3(projectors[0].normal, face_no);
 				best_projector = &projectors[0];
 
-				for(j = 1; j < num_projectors; ++j) {
+				for (j = 1; j < num_projectors; ++j) {
 					float tmp_dot = dot_v3v3(projectors[j].normal,
 							face_no);
-					if(tmp_dot > best_dot) {
+					if (tmp_dot > best_dot) {
 						best_dot = tmp_dot;
 						best_projector = &projectors[j];
 					}
 				}
 
-				if(best_projector->uci) {
+				if (best_projector->uci) {
 					unsigned int fidx= mp->totloop - 1;
 					do {
 						unsigned int lidx= mp->loopstart + fidx;
@@ -363,17 +366,17 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			}
 		}
 
-		if(override_image && mtexpoly) {
+		if (override_image && mtexpoly) {
 			mt->tpage = image;
 		}
 	}
 
 	MEM_freeN(coords);
 	
-	if(free_uci) {
+	if (free_uci) {
 		int j;
-		for(j = 0; j < num_projectors; ++j) {
-			if(projectors[j].uci) {
+		for (j = 0; j < num_projectors; ++j) {
+			if (projectors[j].uci) {
 				MEM_freeN(projectors[j].uci);
 			}
 		}

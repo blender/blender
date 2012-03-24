@@ -508,8 +508,8 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 	PropertyRNA *parm, *nextparm;
 
 	/*
-	if(srna->flag & STRUCT_RUNTIME) {
-		if(RNA_struct_py_type_get(srna)) {
+	if (srna->flag & STRUCT_RUNTIME) {
+		if (RNA_struct_py_type_get(srna)) {
 			fprintf(stderr, "%s '%s' freed while holding a python reference\n", __func__, srna->identifier);
 		}
 	} */
@@ -2717,7 +2717,8 @@ int rna_parameter_size(PropertyRNA *parm)
 				if (parm->flag & PROP_THICK_WRAP) {
 					StringPropertyRNA *sparm = (StringPropertyRNA*)parm;
 					return sizeof(char) * sparm->maxlength;
-				} else
+				}
+				else
 					return sizeof(char *);
 			case PROP_POINTER: {
 #ifdef RNA_RUNTIME
@@ -2762,7 +2763,7 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
 	if (tot == 0) {
 		*items = MEM_callocN(sizeof(EnumPropertyItem)*8, "RNA_enum_items_add");
 	}
-	else if (tot >= 8 && (tot&(tot-1)) == 0){
+	else if (tot >= 8 && (tot&(tot-1)) == 0) {
 		/* power of two > 8 */
 		newitems = MEM_callocN(sizeof(EnumPropertyItem)*tot*2, "RNA_enum_items_add");
 		memcpy(newitems, *items, sizeof(EnumPropertyItem)*tot);

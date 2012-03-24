@@ -111,7 +111,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	dataMask |= CD_MASK_MDEFORMVERT;
 
 	/* Ask for UV coordinates if we need them. */
-	if(wmd->mask_tex_mapping == MOD_DISP_MAP_UV)
+	if (wmd->mask_tex_mapping == MOD_DISP_MAP_UV)
 		dataMask |= CD_MASK_MTFACE;
 
 	/* No need to ask for CD_PREVIEW_MLOOPCOL... */
@@ -123,7 +123,7 @@ static int dependsOnTime(ModifierData *md)
 {
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
 
-	if(wmd->mask_texture)
+	if (wmd->mask_texture)
 		return BKE_texture_dependsOnTime(wmd->mask_texture);
 	return 0;
 }
@@ -156,14 +156,14 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UN
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
 	DagNode *curNode;
 
-	if(wmd->mask_tex_map_obj && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
+	if (wmd->mask_tex_map_obj && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
 		curNode = dag_get_node(forest, wmd->mask_tex_map_obj);
 
 		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA,
 		                 "WeightVGEdit Modifier");
 	}
 
-	if(wmd->mask_tex_mapping == MOD_DISP_MAP_GLOBAL)
+	if (wmd->mask_tex_mapping == MOD_DISP_MAP_GLOBAL)
 		dag_add_relation(forest, obNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA,
 		                 "WeightVGEdit Modifier");
 }
@@ -211,15 +211,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	dvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MDEFORMVERT, numVerts);
 	/* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
-	if(!dvert)
+	if (!dvert)
 		/* If this modifier is not allowed to add vertices, just return. */
-		if(!do_add)
+		if (!do_add)
 			return dm;
 		/* Else, add a valid data layer! */
 		dvert = CustomData_add_layer_named(&dm->vertData, CD_MDEFORMVERT, CD_CALLOC,
 		                                   NULL, numVerts, wmd->defgrp_name);
 		/* Ultimate security check. */
-		if(!dvert)
+		if (!dvert)
 			return dm;
 
 	/* Get org weights, assuming 0.0 for vertices not in given vgroup. */
@@ -228,7 +228,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	dw = MEM_mallocN(sizeof(MDeformWeight*) * numVerts, "WeightVGEdit Modifier, dw");
 	for (i = 0; i < numVerts; i++) {
 		dw[i] = defvert_find_index(&dvert[i], defgrp_idx);
-		if(dw[i]) {
+		if (dw[i]) {
 			org_w[i] = new_w[i] = dw[i]->weight;
 		}
 		else {
@@ -252,7 +252,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* If weight preview enabled... */
 #if 0 /* XXX Currently done in mod stack :/ */
-	if(do_prev)
+	if (do_prev)
 		DM_update_weight_mcol(ob, dm, 0, org_w, 0, NULL);
 #endif
 

@@ -155,7 +155,8 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			/* copies the data */
 			tmpmesh = copy_mesh( ob->data );
 		/* if not getting the original caged mesh, get final derived mesh */
-		} else {
+		}
+		else {
 			/* Make a dummy mesh, saves copying */
 			DerivedMesh *dm;
 			/* CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL; */

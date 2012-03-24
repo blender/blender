@@ -602,7 +602,8 @@ static void rna_SpaceImageEditor_cursor_location_get(PointerRNA *ptr, float *val
 	
 	if (sima->flag & SI_COORDFLOATS) {
 		copy_v2_v2(values, sima->cursor);
-	} else {
+	}
+	else {
 		int w, h;
 		ED_space_image_size(sima, &w, &h);
 		
@@ -617,7 +618,8 @@ static void rna_SpaceImageEditor_cursor_location_set(PointerRNA *ptr, const floa
 	
 	if (sima->flag & SI_COORDFLOATS) {
 		copy_v2_v2(sima->cursor, values);
-	} else {
+	}
+	else {
 		int w, h;
 		ED_space_image_size(sima, &w, &h);
 		

@@ -58,9 +58,9 @@ static void deformVerts(ModifierData *md, Object *ob,
 	KeyBlock *kb= ob_get_keyblock(ob);
 	float (*deformedVerts)[3];
 
-	if(kb && kb->totelem == numVerts) {
+	if (kb && kb->totelem == numVerts) {
 		deformedVerts= (float(*)[3])do_ob_key(md->scene, ob);
-		if(deformedVerts) {
+		if (deformedVerts) {
 			memcpy(vertexCos, deformedVerts, sizeof(float)*3*numVerts);
 			MEM_freeN(deformedVerts);
 		}
@@ -76,13 +76,13 @@ static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedDat
 
 	(void)vertexCos; /* unused */
 
-	if(kb && kb->totelem==numVerts && kb!=key->refkey) {
+	if (kb && kb->totelem==numVerts && kb!=key->refkey) {
 		int a;
 
-		if(ob->shapeflag & OB_SHAPE_LOCK) scale_m3_fl(scale, 1);
+		if (ob->shapeflag & OB_SHAPE_LOCK) scale_m3_fl(scale, 1);
 		else scale_m3_fl(scale, kb->curval);
 
-		for(a=0; a<numVerts; a++)
+		for (a=0; a<numVerts; a++)
 			copy_m3_m3(defMats[a], scale);
 	}
 
@@ -97,7 +97,7 @@ static void deformVertsEM(ModifierData *md, Object *ob,
 {
 	Key *key= ob_get_key(ob);
 
-	if(key && key->type == KEY_RELATIVE)
+	if (key && key->type == KEY_RELATIVE)
 		deformVerts(md, ob, derivedData, vertexCos, numVerts, 0, 0);
 }
 
@@ -114,11 +114,11 @@ static void deformMatricesEM(ModifierData *UNUSED(md), Object *ob,
 
 	(void)vertexCos; /* unused */
 
-	if(kb && kb->totelem==numVerts && kb!=key->refkey) {
+	if (kb && kb->totelem==numVerts && kb!=key->refkey) {
 		int a;
 		scale_m3_fl(scale, kb->curval);
 
-		for(a=0; a<numVerts; a++)
+		for (a=0; a<numVerts; a++)
 			copy_m3_m3(defMats[a], scale);
 	}
 }

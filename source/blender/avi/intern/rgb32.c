@@ -82,7 +82,7 @@ void *avi_converter_to_rgb32 (AviMovie *movie, int stream, unsigned char *buffer
 	to= buf; from= buffer;
 	i=movie->header->Height*movie->header->Width;
 	
-	while(i--) {
+	while (i--) {
 		memcpy(to, from, 3);
 		to+=4; from+=3;
 	}

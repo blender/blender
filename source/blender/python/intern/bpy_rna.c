@@ -6086,7 +6086,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
 		}
 
 		/* always use O not N when calling, N causes refcount errors */
-		newclass = PyObject_CallFunction(metaclass, (char *)"s(O){sss()}",
+		newclass = PyObject_CallFunction(metaclass, (char *)"s(O) {sss()}",
 		                                 idname, py_base, "__module__","bpy.types", "__slots__");
 
 		/* newclass will now have 2 ref's, ???, probably 1 is internal since decrefing here segfaults */

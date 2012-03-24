@@ -239,7 +239,8 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 		err += FT_Bitmap_Convert(font->ft_lib, &slot->bitmap, &tempbitmap, 1); /* Does Blender use Pitch 1 always? It works so far */
 		err += FT_Bitmap_Copy(font->ft_lib, &tempbitmap, &slot->bitmap);
 		err += FT_Bitmap_Done(font->ft_lib, &tempbitmap);
-	} else {
+	}
+	else {
 		err = FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
 	}
 

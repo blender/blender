@@ -87,7 +87,7 @@ void wm_subwindows_free(wmWindow *win)
 {
 	wmSubWindow *swin;
 	
-	for(swin= win->subwindows.first; swin; swin= swin->next)
+	for (swin= win->subwindows.first; swin; swin= swin->next)
 		wm_subwindow_free(swin);
 	
 	BLI_freelistN(&win->subwindows);
@@ -96,7 +96,7 @@ void wm_subwindows_free(wmWindow *win)
 
 int wm_subwindow_get(wmWindow *win)	
 {
-	if(win->curswin)
+	if (win->curswin)
 		return win->curswin->swinid;
 	return 0;
 }
@@ -105,8 +105,8 @@ static wmSubWindow *swin_from_swinid(wmWindow *win, int swinid)
 {
 	wmSubWindow *swin;
 	
-	for(swin= win->subwindows.first; swin; swin= swin->next)
-		if(swin->swinid==swinid)
+	for (swin= win->subwindows.first; swin; swin= swin->next)
+		if (swin->swinid==swinid)
 			break;
 	return swin;
 }
@@ -115,7 +115,7 @@ void wm_subwindow_getsize(wmWindow *win, int swinid, int *x, int *y)
 {
 	wmSubWindow *swin= swin_from_swinid(win, swinid);
 
-	if(swin) {
+	if (swin) {
 		*x= swin->winrct.xmax - swin->winrct.xmin + 1;
 		*y= swin->winrct.ymax - swin->winrct.ymin + 1;
 	}
@@ -125,7 +125,7 @@ void wm_subwindow_getorigin(wmWindow *win, int swinid, int *x, int *y)
 {
 	wmSubWindow *swin= swin_from_swinid(win, swinid);
 
-	if(swin) {
+	if (swin) {
 		*x= swin->winrct.xmin;
 		*y= swin->winrct.ymin;
 	}
@@ -135,9 +135,9 @@ void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4])
 {
 	wmSubWindow *swin= swin_from_swinid(win, swinid);
 
-	if(swin) {
+	if (swin) {
 		/* used by UI, should find a better way to get the matrix there */
-		if(swinid == win->screen->mainwin) {
+		if (swinid == win->screen->mainwin) {
 			int width, height;
 
 			wm_subwindow_getsize(win, swin->swinid, &width, &height);
@@ -156,14 +156,14 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 	int width, height;
 	int freewinid= 1;
 	
-	for(swin= win->subwindows.first; swin; swin= swin->next)
-		if(freewinid <= swin->swinid)
+	for (swin= win->subwindows.first; swin; swin= swin->next)
+		if (freewinid <= swin->swinid)
 			freewinid= swin->swinid+1;
 
 	win->curswin= swin= MEM_callocN(sizeof(wmSubWindow), "swinopen");
 	BLI_addtail(&win->subwindows, swin);
 	
-	if(G.f & G_DEBUG) printf("swin %d added\n", freewinid);
+	if (G.f & G_DEBUG) printf("swin %d added\n", freewinid);
 	swin->swinid= freewinid;
 	swin->winrct= *winrct;
 
@@ -201,7 +201,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 {
 	wmSubWindow *swin= swin_from_swinid(win, swinid);
 	
-	if(swin) {
+	if (swin) {
 		int width, height;
 		
 		swin->winrct= *winrct;
@@ -246,7 +246,7 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	int width, height;
 	_curswin= swin_from_swinid(win, swinid);
 	
-	if(_curswin==NULL) {
+	if (_curswin==NULL) {
 		printf("wmSubWindowSet %d: doesn't exist\n", swinid);
 		return;
 	}
@@ -258,7 +258,7 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	height= _curswin->winrct.ymax - _curswin->winrct.ymin + 1;
 	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 
-	if(srct) {
+	if (srct) {
 		width= srct->xmax - srct->xmin + 1;
 		height= srct->ymax - srct->ymin + 1;
 		glScissor(srct->xmin, srct->ymin, width, height);
@@ -300,8 +300,8 @@ void wmOrtho(float x1, float x2, float y1, float y2, float n, float f)
 void wmOrtho2(float x1, float x2, float y1, float y2)
 {
 	/* prevent opengl from generating errors */
-	if(x1==x2) x2+=1.0f;
-	if(y1==y2) y2+=1.0f;
+	if (x1==x2) x2+=1.0f;
+	if (y1==y2) y2+=1.0f;
 
 	wmOrtho(x1, x2, y1, y2, -100, 100);
 }

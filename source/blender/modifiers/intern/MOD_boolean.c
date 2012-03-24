@@ -83,7 +83,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 
-	if(bmd->object) {
+	if (bmd->object) {
 		DagNode *curNode = dag_get_node(forest, bmd->object);
 
 		dag_add_relation(forest, curNode, obNode,
@@ -96,14 +96,14 @@ static DerivedMesh *get_quick_derivedMesh(DerivedMesh *derivedData, DerivedMesh 
 {
 	DerivedMesh *result = NULL;
 
-	if(derivedData->getNumPolys(derivedData) == 0 || dm->getNumPolys(dm) == 0) {
+	if (derivedData->getNumPolys(derivedData) == 0 || dm->getNumPolys(dm) == 0) {
 		switch(operation) {
 			case eBooleanModifierOp_Intersect:
 				result = CDDM_new(0, 0, 0, 0, 0);
 				break;
 
 			case eBooleanModifierOp_Union:
-				if(derivedData->getNumPolys(derivedData)) result = derivedData;
+				if (derivedData->getNumPolys(derivedData)) result = derivedData;
 				else result = CDDM_copy(dm);
 
 				break;
@@ -125,12 +125,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 	DerivedMesh *dm;
 
-	if(!bmd->object)
+	if (!bmd->object)
 		return derivedData;
 
 	dm = bmd->object->derivedFinal;
 
-	if(dm) {
+	if (dm) {
 		DerivedMesh *result;
 
 		/* when one of objects is empty (has got no faces) we could speed up
@@ -138,7 +138,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		 * Returning mesh is depended on modifiers operation (sergey) */
 		result = get_quick_derivedMesh(derivedData, dm, bmd->operation);
 
-		if(result == NULL) {
+		if (result == NULL) {
 
 			DM_ensure_tessface(dm);          /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 			DM_ensure_tessface(derivedData); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
@@ -153,7 +153,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		/* if new mesh returned, return it; otherwise there was
 		 * an error, so delete the modifier object */
-		if(result)
+		if (result)
 			return result;
 		else
 			modifier_setError(md, "%s", TIP_("Can't execute boolean operation."));

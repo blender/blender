@@ -707,7 +707,7 @@ char *PyC_FlagSet_AsString(PyC_FlagSet *item)
 
 int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *value)
 {
-	for( ; item->identifier; item++) {
+	for ( ; item->identifier; item++) {
 		if (strcmp(item->identifier, identifier) == 0) {
 			*value = item->value;
 			return 1;

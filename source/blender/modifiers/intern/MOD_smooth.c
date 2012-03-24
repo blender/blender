@@ -78,7 +78,7 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	flag = smd->flag & (MOD_SMOOTH_X|MOD_SMOOTH_Y|MOD_SMOOTH_Z);
 
 	/* disable if modifier is off for X, Y and Z or if factor is 0 */
-	if((smd->fac == 0.0f) || flag == 0) return 1;
+	if ((smd->fac == 0.0f) || flag == 0) return 1;
 
 	return 0;
 }
@@ -89,7 +89,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(smd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+	if (smd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
@@ -221,7 +221,7 @@ static void deformVerts(
 	smoothModifier_do((SmoothModifierData *)md, ob, dm,
 	                  vertexCos, numVerts);
 
-	if(dm != derivedData)
+	if (dm != derivedData)
 		dm->release(dm);
 }
 
@@ -234,7 +234,7 @@ static void deformVertsEM(
 	smoothModifier_do((SmoothModifierData *)md, ob, dm,
 	                  vertexCos, numVerts);
 
-	if(dm != derivedData)
+	if (dm != derivedData)
 		dm->release(dm);
 }
 

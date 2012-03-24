@@ -94,7 +94,8 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 		}
 
 		BKE_image_release_ibuf(image, lock);
-	} else {
+	}
+	else {
 		BKE_reportf(reports, RPT_ERROR, "Scene not in context, couldn't get save parameters");
 	}
 }

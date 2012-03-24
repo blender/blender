@@ -203,7 +203,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			for (j= dv->totweight; j > 0; j--, dw++) {
 				if (dw->def_nr < defbase_tot) {
 					if (bone_select_array[dw->def_nr]) {
-						if(dw->weight != 0.0f) {
+						if (dw->weight != 0.0f) {
 							break;
 						}
 					}

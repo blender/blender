@@ -59,7 +59,7 @@ static void freeData(ModifierData *md)
 {
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 
-	if(psmd->dm){
+	if (psmd->dm) {
 		psmd->dm->needsFree = 1;
 		psmd->dm->release(psmd->dm);
 		psmd->dm = NULL;
@@ -67,7 +67,7 @@ static void freeData(ModifierData *md)
 
 	/* ED_object_modifier_remove may have freed this first before calling
 	 * modifier_free (which calls this function) */
-	if(psmd->psys)
+	if (psmd->psys)
 		psmd->psys->flag |= PSYS_DELETE;
 }
 static void copyData(ModifierData *md, ModifierData *target)
@@ -90,21 +90,21 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	MTex *mtex;
 	int i;
 
-	if(!psmd->psys->part)
+	if (!psmd->psys->part)
 		return 0;
 
-	for(i=0; i<MAX_MTEX; i++) {
+	for (i=0; i<MAX_MTEX; i++) {
 		mtex = psmd->psys->part->mtex[i];
-		if(mtex && mtex->mapto && (mtex->texco & TEXCO_UV))
+		if (mtex && mtex->mapto && (mtex->texco & TEXCO_UV))
 			dataMask |= CD_MASK_MTFACE;
 	}
 
-	if(psmd->psys->part->tanfac != 0.0f)
+	if (psmd->psys->part->tanfac != 0.0f)
 		dataMask |= CD_MASK_MTFACE;
 
 	/* ask for vertexgroups if we need them */
-	for(i=0; i<PSYS_TOT_VG; i++){
-		if(psmd->psys->vgroup[i]){
+	for (i=0; i<PSYS_TOT_VG; i++) {
+		if (psmd->psys->vgroup[i]) {
 			dataMask |= CD_MASK_MDEFORMVERT;
 			break;
 		}
@@ -132,29 +132,29 @@ static void deformVerts(ModifierData *md, Object *ob,
 	ParticleSystem * psys= NULL;
 	int needsFree=0;
 
-	if(ob->particlesystem.first)
+	if (ob->particlesystem.first)
 		psys=psmd->psys;
 	else
 		return;
 	
-	if(!psys_check_enabled(ob, psys))
+	if (!psys_check_enabled(ob, psys))
 		return;
 
-	if(dm==NULL) {
+	if (dm==NULL) {
 		dm= get_dm(ob, NULL, NULL, vertexCos, 1);
 
-		if(!dm)
+		if (!dm)
 			return;
 
 		needsFree= 1;
 	}
 
 	/* clear old dm */
-	if(psmd->dm){
+	if (psmd->dm) {
 		psmd->dm->needsFree = 1;
 		psmd->dm->release(psmd->dm);
 	}
-	else if(psmd->flag & eParticleSystemFlag_file_loaded) {
+	else if (psmd->flag & eParticleSystemFlag_file_loaded) {
 		/* in file read dm just wasn't saved in file so no need to reset everything */
 		psmd->flag &= ~eParticleSystemFlag_file_loaded;
 	}
@@ -168,7 +168,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	CDDM_apply_vert_coords(psmd->dm, vertexCos);
 	CDDM_calc_normals(psmd->dm);
 
-	if(needsFree){
+	if (needsFree) {
 		dm->needsFree = 1;
 		dm->release(dm);
 	}
@@ -177,9 +177,9 @@ static void deformVerts(ModifierData *md, Object *ob,
 	psmd->dm->needsFree = 0;
 
 	/* report change in mesh structure */
-	if(psmd->dm->getNumVerts(psmd->dm)!=psmd->totdmvert ||
+	if (psmd->dm->getNumVerts(psmd->dm)!=psmd->totdmvert ||
 		  psmd->dm->getNumEdges(psmd->dm)!=psmd->totdmedge ||
-		  psmd->dm->getNumTessFaces(psmd->dm)!=psmd->totdmface){
+		  psmd->dm->getNumTessFaces(psmd->dm)!=psmd->totdmface) {
 
 		psys->recalc |= PSYS_RECALC_RESET;
 
@@ -188,7 +188,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		psmd->totdmface= psmd->dm->getNumTessFaces(psmd->dm);
 	}
 
-	if(psys) {
+	if (psys) {
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
 		particle_system_update(md->scene, ob, psys);
 		psmd->flag |= eParticleSystemFlag_psys_updated;
@@ -204,11 +204,11 @@ static void deformVertsEM(
 {
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+	if (!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
 	deformVerts(md, ob, dm, vertexCos, numVerts);
 
-	if(!derivedData) dm->release(dm);
+	if (!derivedData) dm->release(dm);
 }
 #endif
 

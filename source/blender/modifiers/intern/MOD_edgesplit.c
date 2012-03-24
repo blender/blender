@@ -134,7 +134,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 					 Object *ob, DerivedMesh *dm)
 {
-	if(!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
+	if (!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
 		return dm;
 
 	return doEdgeSplit(dm, emd, ob);
@@ -149,7 +149,7 @@ static DerivedMesh *applyModifier(
 
 	result = edgesplitModifier_do(emd, ob, derivedData);
 
-	if(result != derivedData)
+	if (result != derivedData)
 		CDDM_calc_normals(result);
 
 	return result;

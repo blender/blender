@@ -80,7 +80,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 	if (dist_v) {
 		/* Create a bvh-tree of the given target's verts. */
 		bvhtree_from_mesh_verts(&treeData_v, target, 0.0, 2, 6);
-		if(treeData_v.tree == NULL) {
+		if (treeData_v.tree == NULL) {
 			OUT_OF_MEMORY();
 			return;
 		}
@@ -88,7 +88,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 	if (dist_e) {
 		/* Create a bvh-tree of the given target's edges. */
 		bvhtree_from_mesh_edges(&treeData_e, target, 0.0, 2, 6);
-		if(treeData_e.tree == NULL) {
+		if (treeData_e.tree == NULL) {
 			OUT_OF_MEMORY();
 			return;
 		}
@@ -96,7 +96,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 	if (dist_f) {
 		/* Create a bvh-tree of the given target's faces. */
 		bvhtree_from_mesh_faces(&treeData_f, target, 0.0, 2, 6);
-		if(treeData_f.tree == NULL) {
+		if (treeData_f.tree == NULL) {
 			OUT_OF_MEMORY();
 			return;
 		}
@@ -165,7 +165,7 @@ static void get_vert2ob_distance(int numVerts, float (*v_cos)[3], float *dist,
 	float v_wco[3];
 	unsigned int i= numVerts;
 
-	while(i-- > 0) {
+	while (i-- > 0) {
 		/* Get world-coordinates of the vertex (constraints and anim included). */
 		mul_v3_m4v3(v_wco, ob->obmat, v_cos[i]);
 		/* Return distance between both coordinates. */
@@ -189,27 +189,27 @@ void do_map(float *weights, const int nidx, const float min_d, const float max_d
 {
 	const float range_inv= 1.0f / (max_d - min_d); /* invert since multiplication is faster */
 	unsigned int i= nidx;
-	if(max_d == min_d) {
+	if (max_d == min_d) {
 		while (i-- > 0) {
 			weights[i] = (weights[i] >= max_d) ? 1.0f : 0.0f; /* "Step" behavior... */
 		}
 	}
-	else if(max_d > min_d) {
+	else if (max_d > min_d) {
 		while (i-- > 0) {
 			if     (weights[i] >= max_d) weights[i]= 1.0f; /* most likely case first */
-			else if(weights[i] <= min_d) weights[i]= 0.0f;
+			else if (weights[i] <= min_d) weights[i]= 0.0f;
 			else                         weights[i]= (weights[i] - min_d) * range_inv;
 		}
 	}
 	else {
 		while (i-- > 0) {
 			if     (weights[i] <= max_d) weights[i]= 1.0f; /* most likely case first */
-			else if(weights[i] >= min_d) weights[i]= 0.0f;
+			else if (weights[i] >= min_d) weights[i]= 0.0f;
 			else                         weights[i]= (weights[i] - min_d) * range_inv;
 		}
 	}
 
-	if(!ELEM(mode, MOD_WVG_MAPPING_NONE, MOD_WVG_MAPPING_CURVE)) {
+	if (!ELEM(mode, MOD_WVG_MAPPING_NONE, MOD_WVG_MAPPING_CURVE)) {
 		weightvg_do_map(nidx, weights, mode, NULL);
 	}
 }
@@ -264,7 +264,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	dataMask |= CD_MASK_MDEFORMVERT;
 
 	/* Ask for UV coordinates if we need them. */
-	if(wmd->mask_tex_mapping == MOD_DISP_MAP_UV)
+	if (wmd->mask_tex_mapping == MOD_DISP_MAP_UV)
 		dataMask |= CD_MASK_MTFACE;
 
 	/* No need to ask for CD_PREVIEW_MLOOPCOL... */
@@ -276,7 +276,7 @@ static int dependsOnTime(ModifierData *md)
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData*) md;
 
-	if(wmd->mask_texture)
+	if (wmd->mask_texture)
 		return BKE_texture_dependsOnTime(wmd->mask_texture);
 	return 0;
 }
@@ -316,14 +316,14 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UN
 		                 "WeightVGProximity Modifier");
 	}
 
-	if(wmd->mask_tex_map_obj && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
+	if (wmd->mask_tex_map_obj && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
 		curNode = dag_get_node(forest, wmd->mask_tex_map_obj);
 
 		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA,
 		                 "WeightVGProximity Modifier");
 	}
 
-	if(wmd->mask_tex_mapping == MOD_DISP_MAP_GLOBAL)
+	if (wmd->mask_tex_mapping == MOD_DISP_MAP_GLOBAL)
 		dag_add_relation(forest, obNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA,
 		                 "WeightVGProximity Modifier");
 }
@@ -385,7 +385,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	dvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MDEFORMVERT, numVerts);
 	/* If no vertices were ever added to an object's vgroup, dvert might be NULL.
 	 * As this modifier never add vertices to vgroup, just return. */
-	if(!dvert)
+	if (!dvert)
 		return dm;
 
 	/* Find out which vertices to work on (all vertices in vgroup), and get their relevant weight.
@@ -395,20 +395,20 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	tdw = MEM_mallocN(sizeof(MDeformWeight*) * numVerts, "WeightVGProximity Modifier, tdw");
 	for (i = 0; i < numVerts; i++) {
 		MDeformWeight *_dw = defvert_find_index(&dvert[i], defgrp_idx);
-		if(_dw) {
+		if (_dw) {
 			tidx[numIdx] = i;
 			tw[numIdx] = _dw->weight;
 			tdw[numIdx++] = _dw;
 		}
 	}
 	/* If no vertices found, return org data! */
-	if(numIdx == 0) {
+	if (numIdx == 0) {
 		MEM_freeN(tidx);
 		MEM_freeN(tw);
 		MEM_freeN(tdw);
 		return dm;
 	}
-	if(numIdx != numVerts) {
+	if (numIdx != numVerts) {
 		indices = MEM_mallocN(sizeof(int) * numIdx, "WeightVGProximity Modifier, indices");
 		memcpy(indices, tidx, sizeof(int) * numIdx);
 		org_w = MEM_mallocN(sizeof(float) * numIdx, "WeightVGProximity Modifier, org_w");
@@ -427,7 +427,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* Get our vertex coordinates. */
 	v_cos = MEM_mallocN(sizeof(float[3]) * numIdx, "WeightVGProximity Modifier, v_cos");
-	if(numIdx != numVerts) {
+	if (numIdx != numVerts) {
 		/* XXX In some situations, this code can be up to about 50 times more performant
 		 *     than simply using getVertCo for each affected vertex...
 		 */
@@ -443,7 +443,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Compute wanted distances. */
 	if (wmd->proximity_mode == MOD_WVG_PROXIMITY_OBJECT) {
 		const float dist = get_ob2ob_distance(ob, obr);
-		for(i = 0; i < numIdx; i++)
+		for (i = 0; i < numIdx; i++)
 			new_w[i] = dist;
 	}
 	else if (wmd->proximity_mode == MOD_WVG_PROXIMITY_GEOMETRY) {
@@ -477,17 +477,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 				space_transform_setup(&loc2trgt, ob, obr);
 				get_vert2geom_distance(numIdx, v_cos, dists_v, dists_e, dists_f,
 				                       target_dm, &loc2trgt);
-				for(i = 0; i < numIdx; i++) {
+				for (i = 0; i < numIdx; i++) {
 					new_w[i] = dists_v ? dists_v[i] : FLT_MAX;
-					if(dists_e)
+					if (dists_e)
 						new_w[i] = minf(dists_e[i], new_w[i]);
-					if(dists_f)
+					if (dists_f)
 						new_w[i] = minf(dists_f[i], new_w[i]);
 				}
-				if(free_target_dm) target_dm->release(target_dm);
-				if(dists_v) MEM_freeN(dists_v);
-				if(dists_e) MEM_freeN(dists_e);
-				if(dists_f) MEM_freeN(dists_f);
+				if (free_target_dm) target_dm->release(target_dm);
+				if (dists_v) MEM_freeN(dists_v);
+				if (dists_e) MEM_freeN(dists_e);
+				if (dists_f) MEM_freeN(dists_f);
 			}
 			/* Else, fall back to default obj2vert behavior. */
 			else {
@@ -512,7 +512,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* If weight preview enabled... */
 #if 0 /* XXX Currently done in mod stack :/ */
-	if(do_prev)
+	if (do_prev)
 		DM_update_weight_mcol(ob, dm, 0, org_w, numIdx, indices);
 #endif
 
@@ -520,7 +520,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	MEM_freeN(org_w);
 	MEM_freeN(new_w);
 	MEM_freeN(dw);
-	if(indices)
+	if (indices)
 		MEM_freeN(indices);
 	MEM_freeN(v_cos);
 

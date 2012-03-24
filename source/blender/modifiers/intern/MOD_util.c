@@ -68,7 +68,7 @@ void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 	 * intensity, so calculate one (formula from do_material_tex).
 	 * if the texture didn't give an RGB value, copy the intensity across
 	 */
-	if(result_type & TEX_RGB)
+	if (result_type & TEX_RGB)
 		texres->tin = (0.35f * texres->tr + 0.45f * texres->tg
 				+ 0.2f * texres->tb);
 	else
@@ -84,16 +84,16 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 	int texmapping = dmd->texmapping;
 	float mapob_imat[4][4];
 
-	if(texmapping == MOD_DISP_MAP_OBJECT) {
-		if(dmd->map_object)
+	if (texmapping == MOD_DISP_MAP_OBJECT) {
+		if (dmd->map_object)
 			invert_m4_m4(mapob_imat, dmd->map_object->obmat);
 		else /* if there is no map object, default to local */
 			texmapping = MOD_DISP_MAP_LOCAL;
 	}
 
 	/* UVs need special handling, since they come from faces */
-	if(texmapping == MOD_DISP_MAP_UV) {
-		if(CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) {
+	if (texmapping == MOD_DISP_MAP_UV) {
+		if (CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) {
 			MPoly *mpoly = dm->getPolyArray(dm);
 			MPoly *mp;
 			MLoop *mloop = dm->getLoopArray(dm);
@@ -107,7 +107,7 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 			mloop_uv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, uvname);
 
 			/* verts are given the UV from the first face that uses them */
-			for(i = 0, mp = mpoly; i < numPolys; ++i, ++mp) {
+			for (i = 0, mp = mpoly; i < numPolys; ++i, ++mp) {
 				unsigned int fidx= mp->totloop - 1;
 
 				do {
@@ -126,11 +126,12 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 
 			MEM_freeN(done);
 			return;
-		} else /* if there are no UVs, default to local */
+		}
+		else /* if there are no UVs, default to local */
 			texmapping = MOD_DISP_MAP_LOCAL;
 	}
 
-	for(i = 0; i < numVerts; ++i, ++co, ++texco) {
+	for (i = 0; i < numVerts; ++i, ++co, ++texco) {
 		switch(texmapping) {
 		case MOD_DISP_MAP_LOCAL:
 			copy_v3_v3(*texco, *co);
@@ -150,7 +151,7 @@ void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 {
 	while((md=md->next) && md->type==eModifierType_Armature) {
 		ArmatureModifierData *amd = (ArmatureModifierData*) md;
-		if(amd->multi && amd->prevCos==NULL)
+		if (amd->multi && amd->prevCos==NULL)
 			amd->prevCos= MEM_dupallocN(vertexCos);
 		else
 			break;
@@ -161,10 +162,10 @@ void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 /* returns a cdderivedmesh if dm == NULL or is another type of derivedmesh */
 DerivedMesh *get_cddm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*vertexCos)[3])
 {
-	if(dm && dm->type == DM_TYPE_CDDM)
+	if (dm && dm->type == DM_TYPE_CDDM)
 		return dm;
 
-	if(!dm) {
+	if (!dm) {
 		dm= get_dm(ob, em, dm, vertexCos, 0);
 	}
 	else {
@@ -172,7 +173,7 @@ DerivedMesh *get_cddm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float 
 		CDDM_apply_vert_coords(dm, vertexCos);
 	}
 
-	if(dm)
+	if (dm)
 		CDDM_calc_normals(dm);
 	
 	return dm;
@@ -181,22 +182,22 @@ DerivedMesh *get_cddm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float 
 /* returns a derived mesh if dm == NULL, for deforming modifiers that need it */
 DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
 {
-	if(dm)
+	if (dm)
 		return dm;
 
-	if(ob->type==OB_MESH) {
-		if(em) dm= CDDM_from_BMEditMesh(em, ob->data, FALSE, FALSE);
+	if (ob->type==OB_MESH) {
+		if (em) dm= CDDM_from_BMEditMesh(em, ob->data, FALSE, FALSE);
 		else dm = CDDM_from_mesh((struct Mesh *)(ob->data), ob);
 
-		if(vertexCos) {
+		if (vertexCos) {
 			CDDM_apply_vert_coords(dm, vertexCos);
 			//CDDM_calc_normals(dm);
 		}
 		
-		if(orco)
+		if (orco)
 			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
 	}
-	else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)) {
+	else if (ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)) {
 		dm= CDDM_from_curve(ob);
 	}
 
@@ -208,10 +209,10 @@ void modifier_get_vgroup(Object *ob, DerivedMesh *dm, const char *name, MDeformV
 	*defgrp_index = defgroup_name_index(ob, name);
 	*dvert = NULL;
 
-	if(*defgrp_index >= 0) {
-		if(ob->type == OB_LATTICE)
+	if (*defgrp_index >= 0) {
+		if (ob->type == OB_LATTICE)
 			*dvert = lattice_get_deform_verts(ob);
-		else if(dm)
+		else if (dm)
 			*dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 	}
 }

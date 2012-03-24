@@ -144,7 +144,8 @@ static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf, const char *idname, int sp
 {
 	if (modal == 0) {
 		return WM_keymap_find(keyconf, idname, spaceid, regionid);
-	} else {
+	}
+	else {
 		return WM_modalkeymap_add(keyconf, idname, NULL); /* items will be lazy init */
 	}
 }

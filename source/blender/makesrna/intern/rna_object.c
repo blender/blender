@@ -869,20 +869,27 @@ static int rna_GameObjectSettings_physics_type_get(PointerRNA *ptr)
 	if (!(ob->gameflag & OB_COLLISION)) {
 		if (ob->gameflag & OB_OCCLUDER) {
 			ob->body_type = OB_BODY_TYPE_OCCLUDER;
-		} else if (ob->gameflag & OB_NAVMESH){
+		}
+		else if (ob->gameflag & OB_NAVMESH) {
 			ob->body_type = OB_BODY_TYPE_NAVMESH;
-		} else {
+		}
+		else {
 			ob->body_type = OB_BODY_TYPE_NO_COLLISION;
 		}
-	} else if (ob->gameflag & OB_SENSOR) {
+	}
+	else if (ob->gameflag & OB_SENSOR) {
 		ob->body_type = OB_BODY_TYPE_SENSOR;
-	} else if (!(ob->gameflag & OB_DYNAMIC)) {
+	}
+	else if (!(ob->gameflag & OB_DYNAMIC)) {
 		ob->body_type = OB_BODY_TYPE_STATIC;
-	} else if (!(ob->gameflag & (OB_RIGID_BODY|OB_SOFT_BODY))) {
+	}
+	else if (!(ob->gameflag & (OB_RIGID_BODY|OB_SOFT_BODY))) {
 		ob->body_type = OB_BODY_TYPE_DYNAMIC;
-	} else if (ob->gameflag & OB_RIGID_BODY) {
+	}
+	else if (ob->gameflag & OB_RIGID_BODY) {
 		ob->body_type = OB_BODY_TYPE_RIGID;
-	} else {
+	}
+	else {
 		ob->body_type = OB_BODY_TYPE_SOFT;
 		/* create the structure here because we display soft body buttons in the main panel */
 		if (!ob->bsoft)

@@ -81,13 +81,14 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 		gesture->customdata= rect;
 		rect->xmin = event->x - sx;
 		rect->ymin = event->y - sy;
-		if(type==WM_GESTURE_CIRCLE) {
+		if (type==WM_GESTURE_CIRCLE) {
 #ifdef GESTURE_MEMORY
 			rect->xmax = circle_select_size;
 #else
 			rect->xmax = 25;	// XXX temp
 #endif
-		} else {
+		}
+		else {
 			rect->xmax = event->x - sx;
 			rect->ymax = event->y - sy;
 		}
@@ -108,7 +109,7 @@ void WM_gesture_end(bContext *C, wmGesture *gesture)
 {
 	wmWindow *win= CTX_wm_window(C);
 	
-	if(win->tweak==gesture)
+	if (win->tweak==gesture)
 		win->tweak= NULL;
 	BLI_remlink(&win->gesture, gesture);
 	MEM_freeN(gesture->customdata);
@@ -119,7 +120,7 @@ void WM_gestures_remove(bContext *C)
 {
 	wmWindow *win= CTX_wm_window(C);
 	
-	while(win->gesture.first)
+	while (win->gesture.first)
 		WM_gesture_end(C, win->gesture.first);
 }
 
@@ -127,32 +128,32 @@ void WM_gestures_remove(bContext *C)
 /* tweak and line gestures */
 int wm_gesture_evaluate(wmGesture *gesture)
 {
-	if(gesture->type==WM_GESTURE_TWEAK) {
+	if (gesture->type==WM_GESTURE_TWEAK) {
 		rcti *rect= gesture->customdata;
 		int dx= rect->xmax - rect->xmin;
 		int dy= rect->ymax - rect->ymin;
-		if(ABS(dx)+ABS(dy) > U.tweak_threshold) {
+		if (ABS(dx)+ABS(dy) > U.tweak_threshold) {
 			int theta= (int)floor(4.0f*atan2f((float)dy, (float)dx)/(float)M_PI + 0.5f);
 			int val= EVT_GESTURE_W;
 			
-			if(theta==0) val= EVT_GESTURE_E;
-			else if(theta==1) val= EVT_GESTURE_NE;
-			else if(theta==2) val= EVT_GESTURE_N;
-			else if(theta==3) val= EVT_GESTURE_NW;
-			else if(theta==-1) val= EVT_GESTURE_SE;
-			else if(theta==-2) val= EVT_GESTURE_S;
-			else if(theta==-3) val= EVT_GESTURE_SW;
+			if (theta==0) val= EVT_GESTURE_E;
+			else if (theta==1) val= EVT_GESTURE_NE;
+			else if (theta==2) val= EVT_GESTURE_N;
+			else if (theta==3) val= EVT_GESTURE_NW;
+			else if (theta==-1) val= EVT_GESTURE_SE;
+			else if (theta==-2) val= EVT_GESTURE_S;
+			else if (theta==-3) val= EVT_GESTURE_SW;
 			
 #if 0
 			/* debug */
-			if(val==1) printf("tweak north\n");
-			if(val==2) printf("tweak north-east\n");
-			if(val==3) printf("tweak east\n");
-			if(val==4) printf("tweak south-east\n");
-			if(val==5) printf("tweak south\n");
-			if(val==6) printf("tweak south-west\n");
-			if(val==7) printf("tweak west\n");
-			if(val==8) printf("tweak north-west\n");
+			if (val==1) printf("tweak north\n");
+			if (val==2) printf("tweak north-east\n");
+			if (val==3) printf("tweak east\n");
+			if (val==4) printf("tweak south-east\n");
+			if (val==5) printf("tweak south\n");
+			if (val==6) printf("tweak south-west\n");
+			if (val==7) printf("tweak west\n");
+			if (val==8) printf("tweak north-west\n");
 #endif			
 			return val;
 		}
@@ -250,7 +251,7 @@ static void draw_filled_lasso(wmGesture *gt)
 	}
 	
 	/* highly unlikely this will fail, but could crash if (gt->points == 0) */
-	if(firstv) {
+	if (firstv) {
 		BLI_addfilledge(firstv, v);
 		BLI_edgefill(0);
 	
@@ -280,9 +281,9 @@ static void wm_gesture_draw_lasso(wmGesture *gt)
 	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xAAAA);
 	glBegin(GL_LINE_STRIP);
-	for(i=0; i<gt->points; i++, lasso+=2)
+	for (i=0; i<gt->points; i++, lasso+=2)
 		glVertex2sv(lasso);
-	if(gt->type==WM_GESTURE_LASSO)
+	if (gt->type==WM_GESTURE_LASSO)
 		glVertex2sv((short *)gt->customdata);
 	glEnd();
 	
@@ -290,9 +291,9 @@ static void wm_gesture_draw_lasso(wmGesture *gt)
 	glLineStipple(1, 0x5555);
 	glBegin(GL_LINE_STRIP);
 	lasso= (short *)gt->customdata;
-	for(i=0; i<gt->points; i++, lasso+=2)
+	for (i=0; i<gt->points; i++, lasso+=2)
 		glVertex2sv(lasso);
-	if(gt->type==WM_GESTURE_LASSO)
+	if (gt->type==WM_GESTURE_LASSO)
 		glVertex2sv((short *)gt->customdata);
 	glEnd();
 	
@@ -322,27 +323,27 @@ void wm_gesture_draw(wmWindow *win)
 {
 	wmGesture *gt= (wmGesture *)win->gesture.first;
 	
-	for(; gt; gt= gt->next) {
+	for (; gt; gt= gt->next) {
 		/* all in subwindow space */
 		wmSubWindowSet(win, gt->swinid);
 		
-		if(gt->type==WM_GESTURE_RECT)
+		if (gt->type==WM_GESTURE_RECT)
 			wm_gesture_draw_rect(gt);
-//		else if(gt->type==WM_GESTURE_TWEAK)
+//		else if (gt->type==WM_GESTURE_TWEAK)
 //			wm_gesture_draw_line(gt);
-		else if(gt->type==WM_GESTURE_CIRCLE)
+		else if (gt->type==WM_GESTURE_CIRCLE)
 			wm_gesture_draw_circle(gt);
-		else if(gt->type==WM_GESTURE_CROSS_RECT) {
-			if(gt->mode==1)
+		else if (gt->type==WM_GESTURE_CROSS_RECT) {
+			if (gt->mode==1)
 				wm_gesture_draw_rect(gt);
 			else
 				wm_gesture_draw_cross(win, gt);
 		}
-		else if(gt->type==WM_GESTURE_LINES) 
+		else if (gt->type==WM_GESTURE_LINES) 
 			wm_gesture_draw_lasso(gt);
-		else if(gt->type==WM_GESTURE_LASSO) 
+		else if (gt->type==WM_GESTURE_LASSO) 
 			wm_gesture_draw_lasso(gt);
-		else if(gt->type==WM_GESTURE_STRAIGHTLINE)
+		else if (gt->type==WM_GESTURE_STRAIGHTLINE)
 			wm_gesture_draw_line(gt);
 	}
 }
@@ -353,7 +354,7 @@ void wm_gesture_tag_redraw(bContext *C)
 	bScreen *screen= CTX_wm_screen(C);
 	ARegion *ar= CTX_wm_region(C);
 	
-	if(screen)
+	if (screen)
 		screen->do_draw_gesture= 1;
 
 	wm_tag_redraw_overlay(win, ar);

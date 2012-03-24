@@ -341,11 +341,13 @@ static void rna_ActionActuator_add_set(struct PointerRNA *ptr, int value)
 	bActuator *act = (bActuator *)ptr->data;
 	bActionActuator *aa = act->data;
 
-	if (value == 1){
+	if (value == 1) {
 		aa->flag &= ~ACT_IPOFORCE;
 		aa->flag |= ACT_IPOADD;
-	}else
+	}
+	else {
 		aa->flag &= ~ACT_IPOADD;
+	}
 }
 
 static void rna_ActionActuator_force_set(struct PointerRNA *ptr, int value)
@@ -353,11 +355,13 @@ static void rna_ActionActuator_force_set(struct PointerRNA *ptr, int value)
 	bActuator *act = (bActuator *)ptr->data;
 	bActionActuator *aa = act->data;
 
-	if (value == 1){
+	if (value == 1) {
 		aa->flag &= ~ACT_IPOADD;
 		aa->flag |= ACT_IPOFORCE;
-	}else
+	}
+	else {
 		aa->flag &= ~ACT_IPOFORCE;
+	}
 }
 
 static void rna_ObjectActuator_type_set(struct PointerRNA *ptr, int value)
@@ -422,9 +426,10 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, Property
 	Object *ob = NULL;
 	int totitem = 0;
 	
-	if (ptr->type == &RNA_Actuator || RNA_struct_is_a(ptr->type, &RNA_Actuator)){
+	if (ptr->type == &RNA_Actuator || RNA_struct_is_a(ptr->type, &RNA_Actuator)) {
 		ob = (Object *)ptr->id.data;
-	} else {
+	}
+	else {
 		/* can't use ob from ptr->id.data because that enum is also used by operators */
 		ob = CTX_data_active_object(C);
 	}

@@ -65,7 +65,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(lmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+	if (lmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
@@ -94,7 +94,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
-	if(lmd->object) {
+	if (lmd->object) {
 		DagNode *latNode = dag_get_node(forest, lmd->object);
 
 		dag_add_relation(forest, latNode, obNode,
@@ -124,11 +124,11 @@ static void deformVertsEM(
 {
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
+	if (!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
 
 	deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
 
-	if(!derivedData) dm->release(dm);
+	if (!derivedData) dm->release(dm);
 }
 
 

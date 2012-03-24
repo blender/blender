@@ -193,7 +193,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 
 	/* allow a path of "", this is what happens when making a new file */
 #if 0
-	if(G.main->name[0] == 0)
+	if (G.main->name[0] == 0)
 		BLI_make_file_string("/", G.main->name, BLI_getDefaultDocumentFolder(), "untitled.blend");
 #endif
 
@@ -202,11 +202,11 @@ void WM_init(bContext *C, int argc, const char **argv)
 
 void WM_init_splash(bContext *C)
 {
-	if((U.uiflag & USER_SPLASH_DISABLE) == 0) {
+	if ((U.uiflag & USER_SPLASH_DISABLE) == 0) {
 		wmWindowManager *wm= CTX_wm_manager(C);
 		wmWindow *prevwin= CTX_wm_window(C);
 	
-		if(wm->windows.first) {
+		if (wm->windows.first) {
 			CTX_wm_window_set(C, wm->windows.first);
 			WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
 			CTX_wm_window_set(C, prevwin);
@@ -233,7 +233,7 @@ int WM_init_game(bContext *C)
 	win = wm->windows.first;
 
 	//first to get a valid window
-	if(win)
+	if (win)
 		CTX_wm_window_set(C, win);
 
 	sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0);
@@ -247,25 +247,25 @@ int WM_init_game(bContext *C)
 		CTX_wm_region_set(C, ar);
 
 		/* disable quad view */
-		if(ar->alignment == RGN_ALIGN_QSPLIT)
+		if (ar->alignment == RGN_ALIGN_QSPLIT)
 			WM_operator_name_call(C, "SCREEN_OT_region_quadview", WM_OP_EXEC_DEFAULT, NULL);
 
 		/* toolbox, properties panel and header are hidden */
-		for(arhide=sa->regionbase.first; arhide; arhide=arhide->next) {
-			if(arhide->regiontype != RGN_TYPE_WINDOW) {
-				if(!(arhide->flag & RGN_FLAG_HIDDEN)) {
+		for (arhide=sa->regionbase.first; arhide; arhide=arhide->next) {
+			if (arhide->regiontype != RGN_TYPE_WINDOW) {
+				if (!(arhide->flag & RGN_FLAG_HIDDEN)) {
 					ED_region_toggle_hidden(C, arhide);
 				}
 			}
 		}
 
 		/* full screen the area */
-		if(!sa->full) {
+		if (!sa->full) {
 			ED_screen_full_toggle(C, win, sa);
 		}
 
 		/* Fullscreen */
-		if((scene->gm.playerflag & GAME_PLAYER_FULLSCREEN)) {
+		if ((scene->gm.playerflag & GAME_PLAYER_FULLSCREEN)) {
 			WM_operator_name_call(C, "WM_OT_window_fullscreen_toggle", WM_OP_EXEC_DEFAULT, NULL);
 			wm_get_screensize(&ar->winrct.xmax, &ar->winrct.ymax);
 			ar->winx = ar->winrct.xmax + 1;
@@ -308,7 +308,7 @@ static void free_openrecent(void)
 {
 	struct RecentFile *recent;
 	
-	for(recent = G.recent_files.first; recent; recent=recent->next)
+	for (recent = G.recent_files.first; recent; recent=recent->next)
 		MEM_freeN(recent->filepath);
 	
 	BLI_freelistN(&(G.recent_files));
@@ -335,11 +335,11 @@ void WM_exit_ext(bContext *C, const short do_python)
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
 	/* note; same code copied in wm_files.c */
-	if(C && CTX_wm_manager(C)) {
+	if (C && CTX_wm_manager(C)) {
 		
 		WM_jobs_stop_all(CTX_wm_manager(C));
 		
-		for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
+		for (win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
 			
 			CTX_wm_window_set(C, win);	/* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
@@ -352,7 +352,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	WM_menutype_free();
 	
 	/* all non-screen and non-space stuff editors did, like editmode */
-	if(C)
+	if (C)
 		ED_editors_exit(C);
 
 //	XXX	
@@ -368,7 +368,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
 
-	if(C && CTX_wm_manager(C))
+	if (C && CTX_wm_manager(C))
 		wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
 
 	seq_free_clipboard(); /* sequencer.c */
@@ -399,7 +399,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 
 #ifdef WITH_PYTHON
 	/* option not to close python so we can use 'atexit' */
-	if(do_python) {
+	if (do_python) {
 		/* XXX - old note */
 		/* before free_blender so py's gc happens while library still exists */
 		/* needed at least for a rare sigsegv that can happen in pydrivers */
@@ -438,7 +438,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 	GHOST_DisposeSystemPaths();
 
-	if(MEM_get_memory_blocks_in_use()!=0) {
+	if (MEM_get_memory_blocks_in_use()!=0) {
 		printf("Error: Not freed memory blocks: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();
 	}
@@ -448,7 +448,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 #ifdef WIN32   
 	/* ask user to press enter when in debug mode */
-	if(G.f & G_DEBUG) {
+	if (G.f & G_DEBUG) {
 		printf("press enter key to exit...\n\n");
 		getchar();
 	}

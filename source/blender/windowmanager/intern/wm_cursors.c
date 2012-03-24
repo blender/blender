@@ -88,7 +88,8 @@ static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor, int useB
 									 cursor->big_sizex,cursor->big_sizey,
 									 cursor->big_hotx,cursor->big_hoty,
 									 cursor->fg_color, cursor->bg_color);
-	} else {
+	}
+	else {
 		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
 									 (GHOST_TUns8 *)cursor->small_bm, (GHOST_TUns8 *)cursor->small_mask, 
 									 cursor->small_sizex,cursor->small_sizey,
@@ -114,19 +115,19 @@ void WM_cursor_set(wmWindow *win, int curs)
 #ifdef _WIN32
 	/* the default win32 cross cursor is barely visible,
 	 * only 1 pixel thick, use another one instead */
-	if(curs==CURSOR_EDIT)
+	if (curs==CURSOR_EDIT)
 		curs= BC_CROSSCURSOR;
 #endif
 
 	GHOST_SetCursorVisibility(win->ghostwin, 1);
 	
-	if(curs == CURSOR_STD && win->modalcursor)
+	if (curs == CURSOR_STD && win->modalcursor)
 		curs= win->modalcursor;
 	
 	win->cursor= curs;
 	
 	/* detect if we use system cursor or Blender cursor */
-	if(curs>=BC_GHOST_CURSORS) {
+	if (curs>=BC_GHOST_CURSORS) {
 		GHOST_SetCursorShape(win->ghostwin, convert_cursor(curs));
 	}
 	else {
@@ -146,7 +147,7 @@ void WM_cursor_set(wmWindow *win, int curs)
 
 void WM_cursor_modal(wmWindow *win, int val)
 {
-	if(win->lastcursor == 0)
+	if (win->lastcursor == 0)
 		win->lastcursor = win->cursor;
 	win->modalcursor = val;
 	WM_cursor_set(win, val);
@@ -155,7 +156,7 @@ void WM_cursor_modal(wmWindow *win, int val)
 void WM_cursor_restore(wmWindow *win)
 {
 	win->modalcursor = 0;
-	if(win->lastcursor)
+	if (win->lastcursor)
 		WM_cursor_set(win, win->lastcursor);
 	win->lastcursor = 0;
 }
@@ -163,14 +164,15 @@ void WM_cursor_restore(wmWindow *win)
 /* to allow usage all over, we do entire WM */
 void WM_cursor_wait(int val)
 {
-	if(!G.background) {
+	if (!G.background) {
 		wmWindowManager *wm= G.main->wm.first;
 		wmWindow *win= wm?wm->windows.first:NULL; 
 		
-		for(; win; win= win->next) {
-			if(val) {
+		for (; win; win= win->next) {
+			if (val) {
 				WM_cursor_modal(win, BC_WAITCURSOR);
-			} else {
+			}
+			else {
 				WM_cursor_restore(win);
 			}
 		}
@@ -184,8 +186,8 @@ void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 	 * */
 	GHOST_TGrabCursorMode mode = GHOST_kGrabNormal;
 
-	if(hide)		mode = GHOST_kGrabHide;
-	else if(wrap)	mode = GHOST_kGrabWrap;
+	if (hide)		mode = GHOST_kGrabHide;
+	else if (wrap)	mode = GHOST_kGrabWrap;
 	if ((G.f & G_DEBUG) == 0) {
 		if (win && win->ghostwin) {
 			const GHOST_TabletData *tabletdata= GHOST_GetTabletData(win->ghostwin);
@@ -203,7 +205,7 @@ void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 void WM_cursor_ungrab(wmWindow *win)
 {
 	if ((G.f & G_DEBUG) == 0) {
-		if(win && win->ghostwin) {
+		if (win && win->ghostwin) {
 			GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL);
 			win->grabcursor = GHOST_kGrabDisable;
 		}
@@ -213,18 +215,21 @@ void WM_cursor_ungrab(wmWindow *win)
 /* give it a modal keymap one day? */
 int wm_cursor_arrow_move(wmWindow *win, wmEvent *event)
 {
-	if(win && event->val==KM_PRESS) {
+	if (win && event->val==KM_PRESS) {
 		
-		if(event->type==UPARROWKEY) {
+		if (event->type==UPARROWKEY) {
 			WM_cursor_warp(win, event->x, event->y+1);
 			return 1;
-		} else if(event->type==DOWNARROWKEY) {
+		}
+		else if (event->type==DOWNARROWKEY) {
 			WM_cursor_warp(win, event->x, event->y-1);
 			return 1;
-		} else if(event->type==LEFTARROWKEY) {
+		}
+		else if (event->type==LEFTARROWKEY) {
 			WM_cursor_warp(win, event->x-1, event->y);
 			return 1;
-		} else if(event->type==RIGHTARROWKEY) {
+		}
+		else if (event->type==RIGHTARROWKEY) {
 			WM_cursor_warp(win, event->x+1, event->y);
 			return 1;
 		}
@@ -253,7 +258,7 @@ void WM_timecursor(wmWindow *win, int nr)
 	unsigned char bitmap[16][2]= {{0}};
 	int i, idx;
 	
-	if(win->lastcursor == 0)
+	if (win->lastcursor == 0)
 		win->lastcursor= win->cursor; 
 	
 	memset(&mask, 0xFF, sizeof(mask));

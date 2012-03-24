@@ -138,14 +138,14 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
 
-	if(wmd->objectcenter) {
+	if (wmd->objectcenter) {
 		DagNode *curNode = dag_get_node(forest, wmd->objectcenter);
 
 		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
 			"Wave Modifier");
 	}
 
-	if(wmd->map_object) {
+	if (wmd->map_object) {
 		DagNode *curNode = dag_get_node(forest, wmd->map_object);
 
 		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
@@ -160,11 +160,11 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 
 	/* ask for UV coordinates if we need them */
-	if(wmd->texture && wmd->texmapping == MOD_DISP_MAP_UV)
+	if (wmd->texture && wmd->texmapping == MOD_DISP_MAP_UV)
 		dataMask |= CD_MASK_MTFACE;
 
 	/* ask for vertexgroups if we need them */
-	if(wmd->defgrp_name[0])
+	if (wmd->defgrp_name[0])
 		dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
@@ -187,10 +187,10 @@ static void waveModifier_do(WaveModifierData *md,
 	const float falloff= wmd->falloff;
 	float falloff_fac= 1.0f; /* when falloff == 0.0f this stays at 1.0f */
 
-	if(wmd->flag & MOD_WAVE_NORM && ob->type == OB_MESH)
+	if (wmd->flag & MOD_WAVE_NORM && ob->type == OB_MESH)
 		mvert = dm->getVertArray(dm);
 
-	if(wmd->objectcenter){
+	if (wmd->objectcenter) {
 		float mat[4][4];
 		/* get the control object's location in local coordinates */
 		invert_m4_m4(ob->imat, ob->obmat);
@@ -203,32 +203,32 @@ static void waveModifier_do(WaveModifierData *md,
 	/* get the index of the deform group */
 	modifier_get_vgroup(ob, dm, wmd->defgrp_name, &dvert, &defgrp_index);
 
-	if(wmd->damp == 0) wmd->damp = 10.0f;
+	if (wmd->damp == 0) wmd->damp = 10.0f;
 
-	if(wmd->lifetime != 0.0f) {
+	if (wmd->lifetime != 0.0f) {
 		float x = ctime - wmd->timeoffs;
 
-		if(x > wmd->lifetime) {
+		if (x > wmd->lifetime) {
 			lifefac = x - wmd->lifetime;
 
-			if(lifefac > wmd->damp) lifefac = 0.0;
+			if (lifefac > wmd->damp) lifefac = 0.0;
 			else lifefac =
 				(float)(wmd->height * (1.0f - sqrtf(lifefac / wmd->damp)));
 		}
 	}
 
-	if(wmd->texture) {
+	if (wmd->texture) {
 		tex_co = MEM_mallocN(sizeof(*tex_co) * numVerts,
 					 "waveModifier_do tex_co");
 		get_texture_coords((MappingInfoModifierData *)wmd, ob, dm, vertexCos, tex_co, numVerts);
 	}
 
-	if(lifefac != 0.0f) {
+	if (lifefac != 0.0f) {
 		/* avoid divide by zero checks within the loop */
 		float falloff_inv= falloff ? 1.0f / falloff : 1.0f;
 		int i;
 
-		for(i = 0; i < numVerts; i++) {
+		for (i = 0; i < numVerts; i++) {
 			float *co = vertexCos[i];
 			float x = co[0] - wmd->startx;
 			float y = co[1] - wmd->starty;
@@ -236,11 +236,11 @@ static void waveModifier_do(WaveModifierData *md,
 			float def_weight= 1.0f;
 
 			/* get weights */
-			if(dvert) {
+			if (dvert) {
 				def_weight= defvert_find_weight(&dvert[i], defgrp_index);
 
 				/* if this vert isn't in the vgroup, don't deform it */
-				if(def_weight == 0.0f) {
+				if (def_weight == 0.0f) {
 					continue;
 				}
 			}
@@ -260,12 +260,12 @@ static void waveModifier_do(WaveModifierData *md,
 			/* this way it makes nice circles */
 			amplit -= (ctime - wmd->timeoffs) * wmd->speed;
 
-			if(wmd->flag & MOD_WAVE_CYCL) {
+			if (wmd->flag & MOD_WAVE_CYCL) {
 				amplit = (float)fmodf(amplit - wmd->width, 2.0f * wmd->width)
 						+ wmd->width;
 			}
 
-			if(falloff != 0.0f) {
+			if (falloff != 0.0f) {
 				float dist = 0.0f;
 
 				switch(wmd_axis) {
@@ -285,12 +285,12 @@ static void waveModifier_do(WaveModifierData *md,
 			}
 
 			/* GAUSSIAN */
-			if((falloff_fac != 0.0f) && (amplit > -wmd->width) && (amplit < wmd->width)) {
+			if ((falloff_fac != 0.0f) && (amplit > -wmd->width) && (amplit < wmd->width)) {
 				amplit = amplit * wmd->narrow;
 				amplit = (float)(1.0f / expf(amplit * amplit) - minfac);
 
 				/*apply texture*/
-				if(wmd->texture) {
+				if (wmd->texture) {
 					TexResult texres;
 					texres.nor = NULL;
 					get_texture_value(wmd->texture, tex_co[i], &texres);
@@ -300,15 +300,15 @@ static void waveModifier_do(WaveModifierData *md,
 				/*apply weight & falloff */
 				amplit *= def_weight * falloff_fac;
 
-				if(mvert) {
+				if (mvert) {
 					/* move along normals */
-					if(wmd->flag & MOD_WAVE_NORM_X) {
+					if (wmd->flag & MOD_WAVE_NORM_X) {
 						co[0] += (lifefac * amplit) * mvert[i].no[0] / 32767.0f;
 					}
-					if(wmd->flag & MOD_WAVE_NORM_Y) {
+					if (wmd->flag & MOD_WAVE_NORM_Y) {
 						co[1] += (lifefac * amplit) * mvert[i].no[1] / 32767.0f;
 					}
-					if(wmd->flag & MOD_WAVE_NORM_Z) {
+					if (wmd->flag & MOD_WAVE_NORM_Z) {
 						co[2] += (lifefac * amplit) * mvert[i].no[2] / 32767.0f;
 					}
 				}
@@ -320,7 +320,7 @@ static void waveModifier_do(WaveModifierData *md,
 		}
 	}
 
-	if(wmd->texture) MEM_freeN(tex_co);
+	if (wmd->texture) MEM_freeN(tex_co);
 }
 
 static void deformVerts(ModifierData *md, Object *ob,
@@ -333,14 +333,14 @@ static void deformVerts(ModifierData *md, Object *ob,
 	DerivedMesh *dm= derivedData;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
-	if(wmd->flag & MOD_WAVE_NORM)
+	if (wmd->flag & MOD_WAVE_NORM)
 		dm= get_cddm(ob, NULL, dm, vertexCos);
-	else if(wmd->texture || wmd->defgrp_name[0])
+	else if (wmd->texture || wmd->defgrp_name[0])
 		dm= get_dm(ob, NULL, dm, NULL, 0);
 
 	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData)
+	if (dm != derivedData)
 		dm->release(dm);
 }
 
@@ -351,14 +351,14 @@ static void deformVertsEM(
 	DerivedMesh *dm= derivedData;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
-	if(wmd->flag & MOD_WAVE_NORM)
+	if (wmd->flag & MOD_WAVE_NORM)
 		dm= get_cddm(ob, editData, dm, vertexCos);
-	else if(wmd->texture || wmd->defgrp_name[0])
+	else if (wmd->texture || wmd->defgrp_name[0])
 		dm= get_dm(ob, editData, dm, NULL, 0);
 
 	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData)
+	if (dm != derivedData)
 		dm->release(dm);
 }
 

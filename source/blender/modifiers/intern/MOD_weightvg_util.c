@@ -64,14 +64,14 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
 
 	/* Return immediately, if we have nothing to do! */
 	/* Also security checks... */
-	if(((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == NULL))
+	if (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == NULL))
 	        || !ELEM7(falloff_type, MOD_WVG_MAPPING_CURVE, MOD_WVG_MAPPING_SHARP, MOD_WVG_MAPPING_SMOOTH,
 	                  MOD_WVG_MAPPING_ROOT, MOD_WVG_MAPPING_SPHERE, MOD_WVG_MAPPING_RANDOM,
 	                  MOD_WVG_MAPPING_STEP))
 		return;
 
 	/* Map each weight (vertex) to its new value, accordingly to the chosen mode. */
-	for(i = 0; i < num; ++i) {
+	for (i = 0; i < num; ++i) {
 		float fac = new_w[i];
 
 		/* Code borrowed from the warp modifier. */
@@ -146,7 +146,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 		MEM_freeN(v_co);
 
 		/* For each weight (vertex), make the mix between org and new weights. */
-		for(i = 0; i < num; ++i) {
+		for (i = 0; i < num; ++i) {
 			int idx = indices ? indices[i] : i;
 			TexResult texres;
 			float h, s, v; /* For HSV color space. */
@@ -237,7 +237,7 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws,
 {
 	int i;
 
-	for(i = 0; i < num; i++) {
+	for (i = 0; i < num; i++) {
 		float w = weights[i];
 		MDeformVert *dv = &dvert[indices ? indices[i] : i];
 		MDeformWeight *dw = dws ? dws[i] : defvert_find_index(dv, defgrp_idx);
@@ -246,8 +246,8 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws,
 		CLAMP(w, 0.0f, 1.0f);
 
 		/* If the vertex is in this vgroup, remove it if needed, or just update it. */
-		if(dw != NULL) {
-			if(do_rem && w < rem_thresh) {
+		if (dw != NULL) {
+			if (do_rem && w < rem_thresh) {
 				defvert_remove_group(dv, dw);
 			}
 			else {
@@ -255,7 +255,7 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws,
 			}
 		}
 		/* Else, add it if needed! */
-		else if(do_add && w > add_thresh) {
+		else if (do_add && w > add_thresh) {
 			defvert_add_index_notest(dv, defgrp_idx, w);
 		}
 	}

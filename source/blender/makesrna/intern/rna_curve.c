@@ -353,7 +353,8 @@ static void rna_Curve_bevelObject_set(PointerRNA *ptr, PointerRNA value)
 		if (ob->type == OB_CURVE && ob->data != cu) {
 			cu->bevobj = ob;
 		}
-	} else {
+	}
+	else {
 		cu->bevobj = NULL;
 	}
 }
@@ -394,7 +395,8 @@ static void rna_Curve_taperObject_set(PointerRNA *ptr, PointerRNA value)
 		if (ob->type == OB_CURVE && ob->data != cu) {
 			cu->taperobj = ob;
 		}
-	} else {
+	}
+	else {
 		cu->taperobj = NULL;
 	}
 }
@@ -480,7 +482,8 @@ static void rna_Nurb_update_cyclic_u(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	if (nu->type == CU_BEZIER) {
 		calchandlesNurb(nu);
-	} else {
+	}
+	else {
 		nurbs_knot_calc_u(nu);
 	}
 
@@ -523,7 +526,8 @@ static void rna_Curve_spline_points_add(ID *id, Nurb *nu, ReportList *reports, i
 	}
 	else if (number == 0) {
 		/* do nothing */
-	} else {
+	}
+	else {
 
 		addNurbPoints(nu, number);
 
@@ -541,7 +545,8 @@ static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, ReportList *reports
 	}
 	else if (number == 0) {
 		/* do nothing */
-	} else {
+	}
+	else {
 		addNurbPointsBezier(nu, number);
 
 		/* update */
