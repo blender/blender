@@ -81,7 +81,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 void multires_customdata_delete(Mesh *me)
 {
-	if(me->edit_btmesh) {
+	if (me->edit_btmesh) {
 		BMEditMesh *em= me->edit_btmesh;
 		/* CustomData_external_remove is used here only to mark layer
 		 * as non-external for further free-ing, so zero element count
@@ -116,7 +116,7 @@ static BLI_bitmap multires_mdisps_upsample_hidden(BLI_bitmap lo_hidden,
 	BLI_assert(lo_level <= hi_level);
 
 	/* fast case */
-	if(lo_level == hi_level)
+	if (lo_level == hi_level)
 		return MEM_dupallocN(lo_hidden);
 
 	subd = BLI_BITMAP_NEW(hi_gridsize * hi_gridsize, "MDisps.hidden upsample");
@@ -125,28 +125,28 @@ static BLI_bitmap multires_mdisps_upsample_hidden(BLI_bitmap lo_hidden,
 	offset = 1 << (hi_level - lo_level - 1);
 
 	/* low-res blocks */
-	for(yl = 0; yl < lo_gridsize; yl++) {
-		for(xl = 0; xl < lo_gridsize; xl++) {
+	for (yl = 0; yl < lo_gridsize; yl++) {
+		for (xl = 0; xl < lo_gridsize; xl++) {
 			int lo_val = BLI_BITMAP_GET(lo_hidden, yl * lo_gridsize + xl);
 
 			/* high-res blocks */
-			for(yo = -offset; yo <= offset; yo++) {
+			for (yo = -offset; yo <= offset; yo++) {
 				yh = yl * factor + yo;
-				if(yh < 0 || yh >= hi_gridsize)
+				if (yh < 0 || yh >= hi_gridsize)
 					continue;
 
-				for(xo = -offset; xo <= offset; xo++) {
+				for (xo = -offset; xo <= offset; xo++) {
 					xh = xl * factor + xo;
-					if(xh < 0 || xh >= hi_gridsize)
+					if (xh < 0 || xh >= hi_gridsize)
 						continue;
 
 					hi_ndx = yh * hi_gridsize + xh;
 
-					if(prev_hidden) {
+					if (prev_hidden) {
 						/* If prev_hidden is available, copy it to
 						   subd, except when the equivalent element in
 						   lo_hidden is different */
-						if(lo_val != prev_hidden[hi_ndx])
+						if (lo_val != prev_hidden[hi_ndx])
 							BLI_BITMAP_MODIFY(subd, hi_ndx, lo_val);
 						else
 							BLI_BITMAP_MODIFY(subd, hi_ndx, prev_hidden[hi_ndx]);
@@ -178,8 +178,8 @@ static BLI_bitmap multires_mdisps_downsample_hidden(BLI_bitmap old_hidden,
 
 
 
-	for(y = 0; y < new_gridsize; y++) {
-		for(x = 0; x < new_gridsize; x++) {
+	for (y = 0; y < new_gridsize; y++) {
+		for (x = 0; x < new_gridsize; x++) {
 			old_value = BLI_BITMAP_GET(old_hidden,
 									   factor*y*old_gridsize + x*factor);
 			
@@ -223,7 +223,7 @@ static void multires_mdisps_subdivide_hidden(MDisps *md, int new_level)
 	BLI_assert(md->hidden);
 
 	/* nothing to do if already subdivided enough */
-	if(md->level >= new_level)
+	if (md->level >= new_level)
 		return;
 
 	subd = multires_mdisps_upsample_hidden(md->hidden,
@@ -248,13 +248,13 @@ static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
 		int hide = 0;
 
 		for (j = 0; j < me->mpoly[i].totloop; j++) {
-			if(me->mvert[me->mloop[me->mpoly[i].loopstart + j].v].flag & ME_HIDE) {
+			if (me->mvert[me->mloop[me->mpoly[i].loopstart + j].v].flag & ME_HIDE) {
 				hide = 1;
 				break;
 			}
 		}
 
-		if(!hide)
+		if (!hide)
 			continue;
 
 		for (j = 0; j < me->mpoly[i].totloop; j++) {
@@ -264,7 +264,7 @@ static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
 
 			md->hidden = BLI_BITMAP_NEW(gridarea, "MDisps.hidden initialize");
 
-			for(k = 0; k < gridarea; k++)
+			for (k = 0; k < gridarea; k++)
 				BLI_BITMAP_SET(md->hidden, k);
 		}
 	}
@@ -1154,21 +1154,21 @@ void multires_modifier_update_hidden(DerivedMesh *dm)
 	int totlvl = ccgdm->multires.totlvl;
 	int lvl = ccgdm->multires.lvl;
 
-	if(mdisps) {
+	if (mdisps) {
 		int i;
 		
-		for(i = 0; i < me->totloop; i++) {
+		for (i = 0; i < me->totloop; i++) {
 			MDisps *md = &mdisps[i];
 			BLI_bitmap gh = grid_hidden[i];
 
-			if(!gh && md->hidden) {
+			if (!gh && md->hidden) {
 				MEM_freeN(md->hidden);
 				md->hidden = NULL;
 			}
-			else if(gh) {
+			else if (gh) {
 				gh = multires_mdisps_upsample_hidden(gh, lvl, totlvl,
 															 md->hidden);
-				if(md->hidden)
+				if (md->hidden)
 					MEM_freeN(md->hidden);
 				
 				md->hidden = gh;
@@ -1370,7 +1370,7 @@ DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd,
 	multiresModifier_disp_run(result, ob->data, dm, APPLY_DISPLACEMENTS, subGridData, mmd->totlvl);
 
 	/* copy hidden elements for this level */
-	if(ccgdm)
+	if (ccgdm)
 		multires_output_hidden_to_ccgdm(ccgdm, me, lvl);
 
 	for (i = 0; i < numGrids; i++)

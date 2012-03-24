@@ -91,7 +91,7 @@ static int sequence_guess_offset(const char *full_name, int head_len, int numlen
 
 static int rendersize_to_proxy(MovieClipUser *user, int flag)
 {
-	if((flag&MCLIP_USE_PROXY)==0)
+	if ((flag&MCLIP_USE_PROXY)==0)
 		return IMB_PROXY_NONE;
 
 	switch(user->render_size) {
@@ -138,7 +138,7 @@ static int rendersize_to_number(int render_size)
 
 static int get_timecode(MovieClip *clip, int flag)
 {
-	if((flag&MCLIP_USE_PROXY)==0)
+	if ((flag&MCLIP_USE_PROXY)==0)
 		return IMB_TC_NONE;
 
 	return clip->proxy.tc;
@@ -171,13 +171,14 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistor
 
 	BLI_split_dirfile(clip->name, clipdir, clipfile, FILE_MAX, FILE_MAX);
 
-	if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
+	if (clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
 		BLI_strncpy(dir, clip->proxy.dir, sizeof(dir));
-	} else {
+	}
+	else {
 		BLI_snprintf(dir, FILE_MAX, "%s/BL_proxy", clipdir);
 	}
 
-	if(undistorted)
+	if (undistorted)
 		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d_undistorted/%08d", dir, clipfile, size, framenr);
 	else
 		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d/%08d", dir, clipfile, size, framenr);
@@ -195,10 +196,11 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 	int loadflag, use_proxy= 0;
 
 	use_proxy= (flag&MCLIP_USE_PROXY) && user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL;
-	if(use_proxy) {
+	if (use_proxy) {
 		int undistort= user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
 		get_proxy_fname(clip, user->render_size, undistort, framenr, name);
-	} else
+	}
+	else
 		get_sequence_fname(clip, framenr, name);
 
 	loadflag= IB_rect|IB_multilayer;
@@ -216,15 +218,15 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 	int proxy= rendersize_to_proxy(user, flag);
 	char str[FILE_MAX];
 
-	if(!clip->anim) {
+	if (!clip->anim) {
 		BLI_strncpy(str, clip->name, FILE_MAX);
 		BLI_path_abs(str, ID_BLEND_PATH(G.main, &clip->id));
 
 		/* FIXME: make several stream accessible in image editor, too */
 		clip->anim= openanim(str, IB_rect, 0);
 
-		if(clip->anim) {
-			if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
+		if (clip->anim) {
+			if (clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
 				char dir[FILE_MAX];
 				BLI_strncpy(dir, clip->proxy.dir, sizeof(dir));
 				BLI_path_abs(dir, G.main->name);
@@ -233,17 +235,17 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 		}
 	}
 
-	if(clip->anim) {
+	if (clip->anim) {
 		int dur;
 		int fra;
 
 		dur= IMB_anim_get_duration(clip->anim, tc);
 		fra= framenr-1;
 
-		if(fra<0)
+		if (fra<0)
 			fra= 0;
 
-		if(fra>(dur-1))
+		if (fra>(dur-1))
 			fra= dur-1;
 
 		ibuf= IMB_anim_absolute(clip->anim, fra, tc, proxy);
@@ -313,26 +315,26 @@ static int moviecache_hashcmp(const void *av, const void *bv)
 	const MovieClipImBufCacheKey *a= (MovieClipImBufCacheKey*)av;
 	const MovieClipImBufCacheKey *b= (MovieClipImBufCacheKey*)bv;
 
-	if(a->framenr<b->framenr) return -1;
-	else if(a->framenr>b->framenr) return 1;
+	if (a->framenr<b->framenr) return -1;
+	else if (a->framenr>b->framenr) return 1;
 
-	if(a->proxy<b->proxy) return -1;
-	else if(a->proxy>b->proxy) return 1;
+	if (a->proxy<b->proxy) return -1;
+	else if (a->proxy>b->proxy) return 1;
 
-	if(a->render_flag<b->render_flag) return -1;
-	else if(a->render_flag>b->render_flag) return 1;
+	if (a->render_flag<b->render_flag) return -1;
+	else if (a->render_flag>b->render_flag) return 1;
 
 	return 0;
 }
 
 static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 {
-	if(clip->cache) {
+	if (clip->cache) {
 		MovieClipImBufCacheKey key;
 
 		key.framenr= user->framenr;
 
-		if(flag&MCLIP_USE_PROXY) {
+		if (flag&MCLIP_USE_PROXY) {
 			key.proxy= rendersize_to_proxy(user, flag);
 			key.render_flag= user->render_flag;
 		}
@@ -351,7 +353,7 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 {
 	MovieClipImBufCacheKey key;
 
-	if(!clip->cache) {
+	if (!clip->cache) {
 		clip->cache= MEM_callocN(sizeof(MovieClipCache), "movieClipCache");
 
 		clip->cache->moviecache= IMB_moviecache_create(sizeof(MovieClipImBufCacheKey), moviecache_hashhash,
@@ -360,7 +362,7 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 
 	key.framenr= user->framenr;
 
-	if(flag&MCLIP_USE_PROXY) {
+	if (flag&MCLIP_USE_PROXY) {
 		key.proxy= rendersize_to_proxy(user, flag);
 		key.render_flag= user->render_flag;
 	}
@@ -412,15 +414,15 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 
 	/* exists? */
 	file= BLI_open(str, O_BINARY|O_RDONLY,0);
-	if(file== -1) return NULL;
+	if (file== -1) return NULL;
 	close(file);
 
 	/* ** first search an identical clip ** */
-	for(clip= G.main->movieclip.first; clip; clip= clip->id.next) {
+	for (clip= G.main->movieclip.first; clip; clip= clip->id.next) {
 		BLI_strncpy(strtest, clip->name, sizeof(clip->name));
 		BLI_path_abs(strtest, G.main->name);
 
-		if(strcmp(strtest, str)==0) {
+		if (strcmp(strtest, str)==0) {
 			BLI_strncpy(clip->name, name, sizeof(clip->name));  /* for stringcode */
 			clip->id.us++;  /* officially should not, it doesn't link here! */
 
@@ -439,12 +441,12 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 	clip= movieclip_alloc(libname);
 	BLI_strncpy(clip->name, name, sizeof(clip->name));
 
-	if(BLI_testextensie_array(name, imb_ext_movie)) clip->source= MCLIP_SRC_MOVIE;
+	if (BLI_testextensie_array(name, imb_ext_movie)) clip->source= MCLIP_SRC_MOVIE;
 	else clip->source= MCLIP_SRC_SEQUENCE;
 
 	user.framenr= 1;
 	BKE_movieclip_get_size(clip, &user, &width, &height);
-	if(width && height) {
+	if (width && height) {
 		clip->tracking.camera.principal[0]= ((float)width)/2;
 		clip->tracking.camera.principal[1]= ((float)height)/2;
 
@@ -459,7 +461,7 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 	*width= ibuf->x;
 	*height= ibuf->y;
 
-	if(clip->flag&MCLIP_USE_PROXY) {
+	if (clip->flag&MCLIP_USE_PROXY) {
 		switch(user->render_size) {
 			case MCLIP_PROXY_RENDER_SIZE_25:
 				(*width)*= 4;
@@ -487,12 +489,12 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	 *      otherwise, undistorted proxy can be darker than it should */
 	imb_freerectfloatImBuf(ibuf);
 
-	if(distortion)
+	if (distortion)
 		undistibuf= BKE_tracking_distortion_exec(distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
 	else
 		undistibuf= BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
 
-	if(undistibuf->userflags&IB_RECT_INVALID) {
+	if (undistibuf->userflags&IB_RECT_INVALID) {
 		ibuf->userflags&= ~IB_RECT_INVALID;
 		IMB_rect_from_float(undistibuf);
 	}
@@ -507,7 +509,7 @@ static int need_undistortion_postprocess(MovieClipUser *user, int flag)
 	int result = 0;
 
 	/* only full undistorted render can be used as on-fly undistorting image */
-	if(flag & MCLIP_USE_PROXY) {
+	if (flag & MCLIP_USE_PROXY) {
 		result |= (user->render_size == MCLIP_PROXY_RENDER_SIZE_FULL) &&
 		          (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
 	}
@@ -530,10 +532,10 @@ static int check_undistortion_cache_flags(MovieClip *clip)
 	MovieTrackingCamera *camera= &clip->tracking.camera;
 
 	/* check for distortion model changes */
-	if(!equals_v2v2(camera->principal, cache->postprocessed.principal))
+	if (!equals_v2v2(camera->principal, cache->postprocessed.principal))
 		return 0;
 
-	if(!equals_v3v3(&camera->k1, &cache->postprocessed.k1))
+	if (!equals_v3v3(&camera->k1, &cache->postprocessed.k1))
 		return 0;
 
 	return 1;
@@ -546,31 +548,31 @@ static ImBuf *get_postprocessed_cached_frame(MovieClip *clip, MovieClipUser *use
 	short proxy= IMB_PROXY_NONE;
 	int render_flag= 0;
 
-	if(flag&MCLIP_USE_PROXY) {
+	if (flag&MCLIP_USE_PROXY) {
 		proxy= rendersize_to_proxy(user, flag);
 		render_flag= user->render_flag;
 	}
 
 	/* no cache or no cached postprocessed image */
-	if(!clip->cache || !clip->cache->postprocessed.ibuf)
+	if (!clip->cache || !clip->cache->postprocessed.ibuf)
 		return NULL;
 
 	/* postprocessing happened for other frame */
-	if(cache->postprocessed.framenr != framenr)
+	if (cache->postprocessed.framenr != framenr)
 		return NULL;
 
 	/* cached ibuf used different proxy settings */
-	if(cache->postprocessed.render_flag != render_flag || cache->postprocessed.proxy != proxy)
+	if (cache->postprocessed.render_flag != render_flag || cache->postprocessed.proxy != proxy)
 		return NULL;
 
-	if(cache->postprocessed.flag != postprocess_flag)
+	if (cache->postprocessed.flag != postprocess_flag)
 		return NULL;
 
-	if(need_undistortion_postprocess(user, flag)) {
-		if(!check_undistortion_cache_flags(clip))
+	if (need_undistortion_postprocess(user, flag)) {
+		if (!check_undistortion_cache_flags(clip))
 			return NULL;
 	}
-	else if(cache->postprocessed.undistoriton_used)
+	else if (cache->postprocessed.undistoriton_used)
 		return NULL;
 
 	IMB_refImBuf(cache->postprocessed.ibuf);
@@ -584,13 +586,13 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 	MovieTrackingCamera *camera= &clip->tracking.camera;
 	ImBuf *postproc_ibuf = NULL;
 
-	if(cache->postprocessed.ibuf)
+	if (cache->postprocessed.ibuf)
 		IMB_freeImBuf(cache->postprocessed.ibuf);
 
 	cache->postprocessed.framenr= user->framenr;
 	cache->postprocessed.flag = postprocess_flag;
 
-	if(flag&MCLIP_USE_PROXY) {
+	if (flag&MCLIP_USE_PROXY) {
 		cache->postprocessed.proxy= rendersize_to_proxy(user, flag);
 		cache->postprocessed.render_flag= user->render_flag;
 	}
@@ -599,7 +601,7 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 		cache->postprocessed.render_flag = 0;
 	}
 
-	if(need_undistortion_postprocess(user, flag)) {
+	if (need_undistortion_postprocess(user, flag)) {
 		copy_v2_v2(cache->postprocessed.principal, camera->principal);
 		copy_v3_v3(&cache->postprocessed.k1, &camera->k1);
 		cache->postprocessed.undistoriton_used = 1;
@@ -607,16 +609,16 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 	}
 	else cache->postprocessed.undistoriton_used = 0;
 
-	if(postprocess_flag) {
+	if (postprocess_flag) {
 		int disable_red   = postprocess_flag & MOVIECLIP_DISABLE_RED,
 		    disable_green = postprocess_flag & MOVIECLIP_DISABLE_GREEN,
 			disable_blue  = postprocess_flag & MOVIECLIP_DISABLE_BLUE,
 			grayscale     = postprocess_flag & MOVIECLIP_PREVIEW_GRAYSCALE;
 
-		if(!postproc_ibuf)
+		if (!postproc_ibuf)
 			postproc_ibuf = IMB_dupImBuf(ibuf);
 
-		if(disable_red || disable_green || disable_blue || grayscale)
+		if (disable_red || disable_green || disable_blue || grayscale)
 			BKE_tracking_disable_imbuf_channels(postproc_ibuf, disable_red, disable_green, disable_blue, 1);
 	}
 
@@ -624,7 +626,7 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 
 	cache->postprocessed.ibuf= postproc_ibuf;
 
-	if(cache->stabilized.ibuf) {
+	if (cache->stabilized.ibuf) {
 		/* force stable buffer be re-calculated */
 		IMB_freeImBuf(cache->stabilized.ibuf);
 		cache->stabilized.ibuf= NULL;
@@ -644,39 +646,39 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
 	/* try to obtain cached postprocessed frame first */
-	if(need_postprocessed_frame(user, flag, postprocess_flag)) {
+	if (need_postprocessed_frame(user, flag, postprocess_flag)) {
 		ibuf= get_postprocessed_cached_frame(clip, user, flag, postprocess_flag);
 
-		if(!ibuf)
+		if (!ibuf)
 			need_postprocess= 1;
 	}
 
-	if(!ibuf)
+	if (!ibuf)
 		ibuf= get_imbuf_cache(clip, user, flag);
 
-	if(!ibuf) {
+	if (!ibuf) {
 		int use_sequence= 0;
 
 		/* undistorted proxies for movies should be read as image sequence */
 		use_sequence= (user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT) &&
 			(user->render_size!=MCLIP_PROXY_RENDER_SIZE_FULL);
 
-		if(clip->source==MCLIP_SRC_SEQUENCE || use_sequence)
+		if (clip->source==MCLIP_SRC_SEQUENCE || use_sequence)
 			ibuf= movieclip_load_sequence_file(clip, user, framenr, flag);
 		else {
 			ibuf= movieclip_load_movie_file(clip, user, framenr, flag);
 		}
 
-		if(ibuf && (cache_flag & MOVIECLIP_CACHE_SKIP) == 0)
+		if (ibuf && (cache_flag & MOVIECLIP_CACHE_SKIP) == 0)
 			put_imbuf_cache(clip, user, ibuf, flag);
 	}
 
-	if(ibuf) {
+	if (ibuf) {
 		clip->lastframe= framenr;
 		real_ibuf_size(clip, user, ibuf, &clip->lastsize[0], &clip->lastsize[1]);
 
 		/* postprocess frame and put to cache */
-		if(need_postprocess) {
+		if (need_postprocess) {
 			ImBuf *tmpibuf= ibuf;
 			ibuf= put_postprocessed_frame_to_cache(clip, user, tmpibuf, flag, postprocess_flag);
 			IMB_freeImBuf(tmpibuf);
@@ -712,27 +714,27 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 	short proxy = IMB_PROXY_NONE;
 	int render_flag = 0;
 
-	if(clip->flag&MCLIP_USE_PROXY) {
+	if (clip->flag&MCLIP_USE_PROXY) {
 		proxy = rendersize_to_proxy(user, clip->flag);
 		render_flag = user->render_flag;
 	}
 
 	/* there's no cached frame or it was calculated for another frame */
-	if(!cache->stabilized.ibuf || cache->stabilized.framenr != framenr)
+	if (!cache->stabilized.ibuf || cache->stabilized.framenr != framenr)
 		return NULL;
 
 	/* cached ibuf used different proxy settings */
-	if(cache->stabilized.render_flag!=render_flag || cache->stabilized.proxy!=proxy)
+	if (cache->stabilized.render_flag!=render_flag || cache->stabilized.proxy!=proxy)
 		return NULL;
 
-	if(cache->stabilized.postprocess_flag != postprocess_flag)
+	if (cache->stabilized.postprocess_flag != postprocess_flag)
 		return NULL;
 
 	/* stabilization also depends on pixel aspect ratio */
-	if(cache->stabilized.aspect != tracking->camera.pixel_aspect)
+	if (cache->stabilized.aspect != tracking->camera.pixel_aspect)
 		return NULL;
 
-	if(cache->stabilized.filter != tracking->stabilization.filter)
+	if (cache->stabilized.filter != tracking->stabilization.filter)
 		return NULL;
 
 	stableibuf = cache->stabilized.ibuf;
@@ -740,7 +742,7 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 	BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
 
 	/* check for stabilization parameters */
-	if(tscale != cache->stabilized.scale ||
+	if (tscale != cache->stabilized.scale ||
 	   tangle != cache->stabilized.angle ||
 	   !equals_v2v2(tloc, cache->stabilized.loc))
 	{
@@ -760,7 +762,7 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 	ImBuf *stableibuf;
 	float tloc[2], tscale, tangle;
 
-	if(cache->stabilized.ibuf)
+	if (cache->stabilized.ibuf)
 		IMB_freeImBuf(cache->stabilized.ibuf);
 
 	stableibuf = BKE_tracking_stabilize(&clip->tracking, framenr, ibuf, tloc, &tscale, &tangle);
@@ -775,7 +777,7 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 	cache->stabilized.aspect = tracking->camera.pixel_aspect;
 	cache->stabilized.filter = tracking->stabilization.filter;
 
-	if(clip->flag&MCLIP_USE_PROXY) {
+	if (clip->flag&MCLIP_USE_PROXY) {
 		cache->stabilized.proxy= rendersize_to_proxy(user, clip->flag);
 		cache->stabilized.render_flag= user->render_flag;
 	}
@@ -798,29 +800,30 @@ ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float
 
 	ibuf= BKE_movieclip_get_postprocessed_ibuf(clip, user, postprocess_flag);
 
-	if(!ibuf)
+	if (!ibuf)
 		return NULL;
 
-	if(clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
+	if (clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
 		MovieClipCache *cache= clip->cache;
 
 		stableibuf= get_stable_cached_frame(clip, user, framenr, postprocess_flag);
 
-		if(!stableibuf)
+		if (!stableibuf)
 			stableibuf= put_stabilized_frame_to_cache(clip, user, ibuf, framenr, postprocess_flag);
 
-		if(loc)		copy_v2_v2(loc, cache->stabilized.loc);
-		if(scale)	*scale= cache->stabilized.scale;
-		if(angle)	*angle= cache->stabilized.angle;
-	} else {
-		if(loc)		zero_v2(loc);
-		if(scale)	*scale= 1.0f;
-		if(angle)	*angle= 0.0f;
+		if (loc)		copy_v2_v2(loc, cache->stabilized.loc);
+		if (scale)	*scale= cache->stabilized.scale;
+		if (angle)	*angle= cache->stabilized.angle;
+	}
+	else {
+		if (loc)		zero_v2(loc);
+		if (scale)	*scale= 1.0f;
+		if (angle)	*angle= 0.0f;
 
 		stableibuf= ibuf;
 	}
 
-	if(stableibuf!=ibuf) {
+	if (stableibuf!=ibuf) {
 		IMB_freeImBuf(ibuf);
 		ibuf= stableibuf;
 	}
@@ -833,7 +836,7 @@ int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 {
 	ImBuf *ibuf= BKE_movieclip_get_ibuf(clip, user);
 
-	if(ibuf) {
+	if (ibuf) {
 		IMB_freeImBuf(ibuf);
 		return 1;
 	}
@@ -843,20 +846,22 @@ int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 
 void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
 {
-	if(user->framenr==clip->lastframe) {
+	if (user->framenr==clip->lastframe) {
 		*width= clip->lastsize[0];
 		*height= clip->lastsize[1];
-	} else {
+	}
+	else {
 		ImBuf *ibuf= BKE_movieclip_get_ibuf(clip, user);
 
-		if(ibuf && ibuf->x && ibuf->y) {
+		if (ibuf && ibuf->x && ibuf->y) {
 			real_ibuf_size(clip, user, ibuf, width, height);
-		} else {
+		}
+		else {
 			*width= 0;
 			*height= 0;
 		}
 
-		if(ibuf)
+		if (ibuf)
 			IMB_freeImBuf(ibuf);
 	}
 }
@@ -880,7 +885,7 @@ void BKE_movieclip_get_cache_segments(MovieClip *clip, MovieClipUser *user, int 
 	*totseg_r= 0;
 	*points_r= NULL;
 
-	if(clip->cache) {
+	if (clip->cache) {
 		int proxy= rendersize_to_proxy(user, clip->flag);
 
 		IMB_moviecache_get_cache_segments(clip->cache->moviecache, proxy, user->render_flag, totseg_r, points_r);
@@ -896,20 +901,20 @@ void BKE_movieclip_user_set_frame(MovieClipUser *iuser, int framenr)
 
 static void free_buffers(MovieClip *clip)
 {
-	if(clip->cache) {
+	if (clip->cache) {
 		IMB_moviecache_free(clip->cache->moviecache);
 
-		if(clip->cache->postprocessed.ibuf)
+		if (clip->cache->postprocessed.ibuf)
 			IMB_freeImBuf(clip->cache->postprocessed.ibuf);
 
-		if(clip->cache->stabilized.ibuf)
+		if (clip->cache->stabilized.ibuf)
 			IMB_freeImBuf(clip->cache->stabilized.ibuf);
 
 		MEM_freeN(clip->cache);
 		clip->cache= NULL;
 	}
 
-	if(clip->anim) {
+	if (clip->anim) {
 		IMB_free_anim(clip->anim);
 		clip->anim= FALSE;
 	}
@@ -925,16 +930,16 @@ void BKE_movieclip_reload(MovieClip *clip)
 	clip->tracking.stabilization.ok= 0;
 
 	/* update clip source */
-	if(BLI_testextensie_array(clip->name, imb_ext_movie)) clip->source= MCLIP_SRC_MOVIE;
+	if (BLI_testextensie_array(clip->name, imb_ext_movie)) clip->source= MCLIP_SRC_MOVIE;
 	else clip->source= MCLIP_SRC_SEQUENCE;
 }
 
 void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClipScopes *scopes)
 {
-	if(scopes->ok)
+	if (scopes->ok)
 		return;
 
-	if(scopes->track_preview) {
+	if (scopes->track_preview) {
 		IMB_freeImBuf(scopes->track_preview);
 		scopes->track_preview= NULL;
 	}
@@ -942,25 +947,26 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 	scopes->marker= NULL;
 	scopes->track= NULL;
 
-	if(clip) {
+	if (clip) {
 		MovieTrackingTrack *act_track= BKE_tracking_active_track(&clip->tracking);
 
-		if(act_track) {
+		if (act_track) {
 			MovieTrackingTrack *track= act_track;
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
-			if(marker->flag&MARKER_DISABLED) {
+			if (marker->flag&MARKER_DISABLED) {
 				scopes->track_disabled= 1;
-			} else {
+			}
+			else {
 				ImBuf *ibuf= BKE_movieclip_get_ibuf(clip, user);
 
 				scopes->track_disabled= 0;
 
-				if(ibuf && ibuf->rect) {
+				if (ibuf && ibuf->rect) {
 					ImBuf *tmpibuf;
 					MovieTrackingMarker undist_marker= *marker;
 
-					if(user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
+					if (user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
 						int width, height;
 						float aspy= 1.0f/clip->tracking.camera.pixel_aspect;
 
@@ -979,10 +985,10 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 					tmpibuf= BKE_tracking_get_pattern_imbuf(ibuf, track, &undist_marker, 3 /* margin */,
 							1 /* anchor */, scopes->track_pos, NULL);
 
-					if(tmpibuf->rect_float)
+					if (tmpibuf->rect_float)
 						IMB_rect_from_float(tmpibuf);
 
-					if(tmpibuf->rect)
+					if (tmpibuf->rect)
 						scopes->track_preview= tmpibuf;
 					else
 						IMB_freeImBuf(tmpibuf);
@@ -991,7 +997,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				IMB_freeImBuf(ibuf);
 			}
 
-			if((track->flag&TRACK_LOCKED)==0) {
+			if ((track->flag&TRACK_LOCKED)==0) {
 				scopes->marker= marker;
 				scopes->track= track;
 				scopes->slide_scale[0]= track->pat_max[0]-track->pat_min[0];
@@ -1024,13 +1030,13 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 	scaleibuf->ftype= JPG | quality;
 
 	/* unsupported feature only confuses other s/w */
-	if(scaleibuf->planes==32)
+	if (scaleibuf->planes==32)
 		scaleibuf->planes= 24;
 
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
 	BLI_make_existing_file(name);
-	if(IMB_saveiff(scaleibuf, name, IB_rect)==0)
+	if (IMB_saveiff(scaleibuf, name, IB_rect)==0)
 		perror(name);
 
 	BLI_unlock_thread(LOCK_MOVIECLIP);
@@ -1050,19 +1056,19 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct Movi
 
 	ibuf= BKE_movieclip_get_ibuf_flag(clip, &user, clip_flag, MOVIECLIP_CACHE_SKIP);
 
-	if(ibuf) {
+	if (ibuf) {
 		ImBuf *tmpibuf= ibuf;
 		int i;
 
-		if(undistorted)
+		if (undistorted)
 			tmpibuf= get_undistorted_ibuf(clip, distortion, ibuf);
 
-		for(i= 0; i<build_count; i++)
+		for (i= 0; i<build_count; i++)
 			movieclip_build_proxy_ibuf(clip, tmpibuf, cfra, build_sizes[i], undistorted);
 
 		IMB_freeImBuf(ibuf);
 
-		if(tmpibuf!=ibuf)
+		if (tmpibuf!=ibuf)
 			IMB_freeImBuf(tmpibuf);
 	}
 }
@@ -1082,21 +1088,21 @@ void unlink_movieclip(Main *bmain, MovieClip *clip)
 	Scene *sce;
 	Object *ob;
 
-	for(scr= bmain->screen.first; scr; scr= scr->id.next) {
-		for(area= scr->areabase.first; area; area= area->next) {
-			for(sl= area->spacedata.first; sl; sl= sl->next) {
-				if(sl->spacetype==SPACE_CLIP) {
+	for (scr= bmain->screen.first; scr; scr= scr->id.next) {
+		for (area= scr->areabase.first; area; area= area->next) {
+			for (sl= area->spacedata.first; sl; sl= sl->next) {
+				if (sl->spacetype==SPACE_CLIP) {
 					SpaceClip *sc= (SpaceClip *) sl;
 
-					if(sc->clip==clip)
+					if (sc->clip==clip)
 						sc->clip= NULL;
 				}
-				else if(sl->spacetype==SPACE_VIEW3D) {
+				else if (sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D *) sl;
 					BGpic *bgpic;
 
-					for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
-						if(bgpic->clip==clip)
+					for (bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
+						if (bgpic->clip==clip)
 							bgpic->clip= NULL;
 					}
 				}
@@ -1104,27 +1110,27 @@ void unlink_movieclip(Main *bmain, MovieClip *clip)
 		}
 	}
 
-	for(sce= bmain->scene.first; sce; sce= sce->id.next) {
-		if(sce->clip==clip)
+	for (sce= bmain->scene.first; sce; sce= sce->id.next) {
+		if (sce->clip==clip)
 			sce->clip= NULL;
 	}
 
-	for(ob= bmain->object.first; ob; ob= ob->id.next) {
+	for (ob= bmain->object.first; ob; ob= ob->id.next) {
 		bConstraint *con;
 
-		for(con= ob->constraints.first; con; con= con->next) {
+		for (con= ob->constraints.first; con; con= con->next) {
 			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 
-			if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
+			if (cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
 				bFollowTrackConstraint *data= (bFollowTrackConstraint *) con->data;
 
-				if(data->clip==clip)
+				if (data->clip==clip)
 					data->clip= NULL;
 			}
-			else if(cti->type==CONSTRAINT_TYPE_CAMERASOLVER) {
+			else if (cti->type==CONSTRAINT_TYPE_CAMERASOLVER) {
 				bCameraSolverConstraint *data= (bCameraSolverConstraint *) con->data;
 
-				if(data->clip==clip)
+				if (data->clip==clip)
 					data->clip= NULL;
 			}
 		}

@@ -183,7 +183,7 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 	PropertyRNA *prop;
 	char *path;
 
-	if(driven)
+	if (driven)
 		*driven = FALSE;
 	
 	/* only use the current action ??? */
@@ -204,7 +204,7 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 			/* if not animated, check if driven */
 			if ((fcu == NULL) && (adt->drivers.first)) {
 				fcu= list_find_fcurve(&adt->drivers, path, index);
-				if(fcu && driven)
+				if (fcu && driven)
 					*driven = TRUE;
 				fcu = NULL;
 			}
@@ -845,8 +845,8 @@ void testhandles_fcurve (FCurve *fcu, const short use_handle)
 		 * of beztriple control-points (labelled 0,1,2)
 		 */
 		if (bezt->f2 & SELECT) flag |= (1<<1); // == 2
-		if(use_handle == FALSE) {
-			if(flag & 2) {
+		if (use_handle == FALSE) {
+			if (flag & 2) {
 				flag |= (1<<0) | (1<<2);
 			}
 		}
@@ -1020,7 +1020,7 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	
 	/* get property to read from, and get value as appropriate */
 	if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
-		if(RNA_property_array_check(prop)) {
+		if (RNA_property_array_check(prop)) {
 			/* array */
 			if (index < RNA_property_array_length(&ptr, prop)) {	
 				switch (RNA_property_type(prop)) {
@@ -1418,7 +1418,7 @@ void driver_free_variable (ChannelDriver *driver, DriverVar *dvar)
 
 #ifdef WITH_PYTHON
 	/* since driver variables are cached, the expression needs re-compiling too */
-	if(driver->type==DRIVER_TYPE_PYTHON)
+	if (driver->type==DRIVER_TYPE_PYTHON)
 		driver->flag |= DRIVER_FLAG_RENAMEVAR;
 #endif
 }
@@ -1981,7 +1981,7 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 		/* evaltime occurs somewhere in the middle of the curve */
 		for (a=0; prevbezt && bezt && (a < fcu->totvert-1); a++, prevbezt=bezt, bezt++) {
 			/* use if the key is directly on the frame, rare cases this is needed else we get 0.0 instead. */
-			if(fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
+			if (fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
 				cvalue= bezt->vec[1][1];
 			}
 			/* evaltime occurs within the interval defined by these two keyframes */

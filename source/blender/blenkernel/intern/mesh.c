@@ -1483,7 +1483,8 @@ void nurbs_to_mesh(Object *ob)
 		mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
 
 		BKE_mesh_calc_edges(me, TRUE);
-	} else {
+	}
+	else {
 		me= add_mesh("Mesh");
 		DM_to_mesh(dm, me, ob);
 	}
@@ -1573,7 +1574,8 @@ void mesh_to_curve(Scene *scene, Object *ob)
 				BLI_edgehash_insert(eh, mf->v3, mf->v4, NULL);
 			if (!BLI_edgehash_haskey(eh, mf->v4, mf->v1))
 				BLI_edgehash_insert(eh, mf->v4, mf->v1, NULL);
-		} else {
+		}
+		else {
 			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v1))
 				BLI_edgehash_insert(eh, mf->v3, mf->v1, NULL);
 		}
@@ -1737,7 +1739,8 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 
 		if (enableSmooth) {
 			mp->flag |= ME_SMOOTH;
-		} else {
+		}
+		else {
 			mp->flag &= ~ME_SMOOTH;
 		}
 	}
@@ -1747,7 +1750,8 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 
 		if (enableSmooth) {
 			mf->flag |= ME_SMOOTH;
-		} else {
+		}
+		else {
 			mf->flag &= ~ME_SMOOTH;
 		}
 	}
@@ -2062,7 +2066,8 @@ void convert_mfaces_to_mpolys(Mesh *mesh)
 		if (mf->v4) {
 			ML(v3, v4);
 			ML(v4, v1);
-		} else {
+		}
+		else {
 			ML(v3, v1);
 		}
 		
@@ -2776,7 +2781,8 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 		normal[2] = 1.0f;
 
 		return;
-	} else l = 1.0f / l;
+	}
+	else l = 1.0f / l;
 
 	n[0] *= l;
 	n[1] *= l;
@@ -2854,7 +2860,10 @@ static void mesh_calc_ngon_normal_coords(MPoly *mpoly, MLoop *loopstart,
 		normal[2] = 1.0f;
 
 		return;
-	} else l = 1.0f / l;
+	}
+	else {
+		l = 1.0f / l;
+	}
 
 	n[0] *= l;
 	n[1] *= l;
@@ -2996,7 +3005,7 @@ int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
 										  &mloop[poly->loopstart],
 										  vert);
 		
-	if(corner != -1) {
+	if (corner != -1) {
 		const MLoop *ml = &mloop[poly->loopstart + corner];
 
 		/* vertex was found */
@@ -3017,19 +3026,19 @@ void mesh_flush_hidden_from_verts(const MVert *mvert,
 {
 	int i, j;
 	
-	for(i = 0; i < totedge; i++) {
+	for (i = 0; i < totedge; i++) {
 		MEdge *e = &medge[i];
-		if(mvert[e->v1].flag & ME_HIDE ||
+		if (mvert[e->v1].flag & ME_HIDE ||
 		   mvert[e->v2].flag & ME_HIDE)
 			e->flag |= ME_HIDE;
 		else
 			e->flag &= ~ME_HIDE;
 	}
-	for(i = 0; i < totpoly; i++) {
+	for (i = 0; i < totpoly; i++) {
 		MPoly *p = &mpoly[i];
 		p->flag &= ~ME_HIDE;
-		for(j = 0; j < p->totloop; j++) {
-			if(mvert[mloop[p->loopstart + j].v].flag & ME_HIDE)
+		for (j = 0; j < p->totloop; j++) {
+			if (mvert[mloop[p->loopstart + j].v].flag & ME_HIDE)
 				p->flag |= ME_HIDE;
 		}
 	}

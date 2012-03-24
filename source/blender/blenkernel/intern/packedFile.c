@@ -87,7 +87,8 @@ int seekPackedFile(PackedFile *pf, int offset, int whence)
 		}
 		if (seek < 0) {
 			seek = 0;
-		} else if (seek > pf->size) {
+		}
+		else if (seek > pf->size) {
 			seek = pf->size;
 		}
 		pf->seek = seek;
@@ -110,12 +111,14 @@ int readPackedFile(PackedFile *pf, void *data, int size)
 
 		if (size > 0) {
 			memcpy(data, ((char *) pf->data) + pf->seek, size);
-		} else {
+		}
+		else {
 			size = 0;
 		}
 
 		pf->seek += size;
-	} else {
+	}
+	else {
 		size = -1;
 	}
 
@@ -130,16 +133,16 @@ int countPackedFiles(Main *bmain)
 	int count = 0;
 	
 	// let's check if there are packed files...
-	for(ima=bmain->image.first; ima; ima=ima->id.next)
-		if(ima->packedfile)
+	for (ima=bmain->image.first; ima; ima=ima->id.next)
+		if (ima->packedfile)
 			count++;
 
-	for(vf=bmain->vfont.first; vf; vf=vf->id.next)
-		if(vf->packedfile)
+	for (vf=bmain->vfont.first; vf; vf=vf->id.next)
+		if (vf->packedfile)
 			count++;
 
-	for(sound=bmain->sound.first; sound; sound=sound->id.next)
-		if(sound->packedfile)
+	for (sound=bmain->sound.first; sound; sound=sound->id.next)
+		if (sound->packedfile)
 			count++;
 
 	return count;
@@ -147,7 +150,7 @@ int countPackedFiles(Main *bmain)
 
 void freePackedFile(PackedFile *pf)
 {
-	if(pf) {
+	if (pf) {
 		MEM_freeN(pf->data);
 		MEM_freeN(pf);
 	}
@@ -173,7 +176,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 	
 	/* render result has no filename and can be ignored
 	 * any other files with no name can be ignored too */
-	if(filename[0]=='\0')
+	if (filename[0]=='\0')
 		return NULL;
 
 	//XXX waitcursor(1);
@@ -189,14 +192,16 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 	file= BLI_open(name, O_BINARY|O_RDONLY,0);
 	if (file <= 0) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to pack file, source path not found: \"%s\"", name);
-	} else {
+	}
+	else {
 		filelen = BLI_file_descriptor_size(file);
 
 		if (filelen == 0) {
 			// MEM_mallocN complains about MEM_mallocN(0, "bla");
 			// we don't care....
 			data = MEM_mallocN(1, "packFile");
-		} else {
+		}
+		else {
 			data = MEM_mallocN(filelen, "packFile");
 		}
 		if (read(file, data, filelen) == filelen) {
@@ -217,23 +222,23 @@ void packAll(Main *bmain, ReportList *reports)
 	VFont *vf;
 	bSound *sound;
 	
-	for(ima=bmain->image.first; ima; ima=ima->id.next) {
-		if(ima->packedfile == NULL && ima->id.lib==NULL) { 
-			if(ima->source==IMA_SRC_FILE) {
+	for (ima=bmain->image.first; ima; ima=ima->id.next) {
+		if (ima->packedfile == NULL && ima->id.lib==NULL) { 
+			if (ima->source==IMA_SRC_FILE) {
 				ima->packedfile = newPackedFile(reports, ima->name, ID_BLEND_PATH(bmain, &ima->id));
 			}
-			else if(ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+			else if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
 				BKE_reportf(reports, RPT_WARNING, "Image '%s' skipped, movies and image sequences not supported.", ima->id.name+2);
 			}
 		}
 	}
 
-	for(vf=bmain->vfont.first; vf; vf=vf->id.next)
-		if(vf->packedfile == NULL && vf->id.lib==NULL && strcmp(vf->name, FO_BUILTIN_NAME) != 0)
+	for (vf=bmain->vfont.first; vf; vf=vf->id.next)
+		if (vf->packedfile == NULL && vf->id.lib==NULL && strcmp(vf->name, FO_BUILTIN_NAME) != 0)
 			vf->packedfile = newPackedFile(reports, vf->name, bmain->name);
 
-	for(sound=bmain->sound.first; sound; sound=sound->id.next)
-		if(sound->packedfile == NULL && sound->id.lib==NULL)
+	for (sound=bmain->sound.first; sound; sound=sound->id.next)
+		if (sound->packedfile == NULL && sound->id.lib==NULL)
 			sound->packedfile = newPackedFile(reports, sound->name, bmain->name);
 }
 
@@ -299,7 +304,8 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 			ret_value = RET_ERROR;
 		}
 		close(file);
-	} else {
+	}
+	else {
 		BKE_reportf(reports, RPT_ERROR, "Error creating file: %s", name);
 		ret_value = RET_ERROR;
 	}
@@ -309,14 +315,15 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 			if (BLI_rename(tempname, name) != 0) {
 				BKE_reportf(reports, RPT_ERROR, "Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
 			}
-		} else {
+		}
+		else {
 			if (BLI_delete(tempname, 0, 0) != 0) {
 				BKE_reportf(reports, RPT_ERROR, "Error deleting '%s' (ignored)", tempname);
 			}
 		}
 	}
 	
-	if(guimode) {} //XXX waitcursor(0);
+	if (guimode) {} //XXX waitcursor(0);
 
 	return (ret_value);
 }
@@ -342,15 +349,18 @@ int checkPackedFile(const char *filename, PackedFile *pf)
 	
 	if (stat(name, &st)) {
 		ret_val = PF_NOFILE;
-	} else if (st.st_size != pf->size) {
+	}
+	else if (st.st_size != pf->size) {
 		ret_val = PF_DIFFERS;
-	} else {
+	}
+	else {
 		// we'll have to compare the two...
 		
 		file = BLI_open(name, O_BINARY | O_RDONLY, 0);
 		if (file < 0) {
 			ret_val = PF_NOFILE;
-		} else {
+		}
+		else {
 			ret_val = PF_EQUAL;
 			
 			for (i = 0; i < pf->size; i += sizeof(buf)) {
@@ -363,7 +373,8 @@ int checkPackedFile(const char *filename, PackedFile *pf)
 					// read error ...
 					ret_val = PF_DIFFERS;
 					break;
-				} else {
+				}
+				else {
 					if (memcmp(buf, ((char *)pf->data) + i, len)) {
 						ret_val = PF_DIFFERS;
 						break;
@@ -522,16 +533,16 @@ void unpackAll(Main *bmain, ReportList *reports, int how)
 	VFont *vf;
 	bSound *sound;
 
-	for(ima=bmain->image.first; ima; ima=ima->id.next)
-		if(ima->packedfile)
+	for (ima=bmain->image.first; ima; ima=ima->id.next)
+		if (ima->packedfile)
 			unpackImage(reports, ima, how);
 
-	for(vf=bmain->vfont.first; vf; vf=vf->id.next)
-		if(vf->packedfile)
+	for (vf=bmain->vfont.first; vf; vf=vf->id.next)
+		if (vf->packedfile)
 			unpackVFont(reports, vf, how);
 
-	for(sound=bmain->sound.first; sound; sound=sound->id.next)
-		if(sound->packedfile)
+	for (sound=bmain->sound.first; sound; sound=sound->id.next)
+		if (sound->packedfile)
 			unpackSound(bmain, reports, sound, how);
 }
 

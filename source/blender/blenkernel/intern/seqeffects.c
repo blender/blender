@@ -85,13 +85,15 @@ static struct ImBuf * prepare_effect_imbufs(
 	if (!ibuf1 && !ibuf2 && !ibuf3) {
 		/* hmmm, global float option ? */
 		out = IMB_allocImBuf((short)x, (short)y, 32, IB_rect);
-	} else if ((ibuf1 && ibuf1->rect_float) || 
+	}
+	else if ((ibuf1 && ibuf1->rect_float) ||
 		   (ibuf2 && ibuf2->rect_float) || 
 		   (ibuf3 && ibuf3->rect_float)) {
 		/* if any inputs are rectfloat, output is float too */
 
 		out = IMB_allocImBuf((short)x, (short)y, 32, IB_rectfloat);
-	} else {
+	}
+	else {
 		out = IMB_allocImBuf((short)x, (short)y, 32, IB_rect);
 	}
 	
@@ -144,7 +146,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 
 	/* open the needed object */
 	pis->handle= BLI_dynlib_open(pis->name);
-	if(test_dlerr(pis->name, pis->name)) return;
+	if (test_dlerr(pis->name, pis->name)) return;
 
 	if (pis->handle != NULL) {
 		/* find the address of the version function */
@@ -159,7 +161,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 
 				info_func= (int (*)(PluginInfo *))BLI_dynlib_find_symbol(pis->handle, "plugin_getinfo");
 
-				if(info_func == NULL) error("No info func");
+				if (info_func == NULL) error("No info func");
 				else {
 					info_func(info);
 
@@ -176,8 +178,9 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 				MEM_freeN(info);
 
 				cp= BLI_dynlib_find_symbol(pis->handle, "seqname");
-				if(cp) BLI_strncpy(cp, seqname, SEQ_NAME_MAXSTR);
-			} else {
+				if (cp) BLI_strncpy(cp, seqname, SEQ_NAME_MAXSTR);
+			}
+			else {
 				printf ("Plugin returned unrecognized version number\n");
 				return;
 			}
@@ -205,8 +208,8 @@ static PluginSeq *add_plugin_seq(const char *str, const char *seqname)
 	BLI_strncpy(pis->name, str, FILE_MAX);
 	open_plugin_seq(pis, seqname);
 
-	if(pis->doit==NULL) {
-		if(pis->handle==NULL) error("no plugin: %s", str);
+	if (pis->doit==NULL) {
+		if (pis->handle==NULL) error("no plugin: %s", str);
 		else error("in plugin: %s", str);
 		MEM_freeN(pis);
 		return NULL;
@@ -214,10 +217,10 @@ static PluginSeq *add_plugin_seq(const char *str, const char *seqname)
 
 	/* default values */
 	varstr= pis->varstr;
-	for(a=0; a<pis->vars; a++, varstr++) {
-		if( (varstr->type & FLO)==FLO)
+	for (a=0; a<pis->vars; a++, varstr++) {
+		if ( (varstr->type & FLO)==FLO)
 			pis->data[a]= varstr->def;
-		else if( (varstr->type & INT)==INT)
+		else if ( (varstr->type & INT)==INT)
 			*((int *)(pis->data+a))= (int) varstr->def;
 	}
 
@@ -226,7 +229,7 @@ static PluginSeq *add_plugin_seq(const char *str, const char *seqname)
 
 static void free_plugin_seq(PluginSeq *pis)
 {
-	if(pis==NULL) return;
+	if (pis==NULL) return;
 
 	/* no BLI_dynlib_close: same plugin can be opened multiple times with 1 handle */
 
@@ -265,7 +268,7 @@ static void load_plugin(Sequence * seq)
 
 static void copy_plugin(Sequence * dst, Sequence * src)
 {
-	if(src->plugin) {
+	if (src->plugin) {
 		dst->plugin= MEM_dupallocN(src->plugin);
 		open_plugin_seq(dst->plugin, dst->name+2);
 	}
@@ -295,9 +298,9 @@ static struct ImBuf * do_plugin_effect(
 	int x = context.rectx;
 	int y = context.recty;
 
-	if(seq->plugin && seq->plugin->doit) {
+	if (seq->plugin && seq->plugin->doit) {
 		
-		if(seq->plugin->cfra) 
+		if (seq->plugin->cfra) 
 			*(seq->plugin->cfra)= cfra;
 		
 		cp = BLI_dynlib_find_symbol(
@@ -306,7 +309,7 @@ static struct ImBuf * do_plugin_effect(
 		/* XXX: it's crappy to limit copying buffer by it's lemgth,
 		 *      but assuming plugin stuff is using correct buffer size
 		 *      it should be fine */
-		if(cp) strncpy(cp, seq->name+2, sizeof(seq->name)-2);
+		if (cp) strncpy(cp, seq->name+2, sizeof(seq->name)-2);
 
 		if (seq->plugin->current_private_data) {
 			*seq->plugin->current_private_data 
@@ -342,9 +345,9 @@ static struct ImBuf * do_plugin_effect(
 		}
 
 		if (seq->plugin->version<=2) {
-			if(ibuf1) IMB_convert_rgba_to_abgr(ibuf1);
-			if(ibuf2) IMB_convert_rgba_to_abgr(ibuf2);
-			if(ibuf3) IMB_convert_rgba_to_abgr(ibuf3);
+			if (ibuf1) IMB_convert_rgba_to_abgr(ibuf1);
+			if (ibuf2) IMB_convert_rgba_to_abgr(ibuf2);
+			if (ibuf3) IMB_convert_rgba_to_abgr(ibuf3);
 		}
 
 		if (seq->plugin->version<=4) {
@@ -354,7 +357,8 @@ static struct ImBuf * do_plugin_effect(
 				IMB_cast_away_list(ibuf2), 
 				IMB_cast_away_list(out), 
 				IMB_cast_away_list(ibuf3));
-		} else {
+		}
+		else {
 			((SeqDoit)seq->plugin->doit)(
 				seq->plugin->data, facf0, facf1, x, y,
 				ibuf1, ibuf2, out, ibuf3);
@@ -362,9 +366,9 @@ static struct ImBuf * do_plugin_effect(
 
 		if (seq->plugin->version<=2) {
 			if (!use_temp_bufs) {
-				if(ibuf1) IMB_convert_rgba_to_abgr(ibuf1);
-				if(ibuf2) IMB_convert_rgba_to_abgr(ibuf2);
-				if(ibuf3) IMB_convert_rgba_to_abgr(ibuf3);
+				if (ibuf1) IMB_convert_rgba_to_abgr(ibuf1);
+				if (ibuf2) IMB_convert_rgba_to_abgr(ibuf2);
+				if (ibuf3) IMB_convert_rgba_to_abgr(ibuf3);
 			}
 			IMB_convert_rgba_to_abgr(out);
 		}
@@ -421,51 +425,51 @@ static void do_alphaover_effect_byte(float facf0, float facf1, int x, int y,
 	fac2= (int)(256.0f*facf0);
 	fac4= (int)(256.0f*facf1);
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			/* rt = rt1 over rt2  (alpha from rt1) */
 
 			fac= fac2;
 			mfac= 256 - ( (fac2*rt1[3])>>8 );
 
-			if(fac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
-			else if(mfac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt1);
+			if (fac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
+			else if (mfac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt1);
 			else {
 				tempc= ( fac*rt1[0] + mfac*rt2[0])>>8;
-				if(tempc>255) rt[0]= 255; else rt[0]= tempc;
+				if (tempc>255) rt[0]= 255; else rt[0]= tempc;
 				tempc= ( fac*rt1[1] + mfac*rt2[1])>>8;
-				if(tempc>255) rt[1]= 255; else rt[1]= tempc;
+				if (tempc>255) rt[1]= 255; else rt[1]= tempc;
 				tempc= ( fac*rt1[2] + mfac*rt2[2])>>8;
-				if(tempc>255) rt[2]= 255; else rt[2]= tempc;
+				if (tempc>255) rt[2]= 255; else rt[2]= tempc;
 				tempc= ( fac*rt1[3] + mfac*rt2[3])>>8;
-				if(tempc>255) rt[3]= 255; else rt[3]= tempc;
+				if (tempc>255) rt[3]= 255; else rt[3]= tempc;
 			}
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			fac= fac4;
 			mfac= 256 - ( (fac4*rt1[3])>>8 );
 
-			if(fac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
-			else if(mfac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt1);
+			if (fac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
+			else if (mfac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt1);
 			else {
 				tempc= ( fac*rt1[0] + mfac*rt2[0])>>8;
-				if(tempc>255) rt[0]= 255; else rt[0]= tempc;
+				if (tempc>255) rt[0]= 255; else rt[0]= tempc;
 				tempc= ( fac*rt1[1] + mfac*rt2[1])>>8;
-				if(tempc>255) rt[1]= 255; else rt[1]= tempc;
+				if (tempc>255) rt[1]= 255; else rt[1]= tempc;
 				tempc= ( fac*rt1[2] + mfac*rt2[2])>>8;
-				if(tempc>255) rt[2]= 255; else rt[2]= tempc;
+				if (tempc>255) rt[2]= 255; else rt[2]= tempc;
 				tempc= ( fac*rt1[3] + mfac*rt2[3])>>8;
-				if(tempc>255) rt[3]= 255; else rt[3]= tempc;
+				if (tempc>255) rt[3]= 255; else rt[3]= tempc;
 			}
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
@@ -487,21 +491,23 @@ static void do_alphaover_effect_float(float facf0, float facf1, int x, int y,
 	fac2= facf0;
 	fac4= facf1;
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			/* rt = rt1 over rt2  (alpha from rt1) */
 
 			fac= fac2;
 			mfac= 1.0f - (fac2 * rt1[3]);
 
-			if(fac <= 0.0f) {
+			if (fac <= 0.0f) {
 				memcpy(rt, rt2, 4 * sizeof(float));
-			} else if(mfac <=0) {
+			}
+			else if (mfac <=0) {
 				memcpy(rt, rt1, 4 * sizeof(float));
-			} else {
+			}
+			else {
 				rt[0] = fac*rt1[0] + mfac*rt2[0];
 				rt[1] = fac*rt1[1] + mfac*rt2[1];
 				rt[2] = fac*rt1[2] + mfac*rt2[2];
@@ -510,20 +516,22 @@ static void do_alphaover_effect_float(float facf0, float facf1, int x, int y,
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			fac= fac4;
 			mfac= 1.0f - (fac4*rt1[3]);
 
-			if(fac <= 0.0f) {
+			if (fac <= 0.0f) {
 				memcpy(rt, rt2, 4 * sizeof(float));
-			} else if(mfac <= 0.0f) {
+			}
+			else if (mfac <= 0.0f) {
 				memcpy(rt, rt1, 4 * sizeof(float));
-			} else {
+			}
+			else {
 				rt[0] = fac*rt1[0] + mfac*rt2[0];
 				rt[1] = fac*rt1[1] + mfac*rt2[1];
 				rt[2] = fac*rt1[2] + mfac*rt2[2];
@@ -547,7 +555,8 @@ static struct ImBuf * do_alphaover_effect(
 			facf0, facf1, context.rectx, context.recty,
 			ibuf1->rect_float, ibuf2->rect_float,
 			out->rect_float);
-	} else {
+	}
+	else {
 		do_alphaover_effect_byte(
 			facf0, facf1, context.rectx, context.recty,
 			(char*) ibuf1->rect, (char*) ibuf2->rect,
@@ -577,23 +586,23 @@ static void do_alphaunder_effect_byte(
 	fac2= (int)(256.0f*facf0);
 	fac4= (int)(256.0f*facf1);
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			/* rt = rt1 under rt2  (alpha from rt2) */
 
 			/* this complex optimalisation is because the
 			 * 'skybuf' can be crossed in
 			 */
-			if(rt2[3]==0 && fac2==256) *( (unsigned int *)rt) = *( (unsigned int *)rt1);
-			else if(rt2[3]==255) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
+			if (rt2[3]==0 && fac2==256) *( (unsigned int *)rt) = *( (unsigned int *)rt1);
+			else if (rt2[3]==255) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
 			else {
 				mfac= rt2[3];
 				fac= (fac2*(256-mfac))>>8;
 
-				if(fac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
+				if (fac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
 				else {
 					rt[0]= ( fac*rt1[0] + mfac*rt2[0])>>8;
 					rt[1]= ( fac*rt1[1] + mfac*rt2[1])>>8;
@@ -604,19 +613,19 @@ static void do_alphaunder_effect_byte(
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
-			if(rt2[3]==0 && fac4==256) *( (unsigned int *)rt) = *( (unsigned int *)rt1);
-			else if(rt2[3]==255) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
+			if (rt2[3]==0 && fac4==256) *( (unsigned int *)rt) = *( (unsigned int *)rt1);
+			else if (rt2[3]==255) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
 			else {
 				mfac= rt2[3];
 				fac= (fac4*(256-mfac))>>8;
 
-				if(fac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
+				if (fac==0) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
 				else {
 					rt[0]= ( fac*rt1[0] + mfac*rt2[0])>>8;
 					rt[1]= ( fac*rt1[1] + mfac*rt2[1])>>8;
@@ -646,27 +655,30 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,
 	fac2= facf0;
 	fac4= facf1;
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			/* rt = rt1 under rt2  (alpha from rt2) */
 
 			/* this complex optimalisation is because the
 			 * 'skybuf' can be crossed in
 			 */
-			if( rt2[3]<=0 && fac2 >= 1.0f) {
+			if ( rt2[3]<=0 && fac2 >= 1.0f) {
 				memcpy(rt, rt1, 4 * sizeof(float));
-			} else if(rt2[3] >= 1.0f) {
+			}
+			else if (rt2[3] >= 1.0f) {
 				memcpy(rt, rt2, 4 * sizeof(float));
-			} else {
+			}
+			else {
 				mfac = rt2[3];
 				fac = fac2 * (1.0f - mfac);
 
-				if(fac == 0) {
+				if (fac == 0) {
 					memcpy(rt, rt2, 4 * sizeof(float));
-				} else {
+				}
+				else {
 					rt[0]= fac*rt1[0] + mfac*rt2[0];
 					rt[1]= fac*rt1[1] + mfac*rt2[1];
 					rt[2]= fac*rt1[2] + mfac*rt2[2];
@@ -676,24 +688,27 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
-			if(rt2[3]<=0 && fac4 >= 1.0f) {
+			if (rt2[3]<=0 && fac4 >= 1.0f) {
 				memcpy(rt, rt1, 4 * sizeof(float));
  
-			} else if(rt2[3]>=1.0f) {
+			}
+			else if (rt2[3]>=1.0f) {
 				memcpy(rt, rt2, 4 * sizeof(float));
-			} else {
+			}
+			else {
 				mfac= rt2[3];
 				fac= fac4*(1.0f-mfac);
 
-				if(fac == 0) {
+				if (fac == 0) {
 					memcpy(rt, rt2, 4 * sizeof(float));
-				} else {
+				}
+				else {
 					rt[0]= fac * rt1[0] + mfac * rt2[0];
 					rt[1]= fac * rt1[1] + mfac * rt2[1];
 					rt[2]= fac * rt1[2] + mfac * rt2[2];
@@ -719,7 +734,8 @@ static struct ImBuf* do_alphaunder_effect(
 			facf0, facf1, context.rectx, context.recty,
 			ibuf1->rect_float, ibuf2->rect_float,
 			out->rect_float);
-	} else {
+	}
+	else {
 		do_alphaunder_effect_byte(
 			facf0, facf1, context.rectx, context.recty,
 			(char*) ibuf1->rect, (char*) ibuf2->rect,
@@ -751,10 +767,10 @@ static void do_cross_effect_byte(float facf0, float facf1, int x, int y,
 	fac4= (int)(256.0f*facf1);
 	fac3= 256-fac4;
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			rt[0]= (fac1*rt1[0] + fac2*rt2[0])>>8;
 			rt[1]= (fac1*rt1[1] + fac2*rt2[1])>>8;
@@ -764,11 +780,11 @@ static void do_cross_effect_byte(float facf0, float facf1, int x, int y,
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			rt[0]= (fac3*rt1[0] + fac4*rt2[0])>>8;
 			rt[1]= (fac3*rt1[1] + fac4*rt2[1])>>8;
@@ -798,10 +814,10 @@ static void do_cross_effect_float(float facf0, float facf1, int x, int y,
 	fac4= facf1;
 	fac3= 1.0f - fac4;
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			rt[0]= fac1*rt1[0] + fac2*rt2[0];
 			rt[1]= fac1*rt1[1] + fac2*rt2[1];
@@ -811,11 +827,11 @@ static void do_cross_effect_float(float facf0, float facf1, int x, int y,
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			rt[0]= fac3*rt1[0] + fac4*rt2[0];
 			rt[1]= fac3*rt1[1] + fac4*rt2[1];
@@ -844,7 +860,8 @@ static struct ImBuf* do_cross_effect(
 			facf0, facf1, context.rectx, context.recty,
 			ibuf1->rect_float, ibuf2->rect_float,
 			out->rect_float);
-	} else {
+	}
+	else {
 		do_cross_effect_byte(
 			facf0, facf1, context.rectx, context.recty,
 			(char*) ibuf1->rect, (char*) ibuf2->rect,
@@ -956,19 +973,19 @@ static void gamtabs(float gamma)
 	int a;
 	
 	/* gamtab: in short, out short */
-	for(a=0; a<65536; a++) {
+	for (a=0; a<65536; a++) {
 		val= a;
 		val/= 65535.0f;
 		
-		if(gamma==2.0f) val= sqrt(val);
-		else if(gamma!=1.0f) val= pow(val, igamma);
+		if (gamma==2.0f) val= sqrt(val);
+		else if (gamma!=1.0f) val= pow(val, igamma);
 		
 		gamtab[a]= (65535.99f*val);
 	}
 	/* inverse gamtab1 : in byte, out short */
-	for(a=1; a<=256; a++) {
-		if(gamma==2.0f) igamtab1[a-1]= a*a-1;
-		else if(gamma==1.0f) igamtab1[a-1]= 256*a-1;
+	for (a=1; a<=256; a++) {
+		if (gamma==2.0f) igamtab1[a-1]= a*a-1;
+		else if (gamma==1.0f) igamtab1[a-1]= 256*a-1;
 		else {
 			val= a/256.0f;
 			igamtab1[a - 1]= (65535.0 * pow(val, gamma)) - 1;
@@ -1016,37 +1033,37 @@ static void do_gammacross_effect_byte(float facf0, float UNUSED(facf1),
 	fac2= (int)(256.0f*facf0);
 	fac1= 256-fac2;
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			col= (fac1*igamtab1[rt1[0]] + fac2*igamtab1[rt2[0]])>>8;
-			if(col>65535) rt[0]= 255; else rt[0]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
+			if (col>65535) rt[0]= 255; else rt[0]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
 			col=(fac1*igamtab1[rt1[1]] + fac2*igamtab1[rt2[1]])>>8;
-			if(col>65535) rt[1]= 255; else rt[1]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
+			if (col>65535) rt[1]= 255; else rt[1]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
 			col= (fac1*igamtab1[rt1[2]] + fac2*igamtab1[rt2[2]])>>8;
-			if(col>65535) rt[2]= 255; else rt[2]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
+			if (col>65535) rt[2]= 255; else rt[2]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
 			col= (fac1*igamtab1[rt1[3]] + fac2*igamtab1[rt2[3]])>>8;
-			if(col>65535) rt[3]= 255; else rt[3]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
+			if (col>65535) rt[3]= 255; else rt[3]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
 
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			col= (fac1*igamtab1[rt1[0]] + fac2*igamtab1[rt2[0]])>>8;
-			if(col>65535) rt[0]= 255; else rt[0]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
+			if (col>65535) rt[0]= 255; else rt[0]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
 			col= (fac1*igamtab1[rt1[1]] + fac2*igamtab1[rt2[1]])>>8;
-			if(col>65535) rt[1]= 255; else rt[1]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
+			if (col>65535) rt[1]= 255; else rt[1]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
 			col= (fac1*igamtab1[rt1[2]] + fac2*igamtab1[rt2[2]])>>8;
-			if(col>65535) rt[2]= 255; else rt[2]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
+			if (col>65535) rt[2]= 255; else rt[2]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
 			col= (fac1*igamtab1[rt1[3]] + fac2*igamtab1[rt2[3]])>>8;
-			if(col>65535) rt[3]= 255; else rt[3]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
+			if (col>65535) rt[3]= 255; else rt[3]= ( (char *)(gamtab+col))[MOST_SIG_BYTE];
 
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
@@ -1071,10 +1088,10 @@ static void do_gammacross_effect_float(float facf0, float UNUSED(facf1),
 	fac2= facf0;
 	fac1= 1.0f - fac2;
 
-	while(y--) {
+	while (y--) {
 
 		x= xo * 4;
-		while(x--) {
+		while (x--) {
 
 			*rt= gammaCorrect(
 				fac1 * invGammaCorrect(*rt1) 
@@ -1082,11 +1099,11 @@ static void do_gammacross_effect_float(float facf0, float UNUSED(facf1),
 			rt1++; rt2++; rt++;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo * 4;
-		while(x--) {
+		while (x--) {
 
 			*rt= gammaCorrect(
 				fac1*invGammaCorrect(*rt1) 
@@ -1113,7 +1130,8 @@ static struct ImBuf * do_gammacross_effect(
 			facf0, facf1, context.rectx, context.recty,
 			ibuf1->rect_float, ibuf2->rect_float,
 			out->rect_float);
-	} else {
+	}
+	else {
 		do_gammacross_effect_byte(
 			facf0, facf1, context.rectx, context.recty,
 			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
@@ -1142,37 +1160,37 @@ static void do_add_effect_byte(float facf0, float facf1, int x, int y,
 	fac1= (int)(256.0f*facf0);
 	fac3= (int)(256.0f*facf1);
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			col= rt1[0]+ ((fac1*rt2[0])>>8);
-			if(col>255) rt[0]= 255; else rt[0]= col;
+			if (col>255) rt[0]= 255; else rt[0]= col;
 			col= rt1[1]+ ((fac1*rt2[1])>>8);
-			if(col>255) rt[1]= 255; else rt[1]= col;
+			if (col>255) rt[1]= 255; else rt[1]= col;
 			col= rt1[2]+ ((fac1*rt2[2])>>8);
-			if(col>255) rt[2]= 255; else rt[2]= col;
+			if (col>255) rt[2]= 255; else rt[2]= col;
 			col= rt1[3]+ ((fac1*rt2[3])>>8);
-			if(col>255) rt[3]= 255; else rt[3]= col;
+			if (col>255) rt[3]= 255; else rt[3]= col;
 
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			col= rt1[0]+ ((fac3*rt2[0])>>8);
-			if(col>255) rt[0]= 255; else rt[0]= col;
+			if (col>255) rt[0]= 255; else rt[0]= col;
 			col= rt1[1]+ ((fac3*rt2[1])>>8);
-			if(col>255) rt[1]= 255; else rt[1]= col;
+			if (col>255) rt[1]= 255; else rt[1]= col;
 			col= rt1[2]+ ((fac3*rt2[2])>>8);
-			if(col>255) rt[2]= 255; else rt[2]= col;
+			if (col>255) rt[2]= 255; else rt[2]= col;
 			col= rt1[3]+ ((fac3*rt2[3])>>8);
-			if(col>255) rt[3]= 255; else rt[3]= col;
+			if (col>255) rt[3]= 255; else rt[3]= col;
 
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
@@ -1195,20 +1213,20 @@ static void do_add_effect_float(float facf0, float facf1, int x, int y,
 	fac1= facf0;
 	fac3= facf1;
 
-	while(y--) {
+	while (y--) {
 
 		x= xo * 4;
-		while(x--) {
+		while (x--) {
 			*rt = *rt1 + fac1 * (*rt2);
 
 			rt1++; rt2++; rt++;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo * 4;
-		while(x--) {
+		while (x--) {
 			*rt = *rt1 + fac3 * (*rt2);
 
 			rt1++; rt2++; rt++;
@@ -1229,7 +1247,8 @@ static struct ImBuf * do_add_effect(SeqRenderData context,
 			facf0, facf1, context.rectx, context.recty,
 			ibuf1->rect_float, ibuf2->rect_float,
 			out->rect_float);
-	} else {
+	}
+	else {
 		do_add_effect_byte(
 			facf0, facf1, context.rectx, context.recty,
 			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
@@ -1258,37 +1277,37 @@ static void do_sub_effect_byte(float facf0, float facf1,
 	fac1= (int)(256.0f*facf0);
 	fac3= (int)(256.0f*facf1);
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			col= rt1[0]- ((fac1*rt2[0])>>8);
-			if(col<0) rt[0]= 0; else rt[0]= col;
+			if (col<0) rt[0]= 0; else rt[0]= col;
 			col= rt1[1]- ((fac1*rt2[1])>>8);
-			if(col<0) rt[1]= 0; else rt[1]= col;
+			if (col<0) rt[1]= 0; else rt[1]= col;
 			col= rt1[2]- ((fac1*rt2[2])>>8);
-			if(col<0) rt[2]= 0; else rt[2]= col;
+			if (col<0) rt[2]= 0; else rt[2]= col;
 			col= rt1[3]- ((fac1*rt2[3])>>8);
-			if(col<0) rt[3]= 0; else rt[3]= col;
+			if (col<0) rt[3]= 0; else rt[3]= col;
 
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			col= rt1[0]- ((fac3*rt2[0])>>8);
-			if(col<0) rt[0]= 0; else rt[0]= col;
+			if (col<0) rt[0]= 0; else rt[0]= col;
 			col= rt1[1]- ((fac3*rt2[1])>>8);
-			if(col<0) rt[1]= 0; else rt[1]= col;
+			if (col<0) rt[1]= 0; else rt[1]= col;
 			col= rt1[2]- ((fac3*rt2[2])>>8);
-			if(col<0) rt[2]= 0; else rt[2]= col;
+			if (col<0) rt[2]= 0; else rt[2]= col;
 			col= rt1[3]- ((fac3*rt2[3])>>8);
-			if(col<0) rt[3]= 0; else rt[3]= col;
+			if (col<0) rt[3]= 0; else rt[3]= col;
 
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
@@ -1311,20 +1330,20 @@ static void do_sub_effect_float(float facf0, float facf1, int x, int y,
 	fac1= facf0;
 	fac3= facf1;
 
-	while(y--) {
+	while (y--) {
 
 		x= xo * 4;
-		while(x--) {
+		while (x--) {
 			*rt = *rt1 - fac1 * (*rt2);
 
 			rt1++; rt2++; rt++;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo * 4;
-		while(x--) {
+		while (x--) {
 			*rt = *rt1 - fac3 * (*rt2);
 
 			rt1++; rt2++; rt++;
@@ -1345,7 +1364,8 @@ static struct ImBuf * do_sub_effect(
 			facf0, facf1, context.rectx, context.recty,
 			ibuf1->rect_float, ibuf2->rect_float,
 			out->rect_float);
-	} else {
+	}
+	else {
 		do_sub_effect_byte(
 			facf0, facf1, context.rectx, context.recty,
 			(char*) ibuf1->rect, (char*) ibuf2->rect,
@@ -1380,7 +1400,7 @@ static void do_drop_effect_byte(float facf0, float facf1, int x, int y,
 	rt1= (char*) rect1i;
 	out= (char*) outi;
 	for (y=0; y<height-YOFF; y++) {
-		if(field) fac= fac1;
+		if (field) fac= fac1;
 		else fac= fac2;
 		field= !field;
 
@@ -1421,7 +1441,7 @@ static void do_drop_effect_float(float facf0, float facf1, int x, int y,
 	rt1=  rect1i;
 	out=  outi;
 	for (y=0; y<height-YOFF; y++) {
-		if(field) fac= fac1;
+		if (field) fac= fac1;
 		else fac= fac2;
 		field= !field;
 
@@ -1467,10 +1487,10 @@ static void do_mul_effect_byte(float facf0, float facf1, int x, int y,
 	 *		yaux= -s*px + c*py;//+centy
 	 */
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			rt[0]= rt1[0] + ((fac1*rt1[0]*(rt2[0]-256))>>16);
 			rt[1]= rt1[1] + ((fac1*rt1[1]*(rt2[1]-256))>>16);
@@ -1480,11 +1500,11 @@ static void do_mul_effect_byte(float facf0, float facf1, int x, int y,
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			rt[0]= rt1[0] + ((fac3*rt1[0]*(rt2[0]-256))>>16);
 			rt[1]= rt1[1] + ((fac3*rt1[1]*(rt2[1]-256))>>16);
@@ -1516,10 +1536,10 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y,
 	 *		fac*(a*b) + (1-fac)*a  => fac*a*(b-1)+a
 	 */
 
-	while(y--) {
+	while (y--) {
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			rt[0]= rt1[0] + fac1*rt1[0]*(rt2[0]-1.0f);
 			rt[1]= rt1[1] + fac1*rt1[1]*(rt2[1]-1.0f);
@@ -1529,11 +1549,11 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y,
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
 
-		if(y==0) break;
+		if (y==0) break;
 		y--;
 
 		x= xo;
-		while(x--) {
+		while (x--) {
 
 			rt[0]= rt1[0] + fac3*rt1[0]*(rt2[0]-1.0f);
 			rt[1]= rt1[1] + fac3*rt1[1]*(rt2[1]-1.0f);
@@ -1558,7 +1578,8 @@ static struct ImBuf * do_mul_effect(
 			facf0, facf1, context.rectx, context.recty,
 			ibuf1->rect_float, ibuf2->rect_float,
 			out->rect_float);
-	} else {
+	}
+	else {
 		do_mul_effect_byte(
 			facf0, facf1, context.rectx, context.recty,
 			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
@@ -1595,18 +1616,18 @@ static float in_band(float width,float dist,int side,int dir)
 {
 	float alpha;
 
-	if(width == 0)
+	if (width == 0)
 		return (float)side;
 
-	if(width < dist)
+	if (width < dist)
 		return (float)side;
 
-	if(side == 1)
+	if (side == 1)
 		alpha = (dist+0.5f*width) / (width);
 	else
 		alpha = (0.5f*width-dist) / (width);
 
-	if(dir == 0)
+	if (dir == 0)
 		alpha = 1-alpha;
 
 	return alpha;
@@ -1627,13 +1648,14 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 	WipeVars *wipe = (WipeVars *)seq->effectdata;
 	int width;
 
-	if(wipezone->flip) x = xo - x;
+	if (wipezone->flip) x = xo - x;
 	angle = wipezone->angle;
 
-	if(wipe->forward) {
+	if (wipe->forward) {
 		posx = facf0 * xo;
 		posy = facf0 * yo;
-	} else{
+	}
+	else {
 		posx = xo - facf0 * xo;
 		posy = yo - facf0 * yo;
 	}
@@ -1642,7 +1664,7 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 		case DO_SINGLE_WIPE:
 			width = wipezone->width;
 
-			if(angle == 0.0f) {
+			if (angle == 0.0f) {
 				b1 = posy;
 				b2 = y;
 				hyp = fabs(y - posy);
@@ -1653,20 +1675,20 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 				hyp = fabsf(angle*x+y+(-posy-angle*posx))*wipezone->pythangle;
 			}
 
-			if(angle < 0) {
+			if (angle < 0) {
 				temp1 = b1;
 				b1 = b2;
 				b2 = temp1;
 			}
 
-			if(wipe->forward) {
-				if(b1 < b2)
+			if (wipe->forward) {
+				if (b1 < b2)
 					output = in_band(width,hyp,1,1);
 				else
 					output = in_band(width,hyp,0,1);
 			}
 			else {
-				if(b1 < b2)
+				if (b1 < b2)
 					output = in_band(width,hyp,0,1);
 				else
 					output = in_band(width,hyp,1,1);
@@ -1674,7 +1696,7 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 		break;
 
 		case DO_DOUBLE_WIPE:
-			if(!wipe->forward)
+			if (!wipe->forward)
 				facf0 = 1.0f-facf0;   // Go the other direction
 
 			width = wipezone->width;  // calculate the blur width
@@ -1698,19 +1720,21 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 
 			hwidth = minf(hwidth, fabsf(b3-b1)/2.0f);
 
-			if(b2 < b1 && b2 < b3 ) {
+			if (b2 < b1 && b2 < b3 ) {
 				output = in_band(hwidth,hyp,0,1);
-			} else if(b2 > b1 && b2 > b3 ) {
+			}
+			else if (b2 > b1 && b2 > b3 ) {
 				output = in_band(hwidth,hyp2,0,1);
-			} else {
-				if(  hyp < hwidth && hyp2 > hwidth )
+			}
+			else {
+				if (  hyp < hwidth && hyp2 > hwidth )
 					output = in_band(hwidth,hyp,1,1);
-				else if( hyp > hwidth && hyp2 < hwidth )
+				else if ( hyp > hwidth && hyp2 < hwidth )
 					  output = in_band(hwidth,hyp2,1,1);
 				else
 					  output = in_band(hwidth,hyp2,1,1) * in_band(hwidth,hyp,1,1);
 			}
-			if(!wipe->forward)output = 1-output;
+			if (!wipe->forward)output = 1-output;
 		break;
 		case DO_CLOCK_WIPE:
 			/*
@@ -1723,7 +1747,7 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 			widthf = wipe->edgeWidth*2.0f*(float)M_PI;
 			temp1 = 2.0f * (float)M_PI * facf0;
 
-			if(wipe->forward) {
+			if (wipe->forward) {
 				temp1 = 2.0f*(float)M_PI - temp1;
 			}
 
@@ -1731,14 +1755,15 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 			y = y - halfy;
 
 			temp2 = asin(abs(y)/sqrt(x*x + y*y));
-			if(x <= 0 && y >= 0) temp2 = (float)M_PI - temp2;
-			else if(x<=0 && y <= 0) temp2 += (float)M_PI;
-			else if(x >= 0 && y <= 0) temp2 = 2.0f*(float)M_PI - temp2;
+			if (x <= 0 && y >= 0) temp2 = (float)M_PI - temp2;
+			else if (x<=0 && y <= 0) temp2 += (float)M_PI;
+			else if (x >= 0 && y <= 0) temp2 = 2.0f*(float)M_PI - temp2;
 
-			if(wipe->forward) {
+			if (wipe->forward) {
 				temp3 = temp1-(widthf*0.5f)*facf0;
 				temp4 = temp1+(widthf*0.5f)*(1-facf0);
-			} else{
+			}
+			else {
 				temp3 = temp1-(widthf*0.5f)*(1-facf0);
 				temp4 = temp1+(widthf*0.5f)*facf0;
 			}
@@ -1746,19 +1771,19 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 			if (temp4 > 2.0f*(float)M_PI) temp4 = 2.0f*(float)M_PI;
 
 
-			if(temp2 < temp3) output = 0;
+			if (temp2 < temp3) output = 0;
 			else if (temp2 > temp4) output = 1;
 			else output = (temp2-temp3)/(temp4-temp3);
-			if(x == 0 && y == 0) output = 1;
-			if(output != output) output = 1;
-			if(wipe->forward) output = 1 - output;
+			if (x == 0 && y == 0) output = 1;
+			if (output != output) output = 1;
+			if (wipe->forward) output = 1 - output;
 		break;
 	/* BOX WIPE IS NOT WORKING YET */
 	/* case DO_CROSS_WIPE: */
 	/* BOX WIPE IS NOT WORKING YET */
 	/* 
 		case DO_BOX_WIPE: 
-			if(invert)facf0 = 1-facf0;
+			if (invert)facf0 = 1-facf0;
 
 			width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
 			hwidth = (float)width/2.0;
@@ -1774,22 +1799,24 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 			temp2 = yo*(1-facf0/2)-yo*facf0/2;
 			pointdist = sqrt(temp1*temp1 + temp2*temp2);
 
-			if(b2 < b1 && b2 < b3 ) {
-				if(hwidth < pointdist)
+			if (b2 < b1 && b2 < b3 ) {
+				if (hwidth < pointdist)
 					output = in_band(wipezone,hwidth,hyp,facf0,0,1);
-			} else if(b2 > b1 && b2 > b3 ) {
-				if(hwidth < pointdist)
+		}
+		else if (b2 > b1 && b2 > b3 ) {
+				if (hwidth < pointdist)
 					output = in_band(wipezone,hwidth,hyp2,facf0,0,1);	
-			} else {
-				if( hyp < hwidth && hyp2 > hwidth )
+		}
+		else {
+				if ( hyp < hwidth && hyp2 > hwidth )
 					output = in_band(wipezone,hwidth,hyp,facf0,1,1);
-				else if( hyp > hwidth && hyp2 < hwidth )
+				else if ( hyp > hwidth && hyp2 < hwidth )
 					 output = in_band(wipezone,hwidth,hyp2,facf0,1,1);
 				else
 					 output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
 			}
 
-			if(invert)facf0 = 1-facf0;
+			if (invert)facf0 = 1-facf0;
 			angle = -1/angle;
 			b1 = posy/2 - (-angle)*posx/2;
 			b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
@@ -1798,16 +1825,18 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 			hyp = abs(angle*x+y+(-posy/2-angle*posx/2))*wipezone->pythangle;
 			hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))*wipezone->pythangle;
 
-			if(b2 < b1 && b2 < b3 ) {
-				if(hwidth < pointdist)
+			if (b2 < b1 && b2 < b3 ) {
+				if (hwidth < pointdist)
 					output *= in_band(wipezone,hwidth,hyp,facf0,0,1);
-			} else if(b2 > b1 && b2 > b3 ) {
-				if(hwidth < pointdist)
+		}
+		else if (b2 > b1 && b2 > b3 ) {
+				if (hwidth < pointdist)
 					output *= in_band(wipezone,hwidth,hyp2,facf0,0,1);	
-			} else {
-				if( hyp < hwidth && hyp2 > hwidth )
+		}
+		else {
+				if ( hyp < hwidth && hyp2 > hwidth )
 					output *= in_band(wipezone,hwidth,hyp,facf0,1,1);
-				else if( hyp > hwidth && hyp2 < hwidth )
+				else if ( hyp > hwidth && hyp2 < hwidth )
 					output *= in_band(wipezone,hwidth,hyp2,facf0,1,1);
 				else
 					output *= in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
@@ -1816,10 +1845,10 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 		break;
 */
 		case DO_IRIS_WIPE:
-			if(xo > yo) yo = xo;
+			if (xo > yo) yo = xo;
 			else xo = yo;
 
-			if(!wipe->forward) facf0 = 1-facf0;
+			if (!wipe->forward) facf0 = 1-facf0;
 
 			width = wipezone->width;
 			hwidth = width*0.5f;
@@ -1828,21 +1857,21 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 			pointdist = sqrt(temp1*temp1 + temp1*temp1);
 
 			temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
-			if(temp2 > pointdist) output = in_band(hwidth,fabs(temp2-pointdist),0,1);
+			if (temp2 > pointdist) output = in_band(hwidth,fabs(temp2-pointdist),0,1);
 			else output = in_band(hwidth,fabs(temp2-pointdist),1,1);
 
-			if(!wipe->forward) output = 1-output;
+			if (!wipe->forward) output = 1-output;
 			
 		break;
 	}
 	if (output < 0) output = 0;
-	else if(output > 1) output = 1;
+	else if (output > 1) output = 1;
 	return output;
 }
 
 static void init_wipe_effect(Sequence *seq)
 {
-	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	if (seq->effectdata)MEM_freeN(seq->effectdata);
 	seq->effectdata = MEM_callocN(sizeof(struct WipeVars), "wipevars");
 }
 
@@ -1853,7 +1882,7 @@ static int num_inputs_wipe(void)
 
 static void free_wipe_effect(Sequence *seq)
 {
-	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	if (seq->effectdata)MEM_freeN(seq->effectdata);
 	seq->effectdata = NULL;
 }
 
@@ -1880,8 +1909,8 @@ static void do_wipe_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1),
 
 	xo = x;
 	yo = y;
-	for(y=0;y<yo;y++) {
-		for(x=0;x<xo;x++) {
+	for (y=0;y<yo;y++) {
+		for (x=0;x<xo;x++) {
 			float check = check_zone(&wipezone,x,y,seq,facf0);
 			if (check) {
 				if (rt1) {
@@ -1889,19 +1918,22 @@ static void do_wipe_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1),
 					rt[1] = (int)(rt1[1]*check)+ (int)(rt2[1]*(1-check));
 					rt[2] = (int)(rt1[2]*check)+ (int)(rt2[2]*(1-check));
 					rt[3] = (int)(rt1[3]*check)+ (int)(rt2[3]*(1-check));
-				} else {
+				}
+				else {
 					rt[0] = 0;
 					rt[1] = 0;
 					rt[2] = 0;
 					rt[3] = 255;
 				}
-			} else {
+			}
+			else {
 				if (rt2) {
 					rt[0] = rt2[0];
 					rt[1] = rt2[1];
 					rt[2] = rt2[2];
 					rt[3] = rt2[3];
-				} else {
+				}
+				else {
 					rt[0] = 0;
 					rt[1] = 0;
 					rt[2] = 0;
@@ -1910,10 +1942,10 @@ static void do_wipe_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1),
 			}
 
 			rt+=4;
-			if(rt1 !=NULL) {
+			if (rt1 !=NULL) {
 				rt1+=4;
 			}
-			if(rt2 !=NULL) {
+			if (rt2 !=NULL) {
 				rt2+=4;
 			}
 		}
@@ -1938,8 +1970,8 @@ static void do_wipe_effect_float(Sequence *seq, float facf0, float UNUSED(facf1)
 
 	xo = x;
 	yo = y;
-	for(y=0;y<yo;y++) {
-		for(x=0;x<xo;x++) {
+	for (y=0;y<yo;y++) {
+		for (x=0;x<xo;x++) {
 			float check = check_zone(&wipezone,x,y,seq,facf0);
 			if (check) {
 				if (rt1) {
@@ -1947,19 +1979,22 @@ static void do_wipe_effect_float(Sequence *seq, float facf0, float UNUSED(facf1)
 					rt[1] = rt1[1]*check+ rt2[1]*(1-check);
 					rt[2] = rt1[2]*check+ rt2[2]*(1-check);
 					rt[3] = rt1[3]*check+ rt2[3]*(1-check);
-				} else {
+				}
+				else {
 					rt[0] = 0;
 					rt[1] = 0;
 					rt[2] = 0;
 					rt[3] = 1.0;
 				}
-			} else {
+			}
+			else {
 				if (rt2) {
 					rt[0] = rt2[0];
 					rt[1] = rt2[1];
 					rt[2] = rt2[2];
 					rt[3] = rt2[3];
-				} else {
+				}
+				else {
 					rt[0] = 0;
 					rt[1] = 0;
 					rt[2] = 0;
@@ -1968,10 +2003,10 @@ static void do_wipe_effect_float(Sequence *seq, float facf0, float UNUSED(facf1)
 			}
 
 			rt+=4;
-			if(rt1 !=NULL) {
+			if (rt1 !=NULL) {
 				rt1+=4;
 			}
-			if(rt2 !=NULL) {
+			if (rt2 !=NULL) {
 				rt2+=4;
 			}
 		}
@@ -1991,7 +2026,8 @@ static struct ImBuf * do_wipe_effect(
 				     facf0, facf1, context.rectx, context.recty,
 				     ibuf1->rect_float, ibuf2->rect_float,
 				     out->rect_float);
-	} else {
+	}
+	else {
 		do_wipe_effect_byte(seq,
 				    facf0, facf1, context.rectx, context.recty,
 				    (unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
@@ -2007,7 +2043,7 @@ static void init_transform_effect(Sequence *seq)
 {
 	TransformVars *transform;
 
-	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	if (seq->effectdata)MEM_freeN(seq->effectdata);
 	seq->effectdata = MEM_callocN(sizeof(struct TransformVars), "transformvars");
 
 	transform = (TransformVars *)seq->effectdata;
@@ -2032,7 +2068,7 @@ static int num_inputs_transform(void)
 
 static void free_transform_effect(Sequence *seq)
 {
-	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	if (seq->effectdata)MEM_freeN(seq->effectdata);
 	seq->effectdata = NULL;
 }
 
@@ -2100,18 +2136,20 @@ static void do_transform(Scene *scene, Sequence *seq, float UNUSED(facf0), int x
 	// Scale
 	if (transform->uniform_scale) {
 		scale_x = scale_y = transform->ScalexIni;
-	} else {
+	}
+	else {
 		scale_x = transform->ScalexIni;
 		scale_y = transform->ScaleyIni;
 	}
 
 	// Translate
-	if(!transform->percent) {
+	if (!transform->percent) {
 		float rd_s = (scene->r.size/100.0f);
 
 		translate_x = transform->xIni*rd_s+(x/2.0f);
 		translate_y = transform->yIni*rd_s+(y/2.0f);
-	}else{
+	}
+	else {
 		translate_x = x*(transform->xIni/100.0f)+(x/2.0f);
 		translate_y = y*(transform->yIni/100.0f)+(y/2.0f);
 	}
@@ -2527,7 +2565,7 @@ static void RVIsolateHighlights_byte (unsigned char* in, unsigned char* out,
 	int	intensity;
 
 
-	for(y=0;y< height;y++) {
+	for (y=0;y< height;y++) {
 		for (x=0;x< width;x++) {
 			index= (x+y*width)*4;
 
@@ -2538,7 +2576,8 @@ static void RVIsolateHighlights_byte (unsigned char* in, unsigned char* out,
 				out[index+GlowG]=MIN2(255*clamp, (in[index+GlowG]*boost*intensity)/255);
 				out[index+GlowB]=MIN2(255*clamp, (in[index+GlowB]*boost*intensity)/255);
 				out[index+GlowA]=MIN2(255*clamp, (in[index+GlowA]*boost*intensity)/255);
-			} else{
+			}
+			else {
 				out[index+GlowR]=0;
 				out[index+GlowG]=0;
 				out[index+GlowB]=0;
@@ -2556,7 +2595,7 @@ static void RVIsolateHighlights_float (float* in, float* out,
 	float	intensity;
 
 
-	for(y=0;y< height;y++) {
+	for (y=0;y< height;y++) {
 		for (x=0;x< width;x++) {
 			index= (x+y*width)*4;
 
@@ -2567,7 +2606,8 @@ static void RVIsolateHighlights_float (float* in, float* out,
 				out[index+GlowG]=MIN2(clamp, (in[index+GlowG]*boost*intensity));
 				out[index+GlowB]=MIN2(clamp, (in[index+GlowB]*boost*intensity));
 				out[index+GlowA]=MIN2(clamp, (in[index+GlowA]*boost*intensity));
-			} else{
+			}
+			else {
 				out[index+GlowR]=0;
 				out[index+GlowG]=0;
 				out[index+GlowB]=0;
@@ -2581,7 +2621,7 @@ static void init_glow_effect(Sequence *seq)
 {
 	GlowVars *glow;
 
-	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	if (seq->effectdata)MEM_freeN(seq->effectdata);
 	seq->effectdata = MEM_callocN(sizeof(struct GlowVars), "glowvars");
 
 	glow = (GlowVars *)seq->effectdata;
@@ -2600,7 +2640,7 @@ static int num_inputs_glow(void)
 
 static void free_glow_effect(Sequence *seq)
 {
-	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	if (seq->effectdata)MEM_freeN(seq->effectdata);
 	seq->effectdata = NULL;
 }
 
@@ -2654,7 +2694,8 @@ static struct ImBuf * do_glow_effect(
 				     context.rectx, context.recty,
 				     ibuf1->rect_float, ibuf2->rect_float,
 				     out->rect_float);
-	} else {
+	}
+	else {
 		do_glow_effect_byte(seq, render_size,
 				    facf0, facf1, 
 				    context.rectx, context.recty,
@@ -2673,7 +2714,7 @@ static void init_solid_color(Sequence *seq)
 {
 	SolidColorVars *cv;
 	
-	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	if (seq->effectdata)MEM_freeN(seq->effectdata);
 	seq->effectdata = MEM_callocN(sizeof(struct SolidColorVars), "solidcolor");
 	
 	cv = (SolidColorVars *)seq->effectdata;
@@ -2687,7 +2728,7 @@ static int num_inputs_color(void)
 
 static void free_solid_color(Sequence *seq)
 {
-	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	if (seq->effectdata)MEM_freeN(seq->effectdata);
 	seq->effectdata = NULL;
 }
 
@@ -2731,8 +2772,8 @@ static struct ImBuf * do_solid_color(
 
 		rect = (unsigned char *)out->rect;
 		
-		for(y=0; y<out->y; y++) {	
-			for(x=0; x<out->x; x++, rect+=4) {
+		for (y=0; y<out->y; y++) {	
+			for (x=0; x<out->x; x++, rect+=4) {
 				rect[0]= col0[0];
 				rect[1]= col0[1];
 				rect[2]= col0[2];
@@ -2740,7 +2781,7 @@ static struct ImBuf * do_solid_color(
 			}
 			y++;
 			if (y<out->y) {
-				for(x=0; x<out->x; x++, rect+=4) {
+				for (x=0; x<out->x; x++, rect+=4) {
 					rect[0]= col1[0];
 					rect[1]= col1[1];
 					rect[2]= col1[2];
@@ -2749,7 +2790,8 @@ static struct ImBuf * do_solid_color(
 			}
 		}
 
-	} else if (out->rect_float) {
+	}
+	else if (out->rect_float) {
 		float col0[3];
 		float col1[3];
 
@@ -2763,8 +2805,8 @@ static struct ImBuf * do_solid_color(
 
 		rect_float = out->rect_float;
 		
-		for(y=0; y<out->y; y++) {	
-			for(x=0; x<out->x; x++, rect_float+=4) {
+		for (y=0; y<out->y; y++) {	
+			for (x=0; x<out->x; x++, rect_float+=4) {
 				rect_float[0]= col0[0];
 				rect_float[1]= col0[1];
 				rect_float[2]= col0[2];
@@ -2772,7 +2814,7 @@ static struct ImBuf * do_solid_color(
 			}
 			y++;
 			if (y<out->y) {
-				for(x=0; x<out->x; x++, rect_float+=4) {
+				for (x=0; x<out->x; x++, rect_float+=4) {
 					rect_float[0]= col1[0];
 					rect_float[1]= col1[1];
 					rect_float[2]= col1[2];
@@ -2831,7 +2873,8 @@ static struct ImBuf * do_multicam(
 	if (input_have_to_preprocess(context, seq, cfra)) {
 		out = IMB_dupImBuf(i);
 		IMB_freeImBuf(i);
-	} else {
+	}
+	else {
 		out = i;
 	}
 	
@@ -2908,7 +2951,8 @@ static struct ImBuf * do_adjustment(
 	if (input_have_to_preprocess(context, seq, cfra)) {
 		out = IMB_dupImBuf(i);
 		IMB_freeImBuf(i);
-	} else {
+	}
+	else {
 		out = i;
 	}
 	
@@ -2922,7 +2966,7 @@ static void init_speed_effect(Sequence *seq)
 {
 	SpeedControlVars * v;
 
-	if(seq->effectdata) MEM_freeN(seq->effectdata);
+	if (seq->effectdata) MEM_freeN(seq->effectdata);
 	seq->effectdata = MEM_callocN(sizeof(struct SpeedControlVars), 
 					  "speedcontrolvars");
 
@@ -2949,8 +2993,8 @@ static int num_inputs_speed(void)
 static void free_speed_effect(Sequence *seq)
 {
 	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
-	if(v->frameMap) MEM_freeN(v->frameMap);
-	if(seq->effectdata) MEM_freeN(seq->effectdata);
+	if (v->frameMap) MEM_freeN(v->frameMap);
+	if (seq->effectdata) MEM_freeN(seq->effectdata);
 	seq->effectdata = NULL;
 }
 
@@ -2980,11 +3024,13 @@ static void store_icu_yrange_speed(struct Sequence * seq,
 	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
 		*ymin = -100.0;
 		*ymax = 100.0;
-	} else {
+	}
+	else {
 		if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
 			*ymin = 0.0;
 			*ymax = 1.0;
-		} else {
+		}
+		else {
 			*ymin = 0.0;
 			*ymax = seq->len;
 		}
@@ -3037,7 +3083,8 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 			flags = SEQ_SPEED_INTEGRATE;
 			fcu = NULL;
 		}
-	} else {
+	}
+	else {
 		/* if there is no fcurve, use value as simple multiplier */
 		if (!fcu) {
 			fallback_fac = seq->speed_fader; /* same as speed_factor in rna*/
@@ -3052,9 +3099,10 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 		v->lastValidFrame = 0;
 
 		for (cfra = 1; cfra < v->length; cfra++) {
-			if(fcu) {
+			if (fcu) {
 				facf = evaluate_fcurve(fcu, seq->startdisp + cfra);
-			} else {
+			}
+			else {
 				facf = fallback_fac;
 			}
 			facf *= v->globalSpeed;
@@ -3063,20 +3111,23 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 			if (cursor >= seq->seq1->len) {
 				v->frameMap[cfra] = seq->seq1->len - 1;
-			} else {
+			}
+			else {
 				v->frameMap[cfra] = cursor;
 				v->lastValidFrame = cfra;
 			}
 		}
-	} else {
+	}
+	else {
 		float facf;
 
 		v->lastValidFrame = 0;
 		for (cfra = 0; cfra < v->length; cfra++) {
 
-			if(fcu) {
+			if (fcu) {
 				facf = evaluate_fcurve(fcu, seq->startdisp + cfra);
-			} else {
+			}
+			else {
 				facf = fallback_fac;
 			}
 
@@ -3087,7 +3138,8 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 			
 			if (facf >= seq->seq1->len) {
 				facf = seq->seq1->len - 1;
-			} else {
+			}
+			else {
 				v->lastValidFrame = cfra;
 			}
 			v->frameMap[cfra] = facf;
@@ -3136,7 +3188,8 @@ static int early_out_fade(struct Sequence *UNUSED(seq),
 {
 	if (facf0 == 0.0f && facf1 == 0.0f) {
 		return 1;
-	} else if (facf0 == 1.0f && facf1 == 1.0f) {
+	}
+	else if (facf0 == 1.0f && facf1 == 1.0f) {
 		return 2;
 	}
 	return 0;
@@ -3193,7 +3246,8 @@ static struct ImBuf * do_overdrop_effect(SeqRenderData context,
 			facf0, facf1, x, y,
 			ibuf1->rect_float, ibuf2->rect_float,
 			out->rect_float);
-	} else {
+	}
+	else {
 		do_drop_effect_byte(
 			facf0, facf1, x, y,
 			(char*) ibuf1->rect, 

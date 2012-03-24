@@ -126,11 +126,11 @@ int BLI_utf8_invalid_strip(char *str, int length)
 {
 	int bad_char, tot= 0;
 
-	while((bad_char= BLI_utf8_invalid_byte(str, length)) != -1) {
+	while ((bad_char= BLI_utf8_invalid_byte(str, length)) != -1) {
 		str += bad_char;
 		length -= bad_char;
 
-		if(length == 0) {
+		if (length == 0) {
 			/* last character bad, strip it */
 			*str= '\0';
 			tot++;
@@ -166,7 +166,7 @@ static const size_t utf8_skip_data[256] = {
 #define BLI_STR_UTF8_CPY(dst, src, maxncpy)                                   \
 	{                                                                         \
 		size_t utf8_size;                                                     \
-		while(*src != '\0' && (utf8_size= utf8_skip_data[*src]) < maxncpy) {  \
+		while (*src != '\0' && (utf8_size= utf8_skip_data[*src]) < maxncpy) {  \
 			maxncpy -= utf8_size;                                             \
 			switch(utf8_size) {                                               \
 				case 6: *dst ++ = *src ++;                                    \
@@ -210,7 +210,7 @@ char *BLI_strncat_utf8(char *dst, const char *src, size_t maxncpy)
 size_t BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t maxcpy)
 {
 	size_t len = 0;
-	while(*src && len < maxcpy) { /* XXX can still run over the buffer because utf8 size isn't known :| */
+	while (*src && len < maxcpy) { /* XXX can still run over the buffer because utf8 size isn't known :| */
 		len += BLI_str_utf8_from_unicode(*src++, dst+len);
 	}
 
@@ -224,7 +224,7 @@ size_t BLI_wstrlen_utf8(const wchar_t *src)
 {
 	size_t len = 0;
 
-	while(*src) {
+	while (*src) {
 		len += BLI_str_utf8_from_unicode(*src++, NULL);
 	}
 
@@ -236,15 +236,17 @@ size_t BLI_strlen_utf8(const char *strc)
 {
 	int len=0;
 
-	while(*strc) {
+	while (*strc) {
 		if ((*strc & 0xe0) == 0xc0) {
-			if((strc[1] & 0x80) && (strc[1] & 0x40) == 0x00)
+			if ((strc[1] & 0x80) && (strc[1] & 0x40) == 0x00)
 				strc++;
-		} else if ((*strc & 0xf0) == 0xe0) {
-			if((strc[1] & strc[2] & 0x80) && ((strc[1] | strc[2]) & 0x40) == 0x00)
+		}
+		else if ((*strc & 0xf0) == 0xe0) {
+			if ((strc[1] & strc[2] & 0x80) && ((strc[1] | strc[2]) & 0x40) == 0x00)
 				strc += 2;
-		} else if ((*strc & 0xf8) == 0xf0) {
-			if((strc[1] & strc[2] & strc[3] & 0x80) && ((strc[1] | strc[2] | strc[3]) & 0x40) == 0x00)
+		}
+		else if ((*strc & 0xf8) == 0xf0) {
+			if ((strc[1] & strc[2] & strc[3] & 0x80) && ((strc[1] | strc[2] | strc[3]) & 0x40) == 0x00)
 				strc += 3;
 		}
 
@@ -259,9 +261,9 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 {
 	int len=0;
 
-	if(dst_w==NULL || src_c==NULL) return(0);
+	if (dst_w==NULL || src_c==NULL) return(0);
 
-	while(*src_c && len < maxcpy) {
+	while (*src_c && len < maxcpy) {
 		size_t step= 0;
 		unsigned int unicode= BLI_str_utf8_as_unicode_and_size(src_c, &step);
 		if (unicode != BLI_UTF8_ERR) {
@@ -415,7 +417,7 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
 	 * this is added for text drawing because some filepaths can have latin1
 	 * characters */
 	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
-	if(result == BLI_UTF8_ERR) {
+	if (result == BLI_UTF8_ERR) {
 		len= 1;
 		result= *p;
 	}

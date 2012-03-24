@@ -41,7 +41,7 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 	int i;
 	float f, p, q, t;
 
-	if(s==0.0f) {
+	if (s==0.0f) {
 		*r = v;
 		*g = v;
 		*b = v;
@@ -242,7 +242,7 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	
 	*ls = s;
 	*lh = h / 360.0f;
-	if(*lh < 0.0f) *lh= 0.0f;
+	if (*lh < 0.0f) *lh= 0.0f;
 	*lv = v;
 }
 
@@ -253,7 +253,7 @@ void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *l
 
 	rgb_to_hsv(r, g, b, lh, ls, lv);
 
-	if(*lv <= 0.0f) {
+	if (*lv <= 0.0f) {
 		*lh= orig_h;
 		*ls= orig_s;
 	}
@@ -261,7 +261,7 @@ void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *l
 		*lh= orig_h;
 	}
 
-	if(*lh==0.0f && orig_h >= 1.0f) {
+	if (*lh==0.0f && orig_h >= 1.0f) {
 		*lh= 1.0f;
 	}
 }
@@ -315,11 +315,11 @@ unsigned int rgb_to_cpack(float r, float g, float b)
 	int ir, ig, ib;
 	
 	ir= (int)floor(255.0f*r);
-	if(ir<0) ir= 0; else if(ir>255) ir= 255;
+	if (ir<0) ir= 0; else if (ir>255) ir= 255;
 	ig= (int)floor(255.0f*g);
-	if(ig<0) ig= 0; else if(ig>255) ig= 255;
+	if (ig<0) ig= 0; else if (ig>255) ig= 255;
 	ib= (int)floor(255.0f*b);
-	if(ib<0) ib= 0; else if(ib>255) ib= 255;
+	if (ib<0) ib= 0; else if (ib>255) ib= 255;
 	
 	return (ir+ (ig*256) + (ib*256*256));
 }
@@ -404,12 +404,12 @@ float linearrgb_to_srgb(float c)
 
 void minmax_rgb(short c[])
 {
-	if(c[0]>255) c[0]=255;
-	else if(c[0]<0) c[0]=0;
-	if(c[1]>255) c[1]=255;
-	else if(c[1]<0) c[1]=0;
-	if(c[2]>255) c[2]=255;
-	else if(c[2]<0) c[2]=0;
+	if (c[0]>255) c[0]=255;
+	else if (c[0]<0) c[0]=0;
+	if (c[1]>255) c[1]=255;
+	else if (c[1]<0) c[1]=0;
+	if (c[2]>255) c[2]=255;
+	else if (c[2]<0) c[2]=0;
 }
 
 /*If the requested RGB shade contains a negative weight for
@@ -464,10 +464,10 @@ unsigned char rgb_to_luma_byte(const unsigned char rgb[3])
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power)
 {
 	int c;
-	for(c=0; c<3; c++) {
+	for (c=0; c<3; c++) {
 		offset[c]= lift[c]*gain[c];
 		slope[c]=  gain[c]*(1.0f-lift[c]);
-		if(gamma[c] == 0)
+		if (gamma[c] == 0)
 			power[c]= FLT_MAX;
 		else
 			power[c]= 1.0f/gamma[c];
@@ -484,8 +484,8 @@ void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	hsv[0]+= hue_offset;
-	if(hsv[0] > 1.0f)		hsv[0] -= 1.0f;
-	else if(hsv[0] < 0.0f)	hsv[0] += 1.0f;
+	if (hsv[0] > 1.0f)		hsv[0] -= 1.0f;
+	else if (hsv[0] < 0.0f)	hsv[0] += 1.0f;
 	
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 }

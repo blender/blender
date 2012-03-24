@@ -174,7 +174,7 @@ Collision modifier code end
 * copied from SOLVE_CUBIC.C --> GSL
 */
 
-#define mySWAP(a,b) do { double tmp = b ; b = a ; a = tmp ; } while(0)
+#define mySWAP(a,b) do { double tmp = b ; b = a ; a = tmp ; } while (0)
 #if 0 /* UNUSED */
 static int 
 gsl_poly_solve_cubic (double a, double b, double c, 
@@ -1021,7 +1021,8 @@ static int cloth_collision_response_moving ( ClothModifierData *clmd, CollisionM
 	
 				result = 1;
 			}
-		} else {	
+		}
+		else {
 			w1 = collpair->bary[0]; w2 = collpair->bary[1]; w3 = collpair->bary[2];			
 
 			// Calculate relative "velocity".
@@ -1353,7 +1354,8 @@ static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTree
 				
 				collpair->flag = COLLISION_USE_COLLFACE;
 				collpair++;
-			} else if (ret && j >= 3) { /*coll vert versus cloth face*/
+			}
+			else if (ret && j >= 3) { /*coll vert versus cloth face*/
 				collpair->ap1 = ap1; collpair->ap2 = ap2; collpair->ap3 = ap3;
 				collpair->collp = collp;
 				
@@ -1547,7 +1549,7 @@ static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2,
 
 			sub_v3_v3v3 ( relativeVelocity, v2, v1 );
 
-			if(sqrt(dot_v3v3(relativeVelocity, relativeVelocity)) >= distance)
+			if (sqrt(dot_v3v3(relativeVelocity, relativeVelocity)) >= distance)
 			{
 				// check for collision in the future
 				collpair->flag |= COLLISION_IN_FUTURE;
@@ -1789,9 +1791,9 @@ static float edgedge_distance(float np11[3], float np12[3], float np21[3], float
 
 		CLAMP(*out_a1, 0.0, 1.0);
 		calculateEENormal(np11, np12, np21, np22, out_normal);
-		if(*out_a1 > .5)
+		if (*out_a1 > .5)
 		{
-			if(*out_a2 > .5)
+			if (*out_a2 > .5)
 			{
 				sub_v3_v3v3(temp, np12, np22);
 			}
@@ -1802,7 +1804,7 @@ static float edgedge_distance(float np11[3], float np12[3], float np21[3], float
 		}
 		else
 		{
-			if(*out_a2 > .5)
+			if (*out_a2 > .5)
 			{
 				sub_v3_v3v3(temp, np11, np22);
 			}
@@ -1920,11 +1922,11 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 	cloth1 = clmd->clothObject;
 	verts1 = cloth1->verts;
 
-	for(i = 0; i < 9; i++)
+	for (i = 0; i < 9; i++)
 	{
 		// 9 edge - edge possibilities
 
-		if(i == 0) // cloth edge: 1-2; coll edge: 1-2
+		if (i == 0) // cloth edge: 1-2; coll edge: 1-2
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap2;
@@ -1932,7 +1934,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp2;
 		}
-		else if(i == 1) // cloth edge: 1-2; coll edge: 2-3
+		else if (i == 1) // cloth edge: 1-2; coll edge: 2-3
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap2;
@@ -1940,7 +1942,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 			edgecollpair.p21 = collpair->bp2;
 			edgecollpair.p22 = collpair->bp3;
 		}
-		else if(i == 2) // cloth edge: 1-2; coll edge: 1-3
+		else if (i == 2) // cloth edge: 1-2; coll edge: 1-3
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap2;
@@ -1948,7 +1950,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp3;
 		}
-		else if(i == 3) // cloth edge: 2-3; coll edge: 1-2
+		else if (i == 3) // cloth edge: 2-3; coll edge: 1-2
 		{
 			edgecollpair.p11 = collpair->ap2;
 			edgecollpair.p12 = collpair->ap3;
@@ -1956,7 +1958,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp2;
 		}
-		else if(i == 4) // cloth edge: 2-3; coll edge: 2-3
+		else if (i == 4) // cloth edge: 2-3; coll edge: 2-3
 		{
 			edgecollpair.p11 = collpair->ap2;
 			edgecollpair.p12 = collpair->ap3;
@@ -1964,7 +1966,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 			edgecollpair.p21 = collpair->bp2;
 			edgecollpair.p22 = collpair->bp3;
 		}
-		else if(i == 5) // cloth edge: 2-3; coll edge: 1-3
+		else if (i == 5) // cloth edge: 2-3; coll edge: 1-3
 		{
 			edgecollpair.p11 = collpair->ap2;
 			edgecollpair.p12 = collpair->ap3;
@@ -1972,7 +1974,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp3;
 		}
-		else if(i ==6) // cloth edge: 1-3; coll edge: 1-2
+		else if (i ==6) // cloth edge: 1-3; coll edge: 1-2
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap3;
@@ -1980,7 +1982,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp2;
 		}
-		else if(i ==7) // cloth edge: 1-3; coll edge: 2-3
+		else if (i ==7) // cloth edge: 1-3; coll edge: 2-3
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap3;
@@ -1988,7 +1990,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 			edgecollpair.p21 = collpair->bp2;
 			edgecollpair.p22 = collpair->bp3;
 		}
-		else if(i == 8) // cloth edge: 1-3; coll edge: 1-3
+		else if (i == 8) // cloth edge: 1-3; coll edge: 1-3
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap3;
@@ -1997,9 +1999,9 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 			edgecollpair.p22 = collpair->bp3;
 		}
 		/*
-		if((edgecollpair.p11 == 3) && (edgecollpair.p12 == 16))
+		if ((edgecollpair.p11 == 3) && (edgecollpair.p12 == 16))
 			printf("Ahier!\n");
-		if((edgecollpair.p11 == 16) && (edgecollpair.p12 == 3))
+		if ((edgecollpair.p11 == 16) && (edgecollpair.p12 == 3))
 			printf("Ahier!\n");
 		*/
 
@@ -2017,9 +2019,9 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 
 			numsolutions = cloth_get_collision_time ( x1, v1, x2, v2, x3, v3, solution );
 
-			if((edgecollpair.p11 == 3 && edgecollpair.p12==16)|| (edgecollpair.p11==16 && edgecollpair.p12==3))
+			if ((edgecollpair.p11 == 3 && edgecollpair.p12==16)|| (edgecollpair.p11==16 && edgecollpair.p12==3))
 			{
-				if(edgecollpair.p21==6 || edgecollpair.p22 == 6)
+				if (edgecollpair.p21==6 || edgecollpair.p22 == 6)
 				{
 					printf("dist: %f, sol[k]: %f, sol2[k]: %f\n", distance, solution[k], solution2[k]);
 					printf("a1: %f, a2: %f, b1: %f, b2: %f\n", x1[0], x2[0], x3[0], v1[0]);
@@ -2071,7 +2073,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 						out_normalVelocity = dot_v3v3(vrel_1_to_2, out_normal);
 /*
 						// this correction results in wrong normals sometimes?
-						if(out_normalVelocity < 0.0)
+						if (out_normalVelocity < 0.0)
 						{
 							out_normalVelocity*= -1.0;
 							negate_v3(out_normal);
@@ -2135,16 +2137,16 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 {
 	CollisionModifierData *cmd= NULL;
 
-	if(ob == self)
+	if (ob == self)
 		return;
 
 	/* only get objects with collision modifier */
-	if(((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) || (modifier_type != eModifierType_Collision))
+	if (((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) || (modifier_type != eModifierType_Collision))
 		cmd= (CollisionModifierData *)modifiers_findByType(ob, modifier_type);
 	
-	if(cmd) {	
+	if (cmd) {	
 		/* extend array */
-		if(*numobj >= *maxobj) {
+		if (*numobj >= *maxobj) {
 			*maxobj *= 2;
 			*objs= MEM_reallocN(*objs, sizeof(Object*)*(*maxobj));
 		}
@@ -2154,12 +2156,12 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 	}
 
 	/* objects in dupli groups, one level only for now */
-	if(ob->dup_group && level == 0) {
+	if (ob->dup_group && level == 0) {
 		GroupObject *go;
 		Group *group= ob->dup_group;
 
 		/* add objects */
-		for(go= group->gobject.first; go; go= go->next)
+		for (go= group->gobject.first; go; go= go->next)
 			add_collision_object(objs, numobj, maxobj, go->ob, self, level+1, modifier_type);
 	}	
 }
@@ -2176,16 +2178,16 @@ Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned
 	objs= MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
 
 	/* gather all collision objects */
-	if(group) {
+	if (group) {
 		/* use specified group */
-		for(go= group->gobject.first; go; go= go->next)
+		for (go= group->gobject.first; go; go= go->next)
 			add_collision_object(&objs, &numobj, &maxobj, go->ob, self, 0, modifier_type);
 	}
 	else {
 		Scene *sce_iter;
 		/* add objects in same layer in scene */
-		for(SETLOOPER(scene, sce_iter, base)) {
-			if(base->lay & self->lay)
+		for (SETLOOPER(scene, sce_iter, base)) {
+			if (base->lay & self->lay)
 				add_collision_object(&objs, &numobj, &maxobj, base->object, self, 0, modifier_type);
 
 		}
@@ -2201,14 +2203,14 @@ static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self,
 	CollisionModifierData *cmd= NULL;
 	ColliderCache *col;
 
-	if(ob == self)
+	if (ob == self)
 		return;
 
-	if(ob->pd && ob->pd->deflect)
+	if (ob->pd && ob->pd->deflect)
 		cmd =(CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
 	
-	if(cmd && cmd->bvhtree) {	
-		if(*objs == NULL)
+	if (cmd && cmd->bvhtree) {	
+		if (*objs == NULL)
 			*objs = MEM_callocN(sizeof(ListBase), "ColliderCache array");
 
 		col = MEM_callocN(sizeof(ColliderCache), "ColliderCache");
@@ -2220,12 +2222,12 @@ static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self,
 	}
 
 	/* objects in dupli groups, one level only for now */
-	if(ob->dup_group && level == 0) {
+	if (ob->dup_group && level == 0) {
 		GroupObject *go;
 		Group *group= ob->dup_group;
 
 		/* add objects */
-		for(go= group->gobject.first; go; go= go->next)
+		for (go= group->gobject.first; go; go= go->next)
 			add_collider_cache_object(objs, go->ob, self, level+1);
 	}
 }
@@ -2236,8 +2238,8 @@ ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
 	ListBase *objs= NULL;
 	
 	/* add object in same layer in scene */
-	if(group) {
-		for(go= group->gobject.first; go; go= go->next)
+	if (group) {
+		for (go= group->gobject.first; go; go= go->next)
 			add_collider_cache_object(&objs, go->ob, self, 0);
 	}
 	else {
@@ -2245,8 +2247,8 @@ ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
 		Base *base;
 
 		/* add objects in same layer in scene */
-		for(SETLOOPER(scene, sce_iter, base)) {
-			if(!self || (base->lay & self->lay))
+		for (SETLOOPER(scene, sce_iter, base)) {
+			if (!self || (base->lay & self->lay))
 				add_collider_cache_object(&objs, base->object, self, 0);
 
 		}
@@ -2257,7 +2259,7 @@ ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
 
 void free_collider_cache(ListBase **colliders)
 {
-	if(*colliders) {
+	if (*colliders) {
 		BLI_freelistN(*colliders);
 		MEM_freeN(*colliders);
 		*colliders = NULL;
@@ -2387,7 +2389,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 	
 	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 	
-	if(!collobjs)
+	if (!collobjs)
 		return 0;
 
 	do
@@ -2400,14 +2402,14 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 		collisions_index = MEM_callocN(sizeof(CollPair *) *numcollobj , "CollPair");
 		
 		// check all collision objects
-		for(i = 0; i < numcollobj; i++)
+		for (i = 0; i < numcollobj; i++)
 		{
 			Object *collob= collobjs[i];
 			CollisionModifierData *collmd = (CollisionModifierData*)modifiers_findByType(collob, eModifierType_Collision);
 			BVHTreeOverlap *overlap = NULL;
 			unsigned int result = 0;
 			
-			if(!collmd->bvhtree)
+			if (!collmd->bvhtree)
 				continue;
 			
 			/* move object to position (step) in time */
@@ -2418,7 +2420,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 			overlap = BLI_bvhtree_overlap ( cloth_bvh, collmd->bvhtree, &result );
 				
 			// go to next object if no overlap is there
-			if( result && overlap ) {
+			if ( result && overlap ) {
 				/* check if collisions really happen (costly near check) */
 				cloth_bvh_objcollisions_nearcheck ( clmd, collmd, &collisions[i], 
 					&collisions_index[i], result, overlap, dt/(float)clmd->coll_parms->loop_count);
@@ -2433,7 +2435,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 		}
 		rounds++;
 		
-		for(i = 0; i < numcollobj; i++)
+		for (i = 0; i < numcollobj; i++)
 		{
 			if ( collisions[i] ) MEM_freeN ( collisions[i] );
 		}
@@ -2467,7 +2469,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 		////////////////////////////////////////////////////////////
 		if ( clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF )
 		{
-			for(l = 0; l < (unsigned int)clmd->coll_parms->self_loop_count; l++)
+			for (l = 0; l < (unsigned int)clmd->coll_parms->self_loop_count; l++)
 			{
 				// TODO: add coll quality rounds again
 				BVHTreeOverlap *overlap = NULL;
@@ -2573,7 +2575,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 	}
 	while ( ret2 && ( clmd->coll_parms->loop_count>rounds ) );
 	
-	if(collobjs)
+	if (collobjs)
 		MEM_freeN(collobjs);
 
 	return 1|MIN2 ( ret, 1 );

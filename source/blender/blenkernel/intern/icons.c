@@ -110,7 +110,7 @@ void BKE_icons_init(int first_dyn_id)
 
 void BKE_icons_free(void)
 {
-	if(gIcons)
+	if (gIcons)
 		BLI_ghash_free(gIcons, NULL, icon_free);
 	gIcons = NULL;
 }
@@ -147,7 +147,7 @@ void BKE_previewimg_freefunc(void *link)
 
 void BKE_previewimg_free(PreviewImage **prv)
 {
-	if(prv && (*prv)) {
+	if (prv && (*prv)) {
 		BKE_previewimg_freefunc(*prv);
 		*prv = NULL;
 	}
@@ -163,7 +163,8 @@ struct PreviewImage* BKE_previewimg_copy(PreviewImage *prv)
 		for (i=0; i < NUM_ICON_SIZES; ++i) {
 			if (prv->rect[i]) {
 				prv_img->rect[i] = MEM_dupallocN(prv->rect[i]);
-			} else {
+			}
+			else {
 				prv_img->rect[i] = NULL;
 			}
 		}
@@ -176,19 +177,24 @@ void BKE_previewimg_free_id(ID *id)
 	if (GS(id->name) == ID_MA) {
 		Material *mat = (Material*)id;	
 		BKE_previewimg_free(&mat->preview);
-	} else if (GS(id->name) == ID_TE) {
+	}
+	else if (GS(id->name) == ID_TE) {
 		Tex *tex = (Tex*)id;
 		BKE_previewimg_free(&tex->preview);
-	} else if (GS(id->name) == ID_WO) {
+	}
+	else if (GS(id->name) == ID_WO) {
 		World *wo = (World*)id;
 		BKE_previewimg_free(&wo->preview);
-	} else if (GS(id->name) == ID_LA) {
+	}
+	else if (GS(id->name) == ID_LA) {
 		Lamp *la  = (Lamp*)id;
 		BKE_previewimg_free(&la->preview);
-	} else if (GS(id->name) == ID_IM) {
+	}
+	else if (GS(id->name) == ID_IM) {
 		Image *img  = (Image*)id;
 		BKE_previewimg_free(&img->preview);
-	} else if (GS(id->name) == ID_BR) {
+	}
+	else if (GS(id->name) == ID_BR) {
 		Brush *br  = (Brush*)id;
 		BKE_previewimg_free(&br->preview);
 	}
@@ -202,23 +208,28 @@ PreviewImage* BKE_previewimg_get(ID *id)
 		Material *mat = (Material*)id;	
 		if (!mat->preview) mat->preview = BKE_previewimg_create();
 		prv_img = mat->preview;
-	} else if (GS(id->name) == ID_TE) {
+	}
+	else if (GS(id->name) == ID_TE) {
 		Tex *tex = (Tex*)id;
 		if (!tex->preview) tex->preview = BKE_previewimg_create();
 		prv_img = tex->preview;
-	} else if (GS(id->name) == ID_WO) {
+	}
+	else if (GS(id->name) == ID_WO) {
 		World *wo = (World*)id;
 		if (!wo->preview) wo->preview = BKE_previewimg_create();
 		prv_img = wo->preview;
-	} else if (GS(id->name) == ID_LA) {
+	}
+	else if (GS(id->name) == ID_LA) {
 		Lamp *la  = (Lamp*)id;
 		if (!la->preview) la->preview = BKE_previewimg_create();
 		prv_img = la->preview;
-	} else if (GS(id->name) == ID_IM) {
+	}
+	else if (GS(id->name) == ID_IM) {
 		Image *img  = (Image*)id;
 		if (!img->preview) img->preview = BKE_previewimg_create();
 		prv_img = img->preview;
-	} else if (GS(id->name) == ID_BR) {
+	}
+	else if (GS(id->name) == ID_BR) {
 		Brush *br  = (Brush*)id;
 		if (!br->preview) br->preview = BKE_previewimg_create();
 		prv_img = br->preview;

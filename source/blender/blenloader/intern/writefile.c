@@ -210,7 +210,7 @@ static void writedata_do_write(WriteData *wd, void *mem, int memlen)
 	if (wd->error) return;
 
 	/* memory based save */
-	if(wd->current) {
+	if (wd->current) {
 		add_memfilechunk(NULL, wd->current, mem, memlen);
 	}
 	else {
@@ -244,8 +244,8 @@ static void mywrite( WriteData *wd, void *adr, int len)
 	if (wd->error) return;
 
 	/* flush helps compression for undo-save */
-	if(adr==MYWRITE_FLUSH) {
-		if(wd->count) {
+	if (adr==MYWRITE_FLUSH) {
+		if (wd->count) {
 			writedata_do_write(wd, wd->buf, wd->count);
 			wd->count= 0;
 		}
@@ -256,8 +256,8 @@ static void mywrite( WriteData *wd, void *adr, int len)
 	
 	/* if we have a single big chunk, write existing data in
 	 * buffer and write out big chunk in smaller pieces */
-	if(len>MYWRITE_MAX_CHUNK) {
-		if(wd->count) {
+	if (len>MYWRITE_MAX_CHUNK) {
+		if (wd->count) {
 			writedata_do_write(wd, wd->buf, wd->count);
 			wd->count= 0;
 		}
@@ -273,7 +273,7 @@ static void mywrite( WriteData *wd, void *adr, int len)
 	}
 
 	/* if data would overflow buffer, write out the buffer */
-	if(len+wd->count>MYWRITE_BUFFER_SIZE-1) {
+	if (len+wd->count>MYWRITE_BUFFER_SIZE-1) {
 		writedata_do_write(wd, wd->buf, wd->count);
 		wd->count= 0;
 	}
@@ -332,7 +332,7 @@ static void writestruct(WriteData *wd, int filecode, const char *structname, int
 	BHead bh;
 	short *sp;
 
-	if(adr==NULL || nr==0) return;
+	if (adr==NULL || nr==0) return;
 
 	/* init BHead */
 	bh.code= filecode;
@@ -340,7 +340,7 @@ static void writestruct(WriteData *wd, int filecode, const char *structname, int
 	bh.nr= nr;
 
 	bh.SDNAnr= DNA_struct_find_nr(wd->sdna, structname);
-	if(bh.SDNAnr== -1) {
+	if (bh.SDNAnr== -1) {
 		printf("error: can't find SDNA code <%s>\n", structname);
 		return;
 	}
@@ -348,7 +348,7 @@ static void writestruct(WriteData *wd, int filecode, const char *structname, int
 
 	bh.len= nr*wd->sdna->typelens[sp[0]];
 
-	if(bh.len==0) return;
+	if (bh.len==0) return;
 
 	mywrite(wd, &bh, sizeof(BHead));
 	mywrite(wd, adr, bh.len);
@@ -358,8 +358,8 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 {
 	BHead bh;
 
-	if(adr==NULL) return;
-	if(len==0) return;
+	if (adr==NULL) return;
+	if (len==0) return;
 
 	len+= 3;
 	len-= ( len % 4);
@@ -372,7 +372,7 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 	bh.len= len;
 
 	mywrite(wd, &bh, sizeof(BHead));
-	if(len) mywrite(wd, adr, len);
+	if (len) mywrite(wd, adr, len);
 }
 
 /* *************** writing some direct data structs used in more code parts **************** */
@@ -386,11 +386,11 @@ static void IDP_WriteArray(IDProperty *prop, void *wd)
 	if (prop->data.pointer) {
 		writedata(wd, DATA, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
 
-		if(prop->subtype == IDP_GROUP) {
+		if (prop->subtype == IDP_GROUP) {
 			IDProperty **array= prop->data.pointer;
 			int a;
 
-			for(a=0; a<prop->len; a++)
+			for (a=0; a<prop->len; a++)
 				IDP_WriteProperty(array[a], wd);
 		}
 	}
@@ -405,7 +405,7 @@ static void IDP_WriteIDPArray(IDProperty *prop, void *wd)
 
 		writestruct(wd, DATA, "IDProperty", prop->len, array);
 
-		for(a=0; a<prop->len; a++)
+		for (a=0; a<prop->len; a++)
 			IDP_WriteProperty_OnlyData(&array[a], wd);
 	}
 }
@@ -548,7 +548,7 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 	bActionGroup *grp;
 	TimeMarker *marker;
 	
-	for(act=idbase->first; act; act= act->id.next) {
+	for (act=idbase->first; act; act= act->id.next) {
 		if (act->id.us>0 || wd->current) {
 			writestruct(wd, ID_AC, "bAction", 1, act);
 			if (act->id.properties) IDP_WriteProperty(act->id.properties, wd);
@@ -649,7 +649,7 @@ static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
 	int a;
 	
 	writestruct(wd, DATA, "CurveMapping", 1, cumap);
-	for(a=0; a<CM_TOT; a++)
+	for (a=0; a<CM_TOT; a++)
 		writestruct(wd, DATA, "CurveMapPoint", cumap->cm[a].totpoint, cumap->cm[a].curve);
 }
 
@@ -660,7 +660,7 @@ static void write_node_socket(WriteData *wd, bNodeSocket *sock)
 	/* forward compatibility code, so older blenders still open */
 	sock->stack_type = 1;
 	
-	if(sock->default_value) {
+	if (sock->default_value) {
 		bNodeSocketValueFloat *valfloat;
 		bNodeSocketValueVector *valvector;
 		bNodeSocketValueRGBA *valrgba;
@@ -702,27 +702,27 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	
 	/* for link_list() speed, we write per list */
 	
-	if(ntree->adt) write_animdata(wd, ntree->adt);
+	if (ntree->adt) write_animdata(wd, ntree->adt);
 	
-	for(node= ntree->nodes.first; node; node= node->next)
+	for (node= ntree->nodes.first; node; node= node->next)
 		writestruct(wd, DATA, "bNode", 1, node);
 
-	for(node= ntree->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next)
+	for (node= ntree->nodes.first; node; node= node->next) {
+		for (sock= node->inputs.first; sock; sock= sock->next)
 			write_node_socket(wd, sock);
-		for(sock= node->outputs.first; sock; sock= sock->next)
+		for (sock= node->outputs.first; sock; sock= sock->next)
 			write_node_socket(wd, sock);
 
 		
-		if(node->storage && node->type!=NODE_DYNAMIC) {
+		if (node->storage && node->type!=NODE_DYNAMIC) {
 			/* could be handlerized at some point, now only 1 exception still */
-			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
+			if (ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				write_curvemapping(wd, node->storage);
-			else if(ntree->type==NTREE_COMPOSIT && ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
+			else if (ntree->type==NTREE_COMPOSIT && ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 				write_curvemapping(wd, node->storage);
-			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
+			else if (ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
-			else if(ntree->type==NTREE_COMPOSIT && node->type==CMP_NODE_MOVIEDISTORTION)
+			else if (ntree->type==NTREE_COMPOSIT && node->type==CMP_NODE_MOVIEDISTORTION)
 				/* pass */;
 			else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
@@ -735,13 +735,13 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		}
 	}
 	
-	for(link= ntree->links.first; link; link= link->next)
+	for (link= ntree->links.first; link; link= link->next)
 		writestruct(wd, DATA, "bNodeLink", 1, link);
 	
 	/* external sockets */
-	for(sock= ntree->inputs.first; sock; sock= sock->next)
+	for (sock= ntree->inputs.first; sock; sock= sock->next)
 		write_node_socket(wd, sock);
-	for(sock= ntree->outputs.first; sock; sock= sock->next)
+	for (sock= ntree->outputs.first; sock; sock= sock->next)
 		write_node_socket(wd, sock);
 }
 
@@ -766,8 +766,8 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 	/* XXX in future, handle multiple windows with multiple screnes? */
 	current_screen_compat(mainvar, &curscreen);
 
-	for(sce= mainvar->scene.first; sce; sce= sce->id.next) {
-		if(sce->id.lib==NULL  && ( sce==curscreen->scene || (sce->r.scemode & R_BG_RENDER)) ) {
+	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {
+		if (sce->id.lib==NULL  && ( sce==curscreen->scene || (sce->r.scemode & R_BG_RENDER)) ) {
 			data[0]= sce->r.sfra;
 			data[1]= sce->r.efra;
 
@@ -782,7 +782,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 static void write_keymapitem(WriteData *wd, wmKeyMapItem *kmi)
 {
 	writestruct(wd, DATA, "wmKeyMapItem", 1, kmi);
-	if(kmi->properties)
+	if (kmi->properties)
 		IDP_WriteProperty(kmi->properties, wd);
 }
 
@@ -797,28 +797,28 @@ static void write_userdef(WriteData *wd)
 	
 	writestruct(wd, USER, "UserDef", 1, &U);
 
-	for(btheme= U.themes.first; btheme; btheme=btheme->next)
+	for (btheme= U.themes.first; btheme; btheme=btheme->next)
 		writestruct(wd, DATA, "bTheme", 1, btheme);
 
-	for(keymap= U.user_keymaps.first; keymap; keymap=keymap->next) {
+	for (keymap= U.user_keymaps.first; keymap; keymap=keymap->next) {
 		writestruct(wd, DATA, "wmKeyMap", 1, keymap);
 
-		for(kmdi=keymap->diff_items.first; kmdi; kmdi=kmdi->next) {
+		for (kmdi=keymap->diff_items.first; kmdi; kmdi=kmdi->next) {
 			writestruct(wd, DATA, "wmKeyMapDiffItem", 1, kmdi);
-			if(kmdi->remove_item)
+			if (kmdi->remove_item)
 				write_keymapitem(wd, kmdi->remove_item);
-			if(kmdi->add_item)
+			if (kmdi->add_item)
 				write_keymapitem(wd, kmdi->add_item);
 		}
 
-		for(kmi=keymap->items.first; kmi; kmi=kmi->next)
+		for (kmi=keymap->items.first; kmi; kmi=kmi->next)
 			write_keymapitem(wd, kmi);
 	}
 
-	for(bext= U.addons.first; bext; bext=bext->next)
+	for (bext= U.addons.first; bext; bext=bext->next)
 		writestruct(wd, DATA, "bAddon", 1, bext);
 	
-	for(style= U.uistyles.first; style; style= style->next) {
+	for (style= U.uistyles.first; style; style= style->next) {
 		writestruct(wd, DATA, "uiStyle", 1, style);
 	}
 }
@@ -830,7 +830,7 @@ static void write_boid_state(WriteData *wd, BoidState *state)
 
 	writestruct(wd, DATA, "BoidState", 1, state);
 
-	for(; rule; rule=rule->next) {
+	for (; rule; rule=rule->next) {
 		switch(rule->type) {
 			case eBoidRuleType_Goal:
 			case eBoidRuleType_Avoid:
@@ -877,28 +877,28 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 	PointCache *cache = ptcaches->first;
 	int i;
 
-	for(; cache; cache=cache->next) {
+	for (; cache; cache=cache->next) {
 		writestruct(wd, DATA, "PointCache", 1, cache);
 
-		if((cache->flag & PTCACHE_DISK_CACHE)==0) {
+		if ((cache->flag & PTCACHE_DISK_CACHE)==0) {
 			PTCacheMem *pm = cache->mem_cache.first;
 
-			for(; pm; pm=pm->next) {
+			for (; pm; pm=pm->next) {
 				PTCacheExtra *extra = pm->extradata.first;
 
 				writestruct(wd, DATA, "PTCacheMem", 1, pm);
 				
-				for(i=0; i<BPHYS_TOT_DATA; i++) {
-					if(pm->data[i] && pm->data_types & (1<<i)) {
-						if(ptcache_data_struct[i][0]=='\0')
+				for (i=0; i<BPHYS_TOT_DATA; i++) {
+					if (pm->data[i] && pm->data_types & (1<<i)) {
+						if (ptcache_data_struct[i][0]=='\0')
 							writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
 						else
 							writestruct(wd, DATA, ptcache_data_struct[i], pm->totpoint, pm->data[i]);
 					}
 				}
 
-				for(; extra; extra=extra->next) {
-					if(ptcache_extra_struct[extra->type][0]=='\0')
+				for (; extra; extra=extra->next) {
+					if (ptcache_extra_struct[extra->type][0]=='\0')
 						continue;
 					writestruct(wd, DATA, "PTCacheExtra", 1, extra);
 					writestruct(wd, DATA, ptcache_extra_struct[extra->type], extra->totdata, extra->data);
@@ -916,7 +916,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 
 	part= idbase->first;
 	while(part) {
-		if(part->id.us>0 || wd->current) {
+		if (part->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
 			if (part->id.properties) IDP_WriteProperty(part->id.properties, wd);
@@ -926,10 +926,10 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			writestruct(wd, DATA, "EffectorWeights", 1, part->effector_weights);
 
 			dw = part->dupliweights.first;
-			for(; dw; dw=dw->next) {
+			for (; dw; dw=dw->next) {
 				/* update indices */
 				dw->index = 0;
-				if(part->dup_group) { /* can be NULL if lining fails or set to None */
+				if (part->dup_group) { /* can be NULL if lining fails or set to None */
 					go = part->dup_group->gobject.first;
 					while(go && go->ob != dw->ob) {
 						go=go->next;
@@ -939,20 +939,20 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 				writestruct(wd, DATA, "ParticleDupliWeight", 1, dw);
 			}
 
-			if(part->boids && part->phystype == PART_PHYS_BOIDS) {
+			if (part->boids && part->phystype == PART_PHYS_BOIDS) {
 				BoidState *state = part->boids->states.first;
 
 				writestruct(wd, DATA, "BoidSettings", 1, part->boids);
 
-				for(; state; state=state->next)
+				for (; state; state=state->next)
 					write_boid_state(wd, state);
 			}
-			if(part->fluid && part->phystype == PART_PHYS_FLUID){
+			if (part->fluid && part->phystype == PART_PHYS_FLUID) {
 				writestruct(wd, DATA, "SPHFluidSettings", 1, part->fluid); 
 			}
 
-			for(a=0; a<MAX_MTEX; a++) {
-				if(part->mtex[a]) writestruct(wd, DATA, "MTex", 1, part->mtex[a]);
+			for (a=0; a<MAX_MTEX; a++) {
+				if (part->mtex[a]) writestruct(wd, DATA, "MTex", 1, part->mtex[a]);
 			}
 		}
 		part= part->id.next;
@@ -964,32 +964,32 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 	ParticleTarget *pt;
 	int a;
 
-	for(; psys; psys=psys->next) {
+	for (; psys; psys=psys->next) {
 		writestruct(wd, DATA, "ParticleSystem", 1, psys);
 
-		if(psys->particles) {
+		if (psys->particles) {
 			writestruct(wd, DATA, "ParticleData", psys->totpart ,psys->particles);
 
-			if(psys->particles->hair) {
+			if (psys->particles->hair) {
 				ParticleData *pa = psys->particles;
 
-				for(a=0; a<psys->totpart; a++, pa++)
+				for (a=0; a<psys->totpart; a++, pa++)
 					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
 
-			if(psys->particles->boid && psys->part->phystype == PART_PHYS_BOIDS)
+			if (psys->particles->boid && psys->part->phystype == PART_PHYS_BOIDS)
 				writestruct(wd, DATA, "BoidParticle", psys->totpart, psys->particles->boid);
 
-			if(psys->part->fluid && psys->part->phystype == PART_PHYS_FLUID && (psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS))
+			if (psys->part->fluid && psys->part->phystype == PART_PHYS_FLUID && (psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS))
 				writestruct(wd, DATA, "ParticleSpring", psys->tot_fluidsprings, psys->fluid_springs);
 		}
 		pt = psys->targets.first;
-		for(; pt; pt=pt->next)
+		for (; pt; pt=pt->next)
 			writestruct(wd, DATA, "ParticleTarget", 1, pt);
 
-		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
+		if (psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 
-		if(psys->clmd) {
+		if (psys->clmd) {
 			writestruct(wd, DATA, "ClothModifierData", 1, psys->clmd);
 			writestruct(wd, DATA, "ClothSimSettings", 1, psys->clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, psys->clmd->coll_parms);
@@ -1007,7 +1007,7 @@ static void write_properties(WriteData *wd, ListBase *lb)
 	while(prop) {
 		writestruct(wd, DATA, "bProperty", 1, prop);
 
-		if(prop->poin && prop->poin != &prop->data)
+		if (prop->poin && prop->poin != &prop->data)
 			writedata(wd, DATA, MEM_allocN_len(prop->poin), prop->poin);
 
 		prop= prop->next;
@@ -1299,7 +1299,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			
 			writedata(wd, DATA, sizeof(int)*hmd->totindex, hmd->indexar);
 		}
-		else if(md->type==eModifierType_Cloth) {
+		else if (md->type==eModifierType_Cloth) {
 			ClothModifierData *clmd = (ClothModifierData*) md;
 			
 			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
@@ -1307,12 +1307,12 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			writestruct(wd, DATA, "EffectorWeights", 1, clmd->sim_parms->effector_weights);
 			write_pointcaches(wd, &clmd->ptcaches);
 		} 
-		else if(md->type==eModifierType_Smoke) {
+		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 			
-			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
+			if (smd->type & MOD_SMOKE_TYPE_DOMAIN)
 			{
-				if(smd->domain)
+				if (smd->domain)
 				{
 					write_pointcaches(wd, &(smd->domain->ptcaches[0]));
 
@@ -1326,7 +1326,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				
 				writestruct(wd, DATA, "SmokeDomainSettings", 1, smd->domain);
 
-				if(smd->domain) {
+				if (smd->domain) {
 					/* cleanup the fake pointcache */
 					BKE_ptcache_free_list(&smd->domain->ptcaches[1]);
 					smd->domain->point_cache[1] = NULL;
@@ -1334,20 +1334,20 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 					writestruct(wd, DATA, "EffectorWeights", 1, smd->domain->effector_weights);
 				}
 			}
-			else if(smd->type & MOD_SMOKE_TYPE_FLOW)
+			else if (smd->type & MOD_SMOKE_TYPE_FLOW)
 				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
-			else if(smd->type & MOD_SMOKE_TYPE_COLL)
+			else if (smd->type & MOD_SMOKE_TYPE_COLL)
 				writestruct(wd, DATA, "SmokeCollSettings", 1, smd->coll);
 		} 
-		else if(md->type==eModifierType_Fluidsim) {
+		else if (md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
 			writestruct(wd, DATA, "FluidsimSettings", 1, fluidmd->fss);
 		}
-		else if(md->type==eModifierType_DynamicPaint) {
+		else if (md->type==eModifierType_DynamicPaint) {
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 			
-			if(pmd->canvas)
+			if (pmd->canvas)
 			{
 				DynamicPaintSurface *surface;
 				writestruct(wd, DATA, "DynamicPaintCanvasSettings", 1, pmd->canvas);
@@ -1362,7 +1362,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 					writestruct(wd, DATA, "EffectorWeights", 1, surface->effector_weights);
 				}
 			}
-			if(pmd->brush)
+			if (pmd->brush)
 			{
 				writestruct(wd, DATA, "DynamicPaintBrushSettings", 1, pmd->brush);
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->paint_ramp);
@@ -1394,7 +1394,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		}
 		else if (md->type==eModifierType_Warp) {
 			WarpModifierData *tmd = (WarpModifierData*) md;
-			if(tmd->curfalloff) {
+			if (tmd->curfalloff) {
 				write_curvemapping(wd, tmd->curfalloff);
 			}
 		}
@@ -1413,7 +1413,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 	
 	ob= idbase->first;
 	while(ob) {
-		if(ob->id.us>0 || wd->current) {
+		if (ob->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_OB, "Object", 1, ob);
 			
@@ -1446,7 +1446,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
-			if(ob->soft) {
+			if (ob->soft) {
 				write_pointcaches(wd, &ob->soft->ptcaches);
 				writestruct(wd, DATA, "EffectorWeights", 1, ob->soft->effector_weights);
 			}
@@ -1470,7 +1470,7 @@ static void write_vfonts(WriteData *wd, ListBase *idbase)
 
 	vf= idbase->first;
 	while(vf) {
-		if(vf->id.us>0 || wd->current) {
+		if (vf->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_VF, "VFont", 1, vf);
 			if (vf->id.properties) IDP_WriteProperty(vf->id.properties, wd);
@@ -1496,7 +1496,7 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 
 	key= idbase->first;
 	while(key) {
-		if(key->id.us>0 || wd->current) {
+		if (key->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_KE, "Key", 1, key);
 			if (key->id.properties) IDP_WriteProperty(key->id.properties, wd);
@@ -1507,7 +1507,7 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 			kb= key->block.first;
 			while(kb) {
 				writestruct(wd, DATA, "KeyBlock", 1, kb);
-				if(kb->data) writedata(wd, DATA, kb->totelem*key->elemsize, kb->data);
+				if (kb->data) writedata(wd, DATA, kb->totelem*key->elemsize, kb->data);
 				kb= kb->next;
 			}
 		}
@@ -1524,7 +1524,7 @@ static void write_cameras(WriteData *wd, ListBase *idbase)
 
 	cam= idbase->first;
 	while(cam) {
-		if(cam->id.us>0 || wd->current) {
+		if (cam->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CA, "Camera", 1, cam);
 			if (cam->id.properties) IDP_WriteProperty(cam->id.properties, wd);
@@ -1543,7 +1543,7 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 
 	mb= idbase->first;
 	while(mb) {
-		if(mb->id.us>0 || wd->current) {
+		if (mb->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MB, "MetaBall", 1, mb);
 			if (mb->id.properties) IDP_WriteProperty(mb->id.properties, wd);
@@ -1576,7 +1576,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 
 	cu= idbase->first;
 	while(cu) {
-		if(cu->id.us>0 || wd->current) {
+		if (cu->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CU, "Curve", 1, cu);
 			
@@ -1585,7 +1585,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			if (cu->id.properties) IDP_WriteProperty(cu->id.properties, wd);
 			if (cu->adt) write_animdata(wd, cu->adt);
 			
-			if(cu->vfont) {
+			if (cu->vfont) {
 				writedata(wd, DATA, amount_of_chars(cu->str)+1, cu->str);
 				writestruct(wd, DATA, "CharInfo", cu->len+1, cu->strinfo);
 				writestruct(wd, DATA, "TextBox", cu->totbox, cu->tb);				
@@ -1599,12 +1599,12 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 				}
 				nu= cu->nurb.first;
 				while(nu) {
-					if(nu->type == CU_BEZIER)
+					if (nu->type == CU_BEZIER)
 						writestruct(wd, DATA, "BezTriple", nu->pntsu, nu->bezt);
 					else {
 						writestruct(wd, DATA, "BPoint", nu->pntsu*nu->pntsv, nu->bp);
-						if(nu->knotsu) writedata(wd, DATA, KNOTSU(nu)*sizeof(float), nu->knotsu);
-						if(nu->knotsv) writedata(wd, DATA, KNOTSV(nu)*sizeof(float), nu->knotsv);
+						if (nu->knotsu) writedata(wd, DATA, KNOTSU(nu)*sizeof(float), nu->knotsu);
+						if (nu->knotsv) writedata(wd, DATA, KNOTSV(nu)*sizeof(float), nu->knotsv);
 					}
 					nu= nu->next;
 				}
@@ -1635,18 +1635,18 @@ static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
 
 static void write_mdisps(WriteData *wd, int count, MDisps *mdlist, int external)
 {
-	if(mdlist) {
+	if (mdlist) {
 		int i;
 		
 		writestruct(wd, DATA, "MDisps", count, mdlist);
-		for(i = 0; i < count; ++i) {
+		for (i = 0; i < count; ++i) {
 			MDisps *md = &mdlist[i];
-			if(md->disps) {
-				if(!external)
+			if (md->disps) {
+				if (!external)
 					writedata(wd, DATA, sizeof(float)*3*md->totdisp, md->disps);
 			}
 			
-			if(md->hidden)
+			if (md->hidden)
 				writedata(wd, DATA, BLI_BITMAP_SIZE(md->totdisp), md->hidden);
 		}
 	}
@@ -1657,7 +1657,7 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 	int i;
 
 	/* write external customdata (not for undo) */
-	if(data->external && !wd->current)
+	if (data->external && !wd->current)
 		CustomData_external_write(data, id, CD_MASK_MESH, count, 0);
 
 	writestruct(wd, DATA, "CustomDataLayer", data->maxlayer, data->layers);
@@ -1691,7 +1691,7 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 		}
 	}
 
-	if(data->external)
+	if (data->external)
 		writestruct(wd, DATA, "CustomDataExternal", 1, data->external);
 }
 
@@ -1706,7 +1706,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 	mesh= idbase->first;
 	while(mesh) {
-		if(mesh->id.us>0 || wd->current) {
+		if (mesh->id.us>0 || wd->current) {
 			/* write LibData */
 			if (!save_for_old_blender) {
 
@@ -1838,7 +1838,7 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 	
 	lt= idbase->first;
 	while(lt) {
-		if(lt->id.us>0 || wd->current) {
+		if (lt->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LT, "Lattice", 1, lt);
 			if (lt->id.properties) IDP_WriteProperty(lt->id.properties, wd);
@@ -1889,7 +1889,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 
 	ima= idbase->first;
 	while(ima) {
-		if(ima->id.us>0 || wd->current) {
+		if (ima->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_IM, "Image", 1, ima);
 			if (ima->id.properties) IDP_WriteProperty(ima->id.properties, wd);
@@ -1914,7 +1914,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 
 	tex= idbase->first;
 	while(tex) {
-		if(tex->id.us>0 || wd->current) {
+		if (tex->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_TE, "Tex", 1, tex);
 			if (tex->id.properties) IDP_WriteProperty(tex->id.properties, wd);
@@ -1922,19 +1922,19 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if (tex->adt) write_animdata(wd, tex->adt);
 
 			/* direct data */
-			if(tex->type == TEX_PLUGIN && tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
-			if(tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
-			if(tex->type == TEX_ENVMAP && tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
-			if(tex->type == TEX_POINTDENSITY && tex->pd) {
+			if (tex->type == TEX_PLUGIN && tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
+			if (tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
+			if (tex->type == TEX_ENVMAP && tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
+			if (tex->type == TEX_POINTDENSITY && tex->pd) {
 				writestruct(wd, DATA, "PointDensity", 1, tex->pd);
-				if(tex->pd->coba) writestruct(wd, DATA, "ColorBand", 1, tex->pd->coba);
-				if(tex->pd->falloff_curve) write_curvemapping(wd, tex->pd->falloff_curve);
+				if (tex->pd->coba) writestruct(wd, DATA, "ColorBand", 1, tex->pd->coba);
+				if (tex->pd->falloff_curve) write_curvemapping(wd, tex->pd->falloff_curve);
 			}
-			if(tex->type == TEX_VOXELDATA) writestruct(wd, DATA, "VoxelData", 1, tex->vd);
-			if(tex->type == TEX_OCEAN && tex->ot) writestruct(wd, DATA, "OceanTex", 1, tex->ot);
+			if (tex->type == TEX_VOXELDATA) writestruct(wd, DATA, "VoxelData", 1, tex->vd);
+			if (tex->type == TEX_OCEAN && tex->ot) writestruct(wd, DATA, "OceanTex", 1, tex->ot);
 			
 			/* nodetree is integral part of texture, no libdata */
-			if(tex->nodetree) {
+			if (tex->nodetree) {
 				writestruct(wd, DATA, "bNodeTree", 1, tex->nodetree);
 				write_nodetree(wd, tex->nodetree);
 			}
@@ -1955,7 +1955,7 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 
 	ma= idbase->first;
 	while(ma) {
-		if(ma->id.us>0 || wd->current) {
+		if (ma->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MA, "Material", 1, ma);
 			
@@ -1967,15 +1967,15 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			
 			if (ma->adt) write_animdata(wd, ma->adt);
 
-			for(a=0; a<MAX_MTEX; a++) {
-				if(ma->mtex[a]) writestruct(wd, DATA, "MTex", 1, ma->mtex[a]);
+			for (a=0; a<MAX_MTEX; a++) {
+				if (ma->mtex[a]) writestruct(wd, DATA, "MTex", 1, ma->mtex[a]);
 			}
 			
-			if(ma->ramp_col) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_col);
-			if(ma->ramp_spec) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_spec);
+			if (ma->ramp_col) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_col);
+			if (ma->ramp_spec) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_spec);
 			
 			/* nodetree is integral part of material, no libdata */
-			if(ma->nodetree) {
+			if (ma->nodetree) {
 				writestruct(wd, DATA, "bNodeTree", 1, ma->nodetree);
 				write_nodetree(wd, ma->nodetree);
 			}
@@ -1993,19 +1993,19 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 
 	wrld= idbase->first;
 	while(wrld) {
-		if(wrld->id.us>0 || wd->current) {
+		if (wrld->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_WO, "World", 1, wrld);
 			if (wrld->id.properties) IDP_WriteProperty(wrld->id.properties, wd);
 			
 			if (wrld->adt) write_animdata(wd, wrld->adt);
 			
-			for(a=0; a<MAX_MTEX; a++) {
-				if(wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
+			for (a=0; a<MAX_MTEX; a++) {
+				if (wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
 			}
 
 			/* nodetree is integral part of lamps, no libdata */
-			if(wrld->nodetree) {
+			if (wrld->nodetree) {
 				writestruct(wd, DATA, "bNodeTree", 1, wrld->nodetree);
 				write_nodetree(wd, wrld->nodetree);
 			}
@@ -2023,7 +2023,7 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 
 	la= idbase->first;
 	while(la) {
-		if(la->id.us>0 || wd->current) {
+		if (la->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LA, "Lamp", 1, la);
 			if (la->id.properties) IDP_WriteProperty(la->id.properties, wd);
@@ -2031,15 +2031,15 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			if (la->adt) write_animdata(wd, la->adt);
 			
 			/* direct data */
-			for(a=0; a<MAX_MTEX; a++) {
-				if(la->mtex[a]) writestruct(wd, DATA, "MTex", 1, la->mtex[a]);
+			for (a=0; a<MAX_MTEX; a++) {
+				if (la->mtex[a]) writestruct(wd, DATA, "MTex", 1, la->mtex[a]);
 			}
 			
-			if(la->curfalloff)
+			if (la->curfalloff)
 				write_curvemapping(wd, la->curfalloff);	
 			
 			/* nodetree is integral part of lamps, no libdata */
-			if(la->nodetree) {
+			if (la->nodetree) {
 				writestruct(wd, DATA, "bNodeTree", 1, la->nodetree);
 				write_nodetree(wd, la->nodetree);
 			}
@@ -2083,40 +2083,40 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		
 		tos = sce->toolsettings;
 		writestruct(wd, DATA, "ToolSettings", 1, tos);
-		if(tos->vpaint) {
+		if (tos->vpaint) {
 			writestruct(wd, DATA, "VPaint", 1, tos->vpaint);
 		}
-		if(tos->wpaint) {
+		if (tos->wpaint) {
 			writestruct(wd, DATA, "VPaint", 1, tos->wpaint);
 		}
-		if(tos->sculpt) {
+		if (tos->sculpt) {
 			writestruct(wd, DATA, "Sculpt", 1, tos->sculpt);
 		}
-		if(tos->uvsculpt) {
+		if (tos->uvsculpt) {
 			writestruct(wd, DATA, "UvSculpt", 1, tos->uvsculpt);
 		}
 
 		// write_paint(wd, &tos->imapaint.paint);
 
 		ed= sce->ed;
-		if(ed) {
+		if (ed) {
 			writestruct(wd, DATA, "Editing", 1, ed);
 			
 			/* reset write flags too */
 			
 			SEQ_BEGIN(ed, seq) {
-				if(seq->strip) seq->strip->done= 0;
+				if (seq->strip) seq->strip->done= 0;
 				writestruct(wd, DATA, "Sequence", 1, seq);
 			}
 			SEQ_END
 			
 			SEQ_BEGIN(ed, seq) {
-				if(seq->strip && seq->strip->done==0) {
+				if (seq->strip && seq->strip->done==0) {
 					/* write strip with 'done' at 0 because readfile */
 					
-					if(seq->plugin) writestruct(wd, DATA, "PluginSeq", 1, seq->plugin);
-					if(seq->effectdata) {
-						switch(seq->type){
+					if (seq->plugin) writestruct(wd, DATA, "PluginSeq", 1, seq->plugin);
+					if (seq->effectdata) {
+						switch(seq->type) {
 						case SEQ_COLOR:
 							writestruct(wd, DATA, "SolidColorVars", 1, seq->effectdata);
 							break;
@@ -2137,21 +2137,21 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					
 					strip= seq->strip;
 					writestruct(wd, DATA, "Strip", 1, strip);
-					if(seq->flag & SEQ_USE_CROP && strip->crop) {
+					if (seq->flag & SEQ_USE_CROP && strip->crop) {
 						writestruct(wd, DATA, "StripCrop", 1, strip->crop);
 					}
-					if(seq->flag & SEQ_USE_TRANSFORM && strip->transform) {
+					if (seq->flag & SEQ_USE_TRANSFORM && strip->transform) {
 						writestruct(wd, DATA, "StripTransform", 1, strip->transform);
 					}
-					if(seq->flag & SEQ_USE_PROXY && strip->proxy) {
+					if (seq->flag & SEQ_USE_PROXY && strip->proxy) {
 						writestruct(wd, DATA, "StripProxy", 1, strip->proxy);
 					}
-					if(seq->flag & SEQ_USE_COLOR_BALANCE && strip->color_balance) {
+					if (seq->flag & SEQ_USE_COLOR_BALANCE && strip->color_balance) {
 						writestruct(wd, DATA, "StripColorBalance", 1, strip->color_balance);
 					}
-					if(seq->type==SEQ_IMAGE)
+					if (seq->type==SEQ_IMAGE)
 						writestruct(wd, DATA, "StripElem", MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem), strip->stripdata);
-					else if(seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
+					else if (seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
 						writestruct(wd, DATA, "StripElem", 1, strip->stripdata);
 					
 					strip->done= 1;
@@ -2160,7 +2160,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			SEQ_END
 				
 			/* new; meta stack too, even when its nasty restore code */
-			for(ms= ed->metastack.first; ms; ms= ms->next) {
+			for (ms= ed->metastack.first; ms; ms= ms->next) {
 				writestruct(wd, DATA, "MetaStack", 1, ms);
 			}
 		}
@@ -2180,17 +2180,17 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		}
 
 		/* writing dynamic list of TimeMarkers to the blend file */
-		for(marker= sce->markers.first; marker; marker= marker->next)
+		for (marker= sce->markers.first; marker; marker= marker->next)
 			writestruct(wd, DATA, "TimeMarker", 1, marker);
 		
 		/* writing dynamic list of TransformOrientations to the blend file */
-		for(ts = sce->transform_spaces.first; ts; ts = ts->next)
+		for (ts = sce->transform_spaces.first; ts; ts = ts->next)
 			writestruct(wd, DATA, "TransformOrientation", 1, ts);
 		
-		for(srl= sce->r.layers.first; srl; srl= srl->next)
+		for (srl= sce->r.layers.first; srl; srl= srl->next)
 			writestruct(wd, DATA, "SceneRenderLayer", 1, srl);
 		
-		if(sce->nodetree) {
+		if (sce->nodetree) {
 			writestruct(wd, DATA, "bNodeTree", 1, sce->nodetree);
 			write_nodetree(wd, sce->nodetree);
 		}
@@ -2237,10 +2237,10 @@ static void write_windowmanagers(WriteData *wd, ListBase *lb)
 	wmWindowManager *wm;
 	wmWindow *win;
 	
-	for(wm= lb->first; wm; wm= wm->id.next) {
+	for (wm= lb->first; wm; wm= wm->id.next) {
 		writestruct(wd, ID_WM, "wmWindowManager", 1, wm);
 		
-		for(win= wm->windows.first; win; win= win->next)
+		for (win= wm->windows.first; win; win= win->next)
 			writestruct(wd, DATA, "wmWindow", 1, win);
 	}
 }
@@ -2249,16 +2249,16 @@ static void write_region(WriteData *wd, ARegion *ar, int spacetype)
 {	
 	writestruct(wd, DATA, "ARegion", 1, ar);
 	
-	if(ar->regiondata) {
+	if (ar->regiondata) {
 		switch(spacetype) {
 			case SPACE_VIEW3D:
-				if(ar->regiontype==RGN_TYPE_WINDOW) {
+				if (ar->regiontype==RGN_TYPE_WINDOW) {
 					RegionView3D *rv3d= ar->regiondata;
 					writestruct(wd, DATA, "RegionView3D", 1, rv3d);
 					
-					if(rv3d->localvd)
+					if (rv3d->localvd)
 						writestruct(wd, DATA, "RegionView3D", 1, rv3d->localvd);
-					if(rv3d->clipbb) 
+					if (rv3d->clipbb)
 						writestruct(wd, DATA, "BoundBox", 1, rv3d->clipbb);
 
 				}
@@ -2288,40 +2288,40 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 			IDP_WriteProperty(sc->id.properties, wd);
 		
 		/* direct data */
-		for(sv= sc->vertbase.first; sv; sv= sv->next)
+		for (sv= sc->vertbase.first; sv; sv= sv->next)
 			writestruct(wd, DATA, "ScrVert", 1, sv);
 		
-		for(se= sc->edgebase.first; se; se= se->next) 
+		for (se= sc->edgebase.first; se; se= se->next)
 			writestruct(wd, DATA, "ScrEdge", 1, se);
 		
-		for(sa= sc->areabase.first; sa; sa= sa->next) {
+		for (sa= sc->areabase.first; sa; sa= sa->next) {
 			SpaceLink *sl;
 			Panel *pa;
 			ARegion *ar;
 			
 			writestruct(wd, DATA, "ScrArea", 1, sa);
 			
-			for(ar= sa->regionbase.first; ar; ar= ar->next) {
+			for (ar= sa->regionbase.first; ar; ar= ar->next) {
 				write_region(wd, ar, sa->spacetype);
 				
-				for(pa= ar->panels.first; pa; pa= pa->next)
+				for (pa= ar->panels.first; pa; pa= pa->next)
 					writestruct(wd, DATA, "Panel", 1, pa);
 			}
 			
 			sl= sa->spacedata.first;
 			while(sl) {
-				for(ar= sl->regionbase.first; ar; ar= ar->next)
+				for (ar= sl->regionbase.first; ar; ar= ar->next)
 					write_region(wd, ar, sl->spacetype);
 				
-				if(sl->spacetype==SPACE_VIEW3D) {
+				if (sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D *) sl;
 					BGpic *bgpic;
 					writestruct(wd, DATA, "View3D", 1, v3d);
 					for (bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
 						writestruct(wd, DATA, "BGpic", 1, bgpic);
-					if(v3d->localvd) writestruct(wd, DATA, "View3D", 1, v3d->localvd);
+					if (v3d->localvd) writestruct(wd, DATA, "View3D", 1, v3d->localvd);
 				}
-				else if(sl->spacetype==SPACE_IPO) {
+				else if (sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
 					ListBase tmpGhosts = sipo->ghostCurves;
 					
@@ -2329,70 +2329,70 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					sipo->ghostCurves.first= sipo->ghostCurves.last= NULL;
 					
 					writestruct(wd, DATA, "SpaceIpo", 1, sl);
-					if(sipo->ads) writestruct(wd, DATA, "bDopeSheet", 1, sipo->ads);
+					if (sipo->ads) writestruct(wd, DATA, "bDopeSheet", 1, sipo->ads);
 					
 					/* reenable ghost curves */
 					sipo->ghostCurves= tmpGhosts;
 				}
-				else if(sl->spacetype==SPACE_BUTS) {
+				else if (sl->spacetype==SPACE_BUTS) {
 					writestruct(wd, DATA, "SpaceButs", 1, sl);
 				}
-				else if(sl->spacetype==SPACE_FILE) {
+				else if (sl->spacetype==SPACE_FILE) {
 					SpaceFile *sfile= (SpaceFile *)sl;
 
 					writestruct(wd, DATA, "SpaceFile", 1, sl);
-					if(sfile->params)
+					if (sfile->params)
 						writestruct(wd, DATA, "FileSelectParams", 1, sfile->params);
 				}
-				else if(sl->spacetype==SPACE_SEQ) {
+				else if (sl->spacetype==SPACE_SEQ) {
 					writestruct(wd, DATA, "SpaceSeq", 1, sl);
 				}
-				else if(sl->spacetype==SPACE_OUTLINER) {
+				else if (sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
 					
 					writestruct(wd, DATA, "SpaceOops", 1, so);
 
 					/* outliner */
-					if(so->treestore) {
+					if (so->treestore) {
 						writestruct(wd, DATA, "TreeStore", 1, so->treestore);
-						if(so->treestore->data)
+						if (so->treestore->data)
 							writestruct(wd, DATA, "TreeStoreElem", so->treestore->usedelem, so->treestore->data);
 					}
 				}
-				else if(sl->spacetype==SPACE_IMAGE) {
+				else if (sl->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= (SpaceImage *)sl;
 					
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
-					if(sima->cumap)
+					if (sima->cumap)
 						write_curvemapping(wd, sima->cumap);
 				}
-				else if(sl->spacetype==SPACE_TEXT) {
+				else if (sl->spacetype==SPACE_TEXT) {
 					writestruct(wd, DATA, "SpaceText", 1, sl);
 				}
-				else if(sl->spacetype==SPACE_SCRIPT) {
+				else if (sl->spacetype==SPACE_SCRIPT) {
 					SpaceScript *scr = (SpaceScript*)sl;
 					scr->but_refs = NULL;
 					writestruct(wd, DATA, "SpaceScript", 1, sl);
 				}
-				else if(sl->spacetype==SPACE_ACTION) {
+				else if (sl->spacetype==SPACE_ACTION) {
 					writestruct(wd, DATA, "SpaceAction", 1, sl);
 				}
-				else if(sl->spacetype==SPACE_NLA){
+				else if (sl->spacetype==SPACE_NLA) {
 					SpaceNla *snla= (SpaceNla *)sl;
 					
 					writestruct(wd, DATA, "SpaceNla", 1, snla);
-					if(snla->ads) writestruct(wd, DATA, "bDopeSheet", 1, snla->ads);
+					if (snla->ads) writestruct(wd, DATA, "bDopeSheet", 1, snla->ads);
 				}
-				else if(sl->spacetype==SPACE_TIME){
+				else if (sl->spacetype==SPACE_TIME) {
 					writestruct(wd, DATA, "SpaceTime", 1, sl);
 				}
-				else if(sl->spacetype==SPACE_NODE){
+				else if (sl->spacetype==SPACE_NODE) {
 					writestruct(wd, DATA, "SpaceNode", 1, sl);
 				}
-				else if(sl->spacetype==SPACE_LOGIC){
+				else if (sl->spacetype==SPACE_LOGIC) {
 					writestruct(wd, DATA, "SpaceLogic", 1, sl);
 				}
-				else if(sl->spacetype==SPACE_CONSOLE) {
+				else if (sl->spacetype==SPACE_CONSOLE) {
 					SpaceConsole *con = (SpaceConsole*)sl;
 					ConsoleLine *cl;
 
@@ -2404,10 +2404,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceConsole", 1, sl);
 
 				}
-				else if(sl->spacetype==SPACE_USERPREF) {
+				else if (sl->spacetype==SPACE_USERPREF) {
 					writestruct(wd, DATA, "SpaceUserPref", 1, sl);
 				}
-				else if(sl->spacetype==SPACE_CLIP) {
+				else if (sl->spacetype==SPACE_CLIP) {
 					writestruct(wd, DATA, "SpaceClip", 1, sl);
 				}
 
@@ -2425,28 +2425,28 @@ static void write_libraries(WriteData *wd, Main *main)
 	ID *id;
 	int a, tot, foundone;
 
-	for(; main; main= main->next) {
+	for (; main; main= main->next) {
 
 		a=tot= set_listbasepointers(main, lbarray);
 
 		/* test: is lib being used */
 		foundone= 0;
 		while(tot--) {
-			for(id= lbarray[tot]->first; id; id= id->next) {
-				if(id->us>0 && (id->flag & LIB_EXTERN)) {
+			for (id= lbarray[tot]->first; id; id= id->next) {
+				if (id->us>0 && (id->flag & LIB_EXTERN)) {
 					foundone= 1;
 					break;
 				}
 			}
-			if(foundone) break;
+			if (foundone) break;
 		}
 
-		if(foundone) {
+		if (foundone) {
 			writestruct(wd, ID_LI, "Library", 1, main->curlib);
 
 			while(a--) {
-				for(id= lbarray[a]->first; id; id= id->next) {
-					if(id->us>0 && (id->flag & LIB_EXTERN)) {
+				for (id= lbarray[a]->first; id; id= id->next) {
+					if (id->us>0 && (id->flag & LIB_EXTERN)) {
 						writestruct(wd, ID_ID, "ID", 1, id);
 					}
 				}
@@ -2517,10 +2517,10 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 
 		/* write LibData */
 		writestruct(wd, ID_TXT, "Text", 1, text);
-		if(text->name) writedata(wd, DATA, strlen(text->name)+1, text->name);
+		if (text->name) writedata(wd, DATA, strlen(text->name)+1, text->name);
 		if (text->id.properties) IDP_WriteProperty(text->id.properties, wd);
 
-		if(!(text->flags & TXT_ISEXT)) {
+		if (!(text->flags & TXT_ISEXT)) {
 			/* now write the text data, in two steps for optimization in the readfunction */
 			tmp= text->lines.first;
 			while (tmp) {
@@ -2556,7 +2556,7 @@ static void write_speakers(WriteData *wd, ListBase *idbase)
 
 	spk= idbase->first;
 	while(spk) {
-		if(spk->id.us>0 || wd->current) {
+		if (spk->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_SPK, "Speaker", 1, spk);
 			if (spk->id.properties) IDP_WriteProperty(spk->id.properties, wd);
@@ -2575,7 +2575,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 
 	sound= idbase->first;
 	while(sound) {
-		if(sound->id.us>0 || wd->current) {
+		if (sound->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_SO, "bSound", 1, sound);
 			if (sound->id.properties) IDP_WriteProperty(sound->id.properties, wd);
@@ -2598,8 +2598,8 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 	Group *group;
 	GroupObject *go;
 
-	for(group= idbase->first; group; group= group->id.next) {
-		if(group->id.us>0 || wd->current) {
+	for (group= idbase->first; group; group= group->id.next) {
+		if (group->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_GR, "Group", 1, group);
 			if (group->id.properties) IDP_WriteProperty(group->id.properties, wd);
@@ -2617,7 +2617,7 @@ static void write_nodetrees(WriteData *wd, ListBase *idbase)
 {
 	bNodeTree *ntree;
 	
-	for(ntree=idbase->first; ntree; ntree= ntree->id.next) {
+	for (ntree=idbase->first; ntree; ntree= ntree->id.next) {
 		if (ntree->id.us>0 || wd->current) {
 			writestruct(wd, ID_NT, "bNodeTree", 1, ntree);
 			write_nodetree(wd, ntree);
@@ -2633,14 +2633,14 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 {
 	Brush *brush;
 	
-	for(brush=idbase->first; brush; brush= brush->id.next) {
-		if(brush->id.us>0 || wd->current) {
+	for (brush=idbase->first; brush; brush= brush->id.next) {
+		if (brush->id.us>0 || wd->current) {
 			writestruct(wd, ID_BR, "Brush", 1, brush);
 			if (brush->id.properties) IDP_WriteProperty(brush->id.properties, wd);
 			
 			writestruct(wd, DATA, "MTex", 1, &brush->mtex);
 			
-			if(brush->curve)
+			if (brush->curve)
 				write_curvemapping(wd, brush->curve);
 		}
 	}
@@ -2650,8 +2650,8 @@ static void write_scripts(WriteData *wd, ListBase *idbase)
 {
 	Script *script;
 	
-	for(script=idbase->first; script; script= script->id.next) {
-		if(script->id.us>0 || wd->current) {
+	for (script=idbase->first; script; script= script->id.next) {
+		if (script->id.us>0 || wd->current) {
 			writestruct(wd, ID_SCRIPT, "Script", 1, script);
 			if (script->id.properties) IDP_WriteProperty(script->id.properties, wd);
 		}
@@ -2666,7 +2666,7 @@ static void write_movieTracks(WriteData *wd, ListBase *tracks)
 	while(track) {
 		writestruct(wd, DATA, "MovieTrackingTrack", 1, track);
 
-		if(track->markers)
+		if (track->markers)
 			writestruct(wd, DATA, "MovieTrackingMarker", track->markersnr, track->markers);
 
 		track= track->next;
@@ -2675,7 +2675,7 @@ static void write_movieTracks(WriteData *wd, ListBase *tracks)
 
 static void write_movieReconstruction(WriteData *wd, MovieTrackingReconstruction *reconstruction)
 {
-	if(reconstruction->camnr)
+	if (reconstruction->camnr)
 		writestruct(wd, DATA, "MovieReconstructedCamera", reconstruction->camnr, reconstruction->cameras);
 }
 
@@ -2685,12 +2685,12 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 
 	clip= idbase->first;
 	while(clip) {
-		if(clip->id.us>0 || wd->current) {
+		if (clip->id.us>0 || wd->current) {
 			MovieTracking *tracking= &clip->tracking;
 			MovieTrackingObject *object;
 			writestruct(wd, ID_MC, "MovieClip", 1, clip);
 
-			if(clip->adt)
+			if (clip->adt)
 				write_animdata(wd, clip->adt);
 
 			write_movieTracks(wd, &tracking->tracks);
@@ -2764,7 +2764,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
  */
 static void write_thumb(WriteData *wd, int *img)
 {
-	if(img)
+	if (img)
 		writedata(wd, TEST, (2 + img[0] * img[1]) * sizeof(int), img);
 }
 
@@ -2793,7 +2793,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_global(wd, write_flags, mainvar);
 
 	/* no UI save in undo */
-	if(current==NULL) {
+	if (current==NULL) {
 		write_windowmanagers(wd, &mainvar->wm);
 		write_screens  (wd, &mainvar->screen);
 	}
@@ -2849,8 +2849,8 @@ static int do_history(const char *name, ReportList *reports)
 	char tempname1[FILE_MAX], tempname2[FILE_MAX];
 	int hisnr= U.versions;
 	
-	if(U.versions==0) return 0;
-	if(strlen(name)<2) {
+	if (U.versions==0) return 0;
+	if (strlen(name)<2) {
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup: filename too short");
 		return 1;
 	}
@@ -2859,7 +2859,7 @@ static int do_history(const char *name, ReportList *reports)
 		BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr-1);
 		BLI_snprintf(tempname2, sizeof(tempname2), "%s%d", name, hisnr);
 	
-		if(BLI_rename(tempname1, tempname2)) {
+		if (BLI_rename(tempname1, tempname2)) {
 			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 			return 1;
 		}	
@@ -2869,7 +2869,7 @@ static int do_history(const char *name, ReportList *reports)
 	/* is needed when hisnr==1 */
 	BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr);
 
-	if(BLI_rename(name, tempname1)) {
+	if (BLI_rename(name, tempname1)) {
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 		return 1;
 	}
@@ -2888,13 +2888,13 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
 	file = BLI_open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
-	if(file == -1) {
+	if (file == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s.", tempname, strerror(errno));
 		return 0;
 	}
 
 	/* remapping of relative paths to new file location */
-	if(write_flags & G_FILE_RELATIVE_REMAP) {
+	if (write_flags & G_FILE_RELATIVE_REMAP) {
 		char dir1[FILE_MAX];
 		char dir2[FILE_MAX];
 		BLI_split_dir_part(filepath, dir1, sizeof(dir1));
@@ -2904,11 +2904,11 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		BLI_cleanup_dir(mainvar->name, dir1);
 		BLI_cleanup_dir(mainvar->name, dir2);
 
-		if(BLI_path_cmp(dir1, dir2)==0) {
+		if (BLI_path_cmp(dir1, dir2)==0) {
 			write_flags &= ~G_FILE_RELATIVE_REMAP;
 		}
 		else {
-			if(G.relbase_valid) {
+			if (G.relbase_valid) {
 				/* blend may not have been saved before. Tn this case
 				 * we should not have any relative paths, but if there
 				 * is somehow, an invalid or empty G.main->name it will
@@ -2921,7 +2921,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	BLI_make_file_string(G.main->name, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	write_user_block= (BLI_path_cmp(filepath, userfilename) == 0);
 
-	if(write_flags & G_FILE_RELATIVE_REMAP)
+	if (write_flags & G_FILE_RELATIVE_REMAP)
 		makeFilesRelative(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
 
 	/* actual file writing */
@@ -2945,7 +2945,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		}
 	}
 
-	if(write_flags & G_FILE_COMPRESS) {
+	if (write_flags & G_FILE_COMPRESS) {
 		/* compressed files have the same ending as regular files... only from 2.4!!! */
 		char gzname[FILE_MAX+4];
 		int ret;
@@ -2954,25 +2954,25 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		BLI_snprintf(gzname, sizeof(gzname), "%s@.gz", filepath);
 		ret = BLI_file_gzip(tempname, gzname);
 		
-		if(0==ret) {
+		if (0==ret) {
 			/* now rename to real file name, and delete temp @ file too */
-			if(BLI_rename(gzname, filepath) != 0) {
+			if (BLI_rename(gzname, filepath) != 0) {
 				BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @.");
 				return 0;
 			}
 
 			BLI_delete(tempname, 0, 0);
 		}
-		else if(-1==ret) {
+		else if (-1==ret) {
 			BKE_report(reports, RPT_ERROR, "Failed opening .gz file.");
 			return 0;
 		}
-		else if(-2==ret) {
+		else if (-2==ret) {
 			BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression.");
 			return 0;
 		}
 	}
-	else if(BLI_rename(tempname, filepath) != 0) {
+	else if (BLI_rename(tempname, filepath) != 0) {
 		BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @");
 		return 0;
 	}
@@ -2987,6 +2987,6 @@ int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int wr
 
 	err= write_file_handle(mainvar, 0, compare, current, 0, write_flags, NULL);
 	
-	if(err==0) return 1;
+	if (err==0) return 1;
 	return 0;
 }

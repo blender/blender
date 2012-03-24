@@ -86,7 +86,7 @@ struct bSound* sound_new_file(struct Main *bmain, const char *filename)
 	BLI_path_abs(str, path);
 
 	len = strlen(filename);
-	while(len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
+	while (len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
 		len--;
 
 	sound = alloc_libblock(&bmain->sound, ID_SO, filename+len);
@@ -141,7 +141,7 @@ static void sound_sync_callback(void* data, int mode, float time)
 	struct Scene* scene;
 
 	scene = bmain->scene.first;
-	while(scene)
+	while (scene)
 	{
 		if (scene->audio.flag & AUDIO_SYNC)
 		{
@@ -765,7 +765,7 @@ void sound_update_scene(struct Scene* scene)
 		}
 	}
 
-	while((handle = AUD_getSet(scene->speaker_handles)))
+	while ((handle = AUD_getSet(scene->speaker_handles)))
 	{
 		AUD_removeSequence(scene->sound_scene, handle);
 	}

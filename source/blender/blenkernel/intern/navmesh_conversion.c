@@ -501,7 +501,7 @@ exit:
 int polyFindVertex(const unsigned short* p, const int vertsPerPoly, unsigned short vertexIdx)
 {
 	int i, res = -1;
-	for(i=0; i<vertsPerPoly; i++)
+	for (i=0; i<vertsPerPoly; i++)
 	{
 		if (p[i]==0xffff)
 			break;

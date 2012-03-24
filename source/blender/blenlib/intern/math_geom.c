@@ -139,8 +139,8 @@ float area_poly_v3(int nr, float verts[][3], const float normal[3])
 	y= fabsf(normal[1]);
 	z= fabsf(normal[2]);
 	max = MAX3(x, y, z);
-	if(max==y) py=2;
-	else if(max==x) {
+	if (max==y) py=2;
+	else if (max==x) {
 		px=1; 
 		py= 2;
 	}
@@ -149,7 +149,7 @@ float area_poly_v3(int nr, float verts[][3], const float normal[3])
 	prev= verts[nr-1];
 	cur= verts[0];
 	area= 0;
-	for(a=0; a<nr; a++) {
+	for (a=0; a<nr; a++) {
 		area+= (cur[px]-prev[px])*(cur[py]+prev[py]);
 		prev= verts[a];
 		cur= verts[a+1];
@@ -169,7 +169,7 @@ float dist_to_line_v2(const float v1[2], const float v2[2], const float v3[2])
 	a[0]= v2[1]-v3[1];
 	a[1]= v3[0]-v2[0];
 	deler= (float)sqrt(a[0]*a[0]+a[1]*a[1]);
-	if(deler== 0.0f) return 0;
+	if (deler== 0.0f) return 0;
 
 	return fabsf((v1[0]-v2[0])*a[0]+(v1[1]-v2[1])*a[1])/deler;
 
@@ -183,18 +183,18 @@ float dist_to_line_segment_v2(const float v1[2], const float v2[2], const float 
 	rc[0]= v3[0]-v2[0];
 	rc[1]= v3[1]-v2[1];
 	len= rc[0]*rc[0]+ rc[1]*rc[1];
-	if(len==0.0f) {
+	if (len==0.0f) {
 		rc[0]= v1[0]-v2[0];
 		rc[1]= v1[1]-v2[1];
 		return (float)(sqrt(rc[0]*rc[0]+ rc[1]*rc[1]));
 	}
 	
 	labda= (rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]))/len;
-	if(labda <= 0.0f) {
+	if (labda <= 0.0f) {
 		pt[0]= v2[0];
 		pt[1]= v2[1];
 	}
-	else if(labda >= 1.0f) {
+	else if (labda >= 1.0f) {
 		pt[0]= v3[0];
 		pt[1]= v3[1];
 	}
@@ -215,9 +215,9 @@ void closest_to_line_segment_v2(float close_r[2], const float p[2], const float 
 
 	lambda= closest_to_line_v2(cp,p, l1, l2);
 
-	if(lambda <= 0.0f)
+	if (lambda <= 0.0f)
 		copy_v2_v2(close_r, l1);
-	else if(lambda >= 1.0f)
+	else if (lambda >= 1.0f)
 		copy_v2_v2(close_r, l2);
 	else
 		copy_v2_v2(close_r, cp);
@@ -230,9 +230,9 @@ void closest_to_line_segment_v3(float close_r[3], const float v1[3], const float
 
 	lambda= closest_to_line_v3(cp,v1, v2, v3);
 
-	if(lambda <= 0.0f)
+	if (lambda <= 0.0f)
 		copy_v3_v3(close_r, v2);
-	else if(lambda >= 1.0f)
+	else if (lambda >= 1.0f)
 		copy_v3_v3(close_r, v3);
 	else
 		copy_v3_v3(close_r, cp);
@@ -298,14 +298,14 @@ int isect_line_line_v2_int(const int v1[2], const int v2[2], const int v3[2], co
 	float div, labda, mu;
 	
 	div= (float)((v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]));
-	if(div==0.0f) return ISECT_LINE_LINE_COLINEAR;
+	if (div==0.0f) return ISECT_LINE_LINE_COLINEAR;
 	
 	labda= ((float)(v1[1]-v3[1])*(v4[0]-v3[0])-(v1[0]-v3[0])*(v4[1]-v3[1]))/div;
 	
 	mu= ((float)(v1[1]-v3[1])*(v2[0]-v1[0])-(v1[0]-v3[0])*(v2[1]-v1[1]))/div;
 	
-	if(labda>=0.0f && labda<=1.0f && mu>=0.0f && mu<=1.0f) {
-		if(labda==0.0f || labda==1.0f || mu==0.0f || mu==1.0f) return ISECT_LINE_LINE_EXACT;
+	if (labda>=0.0f && labda<=1.0f && mu>=0.0f && mu<=1.0f) {
+		if (labda==0.0f || labda==1.0f || mu==0.0f || mu==1.0f) return ISECT_LINE_LINE_EXACT;
 		return ISECT_LINE_LINE_CROSS;
 	}
 	return ISECT_LINE_LINE_NONE;
@@ -317,14 +317,14 @@ int isect_line_line_v2(const float v1[2], const float v2[2], const float v3[2], 
 	float div, labda, mu;
 	
 	div= (v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]);
-	if(div==0.0f) return ISECT_LINE_LINE_COLINEAR;
+	if (div==0.0f) return ISECT_LINE_LINE_COLINEAR;
 	
 	labda= ((float)(v1[1]-v3[1])*(v4[0]-v3[0])-(v1[0]-v3[0])*(v4[1]-v3[1]))/div;
 	
 	mu= ((float)(v1[1]-v3[1])*(v2[0]-v1[0])-(v1[0]-v3[0])*(v2[1]-v1[1]))/div;
 	
-	if(labda>=0.0f && labda<=1.0f && mu>=0.0f && mu<=1.0f) {
-		if(labda==0.0f || labda==1.0f || mu==0.0f || mu==1.0f) return ISECT_LINE_LINE_EXACT;
+	if (labda>=0.0f && labda<=1.0f && mu>=0.0f && mu<=1.0f) {
+		if (labda==0.0f || labda==1.0f || mu==0.0f || mu==1.0f) return ISECT_LINE_LINE_EXACT;
 		return ISECT_LINE_LINE_CROSS;
 	}
 	return ISECT_LINE_LINE_NONE;
@@ -350,18 +350,19 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 
 	d= a1*b2-a2*b1;
 
-	if(d==0) {
-		if(a1*c2-a2*c1==0.0f && b1*c2-b2*c1==0.0f) { /* equal lines */
+	if (d==0) {
+		if (a1*c2-a2*c1==0.0f && b1*c2-b2*c1==0.0f) { /* equal lines */
 			float a[2], b[2], c[2];
 			float u2;
 
-			if(len_v2v2(v1, v2)==0.0f) {
-				if(len_v2v2(v3, v4)>eps) {
+			if (len_v2v2(v1, v2)==0.0f) {
+				if (len_v2v2(v3, v4)>eps) {
 					/* use non-point segment as basis */
 					SWAP(const float *, v1, v3);
 					SWAP(const float *, v2, v4);
-				} else { /* both of segments are points */
-					if(equals_v2v2(v1, v3)) { /* points are equal */
+				}
+				else { /* both of segments are points */
+					if (equals_v2v2(v1, v3)) { /* points are equal */
 						copy_v2_v2(vi, v1);
 						return 1;
 					}
@@ -379,10 +380,10 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 			sub_v2_v2v2(a, v4, v1);
 			u2= dot_v2v2(a, b) / dot_v2v2(c, c);
 
-			if(u>u2) SWAP(float, u, u2);
+			if (u>u2) SWAP(float, u, u2);
 
-			if(u>1.0f+eps || u2<-eps) return -1; /* non-ovlerlapping segments */
-			else if(maxf(0.0f, u) == minf(1.0f, u2)) { /* one common point: can return result */
+			if (u>1.0f+eps || u2<-eps) return -1; /* non-ovlerlapping segments */
+			else if (maxf(0.0f, u) == minf(1.0f, u2)) { /* one common point: can return result */
 				interp_v2_v2v2(vi, v1, v2, maxf(0, u));
 				return 1;
 			}
@@ -395,7 +396,7 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 	u= (c2*b1-b2*c1)/d;
 	v= (c1*a2-a1*c2)/d;
 
-	if(u>=-eps && u<=1.0f+eps && v>=-eps && v<=1.0f+eps) { /* intersection */
+	if (u>=-eps && u<=1.0f+eps && v>=-eps && v<=1.0f+eps) { /* intersection */
 		interp_v2_v2v2(vi, v1, v2, u);
 		return 1;
 	}
@@ -594,7 +595,8 @@ int isect_point_tri_v2(const float pt[2], const float v1[2], const float v2[2], 
 				return 1;
 			}
 		}
-	} else {
+	}
+	else {
 		if (! (line_point_side_v2(v2,v3,pt)>=0.0f)) {
 			if (! (line_point_side_v2(v3,v1,pt)>=0.0f)) {
 				return -1;
@@ -615,7 +617,8 @@ int isect_point_quad_v2(const float pt[2], const float v1[2], const float v2[2],
 				}
 			}
 		}
-	} else {
+	}
+	else {
 		if (! (line_point_side_v2(v2,v3,pt)>=0.0f)) {
 			if (! (line_point_side_v2(v3,v4,pt)>=0.0f)) {
 				if (! (line_point_side_v2(v4,v1,pt)>=0.0f)) {
@@ -662,7 +665,7 @@ int isect_line_tri_v3(const float p1[3], const float p2[3],
 	*r_lambda = f * dot_v3v3(e2, q);
 	if ((*r_lambda < 0.0f)||(*r_lambda > 1.0f)) return 0;
 
-	if(r_uv) {
+	if (r_uv) {
 		r_uv[0]= u;
 		r_uv[1]= v;
 	}
@@ -703,7 +706,7 @@ int isect_ray_tri_v3(const float p1[3], const float d[3],
 	*r_lambda = f * dot_v3v3(e2, q);
 	if ((*r_lambda < 0.0f)) return 0;
 
-	if(r_uv) {
+	if (r_uv) {
 		r_uv[0]= u;
 		r_uv[1]= v;
 	}
@@ -771,7 +774,7 @@ int isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
 	*r_lambda = f * dot_v3v3(e2, q);
 	if ((*r_lambda < 0.0f)) return 0;
 
-	if(uv) {
+	if (uv) {
 		uv[0]= u;
 		uv[1]= v;
 	}
@@ -821,7 +824,7 @@ int isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 		return 0;
 	}
 
-	if(r_uv) {
+	if (r_uv) {
 		r_uv[0]= u;
 		r_uv[1]= v;
 	}
@@ -841,7 +844,7 @@ int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3], cons
 	normalize_v3_v3(p_no, plane_no);
 
 	dot= dot_v3v3(l_vec, p_no);
-	if(dot == 0.0f) {
+	if (dot == 0.0f) {
 		return 0;
 	}
 	else {
@@ -850,7 +853,7 @@ int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3], cons
 
 		/* for predictable flipping since the plane is only used to
 		 * define a direction, ignore its flipping and aligned with 'l_vec' */
-		if(dot < 0.0f) {
+		if (dot < 0.0f) {
 			dot= -dot;
 			negate_v3(p_no);
 		}
@@ -860,7 +863,7 @@ int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3], cons
 		dist = line_point_factor_v3(plane_co, l1, l1_plane);
 
 		/* treat line like a ray, when 'no_flip' is set */
-		if(no_flip && dist < 0.0f) {
+		if (no_flip && dist < 0.0f) {
 			dist= -dist;
 		}
 
@@ -941,13 +944,13 @@ int isect_sweeping_sphere_tri_v3(
 	normalize_v3(nor);
 
 	/* flip normal */
-	if(dot_v3v3(nor,vel)>0.0f) negate_v3(nor);
+	if (dot_v3v3(nor,vel)>0.0f) negate_v3(nor);
 	
 	a=dot_v3v3(p1,nor)-dot_v3v3(v0,nor);
 	nordotv=dot_v3v3(nor,vel);
 
 	if (fabsf(nordotv) < 0.000001f) {
-		if(fabsf(a) >= radius) {
+		if (fabsf(a) >= radius) {
 			return 0;
 		}
 	}
@@ -955,10 +958,10 @@ int isect_sweeping_sphere_tri_v3(
 		float t0=(-a+radius)/nordotv;
 		float t1=(-a-radius)/nordotv;
 
-		if(t0>t1)
+		if (t0>t1)
 			SWAP(float, t0, t1);
 
-		if(t0>1.0f || t1<0.0f) return 0;
+		if (t0>1.0f || t1<0.0f) return 0;
 
 		/* clamp to [0,1] */
 		CLAMP(t0, 0.0f, 1.0f);
@@ -1005,7 +1008,7 @@ int isect_sweeping_sphere_tri_v3(
 	b=2.0f*dot_v3v3(vel,temp);
 	c=dot_v3v3(temp,temp)-radius2;
 
-	if(getLowestRoot(a, b, c, *r_lambda, r_lambda)) {
+	if (getLowestRoot(a, b, c, *r_lambda, r_lambda)) {
 		copy_v3_v3(ipoint,v0);
 		found_by_sweep=1;
 	}
@@ -1025,7 +1028,7 @@ int isect_sweeping_sphere_tri_v3(
 	b=2.0f*dot_v3v3(vel,temp);
 	c=dot_v3v3(temp,temp)-radius2;
 
-	if(getLowestRoot(a, b, c, *r_lambda, r_lambda)) {
+	if (getLowestRoot(a, b, c, *r_lambda, r_lambda)) {
 		copy_v3_v3(ipoint,v2);
 		found_by_sweep=1;
 	}
@@ -1137,9 +1140,9 @@ int isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3]
 	if ((v < 0.0f)||(v > 1.0f)) return 0;
 	
 	f= e1[a1];
-	if((f > -0.000001f) && (f < 0.000001f)) {
+	if ((f > -0.000001f) && (f < 0.000001f)) {
 		f= e1[a2];
-		if((f > -0.000001f) && (f < 0.000001f)) return 0;
+		if ((f > -0.000001f) && (f < 0.000001f)) return 0;
 		u= (-p[a2]-v*e2[a2])/f;
 	}
 	else
@@ -1366,7 +1369,8 @@ void isect_point_quad_uv_v2(const float v0[2], const float v1[2], const float v2
 		/*w1 = w1/wtot;*/
 		/*w2 = w2/wtot;*/
 		r_uv[0] = w1/wtot;
-	} else {
+	}
+	else {
 		/* lines are parallel, lambda_cp_line_ex is 3d grrr */
 		/*printf("\tparallel1\n");*/
 		pt3d[0] = pt[0];
@@ -1406,7 +1410,8 @@ void isect_point_quad_uv_v2(const float v0[2], const float v1[2], const float v2
 		w2 = len_v2(v2d);
 		wtot = w1+w2;
 		r_uv[1] = w1/wtot;
-	} else {
+	}
+	else {
 		/* lines are parallel, lambda_cp_line_ex is 3d grrr */
 		/*printf("\tparallel2\n");*/
 		pt3d[0] = pt[0];
@@ -1474,8 +1479,8 @@ int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2])
 	inp2= (v3[0]-v2[0])*(v2[1]-pt[1]) + (v2[1]-v3[1])*(v2[0]-pt[0]);
 	inp3= (v1[0]-v3[0])*(v3[1]-pt[1]) + (v3[1]-v1[1])*(v3[0]-pt[0]);
 	
-	if(inp1<=0.0f && inp2<=0.0f && inp3<=0.0f) return 1;
-	if(inp1>=0.0f && inp2>=0.0f && inp3>=0.0f) return 1;
+	if (inp1<=0.0f && inp2<=0.0f && inp3<=0.0f) return 1;
+	if (inp1>=0.0f && inp2>=0.0f && inp3>=0.0f) return 1;
 	
 	return 0;
 }
@@ -1587,9 +1592,9 @@ static int point_in_slice_m(float p[3],float origin[3],float normal[3],float lns
 
 int isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3])
 {
-	if(!point_in_slice(p,v1,v2,v3)) return 0;
-	if(!point_in_slice(p,v2,v3,v1)) return 0;
-	if(!point_in_slice(p,v3,v1,v2)) return 0;
+	if (!point_in_slice(p,v1,v2,v3)) return 0;
+	if (!point_in_slice(p,v2,v3,v1)) return 0;
+	if (!point_in_slice(p,v3,v1,v2)) return 0;
 	return 1;
 }
 
@@ -1601,21 +1606,21 @@ int clip_line_plane(float p1[3], float p2[3], const float plane[4])
 	sub_v3_v3v3(dp, p2, p1);
 	div= dot_v3v3(dp, n);
 
-	if(div == 0.0f) /* parallel */
+	if (div == 0.0f) /* parallel */
 		return 1;
 
 	t= -(dot_v3v3(p1, n) + plane[3])/div;
 
-	if(div > 0.0f) {
+	if (div > 0.0f) {
 		/* behind plane, completely clipped */
-		if(t >= 1.0f) {
+		if (t >= 1.0f) {
 			zero_v3(p1);
 			zero_v3(p2);
 			return 0;
 		}
 
 		/* intersect plane */
-		if(t > 0.0f) {
+		if (t > 0.0f) {
 			madd_v3_v3v3fl(pc, p1, dp, t);
 			copy_v3_v3(p1, pc);
 			return 1;
@@ -1625,14 +1630,14 @@ int clip_line_plane(float p1[3], float p2[3], const float plane[4])
 	}
 	else {
 		/* behind plane, completely clipped */
-		if(t <= 0.0f) {
+		if (t <= 0.0f) {
 			zero_v3(p1);
 			zero_v3(p2);
 			return 0;
 		}
 
 		/* intersect plane */
-		if(t < 1.0f) {
+		if (t < 1.0f) {
 			madd_v3_v3v3fl(pc, p1, dp, t);
 			copy_v3_v3(p2, pc);
 			return 1;
@@ -1657,7 +1662,7 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 	int delta_x = (x2 > x1?(ix = 1, x2 - x1):(ix = -1, x1 - x2)) << 1;
 	int delta_y = (y2 > y1?(iy = 1, y2 - y1):(iy = -1, y1 - y2)) << 1;
 
-	if(callback(x1, y1, userData) == 0) {
+	if (callback(x1, y1, userData) == 0) {
 		return;
 	}
 
@@ -1700,7 +1705,7 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 			y1 += iy;
 			error += delta_x;
 
-			if(callback(x1, y1, userData) == 0) {
+			if (callback(x1, y1, userData) == 0) {
 				return;
 			}
 		}
@@ -1758,13 +1763,13 @@ void interp_weights_face_v3(float w[4], const float v1[3], const float v2[3], co
 	w[0]= w[1]= w[2]= w[3]= 0.0f;
 
 	/* first check for exact match */
-	if(equals_v3v3(co, v1))
+	if (equals_v3v3(co, v1))
 		w[0]= 1.0f;
-	else if(equals_v3v3(co, v2))
+	else if (equals_v3v3(co, v2))
 		w[1]= 1.0f;
-	else if(equals_v3v3(co, v3))
+	else if (equals_v3v3(co, v3))
 		w[2]= 1.0f;
-	else if(v4 && equals_v3v3(co, v4))
+	else if (v4 && equals_v3v3(co, v4))
 		w[3]= 1.0f;
 	else {
 		/* otherwise compute barycentric interpolation weights */
@@ -1785,12 +1790,12 @@ void interp_weights_face_v3(float w[4], const float v1[3], const float v2[3], co
 			degenerate= barycentric_weights(v1, v2, v4, co, n, w);
 			SWAP(float, w[2], w[3]);
 
-			if(degenerate || (w[0] < 0.0f)) {
+			if (degenerate || (w[0] < 0.0f)) {
 				/* if w[1] is negative, co is on the other side of the v1-v3 edge,
 				 * so we interpolate using the other triangle */
 				degenerate= barycentric_weights(v2, v3, v4, co, n, w2);
 
-				if(!degenerate) {
+				if (!degenerate) {
 					w[0]= 0.0f;
 					w[1]= w2[0];
 					w[2]= w2[1];
@@ -1879,13 +1884,13 @@ int interp_sparse_array(float *array, int const list_size, const float skipval)
 	int i;
 
 	for (i=0; i < list_size; i++) {
-		if(array[i] == skipval)
+		if (array[i] == skipval)
 			found_invalid= 1;
 		else
 			found_valid= 1;
 	}
 
-	if(found_valid==0) {
+	if (found_valid==0) {
 		return -1;
 	}
 	else if (found_invalid==0) {
@@ -1903,7 +1908,7 @@ int interp_sparse_array(float *array, int const list_size, const float skipval)
 		int *ofs_tot_down= MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tdown");
 
 		for (i=0; i < list_size; i++) {
-			if(array[i] == skipval) {
+			if (array[i] == skipval) {
 				array_up[i]= valid_last;
 				ofs_tot_up[i]= ++valid_ofs;
 			}
@@ -1917,7 +1922,7 @@ int interp_sparse_array(float *array, int const list_size, const float skipval)
 		valid_ofs= 0;
 
 		for (i=list_size-1; i >= 0; i--) {
-			if(array[i] == skipval) {
+			if (array[i] == skipval) {
 				array_down[i]= valid_last;
 				ofs_tot_down[i]= ++valid_ofs;
 			}
@@ -1929,12 +1934,14 @@ int interp_sparse_array(float *array, int const list_size, const float skipval)
 
 		/* now blend */
 		for (i=0; i < list_size; i++) {
-			if(array[i] == skipval) {
-				if(array_up[i] != skipval && array_down[i] != skipval) {
+			if (array[i] == skipval) {
+				if (array_up[i] != skipval && array_down[i] != skipval) {
 					array[i]= ((array_up[i] * ofs_tot_down[i]) +  (array_down[i] * ofs_tot_up[i])) / (float)(ofs_tot_down[i] + ofs_tot_up[i]);
-				} else if (array_up[i] != skipval) {
+				}
+				else if (array_up[i] != skipval) {
 					array[i]= array_up[i];
-				} else if (array_down[i] != skipval) {
+				}
+				else if (array_down[i] != skipval) {
 					array[i]= array_down[i];
 				}
 			}
@@ -1964,7 +1971,7 @@ static float mean_value_half_tan(const float v1[3], const float v2[3], const flo
 	dot= dot_v3v3(d2, d3);
 	len= len_v3(d2)*len_v3(d3);
 
-	if(area == 0.0f)
+	if (area == 0.0f)
 		return 0.0f;
 	else
 		return (len - dot)/area;
@@ -1977,7 +1984,7 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 
 	totweight= 0.0f;
 
-	for(i=0; i<n; i++) {
+	for (i=0; i<n; i++) {
 		vmid= v[i];
 		vprev= (i == 0)? v[n-1]: v[i-1];
 		vnext= (i == n-1)? v[0]: v[i+1];
@@ -1990,8 +1997,8 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 		totweight += w[i];
 	}
 
-	if(totweight != 0.0f)
-		for(i=0; i<n; i++)
+	if (totweight != 0.0f)
+		for (i=0; i<n; i++)
 			w[i] /= totweight;
 }
 
@@ -2034,12 +2041,13 @@ void resolve_tri_uv(float r_uv[2], const float st[2], const float st0[2], const 
 	const double c= st0[1]-st2[1], d= st1[1]-st2[1];
 	const double det= a*d - c*b;
 
-	if(IS_ZERO(det)==0)	{  /* det should never be zero since the determinant is the signed ST area of the triangle. */
+	if (IS_ZERO(det)==0)	{  /* det should never be zero since the determinant is the signed ST area of the triangle. */
 		const double x[]= {st[0]-st2[0], st[1]-st2[1]};
 
 		r_uv[0]= (float)((d*x[0] - b*x[1])/det);
 		r_uv[1]= (float)(((-c)*x[0] + a*x[1])/det);
-	} else zero_v2(r_uv);
+	}
+	else zero_v2(r_uv);
 }
 
 /* bilinear reverse */
@@ -2063,11 +2071,12 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 	// clear outputs
 	zero_v2(r_uv);
 
-	if(IS_ZERO(denom)!=0) {
+	if (IS_ZERO(denom)!=0) {
 		const double fDen= a-fC;
-		if(IS_ZERO(fDen)==0)
+		if (IS_ZERO(fDen)==0)
 			r_uv[0]= (float)(a / fDen);
-	} else {
+	}
+	else {
 		const double desc_sq= b*b - a*fC;
 		const double desc= sqrt(desc_sq<0.0?0.0:desc_sq);
 		const double s= signed_area>0 ? (-1.0) : 1.0;
@@ -2082,12 +2091,12 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 		const double denom_t= (1-r_uv[0])*(st0[1]-st3[1]) + r_uv[0]*(st1[1]-st2[1]);
 		int i= 0; double denom= denom_s;
 
-		if(fabs(denom_s)<fabs(denom_t)) {
+		if (fabs(denom_s)<fabs(denom_t)) {
 			i= 1;
 			denom=denom_t;
 		}
 
-		if(IS_ZERO(denom)==0)
+		if (IS_ZERO(denom)==0)
 			r_uv[1]= (float) (( (1.0f-r_uv[0])*(st0[i]-st[i]) + r_uv[0]*(st1[i]-st[i]) ) / denom);
 	}
 }
@@ -2142,7 +2151,7 @@ void perspective_m4(float mat[4][4], const float left, const float right, const 
 /* translate a matrix created by orthographic_m4 or perspective_m4 in XY coords (used to jitter the view) */
 void window_translate_m4(float winmat[][4], float perspmat[][4], const float x, const float y)
 {
-	if(winmat[2][3] == -1.0f) {
+	if (winmat[2][3] == -1.0f) {
 		/* in the case of a win-matrix, this means perspective always */
 		float v1[3];
 		float v2[3];
@@ -2173,8 +2182,8 @@ static void i_multmatrix(float icand[][4], float Vm[][4])
 	int row, col;
 	float temp[4][4];
 
-	for(row=0 ; row<4 ; row++) 
-		for(col=0 ; col<4 ; col++)
+	for (row=0 ; row<4 ; row++) 
+		for (col=0 ; col<4 ; col++)
 			temp[row][col] = icand[row][0] * Vm[0][col]
 						   + icand[row][1] * Vm[1][col]
 						   + icand[row][2] * Vm[2][col]
@@ -2213,7 +2222,8 @@ void lookat_m4(float mat[][4],float vx, float vy, float vz, float px, float py, 
 	if (hyp1 != 0.0f) {		/* rotate X	*/
 		sine = -dy / hyp1;
 		cosine = hyp /hyp1;
-	} else {
+	}
+	else {
 		sine = 0;
 		cosine = 1.0f;
 	}
@@ -2231,7 +2241,8 @@ void lookat_m4(float mat[][4],float vx, float vy, float vz, float px, float py, 
 	if (hyp != 0.0f) {			/* rotate Y	*/
 		sine = dx / hyp;
 		cosine = -dz / hyp;
-	} else {
+	}
+	else {
 		sine = 0;
 		cosine = 1.0f;
 	}
@@ -2251,7 +2262,7 @@ int box_clip_bounds_m4(float boundbox[2][3], const float bounds[4], float winmat
 
 	copy_m4_m4(mat, winmat);
 
-	for(a=0; a<8; a++) {
+	for (a=0; a<8; a++) {
 		vec[0]= (a & 1)? boundbox[0][0]: boundbox[1][0];
 		vec[1]= (a & 2)? boundbox[0][1]: boundbox[1][1];
 		vec[2]= (a & 4)? boundbox[0][2]: boundbox[1][2];
@@ -2259,23 +2270,23 @@ int box_clip_bounds_m4(float boundbox[2][3], const float bounds[4], float winmat
 		mul_m4_v4(mat, vec);
 
 		fl= 0;
-		if(bounds) {
-			if(vec[0] > bounds[1]*vec[3]) fl |= 1;
-			if(vec[0]< bounds[0]*vec[3]) fl |= 2;
-			if(vec[1] > bounds[3]*vec[3]) fl |= 4;
-			if(vec[1]< bounds[2]*vec[3]) fl |= 8;
+		if (bounds) {
+			if (vec[0] > bounds[1]*vec[3]) fl |= 1;
+			if (vec[0]< bounds[0]*vec[3]) fl |= 2;
+			if (vec[1] > bounds[3]*vec[3]) fl |= 4;
+			if (vec[1]< bounds[2]*vec[3]) fl |= 8;
 		}
 		else {
-			if(vec[0] < -vec[3]) fl |= 1;
-			if(vec[0] > vec[3]) fl |= 2;
-			if(vec[1] < -vec[3]) fl |= 4;
-			if(vec[1] > vec[3]) fl |= 8;
+			if (vec[0] < -vec[3]) fl |= 1;
+			if (vec[0] > vec[3]) fl |= 2;
+			if (vec[1] < -vec[3]) fl |= 4;
+			if (vec[1] > vec[3]) fl |= 8;
 		}
-		if(vec[2] < -vec[3]) fl |= 16;
-		if(vec[2] > vec[3]) fl |= 32;
+		if (vec[2] < -vec[3]) fl |= 16;
+		if (vec[2] > vec[3]) fl |= 32;
 
 		flag &= fl;
-		if(flag==0) return 0;
+		if (flag==0) return 0;
 	}
 
 	return flag;
@@ -2289,7 +2300,7 @@ void box_minmax_bounds_m4(float min[3], float max[3], float boundbox[2][3], floa
 	copy_v3_v3(mn, min);
 	copy_v3_v3(mx, max);
 
-	for(a=0; a<8; a++) {
+	for (a=0; a<8; a++) {
 		vec[0]= (a & 1)? boundbox[0][0]: boundbox[1][0];
 		vec[1]= (a & 2)? boundbox[0][1]: boundbox[1][1];
 		vec[2]= (a & 4)? boundbox[0][2]: boundbox[1][2];
@@ -2311,7 +2322,7 @@ void map_to_tube(float *r_u, float *r_v, const float x, const float y, const flo
 	*r_v = (z + 1.0f) / 2.0f;
 	
 	len = sqrtf(x * x + y * y);
-	if(len > 0.0f) {
+	if (len > 0.0f) {
 		*r_u = (float)((1.0 - (atan2(x/len,y/len) / M_PI)) / 2.0);
 	}
 	else {
@@ -2324,8 +2335,8 @@ void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const f
 	float len;
 	
 	len = sqrtf(x * x + y * y + z * z);
-	if(len > 0.0f) {
-		if(x==0.0f && y==0.0f) *r_u= 0.0f;	/* othwise domain error */
+	if (len > 0.0f) {
+		if (x==0.0f && y==0.0f) *r_u= 0.0f;	/* othwise domain error */
 		else *r_u = (1.0f - atan2f(x,y) / (float)M_PI) / 2.0f;
 
 		*r_v = 1.0f - (float)saacos(z/len)/(float)M_PI;
@@ -2348,7 +2359,7 @@ void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
 	sub_v3_v3v3(vdiffs[0], co2, co1);
 	sub_v3_v3v3(vdiffs[1], co3, co2);
 
-	if(nverts==3) {
+	if (nverts==3) {
 		sub_v3_v3v3(vdiffs[2], co1, co3);
 	}
 	else {
@@ -2367,7 +2378,7 @@ void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
 		const float *prev_edge = vdiffs[nverts-1];
 		int i;
 
-		for(i=0; i<nverts; i++) {
+		for (i=0; i<nverts; i++) {
 			const float *cur_edge= vdiffs[i];
 			const float fac= saacos(-dot_v3v3(cur_edge, prev_edge));
 
@@ -2396,7 +2407,7 @@ void accumulate_vertex_normals_poly(float **vertnos, float polyno[3],
 		const float *prev_edge = vdiffs[nverts-1];
 		int i;
 
-		for(i=0; i<nverts; i++) {
+		for (i=0; i<nverts; i++) {
 			const float *cur_edge = vdiffs[i];
 
 			/* calculate angle between the two poly edges incident on
@@ -2426,8 +2437,8 @@ void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, const float t
 	VertexTangent *vt;
 
 	/* find a tangent with connected uvs */
-	for(vt= *vtang; vt; vt=vt->next) {
-		if(fabsf(uv[0]-vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabsf(uv[1]-vt->uv[1]) < STD_UV_CONNECT_LIMIT) {
+	for (vt= *vtang; vt; vt=vt->next) {
+		if (fabsf(uv[0]-vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabsf(uv[1]-vt->uv[1]) < STD_UV_CONNECT_LIMIT) {
 			add_v3_v3(vt->tang, tang);
 			return;
 		}
@@ -2439,7 +2450,7 @@ void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, const float t
 	vt->uv[0]= uv[0];
 	vt->uv[1]= uv[1];
 
-	if(*vtang)
+	if (*vtang)
 		vt->next= *vtang;
 	*vtang= vt;
 }
@@ -2449,8 +2460,8 @@ float *find_vertex_tangent(VertexTangent *vtang, const float uv[2])
 	VertexTangent *vt;
 	static float nulltang[3] = {0.0f, 0.0f, 0.0f};
 
-	for(vt= vtang; vt; vt=vt->next)
-		if(fabsf(uv[0]-vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabsf(uv[1]-vt->uv[1]) < STD_UV_CONNECT_LIMIT)
+	for (vt= vtang; vt; vt=vt->next)
+		if (fabsf(uv[0]-vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabsf(uv[1]-vt->uv[1]) < STD_UV_CONNECT_LIMIT)
 			return vt->tang;
 
 	return nulltang;	/* shouldn't happen, except for nan or so */
@@ -2464,7 +2475,7 @@ void tangent_from_uv(float uv1[2], float uv2[2], float uv3[3], float co1[3], flo
 	float t2= uv3[1] - uv1[1];
 	float det= (s1 * t2 - s2 * t1);
 
-	if(det != 0.0f) { /* otherwise 'tang' becomes nan */
+	if (det != 0.0f) { /* otherwise 'tang' becomes nan */
 		float tangv[3], ct[3], e1[3], e2[3];
 
 		det= 1.0f/det;
@@ -2543,7 +2554,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 	/* do com for both clouds */
 	if (pos && rpos && (list_size > 0)) { /* paranoya check */
 		/* do com for both clouds */
-		for(a=0; a<list_size; a++) {
+		for (a=0; a<list_size; a++) {
 			if (weight) {
 				float v[3];
 				copy_v3_v3(v,pos[a]);
@@ -2582,7 +2593,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 			zero_m3(mr);
 
 			/* build 'projection' matrix */
-			for(a=0; a<list_size; a++) {
+			for (a=0; a<list_size; a++) {
 				sub_v3_v3v3(va,rpos[a],accu_rcom);
 				/* mul_v3_fl(va,bp->mass);  mass needs renormalzation here ?? */
 				sub_v3_v3v3(vb,pos[a],accu_com);
@@ -2623,7 +2634,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 			/* without the far case ... but seems to work here pretty neat                   */
 			odet = 0.f;
 			ndet = _det_m3(q);
-			while((odet-ndet)*(odet-ndet) > eps && i<imax) {
+			while ((odet-ndet)*(odet-ndet) > eps && i<imax) {
 				invert_m3_m3(qi,q);
 				transpose_m3(qi);
 				add_m3_m3m3(q,q,qi);
@@ -2636,12 +2647,12 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 			if (i) {
 				float scale[3][3];
 				float irot[3][3];
-				if(lrot) copy_m3_m3(lrot,q);
+				if (lrot) copy_m3_m3(lrot,q);
 				invert_m3_m3(irot,q);
 				invert_m3_m3(qi,mr);
 				mul_m3_m3m3(q,m,qi); 
 				mul_m3_m3m3(scale,irot,q); 
-				if(lscale) copy_m3_m3(lscale,scale);
+				if (lscale) copy_m3_m3(lscale,scale);
 
 			}
 		}
@@ -2669,20 +2680,20 @@ static int ff_visible_quad(const float p[3], const float n[3], const float v0[3]
 	sd[1]= dot_v3v3(n, v1) - c;
 	sd[2]= dot_v3v3(n, v2) - c;
 
-	if(fabsf(sd[0]) < epsilon) sd[0] = 0.0f;
-	if(fabsf(sd[1]) < epsilon) sd[1] = 0.0f;
-	if(fabsf(sd[2]) < epsilon) sd[2] = 0.0f;
+	if (fabsf(sd[0]) < epsilon) sd[0] = 0.0f;
+	if (fabsf(sd[1]) < epsilon) sd[1] = 0.0f;
+	if (fabsf(sd[2]) < epsilon) sd[2] = 0.0f;
 
-	if(sd[0] > 0) {
-		if(sd[1] > 0) {
-			if(sd[2] > 0) {
+	if (sd[0] > 0) {
+		if (sd[1] > 0) {
+			if (sd[2] > 0) {
 				// +++
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
-			else if(sd[2] < 0) {
+			else if (sd[2] < 0) {
 				// ++-
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
@@ -2697,15 +2708,15 @@ static int ff_visible_quad(const float p[3], const float n[3], const float v0[3]
 				copy_v3_v3(q3, q2);
 			}
 		}
-		else if(sd[1] < 0) {
-			if(sd[2] > 0) {
+		else if (sd[1] < 0) {
+			if (sd[2] > 0) {
 				// +-+
 				copy_v3_v3(q0, v0);
 				vec_add_dir(q1, v0, v1, (sd[0]/(sd[0]-sd[1])));
 				vec_add_dir(q2, v1, v2, (sd[1]/(sd[1]-sd[2])));
 				copy_v3_v3(q3, v2);
 			}
-			else if(sd[2] < 0) {
+			else if (sd[2] < 0) {
 				// +--
 				copy_v3_v3(q0, v0);
 				vec_add_dir(q1, v0, v1, (sd[0]/(sd[0]-sd[1])));
@@ -2721,14 +2732,14 @@ static int ff_visible_quad(const float p[3], const float n[3], const float v0[3]
 			}
 		}
 		else {
-			if(sd[2] > 0) {
+			if (sd[2] > 0) {
 				// +0+
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
-			else if(sd[2] < 0) {
+			else if (sd[2] < 0) {
 				// +0-
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
@@ -2744,16 +2755,16 @@ static int ff_visible_quad(const float p[3], const float n[3], const float v0[3]
 			}
 		}
 	}
-	else if(sd[0] < 0) {
-		if(sd[1] > 0) {
-			if(sd[2] > 0) {
+	else if (sd[0] < 0) {
+		if (sd[1] > 0) {
+			if (sd[2] > 0) {
 				// -++
 				vec_add_dir(q0, v0, v1, (sd[0]/(sd[0]-sd[1])));
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				vec_add_dir(q3, v0, v2, (sd[0]/(sd[0]-sd[2])));
 			}
-			else if(sd[2] < 0) {
+			else if (sd[2] < 0) {
 				// -+-
 				vec_add_dir(q0, v0, v1, (sd[0]/(sd[0]-sd[1])));
 				copy_v3_v3(q1, v1);
@@ -2768,15 +2779,15 @@ static int ff_visible_quad(const float p[3], const float n[3], const float v0[3]
 				copy_v3_v3(q3, q2);
 			}
 		}
-		else if(sd[1] < 0) {
-			if(sd[2] > 0) {
+		else if (sd[1] < 0) {
+			if (sd[2] > 0) {
 				// --+
 				vec_add_dir(q0, v0, v2, (sd[0]/(sd[0]-sd[2])));
 				vec_add_dir(q1, v1, v2, (sd[1]/(sd[1]-sd[2])));
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
-			else if(sd[2] < 0) {
+			else if (sd[2] < 0) {
 				// ---
 				return 0;
 			}
@@ -2786,14 +2797,14 @@ static int ff_visible_quad(const float p[3], const float n[3], const float v0[3]
 			}
 		}
 		else {
-			if(sd[2] > 0) {
+			if (sd[2] > 0) {
 				// -0+
 				vec_add_dir(q0, v0, v2, (sd[0]/(sd[0]-sd[2])));
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
-			else if(sd[2] < 0) {
+			else if (sd[2] < 0) {
 				// -0-
 				return 0;
 			}
@@ -2804,15 +2815,15 @@ static int ff_visible_quad(const float p[3], const float n[3], const float v0[3]
 		}
 	}
 	else {
-		if(sd[1] > 0) {
-			if(sd[2] > 0) {
+		if (sd[1] > 0) {
+			if (sd[2] > 0) {
 				// 0++
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
-			else if(sd[2] < 0) {
+			else if (sd[2] < 0) {
 				// 0+-
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
@@ -2827,15 +2838,15 @@ static int ff_visible_quad(const float p[3], const float n[3], const float v0[3]
 				copy_v3_v3(q3, q2);
 			}
 		}
-		else if(sd[1] < 0) {
-			if(sd[2] > 0) {
+		else if (sd[1] < 0) {
+			if (sd[2] > 0) {
 				// 0-+
 				copy_v3_v3(q0, v0);
 				vec_add_dir(q1, v1, v2, (sd[1]/(sd[1]-sd[2])));
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
-			else if(sd[2] < 0) {
+			else if (sd[2] < 0) {
 				// 0--
 				return 0;
 			}
@@ -2845,14 +2856,14 @@ static int ff_visible_quad(const float p[3], const float n[3], const float v0[3]
 			}
 		}
 		else {
-			if(sd[2] > 0) {
+			if (sd[2] > 0) {
 				// 00+
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
-			else if(sd[2] < 0) {
+			else if (sd[2] < 0) {
 				// 00-
 				return 0;
 			}
@@ -3007,7 +3018,7 @@ static void ff_normalize(float n[3])
 	
 	d= dot_v3v3(n, n);
 
-	if(d > 1.0e-35F) {
+	if (d > 1.0e-35F) {
 		d= 1.0f/sqrtf(d);
 
 		n[0] *= d; 
@@ -3058,10 +3069,10 @@ float form_factor_hemi_poly(float p[3], float n[3], float v1[3], float v2[3], fl
 	 * covered by a quad or triangle, cosine weighted */
 	float q0[3], q1[3], q2[3], q3[3], contrib= 0.0f;
 
-	if(ff_visible_quad(p, n, v1, v2, v3, q0, q1, q2, q3))
+	if (ff_visible_quad(p, n, v1, v2, v3, q0, q1, q2, q3))
 		contrib += ff_quad_form_factor(p, n, q0, q1, q2, q3);
 	
-	if(v4 && ff_visible_quad(p, n, v1, v3, v4, q0, q1, q2, q3))
+	if (v4 && ff_visible_quad(p, n, v1, v3, v4, q0, q1, q2, q3))
 		contrib += ff_quad_form_factor(p, n, q0, q1, q2, q3);
 
 	return contrib;

@@ -163,7 +163,8 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 			// we're going to fake alpha here:
 			calcAlpha(ibuf);
 		}
-	} else {
+	}
+	else {
 		printf("readBitmapFontVersion0: corrupted bitmapfont\n");
 	}
 }
@@ -183,7 +184,8 @@ void detectBitmapFont(ImBuf *ibuf)
 				// printf("found 8bit font !\n");
 				// round y size down
 				// do the 8 bit font stuff. (not yet)
-			} else {
+			}
+			else {
 				// we try all 4 possible combinations
 				for (i = 0; i < 4; i++) {
 					if (rect[0] == 'B' && rect[4] == 'F' && rect[8] == 'N' && rect[12] == 'T') {
@@ -194,7 +196,8 @@ void detectBitmapFont(ImBuf *ibuf)
 						
 						if (version == 0) {
 							readBitmapFontVersion0(ibuf, rect, 4);
-						} else {
+						}
+						else {
 							printf("detectBitmapFont :Unsupported version %d\n", version);
 						}
 						
@@ -223,10 +226,12 @@ int locateGlyph(bmFont *bmfont, unsigned short unicode)
 
 			if (bmfont->glyphs[current].unicode == unicode) {
 				break;
-			} else if (bmfont->glyphs[current].unicode < unicode) {
+			}
+			else if (bmfont->glyphs[current].unicode < unicode) {
 				// have to move up
 				min = current;
-			} else {
+			}
+			else {
 				// have to move down
 				max = current;
 			}

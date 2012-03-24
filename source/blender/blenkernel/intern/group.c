@@ -66,7 +66,7 @@ void free_group_objects(Group *group)
 	/* don't free group itself */
 	GroupObject *go;
 	
-	while(group->gobject.first) {
+	while (group->gobject.first) {
 		go= group->gobject.first;
 		BLI_remlink(&group->gobject, go);
 		free_group_object(go);
@@ -82,52 +82,52 @@ void unlink_group(Group *group)
 	SceneRenderLayer *srl;
 	ParticleSystem *psys;
 	
-	for(ma= bmain->mat.first; ma; ma= ma->id.next) {
-		if(ma->group==group)
+	for (ma= bmain->mat.first; ma; ma= ma->id.next) {
+		if (ma->group==group)
 			ma->group= NULL;
 	}
-	for(ma= bmain->mat.first; ma; ma= ma->id.next) {
-		if(ma->group==group)
+	for (ma= bmain->mat.first; ma; ma= ma->id.next) {
+		if (ma->group==group)
 			ma->group= NULL;
 	}
 	for (sce= bmain->scene.first; sce; sce= sce->id.next) {
 		Base *base= sce->base.first;
 		
 		/* ensure objects are not in this group */
-		for(; base; base= base->next) {
-			if(rem_from_group(group, base->object, sce, base) && find_group(base->object, NULL)==NULL) {
+		for (; base; base= base->next) {
+			if (rem_from_group(group, base->object, sce, base) && find_group(base->object, NULL)==NULL) {
 				base->object->flag &= ~OB_FROMGROUP;
 				base->flag &= ~OB_FROMGROUP;
 			}
 		}			
 		
-		for(srl= sce->r.layers.first; srl; srl= srl->next) {
+		for (srl= sce->r.layers.first; srl; srl= srl->next) {
 			if (srl->light_override==group)
 				srl->light_override= NULL;
 		}
 	}
 	
-	for(ob= bmain->object.first; ob; ob= ob->id.next) {
+	for (ob= bmain->object.first; ob; ob= ob->id.next) {
 		
-		if(ob->dup_group==group) {
+		if (ob->dup_group==group) {
 			ob->dup_group= NULL;
 #if 0		/* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
 			{
 				bActionStrip *strip;
 				/* duplicator strips use a group object, we remove it */
-				for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-					if(strip->object)
+				for (strip= ob->nlastrips.first; strip; strip= strip->next) {
+					if (strip->object)
 						strip->object= NULL;
 				}
 			}
 #endif
 		}
 		
-		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-			if(psys->part->dup_group==group)
+		for (psys=ob->particlesystem.first; psys; psys=psys->next) {
+			if (psys->part->dup_group==group)
 				psys->part->dup_group= NULL;
 #if 0		/* not used anymore, only keps for readfile.c, no need to account for this */
-			if(psys->part->eff_group==group)
+			if (psys->part->eff_group==group)
 				psys->part->eff_group= NULL;
 #endif
 		}
@@ -162,11 +162,11 @@ static int add_to_group_internal(Group *group, Object *ob)
 {
 	GroupObject *go;
 	
-	if(group==NULL || ob==NULL) return 0;
+	if (group==NULL || ob==NULL) return 0;
 	
 	/* check if the object has been added already */
-	for(go= group->gobject.first; go; go= go->next) {
-		if(go->ob==ob) return 0;
+	for (go= group->gobject.first; go; go= go->next) {
+		if (go->ob==ob) return 0;
 	}
 	
 	go= MEM_callocN(sizeof(GroupObject), "groupobject");
@@ -179,15 +179,15 @@ static int add_to_group_internal(Group *group, Object *ob)
 
 int add_to_group(Group *group, Object *object, Scene *scene, Base *base)
 {
-	if(add_to_group_internal(group, object)) {
-		if((object->flag & OB_FROMGROUP)==0) {
+	if (add_to_group_internal(group, object)) {
+		if ((object->flag & OB_FROMGROUP)==0) {
 
-			if(scene && base==NULL)
+			if (scene && base==NULL)
 				base= object_in_scene(object, scene);
 
 			object->flag |= OB_FROMGROUP;
 
-			if(base)
+			if (base)
 				base->flag |= OB_FROMGROUP;
 		}
 		return 1;
@@ -202,12 +202,12 @@ static int rem_from_group_internal(Group *group, Object *ob)
 {
 	GroupObject *go, *gon;
 	int removed = 0;
-	if(group==NULL) return 0;
+	if (group==NULL) return 0;
 	
 	go= group->gobject.first;
-	while(go) {
+	while (go) {
 		gon= go->next;
-		if(go->ob==ob) {
+		if (go->ob==ob) {
 			BLI_remlink(&group->gobject, go);
 			free_group_object(go);
 			removed = 1;
@@ -220,15 +220,15 @@ static int rem_from_group_internal(Group *group, Object *ob)
 
 int rem_from_group(Group *group, Object *object, Scene *scene, Base *base)
 {
-	if(rem_from_group_internal(group, object)) {
+	if (rem_from_group_internal(group, object)) {
 		/* object can be NULL */
-		if(object && find_group(object, NULL) == NULL) {
-			if(scene && base==NULL)
+		if (object && find_group(object, NULL) == NULL) {
+			if (scene && base==NULL)
 				base= object_in_scene(object, scene);
 
 			object->flag &= ~OB_FROMGROUP;
 
-			if(base)
+			if (base)
 				base->flag &= ~OB_FROMGROUP;
 		}
 		return 1;
@@ -242,10 +242,10 @@ int object_in_group(Object *ob, Group *group)
 {
 	GroupObject *go;
 	
-	if(group==NULL || ob==NULL) return 0;
+	if (group==NULL || ob==NULL) return 0;
 	
-	for(go= group->gobject.first; go; go= go->next) {
-		if(go->ob==ob) 
+	for (go= group->gobject.first; go; go= go->next) {
+		if (go->ob==ob) 
 			return 1;
 	}
 	return 0;
@@ -258,8 +258,8 @@ Group *find_group(Object *ob, Group *group)
 	else
 		group= G.main->group.first;
 	
-	while(group) {
-		if(object_in_group(ob, group))
+	while (group) {
+		if (object_in_group(ob, group))
 			return group;
 		group= group->id.next;
 	}
@@ -270,10 +270,10 @@ void group_tag_recalc(Group *group)
 {
 	GroupObject *go;
 	
-	if(group==NULL) return;
+	if (group==NULL) return;
 	
-	for(go= group->gobject.first; go; go= go->next) {
-		if(go->ob) 
+	for (go= group->gobject.first; go; go= go->next) {
+		if (go->ob) 
 			go->ob->recalc= go->recalc;
 	}
 }
@@ -283,12 +283,12 @@ int group_is_animated(Object *UNUSED(parent), Group *group)
 	GroupObject *go;
 
 #if 0 /* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
-	if(parent->nlastrips.first)
+	if (parent->nlastrips.first)
 		return 1;
 #endif
 
-	for(go= group->gobject.first; go; go= go->next)
-		if(go->ob && go->ob->proxy)
+	for (go= group->gobject.first; go; go= go->next)
+		if (go->ob && go->ob->proxy)
 			return 1;
 
 	return 0;
@@ -304,11 +304,11 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 	static int done= 0;
 	bActionStrip *strip, *nstrip;
 	
-	if(mode=='s') {
+	if (mode=='s') {
 		
-		for(strip= parent->nlastrips.first; strip; strip= strip->next) {
-			if(strip->object==target) {
-				if(done==0) {
+		for (strip= parent->nlastrips.first; strip; strip= strip->next) {
+			if (strip->object==target) {
+				if (done==0) {
 					/* clear nla & action from object */
 					nlastrips= target->nlastrips;
 					target->nlastrips.first= target->nlastrips.last= NULL;
@@ -322,8 +322,8 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 			}
 		}
 	}
-	else if(mode=='e') {
-		if(done) {
+	else if (mode=='e') {
+		if (done) {
 			BLI_freelistN(&target->nlastrips);
 			target->nlastrips= nlastrips;
 			target->action= action;
@@ -350,15 +350,15 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 	   * but when its enabled at some point it will need to be changed so as not to update so much - campbell */
 
 	/* if animated group... */
-	if(parent->nlastrips.first) {
+	if (parent->nlastrips.first) {
 		int cfrao;
 		
 		/* switch to local time */
 		cfrao= scene->r.cfra;
 		
 		/* we need a DAG per group... */
-		for(go= group->gobject.first; go; go= go->next) {
-			if(go->ob && go->recalc) {
+		for (go= group->gobject.first; go; go= go->next) {
+			if (go->ob && go->recalc) {
 				go->ob->recalc= go->recalc;
 				
 				group_replaces_nla(parent, go->ob, 's');
@@ -377,9 +377,9 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 #endif
 	{
 		/* only do existing tags, as set by regular depsgraph */
-		for(go= group->gobject.first; go; go= go->next) {
-			if(go->ob) {
-				if(go->ob->recalc) {
+		for (go= group->gobject.first; go; go= go->next) {
+			if (go->ob) {
+				if (go->ob->recalc) {
 					object_handle_update(scene, go->ob);
 				}
 			}
@@ -392,17 +392,17 @@ Object *group_get_member_with_action(Group *group, bAction *act)
 {
 	GroupObject *go;
 	
-	if(group==NULL || act==NULL) return NULL;
+	if (group==NULL || act==NULL) return NULL;
 	
-	for(go= group->gobject.first; go; go= go->next) {
-		if(go->ob) {
-			if(go->ob->action==act)
+	for (go= group->gobject.first; go; go= go->next) {
+		if (go->ob) {
+			if (go->ob->action==act)
 				return go->ob;
-			if(go->ob->nlastrips.first) {
+			if (go->ob->nlastrips.first) {
 				bActionStrip *strip;
 				
-				for(strip= go->ob->nlastrips.first; strip; strip= strip->next) {
-					if(strip->act==act)
+				for (strip= go->ob->nlastrips.first; strip; strip= strip->next) {
+					if (strip->act==act)
 						return go->ob;
 				}
 			}
@@ -419,18 +419,18 @@ void group_relink_nla_objects(Object *ob)
 	GroupObject *go;
 	bActionStrip *strip;
 	
-	if(ob==NULL || ob->dup_group==NULL) return;
+	if (ob==NULL || ob->dup_group==NULL) return;
 	group= ob->dup_group;
 	
-	for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-		if(strip->object) {
-			for(go= group->gobject.first; go; go= go->next) {
-				if(go->ob) {
-					if(strcmp(go->ob->id.name, strip->object->id.name)==0)
+	for (strip= ob->nlastrips.first; strip; strip= strip->next) {
+		if (strip->object) {
+			for (go= group->gobject.first; go; go= go->next) {
+				if (go->ob) {
+					if (strcmp(go->ob->id.name, strip->object->id.name)==0)
 						break;
 				}
 			}
-			if(go)
+			if (go)
 				strip->object= go->ob;
 			else
 				strip->object= NULL;

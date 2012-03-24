@@ -246,8 +246,8 @@ struct DynamicPaintSurface *get_activeSurface(DynamicPaintCanvasSettings *canvas
 	DynamicPaintSurface *surface = canvas->surfaces.first;
 	int i;
 
-	for(i=0; surface; surface=surface->next) {
-		if(i == canvas->active_sur)
+	for (i=0; surface; surface=surface->next) {
+		if (i == canvas->active_sur)
 			return surface;
 		i++;
 	}
@@ -260,7 +260,7 @@ void dynamicPaint_resetPreview(DynamicPaintCanvasSettings *canvas)
 	DynamicPaintSurface *surface = canvas->surfaces.first;
 	int done=0;
 
-	for(; surface; surface=surface->next) {
+	for (; surface; surface=surface->next) {
 		if (!done && dynamicPaint_surfaceHasColorPreview(surface)) {
 			surface->flags |= MOD_DPAINT_PREVIEW;
 			done=1;
@@ -274,7 +274,7 @@ void dynamicPaint_resetPreview(DynamicPaintCanvasSettings *canvas)
 static void dynamicPaint_setPreview(DynamicPaintSurface *t_surface)
 {
 	DynamicPaintSurface *surface = t_surface->canvas->surfaces.first;
-	for(; surface; surface=surface->next) {
+	for (; surface; surface=surface->next) {
 		if (surface == t_surface)
 			surface->flags |= MOD_DPAINT_PREVIEW;
 		else
@@ -310,7 +310,7 @@ static int surface_duplicateOutputExists(void *arg, const char *name)
 	DynamicPaintSurface *t_surface = (DynamicPaintSurface*)arg;
 	DynamicPaintSurface *surface = t_surface->canvas->surfaces.first;
 
-	for(; surface; surface=surface->next) {
+	for (; surface; surface=surface->next) {
 		if (surface!=t_surface && surface->type==t_surface->type &&
 			surface->format==t_surface->format) {
 			if (surface->output_name[0]!='\0' && !BLI_path_cmp(name, surface->output_name)) return 1;
@@ -336,7 +336,7 @@ static int surface_duplicateNameExists(void *arg, const char *name)
 	DynamicPaintSurface *t_surface = (DynamicPaintSurface*)arg;
 	DynamicPaintSurface *surface = t_surface->canvas->surfaces.first;
 
-	for(; surface; surface=surface->next) {
+	for (; surface; surface=surface->next) {
 		if (surface!=t_surface && !strcmp(name, surface->name)) return 1;
 	}
 	return 0;
@@ -455,8 +455,8 @@ static void object_cacheIgnoreClear(Object *ob, int state)
 	PTCacheID *pid;
 	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 
-	for(pid=pidlist.first; pid; pid=pid->next) {
-		if(pid->cache) {
+	for (pid=pidlist.first; pid; pid=pid->next) {
+		if (pid->cache) {
 			if (state)
 				pid->cache->flag |= PTCACHE_IGNORE_CLEAR;
 			else
@@ -506,7 +506,7 @@ static int subframe_updateObject(Scene *scene, Object *ob, int flags, float fram
 		}
 	}
 	/* for curve following objects, parented curve has to be updated too */
-	if(ob->type==OB_CURVE) {
+	if (ob->type==OB_CURVE) {
 		Curve *cu= ob->data;
 		BKE_animsys_evaluate_animdata(scene, &cu->id, cu->adt, frame, ADT_RECALC_ANIM);
 	}
@@ -542,7 +542,7 @@ static int surface_getBrushFlags(DynamicPaintSurface *surface, Scene *scene)
 
 	int flags = 0;
 
-	if(surface->brush_group)
+	if (surface->brush_group)
 		go = surface->brush_group->gobject.first;
 	else
 		base = scene->base.first;
@@ -552,26 +552,26 @@ static int surface_getBrushFlags(DynamicPaintSurface *surface, Scene *scene)
 		brushObj = NULL;
 
 		/* select object */
-		if(surface->brush_group) {						
-			if(go->ob)	brushObj = go->ob;					
+		if (surface->brush_group) {						
+			if (go->ob)	brushObj = go->ob;					
 		}					
 		else						
 			brushObj = base->object;
 
-		if(!brushObj)					
+		if (!brushObj)					
 		{
-			if(surface->brush_group) go = go->next;
+			if (surface->brush_group) go = go->next;
 			else base= base->next;					
 			continue;			
 		}
 
-		if(surface->brush_group)
+		if (surface->brush_group)
 			go = go->next;
 		else
 			base= base->next;
 
 		md = modifiers_findByType(brushObj, eModifierType_DynamicPaint);
-		if(md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
+		if (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
 		{
 			DynamicPaintModifierData *pmd2 = (DynamicPaintModifierData *)md;
 
@@ -832,15 +832,15 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
 /* Free brush data */
 void dynamicPaint_freeBrush(struct DynamicPaintModifierData *pmd)
 {
-	if(pmd->brush) {
-		if(pmd->brush->dm)
+	if (pmd->brush) {
+		if (pmd->brush->dm)
 			pmd->brush->dm->release(pmd->brush->dm);
 		pmd->brush->dm = NULL;
 
-		if(pmd->brush->paint_ramp)
+		if (pmd->brush->paint_ramp)
 			 MEM_freeN(pmd->brush->paint_ramp);
 		pmd->brush->paint_ramp = NULL;
-		if(pmd->brush->vel_ramp)
+		if (pmd->brush->vel_ramp)
 			 MEM_freeN(pmd->brush->vel_ramp);
 		pmd->brush->vel_ramp = NULL;
 
@@ -922,7 +922,7 @@ void dynamicPaint_freeSurface(DynamicPaintSurface *surface)
 	BKE_ptcache_free_list(&(surface->ptcaches));
 	surface->pointcache = NULL;
 
-	if(surface->effector_weights)
+	if (surface->effector_weights)
 		MEM_freeN(surface->effector_weights);
 	surface->effector_weights = NULL;
 
@@ -934,7 +934,7 @@ void dynamicPaint_freeSurface(DynamicPaintSurface *surface)
 /* Free canvas data */
 void dynamicPaint_freeCanvas(DynamicPaintModifierData *pmd)
 {
-	if(pmd->canvas) {
+	if (pmd->canvas) {
 		/* Free surface data */
 		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 		DynamicPaintSurface *next_surface = NULL;
@@ -958,7 +958,7 @@ void dynamicPaint_freeCanvas(DynamicPaintModifierData *pmd)
 /* Free whole dp modifier */
 void dynamicPaint_Modifier_free(struct DynamicPaintModifierData *pmd)
 {
-	if(pmd) {
+	if (pmd) {
 		dynamicPaint_freeCanvas(pmd);
 		dynamicPaint_freeBrush(pmd);
 	}
@@ -1047,10 +1047,10 @@ struct DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 */
 int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, struct Scene *scene)
 {
-	if(pmd) {
-		if(type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
+	if (pmd) {
+		if (type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
 			DynamicPaintCanvasSettings *canvas;
-			if(pmd->canvas)
+			if (pmd->canvas)
 				dynamicPaint_freeCanvas(pmd);
 
 			canvas = pmd->canvas = MEM_callocN(sizeof(DynamicPaintCanvasSettings), "DynamicPaint Canvas");
@@ -1064,9 +1064,9 @@ int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, stru
 				return 0;
 
 		}
-		else if(type == MOD_DYNAMICPAINT_TYPE_BRUSH) {
+		else if (type == MOD_DYNAMICPAINT_TYPE_BRUSH) {
 			DynamicPaintBrushSettings *brush;
-			if(pmd->brush)
+			if (pmd->brush)
 				dynamicPaint_freeBrush(pmd);
 
 			brush = pmd->brush = MEM_callocN(sizeof(DynamicPaintBrushSettings), "DynamicPaint Paint");
@@ -1148,8 +1148,8 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 	/* Copy data	*/
 	if (tpmd->canvas) {
 		tpmd->canvas->pmd = tpmd;
-
-	} else if (tpmd->brush) {
+	}
+	else if (tpmd->brush) {
 		DynamicPaintBrushSettings *brush = pmd->brush, *t_brush = tpmd->brush;
 		t_brush->pmd = tpmd;
 
@@ -1574,7 +1574,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 {	
 	DerivedMesh *result = CDDM_copy(dm);
 
-	if(pmd->canvas && !(pmd->canvas->flags & MOD_DPAINT_BAKING)) {
+	if (pmd->canvas && !(pmd->canvas->flags & MOD_DPAINT_BAKING)) {
 
 		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 		int update_normals = 0;
@@ -1615,7 +1615,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 #if 0
 							/* XXX We have to create a CD_PREVIEW_MCOL, else it might sigsev
 							 *     (after a SubSurf mod, eg)... */
-							if(!result->getTessFaceDataArray(result, CD_PREVIEW_MCOL)) {
+							if (!result->getTessFaceDataArray(result, CD_PREVIEW_MCOL)) {
 								int numFaces = result->getNumTessFaces(result);
 								CustomData_add_layer(&result->faceData, CD_PREVIEW_MCOL, CD_CALLOC, NULL, numFaces);
 							}
@@ -1730,7 +1730,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 																NULL, sData->total_points, surface->output_name);
 						if (defgrp_index >= 0 && dvert) {
 							int i;
-							for(i=0; i<sData->total_points; i++) {
+							for (i=0; i<sData->total_points; i++) {
 								MDeformVert *dv= &dvert[i];
 								MDeformWeight *def_weight = defvert_find_index(dv, defgrp_index);
 
@@ -1804,7 +1804,7 @@ void canvas_copyDerivedMesh(DynamicPaintCanvasSettings *canvas, DerivedMesh *dm)
 */
 static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm)
 {
-	if(pmd->canvas) {
+	if (pmd->canvas) {
 		DynamicPaintCanvasSettings *canvas = pmd->canvas;
 		DynamicPaintSurface *surface = canvas->surfaces.first;
 
@@ -1843,7 +1843,7 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 				BKE_ptcache_id_time(&pid, scene, (float)scene->r.cfra, NULL, NULL, NULL);
 
 				/* reset non-baked cache at first frame */
-				if((int)scene->r.cfra == surface->start_frame && !(cache->flag & PTCACHE_BAKED))
+				if ((int)scene->r.cfra == surface->start_frame && !(cache->flag & PTCACHE_BAKED))
 				{
 					cache->flag |= PTCACHE_REDO_NEEDED;
 					BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
@@ -1851,7 +1851,7 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 				}
 
 				/* try to read from cache */
-				if(BKE_ptcache_read(&pid, (float)scene->r.cfra)) {
+				if (BKE_ptcache_read(&pid, (float)scene->r.cfra)) {
 					BKE_ptcache_validate(cache, (int)scene->r.cfra);
 				}
 				/* if read failed and we're on surface range do recalculate */
@@ -2499,7 +2499,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 				sData->total_points = active_points;
 				sData->format_data = f_data;
 
-				for(index = 0; index < (w*h); index++) {
+				for (index = 0; index < (w*h); index++) {
 					if (tempPoints[index].face_index != -1) {
 						memcpy(&f_data->uv_p[cursor], &tempPoints[index], sizeof(PaintUVPoint));
 						memcpy(&f_data->barycentricWeights[cursor*aa_samples], &tempWeights[index*aa_samples], sizeof(Vec3f)*aa_samples);
@@ -2760,7 +2760,7 @@ static void mesh_faces_spherecast_dp(void *userdata, int index, const BVHTreeRay
 	{	
 		float dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 
-		if(dist >= 0 && dist < hit->dist)
+		if (dist >= 0 && dist < hit->dist)
 		{
 			hit->index = index;
 			hit->dist = dist;
@@ -2772,7 +2772,7 @@ static void mesh_faces_spherecast_dp(void *userdata, int index, const BVHTreeRay
 		t3 = NULL;
 		quad = 1;
 
-	} while(t2);
+	} while (t2);
 }
 
 /* A modified callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_faces.
@@ -2800,7 +2800,7 @@ static void mesh_faces_nearest_point_dp(void *userdata, int index, const float *
 		int vertex, edge;
 		
 		dist = nearest_point_in_tri_surface(t0, t1, t2, co, &vertex, &edge, nearest_tmp);
-		if(dist < nearest->dist)
+		if (dist < nearest->dist)
 		{
 			nearest->index = index;
 			nearest->dist = dist;
@@ -2813,7 +2813,7 @@ static void mesh_faces_nearest_point_dp(void *userdata, int index, const float *
 		t3 = NULL;
 		quad = 1;
 
-	} while(t2);
+	} while (t2);
 }
 
 
@@ -3187,7 +3187,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 		}
 
 		/* check bounding box collision */
-		if(grid && meshBrush_boundsIntersect(&grid->grid_bounds, &mesh_bb, brush, brush_radius))
+		if (grid && meshBrush_boundsIntersect(&grid->grid_bounds, &mesh_bb, brush, brush_radius))
 		/* Build a bvh tree from transformed vertices	*/
 		if (bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 8))
 		{
@@ -3264,7 +3264,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 						/* Check volume collision	*/
 						if (brush->collision == MOD_DPAINT_COL_VOLUME || brush->collision == MOD_DPAINT_COL_VOLDIST)
-						if(BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_dir, 0.0f, &hit, mesh_faces_spherecast_dp, &treeData) != -1)
+						if (BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_dir, 0.0f, &hit, mesh_faces_spherecast_dp, &treeData) != -1)
 						{
 							/* We hit a triangle, now check if collision point normal is facing the point	*/
 
@@ -3291,7 +3291,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 								BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_dir, 0.0f, &hit, mesh_faces_spherecast_dp, &treeData);
 
-								if(hit.index != -1) {
+								if (hit.index != -1) {
 									/* Add factor on supersample filter	*/
 									volume_factor = 1.0f;
 									hit_found = HIT_VOLUME;
@@ -3343,7 +3343,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 								hit.dist = brush_radius;
 
 								/* Do a face normal directional raycast, and use that distance	*/
-								if(BLI_bvhtree_ray_cast(treeData.tree, ray_start, proj_ray, 0.0f, &hit, mesh_faces_spherecast_dp, &treeData) != -1)
+								if (BLI_bvhtree_ray_cast(treeData.tree, ray_start, proj_ray, 0.0f, &hit, mesh_faces_spherecast_dp, &treeData) != -1)
 								{
 									proxDist = hit.dist;
 									madd_v3_v3v3fl(hitCo, ray_start, proj_ray, hit.dist);	/* Calculate final hit coordinates */
@@ -3556,12 +3556,12 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 	tree= BLI_kdtree_new(psys->totpart);
 
 	/* loop through particles and insert valid ones	to the tree	*/
-	for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++)	{
+	for (p=0, pa=psys->particles; p<psys->totpart; p++, pa++)	{
 
 		/* Proceed only if particle is active	*/
-		if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0) continue;									
-		else if(pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0) continue;									
-		else if(pa->flag & PARS_UNEXIST) continue;
+		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0) continue;									
+		else if (pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0) continue;									
+		else if (pa->flag & PARS_UNEXIST) continue;
 
 		/*	for debug purposes check if any NAN particle proceeds
 		*	For some reason they get past activity check, this should rule most of them out	*/
@@ -3668,7 +3668,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 					particles = BLI_kdtree_range_search(tree, max_range, bData->realCoord[bData->s_pos[index]].v, NULL, &nearest);
 
 					/* Find particle that produces highest influence */
-					for(n=0; n<particles; n++) {
+					for (n=0; n<particles; n++) {
 						ParticleData *pa = psys->particles + nearest[n].index;
 						float s_range;
 
@@ -4792,7 +4792,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 		float scene_subframe = scene->r.subframe;
 
 		/* either from group or from all objects */
-		if(surface->brush_group)
+		if (surface->brush_group)
 			go = surface->brush_group->gobject.first;
 		else
 			base = scene->base.first;
@@ -4801,28 +4801,28 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 		{
 			brushObj = NULL;
 			/* select object */
-			if(surface->brush_group) {						
-				if(go->ob)	brushObj = go->ob;					
+			if (surface->brush_group) {						
+				if (go->ob)	brushObj = go->ob;					
 			}					
 			else						
 				brushObj = base->object;
 
-			if(!brushObj) {			
+			if (!brushObj) {			
 				/* skip item */
-				if(surface->brush_group) go = go->next;
+				if (surface->brush_group) go = go->next;
 				else base= base->next;					
 				continue;			
 			}
 
 			/* next item */
-			if(surface->brush_group)
+			if (surface->brush_group)
 				go = go->next;
 			else
 				base= base->next;
 
 			/* check if target has an active dp modifier	*/
 			md = modifiers_findByType(brushObj, eModifierType_DynamicPaint);
-			if(md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
+			if (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
 			{
 				DynamicPaintModifierData *pmd2 = (DynamicPaintModifierData *)md;
 				/* make sure we're dealing with a brush	*/

@@ -627,7 +627,7 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float UNUSED(cvalue),
 		
 		/* check if 'cyclic extrapolation', and thus calculate y-offset for this cycle */
 		if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
-			if(side < 0)
+			if (side < 0)
 				cycyofs = (float)floor((evaltime - ofs) / cycdx);
 			else
 				cycyofs = (float)ceil((evaltime - ofs) / cycdx);
@@ -635,10 +635,10 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float UNUSED(cvalue),
 		}
 		
 		/* special case for cycle start/end */
-		if(cyct == 0.0f) {
+		if (cyct == 0.0f) {
 			evaltime = (side == 1 ? lastkey[0] : prevkey[0]);
 			
-			if((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)cycle % 2))
+			if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)cycle % 2))
 				evaltime = (side == 1 ? prevkey[0] : lastkey[0]);
 		}
 		/* calculate where in the cycle we are (overwrite evaltime to reflect this) */

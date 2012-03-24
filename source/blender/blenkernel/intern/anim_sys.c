@@ -1032,7 +1032,7 @@ void BKE_keyingset_free_path (KeyingSet *ks, KS_Path *ksp)
 		return;
 
 	/* free RNA-path info */
-	if(ksp->rna_path)
+	if (ksp->rna_path)
 		MEM_freeN(ksp->rna_path);
 
 	/* free path itself */
@@ -1194,7 +1194,7 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 			/* as long as we don't do property update, we still tag datablock
 			 * as having been updated. this flag does not cause any updates to
 			 * be run, it's for e.g. render engines to synchronize data */
-			if(new_ptr.id.data) {
+			if (new_ptr.id.data) {
 				ID *id= new_ptr.id.data;
 				id->flag |= LIB_ID_RECALC;
 				DAG_id_type_tag(G.main, GS(id->name));

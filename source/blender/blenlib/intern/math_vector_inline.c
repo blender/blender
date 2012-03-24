@@ -547,10 +547,11 @@ MINLINE float normalize_v2_v2(float r[2], const float a[2])
 {
 	float d= dot_v2v2(a, a);
 
-	if(d > 1.0e-35f) {
+	if (d > 1.0e-35f) {
 		d= sqrtf(d);
 		mul_v2_v2fl(r, a, 1.0f/d);
-	} else {
+	}
+	else {
 		zero_v2(r);
 		d= 0.0f;
 	}
@@ -569,7 +570,7 @@ MINLINE float normalize_v3_v3(float r[3], const float a[3])
 
 	/* a larger value causes normalize errors in a
 	 * scaled down models with camera xtreme close */
-	if(d > 1.0e-35f) {
+	if (d > 1.0e-35f) {
 		d= sqrtf(d);
 		mul_v3_v3fl(r, a, 1.0f/d);
 	}
@@ -587,7 +588,7 @@ MINLINE double normalize_v3_d(double n[3])
 
 	/* a larger value causes normalize errors in a
 	 * scaled down models with camera xtreme close */
-	if(d > 1.0e-35) {
+	if (d > 1.0e-35) {
 		double mul;
 
 		d= sqrt(d);
@@ -596,7 +597,8 @@ MINLINE double normalize_v3_d(double n[3])
 		n[0] *= mul;
 		n[1] *= mul;
 		n[2] *= mul;
-	} else {
+	}
+	else {
 		n[0] = n[1] = n[2] = 0;
 		d= 0.0;
 	}
@@ -663,9 +665,9 @@ MINLINE int equals_v4v4(const float v1[4], const float v2[4])
 
 MINLINE int compare_v3v3(const float v1[3], const float v2[3], const float limit)
 {
-	if(fabsf(v1[0]-v2[0])<limit)
-		if(fabsf(v1[1]-v2[1])<limit)
-			if(fabsf(v1[2]-v2[2])<limit)
+	if (fabsf(v1[0]-v2[0])<limit)
+		if (fabsf(v1[1]-v2[1])<limit)
+			if (fabsf(v1[2]-v2[2])<limit)
 				return 1;
 
 	return 0;
@@ -684,10 +686,10 @@ MINLINE int compare_len_v3v3(const float v1[3], const float v2[3], const float l
 
 MINLINE int compare_v4v4(const float v1[4], const float v2[4], const float limit)
 {
-	if(fabsf(v1[0]-v2[0])<limit)
-		if(fabsf(v1[1]-v2[1])<limit)
-			if(fabsf(v1[2]-v2[2])<limit)
-				if(fabsf(v1[3]-v2[3])<limit)
+	if (fabsf(v1[0]-v2[0])<limit)
+		if (fabsf(v1[1]-v2[1])<limit)
+			if (fabsf(v1[2]-v2[2])<limit)
+				if (fabsf(v1[3]-v2[3])<limit)
 					return 1;
 
 	return 0;

@@ -55,10 +55,10 @@ const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
 Paint *paint_get_active(Scene *sce)
 {
-	if(sce) {
+	if (sce) {
 		ToolSettings *ts = sce->toolsettings;
 		
-		if(sce->basact && sce->basact->object) {
+		if (sce->basact && sce->basact->object) {
 			switch(sce->basact->object->mode) {
 			case OB_MODE_SCULPT:
 				return &ts->sculpt->paint;
@@ -69,7 +69,7 @@ Paint *paint_get_active(Scene *sce)
 			case OB_MODE_TEXTURE_PAINT:
 				return &ts->imapaint.paint;
 			case OB_MODE_EDIT:
-				if(ts->use_uv_sculpt)
+				if (ts->use_uv_sculpt)
 					return &ts->uvsculpt->paint;
 				else
 					return &ts->imapaint.paint;
@@ -90,7 +90,7 @@ Brush *paint_brush(Paint *p)
 
 void paint_brush_set(Paint *p, Brush *br)
 {
-	if(p) {
+	if (p) {
 		id_us_min((ID *)p->brush);
 		id_us_plus((ID *)br);
 		p->brush= br;
@@ -125,7 +125,7 @@ void paint_init(Paint *p, const char col[3])
 
 	/* If there's no brush, create one */
 	brush = paint_brush(p);
-	if(brush == NULL)
+	if (brush == NULL)
 		brush= add_brush("Brush");
 	paint_brush_set(p, brush);
 

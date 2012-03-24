@@ -60,7 +60,7 @@ static int handle_read_msb_int(int handle)
 {
 	unsigned char buf[4];
 
-	if(read(handle, buf, 4) != 4)
+	if (read(handle, buf, 4) != 4)
 		return -1;
 
 	return (buf[0]<<24) + (buf[1]<<16) + (buf[2]<<8) + (buf[3]<<0);
@@ -72,24 +72,24 @@ int BLO_is_a_runtime(const char *path)
 	int datastart;
 	char buf[8];
 
-	if(fd==-1)
+	if (fd==-1)
 		goto cleanup;
 	
 	lseek(fd, -12, SEEK_END);
 	
 	datastart= handle_read_msb_int(fd);
 
-	if(datastart==-1)
+	if (datastart==-1)
 		goto cleanup;
-	else if(read(fd, buf, 8)!=8)
+	else if (read(fd, buf, 8)!=8)
 		goto cleanup;
-	else if(memcmp(buf, "BRUNTIME", 8)!=0)
+	else if (memcmp(buf, "BRUNTIME", 8)!=0)
 		goto cleanup;
 	else
 		res= 1;
 
 cleanup:
-	if(fd!=-1)
+	if (fd!=-1)
 		close(fd);
 
 	return res;	
@@ -104,7 +104,7 @@ BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 
 	fd= BLI_open(path, O_BINARY|O_RDONLY, 0);
 
-	if(fd==-1) {
+	if (fd==-1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", path, strerror(errno));
 		goto cleanup;
 	}
@@ -115,15 +115,15 @@ BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 
 	datastart= handle_read_msb_int(fd);
 
-	if(datastart==-1) {
+	if (datastart==-1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (problem seeking)", path);
 		goto cleanup;
 	}
-	else if(read(fd, buf, 8)!=8) {
+	else if (read(fd, buf, 8)!=8) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (truncated header)", path);
 		goto cleanup;
 	}
-	else if(memcmp(buf, "BRUNTIME", 8)!=0) {
+	else if (memcmp(buf, "BRUNTIME", 8)!=0) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (not a blend file)", path);
 		goto cleanup;
 	}
@@ -135,7 +135,7 @@ BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 	}
 	
 cleanup:
-	if(fd!=-1)
+	if (fd!=-1)
 		close(fd);
 	
 	return bfd;

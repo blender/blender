@@ -38,22 +38,22 @@ void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width,
 	int x, y;
 
 	/* blank image */
-	if(rect_float) {
-		for(y= 0; y<height; y++) {
-			for(x= 0; x<width; x++) {
+	if (rect_float) {
+		for (y= 0; y<height; y++) {
+			for (x= 0; x<width; x++) {
 				copy_v4_v4(rect_float, color);
 				rect_float+= 4;
 			}
 		}
 	}
 	
-	if(rect) {
+	if (rect) {
 		unsigned char ccol[4];
 
 		rgba_float_to_uchar(ccol, color);
 
-		for(y= 0; y<height; y++) {
-			for(x= 0; x<width; x++) {
+		for (y= 0; y<height; y++) {
+			for (x= 0; x<width; x++) {
 				
 				rect[0]= ccol[0];
 				rect[1]= ccol[1];
@@ -81,17 +81,18 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 	float h=0.0, hoffs=0.0, hue=0.0, s=0.9, v=0.9, r, g, b;
 
 	/* checkers */
-	for(y= 0; y<height; y++) {
+	for (y= 0; y<height; y++) {
 		dark= powf(-1.0f, floorf(y / checkerwidth));
 		
-		for(x= 0; x<width; x++) {
+		for (x= 0; x<width; x++) {
 			if (x % checkerwidth == 0) dark= -dark;
 			
 			if (rect_float) {
 				if (dark > 0) {
 					rect_float[0]= rect_float[1]= rect_float[2]= 0.25f;
 					rect_float[3]= 1.0f;
-				} else {
+				}
+				else {
 					rect_float[0]= rect_float[1]= rect_float[2]= 0.58f;
 					rect_float[3]= 1.0f;
 				}
@@ -101,7 +102,8 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 				if (dark > 0) {
 					rect[0]= rect[1]= rect[2]= 64;
 					rect[3]= 255;
-				} else {
+				}
+				else {
 					rect[0]= rect[1]= rect[2]= 150;
 					rect[3]= 255;
 				}
@@ -114,10 +116,10 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 	rect_float= rect_float_orig;
 
 	/* 2nd pass, colored + */
-	for(y= 0; y<height; y++) {
+	for (y= 0; y<height; y++) {
 		hoffs= 0.125f * floorf(y / checkerwidth);
 		
-		for(x= 0; x<width; x++) {
+		for (x= 0; x<width; x++) {
 			h= 0.125f * floorf(x / checkerwidth);
 			
 			if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
@@ -165,13 +167,13 @@ static void checker_board_color_fill(unsigned char *rect, float *rect_float, int
 	sat= 1.0;
 
 	hue_step= power_of_2_max_i(width / 8);
-	if(hue_step < 8) hue_step= 8;
+	if (hue_step < 8) hue_step= 8;
 
-	for(y= 0; y < height; y++)
+	for (y= 0; y < height; y++)
 	{
 
 		val= 0.1 + (y * (0.4 / height)); /* use a number lower then 1.0 else its too bright */
-		for(x= 0; x < width; x++)
+		for (x= 0; x < width; x++)
 		{
 			hue= (float)((double)(x/hue_step) * 1.0 / width * hue_step);
 			hsv_to_rgb(hue, sat, val, &r, &g, &b);
@@ -248,8 +250,8 @@ static void checker_board_color_tint(unsigned char *rect, float *rect_float, int
 static void checker_board_grid_fill(unsigned char *rect, float *rect_float, int width, int height, float blend)
 {
 	int x, y;
-	for(y= 0; y < height; y++) {
-		for(x= 0; x < width; x++) {
+	for (y= 0; y < height; y++) {
+		for (x= 0; x < width; x++) {
 			if (((y % 32) == 0) || ((x % 32) == 0)  || x == 0) {
 				if (rect) {
 					rect[0]= BLEND_CHAR(rect[0], blend);
@@ -269,8 +271,8 @@ static void checker_board_grid_fill(unsigned char *rect, float *rect_float, int 
 				}
 			}
 			else {
-				if(rect_float) rect_float += 4;
-				if(rect) rect += 4;
+				if (rect_float) rect_float += 4;
+				if (rect) rect += 4;
 			}
 		}
 	}
@@ -289,11 +291,11 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 
 	BLF_buffer(mono, rect_float, rect, width, height, 4);
 
-	for(y= 0; y < height; y+=step)
+	for (y= 0; y < height; y+=step)
 	{
 		text[1]= '1';
 
-		for(x= 0; x < width; x+=step)
+		for (x= 0; x < width; x+=step)
 		{
 			/* hard coded offset */
 			pen_x = x + 33;

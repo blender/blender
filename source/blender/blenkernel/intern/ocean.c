@@ -355,7 +355,8 @@ void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u,float 
 		if (oc->_do_chop) {
 			ocr->disp[0] = BILERP(oc->_disp_x);
 			ocr->disp[2] = BILERP(oc->_disp_z);
-		} else {
+		}
+		else {
 			ocr->disp[0] = 0.0;
 			ocr->disp[2] = 0.0;
 		}
@@ -760,7 +761,7 @@ static void set_height_normalize_factor(struct Ocean *oc)
 	{
 		for (j = 0; j < oc->_N; ++j)
 		{
-			if( max_h < fabsf(oc->_disp_y[i*oc->_N+j]))
+			if ( max_h < fabsf(oc->_disp_y[i*oc->_N+j]))
 			{
 				max_h = fabsf(oc->_disp_y[i*oc->_N+j]);
 			}
@@ -916,7 +917,7 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 
 void BKE_free_ocean_data(struct Ocean *oc)
 {
-	if(!oc) return;
+	if (!oc) return;
 
 	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_WRITE);
 
@@ -978,7 +979,7 @@ void BKE_free_ocean_data(struct Ocean *oc)
 
 void BKE_free_ocean(struct Ocean *oc)
 {
-	if(!oc) return;
+	if (!oc) return;
 
 	BKE_free_ocean_data(oc);
 	BLI_rw_mutex_end(&oc->oceanmutex);
@@ -1299,18 +1300,18 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 
 		/* write the images */
 		cache_filename(string, och->bakepath, och->relbase, f, CACHE_TYPE_DISPLACE);
-		if(0 == BKE_write_ibuf(ibuf_disp, string, &imf))
+		if (0 == BKE_write_ibuf(ibuf_disp, string, &imf))
 			printf("Cannot save Displacement File Output to %s\n", string);
 
 		if (o->_do_jacobian) {
 			cache_filename(string, och->bakepath, och->relbase,  f, CACHE_TYPE_FOAM);
-			if(0 == BKE_write_ibuf(ibuf_foam, string, &imf))
+			if (0 == BKE_write_ibuf(ibuf_foam, string, &imf))
 				printf("Cannot save Foam File Output to %s\n", string);
 		}
 
 		if (o->_do_normals) {
 			cache_filename(string, och->bakepath,  och->relbase, f, CACHE_TYPE_NORMAL);
-			if(0 == BKE_write_ibuf(ibuf_normal, string, &imf))
+			if (0 == BKE_write_ibuf(ibuf_normal, string, &imf))
 				printf("Cannot save Normal File Output to %s\n", string);
 		}
 
@@ -1389,7 +1390,7 @@ void BKE_free_ocean_data(struct Ocean *UNUSED(oc))
 
 void BKE_free_ocean(struct Ocean *oc)
 {
-	if(!oc) return;
+	if (!oc) return;
 	MEM_freeN(oc);
 }
 

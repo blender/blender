@@ -103,7 +103,7 @@ struct CDataFile {
 
 static int cdf_endian(void)
 {
-	if(ENDIAN_ORDER == L_ENDIAN)
+	if (ENDIAN_ORDER == L_ENDIAN)
 		return CDF_ENDIAN_LITTLE;
 	else
 		return CDF_ENDIAN_BIG;
@@ -112,7 +112,7 @@ static int cdf_endian(void)
 #if 0
 static int cdf_data_type_size(int datatype)
 {
-	if(datatype == CDF_DATA_FLOAT)
+	if (datatype == CDF_DATA_FLOAT)
 		return sizeof(float);
 	
 	return 0;
@@ -133,7 +133,7 @@ void cdf_free(CDataFile *cdf)
 	cdf_read_close(cdf);
 	cdf_write_close(cdf);
 
-	if(cdf->layer)
+	if (cdf->layer)
 		MEM_freeN(cdf->layer);
 
 	MEM_freeN(cdf);
@@ -153,38 +153,38 @@ static int cdf_read_header(CDataFile *cdf)
 
 	header= &cdf->header;
 
-	if(!fread(header, sizeof(CDataFileHeader), 1, cdf->readf))
+	if (!fread(header, sizeof(CDataFileHeader), 1, cdf->readf))
 		return 0;
 	
-	if(memcmp(header->ID, "BCDF", sizeof(header->ID)) != 0)
+	if (memcmp(header->ID, "BCDF", sizeof(header->ID)) != 0)
 		return 0;
-	if(header->version > CDF_VERSION)
+	if (header->version > CDF_VERSION)
 		return 0;
 
 	cdf->switchendian= header->endian != cdf_endian();
 	header->endian= cdf_endian();
 
-	if(cdf->switchendian) {
+	if (cdf->switchendian) {
 		SWITCH_INT(header->type);
 		SWITCH_INT(header->totlayer);
 		SWITCH_INT(header->structbytes);
 	}
 
-	if(!ELEM(header->type, CDF_TYPE_IMAGE, CDF_TYPE_MESH))
+	if (!ELEM(header->type, CDF_TYPE_IMAGE, CDF_TYPE_MESH))
 		return 0;
 
 	offset += header->structbytes;
 	header->structbytes= sizeof(CDataFileHeader);
 
-	if(fseek(f, offset, SEEK_SET) != 0)
+	if (fseek(f, offset, SEEK_SET) != 0)
 		return 0;
 	
-	if(header->type == CDF_TYPE_IMAGE) {
+	if (header->type == CDF_TYPE_IMAGE) {
 		image= &cdf->btype.image;
-		if(!fread(image, sizeof(CDataFileImageHeader), 1, f))
+		if (!fread(image, sizeof(CDataFileImageHeader), 1, f))
 			return 0;
 
-		if(cdf->switchendian) {
+		if (cdf->switchendian) {
 			SWITCH_INT(image->width);
 			SWITCH_INT(image->height);
 			SWITCH_INT(image->tile_size);
@@ -194,44 +194,44 @@ static int cdf_read_header(CDataFile *cdf)
 		offset += image->structbytes;
 		image->structbytes= sizeof(CDataFileImageHeader);
 	}
-	else if(header->type == CDF_TYPE_MESH) {
+	else if (header->type == CDF_TYPE_MESH) {
 		mesh= &cdf->btype.mesh;
-		if(!fread(mesh, sizeof(CDataFileMeshHeader), 1, f))
+		if (!fread(mesh, sizeof(CDataFileMeshHeader), 1, f))
 			return 0;
 
-		if(cdf->switchendian)
+		if (cdf->switchendian)
 			SWITCH_INT(mesh->structbytes);
 
 		offset += mesh->structbytes;
 		mesh->structbytes= sizeof(CDataFileMeshHeader);
 	}
 
-	if(fseek(f, offset, SEEK_SET) != 0)
+	if (fseek(f, offset, SEEK_SET) != 0)
 		return 0;
 
 	cdf->layer= MEM_callocN(sizeof(CDataFileLayer)*header->totlayer, "CDataFileLayer");
 	cdf->totlayer= header->totlayer;
 
-	for(a=0; a<header->totlayer; a++) {
+	for (a=0; a<header->totlayer; a++) {
 		layer= &cdf->layer[a];
 
-		if(!fread(layer, sizeof(CDataFileLayer), 1, f))
+		if (!fread(layer, sizeof(CDataFileLayer), 1, f))
 			return 0;
 
-		if(cdf->switchendian) {
+		if (cdf->switchendian) {
 			SWITCH_INT(layer->type);
 			SWITCH_INT(layer->datatype);
 			SWITCH_INT64(layer->datasize);
 			SWITCH_INT(layer->structbytes);
 		}
 
-		if(layer->datatype != CDF_DATA_FLOAT)
+		if (layer->datatype != CDF_DATA_FLOAT)
 			return 0;
 
 		offset += layer->structbytes;
 		layer->structbytes= sizeof(CDataFileLayer);
 
-		if(fseek(f, offset, SEEK_SET) != 0)
+		if (fseek(f, offset, SEEK_SET) != 0)
 			return 0;
 	}
 
@@ -251,24 +251,24 @@ static int cdf_write_header(CDataFile *cdf)
 
 	header= &cdf->header;
 
-	if(!fwrite(header, sizeof(CDataFileHeader), 1, f))
+	if (!fwrite(header, sizeof(CDataFileHeader), 1, f))
 		return 0;
 	
-	if(header->type == CDF_TYPE_IMAGE) {
+	if (header->type == CDF_TYPE_IMAGE) {
 		image= &cdf->btype.image;
-		if(!fwrite(image, sizeof(CDataFileImageHeader), 1, f))
+		if (!fwrite(image, sizeof(CDataFileImageHeader), 1, f))
 			return 0;
 	}
-	else if(header->type == CDF_TYPE_MESH) {
+	else if (header->type == CDF_TYPE_MESH) {
 		mesh= &cdf->btype.mesh;
-		if(!fwrite(mesh, sizeof(CDataFileMeshHeader), 1, f))
+		if (!fwrite(mesh, sizeof(CDataFileMeshHeader), 1, f))
 			return 0;
 	}
 
-	for(a=0; a<header->totlayer; a++) {
+	for (a=0; a<header->totlayer; a++) {
 		layer= &cdf->layer[a];
 
-		if(!fwrite(layer, sizeof(CDataFileLayer), 1, f))
+		if (!fwrite(layer, sizeof(CDataFileLayer), 1, f))
 			return 0;
 	}
 
@@ -280,17 +280,17 @@ int cdf_read_open(CDataFile *cdf, const char *filename)
 	FILE *f;
 
 	f= BLI_fopen(filename, "rb");
-	if(!f)
+	if (!f)
 		return 0;
 	
 	cdf->readf= f;
 
-	if(!cdf_read_header(cdf)) {
+	if (!cdf_read_header(cdf)) {
 		cdf_read_close(cdf);
 		return 0;
 	}
 
-	if(cdf->header.type != cdf->type) {
+	if (cdf->header.type != cdf->type) {
 		cdf_read_close(cdf);
 		return 0;
 	}
@@ -305,8 +305,8 @@ int cdf_read_layer(CDataFile *cdf, CDataFileLayer *blay)
 
 	/* seek to right location in file */
 	offset= cdf->dataoffset;
-	for(a=0; a<cdf->totlayer; a++) {
-		if(&cdf->layer[a] == blay)
+	for (a=0; a<cdf->totlayer; a++) {
+		if (&cdf->layer[a] == blay)
 			break;
 		else
 			offset += cdf->layer[a].datasize;
@@ -321,11 +321,11 @@ int cdf_read_data(CDataFile *cdf, unsigned int size, void *data)
 	unsigned int a;
 
 	/* read data */
-	if(!fread(data, size, 1, cdf->readf))
+	if (!fread(data, size, 1, cdf->readf))
 		return 0;
 
 	/* switch endian if necessary */
-	if(cdf->switchendian) {
+	if (cdf->switchendian) {
 		fdata= data;
 
 		for (a=0; a<size/sizeof(float); a++) {
@@ -338,7 +338,7 @@ int cdf_read_data(CDataFile *cdf, unsigned int size, void *data)
 
 void cdf_read_close(CDataFile *cdf)
 {
-	if(cdf->readf) {
+	if (cdf->readf) {
 		fclose(cdf->readf);
 		cdf->readf= NULL;
 	}
@@ -352,7 +352,7 @@ int cdf_write_open(CDataFile *cdf, const char *filename)
 	FILE *f;
 
 	f= BLI_fopen(filename, "wb");
-	if(!f)
+	if (!f)
 		return 0;
 	
 	cdf->writef= f;
@@ -369,13 +369,13 @@ int cdf_write_open(CDataFile *cdf, const char *filename)
 	header->type= cdf->type;
 	header->totlayer= cdf->totlayer;
 
-	if(cdf->type == CDF_TYPE_IMAGE) {
+	if (cdf->type == CDF_TYPE_IMAGE) {
 		/* fill image header */
 		image= &cdf->btype.image;
 		image->structbytes= sizeof(CDataFileImageHeader);
 		image->tile_size= CDF_TILE_SIZE;
 	}
-	else if(cdf->type == CDF_TYPE_MESH) {
+	else if (cdf->type == CDF_TYPE_MESH) {
 		/* fill mesh header */
 		mesh= &cdf->btype.mesh;
 		mesh->structbytes= sizeof(CDataFileMeshHeader);
@@ -394,7 +394,7 @@ int cdf_write_layer(CDataFile *UNUSED(cdf), CDataFileLayer *UNUSED(blay))
 int cdf_write_data(CDataFile *cdf, unsigned int size, void *data)
 {
 	/* write data */
-	if(!fwrite(data, size, 1, cdf->writef))
+	if (!fwrite(data, size, 1, cdf->writef))
 		return 0;
 
 	return 1;
@@ -402,7 +402,7 @@ int cdf_write_data(CDataFile *cdf, unsigned int size, void *data)
 
 void cdf_write_close(CDataFile *cdf)
 {
-	if(cdf->writef) {
+	if (cdf->writef) {
 		fclose(cdf->writef);
 		cdf->writef= NULL;
 	}
@@ -420,10 +420,10 @@ CDataFileLayer *cdf_layer_find(CDataFile *cdf, int type, const char *name)
 	CDataFileLayer *layer;
 	int a;
 
-	for(a=0; a<cdf->totlayer; a++) {
+	for (a=0; a<cdf->totlayer; a++) {
 		layer= &cdf->layer[a];
 
-		if(layer->type == type && strcmp(layer->name, name) == 0)
+		if (layer->type == type && strcmp(layer->name, name) == 0)
 			return layer;
 	}
 	

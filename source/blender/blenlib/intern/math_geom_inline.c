@@ -49,7 +49,7 @@ MINLINE void mul_sh_fl(float r[9], const float f)
 {
 	int i;
 
-	for(i=0; i<9; i++)
+	for (i=0; i<9; i++)
 		r[i] *= f;
 }
 
@@ -57,7 +57,7 @@ MINLINE void add_sh_shsh(float r[9], const float a[9], const float b[9])
 {
 	int i;
 
-	for(i=0; i<9; i++)
+	for (i=0; i<9; i++)
 		r[i]= a[i] + b[i];
 }
 
@@ -66,7 +66,7 @@ MINLINE float dot_shsh(float a[9], float b[9])
 	float r= 0.0f;
 	int i;
 
-	for(i=0; i<9; i++)
+	for (i=0; i<9; i++)
 		r += a[i]*b[i];
 	
 	return r;

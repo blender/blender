@@ -1065,7 +1065,7 @@ static int sb_detect_aabb_collisionCached(	float UNUSED(force[3]), unsigned int 
 					deflected = 2;
 
 				}
-				else{
+				else {
 					/*aye that should be cached*/
 					printf("missing cache error \n");
 					BLI_ghashIterator_step(ihash);
@@ -1132,7 +1132,7 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 					}
 
 				}
-				else{
+				else {
 					/*aye that should be cached*/
 					printf("missing cache error \n");
 					BLI_ghashIterator_step(ihash);
@@ -1142,7 +1142,7 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 
 				/* use mesh*/
 				if (mvert) {
-					while(a) {
+					while (a) {
 						copy_v3_v3(nv1,mvert[a-1].co);
 						if (mprevvert) {
 							mul_v3_fl(nv1,time);
@@ -1169,7 +1169,7 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 							}
 						}
 						a--;
-					}/* while(a)*/
+					}/* while (a)*/
 				} /* if (mvert) */
 			} /* if (ob->pd && ob->pd->deflect) */
 			BLI_ghashIterator_step(ihash);
@@ -1227,7 +1227,7 @@ static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],floa
 					}
 
 				}
-				else{
+				else {
 					/*aye that should be cached*/
 					printf("missing cache error \n");
 					BLI_ghashIterator_step(ihash);
@@ -1455,7 +1455,7 @@ static int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],floa
 					}
 
 				}
-				else{
+				else {
 					/*aye that should be cached*/
 					printf("missing cache error \n");
 					BLI_ghashIterator_step(ihash);
@@ -1601,7 +1601,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 						add_v3_v3(vel, speed);
 					}
 					/* media in rest */
-					else{
+					else {
 						add_v3_v3v3(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
 					}
 					f = normalize_v3(vel);
@@ -1617,7 +1617,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 						normalize_v3(sp);
 						Vec3PlusStVec(bs->ext_force,f*(1.0f-ABS(dot_v3v3(vel,sp))),vel);
 					}
-					else{
+					else {
 						Vec3PlusStVec(bs->ext_force,f,vel); // to keep compatible with 2.45 release files
 					}
 				}
@@ -1792,7 +1792,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							continue;
 					}
 				}
-				else{
+				else {
 					/*aye that should be cached*/
 					printf("missing cache error \n");
 						BLI_ghashIterator_step(ihash);
@@ -2048,7 +2048,7 @@ static void dfdx_spring(int ia, int ic, int op, float dir[3],float L,float len,f
 				nlMatrixAdd(ia+i,op+ic+j,m);
 			}
 	}
-	else{
+	else {
 		for (i=0;i<3;i++)
 			for (j=0;j<3;j++) {
 				m=factor*dir[i]*dir[j];
@@ -2097,7 +2097,7 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float UN
 		ic =3*bs->v1;
 #endif
 	}
-	else{
+	else {
 		/* TODO make this debug option */
 		/**/
 		printf("bodypoint <bpi> is not attached to spring  <*bs> --> sb_spring_force()\n");
@@ -2490,7 +2490,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		softbody_calc_forcesEx(scene, ob, forcetime, timenow, nl_flags);
 		return;
 	}
-	else{
+	else {
 		/* so the following will die  */
 		/* |||||||||||||||||||||||||| */
 		/* VVVVVVVVVVVVVVVVVVVVVVVVVV */
@@ -2762,7 +2762,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 								*/
 								Vec3PlusStVec(bp->pos,-intrusion,facenormal);
 							}
-							else{
+							else {
 
 								sub_v3_v3v3(cfforce,bp->vec,vel);
 								Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
@@ -2773,7 +2773,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 							bp->loc_flag |= SBF_DOFUZZY;
 							bp->choke = sb->choke*0.01f;
 						}
-						else{
+						else {
 							sub_v3_v3v3(cfforce,bp->vec,vel);
 							Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
 						}
@@ -2873,7 +2873,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					}
 					*/
 			}
-			else{
+			else {
 				printf("Matrix inversion failed \n");
 				for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 					copy_v3_v3(bp->impdv,bp->force);
@@ -2963,7 +2963,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			if  ((dot_v3v3(dx,dx)<freezeloc )&&(dot_v3v3(bp->force,bp->force)<freezeforce )) {
 				bp->frozen /=2;
 			}
-			else{
+			else {
 				bp->frozen = MIN2(bp->frozen*1.05f,1.0f);
 			}
 			mul_v3_fl(dx,bp->frozen);
@@ -3295,7 +3295,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 			/* should be fixed for meshes */
 			// bp->goal= sb->mingoal + bp->goal*goalfac; /* do not do here jow_go_for2_5 */
 		}
-		else{
+		else {
 			/* in consequence if no group was set .. but we want to animate it laters */
 			/* logically attach to goal with default first */
 			if (ob->softflag & OB_SB_GOAL) {bp->goal = sb->defgoal;}
@@ -4032,7 +4032,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		//removed
 
 	}/*SOLVER SELECT*/
-	else{
+	else {
 		printf("softbody no valid solver ID!");
 	}/*SOLVER SELECT*/
 	if (sb->plastic) { apply_spring_memory(ob);}

@@ -103,7 +103,7 @@ void IDP_FreeIDPArray(IDProperty *prop)
 	for (i=0; i<prop->len; i++)
 		IDP_FreeProperty(GETPROP(prop, i));
 
-	if(prop->data.pointer)
+	if (prop->data.pointer)
 		MEM_freeN(prop->data.pointer);
 }
 
@@ -139,7 +139,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 	if (newlen <= prop->totallen && prop->totallen - newlen < 200) {
 		int i;
 
-		for(i=newlen; i<prop->len; i++)
+		for (i=newlen; i<prop->len; i++)
 			IDP_FreeProperty(GETPROP(prop, i));
 
 		prop->len = newlen;
@@ -170,7 +170,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 		memcpy(newarr, prop->data.pointer, newlen*sizeof(IDProperty));
 	}
 
-	if(prop->data.pointer)
+	if (prop->data.pointer)
 		MEM_freeN(prop->data.pointer);
 	prop->data.pointer = newarr;
 	prop->len = newlen;
@@ -180,16 +180,16 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 /* ----------- Numerical Array Type ----------- */
 static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
 {
-	if(prop->subtype != IDP_GROUP)
+	if (prop->subtype != IDP_GROUP)
 		return;
 
-	if(newlen >= prop->len) {
+	if (newlen >= prop->len) {
 		/* bigger */
 		IDProperty **array= newarr;
 		IDPropertyTemplate val;
 		int a;
 
-		for(a=prop->len; a<newlen; a++) {
+		for (a=prop->len; a<newlen; a++) {
 			val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
 			array[a]= IDP_New(IDP_GROUP, &val, "IDP_ResizeArray group");
 		}
@@ -199,7 +199,7 @@ static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
 		IDProperty **array= prop->data.pointer;
 		int a;
 
-		for(a=newlen; a<prop->len; a++) {
+		for (a=newlen; a<prop->len; a++) {
 			IDP_FreeProperty(array[a]);
 			MEM_freeN(array[a]);
 		}
@@ -277,11 +277,11 @@ static IDProperty *IDP_CopyArray(IDProperty *prop)
 	if (prop->data.pointer) {
 		newp->data.pointer = MEM_dupallocN(prop->data.pointer);
 
-		if(prop->type == IDP_GROUP) {
+		if (prop->type == IDP_GROUP) {
 			IDProperty **array= newp->data.pointer;
 			int a;
 
-			for(a=0; a<prop->len; a++)
+			for (a=0; a<prop->len; a++)
 				array[a]= IDP_CopyProperty(array[a]);
 		}
 	}
@@ -316,7 +316,7 @@ IDProperty *IDP_NewString(const char *st, const char *name, int maxlen)
 	else {
 		int stlen = strlen(st);
 
-		if(maxlen > 0 && maxlen < stlen)
+		if (maxlen > 0 && maxlen < stlen)
 			stlen = maxlen;
 
 		stlen++; /* null terminator '\0' */
@@ -349,7 +349,7 @@ void IDP_AssignString(IDProperty *prop, const char *st, int maxlen)
 {
 	int stlen = strlen(st);
 
-	if(maxlen > 0 && maxlen < stlen)
+	if (maxlen > 0 && maxlen < stlen)
 		stlen= maxlen;
 
 	if (prop->subtype == IDP_STRING_SUB_BYTE) {
@@ -387,7 +387,7 @@ void IDP_ConcatString(IDProperty *str1, IDProperty *append)
 
 void IDP_FreeString(IDProperty *prop)
 {
-	if(prop->data.pointer)
+	if (prop->data.pointer)
 		MEM_freeN(prop->data.pointer);
 }
 
@@ -619,52 +619,52 @@ IDProperty *IDP_GetProperties(ID *id, int create_if_needed)
 
 int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
 {
-	if(prop1 == NULL && prop2 == NULL)
+	if (prop1 == NULL && prop2 == NULL)
 		return 1;
-	else if(prop1 == NULL || prop2 == NULL)
+	else if (prop1 == NULL || prop2 == NULL)
 		return 0;
-	else if(prop1->type != prop2->type)
+	else if (prop1->type != prop2->type)
 		return 0;
 
-	if(prop1->type == IDP_INT)
+	if (prop1->type == IDP_INT)
 		return (IDP_Int(prop1) == IDP_Int(prop2));
-	else if(prop1->type == IDP_FLOAT)
+	else if (prop1->type == IDP_FLOAT)
 		return (IDP_Float(prop1) == IDP_Float(prop2));
-	else if(prop1->type == IDP_DOUBLE)
+	else if (prop1->type == IDP_DOUBLE)
 		return (IDP_Double(prop1) == IDP_Double(prop2));
-	else if(prop1->type == IDP_STRING)
+	else if (prop1->type == IDP_STRING)
 		return ((prop1->len == prop2->len) && strncmp(IDP_String(prop1), IDP_String(prop2), prop1->len) == 0);
-	else if(prop1->type == IDP_ARRAY) {
-		if(prop1->len == prop2->len && prop1->subtype == prop2->subtype)
+	else if (prop1->type == IDP_ARRAY) {
+		if (prop1->len == prop2->len && prop1->subtype == prop2->subtype)
 			return memcmp(IDP_Array(prop1), IDP_Array(prop2), idp_size_table[(int)prop1->subtype]*prop1->len);
 		else
 			return 0;
 	}
-	else if(prop1->type == IDP_GROUP) {
+	else if (prop1->type == IDP_GROUP) {
 		IDProperty *link1, *link2;
 
-		if(BLI_countlist(&prop1->data.group) != BLI_countlist(&prop2->data.group))
+		if (BLI_countlist(&prop1->data.group) != BLI_countlist(&prop2->data.group))
 			return 0;
 
-		for(link1=prop1->data.group.first; link1; link1=link1->next) {
+		for (link1=prop1->data.group.first; link1; link1=link1->next) {
 			link2= IDP_GetPropertyFromGroup(prop2, link1->name);
 
-			if(!IDP_EqualsProperties(link1, link2))
+			if (!IDP_EqualsProperties(link1, link2))
 				return 0;
 		}
 
 		return 1;
 	}
-	else if(prop1->type == IDP_IDPARRAY) {
+	else if (prop1->type == IDP_IDPARRAY) {
 		IDProperty *array1= IDP_IDPArray(prop1);
 		IDProperty *array2= IDP_IDPArray(prop2);
 		int i;
 
-		if(prop1->len != prop2->len)
+		if (prop1->len != prop2->len)
 			return 0;
 		
-		for(i=0; i<prop1->len; i++)
-			if(!IDP_EqualsProperties(&array1[i], &array2[i]))
+		for (i=0; i<prop1->len; i++)
+			if (!IDP_EqualsProperties(&array1[i], &array2[i]))
 				return 0;
 	}
 	
@@ -703,7 +703,8 @@ IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *n
 					prop->data.pointer = MEM_callocN(idp_size_table[val->array.type]*val->array.len, "id property array");
 				prop->len = prop->totallen = val->array.len;
 				break;
-			} else {
+			}
+			else {
 				return NULL;
 			}
 		}

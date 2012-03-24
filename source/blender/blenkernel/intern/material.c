@@ -307,7 +307,7 @@ void make_local_material(Material *ma)
 	 * lib or local */
 	/* test objects */
 	ob= bmain->object.first;
-	while(ob) {
+	while (ob) {
 		if (ob->mat) {
 			for (a=0; a<ob->totcol; a++) {
 				if (ob->mat[a]==ma) {
@@ -320,7 +320,7 @@ void make_local_material(Material *ma)
 	}
 	/* test meshes */
 	me= bmain->mesh.first;
-	while(me) {
+	while (me) {
 		if (me->mat) {
 			for (a=0; a<me->totcol; a++) {
 				if (me->mat[a]==ma) {
@@ -333,7 +333,7 @@ void make_local_material(Material *ma)
 	}
 	/* test curves */
 	cu= bmain->curve.first;
-	while(cu) {
+	while (cu) {
 		if (cu->mat) {
 			for (a=0; a<cu->totcol; a++) {
 				if (cu->mat[a]==ma) {
@@ -346,7 +346,7 @@ void make_local_material(Material *ma)
 	}
 	/* test mballs */
 	mb= bmain->mball.first;
-	while(mb) {
+	while (mb) {
 		if (mb->mat) {
 			for (a=0; a<mb->totcol; a++) {
 				if (mb->mat[a]==ma) {
@@ -374,7 +374,7 @@ void make_local_material(Material *ma)
 
 		/* do objects */
 		ob= bmain->object.first;
-		while(ob) {
+		while (ob) {
 			if (ob->mat) {
 				for (a=0; a<ob->totcol; a++) {
 					if (ob->mat[a]==ma) {
@@ -390,7 +390,7 @@ void make_local_material(Material *ma)
 		}
 		/* do meshes */
 		me= bmain->mesh.first;
-		while(me) {
+		while (me) {
 			if (me->mat) {
 				for (a=0; a<me->totcol; a++) {
 					if (me->mat[a]==ma) {
@@ -406,7 +406,7 @@ void make_local_material(Material *ma)
 		}
 		/* do curves */
 		cu= bmain->curve.first;
-		while(cu) {
+		while (cu) {
 			if (cu->mat) {
 				for (a=0; a<cu->totcol; a++) {
 					if (cu->mat[a]==ma) {
@@ -422,7 +422,7 @@ void make_local_material(Material *ma)
 		}
 		/* do mballs */
 		mb= bmain->mball.first;
-		while(mb) {
+		while (mb) {
 			if (mb->mat) {
 				for (a=0; a<mb->totcol; a++) {
 					if (mb->mat[a]==ma) {
@@ -840,7 +840,7 @@ void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
 	int actcol_orig= ob->actcol;
 	short i;
 
-	while(object_remove_material_slot(ob)) {};
+	while (object_remove_material_slot(ob)) {};
 
 	/* now we have the right number of slots */
 	for (i=0; i<totcol; i++)
@@ -1144,7 +1144,7 @@ int object_remove_material_slot(Object *ob)
 	
 	actcol= ob->actcol;
 	obt= G.main->object.first;
-	while(obt) {
+	while (obt) {
 	
 		if (obt->data==ob->data) {
 			

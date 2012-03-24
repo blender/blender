@@ -43,55 +43,55 @@
 
 MINLINE float sqrt3f(float f)
 {
-	if(f==0.0f) return 0.0f;
-	if(f<0) return (float)(-exp(log(-f)/3));
+	if (f==0.0f) return 0.0f;
+	if (f<0) return (float)(-exp(log(-f)/3));
 	else return (float)(exp(log(f)/3));
 }
 
 MINLINE double sqrt3d(double d)
 {
-	if(d==0.0) return 0;
-	if(d<0) return -exp(log(-d)/3);
+	if (d==0.0) return 0;
+	if (d<0) return -exp(log(-d)/3);
 	else return exp(log(d)/3);
 }
 
 MINLINE float saacos(float fac)
 {
-	if(fac<= -1.0f) return (float)M_PI;
-	else if(fac>=1.0f) return 0.0;
+	if (fac<= -1.0f) return (float)M_PI;
+	else if (fac>=1.0f) return 0.0;
 	else return (float)acos(fac);
 }
 
 MINLINE float saasin(float fac)
 {
-	if(fac<= -1.0f) return (float)-M_PI/2.0f;
-	else if(fac>=1.0f) return (float)M_PI/2.0f;
+	if (fac<= -1.0f) return (float)-M_PI/2.0f;
+	else if (fac>=1.0f) return (float)M_PI/2.0f;
 	else return (float)asin(fac);
 }
 
 MINLINE float sasqrt(float fac)
 {
-	if(fac<=0.0f) return 0.0f;
+	if (fac<=0.0f) return 0.0f;
 	return (float)sqrt(fac);
 }
 
 MINLINE float saacosf(float fac)
 {
-	if(fac<= -1.0f) return (float)M_PI;
-	else if(fac>=1.0f) return 0.0f;
+	if (fac<= -1.0f) return (float)M_PI;
+	else if (fac>=1.0f) return 0.0f;
 	else return (float)acosf(fac);
 }
 
 MINLINE float saasinf(float fac)
 {
-	if(fac<= -1.0f) return (float)-M_PI/2.0f;
-	else if(fac>=1.0f) return (float)M_PI/2.0f;
+	if (fac<= -1.0f) return (float)-M_PI/2.0f;
+	else if (fac>=1.0f) return (float)M_PI/2.0f;
 	else return (float)asinf(fac);
 }
 
 MINLINE float sasqrtf(float fac)
 {
-	if(fac<=0.0f) return 0.0f;
+	if (fac<=0.0f) return 0.0f;
 	return (float)sqrtf(fac);
 }
 
@@ -125,7 +125,7 @@ MINLINE int power_of_2_max_i(int n)
 	if (is_power_of_2_i(n))
 		return n;
 
-	while(!is_power_of_2_i(n))
+	while (!is_power_of_2_i(n))
 		n = n & (n - 1);
 
 	return n * 2;

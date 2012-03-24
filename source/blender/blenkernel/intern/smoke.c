@@ -159,7 +159,7 @@ void smokeModifier_do(SmokeModifierData *UNUSED(smd), Scene *UNUSED(scene), Obje
 
 static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, DerivedMesh *dm)
 {
-	if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain && !smd->domain->fluid)
+	if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain && !smd->domain->fluid)
 	{
 		size_t i;
 		float min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
@@ -171,7 +171,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 		res = smd->domain->maxres;
 
 		// get BB of domain
-		for(i = 0; i < dm->getNumVerts(dm); i++)
+		for (i = 0; i < dm->getNumVerts(dm); i++)
 		{
 			float tmp[3];
 
@@ -198,12 +198,12 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 		// printf("size: %f, %f, %f\n", size[0], size[1], size[2]);
 
 		// prevent crash when initializing a plane as domain
-		if((size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) || (size[2] < FLT_EPSILON))
+		if ((size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) || (size[2] < FLT_EPSILON))
 			return 0;
 
-		if(size[0] > size[1])
+		if (size[0] > size[1])
 		{
-			if(size[0] > size[2])
+			if (size[0] > size[2])
 			{
 				scale = res / size[0];
 				smd->domain->dx = size[0] / res;
@@ -220,7 +220,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 			}
 		}
 		else {
-			if(size[1] > size[2])
+			if (size[1] > size[2])
 			{
 				scale = res / size[1];
 				smd->domain->dx = size[1] / res;
@@ -246,7 +246,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 		smd->domain->fluid = smoke_init(smd->domain->res, smd->domain->p0);
 		smd->time = scene->r.cfra;
 
-		if(smd->domain->flags & MOD_SMOKE_HIGHRES)
+		if (smd->domain->flags & MOD_SMOKE_HIGHRES)
 		{
 			smd->domain->wt = smoke_turbulence_init(smd->domain->res, smd->domain->amplify + 1, smd->domain->noise);
 			smd->domain->res_wt[0] = smd->domain->res[0] * (smd->domain->amplify + 1);
@@ -257,19 +257,19 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 			// printf("(smd->domain->flags & MOD_SMOKE_HIGHRES)\n");
 		}
 
-		if(!smd->domain->shadow)
+		if (!smd->domain->shadow)
 			smd->domain->shadow = MEM_callocN(sizeof(float) * smd->domain->res[0] * smd->domain->res[1] * smd->domain->res[2], "SmokeDomainShadow");
 
 		smoke_initBlenderRNA(smd->domain->fluid, &(smd->domain->alpha), &(smd->domain->beta), &(smd->domain->time_scale), &(smd->domain->vorticity), &(smd->domain->border_collisions));
 
-		if(smd->domain->wt)	
+		if (smd->domain->wt)	
 		{
 			smoke_initWaveletBlenderRNA(smd->domain->wt, &(smd->domain->strength));
 			// printf("smoke_initWaveletBlenderRNA\n");
 		}
 		return 1;
 	}
-	else if((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow)
+	else if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow)
 	{
 		// handle flow object here
 		// XXX TODO
@@ -279,7 +279,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 		// update particle lifetime to be one frame
 		// smd->flow->psys->part->lifetime = scene->r.efra + 1;
 /*
-		if(!smd->flow->bvh)
+		if (!smd->flow->bvh)
 		{
 			// smd->flow->bvh = MEM_callocN(sizeof(BVHTreeFromMesh), "smoke_bvhfromfaces");
 			// bvhtree_from_mesh_faces(smd->flow->bvh, dm, 0.0, 2, 6);
@@ -292,15 +292,15 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 
 		return 1;
 	}
-	else if((smd->type & MOD_SMOKE_TYPE_COLL))
+	else if ((smd->type & MOD_SMOKE_TYPE_COLL))
 	{
 		smd->time = scene->r.cfra;
 
 		// todo: delete this when loading colls work -dg
-		if(!smd->coll)
+		if (!smd->coll)
 			smokeModifier_createType(smd);
 
-		if(!smd->coll->points)
+		if (!smd->coll->points)
 		{
 			// init collision points
 			SmokeCollSettings *scs = smd->coll;
@@ -313,7 +313,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 			fill_scs_points(ob, dm, scs);
 		}
 
-		if(!smd->coll->bvhtree)
+		if (!smd->coll->bvhtree)
 		{
 			smd->coll->bvhtree = NULL; // bvhtree_build_from_smoke ( ob->obmat, dm->getTessFaceArray(dm), dm->getNumTessFaces(dm), dm->getVertArray(dm), dm->getNumVerts(dm), 0.0 );
 		}
@@ -334,16 +334,16 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 	int quads = 0, facecounter = 0;
 
 	// count quads
-	for(i = 0; i < dm->getNumTessFaces(dm); i++)
+	for (i = 0; i < dm->getNumTessFaces(dm); i++)
 	{
-		if(mface[i].v4)
+		if (mface[i].v4)
 			quads++;
 	}
 
 	calcTriangleDivs(ob, mvert, dm->getNumVerts(dm), mface,  dm->getNumTessFaces(dm), dm->getNumTessFaces(dm) + quads, &tridivs, cell_len);
 
 	// count triangle divisions
-	for(i = 0; i < dm->getNumTessFaces(dm) + quads; i++)
+	for (i = 0; i < dm->getNumTessFaces(dm) + quads; i++)
 	{
 		divs += (tridivs[3 * i] + 1) * (tridivs[3 * i + 1] + 1) * (tridivs[3 * i + 2] + 1);
 	}
@@ -352,7 +352,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 
 	scs->points = MEM_callocN(sizeof(float) * (dm->getNumVerts(dm) + divs) * 3, "SmokeCollPoints");
 
-	for(i = 0; i < dm->getNumVerts(dm); i++)
+	for (i = 0; i < dm->getNumVerts(dm); i++)
 	{
 		float tmpvec[3];
 		copy_v3_v3(tmpvec, mvert[i].co);
@@ -360,7 +360,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 		copy_v3_v3(&scs->points[i * 3], tmpvec);
 	}
 	
-	for(i = 0, facecounter = 0; i < dm->getNumTessFaces(dm); i++)
+	for (i = 0, facecounter = 0; i < dm->getNumTessFaces(dm); i++)
 	{
 		int again = 0;
 		do
@@ -371,7 +371,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 			//int divs3 = tridivs[3 * facecounter + 2];
 			float side1[3], side2[3], trinormorg[3], trinorm[3];
 			
-			if(again == 1 && mface[i].v4)
+			if (again == 1 && mface[i].v4)
 			{
 				sub_v3_v3v3(side1,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
 				sub_v3_v3v3(side2,  mvert[ mface[i].v4 ].co, mvert[ mface[i].v1 ].co);
@@ -386,23 +386,23 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 			copy_v3_v3(trinorm, trinormorg);
 			mul_v3_fl(trinorm, 0.25 * cell_len);
 
-			for(j = 0; j <= divs1; j++)
+			for (j = 0; j <= divs1; j++)
 			{
-				for(k = 0; k <= divs2; k++)
+				for (k = 0; k <= divs2; k++)
 				{
 					float p1[3], p2[3], p3[3], p[3]={0,0,0}; 
 					const float uf = (float)(j + TRI_UVOFFSET) / (float)(divs1 + 0.0);
 					const float vf = (float)(k + TRI_UVOFFSET) / (float)(divs2 + 0.0);
 					float tmpvec[3];
 					
-					if(uf+vf > 1.0) 
+					if (uf+vf > 1.0) 
 					{
 						// printf("bigger - divs1: %d, divs2: %d\n", divs1, divs2);
 						continue;
 					}
 
 					copy_v3_v3(p1, mvert[ mface[i].v1 ].co);
-					if(again == 1 && mface[i].v4)
+					if (again == 1 && mface[i].v4)
 					{
 						copy_v3_v3(p2, mvert[ mface[i].v3 ].co);
 						copy_v3_v3(p3, mvert[ mface[i].v4 ].co);
@@ -419,7 +419,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 					add_v3_v3v3(p, p1, p2);
 					add_v3_v3(p, p3);
 
-					if(newdivs > divs)
+					if (newdivs > divs)
 						printf("mem problem\n");
 
 					// mMovPoints.push_back(p + trinorm);
@@ -428,7 +428,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 					copy_v3_v3(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
 					newdivs++;
 
-					if(newdivs > divs)
+					if (newdivs > divs)
 						printf("mem problem\n");
 
 					// mMovPoints.push_back(p - trinorm);
@@ -440,14 +440,14 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 				}
 			}
 
-			if(again == 0 && mface[i].v4)
+			if (again == 0 && mface[i].v4)
 				again++;
 			else
 				again = 0;
 
 			facecounter++;
 
-		} while(again!=0);
+		} while (again!=0);
 	}
 
 	scs->numpoints = dm->getNumVerts(dm) + newdivs;
@@ -467,18 +467,18 @@ static void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFa
 	float maxpart = ABS(maxscale[0]);
 	float scaleFac = 0;
 	float fsTri = 0;
-	if(ABS(maxscale[1])>maxpart) maxpart = ABS(maxscale[1]);
-	if(ABS(maxscale[2])>maxpart) maxpart = ABS(maxscale[2]);
+	if (ABS(maxscale[1])>maxpart) maxpart = ABS(maxscale[1]);
+	if (ABS(maxscale[2])>maxpart) maxpart = ABS(maxscale[2]);
 	scaleFac = 1.0 / maxpart;
 	// featureSize = mLevel[mMaxRefine].nodeSize
 	fsTri = cell_len * 0.5 * scaleFac;
 
-	if(*tridivs)
+	if (*tridivs)
 		MEM_freeN(*tridivs);
 
 	*tridivs = MEM_callocN(sizeof(int) * numtris * 3, "Smoke_Tridivs");
 
-	for(i = 0, facecounter = 0; i < numfaces; i++) 
+	for (i = 0, facecounter = 0; i < numfaces; i++) 
 	{
 		float p0[3], p1[3], p2[3];
 		float side1[3];
@@ -497,19 +497,19 @@ static void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFa
 		sub_v3_v3v3(side2, p2, p0);
 		sub_v3_v3v3(side3, p1, p2);
 
-		if(dot_v3v3(side1, side1) > fsTri*fsTri)
+		if (dot_v3v3(side1, side1) > fsTri*fsTri)
 		{ 
 			float tmp = normalize_v3(side1);
 			divs1 = (int)ceil(tmp/fsTri); 
 		}
-		if(dot_v3v3(side2, side2) > fsTri*fsTri)
+		if (dot_v3v3(side2, side2) > fsTri*fsTri)
 		{ 
 			float tmp = normalize_v3(side2);
 			divs2 = (int)ceil(tmp/fsTri); 
 			
 			/*
 			// debug
-			if(i==0)
+			if (i==0)
 				printf("b tmp: %f, fsTri: %f, divs2: %d\n", tmp, fsTri, divs2);
 			*/
 		}
@@ -519,7 +519,7 @@ static void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFa
 		(*tridivs)[3 * facecounter + 2] = divs3;
 
 		// TODO quad case
-		if(faces[i].v4)
+		if (faces[i].v4)
 		{
 			divs1=0, divs2=0, divs3=0;
 
@@ -536,12 +536,12 @@ static void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFa
 			sub_v3_v3v3(side2, p2, p0);
 			sub_v3_v3v3(side3, p1, p2);
 
-			if(dot_v3v3(side1, side1) > fsTri*fsTri)
+			if (dot_v3v3(side1, side1) > fsTri*fsTri)
 			{ 
 				float tmp = normalize_v3(side1);
 				divs1 = (int)ceil(tmp/fsTri); 
 			}
-			if(dot_v3v3(side2, side2) > fsTri*fsTri)
+			if (dot_v3v3(side2, side2) > fsTri*fsTri)
 			{ 
 				float tmp = normalize_v3(side2);
 				divs2 = (int)ceil(tmp/fsTri); 
@@ -559,19 +559,19 @@ static void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFa
 
 static void smokeModifier_freeDomain(SmokeModifierData *smd)
 {
-	if(smd->domain)
+	if (smd->domain)
 	{
-		if(smd->domain->shadow)
+		if (smd->domain->shadow)
 				MEM_freeN(smd->domain->shadow);
 			smd->domain->shadow = NULL;
 
-		if(smd->domain->fluid)
+		if (smd->domain->fluid)
 			smoke_free(smd->domain->fluid);
 
-		if(smd->domain->wt)
+		if (smd->domain->wt)
 			smoke_turbulence_free(smd->domain->wt);
 
-		if(smd->domain->effector_weights)
+		if (smd->domain->effector_weights)
 				MEM_freeN(smd->domain->effector_weights);
 		smd->domain->effector_weights = NULL;
 
@@ -585,10 +585,10 @@ static void smokeModifier_freeDomain(SmokeModifierData *smd)
 
 static void smokeModifier_freeFlow(SmokeModifierData *smd)
 {
-	if(smd->flow)
+	if (smd->flow)
 	{
 /*
-		if(smd->flow->bvh)
+		if (smd->flow->bvh)
 		{
 			free_bvhtree_from_mesh(smd->flow->bvh);
 			MEM_freeN(smd->flow->bvh);
@@ -602,22 +602,22 @@ static void smokeModifier_freeFlow(SmokeModifierData *smd)
 
 static void smokeModifier_freeCollision(SmokeModifierData *smd)
 {
-	if(smd->coll)
+	if (smd->coll)
 	{
-		if(smd->coll->points)
+		if (smd->coll->points)
 		{
 			MEM_freeN(smd->coll->points);
 			smd->coll->points = NULL;
 		}
 
-		if(smd->coll->bvhtree)
+		if (smd->coll->bvhtree)
 		{
 			BLI_bvhtree_free(smd->coll->bvhtree);
 			smd->coll->bvhtree = NULL;
 		}
 
 #ifdef USE_SMOKE_COLLISION_DM
-		if(smd->coll->dm)
+		if (smd->coll->dm)
 			smd->coll->dm->release(smd->coll->dm);
 		smd->coll->dm = NULL;
 #endif
@@ -629,7 +629,7 @@ static void smokeModifier_freeCollision(SmokeModifierData *smd)
 
 void smokeModifier_reset_turbulence(struct SmokeModifierData *smd)
 {
-	if(smd && smd->domain && smd->domain->wt)
+	if (smd && smd->domain && smd->domain->wt)
 	{
 		smoke_turbulence_free(smd->domain->wt);
 		smd->domain->wt = NULL;
@@ -638,15 +638,15 @@ void smokeModifier_reset_turbulence(struct SmokeModifierData *smd)
 
 void smokeModifier_reset(struct SmokeModifierData *smd)
 {
-	if(smd)
+	if (smd)
 	{
-		if(smd->domain)
+		if (smd->domain)
 		{
-			if(smd->domain->shadow)
+			if (smd->domain->shadow)
 				MEM_freeN(smd->domain->shadow);
 			smd->domain->shadow = NULL;
 
-			if(smd->domain->fluid)
+			if (smd->domain->fluid)
 			{
 				smoke_free(smd->domain->fluid);
 				smd->domain->fluid = NULL;
@@ -658,10 +658,10 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 
 			// printf("reset domain end\n");
 		}
-		else if(smd->flow)
+		else if (smd->flow)
 		{
 			/*
-			if(smd->flow->bvh)
+			if (smd->flow->bvh)
 			{
 				free_bvhtree_from_mesh(smd->flow->bvh);
 				MEM_freeN(smd->flow->bvh);
@@ -669,22 +669,22 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 			smd->flow->bvh = NULL;
 			*/
 		}
-		else if(smd->coll)
+		else if (smd->coll)
 		{
-			if(smd->coll->points)
+			if (smd->coll->points)
 			{
 				MEM_freeN(smd->coll->points);
 				smd->coll->points = NULL;
 			}
 
-			if(smd->coll->bvhtree)
+			if (smd->coll->bvhtree)
 			{
 				BLI_bvhtree_free(smd->coll->bvhtree);
 				smd->coll->bvhtree = NULL;
 			}
 
 #ifdef USE_SMOKE_COLLISION_DM
-			if(smd->coll->dm)
+			if (smd->coll->dm)
 				smd->coll->dm->release(smd->coll->dm);
 			smd->coll->dm = NULL;
 #endif
@@ -695,7 +695,7 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 
 void smokeModifier_free (SmokeModifierData *smd)
 {
-	if(smd)
+	if (smd)
 	{
 		smokeModifier_freeDomain(smd);
 		smokeModifier_freeFlow(smd);
@@ -705,11 +705,11 @@ void smokeModifier_free (SmokeModifierData *smd)
 
 void smokeModifier_createType(struct SmokeModifierData *smd)
 {
-	if(smd)
+	if (smd)
 	{
-		if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
+		if (smd->type & MOD_SMOKE_TYPE_DOMAIN)
 		{
-			if(smd->domain)
+			if (smd->domain)
 				smokeModifier_freeDomain(smd);
 
 			smd->domain = MEM_callocN(sizeof(SmokeDomainSettings), "SmokeDomain");
@@ -746,9 +746,9 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->viewsettings = MOD_SMOKE_VIEW_SHOWBIG;
 			smd->domain->effector_weights = BKE_add_effector_weights(NULL);
 		}
-		else if(smd->type & MOD_SMOKE_TYPE_FLOW)
+		else if (smd->type & MOD_SMOKE_TYPE_FLOW)
 		{
-			if(smd->flow)
+			if (smd->flow)
 				smokeModifier_freeFlow(smd);
 
 			smd->flow = MEM_callocN(sizeof(SmokeFlowSettings), "SmokeFlow");
@@ -764,9 +764,9 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->flow->psys = NULL;
 
 		}
-		else if(smd->type & MOD_SMOKE_TYPE_COLL)
+		else if (smd->type & MOD_SMOKE_TYPE_COLL)
 		{
-			if(smd->coll)
+			if (smd->coll)
 				smokeModifier_freeCollision(smd);
 
 			smd->coll = MEM_callocN(sizeof(SmokeCollSettings), "SmokeColl");
@@ -809,14 +809,16 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 		
 		MEM_freeN(tsmd->domain->effector_weights);
 		tsmd->domain->effector_weights = MEM_dupallocN(smd->domain->effector_weights);
-	} else if (tsmd->flow) {
+	}
+	else if (tsmd->flow) {
 		tsmd->flow->density = smd->flow->density;
 		tsmd->flow->temp = smd->flow->temp;
 		tsmd->flow->psys = smd->flow->psys;
 		tsmd->flow->type = smd->flow->type;
 		tsmd->flow->flags = smd->flow->flags;
 		tsmd->flow->vel_multi = smd->flow->vel_multi;
-	} else if (tsmd->coll) {
+	}
+	else if (tsmd->coll) {
 		;
 		/* leave it as initialized, collision settings is mostly caches */
 	}
@@ -834,15 +836,15 @@ static int get_lamp(Scene *scene, float *light)
 	int found_lamp = 0;
 
 	// try to find a lamp, preferably local
-	for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) {
-		if(base_tmp->object->type == OB_LAMP) {
+	for (base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) {
+		if (base_tmp->object->type == OB_LAMP) {
 			Lamp *la = base_tmp->object->data;
 
-			if(la->type == LA_LOCAL) {
+			if (la->type == LA_LOCAL) {
 				copy_v3_v3(light, base_tmp->object->obmat[3]);
 				return 1;
 			}
-			else if(!found_lamp) {
+			else if (!found_lamp) {
 				copy_v3_v3(light, base_tmp->object->obmat[3]);
 				found_lamp = 1;
 			}
@@ -859,29 +861,29 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 	Base *base = NULL;	
 
 	// do collisions, needs to be done before emission, so that smoke isn't emitted inside collision cells
-	if(1)
+	if (1)
 	{
 		Object *otherobj = NULL;
 		ModifierData *md = NULL;
 
-		if(sds->coll_group) // we use groups since we have 2 domains
+		if (sds->coll_group) // we use groups since we have 2 domains
 			go = sds->coll_group->gobject.first;
 		else
 			base = scene->base.first;
 
-		while(base || go)
+		while (base || go)
 		{
 			otherobj = NULL;
-			if(sds->coll_group) 
+			if (sds->coll_group) 
 			{						
-				if(go->ob)							
+				if (go->ob)							
 					otherobj = go->ob;					
 			}					
 			else						
 				otherobj = base->object;					
-			if(!otherobj)					
+			if (!otherobj)					
 			{						
-				if(sds->coll_group)							
+				if (sds->coll_group)							
 					go = go->next;						
 				else							
 					base= base->next;						
@@ -890,18 +892,18 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 			md = modifiers_findByType(otherobj, eModifierType_Smoke);
 			
 			// check for active smoke modifier
-			if(md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
+			if (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
 			{
 				SmokeModifierData *smd2 = (SmokeModifierData *)md;
 
-				if((smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll && smd2->coll->points)
+				if ((smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll && smd2->coll->points)
 				{
 					// we got nice collision object
 					SmokeCollSettings *scs = smd2->coll;
 					size_t i, j;
 					unsigned char *obstacles = smoke_get_obstacle(smd->domain->fluid);
 
-					for(i = 0; i < scs->numpoints; i++)
+					for (i = 0; i < scs->numpoints; i++)
 					{
 						int badcell = 0;
 						size_t index = 0;
@@ -911,14 +913,14 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						get_cell(smd->domain->p0, smd->domain->res, smd->domain->dx, &scs->points[3 * i], cell, 0);
 					
 						// check if cell is valid (in the domain boundary)
-						for(j = 0; j < 3; j++)
-							if((cell[j] > sds->res[j] - 1) || (cell[j] < 0))
+						for (j = 0; j < 3; j++)
+							if ((cell[j] > sds->res[j] - 1) || (cell[j] < 0))
 							{
 								badcell = 1;
 								break;
 							}
 																
-							if(badcell)									
+							if (badcell)									
 								continue;
 						// 2. set cell values (heat, density and velocity)
 						index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);
@@ -935,11 +937,11 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						{ 								
 						const LbmFloat usqr = (objvel[0]*objvel[0]+objvel[1]*objvel[1]+objvel[2]*objvel[2])*1.5; 								
 						USQRMAXCHECK(usqr, objvel[0],objvel[1],objvel[2], mMaxVlen, mMxvx,mMxvy,mMxvz); 								
-						if(usqr>maxusqr) { 									
+						if (usqr>maxusqr) { 									
 						// cutoff at maxVelVal 									
-						for(int jj=0; jj<3; jj++) { 										
-						if(objvel[jj]>0.) objvel[jj] =  maxVelVal;  										
-						if(objvel[jj]<0.) objvel[jj] = -maxVelVal; 									
+						for (int jj=0; jj<3; jj++) { 										
+						if (objvel[jj]>0.) objvel[jj] =  maxVelVal;  										
+						if (objvel[jj]<0.) objvel[jj] = -maxVelVal; 									
 						} 								
 						} 
 						} 								
@@ -951,7 +953,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 				}
 			}
 
-			if(sds->coll_group)
+			if (sds->coll_group)
 				go = go->next;
 			else
 				base= base->next;
@@ -959,27 +961,27 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 	}
 
 	// do flows and fluids
-	if(1)			
+	if (1)			
 	{
 		Object *otherobj = NULL;				
 		ModifierData *md = NULL;
-		if(sds->fluid_group) // we use groups since we have 2 domains
+		if (sds->fluid_group) // we use groups since we have 2 domains
 			go = sds->fluid_group->gobject.first;				
 		else					
 			base = scene->base.first;
-		while(base || go)
+		while (base || go)
 		{					
 			otherobj = NULL;
-			if(sds->fluid_group) 
+			if (sds->fluid_group) 
 			{
-				if(go->ob)							
+				if (go->ob)							
 					otherobj = go->ob;					
 			}					
 			else						
 				otherobj = base->object;
-			if(!otherobj)
+			if (!otherobj)
 			{
-				if(sds->fluid_group)
+				if (sds->fluid_group)
 					go = go->next;
 				else
 					base= base->next;
@@ -990,17 +992,17 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 			md = modifiers_findByType(otherobj, eModifierType_Smoke);
 			
 			// check for active smoke modifier
-			if(md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))
+			if (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))
 			{
 				SmokeModifierData *smd2 = (SmokeModifierData *)md;
 				
 				// check for initialized smoke object
-				if((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow)						
+				if ((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow)						
 				{
 					// we got nice flow object
 					SmokeFlowSettings *sfs = smd2->flow;
 					
-					if(sfs && sfs->psys && sfs->psys->part && sfs->psys->part->type==PART_EMITTER) // is particle system selected
+					if (sfs && sfs->psys && sfs->psys->part && sfs->psys->part->type==PART_EMITTER) // is particle system selected
 					{
 						ParticleSimulationData sim;
 						ParticleSystem *psys = sfs->psys;
@@ -1029,7 +1031,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						sim.psys = psys;
 
 						// initialize temp emission map
-						if(!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW))
+						if (!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW))
 						{
 							int i;
 							temp_emission_map = MEM_callocN(sizeof(float) * sds->res[0]*sds->res[1]*sds->res[2], "SmokeTempEmission");
@@ -1040,10 +1042,10 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						}
 														
 						// mostly copied from particle code								
-						if(psys->part->type==PART_HAIR)
+						if (psys->part->type==PART_HAIR)
 						{
 							/*
-							if(psys->childcache)
+							if (psys->childcache)
 							{
 								totchild = psys->totchildcache;
 							}
@@ -1056,7 +1058,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						else
 							totchild=psys->totchild*psys->part->disp/100;
 						
-						for(p=0; p<totpart+totchild; p++)								
+						for (p=0; p<totpart+totchild; p++)								
 						{
 							int cell[3];
 							size_t i = 0;
@@ -1064,21 +1066,21 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 							int badcell = 0;
 							ParticleKey state;
 
-							if(p < totpart)
+							if (p < totpart)
 							{
-								if(psys->particles[p].flag & (PARS_NO_DISP|PARS_UNEXIST))
+								if (psys->particles[p].flag & (PARS_NO_DISP|PARS_UNEXIST))
 									continue;
 							}
 							else {
 								/* handle child particle */
 								ChildParticle *cpa = &psys->child[p - totpart];
 					
-								if(psys->particles[cpa->parent].flag & (PARS_NO_DISP|PARS_UNEXIST))
+								if (psys->particles[cpa->parent].flag & (PARS_NO_DISP|PARS_UNEXIST))
 									continue;
 							}
 
 							state.time = smd->time;
-							if(psys_get_particle_state(&sim, p, &state, 0) == 0)
+							if (psys_get_particle_state(&sim, p, &state, 0) == 0)
 								continue;
 												
 							// copy_v3_v3(pos, pa->state.co);
@@ -1086,19 +1088,19 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 							// 1. get corresponding cell
 							get_cell(smd->domain->p0, smd->domain->res, smd->domain->dx, state.co, cell, 0);																	
 							// check if cell is valid (in the domain boundary)									
-							for(i = 0; i < 3; i++)									
+							for (i = 0; i < 3; i++)									
 							{										
-								if((cell[i] > sds->res[i] - 1) || (cell[i] < 0))										
+								if ((cell[i] > sds->res[i] - 1) || (cell[i] < 0))										
 								{											
 									badcell = 1;											
 									break;										
 								}									
 							}																			
-							if(badcell)										
+							if (badcell)										
 								continue;																		
 							// 2. set cell values (heat, density and velocity)									
 							index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);																		
-							if(!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW) && !(obstacle[index])) // this is inflow
+							if (!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW) && !(obstacle[index])) // this is inflow
 							{										
 								// heat[index] += sfs->temp * 0.1;										
 								// density[index] += sfs->density * 0.1;
@@ -1108,14 +1110,14 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 								temp_emission_map[index] = sfs->density;
 
 								// Uses particle velocity as initial velocity for smoke
-								if(sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO))
+								if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO))
 								{
 									velocity_x[index] = state.vel[0]*sfs->vel_multi;
 									velocity_y[index] = state.vel[1]*sfs->vel_multi;
 									velocity_z[index] = state.vel[2]*sfs->vel_multi;
 								}										
 							}									
-							else if(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW) // outflow									
+							else if (sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW) // outflow									
 							{										
 								heat[index] = 0.f;										
 								density[index] = 0.f;										
@@ -1123,15 +1125,15 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 								velocity_y[index] = 0.f;										
 								velocity_z[index] = 0.f;
 								// we need different handling for the high-res feature
-								if(bigdensity)
+								if (bigdensity)
 								{
 									// init all surrounding cells according to amplification, too											
 									int i, j, k;
 									smoke_turbulence_get_res(smd->domain->wt, bigres);
 
-									for(i = 0; i < smd->domain->amplify + 1; i++)
-										for(j = 0; j < smd->domain->amplify + 1; j++)
-											for(k = 0; k < smd->domain->amplify + 1; k++)
+									for (i = 0; i < smd->domain->amplify + 1; i++)
+										for (j = 0; j < smd->domain->amplify + 1; j++)
+											for (k = 0; k < smd->domain->amplify + 1; k++)
 											{														
 												index = smoke_get_index((smd->domain->amplify + 1)* cell[0] + i, bigres[0], (smd->domain->amplify + 1)* cell[1] + j, bigres[1], (smd->domain->amplify + 1)* cell[2] + k);														
 												bigdensity[index] = 0.f;													
@@ -1142,7 +1144,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 
 
 							// apply emission values
-							if(!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW)) {
+							if (!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW)) {
 
 								// initialize variables
 								int ii, jj, kk, x, y, z, block_size;
@@ -1153,9 +1155,9 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 
 
 									// loop through every low res cell
-									for(x = 0; x < sds->res[0]; x++)
-										for(y = 0; y < sds->res[1]; y++)
-											for(z = 0; z < sds->res[2]; z++)													
+									for (x = 0; x < sds->res[0]; x++)
+										for (y = 0; y < sds->res[1]; y++)
+											for (z = 0; z < sds->res[2]; z++)													
 											{
 
 												// neighbor cell emission densities (for high resolution smoke smooth interpolation)
@@ -1191,9 +1193,9 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 												loop through high res blocks if high res enabled
 												*/
 												if (bigdensity)
-												for(ii = 0; ii < block_size; ii++)
-													for(jj = 0; jj < block_size; jj++)
-														for(kk = 0; kk < block_size; kk++)													
+												for (ii = 0; ii < block_size; ii++)
+													for (jj = 0; jj < block_size; jj++)
+														for (kk = 0; kk < block_size; kk++)													
 														{
 
 														float fx,fy,fz, interpolated_value;
@@ -1269,7 +1271,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 				}							
 				else {								
 					/*								
-					for()								
+					for ()								
 					{									
 						// no psys									
 						BVHTreeNearest nearest;
@@ -1281,7 +1283,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 				}
 			}						
 		}
-			if(sds->fluid_group)
+			if (sds->fluid_group)
 				go = go->next;
 			else
 				base= base->next;
@@ -1292,7 +1294,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 	{
 		ListBase *effectors = pdInitEffectors(scene, ob, NULL, sds->effector_weights);
 
-		if(effectors)
+		if (effectors)
 		{
 			float *density = smoke_get_density(sds->fluid);
 			float *force_x = smoke_get_force_x(sds->fluid);
@@ -1304,15 +1306,15 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 			int x, y, z;
 
 			// precalculate wind forces
-			for(x = 0; x < sds->res[0]; x++)
-				for(y = 0; y < sds->res[1]; y++)
-					for(z = 0; z < sds->res[2]; z++)
+			for (x = 0; x < sds->res[0]; x++)
+				for (y = 0; y < sds->res[1]; y++)
+					for (z = 0; z < sds->res[2]; z++)
 			{	
 				EffectedPoint epoint;
 				float voxelCenter[3] = {0,0,0} , vel[3] = {0,0,0} , retvel[3] = {0,0,0};
 				unsigned int index = smoke_get_index(x, sds->res[0], y, sds->res[1], z);
 
-				if(density[index] < FLT_EPSILON)					
+				if (density[index] < FLT_EPSILON)					
 					continue;	
 
 				vel[0] = velocity_x[index];
@@ -1339,12 +1341,12 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 }
 void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
 {	
-	if((smd->type & MOD_SMOKE_TYPE_FLOW))
+	if ((smd->type & MOD_SMOKE_TYPE_FLOW))
 	{
-		if(scene->r.cfra >= smd->time)
+		if (scene->r.cfra >= smd->time)
 			smokeModifier_init(smd, ob, scene, dm);
 
-		if(scene->r.cfra > smd->time)
+		if (scene->r.cfra > smd->time)
 		{
 			// XXX TODO
 			smd->time = scene->r.cfra;
@@ -1355,24 +1357,24 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			copy_m4_m4(smd->flow->mat, ob->obmat);
 			*/
 		}
-		else if(scene->r.cfra < smd->time)
+		else if (scene->r.cfra < smd->time)
 		{
 			smd->time = scene->r.cfra;
 			smokeModifier_reset(smd);
 		}
 	}
-	else if(smd->type & MOD_SMOKE_TYPE_COLL)
+	else if (smd->type & MOD_SMOKE_TYPE_COLL)
 	{
-		if(scene->r.cfra >= smd->time)
+		if (scene->r.cfra >= smd->time)
 			smokeModifier_init(smd, ob, scene, dm);
 
-		if(scene->r.cfra > smd->time)
+		if (scene->r.cfra > smd->time)
 		{
 			// XXX TODO
 			smd->time = scene->r.cfra;
 
 #ifdef USE_SMOKE_COLLISION_DM
-			if(smd->coll->dm)
+			if (smd->coll->dm)
 				smd->coll->dm->release(smd->coll->dm);
 
 			smd->coll->dm = CDDM_copy_from_tessface(dm);
@@ -1382,13 +1384,13 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			copy_m4_m4(smd->coll->mat_old, smd->coll->mat);
 			copy_m4_m4(smd->coll->mat, ob->obmat);
 		}
-		else if(scene->r.cfra < smd->time)
+		else if (scene->r.cfra < smd->time)
 		{
 			smd->time = scene->r.cfra;
 			smokeModifier_reset(smd);
 		}
 	}
-	else if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
+	else if (smd->type & MOD_SMOKE_TYPE_DOMAIN)
 	{
 		SmokeDomainSettings *sds = smd->domain;
 		float light[3];	
@@ -1405,14 +1407,14 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		BKE_ptcache_id_from_smoke(&pid, ob, smd);
 		BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
 
-		if(!smd->domain->fluid || framenr == startframe)
+		if (!smd->domain->fluid || framenr == startframe)
 		{
 			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 			BKE_ptcache_validate(cache, framenr);
 			cache->flag &= ~PTCACHE_REDO_NEEDED;
 		}
 
-		if(!smd->domain->fluid && (framenr != startframe) && (smd->domain->flags & MOD_SMOKE_FILE_LOAD)==0 && (cache->flag & PTCACHE_BAKED)==0)
+		if (!smd->domain->fluid && (framenr != startframe) && (smd->domain->flags & MOD_SMOKE_FILE_LOAD)==0 && (cache->flag & PTCACHE_BAKED)==0)
 			return;
 
 		smd->domain->flags &= ~MOD_SMOKE_FILE_LOAD;
@@ -1425,21 +1427,21 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		// printf("startframe: %d, framenr: %d\n", startframe, framenr);
 
-		if(smokeModifier_init(smd, ob, scene, dm)==0)
+		if (smokeModifier_init(smd, ob, scene, dm)==0)
 		{
 			printf("bad smokeModifier_init\n");
 			return;
 		}
 
 		/* try to read from cache */
-		if(BKE_ptcache_read(&pid, (float)framenr) == PTCACHE_READ_EXACT) {
+		if (BKE_ptcache_read(&pid, (float)framenr) == PTCACHE_READ_EXACT) {
 			BKE_ptcache_validate(cache, framenr);
 			smd->time = framenr;
 			return;
 		}
 		
 		/* only calculate something when we advanced a single frame */
-		if(framenr != (int)smd->time+1)
+		if (framenr != (int)smd->time+1)
 			return;
 
 		/* don't simulate if viewing start frame, but scene frame is not real start frame */
@@ -1451,14 +1453,14 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		smoke_calc_domain(scene, ob, smd);
 
 		/* if on second frame, write cache for first frame */
-		if((int)smd->time == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0)) {
+		if ((int)smd->time == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0)) {
 			// create shadows straight after domain initialization so we get nice shadows for startframe, too
-			if(get_lamp(scene, light))
+			if (get_lamp(scene, light))
 				smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
 
-			if(sds->wt)
+			if (sds->wt)
 			{
-				if(sds->flags & MOD_SMOKE_DISSOLVE)
+				if (sds->flags & MOD_SMOKE_DISSOLVE)
 					smoke_dissolve_wavelet(sds->wt, sds->diss_speed, sds->flags & MOD_SMOKE_DISSOLVE_LOG);
 				smoke_turbulence_step(sds->wt, sds->fluid);
 			}
@@ -1475,26 +1477,26 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		// simulate the actual smoke (c++ code in intern/smoke)
 		// DG: interesting commenting this line + deactivating loading of noise files
-		if(framenr!=startframe)
+		if (framenr!=startframe)
 		{
-			if(sds->flags & MOD_SMOKE_DISSOLVE)
+			if (sds->flags & MOD_SMOKE_DISSOLVE)
 				smoke_dissolve(sds->fluid, sds->diss_speed, sds->flags & MOD_SMOKE_DISSOLVE_LOG);
 			smoke_step(sds->fluid, smd->time, scene->r.frs_sec / scene->r.frs_sec_base);
 		}
 
 		// create shadows before writing cache so they get stored
-		if(get_lamp(scene, light))
+		if (get_lamp(scene, light))
 			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
 
-		if(sds->wt)
+		if (sds->wt)
 		{
-			if(sds->flags & MOD_SMOKE_DISSOLVE)
+			if (sds->flags & MOD_SMOKE_DISSOLVE)
 				smoke_dissolve_wavelet(sds->wt, sds->diss_speed, sds->flags & MOD_SMOKE_DISSOLVE_LOG);
 			smoke_turbulence_step(sds->wt, sds->fluid);
 		}
 	
 		BKE_ptcache_validate(cache, framenr);
-		if(framenr != startframe)
+		if (framenr != startframe)
 			BKE_ptcache_write(&pid, framenr);
 
 		tend();
@@ -1509,7 +1511,7 @@ static float calc_voxel_transp(float *result, float *input, int res[3], int *pix
 	// T_ray *= T_vox
 	*tRay *= exp(input[index]*correct);
 	
-	if(result[index] < 0.0f)	
+	if (result[index] < 0.0f)	
 	{
 #pragma omp critical		
 		result[index] = *tRay;	
@@ -1563,7 +1565,7 @@ static void bresenham_linie_3D(int x1, int y1, int z1, int x2, int y2, int z2, f
 		err_1 = dy2 - l;
 		err_2 = dz2 - l;
 		for (i = 0; i < l; i++) {
-			if(cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
+			if (cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
 				break;
 			if (err_1 > 0) {
 				pixel[1] += y_inc;
@@ -1577,11 +1579,12 @@ static void bresenham_linie_3D(int x1, int y1, int z1, int x2, int y2, int z2, f
 			err_2 += dz2;
 			pixel[0] += x_inc;
 		}
-	} else if ((m >= l) && (m >= n)) {
+	}
+	else if ((m >= l) && (m >= n)) {
 		err_1 = dx2 - m;
 		err_2 = dz2 - m;
 		for (i = 0; i < m; i++) {
-			if(cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
+			if (cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
 				break;
 			if (err_1 > 0) {
 				pixel[0] += x_inc;
@@ -1595,11 +1598,12 @@ static void bresenham_linie_3D(int x1, int y1, int z1, int x2, int y2, int z2, f
 			err_2 += dz2;
 			pixel[1] += y_inc;
 		}
-	} else {
+	}
+	else {
 		err_1 = dy2 - n;
 		err_2 = dx2 - n;
 		for (i = 0; i < n; i++) {
-			if(cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
+			if (cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
 				break;
 			if (err_1 > 0) {
 				pixel[1] += y_inc;
@@ -1641,7 +1645,7 @@ static void smoke_calc_transparency(float *result, float *input, float *p0, floa
 	float bv[6];
 	int a, z, slabsize=res[0]*res[1], size= res[0]*res[1]*res[2];
 
-	for(a=0; a<size; a++)
+	for (a=0; a<size; a++)
 		result[a]= -1.0f;
 
 	bv[0] = p0[0];
@@ -1654,27 +1658,27 @@ static void smoke_calc_transparency(float *result, float *input, float *p0, floa
 	bv[5] = p1[2];
 
 #pragma omp parallel for schedule(static,1)
-	for(z = 0; z < res[2]; z++)
+	for (z = 0; z < res[2]; z++)
 	{
 		size_t index = z*slabsize;
 		int x,y;
 
-		for(y = 0; y < res[1]; y++)
-			for(x = 0; x < res[0]; x++, index++)
+		for (y = 0; y < res[1]; y++)
+			for (x = 0; x < res[0]; x++, index++)
 			{
 				float voxelCenter[3];
 				float pos[3];
 				int cell[3];
 				float tRay = 1.0;
 
-				if(result[index] >= 0.0f)					
+				if (result[index] >= 0.0f)					
 					continue;								
 				voxelCenter[0] = p0[0] + dx *  x + dx * 0.5;
 				voxelCenter[1] = p0[1] + dx *  y + dx * 0.5;
 				voxelCenter[2] = p0[2] + dx *  z + dx * 0.5;
 
 				// get starting position (in voxel coords)
-				if(BLI_bvhtree_bb_raycast(bv, light, voxelCenter, pos) > FLT_EPSILON)
+				if (BLI_bvhtree_bb_raycast(bv, light, voxelCenter, pos) > FLT_EPSILON)
 				{
 					// we're ouside
 					get_cell(p0, res, dx, pos, cell, 1);

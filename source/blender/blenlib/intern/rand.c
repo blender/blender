@@ -121,7 +121,7 @@ void rng_shuffleArray(RNG *rng, void *data, int elemSize, int numElems)
 
 	while (--i) {
 		int j = rng_getInt(rng)%numElems;
-		if(i!=j) {
+		if (i!=j) {
 			void *iElem = (unsigned char*)data + i*elemSize;
 			void *jElem = (unsigned char*)data + j*elemSize;
 			memcpy(temp, iElem, elemSize);
@@ -137,7 +137,7 @@ void rng_skip(RNG *rng, int n)
 {
 	int i;
 
-	for(i=0; i<n; i++)
+	for (i=0; i<n; i++)
 		rng_getInt(rng);
 }
 
@@ -195,7 +195,7 @@ static RNG rng_tab[BLENDER_MAX_THREADS];
 
 void BLI_thread_srandom(int thread, unsigned int seed)
 {
-	if(thread >= BLENDER_MAX_THREADS)
+	if (thread >= BLENDER_MAX_THREADS)
 		thread= 0;
 	
 	rng_seed(&rng_tab[thread], seed + hash[seed & 255]);

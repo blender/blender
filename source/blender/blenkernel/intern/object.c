@@ -1789,9 +1789,11 @@ static void give_parvert(Object *par, int nr, float vec[3])
 
 			if (count==0) {
 				/* keep as 0,0,0 */
-			} else if (count > 0) {
+			}
+			else if (count > 0) {
 				mul_v3_fl(vec, 1.0f / count);
-			} else {
+			}
+			else {
 				/* use first index if its out of range */
 				dm->getVertCo(dm, 0, vec);
 			}
@@ -2037,7 +2039,7 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 		if (simul) {
 			copy_v3_v3(totmat[3], par->obmat[3]);
 		}
-		else{
+		else {
 			give_parvert(par, ob->par1, vec);
 			mul_v3_m4v3(totmat[3], par->obmat, vec);
 		}
@@ -2063,7 +2065,7 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 	if (simul) {
 
 	}
-	else{
+	else {
 		// external usable originmat 
 		copy_m3_m4(originmat, tmat);
 		
@@ -2213,8 +2215,9 @@ void object_get_dimensions(Object *ob, float vec[3])
 		vec[0] = fabsf(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
 		vec[1] = fabsf(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
 		vec[2] = fabsf(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
-	} else {
-		vec[0] = vec[1] = vec[2] = 0.f;
+	}
+	else {
+		zero_v3(vec);
 	}
 }
 
@@ -2326,7 +2329,8 @@ int minmax_object_duplis(Scene *scene, Object *ob, float min[3], float max[3])
 	int ok= 0;
 	if ((ob->transflag & OB_DUPLI)==0) {
 		return ok;
-	} else {
+	}
+	else {
 		ListBase *lb;
 		DupliObject *dob;
 		
@@ -2695,7 +2699,8 @@ void object_sculpt_modifiers_changed(Object *ob)
 		}
 
 		free_sculptsession_deformMats(ob->sculpt);
-	} else {
+	}
+	else {
 		PBVHNode **nodes;
 		int n, totnode;
 

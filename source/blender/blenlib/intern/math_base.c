@@ -40,7 +40,8 @@ double copysign(double x, double y)
 	/* use atan2 to distinguish -0. from 0. */
 	if (y > 0. || (y == 0. && atan2(y, -1.) > 0.)) {
 		return fabs(x);
-	} else {
+	}
+	else {
 		return -fabs(x);
 	}
 }

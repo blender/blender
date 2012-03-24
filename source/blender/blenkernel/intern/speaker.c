@@ -70,7 +70,7 @@ Speaker *copy_speaker(Speaker *spk)
 	Speaker *spkn;
 
 	spkn= copy_libblock(&spk->id);
-	if(spkn->sound)
+	if (spkn->sound)
 		spkn->sound->id.us++;
 
 	return spkn;
@@ -87,25 +87,25 @@ void make_local_speaker(Speaker *spk)
 	 * - mixed: make copy
 	 */
 
-	if(spk->id.lib==NULL) return;
-	if(spk->id.us==1) {
+	if (spk->id.lib==NULL) return;
+	if (spk->id.us==1) {
 		id_clear_lib_data(bmain, &spk->id);
 		return;
 	}
 
 	ob= bmain->object.first;
-	while(ob) {
-		if(ob->data==spk) {
-			if(ob->id.lib) is_lib= TRUE;
+	while (ob) {
+		if (ob->data==spk) {
+			if (ob->id.lib) is_lib= TRUE;
 			else is_local= TRUE;
 		}
 		ob= ob->id.next;
 	}
 
-	if(is_local && is_lib == FALSE) {
+	if (is_local && is_lib == FALSE) {
 		id_clear_lib_data(bmain, &spk->id);
 	}
-	else if(is_local && is_lib) {
+	else if (is_local && is_lib) {
 		Speaker *spk_new= copy_speaker(spk);
 		spk_new->id.us= 0;
 
@@ -113,10 +113,10 @@ void make_local_speaker(Speaker *spk)
 		BKE_id_lib_local_paths(bmain, spk->id.lib, &spk_new->id);
 
 		ob= bmain->object.first;
-		while(ob) {
-			if(ob->data==spk) {
+		while (ob) {
+			if (ob->data==spk) {
 
-				if(ob->id.lib==NULL) {
+				if (ob->id.lib==NULL) {
 					ob->data= spk_new;
 					spk_new->id.us++;
 					spk->id.us--;
@@ -129,7 +129,7 @@ void make_local_speaker(Speaker *spk)
 
 void free_speaker(Speaker *spk)
 {
-	if(spk->sound)
+	if (spk->sound)
 		spk->sound->id.us--;
 
 	BKE_free_animdata((ID *)spk);

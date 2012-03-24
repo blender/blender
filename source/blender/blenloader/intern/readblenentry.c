@@ -134,7 +134,8 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, 
 
 			BLI_linklist_prepend(&names, strdup(idname+2));
 			tot++;
-		} else if (bhead->code==ENDB)
+		}
+		else if (bhead->code==ENDB)
 			break;
 	}
 
@@ -170,7 +171,8 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 				default:
 					break;
 			}
-		} else if (bhead->code==DATA) {
+		}
+		else if (bhead->code==DATA) {
 			if (looking) {
 				if (bhead->SDNAnr == DNA_struct_find_nr(fd->filesdna, "PreviewImage") ) {
 					prv = BLO_library_read_struct(fd, bhead, "PreviewImage");	
@@ -182,7 +184,8 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 							bhead= blo_nextbhead(fd, bhead);
 							rect = (unsigned int*)(bhead+1);
 							memcpy(new_prv->rect[0], rect, bhead->len);					
-						} else {
+						}
+						else {
 							new_prv->rect[0] = NULL;
 						}
 						
@@ -192,16 +195,19 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 							bhead= blo_nextbhead(fd, bhead);
 							rect = (unsigned int*)(bhead+1);
 							memcpy(new_prv->rect[1], rect, bhead->len);							
-						} else {
+						}
+						else {
 							new_prv->rect[1] = NULL;
 						}
 						MEM_freeN(prv);
 					}
 				}
 			}
-		} else if (bhead->code==ENDB) {
+		}
+		else if (bhead->code==ENDB) {
 			break;
-		} else {
+		}
+		else {
 			looking = 0;
 			new_prv = NULL;
 			prv = NULL;
@@ -223,7 +229,8 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code==ENDB) {
 			break;
-		} else if (BKE_idcode_is_valid(bhead->code)) {
+		}
+		else if (BKE_idcode_is_valid(bhead->code)) {
 			if (BKE_idcode_is_linkable(bhead->code)) {
 				const char *str= BKE_idcode_to_name(bhead->code);
 				
@@ -313,7 +320,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		blo_end_movieclip_pointer_map(fd, oldmain);
 		
 		/* move libraries from old main to new main */
-		if(bfd && mainlist.first!=mainlist.last) {
+		if (bfd && mainlist.first!=mainlist.last) {
 			
 			/* Library structs themselves */
 			bfd->main->library= oldmain->library;

@@ -409,8 +409,8 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 #define BPATH_TRAVERSE_POINTCACHE(ptcaches)                                    \
 	{                                                                          \
 		PointCache *cache;                                                     \
-		for(cache= (ptcaches).first; cache; cache= cache->next) {              \
-			if(cache->flag & PTCACHE_DISK_CACHE) {                             \
+		for (cache= (ptcaches).first; cache; cache= cache->next) {              \
+			if (cache->flag & PTCACHE_DISK_CACHE) {                             \
 				rewrite_path_fixed(cache->path,                                \
 				                   visit_cb,                                   \
 				                   absbase,                                    \
@@ -441,7 +441,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 				}
 				else if (md->type == eModifierType_Smoke) {
 					SmokeModifierData *smd= (SmokeModifierData *)md;
-					if(smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+					if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
 						BPATH_TRAVERSE_POINTCACHE(smd->domain->ptcaches[0]);
 					}
 				}
@@ -527,7 +527,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 								len= MIN2(1, len);
 							}
 
-							for(i= 0; i < len; i++, se++) {
+							for (i= 0; i < len; i++, se++) {
 								rewrite_path_fixed_dirfile(seq->strip->dir, se->name,
 								                           visit_cb, absbase, bpath_user_data);
 							}
@@ -557,7 +557,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 	case ID_LI:
 		{
 			Library *lib= (Library *)id;
-			if(rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
+			if (rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
 				BKE_library_filepath_set(lib, lib->name);
 			}
 		}

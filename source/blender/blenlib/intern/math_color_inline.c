@@ -87,7 +87,7 @@ MINLINE void srgb_to_linearrgb_predivide_v4(float linear[4], const float srgb[4]
 {
 	float alpha, inv_alpha;
 
-	if(srgb[3] == 1.0f || srgb[3] == 0.0f) {
+	if (srgb[3] == 1.0f || srgb[3] == 0.0f) {
 		alpha = 1.0f;
 		inv_alpha = 1.0f;
 	}
@@ -106,7 +106,7 @@ MINLINE void linearrgb_to_srgb_predivide_v4(float srgb[4], const float linear[4]
 {
 	float alpha, inv_alpha;
 
-	if(linear[3] == 1.0f || linear[3] == 0.0f) {
+	if (linear[3] == 1.0f || linear[3] == 0.0f) {
 		alpha = 1.0f;
 		inv_alpha = 1.0f;
 	}
@@ -153,7 +153,7 @@ MINLINE void linearrgb_to_srgb_ushort4_predivide(unsigned short srgb[4], const f
 	float alpha, inv_alpha, t;
 	int i;
 
-	if(linear[3] == 1.0f || linear[3] == 0.0f) {
+	if (linear[3] == 1.0f || linear[3] == 0.0f) {
 		linearrgb_to_srgb_ushort4(srgb, linear);
 		return;
 	}
@@ -161,7 +161,7 @@ MINLINE void linearrgb_to_srgb_ushort4_predivide(unsigned short srgb[4], const f
 	alpha = linear[3];
 	inv_alpha = 1.0f/alpha;
 
-	for(i=0; i<3; ++i) {
+	for (i=0; i<3; ++i) {
 		t = linear[i] * inv_alpha;
 		srgb[i] = (t < 1.0f)? (unsigned short)(to_srgb_table_lookup(t) * alpha) : FTOUSHORT(linearrgb_to_srgb(t) * alpha);
 	}
@@ -182,7 +182,7 @@ MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned 
 	float fsrgb[4];
 	int i;
 
-	if(srgb[3] == 255 || srgb[3] == 0) {
+	if (srgb[3] == 255 || srgb[3] == 0) {
 		srgb_to_linearrgb_uchar4(linear, srgb);
 		return;
 	}

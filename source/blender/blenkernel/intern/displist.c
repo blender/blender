@@ -66,13 +66,13 @@ static void boundbox_displist(Object *ob);
 
 void free_disp_elem(DispList *dl)
 {
-	if(dl) {
-		if(dl->verts) MEM_freeN(dl->verts);
-		if(dl->nors) MEM_freeN(dl->nors);
-		if(dl->index) MEM_freeN(dl->index);
-		if(dl->col1) MEM_freeN(dl->col1);
-		if(dl->col2) MEM_freeN(dl->col2);
-		if(dl->bevelSplitFlag) MEM_freeN(dl->bevelSplitFlag);
+	if (dl) {
+		if (dl->verts) MEM_freeN(dl->verts);
+		if (dl->nors) MEM_freeN(dl->nors);
+		if (dl->index) MEM_freeN(dl->index);
+		if (dl->col1) MEM_freeN(dl->col1);
+		if (dl->col2) MEM_freeN(dl->col2);
+		if (dl->bevelSplitFlag) MEM_freeN(dl->bevelSplitFlag);
 		MEM_freeN(dl);
 	}
 }
@@ -82,7 +82,7 @@ void freedisplist(ListBase *lb)
 	DispList *dl;
 
 	dl= lb->first;
-	while(dl) {
+	while (dl) {
 		BLI_remlink(lb, dl);
 		free_disp_elem(dl);
 		dl= lb->first;
@@ -94,8 +94,8 @@ DispList *find_displist_create(ListBase *lb, int type)
 	DispList *dl;
 	
 	dl= lb->first;
-	while(dl) {
-		if(dl->type==type) return dl;
+	while (dl) {
+		if (dl->type==type) return dl;
 		dl= dl->next;
 	}
 
@@ -111,8 +111,8 @@ DispList *find_displist(ListBase *lb, int type)
 	DispList *dl;
 	
 	dl= lb->first;
-	while(dl) {
-		if(dl->type==type) return dl;
+	while (dl) {
+		if (dl->type==type) return dl;
 		dl= dl->next;
 	}
 
@@ -122,7 +122,7 @@ DispList *find_displist(ListBase *lb, int type)
 int displist_has_faces(ListBase *lb)
 {
 	DispList *dl;
-	for(dl= lb->first; dl; dl= dl->next) {
+	for (dl= lb->first; dl; dl= dl->next) {
 		if ELEM3(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)
 			return 1;
 	}
@@ -136,7 +136,7 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 	freedisplist(lbn);
 	
 	dl= lb->first;
-	while(dl) {
+	while (dl) {
 		
 		dln= MEM_dupallocN(dl);
 		BLI_addtail(lbn, dln);
@@ -146,7 +146,7 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 		dln->col1= MEM_dupallocN(dl->col1);
 		dln->col2= MEM_dupallocN(dl->col2);
 
-		if(dl->bevelSplitFlag)
+		if (dl->bevelSplitFlag)
 			dln->bevelSplitFlag= MEM_dupallocN(dl->bevelSplitFlag);
 
 		dl= dl->next;
@@ -164,22 +164,22 @@ void addnormalsDispList(ListBase *lb)
 
 	dl= lb->first;
 	
-	while(dl) {
-		if(dl->type==DL_INDEX3) {
-			if(dl->nors==NULL) {
+	while (dl) {
+		if (dl->type==DL_INDEX3) {
+			if (dl->nors==NULL) {
 				dl->nors= MEM_callocN(sizeof(float)*3, "dlnors");
-				if(dl->verts[2] < 0.0f) dl->nors[2]= -1.0f;
+				if (dl->verts[2] < 0.0f) dl->nors[2]= -1.0f;
 				else dl->nors[2]= 1.0f;
 			}
 		}
-		else if(dl->type==DL_SURF) {
-			if(dl->nors==NULL) {
+		else if (dl->type==DL_SURF) {
+			if (dl->nors==NULL) {
 				dl->nors= MEM_callocN(sizeof(float)*3*dl->nr*dl->parts, "dlnors");
 				
 				vdata= dl->verts;
 				ndata= dl->nors;
 				
-				for(a=0; a<dl->parts; a++) {
+				for (a=0; a<dl->parts; a++) {
 					
 					if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
 						break;
@@ -193,7 +193,7 @@ void addnormalsDispList(ListBase *lb)
 					v4= vdata+ 3*p4; 
 					n4= ndata+ 3*p4;
 					
-					for(; b<dl->nr; b++) {
+					for (; b<dl->nr; b++) {
 	
 						normal_quad_v3( nor,v1, v3, v4, v2);
 	
@@ -210,7 +210,7 @@ void addnormalsDispList(ListBase *lb)
 				}
 				a= dl->parts*dl->nr;
 				v1= ndata;
-				while(a--) {
+				while (a--) {
 					normalize_v3(v1);
 					v1+= 3;
 				}
@@ -225,7 +225,7 @@ void count_displist(ListBase *lb, int *totvert, int *totface)
 	DispList *dl;
 	
 	dl= lb->first;
-	while(dl) {
+	while (dl) {
 		
 		switch(dl->type) {
 			case DL_SURF:
@@ -248,17 +248,18 @@ void count_displist(ListBase *lb, int *totvert, int *totface)
 
 int surfindex_displist(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4)
 {
-	if((dl->flag & DL_CYCL_V)==0 && a==(dl->parts)-1) {
+	if ((dl->flag & DL_CYCL_V)==0 && a==(dl->parts)-1) {
 		return 0;
 	}
 	
-	if(dl->flag & DL_CYCL_U) {
+	if (dl->flag & DL_CYCL_U) {
 		(*p1)= dl->nr*a;
 		(*p2)= (*p1)+ dl->nr-1;
 		(*p3)= (*p1)+ dl->nr;
 		(*p4)= (*p2)+ dl->nr;
 		(*b)= 0;
-	} else {
+	}
+	else {
 		(*p2)= dl->nr*a;
 		(*p1)= (*p2)+1;
 		(*p4)= (*p2)+ dl->nr;
@@ -266,7 +267,7 @@ int surfindex_displist(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, i
 		(*b)= 1;
 	}
 	
-	if( (dl->flag & DL_CYCL_V) && a==dl->parts-1) {
+	if ( (dl->flag & DL_CYCL_V) && a==dl->parts-1) {
 		(*p3)-= dl->nr*dl->parts;
 		(*p4)-= dl->nr*dl->parts;
 	}
@@ -286,31 +287,31 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 	int a, len, resolu;
 	
 	nu= nubase->first;
-	while(nu) {
-		if(nu->hide==0) {
+	while (nu) {
+		if (nu->hide==0) {
 			
-			if(forRender && cu->resolu_ren!=0)
+			if (forRender && cu->resolu_ren!=0)
 				resolu= cu->resolu_ren;
 			else
 				resolu= nu->resolu;
 			
-			if(!check_valid_nurb_u(nu));
-			else if(nu->type == CU_BEZIER) {
+			if (!check_valid_nurb_u(nu));
+			else if (nu->type == CU_BEZIER) {
 				
 				/* count */
 				len= 0;
 				a= nu->pntsu-1;
-				if(nu->flagu & CU_NURB_CYCLIC) a++;
+				if (nu->flagu & CU_NURB_CYCLIC) a++;
 
 				prevbezt= nu->bezt;
 				bezt= prevbezt+1;
-				while(a--) {
-					if(a==0 && (nu->flagu & CU_NURB_CYCLIC)) bezt= nu->bezt;
+				while (a--) {
+					if (a==0 && (nu->flagu & CU_NURB_CYCLIC)) bezt= nu->bezt;
 					
-					if(prevbezt->h2==HD_VECT && bezt->h1==HD_VECT) len++;
+					if (prevbezt->h2==HD_VECT && bezt->h1==HD_VECT) len++;
 					else len+= resolu;
 					
-					if(a==0 && (nu->flagu & CU_NURB_CYCLIC)==0) len++;
+					if (a==0 && (nu->flagu & CU_NURB_CYCLIC)==0) len++;
 					
 					prevbezt= bezt;
 					bezt++;
@@ -327,7 +328,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 
 				data= dl->verts;
 
-				if(nu->flagu & CU_NURB_CYCLIC) {
+				if (nu->flagu & CU_NURB_CYCLIC) {
 					dl->type= DL_POLY;
 					a= nu->pntsu;
 				}
@@ -339,16 +340,16 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 				prevbezt= nu->bezt;
 				bezt= prevbezt+1;
 				
-				while(a--) {
-					if(a==0 && dl->type== DL_POLY) bezt= nu->bezt;
+				while (a--) {
+					if (a==0 && dl->type== DL_POLY) bezt= nu->bezt;
 					
-					if(prevbezt->h2==HD_VECT && bezt->h1==HD_VECT) {
+					if (prevbezt->h2==HD_VECT && bezt->h1==HD_VECT) {
 						copy_v3_v3(data, prevbezt->vec[1]);
 						data+= 3;
 					}
 					else {
 						int j;
-						for(j=0; j<3; j++) {
+						for (j=0; j<3; j++) {
 							forward_diff_bezier(	prevbezt->vec[1][j],
 													prevbezt->vec[2][j],
 													bezt->vec[0][j],
@@ -359,7 +360,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 						data+= 3*resolu;
 					}
 					
-					if(a==0 && dl->type==DL_SEGM) {
+					if (a==0 && dl->type==DL_SEGM) {
 						copy_v3_v3(data, bezt->vec[1]);
 					}
 					
@@ -367,7 +368,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 					bezt++;
 				}
 			}
-			else if(nu->type == CU_NURBS) {
+			else if (nu->type == CU_NURBS) {
 				len= (resolu*SEGMENTSU(nu));
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
@@ -380,11 +381,11 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 				dl->charidx = nu->charidx;
 
 				data= dl->verts;
-				if(nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
+				if (nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				makeNurbcurve(nu, data, NULL, NULL, NULL, resolu, 3*sizeof(float));
 			}
-			else if(nu->type == CU_POLY) {
+			else if (nu->type == CU_POLY) {
 				len= nu->pntsu;
 				dl= MEM_callocN(sizeof(DispList), "makeDispListpoly");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
@@ -395,12 +396,12 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 				dl->charidx = nu->charidx;
 
 				data= dl->verts;
-				if(nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
+				if (nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
 				a= len;
 				bp= nu->bp;
-				while(a--) {
+				while (a--) {
 					copy_v3_v3(data, bp->vec);
 					bp++;
 					data+= 3;
@@ -421,10 +422,10 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 	int colnr=0, charidx=0, cont=1, tot, a, *index, nextcol= 0;
 	intptr_t totvert;
 	
-	if(dispbase==NULL) return;
-	if(dispbase->first==NULL) return;
+	if (dispbase==NULL) return;
+	if (dispbase->first==NULL) return;
 
-	while(cont) {
+	while (cont) {
 		cont= 0;
 		totvert= 0;
 		nextcol= 0;
@@ -432,34 +433,35 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 		BLI_begin_edgefill();
 		
 		dl= dispbase->first;
-		while(dl) {
+		while (dl) {
 	
-			if(dl->type==DL_POLY) {
-				if(charidx<dl->charidx) cont= 1;
-				else if(charidx==dl->charidx) { /* character with needed index */
-					if(colnr==dl->col) {
+			if (dl->type==DL_POLY) {
+				if (charidx<dl->charidx) cont= 1;
+				else if (charidx==dl->charidx) { /* character with needed index */
+					if (colnr==dl->col) {
 						/* make editverts and edges */
 						f1= dl->verts;
 						a= dl->nr;
 						eve= v1= NULL;
 						
-						while(a--) {
+						while (a--) {
 							vlast= eve;
 
 							eve= BLI_addfillvert(f1);
 							totvert++;
 
-							if(vlast==NULL) v1= eve;
+							if (vlast==NULL) v1= eve;
 							else {
 								BLI_addfilledge(vlast, eve);
 							}
 							f1+=3;
 						}
 
-						if(eve!=NULL && v1!=NULL) {
+						if (eve!=NULL && v1!=NULL) {
 							BLI_addfilledge(eve, v1);
 						}
-					} else if (colnr<dl->col) {
+					}
+					else if (colnr<dl->col) {
 						/* got poly with next material at current char */
 						cont= 1;
 						nextcol= 1;
@@ -469,8 +471,8 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 			dl= dl->next;
 		}
 		
-		if(totvert && (tot= BLI_edgefill(0))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
-			if(tot) {
+		if (totvert && (tot= BLI_edgefill(0))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
+			if (tot) {
 				dlnew= MEM_callocN(sizeof(DispList), "filldisplist");
 				dlnew->type= DL_INDEX3;
 				dlnew->col= colnr;
@@ -484,7 +486,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 				f1= dlnew->verts;
 				totvert= 0;
 				eve= fillvertbase.first;
-				while(eve) {
+				while (eve) {
 					copy_v3_v3(f1, eve->co);
 					f1+= 3;
 	
@@ -498,12 +500,12 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 				/* index data */
 				efa= fillfacebase.first;
 				index= dlnew->index;
-				while(efa) {
+				while (efa) {
 					index[0]= (intptr_t)efa->v1->tmp.l;
 					index[1]= (intptr_t)efa->v2->tmp.l;
 					index[2]= (intptr_t)efa->v3->tmp.l;
 
-					if(flipnormal)
+					if (flipnormal)
 						SWAP(int, index[0], index[2]);
 					
 					index+= 3;
@@ -516,10 +518,11 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 		}
 		BLI_end_edgefill();
 
-		if(nextcol) {
+		if (nextcol) {
 			/* stay at current char but fill polys with next material */
 			colnr++;
-		} else {
+		}
+		else {
 			/* switch to next char and start filling from first material */
 			charidx++;
 			colnr= 0;
@@ -540,10 +543,10 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 	front.first= front.last= back.first= back.last= NULL;
 	
 	dl= dispbase->first;
-	while(dl) {
-		if(dl->type==DL_SURF) {
-			if( (dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U)==0 ) {
-				if( (cu->flag & CU_BACK) && (dl->flag & DL_BACK_CURVE) ) {
+	while (dl) {
+		if (dl->type==DL_SURF) {
+			if ( (dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U)==0 ) {
+				if ( (cu->flag & CU_BACK) && (dl->flag & DL_BACK_CURVE) ) {
 					dlnew= MEM_callocN(sizeof(DispList), "filldisp");
 					BLI_addtail(&front, dlnew);
 					dlnew->verts= fp1= MEM_mallocN(sizeof(float)*3*dl->parts, "filldisp1");
@@ -557,13 +560,13 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 					dpoly= 3*dl->nr;
 					
 					a= dl->parts;
-					while(a--) {
+					while (a--) {
 						copy_v3_v3(fp1, fp);
 						fp1+= 3;
 						fp+= dpoly;
 					}
 				}
-				if( (cu->flag & CU_FRONT) && (dl->flag & DL_FRONT_CURVE) ) {
+				if ( (cu->flag & CU_FRONT) && (dl->flag & DL_FRONT_CURVE) ) {
 					dlnew= MEM_callocN(sizeof(DispList), "filldisp");
 					BLI_addtail(&back, dlnew);
 					dlnew->verts= fp1= MEM_mallocN(sizeof(float)*3*dl->parts, "filldisp1");
@@ -577,7 +580,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 					dpoly= 3*dl->nr;
 					
 					a= dl->parts;
-					while(a--) {
+					while (a--) {
 						copy_v3_v3(fp1, fp);
 						fp1+= 3;
 						fp+= dpoly;
@@ -600,9 +603,9 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 
 static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dispbase)
 {
-	if(cu->flag & CU_3D) return;
+	if (cu->flag & CU_3D) return;
 
-	if(dispbase->first && ((DispList*) dispbase->first)->type==DL_SURF) {
+	if (dispbase->first && ((DispList*) dispbase->first)->type==DL_SURF) {
 		bevels_to_filledpoly(cu, dispbase);
 	}
 	else {
@@ -619,14 +622,14 @@ float calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 {
 	DispList *dl;
 	
-	if(taperobj==NULL || taperobj->type!=OB_CURVE) return 1.0;
+	if (taperobj==NULL || taperobj->type!=OB_CURVE) return 1.0;
 	
 	dl= taperobj->disp.first;
-	if(dl==NULL) {
+	if (dl==NULL) {
 		makeDispListCurveTypes(scene, taperobj, 0);
 		dl= taperobj->disp.first;
 	}
-	if(dl) {
+	if (dl) {
 		float fac= ((float)cur)/(float)(tot-1);
 		float minx, dx, *fp;
 		int a;
@@ -634,16 +637,16 @@ float calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 		/* horizontal size */
 		minx= dl->verts[0];
 		dx= dl->verts[3*(dl->nr-1)] - minx;
-		if(dx > 0.0f) {
+		if (dx > 0.0f) {
 		
 			fp= dl->verts;
-			for(a=0; a<dl->nr; a++, fp+=3) {
-				if( (fp[0]-minx)/dx >= fac) {
+			for (a=0; a<dl->nr; a++, fp+=3) {
+				if ( (fp[0]-minx)/dx >= fac) {
 					/* interpolate with prev */
-					if(a>0) {
+					if (a>0) {
 						float fac1= (fp[-3]-minx)/dx;
 						float fac2= (fp[0]-minx)/dx;
-						if(fac1!=fac2)
+						if (fac1!=fac2)
 							return fp[1]*(fac1-fac)/(fac1-fac2) + fp[-2]*(fac-fac2)/(fac1-fac2);
 					}
 					return fp[1];
@@ -658,16 +661,16 @@ float calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 
 void makeDispListMBall(Scene *scene, Object *ob)
 {
-	if(!ob || ob->type!=OB_MBALL) return;
+	if (!ob || ob->type!=OB_MBALL) return;
 
 	// XXX: mball stuff uses plenty of global variables
 	//      while this is unchanged updating during render is unsafe
-	if(G.rendering) return;
+	if (G.rendering) return;
 
 	freedisplist(&(ob->disp));
 
-	if(ob->type==OB_MBALL) {
-		if(ob==find_basis_mball(scene, ob)) {
+	if (ob->type==OB_MBALL) {
+		if (ob==find_basis_mball(scene, ob)) {
 			metaball_polygonize(scene, ob, &ob->disp);
 			tex_space_mball(ob);
 
@@ -692,10 +695,10 @@ static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob, int fo
 	ModifierData *pretessellatePoint;
 	int required_mode;
 
-	if(forRender) required_mode = eModifierMode_Render;
+	if (forRender) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
-	if(editmode) required_mode |= eModifierMode_Editmode;
+	if (editmode) required_mode |= eModifierMode_Editmode;
 
 	pretessellatePoint = NULL;
 	for (; md; md=md->next) {
@@ -711,7 +714,8 @@ static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob, int fo
 			 * (some of them even can't be applied on tessellated curve), set flag
 			 * for incformation button in modifier's header */
 			md->mode |= eModifierMode_ApplyOnSpline;
-		} else if(md->mode&eModifierMode_ApplyOnSpline) {
+		}
+		else if (md->mode&eModifierMode_ApplyOnSpline) {
 			pretessellatePoint = md;
 		}
 	}
@@ -732,17 +736,17 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 	float *keyVerts= NULL;
 	int required_mode;
 
-	if(forRender) required_mode = eModifierMode_Render;
+	if (forRender) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
 	pretessellatePoint = curve_get_tessellate_point(scene, ob, forRender, editmode);
 	
-	if(editmode) required_mode |= eModifierMode_Editmode;
+	if (editmode) required_mode |= eModifierMode_Editmode;
 
-	if(cu->editnurb==NULL) {
+	if (cu->editnurb==NULL) {
 		keyVerts= do_ob_key(scene, ob);
 
-		if(keyVerts) {
+		if (keyVerts) {
 			/* split coords from key data, the latter also includes
 			 * tilts, which is passed through in the modifier stack.
 			 * this is also the reason curves do not use a virtual
@@ -780,7 +784,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 	if (keyVerts) /* these are not passed through modifier stack */
 		curve_applyKeyVertexTilts(cu, nurb, keyVerts);
 
-	if(keyVerts)
+	if (keyVerts)
 		MEM_freeN(keyVerts);
 
 	*originalVerts_r = originalVerts;
@@ -835,12 +839,12 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	float (*vertCos)[3] = NULL;
 	int useCache = !forRender;
 
-	if(forRender) required_mode = eModifierMode_Render;
+	if (forRender) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
 	pretessellatePoint = curve_get_tessellate_point(scene, ob, forRender, editmode);
 	
-	if(editmode) required_mode |= eModifierMode_Editmode;
+	if (editmode) required_mode |= eModifierMode_Editmode;
 
 	if (pretessellatePoint) {
 		md = pretessellatePoint->next;
@@ -868,14 +872,16 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 				}
 
 				mti->deformVerts(md, ob, dm, vertCos, totvert, forRender, editmode);
-			} else {
+			}
+			else {
 				if (!vertCos) {
 					vertCos= displist_get_allverts(dispbase, &totvert);
 				}
 
 				mti->deformVerts(md, ob, NULL, vertCos, totvert, forRender, editmode);
 			}
-		} else {
+		}
+		else {
 			if (!derivedFinal) {
 				/* makeDisplistCurveTypes could be used for beveling, where derived mesh */
 				/* is totally unnecessary, so we could stop modifiers applying */
@@ -892,7 +898,8 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 					CDDM_apply_vert_coords(dm, vertCos);
 					CDDM_calc_normals_mapping(dm);
 				}
-			} else {
+			}
+			else {
 				if (vertCos) {
 					displist_apply_allverts(dispbase, vertCos);
 				}
@@ -933,7 +940,8 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 			CDDM_apply_vert_coords(dm, vertCos);
 			CDDM_calc_normals_mapping(dm);
 			MEM_freeN(vertCos);
-		} else {
+		}
+		else {
 			displist_apply_allverts(dispbase, vertCos);
 			MEM_freeN(vertCos);
 			vertCos= NULL;
@@ -961,12 +969,12 @@ static void displist_surf_indices(DispList *dl)
 	
 	index=dl->index= MEM_mallocN( 4*sizeof(int)*(dl->parts+1)*(dl->nr+1), "index array nurbs");
 	
-	for(a=0; a<dl->parts; a++) {
+	for (a=0; a<dl->parts; a++) {
 		
 		if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
 			break;
 		
-		for(; b<dl->nr; b++, index+=4) {	
+		for (; b<dl->nr; b++, index+=4) {	
 			index[0]= p1;
 			index[1]= p2;
 			index[2]= p4;
@@ -1004,10 +1012,10 @@ static void add_orco_dm(Scene *scene, Object *ob, DerivedMesh *dm, DerivedMesh *
 
 	totvert= dm->getNumVerts(dm);
 
-	if(orcodm) {
+	if (orcodm) {
 		orco= MEM_callocN(sizeof(float)*3*totvert, "dm orco");
 
-		if(orcodm->getNumVerts(orcodm) == totvert)
+		if (orcodm->getNumVerts(orcodm) == totvert)
 			orcodm->getVertCos(orcodm, orco);
 		else
 			dm->getVertCos(dm, orco);
@@ -1016,14 +1024,14 @@ static void add_orco_dm(Scene *scene, Object *ob, DerivedMesh *dm, DerivedMesh *
 		orco= (float(*)[3])make_orco_curve(scene, ob);
 	}
 
-	for(a=0; a<totvert; a++) {
+	for (a=0; a<totvert; a++) {
 		float *co = orco[a];
 		co[0] = (co[0]-cu->loc[0])/cu->size[0];
 		co[1] = (co[1]-cu->loc[1])/cu->size[1];
 		co[2] = (co[2]-cu->loc[2])/cu->size[2];
 	}
 
-	if((layerorco = DM_get_vert_data_layer(dm, CD_ORCO))) {
+	if ((layerorco = DM_get_vert_data_layer(dm, CD_ORCO))) {
 		memcpy(layerorco, orco, sizeof(float)*totvert);
 		MEM_freeN(orco);
 	}
@@ -1043,12 +1051,12 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 	int editmode = (!forRender && cu->editnurb);
 	DerivedMesh *ndm, *orcodm= NULL;
 
-	if(forRender) required_mode = eModifierMode_Render;
+	if (forRender) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
 	pretessellatePoint = curve_get_tessellate_point(scene, ob, forRender, editmode);
 
-	if(editmode) required_mode |= eModifierMode_Editmode;
+	if (editmode) required_mode |= eModifierMode_Editmode;
 
 	if (pretessellatePoint) {
 		md = pretessellatePoint->next;
@@ -1063,14 +1071,14 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 		if (mti->isDisabled && mti->isDisabled(md, forRender)) continue;
 		if (mti->type!=eModifierTypeType_Constructive) continue;
 
-		if(!orcodm)
+		if (!orcodm)
 			orcodm= create_orco_dm(scene, ob);
 
 		ndm = mti->applyModifier(md, ob, orcodm, forRender, 0);
 
-		if(ndm) {
+		if (ndm) {
 			/* if the modifier returned a new dm, release the old one */
-			if(orcodm && orcodm != ndm) {
+			if (orcodm && orcodm != ndm) {
 				orcodm->release(orcodm);
 			}
 			orcodm = ndm;
@@ -1080,7 +1088,7 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 	/* add an orco layer if needed */
 	add_orco_dm(scene, ob, derivedFinal, orcodm);
 
-	if(orcodm)
+	if (orcodm)
 		orcodm->release(orcodm);
 }
 
@@ -1097,24 +1105,24 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 	float (*originalVerts)[3];
 	float (*deformedVerts)[3];
 
-	if(!forRender && cu->editnurb)
+	if (!forRender && cu->editnurb)
 		nubase= curve_editnurbs(cu);
 	else
 		nubase= &cu->nurb;
 
-	if(!forOrco)
+	if (!forOrco)
 		curve_calc_modifiers_pre(scene, ob, forRender, &originalVerts, &deformedVerts, &numVerts);
 
 	for (nu=nubase->first; nu; nu=nu->next) {
-		if(forRender || nu->hide==0) {
+		if (forRender || nu->hide==0) {
 			int resolu= nu->resolu, resolv= nu->resolv;
 
-			if(forRender) {
-				if(cu->resolu_ren) resolu= cu->resolu_ren;
-				if(cu->resolv_ren) resolv= cu->resolv_ren;
+			if (forRender) {
+				if (cu->resolu_ren) resolu= cu->resolu_ren;
+				if (cu->resolv_ren) resolv= cu->resolv_ren;
 			}
 
-			if(nu->pntsv==1) {
+			if (nu->pntsv==1) {
 				len= SEGMENTSU(nu)*resolu;
 
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
@@ -1131,7 +1139,7 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 				dl->rt= nu->flag & ~CU_2D;
 
 				data= dl->verts;
-				if(nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
+				if (nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 
 				makeNurbcurve(nu, data, NULL, NULL, NULL, resolu, 3*sizeof(float));
@@ -1155,8 +1163,8 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 
 				dl->parts= (nu->pntsu*resolu);	/* in reverse, because makeNurbfaces works that way */
 				dl->nr= (nu->pntsv*resolv);
-				if(nu->flagv & CU_NURB_CYCLIC) dl->flag|= DL_CYCL_U;	/* reverse too! */
-				if(nu->flagu & CU_NURB_CYCLIC) dl->flag|= DL_CYCL_V;
+				if (nu->flagv & CU_NURB_CYCLIC) dl->flag|= DL_CYCL_U;	/* reverse too! */
+				if (nu->flagu & CU_NURB_CYCLIC) dl->flag|= DL_CYCL_V;
 
 				makeNurbfaces(nu, data, 0, resolu, resolv);
 				
@@ -1175,7 +1183,7 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 		tex_space_curve(cu);
 	}
 
-	if(!forOrco)
+	if (!forOrco)
 		curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal,
 			forRender, originalVerts, deformedVerts);
 }
@@ -1187,7 +1195,7 @@ static void rotateBevelPiece(Curve *cu, BevPoint *bevp, DispList *dlb, float wid
 
 	fp = dlb->verts;
 	for (b = 0; b<dlb->nr; b++,fp += 3,data += 3) {
-		if(cu->flag & CU_3D) {
+		if (cu->flag & CU_3D) {
 			float vec[3];
 
 			vec[0] = fp[1]+widfac;
@@ -1240,9 +1248,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 	Curve *cu = ob->data;
 
 	/* we do allow duplis... this is only displist on curve level */
-	if(!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
+	if (!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
 
-	if(ob->type==OB_SURF) {
+	if (ob->type==OB_SURF) {
 		makeDispListSurf(scene, ob, dispbase, derivedFinal, forRender, forOrco);
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
@@ -1256,12 +1264,12 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 		BLI_freelistN(&(cu->bev));
 
-		if(cu->path) free_path(cu->path);
+		if (cu->path) free_path(cu->path);
 		cu->path= NULL;
 
-		if(ob->type==OB_FONT) BKE_text_to_curve(G.main, scene, ob, 0);
+		if (ob->type==OB_FONT) BKE_text_to_curve(G.main, scene, ob, 0);
 
-		if(!forOrco) curve_calc_modifiers_pre(scene, ob, forRender, &originalVerts, &deformedVerts, &numVerts);
+		if (!forOrco) curve_calc_modifiers_pre(scene, ob, forRender, &originalVerts, &deformedVerts, &numVerts);
 
 		makeBevelList(ob);
 
@@ -1271,7 +1279,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		/* no bevel or extrude, and no width correction? */
 		if (!dlbev.first && cu->width==1.0f) {
 			curve_to_displist(cu, nubase, dispbase, forRender);
-		} else {
+		}
+		else {
 			float widfac= cu->width - 1.0f;
 			BevList *bl= cu->bev.first;
 			Nurb *nu= nubase->first;
@@ -1285,15 +1294,15 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 				if (bl->nr) { /* blank bevel lists can happen */
 
 					/* exception handling; curve without bevel or extrude, with width correction */
-					if(dlbev.first==NULL) {
+					if (dlbev.first==NULL) {
 						dl= MEM_callocN(sizeof(DispList), "makeDispListbev");
 						dl->verts= MEM_callocN(3*sizeof(float)*bl->nr, "dlverts");
 						BLI_addtail(dispbase, dl);
 
-						if(bl->poly!= -1) dl->type= DL_POLY;
+						if (bl->poly!= -1) dl->type= DL_POLY;
 						else dl->type= DL_SEGM;
 
-						if(dl->type==DL_SEGM) dl->flag = (DL_FRONT_CURVE|DL_BACK_CURVE);
+						if (dl->type==DL_SEGM) dl->flag = (DL_FRONT_CURVE|DL_BACK_CURVE);
 
 						dl->parts= 1;
 						dl->nr= bl->nr;
@@ -1307,7 +1316,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						a= dl->nr;
 						bevp= (BevPoint *)(bl+1);
 						data= dl->verts;
-						while(a--) {
+						while (a--) {
 							data[0]= bevp->vec[0]+widfac*bevp->sina;
 							data[1]= bevp->vec[1]+widfac*bevp->cosa;
 							data[2]= bevp->vec[2];
@@ -1329,8 +1338,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							dl->type= DL_SURF;
 							
 							dl->flag= dlb->flag & (DL_FRONT_CURVE|DL_BACK_CURVE);
-							if(dlb->type==DL_POLY) dl->flag |= DL_CYCL_U;
-							if(bl->poly>=0) dl->flag |= DL_CYCL_V;
+							if (dlb->type==DL_POLY) dl->flag |= DL_CYCL_U;
+							if (bl->poly>=0) dl->flag |= DL_CYCL_V;
 							
 							dl->parts= bl->nr;
 							dl->nr= dlb->nr;
@@ -1345,12 +1354,13 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 	
 							/* for each point of poly make a bevel piece */
 							bevp= (BevPoint *)(bl+1);
-							for(a=0; a<bl->nr; a++,bevp++) {
+							for (a=0; a<bl->nr; a++,bevp++) {
 								float fac=1.0;
 								if (cu->taperobj==NULL) {
 									if ( (cu->bevobj!=NULL) || !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )
 										fac = bevp->radius;
-								} else {
+								}
+								else {
 									fac = calc_taper(scene, cu->taperobj, a, bl->nr);
 								}
 
@@ -1373,7 +1383,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							displist_surf_indices(dl);
 						}
 
-						if(bottom_capbase.first) {
+						if (bottom_capbase.first) {
 							filldisplist(&bottom_capbase, dispbase, 1);
 							filldisplist(&top_capbase, dispbase, 0);
 							freedisplist(&bottom_capbase);
@@ -1390,7 +1400,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			curve_to_filledpoly(cu, nubase, dispbase);
 		}
 
-		if(cu->flag & CU_PATH) calc_curvepath(ob);
+		if (cu->flag & CU_PATH) calc_curvepath(ob);
 
 		/* make copy of 'undeformed" displist for texture space calculation
 		 * actually, it's not totally undeformed -- pre-tessellation modifiers are
@@ -1401,7 +1411,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			tex_space_curve(cu);
 		}
 
-		if(!forOrco) curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, originalVerts, deformedVerts);
+		if (!forOrco) curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, originalVerts, deformedVerts);
 
 		if (cu->flag & CU_DEFORM_FILL && !ob->derivedFinal) {
 			curve_to_filledpoly(cu, nubase, dispbase);
@@ -1417,7 +1427,7 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 	/* The same check for duplis as in do_makeDispListCurveTypes.
 	 * Happens when curve used for constraint/bevel was converted to mesh.
 	 * check there is still needed for render displist and orco displists. */
-	if(!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
+	if (!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
 
 	freedisplist(&(ob->disp));
 	dispbase= &(ob->disp);
@@ -1430,7 +1440,8 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 
 	if (ob->derivedFinal) {
 		DM_set_object_boundbox (ob, ob->derivedFinal);
-	} else {
+	}
+	else {
 		boundbox_displist (ob);
 
 		/* if there is no derivedMesh, object's boundbox is unneeded */
@@ -1466,7 +1477,7 @@ float *makeOrcoDispList(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int
 
 	orco= derivedFinal->getVertDataArray(derivedFinal, CD_ORCO);
 
-	if(orco) {
+	if (orco) {
 		orco= MEM_dupallocN(orco);
 	}
 
@@ -1484,21 +1495,21 @@ static void boundbox_displist(Object *ob)
 	
 	INIT_MINMAX(min, max);
 
-	if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+	if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		Curve *cu= ob->data;
 		int doit= 0;
 
-		if(cu->bb==NULL) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
+		if (cu->bb==NULL) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
 		bb= cu->bb;
 		
 		dl= ob->disp.first;
 
 		while (dl) {
-			if(dl->type==DL_INDEX3) tot= dl->nr;
+			if (dl->type==DL_INDEX3) tot= dl->nr;
 			else tot= dl->nr*dl->parts;
 			
 			vert= dl->verts;
-			for(a=0; a<tot; a++, vert+=3) {
+			for (a=0; a<tot; a++, vert+=3) {
 				doit= 1;
 				DO_MINMAX(vert, min, max);
 			}
@@ -1506,7 +1517,7 @@ static void boundbox_displist(Object *ob)
 			dl= dl->next;
 		}
 		
-		if(!doit) {
+		if (!doit) {
 			/* there's no geometry in displist, use zero-sized boundbox */
 			zero_v3(min);
 			zero_v3(max);
@@ -1514,7 +1525,7 @@ static void boundbox_displist(Object *ob)
 		
 	}
 	
-	if(bb) {
+	if (bb) {
 		boundbox_set_from_min_max(bb, min, max);
 	}
 }

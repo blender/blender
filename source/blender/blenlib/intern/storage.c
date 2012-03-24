@@ -123,22 +123,24 @@ static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 
 	if (S_ISDIR(entry1->type)) {
 		if (S_ISDIR(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISDIR(entry2->type)) return (1);
 	}
 	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISREG(entry2->type)) return (1);
 	}
 	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
 	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
 	
 	/* make sure "." and ".." are always first */
-	if( strcmp(entry1->relname, ".")==0 ) return (-1);
-	if( strcmp(entry2->relname, ".")==0 ) return (1);
-	if( strcmp(entry1->relname, "..")==0 ) return (-1);
-	if( strcmp(entry2->relname, "..")==0 ) return (1);
+	if ( strcmp(entry1->relname, ".")==0 ) return (-1);
+	if ( strcmp(entry2->relname, ".")==0 ) return (1);
+	if ( strcmp(entry1->relname, "..")==0 ) return (-1);
+	if ( strcmp(entry2->relname, "..")==0 ) return (1);
 
 	return (BLI_natstrcmp(entry1->relname,entry2->relname));
 }
@@ -154,7 +156,8 @@ double BLI_dir_free_space(const char *dir)
 	if (dir[0]=='/' || dir[0]=='\\') {
 		tmp[0]='\\';
 		tmp[1]=0;
-	} else if (dir[1]==':') {
+	}
+	else if (dir[1]==':') {
 		tmp[0]=dir[0];
 		tmp[1]=':';
 		tmp[2]='\\';
@@ -179,10 +182,11 @@ double BLI_dir_free_space(const char *dir)
 	
 	strcpy(name,dir);
 
-	if(len) {
+	if (len) {
 		slash = strrchr(name,'/');
 		if (slash) slash[1] = 0;
-	} else strcpy(name,"/");
+	}
+	else strcpy(name,"/");
 
 #if defined (__FreeBSD__) || defined (linux) || defined (__OpenBSD__) || defined (__APPLE__) || defined(__GNU__) || defined(__GLIBC__)
 	if (statfs(name, &disk)) return(-1);
@@ -221,7 +225,7 @@ static void bli_builddir(const char *dirname, const char *relname)
 	}
 #else
 	UTF16_ENCODE(dirname)
-	if(!SetCurrentDirectoryW(dirname_16)){
+	if (!SetCurrentDirectoryW(dirname_16)) {
 		perror(dirname);
 		free(dirname_16);
 		return;
@@ -229,7 +233,7 @@ static void bli_builddir(const char *dirname, const char *relname)
 	UTF16_UN_ENCODE(dirname)
 
 #endif
-	if ( (dir = (DIR *)opendir(".")) ){
+	if ( (dir = (DIR *)opendir(".")) ) {
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
 			dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
 			if (dlink) {
@@ -242,9 +246,9 @@ static void bli_builddir(const char *dirname, const char *relname)
 		
 		if (newnum) {
 
-			if(files) {
+			if (files) {
 				void *tmp= realloc(files, (totnum+newnum) * sizeof(struct direntry));
-				if(tmp) {
+				if (tmp) {
 					files= (struct direntry *)tmp;
 				}
 				else { /* realloc fail */
@@ -253,7 +257,7 @@ static void bli_builddir(const char *dirname, const char *relname)
 				}
 			}
 			
-			if(files==NULL)
+			if (files==NULL)
 				files=(struct direntry *)malloc(newnum * sizeof(struct direntry));
 
 			if (files) {
@@ -282,19 +286,22 @@ static void bli_builddir(const char *dirname, const char *relname)
 					actnum++;
 					dlink = dlink->next;
 				}
-			} else{
+			}
+			else {
 				printf("Couldn't get memory for dir\n");
 				exit(1);
 			}
 
 			BLI_freelist(dirbase);
 			if (files) qsort(files, actnum, sizeof(struct direntry), (int (*)(const void *,const void*))bli_compare);
-		} else {
+		}
+		else {
 			printf("%s empty directory\n",dirname);
 		}
 
 		closedir(dir);
-	} else {
+	}
+	else {
 		printf("%s non-existant directory\n",dirname);
 	}
 }
@@ -316,7 +323,7 @@ static void bli_adddirstrings(void)
 	struct tm *tm;
 	time_t zero= 0;
 	
-	for(num=0, file= files; num<actnum; num++, file++) {
+	for (num=0, file= files; num<actnum; num++, file++) {
 #ifdef WIN32
 		mode = 0;
 		BLI_strncpy(file->mode1, types[0], sizeof(file->mode1));
@@ -352,7 +359,8 @@ static void bli_adddirstrings(void)
 			pwuser = getpwuid(file->s.st_uid);
 			if ( pwuser ) {
 				BLI_strncpy(file->owner, pwuser->pw_name, sizeof(file->owner));
-			} else {
+			}
+			else {
 				BLI_snprintf(file->owner, sizeof(file->owner), "%d", file->s.st_uid);
 			}
 		}
@@ -360,7 +368,7 @@ static void bli_adddirstrings(void)
 
 		tm= localtime(&file->s.st_mtime);
 		// prevent impossible dates in windows
-		if(tm==NULL) tm= localtime(&zero);
+		if (tm==NULL) tm= localtime(&zero);
 		strftime(file->time, sizeof(file->time), "%H:%M", tm);
 		strftime(file->date, sizeof(file->date), "%d-%b-%y", tm);
 
@@ -426,7 +434,8 @@ unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 
 	if (files) {
 		*(filelist) = files;
-	} else {
+	}
+	else {
 		// keep blender happy. Blender stores this in a variable
 		// where 0 has special meaning.....
 		*(filelist) = files = malloc(sizeof(struct direntry));
@@ -553,16 +562,16 @@ int BLI_file_older(const char *file1, const char *file2)
 	UTF16_ENCODE(file1)
 	UTF16_ENCODE(file2)
 	
-	if(_wstat(file1_16, &st1)) return 0;
-	if(_wstat(file2_16, &st2)) return 0;
+	if (_wstat(file1_16, &st1)) return 0;
+	if (_wstat(file2_16, &st2)) return 0;
 
 	UTF16_UN_ENCODE(file2)
 	UTF16_UN_ENCODE(file1)
 #else
 	struct stat st1, st2;
 
-	if(stat(file1, &st1)) return 0;
-	if(stat(file2, &st2)) return 0;
+	if (stat(file1, &st1)) return 0;
+	if (stat(file2, &st2)) return 0;
 #endif
 	return (st1.st_mtime < st2.st_mtime);
 }
