@@ -69,11 +69,11 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 
 	fcu= ui_but_get_fcurve(but, NULL, &driven);
 
-	if(fcu) {
-		if(!driven) {
+	if (fcu) {
+		if (!driven) {
 			but->flag |= UI_BUT_ANIMATED;
 			
-			if(fcurve_frame_has_keyframe(fcu, cfra, 0))
+			if (fcurve_frame_has_keyframe(fcu, cfra, 0))
 				but->flag |= UI_BUT_ANIMATED_KEY;
 		}
 		else {
@@ -90,10 +90,10 @@ int ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 
 	fcu= ui_but_get_fcurve(but, NULL, &driven);
 
-	if(fcu && driven) {
+	if (fcu && driven) {
 		driver= fcu->driver;
 
-		if(driver && driver->type == DRIVER_TYPE_PYTHON) {
+		if (driver && driver->type == DRIVER_TYPE_PYTHON) {
 			BLI_strncpy(str, driver->expression, maxlen);
 			return 1;
 		}
@@ -110,10 +110,10 @@ int ui_but_anim_expression_set(uiBut *but, const char *str)
 
 	fcu= ui_but_get_fcurve(but, NULL, &driven);
 
-	if(fcu && driven) {
+	if (fcu && driven) {
 		driver= fcu->driver;
 		
-		if(driver && driver->type == DRIVER_TYPE_PYTHON) {
+		if (driver && driver->type == DRIVER_TYPE_PYTHON) {
 			BLI_strncpy_utf8(driver->expression, str, sizeof(driver->expression));
 			driver->flag |= DRIVER_FLAG_RECOMPILE;
 			WM_event_add_notifier(but->block->evil_C, NC_ANIMATION|ND_KEYFRAME, NULL);
@@ -185,11 +185,11 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 
 	fcu= ui_but_get_fcurve(but, &action, &driven);
 
-	if(fcu && !driven) {
+	if (fcu && !driven) {
 		id= but->rnapoin.id.data;
 		
 		// TODO: this should probably respect the keyingset only option for anim
-		if(autokeyframe_cfra_can_key(scene, id)) {
+		if (autokeyframe_cfra_can_key(scene, id)) {
 			ReportList *reports = CTX_wm_reports(C);
 			short flag = ANIM_get_keyframing_flags(scene, 1);
 			
