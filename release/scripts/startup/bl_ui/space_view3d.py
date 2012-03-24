@@ -1820,6 +1820,8 @@ class VIEW3D_MT_edit_mesh_delete(Menu):
         layout.separator()
 
         layout.operator("mesh.edge_collapse")
+        
+        layout.operator("mesh.delete_edgeloop")
 
 
 class VIEW3D_MT_edit_mesh_dissolve(Menu):
