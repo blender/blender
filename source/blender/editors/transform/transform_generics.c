@@ -50,6 +50,11 @@
 #include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
 
+#include "BLI_math.h"
+#include "BLI_blenlib.h"
+#include "BLI_rand.h"
+#include "BLI_utildefines.h"
+
 #include "RNA_access.h"
 
 //#include "BIF_screen.h"
@@ -90,11 +95,6 @@
 #include "ED_clip.h"
 
 //#include "BDR_unwrapper.h"
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines.h"
 
 #include "WM_types.h"
 #include "WM_api.h"

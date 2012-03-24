@@ -33,13 +33,14 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_tessmesh.h"
-#include "BKE_bmesh.h"
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
+
+#include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
+#include "BKE_bmesh.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"

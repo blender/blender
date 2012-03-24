@@ -46,6 +46,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_tessmesh.h"
 #include "BKE_group.h" /* needed for object_in_group() */
 

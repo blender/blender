@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h> /* for memcpy */
 
+#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 
 #include "bmesh.h"

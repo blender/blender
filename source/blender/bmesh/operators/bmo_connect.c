@@ -22,11 +22,11 @@
 
 #include "MEM_guardedalloc.h"
 
-
-#include "bmesh.h"
-
 #include "BLI_math.h"
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
+
+#include "bmesh.h"
 
 #define VERT_INPUT	1
 #define EDGE_OUT	1

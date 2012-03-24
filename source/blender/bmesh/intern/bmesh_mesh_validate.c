@@ -32,6 +32,8 @@
 /* debug builds only */
 #ifdef DEBUG
 
+#include "BLI_utildefines.h"
+
 #include "bmesh.h"
 
 #include "bmesh_mesh_validate.h"

@@ -20,16 +20,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_iterators_inline.c
+/** \file blender/bmesh/intern/bmesh_iterators_inline.h
  *  \ingroup bmesh
  *
  * BMesh inline iterator functions.
  */
 
-#ifndef __BMESH_ITERATORS_INLINE_C__
-#define __BMESH_ITERATORS_INLINE_C__
-
-#include "bmesh.h"
+#ifndef __BMESH_ITERATORS_INLINE_H__
+#define __BMESH_ITERATORS_INLINE_H__
 
 /* inline here optimizes out the switch statement when called with
  * constant values (which is very common), nicer for loop-in-loop situations */
@@ -189,4 +187,4 @@ BLI_INLINE void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *da
 	}
 }
 
-#endif /* __BMESH_ITERATORS_INLINE_C__ */
+#endif /* __BMESH_ITERATORS_INLINE_H__ */

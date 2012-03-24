@@ -28,6 +28,7 @@
  * See: bmesh_iterators_inlin.c too, some functions are here for speed reasons.
  */
 
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"

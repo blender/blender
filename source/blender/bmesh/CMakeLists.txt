@@ -56,12 +56,12 @@ set(SRC
 	intern/bmesh_construct.h
 	intern/bmesh_core.c
 	intern/bmesh_core.h
-	intern/bmesh_inline.c
+	intern/bmesh_inline.h
 	intern/bmesh_interp.c
 	intern/bmesh_interp.h
 	intern/bmesh_iterators.c
 	intern/bmesh_iterators.h
-	intern/bmesh_iterators_inline.c
+	intern/bmesh_iterators_inline.h
 	intern/bmesh_marking.c
 	intern/bmesh_marking.h
 	intern/bmesh_mesh.c
@@ -73,7 +73,7 @@ set(SRC
 	intern/bmesh_mods.c
 	intern/bmesh_mods.h
 	intern/bmesh_opdefines.c
-	intern/bmesh_operator_api_inline.c
+	intern/bmesh_operator_api_inline.h
 	intern/bmesh_operators.c
 	intern/bmesh_operators.h
 	intern/bmesh_operators_private.h

@@ -36,13 +36,6 @@
 
 #include "GL/glew.h"
 
-#include "BKE_cdderivedmesh.h"
-#include "BKE_global.h"
-#include "BKE_mesh.h"
-#include "BKE_paint.h"
-#include "BKE_utildefines.h"
-#include "BKE_tessmesh.h"
-
 #include "BLI_scanfill.h"
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -57,7 +50,8 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
-
+#include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

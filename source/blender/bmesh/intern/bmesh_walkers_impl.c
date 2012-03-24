@@ -26,11 +26,13 @@
  * BMesh Walker Code.
  */
 
+#include "BLI_utildefines.h"
+
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
-#include "bmesh_walkers_private.h"
+#include "intern/bmesh_walkers_private.h"
 
 /**
  * Shell Walker:

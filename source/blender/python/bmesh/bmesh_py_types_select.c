@@ -35,13 +35,13 @@
 
 #include <Python.h>
 
+#include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+
 #include "bmesh.h"
 
 #include "bmesh_py_types.h"
 #include "bmesh_py_types_select.h"
-
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 
 #include "BKE_tessmesh.h"
 

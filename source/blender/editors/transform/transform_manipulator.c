@@ -52,6 +52,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 #include "RNA_access.h"
 
 #include "BKE_action.h"
@@ -62,9 +65,6 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_tessmesh.h"
-
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 #include "BIF_gl.h"
 

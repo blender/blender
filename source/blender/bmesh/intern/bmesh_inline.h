@@ -20,16 +20,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_inline.c
+/** \file blender/bmesh/intern/bmesh_inline.h
  *  \ingroup bmesh
  *
  * BM Inline functions.
  */
 
-#ifndef __BMESH_INLINE_C__
-#define __BMESH_INLINE_C__
-
-#include "bmesh.h"
+#ifndef __BMESH_INLINE_H__
+#define __BMESH_INLINE_H__
 
 /* stuff for dealing with header flags */
 #define BM_elem_flag_test(   ele, hflag)      _bm_elem_flag_test    (&(ele)->head, hflag)
@@ -113,4 +111,4 @@ BLI_INLINE int _bm_elem_index_get(const BMHeader *head)
 	return head->index;
 }
 
-#endif /* __BMESH_INLINE_C__ */
+#endif /* __BMESH_INLINE_H__ */

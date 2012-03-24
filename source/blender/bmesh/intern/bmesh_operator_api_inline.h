@@ -20,17 +20,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_operator_api_inline.c
+/** \file blender/bmesh/intern/bmesh_operator_api_inline.h
  *  \ingroup bmesh
  *
  * BMesh inline operator functions.
  */
 
-#ifndef __BMESH_OPERATOR_API_INLINE_C__
-#define __BMESH_OPERATOR_API_INLINE_C__
-
-#include "bmesh.h"
-
+#ifndef __BMESH_OPERATOR_API_INLINE_H__
+#define __BMESH_OPERATOR_API_INLINE_H__
 
 /* tool flag API. never, ever ever should tool code put junk in
  * header flags (element->head.flag), nor should they use
@@ -146,4 +143,4 @@ BLI_INLINE void *BMO_slot_map_ptr_get(BMesh *bm, BMOperator *op, const char *slo
 	return NULL;
 }
 
-#endif /* __BMESH_OPERATOR_API_INLINE_C__ */
+#endif /* __BMESH_OPERATOR_API_INLINE_H__ */

@@ -31,6 +31,8 @@
 
 #include <Python.h>
 
+#include "BLI_utildefines.h"
+
 #include "bmesh.h"
 
 #include "bmesh_py_types.h"
@@ -39,8 +41,6 @@
 #include "bmesh_py_types_meshdata.h"
 
 #include "bmesh_py_utils.h"
-
-#include "BLI_utildefines.h"
 
 #include "BKE_tessmesh.h"
 

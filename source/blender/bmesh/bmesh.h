@@ -198,11 +198,11 @@
 extern "C" {
 #endif
 
-#include "DNA_listBase.h"
-#include "DNA_customdata_types.h"
+#include "DNA_listBase.h" /* selection history uses */
+#include "DNA_customdata_types.h" /* BMesh struct in bmesh_class.h uses */
 
 #include <stdlib.h>
-#include "BLI_utildefines.h"
+// #include "BLI_utildefines.h"
 
 #include "bmesh_class.h"
 
@@ -224,8 +224,7 @@ extern "C" {
 #include "intern/bmesh_queries.h"
 #include "intern/bmesh_walkers.h"
 
-#include "intern/bmesh_inline.c"
-#include "intern/bmesh_operator_api_inline.c"
+#include "intern/bmesh_inline.h"
 
 #ifdef __cplusplus
 }

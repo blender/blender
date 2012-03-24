@@ -56,6 +56,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
+#include "BLI_blenlib.h"
+#include "BLI_array.h"
+#include "BLI_utildefines.h"
+#include "BLI_smallhash.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -102,12 +108,6 @@
 #include "WM_types.h"
 
 #include "UI_view2d.h"
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_array.h"
-#include "BLI_utildefines.h"
-#include "BLI_smallhash.h"
 
 #include "RNA_access.h"
 

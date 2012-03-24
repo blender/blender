@@ -26,15 +26,13 @@
  * BM mesh conversion functions.
  */
 
-
-#include "bmesh.h"
-#include "intern/bmesh_private.h" /* for element checking */
-
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_key_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
 #include "BLI_array.h"
@@ -46,7 +44,8 @@
 #include "BKE_global.h" /* ugh - for looping over all objects */
 #include "BKE_main.h"
 
-#include "MEM_guardedalloc.h"
+#include "bmesh.h"
+#include "intern/bmesh_private.h" /* for element checking */
 
 /* Mesh -> BMesh */
 void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)

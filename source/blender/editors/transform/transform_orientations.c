@@ -38,16 +38,15 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_math.h"
+#include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_tessmesh.h"
 #include "BKE_report.h"
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 

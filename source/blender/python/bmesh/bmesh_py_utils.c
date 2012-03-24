@@ -32,13 +32,13 @@
 
 #include <Python.h>
 
-#include "bmesh.h"
-
-#include "bmesh_py_types.h"
-
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "bmesh.h"
+
+#include "bmesh_py_types.h"
 
 #include "bmesh_py_utils.h" /* own include */
 

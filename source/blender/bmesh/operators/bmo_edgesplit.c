@@ -22,6 +22,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
+
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */

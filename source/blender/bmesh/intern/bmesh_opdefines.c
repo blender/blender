@@ -54,6 +54,8 @@
  *
  */
 
+#include "BLI_utildefines.h"
+
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
