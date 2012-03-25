@@ -83,44 +83,44 @@
 
 
 /* ******************* view3d space & buttons ************** */
-#define B_NOP		1
-#define B_REDR		2
-#define B_OBJECTPANELROT 	1007
+#define B_NOP       1
+#define B_REDR      2
+#define B_OBJECTPANELROT    1007
 #define B_OBJECTPANELMEDIAN 1008
-#define B_ARMATUREPANEL1 	1009
-#define B_ARMATUREPANEL2 	1010
+#define B_ARMATUREPANEL1    1009
+#define B_ARMATUREPANEL2    1010
 #define B_OBJECTPANELPARENT 1011
-#define B_OBJECTPANEL		1012
-#define B_ARMATUREPANEL3 	1013
-#define B_OBJECTPANELSCALE 	1014
-#define B_OBJECTPANELDIMS 	1015
-#define B_TRANSFORMSPACEADD	1016
-#define B_TRANSFORMSPACECLEAR	1017
-#define B_SETPT_AUTO	2125
-#define B_SETPT_VECTOR	2126
-#define B_SETPT_ALIGN	2127
-#define B_SETPT_FREE	2128
-#define B_RECALCMBALL	2501
+#define B_OBJECTPANEL       1012
+#define B_ARMATUREPANEL3    1013
+#define B_OBJECTPANELSCALE  1014
+#define B_OBJECTPANELDIMS   1015
+#define B_TRANSFORMSPACEADD 1016
+#define B_TRANSFORMSPACECLEAR   1017
+#define B_SETPT_AUTO    2125
+#define B_SETPT_VECTOR  2126
+#define B_SETPT_ALIGN   2127
+#define B_SETPT_FREE    2128
+#define B_RECALCMBALL   2501
 
-#define B_WEIGHT0_0		2840
-#define B_WEIGHT1_4		2841
-#define B_WEIGHT1_2		2842
-#define B_WEIGHT3_4		2843
-#define B_WEIGHT1_0		2844
+#define B_WEIGHT0_0     2840
+#define B_WEIGHT1_4     2841
+#define B_WEIGHT1_2     2842
+#define B_WEIGHT3_4     2843
+#define B_WEIGHT1_0     2844
 
-#define B_OPA1_8		2845
-#define B_OPA1_4		2846
-#define B_OPA1_2		2847
-#define B_OPA3_4		2848
-#define B_OPA1_0		2849
+#define B_OPA1_8        2845
+#define B_OPA1_4        2846
+#define B_OPA1_2        2847
+#define B_OPA3_4        2848
+#define B_OPA1_0        2849
 
-#define B_CLR_WPAINT	2850
+#define B_CLR_WPAINT    2850
 
-#define B_RV3D_LOCKED	2900
-#define B_RV3D_BOXVIEW	2901
-#define B_RV3D_BOXCLIP	2902
+#define B_RV3D_LOCKED   2900
+#define B_RV3D_BOXVIEW  2901
+#define B_RV3D_BOXCLIP  2902
 
-#define B_IDNAME		3000
+#define B_IDNAME        3000
 
 /* temporary struct for storing transform properties */
 typedef struct {
@@ -167,8 +167,8 @@ static float compute_scale_factor(const float ve_median, const float median)
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
-	uiBlock *block = (layout)? uiLayoutAbsoluteBlock(layout): NULL;
-	MDeformVert *dvert =NULL;
+	uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : NULL;
+	MDeformVert *dvert = NULL;
 	TransformProperties *tfp;
 	float median[7], ve_median[7];
 	int tot, totw, totweight, totedge, totradius;
@@ -221,8 +221,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			int i, max = 1, init = 1;
 			char str[320];
 
-			for (i = 0; i<dvert->totweight; i++) {
-				dg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
+			for (i = 0; i < dvert->totweight; i++) {
+				dg = BLI_findlink(&ob->defbase, dvert->dw[i].def_nr);
 				if (dg) {
 					max += BLI_snprintf(str, sizeof(str), "%s %%x%d|", dg->name, dvert->dw[i].def_nr);
 					if (max < sizeof(str)) strcat(defstr, str);
@@ -281,7 +281,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			}
 			else {
 				bp = nu->bp;
-				a = nu->pntsu*nu->pntsv;
+				a = nu->pntsu * nu->pntsv;
 				while (a--) {
 					if (bp->f1 & SELECT) {
 						add_v3_v3(median, bp->vec);
@@ -405,7 +405,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Bevel Weight:"), 0, 20, 200, 20,
 			          &(tfp->ve_median[6]), 0.0, 1.0, 1, 3, TIP_("Weight used by Bevel modifier"));
 		}
-		else if (totedge>1) {
+		else if (totedge > 1) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Crease:"), 0, 40, 200, 20,
 			          &(tfp->ve_median[3]), 0.0, 1.0, 1, 3, TIP_("Weight used by SubSurf modifier"));
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Bevel Weight:"), 0, 20, 200, 20,
@@ -571,7 +571,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 				else {
 					bp = nu->bp;
-					a = nu->pntsu*nu->pntsv;
+					a = nu->pntsu * nu->pntsv;
 					while (a--) {
 						if (bp->f1 & SELECT) {
 							add_v3_v3(bp->vec, median);
@@ -605,7 +605,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			int a;
 			const float scale_w = compute_scale_factor(ve_median[4], median[4]);
 
-			a = lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
+			a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
 			bp = lt->editlatt->latt->def;
 			while (a--) {
 				if (bp->f1 & SELECT) {
@@ -820,7 +820,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 
 	/* default for now */
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 }
 
 static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
@@ -862,7 +862,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		uiBlockBeginAlign(block);
 
 		for (i = dv->totweight; i != 0; i--, dw++) {
-			dg = BLI_findlink (&ob->defbase, dw->def_nr);
+			dg = BLI_findlink(&ob->defbase, dw->def_nr);
 			if (dg) {
 				uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + dw->def_nr, dg->name, 0, yco, 180, 20,
 				          &dw->weight, 0.0, 1.0, 1, 3, "");
@@ -912,7 +912,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 			colsub = uiLayoutColumn(split, 1);
 			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, IFACE_("4L"), ICON_NONE);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE + UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			else
 				uiItemL(colsub, "", ICON_NONE);
 			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
@@ -970,7 +970,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 
 /*	row = uiLayoutRow(layout, 0); */
 
-	if (!pchan)	{
+	if (!pchan) {
 		uiItemL(layout, IFACE_("No Bone Active"), ICON_NONE);
 		return;
 	}
@@ -991,57 +991,57 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 		float quat[4];
 		/* convert to euler, passing through quats... */
 		axis_angle_to_quat(quat, pchan->rotAxis, pchan->rotAngle);
-		quat_to_eul( tfp->ob_eul,quat);
+		quat_to_eul(tfp->ob_eul, quat);
 	}
 	else if (pchan->rotmode == ROT_MODE_QUAT)
-		quat_to_eul( tfp->ob_eul,pchan->quat);
+		quat_to_eul(tfp->ob_eul, pchan->quat);
 	else
 		copy_v3_v3(tfp->ob_eul, pchan->eul);
-	tfp->ob_eul[0]*= RAD2DEGF(1.0f);
-	tfp->ob_eul[1]*= RAD2DEGF(1.0f);
-	tfp->ob_eul[2]*= RAD2DEGF(1.0f);
+	tfp->ob_eul[0] *= RAD2DEGF(1.0f);
+	tfp->ob_eul[1] *= RAD2DEGF(1.0f);
+	tfp->ob_eul[2] *= RAD2DEGF(1.0f);
 
 	uiDefBut(block, LABEL, 0, "Location:", 0, 240, 100, 20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 
-	but = uiDefButF(block, NUM, B_ARMATUREPANEL2, "X:",	0, 220, 120, 19, pchan->loc, -lim, lim, 100, 3, "");
+	but = uiDefButF(block, NUM, B_ARMATUREPANEL2, "X:", 0, 220, 120, 19, pchan->loc, -lim, lim, 100, 3, "");
 	uiButSetUnitType(but, PROP_UNIT_LENGTH);
-	but = uiDefButF(block, NUM, B_ARMATUREPANEL2, "Y:",	0, 200, 120, 19, pchan->loc+1, -lim, lim, 100, 3, "");
+	but = uiDefButF(block, NUM, B_ARMATUREPANEL2, "Y:", 0, 200, 120, 19, pchan->loc + 1, -lim, lim, 100, 3, "");
 	uiButSetUnitType(but, PROP_UNIT_LENGTH);
-	but = uiDefButF(block, NUM, B_ARMATUREPANEL2, "Z:",	0, 180, 120, 19, pchan->loc+2, -lim, lim, 100, 3, "");
+	but = uiDefButF(block, NUM, B_ARMATUREPANEL2, "Z:", 0, 180, 120, 19, pchan->loc + 2, -lim, lim, 100, 3, "");
 	uiButSetUnitType(but, PROP_UNIT_LENGTH);
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCX, B_REDR, ICON_UNLOCKED,	125, 220, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects X Location value from being Transformed");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, B_REDR, ICON_UNLOCKED,	125, 200, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Y Location value from being Transformed");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, B_REDR, ICON_UNLOCKED,	125, 180, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Z Location value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCX, B_REDR, ICON_UNLOCKED,   125, 220, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects X Location value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, B_REDR, ICON_UNLOCKED,   125, 200, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Y Location value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, B_REDR, ICON_UNLOCKED,   125, 180, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Z Location value from being Transformed");
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, LABEL, 0, "Rotation:",			0, 160, 100, 20, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Rotation:",          0, 160, 100, 20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL3, "X:",	0, 140, 120, 19, tfp->ob_eul, -1000.0, 1000.0, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL3, "Y:",	0, 120, 120, 19, tfp->ob_eul+1, -1000.0, 1000.0, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL3, "Z:",	0, 100, 120, 19, tfp->ob_eul+2, -1000.0, 1000.0, 100, 3, "");
-	uiBlockEndAlign(block);
-
-	uiBlockBeginAlign(block);
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	125, 140, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects X Rotation value from being Transformed");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	125, 120, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Y Rotation value from being Transformed");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	125, 100, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Z Rotation value from being Transformed");
-	uiBlockEndAlign(block);
-
-	uiDefBut(block, LABEL, 0, "Scale:",				0, 80, 100, 20, 0, 0, 0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "X:",	0, 60, 120, 19, pchan->size, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "Y:",	0, 40, 120, 19, pchan->size+1, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "Z:",	0, 20, 120, 19, pchan->size+2, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "X:",   0, 140, 120, 19, tfp->ob_eul, -1000.0, 1000.0, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "Y:",   0, 120, 120, 19, tfp->ob_eul + 1, -1000.0, 1000.0, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "Z:",   0, 100, 120, 19, tfp->ob_eul + 2, -1000.0, 1000.0, 100, 3, "");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEX, B_REDR, ICON_UNLOCKED,	125, 60, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects X Scale value from being Transformed");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, B_REDR, ICON_UNLOCKED,	125, 40, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Y Scale value from being Transformed");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, B_REDR, ICON_UNLOCKED,	125, 20, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects z Scale value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,   125, 140, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects X Rotation value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,   125, 120, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Y Rotation value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,   125, 100, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Z Rotation value from being Transformed");
+	uiBlockEndAlign(block);
+
+	uiDefBut(block, LABEL, 0, "Scale:",             0, 80, 100, 20, 0, 0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "X:",   0, 60, 120, 19, pchan->size, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "Y:",   0, 40, 120, 19, pchan->size + 1, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "Z:",   0, 20, 120, 19, pchan->size + 2, -lim, lim, 10, 3, "");
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEX, B_REDR, ICON_UNLOCKED, 125, 60, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects X Scale value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, B_REDR, ICON_UNLOCKED, 125, 40, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Y Scale value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, B_REDR, ICON_UNLOCKED, 125, 20, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects z Scale value from being Transformed");
 	uiBlockEndAlign(block);
 #endif
 }
@@ -1085,7 +1085,7 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 
 	col = uiLayoutColumn(layout, 0);
 	uiItemR(col, &eboneptr, "head", 0, NULL, ICON_NONE);
-	if (ebone->parent && ebone->flag & BONE_CONNECTED ) {
+	if (ebone->parent && ebone->flag & BONE_CONNECTED) {
 		PointerRNA parptr = RNA_pointer_get(&eboneptr, "parent");
 		uiItemR(col, &parptr, "tail_radius", 0, IFACE_("Radius (Parent)"), ICON_NONE);
 	}
@@ -1164,34 +1164,34 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 
 	switch (event) {
 
-	case B_REDR:
-		ED_area_tag_redraw(CTX_wm_area(C));
-		return; /* no notifier! */
+		case B_REDR:
+			ED_area_tag_redraw(CTX_wm_area(C));
+			return; /* no notifier! */
 
-	case B_OBJECTPANEL:
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
-		break;
+		case B_OBJECTPANEL:
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+			break;
 
-	case B_OBJECTPANELMEDIAN:
-		if (ob) {
-			v3d_editvertex_buts(NULL, v3d, ob, 1.0);
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
-		break;
+		case B_OBJECTPANELMEDIAN:
+			if (ob) {
+				v3d_editvertex_buts(NULL, v3d, ob, 1.0);
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			}
+			break;
 		/* note; this case also used for parbone */
 
-	case B_OBJECTPANELPARENT:
-		if (ob) {
-			if (ob->id.lib || BKE_object_parent_loop_check(ob->parent, ob))
-				ob->parent = NULL;
-			else {
-				DAG_scene_sort(bmain, scene);
-				DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+		case B_OBJECTPANELPARENT:
+			if (ob) {
+				if (ob->id.lib || BKE_object_parent_loop_check(ob->parent, ob))
+					ob->parent = NULL;
+				else {
+					DAG_scene_sort(bmain, scene);
+					DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+				}
 			}
-		}
-		break;
+			break;
 
-	case B_ARMATUREPANEL3:  /* rotate button on channel */
+		case B_ARMATUREPANEL3: /* rotate button on channel */
 		{
 			bPoseChannel *pchan;
 			float eul[3];
@@ -1218,73 +1218,73 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 		}
 		/* no break, pass on */
 
-	case B_ARMATUREPANEL2:
-		ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		break;
+		case B_ARMATUREPANEL2:
+			ob->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			break;
 
-	case B_TRANSFORMSPACEADD:
+		case B_TRANSFORMSPACEADD:
 		{
 			char names[sizeof(((TransformOrientation *)NULL)->name)] = "";
 			BIF_createTransformOrientation(C, NULL, names, 1, 0);
 		}
 		break;
 
-	case B_TRANSFORMSPACECLEAR:
-		BIF_clearTransformOrientation(C);
-		break;
+		case B_TRANSFORMSPACECLEAR:
+			BIF_clearTransformOrientation(C);
+			break;
 
 #if 0 /* XXX */
-	case B_WEIGHT0_0:
-		wpaint->weight = 0.0f;
-		break;
+		case B_WEIGHT0_0:
+			wpaint->weight = 0.0f;
+			break;
 
-	case B_WEIGHT1_4:
-		wpaint->weight = 0.25f;
-		break;
-	case B_WEIGHT1_2:
-		wpaint->weight = 0.5f;
-		break;
-	case B_WEIGHT3_4:
-		wpaint->weight = 0.75f;
-		break;
-	case B_WEIGHT1_0:
-		wpaint->weight = 1.0f;
-		break;
+		case B_WEIGHT1_4:
+			wpaint->weight = 0.25f;
+			break;
+		case B_WEIGHT1_2:
+			wpaint->weight = 0.5f;
+			break;
+		case B_WEIGHT3_4:
+			wpaint->weight = 0.75f;
+			break;
+		case B_WEIGHT1_0:
+			wpaint->weight = 1.0f;
+			break;
 
-	case B_OPA1_8:
-		wpaint->a = 0.125f;
-		break;
-	case B_OPA1_4:
-		wpaint->a = 0.25f;
-		break;
-	case B_OPA1_2:
-		wpaint->a = 0.5f;
-		break;
-	case B_OPA3_4:
-		wpaint->a = 0.75f;
-		break;
-	case B_OPA1_0:
-		wpaint->a = 1.0f;
-		break;
+		case B_OPA1_8:
+			wpaint->a = 0.125f;
+			break;
+		case B_OPA1_4:
+			wpaint->a = 0.25f;
+			break;
+		case B_OPA1_2:
+			wpaint->a = 0.5f;
+			break;
+		case B_OPA3_4:
+			wpaint->a = 0.75f;
+			break;
+		case B_OPA1_0:
+			wpaint->a = 1.0f;
+			break;
 #endif
-	case B_CLR_WPAINT:
+		case B_CLR_WPAINT:
 /*		if (!multires_level1_test()) { */
 		{
-			bDeformGroup *defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
+			bDeformGroup *defGroup = BLI_findlink(&ob->defbase, ob->actdef - 1);
 			if (defGroup) {
 				Mesh *me = ob->data;
 				int a;
 				for (a = 0; a < me->totvert; a++)
-					ED_vgroup_vert_remove (ob, defGroup, a);
+					ED_vgroup_vert_remove(ob, defGroup, a);
 				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 		}
 		break;
 
-	case B_RV3D_LOCKED:
-	case B_RV3D_BOXVIEW:
-	case B_RV3D_BOXCLIP:
+		case B_RV3D_LOCKED:
+		case B_RV3D_BOXVIEW:
+		case B_RV3D_BOXCLIP:
 		{
 			ScrArea *sa = CTX_wm_area(C);
 			ARegion *ar = sa->regionbase.last;
@@ -1316,7 +1316,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 	}
 
 	/* default for now */
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 }
 
 static void view3d_panel_object(const bContext *C, Panel *pa)
@@ -1343,7 +1343,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	
 	/* XXX	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE); */
 
-	if (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) {
+	if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) {
 	}
 	else {
 		if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0) {
@@ -1388,8 +1388,8 @@ static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl) /* VIEW3
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_SCALE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_PREVIEW);  /* for close and esc */
 
-	ofsx = -150 + (sa->winx/2) / v3d->blockscale;
-	ofsy = -100 + (sa->winy/2) / v3d->blockscale;
+	ofsx = -150 + (sa->winx / 2) / v3d->blockscale;
+	ofsy = -100 + (sa->winy / 2) / v3d->blockscale;
 	if (uiNewPanel(C, ar, block, "Preview", "View3d", ofsx, ofsy, 300, 200) == 0)
 		return;
 

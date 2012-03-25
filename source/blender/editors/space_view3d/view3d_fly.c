@@ -56,7 +56,7 @@
 
 #include "PIL_time.h" /* smoothview */
 
-#include "view3d_intern.h"	// own include
+#include "view3d_intern.h"  // own include
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 enum {
 	FLY_MODAL_CANCEL = 1,
@@ -174,7 +174,7 @@ typedef struct FlyInfo {
 	unsigned char use_freelook;
 
 	int mval[2]; /* latest 2D mouse values */
-	wmNDOFMotionData* ndof; /* latest 3D mouse values */
+	wmNDOFMotionData*ndof;  /* latest 3D mouse values */
 
 	/* fly state state */
 	float speed; /* the speed the view is moving per redraw */
@@ -265,9 +265,9 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), struct ARegion *UNUSE
 }
 
 /* FlyInfo->state */
-#define FLY_RUNNING		0
-#define FLY_CANCEL		1
-#define FLY_CONFIRM		2
+#define FLY_RUNNING     0
+#define FLY_CANCEL      1
+#define FLY_CONFIRM     2
 
 static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 {
@@ -312,7 +312,7 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event
 	fly->use_freelook = FALSE;
 
 #ifdef NDOF_FLY_DRAW_TOOMUCH
-	fly->redraw= 1;
+	fly->redraw = 1;
 #endif
 	zero_v3(fly->dvec_prev);
 
@@ -348,8 +348,8 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event
 	    (fly->v3d->camera != NULL) &&
 	    (fly->rv3d->is_persp == FALSE))
 	{
-		((Camera *)fly->v3d->camera->data)->type= CAM_PERSP;
-		fly->is_ortho_cam= TRUE;
+		((Camera *)fly->v3d->camera->data)->type = CAM_PERSP;
+		fly->is_ortho_cam = TRUE;
 	}
 
 	if (fly->rv3d->persp == RV3D_CAMOB) {
@@ -376,7 +376,7 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event
 	else {
 		/* perspective or ortho */
 		if (fly->rv3d->persp == RV3D_ORTHO)
-			fly->rv3d->persp = RV3D_PERSP; /*if ortho projection, make perspective */
+			fly->rv3d->persp = RV3D_PERSP;  /*if ortho projection, make perspective */
 
 		copy_qt_qt(fly->rot_backup, fly->rv3d->viewquat);
 		copy_v3_v3(fly->ofs_backup, fly->rv3d->ofs);
@@ -444,8 +444,9 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		DAG_id_tag_update(fly->root_parent ? &fly->root_parent->id : &v3d->camera->id, OB_RECALC_OB);
 	}
 	else { /* not camera */
+
 		/* Apply the fly mode view */
-		/*restore the dist*/
+		/* restore the dist */
 		float mat[3][3];
 		upvec[0] = upvec[1] = 0;
 		upvec[2] = fly->dist_backup; /*x and y are 0*/
@@ -489,14 +490,14 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 		// puts("ndof motion detected in fly mode!");
 		// static const char* tag_name = "3D mouse position";
 
-		wmNDOFMotionData* incoming_ndof = (wmNDOFMotionData*)event->customdata;
+		wmNDOFMotionData *incoming_ndof = (wmNDOFMotionData *)event->customdata;
 		switch (incoming_ndof->progress) {
 			case P_STARTING:
 				// start keeping track of 3D mouse position
 #ifdef NDOF_FLY_DEBUG
 				puts("start keeping track of 3D mouse position");
 #endif
-				// fall through...
+			// fall through...
 			case P_IN_PROGRESS:
 				// update 3D mouse position
 #ifdef NDOF_FLY_DEBUG
@@ -584,8 +585,8 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				fly->pan_view = FALSE;
 				break;
 
-				/* implement WASD keys,
-				 * comments only for 'forward '*/
+			/* implement WASD keys,
+			 * comments only for 'forward '*/
 			case FLY_MODAL_DIR_FORWARD:
 				if (fly->axis == 2 && fly->speed < 0.0f) { /* reverse direction stops, tap again to continue */
 					fly->axis = -1;
@@ -686,11 +687,11 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 	}
 }
 
-static void move_camera(bContext* C, RegionView3D* rv3d, FlyInfo* fly, int orientationChanged, int positionChanged)
+static void move_camera(bContext *C, RegionView3D *rv3d, FlyInfo *fly, int orientationChanged, int positionChanged)
 {
 	/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
 
-	View3D* v3d = fly->v3d;
+	View3D*v3d = fly->v3d;
 	Scene *scene = fly->scene;
 	ID *id_key;
 
@@ -766,19 +767,18 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	RegionView3D *rv3d = fly->rv3d;
 	ARegion *ar = fly->ar;
 
-	float mat[3][3], /* 3x3 copy of the view matrix so we can move along the view axis */
-	dvec[3] = {0, 0, 0}, /* this is the direction thast added to the view offset per redraw */
+	float mat[3][3]; /* 3x3 copy of the view matrix so we can move along the view axis */
+	float dvec[3] = {0, 0, 0}; /* this is the direction thast added to the view offset per redraw */
 
 	/* Camera Uprighting variables */
-	upvec[3] = {0, 0, 0}, /* stores the view's up vector */
+	float upvec[3] = {0, 0, 0}; /* stores the view's up vector */
 
-	moffset[2], /* mouse offset from the views center */
-	tmp_quat[4]; /* used for rotating the view */
+	float moffset[2]; /* mouse offset from the views center */
+	float tmp_quat[4]; /* used for rotating the view */
 
-	int
-//	cent_orig[2], /* view center */
-//XXX- can avoid using // 	cent[2], /* view center modified */
-	xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
+//	int cent_orig[2], /* view center */
+//XXX- can avoid using //   cent[2], /* view center modified */
+	int xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
 
 #ifdef NDOF_FLY_DEBUG
 	{
@@ -839,7 +839,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 			float time_redraw;
 			float time_redraw_clamped;
 #ifdef NDOF_FLY_DRAW_TOOMUCH
-			fly->redraw= 1;
+			fly->redraw = 1;
 #endif
 			time_current = PIL_check_seconds_timer();
 			time_redraw = (float)(time_current - fly->time_lastdraw);
@@ -870,7 +870,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 			}
 			else {
 				float roll; /* similar to the angle between the camera's up and the Z-up,
-				 * but its very rough so just roll */
+				             * but its very rough so just roll */
 
 				/* rotate about the X axis- look up/down */
 				if (moffset[1]) {
@@ -883,7 +883,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 					if (fly->xlock)
-						fly->xlock = 2; /*check for rotation*/
+						fly->xlock = 2;  /*check for rotation*/
 					if (fly->zlock)
 						fly->zlock = 2;
 					fly->xlock_momentum = 0.0f;
@@ -919,7 +919,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 					if (fly->xlock)
-						fly->xlock = 2;/*check for rotation*/
+						fly->xlock = 2;  /*check for rotation*/
 					if (fly->zlock)
 						fly->zlock = 2;
 				}
@@ -940,7 +940,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 						mul_m3_v3(mat, upvec);
 						/* Rotate about the relative up vec */
 						axis_angle_to_quat(tmp_quat, upvec,
-								roll * time_redraw_clamped * fly->zlock_momentum * FLY_ZUP_CORRECT_FAC);
+						                   roll * time_redraw_clamped * fly->zlock_momentum * FLY_ZUP_CORRECT_FAC);
 						mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 						fly->zlock_momentum += FLY_ZUP_CORRECT_ACCEL;
@@ -1031,9 +1031,9 @@ static int flyApply(bContext *C, FlyInfo *fly)
 static int flyApply_ndof(bContext *C, FlyInfo *fly)
 {
 	/* shorthand for oft-used variables */
-	wmNDOFMotionData* ndof = fly->ndof;
+	wmNDOFMotionData *ndof = fly->ndof;
 	const float dt = ndof->dt;
-	RegionView3D* rv3d = fly->rv3d;
+	RegionView3D*rv3d = fly->rv3d;
 	const int flag = U.ndof_flag;
 
 #if 0
@@ -1056,7 +1056,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		float speed = 10.f; /* blender units per second */
 		/* ^^ this is ok for default cube scene, but should scale with.. something */
 
-		float trans[3] = {lateral_sensitivity  * ndof->tvec[0],
+		float trans[3] = {lateral_sensitivity  *ndof->tvec[0],
 		                  vertical_sensitivity * ndof->tvec[1],
 		                  forward_sensitivity  * ndof->tvec[2]};
 
