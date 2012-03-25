@@ -181,14 +181,14 @@ static void compute_poly_center(float center[3], float *r_area, float (* const v
 	}
 	mul_v3_fl(center, 1.0/nverts);
 
+#if 0
 	/* project vertices to the normal plane */
 	for (j = 0; j < nverts; j++){
 		project_v3_plane(verts[j], normal, center);
 	}
+#endif
 
-	/* add triangle area of triangles formed by polygon edges and center.
-	 * For each triangle Sum(Base * Height / 2)
-	 * The expression for closed polygons is simplified */
+	/* add triangle area of triangles formed by polygon edges and center. */
 	for (j = 0; j < nverts; j++) {
 		area += area_tri_v3(verts[j], verts[i], center);
 		i = j;
