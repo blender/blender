@@ -40,7 +40,7 @@
 #ifdef WITH_SDL
 void SCA_Joystick::OnAxisMotion(SDL_Event* sdl_event)
 {
-	if(sdl_event->jaxis.axis >= JOYAXIS_MAX)
+	if (sdl_event->jaxis.axis >= JOYAXIS_MAX)
 		return;
 	
 	m_axis_array[sdl_event->jaxis.axis]= sdl_event->jaxis.value;
@@ -50,7 +50,7 @@ void SCA_Joystick::OnAxisMotion(SDL_Event* sdl_event)
 /* See notes below in the event loop */
 void SCA_Joystick::OnHatMotion(SDL_Event* sdl_event)
 {
-	if(sdl_event->jhat.hat >= JOYHAT_MAX)
+	if (sdl_event->jhat.hat >= JOYHAT_MAX)
 		return;
 
 	m_hat_array[sdl_event->jhat.hat]= sdl_event->jhat.value;
@@ -85,7 +85,7 @@ void SCA_Joystick::HandleEvents(void)
 	
 	int i;
 	for (i=0; i<m_joynum; i++) { /* could use JOYINDEX_MAX but no reason to */
-		if(SCA_Joystick::m_instance[i])
+		if (SCA_Joystick::m_instance[i])
 			SCA_Joystick::m_instance[i]->OnNothing(&sdl_event);
 	}
 	

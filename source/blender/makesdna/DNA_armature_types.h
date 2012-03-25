@@ -113,7 +113,7 @@ typedef struct bArmature {
 } bArmature;
 
 /* armature->flag */
-/* dont use bit 7, was saved in files to disable stuff */
+/* don't use bit 7, was saved in files to disable stuff */
 typedef enum eArmature_Flag {
 	ARM_RESTPOS			= (1<<0),
 	ARM_DRAWXRAY		= (1<<1),	/* XRAY is here only for backwards converting */

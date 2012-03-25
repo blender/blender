@@ -54,7 +54,7 @@ bool ExtraHandler::textData(const char* text, size_t textLength)
 {
 	char buf[1024];
 	
-	if(currentElement.length() == 0 || currentExtraTags == 0) return false;
+	if (currentElement.length() == 0 || currentExtraTags == 0) return false;
 	
 	BLI_snprintf(buf, textLength+1, "%s", text);
 	currentExtraTags->addTag(currentElement, std::string(buf));
@@ -65,11 +65,11 @@ bool ExtraHandler::parseElement (
 	const char* profileName, 
 	const unsigned long& elementHash, 
 	const COLLADAFW::UniqueId& uniqueId ) {
-		if(BLI_strcaseeq(profileName, "blender")) {
+		if (BLI_strcaseeq(profileName, "blender")) {
 			//printf("In parseElement for supported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
 			currentUid = uniqueId;
 			ExtraTags *et = dimp->getExtraTags(uniqueId);
-			if(!et) {
+			if (!et) {
 				et = new ExtraTags(std::string(profileName));
 				dimp->addExtraTags(uniqueId, et);
 			}

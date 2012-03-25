@@ -40,7 +40,7 @@
 
 #include "rna_internal.h"
 
-/* enum of ID-block types 
+/* enum of ID-block types
  * NOTE: need to keep this in line with the other defines for these
  */
 EnumPropertyItem id_type_items[] = {
@@ -222,7 +222,9 @@ void rna_PropertyGroup_unregister(Main *UNUSED(bmain), StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain), ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc UNUSED(call), StructFreeFunc UNUSED(free))
+StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain), ReportList *reports, void *data, const char *identifier,
+                                      StructValidateFunc validate, StructCallbackFunc UNUSED(call),
+                                      StructFreeFunc UNUSED(free))
 {
 	PointerRNA dummyptr;
 
@@ -238,7 +240,8 @@ StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain), ReportList *reports, 
 	 * owns the string pointer which it could potentially free while blender
 	 * is running. */
 	if (BLI_strnlen(identifier, MAX_IDPROP_NAME) == MAX_IDPROP_NAME) {
-		BKE_reportf(reports, RPT_ERROR, "registering id property class: '%s' is too long, maximum length is " STRINGIFY(MAX_IDPROP_NAME), identifier);
+		BKE_reportf(reports, RPT_ERROR, "registering id property class: '%s' is too long, maximum length is "
+		                                STRINGIFY(MAX_IDPROP_NAME), identifier);
 		return NULL;
 	}
 
@@ -288,7 +291,7 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 		/* Could add particle updates later */
 #if 0
 		case ID_PA:
-			if(flag & ~(OB_RECALC_ALL|PSYS_RECALC)) {
+			if (flag & ~(OB_RECALC_ALL|PSYS_RECALC)) {
 				BKE_report(reports, RPT_ERROR, "'refresh' incompatible with ParticleSettings ID type");
 				return;
 			}
@@ -305,7 +308,7 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 
 void rna_ID_user_clear(ID *id)
 {
-	id->us = 0; /* dont save */
+	id->us = 0; /* don't save */
 	id->flag &= ~LIB_FAKEUSER;
 }
 
@@ -394,7 +397,8 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "idp_array", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "PropertyGroup");
-	RNA_def_property_collection_funcs(prop, "rna_IDPArray_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_IDPArray_length", NULL, NULL, NULL);
+	RNA_def_property_collection_funcs(prop, "rna_IDPArray_begin", "rna_iterator_array_next", "rna_iterator_array_end",
+	                                  "rna_iterator_array_get", "rna_IDPArray_length", NULL, NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 
 	/* never tested, maybe its useful to have this? */
@@ -419,7 +423,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_PropertyGroup_refine");
 
 	/* important so python types can have their name used in list views
-	 * however this isnt prefect because it overrides how python would set the name
+	 * however this isn't prefect because it overrides how python would set the name
 	 * when we only really want this so RNA_def_struct_name_property() is set to something useful */
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
@@ -467,7 +471,9 @@ static void rna_def_ID(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "ID", NULL);
-	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection");
+	RNA_def_struct_ui_text(srna, "ID",
+	                       "Base type for datablocks, defining a unique name, linking from other libraries "
+	                       "and garbage collection");
 	RNA_def_struct_flag(srna, STRUCT_ID|STRUCT_ID_REFCOUNT);
 	RNA_def_struct_refine_func(srna, "rna_ID_refine");
 	RNA_def_struct_idprops_func(srna, "rna_ID_idprops");
@@ -550,7 +556,7 @@ static void rna_def_library(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Library");
-	RNA_def_property_ui_text(prop, "Parent", "");	
+	RNA_def_property_ui_text(prop, "Parent", "");
 }
 void RNA_def_ID(BlenderRNA *brna)
 {
@@ -571,4 +577,3 @@ void RNA_def_ID(BlenderRNA *brna)
 }
 
 #endif
-

@@ -79,7 +79,7 @@ private:
 	class KX_ISceneConverter*			m_sceneconverter;
 	class NG_NetworkDeviceInterface*	m_networkdevice;
 #ifdef WITH_PYTHON
-	/* borrowed from sys.modules["__main__"], dont manage ref's */
+	/* borrowed from sys.modules["__main__"], don't manage ref's */
 	PyObject*					m_pythondictionary;
 #endif
 	class SCA_IInputDevice*				m_keyboarddevice;

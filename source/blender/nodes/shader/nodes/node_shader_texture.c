@@ -48,7 +48,7 @@ static bNodeSocketTemplate sh_node_texture_out[]= {
 
 static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	if(data && node->id) {
+	if (data && node->id) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
 		TexResult texres;
 		bNodeSocket *sock_vector= node->inputs.first;
@@ -65,14 +65,14 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		texres.tr= texres.tg= texres.tb= 0.0f;
 		
 		/* don't use in[0]->hasinput, see material node for explanation */
-		if(sock_vector->link) {
+		if (sock_vector->link) {
 			nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
 			
-			if(in[0]->datatype==NS_OSA_VECTORS) {
+			if (in[0]->datatype==NS_OSA_VECTORS) {
 				float *fp= in[0]->data;
 				retval= multitex_nodes((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres, thread, which_output, NULL, NULL);
 			}
-			else if(in[0]->datatype==NS_OSA_VALUES) {
+			else if (in[0]->datatype==NS_OSA_VALUES) {
 				float *fp= in[0]->data;
 				float dxt[3], dyt[3];
 				
@@ -89,18 +89,18 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		}
 		
 		/* stupid exception */
-		if( ((Tex *)node->id)->type==TEX_STUCCI) {
+		if ( ((Tex *)node->id)->type==TEX_STUCCI) {
 			texres.tin= 0.5f + 0.7f*texres.nor[0];
 			CLAMP(texres.tin, 0.0f, 1.0f);
 		}
 		
 		/* intensity and color need some handling */
-		if(texres.talpha)
+		if (texres.talpha)
 			out[0]->vec[0]= texres.ta;
 		else
 			out[0]->vec[0]= texres.tin;
 		
-		if((retval & TEX_RGB)==0) {
+		if ((retval & TEX_RGB)==0) {
 			out[1]->vec[0]= out[0]->vec[0];
 			out[1]->vec[1]= out[0]->vec[0];
 			out[1]->vec[2]= out[0]->vec[0];
@@ -115,7 +115,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		
 		copy_v3_v3(out[2]->vec, nor);
 		
-		if(shi->do_preview)
+		if (shi->do_preview)
 			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys, shi->do_manage);
 		
 	}
@@ -125,7 +125,7 @@ static int gpu_shader_texture(GPUMaterial *mat, bNode *node, GPUNodeStack *in, G
 {
 	Tex *tex = (Tex*)node->id;
 
-	if(tex && tex->type == TEX_IMAGE && tex->ima) {
+	if (tex && tex->type == TEX_IMAGE && tex->ima) {
 		GPUNodeLink *texlink = GPU_image(tex->ima, NULL);
 		return GPU_stack_link(mat, "texture_image", in, out, texlink);
 	}

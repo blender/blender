@@ -63,12 +63,12 @@ static void node_composit_exec_normal(void *UNUSED(data), bNode *node, bNodeStac
 	/* stack order output: normal, value */
 	
 	/* input no image? then only vector op */
-	if(in[0]->data==NULL) {
+	if (in[0]->data==NULL) {
 		copy_v3_v3(out[0]->vec, nor);
 		/* render normals point inside... the widget points outside */
 		out[1]->vec[0]= -dot_v3v3(out[0]->vec, in[0]->vec);
 	}
-	else if(out[1]->hasoutput) {
+	else if (out[1]->hasoutput) {
 		/* make output size of input image */
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */

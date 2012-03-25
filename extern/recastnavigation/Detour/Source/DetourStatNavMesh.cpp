@@ -465,7 +465,7 @@ int dtStatNavMesh::raycast(dtStatPolyRef centerRef, const float* startPos, const
 	if (!m_header) return 0;
 	if (!centerRef) return 0;
 	
-	dtStatPolyRef prevRef = centerRef;
+	/* dtStatPolyRef prevRef = centerRef; */ /* UNUSED */
 	dtStatPolyRef curRef = centerRef;
 	t = 0;
 
@@ -506,7 +506,7 @@ int dtStatNavMesh::raycast(dtStatPolyRef centerRef, const float* startPos, const
 		}
 		
 		// No hit, advance to neighbour polygon.
-		prevRef = curRef;
+		/* prevRef = curRef; */ /* UNUSED */
 		curRef = nextRef;
 	}
 	

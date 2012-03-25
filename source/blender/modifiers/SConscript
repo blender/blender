@@ -6,7 +6,7 @@ sources = env.Glob('intern/*.c')
 incs = '. ./intern'
 incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern #/extern/glew/include'
 incs += ' ../render/extern/include ../blenloader ../bmesh'
-incs += ' ../include ../blenlib ../makesdna ../makesrna ../blenkernel ../blenkernel/intern'
+incs += ' ../include ../blenlib ../blenfont ../makesdna ../makesrna ../blenkernel ../blenkernel/intern'
 incs += ' ../gpu'
 
 incs += ' ' + env['BF_ZLIB_INC']
@@ -32,6 +32,9 @@ if env['WITH_BF_OCEANSIM']:
 if env['WITH_BF_GAMEENGINE']:
     incs += ' #/extern/recastnavigation'
     defs.append('WITH_GAMEENGINE')
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
 
 env.BlenderLib ( libname = 'bf_modifiers', sources = sources,
                  includes = Split(incs), defines=defs,

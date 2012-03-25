@@ -414,7 +414,7 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 			float max_dist = 16; /* more than 4 pixels */
 			
 			/* find the next marked point */
-			while(marked[le] == 0)
+			while (marked[le] == 0)
 			{
 				le++;
 			}
@@ -424,7 +424,7 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 			v1[0] = old_points[ls].p2d[1] - old_points[le].p2d[1]; 
 			
 
-			for( i = ls + 1; i < le; i++ )
+			for ( i = ls + 1; i < le; i++ )
 			{
 				float mul;
 				float dist;

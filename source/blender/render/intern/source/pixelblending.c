@@ -119,28 +119,28 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac)
 	/* blend colors*/
 	c= (m * dest[0]) + source[0];
 #ifdef RE_FLOAT_COLOR_CLIPPING
-	if(c >= RE_FULL_COLOR_FLOAT) dest[0] = RE_FULL_COLOR_FLOAT; 
+	if (c >= RE_FULL_COLOR_FLOAT) dest[0] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
 		dest[0]= c;
    
 	c= (m * dest[1]) + source[1];
 #ifdef RE_FLOAT_COLOR_CLIPPING
-	if(c >= RE_FULL_COLOR_FLOAT) dest[1] = RE_FULL_COLOR_FLOAT; 
+	if (c >= RE_FULL_COLOR_FLOAT) dest[1] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
 		dest[1]= c;
 
 	c= (m * dest[2]) + source[2];
 #ifdef RE_FLOAT_COLOR_CLIPPING
-	if(c >= RE_FULL_COLOR_FLOAT) dest[2] = RE_FULL_COLOR_FLOAT; 
+	if (c >= RE_FULL_COLOR_FLOAT) dest[2] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
 		dest[2]= c;
 
 	c= (m * dest[3]) + source[3];
 #ifdef RE_ALPHA_CLIPPING
-	if(c >= RE_FULL_COLOR_FLOAT) dest[3] = RE_FULL_COLOR_FLOAT; 
+	if (c >= RE_FULL_COLOR_FLOAT) dest[3] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
 	dest[3]= c;
@@ -172,12 +172,12 @@ void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 	maskand= (mask & 255);
 	maskshift= (mask >>8);
 	
-	for(j=2; j>=0; j--) {
+	for (j=2; j>=0; j--) {
 		
 		a= j;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0f) {
+		if (val!=0.0f) {
 			rb1[0]+= val*r;
 			rb1[1]+= val*g;
 			rb1[2]+= val*b;
@@ -186,7 +186,7 @@ void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0f) {
+		if (val!=0.0f) {
 			rb2[0]+= val*r;
 			rb2[1]+= val*g;
 			rb2[2]+= val*b;
@@ -195,7 +195,7 @@ void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0f) {
+		if (val!=0.0f) {
 			rb3[0]+= val*r;
 			rb3[1]+= val*g;
 			rb3[2]+= val*b;
@@ -216,7 +216,7 @@ void mask_array(unsigned int mask, float filt[][3])
 	unsigned int maskshift= (mask >>8);
 	int a, j;
 	
-	for(j=2; j>=0; j--) {
+	for (j=2; j>=0; j--) {
 		
 		a= j;
 		
@@ -269,7 +269,7 @@ void add_filt_fmask_coord(float filt[][3], float *col, float *rowbuf, int row_w,
 	fpoin[1][2]= fpoin[1][1] + 4;
 	fpoin[2][2]= fpoin[2][1] + 4;
 	
-	if(y==0) {
+	if (y==0) {
 		fpoin[0][0]= fpoin[1][0];
 		fpoin[0][1]= fpoin[1][1];
 		fpoin[0][2]= fpoin[1][2];
@@ -278,7 +278,7 @@ void add_filt_fmask_coord(float filt[][3], float *col, float *rowbuf, int row_w,
 		lfilt[0][1]= filt[2][1];
 		lfilt[0][2]= filt[2][2];
 	}
-	else if(y==col_h-1) {
+	else if (y==col_h-1) {
 		fpoin[2][0]= fpoin[1][0];
 		fpoin[2][1]= fpoin[1][1];
 		fpoin[2][2]= fpoin[1][2];
@@ -288,7 +288,7 @@ void add_filt_fmask_coord(float filt[][3], float *col, float *rowbuf, int row_w,
 		lfilt[2][2]= filt[0][2];
 	}
 	
-	if(x==0) {
+	if (x==0) {
 		fpoin[2][0]= fpoin[2][1];
 		fpoin[1][0]= fpoin[1][1];
 		fpoin[0][0]= fpoin[0][1];
@@ -297,7 +297,7 @@ void add_filt_fmask_coord(float filt[][3], float *col, float *rowbuf, int row_w,
 		lfilt[1][0]= filt[1][2];
 		lfilt[0][0]= filt[0][2];
 	}
-	else if(x==row_w-1) {
+	else if (x==row_w-1) {
 		fpoin[2][2]= fpoin[2][1];
 		fpoin[1][2]= fpoin[1][1];
 		fpoin[0][2]= fpoin[0][1];
@@ -309,7 +309,7 @@ void add_filt_fmask_coord(float filt[][3], float *col, float *rowbuf, int row_w,
 	
 	
 	/* loop unroll */
-#define MASKFILT(i, j) 	val= lfilt[i][j]; if(val!=0.0f) {float *fp= fpoin[i][j]; fp[0]+= val*r; fp[1]+= val*g; fp[2]+= val*b; fp[3]+= val*al; }
+#define MASKFILT(i, j) 	val= lfilt[i][j]; if (val!=0.0f) {float *fp= fpoin[i][j]; fp[0]+= val*r; fp[1]+= val*g; fp[2]+= val*b; fp[3]+= val*al; }
 	
 	MASKFILT(0, 0)
 	MASKFILT(0, 1)
@@ -338,27 +338,27 @@ void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row
 	maskand= (mask & 255);
 	maskshift= (mask >>8);
 	
-	for(j=2; j>=0; j--) {
+	for (j=2; j>=0; j--) {
 		
 		a= j;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0f) {
-			for(i= 0; i<pixsize; i++)
+		if (val!=0.0f) {
+			for (i= 0; i<pixsize; i++)
 				rb1[i]+= val*in[i];
 		}
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0f) {
-			for(i= 0; i<pixsize; i++)
+		if (val!=0.0f) {
+			for (i= 0; i<pixsize; i++)
 				rb2[i]+= val*in[i];
 		}
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0f) {
-			for(i= 0; i<pixsize; i++)
+		if (val!=0.0f) {
+			for (i= 0; i<pixsize; i++)
 				rb3[i]+= val*in[i];
 		}
 		
@@ -373,7 +373,7 @@ void addalphaAddFloat(float *dest, float *source)
 {
 
 	/* Makes me wonder whether this is required... */
-	if( dest[3] < RE_EMPTY_COLOR_FLOAT) {
+	if ( dest[3] < RE_EMPTY_COLOR_FLOAT) {
 		dest[0] = source[0];
 		dest[1] = source[1];
 		dest[2] = source[2];

@@ -403,10 +403,10 @@ Scene *add_scene(const char *name)
 	sce->r.simplify_shadowsamples= 16;
 	sce->r.simplify_aosss= 1.0f;
 
-	sce->r.border.xmin= 0.0f;
-	sce->r.border.ymin= 0.0f;
-	sce->r.border.xmax= 1.0f;
-	sce->r.border.ymax= 1.0f;
+	sce->r.border.xmin = 0.0f;
+	sce->r.border.ymin = 0.0f;
+	sce->r.border.xmax = 1.0f;
+	sce->r.border.ymax = 1.0f;
 	
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
@@ -1071,7 +1071,7 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	DAG_ids_flush_tagged(bmain);
 
 	/* Following 2 functions are recursive
-	 * so dont call within 'scene_update_tagged_recursive' */
+	 * so don't call within 'scene_update_tagged_recursive' */
 	DAG_scene_update_flags(bmain, sce, lay, TRUE);   // only stuff that moves or needs display still
 
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,

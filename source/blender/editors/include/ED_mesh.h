@@ -192,7 +192,7 @@ struct UvVertMap *EDBM_make_uv_vert_map(struct BMEditMesh *em, int selected, int
 void		EM_add_data_layer(struct BMEditMesh *em, struct CustomData *data, int type, const char *name);
 void		EM_free_data_layer(struct BMEditMesh *em, struct CustomData *data, int type);
 
-void EDBM_toggle_select_all(struct BMEditMesh *em);
+void EDBM_select_toggle_all(struct BMEditMesh *em);
 void EDBM_flag_enable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_select_mirrored(struct Object *obedit, struct BMEditMesh *em, int extend);

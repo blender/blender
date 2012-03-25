@@ -106,7 +106,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 
 	/* iterate over pointcaches on the active object, 
 	 * add spacetimecache and vertex array for each */
-	for(pid=pidlist.first; pid; pid=pid->next) {
+	for (pid=pidlist.first; pid; pid=pid->next) {
 		float col[4], *fp;
 		int i, sta = pid->cache->startframe, end = pid->cache->endframe;
 		int len = (end - sta + 1)*4;
@@ -130,12 +130,12 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 				break;
 		}
 
-		if(pid->cache->cached_frames == NULL)
+		if (pid->cache->cached_frames == NULL)
 			continue;
 
 		/* make sure we have stc with correct array length */
-		if(stc == NULL || MEM_allocN_len(stc->array) != len*2*sizeof(float)) {
-			if(stc) {
+		if (stc == NULL || MEM_allocN_len(stc->array) != len*2*sizeof(float)) {
+			if (stc) {
 				MEM_freeN(stc->array);
 			}
 			else {
@@ -227,7 +227,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 	BLI_freelistN(&pidlist);
 
 	/* free excessive caches */
-	while(stc) {
+	while (stc) {
 		SpaceTimeCache *tmp = stc->next;
 		BLI_remlink(&stime->caches, stc);
 		MEM_freeN(stc->array);
@@ -380,7 +380,7 @@ static void time_refresh(const bContext *UNUSED(C), ScrArea *sa)
 {
 	/* find the main timeline region and refresh cache display*/
 	ARegion *ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-	if(ar) {
+	if (ar) {
 		SpaceTime *stime = (SpaceTime *)sa->spacedata.first;
 		time_cache_refresh(stime);
 	}
@@ -416,8 +416,8 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 
 						for (ar= sa->regionbase.first; ar; ar= ar->next) {
 							if (ar->regiontype==RGN_TYPE_WINDOW) {
-								ar->v2d.tot.xmin= (float)(SFRA - 4);
-								ar->v2d.tot.xmax= (float)(EFRA + 4);
+								ar->v2d.tot.xmin = (float)(SFRA - 4);
+								ar->v2d.tot.xmax = (float)(EFRA + 4);
 								break;
 							}
 						}
@@ -449,7 +449,7 @@ static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Timeline", SPACE_TIME, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Timeline", SPACE_TIME, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -511,7 +511,7 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_TIME)
+			if (wmn->data == ND_SPACE_TIME)
 				ED_region_tag_redraw(ar);
 			break;
 
@@ -551,7 +551,7 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCREEN:
-			if(wmn->data==ND_ANIMPLAY)
+			if (wmn->data==ND_ANIMPLAY)
 				ED_region_tag_redraw(ar);
 			break;
 
@@ -567,7 +567,7 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_TIME)
+			if (wmn->data == ND_SPACE_TIME)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -599,10 +599,10 @@ static SpaceLink *time_new(const bContext *C)
 	BLI_addtail(&stime->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin= (float)(SFRA - 4);
-	ar->v2d.tot.ymin= 0.0f;
-	ar->v2d.tot.xmax= (float)(EFRA + 4);
-	ar->v2d.tot.ymax= 50.0f;
+	ar->v2d.tot.xmin = (float)(SFRA - 4);
+	ar->v2d.tot.ymin = 0.0f;
+	ar->v2d.tot.xmax = (float)(EFRA + 4);
+	ar->v2d.tot.ymax = 50.0f;
 	
 	ar->v2d.cur= ar->v2d.tot;
 

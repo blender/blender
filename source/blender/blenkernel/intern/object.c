@@ -201,15 +201,39 @@ void object_free_modifiers(Object *ob)
 	object_free_softbody(ob);
 }
 
+int object_support_modifier_type(Object *ob, int modifier_type)
+{
+	ModifierTypeInfo *mti;
+
+	mti = modifierType_getInfo(modifier_type);
+
+	if (!((mti->flags & eModifierTypeFlag_AcceptsCVs) ||
+	     (ob->type==OB_MESH && (mti->flags & eModifierTypeFlag_AcceptsMesh))))
+	{
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
 void object_link_modifiers(struct Object *ob, struct Object *from)
 {
 	ModifierData *md;
 	object_free_modifiers(ob);
 
+	if (!ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+		/* only objects listed above can have modifiers and linking them to objects
+		 * which doesn't have modifiers stack is quite silly */
+		return;
+	}
+
 	for (md=from->modifiers.first; md; md=md->next) {
 		ModifierData *nmd = NULL;
 
 		if (ELEM4(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance, eModifierType_Collision)) continue;
+
+		if (!object_support_modifier_type(ob, md->type))
+			continue;
 
 		nmd = modifier_new(md->type);
 		modifier_copyData(md, nmd);
@@ -964,6 +988,11 @@ void copy_object_particlesystems(Object *obn, Object *ob)
 	ParticleSystem *psys, *npsys;
 	ModifierData *md;
 
+	if (obn->type != OB_MESH) {
+		/* currently only mesh objects can have soft body */
+		return;
+	}
+
 	obn->particlesystem.first= obn->particlesystem.last= NULL;
 	for (psys=ob->particlesystem.first; psys; psys=psys->next) {
 		npsys= copy_particlesystem(psys);
@@ -1374,7 +1403,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		ob->mat = MEM_dupallocN(target->mat);
 		ob->matbits = MEM_dupallocN(target->matbits);
 		for (i=0; i<target->totcol; i++) {
-			/* dont need to run test_object_materials since we know this object is new and not used elsewhere */
+			/* don't need to run test_object_materials since we know this object is new and not used elsewhere */
 			id_us_plus((ID *)ob->mat[i]); 
 		}
 	}
@@ -1770,9 +1799,11 @@ static void give_parvert(Object *par, int nr, float vec[3])
 
 			if (count==0) {
 				/* keep as 0,0,0 */
-			} else if (count > 0) {
+			}
+			else if (count > 0) {
 				mul_v3_fl(vec, 1.0f / count);
-			} else {
+			}
+			else {
 				/* use first index if its out of range */
 				dm->getVertCo(dm, 0, vec);
 			}
@@ -2018,7 +2049,7 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 		if (simul) {
 			copy_v3_v3(totmat[3], par->obmat[3]);
 		}
-		else{
+		else {
 			give_parvert(par, ob->par1, vec);
 			mul_v3_m4v3(totmat[3], par->obmat, vec);
 		}
@@ -2044,7 +2075,7 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 	if (simul) {
 
 	}
-	else{
+	else {
 		// external usable originmat 
 		copy_m3_m4(originmat, tmat);
 		
@@ -2194,8 +2225,9 @@ void object_get_dimensions(Object *ob, float vec[3])
 		vec[0] = fabsf(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
 		vec[1] = fabsf(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
 		vec[2] = fabsf(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
-	} else {
-		vec[0] = vec[1] = vec[2] = 0.f;
+	}
+	else {
+		zero_v3(vec);
 	}
 }
 
@@ -2307,7 +2339,8 @@ int minmax_object_duplis(Scene *scene, Object *ob, float min[3], float max[3])
 	int ok= 0;
 	if ((ob->transflag & OB_DUPLI)==0) {
 		return ok;
-	} else {
+	}
+	else {
 		ListBase *lb;
 		DupliObject *dob;
 		
@@ -2676,7 +2709,8 @@ void object_sculpt_modifiers_changed(Object *ob)
 		}
 
 		free_sculptsession_deformMats(ob->sculpt);
-	} else {
+	}
+	else {
 		PBVHNode **nodes;
 		int n, totnode;
 

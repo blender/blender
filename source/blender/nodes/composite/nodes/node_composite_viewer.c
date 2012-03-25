@@ -47,7 +47,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha, z */
 	
-	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
+	if (node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
 		RenderData *rd= data;
 		Image *ima= (Image *)node->id;
 		ImBuf *ibuf;
@@ -59,7 +59,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 
 		/* always returns for viewer image, but we check nevertheless */
 		ibuf= BKE_image_acquire_ibuf(ima, node->storage, &lock);
-		if(ibuf==NULL) {
+		if (ibuf==NULL) {
 			printf("node_composit_exec_viewer error\n");
 			BKE_image_release_ibuf(ima, lock);
 			return;
@@ -72,7 +72,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		
 		/* get size */
 		tbuf= in[0]->data?in[0]->data:(in[1]->data?in[1]->data:in[2]->data);
-		if(tbuf==NULL) {
+		if (tbuf==NULL) {
 			rectx= 320; recty= 256;
 		}
 		else {
@@ -92,14 +92,14 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		cbuf->rect= ibuf->rect_float;
 		
 		/* when no alpha, we can simply copy */
-		if(in[1]->data==NULL) {
+		if (in[1]->data==NULL) {
 			composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_copy_rgba, CB_RGBA);
 		}
 		else
 			composit2_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba, CB_RGBA, CB_VAL);
 		
 		/* zbuf option */
-		if(in[2]->data) {
+		if (in[2]->data) {
 			CompBuf *zbuf= alloc_compbuf(rectx, recty, CB_VAL, 1);
 			ibuf->zbuf_float= zbuf->rect;
 			ibuf->mall |= IB_zbuffloat;
@@ -117,7 +117,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		free_compbuf(cbuf);
 
 	}
-	else if(in[0]->data) {
+	else if (in[0]->data) {
 		generate_preview(data, node, in[0]->data);
 	}
 }

@@ -61,6 +61,7 @@ typedef struct BMWalker {
 	short mask_face;
 
 	GHash *visithash;
+	GHash *secvisithash;
 	int depth;
 } BMWalker;
 
@@ -121,7 +122,7 @@ enum {
 	/* walk over an island of flagged faces.  note, that this doesn't work on
 	 * non-manifold geometry.  it might be better to rewrite this to extract
 	 * boundary info from the island walker, rather then directly walking
-	 * over the boundary.  raises an error if it encouters nonmanifold
+	 * over the boundary.  raises an error if it encounters nonmanifold
 	 * geometry. */
 	BMW_ISLANDBOUND,
 	/* walk over all faces in an island of tool flagged faces. */

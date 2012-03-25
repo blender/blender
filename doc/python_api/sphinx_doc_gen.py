@@ -26,16 +26,17 @@ API dump in RST files
 ---------------------
   Run this script from blenders root path once you have compiled blender
 
-    ./blender.bin -b -noaudio -P doc/python_api/sphinx_doc_gen.py
+    ./blender.bin --background -noaudio --python doc/python_api/sphinx_doc_gen.py
 
   This will generate python files in doc/python_api/sphinx-in/
   providing ./blender.bin is or links to the blender executable
 
   To choose sphinx-in directory:
-    ./blender.bin -b -P doc/python_api/sphinx_doc_gen.py -- -o ../python_api
+    ./blender.bin --background --python doc/python_api/sphinx_doc_gen.py -- --output ../python_api
 
   For quick builds:
-    ./blender.bin -b -P doc/python_api/sphinx_doc_gen.py -- -q
+    ./blender.bin --background --python doc/python_api/sphinx_doc_gen.py -- --partial
+
 
 Sphinx: HTML generation
 -----------------------
@@ -46,6 +47,7 @@ Sphinx: HTML generation
     sphinx-build sphinx-in sphinx-out
 
   This requires sphinx 1.0.7 to be installed.
+
 
 Sphinx: PDF generation
 ----------------------
@@ -73,6 +75,7 @@ import os
 import sys
 import inspect
 import shutil
+import logging
 
 from platform import platform
 PLATFORM = platform().split('-')[0].lower()    # 'linux', 'darwin', 'windows'
@@ -93,6 +96,30 @@ def handle_args():
     )
 
     # optional arguments
+    parser.add_argument("-p", "--partial",
+                        dest="partial",
+                        type=str,
+                        default="",
+                        help="Use a wildcard to only build specific module(s)\n"
+                             "Example: --partial bmesh*\n",
+                        required=False)
+
+    parser.add_argument("-f", "--fullrebuild",
+                        dest="full_rebuild",
+                        default=False,
+                        action='store_true',
+                        help="Rewrite all rst files in sphinx-in/ "
+                             "(default=False)",
+                        required=False)
+
+    parser.add_argument("-b", "--bpy",
+                        dest="bpy",
+                        default=False,
+                        action='store_true',
+                        help="Write the rst file of the bpy module "
+                             "(default=False)",
+                        required=False)
+
     parser.add_argument("-o", "--output",
                         dest="output_dir",
                         type=str,
@@ -100,25 +127,11 @@ def handle_args():
                         help="Path of the API docs (default=<script dir>)",
                         required=False)
 
-    parser.add_argument("-B", "--sphinx-build",
-                        dest="sphinx_build",
-                        default=False,
-                        action='store_true',
-                        help="Run sphinx-build SPHINX_IN SPHINX_OUT (default=False)",
-                        required=False)
-
-    parser.add_argument("-N", "--sphinx-named-output",
-                        dest="sphinx_named_output",
-                        default=False,
-                        action='store_true',
-                        help="Add the theme name to the html dir name (default=False)",
-                        required=False)
-
     parser.add_argument("-T", "--sphinx-theme",
                         dest="sphinx_theme",
                         type=str,
                         default='default',
-                        help=
+                        help =
                         # see SPHINX_THEMES below
                         "Sphinx theme (default='default')\n"
                         "Available themes\n"
@@ -132,25 +145,53 @@ def handle_args():
 #                                 'sphinxdoc', 'traditional'],   # sphinx
                         required=False)
 
-    parser.add_argument("-f", "--fullrebuild",
-                        dest="full_rebuild",
+    parser.add_argument("-N", "--sphinx-named-output",
+                        dest="sphinx_named_output",
                         default=False,
                         action='store_true',
-                        help="Rewrite all rst files in sphinx-in/ (default=False)",
+                        help="Add the theme name to the html dir name.\n"
+                             "Example: \"sphinx-out_haiku\" (default=False)",
                         required=False)
 
-    parser.add_argument("-t", "--testdump",
-                        dest="test_dump",
+    parser.add_argument("-B", "--sphinx-build",
+                        dest="sphinx_build",
                         default=False,
                         action='store_true',
-                        help="Dumps a small part of the API (default=False)",
+                        help="Build the html docs by running:\n"
+                             "sphinx-build SPHINX_IN SPHINX_OUT\n"
+                             "(default=False; does not depend on -P)",
                         required=False)
 
-    parser.add_argument("-b", "--bpy",
-                        dest="bpy",
+    parser.add_argument("-P", "--sphinx-build-pdf",
+                        dest="sphinx_build_pdf",
                         default=False,
                         action='store_true',
-                        help="Write the rst file of the bpy module (default=False)",
+                        help="Build the pdf by running:\n"
+                             "sphinx-build -b latex SPHINX_IN SPHINX_OUT_PDF\n"
+                             "(default=False; does not depend on -B)",
+                        required=False)
+
+    parser.add_argument("-R", "--pack-reference",
+                        dest="pack_reference",
+                        default=False,
+                        action='store_true',
+                        help="Pack all necessary files in the deployed dir.\n"
+                             "(default=False; use with -B and -P)",
+                        required=False)
+
+    parser.add_argument("-l", "--log",
+                        dest="log",
+                        default=False,
+                        action='store_true',
+                        help=(
+                        "Log the output of the api dump and sphinx|latex "
+                        "warnings and errors (default=False).\n"
+                        "If given, save logs in:\n"
+                        "* OUTPUT_DIR/.bpy.log\n"
+                        "* OUTPUT_DIR/.sphinx-build.log\n"
+                        "* OUTPUT_DIR/.sphinx-build_pdf.log\n"
+                        "* OUTPUT_DIR/.latex_make.log",
+                        ),
                         required=False)
 
     # parse only the args passed after '--'
@@ -165,15 +206,22 @@ ARGS = handle_args()
 
 # ----------------------------------BPY-----------------------------------------
 
+BPY_LOGGER = logging.getLogger('bpy')
+BPY_LOGGER.setLevel(logging.DEBUG)
+
 """
 # for quick rebuilds
 rm -rf /b/doc/python_api/sphinx-* && \
-./blender.bin --background -noaudio --factory-startup --python  doc/python_api/sphinx_doc_gen.py && \
+./blender.bin -b -noaudio --factory-startup -P doc/python_api/sphinx_doc_gen.py && \
 sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
+
+or
+
+./blender.bin -b -noaudio --factory-startup -P doc/python_api/sphinx_doc_gen.py -- -f -B
 """
 
 # Switch for quick testing so doc-builds don't take so long
-if not ARGS.test_dump:
+if not ARGS.partial:
     # full build
     FILTER_BPY_OPS = None
     FILTER_BPY_TYPES = None
@@ -181,6 +229,7 @@ if not ARGS.test_dump:
     EXCLUDE_MODULES = ()
 
 else:
+    # can manually edit this too:
     FILTER_BPY_OPS = ("import.scene", )  # allow
     FILTER_BPY_TYPES = ("bpy_struct", "Operator", "ID")  # allow
     EXCLUDE_INFO_DOCS = True
@@ -195,9 +244,9 @@ else:
         "bge.types",
         "bgl",
         "blf",
-        #"bmesh",
-        #"bmesh.types",
-        #"bmesh.utils",
+        "bmesh",
+        "bmesh.types",
+        "bmesh.utils",
         "bpy.app",
         "bpy.app.handlers",
         "bpy.context",
@@ -215,10 +264,29 @@ else:
         "Freestyle",
     )
 
+    # ------
+    # Filter
+    #
+    # TODO, support bpy.ops and bpy.types filtering
+    import fnmatch
+    m = None
+    EXCLUDE_MODULES = tuple([m for m in EXCLUDE_MODULES if not fnmatch.fnmatchcase(m, ARGS.partial)])
+
+    EXCLUDE_INFO_DOCS = (not fnmatch.fnmatchcase("info", ARGS.partial))
+
+    del m
+    del fnmatch
+
+    BPY_LOGGER.debug("Partial Doc Build, Skipping: %s\n" % "\n                             ".join(sorted(EXCLUDE_MODULES)))
+
+    #
+    # done filtering
+    # --------------
+
 try:
     __import__("aud")
 except ImportError:
-    print("Warning: Built without 'aud' module, docs incomplete...")
+    BPY_LOGGER.debug("Warning: Built without 'aud' module, docs incomplete...")
     EXCLUDE_MODULES = EXCLUDE_MODULES + ("aud", )
 
 # examples
@@ -229,7 +297,7 @@ for f in os.listdir(EXAMPLES_DIR):
         EXAMPLE_SET.add(os.path.splitext(f)[0])
 EXAMPLE_SET_USED = set()
 
-#rst files dir
+# rst files dir
 RST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "rst"))
 
 # extra info, not api reference docs
@@ -248,10 +316,66 @@ RNA_BLACKLIST = {
     "UserPreferencesSystem": {"language", }
     }
 
+MODULE_GROUPING = {
+    "bmesh.types": (
+                    ("Base Mesh Type", '-'),
+                    "BMesh",
+                    ("Mesh Elements", '-'),
+                    "BMVert",
+                    "BMEdge",
+                    "BMFace",
+                    "BMLoop",
+                    ("Sequence Accessors", '-'),
+                    "BMElemSeq",
+                    "BMVertSeq",
+                    "BMEdgeSeq",
+                    "BMFaceSeq",
+                    "BMLoopSeq",
+                    "BMIter",
+                    ("Selection History", '-'),
+                    "BMEditSelSeq",
+                    "BMEditSelIter",
+                    ("Custom-Data Layer Access", '-'),
+                    "BMLayerAccessVert",
+                    "BMLayerAccessEdge",
+                    "BMLayerAccessFace",
+                    "BMLayerAccessLoop",
+                    "BMLayerCollection",
+                    "BMLayerItem",
+                    ("Custom-Data Layer Types", '-'),
+                    "BMLoopUV"
+                    )
+    }
+
+# --------------------configure compile time options----------------------------
+
+# -------------------------------BLENDER----------------------------------------
+
+blender_version_strings = [str(v) for v in bpy.app.version]
+
+# converting bytes to strings, due to #30154
+BLENDER_REVISION = str(bpy.app.build_revision, 'utf_8')
+BLENDER_DATE = str(bpy.app.build_date, 'utf_8')
+
+BLENDER_VERSION_DOTS = ".".join(blender_version_strings)    # '2.62.1'
+if BLENDER_REVISION != "Unknown":
+    BLENDER_VERSION_DOTS += " r" + BLENDER_REVISION         # '2.62.1 r44584'
+
+BLENDER_VERSION_PATH = "_".join(blender_version_strings)    # '2_62_1'
+if bpy.app.version_cycle == "release":
+    BLENDER_VERSION_PATH = "%s%s_release" % ("_".join(blender_version_strings[:2]),
+                                             bpy.app.version_char)   # '2_62_release'
+
+# --------------------------DOWNLOADABLE FILES----------------------------------
+
+REFERENCE_NAME = "blender_python_reference_%s" % BLENDER_VERSION_PATH
+REFERENCE_PATH = os.path.join(ARGS.output_dir, REFERENCE_NAME)
+BLENDER_PDF_FILENAME = "%s.pdf" % REFERENCE_NAME
+BLENDER_ZIP_FILENAME = "%s.zip" % REFERENCE_NAME
 
 # -------------------------------SPHINX-----------------------------------------
 
-SPHINX_THEMES = {'bf': ['blender-org'], # , 'naiad',
+SPHINX_THEMES = {'bf': ['blender-org'],  # , 'naiad',
                  'sphinx': ['agogo',
                             'basic',
                             'default',
@@ -267,37 +391,43 @@ if ARGS.sphinx_theme not in available_themes:
     print ("Please choose a theme among: %s" % ', '.join(available_themes))
     sys.exit()
 
+if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
+    SPHINX_THEME_DIR = os.path.join(ARGS.output_dir, ARGS.sphinx_theme)
+    SPHINX_THEME_SVN_DIR = os.path.join(SCRIPT_DIR, ARGS.sphinx_theme)
+
 SPHINX_IN = os.path.join(ARGS.output_dir, "sphinx-in")
 SPHINX_IN_TMP = SPHINX_IN + "-tmp"
 SPHINX_OUT = os.path.join(ARGS.output_dir, "sphinx-out")
 if ARGS.sphinx_named_output:
     SPHINX_OUT += "_%s" % ARGS.sphinx_theme
 
-if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
-    SPHINX_THEME_DIR = os.path.join(ARGS.output_dir, ARGS.sphinx_theme)
-    SPHINX_THEME_SVN_DIR = os.path.join(SCRIPT_DIR, ARGS.sphinx_theme)
+# html build
+if ARGS.sphinx_build:
+    SPHINX_BUILD = ["sphinx-build", SPHINX_IN, SPHINX_OUT]
 
-# ------------------------------------------------------------------------------
+    if ARGS.log:
+        SPHINX_BUILD_LOG = os.path.join(ARGS.output_dir, ".sphinx-build.log")
+        SPHINX_BUILD = ["sphinx-build",
+                        "-w", SPHINX_BUILD_LOG,
+                        SPHINX_IN, SPHINX_OUT]
 
-# configure compile time options
+# pdf build
+if ARGS.sphinx_build_pdf:
+    SPHINX_OUT_PDF = os.path.join(ARGS.output_dir, "sphinx-out_pdf")
+    SPHINX_BUILD_PDF = ["sphinx-build",
+                        "-b", "latex",
+                        SPHINX_IN, SPHINX_OUT_PDF]
+    SPHINX_MAKE_PDF = ["make", "-C", SPHINX_OUT_PDF]
+    SPHINX_MAKE_PDF_STDOUT = None
 
-# -------------------------------BLENDER----------------------------------------
+    if ARGS.log:
+        SPHINX_BUILD_PDF_LOG = os.path.join(ARGS.output_dir, ".sphinx-build_pdf.log")
+        SPHINX_BUILD_PDF = ["sphinx-build", "-b", "latex",
+                            "-w", SPHINX_BUILD_PDF_LOG,
+                            SPHINX_IN, SPHINX_OUT_PDF]
 
-'''
-blender version
-'''
-version_strings = [str(v) for v in bpy.app.version]
-
-BLENDER_VERSION_DOTS = ".".join(version_strings)    # '2.62.1'
-if bpy.app.build_revision != b"Unknown":
-    # converting bytes to strings, due to #30154
-    BLENDER_VERSION_DOTS += " r" + str(bpy.app.build_revision, 'utf_8')    # '2.62.1 r44584'
-
-BLENDER_VERSION_PDF = "_".join(version_strings)    # '2_62_1'
-if bpy.app.version_cycle == "release":
-    BLENDER_VERSION_PDF = "%s%s_release" % ("_".join(version_strings[:2]),
-                                            bpy.app.version_char)   # '2_62_release'
-
+        sphinx_make_pdf_log = os.path.join(ARGS.output_dir, ".latex_make.log")
+        SPHINX_MAKE_PDF_STDOUT = open(sphinx_make_pdf_log, "w", encoding="utf-8")
 
 # --------------------------------API DUMP--------------------------------------
 
@@ -326,13 +456,13 @@ def undocumented_message(module_name, type_name, identifier):
         preloadtitle = '%s.%s' % (module_name, identifier)
     else:
         preloadtitle = '%s.%s.%s' % (module_name, type_name, identifier)
-    message =   "Undocumented (`contribute "\
-                "<http://wiki.blender.org/index.php/"\
-                "Dev:2.5/Py/API/Generating_API_Reference/Contribute/Howto-message"\
-                "?action=edit"\
-                "&section=new"\
-                "&preload=Dev:2.5/Py/API/Documentation/Contribute/Howto-message"\
-                "&preloadtitle=%s>`_)\n\n" % preloadtitle
+    message = ("Undocumented (`contribute "
+               "<http://wiki.blender.org/index.php/"
+               "Dev:2.5/Py/API/Generating_API_Reference/Contribute"
+               "?action=edit"
+               "&section=new"
+               "&preload=Dev:2.5/Py/API/Generating_API_Reference/Contribute/Howto-message"
+               "&preloadtitle=%s>`_)\n\n" % preloadtitle)
     return message
 
 
@@ -374,15 +504,20 @@ def example_extract_docstring(filepath):
     return "\n".join(text), line_no
 
 
-def write_title(fw, text, heading_char):
-    fw("%s\n%s\n\n" % (text, len(text) * heading_char))
+def title_string(text, heading_char, double=False):
+    filler = len(text) * heading_char
+
+    if double:
+        return "%s\n%s\n%s\n\n" % (filler, text, filler)
+    else:
+        return "%s\n%s\n\n" % (text, filler)
 
 
 def write_example_ref(ident, fw, example_id, ext="py"):
     if example_id in EXAMPLE_SET:
 
         # extract the comment
-        filepath = os.path.join(EXAMPLES_DIR, "%s.%s" % (example_id, ext))
+        filepath = os.path.join("..", "examples", "%s.%s" % (example_id, ext))
         filepath_full = os.path.join(os.path.dirname(fw.__self__.name), filepath)
 
         text, line_no = example_extract_docstring(filepath_full)
@@ -398,7 +533,7 @@ def write_example_ref(ident, fw, example_id, ext="py"):
         EXAMPLE_SET_USED.add(example_id)
     else:
         if bpy.app.debug:
-            print("\tskipping example:", example_id)
+            BPY_LOGGER.debug("\tskipping example: " + example_id)
 
     # Support for numbered files bpy.types.Operator -> bpy.types.Operator.1.py
     i = 1
@@ -557,11 +692,34 @@ def pymodule2sphinx(basepath, module_name, module, title):
     if module_all:
         module_dir = module_all
 
+    # TODO - currently only used for classes
+    # grouping support
+    module_grouping = MODULE_GROUPING.get(module_name)
+
+    def module_grouping_index(name):
+        if module_grouping is not None:
+            try:
+                return module_grouping.index(name)
+            except ValueError:
+                pass
+        return -1
+
+    def module_grouping_heading(name):
+        if module_grouping is not None:
+            i = module_grouping_index(name) - 1
+            if i >= 0 and type(module_grouping[i]) == tuple:
+                return module_grouping[i]
+        return None, None
+
+    def module_grouping_sort_key(name):
+        return module_grouping_index(name)
+    # done grouping support
+
     file = open(filepath, "w", encoding="utf-8")
 
     fw = file.write
 
-    write_title(fw, "%s (%s)" % (title, module_name), "=")
+    fw(title_string("%s (%s)" % (title, module_name), "="))
 
     fw(".. module:: %s\n\n" % module_name)
 
@@ -685,7 +843,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
             write_indented_lines("   ", fw, "constant value %s" % repr(value), False)
             fw("\n")
         else:
-            print("\tnot documenting %s.%s of %r type" % (module_name, attribute, value_type.__name__))
+            BPY_LOGGER.debug("\tnot documenting %s.%s of %r type" % (module_name, attribute, value_type.__name__))
             continue
 
         attribute_set.add(attribute)
@@ -693,7 +851,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
     del module_dir_value_type
 
     # TODO, bpy_extras does this already, mathutils not.
-    """
+    '''
     if submodules:
         fw("\n"
            "**********\n"
@@ -704,10 +862,19 @@ def pymodule2sphinx(basepath, module_name, module, title):
         for attribute, submod in submodules:
             fw("* :mod:`%s.%s`\n" % (module_name, attribute))
         fw("\n")
-    """
+    '''
+
+    if module_grouping is not None:
+        classes.sort(key=lambda pair: module_grouping_sort_key(pair[0]))
 
     # write collected classes now
     for (type_name, value) in classes:
+
+        if module_grouping is not None:
+            heading, heading_char = module_grouping_heading(type_name)
+            if heading:
+                fw(title_string(heading, heading_char))
+
         # May need to be its own function
         fw(".. class:: %s\n\n" % type_name)
         if value.__doc__:
@@ -746,8 +913,7 @@ def pycontext2sphinx(basepath):
     filepath = os.path.join(basepath, "bpy.context.rst")
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
-    fw("Context Access (bpy.context)\n")
-    fw("============================\n\n")
+    fw(title_string("Context Access (bpy.context)", "="))
     fw(".. module:: bpy.context\n")
     fw("\n")
     fw("The context members available depend on the area of blender which is currently being accessed.\n")
@@ -950,7 +1116,7 @@ def pyrna2sphinx(basepath):
         else:
             title = struct_id
 
-        write_title(fw, title, "=")
+        fw(title_string(title, "="))
 
         fw(".. module:: bpy.types\n\n")
 
@@ -1161,7 +1327,7 @@ def pyrna2sphinx(basepath):
             file = open(filepath, "w", encoding="utf-8")
             fw = file.write
 
-            write_title(fw, class_name, "=")
+            fw(title_string(class_name, "="))
 
             fw(".. module:: bpy.types\n")
             fw("\n")
@@ -1214,7 +1380,7 @@ def pyrna2sphinx(basepath):
 
             title = "%s Operators" % op_module_name.replace("_", " ").title()
 
-            write_title(fw, title, "=")
+            fw(title_string(title, "="))
 
             fw(".. module:: bpy.ops.%s\n\n" % op_module_name)
 
@@ -1297,38 +1463,30 @@ def write_rst_contents(basepath):
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
 
-    fw("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
-    fw(" Blender Documentation contents\n")
-    fw("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+    fw(title_string("Blender Documentation Contents", "%", double=True))
     fw("\n")
-    fw("Welcome, this document is an API reference for Blender %s. built %s.\n" % (BLENDER_VERSION_DOTS, str(bpy.app.build_date, 'utf_8')))
+    fw("Welcome, this document is an API reference for Blender %s, built %s.\n" % (BLENDER_VERSION_DOTS, BLENDER_DATE))
     fw("\n")
 
-    # fw("`A PDF version of this document is also available <blender_python_reference_%s.pdf>`_\n" % BLENDER_VERSION_PDF)
-    fw("`A compressed ZIP file of this site is available <blender_python_reference_%s.zip>`_\n" % BLENDER_VERSION_PDF)
+    # fw("`A PDF version of this document is also available <%s>`_\n" % BLENDER_PDF_FILENAME)
+    fw("`A compressed ZIP file of this site is available <%s>`_\n" % BLENDER_ZIP_FILENAME)
 
     fw("\n")
 
     if not EXCLUDE_INFO_DOCS:
-        fw("============================\n")
-        fw("Blender/Python Documentation\n")
-        fw("============================\n")
-        fw("\n")
-        fw("\n")
+        fw(title_string("Blender/Python Documentation", "=", double=True))
+
         fw(".. toctree::\n")
         fw("   :maxdepth: 1\n\n")
         for info, info_desc in INFO_DOCS:
             fw("   %s <%s>\n\n" % (info_desc, info))
         fw("\n")
 
-    fw("===================\n")
-    fw("Application Modules\n")
-    fw("===================\n")
-    fw("\n")
+    fw(title_string("Application Modules", "=", double=True))
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
 
-    app_modules = [
+    app_modules = (
         "bpy.context",  # note: not actually a module
         "bpy.data",     # note: not actually a module
         "bpy.ops",
@@ -1341,37 +1499,33 @@ def write_rst_contents(basepath):
         "bpy.app.handlers",
 
         # C modules
-        "bpy.props"
-    ]
+        "bpy.props",
+        )
+
     for mod in app_modules:
         if mod not in EXCLUDE_MODULES:
             fw("   %s\n\n" % mod)
 
-    fw("==================\n")
-    fw("Standalone Modules\n")
-    fw("==================\n")
-    fw("\n")
+    fw(title_string("Standalone Modules", "=", double=True))
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
 
-    standalone_modules = [
+    standalone_modules = (
         # mathutils
         "mathutils", "mathutils.geometry", "mathutils.noise",
         # misc
         "Freestyle", "bgl", "blf", "gpu", "aud", "bpy_extras",
         # bmesh
-        "bmesh", "bmesh.types", "bmesh.utils"
-    ]
+        "bmesh", "bmesh.types", "bmesh.utils",
+        )
+
     for mod in standalone_modules:
         if mod not in EXCLUDE_MODULES:
             fw("   %s\n\n" % mod)
 
     # game engine
     if "bge" not in EXCLUDE_MODULES:
-        fw("===================\n")
-        fw("Game Engine Modules\n")
-        fw("===================\n")
-        fw("\n")
+        fw(title_string("Game Engine Modules", "=", double=True))
         fw(".. toctree::\n")
         fw("   :maxdepth: 1\n\n")
         fw("   bge.types.rst\n\n")
@@ -1382,10 +1536,7 @@ def write_rst_contents(basepath):
         fw("   bge.constraints.rst\n\n")
 
     # rna generated change log
-    fw("========\n")
-    fw("API Info\n")
-    fw("========\n")
-    fw("\n")
+    fw(title_string("API Info", "=", double=True))
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
     fw("   change_log.rst\n\n")
@@ -1421,7 +1572,7 @@ def write_rst_bpy(basepath):
 
         title = ":mod:`bpy` --- Blender Python Module"
 
-        write_title(fw, title, "=")
+        fw(title_string(title, "="))
 
         fw(".. module:: bpy.types\n\n")
         file.close()
@@ -1435,8 +1586,7 @@ def write_rst_types_index(basepath):
         filepath = os.path.join(basepath, "bpy.types.rst")
         file = open(filepath, "w", encoding="utf-8")
         fw = file.write
-        fw("Types (bpy.types)\n")
-        fw("=================\n\n")
+        fw(title_string("Types (bpy.types)", "="))
         fw(".. toctree::\n")
         fw("   :glob:\n\n")
         fw("   bpy.types.*\n\n")
@@ -1451,8 +1601,7 @@ def write_rst_ops_index(basepath):
         filepath = os.path.join(basepath, "bpy.ops.rst")
         file = open(filepath, "w", encoding="utf-8")
         fw = file.write
-        fw("Operators (bpy.ops)\n")
-        fw("===================\n\n")
+        fw(title_string("Operators (bpy.ops)", "="))
         write_example_ref("", fw, "bpy.ops")
         fw(".. toctree::\n")
         fw("   :glob:\n\n")
@@ -1470,8 +1619,7 @@ def write_rst_data(basepath):
         filepath = os.path.join(basepath, "bpy.data.rst")
         file = open(filepath, "w", encoding="utf-8")
         fw = file.write
-        fw("Data Access (bpy.data)\n")
-        fw("======================\n\n")
+        fw(title_string("Data Access (bpy.data)", "="))
         fw(".. module:: bpy\n")
         fw("\n")
         fw("This module is used for all blender/python access.\n")
@@ -1536,6 +1684,9 @@ def copy_handwritten_rsts(basepath):
         "bge.constraints",
         "bgl",  # "Blender OpenGl wrapper"
         "gpu",  # "GPU Shader Module"
+
+        # includes...
+        "include__bmesh",
     ]
     for mod_name in handwritten_modules:
         if mod_name not in EXCLUDE_MODULES:
@@ -1590,7 +1741,7 @@ def align_sphinx_in_to_sphinx_in_tmp():
     # remove deprecated files that have been removed
     for f in sorted(sphinx_in_files):
         if f not in sphinx_in_tmp_files:
-            print("\tdeprecated: %s" % f)
+            BPY_LOGGER.debug("\tdeprecated: %s" % f)
             os.remove(os.path.join(SPHINX_IN, f))
 
     # freshen with new files.
@@ -1604,53 +1755,142 @@ def align_sphinx_in_to_sphinx_in_tmp():
                 do_copy = False
 
         if do_copy:
-            print("\tupdating: %s" % f)
+            BPY_LOGGER.debug("\tupdating: %s" % f)
             shutil.copy(f_from, f_to)
+
+
+def refactor_sphinx_log(sphinx_logfile):
+    refactored_log = []
+    with open(sphinx_logfile, "r", encoding="utf-8") as original_logfile:
+        lines = set(original_logfile.readlines())
+        for line in lines:
+            if 'warning' in line.lower() or 'error' in line.lower():
+                line = line.strip().split(None, 2)
+                if len(line) == 3:
+                    location, kind, msg = line
+                    location = os.path.relpath(location, start=SPHINX_IN)
+                    refactored_log.append((kind, location, msg))
+    with open(sphinx_logfile, "w", encoding="utf-8") as refactored_logfile:
+        for log in sorted(refactored_log):
+            refactored_logfile.write("%-12s %s\n             %s\n" % log)
 
 
 def main():
 
-    # dirs preparation
+    # eventually, create the dirs
     for dir_path in [ARGS.output_dir, SPHINX_IN]:
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
 
+    # eventually, log in files
+    if ARGS.log:
+        bpy_logfile = os.path.join(ARGS.output_dir, ".bpy.log")
+        bpy_logfilehandler = logging.FileHandler(bpy_logfile, mode="w")
+        bpy_logfilehandler.setLevel(logging.DEBUG)
+        BPY_LOGGER.addHandler(bpy_logfilehandler)
+
+        # using a FileHandler seems to disable the stdout, so we add a StreamHandler
+        bpy_log_stdout_handler = logging.StreamHandler(stream=sys.stdout)
+        bpy_log_stdout_handler.setLevel(logging.DEBUG)
+        BPY_LOGGER.addHandler(bpy_log_stdout_handler)
+
+    # in case of out-of-source build, copy the needed dirs
+    if ARGS.output_dir != SCRIPT_DIR:
+        # examples dir
+        examples_dir_copy = os.path.join(ARGS.output_dir, "examples")
+        if os.path.exists(examples_dir_copy):
+            shutil.rmtree(examples_dir_copy, True)
+        shutil.copytree(EXAMPLES_DIR,
+                        examples_dir_copy,
+                        ignore=shutil.ignore_patterns(*(".svn",)),
+                        copy_function=shutil.copy)
+
+        # eventually, copy the theme dir
+        if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
+            if os.path.exists(SPHINX_THEME_DIR):
+                shutil.rmtree(SPHINX_THEME_DIR, True)
+            shutil.copytree(SPHINX_THEME_SVN_DIR,
+                            SPHINX_THEME_DIR,
+                            ignore=shutil.ignore_patterns(*(".svn",)),
+                            copy_function=shutil.copy)
+
     # dump the api in rst files
+    if os.path.exists(SPHINX_IN_TMP):
+        shutil.rmtree(SPHINX_IN_TMP, True)
+
+    rna2sphinx(SPHINX_IN_TMP)
+
     if ARGS.full_rebuild:
         # only for full updates
         shutil.rmtree(SPHINX_IN, True)
-        shutil.rmtree(SPHINX_OUT, True)
-        rna2sphinx(SPHINX_IN_TMP)
         shutil.copytree(SPHINX_IN_TMP,
                         SPHINX_IN,
                         copy_function=shutil.copy)
+        if ARGS.sphinx_build and os.path.exists(SPHINX_OUT):
+            shutil.rmtree(SPHINX_OUT, True)
+        if ARGS.sphinx_build_pdf and os.path.exists(SPHINX_OUT_PDF):
+            shutil.rmtree(SPHINX_OUT_PDF, True)
     else:
-        # write here, then move
-        shutil.rmtree(SPHINX_IN_TMP, True)
-        rna2sphinx(SPHINX_IN_TMP)
+        # move changed files in SPHINX_IN
         align_sphinx_in_to_sphinx_in_tmp()
 
     # report which example files weren't used
     EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED
     if EXAMPLE_SET_UNUSED:
-        print("\nUnused examples found in '%s'..." % EXAMPLES_DIR)
-        for f in EXAMPLE_SET_UNUSED:
-            print("    %s.py" % f)
-        print("  %d total\n" % len(EXAMPLE_SET_UNUSED))
+        BPY_LOGGER.debug("\nUnused examples found in '%s'..." % EXAMPLES_DIR)
+        for f in sorted(EXAMPLE_SET_UNUSED):
+            BPY_LOGGER.debug("    %s.py" % f)
+        BPY_LOGGER.debug("  %d total\n" % len(EXAMPLE_SET_UNUSED))
 
-    # eventually, copy the theme in the output directory
-    if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
-        if not os.path.exists(SPHINX_THEME_DIR):
-            shutil.copytree(SPHINX_THEME_SVN_DIR,
-                            SPHINX_THEME_DIR,
-                            copy_function=shutil.copy)
-
-    # eventually, build the docs
+    # eventually, build the html docs
     if ARGS.sphinx_build:
         import subprocess
-        sphinx_build_command = "sphinx-build %s %s" % (SPHINX_IN, SPHINX_OUT)
-        print ('\n%s\n' % sphinx_build_command)
-        subprocess.call(sphinx_build_command, shell=True)
+        subprocess.call(SPHINX_BUILD)
+
+        # sphinx-build log cleanup+sort
+        if ARGS.log:
+            if os.stat(SPHINX_BUILD_LOG).st_size:
+                refactor_sphinx_log(SPHINX_BUILD_LOG)
+
+    # eventually, build the pdf docs
+    if ARGS.sphinx_build_pdf:
+        import subprocess
+        subprocess.call(SPHINX_BUILD_PDF)
+        subprocess.call(SPHINX_MAKE_PDF, stdout=SPHINX_MAKE_PDF_STDOUT)
+
+        # sphinx-build log cleanup+sort
+        if ARGS.log:
+            if os.stat(SPHINX_BUILD_PDF_LOG).st_size:
+                refactor_sphinx_log(SPHINX_BUILD_PDF_LOG)
+
+    # eventually, prepare the dir to be deployed online (REFERENCE_PATH)
+    if ARGS.pack_reference:
+
+        if ARGS.sphinx_build:
+            # delete REFERENCE_PATH
+            if os.path.exists(REFERENCE_PATH):
+                shutil.rmtree(REFERENCE_PATH, True)
+
+            # copy SPHINX_OUT to the REFERENCE_PATH
+            ignores = ('.doctrees', 'objects.inv', '.buildinfo')
+            shutil.copytree(SPHINX_OUT,
+                            REFERENCE_PATH,
+                            ignore=shutil.ignore_patterns(*ignores))
+            shutil.copy(os.path.join(REFERENCE_PATH, "contents.html"),
+                        os.path.join(REFERENCE_PATH, "index.html"))
+
+            # zip REFERENCE_PATH
+            basename = os.path.join(ARGS.output_dir, REFERENCE_NAME)
+            tmp_path = shutil.make_archive(basename, 'zip',
+                                           root_dir=ARGS.output_dir,
+                                           base_dir=REFERENCE_NAME)
+            final_path = os.path.join(REFERENCE_PATH, BLENDER_ZIP_FILENAME)
+            os.rename(tmp_path, final_path)
+
+        if ARGS.sphinx_build_pdf:
+            # copy the pdf to REFERENCE_PATH
+            shutil.copy(os.path.join(SPHINX_OUT_PDF, "contents.pdf"),
+                        os.path.join(REFERENCE_PATH, BLENDER_PDF_FILENAME))
 
     sys.exit()
 

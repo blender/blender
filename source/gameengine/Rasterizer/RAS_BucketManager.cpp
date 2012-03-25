@@ -119,7 +119,7 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 	for (bit = buckets.begin(); bit != buckets.end(); ++bit)
 	{
 		SG_DList::iterator<RAS_MeshSlot> mit((*bit)->GetActiveMeshSlots());
-		for(mit.begin(); !mit.end(); ++mit)
+		for (mit.begin(); !mit.end(); ++mit)
 			size++;
 	}
 
@@ -135,7 +135,7 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 		}
 	}
 		
-	if(alpha)
+	if (alpha)
 		sort(slots.begin(), slots.end(), backtofront());
 	else
 		sort(slots.begin(), slots.end(), fronttoback());
@@ -154,7 +154,7 @@ void RAS_BucketManager::RenderAlphaBuckets(
 
 	OrderBuckets(cameratrans, m_AlphaBuckets, slots, true);
 	
-	for(sit=slots.begin(); sit!=slots.end(); ++sit) {
+	for (sit=slots.begin(); sit!=slots.end(); ++sit) {
 		rendertools->SetClientObject(rasty, sit->m_ms->m_clientObj);
 
 		while(sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
@@ -217,7 +217,7 @@ void RAS_BucketManager::RenderSolidBuckets(
 
 	OrderBuckets(cameratrans, m_SolidBuckets, slots, false);
 
-	for(sit=slots.begin(); sit!=slots.end(); ++sit) {
+	for (sit=slots.begin(); sit!=slots.end(); ++sit) {
 		rendertools->SetClientObject(rasty, sit->m_ms->m_clientObj);
 
 		while(sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
@@ -283,7 +283,7 @@ void RAS_BucketManager::ReleaseDisplayLists(RAS_IPolyMaterial *mat)
 	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit) {
 		if (mat == NULL || (mat == (*bit)->GetPolyMaterial())) {
 			for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
-				if(mit->m_DisplayList) {
+				if (mit->m_DisplayList) {
 					mit->m_DisplayList->Release();
 					mit->m_DisplayList = NULL;
 				}
@@ -294,7 +294,7 @@ void RAS_BucketManager::ReleaseDisplayLists(RAS_IPolyMaterial *mat)
 	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit) {
 		if (mat == NULL || (mat == (*bit)->GetPolyMaterial())) {
 			for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
-				if(mit->m_DisplayList) {
+				if (mit->m_DisplayList) {
 					mit->m_DisplayList->Release();
 					mit->m_DisplayList = NULL;
 				}
@@ -329,7 +329,7 @@ void RAS_BucketManager::RemoveMaterial(RAS_IPolyMaterial * mat)
 	int i;
 
 
-	for(i=0; i<m_SolidBuckets.size(); i++) {
+	for (i=0; i<m_SolidBuckets.size(); i++) {
 		RAS_MaterialBucket *bucket = m_SolidBuckets[i];
 		if (mat == bucket->GetPolyMaterial()) {
 			m_SolidBuckets.erase(m_SolidBuckets.begin()+i);
@@ -338,7 +338,7 @@ void RAS_BucketManager::RemoveMaterial(RAS_IPolyMaterial * mat)
 		}
 	}
 
-	for(int i=0; i<m_AlphaBuckets.size(); i++) {
+	for (int i=0; i<m_AlphaBuckets.size(); i++) {
 		RAS_MaterialBucket *bucket = m_AlphaBuckets[i];
 		if (mat == bucket->GetPolyMaterial()) {
 			m_AlphaBuckets.erase(m_AlphaBuckets.begin()+i);

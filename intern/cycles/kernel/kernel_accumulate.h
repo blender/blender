@@ -151,26 +151,20 @@ __device_inline void path_radiance_bsdf_bounce(PathRadiance *L, float3 *throughp
 
 #ifdef __PASSES__
 	if(L->use_light_pass) {
-		if(bounce == 0) {
-			if(bsdf_label & LABEL_TRANSPARENT) {
-				/* transparent bounce before first hit */
-				*throughput *= bsdf_eval->transparent*inverse_pdf;
-			}
-			else {
-				/* first on directly visible surface */
-				float3 value = *throughput*inverse_pdf;
+		if(bounce == 0 && !(bsdf_label & LABEL_TRANSPARENT)) {
+			/* first on directly visible surface */
+			float3 value = *throughput*inverse_pdf;
 
-				L->indirect_diffuse = bsdf_eval->diffuse*value;
-				L->indirect_glossy = bsdf_eval->glossy*value;
-				L->indirect_transmission = bsdf_eval->transmission*value;
+			L->indirect_diffuse = bsdf_eval->diffuse*value;
+			L->indirect_glossy = bsdf_eval->glossy*value;
+			L->indirect_transmission = bsdf_eval->transmission*value;
 
-				*throughput = L->indirect_diffuse + L->indirect_glossy + L->indirect_transmission;
-				
-				L->direct_throughput = *throughput;
-			}
+			*throughput = L->indirect_diffuse + L->indirect_glossy + L->indirect_transmission;
+			
+			L->direct_throughput = *throughput;
 		}
 		else {
-			/* indirectly visible through BSDF */
+			/* transparent bounce before first hit, or indirectly visible through BSDF */
 			float3 sum = (bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission + bsdf_eval->transparent)*inverse_pdf;
 			*throughput *= sum;
 		}

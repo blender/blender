@@ -78,7 +78,7 @@ GPC_Engine::GPC_Engine(char *customLoadingAnimationURL,
 		m_frameRate(frameRate),
 		m_BlenderLogo(0), m_Blender3DLogo(0)/*, m_NaNLogo(0)*/
 {
-	if(customLoadingAnimationURL[0] != '\0')
+	if (customLoadingAnimationURL[0] != '\0')
 	{
 		m_customLoadingAnimationURL = new char[sizeof(customLoadingAnimationURL)];
 // not yet, need to be implemented first...		m_customLoadingAnimation = true;
@@ -87,13 +87,13 @@ GPC_Engine::GPC_Engine(char *customLoadingAnimationURL,
 	// load the Blender logo into memory
 	m_BlenderLogo = new GPC_RawImage();
 	// blender3d size is 115 x 32 so make resulting texture 128 x 128
-	if(!m_BlenderLogo->Load("BlenderLogo", 128, 128, GPC_RawImage::alignTopLeft, 8, 8))
+	if (!m_BlenderLogo->Load("BlenderLogo", 128, 128, GPC_RawImage::alignTopLeft, 8, 8))
 		m_BlenderLogo = 0;
 
 	// load the Blender3D logo into memory
 	m_Blender3DLogo = new GPC_RawImage();
 	// blender3d size is 136 x 11 so make resulting texture 256 x 256
-	if(!m_Blender3DLogo->Load("Blender3DLogo", 256, 256, GPC_RawImage::alignBottomRight, 8, 8))
+	if (!m_Blender3DLogo->Load("Blender3DLogo", 256, 256, GPC_RawImage::alignBottomRight, 8, 8))
 		m_Blender3DLogo = 0;
 
 #if 0
@@ -101,7 +101,7 @@ GPC_Engine::GPC_Engine(char *customLoadingAnimationURL,
 	// load the NaN logo into memory
 	m_NaNLogo = new GPC_RawImage();
 	// blender3d size is 32 x 31 so make resulting texture 64 x 64
-	if(!m_NaNLogo->Load("NaNLogo", 64, 64, GPC_RawImage::alignBottomRight, 8, 8))
+	if (!m_NaNLogo->Load("NaNLogo", 64, 64, GPC_RawImage::alignBottomRight, 8, 8))
 		m_NaNLogo = 0;
 #endif
 }
@@ -148,7 +148,7 @@ bool GPC_Engine::Start(const char *filename)
 
 	StartKetsji();
 
-	if(bfd->type == BLENFILETYPE_PUB)
+	if (bfd->type == BLENFILETYPE_PUB)
 		m_canvas->SetBannerDisplayEnabled(false);
 
 	return true;
@@ -173,7 +173,7 @@ bool GPC_Engine::Start(unsigned char *blenderDataBuffer,
 	
 	StartKetsji();
 
-	if(bfd->type == BLENFILETYPE_PUB)
+	if (bfd->type == BLENFILETYPE_PUB)
 		m_canvas->SetBannerDisplayEnabled(false);
 
 	return true;
@@ -210,7 +210,7 @@ bool GPC_Engine::StartKetsji(void)
 
 void GPC_Engine::StartLoadingAnimation()
 {
-	if(m_customLoadingAnimation)
+	if (m_customLoadingAnimation)
 	{
 	}
 	else
@@ -218,7 +218,7 @@ void GPC_Engine::StartLoadingAnimation()
 		unsigned char *blenderDataBuffer;
 		int blenderDataBufferSize;
 		GetRawLoadingAnimation(&blenderDataBuffer, &blenderDataBufferSize);
-		if(!Start(blenderDataBuffer, blenderDataBufferSize))
+		if (!Start(blenderDataBuffer, blenderDataBufferSize))
 			cout << "something went wrong when starting the engine" << endl;
 		delete blenderDataBuffer;  // created with 'new' in GetRawLoadingAnimation()
 	}
@@ -251,11 +251,11 @@ void GPC_Engine::UpdateLoadingAnimation(void)
 
 	float progress = DetermineProgress();
 
-	if(progress > m_previousProgress)
+	if (progress > m_previousProgress)
 	{
 //		delta = progress - m_previousProgress;
 		m_previousProgress = progress;
-		if(m_previousProgress > 1.0)
+		if (m_previousProgress > 1.0)
 			m_previousProgress = 1.0;  // limit to 1.0 (has to change !)
 //			m_engine->m_previousProgress = 0.0;
 	}
@@ -266,7 +266,7 @@ void GPC_Engine::UpdateLoadingAnimation(void)
 	STR_String body;
 	body.Format("%f", progress);  // a number between 0.0 and 1.0
 
-	if(m_networkdev)
+	if (m_networkdev)
 	{
 		// Store a progress message in the network device.
 		NG_NetworkMessage* msg = new NG_NetworkMessage(to, from, subject, body);
@@ -279,19 +279,19 @@ void GPC_Engine::UpdateLoadingAnimation(void)
 void GPC_Engine::Stop()
 {
 	// only delete things that are created in StartKetsji()
-/*	if(m_portal)
+/*	if (m_portal)
 	{
 		m_portal->Leave();
 		delete m_portal;  // also gets rid of KX_KetsjiEngine (says Maarten)
 		m_portal = 0;
 	}
-*/	if(m_sceneconverter)
+*/	if (m_sceneconverter)
 	{
 		delete m_sceneconverter;
 		m_sceneconverter = 0;
 	}
 #if 0
-	if(m_frameTimerID)
+	if (m_frameTimerID)
 	{
 		::KillTimer(0, m_frameTimerID);
 		m_frameTimerID = 0;
@@ -305,7 +305,7 @@ void GPC_Engine::Stop()
 
 void GPC_Engine::Exit()
 {
-	if(m_running)
+	if (m_running)
 		Stop();
 
 	if (m_system) {

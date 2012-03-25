@@ -247,7 +247,8 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_passepartout", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWPASSEPARTOUT);
-	RNA_def_property_ui_text(prop, "Show Passepartout", "Show a darkened overlay outside the image area in Camera view");
+	RNA_def_property_ui_text(prop, "Show Passepartout",
+	                         "Show a darkened overlay outside the image area in Camera view");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "show_title_safe", PROP_BOOLEAN, PROP_NONE);
@@ -272,7 +273,8 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_panorama", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_PANORAMA);
-	RNA_def_property_ui_text(prop, "Panorama", "Render the scene with a cylindrical camera for pseudo-fisheye lens effects");
+	RNA_def_property_ui_text(prop, "Panorama",
+	                         "Render the scene with a cylindrical camera for pseudo-fisheye lens effects");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* pointers */
@@ -290,4 +292,3 @@ void RNA_def_camera(BlenderRNA *brna)
 }
 
 #endif
-

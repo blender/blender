@@ -101,10 +101,10 @@ static SpaceLink *action_new(const bContext *C)
 	BLI_addtail(&saction->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin= -10.0f;
-	ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
-	ar->v2d.tot.xmax= (float)(sa->winx);
-	ar->v2d.tot.ymax= 0.0f;
+	ar->v2d.tot.xmin = -10.0f;
+	ar->v2d.tot.ymin = (float)(-sa->winy)/3.0f;
+	ar->v2d.tot.xmax = (float)(sa->winx);
+	ar->v2d.tot.ymax = 0.0f;
 	
 	ar->v2d.cur = ar->v2d.tot;
 	
@@ -160,7 +160,7 @@ static void action_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Dopesheet", SPACE_ACTION, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Dopesheet", SPACE_ACTION, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -223,7 +223,7 @@ static void action_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Animation Channels", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Animation Channels", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -289,17 +289,17 @@ static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_MODIFIER:
-					if(wmn->action == NA_RENAME)
+					if (wmn->action == NA_RENAME)
 						ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 	}
 }
@@ -341,12 +341,12 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 				
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 	}
 }
@@ -438,7 +438,7 @@ static void action_header_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}

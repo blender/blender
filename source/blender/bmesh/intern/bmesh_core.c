@@ -240,7 +240,7 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
  * only create the face, since this calloc's the length is initialized to 0,
  * leave adding loops to the caller.
  */
-BM_INLINE BMFace *bm_face_create__internal(BMesh *bm)
+BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 {
 	BMFace *f;
 
@@ -1161,7 +1161,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 #endif
 
 	/* validate both loop */
-	/* I dont know how many loops are supposed to be in each face at this point! FIXME */
+	/* I don't know how many loops are supposed to be in each face at this point! FIXME */
 
 	/* go through all of f2's loops and make sure they point to it properly */
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f2);
@@ -1704,7 +1704,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
  *
  * \return Success
  */
-static int bm_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
+int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 {
 	BMEdge *e;
 	BMLoop *l;
@@ -1743,6 +1743,7 @@ static int bm_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
  * vertex for each region. returns an array of all resulting vertices.
  *
  * \note this is a low level function, bm_edge_separate needs to run on edges first
+ * or, the faces sharing verts must not be sharing edges for them to split at least.
  *
  * \return Success
  */
@@ -1793,7 +1794,12 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 	}
 
 	/* Replace v with the new verts in each group */
+#if 0
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+		/* call first since its faster then a hash lookup */
+		if (l->v != v) {
+			continue;
+		}
 		i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, l->e));
 		if (i == 0) {
 			continue;
@@ -1805,10 +1811,28 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 		 * towards vertex v, and another for the loop heading out from
 		 * vertex v. Only need to swap the vertex on one of those times,
 		 * on the outgoing loop. */
-		if (l->v == v) {
-			l->v = verts[i];
+
+		/* XXX - because this clobbers the iterator, this *whole* block is commented, see below */
+		l->v = verts[i];
+	}
+#else
+	/* note: this is the same as the commented code above *except* that it doesnt break iterator
+	 * by modifying data it loops over [#30632], this re-uses the 'stack' variable which is a bit
+	 * bad practice but save alloc'ing a new array - note, the comment above is useful, keep it
+	 * if you are tidying up code - campbell */
+	BLI_array_empty(stack);
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+		if ((l->v == v) && (i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, l->e)))) {
+			BM_elem_index_set(l, i); /* would be nice to assign vert here but cant, so assign the vert index */
+			BLI_array_append(stack, (BMEdge *)l);
 		}
 	}
+	while ((l = (BMLoop *)(BLI_array_pop(stack)))) {
+		l->v = verts[BM_elem_index_get(l)];
+	}
+#endif
+
+	BLI_array_free(stack);
 
 	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
 		i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, e));
@@ -1823,7 +1847,6 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 	}
 
 	BLI_ghash_free(visithash, NULL, NULL);
-	BLI_array_free(stack);
 
 	for (i = 0; i < maxindex; i++) {
 		BM_CHECK_ELEMENT(bm, verts[i]);
@@ -2006,7 +2029,7 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl)
 
 			/* And then glue the rest back together */
 			for (i = 1; i < len - 1; i++) {
-				bm_vert_splice(bm, vtar[i], vtar[0]);
+				BM_vert_splice(bm, vtar[i], vtar[0]);
 			}
 		}
 	}

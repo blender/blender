@@ -77,7 +77,7 @@ static struct PyModuleDef gpumodule = {
 PyMODINIT_FUNC
 PyInit_gpu(void)
 {
-	PyObject* m;
+	PyObject *m;
 
 	m = PyModule_Create(&gpumodule);
 	if (m == NULL)
@@ -155,14 +155,14 @@ PyDoc_STRVAR(GPU_export_shader_doc,
 "   :return: Dictionary defining the shader, uniforms and attributes.\n"
 "   :rtype: Dict"
 );
-static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObject *kwds)
+static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-	PyObject* pyscene;
-	PyObject* pymat;
-	PyObject* result;
-	PyObject* dict;
-	PyObject* val;
-	PyObject* seq;
+	PyObject *pyscene;
+	PyObject *pymat;
+	PyObject *result;
+	PyObject *dict;
+	PyObject *val;
+	PyObject *seq;
 
 	int i;
 	Scene *scene;
@@ -174,7 +174,7 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 
 	static const char *kwlist[] = {"scene", "material", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:export_shader", (char**)(kwlist), &pyscene, &pymat))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:export_shader", (char **)(kwlist), &pyscene, &pymat))
 		return NULL;
 
 	scene = (Scene *)PyC_RNA_AsPointer(pyscene, "Scene");
@@ -202,7 +202,7 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 		PY_DICT_ADD_STRING(result,shader,vertex);
 	}
 	seq = PyList_New(BLI_countlist(&shader->uniforms));
-	for (i=0, uniform=shader->uniforms.first; uniform; uniform=uniform->next, i++) {
+	for (i = 0, uniform = shader->uniforms.first; uniform; uniform = uniform->next, i++) {
 		dict = PyDict_New();
 		PY_DICT_ADD_STRING(dict,uniform,varname);
 		PY_DICT_ADD_LONG(dict,uniform,datatype);
@@ -230,7 +230,7 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 	Py_DECREF(seq);
 
 	seq = PyList_New(BLI_countlist(&shader->attributes));
-	for (i=0, attribute=shader->attributes.first; attribute; attribute=attribute->next, i++) {
+	for (i = 0, attribute = shader->attributes.first; attribute; attribute = attribute->next, i++) {
 		dict = PyDict_New();
 		PY_DICT_ADD_STRING(dict,attribute,varname);
 		PY_DICT_ADD_LONG(dict,attribute,datatype);
@@ -260,9 +260,9 @@ static PyMethodDef meth_export_shader[] = {
 	{"export_shader", (PyCFunction)GPU_export_shader, METH_VARARGS | METH_KEYWORDS, GPU_export_shader_doc}
 };
 
-PyObject* GPU_initPython(void)
+PyObject *GPU_initPython(void)
 {
-	PyObject* module = PyInit_gpu();
+	PyObject *module = PyInit_gpu();
 	PyModule_AddObject(module, "export_shader", (PyObject *)PyCFunction_New(meth_export_shader, NULL));
 	PyDict_SetItemString(PyImport_GetModuleDict(), "gpu", module);
 

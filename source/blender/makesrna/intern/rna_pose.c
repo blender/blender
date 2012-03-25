@@ -45,7 +45,8 @@
 
 
 
-/* XXX: this RNA enum define is currently duplicated for objects, since there is some text here which is not applicable */
+/* XXX: this RNA enum define is currently duplicated for objects,
+ * since there is some text here which is not applicable */
 EnumPropertyItem posebone_rotmode_items[] = {
 	{ROT_MODE_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
 	{ROT_MODE_XYZ, "XYZ", 0, "XYZ Euler", "XYZ Rotation Order (prone to Gimbal Lock)"},
@@ -125,16 +126,13 @@ static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
 			memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
 		}
 		else {
-			/* init custom colors with a generic multi-color rgb set, if not initialised already (for custom color set) */
+			/* init custom colors with a generic multi-color rgb set, if not initialized already
+			 * (for custom color set) */
 			if (grp->cs.solid[0] == 0) {
 				/* define for setting colors in theme below */
-				#define SETCOL(col, r, g, b, a)  col[0] = r; col[1] = g; col[2] = b; col[3] = a;
-				
-				SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
-				SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
-				SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
-				
-				#undef SETCOL
+				rgba_char_args_set(grp->cs.solid, 0xff, 0x00, 0x00, 255);
+				rgba_char_args_set(grp->cs.select, 0x81, 0xe6, 0x14, 255);
+				rgba_char_args_set(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
 			}
 		}
 	}
@@ -221,7 +219,8 @@ static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
 	bPoseChannel *pchan = ptr->data;
 	
 	/* use API Method for conversions... */
-	BKE_rotMode_change_values(pchan->quat, pchan->eul, pchan->rotAxis, &pchan->rotAngle, pchan->rotmode, (short)value);
+	BKE_rotMode_change_values(pchan->quat, pchan->eul, pchan->rotAxis, &pchan->rotAngle,
+	                          pchan->rotmode, (short)value);
 	
 	/* finally, set the new rotation type */
 	pchan->rotmode = value;
@@ -678,7 +677,8 @@ static void rna_def_bone_group(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "colors", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "ThemeBoneColorSet");
-	RNA_def_property_pointer_sdna(prop, NULL, "cs"); /* NOTE: the DNA data is not really a pointer, but this code works :) */
+		/* NOTE: the DNA data is not really a pointer, but this code works :) */
+	RNA_def_property_pointer_sdna(prop, NULL, "cs");
 	RNA_def_property_ui_text(prop, "Colors", "Copy of the colors associated with the group's color set");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 }
@@ -790,7 +790,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_location_editable");
 	RNA_def_property_ui_text(prop, "Location", "");
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable"); /* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+		/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
 	prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
@@ -798,7 +799,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_scale_editable");
 	RNA_def_property_float_array_default(prop, default_scale);
 	RNA_def_property_ui_text(prop, "Scale", "");
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable"); /* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+		/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
 	prop = RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
@@ -806,7 +808,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
 	RNA_def_property_float_array_default(prop, default_quat);
 	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions");
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable"); /* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+		/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
 		/* XXX: for axis-angle, it would have been nice to have 2 separate fields for UI purposes, but
@@ -819,13 +822,15 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
 	RNA_def_property_float_array_default(prop, default_axisAngle);
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation");
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable"); /* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+		/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
 	prop = RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "eul");
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_euler_editable");
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable"); /* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+		/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
@@ -833,7 +838,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
 	RNA_def_property_enum_items(prop, posebone_rotmode_items); /* XXX move to using a single define of this someday */
 	RNA_def_property_enum_funcs(prop, NULL, "rna_PoseChannel_rotation_mode_set", NULL);
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable"); /* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+		/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_ui_text(prop, "Rotation Mode", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
@@ -858,7 +864,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
 	RNA_def_property_float_funcs(prop, NULL, "rna_PoseChannel_matrix_set", NULL);
-	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix after constraints and drivers are applied (object space)");
+	RNA_def_property_ui_text(prop, "Pose Matrix",
+	                         "Final 4x4 matrix after constraints and drivers are applied (object space)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
 	/* Head/Tail Coordinates (in Pose Space) - Automatically calculated... */
@@ -1025,7 +1032,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "custom_tx");
 	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Custom Shape Transform", "Bone that defines the display transform of this custom shape");
+	RNA_def_property_ui_text(prop, "Custom Shape Transform",
+	                         "Bone that defines the display transform of this custom shape");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
@@ -1043,7 +1051,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "bone_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "BoneGroup");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_PoseChannel_bone_group_get", "rna_PoseChannel_bone_group_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_PoseChannel_bone_group_get",
+	                               "rna_PoseChannel_bone_group_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Bone Group", "Bone Group this pose channel belongs to");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
@@ -1065,7 +1074,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
-		/* XXX this is sub-optimal - it really should be included above, but due to technical reasons we can't do this! */
+		/* XXX this is sub-optimal - it really should be included above, but due to technical reasons
+		 *     we can't do this! */
 	prop = RNA_def_property(srna, "lock_rotation_w", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTW);
 	RNA_def_property_ui_text(prop, "Lock Rotation (4D Angle)",
@@ -1099,12 +1109,14 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 		{0, "ANIMATION", 0, "Animation",
 		    "Stateless solver computing pose starting from current action and non-IK constraints"},
 		{ITASC_SIMULATION, "SIMULATION", 0, "Simulation",
-		                   "Statefull solver running in real-time context and ignoring actions and non-IK constraints"},
+		                   "Statefull solver running in real-time context and ignoring actions "
+		                   "and non-IK constraints"},
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_itasc_reiteration_items[] = {
 		{0, "NEVER", 0, "Never", "The solver does not reiterate, not even on first frame (starts from rest pose)"},
 		{ITASC_INITIAL_REITERATION, "INITIAL", 0, "Initial",
-		                            "The solver reiterates (converges) on the first frame but not on subsequent frame"},
+		                            "The solver reiterates (converges) on the first frame but not on "
+		                            "subsequent frame"},
 		{ITASC_INITIAL_REITERATION|ITASC_REITERATION, "ALWAYS", 0, "Always",
 		                                              "The solver reiterates (converges) on all frames"},
 		{0, NULL, 0, NULL, NULL}};
@@ -1125,7 +1137,8 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "numiter");
 	RNA_def_property_range(prop, 1.f,1000.f);
-	RNA_def_property_ui_text(prop, "Iterations", "Maximum number of iterations for convergence in case of reiteration");
+	RNA_def_property_ui_text(prop, "Iterations",
+	                         "Maximum number of iterations for convergence in case of reiteration");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
 	prop = RNA_def_property(srna, "step_count", PROP_INT, PROP_NONE);
@@ -1151,7 +1164,8 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_auto_step", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ITASC_AUTO_STEP);
 	RNA_def_property_ui_text(prop, "Auto step",
-	                         "Automatically determine the optimal number of steps for best performance/accuracy trade off");
+	                         "Automatically determine the optimal number of steps for best "
+	                         "performance/accuracy trade off");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
 	prop = RNA_def_property(srna, "step_min", PROP_FLOAT, PROP_NONE);
@@ -1170,7 +1184,8 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "feedback");
 	RNA_def_property_range(prop, 0.0f,100.0f);
 	RNA_def_property_ui_text(prop, "Feedback",
-	                         "Feedback coefficient for error correction, average response time is 1/feedback (default=20)");
+	                         "Feedback coefficient for error correction, average response time is 1/feedback "
+	                         "(default=20)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
 	prop = RNA_def_property(srna, "velocity_max", PROP_FLOAT, PROP_NONE);
@@ -1216,7 +1231,8 @@ static void rna_def_pose_ikparam(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "iksolver");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_iksolver_items);
-	RNA_def_property_ui_text(prop, "IK Solver", "IK solver for which these parameters are defined, 0 for Legacy, 1 for iTaSC");
+	RNA_def_property_ui_text(prop, "IK Solver",
+	                         "IK solver for which these parameters are defined, 0 for Legacy, 1 for iTaSC");
 }
 
 /* pose.bone_groups */
@@ -1236,7 +1252,8 @@ static void rna_def_bone_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "BoneGroup");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_Pose_active_bone_group_get", "rna_Pose_active_bone_group_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Pose_active_bone_group_get",
+	                               "rna_Pose_active_bone_group_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Bone Group", "Active bone group for this pose");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
@@ -1263,7 +1280,9 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "chanbase", NULL);
 	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_ui_text(prop, "Pose Bones", "Individual pose bones for the armature");
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, "rna_PoseBones_lookup_string", NULL); /* can be removed, only for fast lookup */
+		/* can be removed, only for fast lookup */
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, "rna_PoseBones_lookup_string", NULL);
+
 	/* bone groups */
 	prop = RNA_def_property(srna, "bone_groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "agroups", NULL);

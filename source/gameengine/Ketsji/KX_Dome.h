@@ -163,7 +163,7 @@ protected:
 	int m_numfaces;		// 4 to 6 depending on the kind of dome image
 	int m_numimages;	//numfaces +1 if we have warp mesh
 
-	short m_resolution;	//resolution to tesselate the mesh
+	short m_resolution;	//resolution to tessellate the mesh
 	short m_mode;		// the mode (truncated, warped, panoramic,...)
 	short m_angle;		//the angle of the fisheye
 	float m_radangle;	//the angle of the fisheye in radians

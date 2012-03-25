@@ -69,7 +69,7 @@ ARegion *nla_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if(ar) return ar;
+	if (ar) return ar;
 
 	/* add subdiv level; after main */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
@@ -140,10 +140,10 @@ static SpaceLink *nla_new(const bContext *C)
 	BLI_addtail(&snla->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin= (float)(SFRA-10);
-	ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
-	ar->v2d.tot.xmax= (float)(EFRA+10);
-	ar->v2d.tot.ymax= 0.0f;
+	ar->v2d.tot.xmin = (float)(SFRA-10);
+	ar->v2d.tot.ymin = (float)(-sa->winy)/3.0f;
+	ar->v2d.tot.xmax = (float)(EFRA+10);
+	ar->v2d.tot.ymax = 0.0f;
 	
 	ar->v2d.cur = ar->v2d.tot;
 	
@@ -210,13 +210,13 @@ static void nla_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	/* own keymap */
 		/* own channels map first to override some channel keymaps */
-	keymap= WM_keymap_find(wm->defaultconf, "NLA Channels", SPACE_NLA, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "NLA Channels", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 		/* now generic channels map for everything else that can apply */
-	keymap= WM_keymap_find(wm->defaultconf, "Animation Channels", 0, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Animation Channels", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -256,9 +256,9 @@ static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "NLA Editor", SPACE_NLA, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "NLA Editor", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -336,7 +336,7 @@ static void nla_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -371,7 +371,7 @@ static void nla_region_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -413,11 +413,11 @@ static void nla_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 	}
 }
@@ -446,12 +446,12 @@ static void nla_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 
 		default:
-			if(wmn->data==ND_KEYS)
+			if (wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
 	}
 }
@@ -487,7 +487,7 @@ static void nla_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_NLA)
+			if (wmn->data == ND_SPACE_NLA)
 				ED_area_tag_redraw(sa);
 			break;
 	}

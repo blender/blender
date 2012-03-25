@@ -157,7 +157,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	if (available_w <= loadbutton + separator + input_minw 
 	 || params->title[0] == 0) {
 		loadbutton = 0;
-	} else {
+	}
+	else {
 		line1_w -= (loadbutton + separator);
 		line2_w  = line1_w;
 	}
@@ -166,7 +167,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	fnumbuttons = 2 * btn_fn_w;
 	if (!loadbutton || line2_w <= fnumbuttons + separator + input_minw) {
 		fnumbuttons = 0;
-	} else {
+	}
+	else {
 		line2_w -= (fnumbuttons + separator);
 	}
 	
@@ -183,16 +185,17 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
 		uiButSetFlag(but, UI_BUT_NO_UTF8);
 
-		if((params->flag & FILE_DIRSEL_ONLY) == 0) {
+		if ((params->flag & FILE_DIRSEL_ONLY) == 0) {
 			but = uiDefBut(block, TEX, B_FS_FILENAME, "",
 			               min_x, line2_y, line2_w-chan_offs, btn_h,
 			               params->file, 0.0, (float)FILE_MAXFILE, 0, 0,
 			               TIP_(overwrite_alert ?N_("File name, overwrite existing") : N_("File name")));
 			uiButSetCompleteFunc(but, autocomplete_file, NULL);
 			uiButSetFlag(but, UI_BUT_NO_UTF8);
+			uiButClearFlag(but, UI_BUT_UNDO); /* operator button above does this automatic */
 
 			/* check if this overrides a file and if the operator option is used */
-			if(overwrite_alert) {
+			if (overwrite_alert) {
 				uiButSetFlag(but, UI_BUT_REDALERT);
 			}
 		}
@@ -219,7 +222,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	}
 	
 	/* Execute / cancel buttons. */
-	if(loadbutton) {
+	if (loadbutton) {
 		
 		uiDefButO(block, BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, IFACE_(params->title),
 			max_x - loadbutton, line1_y, loadbutton, btn_h, TIP_(params->title));
@@ -246,7 +249,7 @@ static int get_file_icon(struct direntry *file)
 		if ( strcmp(file->relname, "..") == 0) {
 				return  ICON_FILE_PARENT;
 		}
-		if(file->flags & BLENDERFILE) {
+		if (file->flags & BLENDERFILE) {
 			return ICON_FILE_BLEND;
 		}
 		return ICON_FILE_FOLDER;
@@ -284,7 +287,7 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 	
 	/*if (icon == ICON_FILE_BLANK) alpha = 0.375f;*/
 
-	but= uiDefIconBut(block, LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "");
+	but = uiDefIconBut(block, LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "");
 	uiButSetDragPath(but, path);
 }
 
@@ -342,7 +345,8 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 				scaledx =  ( (float)imb->x/(float)imb->y )*layout->prv_h;
 				scale = scaledy/imb->y;
 			}
-		} else {
+		}
+		else {
 			scaledx = (float)imb->x;
 			scaledy = (float)imb->y;
 			scale = 1.0;
@@ -375,7 +379,7 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 		}
 		
 		/* dragregion */
-		but= uiDefBut(block, LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, "");
+		but = uiDefBut(block, LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, "");
 		uiButSetDragImage(but, file->path, get_file_icon(file), imb, scale);
 		
 		glDisable(GL_BLEND);
@@ -395,7 +399,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 	BLI_strncpy(filename, sfile->params->renameedit, sizeof(filename));
 	BLI_make_file_string(G.main->name, newname, sfile->params->dir, filename);
 
-	if( strcmp(orgname, newname) != 0 ) {
+	if ( strcmp(orgname, newname) != 0 ) {
 		if (!BLI_exists(newname)) {
 			BLI_rename(orgname, newname);
 			/* to make sure we show what is on disk */
@@ -476,7 +480,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	/* adjust, so the next row is already drawn when scrolling */
 	if (layout->flag & FILE_LAYOUT_HOR) {
 		numfiles_layout += layout->rows;
-	} else {
+	}
+	else {
 		numfiles_layout += layout->columns;
 	}
 
@@ -514,7 +519,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			}
 			
 			file_draw_preview(block, file, sx, sy, imb, layout, !is_icon && (file->flags & IMAGEFILE));
-		} else {
+		}
+		else {
 			file_draw_icon(block, file->path, sx, sy-(UI_UNIT_Y / 6), get_file_icon(file), ICON_DEFAULT_WIDTH_SCALE, ICON_DEFAULT_HEIGHT_SCALE);
 			sx += ICON_DEFAULT_WIDTH_SCALE + 4;
 		}
@@ -526,6 +532,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				textwidth, textheight, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit),0,0,"");
 			uiButSetRenameFunc(but, renamebutton_cb, file);
 			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
+			uiButClearFlag(but, UI_BUT_UNDO);
 			if ( 0 == uiButActiveOnly(C, block, but)) {
 				file->selflag &= ~EDITING_FILE;
 			}
@@ -542,7 +549,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				file_draw_string(sx, sy, file->size, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);	
 				sx += (int)layout->column_widths[COLUMN_SIZE] + 12;
 			}
-		} else if (params->display == FILE_LONGDISPLAY) {
+		}
+		else if (params->display == FILE_LONGDISPLAY) {
 			sx += (int)layout->column_widths[COLUMN_NAME] + 12;
 
 #ifndef WIN32

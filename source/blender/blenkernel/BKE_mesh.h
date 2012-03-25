@@ -111,6 +111,13 @@ int poly_find_loop_from_vert(const struct MPoly *poly,
 int poly_get_adj_loops_from_vert(unsigned adj_r[3], const struct MPoly *poly,
 								 const struct MLoop *mloop, unsigned vert);
 
+/* update the hide flag for edges and polys from the corresponding
+   flag in verts */
+void mesh_flush_hidden_from_verts(const struct MVert *mvert,
+								  const struct MLoop *mloop,
+								  struct MEdge *medge, int totedge,
+								  struct MPoly *mpoly, int totpoly);
+
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me, int unlink);
 struct Mesh *add_mesh(const char *name);
@@ -153,7 +160,8 @@ void mesh_get_texspace(struct Mesh *me, float r_loc[3], float r_rot[3], float r_
 /* if old, it converts mface->edcode to edge drawflags */
 void make_edges(struct Mesh *me, int old);
 
-void mesh_strip_loose_faces(struct Mesh *me);
+void mesh_strip_loose_faces(struct Mesh *me); /* Needed for compatibility (some old read code). */
+void mesh_strip_loose_polysloops(struct Mesh *me);
 void mesh_strip_loose_edges(struct Mesh *me);
 
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
@@ -243,13 +251,20 @@ UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v);
 void free_uv_vert_map(UvVertMap *vmap);
 
 /* Connectivity data */
+typedef struct MeshElemMap {
+	int *indices;
+	int count;
+} MeshElemMap;
+	
 typedef struct IndexNode {
 	struct IndexNode *next, *prev;
 	int index;
 } IndexNode;
-void create_vert_poly_map(struct ListBase **map, IndexNode **mem,
-                          struct MPoly *mface, struct MLoop *mloop,
-                          const int totvert, const int totface, const int totloop);
+
+void create_vert_poly_map(MeshElemMap **map, int **mem,
+                          const struct MPoly *mface, const struct MLoop *mloop,
+                          int totvert, int totface, int totloop);
+	
 void create_vert_edge_map(struct ListBase **map, IndexNode **mem, const struct MEdge *medge,
                           const int totvert, const int totedge);
 
@@ -261,11 +276,14 @@ int mesh_center_bounds(struct Mesh *me, float cent[3]);
 void mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 /* mesh_validate.c */
+/* XXX Loop v/e are unsigned, so using max uint_32 value as invalid marker... */
+#define INVALID_LOOP_EDGE_MARKER 4294967295u
 int BKE_mesh_validate_arrays(
-		struct Mesh *me,
+        struct Mesh *me,
         struct MVert *mverts, unsigned int totvert,
         struct MEdge *medges, unsigned int totedge,
-        struct MFace *mfaces, unsigned int totface,
+        struct MLoop *mloops, unsigned int totloop,
+        struct MPoly *mpolys, unsigned int totpoly,
         struct MDeformVert *dverts, /* assume totvert length */
         const short do_verbose, const short do_fixes);
 int BKE_mesh_validate(struct Mesh *me, int do_verbose);
@@ -279,11 +297,11 @@ void BKE_mesh_tessface_calc(struct Mesh *mesh);
 void BKE_mesh_tessface_ensure(struct Mesh *mesh);
 void BKE_mesh_tessface_clear(struct Mesh *mesh);
 
-/*convert a triangle of loop facedata to mface facedata*/
+/* Convert a triangle or quadrangle of loop/poly data to tessface data */
 void mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData *ldata,
                                  struct CustomData *pdata, int lindex[4], int findex,
                                  const int polyindex, const int mf_len,
-                                 const int numTex, const int numCol, const int hasWCol, const int hasOrigSpace);
+                                 const int numTex, const int numCol, const int hasPCol, const int hasOrigSpace);
 
 #ifdef __cplusplus
 }

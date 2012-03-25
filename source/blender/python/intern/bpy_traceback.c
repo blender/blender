@@ -54,7 +54,7 @@ parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
 
 	/* new style errors.  `err' is an instance */
 
-	if (! (v = PyObject_GetAttrString(err, "msg")))
+	if (!(v = PyObject_GetAttrString(err, "msg")))
 		goto finally;
 	*message = v;
 
@@ -62,7 +62,7 @@ parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
 		goto finally;
 	if (v == Py_None)
 		*filename = NULL;
-	else if (! (*filename = _PyUnicode_AsString(v)))
+	else if (!(*filename = _PyUnicode_AsString(v)))
 		goto finally;
 
 	Py_DECREF(v);
@@ -131,8 +131,8 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 			if (parse_syntax_error(value, &message, &filename, lineno, offset, &text)) {
 				/* python adds a '/', prefix, so check for both */
 				if ((BLI_path_cmp(filename, filepath) == 0) ||
-					((filename[0] == '\\' || filename[0] == '/') && BLI_path_cmp(filename + 1, filepath) == 0)
-				) {
+				    ((filename[0] == '\\' || filename[0] == '/') && BLI_path_cmp(filename + 1, filepath) == 0))
+				{
 					/* good */
 				}
 				else {

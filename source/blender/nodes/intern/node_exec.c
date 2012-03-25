@@ -55,13 +55,13 @@ void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack 
 	
 	/* build pointer stack */
 	if (in) {
-		for(sock= node->inputs.first; sock; sock= sock->next) {
+		for (sock= node->inputs.first; sock; sock= sock->next) {
 			*(in++) = node_get_socket_stack(stack, sock);
 		}
 	}
 	
 	if (out) {
-		for(sock= node->outputs.first; sock; sock= sock->next) {
+		for (sock= node->outputs.first; sock; sock= sock->next) {
 			*(out++) = node_get_socket_stack(stack, sock);
 		}
 	}
@@ -135,7 +135,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 	bNode **nodelist;
 	int totnodes, n;
 	
-	if((ntree->init & NTREE_TYPE_INIT)==0)
+	if ((ntree->init & NTREE_TYPE_INIT)==0)
 		ntreeInitTypes(ntree);
 	
 	/* get a dependency-sorted list of nodes */
@@ -147,10 +147,10 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 	exec->nodetree = ntree;
 	
 	/* group inputs essentially work as outputs */
-	for(gsock=ntree->inputs.first; gsock; gsock = gsock->next)
+	for (gsock=ntree->inputs.first; gsock; gsock = gsock->next)
 		node_init_output_index(gsock, &index);
 	/* set stack indexes */
-	for(n=0; n < totnodes; ++n) {
+	for (n=0; n < totnodes; ++n) {
 		node = nodelist[n];
 		
 		node->stack_index = index;
@@ -162,7 +162,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 			node_init_output_index(sock, &index);
 	}
 	/* group outputs essentially work as inputs */
-	for(gsock=ntree->outputs.first; gsock; gsock = gsock->next)
+	for (gsock=ntree->outputs.first; gsock; gsock = gsock->next)
 		node_init_input_index(gsock, &index);
 	
 	/* allocated exec data pointers for nodes */
@@ -181,13 +181,13 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 		/* ns = */ setup_stack(exec->stack, sock);
 	}
 	/* prepare all internal nodes for execution */
-	for(n=0, nodeexec= exec->nodeexec; n < totnodes; ++n, ++nodeexec) {
+	for (n=0, nodeexec= exec->nodeexec; n < totnodes; ++n, ++nodeexec) {
 		node = nodeexec->node = nodelist[n];
 		
 		/* tag inputs */
 		for (sock=node->inputs.first; sock; sock=sock->next) {
 			/* disable the node if an input link is invalid */
-			if(sock->link && !(sock->link->flag & NODE_LINK_VALID))
+			if (sock->link && !(sock->link->flag & NODE_LINK_VALID))
 				node->need_exec= 0;
 			
 			ns = setup_stack(exec->stack, sock);
@@ -199,7 +199,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 			/* ns = */ setup_stack(exec->stack, sock);
 		}
 		
-		if(node->typeinfo->initexecfunc)
+		if (node->typeinfo->initexecfunc)
 			nodeexec->data = node->typeinfo->initexecfunc(node);
 	}
 	/* prepare group tree outputs */
@@ -222,7 +222,7 @@ void ntree_exec_end(bNodeTreeExec *exec)
 	if (exec->stack)
 		MEM_freeN(exec->stack);
 	
-	for(n=0, nodeexec= exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+	for (n=0, nodeexec= exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 		if (nodeexec->node->typeinfo->freeexecfunc)
 			nodeexec->node->typeinfo->freeexecfunc(nodeexec->node, nodeexec->data);
 	}
@@ -240,8 +240,8 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
 	ListBase *lb= &exec->threadstack[thread];
 	bNodeThreadStack *nts;
 	
-	for(nts=lb->first; nts; nts=nts->next) {
-		if(!nts->used) {
+	for (nts=lb->first; nts; nts=nts->next) {
+		if (!nts->used) {
 			nts->used= 1;
 			break;
 		}
@@ -272,15 +272,15 @@ void ntreeExecNodes(bNodeTreeExec *exec, void *callerdata, int thread)
 	
 	/* nodes are presorted, so exec is in order of list */
 	
-	for(n=0, nodeexec= exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+	for (n=0, nodeexec= exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 		node = nodeexec->node;
-		if(node->need_exec) {
+		if (node->need_exec) {
 			node_get_stack(node, exec->stack, nsin, nsout);
 			/* Handle muted nodes...
 			 * If the mute func is not set, assume the node should never be muted,
 			 * and hence execute it!
 			 */
-			if(node->typeinfo->execfunc)
+			if (node->typeinfo->execfunc)
 				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
 			else if (node->typeinfo->newexecfunc)
 				node->typeinfo->newexecfunc(callerdata, thread, node, nodeexec->data, nsin, nsout);
@@ -298,15 +298,15 @@ void ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *call
 	
 	/* nodes are presorted, so exec is in order of list */
 	
-	for(n=0, nodeexec= exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+	for (n=0, nodeexec= exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 		node = nodeexec->node;
-		if(node->need_exec) {
+		if (node->need_exec) {
 			node_get_stack(node, nts->stack, nsin, nsout);
 			/* Handle muted nodes...
 			 * If the mute func is not set, assume the node should never be muted,
 			 * and hence execute it!
 			 */
-			if(node->typeinfo->execfunc)
+			if (node->typeinfo->execfunc)
 				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
 			else if (node->typeinfo->newexecfunc)
 				node->typeinfo->newexecfunc(callerdata, thread, node, nodeexec->data, nsin, nsout);

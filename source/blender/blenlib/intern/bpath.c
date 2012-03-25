@@ -30,10 +30,10 @@
  */
 
 /* TODO,
- * currently there are some cases we dont support.
+ * currently there are some cases we don't support.
  * - passing output paths to the visitor?, like render out.
  * - passing sequence strips with many images.
- * - passing directory paths - visitors dont know which path is a dir or a file.
+ * - passing directory paths - visitors don't know which path is a dir or a file.
  * */
 
 #include <sys/stat.h>
@@ -41,13 +41,13 @@
 #include <string.h>
 #include <assert.h>
 
-/* path/file handeling stuff */
+/* path/file handling stuff */
 #ifndef WIN32
-  #include <dirent.h>
-  #include <unistd.h>
+#  include <dirent.h>
+#  include <unistd.h>
 #else
-  #include <io.h>
-  #include "BLI_winstuff.h"
+#  include <io.h>
+#  include "BLI_winstuff.h"
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -83,7 +83,7 @@
 
 static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {
-	ReportList *reports= (ReportList *)userdata;
+	ReportList *reports = (ReportList *)userdata;
 
 	if (!BLI_exists(path_src)) {
 		BKE_reportf(reports, RPT_WARNING, "Path Not Found \"%s\"", path_src);
@@ -98,8 +98,7 @@ void checkMissingFiles(Main *bmain, ReportList *reports)
 	bpath_traverse_main(bmain, checkMissingFiles_visit_cb, BPATH_TRAVERSE_ABS, reports);
 }
 
-typedef struct BPathRemap_Data
-{
+typedef struct BPathRemap_Data {
 	const char *basedir;
 	ReportList *reports;
 
@@ -110,17 +109,17 @@ typedef struct BPathRemap_Data
 
 static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char *path_src)
 {
-	BPathRemap_Data *data= (BPathRemap_Data *)userdata;
+	BPathRemap_Data *data = (BPathRemap_Data *)userdata;
 
 	data->count_tot++;
 
-	if(strncmp(path_src, "//", 2)==0) {
+	if (strncmp(path_src, "//", 2) == 0) {
 		return FALSE; /* already relative */
 	}
 	else {
 		strcpy(path_dst, path_src);
 		BLI_path_rel(path_dst, data->basedir);
-		if (strncmp(path_dst, "//", 2)==0) {
+		if (strncmp(path_dst, "//", 2) == 0) {
 			data->count_changed++;
 		}
 		else {
@@ -133,15 +132,15 @@ static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char
 
 void makeFilesRelative(Main *bmain, const char *basedir, ReportList *reports)
 {
-	BPathRemap_Data data= {NULL};
+	BPathRemap_Data data = {NULL};
 
-	if(basedir[0] == '\0') {
+	if (basedir[0] == '\0') {
 		printf("%s: basedir='', this is a bug\n", __func__);
 		return;
 	}
 
-	data.basedir= basedir;
-	data.reports= reports;
+	data.basedir = basedir;
+	data.reports = reports;
 
 	bpath_traverse_main(bmain, makeFilesRelative_visit_cb, 0, (void *)&data);
 
@@ -152,17 +151,17 @@ void makeFilesRelative(Main *bmain, const char *basedir, ReportList *reports)
 
 static int makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char *path_src)
 {
-	BPathRemap_Data *data= (BPathRemap_Data *)userdata;
+	BPathRemap_Data *data = (BPathRemap_Data *)userdata;
 
 	data->count_tot++;
 
-	if(strncmp(path_src, "//", 2)!=0) {
+	if (strncmp(path_src, "//", 2) != 0) {
 		return FALSE; /* already absolute */
 	}
 	else {
 		strcpy(path_dst, path_src);
 		BLI_path_abs(path_dst, data->basedir);
-		if (strncmp(path_dst, "//", 2)!=0) {
+		if (strncmp(path_dst, "//", 2) != 0) {
 			data->count_changed++;
 		}
 		else {
@@ -176,15 +175,15 @@ static int makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char
 /* similar to makeFilesRelative - keep in sync! */
 void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
 {
-	BPathRemap_Data data= {NULL};
+	BPathRemap_Data data = {NULL};
 
-	if(basedir[0] == '\0') {
+	if (basedir[0] == '\0') {
 		printf("%s: basedir='', this is a bug\n", __func__);
 		return;
 	}
 
-	data.basedir= basedir;
-	data.reports= reports;
+	data.basedir = basedir;
+	data.reports = reports;
 
 	bpath_traverse_main(bmain, makeFilesAbsolute_visit_cb, 0, (void *)&data);
 
@@ -193,8 +192,7 @@ void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
 	            data.count_tot, data.count_changed, data.count_failed);
 }
 
-
-/* find this file recursively, use the biggest file so thumbnails dont get used by mistake
+/* find this file recursively, use the biggest file so thumbnails don't get used by mistake
  * - dir: subdir to search
  * - filename: set this filename
  * - filesize: filesize for the file
@@ -218,30 +216,30 @@ static int findFileRecursive(char *filename_new,
 
 	filename_new[0] = '\0';
 
-	dir= opendir(dirname);
+	dir = opendir(dirname);
 
-	if (dir==NULL)
+	if (dir == NULL)
 		return found;
 
 	if (*filesize == -1)
-		*filesize= 0; /* dir opened fine */
+		*filesize = 0; /* dir opened fine */
 
-	while ((de= readdir(dir)) != NULL) {
+	while ((de = readdir(dir)) != NULL) {
 
-		if (strcmp(".", de->d_name)==0 || strcmp("..", de->d_name)==0)
+		if (strcmp(".", de->d_name) == 0 || strcmp("..", de->d_name) == 0)
 			continue;
 
 		BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 
 		if (stat(path, &status) != 0)
-			continue; /* cant stat, dont bother with this file, could print debug info here */
+			continue; /* cant stat, don't bother with this file, could print debug info here */
 
 		if (S_ISREG(status.st_mode)) { /* is file */
-			if (strncmp(filename, de->d_name, FILE_MAX)==0) { /* name matches */
+			if (strncmp(filename, de->d_name, FILE_MAX) == 0) { /* name matches */
 				/* open the file to read its size */
-				size= status.st_size;
+				size = status.st_size;
 				if ((size > 0) && (size > *filesize)) { /* find the biggest file */
-					*filesize= size;
+					*filesize = size;
 					BLI_strncpy(filename_new, path, FILE_MAX);
 					found = TRUE;
 				}
@@ -259,8 +257,7 @@ static int findFileRecursive(char *filename_new,
 	return found;
 }
 
-typedef struct BPathFind_Data
-{
+typedef struct BPathFind_Data {
 	const char *basedir;
 	char searchdir[FILE_MAX];
 	ReportList *reports;
@@ -268,11 +265,11 @@ typedef struct BPathFind_Data
 
 static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char *path_src)
 {
-	BPathFind_Data *data= (BPathFind_Data *)userdata;
+	BPathFind_Data *data = (BPathFind_Data *)userdata;
 	char filename_new[FILE_MAX];
 
-	int filesize= -1;
-	int recur_depth= 0;
+	int filesize = -1;
+	int recur_depth = 0;
 	int found;
 
 	found = findFileRecursive(filename_new,
@@ -299,9 +296,9 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 
 void findMissingFiles(Main *bmain, const char *searchpath, ReportList *reports)
 {
-	struct BPathFind_Data data= {NULL};
+	struct BPathFind_Data data = {NULL};
 
-	data.reports= reports;
+	data.reports = reports;
 	BLI_split_dir_part(searchpath, data.searchdir, sizeof(data.searchdir));
 
 	bpath_traverse_main(bmain, findMissingFiles_visit_cb, 0, (void *)&data);
@@ -317,10 +314,10 @@ static int rewrite_path_fixed(char *path, BPathVisitor visit_cb, const char *abs
 	if (absbase) {
 		BLI_strncpy(path_src_buf, path, sizeof(path_src_buf));
 		BLI_path_abs(path_src_buf, absbase);
-		path_src= path_src_buf;
+		path_src = path_src_buf;
 	}
 	else {
-		path_src= path;
+		path_src = path;
 	}
 
 	if (visit_cb(userdata, path_dst, path_src)) {
@@ -365,15 +362,15 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 	if (absbase) {
 		BLI_strncpy(path_src_buf, *path, sizeof(path_src_buf));
 		BLI_path_abs(path_src_buf, absbase);
-		path_src= path_src_buf;
+		path_src = path_src_buf;
 	}
 	else {
-		path_src= *path;
+		path_src = *path;
 	}
 
 	if (visit_cb(userdata, path_dst, path_src)) {
 		MEM_freeN((*path));
-		(*path)= BLI_strdup(path_dst);
+		(*path) = BLI_strdup(path_dst);
 		return TRUE;
 	}
 	else {
@@ -385,7 +382,7 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	Image *ima;
-	const char *absbase= (flag & BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
+	const char *absbase = (flag & BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
 
 	if ((flag & BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
 		return;
@@ -413,8 +410,8 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 #define BPATH_TRAVERSE_POINTCACHE(ptcaches)                                    \
 	{                                                                          \
 		PointCache *cache;                                                     \
-		for(cache= (ptcaches).first; cache; cache= cache->next) {              \
-			if(cache->flag & PTCACHE_DISK_CACHE) {                             \
+		for (cache= (ptcaches).first; cache; cache= cache->next) {              \
+			if (cache->flag & PTCACHE_DISK_CACHE) {                             \
 				rewrite_path_fixed(cache->path,                                \
 				                   visit_cb,                                   \
 				                   absbase,                                    \
@@ -428,7 +425,6 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 			Object *ob= (Object *)id;
 			ModifierData *md;
 			ParticleSystem *psys;
-
 
 			/* do via modifiers instead */
 #if 0
@@ -446,7 +442,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 				}
 				else if (md->type == eModifierType_Smoke) {
 					SmokeModifierData *smd= (SmokeModifierData *)md;
-					if(smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+					if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
 						BPATH_TRAVERSE_POINTCACHE(smd->domain->ptcaches[0]);
 					}
 				}
@@ -533,7 +529,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 								len= MIN2(1, len);
 							}
 
-							for(i= 0; i < len; i++, se++) {
+							for (i= 0; i < len; i++, se++) {
 								rewrite_path_fixed_dirfile(seq->strip->dir, se->name,
 								                           visit_cb, absbase, bpath_user_data);
 							}
@@ -569,7 +565,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 	case ID_LI:
 		{
 			Library *lib= (Library *)id;
-			if(rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
+			if (rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
 				BKE_library_filepath_set(lib, lib->name);
 			}
 		}
@@ -589,7 +585,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 void bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	ID *id;
-	for(id= lb->first; id; id= id->next) {
+	for (id = lb->first; id; id = id->next) {
 		bpath_traverse_id(bmain, id, visit_cb, flag, bpath_user_data);
 	}
 }
@@ -597,8 +593,10 @@ void bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, co
 void bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
-	int a= set_listbasepointers(bmain, lbarray);
-	while(a--) bpath_traverse_id_list(bmain, lbarray[a], visit_cb, flag, bpath_user_data);
+	int a = set_listbasepointers(bmain, lbarray);
+	while (a--) {
+		bpath_traverse_id_list(bmain, lbarray[a], visit_cb, flag, bpath_user_data);
+	}
 }
 
 /* Rewrites a relative path to be relative to the main file - unless the path is
@@ -607,8 +605,8 @@ int bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_sr
 {
 	/* be sure there is low chance of the path being too short */
 	char filepath[(FILE_MAXDIR * 2) + FILE_MAXFILE];
-	const char *base_new= ((char **)pathbase_v)[0];
-	const char *base_old= ((char **)pathbase_v)[1];
+	const char *base_new = ((char **)pathbase_v)[0];
+	const char *base_old = ((char **)pathbase_v)[1];
 
 	if (strncmp(base_old, "//", 2) == 0) {
 		printf("%s: error, old base path '%s' is not absolute.\n",

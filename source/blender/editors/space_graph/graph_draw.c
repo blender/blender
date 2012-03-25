@@ -48,6 +48,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -72,7 +73,7 @@
  * drawing components for some F-Curve (fcu)
  *	- selected F-Curves should be more visible than partially visible ones
  */
-#define drawFCurveFade(fcu) ( ((fcu)->flag & FCURVE_SELECTED)? 1.0f : 0.25f )
+#define drawFCurveFade(fcu) ( ((fcu)->flag & FCURVE_SELECTED)? 1.0f : U.fcu_inactive_alpha )
 
 /* set the color for some point from some value given packed into an int 
  *	- intV: integer value containing color info packed into an int
@@ -498,7 +499,7 @@ static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2
 	/* when opening a blend file on a different sized screen or while dragging the toolbar this can happen
 	 * best just bail out in this case */
 	UI_view2d_grid_size(grid, &dx, &dy);
-	if(dx <= 0.0f)
+	if (dx <= 0.0f)
 		return;
 
 

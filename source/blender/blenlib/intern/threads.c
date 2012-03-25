@@ -78,8 +78,8 @@ static void *thread_tls_data;
  * 
  *     BLI_init_threads(&lb, do_something_func, maxthreads);
  * 
- *     while(cont) {
- *         if(BLI_available_threads(&lb) && !(escape loop event)) {
+ *     while (cont) {
+ *         if (BLI_available_threads(&lb) && !(escape loop event)) {
  *             // get new job (data pointer)
  *             // tag job 'processed 
  *             BLI_insert_thread(&lb, job);
@@ -88,17 +88,17 @@ static void *thread_tls_data;
  *         
  *         // find if a job is ready, this the do_something_func() should write in job somewhere
  *         cont= 0;
- *         for(go over all jobs)
- *             if(job is ready) {
- *                 if(job was not removed) {
+ *         for (go over all jobs)
+ *             if (job is ready) {
+ *                 if (job was not removed) {
  *                     BLI_remove_thread(&lb, job);
  *                 }
  *             }
  *             else cont= 1;
  *         }
  *         // conditions to exit loop 
- *         if(if escape loop event) {
- *             if(BLI_available_threadslots(&lb)==maxthreads)
+ *         if (if escape loop event) {
+ *             if (BLI_available_threadslots(&lb)==maxthreads)
  *                 break;
  *         }
  *     }
@@ -153,13 +153,13 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {
 	int a;
 
-	if(threadbase != NULL && tot > 0) {
+	if (threadbase != NULL && tot > 0) {
 		threadbase->first= threadbase->last= NULL;
 	
-		if(tot>RE_MAX_THREAD) tot= RE_MAX_THREAD;
-		else if(tot<1) tot= 1;
+		if (tot>RE_MAX_THREAD) tot= RE_MAX_THREAD;
+		else if (tot<1) tot= 1;
 	
-		for(a=0; a<tot; a++) {
+		for (a=0; a<tot; a++) {
 			ThreadSlot *tslot= MEM_callocN(sizeof(ThreadSlot), "threadslot");
 			BLI_addtail(threadbase, tslot);
 			tslot->do_thread= do_thread;
@@ -167,7 +167,7 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 		}
 	}
 	
-	if(thread_levels == 0) {
+	if (thread_levels == 0) {
 		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
 
 #if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
@@ -187,8 +187,8 @@ int BLI_available_threads(ListBase *threadbase)
 	ThreadSlot *tslot;
 	int counter=0;
 	
-	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
-		if(tslot->avail)
+	for (tslot= threadbase->first; tslot; tslot= tslot->next) {
+		if (tslot->avail)
 			counter++;
 	}
 	return counter;
@@ -200,8 +200,8 @@ int BLI_available_thread_index(ListBase *threadbase)
 	ThreadSlot *tslot;
 	int counter=0;
 	
-	for(tslot= threadbase->first; tslot; tslot= tslot->next, counter++) {
-		if(tslot->avail)
+	for (tslot= threadbase->first; tslot; tslot= tslot->next, counter++) {
+		if (tslot->avail)
 			return counter;
 	}
 	return 0;
@@ -229,8 +229,8 @@ void BLI_insert_thread(ListBase *threadbase, void *callerdata)
 {
 	ThreadSlot *tslot;
 	
-	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
-		if(tslot->avail) {
+	for (tslot= threadbase->first; tslot; tslot= tslot->next) {
+		if (tslot->avail) {
 			tslot->avail= 0;
 			tslot->callerdata= callerdata;
 			pthread_create(&tslot->pthread, NULL, tslot_thread_start, tslot);
@@ -244,8 +244,8 @@ void BLI_remove_thread(ListBase *threadbase, void *callerdata)
 {
 	ThreadSlot *tslot;
 	
-	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
-		if(tslot->callerdata==callerdata) {
+	for (tslot= threadbase->first; tslot; tslot= tslot->next) {
+		if (tslot->callerdata==callerdata) {
 			pthread_join(tslot->pthread, NULL);
 			tslot->callerdata= NULL;
 			tslot->avail= 1;
@@ -258,7 +258,7 @@ void BLI_remove_thread_index(ListBase *threadbase, int index)
 	ThreadSlot *tslot;
 	int counter=0;
 	
-	for(tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
+	for (tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
 		if (counter == index && tslot->avail == 0) {
 			pthread_join(tslot->pthread, NULL);
 			tslot->callerdata = NULL;
@@ -272,7 +272,7 @@ void BLI_remove_threads(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
 	
-	for(tslot = threadbase->first; tslot; tslot = tslot->next) {
+	for (tslot = threadbase->first; tslot; tslot = tslot->next) {
 		if (tslot->avail == 0) {
 			pthread_join(tslot->pthread, NULL);
 			tslot->callerdata = NULL;
@@ -289,8 +289,8 @@ void BLI_end_threads(ListBase *threadbase)
 	 * this way we don't end up decrementing thread_levels on an empty threadbase 
 	 * */
 	if (threadbase && threadbase->first != NULL) {
-		for(tslot= threadbase->first; tslot; tslot= tslot->next) {
-			if(tslot->avail==0) {
+		for (tslot= threadbase->first; tslot; tslot= tslot->next) {
+			if (tslot->avail==0) {
 				pthread_join(tslot->pthread, NULL);
 			}
 		}
@@ -298,7 +298,7 @@ void BLI_end_threads(ListBase *threadbase)
 	}
 
 	thread_levels--;
-	if(thread_levels==0)
+	if (thread_levels==0)
 		MEM_set_lock_callback(NULL, NULL);
 }
 
@@ -366,17 +366,17 @@ void BLI_unlock_thread(int type)
 		pthread_mutex_unlock(&_preview_lock);
 	else if (type==LOCK_VIEWER)
 		pthread_mutex_unlock(&_viewer_lock);
-	else if(type==LOCK_CUSTOM1)
+	else if (type==LOCK_CUSTOM1)
 		pthread_mutex_unlock(&_custom1_lock);
-	else if(type==LOCK_RCACHE)
+	else if (type==LOCK_RCACHE)
 		pthread_mutex_unlock(&_rcache_lock);
-	else if(type==LOCK_OPENGL)
+	else if (type==LOCK_OPENGL)
 		pthread_mutex_unlock(&_opengl_lock);
-	else if(type==LOCK_NODES)
+	else if (type==LOCK_NODES)
 		pthread_mutex_unlock(&_nodes_lock);
-	else if(type==LOCK_MOVIECLIP)
+	else if (type==LOCK_MOVIECLIP)
 		pthread_mutex_unlock(&_movieclip_lock);
-	else if(type == LOCK_SCANFILL)
+	else if (type == LOCK_SCANFILL)
 		pthread_mutex_unlock(&_scanfill_lock);
 }
 
@@ -411,7 +411,7 @@ void BLI_rw_mutex_init(ThreadRWMutex *mutex)
 
 void BLI_rw_mutex_lock(ThreadRWMutex *mutex, int mode)
 {
-	if(mode == THREAD_LOCK_READ)
+	if (mode == THREAD_LOCK_READ)
 		pthread_rwlock_rdlock(mutex);
 	else
 		pthread_rwlock_wrlock(mutex);
@@ -498,7 +498,7 @@ void BLI_insert_work(ThreadedWorker *worker, void *param)
 	
 	if (BLI_available_threads(&worker->threadbase) == 0) {
 		index = worker->total;
-		while(index == worker->total) {
+		while (index == worker->total) {
 			PIL_sleep_ms(worker->sleep_time);
 			
 			for (index = 0; index < worker->total; index++) {
@@ -571,11 +571,11 @@ void *BLI_thread_queue_pop(ThreadQueue *queue)
 
 	/* wait until there is work */
 	pthread_mutex_lock(&queue->mutex);
-	while(BLI_gsqueue_is_empty(queue->queue) && !queue->nowait)
+	while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait)
 		pthread_cond_wait(&queue->cond, &queue->mutex);
 
 	/* if we have something, pop it */
-	if(!BLI_gsqueue_is_empty(queue->queue))
+	if (!BLI_gsqueue_is_empty(queue->queue))
 		BLI_gsqueue_pop(queue->queue, &work);
 
 	pthread_mutex_unlock(&queue->mutex);
@@ -629,15 +629,15 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 
 	/* wait until there is work */
 	pthread_mutex_lock(&queue->mutex);
-	while(BLI_gsqueue_is_empty(queue->queue) && !queue->nowait) {
-		if(pthread_cond_timedwait(&queue->cond, &queue->mutex, &timeout) == ETIMEDOUT)
+	while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait) {
+		if (pthread_cond_timedwait(&queue->cond, &queue->mutex, &timeout) == ETIMEDOUT)
 			break;
-		else if(PIL_check_seconds_timer() - t >= ms*0.001)
+		else if (PIL_check_seconds_timer() - t >= ms*0.001)
 			break;
 	}
 
 	/* if we have something, pop it */
-	if(!BLI_gsqueue_is_empty(queue->queue))
+	if (!BLI_gsqueue_is_empty(queue->queue))
 		BLI_gsqueue_pop(queue->queue, &work);
 
 	pthread_mutex_unlock(&queue->mutex);
@@ -669,7 +669,7 @@ void BLI_thread_queue_nowait(ThreadQueue *queue)
 
 void BLI_begin_threaded_malloc(void)
 {
-	if(thread_levels == 0) {
+	if (thread_levels == 0) {
 		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
 	}
 	thread_levels++;
@@ -678,6 +678,6 @@ void BLI_begin_threaded_malloc(void)
 void BLI_end_threaded_malloc(void)
 {
 	thread_levels--;
-	if(thread_levels==0)
+	if (thread_levels==0)
 		MEM_set_lock_callback(NULL, NULL);
 }

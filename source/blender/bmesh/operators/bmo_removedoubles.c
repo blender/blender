@@ -368,7 +368,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	BMO_op_callf(bm, "collapse_uvs edges=%s", op, "edges");
 	BMO_op_init(bm, &weldop, "weldverts");
 
-	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 
 	BMW_init(&walker, bm, BMW_SHELL,
 	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP, BMW_MASK_NOP,
@@ -427,7 +427,7 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	/* clear all short flags */
 	BMO_mesh_flag_disable_all(bm, op, BM_ALL, (1 << 16) - 1);
 
-	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 
 	BMW_init(&walker, bm, BMW_LOOPDATA_ISLAND,
 	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP, BMW_MASK_NOP,
@@ -504,7 +504,7 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 
 	/* Flag keepverts */
 	if (keepvert) {
-		BMO_slot_buffer_flag_enable(bm, op, "keepverts", VERT_KEEP, BM_VERT);
+		BMO_slot_buffer_flag_enable(bm, op, "keepverts", BM_VERT, VERT_KEEP);
 	}
 
 	len = BLI_array_count(verts);
@@ -571,7 +571,7 @@ void bmo_automerge_exec(BMesh *bm, BMOperator *op)
 	/* The "verts" input sent to this op is the set of verts that
 	 * can be merged away into any other verts. Mark all other verts
 	 * as VERT_KEEP. */
-	BMO_slot_buffer_flag_enable(bm, op, "verts", VERT_IN, BM_VERT);
+	BMO_slot_buffer_flag_enable(bm, op, "verts", BM_VERT, VERT_IN);
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BMO_elem_flag_test(bm, v, VERT_IN)) {
 			BMO_elem_flag_enable(bm, v, VERT_KEEP);

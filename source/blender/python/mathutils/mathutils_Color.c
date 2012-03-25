@@ -159,21 +159,21 @@ static PyObject *Color_richcmpr(PyObject *a, PyObject *b, int op)
 	}
 
 	switch (op) {
-	case Py_NE:
-		ok = !ok; /* pass through */
-	case Py_EQ:
-		res = ok ? Py_False : Py_True;
-		break;
+		case Py_NE:
+			ok = !ok; /* pass through */
+		case Py_EQ:
+			res = ok ? Py_False : Py_True;
+			break;
 
-	case Py_LT:
-	case Py_LE:
-	case Py_GT:
-	case Py_GE:
-		res = Py_NotImplemented;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
+		case Py_LT:
+		case Py_LE:
+		case Py_GT:
+		case Py_GE:
+			res = Py_NotImplemented;
+			break;
+		default:
+			PyErr_BadArgument();
+			return NULL;
 	}
 
 	return Py_INCREF(res), res;
@@ -218,7 +218,7 @@ static int Color_ass_item(ColorObject *self, int i, PyObject *value)
 		return -1;
 	}
 
-	if (i < 0) i= COLOR_SIZE - i;
+	if (i < 0) i = COLOR_SIZE - i;
 
 	if (i < 0 || i >= COLOR_SIZE) {
 		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: "
@@ -504,7 +504,7 @@ static PyObject *Color_mul(PyObject *v1, PyObject *v2)
 
 	/* make sure v1 is always the vector */
 	if (color1 && color2) {
-		/* col * col, dont support yet! */
+		/* col * col, don't support yet! */
 	}
 	else if (color1) {
 		if (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0) { /* COLOR * FLOAT */
@@ -885,14 +885,15 @@ PyObject *Color_CreatePyObject(float *col, int type, PyTypeObject *base_type)
 	return (PyObject *)self;
 }
 
-PyObject *Color_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype)
+PyObject *Color_CreatePyObject_cb(PyObject *cb_user,
+                                  unsigned char cb_type, unsigned char cb_subtype)
 {
 	ColorObject *self = (ColorObject *)Color_CreatePyObject(NULL, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 

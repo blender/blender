@@ -48,27 +48,27 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha, z */
 	
-	if(node->flag & NODE_DO_OUTPUT) {	/* only one works on out */
+	if (node->flag & NODE_DO_OUTPUT) {	/* only one works on out */
 		Scene *scene= (Scene *)node->id;
 		RenderData *rd= data;
 		
-		if(scene && (rd->scemode & R_DOCOMP)) {
+		if (scene && (rd->scemode & R_DOCOMP)) {
 			Render *re= RE_GetRender(scene->id.name);
 			RenderResult *rr= RE_AcquireResultWrite(re); 
-			if(rr) {
+			if (rr) {
 				CompBuf *outbuf, *zbuf=NULL;
 				
-				if(rr->rectf) 
+				if (rr->rectf) 
 					MEM_freeN(rr->rectf);
 				outbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 1);
 				
-				if(in[1]->data==NULL)
+				if (in[1]->data==NULL)
 					composit1_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, do_copy_rgba, CB_RGBA);
 				else
 					composit2_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba, CB_RGBA, CB_VAL);
 				
-				if(in[2]->data) {
-					if(rr->rectz) 
+				if (in[2]->data) {
+					if (rr->rectz) 
 						MEM_freeN(rr->rectz);
 					zbuf= alloc_compbuf(rr->rectx, rr->recty, CB_VAL, 1);
 					composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value, CB_VAL);
@@ -93,7 +93,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 				RE_ReleaseResult(re);
 		}
 	}
-	if(in[0]->data)
+	if (in[0]->data)
 		generate_preview(data, node, in[0]->data);
 }
 

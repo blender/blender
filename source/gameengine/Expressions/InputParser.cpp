@@ -108,7 +108,7 @@ void CParser::TermChar(char c)
 {
 	// generates an error if the next char isn't the specified char c,
 	// otherwise, skip the char
-	if(ch == c)
+	if (ch == c)
 	{
 		NextCh();
 	}
@@ -379,7 +379,7 @@ void CParser::Term(int s)
 {
 	// generates an error if the next symbol isn't the specified symbol s
 	// otherwise, skip the symbol
-	if(s == sym) NextSym();
+	if (s == sym) NextSym();
 	else {
 		STR_String msg;
 		msg.Format("Warning: " + Symbol2Str(s) + " expected\ncontinuing without it");

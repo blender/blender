@@ -84,7 +84,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
-	if(mmd->mirror_ob) {
+	if (mmd->mirror_ob) {
 		DagNode *latNode = dag_get_node(forest, mmd->mirror_ob);
 
 		dag_add_relation(forest, latNode, obNode,
@@ -162,7 +162,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	}
 
 	/* copy customdata to new geometry,
-	 * copy from its self becayse this data may have been created in the checks above */
+	 * copy from its self because this data may have been created in the checks above */
 	DM_copy_vert_data(result, result, 0, maxVerts, maxVerts);
 	DM_copy_edge_data(result, result, 0, maxEdges, maxEdges);
 	/* loops are copied later */
@@ -272,8 +272,12 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
 		
 		if (flip_map) {
-			for (i = maxVerts; i-- > 0; dvert++) {
-				defvert_flip(dvert, flip_map, flip_map_len);
+			for (i = 0; i < maxVerts; dvert++, i++) {
+				/* merged vertices get both groups, others get flipped */
+				if (do_vtargetmap && (vtargetmap[i] != -1))
+					defvert_flip_merged(dvert, flip_map, flip_map_len);
+				else
+					defvert_flip(dvert, flip_map, flip_map_len);
 			}
 
 			MEM_freeN(flip_map);
@@ -298,18 +302,18 @@ static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 	DerivedMesh *result = dm;
 
 	/* check which axes have been toggled and mirror accordingly */
-	if(mmd->flag & MOD_MIR_AXIS_X) {
+	if (mmd->flag & MOD_MIR_AXIS_X) {
 		result = doMirrorOnAxis(mmd, ob, result, 0);
 	}
-	if(mmd->flag & MOD_MIR_AXIS_Y) {
+	if (mmd->flag & MOD_MIR_AXIS_Y) {
 		DerivedMesh *tmp = result;
 		result = doMirrorOnAxis(mmd, ob, result, 1);
-		if(tmp != dm) tmp->release(tmp); /* free intermediate results */
+		if (tmp != dm) tmp->release(tmp); /* free intermediate results */
 	}
-	if(mmd->flag & MOD_MIR_AXIS_Z) {
+	if (mmd->flag & MOD_MIR_AXIS_Z) {
 		DerivedMesh *tmp = result;
 		result = doMirrorOnAxis(mmd, ob, result, 2);
-		if(tmp != dm) tmp->release(tmp); /* free intermediate results */
+		if (tmp != dm) tmp->release(tmp); /* free intermediate results */
 	}
 
 	return result;
@@ -325,7 +329,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	result = mirrorModifier__doMirror(mmd, ob, derivedData);
 
-	if(result != derivedData)
+	if (result != derivedData)
 		CDDM_calc_normals(result);
 	
 	return result;

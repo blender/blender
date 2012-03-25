@@ -136,6 +136,7 @@ endif()
 		bf_python_mathutils
 		bf_python_bmesh
 		bf_blenlib 
+		bf_intern_utfconv
 		bf_imbuf_cineon
 		bf_imbuf_openexr 
 		extern_openjpeg

@@ -26,15 +26,13 @@
  * BM mesh conversion functions.
  */
 
-
-#include "bmesh.h"
-#include "intern/bmesh_private.h" /* for element checking */
-
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_key_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
 #include "BLI_array.h"
@@ -46,10 +44,11 @@
 #include "BKE_global.h" /* ugh - for looping over all objects */
 #include "BKE_main.h"
 
-#include "MEM_guardedalloc.h"
+#include "bmesh.h"
+#include "intern/bmesh_private.h" /* for element checking */
 
 /* Mesh -> BMesh */
-void BM_mesh_to_bmesh(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
+void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 {
 	MVert *mvert;
 	BLI_array_declare(verts);
@@ -251,7 +250,7 @@ void BM_mesh_to_bmesh(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 			continue;
 		}
 
-		/* dont use 'i' since we may have skipped the face */
+		/* don't use 'i' since we may have skipped the face */
 		BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
 		/* transfer flag */
@@ -374,7 +373,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	/* caller needs to ensure this */
 	BLI_assert(ototvert > 0);
 
-	vertMap = MEM_callocN(sizeof(*vertMap)*ototvert, "vertMap");
+	vertMap = MEM_callocN(sizeof(*vertMap) * ototvert, "vertMap");
 	if (CustomData_has_layer(&bm->vdata, CD_SHAPE_KEYINDEX)) {
 		int *keyi;
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
@@ -407,7 +406,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	return vertMap;
 }
 
-BM_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
+BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 {
 	/* this is a cheap way to set the edge draw, its not precise and will
 	 * pick the first 2 faces an edge uses */
@@ -421,7 +420,7 @@ BM_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 	}
 }
 
-void BM_mesh_from_bmesh(BMesh *bm, Mesh *me, int dotess)
+void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 {
 	MLoop *mloop;
 	MPoly *mpoly;
@@ -582,7 +581,7 @@ void BM_mesh_from_bmesh(BMesh *bm, Mesh *me, int dotess)
 		int i, j;
 
 		for (ob = G.main->object.first; ob; ob = ob->id.next) {
-			if (ob->parent == bm->ob && ELEM(ob->partype, PARVERT1, PARVERT3)) {
+			if ((ob->parent) && (ob->parent->data == me) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
 
 				if (vertMap == NULL) {
 					vertMap = bm_to_mesh_vertex_map(bm, ototvert);

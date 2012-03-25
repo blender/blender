@@ -205,7 +205,7 @@ void GPC_Canvas::DisposeBanner(TBannerData& banner)
 
 void GPC_Canvas::DrawAllBanners(void)
 {
-	if(!m_bannersEnabled || (m_banners.size() < 1))
+	if (!m_bannersEnabled || (m_banners.size() < 1))
 		return;
 	
 	// Save the old rendering parameters.
@@ -239,7 +239,7 @@ void GPC_Canvas::DrawAllBanners(void)
 
 void GPC_Canvas::DrawBanner(TBannerData& banner)
 {
-	if(!banner.enabled)
+	if (!banner.enabled)
 		return;
 
 	// Set up coordinates

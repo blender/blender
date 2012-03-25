@@ -259,6 +259,14 @@ BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
 }
 
 /**
+ * Returms edge length
+ */
+float BM_edge_length_calc(BMEdge *e)
+{
+	return len_v3v3(e->v1->co, e->v2->co);
+}
+
+/**
  * Utility function, since enough times we have an edge
  * and want to access 2 connected faces.
  *
@@ -284,6 +292,31 @@ int BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb)
 }
 
 /**
+ * Utility function, since enough times we have an edge
+ * and want to access 2 connected loops.
+ *
+ * \return TRUE when only 2 faces are found.
+ */
+int BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb)
+{
+	BMLoop *la, *lb;
+
+	if ((la = e->l) &&
+	    (lb = la->radial_next) &&
+	    (lb->radial_next == la))
+	{
+		*r_la = la;
+		*r_lb = lb;
+		return TRUE;
+	}
+	else {
+		*r_la = NULL;
+		*r_lb = NULL;
+		return FALSE;
+	}
+}
+
+/**
  *	Returns the number of edges around this vertex.
  */
 int BM_vert_edge_count(BMVert *v)
@@ -291,6 +324,18 @@ int BM_vert_edge_count(BMVert *v)
 	return bmesh_disk_count(v);
 }
 
+int BM_vert_edge_count_nonwire(BMVert *v)
+{
+	int count = 0;
+	BMIter eiter;
+	BMEdge *edge;
+	BM_ITER(edge, &eiter, NULL, BM_EDGES_OF_VERT, v) {
+		if (edge->l) {
+			count++;
+		}
+	}
+	return count;
+}
 /**
  *	Returns the number of faces around this edge
  */
@@ -344,7 +389,7 @@ int BM_vert_face_count(BMVert *v)
  * Tests whether or not the vertex is part of a wire edge.
  * (ie: has no faces attached to it)
  */
-int BM_vert_is_wire(BMesh *UNUSED(bm), BMVert *v)
+int BM_vert_is_wire(BMVert *v)
 {
 	BMEdge *curedge;
 
@@ -368,7 +413,7 @@ int BM_vert_is_wire(BMesh *UNUSED(bm), BMVert *v)
  * Tests whether or not the edge is part of a wire.
  * (ie: has no faces attached to it)
  */
-int BM_edge_is_wire(BMesh *UNUSED(bm), BMEdge *e)
+int BM_edge_is_wire(BMEdge *e)
 {
 	return (e->l) ? FALSE : TRUE;
 }
@@ -380,7 +425,7 @@ int BM_edge_is_wire(BMesh *UNUSED(bm), BMEdge *e)
  * 3: Is part of a non-manifold edge (edge with more than 2 faces)
  * 4: Is part of a wire edge
  */
-int BM_vert_is_manifold(BMesh *UNUSED(bm), BMVert *v)
+int BM_vert_is_manifold(BMVert *v)
 {
 	BMEdge *e, *oe;
 	BMLoop *l;
@@ -446,14 +491,14 @@ int BM_vert_is_manifold(BMesh *UNUSED(bm), BMVert *v)
  */
 
 #if 1 /* fast path for checking manifold */
-int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
+int BM_edge_is_manifold(BMEdge *e)
 {
 	const BMLoop *l = e->l;
 	return (l && ((l->radial_next == l) ||              /* 1 face user  */
 	              (l->radial_next->radial_next == l))); /* 2 face users */
 }
 #else
-int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
+int BM_edge_is_manifold(BMEdge *e)
 {
 	int count = BM_edge_face_count(e);
 	if (count == 2 || count == 1) {
@@ -470,7 +515,7 @@ int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
  * of a shell (has one face associated with it)
  */
 
-#if 1 /* fast path for checking boundry */
+#if 1 /* fast path for checking boundary */
 int BM_edge_is_boundary(BMEdge *e)
 {
 	const BMLoop *l = e->l;
@@ -583,15 +628,18 @@ BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v)
  * Returns the verts of an edge as used in a face
  * if used in a face at all, otherwise just assign as used in the edge.
  *
- * Useful to get a determanistic winding order when calling
+ * Useful to get a deterministic winding order when calling
  * BM_face_create_ngon() on an arbitrary array of verts,
  * though be sure to pick an edge which has a face.
  */
-void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
+void BM_edge_ordered_verts_ex(BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
+                              BMLoop *edge_loop)
 {
-	if ((edge->l == NULL) ||
-	    (((edge->l->prev->v == edge->v1) && (edge->l->v == edge->v2)) ||
-	     ((edge->l->v == edge->v1) && (edge->l->next->v == edge->v2)))
+	BLI_assert(edge_loop->e == edge);
+
+	if ((edge_loop == NULL) ||
+	    (((edge_loop->prev->v == edge->v1) && (edge_loop->v == edge->v2)) ||
+	     ((edge_loop->v == edge->v1) && (edge_loop->next->v == edge->v2)))
 	    )
 	{
 		*r_v1 = edge->v1;
@@ -603,17 +651,81 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 	}
 }
 
+void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
+{
+	BM_edge_ordered_verts_ex(edge, r_v1, r_v2, edge->l);
+}
+
 /**
  * Calculates the angle between the previous and next loops
  * (angle at this loops face corner).
  *
  * \return angle in radians
  */
-float BM_loop_face_angle(BMesh *UNUSED(bm), BMLoop *l)
+float BM_loop_face_angle(BMLoop *l)
 {
 	return angle_v3v3v3(l->prev->v->co,
 	                    l->v->co,
 	                    l->next->v->co);
+}
+
+/**
+ * \brief BM_loop_face_normal
+ *
+ * Calculate the normal at this loop corner or fallback to the face normal on straignt lines.
+ *
+ * \param bm The BMesh
+ * \param l The loop to calculate the normal at
+ * \param r_normal Resulting normal
+ */
+void BM_loop_face_normal(BMLoop *l, float r_normal[3])
+{
+	if (normal_tri_v3(r_normal,
+	                  l->prev->v->co,
+	                  l->v->co,
+	                  l->next->v->co) != 0.0f)
+	{
+		return;
+	}
+	else {
+		copy_v3_v3(r_normal, l->f->no);
+	}
+}
+
+/**
+ * \brief BM_loop_face_tangent
+ *
+ * Calculate the tangent at this loop corner or fallback to the face normal on straignt lines.
+ * This vector always points inward into the face.
+ *
+ * \param bm The BMesh
+ * \param l The loop to calculate the tangent at
+ * \param r_tangent Resulting tangent
+ */
+void BM_loop_face_tangent(BMLoop *l, float r_tangent[3])
+{
+	float v_prev[3];
+	float v_next[3];
+
+	sub_v3_v3v3(v_prev, l->prev->v->co, l->v->co);
+	sub_v3_v3v3(v_next, l->v->co, l->next->v->co);
+
+	normalize_v3(v_prev);
+	normalize_v3(v_next);
+
+	if (compare_v3v3(v_prev, v_next, FLT_EPSILON) == FALSE) {
+		float dir[3];
+		float nor[3]; /* for this purpose doesnt need to be normalized */
+		add_v3_v3v3(dir, v_prev, v_next);
+		cross_v3_v3v3(nor, v_prev, v_next);
+		cross_v3_v3v3(r_tangent, dir, nor);
+	}
+	else {
+		/* prev/next are the same - compare with face normal since we don't have one */
+		cross_v3_v3v3(r_tangent, v_next, l->f->no);
+	}
+
+	normalize_v3(r_tangent);
 }
 
 /**
@@ -624,7 +736,7 @@ float BM_loop_face_angle(BMesh *UNUSED(bm), BMLoop *l)
  *
  * \return angle in radians
  */
-float BM_edge_face_angle(BMesh *UNUSED(bm), BMEdge *e)
+float BM_edge_face_angle(BMEdge *e)
 {
 	if (BM_edge_face_count(e) == 2) {
 		BMLoop *l1 = e->l;
@@ -643,7 +755,7 @@ float BM_edge_face_angle(BMesh *UNUSED(bm), BMEdge *e)
  *
  * \returns the angle in radians
  */
-float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
+float BM_vert_edge_angle(BMVert *v)
 {
 	BMEdge *e1, *e2;
 
@@ -790,7 +902,7 @@ int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 		}
 	}
 
-	/* now tag all verts and edges in the boundry array as true so
+	/* now tag all verts and edges in the boundary array as true so
 	 * we can know if a face-vert is from our array */
 	for (i = 0; i < len; i++) {
 		BM_elem_flag_enable(varr[i], BM_ELEM_INTERNAL_TAG);
@@ -798,10 +910,10 @@ int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 	}
 
 
-	/* so! boundry is tagged, everything else cleared */
+	/* so! boundary is tagged, everything else cleared */
 
 
-	/* 1) tag all faces connected to edges - if all their verts are boundry */
+	/* 1) tag all faces connected to edges - if all their verts are boundary */
 	tot_tag = 0;
 	for (i = 0; i < len; i++) {
 		BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, earr[i]) {
@@ -815,7 +927,7 @@ int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 				}
 
 				if (ok) {
-					/* we only use boundry verts */
+					/* we only use boundary verts */
 					BM_elem_flag_enable(f, BM_ELEM_INTERNAL_TAG);
 					tot_tag++;
 				}
@@ -827,19 +939,19 @@ int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 	}
 
 	if (tot_tag == 0) {
-		/* no faces use only boundry verts, quit early */
+		/* no faces use only boundary verts, quit early */
 		return FALSE;
 	}
 
-	/* 2) loop over non-boundry edges that use boundry verts,
+	/* 2) loop over non-boundary edges that use boundary verts,
 	 *    check each have 2 tagges faces connected (faces that only use 'varr' verts) */
 	ok = TRUE;
 	for (i = 0; i < len; i++) {
 		BM_ITER(e, &fiter, bm, BM_EDGES_OF_VERT, varr[i]) {
 
-			if (/* non-boundry edge */
+			if (/* non-boundary edge */
 			    BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG) == FALSE &&
-			    /* ...using boundry verts */
+			    /* ...using boundary verts */
 			    BM_elem_flag_test(e->v1, BM_ELEM_INTERNAL_TAG) == TRUE &&
 			    BM_elem_flag_test(e->v2, BM_ELEM_INTERNAL_TAG) == TRUE)
 			{

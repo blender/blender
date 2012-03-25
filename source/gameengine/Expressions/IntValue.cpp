@@ -328,7 +328,7 @@ void CIntValue::SetValue(CValue* newval)
 #ifdef WITH_PYTHON
 PyObject* CIntValue::ConvertValueToPython()
 {
-	if((m_int > INT_MIN) && (m_int < INT_MAX))
+	if ((m_int > INT_MIN) && (m_int < INT_MAX))
 		return PyLong_FromSsize_t(m_int);
 	else
 		return PyLong_FromLongLong(m_int);

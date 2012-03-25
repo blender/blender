@@ -42,6 +42,7 @@
 struct DerivedMesh;
 struct DMFlagMat;
 struct DMGridData;
+struct CustomData;
 struct GHash;
 struct DMGridData;
 struct GPUVertPointLink;
@@ -123,16 +124,16 @@ void GPU_global_buffer_pool_free(void);
 GPUBuffer *GPU_buffer_alloc(int size);
 void GPU_buffer_free(GPUBuffer *buffer);
 
-GPUDrawObject *GPU_drawobject_new( struct DerivedMesh *dm );
-void GPU_drawobject_free( struct DerivedMesh *dm );
+GPUDrawObject *GPU_drawobject_new(struct DerivedMesh *dm );
+void GPU_drawobject_free(struct DerivedMesh *dm );
 
 /* called before drawing */
-void GPU_vertex_setup( struct DerivedMesh *dm );
-void GPU_normal_setup( struct DerivedMesh *dm );
-void GPU_uv_setup( struct DerivedMesh *dm );
-void GPU_color_setup( struct DerivedMesh *dm );
-void GPU_edge_setup( struct DerivedMesh *dm );	/* does not mix with other data */
-void GPU_uvedge_setup( struct DerivedMesh *dm );
+void GPU_vertex_setup(struct DerivedMesh *dm );
+void GPU_normal_setup(struct DerivedMesh *dm );
+void GPU_uv_setup(struct DerivedMesh *dm );
+void GPU_color_setup(struct DerivedMesh *dm );
+void GPU_edge_setup(struct DerivedMesh *dm );	/* does not mix with other data */
+void GPU_uvedge_setup(struct DerivedMesh *dm );
 int GPU_attrib_element_size( GPUAttrib data[], int numdata );
 void GPU_interleaved_attrib_setup( GPUBuffer *buffer, GPUAttrib data[], int numdata );
 
@@ -142,7 +143,7 @@ void *GPU_buffer_lock_stream( GPUBuffer *buffer );
 void GPU_buffer_unlock( GPUBuffer *buffer );
 
 /* upload three unsigned chars, representing RGB colors, for each vertex. Resets dm->drawObject->colType to -1 */
-void GPU_color3_upload( struct DerivedMesh *dm, unsigned char *data );
+void GPU_color3_upload(struct DerivedMesh *dm, unsigned char *data );
 /* switch color rendering on=1/off=0 */
 void GPU_color_switch( int mode );
 
@@ -153,18 +154,20 @@ void GPU_buffer_draw_elements( GPUBuffer *elements, unsigned int mode, int start
 void GPU_buffer_unbind(void);
 
 /* used to check whether to use the old (without buffers) code */
-int GPU_buffer_legacy( struct DerivedMesh *dm );
+int GPU_buffer_legacy(struct DerivedMesh *dm );
 
 /* Buffers for non-DerivedMesh drawing */
 typedef struct GPU_Buffers GPU_Buffers;
 
 GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
-			struct MFace *mface, int *face_indices, int totface);
+			struct MFace *mface, struct MVert *mvert,
+            int *face_indices, int totface);
 
 void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MVert *mvert,
 			int *vert_indices, int totvert);
 
-GPU_Buffers *GPU_build_grid_buffers(int totgrid, int gridsize);
+GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
+									unsigned int **grid_hidden, int gridsize);
 
 void GPU_update_grid_buffers(GPU_Buffers *buffers, struct DMGridData **grids,
 							 const struct DMFlagMat *grid_flag_mats,

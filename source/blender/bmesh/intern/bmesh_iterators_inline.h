@@ -20,16 +20,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_iterators_inline.c
+/** \file blender/bmesh/intern/bmesh_iterators_inline.h
  *  \ingroup bmesh
  *
  * BMesh inline iterator functions.
  */
 
-#ifndef __BMESH_ITERATORS_INLINE_C__
-#define __BMESH_ITERATORS_INLINE_C__
-
-#include "bmesh.h"
+#ifndef __BMESH_ITERATORS_INLINE_H__
+#define __BMESH_ITERATORS_INLINE_H__
 
 /* inline here optimizes out the switch statement when called with
  * constant values (which is very common), nicer for loop-in-loop situations */
@@ -39,7 +37,7 @@
  *
  * Calls an iterators step fucntion to return the next element.
  */
-BM_INLINE void *BM_iter_step(BMIter *iter)
+BLI_INLINE void *BM_iter_step(BMIter *iter)
 {
 	return iter->step(iter);
 }
@@ -52,7 +50,7 @@ BM_INLINE void *BM_iter_step(BMIter *iter)
  * it with the appropriate function pointers based
  * upon its type.
  */
-BM_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data)
+BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
 	/* int argtype; */
 	iter->itype = itype;
@@ -179,7 +177,7 @@ BM_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data
  * to return the first element of the iterator.
  *
  */
-BM_INLINE void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *data)
+BLI_INLINE void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
 	if (LIKELY(BM_iter_init(iter, bm, itype, data))) {
 		return BM_iter_step(iter);
@@ -189,4 +187,4 @@ BM_INLINE void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *dat
 	}
 }
 
-#endif /* __BMESH_ITERATORS_INLINE_C__ */
+#endif /* __BMESH_ITERATORS_INLINE_H__ */

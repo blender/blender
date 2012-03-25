@@ -51,7 +51,7 @@ float bvhtree_ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_d
 {
 	float dist;
 
-	if(isect_ray_tri_epsilon_v3(ray->origin, ray->direction, v0, v1, v2, &dist, NULL, FLT_EPSILON))
+	if (isect_ray_tri_epsilon_v3(ray->origin, ray->direction, v0, v1, v2, &dist, NULL, FLT_EPSILON))
 		return dist;
 
 	return FLT_MAX;
@@ -121,7 +121,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 						lv = 1;
 					}
 					else {
-						if(fabsf(A00) > FLT_EPSILON)
+						if (fabsf(A00) > FLT_EPSILON)
 							S = -B0/A00;
 						else
 							S = 0.0f;
@@ -142,7 +142,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 						lv = 2;
 					}
 					else {
-						if(fabsf(A11) > FLT_EPSILON)
+						if (fabsf(A11) > FLT_EPSILON)
 							T = -B1 / A11;
 						else
 							T = 0.0f;
@@ -164,7 +164,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 					lv = 2;
 				}
 				else {
-					if(fabsf(A11) > FLT_EPSILON)
+					if (fabsf(A11) > FLT_EPSILON)
 						T = -B1 / A11;
 					else
 						T = 0.0;
@@ -197,7 +197,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 		else { /* Region 0 */
 			// Minimum at interior lv
 			float invDet;
-			if(fabsf(Det) > FLT_EPSILON)
+			if (fabsf(Det) > FLT_EPSILON)
 				invDet = 1.0f / Det;
 			else
 				invDet = 0.0f;
@@ -223,7 +223,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 					lv = 1;
 				}
 				else {
-					if(fabsf(denom) > FLT_EPSILON)
+					if (fabsf(denom) > FLT_EPSILON)
 						S = numer / denom;
 					else
 						S = 0.0f;
@@ -246,7 +246,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 					lv = 0;
 				}
 				else {
-					if(fabsf(A11) > FLT_EPSILON)
+					if (fabsf(A11) > FLT_EPSILON)
 						T = -B1 / A11;
 					else
 						T = 0.0f;
@@ -268,7 +268,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 					lv = 2;
 				}
 				else {
-					if(fabsf(denom) > FLT_EPSILON)
+					if (fabsf(denom) > FLT_EPSILON)
 						T = numer / denom;
 					else
 						T = 0.0f;
@@ -291,7 +291,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 					lv = 0;
 				}
 				else {
-					if(fabsf(A00) > FLT_EPSILON)
+					if (fabsf(A00) > FLT_EPSILON)
 						S = -B0 / A00;
 					else
 						S = 0.0f;
@@ -317,7 +317,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 					lv = 1;
 				}
 				else {
-					if(fabsf(denom) > FLT_EPSILON)
+					if (fabsf(denom) > FLT_EPSILON)
 						S = numer / denom;
 					else
 						S = 0.0f;
@@ -390,7 +390,7 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float co[3
 		t2 = t3;
 		t3 = NULL;
 
-	} while(t2);
+	} while (t2);
 }
 
 // Callback to bvh tree raycast. The tree must bust have been built using bvhtree_from_mesh_faces.
@@ -411,7 +411,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 	do
 	{	
 		float dist;
-		if(data->sphere_radius == 0.0f)
+		if (data->sphere_radius == 0.0f)
 			dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 		else
 			dist = sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
@@ -428,7 +428,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 		t2 = t3;
 		t3 = NULL;
 
-	} while(t2);
+	} while (t2);
 }
 
 // Callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_edges.
@@ -465,7 +465,7 @@ BVHTree* bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_VERTICES);
 
 	//Not in cache
-	if(tree == NULL) {
+	if (tree == NULL) {
 		int i;
 		int numVerts= mesh->getNumVerts(mesh);
 		MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
@@ -523,19 +523,19 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 		int i;
 		int numFaces= mesh->getNumTessFaces(mesh);
 
-		/* BMESH spesific check that we have tessfaces,
-		 * we _could_ tesselate here but rather not - campbell
+		/* BMESH specific check that we have tessfaces,
+		 * we _could_ tessellate here but rather not - campbell
 		 *
 		 * this assert checks we have tessfaces,
 		 * if not caller should use DM_ensure_tessface() */
 		BLI_assert(!(numFaces == 0 && mesh->getNumPolys(mesh) != 0));
 
-		if(numFaces != 0) {
+		if (numFaces != 0) {
 			/* Create a bvh-tree of the given target */
 			tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
 			if (tree != NULL) {
 				BMEditMesh *em= data->em_evil;
-				if(em) {
+				if (em) {
 					/* data->em_evil is only set for snapping, and only for the mesh of the object
 					 * which is currently open in edit mode. When set, the bvhtree should not contain
 					 * faces that will interfere with snapping (e.g. faces that are hidden/selected
@@ -545,7 +545,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 					/* Insert BMesh-tessellation triangles into the bvh tree, unless they are hidden
 					 * and/or selected. Even if the faces themselves are not selected for the snapped
-					 * transform, having a vertex selected means the face (and thus it's tesselated
+					 * transform, having a vertex selected means the face (and thus it's tessellated
 					 * triangles) will be moving and will not be a good snap targets.*/
 					for (i = 0; i < em->tottri; i++) {
 						BMLoop **tri = em->looptris[i];
@@ -554,12 +554,12 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 						BMIter iter;
 						int insert;
 
-						/* Each loop of the triangle points back to the BMFace it was tesselated from.
+						/* Each loop of the triangle points back to the BMFace it was tessellated from.
 						 * All three should point to the same face, so just use the face from the first
 						 * loop.*/
 						f = tri[0]->f;
 
-						/* If the looptris is ordered such that all triangles tesselated from a single
+						/* If the looptris is ordered such that all triangles tessellated from a single
 						 * faces are consecutive elements in the array, then we could speed up the tests
 						 * below by using the insert value from the previous iteration.*/
 
@@ -567,14 +567,14 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 						insert = 1;
 
 						if (BM_elem_flag_test(f, BM_ELEM_SELECT) || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-							/* Don't insert triangles tesselated from faces that are hidden
+							/* Don't insert triangles tessellated from faces that are hidden
 							 * or selected*/
 							insert = 0;
 						}
 						else {
 							BM_ITER(v, &iter, em->bm, BM_VERTS_OF_FACE, f) {
 								if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-									/* Don't insert triangles tesselated from faces that have
+									/* Don't insert triangles tessellated from faces that have
 									 * any selected verts.*/
 									insert = 0;
 								}
@@ -598,12 +598,12 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 					MFace *face = mesh->getTessFaceDataArray(mesh, CD_MFACE);
 
 					if (vert != NULL && face != NULL) {
-						for(i = 0; i < numFaces; i++) {
+						for (i = 0; i < numFaces; i++) {
 							float co[4][3];
 							copy_v3_v3(co[0], vert[ face[i].v1 ].co);
 							copy_v3_v3(co[1], vert[ face[i].v2 ].co);
 							copy_v3_v3(co[2], vert[ face[i].v3 ].co);
-							if(face[i].v4)
+							if (face[i].v4)
 								copy_v3_v3(co[3], vert[ face[i].v4 ].co);
 					
 							BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
@@ -627,7 +627,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	memset(data, 0, sizeof(*data));
 	data->tree = tree;
 
-	if(data->tree) {
+	if (data->tree) {
 		data->cached = TRUE;
 
 		data->nearest_callback = mesh_faces_nearest_point;
@@ -649,7 +649,7 @@ BVHTree* bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_EDGES);
 
 	//Not in cache
-	if(tree == NULL)
+	if (tree == NULL)
 	{
 		int i;
 		int numEdges= mesh->getNumEdges(mesh);
@@ -685,7 +685,7 @@ BVHTree* bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	memset(data, 0, sizeof(*data));
 	data->tree = tree;
 
-	if(data->tree) {
+	if (data->tree) {
 		data->cached = TRUE;
 
 		data->nearest_callback = mesh_edges_nearest_point;
@@ -704,8 +704,8 @@ BVHTree* bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 // Frees data allocated by a call to bvhtree_from_mesh_*.
 void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 {
-	if(data->tree) {
-		if(!data->cached)
+	if (data->tree) {
+		if (!data->cached)
 			BLI_bvhtree_free(data->tree);
 
 		memset( data, 0, sizeof(*data) );
@@ -726,7 +726,7 @@ static void bvhcacheitem_set_if_match(void *_cached, void *_search)
 	BVHCacheItem * cached = (BVHCacheItem *)_cached;
 	BVHCacheItem * search = (BVHCacheItem *)_search;
 
-	if(search->type == cached->type) {
+	if (search->type == cached->type) {
 		search->tree = cached->tree;		
 	}
 } 
@@ -754,7 +754,7 @@ void bvhcache_insert(BVHCache *cache, BVHTree *tree, int type)
 	item->type = type;
 	item->tree = tree;
 
-	BLI_linklist_prepend( cache, item );
+	BLI_linklist_prepend(cache, item);
 }
 
 

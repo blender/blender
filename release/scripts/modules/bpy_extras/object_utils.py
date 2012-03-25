@@ -21,11 +21,14 @@
 __all__ = (
     "add_object_align_init",
     "object_data_add",
+    "AddObjectHelper",
     )
 
 
 import bpy
 import mathutils
+
+from bpy.props import BoolProperty, FloatVectorProperty
 
 
 def add_object_align_init(context, operator):
@@ -116,11 +119,12 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True):
         v3d = context.space_data
 
     if use_active_layer:
-        if v3d.local_view:
+        if v3d and v3d.local_view:
             base.layers_from_view(context.space_data)
             base.layers[scene.active_layer] = True
         else:
-            base.layers = [True if i == scene.active_layer else False for i in range(len(scene.layers))]
+            base.layers = [True if i == scene.active_layer
+                else False for i in range(len(scene.layers))]
     if v3d:
         base.layers_from_view(context.space_data)
 
@@ -163,3 +167,23 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True):
             bpy.ops.object.mode_set(mode='EDIT')
 
     return base
+
+
+class AddObjectHelper:
+    def view_align_update_callback(self, context):
+        if not self.view_align:
+            self.rotation.zero()
+
+    view_align = BoolProperty(
+            name="Align to View",
+            default=False,
+            update=view_align_update_callback,
+            )
+    location = FloatVectorProperty(
+            name="Location",
+            subtype='TRANSLATION',
+            )
+    rotation = FloatVectorProperty(
+            name="Rotation",
+            subtype='EULER',
+            )

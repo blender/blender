@@ -32,5 +32,5 @@
 /**
  * Initalizes the gpu Python module.
  */
-PyObject* GPU_initPython(void);
+PyObject *GPU_initPython(void);
 

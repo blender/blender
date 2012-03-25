@@ -426,6 +426,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 		MDisps *md2 = CustomData_bmesh_get(&bm->ldata, BM_FACE_FIRST_LOOP(source)->head.data, CD_MDISPS);
 		
 		mdisps->totdisp = md2->totdisp;
+		mdisps->level = md2->level;
 		if (mdisps->totdisp) {
 			mdisps->disps = MEM_callocN(sizeof(float) * 3 * mdisps->totdisp,
 			                            "mdisp->disps in bmesh_loop_intern_mdisps");
@@ -632,7 +633,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 
 	axis_dominant_v3(&ax, &ay, source->no);
 
-	/* scale source face coordinates a bit, so points sitting directonly on an
+	/* scale source face coordinates a bit, so points sitting directly on an
 	 * edge will work. */
 	mul_v3_fl(cent, 1.0f / (float)source->len);
 	for (i = 0; i < source->len; i++) {
@@ -695,7 +696,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 
-	/* scale source face coordinates a bit, so points sitting directonly on an
+	/* scale source face coordinates a bit, so points sitting directly on an
 	 * edge will work. */
 	mul_v3_fl(cent, 1.0f / (float)source->len);
 	for (i = 0; i < source->len; i++) {

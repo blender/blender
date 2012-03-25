@@ -142,7 +142,7 @@ static void node_composit_exec_tonemap(void *UNUSED(data), bNode *node, bNodeSta
 
 	out[0]->data = new;
 	
-	if(img!=in[0]->data)
+	if (img!=in[0]->data)
 		free_compbuf(img);
 }
 

@@ -87,16 +87,16 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 					   BLI_memarena_use_malloc(arena1);
 	
 	//Build and optimize the tree
-	if(1)
+	if (1)
 	{
 		VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1,&obj->rayobj.control).transform(obj->builder);
-		if(RE_rayobjectcontrol_test_break(&obj->rayobj.control))
+		if (RE_rayobjectcontrol_test_break(&obj->rayobj.control))
 		{
 			BLI_memarena_free(arena1);
 			return;
 		}
 
-		if(root) {
+		if (root) {
 			reorganize(root);
 			remove_useless(root, &root);
 			bvh_refit(root);
@@ -137,8 +137,8 @@ template<int StackSize>
 int intersect(VBVHTree *obj, Isect* isec)
 {
 	//TODO renable hint support
-	if(RE_rayobject_isAligned(obj->root)) {
-		if(isec->mode == RE_RAY_SHADOW)
+	if (RE_rayobject_isAligned(obj->root)) {
+		if (isec->mode == RE_RAY_SHADOW)
 			return bvh_node_stack_raycast<VBVHNode,StackSize,false,true>( obj->root, isec);
 		else
 			return bvh_node_stack_raycast<VBVHNode,StackSize,false,false>( obj->root, isec);
@@ -159,9 +159,9 @@ void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *UNUSED(min), float *UNUSED(m
 
 void bfree(VBVHTree *tree)
 {
-	if(tot_pushup + tot_pushdown + tot_hints + tot_moves)
+	if (tot_pushup + tot_pushdown + tot_hints + tot_moves)
 	{
-		if(G.f & G_DEBUG) {
+		if (G.f & G_DEBUG) {
 			printf("tot pushups: %d\n", tot_pushup);
 			printf("tot pushdowns: %d\n", tot_pushdown);
 			printf("tot moves: %d\n", tot_moves);
@@ -199,7 +199,7 @@ RayObjectAPI* bvh_get_api(int maxstacksize)
 {
 	static RayObjectAPI bvh_api256 = make_api<Tree,1024>();
 	
-	if(maxstacksize <= 1024) return &bvh_api256;
+	if (maxstacksize <= 1024) return &bvh_api256;
 	assert(maxstacksize <= 256);
 	return 0;
 }

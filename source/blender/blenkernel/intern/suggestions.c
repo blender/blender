@@ -132,7 +132,8 @@ void texttool_suggest_add(const char *name, char type)
 	/* Perform simple linear search for ordered storage */
 	if (!suggestions.first || !suggestions.last) {
 		suggestions.first = suggestions.last = newitem;
-	} else {
+	}
+	else {
 		cmp = -1;
 		for (item=suggestions.last; item; item=item->prev) {
 			cmp = txttl_cmp(name, item->name, len);
@@ -182,7 +183,8 @@ void texttool_suggest_prefix(const char *prefix)
 				first = match;
 				suggestions.top = top;
 			}
-		} else if (cmp<0) {
+		}
+		else if (cmp<0) {
 			if (!last) {
 				last = match->prev;
 				break;
@@ -195,7 +197,8 @@ void texttool_suggest_prefix(const char *prefix)
 		suggestions.firstmatch = first;
 		suggestions.lastmatch = last;
 		suggestions.selected = first;
-	} else {
+	}
+	else {
 		suggestions.firstmatch = NULL;
 		suggestions.lastmatch = NULL;
 		suggestions.selected = NULL;
@@ -255,7 +258,8 @@ void texttool_docs_show(const char *docs)
 		documentation = MEM_mallocN(len+2, "Documentation");
 		strncpy(documentation, docs, len);
 		documentation[len++] = '\n';
-	} else {
+	}
+	else {
 		documentation = MEM_mallocN(len+1, "Documentation");
 		strncpy(documentation, docs, len);
 	}

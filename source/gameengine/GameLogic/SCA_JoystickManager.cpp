@@ -52,7 +52,7 @@ SCA_JoystickManager::~SCA_JoystickManager()
 {
 	int i;
 	for (i=0; i<JOYINDEX_MAX; i++) {
-		if(m_joystick[i])
+		if (m_joystick[i])
 			m_joystick[i]->ReleaseInstance();
 	}
 }
@@ -72,7 +72,7 @@ void SCA_JoystickManager::NextFrame(double curtime,double deltatime)
 		for (it.begin();!it.end();++it)
 		{
 			SCA_JoystickSensor* joysensor = *it;
-			if(!joysensor->IsSuspended())
+			if (!joysensor->IsSuspended())
 			{
 				joysensor->Activate(m_logicmgr);
 			}

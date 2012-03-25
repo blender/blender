@@ -145,7 +145,7 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 	 * we may be changing the view 'as if' there is no active camera, but infact
 	 * there is an active camera which is locked to the view.
 	 *
-	 * In the case where smooth view is moving _to_ a camera we dont want that
+	 * In the case where smooth view is moving _to_ a camera we don't want that
 	 * camera to be moved or changed, so only when the camera is not being set should
 	 * we allow camera option locking to initialize the view settings from the camera.
 	 */
@@ -334,14 +334,14 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Smooth View";
-	ot->idname= "VIEW3D_OT_smoothview";
-	ot->description="The time to animate the change of view (in milliseconds)";
+	ot->name = "Smooth View";
+	ot->idname = "VIEW3D_OT_smoothview";
+	ot->description = "The time to animate the change of view (in milliseconds)";
 	
 	/* api callbacks */
-	ot->invoke= view3d_smoothview_invoke;
+	ot->invoke = view3d_smoothview_invoke;
 	
-	ot->poll= ED_operator_view3d_active;
+	ot->poll = ED_operator_view3d_active;
 }
 
 /* ****************** change view operators ****************** */
@@ -389,16 +389,16 @@ static int view3d_camera_to_view_poll(bContext *C)
 void VIEW3D_OT_camera_to_view(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Align Camera To View";
-	ot->description= "Set camera view to active view";
-	ot->idname= "VIEW3D_OT_camera_to_view";
+	ot->name = "Align Camera To View";
+	ot->description = "Set camera view to active view";
+	ot->idname = "VIEW3D_OT_camera_to_view";
 	
 	/* api callbacks */
-	ot->exec= view3d_camera_to_view_exec;
-	ot->poll= view3d_camera_to_view_poll;
+	ot->exec = view3d_camera_to_view_exec;
+	ot->poll = view3d_camera_to_view_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* unlike VIEW3D_OT_view_selected this is for framing a render and not
@@ -456,16 +456,16 @@ static int view3d_camera_to_view_selected_poll(bContext *C)
 void VIEW3D_OT_camera_to_view_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Camera Fit Frame to Selected";
-	ot->description= "Move the camera so selected objects are framed";
-	ot->idname= "VIEW3D_OT_camera_to_view_selected";
+	ot->name = "Camera Fit Frame to Selected";
+	ot->description = "Move the camera so selected objects are framed";
+	ot->idname = "VIEW3D_OT_camera_to_view_selected";
 
 	/* api callbacks */
-	ot->exec= view3d_camera_to_view_selected_exec;
-	ot->poll= view3d_camera_to_view_selected_poll;
+	ot->exec = view3d_camera_to_view_selected_exec;
+	ot->poll = view3d_camera_to_view_selected_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -510,16 +510,16 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Set Active Object as Camera";
-	ot->description= "Set the active object as the active camera for this view or scene";
-	ot->idname= "VIEW3D_OT_object_as_camera";
+	ot->name = "Set Active Object as Camera";
+	ot->description = "Set the active object as the active camera for this view or scene";
+	ot->idname = "VIEW3D_OT_object_as_camera";
 	
 	/* api callbacks */
-	ot->exec= view3d_setobjectascamera_exec;
-	ot->poll= ED_operator_rv3d_user_region_poll;
+	ot->exec = view3d_setobjectascamera_exec;
+	ot->poll = ED_operator_rv3d_user_region_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********************************** */
@@ -807,7 +807,7 @@ void ED_view3d_project_float_v3(ARegion *ar, const float vec[3], float adr[3], f
 		adr[2] = vec4[2]/vec4[3];
 	}
 	else {
-		adr[0] = adr[1] = adr[2] = 0.0f;
+		zero_v3(adr);
 	}
 }
 
@@ -1049,13 +1049,13 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)		/* rect: for pick
 	
 	if (rect) {		/* picking */
 		rect->xmin/= (float)ar->winx;
-		rect->xmin= x1+rect->xmin*(x2-x1);
+		rect->xmin = x1+rect->xmin*(x2-x1);
 		rect->ymin/= (float)ar->winy;
-		rect->ymin= y1+rect->ymin*(y2-y1);
+		rect->ymin = y1+rect->ymin*(y2-y1);
 		rect->xmax/= (float)ar->winx;
-		rect->xmax= x1+rect->xmax*(x2-x1);
+		rect->xmax = x1+rect->xmax*(x2-x1);
 		rect->ymax/= (float)ar->winy;
-		rect->ymax= y1+rect->ymax*(y2-y1);
+		rect->ymax = y1+rect->ymax*(y2-y1);
 		
 		if (orth) wmOrtho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, -clipend, clipend);
 		else wmFrustum(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
@@ -1075,7 +1075,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 	float bmat[4][4];
 	float tmat[3][3];
 	
-	rv3d->view= RV3D_VIEW_USER; /* dont show the grid */
+	rv3d->view= RV3D_VIEW_USER; /* don't show the grid */
 	
 	copy_m4_m4(bmat, ob->obmat);
 	normalize_m4(bmat);
@@ -1150,7 +1150,7 @@ int ED_view3d_lock(RegionView3D *rv3d)
 	return TRUE;
 }
 
-/* dont set windows active in here, is used by renderwin too */
+/* don't set windows active in here, is used by renderwin too */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	if (rv3d->persp==RV3D_CAMOB) {	    /* obs/camera */
@@ -1210,17 +1210,17 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	G.f |= G_PICKSEL;
 	
 	/* case not a border select */
-	if (input->xmin==input->xmax) {
-		rect.xmin= input->xmin-12;	// seems to be default value for bones only now
-		rect.xmax= input->xmin+12;
-		rect.ymin= input->ymin-12;
-		rect.ymax= input->ymin+12;
+	if (input->xmin ==input->xmax) {
+		rect.xmin = input->xmin-12;	// seems to be default value for bones only now
+		rect.xmax = input->xmin+12;
+		rect.ymin = input->ymin-12;
+		rect.ymax = input->ymin+12;
 	}
 	else {
-		rect.xmin= input->xmin;
-		rect.xmax= input->xmax;
-		rect.ymin= input->ymin;
-		rect.ymax= input->ymax;
+		rect.xmin = input->xmin;
+		rect.xmax = input->xmax;
+		rect.ymin = input->ymin;
+		rect.ymax = input->ymax;
 	}
 	
 	setwinmatrixview3d(ar, v3d, &rect);
@@ -1580,15 +1580,15 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Local View";
-	ot->description= "Toggle display of selected object(s) separately and centered in view";
-	ot->idname= "VIEW3D_OT_localview";
+	ot->name = "Local View";
+	ot->description = "Toggle display of selected object(s) separately and centered in view";
+	ot->idname = "VIEW3D_OT_localview";
 	
 	/* api callbacks */
-	ot->exec= localview_exec;
-	ot->flag= OPTYPE_UNDO; /* localview changes object layer bitflags */
+	ot->exec = localview_exec;
+	ot->flag = OPTYPE_UNDO; /* localview changes object layer bitflags */
 	
-	ot->poll= ED_operator_view3d_active;
+	ot->poll = ED_operator_view3d_active;
 }
 
 #ifdef WITH_GAMEENGINE
@@ -1814,14 +1814,14 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Start Game Engine";
-	ot->description= "Start game engine";
-	ot->idname= "VIEW3D_OT_game_start";
+	ot->name = "Start Game Engine";
+	ot->description = "Start game engine";
+	ot->idname = "VIEW3D_OT_game_start";
 	
 	/* api callbacks */
-	ot->exec= game_engine_exec;
+	ot->exec = game_engine_exec;
 	
-	ot->poll= game_engine_poll;
+	ot->poll = game_engine_poll;
 }
 
 /* ************************************** */

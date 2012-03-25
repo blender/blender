@@ -70,7 +70,7 @@ static void do_brightnesscontrast(bNode *UNUSED(node), float *out, float *in, fl
 		b = a * (brightness + delta);
 	}
 	
-	for(c=0; c<3; c++){        
+	for (c=0; c<3; c++) {        
 		i = in[c];
 		v = a*i + b;
 		out[c] = v;
@@ -79,15 +79,15 @@ static void do_brightnesscontrast(bNode *UNUSED(node), float *out, float *in, fl
 
 static void node_composit_exec_brightcontrast(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	if(out[0]->hasoutput==0)
+	if (out[0]->hasoutput==0)
 		return;
 	
-	if(in[0]->data) {
+	if (in[0]->data) {
 		CompBuf *stackbuf, *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 		stackbuf= dupalloc_compbuf(cbuf);
 		composit3_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, do_brightnesscontrast, CB_RGBA, CB_VAL, CB_VAL);
 		out[0]->data = stackbuf;
-		if(cbuf != in[0]->data)
+		if (cbuf != in[0]->data)
 			free_compbuf(cbuf);
 	}
 }

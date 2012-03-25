@@ -53,10 +53,10 @@
 
 static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)
 {
-	if(dg->node->need_exec) {
+	if (dg->node->need_exec) {
 		dg->fn(out, params, dg->node, dg->in, thread);
 
-		if(dg->cdata->do_preview)
+		if (dg->cdata->do_preview)
 			tex_do_preview(dg->node, params->previewco, out);
 	}
 }
@@ -64,10 +64,10 @@ static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, sh
 static void tex_input(float *out, int sz, bNodeStack *in, TexParams *params, short thread)
 {
 	TexDelegate *dg = in->data;
-	if(dg) {
+	if (dg) {
 		tex_call_delegate(dg, in->vec, params, thread);
 	
-		if(in->hasoutput && in->sockettype == SOCK_FLOAT)
+		if (in->hasoutput && in->sockettype == SOCK_FLOAT)
 			in->vec[1] = in->vec[2] = in->vec[0];
 	}
 	memcpy(out, in->vec, sz * sizeof(float));
@@ -118,7 +118,7 @@ void tex_do_preview(bNode *node, float *co, float *col)
 {
 	bNodePreview *preview= node->preview;
 
-	if(preview) {
+	if (preview) {
 		int xs= ((co[0] + 1.0f)*0.5f)*preview->xsize;
 		int ys= ((co[1] + 1.0f)*0.5f)*preview->ysize;
 
@@ -129,7 +129,7 @@ void tex_do_preview(bNode *node, float *co, float *col)
 void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn, TexCallData *cdata)
 {
 	TexDelegate *dg;
-	if(!out->data)
+	if (!out->data)
 		/* Freed in tex_end_exec (node.c) */
 		dg = out->data = MEM_mallocN(sizeof(TexDelegate), "tex delegate");
 	else
@@ -145,20 +145,21 @@ void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn, TexC
 void ntreeTexCheckCyclics(struct bNodeTree *ntree)
 {
 	bNode *node;
-	for(node= ntree->nodes.first; node; node= node->next) {
+	for (node= ntree->nodes.first; node; node= node->next) {
 		
-		if(node->type == TEX_NODE_TEXTURE && node->id) {
+		if (node->type == TEX_NODE_TEXTURE && node->id) {
 			/* custom2 stops the node from rendering */
-			if(node->custom1) {
+			if (node->custom1) {
 				node->custom2 = 1;
 				node->custom1 = 0;
-			} else {
+			}
+			else {
 				Tex *tex = (Tex *)node->id;
 				
 				node->custom2 = 0;
 			
 				node->custom1 = 1;
-				if(tex->use_nodes && tex->nodetree) {
+				if (tex->use_nodes && tex->nodetree) {
 					ntreeTexCheckCyclics(tex->nodetree);
 				}
 				node->custom1 = 0;

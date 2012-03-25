@@ -62,7 +62,7 @@ static bNode *node_under_mouse(bNodeTree *ntree, int mx, int my)
 {
 	bNode *node;
 	
-	for(node=ntree->nodes.last; node; node=node->prev) {
+	for (node=ntree->nodes.last; node; node=node->prev) {
 		/* node body (header and scale are in other operators) */
 		if (BLI_in_rctf(&node->totr, mx, my))
 			return node;
@@ -173,12 +173,12 @@ static void node_sort(bNodeTree *ntree)
 	}
 }
 
-static void node_select(bNode *node)
+void node_select(bNode *node)
 {
 	node->flag |= SELECT;
 }
 
-static void node_deselect(bNode *node)
+void node_deselect(bNode *node)
 {
 	bNodeSocket *sock;
 	
@@ -199,7 +199,7 @@ static void node_toggle(bNode *node)
 		node_select(node);
 }
 
-static void node_socket_select(bNode *node, bNodeSocket *sock)
+void node_socket_select(bNode *node, bNodeSocket *sock)
 {
 	sock->flag |= SELECT;
 	
@@ -208,7 +208,7 @@ static void node_socket_select(bNode *node, bNodeSocket *sock)
 		node->flag |= SELECT;
 }
 
-static void node_socket_deselect(bNode *node, bNodeSocket *sock, int deselect_node)
+void node_socket_deselect(bNode *node, bNodeSocket *sock, int deselect_node)
 {
 	sock->flag &= ~SELECT;
 	
@@ -247,7 +247,7 @@ void node_deselect_all(SpaceNode *snode)
 {
 	bNode *node;
 	
-	for(node= snode->edittree->nodes.first; node; node= node->next)
+	for (node= snode->edittree->nodes.first; node; node= node->next)
 		node_deselect(node);
 }
 
@@ -419,6 +419,7 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 	bNode *node, *tnode;
 	bNodeSocket *sock, *tsock;
 	float mx, my;
+	int selected = 0;
 	
 	/* get mouse coordinates in view2d space */
 	UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &mx, &my);
@@ -426,63 +427,61 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 	snode->mx = mx;
 	snode->my = my;
 	
-	/* first do socket selection, these generally overlap with nodes */
-	if (node_find_indicated_socket(snode, &node, &sock, SOCK_IN)) {
-		if (extend) {
+	if (extend) {
+		/* first do socket selection, these generally overlap with nodes.
+		 * socket selection only in extend mode.
+		 */
+		if (node_find_indicated_socket(snode, &node, &sock, SOCK_IN)) {
 			node_socket_toggle(node, sock, 1);
+			selected = 1;
 		}
-		else {
-			node_deselect_all_input_sockets(snode, 1);
-			node_socket_select(node, sock);
-		}
-		
-		return 1;
-	}
-	else if (node_find_indicated_socket(snode, &node, &sock, SOCK_OUT)) {
-		if (extend) {
+		else if (node_find_indicated_socket(snode, &node, &sock, SOCK_OUT)) {
 			if (sock->flag & SELECT) {
 				node_socket_deselect(node, sock, 1);
 			}
 			else {
-				/* still only allow one selected output per node when extending, for sensible linking.
-				 * extend allows selecting outputs from different nodes though.
-				 */
+				/* only allow one selected output per node, for sensible linking.
+				* allows selecting outputs from different nodes though.
+				*/
 				if (node) {
 					for (tsock=node->outputs.first; tsock; tsock=tsock->next)
 						node_socket_deselect(node, tsock, 1);
 				}
 				node_socket_select(node, sock);
 			}
+			selected = 1;
 		}
 		else {
-			node_deselect_all_output_sockets(snode, 1);
-			node_socket_select(node, sock);
+			/* find the closest visible node */
+			node = node_under_mouse(snode->edittree, mx, my);
+			
+			if (node) {
+				node_toggle(node);
+				
+				ED_node_set_active(bmain, snode->edittree, node);
+				selected = 1;
+			}
 		}
-		
-		return 1;
 	}
-	else {
+	else {	/* extend==0 */
+		
 		/* find the closest visible node */
 		node = node_under_mouse(snode->edittree, mx, my);
 		
 		if (node) {
-			if (extend == 0) {
-				for (tnode=snode->edittree->nodes.first; tnode; tnode=tnode->next)
-					if (tnode!=node)
-						node_deselect(tnode);
-				node_select(node);
-			}
-			else {
-				node_toggle(node);
-			}
-			
+			for (tnode=snode->edittree->nodes.first; tnode; tnode=tnode->next)
+				node_deselect(tnode);
+			node_select(node);
 			ED_node_set_active(bmain, snode->edittree, node);
-			node_sort(snode->edittree);
-			return 1;
+			selected = 1;
 		}
-		
-		return 0;
 	}
+	
+	/* update node order */
+	if (selected)
+		node_sort(snode->edittree);
+	
+	return selected;
 }
 
 static int node_select_exec(bContext *C, wmOperator *op)
@@ -525,16 +524,16 @@ static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void NODE_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select";
-	ot->idname= "NODE_OT_select";
-	ot->description= "Select the node under the cursor";
+	ot->name = "Select";
+	ot->idname = "NODE_OT_select";
+	ot->description = "Select the node under the cursor";
 	
 	/* api callbacks */
-	ot->invoke= node_select_invoke;
-	ot->poll= ED_operator_node_active;
+	ot->invoke = node_select_invoke;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
@@ -554,22 +553,22 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
 	int extend= RNA_boolean_get(op->ptr, "extend");
 	
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 	
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(BLI_isect_rctf(&rectf, &node->totr, NULL)) {
-			if(gesture_mode==GESTURE_MODAL_SELECT)
+	for (node= snode->edittree->nodes.first; node; node= node->next) {
+		if (BLI_isect_rctf(&rectf, &node->totr, NULL)) {
+			if (gesture_mode==GESTURE_MODAL_SELECT)
 				node_select(node);
 			else
 				node_deselect(node);
 		}
-		else if(!extend) {
+		else if (!extend) {
 			node_deselect(node);
 		}
 	}
@@ -604,20 +603,20 @@ static int node_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event
 void NODE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->idname= "NODE_OT_select_border";
-	ot->description= "Use box selection to select nodes";
+	ot->name = "Border Select";
+	ot->idname = "NODE_OT_select_border";
+	ot->description = "Use box selection to select nodes";
 	
 	/* api callbacks */
-	ot->invoke= node_border_select_invoke;
-	ot->exec= node_borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = node_border_select_invoke;
+	ot->exec = node_borderselect_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 	
-	ot->poll= ED_operator_node_active;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);
@@ -633,16 +632,16 @@ static int node_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 	bNode *node;
 	int count= 0;
 
-	for(node=first; node; node=node->next)
-		if(node->flag & NODE_SELECT)
+	for (node=first; node; node=node->next)
+		if (node->flag & NODE_SELECT)
 			count++;
 
-	if(count) {
-		for(node=first; node; node=node->next)
+	if (count) {
+		for (node=first; node; node=node->next)
 			node_deselect(node);
 	}
 	else {
-		for(node=first; node; node=node->next)
+		for (node=first; node; node=node->next)
 			node_select(node);
 	}
 	
@@ -655,7 +654,7 @@ static int node_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select or Deselect All";
+	ot->name = "(De)select All";
 	ot->description = "(De)select all nodes";
 	ot->idname = "NODE_OT_select_all";
 	
@@ -717,16 +716,16 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeLink *link;
 	bNode *node;
 	
-	for(node=snode->edittree->nodes.first; node; node=node->next)
+	for (node=snode->edittree->nodes.first; node; node=node->next)
 		node->flag &= ~NODE_TEST;
 
-	for(link=snode->edittree->links.first; link; link=link->next) {
-		if(link->fromnode && link->tonode && (link->tonode->flag & NODE_SELECT))
+	for (link=snode->edittree->links.first; link; link=link->next) {
+		if (link->fromnode && link->tonode && (link->tonode->flag & NODE_SELECT))
 			link->fromnode->flag |= NODE_TEST;
 	}
 	
-	for(node=snode->edittree->nodes.first; node; node=node->next) {
-		if(node->flag & NODE_TEST)
+	for (node=snode->edittree->nodes.first; node; node=node->next) {
+		if (node->flag & NODE_TEST)
 			node_select(node);
 	}
 	

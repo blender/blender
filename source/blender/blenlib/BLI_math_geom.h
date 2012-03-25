@@ -54,7 +54,7 @@ float area_tri_v3(const float a[3], const float b[3], const float c[3]);
 float area_quad_v3(const float a[3], const float b[3], const float c[3], const float d[3]);
 float area_poly_v3(int nr, float verts[][3], const float normal[3]);
 
-int is_quad_convex_v3(const float *v1, const float *v2, const float *v3, const float *v4);
+int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 
 /********************************* Distance **********************************/
 
@@ -73,6 +73,7 @@ void  closest_to_plane_v3(float r[3], const float plane_co[3], const float plane
 
 float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3]);
 float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2]);
+void  limit_dist_v3(float v1[3], float v2[3], const float dist);
 
 /******************************* Intersection ********************************/
 

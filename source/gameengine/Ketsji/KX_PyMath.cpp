@@ -82,7 +82,7 @@ bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &rot, const char *error_prefi
 
 bool PyQuatTo(PyObject* pyval, MT_Quaternion &qrot)
 {
-	if(!PyVecTo(pyval, qrot))
+	if (!PyVecTo(pyval, qrot))
 		return false;
 
 	/* annoying!, Blender/Mathutils have the W axis first! */
@@ -106,7 +106,7 @@ PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
 	PyObject *col;
 	int i;
 	
-	for(i=0; i < 4; i++) {
+	for (i=0; i < 4; i++) {
 		col = PyList_New(4);
 		PyList_SET_ITEM(col, 0, PyFloat_FromDouble(mat[0][i]));
 		PyList_SET_ITEM(col, 1, PyFloat_FromDouble(mat[1][i]));
@@ -130,7 +130,7 @@ PyObject* PyObjectFrom(const MT_Matrix3x3 &mat)
 	PyObject *col;
 	int i;
 	
-	for(i=0; i < 3; i++) {
+	for (i=0; i < 3; i++) {
 		col = PyList_New(3);
 		PyList_SET_ITEM(col, 0, PyFloat_FromDouble(mat[0][i]));
 		PyList_SET_ITEM(col, 1, PyFloat_FromDouble(mat[1][i]));

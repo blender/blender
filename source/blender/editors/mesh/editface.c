@@ -77,7 +77,7 @@ void paintface_flush_flags(Object *ob)
 	int totface, totpoly;
 	int i;
 	
-	if(me==NULL || dm==NULL)
+	if (me==NULL || dm==NULL)
 		return;
 
 	/*
@@ -169,20 +169,20 @@ void paintface_hide(Object *ob, const int unselected)
 	int a;
 	
 	me= get_mesh(ob);
-	if(me==NULL || me->totpoly==0) return;
+	if (me==NULL || me->totpoly==0) return;
 
 	mface= me->mpoly;
 	a= me->totpoly;
-	while(a--) {
-		if((mface->flag & ME_HIDE) == 0) {
-			if(unselected) {
-				if( (mface->flag & ME_FACE_SEL)==0) mface->flag |= ME_HIDE;
+	while (a--) {
+		if ((mface->flag & ME_HIDE) == 0) {
+			if (unselected) {
+				if ( (mface->flag & ME_FACE_SEL)==0) mface->flag |= ME_HIDE;
 			}
 			else {
-				if( (mface->flag & ME_FACE_SEL)) mface->flag |= ME_HIDE;
+				if ( (mface->flag & ME_FACE_SEL)) mface->flag |= ME_HIDE;
 			}
 		}
-		if(mface->flag & ME_HIDE) mface->flag &= ~ME_FACE_SEL;
+		if (mface->flag & ME_HIDE) mface->flag &= ~ME_FACE_SEL;
 		
 		mface++;
 	}
@@ -198,12 +198,12 @@ void paintface_reveal(Object *ob)
 	int a;
 
 	me= get_mesh(ob);
-	if(me==NULL || me->totpoly==0) return;
+	if (me==NULL || me->totpoly==0) return;
 
 	mface= me->mpoly;
 	a= me->totpoly;
-	while(a--) {
-		if(mface->flag & ME_HIDE) {
+	while (a--) {
+		if (mface->flag & ME_HIDE) {
 			mface->flag |= ME_FACE_SEL;
 			mface->flag -= ME_HIDE;
 		}
@@ -239,8 +239,8 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 	seamhash = BLI_edgehash_new();
 	linkflag= MEM_callocN(sizeof(char)*me->totpoly, "linkflaguv");
 
-	for(med=me->medge, a=0; a < me->totedge; a++, med++)
-		if(med->flag & ME_SEAM)
+	for (med=me->medge, a=0; a < me->totedge; a++, med++)
+		if (med->flag & ME_SEAM)
 			BLI_edgehash_insert(seamhash, med->v1, med->v2, NULL);
 
 	if (mode==0 || mode==1) {
@@ -252,25 +252,25 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 	else {
 		/* fill array by selection */
 		mf= me->mpoly;
-		for(a=0; a<me->totpoly; a++, mf++) {
-			if(mf->flag & ME_HIDE);
-			else if(mf->flag & ME_FACE_SEL) {
+		for (a=0; a<me->totpoly; a++, mf++) {
+			if (mf->flag & ME_HIDE);
+			else if (mf->flag & ME_FACE_SEL) {
 				hash_add_face(ehash, mf, me->mloop + mf->loopstart);
 				linkflag[a]= 1;
 			}
 		}
 	}
 
-	while(doit) {
+	while (doit) {
 		doit= 0;
 
 		/* expand selection */
 		mf= me->mpoly;
-		for(a=0; a<me->totpoly; a++, mf++) {
-			if(mf->flag & ME_HIDE)
+		for (a=0; a<me->totpoly; a++, mf++) {
+			if (mf->flag & ME_HIDE)
 				continue;
 
-			if(!linkflag[a]) {
+			if (!linkflag[a]) {
 				MLoop *mnextl;
 				mark= 0;
 
@@ -282,7 +282,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 							mark = 1;
 				}
 
-				if(mark) {
+				if (mark) {
 					linkflag[a]= 1;
 					hash_add_face(ehash, mf, me->mloop + mf->loopstart);
 					doit= 1;
@@ -295,26 +295,26 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 	BLI_edgehash_free(ehash, NULL);
 	BLI_edgehash_free(seamhash, NULL);
 
-	if(mode==0 || mode==2) {
-		for(a=0, mf=me->mpoly; a<me->totpoly; a++, mf++)
-			if(linkflag[a])
+	if (mode==0 || mode==2) {
+		for (a=0, mf=me->mpoly; a<me->totpoly; a++, mf++)
+			if (linkflag[a])
 				mf->flag |= ME_FACE_SEL;
 			else
 				mf->flag &= ~ME_FACE_SEL;
 	}
-	else if(mode==1) {
-		for(a=0, mf=me->mpoly; a<me->totpoly; a++, mf++)
-			if(linkflag[a] && (mf->flag & ME_FACE_SEL))
+	else if (mode==1) {
+		for (a=0, mf=me->mpoly; a<me->totpoly; a++, mf++)
+			if (linkflag[a] && (mf->flag & ME_FACE_SEL))
 				break;
 
 		if (a<me->totpoly) {
-			for(a=0, mf=me->mpoly; a<me->totpoly; a++, mf++)
-				if(linkflag[a])
+			for (a=0, mf=me->mpoly; a<me->totpoly; a++, mf++)
+				if (linkflag[a])
 					mf->flag &= ~ME_FACE_SEL;
 		}
 		else {
-			for(a=0, mf=me->mpoly; a<me->totpoly; a++, mf++)
-				if(linkflag[a])
+			for (a=0, mf=me->mpoly; a<me->totpoly; a++, mf++)
+				if (linkflag[a])
 					mf->flag |= ME_FACE_SEL;
 		}
 	}
@@ -328,7 +328,7 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]
 	unsigned int index=0;
 
 	me = get_mesh(ob);
-	if(me==NULL || me->totpoly==0) return;
+	if (me==NULL || me->totpoly==0) return;
 
 	if (mode==0 || mode==1) {
 		// XXX - Causes glitches, not sure why
@@ -350,13 +350,13 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 	int a;
 
 	me= get_mesh(ob);
-	if(me==NULL) return;
+	if (me==NULL) return;
 	
-	if(action == SEL_INVERT) {
+	if (action == SEL_INVERT) {
 		mface= me->mpoly;
 		a= me->totpoly;
-		while(a--) {
-			if((mface->flag & ME_HIDE) == 0) {
+		while (a--) {
+			if ((mface->flag & ME_HIDE) == 0) {
 				mface->flag ^= ME_FACE_SEL;
 			}
 			mface++;
@@ -368,8 +368,8 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 
 			mface= me->mpoly;
 			a= me->totpoly;
-			while(a--) {
-				if((mface->flag & ME_HIDE) == 0 && mface->flag & ME_FACE_SEL) {
+			while (a--) {
+				if ((mface->flag & ME_HIDE) == 0 && mface->flag & ME_FACE_SEL) {
 					action = SEL_DESELECT;
 					break;
 				}
@@ -379,8 +379,8 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 
 		mface= me->mpoly;
 		a= me->totpoly;
-		while(a--) {
-			if((mface->flag & ME_HIDE) == 0) {
+		while (a--) {
+			if ((mface->flag & ME_HIDE) == 0) {
 				switch (action) {
 				case SEL_SELECT:
 					mface->flag |= ME_FACE_SEL;
@@ -397,7 +397,7 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 		}
 	}
 
-	if(flush_flags) {
+	if (flush_flags) {
 		paintface_flush_flags(ob);
 	}
 }
@@ -413,7 +413,7 @@ int paintface_minmax(Object *ob, float *min, float *max)
 	float vec[3], bmat[3][3];
 
 	me= get_mesh(ob);
-	if(!me || !me->mtpoly) return ok;
+	if (!me || !me->mtpoly) return ok;
 	
 	copy_m3_m4(bmat, ob->obmat);
 
@@ -462,7 +462,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 	int a, b;
 	
 	me= get_mesh(OBACT);
-	if(me==0 ||  me->totpoly==0) return;
+	if (me==0 ||  me->totpoly==0) return;
 
 	if (mode == 0)
 		mode = pupmenu("Seams%t|Mark Border Seam %x1|Clear Seam %x2");
@@ -571,7 +571,7 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	
 	me= get_mesh(ob);
 
-	if(me==NULL || me->totpoly==0 || sx*sy <= 0)
+	if (me==NULL || me->totpoly==0 || sx*sy <= 0)
 		return OPERATOR_CANCELLED;
 
 	selar= MEM_callocN(me->totpoly+1, "selar");
@@ -580,8 +580,8 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 		paintface_deselect_all_visible(vc->obact, SEL_DESELECT, FALSE);
 
 		mface= me->mpoly;
-		for(a=1; a<=me->totpoly; a++, mface++) {
-			if((mface->flag & ME_HIDE) == 0)
+		for (a=1; a<=me->totpoly; a++, mface++) {
+			if ((mface->flag & ME_HIDE) == 0)
 				mface->flag &= ~ME_FACE_SEL;
 		}
 	}
@@ -591,23 +591,23 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	ibuf = IMB_allocImBuf(sx,sy,32,IB_rect);
 	rt = ibuf->rect;
 	glReadPixels(rect->xmin+vc->ar->winrct.xmin,  rect->ymin+vc->ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
-	if(ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
+	if (ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 
 	a= sx*sy;
-	while(a--) {
-		if(*rt) {
+	while (a--) {
+		if (*rt) {
 			index= WM_framebuffer_to_index(*rt);
-			if(index<=me->totpoly) selar[index]= 1;
+			if (index<=me->totpoly) selar[index]= 1;
 		}
 		rt++;
 	}
 
 	mface= me->mpoly;
-	for(a=1; a<=me->totpoly; a++, mface++) {
-		if(selar[a]) {
-			if(mface->flag & ME_HIDE);
+	for (a=1; a<=me->totpoly; a++, mface++) {
+		if (selar[a]) {
+			if (mface->flag & ME_HIDE);
 			else {
-				if(select) mface->flag |= ME_FACE_SEL;
+				if (select) mface->flag |= ME_FACE_SEL;
 				else mface->flag &= ~ME_FACE_SEL;
 			}
 		}
@@ -638,7 +638,7 @@ void paintvert_flush_flags(Object *ob)
 	int totvert;
 	int i;
 
-	if(me==NULL || dm==NULL)
+	if (me==NULL || dm==NULL)
 		return;
 
 	index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
@@ -648,11 +648,11 @@ void paintvert_flush_flags(Object *ob)
 
 	dm_mv= dm_mvert;
 
-	if(index_array) {
+	if (index_array) {
 		int orig_index;
 		for (i= 0; i<totvert; i++, dm_mv++) {
 			orig_index= index_array[i];
-			if(orig_index != ORIGINDEX_NONE) {
+			if (orig_index != ORIGINDEX_NONE) {
 				dm_mv->flag= me->mvert[index_array[i]].flag;
 			}
 		}
@@ -671,13 +671,13 @@ void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
 	int a;
 
 	me= get_mesh(ob);
-	if(me==NULL) return;
+	if (me==NULL) return;
 	
-	if(action == SEL_INVERT) {
+	if (action == SEL_INVERT) {
 		mvert= me->mvert;
 		a= me->totvert;
-		while(a--) {
-			if((mvert->flag & ME_HIDE) == 0) {
+		while (a--) {
+			if ((mvert->flag & ME_HIDE) == 0) {
 				mvert->flag ^= SELECT;
 			}
 			mvert++;
@@ -689,8 +689,8 @@ void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
 
 			mvert= me->mvert;
 			a= me->totvert;
-			while(a--) {
-				if((mvert->flag & ME_HIDE) == 0 && mvert->flag & SELECT) {
+			while (a--) {
+				if ((mvert->flag & ME_HIDE) == 0 && mvert->flag & SELECT) {
 					action = SEL_DESELECT;
 					break;
 				}
@@ -700,8 +700,8 @@ void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
 
 		mvert= me->mvert;
 		a= me->totvert;
-		while(a--) {
-			if((mvert->flag & ME_HIDE) == 0) {
+		while (a--) {
+			if ((mvert->flag & ME_HIDE) == 0) {
 				switch (action) {
 				case SEL_SELECT:
 					mvert->flag |= SELECT;
@@ -718,7 +718,7 @@ void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
 		}
 	}
 
-	if(flush_flags) {
+	if (flush_flags) {
 		paintvert_flush_flags(ob);
 	}
 }
@@ -763,7 +763,7 @@ int ED_mesh_mirrtopo_recalc_check(Mesh *me, const int ob_mode, MirrTopoStore_t *
 		totedge = me->totedge;
 	}
 
-	if(	(mesh_topo_store->index_lookup==NULL) ||
+	if (	(mesh_topo_store->index_lookup==NULL) ||
 		(mesh_topo_store->prev_ob_mode != ob_mode) ||
 		(totvert != mesh_topo_store->prev_vert_tot) ||
 		(totedge != mesh_topo_store->prev_edge_tot))
@@ -801,7 +801,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 
 	mesh_topo_store->prev_ob_mode = ob_mode;
 
-	if(em) {
+	if (em) {
 		BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 
 		totvert = em->bm->totvert;
@@ -813,7 +813,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 	topo_hash = MEM_callocN(totvert * sizeof(MirrTopoHash_t), "TopoMirr");
 
 	/* Initialize the vert-edge-user counts used to detect unique topology */
-	if(em) {
+	if (em) {
 		totedge = me->edit_btmesh->bm->totedge;
 
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
@@ -824,7 +824,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 	else {
 		totedge = me->totedge;
 
-		for(a=0, medge=me->medge; a < me->totedge; a++, medge++) {
+		for (a=0, medge=me->medge; a < me->totedge; a++, medge++) {
 			topo_hash[medge->v1]++;
 			topo_hash[medge->v2]++;
 		}
@@ -833,17 +833,17 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 	topo_hash_prev = MEM_dupallocN(topo_hash);
 
 	tot_unique_prev = -1;
-	while(1) {
+	while (1) {
 		/* use the number of edges per vert to give verts unique topology IDs */
 
-		if(em) {
+		if (em) {
 			BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 				topo_hash[BM_elem_index_get(eed->v1)] += topo_hash_prev[BM_elem_index_get(eed->v2)];
 				topo_hash[BM_elem_index_get(eed->v2)] += topo_hash_prev[BM_elem_index_get(eed->v1)];
 			}
 		}
 		else {
-			for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
+			for (a=0, medge=me->medge; a<me->totedge; a++, medge++) {
 				/* This can make really big numbers, wrapping around here is fine */
 				topo_hash[medge->v1] += topo_hash_prev[medge->v2];
 				topo_hash[medge->v2] += topo_hash_prev[medge->v1];
@@ -855,7 +855,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		qsort(topo_hash_prev, totvert, sizeof(MirrTopoHash_t), mirrtopo_hash_sort);
 
 		tot_unique = 1; /* account for skiping the first value */
-		for(a=1; a<totvert; a++) {
+		for (a=1; a<totvert; a++) {
 			if (topo_hash_prev[a-1] != topo_hash_prev[a]) {
 				tot_unique++;
 			}
@@ -879,14 +879,14 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 	/* since we are looping through verts, initialize these values here too */
 	index_lookup = MEM_mallocN(totvert * sizeof(*index_lookup), "mesh_topo_lookup");
 
-	if(em) {
+	if (em) {
 		if (skip_em_vert_array_init == FALSE) {
 			EDBM_init_index_arrays(em,1, 0, 0);
 		}
 	}
 
 
-	for(a=0; a<totvert; a++) {
+	for (a=0; a<totvert; a++) {
 		topo_pairs[a].hash    = topo_hash[a];
 		topo_pairs[a].v_index = a;
 
@@ -901,11 +901,11 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 
 	/* Get the pairs out of the sorted hashes, note, totvert+1 means we can use the previous 2,
 	 * but you cant ever access the last 'a' index of MirrTopoPairs */
-	for(a=2; a <= totvert; a++) {
+	for (a=2; a <= totvert; a++) {
 		/* printf("I %d %ld %d\n", (a-last), MirrTopoPairs[a  ].hash, MirrTopoPairs[a  ].v_index ); */
 		if ((a==totvert) || (topo_pairs[a-1].hash != topo_pairs[a].hash)) {
 			if (a-last==2) {
-				if(em) {
+				if (em) {
 					index_lookup[topo_pairs[a-1].v_index] =	(intptr_t)EDBM_get_vert_for_index(em, topo_pairs[a-2].v_index);
 					index_lookup[topo_pairs[a-2].v_index] =	(intptr_t)EDBM_get_vert_for_index(em, topo_pairs[a-1].v_index);
 				}
@@ -917,7 +917,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 			last = a;
 		}
 	}
-	if(em) {
+	if (em) {
 		if (skip_em_vert_array_init == FALSE) {
 			EDBM_free_index_arrays(em);
 		}

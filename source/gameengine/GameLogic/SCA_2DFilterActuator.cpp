@@ -55,7 +55,7 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
       m_scene(scene)
 {
 	m_gameobj = NULL;
-	if(gameobj){
+	if (gameobj){
 		m_propNames = gameobj->GetPropertyNames();
 		m_gameobj = gameobj;
 	}
@@ -79,16 +79,16 @@ bool SCA_2DFilterActuator::Update()
 	if (bNegativeEvent)
 		return false; // do nothing on negative events
 
-	if( m_type == RAS_2DFilterManager::RAS_2DFILTER_MOTIONBLUR )
+	if ( m_type == RAS_2DFilterManager::RAS_2DFILTER_MOTIONBLUR )
 	{
-		if(!m_disableMotionBlur)
+		if (!m_disableMotionBlur)
 			m_rasterizer->EnableMotionBlur(m_float_arg);
 		else
 			m_rasterizer->DisableMotionBlur();
 
 		return false;
 	}
-	else if(m_type < RAS_2DFilterManager::RAS_2DFILTER_NUMBER_OF_FILTERS)
+	else if (m_type < RAS_2DFilterManager::RAS_2DFILTER_NUMBER_OF_FILTERS)
 	{
 		m_scene->Update2DFilter(m_propNames, m_gameobj, m_type, m_int_arg, m_shaderText);
 	}

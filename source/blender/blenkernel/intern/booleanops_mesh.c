@@ -208,7 +208,8 @@ CSG_PerformOp(
 			mesh2->m_vertex_iterator,		
 			InterpFaceVertexData	
 		);
-	} else {
+	}
+	else {
 		success = 
 		CSG_PerformBooleanOperation(
 			bool_op,

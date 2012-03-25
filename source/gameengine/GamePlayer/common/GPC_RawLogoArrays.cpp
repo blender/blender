@@ -1029,7 +1029,7 @@ void GetRawBlenderLogo(unsigned char **data, int *width, int *height)
 	*data = new unsigned char[14720];
 	// and copy it. Now we are certain that the calling function
 	// can control the memory location
-	for(int i = 0; i < 14720 /* tmp array size */; i++)
+	for (int i = 0; i < 14720 /* tmp array size */; i++)
 	{
 		(*data)[i] = logo_blender_raw[i];
 	}
@@ -1449,7 +1449,7 @@ void GetRawBlender3DLogo(unsigned char **data, int *width, int *height)
 	*data = new unsigned char[5984];
 	// and copy it. Now we are certain that the calling function
 	// can control the memory location
-	for(int i = 0; i < 5984 /* tmp array size */; i++)
+	for (int i = 0; i < 5984 /* tmp array size */; i++)
 	{
 		(*data)[i] = logo_blender3d_raw[i];
 	}

@@ -902,7 +902,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 			}
 #endif
 			else {
-				if(p->subrect == NULL) { /* normal 3D view */
+				if (p->subrect == NULL) { /* normal 3D view */
 					x0= (int)(pt1->x / 100 * p->ar->winx);
 					y0= (int)(pt1->y / 100 * p->ar->winy);
 					x1= (int)(pt2->x / 100 * p->ar->winx);
@@ -940,10 +940,10 @@ static void gp_stroke_doeraser (tGPsdata *p)
 	rcti rect;
 	
 	/* rect is rectangle of eraser */
-	rect.xmin= p->mval[0] - p->radius;
-	rect.ymin= p->mval[1] - p->radius;
-	rect.xmax= p->mval[0] + p->radius;
-	rect.ymax= p->mval[1] + p->radius;
+	rect.xmin = p->mval[0] - p->radius;
+	rect.ymin = p->mval[1] - p->radius;
+	rect.xmax = p->mval[0] + p->radius;
+	rect.ymax = p->mval[1] + p->radius;
 	
 	/* loop over strokes, checking segments for intersections */
 	for (gps= gpf->strokes.first; gps; gps= gpn) {
@@ -1204,7 +1204,7 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 	if (p->gpl == NULL) {
 		p->gpl= gpencil_layer_addnew(p->gpd);
 
-		if(p->custom_color[3])
+		if (p->custom_color[3])
 			copy_v3_v3(p->gpl->color, p->custom_color);
 	}
 	if (p->gpl->flag & GP_LAYER_LOCKED) {
@@ -1756,7 +1756,7 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	if (gp_session_initdata(C, p))
 		gp_paint_initstroke(p, p->paintmode);
 
-	if(p->status != GP_STATUS_ERROR)
+	if (p->status != GP_STATUS_ERROR)
 		p->status= GP_STATUS_PAINTING;
 
 	return op->customdata;
@@ -1919,19 +1919,19 @@ static EnumPropertyItem prop_gpencil_drawmodes[] = {
 void GPENCIL_OT_draw (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Grease Pencil Draw";
-	ot->idname= "GPENCIL_OT_draw";
-	ot->description= "Make annotations on the active data";
+	ot->name = "Grease Pencil Draw";
+	ot->idname = "GPENCIL_OT_draw";
+	ot->description = "Make annotations on the active data";
 	
 	/* api callbacks */
-	ot->exec= gpencil_draw_exec;
-	ot->invoke= gpencil_draw_invoke;
-	ot->modal= gpencil_draw_modal;
-	ot->cancel= gpencil_draw_cancel;
-	ot->poll= gpencil_draw_poll;
+	ot->exec = gpencil_draw_exec;
+	ot->invoke = gpencil_draw_invoke;
+	ot->modal = gpencil_draw_modal;
+	ot->cancel = gpencil_draw_cancel;
+	ot->poll = gpencil_draw_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* settings for drawing */
 	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to interpret mouse movements");

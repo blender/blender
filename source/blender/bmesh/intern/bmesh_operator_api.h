@@ -43,7 +43,7 @@ extern "C" {
  * when it's executed.  tool flags are allocated in layers, one per operator
  * execution, and are used for all internal flagging a tool needs to do.
  *
- * each operator has a series of "slots," which can be of the following types:
+ * each operator has a series of "slots" which can be of the following types:
  * - simple numerical types
  * - arrays of elements (e.g. arrays of faces).
  * - hash mappings.
@@ -81,11 +81,11 @@ struct GHashIterator;
 #define BMO_elem_flag_set(    bm, ele, oflag, val) _bmo_elem_flag_set     (bm, (ele)->oflags, oflag, val)
 #define BMO_elem_flag_toggle( bm, ele, oflag)      _bmo_elem_flag_toggle  (bm, (ele)->oflags, oflag)
 
-BM_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BM_INLINE void  _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BM_INLINE void  _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BM_INLINE void  _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val);
-BM_INLINE void  _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void  _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void  _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void  _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val);
+BLI_INLINE void  _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag);
 
 /* slot type arrays are terminated by the last member
  * having a slot type of 0.*/
@@ -184,7 +184,7 @@ void BMO_op_finish(BMesh *bm, BMOperator *op);
 
 /* count the number of elements with a specific flag.
  * type can be a bitmask of BM_FACE, BM_EDGE, or BM_FACE. */
-int BMO_mesh_flag_count(BMesh *bm, const short oflag, const char htype);
+int BMO_mesh_flag_count(BMesh *bm, const char htype, const short oflag);
 
 /*---------formatted operator initialization/execution-----------*/
 /*
@@ -292,27 +292,27 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *op, const char htype, cons
 /* puts every element of type type (which is a bitmask) with tool flag flag,
  * into a slot. */
 void BMO_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
-                               const short oflag, const char htype);
+                               const char htype, const short oflag);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
 void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                 const short oflag, const char htype);
+                                 const char htype, const short oflag);
 /* clears tool-flag flag from all elements inside a slot array. */
 void BMO_slot_buffer_flag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const short oflag, const char htype);
+                                  const char htype, const short oflag);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
 void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const char hflag, const char htype, char do_flush_select);
+                                  const char htype, const char hflag, const char do_flush);
 /* clears tool-flag flag from all elements inside a slot array. */
 void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                   const char hflag, const char htype, char do_flush_select);
+                                   const char htype, const char hflag, const char do_flush);
 
 /* puts every element of type type (which is a bitmask) with header flag
  * flag, into a slot.  note: ignores hidden elements (e.g. elements with
  * header flag BM_ELEM_HIDDEN set).*/
 void BMO_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-                                const char hflag, const char htype);
+                                const char htype, const char hflag);
 
 /* counts number of elements inside a slot array. */
 int BMO_slot_buffer_count(BMesh *bm, BMOperator *op, const char *slotname);
@@ -328,7 +328,7 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag);
 /* flags all elements in a mapping.  note that the mapping must only have
  * bmesh elements in it.*/
 void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slotname,
-                          const short oflag, const char hflag);
+                          const char hflag, const short oflag);
 
 /* this part of the API is used to iterate over element buffer or
  * mapping slots.
@@ -339,7 +339,7 @@ void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slotname,
  *    BMFace *f;
  *
  *    f = BMO_iter_new(&oiter, bm, some_operator, "slotname", BM_FACE);
- *    for (; f; f=BMO_iter_step(&oiter)) {
+ *    for (; f; f = BMO_iter_step(&oiter)) {
  *        /do something with the face
  *    }
  *
@@ -349,7 +349,7 @@ void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slotname,
  *    void *val;
  *
  *    key = BMO_iter_new(&oiter, bm, some_operator, "slotname", 0);
- *    for (; key; key=BMO_iter_step(&oiter)) {
+ *    for (; key; key = BMO_iter_step(&oiter)) {
  *        val = BMO_iter_map_value(&oiter);
  *        //do something with the key/val pair
  *        //note that val is a pointer to the val data,
@@ -389,7 +389,7 @@ float BMO_iter_map_value_f(BMOIter *iter);
 
 #define BMO_ITER(ele, iter, bm, op, slotname, restrict)   \
 	ele = BMO_iter_new(iter, bm, op, slotname, restrict); \
-	for ( ; ele; ele=BMO_iter_step(iter))
+	for ( ; ele; ele = BMO_iter_step(iter))
 
 /******************* Inlined Functions********************/
 typedef void (*opexec)(BMesh *bm, BMOperator *op);

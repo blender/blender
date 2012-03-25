@@ -79,7 +79,7 @@ void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_b
 void GetSkyXYZRadiance(struct SunSky *sunsky, float theta, float phi, float color_out[3]);
 void GetSkyXYZRadiancef(struct SunSky *sunsky, const float varg[3], float color_out[3]);
 void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float rayf, float inscattf, float extincf, float disf);
-void AtmospherePixleShader( struct SunSky *sunSky, float view[3], float s, float rgb[3]);
+void AtmospherePixleShader(struct SunSky *sunSky, float view[3], float s, float rgb[3]);
 void ClipColor(float c[3]);
 
 #endif /*__SUNSKY_H__*/

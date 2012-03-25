@@ -294,7 +294,7 @@ bool SCA_KeyboardSensor::Evaluate()
 		}
 		
 		/* Modify the key state based on qual(s)
-		 * Tested carefully. dont touch unless your really sure.
+		 * Tested carefully. don't touch unless your really sure.
 		 * note, this will only change the results if key modifiers are set.
 		 *
 		 * When all modifiers and keys are positive

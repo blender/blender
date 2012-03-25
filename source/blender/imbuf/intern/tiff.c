@@ -128,23 +128,23 @@ static tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
 
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
-	if(!mfile || !mfile->mem) {
+	if (!mfile || !mfile->mem) {
 		fprintf(stderr, "imb_tiff_ReadProc: !mfile || !mfile->mem!\n");
 		return 0;
 	}
 
 	/* find the actual number of bytes to read (copy) */
 	nCopy = n;
-	if((tsize_t)mfile->offset >= mfile->size)
+	if ((tsize_t)mfile->offset >= mfile->size)
 		nRemaining = 0;
 	else
 		nRemaining = mfile->size - mfile->offset;
 	
-	if(nCopy > nRemaining)
+	if (nCopy > nRemaining)
 		nCopy = nRemaining;
 	
 	/* on EOF, return immediately and read (copy) nothing */
-	if(nCopy <= 0)
+	if (nCopy <= 0)
 		return (0);
 
 	/* all set -> do the read (copy) */
@@ -195,7 +195,7 @@ static toff_t imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence)
 
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
-	if(!mfile || !mfile->mem) {
+	if (!mfile || !mfile->mem) {
 		fprintf(stderr, "imb_tiff_SeekProc: !mfile || !mfile->mem!\n");
 		return (-1);
 	}
@@ -241,7 +241,7 @@ static int imb_tiff_CloseProc(thandle_t handle)
 
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
-	if(!mfile || !mfile->mem) {
+	if (!mfile || !mfile->mem) {
 		fprintf(stderr,"imb_tiff_CloseProc: !mfile || !mfile->mem!\n");
 		return (0);
 	}
@@ -267,7 +267,7 @@ static toff_t imb_tiff_SizeProc(thandle_t handle)
 
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
-	if(!mfile || !mfile->mem) {
+	if (!mfile || !mfile->mem) {
 		fprintf(stderr,"imb_tiff_SizeProc: !mfile || !mfile->mem!\n");
 		return (0);
 	}
@@ -361,7 +361,7 @@ static void imb_read_tiff_resolution(ImBuf *ibuf, TIFF *image)
 	TIFFGetFieldDefaulted(image, TIFFTAG_XRESOLUTION, &xres);
 	TIFFGetFieldDefaulted(image, TIFFTAG_YRESOLUTION, &yres);
 
-	if(unit == RESUNIT_CENTIMETER) {
+	if (unit == RESUNIT_CENTIMETER) {
 		ibuf->ppm[0]= (double)xres * 100.0;
 		ibuf->ppm[1]= (double)yres * 100.0;
 	}
@@ -397,10 +397,12 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 	if (bitspersample == 32) {
 		ib_flag = IB_rectfloat;
 		fbuf = (float *)_TIFFmalloc(scanline);
-	} else if (bitspersample == 16) {
+	}
+	else if (bitspersample == 16) {
 		ib_flag = IB_rectfloat;
 		sbuf = (unsigned short *)_TIFFmalloc(scanline);
-	} else {
+	}
+	else {
 		ib_flag = IB_rect;
 	}
 	
@@ -419,13 +421,15 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 				success |= TIFFReadScanline(image, fbuf, row, 0);
 				scanline_contig_32bit(tmpibuf->rect_float+ib_offset, fbuf, ibuf->x, spp);
 				
-			} else if (bitspersample == 16) {
+			}
+			else if (bitspersample == 16) {
 				success |= TIFFReadScanline(image, sbuf, row, 0);
 				scanline_contig_16bit(tmpibuf->rect_float+ib_offset, sbuf, ibuf->x, spp);
 			}
 		}
 	/* separate channels: RRRGGGBBB */
-	} else if (config == PLANARCONFIG_SEPARATE) {
+	}
+	else if (config == PLANARCONFIG_SEPARATE) {
 		
 		/* imbufs always have 4 channels of data, so we iterate over all of them
 		 * but only fill in from the TIFF scanline where necessary. */
@@ -440,7 +444,8 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 						success |= TIFFReadScanline(image, fbuf, row, chan);
 					scanline_separate_32bit(tmpibuf->rect_float+ib_offset, fbuf, ibuf->x, chan);
 					
-				} else if (bitspersample == 16) {
+				}
+				else if (bitspersample == 16) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
 						memset(sbuf, 65535, sizeof(sbuf));
 					else
@@ -457,14 +462,14 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 	else if (bitspersample == 16)
 		_TIFFfree(sbuf);
 
-	if(success) {
+	if (success) {
 		ibuf->profile = (bitspersample==32)?IB_PROFILE_LINEAR_RGB:IB_PROFILE_SRGB;
 
 //		Code seems to be not needed for 16 bits tif, on PPC G5 OSX (ton)
-		if(bitspersample < 16)
-			if(ENDIAN_ORDER == B_ENDIAN)
+		if (bitspersample < 16)
+			if (ENDIAN_ORDER == B_ENDIAN)
 				IMB_convert_rgba_to_abgr(tmpibuf);
-		if(premul) {
+		if (premul) {
 			IMB_premultiply_alpha(tmpibuf);
 			ibuf->flags |= IB_premul;
 		}
@@ -514,16 +519,16 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 	int ib_depth;
 
 	/* check whether or not we have a TIFF file */
-	if(size < IMB_TIFF_NCB) {
+	if (size < IMB_TIFF_NCB) {
 		fprintf(stderr, "imb_loadtiff: size < IMB_TIFF_NCB\n");
 		return NULL;
 	}
-	if(imb_is_a_tiff(mem) == 0)
+	if (imb_is_a_tiff(mem) == 0)
 		return NULL;
 
 	image = imb_tiff_client_open(&memFile, mem, size);
 
-	if(image == NULL) {
+	if (image == NULL) {
 		printf("imb_loadtiff: could not open TIFF IO layer.\n");
 		return NULL;
 	}
@@ -536,7 +541,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 	ib_depth = (spp==3)?24:32;
 	
 	ibuf = IMB_allocImBuf(width, height, ib_depth, 0);
-	if(ibuf) {
+	if (ibuf) {
 		ibuf->ftype = TIF;
 	}
 	else {
@@ -548,26 +553,26 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 	}
 
 	/* if testing, we're done */
-	if(flags & IB_test) {
+	if (flags & IB_test) {
 		TIFFClose(image);
 		return ibuf;
 	}
 
 	/* detect if we are reading a tiled/mipmapped texture, in that case
 	 * we don't read pixels but leave it to the cache to load tiles */
-	if(flags & IB_tilecache) {
+	if (flags & IB_tilecache) {
 		format= NULL;
 		TIFFGetField(image, TIFFTAG_PIXAR_TEXTUREFORMAT, &format);
 
-		if(format && strcmp(format, "Plain Texture")==0 && TIFFIsTiled(image)) {
+		if (format && strcmp(format, "Plain Texture")==0 && TIFFIsTiled(image)) {
 			int numlevel = TIFFNumberOfDirectories(image);
 
 			/* create empty mipmap levels in advance */
-			for(level=0; level<numlevel; level++) {
-				if(!TIFFSetDirectory(image, level))
+			for (level=0; level<numlevel; level++) {
+				if (!TIFFSetDirectory(image, level))
 					break;
 
-				if(level > 0) {
+				if (level > 0) {
 					width= (width > 1)? width/2: 1;
 					height= (height > 1)? height/2: 1;
 
@@ -576,7 +581,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 					hbuf->ftype= ibuf->ftype;
 					ibuf->mipmap[level-1] = hbuf;
 
-					if(flags & IB_premul)
+					if (flags & IB_premul)
 						hbuf->flags |= IB_premul;
 				}
 				else
@@ -598,7 +603,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 	}
 
 	/* read pixels */
-	if(!(ibuf->flags & IB_tilecache) && !imb_read_tiff_pixels(ibuf, image, 0)) {
+	if (!(ibuf->flags & IB_tilecache) && !imb_read_tiff_pixels(ibuf, image, 0)) {
 		fprintf(stderr, "imb_loadtiff: Failed to read tiff image.\n");
 		TIFFClose(image);
 		return NULL;
@@ -619,23 +624,23 @@ void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, size_t size, int tx, int 
 
 	image = imb_tiff_client_open(&memFile, mem, size);
 
-	if(image == NULL) {
+	if (image == NULL) {
 		printf("imb_loadtiff: could not open TIFF IO layer for loading mipmap level.\n");
 		return;
 	}
 
-	if(TIFFSetDirectory(image, ibuf->miplevel)) { /* allocate the image buffer */
+	if (TIFFSetDirectory(image, ibuf->miplevel)) { /* allocate the image buffer */
 		TIFFGetField(image, TIFFTAG_IMAGEWIDTH,  &width);
 		TIFFGetField(image, TIFFTAG_IMAGELENGTH, &height);
 
-		if(width == ibuf->x && height == ibuf->y) {
-			if(rect) {
+		if (width == ibuf->x && height == ibuf->y) {
+			if (rect) {
 				/* tiff pixels are bottom to top, tiles are top to bottom */
-				if(TIFFReadRGBATile(image, tx*ibuf->tilex, (ibuf->ytiles - 1 - ty)*ibuf->tiley, rect) == 1) {
-					if(ibuf->tiley > ibuf->y)
+				if (TIFFReadRGBATile(image, tx*ibuf->tilex, (ibuf->ytiles - 1 - ty)*ibuf->tiley, rect) == 1) {
+					if (ibuf->tiley > ibuf->y)
 						memmove(rect, rect+ibuf->tilex*(ibuf->tiley - ibuf->y), sizeof(int)*ibuf->tilex*ibuf->y);
 
-					if(ibuf->flags & IB_premul)
+					if (ibuf->flags & IB_premul)
 						IMB_premultiply_rect(rect, 32, ibuf->tilex, ibuf->tiley);
 				}
 				else
@@ -686,20 +691,20 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	 * the TIFF writer supports 1, 3 or 4 bytes per pixel, corresponding
 	 * to gray, RGB, RGBA respectively. */
 	samplesperpixel = (uint16)((ibuf->planes + 7) >> 3);
-	if((samplesperpixel > 4) || (samplesperpixel == 2)) {
+	if ((samplesperpixel > 4) || (samplesperpixel == 2)) {
 		fprintf(stderr,
 			"imb_savetiff: unsupported number of bytes per " 
 			"pixel: %d\n", samplesperpixel);
 		return (0);
 	}
 
-	if((ibuf->ftype & TIF_16BIT) && ibuf->rect_float)
+	if ((ibuf->ftype & TIF_16BIT) && ibuf->rect_float)
 		bitspersample = 16;
 	else
 		bitspersample = 8;
 
 	/* open TIFF file for writing */
-	if(flags & IB_mem) {
+	if (flags & IB_mem) {
 		/* bork at the creation of a TIFF in memory */
 		fprintf(stderr,
 			"imb_savetiff: creation of in-memory TIFF files is " 
@@ -710,7 +715,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 		/* create image as a file */
 		image = TIFFOpen(name, "w");
 	}
-	if(image == NULL) {
+	if (image == NULL) {
 		fprintf(stderr,
 			"imb_savetiff: could not open TIFF for writing.\n");
 		return (0);
@@ -718,14 +723,14 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 
 	/* allocate array for pixel data */
 	npixels = ibuf->x * ibuf->y;
-	if(bitspersample == 16)
+	if (bitspersample == 16)
 		pixels16 = (unsigned short*)_TIFFmalloc(npixels *
 			samplesperpixel * sizeof(unsigned short));
 	else
 		pixels = (unsigned char*)_TIFFmalloc(npixels *
 			samplesperpixel * sizeof(unsigned char));
 
-	if(pixels == NULL && pixels16 == NULL) {
+	if (pixels == NULL && pixels16 == NULL) {
 		fprintf(stderr,
 			"imb_savetiff: could not allocate pixels array.\n");
 		TIFFClose(image);
@@ -733,7 +738,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	}
 
 	/* setup pointers */
-	if(bitspersample == 16) {
+	if (bitspersample == 16) {
 		fromf = ibuf->rect_float;
 		to16   = pixels16;
 	}
@@ -746,31 +751,31 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	TIFFSetField(image, TIFFTAG_BITSPERSAMPLE, bitspersample);
 	TIFFSetField(image, TIFFTAG_SAMPLESPERPIXEL, samplesperpixel);
 
-	if(samplesperpixel == 4) {
+	if (samplesperpixel == 4) {
 		/* RGBA images */
 		TIFFSetField(image, TIFFTAG_EXTRASAMPLES, 1,
 				extraSampleTypes);
 		TIFFSetField(image, TIFFTAG_PHOTOMETRIC, 
 				PHOTOMETRIC_RGB);
 	}
-	else if(samplesperpixel == 3) {
+	else if (samplesperpixel == 3) {
 		/* RGB images */
 		TIFFSetField(image, TIFFTAG_PHOTOMETRIC,
 				PHOTOMETRIC_RGB);
 	}
-	else if(samplesperpixel == 1) {
+	else if (samplesperpixel == 1) {
 		/* greyscale images, 1 channel */
 		TIFFSetField(image, TIFFTAG_PHOTOMETRIC,
 				PHOTOMETRIC_MINISBLACK);
 	}
 
 	/* copy pixel data.  While copying, we flip the image vertically. */
-	for(x = 0; x < ibuf->x; x++) {
-		for(y = 0; y < ibuf->y; y++) {
+	for (x = 0; x < ibuf->x; x++) {
+		for (y = 0; y < ibuf->y; y++) {
 			from_i = 4*(y*ibuf->x+x);
 			to_i   = samplesperpixel*((ibuf->y-y-1)*ibuf->x+x);
 
-			if(pixels16) {
+			if (pixels16) {
 				/* convert from float source */
 				float rgb[3];
 				
@@ -790,7 +795,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 				}
 			}
 			else {
-				for(i = 0; i < samplesperpixel; i++, to_i++, from_i++)
+				for (i = 0; i < samplesperpixel; i++, to_i++, from_i++)
 					to[to_i] = from[from_i];
 			}
 		}
@@ -805,7 +810,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	TIFFSetField(image, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
 
 
-	if(ibuf->ppm[0] > 0.0 && ibuf->ppm[1] > 0.0) {
+	if (ibuf->ppm[0] > 0.0 && ibuf->ppm[1] > 0.0) {
 		xres= (float)(ibuf->ppm[0] * 0.0254);
 		yres= (float)(ibuf->ppm[1] * 0.0254);
 	}
@@ -816,20 +821,20 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	TIFFSetField(image, TIFFTAG_XRESOLUTION,     xres);
 	TIFFSetField(image, TIFFTAG_YRESOLUTION,     yres);
 	TIFFSetField(image, TIFFTAG_RESOLUTIONUNIT,  RESUNIT_INCH);
-	if(TIFFWriteEncodedStrip(image, 0,
+	if (TIFFWriteEncodedStrip(image, 0,
 			(bitspersample == 16)? (unsigned char*)pixels16: pixels,
 			ibuf->x*ibuf->y*samplesperpixel*bitspersample/8) == -1) {
 		fprintf(stderr,
 			"imb_savetiff: Could not write encoded TIFF.\n");
 		TIFFClose(image);
-		if(pixels) _TIFFfree(pixels);
-		if(pixels16) _TIFFfree(pixels16);
+		if (pixels) _TIFFfree(pixels);
+		if (pixels16) _TIFFfree(pixels16);
 		return (1);
 	}
 
 	/* close the TIFF file */
 	TIFFClose(image);
-	if(pixels) _TIFFfree(pixels);
-	if(pixels16) _TIFFfree(pixels16);
+	if (pixels) _TIFFfree(pixels);
+	if (pixels16) _TIFFfree(pixels16);
 	return (1);
 }

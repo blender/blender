@@ -85,16 +85,16 @@ static int pack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	ImBuf *ibuf;
 
 	// first check for dirty images
-	for(ima=bmain->image.first; ima; ima=ima->id.next) {
-		if(ima->ibufs.first) { /* XXX FIX */
+	for (ima=bmain->image.first; ima; ima=ima->id.next) {
+		if (ima->ibufs.first) { /* XXX FIX */
 			ibuf= BKE_image_get_ibuf(ima, NULL);
 			
-			if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
+			if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
 				break;
 		}
 	}
 
-	if(ima) {
+	if (ima) {
 		uiPupMenuOkee(C, "FILE_OT_pack_all", "Some images are painted on. These changes will be lost. Continue?");
 		return OPERATOR_CANCELLED;
 	}
@@ -105,15 +105,15 @@ static int pack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void FILE_OT_pack_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pack All";
-	ot->idname= "FILE_OT_pack_all";
+	ot->name = "Pack All";
+	ot->idname = "FILE_OT_pack_all";
 	
 	/* api callbacks */
-	ot->exec= pack_all_exec;
-	ot->invoke= pack_all_invoke;
+	ot->exec = pack_all_exec;
+	ot->invoke = pack_all_invoke;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************* unpack all operator *********************/
@@ -132,7 +132,7 @@ static int unpack_all_exec(bContext *C, wmOperator *op)
 	Main *bmain= CTX_data_main(C);
 	int method= RNA_enum_get(op->ptr, "method");
 
-	if(method != PF_KEEP) unpackAll(bmain, op->reports, method); /* XXX PF_ASK can't work here */
+	if (method != PF_KEEP) unpackAll(bmain, op->reports, method); /* XXX PF_ASK can't work here */
 	G.fileflags &= ~G_AUTOPACK;
 
 	return OPERATOR_FINISHED;
@@ -148,13 +148,13 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	
 	count = countPackedFiles(bmain);
 	
-	if(!count) {
+	if (!count) {
 		BKE_report(op->reports, RPT_WARNING, "No packed files. Autopack disabled");
 		G.fileflags &= ~G_AUTOPACK;
 		return OPERATOR_CANCELLED;
 	}
 
-	if(count == 1)
+	if (count == 1)
 		strcpy(title, "Unpack 1 file");
 	else
 		BLI_snprintf(title, sizeof(title), "Unpack %d files", count);
@@ -173,15 +173,15 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 void FILE_OT_unpack_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Unpack All";
-	ot->idname= "FILE_OT_unpack_all";
+	ot->name = "Unpack All";
+	ot->idname = "FILE_OT_unpack_all";
 	
 	/* api callbacks */
-	ot->exec= unpack_all_exec;
-	ot->invoke= unpack_all_invoke;
+	ot->exec = unpack_all_exec;
+	ot->invoke = unpack_all_invoke;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_all_method_items, PF_USE_LOCAL, "Method", "How to unpack");
@@ -193,7 +193,7 @@ static int make_paths_relative_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 
-	if(!G.relbase_valid) {
+	if (!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set relative paths with an unsaved blend file");
 		return OPERATOR_CANCELLED;
 	}
@@ -209,14 +209,14 @@ static int make_paths_relative_exec(bContext *C, wmOperator *op)
 void FILE_OT_make_paths_relative(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make All Paths Relative";
-	ot->idname= "FILE_OT_make_paths_relative";
+	ot->name = "Make All Paths Relative";
+	ot->idname = "FILE_OT_make_paths_relative";
 	
 	/* api callbacks */
-	ot->exec= make_paths_relative_exec;
+	ot->exec = make_paths_relative_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************* make paths absolute operator *********************/
@@ -225,7 +225,7 @@ static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 
-	if(!G.relbase_valid) {
+	if (!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set absolute paths with an unsaved blend file");
 		return OPERATOR_CANCELLED;
 	}
@@ -241,14 +241,14 @@ static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make All Paths Absolute";
-	ot->idname= "FILE_OT_make_paths_absolute";
+	ot->name = "Make All Paths Absolute";
+	ot->idname = "FILE_OT_make_paths_absolute";
 	
 	/* api callbacks */
-	ot->exec= make_paths_absolute_exec;
+	ot->exec = make_paths_absolute_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************* report missing files operator *********************/
@@ -266,14 +266,14 @@ static int report_missing_files_exec(bContext *C, wmOperator *op)
 void FILE_OT_report_missing_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Report Missing Files";
-	ot->idname= "FILE_OT_report_missing_files";
+	ot->name = "Report Missing Files";
+	ot->idname = "FILE_OT_report_missing_files";
 	
 	/* api callbacks */
-	ot->exec= report_missing_files_exec;
+	ot->exec = report_missing_files_exec;
 
 	/* flags */
-	ot->flag= 0; /* only reports so no need to undo/register */
+	ot->flag = 0; /* only reports so no need to undo/register */
 }
 
 /********************* find missing files operator *********************/
@@ -298,15 +298,15 @@ static int find_missing_files_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 void FILE_OT_find_missing_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Find Missing Files";
-	ot->idname= "FILE_OT_find_missing_files";
+	ot->name = "Find Missing Files";
+	ot->idname = "FILE_OT_find_missing_files";
 	
 	/* api callbacks */
-	ot->exec= find_missing_files_exec;
-	ot->invoke= find_missing_files_invoke;
+	ot->exec = find_missing_files_exec;
+	ot->invoke = find_missing_files_invoke;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
@@ -339,7 +339,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	int send_note= 0;
 	
 	/* escape if not our timer */
-	if(		(reports->reporttimer==NULL) ||
+	if (		(reports->reporttimer==NULL) ||
 			(reports->reporttimer != event->customdata) ||
 			((report= BKE_reports_last_displayable(reports))==NULL) /* may have been deleted */
 	) {
@@ -363,15 +363,17 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 
 	if (rti->widthfac == 0.0f) {
 		/* initialize colors based on report type */
-		if(report->type & RPT_ERROR_ALL) {
+		if (report->type & RPT_ERROR_ALL) {
 			rti->col[0] = 1.0;
 			rti->col[1] = 0.2;
 			rti->col[2] = 0.0;
-		} else if(report->type & RPT_WARNING_ALL) {
+		}
+		else if (report->type & RPT_WARNING_ALL) {
 			rti->col[0] = 1.0;
 			rti->col[1] = 1.0;
 			rti->col[2] = 0.0;
-		} else if(report->type & RPT_INFO_ALL) {
+		}
+		else if (report->type & RPT_INFO_ALL) {
 			rti->col[0] = 0.3;
 			rti->col[1] = 0.45;
 			rti->col[2] = 0.7;
@@ -384,7 +386,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	color_progress = (float)reports->reporttimer->duration / color_timeout;
 	
 	/* save us from too many draws */
-	if(color_progress <= 1.0f) {
+	if (color_progress <= 1.0f) {
 		send_note= 1;
 		
 		/* fade colors out sharply according to progress through fade-out duration */
@@ -399,7 +401,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 		send_note= 1;
 	}
 	
-	if(send_note) {
+	if (send_note) {
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
 	}
 	
@@ -409,14 +411,14 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 void INFO_OT_reports_display_update(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Update Reports Display";
-	ot->idname= "INFO_OT_reports_display_update";
+	ot->name = "Update Reports Display";
+	ot->idname = "INFO_OT_reports_display_update";
 	
 	/* api callbacks */
-	ot->invoke= update_reports_display_invoke;
+	ot->invoke = update_reports_display_invoke;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 	
 	/* properties */
 }

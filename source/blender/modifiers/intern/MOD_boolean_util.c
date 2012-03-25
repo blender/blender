@@ -185,17 +185,19 @@ static void FaceIt_Fill(CSG_IteratorPtr it, CSG_IFace *face)
 
 	/* reverse face vertices if necessary */
 	face->vertex_index[1] = mface->v2;
-	if( face_it->flip == 0 ) {
+	if ( face_it->flip == 0 ) {
 	face->vertex_index[0] = mface->v1;
 	face->vertex_index[2] = mface->v3;
-	} else {
+	}
+	else {
 		face->vertex_index[2] = mface->v1;
 		face->vertex_index[0] = mface->v3;
 	}
 	if (mface->v4) {
 		face->vertex_index[3] = mface->v4;
 		face->vertex_number = 4;
-	} else {
+	}
+	else {
 		face->vertex_number = 3;
 	}
 
@@ -234,17 +236,22 @@ static void FaceIt_Construct(
 	if (ob->size[0] < 0.0f) {
 		if (ob->size[1] < 0.0f && ob->size[2] < 0.0f) {
 			it->flip = 1;
-		} else if (ob->size[1] >= 0.0f && ob->size[2] >= 0.0f) {
+		}
+		else if (ob->size[1] >= 0.0f && ob->size[2] >= 0.0f) {
 			it->flip = 1;
-		} else {
+		}
+		else {
 			it->flip = 0;
 		}
-	} else {
+	}
+	else {
 		if (ob->size[1] < 0.0f && ob->size[2] < 0.0f) {
 			it->flip = 0;
-		} else if (ob->size[1] >= 0.0f && ob->size[2] >= 0.0f) {
+		}
+		else if (ob->size[1] >= 0.0f && ob->size[2] >= 0.0f) {
 			it->flip = 0;
-		} else {
+		}
+		else {
 			it->flip = 1;
 		}
 	}
@@ -354,9 +361,9 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 
 	// create a new DerivedMesh
 	result = CDDM_new(vertex_it->num_elements, 0, face_it->num_elements, 0, 0);
-	CustomData_merge(&dm1->faceData, &result->faceData, CD_MASK_DERIVEDMESH,
+	CustomData_merge(&dm1->faceData, &result->faceData, CD_MASK_DERIVEDMESH & ~(CD_MASK_NORMAL | CD_MASK_POLYINDEX | CD_MASK_ORIGINDEX),
 					  CD_DEFAULT, face_it->num_elements); 
-	CustomData_merge(&dm2->faceData, &result->faceData, CD_MASK_DERIVEDMESH,
+	CustomData_merge(&dm2->faceData, &result->faceData, CD_MASK_DERIVEDMESH & ~(CD_MASK_NORMAL | CD_MASK_POLYINDEX | CD_MASK_ORIGINDEX),
 					  CD_DEFAULT, face_it->num_elements); 
 
 	// step through the vertex iterators:
@@ -382,7 +389,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	origindex_layer = result->getTessFaceDataArray(result, CD_ORIGINDEX);
 
 	// step through the face iterators
-	for(i = 0; !face_it->Done(face_it->it); i++) {
+	for (i = 0; !face_it->Done(face_it->it); i++) {
 		Mesh *orig_me;
 		Object *orig_ob;
 		Material *orig_mat;
@@ -422,8 +429,8 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 			else
 				mface->mat_nr = GET_INT_FROM_POINTER(BLI_ghash_lookup(material_hash, orig_mat));
 		}
-		else if(orig_mat) {
-			if(orig_ob == ob1) {
+		else if (orig_mat) {
+			if (orig_ob == ob1) {
 				// No need to change materian index for faces from left operand
 			}
 			else {
@@ -433,8 +440,8 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 					int a;
 
 					mat_nr = 0;
-					for(a = 0; a < ob1->totcol; a++) {
-						if(give_current_material(ob1, a+1) == orig_mat) {
+					for (a = 0; a < ob1->totcol; a++) {
+						if (give_current_material(ob1, a+1) == orig_mat) {
 							mat_nr = a;
 							break;
 						}
@@ -456,7 +463,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 
 		test_index_face(mface, &result->faceData, i, csgface.vertex_number);
 
-		if(origindex_layer && orig_ob == ob2)
+		if (origindex_layer && orig_ob == ob2)
 			origindex_layer[i] = ORIGINDEX_NONE;
 	}
 
@@ -466,6 +473,17 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	CDDM_calc_edges_tessface(result);
 
 	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
+
+	/* this fixes shading issues but SHOULD NOT.
+	 * TODO, find out why face normals are wrong & flicker - campbell */
+#if 0
+	DM_debug_print(result);
+
+	CustomData_free(&result->faceData, result->numTessFaceData);
+	result->numTessFaceData = 0;
+	DM_ensure_tessface(result);
+#endif
+
 	CDDM_calc_normals(result);
 
 	return result;

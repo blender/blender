@@ -141,7 +141,7 @@ static void do_apply_spillmap_red(bNode *node, float* out, float *in, float *map
 {	
 	NodeColorspill *ncs;
 	ncs=node->storage;
-	if(map[0]>0) {
+	if (map[0]>0) {
 		out[0]=in[0]-(ncs->uspillr*map[0]);
 		out[1]=in[1]+(ncs->uspillg*map[0]);
 		out[2]=in[2]+(ncs->uspillb*map[0]);
@@ -157,7 +157,7 @@ static void do_apply_spillmap_green(bNode *node, float* out, float *in, float *m
 {
 	NodeColorspill *ncs;
 	ncs=node->storage;
-	if(map[0]>0) {
+	if (map[0]>0) {
 		out[0]=in[0]+(ncs->uspillr*map[0]);
 		out[1]=in[1]-(ncs->uspillg*map[0]);
 		out[2]=in[2]+(ncs->uspillb*map[0]);
@@ -173,7 +173,7 @@ static void do_apply_spillmap_blue(bNode *node, float* out, float *in, float *ma
 {
 	NodeColorspill *ncs;
 	ncs=node->storage;
-	if(map[0]>0) {
+	if (map[0]>0) {
 		out[0]=in[0]+(ncs->uspillr*map[0]);
 		out[1]=in[1]+(ncs->uspillg*map[0]);
 		out[2]=in[2]-(ncs->uspillb*map[0]);
@@ -197,9 +197,9 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 	ncs=node->storage;
 
 	/* early out for missing connections */
-	if(out[0]->hasoutput==0 ) return;
-	if(in[0]->hasinput==0) return;
-	if(in[0]->data==NULL) return;
+	if (out[0]->hasoutput==0 ) return;
+	if (in[0]->hasinput==0) return;
+	if (in[0]->data==NULL) return;
 	
 	cbuf=typecheck_compbuf(in[0]->data, CB_RGBA);
 	/* mask= */ /* UNUSED */ typecheck_compbuf(in[1]->data, CB_VAL);
@@ -216,7 +216,8 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 				{
 					if ((in[1]->data==NULL) && (in[1]->vec[0] >= 1.f)) {
 						composit1_pixel_processor(node, spillmap, cbuf, in[0]->vec, do_simple_spillmap_red, CB_RGBA);
-					} else {
+					}
+					else {
 						composit2_pixel_processor(node, spillmap, cbuf, in[0]->vec, in[1]->data, in[1]->vec, do_simple_spillmap_red_fac, CB_RGBA,  CB_VAL);
 					}
 					break;
@@ -225,13 +226,14 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 				{
 					if ((in[1]->data==NULL) && (in[1]->vec[0] >= 1.f)) {
 						composit1_pixel_processor(node, spillmap, cbuf, in[0]->vec, do_average_spillmap_red, CB_RGBA);
-					} else {
+					}
+					else {
 						composit2_pixel_processor(node, spillmap, cbuf, in[0]->vec, in[1]->data, in[1]->vec, do_average_spillmap_red_fac, CB_RGBA,  CB_VAL);
 					}
 					break;
 				}
 			}
-			if(ncs->unspill==0) {
+			if (ncs->unspill==0) {
 				ncs->uspillr=1.0f;
 				ncs->uspillg=0.0f;
 				ncs->uspillb=0.0f;
@@ -247,7 +249,8 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 				{
 					if ((in[1]->data==NULL) && (in[1]->vec[0] >= 1.f)) {
 						composit1_pixel_processor(node, spillmap, cbuf, in[0]->vec, do_simple_spillmap_green, CB_RGBA);
-					} else {
+					}
+					else {
 						composit2_pixel_processor(node, spillmap, cbuf, in[0]->vec, in[1]->data, in[1]->vec, do_simple_spillmap_green_fac, CB_RGBA,  CB_VAL);
 					}
 					break;
@@ -256,13 +259,14 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 				{
 					if ((in[1]->data==NULL) && (in[1]->vec[0] >= 1.f)) {
 						composit1_pixel_processor(node, spillmap, cbuf, in[0]->vec, do_average_spillmap_green, CB_RGBA);
-					} else {
+					}
+					else {
 						composit2_pixel_processor(node, spillmap, cbuf, in[0]->vec, in[1]->data, in[1]->vec, do_average_spillmap_green_fac, CB_RGBA,  CB_VAL);
 					}
 					break;
 				}
 			}
-			if(ncs->unspill==0) {
+			if (ncs->unspill==0) {
 				ncs->uspillr=0.0f;
 				ncs->uspillg=1.0f;
 				ncs->uspillb=0.0f;
@@ -278,7 +282,8 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 				{
 					if ((in[1]->data==NULL) && (in[1]->vec[0] >= 1.f)) {
 						composit1_pixel_processor(node, spillmap, cbuf, in[0]->vec, do_simple_spillmap_blue, CB_RGBA);
-					} else {
+					}
+					else {
 						composit2_pixel_processor(node, spillmap, cbuf, in[0]->vec, in[1]->data, in[1]->vec, do_simple_spillmap_blue_fac, CB_RGBA,  CB_VAL);
 					}
 					break;
@@ -287,13 +292,14 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 				{
 					if ((in[1]->data==NULL) && (in[1]->vec[0] >= 1.f)) {
 						composit1_pixel_processor(node, spillmap, cbuf, in[0]->vec, do_average_spillmap_blue, CB_RGBA);
-					} else {
+					}
+					else {
 						composit2_pixel_processor(node, spillmap, cbuf, in[0]->vec, in[1]->data, in[1]->vec, do_average_spillmap_blue_fac, CB_RGBA,  CB_VAL);
 					}
 					break;
 				}
 			}
-			if(ncs->unspill==0) {
+			if (ncs->unspill==0) {
 				ncs->uspillr=0.0f;
 				ncs->uspillg=0.0f;
 				ncs->uspillb=1.0f;
@@ -307,7 +313,7 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 
 	out[0]->data=rgbbuf;
 
-	if(cbuf!=in[0]->data)
+	if (cbuf!=in[0]->data)
 		free_compbuf(cbuf);
 
 	free_compbuf(spillmap);

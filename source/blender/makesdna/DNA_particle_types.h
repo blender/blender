@@ -321,7 +321,7 @@ typedef struct ParticleSystem
 #define PART_TRAND			128	
 #define PART_EDISTR			256	/* particle/face from face areas */
 
-//#define PART_STICKY			512	/*collided particles can stick to collider*/
+#define PART_ROTATIONS		512	/* calculate particle rotations (and store them in pointcache) */
 #define PART_DIE_ON_COL		(1<<12)
 #define PART_SIZE_DEFL		(1<<13) /* swept sphere deflections */
 #define PART_ROT_DYN		(1<<14)	/* dynamic rotation */
@@ -463,8 +463,13 @@ typedef struct ParticleSystem
 #define PART_ROT_OB_Z		8
 
 /* part->avemode */
-#define PART_AVE_SPIN		1
+#define PART_AVE_VELOCITY	1
 #define PART_AVE_RAND		2
+#define PART_AVE_HORIZONTAL	3
+#define PART_AVE_VERTICAL	4
+#define PART_AVE_GLOBAL_X	5
+#define PART_AVE_GLOBAL_Y	6
+#define PART_AVE_GLOBAL_Z	7
 
 /* part->reactevent */
 #define PART_EVENT_DEATH	0
@@ -498,7 +503,8 @@ typedef struct ParticleSystem
 #define PSYS_KEYED			1024
 #define PSYS_EDITED			2048
 //#define PSYS_PROTECT_CACHE	4096 /* deprecated */
-#define PSYS_DISABLED		8192
+#define PSYS_DISABLED			8192
+#define PSYS_OB_ANIM_RESTORE	16384 /* runtime flag */
 
 /* pars->flag */
 #define PARS_UNEXIST		1

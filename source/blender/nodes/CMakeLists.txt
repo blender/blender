@@ -222,6 +222,10 @@ if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
 endif()
 
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
 if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()

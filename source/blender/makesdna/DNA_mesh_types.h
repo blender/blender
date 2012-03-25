@@ -86,7 +86,7 @@ typedef struct Mesh {
 	struct MEdge *medge;	/* array of edges */
 	struct MDeformVert *dvert;	/* deformgroup vertices */
 
-	/* array of colors for the tesselated faces, must be number of tesselated
+	/* array of colors for the tessellated faces, must be number of tessellated
 	 * faces * 4 in length */
 	struct MCol *mcol;		
 	struct MSticky *msticky;

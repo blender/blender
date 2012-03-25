@@ -108,6 +108,9 @@ if env['WITH_BF_FFTW3']:
     defs.append('FFTW3=1')
     incs += ' ' + env['BF_FFTW3_INC'] 
 
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
 

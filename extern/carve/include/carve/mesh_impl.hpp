@@ -624,8 +624,7 @@ namespace carve {
           CARVE_ASSERT(e->rev != NULL);
           e = e->rev->next;
           CARVE_ASSERT(e->v1() == emin->v1());
-          CARVE_ASSERT(e->v1()->v < e->v2()->v);
-          CARVE_ASSERT(e->v1()->v.x <= e->v2()->v.x);
+          CARVE_ASSERT(e->v1()->v <= e->v2()->v);
         } while (e != emin);
 
         double max_abs_x = 0.0;

@@ -32,7 +32,8 @@ void  BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float center[3]);
 void  BM_face_center_mean_calc(BMesh *bm, BMFace *f, float center[3]);
 
 void  BM_face_normal_update(BMesh *bm, BMFace *f);
-void  BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3], float (*vertexCos)[3]);
+void  BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
+                                 float const (*vertexCos)[3]);
 
 void  BM_edge_normals_update(BMesh *bm, BMEdge *e);
 

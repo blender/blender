@@ -101,7 +101,7 @@ typedef enum {
 	/* Some modifier can't be added manually by user */
 	eModifierTypeFlag_NoUserAdd = (1<<8),
 
-	/* For modifiers that use CD_WEIGHT_MCOL for preview. */
+	/* For modifiers that use CD_PREVIEW_MCOL for preview. */
 	eModifierTypeFlag_UsesPreview = (1<<9)
 } ModifierTypeFlag;
 

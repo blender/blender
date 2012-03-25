@@ -484,7 +484,7 @@ void KX_SteeringActuator::HandleActorFace(MT_Vector3& velocity)
 	
 	
 	KX_GameObject* parentObject = curobj->GetParent();
-	if(parentObject)
+	if (parentObject)
 	{ 
 		MT_Point3 localpos;
 		localpos = curobj->GetSGNode()->GetLocalPosition();

@@ -80,10 +80,10 @@ static PyObject *Buffer_repr(Buffer *self);
 
 static PyObject *Buffer_to_list(Buffer *self)
 {
-	int i, len= self->dimensions[0];
-	PyObject *list= PyList_New(len);
+	int i, len = self->dimensions[0];
+	PyObject *list = PyList_New(len);
 
-	for (i=0; i<len; i++) {
+	for (i = 0; i < len; i++) {
 		PyList_SET_ITEM(list, i, Buffer_item(self, i));
 	}
 
@@ -95,17 +95,17 @@ static PyObject *Buffer_to_list_recursive(Buffer *self)
 	PyObject *list;
 
 	if (self->ndimensions > 1) {
-		int i, len= self->dimensions[0];
-		list= PyList_New(len);
+		int i, len = self->dimensions[0];
+		list = PyList_New(len);
 
-		for (i=0; i<len; i++) {
-			Buffer *sub= (Buffer *)Buffer_item(self, i);
+		for (i = 0; i < len; i++) {
+			Buffer *sub = (Buffer *)Buffer_item(self, i);
 			PyList_SET_ITEM(list, i, Buffer_to_list_recursive(sub));
 			Py_DECREF(sub);
 		}
 	}
 	else {
-		list= Buffer_to_list(self);
+		list = Buffer_to_list(self);
 	}
 
 	return list;
@@ -113,10 +113,10 @@ static PyObject *Buffer_to_list_recursive(Buffer *self)
 
 static PyObject *Buffer_dimensions(Buffer *self, void *UNUSED(arg))
 {
-	PyObject *list= PyList_New(self->ndimensions);
+	PyObject *list = PyList_New(self->ndimensions);
 	int i;
 
-	for (i= 0; i<self->ndimensions; i++) {
+	for (i = 0; i < self->ndimensions; i++) {
 		PyList_SET_ITEM(list, i, PyLong_FromLong(self->dimensions[i]));
 	}
 
@@ -239,16 +239,16 @@ static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args)   \
 int BGL_typeSize(int type)
 {
 	switch (type) {
-	case GL_BYTE:
-		return sizeof(char);
-	case GL_SHORT:
-		return sizeof(short);
-	case GL_INT:
-		return sizeof(int);
-	case GL_FLOAT:
-		return sizeof(float);
-	case GL_DOUBLE:
-		return sizeof(double);
+		case GL_BYTE:
+			return sizeof(char);
+		case GL_SHORT:
+			return sizeof(short);
+		case GL_INT:
+			return sizeof(int);
+		case GL_FLOAT:
+			return sizeof(float);
+		case GL_DOUBLE:
+			return sizeof(double);
 	}
 	return -1;
 }
@@ -256,30 +256,31 @@ int BGL_typeSize(int type)
 Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuffer)
 {
 	Buffer *buffer;
-	void *buf= NULL;
+	void *buf = NULL;
 	int i, size, length;
- 
-	length= 1;
-	for (i=0; i<ndimensions; i++) 
-		length*= dimensions[i];
- 
-	size= BGL_typeSize(type);
- 
-	buf= MEM_mallocN(length*size, "Buffer buffer");
 
-	buffer= (Buffer *) PyObject_NEW(Buffer, &BGL_bufferType);
-	buffer->parent= NULL;
-	buffer->ndimensions= ndimensions;
-	buffer->dimensions= MEM_mallocN(ndimensions*sizeof(int), "Buffer dimensions");
-	memcpy(buffer->dimensions, dimensions, ndimensions*sizeof(int));
-	buffer->type= type;
-	buffer->buf.asvoid= buf;
+	length = 1;
+	for (i = 0; i < ndimensions; i++) {
+		length *= dimensions[i];
+	}
+
+	size = BGL_typeSize(type);
+
+	buf = MEM_mallocN(length * size, "Buffer buffer");
+
+	buffer = (Buffer *)PyObject_NEW(Buffer, &BGL_bufferType);
+	buffer->parent = NULL;
+	buffer->ndimensions = ndimensions;
+	buffer->dimensions = MEM_mallocN(ndimensions * sizeof(int), "Buffer dimensions");
+	memcpy(buffer->dimensions, dimensions, ndimensions * sizeof(int));
+	buffer->type = type;
+	buffer->buf.asvoid = buf;
 
 	if (initbuffer) {
-		memcpy(buffer->buf.asvoid, initbuffer, length*size);
+		memcpy(buffer->buf.asvoid, initbuffer, length * size);
 	}
 	else {
-		memset(buffer->buf.asvoid, 0, length*size);
+		memset(buffer->buf.asvoid, 0, length * size);
 	}
 	return buffer;
 }
@@ -288,10 +289,10 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
 #define MAX_DIMENSIONS	256
 static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-	PyObject *length_ob= NULL, *init= NULL;
+	PyObject *length_ob = NULL, *init = NULL;
 	Buffer *buffer;
 	int dimensions[MAX_DIMENSIONS];
-	
+
 	int type;
 	Py_ssize_t i, ndimensions = 0;
 
@@ -312,15 +313,15 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 	}
 
 	if (PyLong_Check(length_ob)) {
-		ndimensions= 1;
-		if (((dimensions[0]= PyLong_AsLong(length_ob)) < 1)) {
+		ndimensions = 1;
+		if (((dimensions[0] = PyLong_AsLong(length_ob)) < 1)) {
 			PyErr_SetString(PyExc_AttributeError,
 			                "dimensions must be between 1 and "STRINGIFY(MAX_DIMENSIONS));
 			return NULL;
 		}
 	}
 	else if (PySequence_Check(length_ob)) {
-		ndimensions= PySequence_Size(length_ob);
+		ndimensions = PySequence_Size(length_ob);
 		if (ndimensions > MAX_DIMENSIONS) {
 			PyErr_SetString(PyExc_AttributeError,
 			                "too many dimensions, max is "STRINGIFY(MAX_DIMENSIONS));
@@ -331,11 +332,13 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 			                "sequence must have at least one dimension");
 			return NULL;
 		}
-		for (i=0; i<ndimensions; i++) {
-			PyObject *ob= PySequence_GetItem(length_ob, i);
+		for (i = 0; i < ndimensions; i++) {
+			PyObject *ob = PySequence_GetItem(length_ob, i);
 
-			if (!PyLong_Check(ob)) dimensions[i]= 1;
-			else dimensions[i]= PyLong_AsLong(ob);
+			if (!PyLong_Check(ob))
+				dimensions[i] = 1;
+			else
+				dimensions[i] = PyLong_AsLong(ob);
 			Py_DECREF(ob);
 
 			if (dimensions[i] < 1) {
@@ -351,16 +354,16 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 		             "or an int, not a %.200s", Py_TYPE(length_ob)->tp_name);
 		return NULL;
 	}
-	
-	buffer= BGL_MakeBuffer(type, ndimensions, dimensions, NULL);
+
+	buffer = BGL_MakeBuffer(type, ndimensions, dimensions, NULL);
 	if (init && ndimensions) {
 		if (Buffer_ass_slice(buffer, 0, dimensions[0], init)) {
 			Py_DECREF(buffer);
 			return NULL;
 		}
 	}
-	
-	return (PyObject *) buffer;
+
+	return (PyObject *)buffer;
 }
 
 /*@ Buffer sequence methods */
@@ -377,12 +380,12 @@ static PyObject *Buffer_item(Buffer *self, int i)
 		return NULL;
 	}
 
-	if (self->ndimensions==1) {
+	if (self->ndimensions == 1) {
 		switch (self->type) {
-			case GL_BYTE: return Py_BuildValue("b", self->buf.asbyte[i]);
-			case GL_SHORT: return Py_BuildValue("h", self->buf.asshort[i]);
-			case GL_INT: return Py_BuildValue("i", self->buf.asint[i]);
-			case GL_FLOAT: return PyFloat_FromDouble(self->buf.asfloat[i]);
+			case GL_BYTE:   return Py_BuildValue("b", self->buf.asbyte[i]);
+			case GL_SHORT:  return Py_BuildValue("h", self->buf.asshort[i]);
+			case GL_INT:    return Py_BuildValue("i", self->buf.asint[i]);
+			case GL_FLOAT:  return PyFloat_FromDouble(self->buf.asfloat[i]);
 			case GL_DOUBLE: return Py_BuildValue("d", self->buf.asdouble[i]);
 		}
 	}
@@ -390,26 +393,24 @@ static PyObject *Buffer_item(Buffer *self, int i)
 		Buffer *newbuf;
 		int j, length, size;
 
-		length= 1;
-		for (j=1; j < self->ndimensions; j++) {
+		length = 1;
+		for (j = 1; j < self->ndimensions; j++) {
 			length *= self->dimensions[j];
 		}
-		size= BGL_typeSize(self->type);
+		size = BGL_typeSize(self->type);
 
-		newbuf= (Buffer *) PyObject_NEW(Buffer, &BGL_bufferType);
+		newbuf = (Buffer *)PyObject_NEW(Buffer, &BGL_bufferType);
 
 		Py_INCREF(self);
-		newbuf->parent= (PyObject *)self;
+		newbuf->parent = (PyObject *)self;
 
-		newbuf->ndimensions= self->ndimensions - 1;
-		newbuf->type= self->type;
-		newbuf->buf.asvoid= self->buf.asbyte + i*length*size;
-		newbuf->dimensions= MEM_mallocN(newbuf->ndimensions*sizeof(int),
-			"Buffer dimensions");
-		memcpy(newbuf->dimensions, self->dimensions+1,
-			newbuf->ndimensions*sizeof(int));
+		newbuf->ndimensions = self->ndimensions - 1;
+		newbuf->type = self->type;
+		newbuf->buf.asvoid = self->buf.asbyte + i * length * size;
+		newbuf->dimensions = MEM_mallocN(newbuf->ndimensions * sizeof(int), "Buffer dimensions");
+		memcpy(newbuf->dimensions, self->dimensions + 1, newbuf->ndimensions * sizeof(int));
 
-		return (PyObject *) newbuf;
+		return (PyObject *)newbuf;
 	}
 
 	return NULL;
@@ -420,13 +421,13 @@ static PyObject *Buffer_slice(Buffer *self, int begin, int end)
 	PyObject *list;
 	int count;
 	
-	if (begin < 0) begin= 0;
-	if (end > self->dimensions[0]) end= self->dimensions[0];
-	if (begin > end) begin= end;
+	if (begin < 0) begin = 0;
+	if (end > self->dimensions[0]) end = self->dimensions[0];
+	if (begin > end) begin = end;
 	  
-	list= PyList_New(end-begin);
+	list = PyList_New(end - begin);
 
-	for (count= begin; count<end; count++) {
+	for (count = begin; count < end; count++) {
 		PyList_SET_ITEM(list, count-begin, Buffer_item(self, count));
 	}
 	return list;
@@ -440,11 +441,11 @@ static int Buffer_ass_item(Buffer *self, int i, PyObject *v)
 		return -1;
 	}
 
-	if (self->ndimensions!=1) {
-		Buffer *row= (Buffer *)Buffer_item(self, i);
+	if (self->ndimensions != 1) {
+		Buffer *row = (Buffer *)Buffer_item(self, i);
 
 		if (row) {
-			int ret= Buffer_ass_slice(row, 0, self->dimensions[1], v);
+			int ret = Buffer_ass_slice(row, 0, self->dimensions[1], v);
 			Py_DECREF(row);
 			return ret;
 		}
@@ -454,29 +455,23 @@ static int Buffer_ass_item(Buffer *self, int i, PyObject *v)
 	}
 
 	switch (self->type) {
-	case GL_BYTE:
-		return PyArg_Parse(v, "b:Expected ints", &self->buf.asbyte[i]) ? 0:-1;
-	case GL_SHORT:
-		return PyArg_Parse(v, "h:Expected ints", &self->buf.asshort[i]) ? 0:-1;
-	case GL_INT:
-		return PyArg_Parse(v, "i:Expected ints", &self->buf.asint[i]) ? 0:-1;
-	case GL_FLOAT:
-		return PyArg_Parse(v, "f:Expected floats", &self->buf.asfloat[i]) ? 0:-1;
-	case GL_DOUBLE:
-		return PyArg_Parse(v, "d:Expected floats", &self->buf.asdouble[i]) ? 0:-1;
-	default:
-		return 0; /* should never happen */
+		case GL_BYTE:   return PyArg_Parse(v, "b:Expected ints",   &self->buf.asbyte[i])   ? 0 : -1;
+		case GL_SHORT:  return PyArg_Parse(v, "h:Expected ints",   &self->buf.asshort[i])  ? 0 : -1;
+		case GL_INT:    return PyArg_Parse(v, "i:Expected ints",   &self->buf.asint[i])    ? 0 : -1;
+		case GL_FLOAT:  return PyArg_Parse(v, "f:Expected floats", &self->buf.asfloat[i])  ? 0 : -1;
+		case GL_DOUBLE: return PyArg_Parse(v, "d:Expected floats", &self->buf.asdouble[i]) ? 0 : -1;
+		default:        return 0; /* should never happen */
 	}
 }
 
 static int Buffer_ass_slice(Buffer *self, int begin, int end, PyObject *seq)
 {
 	PyObject *item;
-	int count, err=0;
+	int count, err = 0;
 	
-	if (begin < 0) begin= 0;
-	if (end > self->dimensions[0]) end= self->dimensions[0];
-	if (begin > end) begin= end;
+	if (begin < 0) begin = 0;
+	if (end > self->dimensions[0]) end = self->dimensions[0];
+	if (begin > end) begin = end;
 	
 	if (!PySequence_Check(seq)) {
 		PyErr_Format(PyExc_TypeError,
@@ -487,23 +482,25 @@ static int Buffer_ass_slice(Buffer *self, int begin, int end, PyObject *seq)
 	}
 
 	/* re-use count var */
-	if ((count= PySequence_Size(seq)) != (end - begin)) {
+	if ((count = PySequence_Size(seq)) != (end - begin)) {
 		PyErr_Format(PyExc_TypeError,
 		             "buffer[:] = value, size mismatch in assignment. "
 		             "Expected: %d (given: %d)", count, end - begin);
 		return -1;
 	}
 	
-	for (count= begin; count < end; count++) {
-		item= PySequence_GetItem(seq, count - begin);
+	for (count = begin; count < end; count++) {
+		item = PySequence_GetItem(seq, count - begin);
 		if (item) {
-			err= Buffer_ass_item(self, count, item);
+			err = Buffer_ass_item(self, count, item);
 			Py_DECREF(item);
 		}
 		else {
-			err= -1;
+			err = -1;
 		}
-		if (err) break;
+		if (err) {
+			break;
+		}
 	}
 	return err;
 }
@@ -580,8 +577,12 @@ static int Buffer_ass_subscript(Buffer *self, PyObject *item, PyObject *value)
 
 static void Buffer_dealloc(Buffer *self)
 {
-	if (self->parent) Py_DECREF(self->parent);
-	else MEM_freeN (self->buf.asvoid);
+	if (self->parent) {
+		Py_DECREF(self->parent);
+	}
+	else {
+		MEM_freeN(self->buf.asvoid);
+	}
 
 	MEM_freeN(self->dimensions);
 
@@ -591,19 +592,20 @@ static void Buffer_dealloc(Buffer *self)
 
 static PyObject *Buffer_repr(Buffer *self)
 {
-	PyObject *list= Buffer_to_list_recursive(self);
+	PyObject *list = Buffer_to_list_recursive(self);
 	PyObject *repr;
-	const char *typestr= "UNKNOWN";
+	const char *typestr;
 
 	switch (self->type) {
-	case GL_BYTE:   typestr= "GL_BYTE"; break;
-	case GL_SHORT:  typestr= "GL_SHORT"; break;
-	case GL_INT:    typestr= "GL_BYTE"; break;
-	case GL_FLOAT:  typestr= "GL_FLOAT"; break;
-	case GL_DOUBLE: typestr= "GL_DOUBLE"; break;
+		case GL_BYTE:   typestr = "GL_BYTE"; break;
+		case GL_SHORT:  typestr = "GL_SHORT"; break;
+		case GL_INT:    typestr = "GL_BYTE"; break;
+		case GL_FLOAT:  typestr = "GL_FLOAT"; break;
+		case GL_DOUBLE: typestr = "GL_DOUBLE"; break;
+		default:        typestr = "UNKNOWN"; break;
 	}
 
-	repr= PyUnicode_FromFormat("Buffer(%s, %R)", typestr, list);
+	repr = PyUnicode_FromFormat("Buffer(%s, %R)", typestr, list);
 	Py_DECREF(list);
 
 	return repr;
@@ -1296,21 +1298,20 @@ static struct PyModuleDef BGL_module_def = {
 PyObject *BPyInit_bgl(void)
 {
 	PyObject *submodule, *dict, *item;
-	submodule= PyModule_Create(&BGL_module_def);
-	dict= PyModule_GetDict(submodule);
-	
+	submodule = PyModule_Create(&BGL_module_def);
+	dict = PyModule_GetDict(submodule);
+
 	if (PyType_Ready(&BGL_bufferType) < 0)
 		return NULL; /* should never happen */
-
 
 	PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);
 	Py_INCREF((PyObject *)&BGL_bufferType);
 
-#define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, item=PyLong_FromLong((int)x)); Py_DECREF(item)
+#define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, item = PyLong_FromLong((int)x)); Py_DECREF(item)
 
 /* So, for example:
  * EXPP_ADDCONST(GL_CURRENT_BIT) becomes
- * PyDict_SetItemString(dict, "GL_CURRENT_BIT", item=PyLong_FromLong(GL_CURRENT_BIT)); Py_DECREF(item) */
+ * PyDict_SetItemString(dict, "GL_CURRENT_BIT", item = PyLong_FromLong(GL_CURRENT_BIT)); Py_DECREF(item) */
 
 	EXPP_ADDCONST(GL_CURRENT_BIT);
 	EXPP_ADDCONST(GL_POINT_BIT);
@@ -1795,4 +1796,3 @@ PyObject *BPyInit_bgl(void)
 
 	return submodule;
 }
-

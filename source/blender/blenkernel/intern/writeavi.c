@@ -201,7 +201,7 @@ static int append_avi(RenderData *UNUSED(rd), int start_frame, int frame, int *p
 		memcpy (rt1, rt2, rectx*sizeof(int));
 		
 		cp= (char *)rt1;
-		for(x= rectx; x>0; x--) {
+		for (x= rectx; x>0; x--) {
 			rt= cp[0];
 			cp[0]= cp[3];
 			cp[3]= rt;
@@ -231,7 +231,7 @@ static void end_avi(void)
 void BKE_makeanimstring(char *string, RenderData *rd)
 {
 	bMovieHandle *mh= BKE_get_movie_handle(rd->im_format.imtype);
-	if(mh->get_movie_path)
+	if (mh->get_movie_path)
 		mh->get_movie_path(string, rd);
 	else
 		string[0]= '\0';

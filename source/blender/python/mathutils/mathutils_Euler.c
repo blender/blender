@@ -349,21 +349,21 @@ static PyObject *Euler_richcmpr(PyObject *a, PyObject *b, int op)
 	}
 
 	switch (op) {
-	case Py_NE:
-		ok = !ok; /* pass through */
-	case Py_EQ:
-		res = ok ? Py_False : Py_True;
-		break;
+		case Py_NE:
+			ok = !ok; /* pass through */
+		case Py_EQ:
+			res = ok ? Py_False : Py_True;
+			break;
 
-	case Py_LT:
-	case Py_LE:
-	case Py_GT:
-	case Py_GE:
-		res = Py_NotImplemented;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
+		case Py_LT:
+		case Py_LE:
+		case Py_GT:
+		case Py_GE:
+			res = Py_NotImplemented;
+			break;
+		default:
+			PyErr_BadArgument();
+			return NULL;
 	}
 
 	return Py_INCREF(res), res;
@@ -732,14 +732,15 @@ PyObject *Euler_CreatePyObject(float *eul, short order, int type, PyTypeObject *
 	return (PyObject *)self;
 }
 
-PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, short order, int cb_type, int cb_subtype)
+PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, short order,
+                                  unsigned char cb_type, unsigned char cb_subtype)
 {
 	EulerObject *self = (EulerObject *)Euler_CreatePyObject(NULL, order, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 

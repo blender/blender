@@ -52,7 +52,7 @@ static StructRNA* rna_GameProperty_refine(struct PointerRNA *ptr)
 {
 	bProperty *property = (bProperty*)ptr->data;
 
-	switch (property->type){
+	switch (property->type) {
 		case GPROP_BOOL:
 			return &RNA_GameBooleanProperty;
 		case GPROP_INT:

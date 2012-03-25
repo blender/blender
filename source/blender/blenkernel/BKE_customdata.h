@@ -73,10 +73,11 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 
 #define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
 
-/* Checks if the layer at physical offset layern (in data->layers) support math
+/**
+ * Checks if the layer at physical offset \a layer_n (in data->layers) support math
  * the below operations.
  */
-int CustomData_layer_has_math(struct CustomData *data, int layern);
+int CustomData_layer_has_math(struct CustomData *data, int layer_n);
 
 /* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
  * another, while not overwriting anything else (e.g. flags).  probably only

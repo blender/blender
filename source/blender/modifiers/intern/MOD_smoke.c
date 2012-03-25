@@ -93,7 +93,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	smokeModifier_do(smd, md->scene, ob, dm);
 
-	if(dm != derivedData)
+	if (dm != derivedData)
 		dm->release(dm);
 }
 
@@ -110,20 +110,34 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	SmokeModifierData *smd = (SmokeModifierData *) md;
 
 	if (smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
-		if (smd->domain->fluid_group) {
+		if (smd->domain->fluid_group || smd->domain->coll_group) {
 			GroupObject *go = NULL;
 			
-			for (go = smd->domain->fluid_group->gobject.first; go; go = go->next) {
-				if (go->ob) {
-					SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
-					
-					// check for initialized smoke object
-					if (smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd->type & MOD_SMOKE_TYPE_COLL) && smd2->coll))) {
-						DagNode *curNode = dag_get_node(forest, go->ob);
-						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow");
+			if (smd->domain->fluid_group)
+				for (go = smd->domain->fluid_group->gobject.first; go; go = go->next) {
+					if (go->ob) {
+						SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
+						
+						// check for initialized smoke object
+						if (smd2 && (smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) {
+							DagNode *curNode = dag_get_node(forest, go->ob);
+							dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow");
+						}
 					}
 				}
-			}
+
+			if (smd->domain->coll_group)
+				for (go = smd->domain->coll_group->gobject.first; go; go = go->next) {
+					if (go->ob) {
+						SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
+						
+						// check for initialized smoke object
+						if (smd2 && (smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll) {
+							DagNode *curNode = dag_get_node(forest, go->ob);
+							dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Coll");
+						}
+					}
+				}
 		}
 		else {
 			Base *base = scene->base.first;
@@ -131,9 +145,9 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 			for ( ; base; base = base->next) {
 				SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(base->object, eModifierType_Smoke);
 
-				if (smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd->type & MOD_SMOKE_TYPE_COLL) && smd2->coll))) {
+				if (smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll))) {
 					DagNode *curNode = dag_get_node(forest, base->object);
-					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow");
+					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow/Coll");
 				}
 			}
 		}
@@ -145,12 +159,12 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 {
 	SmokeModifierData *smd = (SmokeModifierData*) md;
 
-	if(smd->type==MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
+	if (smd->type==MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
 		walk(userData, ob, (ID **)&smd->domain->coll_group);
 		walk(userData, ob, (ID **)&smd->domain->fluid_group);
 		walk(userData, ob, (ID **)&smd->domain->eff_group);
 
-		if(smd->domain->effector_weights) {
+		if (smd->domain->effector_weights) {
 			walk(userData, ob, (ID **)&smd->domain->effector_weights->group);
 		}
 	}

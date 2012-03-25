@@ -81,8 +81,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(hmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
-	if(hmd->indexar) dataMask |= CD_MASK_ORIGINDEX;
+	if (hmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+	if (hmd->indexar) dataMask |= CD_MASK_ORIGINDEX;
 
 	return dataMask;
 }
@@ -130,12 +130,12 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 
 static float hook_falloff(float *co_1, float *co_2, const float falloff_squared, float fac)
 {
-	if(falloff_squared) {
+	if (falloff_squared) {
 		float len_squared = len_squared_v3v3(co_1, co_2);
-		if(len_squared > falloff_squared) {
+		if (len_squared > falloff_squared) {
 			return 0.0f;
 		}
-		else if(len_squared > 0.0f) {
+		else if (len_squared > 0.0f) {
 			return fac * (1.0f - (len_squared / falloff_squared));
 		}
 	}
@@ -178,28 +178,28 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 	 * not correct them on exit editmode. - zr
 	 */
 	
-	if(hmd->force == 0.0f) {
+	if (hmd->force == 0.0f) {
 		/* do nothing, avoid annoying checks in the loop */
 	}
-	else if(hmd->indexar) { /* vertex indices? */
+	else if (hmd->indexar) { /* vertex indices? */
 		const float fac_orig= hmd->force;
 		float fac;
 		const int *origindex_ar;
 		
 		/* if DerivedMesh is present and has original index data, use it */
-		if(dm && (origindex_ar= dm->getVertDataArray(dm, CD_ORIGINDEX))) {
-			for(i= 0, index_pt= hmd->indexar; i < hmd->totindex; i++, index_pt++) {
-				if(*index_pt < numVerts) {
+		if (dm && (origindex_ar= dm->getVertDataArray(dm, CD_ORIGINDEX))) {
+			for (i= 0, index_pt= hmd->indexar; i < hmd->totindex; i++, index_pt++) {
+				if (*index_pt < numVerts) {
 					int j;
 					
-					for(j = 0; j < numVerts; j++) {
-						if(origindex_ar[j] == *index_pt) {
+					for (j = 0; j < numVerts; j++) {
+						if (origindex_ar[j] == *index_pt) {
 							float *co = vertexCos[j];
-							if((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
-								if(dvert)
+							if ((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
+								if (dvert)
 									fac *= defvert_find_weight(dvert+j, defgrp_index);
 								
-								if(fac) {
+								if (fac) {
 									mul_v3_m4v3(vec, mat, co);
 									interp_v3_v3v3(co, co, vec, fac);
 								}
@@ -210,14 +210,14 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 			}
 		}
 		else { /* missing dm or ORIGINDEX */
-			for(i= 0, index_pt= hmd->indexar; i < hmd->totindex; i++, index_pt++) {
-				if(*index_pt < numVerts) {
+			for (i= 0, index_pt= hmd->indexar; i < hmd->totindex; i++, index_pt++) {
+				if (*index_pt < numVerts) {
 					float *co = vertexCos[*index_pt];
-					if((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
-						if(dvert)
+					if ((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
+						if (dvert)
 							fac *= defvert_find_weight(dvert+(*index_pt), defgrp_index);
 						
-						if(fac) {
+						if (fac) {
 							mul_v3_m4v3(vec, mat, co);
 							interp_v3_v3v3(co, co, vec, fac);
 						}
@@ -226,16 +226,16 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 			}
 		}
 	}
-	else if(dvert) {	/* vertex group hook */
+	else if (dvert) {	/* vertex group hook */
 		const float fac_orig= hmd->force;
 		
-		for(i = 0; i < max_dvert; i++, dvert++) {
+		for (i = 0; i < max_dvert; i++, dvert++) {
 			float fac;
 			float *co = vertexCos[i];
 			
-			if((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
+			if ((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
 				fac *= defvert_find_weight(dvert, defgrp_index);
-				if(fac) {
+				if (fac) {
 					mul_v3_m4v3(vec, mat, co);
 					interp_v3_v3v3(co, co, vec, fac);
 				}
@@ -251,12 +251,12 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	HookModifierData *hmd = (HookModifierData*) md;
 	DerivedMesh *dm = derivedData;
 	/* We need a valid dm for meshes when a vgroup is set... */
-	if(!dm && ob->type == OB_MESH && hmd->name[0] != '\0')
+	if (!dm && ob->type == OB_MESH && hmd->name[0] != '\0')
 		dm = get_dm(ob, NULL, dm, NULL, 0);
 
 	deformVerts_do(hmd, ob, dm, vertexCos, numVerts);
 
-	if(derivedData != dm)
+	if (derivedData != dm)
 		dm->release(dm);
 }
 
@@ -266,12 +266,12 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editD
 	HookModifierData *hmd = (HookModifierData*) md;
 	DerivedMesh *dm = derivedData;
 	/* We need a valid dm for meshes when a vgroup is set... */
-	if(!dm && ob->type == OB_MESH && hmd->name[0] != '\0')
+	if (!dm && ob->type == OB_MESH && hmd->name[0] != '\0')
 		dm = get_dm(ob, editData, dm, NULL, 0);
 
 	deformVerts_do(hmd, ob, dm, vertexCos, numVerts);
 
-	if(derivedData != dm)
+	if (derivedData != dm)
 		dm->release(dm);
 }
 

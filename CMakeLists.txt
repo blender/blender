@@ -124,7 +124,7 @@ mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they rea
 mark_as_advanced(WITH_PYTHON_SECURITY)  # some distrobutions see this as a security issue, rather than have them patch it, make a build option.
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
-option(WITH_PYTHON_MODULE "Enable building as a python module (experemental, only enable for development)" OFF)
+option(WITH_PYTHON_MODULE "Enable building as a python module (experimental, only enable for development)" OFF)
 option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)
 option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
 option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
@@ -176,7 +176,7 @@ option(WITH_MOD_SMOKE        	"Enable Smoke Modifier (Smoke Simulation)" ON)
 option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
 option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
 option(WITH_MOD_REMESH        	"Enable Remesh Modifier" ON)
-option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experemental cloth solver" OFF)
+option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experimental cloth solver" OFF)
 mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
 option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" OFF)
 
@@ -262,25 +262,23 @@ if(APPLE)
 	endif()
 	message(STATUS "Detected system-version: " ${OSX_SYSTEM})
 	
-	if(${OSX_SYSTEM} GREATER 10.6)
-			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6" CACHE STRING "" FORCE) # 10.7 does not have 10.5sdk !!!
-	else()
-			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.5" CACHE STRING "" FORCE) # 10.5 is our minimum target
+	if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.5" CACHE STRING "" FORCE) # 10.5 is our minimum target, if you have higher sdk, weak linking happens
 	endif()
 
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
-		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4)
+	
+		##### workaround for actual official cmake incompatibility with xcode 4.3 #####	
+		if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
+			message("Official cmake does not yet support Xcode 4.3, get a patched version here: http://www.jensverwiebe.de/Blender/CMake%202.8-7patched.zip")
+		endif()
+		### end workaround for actual official cmake incompatibility with xcode 4.3 ###	
+		
+		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4 AND ${XCODE_VERSION} VERSION_LESS 4.3)
 			# Xcode 4 defaults to the Apple LLVM Compiler.
-			# Override the default compiler selection because Blender only compiles with gcc
+			# Override the default compiler selection because Blender only compiles with gcc up to xcode 4.2
 			set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
 			message(STATUS "Setting compiler to: " ${CMAKE_XCODE_ATTRIBUTE_GCC_VERSION})
-			
-			##### workaround for actual official cmake incompatibility with xcode 4.3 #####	
-			if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
-				message("Official cmake does not yet support Xcode 4.3, get a patched version here: http://www.jensverwiebe.de/Blender/CMake%202.8-7patched.zip")
-			endif()
-			##### end workaround for actual official cmake incompatibility with xcode 4.3 #####	
-			
 		endif()
 	else() # unix makefile generator does not fill XCODE_VERSION var, so we get it with a command
 		execute_process(COMMAND xcodebuild -version OUTPUT_VARIABLE XCODE_VERS_BUILDNR )
@@ -293,6 +291,7 @@ if(APPLE)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 endif()
+
 
 #-----------------------------------------------------------------------------
 # Check for conflicting/unsupported configurations
@@ -353,11 +352,37 @@ if(WITH_CYCLES OR WITH_CARVE)
 	set(WITH_BOOST ON)
 endif()
 
-TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
-
 # don't store paths to libs for portable distrobution
 if(WITH_INSTALL_PORTABLE)
 	set(CMAKE_SKIP_BUILD_RPATH TRUE)
+endif()
+
+if(WITH_GHOST_SDL OR WITH_HEADLESS)
+    set(WITH_GHOST_XDND OFF)
+endif()
+
+TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
+
+
+#-----------------------------------------------------------------------------
+# Check for valid directories
+# ... svn extern paths can be missing because of svn-git.
+
+if(WITH_INTERNATIONAL)
+	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
+		message(WARNING "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
+						"This is an 'svn external', which are known not to work with bridges to other version "
+						"control systems, disabling 'WITH_INTERNATIONAL'.")
+		set(WITH_INTERNATIONAL OFF)
+	endif()
+endif()
+
+if(WITH_PYTHON)
+	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/scripts/addons")
+		message(WARNING "Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
+						"This is an 'svn external', which are known not to work with bridges to other version "
+						"control systems: * CONTINUING WITHOUT ADDONS *")
+	endif()
 endif()
 
 #-----------------------------------------------------------------------------
@@ -1097,12 +1122,12 @@ elseif(APPLE)
 	endif()
 
 	if(${XCODE_VERSION} LESS 4.3)
-		SET(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${CMAKE_OSX_DEPLOYMENT_TARGET}.sdk CACHE PATH "" FORCE )
+		SET(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk CACHE PATH "" FORCE ) # use guaranteed existing sdk
 	else()
 		# note: i don't use xcode-select path on purpose, cause also /Applications/Xcode.app would be allowed
 		# absolute pathes are more foolproof here !
 		SET(OSX_SYSROOT_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform)
-		SET(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${CMAKE_OSX_DEPLOYMENT_TARGET}.sdk)
+		SET(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk) # use guaranteed existing sdk
 		SET(CMAKE_OSX_SYSROOT ${OSX_SYSROOT_PREFIX}/${OSX_DEVELOPER_PREFIX} CACHE PATH "" FORCE)
 	endif()	
 	
@@ -1532,14 +1557,6 @@ if(MSVC10)
 		message(WARNING "MSVC 2010 does not support OpenCollada, disabling WITH_OPENCOLLADA. To enable support use Use MSVC 2008")
 	endif()
 endif()
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	if(WITH_LIBMV)
-		message(WARNING "Using Clang as CXX compiler: disabling WITH_LIBMV, this feature will be missing.")
-		set(WITH_LIBMV OFF)
-	endif()
-endif()
-
 
 # ensure python header is found since detection can fail, this could happen
 # with _any_ library but since we used a fixed python version this tends to

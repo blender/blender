@@ -108,7 +108,7 @@ static int logic_properties(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= logic_has_buttons_region(sa);
 	
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
@@ -116,15 +116,15 @@ static int logic_properties(bContext *C, wmOperator *UNUSED(op))
 
 void LOGIC_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
-	ot->description= "Toggle display properties panel";
-	ot->idname= "LOGIC_OT_properties";
+	ot->name = "Properties";
+	ot->description = "Toggle display properties panel";
+	ot->idname = "LOGIC_OT_properties";
 	
-	ot->exec= logic_properties;
-	ot->poll= ED_operator_logic_active;
+	ot->exec = logic_properties;
+	ot->poll = ED_operator_logic_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 /* Remove Logic Bricks Connections */
@@ -137,15 +137,15 @@ static int cut_links_intersect(uiLinkLine *line, float mcoords[][2], int tot)
 	int i, b;
 	rcti rectlink;
 
-	rectlink.xmin= (int) (line->from->x1 + line->from->x2) / 2;
-	rectlink.ymin= (int) (line->from->y1 + line->from->y2) / 2;
-	rectlink.xmax= (int) (line->to->x1 + line->to->x2) / 2;
-	rectlink.ymax= (int) (line->to->y1 + line->to->y2) / 2;
+	rectlink.xmin = (int) (line->from->x1 + line->from->x2) / 2;
+	rectlink.ymin = (int) (line->from->y1 + line->from->y2) / 2;
+	rectlink.xmax = (int) (line->to->x1 + line->to->x2) / 2;
+	rectlink.ymax = (int) (line->to->y1 + line->to->y2) / 2;
 
-	if(ui_link_bezier_points(&rectlink, coord_array, LINK_RESOL)){
-		for(i=0; i<tot-1; i++)
-			for(b=0; b<LINK_RESOL-1; b++)
-				if(isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
+	if (ui_link_bezier_points(&rectlink, coord_array, LINK_RESOL)) {
+		for (i=0; i<tot-1; i++)
+			for (b=0; b<LINK_RESOL-1; b++)
+				if (isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
 					return 1;
 	}
 	return 0;
@@ -164,7 +164,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		UI_view2d_region_to_view(&ar->v2d, (short)loc[0], (short)loc[1], 
 								 &mcoords[i][0], &mcoords[i][1]);
 		i++;
-		if(i>= 256) break;
+		if (i>= 256) break;
 	}
 	RNA_END;
 
@@ -172,15 +172,15 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		uiBlock *block;
 		uiLinkLine *line, *nline;
 		uiBut *but;
-		for(block= ar->uiblocks.first; block; block= block->next)
+		for (block= ar->uiblocks.first; block; block= block->next)
 		{
 			but= block->buttons.first;
-			while(but) {
-				if(but->type==LINK && but->link) {
-					for(line= but->link->lines.first; line; line= nline) {
+			while (but) {
+				if (but->type==LINK && but->link) {
+					for (line= but->link->lines.first; line; line= nline) {
 						nline= line->next;
 
-						if(cut_links_intersect(line, mcoords, i)) {
+						if (cut_links_intersect(line, mcoords, i)) {
 							ui_delete_linkline(line, but);
 						}
 					}
@@ -197,19 +197,19 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
-	ot->name= "Cut links";
-	ot->idname= "LOGIC_OT_links_cut";
-	ot->description= "Remove logic brick connections";
+	ot->name = "Cut links";
+	ot->idname = "LOGIC_OT_links_cut";
+	ot->description = "Remove logic brick connections";
 	
-	ot->invoke= WM_gesture_lines_invoke;
-	ot->modal= WM_gesture_lines_modal;
-	ot->exec= cut_links_exec;
-	ot->cancel= WM_gesture_lines_cancel;
+	ot->invoke = WM_gesture_lines_invoke;
+	ot->modal = WM_gesture_lines_modal;
+	ot->exec = cut_links_exec;
+	ot->cancel = WM_gesture_lines_cancel;
 	
-	ot->poll= ED_operator_logic_active;
+	ot->poll = ED_operator_logic_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);

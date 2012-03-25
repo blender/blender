@@ -123,18 +123,18 @@ void ED_armature_validate_active(struct bArmature *arm)
 {
 	EditBone *ebone= arm->act_edbone;
 
-	if(ebone) { 
-		if(ebone->flag & BONE_HIDDEN_A)
+	if (ebone) { 
+		if (ebone->flag & BONE_HIDDEN_A)
 			arm->act_edbone= NULL;
 	}
 }
 
 static void bone_free(bArmature *arm, EditBone *bone)
 {
-	if(arm->act_edbone==bone)
+	if (arm->act_edbone==bone)
 		arm->act_edbone= NULL;
 
-	if(bone->prop) {
+	if (bone->prop) {
 		IDP_FreeProperty(bone->prop);
 		MEM_freeN(bone->prop);
 	}
@@ -275,9 +275,9 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		else {
 			/* if the bone is not selected, but connected to its parent
 			 *  copy the parents tip selection state */
-			if(eBone->parent &&  (eBone->flag & BONE_CONNECTED)) {
+			if (eBone->parent &&  (eBone->flag & BONE_CONNECTED)) {
 				/* selecting with the mouse gives this behavior */
-				if(eBone->parent->flag & BONE_TIPSEL) {
+				if (eBone->parent->flag & BONE_TIPSEL) {
 					eBone->flag |= BONE_ROOTSEL;
 				}
 				else {
@@ -306,7 +306,7 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		eBone->segments = curBone->segments;		
 		eBone->layer = curBone->layer;
 
-		if(curBone->prop)
+		if (curBone->prop)
 			eBone->prop= IDP_CopyProperty(curBone->prop);
 		
 		BLI_addtail(edbo, eBone);
@@ -314,11 +314,11 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		/*	Add children if necessary */
 		if (curBone->childbase.first) {
 			eBoneTest= make_boneList(edbo, &curBone->childbase, eBone, actBone);
-			if(eBoneTest)
+			if (eBoneTest)
 				eBoneAct= eBoneTest;
 		}
 
-		if(curBone==actBone)
+		if (curBone==actBone)
 			eBoneAct= eBone;
 	}
 
@@ -434,7 +434,7 @@ void ED_armature_from_edit(Object *obedit)
 		newBone->segments= eBone->segments;
 		newBone->layer = eBone->layer;
 		
-		if(eBone->prop)
+		if (eBone->prop)
 			newBone->prop= IDP_CopyProperty(eBone->prop);
 	}
 	
@@ -542,7 +542,7 @@ void docenter_armature (Scene *scene, Object *ob, float cursor[3], int centermod
 	float cent[3];
 
 	/* Put the armature into editmode */
-	if(ob != obedit) {
+	if (ob != obedit) {
 		ED_armature_to_edit(ob);
 		obedit= NULL; /* we cant use this so behave as if there is no obedit */
 	}
@@ -554,7 +554,7 @@ void docenter_armature (Scene *scene, Object *ob, float cursor[3], int centermod
 		mul_m4_v3(ob->imat, cent);
 	}
 	else {
-		if(around==V3D_CENTROID) {
+		if (around==V3D_CENTROID) {
 			int total= 0;
 			zero_v3(cent);
 			for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
@@ -582,13 +582,13 @@ void docenter_armature (Scene *scene, Object *ob, float cursor[3], int centermod
 	}
 	
 	/* Turn the list into an armature */
-	if(obedit==NULL) {
+	if (obedit==NULL) {
 		ED_armature_from_edit(ob);
 		ED_armature_edit_free(ob);
 	}
 
 	/* Adjust object location for new centerpoint */
-	if(centermode && obedit==NULL) {
+	if (centermode && obedit==NULL) {
 		mul_mat3_m4_v3(ob->obmat, cent); /* ommit translation part */
 		add_v3_v3(ob->loc, cent);
 	}
@@ -729,16 +729,16 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 void POSE_OT_armature_apply (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Pose as Rest Pose";
-	ot->idname= "POSE_OT_armature_apply";
-	ot->description= "Apply the current pose as the new rest pose";
+	ot->name = "Apply Pose as Rest Pose";
+	ot->idname = "POSE_OT_armature_apply";
+	ot->description = "Apply the current pose as the new rest pose";
 	
 	/* callbacks */
-	ot->exec= apply_armature_pose2bones_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = apply_armature_pose2bones_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -780,16 +780,16 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 void POSE_OT_visual_transform_apply (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Visual Transform to Pose";
-	ot->idname= "POSE_OT_visual_transform_apply";
-	ot->description= "Apply final constrained position of pose bones to their transform";
+	ot->name = "Apply Visual Transform to Pose";
+	ot->idname = "POSE_OT_visual_transform_apply";
+	ot->description = "Apply final constrained position of pose bones to their transform";
 	
 	/* callbacks */
-	ot->exec= pose_visual_transform_apply_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_visual_transform_apply_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ---------------------- */
@@ -1043,12 +1043,12 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 							 */
 							if (ct->subtarget[0] != 0) {
 								if (ct->tar == origArm) {
-									if(BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
+									if (BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 										ct->tar= newArm;
 									}
 								}
 								else if (ct->tar == newArm) {
-									if(BLI_findstring(opchans, ct->subtarget, offsetof(bPoseChannel, name))) {
+									if (BLI_findstring(opchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 										ct->tar= origArm;
 									}
 								}
@@ -1079,14 +1079,14 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 						 *	- the target isn't origArm/newArm itself
 						 *	- the target is one that can be found in newArm/origArm
 						 */
-						if(ct->subtarget[0] != '\0') {
+						if (ct->subtarget[0] != '\0') {
 							if (ct->tar == origArm) {
-								if(BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
+								if (BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 									ct->tar= newArm;
 								}
 							}
 							else if (ct->tar == newArm) {
-								if(BLI_findstring(opchans, ct->subtarget, offsetof(bPoseChannel, name))) {
+								if (BLI_findstring(opchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 									ct->tar= origArm;
 								}
 							}
@@ -1104,7 +1104,7 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 		if (ob->parent && (ob->parent == origArm)) {
 			/* Is object parented to a bone of this src armature? */
 			if ((ob->partype == PARBONE) && (ob->parsubstr[0] != '\0')) {
-				if(BLI_findstring(npchans, ob->parsubstr, offsetof(bPoseChannel, name))) {
+				if (BLI_findstring(npchans, ob->parsubstr, offsetof(bPoseChannel, name))) {
 					ob->parent= newArm;
 				}
 			}
@@ -1243,17 +1243,17 @@ static int separate_armature_exec (bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_separate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Separate Bones";
-	ot->idname= "ARMATURE_OT_separate";
-	ot->description= "Isolate selected bones into a separate armature";
+	ot->name = "Separate Bones";
+	ot->idname = "ARMATURE_OT_separate";
+	ot->description = "Isolate selected bones into a separate armature";
 	
 	/* callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= separate_armature_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = separate_armature_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* **************** END tools on Editmode Armature **************** */
@@ -1263,7 +1263,7 @@ void ARMATURE_OT_separate (wmOperatorType *ot)
 Bone *get_indexed_bone (Object *ob, int index)
 {
 	bPoseChannel *pchan;
-	if(ob->pose==NULL) return NULL;
+	if (ob->pose==NULL) return NULL;
 	index>>=16;		// bone selection codes use left 2 bytes
 	
 	pchan= BLI_findlink(&ob->pose->chanbase, index);
@@ -1281,17 +1281,17 @@ static void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *
 	unsigned int hitresult;
 	short i, takeNext=0, sel;
 	
-	for (i=0; i< hits; i++){
+	for (i=0; i< hits; i++) {
 		hitresult = buffer[3+(i*4)];
 		
 		if (!(hitresult & BONESEL_NOSEL)) {	// -1
-			if(hitresult & BONESEL_ANY) {	// to avoid including objects in selection
+			if (hitresult & BONESEL_ANY) {	// to avoid including objects in selection
 				
 				hitresult &= ~(BONESEL_ANY);
 				/* Determine what the current bone is */
 				if (obedit==NULL || base->object!=obedit) {
 					/* no singular posemode, so check for correct object */
-					if(base->selcol == (hitresult & 0xFFFF)) {
+					if (base->selcol == (hitresult & 0xFFFF)) {
 						bone = get_indexed_bone(base->object, hitresult);
 						
 						if (findunsel)
@@ -1306,7 +1306,7 @@ static void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *
 						sel= 0;
 					}
 				}
-				else{
+				else {
 					bArmature *arm= obedit->data;
 					
 					ebone = BLI_findlink(arm->edbo, hitresult);
@@ -1318,9 +1318,9 @@ static void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *
 					data = ebone;
 				}
 				
-				if(data) {
+				if (data) {
 					if (sel) {
-						if(!firstSel) firstSel= data;
+						if (!firstSel) firstSel= data;
 						takeNext=1;
 					}
 					else {
@@ -1354,9 +1354,9 @@ static void *get_nearest_bone (bContext *C, short findunsel, int x, int y)
 	
 	view3d_set_viewcontext(C, &vc);
 	
-	// rect.xmin= ... mouseco!
-	rect.xmin= rect.xmax= x;
-	rect.ymin= rect.ymax= y;
+	// rect.xmin = ... mouseco!
+	rect.xmin = rect.xmax = x;
+	rect.ymin = rect.ymax = y;
 	
 	glInitNames();
 	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
@@ -1430,7 +1430,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *ev
 		return OPERATOR_CANCELLED;
 	
 	/* Select parents */
-	for (curBone=bone; curBone; curBone=next){
+	for (curBone=bone; curBone; curBone=next) {
 		/* ignore bone if cannot be selected */
 		if ((curBone->flag & BONE_UNSELECTABLE) == 0) { 
 				// XXX old cruft! use notifiers instead
@@ -1467,17 +1467,17 @@ static int pose_select_linked_poll(bContext *C)
 void POSE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Connected";
-	ot->idname= "POSE_OT_select_linked";
-	ot->description= "Select bones related to selected ones by parent/child relationships";
+	ot->name = "Select Connected";
+	ot->idname = "POSE_OT_select_linked";
+	ot->description = "Select bones related to selected ones by parent/child relationships";
 	
 	/* api callbacks */
-	ot->exec= NULL;
-	ot->invoke= pose_select_connected_invoke;
-	ot->poll= pose_select_linked_poll;
+	ot->exec = NULL;
+	ot->invoke = pose_select_connected_invoke;
+	ot->poll = pose_select_linked_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */	
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
@@ -1512,7 +1512,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 			if (extend) {
 				curBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 			}
-			else{
+			else {
 				curBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 			}
 		}
@@ -1561,17 +1561,17 @@ static int armature_select_linked_poll(bContext *C)
 void ARMATURE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Connected";
-	ot->idname= "ARMATURE_OT_select_linked";
-	ot->description= "Select bones related to selected ones by parent/child relationships";
+	ot->name = "Select Connected";
+	ot->idname = "ARMATURE_OT_select_linked";
+	ot->description = "Select bones related to selected ones by parent/child relationships";
 	
 	/* api callbacks */
-	ot->exec= NULL;
-	ot->invoke= armature_select_linked_invoke;
-	ot->poll= armature_select_linked_poll;
+	ot->exec = NULL;
+	ot->invoke = armature_select_linked_invoke;
+	ot->poll = armature_select_linked_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties s*/
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
@@ -1590,23 +1590,23 @@ static EditBone *get_nearest_editbonepoint (ViewContext *vc, const int mval[2], 
 
 	glInitNames();
 	
-	rect.xmin= mval[0]-5;
-	rect.xmax= mval[0]+5;
-	rect.ymin= mval[1]-5;
-	rect.ymax= mval[1]+5;
+	rect.xmin = mval[0]-5;
+	rect.xmax = mval[0]+5;
+	rect.ymin = mval[1]-5;
+	rect.ymax = mval[1]+5;
 	
 	hits= view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect);
-	if(hits==0) {
-		rect.xmin= mval[0]-12;
-		rect.xmax= mval[0]+12;
-		rect.ymin= mval[1]-12;
-		rect.ymax= mval[1]+12;
+	if (hits==0) {
+		rect.xmin = mval[0]-12;
+		rect.xmax = mval[0]+12;
+		rect.ymin = mval[1]-12;
+		rect.ymax = mval[1]+12;
 		hits= view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect);
 	}
 	/* See if there are any selected bones in this group */
 	if (hits>0) {
 		
-		if(hits==1) {
+		if (hits==1) {
 			if (!(buffer[3] & BONESEL_NOSEL)) 
 				besthitresult= buffer[3];
 		}
@@ -1619,12 +1619,12 @@ static EditBone *get_nearest_editbonepoint (ViewContext *vc, const int mval[2], 
 					ebone = BLI_findlink(edbo, hitresult & ~BONESEL_ANY);
 					
 					/* clicks on bone points get advantage */
-					if( hitresult & (BONESEL_ROOT|BONESEL_TIP)) {
+					if ( hitresult & (BONESEL_ROOT|BONESEL_TIP)) {
 						/* but also the unselected one */
-						if(findunsel) {
-							if( (hitresult & BONESEL_ROOT) && (ebone->flag & BONE_ROOTSEL)==0) 
+						if (findunsel) {
+							if ( (hitresult & BONESEL_ROOT) && (ebone->flag & BONE_ROOTSEL)==0) 
 								dep= 1;
-							else if( (hitresult & BONESEL_TIP) && (ebone->flag & BONE_TIPSEL)==0) 
+							else if ( (hitresult & BONESEL_TIP) && (ebone->flag & BONE_TIPSEL)==0) 
 								dep= 1;
 							else 
 								dep= 2;
@@ -1633,15 +1633,15 @@ static EditBone *get_nearest_editbonepoint (ViewContext *vc, const int mval[2], 
 					}
 					else {
 						/* bone found */
-						if(findunsel) {
-							if((ebone->flag & BONE_SELECTED)==0)
+						if (findunsel) {
+							if ((ebone->flag & BONE_SELECTED)==0)
 								dep= 2;
 							else
 								dep= 3;
 						}
 						else dep= 3;
 					}
-					if(dep < mindep) {
+					if (dep < mindep) {
 						mindep= dep;
 						besthitresult= hitresult;
 					}
@@ -1729,7 +1729,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		ebone_next= curBone->next;
 		if (arm->layer & curBone->layer) {
 			if (curBone->flag & BONE_SELECTED) {
-				if(curBone==arm->act_edbone) arm->act_edbone= NULL;
+				if (curBone==arm->act_edbone) arm->act_edbone= NULL;
 				ED_armature_edit_bone_remove(arm, curBone);
 			}
 		}
@@ -1746,9 +1746,9 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Selected Bone(s)";
-	ot->idname= "ARMATURE_OT_delete";
-	ot->description= "Remove selected bones from the armature";
+	ot->name = "Delete Selected Bone(s)";
+	ot->idname = "ARMATURE_OT_delete";
+	ot->description = "Remove selected bones from the armature";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
@@ -1756,7 +1756,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* toggle==0: deselect
@@ -1769,12 +1769,12 @@ void ED_armature_deselect_all(Object *obedit, int toggle)
 	EditBone	*eBone;
 	int			sel=1;
 	
-	if(toggle==1) {
+	if (toggle==1) {
 		/* Determine if there are any selected bones
 		 * and therefore whether we are selecting or deselecting */
-		for (eBone=arm->edbo->first;eBone;eBone=eBone->next){
-			//			if(arm->layer & eBone->layer) {
-			if (eBone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)){
+		for (eBone=arm->edbo->first;eBone;eBone=eBone->next) {
+			//			if (arm->layer & eBone->layer) {
+			if (eBone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)) {
 				sel=0;
 				break;
 			}
@@ -1787,24 +1787,24 @@ void ED_armature_deselect_all(Object *obedit, int toggle)
 	for (eBone=arm->edbo->first;eBone;eBone=eBone->next) {
 		if (sel==2) {
 			/* invert selection of bone */
-			if(EBONE_VISIBLE(arm, eBone)) {
+			if (EBONE_VISIBLE(arm, eBone)) {
 				eBone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				if(arm->act_edbone==eBone)
+				if (arm->act_edbone==eBone)
 					arm->act_edbone= NULL;
 			}
 		}
 		else if (sel==1) {
 			/* select bone */
-			if(EBONE_VISIBLE(arm, eBone)) {
+			if (EBONE_VISIBLE(arm, eBone)) {
 				eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				if(eBone->parent)
+				if (eBone->parent)
 					eBone->parent->flag |= (BONE_TIPSEL);
 			}
 		}
 		else {
 			/* deselect bone */
 			eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			if(arm->act_edbone==eBone)
+			if (arm->act_edbone==eBone)
 				arm->act_edbone= NULL;
 		}
 	}
@@ -1830,7 +1830,7 @@ void ED_armature_deselect_all_visible(Object *obedit)
 /* accounts for connected parents */
 static int ebone_select_flag(EditBone *ebone)
 {
-	if(ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+	if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
 		return ((ebone->parent->flag & BONE_TIPSEL) ? BONE_ROOTSEL : 0) | (ebone->flag & (BONE_SELECTED|BONE_TIPSEL));
 	}
 	else {
@@ -1860,16 +1860,16 @@ int mouse_armature(bContext *C, const int mval[2], int extend)
 		/* by definition the non-root connected bones have no root point drawn,
 		 * so a root selection needs to be delivered to the parent tip */
 		
-		if(selmask & BONE_SELECTED) {
-			if(nearBone->parent && (nearBone->flag & BONE_CONNECTED)) {
+		if (selmask & BONE_SELECTED) {
+			if (nearBone->parent && (nearBone->flag & BONE_CONNECTED)) {
 				/* click in a chain */
-				if(extend) {
+				if (extend) {
 					/* hold shift inverts this bone's selection */
-					if(nearBone->flag & BONE_SELECTED) {
+					if (nearBone->flag & BONE_SELECTED) {
 						/* deselect this bone */
 						nearBone->flag &= ~(BONE_TIPSEL|BONE_SELECTED);
 						/* only deselect parent tip if it is not selected */
-						if(!(nearBone->parent->flag & BONE_SELECTED))
+						if (!(nearBone->parent->flag & BONE_SELECTED))
 							nearBone->parent->flag &= ~BONE_TIPSEL;
 					}
 					else {
@@ -1885,9 +1885,9 @@ int mouse_armature(bContext *C, const int mval[2], int extend)
 				}
 			}
 			else {
-				if(extend) {
+				if (extend) {
 					/* hold shift inverts this bone's selection */
-					if(nearBone->flag & BONE_SELECTED)
+					if (nearBone->flag & BONE_SELECTED)
 					   nearBone->flag &= ~(BONE_TIPSEL|BONE_ROOTSEL);
 					else
 						nearBone->flag |= (BONE_TIPSEL|BONE_ROOTSEL);
@@ -1904,9 +1904,9 @@ int mouse_armature(bContext *C, const int mval[2], int extend)
 		
 		ED_armature_sync_selection(arm->edbo);
 		
-		if(nearBone) {
+		if (nearBone) {
 			/* then now check for active status */
-			if(ebone_select_flag(nearBone)) {
+			if (ebone_select_flag(nearBone)) {
 				arm->act_edbone= nearBone;
 			}
 		}
@@ -1965,16 +1965,16 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const short
 	sub_v3_v3v3(nor, bone->tail, bone->head);
 	vec_roll_to_mat3(nor, 0.0f, mat);
 
-	/* check the bone isnt aligned with the axis */
-	if(!is_zero_v3(align_axis) && angle_v3v3(align_axis, mat[2]) > FLT_EPSILON) {
+	/* check the bone isn't aligned with the axis */
+	if (!is_zero_v3(align_axis) && angle_v3v3(align_axis, mat[2]) > FLT_EPSILON) {
 		float vec[3], align_axis_proj[3], roll;
 
 		/* project the new_up_axis along the normal */
 		project_v3_v3v3(vec, align_axis, nor);
 		sub_v3_v3v3(align_axis_proj, align_axis, vec);
 		
-		if(axis_only) {
-			if(angle_v3v3(align_axis_proj, mat[2]) > (float)(M_PI/2.0)) {
+		if (axis_only) {
+			if (angle_v3v3(align_axis_proj, mat[2]) > (float)(M_PI/2.0)) {
 				negate_v3(align_axis_proj);
 			}
 		}
@@ -2020,7 +2020,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 	copy_m3_m4(imat, ob->obmat);
 	invert_m3(imat);
 
-	if(type==7) { /* Cursor */
+	if (type==7) { /* Cursor */
 		Scene *scene= CTX_data_scene(C);
 		View3D *v3d= CTX_wm_view3d(C); /* can be NULL */
 		float cursor_local[3];
@@ -2031,20 +2031,20 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 		mul_m3_v3(imat, cursor_local);
 
 		/* cursor */
-		for(ebone= arm->edbo->first; ebone; ebone= ebone->next) {
-			if(EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
+		for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+			if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
 				float cursor_rel[3];
 				sub_v3_v3v3(cursor_rel, cursor_local, ebone->head);
-				if(axis_flip) negate_v3(cursor_rel);
+				if (axis_flip) negate_v3(cursor_rel);
 				ebone->roll= ED_rollBoneToVector(ebone, cursor_rel, axis_only);
 			}
 		}
 	}
 	else {
 		float vec[3]= {0.0f, 0.0f, 0.0f};
-		if(type==6) { /* View */
+		if (type==6) { /* View */
 			RegionView3D *rv3d= CTX_wm_region_view3d(C);
-			if(rv3d==NULL) {
+			if (rv3d==NULL) {
 				BKE_report(op->reports, RPT_ERROR, "No region view3d available");
 				return OPERATOR_CANCELLED;
 			}
@@ -2055,7 +2055,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 		else if (type==5) {
 			float mat[3][3], nor[3];
 			ebone= (EditBone *)arm->act_edbone;
-			if(ebone==NULL) {
+			if (ebone==NULL) {
 				BKE_report(op->reports, RPT_ERROR, "No active bone set");
 				return OPERATOR_CANCELLED;
 			}
@@ -2066,15 +2066,15 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 		}
 		else { /* Axis */
 			assert(type >= 0 && type <= 5);
-			if(type<3)	vec[type]= 1.0f; 
+			if (type<3)	vec[type]= 1.0f; 
 			else		vec[type-2]= -1.0f; 
 			mul_m3_v3(imat, vec);
 		}
 
-		if(axis_flip) negate_v3(vec);
+		if (axis_flip) negate_v3(vec);
 
-		for(ebone= arm->edbo->first; ebone; ebone= ebone->next) {
-			if(EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
+		for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+			if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
 				/* roll func is a callback which assumes that all is well */
 				ebone->roll= ED_rollBoneToVector(ebone, vec, axis_only);
 			}
@@ -2082,8 +2082,8 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 	}
 
 	if (arm->flag & ARM_MIRROR_EDIT) {
-		for(ebone= arm->edbo->first; ebone; ebone= ebone->next) {
-			if((EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) == 0) {
+		for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+			if ((EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) == 0) {
 				EditBone *ebone_mirr= ED_armature_bone_get_mirrored(arm->edbo, ebone);
 				if (ebone_mirr && (EBONE_VISIBLE(arm, ebone_mirr) && EBONE_EDITABLE(ebone_mirr))) {
 					ebone->roll= -ebone_mirr->roll;
@@ -2101,9 +2101,9 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Recalculate Roll";
-	ot->idname= "ARMATURE_OT_calculate_roll";
-	ot->description= "Automatically fix alignment of select bones' axes";
+	ot->name = "Recalculate Roll";
+	ot->idname = "ARMATURE_OT_calculate_roll";
+	ot->description = "Automatically fix alignment of select bones' axes";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -2111,10 +2111,10 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
 	RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis");
 	RNA_def_boolean(ot->srna, "axis_only", 0, "Shortest Rotation", "Ignore the axis direction, use the shortest rotation to align");
 }
@@ -2135,14 +2135,14 @@ static void undoBones_to_editBones(void *uarmv, void *armv, void *UNUSED(data))
 	BLI_freelistN(arm->edbo);
 	
 	/* copy  */
-	for(ebo= uarm->lb.first; ebo; ebo= ebo->next) {
+	for (ebo= uarm->lb.first; ebo; ebo= ebo->next) {
 		newebo= MEM_dupallocN(ebo);
 		ebo->temp= newebo;
 		BLI_addtail(arm->edbo, newebo);
 	}
 	
 	/* active bone */
-	if(uarm->act_edbone) {
+	if (uarm->act_edbone) {
 		ebo= uarm->act_edbone;
 		arm->act_edbone= ebo->temp;
 	}
@@ -2150,11 +2150,11 @@ static void undoBones_to_editBones(void *uarmv, void *armv, void *UNUSED(data))
 		arm->act_edbone= NULL;
 
 	/* set pointers */
-	for(newebo= arm->edbo->first; newebo; newebo= newebo->next) {
-		if(newebo->parent) newebo->parent= newebo->parent->temp;
+	for (newebo= arm->edbo->first; newebo; newebo= newebo->next) {
+		if (newebo->parent) newebo->parent= newebo->parent->temp;
 	}
-	/* be sure they dont hang ever */
-	for(newebo= arm->edbo->first; newebo; newebo= newebo->next) {
+	/* be sure they don't hang ever */
+	for (newebo= arm->edbo->first; newebo; newebo= newebo->next) {
 		newebo->temp= NULL;
 	}
 }
@@ -2168,21 +2168,21 @@ static void *editBones_to_undoBones(void *armv, void *UNUSED(obdata))
 	uarm= MEM_callocN(sizeof(UndoArmature), "listbase undo");
 	
 	/* copy */
-	for(ebo= arm->edbo->first; ebo; ebo= ebo->next) {
+	for (ebo= arm->edbo->first; ebo; ebo= ebo->next) {
 		newebo= MEM_dupallocN(ebo);
 		ebo->temp= newebo;
 		BLI_addtail(&uarm->lb, newebo);
 	}
 	
 	/* active bone */
-	if(arm->act_edbone) {
+	if (arm->act_edbone) {
 		ebo= arm->act_edbone;
 		uarm->act_edbone= ebo->temp;
 	}
 
 	/* set pointers */
-	for(newebo= uarm->lb.first; newebo; newebo= newebo->next) {
-		if(newebo->parent) newebo->parent= newebo->parent->temp;
+	for (newebo= uarm->lb.first; newebo; newebo= newebo->next) {
+		if (newebo->parent) newebo->parent= newebo->parent->temp;
 	}
 	
 	return uarm;
@@ -2199,7 +2199,7 @@ static void free_undoBones(void *uarmv)
 static void *get_armature_edit(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	if(obedit && obedit->type==OB_ARMATURE) {
+	if (obedit && obedit->type==OB_ARMATURE) {
 		return obedit->data;
 	}
 	return NULL;
@@ -2408,9 +2408,9 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 void ARMATURE_OT_click_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Click-Extrude";
-	ot->idname= "ARMATURE_OT_click_extrude";
-	ot->description= "Create a new bone going from the last selected joint to the mouse position";
+	ot->name = "Click-Extrude";
+	ot->idname = "ARMATURE_OT_click_extrude";
+	ot->description = "Create a new bone going from the last selected joint to the mouse position";
 	
 	/* api callbacks */
 	ot->invoke = armature_click_extrude_invoke;
@@ -2418,7 +2418,7 @@ void ARMATURE_OT_click_extrude(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
 }
@@ -2541,7 +2541,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase
 	BLI_addtail(editbones, eBone);
 	
 	/* copy the ID property */
-	if(curBone->prop)
+	if (curBone->prop)
 		eBone->prop= IDP_CopyProperty(curBone->prop);
 
 	/* Lets duplicate the list of constraints that the
@@ -2557,7 +2557,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase
 			 */
 			channew= verify_pose_channel(dst_ob->pose, eBone->name);
 
-			if(channew) {
+			if (channew) {
 				duplicate_pose_channel_data(channew, chanold);
 			}
 		}
@@ -2653,9 +2653,9 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	} 
 	
 	/* correct the active bone */
-	if(arm->act_edbone) {
+	if (arm->act_edbone) {
 		eBone= arm->act_edbone;
-		if(eBone->temp)
+		if (eBone->temp)
 			arm->act_edbone= eBone->temp;
 	}
 
@@ -2676,16 +2676,16 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Selected Bone(s)";
-	ot->idname= "ARMATURE_OT_duplicate";
-	ot->description= "Make copies of the selected bones within the same armature";
+	ot->name = "Duplicate Selected Bone(s)";
+	ot->idname = "ARMATURE_OT_duplicate";
+	ot->description = "Make copies of the selected bones within the same armature";
 	
 	/* api callbacks */
 	ot->exec = armature_duplicate_selected_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -2950,16 +2950,16 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 void ARMATURE_OT_fill (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Fill Between Joints";
-	ot->idname= "ARMATURE_OT_fill";
-	ot->description= "Add bone between selected joint(s) and/or 3D-Cursor";
+	ot->name = "Fill Between Joints";
+	ot->idname = "ARMATURE_OT_fill";
+	ot->description = "Add bone between selected joint(s) and/or 3D-Cursor";
 	
 	/* callbacks */
-	ot->exec= armature_fill_bones_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_fill_bones_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* --------------------- */
@@ -3134,20 +3134,20 @@ void ARMATURE_OT_merge (wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Merge Bones";
-	ot->idname= "ARMATURE_OT_merge";
-	ot->description= "Merge continuous chains of selected bones";
+	ot->name = "Merge Bones";
+	ot->idname = "ARMATURE_OT_merge";
+	ot->description = "Merge continuous chains of selected bones";
 	
 	/* callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= armature_merge_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = armature_merge_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", merge_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", merge_types, 0, "Type", "");
 }
 
 /* ************** END Add/Remove stuff in editmode ************ */
@@ -3183,16 +3183,16 @@ static int armature_hide_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selected Bones";
-	ot->idname= "ARMATURE_OT_hide";
-	ot->description= "Tag selected bones to not be visible in Edit Mode";
+	ot->name = "Hide Selected Bones";
+	ot->idname = "ARMATURE_OT_hide";
+	ot->description = "Tag selected bones to not be visible in Edit Mode";
 	
 	/* api callbacks */
-	ot->exec= armature_hide_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_hide_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
@@ -3205,7 +3205,7 @@ static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	EditBone *ebone;
 	
 	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-		if(arm->layer & ebone->layer) {
+		if (arm->layer & ebone->layer) {
 			if (ebone->flag & BONE_HIDDEN_A) {
 				ebone->flag |= (BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
 				ebone->flag &= ~BONE_HIDDEN_A;
@@ -3223,16 +3223,16 @@ static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal Bones";
-	ot->idname= "ARMATURE_OT_reveal";
-	ot->description= "Unhide all bones that have been tagged to be hidden in Edit Mode";
+	ot->name = "Reveal Bones";
+	ot->idname = "ARMATURE_OT_reveal";
+	ot->description = "Unhide all bones that have been tagged to be hidden in Edit Mode";
 	
 	/* api callbacks */
-	ot->exec= armature_reveal_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_reveal_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 }
 #if 0 // remove this?
@@ -3281,7 +3281,7 @@ void show_all_armature_bones(Scene *scene)
 	EditBone *ebone;
 	
 	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-		if(arm->layer & ebone->layer) {
+		if (arm->layer & ebone->layer) {
 			if (ebone->flag & BONE_HIDDEN_A) {
 				ebone->flag |= (BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
 				ebone->flag &= ~BONE_HIDDEN_A;
@@ -3386,7 +3386,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 					newbone->zwidth= ebone->zwidth;
 					newbone->ease1= ebone->ease1;
 					newbone->ease2= ebone->ease2;
-					newbone->rad_head= ebone->rad_tail;	// dont copy entire bone...
+					newbone->rad_head= ebone->rad_tail;	// don't copy entire bone...
 					newbone->rad_tail= ebone->rad_tail;
 					newbone->segments= 1;
 					newbone->layer= ebone->layer;
@@ -3432,16 +3432,16 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Extrude";
-	ot->idname= "ARMATURE_OT_extrude";
-	ot->description= "Create new bones from the selected joints";
+	ot->name = "Extrude";
+	ot->idname = "ARMATURE_OT_extrude";
+	ot->description = "Create new bones from the selected joints";
 	
 	/* api callbacks */
-	ot->exec= armature_extrude_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_extrude_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
@@ -3481,7 +3481,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 
 	copy_v3_v3(bone->head, curs);
 	
-	if(rv3d && (U.flag & USER_ADD_VIEWALIGNED))
+	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		add_v3_v3v3(bone->tail, bone->head, imat[1]);	// bone with unit length 1
 	else
 		add_v3_v3v3(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
@@ -3495,16 +3495,16 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Bone";
-	ot->idname= "ARMATURE_OT_bone_primitive_add";
-	ot->description= "Add a new bone located at the 3D-Cursor";
+	ot->name = "Add Bone";
+	ot->idname = "ARMATURE_OT_bone_primitive_add";
+	ot->description = "Add a new bone located at the 3D-Cursor";
 	
 	/* api callbacks */
 	ot->exec = armature_bone_primitive_add_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_string(ot->srna, "name", "Bone", MAXBONENAME, "Name", "Name of the newly created bone");
 	
@@ -3584,20 +3584,24 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 
 void ARMATURE_OT_subdivide(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
-	ot->name= "Subdivide Multi";
-	ot->idname= "ARMATURE_OT_subdivide";
-	ot->description= "Break selected bones into chains of smaller bones";
+	ot->name = "Subdivide Multi";
+	ot->idname = "ARMATURE_OT_subdivide";
+	ot->description = "Break selected bones into chains of smaller bones";
 	
 	/* api callbacks */
 	ot->exec = armature_subdivide_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* Properties */
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
+	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
+	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ----------- */
@@ -3687,16 +3691,16 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_switch_direction(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Switch Direction";
-	ot->idname= "ARMATURE_OT_switch_direction";
-	ot->description= "Change the direction that a chain of bones points in (head <-> tail swap)";
+	ot->name = "Switch Direction";
+	ot->idname = "ARMATURE_OT_switch_direction";
+	ot->description = "Change the direction that a chain of bones points in (head <-> tail swap)";
 	
 	/* api callbacks */
 	ot->exec = armature_switch_direction_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 /* ***************** Parenting *********************** */
 
@@ -3862,9 +3866,9 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEve
 void ARMATURE_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Parent";
-	ot->idname= "ARMATURE_OT_parent_set";
-	ot->description= "Set the active bone as the parent of the selected bones";
+	ot->name = "Make Parent";
+	ot->idname = "ARMATURE_OT_parent_set";
+	ot->description = "Set the active bone as the parent of the selected bones";
 	
 	/* api callbacks */
 	ot->invoke = armature_parent_set_invoke;
@@ -3872,7 +3876,7 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_editarm_make_parent_types, 0, "ParentType", "Type of parenting");
 }
@@ -3916,9 +3920,9 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Parent";
-	ot->idname= "ARMATURE_OT_parent_clear";
-	ot->description= "Remove the parent-child relationship between selected bones and their parents";
+	ot->name = "Clear Parent";
+	ot->idname = "ARMATURE_OT_parent_clear";
+	ot->description = "Remove the parent-child relationship between selected bones and their parents";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -3926,9 +3930,9 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
 }
 
 /* ****************  Selections  ******************/
@@ -3953,16 +3957,16 @@ static int armature_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->idname= "ARMATURE_OT_select_inverse";
-	ot->description= "Flip the selection status of bones (selected -> unselected, unselected -> selected)";
+	ot->name = "Select Inverse";
+	ot->idname = "ARMATURE_OT_select_inverse";
+	ot->description = "Flip the selection status of bones (selected -> unselected, unselected -> selected)";
 	
 	/* api callbacks */
-	ot->exec= armature_select_inverse_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_select_inverse_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
 static int armature_de_select_all_exec(bContext *C, wmOperator *op)
@@ -3984,7 +3988,7 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 			switch (action) {
 			case SEL_SELECT:
 				ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				if(ebone->parent)
+				if (ebone->parent)
 					ebone->parent->flag |= (BONE_TIPSEL);
 				break;
 			case SEL_DESELECT:
@@ -3996,7 +4000,7 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 				} 
 				else {
 					ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					if(ebone->parent)
+					if (ebone->parent)
 						ebone->parent->flag |= (BONE_TIPSEL);
 				}
 				break;
@@ -4013,16 +4017,16 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
-	ot->idname= "ARMATURE_OT_select_all";
-	ot->description= "Toggle selection status of all bones";
+	ot->name = "(De)select All";
+	ot->idname = "ARMATURE_OT_select_all";
+	ot->description = "Toggle selection status of all bones";
 	
 	/* api callbacks */
-	ot->exec= armature_de_select_all_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_de_select_all_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_select_all(ot);
 }
@@ -4094,16 +4098,16 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 	};
 	
 	/* identifiers */
-	ot->name= "Select Hierarchy";
-	ot->idname= "ARMATURE_OT_select_hierarchy";
-	ot->description= "Select immediate parent/children of selected bones";
+	ot->name = "Select Hierarchy";
+	ot->idname = "ARMATURE_OT_select_hierarchy";
+	ot->description = "Select immediate parent/children of selected bones";
 	
 	/* api callbacks */
-	ot->exec= armature_select_hierarchy_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_select_hierarchy_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items,
@@ -4233,9 +4237,9 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_align(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Align Bones";
-	ot->idname= "ARMATURE_OT_align";
-	ot->description= "Align selected bones to the active bone (or to their parent)";
+	ot->name = "Align Bones";
+	ot->idname = "ARMATURE_OT_align";
+	ot->description = "Align selected bones to the active bone (or to their parent)";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
@@ -4243,7 +4247,7 @@ void ARMATURE_OT_align(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ***************** Pose tools ********************* */
@@ -4308,7 +4312,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		else {
 			if (nearBone->flag & BONE_SELECTED) {
 				/* if not active, we make it active */
-				if(nearBone != arm->act_bone) {
+				if (nearBone != arm->act_bone) {
 					arm->act_bone= nearBone;
 				}
 				else {
@@ -4412,7 +4416,7 @@ static int bone_skinnable_cb(Object *ob, Bone *bone, void *datap)
 	int a, segments;
 	struct { Object *armob; void *list; int heat; } *data = datap;
 
-	if(!(ob->mode & OB_MODE_WEIGHT_PAINT) || !(bone->flag & BONE_HIDDEN_P)) {
+	if (!(ob->mode & OB_MODE_WEIGHT_PAINT) || !(bone->flag & BONE_HIDDEN_P)) {
 		if (!(bone->flag & BONE_NO_DEFORM)) {
 			if (data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
 				segments = bone->segments;
@@ -4486,7 +4490,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
 			else
 				segments = 1;
 
-			if(!wpmode || ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED)))
+			if (!wpmode || ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED)))
 				if (!(defgroup = defgroup_find_name(ob, bone->name)))
 					defgroup = ED_vgroup_add_name(ob, bone->name);
 			
@@ -4706,7 +4710,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 		heat_bone_weighting(ob, mesh, verts, numbones, dgrouplist, dgroupflip,
 			root, tip, selected, &error);
 		
-		if(error) {
+		if (error) {
 			BKE_report(reports, RPT_WARNING, error);
 		}
 	}
@@ -4735,7 +4739,7 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 	 */
 	bArmature *arm= par->data;
 
-	if(mode == ARM_GROUPS_NAME) {
+	if (mode == ARM_GROUPS_NAME) {
 		/* Traverse the bone list, trying to create empty vertex 
 		 * groups corresponding to the bone.
 		 */
@@ -4744,7 +4748,7 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 		if (ob->type == OB_MESH)
 			ED_vgroup_data_create(ob->data);
 	}
-	else if(mode == ARM_GROUPS_ENVELOPE || mode == ARM_GROUPS_AUTO) {
+	else if (mode == ARM_GROUPS_ENVELOPE || mode == ARM_GROUPS_AUTO) {
 		/* Traverse the bone list, trying to create vertex groups 
 		 * that are populated with the vertices for which the
 		 * bone is closest.
@@ -4953,8 +4957,8 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 void POSE_OT_scale_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Pose Scale";
-	ot->idname= "POSE_OT_scale_clear";
+	ot->name = "Clear Pose Scale";
+	ot->idname = "POSE_OT_scale_clear";
 	ot->description = "Reset scaling of selected bones to their default values";
 	
 	/* api callbacks */
@@ -4962,7 +4966,7 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -4974,8 +4978,8 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 void POSE_OT_rot_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Pose Rotation";
-	ot->idname= "POSE_OT_rot_clear";
+	ot->name = "Clear Pose Rotation";
+	ot->idname = "POSE_OT_rot_clear";
 	ot->description = "Reset rotations of selected bones to their default values";
 	
 	/* api callbacks */
@@ -4983,7 +4987,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -4995,8 +4999,8 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 void POSE_OT_loc_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Pose Location";
-	ot->idname= "POSE_OT_loc_clear";
+	ot->name = "Clear Pose Location";
+	ot->idname = "POSE_OT_loc_clear";
 	ot->description = "Reset locations of selected bones to their default values";
 	
 	/* api callbacks */
@@ -5004,7 +5008,7 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -5016,8 +5020,8 @@ static int pose_clear_transforms_exec(bContext *C, wmOperator *op)
 void POSE_OT_transforms_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Pose Transforms";
-	ot->idname= "POSE_OT_transforms_clear";
+	ot->name = "Clear Pose Transforms";
+	ot->idname = "POSE_OT_transforms_clear";
 	ot->description = "Reset location, rotation, and scaling of selected bones to their default values";
 	
 	/* api callbacks */
@@ -5025,7 +5029,7 @@ void POSE_OT_transforms_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ***************** selections ********************** */
@@ -5077,16 +5081,16 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 void POSE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
-	ot->idname= "POSE_OT_select_all";
-	ot->description= "Toggle selection status of all bones";
+	ot->name = "(De)select All";
+	ot->idname = "POSE_OT_select_all";
+	ot->description = "Toggle selection status of all bones";
 	
 	/* api callbacks */
-	ot->exec= pose_de_select_all_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_de_select_all_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_select_all(ot);
 }
@@ -5121,16 +5125,16 @@ static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_select_parent(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Parent Bone";
-	ot->idname= "POSE_OT_select_parent";
-	ot->description= "Select bones that are parents of the currently selected bones";
+	ot->name = "Select Parent Bone";
+	ot->idname = "POSE_OT_select_parent";
+	ot->description = "Select bones that are parents of the currently selected bones";
 
 	/* api callbacks */
-	ot->exec= pose_select_parent_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_select_parent_exec;
+	ot->poll = ED_operator_posemode;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
 
@@ -5144,7 +5148,7 @@ static int hide_selected_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr))
 		if (bone->flag & BONE_SELECTED) {
 			bone->flag |= BONE_HIDDEN_P;
 			bone->flag &= ~BONE_SELECTED;
-			if(arm->act_bone==bone)
+			if (arm->act_bone==bone)
 				arm->act_bone= NULL;
 		}
 	}
@@ -5159,7 +5163,7 @@ static int hide_unselected_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr
 		// hrm... typo here?
 		if ((bone->flag & BONE_SELECTED)==0) {
 			bone->flag |= BONE_HIDDEN_P;
-			if(arm->act_bone==bone)
+			if (arm->act_bone==bone)
 				arm->act_bone= NULL;
 		}
 	}
@@ -5172,7 +5176,7 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
 
-	if(RNA_boolean_get(op->ptr, "unselected"))
+	if (RNA_boolean_get(op->ptr, "unselected"))
 		bone_looper(ob, arm->bonebase.first, NULL, hide_unselected_pose_bone_cb);
 	else
 		bone_looper(ob, arm->bonebase.first, NULL, hide_selected_pose_bone_cb);
@@ -5186,16 +5190,16 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 void POSE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selected";
-	ot->idname= "POSE_OT_hide";
-	ot->description= "Tag selected bones to not be visible in Pose Mode";
+	ot->name = "Hide Selected";
+	ot->idname = "POSE_OT_hide";
+	ot->description = "Tag selected bones to not be visible in Pose Mode";
 	
 	/* api callbacks */
-	ot->exec= pose_hide_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_hide_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "");
@@ -5232,16 +5236,16 @@ static int pose_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal Selected";
-	ot->idname= "POSE_OT_reveal";
-	ot->description= "Unhide all bones that have been tagged to be hidden in Pose Mode";
+	ot->name = "Reveal Selected";
+	ot->idname = "POSE_OT_reveal";
+	ot->description = "Unhide all bones that have been tagged to be hidden in Pose Mode";
 	
 	/* api callbacks */
-	ot->exec= pose_reveal_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_reveal_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************* RENAMING DISASTERS ************ */
@@ -5292,7 +5296,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 	char oldname[MAXBONENAME];
 	
 	/* names better differ! */
-	if(strncmp(oldnamep, newnamep, MAXBONENAME)) {
+	if (strncmp(oldnamep, newnamep, MAXBONENAME)) {
 		
 		/* we alter newname string... so make copy */
 		BLI_strncpy(newname, newnamep, MAXBONENAME);
@@ -5367,7 +5371,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 			
 			if (modifiers_usesArmature(ob, arm)) { 
 				bDeformGroup *dg= defgroup_find_name(ob, oldname);
-				if(dg) {
+				if (dg) {
 					BLI_strncpy(dg->name, newname, MAXBONENAME);
 				}
 			}
@@ -5394,15 +5398,15 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 		/* correct view locking */
 		{
 			bScreen *screen;
-			for(screen= G.main->screen.first; screen; screen= screen->id.next) {
+			for (screen= G.main->screen.first; screen; screen= screen->id.next) {
 				ScrArea *sa;
 				/* add regions */
-				for(sa= screen->areabase.first; sa; sa= sa->next) {
+				for (sa= screen->areabase.first; sa; sa= sa->next) {
 					SpaceLink *sl;
 					for (sl= sa->spacedata.first; sl; sl= sl->next) {
-						if(sl->spacetype==SPACE_VIEW3D) {
+						if (sl->spacetype==SPACE_VIEW3D) {
 							View3D *v3d= (View3D *)sl;
-							if(v3d->ob_centre && v3d->ob_centre->data == arm) {
+							if (v3d->ob_centre && v3d->ob_centre->data == arm) {
 								if (!strcmp(v3d->ob_centre_bone, oldname)) {
 									BLI_strncpy(v3d->ob_centre_bone, newname, MAXBONENAME);
 								}
@@ -5447,16 +5451,16 @@ static int armature_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_flip_names (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Flip Names";
-	ot->idname= "ARMATURE_OT_flip_names";
-	ot->description= "Flips (and corrects) the axis suffixes of the names of selected bones";
+	ot->name = "Flip Names";
+	ot->idname = "ARMATURE_OT_flip_names";
+	ot->description = "Flips (and corrects) the axis suffixes of the names of selected bones";
 	
 	/* api callbacks */
-	ot->exec= armature_flip_names_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_flip_names_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -5476,7 +5480,7 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
 	{
 		BLI_strncpy(newname, ebone->name, sizeof(newname));
-		if(bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]))
+		if (bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]))
 			ED_armature_bone_rename(arm, ebone->name, newname);
 	}
 	CTX_DATA_END;
@@ -5499,20 +5503,20 @@ void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* identifiers */
-	ot->name= "AutoName by Axis";
-	ot->idname= "ARMATURE_OT_autoside_names";
-	ot->description= "Automatically renames the selected bones according to which side of the target axis they fall on";
+	ot->name = "AutoName by Axis";
+	ot->idname = "ARMATURE_OT_autoside_names";
+	ot->description = "Automatically renames the selected bones according to which side of the target axis they fall on";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= armature_autoside_names_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = armature_autoside_names_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	ot->prop= RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with");
+	ot->prop = RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with");
 }
 
 
@@ -5638,7 +5642,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 		 * to let subsequent subdivision methods do their thing. 
 		 * */
 		if (parent == root) {
-			if(parent==arm->act_edbone) arm->act_edbone= NULL;
+			if (parent==arm->act_edbone) arm->act_edbone= NULL;
 			ED_armature_edit_bone_remove(arm, parent);
 			parent = NULL;
 		}
@@ -5858,7 +5862,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 					EditBone *childBone = BLI_ghash_lookup(arcBoneMap, arc);
 
 					/* find the root bone */
-					while(childBone->parent != NULL)
+					while (childBone->parent != NULL)
 					{
 						childBone = childBone->parent;
 					}

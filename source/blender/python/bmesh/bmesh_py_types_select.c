@@ -23,22 +23,25 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/bmesh/bmesh_py_select.c
+/** \file blender/python/bmesh/bmesh_py_types_select.c
  *  \ingroup pybmesh
  *
  * This file defines the types for 'BMesh.select_history'
  * sequence and iterator.
+ *
+ * select_history is very loosely based on pytons set() type,
+ * since items can only exist once. however they do have an order.
  */
 
 #include <Python.h>
 
+#include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+
 #include "bmesh.h"
 
 #include "bmesh_py_types.h"
-#include "bmesh_py_select.h"
-
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
+#include "bmesh_py_types_select.h"
 
 #include "BKE_tessmesh.h"
 
@@ -69,8 +72,98 @@ static PyGetSetDef bpy_bmeditselseq_getseters[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
+PyDoc_STRVAR(bpy_bmeditselseq_validate_doc,
+".. method:: validate()\n"
+"\n"
+"   Ensures all elements in the selection history are selected.\n"
+);
+static PyObject *bpy_bmeditselseq_validate(BPy_BMEditSelSeq *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	BM_select_history_validate(self->bm);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(bpy_bmeditselseq_clear_doc,
+".. method:: clear()\n"
+"\n"
+"   Empties the selection history.\n"
+);
+static PyObject *bpy_bmeditselseq_clear(BPy_BMEditSelSeq *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	BM_select_history_clear(self->bm);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(bpy_bmeditselseq_add_doc,
+".. method:: add(element)\n"
+"\n"
+"   Add an element to the selection history (no action taken if its already added).\n"
+);
+static PyObject *bpy_bmeditselseq_add(BPy_BMEditSelSeq *self, BPy_BMElem *value)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	if ((BPy_BMVert_Check(value) ||
+	     BPy_BMEdge_Check(value) ||
+	     BPy_BMFace_Check(value)) == FALSE)
+	{
+		PyErr_Format(PyExc_TypeError,
+		             "Expected a BMVert/BMedge/BMFace not a %.200s", Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(value);
+
+	if (self->bm != value->bm) {
+		PyErr_SetString(PyExc_ValueError,
+		                "Element is not from this mesh");
+		return NULL;
+	}
+
+	BM_select_history_store(self->bm, value->ele);
+
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(bpy_bmeditselseq_remove_doc,
+".. method:: remove(element)\n"
+"\n"
+"   Remove an element from the selection history.\n"
+);
+static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *value)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	if ((BPy_BMVert_Check(value) ||
+	     BPy_BMEdge_Check(value) ||
+	     BPy_BMFace_Check(value)) == FALSE)
+	{
+		PyErr_Format(PyExc_TypeError,
+		             "Expected a BMVert/BMedge/BMFace not a %.200s", Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(value);
+
+	if ((self->bm != value->bm) ||
+	    (BM_select_history_remove(self->bm, value->ele) == FALSE))
+	{
+		PyErr_SetString(PyExc_ValueError,
+		                "Element not found in selection history");
+		return NULL;
+	}
+
+	Py_RETURN_NONE;
+}
+
 static struct PyMethodDef bpy_bmeditselseq_methods[] = {
-    // {"select_flush_mode", (PyCFunction)bpy_bmesh_select_flush_mode, METH_NOARGS, bpy_bmesh_select_flush_mode_doc},
+    {"validate", (PyCFunction)bpy_bmeditselseq_validate, METH_NOARGS, bpy_bmeditselseq_validate_doc},
+    {"clear",    (PyCFunction)bpy_bmeditselseq_clear,    METH_NOARGS, bpy_bmeditselseq_clear_doc},
+
+    {"add",      (PyCFunction)bpy_bmeditselseq_add,      METH_O,      bpy_bmeditselseq_add_doc},
+    {"remove",   (PyCFunction)bpy_bmeditselseq_remove,   METH_O,      bpy_bmeditselseq_remove_doc},
     {NULL, NULL, 0, NULL}
 };
 
@@ -103,7 +196,7 @@ static PyObject *bpy_bmeditselseq_subscript_int(BPy_BMEditSelSeq *self, int keyn
 	}
 	else {
 		PyErr_Format(PyExc_IndexError,
-			         "BMElemSeq[index]: index %d out of range", keynum);
+		             "BMElemSeq[index]: index %d out of range", keynum);
 		return NULL;
 	}
 }
@@ -154,7 +247,7 @@ static PyObject *bpy_bmeditselseq_subscript_slice(BPy_BMEditSelSeq *self, Py_ssi
 
 static PyObject *bpy_bmeditselseq_subscript(BPy_BMEditSelSeq *self, PyObject *key)
 {
-	/* dont need error check here */
+	/* don't need error check here */
 	if (PyIndex_Check(key)) {
 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
 		if (i == -1 && PyErr_Occurred())
@@ -213,15 +306,7 @@ static int bpy_bmeditselseq_contains(BPy_BMEditSelSeq *self, PyObject *value)
 
 	value_bm_ele = (BPy_BMElem *)value;
 	if (value_bm_ele->bm == self->bm) {
-		BMEditSelection *ese_test;
-		BMElem *ele;
-
-		ele = value_bm_ele->ele;
-		for (ese_test = self->bm->selected.first; ese_test; ese_test = ese_test->next) {
-			if (ele == ese_test->ele) {
-				return 1;
-			}
-		}
+		return BM_select_history_check(self->bm, value_bm_ele->ele);
 	}
 
 	return 0;
@@ -274,7 +359,7 @@ static PyObject *bpy_bmeditseliter_next(BPy_BMEditSelIter *self)
 	}
 }
 
-PyTypeObject BPy_BMEditSelSeq_Type     = {{{0}}};
+PyTypeObject BPy_BMEditSelSeq_Type  = {{{0}}};
 PyTypeObject BPy_BMEditSelIter_Type = {{{0}}};
 
 
@@ -294,7 +379,7 @@ PyObject *BPy_BMEditSelIter_CreatePyObject(BMesh *bm)
 	return (PyObject *)self;
 }
 
-void BPy_BM_init_select_types(void)
+void BPy_BM_init_types_select(void)
 {
 	BPy_BMEditSelSeq_Type.tp_basicsize     = sizeof(BPy_BMEditSelSeq);
 	BPy_BMEditSelIter_Type.tp_basicsize    = sizeof(BPy_BMEditSelIter);
@@ -331,4 +416,39 @@ void BPy_BM_init_select_types(void)
 
 	PyType_Ready(&BPy_BMEditSelSeq_Type);
 	PyType_Ready(&BPy_BMEditSelIter_Type);
+}
+
+
+/* utility function */
+
+/**
+ * \note doesnt actually check selection.
+ */
+int BPy_BMEditSel_Assign(BPy_BMesh *self, PyObject *value)
+{
+	BMesh *bm;
+	Py_ssize_t value_len;
+	Py_ssize_t i;
+	BMElem **value_array = NULL;
+
+	BPY_BM_CHECK_INT(self);
+
+	bm = self->bm;
+
+	value_array = BPy_BMElem_PySeq_As_Array(&bm, value, 0, PY_SSIZE_T_MAX,
+	                                        &value_len, BM_VERT | BM_EDGE | BM_FACE,
+	                                        TRUE, TRUE, "BMesh.select_history = value");
+
+	if (value_array == NULL) {
+		return -1;
+	}
+
+	BM_select_history_clear(bm);
+
+	for (i = 0; i < value_len; i++) {
+		BM_select_history_store_notest(bm, value_array[i]);
+	}
+
+	PyMem_FREE(value_array);
+	return 0;
 }

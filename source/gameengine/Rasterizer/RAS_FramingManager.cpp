@@ -48,7 +48,7 @@ ComputeDefaultFrustum(
 	float sizeX;
 	float sizeY;
 
-	if(sensor_fit==RAS_SENSORFIT_AUTO) {
+	if (sensor_fit==RAS_SENSORFIT_AUTO) {
 		halfSize = (sensor_x / 2.f) * camnear / lens;
 
 		if (design_aspect_ratio > 1.f) {
@@ -61,7 +61,7 @@ ComputeDefaultFrustum(
 			sizeY = halfSize;
 		}
 	}
-	else if(sensor_fit==RAS_SENSORFIT_HOR) {
+	else if (sensor_fit==RAS_SENSORFIT_HOR) {
 		halfSize = (sensor_x / 2.f) * camnear / lens;
 		sizeX = halfSize;
 		sizeY = halfSize/design_aspect_ratio;
@@ -95,7 +95,7 @@ ComputeDefaultOrtho(
 	float sizeX;
 	float sizeY;
 
-	if(sensor_fit==RAS_SENSORFIT_AUTO) {
+	if (sensor_fit==RAS_SENSORFIT_AUTO) {
 		if (design_aspect_ratio > 1.f) {
 			// halfsize defines the width
 			sizeX = halfSize;
@@ -106,7 +106,7 @@ ComputeDefaultOrtho(
 			sizeY = halfSize;
 		}
 	}
-	else if(sensor_fit==RAS_SENSORFIT_HOR) {
+	else if (sensor_fit==RAS_SENSORFIT_HOR) {
 		sizeX = halfSize;
 		sizeY = halfSize/design_aspect_ratio;
 	}

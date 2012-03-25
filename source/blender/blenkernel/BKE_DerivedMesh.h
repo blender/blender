@@ -98,7 +98,7 @@ struct PBVH;
 #define SUB_ELEMS_FACE 50
 
 /*
- * Note: all mface interfaces now officially operate on tesselated data.
+ * Note: all mface interfaces now officially operate on tessellated data.
  *       Also, the mface origindex layer indexes mpolys, not mfaces.
  */
 
@@ -147,6 +147,11 @@ typedef enum DMDrawFlag {
 	DM_DRAW_ALWAYS_SMOOTH = 2
 } DMDrawFlag;
 
+typedef enum DMDirtyFlag {
+	/* dm has valid tessellated faces, but tessellated CDDATA need to be updated. */
+	DM_DIRTY_TESS_CDLAYERS = 1 << 0,
+} DMDirtyFlag;
+
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
 	/* Private DerivedMesh data, only for internal DerivedMesh use */
@@ -158,6 +163,7 @@ struct DerivedMesh {
 	struct GPUDrawObject *drawObject;
 	DerivedMeshType type;
 	float auto_bump_scale;
+	DMDirtyFlag dirty;
 
 	/* calculate vert and face normals */
 	void (*calcNormals)(DerivedMesh *dm);
@@ -174,7 +180,7 @@ struct DerivedMesh {
 	int (*getNumLoops)(DerivedMesh *dm);
 	int (*getNumPolys)(DerivedMesh *dm);
 
-	/* copy a single vert/edge/tesselated face from the derived mesh into
+	/* copy a single vert/edge/tessellated face from the derived mesh into
 	 * *{vert/edge/face}_r. note that the current implementation
 	 * of this function can be quite slow, iterating over all
 	 * elements (editmesh)
@@ -248,6 +254,7 @@ struct DerivedMesh {
 	DMGridAdjacency *(*getGridAdjacency)(DerivedMesh *dm);
 	int *(*getGridOffset)(DerivedMesh *dm);
 	DMFlagMat *(*getGridFlagMats)(DerivedMesh *dm);
+	unsigned int **(*getGridHidden)(DerivedMesh *dm);
 	
 
 	/* Iterate over each mapped vertex in the derived mesh, calling the
@@ -300,7 +307,7 @@ struct DerivedMesh {
 
 	/* Get a map of vertices to faces
 	 */
-	struct ListBase *(*getPolyMap)(struct Object *ob, DerivedMesh *dm);
+	const struct MeshElemMap *(*getPolyMap)(struct Object *ob, DerivedMesh *dm);
 
 	/* Get the BVH used for paint modes
 	 */
@@ -447,12 +454,12 @@ int DM_release(DerivedMesh *dm);
  */
 void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob);
 
-struct BMEditMesh *DM_to_editbmesh(struct Object *ob, struct DerivedMesh *dm,
-                                   struct BMEditMesh *existing, int do_tesselate);
+struct BMEditMesh *DM_to_editbmesh(struct DerivedMesh *dm,
+                                   struct BMEditMesh *existing, int do_tessellate);
 
 /* conversion to bmesh only */
 void          DM_to_bmesh_ex(struct DerivedMesh *dm, struct BMesh *bm);
-struct BMesh *DM_to_bmesh(struct Object *ob, struct DerivedMesh *dm);
+struct BMesh *DM_to_bmesh(struct DerivedMesh *dm);
 
 
 /* utility function to convert a DerivedMesh to a shape key block 
@@ -538,6 +545,8 @@ void DM_free_poly_data(struct DerivedMesh *dm, int index, int count);
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
 
 void DM_ensure_tessface(DerivedMesh *dm);
+
+void DM_update_tessface_data(DerivedMesh *dm);
 
 /* interpolates vertex data from the vertices indexed by src_indices in the
  * source mesh using the given weights and stores the result in the vertex

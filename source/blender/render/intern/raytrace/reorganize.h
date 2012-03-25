@@ -271,8 +271,9 @@ void pushdown(Node *parent)
 		s_child = next_s_child;
 	}
 	
-	for(Node *i = parent->child; RE_rayobject_isAligned(i) && i; i = i->sibling)
-		pushdown( i );	
+	for (Node *i = parent->child; RE_rayobject_isAligned(i) && i; i = i->sibling) {
+		pushdown(i);
+	}
 }
 
 

@@ -111,9 +111,9 @@ BL_SkinDeformer::BL_SkinDeformer(
 
 BL_SkinDeformer::~BL_SkinDeformer()
 {
-	if(m_releaseobject && m_armobj)
+	if (m_releaseobject && m_armobj)
 		m_armobj->Release();
-	if(m_dfnrToPC)
+	if (m_dfnrToPC)
 		delete [] m_dfnrToPC;
 }
 
@@ -149,16 +149,16 @@ bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 		nmat = m_pMeshObject->NumMaterials();
 		for (imat=0; imat<nmat; imat++) {
 			mmat = m_pMeshObject->GetMeshMaterial(imat);
-			if(!mmat->m_slots[(void*)m_gameobj])
+			if (!mmat->m_slots[(void*)m_gameobj])
 				continue;
 
 			slot = *mmat->m_slots[(void*)m_gameobj];
 
 			// for each array
-			for(slot->begin(it); !slot->end(it); slot->next(it)) {
+			for (slot->begin(it); !slot->end(it); slot->next(it)) {
 				// for each vertex
 				// copy the untransformed data from the original mvert
-				for(i=it.startvertex; i<it.endvertex; i++) {
+				for (i=it.startvertex; i<it.endvertex; i++) {
 					RAS_TexVert& v = it.vertex[i];
 					v.SetXYZ(m_transverts[v.getOrigIndex()]);
 					if (m_copyNormals)
@@ -307,7 +307,7 @@ bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 	/* See if the armature has been updated for this frame */
 	if (PoseUpdated()){	
 
-		if(!shape_applied) {
+		if (!shape_applied) {
 			/* store verts locally */
 			VerifyStorage();
 		

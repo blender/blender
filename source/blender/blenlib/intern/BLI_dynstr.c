@@ -119,9 +119,9 @@ void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 	const int maxlen= 65536;
 	int retval;
 
-	while(1) {
+	while (1) {
 		va_list args_cpy;
-		if(len == sizeof(fixedmessage))
+		if (len == sizeof(fixedmessage))
 			message= fixedmessage;
 		else
 			message= MEM_callocN(sizeof(char) * len, "BLI_dynstr_appendf");
@@ -131,22 +131,22 @@ void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 		retval= vsnprintf(message, len, format, args_cpy);
 		va_end(args_cpy);
 
-		if(retval == -1) {
+		if (retval == -1) {
 			/* -1 means not enough space, but on windows it may also mean
 			 * there is a formatting error, so we impose a maximum length */
-			if(message != fixedmessage)
+			if (message != fixedmessage)
 				MEM_freeN(message);
 			message= NULL;
 
 			len *= 2;
-			if(len > maxlen) {
+			if (len > maxlen) {
 				fprintf(stderr, "BLI_dynstr_append text too long or format error.\n");
 				break;
 			}
 		}
-		else if(retval >= len) {
+		else if (retval >= len) {
 			/* in C99 the actual length required is returned */
-			if(message != fixedmessage)
+			if (message != fixedmessage)
 				MEM_freeN(message);
 			message= NULL;
 
@@ -157,10 +157,10 @@ void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 			break;
 	}
 
-	if(message) {
+	if (message) {
 		BLI_dynstr_append(ds, message);
 
-		if(message != fixedmessage)
+		if (message != fixedmessage)
 			MEM_freeN(message);
 	}
 }
@@ -177,8 +177,8 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 	 * and avoid code duplication, that crashes on some system because
 	 * va_start/va_end have to be called for each vsnprintf call */
 
-	while(1) {
-		if(len == sizeof(fixedmessage))
+	while (1) {
+		if (len == sizeof(fixedmessage))
 			message= fixedmessage;
 		else
 			message= MEM_callocN(sizeof(char)*(len), "BLI_dynstr_appendf");
@@ -187,22 +187,22 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 		retval= vsnprintf(message, len, format, args);
 		va_end(args);
 
-		if(retval == -1) {
+		if (retval == -1) {
 			/* -1 means not enough space, but on windows it may also mean
 			 * there is a formatting error, so we impose a maximum length */
-			if(message != fixedmessage)
+			if (message != fixedmessage)
 				MEM_freeN(message);
 			message= NULL;
 
 			len *= 2;
-			if(len > maxlen) {
+			if (len > maxlen) {
 				fprintf(stderr, "BLI_dynstr_append text too long or format error.\n");
 				break;
 			}
 		}
-		else if(retval >= len) {
+		else if (retval >= len) {
 			/* in C99 the actual length required is returned */
-			if(message != fixedmessage)
+			if (message != fixedmessage)
 				MEM_freeN(message);
 			message= NULL;
 
@@ -213,10 +213,10 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 			break;
 	}
 
-	if(message) {
+	if (message) {
 		BLI_dynstr_append(ds, message);
 
-		if(message != fixedmessage)
+		if (message != fixedmessage)
 			MEM_freeN(message);
 	}
 }

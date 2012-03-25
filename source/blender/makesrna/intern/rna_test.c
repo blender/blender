@@ -133,7 +133,8 @@ void RNA_def_test(BlenderRNA *brna)
 
 	/* dynamic arrays */
 
-	prop = RNA_def_float_array(srna, "fdarr", DYNAMIC_ARRAY_SIZE, NULL, 0.0f, 0.0f, "fdarr", "dynamic float array", 0.0f, 0.0f);
+	prop = RNA_def_float_array(srna, "fdarr", DYNAMIC_ARRAY_SIZE, NULL, 0.0f, 0.0f, "fdarr",
+	                           "dynamic float array", 0.0f, 0.0f);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
 	RNA_def_property_dynamic_array_funcs(prop, "rna_Test_fdarr_get_length", "rna_Test_fdarr_set_length");
 	RNA_def_property_float_funcs(prop, "rna_Test_fdarr_get", "rna_Test_fdarr_set", NULL);
@@ -186,5 +187,3 @@ void RNA_def_test(BlenderRNA *brna)
 }
 
 #endif	/* RNA_RUNTIME */
-
-

@@ -332,7 +332,7 @@ static float orgBlenderNoise(float x, float y, float z)
 		h=hashvectf+ 3*hash[b21+b11];
 		n+= i*(h[0]*jx+h[1]*jy+h[2]*jz);
 
-	if(n<0.0f) n=0.0f; else if(n>1.0f) n=1.0f;
+	if (n<0.0f) n=0.0f; else if (n>1.0f) n=1.0f;
 	return n;
 }
 
@@ -345,7 +345,7 @@ static float orgBlenderNoiseS(float x, float y, float z)
 /* separated from orgBlenderNoise above, with scaling */
 float BLI_hnoise(float noisesize, float x, float y, float z)
 {
-	if(noisesize==0.0f) return 0.0f;
+	if (noisesize==0.0f) return 0.0f;
 	x= (1.0f+x)/noisesize;
 	y= (1.0f+y)/noisesize;
 	z= (1.0f+z)/noisesize;
@@ -360,7 +360,7 @@ float BLI_turbulence(float noisesize, float x, float y, float z, int nr)
 
 	s= BLI_hnoise(noisesize, x, y, z);
 	
-	while(nr>0) {
+	while (nr>0) {
 	
 		s+= d*BLI_hnoise(noisesize*d, x, y, z);
 		div+= d;
@@ -377,7 +377,7 @@ float BLI_turbulence1(float noisesize, float x, float y, float z, int nr)
 
 	s= fabsf( (-1.0f+2.0f*BLI_hnoise(noisesize, x, y, z)));
 	
-	while(nr>0) {
+	while (nr>0) {
 	
 		s+= fabsf(d* (-1.0f+2.0f*BLI_hnoise(noisesize*d, x, y, z)));
 		div+= d;
@@ -1771,7 +1771,7 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 	result = signal;
 
 
-	for( i=1; i<(int)octaves; i++ ) {
+	for ( i=1; i<(int)octaves; i++ ) {
 		x *= lacunarity;
 		y *= lacunarity;
 		z *= lacunarity;

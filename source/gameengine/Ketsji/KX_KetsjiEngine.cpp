@@ -194,7 +194,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 KX_KetsjiEngine::~KX_KetsjiEngine()
 {
 	delete m_logger;
-	if(m_usedome)
+	if (m_usedome)
 		delete m_dome;
 }
 
@@ -317,7 +317,7 @@ void KX_KetsjiEngine::RenderDome()
 				RenderShadowBuffers(scene);
 			}
 			// Avoid drawing the scene with the active camera twice when it's viewport is enabled
-			if(cam && !cam->GetViewport())
+			if (cam && !cam->GetViewport())
 			{
 				if (scene->IsClearingZBuffer())
 					m_rasterizer->ClearDepthBuffer();
@@ -336,7 +336,7 @@ void KX_KetsjiEngine::RenderDome()
 			list<KX_Camera*>::iterator it = cameras->begin();
 			while(it != cameras->end())
 			{
-				if((*it)->GetViewport())
+				if ((*it)->GetViewport())
 				{
 					if (scene->IsClearingZBuffer())
 						m_rasterizer->ClearDepthBuffer();
@@ -431,7 +431,7 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 void KX_KetsjiEngine::ClearFrame()
 {
 	// clear unless we're drawing overlapping stereo
-	if(m_rasterizer->InterlacedStereo() &&
+	if (m_rasterizer->InterlacedStereo() &&
 		m_rasterizer->GetEye() == RAS_IRasterizer::RAS_STEREO_RIGHTEYE)
 		return;
 
@@ -447,29 +447,29 @@ void KX_KetsjiEngine::ClearFrame()
 		list<class KX_Camera*>* cameras = scene->GetCameras();
 
 		list<KX_Camera*>::iterator it;
-		for(it = cameras->begin(); it != cameras->end(); it++)
+		for (it = cameras->begin(); it != cameras->end(); it++)
 		{
 			GetSceneViewport(scene, (*it), area, viewport);
 
-			if(!doclear) {
+			if (!doclear) {
 				clearvp = viewport;
 				doclear = true;
 			}
 			else {
-				if(viewport.GetLeft() < clearvp.GetLeft())
+				if (viewport.GetLeft() < clearvp.GetLeft())
 					clearvp.SetLeft(viewport.GetLeft());
-				if(viewport.GetBottom() < clearvp.GetBottom())
+				if (viewport.GetBottom() < clearvp.GetBottom())
 					clearvp.SetBottom(viewport.GetBottom());
-				if(viewport.GetRight() > clearvp.GetRight())
+				if (viewport.GetRight() > clearvp.GetRight())
 					clearvp.SetRight(viewport.GetRight());
-				if(viewport.GetTop() > clearvp.GetTop())
+				if (viewport.GetTop() > clearvp.GetTop())
 					clearvp.SetTop(viewport.GetTop());
 
 			}
 		}
 	}
 
-	if(doclear) {
+	if (doclear) {
 		KX_Scene* firstscene = *m_scenes.begin();
 		SetBackGround(firstscene->GetWorldInfo());
 
@@ -694,7 +694,7 @@ else
 				scene->setSuspendedTime(0.0);
 			} // suspended
 			else
-				if(scene->getSuspendedTime()==0.0)
+				if (scene->getSuspendedTime()==0.0)
 					scene->setSuspendedTime(m_clockTime);
 			
 			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
@@ -768,7 +768,7 @@ else
 				scene->setSuspendedTime(0.0);
 			} // suspended
 			else
-				if(scene->getSuspendedTime()==0.0)
+				if (scene->getSuspendedTime()==0.0)
 					scene->setSuspendedTime(m_clockTime);
 
 			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
@@ -806,7 +806,7 @@ else
 
 void KX_KetsjiEngine::Render()
 {
-	if(m_usedome){
+	if (m_usedome){
 		RenderDome();
 		return;
 	}
@@ -872,7 +872,7 @@ void KX_KetsjiEngine::Render()
 		RenderShadowBuffers(scene);
 
 		// Avoid drawing the scene with the active camera twice when it's viewport is enabled
-		if(cam && !cam->GetViewport())
+		if (cam && !cam->GetViewport())
 		{
 			if (scene->IsClearingZBuffer())
 				m_rasterizer->ClearDepthBuffer();
@@ -889,7 +889,7 @@ void KX_KetsjiEngine::Render()
 		list<KX_Camera*>::iterator it = cameras->begin();
 		while(it != cameras->end())
 		{
-			if((*it)->GetViewport())
+			if ((*it)->GetViewport())
 			{
 				if (scene->IsClearingZBuffer())
 					m_rasterizer->ClearDepthBuffer();
@@ -906,7 +906,7 @@ void KX_KetsjiEngine::Render()
 	}
 
 	// only one place that checks for stereo
-	if(m_rasterizer->Stereo())
+	if (m_rasterizer->Stereo())
 	{
 		m_rasterizer->SetEye(RAS_IRasterizer::RAS_STEREO_RIGHTEYE);
 
@@ -939,7 +939,7 @@ void KX_KetsjiEngine::Render()
 			list<KX_Camera*>::iterator it = cameras->begin();
 			while(it != cameras->end())
 			{
-				if((*it)->GetViewport())
+				if ((*it)->GetViewport())
 				{
 					if (scene->IsClearingZBuffer())
 						m_rasterizer->ClearDepthBuffer();
@@ -954,7 +954,7 @@ void KX_KetsjiEngine::Render()
 			}
 			PostRenderScene(scene);
 		}
-	} // if(m_rasterizer->Stereo())
+	} // if (m_rasterizer->Stereo())
 
 	EndFrame();
 }
@@ -985,7 +985,7 @@ int KX_KetsjiEngine::GetExitCode()
 	}
 	
 	// check if the window has been closed.
-	if(!m_exitcode)
+	if (!m_exitcode)
 	{
 		//if(!m_canvas->Check()) {
 		//	m_exitcode = KX_EXIT_REQUEST_OUTSIDE;
@@ -1119,7 +1119,7 @@ void KX_KetsjiEngine::GetSceneViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect
 
 		// Don't do bars on user specified viewport
 		RAS_FrameSettings settings = scene->GetFramingType();
-		if(settings.FrameType() == RAS_FrameSettings::e_frame_bars)
+		if (settings.FrameType() == RAS_FrameSettings::e_frame_bars)
 			settings.SetFrameType(RAS_FrameSettings::e_frame_extend);
 
 		RAS_FramingManager::ComputeViewport(
@@ -1155,14 +1155,14 @@ void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 
 	m_rendertools->SetAuxilaryClientInfo(scene);
 
-	for(i=0; i<lightlist->GetCount(); i++) {
+	for (i=0; i<lightlist->GetCount(); i++) {
 		KX_GameObject *gameobj = (KX_GameObject*)lightlist->GetValue(i);
 
 		KX_LightObject *light = (KX_LightObject*)gameobj;
 
 		light->Update();
 
-		if(m_drawingmode == RAS_IRasterizer::KX_TEXTURED && light->HasShadowBuffer()) {
+		if (m_drawingmode == RAS_IRasterizer::KX_TEXTURED && light->HasShadowBuffer()) {
 			/* make temporary camera */
 			RAS_CameraData camdata = RAS_CameraData();
 			KX_Camera *cam = new KX_Camera(scene, scene->m_callbacks, camdata, true, true);
@@ -1238,7 +1238,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 		focallength = cam->GetFocalLength();
 		MT_Matrix4x4 projmat;
 
-		if(override_camera) {
+		if (override_camera) {
 			nearfrust = m_overrideCamNear;
 			farfrust = m_overrideCamFar;
 		}

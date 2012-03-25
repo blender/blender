@@ -94,8 +94,8 @@ void imb_filetypes_init(void)
 {
 	ImFileType *type;
 
-	for(type=IMB_FILE_TYPES; type->is_a; type++)
-		if(type->init)
+	for (type=IMB_FILE_TYPES; type->is_a; type++)
+		if (type->init)
 			type->init();
 }
 
@@ -103,8 +103,8 @@ void imb_filetypes_exit(void)
 {
 	ImFileType *type;
 
-	for(type=IMB_FILE_TYPES; type->is_a; type++)
-		if(type->exit)
+	for (type=IMB_FILE_TYPES; type->is_a; type++)
+		if (type->exit)
 			type->exit();
 }
 

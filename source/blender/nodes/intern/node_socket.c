@@ -485,13 +485,13 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 {
 	bNodeSocket *sock;
 	
-	for(sock= socklist->first; sock; sock= sock->next) {
-		if(!(sock->flag & SOCK_DYNAMIC) && strncmp(sock->name, stemp->name, NODE_MAXSTR)==0)
+	for (sock= socklist->first; sock; sock= sock->next) {
+		if (!(sock->flag & SOCK_DYNAMIC) && strncmp(sock->name, stemp->name, NODE_MAXSTR)==0)
 			break;
 	}
-	if(sock) {
+	if (sock) {
 		sock->type= stemp->type;		/* in future, read this from tydefs! */
-		if(stemp->limit==0) sock->limit= 0xFFF;
+		if (stemp->limit==0) sock->limit= 0xFFF;
 		else sock->limit= stemp->limit;
 		sock->flag |= stemp->flag;
 		
@@ -550,7 +550,7 @@ static void verify_socket_template_list(bNodeTree *ntree, bNode *node, int in_ou
 	bNodeSocketTemplate *stemp;
 	
 	/* no inputs anymore? */
-	if(stemp_first==NULL) {
+	if (stemp_first==NULL) {
 		for (sock = (bNodeSocket*)socklist->first; sock; sock=nextsock) {
 			nextsock = sock->next;
 			if (!(sock->flag & SOCK_DYNAMIC))
@@ -560,7 +560,7 @@ static void verify_socket_template_list(bNodeTree *ntree, bNode *node, int in_ou
 	else {
 		/* step by step compare */
 		stemp= stemp_first;
-		while(stemp->type != -1) {
+		while (stemp->type != -1) {
 			stemp->sock= verify_socket_template(ntree, node, in_out, socklist, stemp);
 			stemp++;
 		}
@@ -578,14 +578,14 @@ static void verify_socket_template_list(bNodeTree *ntree, bNode *node, int in_ou
 			 * so we can add static sockets infront of it.
 			 */
 			sock = socklist->first;
-			while(stemp->type != -1) {
+			while (stemp->type != -1) {
 				/* put static sockets infront of dynamic */
 				BLI_insertlinkbefore(socklist, sock, stemp->sock);
 				stemp++;
 			}
 		}
 		else {
-			while(stemp->type != -1) {
+			while (stemp->type != -1) {
 				BLI_addtail(socklist, stemp->sock);
 				stemp++;
 			}
@@ -600,7 +600,7 @@ void node_verify_socket_templates(bNodeTree *ntree, bNode *node)
 	 * This also prevents group node sockets from being removed, without the need to explicitly
 	 * check the node type here.
 	 */
-	if(ntype && ((ntype->inputs && ntype->inputs[0].type>=0) || (ntype->outputs && ntype->outputs[0].type>=0))) {
+	if (ntype && ((ntype->inputs && ntype->inputs[0].type>=0) || (ntype->outputs && ntype->outputs[0].type>=0))) {
 		verify_socket_template_list(ntree, node, SOCK_IN, &node->inputs, ntype->inputs);
 		verify_socket_template_list(ntree, node, SOCK_OUT, &node->outputs, ntype->outputs);
 	}

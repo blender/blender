@@ -182,7 +182,7 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 		else
 			GPU_set_tpage(NULL, 0, 0);
 		
-		if(m_drawingmode & RAS_IRasterizer::KX_BACKCULL)
+		if (m_drawingmode & RAS_IRasterizer::KX_BACKCULL)
 			rasty->SetCullFace(true);
 		else
 			rasty->SetCullFace(false);

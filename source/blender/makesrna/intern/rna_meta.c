@@ -314,13 +314,14 @@ static void rna_def_metaball(BlenderRNA *brna)
 	/* texture space */
 	prop = RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MB_AUTOSPACE);
-	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjust active object's texture space automatically when transforming object");
+	RNA_def_property_ui_text(prop, "Auto Texture Space",
+	                         "Adjust active object's texture space automatically when transforming object");
 	
 	prop = RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
 	RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
-	RNA_def_property_float_funcs(prop, "rna_Meta_texspace_loc_get", "rna_Meta_texspace_loc_set", NULL);	
+	RNA_def_property_float_funcs(prop, "rna_Meta_texspace_loc_get", "rna_Meta_texspace_loc_set", NULL);
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
 	prop = RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);

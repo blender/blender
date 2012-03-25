@@ -236,7 +236,7 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 	float dphi;
 
 	dphi = saacos((float)deler);
-	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+	if ( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
 
 	/* If the angle is zero, because of lack of precision close to the 1.0 value in acos
 	 * approximate the angle with the opposite side of the normalized triangle
@@ -256,7 +256,7 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 		dy = dy1 - dy2;
 
 		dphi = sqrt(dx*dx + dy*dy);
-		if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+		if ( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
 	}
 
 	if (mi->precision) {
@@ -307,7 +307,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 	/* TODO, holding R-key can cause mem leak, but this causes [#28903]
 	 * disable for now. */
 #if 0
-	if(mi->data) {
+	if (mi->data) {
 		MEM_freeN(mi->data);
 		mi->data= NULL;
 	}

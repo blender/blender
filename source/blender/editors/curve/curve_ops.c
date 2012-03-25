@@ -140,17 +140,17 @@ void ED_operatormacros_curve(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 
-	ot= WM_operatortype_append_macro("CURVE_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("CURVE_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Duplicate curve and move";
 	WM_operatortype_macro_define(ot, "CURVE_OT_duplicate");
-	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
 
-	ot= WM_operatortype_append_macro("CURVE_OT_extrude_move", "Extrude Curve and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("CURVE_OT_extrude_move", "Extrude Curve and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Extrude curve and move result";
 	WM_operatortype_macro_define(ot, "CURVE_OT_extrude");
-	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
 }
@@ -160,8 +160,8 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	
-	keymap= WM_keymap_find(keyconf, "Font", 0, 0);
-	keymap->poll= ED_operator_editfont;
+	keymap = WM_keymap_find(keyconf, "Font", 0, 0);
+	keymap->poll = ED_operator_editfont;
 	
 	/* only set in editmode font, by space_view3d listener */
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", BKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_CHINFO_BOLD);
@@ -214,8 +214,8 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "accent", TRUE); /* accented characters */
 
 	/* only set in editmode curve, by space_view3d listener */
-	keymap= WM_keymap_find(keyconf, "Curve", 0, 0);
-	keymap->poll= ED_operator_editsurfcurve;
+	keymap = WM_keymap_find(keyconf, "Curve", 0, 0);
+	keymap->poll = ED_operator_editsurfcurve;
 
 	WM_keymap_add_menu(keymap, "INFO_MT_edit_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	

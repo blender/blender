@@ -751,7 +751,6 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 			return mirror_bezier_value;
 		default: /* just in case */
 			return mirror_bezier_yaxis;
-			break;
 	}
 }
 

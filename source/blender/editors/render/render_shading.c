@@ -99,7 +99,7 @@ static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
 	object_add_material_slot(ob);
@@ -112,27 +112,27 @@ static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Material Slot";
-	ot->idname= "OBJECT_OT_material_slot_add";
-	ot->description="Add a new material slot";
+	ot->name = "Add Material Slot";
+	ot->idname = "OBJECT_OT_material_slot_add";
+	ot->description = "Add a new material slot";
 	
 	/* api callbacks */
-	ot->exec= material_slot_add_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = material_slot_add_exec;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int material_slot_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= ED_object_context(C);
 
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
 	/* Removing material slots in edit mode screws things up, see bug #21822.*/
-	if(ob == CTX_data_edit_object(C)) {
+	if (ob == CTX_data_edit_object(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Unable to remove material slot in edit mode");
 		return OPERATOR_CANCELLED;
 	}
@@ -148,54 +148,54 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Material Slot";
-	ot->idname= "OBJECT_OT_material_slot_remove";
-	ot->description="Remove the selected material slot";
+	ot->name = "Remove Material Slot";
+	ot->idname = "OBJECT_OT_material_slot_remove";
+	ot->description = "Remove the selected material slot";
 	
 	/* api callbacks */
-	ot->exec= material_slot_remove_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = material_slot_remove_exec;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
-	if(ob && ob->actcol>0) {
-		if(ob->type == OB_MESH) {
+	if (ob && ob->actcol>0) {
+		if (ob->type == OB_MESH) {
 			BMEditMesh *em = BMEdit_FromObject(ob);
 			BMFace *efa;
 			BMIter iter;
 
-			if(em) {
+			if (em) {
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-					if(BM_elem_flag_test(efa, BM_ELEM_SELECT))
+					if (BM_elem_flag_test(efa, BM_ELEM_SELECT))
 						efa->mat_nr= ob->actcol-1;
 				}
 			}
 		}
-		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Nurb *nu;
 			ListBase *nurbs= curve_editnurbs((Curve*)ob->data);
 
-			if(nurbs) {
-				for(nu= nurbs->first; nu; nu= nu->next)
-					if(isNurbsel(nu))
+			if (nurbs) {
+				for (nu= nurbs->first; nu; nu= nu->next)
+					if (isNurbsel(nu))
 						nu->mat_nr= nu->charidx= ob->actcol-1;
 			}
 		}
-		else if(ob->type == OB_FONT) {
+		else if (ob->type == OB_FONT) {
 			EditFont *ef= ((Curve*)ob->data)->editfont;
 			int i, selstart, selend;
 
-			if(ef && BKE_font_getselection(ob, &selstart, &selend)) {
-				for(i=selstart; i<=selend; i++)
+			if (ef && BKE_font_getselection(ob, &selstart, &selend)) {
+				for (i=selstart; i<=selend; i++)
 					ef->textbufinfo[i].mat_nr = ob->actcol;
 			}
 		}
@@ -210,29 +210,29 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Assign Material Slot";
-	ot->idname= "OBJECT_OT_material_slot_assign";
-	ot->description="Assign the material in the selected material slot to the selected vertices";
+	ot->name = "Assign Material Slot";
+	ot->idname = "OBJECT_OT_material_slot_assign";
+	ot->description = "Assign the material in the selected material slot to the selected vertices";
 	
 	/* api callbacks */
-	ot->exec= material_slot_assign_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = material_slot_assign_exec;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int material_slot_de_select(bContext *C, int select)
 {
 	Object *ob = ED_object_context(C);
 
-	if(!ob)
+	if (!ob)
 		return OPERATOR_CANCELLED;
 
-	if(ob->type == OB_MESH) {
+	if (ob->type == OB_MESH) {
 		BMEditMesh *em = BMEdit_FromObject(ob);
 
-		if(em) {
+		if (em) {
 			EDBM_deselect_by_material(em, ob->actcol-1, select);
 		}
 	}
@@ -243,15 +243,15 @@ static int material_slot_de_select(bContext *C, int select)
 		BezTriple *bezt;
 		int a;
 
-		if(nurbs) {
-			for(nu= nurbs->first; nu; nu=nu->next) {
-				if(nu->mat_nr==ob->actcol-1) {
-					if(nu->bezt) {
+		if (nurbs) {
+			for (nu= nurbs->first; nu; nu=nu->next) {
+				if (nu->mat_nr==ob->actcol-1) {
+					if (nu->bezt) {
 						a= nu->pntsu;
 						bezt= nu->bezt;
-						while(a--) {
-							if(bezt->hide==0) {
-								if(select) {
+						while (a--) {
+							if (bezt->hide==0) {
+								if (select) {
 									bezt->f1 |= SELECT;
 									bezt->f2 |= SELECT;
 									bezt->f3 |= SELECT;
@@ -265,12 +265,12 @@ static int material_slot_de_select(bContext *C, int select)
 							bezt++;
 						}
 					}
-					else if(nu->bp) {
+					else if (nu->bp) {
 						a= nu->pntsu*nu->pntsv;
 						bp= nu->bp;
-						while(a--) {
-							if(bp->hide==0) {
-								if(select) bp->f1 |= SELECT;
+						while (a--) {
+							if (bp->hide==0) {
+								if (select) bp->f1 |= SELECT;
 								else bp->f1 &= ~SELECT;
 							}
 							bp++;
@@ -294,15 +294,15 @@ static int material_slot_select_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Material Slot";
-	ot->idname= "OBJECT_OT_material_slot_select";
-	ot->description="Select vertices assigned to the selected material slot";
+	ot->name = "Select Material Slot";
+	ot->idname = "OBJECT_OT_material_slot_select";
+	ot->description = "Select vertices assigned to the selected material slot";
 	
 	/* api callbacks */
-	ot->exec= material_slot_select_exec;
+	ot->exec = material_slot_select_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int material_slot_deselect_exec(bContext *C, wmOperator *UNUSED(op))
@@ -313,15 +313,15 @@ static int material_slot_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Deselect Material Slot";
-	ot->idname= "OBJECT_OT_material_slot_deselect";
-	ot->description="Deselect vertices assigned to the selected material slot";
+	ot->name = "Deselect Material Slot";
+	ot->idname = "OBJECT_OT_material_slot_deselect";
+	ot->description = "Deselect vertices assigned to the selected material slot";
 	
 	/* api callbacks */
-	ot->exec= material_slot_deselect_exec;
+	ot->exec = material_slot_deselect_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -330,15 +330,15 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_context(C);
 	Material ***matar;
 
-	if(!ob || !(matar= give_matarar(ob)))
+	if (!ob || !(matar= give_matarar(ob)))
 		return OPERATOR_CANCELLED;
 
 	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
-		if(ob != ob_iter && give_matarar(ob_iter)) {
+		if (ob != ob_iter && give_matarar(ob_iter)) {
 			if (ob->data != ob_iter->data)
 				assign_matarar(ob_iter, matar, ob->totcol);
 			
-			if(ob_iter->totcol==ob->totcol) {
+			if (ob_iter->totcol==ob->totcol) {
 				ob_iter->actcol= ob->actcol;
 				WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob_iter);
 			}
@@ -353,15 +353,15 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Material to Others";
-	ot->idname= "OBJECT_OT_material_slot_copy";
-	ot->description="Copies materials to other selected objects";
+	ot->name = "Copy Material to Others";
+	ot->idname = "OBJECT_OT_material_slot_copy";
+	ot->description = "Copies materials to other selected objects";
 
 	/* api callbacks */
-	ot->exec= material_slot_copy_exec;
+	ot->exec = material_slot_copy_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** new material operator *********************/
@@ -374,13 +374,13 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy material */
-	if(ma) {
+	if (ma) {
 		ma= copy_material(ma);
 	}
 	else {
 		ma= add_material("Material");
 
-		if(scene_use_new_shading_nodes(scene)) {
+		if (scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(scene, &ma->id);
 			ma->use_nodes= 1;
 		}
@@ -389,7 +389,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
 
-	if(prop) {
+	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
 		ma->id.us--;
@@ -407,15 +407,15 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 void MATERIAL_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New Material";
-	ot->idname= "MATERIAL_OT_new";
-	ot->description="Add a new material";
+	ot->name = "New Material";
+	ot->idname = "MATERIAL_OT_new";
+	ot->description = "Add a new material";
 	
 	/* api callbacks */
-	ot->exec= new_material_exec;
+	ot->exec = new_material_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** new texture operator *********************/
@@ -427,7 +427,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy texture */
-	if(tex)
+	if (tex)
 		tex= copy_texture(tex);
 	else
 		tex= add_texture("Texture");
@@ -435,7 +435,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
 
-	if(prop) {
+	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
 		tex->id.us--;
@@ -453,15 +453,15 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXTURE_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New Texture";
-	ot->idname= "TEXTURE_OT_new";
-	ot->description="Add a new texture";
+	ot->name = "New Texture";
+	ot->idname = "TEXTURE_OT_new";
+	ot->description = "Add a new texture";
 	
 	/* api callbacks */
-	ot->exec= new_texture_exec;
+	ot->exec = new_texture_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** new world operator *********************/
@@ -474,13 +474,13 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy world */
-	if(wo) {
+	if (wo) {
 		wo= copy_world(wo);
 	}
 	else {
 		wo= add_world("World");
 
-		if(scene_use_new_shading_nodes(scene)) {
+		if (scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(scene, &wo->id);
 			wo->use_nodes= 1;
 		}
@@ -489,7 +489,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
 
-	if(prop) {
+	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
 		wo->id.us--;
@@ -507,15 +507,15 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 void WORLD_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New World";
-	ot->idname= "WORLD_OT_new";
-	ot->description= "Add a new world";
+	ot->name = "New World";
+	ot->idname = "WORLD_OT_new";
+	ot->description = "Add a new world";
 	
 	/* api callbacks */
-	ot->exec= new_world_exec;
+	ot->exec = new_world_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** render layer operators *********************/
@@ -535,15 +535,15 @@ static int render_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 void SCENE_OT_render_layer_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Render Layer";
-	ot->idname= "SCENE_OT_render_layer_add";
-	ot->description="Add a render layer";
+	ot->name = "Add Render Layer";
+	ot->idname = "SCENE_OT_render_layer_add";
+	ot->description = "Add a render layer";
 	
 	/* api callbacks */
-	ot->exec= render_layer_add_exec;
+	ot->exec = render_layer_add_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
@@ -551,7 +551,7 @@ static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *rl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 
-	if(!scene_remove_render_layer(CTX_data_main(C), scene, rl))
+	if (!scene_remove_render_layer(CTX_data_main(C), scene, rl))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
@@ -562,15 +562,15 @@ static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Render Layer";
-	ot->idname= "SCENE_OT_render_layer_remove";
-	ot->description="Remove the selected render layer";
+	ot->name = "Remove Render Layer";
+	ot->idname = "SCENE_OT_render_layer_remove";
+	ot->description = "Remove the selected render layer";
 	
 	/* api callbacks */
-	ot->exec= render_layer_remove_exec;
+	ot->exec = render_layer_remove_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int freestyle_module_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1137,7 +1137,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 {
 	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
 
-	if(id) {
+	if (id) {
 		MTex **mtex_ar, *mtexswap;
 		short act;
 		int type= RNA_enum_get(op->ptr, "type");
@@ -1145,8 +1145,8 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 
 		give_active_mtex(id, &mtex_ar, &act);
 
-		if(type == -1) { /* Up */
-			if(act > 0) {
+		if (type == -1) { /* Up */
+			if (act > 0) {
 				mtexswap = mtex_ar[act];
 				mtex_ar[act] = mtex_ar[act-1];
 				mtex_ar[act-1] = mtexswap;
@@ -1155,7 +1155,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act, act-1, 0);
 				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, -1, act, 0);
 
-				if(GS(id->name)==ID_MA) {
+				if (GS(id->name)==ID_MA) {
 					Material *ma= (Material *)id;
 					int mtexuse = ma->septex & (1<<act);
 					ma->septex &= ~(1<<act);
@@ -1168,7 +1168,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 			}
 		}
 		else { /* Down */
-			if(act < MAX_MTEX-1) {
+			if (act < MAX_MTEX-1) {
 				mtexswap = mtex_ar[act];
 				mtex_ar[act] = mtex_ar[act+1];
 				mtex_ar[act+1] = mtexswap;
@@ -1177,7 +1177,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act, act+1, 0);
 				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, -1, act, 0);
 
-				if(GS(id->name)==ID_MA) {
+				if (GS(id->name)==ID_MA) {
 					Material *ma= (Material *)id;
 					int mtexuse = ma->septex & (1<<act);
 					ma->septex &= ~(1<<act);
@@ -1206,15 +1206,15 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Move Texture Slot";
-	ot->idname= "TEXTURE_OT_slot_move";
-	ot->description="Move texture slots up and down";
+	ot->name = "Move Texture Slot";
+	ot->idname = "TEXTURE_OT_slot_move";
+	ot->description = "Move texture slots up and down";
 
 	/* api callbacks */
-	ot->exec= texture_slot_move;
+	ot->exec = texture_slot_move;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }
@@ -1250,7 +1250,7 @@ static int envmap_save_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "filepath", path);
 	
-	if(scene->r.scemode & R_EXTENSION) {
+	if (scene->r.scemode & R_EXTENSION) {
 		BKE_add_image_extension(path, imtype);
 	}
 	
@@ -1269,7 +1269,7 @@ static int envmap_save_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event
 {
 	//Scene *scene= CTX_data_scene(C);
 	
-	if(RNA_struct_property_is_set(op->ptr, "filepath"))
+	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return envmap_save_exec(C, op);
 
 	//RNA_enum_set(op->ptr, "file_type", scene->r.im_format.imtype);
@@ -1297,17 +1297,17 @@ void TEXTURE_OT_envmap_save(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	/* identifiers */
-	ot->name= "Save Environment Map";
-	ot->idname= "TEXTURE_OT_envmap_save";
-	ot->description="Save the current generated Environment map to an image file";
+	ot->name = "Save Environment Map";
+	ot->idname = "TEXTURE_OT_envmap_save";
+	ot->description = "Save the current generated Environment map to an image file";
 	
 	/* api callbacks */
-	ot->exec= envmap_save_exec;
-	ot->invoke= envmap_save_invoke;
-	ot->poll= envmap_save_poll;
+	ot->exec = envmap_save_exec;
+	ot->invoke = envmap_save_invoke;
+	ot->poll = envmap_save_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER; /* no undo since this doesnt modify the env-map */
+	ot->flag = OPTYPE_REGISTER; /* no undo since this doesnt modify the env-map */
 	
 	/* properties */
 	prop= RNA_def_float_array(ot->srna, "layout", 12, default_envmap_layout, 0.0f, 0.0f, "File layout", "Flat array describing the X,Y position of each cube face in the output image, where 1 is the size of a face - order is [+Z -Z +Y -X -Y +X] (use -1 to skip a face)", 0.0f, 0.0f);
@@ -1344,16 +1344,16 @@ static int envmap_clear_poll(bContext *C)
 void TEXTURE_OT_envmap_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Environment Map";
-	ot->idname= "TEXTURE_OT_envmap_clear";
-	ot->description="Discard the environment map and free it from memory";
+	ot->name = "Clear Environment Map";
+	ot->idname = "TEXTURE_OT_envmap_clear";
+	ot->description = "Discard the environment map and free it from memory";
 	
 	/* api callbacks */
-	ot->exec= envmap_clear_exec;
-	ot->poll= envmap_clear_poll;
+	ot->exec = envmap_clear_exec;
+	ot->poll = envmap_clear_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int envmap_clear_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1373,16 +1373,16 @@ static int envmap_clear_all_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXTURE_OT_envmap_clear_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear All Environment Maps";
-	ot->idname= "TEXTURE_OT_envmap_clear_all";
-	ot->description="Discard all environment maps in the .blend file and free them from memory";
+	ot->name = "Clear All Environment Maps";
+	ot->idname = "TEXTURE_OT_envmap_clear_all";
+	ot->description = "Discard all environment maps in the .blend file and free them from memory";
 	
 	/* api callbacks */
-	ot->exec= envmap_clear_all_exec;
-	ot->poll= envmap_clear_poll;
+	ot->exec = envmap_clear_all_exec;
+	ot->poll = envmap_clear_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** material operators *********************/
@@ -1392,7 +1392,7 @@ static int copy_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 
-	if(ma==NULL)
+	if (ma==NULL)
 		return OPERATOR_CANCELLED;
 
 	copy_matcopybuf(ma);
@@ -1403,22 +1403,22 @@ static int copy_material_exec(bContext *C, wmOperator *UNUSED(op))
 void MATERIAL_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Material";
-	ot->idname= "MATERIAL_OT_copy";
-	ot->description="Copy the material settings and nodes";
+	ot->name = "Copy Material";
+	ot->idname = "MATERIAL_OT_copy";
+	ot->description = "Copy the material settings and nodes";
 
 	/* api callbacks */
-	ot->exec= copy_material_exec;
+	ot->exec = copy_material_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER; /* no undo needed since no changes are made to the material */
+	ot->flag = OPTYPE_REGISTER; /* no undo needed since no changes are made to the material */
 }
 
 static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 
-	if(ma==NULL)
+	if (ma==NULL)
 		return OPERATOR_CANCELLED;
 
 	paste_matcopybuf(ma);
@@ -1431,15 +1431,15 @@ static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
 void MATERIAL_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste Material";
-	ot->idname= "MATERIAL_OT_paste";
-	ot->description="Paste the material settings and nodes";
+	ot->name = "Paste Material";
+	ot->idname = "MATERIAL_OT_paste";
+	ot->description = "Paste the material settings and nodes";
 
 	/* api callbacks */
-	ot->exec= paste_material_exec;
+	ot->exec = paste_material_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -1472,7 +1472,7 @@ static void copy_mtex_copybuf(ID *id)
 			break;
 	}
 	
-	if(mtex && *mtex) {
+	if (mtex && *mtex) {
 		memcpy(&mtexcopybuf, *mtex, sizeof(MTex));
 		mtexcopied= 1;
 	}
@@ -1485,7 +1485,7 @@ static void paste_mtex_copybuf(ID *id)
 {
 	MTex **mtex= NULL;
 	
-	if(mtexcopied == 0 || mtexcopybuf.tex==NULL)
+	if (mtexcopied == 0 || mtexcopybuf.tex==NULL)
 		return;
 	
 	switch(GS(id->name)) {
@@ -1508,11 +1508,11 @@ static void paste_mtex_copybuf(ID *id)
 			return;
 	}
 	
-	if(mtex) {
-		if(*mtex==NULL) {
+	if (mtex) {
+		if (*mtex==NULL) {
 			*mtex= MEM_mallocN(sizeof(MTex), "mtex copy");
 		}
-		else if((*mtex)->tex) {
+		else if ((*mtex)->tex) {
 			(*mtex)->tex->id.us--;
 		}
 		
@@ -1527,7 +1527,7 @@ static int copy_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
 
-	if(id==NULL) {
+	if (id==NULL) {
 		/* copying empty slot */
 		ED_render_clear_mtex_copybuf();
 		return OPERATOR_CANCELLED;
@@ -1548,23 +1548,23 @@ static int copy_mtex_poll(bContext *C)
 void TEXTURE_OT_slot_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Texture Slot Settings";
-	ot->idname= "TEXTURE_OT_slot_copy";
-	ot->description="Copy the material texture settings and nodes";
+	ot->name = "Copy Texture Slot Settings";
+	ot->idname = "TEXTURE_OT_slot_copy";
+	ot->description = "Copy the material texture settings and nodes";
 
 	/* api callbacks */
-	ot->exec= copy_mtex_exec;
-	ot->poll= copy_mtex_poll;
+	ot->exec = copy_mtex_exec;
+	ot->poll = copy_mtex_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER; /* no undo needed since no changes are made to the mtex */
+	ot->flag = OPTYPE_REGISTER; /* no undo needed since no changes are made to the mtex */
 }
 
 static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
 
-	if(id==NULL) {
+	if (id==NULL) {
 		Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 		Lamp *la= CTX_data_pointer_get_type(C, "lamp", &RNA_Lamp).data;
 		World *wo= CTX_data_pointer_get_type(C, "world", &RNA_World).data;
@@ -1593,14 +1593,14 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXTURE_OT_slot_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste Texture Slot Settings";
-	ot->idname= "TEXTURE_OT_slot_paste";
-	ot->description="Copy the texture settings and nodes";
+	ot->name = "Paste Texture Slot Settings";
+	ot->idname = "TEXTURE_OT_slot_paste";
+	ot->description = "Copy the texture settings and nodes";
 
 	/* api callbacks */
-	ot->exec= paste_mtex_exec;
+	ot->exec = paste_mtex_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 

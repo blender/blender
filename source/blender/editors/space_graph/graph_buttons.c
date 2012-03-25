@@ -108,12 +108,12 @@ static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **
 	
 	/* try to find 'active' F-Curve */
 	elem= get_active_fcurve_channel(&ac);
-	if(elem == NULL) 
+	if (elem == NULL) 
 		return 0;
 	
-	if(fcu)
+	if (fcu)
 		*fcu= (FCurve*)elem->data;
-	if(ale)
+	if (ale)
 		*ale= elem;
 	else
 		MEM_freeN(elem);
@@ -452,7 +452,7 @@ static int graph_panel_drivers_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
 
-	if(sipo->mode != SIPO_MODE_DRIVERS)
+	if (sipo->mode != SIPO_MODE_DRIVERS)
 		return 0;
 
 	return graph_panel_context(C, NULL, NULL);
@@ -614,11 +614,11 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	/* general actions - management */
 	col= uiLayoutColumn(pa->layout, 0);
 	block= uiLayoutGetBlock(col);
-		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Update Dependencies"), 0, 0, 10*UI_UNIT_X, 22,
+		but = uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Update Dependencies"), 0, 0, 10*UI_UNIT_X, 22,
 		              NULL, 0.0, 0.0, 0, 0, TIP_("Force updates of dependencies"));
 		uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
 		
-		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Remove Driver"), 0, 0, 10*UI_UNIT_X, 18,
+		but = uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Remove Driver"), 0, 0, 10*UI_UNIT_X, 18,
 		              NULL, 0.0, 0.0, 0, 0, TIP_("Remove this driver"));
 		uiButSetNFunc(but, driver_remove_cb, MEM_dupallocN(ale), NULL);
 		
@@ -662,7 +662,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	/* add driver variables */
 	col= uiLayoutColumn(pa->layout, 0);
 	block= uiLayoutGetBlock(col);
-		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Add Variable"), 0, 0, 10*UI_UNIT_X, UI_UNIT_Y,
+		but = uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Add Variable"), 0, 0, 10*UI_UNIT_X, UI_UNIT_Y,
 		              NULL, 0.0, 0.0, 0, 0, TIP_("Add a new target variable for this Driver"));
 		uiButSetFunc(but, driver_add_var_cb, driver, NULL);
 	
@@ -686,7 +686,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 				
 				/* remove button */
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-					but= uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y,
+					but = uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y,
 					                  NULL, 0.0, 0.0, 0.0, 0.0, IFACE_("Delete target variable"));
 					uiButSetFunc(but, driver_delete_var_cb, driver, dvar);
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -831,7 +831,7 @@ static int graph_properties(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= graph_has_buttons_region(sa);
 	
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
@@ -839,13 +839,13 @@ static int graph_properties(bContext *C, wmOperator *UNUSED(op))
 
 void GRAPH_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
-	ot->idname= "GRAPH_OT_properties";
-	ot->description= "Toggle display properties panel";
+	ot->name = "Properties";
+	ot->idname = "GRAPH_OT_properties";
+	ot->description = "Toggle display properties panel";
 	
-	ot->exec= graph_properties;
-	ot->poll= ED_operator_graphedit_active;
+	ot->exec = graph_properties;
+	ot->poll = ED_operator_graphedit_active;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }

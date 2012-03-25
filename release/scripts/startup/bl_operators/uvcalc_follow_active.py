@@ -168,7 +168,7 @@ def extend(obj, operator, EXTEND_MODE):
                 edge_faces[edkey] = [i]
 
     if EXTEND_MODE == 'LENGTH':
-        edge_loops = mesh_utils.edge_loops_from_faces(me, face_sel, [ed.key for ed in me.edges if ed.use_seam])
+        edge_loops = mesh_utils.edge_loops_from_tessfaces(me, face_sel, [ed.key for ed in me.edges if ed.use_seam])
         me_verts = me.vertices
         for loop in edge_loops:
             looplen = [0.0]

@@ -52,6 +52,7 @@
 #include "DNA_text_types.h"
 
 #include "BLI_path_util.h"
+#include "BLI_fileops.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -96,7 +97,7 @@ void bpy_context_update(bContext *C)
 {
 	BPy_SetContext(C);
 	bpy_import_main_set(CTX_data_main(C));
-	BPY_modules_update(C); /* can give really bad results if this isnt here */
+	BPY_modules_update(C); /* can give really bad results if this isn't here */
 }
 
 void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
@@ -238,7 +239,7 @@ void BPY_python_start(int argc, const char **argv)
 	Py_Initialize();
 
 	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
-	/* sigh, why do python guys not have a char** version anymore? :( */
+	/* sigh, why do python guys not have a (char **) version anymore? */
 	{
 		int i;
 		PyObject *py_argv = PyList_New(argc);
@@ -388,7 +389,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 
 	}
 	else {
-		FILE *fp = fopen(fn, "r");
+		FILE *fp = BLI_fopen(fn, "r");
 
 		if (fp) {
 			py_dict = PyC_DefaultNameSpace(fn);
@@ -497,7 +498,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const short ve
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
-		PyDict_Merge(py_dict, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
+		PyDict_Merge(py_dict, PyModule_GetDict(mod), 0); /* 0 - don't overwrite existing values */
 		Py_DECREF(mod);
 	}
 	else { /* highly unlikely but possibly */
@@ -705,7 +706,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 #ifdef WITH_PYTHON_MODULE
 #include "BLI_fileops.h"
-/* TODO, reloading the module isnt functional at the moment. */
+/* TODO, reloading the module isn't functional at the moment. */
 
 static void bpy_module_free(void *mod);
 extern int main_python_enter(int argc, const char **argv);
@@ -782,7 +783,7 @@ PyInit_bpy(void)
 	 *    we may end up having to rename this module so there is no naming conflict here eg:
 	 *    'from blender import bpy'
 	 *
-	 * 3) we dont know the filename at this point, workaround by assigning a dummy value
+	 * 3) we don't know the filename at this point, workaround by assigning a dummy value
 	 *    which calls back when its freed so the real loading can take place.
 	 */
 

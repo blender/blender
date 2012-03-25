@@ -93,8 +93,8 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 	wmKeyMap *keymap;
 	
-	keymap= WM_keymap_find(keyconf, "Particle", 0, 0);
-	keymap->poll= PE_poll;
+	keymap = WM_keymap_find(keyconf, "Particle", 0, 0);
+	keymap->poll = PE_poll;
 	
 	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
@@ -187,7 +187,7 @@ static void operatortypes_dynamicpaint(void)
 
 //static void keymap_pointcache(wmWindowManager *wm)
 //{
-//	wmKeyMap *keymap= WM_keymap_find(wm, "Pointcache", 0, 0);
+//	wmKeyMap *keymap = WM_keymap_find(wm, "Pointcache", 0, 0);
 //	
 //	WM_keymap_add_item(keymap, "PHYSICS_OT_bake_all", AKEY, KM_PRESS, 0, 0);
 //	WM_keymap_add_item(keymap, "PHYSICS_OT_free_all", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);

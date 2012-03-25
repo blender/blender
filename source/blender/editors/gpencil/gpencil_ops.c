@@ -50,7 +50,7 @@
 
 void ED_keymap_gpencil(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Grease Pencil", 0, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil", 0, 0);
 	wmKeyMapItem *kmi;
 	
 	/* Draw */

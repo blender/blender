@@ -90,7 +90,7 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
             #row.column().prop(ob, "delta_rotation_axis_angle", text="Rotation")
             row.column().label(text="Not for Axis-Angle")
         else:
-            row.column().prop(ob, "delta_rotation_euler", text="Rotation")
+            row.column().prop(ob, "delta_rotation_euler", text="Delta Rotation")
 
         row.column().prop(ob, "delta_scale")
 
@@ -211,8 +211,11 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         col = split.column()
         col.prop(ob, "show_name", text="Name")
         col.prop(ob, "show_axis", text="Axis")
-        col.prop(ob, "show_wire", text="Wire")
-        col.prop(ob, "color", text="Object Color")
+        if ob.type in {"MESH", "CURVE", "SURFACE", "META", "FONT"}:
+            # Makes no sense for cameras, armtures, etc.!
+            col.prop(ob, "show_wire", text="Wire")
+            # Only useful with object having faces/materials...
+            col.prop(ob, "color", text="Object Color")
 
         col = split.column()
         col.prop(ob, "show_texture_space", text="Texture Space")

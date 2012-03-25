@@ -527,9 +527,9 @@ class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
 
         layout.active = light.use_ambient_occlusion
 
-        split = layout.split()
-        split.prop(light, "ao_factor", text="Factor")
-        split.prop(light, "distance", text="Distance")
+        row = layout.row()
+        row.prop(light, "ao_factor", text="Factor")
+        row.prop(light, "distance", text="Distance")
 
 
 class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
@@ -649,7 +649,6 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
         pin_id = space.pin_id
         use_pin_id = space.use_pin_id
         user = context.texture_user
-        # node = context.texture_node
 
         if not use_pin_id or not isinstance(pin_id, bpy.types.Texture):
             pin_id = None

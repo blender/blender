@@ -527,21 +527,21 @@ static PyObject *Quaternion_richcmpr(PyObject *a, PyObject *b, int op)
 	}
 
 	switch (op) {
-	case Py_NE:
-		ok = !ok; /* pass through */
-	case Py_EQ:
-		res = ok ? Py_False : Py_True;
-		break;
+		case Py_NE:
+			ok = !ok; /* pass through */
+		case Py_EQ:
+			res = ok ? Py_False : Py_True;
+			break;
 
-	case Py_LT:
-	case Py_LE:
-	case Py_GT:
-	case Py_GE:
-		res = Py_NotImplemented;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
+		case Py_LT:
+		case Py_LE:
+		case Py_GT:
+		case Py_GE:
+			res = Py_NotImplemented;
+			break;
+		default:
+			PyErr_BadArgument();
+			return NULL;
 	}
 
 	return Py_INCREF(res), res;
@@ -558,7 +558,7 @@ static int Quaternion_len(QuaternionObject *UNUSED(self))
 //sequence accessor (get)
 static PyObject *Quaternion_item(QuaternionObject *self, int i)
 {
-	if (i < 0)	i = QUAT_SIZE-i;
+	if (i < 0) i = QUAT_SIZE - i;
 
 	if (i < 0 || i >= QUAT_SIZE) {
 		PyErr_SetString(PyExc_IndexError,
@@ -585,7 +585,7 @@ static int Quaternion_ass_item(QuaternionObject *self, int i, PyObject *ob)
 		return -1;
 	}
 
-	if (i < 0)	i = QUAT_SIZE-i;
+	if (i < 0) i = QUAT_SIZE - i;
 
 	if (i < 0 || i >= QUAT_SIZE) {
 		PyErr_SetString(PyExc_IndexError,
@@ -805,12 +805,12 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
 			return NULL;
 	}
 
-	if (quat1 && quat2) { /* QUAT*QUAT (cross product) */
+	if (quat1 && quat2) { /* QUAT * QUAT (cross product) */
 		mul_qt_qtqt(quat, quat1->quat, quat2->quat);
 		return Quaternion_CreatePyObject(quat, Py_NEW, Py_TYPE(q1));
 	}
-	/* the only case this can happen (for a supported type is "FLOAT*QUAT") */
-	else if (quat2) { /* FLOAT*QUAT */
+	/* the only case this can happen (for a supported type is "FLOAT * QUAT") */
+	else if (quat2) { /* FLOAT * QUAT */
 		if (((scalar = PyFloat_AsDouble(q1)) == -1.0f && PyErr_Occurred()) == 0) {
 			return quat_mul_float(quat2, scalar);
 		}
@@ -1101,21 +1101,22 @@ static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObjec
 	}
 }
 
-/* axis vector suffers from precission errors, use this function to ensure */
+/* axis vector suffers from precision errors, use this function to ensure */
 static void quat__axis_angle_sanitize(float axis[3], float *angle)
 {
 	if (axis) {
-		if ( !finite(axis[0]) ||
-		     !finite(axis[1]) ||
-		     !finite(axis[2]))
+		if (is_zero_v3(axis) ||
+		    !finite(axis[0]) ||
+		    !finite(axis[1]) ||
+		    !finite(axis[2]))
 		{
 			axis[0] = 1.0f;
 			axis[1] = 0.0f;
 			axis[2] = 0.0f;
 		}
-		else if ( EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
-		          EXPP_FloatsAreEqual(axis[1], 0.0f, 10) &&
-		          EXPP_FloatsAreEqual(axis[2], 0.0f, 10))
+		else if (EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
+		         EXPP_FloatsAreEqual(axis[1], 0.0f, 10) &&
+		         EXPP_FloatsAreEqual(axis[2], 0.0f, 10))
 		{
 			axis[0] = 1.0f;
 		}
@@ -1268,14 +1269,15 @@ PyObject *Quaternion_CreatePyObject(float *quat, int type, PyTypeObject *base_ty
 	return (PyObject *) self;
 }
 
-PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype)
+PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user,
+                                       unsigned char cb_type, unsigned char cb_subtype)
 {
 	QuaternionObject *self = (QuaternionObject *)Quaternion_CreatePyObject(NULL, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 

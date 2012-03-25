@@ -76,7 +76,7 @@ int RAS_Polygon::GetVertexOffsetAbs(RAS_MeshObject *mesh, int i)
 	 * if support for edges is added back this would need to be changed. */
 	RAS_DisplayArray* darray= mesh->GetPolygon(0)->GetDisplayArray();
 	
-	if(m_darray != darray)
+	if (m_darray != darray)
 		return m_offset[i] + darray->m_vertex.size();
 	
 	return m_offset[i];
@@ -101,7 +101,7 @@ bool RAS_Polygon::IsVisible()
 
 void RAS_Polygon::SetVisible(bool visible)
 {
-	if(visible) m_polyflags |= VISIBLE;
+	if (visible) m_polyflags |= VISIBLE;
 	else m_polyflags &= ~VISIBLE;
 }
 
@@ -112,7 +112,7 @@ bool RAS_Polygon::IsCollider()
 
 void RAS_Polygon::SetCollider(bool visible)
 {
-	if(visible) m_polyflags |= COLLIDER;
+	if (visible) m_polyflags |= COLLIDER;
 	else m_polyflags &= ~COLLIDER;
 }
 
@@ -123,7 +123,7 @@ bool RAS_Polygon::IsTwoside()
 
 void RAS_Polygon::SetTwoside(bool twoside)
 {
-	if(twoside) m_polyflags |= TWOSIDE;
+	if (twoside) m_polyflags |= TWOSIDE;
 	else m_polyflags &= ~TWOSIDE;
 }
 

@@ -455,7 +455,7 @@ void BMO_slot_vec_get(BMOperator *op, const char *slotname, float r_vec[3])
  *
  */
 
-int BMO_mesh_flag_count(BMesh *bm, const short oflag, const char htype)
+int BMO_mesh_flag_count(BMesh *bm, const char htype, const short oflag)
 {
 	BMIter elements;
 	int count = 0;
@@ -596,7 +596,7 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 #endif
 
 void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slotname,
-                          const short oflag, const char htype)
+                          const char htype, const short oflag)
 {
 	GHashIterator it;
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
@@ -679,7 +679,7 @@ static void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot
  * into a slot for an operator.
  */
 void BMO_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-                                const char hflag, const char htype)
+                                const char htype, const char hflag)
 {
 	BMIter elements;
 	BMElem *ele;
@@ -730,11 +730,11 @@ void BMO_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
  * into an output slot for an operator.
  */
 void BMO_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
-                               const short oflag, const char htype)
+                               const char htype, const short oflag)
 {
 	BMIter elements;
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
-	int totelement = BMO_mesh_flag_count(bm, oflag, htype), i = 0;
+	int totelement = BMO_mesh_flag_count(bm, htype, oflag), i = 0;
 
 	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
@@ -785,26 +785,29 @@ void BMO_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const char hflag, const char htype, char do_flush_select)
+                                  const char htype, const char hflag, const char do_flush)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMElem **data =  slot->data.p;
 	int i;
+	const char do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
+	const char do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
 
 	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
-	if (!(hflag & BM_ELEM_SELECT)) {
-		do_flush_select = FALSE;
-	}
-
-	for (i = 0; i < slot->len; i++) {
-		if (!(htype & data[i]->head.htype))
+	for (i = 0; i < slot->len; i++, data++) {
+		if (!(htype & (*data)->head.htype))
 			continue;
 
 		if (do_flush_select) {
-			BM_elem_select_set(bm, data[i], TRUE);
+			BM_elem_select_set(bm, *data, TRUE);
 		}
-		BM_elem_flag_enable(data[i], hflag);
+
+		if (do_flush_hide) {
+			BM_elem_hide_set(bm, *data, FALSE);
+		}
+
+		BM_elem_flag_enable(*data, hflag);
 	}
 }
 
@@ -815,29 +818,32 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotnam
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                   const char hflag, const char htype, char do_flush_select)
+                                   const char htype, const char hflag, const char do_flush)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMElem **data =  slot->data.p;
 	int i;
+	const char do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
+	const char do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
 
 	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
-	if (!(hflag & BM_ELEM_SELECT)) {
-		do_flush_select = FALSE;
-	}
-
-	for (i = 0; i < slot->len; i++) {
-		if (!(htype & data[i]->head.htype))
+	for (i = 0; i < slot->len; i++, data++) {
+		if (!(htype & (*data)->head.htype))
 			continue;
 
 		if (do_flush_select) {
-			BM_elem_select_set(bm, data[i], FALSE);
+			BM_elem_select_set(bm, *data, FALSE);
 		}
 
-		BM_elem_flag_disable(data[i], hflag);
+		if (do_flush_hide) {
+			BM_elem_hide_set(bm, *data, FALSE);
+		}
+
+		BM_elem_flag_disable(*data, hflag);
 	}
 }
+
 int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
 {
 	int count = 0;
@@ -863,7 +869,7 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
  * Flags elements in a slots buffer
  */
 void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                 const short oflag, const char htype)
+                                 const char htype, const short oflag)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -885,7 +891,7 @@ void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname
  * Removes flags from elements in a slots buffer
  */
 void BMO_slot_buffer_flag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const short oflag, const char htype)
+                                  const char htype, const short oflag)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -1239,14 +1245,21 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	BMOpDefine *def;
 	char *opname, *ofmt, *fmt;
 	char slotname[64] = {0};
-	int i /*, n = strlen(fmt) */, stop /*, slotcode = -1 */, ret, type, state;
+	int i /*, n = strlen(fmt) */, stop /*, slotcode = -1 */, type, state;
+	char htype;
 	int noslot = 0;
 
 
 	/* basic useful info to help find where bmop formatting strings fail */
+	const char *err_reason = "Unknown";
 	int lineno = -1;
-#   define GOTO_ERROR { lineno = __LINE__; goto error; }
 
+#define GOTO_ERROR(reason)   \
+	{                        \
+		err_reason = reason; \
+		lineno = __LINE__;   \
+		goto error;          \
+	} (void)0
 
 	/* we muck around in here, so dup i */
 	fmt = ofmt = BLI_strdup(_fmt);
@@ -1287,11 +1300,15 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 			 * a little flexible, allowing "slot=%f",
 			 * "slot %f", "slot%f", and "slot\t%f". */
 			i = strcspn(fmt, "= \t%");
-			if (!fmt[i]) GOTO_ERROR;
+			if (!fmt[i]) {
+				GOTO_ERROR("could not match end of slot name");
+			}
 
 			fmt[i] = 0;
 
-			if (bmo_name_to_slotcode_check(def, fmt) < 0) GOTO_ERROR;
+			if (bmo_name_to_slotcode_check(def, fmt) < 0) {
+				GOTO_ERROR("name to slot code check failed");
+			}
 			
 			BLI_strncpy(slotname, fmt, sizeof(slotname));
 			
@@ -1311,9 +1328,9 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 					c = NEXT_CHAR(fmt);
 					fmt++;
 
-					if (c == '3') size = 3;
+					if      (c == '3') size = 3;
 					else if (c == '4') size = 4;
-					else GOTO_ERROR;
+					else GOTO_ERROR("matrix size was not 3 or 4");
 
 					BMO_slot_mat_set(op, slotname, va_arg(vlist, void *), size);
 					state = 1;
@@ -1364,13 +1381,13 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 						BMO_slot_float_set(op, slotname, va_arg(vlist, double));
 					}
 					else {
-						ret = 0;
+						htype = 0;
 						stop = 0;
 						while (1) {
 							switch (NEXT_CHAR(fmt)) {
-								case 'f': ret |= BM_FACE; break;
-								case 'e': ret |= BM_EDGE; break;
-								case 'v': ret |= BM_VERT; break;
+								case 'f': htype |= BM_FACE; break;
+								case 'e': htype |= BM_EDGE; break;
+								case 'v': htype |= BM_VERT; break;
 								default:
 									stop = 1;
 									break;
@@ -1383,13 +1400,13 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 						}
 
 						if (type == 'h') {
-							BMO_slot_buffer_from_hflag(bm, op, slotname, va_arg(vlist, int), ret);
+							BMO_slot_buffer_from_hflag(bm, op, slotname, htype, va_arg(vlist, int));
 						}
 						else if (type == 'a') {
-							BMO_slot_buffer_from_all(bm, op, slotname, ret);
+							BMO_slot_buffer_from_all(bm, op, slotname, htype);
 						}
 						else {
-							BMO_slot_buffer_from_flag(bm, op, slotname, va_arg(vlist, int), ret);
+							BMO_slot_buffer_from_flag(bm, op, slotname, htype, va_arg(vlist, int));
 						}
 					}
 
@@ -1410,9 +1427,24 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 error:
 
 	/* non urgent todo - explain exactly what is failing */
-	fprintf(stderr,
-	        "%s: error parsing formatting string, %d in '%s'\n    see - %s:%d\n",
-	        __func__, (int)(fmt - ofmt), _fmt, __FILE__, lineno);
+	fprintf(stderr, "%s: error parsing formatting string\n", __func__);
+
+	fprintf(stderr, "string: '%s', position %d\n", _fmt, (int)(fmt - ofmt));
+	fprintf(stderr, "         ");
+	{
+		int pos = (int)(fmt - ofmt);
+		int i;
+		for (i = 0; i < pos; i++) {
+			fprintf(stderr, " ");
+		}
+		fprintf(stderr, "^\n");
+	}
+
+	fprintf(stderr, "source code:  %s:%d\n", __FILE__, lineno);
+
+	fprintf(stderr, "reason: %s\n", err_reason);
+
+
 	MEM_freeN(ofmt);
 
 	BMO_op_finish(bm, op);

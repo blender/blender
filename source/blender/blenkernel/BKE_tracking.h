@@ -67,7 +67,6 @@ void BKE_tracking_free_track(struct MovieTrackingTrack *track);
 
 void BKE_tracking_clear_path(struct MovieTrackingTrack *track, int ref_frame, int action);
 
-int BKE_tracking_test_join_tracks(struct MovieTrackingTrack *dst_track, struct MovieTrackingTrack *src_track);
 void BKE_tracking_join_tracks(struct MovieTrackingTrack *dst_track, struct MovieTrackingTrack *src_track);
 void BKE_tracking_free(struct MovieTracking *tracking);
 

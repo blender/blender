@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -50,7 +50,8 @@ void rna_EditBone_align_roll(EditBone *ebo, float no[3])
 float rna_Bone_do_envelope(Bone *bone, float *vec)
 {
 	float scale = (bone->flag & BONE_MULT_VG_ENV) == BONE_MULT_VG_ENV ? bone->weight : 1.0f;
-	return distfactor_to_bone(vec, bone->arm_head, bone->arm_tail, bone->rad_head * scale, bone->rad_tail * scale, bone->dist * scale);
+	return distfactor_to_bone(vec, bone->arm_head, bone->arm_tail, bone->rad_head * scale,
+	                          bone->rad_tail * scale, bone->dist * scale);
 }
 
 #else

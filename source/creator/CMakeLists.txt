@@ -41,6 +41,10 @@ blender_include_dirs(
 	../blender/windowmanager
 )
 
+if(WIN32)
+	blender_include_dirs(../../intern/utfconv)
+endif()
+
 if(WITH_LIBMV)
 	blender_include_dirs(../../extern/libmv)
 	add_definitions(-DWITH_LIBMV)
@@ -227,7 +231,7 @@ set(BLENDER_TEXT_FILES
 
 
 # -----------------------------------------------------------------------------
-# Platform Spesific Var: TARGETDIR_VER
+# Platform Specific Var: TARGETDIR_VER
 
 if(UNIX AND NOT APPLE)
 	if(WITH_INSTALL_PORTABLE)
@@ -801,8 +805,8 @@ endif()
 		bf_python_bmesh
 		bf_freestyle
 		bf_ikplugin
-		bf_bmesh
 		bf_modifiers
+		bf_bmesh
 		bf_blenkernel
 		bf_nodes
 		bf_gpu
@@ -825,6 +829,7 @@ endif()
 		bf_intern_memutil
 		bf_intern_guardedalloc
 		bf_intern_ctr
+		bf_intern_utfconv
 		ge_blen_routines
 		ge_converter
 		ge_phys_dummy

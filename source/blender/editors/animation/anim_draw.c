@@ -51,9 +51,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-/* XXX */
-extern void ui_rasterpos_safe(float x, float y, float aspect);
-
 /* *************************************************** */
 /* TIME CODE FORMATTING */
 

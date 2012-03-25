@@ -519,7 +519,7 @@ static int nla_properties(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= nla_has_buttons_region(sa);
 	
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
@@ -527,13 +527,13 @@ static int nla_properties(bContext *C, wmOperator *UNUSED(op))
 
 void NLA_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
-	ot->idname= "NLA_OT_properties";
-	ot->description= "Toggle display properties panel";
+	ot->name = "Properties";
+	ot->idname = "NLA_OT_properties";
+	ot->description = "Toggle display properties panel";
 	
-	ot->exec= nla_properties;
-	ot->poll= ED_operator_nla_active;
+	ot->exec = nla_properties;
+	ot->poll = ED_operator_nla_active;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }

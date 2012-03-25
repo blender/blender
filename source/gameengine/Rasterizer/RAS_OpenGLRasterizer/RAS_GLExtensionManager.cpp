@@ -40,29 +40,29 @@ namespace bgl
 	{
 		static bool firsttime = true;
 		
-		if(firsttime) {
+		if (firsttime) {
 			firsttime = false;
 
-			if(debug) {
-				if(GLEW_ATI_pn_triangles)
+			if (debug) {
+				if (GLEW_ATI_pn_triangles)
 					std::cout << "Enabled GL_ATI_pn_triangles" << std::endl;
-				if(GLEW_ARB_texture_env_combine)
+				if (GLEW_ARB_texture_env_combine)
 					std::cout << "Detected GL_ARB_texture_env_combine" << std::endl;
-				if(GLEW_ARB_texture_cube_map)
+				if (GLEW_ARB_texture_cube_map)
 					std::cout << "Detected GL_ARB_texture_cube_map" << std::endl;
-				if(GLEW_ARB_multitexture)
+				if (GLEW_ARB_multitexture)
 					std::cout << "Detected GL_ARB_multitexture" << std::endl;
-				if(GLEW_ARB_shader_objects)
+				if (GLEW_ARB_shader_objects)
 					std::cout << "Detected GL_ARB_shader_objects" << std::endl;
-				if(GLEW_ARB_vertex_shader)
+				if (GLEW_ARB_vertex_shader)
 					std::cout << "Detected GL_ARB_vertex_shader" << std::endl;
-				if(GLEW_ARB_fragment_shader)
+				if (GLEW_ARB_fragment_shader)
 					std::cout << "Detected GL_ARB_fragment_shader" << std::endl;
-				if(GLEW_ARB_vertex_program)
+				if (GLEW_ARB_vertex_program)
 					std::cout << "Detected GL_ARB_vertex_program" << std::endl;
-				if(GLEW_ARB_depth_texture)
+				if (GLEW_ARB_depth_texture)
 					std::cout << "Detected GL_ARB_depth_texture" << std::endl;
-				if(GLEW_EXT_separate_specular_color)
+				if (GLEW_EXT_separate_specular_color)
 					std::cout << "Detected GL_EXT_separate_specular_color" << std::endl;
 			}
 		}

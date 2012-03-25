@@ -83,7 +83,7 @@ bool SCA_PropertyActuator::Update()
 	
 	if (m_type==KX_ACT_PROP_TOGGLE)
 	{
-		/* dont use */
+		/* don't use */
 		CValue* newval;
 		CValue* oldprop = propowner->GetProperty(m_propname);
 		if (oldprop)

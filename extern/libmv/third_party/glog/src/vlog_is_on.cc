@@ -70,8 +70,8 @@ GOOGLE_GLOG_DLL_DECL bool SafeFNMatch_(const char* pattern,
                                        size_t patt_len,
                                        const char* str,
                                        size_t str_len) {
-  int p = 0;
-  int s = 0;
+  size_t p = 0;
+  size_t s = 0;
   while (1) {
     if (p == patt_len  &&  s == str_len) return true;
     if (p == patt_len) return false;
@@ -211,7 +211,7 @@ bool InitVLOG3__(int32** site_flag, int32* site_default,
   const char* base = strrchr(fname, '/');
   base = base ? (base+1) : fname;
   const char* base_end = strchr(base, '.');
-  size_t base_length = base_end ? (base_end - base) : strlen(base);
+  size_t base_length = base_end ? size_t(base_end - base) : strlen(base);
 
   // Trim out trailing "-inl" if any
   if (base_length >= 4 && (memcmp(base+base_length-4, "-inl", 4) == 0)) {

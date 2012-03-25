@@ -108,8 +108,8 @@ Lamp *copy_lamp(Lamp *la)
 	
 	lan= copy_libblock(&la->id);
 
-	for(a=0; a<MAX_MTEX; a++) {
-		if(lan->mtex[a]) {
+	for (a=0; a<MAX_MTEX; a++) {
+		if (lan->mtex[a]) {
 			lan->mtex[a]= MEM_mallocN(sizeof(MTex), "copylamptex");
 			memcpy(lan->mtex[a], la->mtex[a], sizeof(MTex));
 			id_us_plus((ID *)lan->mtex[a]->tex);
@@ -118,10 +118,10 @@ Lamp *copy_lamp(Lamp *la)
 	
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 
-	if(la->nodetree)
+	if (la->nodetree)
 		lan->nodetree= ntreeCopyTree(la->nodetree);
 	
-	if(la->preview)
+	if (la->preview)
 		lan->preview = BKE_previewimg_copy(la->preview);
 	
 	return lan;
@@ -135,8 +135,8 @@ Lamp *localize_lamp(Lamp *la)
 	lan= copy_libblock(&la->id);
 	BLI_remlink(&G.main->lamp, lan);
 
-	for(a=0; a<MAX_MTEX; a++) {
-		if(lan->mtex[a]) {
+	for (a=0; a<MAX_MTEX; a++) {
+		if (lan->mtex[a]) {
 			lan->mtex[a]= MEM_mallocN(sizeof(MTex), "localize_lamp");
 			memcpy(lan->mtex[a], la->mtex[a], sizeof(MTex));
 			/* free lamp decrements */
@@ -146,7 +146,7 @@ Lamp *localize_lamp(Lamp *la)
 	
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 
-	if(la->nodetree)
+	if (la->nodetree)
 		lan->nodetree= ntreeLocalize(la->nodetree);
 	
 	lan->preview= NULL;
@@ -165,25 +165,25 @@ void make_local_lamp(Lamp *la)
 	 * - mixed: make copy
 	 */
 	
-	if(la->id.lib==NULL) return;
-	if(la->id.us==1) {
+	if (la->id.lib==NULL) return;
+	if (la->id.us==1) {
 		id_clear_lib_data(bmain, &la->id);
 		return;
 	}
 	
 	ob= bmain->object.first;
-	while(ob) {
-		if(ob->data==la) {
-			if(ob->id.lib) is_lib= TRUE;
+	while (ob) {
+		if (ob->data==la) {
+			if (ob->id.lib) is_lib= TRUE;
 			else is_local= TRUE;
 		}
 		ob= ob->id.next;
 	}
 	
-	if(is_local && is_lib == FALSE) {
+	if (is_local && is_lib == FALSE) {
 		id_clear_lib_data(bmain, &la->id);
 	}
-	else if(is_local && is_lib) {
+	else if (is_local && is_lib) {
 		Lamp *la_new= copy_lamp(la);
 		la_new->id.us= 0;
 
@@ -191,10 +191,10 @@ void make_local_lamp(Lamp *la)
 		BKE_id_lib_local_paths(bmain, la->id.lib, &la_new->id);
 
 		ob= bmain->object.first;
-		while(ob) {
-			if(ob->data==la) {
+		while (ob) {
+			if (ob->data==la) {
 				
-				if(ob->id.lib==NULL) {
+				if (ob->id.lib==NULL) {
 					ob->data= la_new;
 					la_new->id.us++;
 					la->id.us--;
@@ -210,10 +210,10 @@ void free_lamp(Lamp *la)
 	MTex *mtex;
 	int a;
 
-	for(a=0; a<MAX_MTEX; a++) {
+	for (a=0; a<MAX_MTEX; a++) {
 		mtex= la->mtex[a];
-		if(mtex && mtex->tex) mtex->tex->id.us--;
-		if(mtex) MEM_freeN(mtex);
+		if (mtex && mtex->tex) mtex->tex->id.us--;
+		if (mtex) MEM_freeN(mtex);
 	}
 	
 	BKE_free_animdata((ID *)la);
@@ -221,7 +221,7 @@ void free_lamp(Lamp *la)
 	curvemapping_free(la->curfalloff);
 
 	/* is no lib link block, but lamp extension */
-	if(la->nodetree) {
+	if (la->nodetree) {
 		ntreeFreeTree(la->nodetree);
 		MEM_freeN(la->nodetree);
 	}

@@ -75,14 +75,14 @@ void ED_editors_init(bContext *C)
 	/* toggle on modes for objects that were saved with these enabled. for
 	 * e.g. linked objects we have to ensure that they are actually the
 	 * active object in this scene. */
-	for(ob=bmain->object.first; ob; ob=ob->id.next) {
+	for (ob=bmain->object.first; ob; ob=ob->id.next) {
 		int mode= ob->mode;
 
-		if(mode && (mode != OB_MODE_POSE)) {
+		if (mode && (mode != OB_MODE_POSE)) {
 			ob->mode= 0;
 			data= ob->data;
 
-			if(ob == obact && !ob->id.lib && !(data && data->lib))
+			if (ob == obact && !ob->id.lib && !(data && data->lib))
 				ED_object_toggle_modes(C, mode);
 		}
 	}
@@ -94,27 +94,27 @@ void ED_editors_exit(bContext *C)
 	Main *bmain= CTX_data_main(C);
 	Scene *sce;
 
-	if(!bmain)
+	if (!bmain)
 		return;
 	
 	/* frees all editmode undos */
 	undo_editmode_clear();
 	ED_undo_paint_free();
 	
-	for(sce=bmain->scene.first; sce; sce= sce->id.next) {
-		if(sce->obedit) {
+	for (sce=bmain->scene.first; sce; sce= sce->id.next) {
+		if (sce->obedit) {
 			Object *ob= sce->obedit;
 		
-			if(ob) {
-				if(ob->type==OB_MESH) {
+			if (ob) {
+				if (ob->type==OB_MESH) {
 					Mesh *me= ob->data;
-					if(me->edit_btmesh) {
+					if (me->edit_btmesh) {
 						EDBM_FreeEditBMesh(me->edit_btmesh);
 						MEM_freeN(me->edit_btmesh);
 						me->edit_btmesh= NULL;
 					}
 				}
-				else if(ob->type==OB_ARMATURE) {
+				else if (ob->type==OB_ARMATURE) {
 					ED_armature_edit_free(ob);
 				}
 			}
@@ -135,17 +135,17 @@ void ED_editors_exit(bContext *C)
 void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert)
 {
 	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
-	if(invert)
+	if (invert)
 		ctrl= !ctrl;
 	
-	if(ctrl && shift) {
-		if(fac3 != 0.0f) *val= fac3*floorf(*val/fac3 +0.5f);
+	if (ctrl && shift) {
+		if (fac3 != 0.0f) *val= fac3*floorf(*val/fac3 +0.5f);
 	}
-	else if(ctrl) {
-		if(fac2 != 0.0f) *val= fac2*floorf(*val/fac2 +0.5f);
+	else if (ctrl) {
+		if (fac2 != 0.0f) *val= fac2*floorf(*val/fac2 +0.5f);
 	}
 	else {
-		if(fac1 != 0.0f) *val= fac1*floorf(*val/fac1 +0.5f);
+		if (fac1 != 0.0f) *val= fac1*floorf(*val/fac1 +0.5f);
 	}
 }
 
@@ -176,13 +176,13 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 	RNA_enum_set(&props_ptr, "method", PF_REMOVE);
 	RNA_string_set(&props_ptr, "id", id_name);
 
-	if(G.relbase_valid) {
+	if (G.relbase_valid) {
 		char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
 
 		BLI_strncpy(local_name, abs_name, sizeof(local_name));
 		BLI_splitdirstring(local_name, fi);
 		BLI_snprintf(local_name, sizeof(local_name), "//%s/%s", folder, fi);
-		if(strcmp(abs_name, local_name)!=0) {
+		if (strcmp(abs_name, local_name)!=0) {
 			switch(checkPackedFile(local_name, pf)) {
 				case PF_NOFILE:
 					BLI_snprintf(line, sizeof(line), "Create %s", local_name);

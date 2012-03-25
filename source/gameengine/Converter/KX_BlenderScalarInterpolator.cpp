@@ -49,11 +49,11 @@ float BL_ScalarInterpolator::GetValue(float currentTime) const
 
 BL_InterpolatorList::BL_InterpolatorList(bAction *action)
 {
-	if(action==NULL)
+	if (action==NULL)
 		return;
 	
-	for(FCurve *fcu= (FCurve *)action->curves.first; fcu; fcu= (FCurve *)fcu->next) {
-		if(fcu->rna_path) {
+	for (FCurve *fcu= (FCurve *)action->curves.first; fcu; fcu= (FCurve *)fcu->next) {
+		if (fcu->rna_path) {
 			BL_ScalarInterpolator *new_ipo = new BL_ScalarInterpolator(fcu); 
 			//assert(new_ipo);
 			push_back(new_ipo);
@@ -71,10 +71,10 @@ BL_InterpolatorList::~BL_InterpolatorList()
 
 KX_IScalarInterpolator *BL_InterpolatorList::GetScalarInterpolator(const char *rna_path, int array_index)
 {
-	for(BL_InterpolatorList::iterator i = begin(); (i != end()) ; i++ )
+	for (BL_InterpolatorList::iterator i = begin(); (i != end()) ; i++ )
 	{
 		FCurve *fcu= (static_cast<BL_ScalarInterpolator *>(*i))->GetFCurve();
-		if(array_index==fcu->array_index && strcmp(rna_path, fcu->rna_path)==0)
+		if (array_index==fcu->array_index && strcmp(rna_path, fcu->rna_path)==0)
 			return *i;
 	}
 	return NULL;

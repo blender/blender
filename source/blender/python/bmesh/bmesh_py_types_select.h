@@ -23,12 +23,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/bmesh/bmesh_py_select.h
+/** \file blender/python/bmesh/bmesh_py_types_select.h
  *  \ingroup pybmesh
  */
 
-#ifndef __BMESH_PY_SELECT_H__
-#define __BMESH_PY_SELECT_H__
+#ifndef __BMESH_PY_TYPES_SELECT_H__
+#define __BMESH_PY_TYPES_SELECT_H__
+
+struct BPy_BMesh;
 
 extern PyTypeObject BPy_BMEditSelSeq_Type;
 extern PyTypeObject BPy_BMEditSelIter_Type;
@@ -47,9 +49,10 @@ typedef struct BPy_BMEditSelIter {
 	struct BMEditSelection *ese;
 } BPy_BMEditSelIter;
 
-void BPy_BM_init_select_types(void);
+void BPy_BM_init_types_select(void);
 
 PyObject *BPy_BMEditSel_CreatePyObject(BMesh *bm);
 PyObject *BPy_BMEditSelIter_CreatePyObject(BMesh *bm);
+int       BPy_BMEditSel_Assign(struct BPy_BMesh *self, PyObject *value);
 
 #endif /* __BMESH_PY_SELECT_H__ */

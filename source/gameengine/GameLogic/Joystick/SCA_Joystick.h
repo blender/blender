@@ -134,8 +134,8 @@ class SCA_Joystick
 	
 public:
 
-	static SCA_Joystick *GetInstance( short int joyindex );
-	static void HandleEvents( void );
+	static SCA_Joystick *GetInstance(short int joyindex);
+	static void HandleEvents(void);
 	void ReleaseInstance();
 	
 

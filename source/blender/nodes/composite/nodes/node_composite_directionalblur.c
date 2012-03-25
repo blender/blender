@@ -68,37 +68,37 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 		rot= itsc * spin;
 
 		/* blur the image */
-		for(i= 0; i < iterations; ++i) {
+		for (i= 0; i < iterations; ++i) {
 			const float cs= cosf(rot), ss= sinf(rot);
 			const float isc= 1.f / (1.f + sc);
 			unsigned int x, y;
 			float col[4]= {0,0,0,0};
 
-			for(y= 0; y < img->y; ++y) {
+			for (y= 0; y < img->y; ++y) {
 				const float v= isc * (y - center_y_pix) + ty;
 
-				for(x= 0; x < img->x; ++x) {
+				for (x= 0; x < img->x; ++x) {
 					const float  u= isc * (x - center_x_pix) + tx;
 					unsigned int p= (x + y * img->x) * img->type;
 
 					getpix(tmp, cs * u + ss * v + center_x_pix, cs * v - ss * u + center_y_pix, col);
 
 					/* mix img and transformed tmp */
-					for(j= 0; j < 4; ++j) {
+					for (j= 0; j < 4; ++j) {
 						img->rect[p + j]= 0.5f * (img->rect[p + j] + col[j]);
 					}
 				}
 			}
 
 			/* copy img to tmp */
-			if(i != (iterations - 1)) 
+			if (i != (iterations - 1)) 
 				memcpy(tmp->rect, img->rect, sizeof(float) * img->x * img->y * img->type);
 
 			/* double transformations */
 			tx *= 2.f, ty  *= 2.f;
 			sc *= 2.f, rot *= 2.f;
 
-			if(node->exec & NODE_BREAK) break;
+			if (node->exec & NODE_BREAK) break;
 		}
 
 		free_compbuf(tmp);
@@ -112,7 +112,7 @@ static void node_composit_exec_dblur(void *UNUSED(data), bNode *node, bNodeStack
 	NodeDBlurData *ndbd= node->storage;
 	CompBuf *new, *img= in[0]->data;
 	
-	if((img == NULL) || (out[0]->hasoutput == 0)) return;
+	if ((img == NULL) || (out[0]->hasoutput == 0)) return;
 
 	if (img->type != CB_RGBA)
 		new = typecheck_compbuf(img, CB_RGBA);

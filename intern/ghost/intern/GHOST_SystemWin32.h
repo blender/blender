@@ -200,7 +200,13 @@ public:
 	 * @return Indication whether the event was handled. 
 	 */
 	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,GHOST_IWindow* window, int mouseX, int mouseY, void* data);
-	 
+	
+/**
+ * Confirms quitting he program when there is just one window left open
+ * in the application
+ */
+	virtual int confirmQuit(GHOST_IWindow * window) const;
+
 protected:
 	/**
 	 * Initializes the system.

@@ -32,12 +32,14 @@
 #include "GHOST_SystemSDL.h"
 #include "GHOST_DisplayManagerSDL.h"
 
+#include "GHOST_WindowManager.h"
+
 GHOST_DisplayManagerSDL::GHOST_DisplayManagerSDL(GHOST_SystemSDL *system)
     :
       GHOST_DisplayManager(),
       m_system(system)
 {
-	/* do nothing */
+	memset(&m_mode, 0, sizeof m_mode);
 }
 
 GHOST_TSuccess
@@ -52,20 +54,27 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::getNumDisplaySettings(GHOST_TUns8 displa
                                                               GHOST_TInt32& numSettings) const
 {
 	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
-	int i;
-	SDL_Rect **vidmodes;
 
-	vidmodes = SDL_ListModes(NULL, SDL_HWSURFACE | SDL_OPENGL |
-			SDL_FULLSCREEN | SDL_HWPALETTE);
-	if (!vidmodes) {
-		fprintf(stderr, "Could not get available video modes: %s.\n",
-				SDL_GetError());
-		return GHOST_kFailure;
-	}
-	for (i = 0; vidmodes[i]; i++);
-	numSettings = GHOST_TInt32(i);
+	numSettings = SDL_GetNumDisplayModes(display - 1);
 
 	return GHOST_kSuccess;
+}
+
+static void ghost_mode_from_sdl(GHOST_DisplaySetting& setting, SDL_DisplayMode *mode)
+{
+	setting.xPixels = mode->w;
+	setting.yPixels = mode->h;
+	setting.bpp = SDL_BYTESPERPIXEL(mode->format) * 8;
+	/* Just guess the frequency :( */
+	setting.frequency = mode->refresh_rate ? mode->refresh_rate : 60;
+}
+
+static void ghost_mode_to_sdl(const GHOST_DisplaySetting& setting, SDL_DisplayMode *mode)
+{
+	mode->w = setting.xPixels;
+	mode->h = setting.yPixels;
+	// setting.bpp = SDL_BYTESPERPIXEL(mode->format) * 8; ???
+	mode->refresh_rate = setting.frequency;
 }
 
 GHOST_TSuccess
@@ -75,36 +84,10 @@ GHOST_DisplayManagerSDL::getDisplaySetting(GHOST_TUns8 display,
 {
 	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
 
-	int i;
-	SDL_Rect **vidmodes;
-	/* NULL is passed in here to get the modes for the current bit depth.
-	 * Other bit depths may be possible; in that case, an SDL_PixelFormat struct
-	 * should be passed in. To get a complete profile, all possible bit depths
-	 * would need to be iterated over. - z0r */
-	vidmodes = SDL_ListModes(NULL, SDL_HWSURFACE | SDL_OPENGL |
-			SDL_FULLSCREEN | SDL_HWPALETTE);
-	if (!vidmodes) {
-		fprintf(stderr, "Could not get available video modes: %s.\n",
-				SDL_GetError());
-		return GHOST_kFailure;
-	}
-	for (i = 0; vidmodes[i]; i++);
-	GHOST_ASSERT(index < i, "Requested setting outside of valid range.\n");
+	SDL_DisplayMode mode;
+	SDL_GetDisplayMode(display, index, &mode);
 
-	setting.xPixels = vidmodes[index]->w;
-	setting.yPixels = vidmodes[index]->h;
-
-	SDL_Surface *surf;
-	surf = SDL_GetVideoSurface();
-	if (surf == NULL) {
-		fprintf(stderr, "Getting display setting: %s\n", SDL_GetError());
-		/* Just guess the bit depth */
-		setting.bpp = 32;
-	} else {
-		setting.bpp = surf->format->BitsPerPixel;
-	}
-	/* Just guess the frequency :( */
-	setting.frequency = 60;
+	ghost_mode_from_sdl(setting, &mode);
 
 	return GHOST_kSuccess;
 }
@@ -113,31 +96,18 @@ GHOST_TSuccess
 GHOST_DisplayManagerSDL::getCurrentDisplaySetting(GHOST_TUns8 display,
                                                   GHOST_DisplaySetting& setting) const
 {
-	SDL_Surface *surf;
-	const SDL_VideoInfo *info;
+	SDL_DisplayMode mode;
+	SDL_GetCurrentDisplayMode(display, &mode);
 
-	/* Note: not using SDL_GetDesktopDisplayMode because that does not return
-	 * the current mode. Try to use GetVideoSurface first, as it seems more
-	 * accurate. If that fails, try other methods. - z0r */
-	surf = SDL_GetVideoSurface();
+	ghost_mode_from_sdl(setting, &mode);
 
-	if (surf != NULL) {
-		setting.xPixels = surf->w;
-		setting.yPixels = surf->h;
-		setting.bpp = surf->format->BitsPerPixel;
-		/* Just guess the frequency :( */
-		setting.frequency = 60;
-	} else {
-		/* This may happen if the surface hasn't been created yet, e.g. on
-		 * application startup. */
-		info = SDL_GetVideoInfo();
-		setting.xPixels = info->current_w;
-		setting.yPixels = info->current_h;
-		setting.bpp = info->vfmt->BitsPerPixel;
-		/* Just guess the frequency :( */
-		setting.frequency = 60;
-	}
+	return GHOST_kSuccess;
+}
 
+GHOST_TSuccess
+GHOST_DisplayManagerSDL::getCurrentDisplayModeSDL(SDL_DisplayMode &mode) const
+{
+	mode = m_mode;
 	return GHOST_kSuccess;
 }
 
@@ -145,7 +115,6 @@ GHOST_TSuccess
 GHOST_DisplayManagerSDL:: setCurrentDisplaySetting(GHOST_TUns8 display,
                                                    const GHOST_DisplaySetting& setting)
 {
-
 	/*
 	 * Mode switching code ported from Quake 2 version 3.21 and bzflag version
 	 * 2.4.0:
@@ -154,31 +123,28 @@ GHOST_DisplayManagerSDL:: setCurrentDisplaySetting(GHOST_TUns8 display,
 	 * http://wiki.bzflag.org/BZFlag_Source
 	 * See src/platform/SDLDisplay.cxx:SDLDisplay and createWindow
 	 */
-	SDL_Surface *surf;
+	SDL_DisplayMode mode;
+	const int num_modes = SDL_GetNumDisplayModes(display);
 	int best_fit, best_dist, dist, x, y;
-
-	SDL_Rect **vidmodes = SDL_ListModes(NULL, SDL_HWSURFACE | SDL_OPENGL |
-			SDL_FULLSCREEN | SDL_HWPALETTE);
-	if (!vidmodes) {
-		fprintf(stderr, "Could not get available video modes: %s.\n",
-				SDL_GetError());
-	}
 
 	best_dist = 9999999;
 	best_fit = -1;
 
-	if (vidmodes == (SDL_Rect **) -1) {
+	if (num_modes == 0) {
 		/* Any mode is OK. */
-		x = setting.xPixels;
-		y = setting.yPixels;
-	} else {
-		for (int i = 0; vidmodes[i]; i++) {
-			if (setting.xPixels > vidmodes[i]->w ||
-				setting.yPixels > vidmodes[i]->h)
+		ghost_mode_to_sdl(setting, &mode);
+	}
+	else {
+		for (int i = 0; i < num_modes; i++) {
+
+			SDL_GetDisplayMode(display, i, &mode);
+
+			if (setting.xPixels > mode.w ||
+				setting.yPixels > mode.h)
 				continue;
 
-			x = setting.xPixels - vidmodes[i]->w;
-			y = setting.yPixels - vidmodes[i]->h;
+			x = setting.xPixels - mode.w;
+			y = setting.yPixels - mode.h;
 			dist = (x * x) + (y * y);
 			if (dist < best_dist) {
 				best_dist = dist;
@@ -189,24 +155,30 @@ GHOST_DisplayManagerSDL:: setCurrentDisplaySetting(GHOST_TUns8 display,
 		if (best_fit == -1)
 			return GHOST_kFailure;
 
-		x = vidmodes[best_fit]->w;
-		y = vidmodes[best_fit]->h;
+		SDL_GetDisplayMode(display, best_fit, &mode);
 	}
 
-#  ifdef _DEBUG
-	printf("Switching to video mode %dx%d\n", x, y);
-#  endif
+	m_mode = mode;
 
-	// limit us to the main display
-	static char singleDisplayEnv[] = "SDL_SINGLEDISPLAY=1";
-	putenv(singleDisplayEnv);
+	/* evil, SDL2 needs a window to adjust display modes */
+	GHOST_WindowSDL *win = (GHOST_WindowSDL *)m_system->getWindowManager()->getActiveWindow();
 
-	// change to the mode
-	surf = SDL_SetVideoMode(x, y, setting.bpp, SDL_OPENGL | SDL_FULLSCREEN);
-	if (surf == NULL) {
-		fprintf(stderr, "Could not set video mode: %s.\n", SDL_GetError());
-		return GHOST_kFailure;
+	if (win) {
+		SDL_Window *sdl_win = win->getSDLWindow();
+
+
+		SDL_SetWindowDisplayMode(sdl_win, &mode);
+		SDL_ShowWindow(sdl_win);
+		SDL_SetWindowFullscreen(sdl_win, SDL_TRUE);
+
+		return GHOST_kSuccess;
 	}
+	else {
+		/* this is a problem for the BGE player :S, perhaps SDL2 will resolve at some point.
+		 * we really need SDL_SetDisplayModeForDisplay() to become an API func! - campbell */
+		printf("no windows available, cant fullscreen");
 
-	return GHOST_kSuccess;
+		/* do not fail, we will try again later when the window is created - wander */
+		return GHOST_kSuccess;
+	}
 }

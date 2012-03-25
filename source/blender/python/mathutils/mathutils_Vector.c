@@ -247,7 +247,7 @@ static PyObject *C_Vector_Linspace(PyObject *cls, PyObject *args)
 		return NULL;
 	}
 
-	step = (end - start)/(float)(size-1);
+	step = (end - start) / (float)(size - 1);
 
 	vec = PyMem_Malloc(size * sizeof(float));
 
@@ -734,19 +734,19 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 		}
 		else if (strlen(strack) == 1) {
 			switch (strack[0]) {
-			case '-':
-			case 'X':
-				track = 0;
-				break;
-			case 'Y':
-				track = 1;
-				break;
-			case 'Z':
-				track = 2;
-				break;
-			default:
-				PyErr_SetString(PyExc_ValueError, axis_err_msg);
-				return NULL;
+				case '-':
+				case 'X':
+					track = 0;
+					break;
+				case 'Y':
+					track = 1;
+					break;
+				case 'Z':
+					track = 2;
+					break;
+				default:
+					PyErr_SetString(PyExc_ValueError, axis_err_msg);
+					return NULL;
 			}
 		}
 		else {
@@ -759,18 +759,18 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 		const char *axis_err_msg = "only X, Y or Z for up axis";
 		if (strlen(sup) == 1) {
 			switch (*sup) {
-			case 'X':
-				up = 0;
-				break;
-			case 'Y':
-				up = 1;
-				break;
-			case 'Z':
-				up = 2;
-				break;
-			default:
-				PyErr_SetString(PyExc_ValueError, axis_err_msg);
-				return NULL;
+				case 'X':
+					up = 0;
+					break;
+				case 'Y':
+					up = 1;
+					break;
+				case 'Z':
+					up = 2;
+					break;
+				default:
+					PyErr_SetString(PyExc_ValueError, axis_err_msg);
+					return NULL;
 			}
 		}
 		else {
@@ -920,7 +920,7 @@ PyDoc_STRVAR(Vector_angle_doc,
 "   :return: angle in radians or fallback when given\n"
 "   :rtype: float\n"
 "\n"
-"   .. note:: Zero length vectors raise an :exc:`AttributeError`.\n"
+"   .. note:: Zero length vectors raise an :exc:`ValueError`.\n"
 );
 static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 {
@@ -970,6 +970,62 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 
 	return PyFloat_FromDouble(saacos(dot / (sqrt(dot_self) * sqrt(dot_other))));
 }
+
+PyDoc_STRVAR(Vector_angle_signed_doc,
+".. function:: angle_signed(other, fallback)\n"
+"\n"
+"   Return the signed angle between two 2D vectors (clockwise is positive).\n"
+"\n"
+"   :arg other: another vector to compare the angle with\n"
+"   :type other: :class:`Vector`\n"
+"   :arg fallback: return this value when the angle cant be calculated\n"
+"      (zero length vector)\n"
+"   :type fallback: any\n"
+"   :return: angle in radians or fallback when given\n"
+"   :rtype: float\n"
+"\n"
+"   .. note:: Zero length vectors raise an :exc:`ValueError`.\n"
+);
+static PyObject *Vector_angle_signed(VectorObject *self, PyObject *args)
+{
+	float tvec[2];
+
+	PyObject *value;
+	PyObject *fallback = NULL;
+
+	if (!PyArg_ParseTuple(args, "O|O:angle_signed", &value, &fallback))
+		return NULL;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	if (mathutils_array_parse(tvec, 2, 2, value, "Vector.angle_signed(other), invalid 'other' arg") == -1)
+		return NULL;
+
+	if (self->size != 2) {
+		PyErr_SetString(PyExc_ValueError,
+		                "Vector must be 2D");
+		return NULL;
+	}
+
+	if (is_zero_v2(self->vec) || is_zero_v2(tvec)) {
+		/* avoid exception */
+		if (fallback) {
+			Py_INCREF(fallback);
+			return fallback;
+		}
+		else {
+			PyErr_SetString(PyExc_ValueError,
+			                "Vector.angle_signed(other): "
+			                "zero length vectors have no valid angle");
+			return NULL;
+		}
+	}
+
+
+	return PyFloat_FromDouble(angle_signed_v2v2(self->vec, tvec));
+}
+
 
 PyDoc_STRVAR(Vector_rotation_difference_doc,
 ".. function:: rotation_difference(other)\n"
@@ -1203,10 +1259,10 @@ static int Vector_len(VectorObject *self)
 /* sequence accessor (get): vector[index] */
 static PyObject *vector_item_internal(VectorObject *self, int i, const int is_attr)
 {
-	if (i < 0)	i = self->size-i;
+	if (i < 0) i = self->size - i;
 
 	if (i < 0 || i >= self->size) {
-		if (is_attr)	{
+		if (is_attr) {
 			PyErr_Format(PyExc_AttributeError,
 			             "Vector.%c: unavailable on %dd vector",
 			             *(((char *)"xyzw") + i), self->size);
@@ -1239,7 +1295,7 @@ static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, 
 		return -1;
 	}
 
-	if (i < 0)	i = self->size-i;
+	if (i < 0) i = self->size - i;
 
 	if (i < 0 || i >= self->size) {
 		if (is_attr) {
@@ -2190,9 +2246,9 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
 		size_from = axis_from;
 	}
-	else if ( (PyErr_Clear()), /* run but ignore the result */
-	          (size_from = mathutils_array_parse(vec_assign, 2, 4, value,
-	                                           "mathutils.Vector.**** = swizzle assignment")) == -1)
+	else if ((PyErr_Clear()), /* run but ignore the result */
+	         (size_from = mathutils_array_parse(vec_assign, 2, 4, value,
+	                                            "mathutils.Vector.**** = swizzle assignment")) == -1)
 	{
 		return -1;
 	}
@@ -2595,11 +2651,11 @@ while len(axises) >= 2:
 			if len(axises)>2:
 				for axis_2 in axises:
 					axis_2_pos = axis_pos[axis_2]
-					axis_dict[axis_0 + axis_1 + axis_2] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)))' % (axis_0_pos, axis_1_pos, axis_2_pos)
+					axis_dict[axis_0 + axis_1 + axis_2] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS * 2)))' % (axis_0_pos, axis_1_pos, axis_2_pos)
 					if len(axises)>3:
 						for axis_3 in axises:
 							axis_3_pos = axis_pos[axis_3]
-							axis_dict[axis_0 + axis_1 + axis_2 + axis_3] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  ' % (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos)
+							axis_dict[axis_0 + axis_1 + axis_2 + axis_3] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 2)) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS * 3)))  ' % (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos)
 
 	axises = axises[:-1]
 
@@ -2611,7 +2667,7 @@ unique = set()
 for key, val in items:
 	num = eval(val)
 	set_str = 'Vector_setSwizzle' if (len(set(key)) == len(key)) else 'NULL'
-	print '\t{"%s", %s(getter)Vector_getSwizzle, (setter)%s, NULL, SET_INT_IN_POINTER(%s)}, // %s' % (key, (' '*(4-len(key))), set_str, axis_dict[key], num)
+	print '\t{"%s", %s(getter)Vector_getSwizzle, (setter)%s, NULL, SET_INT_IN_POINTER(%s)}, // %s' % (key, (' '*(4 - len(key))), set_str, axis_dict[key], num)
 	unique.add(num)
 
 if len(unique) != len(items):
@@ -2705,6 +2761,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"cross", (PyCFunction) Vector_cross, METH_O, Vector_cross_doc},
 	{"dot", (PyCFunction) Vector_dot, METH_O, Vector_dot_doc},
 	{"angle", (PyCFunction) Vector_angle, METH_VARARGS, Vector_angle_doc},
+	{"angle_signed", (PyCFunction) Vector_angle_signed, METH_VARARGS, Vector_angle_signed_doc},
 	{"rotation_difference", (PyCFunction) Vector_rotation_difference, METH_O, Vector_rotation_difference_doc},
 	{"project", (PyCFunction) Vector_project, METH_O, Vector_project_doc},
 	{"lerp", (PyCFunction) Vector_lerp, METH_VARARGS, Vector_lerp_doc},
@@ -2856,15 +2913,15 @@ PyObject *Vector_CreatePyObject(float *vec, const int size, const int type, PyTy
 	return (PyObject *) self;
 }
 
-PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int size, int cb_type, int cb_subtype)
+PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int size, unsigned char cb_type, unsigned char cb_subtype)
 {
 	float dummy[4] = {0.0, 0.0, 0.0, 0.0}; /* dummy init vector, callbacks will be used on access */
 	VectorObject *self = (VectorObject *)Vector_CreatePyObject(dummy, size, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 

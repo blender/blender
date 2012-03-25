@@ -65,10 +65,10 @@ static void node_composit_exec_normalize(void *UNUSED(data), bNode *node, bNodeS
 {
 	/* stack order in: valbuf */
 	/* stack order out: valbuf */
-	if(out[0]->hasoutput==0) return;
+	if (out[0]->hasoutput==0) return;
 
 	/* Input has no image buffer? Then pass the value */
-	if(in[0]->data==NULL) {
+	if (in[0]->data==NULL) {
 		copy_v4_v4(out[0]->vec, in[0]->vec);
 	}
 	else {
@@ -93,7 +93,8 @@ static void node_composit_exec_normalize(void *UNUSED(data), bNode *node, bNodeS
 		if ((max-min) != 0.0f) {
 			mult = 1.0f/(max-min);
 			composit3_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, NULL, &min, NULL, &mult, do_normalize, CB_VAL, CB_VAL, CB_VAL);
-		} else {
+		}
+		else {
 			memcpy(stackbuf->rect, cbuf->rect, sizeof(float) * cbuf->x * cbuf->y);
 		}
 

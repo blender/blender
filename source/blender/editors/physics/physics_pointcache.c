@@ -67,7 +67,7 @@ static int ptcache_bake_all_poll(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 
-	if(!scene)
+	if (!scene)
 		return 0;
 	
 	return 1;
@@ -114,7 +114,8 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 		baker.progressbar = (void (*)(void *, int))WM_timecursor;
 		baker.progressend = (void (*)(void *))WM_cursor_restore;
 		baker.progresscontext = win;
-	} else {
+	}
+	else {
 		baker.progressbar = bake_console_progress;
 		baker.progressend = bake_console_progress_end;
 		baker.progresscontext = NULL;
@@ -134,10 +135,10 @@ static int ptcache_free_bake_all_exec(bContext *C, wmOperator *UNUSED(op))
 	PTCacheID *pid;
 	ListBase pidlist;
 
-	for(base=scene->base.first; base; base= base->next) {
+	for (base=scene->base.first; base; base= base->next) {
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
-		for(pid=pidlist.first; pid; pid=pid->next) {
+		for (pid=pidlist.first; pid; pid=pid->next) {
 			pid->cache->flag &= ~PTCACHE_BAKED;
 		}
 		
@@ -154,31 +155,31 @@ static int ptcache_free_bake_all_exec(bContext *C, wmOperator *UNUSED(op))
 void PTCACHE_OT_bake_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bake All Physics";
-	ot->description= "Bake all physics";
-	ot->idname= "PTCACHE_OT_bake_all";
+	ot->name = "Bake All Physics";
+	ot->description = "Bake all physics";
+	ot->idname = "PTCACHE_OT_bake_all";
 	
 	/* api callbacks */
-	ot->exec= ptcache_bake_all_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->exec = ptcache_bake_all_exec;
+	ot->poll = ptcache_bake_all_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "bake", 1, "Bake", "");
 }
 void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Free All Physics Bakes";
-	ot->idname= "PTCACHE_OT_free_bake_all";
+	ot->name = "Free All Physics Bakes";
+	ot->idname = "PTCACHE_OT_free_bake_all";
 	
 	/* api callbacks */
-	ot->exec= ptcache_free_bake_all_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->exec = ptcache_free_bake_all_exec;
+	ot->poll = ptcache_bake_all_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 static int ptcache_bake_exec(bContext *C, wmOperator *op)
 {
@@ -194,8 +195,8 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 
 	BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
 	
-	for(pid=pidlist.first; pid; pid=pid->next) {
-		if(pid->cache == cache)
+	for (pid=pidlist.first; pid; pid=pid->next) {
+		if (pid->cache == cache)
 			break;
 	}
 
@@ -216,7 +217,8 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 		baker.progressbar = (void (*)(void *, int))WM_timecursor;
 		baker.progressend = (void (*)(void *))WM_cursor_restore;
 		baker.progresscontext = win;
-	} else {
+	}
+	else {
 		printf("\n"); /* empty first line before console reports */
 		baker.progressbar = bake_console_progress;
 		baker.progressend = bake_console_progress_end;
@@ -238,8 +240,8 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *UNUSED(op))
 	PointCache *cache= ptr.data;
 	Object *ob= ptr.id.data;
 
-	if(cache->edit) {
-		if(!cache->edit->edited || 1) {// XXX okee("Lose changes done in particle mode?")) {
+	if (cache->edit) {
+		if (!cache->edit->edited || 1) {// XXX okee("Lose changes done in particle mode?")) {
 			PE_free_ptcache_edit(cache->edit);
 			cache->edit = NULL;
 			cache->flag &= ~PTCACHE_BAKED;
@@ -267,46 +269,46 @@ static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *UNUSED(op))
 void PTCACHE_OT_bake(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bake Physics";
-	ot->description= "Bake physics";
-	ot->idname= "PTCACHE_OT_bake";
+	ot->name = "Bake Physics";
+	ot->description = "Bake physics";
+	ot->idname = "PTCACHE_OT_bake";
 	
 	/* api callbacks */
-	ot->exec= ptcache_bake_exec;
-	ot->poll= ptcache_poll;
+	ot->exec = ptcache_bake_exec;
+	ot->poll = ptcache_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
 }
 void PTCACHE_OT_free_bake(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Free Physics Bake";
-	ot->description= "Free physics bake";
-	ot->idname= "PTCACHE_OT_free_bake";
+	ot->name = "Free Physics Bake";
+	ot->description = "Free physics bake";
+	ot->idname = "PTCACHE_OT_free_bake";
 	
 	/* api callbacks */
-	ot->exec= ptcache_free_bake_exec;
-	ot->poll= ptcache_poll;
+	ot->exec = ptcache_free_bake_exec;
+	ot->poll = ptcache_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bake From Cache";
-	ot->description= "Bake from cache";
-	ot->idname= "PTCACHE_OT_bake_from_cache";
+	ot->name = "Bake From Cache";
+	ot->description = "Bake from cache";
+	ot->idname = "PTCACHE_OT_bake_from_cache";
 	
 	/* api callbacks */
-	ot->exec= ptcache_bake_from_cache_exec;
-	ot->poll= ptcache_poll;
+	ot->exec = ptcache_bake_from_cache_exec;
+	ot->poll = ptcache_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int ptcache_add_new_exec(bContext *C, wmOperator *UNUSED(op))
@@ -320,8 +322,8 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
 	
-	for(pid=pidlist.first; pid; pid=pid->next) {
-		if(pid->cache == cache) {
+	for (pid=pidlist.first; pid; pid=pid->next) {
+		if (pid->cache == cache) {
 			PointCache *cache = BKE_ptcache_add(pid->ptcaches);
 			cache->step = pid->default_step;
 			*(pid->cache_ptr) = cache;
@@ -347,9 +349,9 @@ static int ptcache_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
 	
-	for(pid=pidlist.first; pid; pid=pid->next) {
-		if(pid->cache == cache) {
-			if(pid->ptcaches->first == pid->ptcaches->last)
+	for (pid=pidlist.first; pid; pid=pid->next) {
+		if (pid->cache == cache) {
+			if (pid->ptcaches->first == pid->ptcaches->last)
 				continue; /* don't delete last cache */
 
 			BLI_remlink(pid->ptcaches, pid->cache);
@@ -369,29 +371,29 @@ static int ptcache_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void PTCACHE_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add New Cache";
-	ot->description= "Add new cache";
-	ot->idname= "PTCACHE_OT_add";
+	ot->name = "Add New Cache";
+	ot->description = "Add new cache";
+	ot->idname = "PTCACHE_OT_add";
 	
 	/* api callbacks */
-	ot->exec= ptcache_add_new_exec;
-	ot->poll= ptcache_poll; // ptcache_bake_all_poll;
+	ot->exec = ptcache_add_new_exec;
+	ot->poll = ptcache_poll; // ptcache_bake_all_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 void PTCACHE_OT_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Current Cache";
-	ot->description= "Delete current cache";
-	ot->idname= "PTCACHE_OT_remove";
+	ot->name = "Delete Current Cache";
+	ot->description = "Delete current cache";
+	ot->idname = "PTCACHE_OT_remove";
 	
 	/* api callbacks */
-	ot->exec= ptcache_remove_exec;
-	ot->poll= ptcache_poll;
+	ot->exec = ptcache_remove_exec;
+	ot->poll = ptcache_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 

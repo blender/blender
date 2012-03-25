@@ -65,7 +65,7 @@
 // #define DEBUG_MEMCOUNTER
 
 #ifdef DEBUG_MEMCOUNTER
-#define DEBUG_MEMCOUNTER_ERROR_VAL 0 /* set this to the value that isnt being freed */
+#define DEBUG_MEMCOUNTER_ERROR_VAL 0 /* set this to the value that isn't being freed */
 static int _mallocn_count = 0;
 
 /* breakpoint here */

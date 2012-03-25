@@ -79,7 +79,7 @@ void draw_motion_paths_init(View3D *v3d, ARegion *ar)
 }
 
 /* Draw the given motion path for an Object or a Bone 
- * 	- assumes that the viewport has already been initialised properly
+ * 	- assumes that the viewport has already been initialized properly
  *		i.e. draw_motion_paths_init() has been called
  */
 void draw_motion_path_instance(Scene *scene, 
@@ -210,7 +210,7 @@ void draw_motion_path_instance(Scene *scene,
 		UI_ThemeColor(TH_TEXT_HI);
 	}
 	
-	// XXX, this isnt up to date but probably should be kept so.
+	// XXX, this isn't up to date but probably should be kept so.
 	invert_m4_m4(ob->imat, ob->obmat);
 	
 	/* Draw frame numbers at each framestep value */

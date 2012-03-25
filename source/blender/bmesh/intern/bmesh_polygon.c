@@ -75,14 +75,12 @@ static short testedgesidef(const float v1[2], const float v2[2], const float v3[
  * polygon See Graphics Gems for
  * computing newell normal.
  */
-static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
+static void compute_poly_normal(float normal[3], float const (* verts)[3], int nverts)
 {
 	float const *v_prev = verts[nverts - 1];
 	float const *v_curr = verts[0];
 	float n[3] = {0.0f};
 	int i;
-
-	verts[0][0] = 1;
 
 	/* Newell's Method */
 	for (i = 0; i < nverts; v_prev = v_curr, v_curr = verts[++i]) {
@@ -132,14 +130,15 @@ static void bm_face_compute_poly_normal(BMFace *f)
  * Same as #compute_poly_normal and #bm_face_compute_poly_normal
  * but takes an array of vertex locations.
  */
-static void bm_face_compute_poly_normal_vcos(BMFace *f, float (*vertexCos)[3])
+static void bm_face_compute_poly_normal_vertex_cos(BMFace *f, float n[3],
+                                                   float const (*vertexCos)[3])
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter  = l_first;
 	float const *v_prev = vertexCos[BM_elem_index_get(l_first->prev->v)];
 	float const *v_curr = vertexCos[BM_elem_index_get(l_first->v)];
-	float n[3] = {0.0f};
 
+	zero_v3(n);
 
 	/* Newell's Method */
 	do {
@@ -152,8 +151,8 @@ static void bm_face_compute_poly_normal_vcos(BMFace *f, float (*vertexCos)[3])
 		v_curr = vertexCos[BM_elem_index_get(l_iter->v)];
 	} while (l_iter != l_first);
 
-	if (UNLIKELY(normalize_v3_v3(f->no, n) == 0.0f)) {
-		f->no[2] = 1.0f; /* other axis set to 0.0 */
+	if (UNLIKELY(normalize_v3(n) == 0.0f)) {
+		n[2] = 1.0f; /* other axis set to 0.0 */
 	}
 }
 
@@ -164,7 +163,7 @@ static void bm_face_compute_poly_normal_vcos(BMFace *f, float (*vertexCos)[3])
  * area of a polygon in the X/Y
  * plane.
  */
-static int compute_poly_center(float center[3], float *r_area, float (*verts)[3], int nverts)
+static int compute_poly_center(float center[3], float *r_area, float (* const verts)[3], int nverts)
 {
 	int i, j;
 	float atmp = 0.0f, xtmp = 0.0f, ytmp = 0.0f, ai;
@@ -360,25 +359,6 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 }
 
 /**
- * \brief BMESH UPDATE FACE NORMAL
- *
- * Updates the stored normal for the
- * given face. Requires that a buffer
- * of sufficient length to store projected
- * coordinates for all of the face's vertices
- * is passed in as well.
- */
-void BM_face_normal_update(BMesh *bm, BMFace *f)
-{
-	bmesh_face_normal_update(bm, f, f->no);
-}
-/* same as BM_face_normal_update but takes vertex coords */
-void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3], float (*vertexCos)[3])
-{
-	bmesh_face_normal_update_vertex_cos(bm, f, no, vertexCos);
-}
-
-/**
  * updates face and vertex normals incident on an edge
  */
 void BM_edge_normals_update(BMesh *bm, BMEdge *e)
@@ -440,7 +420,17 @@ void BM_vert_normal_update_all(BMesh *bm, BMVert *v)
 	BM_vert_normal_update(bm, v);
 }
 
-void bmesh_face_normal_update(BMesh *UNUSED(bm), BMFace *f, float no[3])
+/**
+ * \brief BMESH UPDATE FACE NORMAL
+ *
+ * Updates the stored normal for the
+ * given face. Requires that a buffer
+ * of sufficient length to store projected
+ * coordinates for all of the face's vertices
+ * is passed in as well.
+ */
+
+void BM_face_normal_update(BMesh *UNUSED(bm), BMFace *f)
 {
 	BMLoop *l;
 
@@ -453,7 +443,7 @@ void bmesh_face_normal_update(BMesh *UNUSED(bm), BMFace *f, float no[3])
 			const float *co3 = (l = l->next)->v->co;
 			const float *co4 = (l->next)->v->co;
 
-			normal_quad_v3(no, co1, co2, co3, co4);
+			normal_quad_v3(f->no, co1, co2, co3, co4);
 			break;
 		}
 		case 3:
@@ -462,12 +452,12 @@ void bmesh_face_normal_update(BMesh *UNUSED(bm), BMFace *f, float no[3])
 			const float *co2 = (l = l->next)->v->co;
 			const float *co3 = (l->next)->v->co;
 
-			normal_tri_v3(no, co1, co2, co3);
+			normal_tri_v3(f->no, co1, co2, co3);
 			break;
 		}
 		case 0:
 		{
-			zero_v3(no);
+			zero_v3(f->no);
 			break;
 		}
 		default:
@@ -478,8 +468,8 @@ void bmesh_face_normal_update(BMesh *UNUSED(bm), BMFace *f, float no[3])
 	}
 }
 /* exact same as 'bmesh_face_normal_update' but accepts vertex coords */
-void bmesh_face_normal_update_vertex_cos(BMesh *bm, BMFace *f, float no[3],
-                                         float (*vertexCos)[3])
+void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
+                                float const (*vertexCos)[3])
 {
 	BMLoop *l;
 
@@ -514,7 +504,7 @@ void bmesh_face_normal_update_vertex_cos(BMesh *bm, BMFace *f, float no[3],
 		}
 		default:
 		{
-			bm_face_compute_poly_normal_vcos(f, vertexCos);
+			bm_face_compute_poly_normal_vertex_cos(f, no, vertexCos);
 			break;
 		}
 	}
@@ -634,7 +624,7 @@ int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 	return crosses % 2 != 0;
 }
 
-static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
+static int goodline(float const (*projectverts)[3], BMFace *f, int v1i,
                     int v2i, int v3i, int UNUSED(nvert))
 {
 	BMLoop *l_iter;
@@ -720,7 +710,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
 			if (BM_edge_exists(v1, v3)) {
 				isear = 0;
 			}
-			else if (!goodline(verts, f, BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3), nvert)) {
+			else if (!goodline((float const (*)[3])verts, f, BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3), nvert)) {
 				isear = 0;
 			}
 
@@ -785,7 +775,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 	///bmesh_face_normal_update(bm, f, f->no, projectverts);
 
-	compute_poly_normal(f->no, projectverts, f->len);
+	compute_poly_normal(f->no, (float const (*)[3])projectverts, f->len);
 	poly_rotate_plane(f->no, projectverts, i);
 
 	nvert = f->len;
@@ -899,7 +889,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		a++;
 	}
 	
-	compute_poly_normal(no, projverts, f->len);
+	compute_poly_normal(no, (float const (*)[3])projverts, f->len);
 	poly_rotate_plane(no, projverts, f->len);
 	poly_rotate_plane(no, edgeverts, len * 2);
 

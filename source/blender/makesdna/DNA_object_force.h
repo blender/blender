@@ -401,7 +401,7 @@ typedef struct SoftBody {
 #define PTCACHE_FRAMES_SKIPPED		256
 #define PTCACHE_EXTERNAL			512
 #define PTCACHE_READ_INFO			1024
-/* dont use the filename of the blendfile the data is linked from (write a local cache) */
+/* don't use the filename of the blendfile the data is linked from (write a local cache) */
 #define PTCACHE_IGNORE_LIBPATH		2048
 /* high resolution cache is saved for smoke for backwards compatibility, so set this flag to know it's a "fake" cache */
 #define PTCACHE_FAKE_SMOKE			(1<<12)

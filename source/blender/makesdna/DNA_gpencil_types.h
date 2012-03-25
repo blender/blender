@@ -132,7 +132,7 @@ typedef struct bGPdata {
 	int flag;				/* settings for this datablock */
 	
 	/* not-saved stroke buffer data (only used during paint-session) 
-	 * 	- buffer must be initialised before use, but freed after 
+	 * 	- buffer must be initialized before use, but freed after 
 	 *	  whole paint operation is over
 	 */
 	short sbuffer_size;			/* number of elements currently in cache */

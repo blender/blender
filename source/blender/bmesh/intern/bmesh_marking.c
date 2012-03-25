@@ -288,9 +288,9 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) bm->totedgesel -= 1;
 		BM_elem_flag_disable(e, BM_ELEM_SELECT);
 
-		if ( bm->selectmode == SCE_SELECT_EDGE ||
-		     bm->selectmode == SCE_SELECT_FACE ||
-		     bm->selectmode == (SCE_SELECT_EDGE | SCE_SELECT_FACE))
+		if (bm->selectmode == SCE_SELECT_EDGE ||
+		    bm->selectmode == SCE_SELECT_FACE ||
+		    bm->selectmode == (SCE_SELECT_EDGE | SCE_SELECT_FACE))
 		{
 
 			BMIter iter;
@@ -312,9 +312,9 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 					}
 				}
 
-                if (deselect) {
-                    BM_vert_select_set(bm, verts[i], FALSE);
-                }
+				if (deselect) {
+					BM_vert_select_set(bm, verts[i], FALSE);
+				}
 			}
 		}
 		else {
@@ -606,10 +606,10 @@ void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese)
 			/* make a fake  plane thats at rightangles to the normal
 			 * we cant make a crossvec from a vec thats the same as the vec
 			 * unlikely but possible, so make sure if the normal is (0, 0, 1)
-			 * that vec isnt the same or in the same direction even. */
-			if (eve->no[0] < 0.5f)		vec[0] = 1.0f;
-			else if (eve->no[1] < 0.5f)	vec[1] = 1.0f;
-			else						vec[2] = 1.0f;
+			 * that vec isn't the same or in the same direction even. */
+			if      (eve->no[0] < 0.5f) vec[0] = 1.0f;
+			else if (eve->no[1] < 0.5f) vec[1] = 1.0f;
+			else                        vec[2] = 1.0f;
 			cross_v3_v3v3(r_plane, eve->no, vec);
 		}
 	}
@@ -638,7 +638,7 @@ void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese)
 		/* make a fake plane thats at rightangles to the normal
 		 * we cant make a crossvec from a vec thats the same as the vec
 		 * unlikely but possible, so make sure if the normal is (0, 0, 1)
-		 * that vec isnt the same or in the same direction even. */
+		 * that vec isn't the same or in the same direction even. */
 		if (efa->len < 3) {
 			/* crappy fallback method */
 			if      (efa->no[0] < 0.5f)	vec[0] = 1.0f;
@@ -701,15 +701,17 @@ int BM_select_history_check(BMesh *bm, const BMElem *ele)
 	return FALSE;
 }
 
-void BM_select_history_remove(BMesh *bm, BMElem *ele)
+int BM_select_history_remove(BMesh *bm, BMElem *ele)
 {
 	BMEditSelection *ese;
 	for (ese = bm->selected.first; ese; ese = ese->next) {
 		if (ese->ele == ele) {
 			BLI_freelinkN(&(bm->selected), ese);
-			break;
+			return TRUE;
 		}
 	}
+
+	return FALSE;
 }
 
 void BM_select_history_clear(BMesh *bm)
@@ -718,14 +720,18 @@ void BM_select_history_clear(BMesh *bm)
 	bm->selected.first = bm->selected.last = NULL;
 }
 
+void BM_select_history_store_notest(BMesh *bm, BMElem *ele)
+{
+	BMEditSelection *ese = (BMEditSelection *) MEM_callocN(sizeof(BMEditSelection), "BMEdit Selection");
+	ese->htype = ((BMHeader *)ele)->htype;
+	ese->ele = ele;
+	BLI_addtail(&(bm->selected), ese);
+}
+
 void BM_select_history_store(BMesh *bm, BMElem *ele)
 {
-	BMEditSelection *ese;
 	if (!BM_select_history_check(bm, ele)) {
-		ese = (BMEditSelection *) MEM_callocN(sizeof(BMEditSelection), "BMEdit Selection");
-		ese->htype = ((BMHeader *)ele)->htype;
-		ese->ele = ele;
-		BLI_addtail(&(bm->selected), ese);
+		BM_select_history_store_notest(bm, ele);
 	}
 }
 
@@ -749,6 +755,9 @@ void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
 	                            BM_FACES_OF_MESH};
+
+	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+
 	BMIter iter;
 	BMElem *ele;
 	int i;
@@ -770,7 +779,7 @@ void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag
 	}
 	else {
 		for (i = 0; i < 3; i++) {
-			if (htype & iter_types[i]) {
+			if (htype & flag_types[i]) {
 				ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 				for ( ; ele; ele = BM_iter_step(&iter)) {
 					if (hflag & BM_ELEM_SELECT) {
@@ -788,6 +797,9 @@ void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag)
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
 	                            BM_FACES_OF_MESH};
+
+	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+
 	BMIter iter;
 	BMElem *ele;
 	int i;
@@ -801,7 +813,7 @@ void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag)
 	 * we could ofcourse check for no hiddent faces and then use quicker method but its not worth it. */
 
 	for (i = 0; i < 3; i++) {
-		if (htype & iter_types[i]) {
+		if (htype & flag_types[i]) {
 			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 			for ( ; ele; ele = BM_iter_step(&iter)) {
 				if (hflag & BM_ELEM_SELECT) {

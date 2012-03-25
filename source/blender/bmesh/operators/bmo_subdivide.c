@@ -75,7 +75,7 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace *
 
 	/* this isn't the best thing in the world.  it doesn't handle cases where there's
 	 * multiple faces yet.  that might require a convexity test to figure out which
-	 * face is "best," and who knows what for non-manifold conditions. */
+	 * face is "best" and who knows what for non-manifold conditions. */
 	for (face = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v1); face; face = BM_iter_step(&iter)) {
 		for (v = BM_iter_new(&iter2, bm, BM_VERTS_OF_FACE, face); v; v = BM_iter_step(&iter2)) {
 			if (v == v2) {
@@ -290,7 +290,7 @@ static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
 		add = 2;
 		for (i = 0; i < numcuts; i++) {
 			connect_smallest_face(bm, verts[i], verts[numcuts + add], &nf);
-			if (i == numcuts/2) {
+			if (i == numcuts / 2) {
 				add -= 1;
 				connect_smallest_face(bm, verts[i], verts[numcuts + add], &nf);
 			}
@@ -487,8 +487,8 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 		BMO_elem_flag_enable(bm, nf, ELE_INNER);
 
 		
-		v1 = lines[(i + 1)*s] = verts[a];
-		v2 = lines[(i + 1)*s + s - 1] = verts[b];
+		v1 = lines[(i + 1) * s] = verts[a];
+		v2 = lines[(i + 1) * s + s - 1] = verts[b];
 		
 		temp = *e;
 		for (a = 0; a < numcuts; a++) {
@@ -657,7 +657,7 @@ static SubDPattern *patterns[] = {
 	NULL,
 };
 
-#define PLEN	(sizeof(patterns) / sizeof(void *))
+#define PLEN  (sizeof(patterns) / sizeof(void *))
 
 typedef struct SubDFaceData {
 	BMVert *start; SubDPattern *pat;
@@ -685,7 +685,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	int beauty, cornertype, singleedge, gridfill;
 	int skey, seed, i, j, matched, a, b, numcuts, totesel;
 	
-	BMO_slot_buffer_flag_enable(bmesh, op, "edges", SUBD_SPLIT, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bmesh, op, "edges", BM_EDGE, SUBD_SPLIT);
 	
 	numcuts = BMO_slot_int_get(op, "numcuts");
 	seed = BMO_slot_int_get(op, "seed");
@@ -740,7 +740,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	}
 
 	/* first go through and tag edge */
-	BMO_slot_buffer_from_flag(bmesh, op, "edges", SUBD_SPLIT, BM_EDGE);
+	BMO_slot_buffer_from_flag(bmesh, op, "edges", BM_EDGE, SUBD_SPLIT);
 
 	params.numcuts = numcuts;
 	params.op = op;
@@ -754,10 +754,10 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	params.off[2] = (float)BLI_drand() * 200.0f;
 	
 	BMO_slot_map_to_flag(bmesh, op, "custompatterns",
-	                     FACE_CUSTOMFILL, BM_FACE);
+	                     BM_FACE, FACE_CUSTOMFILL);
 
 	BMO_slot_map_to_flag(bmesh, op, "edgepercents",
-	                     EDGE_PERCENT, BM_EDGE);
+	                     BM_EDGE, EDGE_PERCENT);
 
 	for (face = BM_iter_new(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
 	     face;
@@ -949,7 +949,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 				a = (a + 1) % vlen;
 			}
 			
-			//BM_face_legal_splits(bmesh, face, splits, BLI_array_count(splits)/2);
+			//BM_face_legal_splits(bmesh, face, splits, BLI_array_count(splits) / 2);
 
 			for (j = 0; j < BLI_array_count(splits) / 2; j++) {
 				if (splits[j * 2]) {
@@ -1005,10 +1005,10 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	BLI_array_free(splits);
 	BLI_array_free(loops);
 
-	BMO_slot_buffer_from_flag(bmesh, op, "outinner", ELE_INNER, BM_ALL);
-	BMO_slot_buffer_from_flag(bmesh, op, "outsplit", ELE_SPLIT, BM_ALL);
+	BMO_slot_buffer_from_flag(bmesh, op, "outinner", BM_ALL, ELE_INNER);
+	BMO_slot_buffer_from_flag(bmesh, op, "outsplit", BM_ALL, ELE_SPLIT);
 	
-	BMO_slot_buffer_from_flag(bmesh, op, "geomout", ELE_INNER|ELE_SPLIT|SUBD_SPLIT, BM_ALL);
+	BMO_slot_buffer_from_flag(bmesh, op, "geomout", BM_ALL, ELE_INNER|ELE_SPLIT|SUBD_SPLIT);
 }
 
 /* editmesh-emulating functio */
@@ -1080,10 +1080,10 @@ void bmo_edgebisect_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e;
-	SubDParams params;
+	SubDParams params = {0};
 	int skey;
 	
-	params.numcuts = BMO_slot_get(op, "numcuts")->data.i;
+	params.numcuts = BMO_slot_int_get(op, "numcuts");
 	params.op = op;
 	
 	BM_data_layer_add(bm, &bm->vdata, CD_SHAPEKEY);
@@ -1096,7 +1096,7 @@ void bmo_edgebisect_exec(BMesh *bm, BMOperator *op)
 		bm_subdivide_multicut(bm, e, &params, e->v1, e->v2);
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "outsplit", ELE_SPLIT, BM_ALL);
+	BMO_slot_buffer_from_flag(bm, op, "outsplit", BM_ALL, ELE_SPLIT);
 
 	BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, skey);
 }

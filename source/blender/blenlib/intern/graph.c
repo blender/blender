@@ -82,7 +82,7 @@ void BLI_flagNodes(BGraph *graph, int flag)
 {
 	BNode *node;
 	
-	for(node = graph->nodes.first; node; node = node->next)
+	for (node = graph->nodes.first; node; node = node->next)
 	{
 		node->flag = flag;
 	}
@@ -92,7 +92,7 @@ void BLI_flagArcs(BGraph *graph, int flag)
 {
 	BArc *arc;
 	
-	for(arc = graph->arcs.first; arc; arc = arc->next)
+	for (arc = graph->arcs.first; arc; arc = arc->next)
 	{
 		arc->flag = flag;
 	}
@@ -109,7 +109,7 @@ void BLI_buildAdjacencyList(BGraph *graph)
 	BNode *node;
 	BArc *arc;
 
-	for(node = graph->nodes.first; node; node = node->next)
+	for (node = graph->nodes.first; node; node = node->next)
 	{
 		if (node->arcs != NULL)
 		{
@@ -122,13 +122,13 @@ void BLI_buildAdjacencyList(BGraph *graph)
 		node->flag = 0;
 	}
 
-	for(arc = graph->arcs.first; arc; arc= arc->next)
+	for (arc = graph->arcs.first; arc; arc= arc->next)
 	{
 		addArcToNodeAdjacencyList(arc->head, arc);
 		addArcToNodeAdjacencyList(arc->tail, arc);
 	}
 
-	for(node = graph->nodes.first; node; node = node->next)
+	for (node = graph->nodes.first; node; node = node->next)
 	{
 		if (node->degree != node->flag)
 		{
@@ -151,7 +151,7 @@ void BLI_rebuildAdjacencyListForNode(BGraph* graph, BNode *node)
 	/* temporary use to indicate the first index available in the lists */
 	node->flag = 0;
 
-	for(arc = graph->arcs.first; arc; arc= arc->next)
+	for (arc = graph->arcs.first; arc; arc= arc->next)
 	{
 		if (arc->head == node)
 		{
@@ -173,7 +173,7 @@ void BLI_freeAdjacencyList(BGraph *graph)
 {
 	BNode *node;
 
-	for(node = graph->nodes.first; node; node = node->next)
+	for (node = graph->nodes.first; node; node = node->next)
 	{
 		if (node->arcs != NULL)
 		{
@@ -187,7 +187,7 @@ int BLI_hasAdjacencyList(BGraph *graph)
 {
 	BNode *node;
 	
-	for(node = graph->nodes.first; node; node = node->next)
+	for (node = graph->nodes.first; node; node = node->next)
 	{
 		if (node->arcs == NULL)
 		{
@@ -267,9 +267,9 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 {
 	BNode *node_src, *node_replaced;
 	
-	for(node_src = graph->nodes.first; node_src; node_src = node_src->next)
+	for (node_src = graph->nodes.first; node_src; node_src = node_src->next)
 	{
-		for(node_replaced = graph->nodes.first; node_replaced; node_replaced = node_replaced->next)
+		for (node_replaced = graph->nodes.first; node_replaced; node_replaced = node_replaced->next)
 		{
 			if (node_replaced != node_src && len_v3v3(node_replaced->p, node_src->p) <= limit)
 			{
@@ -285,7 +285,7 @@ BNode * BLI_FindNodeByPosition(BGraph *graph, float *p, float limit)
 	BNode *closest_node = NULL, *node;
 	float min_distance = 0.0f;
 	
-	for(node = graph->nodes.first; node; node = node->next)
+	for (node = graph->nodes.first; node; node = node->next)
 	{
 		float distance = len_v3v3(p, node->p); 
 		if (distance <= limit && (closest_node == NULL || distance < min_distance))
@@ -308,7 +308,7 @@ static void flagSubgraph(BNode *node, int subgraph)
 		
 		node->subgraph_index = subgraph;
 		
-		for(i = 0; i < node->degree; i++)
+		for (i = 0; i < node->degree; i++)
 		{
 			arc = node->arcs[i];
 			flagSubgraph(BLI_otherNode(arc, node), subgraph);
@@ -326,7 +326,7 @@ int BLI_FlagSubgraphs(BGraph *graph)
 		BLI_buildAdjacencyList(graph);
 	}
 	
-	for(node = graph->nodes.first; node; node = node->next)
+	for (node = graph->nodes.first; node; node = node->next)
 	{
 		node->subgraph_index = 0;
 	}
@@ -369,7 +369,7 @@ static int detectCycle(BNode *node, BArc *src_arc)
 		/* mark node as visited */
 		node->flag = 1;
 
-		for(i = 0; i < node->degree && value == 0; i++)
+		for (i = 0; i < node->degree && value == 0; i++)
 		{
 			BArc *arc = node->arcs[i];
 			
@@ -399,7 +399,7 @@ int	BLI_isGraphCyclic(BGraph *graph)
 	BLI_flagNodes(graph, 0);
 
 	/* detectCycles in subgraphs */	
-	for(node = graph->nodes.first; node && value == 0; node = node->next)
+	for (node = graph->nodes.first; node && value == 0; node = node->next)
 	{
 		/* only for nodes in subgraphs that haven't been visited yet */
 		if (node->flag == 0)
@@ -415,7 +415,7 @@ BArc * BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 {
 	BArc *nextArc;
 	
-	for(nextArc = graph->arcs.first; nextArc; nextArc = nextArc->next)
+	for (nextArc = graph->arcs.first; nextArc; nextArc = nextArc->next)
 	{
 		if (arc != nextArc && (nextArc->head == v || nextArc->tail == v))
 		{
@@ -450,7 +450,7 @@ static int subtreeShape(BNode *node, BArc *rootArc, int include_root)
 		{
 			int i;
 	
-			for(i = 0; i < node->degree; i++)
+			for (i = 0; i < node->degree; i++)
 			{
 				BArc *arc = node->arcs[i];
 				BNode *newNode = BLI_otherNode(arc, node);
@@ -480,7 +480,7 @@ float BLI_subtreeLength(BNode *node)
 
 	node->flag = 0; /* flag node as visited */
 
-	for(i = 0; i < node->degree; i++)
+	for (i = 0; i < node->degree; i++)
 	{
 		BArc *arc = node->arcs[i];
 		BNode *other_node = BLI_otherNode(arc, node);

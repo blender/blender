@@ -2,6 +2,7 @@ import bpy
 
 
 class HelloWorldPanel(bpy.types.Panel):
+    """Creates a Panel in the Object properties window"""
     bl_label = "Hello World Panel"
     bl_idname = "OBJECT_PT_hello"
     bl_space_type = "PROPERTIES"

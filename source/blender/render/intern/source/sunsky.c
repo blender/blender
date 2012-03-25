@@ -273,7 +273,7 @@ void GetSkyXYZRadiance(struct SunSky* sunsky, float theta, float phi, float colo
 	y = PerezFunction(sunsky, sunsky->perez_y, theta, gamma, sunsky->zenith_y);
 	Y = 6.666666667e-5f * nfade * hfade * PerezFunction(sunsky, sunsky->perez_Y, theta, gamma, sunsky->zenith_Y);
 
-	if(sunsky->sky_exposure!=0.0f)
+	if (sunsky->sky_exposure!=0.0f)
 		Y = 1.0 - exp(Y*sunsky->sky_exposure);
 	
 	X = (x / y) * Y;
@@ -335,7 +335,7 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 	
 	m =  1.0f/(cosf(theta) + 0.15f*powf(93.885f-theta/(float)M_PI*180.0f,-1.253f));
 
-	for(i = 0; i < 3; i++)
+	for (i = 0; i < 3; i++)
 	{
 		// Rayleigh Scattering
 		fTauR = expf( -m * 0.008735f * powf(fLambda[i], (float)(-4.08f)));

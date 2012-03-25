@@ -95,7 +95,7 @@ static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 
-	if(stroke && brush && (brush->flag & BRUSH_SMOOTH_STROKE)) {
+	if (stroke && brush && (brush->flag & BRUSH_SMOOTH_STROKE)) {
 		ARegion *ar = CTX_wm_region(C);
 		sdrawline(x, y, (int)stroke->last_mouse_position[0] - ar->winrct.xmin,
 			  (int)stroke->last_mouse_position[1] - ar->winrct.ymin);
@@ -112,14 +112,14 @@ static float event_tablet_data(wmEvent *event, int *pen_flip)
 	int erasor = 0;
 	float pressure = 1;
 
-	if(event->custom == EVT_DATA_TABLET) {
+	if (event->custom == EVT_DATA_TABLET) {
 		wmTabletData *wmtab= event->customdata;
 
 		erasor = (wmtab->Active == EVT_TABLET_ERASER);
 		pressure = (wmtab->Active != EVT_TABLET_NONE) ? wmtab->Pressure : 1;
 	}
 
-	if(pen_flip)
+	if (pen_flip)
 		(*pen_flip) = erasor;
 
 	return pressure;
@@ -143,7 +143,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * separation will go away */
-	if(stroke->vc.obact->sculpt) {
+	if (stroke->vc.obact->sculpt) {
 		float delta[2];
 
 		brush_jitter_pos(scene, brush, mouse_in, mouse);
@@ -151,7 +151,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 		/* XXX: meh, this is round about because
 		 * brush_jitter_pos isn't written in the best way to
 		 * be reused here */
-		if(brush->flag & BRUSH_JITTER_PRESSURE) {
+		if (brush->flag & BRUSH_JITTER_PRESSURE) {
 			sub_v2_v2v2(delta, mouse, mouse_in);
 			mul_v2_fl(delta, pressure);
 			add_v2_v2v2(mouse, mouse_in, delta);
@@ -162,7 +162,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	}
 
 	/* TODO: can remove the if statement once all modes have this */
-	if(stroke->get_location)
+	if (stroke->get_location)
 		stroke->get_location(C, location, mouse);
 	else
 		zero_v3(location);
@@ -197,7 +197,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 
 		/* If the mouse is moving within the radius of the last move,
 		 * don't update the mouse position. This allows sharp turns. */
-		if(dx*dx + dy*dy < stroke->brush->smooth_stroke_radius * stroke->brush->smooth_stroke_radius)
+		if (dx*dx + dy*dy < stroke->brush->smooth_stroke_radius * stroke->brush->smooth_stroke_radius)
 			return 0;
 
 		output[0] = event->x * v + stroke->last_mouse_position[0] * u;
@@ -214,7 +214,7 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 	PaintStroke *stroke = op->customdata;
 	int cnt = 0;
 
-	if(paint_space_stroke_enabled(stroke->brush)) {
+	if (paint_space_stroke_enabled(stroke->brush)) {
 		float mouse[2];
 		float vec[2];
 		float length, scale;
@@ -224,24 +224,24 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 
 		length = len_v2(vec);
 
-		if(length > FLT_EPSILON) {
+		if (length > FLT_EPSILON) {
 			const Scene *scene = CTX_data_scene(C);
 			int steps;
 			int i;
 			float pressure= 1.0f;
 
 			/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
-			if(brush_use_size_pressure(scene, stroke->brush))
+			if (brush_use_size_pressure(scene, stroke->brush))
 				pressure = event_tablet_data(event, NULL);
 			
-			if(pressure > FLT_EPSILON) {
+			if (pressure > FLT_EPSILON) {
 				scale = (brush_size(scene, stroke->brush)*pressure*stroke->brush->spacing/50.0f) / length;
-				if(scale > FLT_EPSILON) {
+				if (scale > FLT_EPSILON) {
 					mul_v2_fl(vec, scale);
 
 					steps = (int)(1.0f / scale);
 
-					for(i = 0; i < steps; ++i, ++cnt) {
+					for (i = 0; i < steps; ++i, ++cnt) {
 						add_v2_v2(mouse, vec);
 						paint_brush_stroke_add_step(C, op, event, mouse);
 					}
@@ -302,16 +302,16 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->type == NDOF_MOTION)
 		return OPERATOR_PASS_THROUGH;
 
-	if(!stroke->stroke_started) {
+	if (!stroke->stroke_started) {
 		stroke->last_mouse_position[0] = event->x;
 		stroke->last_mouse_position[1] = event->y;
 		stroke->stroke_started = stroke->test_start(C, op, event);
 
-		if(stroke->stroke_started) {
+		if (stroke->stroke_started) {
 			stroke->smooth_stroke_cursor =
 				WM_paint_cursor_activate(CTX_wm_manager(C), paint_poll, paint_draw_smooth_stroke, stroke);
 
-			if(stroke->brush->flag & BRUSH_AIRBRUSH)
+			if (stroke->brush->flag & BRUSH_AIRBRUSH)
 				stroke->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
 		}
 
@@ -319,26 +319,26 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		//ED_region_tag_redraw(ar);
 	}
 
-	if(event->type == stroke->event_type && event->val == KM_RELEASE) {
+	if (event->type == stroke->event_type && event->val == KM_RELEASE) {
 		/* exit stroke, free data */
-		if(stroke->smooth_stroke_cursor)
+		if (stroke->smooth_stroke_cursor)
 			WM_paint_cursor_end(CTX_wm_manager(C), stroke->smooth_stroke_cursor);
 
-		if(stroke->timer)
+		if (stroke->timer)
 			WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
 
 		stroke->done(C, stroke);
 		MEM_freeN(stroke);
 		return OPERATOR_FINISHED;
 	}
-	else if( (first) ||
+	else if ( (first) ||
 	         (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) ||
 	         (event->type == TIMER && (event->customdata == stroke->timer)) )
 	{
-		if(stroke->stroke_started) {
-			if(paint_smooth_stroke(stroke, mouse, event)) {
-				if(paint_space_stroke_enabled(stroke->brush)) {
-					if(!paint_space_stroke(C, op, event, mouse)) {
+		if (stroke->stroke_started) {
+			if (paint_smooth_stroke(stroke, mouse, event)) {
+				if (paint_space_stroke_enabled(stroke->brush)) {
+					if (!paint_space_stroke(C, op, event, mouse)) {
 						//ED_region_tag_redraw(ar);
 					}
 				}
@@ -354,7 +354,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* we want the stroke to have the first daub at the start location
 	 * instead of waiting till we have moved the space distance */
-	if(first &&
+	if (first &&
 	   stroke->stroke_started &&
 	   paint_space_stroke_enabled(stroke->brush) &&
 	   !(stroke->brush->flag & BRUSH_ANCHORED) &&
@@ -371,7 +371,7 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 	PaintStroke *stroke = op->customdata;
 
 	/* only when executed for the first time */
-	if(stroke->stroke_started == 0) {
+	if (stroke->stroke_started == 0) {
 		/* XXX stroke->last_mouse_position is unset, this may cause problems */
 		stroke->test_start(C, op, NULL);
 		stroke->stroke_started= 1;
@@ -394,7 +394,7 @@ int paint_stroke_cancel(bContext *C, wmOperator *op)
 {
 	PaintStroke *stroke = op->customdata;
 
-	if(stroke->done)
+	if (stroke->done)
 		stroke->done(C, stroke);
 
 	MEM_freeN(stroke);

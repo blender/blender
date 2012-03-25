@@ -349,8 +349,8 @@ typedef struct wmEvent {
 	int mval[2];		/* region mouse position, name convention pre 2.5 :) */
 	char utf8_buf[6];	/* from, ghost if utf8 is enabled for the platform,
 						 * BLI_str_utf8_size() must _always_ be valid, check
-						 * when assigning s we dont need to check on every access after */
-	char ascii;			/* from ghost, fallback if utf8 isnt set */
+						 * when assigning s we don't need to check on every access after */
+	char ascii;			/* from ghost, fallback if utf8 isn't set */
 	char pad;
 
 	/* previous state */
@@ -429,6 +429,8 @@ typedef struct wmTimer {
 	int sleep;				/* internal, put timers to sleep when needed */
 } wmTimer;
 
+/* Default context for operator names/labels. */
+#define WM_OPERATOR_DEFAULT_I18NCONTEXT "Operator"
 
 typedef struct wmOperatorType {
 	const char *name;		/* text for ui, undo */
@@ -464,6 +466,9 @@ typedef struct wmOperatorType {
 
 	/* rna for properties */
 	struct StructRNA *srna;
+
+	/* previous settings - for initializing on re-use */
+	struct IDProperty *last_properties;
 
 	/* rna property to use for generic invoke functions.
 	 * menus, enum search... etc */

@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joshua Leung, Arystanbek Dyussenov
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -59,7 +59,7 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 	scene_update_for_newframe(G.main, scene, (1<<20) - 1);
 	scene_camera_switch_update(scene);
 
-	/* cant use NC_SCENE|ND_FRAME because this casues wm_event_do_notifiers to call 
+	/* cant use NC_SCENE|ND_FRAME because this casues wm_event_do_notifiers to call
 	 * scene_update_for_newframe which will loose any un-keyed changes [#24690] */
 	/* WM_main_add_notifier(NC_SCENE|ND_FRAME, scene); */
 	
@@ -77,7 +77,8 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name
 	if (BKE_imtype_is_movie(rd->im_format.imtype))
 		BKE_makeanimstring(name, rd);
 	else
-		BKE_makepicstring(name, rd->pic, G.main->name, (frame == INT_MIN) ? rd->cfra : frame, rd->im_format.imtype, rd->scemode & R_EXTENSION, TRUE);
+		BKE_makepicstring(name, rd->pic, G.main->name, (frame == INT_MIN) ? rd->cfra : frame, rd->im_format.imtype,
+		                  rd->scemode & R_EXTENSION, TRUE);
 }
 
 #ifdef WITH_COLLADA
@@ -105,7 +106,8 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_float(func, "subframe", 0.0, 0.0, 1.0, "", "Sub-frame time, between 0.0 and 1.0", 0.0, 1.0);
 
 	func = RNA_def_function(srna, "update", "rna_Scene_update_tagged");
-	RNA_def_function_ui_description(func, "Update data tagged to be updated from previous access to data or operators");
+	RNA_def_function_ui_description(func,
+	                                "Update data tagged to be updated from previous access to data or operators");
 
 #ifdef WITH_COLLADA
 	/* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
@@ -136,4 +138,3 @@ void RNA_api_scene_render(StructRNA *srna)
 }
 
 #endif
-

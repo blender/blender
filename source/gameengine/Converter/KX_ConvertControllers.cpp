@@ -161,7 +161,7 @@ void BL_ConvertControllers(
 
 				pyctrl->SetNamespace(converter->GetPyNamespace());
 				
-				if(pycont->mode==SCA_PythonController::SCA_PYEXEC_SCRIPT) {
+				if (pycont->mode==SCA_PythonController::SCA_PYEXEC_SCRIPT) {
 					if (pycont->text)
 					{
 						char *buf;
@@ -181,7 +181,7 @@ void BL_ConvertControllers(
 					pyctrl->SetScriptText(STR_String(pycont->module)); 
 					pyctrl->SetScriptName(pycont->module); /* will be something like module.func so using it as the name is OK */
 
-					if(pycont->flag & CONT_PY_DEBUG) {
+					if (pycont->flag & CONT_PY_DEBUG) {
 						printf("\nDebuging \"%s\", module for object %s\n\texpect worse performance.\n", pycont->module, blenderobject->id.name+2);
 						pyctrl->SetDebug(true);
 					}
@@ -223,7 +223,7 @@ void BL_ConvertControllers(
 				SCA_PythonController *pyctrl= static_cast<SCA_PythonController*>(gamecontroller);
 				/* not strictly needed but gives syntax errors early on and
 				 * gives more predictable performance for larger scripts */
-				if(pyctrl->m_mode==SCA_PythonController::SCA_PYEXEC_SCRIPT)
+				if (pyctrl->m_mode==SCA_PythonController::SCA_PYEXEC_SCRIPT)
 					pyctrl->Compile();
 				else {
 					/* We cant do this because importing runs the script which could end up accessing

@@ -78,7 +78,7 @@ static int matrix_col_vector_check(MatrixObject *mat, VectorObject *vec, int col
  * matrix row callbacks
  * this is so you can do matrix[i][j] = val OR matrix.row[i][j] = val */
 
-int mathutils_matrix_row_cb_index = -1;
+unsigned char mathutils_matrix_row_cb_index = -1;
 
 static int mathutils_matrix_row_check(BaseMathObject *bmo)
 {
@@ -162,7 +162,7 @@ Mathutils_Callback mathutils_matrix_row_cb = {
  * matrix row callbacks
  * this is so you can do matrix.col[i][j] = val */
 
-int mathutils_matrix_col_cb_index = -1;
+unsigned char mathutils_matrix_col_cb_index = -1;
 
 static int mathutils_matrix_col_check(BaseMathObject *bmo)
 {
@@ -255,7 +255,7 @@ Mathutils_Callback mathutils_matrix_col_cb = {
  * this is so you can do matrix.translation = val
  * note, this is _exactly like matrix.col except the 4th component is always omitted */
 
-int mathutils_matrix_translation_cb_index = -1;
+unsigned char mathutils_matrix_translation_cb_index = -1;
 
 static int mathutils_matrix_translation_check(BaseMathObject *bmo)
 {
@@ -780,7 +780,7 @@ PyDoc_STRVAR(C_Matrix_Shear_doc,
 "   :arg size: The size of the shear matrix to construct [2, 4].\n"
 "   :type size: int\n"
 "   :arg factor: The factor of shear to apply. For a 3 or 4 *size* matrix\n"
-"      pass a pair of floats corrasponding with the *plane* axis.\n"
+"      pass a pair of floats corresponding with the *plane* axis.\n"
 "   :type factor: float or float pair\n"
 "   :return: A new shear matrix.\n"
 "   :rtype: :class:`Matrix`\n"
@@ -1601,28 +1601,28 @@ static PyObject *Matrix_richcmpr(PyObject *a, PyObject *b, int op)
 		if (BaseMath_ReadCallback(matA) == -1 || BaseMath_ReadCallback(matB) == -1)
 			return NULL;
 
-		ok = (  (matA->num_row == matB->num_row) &&
-		        (matA->num_col == matB->num_col) &&
-		         EXPP_VectorsAreEqual(matA->matrix, matB->matrix, (matA->num_col * matA->num_row), 1)
-			) ? 0 : -1;
+		ok = ((matA->num_row == matB->num_row) &&
+		      (matA->num_col == matB->num_col) &&
+		      EXPP_VectorsAreEqual(matA->matrix, matB->matrix, (matA->num_col * matA->num_row), 1)
+		      ) ? 0 : -1;
 	}
 
 	switch (op) {
-	case Py_NE:
-		ok = !ok; /* pass through */
-	case Py_EQ:
-		res = ok ? Py_False : Py_True;
-		break;
+		case Py_NE:
+			ok = !ok; /* pass through */
+		case Py_EQ:
+			res = ok ? Py_False : Py_True;
+			break;
 
-	case Py_LT:
-	case Py_LE:
-	case Py_GT:
-	case Py_GE:
-		res = Py_NotImplemented;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
+		case Py_LT:
+		case Py_LE:
+		case Py_GT:
+		case Py_GE:
+			res = Py_NotImplemented;
+			break;
+		default:
+			PyErr_BadArgument();
+			return NULL;
 	}
 
 	return Py_INCREF(res), res;
@@ -1739,8 +1739,7 @@ static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
 	tuple = PyTuple_New(end - begin);
 	for (count = begin; count < end; count++) {
 		PyTuple_SET_ITEM(tuple, count - begin,
-				Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_row_cb_index, count));
-
+		                 Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_row_cb_index, count));
 	}
 
 	return tuple;
@@ -1850,8 +1849,7 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 		PyErr_Format(PyExc_TypeError,
 		             "Matrix subtraction: (%s - %s) "
 		             "invalid type for this operation",
-		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name
-		             );
+		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 		return NULL;
 	}
 
@@ -2400,14 +2398,14 @@ PyObject *Matrix_CreatePyObject(float *mat,
 
 PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
                                    const unsigned short num_col, const unsigned short num_row,
-                                   int cb_type, int cb_subtype)
+                                   unsigned char cb_type, unsigned char cb_subtype)
 {
 	MatrixObject *self = (MatrixObject *)Matrix_CreatePyObject(NULL, num_col, num_row, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 	return (PyObject *) self;

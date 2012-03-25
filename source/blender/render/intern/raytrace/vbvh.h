@@ -167,8 +167,8 @@ struct BuildBinaryVBVH
 		{
 			Node *node = create_node();
 			INIT_MINMAX(node->bb, node->bb+3);
-			rtbuild_merge_bb(builder, node->bb, node->bb+3);		
-			node->child = (Node*) rtbuild_get_primitive( builder, 0 );
+			rtbuild_merge_bb(builder, node->bb, node->bb+3);
+			node->child = (Node *) rtbuild_get_primitive(builder, 0);
 			return node;
 		}
 		else

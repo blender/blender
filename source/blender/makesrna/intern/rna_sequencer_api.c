@@ -67,7 +67,8 @@ void RNA_api_sequence_strip(StructRNA *srna)
 	parm = RNA_def_int(func, "frame", 0, -MAXFRAME, MAXFRAME, "Frame",
 	                  "The frame to get the strip element from", -MAXFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_function_return(func, RNA_def_pointer(func, "elem", "SequenceElement", "", "strip element of the current frame"));
+	RNA_def_function_return(func, RNA_def_pointer(func, "elem", "SequenceElement", "",
+	                        "strip element of the current frame"));
 
 	func = RNA_def_function(srna, "swap", "rna_Sequence_swap_internal");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);

@@ -132,7 +132,7 @@ bool BL_ModifierDeformer::HasArmatureDeformer(Object *ob)
 		return false;
 
 	ModifierData* md = (ModifierData*)ob->modifiers.first;
-	if(md->type == eModifierType_Armature )
+	if (md->type == eModifierType_Armature )
 		return true;
 
 	return false;
@@ -218,7 +218,7 @@ bool BL_ModifierDeformer::Apply(RAS_IPolyMaterial *mat)
 	for (int imat=0; imat<nmat; imat++) {
 		RAS_MeshMaterial *mmat = m_pMeshObject->GetMeshMaterial(imat);
 		RAS_MeshSlot **slot = mmat->m_slots[(void*)m_gameobj];
-		if(!slot || !*slot)
+		if (!slot || !*slot)
 			continue;
 		(*slot)->m_pDerivedMesh = m_dm;
 	}

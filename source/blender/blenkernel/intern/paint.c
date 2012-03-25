@@ -33,15 +33,17 @@
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
-
 
 #include "BKE_brush.h"
 #include "BKE_library.h"
 #include "BKE_paint.h"
+#include "BKE_subsurf.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -53,10 +55,10 @@ const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
 Paint *paint_get_active(Scene *sce)
 {
-	if(sce) {
+	if (sce) {
 		ToolSettings *ts = sce->toolsettings;
 		
-		if(sce->basact && sce->basact->object) {
+		if (sce->basact && sce->basact->object) {
 			switch(sce->basact->object->mode) {
 			case OB_MODE_SCULPT:
 				return &ts->sculpt->paint;
@@ -67,7 +69,7 @@ Paint *paint_get_active(Scene *sce)
 			case OB_MODE_TEXTURE_PAINT:
 				return &ts->imapaint.paint;
 			case OB_MODE_EDIT:
-				if(ts->use_uv_sculpt)
+				if (ts->use_uv_sculpt)
 					return &ts->uvsculpt->paint;
 				else
 					return &ts->imapaint.paint;
@@ -88,7 +90,7 @@ Brush *paint_brush(Paint *p)
 
 void paint_brush_set(Paint *p, Brush *br)
 {
-	if(p) {
+	if (p) {
 		id_us_min((ID *)p->brush);
 		id_us_plus((ID *)br);
 		p->brush= br;
@@ -123,7 +125,7 @@ void paint_init(Paint *p, const char col[3])
 
 	/* If there's no brush, create one */
 	brush = paint_brush(p);
-	if(brush == NULL)
+	if (brush == NULL)
 		brush= add_brush("Brush");
 	paint_brush_set(p, brush);
 
@@ -146,4 +148,27 @@ void copy_paint(Paint *src, Paint *tar)
 {
 	tar->brush= src->brush;
 	id_us_plus((ID *)tar->brush);
+}
+
+/* returns non-zero if any of the face's vertices
+   are hidden, zero otherwise */
+int paint_is_face_hidden(const MFace *f, const MVert *mvert)
+{
+	return ((mvert[f->v1].flag & ME_HIDE) ||
+			(mvert[f->v2].flag & ME_HIDE) ||
+			(mvert[f->v3].flag & ME_HIDE) ||
+			(f->v4 && (mvert[f->v4].flag & ME_HIDE)));
+}
+
+/* returns non-zero if any of the corners of the grid
+   face whose inner corner is at (x,y) are hidden,
+   zero otherwise */
+int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
+							  int gridsize, int x, int y)
+{
+	/* skip face if any of its corners are hidden */
+	return (BLI_BITMAP_GET(grid_hidden, y * gridsize + x) ||
+			BLI_BITMAP_GET(grid_hidden, y * gridsize + x+1) ||
+			BLI_BITMAP_GET(grid_hidden, (y+1) * gridsize + x+1) ||
+			BLI_BITMAP_GET(grid_hidden, (y+1) * gridsize + x));
 }

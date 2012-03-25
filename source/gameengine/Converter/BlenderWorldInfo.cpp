@@ -90,7 +90,7 @@ BlenderWorldInfo::BlenderWorldInfo(struct Scene *blenderscene, struct World* ble
 		copy_v3_v3(m_backgroundcolor, &blenderworld->horr);
 		copy_v3_v3(m_ambientcolor, &blenderworld->ambr);
 
-		if(blenderscene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		if (blenderscene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
 			linearrgb_to_srgb_v3_v3(m_mistcolor, m_mistcolor);
 			linearrgb_to_srgb_v3_v3(m_backgroundcolor, m_backgroundcolor);
 			linearrgb_to_srgb_v3_v3(m_ambientcolor, m_ambientcolor);

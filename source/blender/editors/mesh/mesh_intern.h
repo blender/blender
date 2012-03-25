@@ -156,6 +156,7 @@ void MESH_OT_fill(struct wmOperatorType *ot);
 void MESH_OT_beautify_fill(struct wmOperatorType *ot);
 void MESH_OT_quads_convert_to_tris(struct wmOperatorType *ot);
 void MESH_OT_tris_convert_to_quads(struct wmOperatorType *ot);
+void MESH_OT_dissolve(struct wmOperatorType *ot);
 void MESH_OT_dissolve_limited(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_smooth(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_flat(struct wmOperatorType *ot);
@@ -176,6 +177,8 @@ void MESH_OT_colors_rotate(struct wmOperatorType *ot);
 void MESH_OT_colors_reverse(struct wmOperatorType *ot);
 
 void MESH_OT_delete(struct wmOperatorType *ot);
+void MESH_OT_edge_collapse(struct wmOperatorType *ot);
+void MESH_OT_edge_collapse_loop(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);
 
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
@@ -200,7 +203,6 @@ void MESH_OT_extrude_region(struct wmOperatorType *ot);
 void MESH_OT_extrude_verts_indiv(struct wmOperatorType *ot);
 void MESH_OT_extrude_edges_indiv(struct wmOperatorType *ot);
 void MESH_OT_extrude_faces_indiv(struct wmOperatorType *ot);
-void MESH_OT_bm_test(struct wmOperatorType *ot);
 
 void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_loopcut(struct wmOperatorType *ot);
@@ -209,6 +211,7 @@ void MESH_OT_knifetool(struct wmOperatorType *ot);
 void MESH_OT_bevel(struct wmOperatorType *ot);
 
 void MESH_OT_bridge_edge_loops(struct wmOperatorType *ot);
+void MESH_OT_inset(struct wmOperatorType *ot);
 
 /* ******************* mesh_navmesh.c */
 void MESH_OT_navmesh_make(struct wmOperatorType *ot);

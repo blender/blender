@@ -131,7 +131,7 @@ void CcdGraphicController::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* 
 {
 	CcdPhysicsEnvironment* phyEnv = static_cast<CcdPhysicsEnvironment*>(env);
 	/* Updates the m_phyEnv's m_cullingTree & m_cullingCache */
-	if(getBroadphaseHandle()) {
+	if (getBroadphaseHandle()) {
 		/* insert into the new physics scene */
 		Activate(false);
 		m_phyEnv= phyEnv;

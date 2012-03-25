@@ -25,6 +25,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/editmesh_utils.c
+ *  \ingroup edmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
@@ -212,7 +216,7 @@ int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, const char *selectslot
 
 	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT|BM_EDGE|BM_FACE, BM_ELEM_SELECT);
 
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, selectslot, BM_ELEM_SELECT, BM_ALL, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, selectslot, BM_ALL, BM_ELEM_SELECT, TRUE);
 
 	va_end(list);
 	return EDBM_FinishOp(em, &bmop, op, TRUE);
@@ -421,8 +425,8 @@ void EDBM_select_more(BMEditMesh *em)
 	             "regionextend geom=%hvef constrict=%b use_faces=%b",
 	             BM_ELEM_SELECT, FALSE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
-	/* dont flush selection in edge/vertex mode  */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL, use_faces ? TRUE : FALSE);
+	/* don't flush selection in edge/vertex mode  */
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ALL, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 
 	EDBM_select_flush(em);
@@ -437,8 +441,8 @@ void EDBM_select_less(BMEditMesh *em)
 	             "regionextend geom=%hvef constrict=%b use_faces=%b",
 	             BM_ELEM_SELECT, TRUE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
-	/* dont flush selection in edge/vertex mode  */
-	BMO_slot_buffer_hflag_disable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL, use_faces ? TRUE : FALSE);
+	/* don't flush selection in edge/vertex mode  */
+	BMO_slot_buffer_hflag_disable(em->bm, &bmop, "geomout", BM_ALL, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);
@@ -514,7 +518,7 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	Mesh *obme = obdata;
 	
 	undomesh *um = MEM_callocN(sizeof(undomesh), "undo Mesh");
-	BLI_strncpy(um->obname, em->bm->ob->id.name + 2, sizeof(um->obname));
+	BLI_strncpy(um->obname, em->ob->id.name + 2, sizeof(um->obname));
 	
 	/* make sure shape keys work */
 	um->me.key = obme->key ? copy_key_nolib(obme->key) : NULL;
@@ -526,6 +530,8 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	BMEdit_RecalcTessellation(em);
 
 #endif
+
+	/* BM_mesh_validate(em->bm); */ /* for troubleshooting */
 
 	BMO_op_callf(em->bm, "bmesh_to_mesh mesh=%p notessellation=%b", &um->me, TRUE);
 	um->selectmode = em->selectmode;
@@ -546,7 +552,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 
 	BMEdit_Free(em);
 
-	bm = BM_mesh_create(ob, &bm_mesh_allocsize_default);
+	bm = BM_mesh_create(&bm_mesh_allocsize_default);
 	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%b", &um->me, ob, FALSE);
 
 	em2 = BMEdit_Create(bm, TRUE);
@@ -560,7 +566,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 
 static void free_undo(void *umv)
 {
-	if (((Mesh *)umv)->key)	{
+	if (((Mesh *)umv)->key) {
 		free_key(((Mesh *)umv)->key);
 		MEM_freeN(((Mesh *)umv)->key);
 	}
@@ -572,6 +578,13 @@ static void free_undo(void *umv)
 /* and this is all the undo system needs to know */
 void undo_push_mesh(bContext *C, const char *name)
 {
+	/* em->ob gets out of date and crashes on mesh undo,
+	 * this is an easy way to ensure its OK
+	 * though we could investigate the matter further. */
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	em->ob = obedit;
+
 	undo_editmode_push(C, name, getEditMesh, free_undo, undoMesh_to_editbtMesh, editbtMesh_to_undoMesh, NULL);
 }
 
@@ -616,8 +629,8 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 		return NULL;
 	}
 
-	vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert)*totverts, "UvMapVert_pt");
-	buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
+	vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert) * totverts, "UvMapVert_pt");
+	buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * totuv, "UvMapVert");
 
 	if (!vmap->vert || !vmap->buf) {
 		free_uv_vert_map(vmap);
@@ -741,7 +754,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 	totverts = em->bm->totvert;
 	totuv = 0;
 
-	island_number = MEM_mallocN(sizeof(*stack)*em->bm->totface, "uv_island_number_face");
+	island_number = MEM_mallocN(sizeof(*stack) * em->bm->totface, "uv_island_number_face");
 	if (!island_number) {
 		return NULL;
 	}
@@ -841,9 +854,9 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 
 	if (do_islands) {
 		/* map holds the map from current vmap->buf to the new, sorted map */
-		map = MEM_mallocN(sizeof(*map)*totuv, "uvelement_remap");
-		stack = MEM_mallocN(sizeof(*stack)*em->bm->totface, "uv_island_face_stack");
-		islandbuf = MEM_callocN(sizeof(*islandbuf)*totuv, "uvelement_island_buffer");
+		map = MEM_mallocN(sizeof(*map) * totuv, "uvelement_remap");
+		stack = MEM_mallocN(sizeof(*stack) * em->bm->totface, "uv_island_face_stack");
+		islandbuf = MEM_callocN(sizeof(*islandbuf) * totuv, "uvelement_island_buffer");
 
 		/* at this point, every UvElement in vert points to a UvElement sharing the same vertex. Now we should sort uv's in islands. */
 		for (i = 0; i < totuv; i++) {
@@ -900,7 +913,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 				element_map->vert[i] = &islandbuf[map[element_map->vert[i] - element_map->buf]];
 		}
 
-		element_map->islandIndices = MEM_callocN(sizeof(*element_map->islandIndices)*nislands,"UvElementMap_island_indices");
+		element_map->islandIndices = MEM_callocN(sizeof(*element_map->islandIndices) * nislands, "UvElementMap_island_indices");
 		if (!element_map->islandIndices) {
 			MEM_freeN(islandbuf);
 			MEM_freeN(stack);
@@ -1142,3 +1155,119 @@ void EDBM_ApplyMirrorCache(BMEditMesh *em, const int sel_from, const int sel_to)
 		}
 	}
 }
+
+
+/* swap is 0 or 1, if 1 it hides not selected */
+void EDBM_hide_mesh(BMEditMesh *em, int swap)
+{
+	BMIter iter;
+	BMElem *ele;
+	int itermode;
+
+	if (em == NULL) return;
+
+	if (em->selectmode & SCE_SELECT_VERTEX)
+		itermode = BM_VERTS_OF_MESH;
+	else if (em->selectmode & SCE_SELECT_EDGE)
+		itermode = BM_EDGES_OF_MESH;
+	else
+		itermode = BM_FACES_OF_MESH;
+
+	BM_ITER(ele, &iter, em->bm, itermode, NULL) {
+		if (BM_elem_flag_test(ele, BM_ELEM_SELECT) ^ swap)
+			BM_elem_hide_set(em->bm, ele, TRUE);
+	}
+
+	EDBM_selectmode_flush(em);
+
+	/* original hide flushing comment (OUTDATED):
+	 * hide happens on least dominant select mode, and flushes up, not down! (helps preventing errors in subsurf) */
+	/* - vertex hidden, always means edge is hidden too
+	 * - edge hidden, always means face is hidden too
+	 * - face hidden, only set face hide
+	 * - then only flush back down what's absolute hidden
+	 */
+}
+
+
+void EDBM_reveal_mesh(BMEditMesh *em)
+{
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
+
+	int sels[3] = {(em->selectmode & SCE_SELECT_VERTEX),
+	               (em->selectmode & SCE_SELECT_EDGE),
+	               (em->selectmode & SCE_SELECT_FACE),
+	              };
+
+	BMIter iter;
+	BMElem *ele;
+	int i;
+
+	/* Use tag flag to remember what was hidden before all is revealed.
+	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
+	for (i = 0; i < 3; i++) {
+		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
+		}
+	}
+
+	/* Reveal everything */
+	EDBM_flag_disable_all(em, BM_ELEM_HIDDEN);
+
+	/* Select relevant just-revealed elements */
+	for (i = 0; i < 3; i++) {
+		if (!sels[i]) {
+			continue;
+		}
+
+		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
+			if (BM_elem_flag_test(ele, BM_ELEM_TAG)) {
+				BM_elem_select_set(em->bm, ele, TRUE);
+			}
+		}
+	}
+
+	EDBM_selectmode_flush(em);
+}
+
+/* * Selection History ***************************************************** */
+/* these wrap equivalent bmesh functions.  I'm in two minds of it we should
+ * just use the bm functions directly; on the one hand, there's no real
+ * need (at the moment) to wrap them, but on the other hand having these
+ * wrapped avoids a confusing mess of mixing BM_ and EDBM_ namespaces. */
+
+void EDBM_editselection_center(BMEditMesh *em, float *center, BMEditSelection *ese)
+{
+	BM_editselection_center(em->bm, center, ese);
+}
+
+void EDBM_editselection_normal(float *normal, BMEditSelection *ese)
+{
+	BM_editselection_normal(normal, ese);
+}
+
+/* Calculate a plane that is rightangles to the edge/vert/faces normal
+ * also make the plane run along an axis that is related to the geometry,
+ * because this is used for the manipulators Y axis. */
+void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese)
+{
+	BM_editselection_plane(em->bm, plane, ese);
+}
+
+void EDBM_remove_selection(BMEditMesh *em, BMElem *ele)
+{
+	BM_select_history_remove(em->bm, ele);
+}
+
+void EDBM_store_selection(BMEditMesh *em, BMElem *ele)
+{
+	BM_select_history_store(em->bm, ele);
+}
+
+void EDBM_validate_selections(BMEditMesh *em)
+{
+	BM_select_history_validate(em->bm);
+}
+/* end select history */

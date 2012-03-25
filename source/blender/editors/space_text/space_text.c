@@ -129,7 +129,7 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 			/* check if active text was changed, no need to redraw if text isn't active
 			 * reference==NULL means text was unlinked, should update anyway for this
 			 * case -- no way to know was text active before unlinking or not */
-			if(wmn->reference && wmn->reference != st->text)
+			if (wmn->reference && wmn->reference != st->text)
 				break;
 
 			switch(wmn->data) {
@@ -137,7 +137,7 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_redraw(sa);
 					break;
 				case ND_CURSOR:
-					if(st->text && st->text == wmn->reference)
+					if (st->text && st->text == wmn->reference)
 						text_scroll_to_cursor(st, sa);
 
 					ED_area_tag_redraw(sa);
@@ -146,7 +146,7 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 
 			switch(wmn->action) {
 				case NA_EDITED:
-					if(st->text) {
+					if (st->text) {
 						text_drawcache_tag_update(st, 1);
 						text_update_edited(st->text);
 					}
@@ -158,7 +158,7 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_redraw(sa);
 					break;
 				case NA_SELECTED:
-					if(st->text && st->text == wmn->reference)
+					if (st->text && st->text == wmn->reference)
 						text_scroll_to_cursor(st, sa);
 
 					break;
@@ -166,7 +166,7 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_TEXT)
+			if (wmn->data == ND_SPACE_TEXT)
 				ED_area_tag_redraw(sa);
 			break;
 	}
@@ -235,7 +235,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	
-	keymap= WM_keymap_find(keyconf, "Text", SPACE_TEXT, 0);
+	keymap = WM_keymap_find(keyconf, "Text", SPACE_TEXT, 0);
 	
 	#ifdef __APPLE__
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
@@ -298,7 +298,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_copy", INSERTKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_paste", INSERTKEY, KM_PRESS, KM_SHIFT, 0);
 
-	if(U.uiflag & USER_MMB_PASTE) { // XXX not dynamic
+	if (U.uiflag & USER_MMB_PASTE) { // XXX not dynamic
 		kmi = WM_keymap_add_item(keymap, "TEXT_OT_paste", MIDDLEMOUSE, KM_PRESS, 0, 0);
 		RNA_boolean_set(kmi->ptr, "selection", TRUE);
 	}
@@ -388,11 +388,11 @@ static int text_context(const bContext *C, const char *member, bContextDataResul
 {
 	SpaceText *st= CTX_wm_space_text(C);
 
-	if(CTX_data_dir(member)) {
+	if (CTX_data_dir(member)) {
 		CTX_data_dir_set(result, text_context_dir);
 		return 1;
 	}
-	else if(CTX_data_equals(member, "edit_text")) {
+	else if (CTX_data_equals(member, "edit_text")) {
 		CTX_data_id_pointer_set(result, &st->text->id);
 		return 1;
 	}
@@ -411,7 +411,7 @@ static void text_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Text", SPACE_TEXT, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Text", SPACE_TEXT, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	
 	/* add drop boxes */
@@ -452,8 +452,8 @@ static void text_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
 
 static int text_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
-	if(drag->type==WM_DRAG_PATH)
-		if(ELEM(drag->icon, ICON_FILE_SCRIPT, ICON_FILE_BLANK))	/* rule might not work? */
+	if (drag->type==WM_DRAG_PATH)
+		if (ELEM(drag->icon, ICON_FILE_SCRIPT, ICON_FILE_BLANK))	/* rule might not work? */
 			return 1;
 	return 0;
 }

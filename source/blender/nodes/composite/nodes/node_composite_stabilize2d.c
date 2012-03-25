@@ -47,7 +47,7 @@ static bNodeSocketTemplate cmp_node_stabilize2d_out[]= {
 
 static void node_composit_exec_stabilize2d(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	if(in[0]->data && node->id) {
+	if (in[0]->data && node->id) {
 		RenderData *rd= data;
 		MovieClip *clip= (MovieClip *)node->id;
 		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
@@ -61,7 +61,7 @@ static void node_composit_exec_stabilize2d(void *data, bNode *node, bNodeStack *
 		/* pass on output and free */
 		out[0]->data= stackbuf;
 
-		if(cbuf!=in[0]->data)
+		if (cbuf!=in[0]->data)
 			free_compbuf(cbuf);
 	}
 }

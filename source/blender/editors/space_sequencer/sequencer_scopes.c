@@ -240,7 +240,8 @@ struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf)
 {
 	if (ibuf->rect_float) {
 		return make_waveform_view_from_ibuf_float(ibuf);
-	} else {
+	}
+	else {
 		return make_waveform_view_from_ibuf_byte(ibuf);
 	}
 }
@@ -353,7 +354,8 @@ struct ImBuf *make_sep_waveform_view_from_ibuf(struct ImBuf * ibuf)
 {
 	if (ibuf->rect_float) {
 		return make_sep_waveform_view_from_ibuf_float(ibuf);
-	} else {
+	}
+	else {
 		return make_sep_waveform_view_from_ibuf_byte(ibuf);
 	}
 }
@@ -426,7 +428,8 @@ struct ImBuf * make_zebra_view_from_ibuf(struct ImBuf * src, float perc)
 
 	if (src->rect_float) {
 		draw_zebra_float(src, ibuf, perc);
-	} else {
+	}
+	else {
 		draw_zebra_byte(src, ibuf, perc);
 	}
 	return ibuf;
@@ -508,7 +511,8 @@ static int get_bin_float(float f)
 {
 	if (f < -0.25f) {
 		f = -0.25f;
-	} else if (f > 1.25f) {
+	}
+	else if (f > 1.25f) {
 		f = 1.25f;
 	}
 
@@ -561,7 +565,8 @@ struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf)
 {
 	if (ibuf->rect_float) {
 		return make_histogram_view_from_ibuf_float(ibuf);
-	} else {
+	}
+	else {
 		return make_histogram_view_from_ibuf_byte(ibuf);
 	}
 }
@@ -696,7 +701,8 @@ struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf * ibuf)
 {
 	if (ibuf->rect_float) {
 		return make_vectorscope_view_from_ibuf_float(ibuf);
-	} else {
+	}
+	else {
 		return make_vectorscope_view_from_ibuf_byte(ibuf);
 	}
 }

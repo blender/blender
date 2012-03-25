@@ -58,7 +58,7 @@ static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), allocsize[3], allocsize[3], FALSE, FALSE);
 #endif
 
-	/* allocate one flag pool that we dont get rid of. */
+	/* allocate one flag pool that we don't get rid of. */
 	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0);
 }
 
@@ -71,17 +71,15 @@ static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
  *
  * \note ob is needed by multires
  */
-BMesh *BM_mesh_create(struct Object *ob, BMAllocTemplate *allocsize)
+BMesh *BM_mesh_create(BMAllocTemplate *allocsize)
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
-
-	bm->ob = ob;
 	
 	/* allocate the memory pools for the mesh elements */
 	bm_mempool_init(bm, allocsize);
 
-	/* allocate one flag pool that we dont get rid of. */
+	/* allocate one flag pool that we don't get rid of. */
 	bm->stackdepth = 1;
 	bm->totflags = 1;
 
@@ -154,13 +152,6 @@ void BM_mesh_data_free(BMesh *bm)
 
 	BLI_freelistN(&bm->selected);
 
-	if (bm->py_handle) {
-		extern void bpy_bm_generic_invalidate(void *self);
-
-		bpy_bm_generic_invalidate(bm->py_handle);
-		bm->py_handle = NULL;
-	}
-
 	BMO_error_clear(bm);
 }
 
@@ -171,15 +162,10 @@ void BM_mesh_data_free(BMesh *bm)
  */
 void BM_mesh_clear(BMesh *bm)
 {
-	Object *ob = bm->ob;
-	
 	/* free old mesh */
 	BM_mesh_data_free(bm);
 	memset(bm, 0, sizeof(BMesh));
-	
-	/* re-initialize mesh */
-	bm->ob = ob;
-	
+
 	/* allocate the memory pools for the mesh elements */
 	bm_mempool_init(bm, &bm_mesh_allocsize_default);
 
@@ -195,6 +181,16 @@ void BM_mesh_clear(BMesh *bm)
 void BM_mesh_free(BMesh *bm)
 {
 	BM_mesh_data_free(bm);
+
+	if (bm->py_handle) {
+		/* keep this out of 'BM_mesh_data_free' because we wan't python
+		 * to be able to clear the mesh and maintain access. */
+		extern void bpy_bm_generic_invalidate(void *self);
+
+		bpy_bm_generic_invalidate(bm->py_handle);
+		bm->py_handle = NULL;
+	}
+
 	MEM_freeN(bm);
 }
 
@@ -225,7 +221,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 			continue;
 #endif
 
-		bmesh_face_normal_update(bm, f, f->no);
+		BM_face_normal_update(bm, f);
 	}
 	
 	/* Zero out vertex normals */
@@ -341,11 +337,10 @@ static void bm_rationalize_normals(BMesh *bm, int undo)
 	BMO_op_finish(bm, &bmop);
 }
 
-static void UNUSED_FUNCTION(bm_mdisps_space_set)(BMesh *bm, int from, int to)
+static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from, int to)
 {
 	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		Object *ob = bm->ob;
 		BMEditMesh *em = BMEdit_Create(bm, FALSE);
 		DerivedMesh *dm = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 		MDisps *mdisps;
@@ -376,6 +371,7 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(BMesh *bm, int from, int to)
 					
 					lmd->disps = MEM_dupallocN(mdisps->disps);
 					lmd->totdisp = mdisps->totdisp;
+					lmd->level = mdisps->level;
 				}
 				
 				mdisps++;

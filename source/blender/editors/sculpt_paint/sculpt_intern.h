@@ -37,6 +37,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_key_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_pbvh.h"
 
 struct bContext;
@@ -54,6 +55,7 @@ struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct 
 
 void sculpt(Sculpt *sd);
 
+int sculpt_mode_poll(struct bContext *C);
 int sculpt_poll(struct bContext *C);
 void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob, int need_pmap);
 
@@ -65,8 +67,15 @@ int sculpt_stroke_get_location(bContext *C, float out[3], float mouse[2]);
 
 /* Undo */
 
+typedef enum {
+	SCULPT_UNDO_COORDS,
+	SCULPT_UNDO_HIDDEN
+} SculptUndoType;
+
 typedef struct SculptUndoNode {
 	struct SculptUndoNode *next, *prev;
+
+	SculptUndoType type;
 
 	char idname[MAX_ID_NAME];	/* name instead of pointer*/
 	void *node;					/* only during push, not valid afterwards! */
@@ -79,12 +88,14 @@ typedef struct SculptUndoNode {
 	/* non-multires */
 	int maxvert;				/* to verify if totvert it still the same */
 	int *index;					/* to restore into right location */
+	BLI_bitmap vert_hidden;
 
 	/* multires */
 	int maxgrid;				/* same for grid */
 	int gridsize;				/* same for grid */
 	int totgrid;				/* to restore into right location */
 	int *grids;					/* to restore into right location */
+	BLI_bitmap *grid_hidden;
 
 	/* layer brush */
 	float *layer_disp;
@@ -93,7 +104,7 @@ typedef struct SculptUndoNode {
 	char shapeName[sizeof(((KeyBlock *)0))->name];
 } SculptUndoNode;
 
-SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node);
+SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
 void sculpt_undo_push_begin(const char *name);
 void sculpt_undo_push_end(void);

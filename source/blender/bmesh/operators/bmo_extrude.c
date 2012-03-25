@@ -110,7 +110,55 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges);
 
 	BMO_op_callf(bm, "del geom=%ff context=%i", EXT_DEL, DEL_ONLYFACES);
-	BMO_slot_buffer_from_flag(bm, op, "faceout", EXT_KEEP, BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, EXT_KEEP);
+}
+
+static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e, BMEdge *newedge)
+{
+	BMIter iter;
+	BMLoop *l, *l2;
+
+	/* copy attribute */
+	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for ( ; l; l = BM_iter_step(&iter)) {
+
+		if (l->e != e && l->e != newedge) {
+			continue;
+		}
+
+		l2 = l->radial_next;
+		
+		if (l2 == l) {
+			l2 = newedge->l;
+
+			if (l2 != l) {
+				BM_elem_attrs_copy(bm, bm, l2->f, l->f);
+
+				BM_elem_attrs_copy(bm, bm, l2, l);
+				l2 = l2->next;
+				l = l->next;
+				BM_elem_attrs_copy(bm, bm, l2, l);
+			}
+		}
+		else {
+			BM_elem_attrs_copy(bm, bm, l2->f, l->f);
+
+			/* copy dat */
+			if (l2->v == l->v) {
+				BM_elem_attrs_copy(bm, bm, l2, l);
+				l2 = l2->next;
+				l = l->next;
+				BM_elem_attrs_copy(bm, bm, l2, l);
+			}
+			else {
+				l2 = l2->next;
+				BM_elem_attrs_copy(bm, bm, l2, l);
+				l2 = l2->prev;
+				l = l->next;
+				BM_elem_attrs_copy(bm, bm, l2, l);
+			}
+		}
+	}
 }
 
 void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
@@ -147,8 +195,9 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 			v3 = e->v2;
 			v4 = e->v1;
 		}
-		/* not sure what to do about example face, pass	 NULL for now */
+		/* not sure what to do about example face, pass NULL for now */
 		f = BM_face_create_quad_tri(bm, v1, v2, v3, v4, NULL, FALSE);
+		bm_extrude_copy_face_loop_attributes(bm, f, e, e2);
 		
 		if (BMO_elem_flag_test(bm, e, EXT_INPUT))
 			e = e2;
@@ -162,7 +211,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_buffer_from_flag(bm, op, "geomout", EXT_KEEP, BM_ALL);
+	BMO_slot_buffer_from_flag(bm, op, "geomout", BM_ALL, EXT_KEEP);
 }
 
 void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
@@ -181,8 +230,8 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, dupev, EXT_KEEP);
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "vertout", EXT_KEEP, BM_VERT);
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", EXT_KEEP, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", BM_VERT, EXT_KEEP);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout", BM_EDGE, EXT_KEEP);
 }
 
 void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
@@ -191,7 +240,6 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMIter iter, fiter, viter;
 	BMEdge *e, *newedge;
-	BMLoop *l, *l2;
 	BMVert *verts[4], *v, *v2;
 	BMFace *f;
 	int found, fwd, delorig = FALSE;
@@ -199,9 +247,9 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	/* initialize our sub-operators */
 	BMO_op_init(bm, &dupeop, "dupe");
 	
-	BMO_slot_buffer_flag_enable(bm, op, "edgefacein", EXT_INPUT, BM_EDGE|BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, op, "edgefacein", BM_EDGE|BM_FACE, EXT_INPUT);
 	
-	/* if one flagged face is bordered by an unflagged face, then we delete
+	/* if one flagged face is bordered by an un-flagged face, then we delete
 	 * original geometry unless caller explicitly asked to keep it. */
 	if (!BMO_slot_bool_get(op, "alwayskeeporig")) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -226,13 +274,13 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 			}
 
 			if ((edge_face_tot > 1) && (found == FALSE)) {
-				/* edge has a face user, that face isnt extrude input */
+				/* edge has a face user, that face isn't extrude input */
 				BMO_elem_flag_enable(bm, e, EXT_DEL);
 			}
 		}
 	}
 
-	/* calculate verts to delet */
+	/* calculate verts to delete */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		found = FALSE;
 
@@ -293,7 +341,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	for ( ; e; e = BMO_iter_step(&siter)) {
 
 		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
-		if (BM_edge_is_wire(bm, e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
+		if (BM_edge_is_wire(e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
 			/* The original edge was excluded,
 			 * this would result in a standalone wire edge - see [#30399] */
 			BM_edge_kill(bm, e);
@@ -331,45 +379,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 		/* not sure what to do about example face, pass NULL for now */
 		f = BM_face_create_quad_tri_v(bm, verts, 4, NULL, FALSE);
-
-		/* copy attribute */
-		l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
-		for ( ; l; l = BM_iter_step(&iter)) {
-
-			if (l->e != e && l->e != newedge) {
-				continue;
-			}
-
-			l2 = l->radial_next;
-			
-			if (l2 == l) {
-				l2 = newedge->l;
-				BM_elem_attrs_copy(bm, bm, l2->f, l->f);
-
-				BM_elem_attrs_copy(bm, bm, l2, l);
-				l2 = l2->next;
-				l = l->next;
-				BM_elem_attrs_copy(bm, bm, l2, l);
-			}
-			else {
-				BM_elem_attrs_copy(bm, bm, l2->f, l->f);
-
-				/* copy dat */
-				if (l2->v == l->v) {
-					BM_elem_attrs_copy(bm, bm, l2, l);
-					l2 = l2->next;
-					l = l->next;
-					BM_elem_attrs_copy(bm, bm, l2, l);
-				}
-				else {
-					l2 = l2->next;
-					BM_elem_attrs_copy(bm, bm, l2, l);
-					l2 = l2->prev;
-					l = l->next;
-					BM_elem_attrs_copy(bm, bm, l2, l);
-				}
-			}
-		}
+		bm_extrude_copy_face_loop_attributes(bm, f, e, newedge);
 	}
 
 	/* link isolated vert */
@@ -440,10 +450,10 @@ static void calc_solidify_normals(BMesh *bm)
 		}
 	}
 	MEM_freeN(edge_face_count);
-	edge_face_count = NULL; /* dont re-use */
+	edge_face_count = NULL; /* don't re-use */
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_vert_is_manifold(bm, v)) {
+		if (!BM_vert_is_manifold(v)) {
 			BMO_elem_flag_enable(bm, v, VERT_NONMAN);
 			continue;
 		}
@@ -614,7 +624,7 @@ void bmo_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_op_exec(bm, &extrudeop);
 
 	/* Push the verts of the extruded faces inward to create thickness */
-	BMO_slot_buffer_flag_enable(bm, &extrudeop, "geomout", FACE_MARK, BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, &extrudeop, "geomout", BM_FACE, FACE_MARK);
 	calc_solidify_normals(bm);
 	solidify_add_thickness(bm, thickness);
 

@@ -8,6 +8,7 @@
 #include <math.h>
 
 #include "CCGSubSurf.h"
+#include "BKE_subsurf.h"
 
 #include "MEM_guardedalloc.h"
 #include "BLO_sys_types.h" // for intptr_t support
@@ -227,12 +228,20 @@ static CCGAllocatorIFC *_getStandardAllocatorIFC(void)
 
 /***/
 
-static int ccg_gridsize(int level)
+int ccg_gridsize(int level)
 {
 	BLI_assert(level > 0);
 	BLI_assert(level <= 31);
          
 	return (1 << (level - 1)) + 1;
+}
+
+int ccg_factor(int low_level, int high_level)
+{
+	BLI_assert(low_level > 0 && high_level > 0);
+	BLI_assert(low_level <= high_level);
+
+	return 1 << (high_level - low_level);
 }
 
 static int ccg_edgesize(int level)

@@ -131,7 +131,7 @@ static void info_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Info", SPACE_INFO, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Info", SPACE_INFO, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -155,7 +155,7 @@ static void info_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* quick way to avoid drawing if not bug enough */
-	if(ar->winy < 16)
+	if (ar->winy < 16)
 		return;
 		
 	info_textview_update_rect(C, ar);
@@ -196,12 +196,12 @@ static void info_operatortypes(void)
 
 static void info_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "Window", 0, 0);
 	
 	WM_keymap_verify_item(keymap, "INFO_OT_reports_display_update", TIMERREPORT, KM_ANY, KM_ANY, 0);
 
 	/* info space */
-	keymap= WM_keymap_find(keyconf, "Info", SPACE_INFO, 0);
+	keymap = WM_keymap_find(keyconf, "Info", SPACE_INFO, 0);
 	
 	
 	/* report selection */
@@ -233,7 +233,7 @@ static void info_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_INFO_REPORT) {
+			if (wmn->data == ND_SPACE_INFO_REPORT) {
 				/* redraw also but only for report view, could do less redraws by checking the type */
 				ED_region_tag_redraw(ar);
 			}
@@ -246,23 +246,23 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCREEN:
-			if(ELEM(wmn->data, ND_SCREENCAST, ND_ANIMPLAY))
+			if (ELEM(wmn->data, ND_SCREENCAST, ND_ANIMPLAY))
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_WM:	
-			if(wmn->data == ND_JOB)
+			if (wmn->data == ND_JOB)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCENE:
-			if(wmn->data==ND_RENDER_RESULT)
+			if (wmn->data==ND_RENDER_RESULT)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:	
-			if(wmn->data == ND_SPACE_INFO)
+			if (wmn->data == ND_SPACE_INFO)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 	}
 	
@@ -274,10 +274,11 @@ static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 	uiLayout *layout= menu->layout;
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	if (G.recent_files.first) {
-		for(recent = G.recent_files.first; (recent); recent = recent->next) {
+		for (recent = G.recent_files.first; (recent); recent = recent->next) {
 			uiItemStringO(layout, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
 		}
-	} else {
+	}
+	else {
 		uiItemL(layout, IFACE_("No Recent Files"), ICON_NONE);
 	}
 }

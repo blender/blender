@@ -74,21 +74,21 @@ static PyObject *idprop_py_from_idp_int(IDProperty *prop)
 
 static PyObject *idprop_py_from_idp_float(IDProperty *prop)
 {
-	return PyFloat_FromDouble((double)(*(float*)(&prop->data.val)));
+	return PyFloat_FromDouble((double)(*(float *)(&prop->data.val)));
 }
 
 static PyObject *idprop_py_from_idp_double(IDProperty *prop)
 {
-	return PyFloat_FromDouble((*(double*)(&prop->data.val)));
+	return PyFloat_FromDouble((*(double *)(&prop->data.val)));
 }
 
 static PyObject *idprop_py_from_idp_group(ID *id, IDProperty *prop, IDProperty *parent)
 {
-	BPy_IDProperty *group= PyObject_New(BPy_IDProperty, &BPy_IDGroup_Type);
+	BPy_IDProperty *group = PyObject_New(BPy_IDProperty, &BPy_IDGroup_Type);
 	group->id = id;
 	group->prop = prop;
 	group->parent = parent; /* can be NULL */
-	return (PyObject*) group;
+	return (PyObject*)group;
 }
 
 static PyObject *idprop_py_from_idp_array(ID *id, IDProperty *prop)
@@ -96,13 +96,13 @@ static PyObject *idprop_py_from_idp_array(ID *id, IDProperty *prop)
 	BPy_IDProperty *array = PyObject_New(BPy_IDProperty, &BPy_IDArray_Type);
 	array->id = id;
 	array->prop = prop;
-	return (PyObject*) array;
+	return (PyObject*)array;
 }
 
 static PyObject *idprop_py_from_idp_idparray(ID *id, IDProperty *prop)
 {
 	PyObject *seq = PyList_New(prop->len), *wrap;
-	IDProperty *array= IDP_IDPArray(prop);
+	IDProperty *array = IDP_IDPArray(prop);
 	int i;
 
 	if (!seq) {
@@ -112,8 +112,8 @@ static PyObject *idprop_py_from_idp_idparray(ID *id, IDProperty *prop)
 		return NULL;
 	}
 
-	for (i=0; i<prop->len; i++) {
-		wrap= BPy_IDGroup_WrapData(id, array++, prop);
+	for (i = 0; i < prop->len; i++) {
+		wrap = BPy_IDGroup_WrapData(id, array++, prop);
 
 		if (!wrap) /* BPy_IDGroup_MapDataToPy sets the error */
 			return NULL;
@@ -134,28 +134,20 @@ static Py_hash_t BPy_IDGroup_hash(BPy_IDProperty *self)
 
 static PyObject *BPy_IDGroup_repr(BPy_IDProperty *self)
 {
-	return PyUnicode_FromFormat( "<bpy id property from \"%s\">", self->id->name);
+	return PyUnicode_FromFormat("<bpy id property from \"%s\">", self->id->name);
 }
 
 PyObject *BPy_IDGroup_WrapData(ID *id, IDProperty *prop, IDProperty *parent)
 {
 	switch (prop->type) {
-	case IDP_STRING:
-		return idprop_py_from_idp_string(prop);
-	case IDP_INT:
-		return idprop_py_from_idp_int(prop);
-	case IDP_FLOAT:
-		return idprop_py_from_idp_float(prop);
-	case IDP_DOUBLE:
-		return idprop_py_from_idp_double(prop);
-	case IDP_GROUP:
-		return idprop_py_from_idp_group(id, prop, parent);
-	case IDP_ARRAY:
-		return idprop_py_from_idp_array(id, prop);
-	case IDP_IDPARRAY: /* this could be better a internal type */
-		return idprop_py_from_idp_idparray(id, prop);
-	default:
-		Py_RETURN_NONE;
+		case IDP_STRING:   return idprop_py_from_idp_string(prop);
+		case IDP_INT:      return idprop_py_from_idp_int(prop);
+		case IDP_FLOAT:    return idprop_py_from_idp_float(prop);
+		case IDP_DOUBLE:   return idprop_py_from_idp_double(prop);
+		case IDP_GROUP:    return idprop_py_from_idp_group(id, prop, parent);
+		case IDP_ARRAY:    return idprop_py_from_idp_array(id, prop);
+		case IDP_IDPARRAY: return idprop_py_from_idp_idparray(id, prop); /* this could be better a internal type */
+		default: Py_RETURN_NONE;
 	}
 }
 
@@ -174,10 +166,10 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 #ifdef USE_STRING_COERCE
 			{
 				int alloc_len;
-				PyObject *value_coerce= NULL;
+				PyObject *value_coerce = NULL;
 
-				st= (char *)PyC_UnicodeAsByte(value, &value_coerce);
-				alloc_len= strlen(st) + 1;
+				st = (char *)PyC_UnicodeAsByte(value, &value_coerce);
+				alloc_len = strlen(st) + 1;
 
 				st = _PyUnicode_AsString(value);
 				IDP_ResizeArray(prop, alloc_len);
@@ -195,8 +187,8 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 
 		case IDP_INT:
 		{
-			int ivalue= PyLong_AsSsize_t(value);
-			if (ivalue==-1 && PyErr_Occurred()) {
+			int ivalue = PyLong_AsSsize_t(value);
+			if (ivalue == -1 && PyErr_Occurred()) {
 				PyErr_SetString(PyExc_TypeError, "expected an int type");
 				return -1;
 			}
@@ -205,22 +197,22 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 		}
 		case IDP_FLOAT:
 		{
-			float fvalue= (float)PyFloat_AsDouble(value);
-			if (fvalue==-1 && PyErr_Occurred()) {
+			float fvalue = (float)PyFloat_AsDouble(value);
+			if (fvalue == -1 && PyErr_Occurred()) {
 				PyErr_SetString(PyExc_TypeError, "expected a float");
 				return -1;
 			}
-			*(float*)&self->prop->data.val = fvalue;
+			*(float *)&self->prop->data.val = fvalue;
 			break;
 		}
 		case IDP_DOUBLE:
 		{
-			double dvalue= PyFloat_AsDouble(value);
-			if (dvalue==-1 && PyErr_Occurred()) {
+			double dvalue = PyFloat_AsDouble(value);
+			if (dvalue == -1 && PyErr_Occurred()) {
 				PyErr_SetString(PyExc_TypeError, "expected a float");
 				return -1;
 			}
-			*(double*)&self->prop->data.val = dvalue;
+			*(double *)&self->prop->data.val = dvalue;
 			break;
 		}
 		default:
@@ -289,16 +281,16 @@ static PyObject *BPy_IDGroup_Map_GetItem(BPy_IDProperty *self, PyObject *item)
 		return NULL;
 	}
 
-	name= _PyUnicode_AsString(item);
+	name = _PyUnicode_AsString(item);
 
 	if (name == NULL) {
 		PyErr_SetString(PyExc_TypeError, "only strings are allowed as keys of ID properties");
 		return NULL;
 	}
 
-	idprop= IDP_GetPropertyFromGroup(self->prop, name);
+	idprop = IDP_GetPropertyFromGroup(self->prop, name);
 
-	if (idprop==NULL) {
+	if (idprop == NULL) {
 		PyErr_SetString(PyExc_KeyError, "key not in subgroup dict");
 		return NULL;
 	}
@@ -306,21 +298,21 @@ static PyObject *BPy_IDGroup_Map_GetItem(BPy_IDProperty *self, PyObject *item)
 	return BPy_IDGroup_WrapData(self->id, idprop, self->prop);
 }
 
-/*returns NULL on success, error string on failure*/
+/* returns NULL on success, error string on failure */
 static int idp_sequence_type(PyObject *seq)
 {
 	PyObject *item;
-	int type= IDP_INT;
+	int type = IDP_INT;
 
 	Py_ssize_t i, len = PySequence_Size(seq);
-	for (i=0; i < len; i++) {
+	for (i = 0; i < len; i++) {
 		item = PySequence_GetItem(seq, i);
 		if (PyFloat_Check(item)) {
 			if (type == IDP_IDPARRAY) { /* mixed dict/int */
 				Py_DECREF(item);
 				return -1;
 			}
-			type= IDP_DOUBLE;
+			type = IDP_DOUBLE;
 		}
 		else if (PyLong_Check(item)) {
 			if (type == IDP_IDPARRAY) { /* mixed dict/int */
@@ -333,7 +325,7 @@ static int idp_sequence_type(PyObject *seq)
 				Py_DECREF(item);
 				return -1;
 			}
-			type= IDP_IDPARRAY;
+			type = IDP_IDPARRAY;
 		}
 		else {
 			Py_XDECREF(item);
@@ -353,7 +345,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 	IDProperty *prop = NULL;
 	IDPropertyTemplate val = {0};
 
-	const char *name= "";
+	const char *name = "";
 
 	if (name_obj) {
 		Py_ssize_t name_size;
@@ -373,7 +365,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 	}
 	else if (PyUnicode_Check(ob)) {
 #ifdef USE_STRING_COERCE
-		PyObject *value_coerce= NULL;
+		PyObject *value_coerce = NULL;
 		val.string.str = (char *)PyC_UnicodeAsByte(ob, &value_coerce);
 		val.string.subtype = IDP_STRING_SUB_UTF8;
 		prop = IDP_New(IDP_STRING, &val, name);
@@ -384,19 +376,19 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 #endif
 	}
 	else if (PyBytes_Check(ob)) {
-		val.string.str= PyBytes_AS_STRING(ob);
-		val.string.len= PyBytes_GET_SIZE(ob);
-		val.string.subtype= IDP_STRING_SUB_BYTE;
+		val.string.str = PyBytes_AS_STRING(ob);
+		val.string.len = PyBytes_GET_SIZE(ob);
+		val.string.subtype = IDP_STRING_SUB_BYTE;
 
 		prop = IDP_New(IDP_STRING, &val, name);
 		//prop = IDP_NewString(PyBytes_AS_STRING(ob), name, PyBytes_GET_SIZE(ob));
-		//prop->subtype= IDP_STRING_SUB_BYTE;
+		//prop->subtype = IDP_STRING_SUB_BYTE;
 	}
 	else if (PySequence_Check(ob)) {
 		PyObject *item;
 		int i;
 
-		if ((val.array.type= idp_sequence_type(ob)) == -1)
+		if ((val.array.type = idp_sequence_type(ob)) == -1)
 			return "only floats, ints and dicts are allowed in ID property arrays";
 
 		/* validate sequence and derive type.
@@ -406,34 +398,34 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		val.array.len = PySequence_Size(ob);
 
 		switch (val.array.type) {
-		case IDP_DOUBLE:
-			prop = IDP_New(IDP_ARRAY, &val, name);
-			for (i=0; i<val.array.len; i++) {
-				item = PySequence_GetItem(ob, i);
-				((double*)IDP_Array(prop))[i] = (float)PyFloat_AsDouble(item);
-				Py_DECREF(item);
-			}
-			break;
-		case IDP_INT:
-			prop = IDP_New(IDP_ARRAY, &val, name);
-			for (i=0; i<val.array.len; i++) {
-				item = PySequence_GetItem(ob, i);
-				((int*)IDP_Array(prop))[i] = (int)PyLong_AsSsize_t(item);
-				Py_DECREF(item);
-			}
-			break;
-		case IDP_IDPARRAY:
-			prop= IDP_NewIDPArray(name);
-			for (i=0; i<val.array.len; i++) {
-				const char *error;
-				item = PySequence_GetItem(ob, i);
-				error= BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item);
-				Py_DECREF(item);
+			case IDP_DOUBLE:
+				prop = IDP_New(IDP_ARRAY, &val, name);
+				for (i = 0; i < val.array.len; i++) {
+					item = PySequence_GetItem(ob, i);
+					((double *)IDP_Array(prop))[i] = (float)PyFloat_AsDouble(item);
+					Py_DECREF(item);
+				}
+				break;
+			case IDP_INT:
+				prop = IDP_New(IDP_ARRAY, &val, name);
+				for (i = 0; i < val.array.len; i++) {
+					item = PySequence_GetItem(ob, i);
+					((int *)IDP_Array(prop))[i] = (int)PyLong_AsSsize_t(item);
+					Py_DECREF(item);
+				}
+				break;
+			case IDP_IDPARRAY:
+				prop = IDP_NewIDPArray(name);
+				for (i = 0; i < val.array.len; i++) {
+					const char *error;
+					item = PySequence_GetItem(ob, i);
+					error = BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item);
+					Py_DECREF(item);
 
-				if (error)
-					return error;
-			}
-			break;
+					if (error)
+						return error;
+				}
+				break;
 		}
 	}
 	else if (PyMapping_Check(ob)) {
@@ -447,7 +439,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		 * we can delete it easily enough.*/
 		prop = IDP_New(IDP_GROUP, &val, name);
 		len = PyMapping_Length(ob);
-		for (i=0; i<len; i++) {
+		for (i = 0; i < len; i++) {
 			key = PySequence_GetItem(keys, i);
 			pval = PySequence_GetItem(vals, i);
 			if (!PyUnicode_Check(key)) {
@@ -476,7 +468,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 	}
 	else return "invalid property value";
 
-	if (group->type==IDP_IDPARRAY) {
+	if (group->type == IDP_IDPARRAY) {
 		IDP_AppendArray(group, prop);
 		// IDP_FreeProperty(item); // IDP_AppendArray does a shallow copy (memcpy), only free memory
 		MEM_freeN(prop);
@@ -518,7 +510,7 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 
 		err = BPy_IDProperty_Map_ValidateAndCreate(key, prop, val);
 		if (err) {
-			PyErr_SetString(PyExc_KeyError, err );
+			PyErr_SetString(PyExc_KeyError, err);
 			return -1;
 		}
 
@@ -538,107 +530,107 @@ static PyObject *BPy_IDGroup_iter(BPy_IDProperty *self)
 	iter->mode = IDPROP_ITER_KEYS;
 	iter->cur = self->prop->data.group.first;
 	Py_XINCREF(iter);
-	return (PyObject*) iter;
+	return (PyObject*)iter;
 }
 
 /* for simple, non nested types this is the same as BPy_IDGroup_WrapData */
 static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 {
 	switch (prop->type) {
-	case IDP_STRING:
-		return idprop_py_from_idp_string(prop);
-	case IDP_INT:
-		return idprop_py_from_idp_int(prop);
-	case IDP_FLOAT:
-		return idprop_py_from_idp_float(prop);
-	case IDP_DOUBLE:
-		return idprop_py_from_idp_double(prop);
-	case IDP_ARRAY:
-	{
-		PyObject *seq = PyList_New(prop->len);
-		int i;
-
-		if (!seq) {
-			PyErr_Format(PyExc_RuntimeError,
-			             "%s: IDP_ARRAY: PyList_New(%d) failed",
-			             __func__, prop->len);
-			return NULL;
-		}
-
-		switch (prop->subtype) {
-		case IDP_FLOAT:
-		{
-			float *array= (float*)IDP_Array(prop);
-			for (i=0; i<prop->len; i++) {
-				PyList_SET_ITEM(seq, i, PyFloat_FromDouble(array[i]));
-			}
-			break;
-		}
-		case IDP_DOUBLE:
-		{
-			double *array= (double*)IDP_Array(prop);
-			for (i=0; i<prop->len; i++) {
-				PyList_SET_ITEM(seq, i, PyFloat_FromDouble(array[i]));
-			}
-			break;
-		}
+		case IDP_STRING:
+			return idprop_py_from_idp_string(prop);
 		case IDP_INT:
+			return idprop_py_from_idp_int(prop);
+		case IDP_FLOAT:
+			return idprop_py_from_idp_float(prop);
+		case IDP_DOUBLE:
+			return idprop_py_from_idp_double(prop);
+		case IDP_ARRAY:
 		{
-			int *array= (int*)IDP_Array(prop);
-			for (i=0; i<prop->len; i++) {
-				PyList_SET_ITEM(seq, i, PyLong_FromLong(array[i]));
+			PyObject *seq = PyList_New(prop->len);
+			int i;
+
+			if (!seq) {
+				PyErr_Format(PyExc_RuntimeError,
+				             "%s: IDP_ARRAY: PyList_New(%d) failed",
+				             __func__, prop->len);
+				return NULL;
 			}
-			break;
+
+			switch (prop->subtype) {
+				case IDP_FLOAT:
+				{
+					float *array = (float *)IDP_Array(prop);
+					for (i = 0; i < prop->len; i++) {
+						PyList_SET_ITEM(seq, i, PyFloat_FromDouble(array[i]));
+					}
+					break;
+				}
+				case IDP_DOUBLE:
+				{
+					double *array = (double *)IDP_Array(prop);
+					for (i = 0; i < prop->len; i++) {
+						PyList_SET_ITEM(seq, i, PyFloat_FromDouble(array[i]));
+					}
+					break;
+				}
+				case IDP_INT:
+				{
+					int *array = (int *)IDP_Array(prop);
+					for (i = 0; i < prop->len; i++) {
+						PyList_SET_ITEM(seq, i, PyLong_FromLong(array[i]));
+					}
+					break;
+				}
+				default:
+					PyErr_Format(PyExc_RuntimeError,
+					             "%s: invalid/corrupt array type '%d'!",
+					             __func__, prop->subtype);
+					Py_DECREF(seq);
+					return NULL;
+			}
+
+			return seq;
 		}
-		default:
-			PyErr_Format(PyExc_RuntimeError,
-			             "%s: invalid/corrupt array type '%d'!",
-			             __func__, prop->subtype);
-			Py_DECREF(seq);
-			return NULL;
-		}
+		case IDP_IDPARRAY:
+		{
+			PyObject *seq = PyList_New(prop->len), *wrap;
+			IDProperty *array = IDP_IDPArray(prop);
+			int i;
 
-		return seq;
-	}
-	case IDP_IDPARRAY:
-	{
-		PyObject *seq = PyList_New(prop->len), *wrap;
-		IDProperty *array= IDP_IDPArray(prop);
-		int i;
-
-		if (!seq) {
-			PyErr_Format(PyExc_RuntimeError,
-			             "%s: IDP_IDPARRAY: PyList_New(%d) failed",
-			             __func__, prop->len);
-			return NULL;
-		}
-
-		for (i=0; i<prop->len; i++) {
-			wrap= BPy_IDGroup_MapDataToPy(array++);
-
-			if (!wrap) /* BPy_IDGroup_MapDataToPy sets the error */
+			if (!seq) {
+				PyErr_Format(PyExc_RuntimeError,
+				             "%s: IDP_IDPARRAY: PyList_New(%d) failed",
+				             __func__, prop->len);
 				return NULL;
+			}
 
-			PyList_SET_ITEM(seq, i, wrap);
+			for (i = 0; i < prop->len; i++) {
+				wrap = BPy_IDGroup_MapDataToPy(array++);
+
+				if (!wrap) /* BPy_IDGroup_MapDataToPy sets the error */
+					return NULL;
+
+				PyList_SET_ITEM(seq, i, wrap);
+			}
+			return seq;
 		}
-		return seq;
-	}
-	case IDP_GROUP:
-	{
-		PyObject *dict = PyDict_New(), *wrap;
-		IDProperty *loop;
+		case IDP_GROUP:
+		{
+			PyObject *dict = PyDict_New(), *wrap;
+			IDProperty *loop;
 
-		for (loop=prop->data.group.first; loop; loop=loop->next) {
-			wrap = BPy_IDGroup_MapDataToPy(loop);
+			for (loop = prop->data.group.first; loop; loop = loop->next) {
+				wrap = BPy_IDGroup_MapDataToPy(loop);
 
-			if (!wrap) /* BPy_IDGroup_MapDataToPy sets the error */
-				return NULL;
+				if (!wrap) /* BPy_IDGroup_MapDataToPy sets the error */
+					return NULL;
 
-			PyDict_SetItemString(dict, loop->name, wrap);
-			Py_DECREF(wrap);
+				PyDict_SetItemString(dict, loop->name, wrap);
+				Py_DECREF(wrap);
+			}
+			return dict;
 		}
-		return dict;
-	}
 	}
 
 	PyErr_Format(PyExc_RuntimeError,
@@ -660,7 +652,7 @@ static PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *value)
 		return NULL;
 	}
 
-	idprop= IDP_GetPropertyFromGroup(self->prop, name);
+	idprop = IDP_GetPropertyFromGroup(self->prop, name);
 
 	if (idprop) {
 		pyform = BPy_IDGroup_MapDataToPy(idprop);
@@ -687,7 +679,7 @@ static PyObject *BPy_IDGroup_IterItems(BPy_IDProperty *self)
 	iter->mode = IDPROP_ITER_ITEMS;
 	iter->cur = self->prop->data.group.first;
 	Py_XINCREF(iter);
-	return (PyObject*) iter;
+	return (PyObject*)iter;
 }
 
 /* utility function */
@@ -698,7 +690,7 @@ static void BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len,
 	printf("%s: ID Property Error found and corrected!\n", func);
 
 	/*fill rest of list with valid references to None*/
-	for (j=len; j<prop->len; j++) {
+	for (j = len; j < prop->len; j++) {
 		Py_INCREF(Py_None);
 		PyList_SET_ITEM(seq, j, Py_None);
 	}
@@ -713,11 +705,13 @@ PyObject *BPy_Wrap_GetKeys(IDProperty *prop)
 	IDProperty *loop;
 	int i;
 
-	for (i=0, loop=prop->data.group.first; loop && (i < prop->len); loop=loop->next, i++)
+	for (i = 0, loop = prop->data.group.first; loop && (i < prop->len); loop = loop->next, i++)
 		PyList_SET_ITEM(list, i, PyUnicode_FromString(loop->name));
 
 	/* if the id prop is corrupt, count the remaining */
-	for (; loop; loop=loop->next, i++) {}
+	for ( ; loop; loop = loop->next, i++) {
+		/* pass */
+	}
 
 	if (i != prop->len) { /* if the loop didnt finish, we know the length is wrong */
 		BPy_IDGroup_CorrectListLen(prop, list, i, __func__);
@@ -735,7 +729,7 @@ PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop)
 	IDProperty *loop;
 	int i;
 
-	for (i=0, loop=prop->data.group.first; loop; loop=loop->next, i++) {
+	for (i = 0, loop = prop->data.group.first; loop; loop = loop->next, i++) {
 		PyList_SET_ITEM(list, i, BPy_IDGroup_WrapData(id, loop, prop));
 	}
 
@@ -755,8 +749,8 @@ PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop)
 	IDProperty *loop;
 	int i;
 
-	for (i=0, loop=prop->data.group.first; loop; loop=loop->next, i++) {
-		PyObject *item= PyTuple_New(2);
+	for (i = 0, loop = prop->data.group.first; loop; loop = loop->next, i++) {
+		PyObject *item = PyTuple_New(2);
 		PyTuple_SET_ITEM(item, 0, PyUnicode_FromString(loop->name));
 		PyTuple_SET_ITEM(item, 1, BPy_IDGroup_WrapData(id, loop, prop));
 		PyList_SET_ITEM(seq, i, item);
@@ -805,7 +799,7 @@ static int BPy_IDGroup_Contains(BPy_IDProperty *self, PyObject *value)
 static PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *value)
 {
 	PyObject *pkey, *pval;
-	Py_ssize_t i=0;
+	Py_ssize_t i = 0;
 
 	if (!PyDict_Check(value)) {
 		PyErr_Format(PyExc_TypeError,
@@ -829,18 +823,18 @@ static PyObject *BPy_IDGroup_to_dict(BPy_IDProperty *self)
 
 
 /* Matches python dict.get(key, [default]) */
-static PyObject* BPy_IDGroup_Get(BPy_IDProperty *self, PyObject *args)
+static PyObject *BPy_IDGroup_Get(BPy_IDProperty *self, PyObject *args)
 {
 	IDProperty *idprop;
 	char *key;
-	PyObject* def = Py_None;
+	PyObject *def = Py_None;
 
 	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
 		return NULL;
 
-	idprop= IDP_GetPropertyFromGroup(self->prop, key);
+	idprop = IDP_GetPropertyFromGroup(self->prop, key);
 	if (idprop) {
-		PyObject* pyobj = BPy_IDGroup_WrapData(self->id, idprop, self->prop);
+		PyObject *pyobj = BPy_IDGroup_WrapData(self->id, idprop, self->prop);
 		if (pyobj)
 			return pyobj;
 	}
@@ -955,17 +949,17 @@ static PyTypeObject *idp_array_py_type(BPy_IDArray *self, short *is_double)
 {
 	switch (self->prop->subtype) {
 		case IDP_FLOAT:
-			*is_double= 0;
+			*is_double = 0;
 			return &PyFloat_Type;
 		case IDP_DOUBLE:
-			*is_double= 1;
+			*is_double = 1;
 			return &PyFloat_Type;
 		case IDP_INT:
-			*is_double= 0;
+			*is_double = 0;
 			return &PyLong_Type;
 	}
 
-	*is_double= 0;
+	*is_double = 0;
 	return NULL;
 }
 
@@ -977,12 +971,9 @@ static PyObject *BPy_IDArray_repr(BPy_IDArray *self)
 static PyObject *BPy_IDArray_GetType(BPy_IDArray *self)
 {
 	switch (self->prop->subtype) {
-	case IDP_FLOAT:
-		return PyUnicode_FromString("f");
-	case IDP_DOUBLE:
-		return PyUnicode_FromString("d");
-	case IDP_INT:
-		return PyUnicode_FromString("i");
+		case IDP_FLOAT:  return PyUnicode_FromString("f");
+		case IDP_DOUBLE: return PyUnicode_FromString("d");
+		case IDP_INT:    return PyUnicode_FromString("i");
 	}
 
 	PyErr_Format(PyExc_RuntimeError,
@@ -1023,11 +1014,11 @@ static PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, int index)
 
 	switch (self->prop->subtype) {
 		case IDP_FLOAT:
-			return PyFloat_FromDouble(((float*)IDP_Array(self->prop))[index]);
+			return PyFloat_FromDouble(((float *)IDP_Array(self->prop))[index]);
 		case IDP_DOUBLE:
-			return PyFloat_FromDouble(((double*)IDP_Array(self->prop))[index]);
+			return PyFloat_FromDouble(((double *)IDP_Array(self->prop))[index]);
 		case IDP_INT:
-			return PyLong_FromLong((long)((int*)IDP_Array(self->prop))[index]);
+			return PyLong_FromLong((long)((int *)IDP_Array(self->prop))[index]);
 	}
 
 	PyErr_Format(PyExc_RuntimeError,
@@ -1050,29 +1041,29 @@ static int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *value)
 
 	switch (self->prop->subtype) {
 		case IDP_FLOAT:
-			f= (float)PyFloat_AsDouble(value);
-			if (f==-1 && PyErr_Occurred()) {
+			f = (float)PyFloat_AsDouble(value);
+			if (f == -1 && PyErr_Occurred()) {
 				PyErr_SetString(PyExc_TypeError, "expected a float");
 				return -1;
 			}
-			((float*)IDP_Array(self->prop))[index] = f;
+			((float *)IDP_Array(self->prop))[index] = f;
 			break;
 		case IDP_DOUBLE:
-			d= PyFloat_AsDouble(value);
-			if (d==-1 && PyErr_Occurred()) {
+			d = PyFloat_AsDouble(value);
+			if (d == -1 && PyErr_Occurred()) {
 				PyErr_SetString(PyExc_TypeError, "expected a float");
 				return -1;
 			}
-			((double*)IDP_Array(self->prop))[index] = d;
+			((double *)IDP_Array(self->prop))[index] = d;
 			break;
 		case IDP_INT:
-			i= PyLong_AsSsize_t(value);
-			if (i==-1 && PyErr_Occurred()) {
+			i = PyLong_AsSsize_t(value);
+			if (i == -1 && PyErr_Occurred()) {
 				PyErr_SetString(PyExc_TypeError, "expected an int type");
 				return -1;
 			}
 
-			((int*)IDP_Array(self->prop))[index] = i;
+			((int *)IDP_Array(self->prop))[index] = i;
 			break;
 	}
 	return 0;
@@ -1097,21 +1088,21 @@ static PySequenceMethods BPy_IDArray_Seq = {
 /* sequence slice (get): idparr[a:b] */
 static PyObject *BPy_IDArray_slice(BPy_IDArray *self, int begin, int end)
 {
-	IDProperty *prop= self->prop;
+	IDProperty *prop = self->prop;
 	PyObject *tuple;
 	int count;
 
 	CLAMP(begin, 0, prop->len);
-	if (end<0) end= prop->len+end+1;
+	if (end < 0) end = prop->len + end + 1;
 	CLAMP(end, 0, prop->len);
-	begin= MIN2(begin, end);
+	begin = MIN2(begin, end);
 
-	tuple= PyTuple_New(end - begin);
+	tuple = PyTuple_New(end - begin);
 
 	switch (prop->subtype) {
 		case IDP_FLOAT:
 		{
-			float *array= (float*)IDP_Array(prop);
+			float *array = (float *)IDP_Array(prop);
 			for (count = begin; count < end; count++) {
 				PyTuple_SET_ITEM(tuple, count - begin, PyFloat_FromDouble(array[count]));
 			}
@@ -1119,7 +1110,7 @@ static PyObject *BPy_IDArray_slice(BPy_IDArray *self, int begin, int end)
 		}
 		case IDP_DOUBLE:
 		{
-			double *array= (double*)IDP_Array(prop);
+			double *array = (double *)IDP_Array(prop);
 			for (count = begin; count < end; count++) {
 				PyTuple_SET_ITEM(tuple, count - begin, PyFloat_FromDouble(array[count]));
 			}
@@ -1127,7 +1118,7 @@ static PyObject *BPy_IDArray_slice(BPy_IDArray *self, int begin, int end)
 		}
 		case IDP_INT:
 		{
-			int *array= (int*)IDP_Array(prop);
+			int *array = (int *)IDP_Array(prop);
 			for (count = begin; count < end; count++) {
 				PyTuple_SET_ITEM(tuple, count - begin, PyLong_FromLong(array[count]));
 			}
@@ -1140,10 +1131,10 @@ static PyObject *BPy_IDArray_slice(BPy_IDArray *self, int begin, int end)
 /* sequence slice (set): idparr[a:b] = value */
 static int BPy_IDArray_ass_slice(BPy_IDArray *self, int begin, int end, PyObject *seq)
 {
-	IDProperty *prop= self->prop;
-	short is_double= 0;
-	const PyTypeObject *py_type= idp_array_py_type(self, &is_double);
-	const size_t elem_size= is_double ? sizeof(double) : sizeof(float);
+	IDProperty *prop = self->prop;
+	short is_double = 0;
+	const PyTypeObject *py_type = idp_array_py_type(self, &is_double);
+	const size_t elem_size = is_double ? sizeof(double) : sizeof(float);
 	size_t alloc_len;
 	size_t size;
 	void *vec;
@@ -1153,9 +1144,9 @@ static int BPy_IDArray_ass_slice(BPy_IDArray *self, int begin, int end, PyObject
 	begin = MIN2(begin, end);
 
 	size = (end - begin);
-	alloc_len= size * elem_size;
+	alloc_len = size * elem_size;
 
-	vec= MEM_mallocN(alloc_len, "array assignment"); /* NOTE: we count on int/float being the same size here */
+	vec = MEM_mallocN(alloc_len, "array assignment"); /* NOTE: we count on int/float being the same size here */
 	if (PyC_AsArray(vec, seq, size, py_type, is_double, "slice assignment: ") == -1) {
 		MEM_freeN(vec);
 		return -1;
@@ -1167,7 +1158,7 @@ static int BPy_IDArray_ass_slice(BPy_IDArray *self, int begin, int end, PyObject
 	return 0;
 }
 
-static PyObject *BPy_IDArray_subscript(BPy_IDArray* self, PyObject* item)
+static PyObject *BPy_IDArray_subscript(BPy_IDArray *self, PyObject *item)
 {
 	if (PyIndex_Check(item)) {
 		Py_ssize_t i;
@@ -1203,7 +1194,7 @@ static PyObject *BPy_IDArray_subscript(BPy_IDArray* self, PyObject* item)
 	}
 }
 
-static int BPy_IDArray_ass_subscript(BPy_IDArray* self, PyObject* item, PyObject* value)
+static int BPy_IDArray_ass_subscript(BPy_IDArray *self, PyObject *item, PyObject *value)
 {
 	if (PyIndex_Check(item)) {
 		Py_ssize_t i = PyNumber_AsSsize_t(item, PyExc_IndexError);
@@ -1331,12 +1322,14 @@ static PyObject *IDGroup_Iter_repr(BPy_IDGroup_Iter *self)
 
 static PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
 {
-	IDProperty *cur=NULL;
-	PyObject *ret;
 
 	if (self->cur) {
+		PyObject *ret;
+		IDProperty *cur;
+
 		cur = self->cur;
 		self->cur = self->cur->next;
+
 		if (self->mode == IDPROP_ITER_ITEMS) {
 			ret = PyTuple_New(2);
 			PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(cur->name));
@@ -1357,7 +1350,7 @@ PyTypeObject BPy_IDGroup_Iter_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	/*  For printing, in format "<module>.<name>" */
 	"Blender IDGroup_Iter",           /* char *tp_name; */
-	sizeof( BPy_IDGroup_Iter ),       /* int tp_basicsize; */
+	sizeof(BPy_IDGroup_Iter),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
@@ -1367,7 +1360,7 @@ PyTypeObject BPy_IDGroup_Iter_Type = {
 	NULL,     /* getattrfunc tp_getattr; */
 	NULL,     /* setattrfunc tp_setattr; */
 	NULL,                       /* cmpfunc tp_compare; */
-	( reprfunc ) IDGroup_Iter_repr,     /* reprfunc tp_repr; */
+	(reprfunc) IDGroup_Iter_repr,     /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
 

@@ -84,14 +84,14 @@ int paint_convert_bb_to_rect(rcti *rect,
 	rect->xmax = rect->ymax = INT_MIN;
 
 	/* return zero if the bounding box has non-positive volume */
-	if(bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2])
+	if (bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2])
 		return 0;
 
 	ED_view3d_ob_project_mat_get(rv3d, ob, projection_mat);
 
-	for(i = 0; i < 2; ++i) {
-		for(j = 0; j < 2; ++j) {
-			for(k = 0; k < 2; ++k) {
+	for (i = 0; i < 2; ++i) {
+		for (j = 0; j < 2; ++j) {
+			for (k = 0; k < 2; ++k) {
 				float vec[3], proj[2];
 				vec[0] = i ? bb_min[0] : bb_max[0];
 				vec[1] = j ? bb_min[1] : bb_max[1];
@@ -229,7 +229,7 @@ static void imapaint_tri_weights(Object *ob,
 	h[1]= (co[1] - view[1])*2.0f/view[3] - 1;
 	h[2]= 1.0f;
 
-	/* solve for(w1,w2,w3)/perspdiv in:
+	/* solve for (w1,w2,w3)/perspdiv in:
 	 * h * perspdiv = Project * Model * (w1 * v1 + w2 * v2 + w3 * v3) */
 
 	wmat[0][0]= pv1[0];  wmat[1][0]= pv2[0];  wmat[2][0]= pv3[0];
@@ -243,7 +243,7 @@ static void imapaint_tri_weights(Object *ob,
 
 	/* w is still divided by perspdiv, make it sum to one */
 	divw= w[0] + w[1] + w[2];
-	if(divw != 0.0f) {
+	if (divw != 0.0f) {
 		mul_v3_fl(w, 1.0f/divw);
 	}
 }
@@ -263,16 +263,16 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 	uv[0] = uv[1] = 0.0;
 
 	/* test all faces in the derivedmesh with the original index of the picked face */
-	for(a = 0; a < numfaces; a++) {
+	for (a = 0; a < numfaces; a++) {
 		findex= index ? index[a]: a;
 
-		if(findex == faceindex) {
+		if (findex == faceindex) {
 			dm->getTessFace(dm, a, &mf);
 
 			dm->getVert(dm, mf.v1, &mv[0]);
 			dm->getVert(dm, mf.v2, &mv[1]);
 			dm->getVert(dm, mf.v3, &mv[2]);
-			if(mf.v4)
+			if (mf.v4)
 				dm->getVert(dm, mf.v4, &mv[3]);
 
 			tf= &tface[a];
@@ -280,12 +280,12 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 			p[0]= xy[0];
 			p[1]= xy[1];
 
-			if(mf.v4) {
+			if (mf.v4) {
 				/* the triangle with the largest absolute values is the one
 				 * with the most negative weights */
 				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[3].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
-				if(absw < minabsw) {
+				if (absw < minabsw) {
 					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[3][0]*w[2];
 					uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[3][1]*w[2];
 					minabsw = absw;
@@ -293,7 +293,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 
 				imapaint_tri_weights(ob, mv[1].co, mv[2].co, mv[3].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
-				if(absw < minabsw) {
+				if (absw < minabsw) {
 					uv[0]= tf->uv[1][0]*w[0] + tf->uv[2][0]*w[1] + tf->uv[3][0]*w[2];
 					uv[1]= tf->uv[1][1]*w[0] + tf->uv[2][1]*w[1] + tf->uv[3][1]*w[2];
 					minabsw = absw;
@@ -302,7 +302,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 			else {
 				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[2].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
-				if(absw < minabsw) {
+				if (absw < minabsw) {
 					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[2][0]*w[2];
 					uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[2][1]*w[2];
 					minabsw = absw;
@@ -317,13 +317,13 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 ///* returns 0 if not found, otherwise 1 */
 int imapaint_pick_face(ViewContext *vc, Mesh *me, const int mval[2], unsigned int *index)
 {
-	if(!me || me->totface==0)
+	if (!me || me->totface==0)
 		return 0;
 
 	/* sample only on the exact position */
 	*index = view3d_sample_backbuf(vc, mval[0], mval[1]);
 
-	if((*index)<=0 || (*index)>(unsigned int)me->totface)
+	if ((*index)<=0 || (*index)>(unsigned int)me->totface)
 		return 0;
 
 	(*index)--;
@@ -347,7 +347,7 @@ void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)	/* frontbuf */
 
 	cp = (char *)&col;
 	
-	if(br) {
+	if (br) {
 		br->rgb[0]= cp[0]/255.0f;
 		br->rgb[1]= cp[1]/255.0f;
 		br->rgb[2]= cp[2]/255.0f;
@@ -380,14 +380,14 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 		{CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	ot->name= "Preset";
-	ot->description= "Set brush shape";
-	ot->idname= "BRUSH_OT_curve_preset";
+	ot->name = "Preset";
+	ot->description = "Set brush shape";
+	ot->idname = "BRUSH_OT_curve_preset";
 
-	ot->exec= brush_curve_preset_exec;
-	ot->poll= brush_curve_preset_poll;
+	ot->exec = brush_curve_preset_exec;
+	ot->poll = brush_curve_preset_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
 }
@@ -403,14 +403,14 @@ static int paint_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PAINT_OT_face_select_linked(wmOperatorType *ot)
 {
-	ot->name= "Select Linked";
-	ot->description= "Select linked faces";
-	ot->idname= "PAINT_OT_face_select_linked";
+	ot->name = "Select Linked";
+	ot->description = "Select linked faces";
+	ot->idname = "PAINT_OT_face_select_linked";
 
-	ot->exec= paint_select_linked_exec;
-	ot->poll= facemask_paint_poll;
+	ot->exec = paint_select_linked_exec;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -423,14 +423,14 @@ static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent 
 
 void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 {
-	ot->name= "Select Linked Pick";
-	ot->description= "Select linked faces";
-	ot->idname= "PAINT_OT_face_select_linked_pick";
+	ot->name = "Select Linked Pick";
+	ot->description = "Select linked faces";
+	ot->idname = "PAINT_OT_face_select_linked_pick";
 
-	ot->invoke= paint_select_linked_pick_invoke;
-	ot->poll= facemask_paint_poll;
+	ot->invoke = paint_select_linked_pick_invoke;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
 }
@@ -447,14 +447,14 @@ static int face_select_all_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_face_select_all(wmOperatorType *ot)
 {
-	ot->name= "Face Selection";
-	ot->description= "Change selection for all faces";
-	ot->idname= "PAINT_OT_face_select_all";
+	ot->name = "Face Selection";
+	ot->description = "Change selection for all faces";
+	ot->idname = "PAINT_OT_face_select_all";
 
-	ot->exec= face_select_all_exec;
-	ot->poll= facemask_paint_poll;
+	ot->exec = face_select_all_exec;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -471,14 +471,14 @@ static int vert_select_all_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_vert_select_all(wmOperatorType *ot)
 {
-	ot->name= "Vertex Selection";
-	ot->description= "Change selection for all vertices";
-	ot->idname= "PAINT_OT_vert_select_all";
+	ot->name = "Vertex Selection";
+	ot->description = "Change selection for all vertices";
+	ot->idname = "PAINT_OT_vert_select_all";
 
-	ot->exec= vert_select_all_exec;
-	ot->poll= vert_paint_poll;
+	ot->exec = vert_select_all_exec;
+	ot->poll = vert_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -493,14 +493,14 @@ static int vert_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PAINT_OT_vert_select_inverse(wmOperatorType *ot)
 {
-	ot->name= "Vertex Select Invert";
-	ot->description= "Invert selection of vertices";
-	ot->idname= "PAINT_OT_vert_select_inverse";
+	ot->name = "Vertex Select Invert";
+	ot->description = "Invert selection of vertices";
+	ot->idname = "PAINT_OT_vert_select_inverse";
 
-	ot->exec= vert_select_inverse_exec;
-	ot->poll= vert_paint_poll;
+	ot->exec = vert_select_inverse_exec;
+	ot->poll = vert_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 static int face_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -513,14 +513,14 @@ static int face_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PAINT_OT_face_select_inverse(wmOperatorType *ot)
 {
-	ot->name= "Face Select Invert";
-	ot->description= "Invert selection of faces";
-	ot->idname= "PAINT_OT_face_select_inverse";
+	ot->name = "Face Select Invert";
+	ot->description = "Invert selection of faces";
+	ot->idname = "PAINT_OT_face_select_inverse";
 
-	ot->exec= face_select_inverse_exec;
-	ot->poll= facemask_paint_poll;
+	ot->exec = face_select_inverse_exec;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int face_select_hide_exec(bContext *C, wmOperator *op)
@@ -534,14 +534,14 @@ static int face_select_hide_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_face_select_hide(wmOperatorType *ot)
 {
-	ot->name= "Face Select Hide";
-	ot->description= "Hide selected faces";
-	ot->idname= "PAINT_OT_face_select_hide";
+	ot->name = "Face Select Hide";
+	ot->description = "Hide selected faces";
+	ot->idname = "PAINT_OT_face_select_hide";
 
-	ot->exec= face_select_hide_exec;
-	ot->poll= facemask_paint_poll;
+	ot->exec = face_select_hide_exec;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }
@@ -556,14 +556,14 @@ static int face_select_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PAINT_OT_face_select_reveal(wmOperatorType *ot)
 {
-	ot->name= "Face Select Reveal";
-	ot->description= "Reveal hidden faces";
-	ot->idname= "PAINT_OT_face_select_reveal";
+	ot->name = "Face Select Reveal";
+	ot->description = "Reveal hidden faces";
+	ot->idname = "PAINT_OT_face_select_reveal";
 
-	ot->exec= face_select_reveal_exec;
-	ot->poll= facemask_paint_poll;
+	ot->exec = face_select_reveal_exec;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }

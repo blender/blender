@@ -268,7 +268,7 @@ The **try** statement is useful to save time writing error checking code.
 
 However **try** is significantly slower then an **if** since an exception has to be set each time, so avoid using **try** in areas of your code that execute in a loop and runs many times.
 
-There are cases where using **try** is faster than checking weather the condition will raise an error, so it is worth experimenting.
+There are cases where using **try** is faster than checking whether the condition will raise an error, so it is worth experimenting.
 
 
 Value Comparison

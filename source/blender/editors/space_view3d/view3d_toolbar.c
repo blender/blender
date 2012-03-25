@@ -176,7 +176,7 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, 150, 19, 0, 0, "");
+	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, 150, 19, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, arg_listbase, operator_call_cb, NULL);
 	
 	uiBoundsBlock(block, 6);
@@ -257,14 +257,14 @@ static int view3d_toolshelf(bContext *C, wmOperator *UNUSED(op))
 
 void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 {
-	ot->name= "Tool Shelf";
-	ot->description= "Toggles tool shelf display";
-	ot->idname= "VIEW3D_OT_toolshelf";
+	ot->name = "Tool Shelf";
+	ot->description = "Toggles tool shelf display";
+	ot->idname = "VIEW3D_OT_toolshelf";
 	
-	ot->exec= view3d_toolshelf;
-	ot->poll= ED_operator_view3d_active;
+	ot->exec = view3d_toolshelf;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 

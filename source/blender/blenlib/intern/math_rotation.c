@@ -198,7 +198,7 @@ void quat_to_mat3(float m[][3], const float q[4])
 {
 #ifdef DEBUG
 	float f;
-	if(!((f=dot_qtqt(q, q))==0.0f || (fabsf(f-1.0f) < (float)QUAT_EPSILON))) {
+	if (!((f=dot_qtqt(q, q))==0.0f || (fabsf(f-1.0f) < (float)QUAT_EPSILON))) {
 		fprintf(stderr, "Warning! quat_to_mat3() called with non-normalized: size %.8f *** report a bug ***\n", f);
 	}
 #endif
@@ -211,7 +211,7 @@ void quat_to_mat4(float m[][4], const float q[4])
 	double q0, q1, q2, q3, qda,qdb,qdc,qaa,qab,qac,qbb,qbc,qcc;
 
 #ifdef DEBUG
-	if(!((q0=dot_qtqt(q, q))==0.0f || (fabsf(q0-1.0) < QUAT_EPSILON))) {
+	if (!((q0=dot_qtqt(q, q))==0.0f || (fabsf(q0-1.0) < QUAT_EPSILON))) {
 		fprintf(stderr, "Warning! quat_to_mat4() called with non-normalized: size %.8f *** report a bug ***\n", (float)q0);
 	}
 #endif
@@ -261,7 +261,7 @@ void mat3_to_quat(float *q, float wmat[][3])
 	
 	tr= 0.25* (double)(1.0f+mat[0][0]+mat[1][1]+mat[2][2]);
 	
-	if(tr>(double)FLT_EPSILON) {
+	if (tr>(double)FLT_EPSILON) {
 		s= sqrt(tr);
 		q[0]= (float)s;
 		s= 1.0/(4.0*s);
@@ -270,7 +270,7 @@ void mat3_to_quat(float *q, float wmat[][3])
 		q[3]= (float)((mat[0][1]-mat[1][0])*s);
 	}
 	else {
-		if(mat[0][0] > mat[1][1] && mat[0][0] > mat[2][2]) {
+		if (mat[0][0] > mat[1][1] && mat[0][0] > mat[2][2]) {
 			s= 2.0f*sqrtf(1.0f + mat[0][0] - mat[1][1] - mat[2][2]);
 			q[1]= (float)(0.25*s);
 
@@ -279,7 +279,7 @@ void mat3_to_quat(float *q, float wmat[][3])
 			q[2]= (float)((double)(mat[1][0] + mat[0][1])*s);
 			q[3]= (float)((double)(mat[2][0] + mat[0][2])*s);
 		}
-		else if(mat[1][1] > mat[2][2]) {
+		else if (mat[1][1] > mat[2][2]) {
 			s= 2.0f*sqrtf(1.0f + mat[1][1] - mat[0][0] - mat[2][2]);
 			q[2]= (float)(0.25*s);
 
@@ -359,7 +359,7 @@ float normalize_qt(float *q)
 	float len;
 	
 	len= (float)sqrt(dot_qtqt(q, q));
-	if(len!=0.0f) {
+	if (len!=0.0f) {
 		mul_qt_fl(q, 1.0f/len);
 	}
 	else {
@@ -399,7 +399,7 @@ void rotation_between_quats_to_quat(float *q, const float q1[4], const float q2[
 	conjugate_qt(tquat);
 	dot = 1.0f / dot_qtqt(tquat, tquat);
 
-	for(x = 0; x < 4; x++)
+	for (x = 0; x < 4; x++)
 		tquat[x] *= dot;
 
 	mul_qt_qtqt(q, tquat, q2);
@@ -414,7 +414,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 	assert(upflag >= 0 && upflag <= 2);
 	
 	/* first rotate to axis */
-	if(axis>2) {	
+	if (axis>2) {	
 		x2= vec[0] ; y2= vec[1] ; z2= vec[2];
 		axis-= 3;
 	}
@@ -426,28 +426,28 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 	q[1]=q[2]=q[3]= 0.0;
 
 	len1= (float)sqrt(x2*x2+y2*y2+z2*z2);
-	if(len1 == 0.0f) return;
+	if (len1 == 0.0f) return;
 
 	/* nasty! I need a good routine for this...
 	 * problem is a rotation of an Y axis to the negative Y-axis for example.
 	 */
 
-	if(axis==0) {	/* x-axis */
+	if (axis==0) {	/* x-axis */
 		nor[0]= 0.0;
 		nor[1]= -z2;
 		nor[2]= y2;
 
-		if(fabs(y2)+fabs(z2)<0.0001)
+		if (fabs(y2)+fabs(z2)<0.0001)
 			nor[1]= 1.0;
 
 		co= x2;
 	}
-	else if(axis==1) {	/* y-axis */
+	else if (axis==1) {	/* y-axis */
 		nor[0]= z2;
 		nor[1]= 0.0;
 		nor[2]= -x2;
 		
-		if(fabs(x2)+fabs(z2)<0.0001)
+		if (fabs(x2)+fabs(z2)<0.0001)
 			nor[2]= 1.0;
 		
 		co= y2;
@@ -457,7 +457,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 		nor[1]= x2;
 		nor[2]= 0.0;
 
-		if(fabs(x2)+fabs(y2)<0.0001)
+		if (fabs(x2)+fabs(y2)<0.0001)
 			nor[0]= 1.0;
 
 		co= z2;
@@ -473,20 +473,20 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 	q[2]= nor[1]*si;
 	q[3]= nor[2]*si;
 	
-	if(axis!=upflag) {
+	if (axis!=upflag) {
 		quat_to_mat3(mat,q);
 
 		fp= mat[2];
-		if(axis==0) {
-			if(upflag==1) angle= (float)(0.5*atan2(fp[2], fp[1]));
+		if (axis==0) {
+			if (upflag==1) angle= (float)(0.5*atan2(fp[2], fp[1]));
 			else angle= (float)(-0.5*atan2(fp[1], fp[2]));
 		}
-		else if(axis==1) {
-			if(upflag==0) angle= (float)(-0.5*atan2(fp[2], fp[0]));
+		else if (axis==1) {
+			if (upflag==0) angle= (float)(-0.5*atan2(fp[2], fp[0]));
 			else angle= (float)(0.5*atan2(fp[0], fp[2]));
 		}
 		else {
-			if(upflag==0) angle= (float)(0.5*atan2(-fp[1], -fp[0]));
+			if (upflag==0) angle= (float)(0.5*atan2(-fp[1], -fp[0]));
 			else angle= (float)(-0.5*atan2(-fp[0], -fp[1]));
 		}
 				
@@ -570,7 +570,8 @@ void interp_qt_qtqt(float result[4], const float quat1[4], const float quat2[4],
 		sinom = (float)sin(omega);
 		sc1 = (float)sin((1 - t) * omega) / sinom;
 		sc2 = (float)sin(t * omega) / sinom;
-	} else {
+	}
+	else {
 		sc1= 1.0f - t;
 		sc2= t;
 	}
@@ -602,7 +603,7 @@ void tri_to_quat(float quat[4], const float v1[3], const float v2[3], const floa
 	n[2]= 0.0f;
 	normalize_v3(n);
 	
-	if(n[0]==0.0f && n[1]==0.0f) n[0]= 1.0f;
+	if (n[0]==0.0f && n[1]==0.0f) n[0]= 1.0f;
 	
 	angle= -0.5f*(float)saacos(vec[2]);
 	co= (float)cos(angle);
@@ -646,7 +647,7 @@ void axis_angle_to_quat(float q[4], const float axis[3], float angle)
 	float nor[3];
 	float si;
 
-	if(normalize_v3_v3(nor, axis) == 0.0f) {
+	if (normalize_v3_v3(nor, axis) == 0.0f) {
 		unit_qt(q);
 		return;
 	}
@@ -665,7 +666,7 @@ void quat_to_axis_angle(float axis[3], float *angle, const float q[4])
 	float ha, si;
 
 #ifdef DEBUG
-	if(!((ha=dot_qtqt(q, q))==0.0f || (fabsf(ha-1.0f) < (float)QUAT_EPSILON))) {
+	if (!((ha=dot_qtqt(q, q))==0.0f || (fabsf(ha-1.0f) < (float)QUAT_EPSILON))) {
 		fprintf(stderr, "Warning! quat_to_axis_angle() called with non-normalized: size %.8f *** report a bug ***\n", ha);
 	}
 #endif
@@ -712,7 +713,7 @@ void axis_angle_to_mat3(float mat[3][3], const float axis[3], const float angle)
 	float nor[3], nsi[3], co, si, ico;
 	
 	/* normalize the axis first (to remove unwanted scaling) */
-	if(normalize_v3_v3(nor, axis) == 0.0f) {
+	if (normalize_v3_v3(nor, axis) == 0.0f) {
 		unit_m3(mat);
 		return;
 	}
@@ -864,7 +865,7 @@ void vec_rot_to_quat(float *quat, const float vec[3], const float phi)
 	quat[2]= vec[1];
 	quat[3]= vec[2];
 	
-	if(normalize_v3(quat+1) == 0.0f) {
+	if (normalize_v3(quat+1) == 0.0f) {
 		unit_qt(quat);
 	}
 	else {
@@ -960,7 +961,8 @@ static void mat3_to_eul2(float tmat[][3], float eul1[3], float eul2[3])
 		eul2[1] = (float)atan2(-mat[0][2], -cy);
 		eul2[2] = (float)atan2(-mat[0][1], -mat[0][0]);
 		
-	} else {
+	}
+	else {
 		eul1[0] = (float)atan2(-mat[2][1], mat[1][1]);
 		eul1[1] = (float)atan2(-mat[0][2], cy);
 		eul1[2] = 0.0f;
@@ -977,7 +979,7 @@ void mat3_to_eul(float *eul,float tmat[][3])
 	mat3_to_eul2(tmat, eul1, eul2);
 		
 	/* return best, which is just the one with lowest values it in */
-	if(fabs(eul1[0])+fabs(eul1[1])+fabs(eul1[2]) > fabs(eul2[0])+fabs(eul2[1])+fabs(eul2[2])) {
+	if (fabs(eul1[0])+fabs(eul1[1])+fabs(eul1[2]) > fabs(eul2[0])+fabs(eul2[1])+fabs(eul2[2])) {
 		copy_v3_v3(eul, eul2);
 	}
 	else {
@@ -1028,8 +1030,8 @@ void rotate_eul(float *beul, const char axis, const float ang)
 	assert(axis >= 'X' && axis <= 'Z');
 
 	eul[0]= eul[1]= eul[2]= 0.0f;
-	if(axis=='X') eul[0]= ang;
-	else if(axis=='Y') eul[1]= ang;
+	if (axis=='X') eul[0]= ang;
+	else if (axis=='Y') eul[1]= ang;
 	else eul[2]= ang;
 	
 	eul_to_mat3(mat1,eul);
@@ -1052,28 +1054,28 @@ void compatible_eul(float eul[3], const float oldrot[3])
 	dy= eul[1] - oldrot[1];
 	dz= eul[2] - oldrot[2];
 	
-	while(fabs(dx) > 5.1) {
-		if(dx > 0.0f) eul[0] -= 2.0f*(float)M_PI; else eul[0]+= 2.0f*(float)M_PI;
+	while (fabs(dx) > 5.1) {
+		if (dx > 0.0f) eul[0] -= 2.0f*(float)M_PI; else eul[0]+= 2.0f*(float)M_PI;
 		dx= eul[0] - oldrot[0];
 	}
-	while(fabs(dy) > 5.1) {
-		if(dy > 0.0f) eul[1] -= 2.0f*(float)M_PI; else eul[1]+= 2.0f*(float)M_PI;
+	while (fabs(dy) > 5.1) {
+		if (dy > 0.0f) eul[1] -= 2.0f*(float)M_PI; else eul[1]+= 2.0f*(float)M_PI;
 		dy= eul[1] - oldrot[1];
 	}
-	while(fabs(dz) > 5.1) {
-		if(dz > 0.0f) eul[2] -= 2.0f*(float)M_PI; else eul[2]+= 2.0f*(float)M_PI;
+	while (fabs(dz) > 5.1) {
+		if (dz > 0.0f) eul[2] -= 2.0f*(float)M_PI; else eul[2]+= 2.0f*(float)M_PI;
 		dz= eul[2] - oldrot[2];
 	}
 	
 	/* is 1 of the axis rotations larger than 180 degrees and the other small? NO ELSE IF!! */	
-	if(fabs(dx) > 3.2 && fabs(dy)<1.6 && fabs(dz)<1.6) {
-		if(dx > 0.0f) eul[0] -= 2.0f*(float)M_PI; else eul[0]+= 2.0f*(float)M_PI;
+	if (fabs(dx) > 3.2 && fabs(dy)<1.6 && fabs(dz)<1.6) {
+		if (dx > 0.0f) eul[0] -= 2.0f*(float)M_PI; else eul[0]+= 2.0f*(float)M_PI;
 	}
-	if(fabs(dy) > 3.2 && fabs(dz)<1.6 && fabs(dx)<1.6) {
-		if(dy > 0.0f) eul[1] -= 2.0f*(float)M_PI; else eul[1]+= 2.0f*(float)M_PI;
+	if (fabs(dy) > 3.2 && fabs(dz)<1.6 && fabs(dx)<1.6) {
+		if (dy > 0.0f) eul[1] -= 2.0f*(float)M_PI; else eul[1]+= 2.0f*(float)M_PI;
 	}
-	if(fabs(dz) > 3.2 && fabs(dx)<1.6 && fabs(dy)<1.6) {
-		if(dz > 0.0f) eul[2] -= 2.0f*(float)M_PI; else eul[2]+= 2.0f*(float)M_PI;
+	if (fabs(dz) > 3.2 && fabs(dx)<1.6 && fabs(dy)<1.6) {
+		if (dz > 0.0f) eul[2] -= 2.0f*(float)M_PI; else eul[2]+= 2.0f*(float)M_PI;
 	}
 	
 	/* the method below was there from ancient days... but why! probably because the code sucks :)
@@ -1086,21 +1088,21 @@ void compatible_eul(float eul[3], const float oldrot[3])
 	
 	/* special case, tested for x-z  */
 	
-	if((fabs(dx) > 3.1 && fabs(dz) > 1.5) || (fabs(dx) > 1.5 && fabs(dz) > 3.1)) {
-		if(dx > 0.0) eul[0] -= M_PI; else eul[0]+= M_PI;
-		if(eul[1] > 0.0) eul[1]= M_PI - eul[1]; else eul[1]= -M_PI - eul[1];
-		if(dz > 0.0) eul[2] -= M_PI; else eul[2]+= M_PI;
+	if ((fabs(dx) > 3.1 && fabs(dz) > 1.5) || (fabs(dx) > 1.5 && fabs(dz) > 3.1)) {
+		if (dx > 0.0) eul[0] -= M_PI; else eul[0]+= M_PI;
+		if (eul[1] > 0.0) eul[1]= M_PI - eul[1]; else eul[1]= -M_PI - eul[1];
+		if (dz > 0.0) eul[2] -= M_PI; else eul[2]+= M_PI;
 		
 	}
-	else if((fabs(dx) > 3.1 && fabs(dy) > 1.5) || (fabs(dx) > 1.5 && fabs(dy) > 3.1)) {
-		if(dx > 0.0) eul[0] -= M_PI; else eul[0]+= M_PI;
-		if(dy > 0.0) eul[1] -= M_PI; else eul[1]+= M_PI;
-		if(eul[2] > 0.0) eul[2]= M_PI - eul[2]; else eul[2]= -M_PI - eul[2];
+	else if ((fabs(dx) > 3.1 && fabs(dy) > 1.5) || (fabs(dx) > 1.5 && fabs(dy) > 3.1)) {
+		if (dx > 0.0) eul[0] -= M_PI; else eul[0]+= M_PI;
+		if (dy > 0.0) eul[1] -= M_PI; else eul[1]+= M_PI;
+		if (eul[2] > 0.0) eul[2]= M_PI - eul[2]; else eul[2]= -M_PI - eul[2];
 	}
-	else if((fabs(dy) > 3.1 && fabs(dz) > 1.5) || (fabs(dy) > 1.5 && fabs(dz) > 3.1)) {
-		if(eul[0] > 0.0) eul[0]= M_PI - eul[0]; else eul[0]= -M_PI - eul[0];
-		if(dy > 0.0) eul[1] -= M_PI; else eul[1]+= M_PI;
-		if(dz > 0.0) eul[2] -= M_PI; else eul[2]+= M_PI;
+	else if ((fabs(dy) > 3.1 && fabs(dz) > 1.5) || (fabs(dy) > 1.5 && fabs(dz) > 3.1)) {
+		if (eul[0] > 0.0) eul[0]= M_PI - eul[0]; else eul[0]= -M_PI - eul[0];
+		if (dy > 0.0) eul[1] -= M_PI; else eul[1]+= M_PI;
+		if (dz > 0.0) eul[2] -= M_PI; else eul[2]+= M_PI;
 	}
 #endif	
 }
@@ -1121,7 +1123,7 @@ void mat3_to_compatible_eul(float eul[3], const float oldrot[3], float mat[][3])
 	d2= (float)fabs(eul2[0]-oldrot[0]) + (float)fabs(eul2[1]-oldrot[1]) + (float)fabs(eul2[2]-oldrot[2]);
 	
 	/* return best, which is just the one with lowest difference */
-	if(d1 > d2) {
+	if (d1 > d2) {
 		copy_v3_v3(eul, eul2);
 	}
 	else {
@@ -1292,7 +1294,7 @@ void mat3_to_eulO(float eul[3], const short order,float M[3][3])
 	mat3_to_eulo2(M, eul1, eul2, order);
 		
 	/* return best, which is just the one with lowest values it in */
-	if(fabs(eul1[0])+fabs(eul1[1])+fabs(eul1[2]) > fabs(eul2[0])+fabs(eul2[1])+fabs(eul2[2])) {
+	if (fabs(eul1[0])+fabs(eul1[1])+fabs(eul1[2]) > fabs(eul2[0])+fabs(eul2[1])+fabs(eul2[2])) {
 		copy_v3_v3(eul, eul2);
 	}
 	else {
@@ -1439,7 +1441,7 @@ void mat4_to_dquat(DualQuat *dq,float basemat[][4], float mat[][4])
 	copy_v3_v3(dscale, scale);
 	dscale[0] -= 1.0f; dscale[1] -= 1.0f; dscale[2] -= 1.0f;
 
-	if((determinant_m4(mat) < 0.0f) || len_v3(dscale) > 1e-4f) {
+	if ((determinant_m4(mat) < 0.0f) || len_v3(dscale) > 1e-4f) {
 		/* extract R and S  */
 		float tmp[4][4];
 
@@ -1488,7 +1490,7 @@ void dquat_to_mat4(float mat[][4], DualQuat *dq)
 
 	/* normalize */
 	len= (float)sqrt(dot_qtqt(q0, q0)); 
-	if(len != 0.0f)
+	if (len != 0.0f)
 		mul_qt_fl(q0, 1.0f/len);
 	
 	/* rotation */
@@ -1528,7 +1530,7 @@ void add_weighted_dq_dq(DualQuat *dqsum, DualQuat *dq, float weight)
 	if (dq->scale_weight) {
 		float wmat[4][4];
 		
-		if(flipped)	/* we don't want negative weights for scaling */
+		if (flipped)	/* we don't want negative weights for scaling */
 			weight= -weight;
 		
 		copy_m4_m4(wmat, dq->scale);
@@ -1545,10 +1547,10 @@ void normalize_dq(DualQuat *dq, float totweight)
 	mul_qt_fl(dq->quat, scale);
 	mul_qt_fl(dq->trans, scale);
 	
-	if(dq->scale_weight) {
+	if (dq->scale_weight) {
 		float addweight= totweight - dq->scale_weight;
 		
-		if(addweight) {
+		if (addweight) {
 			dq->scale[0][0] += addweight;
 			dq->scale[1][1] += addweight;
 			dq->scale[2][2] += addweight;
@@ -1580,7 +1582,7 @@ void mul_v3m3_dq(float *co, float mat[][3],DualQuat *dq)
 	M[2][2]= w*w + z*z - x*x - y*y;
 	
 	len2= dot_qtqt(dq->quat, dq->quat);
-	if(len2 > 0.0f)
+	if (len2 > 0.0f)
 		len2= 1.0f/len2;
 	
 	/* translation */
@@ -1589,7 +1591,7 @@ void mul_v3m3_dq(float *co, float mat[][3],DualQuat *dq)
 	t[2]= 2*(-t0*z + x*t2 + w*t3 - t1*y);
 
 	/* apply scaling */
-	if(dq->scale_weight)
+	if (dq->scale_weight)
 		mul_m4_v3(dq->scale, co);
 	
 	/* apply rotation and translation */
@@ -1599,8 +1601,8 @@ void mul_v3m3_dq(float *co, float mat[][3],DualQuat *dq)
 	co[2]= (co[2] + t[2])*len2;
 
 	/* compute crazyspace correction mat */
-	if(mat) {
-		if(dq->scale_weight) {
+	if (mat) {
+		if (dq->scale_weight) {
 			copy_m3_m4(scalemat, dq->scale);
 			mul_m3_m3m3(mat, M, scalemat);
 		}
@@ -1631,13 +1633,13 @@ void quat_apply_track(float quat[4], short axis, short upflag)
 	
 	mul_qt_qtqt(quat, quat, quat_track[axis]);
 
-	if(axis>2)
+	if (axis>2)
 		axis= axis-3;
 
 	/* there are 2 possible up-axis for each axis used, the 'quat_track' applies so the first
 	 * up axis is used X->Y, Y->X, Z->X, if this first up axis isn used then rotate 90d
 	 * the strange bit shift below just find the low axis {X:Y, Y:X, Z:X} */
-	if(upflag != (2-axis)>>1) {
+	if (upflag != (2-axis)>>1) {
 		float q[4]= {0.70710676908493, 0.0, 0.0, 0.0}; /* assign 90d rotation axis */
 		q[axis+1] = ((axis==1)) ? 0.70710676908493 : -0.70710676908493; /* flip non Y axis */
 		mul_qt_qtqt(quat, quat, q);

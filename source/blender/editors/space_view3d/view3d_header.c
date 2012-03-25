@@ -254,17 +254,17 @@ static int view3d_layers_poll(bContext *C)
 void VIEW3D_OT_layers(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Layers";
-	ot->description= "Toggle layer(s) visibility";
-	ot->idname= "VIEW3D_OT_layers";
+	ot->name = "Layers";
+	ot->description = "Toggle layer(s) visibility";
+	ot->idname = "VIEW3D_OT_layers";
 	
 	/* api callbacks */
-	ot->invoke= view3d_layers_invoke;
-	ot->exec= view3d_layers_exec;
-	ot->poll= view3d_layers_poll;
+	ot->invoke = view3d_layers_invoke;
+	ot->exec = view3d_layers_exec;
+	ot->poll = view3d_layers_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "The layer number to set, zero for all layers", 0, 20);
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Add this layer to the current view layers");
@@ -455,9 +455,9 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 
 		row= uiLayoutRow(layout, 1);
 		block= uiLayoutGetBlock(row);
-		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
-		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
-		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select - Shift-Click for multiple modes");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select - Shift-Click for multiple modes");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Face select - Shift-Click for multiple modes");
 	}
 }
 
@@ -527,7 +527,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
 		/* pose/object only however we want to allow in weight paint mode too
-		 * so dont be totally strict and just check not-editmode for now */
+		 * so don't be totally strict and just check not-editmode for now */
 		if (obedit == NULL) {
 			uiItemR(row, &v3dptr, "use_pivot_point_align", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		}
@@ -538,11 +538,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		block= uiLayoutGetBlock(row);
 		
 		if (v3d->twflag & V3D_USE_MANIPULATOR) {
-			but= uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Translate manipulator mode"));
+			but = uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Translate manipulator - Shift-Click for multiple modes"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-			but= uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Rotate manipulator mode"));
+			but = uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Rotate manipulator - Shift-Click for multiple modes"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-			but= uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Scale manipulator mode"));
+			but = uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Scale manipulator - Shift-Click for multiple modes"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 		}
 			
@@ -551,7 +551,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 			
 		str_menu = BIF_menustringTransformOrientation(C, "Orientation");
-		but= uiDefButC(block, MENU, B_MAN_MODE, str_menu,0,0,70 * dpi_fac, UI_UNIT_Y, &v3d->twmode, 0, 0, 0, 0, TIP_("Transform Orientation"));
+		but = uiDefButC(block, MENU, B_MAN_MODE, str_menu,0,0,70 * dpi_fac, UI_UNIT_Y, &v3d->twmode, 0, 0, 0, 0, TIP_("Transform Orientation"));
 		uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 		MEM_freeN((void *)str_menu);
 	}

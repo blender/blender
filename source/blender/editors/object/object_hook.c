@@ -79,9 +79,9 @@ static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, floa
 	int *index, nr, totvert=0;
 	
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if(BM_elem_flag_test(eve, BM_ELEM_SELECT)) totvert++;
+		if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) totvert++;
 	}
-	if(totvert==0) return 0;
+	if (totvert==0) return 0;
 	
 	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
 	*tot= totvert;
@@ -89,7 +89,7 @@ static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, floa
 	zero_v3(cent);
 	
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if(BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+		if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 			*index= nr; index++;
 			add_v3_v3(cent, eve->co);
 		}
@@ -105,7 +105,7 @@ static int return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *name, fl
 {
 	zero_v3(cent);
 
-	if(obedit->actdef) {
+	if (obedit->actdef) {
 		const int defgrp_index= obedit->actdef-1;
 		int totvert=0;
 
@@ -117,14 +117,14 @@ static int return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *name, fl
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 
-			if(dvert) {
-				if(defvert_find_weight(dvert, defgrp_index) > 0.0f) {
+			if (dvert) {
+				if (defvert_find_weight(dvert, defgrp_index) > 0.0f) {
 					add_v3_v3(cent, eve->co);
 					totvert++;
 				}
 			}
 		}
-		if(totvert) {
+		if (totvert) {
 			bDeformGroup *dg = BLI_findlink(&obedit->defbase, defgrp_index);
 			BLI_strncpy(name, dg->name, sizeof(dg->name));
 			mul_v3_fl(cent, 1.0f/(float)totvert);
@@ -147,9 +147,9 @@ static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 		return;
 	
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if(nr==hmd->indexar[index]) {
+		if (nr==hmd->indexar[index]) {
 			BM_elem_select_set(em->bm, eve, TRUE);
-			if(index < hmd->totindex-1) index++;
+			if (index < hmd->totindex-1) index++;
 		}
 
 		nr++;
@@ -166,25 +166,25 @@ static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar
 	/* count */
 	a= editlatt->pntsu*editlatt->pntsv*editlatt->pntsw;
 	bp= editlatt->def;
-	while(a--) {
-		if(bp->f1 & SELECT) {
-			if(bp->hide==0) totvert++;
+	while (a--) {
+		if (bp->f1 & SELECT) {
+			if (bp->hide==0) totvert++;
 		}
 		bp++;
 	}
 
-	if(totvert==0) return 0;
+	if (totvert==0) return 0;
 	
 	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
 	*tot= totvert;
 	nr= 0;
-	cent[0]= cent[1]= cent[2]= 0.0;
+	zero_v3(cent);
 	
 	a= editlatt->pntsu*editlatt->pntsv*editlatt->pntsw;
 	bp= editlatt->def;
-	while(a--) {
-		if(bp->f1 & SELECT) {
-			if(bp->hide==0) {
+	while (a--) {
+		if (bp->f1 & SELECT) {
+			if (bp->hide==0) {
 				*index= nr; index++;
 				add_v3_v3(cent, bp->vec);
 			}
@@ -208,10 +208,10 @@ static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
 	/* count */
 	a= editlt->pntsu*editlt->pntsv*editlt->pntsw;
 	bp= editlt->def;
-	while(a--) {
-		if(hmd->indexar[index]==nr) {
+	while (a--) {
+		if (hmd->indexar[index]==nr) {
 			bp->f1 |= SELECT;
-			if(index < hmd->totindex-1) index++;
+			if (index < hmd->totindex-1) index++;
 		}
 		nr++;
 		bp++;
@@ -226,49 +226,49 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 	BezTriple *bezt;
 	int *index, a, nr, totvert=0;
 	
-	for(nu= editnurb->first; nu; nu= nu->next) {
-		if(nu->type == CU_BEZIER) {
+	for (nu= editnurb->first; nu; nu= nu->next) {
+		if (nu->type == CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
-			while(a--) {
-				if(bezt->f1 & SELECT) totvert++;
-				if(bezt->f2 & SELECT) totvert++;
-				if(bezt->f3 & SELECT) totvert++;
+			while (a--) {
+				if (bezt->f1 & SELECT) totvert++;
+				if (bezt->f2 & SELECT) totvert++;
+				if (bezt->f3 & SELECT) totvert++;
 				bezt++;
 			}
 		}
 		else {
 			bp= nu->bp;
 			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				if(bp->f1 & SELECT) totvert++;
+			while (a--) {
+				if (bp->f1 & SELECT) totvert++;
 				bp++;
 			}
 		}
 	}
-	if(totvert==0) return 0;
+	if (totvert==0) return 0;
 	
 	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
 	*tot= totvert;
 	nr= 0;
-	cent[0]= cent[1]= cent[2]= 0.0;
+	zero_v3(cent);
 	
-	for(nu= editnurb->first; nu; nu= nu->next) {
-		if(nu->type == CU_BEZIER) {
+	for (nu= editnurb->first; nu; nu= nu->next) {
+		if (nu->type == CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
-			while(a--) {
-				if(bezt->f1 & SELECT) {
+			while (a--) {
+				if (bezt->f1 & SELECT) {
 					*index= nr; index++;
 					add_v3_v3(cent, bezt->vec[0]);
 				}
 				nr++;
-				if(bezt->f2 & SELECT) {
+				if (bezt->f2 & SELECT) {
 					*index= nr; index++;
 					add_v3_v3(cent, bezt->vec[1]);
 				}
 				nr++;
-				if(bezt->f3 & SELECT) {
+				if (bezt->f3 & SELECT) {
 					*index= nr; index++;
 					add_v3_v3(cent, bezt->vec[2]);
 				}
@@ -279,8 +279,8 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 		else {
 			bp= nu->bp;
 			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				if(bp->f1 & SELECT) {
+			while (a--) {
+				if (bp->f1 & SELECT) {
 					*index= nr; index++;
 					add_v3_v3(cent, bp->vec);
 				}
@@ -314,9 +314,10 @@ static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int *
 			em = me->edit_btmesh;
 
 			/* check selected vertices first */
-			if( return_editmesh_indexar(em, tot, indexar, cent_r)) {
+			if ( return_editmesh_indexar(em, tot, indexar, cent_r)) {
 				return 1;
-			} else {
+			}
+			else {
 				int ret = return_editmesh_vgroup(obedit, em, name, cent_r);
 				return ret;
 			}
@@ -342,24 +343,24 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 	BezTriple *bezt;
 	int index=0, a, nr=0;
 	
-	for(nu= editnurb->first; nu; nu= nu->next) {
-		if(nu->type == CU_BEZIER) {
+	for (nu= editnurb->first; nu; nu= nu->next) {
+		if (nu->type == CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
-			while(a--) {
-				if(nr == hmd->indexar[index]) {
+			while (a--) {
+				if (nr == hmd->indexar[index]) {
 					bezt->f1 |= SELECT;
-					if(index<hmd->totindex-1) index++;
+					if (index<hmd->totindex-1) index++;
 				}
 				nr++;
-				if(nr == hmd->indexar[index]) {
+				if (nr == hmd->indexar[index]) {
 					bezt->f2 |= SELECT;
-					if(index<hmd->totindex-1) index++;
+					if (index<hmd->totindex-1) index++;
 				}
 				nr++;
-				if(nr == hmd->indexar[index]) {
+				if (nr == hmd->indexar[index]) {
 					bezt->f3 |= SELECT;
-					if(index<hmd->totindex-1) index++;
+					if (index<hmd->totindex-1) index++;
 				}
 				nr++;
 				
@@ -369,10 +370,10 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 		else {
 			bp= nu->bp;
 			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				if(nr == hmd->indexar[index]) {
+			while (a--) {
+				if (nr == hmd->indexar[index]) {
 					bp->f1 |= SELECT;
-					if(index<hmd->totindex-1) index++;
+					if (index<hmd->totindex-1) index++;
 				}
 				nr++;
 				bp++;
@@ -386,10 +387,10 @@ static void object_hook_select(Object *ob, HookModifierData *hmd)
 	if (hmd->indexar == NULL)
 		return;
 	
-	if(ob->type==OB_MESH) select_editbmesh_hook(ob, hmd);
-	else if(ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
-	else if(ob->type==OB_CURVE) select_editcurve_hook(ob, hmd);
-	else if(ob->type==OB_SURF) select_editcurve_hook(ob, hmd);
+	if (ob->type==OB_MESH) select_editbmesh_hook(ob, hmd);
+	else if (ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
+	else if (ob->type==OB_CURVE) select_editcurve_hook(ob, hmd);
+	else if (ob->type==OB_SURF) select_editcurve_hook(ob, hmd);
 }
 
 /* special poll operators for hook operators */
@@ -505,16 +506,16 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hook to Selected Object";
-	ot->description= "Hook selected vertices to the first selected Object";
-	ot->idname= "OBJECT_OT_hook_add_selob";
+	ot->name = "Hook to Selected Object";
+	ot->description = "Hook selected vertices to the first selected Object";
+	ot->idname = "OBJECT_OT_hook_add_selob";
 	
 	/* api callbacks */
-	ot->exec= object_add_hook_selob_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_add_hook_selob_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_add_hook_newob_exec(bContext *C, wmOperator *UNUSED(op))
@@ -533,16 +534,16 @@ static int object_add_hook_newob_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_hook_add_newobj(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hook to New Object";
-	ot->description= "Hook selected vertices to the first selected Object";
-	ot->idname= "OBJECT_OT_hook_add_newob";
+	ot->name = "Hook to New Object";
+	ot->description = "Hook selected vertices to the first selected Object";
+	ot->idname = "OBJECT_OT_hook_add_newob";
 	
 	/* api callbacks */
-	ot->exec= object_add_hook_newob_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_add_hook_newob_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_hook_remove_exec(bContext *C, wmOperator *op)
@@ -578,10 +579,10 @@ static EnumPropertyItem *hook_mod_itemf(bContext *C, PointerRNA *UNUSED(ptr), Pr
 	ModifierData *md = NULL;
 	int a, totitem= 0;
 	
-	if(!ob)
+	if (!ob)
 		return DummyRNA_NULL_items;
 	
-	for(a=0, md=ob->modifiers.first; md; md= md->next, a++) {
+	for (a=0, md=ob->modifiers.first; md; md= md->next, a++) {
 		if (md->type==eModifierType_Hook) {
 			tmp.value= a;
 			tmp.icon = ICON_HOOK;
@@ -602,24 +603,24 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Remove Hook";
-	ot->idname= "OBJECT_OT_hook_remove";
-	ot->description= "Remove a hook from the active object";
+	ot->name = "Remove Hook";
+	ot->idname = "OBJECT_OT_hook_remove";
+	ot->description = "Remove a hook from the active object";
 	
 	/* api callbacks */
-	ot->exec= object_hook_remove_exec;
-	ot->invoke= WM_menu_invoke;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_hook_remove_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
 	/* this operator removes modifier which isn't stored in local undo stack,
 	 * so redoing it from redo panel gives totally weird results  */
-	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
+	ot->flag = /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 static int object_hook_reset_exec(bContext *C, wmOperator *op)
@@ -643,10 +644,10 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* reset functionality */
-	if(hmd->object) {
+	if (hmd->object) {
 		bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
 		
-		if(hmd->subtarget[0] && pchan) {
+		if (hmd->subtarget[0] && pchan) {
 			float imat[4][4], mat[4][4];
 			
 			/* calculate the world-space matrix for the pose-channel target first, then carry on as usual */
@@ -672,16 +673,16 @@ void OBJECT_OT_hook_reset(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Reset Hook";
-	ot->description= "Recalculate and clear offset transformation";
-	ot->idname= "OBJECT_OT_hook_reset";
+	ot->name = "Reset Hook";
+	ot->description = "Recalculate and clear offset transformation";
+	ot->idname = "OBJECT_OT_hook_reset";
 	
 	/* callbacks */
-	ot->exec= object_hook_reset_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_hook_reset_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
@@ -728,16 +729,16 @@ void OBJECT_OT_hook_recenter(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Recenter Hook";
-	ot->description= "Set hook center to cursor position";
-	ot->idname= "OBJECT_OT_hook_recenter";
+	ot->name = "Recenter Hook";
+	ot->description = "Set hook center to cursor position";
+	ot->idname = "OBJECT_OT_hook_recenter";
 	
 	/* callbacks */
-	ot->exec= object_hook_recenter_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_hook_recenter_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
@@ -770,11 +771,11 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	
 	/* assign functionality */
 	
-	if(!object_hook_index_array(scene, ob, &tot, &indexar, name, cent)) {
+	if (!object_hook_index_array(scene, ob, &tot, &indexar, name, cent)) {
 		BKE_report(op->reports, RPT_WARNING, "Requires selected vertices or active vertex group");
 		return OPERATOR_CANCELLED;
 	}
-	if(hmd->indexar)
+	if (hmd->indexar)
 		MEM_freeN(hmd->indexar);
 	
 	copy_v3_v3(hmd->cent, cent);
@@ -792,18 +793,18 @@ void OBJECT_OT_hook_assign(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Assign to Hook";
-	ot->description= "Assign the selected vertices to a hook";
-	ot->idname= "OBJECT_OT_hook_assign";
+	ot->name = "Assign to Hook";
+	ot->description = "Assign the selected vertices to a hook";
+	ot->idname = "OBJECT_OT_hook_assign";
 	
 	/* callbacks */
-	ot->exec= object_hook_assign_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_hook_assign_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
 	/* this operator changes data stored in modifier which doesn't get pushed to undo stack,
 	 * so redoing it from redo panel gives totally weird results  */
-	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
+	ot->flag = /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
@@ -843,16 +844,16 @@ void OBJECT_OT_hook_select(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Select Hook";
-	ot->description= "Select affected vertices on mesh";
-	ot->idname= "OBJECT_OT_hook_select";
+	ot->name = "Select Hook";
+	ot->description = "Select affected vertices on mesh";
+	ot->idname = "OBJECT_OT_hook_select";
 	
 	/* callbacks */
-	ot->exec= object_hook_select_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_hook_select_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove");

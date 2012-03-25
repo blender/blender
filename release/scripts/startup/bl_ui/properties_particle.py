@@ -380,6 +380,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
     bl_label = "Rotation"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -394,6 +395,15 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
         else:
             return False
 
+    def draw_header(self, context):
+        psys = context.particle_system
+        if psys:
+            part = psys.settings
+        else:
+            part = context.space_data.pin_id
+
+        self.layout.prop(part, "use_rotations", text="")
+
     def draw(self, context):
         layout = self.layout
 
@@ -403,14 +413,9 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
         else:
             part = context.space_data.pin_id
 
-        layout.enabled = particle_panel_enabled(context, psys)
+        layout.enabled = particle_panel_enabled(context, psys) and part.use_rotations
 
-        layout.prop(part, "use_dynamic_rotation")
-
-        if part.use_dynamic_rotation:
-            layout.label(text="Initial Rotation Axis:")
-        else:
-            layout.label(text="Rotation Axis:")
+        layout.label(text="Initial Orientation:")
 
         split = layout.split()
 
@@ -423,16 +428,17 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
         col.prop(part, "phase_factor_random", text="Random", slider=True)
 
         if part.type != 'HAIR':
-            col = layout.column()
-            if part.use_dynamic_rotation:
-                col.label(text="Initial Angular Velocity:")
-            else:
-                col.label(text="Angular Velocity:")
-            sub = col.row(align=True)
-            sub.prop(part, "angular_velocity_mode", text="")
-            subsub = sub.column()
-            subsub.active = part.angular_velocity_mode != 'NONE'
-            subsub.prop(part, "angular_velocity_factor", text="")
+            layout.label(text="Angular Velocity:")
+
+            split = layout.split()
+            col = split.column(align=True)
+            col.prop(part, "angular_velocity_mode", text="")
+            sub = col.column()
+            sub.active = part.angular_velocity_mode != 'NONE'
+            sub.prop(part, "angular_velocity_factor", text="")
+
+            col = split.column()
+            col.prop(part, "use_dynamic_rotation")
 
 
 class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):

@@ -41,7 +41,7 @@ static bNodeSocketTemplate cmp_node_splitviewer_in[]= {
 
 static void do_copy_split_rgba(bNode *UNUSED(node), float *out, float *in1, float *in2, float *fac)
 {
-	if(*fac==0.0f) {
+	if (*fac==0.0f) {
 		copy_v4_v4(out, in1);
 	}
 	else {
@@ -54,10 +54,10 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 	/* image assigned to output */
 	/* stack order input sockets: image image */
 	
-	if(in[0]->data==NULL || in[1]->data==NULL)
+	if (in[0]->data==NULL || in[1]->data==NULL)
 		return;
 	
-	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
+	if (node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
 		Image *ima= (Image *)node->id;
 		RenderData *rd= data;
 		ImBuf *ibuf;
@@ -73,7 +73,7 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		
 		/* always returns for viewer image, but we check nevertheless */
 		ibuf= BKE_image_acquire_ibuf(ima, node->storage, &lock);
-		if(ibuf==NULL) {
+		if (ibuf==NULL) {
 			printf("node_composit_exec_viewer error\n");
 			BKE_image_release_ibuf(ima, lock);
 			return;
@@ -100,7 +100,7 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		
 		
 		/* Check which offset mode is selected and limit offset if needed */
-		if(node->custom2 == 0) {
+		if (node->custom2 == 0) {
 			offset = buf1->x / 100.0f * node->custom1;
 			CLAMP(offset, 0, buf1->x);
 		}
@@ -109,17 +109,17 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 			CLAMP(offset, 0, buf1->y);
 		}
 		
-		if(node->custom2 == 0) {
-			for(y=0; y<buf1->y; y++) {
+		if (node->custom2 == 0) {
+			for (y=0; y<buf1->y; y++) {
 				float *fac= mask->rect + y*buf1->x;
-				for(x=offset; x>0; x--, fac++)
+				for (x=offset; x>0; x--, fac++)
 					*fac= 1.0f;
 			}
 		}
 		else {
-			for(y=0; y<offset; y++) {
+			for (y=0; y<offset; y++) {
 				float *fac= mask->rect + y*buf1->x;
-				for(x=buf1->x; x>0; x--, fac++)
+				for (x=buf1->x; x>0; x--, fac++)
 					*fac= 1.0f;
 			}
 		}
@@ -132,9 +132,9 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		free_compbuf(cbuf);
 		free_compbuf(mask);
 		
-		if(in[0]->data != buf1) 
+		if (in[0]->data != buf1) 
 			free_compbuf(buf1);
-		if(in[1]->data != buf2) 
+		if (in[1]->data != buf2) 
 			free_compbuf(buf2);
 	}
 }

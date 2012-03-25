@@ -172,7 +172,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	else if (numEdges_dst) {
 		MEdge *medge, *me;
 
-		if(bmd->randomize)
+		if (bmd->randomize)
 			BLI_array_randomize(edgeMap, sizeof(*edgeMap),
 			                    numEdge_src, bmd->seed);
 
@@ -183,11 +183,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		for (i = 0; i < numEdges_dst; i++) {
 			me = medge + edgeMap[i];
 
-			if(!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v1))) {
+			if (!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v1))) {
 				BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(me->v1),
 				                 SET_INT_IN_POINTER(BLI_ghash_size(vertHash)));
 			}
-			if(!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v2))) {
+			if (!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v2))) {
 				BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(me->v2), SET_INT_IN_POINTER(BLI_ghash_size(vertHash)));
 			}
 		}

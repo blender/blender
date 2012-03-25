@@ -85,7 +85,7 @@ enum ReportListFlags {
 	RPT_PRINT = 1,
 	RPT_STORE = 2,
 	RPT_FREE = 4,
-	RPT_OP_HOLD = 8 /* dont move them into the operator global list (caller will use) */
+	RPT_OP_HOLD = 8 /* don't move them into the operator global list (caller will use) */
 };
 #
 #
@@ -98,7 +98,7 @@ typedef struct Report {
 	const char *message;
 } Report;
 
-/* saved in the wm, dont remove */
+/* saved in the wm, don't remove */
 typedef struct ReportList {
 	ListBase list;
 	int printlevel; /* ReportType */
@@ -159,7 +159,7 @@ typedef struct wmWindowManager {
 typedef struct wmWindow {
 	struct wmWindow *next, *prev;
 	
-	void *ghostwin;		/* dont want to include ghost.h stuff */
+	void *ghostwin;		/* don't want to include ghost.h stuff */
 	
 	int winid;		/* winid also in screens, is for retrieving this window after read */
 

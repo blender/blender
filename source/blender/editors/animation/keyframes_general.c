@@ -853,7 +853,7 @@ short paste_animedit_keys (bAnimContext *ac, ListBase *anim_data,
 				}
 			}
 			
-			/* dont continue if some fcurves were pasted */
+			/* don't continue if some fcurves were pasted */
 			if (totmatch)
 				break;
 		}

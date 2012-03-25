@@ -151,7 +151,7 @@ typedef struct ThemeUI {
 	uiWidgetColors wcol_regular, wcol_tool, wcol_text;
 	uiWidgetColors wcol_radio, wcol_option, wcol_toggle;
 	uiWidgetColors wcol_num, wcol_numslider;
-	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item;
+	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item, wcol_tooltip;
 	uiWidgetColors wcol_box, wcol_scroll, wcol_progress, wcol_list_item;
 	
 	uiWidgetStateColors wcol_state;
@@ -205,7 +205,7 @@ typedef struct ThemeSpace {
 	char grid[4]; 
 	
 	char wire[4], select[4];
-	char lamp[4], speaker[4], pad2[4];
+	char lamp[4], speaker[4], empty[4],camera[4], pad[8];
 	char active[4], group[4], group_active[4], transform[4];
 	char vertex[4], vertex_select[4];
 	char edge[4], edge_select[4];
@@ -237,7 +237,7 @@ typedef struct ThemeSpace {
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];
 	
-	char movie[4], image[4], scene[4], audio[4];		// for sequence editor
+	char movie[4], movieclip[4], image[4], scene[4], audio[4];		// for sequence editor
 	char effect[4], plugin[4], transition[4], meta[4];
 	char editmesh_active[4]; 
 
@@ -423,6 +423,9 @@ typedef struct UserDef {
 
 	int compute_device_type;
 	int compute_device_id;
+	
+	float fcu_inactive_alpha;	/* opacity of inactive F-Curves in F-Curve Editor */
+	float pad;
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */
@@ -511,6 +514,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_SPLASH_DISABLE		(1 << 27)
 #define USER_HIDE_RECENT		(1 << 28)
 #define USER_SHOW_THUMBNAILS	(1 << 29)
+#define USER_QUIT_PROMPT		(1 << 30)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */

@@ -81,13 +81,13 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags)
 	Color32 pixel;
 	Color32 *pixels = 0;
 
-	if(!imb_is_a_dds(mem))
+	if (!imb_is_a_dds(mem))
 		return (0);
 
 	/* check if DDS is valid and supported */
 	if (!dds.isValid()) {
 		/* no need to print error here, just testing if it is a DDS */
-		if(flags & IB_test)
+		if (flags & IB_test)
 			return (0);
 
 		printf("DDS: not valid; header follows\n");

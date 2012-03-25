@@ -107,7 +107,7 @@ static void PyType_Attr_Set(PyGetSetDef *attr_getset, PyAttributeDef *attr)
 
 	attr_getset->get= reinterpret_cast<getter>(PyObjectPlus::py_get_attrdef);
 
-	if(attr->m_access==KX_PYATTRIBUTE_RO)
+	if (attr->m_access==KX_PYATTRIBUTE_RO)
 		attr_getset->set= NULL;
 	else
 		attr_getset->set= reinterpret_cast<setter>(PyObjectPlus::py_set_attrdef);
@@ -119,35 +119,35 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 {
 	PyAttributeDef *attr;
 
-	if(init_getset) {
+	if (init_getset) {
 		/* we need to do this for all types before calling PyType_Ready
 		 * since they will call the parents PyType_Ready and those might not have initialized vars yet */
 
 		//if(tp->tp_base==NULL)
 		//	printf("Debug: No Parents - '%s'\n" , tp->tp_name);
 
-		if(tp->tp_getset==NULL && ((attributes && attributes->m_name) || (attributesPtr && attributesPtr->m_name))) {
+		if (tp->tp_getset==NULL && ((attributes && attributes->m_name) || (attributesPtr && attributesPtr->m_name))) {
 			PyGetSetDef *attr_getset;
 			int attr_tot= 0;
 
 			if (attributes) {
-				for(attr= attributes; attr->m_name; attr++, attr_tot++)
+				for (attr= attributes; attr->m_name; attr++, attr_tot++)
 					attr->m_usePtr = false;
 			}
 			if (attributesPtr) {
-				for(attr= attributesPtr; attr->m_name; attr++, attr_tot++)
+				for (attr= attributesPtr; attr->m_name; attr++, attr_tot++)
 					attr->m_usePtr = true;
 			}
 
 			tp->tp_getset = attr_getset = reinterpret_cast<PyGetSetDef *>(PyMem_Malloc((attr_tot+1) * sizeof(PyGetSetDef))); // XXX - Todo, free
 
 			if (attributes) {
-				for(attr= attributes; attr->m_name; attr++, attr_getset++) {
+				for (attr= attributes; attr->m_name; attr++, attr_getset++) {
 					PyType_Attr_Set(attr_getset, attr);
 				}
 			}
 			if (attributesPtr) {
-				for(attr= attributesPtr; attr->m_name; attr++, attr_getset++) {
+				for (attr= attributesPtr; attr->m_name; attr++, attr_getset++) {
 					PyType_Attr_Set(attr_getset, attr);
 				}
 			}
@@ -179,7 +179,7 @@ void initPyTypes(void)
 	Py_DECREF(mod);
 	
 	
-	for(int init_getset= 1; init_getset > -1; init_getset--) { /* run twice, once to init the getsets another to run PyType_Ready */
+	for (int init_getset= 1; init_getset > -1; init_getset--) { /* run twice, once to init the getsets another to run PyType_Ready */
 		PyType_Ready_Attr(dict, BL_ActionActuator, init_getset);
 		PyType_Ready_Attr(dict, BL_Shader, init_getset);
 		PyType_Ready_Attr(dict, BL_ShapeActionActuator, init_getset);

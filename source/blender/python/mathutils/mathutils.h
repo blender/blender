@@ -67,8 +67,8 @@ typedef struct {
 #include "mathutils_geometry.h"
 #include "mathutils_noise.h"
 
-PyObject *BaseMathObject_owner_get( BaseMathObject * self, void * );
-PyObject *BaseMathObject_is_wrapped_get( BaseMathObject *self, void * );
+PyObject *BaseMathObject_owner_get(BaseMathObject * self, void *);
+PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void *);
 
 int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg);
 int BaseMathObject_clear(BaseMathObject *self);
@@ -98,7 +98,7 @@ struct Mathutils_Callback {
 	BaseMathSetIndexFunc	set_index;
 };
 
-int Mathutils_RegisterCallback(Mathutils_Callback *cb);
+unsigned char Mathutils_RegisterCallback(Mathutils_Callback *cb);
 
 int _BaseMathObject_ReadCallback(BaseMathObject *self);
 int _BaseMathObject_WriteCallback(BaseMathObject *self);

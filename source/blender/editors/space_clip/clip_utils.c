@@ -67,17 +67,17 @@ void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack 
 
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
-	for(coord= 0; coord<2; coord++) {
+	for (coord= 0; coord<2; coord++) {
 		int i, open= 0, prevfra= 0;
 		float prevval= 0.0f;
 
-		for(i= 0; i<track->markersnr; i++) {
+		for (i= 0; i<track->markersnr; i++) {
 			MovieTrackingMarker *marker= &track->markers[i];
 			float val;
 
-			if(marker->flag&MARKER_DISABLED) {
-				if(open) {
-					if(segment_end)
+			if (marker->flag&MARKER_DISABLED) {
+				if (open) {
+					if (segment_end)
 						segment_end(userdata);
 
 					open= 0;
@@ -86,8 +86,8 @@ void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack 
 				continue;
 			}
 
-			if(!open) {
-				if(segment_start)
+			if (!open) {
+				if (segment_start)
 					segment_start(userdata, track, coord);
 
 				open= 1;
@@ -98,15 +98,15 @@ void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack 
 			val= (marker->pos[coord] - prevval) * ((coord==0) ? (width) : (height));
 			val/= marker->framenr-prevfra;
 
-			if(func)
+			if (func)
 				func(userdata, track, marker, coord, val);
 
 			prevval= marker->pos[coord];
 			prevfra= marker->framenr;
 		}
 
-		if(open) {
-			if(segment_end)
+		if (open) {
+			if (segment_end)
 				segment_end(userdata);
 		}
 	}
@@ -123,8 +123,8 @@ void clip_graph_tracking_values_iterate(SpaceClip *sc, void *userdata,
 	MovieTrackingTrack *track;
 
 	track= tracksbase->first;
-	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track)) {
+	while (track) {
+		if (TRACK_VIEW_SELECTED(sc, track)) {
 			clip_graph_tracking_values_iterate_track(sc, track, userdata, func, segment_start, segment_end);
 		}
 
@@ -141,17 +141,17 @@ void clip_graph_tracking_iterate(SpaceClip *sc, void *userdata,
 	MovieTrackingTrack *track;
 
 	track= tracksbase->first;
-	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track)) {
+	while (track) {
+		if (TRACK_VIEW_SELECTED(sc, track)) {
 			int i;
 
-			for(i= 0; i<track->markersnr; i++) {
+			for (i= 0; i<track->markersnr; i++) {
 				MovieTrackingMarker *marker= &track->markers[i];
 
-				if(marker->flag&MARKER_DISABLED)
+				if (marker->flag&MARKER_DISABLED)
 					continue;
 
-				if(func)
+				if (func)
 					func(userdata, marker);
 			}
 		}
@@ -168,17 +168,17 @@ void clip_delete_track(bContext *C, MovieClip *clip, ListBase *tracksbase, Movie
 
 	int has_bundle= 0, update_stab= 0;
 
-	if(track==act_track)
+	if (track==act_track)
 		tracking->act_track= NULL;
 
-	if(track==stab->rot_track) {
+	if (track==stab->rot_track) {
 		stab->rot_track= NULL;
 
 		update_stab= 1;
 	}
 
 	/* handle reconstruction display in 3d viewport */
-	if(track->flag&TRACK_HAS_BUNDLE)
+	if (track->flag&TRACK_HAS_BUNDLE)
 		has_bundle= 1;
 
 	BKE_tracking_free_track(track);
@@ -186,20 +186,20 @@ void clip_delete_track(bContext *C, MovieClip *clip, ListBase *tracksbase, Movie
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
 
-	if(update_stab) {
+	if (update_stab) {
 		tracking->stabilization.ok= 0;
 
 		DAG_id_tag_update(&clip->id, 0);
 		WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
 	}
 
-	if(has_bundle)
+	if (has_bundle)
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
 void clip_delete_marker(bContext *C, MovieClip *clip, ListBase *tracksbase, MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
-	if(track->markersnr==1) {
+	if (track->markersnr==1) {
 		clip_delete_track(C, clip, tracksbase, track);
 	}
 	else {

@@ -35,7 +35,7 @@ BL_BlenderShader::BL_BlenderShader(KX_Scene *scene, struct Material *ma, int lig
 
 BL_BlenderShader::~BL_BlenderShader()
 {
-	if(mGPUMat)
+	if (mGPUMat)
 		GPU_material_unbind(mGPUMat);
 }
 
@@ -46,8 +46,8 @@ void BL_BlenderShader::ReloadMaterial()
 
 void BL_BlenderShader::SetProg(bool enable, double time)
 {
-	if(VerifyShader()) {
-		if(enable)
+	if (VerifyShader()) {
+		if (enable)
 			GPU_material_bind(mGPUMat, mLightLayer, mBlenderScene->lay, time, 1);
 		else
 			GPU_material_unbind(mGPUMat);
@@ -59,16 +59,16 @@ int BL_BlenderShader::GetAttribNum()
 	GPUVertexAttribs attribs;
 	int i, enabled = 0;
 
-	if(!VerifyShader())
+	if (!VerifyShader())
 		return enabled;
 
 	GPU_material_vertex_attributes(mGPUMat, &attribs);
 
-	for(i = 0; i < attribs.totlayer; i++)
-		if(attribs.layer[i].glindex+1 > enabled)
+	for (i = 0; i < attribs.totlayer; i++)
+		if (attribs.layer[i].glindex+1 > enabled)
 			enabled= attribs.layer[i].glindex+1;
 	
-	if(enabled > BL_MAX_ATTRIB)
+	if (enabled > BL_MAX_ATTRIB)
 		enabled = BL_MAX_ATTRIB;
 
 	return enabled;
@@ -82,39 +82,39 @@ void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 
 	ras->SetAttribNum(0);
 
-	if(!VerifyShader())
+	if (!VerifyShader())
 		return;
 	
 	gpumat = mGPUMat;
 
-	if(ras->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED) {
+	if (ras->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED) {
 		GPU_material_vertex_attributes(gpumat, &attribs);
 		attrib_num = GetAttribNum();
 
 		ras->SetTexCoordNum(0);
 		ras->SetAttribNum(attrib_num);
-		for(i=0; i<attrib_num; i++)
+		for (i=0; i<attrib_num; i++)
 			ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_DISABLE, i);
 
-		for(i = 0; i < attribs.totlayer; i++) {
-			if(attribs.layer[i].glindex > attrib_num)
+		for (i = 0; i < attribs.totlayer; i++) {
+			if (attribs.layer[i].glindex > attrib_num)
 				continue;
 
-			if(attribs.layer[i].type == CD_MTFACE) {
-				if(!mat->uvName.IsEmpty() && strcmp(mat->uvName.ReadPtr(), attribs.layer[i].name) == 0)
+			if (attribs.layer[i].type == CD_MTFACE) {
+				if (!mat->uvName.IsEmpty() && strcmp(mat->uvName.ReadPtr(), attribs.layer[i].name) == 0)
 					ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV1, attribs.layer[i].glindex);
-				else if(!mat->uv2Name.IsEmpty() && strcmp(mat->uv2Name.ReadPtr(), attribs.layer[i].name) == 0)
+				else if (!mat->uv2Name.IsEmpty() && strcmp(mat->uv2Name.ReadPtr(), attribs.layer[i].name) == 0)
 					ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV2, attribs.layer[i].glindex);
 				else
 					ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV1, attribs.layer[i].glindex);
 			}
-			else if(attribs.layer[i].type == CD_TANGENT)
+			else if (attribs.layer[i].type == CD_TANGENT)
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXTANGENT, attribs.layer[i].glindex);
-			else if(attribs.layer[i].type == CD_ORCO)
+			else if (attribs.layer[i].type == CD_ORCO)
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_ORCO, attribs.layer[i].glindex);
-			else if(attribs.layer[i].type == CD_NORMAL)
+			else if (attribs.layer[i].type == CD_NORMAL)
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_NORM, attribs.layer[i].glindex);
-			else if(attribs.layer[i].type == CD_MCOL)
+			else if (attribs.layer[i].type == CD_MCOL)
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_VCOL, attribs.layer[i].glindex);
 			else
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_DISABLE, attribs.layer[i].glindex);
@@ -129,7 +129,7 @@ void BL_BlenderShader::Update(const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 
 	gpumat = mGPUMat;
 
-	if(!gpumat || !GPU_material_bound(gpumat))
+	if (!gpumat || !GPU_material_bound(gpumat))
 		return;
 
 	MT_Matrix4x4 model;
@@ -142,7 +142,7 @@ void BL_BlenderShader::Update(const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 	view.getValue((float*)viewmat);
 	viewinv.getValue((float*)viewinvmat);
 
-	if(ms.m_bObjectColor)
+	if (ms.m_bObjectColor)
 		ms.m_RGBAcolor.getValue((float*)obcol);
 	else
 		obcol[0]= obcol[1]= obcol[2]= obcol[3]= 1.0f;

@@ -38,21 +38,21 @@ extern "C" {
 #define __BLI_MATH_INLINE_H__
 
 #ifdef __BLI_MATH_INLINE_H__
-#ifdef _MSC_VER
-#define MINLINE static __forceinline
-#define MALWAYS_INLINE MINLINE
+#  ifdef _MSC_VER
+#    define MINLINE static __forceinline
+#    define MALWAYS_INLINE MINLINE
+#  else
+#    define MINLINE static inline
+#    if (defined(__APPLE__) && defined(__ppc__))
+       /* static inline __attribute__ here breaks osx ppc gcc42 build */
+#      define MALWAYS_INLINE static __attribute__((always_inline))
+#    else
+#      define MALWAYS_INLINE static inline __attribute__((always_inline))
+#    endif
+#  endif
 #else
-#define MINLINE static inline
-#if (defined(__APPLE__) && defined(__ppc__))
-/* static inline __attribute__ here breaks osx ppc gcc42 build */
-#define MALWAYS_INLINE static __attribute__((always_inline))
-#else
-#define MALWAYS_INLINE static inline __attribute__((always_inline))
-#endif
-#endif
-#else
-#define MINLINE
-#define MALWAYS_INLINE
+#  define MINLINE
+#  define MALWAYS_INLINE
 #endif
 
 #ifdef __cplusplus
@@ -60,4 +60,3 @@ extern "C" {
 #endif
 
 #endif /* __BLI_MATH_INLINE_H__ */
-

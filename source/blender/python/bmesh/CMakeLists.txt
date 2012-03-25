@@ -33,13 +33,17 @@ set(INC_SYS
 
 set(SRC
 	bmesh_py_api.c
-	bmesh_py_select.c
 	bmesh_py_types.c
+	bmesh_py_types_customdata.c
+	bmesh_py_types_meshdata.c
+	bmesh_py_types_select.c
 	bmesh_py_utils.c
 
 	bmesh_py_api.h
-	bmesh_py_select.h
 	bmesh_py_types.h
+	bmesh_py_types_customdata.h
+	bmesh_py_types_meshdata.h
+	bmesh_py_types_select.h
 	bmesh_py_utils.h
 )
 

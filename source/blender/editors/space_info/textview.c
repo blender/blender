@@ -65,7 +65,7 @@ typedef struct ConsoleDrawContext {
 
 static void console_draw_sel(int sel[2], int xy[2], int str_len_draw, int cwidth, int lheight)
 {
-	if(sel[0] <= str_len_draw && sel[1] >= 0) {
+	if (sel[0] <= str_len_draw && sel[1] >= 0) {
 		int sta = MAX2(sel[0], 0);
 		int end = MIN2(sel[1], str_len_draw);
 
@@ -95,19 +95,20 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 	const int mono= blf_mono_font;
 
 	/* just advance the height */
-	if(cdc->draw==0) {
-		if(cdc->pos_pick && (cdc->mval[1] != INT_MAX)) {
-			if(cdc->xy[1] <= cdc->mval[1]) {
-				if((y_next >= cdc->mval[1])) {
+	if (cdc->draw==0) {
+		if (cdc->pos_pick && (cdc->mval[1] != INT_MAX)) {
+			if (cdc->xy[1] <= cdc->mval[1]) {
+				if ((y_next >= cdc->mval[1])) {
 					int ofs = (int)floor(((float)cdc->mval[0] / (float)cdc->cwidth));
 
 					/* wrap */
-					if(str_len > cdc->console_width)
+					if (str_len > cdc->console_width)
 						ofs += (cdc->console_width * ((int)((((float)(y_next - cdc->mval[1]) / (float)(y_next-cdc->xy[1])) * tot_lines))));
 	
 					CLAMP(ofs, 0, str_len);
 					*cdc->pos_pick += str_len - ofs;
-				} else
+				}
+				else
 					*cdc->pos_pick += str_len + 1;
 			}
 		}
@@ -120,14 +121,14 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		cdc->xy[1]= y_next;
 
 		/* adjust selection even if not drawing */
-		if(cdc->sel[0] != cdc->sel[1]) {
+		if (cdc->sel[0] != cdc->sel[1]) {
 			STEP_SEL(-(str_len + 1));
 		}
 
 		return 1;
 	}
 
-	if(str_len > cdc->console_width) { /* wrap? */
+	if (str_len > cdc->console_width) { /* wrap? */
 		const int initial_offset= ((tot_lines-1) * cdc->console_width);
 		const char *line_stride= str + initial_offset;	/* advance to the last line and draw it first */
 		
@@ -138,7 +139,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		cdc->sel[0] = str_len - sel_orig[1];
 		cdc->sel[1] = str_len - sel_orig[0];
 		
-		if(bg) {
+		if (bg) {
 			glColor3ubv(bg);
 			glRecti(0, cdc->xy[1]-rct_ofs, cdc->winx, (cdc->xy[1]+(cdc->lheight*tot_lines))+rct_ofs);
 		}
@@ -149,7 +150,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
 		BLF_draw(mono, line_stride, str_len - initial_offset);
 
-		if(cdc->sel[0] != cdc->sel[1]) {
+		if (cdc->sel[0] != cdc->sel[1]) {
 			STEP_SEL(-initial_offset);
 			// glColor4ub(255, 0, 0, 96); // debug
 			console_draw_sel(cdc->sel, cdc->xy, str_len % cdc->console_width, cdc->cwidth, cdc->lheight);
@@ -161,11 +162,11 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 		line_stride -= cdc->console_width;
 		
-		for(; line_stride >= str; line_stride -= cdc->console_width) {
+		for (; line_stride >= str; line_stride -= cdc->console_width) {
 			BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
 			BLF_draw(mono, line_stride, cdc->console_width);
 			
-			if(cdc->sel[0] != cdc->sel[1]) {
+			if (cdc->sel[0] != cdc->sel[1]) {
 				// glColor4ub(0, 255, 0, 96); // debug
 				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->lheight);
 				STEP_SEL(cdc->console_width);
@@ -175,7 +176,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 			cdc->xy[1] += cdc->lheight;
 			
 			/* check if were out of view bounds */
-			if(cdc->xy[1] > cdc->ymax)
+			if (cdc->xy[1] > cdc->ymax)
 				return 0;
 		}
 
@@ -184,7 +185,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 	}
 	else { /* simple, no wrap */
 
-		if(bg) {
+		if (bg) {
 			glColor3ubv(bg);
 			glRecti(0, cdc->xy[1]-rct_ofs, cdc->winx, cdc->xy[1]+cdc->lheight-rct_ofs);
 		}
@@ -194,7 +195,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
 		BLF_draw(mono, str, str_len);
 		
-		if(cdc->sel[0] != cdc->sel[1]) {
+		if (cdc->sel[0] != cdc->sel[1]) {
 			int isel[2];
 
 			isel[0]= str_len - cdc->sel[1];
@@ -207,7 +208,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 		cdc->xy[1] += cdc->lheight;
 
-		if(cdc->xy[1] > cdc->ymax)
+		if (cdc->xy[1] > cdc->ymax)
 			return 0;
 	}
 
@@ -232,10 +233,10 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 
 	xy[0]= x_orig; xy[1]= y_orig;
 
-	if(mval[1] != INT_MAX)
+	if (mval[1] != INT_MAX)
 		mval[1] += (tvc->ymin + CONSOLE_DRAW_MARGIN);
 
-	if(pos_pick)
+	if (pos_pick)
 		*pos_pick = 0;
 
 	/* constants for the sequencer context */
@@ -245,8 +246,8 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 	cdc.console_width= (tvc->winx - (CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN*2) ) / cdc.cwidth;
 	CLAMP(cdc.console_width, 1, INT_MAX); /* avoid divide by zero on small windows */
 	cdc.winx= tvc->winx-(CONSOLE_DRAW_MARGIN+CONSOLE_DRAW_SCROLL);
-	cdc.ymin= tvc->ymin;
-	cdc.ymax= tvc->ymax;
+	cdc.ymin = tvc->ymin;
+	cdc.ymax = tvc->ymax;
 	cdc.xy= xy;
 	cdc.sel= sel;
 	cdc.pos_pick= pos_pick;
@@ -258,12 +259,12 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 	tvc->console_width= cdc.console_width;
 	tvc->iter_index= 0;
 
-	if(tvc->sel_start != tvc->sel_end) {
+	if (tvc->sel_start != tvc->sel_end) {
 		sel[0]= tvc->sel_start;
 		sel[1]= tvc->sel_end;
 	}
 
-	if(tvc->begin(tvc)) {
+	if (tvc->begin(tvc)) {
 
 		do {
 			const char *ext_line;
@@ -272,26 +273,26 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 
 			y_prev= xy[1];
 
-			if(draw)
+			if (draw)
 				color_flag= tvc->line_color(tvc, fg, bg);
 
 			tvc->line_get(tvc, &ext_line, &ext_len);
 
-			if(!console_draw_string(&cdc, ext_line, ext_len, (color_flag & TVC_LINE_FG) ? fg : NULL, (color_flag & TVC_LINE_BG) ? bg : NULL)) {
+			if (!console_draw_string(&cdc, ext_line, ext_len, (color_flag & TVC_LINE_FG) ? fg : NULL, (color_flag & TVC_LINE_BG) ? bg : NULL)) {
 				/* when drawing, if we pass v2d->cur.ymax, then quit */
-				if(draw) {
+				if (draw) {
 					break; /* past the y limits */
 				}
 			}
 
-			if((mval[1] != INT_MAX) && (mval[1] >= y_prev && mval[1] <= xy[1])) {
+			if ((mval[1] != INT_MAX) && (mval[1] >= y_prev && mval[1] <= xy[1])) {
 				*mouse_pick= (void *)tvc->iter;
 				break;
 			}
 
 			tvc->iter_index++;
 
-		} while(tvc->step(tvc));
+		} while (tvc->step(tvc));
 	}
 
 	tvc->end(tvc);

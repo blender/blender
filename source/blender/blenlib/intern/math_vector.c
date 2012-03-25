@@ -174,6 +174,12 @@ float angle_v2v2(const float v1[2], const float v2[2])
 	return angle_normalized_v2v2(vec1, vec2);
 }
 
+float angle_signed_v2v2(const float v1[2], const float v2[2])
+{
+	const float perp_dot = (v1[1] * v2[0]) - (v1[0] * v2[1]);
+	return atan2f(perp_dot, dot_v2v2(v1, v2));
+}
+
 float angle_normalized_v3v3(const float v1[3], const float v2[3])
 {
 	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
@@ -384,13 +390,13 @@ void print_v4(const char *str, const float v[4])
 
 void minmax_v3v3_v3(float min[3], float max[3], const float vec[3])
 {
-	if(min[0]>vec[0]) min[0]= vec[0];
-	if(min[1]>vec[1]) min[1]= vec[1];
-	if(min[2]>vec[2]) min[2]= vec[2];
+	if (min[0]>vec[0]) min[0]= vec[0];
+	if (min[1]>vec[1]) min[1]= vec[1];
+	if (min[2]>vec[2]) min[2]= vec[2];
 
-	if(max[0]<vec[0]) max[0]= vec[0];
-	if(max[1]<vec[1]) max[1]= vec[1];
-	if(max[2]<vec[2]) max[2]= vec[2];
+	if (max[0]<vec[0]) max[0]= vec[0];
+	if (max[1]<vec[1]) max[1]= vec[1];
+	if (max[2]<vec[2]) max[2]= vec[2];
 }
 
 
@@ -402,7 +408,7 @@ double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int s
 	const float *array_pt_a= array_src_a + (size-1);
 	const float *array_pt_b= array_src_b + (size-1);
 	int i= size;
-	while(i--) { d += *(array_pt_a--) * *(array_pt_b--); }
+	while (i--) { d += *(array_pt_a--) * *(array_pt_b--); }
 	return d;
 }
 
@@ -431,14 +437,14 @@ void range_vn_i(int *array_tar, const int size, const int start)
 	int *array_pt= array_tar + (size-1);
 	int j= start + (size-1);
 	int i= size;
-	while(i--) { *(array_pt--) = j--; }
+	while (i--) { *(array_pt--) = j--; }
 }
 
 void range_vn_fl(float *array_tar, const int size, const float start, const float step)
 {
 	float *array_pt= array_tar + (size-1);
 	int i= size;
-	while(i--) {
+	while (i--) {
 		*(array_pt--) = start + step * (float)(i);
 	}
 }
@@ -447,7 +453,7 @@ void negate_vn(float *array_tar, const int size)
 {
 	float *array_pt= array_tar + (size-1);
 	int i= size;
-	while(i--) { *(array_pt--) *= -1.0f; }
+	while (i--) { *(array_pt--) *= -1.0f; }
 }
 
 void negate_vn_vn(float *array_tar, const float *array_src, const int size)
@@ -455,14 +461,14 @@ void negate_vn_vn(float *array_tar, const float *array_src, const int size)
 	float *tar= array_tar + (size-1);
 	const float *src= array_src + (size-1);
 	int i= size;
-	while(i--) { *(tar--) = - *(src--); }
+	while (i--) { *(tar--) = - *(src--); }
 }
 
 void mul_vn_fl(float *array_tar, const int size, const float f)
 {
 	float *array_pt= array_tar + (size-1);
 	int i= size;
-	while(i--) { *(array_pt--) *= f; }
+	while (i--) { *(array_pt--) *= f; }
 }
 
 void mul_vn_vn_fl(float *array_tar, const float *array_src, const int size, const float f)
@@ -470,7 +476,7 @@ void mul_vn_vn_fl(float *array_tar, const float *array_src, const int size, cons
 	float *tar= array_tar + (size-1);
 	const float *src= array_src + (size-1);
 	int i= size;
-	while(i--) { *(tar--) = *(src--) * f; }
+	while (i--) { *(tar--) = *(src--) * f; }
 }
 
 void add_vn_vn(float *array_tar, const float *array_src, const int size)
@@ -478,7 +484,7 @@ void add_vn_vn(float *array_tar, const float *array_src, const int size)
 	float *tar= array_tar + (size-1);
 	const float *src= array_src + (size-1);
 	int i= size;
-	while(i--) { *(tar--) += *(src--); }
+	while (i--) { *(tar--) += *(src--); }
 }
 
 void add_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const int size)
@@ -487,7 +493,7 @@ void add_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_
 	const float *src_a= array_src_a + (size-1);
 	const float *src_b= array_src_b + (size-1);
 	int i= size;
-	while(i--) { *(tar--) = *(src_a--) + *(src_b--); }
+	while (i--) { *(tar--) = *(src_a--) + *(src_b--); }
 }
 
 void sub_vn_vn(float *array_tar, const float *array_src, const int size)
@@ -495,7 +501,7 @@ void sub_vn_vn(float *array_tar, const float *array_src, const int size)
 	float *tar= array_tar + (size-1);
 	const float *src= array_src + (size-1);
 	int i= size;
-	while(i--) { *(tar--) -= *(src--); }
+	while (i--) { *(tar--) -= *(src--); }
 }
 
 void sub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const int size)
@@ -504,19 +510,19 @@ void sub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_
 	const float *src_a= array_src_a + (size-1);
 	const float *src_b= array_src_b + (size-1);
 	int i= size;
-	while(i--) { *(tar--) = *(src_a--) - *(src_b--); }
+	while (i--) { *(tar--) = *(src_a--) - *(src_b--); }
 }
 
 void fill_vn_i(int *array_tar, const int size, const int val)
 {
 	int *tar= array_tar + (size-1);
 	int i= size;
-	while(i--) { *(tar--) = val; }
+	while (i--) { *(tar--) = val; }
 }
 
 void fill_vn_fl(float *array_tar, const int size, const float val)
 {
 	float *tar= array_tar + (size-1);
 	int i= size;
-	while(i--) { *(tar--) = val; }
+	while (i--) { *(tar--) = val; }
 }

@@ -124,7 +124,7 @@ char *BLI_sprintfN(const char *format, ...)
 size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 {
 	size_t len= 0;
-	while(len < maxlen) {
+	while (len < maxlen) {
 		switch(*src) {
 			case '\0':
 				goto escape_finish;
@@ -135,7 +135,7 @@ size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 			case '\t':
 			case '\n':
 			case '\r':
-				if(len + 1 <  maxlen) {
+				if (len + 1 <  maxlen) {
 					*dst++ = '\\';
 					len++;
 				}
@@ -292,9 +292,11 @@ int BLI_strcasecmp(const char *s1, const char *s2)
 
 		if (c1<c2) {
 			return -1;
-		} else if (c1>c2) {
+		}
+		else if (c1>c2) {
 			return 1;
-		} else if (c1==0) {
+		}
+		else if (c1==0) {
 			break;
 		}
 	}
@@ -312,9 +314,11 @@ int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
 
 		if (c1<c2) {
 			return -1;
-		} else if (c1>c2) {
+		}
+		else if (c1>c2) {
 			return 1;
-		} else if (c1==0) {
+		}
+		else if (c1==0) {
 			break;
 		}
 	}
@@ -331,11 +335,11 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 	 * then increase string deltas as long they are 
 	 * numeric, else do a tolower and char compare */
 
-	while(1) {
+	while (1) {
 		char c1 = tolower(s1[d1]);
 		char c2 = tolower(s2[d2]);
 		
-		if( isdigit(c1) && isdigit(c2) ) {
+		if ( isdigit(c1) && isdigit(c2) ) {
 			int val1, val2;
 			
 			val1= (int)strtol(s1+d1, (char **)NULL, 10);
@@ -343,14 +347,15 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 			
 			if (val1<val2) {
 				return -1;
-			} else if (val1>val2) {
+			}
+			else if (val1>val2) {
 				return 1;
 			}
 			d1++;
-			while( isdigit(s1[d1]) )
+			while ( isdigit(s1[d1]) )
 				d1++;
 			d2++;
-			while( isdigit(s2[d2]) )
+			while ( isdigit(s2[d2]) )
 				d2++;
 			
 			c1 = tolower(s1[d1]);
@@ -358,15 +363,17 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 		}
 	
 		/* first check for '.' so "foo.bar" comes before "foo 1.bar" */	
-		if(c1=='.' && c2!='.')
+		if (c1=='.' && c2!='.')
 			return -1;
-		if(c1!='.' && c2=='.')
+		if (c1!='.' && c2=='.')
 			return 1;
 		else if (c1<c2) {
 			return -1;
-		} else if (c1>c2) {
+		}
+		else if (c1>c2) {
 			return 1;
-		} else if (c1==0) {
+		}
+		else if (c1==0) {
 			break;
 		}
 		d1++;
@@ -385,7 +392,8 @@ void BLI_timestr(double _time, char *str)
 	
 	if (hr) {
 		sprintf(str, "%.2d:%.2d:%.2d.%.2d",hr,min,sec,hun);
-	} else {
+	}
+	else {
 		sprintf(str, "%.2d:%.2d.%.2d",min,sec,hun);
 	}
 	
@@ -403,8 +411,8 @@ void BLI_ascii_strtolower(char *str, int len)
 {
 	int i;
 
-	for(i=0; i<len; i++)
-		if(str[i] >= 'A' && str[i] <= 'Z')
+	for (i=0; i<len; i++)
+		if (str[i] >= 'A' && str[i] <= 'Z')
 			str[i] += 'a' - 'A';
 }
 
@@ -412,8 +420,8 @@ void BLI_ascii_strtoupper(char *str, int len)
 {
 	int i;
 
-	for(i=0; i<len; i++)
-		if(str[i] >= 'a' && str[i] <= 'z')
+	for (i=0; i<len; i++)
+		if (str[i] >= 'a' && str[i] <= 'z')
 			str[i] -= 'a' - 'A';
 }
 

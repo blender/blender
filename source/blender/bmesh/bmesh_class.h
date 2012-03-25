@@ -55,7 +55,7 @@ struct Object;
  * hold several types of data
  *
  * 1: The type of the element (vert, edge, loop or face)
- * 2: Persistant "header" flags/markings (smooth, seam, select, hidden, ect)
+ * 2: Persistent "header" flags/markings (smooth, seam, select, hidden, ect)
  *     note that this is different from the "tool" flags.
  * 3: Unique ID in the bmesh.
  * 4: some elements for internal record keeping.
@@ -110,6 +110,8 @@ typedef struct BMLoop {
 	struct BMEdge *e; /* edge, using verts (v, next->v) */
 	struct BMFace *f;
 
+	/* circular linked list of loops which all use the same edge as this one '->e',
+	 * but not necessarily the same vertex (can be either v1 or v2 of our own '->e') */
 	struct BMLoop *radial_next, *radial_prev;
 
 	/* these were originally commented as private but are used all over the code */
@@ -117,7 +119,7 @@ typedef struct BMLoop {
 	struct BMLoop *next, *prev; /* next/prev verts around the face */
 } BMLoop;
 
-/* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these dont have a flag layer */
+/* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these don't have a flag layer */
 typedef struct BMElemF {
 	BMHeader head;
 	struct BMFlagLayer *oflags; /* keep after header, an array of flags, mostly used by the operator stack */
@@ -162,7 +164,7 @@ typedef struct BMesh {
 	/* flag index arrays as being dirty so we can check if they are clean and
 	 * avoid looping over the entire vert/edge/face array in those cases.
 	 * valid flags are - BM_VERT | BM_EDGE | BM_FACE.
-	 * BM_LOOP isnt handled so far. */
+	 * BM_LOOP isn't handled so far. */
 	char elem_index_dirty;
 	
 	/*element pools*/
@@ -181,7 +183,7 @@ typedef struct BMesh {
 
 	/* should be copy of scene select mode */
 	/* stored in BMEditMesh too, this is a bit confusing,
-	 * make sure the're in sync!
+	 * make sure they're in sync!
 	 * Only use when the edit mesh cant be accessed - campbell */
 	short selectmode;
 	
@@ -194,8 +196,7 @@ typedef struct BMesh {
 	BMFace *act_face;
 
 	ListBase errorstack;
-	struct Object *ob; /* owner object */
-	
+
 	void *py_handle;
 
 	int opflag; /* current operator flag */
@@ -235,5 +236,25 @@ enum {
                                      * since tools may want to tag verts and
                                      * not have functions clobber them */
 };
+
+/* defines */
+
+/*forward declarations*/
+
+#ifdef USE_BMESH_HOLES
+#  define BM_FACE_FIRST_LOOP(p) (((BMLoopList *)((p)->loops.first))->first)
+#else
+#  define BM_FACE_FIRST_LOOP(p) ((p)->l_first)
+#endif
+
+/* size to use for static arrays when dealing with NGons,
+ * alloc after this limit is reached.
+ * this value is rather arbitrary */
+#define BM_NGON_STACK_SIZE 32
+
+/* avoid inf loop, this value is arbitrary
+ * but should not error on valid cases */
+#define BM_LOOP_RADIAL_MAX 10000
+#define BM_NGON_MAX 100000
 
 #endif /* __BMESH_CLASS_H__ */

@@ -65,9 +65,9 @@
 
 static void info_report_color(unsigned char *fg, unsigned char *bg, Report *report, int bool)
 {
-	if(report->flag & SELECT) {
+	if (report->flag & SELECT) {
 		fg[0]=255; fg[1]=255; fg[2]=255;
-		if(bool) {
+		if (bool) {
 			bg[0]=96; bg[1]=128; bg[2]=255;
 		}
 		else {
@@ -114,7 +114,7 @@ static void report_textview_init__internal(TextViewContext *tvc)
 	const char *str= report->message;
 	const char *next_str= strchr(str + tvc->iter_char, '\n');
 
-	if(next_str) {
+	if (next_str) {
 		tvc->iter_char_next= (int)(next_str - str);
 	}
 	else {
@@ -151,7 +151,7 @@ static int report_textview_begin(TextViewContext *tvc)
 
 #ifdef USE_INFO_NEWLINE
 	tvc->iter_tmp= 0;
-	if(tvc->iter && report_textview_skip__internal(tvc)) {
+	if (tvc->iter && report_textview_skip__internal(tvc)) {
 		/* init the newline iterator */
 		tvc->iter_char= 0;
 		report_textview_init__internal(tvc);
@@ -177,9 +177,9 @@ static int report_textview_step(TextViewContext *tvc)
 	/* simple case, but no newline support */
 	Report *report= (Report *)tvc->iter;
 
-	if(report->len <= tvc->iter_char_next) {
+	if (report->len <= tvc->iter_char_next) {
 		tvc->iter= (void *)((Link *)tvc->iter)->prev;
-		if(tvc->iter && report_textview_skip__internal(tvc)) {
+		if (tvc->iter && report_textview_skip__internal(tvc)) {
 			tvc->iter_tmp++;
 
 			tvc->iter_char= 0; /* reset start */
@@ -270,8 +270,8 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo, struct ARegion 
 	tvc.sel_start= 0;
 	tvc.sel_end= 0;
 	tvc.lheight= 14; //sc->lheight;
-	tvc.ymin= v2d->cur.ymin;
-	tvc.ymax= v2d->cur.ymax;
+	tvc.ymin = v2d->cur.ymin;
+	tvc.ymax = v2d->cur.ymax;
 	tvc.winx= ar->winx;
 
 	ret= textview_draw(&tvc, draw, mval, mouse_pick, pos_pick);

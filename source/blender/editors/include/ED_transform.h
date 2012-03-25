@@ -175,8 +175,8 @@ typedef enum SnapMode
 
 #define SNAP_MIN_DISTANCE 30
 
-int peelObjectsTransForm(struct TransInfo *t, struct ListBase *depth_peels, const float mval[2]);
-int peelObjectsContext(struct bContext *C, struct ListBase *depth_peels, const float mval[2]);
+int peelObjectsTransForm(struct TransInfo *t, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
+int peelObjectsContext(struct bContext *C, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
 int snapObjectsTransform(struct TransInfo *t, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode);
 int snapObjectsContext(struct bContext *C, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode);
 

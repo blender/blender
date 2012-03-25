@@ -89,7 +89,7 @@ static void eyedropper_exit(bContext *C, wmOperator *op)
 {
 	WM_cursor_restore(CTX_wm_window(C));
 	
-	if(op->customdata)
+	if (op->customdata)
 		MEM_freeN(op->customdata);
 	op->customdata= NULL;
 }
@@ -102,7 +102,7 @@ static int eyedropper_cancel(bContext *C, wmOperator *op)
 
 static void eyedropper_sample(bContext *C, Eyedropper *eye, int mx, int my)
 {
-	if(RNA_property_type(eye->prop) == PROP_FLOAT) {
+	if (RNA_property_type(eye->prop) == PROP_FLOAT) {
 		Scene *scene = CTX_data_scene(C);
 		const int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 		float col[4];
@@ -135,7 +135,7 @@ static int eyedropper_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case RIGHTMOUSE:
 			return eyedropper_cancel(C, op);
 		case LEFTMOUSE:
-			if(event->val==KM_RELEASE) {
+			if (event->val==KM_RELEASE) {
 				eyedropper_sample(C, eye, event->x, event->y);
 				eyedropper_exit(C, op);
 				return OPERATOR_FINISHED;
@@ -157,7 +157,8 @@ static int eyedropper_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 		WM_event_add_modal_handler(C, op);
 		
 		return OPERATOR_RUNNING_MODAL;
-	} else {
+	}
+	else {
 		eyedropper_exit(C, op);
 		return OPERATOR_CANCELLED;
 	}
@@ -175,7 +176,8 @@ static int eyedropper_exec (bContext *C, wmOperator *op)
 		eyedropper_exit(C, op);
 		
 		return OPERATOR_FINISHED;
-	} else {
+	}
+	else {
 		return OPERATOR_CANCELLED;
 	}
 }
@@ -189,19 +191,19 @@ static int eyedropper_poll(bContext *C)
 static void UI_OT_eyedropper(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Eyedropper";
-	ot->idname= "UI_OT_eyedropper";
-	ot->description= "Sample a color from the Blender Window to store in a property";
+	ot->name = "Eyedropper";
+	ot->idname = "UI_OT_eyedropper";
+	ot->description = "Sample a color from the Blender Window to store in a property";
 	
 	/* api callbacks */
-	ot->invoke= eyedropper_invoke;
-	ot->modal= eyedropper_modal;
-	ot->cancel= eyedropper_cancel;
-	ot->exec= eyedropper_exec;
-	ot->poll= eyedropper_poll;
+	ot->invoke = eyedropper_invoke;
+	ot->modal = eyedropper_modal;
+	ot->cancel = eyedropper_cancel;
+	ot->exec = eyedropper_exec;
+	ot->poll = eyedropper_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 	
 	/* properties */
 }
@@ -219,15 +221,15 @@ static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
 static void UI_OT_reset_default_theme(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset to Default Theme";
-	ot->idname= "UI_OT_reset_default_theme";
-	ot->description= "Reset to the default theme colors";
+	ot->name = "Reset to Default Theme";
+	ot->idname = "UI_OT_reset_default_theme";
+	ot->description = "Reset to the default theme colors";
 	
 	/* callbacks */
-	ot->exec= reset_default_theme_exec;
+	ot->exec = reset_default_theme_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag = OPTYPE_REGISTER;
 }
 
 /* Copy Data Path Operator ------------------------ */
@@ -259,16 +261,16 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
 static void UI_OT_copy_data_path_button(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Data Path";
-	ot->idname= "UI_OT_copy_data_path_button";
-	ot->description= "Copy the RNA data path for this property to the clipboard";
+	ot->name = "Copy Data Path";
+	ot->idname = "UI_OT_copy_data_path_button";
+	ot->description = "Copy the RNA data path for this property to the clipboard";
 
 	/* callbacks */
-	ot->exec= copy_data_path_button_exec;
+	ot->exec = copy_data_path_button_exec;
 	//op->poll= ??? // TODO: need to have some valid property before this can be done
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag = OPTYPE_REGISTER;
 }
 
 /* Reset to Default Values Button Operator ------------------------ */
@@ -296,7 +298,7 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 	
 	/* if there is a valid property that is editable... */
 	if (ptr.data && prop && RNA_property_editable(&ptr, prop)) {
-		if(RNA_property_reset(&ptr, prop, (all)? -1: index)) {
+		if (RNA_property_reset(&ptr, prop, (all)? -1: index)) {
 			/* perform updates required for this property */
 			RNA_property_update(C, &ptr, prop);
 
@@ -307,12 +309,12 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	/* Since we dont want to undo _all_ edits to settings, eg window
+	/* Since we don't want to undo _all_ edits to settings, eg window
 	 * edits on the screen or on operator settings.
 	 * it might be better to move undo's inline - campbell */
-	if(success) {
+	if (success) {
 		ID *id= ptr.id.data;
-		if(id && ID_CHECK_UNDO(id)) {
+		if (id && ID_CHECK_UNDO(id)) {
 			/* do nothing, go ahead with undo */
 		}
 		else {
@@ -327,16 +329,16 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 static void UI_OT_reset_default_button(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset to Default Value";
-	ot->idname= "UI_OT_reset_default_button";
-	ot->description= "Reset this property's value to its default value";
+	ot->name = "Reset to Default Value";
+	ot->idname = "UI_OT_reset_default_button";
+	ot->description = "Reset this property's value to its default value";
 
 	/* callbacks */
-	ot->poll= reset_default_button_poll;
-	ot->exec= reset_default_button_exec;
+	ot->poll = reset_default_button_poll;
+	ot->exec = reset_default_button_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
@@ -346,13 +348,13 @@ static void UI_OT_reset_default_button(wmOperatorType *ot)
 
 static int copy_to_selected_list(bContext *C, PointerRNA *ptr, ListBase *lb)
 {
-	if(RNA_struct_is_a(ptr->type, &RNA_Object))
+	if (RNA_struct_is_a(ptr->type, &RNA_Object))
 		*lb = CTX_data_collection_get(C, "selected_editable_objects");
-	else if(RNA_struct_is_a(ptr->type, &RNA_EditBone))
+	else if (RNA_struct_is_a(ptr->type, &RNA_EditBone))
 		*lb = CTX_data_collection_get(C, "selected_editable_bones");
-	else if(RNA_struct_is_a(ptr->type, &RNA_PoseBone))
+	else if (RNA_struct_is_a(ptr->type, &RNA_PoseBone))
 		*lb = CTX_data_collection_get(C, "selected_pose_bones");
-	else if(RNA_struct_is_a(ptr->type, &RNA_Sequence))
+	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence))
 		*lb = CTX_data_collection_get(C, "selected_editable_sequences");
 	else
 		return 0;
@@ -372,9 +374,9 @@ static int copy_to_selected_button_poll(bContext *C)
 		CollectionPointerLink *link;
 		ListBase lb;
 
-		if(copy_to_selected_list(C, &ptr, &lb)) {
-			for(link= lb.first; link; link=link->next)
-				if(link->ptr.data != ptr.data && RNA_property_editable(&link->ptr, prop))
+		if (copy_to_selected_list(C, &ptr, &lb)) {
+			for (link= lb.first; link; link=link->next)
+				if (link->ptr.data != ptr.data && RNA_property_editable(&link->ptr, prop))
 					success= 1;
 
 			BLI_freelistN(&lb);
@@ -399,10 +401,10 @@ static int copy_to_selected_button_exec(bContext *C, wmOperator *op)
 		CollectionPointerLink *link;
 		ListBase lb;
 
-		if(copy_to_selected_list(C, &ptr, &lb)) {
-			for(link= lb.first; link; link=link->next) {
-				if(link->ptr.data != ptr.data && RNA_property_editable(&link->ptr, prop)) {
-					if(RNA_property_copy(&link->ptr, &ptr, prop, (all)? -1: index)) {
+		if (copy_to_selected_list(C, &ptr, &lb)) {
+			for (link= lb.first; link; link=link->next) {
+				if (link->ptr.data != ptr.data && RNA_property_editable(&link->ptr, prop)) {
+					if (RNA_property_copy(&link->ptr, &ptr, prop, (all)? -1: index)) {
 						RNA_property_update(C, &link->ptr, prop);
 						success= 1;
 					}
@@ -419,16 +421,16 @@ static int copy_to_selected_button_exec(bContext *C, wmOperator *op)
 static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy To Selected";
-	ot->idname= "UI_OT_copy_to_selected_button";
-	ot->description= "Copy property from this object to selected objects or bones";
+	ot->name = "Copy To Selected";
+	ot->idname = "UI_OT_copy_to_selected_button";
+	ot->description = "Copy property from this object to selected objects or bones";
 
 	/* callbacks */
-	ot->poll= copy_to_selected_button_poll;
-	ot->exec= copy_to_selected_button_exec;
+	ot->poll = copy_to_selected_button_poll;
+	ot->exec = copy_to_selected_button_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
@@ -474,13 +476,13 @@ static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
 static void UI_OT_reports_to_textblock(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reports to Text Block";
-	ot->idname= "UI_OT_reports_to_textblock";
-	ot->description= "Write the reports ";
+	ot->name = "Reports to Text Block";
+	ot->idname = "UI_OT_reports_to_textblock";
+	ot->description = "Write the reports ";
 	
 	/* callbacks */
-	ot->poll= reports_to_text_poll;
-	ot->exec= reports_to_text_exec;
+	ot->poll = reports_to_text_poll;
+	ot->exec = reports_to_text_exec;
 }
 
 #ifdef WITH_PYTHON
@@ -536,7 +538,7 @@ static int ui_editsource_uibut_match(uiBut *but_a, uiBut *but_b)
 	/* this just needs to be a 'good-enough' comparison so we can know beyond
 	 * reasonable doubt that these buttons are the same between redraws.
 	 * if this fails it only means edit-source fails - campbell */
-	if(     (but_a->x1 == but_b->x1) &&
+	if (     (but_a->x1 == but_b->x1) &&
 	        (but_a->x2 == but_b->x2) &&
 	        (but_a->y1 == but_b->y1) &&
 	        (but_a->y2 == but_b->y2) &&
@@ -609,7 +611,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 		/* naughty!, find text area to set, not good behavior
 		 * but since this is a dev tool lets allow it - campbell */
 		ScrArea *sa= BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
-		if(sa) {
+		if (sa) {
 			SpaceText *st= sa->spacedata.first;
 			st->text= text;
 		}
@@ -647,7 +649,7 @@ static int editsource_exec(bContext *C, wmOperator *op)
 		/* redraw and get active button python info */
 		ED_region_do_draw(C, ar);
 
-		for(BLI_ghashIterator_init(&ghi, ui_editsource_info->hash);
+		for (BLI_ghashIterator_init(&ghi, ui_editsource_info->hash);
 		    !BLI_ghashIterator_isDone(&ghi);
 		    BLI_ghashIterator_step(&ghi))
 		{
@@ -693,12 +695,12 @@ static int editsource_exec(bContext *C, wmOperator *op)
 static void UI_OT_editsource(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reports to Text Block";
-	ot->idname= "UI_OT_editsource";
-	ot->description= "Edit source code for a button";
+	ot->name = "Reports to Text Block";
+	ot->idname = "UI_OT_editsource";
+	ot->description = "Edit source code for a button";
 
 	/* callbacks */
-	ot->exec= editsource_exec;
+	ot->exec = editsource_exec;
 }
 
 #endif /* WITH_PYTHON */

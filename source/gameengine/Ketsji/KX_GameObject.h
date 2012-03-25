@@ -518,7 +518,7 @@ public:
 		return m_pBlenderObject;
 	}
 
-	void SetBlenderObject( struct Object* obj)
+	void SetBlenderObject(struct Object* obj)
 	{
 		m_pBlenderObject = obj;
 	}
@@ -528,7 +528,7 @@ public:
 		return m_pBlenderGroupObject;
 	}
 
-	void SetBlenderGroupObject( struct Object* obj)
+	void SetBlenderGroupObject(struct Object* obj)
 	{
 		m_pBlenderGroupObject = obj;
 	}
@@ -995,7 +995,7 @@ public:
 	static PyObject*	pyattr_get_obcolor(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_obcolor(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
-	/* Experemental! */
+	/* Experimental! */
 	static PyObject*	pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_controllers(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

@@ -411,7 +411,7 @@ class MeshEdge(StructRNA):
         return ord_ind(*tuple(self.vertices))
 
 
-class MeshFace(StructRNA):
+class MeshTessFace(StructRNA):
     __slots__ = ()
 
     @property

@@ -48,7 +48,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	float scale[3] = {1.0f, 1.0f, 1.0f};
 	float dist = BMO_slot_float_get(op, "mergedist");
 	int i, ototvert /*, ototedge */;
-    int axis = BMO_slot_int_get(op, "axis");
+	int axis = BMO_slot_int_get(op, "axis");
 	int mirroru = BMO_slot_bool_get(op, "mirror_u");
 	int mirrorv = BMO_slot_bool_get(op, "mirror_v");
 
@@ -61,7 +61,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_op_initf(bm, &dupeop, "dupe geom=%s", op, "geom");
 	BMO_op_exec(bm, &dupeop);
 	
-	BMO_slot_buffer_flag_enable(bm, &dupeop, "newout", ELE_NEW, BM_ALL);
+	BMO_slot_buffer_flag_enable(bm, &dupeop, "newout", BM_ALL, ELE_NEW);
 
 	/* create old -> new mappin */
 	i = 0;
@@ -120,7 +120,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_op_finish(bm, &weldop);
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_buffer_from_flag(bm, op, "newout", ELE_NEW, BM_ALL);
+	BMO_slot_buffer_from_flag(bm, op, "newout", BM_ALL, ELE_NEW);
 
 	BLI_array_free(vmap);
 	BLI_array_free(emap);

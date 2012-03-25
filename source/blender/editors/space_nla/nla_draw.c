@@ -498,10 +498,10 @@ static void nla_draw_strip_text (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, 
 	 *	- padding of 2 'units' on either side
 	 */
 	// TODO: make this centered?
-	rect.xmin= strip->start + xofs;
-	rect.ymin= yminc;
-	rect.xmax= strip->end - xofs;
-	rect.ymax= ymaxc;
+	rect.xmin = strip->start + xofs;
+	rect.ymin = yminc;
+	rect.xmax = strip->end - xofs;
+	rect.ymax = ymaxc;
 	
 	/* add this string to the cache of texts to draw */
 	UI_view2d_text_cache_rectf(v2d, &rect, str, col);
@@ -559,7 +559,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	/* don't use totrect set, as the width stays the same 
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
-	v2d->tot.ymin= (float)(-height);
+	v2d->tot.ymin = (float)(-height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	y= (float)(-NLACHANNEL_HEIGHT(snla));
@@ -946,7 +946,7 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 	/* don't use totrect set, as the width stays the same 
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
-	v2d->tot.ymin= (float)(-height);
+	v2d->tot.ymin = (float)(-height);
 	/* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
 	UI_view2d_sync(NULL, ac->sa, v2d, V2D_LOCK_COPY);
 	

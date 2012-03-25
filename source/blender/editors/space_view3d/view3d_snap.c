@@ -176,7 +176,7 @@ static void special_transvert_update(Object *obedit)
 						copy_v3_v3(ebo->head, ebo->parent->tail);
 					}
 					/* If this bone has a parent tip that has NOT been moved */
-					else{
+					else {
 						copy_v3_v3(ebo->parent->tail, ebo->head);
 					}
 				}
@@ -225,7 +225,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	tottrans= 0; // global!
 	
 	INIT_MINMAX(min, max);
-	centroid[0]=centroid[1]=centroid[2]= 0.0;
+	zero_v3(centroid);
 	
 	if (obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
@@ -331,7 +331,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			if (ebo->layer & arm->layer) {
 				short tipsel= (ebo->flag & BONE_TIPSEL);
 				short rootsel= (ebo->flag & BONE_ROOTSEL);
-				short rootok= (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL));
+				short rootok= (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && (ebo->parent->flag & BONE_TIPSEL)));
 				
 				if ((tipsel && rootsel) || (rootsel)) {
 					/* Don't add the tip (unless mode & TM_ALL_JOINTS, for getting all joints),
@@ -635,16 +635,16 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Selection to Grid";
-	ot->description= "Snap selected item(s) to nearest grid node";
-	ot->idname= "VIEW3D_OT_snap_selected_to_grid";
+	ot->name = "Snap Selection to Grid";
+	ot->description = "Snap selected item(s) to nearest grid node";
+	ot->idname = "VIEW3D_OT_snap_selected_to_grid";
 	
 	/* api callbacks */
-	ot->exec= snap_sel_to_grid;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->exec = snap_sel_to_grid;
+	ot->poll = ED_operator_region_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *************************************************** */
@@ -759,16 +759,16 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Selection to Cursor";
-	ot->description= "Snap selected item(s) to cursor";
-	ot->idname= "VIEW3D_OT_snap_selected_to_cursor";
+	ot->name = "Snap Selection to Cursor";
+	ot->description = "Snap selected item(s) to cursor";
+	ot->idname = "VIEW3D_OT_snap_selected_to_cursor";
 	
 	/* api callbacks */
-	ot->exec= snap_sel_to_curs;
-	ot->poll= ED_operator_view3d_active;
+	ot->exec = snap_sel_to_curs;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *************************************************** */
@@ -795,16 +795,16 @@ static int snap_curs_to_grid(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Cursor to Grid";
-	ot->description= "Snap cursor to nearest grid node";
-	ot->idname= "VIEW3D_OT_snap_cursor_to_grid";
+	ot->name = "Snap Cursor to Grid";
+	ot->description = "Snap cursor to nearest grid node";
+	ot->idname = "VIEW3D_OT_snap_cursor_to_grid";
 	
 	/* api callbacks */
-	ot->exec= snap_curs_to_grid;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->exec = snap_curs_to_grid;
+	ot->poll = ED_operator_region_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* **************************************************** */
@@ -874,7 +874,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 
 	count= 0;
 	INIT_MINMAX(min, max);
-	centroid[0]= centroid[1]= centroid[2]= 0.0;
+	zero_v3(centroid);
 
 	if (obedit) {
 		tottrans=0;
@@ -958,16 +958,16 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Cursor to Selected";
-	ot->description= "Snap cursor to center of selected item(s)";
-	ot->idname= "VIEW3D_OT_snap_cursor_to_selected";
+	ot->name = "Snap Cursor to Selected";
+	ot->description = "Snap cursor to center of selected item(s)";
+	ot->idname = "VIEW3D_OT_snap_cursor_to_selected";
 	
 	/* api callbacks */
-	ot->exec= snap_curs_to_sel;
-	ot->poll= ED_operator_view3d_active;
+	ot->exec = snap_curs_to_sel;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********************************************** */
@@ -1008,16 +1008,16 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Cursor to Active";
-	ot->description= "Snap cursor to active item";
-	ot->idname= "VIEW3D_OT_snap_cursor_to_active";
+	ot->name = "Snap Cursor to Active";
+	ot->description = "Snap cursor to active item";
+	ot->idname = "VIEW3D_OT_snap_cursor_to_active";
 	
 	/* api callbacks */
-	ot->exec= snap_curs_to_active;
-	ot->poll= ED_operator_view3d_active;
+	ot->exec = snap_curs_to_active;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* **************************************************** */
@@ -1041,16 +1041,16 @@ static int snap_curs_to_center(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Cursor to Center";
-	ot->description= "Snap cursor to the Center";
-	ot->idname= "VIEW3D_OT_snap_cursor_to_center";
+	ot->name = "Snap Cursor to Center";
+	ot->description = "Snap cursor to the Center";
+	ot->idname = "VIEW3D_OT_snap_cursor_to_center";
 	
 	/* api callbacks */
-	ot->exec= snap_curs_to_center;
-	ot->poll= ED_operator_view3d_active;
+	ot->exec = snap_curs_to_center;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* **************************************************** */

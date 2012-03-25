@@ -61,7 +61,7 @@ public:
 	SubdFace *add_face(int *index, int num);
 
 	bool link_boundary();
-	void tesselate(DiagSplit *split, bool linear,
+	void tessellate(DiagSplit *split, bool linear,
 		Mesh *mesh, int shader, bool smooth);
 
 protected:

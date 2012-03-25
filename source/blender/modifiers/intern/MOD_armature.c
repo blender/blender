@@ -129,7 +129,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name);
 
 	/* free cache */
-	if(amd->prevCos) {
+	if (amd->prevCos) {
 		MEM_freeN(amd->prevCos);
 		amd->prevCos= NULL;
 	}
@@ -142,7 +142,7 @@ static void deformVertsEM(
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
+	if (!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 
@@ -150,12 +150,12 @@ static void deformVertsEM(
 		numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name);
 
 	/* free cache */
-	if(amd->prevCos) {
+	if (amd->prevCos) {
 		MEM_freeN(amd->prevCos);
 		amd->prevCos= NULL;
 	}
 
-	if(!derivedData) dm->release(dm);
+	if (!derivedData) dm->release(dm);
 }
 
 static void deformMatricesEM(
@@ -166,12 +166,12 @@ static void deformMatricesEM(
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
+	if (!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
 	                      amd->deformflag, NULL, amd->defgrp_name);
 
-	if(!derivedData) dm->release(dm);
+	if (!derivedData) dm->release(dm);
 }
 
 static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedData,
@@ -180,12 +180,12 @@ static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedDat
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_mesh((Mesh*)ob->data, ob);
+	if (!derivedData) dm = CDDM_from_mesh((Mesh*)ob->data, ob);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
 	                      amd->deformflag, NULL, amd->defgrp_name);
 
-	if(!derivedData) dm->release(dm);
+	if (!derivedData) dm->release(dm);
 }
 
 ModifierTypeInfo modifierType_Armature = {

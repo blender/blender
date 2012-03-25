@@ -420,7 +420,7 @@ bool KX_NavMeshObject::BuildNavMesh()
 		}
 		// setup triangles.
 		unsigned char* tri = navDTris;
-		for(size_t i=0; i<ndtris; i++)
+		for (size_t i=0; i<ndtris; i++)
 		{
 			for (size_t j=0; j<3; j++)
 				tri[4*i+j] = j;
@@ -432,7 +432,7 @@ bool KX_NavMeshObject::BuildNavMesh()
 		memcpy(navDVerts, dvertices, ndvertsuniq*3*sizeof(float));
 		//tris
 		unsigned char* tri = navDTris;
-		for(size_t i=0; i<ndtris; i++)
+		for (size_t i=0; i<ndtris; i++)
 		{
 			for (size_t j=0; j<3; j++)
 				tri[4*i+j] = dtris[6*i+j];

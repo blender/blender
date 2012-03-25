@@ -151,7 +151,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	for (i=0, pa=psys->particles; i < total_particles; i++, pa++) {
 
 		state.time = cfra;
-		if(psys_get_particle_state(&sim, i, &state, 0)) {
+		if (psys_get_particle_state(&sim, i, &state, 0)) {
 			
 			copy_v3_v3(partco, state.co);
 			
@@ -159,7 +159,8 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 				mul_m4_v3(ob->imat, partco);
 			else if (pd->psys_cache_space == TEX_PD_OBJECTLOC) {
 				sub_v3_v3(partco, ob->loc);
-			} else {
+			}
+			else {
 				/* TEX_PD_WORLDSPACE */
 			}
 			
@@ -175,7 +176,8 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 				
 				if (i < psys->totpart) {
 					pa_time = (cfra - pa->time)/pa->lifetime;
-				} else {
+				}
+				else {
 					ChildParticle *cpa= (psys->child + i) - psys->totpart;
 					float pa_birthtime, pa_dietime;
 					
@@ -191,7 +193,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	BLI_bvhtree_balance(pd->point_tree);
 	dm->release(dm);
 	
-	if(psys->lattice){
+	if (psys->lattice) {
 		end_latt_deform(psys->lattice);
 		psys->lattice=0;
 	}
@@ -214,7 +216,7 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 
 	pd->point_tree = BLI_bvhtree_new(pd->totpoints, 0.0, 4, 6);
 	
-	for(i=0; i < pd->totpoints; i++, mvert++) {
+	for (i=0; i < pd->totpoints; i++, mvert++) {
 		float co[3];
 		
 		copy_v3_v3(co, mvert->co);
@@ -243,7 +245,7 @@ void cache_pointdensity(Render *re, Tex *tex)
 {
 	PointDensity *pd = tex->pd;
 	
-	if(!pd)
+	if (!pd)
 		return;
 
 	if (pd->point_tree) {
@@ -293,14 +295,14 @@ void make_pointdensities(Render *re)
 {
 	Tex *tex;
 	
-	if(re->scene->r.scemode & R_PREVIEWBUTS)
+	if (re->scene->r.scemode & R_PREVIEWBUTS)
 		return;
 	
 	re->i.infostr= "Caching Point Densities";
 	re->stats_draw(re->sdh, &re->i);
 
 	for (tex= re->main->tex.first; tex; tex= tex->id.next) {
-		if(tex->id.us && tex->type==TEX_POINTDENSITY) {
+		if (tex->id.us && tex->type==TEX_POINTDENSITY) {
 			cache_pointdensity(re, tex);
 		}
 	}
@@ -313,11 +315,11 @@ void free_pointdensities(Render *re)
 {
 	Tex *tex;
 	
-	if(re->scene->r.scemode & R_PREVIEWBUTS)
+	if (re->scene->r.scemode & R_PREVIEWBUTS)
 		return;
 	
 	for (tex= re->main->tex.first; tex; tex= tex->id.next) {
-		if(tex->id.us && tex->type==TEX_POINTDENSITY) {
+		if (tex->id.us && tex->type==TEX_POINTDENSITY) {
 			free_pointdensity(re, tex);
 		}
 	}

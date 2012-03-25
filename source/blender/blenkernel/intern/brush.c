@@ -197,23 +197,23 @@ void make_local_brush(Brush *brush)
 	Scene *scene;
 	int is_local= FALSE, is_lib= FALSE;
 
-	if(brush->id.lib==NULL) return;
+	if (brush->id.lib==NULL) return;
 
-	if(brush->clone.image) {
+	if (brush->clone.image) {
 		/* special case: ima always local immediately. Clone image should only
 		 * have one user anyway. */
 		id_clear_lib_data(bmain, &brush->clone.image->id);
 		extern_local_brush(brush);
 	}
 
-	for(scene= bmain->scene.first; scene && ELEM(0, is_lib, is_local); scene=scene->id.next) {
-		if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
-			if(scene->id.lib) is_lib= TRUE;
+	for (scene= bmain->scene.first; scene && ELEM(0, is_lib, is_local); scene=scene->id.next) {
+		if (paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
+			if (scene->id.lib) is_lib= TRUE;
 			else is_local= TRUE;
 		}
 	}
 
-	if(is_local && is_lib == FALSE) {
+	if (is_local && is_lib == FALSE) {
 		id_clear_lib_data(bmain, &brush->id);
 		extern_local_brush(brush);
 
@@ -223,7 +223,7 @@ void make_local_brush(Brush *brush)
 			brush->id.us++;
 		}
 	}
-	else if(is_local && is_lib) {
+	else if (is_local && is_lib) {
 		Brush *brush_new= copy_brush(brush);
 		brush_new->id.us= 1; /* only keep fake user */
 		brush_new->id.flag |= LIB_FAKEUSER;
@@ -231,9 +231,9 @@ void make_local_brush(Brush *brush)
 		/* Remap paths of new ID using old library as base. */
 		BKE_id_lib_local_paths(bmain, brush->id.lib, &brush_new->id);
 		
-		for(scene= bmain->scene.first; scene; scene=scene->id.next) {
-			if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
-				if(scene->id.lib==NULL) {
+		for (scene= bmain->scene.first; scene; scene=scene->id.next) {
+			if (paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
+				if (scene->id.lib==NULL) {
 					paint_brush_set(&scene->toolsettings->imapaint.paint, brush_new);
 				}
 			}
@@ -248,13 +248,13 @@ void brush_debug_print_state(Brush *br)
 	brush_set_defaults(&def);
 	
 #define BR_TEST(field, t)					\
-	if(br->field != def.field)				\
+	if (br->field != def.field)				\
 		printf("br->" #field " = %" #t ";\n", br->field)
 
 #define BR_TEST_FLAG(_f)				\
-	if((br->flag & _f) && !(def.flag & _f))		\
+	if ((br->flag & _f) && !(def.flag & _f))		\
 		printf("br->flag |= " #_f ";\n");	\
-	else if(!(br->flag & _f) && (def.flag & _f))	\
+	else if (!(br->flag & _f) && (def.flag & _f))	\
 		printf("br->flag &= ~" #_f ";\n")
 	
 
@@ -412,7 +412,7 @@ void brush_curve_preset(Brush *b, /*CurveMappingPreset*/int preset)
 {
 	CurveMap *cm = NULL;
 
-	if(!b->curve)
+	if (!b->curve)
 		b->curve = curvemapping_add(1, 0, 0, 1, 1);
 
 	cm = b->curve->cm;
@@ -430,12 +430,12 @@ int brush_texture_set_nr(Brush *brush, int nr)
 	id= (ID *)brush->mtex.tex;
 
 	idtest= (ID*)BLI_findlink(&G.main->tex, nr-1);
-	if(idtest==NULL) { /* new tex */
-		if(id) idtest= (ID *)copy_texture((Tex *)id);
+	if (idtest==NULL) { /* new tex */
+		if (id) idtest= (ID *)copy_texture((Tex *)id);
 		else idtest= (ID *)add_texture("Tex");
 		idtest->us--;
 	}
-	if(idtest!=id) {
+	if (idtest!=id) {
 		brush_texture_delete(brush);
 
 		brush->mtex.tex= (Tex*)idtest;
@@ -449,7 +449,7 @@ int brush_texture_set_nr(Brush *brush, int nr)
 
 int brush_texture_delete(Brush *brush)
 {
-	if(brush->mtex.tex)
+	if (brush->mtex.tex)
 		brush->mtex.tex->id.us--;
 
 	return 1;
@@ -457,10 +457,10 @@ int brush_texture_delete(Brush *brush)
 
 int brush_clone_image_set_nr(Brush *brush, int nr)
 {
-	if(brush && nr > 0) {
+	if (brush && nr > 0) {
 		Image *ima= (Image*)BLI_findlink(&G.main->image, nr-1);
 
-		if(ima) {
+		if (ima) {
 			brush_clone_image_delete(brush);
 			brush->clone.image= ima;
 			id_us_plus(&ima->id);
@@ -717,7 +717,7 @@ void brush_scale_unprojected_radius(float *unprojected_radius,
 {
 	float scale = new_brush_size;
 	/* avoid division by zero */
-	if(old_brush_size != 0)
+	if (old_brush_size != 0)
 		scale /= (float)old_brush_size;
 	(*unprojected_radius) *= scale;
 }
@@ -729,7 +729,7 @@ void brush_scale_size(int *brush_size,
 {
 	float scale = new_unprojected_radius;
 	/* avoid division by zero */
-	if(old_unprojected_radius != 0)
+	if (old_unprojected_radius != 0)
 		scale /= new_unprojected_radius;
 	(*brush_size)= (int)((float)(*brush_size) * scale);
 }
@@ -1077,7 +1077,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, const float pos[2
 	int totpaintops= 0;
 
 	if (pressure == 0.0f) {
-		if(painter->lastpressure) // XXX - hack, operator misses
+		if (painter->lastpressure) // XXX - hack, operator misses
 			pressure= painter->lastpressure;
 		else
 			pressure = 1.0f;	/* zero pressure == not using tablet */
@@ -1172,7 +1172,8 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, const float pos[2
 				painter->accumdistance -= spacing;
 				startdistance -= spacing;
 			}
-		} else {
+		}
+		else {
 			brush_jitter_pos(scene, brush, pos, finalpos);
 
 			if (painter->cache.enabled)
@@ -1230,19 +1231,19 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, const float pos[2
 /* Uses the brush curve control to find a strength value between 0 and 1 */
 float brush_curve_strength_clamp(Brush *br, float p, const float len)
 {
-	if(p >= len)	return 0;
+	if (p >= len)	return 0;
 	else			p= p/len;
 
 	p= curvemapping_evaluateF(br->curve, 0, p);
-	if(p < 0.0f)		p= 0.0f;
-	else if(p > 1.0f)	p= 1.0f;
+	if (p < 0.0f)		p= 0.0f;
+	else if (p > 1.0f)	p= 1.0f;
 	return p;
 }
 /* same as above but can return negative values if the curve enables
  * used for sculpt only */
 float brush_curve_strength(Brush *br, float p, const float len)
 {
-	if(p >= len)
+	if (p >= len)
 		p= 1.0f;
 	else
 		p= p/len;
@@ -1259,7 +1260,7 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 	int hasrgb, ix, iy;
 	int side = half_side * 2;
 	
-	if(mtex->tex) {
+	if (mtex->tex) {
 		float x, y, step = 2.0 / side, co[3];
 
 		texcache = MEM_callocN(sizeof(int) * side * side, "Brush texture cache");
@@ -1280,7 +1281,7 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 				 * intensity, so calculate one (formula from do_material_tex).
 				 * if the texture didn't give an RGB value, copy the intensity across
 				 */
-				if(hasrgb & TEX_RGB)
+				if (hasrgb & TEX_RGB)
 					texres.tin = (0.35f * texres.tr + 0.45f *
 								  texres.tg + 0.2f * texres.tb);
 
@@ -1309,17 +1310,17 @@ struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 	im->rect_float = MEM_callocN(sizeof(float) * side * side, "radial control rect");
 	im->x = im->y = side;
 
-	for(i=0; i<side; ++i) {
-		for(j=0; j<side; ++j) {
+	for (i=0; i<side; ++i) {
+		for (j=0; j<side; ++j) {
 			float magn= sqrt(pow(i - half, 2) + pow(j - half, 2));
 			im->rect_float[i*side + j]= brush_curve_strength_clamp(br, magn, half);
 		}
 	}
 
 	/* Modulate curve with texture */
-	if(texcache) {
-		for(i=0; i<side; ++i) {
-			for(j=0; j<side; ++j) {
+	if (texcache) {
+		for (i=0; i<side; ++i) {
+			for (j=0; j<side; ++j) {
 				const int col= texcache[i*side+j];
 				im->rect_float[i*side+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
 			}

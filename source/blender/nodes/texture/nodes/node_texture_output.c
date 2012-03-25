@@ -46,11 +46,11 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 	TexCallData *cdata = (TexCallData *)data;
 	TexResult *target = cdata->target;
 	
-	if(cdata->do_preview) {
+	if (cdata->do_preview) {
 		TexParams params;
 		params_from_cdata(&params, cdata);
 
-		if(in[1] && in[1]->hasinput && !in[0]->hasinput)
+		if (in[1] && in[1]->hasinput && !in[0]->hasinput)
 			tex_input_rgba(&target->tr, in[1], &params, cdata->thread);
 		else
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
@@ -58,7 +58,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 	}
 	else {
 		/* 0 means don't care, so just use first */
-		if(cdata->which_output == node->custom1 || (cdata->which_output == 0 && node->custom1 == 1)) {
+		if (cdata->which_output == node->custom1 || (cdata->which_output == 0 && node->custom1 == 1)) {
 			TexParams params;
 			params_from_cdata(&params, cdata);
 			
@@ -67,8 +67,8 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 			target->tin = (target->tr + target->tg + target->tb) / 3.0f;
 			target->talpha = 1;
 		
-			if(target->nor) {
-				if(in[1] && in[1]->hasinput)
+			if (target->nor) {
+				if (in[1] && in[1]->hasinput)
 					tex_input_vec(target->nor, in[1], &params, cdata->thread);
 				else
 					target->nor = NULL;
@@ -87,23 +87,24 @@ static void unique_name(bNode *node)
 	char *name = tno->name;
 	
 	i = node;
-	while(i->prev) i = i->prev;
-	for(; i; i=i->next) {
-		if(
+	while (i->prev) i = i->prev;
+	for (; i; i=i->next) {
+		if (
 			i == node ||
 			i->type != TEX_NODE_OUTPUT ||
 			strcmp(name, ((TexNodeOutput*)(i->storage))->name)
 		)
 			continue;
 		
-		if(!new_name) {
+		if (!new_name) {
 			int len = strlen(name);
-			if(len >= 4 && sscanf(name + len - 4, ".%03d", &suffix) == 1) {
+			if (len >= 4 && sscanf(name + len - 4, ".%03d", &suffix) == 1) {
 				new_len = len;
-			} else {
+			}
+			else {
 				suffix = 0;
 				new_len = len + 4;
-				if(new_len > (sizeof(tno->name) - 1))
+				if (new_len > (sizeof(tno->name) - 1))
 					new_len = (sizeof(tno->name) - 1);
 			}
 			
@@ -114,7 +115,7 @@ static void unique_name(bNode *node)
 		sprintf(new_name + new_len - 4, ".%03d", ++suffix);
 	}
 	
-	if(new_name) {
+	if (new_name) {
 		strcpy(tno->name, new_name);
 		MEM_freeN(new_name);
 	}
@@ -126,13 +127,13 @@ static void assign_index(struct bNode *node)
 	int index = 1;
 	
 	tnode = node;
-	while(tnode->prev)
+	while (tnode->prev)
 		tnode = tnode->prev;
 	
 	check_index:
-	for(; tnode; tnode= tnode->next)
-		if(tnode->type == TEX_NODE_OUTPUT && tnode != node)
-			if(tnode->custom1 == index) {
+	for (; tnode; tnode= tnode->next)
+		if (tnode->type == TEX_NODE_OUTPUT && tnode != node)
+			if (tnode->custom1 == index) {
 				index ++;
 				goto check_index;
 			}

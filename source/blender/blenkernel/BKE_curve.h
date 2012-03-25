@@ -54,27 +54,27 @@ struct Scene;
 #define CU_DO_RADIUS(cu, nu) ((CU_DO_TILT(cu, nu) || ((cu)->flag & CU_PATH_RADIUS) || (cu)->bevobj || (cu)->ext1!=0.0f || (cu)->ext2!=0.0f) ? 1:0)
 
 
-void unlink_curve( struct Curve *cu);
+void unlink_curve(struct Curve *cu);
 void free_curve_editNurb_keyIndex(struct EditNurb *editnurb);
 void free_curve_editNurb(struct Curve *cu);
-void free_curve( struct Curve *cu);
+void free_curve(struct Curve *cu);
 void BKE_free_editfont(struct Curve *cu);
 struct Curve *add_curve(const char *name, int type);
-struct Curve *copy_curve( struct Curve *cu);
-void make_local_curve( struct Curve *cu);
+struct Curve *copy_curve(struct Curve *cu);
+void make_local_curve(struct Curve *cu);
 struct ListBase *curve_editnurbs(struct Curve *cu);
-short curve_type( struct Curve *cu);
-void test_curve_type( struct Object *ob);
-void update_curve_dimension( struct Curve *cu );
-void tex_space_curve( struct Curve *cu);
-int count_curveverts( struct ListBase *nurb);
-int count_curveverts_without_handles( struct ListBase *nurb);
-void freeNurb( struct Nurb *nu);
-void freeNurblist( struct ListBase *lb);
-struct Nurb *duplicateNurb( struct Nurb *nu);
-void duplicateNurblist( struct ListBase *lb1,  struct ListBase *lb2);
-void test2DNurb( struct Nurb *nu);
-void minmaxNurb( struct Nurb *nu, float *min, float *max);
+short curve_type(struct Curve *cu);
+void test_curve_type(struct Object *ob);
+void update_curve_dimension(struct Curve *cu );
+void tex_space_curve(struct Curve *cu);
+int count_curveverts(struct ListBase *nurb);
+int count_curveverts_without_handles(struct ListBase *nurb);
+void freeNurb(struct Nurb *nu);
+void freeNurblist(struct ListBase *lb);
+struct Nurb *duplicateNurb(struct Nurb *nu);
+void duplicateNurblist(struct ListBase *lb1,  struct ListBase *lb2);
+void test2DNurb(struct Nurb *nu);
+void minmaxNurb(struct Nurb *nu, float *min, float *max);
 
 void nurbs_knot_calc_u(struct Nurb *nu);
 void nurbs_knot_calc_v(struct Nurb *nu);
@@ -83,19 +83,19 @@ void makeNurbfaces(struct Nurb *nu, float *coord_array, int rowstride, int resol
 void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, float *weight_array, int resolu, int stride);
 void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
 float *make_orco_curve(struct Scene *scene, struct Object *ob);
-float *make_orco_surf( struct Object *ob);
+float *make_orco_surf(struct Object *ob);
 void makebevelcurve(struct Scene *scene, struct Object *ob,  struct ListBase *disp, int forRender);
 
-void makeBevelList( struct Object *ob);
+void makeBevelList(struct Object *ob);
 
-void calchandleNurb( struct BezTriple *bezt, struct BezTriple *prev,  struct BezTriple *next, int mode);
-void calchandlesNurb( struct Nurb *nu);
-void testhandlesNurb( struct Nurb *nu);
-void autocalchandlesNurb( struct Nurb *nu, int flag);
+void calchandleNurb(struct BezTriple *bezt, struct BezTriple *prev,  struct BezTriple *next, int mode);
+void calchandlesNurb(struct Nurb *nu);
+void testhandlesNurb(struct Nurb *nu);
+void autocalchandlesNurb(struct Nurb *nu, int flag);
 void autocalchandlesNurb_all(ListBase *editnurb, int flag);
 void sethandlesNurb(ListBase *editnurb, short code);
 
-void switchdirectionNurb( struct Nurb *nu);
+void switchdirectionNurb(struct Nurb *nu);
 
 void addNurbPoints(struct Nurb *nu, int number);
 void addNurbPointsBezier(struct Nurb *nu, int number);
@@ -107,11 +107,11 @@ float (*curve_getKeyVertexCos(struct Curve *cu, struct ListBase *lb, float *key)
 void curve_applyKeyVertexTilts(struct Curve *cu, struct ListBase *lb, float *key);
 
 /* nurb checks if they can be drawn, also clamp order func */
-int check_valid_nurb_u( struct Nurb *nu);
-int check_valid_nurb_v( struct Nurb *nu);
+int check_valid_nurb_u(struct Nurb *nu);
+int check_valid_nurb_v(struct Nurb *nu);
 
-int clamp_nurb_order_u( struct Nurb *nu);
-int clamp_nurb_order_v( struct Nurb *nu);
+int clamp_nurb_order_u(struct Nurb *nu);
+int clamp_nurb_order_v(struct Nurb *nu);
 
 ListBase *BKE_curve_nurbs(struct Curve *cu);
 

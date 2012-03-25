@@ -57,7 +57,7 @@ typedef enum ThumbSource {
 	THB_SOURCE_BLEND
 } ThumbSource;
 
-/* dont generate thumbs for images bigger then this (100mb) */
+/* don't generate thumbs for images bigger then this (100mb) */
 #define THUMB_SIZE_MAX (100 * 1024*1024)
 
 // IB_metadata

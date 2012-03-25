@@ -77,10 +77,10 @@ static void init_preview_region(const bContext *C, ARegion *ar)
 	ar->alignment= RGN_ALIGN_TOP;
 	ar->flag|= RGN_FLAG_HIDDEN;
 
-	ar->v2d.tot.xmin= 0.0f;
-	ar->v2d.tot.ymin= -10.0f;
-	ar->v2d.tot.xmax= (float)scene->r.efra;
-	ar->v2d.tot.ymax= 10.0f;
+	ar->v2d.tot.xmin = 0.0f;
+	ar->v2d.tot.ymin = -10.0f;
+	ar->v2d.tot.xmax = (float)scene->r.efra;
+	ar->v2d.tot.ymax = 10.0f;
 
 	ar->v2d.cur= ar->v2d.tot;
 
@@ -101,14 +101,14 @@ static ARegion *clip_has_preview_region(const bContext *C, ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
-	if(ar)
+	if (ar)
 		return ar;
 
 	/* add subdiv level; after header */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 
 	/* is error! */
-	if(ar==NULL)
+	if (ar==NULL)
 		return NULL;
 
 	arnew= MEM_callocN(sizeof(ARegion), "clip preview region");
@@ -124,7 +124,7 @@ static void clip_scopes_tag_refresh(ScrArea *sa)
 	SpaceClip *sc= (SpaceClip *)sa->spacedata.first;
 	ARegion *ar;
 
-	if(sc->mode!=SC_MODE_TRACKING)
+	if (sc->mode!=SC_MODE_TRACKING)
 		return;
 
 	/* only while proeprties are visible */
@@ -141,7 +141,7 @@ static void clip_stabilization_tag_refresh(ScrArea *sa)
 	SpaceClip *sc= (SpaceClip *)sa->spacedata.first;
 	MovieClip *clip= ED_space_clip(sc);
 
-	if(clip) {
+	if (clip) {
 		MovieTrackingStabilization *stab= &clip->tracking.stabilization;
 
 		stab->ok= 0;
@@ -212,7 +212,7 @@ static void clip_free(SpaceLink *sl)
 
 	sc->clip= NULL;
 
-	if(sc->scopes.track_preview)
+	if (sc->scopes.track_preview)
 		IMB_freeImBuf(sc->scopes.track_preview);
 }
 
@@ -278,12 +278,12 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		 case NC_SCREEN:
-			if(wmn->data==ND_ANIMPLAY) {
+			if (wmn->data==ND_ANIMPLAY) {
 				ED_area_tag_redraw(sa);
 			}
 			break;
 		case NC_SPACE:
-			if(wmn->data==ND_SPACE_CLIP) {
+			if (wmn->data==ND_SPACE_CLIP) {
 				clip_scopes_tag_refresh(sa);
 				clip_stabilization_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
@@ -400,7 +400,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	/* ******** Global hotkeys avalaible for all regions ******** */
 
-	keymap= WM_keymap_find(keyconf, "Clip", SPACE_CLIP, 0);
+	keymap = WM_keymap_find(keyconf, "Clip", SPACE_CLIP, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
 
@@ -408,23 +408,25 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_properties", NKEY, KM_PRESS, 0, 0);
 
 	/* 2d tracking */
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "backwards", TRUE);
 	RNA_boolean_set(kmi->ptr, "sequence", FALSE);
-	WM_keymap_add_item(keymap, "CLIP_OT_track_markers", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "backwards", FALSE);
+	RNA_boolean_set(kmi->ptr, "sequence", FALSE);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "backwards", FALSE);
 	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "backwards", TRUE);
 	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
 
 	/* mode */
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", SC_MODE_RECONSTRUCTION);
 	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "mode", SC_MODE_DISTORTION);
 	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 
@@ -437,7 +439,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	/* ******** Hotkeys avalaible for main region only ******** */
 
-	keymap= WM_keymap_find(keyconf, "Clip Editor", SPACE_CLIP, 0);
+	keymap = WM_keymap_find(keyconf, "Clip Editor", SPACE_CLIP, 0);
 
 	/* ** View/navigation ** */
 
@@ -468,16 +470,16 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
 	/* jump to special frame */
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "position", 0);
 
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "position", 1);
 
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "position", 2);
 
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "position", 3);
 
 	/* "timeline" */
@@ -504,23 +506,23 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "CLIP_OT_slide_marker", LEFTMOUSE, KM_PRESS, 0, 0);
 
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_disable_markers", DKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_disable_markers", DKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", 2);	/* toggle */
 
 	/* tracks */
 	WM_keymap_add_item(keymap, "CLIP_OT_delete_track", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_delete_track", XKEY, KM_PRESS, 0, 0);
 
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_lock_tracks", LKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_lock_tracks", LKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", 0);	/* lock */
 
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_lock_tracks", LKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_lock_tracks", LKEY, KM_PRESS, KM_ALT, 0);
 	RNA_enum_set(kmi->ptr, "action", 1);	/* unlock */
 
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks", HKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
 
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks", HKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks_clear", HKEY, KM_PRESS, KM_ALT, 0);
@@ -532,34 +534,34 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "CLIP_MT_tracking_specials", WKEY, KM_PRESS, 0, 0);
 
 	/* display */
-	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", LKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", LKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.lock_selection");
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", DKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", DKEY, KM_PRESS, KM_ALT, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.show_disabled");
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", SKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SKEY, KM_PRESS, KM_ALT, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.show_marker_search");
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", MKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", MKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.use_mute_footage");
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 
 	/* clean-up */
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_REMAINED);
 	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_UPTO);
 	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_ALL);
 	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
 
 	/* ******** Hotkeys avalaible for preview region only ******** */
 
-	keymap= WM_keymap_find(keyconf, "Clip Graph Editor", SPACE_CLIP, 0);
+	keymap = WM_keymap_find(keyconf, "Clip Graph Editor", SPACE_CLIP, 0);
 
 	/* "timeline" */
 	WM_keymap_add_item(keymap, "CLIP_OT_change_frame", ACTIONMOUSE, KM_PRESS, 0, 0);
@@ -588,22 +590,22 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_center_current_frame", PADPERIOD, KM_PRESS, 0, 0);
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", LKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", LKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.lock_time_cursor");
 
 	/* clean-up */
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_REMAINED);
 	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_UPTO);
 	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_ALL);
 	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
 
 	/* tracks */
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_graph_disable_markers", DKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_graph_disable_markers", DKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", 2);	/* toggle */
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
@@ -615,11 +617,11 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 
-	if(CTX_data_dir(member)) {
+	if (CTX_data_dir(member)) {
 		CTX_data_dir_set(result, clip_context_dir);
 		return 1;
 	}
-	else if(CTX_data_equals(member, "edit_movieclip")) {
+	else if (CTX_data_equals(member, "edit_movieclip")) {
 		CTX_data_id_pointer_set(result, &sc->clip->id);
 		return 1;
 	}
@@ -682,7 +684,7 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			break;
 	}
 
-	if(view_changed) {
+	if (view_changed) {
 		ED_area_initialize(wm, window, sa);
 		ED_area_tag_redraw(sa);
 	}
@@ -704,20 +706,20 @@ static void movieclip_main_area_set_view2d(SpaceClip *sc, ARegion *ar)
 	w= width;
 	h= height;
 
-	if(clip)
+	if (clip)
 		h*= clip->aspy/clip->aspx/clip->tracking.camera.pixel_aspect;
 
 	winx= ar->winrct.xmax - ar->winrct.xmin + 1;
 	winy= ar->winrct.ymax - ar->winrct.ymin + 1;
 
-	ar->v2d.tot.xmin= 0;
-	ar->v2d.tot.ymin= 0;
-	ar->v2d.tot.xmax= w;
-	ar->v2d.tot.ymax= h;
+	ar->v2d.tot.xmin = 0;
+	ar->v2d.tot.ymin = 0;
+	ar->v2d.tot.xmax = w;
+	ar->v2d.tot.ymax = h;
 
-	ar->v2d.mask.xmin= ar->v2d.mask.ymin= 0;
-	ar->v2d.mask.xmax= winx;
-	ar->v2d.mask.ymax= winy;
+	ar->v2d.mask.xmin = ar->v2d.mask.ymin = 0;
+	ar->v2d.mask.xmax = winx;
+	ar->v2d.mask.ymax = winy;
 
 	/* which part of the image space do we see? */
 	x1= ar->winrct.xmin+(winx-sc->zoom*w)/2.0f;
@@ -727,12 +729,12 @@ static void movieclip_main_area_set_view2d(SpaceClip *sc, ARegion *ar)
 	y1-= sc->zoom*sc->yof;
 
 	/* relative display right */
-	ar->v2d.cur.xmin= ((ar->winrct.xmin - (float)x1)/sc->zoom);
-	ar->v2d.cur.xmax= ar->v2d.cur.xmin + ((float)winx/sc->zoom);
+	ar->v2d.cur.xmin = ((ar->winrct.xmin - (float)x1)/sc->zoom);
+	ar->v2d.cur.xmax = ar->v2d.cur.xmin + ((float)winx/sc->zoom);
 
 	/* relative display left */
-	ar->v2d.cur.ymin= ((ar->winrct.ymin-(float)y1)/sc->zoom);
-	ar->v2d.cur.ymax= ar->v2d.cur.ymin + ((float)winy/sc->zoom);
+	ar->v2d.cur.ymin = ((ar->winrct.ymin-(float)y1)/sc->zoom);
+	ar->v2d.cur.ymax = ar->v2d.cur.ymin + ((float)winy/sc->zoom);
 
 	/* normalize 0.0..1.0 */
 	ar->v2d.cur.xmin /= w;
@@ -749,10 +751,10 @@ static void clip_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Clip Editor", SPACE_CLIP, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Clip Editor", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -765,22 +767,22 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* if tracking is in progress, we should synchronize framenr from clipuser
 	 * so latest tracked frame would be shown */
-	if(clip && clip->tracking_context)
+	if (clip && clip->tracking_context)
 		BKE_tracking_sync_user(&sc->user, clip->tracking_context);
 
-	if(sc->flag&SC_LOCK_SELECTION) {
+	if (sc->flag&SC_LOCK_SELECTION) {
 		ImBuf *tmpibuf= NULL;
 
-		if(clip && clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
+		if (clip && clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
 			tmpibuf= ED_space_clip_get_stable_buffer(sc, NULL, NULL, NULL);
 		}
 
-		if(ED_clip_view_selection(sc, ar, 0)) {
+		if (ED_clip_view_selection(sc, ar, 0)) {
 			sc->xof+= sc->xlockof;
 			sc->yof+= sc->ylockof;
 		}
 
-		if(tmpibuf)
+		if (tmpibuf)
 			IMB_freeImBuf(tmpibuf);
 	}
 
@@ -823,10 +825,10 @@ static void clip_preview_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Clip Graph Editor", SPACE_CLIP, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Clip Graph Editor", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -838,7 +840,7 @@ static void clip_preview_area_draw(const bContext *C, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	short unitx= V2D_UNIT_FRAMESCALE, unity= V2D_UNIT_VALUES;
 
-	if(sc->flag & SC_LOCK_TIMECURSOR)
+	if (sc->flag & SC_LOCK_TIMECURSOR)
 		ED_clip_graph_center_current_frame(scene, ar);
 
 	/* clear and setup matrix */
@@ -896,19 +898,19 @@ static void clip_props_area_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_WM:
-			if(wmn->data == ND_HISTORY)
+			if (wmn->data == ND_HISTORY)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCENE:
-			if(wmn->data == ND_MODE)
+			if (wmn->data == ND_MODE)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_CLIP)
+			if (wmn->data == ND_SPACE_CLIP)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCREEN:
-			if(wmn->data == ND_GPENCIL)
+			if (wmn->data == ND_GPENCIL)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -923,7 +925,7 @@ static void clip_properties_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -945,7 +947,7 @@ static void clip_properties_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_BRUSH:
-			if(wmn->action==NA_EDITED)
+			if (wmn->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 	}

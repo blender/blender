@@ -75,7 +75,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 	if (pmd->canvas) {
 		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
-		for(; surface; surface=surface->next) {
+		for (; surface; surface=surface->next) {
 			/* tface */
 			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ || 
 				surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE) {
@@ -143,10 +143,10 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 
-	if(pmd->canvas) {
+	if (pmd->canvas) {
 		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 
-		for(; surface; surface=surface->next) {
+		for (; surface; surface=surface->next) {
 			walk(userData, ob, (ID **)&surface->brush_group);
 			walk(userData, ob, (ID **)&surface->init_texture);
 		}
