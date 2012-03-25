@@ -760,11 +760,13 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 /* standard validation step for a few of these (implemented as macro for inlining without fn-call overhead):
  *	"if the handles are not of the same type, set them to type free"
  */
-#define ENSURE_HANDLES_MATCH(bezt) \
-		if (bezt->h1 != bezt->h2) { \
-			if ELEM3(bezt->h1, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM) bezt->h1= HD_FREE; \
-			if ELEM3(bezt->h2, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM) bezt->h2= HD_FREE; \
-		}
+#define ENSURE_HANDLES_MATCH(bezt)                                            \
+	if (bezt->h1 != bezt->h2) {                                               \
+		if (ELEM3(bezt->h1, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM))                 \
+			bezt->h1= HD_FREE;                                                \
+		if (ELEM3(bezt->h2, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM))                 \
+		bezt->h2= HD_FREE;                                                    \
+	}
 
 /* Sets the selected bezier handles to type 'auto' */
 static short set_bezier_auto(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 

@@ -5927,7 +5927,7 @@ void createTransData(bContext *C, TransInfo *t)
 		if (t->obedit->type == OB_MESH) {
 			createTransEditVerts(C, t);
 		}
-		else if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
+		else if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
 			createTransCurveVerts(C, t);
 		}
 		else if (t->obedit->type==OB_LATTICE) {

@@ -121,7 +121,7 @@ static void nla_action_draw_keyframes (AnimData *adt, bAction *act, View2D *v2d,
 	action_to_keylist(adt, act, &keys, NULL);
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
-	if ELEM(NULL, act, keys.first)
+	if (ELEM(NULL, act, keys.first))
 		return;
 	
 	/* draw a darkened region behind the strips 

@@ -3055,7 +3055,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 	short type= RNA_enum_get(op->ptr, "type");
 	
 	/* sanity checks */
-	if ELEM(NULL, obedit, arm)
+	if (ELEM(NULL, obedit, arm))
 		return OPERATOR_CANCELLED;
 	
 	/* for now, there's only really one type of merging that's performed... */
@@ -4898,7 +4898,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	short autokey = 0;
 	
 	/* sanity checks */
-	if ELEM(NULL, clear_func, default_ksName) {
+	if (ELEM(NULL, clear_func, default_ksName)) {
 		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform func or Keying Set Name");
 		return OPERATOR_CANCELLED;
 	}

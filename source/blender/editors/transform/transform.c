@@ -1694,7 +1694,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		/* same as TFM_TIME_EXTEND, but we need the mode info for later 
 		 * so that duplicate-culling will work properly
 		 */
-		if ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)
+		if (ELEM(t->spacetype, SPACE_IPO, SPACE_NLA))
 			initTranslation(t);
 		else
 			initTimeTranslate(t);
@@ -1706,7 +1706,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		 * (for Graph/NLA Editors only since they uses 'standard' transforms to get 2D movement)
 		 * depending on which editor this was called from
 		 */
-		if ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)
+		if (ELEM(t->spacetype, SPACE_IPO, SPACE_NLA))
 			initTranslation(t);
 		else
 			initTimeTranslate(t);

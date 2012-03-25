@@ -176,7 +176,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 			stats->totvert+=2;
 		}
 	}
-	else if ELEM(obedit->type, OB_CURVE, OB_SURF) { /* OB_FONT has no cu->editnurb */
+	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) { /* OB_FONT has no cu->editnurb */
 		/* Curve Edit */
 		Curve *cu= obedit->data;
 		Nurb *nu;

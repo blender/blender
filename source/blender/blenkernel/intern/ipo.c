@@ -1518,7 +1518,7 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[],
 	ListBase drivers = {NULL, NULL};
 	
 	/* sanity check */
-	if ELEM(NULL, id, ipo)
+	if (ELEM(NULL, id, ipo))
 		return;
 	if (adt == NULL) {
 		printf("ERROR ipo_to_animdata(): adt invalid \n");

@@ -269,7 +269,7 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 	ScreenAnimData *sad= (animtimer) ? animtimer->customdata : NULL;
 	
 	/* sanity checks */
-	if ELEM3(NULL, scene, id, sad)
+	if (ELEM3(NULL, scene, id, sad))
 		return;
 	
 	/* check if we need a new strip if:
@@ -673,7 +673,7 @@ static void recalcData_view3d(TransInfo *t)
 	Base *base = t->scene->basact;
 	
 	if (t->obedit) {
-		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
+		if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= t->obedit->data;
 			ListBase *nurbs= curve_editnurbs(cu);
 			Nurb *nu= nurbs->first;

@@ -413,7 +413,7 @@ void unlink_object(Object *ob)
 		
 		modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
 		
-		if ELEM(obt->type, OB_CURVE, OB_FONT) {
+		if (ELEM(obt->type, OB_CURVE, OB_FONT)) {
 			cu= obt->data;
 
 			if (cu->bevobj==ob) {
@@ -2950,11 +2950,19 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 }
 
 KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, const char *name, int from_mix)
-{
-	if (ob->type==OB_MESH)					 return insert_meshkey(scene, ob, name, from_mix);
-	else if ELEM(ob->type, OB_CURVE, OB_SURF)return insert_curvekey(scene, ob, name, from_mix);
-	else if (ob->type==OB_LATTICE)			 return insert_lattkey(scene, ob, name, from_mix);
-	else									 return NULL;
+{	
+	switch (ob->type) {
+		case OB_MESH:
+			return insert_meshkey(scene, ob, name, from_mix);
+		case OB_CURVE:
+		case OB_SURF:
+			return insert_curvekey(scene, ob, name, from_mix);
+		case OB_LATTICE:
+			return insert_lattkey(scene, ob, name, from_mix);
+		default:
+			return NULL;
+	}
+
 }
 
 /* most important if this is modified it should _always_ return True, in certain

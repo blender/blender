@@ -140,7 +140,7 @@ void free_nladata (ListBase *tracks)
 	NlaTrack *nlt, *nltn;
 	
 	/* sanity checks */
-	if ELEM(NULL, tracks, tracks->first)
+	if (ELEM(NULL, tracks, tracks->first))
 		return;
 		
 	/* free tracks one by one */
@@ -221,7 +221,7 @@ void copy_nladata (ListBase *dst, ListBase *src)
 	NlaTrack *nlt, *nlt_d;
 	
 	/* sanity checks */
-	if ELEM(NULL, dst, src)
+	if (ELEM(NULL, dst, src))
 		return;
 		
 	/* clear out the destination list first for precautions... */
@@ -319,7 +319,7 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 	NlaTrack *nlt;
 	
 	/* sanity checks */
-	if ELEM(NULL, adt, act)
+	if (ELEM(NULL, adt, act))
 		return NULL;
 	
 	/* create a new NLA strip */
@@ -586,7 +586,7 @@ void BKE_nlastrips_sort_strips (ListBase *strips)
 	NlaStrip *strip, *sstrip, *stripn;
 	
 	/* sanity checks */
-	if ELEM(NULL, strips, strips->first)
+	if (ELEM(NULL, strips, strips->first))
 		return;
 	
 	/* we simply perform insertion sort on this list, since it is assumed that per track,
@@ -630,7 +630,7 @@ short BKE_nlastrips_add_strip (ListBase *strips, NlaStrip *strip)
 	short not_added = 1;
 	
 	/* sanity checks */
-	if ELEM(NULL, strips, strip)
+	if (ELEM(NULL, strips, strip))
 		return 0;
 		
 	/* check if any space to add */
@@ -668,7 +668,7 @@ void BKE_nlastrips_make_metas (ListBase *strips, short temp)
 	NlaStrip *strip, *stripn;
 	
 	/* sanity checks */
-	if ELEM(NULL, strips, strips->first)
+	if (ELEM(NULL, strips, strips->first))
 		return;
 	
 	/* group all continuous chains of selected strips into meta-strips */
@@ -719,7 +719,7 @@ void BKE_nlastrips_clear_metastrip (ListBase *strips, NlaStrip *strip)
 	NlaStrip *cs, *csn;
 	
 	/* sanity check */
-	if ELEM(NULL, strips, strip)
+	if (ELEM(NULL, strips, strip))
 		return;
 	
 	/* move each one of the meta-strip's children before the meta-strip
@@ -744,7 +744,7 @@ void BKE_nlastrips_clear_metas (ListBase *strips, short onlySel, short onlyTemp)
 	NlaStrip *strip, *stripn;
 	
 	/* sanity checks */
-	if ELEM(NULL, strips, strips->first)
+	if (ELEM(NULL, strips, strips->first))
 		return;
 	
 	/* remove meta-strips fitting the criteria of the arguments */
@@ -769,7 +769,7 @@ void BKE_nlastrips_clear_metas (ListBase *strips, short onlySel, short onlyTemp)
 short BKE_nlameta_add_strip (NlaStrip *mstrip, NlaStrip *strip)
 {
 	/* sanity checks */
-	if ELEM(NULL, mstrip, strip)
+	if (ELEM(NULL, mstrip, strip))
 		return 0;
 		
 	/* firstly, check if the meta-strip has space for this */
@@ -827,7 +827,7 @@ void BKE_nlameta_flush_transforms (NlaStrip *mstrip)
 	 *	- strip must exist
 	 *	- strip must be a meta-strip with some contents
 	 */
-	if ELEM(NULL, mstrip, mstrip->strips.first)
+	if (ELEM(NULL, mstrip, mstrip->strips.first))
 		return;
 	if (mstrip->type != NLASTRIP_TYPE_META)
 		return;
@@ -899,7 +899,7 @@ NlaTrack *BKE_nlatrack_find_active (ListBase *tracks)
 	NlaTrack *nlt;
 	
 	/* sanity check */
-	if ELEM(NULL, tracks, tracks->first)
+	if (ELEM(NULL, tracks, tracks->first))
 		return NULL;
 		
 	/* try to find the first active track */
@@ -920,7 +920,7 @@ void BKE_nlatrack_solo_toggle (AnimData *adt, NlaTrack *nlt)
 	NlaTrack *nt;
 	
 	/* sanity check */
-	if ELEM(NULL, adt, adt->nla_tracks.first)
+	if (ELEM(NULL, adt, adt->nla_tracks.first))
 		return;
 		
 	/* firstly, make sure 'solo' flag for all tracks is disabled */
@@ -952,7 +952,7 @@ void BKE_nlatrack_set_active (ListBase *tracks, NlaTrack *nlt_a)
 	NlaTrack *nlt;
 	
 	/* sanity check */
-	if ELEM(NULL, tracks, tracks->first)
+	if (ELEM(NULL, tracks, tracks->first))
 		return;
 	
 	/* deactive all the rest */
@@ -990,7 +990,7 @@ short BKE_nlatrack_has_space (NlaTrack *nlt, float start, float end)
 void BKE_nlatrack_sort_strips (NlaTrack *nlt)
 {
 	/* sanity checks */
-	if ELEM(NULL, nlt, nlt->strips.first)
+	if (ELEM(NULL, nlt, nlt->strips.first))
 		return;
 	
 	/* sort the strips with a more generic function */
@@ -1003,7 +1003,7 @@ void BKE_nlatrack_sort_strips (NlaTrack *nlt)
 short BKE_nlatrack_add_strip (NlaTrack *nlt, NlaStrip *strip)
 {
 	/* sanity checks */
-	if ELEM(NULL, nlt, strip)
+	if (ELEM(NULL, nlt, strip))
 		return 0;
 		
 	/* try to add the strip to the track using a more generic function */
@@ -1024,7 +1024,7 @@ short BKE_nlatrack_get_bounds (NlaTrack *nlt, float bounds[2])
 		return 0;
 	
 	/* sanity checks */
-	if ELEM(NULL, nlt, nlt->strips.first)
+	if (ELEM(NULL, nlt, nlt->strips.first))
 		return 0;
 		
 	/* lower bound is first strip's start frame */
@@ -1047,7 +1047,7 @@ NlaStrip *BKE_nlastrip_find_active (NlaTrack *nlt)
 	NlaStrip *strip;
 	
 	/* sanity check */
-	if ELEM(NULL, nlt, nlt->strips.first)
+	if (ELEM(NULL, nlt, nlt->strips.first))
 		return NULL;
 		
 	/* try to find the first active strip */
@@ -1146,7 +1146,7 @@ static short nlastrip_is_first (AnimData *adt, NlaStrip *strip)
 	NlaStrip *ns;
 	
 	/* sanity checks */
-	if ELEM(NULL, adt, strip)
+	if (ELEM(NULL, adt, strip))
 		return 0;
 		
 	/* check if strip has any strips before it */
@@ -1176,7 +1176,7 @@ short BKE_nlatrack_has_animated_strips (NlaTrack *nlt)
 	NlaStrip *strip;
 	
 	/* sanity checks */
-	if ELEM(NULL, nlt, nlt->strips.first)
+	if (ELEM(NULL, nlt, nlt->strips.first))
 		return 0;
 		
 	/* check each strip for F-Curves only (don't care about whether the flags are set) */
@@ -1195,7 +1195,7 @@ short BKE_nlatracks_have_animated_strips (ListBase *tracks)
 	NlaTrack *nlt;
 	
 	/* sanity checks */
-	if ELEM(NULL, tracks, tracks->first)
+	if (ELEM(NULL, tracks, tracks->first))
 		return 0;
 		
 	/* check each track, stopping on the first hit */
@@ -1279,7 +1279,7 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 	NlaTrack *nlt;
 	
 	/* sanity checks */
-	if ELEM(NULL, adt, strip)
+	if (ELEM(NULL, adt, strip))
 		return;
 		
 	/* give strip a default name if none already */
@@ -1376,7 +1376,7 @@ static void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
 	float *ns=NULL, *ne=NULL;
 	
 	/* sanity checks */
-	if ELEM(NULL, nls, nlt)
+	if (ELEM(NULL, nls, nlt))
 		return;
 	if ((nlt->prev == NULL) && (nlt->next == NULL))
 		return;
@@ -1422,7 +1422,7 @@ void BKE_nla_validate_state (AnimData *adt)
 	NlaTrack *nlt;
 	
 	/* sanity checks */
-	if ELEM(NULL, adt, adt->nla_tracks.first)
+	if (ELEM(NULL, adt, adt->nla_tracks.first))
 		return;
 		
 	/* adjust blending values for auto-blending, and also do an initial pass to find the earliest strip */
@@ -1476,7 +1476,7 @@ void BKE_nla_action_pushdown (AnimData *adt)
 	
 	/* sanity checks */
 	// TODO: need to report the error for this
-	if ELEM(NULL, adt, adt->action) 
+	if (ELEM(NULL, adt, adt->action))
 		return;
 		
 	/* if the action is empty, we also shouldn't try to add to stack, 
@@ -1524,7 +1524,7 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 	NlaStrip *strip, *activeStrip=NULL;
 	
 	/* verify that data is valid */
-	if ELEM(NULL, adt, adt->nla_tracks.first)
+	if (ELEM(NULL, adt, adt->nla_tracks.first))
 		return 0;
 		
 	/* if block is already in tweakmode, just leave, but we should report 
@@ -1575,7 +1575,7 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 		}
 	}
 	
-	if ELEM3(NULL, activeTrack, activeStrip, activeStrip->act) {
+	if (ELEM3(NULL, activeTrack, activeStrip, activeStrip->act)) {
 		if (G.f & G_DEBUG) {
 			printf("NLA tweakmode enter - neither active requirement found \n");
 			printf("\tactiveTrack = %p, activeStrip = %p \n", (void *)activeTrack, (void *)activeStrip);
@@ -1625,7 +1625,7 @@ void BKE_nla_tweakmode_exit (AnimData *adt)
 	NlaTrack *nlt;
 	
 	/* verify that data is valid */
-	if ELEM(NULL, adt, adt->nla_tracks.first)
+	if (ELEM(NULL, adt, adt->nla_tracks.first))
 		return;
 		
 	/* hopefully the flag is correct - skip if not on */
@@ -1667,7 +1667,7 @@ static void UNUSED_FUNCTION(BKE_nla_bake) (Scene *scene, ID *UNUSED(id), AnimDat
 	 *	1) Scene and AnimData must be provided 
 	 *	2) there must be tracks to merge...
 	 */
-	if ELEM3(NULL, scene, adt, adt->nla_tracks.first)
+	if (ELEM3(NULL, scene, adt, adt->nla_tracks.first))
 		return;
 	
 	/* if animdata currently has an action, 'push down' this onto the stack first */

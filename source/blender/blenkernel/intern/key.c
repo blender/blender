@@ -1466,7 +1466,7 @@ Key *ob_get_key(Object *ob)
 		Mesh *me= ob->data;
 		return me->key;
 	}
-	else if ELEM(ob->type, OB_CURVE, OB_SURF) {
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu= ob->data;
 		return cu->key;
 	}
@@ -1589,7 +1589,7 @@ char *key_get_curValue_rnaPath(Key *key, KeyBlock *kb)
 	PropertyRNA *prop;
 	
 	/* sanity checks */
-	if ELEM(NULL, key, kb)
+	if (ELEM(NULL, key, kb))
 		return NULL;
 	
 	/* create the RNA pointer */

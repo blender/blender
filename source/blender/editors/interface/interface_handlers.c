@@ -344,8 +344,8 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 		const char *str= NULL;
 
 		/* define which string to use for undo */
-		if ELEM(but->type, LINK, INLINK) str= "Add button link";
-		else if ELEM(but->type, MENU, ICONTEXTROW) str= but->drawstr;
+		if (ELEM(but->type, LINK, INLINK)) str = "Add button link";
+		else if (ELEM(but->type, MENU, ICONTEXTROW)) str = but->drawstr;
 		else if (but->drawstr[0]) str= but->drawstr;
 		else str= but->tip;
 
@@ -1121,7 +1121,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	}
 	
 	/* numeric value */
-	if ELEM4(but->type, NUM, NUMABS, NUMSLI, HSVSLI) {
+	if (ELEM4(but->type, NUM, NUMABS, NUMSLI, HSVSLI)) {
 		
 		if (but->poin==NULL && but->rnapoin.data==NULL);
 		else if (mode=='c') {

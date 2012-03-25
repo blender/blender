@@ -156,7 +156,7 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
 	FCurve *fcu;
 	
 	/* sanity checks */
-	if ELEM(NULL, act, rna_path)
+	if (ELEM(NULL, act, rna_path))
 		return NULL;
 		
 	/* try to find f-curve matching for this setting 
@@ -980,7 +980,7 @@ short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 	int ret= 0;
 	
 	/* sanity checks */
-	if ELEM(NULL, id, adt) {
+	if (ELEM(NULL, id, adt)) {
 		BKE_report(reports, RPT_ERROR, "No ID-Block and/Or AnimData to delete keyframe from");
 		return 0;
 	}

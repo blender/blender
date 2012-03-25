@@ -2730,7 +2730,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 	float y, ymid, ytext;
 	
 	/* sanity checks - don't draw anything */
-	if ELEM(NULL, acf, ale)
+	if (ELEM(NULL, acf, ale))
 		return;
 	
 	/* get initial offset */
@@ -3158,7 +3158,7 @@ void ANIM_channel_draw_widgets (bContext *C, bAnimContext *ac, bAnimListElem *al
 	short offset;
 	
 	/* sanity checks - don't draw anything */
-	if ELEM3(NULL, acf, ale, block)
+	if (ELEM3(NULL, acf, ale, block))
 		return;
 	
 	/* get initial offset */

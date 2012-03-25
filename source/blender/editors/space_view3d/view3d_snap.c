@@ -523,7 +523,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 	if (obedit) {
 		tottrans= 0;
 		
-		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL)
+		if (ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL))
 			make_trans_verts(obedit, bmat[0], bmat[1], 0);
 		if (tottrans==0) return OPERATOR_CANCELLED;
 		
@@ -664,7 +664,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 	if (obedit) {
 		tottrans= 0;
 		
-		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL)
+		if (ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL))
 			make_trans_verts(obedit, bmat[0], bmat[1], 0);
 		if (tottrans==0) return OPERATOR_CANCELLED;
 		
@@ -879,7 +879,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 	if (obedit) {
 		tottrans=0;
 		
-		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL)
+		if (ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL))
 			make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS|TM_SKIP_HANDLES);
 		if (tottrans==0) return OPERATOR_CANCELLED;
 		
@@ -1063,7 +1063,7 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	int a;
 
 	tottrans=0;
-	if ELEM5(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE)
+	if (ELEM5(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE))
 		make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS);
 	
 	if (tottrans==0) return 0;

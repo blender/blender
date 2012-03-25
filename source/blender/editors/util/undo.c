@@ -105,7 +105,7 @@ void ED_undo_push(bContext *C, const char *str)
 		
 		if (obedit->type==OB_MESH)
 			undo_push_mesh(C, str);
-		else if ELEM(obedit->type, OB_CURVE, OB_SURF)
+		else if (ELEM(obedit->type, OB_CURVE, OB_SURF))
 			undo_push_curve(C, str);
 		else if (obedit->type==OB_FONT)
 			undo_push_font(C, str);
@@ -168,7 +168,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		ED_text_undo_step(C, step);
 	}
 	else if (obedit) {
-		if ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE) {
+		if (ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)) {
 			if (undoname)
 				undo_editmode_name(C, undoname);
 			else
@@ -260,7 +260,7 @@ int ED_undo_valid(const bContext *C, const char *undoname)
 		return 1;
 	}
 	else if (obedit) {
-		if ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE) {
+		if (ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)) {
 			return undo_editmode_valid(undoname);
 		}
 	}

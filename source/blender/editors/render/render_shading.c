@@ -232,7 +232,7 @@ static int material_slot_de_select(bContext *C, int select)
 			EDBM_deselect_by_material(em, ob->actcol-1, select);
 		}
 	}
-	else if ELEM(ob->type, OB_CURVE, OB_SURF) {
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		ListBase *nurbs= curve_editnurbs((Curve*)ob->data);
 		Nurb *nu;
 		BPoint *bp;

@@ -1776,8 +1776,10 @@ void UI_view2d_scrollers_free(View2DScrollers *scrollers)
 void UI_view2d_listview_cell_to_view(View2D *v2d, short columnwidth, short rowheight, float startx, float starty, int column, int row, rctf *rect)
 {
 	/* sanity checks */
-	if ELEM(NULL, v2d, rect)
+	if (ELEM(NULL, v2d, rect)) {
 		return;
+	}
+
 	if ((columnwidth <= 0) && (rowheight <= 0)) {
 		rect->xmin = rect->xmax = 0.0f;
 		rect->ymin = rect->ymax = 0.0f;

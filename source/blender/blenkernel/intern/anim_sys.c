@@ -397,7 +397,7 @@ void action_move_fcurves_by_basepath (bAction *srcAct, bAction *dstAct, const ch
 	FCurve *fcu, *fcn=NULL;
 	
 	/* sanity checks */
-	if ELEM3(NULL, srcAct, dstAct, basepath) {
+	if (ELEM3(NULL, srcAct, dstAct, basepath)) {
 		if (G.f & G_DEBUG) {
 			printf("ERROR: action_partition_fcurves_by_basepath(%p, %p, %p) has insufficient info to work with\n",
 					(void *)srcAct, (void *)dstAct, (void *)basepath);
@@ -478,7 +478,7 @@ void BKE_animdata_separate_by_basepath (ID *srcID, ID *dstID, ListBase *basepath
 	LinkData *ld;
 	
 	/* sanity checks */
-	if ELEM(NULL, srcID, dstID) {
+	if (ELEM(NULL, srcID, dstID)) {
 		if (G.f & G_DEBUG)
 			printf("ERROR: no source or destination ID to separate AnimData with\n");
 		return;
@@ -488,7 +488,7 @@ void BKE_animdata_separate_by_basepath (ID *srcID, ID *dstID, ListBase *basepath
 	srcAdt = BKE_animdata_from_id(srcID);
 	dstAdt = BKE_id_add_animdata(dstID);
 	
-	if ELEM(NULL, srcAdt, dstAdt) {
+	if (ELEM(NULL, srcAdt, dstAdt)) {
 		if (G.f & G_DEBUG)
 			printf("ERROR: no AnimData for this pair of ID's\n");
 		return;
@@ -903,7 +903,7 @@ KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[]
 	KS_Path *ksp;
 	
 	/* sanity checks */
-	if ELEM3(NULL, ks, rna_path, id)
+	if (ELEM3(NULL, ks, rna_path, id))
 		return NULL;
 	
 	/* loop over paths in the current KeyingSet, finding the first one where all settings match 
@@ -976,7 +976,7 @@ KS_Path *BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[],
 	KS_Path *ksp;
 	
 	/* sanity checks */
-	if ELEM(NULL, ks, rna_path) {
+	if (ELEM(NULL, ks, rna_path)) {
 		printf("ERROR: no Keying Set and/or RNA Path to add path with \n");
 		return NULL;
 	}
@@ -1028,7 +1028,7 @@ KS_Path *BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[],
 void BKE_keyingset_free_path (KeyingSet *ks, KS_Path *ksp)
 {
 	/* sanity check */
-	if ELEM(NULL, ks, ksp)
+	if (ELEM(NULL, ks, ksp))
 		return;
 
 	/* free RNA-path info */
@@ -1338,7 +1338,7 @@ void animsys_evaluate_action_group (PointerRNA *ptr, bAction *act, bActionGroup 
 	FCurve *fcu;
 	
 	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
-	if ELEM(NULL, act, agrp) return;
+	if (ELEM(NULL, act, agrp)) return;
 	if ((remap) && (remap->target != act)) remap= NULL;
 	
 	action_idcode_patch_check(ptr->id.data, act);
@@ -1710,14 +1710,14 @@ static void nlaeval_fmodifiers_join_stacks (ListBase *result, ListBase *list1, L
 	FModifier *fcm1, *fcm2;
 	
 	/* if list1 is invalid...  */
-	if ELEM(NULL, list1, list1->first) {
+	if (ELEM(NULL, list1, list1->first)) {
 		if (list2 && list2->first) {
 			result->first= list2->first;
 			result->last= list2->last;
 		}
 	}
 	/* if list 2 is invalid... */
-	else if ELEM(NULL, list2, list2->first) {
+	else if (ELEM(NULL, list2, list2->first)) {
 		result->first= list1->first;
 		result->last= list1->last;
 	}
@@ -1742,9 +1742,9 @@ static void nlaeval_fmodifiers_split_stacks (ListBase *list1, ListBase *list2)
 	FModifier *fcm1, *fcm2;
 	
 	/* if list1/2 is invalid... just skip */
-	if ELEM(NULL, list1, list2)
+	if (ELEM(NULL, list1, list2))
 		return;
-	if ELEM(NULL, list1->first, list2->first)
+	if (ELEM(NULL, list1->first, list2->first))
 		return;
 		
 	/* get endpoints */
@@ -2182,7 +2182,7 @@ void BKE_animsys_evaluate_animdata (Scene *scene, ID *id, AnimData *adt, float c
 	PointerRNA id_ptr;
 	
 	/* sanity checks */
-	if ELEM(NULL, id, adt)
+	if (ELEM(NULL, id, adt))
 		return;
 	
 	/* get pointer to ID-block for RNA to use */

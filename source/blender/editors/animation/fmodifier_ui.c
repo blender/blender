@@ -784,7 +784,7 @@ short ANIM_fmodifiers_copy_to_buf (ListBase *modifiers, short active)
 	short ok = 1;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->first)
+	if (ELEM(NULL, modifiers, modifiers->first))
 		return 0;
 		
 	/* copy the whole list, or just the active one? */

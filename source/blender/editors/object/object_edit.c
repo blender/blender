@@ -1215,7 +1215,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
 			done= 1;
 		}
-		else if ELEM(ob->type, OB_SURF, OB_CURVE) {
+		else if (ELEM(ob->type, OB_SURF, OB_CURVE)) {
 			cu= ob->data;
 
 			for (nu=cu->nurb.first; nu; nu=nu->next) {

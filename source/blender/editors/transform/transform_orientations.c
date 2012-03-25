@@ -712,7 +712,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				}
 			}
 		} /* end editmesh */
-		else if ELEM(obedit->type, OB_CURVE, OB_SURF) {
+		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= obedit->data;
 			Nurb *nu;
 			BezTriple *bezt;

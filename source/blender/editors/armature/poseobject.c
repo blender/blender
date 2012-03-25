@@ -256,7 +256,7 @@ static void ED_pose_clear_paths(Object *ob)
 	bPoseChannel *pchan;
 	short skipped = 0;
 	
-	if ELEM(NULL, ob, ob->pose)
+	if (ELEM(NULL, ob, ob->pose))
 		return;
 	
 	/* free the motionpath blocks, but also take note of whether we skipped some... */
@@ -289,7 +289,7 @@ static int pose_clear_paths_exec (bContext *C, wmOperator *UNUSED(op))
 		ob= object_pose_armature_get(CTX_data_active_object(C));
 		
 	/* only continue if there's an object */
-	if ELEM(NULL, ob, ob->pose)
+	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
 	
 	/* use the backend function for this */
@@ -1110,7 +1110,7 @@ static int pose_copy_exec (bContext *C, wmOperator *op)
 	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* sanity checking */
-	if ELEM(NULL, ob, ob->pose) {
+	if (ELEM(NULL, ob, ob->pose)) {
 		BKE_report(op->reports, RPT_ERROR, "No Pose to Copy");
 		return OPERATOR_CANCELLED;
 	}
@@ -1155,7 +1155,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOC_ROT_SCALE_ID);
 
 	/* sanity checks */
-	if ELEM(NULL, ob, ob->pose)
+	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
 
 	if (g_posebuf == NULL) {

@@ -1875,7 +1875,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 	/* wire draw over solid only in posemode */
 	if ((dt <= OB_WIRE) || (arm->flag & ARM_POSEMODE) || ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
 		/* draw line check first. we do selection indices */
-		if ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) {
+		if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
 			if (arm->flag & ARM_POSEMODE) 
 				index= base->selcol;
 		}
@@ -2139,7 +2139,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	/* if wire over solid, set offset */
 	index= -1;
 	glLoadName(-1);
-	if ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) {
+	if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
 		if (G.f & G_PICKSEL)
 			index= 0;
 	}
@@ -2203,7 +2203,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	
 	/* restore */
 	if (index!=-1) glLoadName(-1);
-	if ELEM(arm->drawtype,ARM_LINE,ARM_WIRE);
+	if (ELEM(arm->drawtype,ARM_LINE,ARM_WIRE));
 	else if (dt>OB_WIRE) bglPolygonOffset(rv3d->dist, 0.0f);
 	
 	/* finally names and axes */
@@ -2462,7 +2462,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	int cfrao, flago;
 	
 	/* pre conditions, get an action with sufficient frames */
-	if ELEM(NULL, adt, adt->action)
+	if (ELEM(NULL, adt, adt->action))
 		return;
 
 	calc_action_range(adt->action, &start, &end, 0);

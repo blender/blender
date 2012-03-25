@@ -458,7 +458,7 @@ Material ***give_matarar(Object *ob)
 		me= ob->data;
 		return &(me->mat);
 	}
-	else if ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF) {
+	else if (ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
 		cu= ob->data;
 		return &(cu->mat);
 	}
@@ -479,7 +479,7 @@ short *give_totcolp(Object *ob)
 		me= ob->data;
 		return &(me->totcol);
 	}
-	else if ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF) {
+	else if (ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
 		cu= ob->data;
 		return &(cu->totcol);
 	}
@@ -903,7 +903,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			ma->mapto |= mtex->mapto;
 
 			/* always get derivatives for these textures */
-			if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
+			if (ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP)) ma->texco |= TEXCO_OSA;
 			else if (mtex->texflag & (MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP|MTEX_BICUBIC_BUMP)) ma->texco |= TEXCO_OSA;
 			
 			if (ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;

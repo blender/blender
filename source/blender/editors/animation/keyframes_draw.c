@@ -189,7 +189,7 @@ static void nupdate_ak_gpframe (void *node, void *data)
 /* Add the given BezTriple to the given 'list' of Keyframes */
 static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
 {
-	if ELEM(NULL, keys, bezt) 
+	if (ELEM(NULL, keys, bezt))
 		return;
 	else
 		BLI_dlrbTree_add(keys, compare_ak_bezt, nalloc_ak_bezt, nupdate_ak_bezt, bezt);
@@ -198,7 +198,7 @@ static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
 /* Add the given GPencil Frame to the given 'list' of Keyframes */
 static void add_gpframe_to_keycolumns_list(DLRBT_Tree *keys, bGPDframe *gpf)
 {
-	if ELEM(NULL, keys, gpf) 
+	if (ELEM(NULL, keys, gpf))
 		return;
 	else
 		BLI_dlrbTree_add(keys, compare_ak_gpframe, nalloc_ak_gpframe, nupdate_ak_gpframe, gpf);
@@ -538,7 +538,7 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 	glEnable(GL_LINE_SMOOTH);
 	
 	/* draw! */
-	if ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH) {
+	if (ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH)) {
 		/* interior - hardcoded colors (for selected and unselected only) */
 		switch (key_type) {
 			case BEZT_KEYTYPE_BREAKDOWN: /* bluish frames for now */
@@ -574,7 +574,7 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 		glCallList(displist2);
 	}
 	
-	if ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH) {
+	if (ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH)) {
 		/* exterior - black frame */
 		glColor4f(0.0f, 0.0f, 0.0f, alpha);
 		

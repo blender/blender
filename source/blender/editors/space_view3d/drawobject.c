@@ -1365,7 +1365,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 			glEnd();
 		}
 	}
-	else if ELEM(la->type, LA_HEMI, LA_SUN) {
+	else if (ELEM(la->type, LA_HEMI, LA_SUN)) {
 		
 		/* draw the line from the circle along the dist */
 		glBegin(GL_LINE_STRIP);
@@ -6123,7 +6123,7 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 	if (ob->type==OB_MESH) {
 		bb= mesh_get_bb(ob);
 	}
-	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
+	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		bb= ob->bb ? ob->bb : ( (Curve *)ob->data )->bb;
 	}
 	else if (ob->type==OB_MBALL) {
@@ -6157,7 +6157,7 @@ static void drawtexspace(Object *ob)
 	if (ob->type==OB_MESH) {
 		mesh_get_texspace(ob->data, loc, NULL, size);
 	}
-	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
+	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		Curve *cu= ob->data;
 		copy_v3_v3(size, cu->size);
 		copy_v3_v3(loc, cu->loc);

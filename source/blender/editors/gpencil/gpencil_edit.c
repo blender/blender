@@ -332,7 +332,7 @@ static int gp_actframe_delete_exec (bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
 		return OPERATOR_CANCELLED;
 	}
-	if ELEM(NULL, gpl, gpf) {
+	if (ELEM(NULL, gpl, gpf)) {
 		BKE_report(op->reports, RPT_ERROR, "No active frame to delete");
 		return OPERATOR_CANCELLED;
 	}

@@ -4521,7 +4521,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 		render_new_particle_system(re, obr, psys, timeoffset);
 	}
 	else {
-		if ELEM(ob->type, OB_FONT, OB_CURVE)
+		if (ELEM(ob->type, OB_FONT, OB_CURVE))
 			init_render_curve(re, obr, timeoffset);
 		else if (ob->type==OB_SURF)
 			init_render_surf(re, obr, timeoffset);

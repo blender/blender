@@ -216,7 +216,7 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	KeyingSet *ks;
 	
 	/* sanity checks */
-	if ELEM(NULL, clear_func, default_ksName) {
+	if (ELEM(NULL, clear_func, default_ksName)) {
 		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform func or Keying Set Name");
 		return OPERATOR_CANCELLED;
 	}

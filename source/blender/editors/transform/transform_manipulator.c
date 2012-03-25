@@ -377,7 +377,7 @@ int calc_manipulator_stats(const bContext *C)
 				}
 			}
 		}
-		else if ELEM(obedit->type, OB_CURVE, OB_SURF) {
+		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= obedit->data;
 			float center[3];
 

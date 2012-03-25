@@ -156,7 +156,7 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 	FCurve *dfcu, *sfcu;
 	
 	/* sanity checks */
-	if ELEM(NULL, dst, src)
+	if (ELEM(NULL, dst, src))
 		return;
 	
 	/* clear destination list first */
@@ -738,7 +738,7 @@ void fcurve_store_samples (FCurve *fcu, void *data, int start, int end, FcuSampl
 	
 	/* sanity checks */
 	// TODO: make these tests report errors using reports not printf's
-	if ELEM(NULL, fcu, sample_cb) {
+	if (ELEM(NULL, fcu, sample_cb)) {
 		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
 		return;
 	}
@@ -834,7 +834,7 @@ void testhandles_fcurve (FCurve *fcu, const short use_handle)
 	unsigned int a;
 
 	/* only beztriples have handles (bpoints don't though) */
-	if ELEM(NULL, fcu, fcu->bezt)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return;
 	
 	/* loop over beztriples */
@@ -1001,7 +1001,7 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	float value= 0.0f;
 	
 	/* sanity check */
-	if ELEM(NULL, driver, dtar)
+	if (ELEM(NULL, driver, dtar))
 		return 0.0f;
 	
 	id= dtar_id_ensure_proxy_from(dtar->id);
@@ -1075,7 +1075,7 @@ static bPoseChannel *dtar_get_pchan_ptr (ChannelDriver *driver, DriverTarget *dt
 {
 	ID *id;
 	/* sanity check */
-	if ELEM(NULL, driver, dtar)
+	if (ELEM(NULL, driver, dtar))
 		return NULL;
 
 	id= dtar_id_ensure_proxy_from(dtar->id);
@@ -1490,7 +1490,7 @@ void fcurve_free_driver(FCurve *fcu)
 	DriverVar *dvar, *dvarn;
 	
 	/* sanity checks */
-	if ELEM(NULL, fcu, fcu->driver)
+	if (ELEM(NULL, fcu, fcu->driver))
 		return;
 	driver= fcu->driver;
 	

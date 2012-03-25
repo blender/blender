@@ -1347,7 +1347,7 @@ void makebevelcurve(Scene *scene, Object *ob, ListBase *disp, int forRender)
 			}
 
 			while (dl) {
-				if ELEM(dl->type, DL_POLY, DL_SEGM) {
+				if (ELEM(dl->type, DL_POLY, DL_SEGM)) {
 					dlnew= MEM_mallocN(sizeof(DispList), "makebevelcurve1");
 					*dlnew= *dl;
 					dlnew->verts= MEM_mallocN(3*sizeof(float)*dl->parts*dl->nr, "makebevelcurve1");
@@ -2878,8 +2878,8 @@ void sethandlesNurb(ListBase *editnurb, short code)
 						if (bezt->f1 & SELECT) bezt->h1= code;
 						if (bezt->f3 & SELECT) bezt->h2= code;
 						if (bezt->h1!=bezt->h2) {
-							if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
-							if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
+							if (ELEM(bezt->h1, HD_ALIGN, HD_AUTO)) bezt->h1 = HD_FREE;
+							if (ELEM(bezt->h2, HD_ALIGN, HD_AUTO)) bezt->h2 = HD_FREE;
 						}
 					}
 					bezt++;

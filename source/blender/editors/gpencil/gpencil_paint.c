@@ -1313,7 +1313,7 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				 *
 				 * Admittedly, this is a bit hacky, but it works much nicer from an ergonomic standpoint!
 				 */
-				if ELEM(NULL, sima, sima->image) {
+				if (ELEM(NULL, sima, sima->image)) {
 					/* make strokes be drawn in screen space */
 					p->gpd->sbuffer_sflag &= ~GP_STROKE_2DSPACE;
 					p->gpd->flag &= ~GP_DATA_VIEWALIGN;
