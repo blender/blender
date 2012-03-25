@@ -2839,40 +2839,44 @@ void BKE_ptcache_bake(PTCacheBaker* baker)
 			cache->flag &= ~PTCACHE_BAKED;
 		}
 	}
-	else for (SETLOOPER(scene, sce_iter, base)) {
-		/* cache/bake everything in the scene */
-		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
+	else {
+		for (SETLOOPER(scene, sce_iter, base)) {
+			/* cache/bake everything in the scene */
+			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
-		for (pid=pidlist.first; pid; pid=pid->next) {
-			cache = pid->cache;
-			if ((cache->flag & PTCACHE_BAKED)==0) {
-				if (pid->type==PTCACHE_TYPE_PARTICLES) {
-					ParticleSystem *psys = (ParticleSystem*)pid->calldata;
-					/* skip hair & keyed particles */
-					if (psys->part->type == PART_HAIR || psys->part->phystype == PART_PHYS_KEYED)
-						continue;
+			for (pid=pidlist.first; pid; pid=pid->next) {
+				cache = pid->cache;
+				if ((cache->flag & PTCACHE_BAKED)==0) {
+					if (pid->type==PTCACHE_TYPE_PARTICLES) {
+						ParticleSystem *psys = (ParticleSystem*)pid->calldata;
+						/* skip hair & keyed particles */
+						if (psys->part->type == PART_HAIR || psys->part->phystype == PART_PHYS_KEYED)
+							continue;
 
-					psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
+						psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
+					}
+
+					if ((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0) &&
+					    ((cache->flag & PTCACHE_QUICK_CACHE)==0 || render || bake))
+					{
+						BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
+					}
+
+					startframe = MIN2(startframe, cache->startframe);
+
+					if (bake || render) {
+						cache->flag |= PTCACHE_BAKING;
+
+						if (bake)
+							thread_data.endframe = MAX2(thread_data.endframe, cache->endframe);
+					}
+
+					cache->flag &= ~PTCACHE_BAKED;
+
 				}
-
-				if ((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0)
-					&& ((cache->flag & PTCACHE_QUICK_CACHE)==0 || render || bake))
-					BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
-
-				startframe = MIN2(startframe, cache->startframe);
-
-				if (bake || render) {
-					cache->flag |= PTCACHE_BAKING;
-
-					if (bake)
-						thread_data.endframe = MAX2(thread_data.endframe, cache->endframe);
-				}
-
-				cache->flag &= ~PTCACHE_BAKED;
-
 			}
+			BLI_freelistN(&pidlist);
 		}
-		BLI_freelistN(&pidlist);
 	}
 
 	CFRA = startframe;
@@ -2928,30 +2932,32 @@ void BKE_ptcache_bake(PTCacheBaker* baker)
 				BKE_ptcache_write(pid, 0);
 		}
 	}
-	else for (SETLOOPER(scene, sce_iter, base)) {
-		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
+	else {
+		for (SETLOOPER(scene, sce_iter, base)) {
+			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
-		for (pid=pidlist.first; pid; pid=pid->next) {
-			/* skip hair particles */
-			if (pid->type==PTCACHE_TYPE_PARTICLES && ((ParticleSystem*)pid->calldata)->part->type == PART_HAIR)
-				continue;
-		
-			cache = pid->cache;
+			for (pid=pidlist.first; pid; pid=pid->next) {
+				/* skip hair particles */
+				if (pid->type==PTCACHE_TYPE_PARTICLES && ((ParticleSystem*)pid->calldata)->part->type == PART_HAIR)
+					continue;
 
-			if (thread_data.step > 1)
-				cache->flag &= ~(PTCACHE_BAKING|PTCACHE_OUTDATED);
-			else
-				cache->flag &= ~(PTCACHE_BAKING|PTCACHE_REDO_NEEDED);
+				cache = pid->cache;
 
-			cache->flag |= PTCACHE_SIMULATION_VALID;
+				if (thread_data.step > 1)
+					cache->flag &= ~(PTCACHE_BAKING|PTCACHE_OUTDATED);
+				else
+					cache->flag &= ~(PTCACHE_BAKING|PTCACHE_REDO_NEEDED);
 
-			if (bake) {
-				cache->flag |= PTCACHE_BAKED;
-				if (cache->flag & PTCACHE_DISK_CACHE)
-					BKE_ptcache_write(pid, 0);
+				cache->flag |= PTCACHE_SIMULATION_VALID;
+
+				if (bake) {
+					cache->flag |= PTCACHE_BAKED;
+					if (cache->flag & PTCACHE_DISK_CACHE)
+						BKE_ptcache_write(pid, 0);
+				}
 			}
+			BLI_freelistN(&pidlist);
 		}
-		BLI_freelistN(&pidlist);
 	}
 
 	scene->r.framelen = frameleno;

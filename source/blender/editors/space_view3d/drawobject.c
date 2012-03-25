@@ -4412,192 +4412,194 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	/* circles don't use drawdata, so have to add a special case here */
 	if ((pdd || draw_as==PART_DRAW_CIRC) && draw_as!=PART_DRAW_PATH) {
-/* 5. */
+		/* 5. */
 		if (pdd && (pdd->flag & PARTICLE_DRAW_DATA_UPDATED) &&
 		    (pdd->vedata || part->draw & (PART_DRAW_SIZE|PART_DRAW_NUM|PART_DRAW_HEALTH))==0)
 		{
 			totpoint = pdd->totpoint; /* draw data is up to date */
 		}
-		else for (a=0,pa=pars; a<totpart+totchild; a++, pa++) {
-			/* setup per particle individual stuff */
-			if (a<totpart) {
-				if (totchild && (part->draw&PART_DRAW_PARENT)==0) continue;
-				if (pa->flag & PARS_NO_DISP || pa->flag & PARS_UNEXIST) continue;
+		else {
+			for (a=0,pa=pars; a<totpart+totchild; a++, pa++) {
+				/* setup per particle individual stuff */
+				if (a<totpart) {
+					if (totchild && (part->draw&PART_DRAW_PARENT)==0) continue;
+					if (pa->flag & PARS_NO_DISP || pa->flag & PARS_UNEXIST) continue;
 
-				pa_time=(cfra-pa->time)/pa->lifetime;
-				pa_birthtime=pa->time;
-				pa_dietime = pa->dietime;
-				pa_size=pa->size;
-				if (part->phystype==PART_PHYS_BOIDS)
-					pa_health = pa->boid->data.health;
-				else
+					pa_time=(cfra-pa->time)/pa->lifetime;
+					pa_birthtime=pa->time;
+					pa_dietime = pa->dietime;
+					pa_size=pa->size;
+					if (part->phystype==PART_PHYS_BOIDS)
+						pa_health = pa->boid->data.health;
+					else
+						pa_health = -1.0;
+
+					r_tilt = 2.0f*(PSYS_FRAND(a + 21) - 0.5f);
+					r_length = PSYS_FRAND(a + 22);
+
+					if (part->draw_col > PART_DRAW_COL_MAT) {
+						switch(part->draw_col) {
+							case PART_DRAW_COL_VEL:
+								intensity = len_v3(pa->state.vel)/part->color_vec_max;
+								break;
+							case PART_DRAW_COL_ACC:
+								intensity = len_v3v3(pa->state.vel, pa->prev_state.vel) / ((pa->state.time - pa->prev_state.time) * part->color_vec_max);
+								break;
+							default:
+								intensity= 1.0f; /* should never happen */
+						}
+						CLAMP(intensity, 0.f, 1.f);
+						weight_to_rgb(ma_col, intensity);
+					}
+				}
+				else {
+					ChildParticle *cpa= &psys->child[a-totpart];
+
+					pa_time=psys_get_child_time(psys,cpa,cfra,&pa_birthtime,&pa_dietime);
+					pa_size=psys_get_child_size(psys,cpa,cfra,NULL);
+
 					pa_health = -1.0;
 
-				r_tilt = 2.0f*(PSYS_FRAND(a + 21) - 0.5f);
-				r_length = PSYS_FRAND(a + 22);
-
-				if (part->draw_col > PART_DRAW_COL_MAT) {
-					switch(part->draw_col) {
-						case PART_DRAW_COL_VEL:
-							intensity = len_v3(pa->state.vel)/part->color_vec_max;
-							break;
-						case PART_DRAW_COL_ACC:
-							intensity = len_v3v3(pa->state.vel, pa->prev_state.vel) / ((pa->state.time - pa->prev_state.time) * part->color_vec_max);
-							break;
-						default:
-							intensity= 1.0f; /* should never happen */
-					}
-					CLAMP(intensity, 0.f, 1.f);
-					weight_to_rgb(ma_col, intensity);
+					r_tilt = 2.0f*(PSYS_FRAND(a + 21) - 0.5f);
+					r_length = PSYS_FRAND(a + 22);
 				}
-			}
-			else {
-				ChildParticle *cpa= &psys->child[a-totpart];
 
-				pa_time=psys_get_child_time(psys,cpa,cfra,&pa_birthtime,&pa_dietime);
-				pa_size=psys_get_child_size(psys,cpa,cfra,NULL);
+				drawn = 0;
+				if (part->draw_as == PART_DRAW_REND && part->trail_count > 1) {
+					float length = part->path_end * (1.0f - part->randlength * r_length);
+					int trail_count = part->trail_count * (1.0f - part->randlength * r_length);
+					float ct = ((part->draw & PART_ABS_PATH_TIME) ? cfra : pa_time) - length;
+					float dt = length / (trail_count ? (float)trail_count : 1.0f);
+					int i=0;
 
-				pa_health = -1.0;
+					ct+=dt;
+					for (i=0; i < trail_count; i++, ct += dt) {
+						float pixsize;
 
-				r_tilt = 2.0f*(PSYS_FRAND(a + 21) - 0.5f);
-				r_length = PSYS_FRAND(a + 22);
-			}
-
-			drawn = 0;
-			if (part->draw_as == PART_DRAW_REND && part->trail_count > 1) {
-				float length = part->path_end * (1.0f - part->randlength * r_length);
-				int trail_count = part->trail_count * (1.0f - part->randlength * r_length);
-				float ct = ((part->draw & PART_ABS_PATH_TIME) ? cfra : pa_time) - length;
-				float dt = length / (trail_count ? (float)trail_count : 1.0f);
-				int i=0;
-
-				ct+=dt;
-				for (i=0; i < trail_count; i++, ct += dt) {
-					float pixsize;
-
-					if (part->draw & PART_ABS_PATH_TIME) {
-						if (ct < pa_birthtime || ct > pa_dietime)
+						if (part->draw & PART_ABS_PATH_TIME) {
+							if (ct < pa_birthtime || ct > pa_dietime)
+								continue;
+						}
+						else if (ct < 0.0f || ct > 1.0f)
 							continue;
-					}
-					else if (ct < 0.0f || ct > 1.0f)
-						continue;
 
-					state.time = (part->draw & PART_ABS_PATH_TIME) ? -ct : -(pa_birthtime + ct * (pa_dietime - pa_birthtime));
-					psys_get_particle_on_path(&sim,a,&state,need_v);
-					
-					if (psys->parent)
-						mul_m4_v3(psys->parent->obmat, state.co);
+						state.time = (part->draw & PART_ABS_PATH_TIME) ? -ct : -(pa_birthtime + ct * (pa_dietime - pa_birthtime));
+						psys_get_particle_on_path(&sim,a,&state,need_v);
 
-					/* create actiual particle data */
-					if (draw_as == PART_DRAW_BB) {
-						bb.offset[0] = part->bb_offset[0];
-						bb.offset[1] = part->bb_offset[1];
-						bb.size[0] = part->bb_size[0] * pa_size;
-						if (part->bb_align==PART_BB_VEL) {
-							float pa_vel = len_v3(state.vel);
-							float head = part->bb_vel_head*pa_vel;
-							float tail = part->bb_vel_tail*pa_vel;
-							bb.size[1] = part->bb_size[1]*pa_size + head + tail;
-							/* use offset to adjust the particle center. this is relative to size, so need to divide! */
-							if (bb.size[1] > 0.0f)
-								bb.offset[1] += (head-tail) / bb.size[1];
+						if (psys->parent)
+							mul_m4_v3(psys->parent->obmat, state.co);
+
+						/* create actiual particle data */
+						if (draw_as == PART_DRAW_BB) {
+							bb.offset[0] = part->bb_offset[0];
+							bb.offset[1] = part->bb_offset[1];
+							bb.size[0] = part->bb_size[0] * pa_size;
+							if (part->bb_align==PART_BB_VEL) {
+								float pa_vel = len_v3(state.vel);
+								float head = part->bb_vel_head*pa_vel;
+								float tail = part->bb_vel_tail*pa_vel;
+								bb.size[1] = part->bb_size[1]*pa_size + head + tail;
+								/* use offset to adjust the particle center. this is relative to size, so need to divide! */
+								if (bb.size[1] > 0.0f)
+									bb.offset[1] += (head-tail) / bb.size[1];
+							}
+							else
+								bb.size[1] = part->bb_size[1] * pa_size;
+							bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
+							bb.time = ct;
 						}
-						else
-							bb.size[1] = part->bb_size[1] * pa_size;
-						bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
-						bb.time = ct;
+
+						pixsize = ED_view3d_pixel_size(rv3d, state.co) * pixsize_scale;
+
+						draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, psys->pdd);
+
+						totpoint++;
+						drawn = 1;
 					}
-
-					pixsize = ED_view3d_pixel_size(rv3d, state.co) * pixsize_scale;
-
-					draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, psys->pdd);
-
-					totpoint++;
-					drawn = 1;
 				}
-			}
-			else {
-				state.time=cfra;
-				if (psys_get_particle_state(&sim,a,&state,0)) {
-					float pixsize;
+				else {
+					state.time=cfra;
+					if (psys_get_particle_state(&sim,a,&state,0)) {
+						float pixsize;
 
-					if (psys->parent)
-						mul_m4_v3(psys->parent->obmat, state.co);
+						if (psys->parent)
+							mul_m4_v3(psys->parent->obmat, state.co);
 
-					/* create actiual particle data */
-					if (draw_as == PART_DRAW_BB) {
-						bb.offset[0] = part->bb_offset[0];
-						bb.offset[1] = part->bb_offset[1];
-						bb.size[0] = part->bb_size[0] * pa_size;
-						if (part->bb_align==PART_BB_VEL) {
-							float pa_vel = len_v3(state.vel);
-							float head = part->bb_vel_head*pa_vel;
-							float tail = part->bb_vel_tail*pa_vel;
-							bb.size[1] = part->bb_size[1]*pa_size + head + tail;
-							/* use offset to adjust the particle center. this is relative to size, so need to divide! */
-							if (bb.size[1] > 0.0f)
-								bb.offset[1] += (head-tail) / bb.size[1];
+						/* create actiual particle data */
+						if (draw_as == PART_DRAW_BB) {
+							bb.offset[0] = part->bb_offset[0];
+							bb.offset[1] = part->bb_offset[1];
+							bb.size[0] = part->bb_size[0] * pa_size;
+							if (part->bb_align==PART_BB_VEL) {
+								float pa_vel = len_v3(state.vel);
+								float head = part->bb_vel_head*pa_vel;
+								float tail = part->bb_vel_tail*pa_vel;
+								bb.size[1] = part->bb_size[1]*pa_size + head + tail;
+								/* use offset to adjust the particle center. this is relative to size, so need to divide! */
+								if (bb.size[1] > 0.0f)
+									bb.offset[1] += (head-tail) / bb.size[1];
+							}
+							else
+								bb.size[1] = part->bb_size[1] * pa_size;
+							bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
+							bb.time = pa_time;
 						}
-						else
-							bb.size[1] = part->bb_size[1] * pa_size;
-						bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
-						bb.time = pa_time;
+
+						pixsize = ED_view3d_pixel_size(rv3d, state.co) * pixsize_scale;
+
+						draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, pdd);
+
+						totpoint++;
+						drawn = 1;
+					}
+				}
+
+				if (drawn) {
+					/* additional things to draw for each particle	*/
+					/* (velocity, size and number)					*/
+					if ((part->draw & PART_DRAW_VEL) && pdd && pdd->vedata) {
+						copy_v3_v3(pdd->ved,state.co);
+						pdd->ved += 3;
+						mul_v3_v3fl(vel, state.vel, timestep);
+						add_v3_v3v3(pdd->ved, state.co, vel);
+						pdd->ved+=3;
+
+						totve++;
 					}
 
-					pixsize = ED_view3d_pixel_size(rv3d, state.co) * pixsize_scale;
-
-					draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, pdd);
-
-					totpoint++;
-					drawn = 1;
-				}
-			}
-
-			if (drawn) {
-				/* additional things to draw for each particle	*/
-				/* (velocity, size and number)					*/
-				if ((part->draw & PART_DRAW_VEL) && pdd && pdd->vedata) {
-					copy_v3_v3(pdd->ved,state.co);
-					pdd->ved += 3;
-					mul_v3_v3fl(vel, state.vel, timestep);
-					add_v3_v3v3(pdd->ved, state.co, vel);
-					pdd->ved+=3;
-
-					totve++;
-				}
-
-				if (part->draw & PART_DRAW_SIZE) {
-					setlinestyle(3);
-					drawcircball(GL_LINE_LOOP, state.co, pa_size, imat);
-					setlinestyle(0);
-				}
+					if (part->draw & PART_DRAW_SIZE) {
+						setlinestyle(3);
+						drawcircball(GL_LINE_LOOP, state.co, pa_size, imat);
+						setlinestyle(0);
+					}
 
 
-				if ((part->draw & PART_DRAW_NUM || part->draw & PART_DRAW_HEALTH) &&
-				    (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
-				{
-					float vec_txt[3];
-					char *val_pos= numstr;
-					numstr[0]= '\0';
+					if ((part->draw & PART_DRAW_NUM || part->draw & PART_DRAW_HEALTH) &&
+					    (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
+					{
+						float vec_txt[3];
+						char *val_pos= numstr;
+						numstr[0]= '\0';
 
-					if (part->draw&PART_DRAW_NUM) {
-						if (a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype==PART_PHYS_BOIDS)) {
-							sprintf(val_pos, "%d:%.2f", a, pa_health);
+						if (part->draw&PART_DRAW_NUM) {
+							if (a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype==PART_PHYS_BOIDS)) {
+								sprintf(val_pos, "%d:%.2f", a, pa_health);
+							}
+							else {
+								sprintf(val_pos, "%d", a);
+							}
 						}
 						else {
-							sprintf(val_pos, "%d", a);
+							if (a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype==PART_PHYS_BOIDS)) {
+								sprintf(val_pos, "%.2f", pa_health);
+							}
 						}
-					}
-					else {
-						if (a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype==PART_PHYS_BOIDS)) {
-							sprintf(val_pos, "%.2f", pa_health);
-						}
-					}
 
-					/* in path drawing state.co is the end point */
-					/* use worldspace beause object matrix is already applied */
-					mul_v3_m4v3(vec_txt, ob->imat, state.co);
-					view3d_cached_text_draw_add(vec_txt, numstr, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, tcol);
+						/* in path drawing state.co is the end point */
+						/* use worldspace beause object matrix is already applied */
+						mul_v3_m4v3(vec_txt, ob->imat, state.co);
+						view3d_cached_text_draw_add(vec_txt, numstr, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, tcol);
+					}
 				}
 			}
 		}
