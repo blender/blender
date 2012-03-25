@@ -389,6 +389,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 }
 #endif
 
+/* BMESH_TODO, return polygon index, not tessface */
 void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3],
                          float r_location[3], float r_normal[3], int *index)
 {

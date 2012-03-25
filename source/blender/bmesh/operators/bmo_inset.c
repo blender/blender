@@ -269,15 +269,42 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 						float tvec[3];
 
 						if (vert_edge_tag_tot >= 2) { /* 2 edge users - common case */
-							const float *e_no_a = edge_info[vecpair[0]].no;
-							const float *e_no_b = edge_info[vecpair[1]].no;
+							/* now there are 2 cases to check for,
+							 *
+							 * if both edges use the same face OR both faces have the same normal,
+							 * ...then we can calculate an edge that fits nicely between the 2 edge normals.
+							 *
+							 * Otherwise use the corner defined by these 2 edge-face normals,
+							 * when both edges faces are adjacent this works best but even when this vertex
+							 * fans out faces it should work ok.
+							 */
 
-							add_v3_v3v3(tvec, e_no_a, e_no_b);
-							normalize_v3(tvec);
+							SplitEdgeInfo *e_info_a = &edge_info[vecpair[0]];
+							SplitEdgeInfo *e_info_b = &edge_info[vecpair[1]];
+
+							BMFace *f_a = e_info_a->l->f;
+							BMFace *f_b = e_info_b->l->f;
+
+							/* we use this as either the normal OR to find the right direction for the
+							 * crpss product between both face normals */
+							add_v3_v3v3(tvec, e_info_a->no, e_info_b->no);
+
+							if ((f_a == f_b) || compare_v3v3(f_a->no, f_b->no, 0.00001f)) {
+								normalize_v3(tvec);
+							}
+							else {
+								float tno[3];
+								cross_v3_v3v3(tno, f_a->no, f_b->no);
+								if (dot_v3v3(tvec, tno) < 0.0f) {
+									negate_v3(tno);
+								}
+								copy_v3_v3(tvec, tno);
+								normalize_v3(tvec);
+							}
 
 							/* scale by edge angle */
 							if (use_even_offset) {
-								mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(e_no_a, e_no_b) / 2.0f));
+								mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(e_info_a->no, e_info_b->no) / 2.0f));
 							}
 
 							/* scale relative to edge lengths */
