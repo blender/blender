@@ -152,6 +152,56 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
 }
 
 /**
+ * \brief Other Loop in Face Sharing a Vert
+ *
+ * Finds the other loop that shares \a v with \a e loop in \a f.
+ *
+ *     +----------+ <-- return the face loop of this vertex.
+ *     |          |
+ *     |          |
+ *     |          |
+ *     +----------+ <-- This vertex defines the direction.
+ *           l    v
+ *           ^ <------- This loop defines both the face to search
+ *                      and the edge, in combination with 'v'
+ *                      The faces loop direction is ignored.
+ */
+
+BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
+{
+#if 0 /* works but slow */
+	return BM_face_other_vert_loop(l->f, BM_edge_other_vert(l->e, v), v);
+#else
+	BMEdge *e = l->e;
+	BMVert *v_prev = BM_edge_other_vert(e, v);
+	if (l->v == v) {
+		if (l->prev->v == v_prev) {
+			return l->next;
+		}
+		else {
+			BLI_assert(l->next->v == v_prev);
+
+			return l->prev;
+		}
+	}
+	else {
+		BLI_assert(l->v == v_prev);
+
+		if (l->prev->v == v) {
+			return l->prev->prev;
+		}
+		else {
+			BLI_assert(l->next->v == v);
+			return l->next->next;
+		}
+	}
+
+
+
+#endif
+}
+
+/**
  * Returns TRUE if the vertex is used in a given face.
  */
 

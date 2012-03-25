@@ -274,7 +274,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 							 * if both edges use the same face OR both faces have the same normal,
 							 * ...then we can calculate an edge that fits nicely between the 2 edge normals.
 							 *
-							 * Otherwise use the corner defined by these 2 edge-face normals,
+							 * Otherwise use the shared edge OR the corner defined by these 2 face normals,
 							 * when both edges faces are adjacent this works best but even when this vertex
 							 * fans out faces it should work ok.
 							 */
@@ -293,12 +293,27 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 								normalize_v3(tvec);
 							}
 							else {
-								float tno[3];
-								cross_v3_v3v3(tno, f_a->no, f_b->no);
-								if (dot_v3v3(tvec, tno) < 0.0f) {
-									negate_v3(tno);
+								/* these lookups are very quick */
+								BMLoop *l_other_a = BM_loop_other_vert_loop(e_info_a->l, v_split);
+								BMLoop *l_other_b = BM_loop_other_vert_loop(e_info_b->l, v_split);
+
+								if (l_other_a->v == l_other_b->v) {
+									/* both edges faces are adjacent, but we don't need to know the shared edge
+									 * having both verts is enough. */
+									sub_v3_v3v3(tvec, l_other_a->v->co, v_split->co);
 								}
-								copy_v3_v3(tvec, tno);
+								else {
+									/* faces don't touch,
+									 * just get cross product of their normals, its *good enough*
+									 */
+									float tno[3];
+									cross_v3_v3v3(tno, f_a->no, f_b->no);
+									if (dot_v3v3(tvec, tno) < 0.0f) {
+										negate_v3(tno);
+									}
+									copy_v3_v3(tvec, tno);
+								}
+
 								normalize_v3(tvec);
 							}
 
