@@ -141,7 +141,15 @@ static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
 /* Clamp x to the interval {0..len-1}, with wrap-around */
 static int clamp_index(const int x, const int len)
 {
-	return (x < 0) ? (len - (-x % len)) : (x % len);
+	if (x >= 0)
+		return x % len;
+	else {
+		int r = len - (-x % len);
+		if(r == len)
+			return len - 1;
+		else
+			return r;
+	}
 }
 
 /* There probably is a better way to swap BLI_arrays, or if there
