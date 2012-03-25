@@ -422,6 +422,9 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 #endif
 		}
 	}
+
+	BLI_array_free(tf_uv);
+	BLI_array_free(tf_uvorig);
 }
 
 static void draw_uvs_other(Scene *scene, Object *obedit, Image *curimage)

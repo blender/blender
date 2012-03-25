@@ -498,6 +498,11 @@ MINLINE float len_squared_v2(const float v[2])
 	return v[0] * v[0] + v[1] * v[1];
 }
 
+MINLINE float len_squared_v3(const float v[3])
+{
+	return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+}
+
 MINLINE float len_v2(const float v[2])
 {
 	return (float)sqrtf(v[0] * v[0] + v[1] * v[1]);

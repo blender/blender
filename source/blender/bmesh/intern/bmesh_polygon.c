@@ -160,40 +160,62 @@ static void bm_face_compute_poly_normal_vertex_cos(BMFace *f, float n[3],
  * \brief COMPUTE POLY CENTER
  *
  * Computes the centroid and
- * area of a polygon in the X/Y
- * plane.
+ * area of a polygon in the normal
+ * plane. This is not an exact method as we can't access the tesselated data.
  */
-static int compute_poly_center(float center[3], float *r_area, float (* const verts)[3], int nverts)
+static void compute_poly_center(float center[3], float *r_area, float (* const verts)[3], int nverts, float normal[3])
 {
 	int i, j;
-	float atmp = 0.0f, xtmp = 0.0f, ytmp = 0.0f, ai;
+	float area = 0.0;
 
 	zero_v3(center);
 
 	if (nverts < 3)
-		return FALSE;
+		return;
 
 	i = nverts - 1;
-	j = 0;
 	
-	while (j < nverts) {
+	/* calculate face center */
+	for (j = 0; j < nverts; j++){
+		add_v3_v3(center, verts[j]);
+	}
+	mul_v3_fl(center, 1.0/nverts);
+
+	/* project vertices to the normal plane */
+	for (j = 0; j < nverts; j++){
+		project_v3_plane(verts[j], normal, center);
+	}
+
+	/* add triangle area of triangles formed by polygon edges and center.
+	 * For each triangle Sum(Base * Height / 2)
+	 * The expression for closed polygons is simplified */
+	for (j = 0; j < nverts; j++) {
+		area += area_tri_v3(verts[j], verts[i], center);
+		i = j;
+	}
+
+	if (r_area)
+		*r_area = area;
+
+	/*
+	for (j = 0; j < nverts; j++) {
 		ai = verts[i][0] * verts[j][1] - verts[j][0] * verts[i][1];
 		atmp += ai;
 		xtmp += (verts[j][0] + verts[i][0]) * ai;
 		ytmp += (verts[j][1] + verts[i][1]) * ai;
 		i = j;
-		j += 1;
 	}
 
 	if (r_area)
 		*r_area = atmp / 2.0f;
-	
+
 	if (atmp != 0) {
 		center[0] = xtmp /  (3.0f * atmp);
 		center[1] = xtmp /  (3.0f * atmp);
 		return TRUE;
 	}
 	return FALSE;
+	*/
 }
 
 /**
@@ -210,13 +232,11 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 
 	BLI_array_fixedstack_declare(verts, BM_NGON_STACK_SIZE, f->len, __func__);
 
-	i = 0;
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+	BM_ITER_INDEX(l, &iter, bm, BM_LOOPS_OF_FACE, f, i) {
 		copy_v3_v3(verts[i], l->v->co);
-		i++;
 	}
 
-	compute_poly_center(center, &area, verts, f->len);
+	compute_poly_center(center, &area, verts, f->len, f->no);
 
 	BLI_array_fixedstack_free(verts);
 
