@@ -40,7 +40,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
@@ -49,6 +48,11 @@
 
 #include "MOD_util.h"
 
+static void initData(ModifierData *md)
+{
+	LatticeModifierData *lmd = (LatticeModifierData*) md;
+	lmd->influence = 1.0f;
+}
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
@@ -115,7 +119,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
 	lattice_deform_verts(lmd->object, ob, derivedData,
-	                     vertexCos, numVerts, lmd->name);
+	                     vertexCos, numVerts, lmd->name, lmd->influence);
 }
 
 static void deformVertsEM(
@@ -146,7 +150,7 @@ ModifierTypeInfo modifierType_Lattice = {
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
-	/* initData */          NULL,
+	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,

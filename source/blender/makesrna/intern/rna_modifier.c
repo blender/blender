@@ -960,6 +960,12 @@ static void rna_def_modifier_lattice(BlenderRNA *brna)
 	                         "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_LatticeModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
+	prop = RNA_def_property(srna, "influence", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1, 10, 2);
+	RNA_def_property_ui_text(prop, "Influence", "Strength of modifier effect");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_curve(BlenderRNA *brna)

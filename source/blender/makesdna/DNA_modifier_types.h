@@ -135,6 +135,8 @@ typedef struct LatticeModifierData {
 
 	struct Object *object;
 	char name[64];			/* optional vertexgroup name, MAX_VGROUP_NAME */
+	float influence;
+	char pad[4];
 } LatticeModifierData;
 
 typedef struct CurveModifierData {

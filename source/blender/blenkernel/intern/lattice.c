@@ -153,7 +153,7 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 
 		copy_m4_m4(mat, ltOb->obmat);
 		unit_m4(ltOb->obmat);
-		lattice_deform_verts(ltOb, NULL, NULL, vertexCos, uNew*vNew*wNew, NULL);
+		lattice_deform_verts(ltOb, NULL, NULL, vertexCos, uNew*vNew*wNew, NULL, 1.0f);
 		copy_m4_m4(ltOb->obmat, mat);
 
 		lt->typeu = typeu;
@@ -785,7 +785,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
 }
 
 void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
-                          float (*vertexCos)[3], int numVerts, const char *vgroup)
+                          float (*vertexCos)[3], int numVerts, const char *vgroup, float influence)
 {
 	int a;
 	int use_vgroups;
@@ -824,13 +824,13 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 				weight= defvert_find_weight(dvert, index);
 
 				if (weight > 0.0f)
-					calc_latt_deform(laOb, vertexCos[a], weight);
+					calc_latt_deform(laOb, vertexCos[a], weight*influence);
 			}
 		}
 	}
 	else {
 		for (a = 0; a < numVerts; a++) {
-			calc_latt_deform(laOb, vertexCos[a], 1.0f);
+			calc_latt_deform(laOb, vertexCos[a], influence);
 		}
 	}
 	end_latt_deform(laOb);
@@ -843,7 +843,7 @@ int object_deform_mball(Object *ob, ListBase *dispbase)
 
 		for (dl=dispbase->first; dl; dl=dl->next) {
 			lattice_deform_verts(ob->parent, ob, NULL,
-								 (float(*)[3]) dl->verts, dl->nr, NULL);
+								 (float(*)[3]) dl->verts, dl->nr, NULL, 1.0f);
 		}
 
 		return 1;

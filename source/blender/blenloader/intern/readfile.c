@@ -13329,6 +13329,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	
+	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 3))
+	{
+		Object *ob;
+		ModifierData *md;
+	
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			for(md=ob->modifiers.first; md; md=md->next) {
+				if(md->type == eModifierType_Lattice) {
+					LatticeModifierData *lmd = (LatticeModifierData *)md;
+					lmd->influence = 1.0f;
+				}
+			}
+		}
+	}
+
 
 	{
 		/* Default for old files is to save particle rotations to pointcache */
