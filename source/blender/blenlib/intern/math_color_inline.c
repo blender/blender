@@ -93,7 +93,7 @@ MINLINE void srgb_to_linearrgb_predivide_v4(float linear[4], const float srgb[4]
 	}
 	else {
 		alpha = srgb[3];
-		inv_alpha = 1.0f/alpha;
+		inv_alpha = 1.0f / alpha;
 	}
 
 	linear[0] = srgb_to_linearrgb(srgb[0] * inv_alpha) * alpha;
@@ -112,7 +112,7 @@ MINLINE void linearrgb_to_srgb_predivide_v4(float srgb[4], const float linear[4]
 	}
 	else {
 		alpha = linear[3];
-		inv_alpha = 1.0f/alpha;
+		inv_alpha = 1.0f / alpha;
 	}
 
 	srgb[0] = linearrgb_to_srgb(linear[0] * inv_alpha) * alpha;
@@ -128,6 +128,7 @@ extern unsigned short BLI_color_to_srgb_table[0x10000];
 
 MINLINE unsigned short to_srgb_table_lookup(const float f)
 {
+
 	union {
 		float f;
 		unsigned short us[2];
@@ -159,11 +160,11 @@ MINLINE void linearrgb_to_srgb_ushort4_predivide(unsigned short srgb[4], const f
 	}
 
 	alpha = linear[3];
-	inv_alpha = 1.0f/alpha;
+	inv_alpha = 1.0f / alpha;
 
-	for (i=0; i<3; ++i) {
+	for (i = 0; i < 3; ++i) {
 		t = linear[i] * inv_alpha;
-		srgb[i] = (t < 1.0f)? (unsigned short)(to_srgb_table_lookup(t) * alpha) : FTOUSHORT(linearrgb_to_srgb(t) * alpha);
+		srgb[i] = (t < 1.0f) ? (unsigned short) (to_srgb_table_lookup(t) * alpha) : FTOUSHORT(linearrgb_to_srgb(t) * alpha);
 	}
 
 	srgb[3] = FTOUSHORT(linear[3]);
@@ -174,7 +175,7 @@ MINLINE void srgb_to_linearrgb_uchar4(float linear[4], const unsigned char srgb[
 	linear[0] = BLI_color_from_srgb_table[srgb[0]];
 	linear[1] = BLI_color_from_srgb_table[srgb[1]];
 	linear[2] = BLI_color_from_srgb_table[srgb[2]];
-	linear[3] = srgb[3] * (1.0f/255.0f);
+	linear[3] = srgb[3] * (1.0f / 255.0f);
 }
 
 MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned char srgb[4])
@@ -187,8 +188,8 @@ MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned 
 		return;
 	}
 
-	for (i=0; i<4; i++)
-		fsrgb[i] = srgb[i] * (1.0f/255.0f);
+	for (i = 0; i < 4; i++)
+		fsrgb[i] = srgb[i] * (1.0f / 255.0f);
 
 	srgb_to_linearrgb_predivide_v4(linear, fsrgb);
 }

@@ -43,61 +43,61 @@
 
 MINLINE float sqrt3f(float f)
 {
-	if (f==0.0f) return 0.0f;
-	if (f<0) return (float)(-exp(log(-f)/3));
-	else return (float)(exp(log(f)/3));
+	if (f == 0.0f) return 0.0f;
+	if (f < 0) return (float)(-exp(log(-f) / 3));
+	else return (float)(exp(log(f) / 3));
 }
 
 MINLINE double sqrt3d(double d)
 {
-	if (d==0.0) return 0;
-	if (d<0) return -exp(log(-d)/3);
-	else return exp(log(d)/3);
+	if (d == 0.0) return 0;
+	if (d < 0) return -exp(log(-d) / 3);
+	else return exp(log(d) / 3);
 }
 
 MINLINE float saacos(float fac)
 {
-	if (fac<= -1.0f) return (float)M_PI;
-	else if (fac>=1.0f) return 0.0;
+	if (fac <= -1.0f) return (float)M_PI;
+	else if (fac >= 1.0f) return 0.0;
 	else return (float)acos(fac);
 }
 
 MINLINE float saasin(float fac)
 {
-	if (fac<= -1.0f) return (float)-M_PI/2.0f;
-	else if (fac>=1.0f) return (float)M_PI/2.0f;
+	if (fac <= -1.0f) return (float)-M_PI / 2.0f;
+	else if (fac >= 1.0f) return (float)M_PI / 2.0f;
 	else return (float)asin(fac);
 }
 
 MINLINE float sasqrt(float fac)
 {
-	if (fac<=0.0f) return 0.0f;
+	if (fac <= 0.0f) return 0.0f;
 	return (float)sqrt(fac);
 }
 
 MINLINE float saacosf(float fac)
 {
-	if (fac<= -1.0f) return (float)M_PI;
-	else if (fac>=1.0f) return 0.0f;
+	if (fac <= -1.0f) return (float)M_PI;
+	else if (fac >= 1.0f) return 0.0f;
 	else return (float)acosf(fac);
 }
 
 MINLINE float saasinf(float fac)
 {
-	if (fac<= -1.0f) return (float)-M_PI/2.0f;
-	else if (fac>=1.0f) return (float)M_PI/2.0f;
+	if (fac <= -1.0f) return (float)-M_PI / 2.0f;
+	else if (fac >= 1.0f) return (float)M_PI / 2.0f;
 	else return (float)asinf(fac);
 }
 
 MINLINE float sasqrtf(float fac)
 {
-	if (fac<=0.0f) return 0.0f;
+	if (fac <= 0.0f) return 0.0f;
 	return (float)sqrtf(fac);
 }
 
 MINLINE float interpf(float target, float origin, float fac)
 {
-	return (fac*target) + (1.0f-fac)*origin;
+	return (fac * target) + (1.0f - fac) * origin;
 }
 
 /* useful to calculate an even width shell, by taking the angle between 2 planes.
@@ -139,20 +139,19 @@ MINLINE int power_of_2_min_i(int n)
 	return n;
 }
 
-
 MINLINE float minf(float a, float b)
 {
-	return (a < b)? a: b;
+	return (a < b) ? a : b;
 }
 
 MINLINE float maxf(float a, float b)
 {
-	return (a > b)? a: b;
+	return (a > b) ? a : b;
 }
 
 MINLINE float signf(float f)
 {
-	return (f < 0.f)? -1.f: 1.f;
+	return (f < 0.f) ? -1.f : 1.f;
 }
 
 
