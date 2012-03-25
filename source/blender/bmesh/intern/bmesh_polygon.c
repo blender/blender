@@ -163,7 +163,7 @@ static void bm_face_compute_poly_normal_vertex_cos(BMFace *f, float n[3],
  * area of a polygon in the normal
  * plane. This is not an exact method as we can't access the tesselated data.
  */
-static void compute_poly_center(float center[3], float *r_area, float (* const verts)[3], int nverts, float normal[3])
+static void compute_poly_center(float center[3], float *r_area, float (* const verts)[3], int nverts, float UNUSED(normal[3]))
 {
 	int i, j;
 	float area = 0.0;
@@ -181,7 +181,7 @@ static void compute_poly_center(float center[3], float *r_area, float (* const v
 	}
 	mul_v3_fl(center, 1.0/nverts);
 
-#if 0
+#if 0 /* we are using an approximation anyway so do not project to normal plane. */
 	/* project vertices to the normal plane */
 	for (j = 0; j < nverts; j++){
 		project_v3_plane(verts[j], normal, center);

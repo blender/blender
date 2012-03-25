@@ -172,7 +172,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 	BLI_array_declare(tf_uv);
 	BLI_array_declare(tf_uvorig);
 	float aspx, aspy, col[4], (*tf_uv)[2] = NULL, (*tf_uvorig)[2] = NULL;
-	int i;
+	int i, j, nverts;
 
 	ED_space_image_uv_aspect(sima, &aspx, &aspy);
 	
@@ -276,150 +276,90 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 		}
 		case SI_UVDT_STRETCH_ANGLE:
 		{
-#if 0 //BMESH_TODO
-			float uvang1,uvang2,uvang3,uvang4;
-			float ang1,ang2,ang3,ang4;
-			float av1[3], av2[3], av3[3], av4[3]; /* use for 2d and 3d  angle vectors */
+			float *uvang = NULL;
+			float *ang = NULL;
+			float (* av)[3] = NULL; /* use for 2d and 3d  angle vectors */
+			float (* auv)[2] = NULL;
 			float a;
-			
+
+			BLI_array_declare(uvang);
+			BLI_array_declare(ang);
+			BLI_array_declare(av);
+			BLI_array_declare(auv);
+
 			col[3] = 0.5; /* hard coded alpha, not that nice */
 			
 			glShadeModel(GL_SMOOTH);
 			
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				tf= CustomData_em_get(&em->fdata, efa->head.data, CD_MTFACE);
+			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+				tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 				
 				if (uvedit_face_visible(scene, ima, efa, tf)) {
-					efa->tmp.p = tf;
-					uv_copy_aspect(tf->uv, tf_uv, aspx, aspy);
-					if (efa->v4) {
-						
-#if 0						/* Simple but slow, better reuse normalized vectors */
+					nverts = efa->len;
+					BM_elem_flag_enable(efa, BM_ELEM_TAG);
+					BLI_array_empty(tf_uv);
+					BLI_array_empty(tf_uvorig);
+					BLI_array_empty(uvang);
+					BLI_array_empty(ang);
+					BLI_array_empty(av);
+					BLI_array_empty(auv);
+					BLI_array_growitems(tf_uv, nverts);
+					BLI_array_growitems(tf_uvorig, nverts);
+					BLI_array_growitems(uvang, nverts);
+					BLI_array_growitems(ang, nverts);
+					BLI_array_growitems(av, nverts);
+					BLI_array_growitems(auv, nverts);
+
+					BM_ITER_INDEX(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa, i) {
+						luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+						copy_v2_v2(tf_uvorig[i], luv->uv);
+					}
+
+					poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, nverts);
+
+					j = nverts - 1;
+					BM_ITER_INDEX(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa, i) {
+						sub_v2_v2v2(auv[i], tf_uv[j], tf_uv[i]); normalize_v2(auv[i]);
+						sub_v3_v3v3(av[i], l->prev->v->co, l->v->co); normalize_v3(av[i]);
+						j = i;
+					}
+
+					for(i = 0; i < nverts; i++) {
+#if 0
+						/* Simple but slow, better reuse normalized vectors
+						 * (Not ported to bmesh, copied for reference) */
 						uvang1 = RAD2DEG(angle_v2v2v2(tf_uv[3], tf_uv[0], tf_uv[1]));
 						ang1 = RAD2DEG(angle_v3v3v3(efa->v4->co, efa->v1->co, efa->v2->co));
-						
-						uvang2 = RAD2DEG(angle_v2v2v2(tf_uv[0], tf_uv[1], tf_uv[2]));
-						ang2 = RAD2DEG(angle_v3v3v3(efa->v1->co, efa->v2->co, efa->v3->co));
-						
-						uvang3 = RAD2DEG(angle_v2v2v2(tf_uv[1], tf_uv[2], tf_uv[3]));
-						ang3 = RAD2DEG(angle_v3v3v3(efa->v2->co, efa->v3->co, efa->v4->co));
-						
-						uvang4 = RAD2DEG(angle_v2v2v2(tf_uv[2], tf_uv[3], tf_uv[0]));
-						ang4 = RAD2DEG(angle_v3v3v3(efa->v3->co, efa->v4->co, efa->v1->co));
 #endif
-						
-						/* uv angles */
-						sub_v2_v2v2(av1, tf_uv[3], tf_uv[0]); normalize_v2(av1);
-						sub_v2_v2v2(av2, tf_uv[0], tf_uv[1]); normalize_v2(av2);
-						sub_v2_v2v2(av3, tf_uv[1], tf_uv[2]); normalize_v2(av3);
-						sub_v2_v2v2(av4, tf_uv[2], tf_uv[3]); normalize_v2(av4);
-						
-						/* This is the correct angle however we are only comparing angles
-						 * uvang1 = 90-((angle_normalized_v2v2(av1, av2) * RAD2DEGF(1.0f))-90);*/
-						uvang1 = angle_normalized_v2v2(av1, av2);
-						uvang2 = angle_normalized_v2v2(av2, av3);
-						uvang3 = angle_normalized_v2v2(av3, av4);
-						uvang4 = angle_normalized_v2v2(av4, av1);
-						
-						/* 3d angles */
-						sub_v3_v3v3(av1, efa->v4->co, efa->v1->co); normalize_v3(av1);
-						sub_v3_v3v3(av2, efa->v1->co, efa->v2->co); normalize_v3(av2);
-						sub_v3_v3v3(av3, efa->v2->co, efa->v3->co); normalize_v3(av3);
-						sub_v3_v3v3(av4, efa->v3->co, efa->v4->co); normalize_v3(av4);
-						
-						/* This is the correct angle however we are only comparing angles
-						 * ang1 = 90-((angle_normalized_v3v3(av1, av2) * RAD2DEGF(1.0f))-90);*/
-						ang1 = angle_normalized_v3v3(av1, av2);
-						ang2 = angle_normalized_v3v3(av2, av3);
-						ang3 = angle_normalized_v3v3(av3, av4);
-						ang4 = angle_normalized_v3v3(av4, av1);
-						
-						glBegin(GL_QUADS);
-						
-						/* This simple makes the angles display worse then they really are ;)
-						 * 1.0-powf((1.0-a), 2) */
-						
-						a = fabsf(uvang1-ang1)/(float)M_PI;
-						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
-						glColor3fv(col);
-						glVertex2fv(tf->uv[0]);
-						a = fabsf(uvang2-ang2)/(float)M_PI;
-						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
-						glColor3fv(col);
-						glVertex2fv(tf->uv[1]);
-						a = fabsf(uvang3-ang3)/(float)M_PI;
-						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
-						glColor3fv(col);
-						glVertex2fv(tf->uv[2]);
-						a = fabsf(uvang4-ang4)/(float)M_PI;
-						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
-						glColor3fv(col);
-						glVertex2fv(tf->uv[3]);
-						
+						uvang[i] = angle_normalized_v2v2(auv[i], auv[(i+1)%nverts]);
+						ang[i] = angle_normalized_v3v3(av[i], av[(i+1)%nverts]);
 					}
-					else {
-#if 0						/* Simple but slow, better reuse normalized vectors */
-						uvang1 = RAD2DEG(angle_v2v2v2(tf_uv[2], tf_uv[0], tf_uv[1]));
-						ang1 = RAD2DEG(angle_v3v3v3(efa->v3->co, efa->v1->co, efa->v2->co));
-						
-						uvang2 = RAD2DEG(angle_v2v2v2(tf_uv[0], tf_uv[1], tf_uv[2]));
-						ang2 = RAD2DEG(angle_v3v3v3(efa->v1->co, efa->v2->co, efa->v3->co));
-						
-						uvang3 = M_PI-(uvang1+uvang2);
-						ang3 = M_PI-(ang1+ang2);
-#endif						
-						
-						/* uv angles */
-						sub_v2_v2v2(av1, tf_uv[2], tf_uv[0]); normalize_v2(av1);
-						sub_v2_v2v2(av2, tf_uv[0], tf_uv[1]); normalize_v2(av2);
-						sub_v2_v2v2(av3, tf_uv[1], tf_uv[2]); normalize_v2(av3);
-						
-						/* This is the correct angle however we are only comparing angles
-						 * uvang1 = 90-((angle_normalized_v2v2(av1, av2) * 180.0/M_PI)-90); */
-						uvang1 = angle_normalized_v2v2(av1, av2);
-						uvang2 = angle_normalized_v2v2(av2, av3);
-						uvang3 = angle_normalized_v2v2(av3, av1);
-						
-						/* 3d angles */
-						sub_v3_v3v3(av1, efa->v3->co, efa->v1->co); normalize_v3(av1);
-						sub_v3_v3v3(av2, efa->v1->co, efa->v2->co); normalize_v3(av2);
-						sub_v3_v3v3(av3, efa->v2->co, efa->v3->co); normalize_v3(av3);
-						/* This is the correct angle however we are only comparing angles
-						 * ang1 = 90-((angle_normalized_v3v3(av1, av2) * 180.0/M_PI)-90); */
-						ang1 = angle_normalized_v3v3(av1, av2);
-						ang2 = angle_normalized_v3v3(av2, av3);
-						ang3 = angle_normalized_v3v3(av3, av1);
-						
-						/* This simple makes the angles display worse then they really are ;)
-						 * 1.0f-powf((1.0-a), 2) */
-						
-						glBegin(GL_TRIANGLES);
-						a = fabsf(uvang1-ang1)/(float)M_PI;
+
+					glBegin(GL_POLYGON);
+					BM_ITER_INDEX(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa, i) {
+						luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+						a = fabsf(uvang[i]-ang[i])/(float)M_PI;
 						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
 						glColor3fv(col);
-						glVertex2fv(tf->uv[0]);
-						a = fabsf(uvang2-ang2)/(float)M_PI;
-						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
-						glColor3fv(col);
-						glVertex2fv(tf->uv[1]);
-						a = fabsf(uvang3-ang3)/(float)M_PI;
-						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
-						glColor3fv(col);
-						glVertex2fv(tf->uv[2]);
+						glVertex2fv(luv->uv);
 					}
 					glEnd();
 				}
 				else {
 					if (tf == activetf)
 						activetf= NULL;
-					efa->tmp.p = NULL;
+					BM_elem_flag_disable(efa, BM_ELEM_TAG);
 				}
 			}
 
 			glShadeModel(GL_FLAT);
-			break;
 
-#endif
+			BLI_array_free(uvang);
+			BLI_array_free(ang);
+			BLI_array_free(av);
+			BLI_array_free(auv);
+
+			break;
 		}
 	}
 
