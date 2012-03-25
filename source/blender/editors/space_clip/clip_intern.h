@@ -97,7 +97,7 @@ void clip_graph_tracking_values_iterate(struct SpaceClip *sc, void *userdata,
 			void (*segment_end) (void *userdata));
 
 void clip_graph_tracking_iterate(struct SpaceClip *sc, void *userdata,
-			void (*func) (void *userdata, struct MovieTrackingMarker *marker));
+                                 void (*func) (void *userdata, struct MovieTrackingMarker *marker));
 
 void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track);
 void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);

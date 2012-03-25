@@ -163,8 +163,8 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		View2D *v2d = t->view;
 		float divx, divy;
 
-		divx= v2d->mask.xmax-v2d->mask.xmin;
-		divy= v2d->mask.ymax-v2d->mask.ymin;
+		divx = v2d->mask.xmax-v2d->mask.xmin;
+		divy = v2d->mask.ymax-v2d->mask.ymin;
 
 		r_vec[0] = (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
 		r_vec[1] = (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
@@ -337,8 +337,8 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		else ED_area_tag_redraw(t->sa);
 	}
 	else if (t->spacetype==SPACE_CLIP) {
-		SpaceClip *sc= (SpaceClip*)t->sa->spacedata.first;
-		MovieClip *clip= ED_space_clip(sc);
+		SpaceClip *sc = (SpaceClip*)t->sa->spacedata.first;
+		MovieClip *clip = ED_space_clip(sc);
 
 		/* objects could be parented to tracking data, so send this for viewport refresh */
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);

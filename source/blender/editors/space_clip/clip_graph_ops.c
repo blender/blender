@@ -80,17 +80,17 @@ typedef struct {
 
 static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 {
-	SelectUserData *data= (SelectUserData *)userdata;
+	SelectUserData *data = (SelectUserData *)userdata;
 
 	switch(data->action) {
 		case SEL_SELECT:
-			marker->flag|= MARKER_GRAPH_SEL;
+			marker->flag |= MARKER_GRAPH_SEL;
 			break;
 		case SEL_DESELECT:
-			marker->flag&= ~MARKER_GRAPH_SEL;
+			marker->flag &= ~MARKER_GRAPH_SEL;
 			break;
 		case SEL_INVERT:
-			marker->flag^= MARKER_GRAPH_SEL;
+			marker->flag ^= MARKER_GRAPH_SEL;
 			break;
 	}
 }
@@ -111,47 +111,47 @@ typedef struct {
 } MouseSelectUserData;
 
 static void find_nearest_tracking_segment_cb(void *userdata, MovieTrackingTrack *track,
-			MovieTrackingMarker *marker, int coord, float val)
+                                             MovieTrackingMarker *marker, int coord, float val)
 {
-	MouseSelectUserData *data= userdata;
-	float co[2]= {marker->framenr, val};
+	MouseSelectUserData *data = userdata;
+	float co[2] = {marker->framenr, val};
 
 	if (data->has_prev) {
-		float d= dist_to_line_segment_v2(data->mouse_co, data->prev_co, co);
+		float d = dist_to_line_segment_v2(data->mouse_co, data->prev_co, co);
 
-		if (data->track==NULL || d<data->min_dist) {
-			data->track= track;
-			data->min_dist= d;
-			data->coord= coord;
+		if (data->track == NULL || d < data->min_dist) {
+			data->track = track;
+			data->min_dist = d;
+			data->coord = coord;
 			copy_v2_v2(data->min_co, co);
 		}
 	}
 
-	data->has_prev= 1;
+	data->has_prev = TRUE;
 	copy_v2_v2(data->prev_co, co);
 }
 
 void find_nearest_tracking_segment_end_cb(void *userdata)
 {
-	MouseSelectUserData *data= userdata;
+	MouseSelectUserData *data = userdata;
 
-	data->has_prev= 0;
+	data->has_prev = FALSE;
 }
 
 static void find_nearest_tracking_knot_cb(void *userdata, MovieTrackingTrack *track,
-			MovieTrackingMarker *marker, int coord, float val)
+                                          MovieTrackingMarker *marker, int coord, float val)
 {
-	MouseSelectUserData *data= userdata;
-	float dx= marker->framenr-data->mouse_co[0], dy= val-data->mouse_co[1];
-	float d= dx*dx+dy*dy;
+	MouseSelectUserData *data = userdata;
+	float dx = marker->framenr - data->mouse_co[0], dy = val - data->mouse_co[1];
+	float d = dx * dx + dy * dy;
 
-	if (data->marker==NULL || d<data->min_dist) {
+	if (data->marker == NULL || d < data->min_dist) {
 		float co[2]= {marker->framenr, val};
 
-		data->track= track;
-		data->marker= marker;
-		data->min_dist= d;
-		data->coord= coord;
+		data->track = track;
+		data->marker = marker;
+		data->min_dist = d;
+		data->coord = coord;
 		copy_v2_v2(data->min_co, co);
 	}
 
@@ -160,26 +160,26 @@ static void find_nearest_tracking_knot_cb(void *userdata, MovieTrackingTrack *tr
 static void mouse_select_init_data(MouseSelectUserData *userdata, float *co)
 {
 	memset(userdata, 0, sizeof(MouseSelectUserData));
-	userdata->min_dist= FLT_MAX;
+	userdata->min_dist = FLT_MAX;
 	copy_v2_v2(userdata->mouse_co, co);
 }
 
 static int mouse_select_knot(bContext *C, float co[2], int extend)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	ARegion *ar= CTX_wm_region(C);
-	View2D *v2d= &ar->v2d;
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
-	static const int delta= 6;
+	ARegion *ar = CTX_wm_region(C);
+	View2D *v2d = &ar->v2d;
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
+	static const int delta = 6;
 
 	if (act_track) {
 		MouseSelectUserData userdata;
 
 		mouse_select_init_data(&userdata, co);
-		clip_graph_tracking_values_iterate_track(sc, act_track,
-					&userdata, find_nearest_tracking_knot_cb, NULL, NULL);
+		clip_graph_tracking_values_iterate_track(sc, act_track, &userdata,
+		                                         find_nearest_tracking_knot_cb, NULL, NULL);
 
 		if (userdata.marker) {
 			int x1, y1, x2, y2;
@@ -187,51 +187,53 @@ static int mouse_select_knot(bContext *C, float co[2], int extend)
 			UI_view2d_view_to_region(v2d, co[0], co[1], &x1, &y1);
 			UI_view2d_view_to_region(v2d, userdata.min_co[0], userdata.min_co[1], &x2, &y2);
 
-			if (abs(x2-x1)<=delta && abs(y2-y1)<=delta) {
+			if (abs(x2 - x1) <= delta && abs(y2 - y1) <= delta) {
 				if (!extend) {
 					SelectUserData selectdata = {SEL_DESELECT};
+
 					clip_graph_tracking_iterate(sc, &selectdata, toggle_selection_cb);
 				}
 
-				if (userdata.coord==0)
-					userdata.marker->flag|= MARKER_GRAPH_SEL_X;
+				if (userdata.coord == 0)
+					userdata.marker->flag |= MARKER_GRAPH_SEL_X;
 				else
-					userdata.marker->flag|= MARKER_GRAPH_SEL_Y;
+					userdata.marker->flag |= MARKER_GRAPH_SEL_Y;
 
-				return 1;
+				return TRUE;
 			}
 		}
 	}
 
-	return 0;
+	return FALSE;
 }
 
 static int mouse_select_curve(bContext *C, float co[2], int extend)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
 	MouseSelectUserData userdata;
 
 	mouse_select_init_data(&userdata, co);
-	clip_graph_tracking_values_iterate(sc, &userdata, find_nearest_tracking_segment_cb, NULL, find_nearest_tracking_segment_end_cb);
+	clip_graph_tracking_values_iterate(sc, &userdata, find_nearest_tracking_segment_cb,
+	                                   NULL, find_nearest_tracking_segment_end_cb);
 
 	if (userdata.track) {
 		if (extend) {
-			if (act_track==userdata.track) {
+			if (act_track == userdata.track) {
 				/* currently only single curve can be selected (selected curve represents active track) */
-				act_track= NULL;
+				act_track = NULL;
 			}
 		}
-		else if (act_track!=userdata.track) {
+		else if (act_track != userdata.track) {
 			MovieTrackingMarker *marker;
 			SelectUserData selectdata = {SEL_DESELECT};
 
-			tracking->act_track= userdata.track;
+			tracking->act_track = userdata.track;
 
 			/* make active track be centered to screen */
-			marker= BKE_tracking_get_marker(userdata.track, sc->user.framenr);
+			marker = BKE_tracking_get_marker(userdata.track, sc->user.framenr);
 
 			clip_view_center_to_point(sc, marker->pos[0], marker->pos[1]);
 
@@ -239,22 +241,22 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 			clip_graph_tracking_iterate(sc, &selectdata, toggle_selection_cb);
 		}
 
-		return 1;
+		return TRUE;
 	}
 
-	return 0;
+	return FALSE;
 }
 
 static int mouse_select(bContext *C, float co[2], int extend)
 {
-	int sel= 0;
+	int sel = FALSE;
 
 	/* first try to select knot on selected curves */
-	sel= mouse_select_knot(C, co, extend);
+	sel = mouse_select_knot(C, co, extend);
 
 	if (!sel) {
 		/* if there's no close enough knot to mouse osition, select nearest curve */
-		sel= mouse_select_curve(C, co, extend);
+		sel = mouse_select_curve(C, co, extend);
 	}
 
 	if (sel)
@@ -266,7 +268,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
 static int select_exec(bContext *C, wmOperator *op)
 {
 	float co[2];
-	int  extend= RNA_boolean_get(op->ptr, "extend");
+	int  extend = RNA_boolean_get(op->ptr, "extend");
 
 	RNA_float_get_array(op->ptr, "location", co);
 
@@ -275,7 +277,7 @@ static int select_exec(bContext *C, wmOperator *op)
 
 static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
+	ARegion *ar = CTX_wm_region(C);
 	float co[2];
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
@@ -343,8 +345,8 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
 	MovieClip *clip = ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
 	BorderSelectuserData userdata;
 	rcti rect;
 
@@ -399,7 +401,7 @@ static int graph_select_all_markers_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
 	MovieTrackingMarker *marker;
 	int action = RNA_enum_get(op->ptr, "action");
 	int a;
@@ -462,11 +464,11 @@ void CLIP_OT_graph_select_all_markers(wmOperatorType *ot)
 
 static int delete_curve_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
 
 	if (act_track)
 		clip_delete_track(C, clip, tracksbase, act_track);
@@ -494,17 +496,17 @@ void CLIP_OT_graph_delete_curve(wmOperatorType *ot)
 
 static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
 
 	if (act_track) {
-		int a= 0;
+		int a = 0;
 
-		while (a<act_track->markersnr) {
-			MovieTrackingMarker *marker= &act_track->markers[a];
+		while (a < act_track->markersnr) {
+			MovieTrackingMarker *marker = &act_track->markers[a];
 
 			if (marker->flag & MARKER_GRAPH_SEL)
 				clip_delete_marker(C, clip, tracksbase, act_track, marker);
@@ -540,10 +542,13 @@ typedef struct {
 static void view_all_cb(void *userdata, MovieTrackingTrack *UNUSED(track), MovieTrackingMarker *UNUSED(marker),
                         int UNUSED(coord), float val)
 {
-	ViewAllUserData *data = (ViewAllUserData *)userdata;
+	ViewAllUserData *data = (ViewAllUserData *) userdata;
 
-	if (val < data->min) data->min = val;
-	if (val > data->max) data->max = val;
+	if (val < data->min)
+		data->min = val;
+
+	if (val > data->max)
+		data->max = val;
 }
 
 static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -561,8 +566,8 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	clip_graph_tracking_values_iterate(sc, &userdata, view_all_cb, NULL, NULL);
 
 	/* set extents of view to start/end frames */
-	v2d->cur.xmin = (float)SFRA;
-	v2d->cur.xmax = (float)EFRA;
+	v2d->cur.xmin = (float) SFRA;
+	v2d->cur.xmax = (float) EFRA;
 
 	if (userdata.min < userdata.max) {
 		v2d->cur.ymin = userdata.min;
@@ -574,11 +579,11 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
-	extra= 0.01f * (v2d->cur.xmax - v2d->cur.xmin);
+	extra = 0.01f * (v2d->cur.xmax - v2d->cur.xmin);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
 
-	extra= 0.01f * (v2d->cur.ymax - v2d->cur.ymin);
+	extra = 0.01f * (v2d->cur.ymax - v2d->cur.ymin);
 	v2d->cur.ymin -= extra;
 	v2d->cur.ymax += extra;
 

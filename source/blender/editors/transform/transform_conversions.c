@@ -4941,8 +4941,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		ED_node_link_intersect_test(t->sa, 0);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		SpaceClip *sc= t->sa->spacedata.first;
-		MovieClip *clip= ED_space_clip(sc);
+		SpaceClip *sc = t->sa->spacedata.first;
+		MovieClip *clip = ED_space_clip(sc);
 
 		if (t->scene->nodetree) {
 			/* tracks can be used for stabilization nodes,
@@ -5448,10 +5448,10 @@ typedef struct TransDataTracking {
 	short coord;
 } TransDataTracking;
 
-static void markerToTransDataInit(TransData *td, TransData2D *td2d,
-			TransDataTracking *tdt, MovieTrackingTrack *track, int area, float *loc, float *rel, float *off)
+static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTracking *tdt, MovieTrackingTrack *track,
+                                  int area, float *loc, float *rel, float *off)
 {
-	int anchor = area==TRACK_AREA_POINT && off;
+	int anchor = area == TRACK_AREA_POINT && off;
 
 	tdt->mode = transDataTracking_ModeTracks;
 
@@ -5470,16 +5470,16 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d,
 	}
 	td2d->loc[2] = 0.0f;
 
-	tdt->relative= rel;
-	tdt->area= area;
+	tdt->relative = rel;
+	tdt->area = area;
 
-	tdt->markersnr= track->markersnr;
-	tdt->markers= track->markers;
+	tdt->markersnr = track->markersnr;
+	tdt->markers = track->markers;
 
 	if (rel) {
 		if (!anchor) {
-			td2d->loc[0]+= rel[0];
-			td2d->loc[1]+= rel[1];
+			td2d->loc[0] += rel[0];
+			td2d->loc[1] += rel[1];
 		}
 
 		copy_v2_v2(tdt->srelative, rel);
@@ -5496,34 +5496,35 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d,
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 
-	td->ext= NULL; td->val= NULL;
+	td->ext= NULL;
+	td->val= NULL;
 
 	td->flag |= TD_SELECTED;
-	td->dist= 0.0;
+	td->dist = 0.0;
 
 	unit_m3(td->mtx);
 	unit_m3(td->smtx);
 }
 
 static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
-			TransDataTracking *tdt, MovieTrackingTrack *track)
+                             TransDataTracking *tdt, MovieTrackingTrack *track)
 {
-	MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
+	MovieTrackingMarker *marker = BKE_tracking_ensure_marker(track, sc->user.framenr);
 
-	tdt->flag= marker->flag;
-	marker->flag&= ~(MARKER_DISABLED|MARKER_TRACKED);
+	tdt->flag = marker->flag;
+	marker->flag &= ~(MARKER_DISABLED|MARKER_TRACKED);
 
 	markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_POINT, track->offset, marker->pos, track->offset);
 
-	if (track->flag&SELECT)
+	if (track->flag & SELECT)
 		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_POINT, marker->pos, NULL, NULL);
 
-	if (track->pat_flag&SELECT) {
+	if (track->pat_flag & SELECT) {
 		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, track->pat_min, marker->pos, NULL);
 		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, track->pat_max, marker->pos, NULL);
 	}
 
-	if (track->search_flag&SELECT) {
+	if (track->search_flag & SELECT) {
 		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_SEARCH, track->search_min, marker->pos, NULL);
 		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_SEARCH, track->search_max, marker->pos, NULL);
 	}
@@ -5531,10 +5532,12 @@ static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
 
 static void transDataTrackingFree(TransInfo *t)
 {
-	TransDataTracking *tdt= t->customData;
+	TransDataTracking *tdt = t->customData;
 
 	if (tdt) {
-		if (tdt->smarkers) MEM_freeN(tdt->smarkers);
+		if (tdt->smarkers)
+			MEM_freeN(tdt->smarkers);
+
 		MEM_freeN(tdt);
 	}
 }
@@ -5545,7 +5548,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	TransData2D *td2d;
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	TransDataTracking *tdt;
@@ -5556,33 +5559,38 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
 	track = tracksbase->first;
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0) {
-			marker= BKE_tracking_get_marker(track, framenr);
+		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED)==0) {
+			marker = BKE_tracking_get_marker(track, framenr);
 
 			t->total++;	/* offset */
 
-			if (track->flag&SELECT) t->total++;
-			if (track->pat_flag&SELECT) t->total+= 2;
-			if (track->search_flag&SELECT) t->total+= 2;
+			if (track->flag & SELECT)
+				t->total++;
+
+			if (track->pat_flag & SELECT)
+				t->total+= 2;
+
+			if (track->search_flag & SELECT)
+				t->total+= 2;
 		}
 
 		track = track->next;
 	}
 
-	if (t->total==0)
+	if (t->total == 0)
 		return;
 
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransTracking TransData");
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransTracking TransData2D");
 	tdt = t->customData = MEM_callocN(t->total*sizeof(TransDataTracking), "TransTracking TransDataTracking");
 
-	t->customFree= transDataTrackingFree;
+	t->customFree = transDataTrackingFree;
 
 	/* create actual data */
 	track = tracksbase->first;
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0) {
-			marker= BKE_tracking_get_marker(track, framenr);
+		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
+			marker = BKE_tracking_get_marker(track, framenr);
 
 			trackToTransData(sc, td, td2d, tdt, track);
 
@@ -5591,20 +5599,29 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 			td2d++;
 			tdt++;
 
-			if ((marker->flag&MARKER_DISABLED)==0) {
-				if (track->flag&SELECT) {td++; td2d++; tdt++;}
-				if (track->pat_flag&SELECT) {td+= 2; td2d+= 2;tdt+=2;}
+			if ((marker->flag & MARKER_DISABLED) == 0) {
+				if (track->flag & SELECT) {
+					td++;
+					td2d++;
+					tdt++;
+				}
+
+				if (track->pat_flag & SELECT) {
+					td += 2;
+					td2d += 2;
+					tdt +=2;
+				}
 			}
 
-			if (track->search_flag&SELECT) {
-				td+= 2;
-				td2d+= 2;
-				tdt+= 2;
+			if (track->search_flag & SELECT) {
+				td += 2;
+				td2d += 2;
+				tdt += 2;
 
-				if (marker->flag&MARKER_DISABLED) {
-					td+= 3;
-					td2d+= 3;
-					tdt+= 3;
+				if (marker->flag & MARKER_DISABLED) {
+					td += 3;
+					td2d += 3;
+					tdt += 3;
 				};
 			}
 		}
@@ -5614,7 +5631,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 }
 
 static void markerToTransCurveDataInit(TransData *td, TransData2D *td2d, TransDataTracking *tdt,
-									   MovieTrackingMarker *marker, MovieTrackingMarker *prev_marker,
+                                       MovieTrackingMarker *marker, MovieTrackingMarker *prev_marker,
                                        short coord, float size)
 {
 	float frames_delta = (marker->framenr - prev_marker->framenr);
@@ -5642,10 +5659,11 @@ static void markerToTransCurveDataInit(TransData *td, TransData2D *td2d, TransDa
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 
-	td->ext= NULL; td->val= NULL;
+	td->ext= NULL;
+	td->val= NULL;
 
 	td->flag |= TD_SELECTED;
-	td->dist= 0.0;
+	td->dist = 0.0;
 
 	unit_m3(td->mtx);
 	unit_m3(td->smtx);
@@ -5689,7 +5707,7 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
 		track = track->next;
 	}
 
-	if (t->total==0)
+	if (t->total == 0)
 		return;
 
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransTracking TransData");
@@ -5756,9 +5774,9 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 static void cancelTransTracking(TransInfo *t)
 {
 	TransDataTracking *tdt = t->customData;
-	SpaceClip *sc= t->sa->spacedata.first;
-	MovieClip *clip= ED_space_clip(sc);
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	SpaceClip *sc = t->sa->spacedata.first;
+	MovieClip *clip = ED_space_clip(sc);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	int a, framenr = sc->user.framenr;
@@ -5772,9 +5790,14 @@ static void cancelTransTracking(TransInfo *t)
 
 				tdt++;
 
-				if (track->flag&SELECT) tdt++;
-				if (track->pat_flag&SELECT) tdt += 2;
-				if (track->search_flag&SELECT) tdt += 2;
+				if (track->flag & SELECT)
+					tdt++;
+
+				if (track->pat_flag & SELECT)
+					tdt += 2;
+
+				if (track->search_flag & SELECT)
+					tdt += 2;
 			}
 
 			track = track->next;
@@ -5817,13 +5840,13 @@ void flushTransTracking(TransInfo *t)
 	/* flush to 2d vector from internally used 3d vector */
 	for (a=0, td= t->data, td2d= t->data2d, tdt= t->customData; a<t->total; a++, td2d++, td++, tdt++) {
 		if (tdt->mode == transDataTracking_ModeTracks) {
-			if (t->flag&T_ALT_TRANSFORM) {
-				if (tdt->area==TRACK_AREA_POINT && tdt->relative) {
+			if (t->flag & T_ALT_TRANSFORM) {
+				if (tdt->area == TRACK_AREA_POINT && tdt->relative) {
 					float d[2], d2[2];
 
 					if (!tdt->smarkers) {
-						tdt->smarkers= MEM_callocN(sizeof(*tdt->smarkers)*tdt->markersnr, "flushTransTracking markers");
-						for (a= 0; a<tdt->markersnr; a++)
+						tdt->smarkers = MEM_callocN(sizeof(*tdt->smarkers)*tdt->markersnr, "flushTransTracking markers");
+						for (a = 0; a < tdt->markersnr; a++)
 							copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);
 					}
 

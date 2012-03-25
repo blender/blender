@@ -60,24 +60,24 @@ static ARegion *clip_has_properties_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 
-	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
 	if (ar)
 		return ar;
 
 	/* add subdiv level; after header */
-	ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if (ar==NULL)
+	if (ar == NULL)
 		return NULL;
 
-	arnew= MEM_callocN(sizeof(ARegion), "clip properties region");
+	arnew = MEM_callocN(sizeof(ARegion), "clip properties region");
 
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-	arnew->regiontype= RGN_TYPE_UI;
-	arnew->alignment= RGN_ALIGN_RIGHT;
+	arnew->regiontype = RGN_TYPE_UI;
+	arnew->alignment = RGN_ALIGN_RIGHT;
 
-	arnew->flag= RGN_FLAG_HIDDEN;
+	arnew->flag = RGN_FLAG_HIDDEN;
 
 	return arnew;
 }
@@ -89,8 +89,8 @@ static int properties_poll(bContext *C)
 
 static int properties_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= clip_has_properties_region(sa);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = clip_has_properties_region(sa);
 
 	if (ar)
 		ED_region_toggle_hidden(C, ar);
@@ -114,43 +114,44 @@ void CLIP_OT_properties(wmOperatorType *ot)
 
 static ARegion *clip_has_tools_region(ScrArea *sa)
 {
-	ARegion *ar, *artool=NULL, *arprops=NULL, *arhead;
+	ARegion *ar, *artool = NULL, *arprops = NULL, *arhead;
 
-	for (ar= sa->regionbase.first; ar; ar= ar->next) {
-		if (ar->regiontype==RGN_TYPE_TOOLS)
-			artool= ar;
-		if (ar->regiontype==RGN_TYPE_TOOL_PROPS)
-			arprops= ar;
+	for (ar = sa->regionbase.first; ar; ar = ar->next) {
+		if (ar->regiontype == RGN_TYPE_TOOLS)
+			artool = ar;
+
+		if (ar->regiontype == RGN_TYPE_TOOL_PROPS)
+			arprops = ar;
 	}
 
 	/* tool region hide/unhide also hides props */
 	if (arprops && artool)
 		return artool;
 
-	if (artool==NULL) {
+	if (artool == NULL) {
 		/* add subdiv level; after header */
-		arhead= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+		arhead = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 		/* is error! */
-		if (arhead==NULL)
+		if (arhead == NULL)
 			return NULL;
 
-		artool= MEM_callocN(sizeof(ARegion), "clip tools region");
+		artool = MEM_callocN(sizeof(ARegion), "clip tools region");
 
 		BLI_insertlinkafter(&sa->regionbase, arhead, artool);
-		artool->regiontype= RGN_TYPE_TOOLS;
-		artool->alignment= RGN_ALIGN_LEFT;
+		artool->regiontype = RGN_TYPE_TOOLS;
+		artool->alignment = RGN_ALIGN_LEFT;
 
-		artool->flag= RGN_FLAG_HIDDEN;
+		artool->flag = RGN_FLAG_HIDDEN;
 	}
 
-	if (arprops==NULL) {
+	if (arprops == NULL) {
 		/* add extra subdivided region for tool properties */
-		arprops= MEM_callocN(sizeof(ARegion), "tool props for clip");
+		arprops = MEM_callocN(sizeof(ARegion), "tool props for clip");
 
 		BLI_insertlinkafter(&sa->regionbase, artool, arprops);
-		arprops->regiontype= RGN_TYPE_TOOL_PROPS;
-		arprops->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+		arprops->regiontype = RGN_TYPE_TOOL_PROPS;
+		arprops->alignment = RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
 	}
 
 	return artool;
@@ -163,8 +164,8 @@ static int tools_poll(bContext *C)
 
 static int tools_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= clip_has_tools_region(sa);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = clip_has_tools_region(sa);
 
 	if (ar)
 		ED_region_toggle_hidden(C, ar);
@@ -193,16 +194,18 @@ static void clip_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOperat
 
 static void clip_panel_operator_redo_header(const bContext *C, Panel *pa)
 {
-	wmOperator *op= WM_operator_last_redo(C);
+	wmOperator *op = WM_operator_last_redo(C);
 
-	if (op) BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
-	else BLI_strncpy(pa->drawname, "Operator", sizeof(pa->drawname));
+	if (op)
+		BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
+	else
+		BLI_strncpy(pa->drawname, "Operator", sizeof(pa->drawname));
 }
 
 static void clip_panel_operator_redo_operator(const bContext *C, Panel *pa, wmOperator *op)
 {
 	if (op->type->flag & OPTYPE_MACRO) {
-		for (op= op->macro.first; op; op= op->next) {
+		for (op = op->macro.first; op; op = op->next) {
 			uiItemL(pa->layout, op->type->name, ICON_NONE);
 			clip_panel_operator_redo_operator(C, pa, op);
 		}
@@ -215,15 +218,16 @@ static void clip_panel_operator_redo_operator(const bContext *C, Panel *pa, wmOp
 /* TODO de-duplicate redo panel functions - campbell */
 static void clip_panel_operator_redo(const bContext *C, Panel *pa)
 {
-	wmOperator *op= WM_operator_last_redo(C);
+	wmOperator *op = WM_operator_last_redo(C);
 	uiBlock *block;
 
-	if (op==NULL)
+	if (op == NULL)
 		return;
+
 	if (WM_operator_poll((bContext*)C, op->type) == 0)
 		return;
 
-	block= uiLayoutGetBlock(pa->layout);
+	block = uiLayoutGetBlock(pa->layout);
 
 	if (!WM_operator_check_ui_enabled(C, op->type->name))
 		uiLayoutSetEnabled(pa->layout, 0);
@@ -238,10 +242,10 @@ void ED_clip_tool_props_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt= MEM_callocN(sizeof(PanelType), "spacetype clip panel last operator");
+	pt = MEM_callocN(sizeof(PanelType), "spacetype clip panel last operator");
 	strcpy(pt->idname, "CLIP_PT_last_operator");
 	strcpy(pt->label, "Operator");
-	pt->draw_header= clip_panel_operator_redo_header;
-	pt->draw= clip_panel_operator_redo;
+	pt->draw_header = clip_panel_operator_redo_header;
+	pt->draw = clip_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);
 }

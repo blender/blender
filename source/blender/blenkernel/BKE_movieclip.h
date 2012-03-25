@@ -61,7 +61,7 @@ void BKE_movieclip_update_scopes(struct MovieClip *clip, struct MovieClipUser *u
 void BKE_movieclip_get_cache_segments(struct MovieClip *clip, struct MovieClipUser *user, int *totseg_r, int **points_r);
 
 void BKE_movieclip_build_proxy_frame(struct MovieClip *clip, int clip_flag, struct MovieDistortion *distortion,
-			int cfra, int *build_sizes, int build_count, int undistorted);
+                                     int cfra, int *build_sizes, int build_count, int undistorted);
 
 /* cacheing flags */
 #define MOVIECLIP_CACHE_SKIP        (1<<0)

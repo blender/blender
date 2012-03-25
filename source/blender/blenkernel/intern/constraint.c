@@ -3927,28 +3927,28 @@ static bConstraintTypeInfo CTI_PIVOT = {
 
 /* ----------- Follow Track ------------- */
 
-static void followtrack_new_data (void *cdata)
+static void followtrack_new_data(void *cdata)
 {
-	bFollowTrackConstraint *data= (bFollowTrackConstraint *)cdata;
-	
-	data->clip= NULL;
+	bFollowTrackConstraint *data = (bFollowTrackConstraint *)cdata;
+
+	data->clip = NULL;
 	data->flag |= FOLLOWTRACK_ACTIVECLIP;
 }
 
-static void followtrack_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+static void followtrack_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
-	bFollowTrackConstraint *data= con->data;
-	
+	bFollowTrackConstraint *data = con->data;
+
 	func(con, (ID**)&data->clip, userdata);
 	func(con, (ID**)&data->camera, userdata);
 	func(con, (ID**)&data->depth_ob, userdata);
 }
 
-static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
+static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
-	Scene *scene= cob->scene;
-	bFollowTrackConstraint *data= con->data;
-	MovieClip *clip= data->clip;
+	Scene *scene = cob->scene;
+	bFollowTrackConstraint *data = con->data;
+	MovieClip *clip = data->clip;
 	MovieTracking *tracking;
 	MovieTrackingTrack *track;
 	MovieTrackingObject *tracking_object;
@@ -3960,17 +3960,17 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 	if (!clip || !data->track[0] || !camob)
 		return;
 
-	tracking= &clip->tracking;
+	tracking = &clip->tracking;
 
 	if (data->object[0])
-		tracking_object= BKE_tracking_named_object(tracking, data->object);
+		tracking_object = BKE_tracking_named_object(tracking, data->object);
 	else
-		tracking_object= BKE_tracking_get_camera_object(tracking);
+		tracking_object = BKE_tracking_get_camera_object(tracking);
 
 	if (!tracking_object)
 		return;
 
-	track= BKE_tracking_named_track(tracking, tracking_object, data->track);
+	track = BKE_tracking_named_track(tracking, tracking_object, data->track);
 
 	if (!track)
 		return;
@@ -3981,7 +3981,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 
 			copy_m4_m4(obmat, cob->matrix);
 
-			if ((tracking_object->flag&TRACKING_OBJECT_CAMERA)==0) {
+			if ((tracking_object->flag & TRACKING_OBJECT_CAMERA)==0) {
 				float imat[4][4];
 
 				copy_m4_m4(mat, camob->obmat);
@@ -4003,15 +4003,15 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 	else {
 		MovieTrackingMarker *marker;
 		float vec[3], disp[3], axis[3], mat[4][4];
-		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
+		float aspect= (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
 		float len, d;
 
 		where_is_object_mat(scene, camob, mat);
 
 		/* camera axis */
-		vec[0]= 0.0f;
-		vec[1]= 0.0f;
-		vec[2]= 1.0f;
+		vec[0] = 0.0f;
+		vec[1] = 0.0f;
+		vec[2] = 1.0f;
 		mul_v3_m4v3(axis, mat, vec);
 
 		/* distance to projection plane */
@@ -4019,13 +4019,13 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 		sub_v3_v3(vec, mat[3]);
 		project_v3_v3v3(disp, vec, axis);
 
-		len= len_v3(disp);
+		len = len_v3(disp);
 
 		if (len > FLT_EPSILON) {
 			CameraParams params;
 			float pos[2], rmat[4][4];
 
-			marker= BKE_tracking_get_marker(track, scene->r.cfra);
+			marker = BKE_tracking_get_marker(track, scene->r.cfra);
 
 			add_v2_v2v2(pos, marker->pos, track->offset);
 
@@ -4033,12 +4033,14 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			camera_params_from_object(&params, camob);
 
 			if (params.is_ortho) {
-				vec[0]= params.ortho_scale * (pos[0]-0.5f+params.shiftx);
-				vec[1]= params.ortho_scale * (pos[1]-0.5f+params.shifty);
-				vec[2]= -len;
+				vec[0] = params.ortho_scale * (pos[0] - 0.5f + params.shiftx);
+				vec[1] = params.ortho_scale * (pos[1] - 0.5f + params.shifty);
+				vec[2] = -len;
 
-				if (aspect > 1.0f) vec[1] /= aspect;
-				else vec[0] *= aspect;
+				if (aspect > 1.0f)
+					vec[1] /= aspect;
+				else
+					vec[0] *= aspect;
 
 				mul_v3_m4v3(disp, camob->obmat, vec);
 
@@ -4049,14 +4051,16 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 				copy_v3_v3(cob->matrix[3], disp);
 			}
 			else {
-				d= (len*params.sensor_x) / (2.0f*params.lens);
+				d=  (len * params.sensor_x) / (2.0f * params.lens);
 
-				vec[0]= d*(2.0f*(pos[0]+params.shiftx)-1.0f);
-				vec[1]= d*(2.0f*(pos[1]+params.shifty)-1.0f);
-				vec[2]= -len;
+				vec[0] = d * (2.0f * (pos[0] + params.shiftx) - 1.0f);
+				vec[1] = d * (2.0f * (pos[1] + params.shifty) - 1.0f);
+				vec[2] = -len;
 
-				if (aspect > 1.0f) vec[1] /= aspect;
-				else vec[0] *= aspect;
+				if (aspect > 1.0f)
+					vec[1] /= aspect;
+				else
+					vec[0] *= aspect;
 
 				mul_v3_m4v3(disp, camob->obmat, vec);
 
@@ -4069,8 +4073,8 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			}
 
 			if (data->depth_ob && data->depth_ob->derivedFinal) {
-				Object *depth_ob= data->depth_ob;
-				BVHTreeFromMesh treeData= NULL_BVHTreeFromMesh;
+				Object *depth_ob = data->depth_ob;
+				BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 				BVHTreeRayHit hit;
 				float ray_start[3], ray_end[3], ray_nor[3], imat[4][4];
 				int result;
@@ -4084,10 +4088,10 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 
 				bvhtree_from_mesh_faces(&treeData, depth_ob->derivedFinal, 0.0f, 4, 6);
 
-				hit.dist= FLT_MAX;
-				hit.index= -1;
+				hit.dist = FLT_MAX;
+				hit.index = -1;
 
-				result= BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
+				result = BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
 
 				if (result != -1) {
 					mul_v3_m4v3(cob->matrix[3], depth_ob->obmat, hit.co);
@@ -4117,34 +4121,34 @@ static bConstraintTypeInfo CTI_FOLLOWTRACK = {
 
 /* ----------- Camre Solver ------------- */
 
-static void camerasolver_new_data (void *cdata)
+static void camerasolver_new_data(void *cdata)
 {
-	bCameraSolverConstraint *data= (bCameraSolverConstraint *)cdata;
-	
+	bCameraSolverConstraint *data = (bCameraSolverConstraint *)cdata;
+
 	data->clip = NULL;
 	data->flag |= CAMERASOLVER_ACTIVECLIP;
 }
 
-static void camerasolver_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+static void camerasolver_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
-	bCameraSolverConstraint *data= con->data;
-	
+	bCameraSolverConstraint *data = con->data;
+
 	func(con, (ID**)&data->clip, userdata);
 }
 
-static void camerasolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
+static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
-	Scene *scene= cob->scene;
-	bCameraSolverConstraint *data= con->data;
-	MovieClip *clip= data->clip;
+	Scene *scene = cob->scene;
+	bCameraSolverConstraint *data = con->data;
+	MovieClip *clip = data->clip;
 
 	if (data->flag & CAMERASOLVER_ACTIVECLIP)
-		clip= scene->clip;
+		clip = scene->clip;
 
 	if (clip) {
 		float mat[4][4], obmat[4][4];
-		MovieTracking *tracking= &clip->tracking;
-		MovieTrackingObject *object= BKE_tracking_get_camera_object(tracking);
+		MovieTracking *tracking = &clip->tracking;
+		MovieTrackingObject *object = BKE_tracking_get_camera_object(tracking);
 
 		BKE_tracking_get_interpolated_camera(tracking, object, scene->r.cfra, mat);
 
@@ -4172,16 +4176,16 @@ static bConstraintTypeInfo CTI_CAMERASOLVER = {
 
 /* ----------- Object Solver ------------- */
 
-static void objectsolver_new_data (void *cdata)
+static void objectsolver_new_data(void *cdata)
 {
-	bObjectSolverConstraint *data= (bObjectSolverConstraint *)cdata;
+	bObjectSolverConstraint *data = (bObjectSolverConstraint *)cdata;
 
 	data->clip = NULL;
 	data->flag |= OBJECTSOLVER_ACTIVECLIP;
 	unit_m4(data->invmat);
 }
 
-static void objectsolver_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+static void objectsolver_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
 	bObjectSolverConstraint *data= con->data;
 
@@ -4189,12 +4193,12 @@ static void objectsolver_id_looper (bConstraint *con, ConstraintIDFunc func, voi
 	func(con, (ID**)&data->camera, userdata);
 }
 
-static void objectsolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
+static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
-	Scene *scene= cob->scene;
-	bObjectSolverConstraint *data= con->data;
-	MovieClip *clip= data->clip;
-	Object *camob= data->camera ? data->camera : scene->camera;
+	Scene *scene = cob->scene;
+	bObjectSolverConstraint *data = con->data;
+	MovieClip *clip = data->clip;
+	Object *camob = data->camera ? data->camera : scene->camera;
 
 	if (data->flag & OBJECTSOLVER_ACTIVECLIP)
 		clip= scene->clip;
@@ -4203,10 +4207,10 @@ static void objectsolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 		return;
 
 	if (clip) {
-		MovieTracking *tracking= &clip->tracking;
+		MovieTracking *tracking = &clip->tracking;
 		MovieTrackingObject *object;
 
-		object= BKE_tracking_named_object(tracking, data->object);
+		object = BKE_tracking_named_object(tracking, data->object);
 
 		if (object) {
 			float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];

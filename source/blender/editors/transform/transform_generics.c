@@ -637,14 +637,14 @@ static void recalcData_image(TransInfo *t)
 /* helper for recalcData() - for Movie Clip transforms */
 static void recalcData_clip(TransInfo *t)
 {
-	SpaceClip *sc= t->sa->spacedata.first;
-	MovieClip *clip= ED_space_clip(sc);
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	SpaceClip *sc = t->sa->spacedata.first;
+	MovieClip *clip = ED_space_clip(sc);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 	
 	flushTransTracking(t);
 	
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED)==0) {
 			if (t->mode == TFM_TRANSLATION) {
@@ -661,7 +661,7 @@ static void recalcData_clip(TransInfo *t)
 			}
 		}
 		
-		track= track->next;
+		track = track->next;
 	}
 	
 	DAG_id_tag_update(&clip->id, 0);
