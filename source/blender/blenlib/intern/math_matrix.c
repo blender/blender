@@ -245,9 +245,9 @@ void mul_m4_m3m4(float (*m1)[4], float (*m3)[3], float (*m2)[4])
 }
 
 void mul_serie_m3(float answ[][3],
-float m1[][3], float m2[][3], float m3[][3],
-float m4[][3], float m5[][3], float m6[][3],
-float m7[][3], float m8[][3])
+                  float m1[][3], float m2[][3], float m3[][3],
+                  float m4[][3], float m5[][3], float m6[][3],
+                  float m7[][3], float m8[][3])
 {
 	float temp[3][3];
 
@@ -278,9 +278,9 @@ float m7[][3], float m8[][3])
 }
 
 void mul_serie_m4(float answ[][4], float m1[][4],
-float m2[][4], float m3[][4], float m4[][4],
-float m5[][4], float m6[][4], float m7[][4],
-float m8[][4])
+                  float m2[][4], float m3[][4], float m4[][4],
+                  float m5[][4], float m6[][4], float m7[][4],
+                  float m8[][4])
 {
 	float temp[4][4];
 
@@ -542,9 +542,9 @@ int invert_m4(float m[4][4])
 
 /*
  * invertmat -
- * 		computes the inverse of mat and puts it in inverse.  Returns
- *	TRUE on success (i.e. can always find a pivot) and FALSE on failure.
- * 	Uses Gaussian Elimination with partial (maximal column) pivoting.
+ *      computes the inverse of mat and puts it in inverse.  Returns
+ *  TRUE on success (i.e. can always find a pivot) and FALSE on failure.
+ *  Uses Gaussian Elimination with partial (maximal column) pivoting.
  *
  *					Mark Segal - 1992
  */
@@ -589,7 +589,7 @@ int invert_m4_m4(float inverse[4][4], float mat[4][4])
 
 		temp = tempmat[i][i];
 		if (temp == 0)
-			return 0; /* No non-zero pivot */
+			return 0;  /* No non-zero pivot */
 		for (k = 0; k < 4; k++) {
 			tempmat[i][k] = (float)(tempmat[i][k] / temp);
 			inverse[i][k] = (float)(inverse[i][k] / temp);
@@ -1568,7 +1568,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 					break;
 				}
 				t = (ks != p ? fabsf(e[ks]) : 0.f) +
-				        (ks != k + 1 ? fabsf(e[ks - 1]) : 0.0f);
+				    (ks != k + 1 ? fabsf(e[ks - 1]) : 0.0f);
 				if (fabsf(s[ks]) <= eps * t) {
 					s[ks] = 0.0f;
 					break;
@@ -1617,7 +1617,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				break;
 			}
 
-				// Split at negligible s(k).
+			// Split at negligible s(k).
 
 			case 2:
 			{
@@ -1641,7 +1641,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				break;
 			}
 
-				// Perform one qr step.
+			// Perform one qr step.
 
 			case 3:
 			{
@@ -1713,7 +1713,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				iter = iter + 1;
 				break;
 			}
-				// Convergence.
+			// Convergence.
 
 			case 4:
 			{

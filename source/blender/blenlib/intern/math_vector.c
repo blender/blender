@@ -17,7 +17,7 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- 
+ *
  * The Original Code is: some of this file.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -350,16 +350,16 @@ void rotate_normalized_v3_v3v3fl(float r[3], const float p[3], const float axis[
 	const float sintheta = sin(angle);
 
 	r[0] = ((costheta + (1 - costheta) * axis[0] * axis[0]) * p[0]) +
-	        (((1 - costheta) * axis[0] * axis[1] - axis[2] * sintheta) * p[1]) +
-	        (((1 - costheta) * axis[0] * axis[2] + axis[1] * sintheta) * p[2]);
+	       (((1 - costheta) * axis[0] * axis[1] - axis[2] * sintheta) * p[1]) +
+	       (((1 - costheta) * axis[0] * axis[2] + axis[1] * sintheta) * p[2]);
 
 	r[1] = (((1 - costheta) * axis[0] * axis[1] + axis[2] * sintheta) * p[0]) +
-	        ((costheta + (1 - costheta) * axis[1] * axis[1]) * p[1]) +
-	        (((1 - costheta) * axis[1] * axis[2] - axis[0] * sintheta) * p[2]);
+	       ((costheta + (1 - costheta) * axis[1] * axis[1]) * p[1]) +
+	       (((1 - costheta) * axis[1] * axis[2] - axis[0] * sintheta) * p[2]);
 
 	r[2] = (((1 - costheta) * axis[0] * axis[2] - axis[1] * sintheta) * p[0]) +
-	        (((1 - costheta) * axis[1] * axis[2] + axis[0] * sintheta) * p[1]) +
-	        ((costheta + (1 - costheta) * axis[2] * axis[2]) * p[2]);
+	       (((1 - costheta) * axis[1] * axis[2] + axis[0] * sintheta) * p[1]) +
+	       ((costheta + (1 - costheta) * axis[2] * axis[2]) * p[2]);
 }
 
 void rotate_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle)
@@ -467,7 +467,7 @@ void negate_vn_vn(float *array_tar, const float *array_src, const int size)
 	const float *src = array_src + (size - 1);
 	int i = size;
 	while (i--) {
-		*(tar--) = - *(src--);
+		*(tar--) = -*(src--);
 	}
 }
 

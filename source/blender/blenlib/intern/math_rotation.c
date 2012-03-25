@@ -1178,7 +1178,7 @@ typedef struct RotOrderInfo {
 /* Array of info for Rotation Order calculations
  * WARNING: must be kept in same order as eEulerRotationOrders
  */
-static RotOrderInfo rotOrders[]= {
+static RotOrderInfo rotOrders[] = {
 	/* i, j, k, n */
 	{{0, 1, 2}, 0}, // XYZ
 	{{0, 2, 1}, 1}, // XZY
@@ -1192,7 +1192,7 @@ static RotOrderInfo rotOrders[]= {
  * NOTE: since we start at 1 for the values, but arrays index from 0,
  *		 there is -1 factor involved in this process...
  */
-#define GET_ROTATIONORDER_INFO(order) (assert(order>=0 && order<=6), (order < 1) ? &rotOrders[0] : &rotOrders[(order)-1])
+#define GET_ROTATIONORDER_INFO(order) (assert(order >= 0 && order <= 6), (order < 1) ? &rotOrders[0] : &rotOrders[(order) - 1])
 
 /* Construct quaternion from Euler angles (in radians). */
 void eulO_to_quat(float q[4], const float e[3], const short order)

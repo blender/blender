@@ -17,7 +17,7 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
-
+ *
  * The Original Code is: some of this file.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -173,7 +173,7 @@ float dist_to_line_v2(const float v1[2], const float v2[2], const float v3[2])
 	deler = (float)sqrt(a[0] * a[0] + a[1] * a[1]);
 	if (deler == 0.0f) return 0;
 
-	return fabsf((v1[0] - v2[0]) * a[0]+(v1[1] - v2[1]) * a[1]) / deler;
+	return fabsf((v1[0] - v2[0]) * a[0] + (v1[1] - v2[1]) * a[1]) / deler;
 
 }
 
@@ -298,12 +298,12 @@ int isect_line_line_v2_int(const int v1[2], const int v2[2], const int v3[2], co
 {
 	float div, labda, mu;
 
-	div = (float)((v2[0] - v1[0]) * (v4[1] - v3[1])-(v2[1] - v1[1]) * (v4[0] - v3[0]));
+	div = (float)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
 	if (div == 0.0f) return ISECT_LINE_LINE_COLINEAR;
 
-	labda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0])-(v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
+	labda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 
-	mu = ((float)(v1[1] - v3[1]) * (v2[0] - v1[0])-(v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
+	mu = ((float)(v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
 
 	if (labda >= 0.0f && labda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
 		if (labda == 0.0f || labda == 1.0f || mu == 0.0f || mu == 1.0f) return ISECT_LINE_LINE_EXACT;
@@ -317,12 +317,12 @@ int isect_line_line_v2(const float v1[2], const float v2[2], const float v3[2], 
 {
 	float div, labda, mu;
 
-	div = (v2[0] - v1[0]) * (v4[1] - v3[1])-(v2[1] - v1[1]) * (v4[0] - v3[0]);
+	div = (v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]);
 	if (div == 0.0f) return ISECT_LINE_LINE_COLINEAR;
 
-	labda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0])-(v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
+	labda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 
-	mu = ((float)(v1[1] - v3[1]) * (v2[0] - v1[0])-(v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
+	mu = ((float)(v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
 
 	if (labda >= 0.0f && labda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
 		if (labda == 0.0f || labda == 1.0f || mu == 0.0f || mu == 1.0f) return ISECT_LINE_LINE_EXACT;
@@ -383,7 +383,7 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 
 			if (u > u2) SWAP(float, u, u2);
 
-			if (u > 1.0f + eps || u2<-eps) return -1; /* non-ovlerlapping segments */
+			if (u > 1.0f + eps || u2 < -eps) return -1;  /* non-ovlerlapping segments */
 			else if (maxf(0.0f, u) == minf(1.0f, u2)) { /* one common point: can return result */
 				interp_v2_v2v2(vi, v1, v2, maxf(0, u));
 				return 1;
@@ -491,7 +491,7 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 
 	const float b = 2.0f *
 	        (ldir[0] * (l1[0] - sp[0]) +
-	        ldir[1] * (l1[1] - sp[1]));
+	         ldir[1] * (l1[1] - sp[1]));
 
 	const float c =
 	        dot_v2v2(sp, sp) +
@@ -565,7 +565,7 @@ static short IsectLLPt2Df(const float x0, const float y0, const float x1, const 
 		return -1; /*m2 = (float)1e+10;*/ // close enough to infinity
 
 	if (fabs(m1 - m2) < 0.000001)
-		return -1; /* parallel lines */
+		return -1;  /* parallel lines */
 
 	// compute constants
 
@@ -1918,11 +1918,11 @@ int interp_sparse_array(float *array, int const list_size, const float skipval)
 		float valid_last = skipval;
 		int valid_ofs = 0;
 
-		float *array_up = MEM_callocN(sizeof(float)* list_size, "interp_sparse_array up");
-		float *array_down = MEM_callocN(sizeof(float)* list_size, "interp_sparse_array up");
+		float *array_up = MEM_callocN(sizeof(float) * list_size, "interp_sparse_array up");
+		float *array_down = MEM_callocN(sizeof(float) * list_size, "interp_sparse_array up");
 
-		int *ofs_tot_up = MEM_callocN(sizeof(int)* list_size, "interp_sparse_array tup");
-		int *ofs_tot_down = MEM_callocN(sizeof(int)* list_size, "interp_sparse_array tdown");
+		int *ofs_tot_up = MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tup");
+		int *ofs_tot_down = MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tdown");
 
 		for (i = 0; i < list_size; i++) {
 			if (array[i] == skipval) {
@@ -2046,7 +2046,7 @@ void interp_cubic_v3(float x[3], float v[3], const float x1[3], const float v1[3
 
 /* unfortunately internal calculations have to be done at double precision to achieve correct/stable results. */
 
-#define IS_ZERO(x) ((x>(-DBL_EPSILON) && x<DBL_EPSILON) ? 1 : 0)
+#define IS_ZERO(x) ((x > (-DBL_EPSILON) && x < DBL_EPSILON) ? 1 : 0)
 
 /* Barycentric reverse  */
 void resolve_tri_uv(float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2])
@@ -2353,7 +2353,7 @@ void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const f
 
 	len = sqrtf(x * x + y * y + z * z);
 	if (len > 0.0f) {
-		if (x == 0.0f && y == 0.0f) *r_u = 0.0f; /* othwise domain error */
+		if (x == 0.0f && y == 0.0f) *r_u = 0.0f;  /* othwise domain error */
 		else *r_u = (1.0f - atan2f(x, y) / (float)M_PI) / 2.0f;
 
 		*r_v = 1.0f - (float)saacos(z / len) / (float)M_PI;
@@ -2447,7 +2447,7 @@ void accumulate_vertex_normals_poly(float **vertnos, float polyno[3],
 
 
 /* from BKE_mesh.h */
-#define STD_UV_CONNECT_LIMIT	0.0001f
+#define STD_UV_CONNECT_LIMIT  0.0001f
 
 void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, const float tang[3], const float uv[2])
 {
@@ -2915,14 +2915,14 @@ static vFloat vec_splat_float(float val)
 static float ff_quad_form_factor(float *p, float *n, float *q0, float *q1, float *q2, float *q3)
 {
 	vFloat vcos, rlen, vrx, vry, vrz, vsrx, vsry, vsrz, gx, gy, gz, vangle;
-	vUInt8 rotate = (vUInt8){4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3};
+	vUInt8 rotate = (vUInt8) {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3};
 	vFloatResult vresult;
 	float result;
 
 	/* compute r* */
-	vrx = (vFloat) {q0[0], q1[0], q2[0], q3[0]} - vec_splat_float(p[0]);
-	vry = (vFloat) {q0[1], q1[1], q2[1], q3[1]} - vec_splat_float(p[1]);
-	vrz = (vFloat) {q0[2], q1[2], q2[2], q3[2]} - vec_splat_float(p[2]);
+	vrx = (vFloat) {q0[0], q1[0], q2[0], q3[0]} -vec_splat_float(p[0]);
+	vry = (vFloat) {q0[1], q1[1], q2[1], q3[1]} -vec_splat_float(p[1]);
+	vrz = (vFloat) {q0[2], q1[2], q2[2], q3[2]} -vec_splat_float(p[2]);
 
 	/* normalize r* */
 	rlen = vec_rsqrte(vrx * vrx + vry * vry + vrz * vrz + vec_splat_float(1e-16f));
@@ -2973,8 +2973,8 @@ static float ff_quad_form_factor(float *p, float *n, float *q0, float *q1, float
 static __m128 sse_approx_acos(__m128 x)
 {
 	/* needs a better approximation than taylor expansion of acos, since that
-	 * gives big erros for near 1.0 values, sqrt(2 * x) * acos(1 - x) should work
-	 * better, see http://www.tom.womack.net/projects/sse-fast-arctrig.html */
+	* gives big erros for near 1.0 values, sqrt(2 * x) * acos(1 - x) should work
+	* better, see http://www.tom.womack.net/projects/sse-fast-arctrig.html */
 
 	return _mm_set_ps1(1.0f);
 }

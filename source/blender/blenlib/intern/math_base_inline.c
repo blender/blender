@@ -39,7 +39,7 @@
 #define __MATH_BASE_INLINE_C__
 
 /* A few small defines. Keep'em local! */
-#define SMALL_NUMBER	1.e-8f
+#define SMALL_NUMBER  1.e-8f
 
 MINLINE float sqrt3f(float f)
 {

@@ -17,7 +17,7 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- 
+ *
  * The Original Code is: some of this file.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -129,18 +129,18 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, in
 	switch (colorspace) {
 		case BLI_YCC_ITU_BT601:
 			y = (0.257f * sr) + (0.504f * sg) + (0.098f * sb) + 16.0f;
-			cb = (-0.148f * sr)-(0.291f * sg) + (0.439f * sb) + 128.0f;
-			cr = (0.439f * sr)-(0.368f * sg)-(0.071f * sb) + 128.0f;
+			cb = (-0.148f * sr) - (0.291f * sg) + (0.439f * sb) + 128.0f;
+			cr = (0.439f * sr) - (0.368f * sg) - (0.071f * sb) + 128.0f;
 			break;
 		case BLI_YCC_ITU_BT709:
 			y = (0.183f * sr) + (0.614f * sg) + (0.062f * sb) + 16.0f;
-			cb = (-0.101f * sr)-(0.338f * sg) + (0.439f * sb) + 128.0f;
-			cr = (0.439f * sr)-(0.399f * sg)-(0.040f * sb) + 128.0f;
+			cb = (-0.101f * sr) - (0.338f * sg) + (0.439f * sb) + 128.0f;
+			cr = (0.439f * sr) - (0.399f * sg) - (0.040f * sb) + 128.0f;
 			break;
 		case BLI_YCC_JFIF_0_255:
 			y = (0.299f * sr) + (0.587f * sg) + (0.114f * sb);
-			cb = (-0.16874f * sr)-(0.33126f * sg) + (0.5f * sb) + 128.0f;
-			cr = (0.5f * sr)-(0.41869f * sg)-(0.08131f * sb) + 128.0f;
+			cb = (-0.16874f * sr) - (0.33126f * sg) + (0.5f * sb) + 128.0f;
+			cr = (0.5f * sr) - (0.41869f * sg) - (0.08131f * sb) + 128.0f;
 			break;
 		default:
 			assert(!"invalid colorspace");
@@ -230,13 +230,17 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 		rc = (cmax - r) / cdelta;
 		gc = (cmax - g) / cdelta;
 		bc = (cmax - b) / cdelta;
-		if (r == cmax)
+
+		if (r == cmax) {
 			h = bc - gc;
-		else
-			if (g == cmax)
-				h = 2.0f + rc - bc;
-			else
-				h = 4.0f + gc - rc;
+		}
+		else if (g == cmax) {
+			h = 2.0f + rc - bc;
+		}
+		else {
+			h = 4.0f + gc - rc;
+		}
+
 		h = h * 60.0f;
 		if (h < 0.0f)
 			h += 360.0f;
@@ -331,13 +335,13 @@ unsigned int rgb_to_cpack(float r, float g, float b)
 void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 {
 
-	*r = (float)((col)&0xFF);
+	*r = (float)((col) & 0xFF);
 	*r /= 255.0f;
 
-	*g = (float)(((col) >> 8)&0xFF);
+	*g = (float)(((col) >> 8) & 0xFF);
 	*g /= 255.0f;
 
-	*b = (float)(((col) >> 16)&0xFF);
+	*b = (float)(((col) >> 16) & 0xFF);
 	*b /= 255.0f;
 }
 
