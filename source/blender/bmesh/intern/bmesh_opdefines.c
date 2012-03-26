@@ -893,6 +893,9 @@ static BMOpDefine bmo_edgesplit_def = {
 	"edgesplit",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edges */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, /* old output disconnected edges */
+	 /* needed for vertex rip so we can rip only half an edge at a boundary wich would otherwise split off */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* optional tag verts, use to have greater control of splits */
+	 {BMO_OP_SLOT_BOOL,        "use_verts"}, /* use 'verts' for splitting, else just find verts to split from edges */
 	 {0} /* null-terminating sentine */},
 	bmo_edgesplit_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES

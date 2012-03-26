@@ -1227,9 +1227,7 @@ static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	int len = 0;
 	
-	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he",
-	                  BM_ELEM_SELECT))
-	{
+	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he", BM_ELEM_SELECT)) {
 		return OPERATOR_CANCELLED;
 	}
 	BMO_op_exec(bm, &bmop);
@@ -2305,7 +2303,8 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he", BM_ELEM_TAG)) {
+	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he verts=%hv use_verts=%b",
+	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 	
