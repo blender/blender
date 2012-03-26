@@ -51,7 +51,7 @@
 static void initData(ModifierData *md)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
-	lmd->influence = 1.0f;
+	lmd->strength = 1.0f;
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -119,7 +119,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
 	lattice_deform_verts(lmd->object, ob, derivedData,
-	                     vertexCos, numVerts, lmd->name, lmd->influence);
+	                     vertexCos, numVerts, lmd->name, lmd->strength);
 }
 
 static void deformVertsEM(

@@ -13339,7 +13339,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(md=ob->modifiers.first; md; md=md->next) {
 				if(md->type == eModifierType_Lattice) {
 					LatticeModifierData *lmd = (LatticeModifierData *)md;
-					lmd->influence = 1.0f;
+					lmd->strength = 1.0f;
 				}
 			}
 		}

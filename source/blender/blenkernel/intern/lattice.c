@@ -785,7 +785,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
 }
 
 void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
-                          float (*vertexCos)[3], int numVerts, const char *vgroup, float influence)
+                          float (*vertexCos)[3], int numVerts, const char *vgroup, float fac)
 {
 	int a;
 	int use_vgroups;
@@ -824,13 +824,13 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 				weight= defvert_find_weight(dvert, index);
 
 				if (weight > 0.0f)
-					calc_latt_deform(laOb, vertexCos[a], weight*influence);
+					calc_latt_deform(laOb, vertexCos[a], weight * fac);
 			}
 		}
 	}
 	else {
 		for (a = 0; a < numVerts; a++) {
-			calc_latt_deform(laOb, vertexCos[a], influence);
+			calc_latt_deform(laOb, vertexCos[a], fac);
 		}
 	}
 	end_latt_deform(laOb);

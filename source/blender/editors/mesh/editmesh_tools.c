@@ -2970,7 +2970,6 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 
 	/* get the cut curve */
 	RNA_BEGIN(op->ptr, itemptr, "path") {
-		
 		RNA_float_get_array(&itemptr, "loc", (float *)&curve[len]);
 		len++;
 		if (len >= MAX_CUTS) {

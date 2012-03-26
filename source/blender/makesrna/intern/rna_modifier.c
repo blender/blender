@@ -961,10 +961,10 @@ static void rna_def_modifier_lattice(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_LatticeModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	
-	prop = RNA_def_property(srna, "influence", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 1, 10, 2);
-	RNA_def_property_ui_text(prop, "Influence", "Strength of modifier effect");
+	RNA_def_property_ui_text(prop, "Strength", "Strength of modifier effect");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
