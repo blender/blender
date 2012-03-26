@@ -5560,6 +5560,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 
 					sima->image= restore_pointer_by_name(newmain, (ID *)sima->image, 1);
 
+					/* this will be freed, not worth attempting to find same scene,
+					 * since it gets initialized later */
+					sima->iuser.scene = NULL;
+
 					sima->scopes.waveform_1 = NULL;
 					sima->scopes.waveform_2 = NULL;
 					sima->scopes.waveform_3 = NULL;
