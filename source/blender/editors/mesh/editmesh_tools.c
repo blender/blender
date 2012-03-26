@@ -4534,5 +4534,5 @@ void MESH_OT_inset(wmOperatorType *ot)
 	/* use 1 rather then 10 for max else dragging the button moves too far */
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
 
-	RNA_def_boolean(ot->srna, "use_outset", FALSE, "Outset",  "outset rather then inset");
+	RNA_def_boolean(ot->srna, "use_outset", FALSE, "Outset", "Outset rather than inset");
 }

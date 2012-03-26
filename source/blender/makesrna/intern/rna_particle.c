@@ -1766,7 +1766,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, rot_mode_items);
-	RNA_def_property_ui_text(prop, "Orientation axis", "Particle orientation axis (does not effect eplode modifier results)");
+	RNA_def_property_ui_text(prop, "Orientation axis", "Particle orientation axis (does not affect Explode modifier's results)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "angular_velocity_mode", PROP_ENUM, PROP_NONE);
