@@ -411,7 +411,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	BMEdit_Free(em);
 	MEM_freeN(em);
-	MEM_freeN(indexMap);
+	if (indexMap)
+		MEM_freeN(indexMap);
 
 	return result;
 }
