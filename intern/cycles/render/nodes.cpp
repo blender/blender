@@ -2388,17 +2388,22 @@ RGBRampNode::RGBRampNode()
 {
 	add_input("Fac", SHADER_SOCKET_FLOAT);
 	add_output("Color", SHADER_SOCKET_COLOR);
+	add_output("Alpha", SHADER_SOCKET_FLOAT);
 }
 
 void RGBRampNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *fac_in = input("Fac");
 	ShaderOutput *color_out = output("Color");
+	ShaderOutput *alpha_out = output("Alpha");
 
 	compiler.stack_assign(fac_in);
-	compiler.stack_assign(color_out);
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
+	if(!alpha_out->links.empty())
+		compiler.stack_assign(alpha_out);
 
-	compiler.add_node(NODE_RGB_RAMP, fac_in->stack_offset, color_out->stack_offset);
+	compiler.add_node(NODE_RGB_RAMP, fac_in->stack_offset, color_out->stack_offset, alpha_out->stack_offset);
 	compiler.add_array(ramp, RAMP_TABLE_SIZE);
 }
 

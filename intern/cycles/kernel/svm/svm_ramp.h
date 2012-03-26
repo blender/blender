@@ -40,11 +40,15 @@ __device void svm_node_rgb_ramp(KernelGlobals *kg, ShaderData *sd, float *stack,
 {
 	uint fac_offset = node.y;
 	uint color_offset = node.z;
+	uint alpha_offset = node.w;
 
 	float fac = stack_load_float(stack, fac_offset);
 	float4 color = rgb_ramp_lookup(kg, *offset, fac);
 
-	stack_store_float3(stack, color_offset, float4_to_float3(color));
+	if(stack_valid(color_offset))
+		stack_store_float3(stack, color_offset, float4_to_float3(color));
+	if(stack_valid(alpha_offset))
+		stack_store_float(stack, alpha_offset, color.w);
 
 	*offset += RAMP_TABLE_SIZE;
 }
