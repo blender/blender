@@ -1160,6 +1160,12 @@ void unlink_movieclip(Main *bmain, MovieClip *clip)
 				if (data->clip == clip)
 					data->clip = NULL;
 			}
+			else if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+				bObjectSolverConstraint *data = (bObjectSolverConstraint *) con->data;
+
+				if (data->clip == clip)
+					data->clip = NULL;
+			}
 		}
 	}
 
