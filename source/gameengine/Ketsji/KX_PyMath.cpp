@@ -146,7 +146,8 @@ PyObject* PyObjectFrom(const MT_Matrix3x3 &mat)
 PyObject* PyObjectFrom(const MT_Quaternion &qrot)
 {
 	/* NOTE, were re-ordering here for Mathutils compat */
-	float fvec[4]= {qrot[3], qrot[0], qrot[1], qrot[2]};
+	float fvec[4];
+	qrot.getValue(fvec);
 	return Quaternion_CreatePyObject(fvec, Py_NEW, NULL);
 }
 #endif
@@ -154,7 +155,8 @@ PyObject* PyObjectFrom(const MT_Quaternion &qrot)
 PyObject* PyObjectFrom(const MT_Tuple4 &vec)
 {
 #ifdef USE_MATHUTILS
-	float fvec[4]= {vec[0], vec[1], vec[2], vec[3]};
+	float fvec[4];
+	vec.getValue(fvec);
 	return Vector_CreatePyObject(fvec, 4, Py_NEW, NULL);
 #else
 	PyObject *list = PyList_New(4);
@@ -169,7 +171,8 @@ PyObject* PyObjectFrom(const MT_Tuple4 &vec)
 PyObject* PyObjectFrom(const MT_Tuple3 &vec)
 {
 #ifdef USE_MATHUTILS
-	float fvec[3]= {vec[0], vec[1], vec[2]};
+	float fvec[3];
+	vec.getValue(fvec);
 	return Vector_CreatePyObject(fvec, 3, Py_NEW, NULL);
 #else
 	PyObject *list = PyList_New(3);
@@ -183,7 +186,8 @@ PyObject* PyObjectFrom(const MT_Tuple3 &vec)
 PyObject* PyObjectFrom(const MT_Tuple2 &vec)
 {
 #ifdef USE_MATHUTILS
-	float fvec[2]= {vec[0], vec[1]};
+	float fvec[2];
+	vec.getValue(fvec);
 	return Vector_CreatePyObject(fvec, 2, Py_NEW, NULL);
 #else
 	PyObject *list = PyList_New(2);
