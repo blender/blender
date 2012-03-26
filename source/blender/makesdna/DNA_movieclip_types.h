@@ -82,7 +82,9 @@ typedef struct MovieClip {
 										 * in SpaceClip clip user */
 
 	struct MovieClipProxy proxy;		/* proxy to clip data */
-	int flag, pad;
+	int flag;
+
+	int len;	/* lenght of movie */
 } MovieClip;
 
 typedef struct MovieClipScopes {

@@ -256,6 +256,28 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 	return ibuf;
 }
 
+static void movieclip_calc_length(MovieClip *clip)
+{
+	if (clip->anim) {
+		clip->len = IMB_anim_get_duration(clip->anim, clip->proxy.tc);
+	}
+	else if (clip->source == MCLIP_SRC_SEQUENCE) {
+		int framenr = 1;
+		char name[FILE_MAX];
+
+		for (;;) {
+			get_sequence_fname(clip, framenr, name);
+
+			if (!BLI_exists(name)) {
+				clip->len = framenr + 1;
+				break;
+			}
+
+			framenr++;
+		}
+	}
+}
+
 /*********************** image buffer cache *************************/
 
 typedef struct MovieClipCache {
@@ -452,9 +474,9 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 	BLI_strncpy(clip->name, name, sizeof(clip->name));
 
 	if (BLI_testextensie_array(name, imb_ext_movie))
-		clip->source= MCLIP_SRC_MOVIE;
+		clip->source = MCLIP_SRC_MOVIE;
 	else
-		clip->source= MCLIP_SRC_SEQUENCE;
+		clip->source = MCLIP_SRC_SEQUENCE;
 
 	user.framenr = 1;
 	BKE_movieclip_get_size(clip, &user, &width, &height);
@@ -464,6 +486,8 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 
 		clip->tracking.camera.focal = 24.0f * width / clip->tracking.camera.sensor_width;
 	}
+
+	movieclip_calc_length(clip);
 
 	return clip;
 }
@@ -891,9 +915,13 @@ void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, in
 	}
 }
 
-int BKE_movieclip_get_duration(struct MovieClip *clip)
+int BKE_movieclip_get_duration(MovieClip *clip)
 {
-	return IMB_anim_get_duration(clip->anim, clip->proxy.tc);
+	if (!clip->len && clip->anim) {
+		return IMB_anim_get_duration(clip->anim, clip->proxy.tc);
+	}
+
+	return clip->len;
 }
 
 void BKE_movieclip_aspect(MovieClip *clip, float *aspx, float *aspy)
@@ -959,6 +987,8 @@ void BKE_movieclip_reload(MovieClip *clip)
 		clip->source = MCLIP_SRC_MOVIE;
 	else
 		clip->source = MCLIP_SRC_SEQUENCE;
+
+	movieclip_calc_length(clip);
 }
 
 void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClipScopes *scopes)
