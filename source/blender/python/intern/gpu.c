@@ -60,18 +60,18 @@
 
 #include "gpu.h"
 
-#define PY_MODULE_ADD_CONSTANT(module, name) PyModule_AddIntConstant(module, #name, name)
+#define PY_MODULE_ADD_CONSTANT(module, name) PyModule_AddIntConstant(module, # name, name)
 
 PyDoc_STRVAR(M_gpu_doc,
-			 "This module provides access to the GLSL shader.");
-
+"This module provides access to the GLSL shader."
+);
 static struct PyModuleDef gpumodule = {
 	PyModuleDef_HEAD_INIT,
 	"gpu",     /* name of module */
 	M_gpu_doc, /* module documentation */
 	-1,        /* size of per-interpreter state of the module,
 	            *  or -1 if the module keeps state in global variables. */
-   NULL, NULL, NULL, NULL, NULL
+	NULL, NULL, NULL, NULL, NULL
 };
 
 PyMODINIT_FUNC
@@ -116,35 +116,35 @@ PyInit_gpu(void)
 	return m;
 }
 
-#define PY_DICT_ADD_STRING(d,s,f) \
-	val = PyUnicode_FromString(s->f);	\
-	PyDict_SetItemString(d, #f, val);	\
+#define PY_DICT_ADD_STRING(d, s, f)      \
+	val = PyUnicode_FromString(s->f);    \
+	PyDict_SetItemString(d, # f, val);   \
 	Py_DECREF(val)
 
-#define PY_DICT_ADD_LONG(d,s,f) \
-	val = PyLong_FromLong(s->f);	\
-	PyDict_SetItemString(d, #f, val);	\
+#define PY_DICT_ADD_LONG(d, s, f)        \
+	val = PyLong_FromLong(s->f);         \
+	PyDict_SetItemString(d, # f, val);   \
 	Py_DECREF(val)
 
-#define PY_DICT_ADD_ID(d,s,f) \
-	RNA_id_pointer_create((struct ID*)s->f, &tptr);	\
-	val = pyrna_struct_CreatePyObject(&tptr);	\
-	PyDict_SetItemString(d, #f, val);	\
+#define PY_DICT_ADD_ID(d, s, f)                      \
+	RNA_id_pointer_create((struct ID *)s->f, &tptr); \
+	val = pyrna_struct_CreatePyObject(&tptr);        \
+	PyDict_SetItemString(d, # f, val);               \
 	Py_DECREF(val)
 
-#define PY_OBJ_ADD_ID(d,s,f) \
-	val = PyUnicode_FromString(&s->f->id.name[2]);	\
-	PyObject_SetAttrString(d, #f, val);	\
+#define PY_OBJ_ADD_ID(d, s, f)                      \
+	val = PyUnicode_FromString(&s->f->id.name[2]);  \
+	PyObject_SetAttrString(d, # f, val);            \
 	Py_DECREF(val)
 
-#define PY_OBJ_ADD_LONG(d,s,f) \
-	val = PyLong_FromLong(s->f);	\
-	PyObject_SetAttrString(d, #f, val);	\
+#define PY_OBJ_ADD_LONG(d, s, f)         \
+	val = PyLong_FromLong(s->f);         \
+	PyObject_SetAttrString(d, # f, val); \
 	Py_DECREF(val)
 
-#define PY_OBJ_ADD_STRING(d,s,f) \
-	val = PyUnicode_FromString(s->f);	\
-	PyObject_SetAttrString(d, #f, val);	\
+#define PY_OBJ_ADD_STRING(d, s, f)       \
+	val = PyUnicode_FromString(s->f);    \
+	PyObject_SetAttrString(d, # f, val); \
 	Py_DECREF(val)
 
 PyDoc_STRVAR(GPU_export_shader_doc,
@@ -196,33 +196,34 @@ static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObj
 	// build a dictionary
 	result = PyDict_New();
 	if (shader->fragment) {
-		PY_DICT_ADD_STRING(result,shader,fragment);
+		PY_DICT_ADD_STRING(result, shader, fragment);
 	}
 	if (shader->vertex) {
-		PY_DICT_ADD_STRING(result,shader,vertex);
+		PY_DICT_ADD_STRING(result, shader, vertex);
 	}
 	seq = PyList_New(BLI_countlist(&shader->uniforms));
 	for (i = 0, uniform = shader->uniforms.first; uniform; uniform = uniform->next, i++) {
 		dict = PyDict_New();
-		PY_DICT_ADD_STRING(dict,uniform,varname);
-		PY_DICT_ADD_LONG(dict,uniform,datatype);
-		PY_DICT_ADD_LONG(dict,uniform,type);
+		PY_DICT_ADD_STRING(dict, uniform, varname);
+		PY_DICT_ADD_LONG(dict, uniform, datatype);
+		PY_DICT_ADD_LONG(dict, uniform, type);
 		if (uniform->lamp) {
-			PY_DICT_ADD_ID(dict,uniform,lamp);
+			PY_DICT_ADD_ID(dict, uniform, lamp);
 		}
 		if (uniform->image) {
-			PY_DICT_ADD_ID(dict,uniform,image);
+			PY_DICT_ADD_ID(dict, uniform, image);
 		}
 		if (uniform->type == GPU_DYNAMIC_SAMPLER_2DBUFFER ||
-			uniform->type == GPU_DYNAMIC_SAMPLER_2DIMAGE ||
-			uniform->type == GPU_DYNAMIC_SAMPLER_2DSHADOW) {
-			PY_DICT_ADD_LONG(dict,uniform,texnumber);
+		    uniform->type == GPU_DYNAMIC_SAMPLER_2DIMAGE ||
+		    uniform->type == GPU_DYNAMIC_SAMPLER_2DSHADOW)
+		{
+			PY_DICT_ADD_LONG(dict, uniform, texnumber);
 		}
 		if (uniform->texpixels) {
 			val = PyByteArray_FromStringAndSize((const char *)uniform->texpixels, uniform->texsize * 4);
 			PyDict_SetItemString(dict, "texpixels", val);
 			Py_DECREF(val);
-			PY_DICT_ADD_LONG(dict,uniform,texsize);
+			PY_DICT_ADD_LONG(dict, uniform, texsize);
 		}
 		PyList_SET_ITEM(seq, i, dict);
 	}
@@ -232,13 +233,13 @@ static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObj
 	seq = PyList_New(BLI_countlist(&shader->attributes));
 	for (i = 0, attribute = shader->attributes.first; attribute; attribute = attribute->next, i++) {
 		dict = PyDict_New();
-		PY_DICT_ADD_STRING(dict,attribute,varname);
-		PY_DICT_ADD_LONG(dict,attribute,datatype);
-		PY_DICT_ADD_LONG(dict,attribute,type);
-		PY_DICT_ADD_LONG(dict,attribute,number);
+		PY_DICT_ADD_STRING(dict, attribute, varname);
+		PY_DICT_ADD_LONG(dict, attribute, datatype);
+		PY_DICT_ADD_LONG(dict, attribute, type);
+		PY_DICT_ADD_LONG(dict, attribute, number);
 		if (attribute->name) {
 			if (attribute->name[0] != 0) {
-				PY_DICT_ADD_STRING(dict,attribute,name);
+				PY_DICT_ADD_STRING(dict, attribute, name);
 			}
 			else {
 				val = PyLong_FromLong(0);

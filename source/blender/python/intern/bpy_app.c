@@ -223,10 +223,11 @@ PyDoc_STRVAR(bpy_app_driver_dict_doc,
 );
 static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
-	if (bpy_pydriver_Dict == NULL)
+	if (bpy_pydriver_Dict == NULL) {
 		if (bpy_pydriver_create_dict() != 0) {
 			PyErr_SetString(PyExc_RuntimeError, "bpy.app.driver_namespace failed to create dictionary");
 			return NULL;
+		}
 	}
 
 	Py_INCREF(bpy_pydriver_Dict);

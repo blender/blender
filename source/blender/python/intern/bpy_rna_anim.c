@@ -149,8 +149,8 @@ static int pyrna_struct_anim_args_parse(
 
 /* internal use for insert and delete */
 static int pyrna_struct_keyframe_parse(
-		PointerRNA *ptr, PyObject *args, PyObject *kw, const char *parse_str, const char *error_prefix,
-		const char **path_full, int *index, float *cfra, const char **group_name) /* return values */
+        PointerRNA *ptr, PyObject *args, PyObject *kw, const char *parse_str, const char *error_prefix,
+        const char **path_full, int *index, float *cfra, const char **group_name)     /* return values */
 {
 	static const char *kwlist[] = {"data_path", "index", "frame", "group", NULL};
 	const char *path;
@@ -195,8 +195,8 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (pyrna_struct_keyframe_parse(&self->ptr, args, kw,
-	                               "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()",
-	                               &path_full, &index, &cfra, &group_name) == -1)
+	                                "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()",
+	                                &path_full, &index, &cfra, &group_name) == -1)
 	{
 		return NULL;
 	}
@@ -243,9 +243,9 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
 	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (pyrna_struct_keyframe_parse(&self->ptr, args, kw,
-	                               "s|ifs:bpy_struct.keyframe_delete()",
-	                               "bpy_struct.keyframe_insert()",
-	                               &path_full, &index, &cfra, &group_name) == -1)
+	                                "s|ifs:bpy_struct.keyframe_delete()",
+	                                "bpy_struct.keyframe_insert()",
+	                                &path_full, &index, &cfra, &group_name) == -1)
 	{
 		return NULL;
 	}
@@ -327,7 +327,7 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 				ret = pyrna_struct_CreatePyObject(&tptr);
 			}
 			
-			WM_event_add_notifier(BPy_GetContext(), NC_ANIMATION|ND_FCURVES_ORDER, NULL);
+			WM_event_add_notifier(BPy_GetContext(), NC_ANIMATION | ND_FCURVES_ORDER, NULL);
 		}
 		else {
 			/* XXX, should be handled by reports, */
@@ -380,7 +380,7 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE) == -1)
 			return NULL;
 		
-		WM_event_add_notifier(BPy_GetContext(), NC_ANIMATION|ND_FCURVES_ORDER, NULL);
+		WM_event_add_notifier(BPy_GetContext(), NC_ANIMATION | ND_FCURVES_ORDER, NULL);
 
 		return PyBool_FromLong(result);
 	}

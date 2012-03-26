@@ -712,7 +712,7 @@ void BPy_BM_init_types_customdata(void)
 
 /**
  * helper function for get/set, NULL return means the error is set
-*/
+ */
 static void *bpy_bmlayeritem_ptr_get(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 {
 	void *value;
@@ -746,7 +746,7 @@ static void *bpy_bmlayeritem_ptr_get(BPy_BMElem *py_ele, BPy_BMLayerItem *py_lay
 	if (UNLIKELY(value == NULL)) {
 		/* this should be fairly unlikely but possible if layers move about after we get them */
 		PyErr_SetString(PyExc_KeyError,
-		             "BMElem[key]: layer not found");
+		                "BMElem[key]: layer not found");
 		return NULL;
 	}
 	else {

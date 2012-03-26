@@ -86,10 +86,10 @@ BPy_StructRNA *bpy_context_module = NULL; /* for fast access */
 
 #ifdef TIME_PY_RUN
 #include "PIL_time.h"
-static int		bpy_timer_count = 0;
-static double	bpy_timer; /* time since python starts */
-static double	bpy_timer_run; /* time for each python script run */
-static double	bpy_timer_run_tot; /* accumulate python runs */
+static int     bpy_timer_count = 0;
+static double  bpy_timer;   /* time since python starts */
+static double  bpy_timer_run;   /* time for each python script run */
+static double  bpy_timer_run_tot;   /* accumulate python runs */
 #endif
 
 /* use for updating while a python script runs - in case of file load */
@@ -184,7 +184,7 @@ extern PyObject *AUD_initPython(void);
 /* defined in cycles module */
 static PyObject *CCL_initPython(void)
 {
-	return (PyObject*)CCL_python_module_init();
+	return (PyObject *)CCL_python_module_init();
 }
 #endif
 
@@ -195,8 +195,8 @@ static struct _inittab bpy_internal_modules[] = {
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
 	{(char *)"bmesh", BPyInit_bmesh},
-    // {(char *)"bmesh.types", BPyInit_bmesh_types},
-    // {(char *)"bmesh.utils", BPyInit_bmesh_utils},
+	// {(char *)"bmesh.types", BPyInit_bmesh_types},
+	// {(char *)"bmesh.utils", BPyInit_bmesh_utils},
 #ifdef WITH_AUDASPACE
 	{(char *)"aud", AUD_initPython},
 #endif
@@ -308,10 +308,10 @@ void BPY_python_end(void)
 	printf("tot exec: %d,  ", bpy_timer_count);
 	printf("tot run: %.4fsec,  ", bpy_timer_run_tot);
 	if (bpy_timer_count > 0)
-		printf("average run: %.6fsec,  ", (bpy_timer_run_tot/bpy_timer_count));
+		printf("average run: %.6fsec,  ", (bpy_timer_run_tot / bpy_timer_count));
 
 	if (bpy_timer > 0.0)
-		printf("tot usage %.4f%%", (bpy_timer_run_tot/bpy_timer) * 100.0);
+		printf("tot usage %.4f%%", (bpy_timer_run_tot / bpy_timer) * 100.0);
 
 	printf("\n");
 
@@ -367,7 +367,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 		char fn_dummy[FILE_MAXDIR];
 		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
 
-		if (text->compiled == NULL) {	/* if it wasn't already compiled, do it now */
+		if (text->compiled == NULL) {   /* if it wasn't already compiled, do it now */
 			char *buf = txt_to_buf(text);
 
 			text->compiled = Py_CompileString(buf, fn_dummy, Py_file_input);
@@ -692,8 +692,8 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 	}
 
 	if (done == 0) {
-		if (item)	printf("PyContext '%s' not a valid type\n", member);
-		else		printf("PyContext '%s' not found\n", member);
+		if (item) printf("PyContext '%s' not a valid type\n", member);
+		else      printf("PyContext '%s' not found\n", member);
 	}
 	else {
 		if (G.f & G_DEBUG) {

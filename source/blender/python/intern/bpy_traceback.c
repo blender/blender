@@ -42,7 +42,7 @@ static const char *traceback_filepath(PyTracebackObject *tb, PyObject **coerce)
 /* copied from pythonrun.c, 3.2.0 */
 static int
 parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
-				   int *lineno, int *offset, const char **text)
+                   int *lineno, int *offset, const char **text)
 {
 	long hold;
 	PyObject *v;
@@ -50,7 +50,7 @@ parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
 	/* old style errors */
 	if (PyTuple_Check(err))
 		return PyArg_ParseTuple(err, "O(ziiz)", message, filename,
-								lineno, offset, text);
+		                        lineno, offset, text);
 
 	/* new style errors.  `err' is an instance */
 
@@ -96,7 +96,7 @@ parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
 	if (v == Py_None)
 		*text = NULL;
 	else if (!PyUnicode_Check(v) ||
-			 !(*text = _PyUnicode_AsString(v)))
+	         !(*text = _PyUnicode_AsString(v)))
 		goto finally;
 	Py_DECREF(v);
 	return 1;
@@ -122,7 +122,7 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 		/* no traceback available when SyntaxError.
 		 * python has no api's to this. reference parse_syntax_error() from pythonrun.c */
 		PyErr_NormalizeException(&exception, &value, (PyObject **)&tb);
-		PyErr_Restore(exception, value, (PyObject *)tb);	/* takes away reference! */
+		PyErr_Restore(exception, value, (PyObject *)tb);  /* takes away reference! */
 
 		if (value) { /* should always be true */
 			PyObject *message;
@@ -146,7 +146,7 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 	}
 	else {
 		PyErr_NormalizeException(&exception, &value, (PyObject **)&tb);
-		PyErr_Restore(exception, value, (PyObject *)tb);	/* takes away reference! */
+		PyErr_Restore(exception, value, (PyObject *)tb);  /* takes away reference! */
 		PyErr_Print();
 
 		for (tb = (PyTracebackObject *)PySys_GetObject("last_traceback");

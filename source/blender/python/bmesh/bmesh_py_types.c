@@ -3054,8 +3054,8 @@ int bpy_bm_generic_valid_check(BPy_BMGeneric *self)
 	}
 	else {
 		PyErr_Format(PyExc_ReferenceError,
-					 "BMesh data of type %.200s has been removed",
-					 Py_TYPE(self)->tp_name);
+		             "BMesh data of type %.200s has been removed",
+		             Py_TYPE(self)->tp_name);
 		return -1;
 	}
 }

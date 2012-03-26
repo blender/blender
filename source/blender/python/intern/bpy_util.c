@@ -37,9 +37,9 @@
 
 #include "../generic/py_capi_utils.h"
 
-static bContext*	__py_context = NULL;
-bContext*	BPy_GetContext(void) { return __py_context; }
-void		BPy_SetContext(bContext *C) { __py_context = C; }
+static bContext*  __py_context = NULL;
+bContext   *BPy_GetContext(void) { return __py_context; }
+void        BPy_SetContext(bContext *C) { __py_context = C; }
 
 char *BPy_enum_as_string(EnumPropertyItem *item)
 {
@@ -49,7 +49,7 @@ char *BPy_enum_as_string(EnumPropertyItem *item)
 
 	for (e = item; item->identifier; item++) {
 		if (item->identifier[0])
-			BLI_dynstr_appendf(dynstr, (e == item)?"'%s'":", '%s'", item->identifier);
+			BLI_dynstr_appendf(dynstr, (e == item) ? "'%s'" : ", '%s'", item->identifier);
 	}
 
 	cstring = BLI_dynstr_get_cstring(dynstr);

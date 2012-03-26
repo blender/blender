@@ -71,7 +71,7 @@ static PyStructSequence_Desc app_cb_info_desc = {
 };
 
 #if 0
-#  if (BLI_CB_EVT_TOT != ((sizeof(app_cb_info_fields)/sizeof(PyStructSequence_Field))))
+#  if (BLI_CB_EVT_TOT != ((sizeof(app_cb_info_fields) / sizeof(PyStructSequence_Field))))
 #    error "Callbacks are out of sync"
 #  endif
 #endif
@@ -118,51 +118,51 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject *UNUSED(type), PyO
 static PyTypeObject BPyPersistent_Type = {
 
 #if defined(_MSC_VER) || defined(FREE_WINDOWS)
-    PyVarObject_HEAD_INIT(NULL, 0)
+	PyVarObject_HEAD_INIT(NULL, 0)
 #else
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+	PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #endif
 
-    "persistent",                               /* tp_name */
-    0,                                          /* tp_basicsize */
-    0,                                          /* tp_itemsize */
-    /* methods */
-    0,                                          /* tp_dealloc */
-    0,                                          /* tp_print */
-    0,                                          /* tp_getattr */
-    0,                                          /* tp_setattr */
-    0,                                          /* tp_reserved */
-    0,                                          /* tp_repr */
-    0,                                          /* tp_as_number */
-    0,                                          /* tp_as_sequence */
-    0,                                          /* tp_as_mapping */
-    0,                                          /* tp_hash */
-    0,                                          /* tp_call */
-    0,                                          /* tp_str */
-    0,                                          /* tp_getattro */
-    0,                                          /* tp_setattro */
-    0,                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC |
-        Py_TPFLAGS_BASETYPE,                    /* tp_flags */
-    0,                                          /* tp_doc */
-    0,                                          /* tp_traverse */
-    0,                                          /* tp_clear */
-    0,                                          /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    0,                                          /* tp_iter */
-    0,                                          /* tp_iternext */
-    0,                                          /* tp_methods */
-    0,                                          /* tp_members */
-    0,                                          /* tp_getset */
-    0,                                          /* tp_base */
-    0,                                          /* tp_dict */
-    0,                                          /* tp_descr_get */
-    0,                                          /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    0,                                          /* tp_init */
-    0,                                          /* tp_alloc */
-    bpy_app_handlers_persistent_new,            /* tp_new */
-    0,                                          /* tp_free */
+	"persistent",                               /* tp_name */
+	0,                                          /* tp_basicsize */
+	0,                                          /* tp_itemsize */
+	/* methods */
+	0,                                          /* tp_dealloc */
+	0,                                          /* tp_print */
+	0,                                          /* tp_getattr */
+	0,                                          /* tp_setattr */
+	0,                                          /* tp_reserved */
+	0,                                          /* tp_repr */
+	0,                                          /* tp_as_number */
+	0,                                          /* tp_as_sequence */
+	0,                                          /* tp_as_mapping */
+	0,                                          /* tp_hash */
+	0,                                          /* tp_call */
+	0,                                          /* tp_str */
+	0,                                          /* tp_getattro */
+	0,                                          /* tp_setattro */
+	0,                                          /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC |
+	Py_TPFLAGS_BASETYPE,                        /* tp_flags */
+	0,                                          /* tp_doc */
+	0,                                          /* tp_traverse */
+	0,                                          /* tp_clear */
+	0,                                          /* tp_richcompare */
+	0,                                          /* tp_weaklistoffset */
+	0,                                          /* tp_iter */
+	0,                                          /* tp_iternext */
+	0,                                          /* tp_methods */
+	0,                                          /* tp_members */
+	0,                                          /* tp_getset */
+	0,                                          /* tp_base */
+	0,                                          /* tp_dict */
+	0,                                          /* tp_descr_get */
+	0,                                          /* tp_descr_set */
+	0,                                          /* tp_dictoffset */
+	0,                                          /* tp_init */
+	0,                                          /* tp_alloc */
+	bpy_app_handlers_persistent_new,            /* tp_new */
+	0,                                          /* tp_free */
 };
 
 static PyObject *py_cb_array[BLI_CB_EVT_TOT] = {NULL};
@@ -237,7 +237,7 @@ void BPY_app_handlers_reset(const short do_all)
 	int pos = 0;
 
 	if (do_all) {
-	for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
+		for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
 			/* clear list */
 			PyList_SetSlice(py_cb_array[pos], 0, PY_SSIZE_T_MAX, NULL);
 		}
