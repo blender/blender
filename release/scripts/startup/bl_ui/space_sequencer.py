@@ -242,7 +242,6 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.offset_clear")
         layout.operator("sequencer.deinterlace_selected_movies")
         layout.operator("sequencer.rebuild_proxy")
-        layout.operator("sequencer.update_strip_length")
         layout.separator()
 
         layout.operator("sequencer.duplicate")

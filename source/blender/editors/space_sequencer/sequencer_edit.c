@@ -1306,12 +1306,45 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 }
 
 /* reload operator */
+static void sequencer_refresh_all_length(Scene *scene, Editing *ed)
+{
+	Sequence *seq;
+
+	SEQP_BEGIN(ed, seq) {
+		int changed = FALSE;
+
+		switch (seq->type) {
+			case SEQ_SCENE:
+				seq->len = seq->scene->r.efra - seq->scene->r.sfra + 1;
+				changed = TRUE;
+				break;
+			case SEQ_MOVIECLIP:
+				seq->len = BKE_movieclip_get_duration(seq->clip);
+				changed = TRUE;
+				break;
+			case SEQ_MOVIE:
+				seq->len = IMB_anim_get_duration(seq->anim, IMB_TC_RECORD_RUN);
+				changed = TRUE;
+				break;
+		}
+
+		if (changed) {
+			calc_sequence_disp(scene, seq);
+
+			if (seq_test_overlap(ed->seqbasep, seq))
+				shuffle_seq(ed->seqbasep, seq, scene);
+		}
+	}
+	SEQ_END
+}
+
 static int sequencer_refresh_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
+	sequencer_refresh_all_length(scene, ed);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
@@ -3070,64 +3103,3 @@ void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_DIRECTORY|WM_FILESEL_RELPATH|WM_FILESEL_FILEPATH|WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
 }
 
-static int sequencer_update_strip_length_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
-	Sequence *seq;
-	int update = FALSE;
-
-	SEQP_BEGIN(ed, seq) {
-		if ((seq->flag & SELECT)) {
-			int changed = FALSE;
-
-			switch (seq->type) {
-				case SEQ_SCENE:
-					seq->len = seq->scene->r.efra - seq->scene->r.sfra + 1;
-					changed = TRUE;
-					break;
-				case SEQ_MOVIECLIP:
-					seq->len = BKE_movieclip_get_duration(seq->clip);
-					changed = TRUE;
-					break;
-				case SEQ_MOVIE:
-					seq->len = IMB_anim_get_duration(seq->anim, IMB_TC_RECORD_RUN);
-					changed = TRUE;
-					break;
-			}
-
-			if (changed) {
-				calc_sequence_disp(scene, seq);
-
-				if (seq_test_overlap(ed->seqbasep, seq))
-					shuffle_seq(ed->seqbasep, seq, scene);
-
-				update = TRUE;
-			}
-		}
-	}
-	SEQ_END
-
-	if (update) {
-		free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
-
-		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
-	}
-
-	return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_update_strip_length(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Update Strip Length";
-	ot->idname = "SEQUENCER_OT_update_strip_length";
-	ot->description = "Update actual content length for selected strips";
-
-	/* api callbacks */
-	ot->exec = sequencer_update_strip_length_exec;
-	ot->poll = ED_operator_sequencer_active;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
-}
