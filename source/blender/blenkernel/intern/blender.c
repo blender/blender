@@ -78,6 +78,7 @@
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
+#include "RE_pipeline.h"
 
 
 #include "BLO_undofile.h"
@@ -198,6 +199,11 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	else mode= 0;
 
 	recover= (G.fileflags & G_FILE_RECOVER);
+
+	/* Free all render results, without this stale data gets displayed after loading files */
+	if (mode != 'u') {
+		RE_FreeAllRenderResults();
+	}
 
 	/* Only make filepaths compatible when loading for real (not undo) */
 	if (mode != 'u') {
