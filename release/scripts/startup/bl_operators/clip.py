@@ -717,8 +717,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
         mesh.vertices.foreach_set("co", unpack_list(vertices))
 
         # BMESH_TODO - use polygons
-        mesh.faces.add(len(faces))
-        mesh.faces.foreach_set("vertices_raw", unpack_face_list(faces))
+        mesh.tessfaces.add(len(faces))
+        mesh.tessfaces.foreach_set("vertices_raw", unpack_face_list(faces))
 
         mesh.update(calc_edges=True)
 
