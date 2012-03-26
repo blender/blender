@@ -645,6 +645,16 @@ void unlink_object(Object *ob)
 				if (sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
 
+					/* found doesn't need to be set here */
+					if (v3d->ob_centre == ob) {
+						v3d->ob_centre = NULL;
+						v3d->ob_centre_bone[0] = '\0';
+					}
+					if (v3d->localvd && v3d->localvd->ob_centre == ob) {
+						v3d->localvd->ob_centre = NULL;
+						v3d->localvd->ob_centre_bone[0] = '\0';
+					}
+
 					found= 0;
 					if (v3d->camera==ob) {
 						v3d->camera= NULL;
