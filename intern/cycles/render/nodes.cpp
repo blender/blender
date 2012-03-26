@@ -2352,5 +2352,60 @@ void BumpNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_bump");
 }
 
+/* RGBCurvesNode */
+
+RGBCurvesNode::RGBCurvesNode()
+: ShaderNode("rgb_curves")
+{
+	add_input("Fac", SHADER_SOCKET_FLOAT);
+	add_input("Color", SHADER_SOCKET_COLOR);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+void RGBCurvesNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *fac_in = input("Fac");
+	ShaderInput *color_in = input("Color");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(fac_in);
+	compiler.stack_assign(color_in);
+	compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_RGB_CURVES, fac_in->stack_offset, color_in->stack_offset, color_out->stack_offset);
+	compiler.add_array(curves, RAMP_TABLE_SIZE);
+}
+
+void RGBCurvesNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_rgb_curves");
+}
+
+/* RGBRampNode */
+
+RGBRampNode::RGBRampNode()
+: ShaderNode("rgb_ramp")
+{
+	add_input("Fac", SHADER_SOCKET_FLOAT);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+void RGBRampNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *fac_in = input("Fac");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(fac_in);
+	compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_RGB_RAMP, fac_in->stack_offset, color_out->stack_offset);
+	compiler.add_array(ramp, RAMP_TABLE_SIZE);
+}
+
+void RGBRampNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_rgb_ramp");
+}
+
 CCL_NAMESPACE_END
 

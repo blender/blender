@@ -50,6 +50,7 @@ void engine_tag_redraw(void *engine);
 void engine_tag_update(void *engine);
 int rna_Object_is_modified(void *ob, void *scene, int settings);
 void BLI_timestr(double _time, char *str);
+void rna_ColorRamp_eval(void *coba, float position, float color[4]);
 
 }
 
@@ -61,6 +62,16 @@ static inline BL::Mesh object_to_mesh(BL::Object self, BL::Scene scene, bool app
 	PointerRNA ptr;
 	RNA_id_pointer_create(data, &ptr);
 	return BL::Mesh(ptr);
+}
+
+static inline void colorramp_to_array(BL::ColorRamp ramp, float4 *data, int size)
+{
+	for(int i = 0; i < size; i++) {
+		float color[4];
+
+		rna_ColorRamp_eval(ramp.ptr.data, i/(float)(size-1), color);
+		data[i] = make_float4(color[0], color[1], color[2], color[3]);
+	}
 }
 
 static inline void object_remove_mesh(BL::BlendData data, BL::Mesh mesh)

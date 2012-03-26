@@ -29,6 +29,7 @@ CCL_NAMESPACE_BEGIN
 #define OBJECT_SIZE 		16
 #define LIGHT_SIZE			4
 #define FILTER_TABLE_SIZE	256
+#define RAMP_TABLE_SIZE		256
 
 /* device capabilities */
 #ifdef __KERNEL_CPU__
