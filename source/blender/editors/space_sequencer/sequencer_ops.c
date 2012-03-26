@@ -159,7 +159,10 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_unlock", LKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_reassign_inputs", RKEY, KM_PRESS, 0, 0);
+
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_reload", RKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+		RNA_boolean_set(kmi->ptr, "adjust_length", TRUE);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_offset_clear", OKEY, KM_PRESS, KM_ALT, 0);
 

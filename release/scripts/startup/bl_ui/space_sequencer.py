@@ -285,7 +285,10 @@ class SEQUENCER_MT_strip(Menu):
         #}
 
         layout.separator()
-        layout.operator("sequencer.reload")
+        props = layout.operator("sequencer.reload", text="Reload Strips")
+        props.adjust_length = False
+        props = layout.operator("sequencer.reload", text="Reload Strips and Adjust Length")
+        props.adjust_length = True
         layout.operator("sequencer.reassign_inputs")
         layout.operator("sequencer.swap_inputs")
         layout.separator()

@@ -348,6 +348,4 @@ extern SequencerDrawView sequencer_view3d_cb;
 extern ListBase seqbase_clipboard;
 extern int seqbase_clipboard_frame;
 
-void seq_update_sequence_length(struct Scene *scene, struct Editing *ed, struct Sequence *seq);
-
 #endif // __BKE_SEQUENCER_H__

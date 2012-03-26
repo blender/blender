@@ -1273,15 +1273,22 @@ void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
 }
 
 /* reload operator */
-static int sequencer_reload_exec(bContext *C, wmOperator *UNUSED(op))
+static int sequencer_reload_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
+	int adjust_length= RNA_boolean_get(op->ptr, "adjust_length");
 
 	for (seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if (seq->flag & SELECT) {
 			update_changed_seq_and_deps(scene, seq, 0, 1);
+			reload_sequence_new_file(scene, seq, !adjust_length);
+
+			if (adjust_length) {
+				if (seq_test_overlap(ed->seqbasep, seq))
+					shuffle_seq(ed->seqbasep, seq, scene);
+			}
 		}
 	}
 
@@ -1292,6 +1299,8 @@ static int sequencer_reload_exec(bContext *C, wmOperator *UNUSED(op))
 
 void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Reload Strips";
 	ot->idname = "SEQUENCER_OT_reload";
@@ -1303,26 +1312,18 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER; /* no undo, the data changed is stored outside 'main' */
+
+	prop = RNA_def_boolean(ot->srna, "adjust_length", 0, "Adjust Length", "Adjust lenght of strips to their data length");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* reload operator */
-static void sequencer_refresh_all_length(Scene *scene, Editing *ed)
-{
-	Sequence *seq;
-
-	SEQP_BEGIN(ed, seq) {
-		seq_update_sequence_length(scene, ed, seq);
-	}
-	SEQ_END
-}
-
 static int sequencer_refresh_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
-	sequencer_refresh_all_length(scene, ed);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
