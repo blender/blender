@@ -105,6 +105,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	if (em && em->bm->totface && !CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
 		BM_data_layer_add(em->bm, &em->bm->pdata, CD_MTEXPOLY);
 		BM_data_layer_add(em->bm, &em->bm->ldata, CD_MLOOPUV);
+		ED_mesh_uv_loop_reset_ex(C, obedit->data, 0);
 	}
 
 	if (!ED_uvedit_test(obedit)) {
