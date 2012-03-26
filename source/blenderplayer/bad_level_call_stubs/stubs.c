@@ -324,7 +324,7 @@ void ED_mesh_transform(struct Mesh *me, float *mat){}
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count){}
-void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_tessfaces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_loops_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_polys_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int count){}

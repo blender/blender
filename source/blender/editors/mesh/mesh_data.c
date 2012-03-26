@@ -906,7 +906,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
 	mesh->totedge = totedge;
 }
 
-static void mesh_add_faces(Mesh *mesh, int len)
+static void mesh_add_tessfaces(Mesh *mesh, int len)
 {
 	CustomData fdata;
 	MFace *mface;
@@ -1047,14 +1047,19 @@ void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges,
 }
 #endif
 
-void ED_mesh_faces_add(Mesh *mesh, ReportList *reports, int count)
+void ED_mesh_tessfaces_add(Mesh *mesh, ReportList *reports, int count)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't add faces in edit mode");
+		BKE_report(reports, RPT_ERROR, "Can't add tessfaces in edit mode");
 		return;
 	}
 
-	mesh_add_faces(mesh, count);
+	if (mesh->mpoly) {
+		BKE_report(reports, RPT_ERROR, "Can't add tessfaces to a mesh that already has polygons");
+		return;
+	}
+
+	mesh_add_tessfaces(mesh, count);
 }
 
 void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)

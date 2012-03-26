@@ -270,7 +270,7 @@ struct BMFace *EDBM_findnearestface(struct ViewContext *vc, int *dist);
 /* mesh_data.c */
 // void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
 void ED_mesh_polys_add(struct Mesh *mesh, struct ReportList *reports, int count);
-void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_tessfaces_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_loops_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count);

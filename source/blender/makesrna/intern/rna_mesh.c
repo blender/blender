@@ -2143,7 +2143,7 @@ static void rna_def_mesh_edges(BlenderRNA *brna, PropertyRNA *cprop)
 }
 
 /* mesh.faces */
-static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
+static void rna_def_mesh_tessfaces(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -2151,8 +2151,8 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 /*	PropertyRNA *parm; */
 
-	RNA_def_property_srna(cprop, "MeshFaces");
-	srna = RNA_def_struct(brna, "MeshFaces", NULL);
+	RNA_def_property_srna(cprop, "MeshTessFaces");
+	srna = RNA_def_struct(brna, "MeshTessFaces", NULL);
 	RNA_def_struct_sdna(srna, "Mesh");
 	RNA_def_struct_ui_text(srna, "Mesh Faces", "Collection of mesh faces");
 
@@ -2160,7 +2160,7 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_int_sdna(prop, NULL, "act_face");
 	RNA_def_property_ui_text(prop, "Active Face", "The active face for this mesh");
 
-	func = RNA_def_function(srna, "add", "ED_mesh_faces_add");
+	func = RNA_def_function(srna, "add", "ED_mesh_tessfaces_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of faces to add", 0, INT_MAX);
 #if 0 /* BMESH_TODO Remove until BMesh merge */
@@ -2496,7 +2496,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mface", "totface");
 	RNA_def_property_struct_type(prop, "MeshTessFace");
 	RNA_def_property_ui_text(prop, "TessFaces", "Tessellation faces of the mesh (derived from polygons)");
-	rna_def_mesh_faces(brna, prop);
+	rna_def_mesh_tessfaces(brna, prop);
 
 	prop = RNA_def_property(srna, "loops", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mloop", "totloop");
