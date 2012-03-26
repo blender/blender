@@ -237,14 +237,6 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		copy_m4_m4(offset, result_mat);
 	}
 
-	/* calculate the offset matrix of the final copy (for merging) */
-	unit_m4(final_offset);
-
-	for (j=0; j < count - 1; j++) {
-		mult_m4_m4m4(tmp_mat, offset, final_offset);
-		copy_m4_m4(final_offset, tmp_mat);
-	}
-
 	if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
 		if (cu) {
@@ -280,6 +272,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	if (count < 1)
 		count = 1;
+
+	/* calculate the offset matrix of the final copy (for merging) */
+	unit_m4(final_offset);
+
+	for (j=0; j < count - 1; j++) {
+		mult_m4_m4m4(tmp_mat, offset, final_offset);
+		copy_m4_m4(final_offset, tmp_mat);
+	}
 
 	/* BMESH_TODO: bumping up the stack level avoids computing the normals
 	 * after every top-level operator execution (and this modifier has the
