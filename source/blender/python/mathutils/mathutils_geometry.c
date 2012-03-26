@@ -627,10 +627,10 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 		}
 
 		if (use_a) { PyTuple_SET_ITEM(ret, 0,  Vector_CreatePyObject(isect_a, 3, Py_NEW, NULL)); }
-		else      { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
+		else       { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
 
 		if (use_b) { PyTuple_SET_ITEM(ret, 1,  Vector_CreatePyObject(isect_b, 3, Py_NEW, NULL)); }
-		else      { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
+		else       { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
 
 		return ret;
 	}
@@ -700,10 +700,10 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 		}
 
 		if (use_a) { PyTuple_SET_ITEM(ret, 0,  Vector_CreatePyObject(isect_a, 2, Py_NEW, NULL)); }
-		else      { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
+		else       { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
 
 		if (use_b) { PyTuple_SET_ITEM(ret, 1,  Vector_CreatePyObject(isect_b, 2, Py_NEW, NULL)); }
-		else      { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
+		else       { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
 
 		return ret;
 	}
@@ -745,13 +745,13 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 	}
 
 	/* accept 2d verts */
-	if (pt->size == 3) {     copy_v3_v3(pt_in, pt->vec);}
+	if (pt->size == 3) {     copy_v3_v3(pt_in, pt->vec); }
 	else { pt_in[2] = 0.0f;  copy_v2_v2(pt_in, pt->vec); }
 	
-	if (line_1->size == 3) { copy_v3_v3(l1, line_1->vec);}
+	if (line_1->size == 3) { copy_v3_v3(l1, line_1->vec); }
 	else { l1[2] = 0.0f;     copy_v2_v2(l1, line_1->vec); }
 	
-	if (line_2->size == 3) { copy_v3_v3(l2, line_2->vec);}
+	if (line_2->size == 3) { copy_v3_v3(l2, line_2->vec); }
 	else { l2[2] = 0.0f;     copy_v2_v2(l2, line_2->vec); }
 	
 	/* do the calculation */
@@ -937,8 +937,8 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 	}
 
 	barycentric_transform(vec, vec_pt->vec,
-			vec_t1_tar->vec, vec_t2_tar->vec, vec_t3_tar->vec,
-			vec_t1_src->vec, vec_t2_src->vec, vec_t3_src->vec);
+	                      vec_t1_tar->vec, vec_t2_tar->vec, vec_t3_tar->vec,
+	                      vec_t1_src->vec, vec_t2_src->vec, vec_t3_src->vec);
 
 	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
 }
@@ -1010,7 +1010,7 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject 
 
 	coord_array = MEM_callocN(dims * (resolu) * sizeof(float), "interpolate_bezier");
 	for (i = 0; i < dims; i++) {
-		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array + i, resolu - 1, sizeof(float)*dims);
+		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array + i, resolu - 1, sizeof(float) * dims);
 	}
 
 	list = PyList_New(resolu);
@@ -1095,7 +1095,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 					if (((VectorObject *)polyVec)->size > 2)
 						fp[2] = ((VectorObject *)polyVec)->vec[2];
 					else
-						fp[2] = 0.0f; /* if its a 2d vector then set the z to be zero */
+						fp[2] = 0.0f;  /* if its a 2d vector then set the z to be zero */
 				}
 				else {
 					ls_error = 1;

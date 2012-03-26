@@ -112,13 +112,13 @@
 /* Period parameters */
 #define N 624
 #define M 397
-#define MATRIX_A 0x9908b0dfUL	/* constant vector a */
-#define UMASK 0x80000000UL	/* most significant w-r bits */
-#define LMASK 0x7fffffffUL	/* least significant r bits */
-#define MIXBITS(u,v) (((u) & UMASK) | ((v) & LMASK))
-#define TWIST(u,v) ((MIXBITS(u,v) >> 1) ^ ((v)&1UL ? MATRIX_A : 0UL))
+#define MATRIX_A 0x9908b0dfUL   /* constant vector a */
+#define UMASK 0x80000000UL  /* most significant w-r bits */
+#define LMASK 0x7fffffffUL  /* least significant r bits */
+#define MIXBITS(u, v) (((u) & UMASK) | ((v) & LMASK))
+#define TWIST(u, v) ((MIXBITS(u, v) >> 1) ^ ((v) & 1UL ? MATRIX_A : 0UL))
 
-static unsigned long state[N];	/* the array for the state vector  */
+static unsigned long state[N];  /* the array for the state vector  */
 static int left = 1;
 static int initf = 0;
 static unsigned long *next;
@@ -130,13 +130,13 @@ static void init_genrand(unsigned long s)
 	state[0] = s & 0xffffffffUL;
 	for (j = 1; j < N; j++) {
 		state[j] =
-			(1812433253UL *
-			  (state[j - 1] ^ (state[j - 1] >> 30)) + j);
+		    (1812433253UL *
+		     (state[j - 1] ^ (state[j - 1] >> 30)) + j);
 		/* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
 		/* In the previous versions, MSBs of the seed affect   */
 		/* only MSBs of the array state[].                        */
 		/* 2002/01/09 modified by Makoto Matsumoto             */
-		state[j] &= 0xffffffffUL;	/* for >32 bit machines */
+		state[j] &= 0xffffffffUL;   /* for >32 bit machines */
 	}
 	left = 1;
 	initf = 1;
@@ -215,7 +215,7 @@ static void noise_vector(float x, float y, float z, int nb, float v[3])
 
 /* Returns a turbulence value for a given position (x, y, z) */
 static float turb(float x, float y, float z, int oct, int hard, int nb,
-		   float ampscale, float freqscale)
+                  float ampscale, float freqscale)
 {
 	float amp, out, t;
 	int i;
@@ -334,7 +334,7 @@ PyDoc_STRVAR(M_Noise_random_vector_doc,
 );
 static PyObject *M_Noise_random_vector(PyObject *UNUSED(self), PyObject *args)
 {
-	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	float vec[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	int size = 3;
 
 	if (!PyArg_ParseTuple(args, "|i:random_vector", &size))
@@ -729,7 +729,7 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 	float vec[3];
 	float da[4], pa[12];
 	int dtype = 0;
-	float me = 2.5f;		/* default minkovsky exponent */
+	float me = 2.5f;  /* default minkovsky exponent */
 
 	int i;
 

@@ -56,16 +56,16 @@ static PyObject *Buffer_subscript(Buffer *self, PyObject *item);
 static int Buffer_ass_subscript(Buffer *self, PyObject *item, PyObject *value);
 
 static PySequenceMethods Buffer_SeqMethods = {
-	(lenfunc) Buffer_len,						/*sq_length */
-	(binaryfunc) NULL,							/*sq_concat */
-	(ssizeargfunc) NULL,						/*sq_repeat */
-	(ssizeargfunc) Buffer_item,					/*sq_item */
-	(ssizessizeargfunc) NULL,					/*sq_slice, deprecated, handled in Buffer_item */
-	(ssizeobjargproc) Buffer_ass_item,			/*sq_ass_item */
-	(ssizessizeobjargproc) NULL,				/*sq_ass_slice, deprecated handled in Buffer_ass_item */
-	(objobjproc) NULL,							/* sq_contains */
-	(binaryfunc) NULL,							/* sq_inplace_concat */
-	(ssizeargfunc) NULL,						/* sq_inplace_repeat */
+	(lenfunc) Buffer_len,                       /*sq_length */
+	(binaryfunc) NULL,                          /*sq_concat */
+	(ssizeargfunc) NULL,                        /*sq_repeat */
+	(ssizeargfunc) Buffer_item,                 /*sq_item */
+	(ssizessizeargfunc) NULL,                   /*sq_slice, deprecated, handled in Buffer_item */
+	(ssizeobjargproc) Buffer_ass_item,          /*sq_ass_item */
+	(ssizessizeobjargproc) NULL,                /*sq_ass_slice, deprecated handled in Buffer_ass_item */
+	(objobjproc) NULL,                          /* sq_contains */
+	(binaryfunc) NULL,                          /* sq_inplace_concat */
+	(ssizeargfunc) NULL,                        /* sq_inplace_repeat */
 };
 
 
@@ -125,13 +125,13 @@ static PyObject *Buffer_dimensions(Buffer *self, void *UNUSED(arg))
 
 static PyMethodDef Buffer_methods[] = {
 	{"to_list", (PyCFunction)Buffer_to_list_recursive, METH_NOARGS,
-     "return the buffer as a list"},
+	 "return the buffer as a list"},
 	{NULL, NULL, 0, NULL}
 };
 
 static PyGetSetDef Buffer_getseters[] = {
 	{(char *)"dimensions", (getter)Buffer_dimensions, NULL, NULL, NULL},
-	 {NULL, NULL, NULL, NULL, NULL}
+	{NULL, NULL, NULL, NULL, NULL}
 };
 
 
@@ -144,11 +144,11 @@ PyTypeObject BGL_bufferType = {
 	(printfunc)NULL,            /*tp_print */
 	NULL,                       /*tp_getattr */
 	NULL,                       /*tp_setattr */
-	NULL,		/*tp_compare */
-	(reprfunc) Buffer_repr,	/*tp_repr */
-	NULL,			/*tp_as_number */
-	&Buffer_SeqMethods,	/*tp_as_sequence */
-	&Buffer_AsMapping,		/* PyMappingMethods *tp_as_mapping; */
+	NULL,                       /*tp_compare */
+	(reprfunc) Buffer_repr,     /*tp_repr */
+	NULL,                       /*tp_as_number */
+	&Buffer_SeqMethods,         /*tp_as_sequence */
+	&Buffer_AsMapping,          /* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */
 
@@ -187,22 +187,22 @@ PyTypeObject BGL_bufferType = {
 	Buffer_methods,             /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	Buffer_getseters,           /* struct PyGetSetDef *tp_getset; */
-	NULL,						/*tp_base*/
-	NULL,						/*tp_dict*/
-	NULL,						/*tp_descr_get*/
-	NULL,						/*tp_descr_set*/
-	0,							/*tp_dictoffset*/
-	NULL,						/*tp_init*/
-	NULL,						/*tp_alloc*/
-	Buffer_new,					/*tp_new*/
-	NULL,						/*tp_free*/
-	NULL,						/*tp_is_gc*/
-	NULL,						/*tp_bases*/
-	NULL,						/*tp_mro*/
-	NULL,						/*tp_cache*/
-	NULL,						/*tp_subclasses*/
-	NULL,						/*tp_weaklist*/
-	NULL						/*tp_del*/
+	NULL,                       /*tp_base*/
+	NULL,                       /*tp_dict*/
+	NULL,                       /*tp_descr_get*/
+	NULL,                       /*tp_descr_set*/
+	0,                          /*tp_dictoffset*/
+	NULL,                       /*tp_init*/
+	NULL,                       /*tp_alloc*/
+	Buffer_new,                 /*tp_new*/
+	NULL,                       /*tp_free*/
+	NULL,                       /*tp_is_gc*/
+	NULL,                       /*tp_bases*/
+	NULL,                       /*tp_mro*/
+	NULL,                       /*tp_cache*/
+	NULL,                       /*tp_subclasses*/
+	NULL,                       /*tp_weaklist*/
+	NULL                        /*tp_del*/
 };
 
 #define BGL_Wrap(nargs, funcname, ret, arg_list)                              \
@@ -286,7 +286,7 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
 }
 
 
-#define MAX_DIMENSIONS	256
+#define MAX_DIMENSIONS  256
 static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	PyObject *length_ob = NULL, *init = NULL;
@@ -428,7 +428,7 @@ static PyObject *Buffer_slice(Buffer *self, int begin, int end)
 	list = PyList_New(end - begin);
 
 	for (count = begin; count < end; count++) {
-		PyList_SET_ITEM(list, count-begin, Buffer_item(self, count));
+		PyList_SET_ITEM(list, count - begin, Buffer_item(self, count));
 	}
 	return list;
 }
@@ -618,7 +618,7 @@ BGL_Wrap(3, AreTexturesResident,  GLboolean,  (GLsizei, GLuintP, GLbooleanP))
 BGL_Wrap(1, Begin,          void,     (GLenum))
 BGL_Wrap(2, BindTexture,    void,   (GLenum, GLuint))
 BGL_Wrap(7, Bitmap,         void,     (GLsizei, GLsizei, GLfloat,
-						GLfloat, GLfloat, GLfloat, GLubyteP))
+                                       GLfloat, GLfloat, GLfloat, GLubyteP))
 BGL_Wrap(2, BlendFunc,        void,     (GLenum, GLenum))
 BGL_Wrap(1, CallList,         void,     (GLuint))
 BGL_Wrap(3, CallLists,        void,     (GLsizei, GLenum, GLvoidP))
@@ -700,7 +700,7 @@ BGL_Wrap(2, Fogi,             void,     (GLenum, GLint))
 BGL_Wrap(2, Fogiv,            void,     (GLenum, GLintP))
 BGL_Wrap(1, FrontFace,        void,     (GLenum))
 BGL_Wrap(6, Frustum,          void,     (GLdouble, GLdouble,
-						GLdouble, GLdouble, GLdouble, GLdouble))
+                                         GLdouble, GLdouble, GLdouble, GLdouble))
 BGL_Wrap(1, GenLists,         GLuint,   (GLsizei))
 BGL_Wrap(2, GenTextures,      void,   (GLsizei, GLuintP))
 BGL_Wrap(2, GetBooleanv,      void,     (GLenum, GLbooleanP))
@@ -719,7 +719,7 @@ BGL_Wrap(3, GetMaterialiv,    void,     (GLenum, GLenum, GLintP))
 BGL_Wrap(2, GetPixelMapfv,    void,     (GLenum, GLfloatP))
 BGL_Wrap(2, GetPixelMapuiv,   void,     (GLenum, GLuintP))
 BGL_Wrap(2, GetPixelMapusv,   void,     (GLenum, GLushortP))
-BGL_Wrap(1, GetPolygonStipple,void,     (GLubyteP))
+BGL_Wrap(1, GetPolygonStipple, void,     (GLubyteP))
 BGL_Wrap(1, GetString,        GLstring,   (GLenum))
 BGL_Wrap(3, GetTexEnvfv,      void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, GetTexEnviv,      void,     (GLenum, GLenum, GLintP))
@@ -762,19 +762,19 @@ BGL_Wrap(1, LoadMatrixf,    void,     (GLfloatP))
 BGL_Wrap(1, LoadName,       void,     (GLuint))
 BGL_Wrap(1, LogicOp,        void,     (GLenum))
 BGL_Wrap(6, Map1d,          void,     (GLenum, GLdouble, GLdouble,
-						GLint, GLint, GLdoubleP))
+                                       GLint, GLint, GLdoubleP))
 BGL_Wrap(6, Map1f,          void,     (GLenum, GLfloat, GLfloat,
-						GLint, GLint, GLfloatP))
+                                       GLint, GLint, GLfloatP))
 BGL_Wrap(10, Map2d,         void,     (GLenum, GLdouble, GLdouble,
-						GLint, GLint, GLdouble, GLdouble, GLint, GLint, GLdoubleP))
+                                       GLint, GLint, GLdouble, GLdouble, GLint, GLint, GLdoubleP))
 BGL_Wrap(10, Map2f,         void,     (GLenum, GLfloat, GLfloat,
-						GLint, GLint, GLfloat, GLfloat, GLint, GLint, GLfloatP))
+                                       GLint, GLint, GLfloat, GLfloat, GLint, GLint, GLfloatP))
 BGL_Wrap(3, MapGrid1d,        void,     (GLint, GLdouble, GLdouble))
 BGL_Wrap(3, MapGrid1f,        void,     (GLint, GLfloat, GLfloat))
 BGL_Wrap(6, MapGrid2d,        void,     (GLint, GLdouble, GLdouble,
-						GLint, GLdouble, GLdouble))
+                                         GLint, GLdouble, GLdouble))
 BGL_Wrap(6, MapGrid2f,        void,     (GLint, GLfloat, GLfloat,
-						GLint, GLfloat, GLfloat))
+                                         GLint, GLfloat, GLfloat))
 BGL_Wrap(3, Materialf,        void,     (GLenum, GLenum, GLfloat))
 BGL_Wrap(3, Materialfv,       void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, Materiali,        void,     (GLenum, GLenum, GLint))
@@ -794,7 +794,7 @@ BGL_Wrap(1, Normal3iv,        void,     (GLintP))
 BGL_Wrap(3, Normal3s,         void,     (GLshort, GLshort, GLshort))
 BGL_Wrap(1, Normal3sv,        void,     (GLshortP))
 BGL_Wrap(6, Ortho,            void,     (GLdouble, GLdouble,
-						GLdouble, GLdouble, GLdouble, GLdouble))
+                                         GLdouble, GLdouble, GLdouble, GLdouble))
 BGL_Wrap(1, PassThrough,      void,     (GLfloat))
 BGL_Wrap(3, PixelMapfv,       void,     (GLenum, GLint, GLfloatP))
 BGL_Wrap(3, PixelMapuiv,      void,     (GLenum, GLint, GLuintP))
@@ -843,7 +843,7 @@ BGL_Wrap(4, RasterPos4s,      void,     (GLshort, GLshort, GLshort, GLshort))
 BGL_Wrap(1, RasterPos4sv,     void,     (GLshortP))
 BGL_Wrap(1, ReadBuffer,       void,     (GLenum))
 BGL_Wrap(7, ReadPixels,       void,     (GLint, GLint, GLsizei,
-						GLsizei, GLenum, GLenum, GLvoidP))
+                                         GLsizei, GLenum, GLenum, GLvoidP))
 BGL_Wrap(4, Rectd,          void,     (GLdouble, GLdouble, GLdouble, GLdouble))
 BGL_Wrap(2, Rectdv,         void,     (GLdoubleP, GLdoubleP))
 BGL_Wrap(4, Rectf,          void,     (GLfloat, GLfloat, GLfloat, GLfloat))
@@ -906,9 +906,9 @@ BGL_Wrap(3, TexGenfv,       void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, TexGeni,        void,     (GLenum, GLenum, GLint))
 BGL_Wrap(3, TexGeniv,       void,     (GLenum, GLenum, GLintP))
 BGL_Wrap(8, TexImage1D,     void,     (GLenum, GLint, GLint,
-						GLsizei, GLint, GLenum, GLenum, GLvoidP))
+                                       GLsizei, GLint, GLenum, GLenum, GLvoidP))
 BGL_Wrap(9, TexImage2D,     void,     (GLenum, GLint, GLint,
-						GLsizei, GLsizei, GLint, GLenum, GLenum, GLvoidP))
+                                       GLsizei, GLsizei, GLint, GLenum, GLenum, GLvoidP))
 BGL_Wrap(3, TexParameterf,      void,     (GLenum, GLenum, GLfloat))
 BGL_Wrap(3, TexParameterfv,     void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, TexParameteri,      void,     (GLenum, GLenum, GLint))
@@ -940,12 +940,12 @@ BGL_Wrap(1, Vertex4iv,          void,     (GLintP))
 BGL_Wrap(4, Vertex4s,           void,     (GLshort, GLshort, GLshort, GLshort))
 BGL_Wrap(1, Vertex4sv,          void,     (GLshortP))
 BGL_Wrap(4, Viewport,           void,     (GLint, GLint, GLsizei, GLsizei))
-BGLU_Wrap(4, Perspective,       void,     	(GLdouble, GLdouble, GLdouble, GLdouble))
-BGLU_Wrap(9, LookAt,       		void,     	(GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble))
-BGLU_Wrap(4, Ortho2D,       	void,     	(GLdouble, GLdouble, GLdouble, GLdouble))
-BGLU_Wrap(5, PickMatrix,       	void,     	(GLdouble, GLdouble, GLdouble, GLdouble, GLintP))
-BGLU_Wrap(9, Project,			GLint,		(GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
-BGLU_Wrap(9, UnProject,			GLint,		(GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
+BGLU_Wrap(4, Perspective,       void,       (GLdouble, GLdouble, GLdouble, GLdouble))
+BGLU_Wrap(9, LookAt,            void,       (GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble))
+BGLU_Wrap(4, Ortho2D,           void,       (GLdouble, GLdouble, GLdouble, GLdouble))
+BGLU_Wrap(5, PickMatrix,        void,       (GLdouble, GLdouble, GLdouble, GLdouble, GLintP))
+BGLU_Wrap(9, Project,           GLint,      (GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
+BGLU_Wrap(9, UnProject,         GLint,      (GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
 
 #undef MethodDef
 #define MethodDef(func) {"gl"#func, Method_##func, METH_VARARGS, "no string"}
@@ -1302,7 +1302,7 @@ PyObject *BPyInit_bgl(void)
 	dict = PyModule_GetDict(submodule);
 
 	if (PyType_Ready(&BGL_bufferType) < 0)
-		return NULL; /* should never happen */
+		return NULL;  /* should never happen */
 
 	PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);
 	Py_INCREF((PyObject *)&BGL_bufferType);

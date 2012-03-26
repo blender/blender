@@ -85,7 +85,7 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 		}
 
 		if (size > array_max || size < array_min) {
-			if (array_max == array_min)	{
+			if (array_max == array_min) {
 				PyErr_Format(PyExc_ValueError,
 				             "%.200s: sequence size is %d, expected %d",
 				             error_prefix, size, array_max);
@@ -115,15 +115,15 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 		size = PySequence_Fast_GET_SIZE(value_fast);
 
 		if (size > array_max || size < array_min) {
-			if (array_max == array_min)	{
+			if (array_max == array_min) {
 				PyErr_Format(PyExc_ValueError,
-							 "%.200s: sequence size is %d, expected %d",
-							 error_prefix, size, array_max);
+				             "%.200s: sequence size is %d, expected %d",
+				             error_prefix, size, array_max);
 			}
 			else {
 				PyErr_Format(PyExc_ValueError,
-							 "%.200s: sequence size is %d, expected [%d - %d]",
-							 error_prefix, size, array_min, array_max);
+				             "%.200s: sequence size is %d, expected [%d - %d]",
+				             error_prefix, size, array_min, array_max);
 			}
 			Py_DECREF(value_fast);
 			return -1;
@@ -239,21 +239,22 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 /* Utility functions */
 
 // LomontRRDCompare4, Ever Faster Float Comparisons by Randy Dillon
-#define SIGNMASK(i) (-(int)(((unsigned int)(i))>>31))
+#define SIGNMASK(i) (-(int)(((unsigned int)(i)) >> 31))
 
 int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
-{	// solid, fast routine across all platforms
-	// with constant time behavior
+{
+	/* solid, fast routine across all platforms
+	 * with constant time behavior */
 	int ai = *(int *)(&af);
 	int bi = *(int *)(&bf);
-	int test = SIGNMASK(ai^bi);
+	int test = SIGNMASK(ai ^ bi);
 	int diff, v1, v2;
 
 	assert((0 == test) || (0xFFFFFFFF == test));
 	diff = (ai ^ (test & 0x7fffffff)) - bi;
 	v1 = maxDiff + diff;
 	v2 = maxDiff - diff;
-	return (v1|v2) >= 0;
+	return (v1 | v2) >= 0;
 }
 
 /*---------------------- EXPP_VectorsAreEqual -------------------------
@@ -376,7 +377,7 @@ PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *UNUSED(closure))
 char BaseMathObject_is_wrapped_doc[] = "True when this object wraps external data (read-only).\n\n:type: boolean";
 PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void *UNUSED(closure))
 {
-	return PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);
+	return PyBool_FromLong((self->wrapped == Py_WRAP) ? 1 : 0);
 }
 
 int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg)
@@ -445,14 +446,14 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	submodule = PyModule_Create(&M_Mathutils_module_def);
 	
 	/* each type has its own new() function */
-	PyModule_AddObject(submodule, "Vector",		(PyObject *)&vector_Type);
-	PyModule_AddObject(submodule, "Matrix",		(PyObject *)&matrix_Type);
-	PyModule_AddObject(submodule, "Euler",		(PyObject *)&euler_Type);
-	PyModule_AddObject(submodule, "Quaternion",	(PyObject *)&quaternion_Type);
-	PyModule_AddObject(submodule, "Color",		(PyObject *)&color_Type);
+	PyModule_AddObject(submodule, "Vector",     (PyObject *)&vector_Type);
+	PyModule_AddObject(submodule, "Matrix",     (PyObject *)&matrix_Type);
+	PyModule_AddObject(submodule, "Euler",      (PyObject *)&euler_Type);
+	PyModule_AddObject(submodule, "Quaternion", (PyObject *)&quaternion_Type);
+	PyModule_AddObject(submodule, "Color",      (PyObject *)&color_Type);
 	
 	/* submodule */
-	PyModule_AddObject(submodule, "geometry",		(item = PyInit_mathutils_geometry()));
+	PyModule_AddObject(submodule, "geometry",       (item = PyInit_mathutils_geometry()));
 	/* XXX, python doesnt do imports with this usefully yet
 	 * 'from mathutils.geometry import PolyFill'
 	 * ...fails without this. */
@@ -460,7 +461,7 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	Py_INCREF(item);
 
 	/* Noise submodule */
-	PyModule_AddObject(submodule, "noise",		(item = PyInit_mathutils_noise()));
+	PyModule_AddObject(submodule, "noise", (item = PyInit_mathutils_noise()));
 	PyDict_SetItemString(sys_modules, "mathutils.noise", item);
 	Py_INCREF(item);
 

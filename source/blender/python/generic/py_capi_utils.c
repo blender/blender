@@ -156,8 +156,8 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 {
 	PyFrameObject *frame;
 	
-	if (filename)	*filename = NULL;
-	if (lineno)		*lineno = -1;
+	if (filename) *filename = NULL;
+	if (lineno)   *lineno = -1;
 
 	if (!(frame = PyThreadState_GET()->frame)) {
 		return;
@@ -538,7 +538,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 			ret = PyObject_CallFunction(calcsize, (char *)"s", format);
 
 			if (ret) {
-				sizes[i]= PyLong_AsSsize_t(ret);
+				sizes[i] = PyLong_AsSsize_t(ret);
 				Py_DECREF(ret);
 				ret = PyObject_CallFunction(unpack, (char *)"sy#", format, (char *)ptr, sizes[i]);
 			}
@@ -551,7 +551,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 				PyList_SET_ITEM(values, i, Py_None); /* hold user */
 				Py_INCREF(Py_None);
 
-				sizes[i]= 0;
+				sizes[i] = 0;
 			}
 			else {
 				if (PyTuple_GET_SIZE(ret) == 1) {

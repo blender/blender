@@ -47,7 +47,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
- /* UNUSED */	
+/* UNUSED */
 #include "BKE_text.h" /* txt_to_buf */	
 #include "BKE_main.h"
 
@@ -244,12 +244,12 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	if (newmodule)
 		return newmodule;
 	
-	PyErr_Fetch(&exception, &err, &tb);	/* get the python error in case we cant import as blender text either */
+	PyErr_Fetch(&exception, &err, &tb); /* get the python error in case we cant import as blender text either */
 	
 	/* importing from existing modules failed, see if we have this module as blender text */
 	newmodule = bpy_text_import_name(name, &found);
 	
-	if (newmodule) {/* found module as blender text, ignore above exception */
+	if (newmodule) { /* found module as blender text, ignore above exception */
 		PyErr_Clear();
 		Py_XDECREF(exception);
 		Py_XDECREF(err);
@@ -287,10 +287,10 @@ static PyObject *blender_reload(PyObject *UNUSED(self), PyObject *module)
 		return newmodule;
 
 	/* no file, try importing from memory */
-	PyErr_Fetch(&exception, &err, &tb);	/*restore for probable later use */
+	PyErr_Fetch(&exception, &err, &tb); /*restore for probable later use */
 
 	newmodule = bpy_text_reimport(module, &found);
-	if (newmodule) {/* found module as blender text, ignore above exception */
+	if (newmodule) { /* found module as blender text, ignore above exception */
 		PyErr_Clear();
 		Py_XDECREF(exception);
 		Py_XDECREF(err);
