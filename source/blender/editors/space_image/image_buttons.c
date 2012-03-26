@@ -874,14 +874,16 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser *iuser)
 {
 	Scene *scene= CTX_data_scene(C);
+	Render *re;
 	RenderResult *rr;
 
 	/* render layers and passes */
 	if (ima && iuser) {
-		const float dpi_fac= UI_DPI_FAC;
-		rr= BKE_image_acquire_renderresult(scene, ima);
+		const float dpi_fac = UI_DPI_FAC;
+		re = RE_GetRender(scene->id.name);
+		rr = RE_AcquireResultRead(re);
 		uiblock_layer_pass_buttons(layout, rr, iuser, 160 * dpi_fac, (ima->type==IMA_TYPE_R_RESULT)? &ima->render_slot: NULL);
-		BKE_image_release_renderresult(scene, ima);
+		RE_ReleaseResult(re);
 	}
 }
 
