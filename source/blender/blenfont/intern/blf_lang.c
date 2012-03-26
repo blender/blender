@@ -82,7 +82,7 @@ static const char *locales[] = {
 	"spanish", "es",
 	"catalan", "ca_AD",
 	"czech", "cs_CZ",
-	"ptb", "pt_BR",
+	"ptb", "pt",
 #if defined (_WIN32) && !defined(FREE_WINDOWS)
 	"Chinese (Simplified)_China.1252", "zh_CN",
 	"Chinese (Traditional)_China.1252", "zh_TW",
