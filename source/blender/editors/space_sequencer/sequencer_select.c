@@ -929,7 +929,7 @@ static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 
 #define SEQ_IS_EFFECT(_seq) (_seq->type & SEQ_EFFECT)
 
-#define SEQ_USE_DATA(_seq) (_seq->type == SEQ_SCENE || SEQ_HAS_PATH(_seq))
+#define SEQ_USE_DATA(_seq) (ELEM(_seq->type, SEQ_SCENE, SEQ_MOVIECLIP) || SEQ_HAS_PATH(_seq))
 
 static short select_grouped_type(Editing *ed, Sequence *actseq)
 {
@@ -985,7 +985,6 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
 	short changed = FALSE;
-	Scene *sce = actseq->scene;
 	char *dir = actseq->strip ? actseq->strip->dir : NULL;
 
 	if (!SEQ_USE_DATA(actseq))
@@ -1000,9 +999,20 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 		}
 		SEQ_END;
 	}
-	else {
+	else if (actseq->type == SEQ_SCENE) {
+		Scene *sce = actseq->scene;
 		SEQP_BEGIN(ed, seq) {
 			if (seq->type == SEQ_SCENE && seq->scene == sce) {
+				seq->flag |= SELECT;
+				changed = TRUE;
+			}
+		}
+		SEQ_END;
+	}
+	else if (actseq->type == SEQ_MOVIECLIP) {
+		MovieClip *clip = actseq->clip;
+		SEQP_BEGIN(ed, seq) {
+			if (seq->type == SEQ_MOVIECLIP && seq->clip == clip) {
 				seq->flag |= SELECT;
 				changed = TRUE;
 			}
@@ -1116,6 +1126,10 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 
 	return changed;
 }
+
+#undef SEQ_IS_SOUND
+#undef SEQ_IS_EFFECT
+#undef SEQ_USE_DATA
 
 static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 {
