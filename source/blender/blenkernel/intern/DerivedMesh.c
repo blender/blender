@@ -1351,7 +1351,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 {
 	Mesh *me = ob->data;
 	ModifierData *firstmd, *md, *previewmd = NULL;
-	LinkNode *datamasks, *curr;
+	CDMaskLink *datamasks, *curr;
 	/* XXX Always copying POLYINDEX, else tessellated data are no more valid! */
 	CustomDataMask mask, nextmask, append_mask = CD_MASK_POLYINDEX;
 	float (*deformedVerts)[3] = NULL;
@@ -1547,7 +1547,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			/* determine which data layers are needed by following modifiers */
 			if (curr->next)
-				nextmask= (CustomDataMask)GET_INT_FROM_POINTER(curr->next->link);
+				nextmask= curr->next->mask;
 			else
 				nextmask= dataMask;
 
@@ -1597,7 +1597,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			
 			/* set the DerivedMesh to only copy needed data */
-			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
+			mask= curr->mask;
 			/* needMapping check here fixes bug [#28112], otherwise its
 			 * possible that it wont be copied */
 			mask |= append_mask;
@@ -1608,7 +1608,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				add_orco_dm(ob, NULL, dm, clothorcodm, CD_CLOTH_ORCO);
 
 			/* add an origspace layer if needed */
-			if (((CustomDataMask)GET_INT_FROM_POINTER(curr->link)) & CD_MASK_ORIGSPACE_MLOOP) {
+			if ((curr->mask) & CD_MASK_ORIGSPACE_MLOOP) {
 				if (!CustomData_has_layer(&dm->loopData, CD_ORIGSPACE_MLOOP)) {
 					DM_add_loop_layer(dm, CD_ORIGSPACE_MLOOP, CD_CALLOC, NULL);
 					DM_init_origspace(dm);
@@ -1823,7 +1823,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	if (deformedVerts && deformedVerts != inputVertexCos)
 		MEM_freeN(deformedVerts);
 
-	BLI_linklist_free(datamasks, NULL);
+	BLI_linklist_free((LinkNode*)datamasks, NULL);
 }
 
 float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *numVerts_r))[3]
@@ -1866,7 +1866,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	CustomDataMask mask;
 	DerivedMesh *dm, *orcodm = NULL;
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
-	LinkNode *datamasks, *curr;
+	CDMaskLink *datamasks, *curr;
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
 	modifiers_clearErrors(ob);
@@ -1953,7 +1953,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 			}
 
 			/* create an orco derivedmesh in parallel */
-			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
+			mask= curr->mask;
 			if (mask & CD_MASK_ORCO) {
 				if (!orcodm)
 					orcodm= create_orco_dm(ob, ob->data, em, CD_ORCO);
@@ -1974,7 +1974,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 			}
 
 			/* set the DerivedMesh to only copy needed data */
-			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link); /* CD_MASK_ORCO may have been cleared above */
+			mask= curr->mask; /* CD_MASK_ORCO may have been cleared above */
 
 			DM_set_only_copy(dm, mask | CD_MASK_ORIGINDEX);
 
@@ -2019,7 +2019,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 		}
 	}
 
-	BLI_linklist_free(datamasks, NULL);
+	BLI_linklist_free((LinkNode*)datamasks, NULL);
 
 	/* Yay, we are done. If we have a DerivedMesh and deformed vertices need
 	 * to apply these back onto the DerivedMesh. If we have no DerivedMesh
