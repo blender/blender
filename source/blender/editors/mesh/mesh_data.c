@@ -206,7 +206,7 @@ static void copy_editface_active_customdata(BMEditMesh *em, int type, int index)
 #endif
 }
 
-int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
+int ED_mesh_uv_loop_reset_ex(struct bContext *C, struct Mesh *me, const int layernum)
 {
 	BMEditMesh *em= me->edit_btmesh;
 	MLoopUV *luv;
@@ -232,7 +232,7 @@ int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 
 			i = 0;
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				luv = CustomData_bmesh_get_n(&em->bm->ldata, l->head.data, CD_MLOOPUV, layernum);
 				BLI_array_append(uvs, luv->uv);
 				i++;
 			}
@@ -244,14 +244,16 @@ int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 		/* Collect Mesh UVs */
 
 		MPoly *mp;
+		MLoopUV *mloouv;
 
 		BLI_assert(CustomData_has_layer(&me->ldata, CD_MLOOPUV));
+		mloouv = CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, layernum);
 
 		for (j = 0; j < me->totpoly; j++) {
 			mp = &me->mpoly[j];
 
 			for (i = 0; i < mp->totloop; i++) {
-				luv = &me->mloopuv[mp->loopstart + i];
+				luv = &mloouv[mp->loopstart + i];
 				BLI_array_append(uvs, luv->uv);
 			}
 
@@ -303,8 +305,6 @@ int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 		fuvs += len;
 	}
 
-	/* BMESH_TODO: Copy poly UVs onto CD_MTFACE layer for tessellated faces */
-
 	BLI_array_free(uvs);
 	BLI_array_free(polylengths);
 
@@ -312,6 +312,14 @@ int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return 1;
+}
+
+int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
+{
+	/* could be ldata or pdata */
+	CustomData *pdata = GET_CD_DATA(me, pdata);
+	const int layernum = CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
+	return ED_mesh_uv_loop_reset_ex(C, me, layernum);
 }
 
 int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_set)
@@ -372,7 +380,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 		mesh_update_customdata_pointers(me, TRUE);
 	}
 
-	ED_mesh_uv_loop_reset(C, me);
+	ED_mesh_uv_loop_reset_ex(C, me, layernum);
 
 	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
