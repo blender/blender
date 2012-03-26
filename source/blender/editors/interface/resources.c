@@ -1767,6 +1767,15 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (bmain->versionfile < 262 || (bmain->versionfile == 262 && bmain->subversionfile < 4)) {
+		bTheme *btheme;
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+			if (btheme->tseq.movieclip[0] == 0) {
+				rgba_char_args_set(btheme->tseq.movieclip,  32, 32, 143, 255);
+			}
+		}
+	}
+
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;

@@ -917,8 +917,8 @@ void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, in
 
 int BKE_movieclip_get_duration(MovieClip *clip)
 {
-	if (!clip->len && clip->anim) {
-		return IMB_anim_get_duration(clip->anim, clip->proxy.tc);
+	if (!clip->len) {
+		movieclip_calc_length(clip);
 	}
 
 	return clip->len;
