@@ -296,7 +296,7 @@ struct Reorganize_SVBVH
 		{
 			const static float def_bb[6] = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MIN, FLT_MIN, FLT_MIN };
 			alloc_childs--;
-			node->child[alloc_childs] = 0;
+			node->child[alloc_childs] = NULL;
 			copy_bb(node->child_bb+alloc_childs*6, def_bb);
 		}
 		

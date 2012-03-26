@@ -75,7 +75,7 @@ MALWAYS_INLINE RayObject* rayface_from_coords(RayFace *rayface, void *ob, void *
 
 MALWAYS_INLINE void rayface_from_vlak(RayFace *rayface, ObjectInstanceRen *obi, VlakRen *vlr)
 {
-	rayface_from_coords(rayface, obi, vlr, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4 ? vlr->v4->co : 0);
+	rayface_from_coords(rayface, obi, vlr, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4 ? vlr->v4->co : NULL);
 
 	if (obi->transform_primitives)
 	{

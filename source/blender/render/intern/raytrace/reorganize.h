@@ -144,7 +144,7 @@ void remove_useless(Node *node, Node **new_node)
 		{
 			Node *next = (*prev)->sibling;
 			remove_useless(*prev, prev);
-			if(*prev == 0)
+			if(*prev == NULL)
 				*prev = next;
 			else
 			{
@@ -158,8 +158,10 @@ void remove_useless(Node *node, Node **new_node)
 		if(RE_rayobject_isAligned(node->child) && node->child->sibling == 0)
 			*new_node = node->child;
 	}
-	else if(node->child == 0)
-		*new_node = 0;	
+	else if(node->child == NULL)
+	{
+		*new_node = NULL;
+	}
 }
 
 /*

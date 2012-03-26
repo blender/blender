@@ -72,7 +72,7 @@ static RayObjectAPI empty_api =
 	RE_rayobject_empty_hint_bb
 };
 
-static RayObject empty_raytree = { &empty_api, {0, 0} };
+static RayObject empty_raytree = { &empty_api, {NULL, NULL} };
 
 RayObject *RE_rayobject_empty_create()
 {
