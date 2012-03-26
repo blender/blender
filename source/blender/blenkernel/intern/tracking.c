@@ -84,7 +84,7 @@ void BKE_tracking_init_settings(MovieTracking *tracking)
 	tracking->settings.default_tracker = TRACKER_HYBRID;
 	tracking->settings.default_minimum_correlation = 0.75;
 	tracking->settings.default_pattern_size = 11;
-	tracking->settings.default_search_size = 51;
+	tracking->settings.default_search_size = 61;
 	tracking->settings.default_pyramid_levels = 2;
 	tracking->settings.keyframe1 = 1;
 	tracking->settings.keyframe2 = 30;
