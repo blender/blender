@@ -1311,29 +1311,7 @@ static void sequencer_refresh_all_length(Scene *scene, Editing *ed)
 	Sequence *seq;
 
 	SEQP_BEGIN(ed, seq) {
-		int changed = FALSE;
-
-		switch (seq->type) {
-			case SEQ_SCENE:
-				seq->len = seq->scene->r.efra - seq->scene->r.sfra + 1;
-				changed = TRUE;
-				break;
-			case SEQ_MOVIECLIP:
-				seq->len = BKE_movieclip_get_duration(seq->clip);
-				changed = TRUE;
-				break;
-			case SEQ_MOVIE:
-				seq->len = IMB_anim_get_duration(seq->anim, IMB_TC_RECORD_RUN);
-				changed = TRUE;
-				break;
-		}
-
-		if (changed) {
-			calc_sequence_disp(scene, seq);
-
-			if (seq_test_overlap(ed->seqbasep, seq))
-				shuffle_seq(ed->seqbasep, seq, scene);
-		}
+		seq_update_sequence_length(scene, ed, seq);
 	}
 	SEQ_END
 }

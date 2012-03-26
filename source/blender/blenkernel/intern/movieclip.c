@@ -213,11 +213,8 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 	return ibuf;
 }
 
-static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, int framenr, int flag)
+static void movieclip_open_anim_file(MovieClip *clip)
 {
-	ImBuf *ibuf = NULL;
-	int tc = get_timecode(clip, flag);
-	int proxy = rendersize_to_proxy(user, flag);
 	char str[FILE_MAX];
 
 	if (!clip->anim) {
@@ -236,6 +233,15 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 			}
 		}
 	}
+}
+
+static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, int framenr, int flag)
+{
+	ImBuf *ibuf = NULL;
+	int tc = get_timecode(clip, flag);
+	int proxy = rendersize_to_proxy(user, flag);
+
+	movieclip_open_anim_file(clip);
 
 	if (clip->anim) {
 		int dur;
@@ -258,8 +264,12 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 
 static void movieclip_calc_length(MovieClip *clip)
 {
-	if (clip->anim) {
-		clip->len = IMB_anim_get_duration(clip->anim, clip->proxy.tc);
+	if (clip->source == MCLIP_SRC_MOVIE) {
+		movieclip_open_anim_file(clip);
+
+		if (clip->anim) {
+			clip->len = IMB_anim_get_duration(clip->anim, clip->proxy.tc);
+		}
 	}
 	else if (clip->source == MCLIP_SRC_SEQUENCE) {
 		int framenr = 1;

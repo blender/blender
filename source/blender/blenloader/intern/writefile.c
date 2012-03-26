@@ -1863,7 +1863,7 @@ static void write_previews(WriteData *wd, PreviewImage *prv)
 		short h = prv->h[1];
 		unsigned int *rect = prv->rect[1];
 		/* don't write out large previews if not requested */
-		if (!(U.flag & USER_SAVE_PREVIEWS) ) {
+		if (!(U.flag & USER_SAVE_PREVIEWS)) {
 			prv->w[1] = 0;
 			prv->h[1] = 0;
 			prv->rect[1] = NULL;
