@@ -65,7 +65,7 @@
 
 /* this code here is kindof messy. . .I might need to eventually rework it - joeedh */
 
-#define KMAXDIST	10	/* max mouse distance from edge before not detecting it */
+#define KMAXDIST    10  /* max mouse distance from edge before not detecting it */
 
 /* knifetool operator */
 typedef struct KnifeVert {
@@ -118,8 +118,8 @@ typedef struct KnifePosData {
 
 /* struct for properties used while drawing */
 typedef struct knifetool_opdata {
-	ARegion *ar;		/* region that knifetool was activated in */
-	void *draw_handle;	/* for drawing preview loop */
+	ARegion *ar;        /* region that knifetool was activated in */
+	void *draw_handle;  /* for drawing preview loop */
 	ViewContext vc;
 	bContext *C;
 
@@ -1013,7 +1013,7 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 
 	/* for comparing distances, error of intersection depends on triangle scale.
 	 * need to scale down before squaring for accurate comparison */
-	const float depsilon = 50 * FLT_EPSILON * len_v3_tri_side_max(v1, v2, v3);
+	const float depsilon = 50 * FLT_EPSILON *len_v3_tri_side_max(v1, v2, v3);
 	const float depsilon_squared = depsilon * depsilon;
 
 	copy_v3_v3(cos + 0, v1);
@@ -1435,7 +1435,7 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], flo
 
 /* find a vertex near the mouse cursor, if it exists */
 static KnifeVert *knife_find_closest_vert(knifetool_opdata *kcd, float p[3], float cagep[3], BMFace **fptr,
-		int *is_space)
+                                          int *is_space)
 {
 	BMFace *f;
 	float co[3], cageco[3], sco[3], maxdist = knife_snap_size(kcd, kcd->vthresh);
@@ -1580,13 +1580,13 @@ static int knife_update_active(knifetool_opdata *kcd)
 	return 1;
 }
 
-#define MARK			4
-#define DEL				8	
-#define VERT_ON_EDGE	16
-#define VERT_ORIG		32
-#define FACE_FLIP		64
-#define BOUNDARY		128
-#define FACE_NEW		256
+#define MARK            4
+#define DEL             8
+#define VERT_ON_EDGE    16
+#define VERT_ORIG       32
+#define FACE_FLIP       64
+#define BOUNDARY        128
+#define FACE_NEW        256
 
 #define SCANFILL_CUTS 0
 #if SCANFILL_CUTS
@@ -1849,7 +1849,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 				ScanFillEdge *eed;
 				eed = BLI_addfilledge(lasteve, eve);
 				if (entry->kfe->oe)
-					eed->f = FILLBOUNDARY; /* mark as original boundary edge */
+					eed->f = FILLBOUNDARY;  /* mark as original boundary edge */
 
 				BMO_elem_flag_disable(bm, entry->kfe->e->v1, DEL);
 				BMO_elem_flag_disable(bm, entry->kfe->e->v2, DEL);
@@ -2023,7 +2023,7 @@ static int find_chain_search(knifetool_opdata *kcd, KnifeVert *kfv, ListBase *fe
 	return FALSE;
 }
 
-static ListBase * find_chain_from_vertex(knifetool_opdata *kcd, KnifeEdge *kfe, BMVert *v, ListBase *fedges)
+static ListBase *find_chain_from_vertex(knifetool_opdata *kcd, KnifeEdge *kfe, BMVert *v, ListBase *fedges)
 {
 	SmallHash visited_, *visited = &visited_;
 	ListBase *ans;
@@ -2053,7 +2053,7 @@ static ListBase * find_chain_from_vertex(knifetool_opdata *kcd, KnifeEdge *kfe, 
 
 /* Find a chain in fedges from one instantiated vertex to another.
  * Remove the edges in the chain from fedges and return a separate list of the chain. */
-static ListBase * find_chain(knifetool_opdata *kcd, ListBase *fedges)
+static ListBase *find_chain(knifetool_opdata *kcd, ListBase *fedges)
 {
 	Ref *r, *ref;
 	KnifeEdge *kfe;
@@ -2549,7 +2549,7 @@ static void knife_make_cuts(knifetool_opdata *kcd)
 	BLI_mempool_iternew(kcd->kverts, &iter);
 	for (kfv = BLI_mempool_iterstep(&iter); kfv; kfv = BLI_mempool_iterstep(&iter)) {
 		if (kfv->v)
-			continue; /* already have a BMVert */
+			continue;  /* already have a BMVert */
 		for (ref = kfv->edges.first; ref; ref = ref->next) {
 			kfe = ref->ref;
 			e = kfe->e;
@@ -2568,7 +2568,8 @@ static void knife_make_cuts(knifetool_opdata *kcd)
 
 	/* split bmesh edges where needed */
 	for (lst = BLI_smallhash_iternew(ehash, &hiter, (uintptr_t *)&e); lst;
-			lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&e)) {
+	     lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&e))
+	{
 		sort_by_frac_along(lst, e);
 		for (ref = lst->first; ref; ref = ref->next) {
 			kfv = ref->ref;
@@ -2579,7 +2580,8 @@ static void knife_make_cuts(knifetool_opdata *kcd)
 
 	/* do cuts for each face */
 	for (lst = BLI_smallhash_iternew(fhash, &hiter, (uintptr_t *)&f); lst;
-			lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&f)) {
+	     lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&f))
+	{
 		knife_make_face_cuts(kcd, f, lst);
 	}
 

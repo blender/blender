@@ -70,7 +70,7 @@ typedef struct BMBVHTree {
 } BMBVHTree;
 
 static void cage_mapped_verts_callback(void *userData, int index, float *co, 
-	float *UNUSED(no_f), short *UNUSED(no_s))
+                                       float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	void **data = userData;
 	BMEditMesh *em = data[0];
@@ -166,7 +166,7 @@ void BMBVH_FreeBVH(BMBVHTree *tree)
 
 /* taken from bvhutils.c */
 static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), float *v0, 
-				  float *v1, float *v2, float *uv, float UNUSED(e))
+                                  float *v1, float *v2, float *uv, float UNUSED(e))
 {
 	float dist;
 

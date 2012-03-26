@@ -95,7 +95,7 @@ static void make_prim_init(bContext *C, const char *idname,
 		rename_id((ID *)obedit->data, idname);
 
 		/* create editmode */
-		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
+		ED_object_enter_editmode(C, EM_DO_UNDO | EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		*state = 1;
 	}
 	else {
@@ -120,13 +120,13 @@ static void make_prim_finish(bContext *C, int *state, int enter_editmode)
 	EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	/* userdef */
 	if (*state && !enter_editmode) {
 		ED_object_exit_editmode(C, EM_FREEDATA); /* adding EM_DO_UNDO messes up operator redo */
 	}
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 }
 
 static int add_primitive_plane_exec(bContext *C, wmOperator *op)
@@ -170,7 +170,7 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -215,12 +215,12 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
 
-static const EnumPropertyItem fill_type_items[]= {
+static const EnumPropertyItem fill_type_items[] = {
 	{0, "NOTHING", 0, "Nothing", "Don't fill at all"},
 	{1, "NGON", 0, "Ngon", "Use ngons"},
 	{2, "TRIFAN", 0, "Triangle Fan", "Use triangle fans"},
@@ -274,7 +274,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
@@ -337,7 +337,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
@@ -399,7 +399,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
@@ -459,7 +459,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "x_subdivisions", 10, 3, INT_MAX, "X Subdivisions", "", 3, 1000);
@@ -511,7 +511,7 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -561,7 +561,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "segments", 32, 3, INT_MAX, "Segments", "", 3, 500);
@@ -618,7 +618,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "subdivisions", 2, 1, INT_MAX, "Subdivisions", "", 1, 8);

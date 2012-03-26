@@ -87,8 +87,8 @@
 
 /* struct for properties used while drawing */
 typedef struct tringselOpData {
-	ARegion *ar;		/* region that ringsel was activated in */
-	void *draw_handle;	/* for drawing preview loop */
+	ARegion *ar;        /* region that ringsel was activated in */
+	void *draw_handle;  /* for drawing preview loop */
 	
 	float (*edges)[2][3];
 	int totedge;
@@ -322,24 +322,24 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 				CTX_data_tool_settings(C)->selectmode = em->selectmode;
 				EDBM_selectmode_set(em);
 
-				WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, CTX_data_scene(C));
+				WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, CTX_data_scene(C));
 
-				WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, CTX_data_scene(C));
+				WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, CTX_data_scene(C));
 			}
 
-			WM_event_add_notifier(C, NC_GEOM|ND_SELECT|ND_DATA, lcd->ob->data);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT | ND_DATA, lcd->ob->data);
 			DAG_id_tag_update(lcd->ob->data, 0);
 		}
 		else {
 			
 			/* sets as active, useful for other tools */
 			if (em->selectmode & SCE_SELECT_VERTEX)
-				EDBM_store_selection(em, lcd->eed->v1); /* low priority TODO, get vertrex close to mouse */
+				EDBM_store_selection(em, lcd->eed->v1);  /* low priority TODO, get vertrex close to mouse */
 			if (em->selectmode & SCE_SELECT_EDGE)
 				EDBM_store_selection(em, lcd->eed);
 			
 			EDBM_selectmode_flush(lcd->em);
-			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, lcd->ob->data);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, lcd->ob->data);
 		}
 	}
 }
@@ -363,7 +363,7 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 }
 
 /* called when modal loop selection gets set up... */
-static int ringsel_init (bContext *C, wmOperator *op, int do_cut)
+static int ringsel_init(bContext *C, wmOperator *op, int do_cut)
 {
 	tringselOpData *lcd;
 	
@@ -389,14 +389,14 @@ static int ringsel_init (bContext *C, wmOperator *op, int do_cut)
 	return 1;
 }
 
-static int ringcut_cancel (bContext *C, wmOperator *op)
+static int ringcut_cancel(bContext *C, wmOperator *op)
 {
 	/* this is just a wrapper around exit() */
 	ringsel_exit(C, op);
 	return OPERATOR_CANCELLED;
 }
 
-static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	tringselOpData *lcd;
@@ -428,7 +428,7 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
+static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
 	tringselOpData *lcd = op->customdata;
@@ -544,7 +544,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 /* for bmesh this tool is in bmesh_select.c */
 #if 0
 
-void MESH_OT_edgering_select (wmOperatorType *ot)
+void MESH_OT_edgering_select(wmOperatorType *ot)
 {
 	/* description */
 	ot->name = "Edge Ring Select";
@@ -556,14 +556,14 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh_region_view3d; 
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 }
 
 #endif
 
-void MESH_OT_loopcut (wmOperatorType *ot)
+void MESH_OT_loopcut(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
@@ -579,7 +579,7 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh_region_view3d;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	/* properties */
 	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);

@@ -102,13 +102,13 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	
 	BM_mesh_esubdivideflag(obedit, em->bm, BM_ELEM_SELECT,
 	                       smooth, fractal,
-	                       ts->editbutflag|flag,
+	                       ts->editbutflag | flag,
 	                       cuts, 0, RNA_enum_get(op->ptr, "quadcorner"),
 	                       RNA_boolean_get(op->ptr, "quadtri"),
 	                       TRUE, RNA_int_get(op->ptr, "seed"));
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -136,7 +136,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
@@ -160,7 +160,7 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, Object *obedit, BMEditMes
 	BMIter iter;
 	BMVert *eve;
 
-	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)	{
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 			float mval[2], vec[3], no_dummy[3];
 			int dist_dummy;
@@ -218,7 +218,7 @@ static short edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_VERT|BM_EDGE, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_VERT | BM_EDGE, BM_ELEM_SELECT, TRUE);
 
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return 0;
@@ -259,7 +259,7 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 	BMElem *ele;
 	
 	BMO_op_init(bm, &extop, "extrude_face_region");
-	BMO_slot_buffer_from_hflag(bm, &extop, "edgefacein", BM_VERT|BM_EDGE|BM_FACE, hflag);
+	BMO_slot_buffer_from_hflag(bm, &extop, "edgefacein", BM_VERT | BM_EDGE | BM_FACE, hflag);
 
 	/* If a mirror modifier with clipping is on, we need to adjust some 
 	 * of the cases above to handle edges on the line of symmetry.
@@ -297,21 +297,21 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 
 						if (mmd->flag & MOD_MIR_AXIS_X) {
 							if ((fabsf(co1[0]) < mmd->tolerance) &&
-								(fabsf(co2[0]) < mmd->tolerance))
+							    (fabsf(co2[0]) < mmd->tolerance))
 							{
 								BMO_slot_map_ptr_insert(bm, &extop, "exclude", edge, NULL);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Y) {
 							if ((fabsf(co1[1]) < mmd->tolerance) &&
-								(fabsf(co2[1]) < mmd->tolerance))
+							    (fabsf(co2[1]) < mmd->tolerance))
 							{
 								BMO_slot_map_ptr_insert(bm, &extop, "exclude", edge, NULL);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Z) {
 							if ((fabsf(co1[2]) < mmd->tolerance) &&
-								(fabsf(co2[2]) < mmd->tolerance))
+							    (fabsf(co2[2]) < mmd->tolerance))
 							{
 								BMO_slot_map_ptr_insert(bm, &extop, "exclude", edge, NULL);
 							}
@@ -408,7 +408,7 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 	EDBM_RecalcNormals(em);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -425,7 +425,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh_view3d;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, 100.0f, "Offset", "", 0.0f, FLT_MAX);
@@ -446,11 +446,11 @@ static int edbm_extrude_mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 		else if (em->bm->totvertsel == 1) nr = 4;
 		else if (em->bm->totedgesel == 0) nr = 4;
 		else if (em->bm->totfacesel == 0)
-			nr = 3; // pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
+			nr = 3;  // pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
 		else if (em->bm->totfacesel == 1)
-			nr = 1; // pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
+			nr = 1;  // pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
 		else 
-			nr = 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
+			nr = 1;  // pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
 	}
 	else if (em->selectmode & SCE_SELECT_EDGE) {
 		if (em->bm->totedgesel == 0) nr = 0;
@@ -460,16 +460,16 @@ static int edbm_extrude_mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 		else if (em->totedgesel == 1) nr = 3;
 		else if (em->totfacesel == 0) nr = 3;
 		else if (em->totfacesel == 1)
-			nr = 1; // pupmenu("Extrude %t|Region %x1|Only Edges%x3");
+			nr = 1;  // pupmenu("Extrude %t|Region %x1|Only Edges%x3");
 		else
-			nr = 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
+			nr = 1;  // pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
 #endif
 	}
 	else {
 		if (em->bm->totfacesel == 0) nr = 0;
 		else if (em->bm->totfacesel == 1) nr = 1;
 		else
-			nr = 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
+			nr = 1;  // pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
 	}
 
 	if (nr < 1) return 'g';
@@ -530,7 +530,7 @@ static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
 	EDBM_RecalcNormals(em);
 	BMEdit_RecalcTessellation(em);
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -547,7 +547,7 @@ void MESH_OT_extrude_region(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
@@ -560,7 +560,7 @@ static int edbm_extrude_verts_exec(bContext *C, wmOperator *op)
 
 	edbm_extrude_verts_indiv(em, op, BM_ELEM_SELECT, nor);
 	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -576,7 +576,7 @@ void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* to give to transform */
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
@@ -590,7 +590,7 @@ static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
 
 	edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, nor);
 	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -606,7 +606,7 @@ void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* to give to transform */
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
@@ -620,7 +620,7 @@ static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
 
 	edbm_extrude_face_indiv(em, op, BM_ELEM_SELECT, nor);
 	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -636,7 +636,7 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
@@ -650,21 +650,21 @@ static int edbm_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 	
 	switch (action) {
-	case SEL_TOGGLE:
-		EDBM_select_toggle_all(em);
-		break;
-	case SEL_SELECT:
-		EDBM_flag_enable_all(em, BM_ELEM_SELECT);
-		break;
-	case SEL_DESELECT:
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-		break;
-	case SEL_INVERT:
-		EDBM_select_swap(em);
-		break;
+		case SEL_TOGGLE:
+			EDBM_select_toggle_all(em);
+			break;
+		case SEL_SELECT:
+			EDBM_flag_enable_all(em, BM_ELEM_SELECT);
+			break;
+		case SEL_DESELECT:
+			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+			break;
+		case SEL_INVERT:
+			EDBM_select_swap(em);
+			break;
 	}
 	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -681,7 +681,7 @@ void MESH_OT_select_all(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -692,7 +692,7 @@ static int edbm_faces_select_interior_exec(bContext *C, wmOperator *UNUSED(op))
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	if (EDBM_select_interior_faces(em)) {
-		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
 
 		return OPERATOR_FINISHED;
 	}
@@ -714,7 +714,7 @@ void MESH_OT_select_interior_faces(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* *************** add-click-mesh (extrude) operator ************** */
@@ -729,7 +729,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	
 	em_setup_viewcontext(C, &vc);
 	
-	use_proj = (vc.scene->toolsettings->snap_flag & SCE_SNAP) &&	(vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE);
+	use_proj = (vc.scene->toolsettings->snap_flag & SCE_SNAP) &&    (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE);
 
 	INIT_MINMAX(min, max);
 	
@@ -799,7 +799,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		mid_v3_v3v3(cent, min, max);
 		copy_v3_v3(min, cent);
 
-		mul_m4_v3(vc.obedit->obmat, min);	// view space
+		mul_m4_v3(vc.obedit->obmat, min);  /* view space */
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval, TRUE);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 
@@ -836,7 +836,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		
 		if (rot_src) {
 			EDBM_CallOpf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
-				BM_ELEM_SELECT, cent, mat);
+			             BM_ELEM_SELECT, cent, mat);
 
 			/* also project the source, for retopo workflow */
 			if (use_proj)
@@ -845,9 +845,9 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 
 		edbm_extrude_edge(vc.obedit, vc.em, BM_ELEM_SELECT, nor);
 		EDBM_CallOpf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
-			BM_ELEM_SELECT, cent, mat);
+		             BM_ELEM_SELECT, cent, mat);
 		EDBM_CallOpf(vc.em, op, "translate verts=%hv vec=%v",
-			BM_ELEM_SELECT, min);
+		             BM_ELEM_SELECT, min);
 	}
 	else {
 		float *curs = give_cursor(vc.scene, vc.v3d);
@@ -881,7 +881,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	EDBM_RecalcNormals(vc.em);
 	BMEdit_RecalcTessellation(vc.em);
 
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, vc.obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, vc.obedit->data);
 	DAG_id_tag_update(vc.obedit->data, OB_RECALC_DATA);
 	
 	return OPERATOR_FINISHED;
@@ -899,7 +899,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "rotate_source", 1, "Rotate Source", "Rotate initial selection giving better shape");
 }
@@ -949,7 +949,7 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA|ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA | ND_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -968,7 +968,7 @@ void MESH_OT_delete(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 0, "Type", "Method used for deleting mesh data");
@@ -983,7 +983,7 @@ static int edbm_collapse_edge_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA|ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA | ND_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -1000,7 +1000,7 @@ void MESH_OT_edge_collapse(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int edbm_collapse_edge_loop_exec(bContext *C, wmOperator *op)
@@ -1012,7 +1012,7 @@ static int edbm_collapse_edge_loop_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA|ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA | ND_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -1029,7 +1029,7 @@ void MESH_OT_edge_collapse_loop(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
@@ -1048,7 +1048,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	
 	return OPERATOR_FINISHED;
@@ -1066,7 +1066,7 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ************************* SEAMS AND EDGES **************** */
@@ -1103,7 +1103,7 @@ static int edbm_mark_seam(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1120,7 +1120,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
@@ -1159,7 +1159,7 @@ static int edbm_mark_sharp(bContext *C, wmOperator *op)
 
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1176,7 +1176,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
@@ -1200,7 +1200,7 @@ static int edbm_vert_connect(bContext *C, wmOperator *op)
 	}
 	
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -1216,7 +1216,7 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int edbm_edge_split_exec(bContext *C, wmOperator *op)
@@ -1239,7 +1239,7 @@ static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 	}
 	
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -1255,7 +1255,7 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /****************** add duplicate operator ***************/
@@ -1278,7 +1278,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1318,7 +1318,7 @@ static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1335,7 +1335,7 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static const EnumPropertyItem direction_items[] = {
@@ -1399,7 +1399,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1416,7 +1416,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around");
@@ -1431,7 +1431,7 @@ static int edbm_hide_exec(bContext *C, wmOperator *op)
 	EDBM_hide_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
 		
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1445,10 +1445,10 @@ void MESH_OT_hide(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = edbm_hide_exec;
 	ot->poll = ED_operator_editmesh;
-	 ot->description = "Hide (un)selected vertices, edges or faces";
+	ot->description = "Hide (un)selected vertices, edges or faces";
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
@@ -1462,7 +1462,7 @@ static int edbm_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	EDBM_reveal_mesh(em);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1479,7 +1479,7 @@ void MESH_OT_reveal(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
@@ -1496,7 +1496,7 @@ static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
 		EDBM_CallOpf(em, op, "reversefaces faces=%hf", BM_ELEM_SELECT);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1513,7 +1513,7 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
 }
@@ -1574,7 +1574,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }	
@@ -1591,7 +1591,7 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_int(ot->srna, "repeat", 1, 1, 100, "Number of times to smooth the mesh", "", 1, INT_MAX);
 }
@@ -1620,7 +1620,7 @@ static int edbm_faces_shade_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 	mesh_set_smooth_faces(em, 1);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1629,7 +1629,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Shade Smooth";
-	 ot->description = "Display faces smooth (using vertex normals)";
+	ot->description = "Display faces smooth (using vertex normals)";
 	ot->idname = "MESH_OT_faces_shade_smooth";
 
 	/* api callbacks */
@@ -1637,7 +1637,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int edbm_faces_shade_flat_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1648,7 +1648,7 @@ static int edbm_faces_shade_flat_exec(bContext *C, wmOperator *UNUSED(op))
 	mesh_set_smooth_faces(em, 0);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1665,7 +1665,7 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 
@@ -1693,7 +1693,7 @@ static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
 
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1718,7 +1718,7 @@ static int edbm_reverse_uvs_exec(bContext *C, wmOperator *op)
 
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1746,7 +1746,7 @@ static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
 
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 /* DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
  * WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
  */
@@ -1773,7 +1773,7 @@ static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1790,7 +1790,7 @@ void MESH_OT_uvs_rotate(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate UVs around");
@@ -1808,7 +1808,7 @@ void MESH_OT_uvs_reverse(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
 	//RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror UVs around");
@@ -1825,7 +1825,7 @@ void MESH_OT_colors_rotate(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CCW, "Direction", "Direction to rotate edge around");
@@ -1842,7 +1842,7 @@ void MESH_OT_colors_reverse(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
 	//RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around");
@@ -1955,7 +1955,7 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -2022,7 +2022,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use");
@@ -2056,7 +2056,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -2072,11 +2072,11 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "mergedist", 0.0001f, 0.000001f, 50.0f, 
-		"Merge Distance", 
-		"Minimum distance between elements to merge", 0.00001, 10.0);
+	              "Merge Distance",
+	              "Minimum distance between elements to merge", 0.00001, 10.0);
 }
 
 /************************ Vertex Path Operator *************************/
@@ -2139,7 +2139,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
  * WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
  */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
 
 	/* we succeeded */
@@ -2151,7 +2151,8 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 	static const EnumPropertyItem type_items[] = {
 		{VPATH_SELECT_EDGE_LENGTH, "EDGE_LENGTH", 0, "Edge Length", NULL},
 		{VPATH_SELECT_TOPOLOGICAL, "TOPOLOGICAL", 0, "Topological", NULL},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Select Vertex Path";
@@ -2162,7 +2163,7 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "type", type_items, VPATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance");
@@ -2411,7 +2412,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -2427,7 +2428,7 @@ void MESH_OT_rip(wmOperatorType *ot)
 	ot->poll = EM_view3d_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* to give to transform */
 	Transform_Properties(ot, P_PROPORTIONAL);
@@ -2481,7 +2482,7 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 	shape_propagate(obedit, em, op);
 
 	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
 	return OPERATOR_FINISHED;
 }
@@ -2499,7 +2500,7 @@ void MESH_OT_shape_propagate_to_all(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
@@ -2541,7 +2542,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
 	return OPERATOR_FINISHED;
 }
@@ -2595,7 +2596,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	prop = RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending");
@@ -2631,25 +2632,25 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 		BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(ev, BM_ELEM_HIDDEN)) {
 				switch (mode) {
-				case -1: /* aligned */
-					if (fabs(ev->co[axis] - value) < limit)
-						BM_elem_select_set(em->bm, ev, TRUE);
-					break;
-				case 0: /* neg */
-					if (ev->co[axis] > value)
-						BM_elem_select_set(em->bm, ev, TRUE);
-					break;
-				case 1: /* pos */
-					if (ev->co[axis] < value)
-						BM_elem_select_set(em->bm, ev, TRUE);
-					break;
+					case -1: /* aligned */
+						if (fabs(ev->co[axis] - value) < limit)
+							BM_elem_select_set(em->bm, ev, TRUE);
+						break;
+					case 0: /* neg */
+						if (ev->co[axis] > value)
+							BM_elem_select_set(em->bm, ev, TRUE);
+						break;
+					case 1: /* pos */
+						if (ev->co[axis] < value)
+							BM_elem_select_set(em->bm, ev, TRUE);
+						break;
 				}
 			}
 		}
 	}
 
 	EDBM_selectmode_flush(em);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -2678,7 +2679,7 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "mode", axis_mode_items, 0, "Axis Mode", "Axis side to use when selecting");
@@ -2715,7 +2716,7 @@ static int edbm_solidify_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -2734,7 +2735,7 @@ void MESH_OT_solidify(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_float(ot->srna, "thickness", 0.01f, -FLT_MAX, FLT_MAX, "thickness", "", -10.0f, 10.0f);
 	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
@@ -2744,11 +2745,11 @@ void MESH_OT_solidify(wmOperatorType *ot)
 #define TRAIL_FREEHAND 2
 #define TRAIL_MIXED    3 /* (1|2) */
 #define TRAIL_AUTO     4 
-#define	TRAIL_MIDPOINTS 8
+#define TRAIL_MIDPOINTS 8
 
 typedef struct CutCurve {
-	float  x;
-	float  y;
+	float x;
+	float y;
 } CutCurve;
 
 /* ******************************************************************** */
@@ -2771,9 +2772,9 @@ typedef struct CutCurve {
  * bmesh port version
  */
 
-#define KNIFE_EXACT		1
-#define KNIFE_MIDPOINT	2
-#define KNIFE_MULTICUT	3
+#define KNIFE_EXACT     1
+#define KNIFE_MIDPOINT  2
+#define KNIFE_MULTICUT  3
 
 static EnumPropertyItem knife_items[] = {
 	{KNIFE_EXACT, "EXACT", 0, "Exact", ""},
@@ -2788,13 +2789,13 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
                                struct GHash *gh, int *isected)
 {
 #define MAXSLOPE 100000
-	float  x11, y11, x12 = 0, y12 = 0, x2max, x2min, y2max;
-	float  y2min, dist, lastdist = 0, xdiff2, xdiff1;
-	float  m1, b1, m2, b2, x21, x22, y21, y22, xi;
-	float  yi, x1min, x1max, y1max, y1min, perc = 0;
+	float x11, y11, x12 = 0, y12 = 0, x2max, x2min, y2max;
+	float y2min, dist, lastdist = 0, xdiff2, xdiff1;
+	float m1, b1, m2, b2, x21, x22, y21, y22, xi;
+	float yi, x1min, x1max, y1max, y1min, perc = 0;
 	float  *scr;
-	float  threshold = 0.0;
-	int  i;
+	float threshold = 0.0;
+	int i;
 	
 	//threshold = 0.000001; /* tolerance for vertex intersection */
 	// XXX threshold = scene->toolsettings->select_thresh / 100;
@@ -2863,8 +2864,8 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 		y12 = c[i].y;
 		
 		/* Perp. Distance from point to line */
-		if (m2 != MAXSLOPE) dist = (y12 - m2 * x12 - b2);/* /sqrt(m2 * m2 + 1); Only looking for */
-			/* change in sign.  Skip extra math */	
+		if (m2 != MAXSLOPE) dist = (y12 - m2 * x12 - b2);  /* /sqrt(m2 * m2 + 1); Only looking for */
+		/* change in sign.  Skip extra math */
 		else dist = x22 - x12;
 		
 		if (i == 0) lastdist = dist;
@@ -2929,7 +2930,7 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 					}
 				}
 				if ((m2 <= 1.0f) && (m2 >= -1.0f)) perc = (xi - x21) / (x22 - x21);
-				else perc = (yi - y21) / (y22 - y21); /* lower slope more accurate */
+				else perc = (yi - y21) / (y22 - y21);  /* lower slope more accurate */
 				//isect = 32768.0 * (perc + 0.0000153); /* Percentage in 1 / 32768ths */
 				
 				break;
@@ -3005,8 +3006,8 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 			if (isect != 0.0f) {
 				if (mode != KNIFE_MULTICUT && mode != KNIFE_MIDPOINT) {
 					BMO_slot_map_float_insert(bm, &bmop,
-					                    "edgepercents",
-					                    be, isect);
+					                          "edgepercents",
+					                          be, isect);
 
 				}
 				BMO_elem_flag_enable(bm, be, 1);
@@ -3040,7 +3041,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3060,7 +3061,7 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	ot->poll = EM_view3d_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", knife_items, KNIFE_EXACT, "Type", "");
 	prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
@@ -3095,7 +3096,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	CustomData_bmesh_init_pool(&bm_new->ldata, bm_mesh_allocsize_default.totloop, BM_LOOP);
 	CustomData_bmesh_init_pool(&bm_new->pdata, bm_mesh_allocsize_default.totface, BM_FACE);
 		
-	basenew = ED_object_add_duplicate(bmain, scene, editbase, USER_DUP_MESH);	/* 0 = fully linked */
+	basenew = ED_object_add_duplicate(bmain, scene, editbase, USER_DUP_MESH);   /* 0 = fully linked */
 	assign_matarar(basenew->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */
 
 	ED_base_object_select(basenew, BA_DESELECT);
@@ -3232,7 +3233,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 	   
 	if (retval) {
 		DAG_id_tag_update(base->object->data, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, base->object->data);
 		return OPERATOR_FINISHED;
 	}
 
@@ -3280,14 +3281,14 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 	BMO_op_exec(em->bm, &bmop);
 	
 	/* select new geometry */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_FACE|BM_EDGE, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_FACE | BM_EDGE, BM_ELEM_SELECT, TRUE);
 	
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 	
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	
 	return OPERATOR_FINISHED;
 
@@ -3304,7 +3305,7 @@ void MESH_OT_fill(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
@@ -3316,7 +3317,7 @@ static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3332,7 +3333,7 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /********************** Quad/Tri Operators *************************/
@@ -3347,7 +3348,7 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3363,7 +3364,7 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "use_beauty", 1, "Beauty", "Use best triangulation division (currently quads only)");
 }
@@ -3388,7 +3389,7 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3406,7 +3407,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
 	                              "Max Angle", "Angle Limit", 0.0f, DEG2RADF(180.0f));
@@ -3440,7 +3441,7 @@ static int edbm_dissolve_exec(bContext *C, wmOperator *op)
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA|ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA | ND_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -3457,7 +3458,7 @@ void MESH_OT_dissolve(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* TODO, move dissolve into its own operator so this doesnt confuse non-dissolve options */
 	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts",
@@ -3478,7 +3479,7 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3497,7 +3498,7 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_float_rotation(ot->srna, "angle_limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
 	                              "Max Angle", "Angle Limit in Degrees", 0.0f, DEG2RADF(180.0f));
@@ -3523,7 +3524,7 @@ static int edbm_split_exec(bContext *C, wmOperator *op)
 	EDBM_RecalcNormals(em);
 
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3539,7 +3540,7 @@ void MESH_OT_split(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 
@@ -3582,7 +3583,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3612,7 +3613,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	ot->poll = EM_view3d_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
@@ -3654,13 +3655,11 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 	/* find two vertices with valence count == 1, more or less is wrong */
 	v1 = NULL;
 	v2 = NULL;
-	for (eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	    eve; eve = BM_iter_step(&iter)) {
+	for (eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL); eve; eve = BM_iter_step(&iter)) {
 
 		valence = 0;
 
-		for (eed = BM_iter_new(&eiter, em->bm, BM_EDGES_OF_VERT, eve);
-		    eed; eed = BM_iter_step(&eiter)) {
+		for (eed = BM_iter_new(&eiter, em->bm, BM_EDGES_OF_VERT, eve); eed; eed = BM_iter_step(&eiter)) {
 
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				valence++;
@@ -3708,7 +3707,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3738,7 +3737,7 @@ void MESH_OT_screw(wmOperatorType *ot)
 	ot->poll = EM_view3d_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, 256);
@@ -3760,7 +3759,7 @@ static int edbm_select_by_number_vertices_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 
 	for (efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-	    efa; efa = BM_iter_step(&iter)) {
+	     efa; efa = BM_iter_step(&iter)) {
 
 		int select = 0;
 
@@ -3784,19 +3783,18 @@ static int edbm_select_by_number_vertices_exec(bContext *C, wmOperator *op)
 
 	EDBM_selectmode_flush(em);
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 {
 	static const EnumPropertyItem type_items[] = {
-	    {0, "LESS", 0, "Less Than", ""},
-	    {1, "EQUAL", 0, "Equal To", ""},
-	    {2, "GREATER", 0, "Greater Than", ""},
-	    {3, "NOTEQUAL", 0, "Not Equal To", ""},
-	    {0, NULL, 0, NULL, NULL}
-	};
+		{0, "LESS", 0, "Less Than", ""},
+		{1, "EQUAL", 0, "Equal To", ""},
+		{2, "GREATER", 0, "Greater Than", ""},
+		{3, "NOTEQUAL", 0, "Not Equal To", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name = "Select by Number of Vertices";
@@ -3808,7 +3806,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_int(ot->srna, "number", 4, 3, INT_MAX, "Number of Vertices", "", 3, INT_MAX);
@@ -3824,7 +3822,7 @@ static int edbm_select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 	BMIter iter;
 
 	for (eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	    eve; eve = BM_iter_step(&iter)) {
+	     eve; eve = BM_iter_step(&iter)) {
 
 		if (!eve->e) {
 			BM_elem_select_set(em->bm, eve, TRUE);
@@ -3832,7 +3830,7 @@ static int edbm_select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	for (eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-	    eed; eed = BM_iter_step(&iter)) {
+	     eed; eed = BM_iter_step(&iter)) {
 
 		if (!eed->l) {
 			BM_elem_select_set(em->bm, eed, TRUE);
@@ -3841,7 +3839,7 @@ static int edbm_select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 
 	EDBM_selectmode_flush(em);
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
 }
 
@@ -3857,7 +3855,7 @@ void MESH_OT_select_loose_verts(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
@@ -3868,7 +3866,7 @@ static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
 
 	EDBM_select_mirrored(obedit, em, extend);
 	EDBM_selectmode_flush(em);
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3885,7 +3883,7 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
@@ -3907,8 +3905,8 @@ static int vergxco(const void *v1, const void *v2)
 {
 	const xvertsort *x1 = v1, *x2 = v2;
 
-	if (x1->x > x2->x)       return  1;
-	else if (x1->x < x2->x)  return -1;
+	if (x1->x > x2->x) return 1;
+	else if (x1->x < x2->x) return -1;
 	return 0;
 }
 
@@ -3921,8 +3919,8 @@ static int vergface(const void *v1, const void *v2)
 {
 	const struct facesort *x1 = v1, *x2 = v2;
 
-	if (x1->x > x2->x)       return  1;
-	else if (x1->x < x2->x)  return -1;
+	if (x1->x > x2->x) return 1;
+	else if (x1->x < x2->x) return -1;
 	return 0;
 }
 #endif
@@ -3956,7 +3954,8 @@ static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))
 
 	amount = em->bm->totvert;
 	sortblock = MEM_callocN(sizeof(xvertsort) * amount, "xsort");
-	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
+	{
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
 			sortblock[i].v1 = eve;
 	}
@@ -3966,7 +3965,7 @@ static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))
 
 	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 
-		/* make temporal listbase */
+	/* make temporal listbase */
 	tbase.first = tbase.last = 0;
 	for (i = 0; i < amount; i++) {
 		eve = sortblock[i].v1;
@@ -4003,7 +4002,7 @@ void MESH_OT_vertices_sort(wmOperatorType *ot)
 	ot->poll = EM_view3d_poll; /* uses view relative X axis to sort verts */
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ********************** SORT FACES ******************* */
@@ -4099,7 +4098,7 @@ static int edbm_sort_faces_exec(bContext *C, wmOperator *op)
 		float cur[3];
 		
 		if (event == 1)
-			mult_m4_m4m4(mat, rv3d->viewmat, OBACT->obmat); /* apply the view matrix to the object matrix */
+			mult_m4_m4m4(mat, rv3d->viewmat, OBACT->obmat);  /* apply the view matrix to the object matrix */
 		else if (event == 2) { /* sort from cursor */
 			if (v3d && v3d->localvd) {
 				copy_v3_v3(cur, v3d->cursor);
@@ -4182,7 +4181,7 @@ void MESH_OT_sort_faces(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
@@ -4273,7 +4272,7 @@ void MESH_OT_vertices_randomize(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /******end of qsort stuff ****/
@@ -4328,7 +4327,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 	EDBM_RecalcNormals(em);
 
 	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -4345,7 +4344,7 @@ void MESH_OT_noise(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
 }
@@ -4417,7 +4416,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 	EDBM_RecalcNormals(em);
 
 	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -4434,7 +4433,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "percent", 0.5f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
@@ -4453,7 +4452,7 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -4470,7 +4469,7 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
 }
@@ -4504,7 +4503,7 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		DAG_id_tag_update(obedit->data, 0);
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 		return OPERATOR_FINISHED;
 	}
@@ -4524,7 +4523,7 @@ void MESH_OT_inset(wmOperatorType *ot)
 	ot->description = "";
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	// RNA_def_boolean(ot->srna, "use_boundary",        TRUE, "Boundary",  "Inset face boundries");

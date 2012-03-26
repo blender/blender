@@ -214,7 +214,7 @@ int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, const char *selectslot
 
 	BMO_op_exec(bm, &bmop);
 
-	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT|BM_EDGE|BM_FACE, BM_ELEM_SELECT);
+	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT);
 
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, selectslot, BM_ALL, BM_ELEM_SELECT, TRUE);
 
@@ -257,7 +257,7 @@ void EDBM_selectmode_to_scene(bContext *C)
 	scene->toolsettings->selectmode = em->selectmode;
 
 	/* Request redraw of header buttons (to show new select mode) */
-	WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, scene);
 }
 
 void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
@@ -376,12 +376,12 @@ void EDBM_free_index_arrays(BMEditMesh *tm)
 
 BMVert *EDBM_get_vert_for_index(BMEditMesh *tm, int index)
 {
-	return tm->vert_index && index < tm->bm->totvert ?tm->vert_index[index]:NULL;
+	return tm->vert_index && index < tm->bm->totvert ? tm->vert_index[index] : NULL;
 }
 
 BMEdge *EDBM_get_edge_for_index(BMEditMesh *tm, int index)
 {
-	return tm->edge_index && index < tm->bm->totedge ?tm->edge_index[index]:NULL;
+	return tm->edge_index && index < tm->bm->totedge ? tm->edge_index[index] : NULL;
 }
 
 BMFace *EDBM_get_face_for_index(BMEditMesh *tm, int index)
@@ -483,12 +483,12 @@ int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 
 void EDBM_flag_disable_all(BMEditMesh *em, const char hflag)
 {
-	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT|BM_EDGE|BM_FACE, hflag);
+	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag);
 }
 
 void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
 {
-	BM_mesh_elem_flag_enable_all(em->bm, BM_VERT|BM_EDGE|BM_FACE, hflag);
+	BM_mesh_elem_flag_enable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag);
 }
 
 /**************-------------- Undo ------------*****************/
@@ -998,7 +998,7 @@ int EDBM_texFaceCheck(BMEditMesh *em)
 {
 	/* some of these checks could be a touch overkill */
 	return em && em->bm->totface && CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY) &&
-		   CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV);
+	       CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV);
 }
 
 int EDBM_vertColorCheck(BMEditMesh *em)
@@ -1052,7 +1052,7 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 		ED_mesh_mirrtopo_init(me, -1, &mesh_topo_store, TRUE);
 	}
 	else {
-		 tree = BMBVH_NewBVH(em, 0, NULL, NULL);
+		tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	}
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
@@ -1198,8 +1198,7 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 
 	int sels[3] = {(em->selectmode & SCE_SELECT_VERTEX),
 	               (em->selectmode & SCE_SELECT_EDGE),
-	               (em->selectmode & SCE_SELECT_FACE),
-	              };
+	               (em->selectmode & SCE_SELECT_FACE), };
 
 	BMIter iter;
 	BMElem *ele;
