@@ -23,7 +23,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC 
+set(INC
 	.
 	../avi
 	../blenfont
@@ -38,15 +38,11 @@ set(INC
 	../modifiers
 	../nodes
 	../render/extern/include
-	../../../intern/bsp/extern
-	../../../intern/decimation/extern
-	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
 	../../../intern/iksolver/extern
 	../../../intern/memutil
 	../../../intern/mikktspace
 	../../../intern/opennl/extern
-	../../../intern/smoke/extern
 
 	# XXX - BAD LEVEL CALL WM_api.h
 	../windowmanager
@@ -333,15 +329,33 @@ if(WITH_OPENMP)
 endif()
 
 if(WITH_MOD_FLUID)
+	list(APPEND INC
+		../../../intern/elbeem/extern
+	)
 	add_definitions(-DWITH_MOD_FLUID)
 endif()
 
 if(WITH_MOD_SMOKE)
+	list(APPEND INC
+		../../../intern/smoke/extern
+	)
 	add_definitions(-DWITH_SMOKE)
 endif()
 
 if(WITH_MOD_OCEANSIM)
 	add_definitions(-DWITH_OCEANSIM)
+endif()
+
+if(WITH_MOD_DECIMATE)
+	list(APPEND INC
+		../../../intern/decimation/extern
+	)
+endif()
+
+if(WITH_MOD_BOOLEAN)
+	list(APPEND INC
+		../../../intern/bsp/extern
+	)
 endif()
 
 if(WITH_JACK)

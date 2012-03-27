@@ -30,7 +30,11 @@
  */
 
 
-#include <stddef.h>
+// headers for fluidsim bobj meshes
+#include <stdlib.h>
+#include <zlib.h>
+#include <string.h>
+#include <stdio.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -53,14 +57,6 @@
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
-
-
-// headers for fluidsim bobj meshes
-#include <stdlib.h>
-#include "LBM_fluidsim.h"
-#include <zlib.h>
-#include <string.h>
-#include <stdio.h>
 
 /* ************************* fluidsim bobj file handling **************************** */
 

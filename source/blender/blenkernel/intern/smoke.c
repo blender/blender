@@ -73,14 +73,14 @@
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 
-#include "smoke_API.h"
-
 #include "BKE_smoke.h"
 
 /* UNUSED so far, may be enabled later */
 /* #define USE_SMOKE_COLLISION_DM */
 
 #ifdef WITH_SMOKE
+
+#include "smoke_API.h"
 
 #ifdef _WIN32
 #include <time.h>

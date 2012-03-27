@@ -74,7 +74,9 @@
 #include "BIK_api.h"
 
 /* both in intern */
+#ifdef WITH_MOD_SMOKE
 #include "smoke_API.h"
+#endif
 
 #ifdef WITH_LZO
 #include "minilzo.h"

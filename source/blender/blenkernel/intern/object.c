@@ -103,7 +103,9 @@
 #include "BKE_material.h"
 #include "BKE_camera.h"
 
+#ifdef WITH_MOD_FLUID
 #include "LBM_fluidsim.h"
+#endif
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
