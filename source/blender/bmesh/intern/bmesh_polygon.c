@@ -75,7 +75,7 @@ static short testedgesidef(const float v1[2], const float v2[2], const float v3[
  * polygon See Graphics Gems for
  * computing newell normal.
  */
-static void compute_poly_normal(float normal[3], float const (* verts)[3], int nverts)
+static void compute_poly_normal(float normal[3], float verts[][3], int nverts)
 {
 	float const *v_prev = verts[nverts - 1];
 	float const *v_curr = verts[0];
@@ -157,68 +157,6 @@ static void bm_face_compute_poly_normal_vertex_cos(BMFace *f, float n[3],
 }
 
 /**
- * \brief COMPUTE POLY CENTER
- *
- * Computes the centroid and
- * area of a polygon in the normal
- * plane. This is not an exact method as we can't access the tesselated data.
- */
-static void compute_poly_center(float center[3], float *r_area, float (* const verts)[3], int nverts, float UNUSED(normal[3]))
-{
-	int i, j;
-	float area = 0.0;
-
-	zero_v3(center);
-
-	if (nverts < 3)
-		return;
-
-	i = nverts - 1;
-	
-	/* calculate face center */
-	for (j = 0; j < nverts; j++){
-		add_v3_v3(center, verts[j]);
-	}
-	mul_v3_fl(center, 1.0/nverts);
-
-#if 0 /* we are using an approximation anyway so do not project to normal plane. */
-	/* project vertices to the normal plane */
-	for (j = 0; j < nverts; j++){
-		project_v3_plane(verts[j], normal, center);
-	}
-#endif
-
-	/* add triangle area of triangles formed by polygon edges and center. */
-	for (j = 0; j < nverts; j++) {
-		area += area_tri_v3(verts[j], verts[i], center);
-		i = j;
-	}
-
-	if (r_area)
-		*r_area = area;
-
-	/*
-	for (j = 0; j < nverts; j++) {
-		ai = verts[i][0] * verts[j][1] - verts[j][0] * verts[i][1];
-		atmp += ai;
-		xtmp += (verts[j][0] + verts[i][0]) * ai;
-		ytmp += (verts[j][1] + verts[i][1]) * ai;
-		i = j;
-	}
-
-	if (r_area)
-		*r_area = atmp / 2.0f;
-
-	if (atmp != 0) {
-		center[0] = xtmp /  (3.0f * atmp);
-		center[1] = xtmp /  (3.0f * atmp);
-		return TRUE;
-	}
-	return FALSE;
-	*/
-}
-
-/**
  * get the area of the face
  */
 float BM_face_area_calc(BMesh *bm, BMFace *f)
@@ -226,8 +164,8 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 	BMLoop *l;
 	BMIter iter;
 	float (*verts)[3];
-	float center[3];
-	float area = 0.0f;
+	float normal[3];
+	float area;
 	int i;
 
 	BLI_array_fixedstack_declare(verts, BM_NGON_STACK_SIZE, f->len, __func__);
@@ -236,7 +174,16 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 		copy_v3_v3(verts[i], l->v->co);
 	}
 
-	compute_poly_center(center, &area, verts, f->len, f->no);
+	if(f->len == 3) {
+		area = area_tri_v3(verts[0], verts[1], verts[2]);
+	}
+	else if(f->len == 4) {
+		area = area_quad_v3(verts[0], verts[1], verts[2], verts[3]);
+	}
+	else {
+		compute_poly_normal(normal, verts, f->len);
+		area = area_poly_v3(f->len, verts, normal);
+	}
 
 	BLI_array_fixedstack_free(verts);
 
@@ -488,7 +435,7 @@ void BM_face_normal_update(BMesh *UNUSED(bm), BMFace *f)
 	}
 }
 /* exact same as 'bmesh_face_normal_update' but accepts vertex coords */
-void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
+void BM_face_normal_update_vcos(BMesh *UNUSED(bm), BMFace *f, float no[3],
                                 float const (*vertexCos)[3])
 {
 	BMLoop *l;
@@ -795,7 +742,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 	///bmesh_face_normal_update(bm, f, f->no, projectverts);
 
-	compute_poly_normal(f->no, (float const (*)[3])projectverts, f->len);
+	compute_poly_normal(f->no, projectverts, f->len);
 	poly_rotate_plane(f->no, projectverts, i);
 
 	nvert = f->len;
@@ -909,7 +856,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		a++;
 	}
 	
-	compute_poly_normal(no, (float const (*)[3])projverts, f->len);
+	compute_poly_normal(no, projverts, f->len);
 	poly_rotate_plane(no, projverts, f->len);
 	poly_rotate_plane(no, edgeverts, len * 2);
 
