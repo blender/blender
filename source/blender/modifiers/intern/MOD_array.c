@@ -409,6 +409,15 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	BLI_assert(em->looptris == NULL);
 	result = CDDM_from_BMEditMesh(em, NULL, FALSE, FALSE);
 
+	if ((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)) {
+		/* Update normals in case offset object has rotation. */
+		
+		/* BMESH_TODO: check if normal recalc needed under any other
+		   conditions? */
+
+		CDDM_calc_normals(result);
+	}
+
 	BMEdit_Free(em);
 	MEM_freeN(em);
 	if (indexMap)
