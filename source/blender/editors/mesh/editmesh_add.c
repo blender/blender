@@ -98,29 +98,20 @@ static void make_prim_init(bContext *C, const char *idname,
 		ED_object_enter_editmode(C, EM_DO_UNDO | EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		*state = 1;
 	}
-	else {
-		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
-	}
 
 	*dia *= new_primitive_matrix(C, loc, rot, mat);
 }
 
 static void make_prim_finish(bContext *C, int *state, int enter_editmode)
 {
-	Object *obedit;
-	Mesh *me;
-	BMEditMesh *em;
-
-	obedit = CTX_data_edit_object(C);
-	me = obedit->data;
-	em = me->edit_btmesh;
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	/* Primitive has all verts selected, use vert select flush
 	 * to push this up to edges & faces. */
 	EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	/* userdef */
 	if (*state && !enter_editmode) {

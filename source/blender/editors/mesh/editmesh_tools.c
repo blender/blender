@@ -107,8 +107,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	                       RNA_boolean_get(op->ptr, "quadtri"),
 	                       TRUE, RNA_int_get(op->ptr, "seed"));
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -407,8 +406,7 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 	
 	EDBM_RecalcNormals(em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -528,9 +526,8 @@ static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
 	 * like this one don't push undo data until after modal mode is
 	 * done.*/
 	EDBM_RecalcNormals(em);
-	BMEdit_RecalcTessellation(em);
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	EDBM_update_generic(C, em, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -879,11 +876,9 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	 * like this one don't push undo data until after modal mode is
 	 * done. */
 	EDBM_RecalcNormals(vc.em);
-	BMEdit_RecalcTessellation(vc.em);
 
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, vc.obedit->data);
-	DAG_id_tag_update(vc.obedit->data, OB_RECALC_DATA);
-	
+	EDBM_update_generic(C, vc.em, TRUE);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -947,9 +942,7 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA | ND_SELECT, obedit);
+	EDBM_update_generic(C, em, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -981,9 +974,8 @@ static int edbm_collapse_edge_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA | ND_SELECT, obedit);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1010,9 +1002,8 @@ static int edbm_collapse_edge_loop_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_CallOpf(em, op, "dissolve_edge_loop edges=%he", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA | ND_SELECT, obedit);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1048,8 +1039,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	EDBM_update_generic(C, em, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1102,8 +1092,7 @@ static int edbm_mark_seam(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1157,9 +1146,7 @@ static int edbm_mark_sharp(bContext *C, wmOperator *op)
 		}
 	}
 
-
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1199,8 +1186,7 @@ static int edbm_vert_connect(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -1236,8 +1222,7 @@ static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -1275,8 +1260,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	EDBM_update_generic(C, em, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1315,8 +1299,7 @@ static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
 	if (!EDBM_CallOpf(em, op, "reversefaces faces=%hf", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 	
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1396,8 +1379,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1427,9 +1409,8 @@ static int edbm_hide_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
 	EDBM_hide_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
-		
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1459,8 +1440,7 @@ static int edbm_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	EDBM_reveal_mesh(em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1493,8 +1473,7 @@ static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
 	if (RNA_boolean_get(op->ptr, "inside"))
 		EDBM_CallOpf(em, op, "reversefaces faces=%hf", BM_ELEM_SELECT);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1571,8 +1550,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 		EDBM_EndMirrorCache(em);
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }	
@@ -1617,8 +1595,7 @@ static int edbm_faces_shade_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 
 	mesh_set_smooth_faces(em, 1);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1645,8 +1622,7 @@ static int edbm_faces_shade_flat_exec(bContext *C, wmOperator *UNUSED(op))
 
 	mesh_set_smooth_faces(em, 0);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1689,9 +1665,7 @@ static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* dependencies graph and notification stuff */
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	EDBM_update_generic(C, em, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1714,9 +1688,7 @@ static int edbm_reverse_uvs_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* dependencies graph and notification stuff */
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	EDBM_update_generic(C, em, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1743,11 +1715,8 @@ static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
 	}
 
 	/* dependencies graph and notification stuff */
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
-/* DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
- * WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
- */
+	EDBM_update_generic(C, em, FALSE);
+
 	/* we succeeded */
 	return OPERATOR_FINISHED;
 }
@@ -1770,8 +1739,7 @@ static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	EDBM_update_generic(C, em, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1952,8 +1920,7 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 	if (!status)
 		return OPERATOR_CANCELLED;
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -2052,9 +2019,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	
 	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s", count, (count == 1) ? "ex" : "ices");
 
-
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -2132,13 +2097,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 
 	EDBM_selectmode_flush(em);
 
-	/* dependencies graph and notification stuff */
-/* DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
- * WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
- */
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
-
+	EDBM_update_generic(C, em, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -2409,9 +2368,8 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (bm->totvertsel == 0) {
 		return OPERATOR_CANCELLED;
 	}
-	
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -2437,7 +2395,7 @@ void MESH_OT_rip(wmOperatorType *ot)
 /************************ Shape Operators *************************/
 
 /* BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
-static void shape_propagate(Object *obedit, BMEditMesh *em, wmOperator *op)
+static void shape_propagate(BMEditMesh *em, wmOperator *op)
 {
 	BMIter iter;
 	BMVert *eve = NULL;
@@ -2467,8 +2425,6 @@ static void shape_propagate(Object *obedit, BMEditMesh *em, wmOperator *op)
 		}
 	}
 #endif
-
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 }
 
 
@@ -2478,10 +2434,9 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 	Mesh *me = obedit->data;
 	BMEditMesh *em = me->edit_btmesh;
 
-	shape_propagate(obedit, em, op);
+	shape_propagate(em, op);
 
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+	EDBM_update_generic(C, em, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -2540,8 +2495,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 		copy_v3_v3(sco, co);
 	}
 
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -2714,8 +2668,7 @@ static int edbm_solidify_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3039,8 +2992,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3229,10 +3181,11 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 		retval = mesh_separate_material(bmain, scene, base, op);
 	else if (type == 2)
 		retval = mesh_separate_loose(bmain, scene, base, op);
-	   
+
 	if (retval) {
-		DAG_id_tag_update(base->object->data, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, base->object->data);
+		BMEditMesh *em = BMEdit_FromObject(base->object);
+		EDBM_update_generic(C, em, TRUE);
+
 		return OPERATOR_FINISHED;
 	}
 
@@ -3285,9 +3238,8 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
-	
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+
+	EDBM_update_generic(C, em, TRUE);
 	
 	return OPERATOR_FINISHED;
 
@@ -3315,8 +3267,7 @@ static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 	if (!EDBM_CallOpf(em, op, "beautify_fill faces=%hf", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3346,8 +3297,7 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 	if (!EDBM_CallOpf(em, op, "triangulate faces=%hf use_beauty=%b", BM_ELEM_SELECT, use_beauty))
 		return OPERATOR_CANCELLED;
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3387,8 +3337,7 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3438,9 +3387,7 @@ static int edbm_dissolve_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA | ND_SELECT, obedit);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3477,8 +3424,7 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3519,11 +3465,9 @@ static int edbm_split_exec(bContext *C, wmOperator *op)
 	}
 
 	/* Geometry has changed, need to recalc normals and looptris */
-	BMEdit_RecalcTessellation(em);
 	EDBM_RecalcNormals(em);
 
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3581,8 +3525,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3705,8 +3648,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -4325,8 +4267,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 
 	EDBM_RecalcNormals(em);
 
-	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -4414,8 +4355,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 
 	EDBM_RecalcNormals(em);
 
-	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -4450,8 +4390,7 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	if (!EDBM_CallOpf(em, op, "bridge_loops edges=%he", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 	
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -4501,9 +4440,7 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		DAG_id_tag_update(obedit->data, 0);
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-
+		EDBM_update_generic(C, em, TRUE);
 		return OPERATOR_FINISHED;
 	}
 }

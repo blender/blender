@@ -511,7 +511,8 @@ static int subframe_updateObject(Scene *scene, Object *ob, int flags, float fram
 		BKE_animsys_evaluate_animdata(scene, &cu->id, cu->adt, frame, ADT_RECALC_ANIM);
 	}
 
-	ob->recalc |= OB_RECALC_ALL;
+	/* was originally OB_RECALC_ALL - TODO - which flags are really needed??? */
+	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, frame, ADT_RECALC_ANIM);
 	if (flags & UPDATE_MESH) {
 		/* ignore cache clear during subframe updates

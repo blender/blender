@@ -48,8 +48,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
-#include "BKE_tessmesh.h" /* BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND */
-
 
 #include "ED_armature.h"
 #include "ED_particle.h"
@@ -88,19 +86,6 @@ void ED_undo_push(bContext *C, const char *str)
 		printf("undo push %s\n", str);
 	
 	if (obedit) {
-
-#ifdef BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND
-		/* undo is causing tessface recalc, so without we need to do explicitly */
-
-		if (U.undosteps == 0) {
-			if (obedit->type == OB_MESH) {
-				Mesh *me= obedit->data;
-				BMEdit_RecalcTessellation(me->edit_btmesh);
-			}
-		}
-
-#endif /* BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND */
-
 		if (U.undosteps == 0) return;
 		
 		if (obedit->type==OB_MESH)

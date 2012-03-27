@@ -41,6 +41,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_bmesh.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
@@ -147,7 +148,6 @@ int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const int re
 
 		BMEdit_Free(em);
 		*em = *emcopy;
-		BMEdit_RecalcTessellation(em);
 
 		MEM_freeN(emcopy);
 		em->emcopyusers = 0;
@@ -522,14 +522,6 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	
 	/* make sure shape keys work */
 	um->me.key = obme->key ? copy_key_nolib(obme->key) : NULL;
-
-#ifdef BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND
-
-	/* we recalc the tessellation here, to avoid seeding calls to
-	 * BMEdit_RecalcTessellation throughout the code. */
-	BMEdit_RecalcTessellation(em);
-
-#endif
 
 	/* BM_mesh_validate(em->bm); */ /* for troubleshooting */
 
@@ -1229,6 +1221,20 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 	}
 
 	EDBM_selectmode_flush(em);
+}
+
+/* so many tools call these that we better make it a generic function.
+ */
+void EDBM_update_generic(bContext *C, BMEditMesh *em, const short do_tessface)
+{
+	Object *ob = em->ob;
+	/* order of calling isn't important */
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+	if (do_tessface) {
+		BMEdit_RecalcTessellation(em);
+	}
 }
 
 /* * Selection History ***************************************************** */

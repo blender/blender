@@ -439,13 +439,14 @@ typedef struct DupliObject {
 // #define OB_RADIO			2048	/* deprecated */
 #define OB_FROMGROUP		4096
 
+/* WARNING - when adding flags check on PSYS_RECALC */
 /* ob->recalc (flag bits!) */
-#define OB_RECALC_OB		1
-#define OB_RECALC_DATA		2
-		/* time flag is set when time changes need recalc, so baked systems can ignore it */
-#define OB_RECALC_TIME		4
-		/* only use for matching any flag, NOT as an argument since more flags may be added. */
-#define OB_RECALC_ALL		(OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME)
+#define OB_RECALC_OB        (1 << 0)
+#define OB_RECALC_DATA      (1 << 1)
+/* time flag is set when time changes need recalc, so baked systems can ignore it */
+#define OB_RECALC_TIME      (1 << 2)
+/* only use for matching any flag, NOT as an argument since more flags may be added. */
+#define OB_RECALC_ALL       (OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME)
 
 /* controller state */
 #define OB_MAX_STATES		30

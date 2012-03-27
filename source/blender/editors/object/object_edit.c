@@ -440,10 +440,16 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	ob->mode= OB_MODE_EDIT;
 	
 	if (ob->type==OB_MESH) {
+		BMEditMesh *em;
 		ok= 1;
-		scene->obedit= ob;	// context sees this
-		
+		scene->obedit = ob;  /* context sees this */
+
 		EDBM_MakeEditBMesh(CTX_data_tool_settings(C), scene, ob);
+
+		em = BMEdit_FromObject(ob);
+		if (LIKELY(em)) {
+			BMEdit_RecalcTessellation(em);
+		}
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, scene);
 	}

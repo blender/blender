@@ -2601,8 +2601,7 @@ static void knifetool_finish(bContext *C, wmOperator *op)
 	knife_make_cuts(kcd);
 #endif
 
-	DAG_id_tag_update(kcd->ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, kcd->ob->data);
+	EDBM_update_generic(C, kcd->em, TRUE);
 }
 
 /* copied from paint_image.c */

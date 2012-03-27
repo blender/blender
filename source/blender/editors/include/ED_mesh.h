@@ -168,6 +168,8 @@ void EDBM_validate_selections(struct BMEditMesh *em);
 void EDBM_hide_mesh(struct BMEditMesh *em, int swap);
 void EDBM_reveal_mesh(struct BMEditMesh *em);
 
+void EDBM_update_generic(struct bContext *C, struct BMEditMesh *em, const short do_tessface);
+
 int			EDBM_check_backbuf(unsigned int index);
 int			EDBM_mask_init_backbuf_border(struct ViewContext *vc, int mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
 void		EDBM_free_backbuf(void);

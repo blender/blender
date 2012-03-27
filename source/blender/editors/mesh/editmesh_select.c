@@ -115,6 +115,7 @@ void EDBM_automerge(Scene *scene, Object *obedit, int update)
 		BMO_op_callf(em->bm, "automerge verts=%hv dist=%f", BM_ELEM_SELECT, scene->toolsettings->doublimit);
 		if (update) {
 			DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+			BMEdit_RecalcTessellation(em);
 		}
 	}
 }
@@ -722,9 +723,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* dependencies graph and notification stuff */
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+	EDBM_update_generic(C, em, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -763,9 +762,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* dependencies graph and notification stuff */
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+	EDBM_update_generic(C, em, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -807,9 +804,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 	EDBM_selectmode_flush(em);
 
-	/* dependencies graph and notification stuff */
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+	EDBM_update_generic(C, em, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1356,7 +1351,6 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 /* since you want to create paths with multiple selects, it doesn't have extend option */
 static void mouse_mesh_shortest_path(bContext *C, int mval[2])
 {
-	Object *ob = CTX_data_edit_object(C);
 	ViewContext vc;
 	BMEditMesh *em;
 	BMEdge *e;
@@ -1416,8 +1410,7 @@ static void mouse_mesh_shortest_path(bContext *C, int mval[2])
 				break;
 		}
 		
-		DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+		EDBM_update_generic(C, em, FALSE);
 	}
 }
 
@@ -2172,8 +2165,7 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, FALSE);
 
 	return OPERATOR_FINISHED;
 }

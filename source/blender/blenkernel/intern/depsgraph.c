@@ -2716,7 +2716,6 @@ void DAG_id_tag_update(ID *id, short flag)
 	/* flag is for objects and particle systems */
 	if (flag) {
 		Object *ob;
-		ParticleSystem *psys;
 		short idtype = GS(id->name);
 
 		if (idtype == ID_OB) {
@@ -2725,6 +2724,7 @@ void DAG_id_tag_update(ID *id, short flag)
 			ob->recalc |= (flag & OB_RECALC_ALL);
 		}
 		else if (idtype == ID_PA) {
+			ParticleSystem *psys;
 			/* this is weak still, should be done delayed as well */
 			for (ob=bmain->object.first; ob; ob=ob->id.next) {
 				for (psys=ob->particlesystem.first; psys; psys=psys->next) {
