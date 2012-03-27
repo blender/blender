@@ -333,7 +333,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
+	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
 	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	prop = RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
@@ -395,7 +395,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
+	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
 	prop = RNA_def_float(ot->srna, "radius1", 1.0f, 0.0, FLT_MAX, "Radius 1", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	prop = RNA_def_float(ot->srna, "radius2", 0.0f, 0.0, FLT_MAX, "Radius 2", "", 0.001, 100.00);

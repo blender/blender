@@ -506,7 +506,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_mat4_get(op, "mat", mat);
 
 	phid = 2.0f * (float)M_PI / segs;
-	phi = .25f * (float)M_PI;
+	phi = 0;
 
 	if (cap_ends) {
 		vec[0] = vec[1] = 0.0f;
@@ -579,7 +579,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_mat4_get(op, "mat", mat);
 
 	phid = 2.0f * (float)M_PI / segs;
-	phi = 0.25f * (float)M_PI;
+	phi = 0;
 
 	depth *= 0.5f;
 	if (cap_ends) {
