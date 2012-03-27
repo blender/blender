@@ -643,7 +643,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 	int prev_startdisp=0, prev_enddisp=0;
 	/* note: don't rename the strip, will break animation curves */
 
-	if (ELEM5(seq->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_SOUND, SEQ_SCENE, SEQ_META)==0) {
+	if (ELEM6(seq->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_SOUND, SEQ_SCENE, SEQ_META, SEQ_MOVIECLIP)==0) {
 		return;
 	}
 
@@ -686,6 +686,15 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 						 IMB_TC_RECORD_RUN);
 		
 		seq->anim_preseek = IMB_anim_get_preseek(seq->anim);
+
+		seq->len -= seq->anim_startofs;
+		seq->len -= seq->anim_endofs;
+		if (seq->len < 0) {
+			seq->len = 0;
+		}
+		break;
+	case SEQ_MOVIECLIP:
+		seq->len = BKE_movieclip_get_duration(seq->clip);
 
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
