@@ -39,6 +39,10 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_deform.h"
+
+#include "bmesh_py_types_meshdata.h"
+
 /* Mesh Loop UV
  * ************ */
 
@@ -138,7 +142,7 @@ int BPy_BMLoopUV_AssignPyObject(struct MLoopUV *mloopuv, PyObject *value)
 		return -1;
 	}
 	else {
-		*((MLoopUV *)mloopuv) = *((MLoopUV *)((BPy_BMLoopUV *)value)->data);
+		*((MLoopUV *)mloopuv) = *(((BPy_BMLoopUV *)value)->data);
 		return 0;
 	}
 }
@@ -252,9 +256,333 @@ PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *data)
 /* --- End Mesh Loop Color --- */
 
 
+/* Mesh Deform Vert
+ * **************** */
+
+/**
+ * This is python type wraps a deform vert as a python dictionary,
+ * hiding the #MDeformWeight on access, since the mapping is very close, eg:
+ *
+ * C:
+ *     weight = defvert_find_weight(dv, group_nr);
+ *     defvert_remove_group(dv, dw)
+ *
+ * Py:
+ *     weight = dv[group_nr]
+ *     del dv[group_nr]
+ *
+ * \note: there is nothing BMesh spesific here,
+ * its only that BMesh is the only part of blender that uses a hand written api like this.
+ * This type could eventually be used to access lattice weights.
+ *
+ * \note: Many of blender-api's dict-like-wrappers act like ordered dicts,
+ * This is intentional _not_ ordered, the weights can be in any order and it wont matter,
+ * the order should not be used in the api in any meaningful way (as with a python dict)
+ * only expose as mapping, not a sequence.
+ */
+
+#define BPy_BMDeformVert_Check(v)  (Py_TYPE(v) == &BPy_BMDeformVert_Type)
+
+typedef struct BPy_BMDeformVert {
+	PyObject_VAR_HEAD
+	MDeformVert *data;
+} BPy_BMDeformVert;
+
+
+/* Mapping Protocols
+ * ================= */
+
+static int bpy_bmdeformvert_len(BPy_BMDeformVert *self)
+{
+	return self->data->totweight;
+}
+
+static PyObject *bpy_bmdeformvert_subscript(BPy_BMDeformVert *self, PyObject *key)
+{
+	if (PyIndex_Check(key)) {
+		int i;
+		i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred()) {
+			return NULL;
+		}
+		else {
+			MDeformWeight *dw = defvert_find_index(self->data, i);
+
+			if (dw == NULL) {
+				PyErr_SetString(PyExc_KeyError, "BMDeformVert[key] = x: "
+				                "key not found");
+				return NULL;
+			}
+			else {
+				return PyFloat_FromDouble(dw->weight);
+			}
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+		             "BMDeformVert keys must be integers, not %.200s",
+		             Py_TYPE(key)->tp_name);
+		return NULL;
+	}
+}
+
+static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key, PyObject *value)
+{
+	if (PyIndex_Check(key)) {
+		int i;
+
+		i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred()) {
+			return -1;
+		}
+
+		if (value) {
+			/* dvert[group_index] = 0.5 */
+			if (i < 0) {
+				PyErr_SetString(PyExc_KeyError, "BMDeformVert[key] = x: "
+								"weight keys can't be negative");
+				return -1;
+			}
+			else {
+				MDeformWeight *dw = defvert_verify_index(self->data, i);
+				const float f = PyFloat_AsDouble(value);
+				if (f == -1 && PyErr_Occurred()) { // parsed key not a number
+					PyErr_SetString(PyExc_TypeError,
+									"BMDeformVert[key] = x: "
+									"argument not a number");
+					return -1;
+				}
+
+				dw->weight = CLAMPIS(f, 0.0f, 1.0f);
+			}
+		}
+		else {
+			/* del dvert[group_index] */
+			MDeformWeight *dw = defvert_find_index(self->data, i);
+
+			if (dw == NULL) {
+				PyErr_SetString(PyExc_KeyError, "del BMDeformVert[key]: "
+				                "key not found");
+			}
+			defvert_remove_group(self->data, dw);
+		}
+
+		return 0;
+
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+		             "BMDeformVert keys must be integers, not %.200s",
+		             Py_TYPE(key)->tp_name);
+		return -1;
+	}
+}
+
+static int bpy_bmdeformvert_contains(BPy_BMDeformVert *self, PyObject *value)
+{
+	const int key = PyLong_AsSsize_t(value);
+
+	if (key == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError,
+		                "BMDeformVert.__contains__: expected an int");
+		return -1;
+	}
+
+	return (defvert_find_index(self->data, key) != NULL) ? 1 : 0;
+}
+
+/* only defined for __contains__ */
+static PySequenceMethods bpy_bmdeformvert_as_sequence = {
+    (lenfunc)bpy_bmdeformvert_len,               /* sq_length */
+    NULL,                                        /* sq_concat */
+    NULL,                                        /* sq_repeat */
+
+    /* note: if this is set PySequence_Check() returns True,
+     * but in this case we dont want to be treated as a seq */
+    NULL,                                        /* sq_item */
+
+    NULL,                                        /* sq_slice */
+    NULL,                                        /* sq_ass_item */
+    NULL,                                        /* *was* sq_ass_slice */
+    (objobjproc)bpy_bmdeformvert_contains,  /* sq_contains */
+    (binaryfunc) NULL,                           /* sq_inplace_concat */
+    (ssizeargfunc) NULL,                         /* sq_inplace_repeat */
+};
+
+static PyMappingMethods bpy_bmdeformvert_as_mapping = {
+	(lenfunc)bpy_bmdeformvert_len,
+	(binaryfunc)bpy_bmdeformvert_subscript,
+	(objobjargproc)bpy_bmdeformvert_ass_subscript
+};
+
+/* Methods
+ * ======= */
+
+PyDoc_STRVAR(bpy_bmdeformvert_keys_doc,
+".. method:: keys()\n"
+"\n"
+"   Return the group indices used by this vertex\n"
+"   (matching pythons dict.keys() functionality).\n"
+"\n"
+"   :return: the deform group this vertex uses\n"
+"   :rtype: list of ints\n"
+);
+static PyObject *bpy_bmdeformvert_keys(BPy_BMDeformVert *self)
+{
+	PyObject *ret;
+	int i;
+	MDeformWeight *dw = self->data->dw;
+
+	ret = PyList_New(self->data->totweight);
+	for (i = 0; i < self->data->totweight; i++, dw++) {
+		PyList_SET_ITEM(ret, i, PyLong_FromSsize_t(dw->def_nr));
+	}
+
+	return ret;
+}
+
+PyDoc_STRVAR(bpy_bmdeformvert_values_doc,
+".. method:: items()\n"
+"\n"
+"   Return (group, weight) pairs for this vertex\n"
+"   (matching pythons dict.items() functionality).\n"
+"\n"
+"   :return: (key, value) pairs for each deform weight of this vertex.\n"
+"   :rtype: list of tuples\n"
+);
+static PyObject *bpy_bmdeformvert_values(BPy_BMDeformVert *self)
+{
+	PyObject *ret;
+	int i;
+	MDeformWeight *dw = self->data->dw;
+
+	ret = PyList_New(self->data->totweight);
+	for (i = 0; i < self->data->totweight; i++, dw++) {
+		PyList_SET_ITEM(ret, i, PyFloat_FromDouble(dw->weight));
+	}
+
+	return ret;
+}
+
+PyDoc_STRVAR(bpy_bmdeformvert_items_doc,
+".. method:: values()\n"
+"\n"
+"   Return the weights of the deform vertex\n"
+"   (matching pythons dict.values() functionality).\n"
+"\n"
+"   :return: The weights that influence this vertex\n"
+"   :rtype: list of floats\n"
+);
+static PyObject *bpy_bmdeformvert_items(BPy_BMDeformVert *self)
+{
+	PyObject *ret;
+	PyObject *item;
+	int i;
+	MDeformWeight *dw = self->data->dw;
+
+	ret = PyList_New(self->data->totweight);
+	for (i = 0; i < self->data->totweight; i++, dw++) {
+		item = PyTuple_New(2);
+
+		PyTuple_SET_ITEM(item, 0, PyLong_FromSsize_t(dw->def_nr));
+		PyTuple_SET_ITEM(item, 1, PyFloat_FromDouble(dw->weight));
+
+		PyList_SET_ITEM(ret, i, item);
+	}
+
+	return ret;
+}
+
+PyDoc_STRVAR(bpy_bmdeformvert_get_doc,
+".. method:: get(key, default=None)\n"
+"\n"
+"   Returns the deform weight matching the key or default\n"
+"   when not found (matches pythons dictionary function of the same name).\n"
+"\n"
+"   :arg key: The key associated with deform weight.\n"
+"   :type key: int\n"
+"   :arg default: Optional argument for the value to return if\n"
+"      *key* is not found.\n"
+"   :type default: Undefined\n"
+);
+static PyObject *bpy_bmdeformvert_get(BPy_BMDeformVert *self, PyObject *args)
+{
+	int key;
+	PyObject *def = Py_None;
+
+	if (!PyArg_ParseTuple(args, "i|O:get", &key, &def)) {
+		return NULL;
+	}
+	else {
+		MDeformWeight *dw = defvert_find_index(self->data, key);
+
+		if (dw) {
+			return PyFloat_FromDouble(dw->weight);
+		}
+		else {
+			return Py_INCREF(def), def;
+		}
+	}
+}
+
+static struct PyMethodDef bpy_bmdeformvert_methods[] = {
+    {"keys",    (PyCFunction)bpy_bmdeformvert_keys,    METH_NOARGS,  bpy_bmdeformvert_keys_doc},
+    {"values",  (PyCFunction)bpy_bmdeformvert_values,  METH_NOARGS,  bpy_bmdeformvert_values_doc},
+    {"items",   (PyCFunction)bpy_bmdeformvert_items,   METH_NOARGS,  bpy_bmdeformvert_items_doc},
+    {"get",     (PyCFunction)bpy_bmdeformvert_get,     METH_VARARGS, bpy_bmdeformvert_get_doc},
+    /* BMESH_TODO */
+    {NULL, NULL, 0, NULL}
+};
+
+PyTypeObject BPy_BMDeformVert_Type = {{{0}}}; /* bm.loops.layers.uv.active */
+
+static void bm_init_types_bmdvert(void)
+{
+	BPy_BMDeformVert_Type.tp_basicsize = sizeof(BPy_BMDeformVert);
+
+	BPy_BMDeformVert_Type.tp_name = "BMDeformVert";
+
+	BPy_BMDeformVert_Type.tp_doc = NULL; // todo
+
+	BPy_BMDeformVert_Type.tp_as_sequence = &bpy_bmdeformvert_as_sequence;
+	BPy_BMDeformVert_Type.tp_as_mapping = &bpy_bmdeformvert_as_mapping;
+
+	BPy_BMDeformVert_Type.tp_methods = bpy_bmdeformvert_methods;
+
+	BPy_BMDeformVert_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+
+	PyType_Ready(&BPy_BMDeformVert_Type);
+}
+
+int BPy_BMDeformVert_AssignPyObject(struct MDeformVert *dvert, PyObject *value)
+{
+	if (UNLIKELY(!BPy_BMDeformVert_Check(value))) {
+		PyErr_Format(PyExc_TypeError, "expected BMDeformVert, not a %.200s", Py_TYPE(value)->tp_name);
+		return -1;
+	}
+	else {
+		MDeformVert *dvert_src = ((BPy_BMDeformVert *)value)->data;
+		if (LIKELY(dvert != dvert_src)) {
+			defvert_copy(dvert, dvert_src);
+		}
+		return 0;
+	}
+}
+
+PyObject *BPy_BMDeformVert_CreatePyObject(struct MDeformVert *dvert)
+{
+	BPy_BMDeformVert *self = PyObject_New(BPy_BMDeformVert, &BPy_BMDeformVert_Type);
+	self->data = dvert;
+	return (PyObject *)self;
+}
+
+/* --- End Mesh Deform Vert --- */
+
+
 /* call to init all types */
 void BPy_BM_init_types_meshdata(void)
 {
 	bm_init_types_bmloopuv();
 	bm_init_types_bmloopcol();
+	bm_init_types_bmdvert();
 }

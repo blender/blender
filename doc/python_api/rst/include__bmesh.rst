@@ -104,6 +104,25 @@ Here are some examples ...
         print("Vert Shape: %f, %f, %f" % (shape.x, shape.y, shape.z))
 
 
+.. code-block:: python
+
+   # in this example the active vertex group index is used,
+   # this is stored in the object, not the BMesh
+   group_index = obj.vertex_groups.active_index
+
+   # only ever one deform weight layer
+   dvert_lay = bm.verts.layers.deform.active
+
+   for vert in bm.verts:
+       dvert = vert[dvert_lay]
+		
+       if group_index in dvert:
+           print("Weight %f" % dvert[group_index])
+       else:
+           print("Setting Weight")
+           dvert[group_index] = 0.5
+
+
 Keeping a Correct State
 -----------------------
 

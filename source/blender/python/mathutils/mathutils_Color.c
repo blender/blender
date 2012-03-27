@@ -194,7 +194,7 @@ static PyObject *Color_item(ColorObject *self, int i)
 
 	if (i < 0 || i >= COLOR_SIZE) {
 		PyErr_SetString(PyExc_IndexError,
-		                "color[attribute]: "
+		                "color[item]: "
 		                "array index out of range");
 		return NULL;
 	}
@@ -213,7 +213,7 @@ static int Color_ass_item(ColorObject *self, int i, PyObject *value)
 
 	if (f == -1 && PyErr_Occurred()) { // parsed item not a number
 		PyErr_SetString(PyExc_TypeError,
-		                "color[attribute] = x: "
+		                "color[item] = x: "
 		                "argument not a number");
 		return -1;
 	}
@@ -221,7 +221,7 @@ static int Color_ass_item(ColorObject *self, int i, PyObject *value)
 	if (i < 0) i = COLOR_SIZE - i;
 
 	if (i < 0 || i >= COLOR_SIZE) {
-		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: "
+		PyErr_SetString(PyExc_IndexError, "color[item] = x: "
 		                "array assignment index out of range");
 		return -1;
 	}

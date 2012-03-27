@@ -2836,6 +2836,7 @@ PyObject *BPyInit_bmesh_types(void)
 	mod_type_add(submodule, BPy_BMLayerItem_Type);
 	/* bmesh_py_types_meshdata.c */
 	mod_type_add(submodule, BPy_BMLoopUV_Type);
+	mod_type_add(submodule, BPy_BMDeformVert_Type);
 
 #undef mod_type_add
 

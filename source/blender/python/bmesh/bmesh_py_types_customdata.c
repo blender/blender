@@ -361,10 +361,10 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
 }
 
 static struct PyMethodDef bpy_bmelemseq_methods[] = {
-    {"keys",     (PyCFunction)bpy_bmlayercollection_keys,     METH_NOARGS,  bpy_bmlayercollection_keys_doc},
-    {"values",   (PyCFunction)bpy_bmlayercollection_values,   METH_NOARGS,  bpy_bmlayercollection_values_doc},
-    {"items",    (PyCFunction)bpy_bmlayercollection_items,    METH_NOARGS,  bpy_bmlayercollection_items_doc},
-    {"get",      (PyCFunction)bpy_bmlayercollection_get,      METH_VARARGS, bpy_bmlayercollection_get_doc},
+    {"keys",    (PyCFunction)bpy_bmlayercollection_keys,     METH_NOARGS,  bpy_bmlayercollection_keys_doc},
+    {"values",  (PyCFunction)bpy_bmlayercollection_values,   METH_NOARGS,  bpy_bmlayercollection_values_doc},
+    {"items",   (PyCFunction)bpy_bmlayercollection_items,    METH_NOARGS,  bpy_bmlayercollection_items_doc},
+    {"get",     (PyCFunction)bpy_bmlayercollection_get,      METH_VARARGS, bpy_bmlayercollection_get_doc},
 
     /* for later! */
 #if 0
@@ -774,8 +774,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 	switch (py_layer->type) {
 		case CD_MDEFORMVERT:
 		{
-			ret = Py_NotImplemented; /* TODO */
-			Py_INCREF(ret);
+			ret = BPy_BMDeformVert_CreatePyObject(value);
 			break;
 		}
 		case CD_PROP_FLT:
@@ -848,8 +847,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 	switch (py_layer->type) {
 		case CD_MDEFORMVERT:
 		{
-			PyErr_SetString(PyExc_AttributeError, "readonly"); /* could make this writeable later */
-			ret = -1;
+			ret = BPy_BMDeformVert_AssignPyObject(value, py_value);
 			break;
 		}
 		case CD_PROP_FLT:
