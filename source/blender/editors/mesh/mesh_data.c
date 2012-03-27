@@ -811,7 +811,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	int tessface_input = FALSE;
 
 	if (mesh->totface > 0 && mesh->totpoly == 0) {
-		convert_mfaces_to_mpolys(mesh);
+		BKE_mesh_convert_mfaces_to_mpolys(mesh);
 
 		/* would only be converting back again, don't bother */
 		tessface_input = TRUE;

@@ -2003,7 +2003,7 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 	}
 }
 
-void convert_mfaces_to_mpolys(Mesh *mesh)
+void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 {
 	MFace *mf;
 	MLoop *ml;

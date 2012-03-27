@@ -265,15 +265,11 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 	Mesh *me = ob->data;
 	BMesh *bm;
 
-	if (!me->mpoly && me->totface) {
-		fprintf(stderr, "%s: bmesh conversion issue! may lose lots of geometry! (bmesh internal error)\n", __func__);
-		
-		/* BMESH_TODO need to write smarter code here */
-		bm = BKE_mesh_to_bmesh(me, ob);
+	if (UNLIKELY(!me->mpoly && me->totface)) {
+		BKE_mesh_convert_mfaces_to_mpolys(me);
 	}
-	else {
-		bm = BKE_mesh_to_bmesh(me, ob);
-	}
+
+	bm = BKE_mesh_to_bmesh(me, ob);
 
 	if (me->edit_btmesh) {
 		/* this happens when switching shape keys */

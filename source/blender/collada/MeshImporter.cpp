@@ -965,6 +965,6 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 
 	mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 
-	convert_mfaces_to_mpolys(me);
+	BKE_mesh_convert_mfaces_to_mpolys(me);
 	return true;
 }

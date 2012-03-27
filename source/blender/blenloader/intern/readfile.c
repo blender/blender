@@ -3708,7 +3708,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 
 			/*check if we need to convert mfaces to mpolys*/
 			if (me->totface && !me->totpoly) {
-				convert_mfaces_to_mpolys(me);
+				BKE_mesh_convert_mfaces_to_mpolys(me);
 			}
 			
 			/*
