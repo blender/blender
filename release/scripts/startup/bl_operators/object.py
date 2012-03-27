@@ -624,10 +624,10 @@ class MakeDupliFace(Operator):
             mesh = bpy.data.meshes.new(data.name + "_dupli")
 
             mesh.vertices.add(len(face_verts) // 3)
-            mesh.faces.add(len(face_verts) // 12)
+            mesh.tessfaces.add(len(face_verts) // 12)
 
             mesh.vertices.foreach_set("co", face_verts)
-            mesh.faces.foreach_set("vertices_raw", faces)
+            mesh.tessfaces.foreach_set("vertices_raw", faces)
             mesh.update()  # generates edge data
 
             # pick an object to use
