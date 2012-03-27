@@ -386,6 +386,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DUPLICATE, me->mtpoly, me->totpoly, name);
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DUPLICATE, me->mloopuv, me->totloop, name);
 			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DUPLICATE, me->mtface, me->totface, name);
+			is_init = TRUE;
 		}
 		else {
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, name);
