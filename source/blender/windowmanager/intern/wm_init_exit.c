@@ -68,7 +68,7 @@
 #include "BLI_utildefines.h"
 
 #include "RE_engine.h"
-#include "RE_pipeline.h"		/* RE_ free stuff */
+#include "RE_pipeline.h"        /* RE_ free stuff */
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -125,20 +125,20 @@ int wm_start_with_console = 0; /* used in creator.c */
 void WM_init(bContext *C, int argc, const char **argv)
 {
 	if (!G.background) {
-		wm_ghost_init(C);	/* note: it assigns C to ghost! */
+		wm_ghost_init(C);   /* note: it assigns C to ghost! */
 		wm_init_cursor_data();
 	}
 	GHOST_CreateSystemPaths();
 	wm_operatortype_init();
 	WM_menutype_init();
 
-	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
+	set_free_windowmanager_cb(wm_close_and_free);   /* library.c */
 	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
 	DAG_editors_update_cb(ED_render_id_flush_update, ED_render_scene_update); /* depsgraph.c */
 	
-	ED_spacetypes_init();	/* editors/space_api/spacetype.c */
+	ED_spacetypes_init();   /* editors/space_api/spacetype.c */
 	
-	ED_file_init();			/* for fsmenu */
+	ED_file_init();         /* for fsmenu */
 	ED_init_node_butfuncs();	
 	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
@@ -203,8 +203,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 void WM_init_splash(bContext *C)
 {
 	if ((U.uiflag & USER_SPLASH_DISABLE) == 0) {
-		wmWindowManager *wm= CTX_wm_manager(C);
-		wmWindow *prevwin= CTX_wm_window(C);
+		wmWindowManager *wm = CTX_wm_manager(C);
+		wmWindow *prevwin = CTX_wm_window(C);
 	
 		if (wm->windows.first) {
 			CTX_wm_window_set(C, wm->windows.first);
@@ -216,18 +216,18 @@ void WM_init_splash(bContext *C)
 
 int WM_init_game(bContext *C)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmWindow* win;
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win;
 
 	ScrArea *sa;
-	ARegion *ar= NULL;
+	ARegion *ar = NULL;
 
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 
 	if (!scene) {
 		// XXX, this should not be needed.
 		Main *bmain = CTX_data_main(C);
-		scene= bmain->scene.first;
+		scene = bmain->scene.first;
 	}
 
 	win = wm->windows.first;
@@ -237,7 +237,7 @@ int WM_init_game(bContext *C)
 		CTX_wm_window_set(C, win);
 
 	sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0);
-	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 
 	// if we have a valid 3D view
 	if (sa && ar) {
@@ -251,7 +251,7 @@ int WM_init_game(bContext *C)
 			WM_operator_name_call(C, "SCREEN_OT_region_quadview", WM_OP_EXEC_DEFAULT, NULL);
 
 		/* toolbox, properties panel and header are hidden */
-		for (arhide=sa->regionbase.first; arhide; arhide=arhide->next) {
+		for (arhide = sa->regionbase.first; arhide; arhide = arhide->next) {
 			if (arhide->regiontype != RGN_TYPE_WINDOW) {
 				if (!(arhide->flag & RGN_FLAG_HIDDEN)) {
 					ED_region_toggle_hidden(C, arhide);
@@ -308,7 +308,7 @@ static void free_openrecent(void)
 {
 	struct RecentFile *recent;
 	
-	for (recent = G.recent_files.first; recent; recent=recent->next)
+	for (recent = G.recent_files.first; recent; recent = recent->next)
 		MEM_freeN(recent->filepath);
 	
 	BLI_freelistN(&(G.recent_files));
@@ -317,7 +317,7 @@ static void free_openrecent(void)
 
 /* bad stuff*/
 
-	// XXX copy/paste buffer stuff...
+// XXX copy/paste buffer stuff...
 extern void free_anim_copybuf(void); 
 extern void free_anim_drivers_copybuf(void); 
 extern void free_fmodifiers_copybuf(void); 
@@ -339,9 +339,9 @@ void WM_exit_ext(bContext *C, const short do_python)
 		
 		WM_jobs_stop_all(CTX_wm_manager(C));
 		
-		for (win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
+		for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
 			
-			CTX_wm_window_set(C, win);	/* needed by operator close callbacks */
+			CTX_wm_window_set(C, win);  /* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
 			WM_event_remove_handlers(C, &win->modalhandlers);
 			ED_screen_exit(C, win, win->screen);
@@ -366,15 +366,15 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 	BKE_freecubetable();
 	
-	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
+	ED_preview_free_dbase();  /* frees a Main dbase, before free_blender! */
 
 	if (C && CTX_wm_manager(C))
-		wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
+		wm_free_reports(C);  /* before free_blender! - since the ListBases get freed there */
 
 	seq_free_clipboard(); /* sequencer.c */
 	BKE_tracking_free_clipboard();
 		
-	free_blender();				/* blender.c, does entire library and spacetypes */
+	free_blender();  /* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 	free_anim_copybuf();
 	free_anim_drivers_copybuf();
@@ -418,7 +418,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	GPU_extensions_exit();
 
 	if (!G.background) {
-		BKE_undo_save_quit();	// saves quit.blend if global undo is on
+		BKE_undo_save_quit();  /* saves quit.blend if global undo is on */
 	}
 	BKE_reset_undo(); 
 	
@@ -438,7 +438,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 	GHOST_DisposeSystemPaths();
 
-	if (MEM_get_memory_blocks_in_use()!=0) {
+	if (MEM_get_memory_blocks_in_use() != 0) {
 		printf("Error: Not freed memory blocks: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();
 	}
@@ -458,5 +458,5 @@ void WM_exit_ext(bContext *C, const short do_python)
 void WM_exit(bContext *C)
 {
 	WM_exit_ext(C, 1);
-	exit(G.afbreek==1);
+	exit(G.afbreek == 1);
 }

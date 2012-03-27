@@ -87,7 +87,7 @@ void wm_subwindows_free(wmWindow *win)
 {
 	wmSubWindow *swin;
 	
-	for (swin= win->subwindows.first; swin; swin= swin->next)
+	for (swin = win->subwindows.first; swin; swin = swin->next)
 		wm_subwindow_free(swin);
 	
 	BLI_freelistN(&win->subwindows);
@@ -105,35 +105,35 @@ static wmSubWindow *swin_from_swinid(wmWindow *win, int swinid)
 {
 	wmSubWindow *swin;
 	
-	for (swin= win->subwindows.first; swin; swin= swin->next)
-		if (swin->swinid==swinid)
+	for (swin = win->subwindows.first; swin; swin = swin->next)
+		if (swin->swinid == swinid)
 			break;
 	return swin;
 }
 
 void wm_subwindow_getsize(wmWindow *win, int swinid, int *x, int *y) 
 {
-	wmSubWindow *swin= swin_from_swinid(win, swinid);
+	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
-		*x= swin->winrct.xmax - swin->winrct.xmin + 1;
-		*y= swin->winrct.ymax - swin->winrct.ymin + 1;
+		*x = swin->winrct.xmax - swin->winrct.xmin + 1;
+		*y = swin->winrct.ymax - swin->winrct.ymin + 1;
 	}
 }
 
 void wm_subwindow_getorigin(wmWindow *win, int swinid, int *x, int *y)
 {
-	wmSubWindow *swin= swin_from_swinid(win, swinid);
+	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
-		*x= swin->winrct.xmin;
-		*y= swin->winrct.ymin;
+		*x = swin->winrct.xmin;
+		*y = swin->winrct.ymin;
 	}
 }
 
 void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4])
 {
-	wmSubWindow *swin= swin_from_swinid(win, swinid);
+	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
 		/* used by UI, should find a better way to get the matrix there */
@@ -141,10 +141,10 @@ void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4])
 			int width, height;
 
 			wm_subwindow_getsize(win, swin->swinid, &width, &height);
-			orthographic_m4(mat, -0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f, -100, 100);
+			orthographic_m4(mat, -0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f, -100, 100);
 		}
 		else
-			glGetFloatv(GL_PROJECTION_MATRIX, (float*)mat);
+			glGetFloatv(GL_PROJECTION_MATRIX, (float *)mat);
 	}
 }
 
@@ -154,25 +154,25 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 {
 	wmSubWindow *swin;
 	int width, height;
-	int freewinid= 1;
+	int freewinid = 1;
 	
-	for (swin= win->subwindows.first; swin; swin= swin->next)
+	for (swin = win->subwindows.first; swin; swin = swin->next)
 		if (freewinid <= swin->swinid)
-			freewinid= swin->swinid+1;
+			freewinid = swin->swinid + 1;
 
-	win->curswin= swin= MEM_callocN(sizeof(wmSubWindow), "swinopen");
+	win->curswin = swin = MEM_callocN(sizeof(wmSubWindow), "swinopen");
 	BLI_addtail(&win->subwindows, swin);
 	
 	if (G.f & G_DEBUG) printf("swin %d added\n", freewinid);
-	swin->swinid= freewinid;
-	swin->winrct= *winrct;
+	swin->swinid = freewinid;
+	swin->winrct = *winrct;
 
 	/* and we appy it all right away */
 	wmSubWindowSet(win, swin->swinid);
 	
 	/* extra service */
 	wm_subwindow_getsize(win, swin->swinid, &width, &height);
-	wmOrtho2(-0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f);
+	wmOrtho2(-0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f);
 	glLoadIdentity();
 
 	return swin->swinid;
@@ -181,11 +181,11 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 
 void wm_subwindow_close(wmWindow *win, int swinid)
 {
-	wmSubWindow *swin= swin_from_swinid(win, swinid);
+	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
-		if (swin==win->curswin)
-			win->curswin= NULL;
+		if (swin == win->curswin)
+			win->curswin = NULL;
 		wm_subwindow_free(swin);
 		BLI_remlink(&win->subwindows, swin);
 		MEM_freeN(swin);
@@ -199,12 +199,12 @@ void wm_subwindow_close(wmWindow *win, int swinid)
 /* pixels go from 0-99 for a 100 pixel window */
 void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 {
-	wmSubWindow *swin= swin_from_swinid(win, swinid);
+	wmSubWindow *swin = swin_from_swinid(win, swinid);
 	
 	if (swin) {
 		int width, height;
 		
-		swin->winrct= *winrct;
+		swin->winrct = *winrct;
 		
 		/* CRITICAL, this clamping ensures that
 		 * the viewport never goes outside the screen
@@ -227,7 +227,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 		/* extra service */
 		wmSubWindowSet(win, swinid);
 		wm_subwindow_getsize(win, swinid, &width, &height);
-		wmOrtho2(-0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f);
+		wmOrtho2(-0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f);
 	}
 	else {
 		printf("wm_subwindow_position: Internal error, bad winid: %d\n", swinid);
@@ -238,35 +238,35 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 /* ----------------- exported in WM_api.h ------------------------------------------------------ */
 
 /* internal state, no threaded opengl! XXX */
-static wmWindow *_curwindow= NULL;
-static wmSubWindow *_curswin= NULL;
+static wmWindow *_curwindow = NULL;
+static wmSubWindow *_curswin = NULL;
 
 void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 {
 	int width, height;
-	_curswin= swin_from_swinid(win, swinid);
+	_curswin = swin_from_swinid(win, swinid);
 	
-	if (_curswin==NULL) {
+	if (_curswin == NULL) {
 		printf("wmSubWindowSet %d: doesn't exist\n", swinid);
 		return;
 	}
 	
-	win->curswin= _curswin;
-	_curwindow= win;
+	win->curswin = _curswin;
+	_curwindow = win;
 	
-	width= _curswin->winrct.xmax - _curswin->winrct.xmin + 1;
-	height= _curswin->winrct.ymax - _curswin->winrct.ymin + 1;
+	width = _curswin->winrct.xmax - _curswin->winrct.xmin + 1;
+	height = _curswin->winrct.ymax - _curswin->winrct.ymin + 1;
 	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 
 	if (srct) {
-		width= srct->xmax - srct->xmin + 1;
-		height= srct->ymax - srct->ymin + 1;
+		width = srct->xmax - srct->xmin + 1;
+		height = srct->ymax - srct->ymin + 1;
 		glScissor(srct->xmin, srct->ymin, width, height);
 	}
 	else
 		glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 	
-	wmOrtho2(-0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f);
+	wmOrtho2(-0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f);
 	glLoadIdentity();
 
 	glFlush();
@@ -300,8 +300,8 @@ void wmOrtho(float x1, float x2, float y1, float y2, float n, float f)
 void wmOrtho2(float x1, float x2, float y1, float y2)
 {
 	/* prevent opengl from generating errors */
-	if (x1==x2) x2+=1.0f;
-	if (y1==y2) y2+=1.0f;
+	if (x1 == x2) x2 += 1.0f;
+	if (y1 == y2) y2 += 1.0f;
 
 	wmOrtho(x1, x2, y1, y2, -100, 100);
 }
@@ -314,25 +314,25 @@ void wmOrtho2(float x1, float x2, float y1, float y2)
 
 unsigned int index_to_framebuffer(int index)
 {
-	unsigned int i= index;
+	unsigned int i = index;
 
-	switch(GPU_color_depth()) {
-	case 12:
-		i= ((i & 0xF00)<<12) + ((i & 0xF0)<<8) + ((i & 0xF)<<4);
-		/* sometimes dithering subtracts! */
-		i |= 0x070707;
-		break;
-	case 15:
-	case 16:
-		i= ((i & 0x7C00)<<9) + ((i & 0x3E0)<<6) + ((i & 0x1F)<<3);
-		i |= 0x030303;
-		break;
-	case 24:
-		break;
-	default:	// 18 bits... 
-		i= ((i & 0x3F000)<<6) + ((i & 0xFC0)<<4) + ((i & 0x3F)<<2);
-		i |= 0x010101;
-		break;
+	switch (GPU_color_depth()) {
+		case 12:
+			i = ((i & 0xF00) << 12) + ((i & 0xF0) << 8) + ((i & 0xF) << 4);
+			/* sometimes dithering subtracts! */
+			i |= 0x070707;
+			break;
+		case 15:
+		case 16:
+			i = ((i & 0x7C00) << 9) + ((i & 0x3E0) << 6) + ((i & 0x1F) << 3);
+			i |= 0x030303;
+			break;
+		case 24:
+			break;
+		default: // 18 bits...
+			i = ((i & 0x3F000) << 6) + ((i & 0xFC0) << 4) + ((i & 0x3F) << 2);
+			i |= 0x010101;
+			break;
 	}
 	
 	return i;
@@ -344,27 +344,27 @@ unsigned int index_to_framebuffer(int index)
 
 unsigned int index_to_framebuffer(int index)
 {
-	unsigned int i= index;
+	unsigned int i = index;
 	
-	switch(GPU_color_depth()) {
+	switch (GPU_color_depth()) {
 		case 8:
-			i= ((i & 48)<<18) + ((i & 12)<<12) + ((i & 3)<<6);
+			i = ((i & 48) << 18) + ((i & 12) << 12) + ((i & 3) << 6);
 			i |= 0x3F3F3F;
 			break;
 		case 12:
-			i= ((i & 0xF00)<<12) + ((i & 0xF0)<<8) + ((i & 0xF)<<4);
+			i = ((i & 0xF00) << 12) + ((i & 0xF0) << 8) + ((i & 0xF) << 4);
 			/* sometimes dithering subtracts! */
 			i |= 0x0F0F0F;
 			break;
 		case 15:
 		case 16:
-			i= ((i & 0x7C00)<<9) + ((i & 0x3E0)<<6) + ((i & 0x1F)<<3);
+			i = ((i & 0x7C00) << 9) + ((i & 0x3E0) << 6) + ((i & 0x1F) << 3);
 			i |= 0x070707;
 			break;
 		case 24:
 			break;
-		default:	// 18 bits... 
-			i= ((i & 0x3F000)<<6) + ((i & 0xFC0)<<4) + ((i & 0x3F)<<2);
+		default:    // 18 bits...
+			i = ((i & 0x3F000) << 6) + ((i & 0xFC0) << 4) + ((i & 0x3F) << 2);
 			i |= 0x030303;
 			break;
 	}
@@ -376,26 +376,26 @@ unsigned int index_to_framebuffer(int index)
 
 void WM_set_framebuffer_index_color(int index)
 {
-	const int col= index_to_framebuffer(index);
+	const int col = index_to_framebuffer(index);
 	cpack(col);
 }
 
 int WM_framebuffer_to_index(unsigned int col)
 {
-	if (col==0) return 0;
+	if (col == 0) return 0;
 
-	switch(GPU_color_depth()) {
-	case 8:
-		return ((col & 0xC00000)>>18) + ((col & 0xC000)>>12) + ((col & 0xC0)>>6);
-	case 12:
-		return ((col & 0xF00000)>>12) + ((col & 0xF000)>>8) + ((col & 0xF0)>>4);
-	case 15:
-	case 16:
-		return ((col & 0xF80000)>>9) + ((col & 0xF800)>>6) + ((col & 0xF8)>>3);
-	case 24:
-		return col & 0xFFFFFF;
-	default: // 18 bits...
-		return ((col & 0xFC0000)>>6) + ((col & 0xFC00)>>4) + ((col & 0xFC)>>2);
+	switch (GPU_color_depth()) {
+		case 8:
+			return ((col & 0xC00000) >> 18) + ((col & 0xC000) >> 12) + ((col & 0xC0) >> 6);
+		case 12:
+			return ((col & 0xF00000) >> 12) + ((col & 0xF000) >> 8) + ((col & 0xF0) >> 4);
+		case 15:
+		case 16:
+			return ((col & 0xF80000) >> 9) + ((col & 0xF800) >> 6) + ((col & 0xF8) >> 3);
+		case 24:
+			return col & 0xFFFFFF;
+		default: // 18 bits...
+			return ((col & 0xFC0000) >> 6) + ((col & 0xFC00) >> 4) + ((col & 0xFC) >> 2);
 	}		
 }
 

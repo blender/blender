@@ -62,23 +62,23 @@ static int checkAppleVideoCard(void)
 	long value;
 	long maxvram = 0;   /* we get always more than 1 renderer, check one, at least, has 8 Mo */
 	
-	display_mask = CGDisplayIDToOpenGLDisplayMask (CGMainDisplayID() );	
+	display_mask = CGDisplayIDToOpenGLDisplayMask(CGMainDisplayID() );
 	
-	theErr = CGLQueryRendererInfo( display_mask, &rend, &nrend);
+	theErr = CGLQueryRendererInfo(display_mask, &rend, &nrend);
 	if (theErr == 0) {
-		theErr = CGLDescribeRenderer (rend, 0, kCGLRPRendererCount, &nrend);
+		theErr = CGLDescribeRenderer(rend, 0, kCGLRPRendererCount, &nrend);
 		if (theErr == 0) {
 			for (j = 0; j < nrend; j++) {
-				theErr = CGLDescribeRenderer (rend, j, kCGLRPVideoMemory, &value); 
+				theErr = CGLDescribeRenderer(rend, j, kCGLRPVideoMemory, &value);
 				if (value > maxvram)
 					maxvram = value;
 				if ((theErr == 0) && (value >= 20000000)) {
-					theErr = CGLDescribeRenderer (rend, j, kCGLRPAccelerated, &value); 
+					theErr = CGLDescribeRenderer(rend, j, kCGLRPAccelerated, &value);
 					if ((theErr == 0) && (value != 0)) {
-						theErr = CGLDescribeRenderer (rend, j, kCGLRPCompliant, &value); 
+						theErr = CGLDescribeRenderer(rend, j, kCGLRPCompliant, &value);
 						if ((theErr == 0) && (value != 0)) {
 							/*fprintf(stderr,"make it big\n");*/
-							CGLDestroyRendererInfo (rend);
+							CGLDestroyRendererInfo(rend);
 							macPrefState = 8;
 							return 1;
 						}
@@ -87,18 +87,18 @@ static int checkAppleVideoCard(void)
 			}
 		}
 	}
-	if (maxvram < 7500000 ) {       /* put a standard alert and quit*/ 
+	if (maxvram < 7500000) {        /* put a standard alert and quit*/
 		SInt16 junkHit;
-		char  inError[] = "* Not enough VRAM    ";
-		char  inText[] = "* blender needs at least 8Mb    ";
+		char inError[] = "* Not enough VRAM    ";
+		char inText[] = "* blender needs at least 8Mb    ";
 		inError[0] = 16;
 		inText[0] = 28;
 		
 		fprintf(stderr, " vram is %li . not enough, aborting\n", maxvram);
-		StandardAlert (   kAlertStopAlert, (ConstStr255Param) &inError, (ConstStr255Param)&inText,NULL,&junkHit);
+		StandardAlert(kAlertStopAlert, (ConstStr255Param) & inError, (ConstStr255Param) & inText, NULL, &junkHit);
 		abort();
 	}
-	CGLDestroyRendererInfo (rend);
+	CGLDestroyRendererInfo(rend);
 	return 0;
 }
 
@@ -106,7 +106,7 @@ static void getMacAvailableBounds(short *top, short *left, short *bottom, short 
 {
 	Rect outAvailableRect;
 	
-	GetAvailableWindowPositioningBounds ( GetMainDevice(), &outAvailableRect);
+	GetAvailableWindowPositioningBounds(GetMainDevice(), &outAvailableRect);
 	
 	*top = outAvailableRect.top;  
 	*left = outAvailableRect.left;
@@ -124,14 +124,14 @@ void wm_set_apple_prefsize(int scr_x, int scr_y)
 		short top, left, bottom, right;
 		
 		getMacAvailableBounds(&top, &left, &bottom, &right);
-		WM_setprefsize(left +10,scr_y - bottom +10,right-left -20,bottom - 64);
-		G.windowstate= 0;
+		WM_setprefsize(left + 10, scr_y - bottom + 10, right - left - 20, bottom - 64);
+		G.windowstate = 0;
 		
 	}
 	else {
 		
 		/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
 		WM_setprefsize(120, 40, 850, 684);
-		G.windowstate= 0;
+		G.windowstate = 0;
 	}
 }
