@@ -139,15 +139,15 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_op_call_and_selectf(em, op, "vertout", 
-	                           "create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, dia, mat))
+	if (!EDBM_op_call_and_selectf(em, op, "vertout",
+	                              "create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
 
 	make_prim_finish(C, &state, enter_editmode);
 
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_plane_add(wmOperatorType *ot)
@@ -240,9 +240,9 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	em = me->edit_btmesh;
 
 	if (!EDBM_op_call_and_selectf(em, op, "vertout",
-	                           "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b mat=%m4",
-	                           RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"),
-	                           cap_end, cap_tri, mat))
+	                              "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b mat=%m4",
+	                              RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"),
+	                              cap_end, cap_tri, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -425,10 +425,10 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	em = me->edit_btmesh;
 
 	if (!EDBM_op_call_and_selectf(em, op, "vertout",
-	                           "create_grid xsegments=%i ysegments=%i size=%f mat=%m4",
-	                           RNA_int_get(op->ptr, "x_subdivisions"),
-	                           RNA_int_get(op->ptr, "y_subdivisions"),
-	                           RNA_float_get(op->ptr, "size") * dia, mat))
+	                              "create_grid xsegments=%i ysegments=%i size=%f mat=%m4",
+	                              RNA_int_get(op->ptr, "x_subdivisions"),
+	                              RNA_int_get(op->ptr, "y_subdivisions"),
+	                              RNA_float_get(op->ptr, "size") * dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -527,9 +527,9 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	em = me->edit_btmesh;
 
 	if (!EDBM_op_call_and_selectf(em, op, "vertout",
-	                           "create_uvsphere segments=%i revolutions=%i diameter=%f mat=%m4",
-	                           RNA_int_get(op->ptr, "segments"), RNA_int_get(op->ptr, "ring_count"),
-	                           RNA_float_get(op->ptr, "size"), mat))
+	                              "create_uvsphere segments=%i revolutions=%i diameter=%f mat=%m4",
+	                              RNA_int_get(op->ptr, "segments"), RNA_int_get(op->ptr, "ring_count"),
+	                              RNA_float_get(op->ptr, "size"), mat))
 	{
 		return OPERATOR_CANCELLED;
 	}

@@ -61,7 +61,7 @@ struct wmOperatorType;
 int EDBM_op_callf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
 
 int EDBM_op_call_and_selectf(struct BMEditMesh *em, struct wmOperator *op,
-                              const char *selectslot, const char *fmt, ...);
+                             const char *selectslot, const char *fmt, ...);
 
 /* same as above, but doesn't report errors.*/
 int EDBM_op_call_silentf(struct BMEditMesh *em, const char *fmt, ...);
@@ -72,10 +72,10 @@ int EDBM_op_call_silentf(struct BMEditMesh *em, const char *fmt, ...);
  *
  * execute the operator with BM_Exec_Op */
 int EDBM_op_init(struct BMEditMesh *em, struct BMOperator *bmop,
-                  struct wmOperator *op, const char *fmt, ...);
+                 struct wmOperator *op, const char *fmt, ...);
 /*cleans up after a bmesh operator*/
 int EDBM_op_finish(struct BMEditMesh *em, struct BMOperator *bmop,
-                    struct wmOperator *op, const int report);
+                   struct wmOperator *op, const int report);
 
 void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_editselection_store(struct BMEditMesh *em, struct BMHeader *ele);

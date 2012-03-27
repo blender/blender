@@ -833,7 +833,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		
 		if (rot_src) {
 			EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
-			             BM_ELEM_SELECT, cent, mat);
+			              BM_ELEM_SELECT, cent, mat);
 
 			/* also project the source, for retopo workflow */
 			if (use_proj)
@@ -842,9 +842,9 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 
 		edbm_extrude_edge(vc.obedit, vc.em, BM_ELEM_SELECT, nor);
 		EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
-		             BM_ELEM_SELECT, cent, mat);
+		              BM_ELEM_SELECT, cent, mat);
 		EDBM_op_callf(vc.em, op, "translate verts=%hv vec=%v",
-		             BM_ELEM_SELECT, min);
+		              BM_ELEM_SELECT, min);
 	}
 	else {
 		float *curs = give_cursor(vc.scene, vc.v3d);
@@ -915,28 +915,26 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int type = RNA_enum_get(op->ptr, "type");
 
-	BMEditMesh *bem = BMEdit_FromObject(obedit);
-
 	if (type == 0) {
-		if (!EDBM_op_callf(bem, op, "del geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS)) /* Erase Vertices */
+		if (!EDBM_op_callf(em, op, "del geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS)) /* Erase Vertices */
 			return OPERATOR_CANCELLED;
 	}
 	else if (type == 1) {
-		if (!EDBM_op_callf(bem, op, "del geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES)) /* Erase Edges */
+		if (!EDBM_op_callf(em, op, "del geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES)) /* Erase Edges */
 			return OPERATOR_CANCELLED;
 	}
 	else if (type == 2) {
-		if (!EDBM_op_callf(bem, op, "del geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES)) /* Erase Faces */
+		if (!EDBM_op_callf(em, op, "del geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES)) /* Erase Faces */
 			return OPERATOR_CANCELLED;
 	}
 	else if (type == 3) {
-		if (!EDBM_op_callf(bem, op, "del geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES)) /* Edges and Faces */
+		if (!EDBM_op_callf(em, op, "del geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES)) /* Edges and Faces */
 			return OPERATOR_CANCELLED;
 	}
 	else if (type == 4) {
 		//"Erase Only Faces";
-		if (!EDBM_op_callf(bem, op, "del geom=%hf context=%i",
-		                  BM_ELEM_SELECT, DEL_ONLYFACES))
+		if (!EDBM_op_callf(em, op, "del geom=%hf context=%i",
+		                   BM_ELEM_SELECT, DEL_ONLYFACES))
 			return OPERATOR_CANCELLED;
 	}
 
@@ -1537,8 +1535,8 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 	
 	for (i = 0; i < repeat; i++) {
 		if (!EDBM_op_callf(em, op,
-		                  "vertexsmooth verts=%hv mirror_clip_x=%b mirror_clip_y=%b mirror_clip_z=%b clipdist=%f",
-		                  BM_ELEM_SELECT, mirrx, mirry, mirrz, clipdist))
+		                   "vertexsmooth verts=%hv mirror_clip_x=%b mirror_clip_y=%b mirror_clip_z=%b clipdist=%f",
+		                   BM_ELEM_SELECT, mirrx, mirry, mirrz, clipdist))
 		{
 			return OPERATOR_CANCELLED;
 		}
@@ -3331,8 +3329,8 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	domaterials = RNA_boolean_get(op->ptr, "materials");
 
 	if (!EDBM_op_callf(em, op,
-	                  "join_triangles faces=%hf limit=%f cmp_sharp=%b cmp_uvs=%b cmp_vcols=%b cmp_materials=%b",
-	                  BM_ELEM_SELECT, limit, dosharp, douvs, dovcols, domaterials))
+	                   "join_triangles faces=%hf limit=%f cmp_sharp=%b cmp_uvs=%b cmp_vcols=%b cmp_materials=%b",
+	                   BM_ELEM_SELECT, limit, dosharp, douvs, dovcols, domaterials))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3418,8 +3416,8 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
 
 	if (!EDBM_op_callf(em, op,
-	                  "dissolve_limit edges=%he verts=%hv angle_limit=%f",
-	                  BM_ELEM_SELECT, BM_ELEM_SELECT, angle_limit))
+	                   "dissolve_limit edges=%he verts=%hv angle_limit=%f",
+	                   BM_ELEM_SELECT, BM_ELEM_SELECT, angle_limit))
 	{
 		return OPERATOR_CANCELLED;
 	}
