@@ -367,80 +367,25 @@ class ShapeTransfer(Operator):
                                     (orig_shape_coords[i] - orig_coords[i]))
 
             elif mode == 'RELATIVE_FACE':
-                # BMESH TODO - use .polygons
-                for face in me.faces:
-                    i1, i2, i3, i4 = face.vertices_raw
-                    if i4 != 0:
-                        pt = barycentric_transform(orig_shape_coords[i1],
-                                                   orig_coords[i4],
-                                                   orig_coords[i1],
-                                                   orig_coords[i2],
-                                                   target_coords[i4],
-                                                   target_coords[i1],
-                                                   target_coords[i2],
+                loops_vidxs = me.loops.foreach_get("vert_index")
+                for poly in me.polygons:
+                    l_start = l_stop = poly.loop_start
+                    l_stop += poly.loop_total
+                    idxs = loops_vidxs[l_start:l_stop]
+                    v_before = idxs[-2]
+                    v = idxs[-1]
+                    for v_after in idxs:
+                        pt = barycentric_transform(orig_shape_coords[v],
+                                                   orig_coords[v_before],
+                                                   orig_coords[v],
+                                                   orig_coords[v_after],
+                                                   target_coords[v_before],
+                                                   target_coords[v],
+                                                   target_coords[v_after],
                                                    )
-                        median_coords[i1].append(pt)
-
-                        pt = barycentric_transform(orig_shape_coords[i2],
-                                                   orig_coords[i1],
-                                                   orig_coords[i2],
-                                                   orig_coords[i3],
-                                                   target_coords[i1],
-                                                   target_coords[i2],
-                                                   target_coords[i3],
-                                                   )
-                        median_coords[i2].append(pt)
-
-                        pt = barycentric_transform(orig_shape_coords[i3],
-                                                   orig_coords[i2],
-                                                   orig_coords[i3],
-                                                   orig_coords[i4],
-                                                   target_coords[i2],
-                                                   target_coords[i3],
-                                                   target_coords[i4],
-                                                   )
-                        median_coords[i3].append(pt)
-
-                        pt = barycentric_transform(orig_shape_coords[i4],
-                                                   orig_coords[i3],
-                                                   orig_coords[i4],
-                                                   orig_coords[i1],
-                                                   target_coords[i3],
-                                                   target_coords[i4],
-                                                   target_coords[i1],
-                                                   )
-                        median_coords[i4].append(pt)
-
-                    else:
-                        pt = barycentric_transform(orig_shape_coords[i1],
-                                                   orig_coords[i3],
-                                                   orig_coords[i1],
-                                                   orig_coords[i2],
-                                                   target_coords[i3],
-                                                   target_coords[i1],
-                                                   target_coords[i2],
-                                                   )
-                        median_coords[i1].append(pt)
-
-                        pt = barycentric_transform(orig_shape_coords[i2],
-                                                   orig_coords[i1],
-                                                   orig_coords[i2],
-                                                   orig_coords[i3],
-                                                   target_coords[i1],
-                                                   target_coords[i2],
-                                                   target_coords[i3],
-                                                   )
-                        median_coords[i2].append(pt)
-
-                        pt = barycentric_transform(orig_shape_coords[i3],
-                                                   orig_coords[i2],
-                                                   orig_coords[i3],
-                                                   orig_coords[i1],
-                                                   target_coords[i2],
-                                                   target_coords[i3],
-                                                   target_coords[i1],
-                                                   )
-                        median_coords[i3].append(pt)
+                        median_coords[v].append(pt)
+                        v_before = v
+                        v = v_after
 
             elif mode == 'RELATIVE_EDGE':
                 for ed in me.edges:
@@ -540,12 +485,11 @@ class JoinUVs(Operator):
                         "Object: %s, Mesh: '%s' has no UVs"
                         % (obj.name, mesh.name))
         else:
-            # BMESH_TODO - use polygons
-            len_faces = len(mesh.faces)
+            nbr_loops = len(mesh.loops)
 
             # seems to be the fastest way to create an array
-            uv_array = array.array('f', [0.0] * 8) * len_faces
-            mesh.uv_textures.active.data.foreach_get("uv_raw", uv_array)
+            uv_array = array.array('f', [0.0] * 2) * nbr_loops
+            mesh.uv_loop_layers.active.data.foreach_get("uv", uv_array)
 
             objects = context.selected_editable_objects[:]
 
@@ -560,22 +504,33 @@ class JoinUVs(Operator):
                         if mesh_other.tag == False:
                             mesh_other.tag = True
 
-                            if len(mesh_other.faces) != len_faces:
+                            if len(mesh_other.loops) != nbr_loops:
                                 self.report({'WARNING'}, "Object: %s, Mesh: "
-                                            "'%s' has %d faces, expected %d\n"
+                                            "'%s' has %d loops (for %d faces),"
+                                            " expected %d\n"
                                             % (obj_other.name,
                                                mesh_other.name,
-                                               len(mesh_other.faces),
-                                               len_faces),
-                                               )
+                                               len(mesh_other.loops),
+                                               len(mesh_other.polygons),
+                                               nbr_loops,
+                                               ),
+                                           )
                             else:
-                                uv_other = mesh_other.uv_textures.active
+                                uv_other = mesh_other.uv_loop_layers.active
                                 if not uv_other:
-                                    # should return the texture it adds
-                                    uv_other = mesh_other.uv_textures.new()
+                                    mesh_other.uv_textures.new()
+                                    uv_other = mesh_other.uv_loop_layers.active
+                                    if not uv_other:
+                                        self.report({'ERROR'}, "Could not add "
+                                                    "a new UV map tp object "
+                                                    "'%s' (Mesh '%s')\n"
+                                                    % (obj_other.name,
+                                                       mesh_other.name,
+                                                       ),
+                                                    )
 
                                 # finally do the copy
-                                uv_other.data.foreach_set("uv_raw", uv_array)
+                                uv_other.data.foreach_set("uv", uv_array)
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -618,16 +573,21 @@ class MakeDupliFace(Operator):
             face_verts = [axis for obj in objects
                           for v in matrix_to_quad(obj.matrix_world)
                           for axis in v]
+            nbr_verts = len(face_verts) // 3
+            nbr_faces = nbr_verts // 4
 
-            faces = list(range(len(face_verts) // 3))
+            faces = list(range(nbr_verts))
 
             mesh = bpy.data.meshes.new(data.name + "_dupli")
 
-            mesh.vertices.add(len(face_verts) // 3)
-            mesh.tessfaces.add(len(face_verts) // 12)
+            mesh.vertices.add(nbr_verts)
+            mesh.loops.add(nbr_faces * 4)  # Safer than nbr_verts.
+            mesh.polygons.add(nbr_faces)
 
             mesh.vertices.foreach_set("co", face_verts)
-            mesh.tessfaces.foreach_set("vertices_raw", faces)
+            mesh.loops.foreach_set("vertex_index", faces)
+            mesh.polygons.foreach_set("loop_start", range(0, nbr_faces * 4, 4))
+            mesh.polygons.foreach_set("loop_total", (4,) * nbr_faces)
             mesh.update()  # generates edge data
 
             # pick an object to use
