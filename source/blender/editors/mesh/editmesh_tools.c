@@ -1977,6 +1977,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Merge";
+	ot->description = "Merge selected vertices";
 	ot->idname = "MESH_OT_merge";
 
 	/* api callbacks */
@@ -2026,6 +2027,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Doubles";
+	ot->description= "Remove duplicate vertices";
 	ot->idname = "MESH_OT_remove_doubles";
 
 	/* api callbacks */
@@ -3545,6 +3547,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Spin";
+	ot->description = "Extrude selected vertices in a circle around the cursor in indicated viewport";
 	ot->idname = "MESH_OT_spin";
 
 	/* api callbacks */
@@ -3668,6 +3671,7 @@ void MESH_OT_screw(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Screw";
+	ot->description = "Extrude selected vertices in screw-shaped rotation around the cursor in indicated viewport";
 	ot->idname = "MESH_OT_screw";
 
 	/* api callbacks */
