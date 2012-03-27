@@ -5129,7 +5129,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 	ot->poll = image_paint_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
