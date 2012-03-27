@@ -29,7 +29,7 @@
 #include "bmesh.h"
 
 /* local flag define */
-#define DUPE_INPUT		1 /* input from operato */
+#define DUPE_INPUT		1 /* input from operator */
 #define DUPE_NEW		2
 #define DUPE_DONE		4
 #define DUPE_MAPPED		8
@@ -44,16 +44,16 @@ static BMVert *copy_vertex(BMesh *source_mesh, BMVert *source_vertex, BMesh *tar
 {
 	BMVert *target_vertex = NULL;
 
-	/* Create a new verte */
+	/* Create a new vertex */
 	target_vertex = BM_vert_create(target_mesh, source_vertex->co,  NULL);
 	
-	/* Insert new vertex into the vert has */
+	/* Insert new vertex into the vert hash */
 	BLI_ghash_insert(vhash, source_vertex, target_vertex);
 	
-	/* Copy attribute */
+	/* Copy attributes */
 	BM_elem_attrs_copy(source_mesh, target_mesh, source_vertex, target_vertex);
 	
-	/* Set internal op flag */
+	/* Set internal op flags */
 	BMO_elem_flag_enable(target_mesh, target_vertex, DUPE_NEW);
 	
 	return target_vertex;
@@ -92,10 +92,10 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 	target_vert1 = BLI_ghash_lookup(vhash, source_edge->v1);
 	target_vert2 = BLI_ghash_lookup(vhash, source_edge->v2);
 	
-	/* Create a new edg */
+	/* Create a new edge */
 	target_edge = BM_edge_create(target_mesh, target_vert1, target_vert2, NULL, FALSE);
 	
-	/* add to new/old edge map if necassar */
+	/* add to new/old edge map if necassary */
 	if (rlen < 2) {
 		/* not sure what non-manifold cases of greater then three
 		 * radial should do. */
@@ -149,7 +149,7 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 		edar[i] = BLI_ghash_lookup(ehash, source_loop->e);
 	}
 	
-	/* create new fac */
+	/* create new face */
 	target_face = BM_face_create(target_mesh, vtar, edar, source_face->len, FALSE);
 	BMO_slot_map_ptr_insert(source_mesh, op,
 	                        "facemap", source_face, target_face);
@@ -158,10 +158,10 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 
 	BM_elem_attrs_copy(source_mesh, target_mesh, source_face, target_face);
 
-	/* mark the face for outpu */
+	/* mark the face for output */
 	BMO_elem_flag_enable(target_mesh, target_face, DUPE_NEW);
 	
-	/* copy per-loop custom dat */
+	/* copy per-loop custom data */
 	BM_ITER(source_loop, &iter, source_mesh, BM_LOOPS_OF_FACE, source_face) {
 		BM_ITER(target_loop, &iter2, target_mesh, BM_LOOPS_OF_FACE, target_face) {
 			if (BLI_ghash_lookup(vhash, source_loop->v) == target_loop->v) {
@@ -249,7 +249,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 				copy_vertex(source, e->v2, target, vhash);
 				BMO_elem_flag_enable(source, e->v2, DUPE_DONE);
 			}
-			/* now copy the actual edge*/
+			/* now copy the actual edge */
 			copy_edge(op, source, e, target,  vhash,  ehash);
 			BMO_elem_flag_enable(source, e, DUPE_DONE);
 		}
@@ -258,7 +258,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	/* first we dupe all flagged faces and their elements from source */
 	for (f = BM_iter_new(&faces, source, BM_FACES_OF_MESH, source); f; f = BM_iter_step(&faces)) {
 		if (BMO_elem_flag_test(source, f, DUPE_INPUT)) {
-			/* vertex pas */
+			/* vertex pass */
 			for (v = BM_iter_new(&verts, source, BM_VERTS_OF_FACE, f); v; v = BM_iter_step(&verts)) {
 				if (!BMO_elem_flag_test(source, v, DUPE_DONE)) {
 					copy_vertex(source, v, target, vhash);
@@ -330,7 +330,7 @@ void bmo_dupe_exec(BMesh *bm, BMOperator *op)
 	/* use the internal copy function */
 	copy_mesh(dupeop, bm, bm2);
 	
-	/* Outpu */
+	/* Output */
 	/* First copy the input buffers to output buffers - original data */
 	BMO_slot_copy(dupeop, dupeop, "geom", "origout");
 

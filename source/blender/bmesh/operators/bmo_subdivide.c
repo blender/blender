@@ -154,7 +154,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 
 		mul_v3_v3(vec2, tvec);
 
-		/* add displacemen */
+		/* add displacement */
 		add_v3_v3v3(co, co, vec2);
 	}
 
@@ -280,7 +280,7 @@ static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
 	BMFace *nf;
 	int i, add, numcuts = params->numcuts;
 
-	/* if it's odd, the middle face is a quad, otherwise it's a triangl */
+	/* if it's odd, the middle face is a quad, otherwise it's a triangle */
 	if ((numcuts % 2) == 0) {
 		add = 2;
 		for (i = 0; i < numcuts; i++) {
@@ -734,7 +734,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 		patterns[5] = NULL;
 	}
 	
-	/* add a temporary shapekey layer to store displacements on current geometr */
+	/* add a temporary shapekey layer to store displacements on current geometry */
 	BM_data_layer_add(bmesh, &bmesh->vdata, CD_SHAPEKEY);
 	skey = CustomData_number_of_layers(&bmesh->vdata, CD_SHAPEKEY) - 1;
 	
@@ -743,7 +743,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 		copy_v3_v3(co, v->co);
 	}
 
-	/* first go through and tag edge */
+	/* first go through and tag edges */
 	BMO_slot_buffer_from_flag(bmesh, op, "edges", BM_EDGE, SUBD_SPLIT);
 
 	params.numcuts = numcuts;
@@ -770,7 +770,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 		BMEdge *e1 = NULL, *e2 = NULL;
 		float vec1[3], vec2[3];
 
-		/* figure out which pattern to us */
+		/* figure out which pattern to use */
 
 		BLI_array_empty(edges);
 		BLI_array_empty(verts);
@@ -794,7 +794,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 			i++;
 		}
 
-		/* make sure the two edges have a valid angle to each othe */
+		/* make sure the two edges have a valid angle to each other */
 		if (totesel == 2 && BM_edge_share_vert_count(e1, e2)) {
 			float angle;
 
@@ -834,7 +834,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 				}
 			}
 
-			/* obvously don't test for other patterns matchin */
+			/* obvously don't test for other patterns matching */
 			continue;
 		}
 
@@ -886,13 +886,13 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 
 	einput = BMO_slot_get(op, "edges");
 
-	/* go through and split edge */
+	/* go through and split edges */
 	for (i = 0; i < einput->len; i++) {
 		edge = ((BMEdge **)einput->data.p)[i];
 		bm_subdivide_multicut(bmesh, edge, &params, edge->v1, edge->v2);
 	}
 
-	/* copy original-geometry displacements to current coordinate */
+	/* copy original-geometry displacements to current coordinates */
 	BM_ITER(v, &viter, bmesh, BM_VERTS_OF_MESH, NULL) {
 		float *co = CustomData_bmesh_get_n(&bmesh->vdata, v->head.data, CD_SHAPEKEY, skey);
 		copy_v3_v3(v->co, co);
@@ -902,7 +902,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	for (i = 0; i < BLI_array_count(facedata); i++) {
 		face = facedata[i].face;
 
-		/* figure out which pattern to us */
+		/* figure out which pattern to use */
 		BLI_array_empty(verts);
 
 		pat = facedata[i].pat;
@@ -914,7 +914,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 			BLI_array_empty(loops);
 			BLI_array_empty(splits);
 
-			/* for case of two edges, connecting them shouldn't be too har */
+			/* for case of two edges, connecting them shouldn't be too hard */
 			BM_ITER(l, &liter, bmesh, BM_LOOPS_OF_FACE, face) {
 				BLI_array_growone(loops);
 				loops[BLI_array_count(loops) - 1] = l;
@@ -922,7 +922,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 			
 			vlen = BLI_array_count(loops);
 
-			/* find the boundary of one of the split edge */
+			/* find the boundary of one of the split edges */
 			for (a = 1; a < vlen; a++) {
 				if (!BMO_elem_flag_test(bmesh, loops[a - 1]->v, ELE_INNER) &&
 				    BMO_elem_flag_test(bmesh, loops[a]->v, ELE_INNER))
@@ -1001,7 +1001,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 		pat->connectexec(bmesh, face, verts, &params);
 	}
 
-	/* copy original-geometry displacements to current coordinate */
+	/* copy original-geometry displacements to current coordinates */
 	BM_ITER(v, &viter, bmesh, BM_VERTS_OF_MESH, NULL) {
 		float *co = CustomData_bmesh_get_n(&bmesh->vdata, v->head.data, CD_SHAPEKEY, skey);
 		copy_v3_v3(v->co, co);
@@ -1021,7 +1021,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	BMO_slot_buffer_from_flag(bmesh, op, "geomout", BM_ALL, ELE_INNER|ELE_SPLIT|SUBD_SPLIT);
 }
 
-/* editmesh-emulating functio */
+/* editmesh-emulating function */
 void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth,
                        float fractal, int beauty, int numcuts,
                        int seltype, int cornertype, int singleedge,
@@ -1101,7 +1101,7 @@ void bmo_edgebisect_exec(BMesh *bm, BMOperator *op)
 	
 	params.origkey = skey;
 
-	/* go through and split edge */
+	/* go through and split edges */
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 		bm_subdivide_multicut(bm, e, &params, e->v1, e->v2);
 	}

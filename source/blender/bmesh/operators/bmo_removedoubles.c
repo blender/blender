@@ -42,7 +42,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		v2 = BMO_slot_map_ptr_get(bm, op, "targetmap", l->v);
 		/* ok: if v2 is NULL (e.g. not in the map) then it's
-		 *     a target vert, otherwise it's a doubl */
+		 *     a target vert, otherwise it's a double */
 		if ((v2 && BM_vert_in_face(f, v2)) &&
 		    (v2 != l->prev->v) &&
 		    (v2 != l->next->v))
@@ -412,7 +412,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges);
 }
 
-/* uv collapse functio */
+/* uv collapse function */
 static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 {
 	BMIter iter, liter;
@@ -436,7 +436,7 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
-				/* wal */
+				/* walk */
 				BLI_array_empty(blocks);
 				tot = 0;
 				l2 = BMW_begin(&walker, l);
@@ -453,7 +453,7 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 					CustomData_data_multiply(type, &max, 0.5f);
 					CustomData_data_add(type, &min, &max);
 
-					/* snap CD (uv, vcol) points to their centroi */
+					/* snap CD (uv, vcol) points to their centroid */
 					for (i = 0; i < tot; i++) {
 						CustomData_data_copy_value(type, &min, blocks[i]);
 					}
@@ -499,7 +499,7 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 		keepvert = BMO_iter_new(&oiter, bm, op, "keepverts", BM_VERT) != NULL;
 	}
 
-	/* sort by vertex coordinates added togethe */
+	/* sort by vertex coordinates added together */
 	qsort(verts, BLI_array_count(verts), sizeof(void *), vergaverco);
 
 	/* Flag keepverts */
