@@ -49,6 +49,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	MLoop *mloop, *ml;
 	BMVert *v, **vtable, **verts = NULL;
 	BMEdge *e, **etable, **edges = NULL;
+	float has_face_normals;
 	BMFace *f;
 	BMIter liter;
 	BLI_array_declare(verts);
@@ -64,6 +65,9 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
 	/* totface = dm->getNumPolys(dm); */ /* UNUSED */
+
+	/* add crease layer */
+	BM_data_layer_add(bm, &bm->edata, CD_CREASE);
 
 	vtable = MEM_callocN(sizeof(void**) * totvert, "vert table in BMDM_Copy");
 	etable = MEM_callocN(sizeof(void**) * totedge, "edge table in BMDM_Copy");
@@ -89,12 +93,16 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 		CustomData_to_bmesh_block(&dm->edgeData, &bm->edata, i, &e->head.data);
 		etable[i] = e;
+
+		/* add crease */
+		BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (float)me->crease / 255.0f);
 	}
 	MEM_freeN(medge);
 
 	/*do faces*/
 	mp = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
+	has_face_normals = CustomData_has_layer(&dm->polyData, CD_NORMAL);
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		BMLoop *l;
 
@@ -126,6 +134,13 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		}
 
 		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, i, &f->head.data);
+
+		if (has_face_normals) {
+			float *fno;
+
+			fno = CustomData_bmesh_get(&bm->pdata, &f->head.data, CD_NORMAL);
+			copy_v3_v3(f->no, fno);
+		}
 	}
 
 	MEM_freeN(vtable);

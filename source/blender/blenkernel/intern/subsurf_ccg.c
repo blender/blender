@@ -2944,6 +2944,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 					 ccgSubSurf_getNumFinalFaces(ss),
 					 ccgSubSurf_getNumFinalFaces(ss)*4, 
 					 ccgSubSurf_getNumFinalFaces(ss));
+
+	CustomData_free_layer_active(&ccgdm->dm.polyData, CD_NORMAL,
+								 ccgdm->dm.numPolyData);
 	
 	numTex = CustomData_number_of_layers(&ccgdm->dm.loopData, CD_MLOOPUV);
 	numCol = CustomData_number_of_layers(&ccgdm->dm.loopData, CD_MLOOPCOL);

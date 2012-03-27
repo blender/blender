@@ -201,33 +201,34 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	/* initialize pointer hashes */
 	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops v");
 	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops e");
-	
+
+	/* duplicate flagged vertices */
 	for (v = BM_iter_new(&verts, source, BM_VERTS_OF_MESH, source); v; v = BM_iter_step(&verts)) {
 		if ( BMO_elem_flag_test(source, v, DUPE_INPUT) &&
 		    !BMO_elem_flag_test(source, v, DUPE_DONE))
 		{
 			BMIter iter;
-			int iso = 1;
+			int isolated = 1;
 
 			v2 = copy_vertex(source, v, target, vhash);
 
 			BM_ITER(f, &iter, source, BM_FACES_OF_VERT, v) {
 				if (BMO_elem_flag_test(source, f, DUPE_INPUT)) {
-					iso = 0;
+					isolated = 0;
 					break;
 				}
 			}
 
-			if (iso) {
+			if (isolated) {
 				BM_ITER(e, &iter, source, BM_EDGES_OF_VERT, v) {
 					if (BMO_elem_flag_test(source, e, DUPE_INPUT)) {
-						iso = 0;
+						isolated = 0;
 						break;
 					}
 				}
 			}
 
-			if (iso) {
+			if (isolated) {
 				BMO_slot_map_ptr_insert(source, op, "isovertmap", v, v2);
 			}
 
