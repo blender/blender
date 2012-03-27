@@ -2037,7 +2037,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	if (t->flag & T_MIRROR)
 	{
-		EDBM_CacheMirrorVerts(em, TRUE);
+		EDBM_verts_mirror_cache_begin(em, TRUE);
 		mirror = 1;
 	}
 
@@ -2226,7 +2226,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 				/* Mirror? */
 				if ( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
-					BMVert *vmir= EDBM_GetMirrorVert(em, eve); //t->obedit, em, eve, tob->iloc, a);
+					BMVert *vmir= EDBM_verts_mirror_get(em, eve); //t->obedit, em, eve, tob->iloc, a);
 					if (vmir && vmir != eve) {
 						tob->extra = vmir;
 					}
@@ -2260,7 +2260,7 @@ cleanup:
 	MEM_freeN(selstate);
 
 	if (t->flag & T_MIRROR) {
-		EDBM_EndMirrorCache(em);
+		EDBM_verts_mirror_cache_end(em);
 		mirror = 1;
 	}
 }

@@ -234,7 +234,7 @@ int BMO_op_callf(BMesh *bm, const char *fmt, ...);
 int BMO_op_initf(BMesh *bm, BMOperator *op, const char *fmt, ...);
 
 /* va_list version, used to implement the above two functions,
- * plus EDBM_CallOpf in bmeshutils.c. */
+ * plus EDBM_op_callf in bmeshutils.c. */
 int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *fmt, va_list vlist);
 
 /* test whether a named slot exists */

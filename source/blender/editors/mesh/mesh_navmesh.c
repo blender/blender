@@ -326,7 +326,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 
 	if (!createob) {
 		/* clear */
-		EDBM_ClearMesh(em);
+		EDBM_mesh_clear(em);
 	}
 
 	/* create verts for polygon mesh */
@@ -373,7 +373,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 			BM_vert_create(em->bm, co, NULL);
 		}
 
-		EDBM_init_index_arrays(em, 1, 0, 0);
+		EDBM_index_arrays_init(em, 1, 0, 0);
 
 		/* create faces */
 		for (j = 0; j < trinum; j++) {
@@ -388,9 +388,9 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 					face[k] = uniquevbase + tri[k] - nv;  /* unique vertex */
 			}
 			newFace = BM_face_create_quad_tri(em->bm,
-			                                  EDBM_get_vert_for_index(em, face[0]),
-			                                  EDBM_get_vert_for_index(em, face[2]),
-			                                  EDBM_get_vert_for_index(em, face[1]), NULL,
+			                                  EDBM_vert_at_index(em, face[0]),
+			                                  EDBM_vert_at_index(em, face[2]),
+			                                  EDBM_vert_at_index(em, face[1]), NULL,
 			                                  NULL, FALSE);
 
 			/* set navigation polygon idx to the custom layer */
@@ -398,7 +398,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 			*polygonIdx = i + 1; /* add 1 to avoid zero idx */
 		}
 		
-		EDBM_free_index_arrays(em);
+		EDBM_index_arrays_free(em);
 	}
 
 	recast_destroyPolyMesh(pmesh);

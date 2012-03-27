@@ -564,7 +564,7 @@ static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int index)
 {
 	drawEMTFMapped_userData *data = userData;
 	BMEditMesh *em = data->em;
-	BMFace *efa = EDBM_get_face_for_index(em, index);
+	BMFace *efa = EDBM_face_at_index(em, index);
 
 	if (efa == NULL || BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		return DM_DRAW_OPTION_SKIP;
@@ -924,7 +924,7 @@ static int tex_mat_set_face_editmesh_cb(void *userData, int index)
 	/* editmode face hiding */
 	TexMatCallback *data = (TexMatCallback *)userData;
 	Mesh *me = (Mesh *)data->me;
-	BMFace *efa = EDBM_get_face_for_index(me->edit_btmesh, index);
+	BMFace *efa = EDBM_face_at_index(me->edit_btmesh, index);
 
 	return !BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
 }

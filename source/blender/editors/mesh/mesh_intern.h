@@ -35,18 +35,19 @@
 #ifndef __MESH_INTERN_H__
 #define __MESH_INTERN_H__
 
-struct bContext;
-struct wmOperatorType;
-struct ViewContext;
-struct BMEditMesh;
-struct BMesh;
 struct BMEdge;
+struct BMEditMesh;
 struct BMFace;
+struct BMHeader;
 struct BMOperator;
-struct wmOperator;
-struct wmKeyMap;
-struct wmKeyConfig;
+struct BMesh;
 struct EnumPropertyItem;
+struct ViewContext;
+struct bContext;
+struct wmKeyConfig;
+struct wmKeyMap;
+struct wmOperator;
+struct wmOperatorType;
 
 /* ******************** bmeshutils.c */
 
@@ -57,26 +58,29 @@ struct EnumPropertyItem;
  */
 
 /*calls a bmesh op, reporting errors to the user, etc*/
-int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
+int EDBM_op_callf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
+
+int EDBM_op_call_and_selectf(struct BMEditMesh *em, struct wmOperator *op,
+                              const char *selectslot, const char *fmt, ...);
 
 /* same as above, but doesn't report errors.*/
-int EDBM_CallOpfSilent(struct BMEditMesh *em, const char *fmt, ...);
+int EDBM_op_call_silentf(struct BMEditMesh *em, const char *fmt, ...);
 
-/* these next two functions are the split version of EDBM_CallOpf, so you can
+/* these next two functions are the split version of EDBM_op_callf, so you can
  * do stuff with a bmesh operator, after initializing it but before executing
  * it.
  *
  * execute the operator with BM_Exec_Op */
-int EDBM_InitOpf(struct BMEditMesh *em, struct BMOperator *bmop,
-                 struct wmOperator *op, const char *fmt, ...);
+int EDBM_op_init(struct BMEditMesh *em, struct BMOperator *bmop,
+                  struct wmOperator *op, const char *fmt, ...);
 /*cleans up after a bmesh operator*/
-int EDBM_FinishOp(struct BMEditMesh *em, struct BMOperator *bmop,
-                  struct wmOperator *op, const int report);
+int EDBM_op_finish(struct BMEditMesh *em, struct BMOperator *bmop,
+                    struct wmOperator *op, const int report);
 
 void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
-void EDBM_store_selection(struct BMEditMesh *em, void *data);
-void EDBM_validate_selections(struct BMEditMesh *em);
-void EDBM_remove_selection(struct BMEditMesh *em, void *data);
+void EDBM_editselection_store(struct BMEditMesh *em, struct BMHeader *ele);
+void EDBM_editselection_validate(struct BMEditMesh *em);
+void EDBM_editselection_remove(struct BMEditMesh *em, struct BMHeader *ele);
 void EDBM_stats_update(struct BMEditMesh *em);
 
 /* TODO, move to math_geometry.c */

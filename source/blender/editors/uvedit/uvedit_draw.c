@@ -455,7 +455,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	StitchPreviewer *stitch_preview = uv_get_stitch_previewer();
 
 	em= me->edit_btmesh;
-	activetf= EDBM_get_active_mtexpoly(em, &efa_act, FALSE); /* will be set to NULL if hidden */
+	activetf= EDBM_mtexpoly_active_get(em, &efa_act, FALSE); /* will be set to NULL if hidden */
 	activef = BM_active_face_get(em->bm, FALSE);
 	ts= scene->toolsettings;
 

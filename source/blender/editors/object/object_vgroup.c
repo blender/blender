@@ -1527,11 +1527,11 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 				goto cleanup;
 			}
 
-			EDBM_CacheMirrorVerts(em, FALSE);
+			EDBM_verts_mirror_cache_begin(em, FALSE);
 
 			/* Go through the list of editverts and assign them */
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				if ((eve_mirr= EDBM_GetMirrorVert(em, eve))) {
+				if ((eve_mirr= EDBM_verts_mirror_get(em, eve))) {
 					sel= BM_elem_flag_test(eve, BM_ELEM_SELECT);
 					sel_mirr= BM_elem_flag_test(eve_mirr, BM_ELEM_SELECT);
 
@@ -1544,11 +1544,11 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 					}
 
 					/* don't use these again */
-					EDBM_ClearMirrorVert(em, eve);
-					EDBM_ClearMirrorVert(em, eve_mirr);
+					EDBM_verts_mirror_cache_clear(em, eve);
+					EDBM_verts_mirror_cache_clear(em, eve_mirr);
 				}
 			}
-			EDBM_EndMirrorCache(em);
+			EDBM_verts_mirror_cache_end(em);
 		}
 		else {
 			/* object mode / weight paint */

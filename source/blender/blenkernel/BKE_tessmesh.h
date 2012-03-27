@@ -61,7 +61,7 @@ typedef struct BMEditMesh {
 	int lastDataMask;
 
 	/* index tables, to map indices to elements via
-	 * EDBM_init_index_arrays and associated functions.  don't
+	 * EDBM_index_arrays_init and associated functions.  don't
 	 * touch this or read it directly.*/
 	struct BMVert **vert_index;
 	struct BMEdge **edge_index;

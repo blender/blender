@@ -279,7 +279,7 @@ int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 		struct BMEditMesh *em = BMEdit_FromObject(obedit);
 		int ret;
 		
-		ret = EDBM_texFaceCheck(em);
+		ret = EDBM_mtexpoly_check(em);
 		
 		return ret;
 	}
@@ -297,7 +297,7 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 			struct BMEditMesh *em = BMEdit_FromObject(obedit);
 			int ret;
 			
-			ret = EDBM_texFaceCheck(em);
+			ret = EDBM_mtexpoly_check(em);
 			
 			return ret;
 		}
@@ -605,10 +605,10 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 			/* old shading system, we set texface */
 			MTexPoly *tf;
 			
-			if (em && EDBM_texFaceCheck(em)) {
+			if (em && EDBM_mtexpoly_check(em)) {
 				sima->image= NULL;
 				
-				tf = EDBM_get_active_mtexpoly(em, NULL, TRUE); /* partially selected face is ok */
+				tf = EDBM_mtexpoly_active_get(em, NULL, TRUE); /* partially selected face is ok */
 				
 				if (tf) {
 					/* don't need to check for pin here, see above */

@@ -183,7 +183,7 @@ static short edbm_extrude_face_indiv(BMEditMesh *em, wmOperator *op, const char 
 	BMLoop *l;
 	BMOperator bmop;
 
-	EDBM_InitOpf(em, &bmop, op, "extrude_face_indiv faces=%hf", hflag);
+	EDBM_op_init(em, &bmop, op, "extrude_face_indiv faces=%hf", hflag);
 
 	/* deselect original verts */
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -199,7 +199,7 @@ static short edbm_extrude_face_indiv(BMEditMesh *em, wmOperator *op, const char 
 		}
 	}
 
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return 0;
 	}
 
@@ -211,7 +211,7 @@ static short edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char
 {
 	BMOperator bmop;
 
-	EDBM_InitOpf(em, &bmop, op, "extrude_edge_only edges=%he", hflag);
+	EDBM_op_init(em, &bmop, op, "extrude_edge_only edges=%he", hflag);
 
 	/* deselect original verts */
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -219,7 +219,7 @@ static short edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_VERT | BM_EDGE, BM_ELEM_SELECT, TRUE);
 
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return 0;
 	}
 
@@ -231,7 +231,7 @@ static short edbm_extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char
 {
 	BMOperator bmop;
 
-	EDBM_InitOpf(em, &bmop, op, "extrude_vert_indiv verts=%hv", hflag);
+	EDBM_op_init(em, &bmop, op, "extrude_vert_indiv verts=%hv", hflag);
 
 	/* deselect original verts */
 	BMO_slot_buffer_hflag_disable(em->bm, &bmop, "verts", BM_VERT, BM_ELEM_SELECT, TRUE);
@@ -239,7 +239,7 @@ static short edbm_extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "vertout", BM_VERT, BM_ELEM_SELECT, TRUE);
 
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return 0;
 	}
 
@@ -404,7 +404,7 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 		//translateflag(em, SELECT, dvec);
 	}
 	
-	EDBM_RecalcNormals(em);
+	EDBM_mesh_normals_update(em);
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -525,7 +525,7 @@ static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
 	/* This normally happens when pushing undo but modal operators
 	 * like this one don't push undo data until after modal mode is
 	 * done.*/
-	EDBM_RecalcNormals(em);
+	EDBM_mesh_normals_update(em);
 
 	EDBM_update_generic(C, em, TRUE);
 	
@@ -832,7 +832,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		}
 		
 		if (rot_src) {
-			EDBM_CallOpf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
+			EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
 			             BM_ELEM_SELECT, cent, mat);
 
 			/* also project the source, for retopo workflow */
@@ -841,9 +841,9 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		}
 
 		edbm_extrude_edge(vc.obedit, vc.em, BM_ELEM_SELECT, nor);
-		EDBM_CallOpf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
+		EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
 		             BM_ELEM_SELECT, cent, mat);
-		EDBM_CallOpf(vc.em, op, "translate verts=%hv vec=%v",
+		EDBM_op_callf(vc.em, op, "translate verts=%hv vec=%v",
 		             BM_ELEM_SELECT, min);
 	}
 	else {
@@ -857,14 +857,14 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		
-		EDBM_InitOpf(vc.em, &bmop, op, "makevert co=%v", min);
+		EDBM_op_init(vc.em, &bmop, op, "makevert co=%v", min);
 		BMO_op_exec(vc.em->bm, &bmop);
 
 		BMO_ITER(v1, &oiter, vc.em->bm, &bmop, "newvertout", BM_VERT) {
 			BM_elem_select_set(vc.em->bm, v1, TRUE);
 		}
 
-		if (!EDBM_FinishOp(vc.em, &bmop, op, TRUE)) {
+		if (!EDBM_op_finish(vc.em, &bmop, op, TRUE)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -875,7 +875,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	/* This normally happens when pushing undo but modal operators
 	 * like this one don't push undo data until after modal mode is
 	 * done. */
-	EDBM_RecalcNormals(vc.em);
+	EDBM_mesh_normals_update(vc.em);
 
 	EDBM_update_generic(C, vc.em, TRUE);
 
@@ -918,24 +918,24 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 	BMEditMesh *bem = BMEdit_FromObject(obedit);
 
 	if (type == 0) {
-		if (!EDBM_CallOpf(bem, op, "del geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS)) /* Erase Vertices */
+		if (!EDBM_op_callf(bem, op, "del geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS)) /* Erase Vertices */
 			return OPERATOR_CANCELLED;
 	}
 	else if (type == 1) {
-		if (!EDBM_CallOpf(bem, op, "del geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES)) /* Erase Edges */
+		if (!EDBM_op_callf(bem, op, "del geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES)) /* Erase Edges */
 			return OPERATOR_CANCELLED;
 	}
 	else if (type == 2) {
-		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES)) /* Erase Faces */
+		if (!EDBM_op_callf(bem, op, "del geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES)) /* Erase Faces */
 			return OPERATOR_CANCELLED;
 	}
 	else if (type == 3) {
-		if (!EDBM_CallOpf(bem, op, "del geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES)) /* Edges and Faces */
+		if (!EDBM_op_callf(bem, op, "del geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES)) /* Edges and Faces */
 			return OPERATOR_CANCELLED;
 	}
 	else if (type == 4) {
 		//"Erase Only Faces";
-		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%i",
+		if (!EDBM_op_callf(bem, op, "del geom=%hf context=%i",
 		                  BM_ELEM_SELECT, DEL_ONLYFACES))
 			return OPERATOR_CANCELLED;
 	}
@@ -972,7 +972,7 @@ static int edbm_collapse_edge_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 
-	if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_ELEM_SELECT))
+	if (!EDBM_op_callf(em, op, "collapse edges=%he", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 
 	EDBM_update_generic(C, em, TRUE);
@@ -1000,7 +1000,7 @@ static int edbm_collapse_edge_loop_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 
-	if (!EDBM_CallOpf(em, op, "dissolve_edge_loop edges=%he", BM_ELEM_SELECT))
+	if (!EDBM_op_callf(em, op, "dissolve_edge_loop edges=%he", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 
 	EDBM_update_generic(C, em, TRUE);
@@ -1029,13 +1029,13 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
-	if (!EDBM_InitOpf(em, &bmop, op, "contextual_create geom=%hfev", BM_ELEM_SELECT))
+	if (!EDBM_op_init(em, &bmop, op, "contextual_create geom=%hfev", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 	
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
 
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1177,12 +1177,12 @@ static int edbm_vert_connect(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	int len = 0;
 	
-	if (!EDBM_InitOpf(em, &bmop, op, "connectverts verts=%hv", BM_ELEM_SELECT)) {
+	if (!EDBM_op_init(em, &bmop, op, "connectverts verts=%hv", BM_ELEM_SELECT)) {
 		return OPERATOR_CANCELLED;
 	}
 	BMO_op_exec(bm, &bmop);
 	len = BMO_slot_get(&bmop, "edgeout")->len;
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1213,12 +1213,12 @@ static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	int len = 0;
 	
-	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he", BM_ELEM_SELECT)) {
+	if (!EDBM_op_init(em, &bmop, op, "edgesplit edges=%he", BM_ELEM_SELECT)) {
 		return OPERATOR_CANCELLED;
 	}
 	BMO_op_exec(bm, &bmop);
 	len = BMO_slot_get(&bmop, "edgeout")->len;
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1249,14 +1249,14 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
-	EDBM_InitOpf(em, &bmop, op, "dupe geom=%hvef", BM_ELEM_SELECT);
+	EDBM_op_init(em, &bmop, op, "dupe geom=%hvef", BM_ELEM_SELECT);
 	
 	BMO_op_exec(em->bm, &bmop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "newout", BM_ALL, BM_ELEM_SELECT, TRUE);
 
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1296,7 +1296,7 @@ static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
-	if (!EDBM_CallOpf(em, op, "reversefaces faces=%hf", BM_ELEM_SELECT))
+	if (!EDBM_op_callf(em, op, "reversefaces faces=%hf", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 	
 	EDBM_update_generic(C, em, TRUE);
@@ -1363,7 +1363,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%he ccw=%b", BM_ELEM_TAG, do_ccw);
+	EDBM_op_init(em, &bmop, op, "edgerotate edges=%he ccw=%b", BM_ELEM_TAG, do_ccw);
 
 	/* avoids leaving old verts selected which can be a problem running multiple times,
 	 * since this means the edges become selected around the face which then attempt to rotate */
@@ -1375,7 +1375,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "edgeout", BM_EDGE, BM_ELEM_SELECT, TRUE);
 	EDBM_selectmode_flush(em);
 
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1408,7 +1408,7 @@ static int edbm_hide_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
-	EDBM_hide_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
+	EDBM_mesh_hide(em, RNA_boolean_get(op->ptr, "unselected"));
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -1438,7 +1438,7 @@ static int edbm_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
-	EDBM_reveal_mesh(em);
+	EDBM_mesh_reveal(em);
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -1467,11 +1467,11 @@ static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
 	
 	/* doflip has to do with bmesh_rationalize_normals, it's an internal
 	 * thing */
-	if (!EDBM_CallOpf(em, op, "righthandfaces faces=%hf do_flip=%b", BM_ELEM_SELECT, TRUE))
+	if (!EDBM_op_callf(em, op, "righthandfaces faces=%hf do_flip=%b", BM_ELEM_SELECT, TRUE))
 		return OPERATOR_CANCELLED;
 
 	if (RNA_boolean_get(op->ptr, "inside"))
-		EDBM_CallOpf(em, op, "reversefaces faces=%hf", BM_ELEM_SELECT);
+		EDBM_op_callf(em, op, "reversefaces faces=%hf", BM_ELEM_SELECT);
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -1508,7 +1508,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 
 	/* mirror before smooth */
 	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
-		EDBM_CacheMirrorVerts(em, TRUE);
+		EDBM_verts_mirror_cache_begin(em, TRUE);
 	}
 
 	/* if there is a mirror modifier with clipping, flag the verts that
@@ -1536,7 +1536,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 		repeat = 1;
 	
 	for (i = 0; i < repeat; i++) {
-		if (!EDBM_CallOpf(em, op,
+		if (!EDBM_op_callf(em, op,
 		                  "vertexsmooth verts=%hv mirror_clip_x=%b mirror_clip_y=%b mirror_clip_z=%b clipdist=%f",
 		                  BM_ELEM_SELECT, mirrx, mirry, mirrz, clipdist))
 		{
@@ -1546,8 +1546,8 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 
 	/* apply mirror */
 	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
-		EDBM_ApplyMirrorCache(em, BM_ELEM_SELECT, 0);
-		EDBM_EndMirrorCache(em);
+		EDBM_verts_mirror_apply(em, BM_ELEM_SELECT, 0);
+		EDBM_verts_mirror_cache_end(em);
 	}
 
 	EDBM_update_generic(C, em, TRUE);
@@ -1655,13 +1655,13 @@ static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
 	int dir = RNA_enum_get(op->ptr, "direction");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "face_rotateuvs faces=%hf dir=%i", BM_ELEM_SELECT, dir);
+	EDBM_op_init(em, &bmop, op, "face_rotateuvs faces=%hf dir=%i", BM_ELEM_SELECT, dir);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
 
 	/* finish the operator */
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1678,13 +1678,13 @@ static int edbm_reverse_uvs_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "face_reverseuvs faces=%hf", BM_ELEM_SELECT);
+	EDBM_op_init(em, &bmop, op, "face_reverseuvs faces=%hf", BM_ELEM_SELECT);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
 
 	/* finish the operator */
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1704,13 +1704,13 @@ static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
 	int dir = RNA_enum_get(op->ptr, "direction");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "face_rotatecolors faces=%hf dir=%i", BM_ELEM_SELECT, dir);
+	EDBM_op_init(em, &bmop, op, "face_rotatecolors faces=%hf dir=%i", BM_ELEM_SELECT, dir);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
 
 	/* finish the operator */
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1729,13 +1729,13 @@ static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "face_reversecolors faces=%hf", BM_ELEM_SELECT);
+	EDBM_op_init(em, &bmop, op, "face_reversecolors faces=%hf", BM_ELEM_SELECT);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
 
 	/* finish the operator */
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1834,11 +1834,11 @@ static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *w
 		return OPERATOR_CANCELLED;
 	
 	if (uvmerge) {
-		if (!EDBM_CallOpf(em, wmop, "pointmerge_facedata verts=%hv snapv=%e", BM_ELEM_SELECT, mergevert))
+		if (!EDBM_op_callf(em, wmop, "pointmerge_facedata verts=%hv snapv=%e", BM_ELEM_SELECT, mergevert))
 			return OPERATOR_CANCELLED;
 	}
 
-	if (!EDBM_CallOpf(em, wmop, "pointmerge verts=%hv mergeco=%v", BM_ELEM_SELECT, mergevert->co))
+	if (!EDBM_op_callf(em, wmop, "pointmerge verts=%hv mergeco=%v", BM_ELEM_SELECT, mergevert->co))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
@@ -1879,11 +1879,11 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 		return OPERATOR_CANCELLED;
 	
 	if (uvmerge) {
-		if (!EDBM_CallOpf(em, wmop, "vert_average_facedata verts=%hv", BM_ELEM_SELECT))
+		if (!EDBM_op_callf(em, wmop, "vert_average_facedata verts=%hv", BM_ELEM_SELECT))
 			return OPERATOR_CANCELLED;
 	}
 
-	if (!EDBM_CallOpf(em, wmop, "pointmerge verts=%hv mergeco=%v", BM_ELEM_SELECT, co))
+	if (!EDBM_op_callf(em, wmop, "pointmerge verts=%hv mergeco=%v", BM_ELEM_SELECT, co))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
@@ -1912,7 +1912,7 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 			break;
 		case 5:
 			status = 1;
-			if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_ELEM_SELECT))
+			if (!EDBM_op_callf(em, op, "collapse edges=%he", BM_ELEM_SELECT))
 				status = 0;
 			break;
 	}
@@ -2003,17 +2003,17 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	int count;
 
-	EDBM_InitOpf(em, &bmop, op, "finddoubles verts=%hv dist=%f", BM_ELEM_SELECT, RNA_float_get(op->ptr, "mergedist"));
+	EDBM_op_init(em, &bmop, op, "finddoubles verts=%hv dist=%f", BM_ELEM_SELECT, RNA_float_get(op->ptr, "mergedist"));
 	BMO_op_exec(em->bm, &bmop);
 
 	count = BMO_slot_map_count(em->bm, &bmop, "targetmapout");
 
-	if (!EDBM_CallOpf(em, op, "weldverts targetmap=%s", &bmop, "targetmapout")) {
+	if (!EDBM_op_callf(em, op, "weldverts targetmap=%s", &bmop, "targetmapout")) {
 		BMO_op_finish(em->bm, &bmop);
 		return OPERATOR_CANCELLED;
 	}
 
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -2079,7 +2079,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "vertexshortestpath startv=%e endv=%e type=%i", sv->ele, ev->ele, type);
+	EDBM_op_init(em, &bmop, op, "vertexshortestpath startv=%e endv=%e type=%i", sv->ele, ev->ele, type);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -2091,7 +2091,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "vertout", BM_ALL, BM_ELEM_SELECT, TRUE);
 
 	/* finish the operator */
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2182,7 +2182,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		singlesel = TRUE;
 
 		/* find selected vert - same some time and check history first */
-		if (EDBM_get_actSelection(em, &ese) && ese.htype == BM_VERT) {
+		if (EDBM_editselection_active_get(em, &ese) && ese.htype == BM_VERT) {
 			v = (BMVert *)ese.ele;
 		}
 		else {
@@ -2262,7 +2262,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he verts=%hv use_verts=%b",
+	if (!EDBM_op_init(em, &bmop, op, "edgesplit edges=%he verts=%hv use_verts=%b",
 	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -2361,7 +2361,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	BLI_assert(singlesel ? (bm->totvertsel > 0) : (bm->totedgesel > 0));
 
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2649,7 +2649,7 @@ static int edbm_solidify_exec(bContext *C, wmOperator *op)
 
 	float thickness = RNA_float_get(op->ptr, "thickness");
 
-	if (!EDBM_InitOpf(em, &bmop, op, "solidify geom=%hf thickness=%f", BM_ELEM_SELECT, thickness)) {
+	if (!EDBM_op_init(em, &bmop, op, "solidify geom=%hf thickness=%f", BM_ELEM_SELECT, thickness)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2664,7 +2664,7 @@ static int edbm_solidify_exec(bContext *C, wmOperator *op)
 	/* select the newly generated faces */
 	BMO_slot_buffer_hflag_enable(bm, &bmop, "geomout", BM_FACE, BM_ELEM_SELECT, TRUE);
 
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2946,7 +2946,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 		BLI_ghash_insert(gh, bv, scr);
 	}
 
-	if (!EDBM_InitOpf(em, &bmop, op, "esubd")) {
+	if (!EDBM_op_init(em, &bmop, op, "esubd")) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2986,7 +2986,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	BMO_slot_float_set(&bmop, "radius", 0);
 	
 	BMO_op_exec(bm, &bmop);
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -3052,8 +3052,8 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 
 	ED_base_object_select(basenew, BA_DESELECT);
 	
-	EDBM_CallOpf(em, wmop, "dupe geom=%hvef dest=%p", BM_ELEM_SELECT, bm_new);
-	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_FACES);
+	EDBM_op_callf(em, wmop, "dupe geom=%hvef dest=%p", BM_ELEM_SELECT, bm_new);
+	EDBM_op_callf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_FACES);
 
 	/* clean up any loose edges */
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
@@ -3064,7 +3064,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 			BM_elem_select_set(em->bm, e, FALSE);
 		}
 	}
-	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_EDGES);
+	EDBM_op_callf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_EDGES);
 
 	/* clean up any loose verts */
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
@@ -3076,7 +3076,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 		}
 	}
 
-	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_VERTS);
+	EDBM_op_callf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_VERTS);
 
 	BM_mesh_normals_update(bm_new, TRUE);
 	BMO_op_callf(bm_new, "bmesh_to_mesh mesh=%p object=%p notessellation=%b",
@@ -3226,7 +3226,7 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
 	
-	if (!EDBM_InitOpf(em, &bmop, op, "triangle_fill edges=%he", BM_ELEM_SELECT)) {
+	if (!EDBM_op_init(em, &bmop, op, "triangle_fill edges=%he", BM_ELEM_SELECT)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -3235,7 +3235,7 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 	/* select new geometry */
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_FACE | BM_EDGE, BM_ELEM_SELECT, TRUE);
 	
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -3264,7 +3264,7 @@ static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 
-	if (!EDBM_CallOpf(em, op, "beautify_fill faces=%hf", BM_ELEM_SELECT))
+	if (!EDBM_op_callf(em, op, "beautify_fill faces=%hf", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 
 	EDBM_update_generic(C, em, TRUE);
@@ -3294,7 +3294,7 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
 
-	if (!EDBM_CallOpf(em, op, "triangulate faces=%hf use_beauty=%b", BM_ELEM_SELECT, use_beauty))
+	if (!EDBM_op_callf(em, op, "triangulate faces=%hf use_beauty=%b", BM_ELEM_SELECT, use_beauty))
 		return OPERATOR_CANCELLED;
 
 	EDBM_update_generic(C, em, TRUE);
@@ -3330,7 +3330,7 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	dovcols = RNA_boolean_get(op->ptr, "vcols");
 	domaterials = RNA_boolean_get(op->ptr, "materials");
 
-	if (!EDBM_CallOpf(em, op,
+	if (!EDBM_op_callf(em, op,
 	                  "join_triangles faces=%hf limit=%f cmp_sharp=%b cmp_uvs=%b cmp_vcols=%b cmp_materials=%b",
 	                  BM_ELEM_SELECT, limit, dosharp, douvs, dovcols, domaterials))
 	{
@@ -3375,15 +3375,15 @@ static int edbm_dissolve_exec(bContext *C, wmOperator *op)
 	int use_verts = RNA_boolean_get(op->ptr, "use_verts");
 
 	if (em->selectmode & SCE_SELECT_FACE) {
-		if (!EDBM_CallOpf(em, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
+		if (!EDBM_op_callf(em, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
 			return OPERATOR_CANCELLED;
 	}
 	else if (em->selectmode & SCE_SELECT_EDGE) {
-		if (!EDBM_CallOpf(em, op, "dissolve_edges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
+		if (!EDBM_op_callf(em, op, "dissolve_edges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
 			return OPERATOR_CANCELLED;
 	}
 	else if (em->selectmode & SCE_SELECT_VERTEX) {
-		if (!EDBM_CallOpf(em, op, "dissolve_verts verts=%hv", BM_ELEM_SELECT))
+		if (!EDBM_op_callf(em, op, "dissolve_verts verts=%hv", BM_ELEM_SELECT))
 			return OPERATOR_CANCELLED;
 	}
 
@@ -3417,7 +3417,7 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
 
-	if (!EDBM_CallOpf(em, op,
+	if (!EDBM_op_callf(em, op,
 	                  "dissolve_limit edges=%he verts=%hv angle_limit=%f",
 	                  BM_ELEM_SELECT, BM_ELEM_SELECT, angle_limit))
 	{
@@ -3456,16 +3456,16 @@ static int edbm_split_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
-	EDBM_InitOpf(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, FALSE);
+	EDBM_op_init(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, FALSE);
 	BMO_op_exec(em->bm, &bmop);
 	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ALL, BM_ELEM_SELECT, TRUE);
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
 	/* Geometry has changed, need to recalc normals and looptris */
-	EDBM_RecalcNormals(em);
+	EDBM_mesh_normals_update(em);
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -3512,7 +3512,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	mul_m3_v3(imat, cent);
 	mul_m3_v3(imat, axis);
 
-	if (!EDBM_InitOpf(em, &spinop, op,
+	if (!EDBM_op_init(em, &spinop, op,
 	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i ang=%f do_dupli=%b",
 	                  BM_ELEM_SELECT, cent, axis, d, steps, degr, dupli))
 	{
@@ -3521,7 +3521,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	BMO_op_exec(bm, &spinop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 	BMO_slot_buffer_hflag_enable(bm, &spinop, "lastout", BM_ALL, BM_ELEM_SELECT, TRUE);
-	if (!EDBM_FinishOp(em, &spinop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &spinop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -3635,7 +3635,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 	if (dot_v3v3(nor, dvec) > 0.000f)
 		negate_v3(dvec);
 
-	if (!EDBM_InitOpf(em, &spinop, op,
+	if (!EDBM_op_init(em, &spinop, op,
 	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i ang=%f do_dupli=%b",
 	                  BM_ELEM_SELECT, cent, axis, dvec, turns * steps, 360.0f * turns, FALSE))
 	{
@@ -3644,7 +3644,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 	BMO_op_exec(bm, &spinop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 	BMO_slot_buffer_hflag_enable(bm, &spinop, "lastout", BM_ALL, BM_ELEM_SELECT, TRUE);
-	if (!EDBM_FinishOp(em, &spinop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &spinop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -4265,7 +4265,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	EDBM_RecalcNormals(em);
+	EDBM_mesh_normals_update(em);
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -4337,7 +4337,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 	for (i = 0; i < recursion; i++) {
 		float fac = w[recursion - i - 1] * factor;
 
-		if (!EDBM_InitOpf(em, &bmop, op,
+		if (!EDBM_op_init(em, &bmop, op,
 		                  "bevel geom=%hev percent=%f lengthlayer=%i use_lengths=%b use_even=%b use_dist=%b",
 		                  BM_ELEM_SELECT, fac, li, TRUE, use_even, use_dist))
 		{
@@ -4345,7 +4345,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 		}
 		
 		BMO_op_exec(em->bm, &bmop);
-		if (!EDBM_FinishOp(em, &bmop, op, TRUE))
+		if (!EDBM_op_finish(em, &bmop, op, TRUE))
 			return OPERATOR_CANCELLED;
 	}
 	
@@ -4353,7 +4353,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 	
 	MEM_freeN(w);
 
-	EDBM_RecalcNormals(em);
+	EDBM_mesh_normals_update(em);
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -4387,7 +4387,7 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
-	if (!EDBM_CallOpf(em, op, "bridge_loops edges=%he", BM_ELEM_SELECT))
+	if (!EDBM_op_callf(em, op, "bridge_loops edges=%he", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 	
 	EDBM_update_generic(C, em, TRUE);
@@ -4425,7 +4425,7 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 	const float thickness         = RNA_float_get(op->ptr, "thickness");
 	const int use_outset          = RNA_boolean_get(op->ptr, "use_outset");
 
-	EDBM_InitOpf(em, &bmop, op,
+	EDBM_op_init(em, &bmop, op,
 	             "inset faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b thickness=%f use_outset=%b",
 	             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, thickness, use_outset);
 
@@ -4436,7 +4436,7 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
 
-	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 	else {

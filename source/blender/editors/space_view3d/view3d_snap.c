@@ -198,7 +198,7 @@ static void set_mapped_co(void *vuserdata, int index, float *co, float *UNUSED(n
 	void **userdata = vuserdata;
 	BMEditMesh *em = userdata[0];
 	TransVert *tv = userdata[1];
-	BMVert *eve = EDBM_get_vert_for_index(em, index);
+	BMVert *eve = EDBM_vert_at_index(em, index);
 	
 	if (BM_elem_index_get(eve) != -1 && !(tv[BM_elem_index_get(eve)].flag & TX_VERT_USE_MAPLOC)) {
 		copy_v3_v3(tv[BM_elem_index_get(eve)].maploc, co);
@@ -317,9 +317,9 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		}
 		
 		if (transvmain && em->derivedCage) {
-			EDBM_init_index_arrays(em, 1, 0, 0);
+			EDBM_index_arrays_init(em, 1, 0, 0);
 			em->derivedCage->foreachMappedVert(em->derivedCage, set_mapped_co, userdata);
-			EDBM_free_index_arrays(em);
+			EDBM_index_arrays_free(em);
 		}
 	}
 	else if (obedit->type == OB_ARMATURE) {
@@ -991,7 +991,7 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 			Mesh *me = obedit->data;
 			BMEditSelection ese;
 			
-			if (EDBM_get_actSelection(me->edit_btmesh, &ese)) {
+			if (EDBM_editselection_active_get(me->edit_btmesh, &ese)) {
 				EDBM_editselection_center(me->edit_btmesh, curs, &ese);
 			}
 			

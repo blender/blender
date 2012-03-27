@@ -92,11 +92,11 @@
 /* needed for directory lookup */
 /* untitled blend's need getpid for a unique name */
 #ifndef WIN32
-  #include <dirent.h>
-#include <unistd.h>
+#  include <dirent.h>
+#  include <unistd.h>
 #else
-#include <process.h>
-  #include "BLI_winstuff.h"
+#  include <process.h>
+#  include "BLI_winstuff.h"
 #endif
 
 #define PTCACHE_DATA_FROM(data, type, from)		if (data[type]) { memcpy(data[type], from, ptcache_data_size[type]); }

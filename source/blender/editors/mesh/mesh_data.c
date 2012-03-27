@@ -604,7 +604,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	obedit = base->object;
 	me = obedit->data;
 	if (me->edit_btmesh == NULL) {
-		EDBM_MakeEditBMesh(scene->toolsettings, scene, obedit);
+		EDBM_mesh_make(scene->toolsettings, scene, obedit);
 		exitmode = 1;
 	}
 	if (me->edit_btmesh == NULL)
@@ -613,8 +613,8 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
 
 	if (exitmode) {
-		EDBM_LoadEditBMesh(scene, obedit);
-		EDBM_FreeEditBMesh(me->edit_btmesh);
+		EDBM_mesh_load(scene, obedit);
+		EDBM_mesh_free(me->edit_btmesh);
 		MEM_freeN(me->edit_btmesh);
 		me->edit_btmesh = NULL;
 

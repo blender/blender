@@ -334,9 +334,9 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			
 			/* sets as active, useful for other tools */
 			if (em->selectmode & SCE_SELECT_VERTEX)
-				EDBM_store_selection(em, lcd->eed->v1);  /* low priority TODO, get vertrex close to mouse */
+				EDBM_editselection_store(em, &lcd->eed->v1->head);  /* low priority TODO, get vertrex close to mouse */
 			if (em->selectmode & SCE_SELECT_EDGE)
-				EDBM_store_selection(em, lcd->eed);
+				EDBM_editselection_store(em, &lcd->eed->head);
 			
 			EDBM_selectmode_flush(lcd->em);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, lcd->ob->data);
@@ -418,7 +418,7 @@ static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	lcd->vc.mval[0] = evt->mval[0];
 	lcd->vc.mval[1] = evt->mval[1];
 	
-	edge = EDBM_findnearestedge(&lcd->vc, &dist);
+	edge = EDBM_edge_find_nearest(&lcd->vc, &dist);
 	if (edge != lcd->eed) {
 		lcd->eed = edge;
 		ringsel_find_edge(lcd, 1);
@@ -502,7 +502,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			lcd->vc.mval[0] = event->mval[0];
 			lcd->vc.mval[1] = event->mval[1];
-			edge = EDBM_findnearestedge(&lcd->vc, &dist);
+			edge = EDBM_edge_find_nearest(&lcd->vc, &dist);
 
 			if (edge != lcd->eed) {
 				lcd->eed = edge;

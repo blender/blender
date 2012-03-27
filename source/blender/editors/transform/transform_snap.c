@@ -1412,7 +1412,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					if (em != NULL)
 					{
 						index_array = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
-						EDBM_init_index_arrays(em, 0, 0, 1);
+						EDBM_index_arrays_init(em, 0, 0, 1);
 					}
 					
 					for ( i = 0; i < totface; i++) {
@@ -1434,7 +1434,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 								test = 0;
 							}
 							else {
-								efa = EDBM_get_face_for_index(em, index);
+								efa = EDBM_face_at_index(em, index);
 								
 								if (efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 								{
@@ -1478,7 +1478,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					
 					if (em != NULL)
 					{
-						EDBM_free_index_arrays(em);
+						EDBM_index_arrays_free(em);
 					}
 #endif
 					break;
@@ -1493,7 +1493,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					if (em != NULL)
 					{
 						index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
-						EDBM_init_index_arrays(em, 1, 0, 0);
+						EDBM_index_arrays_init(em, 1, 0, 0);
 					}
 					
 					for ( i = 0; i < totvert; i++) {
@@ -1514,7 +1514,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 								test = 0;
 							}
 							else {
-								eve = EDBM_get_vert_for_index(em, index);
+								eve = EDBM_vert_at_index(em, index);
 								
 								if (eve && (BM_elem_flag_test(eve, BM_ELEM_HIDDEN) || BM_elem_flag_test(eve, BM_ELEM_SELECT)))
 								{
@@ -1532,7 +1532,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 
 					if (em != NULL)
 					{
-						EDBM_free_index_arrays(em);
+						EDBM_index_arrays_free(em);
 					}
 					break;
 				}
@@ -1548,7 +1548,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					if (em != NULL)
 					{
 						index_array = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-						EDBM_init_index_arrays(em, 0, 1, 0);
+						EDBM_index_arrays_init(em, 0, 1, 0);
 					}
 					
 					for ( i = 0; i < totedge; i++) {
@@ -1570,7 +1570,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 								test = 0;
 							}
 							else {
-								eed = EDBM_get_edge_for_index(em, index);
+								eed = EDBM_edge_at_index(em, index);
 								
 								if (eed && (BM_elem_flag_test(eed, BM_ELEM_HIDDEN) ||
 									BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) || 
@@ -1590,7 +1590,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 
 					if (em != NULL)
 					{
-						EDBM_free_index_arrays(em);
+						EDBM_index_arrays_free(em);
 					}
 					break;
 				}

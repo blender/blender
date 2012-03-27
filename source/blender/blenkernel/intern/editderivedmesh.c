@@ -1314,7 +1314,7 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 		return;
 	}
 
-	// ev = EDBM_get_vert_for_index(bmdm->tc, index);
+	// ev = EDBM_vert_at_index(bmdm->tc, index);
 	ev = BM_vert_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
 
 	bmvert_to_mvert(bmdm->tc->bm, ev, vert_r);
@@ -1331,7 +1331,7 @@ static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 		return;
 	}
 
-	// e = EDBM_get_edge_for_index(bmdm->tc, index);
+	// e = EDBM_edge_at_index(bmdm->tc, index);
 	e = BM_edge_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
 
 	if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {

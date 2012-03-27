@@ -1269,7 +1269,7 @@ static BMFace *knife_find_closest_face(knifetool_opdata *kcd, float co[3], float
 
 	if (!f) {
 		/* try to use backbuffer selection method if ray casting failed */
-		f = EDBM_findnearestface(&kcd->vc, &dist);
+		f = EDBM_face_find_nearest(&kcd->vc, &dist);
 
 		/* cheat for now; just put in the origin instead
 		 * of a true coordinate on the face.

@@ -416,7 +416,7 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), data->timer);
 	}
 	if (data->elementMap) {
-		EDBM_free_uv_element_map(data->elementMap);
+		EDBM_uv_element_map_free(data->elementMap);
 	}
 	if (data->uv) {
 		MEM_freeN(data->uv);
@@ -435,9 +435,9 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 }
 
-static int get_uv_element_offset_from_face(UvElementMap *map, BMFace *efa, BMLoop *l, int island_index, int doIslands)
+static int uv_element_offset_from_face_get(UvElementMap *map, BMFace *efa, BMLoop *l, int island_index, int doIslands)
 {
-	UvElement *element = ED_get_uv_element(map, efa, l);
+	UvElement *element = ED_uv_element_get(map, efa, l);
 	if (!element || (doIslands && element->island != island_index)) {
 		return -1;
 	}
@@ -501,18 +501,18 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		if (do_island_optimization) {
 			/* We will need island information */
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
-				data->elementMap = EDBM_make_uv_element_map(em, 0, 1);
+				data->elementMap = EDBM_uv_element_map_create(em, 0, 1);
 			}
 			else {
-				data->elementMap = EDBM_make_uv_element_map(em, 1, 1);
+				data->elementMap = EDBM_uv_element_map_create(em, 1, 1);
 			}
 		}
 		else {
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
-				data->elementMap = EDBM_make_uv_element_map(em, 0, 0);
+				data->elementMap = EDBM_uv_element_map_create(em, 0, 0);
 			}
 			else {
-				data->elementMap = EDBM_make_uv_element_map(em, 1, 0);
+				data->elementMap = EDBM_uv_element_map_create(em, 1, 0);
 			}
 		}
 
@@ -531,7 +531,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 			Image *ima= CTX_data_edit_image(C);
 			uv_find_nearest_vert(scene, ima, em, co, NULL, &hit);
 
-			element = ED_get_uv_element(data->elementMap, hit.efa, hit.l);
+			element = ED_uv_element_get(data->elementMap, hit.efa, hit.l);
 			island_index = element->island;
 		}
 
@@ -597,8 +597,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		counter = 0;
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				int offset1, itmp1 = get_uv_element_offset_from_face(data->elementMap, efa, l, island_index, do_island_optimization);
-				int offset2, itmp2 = get_uv_element_offset_from_face(data->elementMap, efa, l->next, island_index, do_island_optimization);
+				int offset1, itmp1 = uv_element_offset_from_face_get(data->elementMap, efa, l, island_index, do_island_optimization);
+				int offset2, itmp2 = uv_element_offset_from_face_get(data->elementMap, efa, l->next, island_index, do_island_optimization);
 
 				/* Skip edge if not found(unlikely) or not on valid island */
 				if (itmp1 == -1 || itmp2 == -1)

@@ -724,7 +724,7 @@ static void recalcData_view3d(TransInfo *t)
 				
 			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 			
-			EDBM_RecalcNormals(em);
+			EDBM_mesh_normals_update(em);
 			BMEdit_RecalcTessellation(em);
 		}
 		else if (t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
@@ -1523,7 +1523,7 @@ void calculateCenter(TransInfo *t)
 				BMEditSelection ese;
 				BMEditMesh *em = BMEdit_FromObject(t->obedit);
 
-				if (EDBM_get_actSelection(em, &ese)) {
+				if (EDBM_editselection_active_get(em, &ese)) {
 					EDBM_editselection_center(em, t->center, &ese);
 					calculateCenter2D(t);
 					break;

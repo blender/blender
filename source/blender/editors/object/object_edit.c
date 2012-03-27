@@ -327,10 +327,10 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			return;
 		}
 		
-		EDBM_LoadEditBMesh(scene, obedit);
+		EDBM_mesh_load(scene, obedit);
 		
 		if (freedata) {
-			EDBM_FreeEditBMesh(me->edit_btmesh);
+			EDBM_mesh_free(me->edit_btmesh);
 			MEM_freeN(me->edit_btmesh);
 			me->edit_btmesh= NULL;
 		}
@@ -444,7 +444,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		ok= 1;
 		scene->obedit = ob;  /* context sees this */
 
-		EDBM_MakeEditBMesh(CTX_data_tool_settings(C), scene, ob);
+		EDBM_mesh_make(CTX_data_tool_settings(C), scene, ob);
 
 		em = BMEdit_FromObject(ob);
 		if (LIKELY(em)) {

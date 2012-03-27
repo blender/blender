@@ -4668,7 +4668,7 @@ static int uv_sculpt_brush_poll(bContext *C)
 		return 0;
 
 	em = BMEdit_FromObject(obedit);
-	ret = EDBM_texFaceCheck(em);
+	ret = EDBM_mtexpoly_check(em);
 
 	if (ret && sima) {
 		ARegion *ar= CTX_wm_region(C);

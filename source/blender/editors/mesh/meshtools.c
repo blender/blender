@@ -542,9 +542,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	ED_object_exit_editmode(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
 #else
 	/* toggle editmode using lower level functions so this can be called from python */
-	EDBM_MakeEditBMesh(scene->toolsettings, scene, ob);
-	EDBM_LoadEditBMesh(scene, ob);
-	EDBM_FreeEditBMesh(me->edit_btmesh);
+	EDBM_mesh_make(scene->toolsettings, scene, ob);
+	EDBM_mesh_load(scene, ob);
+	EDBM_mesh_free(me->edit_btmesh);
 	MEM_freeN(me->edit_btmesh);
 	me->edit_btmesh = NULL;
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);

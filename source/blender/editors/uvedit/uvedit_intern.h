@@ -79,7 +79,7 @@ void uv_find_nearest_edge(struct Scene *scene, struct Image *ima, struct BMEditM
 
 /* utility tool functions */
 
-struct UvElement *ED_get_uv_element(struct UvElementMap *map, struct BMFace *efa, struct BMLoop *l);
+struct UvElement *ED_uv_element_get(struct UvElementMap *map, struct BMFace *efa, struct BMLoop *l);
 void uvedit_live_unwrap_update(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit);
 
 /* smart stitch */

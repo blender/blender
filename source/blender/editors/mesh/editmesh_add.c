@@ -51,6 +51,8 @@
 #include "ED_screen.h"
 #include "ED_object.h"
 
+#include "mesh_intern.h"
+
 /* uses context to figure out transform for primitive */
 /* returns standard diameter */
 static float new_primitive_matrix(bContext *C, float *loc, float *rot, float primmat[][4])
@@ -137,7 +139,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
+	if (!EDBM_op_call_and_selectf(em, op, "vertout", 
 	                           "create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, dia, mat))
 	{
 		return OPERATOR_CANCELLED;
@@ -183,7 +185,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout", "create_cube mat=%m4 size=%f", mat, 2.0f)) {
+	if (!EDBM_op_call_and_selectf(em, op, "vertout", "create_cube mat=%m4 size=%f", mat, 2.0f)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -237,7 +239,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout",
+	if (!EDBM_op_call_and_selectf(em, op, "vertout",
 	                           "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b mat=%m4",
 	                           RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"),
 	                           cap_end, cap_tri, mat))
@@ -296,7 +298,7 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(
+	if (!EDBM_op_call_and_selectf(
 	        em, op, "vertout",
 	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f mat=%m4",
 	        RNA_int_get(op->ptr, "vertices"),
@@ -361,7 +363,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(
+	if (!EDBM_op_call_and_selectf(
 	        em, op, "vertout",
 	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f mat=%m4",
 	        RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius1"),
@@ -422,7 +424,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout",
+	if (!EDBM_op_call_and_selectf(em, op, "vertout",
 	                           "create_grid xsegments=%i ysegments=%i size=%f mat=%m4",
 	                           RNA_int_get(op->ptr, "x_subdivisions"),
 	                           RNA_int_get(op->ptr, "y_subdivisions"),
@@ -481,7 +483,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout", "create_monkey mat=%m4", mat)) {
+	if (!EDBM_op_call_and_selectf(em, op, "vertout", "create_monkey mat=%m4", mat)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -524,7 +526,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout",
+	if (!EDBM_op_call_and_selectf(em, op, "vertout",
 	                           "create_uvsphere segments=%i revolutions=%i diameter=%f mat=%m4",
 	                           RNA_int_get(op->ptr, "segments"), RNA_int_get(op->ptr, "ring_count"),
 	                           RNA_float_get(op->ptr, "size"), mat))
@@ -580,7 +582,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(
+	if (!EDBM_op_call_and_selectf(
 	        em, op, "vertout",
 	        "create_icosphere subdivisions=%i diameter=%f mat=%m4",
 	        RNA_int_get(op->ptr, "subdivisions"),

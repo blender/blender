@@ -704,7 +704,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				sub_v3_v3(eve->co, cent);
 			}
 
-			EDBM_RecalcNormals(em);
+			EDBM_mesh_normals_update(em);
 			tot_change++;
 			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 	    }
