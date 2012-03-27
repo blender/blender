@@ -2521,9 +2521,8 @@ static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr),  Prop
 			tmp.value = totitem;
 			tmp.identifier = em->bm->vdata.layers[a].name;
 			tmp.name = em->bm->vdata.layers[a].name;
+			/* RNA_enum_item_add sets totitem itself! */
 			RNA_enum_item_add(&item, &totitem, &tmp);
-
-			totitem++;
 		}
 	}
 
