@@ -104,6 +104,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 	BM_vert_normal_update_all(bm, v);
 
 	co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, params->origkey);
+	copy_v3_v3(co, v->co);
 	copy_v3_v3(prev_co, co);
 
 	if (params->beauty & B_SMOOTH) {
@@ -205,6 +206,9 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	}
 #endif
 	
+	interp_v3_v3v3(ev->no, vsta->no, vend->no, percent2);
+	normalize_v3(ev->no);
+
 	return ev;
 }
 
@@ -886,6 +890,12 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	for (i = 0; i < einput->len; i++) {
 		edge = ((BMEdge **)einput->data.p)[i];
 		bm_subdivide_multicut(bmesh, edge, &params, edge->v1, edge->v2);
+	}
+
+	/* copy original-geometry displacements to current coordinate */
+	BM_ITER(v, &viter, bmesh, BM_VERTS_OF_MESH, NULL) {
+		float *co = CustomData_bmesh_get_n(&bmesh->vdata, v->head.data, CD_SHAPEKEY, skey);
+		copy_v3_v3(v->co, co);
 	}
 
 	i = 0;
