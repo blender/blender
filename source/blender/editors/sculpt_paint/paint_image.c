@@ -4726,10 +4726,10 @@ typedef struct PaintOperation {
 	short restore_projection;
 } PaintOperation;
 
-static void paint_redraw(bContext *C, ImagePaintState *s, int final)
+static void paint_redraw(bContext *C, ImagePaintState *s, int texpaint, int final)
 {
 	if (final) {
-		if (s->image)
+		if (s->image && !(texpaint || (s->sima && s->sima->lock)))
 			GPU_free_image(s->image);
 
 		/* compositor listener deals with updating */
@@ -4938,7 +4938,7 @@ static void paint_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	}
 
 	if (redraw)
-		paint_redraw(C, &pop->s, 0);
+		paint_redraw(C, &pop->s, pop->mode == PAINT_MODE_3D, 0);
 
 	pop->first= 0;
 }
@@ -4977,7 +4977,7 @@ static void paint_exit(bContext *C, wmOperator *op)
 		project_paint_end(&pop->ps);
 	}
 	
-	paint_redraw(C, &pop->s, 1);
+	paint_redraw(C, &pop->s, pop->mode == PAINT_MODE_3D, 1);
 	undo_paint_push_end(UNDO_PAINT_IMAGE);
 	
 	if (pop->s.warnmultifile)
