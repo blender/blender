@@ -529,9 +529,9 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	return um;
 }
 
-static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
+static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 {
-	BMEditMesh *em = emv, *em2;
+	BMEditMesh *em = em_v, *em_tmp;
 	Object *ob;
 	undomesh *um = umv;
 	BMesh *bm;
@@ -545,12 +545,13 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 	bm = BM_mesh_create(&bm_mesh_allocsize_default);
 	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%b", &um->me, ob, FALSE);
 
-	em2 = BMEdit_Create(bm, TRUE);
-	*em = *em2;
+	em_tmp = BMEdit_Create(bm, TRUE);
+	*em = *em_tmp;
 	
 	em->selectmode = um->selectmode;
+	em->ob = ob;
 
-	MEM_freeN(em2);
+	MEM_freeN(em_tmp);
 }
 
 
