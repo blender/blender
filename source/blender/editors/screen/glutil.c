@@ -191,6 +191,31 @@ void fdrawbox(float x1, float y1, float x2, float y2)
 	glEnd();
 }
 
+void fdrawcheckerboard(float x1, float y1, float x2, float y2)
+{
+	unsigned char col1[4]= {40, 40, 40}, col2[4]= {50, 50, 50};
+
+	GLubyte checker_stipple[32*32/8] = {
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+	};
+	
+	glColor3ubv(col1);
+	glRectf(x1, y1, x2, y2);
+	glColor3ubv(col2);
+
+	glEnable(GL_POLYGON_STIPPLE);
+	glPolygonStipple(checker_stipple);
+	glRectf(x1, y1, x2, y2);
+	glDisable(GL_POLYGON_STIPPLE);
+}
+
 void sdrawline(short x1, short y1, short x2, short y2)
 {
 	short v[2];

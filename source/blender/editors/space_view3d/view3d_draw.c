@@ -2728,6 +2728,7 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	RenderEngineType *type;
 
+	/* create render engine */
 	if (!rv3d->render_engine) {
 		type = RE_engines_find(scene->r.engine);
 
@@ -2738,12 +2739,20 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 		type->view_update(rv3d->render_engine, C);
 	}
 
+	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
 
+	/* background draw */
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	ED_region_pixelspace(ar);
+
+	/* render result draw */
+	if (v3d->flag & V3D_DISPBGPICS)
+		draw_bgpic(scene, ar, v3d);
+	else
+		fdrawcheckerboard(0, 0, ar->winx, ar->winy);
 
 	type = rv3d->render_engine->type;
 	type->view_draw(rv3d->render_engine, C);

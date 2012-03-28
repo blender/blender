@@ -393,28 +393,8 @@ static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
 	glEnd();
 }
 
-static void sima_draw_alpha_backdrop(float x1, float y1, float xsize, float ysize, float zoomx, float zoomy, unsigned char col1[3], unsigned char col2[3])
+static void sima_draw_alpha_backdrop(float x1, float y1, float xsize, float ysize, float zoomx, float zoomy)
 {
-	GLubyte checker_stipple[32*32/8] =
-	{
-		255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,
-		255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,
-		255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,
-		255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,
-		0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,
-		0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,
-		0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,
-		0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,
-	};
-	
-	glColor3ubv(col1);
-	glRectf(x1, y1, x1 + zoomx*xsize, y1 + zoomy*ysize);
-	glColor3ubv(col2);
-
-	glEnable(GL_POLYGON_STIPPLE);
-	glPolygonStipple(checker_stipple);
-	glRectf(x1, y1, x1 + zoomx*xsize, y1 + zoomy*ysize);
-	glDisable(GL_POLYGON_STIPPLE);
 }
 
 static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, unsigned int *recti)
@@ -528,8 +508,7 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 	}
 	else {
 		if (sima->flag & SI_USE_ALPHA) {
-			unsigned char col1[3]= {100, 100, 100}, col2[3]= {160, 160, 160};
-			sima_draw_alpha_backdrop(x, y, ibuf->x, ibuf->y, zoomx, zoomy, col1, col2);
+			fdrawcheckerboard(x, y, x + ibuf->x*zoomx, y + ibuf->y*zoomy);
 
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
