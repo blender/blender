@@ -493,6 +493,21 @@ void BM_face_normal_flip(BMesh *bm, BMFace *f)
  * note, there could be more winding cases then there needs to be. */
 static int linecrossesf(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
+
+#define GETMIN2_AXIS(a, b, ma, mb, axis)   \
+	{                                      \
+		ma[axis] = MIN2(a[axis], b[axis]); \
+		mb[axis] = MAX2(a[axis], b[axis]); \
+	} (void)0
+
+#define GETMIN2(a, b, ma, mb)          \
+	{                                  \
+		GETMIN2_AXIS(a, b, ma, mb, 0); \
+		GETMIN2_AXIS(a, b, ma, mb, 1); \
+	} (void)0
+
+#define EPS (FLT_EPSILON * 15)
+
 	int w1, w2, w3, w4, w5 /*, re */;
 	float mv1[2], mv2[2], mv3[2], mv4[2];
 	
@@ -507,41 +522,32 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 		return TRUE;
 	}
 	
-#define GETMIN2_AXIS(a, b, ma, mb, axis)   \
-	{                                      \
-		ma[axis] = MIN2(a[axis], b[axis]); \
-		mb[axis] = MAX2(a[axis], b[axis]); \
-	} (void)
-
-#define GETMIN2(a, b, ma, mb)          \
-	{                                  \
-		GETMIN2_AXIS(a, b, ma, mb, 0); \
-		GETMIN2_AXIS(a, b, ma, mb, 1); \
-		GETMIN2(v1, v2, mv1, mv2);     \
-		GETMIN2(v3, v4, mv3, mv4);     \
-	} (void)
+	GETMIN2(v1, v2, mv1, mv2);
+	GETMIN2(v3, v4, mv3, mv4);
 	
 	/* do an interval test on the x and y axe */
 	/* first do x axi */
-
-#define T (FLT_EPSILON * 15)
-
-	if (ABS(v1[1] - v2[1]) < T &&
-	    ABS(v3[1] - v4[1]) < T &&
-	    ABS(v1[1] - v3[1]) < T)
+	if (ABS(v1[1] - v2[1]) < EPS &&
+	    ABS(v3[1] - v4[1]) < EPS &&
+	    ABS(v1[1] - v3[1]) < EPS)
 	{
 		return (mv4[0] >= mv1[0] && mv3[0] <= mv2[0]);
 	}
 
 	/* now do y axi */
-	if (ABS(v1[0] - v2[0]) < T &&
-	    ABS(v3[0] - v4[0]) < T &&
-	    ABS(v1[0] - v3[0]) < T)
+	if (ABS(v1[0] - v2[0]) < EPS &&
+	    ABS(v3[0] - v4[0]) < EPS &&
+	    ABS(v1[0] - v3[0]) < EPS)
 	{
 		return (mv4[1] >= mv1[1] && mv3[1] <= mv2[1]);
 	}
 
 	return FALSE;
+
+#undef GETMIN2_AXIS
+#undef GETMIN2
+#undef EPS
+
 }
 
 /**
