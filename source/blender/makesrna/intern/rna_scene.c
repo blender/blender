@@ -1140,12 +1140,14 @@ static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 	rl->lay = ED_view3d_scene_layer_set(rl->lay, values, NULL);
 }
 
-static void rna_SceneRenderLayer_pass_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
 {
 	Scene *scene = (Scene*)ptr->id.data;
 
 	if (scene->nodetree)
 		ntreeCompositForceHidden(scene->nodetree, scene);
+	
+	rna_Scene_glsl_update(bmain, activescene, ptr);
 }
 
 static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
@@ -1884,14 +1886,14 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	RNA_def_property_ui_text(prop, "Visible Layers", "Scene layers included in this render layer");
 	if (scene) RNA_def_property_boolean_funcs(prop, NULL, "rna_SceneRenderLayer_layer_set");
 	else RNA_def_property_boolean_funcs(prop, NULL, "rna_RenderLayer_layer_set");
-	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "layers_zmask", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay_zmask", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Zmask Layers", "Zmask scene layers for solid faces");
-	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	/* layer options */
@@ -1904,14 +1906,14 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	prop = RNA_def_property(srna, "use_zmask", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ZMASK);
 	RNA_def_property_ui_text(prop, "Zmask", "Only render what's in front of the solid z values");
-	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "invert_zmask", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_NEG_ZMASK);
 	RNA_def_property_ui_text(prop, "Zmask Negate",
 	                         "For Zmask, only render what is behind solid z values instead of in front");
-	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_all_z", PROP_BOOLEAN, PROP_NONE);
@@ -2685,7 +2687,7 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	                           "rna_RenderSettings_active_layer_index_set",
 	                           "rna_RenderSettings_active_layer_index_range");
 	RNA_def_property_ui_text(prop, "Active Layer Index", "Active index in render layer array");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "SceneRenderLayer");
@@ -2693,7 +2695,7 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	                               "rna_RenderSettings_active_layer_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Active Render Layer", "Active Render Layer");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 
 	func = RNA_def_function(srna, "new", "rna_RenderLayer_new");
 	RNA_def_function_ui_description(func, "Add a render layer to scene");
