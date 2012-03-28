@@ -341,8 +341,6 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", ACTIONMOUSE, KM_CLICK, KM_SHIFT | KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "rotate_source", FALSE);
 
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_dissolve", DKEY, KM_PRESS, 0, 0);
-
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_delete", DELKEY, KM_PRESS, 0, 0);
 	
