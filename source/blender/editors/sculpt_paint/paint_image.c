@@ -160,11 +160,18 @@ typedef struct ImagePaintState {
 	char *warnpackedfile;
 	char *warnmultifile;
 
-	/* texture paint only */
+	/* viewport texture paint only, but _not_ project paint */
 	Object *ob;
-	Mesh *me;
 	int faceindex;
 	float uv[2];
+	int do_facesel;
+
+	DerivedMesh    *dm;
+	int 			dm_totface;
+	int				dm_release;
+
+	MFace 		   *dm_mface;
+	MTFace 		   *dm_mtface;
 } ImagePaintState;
 
 typedef struct ImagePaintPartialRedraw {
@@ -525,11 +532,11 @@ static Image *imapaint_face_image(const ImagePaintState *s, int face_index)
 	Image *ima;
 
 	if (scene_use_new_shading_nodes(s->scene)) {
-		MFace *mf = s->me->mface+face_index;
+		MFace *mf = &s->dm_mface[face_index];
 		ED_object_get_active_image(s->ob, mf->mat_nr, &ima, NULL, NULL);
 	}
 	else {
-		MTFace *tf = s->me->mtface+face_index;
+		MTFace *tf = &s->dm_mtface[face_index];
 		ima = tf->tpage;
 	}
 
@@ -4540,9 +4547,9 @@ static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPaint
 
 	if (texpaint) {
 		/* pick new face and image */
-		if (	imapaint_pick_face(vc, s->me, mval, &newfaceindex) &&
-				((s->me->editflag & ME_EDIT_PAINT_MASK)==0 || (s->me->mface+newfaceindex)->flag & ME_FACE_SEL)
-		) {
+		if (imapaint_pick_face(vc, mval, &newfaceindex, s->dm_totface) &&
+		    ((s->do_facesel == FALSE) || (s->dm_mface[newfaceindex].flag & ME_FACE_SEL)))
+		{
 			ImBuf *ibuf;
 			
 			newimage = imapaint_face_image(s, newfaceindex);
@@ -4853,9 +4860,39 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	pop->orig_brush_size= brush_size(scene, brush);
 
 	if (pop->mode != PAINT_MODE_2D) {
-		pop->s.ob = OBACT;
-		pop->s.me = get_mesh(pop->s.ob);
-		if (!pop->s.me) return 0;
+		Object *ob = OBACT;
+		Mesh *me = get_mesh(ob);
+
+		if (!me) {
+			return 0;
+		}
+
+		pop->s.ob = ob;
+		pop->s.do_facesel = (me->editflag & ME_EDIT_PAINT_MASK) != 0;
+
+		/* for non prohect paint we need */
+		/* fill in derived mesh */
+		if (ob->derivedFinal && CustomData_has_layer( &ob->derivedFinal->faceData, CD_MTFACE)) {
+			pop->s.dm = ob->derivedFinal;
+			pop->s.dm_release = FALSE;
+		}
+		else {
+			pop->s.dm = mesh_get_derived_final(pop->s.scene, ob, pop->s.scene->customdata_mask | CD_MASK_MTFACE);
+			pop->s.dm_release = TRUE;
+		}
+
+		if (!CustomData_has_layer(&pop->s.dm->faceData, CD_MTFACE)) {
+
+			if (pop->s.dm_release)
+				pop->s.dm->release(pop->s.dm);
+
+			pop->s.dm = NULL;
+			return 0;
+		}
+
+		pop->s.dm_mface = pop->s.dm->getTessFaceArray(pop->s.dm);
+		pop->s.dm_mtface= pop->s.dm->getTessFaceDataArray(pop->s.dm, CD_MTFACE);
+		pop->s.dm_totface = pop->s.dm->getNumTessFaces(pop->s.dm);
 	}
 	else {
 		pop->s.image = pop->s.sima->image;
@@ -4975,6 +5012,11 @@ static void paint_exit(bContext *C, wmOperator *op)
 		paint_brush_exit_tex(pop->ps.brush);
 		
 		project_paint_end(&pop->ps);
+	}
+	else {
+		/* non projection 3d paint, could move into own function of more needs adding */
+		if (pop->s.dm_release)
+			pop->s.dm->release(pop->s.dm);
 	}
 	
 	paint_redraw(C, &pop->s, pop->mode == PAINT_MODE_3D, 1);

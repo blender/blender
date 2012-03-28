@@ -327,7 +327,7 @@ extern PyTypeObject BGL_bufferType;
 #define ret_set_GLboolean ret_bool =
 #define ret_ret_GLboolean return PyLong_FromLong((long) ret_bool)
 
-#define ret_def_GLstring  const unsigned char *ret_str;
+#define ret_def_GLstring  const unsigned char *ret_str
 #define ret_set_GLstring  ret_str =
 
 #define ret_ret_GLstring                                                      \

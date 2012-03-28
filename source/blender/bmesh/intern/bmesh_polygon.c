@@ -174,10 +174,10 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 		copy_v3_v3(verts[i], l->v->co);
 	}
 
-	if(f->len == 3) {
+	if (f->len == 3) {
 		area = area_tri_v3(verts[0], verts[1], verts[2]);
 	}
-	else if(f->len == 4) {
+	else if (f->len == 4) {
 		area = area_quad_v3(verts[0], verts[1], verts[2], verts[3]);
 	}
 	else {
@@ -321,7 +321,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 	axis_angle_to_quat(q, axis, (float)angle);
 	quat_to_mat3(mat, q);
 
-	for (i = 0;  i < nverts;  i++)
+	for (i = 0; i < nverts; i++)
 		mul_m3_v3(mat, verts[i]);
 }
 
@@ -334,7 +334,7 @@ void BM_edge_normals_update(BMesh *bm, BMEdge *e)
 	BMFace *f;
 	
 	f = BM_iter_new(&iter, bm, BM_FACES_OF_EDGE, e);
-	for ( ; f; f = BM_iter_step(&iter)) {
+	for (; f; f = BM_iter_step(&iter)) {
 		BM_face_normal_update(bm, f);
 	}
 
@@ -435,7 +435,7 @@ void BM_face_normal_update(BMesh *UNUSED(bm), BMFace *f)
 	}
 }
 /* exact same as 'bmesh_face_normal_update' but accepts vertex coords */
-void BM_face_normal_update_vcos(BMesh *UNUSED(bm), BMFace *f, float no[3],
+void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
                                 float const (*vertexCos)[3])
 {
 	BMLoop *l;
@@ -507,26 +507,36 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 		return TRUE;
 	}
 	
-#define GETMIN2_AXIS(a, b, ma, mb, axis) ma[axis] = MIN2(a[axis], b[axis]), mb[axis] = MAX2(a[axis], b[axis])
-#define GETMIN2(a, b, ma, mb) GETMIN2_AXIS(a, b, ma, mb, 0); GETMIN2_AXIS(a, b, ma, mb, 1);
-	
-	GETMIN2(v1, v2, mv1, mv2);
-	GETMIN2(v3, v4, mv3, mv4);
+#define GETMIN2_AXIS(a, b, ma, mb, axis)   \
+	{                                      \
+		ma[axis] = MIN2(a[axis], b[axis]); \
+		mb[axis] = MAX2(a[axis], b[axis]); \
+	} (void)
+
+#define GETMIN2(a, b, ma, mb)          \
+	{                                  \
+		GETMIN2_AXIS(a, b, ma, mb, 0); \
+		GETMIN2_AXIS(a, b, ma, mb, 1); \
+		GETMIN2(v1, v2, mv1, mv2);     \
+		GETMIN2(v3, v4, mv3, mv4);     \
+	} (void)
 	
 	/* do an interval test on the x and y axe */
 	/* first do x axi */
+
 #define T (FLT_EPSILON * 15)
-	if ( ABS(v1[1] - v2[1]) < T &&
-	     ABS(v3[1] - v4[1]) < T &&
-	     ABS(v1[1] - v3[1]) < T)
+
+	if (ABS(v1[1] - v2[1]) < T &&
+	    ABS(v3[1] - v4[1]) < T &&
+	    ABS(v1[1] - v3[1]) < T)
 	{
 		return (mv4[0] >= mv1[0] && mv3[0] <= mv2[0]);
 	}
 
 	/* now do y axi */
-	if ( ABS(v1[0] - v2[0]) < T &&
-	     ABS(v3[0] - v4[0]) < T &&
-	     ABS(v1[0] - v3[0]) < T)
+	if (ABS(v1[0] - v2[0]) < T &&
+	    ABS(v3[0] - v4[0]) < T &&
+	    ABS(v1[0] - v3[0]) < T)
 	{
 		return (mv4[1] >= mv1[1] && mv3[1] <= mv2[1]);
 	}
@@ -826,7 +836,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
 	BMIter iter;
 	BMLoop *l;
-	float v1[3], v2[3], v3[3]/*, v4[3 */, no[3], mid[3], *p1, *p2, *p3, *p4;
+	float v1[3], v2[3], v3[3] /*, v4[3 */, no[3], mid[3], *p1, *p2, *p3, *p4;
 	float out[3] = {-234324.0f, -234324.0f, 0.0f};
 	float (*projverts)[3];
 	float (*edgeverts)[3];

@@ -210,8 +210,8 @@ static MFace *get_dface(DerivedMesh *dm, DerivedMesh *split, int cur, int i, MFa
 			v[2]=mf->v##c; uv[2]=c-1; \
 			v[3]=mf->v##d; uv[3]=d-1;
 
-#define GET_ES(v1, v2) edgecut_get(eh, v1, v2);
-#define INT_UV(uvf, c0, c1) interp_v2_v2v2(uvf, mf->uv[c0], mf->uv[c1], 0.5f);
+#define GET_ES(v1, v2) edgecut_get(eh, v1, v2)
+#define INT_UV(uvf, c0, c1) interp_v2_v2v2(uvf, mf->uv[c0], mf->uv[c1], 0.5f)
 
 static void remap_faces_3_6_9_12(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3, int v4)
 {
@@ -221,15 +221,15 @@ static void remap_faces_3_6_9_12(DerivedMesh *dm, DerivedMesh *split, MFace *mf,
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
-	df1->v2 = GET_ES(v1, v2)
-	df1->v3 = GET_ES(v2, v3)
+	df1->v2 = GET_ES(v1, v2);
+	df1->v3 = GET_ES(v2, v3);
 	df1->v4 = v3;
 	df1->flag |= ME_FACE_SEL;
 
 	facepa[cur+1] = vertpa[v2];
-	df2->v1 = GET_ES(v1, v2)
+	df2->v1 = GET_ES(v1, v2);
 	df2->v2 = v2;
-	df2->v3 = GET_ES(v2, v3)
+	df2->v3 = GET_ES(v2, v3);
 	df2->v4 = 0;
 	df2->flag &= ~ME_FACE_SEL;
 
@@ -255,13 +255,13 @@ static void remap_uvs_3_6_9_12(DerivedMesh *dm, DerivedMesh *split, int numlayer
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
-		INT_UV(df1->uv[1], c0, c1)
-		INT_UV(df1->uv[2], c1, c2)
+		INT_UV(df1->uv[1], c0, c1);
+		INT_UV(df1->uv[2], c1, c2);
 		copy_v2_v2(df1->uv[3], mf->uv[c2]);
 
-		INT_UV(df2->uv[0], c0, c1)
+		INT_UV(df2->uv[0], c0, c1);
 		copy_v2_v2(df2->uv[1], mf->uv[c1]);
-		INT_UV(df2->uv[2], c1, c2)
+		INT_UV(df2->uv[2], c1, c2);
 
 		copy_v2_v2(df3->uv[0], mf->uv[c0]);
 		copy_v2_v2(df3->uv[1], mf->uv[c2]);
@@ -277,13 +277,13 @@ static void remap_faces_5_10(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
 	df1->v2 = v2;
-	df1->v3 = GET_ES(v2, v3)
-	df1->v4 = GET_ES(v1, v4)
+	df1->v3 = GET_ES(v2, v3);
+	df1->v4 = GET_ES(v1, v4);
 	df1->flag |= ME_FACE_SEL;
 
 	facepa[cur+1] = vertpa[v3];
-	df2->v1 = GET_ES(v1, v4)
-	df2->v2 = GET_ES(v2, v3)
+	df2->v1 = GET_ES(v1, v4);
+	df2->v2 = GET_ES(v2, v3);
 	df2->v3 = v3;
 	df2->v4 = v4;
 	df2->flag |= ME_FACE_SEL;
@@ -303,11 +303,11 @@ static void remap_uvs_5_10(DerivedMesh *dm, DerivedMesh *split, int numlayer, in
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
 		copy_v2_v2(df1->uv[1], mf->uv[c1]);
-		INT_UV(df1->uv[2], c1, c2)
-		INT_UV(df1->uv[3], c0, c3)
+		INT_UV(df1->uv[2], c1, c2);
+		INT_UV(df1->uv[3], c0, c3);
 
-		INT_UV(df2->uv[0], c0, c3)
-		INT_UV(df2->uv[1], c1, c2)
+		INT_UV(df2->uv[0], c0, c3);
+		INT_UV(df2->uv[1], c1, c2);
 		copy_v2_v2(df2->uv[2], mf->uv[c2]);
 		copy_v2_v2(df2->uv[3], mf->uv[c3]);
 
@@ -323,29 +323,29 @@ static void remap_faces_15(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
-	df1->v2 = GET_ES(v1, v2)
-	df1->v3 = GET_ES(v1, v3)
-	df1->v4 = GET_ES(v1, v4)
+	df1->v2 = GET_ES(v1, v2);
+	df1->v3 = GET_ES(v1, v3);
+	df1->v4 = GET_ES(v1, v4);
 	df1->flag |= ME_FACE_SEL;
 
 	facepa[cur+1] = vertpa[v2];
-	df2->v1 = GET_ES(v1, v2)
+	df2->v1 = GET_ES(v1, v2);
 	df2->v2 = v2;
-	df2->v3 = GET_ES(v2, v3)
-	df2->v4 = GET_ES(v1, v3)
+	df2->v3 = GET_ES(v2, v3);
+	df2->v4 = GET_ES(v1, v3);
 	df2->flag |= ME_FACE_SEL;
 
 	facepa[cur+2] = vertpa[v3];
-	df3->v1 = GET_ES(v1, v3)
-	df3->v2 = GET_ES(v2, v3)
+	df3->v1 = GET_ES(v1, v3);
+	df3->v2 = GET_ES(v2, v3);
 	df3->v3 = v3;
-	df3->v4 = GET_ES(v3, v4)
+	df3->v4 = GET_ES(v3, v4);
 	df3->flag |= ME_FACE_SEL;
 
 	facepa[cur+3] = vertpa[v4];
-	df4->v1 = GET_ES(v1, v4)
-	df4->v2 = GET_ES(v1, v3)
-	df4->v3 = GET_ES(v3, v4)
+	df4->v1 = GET_ES(v1, v4);
+	df4->v2 = GET_ES(v1, v3);
+	df4->v3 = GET_ES(v3, v4);
 	df4->v4 = v4;
 	df4->flag |= ME_FACE_SEL;
 }
@@ -365,23 +365,23 @@ static void remap_uvs_15(DerivedMesh *dm, DerivedMesh *split, int numlayer, int 
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
-		INT_UV(df1->uv[1], c0, c1)
-		INT_UV(df1->uv[2], c0, c2)
-		INT_UV(df1->uv[3], c0, c3)
+		INT_UV(df1->uv[1], c0, c1);
+		INT_UV(df1->uv[2], c0, c2);
+		INT_UV(df1->uv[3], c0, c3);
 
-		INT_UV(df2->uv[0], c0, c1)
+		INT_UV(df2->uv[0], c0, c1);
 		copy_v2_v2(df2->uv[1], mf->uv[c1]);
-		INT_UV(df2->uv[2], c1, c2)
-		INT_UV(df2->uv[3], c0, c2)
+		INT_UV(df2->uv[2], c1, c2);
+		INT_UV(df2->uv[3], c0, c2);
 
-		INT_UV(df3->uv[0], c0, c2)
-		INT_UV(df3->uv[1], c1, c2)
+		INT_UV(df3->uv[0], c0, c2);
+		INT_UV(df3->uv[1], c1, c2);
 		copy_v2_v2(df3->uv[2], mf->uv[c2]);
-		INT_UV(df3->uv[3], c2, c3)
+		INT_UV(df3->uv[3], c2, c3);
 
-		INT_UV(df4->uv[0], c0, c3)
-		INT_UV(df4->uv[1], c0, c2)
-		INT_UV(df4->uv[2], c2, c3)
+		INT_UV(df4->uv[0], c0, c3);
+		INT_UV(df4->uv[1], c0, c2);
+		INT_UV(df4->uv[2], c2, c3);
 		copy_v2_v2(df4->uv[3], mf->uv[c3]);
 	}
 }
@@ -394,21 +394,21 @@ static void remap_faces_7_11_13_14(DerivedMesh *dm, DerivedMesh *split, MFace *m
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
-	df1->v2 = GET_ES(v1, v2)
-	df1->v3 = GET_ES(v2, v3)
-	df1->v4 = GET_ES(v1, v4)
+	df1->v2 = GET_ES(v1, v2);
+	df1->v3 = GET_ES(v2, v3);
+	df1->v4 = GET_ES(v1, v4);
 	df1->flag |= ME_FACE_SEL;
 
 	facepa[cur+1] = vertpa[v2];
-	df2->v1 = GET_ES(v1, v2)
+	df2->v1 = GET_ES(v1, v2);
 	df2->v2 = v2;
-	df2->v3 = GET_ES(v2, v3)
+	df2->v3 = GET_ES(v2, v3);
 	df2->v4 = 0;
 	df2->flag &= ~ME_FACE_SEL;
 
 	facepa[cur+2] = vertpa[v4];
-	df3->v1 = GET_ES(v1, v4)
-	df3->v2 = GET_ES(v2, v3)
+	df3->v1 = GET_ES(v1, v4);
+	df3->v2 = GET_ES(v2, v3);
 	df3->v3 = v3;
 	df3->v4 = v4;
 	df3->flag |= ME_FACE_SEL;
@@ -428,16 +428,16 @@ static void remap_uvs_7_11_13_14(DerivedMesh *dm, DerivedMesh *split, int numlay
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
-		INT_UV(df1->uv[1], c0, c1)
-		INT_UV(df1->uv[2], c1, c2)
-		INT_UV(df1->uv[3], c0, c3)
+		INT_UV(df1->uv[1], c0, c1);
+		INT_UV(df1->uv[2], c1, c2);
+		INT_UV(df1->uv[3], c0, c3);
 
-		INT_UV(df2->uv[0], c0, c1)
+		INT_UV(df2->uv[0], c0, c1);
 		copy_v2_v2(df2->uv[1], mf->uv[c1]);
-		INT_UV(df2->uv[2], c1, c2)
+		INT_UV(df2->uv[2], c1, c2);
 
-		INT_UV(df3->uv[0], c0, c3)
-		INT_UV(df3->uv[1], c1, c2)
+		INT_UV(df3->uv[0], c0, c3);
+		INT_UV(df3->uv[1], c1, c2);
 		copy_v2_v2(df3->uv[2], mf->uv[c2]);
 		copy_v2_v2(df3->uv[3], mf->uv[c3]);
 	}
@@ -450,16 +450,16 @@ static void remap_faces_19_21_22(DerivedMesh *dm, DerivedMesh *split, MFace *mf,
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
-	df1->v2 = GET_ES(v1, v2)
-	df1->v3 = GET_ES(v1, v3)
+	df1->v2 = GET_ES(v1, v2);
+	df1->v3 = GET_ES(v1, v3);
 	df1->v4 = 0;
 	df1->flag &= ~ME_FACE_SEL;
 
 	facepa[cur+1] = vertpa[v2];
-	df2->v1 = GET_ES(v1, v2)
+	df2->v1 = GET_ES(v1, v2);
 	df2->v2 = v2;
 	df2->v3 = v3;
-	df2->v4 = GET_ES(v1, v3)
+	df2->v4 = GET_ES(v1, v3);
 	df2->flag |= ME_FACE_SEL;
 }
 
@@ -476,13 +476,13 @@ static void remap_uvs_19_21_22(DerivedMesh *dm, DerivedMesh *split, int numlayer
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
-		INT_UV(df1->uv[1], c0, c1)
-		INT_UV(df1->uv[2], c0, c2)
+		INT_UV(df1->uv[1], c0, c1);
+		INT_UV(df1->uv[2], c0, c2);
 
-		INT_UV(df2->uv[0], c0, c1)
+		INT_UV(df2->uv[0], c0, c1);
 		copy_v2_v2(df2->uv[1], mf->uv[c1]);
 		copy_v2_v2(df2->uv[2], mf->uv[c2]);
-		INT_UV(df2->uv[3], c0, c2)
+		INT_UV(df2->uv[3], c0, c2);
 	}
 }
 
@@ -494,21 +494,21 @@ static void remap_faces_23(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
-	df1->v2 = GET_ES(v1, v2)
-	df1->v3 = GET_ES(v2, v3)
-	df1->v4 = GET_ES(v1, v3)
+	df1->v2 = GET_ES(v1, v2);
+	df1->v3 = GET_ES(v2, v3);
+	df1->v4 = GET_ES(v1, v3);
 	df1->flag |= ME_FACE_SEL;
 
 	facepa[cur+1] = vertpa[v2];
-	df2->v1 = GET_ES(v1, v2)
+	df2->v1 = GET_ES(v1, v2);
 	df2->v2 = v2;
-	df2->v3 = GET_ES(v2, v3)
+	df2->v3 = GET_ES(v2, v3);
 	df2->v4 = 0;
 	df2->flag &= ~ME_FACE_SEL;
 
 	facepa[cur+2] = vertpa[v3];
-	df3->v1 = GET_ES(v1, v3)
-	df3->v2 = GET_ES(v2, v3)
+	df3->v1 = GET_ES(v1, v3);
+	df3->v2 = GET_ES(v2, v3);
 	df3->v3 = v3;
 	df3->v4 = 0;
 	df3->flag &= ~ME_FACE_SEL;
@@ -527,16 +527,16 @@ static void remap_uvs_23(DerivedMesh *dm, DerivedMesh *split, int numlayer, int 
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
-		INT_UV(df1->uv[1], c0, c1)
-		INT_UV(df1->uv[2], c1, c2)
-		INT_UV(df1->uv[3], c0, c2)
+		INT_UV(df1->uv[1], c0, c1);
+		INT_UV(df1->uv[2], c1, c2);
+		INT_UV(df1->uv[3], c0, c2);
 
-		INT_UV(df2->uv[0], c0, c1)
+		INT_UV(df2->uv[0], c0, c1);
 		copy_v2_v2(df2->uv[1], mf->uv[c1]);
-		INT_UV(df2->uv[2], c1, c2)
+		INT_UV(df2->uv[2], c1, c2);
 
-		INT_UV(df2->uv[0], c0, c2)
-		INT_UV(df2->uv[1], c1, c2)
+		INT_UV(df2->uv[0], c0, c2);
+		INT_UV(df2->uv[1], c1, c2);
 		copy_v2_v2(df2->uv[2], mf->uv[c2]);
 	}
 }

@@ -348,7 +348,7 @@ typedef struct Script {
 	char scriptname[1024]; /* 1024 = FILE_MAX */
 	char scriptarg[256]; /* 1024 = FILE_MAX */
 } Script;
-#define SCRIPT_SET_NULL(_script) _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = _script->py_globaldict = NULL; _script->flags = 0;
+#define SCRIPT_SET_NULL(_script) _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = _script->py_globaldict = NULL; _script->flags = 0
 
 typedef struct SpaceScript {
 	SpaceLink *next, *prev;

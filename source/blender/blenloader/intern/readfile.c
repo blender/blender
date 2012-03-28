@@ -1679,7 +1679,7 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 static void direct_link_script(FileData *UNUSED(fd), Script *script)
 {
 	script->id.us = 1;
-	SCRIPT_SET_NULL(script)
+	SCRIPT_SET_NULL(script);
 }
 
 
@@ -5324,7 +5324,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						if (scpt->script) {
 							scpt->script= newlibadr(fd, sc->id.lib, scpt->script);
 							if (scpt->script) {
-								SCRIPT_SET_NULL(scpt->script)
+								SCRIPT_SET_NULL(scpt->script);
 							}
 						}
 					}
@@ -5599,7 +5599,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 					/*sc->script = NULL; - 2.45 set to null, better re-run the script */
 					if (scpt->script) {
-						SCRIPT_SET_NULL(scpt->script)
+						SCRIPT_SET_NULL(scpt->script);
 					}
 				}
 				else if (sl->spacetype==SPACE_OUTLINER) {
