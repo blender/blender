@@ -2196,23 +2196,26 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if (!v)
 			return OPERATOR_CANCELLED;
 
-		if (!v->e || !v->e->l) {
-			BKE_report(op->reports, RPT_ERROR, "Selected vertex has no faces");
-			return OPERATOR_CANCELLED;
-		}
-
-		/* find closest edge to mouse cursor */
 		e2 = NULL;
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
-			d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
-			if (d < dist) {
-				dist = d;
-				e2 = e;
+
+		if (v->e) {
+			/* find closest edge to mouse cursor */
+			BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+				if (e->l && !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+					d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
+					if (d < dist) {
+						dist = d;
+						e2 = e;
+					}
+				}
 			}
+
 		}
 
-		if (!e2)
+		if (!e2) {
+			BKE_report(op->reports, RPT_ERROR, "Selected vertex has no faces attached");
 			return OPERATOR_CANCELLED;
+		}
 
 		/* rip two adjacent edges */
 		if (BM_edge_face_count(e2) == 1 || BM_vert_face_count(v) == 2) {
