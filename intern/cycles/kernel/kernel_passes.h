@@ -132,6 +132,8 @@ __device_inline void kernel_write_light_passes(KernelGlobals *kg, __global float
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_glossy_color, sample, L->color_glossy);
 	if(flag & PASS_TRANSMISSION_COLOR)
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_transmission_color, sample, L->color_transmission);
+	if(flag & PASS_SHADOW)
+		kernel_write_pass_float4(buffer + kernel_data.film.pass_shadow, sample, L->shadow);
 #endif
 }
 

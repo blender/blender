@@ -136,6 +136,7 @@ __device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);
 		L->background = make_float3(0.0f, 0.0f, 0.0f);
 		L->ao = make_float3(0.0f, 0.0f, 0.0f);
+		L->shadow = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
 	else
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);
@@ -215,26 +216,35 @@ __device_inline void path_radiance_accum_ao(PathRadiance *L, float3 throughput, 
 #endif
 }
 
-__device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughput, BsdfEval *bsdf_eval, int bounce)
+__device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughput, BsdfEval *bsdf_eval, float3 shadow, int bounce, bool is_lamp)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
 		if(bounce == 0) {
 			/* directly visible lighting */
-			L->direct_diffuse += throughput*bsdf_eval->diffuse;
-			L->direct_glossy += throughput*bsdf_eval->glossy;
-			L->direct_transmission += throughput*bsdf_eval->transmission;
+			L->direct_diffuse += throughput*bsdf_eval->diffuse*shadow;
+			L->direct_glossy += throughput*bsdf_eval->glossy*shadow;
+			L->direct_transmission += throughput*bsdf_eval->transmission*shadow;
+
+			if(is_lamp) {
+				float3 sum = throughput*(bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission);
+
+				L->shadow.x += shadow.x;
+				L->shadow.y += shadow.y;
+				L->shadow.z += shadow.z;
+				L->shadow.w += average(sum);
+			}
 		}
 		else {
 			/* indirectly visible lighting after BSDF bounce */
 			float3 sum = bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission;
-			L->indirect += throughput*sum;
+			L->indirect += throughput*sum*shadow;
 		}
 	}
 	else
-		L->emission += throughput*bsdf_eval->diffuse;
+		L->emission += throughput*bsdf_eval->diffuse*shadow;
 #else
-	*L += throughput*(*bsdf_eval);
+	*L += throughput*(*bsdf_eval)*shadow;
 #endif
 }
 

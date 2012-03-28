@@ -197,6 +197,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_emit")
         col.prop(rl, "use_pass_environment")
         col.prop(rl, "use_pass_ambient_occlusion")
+        col.prop(rl, "use_pass_shadow")
 
         col = split.column()
         col.label()

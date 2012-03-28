@@ -186,15 +186,28 @@ bool RenderBuffers::get_pass(PassType type, float exposure, int sample, int comp
 			assert(pass.components == components);
 
 			/* RGBA */
-			for(int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
-				float4 f = make_float4(in[0], in[1], in[2], in[3]);
+			if(type == PASS_SHADOW) {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
+					float4 f = make_float4(in[0], in[1], in[2], in[3]);
+					float invw = (f.w > 0.0f)? 1.0f/f.w: 1.0f;
 
-				pixels[0] = f.x*scale_exposure;
-				pixels[1] = f.y*scale_exposure;
-				pixels[2] = f.z*scale_exposure;
+					pixels[0] = f.x*invw;
+					pixels[1] = f.y*invw;
+					pixels[2] = f.z*invw;
+					pixels[3] = 1.0f;
+				}
+			}
+			else {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
+					float4 f = make_float4(in[0], in[1], in[2], in[3]);
 
-				/* clamp since alpha might be > 1.0 due to russian roulette */
-				pixels[3] = clamp(f.w*scale, 0.0f, 1.0f);
+					pixels[0] = f.x*scale_exposure;
+					pixels[1] = f.y*scale_exposure;
+					pixels[2] = f.z*scale_exposure;
+
+					/* clamp since alpha might be > 1.0 due to russian roulette */
+					pixels[3] = clamp(f.w*scale, 0.0f, 1.0f);
+				}
 			}
 		}
 
