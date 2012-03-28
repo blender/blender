@@ -94,30 +94,18 @@ __device_inline void kernel_write_light_passes(KernelGlobals *kg, __global float
 	if(!kernel_data.film.use_light_pass)
 		return;
 	
-	if(flag & PASS_DIFFUSE_INDIRECT) {
-		float3 color = safe_divide_color(L->indirect_diffuse, L->color_diffuse);
-		kernel_write_pass_float3(buffer + kernel_data.film.pass_diffuse_indirect, sample, color);
-	}
-	if(flag & PASS_GLOSSY_INDIRECT) {
-		float3 color = safe_divide_color(L->indirect_glossy, L->color_glossy);
-		kernel_write_pass_float3(buffer + kernel_data.film.pass_glossy_indirect, sample, color);
-	}
-	if(flag & PASS_TRANSMISSION_INDIRECT) {
-		float3 color = safe_divide_color(L->indirect_transmission, L->color_transmission);
-		kernel_write_pass_float3(buffer + kernel_data.film.pass_transmission_indirect, sample, color);
-	}
-	if(flag & PASS_DIFFUSE_DIRECT) {
-		float3 color = safe_divide_color(L->direct_diffuse, L->color_diffuse);
-		kernel_write_pass_float3(buffer + kernel_data.film.pass_diffuse_direct, sample, color);
-	}
-	if(flag & PASS_GLOSSY_DIRECT) {
-		float3 color = safe_divide_color(L->direct_glossy, L->color_glossy);
-		kernel_write_pass_float3(buffer + kernel_data.film.pass_glossy_direct, sample, color);
-	}
-	if(flag & PASS_TRANSMISSION_DIRECT) {
-		float3 color = safe_divide_color(L->direct_transmission, L->color_transmission);
-		kernel_write_pass_float3(buffer + kernel_data.film.pass_transmission_direct, sample, color);
-	}
+	if(flag & PASS_DIFFUSE_INDIRECT)
+		kernel_write_pass_float3(buffer + kernel_data.film.pass_diffuse_indirect, sample, L->indirect_diffuse);
+	if(flag & PASS_GLOSSY_INDIRECT)
+		kernel_write_pass_float3(buffer + kernel_data.film.pass_glossy_indirect, sample, L->indirect_glossy);
+	if(flag & PASS_TRANSMISSION_INDIRECT)
+		kernel_write_pass_float3(buffer + kernel_data.film.pass_transmission_indirect, sample, L->indirect_transmission);
+	if(flag & PASS_DIFFUSE_DIRECT)
+		kernel_write_pass_float3(buffer + kernel_data.film.pass_diffuse_direct, sample, L->direct_diffuse);
+	if(flag & PASS_GLOSSY_DIRECT)
+		kernel_write_pass_float3(buffer + kernel_data.film.pass_glossy_direct, sample, L->direct_glossy);
+	if(flag & PASS_TRANSMISSION_DIRECT)
+		kernel_write_pass_float3(buffer + kernel_data.film.pass_transmission_direct, sample, L->direct_transmission);
 
 	if(flag & PASS_EMISSION)
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_emission, sample, L->emission);

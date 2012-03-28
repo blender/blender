@@ -173,13 +173,37 @@ bool RenderBuffers::get_pass(PassType type, float exposure, int sample, int comp
 		else if(components == 3) {
 			assert(pass.components == 4);
 
-			/* RGB/vector */
-			for(int i = 0; i < size; i++, in += pass_stride, pixels += 3) {
-				float3 f = make_float3(in[0], in[1], in[2]);
+			if(pass.divide_type != PASS_NONE) {
+				/* RGB lighting passes that need to divide out color */
+				pass_offset = 0;
+				foreach(Pass& color_pass, params.passes) {
+					if(color_pass.type == pass.divide_type)
+						break;
+					pass_offset += color_pass.components;
+				}
 
-				pixels[0] = f.x*scale_exposure;
-				pixels[1] = f.y*scale_exposure;
-				pixels[2] = f.z*scale_exposure;
+				float *in_divide = (float*)buffer.data_pointer + pass_offset;
+
+				for(int i = 0; i < size; i++, in += pass_stride, in_divide += pass_stride, pixels += 3) {
+					float3 f = make_float3(in[0], in[1], in[2]);
+					float3 f_divide = make_float3(in_divide[0], in_divide[1], in_divide[2]);
+
+					f = safe_divide_color(f*exposure, f_divide);
+
+					pixels[0] = f.x;
+					pixels[1] = f.y;
+					pixels[2] = f.z;
+				}
+			}
+			else {
+				/* RGB/vector */
+				for(int i = 0; i < size; i++, in += pass_stride, pixels += 3) {
+					float3 f = make_float3(in[0], in[1], in[2]);
+
+					pixels[0] = f.x*scale_exposure;
+					pixels[1] = f.y*scale_exposure;
+					pixels[2] = f.z*scale_exposure;
+				}
 			}
 		}
 		else if(components == 4) {

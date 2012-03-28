@@ -38,11 +38,16 @@ static bool compare_pass_order(const Pass& a, const Pass& b)
 
 void Pass::add(PassType type, vector<Pass>& passes)
 {
+	foreach(Pass& existing_pass, passes)
+		if(existing_pass.type == type)
+			return;
+
 	Pass pass;
 
 	pass.type = type;
 	pass.filter = true;
 	pass.exposure = false;
+	pass.divide_type = PASS_NONE;
 
 	switch(type) {
 		case PASS_NONE:
@@ -82,26 +87,32 @@ void Pass::add(PassType type, vector<Pass>& passes)
 		case PASS_DIFFUSE_INDIRECT:
 			pass.components = 4;
 			pass.exposure = true;
+			pass.divide_type = PASS_DIFFUSE_COLOR;
 			break;
 		case PASS_GLOSSY_INDIRECT:
 			pass.components = 4;
 			pass.exposure = true;
+			pass.divide_type = PASS_GLOSSY_COLOR;
 			break;
 		case PASS_TRANSMISSION_INDIRECT:
 			pass.components = 4;
 			pass.exposure = true;
+			pass.divide_type = PASS_TRANSMISSION_COLOR;
 			break;
 		case PASS_DIFFUSE_DIRECT:
 			pass.components = 4;
 			pass.exposure = true;
+			pass.divide_type = PASS_DIFFUSE_COLOR;
 			break;
 		case PASS_GLOSSY_DIRECT:
 			pass.components = 4;
 			pass.exposure = true;
+			pass.divide_type = PASS_GLOSSY_COLOR;
 			break;
 		case PASS_TRANSMISSION_DIRECT:
 			pass.components = 4;
 			pass.exposure = true;
+			pass.divide_type = PASS_TRANSMISSION_COLOR;
 			break;
 
 		case PASS_EMISSION:
@@ -127,6 +138,9 @@ void Pass::add(PassType type, vector<Pass>& passes)
 	/* order from by components, to ensure alignment so passes with size 4
 	   come first and then passes with size 1 */
 	sort(passes.begin(), passes.end(), compare_pass_order);
+
+	if(pass.divide_type != PASS_NONE)
+		Pass::add(pass.divide_type, passes);
 }
 
 bool Pass::equals(const vector<Pass>& A, const vector<Pass>& B)

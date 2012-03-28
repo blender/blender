@@ -266,17 +266,6 @@ __device_inline void path_radiance_accum_background(PathRadiance *L, float3 thro
 #endif
 }
 
-__device_inline float3 safe_divide_color(float3 a, float3 b)
-{
-	float x, y, z;
-
-	x = (b.x != 0.0f)? a.x/b.x: 0.0f;
-	y = (b.y != 0.0f)? a.y/b.y: 0.0f;
-	z = (b.z != 0.0f)? a.z/b.z: 0.0f;
-
-	return make_float3(x, y, z);
-}
-
 __device_inline float3 path_radiance_sum(PathRadiance *L)
 {
 #ifdef __PASSES__
