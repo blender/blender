@@ -805,29 +805,23 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		/* calculate rotation */
 		unit_m3(mat);
 		if (done) {
-			float dot;
+			float angle;
 
-			copy_v3_v3(vec, min);
-			normalize_v3(vec);
-			dot = dot_v3v3(vec, nor);
+			normalize_v3_v3(vec, min);
 
-			if (fabsf(dot) < 0.999f) {
-				float cross[3], si, q1[4];
+			angle = angle_normalized_v3v3(vec, nor);
 
-				cross_v3_v3v3(cross, nor, vec);
-				normalize_v3(cross);
-				dot = 0.5f * saacos(dot);
+			if (angle != 0.0f) {
+				float axis[3];
+
+				cross_v3_v3v3(axis, nor, vec);
 
 				/* halve the rotation if its applied twice */
-				if (rot_src) dot *= 0.5f;
+				if (rot_src) {
+					angle *= 0.5f;
+				}
 
-				si = sinf(dot);
-				q1[0] = cosf(dot);
-				q1[1] = cross[0] * si;
-				q1[2] = cross[1] * si;
-				q1[3] = cross[2] * si;
-				normalize_qt(q1);
-				quat_to_mat3(mat, q1);
+				axis_angle_to_mat3(mat, axis, angle);
 			}
 		}
 		

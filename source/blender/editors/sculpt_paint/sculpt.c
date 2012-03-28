@@ -103,7 +103,8 @@ void ED_sculpt_force_update(bContext *C)
 
 /* Sculpt mode handles multires differently from regular meshes, but only if
  * it's the last modifier on the stack and it is not on the first level */
-struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob){
+struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
+{
 	Mesh *me = (Mesh *)ob->data;
 	ModifierData *md;
 
