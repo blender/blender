@@ -2150,6 +2150,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 	float dist = FLT_MAX;
 	float d;
+	const int totedge_orig = bm->totedge;
 
 	/* note on selection:
 	 * When calling edge split we operate on tagged edges rather then selected
@@ -2195,7 +2196,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if (v->e) {
 			/* find closest edge to mouse cursor */
 			BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
-				if (e->l && !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && BM_edge_face_count(e) == 2) {
 					d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
 					if (d < dist) {
 						dist = d;
@@ -2207,7 +2208,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 
 		if (!e2) {
-			BKE_report(op->reports, RPT_ERROR, "Selected vertex has no faces attached");
+			BKE_report(op->reports, RPT_ERROR, "Selected vertex has no edge/face pairs attached");
 			return OPERATOR_CANCELLED;
 		}
 
@@ -2265,6 +2266,13 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	BMO_op_exec(bm, &bmop);
+
+	if (totedge_orig == bm->totedge) {
+		EDBM_op_finish(em, &bmop, op, TRUE);
+
+		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
+		return OPERATOR_CANCELLED;
+	}
 
 	BMO_ITER(e, &siter, bm, &bmop, "edgeout", BM_EDGE) {
 		float cent[3] = {0, 0, 0}, mid[3];
