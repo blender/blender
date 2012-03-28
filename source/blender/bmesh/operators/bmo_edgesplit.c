@@ -62,7 +62,10 @@ static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
 		 * only place we loop over all edges, disable tag */
 		BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
 
-		if (BM_edge_is_boundary(e)) {
+		if (e->l == NULL) {
+			BMO_elem_flag_disable(bm, e, EDGE_SEAM);
+		}
+		else if (BM_edge_is_boundary(e)) {
 			vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;
 			vt = &vtouch[BM_elem_index_get(e->v2)]; if (*vt < 2) (*vt)++;
 
