@@ -45,7 +45,7 @@
 
 #include "paint_intern.h"
 
-#define MAXUNDONAME	64
+#define MAXUNDONAME 64
 
 typedef struct UndoElem {
 	struct UndoElem *next, *prev;
@@ -94,31 +94,31 @@ static void undo_stack_push_begin(UndoStack *stack, const char *name, UndoRestor
 
 	/* remove all undos after (also when stack->current==NULL) */
 	while (stack->elems.last != stack->current) {
-		uel= stack->elems.last;
+		uel = stack->elems.last;
 		undo_elem_free(stack, uel);
 		BLI_freelinkN(&stack->elems, uel);
 	}
 	
 	/* make new */
-	stack->current= uel= MEM_callocN(sizeof(UndoElem), "undo file");
-	uel->restore= restore;
-	uel->free= free;
+	stack->current = uel = MEM_callocN(sizeof(UndoElem), "undo file");
+	uel->restore = restore;
+	uel->free = free;
 	BLI_addtail(&stack->elems, uel);
 
 	/* name can be a dynamic string */
 	BLI_strncpy(uel->name, name, sizeof(uel->name));
 	
 	/* limit amount to the maximum amount*/
-	nr= 0;
-	uel= stack->elems.last;
+	nr = 0;
+	uel = stack->elems.last;
 	while (uel) {
 		nr++;
-		if (nr==U.undosteps) break;
-		uel= uel->prev;
+		if (nr == U.undosteps) break;
+		uel = uel->prev;
 	}
 	if (uel) {
-		while (stack->elems.first!=uel) {
-			UndoElem *first= stack->elems.first;
+		while (stack->elems.first != uel) {
+			UndoElem *first = stack->elems.first;
 			undo_elem_free(stack, first);
 			BLI_freelinkN(&stack->elems, first);
 		}
@@ -132,19 +132,19 @@ static void undo_stack_push_end(UndoStack *stack)
 
 	if (U.undomemory != 0) {
 		/* limit to maximum memory (afterwards, we can't know in advance) */
-		totmem= 0;
-		maxmem= ((uintptr_t)U.undomemory)*1024*1024;
+		totmem = 0;
+		maxmem = ((uintptr_t)U.undomemory) * 1024 * 1024;
 
-		uel= stack->elems.last;
+		uel = stack->elems.last;
 		while (uel) {
-			totmem+= uel->undosize;
-			if (totmem>maxmem) break;
-			uel= uel->prev;
+			totmem += uel->undosize;
+			if (totmem > maxmem) break;
+			uel = uel->prev;
 		}
 
 		if (uel) {
-			while (stack->elems.first!=uel) {
-				UndoElem *first= stack->elems.first;
+			while (stack->elems.first != uel) {
+				UndoElem *first = stack->elems.first;
 				undo_elem_free(stack, first);
 				BLI_freelinkN(&stack->elems, first);
 			}
@@ -156,24 +156,24 @@ static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *
 {
 	UndoElem *undo;
 
-	if (step==1) {
-		if (stack->current==NULL);
+	if (step == 1) {
+		if (stack->current == NULL) ;
 		else {
 			if (!name || strcmp(stack->current->name, name) == 0) {
 				if (G.f & G_DEBUG) printf("undo %s\n", stack->current->name);
 				undo_restore(C, stack, stack->current);
-				stack->current= stack->current->prev;
+				stack->current = stack->current->prev;
 				return 1;
 			}
 		}
 	}
-	else if (step==-1) {
-		if ((stack->current!=NULL && stack->current->next==NULL) || stack->elems.first==NULL);
+	else if (step == -1) {
+		if ((stack->current != NULL && stack->current->next == NULL) || stack->elems.first == NULL) ;
 		else {
 			if (!name || strcmp(stack->current->name, name) == 0) {
-				undo= (stack->current && stack->current->next)? stack->current->next: stack->elems.first;
+				undo = (stack->current && stack->current->next) ? stack->current->next : stack->elems.first;
 				undo_restore(C, stack, undo);
-				stack->current= undo;
+				stack->current = undo;
 				if (G.f & G_DEBUG) printf("redo %s\n", undo->name);
 				return 1;
 			}
@@ -187,11 +187,11 @@ static void undo_stack_free(UndoStack *stack)
 {
 	UndoElem *uel;
 	
-	for (uel=stack->elems.first; uel; uel=uel->next)
+	for (uel = stack->elems.first; uel; uel = uel->next)
 		undo_elem_free(stack, uel);
 
 	BLI_freelistN(&stack->elems);
-	stack->current= NULL;
+	stack->current = NULL;
 }
 
 /* Exported Functions */
@@ -249,13 +249,13 @@ int ED_undo_paint_valid(int type, const char *name)
 	UndoStack *stack;
 	
 	if (type == UNDO_PAINT_IMAGE)
-		stack= &ImageUndoStack;
+		stack = &ImageUndoStack;
 	else if (type == UNDO_PAINT_MESH)
-		stack= &MeshUndoStack;
+		stack = &MeshUndoStack;
 	else 
 		return 0;
 	
-	if (stack->current==NULL);
+	if (stack->current == NULL) ;
 	else {
 		if (name && strcmp(stack->current->name, name) == 0)
 			return 1;

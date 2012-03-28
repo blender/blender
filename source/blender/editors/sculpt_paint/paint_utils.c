@@ -71,11 +71,11 @@
  * its minimum and maximum corners) into a screen-space rectangle,
  * returns zero if the result is empty */
 int paint_convert_bb_to_rect(rcti *rect,
-							 const float bb_min[3],
-							 const float bb_max[3],
-							 const ARegion *ar,
-							 RegionView3D *rv3d,
-							 Object *ob)
+                             const float bb_min[3],
+                             const float bb_max[3],
+                             const ARegion *ar,
+                             RegionView3D *rv3d,
+                             Object *ob)
 {
 	float projection_mat[4][4];
 	int i, j, k;
@@ -115,10 +115,10 @@ int paint_convert_bb_to_rect(rcti *rect,
  * screen_rect from screen into object-space (essentially converting a
  * 2D screens-space bounding box into four 3D planes) */
 void paint_calc_redraw_planes(float planes[4][4],
-							  const ARegion *ar,
-							  RegionView3D *rv3d,
-							  Object *ob,
-							  const rcti *screen_rect)
+                              const ARegion *ar,
+                              RegionView3D *rv3d,
+                              Object *ob,
+                              const rcti *screen_rect)
 {
 	BoundBox bb;
 	bglMats mats;
@@ -145,14 +145,14 @@ void projectf(bglMats *mats, const float v[3], float p[2])
 {
 	double ux, uy, uz;
 
-	gluProject(v[0],v[1],v[2], mats->modelview, mats->projection,
-		   (GLint *)mats->viewport, &ux, &uy, &uz);
-	p[0]= ux;
-	p[1]= uy;
+	gluProject(v[0], v[1], v[2], mats->modelview, mats->projection,
+	           (GLint *)mats->viewport, &ux, &uy, &uz);
+	p[0] = ux;
+	p[1] = uy;
 }
 
 float paint_calc_object_space_radius(ViewContext *vc, const float center[3],
-				     float pixel_radius)
+                                     float pixel_radius)
 {
 	Object *ob = vc->obact;
 	float delta[3], scale, loc[3];
@@ -162,17 +162,17 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3],
 
 	initgrabz(vc->rv3d, loc[0], loc[1], loc[2]);
 
-	mval_f[0]= pixel_radius;
-	mval_f[1]= 0.0f;
+	mval_f[0] = pixel_radius;
+	mval_f[1] = 0.0f;
 	ED_view3d_win_to_delta(vc->ar, mval_f, delta);
 
-	scale= fabsf(mat4_to_scale(ob->obmat));
-	scale= (scale == 0.0f)? 1.0f: scale;
+	scale = fabsf(mat4_to_scale(ob->obmat));
+	scale = (scale == 0.0f) ? 1.0f : scale;
 
-	return len_v3(delta)/scale;
+	return len_v3(delta) / scale;
 }
 
-float paint_get_tex_pixel(Brush* br, float u, float v)
+float paint_get_tex_pixel(Brush *br, float u, float v)
 {
 	TexResult texres;
 	float co[3];
@@ -186,7 +186,7 @@ float paint_get_tex_pixel(Brush* br, float u, float v)
 	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 0, &texres);
 
 	if (hasrgb & TEX_RGB)
-		texres.tin = (0.35f*texres.tr + 0.45f*texres.tg + 0.2f*texres.tb)*texres.ta;
+		texres.tin = (0.35f * texres.tr + 0.45f * texres.tg + 0.2f * texres.tb) * texres.ta;
 
 	return texres.tin;
 }
@@ -196,7 +196,7 @@ float paint_get_tex_pixel(Brush* br, float u, float v)
 static void imapaint_project(Object *ob, float model[][4], float proj[][4], const float co[3], float pco[4])
 {
 	copy_v3_v3(pco, co);
-	pco[3]= 1.0f;
+	pco[3] = 1.0f;
 
 	mul_m4_v3(ob->obmat, pco);
 	mul_m4_v3(model, pco);
@@ -225,16 +225,16 @@ static void imapaint_tri_weights(Object *ob,
 	imapaint_project(ob, model, proj, v3, pv3);
 
 	/* do inverse view mapping, see gluProject man page */
-	h[0]= (co[0] - view[0])*2.0f/view[2] - 1;
-	h[1]= (co[1] - view[1])*2.0f/view[3] - 1;
-	h[2]= 1.0f;
+	h[0] = (co[0] - view[0]) * 2.0f / view[2] - 1;
+	h[1] = (co[1] - view[1]) * 2.0f / view[3] - 1;
+	h[2] = 1.0f;
 
 	/* solve for (w1,w2,w3)/perspdiv in:
 	 * h * perspdiv = Project * Model * (w1 * v1 + w2 * v2 + w3 * v3) */
 
-	wmat[0][0]= pv1[0];  wmat[1][0]= pv2[0];  wmat[2][0]= pv3[0];
-	wmat[0][1]= pv1[1];  wmat[1][1]= pv2[1];  wmat[2][1]= pv3[1];
-	wmat[0][2]= pv1[3];  wmat[1][2]= pv2[3];  wmat[2][2]= pv3[3];
+	wmat[0][0] = pv1[0];  wmat[1][0] = pv2[0];  wmat[2][0] = pv3[0];
+	wmat[0][1] = pv1[1];  wmat[1][1] = pv2[1];  wmat[2][1] = pv3[1];
+	wmat[0][2] = pv1[3];  wmat[1][2] = pv2[3];  wmat[2][2] = pv3[3];
 
 	invert_m3_m3(invwmat, wmat);
 	mul_m3_v3(invwmat, h);
@@ -242,9 +242,9 @@ static void imapaint_tri_weights(Object *ob,
 	copy_v3_v3(w, h);
 
 	/* w is still divided by perspdiv, make it sum to one */
-	divw= w[0] + w[1] + w[2];
+	divw = w[0] + w[1] + w[2];
 	if (divw != 0.0f) {
-		mul_v3_fl(w, 1.0f/divw);
+		mul_v3_fl(w, 1.0f / divw);
 	}
 }
 
@@ -264,7 +264,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 
 	/* test all faces in the derivedmesh with the original index of the picked face */
 	for (a = 0; a < numfaces; a++) {
-		findex= index ? index[a]: a;
+		findex = index ? index[a] : a;
 
 		if (findex == faceindex) {
 			dm->getTessFace(dm, a, &mf);
@@ -275,36 +275,36 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 			if (mf.v4)
 				dm->getVert(dm, mf.v4, &mv[3]);
 
-			tf= &tface[a];
+			tf = &tface[a];
 
-			p[0]= xy[0];
-			p[1]= xy[1];
+			p[0] = xy[0];
+			p[1] = xy[1];
 
 			if (mf.v4) {
 				/* the triangle with the largest absolute values is the one
 				 * with the most negative weights */
 				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[3].co, p, w);
-				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
+				absw = fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
 				if (absw < minabsw) {
-					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[3][0]*w[2];
-					uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[3][1]*w[2];
+					uv[0] = tf->uv[0][0] * w[0] + tf->uv[1][0] * w[1] + tf->uv[3][0] * w[2];
+					uv[1] = tf->uv[0][1] * w[0] + tf->uv[1][1] * w[1] + tf->uv[3][1] * w[2];
 					minabsw = absw;
 				}
 
 				imapaint_tri_weights(ob, mv[1].co, mv[2].co, mv[3].co, p, w);
-				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
+				absw = fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
 				if (absw < minabsw) {
-					uv[0]= tf->uv[1][0]*w[0] + tf->uv[2][0]*w[1] + tf->uv[3][0]*w[2];
-					uv[1]= tf->uv[1][1]*w[0] + tf->uv[2][1]*w[1] + tf->uv[3][1]*w[2];
+					uv[0] = tf->uv[1][0] * w[0] + tf->uv[2][0] * w[1] + tf->uv[3][0] * w[2];
+					uv[1] = tf->uv[1][1] * w[0] + tf->uv[2][1] * w[1] + tf->uv[3][1] * w[2];
 					minabsw = absw;
 				}
 			}
 			else {
 				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[2].co, p, w);
-				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
+				absw = fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
 				if (absw < minabsw) {
-					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[2][0]*w[2];
-					uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[2][1]*w[2];
+					uv[0] = tf->uv[0][0] * w[0] + tf->uv[1][0] * w[1] + tf->uv[2][0] * w[2];
+					uv[1] = tf->uv[0][1] * w[0] + tf->uv[1][1] * w[1] + tf->uv[2][1] * w[2];
 					minabsw = absw;
 				}
 			}
@@ -333,7 +333,7 @@ int imapaint_pick_face(ViewContext *vc, const int mval[2], unsigned int *index, 
 }
 
 /* used for both 3d view and image window */
-void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)	/* frontbuf */
+void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)    /* frontbuf */
 {
 	Brush *br = paint_brush(paint_get_active(scene));
 	unsigned int col;
@@ -343,15 +343,15 @@ void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)	/* frontbuf */
 	CLAMP(y, 0, ar->winy);
 	
 	glReadBuffer(GL_FRONT);
-	glReadPixels(x+ar->winrct.xmin, y+ar->winrct.ymin, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
+	glReadPixels(x + ar->winrct.xmin, y + ar->winrct.ymin, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
 	glReadBuffer(GL_BACK);
 
 	cp = (char *)&col;
 	
 	if (br) {
-		br->rgb[0]= cp[0]/255.0f;
-		br->rgb[1]= cp[1]/255.0f;
-		br->rgb[2]= cp[2]/255.0f;
+		br->rgb[0] = cp[0] / 255.0f;
+		br->rgb[1] = cp[1] / 255.0f;
+		br->rgb[2] = cp[2] / 255.0f;
 	}
 }
 
@@ -388,7 +388,7 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 	ot->exec = brush_curve_preset_exec;
 	ot->poll = brush_curve_preset_poll;
 
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
 }
@@ -411,12 +411,12 @@ void PAINT_OT_face_select_linked(wmOperatorType *ot)
 	ot->exec = paint_select_linked_exec;
 	ot->poll = facemask_paint_poll;
 
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	int mode= RNA_boolean_get(op->ptr, "extend") ? 1:0;
+	int mode = RNA_boolean_get(op->ptr, "extend") ? 1 : 0;
 	paintface_select_linked(C, CTX_data_active_object(C), event->mval, mode);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
@@ -431,7 +431,7 @@ void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 	ot->invoke = paint_select_linked_pick_invoke;
 	ot->poll = facemask_paint_poll;
 
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
 }
@@ -439,7 +439,7 @@ void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 
 static int face_select_all_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob = CTX_data_active_object(C);
 	paintface_deselect_all_visible(ob, RNA_enum_get(op->ptr, "action"), TRUE);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
@@ -455,7 +455,7 @@ void PAINT_OT_face_select_all(wmOperatorType *ot)
 	ot->exec = face_select_all_exec;
 	ot->poll = facemask_paint_poll;
 
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -463,7 +463,7 @@ void PAINT_OT_face_select_all(wmOperatorType *ot)
 
 static int vert_select_all_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob = CTX_data_active_object(C);
 	paintvert_deselect_all_visible(ob, RNA_enum_get(op->ptr, "action"), TRUE);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
@@ -479,14 +479,14 @@ void PAINT_OT_vert_select_all(wmOperatorType *ot)
 	ot->exec = vert_select_all_exec;
 	ot->poll = vert_paint_poll;
 
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
 
 static int vert_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob = CTX_data_active_object(C);
 	paintvert_deselect_all_visible(ob, SEL_INVERT, TRUE);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
@@ -501,11 +501,11 @@ void PAINT_OT_vert_select_inverse(wmOperatorType *ot)
 	ot->exec = vert_select_inverse_exec;
 	ot->poll = vert_paint_poll;
 
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 static int face_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob = CTX_data_active_object(C);
 	paintface_deselect_all_visible(ob, SEL_INVERT, TRUE);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
@@ -521,13 +521,13 @@ void PAINT_OT_face_select_inverse(wmOperatorType *ot)
 	ot->exec = face_select_inverse_exec;
 	ot->poll = facemask_paint_poll;
 
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int face_select_hide_exec(bContext *C, wmOperator *op)
 {
-	const int unselected= RNA_boolean_get(op->ptr, "unselected");
-	Object *ob= CTX_data_active_object(C);
+	const int unselected = RNA_boolean_get(op->ptr, "unselected");
+	Object *ob = CTX_data_active_object(C);
 	paintface_hide(ob, unselected);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
@@ -542,14 +542,14 @@ void PAINT_OT_face_select_hide(wmOperatorType *ot)
 	ot->exec = face_select_hide_exec;
 	ot->poll = facemask_paint_poll;
 
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }
 
 static int face_select_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob = CTX_data_active_object(C);
 	paintface_reveal(ob);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
@@ -564,7 +564,7 @@ void PAINT_OT_face_select_reveal(wmOperatorType *ot)
 	ot->exec = face_select_reveal_exec;
 	ot->poll = facemask_paint_poll;
 
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }

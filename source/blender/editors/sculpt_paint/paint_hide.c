@@ -84,24 +84,24 @@ static int planes_contain_v3(float (*planes)[4], int totplane, const float p[3])
 
 /* return true if the element should be hidden/shown */
 static int is_effected(PartialVisArea area,
-					   float planes[4][4],
-					   const float co[3])
+                       float planes[4][4],
+                       const float co[3])
 {
 	if (area == PARTIALVIS_ALL)
 		return 1;
 	else {
 		int inside = planes_contain_v3(planes, 4, co);
 		return ((inside && area == PARTIALVIS_INSIDE) ||
-				(!inside && area == PARTIALVIS_OUTSIDE));
+		        (!inside && area == PARTIALVIS_OUTSIDE));
 	}
 }
 
 static void partialvis_update_mesh(Object *ob,
-								   PBVH *pbvh,
-								   PBVHNode *node,
-								   PartialVisAction action,
-								   PartialVisArea area,
-								   float planes[4][4])
+                                   PBVH *pbvh,
+                                   PBVHNode *node,
+                                   PartialVisAction action,
+                                   PartialVisArea area,
+                                   float planes[4][4])
 {
 	MVert *mvert;
 	int *vert_indices;
@@ -137,11 +137,11 @@ static void partialvis_update_mesh(Object *ob,
 /* Hide or show elements in multires grids with a special GridFlags
    customdata layer. */
 static void partialvis_update_grids(Object *ob,
-									PBVH *pbvh,
-									PBVHNode *node,
-									PartialVisAction action,
-									PartialVisArea area,
-									float planes[4][4])
+                                    PBVH *pbvh,
+                                    PBVHNode *node,
+                                    PartialVisAction action,
+                                    PartialVisArea area,
+                                    float planes[4][4])
 {
 	DMGridData **grids;
 	BLI_bitmap *grid_hidden;
@@ -150,8 +150,8 @@ static void partialvis_update_grids(Object *ob,
 
 	/* get PBVH data */
 	BLI_pbvh_node_get_grids(pbvh, node,
-							&grid_indices, &totgrid, NULL, &gridsize,
-							&grids, NULL);
+	                        &grid_indices, &totgrid, NULL, &gridsize,
+	                        &grids, NULL);
 	grid_hidden = BLI_pbvh_grid_hidden(pbvh);
 	
 	sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
@@ -163,15 +163,15 @@ static void partialvis_update_grids(Object *ob,
 		BLI_bitmap gh = grid_hidden[g];
 
 		if (!gh) {
-			switch(action) {
-			case PARTIALVIS_HIDE:
-				/* create grid flags data */
-				gh = grid_hidden[g] = BLI_BITMAP_NEW(gridsize * gridsize,
-													 "partialvis_update_grids");
-				break;
-			case PARTIALVIS_SHOW:
-				/* entire grid is visible, nothing to show */
-				continue;
+			switch (action) {
+				case PARTIALVIS_HIDE:
+					/* create grid flags data */
+					gh = grid_hidden[g] = BLI_BITMAP_NEW(gridsize * gridsize,
+					                                     "partialvis_update_grids");
+					break;
+				case PARTIALVIS_SHOW:
+					/* entire grid is visible, nothing to show */
+					continue;
 			}
 		}
 		else if (action == PARTIALVIS_SHOW && area == PARTIALVIS_ALL) {
@@ -192,7 +192,7 @@ static void partialvis_update_grids(Object *ob,
 				if (is_effected(area, planes, co)) {
 					/* set or clear the hide flag */
 					BLI_BITMAP_MODIFY(gh, y * gridsize + x,
-									  action == PARTIALVIS_HIDE);
+					                  action == PARTIALVIS_HIDE);
 
 					any_changed = 1;
 				}
@@ -230,12 +230,12 @@ static void rect_from_props(rcti *rect, PointerRNA *ptr)
 }
 
 static void clip_planes_from_rect(bContext *C,
-								  float clip_planes[4][4],
-								  const rcti *rect)
+                                  float clip_planes[4][4],
+                                  const rcti *rect)
 {
 	ViewContext vc;
 	BoundBox bb;
-	bglMats mats= {{0}};
+	bglMats mats = {{0}};
 	
 	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);
@@ -249,23 +249,23 @@ static void clip_planes_from_rect(bContext *C,
    that lie at least partially outside the volume. If showing all, get
    all nodes. */
 static void get_pbvh_nodes(PBVH *pbvh,
-						   PBVHNode ***nodes,
-						   int *totnode,
-						   float clip_planes[4][4],
-						   PartialVisArea mode)
+                           PBVHNode ***nodes,
+                           int *totnode,
+                           float clip_planes[4][4],
+                           PartialVisArea mode)
 {
 	BLI_pbvh_SearchCallback cb;
 
 	/* select search callback */
-	switch(mode) {
-	case PARTIALVIS_INSIDE:
-		cb = BLI_pbvh_node_planes_contain_AABB;
-		break;
-	case PARTIALVIS_OUTSIDE:
-		cb = BLI_pbvh_node_planes_exclude_AABB;
-		break;
-	case PARTIALVIS_ALL:
-		cb = NULL;
+	switch (mode) {
+		case PARTIALVIS_INSIDE:
+			cb = BLI_pbvh_node_planes_contain_AABB;
+			break;
+		case PARTIALVIS_OUTSIDE:
+			cb = BLI_pbvh_node_planes_exclude_AABB;
+			break;
+		case PARTIALVIS_ALL:
+			cb = NULL;
 	}
 	
 	BLI_pbvh_search_gather(pbvh, cb, clip_planes, nodes, totnode);
@@ -301,23 +301,23 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 	pbvh_type = BLI_pbvh_type(pbvh);
 
 	/* start undo */
-	switch(action) {
-	case PARTIALVIS_HIDE:
-		sculpt_undo_push_begin("Hide area");
-		break;
-	case PARTIALVIS_SHOW:
-		sculpt_undo_push_begin("Show area");
-		break;
+	switch (action) {
+		case PARTIALVIS_HIDE:
+			sculpt_undo_push_begin("Hide area");
+			break;
+		case PARTIALVIS_SHOW:
+			sculpt_undo_push_begin("Show area");
+			break;
 	}
 
 	for (i = 0; i < totnode; i++) {
-		switch(pbvh_type) {
-		case PBVH_FACES:
-			partialvis_update_mesh(ob, pbvh, nodes[i], action, area, clip_planes);
-			break;
-		case PBVH_GRIDS:
-			partialvis_update_grids(ob, pbvh, nodes[i], action, area, clip_planes);
-			break;
+		switch (pbvh_type) {
+			case PBVH_FACES:
+				partialvis_update_mesh(ob, pbvh, nodes[i], action, area, clip_planes);
+				break;
+			case PBVH_GRIDS:
+				partialvis_update_grids(ob, pbvh, nodes[i], action, area, clip_planes);
+				break;
 		}
 	}
 
@@ -331,8 +331,8 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 	   sculpt but it looks wrong when entering editmode otherwise) */
 	if (pbvh_type == PBVH_FACES) {
 		mesh_flush_hidden_from_verts(me->mvert, me->mloop,
-									 me->medge, me->totedge,
-									 me->mpoly, me->totpoly);
+		                             me->medge, me->totedge,
+		                             me->mpoly, me->totpoly);
 	}
 
 	ED_region_tag_redraw(ar);
@@ -381,9 +381,9 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 
 	/* rna */
 	RNA_def_enum(ot->srna, "action", action_items, PARTIALVIS_HIDE,
-				 "Action", "Whether to hide or show vertices");
+	             "Action", "Whether to hide or show vertices");
 	RNA_def_enum(ot->srna, "area", area_items, PARTIALVIS_INSIDE,
-				 "Area", "Which vertices to hide or show");
+	             "Area", "Which vertices to hide or show");
 	
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);

@@ -68,7 +68,7 @@
 
 #include "UI_view2d.h"
 
-#define MARK_BOUNDARY	1
+#define MARK_BOUNDARY   1
 
 typedef struct UvAdjacencyElement {
 	/* pointer to original uvelement */
@@ -86,7 +86,7 @@ typedef struct UvEdge {
 	char flag;
 }UvEdge;
 
-typedef struct UVInitialStrokeElement{
+typedef struct UVInitialStrokeElement {
 	/* index to unique uv */
 	int uv;
 
@@ -97,7 +97,7 @@ typedef struct UVInitialStrokeElement{
 	float initial_uv[2];
 }UVInitialStrokeElement;
 
-typedef struct UVInitialStroke{
+typedef struct UVInitialStroke {
 	/* Initial Selection,for grab brushes for instance */
 	UVInitialStrokeElement *initialSelection;
 
@@ -110,7 +110,7 @@ typedef struct UVInitialStroke{
 
 
 /* custom data for uv smoothing brush */
-typedef struct UvSculptData{
+typedef struct UvSculptData {
 	/* Contains the first of each set of coincident uvs.
 	 * These will be used to perform smoothing on and propagate the changes
 	 * to their coincident uvs */
@@ -146,10 +146,10 @@ typedef struct UvSculptData{
 
 /*********** Improved Laplacian Relaxation Operator ************************/
 /* original code by Raul Fernandez Hernandez "farsthary"                   *
- * adapted to uv smoothing by Antony Riakiatakis                           *
- ***************************************************************************/
+* adapted to uv smoothing by Antony Riakiatakis                           *
+***************************************************************************/
 
-typedef struct Temp_UvData{
+typedef struct Temp_UvData {
 	float sum_co[2], p[2], b[2], sum_b[2];
 	int ncounter;
 }Temp_UVData;
@@ -169,7 +169,7 @@ void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float 
 
 	/* counting neighbors */
 	for (i = 0; i < sculptdata->totalUvEdges; i++) {
-		UvEdge *tmpedge = sculptdata->uvedges+i;
+		UvEdge *tmpedge = sculptdata->uvedges + i;
 		tmp_uvdata[tmpedge->uv1].ncounter++;
 		tmp_uvdata[tmpedge->uv2].ncounter++;
 
@@ -178,16 +178,16 @@ void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float 
 	}
 
 	for (i = 0; i < sculptdata->totalUniqueUvs; i++) {
-		copy_v2_v2(diff,tmp_uvdata[i].sum_co);
-		mul_v2_fl(diff,1.f/tmp_uvdata[i].ncounter);
-		copy_v2_v2(tmp_uvdata[i].p,diff);
+		copy_v2_v2(diff, tmp_uvdata[i].sum_co);
+		mul_v2_fl(diff, 1.f / tmp_uvdata[i].ncounter);
+		copy_v2_v2(tmp_uvdata[i].p, diff);
 
 		tmp_uvdata[i].b[0] = diff[0] - sculptdata->uv[i].uv[0];
 		tmp_uvdata[i].b[1] = diff[1] - sculptdata->uv[i].uv[1];
 	}
 
 	for (i = 0; i < sculptdata->totalUvEdges; i++) {
-		UvEdge *tmpedge = sculptdata->uvedges+i;
+		UvEdge *tmpedge = sculptdata->uvedges + i;
 		add_v2_v2(tmp_uvdata[tmpedge->uv1].sum_b, tmp_uvdata[tmpedge->uv2].b);
 		add_v2_v2(tmp_uvdata[tmpedge->uv2].sum_b, tmp_uvdata[tmpedge->uv1].b);
 	}
@@ -205,10 +205,10 @@ void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float 
 		if ((dist = dot_v2v2(diff, diff)) <= radius) {
 			UvElement *element;
 			float strength;
-			strength = alpha*brush_curve_strength(brush, sqrt(dist), radius_root);
+			strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
 
-			sculptdata->uv[i].uv[0] = (1.0-strength)*sculptdata->uv[i].uv[0] + strength*(tmp_uvdata[i].p[0] - 0.5f*(tmp_uvdata[i].b[0] + tmp_uvdata[i].sum_b[0]/tmp_uvdata[i].ncounter));
-			sculptdata->uv[i].uv[1] = (1.0-strength)*sculptdata->uv[i].uv[1] + strength*(tmp_uvdata[i].p[1] - 0.5f*(tmp_uvdata[i].b[1] + tmp_uvdata[i].sum_b[1]/tmp_uvdata[i].ncounter));
+			sculptdata->uv[i].uv[0] = (1.0 - strength) * sculptdata->uv[i].uv[0] + strength * (tmp_uvdata[i].p[0] - 0.5f * (tmp_uvdata[i].b[0] + tmp_uvdata[i].sum_b[0] / tmp_uvdata[i].ncounter));
+			sculptdata->uv[i].uv[1] = (1.0 - strength) * sculptdata->uv[i].uv[1] + strength * (tmp_uvdata[i].p[1] - 0.5f * (tmp_uvdata[i].b[1] + tmp_uvdata[i].sum_b[1] / tmp_uvdata[i].ncounter));
 
 			for (element = sculptdata->uv[i].element; element; element = element->next) {
 				MLoopUV *luv;
@@ -241,7 +241,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 
 	/* counting neighbors */
 	for (i = 0; i < sculptdata->totalUvEdges; i++) {
-		UvEdge *tmpedge = sculptdata->uvedges+i;
+		UvEdge *tmpedge = sculptdata->uvedges + i;
 		tmp_uvdata[tmpedge->uv1].ncounter++;
 		tmp_uvdata[tmpedge->uv2].ncounter++;
 
@@ -253,7 +253,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 	 * needed since we translate along the UV plane always.*/
 	for (i = 0; i < sculptdata->totalUniqueUvs; i++) {
 		copy_v2_v2(tmp_uvdata[i].p, tmp_uvdata[i].sum_co);
-		mul_v2_fl(tmp_uvdata[i].p, 1.f/tmp_uvdata[i].ncounter);
+		mul_v2_fl(tmp_uvdata[i].p, 1.f / tmp_uvdata[i].ncounter);
 	}
 
 	for (i = 0; i < sculptdata->totalUniqueUvs; i++) {
@@ -269,10 +269,10 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 		if ((dist = dot_v2v2(diff, diff)) <= radius) {
 			UvElement *element;
 			float strength;
-			strength = alpha*brush_curve_strength(brush, sqrt(dist), radius_root);
+			strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
 
-			sculptdata->uv[i].uv[0] = (1.0-strength)*sculptdata->uv[i].uv[0] + strength*tmp_uvdata[i].p[0];
-			sculptdata->uv[i].uv[1] = (1.0-strength)*sculptdata->uv[i].uv[1] + strength*tmp_uvdata[i].p[1];
+			sculptdata->uv[i].uv[0] = (1.0 - strength) * sculptdata->uv[i].uv[0] + strength * tmp_uvdata[i].p[0];
+			sculptdata->uv[i].uv[1] = (1.0 - strength) * sculptdata->uv[i].uv[1] + strength * tmp_uvdata[i].p[1];
 
 			for (element = sculptdata->uv[i].element; element; element = element->next) {
 				MLoopUV *luv;
@@ -310,7 +310,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 	Brush *brush = paint_brush(sculptdata->uvsculpt);
 	ToolSettings *toolsettings = CTX_data_tool_settings(C);
 	tool = sculptdata->tool;
-	invert = sculptdata->invert? -1 : 1;
+	invert = sculptdata->invert ? -1 : 1;
 	alpha = brush_alpha(scene, brush);
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
@@ -318,11 +318,11 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 	ED_space_image_size(sima, &width, &height);
 	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
 
-	radius = brush_size(scene, brush)/(width*zoomx);
-	aspectRatio = width/(float)height;
+	radius = brush_size(scene, brush) / (width * zoomx);
+	aspectRatio = width / (float)height;
 
 	/* We will compare squares to save some computation */
-	radius = radius*radius;
+	radius = radius * radius;
 	radius_root = sqrt(radius);
 
 	/*
@@ -344,11 +344,11 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 			if ((dist = dot_v2v2(diff, diff)) <= radius) {
 				UvElement *element;
 				float strength;
-				strength = alpha*brush_curve_strength(brush, sqrt(dist), radius_root);
+				strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
 				normalize_v2(diff);
 
-				sculptdata->uv[i].uv[0] -= strength*diff[0]*0.001;
-				sculptdata->uv[i].uv[1] -= strength*diff[1]*0.001;
+				sculptdata->uv[i].uv[0] -= strength * diff[0] * 0.001;
+				sculptdata->uv[i].uv[1] -= strength * diff[1] * 0.001;
 
 				for (element = sculptdata->uv[i].element; element; element = element->next) {
 					MLoopUV *luv;
@@ -386,12 +386,12 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 		float diff[2];
 		sub_v2_v2v2(diff, co, sculptdata->initial_stroke->init_coord);
 
-		for (i = 0; i < sculptdata->initial_stroke->totalInitialSelected; i++ ) {
+		for (i = 0; i < sculptdata->initial_stroke->totalInitialSelected; i++) {
 			UvElement *element;
 			int uvindex = sculptdata->initial_stroke->initialSelection[i].uv;
 			float strength = sculptdata->initial_stroke->initialSelection[i].strength;
-			sculptdata->uv[uvindex].uv[0] = sculptdata->initial_stroke->initialSelection[i].initial_uv[0] + strength*diff[0];
-			sculptdata->uv[uvindex].uv[1] = sculptdata->initial_stroke->initialSelection[i].initial_uv[1] + strength*diff[1];
+			sculptdata->uv[uvindex].uv[0] = sculptdata->initial_stroke->initialSelection[i].initial_uv[0] + strength * diff[0];
+			sculptdata->uv[uvindex].uv[1] = sculptdata->initial_stroke->initialSelection[i].initial_uv[1] + strength * diff[1];
 
 			for (element = sculptdata->uv[uvindex].element; element; element = element->next) {
 				MLoopUV *luv;
@@ -445,12 +445,11 @@ static int uv_element_offset_from_face_get(UvElementMap *map, BMFace *efa, BMLoo
 }
 
 
-static unsigned int	uv_edge_hash(const void *key)
+static unsigned int uv_edge_hash(const void *key)
 {
 	UvEdge *edge = (UvEdge *)key;
-	return 
-		BLI_ghashutil_inthash(SET_INT_IN_POINTER(edge->uv2)) +
-		BLI_ghashutil_inthash(SET_INT_IN_POINTER(edge->uv1));
+	return (BLI_ghashutil_inthash(SET_INT_IN_POINTER(edge->uv2)) +
+	        BLI_ghashutil_inthash(SET_INT_IN_POINTER(edge->uv1)));
 }
 
 static int uv_edge_compare(const void *a, const void *b)
@@ -478,7 +477,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 
 	if (data) {
 		int counter = 0, i;
-		ARegion *ar= CTX_wm_region(C);
+		ARegion *ar = CTX_wm_region(C);
 		float co[2];
 		BMFace *efa;
 		MLoopUV *luv;
@@ -487,14 +486,14 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 
 		UvEdge *edges;
 		GHash *edgeHash;
-		GHashIterator* ghi;
+		GHashIterator *ghi;
 
 		int do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
 		int island_index = 0;
 		/* Holds, for each UvElement in elementMap, a pointer to its unique uv.*/
 		int *uniqueUv;
-		data->tool = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_SMOOTH)? UV_SCULPT_TOOL_RELAX : ts->uv_sculpt_tool;
-		data->invert = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT)? 1 : 0;
+		data->tool = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_SMOOTH) ? UV_SCULPT_TOOL_RELAX : ts->uv_sculpt_tool;
+		data->invert = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT) ? 1 : 0;
 
 		data->uvsculpt = &ts->uvsculpt->paint;
 
@@ -528,7 +527,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		if (do_island_optimization) {
 			UvElement *element;
 			NearestHit hit;
-			Image *ima= CTX_data_edit_image(C);
+			Image *ima = CTX_data_edit_image(C);
 			uv_find_nearest_vert(scene, ima, em, co, NULL, &hit);
 
 			element = ED_uv_element_get(data->elementMap, hit.efa, hit.l);
@@ -539,17 +538,17 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		/* Count 'unique' uvs */
 		for (i = 0; i < data->elementMap->totalUVs; i++) {
 			if (data->elementMap->buf[i].separate
-			&& (!do_island_optimization || data->elementMap->buf[i].island == island_index)) {
+			    && (!do_island_optimization || data->elementMap->buf[i].island == island_index)) {
 				counter++;
 			}
 		}
 
 		/* Allocate the unique uv buffers */
-		data->uv = MEM_mallocN(sizeof(*data->uv)*counter, "uv_brush_unique_uvs");
-		uniqueUv = MEM_mallocN(sizeof(*uniqueUv)*data->elementMap->totalUVs, "uv_brush_unique_uv_map");
+		data->uv = MEM_mallocN(sizeof(*data->uv) * counter, "uv_brush_unique_uvs");
+		uniqueUv = MEM_mallocN(sizeof(*uniqueUv) * data->elementMap->totalUVs, "uv_brush_unique_uv_map");
 		edgeHash = BLI_ghash_new(uv_edge_hash, uv_edge_compare, "uv_brush_edge_hash");
 		/* we have at most totalUVs edges */
-		edges = MEM_mallocN(sizeof(*edges)*data->elementMap->totalUVs, "uv_brush_all_edges");
+		edges = MEM_mallocN(sizeof(*edges) * data->elementMap->totalUVs, "uv_brush_all_edges");
 		if (!data->uv || !uniqueUv || !edgeHash || !edges) {
 			if (edges) {
 				MEM_freeN(edges);
@@ -634,7 +633,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		MEM_freeN(uniqueUv);
 
 		/* Allocate connectivity data, we allocate edges once */
-		data->uvedges = MEM_mallocN(sizeof(*data->uvedges)*BLI_ghash_size(edgeHash), "uv_brush_edge_connectivity_data");
+		data->uvedges = MEM_mallocN(sizeof(*data->uvedges) * BLI_ghash_size(edgeHash), "uv_brush_edge_connectivity_data");
 		if (!data->uvedges) {
 			BLI_ghash_free(edgeHash, NULL, NULL);
 			MEM_freeN(edges);
@@ -686,9 +685,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 			ED_space_image_size(sima, &width, &height);
 			ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
 
-			aspectRatio = width/(float)height;
-			radius /= (width*zoomx);
-			radius = radius*radius;
+			aspectRatio = width / (float)height;
+			radius /= (width * zoomx);
+			radius = radius * radius;
 			radius_root = sqrt(radius);
 
 			/* Allocate selection stack */
@@ -696,7 +695,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 			if (!data->initial_stroke) {
 				uv_sculpt_stroke_exit(C, op);
 			}
-			data->initial_stroke->initialSelection = MEM_mallocN(sizeof(*data->initial_stroke->initialSelection)*data->totalUniqueUvs, "uv_sculpt_initial_selection");
+			data->initial_stroke->initialSelection = MEM_mallocN(sizeof(*data->initial_stroke->initialSelection) * data->totalUniqueUvs, "uv_sculpt_initial_selection");
 			if (!data->initial_stroke->initialSelection) {
 				uv_sculpt_stroke_exit(C, op);
 			}
@@ -715,7 +714,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 				diff[1] /= aspectRatio;
 				if ((dist = dot_v2v2(diff, diff)) <= radius) {
 					float strength;
-					strength = alpha*brush_curve_strength(brush, sqrt(dist), radius_root);
+					strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
 
 					data->initial_stroke->initialSelection[counter].uv = i;
 					data->initial_stroke->initialSelection[counter].strength = strength;
@@ -742,7 +741,7 @@ static int uv_sculpt_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	uv_sculpt_stroke_apply(C, op, event, obedit);
 
-	data->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.001f);
+	data->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.001f);
 
 	if (!data->timer) {
 		uv_sculpt_stroke_exit(C, op);
@@ -759,7 +758,7 @@ static int uv_sculpt_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	UvSculptData *data = (UvSculptData *)op->customdata;
 	Object *obedit = CTX_data_edit_object(C);
 
-	switch(event->type) {
+	switch (event->type) {
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
@@ -779,7 +778,7 @@ static int uv_sculpt_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	ED_region_tag_redraw(CTX_wm_region(C));
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	DAG_id_tag_update(obedit->data, 0);
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -804,7 +803,7 @@ void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot)
 	ot->poll = uv_sculpt_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, "Mode", "Stroke Mode");

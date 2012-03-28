@@ -98,7 +98,7 @@ static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata
 	if (stroke && brush && (brush->flag & BRUSH_SMOOTH_STROKE)) {
 		ARegion *ar = CTX_wm_region(C);
 		sdrawline(x, y, (int)stroke->last_mouse_position[0] - ar->winrct.xmin,
-			  (int)stroke->last_mouse_position[1] - ar->winrct.ymin);
+		          (int)stroke->last_mouse_position[1] - ar->winrct.ymin);
 	}
 
 	glDisable(GL_BLEND);
@@ -113,7 +113,7 @@ static float event_tablet_data(wmEvent *event, int *pen_flip)
 	float pressure = 1;
 
 	if (event->custom == EVT_DATA_TABLET) {
-		wmTabletData *wmtab= event->customdata;
+		wmTabletData *wmtab = event->customdata;
 
 		erasor = (wmtab->Active == EVT_TABLET_ERASER);
 		pressure = (wmtab->Active != EVT_TABLET_NONE) ? wmtab->Pressure : 1;
@@ -197,7 +197,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 
 		/* If the mouse is moving within the radius of the last move,
 		 * don't update the mouse position. This allows sharp turns. */
-		if (dx*dx + dy*dy < stroke->brush->smooth_stroke_radius * stroke->brush->smooth_stroke_radius)
+		if (dx * dx + dy * dy < stroke->brush->smooth_stroke_radius * stroke->brush->smooth_stroke_radius)
 			return 0;
 
 		output[0] = event->x * v + stroke->last_mouse_position[0] * u;
@@ -228,14 +228,14 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 			const Scene *scene = CTX_data_scene(C);
 			int steps;
 			int i;
-			float pressure= 1.0f;
+			float pressure = 1.0f;
 
 			/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
 			if (brush_use_size_pressure(scene, stroke->brush))
 				pressure = event_tablet_data(event, NULL);
 			
 			if (pressure > FLT_EPSILON) {
-				scale = (brush_size(scene, stroke->brush)*pressure*stroke->brush->spacing/50.0f) / length;
+				scale = (brush_size(scene, stroke->brush) * pressure * stroke->brush->spacing / 50.0f) / length;
 				if (scale > FLT_EPSILON) {
 					mul_v2_fl(vec, scale);
 
@@ -256,10 +256,10 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 /**** Public API ****/
 
 PaintStroke *paint_stroke_new(bContext *C,
-				  StrokeGetLocation get_location,
-				  StrokeTestStart test_start,
-				  StrokeUpdateStep update_step,
-				  StrokeDone done, int event_type)
+                              StrokeGetLocation get_location,
+                              StrokeTestStart test_start,
+                              StrokeUpdateStep update_step,
+                              StrokeDone done, int event_type)
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
 
@@ -271,7 +271,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 	stroke->test_start = test_start;
 	stroke->update_step = update_step;
 	stroke->done = done;
-	stroke->event_type= event_type;	/* for modal, return event */
+	stroke->event_type = event_type; /* for modal, return event */
 	
 	return stroke;
 }
@@ -293,7 +293,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PaintStroke *stroke = op->customdata;
 	float mouse[2];
-	int first= 0;
+	int first = 0;
 
 	// let NDOF motion pass through to the 3D view so we can paint and rotate simultaneously!
 	// this isn't perfect... even when an extra MOUSEMOVE is spoofed, the stroke discards it
@@ -309,13 +309,13 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (stroke->stroke_started) {
 			stroke->smooth_stroke_cursor =
-				WM_paint_cursor_activate(CTX_wm_manager(C), paint_poll, paint_draw_smooth_stroke, stroke);
+			    WM_paint_cursor_activate(CTX_wm_manager(C), paint_poll, paint_draw_smooth_stroke, stroke);
 
 			if (stroke->brush->flag & BRUSH_AIRBRUSH)
 				stroke->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
 		}
 
-		first= 1;
+		first = 1;
 		//ED_region_tag_redraw(ar);
 	}
 
@@ -331,7 +331,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		MEM_freeN(stroke);
 		return OPERATOR_FINISHED;
 	}
-	else if ( (first) ||
+	else if ((first) ||
 	         (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) ||
 	         (event->type == TIMER && (event->customdata == stroke->timer)) )
 	{
@@ -347,7 +347,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			else {
-				;//ED_region_tag_redraw(ar);
+				; //ED_region_tag_redraw(ar);
 			}
 		}
 	}
@@ -355,10 +355,10 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	/* we want the stroke to have the first daub at the start location
 	 * instead of waiting till we have moved the space distance */
 	if (first &&
-	   stroke->stroke_started &&
-	   paint_space_stroke_enabled(stroke->brush) &&
-	   !(stroke->brush->flag & BRUSH_ANCHORED) &&
-	   !(stroke->brush->flag & BRUSH_SMOOTH_STROKE))
+	    stroke->stroke_started &&
+	    paint_space_stroke_enabled(stroke->brush) &&
+	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
+	    !(stroke->brush->flag & BRUSH_SMOOTH_STROKE))
 	{
 		paint_brush_stroke_add_step(C, op, event, mouse);
 	}
@@ -374,7 +374,7 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 	if (stroke->stroke_started == 0) {
 		/* XXX stroke->last_mouse_position is unset, this may cause problems */
 		stroke->test_start(C, op, NULL);
-		stroke->stroke_started= 1;
+		stroke->stroke_started = 1;
 	}
 
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
@@ -424,6 +424,6 @@ int paint_poll(bContext *C)
 	Object *ob = CTX_data_active_object(C);
 
 	return p && ob && paint_brush(p) &&
-		CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
-		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
+	       CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
+	       CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
 }
