@@ -393,10 +393,6 @@ static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
 	glEnd();
 }
 
-static void sima_draw_alpha_backdrop(float x1, float y1, float xsize, float ysize, float zoomx, float zoomy)
-{
-}
-
 static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, unsigned int *recti)
 {
 	
