@@ -103,6 +103,7 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 	BMFace *f, *f2;
 	int a, b;
 
+	/* mark merge verts for deletion */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		if ((v2 = BMO_slot_map_ptr_get(bm, op, "targetmap", v))) {
 			BMO_elem_flag_enable(bm, v, ELE_DEL);
@@ -112,10 +113,12 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
+	/* check if any faces are getting their own corners merged
+	   together, split face if so */
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		remdoubles_splitface(f, bm, op);
 	}
-	
+
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, e->v1, ELE_DEL) || BMO_elem_flag_test(bm, e->v2, ELE_DEL)) {
 			v = BMO_slot_map_ptr_get(bm, op, "targetmap", e->v1);
@@ -149,6 +152,8 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 	}
 	bm->elem_index_dirty |= BM_FACE;
 
+	/* faces get "modified" by creating new faces here, then at the
+	   end the old faces are deleted */
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (!BMO_elem_flag_test(bm, f, FACE_MARK))
 			continue;

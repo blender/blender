@@ -185,13 +185,60 @@ static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4])
 	}
 }
 
+
+static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
+								   const ArrayModifierData *amd,
+								   int *index_map_length)
+{
+	BMOperator find_op;
+	BMOIter oiter;
+	BMVert *v, *v2;
+	BMElem *ele;
+	int *index_map, i;
+
+	BMO_op_initf(bm, &find_op,
+				 "finddoubles verts=%av dist=%f keepverts=%s",
+				 amd->merge_dist, dupe_op, "geom");
+
+	BMO_op_exec(bm, &find_op);
+			
+	i = 0;
+	BMO_ITER(ele, &oiter, bm, dupe_op, "geom", BM_ALL) {
+		BM_elem_index_set(ele, i); /* set_dirty */
+		i++;
+	}
+
+	BMO_ITER(ele, &oiter, bm, dupe_op, "newout", BM_ALL) {
+		BM_elem_index_set(ele, i); /* set_dirty */
+		i++;
+	}
+	/* above loops over all, so set all to dirty, if this is somehow
+	 * setting valid values, this line can be remvoed - campbell */
+	bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+
+	(*index_map_length) = i;
+	index_map = MEM_callocN(sizeof(int) * (*index_map_length), "index_map");
+
+	/*element type argument doesn't do anything here*/
+	BMO_ITER(v, &oiter, bm, &find_op, "targetmapout", 0) {
+		v2 = BMO_iter_map_value_p(&oiter);
+
+		index_map[BM_elem_index_get(v)] = BM_elem_index_get(v2) + 1;
+	}
+
+	BMO_op_finish(bm, &find_op);
+
+	return index_map;
+}
+
+
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
                                           Scene *scene, Object *ob, DerivedMesh *dm,
                                           int UNUSED(initFlags))
 {
 	DerivedMesh *result;
 	BMEditMesh *em = DM_to_editbmesh(dm, NULL, FALSE);
-	BMOperator op, oldop, weldop;
+	BMOperator dupe_op, old_dupe_op, weld_op;
 	int i, j, indexLen;
 	/* offset matrix */
 	float offset[4][4];
@@ -290,65 +337,29 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	BMO_push(em->bm, NULL);
 	bmesh_edit_begin(em->bm, 0);
 
-	BMO_op_init(em->bm, &weldop, "weldverts");
-	BMO_op_initf(em->bm, &op, "dupe geom=%avef");
-	oldop = op;
+	BMO_op_init(em->bm, &weld_op, "weldverts");
+	BMO_op_initf(em->bm, &dupe_op, "dupe geom=%avef");
+	old_dupe_op = dupe_op;
 	for (j=0; j < count - 1; j++) {
-		BMVert *v, *v2;
+		BMVert *v, *v2, *v3;
 		BMOpSlot *s1;
 		BMOpSlot *s2;
 
-		BMO_op_initf(em->bm, &op, "dupe geom=%s", &oldop, j==0 ? "geom" : "newout");
-		BMO_op_exec(em->bm, &op);
+		BMO_op_initf(em->bm, &dupe_op, "dupe geom=%s", &old_dupe_op, j==0 ? "geom" : "newout");
+		BMO_op_exec(em->bm, &dupe_op);
 
-		s1 = BMO_slot_get(&op, "geom");
-		s2 = BMO_slot_get(&op, "newout");
+		s1 = BMO_slot_get(&dupe_op, "geom");
+		s2 = BMO_slot_get(&dupe_op, "newout");
 
-		BMO_op_callf(em->bm, "transform mat=%m4 verts=%s", offset, &op, "newout");
-
-		#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
+		BMO_op_callf(em->bm, "transform mat=%m4 verts=%s", offset, &dupe_op, "newout");
 
 		/*calculate merge mapping*/
 		if (j == 0) {
-			BMOperator findop;
-			BMOIter oiter;
-			BMVert *v, *v2;
-			BMElem *ele;
-
-			BMO_op_initf(em->bm, &findop,
-			             "finddoubles verts=%av dist=%f keepverts=%s",
-			             amd->merge_dist, &op, "geom");
-
-			i = 0;
-			BMO_ITER(ele, &oiter, em->bm, &op, "geom", BM_ALL) {
-				BM_elem_index_set(ele, i); /* set_dirty */
-				i++;
-			}
-
-			BMO_ITER(ele, &oiter, em->bm, &op, "newout", BM_ALL) {
-				BM_elem_index_set(ele, i); /* set_dirty */
-				i++;
-			}
-			/* above loops over all, so set all to dirty, if this is somehow
-			 * setting valid values, this line can be remvoed - campbell */
-			em->bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
-
-
-			BMO_op_exec(em->bm, &findop);
-
-			indexLen = i;
-			indexMap = MEM_callocN(sizeof(int)*indexLen, "indexMap");
-
-			/*element type argument doesn't do anything here*/
-			BMO_ITER(v, &oiter, em->bm, &findop, "targetmapout", 0) {
-				v2 = BMO_iter_map_value_p(&oiter);
-
-				indexMap[BM_elem_index_get(v)] = BM_elem_index_get(v2)+1;
-			}
-
-			BMO_op_finish(em->bm, &findop);
+			indexMap = find_doubles_index_map(em->bm, &dupe_op,
+											  amd, &indexLen);
 		}
 
+		#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
 		/* generate merge mapping using index map.  we do this by using the
 		 * operator slots as lookup arrays.*/
 		#define E(i) (i) < s1->len ? _E(s1, i) : _E(s2, (i)-s1->len)
@@ -359,17 +370,22 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			v = E(i);
 			v2 = E(indexMap[i]-1);
 
-			BMO_slot_map_ptr_insert(em->bm, &weldop, "targetmap", v, v2);
+			/* check in case the target vertex (v2) is already marked
+			   for merging */
+			while((v3 = BMO_slot_map_ptr_get(em->bm, &weld_op, "targetmap", v2)))
+				v2 = v3;
+
+			BMO_slot_map_ptr_insert(em->bm, &weld_op, "targetmap", v, v2);
 		}
 
 		#undef E
 		#undef _E
 
-		BMO_op_finish(em->bm, &oldop);
-		oldop = op;
+		BMO_op_finish(em->bm, &old_dupe_op);
+		old_dupe_op = dupe_op;
 	}
 
-	if (j > 0) BMO_op_finish(em->bm, &op);
+	if (j > 0) BMO_op_finish(em->bm, &dupe_op);
 
 	/* BMESH_TODO - cap ends are not welded, even though weld is called after */
 
@@ -399,9 +415,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	/* done capping */
 
 	if (amd->flags & MOD_ARR_MERGE)
-		BMO_op_exec(em->bm, &weldop);
+		BMO_op_exec(em->bm, &weld_op);
 
-	BMO_op_finish(em->bm, &weldop);
+	BMO_op_finish(em->bm, &weld_op);
 
 	/* Bump the stack level back down to match the adjustment up above */
 	BMO_pop(em->bm);
