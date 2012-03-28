@@ -314,17 +314,18 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 	dm->release(dm);
 }
 
-///* returns 0 if not found, otherwise 1 */
-int imapaint_pick_face(ViewContext *vc, Mesh *me, const int mval[2], unsigned int *index)
+/* returns 0 if not found, otherwise 1 */
+int imapaint_pick_face(ViewContext *vc, const int mval[2], unsigned int *index, unsigned int totface)
 {
-	if (!me || me->totface==0)
+	if (totface == 0)
 		return 0;
 
 	/* sample only on the exact position */
 	*index = view3d_sample_backbuf(vc, mval[0], mval[1]);
 
-	if ((*index)<=0 || (*index)>(unsigned int)me->totface)
+	if ((*index) <= 0 || (*index) > (unsigned int)totface) {
 		return 0;
+	}
 
 	(*index)--;
 	
