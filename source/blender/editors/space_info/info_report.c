@@ -53,16 +53,16 @@ int info_report_mask(SpaceInfo *UNUSED(sinfo))
 #if 0
 	int report_mask = 0;
 
-	if (sinfo->rpt_mask & INFO_RPT_DEBUG)	report_mask |= RPT_DEBUG_ALL;
-	if (sinfo->rpt_mask & INFO_RPT_INFO)		report_mask |= RPT_INFO_ALL;
-	if (sinfo->rpt_mask & INFO_RPT_OP)		report_mask |= RPT_OPERATOR_ALL;
-	if (sinfo->rpt_mask & INFO_RPT_WARN)		report_mask |= RPT_WARNING_ALL;
-	if (sinfo->rpt_mask & INFO_RPT_ERR)		report_mask |= RPT_ERROR_ALL;
+	if (sinfo->rpt_mask & INFO_RPT_DEBUG) report_mask |= RPT_DEBUG_ALL;
+	if (sinfo->rpt_mask & INFO_RPT_INFO)  report_mask |= RPT_INFO_ALL;
+	if (sinfo->rpt_mask & INFO_RPT_OP)    report_mask |= RPT_OPERATOR_ALL;
+	if (sinfo->rpt_mask & INFO_RPT_WARN)  report_mask |= RPT_WARNING_ALL;
+	if (sinfo->rpt_mask & INFO_RPT_ERR)   report_mask |= RPT_ERROR_ALL;
 
 	return report_mask;
 #endif
 
-	return RPT_DEBUG_ALL|RPT_INFO_ALL|RPT_OPERATOR_ALL|RPT_WARNING_ALL|RPT_ERROR_ALL;
+	return RPT_DEBUG_ALL | RPT_INFO_ALL | RPT_OPERATOR_ALL | RPT_WARNING_ALL | RPT_ERROR_ALL;
 }
 
 // TODO, get this working again!
@@ -74,9 +74,9 @@ static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
 //	Report *report;
 
 #if 0
-	sc->type= CONSOLE_TYPE_PYTHON;
+	sc->type = CONSOLE_TYPE_PYTHON;
 
-	for (report=reports->list.last; report; report=report->prev) {
+	for (report = reports->list.last; report; report = report->prev) {
 		if ((report->type & report_mask) && (report->type & RPT_OPERATOR_ALL) && (report->flag & SELECT)) {
 			console_history_add_str(sc, report->message, 0);
 			WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL);
@@ -85,7 +85,7 @@ static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	sc->type= CONSOLE_TYPE_REPORT;
+	sc->type = CONSOLE_TYPE_REPORT;
 #endif
 	ED_area_tag_redraw(CTX_wm_area(C));
 
@@ -111,8 +111,8 @@ void INFO_OT_report_replay(wmOperatorType *ot)
 
 static int select_report_pick_exec(bContext *C, wmOperator *op)
 {
-	int report_index= RNA_int_get(op->ptr, "report_index");
-	Report *report= BLI_findlink(&CTX_wm_reports(C)->list, report_index);
+	int report_index = RNA_int_get(op->ptr, "report_index");
+	Report *report = BLI_findlink(&CTX_wm_reports(C)->list, report_index);
 
 	if (!report)
 		return OPERATOR_CANCELLED;
@@ -126,15 +126,15 @@ static int select_report_pick_exec(bContext *C, wmOperator *op)
 
 static int select_report_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceInfo *sinfo= CTX_wm_space_info(C);
-	ARegion *ar= CTX_wm_region(C);
-	ReportList *reports= CTX_wm_reports(C);
+	SpaceInfo *sinfo = CTX_wm_space_info(C);
+	ARegion *ar = CTX_wm_region(C);
+	ReportList *reports = CTX_wm_reports(C);
 	Report *report;
 
 	/* uses opengl */
 	wmSubWindowSet(CTX_wm_window(C), ar->swinid);
 	
-	report= info_text_pick(sinfo, ar, reports, event->mval[1]);
+	report = info_text_pick(sinfo, ar, reports, event->mval[1]);
 
 	RNA_int_set(op->ptr, "report_index", BLI_findindex(&reports->list, report));
 
@@ -165,28 +165,28 @@ void INFO_OT_select_pick(wmOperatorType *ot)
 
 static int report_select_all_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceInfo *sinfo= CTX_wm_space_info(C);
-	ReportList *reports= CTX_wm_reports(C);
-	int report_mask= info_report_mask(sinfo);
-	int deselect= 0;
+	SpaceInfo *sinfo = CTX_wm_space_info(C);
+	ReportList *reports = CTX_wm_reports(C);
+	int report_mask = info_report_mask(sinfo);
+	int deselect = 0;
 
 	Report *report;
 
-	for (report=reports->list.last; report; report=report->prev) {
+	for (report = reports->list.last; report; report = report->prev) {
 		if ((report->type & report_mask) && (report->flag & SELECT)) {
-			deselect= 1;
+			deselect = 1;
 			break;
 		}
 	}
 
 
 	if (deselect) {
-		for (report=reports->list.last; report; report=report->prev)
+		for (report = reports->list.last; report; report = report->prev)
 			if (report->type & report_mask)
 				report->flag &= ~SELECT;
 	}
 	else {
-		for (report=reports->list.last; report; report=report->prev)
+		for (report = reports->list.last; report; report = report->prev)
 			if (report->type & report_mask)
 				report->flag |= SELECT;
 	}
@@ -216,11 +216,11 @@ void INFO_OT_select_all_toggle(wmOperatorType *ot)
 /* borderselect operator */
 static int borderselect_exec(bContext *C, wmOperator *op)
 {
-	SpaceInfo *sinfo= CTX_wm_space_info(C);
-	ARegion *ar= CTX_wm_region(C);
-	ReportList *reports= CTX_wm_reports(C);
-	int report_mask= info_report_mask(sinfo);
-	int extend= RNA_boolean_get(op->ptr, "extend");
+	SpaceInfo *sinfo = CTX_wm_space_info(C);
+	ARegion *ar = CTX_wm_region(C);
+	ReportList *reports = CTX_wm_reports(C);
+	int report_mask = info_report_mask(sinfo);
+	int extend = RNA_boolean_get(op->ptr, "extend");
 	Report *report_min, *report_max, *report;
 
 	//View2D *v2d= UI_view2d_fromcontext(C);
@@ -228,7 +228,7 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 
 	rcti rect;
 	//rctf rectf, rq;
-	short selecting= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
+	short selecting = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
 	//int mval[2];
 
 	rect.xmin = RNA_int_get(op->ptr, "xmin");
@@ -237,54 +237,54 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 	rect.ymax = RNA_int_get(op->ptr, "ymax");
 
 #if 0
-	mval[0]= rect.xmin;
-	mval[1]= rect.ymin;
+	mval[0] = rect.xmin;
+	mval[1] = rect.ymin;
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmin, &rectf.ymin);
-	mval[0]= rect.xmax;
-	mval[1]= rect.ymax;
+	mval[0] = rect.xmax;
+	mval[1] = rect.ymax;
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmax, &rectf.ymax);
 #endif
 
 	if (!extend) {
-		for (report= reports->list.first; report; report= report->next) {
+		for (report = reports->list.first; report; report = report->next) {
 
-			if ((report->type & report_mask)==0)
+			if ((report->type & report_mask) == 0)
 				continue;
 
 			report->flag &= ~SELECT;
 		}
 	}
 
-	report_min= info_text_pick(sinfo, ar, reports, rect.ymax);
-	report_max= info_text_pick(sinfo, ar, reports, rect.ymin);
+	report_min = info_text_pick(sinfo, ar, reports, rect.ymax);
+	report_max = info_text_pick(sinfo, ar, reports, rect.ymin);
 
 	/* get the first report if none found */
-	if (report_min==NULL) {
+	if (report_min == NULL) {
 		// printf("find_min\n");
-		for (report=reports->list.first; report; report=report->next) {
+		for (report = reports->list.first; report; report = report->next) {
 			if (report->type & report_mask) {
-				report_min= report;
+				report_min = report;
 				break;
 			}
 		}
 	}
 
-	if (report_max==NULL) {
+	if (report_max == NULL) {
 		// printf("find_max\n");
-		for (report=reports->list.last; report; report=report->prev) {
+		for (report = reports->list.last; report; report = report->prev) {
 			if (report->type & report_mask) {
-				report_max= report;
+				report_max = report;
 				break;
 			}
 		}
 	}
 
-	if (report_min==NULL || report_max==NULL)
+	if (report_min == NULL || report_max == NULL)
 		return OPERATOR_CANCELLED;
 
-	for (report= report_min; (report != report_max->next); report= report->next) {
+	for (report = report_min; (report != report_max->next); report = report->next) {
 
-		if ((report->type & report_mask)==0)
+		if ((report->type & report_mask) == 0)
 			continue;
 
 		if (selecting)
@@ -326,16 +326,16 @@ void INFO_OT_select_border(wmOperatorType *ot)
 
 static int report_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceInfo *sinfo= CTX_wm_space_info(C);
-	ReportList *reports= CTX_wm_reports(C);
-	int report_mask= info_report_mask(sinfo);
+	SpaceInfo *sinfo = CTX_wm_space_info(C);
+	ReportList *reports = CTX_wm_reports(C);
+	int report_mask = info_report_mask(sinfo);
 
 
 	Report *report, *report_next;
 
-	for (report=reports->list.first; report; ) {
+	for (report = reports->list.first; report; ) {
 
-		report_next=report->next;
+		report_next = report->next;
 
 		if ((report->type & report_mask) && (report->flag & SELECT)) {
 			BLI_remlink(&reports->list, report);
@@ -343,7 +343,7 @@ static int report_delete_exec(bContext *C, wmOperator *UNUSED(op))
 			MEM_freeN(report);
 		}
 
-		report= report_next;
+		report = report_next;
 	}
 
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -371,23 +371,23 @@ void INFO_OT_report_delete(wmOperatorType *ot)
 
 static int report_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceInfo *sinfo= CTX_wm_space_info(C);
-	ReportList *reports= CTX_wm_reports(C);
-	int report_mask= info_report_mask(sinfo);
+	SpaceInfo *sinfo = CTX_wm_space_info(C);
+	ReportList *reports = CTX_wm_reports(C);
+	int report_mask = info_report_mask(sinfo);
 
 	Report *report;
 
-	DynStr *buf_dyn= BLI_dynstr_new();
+	DynStr *buf_dyn = BLI_dynstr_new();
 	char *buf_str;
 
-	for (report=reports->list.first; report; report= report->next) {
+	for (report = reports->list.first; report; report = report->next) {
 		if ((report->type & report_mask) && (report->flag & SELECT)) {
 			BLI_dynstr_append(buf_dyn, report->message);
 			BLI_dynstr_append(buf_dyn, "\n");
 		}
 	}
 
-	buf_str= BLI_dynstr_get_cstring(buf_dyn);
+	buf_str = BLI_dynstr_get_cstring(buf_dyn);
 	BLI_dynstr_free(buf_dyn);
 
 	WM_clipboard_text_set(buf_str, 0);

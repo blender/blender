@@ -68,78 +68,78 @@ typedef struct SceneStats {
 
 static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 {
-	switch(ob->type) {
-	case OB_MESH: {
-		/* we assume derivedmesh is already built, this strictly does stats now. */
-		DerivedMesh *dm= ob->derivedFinal;
-		int totvert, totedge, totface;
+	switch (ob->type) {
+		case OB_MESH: {
+			/* we assume derivedmesh is already built, this strictly does stats now. */
+			DerivedMesh *dm = ob->derivedFinal;
+			int totvert, totedge, totface;
 
-		stats->totmesh +=totob;
+			stats->totmesh += totob;
 
-		if (dm) {
-			totvert = dm->getNumVerts(dm);
-			totedge = dm->getNumEdges(dm);
-			totface = dm->getNumPolys(dm);
+			if (dm) {
+				totvert = dm->getNumVerts(dm);
+				totedge = dm->getNumEdges(dm);
+				totface = dm->getNumPolys(dm);
 
-			stats->totvert += totvert*totob;
-			stats->totedge += totedge*totob;
-			stats->totface += totface*totob;
+				stats->totvert += totvert * totob;
+				stats->totedge += totedge * totob;
+				stats->totface += totface * totob;
+
+				if (sel) {
+					stats->totvertsel += totvert;
+					stats->totfacesel += totface;
+				}
+			}
+			break;
+		}
+		case OB_LAMP:
+			stats->totlamp += totob;
+			break;
+		case OB_SURF:
+		case OB_CURVE:
+		case OB_FONT: {
+			int tot = 0, totf = 0;
+
+			stats->totcurve += totob;
+
+			if (ob->disp.first)
+				count_displist(&ob->disp, &tot, &totf);
+
+			tot *= totob;
+			totf *= totob;
+
+			stats->totvert += tot;
+			stats->totface += totf;
 
 			if (sel) {
-				stats->totvertsel += totvert;
-				stats->totfacesel += totface;
+				stats->totvertsel += tot;
+				stats->totfacesel += totf;
 			}
+			break;
 		}
-		break;
-	}
-	case OB_LAMP:
-		stats->totlamp += totob;
-		break;
-	case OB_SURF:
-	case OB_CURVE:
-	case OB_FONT: {
-		int tot= 0, totf= 0;
+		case OB_MBALL: {
+			int tot = 0, totf = 0;
 
-		stats->totcurve += totob;
-
-		if (ob->disp.first)
 			count_displist(&ob->disp, &tot, &totf);
 
-		tot *= totob;
-		totf *= totob;
+			tot *= totob;
+			totf *= totob;
 
-		stats->totvert+= tot;
-		stats->totface+= totf;
+			stats->totvert += tot;
+			stats->totface += totf;
 
-		if (sel) {
-			stats->totvertsel += tot;
-			stats->totfacesel += totf;
+			if (sel) {
+				stats->totvertsel += tot;
+				stats->totfacesel += totf;
+			}
+			break;
 		}
-		break;
-	}
-	case OB_MBALL: {
-		int tot= 0, totf= 0;
-
-		count_displist(&ob->disp, &tot, &totf);
-
-		tot *= totob;
-		totf *= totob;
-
-		stats->totvert += tot;
-		stats->totface += totf;
-
-		if (sel) {
-			stats->totvertsel += tot;
-			stats->totfacesel += totf;
-		}
-		break;
-	}
 	}
 }
 
 static void stats_object_edit(Object *obedit, SceneStats *stats)
 {
-	if (obedit->type==OB_MESH) {
+	if (obedit->type == OB_MESH) {
 		BMEditMesh *em = BMEdit_FromObject(obedit);
 
 		stats->totvert = em->bm->totvert;
@@ -151,12 +151,12 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		stats->totface = em->bm->totface;
 		stats->totfacesel = em->bm->totfacesel;
 	}
-	else if (obedit->type==OB_ARMATURE) {
+	else if (obedit->type == OB_ARMATURE) {
 		/* Armature Edit */
-		bArmature *arm= obedit->data;
+		bArmature *arm = obedit->data;
 		EditBone *ebo;
 
-		for (ebo=arm->edbo->first; ebo; ebo=ebo->next) {
+		for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
 			stats->totbone++;
 			
 			if ((ebo->flag & BONE_CONNECTED) && ebo->parent)
@@ -170,27 +170,27 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 			if (ebo->flag & BONE_SELECTED) stats->totbonesel++;
 
 			/* if this is a connected child and it's parent is being moved, remove our root */
-			if ((ebo->flag & BONE_CONNECTED)&& (ebo->flag & BONE_ROOTSEL) && ebo->parent && (ebo->parent->flag & BONE_TIPSEL))
+			if ((ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL) && ebo->parent && (ebo->parent->flag & BONE_TIPSEL))
 				stats->totvertsel--;
 
-			stats->totvert+=2;
+			stats->totvert += 2;
 		}
 	}
 	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) { /* OB_FONT has no cu->editnurb */
 		/* Curve Edit */
-		Curve *cu= obedit->data;
+		Curve *cu = obedit->data;
 		Nurb *nu;
 		BezTriple *bezt;
 		BPoint *bp;
 		int a;
-		ListBase *nurbs= curve_editnurbs(cu);
+		ListBase *nurbs = curve_editnurbs(cu);
 
-		for (nu=nurbs->first; nu; nu=nu->next) {
+		for (nu = nurbs->first; nu; nu = nu->next) {
 			if (nu->type == CU_BEZIER) {
-				bezt= nu->bezt;
-				a= nu->pntsu;
+				bezt = nu->bezt;
+				a = nu->pntsu;
 				while (a--) {
-					stats->totvert+=3;
+					stats->totvert += 3;
 					if (bezt->f1) stats->totvertsel++;
 					if (bezt->f2) stats->totvertsel++;
 					if (bezt->f3) stats->totvertsel++;
@@ -198,8 +198,8 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 				}
 			}
 			else {
-				bp= nu->bp;
-				a= nu->pntsu*nu->pntsv;
+				bp = nu->bp;
+				a = nu->pntsu * nu->pntsv;
 				while (a--) {
 					stats->totvert++;
 					if (bp->f1 & SELECT) stats->totvertsel++;
@@ -208,26 +208,26 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 			}
 		}
 	}
-	else if (obedit->type==OB_MBALL) {
+	else if (obedit->type == OB_MBALL) {
 		/* MetaBall Edit */
-		MetaBall *mball= obedit->data;
+		MetaBall *mball = obedit->data;
 		MetaElem *ml;
 		
-		for (ml= mball->editelems->first; ml; ml=ml->next) {
+		for (ml = mball->editelems->first; ml; ml = ml->next) {
 			stats->totvert++;
 			if (ml->flag & SELECT) stats->totvertsel++;
 		}
 	}
-	else if (obedit->type==OB_LATTICE) {
+	else if (obedit->type == OB_LATTICE) {
 		/* Lattice Edit */
-		Lattice *lt= obedit->data;
-		Lattice *editlatt= lt->editlatt->latt;
+		Lattice *lt = obedit->data;
+		Lattice *editlatt = lt->editlatt->latt;
 		BPoint *bp;
 		int a;
 
-		bp= editlatt->def;
+		bp = editlatt->def;
 		
-		a= editlatt->pntsu*editlatt->pntsv*editlatt->pntsw;
+		a = editlatt->pntsu * editlatt->pntsv * editlatt->pntsw;
 		while (a--) {
 			stats->totvert++;
 			if (bp->f1 & SELECT) stats->totvertsel++;
@@ -239,10 +239,10 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 static void stats_object_pose(Object *ob, SceneStats *stats)
 {
 	if (ob->pose) {
-		bArmature *arm= ob->data;
+		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
 
-		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 			stats->totbone++;
 			if (pchan->bone && (pchan->bone->flag & BONE_SELECTED))
 				if (pchan->bone->layer & arm->layer)
@@ -260,22 +260,22 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 		ParticleSystem *psys;
 		ParticleSettings *part;
 
-		for (psys=ob->particlesystem.first; psys; psys=psys->next) {
-			part=psys->part;
+		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+			part = psys->part;
 
-			if (part->draw_as==PART_DRAW_OB && part->dup_ob) {
-				int tot=count_particles(psys);
+			if (part->draw_as == PART_DRAW_OB && part->dup_ob) {
+				int tot = count_particles(psys);
 				stats_object(part->dup_ob, 0, tot, stats);
 			}
-			else if (part->draw_as==PART_DRAW_GR && part->dup_group) {
+			else if (part->draw_as == PART_DRAW_GR && part->dup_group) {
 				GroupObject *go;
-				int tot, totgroup=0, cur=0;
+				int tot, totgroup = 0, cur = 0;
 				
-				for (go= part->dup_group->gobject.first; go; go=go->next)
+				for (go = part->dup_group->gobject.first; go; go = go->next)
 					totgroup++;
 
-				for (go= part->dup_group->gobject.first; go; go=go->next) {
-					tot=count_particles_mod(psys,totgroup,cur);
+				for (go = part->dup_group->gobject.first; go; go = go->next) {
+					tot = count_particles_mod(psys, totgroup, cur);
 					stats_object(go->ob, 0, tot, stats);
 					cur++;
 				}
@@ -285,22 +285,22 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 		stats_object(ob, base->flag & SELECT, 1, stats);
 		stats->totobj++;
 	}
-	else if (ob->parent && (ob->parent->transflag & (OB_DUPLIVERTS|OB_DUPLIFACES))) {
+	else if (ob->parent && (ob->parent->transflag & (OB_DUPLIVERTS | OB_DUPLIFACES))) {
 		/* Dupli Verts/Faces */
-		int tot= count_duplilist(ob->parent);
-		stats->totobj+=tot;
+		int tot = count_duplilist(ob->parent);
+		stats->totobj += tot;
 		stats_object(ob, base->flag & SELECT, tot, stats);
 	}
 	else if (ob->transflag & OB_DUPLIFRAMES) {
 		/* Dupli Frames */
-		int tot= count_duplilist(ob);
-		stats->totobj+=tot;
+		int tot = count_duplilist(ob);
+		stats->totobj += tot;
 		stats_object(ob, base->flag & SELECT, tot, stats);
 	}
 	else if ((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
 		/* Dupli Group */
-		int tot= count_duplilist(ob);
-		stats->totobj+=tot;
+		int tot = count_duplilist(ob);
+		stats->totobj += tot;
 		stats_object(ob, base->flag & SELECT, tot, stats);
 	}
 	else {
@@ -313,8 +313,8 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 /* Statistics displayed in info header. Called regularly on scene changes. */
 static void stats_update(Scene *scene)
 {
-	SceneStats stats= {0};
-	Object *ob= (scene->basact)? scene->basact->object: NULL;
+	SceneStats stats = {0};
+	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 	Base *base;
 	
 	if (scene->obedit) {
@@ -327,78 +327,78 @@ static void stats_update(Scene *scene)
 	}
 	else {
 		/* Objects */
-		for (base= scene->base.first; base; base=base->next)
+		for (base = scene->base.first; base; base = base->next)
 			if (scene->lay & base->lay)
 				stats_dupli_object(base, base->object, &stats);
 	}
 
 	if (!scene->stats)
-		scene->stats= MEM_callocN(sizeof(SceneStats), "SceneStats");
+		scene->stats = MEM_callocN(sizeof(SceneStats), "SceneStats");
 
-	*(scene->stats)= stats;
+	*(scene->stats) = stats;
 }
 
 static void stats_string(Scene *scene)
 {
-	SceneStats *stats= scene->stats;
-	Object *ob= (scene->basact)? scene->basact->object: NULL;
+	SceneStats *stats = scene->stats;
+	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 	uintptr_t mem_in_use, mmap_in_use;
 	char memstr[64];
 	char *s;
 
-	mem_in_use= MEM_get_memory_in_use();
-	mmap_in_use= MEM_get_mapped_memory_in_use();
+	mem_in_use = MEM_get_memory_in_use();
+	mmap_in_use = MEM_get_mapped_memory_in_use();
 
 	/* get memory statistics */
-	s= memstr + sprintf(memstr, " | Mem:%.2fM", (double)((mem_in_use-mmap_in_use)>>10)/1024.0);
+	s = memstr + sprintf(memstr, " | Mem:%.2fM", (double)((mem_in_use - mmap_in_use) >> 10) / 1024.0);
 	if (mmap_in_use)
-		sprintf(s, " (%.2fM)", (double)((mmap_in_use)>>10)/1024.0);
+		sprintf(s, " (%.2fM)", (double)((mmap_in_use) >> 10) / 1024.0);
 
-	s= stats->infostr;
+	s = stats->infostr;
 	
-	s+= sprintf(s, "%s | ", versionstr);
+	s += sprintf(s, "%s | ", versionstr);
 
 	if (scene->obedit) {
 		if (ob_get_keyblock(scene->obedit))
-			s+= sprintf(s, "(Key) ");
+			s += sprintf(s, "(Key) ");
 
-		if (scene->obedit->type==OB_MESH) {
+		if (scene->obedit->type == OB_MESH) {
 			if (scene->toolsettings->selectmode & SCE_SELECT_VERTEX)
-				s+= sprintf(s, "Ve:%d-%d | Ed:%d-%d | Fa:%d-%d",
-						stats->totvertsel, stats->totvert, stats->totedgesel, stats->totedge, stats->totfacesel, stats->totface);
+				s += sprintf(s, "Ve:%d-%d | Ed:%d-%d | Fa:%d-%d",
+				             stats->totvertsel, stats->totvert, stats->totedgesel, stats->totedge, stats->totfacesel, stats->totface);
 			else if (scene->toolsettings->selectmode & SCE_SELECT_EDGE)
-				s+= sprintf(s, "Ed:%d-%d | Fa:%d-%d",
-						stats->totedgesel, stats->totedge, stats->totfacesel, stats->totface);
+				s += sprintf(s, "Ed:%d-%d | Fa:%d-%d",
+				             stats->totedgesel, stats->totedge, stats->totfacesel, stats->totface);
 			else
-				s+= sprintf(s, "Fa:%d-%d", stats->totfacesel, stats->totface);
+				s += sprintf(s, "Fa:%d-%d", stats->totfacesel, stats->totface);
 		}
-		else if (scene->obedit->type==OB_ARMATURE) {
-			s+= sprintf(s, "Ve:%d-%d | Bo:%d-%d", stats->totvertsel, stats->totvert, stats->totbonesel, stats->totbone);
+		else if (scene->obedit->type == OB_ARMATURE) {
+			s += sprintf(s, "Ve:%d-%d | Bo:%d-%d", stats->totvertsel, stats->totvert, stats->totbonesel, stats->totbone);
 		}
 		else {
-			s+= sprintf(s, "Ve:%d-%d", stats->totvertsel, stats->totvert);
+			s += sprintf(s, "Ve:%d-%d", stats->totvertsel, stats->totvert);
 		}
 
 		strcat(s, memstr);
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		s += sprintf(s, "Bo:%d-%d %s",
-					stats->totbonesel, stats->totbone, memstr);
+		             stats->totbonesel, stats->totbone, memstr);
 	}
 	else {
 		s += sprintf(s, "Ve:%d | Fa:%d | Ob:%d-%d | La:%d%s",
-			stats->totvert, stats->totface, stats->totobjsel, stats->totobj, stats->totlamp, memstr);
+		             stats->totvert, stats->totface, stats->totobjsel, stats->totobj, stats->totlamp, memstr);
 	}
 
 	if (ob)
-		sprintf(s, " | %s", ob->id.name+2);
+		sprintf(s, " | %s", ob->id.name + 2);
 }
 
 void ED_info_stats_clear(Scene *scene)
 {
 	if (scene->stats) {
 		MEM_freeN(scene->stats);
-		scene->stats= NULL;
+		scene->stats = NULL;
 	}
 }
 

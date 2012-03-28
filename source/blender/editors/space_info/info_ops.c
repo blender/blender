@@ -70,7 +70,7 @@
 
 static int pack_all_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
+	Main *bmain = CTX_data_main(C);
 
 	packAll(bmain, op->reports);
 	G.fileflags |= G_AUTOPACK;
@@ -80,14 +80,14 @@ static int pack_all_exec(bContext *C, wmOperator *op)
 
 static int pack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	Main *bmain= CTX_data_main(C);
+	Main *bmain = CTX_data_main(C);
 	Image *ima;
 	ImBuf *ibuf;
 
 	// first check for dirty images
-	for (ima=bmain->image.first; ima; ima=ima->id.next) {
+	for (ima = bmain->image.first; ima; ima = ima->id.next) {
 		if (ima->ibufs.first) { /* XXX FIX */
-			ibuf= BKE_image_get_ibuf(ima, NULL);
+			ibuf = BKE_image_get_ibuf(ima, NULL);
 			
 			if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
 				break;
@@ -113,7 +113,7 @@ void FILE_OT_pack_all(wmOperatorType *ot)
 	ot->invoke = pack_all_invoke;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /********************* unpack all operator *********************/
@@ -129,10 +129,10 @@ static const EnumPropertyItem unpack_all_method_items[] = {
 
 static int unpack_all_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
-	int method= RNA_enum_get(op->ptr, "method");
+	Main *bmain = CTX_data_main(C);
+	int method = RNA_enum_get(op->ptr, "method");
 
-	if (method != PF_KEEP) unpackAll(bmain, op->reports, method); /* XXX PF_ASK can't work here */
+	if (method != PF_KEEP) unpackAll(bmain, op->reports, method);  /* XXX PF_ASK can't work here */
 	G.fileflags &= ~G_AUTOPACK;
 
 	return OPERATOR_FINISHED;
@@ -140,7 +140,7 @@ static int unpack_all_exec(bContext *C, wmOperator *op)
 
 static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	Main *bmain= CTX_data_main(C);
+	Main *bmain = CTX_data_main(C);
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	char title[64];
@@ -159,8 +159,8 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	else
 		BLI_snprintf(title, sizeof(title), "Unpack %d files", count);
 	
-	pup= uiPupMenuBegin(C, title, ICON_NONE);
-	layout= uiPupMenuLayout(pup);
+	pup = uiPupMenuBegin(C, title, ICON_NONE);
+	layout = uiPupMenuLayout(pup);
 
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemsEnumO(layout, "FILE_OT_unpack_all", "method");
@@ -181,7 +181,7 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
 	ot->invoke = unpack_all_invoke;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_all_method_items, PF_USE_LOCAL, "Method", "How to unpack");
@@ -191,7 +191,7 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
 
 static int make_paths_relative_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
+	Main *bmain = CTX_data_main(C);
 
 	if (!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set relative paths with an unsaved blend file");
@@ -216,14 +216,14 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
 	ot->exec = make_paths_relative_exec;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /********************* make paths absolute operator *********************/
 
 static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
+	Main *bmain = CTX_data_main(C);
 
 	if (!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set absolute paths with an unsaved blend file");
@@ -248,14 +248,14 @@ void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 	ot->exec = make_paths_absolute_exec;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /********************* report missing files operator *********************/
 
 static int report_missing_files_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
+	Main *bmain = CTX_data_main(C);
 
 	/* run the missing file check */
 	checkMissingFiles(bmain, op->reports);
@@ -280,8 +280,8 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 
 static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
-	const char *searchpath= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
+	Main *bmain = CTX_data_main(C);
+	const char *searchpath = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
 	findMissingFiles(bmain, searchpath, op->reports);
 	MEM_freeN((void *)searchpath);
 
@@ -306,7 +306,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 	ot->invoke = find_missing_files_invoke;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
@@ -321,44 +321,45 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
  * inactive regions, so use this for now. --matt
  */
 
-#define INFO_TIMEOUT		5.0f
-#define INFO_COLOR_TIMEOUT	3.0f
-#define ERROR_TIMEOUT		10.0f
-#define ERROR_COLOR_TIMEOUT	6.0f
-#define COLLAPSE_TIMEOUT	0.25f
+#define INFO_TIMEOUT        5.0f
+#define INFO_COLOR_TIMEOUT  3.0f
+#define ERROR_TIMEOUT       10.0f
+#define ERROR_COLOR_TIMEOUT 6.0f
+#define COLLAPSE_TIMEOUT    0.25f
 static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	ReportList *reports= CTX_wm_reports(C);
+	wmWindowManager *wm = CTX_wm_manager(C);
+	ReportList *reports = CTX_wm_reports(C);
 	Report *report;
 	ReportTimerInfo *rti;
-	float progress=0.0, color_progress=0.0;
+	float progress = 0.0, color_progress = 0.0;
 	float neutral_col[3] = {0.35, 0.35, 0.35};
-	float neutral_grey= 0.6;
-	float timeout=0.0, color_timeout=0.0;
-	int send_note= 0;
+	float neutral_grey = 0.6;
+	float timeout = 0.0, color_timeout = 0.0;
+	int send_note = 0;
 	
 	/* escape if not our timer */
-	if (		(reports->reporttimer==NULL) ||
-			(reports->reporttimer != event->customdata) ||
-			((report= BKE_reports_last_displayable(reports))==NULL) /* may have been deleted */
-	) {
+	if ((reports->reporttimer == NULL) ||
+	    (reports->reporttimer != event->customdata) ||
+	    ((report = BKE_reports_last_displayable(reports)) == NULL) /* may have been deleted */
+	    )
+	{
 		return OPERATOR_PASS_THROUGH;
 	}
 
 	rti = (ReportTimerInfo *)reports->reporttimer->customdata;
 	
-	timeout = (report->type & RPT_ERROR_ALL)?ERROR_TIMEOUT:INFO_TIMEOUT;
-	color_timeout = (report->type & RPT_ERROR_ALL)?ERROR_COLOR_TIMEOUT:INFO_COLOR_TIMEOUT;
+	timeout = (report->type & RPT_ERROR_ALL) ? ERROR_TIMEOUT : INFO_TIMEOUT;
+	color_timeout = (report->type & RPT_ERROR_ALL) ? ERROR_COLOR_TIMEOUT : INFO_COLOR_TIMEOUT;
 	
 	/* clear the report display after timeout */
 	if ((float)reports->reporttimer->duration > timeout) {
 		WM_event_remove_timer(wm, NULL, reports->reporttimer);
 		reports->reporttimer = NULL;
 		
-		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
 		
-		return (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH);
+		return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
 	}
 
 	if (rti->widthfac == 0.0f) {
@@ -379,7 +380,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 			rti->col[2] = 0.7;
 		}
 		rti->greyscale = 0.75;
-		rti->widthfac=1.0;
+		rti->widthfac = 1.0;
 	}
 	
 	progress = (float)reports->reporttimer->duration / timeout;
@@ -387,7 +388,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	
 	/* save us from too many draws */
 	if (color_progress <= 1.0f) {
-		send_note= 1;
+		send_note = 1;
 		
 		/* fade colors out sharply according to progress through fade-out duration */
 		interp_v3_v3v3(rti->col, rti->col, neutral_col, color_progress);
@@ -395,17 +396,17 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	}
 
 	/* collapse report at end of timeout */
-	if (progress*timeout > timeout - COLLAPSE_TIMEOUT) {
-		rti->widthfac = (progress*timeout - (timeout - COLLAPSE_TIMEOUT)) / COLLAPSE_TIMEOUT;
+	if (progress * timeout > timeout - COLLAPSE_TIMEOUT) {
+		rti->widthfac = (progress * timeout - (timeout - COLLAPSE_TIMEOUT)) / COLLAPSE_TIMEOUT;
 		rti->widthfac = 1.0f - rti->widthfac;
-		send_note= 1;
+		send_note = 1;
 	}
 	
 	if (send_note) {
-		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
 	}
 	
-	return (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH);
+	return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
 }
 
 void INFO_OT_reports_display_update(wmOperatorType *ot)
