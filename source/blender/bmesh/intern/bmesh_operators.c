@@ -1264,8 +1264,8 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	/* we muck around in here, so dup i */
 	fmt = ofmt = BLI_strdup(_fmt);
 	
-	/* find operator nam */
-	i = strcspn(fmt, " \t");
+	/* find operator name */
+	i = strcspn(fmt, " ");
 
 	opname = fmt;
 	if (!opname[i]) noslot = 1;
@@ -1289,17 +1289,15 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	while (*fmt) {
 		if (state) {
 			/* jump past leading whitespac */
-			i = strspn(fmt, " \t");
+			i = strspn(fmt, " ");
 			fmt += i;
 			
 			/* ignore trailing whitespac */
 			if (!fmt[i])
 				break;
 
-			/* find end of slot name.  currently this is
-			 * a little flexible, allowing "slot=%f",
-			 * "slot %f", "slot%f", and "slot\t%f". */
-			i = strcspn(fmt, "= \t%");
+			/* find end of slot name, only "slot=%f", can be used */
+			i = strcspn(fmt, "=");
 			if (!fmt[i]) {
 				GOTO_ERROR("could not match end of slot name");
 			}
@@ -1318,7 +1316,6 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 		else {
 			switch (*fmt) {
 				case ' ':
-				case '\t':
 				case '=':
 				case '%':
 					break;
@@ -1377,7 +1374,7 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 				case 'a':
 					type = *fmt;
 
-					if (NEXT_CHAR(fmt) == ' ' || NEXT_CHAR(fmt) == '\t' || NEXT_CHAR(fmt) == '\0') {
+					if (NEXT_CHAR(fmt) == ' ' || NEXT_CHAR(fmt) == '\0') {
 						BMO_slot_float_set(op, slotname, va_arg(vlist, double));
 					}
 					else {
