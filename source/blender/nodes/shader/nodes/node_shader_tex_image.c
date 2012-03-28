@@ -36,6 +36,7 @@ static bNodeSocketTemplate sh_node_tex_image_in[]= {
 
 static bNodeSocketTemplate sh_node_tex_image_out[]= {
 	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, "Alpha",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
