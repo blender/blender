@@ -474,7 +474,7 @@ void BL_Texture::SetMapping(int mode)
 
 void BL_Texture::setTexEnv(BL_Material *mat, bool modulate)
 {
-	if (modulate || !GLEW_ARB_texture_env_combine){
+	if (modulate || !GLEW_ARB_texture_env_combine) {
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 		return;
 	}
@@ -528,11 +528,11 @@ void BL_Texture::setTexEnv(BL_Material *mat, bool modulate)
 	}
 	bool using_alpha = false;
 
-	if (mat->flag[mUnit]  &USEALPHA){
+	if (mat->flag[mUnit]  &USEALPHA) {
 		alphaOp = GL_ONE_MINUS_SRC_ALPHA;
 		using_alpha=true;
 	}
-	else if (mat->flag[mUnit]  &USENEGALPHA){
+	else if (mat->flag[mUnit]  &USENEGALPHA) {
 		alphaOp = GL_SRC_ALPHA;
 		using_alpha = true;
 	}

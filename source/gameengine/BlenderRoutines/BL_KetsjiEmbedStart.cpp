@@ -254,7 +254,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		int tmp_lay= startscene->lay;
 		Object *tmp_camera = startscene->camera;
 
-		if (v3d->scenelock==0){
+		if (v3d->scenelock==0) {
 			startscene->lay= v3d->lay;
 			startscene->camera= v3d->camera;
 		}
@@ -341,7 +341,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			ketsjiengine->SetAnimRecordMode(animation_record, startFrame);
 			
 			// Quad buffered needs a special window.
-			if (scene->gm.stereoflag == STEREO_ENABLED){
+			if (scene->gm.stereoflag == STEREO_ENABLED) {
 				if (scene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 					rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) scene->gm.stereomode);
 
@@ -552,7 +552,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 #endif
 		}
 		//lock frame and camera enabled - restoring global values
-		if (v3d->scenelock==0){
+		if (v3d->scenelock==0) {
 			startscene->lay= tmp_lay;
 			startscene->camera= tmp_camera;
 		}

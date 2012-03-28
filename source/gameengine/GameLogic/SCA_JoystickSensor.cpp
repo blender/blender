@@ -134,22 +134,22 @@ bool SCA_JoystickSensor::Evaluate()
 			
 			js->cSetPrecision(m_precision);
 			if (m_bAllEvents) {
-				if (js->aAxisPairIsPositive(m_axis-1)){ /* use zero based axis index internally */
+				if (js->aAxisPairIsPositive(m_axis-1)) { /* use zero based axis index internally */
 					m_istrig = 1;
 					result = true;
 				}else{
-					if (m_istrig){
+					if (m_istrig) {
 						m_istrig = 0;
 						result = true;
 					}
 				}
 			}
 			else {
-				if (js->aAxisPairDirectionIsPositive(m_axis-1, m_axisf)){ /* use zero based axis index internally */
+				if (js->aAxisPairDirectionIsPositive(m_axis-1, m_axisf)) { /* use zero based axis index internally */
 					m_istrig = 1;
 					result = true;
 				}else{
-					if (m_istrig){
+					if (m_istrig) {
 						m_istrig = 0;
 						result = true;
 					}
@@ -165,11 +165,11 @@ bool SCA_JoystickSensor::Evaluate()
 			
 			/* No need for 'm_bAllEvents' check here since were only checking 1 axis */
 			js->cSetPrecision(m_precision);
-			if (js->aAxisIsPositive(m_axis-1)){ /* use zero based axis index internally */
+			if (js->aAxisIsPositive(m_axis-1)) { /* use zero based axis index internally */
 				m_istrig = 1;
 				result = true;
 			}else{
-				if (m_istrig){
+				if (m_istrig) {
 					m_istrig = 0;
 					result = true;
 				}
@@ -189,7 +189,7 @@ bool SCA_JoystickSensor::Evaluate()
 				m_istrig = 1;
 				result = true;
 			}else {
-				if (m_istrig){
+				if (m_istrig) {
 					m_istrig = 0;
 					result = true;
 				}
@@ -210,7 +210,7 @@ bool SCA_JoystickSensor::Evaluate()
 				m_istrig = 1;
 				result = true;
 			}else{
-				if (m_istrig){
+				if (m_istrig) {
 					m_istrig = 0;
 					result = true;
 				}
@@ -331,7 +331,7 @@ PyObject* SCA_JoystickSensor::PyGetButtonStatus( PyObject* args )
 	SCA_Joystick *joy = ((SCA_JoystickManager *)m_eventmgr)->GetJoystickDevice(m_joyindex);
 	int index;
 	
-	if (!PyArg_ParseTuple(args, "i:getButtonStatus", &index)){
+	if (!PyArg_ParseTuple(args, "i:getButtonStatus", &index)) {
 		return NULL;
 	}
 	if (joy && index >= 0 && index < joy->GetNumberOfButtons()) {

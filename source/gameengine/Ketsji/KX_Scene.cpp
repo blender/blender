@@ -1287,7 +1287,7 @@ KX_Camera* KX_Scene::GetActiveCamera()
 void KX_Scene::SetActiveCamera(KX_Camera* cam)
 {
 	// only set if the cam is in the active list? Or add it otherwise?
-	if (!FindCamera(cam)){
+	if (!FindCamera(cam)) {
 		AddCamera(cam);
 		if (cam) std::cout << "Added cam " << cam->GetName() << std::endl;
 	} 
@@ -1297,7 +1297,7 @@ void KX_Scene::SetActiveCamera(KX_Camera* cam)
 
 void KX_Scene::SetCameraOnTop(KX_Camera* cam)
 {
-	if (!FindCamera(cam)){
+	if (!FindCamera(cam)) {
 		// adding is always done at the back, so that's all that needs to be done
 		AddCamera(cam);
 		if (cam) std::cout << "Added cam " << cam->GetName() << std::endl;

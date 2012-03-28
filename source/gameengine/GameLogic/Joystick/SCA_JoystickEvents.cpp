@@ -66,7 +66,7 @@ void SCA_Joystick::OnButtonUp(SDL_Event* sdl_event)
 
 void SCA_Joystick::OnButtonDown(SDL_Event* sdl_event)
 {
-	//if(sdl_event->jbutton.button > m_buttonmax) /* unsigned int so always above 0 */
+	//if (sdl_event->jbutton.button > m_buttonmax) /* unsigned int so always above 0 */
 	//	return;
 	// sdl_event->jbutton.button;
 	

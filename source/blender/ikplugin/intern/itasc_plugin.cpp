@@ -250,16 +250,16 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
 	
 	rootbone = data->rootbone;
 	/* Find the chain's root & count the segments needed */
-	for (curchan = pchan_tip; curchan; curchan=curchan->parent){
+	for (curchan = pchan_tip; curchan; curchan=curchan->parent) {
 		pchan_root = curchan;
 		
 		if (++segcount > 255)		// 255 is weak
 			break;
 
-		if (segcount==rootbone){
+		if (segcount==rootbone) {
 			// reached this end of the chain but if the chain is overlapping with a 
 			// previous one, we must go back up to the root of the other chain
-			if ((curchan->flag & POSE_CHAIN) && curchan->iktree.first == NULL){
+			if ((curchan->flag & POSE_CHAIN) && curchan->iktree.first == NULL) {
 				rootbone++;
 				continue;
 			}

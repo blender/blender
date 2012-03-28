@@ -648,19 +648,19 @@ int main(int argc, char** argv)
 				i++;
 				if ((i + 1) <= validArguments)
 				{
-					if (!strcmp(argv[i], "angle")){
+					if (!strcmp(argv[i], "angle")) {
 						i++;
 						domeFov = atoi(argv[i++]);
 					}
-					if (!strcmp(argv[i], "tilt")){
+					if (!strcmp(argv[i], "tilt")) {
 						i++;
 						domeTilt = atoi(argv[i++]);
 					}
-					if (!strcmp(argv[i], "warpdata")){
+					if (!strcmp(argv[i], "warpdata")) {
 						i++;
 						domeWarp = argv[i++];
 					}
-					if (!strcmp(argv[i], "mode")){
+					if (!strcmp(argv[i], "mode")) {
 						i++;
 						if (!strcmp(argv[i], "fisheye"))
 							domeMode = DOME_FISHEYE;
@@ -846,7 +846,7 @@ int main(int argc, char** argv)
 						// Check whether the game should be displayed in stereo
 						if (!stereoParFound)
 						{
-							if (scene->gm.stereoflag == STEREO_ENABLED){
+							if (scene->gm.stereoflag == STEREO_ENABLED) {
 								stereomode = (RAS_IRasterizer::StereoMode) scene->gm.stereomode;
 								if (stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 									stereoWindow = true;
@@ -858,7 +858,7 @@ int main(int argc, char** argv)
 						if (!samplesParFound)
 							aasamples = scene->gm.aasamples;
 
-						if (stereoFlag == STEREO_DOME){
+						if (stereoFlag == STEREO_DOME) {
 							stereomode = RAS_IRasterizer::RAS_STEREO_DOME;
 							scene->gm.stereoflag = STEREO_DOME;
 							if (domeFov > 89)

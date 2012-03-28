@@ -141,7 +141,7 @@ float KX_BlenderCanvas::GetMouseNormalizedY(int y)
 RAS_Rect &
 KX_BlenderCanvas::
 GetWindowArea(
-){
+) {
 	return m_area_rect;
 }	
 
@@ -150,7 +150,7 @@ KX_BlenderCanvas::
 SetViewPort(
 	int x1, int y1,
 	int x2, int y2
-){
+) {
 	/*	x1 and y1 are the min pixel coordinate (e.g. 0)
 		x2 and y2 are the max pixel coordinate
 		the width,height is calculated including both pixels

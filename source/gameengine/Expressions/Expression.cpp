@@ -55,7 +55,7 @@ void CBrokenLinkInfo::RestoreLink()
 
 	if (m_pExpr)
 	{
-		if (!m_bRestored){
+		if (!m_bRestored) {
 			m_bRestored=true;
 			
 		}

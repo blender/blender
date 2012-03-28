@@ -146,7 +146,7 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 	float dstweight;
 	int i;
 
-	switch (mode){
+	switch (mode) {
 	case ACTSTRIPMODE_BLEND:
 		dstweight = 1.0F - srcweight;
 		break;
@@ -158,7 +158,7 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 	}
 	
 	schan= (bPoseChannel*)src->chanbase.first;
-	for (dchan = (bPoseChannel*)dst->chanbase.first; dchan; dchan=(bPoseChannel*)dchan->next, schan= (bPoseChannel*)schan->next){
+	for (dchan = (bPoseChannel*)dst->chanbase.first; dchan; dchan=(bPoseChannel*)dchan->next, schan= (bPoseChannel*)schan->next) {
 		// always blend on all channels since we don't know which one has been set
 		/* quat interpolation done separate */
 		if (schan->rotmode == ROT_MODE_QUAT) {
@@ -502,7 +502,7 @@ void BL_ArmatureObject::SetPose(bPose *pose)
 
 bool BL_ArmatureObject::SetActiveAction(BL_ActionActuator *act, short priority, double curtime)
 {
-	if (curtime != m_lastframe){
+	if (curtime != m_lastframe) {
 		m_activePriority = 9999;
 		// compute the timestep for the underlying IK algorithm
 		m_timestep = curtime-m_lastframe;

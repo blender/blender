@@ -232,7 +232,7 @@ void BL_ConvertActuators(const char* maggiename,
 			}
 		case ACT_SHAPEACTION:
 			{
-				if (blenderobject->type==OB_MESH){
+				if (blenderobject->type==OB_MESH) {
 					bActionActuator* actact = (bActionActuator*) bact->data;
 					STR_String propname = (actact->name ? actact->name : "");
 					STR_String propframe = (actact->frameProp ? actact->frameProp : "");

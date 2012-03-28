@@ -153,14 +153,14 @@ float * AnimationExporter::get_eul_source_for_quat(Object *ob )
 		char * transformName = extract_transform_name( fcu->rna_path );
 
 		if ( !strcmp(transformName, "rotation_quaternion") )	{ 
-			for ( int i = 0 ; i < fcu->totvert ; i++){
+			for ( int i = 0 ; i < fcu->totvert ; i++) {
 				*(quat + ( i * 4 ) + fcu->array_index) = fcu->bezt[i].vec[1][1];
 			}
 		}
 		fcu = fcu->next;
 	}
 
-	for ( int i = 0 ; i < keys ; i++){
+	for ( int i = 0 ; i < keys ; i++) {
 		for ( int j = 0;j<4;j++)
 			temp_quat[j] = quat[(i*4)+j];
 
@@ -335,8 +335,7 @@ void AnimationExporter::write_bone_animation_matrix(Object *ob_arm, Bone *bone)
 		return;
 
 	//This will only export animations of bones in deform group.
-	/*if(!is_bone_deform_group(bone))
-	return;*/
+	/* if (!is_bone_deform_group(bone)) return; */
 
 	sample_and_write_bone_animation_matrix(ob_arm, bone);
 
@@ -352,7 +351,7 @@ bool AnimationExporter::is_bone_deform_group(Bone * bone)
 	//Check child bones
 	else 
 	{   
-		for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next){
+		for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
 			//loop through all the children until deform bone is found, and then return
 			is_def = is_bone_deform_group(child);
 			if (is_def) return true;

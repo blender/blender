@@ -225,7 +225,7 @@ void BL_MeshDeformer::RecalcNormals()
 void BL_MeshDeformer::VerifyStorage()
 {
 	/* Ensure that we have the right number of verts assigned */
-	if (m_tvtot!=m_bmesh->totvert){
+	if (m_tvtot!=m_bmesh->totvert) {
 		if (m_transverts)
 			delete [] m_transverts;
 		if (m_transnors)

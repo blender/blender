@@ -607,7 +607,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 	support= GLEW_ARB_vertex_shader;
 	pprint(" GL_ARB_vertex_shader supported?        "<< (support?"yes.":"no."));
 	count = 1;
-	if (support){
+	if (support) {
 		pprint(" ----------Details----------");
 		int max=0;
 		glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, (GLint*)&max);
@@ -627,7 +627,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 	support=GLEW_ARB_fragment_shader;
 	pprint(" GL_ARB_fragment_shader supported?      "<< (support?"yes.":"no."));
 	count = 1;
-	if (support){
+	if (support) {
 		pprint(" ----------Details----------");
 		int max=0;
 		glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB, (GLint*)&max);
@@ -638,7 +638,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 	support = GLEW_ARB_texture_cube_map;
 	pprint(" GL_ARB_texture_cube_map supported?     "<< (support?"yes.":"no."));
 	count = 1;
-	if (support){
+	if (support) {
 		pprint(" ----------Details----------");
 		int size=0;
 		glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB, (GLint*)&size);
@@ -649,7 +649,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 	support = GLEW_ARB_multitexture;
 	count = 1;
 	pprint(" GL_ARB_multitexture supported?         "<< (support?"yes.":"no."));
-	if (support){
+	if (support) {
 		pprint(" ----------Details----------");
 		int units=0;
 		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&units);

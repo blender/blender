@@ -890,7 +890,7 @@ void KX_GameObject::ResolveCombinedVelocities(
 	const MT_Vector3 & ang_vel,
 	bool lin_vel_local,
 	bool ang_vel_local
-){
+) {
 	if (m_pPhysicsController1)
 	{
 
@@ -1805,7 +1805,7 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 				set= 1;
 				
 				/* try remove dict value to avoid double ups */
-				if (self->m_attr_dict){
+				if (self->m_attr_dict) {
 					if (PyDict_DelItem(self->m_attr_dict, key) != 0)
 						PyErr_Clear();
 				}

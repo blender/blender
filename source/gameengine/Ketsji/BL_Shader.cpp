@@ -136,7 +136,7 @@ BL_Shader::BL_Shader()
 
 BL_Shader::~BL_Shader()
 {
-	//for (int i=0; i<MAXTEX; i++){
+	//for (int i=0; i<MAXTEX; i++) {
 	//	if (mSampler[i].mOwn) {
 	//		if (mSampler[i].mTexture)
 	//			mSampler[i].mTexture->DeleteTex();
@@ -157,7 +157,7 @@ BL_Shader::~BL_Shader()
 void BL_Shader::ClearUniforms()
 {
 	BL_UniformVec::iterator it = mUniforms.begin();
-	while(it != mUniforms.end()){
+	while(it != mUniforms.end()) {
 		delete (*it);
 		it++;
 	}
@@ -255,7 +255,7 @@ bool BL_Shader::LinkProgram()
 	if (mError)
 		goto programError;
 
-	if (!vertProg || !fragProg){
+	if (!vertProg || !fragProg) {
 		spit("Invalid GLSL sources");
 		return false;
 	}
@@ -275,7 +275,7 @@ bool BL_Shader::LinkProgram()
 	glGetObjectParameterivARB(tmpVert, GL_OBJECT_INFO_LOG_LENGTH_ARB,(GLint*) &vertlen);
 	
 	// print info if any
-	if ( vertlen > 0 && vertlen < MAX_LOG_LEN){
+	if ( vertlen > 0 && vertlen < MAX_LOG_LEN) {
 		logInf = (char*)MEM_mallocN(vertlen, "vert-log");
 		glGetInfoLogARB(tmpVert, vertlen, (GLsizei*)&char_len, logInf);
 		if (char_len >0) {
@@ -297,7 +297,7 @@ bool BL_Shader::LinkProgram()
 	glShaderSourceARB(tmpFrag, 1,(const char**)&fragProg, 0);
 	glCompileShaderARB(tmpFrag);
 	glGetObjectParameterivARB(tmpFrag, GL_OBJECT_INFO_LOG_LENGTH_ARB, (GLint*) &fraglen);
-	if (fraglen >0 && fraglen < MAX_LOG_LEN){
+	if (fraglen >0 && fraglen < MAX_LOG_LEN) {
 		logInf = (char*)MEM_mallocN(fraglen, "frag-log");
 		glGetInfoLogARB(tmpFrag, fraglen,(GLsizei*) &char_len, logInf);
 		if (char_len >0) {
@@ -309,7 +309,7 @@ bool BL_Shader::LinkProgram()
 	}
 
 	glGetObjectParameterivARB(tmpFrag, GL_OBJECT_COMPILE_STATUS_ARB, (GLint*) &fragstatus);
-	if (!fragstatus){
+	if (!fragstatus) {
 		spit("---- Fragment shader failed to compile ----");
 		goto programError;
 	}
@@ -336,7 +336,7 @@ bool BL_Shader::LinkProgram()
 		logInf=0;
 	}
 
-	if (!progstatus){
+	if (!progstatus) {
 		spit("---- GLSL program failed to link ----");
 		goto programError;
 	}
@@ -895,7 +895,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSampler, "setSampler(name, index)" )
 #else
 			SetUniform(loc, index);
 #endif
-			//if(index <= MAXTEX)
+			//if (index <= MAXTEX)
 			//	mSampler[index].mLoc = loc;
 			//else
 			//	spit("Invalid texture sample index: " << index);

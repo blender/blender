@@ -305,7 +305,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 {
 	/* See if the armature has been updated for this frame */
-	if (PoseUpdated()){	
+	if (PoseUpdated()) {	
 
 		if (!shape_applied) {
 			/* store verts locally */

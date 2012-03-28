@@ -300,7 +300,7 @@ void KX_KetsjiEngine::RenderDome()
 	KX_Scene* scene;
 
 	int n_renders=m_dome->GetNumberRenders();// usually 4 or 6
-	for (int i=0;i<n_renders;i++){
+	for (int i=0;i<n_renders;i++) {
 		m_canvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER|RAS_ICanvas::DEPTH_BUFFER);
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
 		// for each scene, call the proceed functions
@@ -313,7 +313,7 @@ void KX_KetsjiEngine::RenderDome()
 			SetWorldSettings(scene->GetWorldInfo());
 
 			// shadow buffers
-			if (i == 0){
+			if (i == 0) {
 				RenderShadowBuffers(scene);
 			}
 			// Avoid drawing the scene with the active camera twice when it's viewport is enabled
@@ -806,7 +806,7 @@ else
 
 void KX_KetsjiEngine::Render()
 {
-	if (m_usedome){
+	if (m_usedome) {
 		RenderDome();
 		return;
 	}
@@ -987,7 +987,7 @@ int KX_KetsjiEngine::GetExitCode()
 	// check if the window has been closed.
 	if (!m_exitcode)
 	{
-		//if(!m_canvas->Check()) {
+		//if (!m_canvas->Check()) {
 		//	m_exitcode = KX_EXIT_REQUEST_OUTSIDE;
 		//}
 	}

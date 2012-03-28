@@ -157,7 +157,7 @@ void DocumentImporter::cancel(const COLLADAFW::String& errorMessage)
 	// The latter sounds better.
 }
 
-void DocumentImporter::start(){}
+void DocumentImporter::start() {}
 
 void DocumentImporter::finish()
 {

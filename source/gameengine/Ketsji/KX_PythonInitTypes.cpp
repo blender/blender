@@ -123,7 +123,7 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 		/* we need to do this for all types before calling PyType_Ready
 		 * since they will call the parents PyType_Ready and those might not have initialized vars yet */
 
-		//if(tp->tp_base==NULL)
+		//if (tp->tp_base==NULL)
 		//	printf("Debug: No Parents - '%s'\n" , tp->tp_name);
 
 		if (tp->tp_getset==NULL && ((attributes && attributes->m_name) || (attributesPtr && attributesPtr->m_name))) {

@@ -123,7 +123,7 @@ void GPC_Canvas::SetViewPort(int x1, int y1, int x2, int y2)
 
 void GPC_Canvas::ClearBuffer(
 	int type
-){
+) {
 
 	int ogltype = 0;
 	if (type & RAS_ICanvas::COLOR_BUFFER )
@@ -312,7 +312,7 @@ void GPC_Canvas::DrawBanner(TBannerData& banner)
 GPC_Canvas::
 PushRenderState(
 	CanvasRenderState & render_state
-){
+) {
 #if 0
 
 	::glMatrixMode(GL_PROJECTION);
@@ -342,7 +342,7 @@ PushRenderState(
 GPC_Canvas::
 PopRenderState(
 	const CanvasRenderState & render_state
-){
+) {
 #if 0
 	// Restore OpenGL settings
 	render_state.oldLighting ? ::glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
@@ -371,7 +371,7 @@ PopRenderState(
 	void
 GPC_Canvas::
 SetOrthoProjection(
-){
+) {
 	// Set up OpenGL matrices 
 	::glViewport(0, 0, m_width, m_height);
 	::glScissor(0, 0, m_width, m_height);
@@ -388,7 +388,7 @@ SetOrthoProjection(
 GPC_Canvas::
 MakeScreenShot(
 	const char* filename
-){
+) {
 	png_structp png_ptr;
 	png_infop info_ptr;
 	unsigned char *pixels = 0;

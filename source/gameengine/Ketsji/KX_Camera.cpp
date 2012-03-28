@@ -977,7 +977,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 	vect[1] = 1.0 - vect[1]; //to follow Blender window coordinate system (Top-Down)
 
 	PyObject* ret = PyTuple_New(2);
-	if (ret){
+	if (ret) {
 		PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(vect[0]));
 		PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(vect[1]));
 		return ret;
