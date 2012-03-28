@@ -146,7 +146,9 @@ int EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const int r
 	if (BMO_error_get(em->bm, &errmsg, NULL)) {
 		BMEditMesh *emcopy = em->emcopy;
 
-		if (report) BKE_report(op->reports, RPT_ERROR, errmsg);
+		if (report) {
+			BKE_report(op->reports, RPT_ERROR, errmsg);
+		}
 
 		BMEdit_Free(em);
 		*em = *emcopy;
@@ -154,7 +156,14 @@ int EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const int r
 		MEM_freeN(emcopy);
 		em->emcopyusers = 0;
 		em->emcopy = NULL;
-		return 0;
+
+		/* when copying, tessellation isn't to for faster copying,
+		 * but means we need to re-tessellate here */
+		if (em->looptris == NULL) {
+			BMEdit_RecalcTessellation(em);
+		}
+
+		return FALSE;
 	}
 	else {
 		em->emcopyusers--;
@@ -167,9 +176,9 @@ int EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const int r
 			MEM_freeN(em->emcopy);
 			em->emcopy = NULL;
 		}
-	}
 
-	return 1;
+		return TRUE;
+	}
 }
 
 int EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
