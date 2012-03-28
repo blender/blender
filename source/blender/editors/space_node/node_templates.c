@@ -266,6 +266,8 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
 
 	ntemp.type = arg->type;
 	ntemp.ngroup = arg->ngroup;
+	ntemp.scene = CTX_data_scene(C);
+	ntemp.main = CTX_data_main(C);
 
 	if (event == UI_NODE_LINK_DISCONNECT)
 		node_socket_disconnect(bmain, ntree, node_to, sock_to);

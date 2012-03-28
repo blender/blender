@@ -578,7 +578,7 @@ static EnumPropertyItem *rna_Node_channel_itemf(bContext *UNUSED(C), PointerRNA 
 	return item;
 }
 
-static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *UNUSED(C), ReportList *reports,
+static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *reports,
                                     int type, bNodeTree *group)
 {
 	bNode *node;
@@ -591,6 +591,8 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *UNUSED(C), Repor
 	
 	ntemp.type = type;
 	ntemp.ngroup = group;
+	ntemp.scene = CTX_data_scene(C);
+	ntemp.main = CTX_data_main(C);
 	node = nodeAddNode(ntree, &ntemp);
 	
 	if (node == NULL) {

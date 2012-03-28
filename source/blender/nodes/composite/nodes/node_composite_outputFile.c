@@ -90,15 +90,20 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
 
 static void init_output_file(bNodeTree *ntree, bNode* node, bNodeTemplate *ntemp)
 {
-	RenderData *rd = &ntemp->scene->r;
 	NodeImageMultiFile *nimf= MEM_callocN(sizeof(NodeImageMultiFile), "node image multi file");
+	ImageFormatData *format = NULL;
 	node->storage= nimf;
 
-	BLI_strncpy(nimf->base_path, rd->pic, sizeof(nimf->base_path));
-	nimf->format = rd->im_format;
+	if (ntemp->scene) {
+		RenderData *rd = &ntemp->scene->r;
+		BLI_strncpy(nimf->base_path, rd->pic, sizeof(nimf->base_path));
+		nimf->format = rd->im_format;
+		
+		format = &rd->im_format;
+	}
 	
 	/* add one socket by default */
-	ntreeCompositOutputFileAddSocket(ntree, node, "Image", &rd->im_format);
+	ntreeCompositOutputFileAddSocket(ntree, node, "Image", format);
 }
 
 static void free_output_file(bNode *node)
