@@ -802,7 +802,7 @@ int main(int argc, char** argv)
 #if !defined(DEBUG)
 						if (closeConsole)
 						{
-							//::FreeConsole();    // Close a console window
+							system->toggleConsole(0); // Close a console window
 						}
 #endif // !defined(DEBUG)
 #endif // WIN32
