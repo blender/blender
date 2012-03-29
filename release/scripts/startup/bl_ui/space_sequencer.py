@@ -75,6 +75,13 @@ class SEQUENCER_HT_header(Header):
                     row.prop(ed, "overlay_frame", text="")
                     row.prop(ed, "overlay_lock", text="", icon='LOCKED')
 
+                row = layout.row(align=True)
+                props = row.operator("render.opengl", text="", icon='RENDER_STILL')
+                props.sequencer = True
+                props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
+                props.animation = True
+                props.sequencer = True
+
         layout.template_running_jobs()
 
 

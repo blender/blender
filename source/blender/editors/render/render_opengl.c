@@ -50,6 +50,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_sequencer.h"
 #include "BKE_writeavi.h"
 
 #include "WM_api.h"
@@ -86,6 +87,10 @@ typedef struct OGLRender {
 	ARegion *prevar;
 
 	short obcenter_dia_back; /* temp overwrite */
+
+	short is_sequencer;
+	SpaceSeq *sseq;
+
 
 	Image *ima;
 	ImageUser iuser;
@@ -128,8 +133,28 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	const short view_context = (v3d != NULL);
 
 	rr = RE_AcquireResultRead(oglrender->re);
-	
-	if (view_context) {
+
+	if (oglrender->is_sequencer) {
+		SeqRenderData context;
+		int chanshown = oglrender->sseq ? oglrender->sseq->chanshown : 0;
+
+		context = seq_new_render_data(oglrender->bmain, scene, oglrender->sizex, oglrender->sizey, 100.0f);
+
+		ibuf = give_ibuf_seq(context, CFRA, chanshown);
+
+		if (ibuf) {
+			BLI_assert((oglrender->sizex == ibuf->x) && (oglrender->sizey == ibuf->y));
+
+			if (ibuf->rect_float == NULL) {
+				IMB_float_from_rect(ibuf);
+			}
+
+			memcpy(rr->rectf, ibuf->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
+
+			IMB_freeImBuf(ibuf);
+		}
+	}
+	else if (view_context) {
 		GPU_offscreen_bind(oglrender->ofs); /* bind */
 
 		/* render 3d view */
@@ -197,7 +222,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			IMB_freeImBuf(ibuf_view);
 		}
 		else {
-			fprintf(stderr, "screen_opengl_render_apply: failed to get buffer, %s\n", err_out);
+			fprintf(stderr, "%s: failed to get buffer, %s\n", __func__, err_out);
 		}
 	}
 	
@@ -260,6 +285,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	int sizex, sizey;
 	short is_view_context = RNA_boolean_get(op->ptr, "view_context");
 	const short is_animation = RNA_boolean_get(op->ptr, "animation");
+	const short is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
 	const short is_write_still = RNA_boolean_get(op->ptr, "write_still");
 	char err_out[256] = "unknown";
 
@@ -319,6 +345,12 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->cfrao = scene->r.cfra;
 
 	oglrender->write_still = is_write_still && !is_animation;
+
+	oglrender->is_sequencer = is_sequencer;
+	if (is_sequencer) {
+		oglrender->sseq = CTX_wm_space_seq(C);;
+	}
+
 
 	oglrender->obcenter_dia_back = U.obcenter_dia;
 	U.obcenter_dia = 0;
@@ -638,6 +670,8 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
 
 void RENDER_OT_opengl(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "OpenGL Render";
 	ot->description = "OpenGL render active viewport";
@@ -651,9 +685,15 @@ void RENDER_OT_opengl(wmOperatorType *ot)
 
 	ot->poll = ED_operator_screenactive;
 
-	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
-	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
-	RNA_def_boolean(ot->srna, "view_context", 1, "View Context", "Use the current 3D view for rendering, else use scene settings");
+	prop = RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "sequencer", 0, "Sequencer", "Render using the sequencers OpenGL display");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "view_context", 1, "View Context", "Use the current 3D view for rendering, else use scene settings");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
 }
 
 /* function for getting an opengl buffer from a View3D, used by sequencer */
