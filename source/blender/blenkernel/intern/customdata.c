@@ -2184,6 +2184,7 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 	if (t != BM_LOOPS_OF_FACE) {
 		/*ensure all current elements follow new customdata layout*/
 		BM_ITER(h, &iter, bm, t, NULL) {
+			tmp = NULL;
 			CustomData_bmesh_copy_data(&destold, dest, h->data, &tmp);
 			CustomData_bmesh_free_block(&destold, &h->data);
 			h->data = tmp;
