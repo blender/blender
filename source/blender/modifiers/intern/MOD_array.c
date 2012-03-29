@@ -374,12 +374,6 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			}
 
 			#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
-			/* generate merge mapping using index map.  we do this by using the
-			 * operator slots as lookup arrays.*/
-			#define E(i) \
-				((i) < geom_slot->len ? \
-				 _E(geom_slot, i) :		\
-				 _E(newout_slot, (i)-geom_slot->len))
 
 			for (i=0; i<indexLen; i++) {
 				if (!indexMap[i]) continue;
@@ -414,7 +408,6 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				}
 			}
 
-			#undef E
 			#undef _E
 		}
 

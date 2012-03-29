@@ -224,6 +224,9 @@ static BMOpDefine bmo_mirror_def = {
  *
  * Takes input verts and find vertices they should weld to.  Outputs a
  * mapping slot suitable for use with the weld verts bmop.
+ *
+ * If keepverts is used, vertices outside that set can only be merged
+ * with vertices in that set.
  */
 static BMOpDefine bmo_finddoubles_def = {
 	"finddoubles",
