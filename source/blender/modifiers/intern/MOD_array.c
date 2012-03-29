@@ -239,6 +239,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	DerivedMesh *result;
 	BMEditMesh *em = DM_to_editbmesh(dm, NULL, FALSE);
 	BMOperator dupe_op, old_dupe_op, weld_op;
+	BMVert **first_geom = NULL;
 	int i, j, indexLen;
 	/* offset matrix */
 	float offset[4][4];
@@ -342,8 +343,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	
 	for (j=0; j < count - 1; j++) {
 		BMVert *v, *v2, *v3;
-		BMOpSlot *s1;
-		BMOpSlot *s2;
+		BMOpSlot *geom_slot;
+		BMOpSlot *newout_slot;
 
 		if (j == 0)
 			BMO_op_initf(em->bm, &dupe_op, "dupe geom=%avef");
@@ -351,8 +352,17 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			BMO_op_initf(em->bm, &dupe_op, "dupe geom=%s", &old_dupe_op, "newout");
 		BMO_op_exec(em->bm, &dupe_op);
 
-		s1 = BMO_slot_get(&dupe_op, "geom");
-		s2 = BMO_slot_get(&dupe_op, "newout");
+		geom_slot = BMO_slot_get(&dupe_op, "geom");
+		newout_slot = BMO_slot_get(&dupe_op, "newout");
+
+		if ((amd->flags & MOD_ARR_MERGEFINAL) && j == 0) {
+			int first_geom_bytes = sizeof(BMVert*) * geom_slot->len;
+				
+			/* make a copy of the initial geometry ordering so the
+			   last duplicate can be merged into it */
+			first_geom = MEM_mallocN(first_geom_bytes, "first_geom");
+			memcpy(first_geom, geom_slot->data.buf, first_geom_bytes);
+		}
 
 		BMO_op_callf(em->bm, "transform mat=%m4 verts=%s", offset, &dupe_op, "newout");
 
@@ -366,13 +376,17 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
 			/* generate merge mapping using index map.  we do this by using the
 			 * operator slots as lookup arrays.*/
-			#define E(i) (i) < s1->len ? _E(s1, i) : _E(s2, (i)-s1->len)
+			#define E(i) \
+				((i) < geom_slot->len ? \
+				 _E(geom_slot, i) :		\
+				 _E(newout_slot, (i)-geom_slot->len))
 
 			for (i=0; i<indexLen; i++) {
 				if (!indexMap[i]) continue;
 
-				v = E(i);
-				v2 = E(indexMap[i]-1);
+				/* merge v (from 'newout') into v2 (from old 'geom') */
+				v = _E(newout_slot, i - geom_slot->len);
+				v2 = _E(geom_slot, indexMap[i]-1);
 
 				/* check in case the target vertex (v2) is already marked
 				   for merging */
@@ -380,6 +394,24 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					v2 = v3;
 
 				BMO_slot_map_ptr_insert(em->bm, &weld_op, "targetmap", v, v2);
+			}
+
+			if ((amd->flags & MOD_ARR_MERGEFINAL) && j == count - 2) {
+				/* special case for merging first and last */
+				for (i=0; i < indexLen; i++) {
+					if (!indexMap[i]) continue;
+
+					/* merge v (from 'newout') into v2 (from XXX) */
+					v = _E(newout_slot, indexMap[i]-1);
+					v2 = first_geom[i - geom_slot->len];
+
+					/* check in case the target vertex (v2) is already marked
+					   for merging */
+					while((v3 = BMO_slot_map_ptr_get(em->bm, &weld_op, "targetmap", v2)))
+						v2 = v3;
+
+					BMO_slot_map_ptr_insert(em->bm, &weld_op, "targetmap", v, v2);
+				}
 			}
 
 			#undef E
@@ -444,6 +476,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	MEM_freeN(em);
 	if (indexMap)
 		MEM_freeN(indexMap);
+	if (first_geom)
+		MEM_freeN(first_geom);
 
 	return result;
 }
