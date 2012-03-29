@@ -451,6 +451,8 @@ void ED_object_enter_editmode(bContext *C, int flag)
 			/* order doesn't matter */
 			EDBM_mesh_normals_update(em);
 			BMEdit_RecalcTessellation(em);
+			
+			BM_mesh_select_mode_flush(em->bm);
 		}
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, scene);
