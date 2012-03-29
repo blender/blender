@@ -337,15 +337,18 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	BMO_push(em->bm, NULL);
 	bmesh_edit_begin(em->bm, 0);
 
-	BMO_op_init(em->bm, &weld_op, "weldverts");
-	BMO_op_initf(em->bm, &dupe_op, "dupe geom=%avef");
-	old_dupe_op = dupe_op;
+	if (amd->flags & MOD_ARR_MERGE)
+		BMO_op_init(em->bm, &weld_op, "weldverts");
+	
 	for (j=0; j < count - 1; j++) {
 		BMVert *v, *v2, *v3;
 		BMOpSlot *s1;
 		BMOpSlot *s2;
 
-		BMO_op_initf(em->bm, &dupe_op, "dupe geom=%s", &old_dupe_op, j==0 ? "geom" : "newout");
+		if (j == 0)
+			BMO_op_initf(em->bm, &dupe_op, "dupe geom=%avef");
+		else
+			BMO_op_initf(em->bm, &dupe_op, "dupe geom=%s", &old_dupe_op, "newout");
 		BMO_op_exec(em->bm, &dupe_op);
 
 		s1 = BMO_slot_get(&dupe_op, "geom");
@@ -353,35 +356,38 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 		BMO_op_callf(em->bm, "transform mat=%m4 verts=%s", offset, &dupe_op, "newout");
 
-		/*calculate merge mapping*/
-		if (j == 0) {
-			indexMap = find_doubles_index_map(em->bm, &dupe_op,
-											  amd, &indexLen);
+		if (amd->flags & MOD_ARR_MERGE) {
+			/*calculate merge mapping*/
+			if (j == 0) {
+				indexMap = find_doubles_index_map(em->bm, &dupe_op,
+												  amd, &indexLen);
+			}
+
+			#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
+			/* generate merge mapping using index map.  we do this by using the
+			 * operator slots as lookup arrays.*/
+			#define E(i) (i) < s1->len ? _E(s1, i) : _E(s2, (i)-s1->len)
+
+			for (i=0; i<indexLen; i++) {
+				if (!indexMap[i]) continue;
+
+				v = E(i);
+				v2 = E(indexMap[i]-1);
+
+				/* check in case the target vertex (v2) is already marked
+				   for merging */
+				while((v3 = BMO_slot_map_ptr_get(em->bm, &weld_op, "targetmap", v2)))
+					v2 = v3;
+
+				BMO_slot_map_ptr_insert(em->bm, &weld_op, "targetmap", v, v2);
+			}
+
+			#undef E
+			#undef _E
 		}
 
-		#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
-		/* generate merge mapping using index map.  we do this by using the
-		 * operator slots as lookup arrays.*/
-		#define E(i) (i) < s1->len ? _E(s1, i) : _E(s2, (i)-s1->len)
-
-		for (i=0; i<indexLen; i++) {
-			if (!indexMap[i]) continue;
-
-			v = E(i);
-			v2 = E(indexMap[i]-1);
-
-			/* check in case the target vertex (v2) is already marked
-			   for merging */
-			while((v3 = BMO_slot_map_ptr_get(em->bm, &weld_op, "targetmap", v2)))
-				v2 = v3;
-
-			BMO_slot_map_ptr_insert(em->bm, &weld_op, "targetmap", v, v2);
-		}
-
-		#undef E
-		#undef _E
-
-		BMO_op_finish(em->bm, &old_dupe_op);
+		if (j != 0)
+			BMO_op_finish(em->bm, &old_dupe_op);
 		old_dupe_op = dupe_op;
 	}
 
@@ -414,10 +420,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	}
 	/* done capping */
 
-	if (amd->flags & MOD_ARR_MERGE)
+	if (amd->flags & MOD_ARR_MERGE) {
 		BMO_op_exec(em->bm, &weld_op);
-
-	BMO_op_finish(em->bm, &weld_op);
+		BMO_op_finish(em->bm, &weld_op);
+	}
 
 	/* Bump the stack level back down to match the adjustment up above */
 	BMO_pop(em->bm);
