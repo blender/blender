@@ -47,8 +47,10 @@ static int UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 	/* checks if there are any unmarked boundary edges in the face regio */
 
 	BMW_init(&regwalker, bm, BMW_ISLAND,
-	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+	         BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 	         BMW_NIL_LAY);
+
 	f2 = BMW_begin(&regwalker, f);
 	for ( ; f2; f2 = BMW_step(&regwalker)) {
 		l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
@@ -106,7 +108,8 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
 		/* yay, walk */
 		BMW_init(&regwalker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+		         BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 		         BMW_NIL_LAY);
 
 		f2 = BMW_begin(&regwalker, f);

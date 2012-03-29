@@ -899,7 +899,8 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 	BMWalker walker;
 
 	BMW_init(&walker, bm, walkercode,
-	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 	         BMW_NIL_LAY);
 	ele = BMW_begin(&walker, start);
 	for (; ele; ele = BMW_step(&walker)) {
@@ -1801,7 +1802,8 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 
 		/* walk */
 		BMW_init(&walker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, limit ? BM_ELEM_SELECT : BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_MASK_NOP, limit ? BM_ELEM_SELECT : BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
 		e = BMW_begin(&walker, efa);
@@ -1822,7 +1824,8 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 		}
 
 		BMW_init(&walker, bm, BMW_SHELL,
-		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
 		e = BMW_begin(&walker, eed->v1);
@@ -1887,7 +1890,8 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		}
 
 		BMW_init(&walker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, limit ? BM_ELEM_SELECT : BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_MASK_NOP, limit ? BM_ELEM_SELECT : BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 		         BMW_NIL_LAY);
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
@@ -1911,8 +1915,10 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		}
 
 		BMW_init(&walker, em->bm, BMW_SHELL,
-		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 		         BMW_NIL_LAY);
+
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				e = BMW_begin(&walker, v);
@@ -2012,7 +2018,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	BMWalker walker;
 	BMIter iter;
 	int walktype = 0, itertype = 0, flushtype = 0;
-	short mask_vert = 0, mask_edge = 0, mask_loop = 0, mask_face = 0;
+	short mask_vert = 0, mask_edge = 0, mask_face = 0;
 
 	/* No active element from which to start - nothing to do */
 	if (h_act == NULL) {
@@ -2055,7 +2061,8 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 
 	/* Walk over selected elements starting at active */
 	BMW_init(&walker, bm, walktype,
-	         mask_vert, mask_edge, mask_loop, mask_face,
+	         mask_vert, mask_edge, mask_face,
+	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 	         BMW_NIL_LAY);
 
 	BLI_assert(walker.order == BMW_BREADTH_FIRST);

@@ -34,6 +34,45 @@
 #include "intern/bmesh_private.h"
 #include "intern/bmesh_walkers_private.h"
 
+static int bmw_mask_check_vert(BMWalker *walker, BMVert *v)
+{
+	if ((walker->flag & BMW_FLAG_TEST_HIDDEN) && BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+		return FALSE;
+	}
+	else if (walker->mask_vert && !BMO_elem_flag_test(walker->bm, v, walker->mask_vert)) {
+		return FALSE;
+	}
+	else {
+		return TRUE;
+	}
+}
+
+static int bmw_mask_check_edge(BMWalker *walker, BMEdge *e)
+{
+	if ((walker->flag & BMW_FLAG_TEST_HIDDEN) && BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+		return FALSE;
+	}
+	else if (walker->mask_edge && !BMO_elem_flag_test(walker->bm, e, walker->mask_edge)) {
+		return FALSE;
+	}
+	else {
+		return TRUE;
+	}
+}
+
+static int bmw_mask_check_face(BMWalker *walker, BMFace *f)
+{
+	if ((walker->flag & BMW_FLAG_TEST_HIDDEN) && BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+		return FALSE;
+	}
+	else if (walker->mask_face && !BMO_elem_flag_test(walker->bm, f, walker->mask_face)) {
+		return FALSE;
+	}
+	else {
+		return TRUE;
+	}
+}
+
 /**
  * Shell Walker:
  *
@@ -50,7 +89,7 @@ static void bmw_ShellWalker_visitEdge(BMWalker *walker, BMEdge *e)
 		return;
 	}
 
-	if (walker->mask_edge && !BMO_elem_flag_test(walker->bm, e, walker->mask_edge)) {
+	if (!bmw_mask_check_edge(walker, e)) {
 		return;
 	}
 
@@ -176,7 +215,8 @@ static void bmw_ConnectedVertexWalker_visitVertex(BMWalker *walker, BMVert *v)
 		/* already visited */
 		return;
 	}
-	if (walker->mask_vert && !BMO_elem_flag_test(walker->bm, v, walker->mask_vert)) {
+
+	if (!bmw_mask_check_vert(walker, v)) {
 		/* not flagged for walk */
 		return;
 	}
@@ -279,7 +319,8 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 			l = l->radial_next;
 			f = l->f;
 			e = l->e;
-			if (walker->mask_face && !BMO_elem_flag_test(walker->bm, f, walker->mask_face)) {
+
+			if (!bmw_mask_check_face(walker, f)) {
 				l = l->radial_next;
 				break;
 			}
@@ -322,7 +363,7 @@ static void bmw_IslandWalker_begin(BMWalker *walker, void *data)
 {
 	BMwIslandWalker *iwalk = NULL;
 
-	if (walker->mask_face && !BMO_elem_flag_test(walker->bm, (BMElemF *)data, walker->mask_face)) {
+	if (!bmw_mask_check_face(walker, data)) {
 		return;
 	}
 
@@ -352,13 +393,14 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
 	l = BM_iter_new(&liter, walker->bm, BM_LOOPS_OF_FACE, iwalk->cur);
 	for ( ; l; l = BM_iter_step(&liter)) {
 		/* could skip loop here too, but don't add unless we need it */
-		if (walker->mask_edge && !BMO_elem_flag_test(walker->bm, l->e, walker->mask_edge)) {
+		if (!bmw_mask_check_edge(walker, l->e)) {
 			continue;
 		}
 
 		f = BM_iter_new(&iter, walker->bm, BM_FACES_OF_EDGE, l->e);
 		for ( ; f; f = BM_iter_step(&iter)) {
-			if (walker->mask_face && !BMO_elem_flag_test(walker->bm, f, walker->mask_face)) {
+
+			if (!bmw_mask_check_face(walker, f)) {
 				continue;
 			}
 
@@ -884,9 +926,10 @@ static void *bmw_UVEdgeWalker_step(BMWalker *walker)
 	type = walker->bm->ldata.layers[walker->layer].type;
 
 	BMW_state_remove(walker);
-	
-	if (walker->mask_edge && !BMO_elem_flag_test(walker->bm, l->e, walker->mask_edge))
+
+	if (!bmw_mask_check_edge(walker, l->e)) {
 		return l;
+	}
 
 	/* go over loops around l->v and nl->v and see which ones share l and nl's
 	 * mloopuv's coordinates. in addition, push on l->next if necessary */
@@ -898,13 +941,16 @@ static void *bmw_UVEdgeWalker_step(BMWalker *walker)
 			
 			rlen = BM_edge_face_count(l2->e);
 			for (j = 0; j < rlen; j++) {
-				if (BLI_ghash_haskey(walker->visithash, l2))
+				if (BLI_ghash_haskey(walker->visithash, l2)) {
 					continue;
-				if (walker->mask_edge && !(BMO_elem_flag_test(walker->bm, l2->e, walker->mask_edge))) {
-					if (l2->v != cl->v)
-						continue;
 				}
-				
+
+				if (!bmw_mask_check_edge(walker, l2->e)) {
+					if (l2->v != cl->v) {
+						continue;
+					}
+				}
+
 				l3 = l2->v != cl->v ? l2->next : l2;
 				d2 = CustomData_bmesh_get_layer_n(&walker->bm->ldata,
 				                                  l3->head.data, walker->layer);

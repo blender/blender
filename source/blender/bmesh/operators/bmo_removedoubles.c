@@ -376,7 +376,8 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 
 	BMW_init(&walker, bm, BMW_SHELL,
-	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP, BMW_MASK_NOP,
+	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP,
+	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 	         BMW_NIL_LAY);
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -435,7 +436,8 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 
 	BMW_init(&walker, bm, BMW_LOOPDATA_ISLAND,
-	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP, BMW_MASK_NOP,
+	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP,
+	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 	         layer);
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {

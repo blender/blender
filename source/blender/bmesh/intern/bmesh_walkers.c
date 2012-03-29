@@ -73,17 +73,18 @@ void *BMW_begin(BMWalker *walker, void *start)
  * by the bitmask 'searchmask'.
  */
 void BMW_init(BMWalker *walker, BMesh *bm, int type,
-              short mask_vert, short mask_edge, short mask_loop, short mask_face,
+              short mask_vert, short mask_edge, short mask_face,
+              BMWFlag flag,
               int layer)
 {
 	memset(walker, 0, sizeof(BMWalker));
 
 	walker->layer = layer;
+	walker->flag = flag;
 	walker->bm = bm;
 
 	walker->mask_vert = mask_vert;
 	walker->mask_edge = mask_edge;
-	walker->mask_loop = mask_loop;
 	walker->mask_face = mask_face;
 
 	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 1");
@@ -92,8 +93,8 @@ void BMW_init(BMWalker *walker, BMesh *bm, int type,
 	if (UNLIKELY(type >= BMW_MAXWALKERS || type < 0)) {
 		fprintf(stderr,
 		        "Invalid walker type in BMW_init; type: %d, "
-		        "searchmask: (v:%d, e:%d, l:%d, f:%d), flag: %d\n",
-		        type, mask_vert, mask_edge, mask_loop, mask_face, layer);
+		        "searchmask: (v:%d, e:%d, f:%d), flag: %d, layer: %d\n",
+		        type, mask_vert, mask_edge, mask_face, flag, layer);
 		BMESH_ASSERT(0);
 	}
 	
@@ -110,7 +111,6 @@ void BMW_init(BMWalker *walker, BMesh *bm, int type,
 		 * 'bm_walker_types' needs updating */
 		BLI_assert(mask_vert == 0 || (walker->valid_mask & BM_VERT));
 		BLI_assert(mask_edge == 0 || (walker->valid_mask & BM_EDGE));
-		BLI_assert(mask_loop == 0 || (walker->valid_mask & BM_LOOP));
 		BLI_assert(mask_face == 0 || (walker->valid_mask & BM_FACE));
 	}
 	
