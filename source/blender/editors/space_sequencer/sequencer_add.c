@@ -79,10 +79,10 @@
 /* Generic functions, reused by add strip operators */
 
 /* avoid passing multiple args and be more verbose */
-#define SEQPROP_STARTFRAME	(1<<0)
-#define SEQPROP_ENDFRAME	(1<<1)
-#define SEQPROP_NOPATHS		(1<<2)
-#define SEQPROP_NOCHAN		(1<<3)
+#define SEQPROP_STARTFRAME  (1 << 0)
+#define SEQPROP_ENDFRAME    (1 << 1)
+#define SEQPROP_NOPATHS     (1 << 2)
+#define SEQPROP_NOCHAN      (1 << 3)
 
 #define SELECT 1
 
@@ -92,7 +92,7 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 		RNA_def_int(ot->srna, "frame_start", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame of the sequence strip", INT_MIN, INT_MAX);
 	
 	if (flag & SEQPROP_ENDFRAME)
-		RNA_def_int(ot->srna, "frame_end", 0, INT_MIN, INT_MAX, "End Frame", "End frame for the color strip", INT_MIN, INT_MAX); /* not usual since most strips have a fixed length */
+		RNA_def_int(ot->srna, "frame_end", 0, INT_MIN, INT_MAX, "End Frame", "End frame for the color strip", INT_MIN, INT_MAX);  /* not usual since most strips have a fixed length */
 	
 	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, "Channel", "Channel to place this strip into", 1, MAXSEQ);
 	
@@ -104,8 +104,8 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op, const char *identifier)
 {
 	if (RNA_struct_find_property(op->ptr, identifier)) {
-		Scene *scene= CTX_data_scene(C);
-		Sequence *last_seq= seq_active_get(scene);
+		Scene *scene = CTX_data_scene(C);
+		Sequence *last_seq = seq_active_get(scene);
 		if (last_seq && last_seq->strip && SEQ_HAS_PATH(last_seq)) {
 			char path[sizeof(last_seq->strip->dir)];
 			BLI_strncpy(path, last_seq->strip->dir, sizeof(path));
@@ -117,7 +117,7 @@ static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op,
 
 static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, wmEvent *event, int flag)
 {
-	View2D *v2d= UI_view2d_fromcontext(C);
+	View2D *v2d = UI_view2d_fromcontext(C);
 	
 	float mval_v2d[2];
 	
@@ -125,13 +125,13 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 
 	/* effect strips don't need a channel initialized from the mouse */
 	if (!(flag & SEQPROP_NOCHAN)) {
-		RNA_int_set(op->ptr, "channel", (int)mval_v2d[1]+0.5f);
+		RNA_int_set(op->ptr, "channel", (int)mval_v2d[1] + 0.5f);
 	}
 
 	RNA_int_set(op->ptr, "frame_start", (int)mval_v2d[0]);
 	
-	if ((flag & SEQPROP_ENDFRAME) && RNA_struct_property_is_set(op->ptr, "frame_end")==0)
-		RNA_int_set(op->ptr, "frame_end", (int)mval_v2d[0] + 25); // XXX arbitary but ok for now.
+	if ((flag & SEQPROP_ENDFRAME) && RNA_struct_property_is_set(op->ptr, "frame_end") == 0)
+		RNA_int_set(op->ptr, "frame_end", (int)mval_v2d[0] + 25);  // XXX arbitary but ok for now.
 
 	if (!(flag & SEQPROP_NOPATHS)) {
 		sequencer_generic_invoke_path__internal(C, op, "filepath");
@@ -141,23 +141,23 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 
 static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 {
-	int relative= RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path");
-	int is_file= -1;
+	int relative = RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path");
+	int is_file = -1;
 	memset(seq_load, 0, sizeof(SeqLoadInfo));
 
-	seq_load->start_frame=	RNA_int_get(op->ptr, "frame_start");
-	seq_load->end_frame=	seq_load->start_frame; /* un-set */
+	seq_load->start_frame =  RNA_int_get(op->ptr, "frame_start");
+	seq_load->end_frame =    seq_load->start_frame; /* un-set */
 
-	seq_load->channel=		RNA_int_get(op->ptr, "channel");
-	seq_load->len=			1; // images only, if endframe isn't set!
+	seq_load->channel =      RNA_int_get(op->ptr, "channel");
+	seq_load->len =          1; // images only, if endframe isn't set!
 
 	if (RNA_struct_find_property(op->ptr, "filepath")) {
 		RNA_string_get(op->ptr, "filepath", seq_load->path); /* full path, file is set by the caller */
-		is_file= 1;
+		is_file = 1;
 	}
 	else if (RNA_struct_find_property(op->ptr, "directory")) {
 		RNA_string_get(op->ptr, "directory", seq_load->path); /* full path, file is set by the caller */
-		is_file= 0;
+		is_file = 0;
 	}
 
 	if ((is_file != -1) && relative)
@@ -181,14 +181,14 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	seq_load->flag |= SEQ_LOAD_FRAME_ADVANCE;
 
 
-	if (is_file==1) {
+	if (is_file == 1) {
 		BLI_strncpy(seq_load->name, BLI_path_basename(seq_load->path), sizeof(seq_load->name));
 	}
 	else if (RNA_struct_find_property(op->ptr, "files")) {
 		/* used for image strip */
 		/* best guess, first images name */
 		RNA_BEGIN(op->ptr, itemptr, "files") {
-			char *name= RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+			char *name = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
 			BLI_strncpy(seq_load->name, name, sizeof(seq_load->name));
 			MEM_freeN(name);
 			break;
@@ -200,38 +200,38 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 /* add scene operator */
 static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	Editing *ed= seq_give_editing(scene, TRUE);
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = seq_give_editing(scene, TRUE);
 	
 	Scene *sce_seq;
 
-	Sequence *seq;	/* generic strip vars */
+	Sequence *seq;  /* generic strip vars */
 	Strip *strip;
 	
 	int start_frame, channel; /* operator props */
 	
-	start_frame= RNA_int_get(op->ptr, "frame_start");
-	channel= RNA_int_get(op->ptr, "channel");
+	start_frame = RNA_int_get(op->ptr, "frame_start");
+	channel = RNA_int_get(op->ptr, "channel");
 	
-	sce_seq= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
+	sce_seq = BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 	
-	if (sce_seq==NULL) {
+	if (sce_seq == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Scene not found");
 		return OPERATOR_CANCELLED;
 	}
 	
 	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
-	seq->type= SEQ_SCENE;
-	seq->blend_mode= SEQ_CROSS; /* so alpha adjustment fade to the strip below */
+	seq->type = SEQ_SCENE;
+	seq->blend_mode = SEQ_CROSS; /* so alpha adjustment fade to the strip below */
 
-	seq->scene= sce_seq;
+	seq->scene = sce_seq;
 	
 	/* basic defaults */
-	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
 	seq->len = sce_seq->r.efra - sce_seq->r.sfra + 1;
-	strip->us= 1;
+	strip->us = 1;
 	
-	BLI_strncpy(seq->name+2, sce_seq->id.name+2, sizeof(seq->name)-2);
+	BLI_strncpy(seq->name + 2, sce_seq->id.name + 2, sizeof(seq->name) - 2);
 	seqbase_unique_name_recursive(&ed->seqbase, seq);
 
 	seq->scene_sound = sound_scene_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
@@ -249,7 +249,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 		if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -288,10 +288,10 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+	prop = RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
 	RNA_def_enum_funcs(prop, RNA_scene_itemf);
 	ot->prop = prop;
 }
@@ -299,20 +299,20 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 /* add movieclip operator */
 static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	Editing *ed= seq_give_editing(scene, TRUE);
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = seq_give_editing(scene, TRUE);
 	
 	MovieClip *clip;
 
-	Sequence *seq;	/* generic strip vars */
+	Sequence *seq;  /* generic strip vars */
 	Strip *strip;
 	
 	int start_frame, channel; /* operator props */
 	
-	start_frame= RNA_int_get(op->ptr, "frame_start");
-	channel= RNA_int_get(op->ptr, "channel");
+	start_frame = RNA_int_get(op->ptr, "frame_start");
+	channel = RNA_int_get(op->ptr, "channel");
 	
-	clip= BLI_findlink(&CTX_data_main(C)->movieclip, RNA_enum_get(op->ptr, "clip"));
+	clip = BLI_findlink(&CTX_data_main(C)->movieclip, RNA_enum_get(op->ptr, "clip"));
 	
 	if (clip == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "MovieClip not found");
@@ -320,16 +320,16 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	}
 	
 	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
-	seq->type= SEQ_MOVIECLIP;
-	seq->blend_mode= SEQ_CROSS; 
+	seq->type = SEQ_MOVIECLIP;
+	seq->blend_mode = SEQ_CROSS;
 	seq->clip = clip;
 	
 	/* basic defaults */
-	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
 	seq->len =  BKE_movieclip_get_duration(clip);
-	strip->us= 1;
+	strip->us = 1;
 	
-	BLI_strncpy(seq->name+2, clip->id.name+2, sizeof(seq->name)-2);
+	BLI_strncpy(seq->name + 2, clip->id.name + 2, sizeof(seq->name) - 2);
 	seqbase_unique_name_recursive(&ed->seqbase, seq);
 
 	calc_sequence_disp(scene, seq);
@@ -345,7 +345,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 		if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -384,10 +384,10 @@ void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	prop= RNA_def_enum(ot->srna, "clip", DummyRNA_NULL_items, 0, "Clip", "");
+	prop = RNA_def_enum(ot->srna, "clip", DummyRNA_NULL_items, 0, "Clip", "");
 	RNA_def_enum_funcs(prop, RNA_movieclip_itemf);
 	ot->prop = prop;
 }
@@ -395,19 +395,19 @@ void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 
 static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoadFunc seq_load_func)
 {
-	Scene *scene= CTX_data_scene(C); /* only for sound */
-	Editing *ed= seq_give_editing(scene, TRUE);
+	Scene *scene = CTX_data_scene(C); /* only for sound */
+	Editing *ed = seq_give_editing(scene, TRUE);
 	SeqLoadInfo seq_load;
 	Sequence *seq;
 	int tot_files;
-	const short overlap= RNA_boolean_get(op->ptr, "overlap");
+	const short overlap = RNA_boolean_get(op->ptr, "overlap");
 
 	seq_load_operator_info(&seq_load, op);
 
 	if (seq_load.flag & SEQ_LOAD_REPLACE_SEL)
 		deselect_all_seq(scene);
 
-	tot_files= RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
+	tot_files = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
 
 	if (tot_files) {
 		/* multiple files */
@@ -416,7 +416,8 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 
 		BLI_split_dir_part(seq_load.path, dir_only, sizeof(dir_only));
 
-		RNA_BEGIN(op->ptr, itemptr, "files") {
+		RNA_BEGIN(op->ptr, itemptr, "files")
+		{
 			RNA_string_get(&itemptr, "name", file_only);
 			BLI_join_dirfile(seq_load.path, sizeof(seq_load.path), dir_only, file_only);
 
@@ -439,7 +440,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 		}
 	}
 
-	if (seq_load.tot_success==0) {
+	if (seq_load.tot_success == 0) {
 		BKE_reportf(op->reports, RPT_ERROR, "File \"%s\" could not be loaded", seq_load.path);
 		return OPERATOR_CANCELLED;
 	}
@@ -447,7 +448,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	sort_seq(scene);
 	seq_update_muting(ed);
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -499,9 +500,9 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH|WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	RNA_def_boolean(ot->srna, "sound", TRUE, "Sound", "Load sound with the movie");
 }
@@ -523,7 +524,7 @@ static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent
 	
 	/* This is for drag and drop */
 	if ((RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) ||
-	   RNA_struct_property_is_set(op->ptr, "filepath"))
+	    RNA_struct_property_is_set(op->ptr, "filepath"))
 	{
 		sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_NOPATHS);
 		return sequencer_add_sound_strip_exec(C, op);
@@ -553,9 +554,9 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH|WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | SOUNDFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory");
 }
@@ -565,8 +566,8 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 {
 	/* cant use the generic function for this */
 
-	Scene *scene= CTX_data_scene(C); /* only for sound */
-	Editing *ed= seq_give_editing(scene, TRUE);
+	Scene *scene = CTX_data_scene(C); /* only for sound */
+	Editing *ed = seq_give_editing(scene, TRUE);
 	SeqLoadInfo seq_load;
 	Sequence *seq;
 
@@ -576,9 +577,9 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	seq_load_operator_info(&seq_load, op);
 
 	/* images are unique in how they handle this - 1 per strip elem */
-	seq_load.len= RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
+	seq_load.len = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
 
-	if (seq_load.len==0)
+	if (seq_load.len == 0)
 		return OPERATOR_CANCELLED;
 
 	if (seq_load.flag & SEQ_LOAD_REPLACE_SEL)
@@ -586,12 +587,12 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 
 	/* main adding function */
-	seq= sequencer_add_image_strip(C, ed->seqbasep, &seq_load);
-	strip= seq->strip;
-	se= strip->stripdata;
+	seq = sequencer_add_image_strip(C, ed->seqbasep, &seq_load);
+	strip = seq->strip;
+	se = strip->stripdata;
 
 	RNA_BEGIN(op->ptr, itemptr, "files") {
-		char *filename= RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+		char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
 		BLI_strncpy(se->name, filename, sizeof(se->name));
 		MEM_freeN(filename);
 		se++;
@@ -600,7 +601,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 	if (seq_load.len == 1) {
 		if (seq_load.start_frame < seq_load.end_frame) {
-			seq->endstill= seq_load.end_frame - seq_load.start_frame;
+			seq->endstill = seq_load.end_frame - seq_load.start_frame;
 		}
 	}
 	
@@ -609,13 +610,13 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	sort_seq(scene);
 
 	/* last active name */
-	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR-1);
+	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR - 1);
 
 	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
 		if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -631,7 +632,7 @@ static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, wmEvent
 
 	/* drag drop has set the names */
 	if (RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) {
-		sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_ENDFRAME|SEQPROP_NOPATHS);
+		sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_ENDFRAME | SEQPROP_NOPATHS);
 		return sequencer_add_image_strip_exec(C, op);
 	}
 	
@@ -657,20 +658,20 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_DIRECTORY|WM_FILESEL_RELPATH|WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME);
+	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_DIRECTORY | WM_FILESEL_RELPATH | WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME);
 }
 
 
 /* add_effect_strip operator */
 static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	Editing *ed= seq_give_editing(scene, TRUE);
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = seq_give_editing(scene, TRUE);
 
-	Sequence *seq;	/* generic strip vars */
+	Sequence *seq;  /* generic strip vars */
 	Strip *strip;
 	struct SeqEffectHandle sh;
 
@@ -679,11 +680,11 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	Sequence *seq1, *seq2, *seq3;
 	const char *error_msg;
 
-	start_frame= RNA_int_get(op->ptr, "frame_start");
-	end_frame= RNA_int_get(op->ptr, "frame_end");
-	channel= RNA_int_get(op->ptr, "channel");
+	start_frame = RNA_int_get(op->ptr, "frame_start");
+	end_frame = RNA_int_get(op->ptr, "frame_end");
+	channel = RNA_int_get(op->ptr, "channel");
 
-	type= RNA_enum_get(op->ptr, "type");
+	type = RNA_enum_get(op->ptr, "type");
 	
 	// XXX move to invoke
 	if (!seq_effect_find_selected(scene, NULL, type, &seq1, &seq2, &seq3, &error_msg)) {
@@ -693,27 +694,27 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 	/* If seq1 is NULL and no error was raised it means the seq is standalone
 	 * (like color strips) and we need to check its start and end frames are valid */
-	if (seq1==NULL && end_frame <= start_frame) {
+	if (seq1 == NULL && end_frame <= start_frame) {
 		BKE_report(op->reports, RPT_ERROR, "Start and end frame are not set");
 		return OPERATOR_CANCELLED;
 	}
 
 	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
-	seq->type= type;
+	seq->type = type;
 
-	BLI_strncpy(seq->name+2, give_seqname(seq), sizeof(seq->name)-2);
+	BLI_strncpy(seq->name + 2, give_seqname(seq), sizeof(seq->name) - 2);
 	seqbase_unique_name_recursive(&ed->seqbase, seq);
 
 	sh = get_sequence_effect(seq);
 
-	seq->seq1= seq1;
-	seq->seq2= seq2;
-	seq->seq3= seq3;
+	seq->seq1 = seq1;
+	seq->seq2 = seq2;
+	seq->seq3 = seq3;
 
 	sh.init(seq);
 
 	if (!seq1) { /* effect has no deps */
-		seq->len= 1;
+		seq->len = 1;
 		seq_tx_set_final_right(seq, end_frame);
 	}
 
@@ -722,16 +723,16 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	calc_sequence(scene, seq);
 	
 	/* basic defaults */
-	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->us= 1;
+	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
+	strip->us = 1;
 
-	if (seq->type==SEQ_PLUGIN) {
+	if (seq->type == SEQ_PLUGIN) {
 		char path[FILE_MAX];
 		RNA_string_get(op->ptr, "filepath", path);
 
 		sh.init_plugin(seq, path);
 
-		if (seq->plugin==NULL) {
+		if (seq->plugin == NULL) {
 			BLI_remlink(ed->seqbasep, seq);
 			seq_free_sequence(scene, seq);
 			BKE_reportf(op->reports, RPT_ERROR, "Sequencer plugin \"%s\" could not load", path);
@@ -739,24 +740,24 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if (seq->type == SEQ_COLOR) {
-		SolidColorVars *colvars= (SolidColorVars *)seq->effectdata;
+		SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
 		RNA_float_get_array(op->ptr, "color", colvars->col);
-		seq->blend_mode= SEQ_CROSS; /* so alpha adjustment fade to the strip below */
+		seq->blend_mode = SEQ_CROSS; /* so alpha adjustment fade to the strip below */
 
 	}
 	else if (seq->type == SEQ_ADJUSTMENT) {
-		seq->blend_mode= SEQ_CROSS;
+		seq->blend_mode = SEQ_CROSS;
 	}
 
 	/* an unset channel is a special case where we automatically go above
 	 * the other strips. */
 	if (!RNA_struct_property_is_set(op->ptr, "channel")) {
 		if (seq->seq1) {
-			int chan= MAX3(	seq->seq1 ? seq->seq1->machine : 0,
-							seq->seq2 ? seq->seq2->machine : 0,
-							seq->seq3 ? seq->seq3->machine : 0);
+			int chan = MAX3(seq->seq1 ? seq->seq1->machine : 0,
+			                seq->seq2 ? seq->seq2->machine : 0,
+			                seq->seq3 ? seq->seq3->machine : 0);
 			if (chan < MAXSEQ)
-				seq->machine= chan;
+				seq->machine = chan;
 		}
 	}
 
@@ -777,7 +778,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -786,9 +787,9 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 /* add color */
 static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	short is_type_set= RNA_struct_property_is_set(op->ptr, "type");
-	int type= -1;
-	int prop_flag= SEQPROP_ENDFRAME;
+	short is_type_set = RNA_struct_property_is_set(op->ptr, "type");
+	int type = -1;
+	int prop_flag = SEQPROP_ENDFRAME;
 
 	if (!ED_operator_sequencer_active(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
@@ -796,7 +797,7 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEven
 	}
 
 	if (is_type_set) {
-		type= RNA_enum_get(op->ptr, "type");
+		type = RNA_enum_get(op->ptr, "type");
 
 		/* when invoking an effect strip which uses inputs,
 		 * skip initializing the channel from the mouse.
@@ -809,7 +810,7 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEven
 
 	sequencer_generic_invoke_xy__internal(C, op, event, prop_flag);
 
-	if (is_type_set && type==SEQ_PLUGIN) {
+	if (is_type_set && type == SEQ_PLUGIN) {
 		/* only plugins need the file selector */
 		WM_event_add_fileselect(C, op);
 		return OPERATOR_RUNNING_MODAL;
@@ -833,10 +834,10 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME);
+	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME);
 	RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, "Type", "Sequencer effect type");
 	RNA_def_float_vector(ot->srna, "color", 3, NULL, 0.0f, 1.0f, "Color", "Initialize the strip with this color (only used when type='COLOR')", 0.0f, 1.0f);
 }

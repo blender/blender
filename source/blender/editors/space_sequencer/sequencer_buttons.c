@@ -59,7 +59,7 @@ static void sequencer_panel_view_properties(const bContext *UNUSED(C), Panel *pa
 {
 	uiBlock *block;
 
-	block= uiLayoutAbsoluteBlock(pa->layout);
+	block = uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_sequencer_panel_events, NULL);
 	
 }
@@ -69,7 +69,7 @@ static void sequencer_panel_properties(const bContext *UNUSED(C), Panel *pa)
 {
 	uiBlock *block;
 	
-	block= uiLayoutAbsoluteBlock(pa->layout);
+	block = uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_sequencer_panel_events, NULL);
 
 }	
@@ -78,16 +78,16 @@ void sequencer_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt= MEM_callocN(sizeof(PanelType), "spacetype sequencer strip properties");
+	pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer strip properties");
 	strcpy(pt->idname, "SEQUENCER_PT_properties");
 	strcpy(pt->label, "Strip Properties");
-	pt->draw= sequencer_panel_properties;
+	pt->draw = sequencer_panel_properties;
 	BLI_addtail(&art->paneltypes, pt);
 
-	pt= MEM_callocN(sizeof(PanelType), "spacetype sequencer view properties");
+	pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer view properties");
 	strcpy(pt->idname, "SEQUENCER_PT_view_properties");
 	strcpy(pt->label, "View Properties");
-	pt->draw= sequencer_panel_view_properties;
+	pt->draw = sequencer_panel_view_properties;
 	BLI_addtail(&art->paneltypes, pt);
 
 }
@@ -96,8 +96,8 @@ void sequencer_buttons_register(ARegionType *art)
 
 static int sequencer_properties(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= sequencer_has_buttons_region(sa);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = sequencer_has_buttons_region(sa);
 	
 	if (ar)
 		ED_region_toggle_hidden(C, ar);
