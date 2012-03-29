@@ -448,6 +448,8 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 		em = BMEdit_FromObject(ob);
 		if (LIKELY(em)) {
+			/* order doesn't matter */
+			EDBM_mesh_normals_update(em);
 			BMEdit_RecalcTessellation(em);
 		}
 
