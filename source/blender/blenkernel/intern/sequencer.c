@@ -83,7 +83,7 @@ static ImBuf *seq_render_strip_stack(
         SeqRenderData context, ListBase *seqbasep, float cfra, int chanshown);
 
 static ImBuf *seq_render_strip(
-    SeqRenderData context, Sequence *seq, float cfra);
+        SeqRenderData context, Sequence *seq, float cfra);
 
 static void seq_free_animdata(Scene *scene, Sequence *seq);
 
@@ -355,7 +355,7 @@ unsigned int seq_hash_render_data(const SeqRenderData *a)
 	rval ^= a->preview_render_size;
 	rval ^= ((intptr_t) a->bmain) << 6;
 	rval ^= ((intptr_t) a->scene) << 6;
-	rval ^= (int) (a->motion_blur_shutter * 100.0f) << 10;
+	rval ^= (int)(a->motion_blur_shutter * 100.0f) << 10;
 	rval ^= a->motion_blur_samples << 24;
 	
 	return rval;
@@ -929,7 +929,9 @@ static void make_black_ibuf(ImBuf *ibuf)
 	float *rect_float;
 	int tot;
 
-	if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) return;
+	if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
+		return;
+	}
 
 	tot = ibuf->x * ibuf->y;
 
@@ -1029,7 +1031,7 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 		                           * MOVIE strips use only
 		                           * the first element, all other strips
 		                           * don't use this... */
-		int nr = (int) give_stripelem_index(seq, cfra);
+		int nr = (int)give_stripelem_index(seq, cfra);
 
 		if (nr == -1 || se == NULL) return NULL;
 	
@@ -1238,7 +1240,7 @@ static int seq_proxy_get_fname(Sequence *seq, int cfra, int render_size, char *n
 		frameno = 1;
 	}
 	else {
-		frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
+		frameno = (int)give_stripelem_index(seq, cfra) + seq->anim_startofs;
 		BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, 
 		             render_size);
 	}
@@ -1275,7 +1277,7 @@ static ImBuf *seq_proxy_fetch(SeqRenderData context, Sequence *seq, int cfra)
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-		int frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
+		int frameno = (int)give_stripelem_index(seq, cfra) + seq->anim_startofs;
 		if (seq->strip->proxy->anim == NULL) {
 			if (seq_proxy_get_fname(seq, cfra, render_size, name) == 0) {
 				return NULL;
@@ -1415,8 +1417,8 @@ void seq_proxy_rebuild(SeqIndexBuildContext *context, short *stop, short *do_upd
 
 	render_context = seq_new_render_data(
 	        context->bmain, context->scene,
-	        (scene->r.size * (float) scene->r.xsch) / 100.0f + 0.5f,
-	        (scene->r.size * (float) scene->r.ysch) / 100.0f + 0.5f,
+	        (scene->r.size * (float)scene->r.xsch) / 100.0f + 0.5f,
+	        (scene->r.size * (float)scene->r.ysch) / 100.0f + 0.5f,
 	        100);
 
 	for (cfra = seq->startdisp + seq->startstill; 
@@ -1642,7 +1644,7 @@ static void color_balance(Sequence *seq, ImBuf *ibuf, float mul)
  */
 
 int input_have_to_preprocess(
-    SeqRenderData UNUSED(context), Sequence *seq, float UNUSED(cfra))
+        SeqRenderData UNUSED(context), Sequence *seq, float UNUSED(cfra))
 {
 	float mul;
 
@@ -1861,14 +1863,14 @@ static void copy_to_ibuf_still(SeqRenderData context, Sequence *seq, float nr,
  * ********************************************************************** */
 
 static ImBuf *seq_render_strip_stack(
-    SeqRenderData context, ListBase *seqbasep, float cfra, int chanshown);
+        SeqRenderData context, ListBase *seqbasep, float cfra, int chanshown);
 
 static ImBuf *seq_render_strip(
-    SeqRenderData context, Sequence *seq, float cfra);
+        SeqRenderData context, Sequence *seq, float cfra);
 
 
 static ImBuf *seq_render_effect_strip_impl(
-    SeqRenderData context, Sequence *seq, float cfra)
+        SeqRenderData context, Sequence *seq, float cfra)
 {
 	float fac, facf;
 	int early_out;
@@ -1919,7 +1921,7 @@ static ImBuf *seq_render_effect_strip_impl(
 			for (i = 0; i < 3; i++) {
 				if (input[i])
 					ibuf[i] = seq_render_strip(
-					    context, input[i], cfra);
+					        context, input[i], cfra);
 			}
 
 			if (ibuf[0] && ibuf[1]) {
@@ -2021,7 +2023,7 @@ static ImBuf *seq_render_movieclip_strip(
 }
 
 static ImBuf *seq_render_scene_strip(
-    SeqRenderData context, Sequence *seq, float nr)
+        SeqRenderData context, Sequence *seq, float nr)
 {
 	ImBuf *ibuf = NULL;
 	float frame;
@@ -2235,7 +2237,7 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 				sequence_effect_speed_rebuild_map(context.scene, seq, 0);
 
 				/* weeek! */
-				f_cfra = seq->start + s->frameMap[(int) nr];
+				f_cfra = seq->start + s->frameMap[(int)nr];
 
 				child_ibuf = seq_render_strip(context, seq->seq1, f_cfra);
 
@@ -2391,7 +2393,7 @@ static int seq_get_early_out_for_blend_mode(Sequence *seq)
 }
 
 static ImBuf *seq_render_strip_stack(
-    SeqRenderData context, ListBase *seqbasep, float cfra, int chanshown)
+        SeqRenderData context, ListBase *seqbasep, float cfra, int chanshown)
 {
 	Sequence *seq_arr[MAXSEQ + 1];
 	int count;

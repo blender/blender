@@ -856,9 +856,9 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if (special_seq_update)
 		ibuf = give_ibuf_seq_direct(context, cfra + frame_ofs, special_seq_update);
 	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {
-		ibuf = (ImBuf *)give_ibuf_seq(context, cfra + frame_ofs, sseq->chanshown);
+		ibuf = give_ibuf_seq(context, cfra + frame_ofs, sseq->chanshown);
 	else
-		ibuf = (ImBuf *)give_ibuf_seq_threaded(context, cfra + frame_ofs, sseq->chanshown);
+		ibuf = give_ibuf_seq_threaded(context, cfra + frame_ofs, sseq->chanshown);
 	
 	if (ibuf == NULL)
 		return;
