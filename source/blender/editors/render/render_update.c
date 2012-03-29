@@ -62,7 +62,7 @@
 #include "ED_node.h"
 #include "ED_render.h"
 
-#include "render_intern.h"	// own include
+#include "render_intern.h"  // own include
 
 /***************************** Render Engines ********************************/
 
@@ -80,26 +80,26 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	if (!BLI_thread_is_main())
 		return;
 
-	C= CTX_create();
+	C = CTX_create();
 	CTX_data_main_set(C, bmain);
 	CTX_data_scene_set(C, scene);
 
 	CTX_wm_manager_set(C, bmain->wm.first);
 
-	for (sc=bmain->screen.first; sc; sc=sc->id.next) {
-		for (sa=sc->areabase.first; sa; sa=sa->next) {
+	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			if (sa->spacetype != SPACE_VIEW3D)
 				continue;
 
-			for (ar=sa->regionbase.first; ar; ar=ar->next) {
+			for (ar = sa->regionbase.first; ar; ar = ar->next) {
 				RegionView3D *rv3d;
 				RenderEngine *engine;
 
 				if (ar->regiontype != RGN_TYPE_WINDOW)
 					continue;
 
-				rv3d= ar->regiondata;
-				engine= rv3d->render_engine;
+				rv3d = ar->regiondata;
+				engine = rv3d->render_engine;
 
 				if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
 					CTX_wm_screen_set(C, sc);
@@ -123,22 +123,22 @@ void ED_render_engine_changed(Main *bmain)
 	ScrArea *sa;
 	ARegion *ar;
 
-	for (sc=bmain->screen.first; sc; sc=sc->id.next) {
-		for (sa=sc->areabase.first; sa; sa=sa->next) {
+	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			if (sa->spacetype != SPACE_VIEW3D)
 				continue;
 
-			for (ar=sa->regionbase.first; ar; ar=ar->next) {
+			for (ar = sa->regionbase.first; ar; ar = ar->next) {
 				RegionView3D *rv3d;
 
 				if (ar->regiontype != RGN_TYPE_WINDOW)
 					continue;
 				
-				rv3d= ar->regiondata;
+				rv3d = ar->regiondata;
 
 				if (rv3d->render_engine) {
 					RE_engine_free(rv3d->render_engine);
-					rv3d->render_engine= NULL;
+					rv3d->render_engine = NULL;
 				}
 			}
 		}
@@ -146,9 +146,9 @@ void ED_render_engine_changed(Main *bmain)
 }
 
 /***************************** Updates ***********************************
- * ED_render_id_flush_update gets called from DAG_id_tag_update, to do *
- * editor level updates when the ID changes. when these ID blocks are in *
- * the dependency graph, we can get rid of the manual dependency checks  */
+* ED_render_id_flush_update gets called from DAG_id_tag_update, to do *
+* editor level updates when the ID changes. when these ID blocks are in *
+* the dependency graph, we can get rid of the manual dependency checks  */
 
 static int mtex_use_tex(MTex **mtex, int tot, Tex *tex)
 {
@@ -157,7 +157,7 @@ static int mtex_use_tex(MTex **mtex, int tot, Tex *tex)
 	if (!mtex)
 		return 0;
 
-	for (a=0; a<tot; a++)
+	for (a = 0; a < tot; a++)
 		if (mtex[a] && mtex[a]->tex == tex)
 			return 1;
 	
@@ -168,16 +168,16 @@ static int nodes_use_tex(bNodeTree *ntree, Tex *tex)
 {
 	bNode *node;
 
-	for (node=ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id) {
-			if (node->id == (ID*)tex) {
+			if (node->id == (ID *)tex) {
 				return 1;
 			}
 			else if (GS(node->id->name) == ID_MA) {
-				if (mtex_use_tex(((Material*)node->id)->mtex, MAX_MTEX, tex))
+				if (mtex_use_tex(((Material *)node->id)->mtex, MAX_MTEX, tex))
 					return 1;
 			}
-			else if (node->type==NODE_GROUP) {
+			else if (node->type == NODE_GROUP) {
 				if (nodes_use_tex((bNodeTree *)node->id, tex))
 					return 1;
 			}
@@ -191,12 +191,12 @@ static int nodes_use_material(bNodeTree *ntree, Material *ma)
 {
 	bNode *node;
 
-	for (node=ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id) {
-			if (node->id == (ID*)ma) {
+			if (node->id == (ID *)ma) {
 				return 1;
 			}
-			else if (node->type==NODE_GROUP) {
+			else if (node->type == NODE_GROUP) {
 				if (nodes_use_material((bNodeTree *)node->id, ma))
 					return 1;
 			}
@@ -218,8 +218,8 @@ static void material_changed(Main *bmain, Material *ma)
 		GPU_material_free(ma);
 
 	/* find node materials using this */
-	for (parent=bmain->mat.first; parent; parent=parent->id.next) {
-		if (parent->use_nodes && parent->nodetree && nodes_use_material(parent->nodetree, ma));
+	for (parent = bmain->mat.first; parent; parent = parent->id.next) {
+		if (parent->use_nodes && parent->nodetree && nodes_use_material(parent->nodetree, ma)) ;
 		else continue;
 
 		BKE_icon_changed(BKE_icon_getid(&parent->id));
@@ -241,9 +241,9 @@ static void texture_changed(Main *bmain, Tex *tex)
 	BKE_icon_changed(BKE_icon_getid(&tex->id));
 
 	/* find materials */
-	for (ma=bmain->mat.first; ma; ma=ma->id.next) {
-		if (mtex_use_tex(ma->mtex, MAX_MTEX, tex));
-		else if (ma->use_nodes && ma->nodetree && nodes_use_tex(ma->nodetree, tex));
+	for (ma = bmain->mat.first; ma; ma = ma->id.next) {
+		if (mtex_use_tex(ma->mtex, MAX_MTEX, tex)) ;
+		else if (ma->use_nodes && ma->nodetree && nodes_use_tex(ma->nodetree, tex)) ;
 		else continue;
 
 		BKE_icon_changed(BKE_icon_getid(&ma->id));
@@ -253,27 +253,27 @@ static void texture_changed(Main *bmain, Tex *tex)
 	}
 
 	/* find lamps */
-	for (la=bmain->lamp.first; la; la=la->id.next) {
-		if (mtex_use_tex(la->mtex, MAX_MTEX, tex));
-		else if (la->nodetree && nodes_use_tex(la->nodetree, tex));
+	for (la = bmain->lamp.first; la; la = la->id.next) {
+		if (mtex_use_tex(la->mtex, MAX_MTEX, tex)) ;
+		else if (la->nodetree && nodes_use_tex(la->nodetree, tex)) ;
 		else continue;
 
 		BKE_icon_changed(BKE_icon_getid(&la->id));
 	}
 
 	/* find worlds */
-	for (wo=bmain->world.first; wo; wo=wo->id.next) {
-		if (mtex_use_tex(wo->mtex, MAX_MTEX, tex));
-		else if (wo->nodetree && nodes_use_tex(wo->nodetree, tex));
+	for (wo = bmain->world.first; wo; wo = wo->id.next) {
+		if (mtex_use_tex(wo->mtex, MAX_MTEX, tex)) ;
+		else if (wo->nodetree && nodes_use_tex(wo->nodetree, tex)) ;
 		else continue;
 
 		BKE_icon_changed(BKE_icon_getid(&wo->id));
 	}
 
 	/* find compositing nodes */
-	for (scene=bmain->scene.first; scene; scene=scene->id.next) {
+	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 		if (scene->use_nodes && scene->nodetree) {
-			for (node=scene->nodetree->nodes.first; node; node=node->next) {
+			for (node = scene->nodetree->nodes.first; node; node = node->next) {
 				if (node->id == &tex->id)
 					ED_node_changed_update(&scene->id, node);
 			}
@@ -290,11 +290,11 @@ static void lamp_changed(Main *bmain, Lamp *la)
 	BKE_icon_changed(BKE_icon_getid(&la->id));
 
 	/* glsl */
-	for (ob=bmain->object.first; ob; ob=ob->id.next)
+	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		if (ob->data == la && ob->gpulamp.first)
 			GPU_lamp_free(ob);
 
-	for (ma=bmain->mat.first; ma; ma=ma->id.next)
+	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
 			GPU_material_free(ma);
 }
@@ -307,7 +307,7 @@ static void world_changed(Main *bmain, World *wo)
 	BKE_icon_changed(BKE_icon_getid(&wo->id));
 
 	/* glsl */
-	for (ma=bmain->mat.first; ma; ma=ma->id.next)
+	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
 			GPU_material_free(ma);
 }
@@ -320,7 +320,7 @@ static void image_changed(Main *bmain, Image *ima)
 	BKE_icon_changed(BKE_icon_getid(&ima->id));
 
 	/* textures */
-	for (tex=bmain->tex.first; tex; tex=tex->id.next)
+	for (tex = bmain->tex.first; tex; tex = tex->id.next)
 		if (tex->ima == ima)
 			texture_changed(bmain, tex);
 }
@@ -331,35 +331,35 @@ static void scene_changed(Main *bmain, Scene *UNUSED(scene))
 	Material *ma;
 
 	/* glsl */
-	for (ob=bmain->object.first; ob; ob=ob->id.next)
+	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		if (ob->gpulamp.first)
 			GPU_lamp_free(ob);
 
-	for (ma=bmain->mat.first; ma; ma=ma->id.next)
+	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
 			GPU_material_free(ma);
 }
 
 void ED_render_id_flush_update(Main *bmain, ID *id)
 {
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 		case ID_MA:
-			material_changed(bmain, (Material*)id);
+			material_changed(bmain, (Material *)id);
 			break;
 		case ID_TE:
-			texture_changed(bmain, (Tex*)id);
+			texture_changed(bmain, (Tex *)id);
 			break;
 		case ID_WO:
-			world_changed(bmain, (World*)id);
+			world_changed(bmain, (World *)id);
 			break;
 		case ID_LA:
-			lamp_changed(bmain, (Lamp*)id);
+			lamp_changed(bmain, (Lamp *)id);
 			break;
 		case ID_IM:
-			image_changed(bmain, (Image*)id);
+			image_changed(bmain, (Image *)id);
 			break;
 		case ID_SCE:
-			scene_changed(bmain, (Scene*)id);
+			scene_changed(bmain, (Scene *)id);
 			break;
 		default:
 			break;
