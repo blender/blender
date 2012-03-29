@@ -543,7 +543,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 #else
 	/* toggle editmode using lower level functions so this can be called from python */
 	EDBM_mesh_make(scene->toolsettings, scene, ob);
-	EDBM_mesh_load(scene, ob);
+	EDBM_mesh_load(ob);
 	EDBM_mesh_free(me->edit_btmesh);
 	MEM_freeN(me->edit_btmesh);
 	me->edit_btmesh = NULL;

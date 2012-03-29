@@ -116,7 +116,7 @@ struct wmWindowManager;
 
 /*new render funcs */
 void EDBM_selectmode_set(struct BMEditMesh *em) {}
-void EDBM_mesh_load(struct Scene *scene, struct Object *ob) {}
+void EDBM_mesh_load(struct Object *ob) {}
 void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object *ob) {}
 void *g_system;
 

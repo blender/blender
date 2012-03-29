@@ -228,7 +228,7 @@ void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		/* exit/enter editmode to get new shape */
 		switch (ob->type) {
 			case OB_MESH:
-				EDBM_mesh_load(scene, ob);
+				EDBM_mesh_load(ob);
 				EDBM_mesh_make(scene->toolsettings, scene, ob);
 				BMEdit_RecalcTessellation(((Mesh*)ob->data)->edit_btmesh);
 				break;

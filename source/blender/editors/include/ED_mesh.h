@@ -110,7 +110,7 @@ void EDBM_mesh_normals_update(struct BMEditMesh *em);
 
 void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object *ob);
 void EDBM_mesh_free(struct BMEditMesh *tm);
-void EDBM_mesh_load(struct Scene *scene, struct Object *ob);
+void EDBM_mesh_load(struct Object *ob);
 
 void           EDBM_index_arrays_init(struct BMEditMesh *em, int forvert, int foredge, int forface);
 void           EDBM_index_arrays_free(struct BMEditMesh *em);

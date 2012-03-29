@@ -327,7 +327,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			return;
 		}
 		
-		EDBM_mesh_load(scene, obedit);
+		EDBM_mesh_load(obedit);
 		
 		if (freedata) {
 			EDBM_mesh_free(me->edit_btmesh);

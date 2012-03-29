@@ -301,12 +301,12 @@ void EDBM_mesh_make(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 	me->edit_btmesh->ob = ob;
 }
 
-void EDBM_mesh_load(Scene *scene, Object *ob)
+void EDBM_mesh_load(Object *ob)
 {
 	Mesh *me = ob->data;
 	BMesh *bm = me->edit_btmesh->bm;
 
-	BMO_op_callf(bm, "object_load_bmesh scene=%p object=%p", scene, ob);
+	BM_mesh_bm_to_me(bm, me, FALSE);
 
 #ifdef USE_TESSFACE_DEFAULT
 	BKE_mesh_tessface_calc(me);
@@ -552,7 +552,11 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 	BMEdit_Free(em);
 
 	bm = BM_mesh_create(&bm_mesh_allocsize_default);
-	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%b", &um->me, ob, FALSE);
+
+	BM_mesh_bm_from_me(bm, &um->me, FALSE, ob->shapenr);
+
+	/* face normals need recalculation since we are not calling through an operator */
+	BM_mesh_normals_update(bm, TRUE);
 
 	em_tmp = BMEdit_Create(bm, TRUE);
 	*em = *em_tmp;
@@ -563,16 +567,16 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 	MEM_freeN(em_tmp);
 }
 
-
-static void free_undo(void *umv)
+static void free_undo(void *me_v)
 {
-	if (((Mesh *)umv)->key) {
-		free_key(((Mesh *)umv)->key);
-		MEM_freeN(((Mesh *)umv)->key);
+	Mesh *me = me_v;
+	if (me->key) {
+		free_key(me->key);
+		MEM_freeN(me->key);
 	}
-	
-	free_mesh(umv, 0);
-	MEM_freeN(umv);
+
+	free_mesh(me, FALSE);
+	MEM_freeN(me);
 }
 
 /* and this is all the undo system needs to know */
