@@ -3399,6 +3399,8 @@ static int enable_manipulator_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 
 void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Enable 3D Manipulator";
 	ot->description = "Enable the transform manipulator for use";
@@ -3409,9 +3411,12 @@ void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 	ot->poll = ED_operator_view3d_active;
 	
 	/* rna later */
-	RNA_def_boolean(ot->srna, "translate", 0, "Translate", "Enable the translate manipulator");
-	RNA_def_boolean(ot->srna, "rotate", 0, "Rotate", "Enable the rotate manipulator");
-	RNA_def_boolean(ot->srna, "scale", 0, "Scale", "Enable the scale manipulator");
+	prop = RNA_def_boolean(ot->srna, "translate", 0, "Translate", "Enable the translate manipulator");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "rotate", 0, "Rotate", "Enable the rotate manipulator");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "scale", 0, "Scale", "Enable the scale manipulator");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ************************* below the line! *********************** */
