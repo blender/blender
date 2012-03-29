@@ -2859,6 +2859,8 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "View numpad";
 	ot->description = "Set the view";
@@ -2871,8 +2873,10 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 
-	RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
-	RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
+	prop = RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static EnumPropertyItem prop_view_orbit_items[] = {
