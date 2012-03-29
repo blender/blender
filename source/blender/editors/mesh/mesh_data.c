@@ -1182,3 +1182,13 @@ void ED_mesh_calc_normals(Mesh *mesh)
 	                  NULL);
 #endif
 }
+
+void ED_mesh_calc_tessface(Mesh *mesh)
+{
+	if (mesh->edit_btmesh) {
+		BMEdit_RecalcTessellation(mesh->edit_btmesh);
+	}
+	else {
+		BKE_mesh_tessface_calc(mesh);
+	}
+}

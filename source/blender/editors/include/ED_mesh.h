@@ -261,6 +261,7 @@ void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int 
 
 void ED_mesh_transform(struct Mesh *me, float *mat);
 void ED_mesh_calc_normals(struct Mesh *me);
+void ED_mesh_calc_tessface(struct Mesh *mesh);
 void ED_mesh_material_link(struct Mesh *me, struct Material *ma);
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges, int calc_tessface);
 

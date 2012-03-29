@@ -525,12 +525,26 @@ static PyObject *bpy_bmdeformvert_get(BPy_BMDeformVert *self, PyObject *args)
 	}
 }
 
+
+PyDoc_STRVAR(bpy_bmdeformvert_clear_doc,
+".. method:: clear()\n"
+"\n"
+"   Clears all weights.\n"
+);
+static PyObject *bpy_bmdeformvert_clear(BPy_BMDeformVert *self)
+{
+	defvert_clear(self->data);
+
+	Py_RETURN_NONE;
+}
+
 static struct PyMethodDef bpy_bmdeformvert_methods[] = {
     {"keys",    (PyCFunction)bpy_bmdeformvert_keys,    METH_NOARGS,  bpy_bmdeformvert_keys_doc},
     {"values",  (PyCFunction)bpy_bmdeformvert_values,  METH_NOARGS,  bpy_bmdeformvert_values_doc},
     {"items",   (PyCFunction)bpy_bmdeformvert_items,   METH_NOARGS,  bpy_bmdeformvert_items_doc},
     {"get",     (PyCFunction)bpy_bmdeformvert_get,     METH_VARARGS, bpy_bmdeformvert_get_doc},
-    /* BMESH_TODO */
+    /* BMESH_TODO pop, popitem, update */
+    {"clear",   (PyCFunction)bpy_bmdeformvert_clear,   METH_NOARGS,  bpy_bmdeformvert_clear_doc},
     {NULL, NULL, 0, NULL}
 };
 
@@ -586,3 +600,4 @@ void BPy_BM_init_types_meshdata(void)
 	bm_init_types_bmloopcol();
 	bm_init_types_bmdvert();
 }
+

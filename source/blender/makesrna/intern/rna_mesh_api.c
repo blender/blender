@@ -65,6 +65,9 @@ void RNA_api_mesh(StructRNA *srna)
 	func = RNA_def_function(srna, "calc_normals", "ED_mesh_calc_normals");
 	RNA_def_function_ui_description(func, "Calculate vertex normals");
 
+	func = RNA_def_function(srna, "calc_tessface", "ED_mesh_calc_tessface");
+	RNA_def_function_ui_description(func, "Calculate face tessellation (supports editmode too)");
+
 	func = RNA_def_function(srna, "update", "ED_mesh_update");
 	RNA_def_boolean(func, "calc_edges", 0, "Calculate Edges", "Force recalculation of edges");
 	RNA_def_boolean(func, "calc_tessface", 0, "Calculate Tessellation", "Force recalculation of tessellation faces");
