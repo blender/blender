@@ -42,6 +42,7 @@
 static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObject *self);
 static void      quat__axis_angle_sanitize(float axis[3], float *angle);
 static PyObject *Quaternion_copy(QuaternionObject *self);
+static PyObject *Quaternion_deepcopy(QuaternionObject *self, PyObject *args);
 
 //-----------------------------METHODS------------------------------
 
@@ -477,6 +478,12 @@ static PyObject *Quaternion_copy(QuaternionObject *self)
 		return NULL;
 
 	return Quaternion_CreatePyObject(self->quat, Py_NEW, Py_TYPE(self));
+}
+static PyObject *Quaternion_deepcopy(QuaternionObject *self, PyObject *args)
+{
+	if (!mathutils_deepcopy_args_check(args))
+		return NULL;
+	return Quaternion_copy(self);
 }
 
 //----------------------------print object (internal)--------------
@@ -1157,8 +1164,9 @@ static struct PyMethodDef Quaternion_methods[] = {
 	{"slerp", (PyCFunction) Quaternion_slerp, METH_VARARGS, Quaternion_slerp_doc},
 	{"rotate", (PyCFunction) Quaternion_rotate, METH_O, Quaternion_rotate_doc},
 
-	{"__copy__", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{"copy", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
+	{"__copy__", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
+	{"__deepcopy__", (PyCFunction) Quaternion_deepcopy, METH_VARARGS, Quaternion_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 

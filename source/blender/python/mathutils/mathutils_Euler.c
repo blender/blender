@@ -299,6 +299,12 @@ static PyObject *Euler_copy(EulerObject *self)
 
 	return Euler_CreatePyObject(self->eul, self->order, Py_NEW, Py_TYPE(self));
 }
+static PyObject *Euler_deepcopy(EulerObject *self, PyObject *args)
+{
+	if (!mathutils_deepcopy_args_check(args))
+		return NULL;
+	return Euler_copy(self);
+}
 
 //----------------------------print object (internal)--------------
 //print the object to screen
@@ -632,8 +638,9 @@ static struct PyMethodDef Euler_methods[] = {
 	{"rotate_axis", (PyCFunction) Euler_rotate_axis, METH_VARARGS, Euler_rotate_axis_doc},
 	{"rotate", (PyCFunction) Euler_rotate, METH_O, Euler_rotate_doc},
 	{"make_compatible", (PyCFunction) Euler_make_compatible, METH_O, Euler_make_compatible_doc},
-	{"__copy__", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
 	{"copy", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
+	{"__copy__", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
+	{"__deepcopy__", (PyCFunction) Euler_deepcopy, METH_VARARGS, Euler_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 

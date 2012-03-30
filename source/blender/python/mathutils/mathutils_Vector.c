@@ -47,6 +47,7 @@
 #define SWIZZLE_AXIS       0x3
 
 static PyObject *Vector_copy(VectorObject *self);
+static PyObject *Vector_deepcopy(VectorObject *self, PyObject *args);
 static PyObject *Vector_to_tuple_ext(VectorObject *self, int ndigits);
 static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat);
 
@@ -1210,6 +1211,12 @@ static PyObject *Vector_copy(VectorObject *self)
 		return NULL;
 
 	return Vector_CreatePyObject(self->vec, self->size, Py_NEW, Py_TYPE(self));
+}
+static PyObject *Vector_deepcopy(VectorObject *self, PyObject *args)
+{
+	if (!mathutils_deepcopy_args_check(args))
+		return NULL;
+	return Vector_copy(self);
 }
 
 static PyObject *Vector_repr(VectorObject *self)
@@ -2767,6 +2774,7 @@ static struct PyMethodDef Vector_methods[] = {
 
 	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
 	{"__copy__", (PyCFunction) Vector_copy, METH_NOARGS, NULL},
+	{"__deepcopy__", (PyCFunction) Vector_deepcopy, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 

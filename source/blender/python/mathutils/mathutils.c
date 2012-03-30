@@ -282,6 +282,13 @@ PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
 	return ret;
 }
 
+/* silly function, we dont use arg. just check its compatible with __deepcopy__ */
+int mathutils_deepcopy_args_check(PyObject *args)
+{
+	PyObject *dummy_pydict;
+	return PyArg_ParseTuple(args, "|O!:__deepcopy__", &PyDict_Type, &dummy_pydict) != 0;
+}
+
 /* Mathutils Callbacks */
 
 /* for mathutils internal use only, eventually should re-alloc but to start with we only have a few users */

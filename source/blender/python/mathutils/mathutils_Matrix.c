@@ -44,6 +44,7 @@ typedef enum eMatrixAccess_t {
 } eMatrixAccess_t;
 
 static PyObject *Matrix_copy(MatrixObject *self);
+static PyObject *Matrix_deepcopy(MatrixObject *self, PyObject *args);
 static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value);
 static PyObject *matrix__apply_to_copy(PyNoArgsFunction matrix_func, MatrixObject *self);
 static PyObject *MatrixAccess_CreatePyObject(MatrixObject *matrix, const eMatrixAccess_t type);
@@ -1519,6 +1520,12 @@ static PyObject *Matrix_copy(MatrixObject *self)
 
 	return Matrix_CreatePyObject((float (*))self->matrix, self->num_col, self->num_row, Py_NEW, Py_TYPE(self));
 }
+static PyObject *Matrix_deepcopy(MatrixObject *self, PyObject *args)
+{
+	if (!mathutils_deepcopy_args_check(args))
+		return NULL;
+	return Matrix_copy(self);
+}
 
 /*----------------------------print object (internal)-------------*/
 /* print the object to screen */
@@ -2269,6 +2276,7 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"lerp", (PyCFunction) Matrix_lerp, METH_VARARGS, Matrix_lerp_doc},
 	{"copy", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
 	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
+	{"__deepcopy__", (PyCFunction) Matrix_deepcopy, METH_VARARGS, Matrix_copy_doc},
 
 	/* class methods */
 	{"Identity", (PyCFunction) C_Matrix_Identity, METH_VARARGS | METH_CLASS, C_Matrix_Identity_doc},

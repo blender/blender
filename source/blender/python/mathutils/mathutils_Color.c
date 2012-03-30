@@ -107,6 +107,12 @@ static PyObject *Color_copy(ColorObject *self)
 
 	return Color_CreatePyObject(self->col, Py_NEW, Py_TYPE(self));
 }
+static PyObject *Color_deepcopy(ColorObject *self, PyObject *args)
+{
+	if (!mathutils_deepcopy_args_check(args))
+		return NULL;
+	return Color_copy(self);
+}
 
 //----------------------------print object (internal)--------------
 //print the object to screen
@@ -789,8 +795,9 @@ static PyGetSetDef Color_getseters[] = {
 
 //-----------------------METHOD DEFINITIONS ----------------------
 static struct PyMethodDef Color_methods[] = {
-	{"__copy__", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
 	{"copy", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
+	{"__copy__", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
+	{"__deepcopy__", (PyCFunction) Color_deepcopy, METH_VARARGS, Color_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 
