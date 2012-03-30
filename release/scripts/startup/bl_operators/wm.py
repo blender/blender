@@ -1042,6 +1042,7 @@ class WM_OT_properties_add(Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_add"
     bl_label = "Add Property"
+    bl_options = {'UNDO'}
 
     data_path = rna_path
 
@@ -1084,6 +1085,7 @@ class WM_OT_properties_remove(Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_remove"
     bl_label = "Remove Property"
+    bl_options = {'UNDO'}
 
     data_path = rna_path
     property = rna_property
