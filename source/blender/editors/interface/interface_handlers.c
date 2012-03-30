@@ -1014,8 +1014,13 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case ICONTEXTROW:
 		case BLOCK:
 		case PULLDOWN:
-		case COL:
 			ui_apply_but_BLOCK(C, but, data);
+			break;
+		case COL:
+			if(data->cancel)
+				ui_apply_but_VEC(C, but, data);
+			else
+				ui_apply_but_BLOCK(C, but, data);
 			break;
 		case BUTM:
 			ui_apply_but_BUTM(C, but, data);
