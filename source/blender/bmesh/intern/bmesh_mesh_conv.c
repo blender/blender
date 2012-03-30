@@ -142,10 +142,10 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		vt[i] = v;
 
 		/* transfer flag */
-		v->head.hflag = BM_vert_flag_from_mflag(mvert->flag);
+		v->head.hflag = BM_vert_flag_from_mflag(mvert->flag & ~SELECT);
 
 		/* this is necessary for selection counts to work properly */
-		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+		if (mvert->flag & SELECT) {
 			BM_vert_select_set(bm, v, TRUE);
 		}
 
@@ -190,10 +190,12 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		et[i] = e;
 
 		/* transfer flags */
-		e->head.hflag = BM_edge_flag_from_mflag(medge->flag);
+		e->head.hflag = BM_edge_flag_from_mflag(medge->flag & ~SELECT);
 
 		/* this is necessary for selection counts to work properly */
-		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) BM_elem_select_set(bm, e, TRUE);
+		if (medge->flag & SELECT) {
+			BM_elem_select_set(bm, e, TRUE);
+		}
 
 		/* Copy Custom Data */
 		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data);
@@ -254,10 +256,12 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
 		/* transfer flag */
-		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag);
+		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag & ~SELECT);
 
 		/* this is necessary for selection counts to work properly */
-		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) BM_elem_select_set(bm, f, TRUE);
+		if (mpoly->flag & SELECT) {
+			BM_elem_select_set(bm, f, TRUE);
+		}
 
 		f->mat_nr = mpoly->mat_nr;
 		if (i == me->act_face) bm->act_face = f;
