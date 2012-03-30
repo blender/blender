@@ -78,9 +78,9 @@
 
 void ED_undo_push(bContext *C, const char *str)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	Object *obedit= CTX_data_edit_object(C);
-	Object *obact= CTX_data_active_object(C);
+	wmWindowManager *wm = CTX_wm_manager(C);
+	Object *obedit = CTX_data_edit_object(C);
+	Object *obact = CTX_data_active_object(C);
 
 	if (G.f & G_DEBUG)
 		printf("undo push %s\n", str);
@@ -88,17 +88,17 @@ void ED_undo_push(bContext *C, const char *str)
 	if (obedit) {
 		if (U.undosteps == 0) return;
 		
-		if (obedit->type==OB_MESH)
+		if (obedit->type == OB_MESH)
 			undo_push_mesh(C, str);
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF))
 			undo_push_curve(C, str);
-		else if (obedit->type==OB_FONT)
+		else if (obedit->type == OB_FONT)
 			undo_push_font(C, str);
-		else if (obedit->type==OB_MBALL)
+		else if (obedit->type == OB_MBALL)
 			undo_push_mball(C, str);
-		else if (obedit->type==OB_LATTICE)
+		else if (obedit->type == OB_LATTICE)
 			undo_push_lattice(C, str);
-		else if (obedit->type==OB_ARMATURE)
+		else if (obedit->type == OB_ARMATURE)
 			undo_push_armature(C, str);
 	}
 	else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
@@ -112,18 +112,18 @@ void ED_undo_push(bContext *C, const char *str)
 	}
 	
 	if (wm->file_saved) {
-		wm->file_saved= 0;
+		wm->file_saved = 0;
 		/* notifier that data changed, for save-over warning or header */
-		WM_event_add_notifier(C, NC_WM|ND_DATACHANGED, NULL);
+		WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, NULL);
 	}
 }
 
 /* note: also check undo_history_exec() in bottom if you change notifiers */
 static int ed_undo_step(bContext *C, int step, const char *undoname)
 {	
-	Object *obedit= CTX_data_edit_object(C);
-	Object *obact= CTX_data_active_object(C);
-	ScrArea *sa= CTX_wm_area(C);
+	Object *obedit = CTX_data_edit_object(C);
+	Object *obact = CTX_data_active_object(C);
+	ScrArea *sa = CTX_wm_area(C);
 
 	/* undo during jobs are running can easily lead to freeing data using by jobs,
 	 * or they can just lead to freezing job in some other cases */
@@ -136,8 +136,8 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		return ED_undo_gpencil_step(C, step, undoname);
 	}
 
-	if (sa && sa->spacetype==SPACE_IMAGE) {
-		SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
+	if (sa && sa->spacetype == SPACE_IMAGE) {
+		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 		
 		if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) || sima->flag & SI_DRAWTOOL) {
 			if (!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname) && undoname)
@@ -149,7 +149,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		}
 	}
 
-	if (sa && sa->spacetype==SPACE_TEXT) {
+	if (sa && sa->spacetype == SPACE_TEXT) {
 		ED_text_undo_step(C, step);
 	}
 	else if (obedit) {
@@ -159,28 +159,28 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 			else
 				undo_editmode_step(C, step);
 
-			WM_event_add_notifier(C, NC_GEOM|ND_DATA, NULL);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 		}
 	}
 	else {
-		int do_glob_undo= 0;
+		int do_glob_undo = 0;
 		
 		if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
 			if (!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname))
-				do_glob_undo= 1;
+				do_glob_undo = 1;
 		}
 		else if (obact && obact->mode & OB_MODE_SCULPT) {
 			if (!ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname))
-				do_glob_undo= 1;
+				do_glob_undo = 1;
 		}
 		else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
-			if (step==1)
+			if (step == 1)
 				PE_undo(CTX_data_scene(C));
 			else
 				PE_redo(CTX_data_scene(C));
 		}
 		else {
-			do_glob_undo= 1;
+			do_glob_undo = 1;
 		}
 		
 		if (do_glob_undo) {
@@ -194,7 +194,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 				else
 					BKE_undo_step(C, step);
 
-				WM_event_add_notifier(C, NC_SCENE|ND_LAYER_CONTENT, CTX_data_scene(C));
+				WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));
 			}
 			
 		}
@@ -229,19 +229,19 @@ void ED_undo_pop_op(bContext *C, wmOperator *op)
 /* name optionally, function used to check for operator redo panel */
 int ED_undo_valid(const bContext *C, const char *undoname)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	Object *obact= CTX_data_active_object(C);
-	ScrArea *sa= CTX_wm_area(C);
+	Object *obedit = CTX_data_edit_object(C);
+	Object *obact = CTX_data_active_object(C);
+	ScrArea *sa = CTX_wm_area(C);
 	
-	if (sa && sa->spacetype==SPACE_IMAGE) {
-		SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
+	if (sa && sa->spacetype == SPACE_IMAGE) {
+		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 		
 		if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) || sima->flag & SI_DRAWTOOL) {
 			return 1;
 		}
 	}
 	
-	if (sa && sa->spacetype==SPACE_TEXT) {
+	if (sa && sa->spacetype == SPACE_TEXT) {
 		return 1;
 	}
 	else if (obedit) {
@@ -254,11 +254,11 @@ int ED_undo_valid(const bContext *C, const char *undoname)
 		/* if below tests fail, global undo gets executed */
 		
 		if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
-			if ( ED_undo_paint_valid(UNDO_PAINT_IMAGE, undoname) )
+			if (ED_undo_paint_valid(UNDO_PAINT_IMAGE, undoname) )
 				return 1;
 		}
 		else if (obact && obact->mode & OB_MODE_SCULPT) {
-			if ( ED_undo_paint_valid(UNDO_PAINT_MESH, undoname) )
+			if (ED_undo_paint_valid(UNDO_PAINT_MESH, undoname) )
 				return 1;
 		}
 		else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
@@ -338,14 +338,14 @@ void ED_OT_redo(wmOperatorType *ot)
 /* ui callbacks should call this rather than calling WM_operator_repeat() themselves */
 int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 {
-	int ret= 0;
+	int ret = 0;
 
 	if (op) {
-		wmWindowManager *wm= CTX_wm_manager(C);
-		struct Scene *scene= CTX_data_scene(C);
+		wmWindowManager *wm = CTX_wm_manager(C);
+		struct Scene *scene = CTX_data_scene(C);
 
-		ARegion *ar= CTX_wm_region(C);
-		ARegion *ar1= BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_WINDOW);
+		ARegion *ar = CTX_wm_region(C);
+		ARegion *ar1 = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_WINDOW);
 
 		if (ar1)
 			CTX_wm_region_set(C, ar1);
@@ -369,14 +369,14 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 				op->type->check(C, op); /* ignore return value since its running again anyway */
 			}
 
-			retval= WM_operator_repeat(C, op);
-			if ((retval & OPERATOR_FINISHED)==0) {
+			retval = WM_operator_repeat(C, op);
+			if ((retval & OPERATOR_FINISHED) == 0) {
 				if (G.f & G_DEBUG)
 					printf("redo_cb: operator redo failed: %s, return %d\n", op->type->name, retval);
 				ED_undo_redo(C);
 			}
 			else {
-				ret= 1;
+				ret = 1;
 			}
 		}
 		else {
@@ -411,13 +411,13 @@ void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int UNUSED(arg_ev
 
 /* ************************** */
 
-#define UNDOSYSTEM_GLOBAL	1
-#define UNDOSYSTEM_EDITMODE	2
-#define UNDOSYSTEM_PARTICLE	3
+#define UNDOSYSTEM_GLOBAL   1
+#define UNDOSYSTEM_EDITMODE 2
+#define UNDOSYSTEM_PARTICLE 3
 
 static int get_undo_system(bContext *C)
 {
-	Object *obedit= CTX_data_edit_object(C);
+	Object *obedit = CTX_data_edit_object(C);
 	
 	/* find out which undo system */
 	if (obedit) {
@@ -425,7 +425,7 @@ static int get_undo_system(bContext *C)
 			return UNDOSYSTEM_EDITMODE;
 	}
 	else {
-		Object *obact= CTX_data_active_object(C);
+		Object *obact = CTX_data_active_object(C);
 		
 		if (obact && obact->mode & OB_MODE_PARTICLE_EDIT)
 			return UNDOSYSTEM_PARTICLE;
@@ -439,29 +439,29 @@ static int get_undo_system(bContext *C)
 /* create enum based on undo items */
 static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 {
-	EnumPropertyItem item_tmp= {0}, *item= NULL;
-	int active, i= 0;
+	EnumPropertyItem item_tmp = {0}, *item = NULL;
+	int active, i = 0;
 	
 	while (TRUE) {
-		const char *name= NULL;
+		const char *name = NULL;
 		
-		if (undosys==UNDOSYSTEM_PARTICLE) {
-			name= PE_undo_get_name(CTX_data_scene(C), i, &active);
+		if (undosys == UNDOSYSTEM_PARTICLE) {
+			name = PE_undo_get_name(CTX_data_scene(C), i, &active);
 		}
-		else if (undosys==UNDOSYSTEM_EDITMODE) {
-			name= undo_editmode_get_name(C, i, &active);
+		else if (undosys == UNDOSYSTEM_EDITMODE) {
+			name = undo_editmode_get_name(C, i, &active);
 		}
 		else {
-			name= BKE_undo_get_name(i, &active);
+			name = BKE_undo_get_name(i, &active);
 		}
 		
 		if (name) {
-			item_tmp.identifier= item_tmp.name= name;
+			item_tmp.identifier = item_tmp.name = name;
 			if (active)
-				item_tmp.icon= ICON_RESTRICT_VIEW_OFF;
+				item_tmp.icon = ICON_RESTRICT_VIEW_OFF;
 			else 
-				item_tmp.icon= ICON_NONE;
-			item_tmp.value= i++;
+				item_tmp.icon = ICON_NONE;
+			item_tmp.value = i++;
 			RNA_enum_item_add(&item, totitem, &item_tmp);
 		}
 		else
@@ -476,22 +476,22 @@ static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 
 static int undo_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	int undosys, totitem= 0;
+	int undosys, totitem = 0;
 	
-	undosys= get_undo_system(C);
+	undosys = get_undo_system(C);
 	
 	if (undosys) {
-		EnumPropertyItem *item= rna_undo_itemf(C, undosys, &totitem);
+		EnumPropertyItem *item = rna_undo_itemf(C, undosys, &totitem);
 		
 		if (totitem > 0) {
-			uiPopupMenu *pup= uiPupMenuBegin(C, op->type->name, ICON_NONE);
-			uiLayout *layout= uiPupMenuLayout(pup);
-			uiLayout *split= uiLayoutSplit(layout, 0, 0), *column = NULL;
+			uiPopupMenu *pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+			uiLayout *layout = uiPupMenuLayout(pup);
+			uiLayout *split = uiLayoutSplit(layout, 0, 0), *column = NULL;
 			int i, c;
 			
-			for (c=0, i=totitem-1; i >= 0; i--, c++) {
-				if ( (c % 20)==0 )
-					column= uiLayoutColumn(split, 0);
+			for (c = 0, i = totitem - 1; i >= 0; i--, c++) {
+				if ( (c % 20) == 0)
+					column = uiLayoutColumn(split, 0);
 				if (item[i].identifier)
 					uiItemIntO(column, item[i].name, item[i].icon, op->type->idname, "item", item[i].value);
 				
@@ -510,19 +510,19 @@ static int undo_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 static int undo_history_exec(bContext *C, wmOperator *op)
 {
 	if (RNA_struct_property_is_set(op->ptr, "item")) {
-		int undosys= get_undo_system(C);
-		int item= RNA_int_get(op->ptr, "item");
+		int undosys = get_undo_system(C);
+		int item = RNA_int_get(op->ptr, "item");
 		
-		if (undosys==UNDOSYSTEM_PARTICLE) {
+		if (undosys == UNDOSYSTEM_PARTICLE) {
 			PE_undo_number(CTX_data_scene(C), item);
 		}
-		else if (undosys==UNDOSYSTEM_EDITMODE) {
-			undo_editmode_number(C, item+1);
-			WM_event_add_notifier(C, NC_GEOM|ND_DATA, NULL);
+		else if (undosys == UNDOSYSTEM_EDITMODE) {
+			undo_editmode_number(C, item + 1);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 		}
 		else {
 			BKE_undo_number(C, item);
-			WM_event_add_notifier(C, NC_SCENE|ND_LAYER_CONTENT, CTX_data_scene(C));
+			WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));
 		}
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 		
