@@ -64,16 +64,17 @@ static const char *bmo_error_messages[] = {
 
 /* operator slot type information - size of one element of the type given. */
 const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
-	0,
-	sizeof(int),
-	sizeof(int),
-	sizeof(float),
-	sizeof(void *),
-	0, /* unused */
-	0, /* unused */
-	0, /* unused */
-	sizeof(void *),	/* pointer buffer */
-	sizeof(BMOElemMapping)
+	0,                      /*  0: BMO_OP_SLOT_SENTINEL */
+	sizeof(int),            /*  1: BMO_OP_SLOT_BOOL */ 
+	sizeof(int),            /*  2: BMO_OP_SLOT_INT */ 
+	sizeof(float),          /*  3: BMO_OP_SLOT_FLT */ 
+	sizeof(void *),         /*  4: BMO_OP_SLOT_PNT */ 
+	sizeof(void *),         /*  5: BMO_OP_SLOT_PNT */
+	0,                      /*  6: unused */
+	0,                      /*  7: unused */
+	sizeof(float) * 3,      /*  8: BMO_OP_SLOT_VEC */
+	sizeof(void *),	        /*  9: BMO_OP_SLOT_ELEMENT_BUF */
+	sizeof(BMOElemMapping)  /* 10: BMO_OP_SLOT_MAPPING */
 };
 
 /* Dummy slot so there is something to return when slot name lookup fails */
@@ -546,7 +547,7 @@ void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname
 
 	if (!slot->data.ghash) {
 		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-		                                 BLI_ghashutil_ptrcmp, "bmesh op");
+		                                 BLI_ghashutil_ptrcmp, "bmesh slot map hash");
 	}
 
 	BLI_ghash_insert(slot->data.ghash, element, mapping);
