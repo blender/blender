@@ -645,6 +645,10 @@ static int bmw_FaceLoopWalker_include_face(BMWalker *walker, BMLoop *l)
 		return FALSE;
 	}
 
+	if (!bmw_mask_check_face(walker, l->f)) {
+		return FALSE;
+	}
+
 	/* the face must not have been already visite */
 	if (BLI_ghash_haskey(walker->visithash, l->f) && BLI_ghash_haskey(walker->secvisithash, l->e)) {
 		return FALSE;
@@ -839,13 +843,15 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	int i, len;
 #endif
 
+#define EDGE_CHECK(e) (bmw_mask_check_edge(walker, e) && BM_edge_is_manifold(e))
+
 	BMW_state_remove(walker);
 
 	if (!l)
 		return lwalk->wireedge;
 
 	e = l->e;
-	if (!BM_edge_is_manifold(e)) {
+	if (!EDGE_CHECK(e)) {
 		/* walker won't traverse to a non-manifold edge, but may
 		 * be started on one, and should not traverse *away* from
 		 * a non-manfold edge (non-manifold edges are never in an
@@ -862,7 +868,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 		i -= 2;
 	}
 
-	if ((len <= 0) || (len % 2 != 0) || !BM_edge_is_manifold(l->e)) {
+	if ((len <= 0) || (len % 2 != 0) || !EDGE_CHECK(l->e)) {
 		l = lwalk->l;
 		i = len;
 		while (i > 0) {
@@ -871,7 +877,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 		}
 	}
 	/* only walk to manifold edge */
-	if ((l->f->len % 2 == 0) && BM_edge_is_manifold(l->e) &&
+	if ((l->f->len % 2 == 0) && EDGE_CHECK(l->e) &&
 	    !BLI_ghash_haskey(walker->visithash, l->e)) 
 
 #else
@@ -879,11 +885,11 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	l = l->radial_next;
 	l = l->next->next;
 	
-	if ((l->f->len != 4) || !BM_edge_is_manifold(l->e)) {
+	if ((l->f->len != 4) || !EDGE_CHECK(l->e)) {
 		l = lwalk->l->next->next;
 	}
 	/* only walk to manifold edge */
-	if ((l->f->len == 4) && BM_edge_is_manifold(l->e) &&
+	if ((l->f->len == 4) && EDGE_CHECK(l->e) &&
 	    !BLI_ghash_haskey(walker->visithash, l->e))
 #endif
 	{
@@ -895,6 +901,8 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	}
 
 	return e;
+
+#undef EDGE_CHECK
 }
 
 static void bmw_UVEdgeWalker_begin(BMWalker *walker, void *data)
