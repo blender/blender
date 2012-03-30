@@ -2350,10 +2350,6 @@ static int image_cycle_render_slot_exec(bContext *C, wmOperator *op)
 			ima->render_slot = slot;
 			break;
 		}
-		else if ((slot - 1) == ima->last_render_slot && slot < IMA_MAX_RENDER_SLOT) {
-			ima->render_slot = slot;
-			break;
-		}
 	}
 
 	if (a == IMA_MAX_RENDER_SLOT)
