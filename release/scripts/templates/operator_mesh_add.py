@@ -1,4 +1,5 @@
 import bpy
+import bmesh
 
 
 def add_box(width, height, depth):
@@ -7,31 +8,29 @@ def add_box(width, height, depth):
     no actual mesh data creation is done here.
     """
 
-    vertices = [1.0, 1.0, -1.0,
-                1.0, -1.0, -1.0,
-                -1.0, -1.0, -1.0,
-                -1.0, 1.0, -1.0,
-                1.0, 1.0, 1.0,
-                1.0, -1.0, 1.0,
-                -1.0, -1.0, 1.0,
-                -1.0, 1.0, 1.0,
-                ]
+    verts = [(+1.0, +1.0, -1.0),
+             (+1.0, -1.0, -1.0),
+             (-1.0, -1.0, -1.0),
+             (-1.0, +1.0, -1.0),
+             (+1.0, +1.0, +1.0),
+             (+1.0, -1.0, +1.0),
+             (-1.0, -1.0, +1.0),
+             (-1.0, +1.0, +1.0),
+             ]
 
-    faces = [0, 1, 2, 3,
-             4, 7, 6, 5,
-             0, 4, 5, 1,
-             1, 5, 6, 2,
-             2, 6, 7, 3,
-             4, 0, 3, 7,
+    faces = [(0, 1, 2, 3),
+             (4, 7, 6, 5),
+             (0, 4, 5, 1),
+             (1, 5, 6, 2),
+             (2, 6, 7, 3),
+             (4, 0, 3, 7),
             ]
 
     # apply size
-    for i in range(0, len(vertices), 3):
-        vertices[i] *= width
-        vertices[i + 1] *= depth
-        vertices[i + 2] *= height
+    for i, v in enumerate(verts):
+        verts[i] = v[0] * width, v[1] * depth, v[2] * height
 
-    return vertices, faces
+    return verts, faces
 
 
 from bpy.props import FloatProperty, BoolProperty, FloatVectorProperty
@@ -85,11 +84,15 @@ class AddBox(bpy.types.Operator):
 
         mesh = bpy.data.meshes.new("Box")
 
-        mesh.vertices.add(len(verts_loc) // 3)
-        mesh.faces.add(len(faces) // 4)
+        bm = bmesh.new()
 
-        mesh.vertices.foreach_set("co", verts_loc)
-        mesh.faces.foreach_set("vertices_raw", faces)
+        for v_co in verts_loc:
+            bm.verts.new(v_co)
+
+        for f_idx in faces:
+            bm.faces.new([bm.verts[i] for i in f_idx])
+
+        bm.to_mesh(mesh)
         mesh.update()
 
         # add the mesh as an object into the scene with this utility module
