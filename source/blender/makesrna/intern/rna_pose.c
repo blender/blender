@@ -365,7 +365,7 @@ static void rna_PoseChannel_bone_group_index_set(PointerRNA *ptr, int value)
 	pchan->agrp_index = value+1;
 }
 
-static void rna_PoseChannel_bone_group_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_PoseChannel_bone_group_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Object *ob = (Object*)ptr->id.data;
 	bPose *pose = (ob) ? ob->pose : NULL;
@@ -404,7 +404,7 @@ static void rna_Pose_active_bone_group_index_set(PointerRNA *ptr, int value)
 	pose->active_group = value+1;
 }
 
-static void rna_Pose_active_bone_group_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_Pose_active_bone_group_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	bPose *pose = (bPose*)ptr->data;
 

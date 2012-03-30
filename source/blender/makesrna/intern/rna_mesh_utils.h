@@ -64,7 +64,8 @@
 		return data ? CustomData_number_of_layers(data, layer_type) : 0;                        \
 	}                                                                                           \
 	/* index range */                                                                           \
-	static void rna_Mesh_##collection_name##_index_range(PointerRNA *ptr, int *min, int *max)   \
+	static void rna_Mesh_##collection_name##_index_range(PointerRNA *ptr, int *min, int *max,   \
+	                                                     int *softmin, int *softmax)            \
 	{                                                                                           \
 		CustomData *data = rna_mesh_##customdata_type(ptr);                                     \
 		*min = 0;                                                                               \

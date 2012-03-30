@@ -506,7 +506,7 @@ static void rna_Object_active_vertex_group_index_set(PointerRNA *ptr, int value)
 	ob->actdef = value+1;
 }
 
-static void rna_Object_active_vertex_group_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_Object_active_vertex_group_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Object *ob = (Object*)ptr->id.data;
 
@@ -618,7 +618,7 @@ static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
 	}
 }
 
-static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Object *ob = (Object*)ptr->id.data;
 	*min = 0;
@@ -643,7 +643,7 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 	assign_material(ob, value.data, ob->actcol);
 }
 
-static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Object *ob = (Object*)ptr->id.data;
 	*min = 0;
@@ -1066,7 +1066,7 @@ static void rna_GameObjectSettings_used_state_get(PointerRNA *ptr, int *values)
 	}
 }
 
-static void rna_Object_active_shape_key_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_Object_active_shape_key_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Object *ob = (Object*)ptr->id.data;
 	Key *key = ob_get_key(ob);

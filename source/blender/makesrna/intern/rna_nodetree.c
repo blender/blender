@@ -436,28 +436,28 @@ static void rna_NodeLink_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 }
 #endif
 
-static void rna_NodeSocketInt_range(PointerRNA *ptr, int *min, int *max)
+static void rna_NodeSocketInt_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	bNodeSocket *sock = (bNodeSocket*)ptr->data;
 	bNodeSocketValueInt *val = (bNodeSocketValueInt*)sock->default_value;
-	*min = val->min;
-	*max = val->max;
+	*softmin = val->min;
+	*softmax = val->max;
 }
 
-static void rna_NodeSocketFloat_range(PointerRNA *ptr, float *min, float *max)
+static void rna_NodeSocketFloat_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	bNodeSocket *sock = (bNodeSocket*)ptr->data;
 	bNodeSocketValueFloat *val = (bNodeSocketValueFloat*)sock->default_value;
-	*min = val->min;
-	*max = val->max;
+	*softmin = val->min;
+	*softmax = val->max;
 }
 
-static void rna_NodeSocketVector_range(PointerRNA *ptr, float *min, float *max)
+static void rna_NodeSocketVector_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	bNodeSocket *sock = (bNodeSocket*)ptr->data;
 	bNodeSocketValueVector *val = (bNodeSocketValueVector*)sock->default_value;
-	*min = val->min;
-	*max = val->max;
+	*softmin = val->min;
+	*softmax = val->max;
 }
 
 static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)

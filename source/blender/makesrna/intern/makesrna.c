@@ -687,15 +687,15 @@ static void rna_clamp_value_range(FILE *f, PropertyRNA *prop)
 	if (prop->type == PROP_FLOAT) {
 		FloatPropertyRNA *fprop = (FloatPropertyRNA*)prop;
 		if (fprop->range) {
-			fprintf(f, "	float prop_clamp_min, prop_clamp_max;\n");
-			fprintf(f, "	%s(ptr, &prop_clamp_min, &prop_clamp_max);\n", rna_function_string(fprop->range));
+			fprintf(f, "	float prop_clamp_min = -FLT_MAX, prop_clamp_max = FLT_MAX, prop_soft_min, prop_soft_max;\n");
+			fprintf(f, "	%s(ptr, &prop_clamp_min, &prop_clamp_max, &prop_soft_min, &prop_soft_max);\n", rna_function_string(fprop->range));
 		}
 	}
 	else if (prop->type == PROP_INT) {
 		IntPropertyRNA *iprop = (IntPropertyRNA*)prop;
 		if (iprop->range) {
-			fprintf(f, "	int prop_clamp_min, prop_clamp_max;\n");
-			fprintf(f, "	%s(ptr, &prop_clamp_min, &prop_clamp_max);\n", rna_function_string(iprop->range));
+			fprintf(f, "	int prop_clamp_min = INT_MIN, prop_clamp_max = INT_MAX, prop_soft_min, prop_soft_max;\n");
+			fprintf(f, "	%s(ptr, &prop_clamp_min, &prop_clamp_max, &prop_soft_min, &prop_soft_max);\n", rna_function_string(iprop->range));
 		}
 	}
 }

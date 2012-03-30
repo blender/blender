@@ -225,7 +225,7 @@ static void rna_Cache_list_begin(CollectionPropertyIterator *iter, PointerRNA *p
 
 	rna_iterator_listbase_begin(iter, &lb, NULL);
 }
-static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Object *ob = ptr->id.data;
 	PointCache *cache = ptr->data;
@@ -289,7 +289,7 @@ static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int v
 	BLI_freelistN(&pidlist);
 }
 
-static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max)
+static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Object *ob = ptr->id.data;
 	PointCache *cache = ptr->data;

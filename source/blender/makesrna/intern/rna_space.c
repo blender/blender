@@ -776,7 +776,7 @@ static void rna_ConsoleLine_body_set(PointerRNA *ptr, const char *value)
 		ci->cursor = len;
 }
 
-static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	ConsoleLine *ci = (ConsoleLine*)ptr->data;
 

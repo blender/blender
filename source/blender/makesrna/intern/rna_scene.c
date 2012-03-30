@@ -962,7 +962,7 @@ static void rna_RenderSettings_active_layer_index_set(PointerRNA *ptr, int value
 	rd->actlay = value;
 }
 
-static void rna_RenderSettings_active_layer_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_RenderSettings_active_layer_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	RenderData *rd = (RenderData*)ptr->data;
 

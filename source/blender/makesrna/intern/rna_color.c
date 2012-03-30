@@ -100,7 +100,7 @@ static void rna_CurveMapping_white_level_set(PointerRNA *ptr, const float *value
 	curvemapping_set_black_white(cumap, NULL, NULL);
 }
 
-static void rna_CurveMapping_clipminx_range(PointerRNA *ptr, float *min, float *max)
+static void rna_CurveMapping_clipminx_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	CurveMapping *cumap = (CurveMapping*)ptr->data;
 
@@ -108,7 +108,7 @@ static void rna_CurveMapping_clipminx_range(PointerRNA *ptr, float *min, float *
 	*max = cumap->clipr.xmax;
 }
 
-static void rna_CurveMapping_clipminy_range(PointerRNA *ptr, float *min, float *max)
+static void rna_CurveMapping_clipminy_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	CurveMapping *cumap = (CurveMapping*)ptr->data;
 
@@ -116,7 +116,7 @@ static void rna_CurveMapping_clipminy_range(PointerRNA *ptr, float *min, float *
 	*max = cumap->clipr.ymax;
 }
 
-static void rna_CurveMapping_clipmaxx_range(PointerRNA *ptr, float *min, float *max)
+static void rna_CurveMapping_clipmaxx_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	CurveMapping *cumap = (CurveMapping*)ptr->data;
 
@@ -124,7 +124,7 @@ static void rna_CurveMapping_clipmaxx_range(PointerRNA *ptr, float *min, float *
 	*max = 100.0f;
 }
 
-static void rna_CurveMapping_clipmaxy_range(PointerRNA *ptr, float *min, float *max)
+static void rna_CurveMapping_clipmaxy_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	CurveMapping *cumap = (CurveMapping*)ptr->data;
 

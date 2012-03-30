@@ -470,7 +470,7 @@ static void rna_WeightVGModifier_mask_uvlayer_set(PointerRNA *ptr, const char *v
 	}
 }
 
-static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max)
+static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)ptr->data;
 

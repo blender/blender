@@ -937,7 +937,7 @@ static void rna_MeshPoly_vertices_set(PointerRNA *ptr, const int *values)
 	}
 }
 
-static void rna_MeshPoly_material_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_MeshPoly_material_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Mesh *me = rna_mesh(ptr);
 	*min = 0;

@@ -901,6 +901,7 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name)
 void RNA_property_int_range(PointerRNA *ptr, PropertyRNA *prop, int *hardmin, int *hardmax)
 {
 	IntPropertyRNA *iprop = (IntPropertyRNA*)rna_ensure_property(prop);
+	int softmin, softmax;
 
 	if (prop->magic != RNA_MAGIC) {
 		/* attempt to get the local ID values */
@@ -920,7 +921,10 @@ void RNA_property_int_range(PointerRNA *ptr, PropertyRNA *prop, int *hardmin, in
 	}
 
 	if (iprop->range) {
-		iprop->range(ptr, hardmin, hardmax);
+		*hardmin = INT_MIN;
+		*hardmax = INT_MAX;
+
+		iprop->range(ptr, hardmin, hardmax, &softmin, &softmax);
 	}
 	else {
 		*hardmin = iprop->hardmin;
@@ -953,14 +957,17 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 		}
 	}
 
+	*softmin = iprop->softmin;
+	*softmax = iprop->softmax;
+
 	if (iprop->range) {
-		iprop->range(ptr, &hardmin, &hardmax);
-		*softmin = MAX2(iprop->softmin, hardmin);
-		*softmax = MIN2(iprop->softmax, hardmax);
-	}
-	else {
-		*softmin = iprop->softmin;
-		*softmax = iprop->softmax;
+		hardmin = INT_MIN;
+		hardmax = INT_MAX;
+
+		iprop->range(ptr, &hardmin, &hardmax, softmin, softmax);
+
+		*softmin = MAX2(*softmin, hardmin);
+		*softmax = MIN2(*softmax, hardmax);
 	}
 
 	*step = iprop->step;
@@ -969,6 +976,7 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin, float *hardmax)
 {
 	FloatPropertyRNA *fprop = (FloatPropertyRNA*)rna_ensure_property(prop);
+	float softmin, softmax;
 
 	if (prop->magic != RNA_MAGIC) {
 		/* attempt to get the local ID values */
@@ -988,7 +996,10 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
 	}
 
 	if (fprop->range) {
-		fprop->range(ptr, hardmin, hardmax);
+		*hardmin = -FLT_MAX;
+		*hardmax = FLT_MAX;
+
+		fprop->range(ptr, hardmin, hardmax, &softmin, &softmax);
 	}
 	else {
 		*hardmin = fprop->hardmin;
@@ -1025,14 +1036,17 @@ void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *soft
 		}
 	}
 
+	*softmin = fprop->softmin;
+	*softmax = fprop->softmax;
+
 	if (fprop->range) {
-		fprop->range(ptr, &hardmin, &hardmax);
-		*softmin = MAX2(fprop->softmin, hardmin);
-		*softmax = MIN2(fprop->softmax, hardmax);
-	}
-	else {
-		*softmin = fprop->softmin;
-		*softmax = fprop->softmax;
+		hardmin = -FLT_MAX;
+		hardmax = FLT_MAX;
+
+		fprop->range(ptr, &hardmin, &hardmax, softmin, softmax);
+
+		*softmin = MAX2(*softmin, hardmin);
+		*softmax = MIN2(*softmax, hardmax);
 	}
 
 	*step = fprop->step;
