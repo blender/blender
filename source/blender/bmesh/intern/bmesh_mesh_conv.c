@@ -435,31 +435,25 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	BMLoop *l;
 	BMFace *f;
 	BMIter iter, liter;
-	int i, j, *keyi, ototvert, totloop;
+	int i, j, *keyi, ototvert;
 
 	ototvert = me->totvert;
 
-	/* new Vertex block */
+	/* new vertex block */
 	if (bm->totvert == 0) mvert = NULL;
 	else mvert = MEM_callocN(bm->totvert * sizeof(MVert), "loadeditbMesh vert");
 
-	/* new Edge block */
+	/* new edge block */
 	if (bm->totedge == 0) medge = NULL;
 	else medge = MEM_callocN(bm->totedge * sizeof(MEdge), "loadeditbMesh edge");
 
-	/* build ngon data */
-	/* new Ngon Face block */
+	/* new ngon face block */
 	if (bm->totface == 0) mpoly = NULL;
 	else mpoly = MEM_callocN(bm->totface * sizeof(MPoly), "loadeditbMesh poly");
 
-	/* find number of loops to allocate */
-	totloop = 0;
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		totloop += f->len;
-	}
-
-	if (totloop == 0) mloop = NULL;
-	else mloop = MEM_callocN(totloop * sizeof(MLoop), "loadeditbMesh loop");
+	/* new loop block */
+	if (bm->totloop == 0) mloop = NULL;
+	else mloop = MEM_callocN(bm->totloop * sizeof(MLoop), "loadeditbMesh loop");
 
 	/* lets save the old verts just in case we are actually working on
 	 * a key ... we now do processing of the keys at the end */
@@ -478,7 +472,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	/* add new custom data */
 	me->totvert = bm->totvert;
 	me->totedge = bm->totedge;
-	me->totloop = totloop;
+	me->totloop = bm->totloop;
 	me->totpoly = bm->totface;
 	/* will be overwritten with a valid value if 'dotess' is set, otherwise we
 	 * end up with 'me->totface' and me->mface == NULL which can crash [#28625]
