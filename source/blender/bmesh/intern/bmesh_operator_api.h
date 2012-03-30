@@ -289,6 +289,10 @@ void BMO_slot_mat3_set(BMOperator *op, const char *slotname, float r_mat[3][3]);
 
 void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *op, const char htype, const short oflag);
 
+/* copies the values from another slot to the end of the output slot */
+void BMO_slot_buffer_append(BMOperator *output_op, const char *output_op_slot,
+							BMOperator *other_op, const char *other_op_slot);
+
 /* puts every element of type type (which is a bitmask) with tool flag flag,
  * into a slot. */
 void BMO_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,

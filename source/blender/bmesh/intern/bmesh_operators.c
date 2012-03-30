@@ -725,6 +725,38 @@ void BMO_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
 }
 
 /**
+ * Copies the values from another slot to the end of the output slot.
+ */
+void BMO_slot_buffer_append(BMOperator *output_op, const char *output_slot_name,
+							BMOperator *other_op, const char *other_slot_name)
+{
+	BMOpSlot *output_slot = BMO_slot_get(output_op, output_slot_name);
+	BMOpSlot *other_slot = BMO_slot_get(other_op, other_slot_name);
+
+	BLI_assert(output_slot->slottype == BMO_OP_SLOT_ELEMENT_BUF &&
+			   other_slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
+
+	if (output_slot->len == 0) {
+		/* output slot is empty, copy rather than append */
+		BMO_slot_copy(other_op, output_op, other_slot_name, output_slot_name);
+	}
+	else if (other_slot->len != 0) {
+		int elem_size = BMO_OPSLOT_TYPEINFO[output_slot->slottype];
+		int alloc_size = elem_size * (output_slot->len + other_slot->len);
+		/* allocate new buffer */
+		void *buf = BLI_memarena_alloc(output_op->arena, alloc_size);
+
+		/* copy slot data */
+		memcpy(buf, output_slot->data.buf, elem_size * output_slot->len);
+		memcpy(((char*)buf) + elem_size * output_slot->len,
+			   other_slot->data.buf, elem_size * other_slot->len);
+
+		output_slot->data.buf = buf;
+		output_slot->len += other_slot->len;
+	}
+}
+
+/**
  * \brief BMO_FLAG_TO_SLOT
  *
  * Copies elements of a certain type, which have a certain flag set
