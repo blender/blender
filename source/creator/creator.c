@@ -247,6 +247,15 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf("Misc Options:\n");
 	BLI_argsPrintArgDoc(ba, "--debug");
 	BLI_argsPrintArgDoc(ba, "--debug-fpe");
+
+#ifdef WITH_FFMPEG
+	BLI_argsPrintArgDoc(ba, "--debug-ffmpeg");
+#endif
+
+#ifdef WITH_LIBMV
+	BLI_argsPrintArgDoc(ba, "--debug-libmv");
+#endif
+
 	printf("\n");
 	BLI_argsPrintArgDoc(ba, "--factory-startup");
 	printf("\n");
@@ -359,13 +368,27 @@ static int debug_mode(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf("Build: %s %s %s %s\n", build_date, build_time, build_platform, build_type);
 #endif // WITH_BUILDINFO
 
-#ifdef WITH_LIBMV
-	libmv_startDebugLogging();
-#endif
-
 	BLI_argsPrint(data);
 	return 0;
 }
+
+#ifdef WITH_LIBMV
+static int debug_mode_libmv(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	libmv_startDebugLogging();
+
+	return 0;
+}
+#endif
+
+#ifdef WITH_FFMPEG
+static int debug_mode_ffmpeg(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	G.f |= G_DEBUG_FFMPEG;
+
+	return 0;
+}
+#endif
 
 static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
@@ -1078,6 +1101,14 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 	BLI_argsAdd(ba, 1, "-d", "--debug", debug_doc, debug_mode, ba);
 	BLI_argsAdd(ba, 1, NULL, "--debug-fpe", "\n\tEnable floating point exceptions", set_fpe, NULL);
+
+#ifdef WITH_FFMPEG
+	BLI_argsAdd(ba, 1, NULL, "--debug-ffmpeg", "\n\tEnable debug messages from FFmpeg library", debug_mode_ffmpeg, NULL);
+#endif
+
+#ifdef WITH_LIBMV
+	BLI_argsAdd(ba, 1, NULL, "--debug-libmv", "\n\tEnable debug messages from libmv library", debug_mode_libmv, NULL);
+#endif
 
 	BLI_argsAdd(ba, 1, NULL, "--factory-startup", "\n\tSkip reading the "STRINGIFY (BLENDER_STARTUP_FILE)" in the users home directory", set_factory_startup, NULL);
 

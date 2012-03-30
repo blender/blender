@@ -281,7 +281,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 
 	/* special cases, override loaded flags: */
 	if (G.f != bfd->globalf) {
-		const int flags_keep= (G_DEBUG | G_SWAP_EXCHANGE | G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
+		const int flags_keep= (G_DEBUG | G_DEBUG_FFMPEG | G_SWAP_EXCHANGE | G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
 		bfd->globalf= (bfd->globalf & ~flags_keep) | (G.f & flags_keep);
 	}
 

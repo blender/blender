@@ -332,6 +332,9 @@ def creator(env):
         incs.append('#/extern/libmv')
         defs.append('WITH_LIBMV')
 
+    if env['WITH_BF_FFMPEG']:
+        defs.append('WITH_FFMPEG')
+
     if env['WITH_BF_PYTHON']:
         incs.append('#/source/blender/python')
         defs.append('WITH_PYTHON')
