@@ -162,30 +162,6 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
 	return max_co - min_co;
 }
 
-/* Used for start/end cap.
- *
- * this function expects all existing vertices to be tagged,
- * so we can know new verts are not tagged.
- *
- * All verts will be tagged on exit.
- */
-static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4])
-{
-	BMVert *v;
-	BMIter iter;
-
-	DM_to_bmesh_ex(dm, bm);
-
-	/* transform all verts */
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
-			mul_m4_v3(mat, v->co);
-			BM_elem_flag_enable(v, BM_ELEM_TAG);
-		}
-	}
-}
-
-
 static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
 								   const ArrayModifierData *amd,
 								   int *index_map_length)
@@ -231,6 +207,95 @@ static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
 	return index_map;
 }
 
+/* Used for start/end cap.
+ *
+ * this function expects all existing vertices to be tagged,
+ * so we can know new verts are not tagged.
+ *
+ * All verts will be tagged on exit.
+ */
+static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4],
+								  const ArrayModifierData *amd,
+								  BMOperator *dupe_op,
+								  const char *dupe_slot_name,
+								  BMOperator *weld_op)
+{
+	BMVert *v, *v2;
+	BMIter iter;
+
+	DM_to_bmesh_ex(dm, bm);
+
+	if (amd->flags & MOD_ARR_MERGE) {
+		/* if merging is enabled, find doubles */
+		
+		BMOIter oiter;
+		BMOperator find_op;
+
+		BMO_op_initf(bm, &find_op,
+					 "finddoubles verts=%Hv dist=%f keepverts=%s",
+					 BM_ELEM_TAG, amd->merge_dist,
+					 dupe_op, dupe_slot_name);
+
+		/* append the dupe's geom to the findop input verts */
+		BMO_slot_buffer_append(&find_op, "verts", dupe_op, dupe_slot_name);
+
+		/* transform and tag verts */
+		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				mul_m4_v3(mat, v->co);
+				BM_elem_flag_enable(v, BM_ELEM_TAG);
+			}
+		}
+
+		BMO_op_exec(bm, &find_op);
+
+		/* add new merge targets to weld operator */
+		BMO_ITER(v, &oiter, bm, &find_op, "targetmapout", 0) {
+			v2 = BMO_iter_map_value_p(&oiter);
+			BMO_slot_map_ptr_insert(bm, weld_op, "targetmap", v, v2);
+		}
+
+		BMO_op_finish(bm, &find_op);
+	}
+	else {
+		/* transform and tag verts */
+		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				mul_m4_v3(mat, v->co);
+				BM_elem_flag_enable(v, BM_ELEM_TAG);
+			}
+		}
+	}
+}
+
+static void merge_first_last(BMesh* bm,
+							 const ArrayModifierData *amd,
+							 BMOperator *dupe_first,
+							 BMOperator *dupe_last,
+							 BMOperator *weld_op)
+{
+	BMOperator find_op;
+	BMOIter oiter;
+	BMVert *v, *v2;
+
+	BMO_op_initf(bm, &find_op,
+				 "finddoubles verts=%s dist=%f keepverts=%s",
+				 dupe_first, "geom", amd->merge_dist,
+				 dupe_first, "geom");
+
+	/* append the last dupe's geom to the findop input verts */
+	BMO_slot_buffer_append(&find_op, "verts", dupe_last, "newout");
+
+	BMO_op_exec(bm, &find_op);
+
+	/* add new merge targets to weld operator */
+	BMO_ITER(v, &oiter, bm, &find_op, "targetmapout", 0) {
+		v2 = BMO_iter_map_value_p(&oiter);
+		BMO_slot_map_ptr_insert(bm, weld_op, "targetmap", v, v2);
+	}
+
+	BMO_op_finish(bm, &find_op);
+}
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
                                           Scene *scene, Object *ob, DerivedMesh *dm,
@@ -238,7 +303,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 {
 	DerivedMesh *result;
 	BMEditMesh *em = DM_to_editbmesh(dm, NULL, FALSE);
-	BMOperator dupe_op, old_dupe_op, weld_op;
+	BMOperator first_dupe_op, dupe_op, old_dupe_op, weld_op;
 	BMVert **first_geom = NULL;
 	int i, j, indexLen;
 	/* offset matrix */
@@ -340,15 +405,16 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	if (amd->flags & MOD_ARR_MERGE)
 		BMO_op_init(em->bm, &weld_op, "weldverts");
-	
+
+	BMO_op_initf(em->bm, &dupe_op, "dupe geom=%avef");
+	first_dupe_op = dupe_op;
+
 	for (j=0; j < count - 1; j++) {
 		BMVert *v, *v2, *v3;
 		BMOpSlot *geom_slot;
 		BMOpSlot *newout_slot;
 
-		if (j == 0)
-			BMO_op_initf(em->bm, &dupe_op, "dupe geom=%avef");
-		else
+		if (j != 0)
 			BMO_op_initf(em->bm, &dupe_op, "dupe geom=%s", &old_dupe_op, "newout");
 		BMO_op_exec(em->bm, &dupe_op);
 
@@ -390,61 +456,57 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				BMO_slot_map_ptr_insert(em->bm, &weld_op, "targetmap", v, v2);
 			}
 
-			if ((amd->flags & MOD_ARR_MERGEFINAL) && j == count - 2) {
-				/* special case for merging first and last */
-				for (i=0; i < indexLen; i++) {
-					if (!indexMap[i]) continue;
-
-					/* merge v (from 'newout') into v2 (from XXX) */
-					v = _E(newout_slot, indexMap[i]-1);
-					v2 = first_geom[i - geom_slot->len];
-
-					/* check in case the target vertex (v2) is already marked
-					   for merging */
-					while((v3 = BMO_slot_map_ptr_get(em->bm, &weld_op, "targetmap", v2)))
-						v2 = v3;
-
-					BMO_slot_map_ptr_insert(em->bm, &weld_op, "targetmap", v, v2);
-				}
-			}
-
 			#undef _E
 		}
 
-		if (j != 0)
+		/* already copied earlier, but after executation more slot
+		   memory may be allocated */
+		if (j == 0)
+			first_dupe_op = dupe_op;
+		
+		if (j >= 2)
 			BMO_op_finish(em->bm, &old_dupe_op);
 		old_dupe_op = dupe_op;
 	}
 
-	if (j > 0) BMO_op_finish(em->bm, &dupe_op);
+	if ((amd->flags & MOD_ARR_MERGE) &&
+		(amd->flags & MOD_ARR_MERGEFINAL) &&
+		(count > 1)) {
+		/* Merge first and last copies. Note that we can't use the
+		   indexMap for this because (unless the array is forming a
+		   loop) the offset between first and last is different from
+		   dupe X to dupe X+1. */
 
-	/* BMESH_TODO - cap ends are not welded, even though weld is called after */
+		merge_first_last(em->bm, amd, &first_dupe_op, &dupe_op, &weld_op);
+	}
 
 	/* start capping */
-	if ((start_cap || end_cap) &&
-
-	    /* BMESH_TODO - theres a bug in DM_to_bmesh_ex() when in editmode!
-		 * this needs investigation, but for now at least don't crash */
-	    ob->mode != OB_MODE_EDIT
-
-	    )
+	if (start_cap || end_cap)
 	{
 		BM_mesh_elem_flag_enable_all(em->bm, BM_VERT, BM_ELEM_TAG);
 
 		if (start_cap) {
 			float startoffset[4][4];
 			invert_m4_m4(startoffset, offset);
-			bm_merge_dm_transform(em->bm, start_cap, startoffset);
+			bm_merge_dm_transform(em->bm, start_cap, startoffset, amd,
+				                  &first_dupe_op, "geom", &weld_op);
 		}
 
 		if (end_cap) {
 			float endoffset[4][4];
 			mult_m4_m4m4(endoffset, offset, final_offset);
-			bm_merge_dm_transform(em->bm, end_cap, endoffset);
+			bm_merge_dm_transform(em->bm, end_cap, endoffset, amd,
+				&dupe_op, count == 1 ? "geom" : "newout", &weld_op);
 		}
 	}
 	/* done capping */
 
+	/* free remaining dupe operators */
+	BMO_op_finish(em->bm, &first_dupe_op);
+	if (count > 2)
+		BMO_op_finish(em->bm, &dupe_op);
+
+	/* run merge operator */
 	if (amd->flags & MOD_ARR_MERGE) {
 		BMO_op_exec(em->bm, &weld_op);
 		BMO_op_finish(em->bm, &weld_op);
