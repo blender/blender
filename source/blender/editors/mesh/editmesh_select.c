@@ -1833,6 +1833,8 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 			BM_elem_select_set(bm, e, sel);
 		}
 		BMW_end(&walker);
+
+		BM_mesh_select_mode_flush(bm);
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
