@@ -155,12 +155,13 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 		{
 			PyObject *coerce;
 			const char *tb_filepath = traceback_filepath(tb, &coerce);
-			const int match = BLI_path_cmp(tb_filepath, filepath) != 0;
+			const int match = ((BLI_path_cmp(tb_filepath, filepath) == 0) ||
+			                   ((tb_filepath[0] == '\\' || tb_filepath[0] == '/') && BLI_path_cmp(tb_filepath + 1, filepath) == 0));
 			Py_DECREF(coerce);
 
 			if (match) {
 				*lineno = tb->tb_lineno;
-				break;
+				/* used to break here, but better find the inner most line */
 			}
 		}
 	}
