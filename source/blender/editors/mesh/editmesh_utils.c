@@ -1248,6 +1248,9 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 	}
 
 	EDBM_selectmode_flush(em);
+
+	/* hidden faces can have invalid normals */
+	EDBM_mesh_normals_update(em);
 }
 
 /* so many tools call these that we better make it a generic function.
