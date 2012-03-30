@@ -83,7 +83,7 @@ void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 	}
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename("key_blocks", oldname, kb->name);
+	BKE_all_animdata_fix_paths_rename(NULL, "key_blocks", oldname, kb->name);
 }
 
 static void rna_ShapeKey_value_set(PointerRNA *ptr, float value)

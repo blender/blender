@@ -588,9 +588,9 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				mtex_ar[act] = mtex_ar[act - 1];
 				mtex_ar[act - 1] = mtexswap;
 				
-				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act - 1, -1, 0);
-				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act, act - 1, 0);
-				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, -1, act, 0);
+				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act - 1, -1, 0);
+				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act, act - 1, 0);
+				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, -1, act, 0);
 
 				if (GS(id->name) == ID_MA) {
 					Material *ma = (Material *)id;
@@ -610,9 +610,9 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				mtex_ar[act] = mtex_ar[act + 1];
 				mtex_ar[act + 1] = mtexswap;
 				
-				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act + 1, -1, 0);
-				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act, act + 1, 0);
-				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, -1, act, 0);
+				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act + 1, -1, 0);
+				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act, act + 1, 0);
+				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, -1, act, 0);
 
 				if (GS(id->name) == ID_MA) {
 					Material *ma = (Material *)id;

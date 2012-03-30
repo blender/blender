@@ -227,7 +227,7 @@ void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 	}
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename("modifiers", oldname, md->name);
+	BKE_all_animdata_fix_paths_rename(NULL, "modifiers", oldname, md->name);
 }
 
 static char *rna_Modifier_path(PointerRNA *ptr)

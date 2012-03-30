@@ -5393,7 +5393,10 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 		/* Fix all animdata that may refer to this bone - we can't just do the ones attached to objects, since
 		 * other ID-blocks may have drivers referring to this bone [#29822]
 		 */
-		BKE_all_animdata_fix_paths_rename("pose.bones", oldname, newname);
+		{
+			
+			BKE_all_animdata_fix_paths_rename(&arm->id, "pose.bones", oldname, newname);
+		}
 		
 		/* correct view locking */
 		{

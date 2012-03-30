@@ -401,7 +401,7 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 	nodeUniqueName(ntree, node);
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename("nodes", oldname, node->name);
+	BKE_all_animdata_fix_paths_rename(NULL, "nodes", oldname, node->name);
 }
 
 static void rna_NodeSocket_update(Main *bmain, Scene *scene, PointerRNA *ptr)

@@ -378,10 +378,10 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	/* fix all the animation data which may link to this */
 
 	/* don't rename everywhere because these are per scene */
-	/* BKE_all_animdata_fix_paths_rename("sequence_editor.sequences_all", oldname, seq->name+2); */
+	/* BKE_all_animdata_fix_paths_rename(NULL, "sequence_editor.sequences_all", oldname, seq->name+2); */
 	adt = BKE_animdata_from_id(&scene->id);
 	if (adt)
-		BKE_animdata_fix_paths_rename(&scene->id, adt, "sequence_editor.sequences_all", oldname, seq->name+2, 0, 0, 1);
+		BKE_animdata_fix_paths_rename(&scene->id, adt, NULL, "sequence_editor.sequences_all", oldname, seq->name+2, 0, 0, 1);
 }
 
 static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)

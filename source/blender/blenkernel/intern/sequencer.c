@@ -3589,7 +3589,7 @@ void seq_dupe_animdata(Scene *scene, const char *name_src, const char *name_dst)
 	}
 
 	/* notice validate is 0, keep this because the seq may not be added to the scene yet */
-	BKE_animdata_fix_paths_rename(&scene->id, scene->adt, "sequence_editor.sequences_all", name_src, name_dst, 0, 0, 0);
+	BKE_animdata_fix_paths_rename(&scene->id, scene->adt, NULL, "sequence_editor.sequences_all", name_src, name_dst, 0, 0, 0);
 
 	/* add the original fcurves back */
 	BLI_movelisttolist(&scene->adt->action->curves, &lb);
