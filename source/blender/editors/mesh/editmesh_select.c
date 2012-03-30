@@ -900,7 +900,7 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 
 	BMW_init(&walker, bm, walkercode,
 	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+	         BMW_FLAG_TEST_HIDDEN,
 	         BMW_NIL_LAY);
 	ele = BMW_begin(&walker, start);
 	for (; ele; ele = BMW_step(&walker)) {

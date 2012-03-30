@@ -517,7 +517,9 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			l = BM_face_other_vert_loop(owalk.f_hub, lwalk->lastv, v);
 			nexte = BM_edge_exists(v, l->v);
 
-			if (!BLI_ghash_haskey(walker->visithash, nexte)) {
+			if (bmw_mask_check_edge(walker, nexte) &&
+			    !BLI_ghash_haskey(walker->visithash, nexte))
+			{
 				lwalk = BMW_state_add(walker);
 				lwalk->cur = nexte;
 				lwalk->lastv = v;
@@ -579,7 +581,10 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 		}
 
 		if (l != NULL) {
-			if (l != e->l && !BLI_ghash_haskey(walker->visithash, l->e)) {
+			if (l != e->l &&
+			    bmw_mask_check_edge(walker, l->e) &&
+			    !BLI_ghash_haskey(walker->visithash, l->e))
+			{
 				if (!(owalk.is_boundary == FALSE && i != stopi)) {
 					lwalk = BMW_state_add(walker);
 					lwalk->cur = l->e;
@@ -602,7 +607,10 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			v = i ? e->v2 : e->v1;
 
 			BM_ITER(nexte, &eiter, walker->bm, BM_EDGES_OF_VERT, v) {
-				if ((nexte->l == NULL) && !BLI_ghash_haskey(walker->visithash, nexte)) {
+				if ((nexte->l == NULL) &&
+				    bmw_mask_check_edge(walker, nexte) &&
+				    !BLI_ghash_haskey(walker->visithash, nexte))
+				{
 					lwalk = BMW_state_add(walker);
 					lwalk->cur = nexte;
 					lwalk->lastv = v;
