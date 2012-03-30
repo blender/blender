@@ -116,7 +116,7 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", BM_EDGE, EDGE_OUT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EDGE_OUT);
 
 	BLI_array_free(loops);
 	BLI_array_free(verts);

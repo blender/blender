@@ -182,9 +182,13 @@ void BMO_op_exec(BMesh *bm, BMOperator *op);
  * after it finishes executing in BMO_op_exec).*/
 void BMO_op_finish(BMesh *bm, BMOperator *op);
 
-/* count the number of elements with a specific flag.
+/* count the number of elements with the specified flag enabled.
  * type can be a bitmask of BM_FACE, BM_EDGE, or BM_FACE. */
-int BMO_mesh_flag_count(BMesh *bm, const char htype, const short oflag);
+int BMO_mesh_enabled_flag_count(BMesh *bm, const char htype, const short oflag);
+
+/* count the number of elements with the specified flag disabled.
+ * type can be a bitmask of BM_FACE, BM_EDGE, or BM_FACE. */
+int BMO_mesh_disabled_flag_count(BMesh *bm, const char htype, const short oflag);
 
 /*---------formatted operator initialization/execution-----------*/
 /*
@@ -209,8 +213,10 @@ int BMO_mesh_flag_count(BMesh *bm, const char htype, const short oflag);
  *             so e.g. %hf will do faces, %hfe will do faces and edges,
  *             %hv will do verts, etc.  must pass in at least one
  *             element type letter.
+ *    %H[f/e/v] - same as %h, but tests if the flag is disabled
  *    %f[f/e/v] - same as %h, except it deals with tool flags instead of
  *                 header flags.
+ *    %F[f/e/v] - same as %f, but tests if the flag is disabled
  *    %a[f/e/v] - pass all elements (of types specified by f/e/v) to the
  *                 slot.
  *    %e        - pass in a single element.
@@ -293,10 +299,15 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *op, const char htype, cons
 void BMO_slot_buffer_append(BMOperator *output_op, const char *output_op_slot,
 							BMOperator *other_op, const char *other_op_slot);
 
-/* puts every element of type type (which is a bitmask) with tool flag flag,
- * into a slot. */
-void BMO_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
-                               const char htype, const short oflag);
+/* puts every element of type 'type' (which is a bitmask) with tool
+ * flag 'flag', into a slot. */
+void BMO_slot_buffer_from_enabled_flag(BMesh *bm, BMOperator *op, const char *slotname,
+									   const char htype, const short oflag);
+
+/* puts every element of type 'type' (which is a bitmask) without tool
+ * flag 'flag', into a slot. */
+void BMO_slot_buffer_from_disabled_flag(BMesh *bm, BMOperator *op, const char *slotname,
+										const char htype, const short oflag);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
 void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname,
@@ -312,11 +323,19 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotnam
 void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotname,
                                    const char htype, const char hflag, const char do_flush);
 
-/* puts every element of type type (which is a bitmask) with header flag
- * flag, into a slot.  note: ignores hidden elements (e.g. elements with
- * header flag BM_ELEM_HIDDEN set).*/
-void BMO_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-                                const char htype, const char hflag);
+/* puts every element of type 'type' (which is a bitmask) with header
+ * flag 'flag', into a slot.  note: ignores hidden elements
+ * (e.g. elements with header flag BM_ELEM_HIDDEN set).*/
+void BMO_slot_buffer_from_enabled_hflag(BMesh *bm, BMOperator *op,
+										const char *slotname,
+										const char htype, const char hflag);
+
+/* puts every element of type 'type' (which is a bitmask) without
+ * header flag 'flag', into a slot.  note: ignores hidden elements
+ * (e.g. elements with header flag BM_ELEM_HIDDEN set).*/
+void BMO_slot_buffer_from_disabled_hflag(BMesh *bm, BMOperator *op,
+										 const char *slotname,
+										 const char htype, const char hflag);
 
 /* counts number of elements inside a slot array. */
 int BMO_slot_buffer_count(BMesh *bm, BMOperator *op, const char *slotname);

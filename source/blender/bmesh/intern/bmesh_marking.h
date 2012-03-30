@@ -60,7 +60,8 @@ void BM_mesh_select_mode_flush(BMesh *bm);
 void BM_mesh_deselect_flush(BMesh *bm);
 void BM_mesh_select_flush(BMesh *bm);
 
-int BM_mesh_count_flag(BMesh *bm, const char htype, const char hflag, int respecthide);
+int BM_mesh_enabled_flag_count(BMesh *bm, const char htype, const char hflag, int respecthide);
+int BM_mesh_disabled_flag_count(BMesh *bm, const char htype, const char hflag, int respecthide);
 
 /* edit selection stuff */
 void    BM_active_face_set(BMesh *em, BMFace *f);

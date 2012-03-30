@@ -181,7 +181,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		goto cleanup;
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "regionout", BM_FACE, FACE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "regionout", BM_FACE, FACE_NEW);
 
 cleanup:
 	/* free/cleanup */

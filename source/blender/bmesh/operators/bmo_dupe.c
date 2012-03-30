@@ -336,7 +336,7 @@ void bmo_dupe_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(dupeop, dupeop, "geom", "origout");
 
 	/* Now alloc the new output buffers */
-	BMO_slot_buffer_from_flag(bm, dupeop, "newout", BM_ALL, DUPE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, dupeop, "newout", BM_ALL, DUPE_NEW);
 }
 
 #if 0 /* UNUSED */
@@ -349,7 +349,7 @@ void BMO_dupe_from_flag(BMesh *bm, int htype, const char hflag)
 	BMOperator dupeop;
 
 	BMO_op_init(bm, &dupeop, "dupe");
-	BMO_slot_buffer_from_hflag(bm, &dupeop, "geom", htype, hflag);
+	BMO_slot_buffer_from_enabled_hflag(bm, &dupeop, "geom", htype, hflag);
 
 	BMO_op_exec(bm, &dupeop);
 	BMO_op_finish(bm, &dupeop);
@@ -430,7 +430,7 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 
 	/* connect outputs of dupe to delete, exluding keep geometry */
 	BMO_slot_int_set(&delop, "context", DEL_FACES);
-	BMO_slot_buffer_from_flag(bm, &delop, "geom", BM_ALL, SPLIT_INPUT);
+	BMO_slot_buffer_from_enabled_flag(bm, &delop, "geom", BM_ALL, SPLIT_INPUT);
 	
 	BMO_op_exec(bm, &delop);
 

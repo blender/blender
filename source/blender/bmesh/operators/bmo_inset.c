@@ -482,5 +482,5 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(edge_info);
 
 	/* we could flag new edges/verts too, is it useful? */
-	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, ELE_NEW);
 }

@@ -110,7 +110,7 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges);
 
 	BMO_op_callf(bm, "del geom=%ff context=%i", EXT_DEL, DEL_ONLYFACES);
-	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, EXT_KEEP);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, EXT_KEEP);
 }
 
 static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e, BMEdge *newedge)
@@ -211,7 +211,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_buffer_from_flag(bm, op, "geomout", BM_ALL, EXT_KEEP);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_ALL, EXT_KEEP);
 }
 
 void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
@@ -230,8 +230,8 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, dupev, EXT_KEEP);
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "vertout", BM_VERT, EXT_KEEP);
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", BM_EDGE, EXT_KEEP);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "vertout", BM_VERT, EXT_KEEP);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EXT_KEEP);
 }
 
 void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)

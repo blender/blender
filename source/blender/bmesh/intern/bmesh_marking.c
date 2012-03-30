@@ -437,34 +437,46 @@ void BM_select_mode_set(BMesh *bm, int selectmode)
 }
 
 /**
- * counts number of elements with flag set
+ * counts number of elements with flag enabled/disabled
  */
-int BM_mesh_count_flag(BMesh *bm, const char htype, const char hflag, int respecthide)
+static int bm_mesh_flag_count(BMesh *bm, const char htype, const char hflag,
+							  int respecthide, int test_for_enabled)
 {
 	BMElem *ele;
 	BMIter iter;
+	int test = (test_for_enabled ? hflag : 0);
 	int tot = 0;
 
 	if (htype & BM_VERT) {
 		for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); ele; ele = BM_iter_step(&iter)) {
 			if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) continue;
-			if (BM_elem_flag_test(ele, hflag)) tot++;
+			if (BM_elem_flag_test(ele, hflag) == test) tot++;
 		}
 	}
 	if (htype & BM_EDGE) {
 		for (ele = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); ele; ele = BM_iter_step(&iter)) {
 			if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) continue;
-			if (BM_elem_flag_test(ele, hflag)) tot++;
+			if (BM_elem_flag_test(ele, hflag) == test) tot++;
 		}
 	}
 	if (htype & BM_FACE) {
 		for (ele = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); ele; ele = BM_iter_step(&iter)) {
 			if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) continue;
-			if (BM_elem_flag_test(ele, hflag)) tot++;
+			if (BM_elem_flag_test(ele, hflag) == test) tot++;
 		}
 	}
 
 	return tot;
+}
+
+int BM_mesh_enabled_flag_count(BMesh *bm, const char htype, const char hflag, int respecthide)
+{
+	return bm_mesh_flag_count(bm, htype, hflag, respecthide, TRUE);
+}
+
+int BM_mesh_disabled_flag_count(BMesh *bm, const char htype, const char hflag, int respecthide)
+{
+	return bm_mesh_flag_count(bm, htype, hflag, respecthide, FALSE);
 }
 
 /**

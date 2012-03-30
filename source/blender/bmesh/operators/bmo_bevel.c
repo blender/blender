@@ -877,6 +877,6 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges);
 	BLI_array_free(faces);
 	
-	BMO_slot_buffer_from_flag(bm, op, "face_spans", BM_FACE, FACE_SPAN);
-	BMO_slot_buffer_from_flag(bm, op, "face_holes", BM_FACE, FACE_HOLE);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "face_spans", BM_FACE, FACE_SPAN);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "face_holes", BM_FACE, FACE_HOLE);
 }

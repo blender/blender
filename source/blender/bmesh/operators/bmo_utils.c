@@ -49,7 +49,7 @@ void bmo_makevert_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_vec_get(op, "co", vec);
 
 	BMO_elem_flag_enable(bm, BM_vert_create(bm, vec, NULL), 1);
-	BMO_slot_buffer_from_flag(bm, op, "newvertout", BM_VERT, 1);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "newvertout", BM_VERT, 1);
 }
 
 void bmo_transform_exec(BMesh *bm, BMOperator *op)
@@ -163,7 +163,7 @@ void bmo_edgerotate_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", BM_EDGE, EDGE_OUT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EDGE_OUT);
 
 #undef EDGE_OUT
 #undef FACE_TAINT
@@ -266,7 +266,7 @@ void bmo_regionextend_exec(BMesh *bm, BMOperator *op)
 	else
 		bmo_regionextend_extend(bm, op, use_faces);
 
-	BMO_slot_buffer_from_flag(bm, op, "geomout", BM_ALL, SEL_FLAG);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_ALL, SEL_FLAG);
 }
 
 /********* righthand faces implementation ****** */
@@ -686,7 +686,7 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(indices);
 
 	/* transfer all marked faces to the output slot */
-	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, FACE_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, FACE_MARK);
 }
 
 /**************************************************************************** *
@@ -883,7 +883,7 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(indices);
 
 	/* transfer all marked edges to the output slot */
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", BM_EDGE, EDGE_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EDGE_MARK);
 }
 
 /**************************************************************************** *
@@ -999,7 +999,7 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(indices);
 	MEM_freeN(v_ext);
 
-	BMO_slot_buffer_from_flag(bm, op, "vertout", BM_VERT, VERT_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "vertout", BM_VERT, VERT_MARK);
 }
 
 /**************************************************************************** *
@@ -1327,5 +1327,5 @@ void bmo_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 	BLI_heap_free(h, NULL);
 	MEM_freeN(vert_list);
 
-	BMO_slot_buffer_from_flag(bm, op, "vertout", BM_VERT, VERT_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "vertout", BM_VERT, VERT_MARK);
 }
