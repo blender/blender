@@ -160,7 +160,9 @@ static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *
 		if (stack->current == NULL) ;
 		else {
 			if (!name || strcmp(stack->current->name, name) == 0) {
-				if (G.f & G_DEBUG) printf("undo %s\n", stack->current->name);
+				if (G.debug & G_DEBUG_WM) {
+					printf("%s: undo '%s'\n", __func__, stack->current->name);
+				}
 				undo_restore(C, stack, stack->current);
 				stack->current = stack->current->prev;
 				return 1;
@@ -174,7 +176,9 @@ static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *
 				undo = (stack->current && stack->current->next) ? stack->current->next : stack->elems.first;
 				undo_restore(C, stack, undo);
 				stack->current = undo;
-				if (G.f & G_DEBUG) printf("redo %s\n", undo->name);
+				if (G.debug & G_DEBUG_WM) {
+					printf("%s: redo %s\n", __func__, undo->name);
+				}
 				return 1;
 			}
 		}

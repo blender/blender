@@ -72,7 +72,7 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 	int width, height, depth;
 	float *frow;
 
-	logImageSetVerbose((G.f & G_DEBUG) ? 1:0);
+	logImageSetVerbose((G.debug & G_DEBUG) ? 1:0);
 	
 	image = logImageOpenFromMem(mem, size, use_cineon);
 	
@@ -149,7 +149,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 		return 0;
 	}
 	
-	logImageSetVerbose((G.f & G_DEBUG) ? 1:0);
+	logImageSetVerbose((G.debug & G_DEBUG) ? 1:0);
 	logImage = logImageCreate(filename, use_cineon, width, height, depth);
 
 	if (!logImage) return 0;

@@ -1484,7 +1484,7 @@ void BKE_nla_action_pushdown (AnimData *adt)
 	 */
 	// TODO: what about modifiers?
 	if (action_has_motion(adt->action) == 0) {
-		printf("BKE_nla_action_pushdown(): action has no data \n");
+		printf("BKE_nla_action_pushdown(): action has no data\n");
 		return;
 	}
 	
@@ -1576,9 +1576,9 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 	}
 	
 	if (ELEM3(NULL, activeTrack, activeStrip, activeStrip->act)) {
-		if (G.f & G_DEBUG) {
-			printf("NLA tweakmode enter - neither active requirement found \n");
-			printf("\tactiveTrack = %p, activeStrip = %p \n", (void *)activeTrack, (void *)activeStrip);
+		if (G.debug & G_DEBUG) {
+			printf("NLA tweakmode enter - neither active requirement found\n");
+			printf("\tactiveTrack = %p, activeStrip = %p\n", (void *)activeTrack, (void *)activeStrip);
 		}
 		return 0;
 	}

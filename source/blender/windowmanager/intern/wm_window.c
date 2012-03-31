@@ -625,7 +625,9 @@ void wm_window_make_drawable(bContext *C, wmWindow *win)
 //		win->lmbut= 0;	/* keeps hanging when mousepressed while other window opened */
 		
 		wm->windrawable = win;
-		if (G.f & G_DEBUG) printf("set drawable %d\n", win->winid);
+		if (G.debug & G_DEBUG_EVENTS) {
+			printf("%s: set drawable %d\n", __func__, win->winid);
+		}
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
 	}
 }
@@ -716,7 +718,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				break;
 			}
 			case GHOST_kEventWindowUpdate: {
-				if (G.f & G_DEBUG) printf("ghost redraw\n");
+				if (G.debug & G_DEBUG_EVENTS) {
+					printf("%s: ghost redraw %d\n", __func__, win->winid);
+				}
 				
 				wm_window_make_drawable(C, win);
 				WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -765,29 +769,32 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 						win->posy = posy;
 
 						/* debug prints */
-						if (0) {
+						if (G.debug & G_DEBUG_EVENTS) {
+							const char *state_str;
 							state = GHOST_GetWindowState(win->ghostwin);
-	
+
 							if (state == GHOST_kWindowStateNormal) {
-								if (G.f & G_DEBUG) printf("window state: normal\n");
+								state_str = "normal";
 							}
 							else if (state == GHOST_kWindowStateMinimized) {
-								if (G.f & G_DEBUG) printf("window state: minimized\n");
+								state_str = "minimized";
 							}
 							else if (state == GHOST_kWindowStateMaximized) {
-								if (G.f & G_DEBUG) printf("window state: maximized\n");
+								state_str = "maximized";
 							}
 							else if (state == GHOST_kWindowStateFullScreen) {
-								if (G.f & G_DEBUG) printf("window state: fullscreen\n");
+								state_str = "fullscreen";
 							}
-							
+							else {
+								state_str = "<unknown>";
+							}
+
+							printf("%s: window %d state = %s\n", __func__, win->winid, state_str);
+
 							if (type != GHOST_kEventWindowSize) {
-								if (G.f & G_DEBUG) {
-									printf("win move event pos %d %d size %d %d\n",
-									       win->posx, win->posy, win->sizex, win->sizey);
-								}
+								printf("win move event pos %d %d size %d %d\n",
+								       win->posx, win->posy, win->sizex, win->sizey);
 							}
-							
 						}
 					
 						wm_window_make_drawable(C, win);

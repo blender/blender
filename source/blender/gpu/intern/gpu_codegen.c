@@ -587,7 +587,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 	codegen_set_unique_ids(nodes);
 	codegen_print_uniforms_functions(ds, nodes);
 
-	//if(G.f & G_DEBUG)
+	//if(G.debug & G_DEBUG)
 	//	BLI_dynstr_appendf(ds, "/* %s */\n", name);
 
 	BLI_dynstr_append(ds, "void main(void)\n");
@@ -602,7 +602,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 	code = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 
-	//if(G.f & G_DEBUG) printf("%s\n", code);
+	//if(G.debug & G_DEBUG) printf("%s\n", code);
 
 	return code;
 }
@@ -645,7 +645,7 @@ static char *code_generate_vertex(ListBase *nodes)
 
 	BLI_dynstr_free(ds);
 
-	//if(G.f & G_DEBUG) printf("%s\n", code);
+	//if(G.debug & G_DEBUG) printf("%s\n", code);
 
 	return code;
 }

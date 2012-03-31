@@ -92,8 +92,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		if (G.f & G_DEBUG)
-			printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
+		if (G.debug & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in mouse_anim_channels()\n", channel_index);
 		
 		BLI_freelistN(&anim_data);
 		return 0;
@@ -284,8 +284,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			break;
 			
 		default:
-			if (G.f & G_DEBUG)
-				printf("Error: Invalid channel type in mouse_nla_channels() \n");
+			if (G.debug & G_DEBUG)
+				printf("Error: Invalid channel type in mouse_nla_channels()\n");
 	}
 	
 	/* free channels */

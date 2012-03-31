@@ -589,19 +589,19 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
 		if (pchan)
 			list = &pchan->constraints;
 		else {
-			//if (G.f & G_DEBUG)
+			//if (G.debug & G_DEBUG)
 			//printf("edit_constraint_property_get: No active bone for object '%s'\n", (ob)? ob->id.name+2 : "<None>");
 			return NULL;
 		}
 	}
 	else {
-		//if (G.f & G_DEBUG)
+		//if (G.debug & G_DEBUG)
 		//printf("edit_constraint_property_get: defaulting to getting list in the standard way\n");
 		list = get_active_constraints(ob);
 	}
 	
 	con = constraints_findByName(list, constraint_name);
-	//if (G.f & G_DEBUG)
+	//if (G.debug & G_DEBUG)
 	//printf("constraint found = %p, %s\n", (void *)con, (con)?con->name:"<Not found>");
 
 	if (con && (type != 0) && (con->type != type))

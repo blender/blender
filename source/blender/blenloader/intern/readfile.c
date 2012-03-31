@@ -544,7 +544,7 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *filepat
 		char *libname= (m->curlib)?m->curlib->filepath:m->name;
 		
 		if (BLI_path_cmp(name1, libname) == 0) {
-			if (G.f & G_DEBUG) printf("blo_find_main: found library %s\n", libname);
+			if (G.debug & G_DEBUG) printf("blo_find_main: found library %s\n", libname);
 			return m;
 		}
 	}
@@ -560,7 +560,7 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *filepat
 	
 	read_file_version(fd, m);
 	
-	if (G.f & G_DEBUG) printf("blo_find_main: added new lib %s\n", filepath);
+	if (G.debug & G_DEBUG) printf("blo_find_main: added new lib %s\n", filepath);
 	return m;
 }
 
@@ -7253,7 +7253,7 @@ static void versions_gpencil_add_main(ListBase *lb, ID *id, const char *name)
 	new_id(lb, id, name);
 	/* alphabetic insterion: is in new_id */
 	
-	if (G.f & G_DEBUG)
+	if (G.debug & G_DEBUG)
 		printf("Converted GPencil to ID: %s\n", id->name+2);
 }
 
@@ -7810,7 +7810,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
 
-	if (G.f & G_DEBUG)
+	if (G.debug & G_DEBUG)
 		printf("read file %s\n  Version %d sub %d svn r%d\n", fd->relabase, main->versionfile, main->subversionfile, main->revision);
 	
 	if (main->versionfile == 100) {
@@ -13671,7 +13671,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				if (id==NULL) {
 					read_libblock(fd, ptr, bhead, LIB_READ+LIB_INDIRECT, NULL);
 					// commented because this can print way too much
-					// if (G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
+					// if (G.debug & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
 					
 					/* for outliner dependency only */
 					ptr->curlib->parent= mainvar->curlib;
@@ -13691,7 +13691,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					
 					change_idid_adr_fd(fd, bhead->old, id);
 					// commented because this can print way too much
-					// if (G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
+					// if (G.debug & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
 				}
 				
 				MEM_freeN(lib);
@@ -13707,7 +13707,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				   happens which invokes same ID... in that case the lookup table needs this entry */
 				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 				// commented because this can print way too much
-				// if (G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
+				// if (G.debug & G_DEBUG) printf("expand: already read %s\n", id->name);
 			}
 		}
 	}

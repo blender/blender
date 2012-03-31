@@ -341,7 +341,7 @@ static int binarysearch_fcm_envelopedata_index (FCM_EnvelopeData array[], float 
 	 *	- keyframe to be added would replace one of the existing ones on bounds
 	 */
 	if ((arraylen <= 0) || (array == NULL)) {
-		printf("Warning: binarysearch_fcm_envelopedata_index() encountered invalid array \n");
+		printf("Warning: binarysearch_fcm_envelopedata_index() encountered invalid array\n");
 		return 0;
 	}
 	else {
@@ -391,10 +391,10 @@ static int binarysearch_fcm_envelopedata_index (FCM_EnvelopeData array[], float 
 	
 	/* print error if loop-limit exceeded */
 	if (loopbreaker == (maxloop-1)) {
-		printf("Error: binarysearch_fcm_envelopedata_index() was taking too long \n");
+		printf("Error: binarysearch_fcm_envelopedata_index() was taking too long\n");
 		
 		// include debug info 
-		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
+		printf("\tround = %d: start = %d, end = %d, arraylen = %d\n", loopbreaker, start, end, arraylen);
 	}
 	
 	/* not found, so return where to place it */

@@ -82,7 +82,7 @@ void ED_undo_push(bContext *C, const char *str)
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
 
-	if (G.f & G_DEBUG)
+	if (G.debug & G_DEBUG)
 		printf("undo push %s\n", str);
 	
 	if (obedit) {
@@ -361,7 +361,7 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 		{
 			int retval;
 
-			if (G.f & G_DEBUG)
+			if (G.debug & G_DEBUG)
 				printf("redo_cb: operator redo %s\n", op->type->name);
 			ED_undo_pop_op(C, op);
 
@@ -371,7 +371,7 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 
 			retval = WM_operator_repeat(C, op);
 			if ((retval & OPERATOR_FINISHED) == 0) {
-				if (G.f & G_DEBUG)
+				if (G.debug & G_DEBUG)
 					printf("redo_cb: operator redo failed: %s, return %d\n", op->type->name, retval);
 				ED_undo_redo(C);
 			}
@@ -380,7 +380,7 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 			}
 		}
 		else {
-			if (G.f & G_DEBUG) {
+			if (G.debug & G_DEBUG) {
 				printf("redo_cb: WM_operator_repeat_check returned false %s\n", op->type->name);
 			}
 		}
@@ -389,7 +389,7 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 		CTX_wm_region_set(C, ar);
 	}
 	else {
-		if (G.f & G_DEBUG) {
+		if (G.debug & G_DEBUG) {
 			printf("redo_cb: ED_undo_operator_repeat called with NULL 'op'\n");
 		}
 	}

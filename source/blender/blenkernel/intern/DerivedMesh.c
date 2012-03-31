@@ -445,7 +445,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 		                            numTex, numCol, hasPCol, hasOrigSpace);
 	}
 
-	if (G.f & G_DEBUG)
+	if (G.debug & G_DEBUG)
 		printf("Updated tessellated customdata of dm %p\n", dm);
 
 	dm->dirty &= ~DM_DIRTY_TESS_CDLAYERS;

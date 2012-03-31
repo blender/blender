@@ -109,7 +109,7 @@ void ImagesExporter::operator()(Material *ma, Object *ob)
 				BLI_make_existing_file(abs);
 			
 				if (BLI_copy(src, abs) != 0) {
-					fprintf(stderr, "Cannot copy image to file's directory. \n");
+					fprintf(stderr, "Cannot copy image to file's directory.\n");
 				}
 			} 
 			

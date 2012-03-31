@@ -460,7 +460,7 @@ static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
 	 *	- if commandline debug option enabled, show debug reports too
 	 *	- otherwise, up to info (which is what users normally see)
 	 */
-	str = BKE_reports_string(reports, (G.f & G_DEBUG) ? RPT_DEBUG : RPT_INFO);
+	str = BKE_reports_string(reports, (G.debug & G_DEBUG) ? RPT_DEBUG : RPT_INFO);
 
 	if (str) {
 		write_text(txt, str);

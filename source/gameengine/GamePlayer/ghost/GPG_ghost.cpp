@@ -232,7 +232,7 @@ void usage(const char* program, bool isBlenderPlayer)
 	printf("             sphericalpanoramic     (Spherical Panoramic)\n");
 	printf("                             depending on the type of dome you are using\n\n");
 	printf("  -m: maximum anti-aliasing (eg. 2,4,8,16)\n\n");
-	printf("  -i: parent windows ID \n\n");
+	printf("  -i: parent windows ID\n\n");
 #ifdef _WIN32
 	printf("  -c: keep console window open\n\n");
 #endif
@@ -527,7 +527,7 @@ int main(int argc, char** argv)
 
 			case 'd':
 				i++;
-				G.f |= G_DEBUG;     /* std output printf's */
+				G.debug |= G_DEBUG;     /* std output printf's */
 				MEM_set_memory_debug();
 				break;
 

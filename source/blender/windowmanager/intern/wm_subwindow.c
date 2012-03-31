@@ -163,7 +163,10 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 	win->curswin = swin = MEM_callocN(sizeof(wmSubWindow), "swinopen");
 	BLI_addtail(&win->subwindows, swin);
 	
-	if (G.f & G_DEBUG) printf("swin %d added\n", freewinid);
+	if (G.debug & G_DEBUG_EVENTS) {
+		printf("%s: swin %d added\n", __func__, freewinid);
+	}
+
 	swin->swinid = freewinid;
 	swin->winrct = *winrct;
 

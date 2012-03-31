@@ -696,7 +696,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 		else      printf("PyContext '%s' not found\n", member);
 	}
 	else {
-		if (G.f & G_DEBUG) {
+		if (G.debug & G_DEBUG_PYTHON) {
 			printf("PyContext '%s' found\n", member);
 		}
 	}

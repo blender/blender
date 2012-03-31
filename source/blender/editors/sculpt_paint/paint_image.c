@@ -1037,7 +1037,7 @@ static int pixel_bounds_uv(
 	bounds_px->xmax = (int)(ibuf_x * max_uv[0]) + 1;
 	bounds_px->ymax = (int)(ibuf_y * max_uv[1]) + 1;
 	
-	/*printf("%d %d %d %d \n", min_px[0], min_px[1], max_px[0], max_px[1]);*/
+	/*printf("%d %d %d %d\n", min_px[0], min_px[1], max_px[0], max_px[1]);*/
 	
 	/* face uses no UV area when quantized to pixels? */
 	return (bounds_px->xmin == bounds_px->xmax || bounds_px->ymin == bounds_px->ymax) ? 0 : 1;
@@ -1065,7 +1065,7 @@ static int pixel_bounds_array(float (*uv)[2], rcti *bounds_px, const int ibuf_x,
 	bounds_px->xmax = (int)(ibuf_x * max_uv[0]) + 1;
 	bounds_px->ymax = (int)(ibuf_y * max_uv[1]) + 1;
 	
-	/*printf("%d %d %d %d \n", min_px[0], min_px[1], max_px[0], max_px[1]);*/
+	/*printf("%d %d %d %d\n", min_px[0], min_px[1], max_px[0], max_px[1]);*/
 	
 	/* face uses no UV area when quantized to pixels? */
 	return (bounds_px->xmin == bounds_px->xmax || bounds_px->ymin == bounds_px->ymax) ? 0 : 1;
@@ -3643,7 +3643,7 @@ static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf 
 	if (ps->thread_tot > 1)
 		BLI_lock_thread(LOCK_CUSTOM1);
 	
-	//printf("%d %d \n", ps->context_bucket_x, ps->context_bucket_y);
+	//printf("%d %d\n", ps->context_bucket_x, ps->context_bucket_y);
 	
 	for (; ps->context_bucket_y < ps->bucketMax[1]; ps->context_bucket_y++) {
 		for (; ps->context_bucket_x < ps->bucketMax[0]; ps->context_bucket_x++) {

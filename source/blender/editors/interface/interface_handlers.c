@@ -4585,7 +4585,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		}
 	}
 
-	/* perhaps we should move this into (G.f & G_DEBUG) - campbell */
+	/* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
 	uiItemFullO(layout, "UI_OT_editsource", "Edit Source", ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
 
 	uiPupMenuEnd(C, pup);

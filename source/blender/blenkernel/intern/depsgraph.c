@@ -156,7 +156,7 @@ void push_queue(DagNodeQueue *queue, DagNode *node)
 	int i;
 
 	if (node == NULL) {
-		fprintf(stderr,"pushing null node \n");
+		fprintf(stderr,"pushing null node\n");
 		return;
 	}
 	/*fprintf(stderr,"BFS push : %s %d\n",((ID *) node->ob)->name, queue->count);*/
@@ -267,7 +267,7 @@ DagNode * pop_queue(DagNodeQueue *queue)
 		return node;
 	}
 	else {
-		fprintf(stderr,"return null \n");
+		fprintf(stderr,"return null\n");
 		return NULL;
 	}
 }
@@ -398,7 +398,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 						
 						for (ct= targets.first; ct; ct= ct->next) {
 							if (ct->tar && ct->tar != ob) {
-								// fprintf(stderr,"armature %s target :%s \n", ob->id.name, target->id.name);
+								// fprintf(stderr,"armature %s target :%s\n", ob->id.name, target->id.name);
 								node3 = dag_get_node(dag, ct->tar);
 								
 								if (ct->subtarget[0]) {
@@ -1115,7 +1115,7 @@ void graph_bfs(void)
 	DagAdjList *itA;
 	int minheight;
 	
-	/* fprintf(stderr,"starting BFS \n ------------\n"); */	
+	/* fprintf(stderr,"starting BFS\n ------------\n"); */
 	nqueue = queue_create(DAGQUEUEALLOC);
 	for ( i=0; i<50; i++)
 		pos[i] = 0;
@@ -1150,7 +1150,7 @@ void graph_bfs(void)
 				}
 				
 				else {
-					fprintf(stderr,"bfs not dag tree edge color :%i \n",itA->node->color);
+					fprintf(stderr,"bfs not dag tree edge color :%i\n",itA->node->color);
 				}
 
 				
@@ -1187,7 +1187,7 @@ int pre_and_post_source_BFS(DagForest *dag, short mask, DagNode *source, graph_a
 	DagNodeQueue *nqueue;
 	DagAdjList *itA;
 	int	retval = 0;
-	/* fprintf(stderr,"starting BFS \n ------------\n"); */	
+	/* fprintf(stderr,"starting BFS\n ------------\n"); */
 	
 	/* Init
 	 * dagnode.first is always the root (scene)
@@ -1248,7 +1248,7 @@ DagNodeQueue * graph_dfs(void)
 	int maxpos=0;
 	/* int	is_cycle = 0; */ /* UNUSED */
 	/*
-	 *fprintf(stderr,"starting DFS \n ------------\n");
+	 *fprintf(stderr,"starting DFS\n ------------\n");
 	 */	
 	nqueue = queue_create(DAGQUEUEALLOC);
 	retqueue = queue_create(MainDag->numNodes);
@@ -1302,7 +1302,7 @@ DagNodeQueue * graph_dfs(void)
 				}
 				else {
 					if (itA->node->color == DAG_GRAY) { // back edge
-						fprintf(stderr,"dfs back edge :%15s %15s \n",((ID *) node->ob)->name, ((ID *) itA->node->ob)->name);
+						fprintf(stderr,"dfs back edge :%15s %15s\n",((ID *) node->ob)->name, ((ID *) itA->node->ob)->name);
 						/* is_cycle = 1; */ /* UNUSED */
 					}
 					else if (itA->node->color == DAG_BLACK) {
@@ -1313,7 +1313,7 @@ DagNodeQueue * graph_dfs(void)
 						/*if (node->DFS_dist >= itA->node->DFS_dist)
 							itA->node->DFS_dist = node->DFS_dist + 1;
 
-							fprintf(stderr,"dfs forward or cross edge :%15s %i-%i %15s %i-%i \n",
+							fprintf(stderr,"dfs forward or cross edge :%15s %i-%i %15s %i-%i\n",
 								((ID *) node->ob)->name,
 								node->DFS_dvtm, 
 								node->DFS_fntm, 
@@ -1323,7 +1323,7 @@ DagNodeQueue * graph_dfs(void)
 					*/
 					}
 					else
-						fprintf(stderr,"dfs unknown edge \n");
+						fprintf(stderr,"dfs unknown edge\n");
 				}
 				itA = itA->next;
 			}			
@@ -1354,7 +1354,7 @@ DagNodeQueue * graph_dfs(void)
 	}
 		node = node->next;
 	} while (node);
-//	fprintf(stderr,"i size : %i \n", maxpos);
+//	fprintf(stderr,"i size : %i\n", maxpos);
 
 	queue_delete(nqueue);
 	return(retqueue);
@@ -1378,7 +1378,7 @@ int pre_and_post_source_DFS(DagForest *dag, short mask, DagNode *source, graph_a
 	int skip = 0;
 	int retval = 0;
 	/*
-	 *fprintf(stderr,"starting DFS \n ------------\n");
+	 *fprintf(stderr,"starting DFS\n ------------\n");
 	 */	
 	nqueue = queue_create(DAGQUEUEALLOC);
 	
@@ -1800,7 +1800,7 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 	while (base) {
 		BLI_remlink(&sce->base,base);
 		BLI_addhead(&tempbase,base);
-		//if(G.f & G_DEBUG) 
+		//if(G.debug & G_DEBUG)
 			printf("cyclic %s\n", base->object->id.name);
 		base = sce->base.first;
 	}
@@ -1811,7 +1811,7 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 	/* all groups with objects in this scene gets resorted too */
 	scene_sort_groups(bmain, sce);
 	
-	if (G.f & G_DEBUG) {
+	if (G.debug & G_DEBUG) {
 		printf("\nordered\n");
 		for (base = sce->base.first; base; base= base->next) {
 			printf(" %s\n", base->object->id.name);

@@ -2530,7 +2530,7 @@ void object_handle_update(Scene *scene, Object *ob)
 		// XXX: should this case be OB_RECALC_OB instead?
 		if (ob->recalc & OB_RECALC_ALL) {
 			
-			if (G.f & G_DEBUG)
+			if (G.debug & G_DEBUG)
 				printf("recalcob %s\n", ob->id.name+2);
 			
 			/* handle proxy copy for target */
@@ -2558,7 +2558,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			ListBase pidlist;
 			PTCacheID *pid;
 			
-			if (G.f & G_DEBUG)
+			if (G.debug & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name+2);
 
 			if (adt) {

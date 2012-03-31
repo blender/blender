@@ -201,7 +201,7 @@ void ED_markers_get_minmax (ListBase *markers, short sel, float *first, float *l
 	int selcount = 0;
 	
 	/* sanity check */
-	//printf("markers = %p -  %p, %p \n", markers, markers->first, markers->last);
+	//printf("markers = %p -  %p, %p\n", markers, markers->first, markers->last);
 	if (markers == NULL) {
 		*first = 0.0f;
 		*last = 0.0f;

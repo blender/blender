@@ -69,6 +69,7 @@ typedef struct Global {
 
 	short rt;
 	int f;
+	int debug;
 
 	/* Used for BMesh transformations */
 	struct BME_Glob *editBMesh;
@@ -104,15 +105,25 @@ typedef struct Global {
 
 /* #define G_FACESELECT	(1 <<  8) use (mesh->editflag & ME_EDIT_PAINT_MASK) */
 
-#define G_DEBUG			(1 << 12)
 #define G_SCRIPT_AUTOEXEC (1 << 13)
 #define G_SCRIPT_OVERRIDE_PREF (1 << 14) /* when this flag is set ignore the userprefs */
-#define G_DEBUG_FFMPEG		(1 << 15)
 
 /* #define G_NOFROZEN	(1 << 17) also removed */
 /* #define G_GREASEPENCIL 	(1 << 17)   also removed */
 
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */
+
+/* G.debug */
+enum {
+	G_DEBUG =           (1 << 0), /* general debug flag, print more info in unexpected cases */
+	G_DEBUG_FFMPEG =    (1 << 1),
+	G_DEBUG_PYTHON =    (1 << 2), /* extra python info */
+	G_DEBUG_EVENTS =    (1 << 3), /* input/window/screen events */
+	G_DEBUG_WM =        (1 << 4)  /* operator, undo */
+};
+
+#define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM)
+
 
 /* G.fileflags */
 

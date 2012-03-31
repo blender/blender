@@ -281,7 +281,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 
 	/* special cases, override loaded flags: */
 	if (G.f != bfd->globalf) {
-		const int flags_keep= (G_DEBUG | G_DEBUG_FFMPEG | G_SWAP_EXCHANGE | G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
+		const int flags_keep = (G_SWAP_EXCHANGE | G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
 		bfd->globalf= (bfd->globalf & ~flags_keep) | (G.f & flags_keep);
 	}
 
@@ -606,20 +606,19 @@ void BKE_undo_step(bContext *C, int step)
 		/* curundo should never be NULL, after restart or load file it should call undo_save */
 		if (curundo==NULL || curundo->prev==NULL) ; // XXX error("No undo available");
 		else {
-			if (G.f & G_DEBUG) printf("undo %s\n", curundo->name);
+			if (G.debug & G_DEBUG) printf("undo %s\n", curundo->name);
 			curundo= curundo->prev;
 			read_undosave(C, curundo);
 		}
 	}
 	else {
-		
 		/* curundo has to remain current situation! */
 		
 		if (curundo==NULL || curundo->next==NULL) ; // XXX error("No redo available");
 		else {
 			read_undosave(C, curundo->next);
 			curundo= curundo->next;
-			if (G.f & G_DEBUG) printf("redo %s\n", curundo->name);
+			if (G.debug & G_DEBUG) printf("redo %s\n", curundo->name);
 		}
 	}
 }

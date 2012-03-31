@@ -115,7 +115,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 			buf[2]= buf[2]?buf[2]:' ';
 			buf[3]= buf[3]?buf[3]:' ';
 			
-			fprintf(fp, "['%.4s', '%s', %d, %ld ], \n", buf, name, bhead->nr, (long int)(bhead->len+sizeof(BHead)));
+			fprintf(fp, "['%.4s', '%s', %d, %ld ],\n", buf, name, bhead->nr, (long int)(bhead->len+sizeof(BHead)));
 		}
 	}
 	fprintf(fp, "]\n");

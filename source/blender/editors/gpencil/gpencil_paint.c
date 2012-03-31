@@ -569,8 +569,8 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	
 	/* exit with error if no valid points from this stroke */
 	if (totelem == 0) {
-		if (G.f & G_DEBUG) 
-			printf("Error: No valid points in stroke buffer to convert (tot=%d) \n", gpd->sbuffer_size);
+		if (G.debug & G_DEBUG)
+			printf("Error: No valid points in stroke buffer to convert (tot=%d)\n", gpd->sbuffer_size);
 		return;
 	}
 	
@@ -987,8 +987,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 	/* make sure the active view (at the starting time) is a 3d-view */
 	if (curarea == NULL) {
 		p->status= GP_STATUS_ERROR;
-		if (G.f & G_DEBUG) 
-			printf("Error: No active view for painting \n");
+		if (G.debug & G_DEBUG)
+			printf("Error: No active view for painting\n");
 		return 0;
 	}
 	
@@ -1013,8 +1013,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			
 			if (ar->regiondata == NULL) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG)
-					printf("Error: 3D-View active region doesn't have any region data, so cannot be drawable \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: 3D-View active region doesn't have any region data, so cannot be drawable\n");
 				return 0;
 			}
 
@@ -1022,8 +1022,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			/* check that gpencil data is allowed to be drawn */
 			if ((v3d->flag2 & V3D_DISPGP)==0) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view, Grease Pencil not shown \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown\n");
 				return 0;
 			}
 #endif
@@ -1043,8 +1043,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			/* check that gpencil data is allowed to be drawn */
 			if ((snode->flag & SNODE_DISPGP)==0) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view, Grease Pencil not shown \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown\n");
 				return 0;
 			}
 #endif
@@ -1063,14 +1063,14 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			/* check that gpencil data is allowed to be drawn */
 			if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil\n");
 				return 0;
 			}
 			if ((sseq->flag & SEQ_DRAW_GPENCIL)==0) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view, Grease Pencil not shown \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown\n");
 				return 0;
 			}
 		}
@@ -1090,8 +1090,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			/* check that gpencil data is allowed to be drawn */
 			if ((sima->flag & SI_DISPGP)==0) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG)
-					printf("Error: In active view, Grease Pencil not shown \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown\n");
 				return 0;
 			}
 #endif
@@ -1121,8 +1121,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 		default:
 		{
 			p->status= GP_STATUS_ERROR;
-			if (G.f & G_DEBUG) 
-				printf("Error: Active view not appropriate for Grease Pencil drawing \n");
+			if (G.debug & G_DEBUG)
+				printf("Error: Active view not appropriate for Grease Pencil drawing\n");
 			return 0;
 		}
 			break;
@@ -1132,8 +1132,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 	gpd_ptr= gpencil_data_get_pointers(C, &p->ownerPtr);
 	if (gpd_ptr == NULL) {
 		p->status= GP_STATUS_ERROR;
-		if (G.f & G_DEBUG)
-			printf("Error: Current context doesn't allow for any Grease Pencil data \n");
+		if (G.debug & G_DEBUG)
+			printf("Error: Current context doesn't allow for any Grease Pencil data\n");
 		return 0;
 	}
 	else {
@@ -1209,8 +1209,8 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 	}
 	if (p->gpl->flag & GP_LAYER_LOCKED) {
 		p->status= GP_STATUS_ERROR;
-		if (G.f & G_DEBUG)
-			printf("Error: Cannot paint on locked layer \n");
+		if (G.debug & G_DEBUG)
+			printf("Error: Cannot paint on locked layer\n");
 		return;
 	}
 		
@@ -1218,8 +1218,8 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 	p->gpf= gpencil_layer_getframe(p->gpl, p->scene->r.cfra, 1);
 	if (p->gpf == NULL) {
 		p->status= GP_STATUS_ERROR;
-		if (G.f & G_DEBUG) 
-			printf("Error: No frame created (gpencil_paint_init) \n");
+		if (G.debug & G_DEBUG)
+			printf("Error: No frame created (gpencil_paint_init)\n");
 		return;
 	}
 	else
@@ -1519,8 +1519,8 @@ static void gpencil_draw_apply (wmOperator *op, tGPsdata *p)
 			BKE_report(op->reports, RPT_ERROR, "Cannot paint stroke");
 			p->status = GP_STATUS_ERROR;
 			
-			if (G.f & G_DEBUG) 
-				printf("Error: Grease-Pencil Paint - Add Point Invalid \n");
+			if (G.debug & G_DEBUG)
+				printf("Error: Grease-Pencil Paint - Add Point Invalid\n");
 			return;
 		}
 		
@@ -1595,18 +1595,18 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 {
 	tGPsdata *p = NULL;
 	
-	//printf("GPencil - Starting Re-Drawing \n");
+	//printf("GPencil - Starting Re-Drawing\n");
 	
 	/* try to initialize context data needed while drawing */
 	if (!gpencil_draw_init(C, op)) {
 		if (op->customdata) MEM_freeN(op->customdata);
-		//printf("\tGP - no valid data \n");
+		//printf("\tGP - no valid data\n");
 		return OPERATOR_CANCELLED;
 	}
 	else
 		p= op->customdata;
 	
-	//printf("\tGP - Start redrawing stroke \n");
+	//printf("\tGP - Start redrawing stroke\n");
 	
 	/* loop over the stroke RNA elements recorded (i.e. progress of mouse movement),
 	 * setting the relevant values in context at each step, then applying
@@ -1614,7 +1614,7 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		float mousef[2];
 		
-		//printf("\t\tGP - stroke elem \n");
+		//printf("\t\tGP - stroke elem\n");
 		
 		/* get relevant data for this point from stroke */
 		RNA_float_get_array(&itemptr, "mouse", mousef);
@@ -1647,7 +1647,7 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 	}
 	RNA_END;
 	
-	//printf("\tGP - done \n");
+	//printf("\tGP - done\n");
 	
 	/* cleanup */
 	gpencil_draw_exit(C, op);
@@ -1667,15 +1667,15 @@ static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	tGPsdata *p = NULL;
 	wmWindow *win= CTX_wm_window(C);
 	
-	if (G.f & G_DEBUG)
-		printf("GPencil - Starting Drawing \n");
+	if (G.debug & G_DEBUG)
+		printf("GPencil - Starting Drawing\n");
 	
 	/* try to initialize context data needed while drawing */
 	if (!gpencil_draw_init(C, op)) {
 		if (op->customdata) 
 			MEM_freeN(op->customdata);
-		if (G.f & G_DEBUG)
-			printf("\tGP - no valid data \n");
+		if (G.debug & G_DEBUG)
+			printf("\tGP - no valid data\n");
 		return OPERATOR_CANCELLED;
 	}
 	else
@@ -1742,11 +1742,11 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	 * otherwise we could crash (see bug #20586)
 	 */
 	if (CTX_wm_area(C) != p->sa) {
-		printf("\t\t\tGP - wrong area execution abort! \n");
+		printf("\t\t\tGP - wrong area execution abort!\n");
 		p->status= GP_STATUS_ERROR;
 	}
 
-	//printf("\t\tGP - start stroke \n");
+	//printf("\t\tGP - start stroke\n");
 
 	/* we may need to set up paint env again if we're resuming */
 	// XXX: watch it with the paintmode! in future, it'd be nice to allow changing paint-mode when in sketching-sessions
@@ -1858,7 +1858,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* finish painting operation if anything went wrong just now */
 			if (p->status == GP_STATUS_ERROR) {
-				printf("\t\t\t\tGP - add error done! \n");
+				printf("\t\t\t\tGP - add error done!\n");
 				estate = OPERATOR_CANCELLED;
 			}
 			else {

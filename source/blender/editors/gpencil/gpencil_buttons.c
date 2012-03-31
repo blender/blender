@@ -204,7 +204,7 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 		uiItemR(col, &ptr, "line_width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 		
 		/* debugging options */
-		if (G.f & G_DEBUG) {
+		if (G.debug & G_DEBUG) {
 			uiItemR(col, &ptr, "show_points", 0, NULL, ICON_NONE);
 		}
 		

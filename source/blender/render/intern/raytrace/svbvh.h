@@ -224,7 +224,7 @@ struct Reorganize_SVBVH
 	
 	~Reorganize_SVBVH()
 	{
-		if(G.f & G_DEBUG) {
+		if(G.debug & G_DEBUG) {
 			printf("%f childs per node\n", childs_per_node / nodes);
 			printf("%d childs BB are useless\n", useless_bb);
 			for(int i=0; i<16; i++)

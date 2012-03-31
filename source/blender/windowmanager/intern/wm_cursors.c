@@ -188,7 +188,7 @@ void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 
 	if (hide) mode = GHOST_kGrabHide;
 	else if (wrap) mode = GHOST_kGrabWrap;
-	if ((G.f & G_DEBUG) == 0) {
+	if ((G.debug & G_DEBUG) == 0) {
 		if (win && win->ghostwin) {
 			const GHOST_TabletData *tabletdata = GHOST_GetTabletData(win->ghostwin);
 			// Note: There is no tabletdata on Windows if no tablet device is connected.
@@ -204,7 +204,7 @@ void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 
 void WM_cursor_ungrab(wmWindow *win)
 {
-	if ((G.f & G_DEBUG) == 0) {
+	if ((G.debug & G_DEBUG) == 0) {
 		if (win && win->ghostwin) {
 			GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL);
 			win->grabcursor = GHOST_kGrabDisable;

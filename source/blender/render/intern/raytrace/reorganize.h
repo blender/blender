@@ -529,7 +529,7 @@ struct VBVH_optimalPackSIMD
 			if(num == 0) { num++; first = true; }
 			
 			calc_costs(node);
-			if((G.f & G_DEBUG) && first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize );
+			if((G.debug & G_DEBUG) && first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize );
 			node->optimize();
 		}
 		return node;		

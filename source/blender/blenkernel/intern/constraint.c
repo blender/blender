@@ -2182,8 +2182,8 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		CLAMP(s, 0, 1);
 		t = (s * (data->end-data->start)) + data->start;
 		
-		if (G.f & G_DEBUG)
-			printf("do Action Constraint %s - Ob %s Pchan %s \n", con->name, cob->ob->id.name+2, (cob->pchan)?cob->pchan->name:NULL);
+		if (G.debug & G_DEBUG)
+			printf("do Action Constraint %s - Ob %s Pchan %s\n", con->name, cob->ob->id.name+2, (cob->pchan)?cob->pchan->name:NULL);
 		
 		/* Get the appropriate information from the action */
 		if (cob->type == CONSTRAINT_OBTYPE_BONE) {
@@ -4300,7 +4300,7 @@ bConstraintTypeInfo *get_constraint_typeinfo (int type)
 		return constraintsTypeInfo[type];
 	}
 	else {
-		printf("No valid constraint type-info data available. Type = %i \n", type);
+		printf("No valid constraint type-info data available. Type = %i\n", type);
 	}
 	
 	return NULL;

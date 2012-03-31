@@ -131,7 +131,7 @@ bAction *verify_adt_action (ID *id, short add)
 		adt= BKE_id_add_animdata(id);
 	if (adt == NULL) { 
 		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
-		printf("ERROR: Couldn't add AnimData (ID = %s) \n", (id) ? (id->name) : "<None>");
+		printf("ERROR: Couldn't add AnimData (ID = %s)\n", (id) ? (id->name) : "<None>");
 		return NULL;
 	}
 		
@@ -584,7 +584,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		searchtype= VISUALKEY_ROT;
 	}
 	else {
-		printf("%s failed: identifier - '%s' \n", __func__, identifier);
+		printf("%s failed: identifier - '%s'\n", __func__, identifier);
 		return 0;
 	}
 	
@@ -1007,7 +1007,7 @@ short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 			cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP); 
 		}
 		else {
-			BKE_reportf(reports, RPT_ERROR, "No Action to delete keyframes from for ID = %s \n", id->name);
+			BKE_reportf(reports, RPT_ERROR, "No Action to delete keyframes from for ID = %s\n", id->name);
 			return 0;
 		}
 	}
@@ -1036,8 +1036,8 @@ short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 			continue;
 			
 		if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
-			if (G.f & G_DEBUG)
-				printf("WARNING: not deleting keyframe for locked F-Curve \n");
+			if (G.debug & G_DEBUG)
+				printf("WARNING: not deleting keyframe for locked F-Curve\n");
 			continue;
 		}
 		
@@ -1128,8 +1128,8 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	
 	/* try to insert keyframes for the channels specified by KeyingSet */
 	success= ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
-	if (G.f & G_DEBUG)
-		BKE_reportf(op->reports, RPT_INFO, "KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
+	if (G.debug & G_DEBUG)
+		BKE_reportf(op->reports, RPT_INFO, "KeyingSet '%s' - Successfully added %d Keyframes\n", ks->name, success);
 	
 	/* report failure or do updates? */
 	if (success == MODIFYKEY_INVALID_CONTEXT) {
@@ -1284,8 +1284,8 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	
 	/* try to delete keyframes for the channels specified by KeyingSet */
 	success= ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
-	if (G.f & G_DEBUG)
-		printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
+	if (G.debug & G_DEBUG)
+		printf("KeyingSet '%s' - Successfully removed %d Keyframes\n", ks->name, success);
 	
 	/* report failure or do updates? */
 	if (success == MODIFYKEY_INVALID_CONTEXT) {
@@ -1448,17 +1448,17 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 			success+= insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, 0);
 		}
 		else {
-			if (G.f & G_DEBUG)
-				printf("Button Insert-Key: no path to property \n");
+			if (G.debug & G_DEBUG)
+				printf("Button Insert-Key: no path to property\n");
 			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property. Try using a Keying Set instead");
 		}
 	}
-	else if (G.f & G_DEBUG) {
+	else if (G.debug & G_DEBUG) {
 		printf("ptr.data = %p, prop = %p,", (void *)ptr.data, (void *)prop);
 		if (prop)
-			printf("animatable = %d \n", RNA_property_animateable(&ptr, prop));
+			printf("animatable = %d\n", RNA_property_animateable(&ptr, prop));
 		else
-			printf("animatable = NULL \n");
+			printf("animatable = NULL\n");
 	}
 	
 	if (success) {
@@ -1525,11 +1525,11 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 			
 			MEM_freeN(path);
 		}
-		else if (G.f & G_DEBUG)
-			printf("Button Delete-Key: no path to property \n");
+		else if (G.debug & G_DEBUG)
+			printf("Button Delete-Key: no path to property\n");
 	}
-	else if (G.f & G_DEBUG) {
-		printf("ptr.data = %p, prop = %p \n", (void *)ptr.data, (void *)prop);
+	else if (G.debug & G_DEBUG) {
+		printf("ptr.data = %p, prop = %p\n", (void *)ptr.data, (void *)prop);
 	}
 	
 	

@@ -1037,7 +1037,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 			if (count!=4) {
 				/* let's stop adding regions */
 				BLI_init_rcti(remainder, 0, 0, 0, 0);
-				if (G.f & G_DEBUG)
+				if (G.debug & G_DEBUG)
 					printf("region quadsplit failed\n");
 			}
 			else quad= 1;

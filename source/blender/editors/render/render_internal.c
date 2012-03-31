@@ -317,8 +317,8 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 
 	/* very weak... but 512 characters is quite safe */
 	if (spos >= str + IMA_MAX_RENDER_TEXT)
-		if (G.f & G_DEBUG)
-			printf("WARNING! renderwin text beyond limit \n");
+		if (G.debug & G_DEBUG)
+			printf("WARNING! renderwin text beyond limit\n");
 
 }
 

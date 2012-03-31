@@ -997,7 +997,7 @@ static void mouse_action_keys (bAnimContext *ac, const int mval[2], short select
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		printf("Error: animation channel (index = %d) not found in mouse_action_keys() \n", channel_index);
+		printf("Error: animation channel (index = %d) not found in mouse_action_keys()\n", channel_index);
 		BLI_freelistN(&anim_data);
 		return;
 	}

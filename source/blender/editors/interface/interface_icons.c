@@ -757,7 +757,7 @@ int UI_icon_get_width(int icon_id)
 	icon = BKE_icon_get(icon_id);
 	
 	if (icon == NULL) {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return 0;
 	}
@@ -782,7 +782,7 @@ int UI_icon_get_height(int icon_id)
 	icon = BKE_icon_get(icon_id);
 	
 	if (icon == NULL) {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return 0;
 	}
@@ -830,7 +830,7 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 	unsigned int render_size = preview_render_size(size);
 
 	if (!prv_img) {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("%s, error: requested preview image does not exist", __func__);
 	}
 	if (!prv_img->rect[size]) {
@@ -847,7 +847,7 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 static void icon_set_image(bContext *C, ID *id, PreviewImage *prv_img, enum eIconSizes size)
 {
 	if (!prv_img) {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("%s: no preview image for this ID: %s\n", __func__, id->name);
 		return;
 	}	
@@ -967,7 +967,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	alpha *= btheme->tui.icon_alpha;
 	
 	if (icon == NULL) {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return;
 	}

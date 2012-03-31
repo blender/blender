@@ -135,7 +135,7 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 	
 	/* button must have RNA-pointer to a numeric-capable property */
 	if (ELEM(NULL, but->rnapoin.data, but->rnaprop)) {
-		if (G.f & G_DEBUG) 
+		if (G.debug & G_DEBUG)
 			printf("ERROR: create expression failed - button has no RNA info attached\n");
 		return 0;
 	}
@@ -144,7 +144,7 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 	// FIXME: until materials can be handled by depsgraph, don't allow drivers to be created for them
 	id = (ID *)but->rnapoin.id.data;
 	if ((id == NULL) || (GS(id->name) == ID_MA) || (GS(id->name) == ID_TE)) {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("ERROR: create expression failed - invalid id-datablock for adding drivers (%p)\n", id);
 		return 0;
 	}

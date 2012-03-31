@@ -1131,7 +1131,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	if (totelem == 0) {
 		distribute_invalid(scene, psys, children ? PART_FROM_CHILD : 0);
 
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			fprintf(stderr,"Particle distribution error: Nothing to emit from!\n");
 
 		if (dm != finaldm) dm->release(dm);
@@ -4076,7 +4076,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 
 			gzf = BLI_gzopen(filename, "rb");
 			if (!gzf) {
-				BLI_snprintf(debugStrBuffer, sizeof(debugStrBuffer),"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
+				BLI_snprintf(debugStrBuffer, sizeof(debugStrBuffer),"readFsPartData::error - Unable to open file for reading '%s'\n", filename);
 				// XXX bad level call elbeemDebugOut(debugStrBuffer);
 				return;
 			}
@@ -4125,7 +4125,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 					pa->dietime = sim->scene->r.efra + 1;
 					pa->lifetime = sim->scene->r.efra;
 					pa->alive = PARS_ALIVE;
-					//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f \n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
+					//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f\n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
 				}
 				else {
 					// skip...
@@ -4138,7 +4138,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			gzclose(gzf);
 	
 			totpart = psys->totpart = activeParts;
-			BLI_snprintf(debugStrBuffer,sizeof(debugStrBuffer),"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
+			BLI_snprintf(debugStrBuffer,sizeof(debugStrBuffer),"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d\n", psys->totpart,activeParts,fileParts,readMask);
 			// bad level call
 			// XXX elbeemDebugOut(debugStrBuffer);
 			

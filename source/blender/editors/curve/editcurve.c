@@ -1944,7 +1944,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 					}
 				}
 				if (newu==0 || newv==0) {
-					if (G.f & G_DEBUG)
+					if (G.debug & G_DEBUG)
 						printf("Can't duplicate Nurb\n");
 				}
 				else {

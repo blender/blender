@@ -97,8 +97,8 @@ void free_ipo (Ipo *ipo)
 		BLI_freelinkN(&ipo->curve, icu);
 	}
 	
-	if (G.f & G_DEBUG)
-		printf("Freed %d (Unconverted) Ipo-Curves from IPO '%s' \n", n, ipo->id.name+2);
+	if (G.debug & G_DEBUG)
+		printf("Freed %d (Unconverted) Ipo-Curves from IPO '%s'\n", n, ipo->id.name+2);
 }
 
 /* *************************************************** */
@@ -296,7 +296,7 @@ static const char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 	}
 	
 	/* for debugging only */
-	printf("ERROR: unmatched PoseChannel setting (code %d) \n", adrcode);
+	printf("ERROR: unmatched PoseChannel setting (code %d)\n", adrcode);
 	return NULL;
 }
 
@@ -893,7 +893,7 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 			
 		// TODO... add other blocktypes...
 		default:
-			printf("IPO2ANIMATO WARNING: No path for blocktype %d, adrcode %d yet \n", blocktype, adrcode);
+			printf("IPO2ANIMATO WARNING: No path for blocktype %d, adrcode %d yet\n", blocktype, adrcode);
 			break;
 	}
 	
@@ -1199,7 +1199,7 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 		FCurve *fcurve;
 		int b;
 		
-		if (G.f & G_DEBUG) printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
+		if (G.debug & G_DEBUG) printf("\tconvert bitflag ipocurve, totbits = %d\n", totbits);
 		
 		/* add the 'only int values' flag */
 		fcu->flag |= (FCURVE_INT_VALUES|FCURVE_DISCRETE_VALUES);		
@@ -1396,7 +1396,7 @@ static void ipo_to_animato (ID *id, Ipo *ipo, char actname[], char constname[], 
 	if (ELEM3(NULL, ipo, anim, drivers))
 		return;
 		
-	if (G.f & G_DEBUG) printf("ipo_to_animato \n");
+	if (G.debug & G_DEBUG) printf("ipo_to_animato\n");
 		
 	/* validate actname and constname 
 	 *	- clear actname if it was one of the generic <builtin> ones (i.e. 'Object', or 'Shapes')
@@ -1521,12 +1521,12 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[],
 	if (ELEM(NULL, id, ipo))
 		return;
 	if (adt == NULL) {
-		printf("ERROR ipo_to_animdata(): adt invalid \n");
+		printf("ERROR ipo_to_animdata(): adt invalid\n");
 		return;
 	}
 	
-	if (G.f & G_DEBUG) {
-		printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s seqname:%s  curves:%d \n", 
+	if (G.debug & G_DEBUG) {
+		printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s seqname:%s  curves:%d\n",
 		       id->name+2, ipo->id.name+2, (actname)?actname:"<None>", (constname)?constname:"<None>", (seq)?(seq->name+2):"<None>",
 			BLI_countlist(&ipo->curve));
 	}
@@ -1539,7 +1539,7 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[],
 	
 	/* deal with animation first */
 	if (anim.first) {
-		if (G.f & G_DEBUG) printf("\thas anim \n");
+		if (G.debug & G_DEBUG) printf("\thas anim\n");
 		/* try to get action */
 		if (adt->action == NULL) {
 			char nameBuf[MAX_ID_NAME];
@@ -1547,7 +1547,7 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[],
 			BLI_snprintf(nameBuf, sizeof(nameBuf), "CDA:%s", ipo->id.name+2);
 			
 			adt->action= add_empty_action(nameBuf);
-			if (G.f & G_DEBUG) printf("\t\tadded new action - '%s' \n", nameBuf);
+			if (G.debug & G_DEBUG) printf("\t\tadded new action - '%s'\n", nameBuf);
 		}
 		
 		/* add F-Curves to action */
@@ -1556,7 +1556,7 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[],
 	
 	/* deal with drivers */
 	if (drivers.first) {
-		if (G.f & G_DEBUG) printf("\thas drivers \n");
+		if (G.debug & G_DEBUG) printf("\thas drivers\n");
 		/* add drivers to end of driver stack */
 		BLI_movelisttolist(&adt->drivers, &drivers);
 	}
@@ -1576,7 +1576,7 @@ static void action_to_animdata (ID *id, bAction *act)
 	/* check if we need to set this Action as the AnimData's action */
 	if (adt->action == NULL) {
 		/* set this Action as AnimData's Action */
-		if (G.f & G_DEBUG) printf("act_to_adt - set adt action to act \n");
+		if (G.debug & G_DEBUG) printf("act_to_adt - set adt action to act\n");
 		adt->action= act;
 	}
 	
@@ -1685,17 +1685,17 @@ void do_versions_ipos_to_animato(Main *main)
 	ID *id;
 	
 	if (main == NULL) {
-		printf("Argh! Main is NULL in do_versions_ipos_to_animato() \n");
+		printf("Argh! Main is NULL in do_versions_ipos_to_animato()\n");
 		return;
 	}
 		
 	/* only convert if version is right */
 	if (main->versionfile >= 250) {
-		printf("WARNING: Animation data too new to convert (Version %d) \n", main->versionfile);
+		printf("WARNING: Animation data too new to convert (Version %d)\n", main->versionfile);
 		return;
 	}
-	else if (G.f & G_DEBUG)
-		printf("INFO: Converting to Animato... \n");
+	else if (G.debug & G_DEBUG)
+		printf("INFO: Converting to Animato...\n");
 		
 	/* ----------- Animation Attached to Data -------------- */
 	
@@ -1706,7 +1706,7 @@ void do_versions_ipos_to_animato(Main *main)
 		bConstraint *con;
 		bConstraintChannel *conchan, *conchann;
 		
-		if (G.f & G_DEBUG) printf("\tconverting ob %s \n", id->name+2);
+		if (G.debug & G_DEBUG) printf("\tconverting ob %s\n", id->name+2);
 		
 		/* check if object has any animation data */
 		if (ob->nlastrips.first) {
@@ -1831,7 +1831,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->key.first; id; id= id->next) {
 		Key *key= (Key *)id;
 		
-		if (G.f & G_DEBUG) printf("\tconverting key %s \n", id->name+2);
+		if (G.debug & G_DEBUG) printf("\tconverting key %s\n", id->name+2);
 		
 		/* we're only interested in the IPO 
 		 * NOTE: for later, it might be good to port these over to Object instead, as many of these
@@ -1856,7 +1856,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->mat.first; id; id= id->next) {
 		Material *ma= (Material *)id;
 		
-		if (G.f & G_DEBUG) printf("\tconverting material %s \n", id->name+2);
+		if (G.debug & G_DEBUG) printf("\tconverting material %s\n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (ma->ipo) {
@@ -1878,7 +1878,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->world.first; id; id= id->next) {
 		World *wo= (World *)id;
 		
-		if (G.f & G_DEBUG) printf("\tconverting world %s \n", id->name+2);
+		if (G.debug & G_DEBUG) printf("\tconverting world %s\n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (wo->ipo) {
@@ -1909,8 +1909,8 @@ void do_versions_ipos_to_animato(Main *main)
 				IpoCurve *icu = (seq->ipo) ? seq->ipo->curve.first : NULL;
 				short adrcode = SEQ_FAC1;
 				
-				if (G.f & G_DEBUG) 
-					printf("\tconverting sequence strip %s \n", seq->name+2);
+				if (G.debug & G_DEBUG)
+					printf("\tconverting sequence strip %s\n", seq->name+2);
 				
 				if (ELEM(NULL, seq->ipo, icu)) {
 					seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
@@ -1953,7 +1953,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->tex.first; id; id= id->next) {
 		Tex *te= (Tex *)id;
 		
-		if (G.f & G_DEBUG) printf("\tconverting texture %s \n", id->name+2);
+		if (G.debug & G_DEBUG) printf("\tconverting texture %s\n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (te->ipo) {
@@ -1975,7 +1975,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->camera.first; id; id= id->next) {
 		Camera *ca= (Camera *)id;
 		
-		if (G.f & G_DEBUG) printf("\tconverting camera %s \n", id->name+2);
+		if (G.debug & G_DEBUG) printf("\tconverting camera %s\n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (ca->ipo) {
@@ -1997,7 +1997,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->lamp.first; id; id= id->next) {
 		Lamp *la= (Lamp *)id;
 		
-		if (G.f & G_DEBUG) printf("\tconverting lamp %s \n", id->name+2);
+		if (G.debug & G_DEBUG) printf("\tconverting lamp %s\n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (la->ipo) {
@@ -2019,7 +2019,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->curve.first; id; id= id->next) {
 		Curve *cu= (Curve *)id;
 		
-		if (G.f & G_DEBUG) printf("\tconverting curve %s \n", id->name+2);
+		if (G.debug & G_DEBUG) printf("\tconverting curve %s\n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (cu->ipo) {
@@ -2052,7 +2052,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->action.first; id; id= id->next) {
 		bAction *act= (bAction *)id;
 		
-		if (G.f & G_DEBUG) printf("\tconverting action %s \n", id->name+2);
+		if (G.debug & G_DEBUG) printf("\tconverting action %s\n", id->name+2);
 		
 		/* if old action, it will be object-only... */
 		if (act->chanbase.first)
@@ -2066,7 +2066,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->ipo.first; id; id= id->next) {
 		Ipo *ipo= (Ipo *)id;
 		
-		if (G.f & G_DEBUG) printf("\tconverting ipo %s \n", id->name+2);
+		if (G.debug & G_DEBUG) printf("\tconverting ipo %s\n", id->name+2);
 		
 		/* most likely this IPO has already been processed, so check if any curves left to convert */
 		if (ipo->curve.first) {
@@ -2086,7 +2086,7 @@ void do_versions_ipos_to_animato(Main *main)
 	/* free unused drivers from actions + ipos */
 	free_fcurves(&drivers);
 	
-	if (G.f & G_DEBUG)
-		printf("INFO: Animato convert done \n");
+	if (G.debug & G_DEBUG)
+		printf("INFO: Animato convert done\n");
 }
 

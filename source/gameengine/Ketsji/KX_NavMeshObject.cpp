@@ -287,7 +287,7 @@ bool KX_NavMeshObject::BuildNavMesh()
 
 	if (GetMeshCount()==0)
 	{
-		printf("Can't find mesh for navmesh object: %s \n", m_name.ReadPtr());
+		printf("Can't find mesh for navmesh object: %s\n", m_name.ReadPtr());
 		return false;
 	}
 
@@ -299,7 +299,7 @@ bool KX_NavMeshObject::BuildNavMesh()
 							dmeshes, dvertices, ndvertsuniq, dtris, ndtris, vertsPerPoly ) 
 			|| vertsPerPoly<3)
 	{
-		printf("Can't build navigation mesh data for object:%s \n", m_name.ReadPtr());
+		printf("Can't build navigation mesh data for object:%s\n", m_name.ReadPtr());
 		return false;
 	}
 	

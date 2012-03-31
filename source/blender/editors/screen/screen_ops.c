@@ -3374,7 +3374,7 @@ static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ED_screen_delete_scene(C, scene);
 
-	if (G.f & G_DEBUG)
+	if (G.debug & G_DEBUG)
 		printf("scene delete %p\n", scene);
 
 	WM_event_add_notifier(C, NC_SCENE|NA_REMOVED, scene);

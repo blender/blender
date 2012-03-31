@@ -224,17 +224,17 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 		// invalid, cant happen?
 	}
 
-	fprintf(file, "      CHANNEL %s = \n", str); 
+	fprintf(file, "      CHANNEL %s =\n", str);
 	for (i=0; i<channelSize;i++) { 
 		fprintf(file,"        ");  
 		for (j=0;j<=entries;j++) {  // also print time value
 			fprintf(file," %f ", channel[i*(entries+1)+j] ); 
 			if (j==entries-1) { fprintf(file,"  "); }
 		} 
-		fprintf(file," \n");  
+		fprintf(file,"\n");
 	} 
 
-	fprintf(file,  "      ; \n" ); 
+	fprintf(file,  "      ;\n" );
 }
 #endif
 
@@ -805,7 +805,7 @@ int runSimulationCallback(void *data, int status, int frame)
 	
 	if (status == FLUIDSIM_CBSTATUS_NEWFRAME) {
 		fluidbake_updatejob(fb, frame / (float)settings->noOfFrames);
-		//printf("elbeem blender cb s%d, f%d, domainid:%d noOfFrames: %d \n", status,frame, settings->domainId, settings->noOfFrames ); // DEBUG
+		//printf("elbeem blender cb s%d, f%d, domainid:%d noOfFrames: %d\n", status,frame, settings->domainId, settings->noOfFrames ); // DEBUG
 	}
 	
 	if (fluidbake_breakjob(fb)) {

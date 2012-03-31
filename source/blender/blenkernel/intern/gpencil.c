@@ -151,7 +151,7 @@ bGPDframe *gpencil_frame_addnew (bGPDlayer *gpl, int cframe)
 	/* check whether frame was added successfully */
 	if (state == -1) {
 		MEM_freeN(gpf);
-		printf("Error: frame (%d) existed already for this layer \n", cframe);
+		printf("Error: frame (%d) existed already for this layer\n", cframe);
 	}
 	else if (state == 0) {
 		/* add to end then! */
@@ -428,7 +428,7 @@ bGPDframe *gpencil_layer_getframe (bGPDlayer *gpl, int cframe, short addnew)
 			gpl->actframe= gpf;
 		else {
 			/* unresolved errogenous situation! */
-			printf("Error: cannot find appropriate gp-frame \n");
+			printf("Error: cannot find appropriate gp-frame\n");
 			/* gpl->actframe should still be NULL */
 		}
 	}

@@ -492,7 +492,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 
 void imb_inittiff(void)
 {
-	if (!(G.f & G_DEBUG))
+	if (!(G.debug & G_DEBUG))
 		TIFFSetErrorHandler(NULL);
 }
 

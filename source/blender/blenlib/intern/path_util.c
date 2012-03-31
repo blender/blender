@@ -1657,7 +1657,7 @@ int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 
 	/* return 2 if src=dest */
 	if (BLI_path_cmp(path, dest_path) == 0) {
-		// if (G.f & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
+		// if (G.debug & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
 		return 2;
 	}
 

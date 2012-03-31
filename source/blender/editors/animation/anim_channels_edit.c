@@ -394,14 +394,14 @@ void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bA
 		}
 	}
 	if (match == NULL) {
-		printf("ERROR: no channel matching the one changed was found \n");
+		printf("ERROR: no channel matching the one changed was found\n");
 		return;
 	}
 	else {
 		bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale_setting);
 		
 		if (acf == NULL) {
-			printf("ERROR: no channel info for the changed channel \n");
+			printf("ERROR: no channel info for the changed channel\n");
 			return;
 		}
 		
@@ -1085,7 +1085,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 				default: /* some collection of actions */
 					if (adt->action)
 						rearrange_action_channels(&ac, adt->action, mode);
-					else if (G.f & G_DEBUG)
+					else if (G.debug & G_DEBUG)
 						printf("Animdata has no action\n");
 					break;
 			}
@@ -1967,8 +1967,8 @@ static void rename_anim_channels (bAnimContext *ac, int channel_index)
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		if (G.f & G_DEBUG)
-			printf("Error: animation channel (index = %d) not found in rename_anim_channels() \n", channel_index);
+		if (G.debug & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in rename_anim_channels()\n", channel_index);
 		
 		BLI_freelistN(&anim_data);
 		return;
@@ -2068,8 +2068,8 @@ static int mouse_anim_channels (bAnimContext *ac, float UNUSED(x), int channel_i
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		if (G.f & G_DEBUG)
-			printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
+		if (G.debug & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in mouse_anim_channels()\n", channel_index);
 		
 		BLI_freelistN(&anim_data);
 		return 0;
@@ -2288,8 +2288,8 @@ static int mouse_anim_channels (bAnimContext *ac, float UNUSED(x), int channel_i
 		}
 			break;
 		default:
-			if (G.f & G_DEBUG)
-				printf("Error: Invalid channel type in mouse_anim_channels() \n");
+			if (G.debug & G_DEBUG)
+				printf("Error: Invalid channel type in mouse_anim_channels()\n");
 	}
 	
 	/* free channels */

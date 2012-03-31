@@ -269,8 +269,8 @@ static void nupdate_abk_bezt (void *node, void *data)
 	if (abk->numBezts >= MAX_ABK_BUFSIZE) {
 		// TODO: need to allocate new array to cater...
 		//bezts_extra= MEM_callocN(...);
-		if (G.f & G_DEBUG)
-			printf("FIXME: nupdate_abk_bezt() missing case for too many overlapping BezTriples \n");
+		if (G.debug & G_DEBUG)
+			printf("FIXME: nupdate_abk_bezt() missing case for too many overlapping BezTriples\n");
 	}
 	else {
 		/* just store an extra one */

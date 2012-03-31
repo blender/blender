@@ -370,7 +370,7 @@ int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short
 	 *	- keyframe to be added would replace one of the existing ones on bounds
 	 */
 	if ((arraylen <= 0) || (array == NULL)) {
-		printf("Warning: binarysearch_bezt_index() encountered invalid array \n");
+		printf("Warning: binarysearch_bezt_index() encountered invalid array\n");
 		return 0;
 	}
 	else {
@@ -420,10 +420,10 @@ int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short
 	
 	/* print error if loop-limit exceeded */
 	if (loopbreaker == (maxloop-1)) {
-		printf("Error: binarysearch_bezt_index() was taking too long \n");
+		printf("Error: binarysearch_bezt_index() was taking too long\n");
 		
 		// include debug info 
-		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
+		printf("\tround = %d: start = %d, end = %d, arraylen = %d\n", loopbreaker, start, end, arraylen);
 	}
 	
 	/* not found, so return where to place it */
@@ -546,7 +546,7 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 		if (ymax) *ymax= ymaxv;
 	}
 	else {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("F-Curve calc bounds didn't find anything, so assuming minimum bounds of 1.0\n");
 			
 		if (xmin) *xmin= 0.0f;
@@ -743,7 +743,7 @@ void fcurve_store_samples (FCurve *fcu, void *data, int start, int end, FcuSampl
 		return;
 	}
 	if (start >= end) {
-		printf("Error: Frame range for Sampled F-Curve creation is inappropriate \n");
+		printf("Error: Frame range for Sampled F-Curve creation is inappropriate\n");
 		return;
 	}
 	
@@ -1009,8 +1009,8 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	/* error check for missing pointer... */
 	// TODO: tag the specific target too as having issues
 	if (id == NULL) {
-		printf("Error: driver has an invalid target to use \n");
-		if (G.f & G_DEBUG) printf("\tpath = %s\n", dtar->rna_path);
+		printf("Error: driver has an invalid target to use\n");
+		if (G.debug & G_DEBUG) printf("\tpath = %s\n", dtar->rna_path);
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
 	}
@@ -1060,8 +1060,8 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 
 	}
 	else {
-		if (G.f & G_DEBUG)
-			printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, dtar->rna_path);
+		if (G.debug & G_DEBUG)
+			printf("Driver Evaluation Error: cannot resolve target for %s -> %s\n", id->name, dtar->rna_path);
 		
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
@@ -1118,11 +1118,11 @@ static float dvar_eval_rotDiff (ChannelDriver *driver, DriverVar *dvar)
 		
 		/* check what the error was */
 		if ((pchan == NULL) && (pchan2 == NULL))
-			printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid \n");
+			printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid\n");
 		else if (pchan == NULL)
-			printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel \n");
+			printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel\n");
 		else if (pchan2 == NULL)
-			printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel \n");
+			printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel\n");
 			
 		/* stop here... */
 		return 0.0f;

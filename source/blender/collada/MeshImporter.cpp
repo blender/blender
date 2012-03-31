@@ -180,7 +180,7 @@ void MeshImporter::set_face_indices(MFace *mface, unsigned int *indices, bool qu
 	if (quad) mface->v4 = indices[3];
 	else mface->v4 = 0;
 #ifdef COLLADA_DEBUG
-	// fprintf(stderr, "%u, %u, %u \n", indices[0], indices[1], indices[2]);
+	// fprintf(stderr, "%u, %u, %u\n", indices[0], indices[1], indices[2]);
 #endif
 }
 

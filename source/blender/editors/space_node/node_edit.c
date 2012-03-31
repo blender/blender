@@ -370,7 +370,7 @@ void ED_node_composit_default(Scene *sce)
 	
 	/* but lets check it anyway */
 	if (sce->nodetree) {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("error in composite initialize\n");
 		return;
 	}
@@ -410,7 +410,7 @@ void ED_node_texture_default(Tex *tx)
 	
 	/* but lets check it anyway */
 	if (tx->nodetree) {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("error in texture initialize\n");
 		return;
 	}

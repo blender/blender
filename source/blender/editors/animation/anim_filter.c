@@ -1396,8 +1396,8 @@ static size_t animdata_filter_ds_textures (bAnimContext *ac, ListBase *anim_data
 		default: 
 		{
 			/* invalid/unsupported option */
-			if (G.f & G_DEBUG)
-				printf("ERROR: unsupported owner_id (i.e. texture stack) for filter textures - %s \n", owner_id->name);
+			if (G.debug & G_DEBUG)
+				printf("ERROR: unsupported owner_id (i.e. texture stack) for filter textures - %s\n", owner_id->name);
 			return 0;
 		}
 	}
@@ -1994,8 +1994,8 @@ static size_t animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, 
 	/* check that we do indeed have a scene */
 	if ((ads->source == NULL) || (GS(ads->source->name)!=ID_SCE)) {
 		printf("DopeSheet Error: Not scene!\n");
-		if (G.f & G_DEBUG)
-			printf("\tPointer = %p, Name = '%s' \n", (void *)ads->source, (ads->source)?ads->source->name:NULL);
+		if (G.debug & G_DEBUG)
+			printf("\tPointer = %p, Name = '%s'\n", (void *)ads->source, (ads->source)?ads->source->name:NULL);
 		return 0;
 	}
 	

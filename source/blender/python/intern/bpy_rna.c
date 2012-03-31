@@ -6033,7 +6033,7 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
 				newclass = NULL;
 			}
 			else {
-				if (G.f & G_DEBUG)
+				if (G.debug & G_DEBUG_PYTHON)
 					fprintf(stderr, "SRNA Subclassed: '%s'\n", idname);
 			}
 		}
@@ -7145,7 +7145,7 @@ static void bpy_class_free(void *pyob_ptr)
 		PyErr_Clear();
 
 #if 0 /* needs further investigation, too annoying so quiet for now */
-	if (G.f & G_DEBUG) {
+	if (G.debug & G_DEBUG_PYTHON) {
 		if (self->ob_refcnt > 1) {
 			PyC_ObSpit("zombie class - ref should be 1", self);
 		}
@@ -7444,7 +7444,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 	}
 
 	/* should happen all the time but very slow */
-	if (G.f & G_DEBUG) {
+	if (G.debug & G_DEBUG_PYTHON) {
 		/* remove all properties using this class */
 		StructRNA *srna_iter;
 		PointerRNA ptr_rna;

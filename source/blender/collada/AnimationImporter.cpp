@@ -261,7 +261,7 @@ bool AnimationImporter::write_animation(const COLLADAFW::Animation* anim)
 		// XXX Don't know if it's necessary
 		// Should we check outPhysicalDimension?
 		if (curve->getInPhysicalDimension() != COLLADAFW::PHYSICAL_DIMENSION_TIME) {
-			fprintf(stderr, "Inputs physical dimension is not time. \n");
+			fprintf(stderr, "Inputs physical dimension is not time.\n");
 			return true;
 		}
 

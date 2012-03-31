@@ -252,7 +252,7 @@ void undo_editmode_step(bContext *C, int step)
 		
 		if (curundo == NULL || curundo->prev == NULL) error("No more steps to undo");
 		else {
-			if (G.f & G_DEBUG) printf("undo %s\n", curundo->name);
+			if (G.debug & G_DEBUG) printf("undo %s\n", curundo->name);
 			curundo = curundo->prev;
 			undo_restore(curundo, curundo->getdata(C), obedit->data);
 		}
@@ -264,7 +264,7 @@ void undo_editmode_step(bContext *C, int step)
 		else {
 			undo_restore(curundo->next, curundo->getdata(C), obedit->data);
 			curundo = curundo->next;
-			if (G.f & G_DEBUG) printf("redo %s\n", curundo->name);
+			if (G.debug & G_DEBUG) printf("redo %s\n", curundo->name);
 		}
 	}
 	

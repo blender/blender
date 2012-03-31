@@ -312,10 +312,10 @@ static int add_name(const char *str)
 
 		j++; /* j beyond closing brace ? */
 		while ((str[j] != 0) && (str[j] != ')' )) {
-			if (debugSDNA > 3) printf("seen %c ( %d) \n", str[j], str[j]);
+			if (debugSDNA > 3) printf("seen %c ( %d)\n", str[j], str[j]);
 			j++;
 		}
-		if (debugSDNA > 3) printf("seen %c ( %d) \n"
+		if (debugSDNA > 3) printf("seen %c ( %d)\n"
 		                          "special after offset%d\n",
 		                          str[j], str[j], j);
 				
@@ -848,7 +848,7 @@ static int calculate_structlens(int firststruct)
 		printf("ERROR: still %d structs unknown\n", unknown);
 
 		if (debugSDNA) {
-			printf("*** Known structs : \n");
+			printf("*** Known structs :\n");
 			
 			for (a=0; a<nr_structs; a++) {
 				structpoin= structs[a];
@@ -862,7 +862,7 @@ static int calculate_structlens(int firststruct)
 		}
 
 			
-		printf("*** Unknown structs : \n");
+		printf("*** Unknown structs :\n");
 			
 		for (a=0; a<nr_structs; a++) {
 			structpoin= structs[a];
@@ -995,7 +995,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 
 		printf("nr_names %d nr_types %d nr_structs %d\n", nr_names, nr_types, nr_structs);
 		for (a=0; a<nr_names; a++) { 
-			printf(" %s \n", names[a]);
+			printf(" %s\n", names[a]);
 		}
 		printf("\n");
 		

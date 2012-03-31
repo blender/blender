@@ -395,7 +395,7 @@ void ED_armature_from_edit(Object *obedit)
 				if (fBone->parent==eBone)
 					fBone->parent= eBone->parent;
 			}
-			if (G.f & G_DEBUG)
+			if (G.debug & G_DEBUG)
 				printf("Warning: removed zero sized bone: %s\n", eBone->name);
 			bone_free(arm, eBone);
 		}
@@ -2933,7 +2933,7 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 	}
 	else {
 		// FIXME.. figure out a method for multiple bones
-		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d \n", count); 
+		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d\n", count);
 		BLI_freelistN(&points);
 		return OPERATOR_CANCELLED;
 	}
@@ -2976,9 +2976,9 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	
 	/* check if same bone */
 	if (start == end) {
-		if (G.f & G_DEBUG) {
-			printf("Error: same bone! \n");
-			printf("\tstart = %s, end = %s \n", start->name, end->name);
+		if (G.debug & G_DEBUG) {
+			printf("Error: same bone!\n");
+			printf("\tstart = %s, end = %s\n", start->name, end->name);
 		}
 	}
 	

@@ -1371,7 +1371,7 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 	for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
 		wmOperatorType *ot = BLI_ghashIterator_getValue(iter);
 
-		if ((ot->flag & OPTYPE_INTERNAL) && (G.f & G_DEBUG) == 0)
+		if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0)
 			continue;
 
 		if (BLI_strcasestr(ot->name, str)) {

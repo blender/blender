@@ -399,7 +399,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	
 	if (act == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No valid Action to add");
-		//printf("Add strip - actname = '%s' \n", actname);
+		//printf("Add strip - actname = '%s'\n", actname);
 		return OPERATOR_CANCELLED;
 	}
 	else if (act->idroot == 0) {

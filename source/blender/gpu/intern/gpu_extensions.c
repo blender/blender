@@ -220,7 +220,7 @@ int GPU_print_error(const char *str)
 {
 	GLenum errCode;
 
-	if (G.f & G_DEBUG) {
+	if (G.debug & G_DEBUG) {
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
 			fprintf(stderr, "%s opengl error: %s\n", str, gluErrorString(errCode));
 			return 1;
@@ -942,7 +942,7 @@ static void shader_print_errors(const char *task, char *log, const char *code)
 
 	fprintf(stderr, "GPUShader: %s error:\n", task);
 
-	if (G.f & G_DEBUG) {
+	if (G.debug & G_DEBUG) {
 		c = code;
 		while ((c < end) && (pos = strchr(c, '\n'))) {
 			fprintf(stderr, "%2d  ", line);

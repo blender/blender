@@ -3231,7 +3231,7 @@ static void init_camera_inside_volumes(Render *re)
 	/* debug {
 	MatInside *m;
 	for (m=re->render_volumes_inside.first; m; m=m->next) {
-		printf("matinside: ma: %s \n", m->ma->id.name+2);
+		printf("matinside: ma: %s\n", m->ma->id.name+2);
 	}
 	}*/
 }
@@ -4649,7 +4649,7 @@ void RE_Database_Free(Render *re)
 	LampRen *lar;
 	
 	/* statistics for debugging render memory usage */
-	if ((G.f & G_DEBUG) && (G.rendering)) {
+	if ((G.debug & G_DEBUG) && (G.rendering)) {
 		if ((re->r.scemode & R_PREVIEWBUTS)==0) {
 			BKE_image_print_memlist();
 			MEM_printmemlist_stats();
@@ -5516,7 +5516,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		// set both to the same value
 		speed[0]= speed[2]= zco[0];
 		speed[1]= speed[3]= zco[1];
-		//if(a<20) fprintf(stderr,"speed %d %f,%f | camco %f,%f,%f | hoco %f,%f,%f,%f  \n", a, speed[0], speed[1], camco[0],camco[1], camco[2], hoco[0],hoco[1], hoco[2],hoco[3]); // NT DEBUG
+		//if(a<20) fprintf(stderr,"speed %d %f,%f | camco %f,%f,%f | hoco %f,%f,%f,%f\n", a, speed[0], speed[1], camco[0],camco[1], camco[2], hoco[0],hoco[1], hoco[2],hoco[3]); // NT DEBUG
 	}
 
 	return 1;

@@ -312,7 +312,7 @@ Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 {
 	const COLLADAFW::UniqueId& lamp_uid = lamp->getInstanciatedObjectId();
 	if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {	
-		fprintf(stderr, "Couldn't find lamp by UID. \n");
+		fprintf(stderr, "Couldn't find lamp by UID.\n");
 		return NULL;
 	}
 	Object *ob = add_object(sce, OB_LAMP);
@@ -782,7 +782,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	else cam = (Camera*)add_camera((char*)cam_id.c_str());
 	
 	if (!cam) {
-		fprintf(stderr, "Cannot create camera. \n");
+		fprintf(stderr, "Cannot create camera.\n");
 		return true;
 	}
 	cam->clipsta = camera->getNearClippingPlane().getValue();
@@ -802,7 +802,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 		break;
 	case COLLADAFW::Camera::UNDEFINED_CAMERATYPE:
 		{
-			fprintf(stderr, "Current camera type is not supported. \n");
+			fprintf(stderr, "Current camera type is not supported.\n");
 			cam->type = CAM_PERSP;
 		}
 		break;
@@ -899,7 +899,7 @@ bool DocumentImporter::writeImage( const COLLADAFW::Image* image )
 	BLI_join_dirfile(full_path, sizeof(full_path), dir, filepath.c_str());
 	Image *ima = BKE_add_image_file(full_path);
 	if (!ima) {
-		fprintf(stderr, "Cannot create image. \n");
+		fprintf(stderr, "Cannot create image.\n");
 		return true;
 	}
 	this->uid_image_map[image->getUniqueId()] = ima;
@@ -929,7 +929,7 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 	else lamp = (Lamp*)add_lamp((char*)la_id.c_str());
 
 	if (!lamp) {
-		fprintf(stderr, "Cannot create lamp. \n");
+		fprintf(stderr, "Cannot create lamp.\n");
 		return true;
 	}
 
@@ -1069,7 +1069,7 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 				break;
 			case COLLADAFW::Light::UNDEFINED:
 				{
-					fprintf(stderr, "Current lamp type is not supported. \n");
+					fprintf(stderr, "Current lamp type is not supported.\n");
 					lamp->type = LA_LOCAL;
 				}
 				break;

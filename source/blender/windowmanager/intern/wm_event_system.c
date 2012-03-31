@@ -213,13 +213,13 @@ void wm_event_do_notifiers(bContext *C)
 				if (note->category == NC_SCREEN) {
 					if (note->data == ND_SCREENBROWSE) {
 						ED_screen_set(C, note->reference);  // XXX hrms, think this over!
-						if (G.f & G_DEBUG)
-							printf("screen set %p\n", note->reference);
+						if (G.debug & G_DEBUG_EVENTS)
+							printf("%s: screen set %p\n", __func__, note->reference);
 					}
 					else if (note->data == ND_SCREENDELETE) {
 						ED_screen_delete(C, note->reference);   // XXX hrms, think this over!
-						if (G.f & G_DEBUG)
-							printf("screen delete %p\n", note->reference);
+						if (G.debug & G_DEBUG_EVENTS)
+							printf("%s: screen delete %p\n", __func__, note->reference);
 					}
 				}
 			}
@@ -482,7 +482,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int cal
 	}
 	
 	if (retval & OPERATOR_FINISHED) {
-		if (G.f & G_DEBUG) {
+		if (G.debug & G_DEBUG_WM) {
 			/* todo - this print may double up, might want to check more flags then the FINISHED */
 			wm_operator_print(C, op);
 		}
@@ -544,7 +544,7 @@ static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 			ED_undo_push_op(C, op);
 	
 	if (repeat == 0) {
-		if (G.f & G_DEBUG) {
+		if (G.debug & G_DEBUG_WM) {
 			char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
 			BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
 			MEM_freeN(buf);
@@ -754,7 +754,9 @@ int WM_operator_last_properties_init(wmOperator *op)
 	if (op->type->last_properties) {
 		PropertyRNA *iterprop;
 
-		if (G.f & G_DEBUG) printf("%s: loading previous properties for '%s'\n", __func__, op->type->idname);
+		if (G.debug & G_DEBUG_WM) {
+			printf("%s: loading previous properties for '%s'\n", __func__, op->type->idname);
+		}
 
 		iterprop = RNA_struct_iterator_property(op->type->srna);
 
@@ -792,7 +794,9 @@ int WM_operator_last_properties_store(wmOperator *op)
 	}
 
 	if (op->properties) {
-		if (G.f & G_DEBUG) printf("%s: storing properties for '%s'\n", __func__, op->type->idname);
+		if (G.debug & G_DEBUG_WM) {
+			printf("%s: storing properties for '%s'\n", __func__, op->type->idname);
+		}
 		op->type->last_properties = IDP_CopyProperty(op->properties);
 		return TRUE;
 	}
@@ -819,8 +823,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			WM_operator_last_properties_init(op);
 		}
 
-		if ((G.f & G_DEBUG) && event && event->type != MOUSEMOVE)
-			printf("handle evt %d win %d op %s\n", event ? event->type : 0, CTX_wm_screen(C)->subwinactive, ot->idname);
+		if ((G.debug & G_DEBUG_EVENTS) && event && event->type != MOUSEMOVE) {
+			printf("%s: handle evt %d win %d op %s\n", __func__, event ? event->type : 0, CTX_wm_screen(C)->subwinactive, ot->idname);
+		}
 		
 		if (op->type->invoke && event) {
 			wm_region_mouse_co(C, event);
@@ -1540,7 +1545,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 						wm->op_undo_depth--;
 
 					if (retval & OPERATOR_FINISHED)
-						if (G.f & G_DEBUG)
+						if (G.debug & G_DEBUG_WM)
 							wm_operator_print(C, handler->op);
 
 					/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
@@ -1965,9 +1970,10 @@ void wm_event_do_handlers(bContext *C)
 		while ( (event = win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
 
-			if ((G.f & G_DEBUG) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))
-				printf("pass on evt %d val %d\n", event->type, event->val); 
-			
+			if ((G.debug & G_DEBUG_EVENTS) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+				printf("%s: pass on evt %d val %d\n", __func__, event->type, event->val);
+			}
+
 			wm_eventemulation(event);
 
 			CTX_wm_window_set(C, win);

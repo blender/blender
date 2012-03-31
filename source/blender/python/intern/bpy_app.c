@@ -166,24 +166,26 @@ static PyObject *make_app_info(void)
  * they are not static */
 
 PyDoc_STRVAR(bpy_app_debug_doc,
-"Boolean, set when blender is running in debug mode (started with --debug)"
+"Boolean, for debug info (started with --debug / --debug_* matching this attribute name)"
 );
-static PyObject *bpy_app_debug_get(PyObject *UNUSED(self), void *UNUSED(closure))
+static PyObject *bpy_app_debug_get(PyObject *UNUSED(self), void *closure)
 {
-	return PyBool_FromLong(G.f & G_DEBUG);
+	const int flag = GET_INT_FROM_POINTER(closure);
+	return PyBool_FromLong(G.debug & flag);
 }
 
-static int bpy_app_debug_set(PyObject *UNUSED(self), PyObject *value, void *UNUSED(closure))
+static int bpy_app_debug_set(PyObject *UNUSED(self), PyObject *value, void *closure)
 {
-	int param = PyObject_IsTrue(value);
+	const int flag = GET_INT_FROM_POINTER(closure);
+	const int param = PyObject_IsTrue(value);
 
 	if (param < 0) {
 		PyErr_SetString(PyExc_TypeError, "bpy.app.debug can only be True/False");
 		return -1;
 	}
 	
-	if (param)  G.f |=  G_DEBUG;
-	else        G.f &= ~G_DEBUG;
+	if (param)  G.debug |=  flag;
+	else        G.debug &= ~flag;
 	
 	return 0;
 }
@@ -236,7 +238,12 @@ static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(cl
 
 
 static PyGetSetDef bpy_app_getsets[] = {
-	{(char *)"debug", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, NULL},
+	{(char *)"debug",        bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG},
+	{(char *)"debug_ffmpeg", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_FFMPEG},
+	{(char *)"debug_python", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_PYTHON},
+	{(char *)"debug_events", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_EVENTS},
+	{(char *)"debug_wm",     bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_WM},
+
 	{(char *)"debug_value", bpy_app_debug_value_get, bpy_app_debug_value_set, (char *)bpy_app_debug_value_doc, NULL},
 	{(char *)"tempdir", bpy_app_tempdir_get, NULL, (char *)bpy_app_tempdir_doc, NULL},
 	{(char *)"driver_namespace", bpy_app_driver_dict_get, NULL, (char *)bpy_app_driver_dict_doc, NULL},

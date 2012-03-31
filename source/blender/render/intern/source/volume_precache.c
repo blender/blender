@@ -485,11 +485,11 @@ static void *vol_precache_part_test(void *data)
 {
 	VolPrecachePart *pa = data;
 
-	printf("part number: %d \n", pa->num);
-	printf("done: %d \n", pa->done);
-	printf("x min: %d   x max: %d \n", pa->minx, pa->maxx);
-	printf("y min: %d   y max: %d \n", pa->miny, pa->maxy);
-	printf("z min: %d   z max: %d \n", pa->minz, pa->maxz);
+	printf("part number: %d\n", pa->num);
+	printf("done: %d\n", pa->done);
+	printf("x min: %d   x max: %d\n", pa->minx, pa->maxx);
+	printf("y min: %d   y max: %d\n", pa->miny, pa->maxy);
+	printf("z min: %d   z max: %d\n", pa->minz, pa->maxz);
 
 	return NULL;
 }

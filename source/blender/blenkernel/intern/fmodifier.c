@@ -369,7 +369,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 			break;
 		
 		default:
-			printf("Invalid Function-Generator for F-Modifier - %d \n", data->type);
+			printf("Invalid Function-Generator for F-Modifier - %d\n", data->type);
 	}
 	
 	/* execute function callback to set value if appropriate */
@@ -973,7 +973,7 @@ FModifierTypeInfo *get_fmodifier_typeinfo (int type)
 		return fmodifiersTypeInfo[type];
 	}
 	else {
-		printf("No valid F-Curve Modifier type-info data available. Type = %i \n", type);
+		printf("No valid F-Curve Modifier type-info data available. Type = %i\n", type);
 	}
 	
 	return NULL;
@@ -1007,7 +1007,7 @@ FModifier *add_fmodifier (ListBase *modifiers, int type)
 	if ((modifiers->first) && (type == FMODIFIER_TYPE_CYCLES)) {
 		/* cycles modifier must be first in stack, so for now, don't add if it can't be */
 		// TODO: perhaps there is some better way, but for now, 
-		printf("Error: Cannot add 'Cycles' modifier to F-Curve, as 'Cycles' modifier can only be first in stack. \n");
+		printf("Error: Cannot add 'Cycles' modifier to F-Curve, as 'Cycles' modifier can only be first in stack.\n");
 		return NULL;
 	}
 	
@@ -1106,7 +1106,7 @@ int remove_fmodifier (ListBase *modifiers, FModifier *fcm)
 	} 
 	else {
 		// XXX this case can probably be removed some day, as it shouldn't happen...
-		printf("remove_fmodifier() - no modifier stack given \n");
+		printf("remove_fmodifier() - no modifier stack given\n");
 		MEM_freeN(fcm);
 		return 0;
 	}

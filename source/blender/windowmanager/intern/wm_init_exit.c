@@ -448,7 +448,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 #ifdef WIN32   
 	/* ask user to press enter when in debug mode */
-	if (G.f & G_DEBUG) {
+	if (G.debug & G_DEBUG) {
 		printf("press enter key to exit...\n\n");
 		getchar();
 	}

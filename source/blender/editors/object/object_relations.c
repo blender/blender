@@ -1504,8 +1504,8 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 					ob->data= copy_speaker(ob->data);
 					break;
 				default:
-					if (G.f & G_DEBUG)
-						printf("ERROR single_obdata_users: can't copy %s\n", id->name);
+					if (G.debug & G_DEBUG)
+						printf("ERROR %s: can't copy %s\n", __func__, id->name);
 					return;
 				}
 				

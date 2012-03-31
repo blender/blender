@@ -538,7 +538,7 @@ static void mouse_nla_strips (bContext *C, bAnimContext *ac, const int mval[2], 
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		printf("Error: animation channel (index = %d) not found in mouse_nla_strips() \n", channel_index);
+		printf("Error: animation channel (index = %d) not found in mouse_nla_strips()\n", channel_index);
 		BLI_freelistN(&anim_data);
 		return;
 	}
