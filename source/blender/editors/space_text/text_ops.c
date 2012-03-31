@@ -87,7 +87,7 @@ static int text_new_poll(bContext *UNUSED(C))
 
 static int text_edit_poll(bContext *C)
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	if (!text)
 		return 0;
@@ -102,8 +102,8 @@ static int text_edit_poll(bContext *C)
 
 static int text_space_edit_poll(bContext *C)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	if (!st || !text)
 		return 0;
@@ -118,9 +118,9 @@ static int text_space_edit_poll(bContext *C)
 
 static int text_region_edit_poll(bContext *C)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
+	ARegion *ar = CTX_wm_region(C);
 
 	if (!st || !text)
 		return 0;
@@ -146,7 +146,7 @@ void text_update_line_edited(TextLine *line)
 	/* we just free format here, and let it rebuild during draw */
 	if (line->format) {
 		MEM_freeN(line->format);
-		line->format= NULL;
+		line->format = NULL;
 	}
 }
 
@@ -154,7 +154,7 @@ void text_update_edited(Text *text)
 {
 	TextLine *line;
 
-	for (line=text->lines.first; line; line=line->next)
+	for (line = text->lines.first; line; line = line->next)
 		text_update_line_edited(line);
 }
 
@@ -162,12 +162,12 @@ void text_update_edited(Text *text)
 
 static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceText *st= CTX_wm_space_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
 	Text *text;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 
-	text= add_empty_text("Text");
+	text = add_empty_text("Text");
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
@@ -176,7 +176,7 @@ static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
 		/* doesnt always seem to happen... (ton) */
-		if (text->id.us>1)
+		if (text->id.us > 1)
 			text->id.us--;
 
 		RNA_id_pointer_create(&text->id, &idptr);
@@ -184,12 +184,12 @@ static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
 		RNA_property_update(C, &ptr, prop);
 	}
 	else if (st) {
-		st->text= text;
-		st->top= 0;
+		st->text = text;
+		st->top = 0;
 		text_drawcache_tag_update(st, 1);
 	}
 
-	WM_event_add_notifier(C, NC_TEXT|NA_ADDED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_ADDED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -215,7 +215,7 @@ static void text_open_init(bContext *C, wmOperator *op)
 {
 	PropertyPointerRNA *pprop;
 
-	op->customdata= pprop= MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
+	op->customdata = pprop = MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
@@ -227,7 +227,7 @@ static int text_open_cancel(bContext *UNUSED(C), wmOperator *op)
 
 static int text_open_exec(bContext *C, wmOperator *op)
 {
-	SpaceText *st= CTX_wm_space_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
 	Text *text;
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
@@ -236,7 +236,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", str);
 
-	text= add_text(str, G.main->name);
+	text = add_text(str, G.main->name);
 
 	if (!text) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -247,7 +247,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 		text_open_init(C, op);
 
 	/* hook into UI */
-	pprop= op->customdata;
+	pprop = op->customdata;
 
 	if (pprop->prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
@@ -259,8 +259,8 @@ static int text_open_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
 	}
 	else if (st) {
-		st->text= text;
-		st->top= 0;
+		st->text = text;
+		st->top = 0;
 	}
 	
 	if (internal) {
@@ -271,7 +271,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 	}
 
 	text_drawcache_tag_update(st, 1);
-	WM_event_add_notifier(C, NC_TEXT|NA_ADDED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_ADDED, text);
 
 	MEM_freeN(op->customdata);
 
@@ -280,8 +280,8 @@ static int text_open_exec(bContext *C, wmOperator *op)
 
 static int text_open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	Text *text= CTX_data_edit_text(C);
-	char *path= (text && text->name)? text->name: G.main->name;
+	Text *text = CTX_data_edit_text(C);
+	char *path = (text && text->name) ? text->name : G.main->name;
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return text_open_exec(C, op);
@@ -310,7 +310,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
+	WM_operator_properties_filesel(ot, FOLDERFILE | TEXTFILE | PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
 	RNA_def_boolean(ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
 }
 
@@ -318,7 +318,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 
 static int text_reload_exec(bContext *C, wmOperator *op)
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	if (!reopen_text(text)) {
 		BKE_report(op->reports, RPT_ERROR, "Could not reopen file");
@@ -333,7 +333,7 @@ static int text_reload_exec(bContext *C, wmOperator *op)
 	text_update_edited(text);
 	text_update_cursor_moved(C);
 	text_drawcache_tag_update(CTX_wm_space_text(C), 1);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -361,21 +361,21 @@ static int text_unlink_poll(bContext *C)
 
 static int text_unlink_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Main *bmain= CTX_data_main(C);
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
+	Main *bmain = CTX_data_main(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	/* make the previous text active, if its not there make the next text active */
 	if (st) {
 		if (text->id.prev) {
 			st->text = text->id.prev;
 			text_update_cursor_moved(C);
-			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+			WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 		}
 		else if (text->id.next) {
 			st->text = text->id.next;
 			text_update_cursor_moved(C);
-			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+			WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 		}
 	}
 
@@ -383,7 +383,7 @@ static int text_unlink_exec(bContext *C, wmOperator *UNUSED(op))
 	free_libblock(&bmain->text, text);
 
 	text_drawcache_tag_update(st, 1);
-	WM_event_add_notifier(C, NC_TEXT|NA_REMOVED, NULL);
+	WM_event_add_notifier(C, NC_TEXT | NA_REMOVED, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -408,17 +408,17 @@ void TEXT_OT_unlink(wmOperatorType *ot)
 
 static int text_make_internal_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	text->flags |= TXT_ISMEM | TXT_ISDIRTY;
 
 	if (text->name) {
 		MEM_freeN(text->name);
-		text->name= NULL;
+		text->name = NULL;
 	}
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -442,7 +442,7 @@ void TEXT_OT_make_internal(wmOperatorType *ot)
 
 static int text_save_poll(bContext *C)
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	if (!text_edit_poll(C))
 		return 0;
@@ -460,27 +460,27 @@ static void txt_write_file(Text *text, ReportList *reports)
 	BLI_strncpy(filepath, text->name, FILE_MAX);
 	BLI_path_abs(filepath, G.main->name);
 	
-	fp= BLI_fopen(filepath, "w");
-	if (fp==NULL) {
+	fp = BLI_fopen(filepath, "w");
+	if (fp == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to save \"%s\": %s", filepath, errno ? strerror(errno) : "Unknown error writing file");
 		return;
 	}
 
-	tmp= text->lines.first;
+	tmp = text->lines.first;
 	while (tmp) {
 		if (tmp->next) fprintf(fp, "%s\n", tmp->line);
 		else fprintf(fp, "%s", tmp->line);
 		
-		tmp= tmp->next;
+		tmp = tmp->next;
 	}
 	
-	fclose (fp);
+	fclose(fp);
 
 	if (stat(filepath, &st) == 0) {
-		text->mtime= st.st_mtime;
+		text->mtime = st.st_mtime;
 	}
 	else {
-		text->mtime= 0;
+		text->mtime = 0;
 		BKE_reportf(reports, RPT_WARNING, "Unable to stat \"%s\": %s", filepath, errno ? strerror(errno) : "Unknown error starrng file");
 	}
 	
@@ -490,12 +490,12 @@ static void txt_write_file(Text *text, ReportList *reports)
 
 static int text_save_exec(bContext *C, wmOperator *op)
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	txt_write_file(text, op->reports);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -516,7 +516,7 @@ void TEXT_OT_save(wmOperatorType *ot)
 
 static int text_save_as_exec(bContext *C, wmOperator *op)
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 	char str[FILE_MAX];
 
 	if (!text)
@@ -525,31 +525,31 @@ static int text_save_as_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", str);
 
 	if (text->name) MEM_freeN(text->name);
-	text->name= BLI_strdup(str);
+	text->name = BLI_strdup(str);
 	text->flags &= ~TXT_ISMEM;
 
 	txt_write_file(text, op->reports);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
 
 static int text_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 	char *str;
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return text_save_as_exec(C, op);
 
 	if (text->name)
-		str= text->name;
+		str = text->name;
 	else if (text->flags & TXT_ISMEM)
-		str= text->id.name+2;
+		str = text->id.name + 2;
 	else
-		str= G.main->name;
+		str = G.main->name;
 	
 	RNA_string_set(op->ptr, "filepath", str);
 	WM_event_add_fileselect(C, op); 
@@ -570,7 +570,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 	ot->poll = text_edit_poll;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
+	WM_operator_properties_filesel(ot, FOLDERFILE | TEXTFILE | PYSCRIPTFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
 }
 
 /******************* run script operator *********************/
@@ -583,17 +583,17 @@ static int text_run_script_poll(bContext *C)
 static int text_run_script(bContext *C, ReportList *reports)
 {
 #ifdef WITH_PYTHON
-	Text *text= CTX_data_edit_text(C);
-	const short is_live= (reports == NULL);
+	Text *text = CTX_data_edit_text(C);
+	const short is_live = (reports == NULL);
 
 	/* only for comparison */
-	void *curl_prev= text->curl;
-	int curc_prev= text->curc;
+	void *curl_prev = text->curl;
+	int curc_prev = text->curc;
 
 	if (BPY_text_exec(C, text, reports, !is_live)) {
 		if (is_live) {
 			/* for nice live updates */
-			WM_event_add_notifier(C, NC_WINDOW|NA_EDITED, NULL);
+			WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);
 		}
 		return OPERATOR_FINISHED;
 	}
@@ -602,7 +602,7 @@ static int text_run_script(bContext *C, ReportList *reports)
 	if (!is_live) {
 		if (text->curl != curl_prev || curc_prev != text->curc) {
 			text_update_cursor_moved(C);
-			WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+			WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 		}
 
 		BKE_report(reports, RPT_ERROR, "Python script fail, look in the console for now...");
@@ -639,7 +639,7 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 	ot->exec = text_run_script_exec;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /******************* refresh pyconstraints operator *********************/
@@ -648,31 +648,31 @@ static int text_refresh_pyconstraints_exec(bContext *UNUSED(C), wmOperator *UNUS
 {
 #ifdef WITH_PYTHON
 #if 0
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 	Object *ob;
 	bConstraint *con;
 	short update;
 	
 	/* check all pyconstraints */
-	for (ob= CTX_data_main(C)->object.first; ob; ob= ob->id.next) {
+	for (ob = CTX_data_main(C)->object.first; ob; ob = ob->id.next) {
 		update = 0;
-		if (ob->type==OB_ARMATURE && ob->pose) {
+		if (ob->type == OB_ARMATURE && ob->pose) {
 			bPoseChannel *pchan;
-			for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				for (con = pchan->constraints.first; con; con= con->next) {
-					if (con->type==CONSTRAINT_TYPE_PYTHON) {
+			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+				for (con = pchan->constraints.first; con; con = con->next) {
+					if (con->type == CONSTRAINT_TYPE_PYTHON) {
 						bPythonConstraint *data = con->data;
-						if (data->text==text) BPY_pyconstraint_update(ob, con);
+						if (data->text == text) BPY_pyconstraint_update(ob, con);
 						update = 1;
 						
 					}
 				}
 			}
 		}
-		for (con = ob->constraints.first; con; con= con->next) {
-			if (con->type==CONSTRAINT_TYPE_PYTHON) {
+		for (con = ob->constraints.first; con; con = con->next) {
+			if (con->type == CONSTRAINT_TYPE_PYTHON) {
 				bPythonConstraint *data = con->data;
-				if (data->text==text) BPY_pyconstraint_update(ob, con);
+				if (data->text == text) BPY_pyconstraint_update(ob, con);
 				update = 1;
 			}
 		}
@@ -704,8 +704,8 @@ void TEXT_OT_refresh_pyconstraints(wmOperatorType *ot)
 static char *txt_copy_selected(Text *text)
 {
 	TextLine *tmp, *linef, *linel;
-	char *buf= NULL;
-	int charf, charl, length= 0;
+	char *buf = NULL;
+	int charf, charl, length = 0;
 	
 	if (!text) return NULL;
 	if (!text->curl) return NULL;
@@ -713,71 +713,71 @@ static char *txt_copy_selected(Text *text)
 
 	if (!txt_has_sel(text)) return NULL;
 
-	if (text->curl==text->sell) {
-		linef= linel= text->curl;
+	if (text->curl == text->sell) {
+		linef = linel = text->curl;
 		
 		if (text->curc < text->selc) {
-			charf= text->curc;
-			charl= text->selc;
+			charf = text->curc;
+			charl = text->selc;
 		}
 		else {
-			charf= text->selc;
-			charl= text->curc;
+			charf = text->selc;
+			charl = text->curc;
 		}
 	}
-	else if (txt_get_span(text->curl, text->sell)<0) {
-		linef= text->sell;
-		linel= text->curl;
+	else if (txt_get_span(text->curl, text->sell) < 0) {
+		linef = text->sell;
+		linel = text->curl;
 
-		charf= text->selc;		
-		charl= text->curc;
+		charf = text->selc;
+		charl = text->curc;
 	}
 	else {
-		linef= text->curl;
-		linel= text->sell;
+		linef = text->curl;
+		linel = text->sell;
 		
-		charf= text->curc;
-		charl= text->selc;
+		charf = text->curc;
+		charl = text->selc;
 	}
 
 	if (linef == linel) {
-		length= charl-charf;
+		length = charl - charf;
 
-		buf= MEM_callocN(length+1, "cut buffera");
+		buf = MEM_callocN(length + 1, "cut buffera");
 		
-		BLI_strncpy(buf, linef->line + charf, length+1);
+		BLI_strncpy(buf, linef->line + charf, length + 1);
 	}
 	else {
-		length+= linef->len - charf;
-		length+= charl;
+		length += linef->len - charf;
+		length += charl;
 		length++; /* For the '\n' */
 		
-		tmp= linef->next;
-		while (tmp && tmp!= linel) {
-			length+= tmp->len+1;
-			tmp= tmp->next;
+		tmp = linef->next;
+		while (tmp && tmp != linel) {
+			length += tmp->len + 1;
+			tmp = tmp->next;
 		}
 		
-		buf= MEM_callocN(length+1, "cut bufferb");
+		buf = MEM_callocN(length + 1, "cut bufferb");
 		
-		strncpy(buf, linef->line+ charf, linef->len-charf);
-		length= linef->len-charf;
+		strncpy(buf, linef->line + charf, linef->len - charf);
+		length = linef->len - charf;
 		
-		buf[length++]='\n';
+		buf[length++] = '\n';
 		
-		tmp= linef->next;
-		while (tmp && tmp!=linel) {
-			strncpy(buf+length, tmp->line, tmp->len);
-			length+= tmp->len;
+		tmp = linef->next;
+		while (tmp && tmp != linel) {
+			strncpy(buf + length, tmp->line, tmp->len);
+			length += tmp->len;
 			
-			buf[length++]='\n';			
+			buf[length++] = '\n';
 			
-			tmp= tmp->next;
+			tmp = tmp->next;
 		}
-		strncpy(buf+length, linel->line, charl);
-		length+= charl;
+		strncpy(buf + length, linel->line, charl);
+		length += charl;
 		
-		buf[length]=0;
+		buf[length] = 0;
 	}
 
 	return buf;
@@ -785,11 +785,11 @@ static char *txt_copy_selected(Text *text)
 
 static int text_paste_exec(bContext *C, wmOperator *op)
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 	char *buf;
-	int selection= RNA_boolean_get(op->ptr, "selection");
+	int selection = RNA_boolean_get(op->ptr, "selection");
 
-	buf= WM_clipboard_text_get(selection);
+	buf = WM_clipboard_text_get(selection);
 
 	if (!buf)
 		return OPERATOR_CANCELLED;
@@ -802,7 +802,7 @@ static int text_paste_exec(bContext *C, wmOperator *op)
 	MEM_freeN(buf);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	/* run the script while editing, evil but useful */
 	if (CTX_wm_space_text(C)->live_edit)
@@ -832,7 +832,7 @@ static void txt_copy_clipboard(Text *text)
 {
 	char *buf;
 
-	buf= txt_copy_selected(text);
+	buf = txt_copy_selected(text);
 
 	if (buf) {
 		WM_clipboard_text_set(buf, 0);
@@ -842,7 +842,7 @@ static void txt_copy_clipboard(Text *text)
 
 static int text_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	txt_copy_clipboard(text);
 
@@ -865,7 +865,7 @@ void TEXT_OT_copy(wmOperatorType *ot)
 
 static int text_cut_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
@@ -873,7 +873,7 @@ static int text_cut_exec(bContext *C, wmOperator *UNUSED(op))
 	txt_delete_selected(text);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	/* run the script while editing, evil but useful */
 	if (CTX_wm_space_text(C)->live_edit)
@@ -898,7 +898,7 @@ void TEXT_OT_cut(wmOperatorType *ot)
 
 static int text_indent_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
@@ -912,7 +912,7 @@ static int text_indent_exec(bContext *C, wmOperator *UNUSED(op))
 	text_update_edited(text);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -933,7 +933,7 @@ void TEXT_OT_indent(wmOperatorType *ot)
 
 static int text_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	if (txt_has_sel(text)) {
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
@@ -944,7 +944,7 @@ static int text_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 		text_update_edited(text);
 
 		text_update_cursor_moved(C);
-		WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+		WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 		return OPERATOR_FINISHED;
 	}
@@ -968,18 +968,18 @@ void TEXT_OT_unindent(wmOperatorType *ot)
 
 static int text_line_break_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
 	int a, curts;
 	int space = (text->flags & TXT_TABSTOSPACES) ? st->tabnumber : 1;
 
 	text_drawcache_tag_update(st, 0);
 
 	// double check tabs/spaces before splitting the line
-	curts= setcurr_tab_spaces(text, space);
+	curts = setcurr_tab_spaces(text, space);
 	txt_split_curline(text);
 
-	for (a=0; a < curts; a++) {
+	for (a = 0; a < curts; a++) {
 		if (text->flags & TXT_TABSTOSPACES) {
 			txt_add_char(text, ' ');
 		}
@@ -995,7 +995,7 @@ static int text_line_break_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_CANCELLED;
 }
@@ -1016,7 +1016,7 @@ void TEXT_OT_line_break(wmOperatorType *ot)
 
 static int text_comment_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	if (txt_has_sel(text)) {
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
@@ -1026,7 +1026,7 @@ static int text_comment_exec(bContext *C, wmOperator *UNUSED(op))
 		text_update_edited(text);
 
 		text_update_cursor_moved(C);
-		WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+		WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 		return OPERATOR_FINISHED;
 	}
 
@@ -1049,7 +1049,7 @@ void TEXT_OT_comment(wmOperatorType *ot)
 
 static int text_uncomment_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	if (txt_has_sel(text)) {
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
@@ -1059,7 +1059,7 @@ static int text_uncomment_exec(bContext *C, wmOperator *UNUSED(op))
 		text_update_edited(text);
 
 		text_update_cursor_moved(C);
-		WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+		WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 		return OPERATOR_FINISHED;
 	}
@@ -1082,32 +1082,32 @@ void TEXT_OT_uncomment(wmOperatorType *ot)
 /******************* convert whitespace operator *********************/
 
 enum { TO_SPACES, TO_TABS };
-static EnumPropertyItem whitespace_type_items[]= {
+static EnumPropertyItem whitespace_type_items[] = {
 	{TO_SPACES, "SPACES", 0, "To Spaces", NULL},
 	{TO_TABS, "TABS", 0, "To Tabs", NULL},
 	{0, NULL, 0, NULL, NULL}};
 
 static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
 	TextLine *tmp;
 	FlattenString fs;
 	size_t a, j;
 	char *text_check_line, *new_line;
 	int extra, number; //unknown for now
-	int type= RNA_enum_get(op->ptr, "type");
+	int type = RNA_enum_get(op->ptr, "type");
 	
 	tmp = text->lines.first;
 	
 	//first convert to all space, this make it a lot easier to convert to tabs because there is no mixtures of ' ' && '\t'
 	while (tmp) {
 		text_check_line = tmp->line;
-		number = flatten_string(st, &fs, text_check_line)+1;
+		number = flatten_string(st, &fs, text_check_line) + 1;
 		flatten_string_free(&fs);
 		new_line = MEM_callocN(number, "Converted_Line");
 		j = 0;
-		for (a=0; a < strlen(text_check_line); a++) { //foreach char in line
+		for (a = 0; a < strlen(text_check_line); a++) { //foreach char in line
 			if (text_check_line[a] == '\t') { //checking for tabs
 				//get the number of spaces this tabs is showing
 				//i don't like doing it this way but will look into it later
@@ -1115,8 +1115,8 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 				number = flatten_string(st, &fs, new_line);
 				flatten_string_free(&fs);
 				new_line[j] = '\t';
-				new_line[j+1] = '\0';
-				number = flatten_string(st, &fs, new_line)-number;
+				new_line[j + 1] = '\0';
+				number = flatten_string(st, &fs, new_line) - number;
 				flatten_string_free(&fs);
 
 				for (extra = 0; extra < number; extra++) {
@@ -1150,26 +1150,26 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 			for (a = 0; a < strlen(text_check_line); a++) {
 				number = 0;
 				for (j = 0; j < (size_t)st->tabnumber; j++) {
-					if ((a+j) <= strlen(text_check_line)) { //check to make sure we are not pass the end of the line
-						if (text_check_line[a+j] != ' ') {
+					if ((a + j) <= strlen(text_check_line)) { //check to make sure we are not pass the end of the line
+						if (text_check_line[a + j] != ' ') {
 							number = 1;
 						}
 					}
 				}
 				if (!number) { //found all number of space to equal a tab
-					a = a+(st->tabnumber-1);
-					extra = extra+1;
+					a = a + (st->tabnumber - 1);
+					extra = extra + 1;
 				}
 			}
 			
-			if ( extra > 0 ) { //got tabs make malloc and do what you have to do
-				new_line = MEM_callocN(strlen(text_check_line)-(((st->tabnumber*extra)-extra)-1), "Converted_Line");
+			if (extra > 0) {   //got tabs make malloc and do what you have to do
+				new_line = MEM_callocN(strlen(text_check_line) - (((st->tabnumber * extra) - extra) - 1), "Converted_Line");
 				extra = 0; //reuse vars
 				for (a = 0; a < strlen(text_check_line); a++) {
 					number = 0;
 					for (j = 0; j < (size_t)st->tabnumber; j++) {
-						if ((a+j) <= strlen(text_check_line)) { //check to make sure we are not pass the end of the line
-							if (text_check_line[a+j] != ' ') {
+						if ((a + j) <= strlen(text_check_line)) { //check to make sure we are not pass the end of the line
+							if (text_check_line[a + j] != ' ') {
 								number = 1;
 							}
 						}
@@ -1177,7 +1177,7 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 
 					if (!number) { //found all number of space to equal a tab
 						new_line[extra] = '\t';
-						a = a+(st->tabnumber-1);
+						a = a + (st->tabnumber - 1);
 						++extra;
 						
 					}
@@ -1202,7 +1202,7 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 	text_update_edited(text);
 	text_update_cursor_moved(C);
 	text_drawcache_tag_update(st, 1);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -1226,12 +1226,12 @@ void TEXT_OT_convert_whitespace(wmOperatorType *ot)
 
 static int text_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	txt_sel_all(text);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -1252,12 +1252,12 @@ void TEXT_OT_select_all(wmOperatorType *ot)
 
 static int text_select_line_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	txt_sel_line(text);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -1278,13 +1278,13 @@ void TEXT_OT_select_line(wmOperatorType *ot)
 
 static int text_select_word_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	txt_jump_left(text, 0);
 	txt_jump_right(text, 1);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -1305,22 +1305,22 @@ void TEXT_OT_select_word(wmOperatorType *ot)
 
 static int text_previous_marker_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 	TextMarker *mrk;
 	int lineno;
 
-	lineno= txt_get_span(text->lines.first, text->curl);
-	mrk= text->markers.last;
-	while (mrk && (mrk->lineno>lineno || (mrk->lineno==lineno && mrk->end > text->curc)))
-		mrk= mrk->prev;
-	if (!mrk) mrk= text->markers.last;
+	lineno = txt_get_span(text->lines.first, text->curl);
+	mrk = text->markers.last;
+	while (mrk && (mrk->lineno > lineno || (mrk->lineno == lineno && mrk->end > text->curc)))
+		mrk = mrk->prev;
+	if (!mrk) mrk = text->markers.last;
 	if (mrk) {
 		txt_move_to(text, mrk->lineno, mrk->start, 0);
 		txt_move_to(text, mrk->lineno, mrk->end, 1);
 	}
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -1341,22 +1341,22 @@ void TEXT_OT_previous_marker(wmOperatorType *ot)
 
 static int text_next_marker_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 	TextMarker *mrk;
 	int lineno;
 
-	lineno= txt_get_span(text->lines.first, text->curl);
-	mrk= text->markers.first;
-	while (mrk && (mrk->lineno<lineno || (mrk->lineno==lineno && mrk->start <= text->curc)))
-		mrk= mrk->next;
-	if (!mrk) mrk= text->markers.first;
+	lineno = txt_get_span(text->lines.first, text->curl);
+	mrk = text->markers.first;
+	while (mrk && (mrk->lineno < lineno || (mrk->lineno == lineno && mrk->start <= text->curc)))
+		mrk = mrk->next;
+	if (!mrk) mrk = text->markers.first;
 	if (mrk) {
 		txt_move_to(text, mrk->lineno, mrk->start, 0);
 		txt_move_to(text, mrk->lineno, mrk->end, 1);
 	}
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -1377,12 +1377,12 @@ void TEXT_OT_next_marker(wmOperatorType *ot)
 
 static int text_clear_all_markers_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	txt_clear_markers(text, 0, 0);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -1401,7 +1401,7 @@ void TEXT_OT_markers_clear(wmOperatorType *ot)
 
 /************************ move operator ************************/
 
-static EnumPropertyItem move_type_items[]= {
+static EnumPropertyItem move_type_items[] = {
 	{LINE_BEGIN, "LINE_BEGIN", 0, "Line Begin", ""},
 	{LINE_END, "LINE_END", 0, "Line End", ""},
 	{FILE_TOP, "FILE_TOP", 0, "File Top", ""},
@@ -1417,78 +1417,78 @@ static EnumPropertyItem move_type_items[]= {
 	{0, NULL, 0, NULL, NULL}};
 
 /* get cursor position in line by relative wrapped line and column positions */
-static int text_get_cursor_rel(SpaceText* st, ARegion *ar, TextLine *linein, int rell, int relc)
+static int text_get_cursor_rel(SpaceText *st, ARegion *ar, TextLine *linein, int rell, int relc)
 {
 	int i, j, start, end, max, chop, curs, loop, endj, found, selc;
 	char ch;
 
-	max= wrap_width(st, ar);
+	max = wrap_width(st, ar);
 
-	selc= start= endj= curs= found= 0;
-	end= max;
-	chop= loop= 1;
+	selc = start = endj = curs = found = 0;
+	end = max;
+	chop = loop = 1;
 
-	for (i=0, j=0; loop; j+=BLI_str_utf8_size(linein->line+j)) {
+	for (i = 0, j = 0; loop; j += BLI_str_utf8_size(linein->line + j)) {
 		int chars;
 		/* Mimic replacement of tabs */
-		ch= linein->line[j];
-		if (ch=='\t') {
-			chars= st->tabnumber-i%st->tabnumber;
-			ch= ' ';
+		ch = linein->line[j];
+		if (ch == '\t') {
+			chars = st->tabnumber - i % st->tabnumber;
+			ch = ' ';
 		}
-		else chars= 1;
+		else chars = 1;
 
 		while (chars--) {
-			if (rell==0 && i-start==relc) {
+			if (rell == 0 && i - start == relc) {
 				/* current position could be wrapped to next line */
 				/* this should be checked when end of current line would be reached */
-				selc= j;
-				found= 1;
+				selc = j;
+				found = 1;
 			}
-			else if (i-end==relc) {
-				curs= j;
+			else if (i - end == relc) {
+				curs = j;
 			}
-			if (i-start>=max) {
+			if (i - start >= max) {
 				if (found) {
 					/* exact cursor position was found, check if it's */
 					/* still on needed line (hasn't been wrapped) */
-					if (selc>endj && !chop) selc= endj;
-					loop= 0;
+					if (selc > endj && !chop) selc = endj;
+					loop = 0;
 					break;
 				}
 
-				if (chop) endj= j;
+				if (chop) endj = j;
 
-				start= end;
+				start = end;
 				end += max;
-				chop= 1;
+				chop = 1;
 				rell--;
 
-				if (rell==0 && i-start>=relc) {
-					selc= curs;
-					loop= 0;
+				if (rell == 0 && i - start >= relc) {
+					selc = curs;
+					loop = 0;
 					break;
 				}
 			}
-			else if (ch=='\0') {
-				if (!found) selc= linein->len;
-				loop= 0;
+			else if (ch == '\0') {
+				if (!found) selc = linein->len;
+				loop = 0;
 				break;
 			}
-			else if (ch==' ' || ch=='-') {
+			else if (ch == ' ' || ch == '-') {
 				if (found) {
-					loop= 0;
+					loop = 0;
 					break;
 				}
 
-				if (rell==0 && i-start>=relc) {
-					selc= curs;
-					loop= 0;
+				if (rell == 0 && i - start >= relc) {
+					selc = curs;
+					loop = 0;
 					break;
 				}
-				end= i+1;
-				endj= j;
-				chop= 0;
+				end = i + 1;
+				endj = j;
+				chop = 0;
 			}
 			i++;
 		}
@@ -1497,87 +1497,87 @@ static int text_get_cursor_rel(SpaceText* st, ARegion *ar, TextLine *linein, int
 	return selc;
 }
 
-static int cursor_skip_find_line(SpaceText* st, ARegion *ar,
-	int lines, TextLine **linep, int *charp, int *rell, int *relc)
+static int cursor_skip_find_line(SpaceText *st, ARegion *ar,
+                                 int lines, TextLine **linep, int *charp, int *rell, int *relc)
 {
 	int offl, offc, visible_lines;
 
 	wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
-	*relc= text_get_char_pos(st, (*linep)->line, *charp) + offc;
-	*rell= lines;
+	*relc = text_get_char_pos(st, (*linep)->line, *charp) + offc;
+	*rell = lines;
 
 	/* handle current line */
-	if (lines>0) {
-		visible_lines= text_get_visible_lines(st, ar, (*linep)->line);
+	if (lines > 0) {
+		visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
 
-		if (*rell-visible_lines+offl>=0) {
+		if (*rell - visible_lines + offl >= 0) {
 			if (!(*linep)->next) {
-				if (offl < visible_lines-1) {
-					*rell= visible_lines-1;
+				if (offl < visible_lines - 1) {
+					*rell = visible_lines - 1;
 					return 1;
 				}
 
-				*charp= (*linep)->len;
+				*charp = (*linep)->len;
 				return 0;
 			}
 
-			*rell-= visible_lines-offl;
-			*linep=(*linep)->next;
+			*rell -= visible_lines - offl;
+			*linep = (*linep)->next;
 		}
 		else {
-			*rell+= offl;
+			*rell += offl;
 			return 1;
 		}
 	}
 	else {
-		if (*rell+offl<=0) {
+		if (*rell + offl <= 0) {
 			if (!(*linep)->prev) {
 				if (offl) {
-					*rell= 0;
+					*rell = 0;
 					return 1;
 				}
 
-				*charp= 0;
+				*charp = 0;
 				return 0;
 			}
 
-			*rell+= offl;
-			*linep=(*linep)->prev;
+			*rell += offl;
+			*linep = (*linep)->prev;
 		}
 		else {
-			*rell+= offl;
+			*rell += offl;
 			return 1;
 		}
 	}
 
 	/* skip lines and find destination line and offsets */
 	while (*linep) {
-		visible_lines= text_get_visible_lines(st, ar, (*linep)->line);
+		visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
 
-		if (lines<0) { /* moving top */
-			if (*rell+visible_lines >= 0) {
-				*rell+= visible_lines;
+		if (lines < 0) { /* moving top */
+			if (*rell + visible_lines >= 0) {
+				*rell += visible_lines;
 				break;
 			}
 
 			if (!(*linep)->prev) {
-				*rell= 0;
+				*rell = 0;
 				break;
 			}
 
-			*rell+= visible_lines;
-			*linep=(*linep)->prev;
+			*rell += visible_lines;
+			*linep = (*linep)->prev;
 		}
 		else { /* moving bottom */
-			if (*rell-visible_lines < 0) break;
+			if (*rell - visible_lines < 0) break;
 
 			if (!(*linep)->next) {
-				*rell= visible_lines-1;
+				*rell = visible_lines - 1;
 				break;
 			}
 
-			*rell-= visible_lines;
-			*linep=(*linep)->next;
+			*rell -= visible_lines;
+			*linep = (*linep)->next;
 		}
 	}
 
@@ -1586,7 +1586,7 @@ static int cursor_skip_find_line(SpaceText* st, ARegion *ar,
 
 static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 {
-	Text *text= st->text;
+	Text *text = st->text;
 	TextLine **linep;
 	int *charp;
 	int oldl, oldc, i, j, max, start, end, endj, chop, loop;
@@ -1594,67 +1594,67 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 
 	text_update_character_width(st);
 
-	if (sel) linep= &text->sell, charp= &text->selc;
-	else linep= &text->curl, charp= &text->curc;
+	if (sel) linep = &text->sell, charp = &text->selc;
+	else linep = &text->curl, charp = &text->curc;
 
-	oldc= *charp;
-	oldl= txt_get_span(text->lines.first, *linep);
+	oldc = *charp;
+	oldl = txt_get_span(text->lines.first, *linep);
 
-	max= wrap_width(st, ar);
+	max = wrap_width(st, ar);
 
-	start= endj= 0;
-	end= max;
-	chop= loop= 1;
-	*charp= 0;
+	start = endj = 0;
+	end = max;
+	chop = loop = 1;
+	*charp = 0;
 
-	for (i=0, j=0; loop; j+=BLI_str_utf8_size((*linep)->line+j)) {
+	for (i = 0, j = 0; loop; j += BLI_str_utf8_size((*linep)->line + j)) {
 		int chars;
 		/* Mimic replacement of tabs */
-		ch= (*linep)->line[j];
-		if (ch=='\t') {
-			chars= st->tabnumber-i%st->tabnumber;
-			ch= ' ';
+		ch = (*linep)->line[j];
+		if (ch == '\t') {
+			chars = st->tabnumber - i % st->tabnumber;
+			ch = ' ';
 		}
-		else chars= 1;
+		else chars = 1;
 
 		while (chars--) {
-			if (i-start>=max) {
-				*charp= endj;
+			if (i - start >= max) {
+				*charp = endj;
 
-				if (j>=oldc) {
-					if (ch=='\0') *charp= txt_utf8_index_to_offset((*linep)->line, start);
-					loop= 0;
+				if (j >= oldc) {
+					if (ch == '\0') *charp = txt_utf8_index_to_offset((*linep)->line, start);
+					loop = 0;
 					break;
 				}
 
-				if (chop) endj= j;
+				if (chop) endj = j;
 
-				start= end;
+				start = end;
 				end += max;
-				chop= 1;
+				chop = 1;
 			}
-			else if (ch==' ' || ch=='-' || ch=='\0') {
-				if (j>=oldc) {
-					*charp= txt_utf8_index_to_offset((*linep)->line, start);
-					loop= 0;
+			else if (ch == ' ' || ch == '-' || ch == '\0') {
+				if (j >= oldc) {
+					*charp = txt_utf8_index_to_offset((*linep)->line, start);
+					loop = 0;
 					break;
 				}
 
-				end= i+1;
-				endj= j+1;
-				chop= 0;
+				end = i + 1;
+				endj = j + 1;
+				chop = 0;
 			}
 			i++;
 		}
 	}
 
 	if (!sel) txt_pop_sel(text);
-	txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, oldl, *charp);
+	txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, oldl, oldc, oldl, *charp);
 }
 
 static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 {
-	Text *text= st->text;
+	Text *text = st->text;
 	TextLine **linep;
 	int *charp;
 	int oldl, oldc, i, j, max, start, end, endj, chop, loop;
@@ -1662,134 +1662,134 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 
 	text_update_character_width(st);
 
-	if (sel) linep= &text->sell, charp= &text->selc;
-	else linep= &text->curl, charp= &text->curc;
+	if (sel) linep = &text->sell, charp = &text->selc;
+	else linep = &text->curl, charp = &text->curc;
 
-	oldc= *charp;
-	oldl= txt_get_span(text->lines.first, *linep);
+	oldc = *charp;
+	oldl = txt_get_span(text->lines.first, *linep);
 
-	max= wrap_width(st, ar);
+	max = wrap_width(st, ar);
 
-	start= endj= 0;
-	end= max;
-	chop= loop= 1;
-	*charp= 0;
+	start = endj = 0;
+	end = max;
+	chop = loop = 1;
+	*charp = 0;
 
-	for (i=0, j=0; loop; j+=BLI_str_utf8_size((*linep)->line+j)) {
+	for (i = 0, j = 0; loop; j += BLI_str_utf8_size((*linep)->line + j)) {
 		int chars;
 		/* Mimic replacement of tabs */
-		ch= (*linep)->line[j];
-		if (ch=='\t') {
-			chars= st->tabnumber-i%st->tabnumber;
-			ch= ' ';
+		ch = (*linep)->line[j];
+		if (ch == '\t') {
+			chars = st->tabnumber - i % st->tabnumber;
+			ch = ' ';
 		}
-		else chars= 1;
+		else chars = 1;
 
 		while (chars--) {
-			if (i-start>=max) {
-				if (chop) endj= BLI_str_prev_char_utf8((*linep)->line+j)-(*linep)->line;
+			if (i - start >= max) {
+				if (chop) endj = BLI_str_prev_char_utf8((*linep)->line + j) - (*linep)->line;
 
-				if (endj>=oldc) {
-					if (ch=='\0') *charp= (*linep)->len;
-					else *charp= endj;
-					loop= 0;
+				if (endj >= oldc) {
+					if (ch == '\0') *charp = (*linep)->len;
+					else *charp = endj;
+					loop = 0;
 					break;
 				}
 
-				start= end;
+				start = end;
 				end += max;
-				chop= 1;
+				chop = 1;
 			}
-			else if (ch=='\0') {
-				*charp= (*linep)->len;
-				loop= 0;
+			else if (ch == '\0') {
+				*charp = (*linep)->len;
+				loop = 0;
 				break;
 			}
-			else if (ch==' ' || ch=='-') {
-				end= i+1;
-				endj= j;
-				chop= 0;
+			else if (ch == ' ' || ch == '-') {
+				end = i + 1;
+				endj = j;
+				chop = 0;
 			}
 			i++;
 		}
 	}
 
 	if (!sel) txt_pop_sel(text);
-	txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, oldl, *charp);
+	txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, oldl, oldc, oldl, *charp);
 }
 
 static void txt_wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 {
-	Text *text= st->text;
+	Text *text = st->text;
 	TextLine **linep;
 	int *charp;
 	int oldl, oldc, offl, offc, col, newl;
 
 	text_update_character_width(st);
 
-	if (sel) linep= &text->sell, charp= &text->selc;
-	else linep= &text->curl, charp= &text->curc;
+	if (sel) linep = &text->sell, charp = &text->selc;
+	else linep = &text->curl, charp = &text->curc;
 
 	/* store previous position */
-	oldc= *charp;
-	newl= oldl= txt_get_span(text->lines.first, *linep);
+	oldc = *charp;
+	newl = oldl = txt_get_span(text->lines.first, *linep);
 
 	wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
-	col= text_get_char_pos(st, (*linep)->line, *charp) + offc;
+	col = text_get_char_pos(st, (*linep)->line, *charp) + offc;
 	if (offl) {
-		*charp= text_get_cursor_rel(st, ar, *linep, offl-1, col);
-		newl= BLI_findindex(&text->lines, linep);
+		*charp = text_get_cursor_rel(st, ar, *linep, offl - 1, col);
+		newl = BLI_findindex(&text->lines, linep);
 	}
 	else {
 		if ((*linep)->prev) {
 			int visible_lines;
 
-			*linep= (*linep)->prev;
-			visible_lines= text_get_visible_lines(st, ar, (*linep)->line);
-			*charp= text_get_cursor_rel(st, ar, *linep, visible_lines-1, col);
+			*linep = (*linep)->prev;
+			visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
+			*charp = text_get_cursor_rel(st, ar, *linep, visible_lines - 1, col);
 			newl--;
 		}
-		else *charp= 0;
+		else *charp = 0;
 	}
 
 	if (!sel) txt_pop_sel(text);
-	txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, newl, *charp);
+	txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, oldl, oldc, newl, *charp);
 }
 
 static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 {
-	Text *text= st->text;
+	Text *text = st->text;
 	TextLine **linep;
 	int *charp;
 	int oldl, oldc, offl, offc, col, newl, visible_lines;
 
 	text_update_character_width(st);
 
-	if (sel) linep= &text->sell, charp= &text->selc;
-	else linep= &text->curl, charp= &text->curc;
+	if (sel) linep = &text->sell, charp = &text->selc;
+	else linep = &text->curl, charp = &text->curc;
 
 	/* store previous position */
-	oldc= *charp;
-	newl= oldl= txt_get_span(text->lines.first, *linep);
+	oldc = *charp;
+	newl = oldl = txt_get_span(text->lines.first, *linep);
 
 	wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
-	col= text_get_char_pos(st, (*linep)->line, *charp) + offc;
-	visible_lines= text_get_visible_lines(st, ar, (*linep)->line);
-	if (offl<visible_lines-1) {
-		*charp= text_get_cursor_rel(st, ar, *linep, offl+1, col);
-		newl= BLI_findindex(&text->lines, linep);
+	col = text_get_char_pos(st, (*linep)->line, *charp) + offc;
+	visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
+	if (offl < visible_lines - 1) {
+		*charp = text_get_cursor_rel(st, ar, *linep, offl + 1, col);
+		newl = BLI_findindex(&text->lines, linep);
 	}
 	else {
 		if ((*linep)->next) {
-			*linep= (*linep)->next;
-			*charp= text_get_cursor_rel(st, ar, *linep, 0, col);
+			*linep = (*linep)->next;
+			*charp = text_get_cursor_rel(st, ar, *linep, 0, col);
 			newl++;
 		}
-		else *charp= (*linep)->len;
+		else *charp = (*linep)->len;
 	}
 
 	if (!sel) txt_pop_sel(text);
-	txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, newl, *charp);
+	txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, oldl, oldc, newl, *charp);
 }
 
 /* Moves the cursor vertically by the specified number of lines.
@@ -1798,51 +1798,51 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
  *
  * This is to replace screen_skip for PageUp/Down operations.
  */
-static void cursor_skip(SpaceText* st, ARegion *ar, Text *text, int lines, int sel)
+static void cursor_skip(SpaceText *st, ARegion *ar, Text *text, int lines, int sel)
 {
 	TextLine **linep;
 	int oldl, oldc, *charp;
 	
-	if (sel) linep= &text->sell, charp= &text->selc;
-	else linep= &text->curl, charp= &text->curc;
-	oldl= txt_get_span(text->lines.first, *linep);
-	oldc= *charp;
+	if (sel) linep = &text->sell, charp = &text->selc;
+	else linep = &text->curl, charp = &text->curc;
+	oldl = txt_get_span(text->lines.first, *linep);
+	oldc = *charp;
 
 	if (st && ar && st->wordwrap) {
 		int rell, relc;
 
 		/* find line and offsets inside it needed to set cursor position */
 		if (cursor_skip_find_line(st, ar, lines, linep, charp, &rell, &relc))
-		  *charp= text_get_cursor_rel (st, ar, *linep, rell, relc);
+			*charp = text_get_cursor_rel(st, ar, *linep, rell, relc);
 	}
 	else {
-		while (lines>0 && (*linep)->next) {
-			*linep= (*linep)->next;
+		while (lines > 0 && (*linep)->next) {
+			*linep = (*linep)->next;
 			lines--;
 		}
-		while (lines<0 && (*linep)->prev) {
-			*linep= (*linep)->prev;
+		while (lines < 0 && (*linep)->prev) {
+			*linep = (*linep)->prev;
 			lines++;
 		}
 	}
 
-	if (*charp > (*linep)->len) *charp= (*linep)->len;
+	if (*charp > (*linep)->len) *charp = (*linep)->len;
 
 	if (!sel) txt_pop_sel(text);
-	txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, txt_get_span(text->lines.first, *linep), *charp);
+	txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, oldl, oldc, txt_get_span(text->lines.first, *linep), *charp);
 }
 
 static int text_move_cursor(bContext *C, int type, int select)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
+	ARegion *ar = CTX_wm_region(C);
 
 	/* ensure we have the right region, it's optional */
 	if (ar && ar->regiontype != RGN_TYPE_WINDOW)
-		ar= NULL;
+		ar = NULL;
 
-	switch(type) {
+	switch (type) {
 		case LINE_BEGIN:
 			if (st && st->wordwrap && ar) txt_wrap_move_bol(st, ar, select);
 			else txt_move_bol(text, select);
@@ -1899,14 +1899,14 @@ static int text_move_cursor(bContext *C, int type, int select)
 	}
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
 
 	return OPERATOR_FINISHED;
 }
 
 static int text_move_exec(bContext *C, wmOperator *op)
 {
-	int type= RNA_enum_get(op->ptr, "type");
+	int type = RNA_enum_get(op->ptr, "type");
 
 	return text_move_cursor(C, type, 0);
 }
@@ -1930,7 +1930,7 @@ void TEXT_OT_move(wmOperatorType *ot)
 
 static int text_move_select_exec(bContext *C, wmOperator *op)
 {
-	int type= RNA_enum_get(op->ptr, "type");
+	int type = RNA_enum_get(op->ptr, "type");
 
 	return text_move_cursor(C, type, 1);
 }
@@ -1954,26 +1954,26 @@ void TEXT_OT_move_select(wmOperatorType *ot)
 
 static int text_jump_exec(bContext *C, wmOperator *op)
 {
-	Text *text= CTX_data_edit_text(C);
-	int line= RNA_int_get(op->ptr, "line");
-	short nlines= txt_get_span(text->lines.first, text->lines.last)+1;
+	Text *text = CTX_data_edit_text(C);
+	int line = RNA_int_get(op->ptr, "line");
+	short nlines = txt_get_span(text->lines.first, text->lines.last) + 1;
 
 	if (line < 1)
 		txt_move_toline(text, 1, 0);
 	else if (line > nlines)
-		txt_move_toline(text, nlines-1, 0);
+		txt_move_toline(text, nlines - 1, 0);
 	else
-		txt_move_toline(text, line-1, 0);
+		txt_move_toline(text, line - 1, 0);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
 
 	return OPERATOR_FINISHED;
 }
 
 static int text_jump_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	return WM_operator_props_dialog_popup(C,op,200,100);
+	return WM_operator_props_dialog_popup(C, op, 200, 100);
 
 }
 
@@ -1995,7 +1995,7 @@ void TEXT_OT_jump(wmOperatorType *ot)
 
 /******************* delete operator **********************/
 
-static EnumPropertyItem delete_type_items[]= {
+static EnumPropertyItem delete_type_items[] = {
 	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
 	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
 	{DEL_NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
@@ -2004,8 +2004,8 @@ static EnumPropertyItem delete_type_items[]= {
 
 static int text_delete_exec(bContext *C, wmOperator *op)
 {
-	Text *text= CTX_data_edit_text(C);
-	int type= RNA_enum_get(op->ptr, "type");
+	Text *text = CTX_data_edit_text(C);
+	int type = RNA_enum_get(op->ptr, "type");
 
 	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
@@ -2021,7 +2021,7 @@ static int text_delete_exec(bContext *C, wmOperator *op)
 	text_update_line_edited(text->curl);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	/* run the script while editing, evil but useful */
 	if (CTX_wm_space_text(C)->live_edit)
@@ -2049,11 +2049,11 @@ void TEXT_OT_delete(wmOperatorType *ot)
 
 static int text_toggle_overwrite_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceText *st= CTX_wm_space_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
 
-	st->overwrite= !st->overwrite;
+	st->overwrite = !st->overwrite;
 
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+	WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 
 	return OPERATOR_FINISHED;
 }
@@ -2079,11 +2079,11 @@ static void txt_screen_skip(SpaceText *st, ARegion *ar, int lines)
 
 	st->top += lines;
 
-	last= text_get_total_lines(st, ar);
-	last= last - (st->viewlines/2);
+	last = text_get_total_lines(st, ar);
+	last = last - (st->viewlines / 2);
 	
-	if (st->top>last) st->top= last;
-	if (st->top<0) st->top= 0;
+	if (st->top > last) st->top = last;
+	if (st->top < 0) st->top = 0;
 }
 
 /* quick enum for tsc->zone (scroller handles) */
@@ -2111,15 +2111,15 @@ static int text_scroll_poll(bContext *C)
 
 static int text_scroll_exec(bContext *C, wmOperator *op)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	ARegion *ar = CTX_wm_region(C);
 
-	int lines= RNA_int_get(op->ptr, "lines");
+	int lines = RNA_int_get(op->ptr, "lines");
 
 	if (lines == 0)
 		return OPERATOR_CANCELLED;
 
-	txt_screen_skip(st, ar, lines*U.wheellinescroll);
+	txt_screen_skip(st, ar, lines * U.wheellinescroll);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 
@@ -2128,56 +2128,56 @@ static int text_scroll_exec(bContext *C, wmOperator *op)
 
 static void text_scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	ARegion *ar= CTX_wm_region(C);
-	TextScroll *tsc= op->customdata;
-	int mval[2]= {event->x, event->y};
+	SpaceText *st = CTX_wm_space_text(C);
+	ARegion *ar = CTX_wm_region(C);
+	TextScroll *tsc = op->customdata;
+	int mval[2] = {event->x, event->y};
 	short txtdelta[2] = {0, 0};
 
 	text_update_character_width(st);
 
 	if (tsc->first) {
-		tsc->old[0]= mval[0];
-		tsc->old[1]= mval[1];
-		tsc->first= 0;
+		tsc->old[0] = mval[0];
+		tsc->old[1] = mval[1];
+		tsc->first = 0;
 	}
 
-	tsc->delta[0]+= mval[0] - tsc->old[0];
-	tsc->delta[1]+= mval[1] - tsc->old[1];
+	tsc->delta[0] += mval[0] - tsc->old[0];
+	tsc->delta[1] += mval[1] - tsc->old[1];
 
 	if (!tsc->scrollbar) {
-		txtdelta[0]= -tsc->delta[0]/st->cwidth;
-		txtdelta[1]= tsc->delta[1]/st->lheight;
+		txtdelta[0] = -tsc->delta[0] / st->cwidth;
+		txtdelta[1] = tsc->delta[1] / st->lheight;
 
-		tsc->delta[0]%= st->cwidth;
-		tsc->delta[1]%= st->lheight;
+		tsc->delta[0] %= st->cwidth;
+		tsc->delta[1] %= st->lheight;
 	}
 	else {
-		txtdelta[1]= -tsc->delta[1]*st->pix_per_line;
-		tsc->delta[1]+= txtdelta[1]/st->pix_per_line;
+		txtdelta[1] = -tsc->delta[1] * st->pix_per_line;
+		tsc->delta[1] += txtdelta[1] / st->pix_per_line;
 	}
 
 	if (txtdelta[0] || txtdelta[1]) {
 		txt_screen_skip(st, ar, txtdelta[1]);
 
 		if (st->wordwrap) {
-			st->left= 0;
+			st->left = 0;
 		}
 		else {
-			st->left+= txtdelta[0];
-			if (st->left<0) st->left= 0;
+			st->left += txtdelta[0];
+			if (st->left < 0) st->left = 0;
 		}
 
 		ED_area_tag_redraw(CTX_wm_area(C));
 	}
 
-	tsc->old[0]= mval[0];
-	tsc->old[1]= mval[1];
+	tsc->old[0] = mval[0];
+	tsc->old[1] = mval[1];
 }
 
 static void scroll_exit(bContext *C, wmOperator *op)
 {
-	SpaceText *st= CTX_wm_space_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
 
 	st->flags &= ~ST_SCROLL_SELECT;
 	MEM_freeN(op->customdata);
@@ -2185,11 +2185,11 @@ static void scroll_exit(bContext *C, wmOperator *op)
 
 static int text_scroll_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	TextScroll *tsc= op->customdata;
-	SpaceText *st= CTX_wm_space_text(C);
-	ARegion *ar= CTX_wm_region(C);
+	TextScroll *tsc = op->customdata;
+	SpaceText *st = CTX_wm_space_text(C);
+	ARegion *ar = CTX_wm_region(C);
 
-	switch(event->type) {
+	switch (event->type) {
 		case MOUSEMOVE:
 			if (tsc->zone == SCROLLHANDLE_BAR)
 				text_scroll_apply(C, op, event);
@@ -2200,10 +2200,10 @@ static int text_scroll_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if (ELEM(tsc->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
 				int last;
 
-				st->top+= st->viewlines * (tsc->zone==SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1);
+				st->top += st->viewlines * (tsc->zone == SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1);
 
-				last= text_get_total_lines(st, ar);
-				last= last - (st->viewlines/2);
+				last = text_get_total_lines(st, ar);
+				last = last - (st->viewlines / 2);
 
 				CLAMP(st->top, 0, last);
 
@@ -2225,18 +2225,18 @@ static int text_scroll_cancel(bContext *C, wmOperator *op)
 
 static int text_scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceText *st= CTX_wm_space_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
 	TextScroll *tsc;
 	
 	if (RNA_struct_property_is_set(op->ptr, "lines"))
 		return text_scroll_exec(C, op);
 	
-	tsc= MEM_callocN(sizeof(TextScroll), "TextScroll");
-	tsc->first= 1;
-	tsc->zone= SCROLLHANDLE_BAR;
-	op->customdata= tsc;
+	tsc = MEM_callocN(sizeof(TextScroll), "TextScroll");
+	tsc->first = 1;
+	tsc->zone = SCROLLHANDLE_BAR;
+	op->customdata = tsc;
 	
-	st->flags|= ST_SCROLL_SELECT;
+	st->flags |= ST_SCROLL_SELECT;
 	
 	if (event->type == MOUSEPAN) {
 		text_update_character_width(st);
@@ -2244,8 +2244,8 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		tsc->old[0] = event->x;
 		tsc->old[1] = event->y;
 		/* Sensitivity of scroll set to 4pix per line/char */
-		tsc->delta[0] = (event->x - event->prevx)*st->cwidth/4;
-		tsc->delta[1] = (event->y - event->prevy)*st->lheight/4;
+		tsc->delta[0] = (event->x - event->prevx) * st->cwidth / 4;
+		tsc->delta[1] = (event->y - event->prevy) * st->lheight / 4;
 		tsc->first = 0;
 		tsc->scrollbar = 0;
 		text_scroll_apply(C, op, event);
@@ -2276,7 +2276,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	ot->poll = text_scroll_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
 
 	/* properties */
 	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll", -100, 100);
@@ -2287,9 +2287,9 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 static int text_region_scroll_poll(bContext *C)
 {
 	/* same as text_region_edit_poll except it works on libdata too */
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
+	ARegion *ar = CTX_wm_region(C);
 
 	if (!st || !text)
 		return 0;
@@ -2302,24 +2302,24 @@ static int text_region_scroll_poll(bContext *C)
 
 static int text_scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	ARegion *ar = CTX_wm_region(C);
 	TextScroll *tsc;
-	const int *mval= event->mval;
-	int zone= -1;
+	const int *mval = event->mval;
+	int zone = -1;
 
 	if (RNA_struct_property_is_set(op->ptr, "lines"))
 		return text_scroll_exec(C, op);
 	
 	/* verify we are in the right zone */
-	if (mval[0]>st->txtbar.xmin && mval[0]<st->txtbar.xmax) {
-		if (mval[1]>=st->txtbar.ymin && mval[1]<=st->txtbar.ymax) {
+	if (mval[0] > st->txtbar.xmin && mval[0] < st->txtbar.xmax) {
+		if (mval[1] >= st->txtbar.ymin && mval[1] <= st->txtbar.ymax) {
 			/* mouse inside scroll handle */
 			zone = SCROLLHANDLE_BAR;
 		}
-		else if (mval[1]>TXT_SCROLL_SPACE && mval[1]<ar->winy-TXT_SCROLL_SPACE) {
-			if (mval[1]<st->txtbar.ymin) zone= SCROLLHANDLE_MIN_OUTSIDE;
-			else zone= SCROLLHANDLE_MAX_OUTSIDE;
+		else if (mval[1] > TXT_SCROLL_SPACE && mval[1] < ar->winy - TXT_SCROLL_SPACE) {
+			if (mval[1] < st->txtbar.ymin) zone = SCROLLHANDLE_MIN_OUTSIDE;
+			else zone = SCROLLHANDLE_MAX_OUTSIDE;
 		}
 	}
 
@@ -2328,12 +2328,12 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 	}
 
-	tsc= MEM_callocN(sizeof(TextScroll), "TextScroll");
-	tsc->first= 1;
-	tsc->scrollbar= 1;
-	tsc->zone= zone;
-	op->customdata= tsc;
-	st->flags|= ST_SCROLL_SELECT;
+	tsc = MEM_callocN(sizeof(TextScroll), "TextScroll");
+	tsc->first = 1;
+	tsc->scrollbar = 1;
+	tsc->zone = zone;
+	op->customdata = tsc;
+	st->flags |= ST_SCROLL_SELECT;
 
 	/* jump scroll, works in v2d but needs to be added here too :S */
 	if (event->type == MIDDLEMOUSE) {
@@ -2343,7 +2343,7 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		tsc->delta[0] = 0;
 		tsc->delta[1] = 0;
 		tsc->first = 0;
-		tsc->zone= SCROLLHANDLE_BAR;
+		tsc->zone = SCROLLHANDLE_BAR;
 		text_scroll_apply(C, op, event);
 	}
 
@@ -2387,9 +2387,9 @@ static int flatten_len(SpaceText *st, const char *str)
 {
 	int i, total = 0;
 
-	for (i = 0; str[i]; i += BLI_str_utf8_size(str+i)) {
-		if (str[i]=='\t') {
-			total += st->tabnumber - total%st->tabnumber;
+	for (i = 0; str[i]; i += BLI_str_utf8_size(str + i)) {
+		if (str[i] == '\t') {
+			total += st->tabnumber - total % st->tabnumber;
 		}
 		else total++;
 	}
@@ -2400,9 +2400,9 @@ static int flatten_len(SpaceText *st, const char *str)
 static int flatten_index_to_offset(SpaceText *st, const char *str, int index)
 {
 	int i, j;
-	for (i= 0, j= 0; i < index; j += BLI_str_utf8_size(str+j))
-		if (str[j]=='\t')
-			i += st->tabnumber - i%st->tabnumber;
+	for (i = 0, j = 0; i < index; j += BLI_str_utf8_size(str + j))
+		if (str[j] == '\t')
+			i += st->tabnumber - i % st->tabnumber;
 		else
 			i++;
 	
@@ -2416,7 +2416,7 @@ static TextLine *get_first_visible_line(SpaceText *st, ARegion *ar, int *y)
 	for (i = st->top; i > 0 && linep; ) {
 		int lines = text_get_visible_lines(st, ar, linep->line);
 		
-		if (i-lines < 0) {
+		if (i - lines < 0) {
 			*y += i;
 			break;
 		}
@@ -2444,13 +2444,13 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 		int j = 0, curs = 0, endj = 0;   /* mem */
 		int chop = 1;                    /* flags */
 		
-		for (; loop; j += BLI_str_utf8_size(linep->line+j)) {
+		for (; loop; j += BLI_str_utf8_size(linep->line + j)) {
 			int chars;
 			
 			/* Mimic replacement of tabs */
 			ch = linep->line[j];
 			if (ch == '\t') {
-				chars = st->tabnumber - i%st->tabnumber;
+				chars = st->tabnumber - i % st->tabnumber;
 				ch = ' ';
 			}
 			else chars = 1;
@@ -2463,10 +2463,10 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 					break;
 					/* Exactly at the cursor */
 				}
-				else if (y == 0 && i-start == x) {
+				else if (y == 0 && i - start == x) {
 					/* current position could be wrapped to next line */
 					/* this should be checked when end of current line would be reached */
-					charp = curs= j;
+					charp = curs = j;
 					found = 1;
 					/* Prepare curs for next wrap */
 				}
@@ -2477,7 +2477,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 					if (found) {
 						/* exact cursor position was found, check if it's */
 						/* still on needed line (hasn't been wrapped) */
-						if (charp > endj && !chop && ch!='\0') charp = endj;
+						if (charp > endj && !chop && ch != '\0') charp = endj;
 						loop = 0;
 						break;
 					}
@@ -2490,7 +2490,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 						y--;
 					
 					chop = 1;
-					if (y == 0 && i-start >= x) {
+					if (y == 0 && i - start >= x) {
 						charp = curs;
 						loop = 0;
 						break;
@@ -2502,7 +2502,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 						break;
 					}
 					
-					if (y == 0 && i-start >= x) {
+					if (y == 0 && i - start >= x) {
 						charp = curs;
 						loop = 0;
 						break;
@@ -2542,14 +2542,14 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 
 static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 {
-	Text *text= st->text;
+	Text *text = st->text;
 	text_update_character_width(st);
-	y= (ar->winy - 2 - y)/st->lheight;
+	y = (ar->winy - 2 - y) / st->lheight;
 
-	if (st->showlinenrs) x-= TXT_OFFSET+TEXTXLOC;
-	else x-= TXT_OFFSET;
+	if (st->showlinenrs) x -= TXT_OFFSET + TEXTXLOC;
+	else x -= TXT_OFFSET;
 
-	if (x<0) x= 0;
+	if (x < 0) x = 0;
 	x = text_pixel_x_to_index(st, x) + st->left;
 	
 	if (st->wordwrap) {
@@ -2560,67 +2560,67 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 		int *charp;
 		int w;
 		
-		if (sel) { linep= &text->sell; charp= &text->selc; } 
-		else { linep= &text->curl; charp= &text->curc; }
+		if (sel) { linep = &text->sell; charp = &text->selc; }
+		else { linep = &text->curl; charp = &text->curc; }
 		
-		y-= txt_get_span(text->lines.first, *linep) - st->top;
+		y -= txt_get_span(text->lines.first, *linep) - st->top;
 		
-		if (y>0) {
-			while (y-- != 0) if ((*linep)->next) *linep= (*linep)->next;
+		if (y > 0) {
+			while (y-- != 0) if ((*linep)->next) *linep = (*linep)->next;
 		}
-		else if (y<0) {
-			while (y++ != 0) if ((*linep)->prev) *linep= (*linep)->prev;
+		else if (y < 0) {
+			while (y++ != 0) if ((*linep)->prev) *linep = (*linep)->prev;
 		}
 
 		
-		w= flatten_len(st, (*linep)->line);
-		if (x<w) *charp= flatten_index_to_offset(st, (*linep)->line, x);
-		else *charp= (*linep)->len;
+		w = flatten_len(st, (*linep)->line);
+		if (x < w) *charp = flatten_index_to_offset(st, (*linep)->line, x);
+		else *charp = (*linep)->len;
 	}
 	if (!sel) txt_pop_sel(text);
 }
 
 static void text_cursor_set_apply(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	ARegion *ar= CTX_wm_region(C);
-	SetSelection *ssel= op->customdata;
+	SpaceText *st = CTX_wm_space_text(C);
+	ARegion *ar = CTX_wm_region(C);
+	SetSelection *ssel = op->customdata;
 
-	if (event->mval[1]<0 || event->mval[1]>ar->winy) {
-		int d= (ssel->old[1]-event->mval[1])*st->pix_per_line;
+	if (event->mval[1] < 0 || event->mval[1] > ar->winy) {
+		int d = (ssel->old[1] - event->mval[1]) * st->pix_per_line;
 		if (d) txt_screen_skip(st, ar, d);
 
-		text_cursor_set_to_pos(st, ar, event->mval[0], event->mval[1]<0?0:ar->winy, 1);
+		text_cursor_set_to_pos(st, ar, event->mval[0], event->mval[1] < 0 ? 0 : ar->winy, 1);
 
 		text_update_cursor_moved(C);
-		WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+		WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 	} 
-	else if (!st->wordwrap && (event->mval[0]<0 || event->mval[0]>ar->winx)) {
-		if (event->mval[0]>ar->winx) st->left++;
-		else if (event->mval[0]<0 && st->left>0) st->left--;
+	else if (!st->wordwrap && (event->mval[0] < 0 || event->mval[0] > ar->winx)) {
+		if (event->mval[0] > ar->winx) st->left++;
+		else if (event->mval[0] < 0 && st->left > 0) st->left--;
 		
 		text_cursor_set_to_pos(st, ar, event->mval[0], event->mval[1], 1);
 		
 		text_update_cursor_moved(C);
-		WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+		WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 		// XXX PIL_sleep_ms(10);
 	} 
 	else {
 		text_cursor_set_to_pos(st, ar, event->mval[0], event->mval[1], 1);
 
 		text_update_cursor_moved(C);
-		WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+		WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 
-		ssel->old[0]= event->mval[0];
-		ssel->old[1]= event->mval[1];
+		ssel->old[0] = event->mval[0];
+		ssel->old[1] = event->mval[1];
 	} 
 }
 
 static void text_cursor_set_exit(bContext *C, wmOperator *op)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= st->text;
-	SetSelection *ssel= op->customdata;
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = st->text;
+	SetSelection *ssel = op->customdata;
 	int linep2, charp2;
 	char *buffer;
 
@@ -2630,35 +2630,35 @@ static void text_cursor_set_exit(bContext *C, wmOperator *op)
 		MEM_freeN(buffer);
 	}
 
-	linep2= txt_get_span(st->text->lines.first, st->text->sell);
-	charp2= st->text->selc;
+	linep2 = txt_get_span(st->text->lines.first, st->text->sell);
+	charp2 = st->text->selc;
 		
-	if (ssel->sell!=linep2 || ssel->selc!=charp2)
+	if (ssel->sell != linep2 || ssel->selc != charp2)
 		txt_undo_add_toop(st->text, UNDO_STO, ssel->sell, ssel->selc, linep2, charp2);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+	WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 
 	MEM_freeN(ssel);
 }
 
 static int text_set_selection_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceText *st= CTX_wm_space_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
 	SetSelection *ssel;
 
-	if (event->mval[0]>=st->txtbar.xmin)
+	if (event->mval[0] >= st->txtbar.xmin)
 		return OPERATOR_PASS_THROUGH;
 
-	op->customdata= MEM_callocN(sizeof(SetSelection), "SetCursor");
-	ssel= op->customdata;
-	ssel->selecting= RNA_boolean_get(op->ptr, "select");
+	op->customdata = MEM_callocN(sizeof(SetSelection), "SetCursor");
+	ssel = op->customdata;
+	ssel->selecting = RNA_boolean_get(op->ptr, "select");
 
-	ssel->old[0]= event->mval[0];
-	ssel->old[1]= event->mval[1];
+	ssel->old[0] = event->mval[0];
+	ssel->old[1] = event->mval[1];
 
-	ssel->sell= txt_get_span(st->text->lines.first, st->text->sell);
-	ssel->selc= st->text->selc;
+	ssel->sell = txt_get_span(st->text->lines.first, st->text->sell);
+	ssel->selc = st->text->selc;
 
 	WM_event_add_modal_handler(C, op);
 
@@ -2669,7 +2669,7 @@ static int text_set_selection_invoke(bContext *C, wmOperator *op, wmEvent *event
 
 static int text_set_selection_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	switch(event->type) {
+	switch (event->type) {
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
@@ -2710,31 +2710,31 @@ void TEXT_OT_selection_set(wmOperatorType *ot)
 
 static int text_cursor_set_exec(bContext *C, wmOperator *op)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= st->text;
-	ARegion *ar= CTX_wm_region(C);
-	int x= RNA_int_get(op->ptr, "x");
-	int y= RNA_int_get(op->ptr, "y");
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = st->text;
+	ARegion *ar = CTX_wm_region(C);
+	int x = RNA_int_get(op->ptr, "x");
+	int y = RNA_int_get(op->ptr, "y");
 	int oldl, oldc;
 
-	oldl= txt_get_span(text->lines.first, text->curl);
-	oldc= text->curc;
+	oldl = txt_get_span(text->lines.first, text->curl);
+	oldc = text->curc;
 
 	text_cursor_set_to_pos(st, ar, x, y, 0);
 
 	txt_undo_add_toop(text, UNDO_CTO, oldl, oldc, txt_get_span(text->lines.first, text->curl), text->curc);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+	WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 
 	return OPERATOR_PASS_THROUGH;
 }
 
 static int text_cursor_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceText *st= CTX_wm_space_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
 
-	if (event->mval[0]>=st->txtbar.xmin)
+	if (event->mval[0] >= st->txtbar.xmin)
 		return OPERATOR_PASS_THROUGH;
 
 	RNA_int_set(op->ptr, "x", event->mval[0]);
@@ -2764,37 +2764,37 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 
 static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
-	ARegion *ar= CTX_wm_region(C);
-	const int *mval= event->mval;
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
+	ARegion *ar = CTX_wm_region(C);
+	const int *mval = event->mval;
 	double time;
-	static int jump_to= 0;
-	static double last_jump= 0;
+	static int jump_to = 0;
+	static double last_jump = 0;
 
 	text_update_character_width(st);
 
 	if (!st->showlinenrs)
 		return OPERATOR_PASS_THROUGH;
 
-	if (!(mval[0]>2 && mval[0]<(TXT_OFFSET + TEXTXLOC) && mval[1]>2 && mval[1]<ar->winy-2))
+	if (!(mval[0] > 2 && mval[0] < (TXT_OFFSET + TEXTXLOC) && mval[1] > 2 && mval[1] < ar->winy - 2))
 		return OPERATOR_PASS_THROUGH;
 
-	if (!(event->ascii>='0' && event->ascii<='9'))
+	if (!(event->ascii >= '0' && event->ascii <= '9'))
 		return OPERATOR_PASS_THROUGH;
 
 	time = PIL_check_seconds_timer();
-	if (last_jump < time-1)
-		jump_to= 0;
+	if (last_jump < time - 1)
+		jump_to = 0;
 
 	jump_to *= 10;
-	jump_to += (int)(event->ascii-'0');
+	jump_to += (int)(event->ascii - '0');
 
-	txt_move_toline(text, jump_to-1, 0);
-	last_jump= time;
+	txt_move_toline(text, jump_to - 1, 0);
+	last_jump = time;
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -2815,8 +2815,8 @@ void TEXT_OT_line_number(wmOperatorType *ot)
 
 static int text_insert_exec(bContext *C, wmOperator *op)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
 	char *str;
 	int done = 0;
 	size_t i = 0;
@@ -2824,7 +2824,7 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 
 	text_drawcache_tag_update(st, 0);
 
-	str= RNA_string_get_alloc(op->ptr, "text", NULL, 0);
+	str = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
 
 	if (st && st->overwrite) {
 		while (str[i]) {
@@ -2847,7 +2847,7 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 	text_update_line_edited(text->curl);
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -2863,7 +2863,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 		}
 		else {
-			char str[BLI_UTF8_MAX+1];
+			char str[BLI_UTF8_MAX + 1];
 			size_t len;
 			
 			if (event->utf8_buf[0]) {
@@ -2874,7 +2874,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				/* in theory, ghost can set value to extended ascii here */
 				len = BLI_str_utf8_from_unicode(event->ascii, str);
 			}
-			str[len]= '\0';
+			str[len] = '\0';
 			RNA_string_set(op->ptr, "text", str);
 		}
 	}
@@ -2882,7 +2882,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ret = text_insert_exec(C, op);
 	
 	/* run the script while editing, evil but useful */
-	if (ret==OPERATOR_FINISHED && CTX_wm_space_text(C)->live_edit)
+	if (ret == OPERATOR_FINISHED && CTX_wm_space_text(C)->live_edit)
 		text_run_script(C, NULL);
 
 	return ret;
@@ -2910,97 +2910,97 @@ void TEXT_OT_insert(wmOperatorType *ot)
 /******************* find operator *********************/
 
 /* mode */
-#define TEXT_FIND		0
-#define TEXT_REPLACE	1
-#define TEXT_MARK_ALL	2
+#define TEXT_FIND       0
+#define TEXT_REPLACE    1
+#define TEXT_MARK_ALL   2
 
 static int text_find_and_replace(bContext *C, wmOperator *op, short mode)
 {
-	Main *bmain= CTX_data_main(C);
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *start= NULL, *text= st->text;
-	int flags, first= 1;
+	Main *bmain = CTX_data_main(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *start = NULL, *text = st->text;
+	int flags, first = 1;
 	int found = 0;
 	char *tmp;
 
 	if (!st->findstr[0] || (mode == TEXT_REPLACE && !st->replacestr[0]))
 		return OPERATOR_CANCELLED;
 
-	flags= st->flags;
+	flags = st->flags;
 	if (flags & ST_FIND_ALL)
 		flags ^= ST_FIND_WRAP;
 
 	do {
-		int proceed= 0;
+		int proceed = 0;
 
 		if (first) {
 			if (text->markers.first)
-				WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+				WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 			txt_clear_markers(text, TMARK_GRP_FINDALL, 0);
 		}
 
-		first= 0;
+		first = 0;
 		
 		/* Replace current */
-		if (mode!=TEXT_FIND && txt_has_sel(text)) {
-			tmp= txt_sel_to_buf(text);
+		if (mode != TEXT_FIND && txt_has_sel(text)) {
+			tmp = txt_sel_to_buf(text);
 
-			if (flags & ST_MATCH_CASE) proceed= strcmp(st->findstr, tmp)==0;
-			else proceed= BLI_strcasecmp(st->findstr, tmp)==0;
+			if (flags & ST_MATCH_CASE) proceed = strcmp(st->findstr, tmp) == 0;
+			else proceed = BLI_strcasecmp(st->findstr, tmp) == 0;
 
 			if (proceed) {
-				if (mode==TEXT_REPLACE) {
+				if (mode == TEXT_REPLACE) {
 					txt_insert_buf(text, st->replacestr);
 					if (text->curl && text->curl->format) {
 						MEM_freeN(text->curl->format);
-						text->curl->format= NULL;
+						text->curl->format = NULL;
 					}
 					text_update_cursor_moved(C);
-					WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+					WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 					text_drawcache_tag_update(CTX_wm_space_text(C), 1);
 				}
-				else if (mode==TEXT_MARK_ALL) {
+				else if (mode == TEXT_MARK_ALL) {
 					unsigned char color[4];
 					UI_GetThemeColor4ubv(TH_SHADE2, color);
 
 					if (txt_find_marker(text, text->curl, text->selc, TMARK_GRP_FINDALL, 0)) {
-						if (tmp) MEM_freeN(tmp), tmp=NULL;
+						if (tmp) MEM_freeN(tmp), tmp = NULL;
 						break;
 					}
 
 					txt_add_marker(text, text->curl, text->curc, text->selc, color, TMARK_GRP_FINDALL, TMARK_EDITALL);
 					text_update_cursor_moved(C);
-					WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+					WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 				}
 			}
 			MEM_freeN(tmp);
-			tmp= NULL;
+			tmp = NULL;
 		}
 
 		/* Find next */
 		if (txt_find_string(text, st->findstr, flags & ST_FIND_WRAP, flags & ST_MATCH_CASE)) {
 			text_update_cursor_moved(C);
-			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+			WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
 		}
 		else if (flags & ST_FIND_ALL) {
-			if (text==start) break;
-			if (!start) start= text;
+			if (text == start) break;
+			if (!start) start = text;
 			if (text->id.next)
-				text= st->text= text->id.next;
+				text = st->text = text->id.next;
 			else
-				text= st->text= bmain->text.first;
+				text = st->text = bmain->text.first;
 			txt_move_toline(text, 0, 0);
 			text_update_cursor_moved(C);
-			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
-			first= 1;
+			WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
+			first = 1;
 		}
 		else {
 			if (!found && !proceed) BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
 			break;
 		}
 		found = 1;
-	} while (mode==TEXT_MARK_ALL);
+	} while (mode == TEXT_MARK_ALL);
 
 	return OPERATOR_FINISHED;
 }
@@ -3064,11 +3064,11 @@ void TEXT_OT_mark_all(wmOperatorType *ot)
 
 static int text_find_set_selected_exec(bContext *C, wmOperator *op)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
 	char *tmp;
 
-	tmp= txt_sel_to_buf(text);
+	tmp = txt_sel_to_buf(text);
 	BLI_strncpy(st->findstr, tmp, ST_MAX_FIND_STR);
 	MEM_freeN(tmp);
 
@@ -3094,11 +3094,11 @@ void TEXT_OT_find_set_selected(wmOperatorType *ot)
 
 static int text_replace_set_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
 	char *tmp;
 
-	tmp= txt_sel_to_buf(text);
+	tmp = txt_sel_to_buf(text);
 	BLI_strncpy(st->replacestr, tmp, ST_MAX_FIND_STR);
 	MEM_freeN(tmp);
 
@@ -3120,12 +3120,13 @@ void TEXT_OT_replace_set_selected(wmOperatorType *ot)
 /****************** resolve conflict operator ******************/
 
 enum { RESOLVE_IGNORE, RESOLVE_RELOAD, RESOLVE_SAVE, RESOLVE_MAKE_INTERNAL };
-static EnumPropertyItem resolution_items[]= {
+static EnumPropertyItem resolution_items[] = {
 	{RESOLVE_IGNORE, "IGNORE", 0, "Ignore", ""},
 	{RESOLVE_RELOAD, "RELOAD", 0, "Reload", ""},
 	{RESOLVE_SAVE, "SAVE", 0, "Save", ""},
 	{RESOLVE_MAKE_INTERNAL, "MAKE_INTERNAL", 0, "Make Internal", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 /* returns 0 if file on disk is the same or Text is in memory only
  * returns 1 if file has been modified on disk since last local edit
@@ -3179,15 +3180,15 @@ static void text_ignore_modified(Text *text)
 	if (result == -1 || (st.st_mode & S_IFMT) != S_IFREG)
 		return;
 
-	text->mtime= st.st_mtime;
+	text->mtime = st.st_mtime;
 }
 
 static int text_resolve_conflict_exec(bContext *C, wmOperator *op)
 {
-	Text *text= CTX_data_edit_text(C);
-	int resolution= RNA_enum_get(op->ptr, "resolution");
+	Text *text = CTX_data_edit_text(C);
+	int resolution = RNA_enum_get(op->ptr, "resolution");
 
-	switch(resolution) {
+	switch (resolution) {
 		case RESOLVE_RELOAD:
 			return text_reload_exec(C, op);
 		case RESOLVE_SAVE:
@@ -3204,24 +3205,24 @@ static int text_resolve_conflict_exec(bContext *C, wmOperator *op)
 
 static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	switch(text_file_modified(text)) {
+	switch (text_file_modified(text)) {
 		case 1:
 			if (text->flags & TXT_ISDIRTY) {
 				/* modified locally and externally, ahhh. offer more possibilites. */
-				pup= uiPupMenuBegin(C, "File Modified Outside and Inside Blender", ICON_NONE);
-				layout= uiPupMenuLayout(pup);
+				pup = uiPupMenuBegin(C, "File Modified Outside and Inside Blender", ICON_NONE);
+				layout = uiPupMenuLayout(pup);
 				uiItemEnumO_ptr(layout, op->type, "Reload from disk (ignore local changes)", 0, "resolution", RESOLVE_RELOAD);
 				uiItemEnumO_ptr(layout, op->type, "Save to disk (ignore outside changes)", 0, "resolution", RESOLVE_SAVE);
 				uiItemEnumO_ptr(layout, op->type, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
 				uiPupMenuEnd(C, pup);
 			}
 			else {
-				pup= uiPupMenuBegin(C, "File Modified Outside Blender", ICON_NONE);
-				layout= uiPupMenuLayout(pup);
+				pup = uiPupMenuBegin(C, "File Modified Outside Blender", ICON_NONE);
+				layout = uiPupMenuLayout(pup);
 				uiItemEnumO_ptr(layout, op->type, "Reload from disk", 0, "resolution", RESOLVE_RELOAD);
 				uiItemEnumO_ptr(layout, op->type, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
 				uiItemEnumO_ptr(layout, op->type, "Ignore", 0, "resolution", RESOLVE_IGNORE);
@@ -3229,8 +3230,8 @@ static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UN
 			}
 			break;
 		case 2:
-			pup= uiPupMenuBegin(C, "File Deleted Outside Blender", ICON_NONE);
-			layout= uiPupMenuLayout(pup);
+			pup = uiPupMenuBegin(C, "File Deleted Outside Blender", ICON_NONE);
+			layout = uiPupMenuLayout(pup);
 			uiItemEnumO_ptr(layout, op->type, "Make text internal", 0, "resolution", RESOLVE_MAKE_INTERNAL);
 			uiItemEnumO_ptr(layout, op->type, "Recreate file", 0, "resolution", RESOLVE_SAVE);
 			uiPupMenuEnd(C, pup);
@@ -3260,8 +3261,8 @@ void TEXT_OT_resolve_conflict(wmOperatorType *ot)
 
 static int text_to_3d_object_exec(bContext *C, wmOperator *op)
 {
-	Text *text= CTX_data_edit_text(C);
-	int split_lines= RNA_boolean_get(op->ptr, "split_lines");
+	Text *text = CTX_data_edit_text(C);
+	int split_lines = RNA_boolean_get(op->ptr, "split_lines");
 
 	ED_text_to_object(C, text, split_lines);
 
@@ -3280,7 +3281,7 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 	ot->poll = text_edit_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "split_lines", 0, "Split Lines", "Create one object per line in the text");
@@ -3291,20 +3292,20 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 
 void ED_text_undo_step(bContext *C, int step)
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 
 	if (!text)
 		return;
 
-	if (step==1)
+	if (step == 1)
 		txt_do_undo(text);
-	else if (step==-1)
+	else if (step == -1)
 		txt_do_redo(text);
 
 	text_update_edited(text);
 
 	text_update_cursor_moved(C);
 	text_drawcache_tag_update(CTX_wm_space_text(C), 1);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 }
 
