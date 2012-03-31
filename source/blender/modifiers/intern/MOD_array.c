@@ -413,6 +413,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		BMVert *v, *v2, *v3;
 		BMOpSlot *geom_slot;
 		BMOpSlot *newout_slot;
+		BMOIter oiter;
 
 		if (j != 0)
 			BMO_op_initf(em->bm, &dupe_op, "dupe geom=%s", &old_dupe_op, "newout");
@@ -430,7 +431,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			memcpy(first_geom, geom_slot->data.buf, first_geom_bytes);
 		}
 
-		BMO_op_callf(em->bm, "transform mat=%m4 verts=%s", offset, &dupe_op, "newout");
+		/* apply transformation matrix */
+		BMO_ITER(v, &oiter, em->bm, &dupe_op, "newout", BM_VERT) {
+			mul_m4_v3(offset, v->co);
+		}
 
 		if (amd->flags & MOD_ARR_MERGE) {
 			/*calculate merge mapping*/
