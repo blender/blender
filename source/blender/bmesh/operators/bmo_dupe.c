@@ -191,22 +191,19 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	BMVert **vtar = NULL;
 	BMEdge **edar = NULL;
 	
-	BMIter verts;
-	BMIter edges;
-	BMIter faces;
-	
-	GHash *vhash;
-	GHash *ehash;
+	BMIter viter, eiter, fiter;
+	GHash *vhash, *ehash;
 
 	/* initialize pointer hashes */
-	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops v");
-	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops e");
+	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp,
+						  "bmesh dupeops v");
+	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp,
+						  "bmesh dupeops e");
 
 	/* duplicate flagged vertices */
-	for (v = BM_iter_new(&verts, source, BM_VERTS_OF_MESH, source); v; v = BM_iter_step(&verts)) {
-		if ( BMO_elem_flag_test(source, v, DUPE_INPUT) &&
-		    !BMO_elem_flag_test(source, v, DUPE_DONE))
-		{
+	BM_ITER(v, &viter, source, BM_VERTS_OF_MESH, source) {
+		if (BMO_elem_flag_test(source, v, DUPE_INPUT) &&
+			!BMO_elem_flag_test(source, v, DUPE_DONE)) {
 			BMIter iter;
 			int isolated = 1;
 
@@ -237,10 +234,9 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	}
 
 	/* now we dupe all the edges */
-	for (e = BM_iter_new(&edges, source, BM_EDGES_OF_MESH, source); e; e = BM_iter_step(&edges)) {
-		if ( BMO_elem_flag_test(source, e, DUPE_INPUT) &&
-		    !BMO_elem_flag_test(source, e, DUPE_DONE))
-		{
+	BM_ITER(e, &eiter, source, BM_EDGES_OF_MESH, source) {
+		if (BMO_elem_flag_test(source, e, DUPE_INPUT) &&
+			!BMO_elem_flag_test(source, e, DUPE_DONE)) {
 			/* make sure that verts are copied */
 			if (!BMO_elem_flag_test(source, e->v1, DUPE_DONE)) {
 				copy_vertex(source, e->v1, target, vhash);
@@ -257,10 +253,10 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	}
 
 	/* first we dupe all flagged faces and their elements from source */
-	for (f = BM_iter_new(&faces, source, BM_FACES_OF_MESH, source); f; f = BM_iter_step(&faces)) {
+	BM_ITER(f, &fiter, source, BM_FACES_OF_MESH, source) {
 		if (BMO_elem_flag_test(source, f, DUPE_INPUT)) {
 			/* vertex pass */
-			for (v = BM_iter_new(&verts, source, BM_VERTS_OF_FACE, f); v; v = BM_iter_step(&verts)) {
+			BM_ITER(v, &viter, source, BM_VERTS_OF_FACE, f) {
 				if (!BMO_elem_flag_test(source, v, DUPE_DONE)) {
 					copy_vertex(source, v, target, vhash);
 					BMO_elem_flag_enable(source, v, DUPE_DONE);
@@ -268,7 +264,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 			}
 
 			/* edge pass */
-			for (e = BM_iter_new(&edges, source, BM_EDGES_OF_FACE, f); e; e = BM_iter_step(&edges)) {
+			BM_ITER(e, &eiter, source, BM_EDGES_OF_FACE, f) {
 				if (!BMO_elem_flag_test(source, e, DUPE_DONE)) {
 					copy_edge(op, source, e, target,  vhash,  ehash);
 					BMO_elem_flag_enable(source, e, DUPE_DONE);
@@ -325,7 +321,7 @@ void bmo_dupe_exec(BMesh *bm, BMOperator *op)
 	if (!bm2)
 		bm2 = bm;
 
-	/* flag inpu */
+	/* flag input */
 	BMO_slot_buffer_flag_enable(bm, dupeop, "geom", BM_ALL, DUPE_INPUT);
 
 	/* use the internal copy function */
