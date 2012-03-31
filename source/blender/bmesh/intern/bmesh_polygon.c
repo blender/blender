@@ -75,7 +75,7 @@ static short testedgesidef(const float v1[2], const float v2[2], const float v3[
  * polygon See Graphics Gems for
  * computing newell normal.
  */
-static void compute_poly_normal(float normal[3], float const (* verts)[3], int nverts)
+static void compute_poly_normal(float normal[3], float verts[][3], int nverts)
 {
 	float const *v_prev = verts[nverts - 1];
 	float const *v_curr = verts[0];
@@ -157,46 +157,6 @@ static void bm_face_compute_poly_normal_vertex_cos(BMFace *f, float n[3],
 }
 
 /**
- * \brief COMPUTE POLY CENTER
- *
- * Computes the centroid and
- * area of a polygon in the X/Y
- * plane.
- */
-static int compute_poly_center(float center[3], float *r_area, float (* const verts)[3], int nverts)
-{
-	int i, j;
-	float atmp = 0.0f, xtmp = 0.0f, ytmp = 0.0f, ai;
-
-	zero_v3(center);
-
-	if (nverts < 3)
-		return FALSE;
-
-	i = nverts - 1;
-	j = 0;
-	
-	while (j < nverts) {
-		ai = verts[i][0] * verts[j][1] - verts[j][0] * verts[i][1];
-		atmp += ai;
-		xtmp += (verts[j][0] + verts[i][0]) * ai;
-		ytmp += (verts[j][1] + verts[i][1]) * ai;
-		i = j;
-		j += 1;
-	}
-
-	if (r_area)
-		*r_area = atmp / 2.0f;
-	
-	if (atmp != 0) {
-		center[0] = xtmp /  (3.0f * atmp);
-		center[1] = xtmp /  (3.0f * atmp);
-		return TRUE;
-	}
-	return FALSE;
-}
-
-/**
  * get the area of the face
  */
 float BM_face_area_calc(BMesh *bm, BMFace *f)
@@ -204,19 +164,26 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 	BMLoop *l;
 	BMIter iter;
 	float (*verts)[3];
-	float center[3];
-	float area = 0.0f;
+	float normal[3];
+	float area;
 	int i;
 
 	BLI_array_fixedstack_declare(verts, BM_NGON_STACK_SIZE, f->len, __func__);
 
-	i = 0;
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+	BM_ITER_INDEX(l, &iter, bm, BM_LOOPS_OF_FACE, f, i) {
 		copy_v3_v3(verts[i], l->v->co);
-		i++;
 	}
 
-	compute_poly_center(center, &area, verts, f->len);
+	if (f->len == 3) {
+		area = area_tri_v3(verts[0], verts[1], verts[2]);
+	}
+	else if (f->len == 4) {
+		area = area_quad_v3(verts[0], verts[1], verts[2], verts[3]);
+	}
+	else {
+		compute_poly_normal(normal, verts, f->len);
+		area = area_poly_v3(f->len, verts, normal);
+	}
 
 	BLI_array_fixedstack_free(verts);
 
@@ -354,7 +321,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 	axis_angle_to_quat(q, axis, (float)angle);
 	quat_to_mat3(mat, q);
 
-	for (i = 0;  i < nverts;  i++)
+	for (i = 0; i < nverts; i++)
 		mul_m3_v3(mat, verts[i]);
 }
 
@@ -367,7 +334,7 @@ void BM_edge_normals_update(BMesh *bm, BMEdge *e)
 	BMFace *f;
 	
 	f = BM_iter_new(&iter, bm, BM_FACES_OF_EDGE, e);
-	for ( ; f; f = BM_iter_step(&iter)) {
+	for (; f; f = BM_iter_step(&iter)) {
 		BM_face_normal_update(bm, f);
 	}
 
@@ -526,6 +493,21 @@ void BM_face_normal_flip(BMesh *bm, BMFace *f)
  * note, there could be more winding cases then there needs to be. */
 static int linecrossesf(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
+
+#define GETMIN2_AXIS(a, b, ma, mb, axis)   \
+	{                                      \
+		ma[axis] = MIN2(a[axis], b[axis]); \
+		mb[axis] = MAX2(a[axis], b[axis]); \
+	} (void)0
+
+#define GETMIN2(a, b, ma, mb)          \
+	{                                  \
+		GETMIN2_AXIS(a, b, ma, mb, 0); \
+		GETMIN2_AXIS(a, b, ma, mb, 1); \
+	} (void)0
+
+#define EPS (FLT_EPSILON * 15)
+
 	int w1, w2, w3, w4, w5 /*, re */;
 	float mv1[2], mv2[2], mv3[2], mv4[2];
 	
@@ -540,31 +522,32 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 		return TRUE;
 	}
 	
-#define GETMIN2_AXIS(a, b, ma, mb, axis) ma[axis] = MIN2(a[axis], b[axis]), mb[axis] = MAX2(a[axis], b[axis])
-#define GETMIN2(a, b, ma, mb) GETMIN2_AXIS(a, b, ma, mb, 0); GETMIN2_AXIS(a, b, ma, mb, 1);
-	
 	GETMIN2(v1, v2, mv1, mv2);
 	GETMIN2(v3, v4, mv3, mv4);
 	
 	/* do an interval test on the x and y axe */
 	/* first do x axi */
-#define T (FLT_EPSILON * 15)
-	if ( ABS(v1[1] - v2[1]) < T &&
-	     ABS(v3[1] - v4[1]) < T &&
-	     ABS(v1[1] - v3[1]) < T)
+	if (ABS(v1[1] - v2[1]) < EPS &&
+	    ABS(v3[1] - v4[1]) < EPS &&
+	    ABS(v1[1] - v3[1]) < EPS)
 	{
 		return (mv4[0] >= mv1[0] && mv3[0] <= mv2[0]);
 	}
 
 	/* now do y axi */
-	if ( ABS(v1[0] - v2[0]) < T &&
-	     ABS(v3[0] - v4[0]) < T &&
-	     ABS(v1[0] - v3[0]) < T)
+	if (ABS(v1[0] - v2[0]) < EPS &&
+	    ABS(v3[0] - v4[0]) < EPS &&
+	    ABS(v1[0] - v3[0]) < EPS)
 	{
 		return (mv4[1] >= mv1[1] && mv3[1] <= mv2[1]);
 	}
 
 	return FALSE;
+
+#undef GETMIN2_AXIS
+#undef GETMIN2
+#undef EPS
+
 }
 
 /**
@@ -775,7 +758,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 	///bmesh_face_normal_update(bm, f, f->no, projectverts);
 
-	compute_poly_normal(f->no, (float const (*)[3])projectverts, f->len);
+	compute_poly_normal(f->no, projectverts, f->len);
 	poly_rotate_plane(f->no, projectverts, i);
 
 	nvert = f->len;
@@ -859,7 +842,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
 	BMIter iter;
 	BMLoop *l;
-	float v1[3], v2[3], v3[3]/*, v4[3 */, no[3], mid[3], *p1, *p2, *p3, *p4;
+	float v1[3], v2[3], v3[3] /*, v4[3 */, no[3], mid[3], *p1, *p2, *p3, *p4;
 	float out[3] = {-234324.0f, -234324.0f, 0.0f};
 	float (*projverts)[3];
 	float (*edgeverts)[3];
@@ -889,7 +872,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		a++;
 	}
 	
-	compute_poly_normal(no, (float const (*)[3])projverts, f->len);
+	compute_poly_normal(no, projverts, f->len);
 	poly_rotate_plane(no, projverts, f->len);
 	poly_rotate_plane(no, edgeverts, len * 2);
 

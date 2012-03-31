@@ -47,8 +47,10 @@ static int UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 	/* checks if there are any unmarked boundary edges in the face regio */
 
 	BMW_init(&regwalker, bm, BMW_ISLAND,
-	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+	         BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 	         BMW_NIL_LAY);
+
 	f2 = BMW_begin(&regwalker, f);
 	for ( ; f2; f2 = BMW_step(&regwalker)) {
 		l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
@@ -106,7 +108,8 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
 		/* yay, walk */
 		BMW_init(&regwalker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+		         BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 		         BMW_NIL_LAY);
 
 		f2 = BMW_begin(&regwalker, f);
@@ -178,7 +181,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		goto cleanup;
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "regionout", BM_FACE, FACE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "regionout", BM_FACE, FACE_NEW);
 
 cleanup:
 	/* free/cleanup */
@@ -512,7 +515,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 
 		for (i = 0; i < tot_found; i++) {
 			BMEdge *e = (BMEdge *)weight_elems[i].ele;
-			/* check twice because cumulative effect could disolve over angle limit */
+			/* check twice because cumulative effect could dissolve over angle limit */
 			if (BM_edge_face_angle(e) < angle_limit) {
 				BMFace *nf = BM_faces_join_pair(bm, e->l->f,
 				                                e->l->radial_next->f,
@@ -547,7 +550,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 
 		for (i = 0; i < tot_found; i++) {
 			BMVert *v = (BMVert *)weight_elems[i].ele;
-			/* check twice because cumulative effect could disolve over angle limit */
+			/* check twice because cumulative effect could dissolve over angle limit */
 			if (BM_vert_edge_angle(v) < angle_limit) {
 				BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
 			}

@@ -1173,18 +1173,18 @@ void BKE_simulate_ocean_cache(struct OceanCache *och, int frame)
 
 	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_DISPLACE);
 	och->ibufs_disp[f] = IMB_loadiffname(string, 0);
-	//if (och->ibufs_disp[f] == NULL) printf("error loading %s \n", string);
-	//else printf("loaded cache %s \n", string);
+	//if (och->ibufs_disp[f] == NULL) printf("error loading %s\n", string);
+	//else printf("loaded cache %s\n", string);
 
 	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_FOAM);
 	och->ibufs_foam[f] = IMB_loadiffname(string, 0);
-	//if (och->ibufs_foam[f] == NULL) printf("error loading %s \n", string);
-	//else printf("loaded cache %s \n", string);
+	//if (och->ibufs_foam[f] == NULL) printf("error loading %s\n", string);
+	//else printf("loaded cache %s\n", string);
 
 	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_NORMAL);
 	och->ibufs_norm[f] = IMB_loadiffname(string, 0);
-	//if (och->ibufs_norm[f] == NULL) printf("error loading %s \n", string);
-	//else printf("loaded cache %s \n", string);
+	//if (och->ibufs_norm[f] == NULL) printf("error loading %s\n", string);
+	//else printf("loaded cache %s\n", string);
 }
 
 

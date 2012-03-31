@@ -1029,7 +1029,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 			dyt[1]/= 2.0f;
 			dyt[2]/= 2.0f;
 		}
-		else if ELEM(wrap, MTEX_TUBE, MTEX_SPHERE) {
+		else if (ELEM(wrap, MTEX_TUBE, MTEX_SPHERE)) {
 			/* exception: the seam behind (y<0.0) */
 			ok= 1;
 			if (t[1]<=0.0f) {

@@ -231,8 +231,7 @@ void do_init_ffmpeg(void)
 		ffmpeg_init = 1;
 		av_register_all();
 		avdevice_register_all();
-		
-		if ((G.f & G_DEBUG) == 0) {
+		if ((G.debug & G_DEBUG_FFMPEG) == 0) {
 			silence_log_ffmpeg(1);
 		}
 		else {

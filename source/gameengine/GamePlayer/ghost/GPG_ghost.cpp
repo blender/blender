@@ -232,7 +232,7 @@ void usage(const char* program, bool isBlenderPlayer)
 	printf("             sphericalpanoramic     (Spherical Panoramic)\n");
 	printf("                             depending on the type of dome you are using\n\n");
 	printf("  -m: maximum anti-aliasing (eg. 2,4,8,16)\n\n");
-	printf("  -i: parent windows ID \n\n");
+	printf("  -i: parent windows ID\n\n");
 #ifdef _WIN32
 	printf("  -c: keep console window open\n\n");
 #endif
@@ -527,7 +527,7 @@ int main(int argc, char** argv)
 
 			case 'd':
 				i++;
-				G.f |= G_DEBUG;     /* std output printf's */
+				G.debug |= G_DEBUG;     /* std output printf's */
 				MEM_set_memory_debug();
 				break;
 
@@ -648,19 +648,19 @@ int main(int argc, char** argv)
 				i++;
 				if ((i + 1) <= validArguments)
 				{
-					if (!strcmp(argv[i], "angle")){
+					if (!strcmp(argv[i], "angle")) {
 						i++;
 						domeFov = atoi(argv[i++]);
 					}
-					if (!strcmp(argv[i], "tilt")){
+					if (!strcmp(argv[i], "tilt")) {
 						i++;
 						domeTilt = atoi(argv[i++]);
 					}
-					if (!strcmp(argv[i], "warpdata")){
+					if (!strcmp(argv[i], "warpdata")) {
 						i++;
 						domeWarp = argv[i++];
 					}
-					if (!strcmp(argv[i], "mode")){
+					if (!strcmp(argv[i], "mode")) {
 						i++;
 						if (!strcmp(argv[i], "fisheye"))
 							domeMode = DOME_FISHEYE;
@@ -802,7 +802,7 @@ int main(int argc, char** argv)
 #if !defined(DEBUG)
 						if (closeConsole)
 						{
-							//::FreeConsole();    // Close a console window
+							system->toggleConsole(0); // Close a console window
 						}
 #endif // !defined(DEBUG)
 #endif // WIN32
@@ -846,7 +846,7 @@ int main(int argc, char** argv)
 						// Check whether the game should be displayed in stereo
 						if (!stereoParFound)
 						{
-							if (scene->gm.stereoflag == STEREO_ENABLED){
+							if (scene->gm.stereoflag == STEREO_ENABLED) {
 								stereomode = (RAS_IRasterizer::StereoMode) scene->gm.stereomode;
 								if (stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 									stereoWindow = true;
@@ -858,7 +858,7 @@ int main(int argc, char** argv)
 						if (!samplesParFound)
 							aasamples = scene->gm.aasamples;
 
-						if (stereoFlag == STEREO_DOME){
+						if (stereoFlag == STEREO_DOME) {
 							stereomode = RAS_IRasterizer::RAS_STEREO_DOME;
 							scene->gm.stereoflag = STEREO_DOME;
 							if (domeFov > 89)

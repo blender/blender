@@ -523,7 +523,7 @@ static void freeExecutableNode(bNodeTreeExec *exec)
 				if (ns && ns->data) {
 					free_compbuf(ns->data);
 					ns->data= NULL;
-					// printf("freed buf node %s \n", node->name);
+					// printf("freed buf node %s\n", node->name);
 				}
 			}
 		}

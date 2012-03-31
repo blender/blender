@@ -92,9 +92,9 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 		// when GHOST is running under SDL, video is initialized elsewhere.
 		// Do this once only.
 #  ifdef WITH_GHOST_SDL
-		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1 ){
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1 ) {
 #  else
-		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO) == -1 ){
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO) == -1 ) {
 #  endif
 			echo("Error-Initializing-SDL: " << SDL_GetError());
 			return NULL;
@@ -239,7 +239,7 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 	m_axismax = m_buttonmax = m_hatmax = 0;
 	return false;
 #else /* WITH_SDL */
-	if (m_isinit == false){
+	if (m_isinit == false) {
 		if (m_joyindex>=m_joynum) {
 			// don't print a message, because this is done anyway
 			//echo("Joystick-Error: " << SDL_NumJoysticks() << " avaiable joystick(s)");
@@ -277,8 +277,8 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 void SCA_Joystick::DestroyJoystickDevice(void)
 {
 #ifdef WITH_SDL
-	if (m_isinit){
-		if (SDL_JoystickOpened(m_joyindex)){
+	if (m_isinit) {
+		if (SDL_JoystickOpened(m_joyindex)) {
 			echo("Closing-joystick " << m_joyindex);
 			SDL_JoystickClose(m_private->m_joystick);
 		}

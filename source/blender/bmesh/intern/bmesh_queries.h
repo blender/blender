@@ -43,6 +43,7 @@ int     BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb);
 BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v);
 BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v);
 BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v);
+BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v);
 
 int     BM_vert_edge_count_nonwire(BMVert *v);
 int     BM_vert_edge_count(BMVert *v);

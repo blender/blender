@@ -72,8 +72,8 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", BM_EDGE, EDGE_NEW);
-	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, FACE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EDGE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, FACE_NEW);
 	
 	BLI_array_free(projectverts);
 	BLI_array_free(newfaces);
@@ -152,7 +152,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BMO_slot_buffer_from_flag(bm, op, "geomout", BM_EDGE|BM_FACE, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_EDGE|BM_FACE, ELE_NEW);
 }
 
 void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
@@ -216,5 +216,5 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", BM_FACE|BM_EDGE, ELE_NEW);
 	BMO_op_finish(bm, &bmop);
 	
-	BMO_slot_buffer_from_flag(bm, op, "geomout", BM_EDGE|BM_FACE, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_EDGE|BM_FACE, ELE_NEW);
 }

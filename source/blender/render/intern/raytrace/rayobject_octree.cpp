@@ -440,8 +440,8 @@ static void RE_rayobject_octree_free(RayObject *tree)
 
 #if 0
 	printf("branches %d nodes %d\n", oc->branchcount, oc->nodecount);
-	printf("raycount %d \n", raycount);	
-	printf("ray coherent %d \n", coherent_ray);
+	printf("raycount %d\n", raycount);
+	printf("ray coherent %d\n", coherent_ray);
 	printf("accepted %d rejected %d\n", accepted, rejected);
 #endif
 	if (oc->ocface)

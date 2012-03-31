@@ -75,6 +75,16 @@ its good practice to call :class:`bmesh.types.BMesh.free` which will remove all 
 further access.
 
 
+EditMode Tessellation
+^^^^^^^^^^^^^^^^^^^^^
+
+When writing scripts that operate on editmode data you will normally want to re-calculate the tessellation after
+running the  script, this needs to be called explicitly.
+
+The BMesh its self does not store the triangulated faces, they are stored in the :class:`bpy.types.Mesh`,
+to refresh tessellation faces call :class:`bpy.types.Mesh.calc_tessface`.
+
+
 CustomData Access
 -----------------
 
@@ -102,6 +112,25 @@ Here are some examples ...
    for vert in bm.verts:
 		shape = vert[shape_lay]
         print("Vert Shape: %f, %f, %f" % (shape.x, shape.y, shape.z))
+
+
+.. code-block:: python
+
+   # in this example the active vertex group index is used,
+   # this is stored in the object, not the BMesh
+   group_index = obj.vertex_groups.active_index
+
+   # only ever one deform weight layer
+   dvert_lay = bm.verts.layers.deform.active
+
+   for vert in bm.verts:
+       dvert = vert[dvert_lay]
+		
+       if group_index in dvert:
+           print("Weight %f" % dvert[group_index])
+       else:
+           print("Setting Weight")
+           dvert[group_index] = 0.5
 
 
 Keeping a Correct State

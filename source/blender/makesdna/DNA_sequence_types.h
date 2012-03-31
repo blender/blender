@@ -181,6 +181,8 @@ typedef struct Sequence {
 	int blend_mode;
 	float blend_opacity;
 
+			/* is sfra needed anymore? - it looks like its only used in one place */
+	int sfra, pad;	/* starting frame according to the timeline of the scene. */
 } Sequence;
 
 typedef struct MetaStack {

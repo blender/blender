@@ -189,6 +189,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	BMEdit_Free(em);
 	MEM_freeN(em);
 
+	/* until we allow for dirty normal flag, always calc,
+	 * note: calculating on the CDDM is faster then the BMesh equivalent */
+	CDDM_calc_normals(result);
+
 	return result;
 }
 

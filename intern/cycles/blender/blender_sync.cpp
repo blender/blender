@@ -189,29 +189,42 @@ void BlenderSync::sync_film()
 
 void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 {
+	string layername;
+
+	/* 3d view */
 	if(b_v3d) {
-		render_layer.scene_layer = get_layer(b_v3d.layers());
-		render_layer.layer = render_layer.scene_layer;
-		render_layer.holdout_layer = 0;
-		render_layer.material_override = PointerRNA_NULL;
-	}
-	else {
-		BL::RenderSettings r = b_scene.render();
-		BL::RenderSettings::layers_iterator b_rlay;
-		bool first_layer = true;
+		PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
-		for(r.layers.begin(b_rlay); b_rlay != r.layers.end(); ++b_rlay) {
-			if((!layer && first_layer) || (layer && b_rlay->name() == layer)) {
-				render_layer.name = b_rlay->name();
-				render_layer.scene_layer = get_layer(b_scene.layers());
-				render_layer.layer = get_layer(b_rlay->layers());
-				render_layer.holdout_layer = get_layer(b_rlay->layers_zmask());
-				render_layer.layer |= render_layer.holdout_layer;
-				render_layer.material_override = b_rlay->material_override();
-			}
-
-			first_layer = false;
+		if(RNA_boolean_get(&cscene, "preview_active_layer")) {
+			BL::RenderLayers layers(b_scene.render().ptr);
+			layername = layers.active().name();
+			layer = layername.c_str();
 		}
+		else {
+			render_layer.scene_layer = get_layer(b_v3d.layers());
+			render_layer.layer = render_layer.scene_layer;
+			render_layer.holdout_layer = 0;
+			render_layer.material_override = PointerRNA_NULL;
+			return;
+		}
+	}
+
+	/* render layer */
+	BL::RenderSettings r = b_scene.render();
+	BL::RenderSettings::layers_iterator b_rlay;
+	bool first_layer = true;
+
+	for(r.layers.begin(b_rlay); b_rlay != r.layers.end(); ++b_rlay) {
+		if((!layer && first_layer) || (layer && b_rlay->name() == layer)) {
+			render_layer.name = b_rlay->name();
+			render_layer.scene_layer = get_layer(b_scene.layers());
+			render_layer.layer = get_layer(b_rlay->layers());
+			render_layer.holdout_layer = get_layer(b_rlay->layers_zmask());
+			render_layer.layer |= render_layer.holdout_layer;
+			render_layer.material_override = b_rlay->material_override();
+		}
+
+		first_layer = false;
 	}
 }
 

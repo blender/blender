@@ -785,7 +785,7 @@ void	CcdPhysicsEnvironment::processFhSprings(double curTime,float interval)
 
 void		CcdPhysicsEnvironment::setDebugMode(int debugMode)
 {
-	if (m_debugDrawer){
+	if (m_debugDrawer) {
 		m_debugDrawer->setDebugMode(debugMode);
 	}
 }

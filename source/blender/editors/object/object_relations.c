@@ -128,8 +128,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		Mesh *me= obedit->data;
 		BMEditMesh *em;
 
-		EDBM_LoadEditBMesh(scene, obedit);
-		EDBM_MakeEditBMesh(scene->toolsettings, scene, obedit);
+		EDBM_mesh_load(obedit);
+		EDBM_mesh_make(scene->toolsettings, scene, obedit);
 
 		em= me->edit_btmesh;
 
@@ -1504,8 +1504,8 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 					ob->data= copy_speaker(ob->data);
 					break;
 				default:
-					if (G.f & G_DEBUG)
-						printf("ERROR single_obdata_users: can't copy %s\n", id->name);
+					if (G.debug & G_DEBUG)
+						printf("ERROR %s: can't copy %s\n", __func__, id->name);
 					return;
 				}
 				

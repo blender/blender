@@ -554,12 +554,12 @@ static void verifyBucketsArc(ReebGraph *UNUSED(rg), ReebArc *arc)
 		if (ceilf(head->weight) != arc->buckets[0].val)
 		{
 			printArc(arc);
-			printf("alloc error in first bucket: %f should be %f \n", arc->buckets[0].val, ceil(head->weight));
+			printf("alloc error in first bucket: %f should be %f\n", arc->buckets[0].val, ceil(head->weight));
 		}
 		if (floorf(tail->weight) != arc->buckets[arc->bcount - 1].val)
 		{
 			printArc(arc);
-			printf("alloc error in last bucket: %f should be %f \n", arc->buckets[arc->bcount - 1].val, floor(tail->weight));
+			printf("alloc error in last bucket: %f should be %f\n", arc->buckets[arc->bcount - 1].val, floor(tail->weight));
 		}
 	}
 }

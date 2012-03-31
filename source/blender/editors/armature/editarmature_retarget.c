@@ -2657,7 +2657,7 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 			
 			if (next_earc->flag == ARC_FREE && next_earc->symmetry_level == symmetry_level)
 			{
-//				printf("USING: \n");
+//				printf("USING:\n");
 //				printf("flag %i -- level %i -- flag %i -- group %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag, next_earc->symmetry_group);
 				matchMultiResolutionArc(rigg, start_node, next_iarc, next_earc);
 				break;

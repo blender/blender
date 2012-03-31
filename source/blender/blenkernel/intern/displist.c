@@ -123,8 +123,9 @@ int displist_has_faces(ListBase *lb)
 {
 	DispList *dl;
 	for (dl= lb->first; dl; dl= dl->next) {
-		if ELEM3(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)
+		if (ELEM3(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
 			return 1;
+		}
 	}
 	return 0;
 }

@@ -227,7 +227,7 @@ void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 	}
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename("modifiers", oldname, md->name);
+	BKE_all_animdata_fix_paths_rename(NULL, "modifiers", oldname, md->name);
 }
 
 static char *rna_Modifier_path(PointerRNA *ptr)
@@ -470,7 +470,7 @@ static void rna_WeightVGModifier_mask_uvlayer_set(PointerRNA *ptr, const char *v
 	}
 }
 
-static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max)
+static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)ptr->data;
 
@@ -959,6 +959,12 @@ static void rna_def_modifier_lattice(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group",
 	                         "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_LatticeModifier_vgroup_set");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
+	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1, 10, 2);
+	RNA_def_property_ui_text(prop, "Strength", "Strength of modifier effect");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 

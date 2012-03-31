@@ -180,7 +180,7 @@ void MeshImporter::set_face_indices(MFace *mface, unsigned int *indices, bool qu
 	if (quad) mface->v4 = indices[3];
 	else mface->v4 = 0;
 #ifdef COLLADA_DEBUG
-	// fprintf(stderr, "%u, %u, %u \n", indices[0], indices[1], indices[2]);
+	// fprintf(stderr, "%u, %u, %u\n", indices[0], indices[1], indices[2]);
 #endif
 }
 
@@ -281,7 +281,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)	// checks if mesh has sup
 			COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons*)mp;
 			COLLADAFW::Polygons::VertexCountArray& vca = mpvc->getGroupedVerticesVertexCountArray();
 			
-			for (unsigned int j = 0; j < vca.getCount(); j++){
+			for (unsigned int j = 0; j < vca.getCount(); j++) {
 				int count = vca[j];
 				if (count < 3) {
 					fprintf(stderr, "Primitive %s in %s has at least one face with vertex count < 3\n",
@@ -486,7 +486,7 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) //T
 #endif
 		
 		if (type == COLLADAFW::MeshPrimitive::TRIANGLES) {
-			for (j = 0; j < prim_totface; j++){
+			for (j = 0; j < prim_totface; j++) {
 				
 				set_face_indices(mface, indices, false);
 				indices += 3;
@@ -527,12 +527,12 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) //T
 		// The first trifan vertex will be the first vertex in every triangle
 		if (type == COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
 			unsigned grouped_vertex_count = mp->getGroupedVertexElementsCount();
-			for (unsigned int group_index = 0; group_index < grouped_vertex_count; group_index++){
+			for (unsigned int group_index = 0; group_index < grouped_vertex_count; group_index++) {
 				unsigned int first_vertex = indices[0]; // Store first trifan vertex
 				unsigned int first_normal = nind[0]; // Store first trifan vertex normal
 				unsigned int vertex_count = mp->getGroupedVerticesVertexCount(group_index);
 
-				for (unsigned int vertex_index = 0; vertex_index < vertex_count - 2; vertex_index++){
+				for (unsigned int vertex_index = 0; vertex_index < vertex_count - 2; vertex_index++) {
 					// For each triangle store indeces of its 3 vertices
 					unsigned int triangle_vertex_indices[3]={first_vertex, indices[1], indices[2]};
 					set_face_indices(mface, triangle_vertex_indices, false);
@@ -965,6 +965,6 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 
 	mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 
-	convert_mfaces_to_mpolys(me);
+	BKE_mesh_convert_mfaces_to_mpolys(me);
 	return true;
 }

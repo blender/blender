@@ -1421,7 +1421,7 @@ typedef struct HairGridVert {
 	float velocity[3];
 	float density;
 } HairGridVert;
-#define HAIR_GRID_INDEX(vec, min, max, axis) (int)( (vec[axis] - min[axis]) / (max[axis] - min[axis]) * 9.99f );
+#define HAIR_GRID_INDEX(vec, min, max, axis) (int)((vec[axis] - min[axis]) / (max[axis] - min[axis]) * 9.99f)
 /* Smoothing of hair velocities:
  * adapted from
 		Volumetric Methods for Simulation and Rendering of Hair

@@ -293,8 +293,8 @@
 	(void)((!(a)) ?  (                                                        \
 		(                                                                     \
 		fprintf(stderr,                                                       \
-			"BLI_assert failed: %s, %s(), %d at \'%s\'\n",                    \
-			__FILE__, __func__, __LINE__, STRINGIFY(a)),                      \
+			"BLI_assert failed: %s:%d, %s(), at \'%s\'\n",                    \
+			__FILE__, __LINE__, __func__, STRINGIFY(a)),                      \
 		_BLI_DUMMY_ABORT(),                                                   \
 		NULL)) : NULL)
 #  else
@@ -302,7 +302,7 @@
 	(void)((!(a)) ?  (                                                        \
 		(                                                                     \
 		fprintf(stderr,                                                       \
-			"BLI_assert failed: %s, %d at \'%s\'\n",                          \
+			"BLI_assert failed: %s:%d, at \'%s\'\n",                          \
 			__FILE__, __LINE__, STRINGIFY(a)),                                \
 		_BLI_DUMMY_ABORT(),                                                   \
 		NULL)) : NULL)

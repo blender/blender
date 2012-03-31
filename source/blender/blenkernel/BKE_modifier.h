@@ -357,16 +357,21 @@ int           modifiers_isPreview(struct Object *ob);
 
 int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md);
 
+typedef struct CDMaskLink {
+	struct CDMaskLink *next;
+	CustomDataMask mask;
+} CDMaskLink;
+
 /* Calculates and returns a linked list of CustomDataMasks indicating the
  * data required by each modifier in the stack pointed to by md for correct
  * evaluation, assuming the data indicated by dataMask is required at the
  * end of the stack.
  */
-struct LinkNode *modifiers_calcDataMasks(struct Scene *scene, 
-										 struct Object *ob,
-										 struct ModifierData *md,
-										 CustomDataMask dataMask,
-										 int required_mode);
+struct CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, 
+										   struct Object *ob,
+										   struct ModifierData *md,
+										   CustomDataMask dataMask,
+										   int required_mode);
 struct ModifierData *modifiers_getLastPreview(struct Scene *scene,
                                               struct ModifierData *md,
                                               int required_mode);

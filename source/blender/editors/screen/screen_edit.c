@@ -531,7 +531,7 @@ int screen_area_join(bContext *C, bScreen* scr, ScrArea *sa1, ScrArea *sa2)
 	int dir;
 	
 	dir = area_getorientation(sa1, sa2);
-	/*printf("dir is : %i \n", dir);*/
+	/*printf("dir is : %i\n", dir);*/
 	
 	if (dir < 0) {
 		if (sa1 ) sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
@@ -1101,7 +1101,9 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 			WM_event_timer_sleep(wm, win, win->screen->animtimer, 0);
 	}
 
-	if (G.f & G_DEBUG) printf("set screen\n");
+	if (G.debug & G_DEBUG_EVENTS) {
+		printf("%s: set screen\n", __func__);
+	}
 	win->screen->do_refresh= 0;
 
 	win->screen->context= ed_screen_context;
@@ -1634,8 +1636,8 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 		for (old= sc->areabase.first; old; old= old->next)
 			if (old->full) break;
 		if (old==NULL) {
-			if (G.f & G_DEBUG)
-				printf("something wrong in areafullscreen\n");
+			if (G.debug & G_DEBUG)
+				printf("%s: something wrong in areafullscreen\n", __func__);
 			return NULL;
 		}
 

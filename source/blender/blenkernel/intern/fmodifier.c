@@ -335,7 +335,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 		case FCM_GENERATOR_FN_TAN: /* tangent wave */
 		{
 			/* check that argument is not on one of the discontinuities (i.e. 90deg, 270 deg, etc) */
-			if IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0) {
+			if (IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0)) {
 				if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
 					*cvalue = 0.0f; /* no value possible here */
 			}
@@ -369,7 +369,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 			break;
 		
 		default:
-			printf("Invalid Function-Generator for F-Modifier - %d \n", data->type);
+			printf("Invalid Function-Generator for F-Modifier - %d\n", data->type);
 	}
 	
 	/* execute function callback to set value if appropriate */
@@ -590,7 +590,7 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float UNUSED(cvalue),
 			ofs= lastkey[0];
 		}
 	}
-	if ELEM(0, side, mode)
+	if ((ELEM(0, side, mode)))
 		return evaltime;
 		
 	/* find relative place within a cycle */
@@ -973,7 +973,7 @@ FModifierTypeInfo *get_fmodifier_typeinfo (int type)
 		return fmodifiersTypeInfo[type];
 	}
 	else {
-		printf("No valid F-Curve Modifier type-info data available. Type = %i \n", type);
+		printf("No valid F-Curve Modifier type-info data available. Type = %i\n", type);
 	}
 	
 	return NULL;
@@ -1000,14 +1000,14 @@ FModifier *add_fmodifier (ListBase *modifiers, int type)
 	FModifier *fcm;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, fmi)
+	if (ELEM(NULL, modifiers, fmi))
 		return NULL;
 	
 	/* special checks for whether modifier can be added */
 	if ((modifiers->first) && (type == FMODIFIER_TYPE_CYCLES)) {
 		/* cycles modifier must be first in stack, so for now, don't add if it can't be */
 		// TODO: perhaps there is some better way, but for now, 
-		printf("Error: Cannot add 'Cycles' modifier to F-Curve, as 'Cycles' modifier can only be first in stack. \n");
+		printf("Error: Cannot add 'Cycles' modifier to F-Curve, as 'Cycles' modifier can only be first in stack.\n");
 		return NULL;
 	}
 	
@@ -1063,7 +1063,7 @@ void copy_fmodifiers (ListBase *dst, ListBase *src)
 {
 	FModifier *fcm, *srcfcm;
 	
-	if ELEM(NULL, dst, src)
+	if (ELEM(NULL, dst, src))
 		return;
 	
 	dst->first= dst->last= NULL;
@@ -1106,7 +1106,7 @@ int remove_fmodifier (ListBase *modifiers, FModifier *fcm)
 	} 
 	else {
 		// XXX this case can probably be removed some day, as it shouldn't happen...
-		printf("remove_fmodifier() - no modifier stack given \n");
+		printf("remove_fmodifier() - no modifier stack given\n");
 		MEM_freeN(fcm);
 		return 0;
 	}
@@ -1134,7 +1134,7 @@ FModifier *find_active_fmodifier (ListBase *modifiers)
 	FModifier *fcm;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->first)
+	if (ELEM(NULL, modifiers, modifiers->first))
 		return NULL;
 	
 	/* loop over modifiers until 'active' one is found */
@@ -1153,7 +1153,7 @@ void set_active_fmodifier (ListBase *modifiers, FModifier *fcm)
 	FModifier *fm;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->first)
+	if (ELEM(NULL, modifiers, modifiers->first))
 		return;
 	
 	/* deactivate all, and set current one active */
@@ -1178,7 +1178,7 @@ short list_has_suitable_fmodifier (ListBase *modifiers, int mtype, short acttype
 		return (modifiers && modifiers->first);
 		
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->first)
+	if (ELEM(NULL, modifiers, modifiers->first))
 		return 0;
 		
 	/* find the first mdifier fitting these criteria */
@@ -1258,7 +1258,7 @@ float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, 
 	FModifier *fcm;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->last)
+	if (ELEM(NULL, modifiers, modifiers->last))
 		return evaltime;
 		
 	/* Starting from the end of the stack, calculate the time effects of various stacked modifiers 
@@ -1307,7 +1307,7 @@ void evaluate_value_fmodifiers (ListBase *modifiers, FCurve *fcu, float *cvalue,
 	FModifier *fcm;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->first)
+	if (ELEM(NULL, modifiers, modifiers->first))
 		return;
 	
 	/* evaluate modifiers */
@@ -1345,7 +1345,7 @@ void fcurve_bake_modifiers (FCurve *fcu, int start, int end)
 	
 	/* sanity checks */
 	// TODO: make these tests report errors using reports not printf's
-	if ELEM(NULL, fcu, fcu->modifiers.first) {
+	if (ELEM(NULL, fcu, fcu->modifiers.first)) {
 		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
 		return;
 	}

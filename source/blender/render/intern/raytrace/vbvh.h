@@ -194,7 +194,7 @@ struct BuildBinaryVBVH
 				child = &((*child)->sibling);
 			}
 
-			*child = 0;
+			*child = NULL;
 			return node;
 		}
 	}

@@ -142,10 +142,10 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		vt[i] = v;
 
 		/* transfer flag */
-		v->head.hflag = BM_vert_flag_from_mflag(mvert->flag);
+		v->head.hflag = BM_vert_flag_from_mflag(mvert->flag & ~SELECT);
 
 		/* this is necessary for selection counts to work properly */
-		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+		if (mvert->flag & SELECT) {
 			BM_vert_select_set(bm, v, TRUE);
 		}
 
@@ -190,10 +190,12 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		et[i] = e;
 
 		/* transfer flags */
-		e->head.hflag = BM_edge_flag_from_mflag(medge->flag);
+		e->head.hflag = BM_edge_flag_from_mflag(medge->flag & ~SELECT);
 
 		/* this is necessary for selection counts to work properly */
-		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) BM_elem_select_set(bm, e, TRUE);
+		if (medge->flag & SELECT) {
+			BM_elem_select_set(bm, e, TRUE);
+		}
 
 		/* Copy Custom Data */
 		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data);
@@ -254,10 +256,12 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
 		/* transfer flag */
-		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag);
+		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag & ~SELECT);
 
 		/* this is necessary for selection counts to work properly */
-		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) BM_elem_select_set(bm, f, TRUE);
+		if (mpoly->flag & SELECT) {
+			BM_elem_select_set(bm, f, TRUE);
+		}
 
 		f->mat_nr = mpoly->mat_nr;
 		if (i == me->act_face) bm->act_face = f;
@@ -431,31 +435,25 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	BMLoop *l;
 	BMFace *f;
 	BMIter iter, liter;
-	int i, j, *keyi, ototvert, totloop;
+	int i, j, *keyi, ototvert;
 
 	ototvert = me->totvert;
 
-	/* new Vertex block */
+	/* new vertex block */
 	if (bm->totvert == 0) mvert = NULL;
 	else mvert = MEM_callocN(bm->totvert * sizeof(MVert), "loadeditbMesh vert");
 
-	/* new Edge block */
+	/* new edge block */
 	if (bm->totedge == 0) medge = NULL;
 	else medge = MEM_callocN(bm->totedge * sizeof(MEdge), "loadeditbMesh edge");
 
-	/* build ngon data */
-	/* new Ngon Face block */
+	/* new ngon face block */
 	if (bm->totface == 0) mpoly = NULL;
 	else mpoly = MEM_callocN(bm->totface * sizeof(MPoly), "loadeditbMesh poly");
 
-	/* find number of loops to allocate */
-	totloop = 0;
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		totloop += f->len;
-	}
-
-	if (totloop == 0) mloop = NULL;
-	else mloop = MEM_callocN(totloop * sizeof(MLoop), "loadeditbMesh loop");
+	/* new loop block */
+	if (bm->totloop == 0) mloop = NULL;
+	else mloop = MEM_callocN(bm->totloop * sizeof(MLoop), "loadeditbMesh loop");
 
 	/* lets save the old verts just in case we are actually working on
 	 * a key ... we now do processing of the keys at the end */
@@ -474,7 +472,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	/* add new custom data */
 	me->totvert = bm->totvert;
 	me->totedge = bm->totedge;
-	me->totloop = totloop;
+	me->totloop = bm->totloop;
 	me->totpoly = bm->totface;
 	/* will be overwritten with a valid value if 'dotess' is set, otherwise we
 	 * end up with 'me->totface' and me->mface == NULL which can crash [#28625]

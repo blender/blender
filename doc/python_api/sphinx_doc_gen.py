@@ -343,7 +343,8 @@ MODULE_GROUPING = {
                     "BMLayerCollection",
                     "BMLayerItem",
                     ("Custom-Data Layer Types", '-'),
-                    "BMLoopUV"
+                    "BMLoopUV",
+                    "BMDeformVert"
                     )
     }
 

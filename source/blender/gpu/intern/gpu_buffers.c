@@ -895,11 +895,11 @@ static int gpu_buffer_size_from_type(DerivedMesh *dm, GPUBufferType type)
 		return sizeof(int)*2*dm->drawObject->totedge;
 	case GPU_BUFFER_UVEDGE:
 		/* each face gets 3 points, 3 edges per triangle, and
-		   each edge has its own, non-shared coords, so each
-		   tri corner needs minimum of 4 floats, quads used
-		   less so here we can over allocate and assume all
-		   tris. */
-		return sizeof(float) * dm->drawObject->tot_triangle_point;
+		 * each edge has its own, non-shared coords, so each
+		 * tri corner needs minimum of 4 floats, quads used
+		 * less so here we can over allocate and assume all
+		 * tris. */
+		return sizeof(float) * 4 * dm->drawObject->tot_triangle_point;
 	default:
 		return -1;
 	}

@@ -144,7 +144,7 @@ void remove_useless(Node *node, Node **new_node)
 		{
 			Node *next = (*prev)->sibling;
 			remove_useless(*prev, prev);
-			if(*prev == 0)
+			if(*prev == NULL)
 				*prev = next;
 			else
 			{
@@ -158,8 +158,10 @@ void remove_useless(Node *node, Node **new_node)
 		if(RE_rayobject_isAligned(node->child) && node->child->sibling == 0)
 			*new_node = node->child;
 	}
-	else if(node->child == 0)
-		*new_node = 0;	
+	else if(node->child == NULL)
+	{
+		*new_node = NULL;
+	}
 }
 
 /*
@@ -527,7 +529,7 @@ struct VBVH_optimalPackSIMD
 			if(num == 0) { num++; first = true; }
 			
 			calc_costs(node);
-			if((G.f & G_DEBUG) && first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize );
+			if((G.debug & G_DEBUG) && first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize );
 			node->optimize();
 		}
 		return node;		

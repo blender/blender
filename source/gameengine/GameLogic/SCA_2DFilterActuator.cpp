@@ -55,7 +55,7 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
       m_scene(scene)
 {
 	m_gameobj = NULL;
-	if (gameobj){
+	if (gameobj) {
 		m_propNames = gameobj->GetPropertyNames();
 		m_gameobj = gameobj;
 	}

@@ -881,12 +881,12 @@ static void FHT2D(fREAL *data, unsigned int Mx, unsigned int My,
 	else {  // rectangular
 		unsigned int k, Nym = Ny-1, stm = 1 << (Mx + My);
 		for (i=0; stm>0; i++) {
-			#define pred(k) (((k & Nym) << Mx) + (k >> My))
-			for (j=pred(i); j>i; j=pred(j));
+			#define PRED(k) (((k & Nym) << Mx) + (k >> My))
+			for (j=PRED(i); j>i; j=PRED(j));
 			if (j < i) continue;
-			for (k=i, j=pred(i); j!=i; k=j, j=pred(j), stm--)
+			for (k=i, j=PRED(i); j!=i; k=j, j=PRED(j), stm--)
 				{ t=data[j], data[j]=data[k], data[k]=t; }
-			#undef pred
+			#undef PRED
 			stm--;
 		}
 	}

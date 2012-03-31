@@ -129,6 +129,7 @@ MINLINE void star_m3_v3(float rmat[3][3],float a[3]);
 /*********************************** Length **********************************/
 
 MINLINE float len_squared_v2(const float v[2]);
+MINLINE float len_squared_v3(const float v[3]);
 MINLINE float len_v2(const float a[2]);
 MINLINE float len_v2v2(const float a[2], const float b[2]);
 MINLINE float len_squared_v2v2(const float a[2], const float b[2]);
@@ -190,6 +191,7 @@ void angle_poly_v3(float* angles, const float* verts[3], int len);
 
 void project_v2_v2v2(float c[2], const float v1[2], const float v2[2]);
 void project_v3_v3v3(float r[3], const float p[3], const float n[3]);
+void project_v3_plane(float v[3], const float n[3], const float p[3]);
 void reflect_v3_v3v3(float r[3], const float v[3], const float n[3]);
 void ortho_basis_v3v3_v3(float r1[3], float r2[3], const float a[3]);
 void bisect_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3]);

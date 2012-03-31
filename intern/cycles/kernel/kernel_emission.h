@@ -60,7 +60,8 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 }
 
 __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
-	float randt, float rando, float randu, float randv, Ray *ray, BsdfEval *eval)
+	float randt, float rando, float randu, float randv, Ray *ray, BsdfEval *eval,
+	bool *is_lamp)
 {
 	LightSample ls;
 
@@ -134,6 +135,8 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 		/* signal to not cast shadow ray */
 		ray->t = 0.0f;
 	}
+
+	*is_lamp = (ls.prim == ~0);
 
 	return true;
 }

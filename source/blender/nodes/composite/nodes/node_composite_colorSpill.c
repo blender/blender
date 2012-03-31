@@ -33,7 +33,7 @@
 
 #include "node_composite_util.h"
 
-#define avg(a,b) ((a+b)/2)
+#define AVG(a, b) ((a + b) / 2)
 
 /* ******************* Color Spill Supression ********************************* */
 static bNodeSocketTemplate cmp_node_color_spill_in[]={
@@ -96,7 +96,7 @@ static void do_average_spillmap_red(bNode *node, float* out, float *in)
 {
 	NodeColorspill *ncs;
 	ncs=node->storage;
-	out[0]=in[0]-(ncs->limscale * avg(in[1], in[2]) );
+	out[0]=in[0]-(ncs->limscale * AVG(in[1], in[2]) );
 }
 
 static void do_average_spillmap_red_fac(bNode *node, float* out, float *in, float *fac)
@@ -104,14 +104,14 @@ static void do_average_spillmap_red_fac(bNode *node, float* out, float *in, floa
 	NodeColorspill *ncs;
 	ncs=node->storage;
 
-	out[0] = *fac * (in[0]-(ncs->limscale * avg(in[1], in[2]) ));
+	out[0] = *fac * (in[0]-(ncs->limscale * AVG(in[1], in[2]) ));
 }
 
 static void do_average_spillmap_green(bNode *node, float* out, float *in)
 {
 	NodeColorspill *ncs;
 	ncs=node->storage;
-	out[0]=in[1]-(ncs->limscale * avg(in[0], in[2]) );
+	out[0]=in[1]-(ncs->limscale * AVG(in[0], in[2]) );
 }
 
 static void do_average_spillmap_green_fac(bNode *node, float* out, float *in, float *fac)
@@ -119,14 +119,14 @@ static void do_average_spillmap_green_fac(bNode *node, float* out, float *in, fl
 	NodeColorspill *ncs;
 	ncs=node->storage;
 
-	out[0] = *fac * (in[0]-(ncs->limscale * avg(in[0], in[2]) ));
+	out[0] = *fac * (in[0]-(ncs->limscale * AVG(in[0], in[2]) ));
 }
 
 static void do_average_spillmap_blue(bNode *node, float* out, float *in)
 {
 	NodeColorspill *ncs;
 	ncs=node->storage;
-	out[0]=in[2]-(ncs->limscale * avg(in[0], in[1]) );
+	out[0]=in[2]-(ncs->limscale * AVG(in[0], in[1]) );
 }
 
 static void do_average_spillmap_blue_fac(bNode *node, float* out, float *in, float *fac)
@@ -134,7 +134,7 @@ static void do_average_spillmap_blue_fac(bNode *node, float* out, float *in, flo
 	NodeColorspill *ncs;
 	ncs=node->storage;
 
-	out[0] = *fac * (in[0]-(ncs->limscale * avg(in[0], in[1]) ));
+	out[0] = *fac * (in[0]-(ncs->limscale * AVG(in[0], in[1]) ));
 }
 
 static void do_apply_spillmap_red(bNode *node, float* out, float *in, float *map)

@@ -670,7 +670,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 		BLI_bvhtree_find_nearest(bvhtree.tree, key->co, &nearest, bvhtree.nearest_callback, &bvhtree);
 
 		if (nearest.index == -1) {
-			if (G.f & G_DEBUG)
+			if (G.debug & G_DEBUG)
 				printf("No nearest point found for hair root!");
 			continue;
 		}

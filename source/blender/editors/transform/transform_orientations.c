@@ -576,7 +576,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			float vec[3]= {0,0,0};
 			
 			/* USE LAST SELECTED WITH ACTIVE */
-			if (activeOnly && EDBM_get_actSelection(em, &ese)) {
+			if (activeOnly && EDBM_editselection_active_get(em, &ese)) {
 				EDBM_editselection_normal(normal, &ese);
 				EDBM_editselection_plane(em, plane, &ese);
 				
@@ -711,7 +711,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				}
 			}
 		} /* end editmesh */
-		else if ELEM(obedit->type, OB_CURVE, OB_SURF) {
+		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= obedit->data;
 			Nurb *nu;
 			BezTriple *bezt;

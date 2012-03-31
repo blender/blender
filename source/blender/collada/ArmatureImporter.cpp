@@ -98,7 +98,7 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 	float angle = 0;
 
 	// get world-space
-	if (parent){
+	if (parent) {
 		mult_m4_m4m4(mat, parent_mat, obmat);
 
 	}
@@ -582,12 +582,12 @@ void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node
 	// object-space
 	get_node_mat(obmat, root_node, NULL, NULL);
 
-	//if(*edbone)
+	//if (*edbone)
 	bPoseChannel * pchan  = get_pose_channel(ob_arm -> pose ,  bone_name); 
 	//else fprintf ( "",
 
 	// get world-space
-	if (parentname){
+	if (parentname) {
 		mult_m4_m4m4(mat, parent_mat, obmat);
 		bPoseChannel *parchan = get_pose_channel(ob_arm->pose, parentname);
 

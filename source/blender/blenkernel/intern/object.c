@@ -103,7 +103,9 @@
 #include "BKE_material.h"
 #include "BKE_camera.h"
 
+#ifdef WITH_MOD_FLUID
 #include "LBM_fluidsim.h"
+#endif
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -415,7 +417,7 @@ void unlink_object(Object *ob)
 		
 		modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
 		
-		if ELEM(obt->type, OB_CURVE, OB_FONT) {
+		if (ELEM(obt->type, OB_CURVE, OB_FONT)) {
 			cu= obt->data;
 
 			if (cu->bevobj==ob) {
@@ -654,6 +656,16 @@ void unlink_object(Object *ob)
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
 				if (sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
+
+					/* found doesn't need to be set here */
+					if (v3d->ob_centre == ob) {
+						v3d->ob_centre = NULL;
+						v3d->ob_centre_bone[0] = '\0';
+					}
+					if (v3d->localvd && v3d->localvd->ob_centre == ob) {
+						v3d->localvd->ob_centre = NULL;
+						v3d->localvd->ob_centre_bone[0] = '\0';
+					}
 
 					found= 0;
 					if (v3d->camera==ob) {
@@ -2528,7 +2540,7 @@ void object_handle_update(Scene *scene, Object *ob)
 		// XXX: should this case be OB_RECALC_OB instead?
 		if (ob->recalc & OB_RECALC_ALL) {
 			
-			if (G.f & G_DEBUG)
+			if (G.debug & G_DEBUG)
 				printf("recalcob %s\n", ob->id.name+2);
 			
 			/* handle proxy copy for target */
@@ -2556,7 +2568,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			ListBase pidlist;
 			PTCacheID *pid;
 			
-			if (G.f & G_DEBUG)
+			if (G.debug & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name+2);
 
 			if (adt) {
@@ -2960,11 +2972,19 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 }
 
 KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, const char *name, int from_mix)
-{
-	if (ob->type==OB_MESH)					 return insert_meshkey(scene, ob, name, from_mix);
-	else if ELEM(ob->type, OB_CURVE, OB_SURF)return insert_curvekey(scene, ob, name, from_mix);
-	else if (ob->type==OB_LATTICE)			 return insert_lattkey(scene, ob, name, from_mix);
-	else									 return NULL;
+{	
+	switch (ob->type) {
+		case OB_MESH:
+			return insert_meshkey(scene, ob, name, from_mix);
+		case OB_CURVE:
+		case OB_SURF:
+			return insert_curvekey(scene, ob, name, from_mix);
+		case OB_LATTICE:
+			return insert_lattkey(scene, ob, name, from_mix);
+		default:
+			return NULL;
+	}
+
 }
 
 /* most important if this is modified it should _always_ return True, in certain

@@ -1222,7 +1222,7 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 					WM_operator_name_call(C, "OUTLINER_OT_animdata_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 				else if (datalevel == TSE_DRIVER_BASE)
 					/* do nothing... no special ops needed yet */;
-				else if ELEM3(datalevel, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS)
+				else if (ELEM3(datalevel, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS))
 					/*WM_operator_name_call(C, "OUTLINER_OT_renderdata_operation", WM_OP_INVOKE_REGION_WIN, NULL)*/;
 				else
 					WM_operator_name_call(C, "OUTLINER_OT_data_operation", WM_OP_INVOKE_REGION_WIN, NULL);

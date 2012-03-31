@@ -1053,7 +1053,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		edge_free_path(pathbase, path);
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, FACE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, FACE_NEW);
 
 	BLI_array_free(edges);
 	BLI_array_free(verts);
@@ -1250,7 +1250,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", BM_EDGE, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, ELE_NEW);
 
 	BLI_array_free(edges1);
 	BLI_array_free(edges2);

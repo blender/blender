@@ -41,6 +41,6 @@ SetObject(SG_IObject* obj)
 	void
 SG_Controller::
 ClearObject(
-){
+) {
 	m_pObject = NULL;
 }

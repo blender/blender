@@ -355,21 +355,24 @@ int modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode)
 	return 1;
 }
 
-LinkNode *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
+CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
 {
-	LinkNode *dataMasks = NULL;
-	LinkNode *curr, *prev;
+	CDMaskLink *dataMasks = NULL;
+	CDMaskLink *curr, *prev;
 
 	/* build a list of modifier data requirements in reverse order */
 	for (; md; md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		CustomDataMask mask = 0;
 
+		curr = MEM_callocN(sizeof(CDMaskLink), "CDMaskLink");
+		
 		if (modifier_isEnabled(scene, md, required_mode))
 			if (mti->requiredDataMask)
-				mask = mti->requiredDataMask(ob, md);
+				curr->mask = mti->requiredDataMask(ob, md);
 
-		BLI_linklist_prepend(&dataMasks, SET_INT_IN_POINTER(mask));
+		/* prepend new datamask */
+		curr->next = dataMasks;
+		dataMasks = curr;
 	}
 
 	/* build the list of required data masks - each mask in the list must
@@ -380,20 +383,20 @@ LinkNode *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData 
 	 */
 	for (curr = dataMasks, prev = NULL; curr; prev = curr, curr = curr->next) {
 		if (prev) {
-			CustomDataMask prev_mask = (CustomDataMask)GET_INT_FROM_POINTER(prev->link);
-			CustomDataMask curr_mask = (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
+			CustomDataMask prev_mask = prev->mask;
+			CustomDataMask curr_mask = curr->mask;
 
-			curr->link = SET_INT_IN_POINTER(curr_mask | prev_mask);
+			curr->mask = curr_mask | prev_mask;
 		}
 		else {
-			CustomDataMask curr_mask = (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
+			CustomDataMask curr_mask = curr->mask;
 
-			curr->link = SET_INT_IN_POINTER(curr_mask | dataMask);
+			curr->mask = curr_mask | dataMask;
 		}
 	}
 
 	/* reverse the list so it's in the correct order */
-	BLI_linklist_reverse(&dataMasks);
+	BLI_linklist_reverse((LinkNode**)&dataMasks);
 
 	return dataMasks;
 }

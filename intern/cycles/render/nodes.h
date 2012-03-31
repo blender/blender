@@ -390,6 +390,18 @@ public:
 	SHADER_NODE_CLASS(BumpNode)
 };
 
+class RGBCurvesNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(RGBCurvesNode)
+	float4 curves[RAMP_TABLE_SIZE];
+};
+
+class RGBRampNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(RGBRampNode)
+	float4 ramp[RAMP_TABLE_SIZE];
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __NODES_H__ */

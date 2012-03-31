@@ -556,7 +556,7 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob)
 
 	bm = BM_mesh_create(&bm_mesh_allocsize_default);
 
-	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%b", me, ob, TRUE);
+	BM_mesh_bm_from_me(bm, me, TRUE, ob->shapenr);
 
 	return bm;
 }
@@ -2003,7 +2003,7 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 	}
 }
 
-void convert_mfaces_to_mpolys(Mesh *mesh)
+void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 {
 	MFace *mf;
 	MLoop *ml;
@@ -2097,7 +2097,7 @@ float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 }
 
 
-/* ngon version wip, based on EDBM_make_uv_vert_map */
+/* ngon version wip, based on EDBM_uv_vert_map_create */
 /* this replaces the non bmesh function (in trunk) which takes MTFace's, if we ever need it back we could
  * but for now this replaces it because its unused. */
 
@@ -2406,6 +2406,7 @@ int mesh_recalcTessellation(CustomData *fdata,
 			BLI_array_append(mface_orig_index,                                \
 		                     poly_orig_index[poly_index]);                    \
 		}                                                                     \
+		(void)0
 
 /* ALMOST IDENTICAL TO DEFINE ABOVE (see EXCEPTION) */
 #define ML_TO_MF_QUAD()                                                       \
@@ -2425,20 +2426,21 @@ int mesh_recalcTessellation(CustomData *fdata,
 		                     poly_orig_index[poly_index]);                    \
 		}                                                                     \
 		mf->edcode |= TESSFACE_IS_QUAD; /* EXCEPTION */                       \
+		(void)0
 
 
 		else if (mp->totloop == 3) {
-			ML_TO_MF(0, 1, 2)
+			ML_TO_MF(0, 1, 2);
 			mface_index++;
 		}
 		else if (mp->totloop == 4) {
 #ifdef USE_TESSFACE_QUADS
-			ML_TO_MF_QUAD()
+			ML_TO_MF_QUAD();
 			mface_index++;
 #else
-			ML_TO_MF(0, 1, 2)
+			ML_TO_MF(0, 1, 2);
 			mface_index++;
-			ML_TO_MF(0, 2, 3)
+			ML_TO_MF(0, 2, 3);
 			mface_index++;
 #endif
 		}

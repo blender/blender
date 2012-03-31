@@ -65,15 +65,15 @@
 
 /*********************** defines and structs ************************/
 
-#define ANIMATION_TIME		0.30
-#define ANIMATION_INTERVAL	0.02
+#define ANIMATION_TIME      0.30
+#define ANIMATION_INTERVAL  0.02
 
-#define PNL_LAST_ADDED		1
-#define PNL_ACTIVE			2
-#define PNL_WAS_ACTIVE		4
-#define PNL_ANIM_ALIGN		8
-#define PNL_NEW_ADDED		16
-#define PNL_FIRST			32
+#define PNL_LAST_ADDED      1
+#define PNL_ACTIVE          2
+#define PNL_WAS_ACTIVE      4
+#define PNL_ANIM_ALIGN      8
+#define PNL_NEW_ADDED       16
+#define PNL_FIRST           32
 
 typedef enum uiHandlePanelState {
 	PANEL_STATE_DRAG,
@@ -103,15 +103,15 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 
 static int panel_aligned(ScrArea *sa, ARegion *ar)
 {
-	if (sa->spacetype==SPACE_BUTS && ar->regiontype == RGN_TYPE_WINDOW) {
-		SpaceButs *sbuts= sa->spacedata.first;
+	if (sa->spacetype == SPACE_BUTS && ar->regiontype == RGN_TYPE_WINDOW) {
+		SpaceButs *sbuts = sa->spacedata.first;
 		return sbuts->align;
 	}
-	else if (sa->spacetype==SPACE_USERPREF && ar->regiontype == RGN_TYPE_WINDOW)
+	else if (sa->spacetype == SPACE_USERPREF && ar->regiontype == RGN_TYPE_WINDOW)
 		return BUT_VERTICAL;
-	else if (sa->spacetype==SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
+	else if (sa->spacetype == SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
 		return BUT_VERTICAL;
-	else if (sa->spacetype==SPACE_IMAGE && ar->regiontype == RGN_TYPE_PREVIEW)
+	else if (sa->spacetype == SPACE_IMAGE && ar->regiontype == RGN_TYPE_PREVIEW)
 		return BUT_VERTICAL; 
 	else if (ELEM3(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS))
 		return BUT_VERTICAL;
@@ -122,39 +122,39 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 {
 	Panel *pa;
-	int active= 0;
+	int active = 0;
 
-	*r_pa= NULL;
+	*r_pa = NULL;
 
-	if (sa->spacetype==SPACE_BUTS && ar->regiontype == RGN_TYPE_WINDOW) {
-		SpaceButs *sbuts= sa->spacedata.first;
+	if (sa->spacetype == SPACE_BUTS && ar->regiontype == RGN_TYPE_WINDOW) {
+		SpaceButs *sbuts = sa->spacedata.first;
 
 		if (sbuts->align)
-			if (sbuts->re_align || sbuts->mainbo!=sbuts->mainb)
+			if (sbuts->re_align || sbuts->mainbo != sbuts->mainb)
 				return 1;
 	}
-	else if (ar->regiontype==RGN_TYPE_UI)
+	else if (ar->regiontype == RGN_TYPE_UI)
 		return 1;
-	else if (sa->spacetype==SPACE_IMAGE && ar->regiontype == RGN_TYPE_PREVIEW)
+	else if (sa->spacetype == SPACE_IMAGE && ar->regiontype == RGN_TYPE_PREVIEW)
 		return 1;
-	else if (sa->spacetype==SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
+	else if (sa->spacetype == SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
 		return 1;
 
 	/* in case panel is added or disappears */
-	for (pa=ar->panels.first; pa; pa=pa->next) {
+	for (pa = ar->panels.first; pa; pa = pa->next) {
 		if ((pa->runtime_flag & PNL_WAS_ACTIVE) && !(pa->runtime_flag & PNL_ACTIVE))
 			return 1;
 		if (!(pa->runtime_flag & PNL_WAS_ACTIVE) && (pa->runtime_flag & PNL_ACTIVE))
 			return 1;
 		if (pa->activedata)
-			active= 1;
+			active = 1;
 	}
 
 	/* in case we need to do an animation (size changes) */
-	for (pa=ar->panels.first; pa; pa=pa->next) {
+	for (pa = ar->panels.first; pa; pa = pa->next) {
 		if (pa->runtime_flag & PNL_ANIM_ALIGN) {
 			if (!active)
-				*r_pa= pa;
+				*r_pa = pa;
 			return 1;
 		}
 	}
@@ -168,35 +168,35 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 {
 	/* with respect to sizes... papar is parent */
 
-	pa->ofsx= papar->ofsx;
-	pa->ofsy= papar->ofsy + papar->sizey-pa->sizey;
+	pa->ofsx = papar->ofsx;
+	pa->ofsy = papar->ofsy + papar->sizey - pa->sizey;
 }
 
 Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int *open)
 {
 	Panel *pa, *patab, *palast, *panext;
-	char *drawname= pt->label;
-	char *idname= pt->idname;
-	char *tabname= pt->idname;
-	char *hookname= NULL;
+	char *drawname = pt->label;
+	char *idname = pt->idname;
+	char *tabname = pt->idname;
+	char *hookname = NULL;
 	int newpanel;
-	int align= panel_aligned(sa, ar);
+	int align = panel_aligned(sa, ar);
 	
 	/* check if Panel exists, then use that one */
-	for (pa=ar->panels.first; pa; pa=pa->next)
-		if (strncmp(pa->panelname, idname, UI_MAX_NAME_STR)==0)
-			if (strncmp(pa->tabname, tabname, UI_MAX_NAME_STR)==0)
+	for (pa = ar->panels.first; pa; pa = pa->next)
+		if (strncmp(pa->panelname, idname, UI_MAX_NAME_STR) == 0)
+			if (strncmp(pa->tabname, tabname, UI_MAX_NAME_STR) == 0)
 				break;
 	
-	newpanel= (pa == NULL);
+	newpanel = (pa == NULL);
 
 	if (!newpanel) {
-		pa->type= pt;
+		pa->type = pt;
 	}
 	else {
 		/* new panel */
-		pa= MEM_callocN(sizeof(Panel), "new panel");
-		pa->type= pt;
+		pa = MEM_callocN(sizeof(Panel), "new panel");
+		pa->type = pt;
 		BLI_strncpy(pa->panelname, idname, UI_MAX_NAME_STR);
 		BLI_strncpy(pa->tabname, tabname, UI_MAX_NAME_STR);
 
@@ -207,21 +207,21 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int
 				pa->flag |= PNL_CLOSEDX;
 		}
 	
-		pa->ofsx= 0;
-		pa->ofsy= 0;
-		pa->sizex= 0;
-		pa->sizey= 0;
+		pa->ofsx = 0;
+		pa->ofsy = 0;
+		pa->sizex = 0;
+		pa->sizey = 0;
 		pa->runtime_flag |= PNL_NEW_ADDED;
 
 		BLI_addtail(&ar->panels, pa);
 		
 		/* make new Panel tabbed? */
 		if (hookname) {
-			for (patab= ar->panels.first; patab; patab= patab->next) {
-				if ((patab->runtime_flag & PNL_ACTIVE) && patab->paneltab==NULL) {
-					if (strncmp(hookname, patab->panelname, UI_MAX_NAME_STR)==0) {
-						if (strncmp(tabname, patab->tabname, UI_MAX_NAME_STR)==0) {
-							pa->paneltab= patab;
+			for (patab = ar->panels.first; patab; patab = patab->next) {
+				if ((patab->runtime_flag & PNL_ACTIVE) && patab->paneltab == NULL) {
+					if (strncmp(hookname, patab->panelname, UI_MAX_NAME_STR) == 0) {
+						if (strncmp(tabname, patab->tabname, UI_MAX_NAME_STR) == 0) {
+							pa->paneltab = patab;
 							ui_panel_copy_offset(pa, patab);
 							break;
 						}
@@ -236,14 +236,14 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int
 	/* if a new panel is added, we insert it right after the panel
 	 * that was last added. this way new panels are inserted in the
 	 * right place between versions */
-	for (palast=ar->panels.first; palast; palast=palast->next)
+	for (palast = ar->panels.first; palast; palast = palast->next)
 		if (palast->runtime_flag & PNL_LAST_ADDED)
 			break;
 	
 	if (newpanel) {
-		pa->sortorder= (palast)? palast->sortorder+1: 0;
+		pa->sortorder = (palast) ? palast->sortorder + 1 : 0;
 
-		for (panext=ar->panels.first; panext; panext=panext->next)
+		for (panext = ar->panels.first; panext; panext = panext->next)
 			if (panext != pa && panext->sortorder >= pa->sortorder)
 				panext->sortorder++;
 	}
@@ -252,63 +252,63 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int
 		palast->runtime_flag &= ~PNL_LAST_ADDED;
 
 	/* assign to block */
-	block->panel= pa;
-	pa->runtime_flag |= PNL_ACTIVE|PNL_LAST_ADDED;
+	block->panel = pa;
+	pa->runtime_flag |= PNL_ACTIVE | PNL_LAST_ADDED;
 
-	*open= 0;
+	*open = 0;
 
 	if (pa->paneltab) return pa;
 	if (pa->flag & PNL_CLOSED) return pa;
 
-	*open= 1;
+	*open = 1;
 	
 	return pa;
 }
 
 void uiEndPanel(uiBlock *block, int width, int height)
 {
-	Panel *pa= block->panel;
+	Panel *pa = block->panel;
 
 	if (pa->runtime_flag & PNL_NEW_ADDED) {
 		pa->runtime_flag &= ~PNL_NEW_ADDED;
-		pa->sizex= width;
-		pa->sizey= height;
+		pa->sizex = width;
+		pa->sizey = height;
 	}
 	else {
 		/* check if we need to do an animation */
 		if (!ELEM(width, 0, pa->sizex) || !ELEM(height, 0, pa->sizey)) {
 			pa->runtime_flag |= PNL_ANIM_ALIGN;
 			if (height != 0)
-				pa->ofsy += pa->sizey-height;
+				pa->ofsy += pa->sizey - height;
 		}
 
 		/* update width/height if non-zero */
 		if (width != 0)
-			pa->sizex= width;
+			pa->sizex = width;
 		if (height != 0)
-			pa->sizey= height;
+			pa->sizey = height;
 	}
 }
 
 static void ui_offset_panel_block(uiBlock *block)
 {
-	uiStyle *style= UI_GetStyle();
+	uiStyle *style = UI_GetStyle();
 	uiBut *but;
 	int ofsy;
 
 	/* compute bounds and offset */
 	ui_bounds_block(block);
 
-	ofsy= block->panel->sizey - style->panelspace;
+	ofsy = block->panel->sizey - style->panelspace;
 
-	for (but= block->buttons.first; but; but=but->next) {
+	for (but = block->buttons.first; but; but = but->next) {
 		but->y1 += ofsy;
 		but->y2 += ofsy;
 	}
 
-	block->maxx= block->panel->sizex;
-	block->maxy= block->panel->sizey;
-	block->minx= block->miny= 0.0;
+	block->maxx = block->panel->sizex;
+	block->maxy = block->panel->sizey;
+	block->minx = block->miny = 0.0;
 }
 
 /**************************** drawing *******************************/
@@ -332,27 +332,27 @@ static void uiPanelPop(uiBlock *UNUSED(block))
 /* triangle 'icon' for panel header */
 void UI_DrawTriIcon(float x, float y, char dir)
 {
-	if (dir=='h') {
-		ui_draw_anti_tria( x-3, y-5, x-3, y+5, x+7,y );
+	if (dir == 'h') {
+		ui_draw_anti_tria(x - 3, y - 5, x - 3, y + 5, x + 7, y);
 	}
-	else if (dir=='t') {
-		ui_draw_anti_tria( x-5, y-7, x+5, y-7, x, y+3);	
+	else if (dir == 't') {
+		ui_draw_anti_tria(x - 5, y - 7, x + 5, y - 7, x, y + 3);
 	}
 	else { /* 'v' = vertical, down */
-		ui_draw_anti_tria( x-5, y+3, x+5, y+3, x, y-7);	
+		ui_draw_anti_tria(x - 5, y + 3, x + 5, y + 3, x, y - 7);
 	}
 }
 
 /* triangle 'icon' inside rect */
 static void ui_draw_tria_rect(rctf *rect, char dir)
 {
-	if (dir=='h') {
-		float half= 0.5f*(rect->ymax - rect->ymin);
-		ui_draw_anti_tria(rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin+half);
+	if (dir == 'h') {
+		float half = 0.5f * (rect->ymax - rect->ymin);
+		ui_draw_anti_tria(rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin + half);
 	}
 	else {
-		float half= 0.5f*(rect->xmax - rect->xmin);
-		ui_draw_anti_tria(rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin+half, rect->ymin);
+		float half = 0.5f * (rect->xmax - rect->xmin);
+		ui_draw_anti_tria(rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin + half, rect->ymin);
 	}
 }
 
@@ -379,33 +379,33 @@ static void ui_draw_anti_x(float x1, float y1, float x2, float y2)
 static void ui_draw_x_icon(float x, float y)
 {
 
-	ui_draw_anti_x(x, y, x+9.375f, y+9.375f);
+	ui_draw_anti_x(x, y, x + 9.375f, y + 9.375f);
 
 }
 
-#define PNL_ICON 	UI_UNIT_X  /* could be UI_UNIT_Y too */
+#define PNL_ICON    UI_UNIT_X  /* could be UI_UNIT_Y too */
 
 static void ui_draw_panel_scalewidget(rcti *rect)
 {
 	float xmin, xmax, dx;
 	float ymin, ymax, dy;
 	
-	xmin= rect->xmax-PNL_HEADER+2;
-	xmax= rect->xmax-3;
-	ymin= rect->ymin+3;
-	ymax= rect->ymin+PNL_HEADER-2;
+	xmin = rect->xmax - PNL_HEADER + 2;
+	xmax = rect->xmax - 3;
+	ymin = rect->ymin + 3;
+	ymax = rect->ymin + PNL_HEADER - 2;
 		
-	dx= 0.5f*(xmax-xmin);
-	dy= 0.5f*(ymax-ymin);
+	dx = 0.5f * (xmax - xmin);
+	dy = 0.5f * (ymax - ymin);
 	
 	glEnable(GL_BLEND);
 	glColor4ub(255, 255, 255, 50);
 	fdrawline(xmin, ymin, xmax, ymax);
-	fdrawline(xmin+dx, ymin, xmax, ymax-dy);
+	fdrawline(xmin + dx, ymin, xmax, ymax - dy);
 	
 	glColor4ub(0, 0, 0, 50);
-	fdrawline(xmin, ymin+1, xmax, ymax+1);
-	fdrawline(xmin+dx, ymin+1, xmax, ymax-dy+1);
+	fdrawline(xmin, ymin + 1, xmax, ymax + 1);
+	fdrawline(xmin + dx, ymin + 1, xmax, ymax - dy + 1);
 	glDisable(GL_BLEND);
 }
 
@@ -414,64 +414,64 @@ static void ui_draw_panel_dragwidget(rctf *rect)
 	float xmin, xmax, dx;
 	float ymin, ymax, dy;
 	
-	xmin= rect->xmin;
-	xmax= rect->xmax;
-	ymin= rect->ymin;
-	ymax= rect->ymax;
+	xmin = rect->xmin;
+	xmax = rect->xmax;
+	ymin = rect->ymin;
+	ymax = rect->ymax;
 	
-	dx= 0.333f*(xmax-xmin);
-	dy= 0.333f*(ymax-ymin);
+	dx = 0.333f * (xmax - xmin);
+	dy = 0.333f * (ymax - ymin);
 	
 	glEnable(GL_BLEND);
 	glColor4ub(255, 255, 255, 50);
 	fdrawline(xmin, ymax, xmax, ymin);
-	fdrawline(xmin+dx, ymax, xmax, ymin+dy);
-	fdrawline(xmin+2*dx, ymax, xmax, ymin+2*dy);
+	fdrawline(xmin + dx, ymax, xmax, ymin + dy);
+	fdrawline(xmin + 2 * dx, ymax, xmax, ymin + 2 * dy);
 	
 	glColor4ub(0, 0, 0, 50);
-	fdrawline(xmin, ymax+1, xmax, ymin+1);
-	fdrawline(xmin+dx, ymax+1, xmax, ymin+dy+1);
-	fdrawline(xmin+2*dx, ymax+1, xmax, ymin+2*dy+1);
+	fdrawline(xmin, ymax + 1, xmax, ymin + 1);
+	fdrawline(xmin + dx, ymax + 1, xmax, ymin + dy + 1);
+	fdrawline(xmin + 2 * dx, ymax + 1, xmax, ymin + 2 * dy + 1);
 	glDisable(GL_BLEND);
 }
 
 
 static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *rect, char dir)
 {
-	Panel *panel= block->panel;
+	Panel *panel = block->panel;
 	rcti hrect;
-	int  pnl_icons;
+	int pnl_icons;
 	const char *activename = IFACE_(panel->drawname[0] ? panel->drawname : panel->panelname);
 
 	/* + 0.001f to avoid flirting with float inaccuracy */
-	if (panel->control & UI_PNL_CLOSE) pnl_icons=(panel->labelofs+2*PNL_ICON+5)/block->aspect + 0.001f;
-	else pnl_icons= (panel->labelofs+PNL_ICON+5)/block->aspect + 0.001f;
+	if (panel->control & UI_PNL_CLOSE) pnl_icons = (panel->labelofs + 2 * PNL_ICON + 5) / block->aspect + 0.001f;
+	else pnl_icons = (panel->labelofs + PNL_ICON + 5) / block->aspect + 0.001f;
 	
 	/* active tab */
 	/* draw text label */
 	UI_ThemeColor(TH_TITLE);
 	
-	hrect= *rect;
+	hrect = *rect;
 	if (dir == 'h') {
-		hrect.xmin = rect->xmin+pnl_icons;
-		hrect.ymin += 2.0f/block->aspect;
+		hrect.xmin = rect->xmin + pnl_icons;
+		hrect.ymin += 2.0f / block->aspect;
 		uiStyleFontDraw(&style->paneltitle, &hrect, activename);
 	}
 	else {
 		/* ignore 'pnl_icons', otherwise the text gets offset horizontally 
 		 * + 0.001f to avoid flirting with float inaccuracy
 		 */
-		hrect.xmin = rect->xmin + (PNL_ICON+5)/block->aspect + 0.001f;
+		hrect.xmin = rect->xmin + (PNL_ICON + 5) / block->aspect + 0.001f;
 		uiStyleFontDrawRotated(&style->paneltitle, &hrect, activename);
 	}
 }
 
 static void rectf_scale(rctf *rect, float scale)
 {
-	float centx= 0.5f*(rect->xmin+rect->xmax);
-	float centy= 0.5f*(rect->ymin+rect->ymax);
-	float sizex= 0.5f*scale*(rect->xmax - rect->xmin);
-	float sizey= 0.5f*scale*(rect->ymax - rect->ymin);
+	float centx = 0.5f * (rect->xmin + rect->xmax);
+	float centy = 0.5f * (rect->ymin + rect->ymax);
+	float sizex = 0.5f * scale * (rect->xmax - rect->xmin);
+	float sizey = 0.5f * scale * (rect->ymax - rect->ymin);
 	
 	rect->xmin = centx - sizex;
 	rect->xmax = centx + sizex;
@@ -482,8 +482,8 @@ static void rectf_scale(rctf *rect, float scale)
 /* panel integrated in buttonswindow, tool/property lists etc */
 void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 {
-	bTheme *btheme= UI_GetTheme();
-	Panel *panel= block->panel;
+	bTheme *btheme = UI_GetTheme();
+	Panel *panel = block->panel;
 	rcti headrect;
 	rctf itemrect;
 	int ofsx;
@@ -493,35 +493,35 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 
 	/* calculate header rect */
 	/* + 0.001f to prevent flicker due to float inaccuracy */
-	headrect= *rect;
+	headrect = *rect;
 	headrect.ymin = headrect.ymax;
-	headrect.ymax = headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
+	headrect.ymax = headrect.ymin + floor(PNL_HEADER / block->aspect + 0.001f);
 	
 	{
-		float minx= rect->xmin;
-		float maxx= rect->xmax;
-		float y= headrect.ymax;
+		float minx = rect->xmin;
+		float maxx = rect->xmax;
+		float y = headrect.ymax;
 
 		glEnable(GL_BLEND);
 
 		if (btheme->tui.panel.show_header) {
 			/* draw with background color */
 			glEnable(GL_BLEND);
-			glColor4ubv((unsigned char*)btheme->tui.panel.header);
-			glRectf(minx, headrect.ymin+1, maxx, y);
+			glColor4ubv((unsigned char *)btheme->tui.panel.header);
+			glRectf(minx, headrect.ymin + 1, maxx, y);
 
 			fdrawline(minx, y, maxx, y);
 			fdrawline(minx, y, maxx, y);
 		}
 		else if (!(panel->runtime_flag & PNL_FIRST)) {
 			/* draw embossed separator */
-			minx += 5.0f/block->aspect;
-			maxx -= 5.0f/block->aspect;
+			minx += 5.0f / block->aspect;
+			maxx -= 5.0f / block->aspect;
 			
 			glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 			fdrawline(minx, y, maxx, y);
 			glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
-			fdrawline(minx, y-1, maxx, y-1);
+			fdrawline(minx, y - 1, maxx, y - 1);
 			glDisable(GL_BLEND);
 		}
 
@@ -533,8 +533,8 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
 		
 		/* itemrect smaller */	
-		itemrect.xmax = headrect.xmax - 5.0f/block->aspect;
-		itemrect.xmin = itemrect.xmax - (headrect.ymax-headrect.ymin);
+		itemrect.xmax = headrect.xmax - 5.0f / block->aspect;
+		itemrect.xmin = itemrect.xmax - (headrect.ymax - headrect.ymin);
 		itemrect.ymin = headrect.ymin;
 		itemrect.ymax = headrect.ymax;
 
@@ -561,7 +561,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 			else uiSetRoundBox(UI_CNR_NONE);
 			
 			UI_ThemeColorShade(TH_BACK, -120);
-			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax+1, 8);
+			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax + 1, 8);
 		}
 		
 		if (panel->control & UI_PNL_SCALE)
@@ -570,20 +570,20 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	
 	/* draw optional close icon */
 	
-	ofsx= 6;
+	ofsx = 6;
 	if (panel->control & UI_PNL_CLOSE) {
 		
 		UI_ThemeColor(TH_TEXT);
-		ui_draw_x_icon(rect->xmin+2+ofsx, rect->ymax+2);
-		ofsx= 22;
+		ui_draw_x_icon(rect->xmin + 2 + ofsx, rect->ymax + 2);
+		ofsx = 22;
 	}
 	
 	/* draw collapse icon */
 	UI_ThemeColor(TH_TEXT);
 	
 	/* itemrect smaller */	
-	itemrect.xmin = headrect.xmin + 5.0f/block->aspect;
-	itemrect.xmax = itemrect.xmin + (headrect.ymax-headrect.ymin);
+	itemrect.xmin = headrect.xmin + 5.0f / block->aspect;
+	itemrect.xmax = itemrect.xmin + (headrect.ymax - headrect.ymin);
 	itemrect.ymin = headrect.ymin;
 	itemrect.ymax = headrect.ymax;
 	
@@ -621,17 +621,17 @@ static int get_panel_size_y(Panel *pa)
  * change sizey or location when closed */
 static int get_panel_real_ofsy(Panel *pa)
 {
-	if (pa->flag & PNL_CLOSEDY) return pa->ofsy+pa->sizey;
-	else if (pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDY)) return pa->ofsy+pa->sizey;
+	if (pa->flag & PNL_CLOSEDY) return pa->ofsy + pa->sizey;
+	else if (pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDY)) return pa->ofsy + pa->sizey;
 	else if (pa->paneltab) return pa->paneltab->ofsy;
 	else return pa->ofsy;
 }
 
 static int get_panel_real_ofsx(Panel *pa)
 {
-	if (pa->flag & PNL_CLOSEDX) return pa->ofsx+get_panel_header(pa);
-	else if (pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDX)) return pa->ofsx+get_panel_header(pa);
-	else return pa->ofsx+pa->sizex;
+	if (pa->flag & PNL_CLOSEDX) return pa->ofsx + get_panel_header(pa);
+	else if (pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDX)) return pa->ofsx + get_panel_header(pa);
+	else return pa->ofsx + pa->sizex;
 }
 
 typedef struct PanelSort {
@@ -646,7 +646,7 @@ typedef struct PanelSort {
 
 static int find_leftmost_panel(const void *a1, const void *a2)
 {
-	const PanelSort *ps1=a1, *ps2=a2;
+	const PanelSort *ps1 = a1, *ps2 = a2;
 	
 	if (ps1->pa->ofsx > ps2->pa->ofsx) return 1;
 	else if (ps1->pa->ofsx < ps2->pa->ofsx) return -1;
@@ -659,14 +659,14 @@ static int find_leftmost_panel(const void *a1, const void *a2)
 
 static int find_highest_panel(const void *a1, const void *a2)
 {
-	const PanelSort *ps1=a1, *ps2=a2;
+	const PanelSort *ps1 = a1, *ps2 = a2;
 	
 	/* stick uppermost header-less panels to the top of the region -
 	 * prevent them from being sorted */
 	if (ps1->pa->sortorder < ps2->pa->sortorder && ps1->pa->type->flag & PNL_NO_HEADER) return -1;
 	
-	if (ps1->pa->ofsy+ps1->pa->sizey < ps2->pa->ofsy+ps2->pa->sizey) return 1;
-	else if (ps1->pa->ofsy+ps1->pa->sizey > ps2->pa->ofsy+ps2->pa->sizey) return -1;
+	if (ps1->pa->ofsy + ps1->pa->sizey < ps2->pa->ofsy + ps2->pa->sizey) return 1;
+	else if (ps1->pa->ofsy + ps1->pa->sizey > ps2->pa->ofsy + ps2->pa->sizey) return -1;
 	else if (ps1->pa->sortorder > ps2->pa->sortorder) return 1;
 	else if (ps1->pa->sortorder < ps2->pa->sortorder) return -1;
 	
@@ -675,7 +675,7 @@ static int find_highest_panel(const void *a1, const void *a2)
 
 static int compare_panel(const void *a1, const void *a2)
 {
-	const PanelSort *ps1=a1, *ps2=a2;
+	const PanelSort *ps1 = a1, *ps2 = a2;
 	
 	if (ps1->pa->sortorder > ps2->pa->sortorder) return 1;
 	else if (ps1->pa->sortorder < ps2->pa->sortorder) return -1;
@@ -689,85 +689,85 @@ static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 {
 	Panel *pa;
 	PanelSort *ps, *panelsort, *psnext;
-	int a, tot=0, done;
-	int align= panel_aligned(sa, ar);
+	int a, tot = 0, done;
+	int align = panel_aligned(sa, ar);
 	
 	/* count active, not tabbed panels */
-	for (pa= ar->panels.first; pa; pa= pa->next)
-		if ((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab==NULL)
+	for (pa = ar->panels.first; pa; pa = pa->next)
+		if ((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab == NULL)
 			tot++;
 
-	if (tot==0) return 0;
+	if (tot == 0) return 0;
 
 	/* extra; change close direction? */
-	for (pa= ar->panels.first; pa; pa= pa->next) {
-		if ((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab==NULL) {
-			if ((pa->flag & PNL_CLOSEDX) && (align==BUT_VERTICAL))
+	for (pa = ar->panels.first; pa; pa = pa->next) {
+		if ((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab == NULL) {
+			if ((pa->flag & PNL_CLOSEDX) && (align == BUT_VERTICAL))
 				pa->flag ^= PNL_CLOSED;
-			else if ((pa->flag & PNL_CLOSEDY) && (align==BUT_HORIZONTAL))
+			else if ((pa->flag & PNL_CLOSEDY) && (align == BUT_HORIZONTAL))
 				pa->flag ^= PNL_CLOSED;
 		}
 	}
 
 	/* sort panels */
-	panelsort= MEM_callocN(tot*sizeof(PanelSort), "panelsort");
+	panelsort = MEM_callocN(tot * sizeof(PanelSort), "panelsort");
 	
-	ps= panelsort;
-	for (pa= ar->panels.first; pa; pa= pa->next) {
-		if ((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab==NULL) {
-			ps->pa= MEM_dupallocN(pa);
-			ps->orig= pa;
+	ps = panelsort;
+	for (pa = ar->panels.first; pa; pa = pa->next) {
+		if ((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab == NULL) {
+			ps->pa = MEM_dupallocN(pa);
+			ps->orig = pa;
 			ps++;
 		}
 	}
 	
 	if (drag) {
 		/* while we are dragging, we sort on location and update sortorder */
-		if (align==BUT_VERTICAL) 
+		if (align == BUT_VERTICAL)
 			qsort(panelsort, tot, sizeof(PanelSort), find_highest_panel);
 		else
 			qsort(panelsort, tot, sizeof(PanelSort), find_leftmost_panel);
 
-		for (ps=panelsort, a=0; a<tot; a++, ps++)
-			ps->orig->sortorder= a;
+		for (ps = panelsort, a = 0; a < tot; a++, ps++)
+			ps->orig->sortorder = a;
 	}
 	else
 		/* otherwise use sortorder */
 		qsort(panelsort, tot, sizeof(PanelSort), compare_panel);
 	
 	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
-	ps= panelsort;
-	ps->pa->ofsx= 0;
-	ps->pa->ofsy= -get_panel_size_y(ps->pa);
+	ps = panelsort;
+	ps->pa->ofsx = 0;
+	ps->pa->ofsy = -get_panel_size_y(ps->pa);
 
-	for (a=0; a<tot-1; a++, ps++) {
-		psnext= ps+1;
-	
-		if (align==BUT_VERTICAL) {
-			psnext->pa->ofsx= ps->pa->ofsx;
-			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - get_panel_size_y(psnext->pa);
+	for (a = 0; a < tot - 1; a++, ps++) {
+		psnext = ps + 1;
+
+		if (align == BUT_VERTICAL) {
+			psnext->pa->ofsx = ps->pa->ofsx;
+			psnext->pa->ofsy = get_panel_real_ofsy(ps->pa) - get_panel_size_y(psnext->pa);
 		}
 		else {
-			psnext->pa->ofsx= get_panel_real_ofsx(ps->pa);
-			psnext->pa->ofsy= ps->pa->ofsy + get_panel_size_y(ps->pa) - get_panel_size_y(psnext->pa);
+			psnext->pa->ofsx = get_panel_real_ofsx(ps->pa);
+			psnext->pa->ofsy = ps->pa->ofsy + get_panel_size_y(ps->pa) - get_panel_size_y(psnext->pa);
 		}
 	}
 	
 	/* we interpolate */
-	done= 0;
-	ps= panelsort;
-	for (a=0; a<tot; a++, ps++) {
-		if ((ps->pa->flag & PNL_SELECT)==0) {
+	done = 0;
+	ps = panelsort;
+	for (a = 0; a < tot; a++, ps++) {
+		if ((ps->pa->flag & PNL_SELECT) == 0) {
 			if ((ps->orig->ofsx != ps->pa->ofsx) || (ps->orig->ofsy != ps->pa->ofsy)) {
-				ps->orig->ofsx= floorf(0.5f + fac*(float)ps->pa->ofsx + (1.0f-fac)*(float)ps->orig->ofsx);
-				ps->orig->ofsy= floorf(0.5f + fac*(float)ps->pa->ofsy + (1.0f-fac)*(float)ps->orig->ofsy);
-				done= 1;
+				ps->orig->ofsx = floorf(0.5f + fac * (float)ps->pa->ofsx + (1.0f - fac) * (float)ps->orig->ofsx);
+				ps->orig->ofsy = floorf(0.5f + fac * (float)ps->pa->ofsy + (1.0f - fac) * (float)ps->orig->ofsy);
+				done = 1;
 			}
 		}
 	}
 
 	/* copy locations to tabs */
-	for (pa= ar->panels.first; pa; pa= pa->next)
+	for (pa = ar->panels.first; pa; pa = pa->next)
 		if (pa->paneltab && (pa->runtime_flag & PNL_ACTIVE))
 			ui_panel_copy_offset(pa, pa->paneltab);
 
@@ -783,49 +783,49 @@ static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 static void ui_panels_size(ScrArea *sa, ARegion *ar, int *x, int *y)
 {
 	Panel *pa;
-	int align= panel_aligned(sa, ar);
+	int align = panel_aligned(sa, ar);
 	int sizex = UI_PANEL_WIDTH;
 	int sizey = UI_PANEL_WIDTH;
 
 	/* compute size taken up by panels, for setting in view2d */
-	for (pa= ar->panels.first; pa; pa= pa->next) {
+	for (pa = ar->panels.first; pa; pa = pa->next) {
 		if (pa->runtime_flag & PNL_ACTIVE) {
 			int pa_sizex, pa_sizey;
 
-			if (align==BUT_VERTICAL) {
-				pa_sizex= pa->ofsx + pa->sizex;
-				pa_sizey= get_panel_real_ofsy(pa);
+			if (align == BUT_VERTICAL) {
+				pa_sizex = pa->ofsx + pa->sizex;
+				pa_sizey = get_panel_real_ofsy(pa);
 			}
 			else {
-				pa_sizex= get_panel_real_ofsx(pa) + pa->sizex;
-				pa_sizey= pa->ofsy + get_panel_size_y(pa);
+				pa_sizex = get_panel_real_ofsx(pa) + pa->sizex;
+				pa_sizey = pa->ofsy + get_panel_size_y(pa);
 			}
 
-			sizex= MAX2(sizex, pa_sizex);
-			sizey= MIN2(sizey, pa_sizey);
+			sizex = MAX2(sizex, pa_sizex);
+			sizey = MIN2(sizey, pa_sizey);
 		}
 	}
 
-	*x= sizex;
-	*y= sizey;
+	*x = sizex;
+	*y = sizey;
 }
 
 static void ui_do_animate(const bContext *C, Panel *panel)
 {
-	uiHandlePanelData *data= panel->activedata;
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);
+	uiHandlePanelData *data = panel->activedata;
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
 	float fac;
 
-	fac= (PIL_check_seconds_timer()-data->starttime)/ANIMATION_TIME;
-	fac= sqrt(fac);
-	fac= MIN2(fac, 1.0f);
+	fac = (PIL_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
+	fac = sqrt(fac);
+	fac = MIN2(fac, 1.0f);
 
 	/* for max 1 second, interpolate positions */
 	if (uiAlignPanelStep(sa, ar, fac, 0))
 		ED_region_tag_redraw(ar);
 	else
-		fac= 1.0f;
+		fac = 1.0f;
 
 	if (fac >= 1.0f) {
 		panel_activate_state(C, panel, PANEL_STATE_EXIT);
@@ -839,46 +839,46 @@ void uiBeginPanels(const bContext *UNUSED(C), ARegion *ar)
   
 	/* set all panels as inactive, so that at the end we know
 	 * which ones were used */
-	for (pa=ar->panels.first; pa; pa=pa->next) {
+	for (pa = ar->panels.first; pa; pa = pa->next) {
 		if (pa->runtime_flag & PNL_ACTIVE)
-			pa->runtime_flag= PNL_WAS_ACTIVE;
+			pa->runtime_flag = PNL_WAS_ACTIVE;
 		else
-			pa->runtime_flag= 0;
+			pa->runtime_flag = 0;
 	}
 }
 
 /* only draws blocks with panels */
 void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
 {
-	ScrArea *sa= CTX_wm_area(C);
+	ScrArea *sa = CTX_wm_area(C);
 	uiBlock *block;
 	Panel *panot, *panew, *patest, *pa, *firstpa;
 	
 	/* offset contents */
-	for (block= ar->uiblocks.first; block; block= block->next)
+	for (block = ar->uiblocks.first; block; block = block->next)
 		if (block->active && block->panel)
 			ui_offset_panel_block(block);
 
 	/* consistency; are panels not made, whilst they have tabs */
-	for (panot= ar->panels.first; panot; panot= panot->next) {
-		if ((panot->runtime_flag & PNL_ACTIVE)==0) { // not made
+	for (panot = ar->panels.first; panot; panot = panot->next) {
+		if ((panot->runtime_flag & PNL_ACTIVE) == 0) { // not made
 
-			for (panew= ar->panels.first; panew; panew= panew->next) {
+			for (panew = ar->panels.first; panew; panew = panew->next) {
 				if ((panew->runtime_flag & PNL_ACTIVE)) {
-					if (panew->paneltab==panot) { // panew is tab in notmade pa
+					if (panew->paneltab == panot) { // panew is tab in notmade pa
 						break;
 					}
 				}
 			}
 			/* now panew can become the new parent, check all other tabs */
 			if (panew) {
-				for (patest= ar->panels.first; patest; patest= patest->next) {
+				for (patest = ar->panels.first; patest; patest = patest->next) {
 					if (patest->paneltab == panot) {
-						patest->paneltab= panew;
+						patest->paneltab = panew;
 					}
 				}
-				panot->paneltab= panew;
-				panew->paneltab= NULL;
+				panot->paneltab = panew;
+				panew->paneltab = NULL;
 				ED_region_tag_redraw(ar); // the buttons panew were not made
 			}
 		}	
@@ -893,11 +893,11 @@ void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
 	}
 
 	/* tag first panel */
-	firstpa= NULL;
-	for (block= ar->uiblocks.first; block; block=block->next)
+	firstpa = NULL;
+	for (block = ar->uiblocks.first; block; block = block->next)
 		if (block->active && block->panel)
 			if (!firstpa || block->panel->sortorder < firstpa->sortorder)
-				firstpa= block->panel;
+				firstpa = block->panel;
 	
 	if (firstpa)
 		firstpa->runtime_flag |= PNL_FIRST;
@@ -913,13 +913,13 @@ void uiDrawPanels(const bContext *C, ARegion *ar)
 	UI_ThemeClearColor(TH_BACK);
 	
 	/* draw panels, selected on top */
-	for (block= ar->uiblocks.first; block; block=block->next) {
+	for (block = ar->uiblocks.first; block; block = block->next) {
 		if (block->active && block->panel && !(block->panel->flag & PNL_SELECT)) {
 			uiDrawBlock(C, block);
 		}
 	}
 
-	for (block= ar->uiblocks.first; block; block=block->next) {
+	for (block = ar->uiblocks.first; block; block = block->next) {
 		if (block->active && block->panel && (block->panel->flag & PNL_SELECT)) {
 			uiDrawBlock(C, block);
 		}
@@ -934,22 +934,22 @@ static void check_panel_overlap(ARegion *ar, Panel *panel)
 
 	/* also called with panel==NULL for clear */
 	
-	for (pa=ar->panels.first; pa; pa=pa->next) {
+	for (pa = ar->panels.first; pa; pa = pa->next) {
 		pa->flag &= ~PNL_OVERLAP;
 		if (panel && (pa != panel)) {
-			if (pa->paneltab==NULL && (pa->runtime_flag & PNL_ACTIVE)) {
-				float safex= 0.2, safey= 0.2;
+			if (pa->paneltab == NULL && (pa->runtime_flag & PNL_ACTIVE)) {
+				float safex = 0.2, safey = 0.2;
 				
-				if (pa->flag & PNL_CLOSEDX) safex= 0.05;
-				else if (pa->flag & PNL_CLOSEDY) safey= 0.05;
-				else if (panel->flag & PNL_CLOSEDX) safex= 0.05;
-				else if (panel->flag & PNL_CLOSEDY) safey= 0.05;
-				
-				if (pa->ofsx > panel->ofsx- safex*panel->sizex)
-				if (pa->ofsx+pa->sizex < panel->ofsx+ (1.0f+safex)*panel->sizex)
-				if (pa->ofsy > panel->ofsy- safey*panel->sizey)
-				if (pa->ofsy+pa->sizey < panel->ofsy+ (1.0f+safey)*panel->sizey)
-					pa->flag |= PNL_OVERLAP;
+				if (pa->flag & PNL_CLOSEDX) safex = 0.05;
+				else if (pa->flag & PNL_CLOSEDY) safey = 0.05;
+				else if (panel->flag & PNL_CLOSEDX) safex = 0.05;
+				else if (panel->flag & PNL_CLOSEDY) safey = 0.05;
+
+				if (pa->ofsx > panel->ofsx - safex * panel->sizex)
+					if (pa->ofsx + pa->sizex < panel->ofsx + (1.0f + safex) * panel->sizex)
+						if (pa->ofsy > panel->ofsy - safey * panel->sizey)
+							if (pa->ofsy + pa->sizey < panel->ofsy + (1.0f + safey) * panel->sizey)
+								pa->flag |= PNL_OVERLAP;
 			}
 		}
 	}
@@ -959,36 +959,36 @@ static void check_panel_overlap(ARegion *ar, Panel *panel)
 
 static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 {
-	uiHandlePanelData *data= panel->activedata;
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);
-	short align= panel_aligned(sa, ar), dx=0, dy=0;
+	uiHandlePanelData *data = panel->activedata;
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+	short align = panel_aligned(sa, ar), dx = 0, dy = 0;
 	
 	/* first clip for window, no dragging outside */
 	if (!BLI_in_rcti(&ar->winrct, event->x, event->y))
 		return;
 
-	dx= (event->x-data->startx) & ~(PNL_GRID-1);
-	dy= (event->y-data->starty) & ~(PNL_GRID-1);
+	dx = (event->x - data->startx) & ~(PNL_GRID - 1);
+	dy = (event->y - data->starty) & ~(PNL_GRID - 1);
 
-	dx *= (float)(ar->v2d.cur.xmax - ar->v2d.cur.xmin)/(float)(ar->winrct.xmax - ar->winrct.xmin);
-	dy *= (float)(ar->v2d.cur.ymax - ar->v2d.cur.ymin)/(float)(ar->winrct.ymax - ar->winrct.ymin);
+	dx *= (float)(ar->v2d.cur.xmax - ar->v2d.cur.xmin) / (float)(ar->winrct.xmax - ar->winrct.xmin);
+	dy *= (float)(ar->v2d.cur.ymax - ar->v2d.cur.ymin) / (float)(ar->winrct.ymax - ar->winrct.ymin);
 	
 	if (data->state == PANEL_STATE_DRAG_SCALE) {
-		panel->sizex = MAX2(data->startsizex+dx, UI_PANEL_MINX);
+		panel->sizex = MAX2(data->startsizex + dx, UI_PANEL_MINX);
 		
-		if (data->startsizey-dy < UI_PANEL_MINY)
-			dy= -UI_PANEL_MINY+data->startsizey;
+		if (data->startsizey - dy < UI_PANEL_MINY)
+			dy = -UI_PANEL_MINY + data->startsizey;
 
-		panel->sizey= data->startsizey-dy;
-		panel->ofsy= data->startofsy+dy;
+		panel->sizey = data->startsizey - dy;
+		panel->ofsy = data->startofsy + dy;
 	}
 	else {
 		/* reset the panel snapping, to allow dragging away from snapped edges */
 		panel->snap = PNL_SNAP_NONE;
 		
-		panel->ofsx = data->startofsx+dx;
-		panel->ofsy = data->startofsy+dy;
+		panel->ofsx = data->startofsx + dx;
+		panel->ofsy = data->startofsy + dy;
 		check_panel_overlap(ar, panel);
 		
 		if (align) uiAlignPanelStep(sa, ar, 0.2, 1);
@@ -1004,55 +1004,55 @@ static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 /* also it supposes a block has panel, and isn't a menu */
 static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, int my, int event)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
 	Panel *pa;
-	int align= panel_aligned(sa, ar), button= 0;
+	int align = panel_aligned(sa, ar), button = 0;
 
 	/* mouse coordinates in panel space! */
 	
 	/* XXX weak code, currently it assumes layout style for location of widgets */
 	
 	/* check open/collapsed button */
-	if (event==RETKEY)
-		button= 1;
-	else if (event==AKEY)
-		button= 1;
+	if (event == RETKEY)
+		button = 1;
+	else if (event == AKEY)
+		button = 1;
 	else if (block->panel->flag & PNL_CLOSEDX) {
-		if (my >= block->maxy) button= 1;
+		if (my >= block->maxy) button = 1;
 	}
 	else if (block->panel->control & UI_PNL_CLOSE) {
 		/* whole of header can be used to collapse panel (except top-right corner) */
-		if (mx <= block->maxx-8-PNL_ICON) button= 2;
+		if (mx <= block->maxx - 8 - PNL_ICON) button = 2;
 		//else if (mx <= block->minx+10+2*PNL_ICON+2) button= 1;
 	}
-	else if (mx <= block->maxx-PNL_ICON-12) {
-		button= 1;
+	else if (mx <= block->maxx - PNL_ICON - 12) {
+		button = 1;
 	}
 	
 	if (button) {
-		if (button==2) { // close
+		if (button == 2) { // close
 			ED_region_tag_redraw(ar);
 		}
-		else {	// collapse
+		else {  // collapse
 			if (block->panel->flag & PNL_CLOSED) {
 				block->panel->flag &= ~PNL_CLOSED;
 				/* snap back up so full panel aligns with screen edge */
 				if (block->panel->snap & PNL_SNAP_BOTTOM) 
-					block->panel->ofsy= 0;
+					block->panel->ofsy = 0;
 			}
-			else if (align==BUT_HORIZONTAL) {
+			else if (align == BUT_HORIZONTAL) {
 				block->panel->flag |= PNL_CLOSEDX;
 			}
 			else {
 				/* snap down to bottom screen edge*/
 				block->panel->flag |= PNL_CLOSEDY;
 				if (block->panel->snap & PNL_SNAP_BOTTOM) 
-					block->panel->ofsy= -block->panel->sizey;
+					block->panel->ofsy = -block->panel->sizey;
 			}
 			
-			for (pa= ar->panels.first; pa; pa= pa->next) {
-				if (pa->paneltab==block->panel) {
+			for (pa = ar->panels.first; pa; pa = pa->next) {
+				if (pa->paneltab == block->panel) {
 					if (block->panel->flag & PNL_CLOSED) pa->flag |= PNL_CLOSED;
 					else pa->flag &= ~PNL_CLOSED;
 				}
@@ -1064,7 +1064,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 		else
 			ED_region_tag_redraw(ar);
 	}
-	else if (mx <= (block->maxx-PNL_ICON-12)+PNL_ICON+2) {
+	else if (mx <= (block->maxx - PNL_ICON - 12) + PNL_ICON + 2) {
 		panel_activate_state(C, block->panel, PANEL_STATE_DRAG);
 	}
 }
@@ -1074,35 +1074,35 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 
 int ui_handler_panel_region(bContext *C, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
+	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
 	Panel *pa;
-	int retval, mx, my, inside_header= 0, inside_scale= 0, inside;
+	int retval, mx, my, inside_header = 0, inside_scale = 0, inside;
 
-	retval= WM_UI_HANDLER_CONTINUE;
-	for (block=ar->uiblocks.last; block; block=block->prev) {
-		mx= event->x;
-		my= event->y;
+	retval = WM_UI_HANDLER_CONTINUE;
+	for (block = ar->uiblocks.last; block; block = block->prev) {
+		mx = event->x;
+		my = event->y;
 		ui_window_to_block(ar, block, &mx, &my);
 
 		/* check if inside boundbox */
-		inside= 0;
-		pa= block->panel;
+		inside = 0;
+		pa = block->panel;
 
-		if (!pa || pa->paneltab!=NULL)
+		if (!pa || pa->paneltab != NULL)
 			continue;
 		if (pa->type && pa->type->flag & PNL_NO_HEADER) // XXX - accessed freed panels when scripts reload, need to fix.
 			continue;
 
 		if (block->minx <= mx && block->maxx >= mx)
-			if (block->miny <= my && block->maxy+PNL_HEADER >= my)
-				inside= 1;
+			if (block->miny <= my && block->maxy + PNL_HEADER >= my)
+				inside = 1;
 		
-		if (inside && event->val==KM_PRESS) {
+		if (inside && event->val == KM_PRESS) {
 			if (event->type == AKEY && !ELEM4(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift, event->alt)) {
 				
 				if (pa->flag & PNL_CLOSEDY) {
-					if ((block->maxy <= my) && (block->maxy+PNL_HEADER >= my))
+					if ((block->maxy <= my) && (block->maxy + PNL_HEADER >= my))
 						ui_handle_panel_header(C, block, mx, my, event->type);
 				}
 				else
@@ -1119,19 +1119,19 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 		if (inside) {
 			/* clicked at panel header? */
 			if (pa->flag & PNL_CLOSEDX) {
-				if (block->minx <= mx && block->minx+PNL_HEADER >= mx) 
-					inside_header= 1;
+				if (block->minx <= mx && block->minx + PNL_HEADER >= mx)
+					inside_header = 1;
 			}
-			else if ((block->maxy <= my) && (block->maxy+PNL_HEADER >= my)) {
-				inside_header= 1;
+			else if ((block->maxy <= my) && (block->maxy + PNL_HEADER >= my)) {
+				inside_header = 1;
 			}
 			else if (pa->control & UI_PNL_SCALE) {
-				if (block->maxx-PNL_HEADER <= mx)
-					if (block->miny+PNL_HEADER >= my)
-						inside_scale= 1;
+				if (block->maxx - PNL_HEADER <= mx)
+					if (block->miny + PNL_HEADER >= my)
+						inside_scale = 1;
 			}
 
-			if (event->val==KM_PRESS) {
+			if (event->val == KM_PRESS) {
 				/* open close on header */
 				if (ELEM(event->type, RETKEY, PADENTER)) {
 					if (inside_header) {
@@ -1155,34 +1155,34 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 					if (block->handler) {
 						rem_blockhandler(sa, block->handler);
 						ED_region_tag_redraw(ar);
-						retval= WM_UI_HANDLER_BREAK;
+						retval = WM_UI_HANDLER_BREAK;
 					}
 #endif
 				}
-				else if (event->type==PADPLUSKEY || event->type==PADMINUS) {
+				else if (event->type == PADPLUSKEY || event->type == PADMINUS) {
 #if 0 // XXX make float panel exception?
-					int zoom=0;
+					int zoom = 0;
 				
 					/* if panel is closed, only zoom if mouse is over the header */
-					if (pa->flag & (PNL_CLOSEDX|PNL_CLOSEDY)) {
+					if (pa->flag & (PNL_CLOSEDX | PNL_CLOSEDY)) {
 						if (inside_header)
-							zoom=1;
+							zoom = 1;
 					}
 					else
-						zoom=1;
+						zoom = 1;
 
 					if (zoom) {
-						ScrArea *sa= CTX_wm_area(C);
-						SpaceLink *sl= sa->spacedata.first;
+						ScrArea *sa = CTX_wm_area(C);
+						SpaceLink *sl = sa->spacedata.first;
 
-						if (sa->spacetype!=SPACE_BUTS) {
+						if (sa->spacetype != SPACE_BUTS) {
 							if (!(pa->control & UI_PNL_SCALE)) {
-								if (event->type==PADPLUSKEY) sl->blockscale+= 0.1;
-								else sl->blockscale-= 0.1;
+								if (event->type == PADPLUSKEY) sl->blockscale += 0.1;
+								else sl->blockscale -= 0.1;
 								CLAMP(sl->blockscale, 0.6, 1.0);
 
 								ED_region_tag_redraw(ar);
-								retval= WM_UI_HANDLER_BREAK;
+								retval = WM_UI_HANDLER_BREAK;
 							}						
 						}
 					}
@@ -1200,14 +1200,14 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 /* note, this is modal handler and should not swallow events for animation */
 static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 {
-	Panel *panel= userdata;
-	uiHandlePanelData *data= panel->activedata;
+	Panel *panel = userdata;
+	uiHandlePanelData *data = panel->activedata;
 
 	/* verify if we can stop */
-	if (event->type == LEFTMOUSE && event->val!=KM_PRESS) {
-		ScrArea *sa= CTX_wm_area(C);
-		ARegion *ar= CTX_wm_region(C);
-		int align= panel_aligned(sa, ar);
+	if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		ScrArea *sa = CTX_wm_area(C);
+		ARegion *ar = CTX_wm_region(C);
+		int align = panel_aligned(sa, ar);
 
 		if (align)
 			panel_activate_state(C, panel, PANEL_STATE_ANIMATION);
@@ -1225,7 +1225,7 @@ static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 			ui_do_drag(C, event, panel);
 	}
 
-	data= panel->activedata;
+	data = panel->activedata;
 
 	if (data && data->state == PANEL_STATE_ANIMATION)
 		return WM_UI_HANDLER_CONTINUE;
@@ -1235,16 +1235,16 @@ static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 
 static void ui_handler_remove_panel(bContext *C, void *userdata)
 {
-	Panel *pa= userdata;
+	Panel *pa = userdata;
 
 	panel_activate_state(C, pa, PANEL_STATE_EXIT);
 }
 
 static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelState state)
 {
-	uiHandlePanelData *data= pa->activedata;
-	wmWindow *win= CTX_wm_window(C);
-	ARegion *ar= CTX_wm_region(C);
+	uiHandlePanelData *data = pa->activedata;
+	wmWindow *win = CTX_wm_window(C);
+	ARegion *ar = CTX_wm_region(C);
 	
 	if (data && data->state == state)
 		return;
@@ -1267,49 +1267,49 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 
 	if (data && data->animtimer) {
 		WM_event_remove_timer(CTX_wm_manager(C), win, data->animtimer);
-		data->animtimer= NULL;
+		data->animtimer = NULL;
 	}
 
 	if (state == PANEL_STATE_EXIT) {
 		MEM_freeN(data);
-		pa->activedata= NULL;
+		pa->activedata = NULL;
 
 		WM_event_remove_ui_handler(&win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa, 0);
 	}
 	else {
 		if (!data) {
-			data= MEM_callocN(sizeof(uiHandlePanelData), "uiHandlePanelData");
-			pa->activedata= data;
+			data = MEM_callocN(sizeof(uiHandlePanelData), "uiHandlePanelData");
+			pa->activedata = data;
 
 			WM_event_add_ui_handler(C, &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa);
 		}
 
 		if (ELEM(state, PANEL_STATE_ANIMATION, PANEL_STATE_DRAG))
-			data->animtimer= WM_event_add_timer(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
+			data->animtimer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
 
-		data->state= state;
-		data->startx= win->eventstate->x;
-		data->starty= win->eventstate->y;
-		data->startofsx= pa->ofsx;
-		data->startofsy= pa->ofsy;
-		data->startsizex= pa->sizex;
-		data->startsizey= pa->sizey;
-		data->starttime= PIL_check_seconds_timer();
+		data->state = state;
+		data->startx = win->eventstate->x;
+		data->starty = win->eventstate->y;
+		data->startofsx = pa->ofsx;
+		data->startofsy = pa->ofsy;
+		data->startsizex = pa->sizex;
+		data->startsizey = pa->sizey;
+		data->starttime = PIL_check_seconds_timer();
 	}
 
 	ED_region_tag_redraw(ar);
 
 	/* XXX exception handling, 3d window preview panel */
 #if 0
-	if (block->drawextra==BIF_view3d_previewdraw)
+	if (block->drawextra == BIF_view3d_previewdraw)
 		BIF_view3d_previewrender_clear(curarea);
 #endif
 
 	/* XXX exception handling, 3d window preview panel */
 #if 0
-	if (block->drawextra==BIF_view3d_previewdraw)
+	if (block->drawextra == BIF_view3d_previewdraw)
 		BIF_view3d_previewrender_signal(curarea, PR_DISPRECT);
-	else if (strcmp(block->name, "image_panel_preview")==0)
+	else if (strcmp(block->name, "image_panel_preview") == 0)
 		image_preview_event(2);
 #endif
 }

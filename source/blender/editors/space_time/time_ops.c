@@ -143,7 +143,7 @@ static int time_view_all_exec (bContext *C, wmOperator *UNUSED(op))
 	View2D *v2d= (ar) ? &ar->v2d : NULL;
 	float extra;
 	
-	if ELEM(NULL, scene, ar)
+	if (ELEM(NULL, scene, ar))
 		return OPERATOR_CANCELLED;
 		
 	/* set extents of view to start/end frames (Preview Range too) */

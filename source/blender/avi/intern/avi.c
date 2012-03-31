@@ -53,7 +53,7 @@
 static int AVI_DEBUG=0;
 static char DEBUG_FCC[4];
 
-#define DEBUG_PRINT(x) if (AVI_DEBUG) printf("AVI DEBUG: " x);
+#define DEBUG_PRINT(x) if (AVI_DEBUG) { printf("AVI DEBUG: " x); } (void)0
 
 /* local functions */
 char *fcc_to_char (unsigned int fcc);

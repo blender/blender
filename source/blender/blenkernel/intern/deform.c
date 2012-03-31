@@ -690,3 +690,13 @@ void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 		}
 	}
 }
+
+void defvert_clear(MDeformVert *dvert)
+{
+	if (dvert->dw) {
+		MEM_freeN(dvert->dw);
+		dvert->dw = NULL;
+	}
+
+	dvert->totweight = 0;
+}

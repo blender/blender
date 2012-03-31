@@ -165,6 +165,8 @@ void RE_InitRenderCB(struct Render *re);
 void RE_FreeRender (struct Render *re);
 /* only called on exit */
 void RE_FreeAllRender (void);
+/* only call on file load */
+void RE_FreeAllRenderResults(void);
 
 /* get results and statistics */
 void RE_FreeRenderResult(struct RenderResult *rr);

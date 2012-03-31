@@ -269,7 +269,7 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 	ScreenAnimData *sad= (animtimer) ? animtimer->customdata : NULL;
 	
 	/* sanity checks */
-	if ELEM3(NULL, scene, id, sad)
+	if (ELEM3(NULL, scene, id, sad))
 		return;
 	
 	/* check if we need a new strip if:
@@ -637,14 +637,14 @@ static void recalcData_image(TransInfo *t)
 /* helper for recalcData() - for Movie Clip transforms */
 static void recalcData_clip(TransInfo *t)
 {
-	SpaceClip *sc= t->sa->spacedata.first;
-	MovieClip *clip= ED_space_clip(sc);
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	SpaceClip *sc = t->sa->spacedata.first;
+	MovieClip *clip = ED_space_clip(sc);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 	
 	flushTransTracking(t);
 	
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED)==0) {
 			if (t->mode == TFM_TRANSLATION) {
@@ -661,7 +661,7 @@ static void recalcData_clip(TransInfo *t)
 			}
 		}
 		
-		track= track->next;
+		track = track->next;
 	}
 	
 	DAG_id_tag_update(&clip->id, 0);
@@ -673,7 +673,7 @@ static void recalcData_view3d(TransInfo *t)
 	Base *base = t->scene->basact;
 	
 	if (t->obedit) {
-		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
+		if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= t->obedit->data;
 			ListBase *nurbs= curve_editnurbs(cu);
 			Nurb *nu= nurbs->first;
@@ -724,7 +724,7 @@ static void recalcData_view3d(TransInfo *t)
 				
 			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 			
-			EDBM_RecalcNormals(em);
+			EDBM_mesh_normals_update(em);
 			BMEdit_RecalcTessellation(em);
 		}
 		else if (t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
@@ -1523,7 +1523,7 @@ void calculateCenter(TransInfo *t)
 				BMEditSelection ese;
 				BMEditMesh *em = BMEdit_FromObject(t->obedit);
 
-				if (EDBM_get_actSelection(em, &ese)) {
+				if (EDBM_editselection_active_get(em, &ese)) {
 					EDBM_editselection_center(em, t->center, &ese);
 					calculateCenter2D(t);
 					break;

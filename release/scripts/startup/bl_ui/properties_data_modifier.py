@@ -318,6 +318,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        
+        layout.separator()
+        layout.prop(md, "strength", slider=True)
 
     def MASK(self, layout, ob, md):
         split = layout.split()

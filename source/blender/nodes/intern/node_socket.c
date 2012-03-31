@@ -160,7 +160,7 @@ static bNodeSocketType node_socket_type_mesh = {
 
 void node_socket_type_init(bNodeSocketType *types[])
 {
-	#define INIT_TYPE(name)		types[node_socket_type_##name.type] = &node_socket_type_##name;
+	#define INIT_TYPE(name)		types[node_socket_type_##name.type] = &node_socket_type_##name
 	
 	INIT_TYPE(float);
 	INIT_TYPE(vector);

@@ -597,6 +597,11 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bindcode", "OpenGL bindcode");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
+	prop = RNA_def_property(srna, "render_slot", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_range(prop, 0, IMA_MAX_RENDER_SLOT - 1);
+	RNA_def_property_ui_text(prop, "Render Slot", "The current render slot displayed, only for viewer type images");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+
 	/*
 	   Image.has_data and Image.depth are temporary,
 	   Update import_obj.py when they are replaced (Arystan)

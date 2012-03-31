@@ -74,6 +74,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Pause all viewport preview renders",
                 default=False,
                 )
+        cls.preview_active_layer = BoolProperty(
+                name="Preview Active Layer",
+                description="Preview active render layer in viewport",
+                default=False,
+                )
 
         cls.no_caustics = BoolProperty(
                 name="No Caustics",

@@ -661,7 +661,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 					Ipo* ipo = blenderObject->ipo;//findIpoForName(blenderObject->id.name+2);
 					if (ipo)
 					{ 	//clear the curve data
-						if (clearIpo){//rcruiz
+						if (clearIpo) {//rcruiz
 							IpoCurve *icu1;
 														
 							int numCurves = 0;
@@ -671,7 +671,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 								
 								/*int i;
 								BezTriple *bezt;
-								for ( bezt = tmpicu->bezt, i = 0;	i < tmpicu->totvert; i++, bezt++){
+								for ( bezt = tmpicu->bezt, i = 0;	i < tmpicu->totvert; i++, bezt++) {
 									printf("(%f,%f,%f),(%f,%f,%f),(%f,%f,%f)\n",bezt->vec[0][0],bezt->vec[0][1],bezt->vec[0][2],bezt->vec[1][0],bezt->vec[1][1],bezt->vec[1][2],bezt->vec[2][0],bezt->vec[2][1],bezt->vec[2][2]);
 								}*/
 								
@@ -705,15 +705,15 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 
 void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo()
 {
-	if (addInitFromFrame){		
+	if (addInitFromFrame) {		
 		KX_SceneList* scenes = m_ketsjiEngine->CurrentScenes();
 		int numScenes = scenes->size();
-		if (numScenes>=0){
+		if (numScenes>=0) {
 			KX_Scene* scene = scenes->at(0);
 			CListValue* parentList = scene->GetRootParentList();
-			for (int ix=0;ix<parentList->GetCount();ix++){
+			for (int ix=0;ix<parentList->GetCount();ix++) {
 				KX_GameObject* gameobj = (KX_GameObject*)parentList->GetValue(ix);
-				if (!gameobj->IsDynamic()){
+				if (!gameobj->IsDynamic()) {
 					Object* blenderobject = gameobj->GetBlenderObject();
 					if (!blenderobject)
 						continue;

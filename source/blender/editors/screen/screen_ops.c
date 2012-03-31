@@ -3072,6 +3072,8 @@ static int screen_animation_play_exec(bContext *C, wmOperator *op)
 
 static void SCREEN_OT_animation_play(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Play Animation";
 	ot->description = "Play animation";
@@ -3082,8 +3084,10 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	
 	ot->poll = ED_operator_screenactive_norender;
 	
-	RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
-	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");
+	prop = RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
@@ -3370,7 +3374,7 @@ static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ED_screen_delete_scene(C, scene);
 
-	if (G.f & G_DEBUG)
+	if (G.debug & G_DEBUG)
 		printf("scene delete %p\n", scene);
 
 	WM_event_add_notifier(C, NC_SCENE|NA_REMOVED, scene);

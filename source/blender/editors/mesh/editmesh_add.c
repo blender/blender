@@ -51,6 +51,8 @@
 #include "ED_screen.h"
 #include "ED_object.h"
 
+#include "mesh_intern.h"
+
 /* uses context to figure out transform for primitive */
 /* returns standard diameter */
 static float new_primitive_matrix(bContext *C, float *loc, float *rot, float primmat[][4])
@@ -95,38 +97,29 @@ static void make_prim_init(bContext *C, const char *idname,
 		rename_id((ID *)obedit->data, idname);
 
 		/* create editmode */
-		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
+		ED_object_enter_editmode(C, EM_DO_UNDO | EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		*state = 1;
 	}
-	else {
-		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
-	}
 
-	*dia *= new_primitive_matrix(C, loc, rot, mat);
+	*dia = new_primitive_matrix(C, loc, rot, mat);
 }
 
 static void make_prim_finish(bContext *C, int *state, int enter_editmode)
 {
-	Object *obedit;
-	Mesh *me;
-	BMEditMesh *em;
-
-	obedit = CTX_data_edit_object(C);
-	me = obedit->data;
-	em = me->edit_btmesh;
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	/* Primitive has all verts selected, use vert select flush
 	 * to push this up to edges & faces. */
 	EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	EDBM_update_generic(C, em, TRUE);
 
 	/* userdef */
 	if (*state && !enter_editmode) {
 		ED_object_exit_editmode(C, EM_FREEDATA); /* adding EM_DO_UNDO messes up operator redo */
 	}
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 }
 
 static int add_primitive_plane_exec(bContext *C, wmOperator *op)
@@ -134,7 +127,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	Object *obedit;
 	Mesh *me;
 	BMEditMesh *em;
-	float loc[3], rot[3], mat[4][4], dia = 1.0f;
+	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
 	unsigned int layer;
@@ -146,15 +139,15 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
-	                           "create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, dia, mat))
+	if (!EDBM_op_call_and_selectf(em, op, "vertout",
+	                              "create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
 
 	make_prim_finish(C, &state, enter_editmode);
 
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_plane_add(wmOperatorType *ot)
@@ -170,7 +163,7 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -192,7 +185,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout", "create_cube mat=%m4 size=%f", mat, 2.0f)) {
+	if (!EDBM_op_call_and_selectf(em, op, "vertout", "create_cube mat=%m4 size=%f", mat, dia * 2.0f)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -215,12 +208,12 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
 
-static const EnumPropertyItem fill_type_items[]= {
+static const EnumPropertyItem fill_type_items[] = {
 	{0, "NOTHING", 0, "Nothing", "Don't fill at all"},
 	{1, "NGON", 0, "Ngon", "Use ngons"},
 	{2, "TRIFAN", 0, "Triangle Fan", "Use triangle fans"},
@@ -246,10 +239,10 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout",
-	                           "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b mat=%m4",
-	                           RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"),
-	                           cap_end, cap_tri, mat))
+	if (!EDBM_op_call_and_selectf(em, op, "vertout",
+	                              "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b mat=%m4",
+	                              RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"),
+	                              cap_end, cap_tri, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -274,7 +267,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
@@ -305,7 +298,7 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(
+	if (!EDBM_op_call_and_selectf(
 	        em, op, "vertout",
 	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f mat=%m4",
 	        RNA_int_get(op->ptr, "vertices"),
@@ -337,10 +330,10 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
+	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
 	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	prop = RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
@@ -370,7 +363,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(
+	if (!EDBM_op_call_and_selectf(
 	        em, op, "vertout",
 	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f mat=%m4",
 	        RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius1"),
@@ -399,10 +392,10 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
+	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
 	prop = RNA_def_float(ot->srna, "radius1", 1.0f, 0.0, FLT_MAX, "Radius 1", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	prop = RNA_def_float(ot->srna, "radius2", 0.0f, 0.0, FLT_MAX, "Radius 2", "", 0.001, 100.00);
@@ -419,7 +412,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	Object *obedit;
 	Mesh *me;
 	BMEditMesh *em;
-	float loc[3], rot[3], mat[4][4], dia = 1.0f;
+	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
 	unsigned int layer;
@@ -431,11 +424,11 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout",
-	                           "create_grid xsegments=%i ysegments=%i size=%f mat=%m4",
-	                           RNA_int_get(op->ptr, "x_subdivisions"),
-	                           RNA_int_get(op->ptr, "y_subdivisions"),
-	                           RNA_float_get(op->ptr, "size") * dia, mat))
+	if (!EDBM_op_call_and_selectf(em, op, "vertout",
+	                              "create_grid xsegments=%i ysegments=%i size=%f mat=%m4",
+	                              RNA_int_get(op->ptr, "x_subdivisions"),
+	                              RNA_int_get(op->ptr, "y_subdivisions"),
+	                              RNA_float_get(op->ptr, "size") * dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -459,7 +452,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "x_subdivisions", 10, 3, INT_MAX, "X Subdivisions", "", 3, 1000);
@@ -490,7 +483,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout", "create_monkey mat=%m4", mat)) {
+	if (!EDBM_op_call_and_selectf(em, op, "vertout", "create_monkey mat=%m4", mat)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -511,7 +504,7 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -533,10 +526,10 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(em, op, "vertout",
-	                           "create_uvsphere segments=%i revolutions=%i diameter=%f mat=%m4",
-	                           RNA_int_get(op->ptr, "segments"), RNA_int_get(op->ptr, "ring_count"),
-	                           RNA_float_get(op->ptr, "size"), mat))
+	if (!EDBM_op_call_and_selectf(em, op, "vertout",
+	                              "create_uvsphere segments=%i revolutions=%i diameter=%f mat=%m4",
+	                              RNA_int_get(op->ptr, "segments"), RNA_int_get(op->ptr, "ring_count"),
+	                              RNA_float_get(op->ptr, "size"), mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -561,7 +554,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "segments", 32, 3, INT_MAX, "Segments", "", 3, 500);
@@ -589,7 +582,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	me = obedit->data;
 	em = me->edit_btmesh;
 
-	if (!EDBM_CallAndSelectOpf(
+	if (!EDBM_op_call_and_selectf(
 	        em, op, "vertout",
 	        "create_icosphere subdivisions=%i diameter=%f mat=%m4",
 	        RNA_int_get(op->ptr, "subdivisions"),
@@ -618,7 +611,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "subdivisions", 2, 1, INT_MAX, "Subdivisions", "", 1, 8);

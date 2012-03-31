@@ -300,7 +300,7 @@ int calc_manipulator_stats(const bContext *C)
 			float vec[3]= {0,0,0};
 
 			/* USE LAST SELECTE WITH ACTIVE */
-			if (v3d->around==V3D_ACTIVE && EDBM_get_actSelection(em, &ese)) {
+			if (v3d->around==V3D_ACTIVE && EDBM_editselection_active_get(em, &ese)) {
 				EDBM_editselection_center(em, vec, &ese);
 				calc_tw_center(scene, vec);
 				totsel= 1;
@@ -377,7 +377,7 @@ int calc_manipulator_stats(const bContext *C)
 				}
 			}
 		}
-		else if ELEM(obedit->type, OB_CURVE, OB_SURF) {
+		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= obedit->data;
 			float center[3];
 

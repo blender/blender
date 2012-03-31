@@ -166,7 +166,7 @@ void CParser::GrabRealString(int start)
 	const_as_string = STR_String();
 	for (i=start;i<chcount;i++) {
 		tmpch= text[i];
-		if ((tmpch =='\\') && (text[i+1] == 'n')){
+		if ((tmpch =='\\') && (text[i+1] == 'n')) {
 			tmpch = '\n';
 			i++;
 		}

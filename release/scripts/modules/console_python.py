@@ -246,7 +246,7 @@ def autocomplete(context):
                 line=line,
                 cursor=current_line.current_character,
                 namespace=console.locals,
-                private=bpy.app.debug)
+                private=bpy.app.debug_python)
 
         line_new = result[0]
         current_line.body, current_line.current_character, scrollback = result

@@ -327,10 +327,10 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			return;
 		}
 		
-		EDBM_LoadEditBMesh(scene, obedit);
+		EDBM_mesh_load(obedit);
 		
 		if (freedata) {
-			EDBM_FreeEditBMesh(me->edit_btmesh);
+			EDBM_mesh_free(me->edit_btmesh);
 			MEM_freeN(me->edit_btmesh);
 			me->edit_btmesh= NULL;
 		}
@@ -440,10 +440,20 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	ob->mode= OB_MODE_EDIT;
 	
 	if (ob->type==OB_MESH) {
+		BMEditMesh *em;
 		ok= 1;
-		scene->obedit= ob;	// context sees this
-		
-		EDBM_MakeEditBMesh(CTX_data_tool_settings(C), scene, ob);
+		scene->obedit = ob;  /* context sees this */
+
+		EDBM_mesh_make(CTX_data_tool_settings(C), scene, ob);
+
+		em = BMEdit_FromObject(ob);
+		if (LIKELY(em)) {
+			/* order doesn't matter */
+			EDBM_mesh_normals_update(em);
+			BMEdit_RecalcTessellation(em);
+			
+			BM_mesh_select_mode_flush(em->bm);
+		}
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, scene);
 	}
@@ -1215,7 +1225,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
 			done= 1;
 		}
-		else if ELEM(ob->type, OB_SURF, OB_CURVE) {
+		else if (ELEM(ob->type, OB_SURF, OB_CURVE)) {
 			cu= ob->data;
 
 			for (nu=cu->nurb.first; nu; nu=nu->next) {

@@ -80,7 +80,6 @@ set(SRC
 	libmv/tracking/lmicklt_region_tracker.cc
 	libmv/tracking/pyramid_region_tracker.cc
 	libmv/tracking/retrack_region_tracker.cc
-	libmv/tracking/sad.cc
 	libmv/tracking/trklt_region_tracker.cc
 
 	third_party/fast/fast_10.c
@@ -104,6 +103,7 @@ set(SRC
 	libmv/image/array_nd.h
 	libmv/image/convolve.h
 	libmv/image/image.h
+	libmv/image/correlation.h
 	libmv/image/sample.h
 	libmv/image/tuple.h
 	libmv/logging/logging.h
@@ -137,7 +137,6 @@ set(SRC
 	libmv/tracking/pyramid_region_tracker.h
 	libmv/tracking/region_tracker.h
 	libmv/tracking/retrack_region_tracker.h
-	libmv/tracking/sad.h
 	libmv/tracking/trklt_region_tracker.h
 
 	third_party/fast/fast.h

@@ -147,7 +147,7 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 			bmfont->glyphs[i].advance  = buffer[index++];
 			bmfont->glyphs[i].reserved = buffer[index++];
 			/* MAART:
-			if (G.f & G_DEBUG) {
+			if (G.debug & G_DEBUG) {
 				printfGlyph(&bmfont->glyphs[i]);
 			}
 			*/
@@ -156,7 +156,7 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 		MEM_freeN(buffer);
 		
 		/* MAART:
-		if (G.f & G_DEBUG) {
+		if (G.debug & G_DEBUG) {
 			printf("Oldy = %d Newy = %d\n", ibuf->y, ibuf->y - ysize);
 			printf("glyphcount = %d\n", glyphcount);
 			printf("bytes = %d\n", bytes);
@@ -295,7 +295,7 @@ void matrixGlyph(ImBuf * ibuf, unsigned short unicode,
 				*advance = (float)(2.0 * bmfont->glyphs[index].advance / (float) bmfont->glyphs[0].advance);
 
 				// printfGlyph(&bmfont->glyphs[index]);
-				// printf("%c %d %0.5f %0.5f %0.5f %0.5f %0.5f \n", unicode, index, *sizex, *sizey, *transx, *transy, *advance);
+				// printf("%c %d %0.5f %0.5f %0.5f %0.5f %0.5f\n", unicode, index, *sizex, *sizey, *transx, *transy, *advance);
 			}
 		}
 	}

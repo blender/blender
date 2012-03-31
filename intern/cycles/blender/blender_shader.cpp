@@ -105,7 +105,6 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 
 	switch(b_node.type()) {
 		/* not supported */
-		case BL::ShaderNode::type_CURVE_RGB: break;
 		case BL::ShaderNode::type_CURVE_VEC: break;
 		case BL::ShaderNode::type_GEOMETRY: break;
 		case BL::ShaderNode::type_MATERIAL: break;
@@ -114,10 +113,21 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 		case BL::ShaderNode::type_SCRIPT: break;
 		case BL::ShaderNode::type_SQUEEZE: break;
 		case BL::ShaderNode::type_TEXTURE: break;
-		case BL::ShaderNode::type_VALTORGB: break;
 		/* handled outside this function */
 		case BL::ShaderNode::type_GROUP: break;
 		/* existing blender nodes */
+		case BL::ShaderNode::type_CURVE_RGB: {
+			RGBCurvesNode *ramp = new RGBCurvesNode();
+			node = ramp;
+			break;
+		}
+		case BL::ShaderNode::type_VALTORGB: {
+			RGBRampNode *ramp = new RGBRampNode();
+			BL::ShaderNodeValToRGB b_ramp_node(b_node);
+			colorramp_to_array(b_ramp_node.color_ramp(), ramp->ramp, RAMP_TABLE_SIZE);
+			node = ramp;
+			break;
+		}
 		case BL::ShaderNode::type_RGB: {
 			ColorNode *color = new ColorNode();
 			color->value = get_node_output_rgba(b_node, "Color");

@@ -45,7 +45,7 @@
 #define MAX_ARRAY_DIMENSION 10
 
 typedef void (*ItemConvertFunc)(PyObject *, char *);
-typedef int  (*ItemTypeCheckFunc)(PyObject *);
+typedef int (*ItemTypeCheckFunc)(PyObject *);
 typedef void (*RNA_SetArrayFunc)(PointerRNA *, PropertyRNA *, const char *);
 typedef void (*RNA_SetIndexFunc)(PointerRNA *, PropertyRNA *, int index, void *);
 
@@ -65,7 +65,7 @@ typedef void (*RNA_SetIndexFunc)(PointerRNA *, PropertyRNA *, int index, void *)
 /* arr[3] = x, self->arraydim is 0, lvalue_dim is 1 */
 /* Ensures that a python sequence has expected number of items/sub-items and items are of desired type. */
 static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[],
-							   ItemTypeCheckFunc check_item_type, const char *item_type_str, const char *error_prefix)
+                               ItemTypeCheckFunc check_item_type, const char *item_type_str, const char *error_prefix)
 {
 	Py_ssize_t i;
 
@@ -664,7 +664,7 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 	len = RNA_property_multi_array_length(ptr, prop, arraydim);
 	if (index >= len || index < 0) {
 		/* this shouldn't happen because higher level funcs must check for invalid index */
-		if (G.f & G_DEBUG) printf("pyrna_py_from_array_index: invalid index %d for array with length=%d\n", index, len);
+		if (G.debug & G_DEBUG_PYTHON) printf("pyrna_py_from_array_index: invalid index %d for array with length=%d\n", index, len);
 
 		PyErr_SetString(PyExc_IndexError, "out of range");
 		return NULL;

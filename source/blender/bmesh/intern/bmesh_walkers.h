@@ -38,6 +38,11 @@ typedef enum {
 	BMW_BREADTH_FIRST
 } BMWOrder;
 
+typedef enum {
+	BMW_FLAG_NOP = 0,
+	BMW_FLAG_TEST_HIDDEN = (1 << 0)
+} BMWFlag;
+
 /*Walkers*/
 typedef struct BMWalker {
 	void  (*begin) (struct BMWalker *walker, void *start);
@@ -54,11 +59,13 @@ typedef struct BMWalker {
 	BLI_mempool *worklist;
 	ListBase states;
 
-	/* these masks are to be tested against elements BMO_elem_flag_test() */
+	/* these masks are to be tested against elements BMO_elem_flag_test(),
+	 * should never be accessed directly only through BMW_init() and bmw_mask_check_*() functions */
 	short mask_vert;
 	short mask_edge;
-	short mask_loop;
 	short mask_face;
+
+	BMWFlag flag;
 
 	GHash *visithash;
 	GHash *secvisithash;
@@ -71,7 +78,8 @@ typedef struct BMWalker {
 /* initialize a walker.  searchmask restricts some (not all) walkers to
  * elements with a specific tool flag set.  flags is specific to each walker.*/
 void BMW_init(struct BMWalker *walker, BMesh *bm, int type,
-              short mask_vert, short mask_edge, short mask_loop, short mask_face,
+              short mask_vert, short mask_edge, short mask_face,
+              BMWFlag flag,
               int layer);
 void *BMW_begin(BMWalker *walker, void *start);
 void *BMW_step(struct BMWalker *walker);

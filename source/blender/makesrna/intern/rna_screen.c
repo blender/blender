@@ -75,7 +75,7 @@ static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
 		ED_screen_set_scene(C, sc, sc->newscene);
 		WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, sc->newscene);
 
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("scene set %p\n", sc->newscene);
 
 		sc->newscene = NULL;

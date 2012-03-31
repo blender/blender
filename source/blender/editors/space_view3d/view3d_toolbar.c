@@ -64,7 +64,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "view3d_intern.h"	// own include
+#include "view3d_intern.h"  // own include
 
 
 /* ******************* view3d space & buttons ************** */
@@ -76,7 +76,7 @@ static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOper
 
 static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
 {
-	wmOperator *op= WM_operator_last_redo(C);
+	wmOperator *op = WM_operator_last_redo(C);
 
 	if (op) BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
 	else BLI_strncpy(pa->drawname, IFACE_("Operator"), sizeof(pa->drawname));
@@ -85,7 +85,7 @@ static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
 static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wmOperator *op)
 {
 	if (op->type->flag & OPTYPE_MACRO) {
-		for (op= op->macro.first; op; op= op->next) {
+		for (op = op->macro.first; op; op = op->next) {
 			uiItemL(pa->layout, op->type->name, ICON_NONE);
 			view3d_panel_operator_redo_operator(C, pa, op);
 		}
@@ -98,15 +98,15 @@ static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wm
 /* TODO de-duplicate redo panel functions - campbell */
 static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
-	wmOperator *op= WM_operator_last_redo(C);
+	wmOperator *op = WM_operator_last_redo(C);
 	uiBlock *block;
 	
-	if (op==NULL)
+	if (op == NULL)
 		return;
-	if (WM_operator_poll((bContext*)C, op->type) == 0)
+	if (WM_operator_poll((bContext *)C, op->type) == 0)
 		return;
 	
-	block= uiLayoutGetBlock(pa->layout);
+	block = uiLayoutGetBlock(pa->layout);
 	
 	if (!WM_operator_check_ui_enabled(C, op->type->name))
 		uiLayoutSetEnabled(pa->layout, 0);
@@ -127,10 +127,10 @@ typedef struct CustomTool {
 
 static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
 {
-	wmOperatorType *ot= arg2;
+	wmOperatorType *ot = arg2;
 	
 	if (ot) {
-		CustomTool *ct= MEM_callocN(sizeof(CustomTool), "CustomTool");
+		CustomTool *ct = MEM_callocN(sizeof(CustomTool), "CustomTool");
 		
 		BLI_addtail(arg_listbase, ct);
 		BLI_strncpy(ct->opname, ot->idname, OP_MAX_TYPENAME);
@@ -141,15 +141,15 @@ static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
 
 static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
-	GHashIterator *iter= WM_operatortype_iter();
+	GHashIterator *iter = WM_operatortype_iter();
 
-	for ( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
-		wmOperatorType *ot= BLI_ghashIterator_getValue(iter);
+	for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+		wmOperatorType *ot = BLI_ghashIterator_getValue(iter);
 
 		if (BLI_strcasestr(ot->name, str)) {
-			if (WM_operator_poll((bContext*)C, ot)) {
+			if (WM_operator_poll((bContext *)C, ot)) {
 				
-				if (0==uiSearchItemAdd(items, ot->name, ot, 0))
+				if (0 == uiSearchItemAdd(items, ot->name, ot, 0))
 					break;
 			}
 		}
@@ -163,15 +163,15 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 {
 	static char search[OP_MAX_TYPENAME];
 	wmEvent event;
-	wmWindow *win= CTX_wm_window(C);
+	wmWindow *win = CTX_wm_window(C);
 	uiBlock *block;
 	uiBut *but;
 	
 	/* clear initial search string, then all items show */
-	search[0]= 0;
+	search[0] = 0;
 	
-	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_RET_1);
 	
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
@@ -183,11 +183,11 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 	uiBlockSetDirection(block, UI_DOWN);	
 	uiEndBlock(C, block);
 	
-	event= *(win->eventstate);	/* XXX huh huh? make api call */
-	event.type= EVT_BUT_OPEN;
-	event.val= KM_PRESS;
-	event.customdata= but;
-	event.customdatafree= FALSE;
+	event = *(win->eventstate);  /* XXX huh huh? make api call */
+	event.type = EVT_BUT_OPEN;
+	event.val = KM_PRESS;
+	event.customdata = but;
+	event.customdatafree = FALSE;
 	wm_event_add(win, &event);
 	
 	return block;
@@ -196,25 +196,25 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 
 static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
 {
-	SpaceLink *sl= CTX_wm_space_data(C);
-	SpaceType *st= NULL;
+	SpaceLink *sl = CTX_wm_space_data(C);
+	SpaceType *st = NULL;
 	uiLayout *col;
-	const char *context= CTX_data_mode_string(C);
+	const char *context = CTX_data_mode_string(C);
 	
 	if (sl)
-		st= BKE_spacetype_from_id(sl->spacetype);
+		st = BKE_spacetype_from_id(sl->spacetype);
 	
 	if (st && st->toolshelf.first) {
 		CustomTool *ct;
 		
-		for (ct= st->toolshelf.first; ct; ct= ct->next) {
-			if (0==strncmp(context, ct->context, OP_MAX_TYPENAME)) {
-				col= uiLayoutColumn(pa->layout, 1);
+		for (ct = st->toolshelf.first; ct; ct = ct->next) {
+			if (0 == strncmp(context, ct->context, OP_MAX_TYPENAME)) {
+				col = uiLayoutColumn(pa->layout, 1);
 				uiItemFullO(col, ct->opname, NULL, ICON_NONE, NULL, WM_OP_INVOKE_REGION_WIN, 0);
 			}
 		}
 	}
-	col= uiLayoutColumn(pa->layout, 1);
+	col = uiLayoutColumn(pa->layout, 1);
 	uiDefBlockBut(uiLayoutGetBlock(pa->layout), tool_search_menu, &st->toolshelf, "Add Tool", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Add Tool in shelf, gets saved in files");
 }
 
@@ -223,10 +223,10 @@ void view3d_toolshelf_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel tools");
+	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel tools");
 	strcpy(pt->idname, "VIEW3D_PT_tool_shelf");
 	strcpy(pt->label, "Tool Shelf");
-	pt->draw= view3d_panel_tool_shelf;
+	pt->draw = view3d_panel_tool_shelf;
 	BLI_addtail(&art->paneltypes, pt);
 }
 
@@ -234,11 +234,11 @@ void view3d_tool_props_register(ARegionType *art)
 {
 	PanelType *pt;
 	
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel last operator");
+	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel last operator");
 	strcpy(pt->idname, "VIEW3D_PT_last_operator");
 	strcpy(pt->label, "Operator");
-	pt->draw_header= view3d_panel_operator_redo_header;
-	pt->draw= view3d_panel_operator_redo;
+	pt->draw_header = view3d_panel_operator_redo_header;
+	pt->draw = view3d_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);
 }
 
@@ -246,8 +246,8 @@ void view3d_tool_props_register(ARegionType *art)
 
 static int view3d_toolshelf(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= view3d_has_tools_region(sa);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = view3d_has_tools_region(sa);
 	
 	if (ar)
 		ED_region_toggle_hidden(C, ar);

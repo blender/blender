@@ -195,7 +195,7 @@ static void rna_Material_active_node_material_set(PointerRNA *ptr, PointerRNA va
 	nodeSetActiveID(ma->nodetree, ID_MA, &ma_act->id);
 }
 
-static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max)
+static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	Material *ma = (Material*)ptr->id.data;
 
@@ -209,7 +209,7 @@ static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, flo
 	}
 }
 
-static void rna_MaterialStrand_end_size_range(PointerRNA *ptr, float *min, float *max)
+static void rna_MaterialStrand_end_size_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	Material *ma = (Material*)ptr->id.data;
 

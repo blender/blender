@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -70,31 +70,31 @@
 
 static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float location[2])
 {
-	float oldzoom= sc->zoom;
+	float oldzoom = sc->zoom;
 	int width, height;
 
-	sc->zoom= zoom;
+	sc->zoom = zoom;
 
 	if (sc->zoom < 0.1f || sc->zoom > 4.0f) {
 		/* check zoom limits */
 		ED_space_clip_size(sc, &width, &height);
 
-		width*= sc->zoom;
-		height*= sc->zoom;
+		width *= sc->zoom;
+		height *= sc->zoom;
 
 		if ((width < 4) && (height < 4))
-			sc->zoom= oldzoom;
+			sc->zoom = oldzoom;
 		else if ((ar->winrct.xmax - ar->winrct.xmin) <= sc->zoom)
-			sc->zoom= oldzoom;
+			sc->zoom = oldzoom;
 		else if ((ar->winrct.ymax - ar->winrct.ymin) <= sc->zoom)
-			sc->zoom= oldzoom;
+			sc->zoom = oldzoom;
 	}
 
 	if ((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
 		ED_space_clip_size(sc, &width, &height);
 
-		sc->xof+= ((location[0]-0.5f)*width-sc->xof)*(sc->zoom-oldzoom)/sc->zoom;
-		sc->yof+= ((location[1]-0.5f)*height-sc->yof)*(sc->zoom-oldzoom)/sc->zoom;
+		sc->xof += ((location[0] - 0.5f) * width-sc->xof) * (sc->zoom-oldzoom) / sc->zoom;
+		sc->yof += ((location[1] - 0.5f) * height-sc->yof) * (sc->zoom-oldzoom) / sc->zoom;
 	}
 }
 
@@ -105,8 +105,8 @@ static void sclip_zoom_set_factor(SpaceClip *sc, ARegion *ar, float zoomfac, flo
 
 static void sclip_zoom_set_factor_exec(bContext *C, wmEvent *event, float factor)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
 	float location[2], *mpos = NULL;
 
 	if (event) {
@@ -124,6 +124,7 @@ static void sclip_zoom_set_factor_exec(bContext *C, wmEvent *event, float factor
 static void clip_filesel(bContext *C, wmOperator *op, const char *path)
 {
 	RNA_string_set(op->ptr, "filepath", path);
+
 	WM_event_add_fileselect(C, op);
 }
 
@@ -131,32 +132,32 @@ static void open_init(bContext *C, wmOperator *op)
 {
 	PropertyPointerRNA *pprop;
 
-	op->customdata= pprop= MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
+	op->customdata = pprop = MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
 static int open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
-	op->customdata= NULL;
+	op->customdata = NULL;
 
 	return OPERATOR_CANCELLED;
 }
 
 static int open_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
-	MovieClip *clip= NULL;
+	MovieClip *clip = NULL;
 	char str[FILE_MAX];
 
 	RNA_string_get(op->ptr, "filepath", str);
 	/* default to frame 1 if there's no scene in context */
 
-	errno= 0;
+	errno = 0;
 
-	clip= BKE_add_movieclip_file(str);
+	clip = BKE_add_movieclip_file(str);
 
 	if (!clip) {
 		if (op->customdata)
@@ -171,7 +172,7 @@ static int open_exec(bContext *C, wmOperator *op)
 		open_init(C, op);
 
 	/* hook into UI */
-	pprop= op->customdata;
+	pprop = op->customdata;
 
 	if (pprop->prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
@@ -195,15 +196,15 @@ static int open_exec(bContext *C, wmOperator *op)
 
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	char *path= U.textudir;
-	MovieClip *clip= NULL;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	char *path = U.textudir;
+	MovieClip *clip = NULL;
 
 	if (sc)
-		clip= ED_space_clip(sc);
+		clip = ED_space_clip(sc);
 
 	if (clip)
-		path= clip->name;
+		path = clip->name;
 
 	if (!RNA_struct_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
@@ -241,7 +242,7 @@ void CLIP_OT_open(wmOperatorType *ot)
 
 static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	MovieClip *clip= CTX_data_edit_movieclip(C);
+	MovieClip *clip = CTX_data_edit_movieclip(C);
 
 	if (!clip)
 		return OPERATOR_CANCELLED;
@@ -275,17 +276,19 @@ typedef struct ViewPanData {
 
 static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	ViewPanData *vpd;
 
-	op->customdata= vpd= MEM_callocN(sizeof(ViewPanData), "ClipViewPanData");
+	op->customdata = vpd = MEM_callocN(sizeof(ViewPanData), "ClipViewPanData");
 	WM_cursor_modal(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
 
-	vpd->x= event->x;
-	vpd->y= event->y;
+	vpd->x = event->x;
+	vpd->y = event->y;
 
-	if (sc->flag&SC_LOCK_SELECTION) vpd->vec= &sc->xlockof;
-	else vpd->vec= &sc->xof;
+	if (sc->flag & SC_LOCK_SELECTION)
+		vpd->vec= &sc->xlockof;
+	else
+		vpd->vec= &sc->xof;
 
 	copy_v2_v2(&vpd->xof, vpd->vec);
 	copy_v2_v2(&vpd->xorig, &vpd->xof);
@@ -297,7 +300,7 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 
 static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
 {
-	ViewPanData *vpd= op->customdata;
+	ViewPanData *vpd = op->customdata;
 
 	if (cancel) {
 		copy_v2_v2(vpd->vec, &vpd->xorig);
@@ -311,18 +314,18 @@ static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
 
 static int view_pan_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	float offset[2];
 
 	RNA_float_get_array(op->ptr, "offset", offset);
 
-	if (sc->flag&SC_LOCK_SELECTION) {
-		sc->xlockof+= offset[0];
-		sc->ylockof+= offset[1];
+	if (sc->flag & SC_LOCK_SELECTION) {
+		sc->xlockof += offset[0];
+		sc->ylockof += offset[1];
 	}
 	else {
-		sc->xof+= offset[0];
-		sc->yof+= offset[1];
+		sc->xof += offset[0];
+		sc->yof += offset[1];
 	}
 
 	ED_region_tag_redraw(CTX_wm_region(C));
@@ -332,47 +335,52 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 
 static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (event->type==MOUSEPAN) {
-		SpaceClip *sc= CTX_wm_space_clip(C);
+	if (event->type == MOUSEPAN) {
+		SpaceClip *sc = CTX_wm_space_clip(C);
 		float offset[2];
 
-		offset[0]= (event->x - event->prevx)/sc->zoom;
-		offset[1]= (event->y - event->prevy)/sc->zoom;
+		offset[0] = (event->x - event->prevx) / sc->zoom;
+		offset[1] = (event->y - event->prevy) / sc->zoom;
 
 		RNA_float_set_array(op->ptr, "offset", offset);
 
 		view_pan_exec(C, op);
+
 		return OPERATOR_FINISHED;
 	}
 	else {
 		view_pan_init(C, op, event);
+
 		return OPERATOR_RUNNING_MODAL;
 	}
 }
 
 static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	ViewPanData *vpd= op->customdata;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ViewPanData *vpd = op->customdata;
 	float offset[2];
 
 	switch(event->type) {
 		case MOUSEMOVE:
 			copy_v2_v2(vpd->vec, &vpd->xorig);
-			offset[0]= (vpd->x - event->x)/sc->zoom;
-			offset[1]= (vpd->y - event->y)/sc->zoom;
+			offset[0] = (vpd->x - event->x) / sc->zoom;
+			offset[1] = (vpd->y - event->y) / sc->zoom;
 			RNA_float_set_array(op->ptr, "offset", offset);
 			view_pan_exec(C, op);
 			break;
 		case ESCKEY:
 			view_pan_exit(C, op, 1);
+
 			return OPERATOR_CANCELLED;
 		case SPACEKEY:
 			view_pan_exit(C, op, 0);
+
 			return OPERATOR_FINISHED;
 		default:
-			if (event->type==vpd->event_type &&  event->val==KM_RELEASE) {
+			if (event->type == vpd->event_type &&  event->val == KM_RELEASE) {
 				view_pan_exit(C, op, 0);
+
 				return OPERATOR_FINISHED;
 			}
 			break;
@@ -420,16 +428,16 @@ typedef struct ViewZoomData {
 
 static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	ViewZoomData *vpd;
 
 	op->customdata= vpd= MEM_callocN(sizeof(ViewZoomData), "ClipViewZoomData");
 	WM_cursor_modal(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
 
-	vpd->x= event->x;
-	vpd->y= event->y;
-	vpd->zoom= sc->zoom;
-	vpd->event_type= event->type;
+	vpd->x = event->x;
+	vpd->y = event->y;
+	vpd->zoom = sc->zoom;
+	vpd->event_type = event->type;
 
 	ED_clip_mouse_pos(C, event, vpd->location);
 
@@ -438,11 +446,11 @@ static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 
 static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	ViewZoomData *vpd= op->customdata;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ViewZoomData *vpd = op->customdata;
 
 	if (cancel) {
-		sc->zoom= vpd->zoom;
+		sc->zoom = vpd->zoom;
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 
@@ -452,8 +460,8 @@ static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 
 static int view_zoom_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
 
 	sclip_zoom_set_factor(sc, ar, RNA_float_get(op->ptr, "factor"), NULL);
 
@@ -464,10 +472,10 @@ static int view_zoom_exec(bContext *C, wmOperator *op)
 
 static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (event->type==MOUSEZOOM) {
+	if (event->type == MOUSEZOOM) {
 		float factor;
 
-		factor= 1.0f + (event->x-event->prevx+event->y-event->prevy)/300.0f;
+		factor = 1.0f + (event->x - event->prevx + event->y - event->prevy) / 300.0f;
 		RNA_float_set(op->ptr, "factor", factor);
 
 		sclip_zoom_set_factor_exec(C, event, factor);
@@ -483,21 +491,22 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	ARegion *ar= CTX_wm_region(C);
-	ViewZoomData *vpd= op->customdata;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
+	ViewZoomData *vpd = op->customdata;
 	float factor;
 
 	switch(event->type) {
 		case MOUSEMOVE:
-			factor= 1.0f + (vpd->x-event->x+vpd->y-event->y)/300.0f;
+			factor = 1.0f + (vpd->x-event->x + vpd->y - event->y) / 300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
-			sclip_zoom_set(sc, ar, vpd->zoom*factor, vpd->location);
+			sclip_zoom_set(sc, ar, vpd->zoom * factor, vpd->location);
 			ED_region_tag_redraw(CTX_wm_region(C));
 			break;
 		default:
-			if (event->type==vpd->event_type && event->val==KM_RELEASE) {
+			if (event->type == vpd->event_type && event->val == KM_RELEASE) {
 				view_zoom_exit(C, op, 0);
+
 				return OPERATOR_FINISHED;
 			}
 			break;
@@ -509,6 +518,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 static int view_zoom_cancel(bContext *C, wmOperator *op)
 {
 	view_zoom_exit(C, op, 1);
+
 	return OPERATOR_CANCELLED;
 }
 
@@ -537,8 +547,8 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 
 static int view_zoom_in_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
 	float location[2];
 
 	RNA_float_get_array(op->ptr, "location", location);
@@ -577,8 +587,8 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 
 static int view_zoom_out_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
 	float location[2];
 
 	RNA_float_get_array(op->ptr, "location", location);
@@ -619,14 +629,14 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 
 static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
 
 	sclip_zoom_set(sc, ar, RNA_float_get(op->ptr, "ratio"), NULL);
 
 	/* ensure pixel exact locations for draw */
-	sc->xof= (int)sc->xof;
-	sc->yof= (int)sc->yof;
+	sc->xof= (int) sc->xof;
+	sc->yof= (int) sc->yof;
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -660,31 +670,31 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	float zoomx, zoomy;
 
 	/* retrieve state */
-	sc= CTX_wm_space_clip(C);
-	ar= CTX_wm_region(C);
+	sc = CTX_wm_space_clip(C);
+	ar = CTX_wm_region(C);
 
 	ED_space_clip_size(sc, &w, &h);
 	ED_space_clip_aspect(sc, &aspx, &aspy);
 
-	w= w*aspx;
-	h= h*aspy;
+	w = w * aspx;
+	h = h * aspy;
 
 	/* check if the image will fit in the image with zoom==1 */
-	width= ar->winrct.xmax - ar->winrct.xmin + 1;
-	height= ar->winrct.ymax - ar->winrct.ymin + 1;
+	width = ar->winrct.xmax - ar->winrct.xmin + 1;
+	height = ar->winrct.ymax - ar->winrct.ymin + 1;
 
 	if (fit_view) {
 		const int margin = 5; /* margin from border */
 
-		zoomx= (float)width / (w + 2*margin);
-		zoomy= (float)height / (h + 2*margin);
+		zoomx= (float) width / (w + 2 * margin);
+		zoomy= (float) height / (h + 2 * margin);
 
 		sclip_zoom_set(sc, ar, MIN2(zoomx, zoomy), NULL);
 	}
 	else {
 		if ((w >= width || h >= height) && (width > 0 && height > 0)) {
-			zoomx= (float)width/w;
-			zoomy= (float)height/h;
+			zoomx= (float) width / w;
+			zoomy= (float) height / h;
 
 			/* find the zoom value that will fit the image in the image space */
 			sclip_zoom_set(sc, ar, 1.0f/power_of_2(1/MIN2(zoomx, zoomy)), NULL);
@@ -693,7 +703,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 			sclip_zoom_set(sc, ar, 1.0f, NULL);
 	}
 
-	sc->xof= sc->yof= 0.0f;
+	sc->xof = sc->yof = 0.0f;
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -718,11 +728,11 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 
 static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
 
-	sc->xlockof= 0.0f;
-	sc->ylockof= 0.0f;
+	sc->xlockof = 0.0f;
+	sc->ylockof = 0.0f;
 
 	ED_clip_view_selection(sc, ar, 1);
 	ED_region_tag_redraw(CTX_wm_region(C));
@@ -754,10 +764,10 @@ static int change_frame_poll(bContext *C)
 
 static void change_frame_apply(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 
 	/* set the new frame number */
-	CFRA= RNA_int_get(op->ptr, "frame");
+	CFRA = RNA_int_get(op->ptr, "frame");
 	FRAMENUMBER_MIN_CLAMP(CFRA);
 	SUBFRA = 0.0f;
 
@@ -775,21 +785,21 @@ static int change_frame_exec(bContext *C, wmOperator *op)
 
 static int frame_from_event(bContext *C, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
-	Scene *scene= CTX_data_scene(C);
-	int framenr= 0;
+	ARegion *ar = CTX_wm_region(C);
+	Scene *scene = CTX_data_scene(C);
+	int framenr = 0;
 
 	if (ar->regiontype == RGN_TYPE_WINDOW) {
-		float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1);
+		float sfra = SFRA, efra = EFRA, framelen = ar->winx / (efra - sfra + 1);
 
-		framenr= sfra+event->mval[0]/framelen;
+		framenr = sfra + event->mval[0] / framelen;
 	}
 	else {
 		float viewx, viewy;
 
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 
-		framenr= (int)floor(viewx+0.5f);
+		framenr= (int) floor(viewx + 0.5f);
 	}
 
 	return framenr;
@@ -797,10 +807,10 @@ static int frame_from_event(bContext *C, wmEvent *event)
 
 static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
+	ARegion *ar = CTX_wm_region(C);
 
 	if (ar->regiontype == RGN_TYPE_WINDOW) {
-		if (event->mval[1]>16)
+		if (event->mval[1] > 16)
 			return OPERATOR_PASS_THROUGH;
 	}
 
@@ -827,7 +837,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		case LEFTMOUSE:
 		case RIGHTMOUSE:
-			if (event->val==KM_RELEASE)
+			if (event->val == KM_RELEASE)
 				return OPERATOR_FINISHED;
 			break;
 	}
@@ -885,10 +895,17 @@ static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undisto
 	                         MCLIP_PROXY_UNDISTORTED_SIZE_100}};
 	int size_nr = undistort ? 1 : 0;
 
-	if (size_flag & size_flags[size_nr][0]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_25;
-	if (size_flag & size_flags[size_nr][1]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_50;
-	if (size_flag & size_flags[size_nr][2]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_75;
-	if (size_flag & size_flags[size_nr][3]) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_100;
+	if (size_flag & size_flags[size_nr][0])
+		build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_25;
+
+	if (size_flag & size_flags[size_nr][1])
+		build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_50;
+
+	if (size_flag & size_flags[size_nr][2])
+		build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_75;
+
+	if (size_flag & size_flags[size_nr][3])
+		build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_100;
 
 	return build_count;
 }
@@ -896,19 +913,19 @@ static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undisto
 /* only this runs inside thread */
 static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
 {
-	ProxyJob *pj= pjv;
-	Scene *scene=pj->scene;
-	MovieClip *clip= pj->clip;
-	struct MovieDistortion *distortion= NULL;
+	ProxyJob *pj = pjv;
+	Scene *scene = pj->scene;
+	MovieClip *clip = pj->clip;
+	struct MovieDistortion *distortion = NULL;
 	short size_flag;
-	int cfra, sfra= SFRA, efra= EFRA;
-	int build_sizes[4], build_count= 0;
-	int build_undistort_sizes[4], build_undistort_count= 0;
+	int cfra, sfra = SFRA, efra = EFRA;
+	int build_sizes[4], build_count = 0;
+	int build_undistort_sizes[4], build_undistort_count = 0;
 
-	size_flag= clip->proxy.build_size_flag;
+	size_flag = clip->proxy.build_size_flag;
 
-	build_count= proxy_bitflag_to_array(size_flag, build_sizes, 0);
-	build_undistort_count= proxy_bitflag_to_array(size_flag, build_undistort_sizes, 1);
+	build_count = proxy_bitflag_to_array(size_flag, build_sizes, 0);
+	build_undistort_count = proxy_bitflag_to_array(size_flag, build_undistort_sizes, 1);
 
 	if (clip->source == MCLIP_SRC_MOVIE) {
 		if (pj->index_context)
@@ -921,15 +938,15 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 			return;
 		}
 		else {
-			sfra= 1;
-			efra= IMB_anim_get_duration(clip->anim, IMB_TC_NONE);
+			sfra = 1;
+			efra = IMB_anim_get_duration(clip->anim, IMB_TC_NONE);
 		}
 	}
 
 	if (build_undistort_count)
-		distortion= BKE_tracking_distortion_create();
+		distortion = BKE_tracking_distortion_create();
 
-	for (cfra= sfra; cfra<=efra; cfra++) {
+	for (cfra = sfra; cfra <= efra; cfra++) {
 		if (clip->source != MCLIP_SRC_MOVIE)
 			BKE_movieclip_build_proxy_frame(clip, pj->clip_flag, NULL, cfra, build_sizes, build_count, 0);
 
@@ -938,8 +955,8 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 		if (*stop || G.afbreek)
 			break;
 
-		*do_update= 1;
-		*progress= ((float)cfra)/(efra-sfra);
+		*do_update = TRUE;
+		*progress= ((float) cfra) / (efra - sfra);
 	}
 
 	if (distortion)
@@ -968,21 +985,21 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmJob * steve;
 	ProxyJob *pj;
-	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	Scene *scene = CTX_data_scene(C);
+	ScrArea *sa = CTX_wm_area(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 
-	if ((clip->flag&MCLIP_USE_PROXY)==0)
+	if ((clip->flag & MCLIP_USE_PROXY) == 0)
 		return OPERATOR_CANCELLED;
 
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies", WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies", WM_JOB_PROGRESS);
 
-	pj= MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
-	pj->scene= scene;
-	pj->main= CTX_data_main(C);
-	pj->clip= clip;
-	pj->clip_flag= clip->flag&MCLIP_TIMECODE_FLAGS;
+	pj = MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
+	pj->scene = scene;
+	pj->main = CTX_data_main(C);
+	pj->clip = clip;
+	pj->clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
 
 	if (clip->anim) {
 		pj->index_context = IMB_anim_index_rebuild_context(clip->anim, clip->proxy.build_tc_flag,
@@ -993,7 +1010,7 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|ND_DISPLAY, 0);
 	WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, proxy_endjob);
 
-	G.afbreek= 0;
+	G.afbreek = 0;
 	WM_jobs_start(CTX_wm_manager(C), steve);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -1020,16 +1037,16 @@ void CLIP_OT_rebuild_proxy(wmOperatorType *ot)
 
 static int mode_set_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	int mode= RNA_enum_get(op->ptr, "mode");
-	int toggle= RNA_boolean_get(op->ptr, "toggle");
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	int mode = RNA_enum_get(op->ptr, "mode");
+	int toggle = RNA_boolean_get(op->ptr, "toggle");
 
-	if (sc->mode==mode) {
+	if (sc->mode == mode) {
 		if (toggle)
-			sc->mode= SC_MODE_TRACKING;
+			sc->mode = SC_MODE_TRACKING;
 	}
 	else {
-		sc->mode= mode;
+		sc->mode = mode;
 	}
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CLIP, NULL);

@@ -82,7 +82,7 @@ static const char *locales[] = {
 	"spanish", "es",
 	"catalan", "ca_AD",
 	"czech", "cs_CZ",
-	"ptb", "pt_BR",
+	"ptb", "pt",
 #if defined (_WIN32) && !defined(FREE_WINDOWS)
 	"Chinese (Simplified)_China.1252", "zh_CN",
 	"Chinese (Traditional)_China.1252", "zh_TW",
@@ -104,7 +104,7 @@ static const char *locales[] = {
 	"persian", "fa_IR",
 	"indonesian", "id_ID",
 	"serbian (latin)", "sr_RS@latin",
-	"kyrgyz", "ky",
+	"kyrgyz", "ky_KG",
 };
 
 void BLF_lang_init(void)
@@ -192,7 +192,7 @@ void BLF_lang_set(const char *str)
 	locreturn = setlocale(LC_ALL, long_locale);
 
 	if (locreturn == NULL) {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("Could not change locale to %s\n", long_locale);
 
 		ok = 0;
@@ -209,14 +209,14 @@ void BLF_lang_set(const char *str)
 			get_language_variable("LANGUAGE", default_language, sizeof(default_language));
 
 		if (short_locale[0]) {
-			if (G.f & G_DEBUG)
+			if (G.debug & G_DEBUG)
 				printf("Setting LANG= and LANGUAGE to %s\n", short_locale);
 
 			BLI_setenv("LANG", short_locale);
 			BLI_setenv("LANGUAGE", short_locale);
 		}
 		else {
-			if (G.f & G_DEBUG)
+			if (G.debug & G_DEBUG)
 				printf("Setting LANG=%s and LANGUAGE=%s\n", default_lang, default_language);
 
 			BLI_setenv("LANG", default_lang);
@@ -238,7 +238,7 @@ void BLF_lang_set(const char *str)
 
 				get_language(long_locale, default_lang, language, sizeof(language));
 
-				if (G.f & G_DEBUG) {
+				if (G.debug & G_DEBUG) {
 					if (short_locale[0])
 						printf("Could not change locale to %s nor %s\n", short_locale, short_locale_utf8);
 					else

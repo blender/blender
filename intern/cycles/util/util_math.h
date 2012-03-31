@@ -799,6 +799,19 @@ __device_inline void make_orthonormals(const float3 N, float3 *a, float3 *b)
 	*b = cross(N, *a);
 }
 
+/* Color division */
+
+__device_inline float3 safe_divide_color(float3 a, float3 b)
+{
+	float x, y, z;
+
+	x = (b.x != 0.0f)? a.x/b.x: 0.0f;
+	y = (b.y != 0.0f)? a.y/b.y: 0.0f;
+	z = (b.z != 0.0f)? a.z/b.z: 0.0f;
+
+	return make_float3(x, y, z);
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_MATH_H__ */

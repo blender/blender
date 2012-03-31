@@ -245,6 +245,9 @@ void IMB_close_anim(struct anim * anim)
 
 void IMB_close_anim_proxies(struct anim *anim)
 {
+	if (anim == NULL)
+		return;
+
 	IMB_free_indices(anim);
 }
 

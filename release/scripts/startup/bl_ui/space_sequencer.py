@@ -75,6 +75,13 @@ class SEQUENCER_HT_header(Header):
                     row.prop(ed, "overlay_frame", text="")
                     row.prop(ed, "overlay_lock", text="", icon='LOCKED')
 
+                row = layout.row(align=True)
+                props = row.operator("render.opengl", text="", icon='RENDER_STILL')
+                props.sequencer = True
+                props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
+                props.animation = True
+                props.sequencer = True
+
         layout.template_running_jobs()
 
 
@@ -143,7 +150,7 @@ class SEQUENCER_MT_select(Menu):
         layout.operator("sequencer.select_handles", text="Left Handle").side = 'LEFT'
         layout.operator("sequencer.select_handles", text="Right Handle").side = 'RIGHT'
         layout.separator()
-        layout.operator_menu_enum("object.select_grouped", "type", text="Grouped")
+        layout.operator_menu_enum("sequencer.select_grouped", "type", text="Grouped")
         layout.operator("sequencer.select_linked")
         layout.operator("sequencer.select_all").action = 'TOGGLE'
         layout.operator("sequencer.select_all").action = 'INVERT'
@@ -242,7 +249,6 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.offset_clear")
         layout.operator("sequencer.deinterlace_selected_movies")
         layout.operator("sequencer.rebuild_proxy")
-        layout.operator("sequencer.update_strip_length")
         layout.separator()
 
         layout.operator("sequencer.duplicate")
@@ -286,7 +292,10 @@ class SEQUENCER_MT_strip(Menu):
         #}
 
         layout.separator()
-        layout.operator("sequencer.reload")
+        props = layout.operator("sequencer.reload", text="Reload Strips")
+        props.adjust_length = False
+        props = layout.operator("sequencer.reload", text="Reload Strips and Adjust Length")
+        props.adjust_length = True
         layout.operator("sequencer.reassign_inputs")
         layout.operator("sequencer.swap_inputs")
         layout.separator()

@@ -395,7 +395,7 @@ void ED_armature_from_edit(Object *obedit)
 				if (fBone->parent==eBone)
 					fBone->parent= eBone->parent;
 			}
-			if (G.f & G_DEBUG)
+			if (G.debug & G_DEBUG)
 				printf("Warning: removed zero sized bone: %s\n", eBone->name);
 			bone_free(arm, eBone);
 		}
@@ -2933,7 +2933,7 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 	}
 	else {
 		// FIXME.. figure out a method for multiple bones
-		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d \n", count); 
+		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d\n", count);
 		BLI_freelistN(&points);
 		return OPERATOR_CANCELLED;
 	}
@@ -2976,9 +2976,9 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	
 	/* check if same bone */
 	if (start == end) {
-		if (G.f & G_DEBUG) {
-			printf("Error: same bone! \n");
-			printf("\tstart = %s, end = %s \n", start->name, end->name);
+		if (G.debug & G_DEBUG) {
+			printf("Error: same bone!\n");
+			printf("\tstart = %s, end = %s\n", start->name, end->name);
 		}
 	}
 	
@@ -3055,7 +3055,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 	short type= RNA_enum_get(op->ptr, "type");
 	
 	/* sanity checks */
-	if ELEM(NULL, obedit, arm)
+	if (ELEM(NULL, obedit, arm))
 		return OPERATOR_CANCELLED;
 	
 	/* for now, there's only really one type of merging that's performed... */
@@ -4898,7 +4898,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	short autokey = 0;
 	
 	/* sanity checks */
-	if ELEM(NULL, clear_func, default_ksName) {
+	if (ELEM(NULL, clear_func, default_ksName)) {
 		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform func or Keying Set Name");
 		return OPERATOR_CANCELLED;
 	}
@@ -5393,7 +5393,10 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 		/* Fix all animdata that may refer to this bone - we can't just do the ones attached to objects, since
 		 * other ID-blocks may have drivers referring to this bone [#29822]
 		 */
-		BKE_all_animdata_fix_paths_rename("pose.bones", oldname, newname);
+		{
+			
+			BKE_all_animdata_fix_paths_rename(&arm->id, "pose.bones", oldname, newname);
+		}
 		
 		/* correct view locking */
 		{

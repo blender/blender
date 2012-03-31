@@ -128,7 +128,7 @@ static void rna_tracking_active_object_index_set(PointerRNA *ptr, int value)
 	clip->tracking.objectnr = value;
 }
 
-static void rna_tracking_active_object_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_tracking_active_object_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	MovieClip *clip = (MovieClip*)ptr->id.data;
 
@@ -302,7 +302,7 @@ static void rna_tracking_stabTracks_active_index_set(PointerRNA *ptr, int value)
 	clip->tracking.stabilization.act_track = value;
 }
 
-static void rna_tracking_stabTracks_active_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_tracking_stabTracks_active_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	MovieClip *clip = (MovieClip*)ptr->id.data;
 

@@ -41,30 +41,36 @@
  * compute v1 = v2 op v3
  * v1, v2 and v3 are vectors contains 3 float
  * */
-#define vec3opv(v1, v2, op, v3) \
-	v1[0] = (v2[0] op v3[0]); \
-	v1[1] = (v2[1] op v3[1]);\
-	v1[2] = (v2[2] op v3[2]);
+#define VEC3OPV(v1, v2, op, v3)                                               \
+	{                                                                         \
+		v1[0] = (v2[0] op v3[0]);                                             \
+		v1[1] = (v2[1] op v3[1]);                                             \
+		v1[2] = (v2[2] op v3[2]);                                             \
+	} (void)0
 
 /**
  * compute v1 = v2 op f1
  * v1, v2 are vectors contains 3 float
  * and f1 is a float
  * */
-#define vec3opf(v1, v2, op, f1)\
-	v1[0] = (v2[0] op (f1));\
-	v1[1] = (v2[1] op (f1));\
-	v1[2] = (v2[2] op (f1));
+#define VEC3OPF(v1, v2, op, f1)                                               \
+	{                                                                         \
+		v1[0] = (v2[0] op (f1));                                              \
+		v1[1] = (v2[1] op (f1));                                              \
+		v1[2] = (v2[2] op (f1));                                              \
+	} (void)0
 
 /**
  * compute v1 = f1 op v2
  * v1, v2 are vectors contains 3 float
  * and f1 is a float
  * */
-#define fopvec3(v1, f1, op, v2)\
-	v1[0] = ((f1) op v2[0]);\
-	v1[1] = ((f1) op v2[1]);\
-	v1[2] = ((f1) op v2[2]);
+#define FOPVEC3(v1, f1, op, v2)                                               \
+	{                                                                         \
+		v1[0] = ((f1) op v2[0]);                                              \
+		v1[1] = ((f1) op v2[1]);                                              \
+		v1[2] = ((f1) op v2[2]);                                              \
+	} (void)0
 
 /**
  * ClipColor:
@@ -408,19 +414,19 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
 	fTemp = pi*pi*(n*n-1)*(n*n-1)*(6+3*pn)/(6-7*pn)/N;
 	fBeta = 8*fTemp*pi/3;
 		
-	vec3opf(sunSky->atm_BetaRay, vLambda4, *, fBeta);
+	VEC3OPF(sunSky->atm_BetaRay, vLambda4, *, fBeta);
 	fBetaDash = fTemp/2;
-	vec3opf(sunSky->atm_BetaDashRay, vLambda4,*, fBetaDash);
+	VEC3OPF(sunSky->atm_BetaDashRay, vLambda4,*, fBetaDash);
 	
 
 	// Mie scattering constants.
 	fTemp2 = 0.434f*c*(2*pi)*(2*pi)*0.5f;
-	vec3opf(sunSky->atm_BetaDashMie, vLambda2, *, fTemp2);
+	VEC3OPF(sunSky->atm_BetaDashMie, vLambda2, *, fTemp2);
 	
 	fTemp3 = 0.434f*c*pi*(2*pi)*(2*pi);
 	
-	vec3opv(vBetaMieTemp, K, *, fLambda);
-	vec3opf(sunSky->atm_BetaMie, vBetaMieTemp,*, fTemp3);
+	VEC3OPV(vBetaMieTemp, K, *, fLambda);
+	VEC3OPF(sunSky->atm_BetaMie, vBetaMieTemp,*, fTemp3);
 	
 }
 
@@ -459,12 +465,12 @@ void AtmospherePixleShader( struct SunSky* sunSky, float view[3], float s, float
 	costheta = dot_v3v3(view, sunDirection); // cos(theta)
 	Phase_1 = 1 + (costheta * costheta); // Phase_1
 	
-	vec3opf(sunSky->atm_BetaRay, sunSky->atm_BetaRay, *, sunSky->atm_BetaRayMultiplier);
-	vec3opf(sunSky->atm_BetaMie, sunSky->atm_BetaMie, *, sunSky->atm_BetaMieMultiplier);
-	vec3opv(sunSky->atm_BetaRM, sunSky->atm_BetaRay, +, sunSky->atm_BetaMie);
+	VEC3OPF(sunSky->atm_BetaRay, sunSky->atm_BetaRay, *, sunSky->atm_BetaRayMultiplier);
+	VEC3OPF(sunSky->atm_BetaMie, sunSky->atm_BetaMie, *, sunSky->atm_BetaMieMultiplier);
+	VEC3OPV(sunSky->atm_BetaRM, sunSky->atm_BetaRay, +, sunSky->atm_BetaMie);
 	
 	//e^(-(beta_1 + beta_2) * s) = E1
-	vec3opf(E1, sunSky->atm_BetaRM, *, -s/(float)M_LN2);
+	VEC3OPF(E1, sunSky->atm_BetaRM, *, -s/(float)M_LN2);
 	E1[0] = exp(E1[0]);
 	E1[1] = exp(E1[1]);
 	E1[2] = exp(E1[2]);
@@ -476,32 +482,32 @@ void AtmospherePixleShader( struct SunSky* sunSky, float view[3], float s, float
 	fTemp = fTemp * sqrtf(fTemp);
 	Phase_2 = (1 - sunSky->atm_HGg * sunSky->atm_HGg)/fTemp;
 	
-	vec3opf(vTemp1, sunSky->atm_BetaDashRay, *, Phase_1);
-	vec3opf(vTemp2, sunSky->atm_BetaDashMie, *, Phase_2);	
+	VEC3OPF(vTemp1, sunSky->atm_BetaDashRay, *, Phase_1);
+	VEC3OPF(vTemp2, sunSky->atm_BetaDashMie, *, Phase_2);
 
-	vec3opv(vTemp1, vTemp1, +, vTemp2);
-	fopvec3(vTemp2, 1.0f, -, E1);
-	vec3opv(vTemp1, vTemp1, *, vTemp2);
+	VEC3OPV(vTemp1, vTemp1, +, vTemp2);
+	FOPVEC3(vTemp2, 1.0f, -, E1);
+	VEC3OPV(vTemp1, vTemp1, *, vTemp2);
 
-	fopvec3(vTemp2, 1.0f, / , sunSky->atm_BetaRM);
+	FOPVEC3(vTemp2, 1.0f, / , sunSky->atm_BetaRM);
 
-	vec3opv(I, vTemp1, *, vTemp2);
+	VEC3OPV(I, vTemp1, *, vTemp2);
 		
-	vec3opf(I, I, *, sunSky->atm_InscatteringMultiplier);
-	vec3opf(E, E, *, sunSky->atm_ExtinctionMultiplier);
+	VEC3OPF(I, I, *, sunSky->atm_InscatteringMultiplier);
+	VEC3OPF(E, E, *, sunSky->atm_ExtinctionMultiplier);
 		
 	//scale to color sun
 	ComputeAttenuatedSunlight(sunSky->theta, sunSky->turbidity, sunColor);
-	vec3opv(E, E, *, sunColor);
+	VEC3OPV(E, E, *, sunColor);
 
-	vec3opf(I, I, *, sunSky->atm_SunIntensity);
+	VEC3OPF(I, I, *, sunSky->atm_SunIntensity);
 
-	vec3opv(rgb, rgb, *, E);
-	vec3opv(rgb, rgb, +, I);
+	VEC3OPV(rgb, rgb, *, E);
+	VEC3OPV(rgb, rgb, +, I);
 }
 
-#undef vec3opv
-#undef vec3opf
-#undef fopvec3
+#undef VEC3OPV
+#undef VEC3OPF
+#undef FOPVEC3
 
 /* EOF */

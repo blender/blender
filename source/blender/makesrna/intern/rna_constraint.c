@@ -211,7 +211,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 	}
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename("constraints", oldname, con->name);
+	BKE_all_animdata_fix_paths_rename(NULL, "constraints", oldname, con->name);
 }
 
 static char *rna_Constraint_path(PointerRNA *ptr)
@@ -307,7 +307,7 @@ static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSED(C), 
 	return space_object_items;
 }
 
-static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float *max)
+static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	bConstraint *con = (bConstraint*)ptr->data;
 	bActionConstraint *acon = (bActionConstraint *)con->data;

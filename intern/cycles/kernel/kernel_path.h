@@ -327,6 +327,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 				Ray light_ray;
 				BsdfEval L_light;
+				bool is_lamp;
 
 #ifdef __MULTI_LIGHT__
 				/* index -1 means randomly sample from distribution */
@@ -336,14 +337,13 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 #else
 				const int i = -1;
 #endif
-					if(direct_emission(kg, &sd, i, light_t, light_o, light_u, light_v, &light_ray, &L_light)) {
+					if(direct_emission(kg, &sd, i, light_t, light_o, light_u, light_v, &light_ray, &L_light, &is_lamp)) {
 						/* trace shadow ray */
 						float3 shadow;
 
 						if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
 							/* accumulate */
-							bsdf_eval_mul(&L_light, shadow);
-							path_radiance_accum_light(&L, throughput, &L_light, state.bounce);
+							path_radiance_accum_light(&L, throughput, &L_light, shadow, state.bounce, is_lamp);
 						}
 					}
 #ifdef __MULTI_LIGHT__

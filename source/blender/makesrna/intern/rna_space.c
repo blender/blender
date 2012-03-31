@@ -776,7 +776,7 @@ static void rna_ConsoleLine_body_set(PointerRNA *ptr, const char *value)
 		ci->cursor = len;
 }
 
-static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	ConsoleLine *ci = (ConsoleLine*)ptr->data;
 
@@ -1467,12 +1467,14 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "near");
 	RNA_def_property_range(prop, 0.001f, FLT_MAX);
+	RNA_def_property_float_default(prop, 0.1f);
 	RNA_def_property_ui_text(prop, "Clip Start", "3D View near clipping distance");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "far");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
+	RNA_def_property_float_default(prop, 1000.0f);
 	RNA_def_property_ui_text(prop, "Clip End", "3D View far clipping distance");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
@@ -1480,18 +1482,21 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "grid");
 	RNA_def_property_ui_text(prop, "Grid Scale", "Distance between 3D View grid lines");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "grid_lines", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gridlines");
 	RNA_def_property_ui_text(prop, "Grid Lines", "Number of grid lines to display in perspective view");
 	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_int_default(prop, 16);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop = RNA_def_property(srna, "grid_subdivisions", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gridsubdiv");
 	RNA_def_property_ui_text(prop, "Grid Subdivisions", "Number of subdivisions between grid lines");
 	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_int_default(prop, 10);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop = RNA_def_property(srna, "show_floor", PROP_BOOLEAN, PROP_NONE);

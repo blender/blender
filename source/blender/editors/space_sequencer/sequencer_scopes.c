@@ -41,27 +41,27 @@
  * only difference is it does some normalize after, need to double check on this - campbell */
 static void rgb_to_yuv_normalized(const float rgb[3], float yuv[3])
 {
-		yuv[0]= 0.299f*rgb[0] + 0.587f*rgb[1] + 0.114f*rgb[2];
-		yuv[1]= 0.492f*(rgb[2] - yuv[0]);
-		yuv[2]= 0.877f*(rgb[0] - yuv[0]);
+	yuv[0] = 0.299f * rgb[0] + 0.587f * rgb[1] + 0.114f * rgb[2];
+	yuv[1] = 0.492f * (rgb[2] - yuv[0]);
+	yuv[2] = 0.877f * (rgb[0] - yuv[0]);
 
-		/* Normalize */
-		yuv[1]*= 255.0f/(122*2.0f);
-		yuv[1]+= 0.5f;
+	/* Normalize */
+	yuv[1] *= 255.0f / (122 * 2.0f);
+	yuv[1] += 0.5f;
 
-		yuv[2]*= 255.0f/(157*2.0f);
-		yuv[2]+= 0.5f;
+	yuv[2] *= 255.0f / (157 * 2.0f);
+	yuv[2] += 0.5f;
 }
 
-static void scope_put_pixel(unsigned char* table, unsigned char * pos)
+static void scope_put_pixel(unsigned char *table, unsigned char *pos)
 {
 	char newval = table[*pos];
 	pos[0] = pos[1] = pos[2] = newval;
 	pos[3] = 255;
 }
 
-static void scope_put_pixel_single(unsigned char* table, unsigned char * pos,
-				   int col)
+static void scope_put_pixel_single(unsigned char *table, unsigned char *pos,
+                                   int col)
 {
 	char newval = table[pos[col]];
 	pos[col] = newval;
@@ -69,10 +69,10 @@ static void scope_put_pixel_single(unsigned char* table, unsigned char * pos,
 }
 
 static void wform_put_line(int w,
-			   unsigned char * last_pos, unsigned char * new_pos)
+                           unsigned char *last_pos, unsigned char *new_pos)
 {
 	if (last_pos > new_pos) {
-		unsigned char* temp = new_pos;
+		unsigned char *temp = new_pos;
 		new_pos = last_pos;
 		last_pos = temp;
 	}
@@ -82,15 +82,15 @@ static void wform_put_line(int w,
 			last_pos[0] = last_pos[1] = last_pos[2] = 32;
 			last_pos[3] = 255;
 		}
-		last_pos += 4*w;
+		last_pos += 4 * w;
 	}
 }
 
 static void wform_put_line_single(
-	int w, unsigned char * last_pos, unsigned char * new_pos, int col)
+    int w, unsigned char *last_pos, unsigned char *new_pos, int col)
 {
 	if (last_pos > new_pos) {
-		unsigned char* temp = new_pos;
+		unsigned char *temp = new_pos;
 		new_pos = last_pos;
 		last_pos = temp;
 	}
@@ -100,16 +100,16 @@ static void wform_put_line_single(
 			last_pos[col] = 32;
 			last_pos[3] = 255;
 		}
-		last_pos += 4*w;
+		last_pos += 4 * w;
 	}
 }
 
-static void wform_put_border(unsigned char * tgt, int w, int h)
+static void wform_put_border(unsigned char *tgt, int w, int h)
 {
 	int x, y;
 
 	for (x = 0; x < w; x++) {
-		unsigned char * p = tgt + 4 * x;
+		unsigned char *p = tgt + 4 * x;
 		p[1] = p[3] = 255.0;
 		p[4 * w + 1] = p[4 * w + 3] = 255.0;
 		p = tgt + 4 * (w * (h - 1) + x);
@@ -118,7 +118,7 @@ static void wform_put_border(unsigned char * tgt, int w, int h)
 	}
 
 	for (y = 0; y < h; y++) {
-		unsigned char * p = tgt + 4 * w * y;
+		unsigned char *p = tgt + 4 * w * y;
 		p[1] = p[3] = 255.0;
 		p[4 + 1] = p[4 + 3] = 255.0;
 		p = tgt + 4 * (w * y + w - 1);
@@ -127,32 +127,32 @@ static void wform_put_border(unsigned char * tgt, int w, int h)
 	}
 }
 
-static void wform_put_gridrow(unsigned char * tgt, float perc, int w, int h)
+static void wform_put_gridrow(unsigned char *tgt, float perc, int w, int h)
 {
 	int i;
 
-	tgt += (int) (perc/100.0f * h) * w * 4;
+	tgt += (int) (perc / 100.0f * h) * w * 4;
 
-	for (i = 0; i < w*2; i++) {
+	for (i = 0; i < w * 2; i++) {
 		tgt[0] = 255;
 
 		tgt += 4;
 	}
 }
 
-static void wform_put_grid(unsigned char * tgt, int w, int h)
+static void wform_put_grid(unsigned char *tgt, int w, int h)
 {
 	wform_put_gridrow(tgt, 90.0, w, h);
 	wform_put_gridrow(tgt, 70.0, w, h);
 	wform_put_gridrow(tgt, 10.0, w, h);
 }
 
-static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
+static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
-	int x,y;
-	unsigned char* src = (unsigned char*) ibuf->rect;
-	unsigned char* tgt = (unsigned char*) rval->rect;
+	ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
+	int x, y;
+	unsigned char *src = (unsigned char *) ibuf->rect;
+	unsigned char *tgt = (unsigned char *) rval->rect;
 	int w = ibuf->x + 3;
 	int h = 515;
 	float waveform_gamma = 0.2;
@@ -161,17 +161,17 @@ static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 	wform_put_grid(tgt, w, h);
 
 	for (x = 0; x < 256; x++) {
-		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
-						 waveform_gamma)*255);
+		wtable[x] = (unsigned char) (pow(((float) x + 1) / 256,
+		                                 waveform_gamma) * 255);
 	}
 
 	for (y = 0; y < ibuf->y; y++) {
-		unsigned char * last_p = NULL;
+		unsigned char *last_p = NULL;
 
 		for (x = 0; x < ibuf->x; x++) {
-			unsigned char * rgb = src + 4 * (ibuf->x * y + x);
+			unsigned char *rgb = src + 4 * (ibuf->x * y + x);
 			float v = (float)rgb_to_luma_byte(rgb) / 255.0f;
-			unsigned char * p = tgt;
+			unsigned char *p = tgt;
 			p += 4 * (w * ((int) (v * (h - 3)) + 1) + x + 1);
 
 			scope_put_pixel(wtable, p);
@@ -190,12 +190,12 @@ static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 	return rval;
 }
 
-static struct ImBuf *make_waveform_view_from_ibuf_float(struct ImBuf * ibuf)
+static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
-	int x,y;
-	float* src = ibuf->rect_float;
-	unsigned char* tgt = (unsigned char*) rval->rect;
+	ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
+	int x, y;
+	float *src = ibuf->rect_float;
+	unsigned char *tgt = (unsigned char *) rval->rect;
 	int w = ibuf->x + 3;
 	int h = 515;
 	float waveform_gamma = 0.2;
@@ -204,17 +204,17 @@ static struct ImBuf *make_waveform_view_from_ibuf_float(struct ImBuf * ibuf)
 	wform_put_grid(tgt, w, h);
 
 	for (x = 0; x < 256; x++) {
-		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
-						 waveform_gamma)*255);
+		wtable[x] = (unsigned char) (pow(((float) x + 1) / 256,
+		                                 waveform_gamma) * 255);
 	}
 
 	for (y = 0; y < ibuf->y; y++) {
-		unsigned char * last_p = NULL;
+		unsigned char *last_p = NULL;
 
 		for (x = 0; x < ibuf->x; x++) {
-			float * rgb = src + 4 * (ibuf->x * y + x);
+			float *rgb = src + 4 * (ibuf->x * y + x);
 			float v = rgb_to_luma(rgb);
-			unsigned char * p = tgt;
+			unsigned char *p = tgt;
 
 			CLAMP(v, 0.0f, 1.0f);
 
@@ -236,7 +236,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_float(struct ImBuf * ibuf)
 	return rval;
 }
 
-struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf)
+ImBuf *make_waveform_view_from_ibuf(ImBuf *ibuf)
 {
 	if (ibuf->rect_float) {
 		return make_waveform_view_from_ibuf_float(ibuf);
@@ -247,15 +247,14 @@ struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf)
 }
 
 
-static struct ImBuf *make_sep_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
-{
-	struct ImBuf * rval = IMB_allocImBuf(
-		ibuf->x + 3, 515, 32, IB_rect);
-	int x,y;
-	unsigned char* src = (unsigned char*) ibuf->rect;
-	unsigned char* tgt = (unsigned char*) rval->rect;
+static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf){
+	ImBuf *rval = IMB_allocImBuf(
+	    ibuf->x + 3, 515, 32, IB_rect);
+	int x, y;
+	unsigned char *src = (unsigned char *) ibuf->rect;
+	unsigned char *tgt = (unsigned char *) rval->rect;
 	int w = ibuf->x + 3;
-	int sw = ibuf->x/3;
+	int sw = ibuf->x / 3;
 	int h = 515;
 	float waveform_gamma = 0.2;
 	unsigned char wtable[256];
@@ -263,8 +262,8 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 	wform_put_grid(tgt, w, h);
 
 	for (x = 0; x < 256; x++) {
-		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
-						 waveform_gamma)*255);
+		wtable[x] = (unsigned char) (pow(((float) x + 1) / 256,
+		                                 waveform_gamma) * 255);
 	}
 
 	for (y = 0; y < ibuf->y; y++) {
@@ -272,11 +271,11 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 
 		for (x = 0; x < ibuf->x; x++) {
 			int c;
-			unsigned char * rgb = src + 4 * (ibuf->x * y + x);
+			unsigned char *rgb = src + 4 * (ibuf->x * y + x);
 			for (c = 0; c < 3; c++) {
-				unsigned char * p = tgt;
-				p += 4 * (w * ((rgb[c] * (h - 3))/255 + 1) 
-					  + c * sw + x/3 + 1);
+				unsigned char *p = tgt;
+				p += 4 * (w * ((rgb[c] * (h - 3)) / 255 + 1)
+				          + c * sw + x / 3 + 1);
 
 				scope_put_pixel_single(wtable, p, c);
 				p += 4 * w;
@@ -284,7 +283,7 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 
 				if (last_p[c] != NULL) {
 					wform_put_line_single(
-						w, last_p[c], p, c);
+					    w, last_p[c], p, c);
 				}
 				last_p[c] = p;
 			}
@@ -296,16 +295,14 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 	return rval;
 }
 
-static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
-	struct ImBuf * ibuf)
+static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(
-		ibuf->x + 3, 515, 32, IB_rect);
-	int x,y;
-	float* src = ibuf->rect_float;
-	unsigned char* tgt = (unsigned char*) rval->rect;
+	ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
+	int x, y;
+	float *src = ibuf->rect_float;
+	unsigned char *tgt = (unsigned char *) rval->rect;
 	int w = ibuf->x + 3;
-	int sw = ibuf->x/3;
+	int sw = ibuf->x / 3;
 	int h = 515;
 	float waveform_gamma = 0.2;
 	unsigned char wtable[256];
@@ -313,8 +310,8 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
 	wform_put_grid(tgt, w, h);
 
 	for (x = 0; x < 256; x++) {
-		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
-						 waveform_gamma)*255);
+		wtable[x] = (unsigned char) (pow(((float) x + 1) / 256,
+		                                 waveform_gamma) * 255);
 	}
 
 	for (y = 0; y < ibuf->y; y++) {
@@ -322,15 +319,15 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
 
 		for (x = 0; x < ibuf->x; x++) {
 			int c;
-			float * rgb = src + 4 * (ibuf->x * y + x);
+			float *rgb = src + 4 * (ibuf->x * y + x);
 			for (c = 0; c < 3; c++) {
-				unsigned char * p = tgt;
+				unsigned char *p = tgt;
 				float v = rgb[c];
 
 				CLAMP(v, 0.0f, 1.0f);
 
 				p += 4 * (w * ((int) (v * (h - 3)) + 1)
-					  + c * sw + x/3 + 1);
+				          + c * sw + x / 3 + 1);
 
 				scope_put_pixel_single(wtable, p, c);
 				p += 4 * w;
@@ -338,7 +335,7 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
 
 				if (last_p[c] != NULL) {
 					wform_put_line_single(
-						w, last_p[c], p, c);
+					    w, last_p[c], p, c);
 				}
 				last_p[c] = p;
 			}
@@ -350,7 +347,7 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
 	return rval;
 }
 
-struct ImBuf *make_sep_waveform_view_from_ibuf(struct ImBuf * ibuf)
+ImBuf *make_sep_waveform_view_from_ibuf(ImBuf *ibuf)
 {
 	if (ibuf->rect_float) {
 		return make_sep_waveform_view_from_ibuf_float(ibuf);
@@ -360,11 +357,11 @@ struct ImBuf *make_sep_waveform_view_from_ibuf(struct ImBuf * ibuf)
 	}
 }
 
-static void draw_zebra_byte(struct ImBuf * src,struct ImBuf * ibuf, float perc)
+static void draw_zebra_byte(ImBuf *src, ImBuf *ibuf, float perc)
 {
 	unsigned int limit = 255.0f * perc / 100.0f;
-	unsigned char * p = (unsigned char*) src->rect;
-	unsigned char * o = (unsigned char*) ibuf->rect;
+	unsigned char *p = (unsigned char *) src->rect;
+	unsigned char *o = (unsigned char *) ibuf->rect;
 	int x;
 	int y;
 
@@ -391,11 +388,11 @@ static void draw_zebra_byte(struct ImBuf * src,struct ImBuf * ibuf, float perc)
 }
 
 
-static void draw_zebra_float(struct ImBuf * src,struct ImBuf * ibuf,float perc)
+static void draw_zebra_float(ImBuf *src, ImBuf *ibuf, float perc)
 {
 	float limit = perc / 100.0f;
-	float * p = src->rect_float;
-	unsigned char * o = (unsigned char*) ibuf->rect;
+	float *p = src->rect_float;
+	unsigned char *o = (unsigned char *) ibuf->rect;
 	int x;
 	int y;
 
@@ -422,9 +419,9 @@ static void draw_zebra_float(struct ImBuf * src,struct ImBuf * ibuf,float perc)
 	}
 }
 
-struct ImBuf * make_zebra_view_from_ibuf(struct ImBuf * src, float perc)
+ImBuf *make_zebra_view_from_ibuf(ImBuf *src, float perc)
 {
-	struct ImBuf * ibuf = IMB_allocImBuf(src->x, src->y, 32, IB_rect);
+	ImBuf *ibuf = IMB_allocImBuf(src->x, src->y, 32, IB_rect);
 
 	if (src->rect_float) {
 		draw_zebra_float(src, ibuf, perc);
@@ -435,23 +432,23 @@ struct ImBuf * make_zebra_view_from_ibuf(struct ImBuf * src, float perc)
 	return ibuf;
 }
 
-static void draw_histogram_marker(struct ImBuf * ibuf, int x)
+static void draw_histogram_marker(ImBuf *ibuf, int x)
 {
-	unsigned char * p = (unsigned char*) ibuf->rect;
+	unsigned char *p = (unsigned char *) ibuf->rect;
 	int barh = ibuf->y * 0.1;
 	int i;
 
 	p += 4 * (x + ibuf->x * (ibuf->y - barh + 1));
 
-	for (i = 0; i < barh-1; i++) {
+	for (i = 0; i < barh - 1; i++) {
 		p[0] = p[1] = p[2] = 255;
 		p += ibuf->x * 4;
 	}
 }
 
-static void draw_histogram_bar(struct ImBuf * ibuf, int x,float val, int col)
+static void draw_histogram_bar(ImBuf *ibuf, int x, float val, int col)
 {
-	unsigned char * p = (unsigned char*) ibuf->rect;
+	unsigned char *p = (unsigned char *) ibuf->rect;
 	int barh = ibuf->y * val * 0.9f;
 	int i;
 
@@ -463,17 +460,16 @@ static void draw_histogram_bar(struct ImBuf * ibuf, int x,float val, int col)
 	}
 }
 
-static struct ImBuf *make_histogram_view_from_ibuf_byte(
-	struct ImBuf * ibuf)
+static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(515, 128, 32, IB_rect);
-	int c,x,y;
+	ImBuf *rval = IMB_allocImBuf(515, 128, 32, IB_rect);
+	int c, x, y;
 	unsigned int n;
-	unsigned char* src = (unsigned char*) ibuf->rect;
+	unsigned char *src = (unsigned char *) ibuf->rect;
 
 	unsigned int bins[3][256];
 
-	memset(bins, 0, 3 * 256* sizeof(unsigned int));
+	memset(bins, 0, 3 * 256 * sizeof(unsigned int));
 
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
@@ -495,14 +491,14 @@ static struct ImBuf *make_histogram_view_from_ibuf_byte(
 
 	for (c = 0; c < 3; c++) {
 		for (x = 0; x < 256; x++) {
-			draw_histogram_bar(rval, x*2+1, 
-					   ((float) bins[c][x])/n, c);
-			draw_histogram_bar(rval, x*2+2, 
-					   ((float) bins[c][x])/n, c);
+			draw_histogram_bar(rval, x * 2 + 1,
+			                   ((float) bins[c][x]) / n, c);
+			draw_histogram_bar(rval, x * 2 + 2,
+			                   ((float) bins[c][x]) / n, c);
 		}
 	}
 
-	wform_put_border((unsigned char*) rval->rect, rval->x, rval->y);
+	wform_put_border((unsigned char *) rval->rect, rval->x, rval->y);
 	
 	return rval;
 }
@@ -519,16 +515,15 @@ static int get_bin_float(float f)
 	return (int) (((f + 0.25f) / 1.5f) * 512);
 }
 
-static struct ImBuf *make_histogram_view_from_ibuf_float(
-	struct ImBuf * ibuf)
+static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(515, 128, 32, IB_rect);
-	int n,c,x,y;
-	float* src = ibuf->rect_float;
+	ImBuf *rval = IMB_allocImBuf(515, 128, 32, IB_rect);
+	int n, c, x, y;
+	float *src = ibuf->rect_float;
 
 	unsigned int bins[3][512];
 
-	memset(bins, 0, 3 * 256* sizeof(unsigned int));
+	memset(bins, 0, 3 * 256 * sizeof(unsigned int));
 
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
@@ -552,16 +547,16 @@ static struct ImBuf *make_histogram_view_from_ibuf_float(
 	}
 	for (c = 0; c < 3; c++) {
 		for (x = 0; x < 512; x++) {
-			draw_histogram_bar(rval, x+1, (float) bins[c][x]/n, c);
+			draw_histogram_bar(rval, x + 1, (float) bins[c][x] / n, c);
 		}
 	}
 
-	wform_put_border((unsigned char*) rval->rect, rval->x, rval->y);
+	wform_put_border((unsigned char *) rval->rect, rval->x, rval->y);
 	
 	return rval;
 }
 
-struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf)
+ImBuf *make_histogram_view_from_ibuf(ImBuf *ibuf)
 {
 	if (ibuf->rect_float) {
 		return make_histogram_view_from_ibuf_float(ibuf);
@@ -572,21 +567,21 @@ struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf)
 }
 
 static void vectorscope_put_cross(unsigned char r, unsigned char g, 
-				  unsigned char b, 
-				  char * tgt, int w, int h, int size)
+                                  unsigned char b,
+                                  char *tgt, int w, int h, int size)
 {
 	float rgb[3], yuv[3];
-	char * p;
+	char *p;
 	int x = 0;
 	int y = 0;
 
-	rgb[0]= (float)r/255.0f;
-	rgb[1]= (float)g/255.0f;
-	rgb[2]= (float)b/255.0f;
+	rgb[0] = (float)r / 255.0f;
+	rgb[1] = (float)g / 255.0f;
+	rgb[2] = (float)b / 255.0f;
 	rgb_to_yuv_normalized(rgb, yuv);
 			
 	p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
-			   + (int) ((yuv[1] * (w - 3) + 1)));
+	               + (int) ((yuv[1] * (w - 3) + 1)));
 
 	if (r == 0 && g == 0 && b == 0) {
 		r = 255;
@@ -594,18 +589,18 @@ static void vectorscope_put_cross(unsigned char r, unsigned char g,
 
 	for (y = -size; y <= size; y++) {
 		for (x = -size; x <= size; x++) {
-			char * q = p + 4 * (y * w + x);
+			char *q = p + 4 * (y * w + x);
 			q[0] = r; q[1] = g; q[2] = b; q[3] = 255;
 		}
 	}
 }
 
-static struct ImBuf *make_vectorscope_view_from_ibuf_byte(struct ImBuf * ibuf)
+static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(515, 515, 32, IB_rect);
-	int x,y;
-	char* src = (char*) ibuf->rect;
-	char* tgt = (char*) rval->rect;
+	ImBuf *rval = IMB_allocImBuf(515, 515, 32, IB_rect);
+	int x, y;
+	char *src = (char *) ibuf->rect;
+	char *tgt = (char *) rval->rect;
 	float rgb[3], yuv[3];
 	int w = 515;
 	int h = 515;
@@ -613,14 +608,14 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_byte(struct ImBuf * ibuf)
 	unsigned char wtable[256];
 
 	for (x = 0; x < 256; x++) {
-		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
-						 scope_gamma)*255);
+		wtable[x] = (unsigned char) (pow(((float) x + 1) / 256,
+		                                 scope_gamma) * 255);
 	}
 
 	for (x = 0; x <= 255; x++) {
-		vectorscope_put_cross(255   ,     0,255 - x, tgt, w, h, 1);
-		vectorscope_put_cross(255   ,     x,      0, tgt, w, h, 1);
-		vectorscope_put_cross(255- x,   255,      0, tgt, w, h, 1);
+		vectorscope_put_cross(255,     0, 255 - x, tgt, w, h, 1);
+		vectorscope_put_cross(255,     x,      0, tgt, w, h, 1);
+		vectorscope_put_cross(255 - x,   255,      0, tgt, w, h, 1);
 		vectorscope_put_cross(0,        255,      x, tgt, w, h, 1);
 		vectorscope_put_cross(0,    255 - x,    255, tgt, w, h, 1);
 		vectorscope_put_cross(x,          0,    255, tgt, w, h, 1);
@@ -628,17 +623,17 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_byte(struct ImBuf * ibuf)
 
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
-			char * src1 = src + 4 * (ibuf->x * y + x);
-			char * p;
+			char *src1 = src + 4 * (ibuf->x * y + x);
+			char *p;
 			
-			rgb[0]= (float)src1[0]/255.0f;
-			rgb[1]= (float)src1[1]/255.0f;
-			rgb[2]= (float)src1[2]/255.0f;
+			rgb[0] = (float)src1[0] / 255.0f;
+			rgb[1] = (float)src1[1] / 255.0f;
+			rgb[2] = (float)src1[2] / 255.0f;
 			rgb_to_yuv_normalized(rgb, yuv);
 			
 			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
-					   + (int) ((yuv[1] * (w - 3) + 1)));
-			scope_put_pixel(wtable, (unsigned char*)p);
+			               + (int) ((yuv[1] * (w - 3) + 1)));
+			scope_put_pixel(wtable, (unsigned char *)p);
 		}
 	}
 
@@ -647,12 +642,12 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_byte(struct ImBuf * ibuf)
 	return rval;
 }
 
-static struct ImBuf *make_vectorscope_view_from_ibuf_float(struct ImBuf * ibuf)
+static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(515, 515, 32, IB_rect);
-	int x,y;
-	float* src = ibuf->rect_float;
-	char* tgt = (char*) rval->rect;
+	ImBuf *rval = IMB_allocImBuf(515, 515, 32, IB_rect);
+	int x, y;
+	float *src = ibuf->rect_float;
+	char *tgt = (char *) rval->rect;
 	float rgb[3], yuv[3];
 	int w = 515;
 	int h = 515;
@@ -660,14 +655,14 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_float(struct ImBuf * ibuf)
 	unsigned char wtable[256];
 
 	for (x = 0; x < 256; x++) {
-		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
-						 scope_gamma)*255);
+		wtable[x] = (unsigned char) (pow(((float) x + 1) / 256,
+		                                 scope_gamma) * 255);
 	}
 
 	for (x = 0; x <= 255; x++) {
-		vectorscope_put_cross(255   ,     0,255 - x, tgt, w, h, 1);
-		vectorscope_put_cross(255   ,     x,      0, tgt, w, h, 1);
-		vectorscope_put_cross(255- x,   255,      0, tgt, w, h, 1);
+		vectorscope_put_cross(255,     0, 255 - x, tgt, w, h, 1);
+		vectorscope_put_cross(255,     x,      0, tgt, w, h, 1);
+		vectorscope_put_cross(255 - x,   255,      0, tgt, w, h, 1);
 		vectorscope_put_cross(0,        255,      x, tgt, w, h, 1);
 		vectorscope_put_cross(0,    255 - x,    255, tgt, w, h, 1);
 		vectorscope_put_cross(x,          0,    255, tgt, w, h, 1);
@@ -675,8 +670,8 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_float(struct ImBuf * ibuf)
 
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
-			float * src1 = src + 4 * (ibuf->x * y + x);
-			char * p;
+			float *src1 = src + 4 * (ibuf->x * y + x);
+			char *p;
 			
 			memcpy(rgb, src1, 3 * sizeof(float));
 
@@ -687,8 +682,8 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_float(struct ImBuf * ibuf)
 			rgb_to_yuv_normalized(rgb, yuv);
 			
 			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
-					   + (int) ((yuv[1] * (w - 3) + 1)));
-			scope_put_pixel(wtable, (unsigned char*)p);
+			               + (int) ((yuv[1] * (w - 3) + 1)));
+			scope_put_pixel(wtable, (unsigned char *)p);
 		}
 	}
 
@@ -697,7 +692,7 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_float(struct ImBuf * ibuf)
 	return rval;
 }
 
-struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf * ibuf)
+ImBuf *make_vectorscope_view_from_ibuf(ImBuf *ibuf)
 {
 	if (ibuf->rect_float) {
 		return make_vectorscope_view_from_ibuf_float(ibuf);

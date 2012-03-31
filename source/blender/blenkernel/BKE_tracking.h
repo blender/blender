@@ -52,9 +52,9 @@ void BKE_tracking_clamp_track(struct MovieTrackingTrack *track, int event);
 void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int flag, int clear);
 
 struct MovieTrackingTrack *BKE_tracking_add_track(struct MovieTracking *tracking, struct ListBase *tracksbase,
-			float x, float y, int framenr, int width, int height);
+                                                  float x, float y, int framenr, int width, int height);
 struct MovieTrackingMarker *BKE_tracking_insert_marker(struct MovieTrackingTrack *track,
-			struct MovieTrackingMarker *marker);
+                                                       struct MovieTrackingMarker *marker);
 void BKE_tracking_delete_marker(struct MovieTrackingTrack *track, int framenr);
 
 struct MovieTrackingMarker *BKE_tracking_get_marker(struct MovieTrackingTrack *track, int framenr);
@@ -71,9 +71,11 @@ void BKE_tracking_join_tracks(struct MovieTrackingTrack *dst_track, struct Movie
 void BKE_tracking_free(struct MovieTracking *tracking);
 
 struct ImBuf *BKE_tracking_get_pattern_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
-			struct MovieTrackingMarker *marker, int margin, int anchored, float pos[2], int origin[2]);
+                                             struct MovieTrackingMarker *marker, int margin, int anchored,
+                                             float pos[2], int origin[2]);
 struct ImBuf *BKE_tracking_get_search_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
-			struct MovieTrackingMarker *marker, int margin, int anchored, float pos[2], int origin[2]);
+                                            struct MovieTrackingMarker *marker, int margin, int anchored,
+                                            float pos[2], int origin[2]);
 
 void BKE_track_unique_name(struct ListBase *tracksbase, struct MovieTrackingTrack *track);
 
@@ -85,7 +87,7 @@ void BKE_tracking_camera_to_blender(struct MovieTracking *tracking, struct Scene
 
 void BKE_get_tracking_mat(struct Scene *scene, struct Object *ob, float mat[4][4]);
 void BKE_tracking_projection_matrix(struct MovieTracking *tracking, struct MovieTrackingObject *object,
-			int framenr, int winx, int winy, float mat[4][4]);
+                                    int framenr, int winx, int winy, float mat[4][4]);
 
 struct ListBase *BKE_tracking_get_tracks(struct MovieTracking *tracking);
 struct MovieTrackingReconstruction *BKE_tracking_get_reconstruction(struct MovieTracking *tracking);
@@ -95,7 +97,7 @@ struct MovieTrackingObject *BKE_tracking_active_object(struct MovieTracking *tra
 struct MovieTrackingObject *BKE_tracking_get_camera_object(struct MovieTracking *tracking);
 struct ListBase *BKE_tracking_object_tracks(struct MovieTracking *tracking, struct MovieTrackingObject *object);
 struct MovieTrackingReconstruction *BKE_tracking_object_reconstruction(struct MovieTracking *tracking,
-			struct MovieTrackingObject *object);
+                                                                       struct MovieTrackingObject *object);
 
 void BKE_tracking_disable_imbuf_channels(struct ImBuf *ibuf, int disable_red, int disable_green, int disable_blue, int grayscale);
 
@@ -115,24 +117,24 @@ int BKE_tracking_next(struct MovieTrackingContext *context);
 
 /* Camera solving */
 int BKE_tracking_can_reconstruct(struct MovieTracking *tracking, struct MovieTrackingObject *object,
-			char *error_msg, int error_size);
+                                 char *error_msg, int error_size);
 
 struct MovieReconstructContext* BKE_tracking_reconstruction_context_new(struct MovieTracking *tracking,
 			struct MovieTrackingObject *object, int keyframe1, int keyframe2, int width, int height);
 void BKE_tracking_reconstruction_context_free(struct MovieReconstructContext *context);
-void BKE_tracking_solve_reconstruction(struct MovieReconstructContext *context,
-			short *stop, short *do_update, float *progress, char *stats_message, int message_size);
+void BKE_tracking_solve_reconstruction(struct MovieReconstructContext *context, short *stop, short *do_update,
+                                       float *progress, char *stats_message, int message_size);
 int BKE_tracking_finish_reconstruction(struct MovieReconstructContext *context, struct MovieTracking *tracking);
 
 struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct MovieTracking *tracking,
 			struct MovieTrackingObject *object, int framenr);
-void BKE_tracking_get_interpolated_camera(struct MovieTracking *tracking,
-			struct MovieTrackingObject *object, int framenr, float mat[4][4]);
+void BKE_tracking_get_interpolated_camera(struct MovieTracking *tracking, struct MovieTrackingObject *object,
+                                          int framenr, float mat[4][4]);
 
 /* Feature detection */
 void BKE_tracking_detect_fast(struct MovieTracking *tracking, struct ListBase *tracksbase, struct ImBuf *imbuf,
-			int framenr, int margin, int min_trackness, int min_distance, struct bGPDlayer *layer,
-			int place_outside_layer);
+                              int framenr, int margin, int min_trackness, int min_distance, struct bGPDlayer *layer,
+                              int place_outside_layer);
 
 /* 2D stabilization */
 void BKE_tracking_stabilization_data(struct MovieTracking *tracking, int framenr, int width, int height, float loc[2], float *scale, float *angle);
@@ -146,7 +148,7 @@ void BKE_tracking_invert_intrinsics(struct MovieTracking *tracking, float co[2],
 struct MovieDistortion *BKE_tracking_distortion_create(void);
 struct MovieDistortion *BKE_tracking_distortion_copy(struct MovieDistortion *distortion);
 struct ImBuf *BKE_tracking_distortion_exec(struct MovieDistortion *distortion, struct MovieTracking *tracking,
-			struct ImBuf *ibuf, int width, int height, float overscan, int undistort);
+                                           struct ImBuf *ibuf, int width, int height, float overscan, int undistort);
 void BKE_tracking_distortion_destroy(struct MovieDistortion *distortion);
 
 struct ImBuf *BKE_tracking_undistort(struct MovieTracking *tracking, struct ImBuf *ibuf, int width, int height, float overscan);

@@ -783,7 +783,7 @@ static void cast_pointer(int curlen, int oldlen, const char *name, char *curdata
 		}
 		else {
 			/* for debug */
-			printf("errpr: illegal pointersize! \n");
+			printf("errpr: illegal pointersize!\n");
 		}
 		
 		olddata+= oldlen;

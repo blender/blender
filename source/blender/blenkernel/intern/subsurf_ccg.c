@@ -1490,7 +1490,7 @@ static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
 	}
 }
 
-static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int UNUSED(drawAllEdges))
+static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -1510,7 +1510,7 @@ static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int UNUSED(draw
 		if (!drawLooseEdges && !ccgSubSurf_getEdgeNumFaces(e))
 			continue;
 
-		if (ccgdm->edgeFlags && !(ccgdm->edgeFlags[j] & ME_EDGEDRAW))
+		if (!drawAllEdges && ccgdm->edgeFlags && !(ccgdm->edgeFlags[j] & ME_EDGEDRAW))
 			continue;
 
 		if (useAging && !(G.f&G_BACKBUFSEL)) {
@@ -2944,6 +2944,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 					 ccgSubSurf_getNumFinalFaces(ss),
 					 ccgSubSurf_getNumFinalFaces(ss)*4, 
 					 ccgSubSurf_getNumFinalFaces(ss));
+
+	CustomData_free_layer_active(&ccgdm->dm.polyData, CD_NORMAL,
+								 ccgdm->dm.numPolyData);
 	
 	numTex = CustomData_number_of_layers(&ccgdm->dm.loopData, CD_MLOOPUV);
 	numCol = CustomData_number_of_layers(&ccgdm->dm.loopData, CD_MLOOPCOL);

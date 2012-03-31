@@ -64,7 +64,8 @@
 		return data ? CustomData_number_of_layers(data, layer_type) : 0;                        \
 	}                                                                                           \
 	/* index range */                                                                           \
-	static void rna_Mesh_##collection_name##_index_range(PointerRNA *ptr, int *min, int *max)   \
+	static void rna_Mesh_##collection_name##_index_range(PointerRNA *ptr, int *min, int *max,   \
+	                                                     int *softmin, int *softmax)            \
 	{                                                                                           \
 		CustomData *data = rna_mesh_##customdata_type(ptr);                                     \
 		*min = 0;                                                                               \
@@ -99,9 +100,16 @@
 		int a;                                                                                  \
 		if (data) {                                                                             \
 			CustomDataLayer *layer;                                                             \
-			for (layer = data->layers, a = 0; a<data->totlayer; layer++, a++) {                 \
+			int layer_index = CustomData_get_layer_index(data, layer_type);                     \
+			for (layer = data->layers, a = 0; layer_index + a < data->totlayer; layer++, a++) { \
 				if (value.data == layer) {                                                      \
-					CustomData_set_layer_##active_type##_index(data, layer_type, a);            \
+					CustomData_set_layer_##active_type(data, layer_type, a);                    \
+					                                                                            \
+					/* keep loops in sync */                                                    \
+					if (layer_type == CD_MTEXPOLY) {                                            \
+						CustomData *ldata = rna_mesh_ldata_helper(me);                          \
+						CustomData_set_layer_##active_type(ldata, CD_MLOOPUV, a);               \
+					}                                                                           \
 					mesh_update_customdata_pointers(me, TRUE);                                  \
 					return;                                                                     \
 				}                                                                               \
@@ -126,6 +134,11 @@
 		CustomData *data = rna_mesh_##customdata_type(ptr);                                     \
 		if (data) {                                                                             \
 			CustomData_set_layer_##active_type(data, layer_type, value);                        \
+			/* keep loops in sync */                                                            \
+			if (layer_type == CD_MTEXPOLY) {                                                    \
+				CustomData *ldata = rna_mesh_ldata_helper(me);                                  \
+				CustomData_set_layer_##active_type(ldata, CD_MLOOPUV, value);                   \
+			}                                                                                   \
 			mesh_update_customdata_pointers(me, TRUE);                                          \
 		}                                                                                       \
 	}

@@ -44,8 +44,6 @@
 #include "libmv/tracking/lmicklt_region_tracker.h"
 #include "libmv/tracking/pyramid_region_tracker.h"
 
-#include "libmv/tracking/sad.h"
-
 #include "libmv/simple_pipeline/callbacks.h"
 #include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/initialize_reconstruction.h"
@@ -137,10 +135,23 @@ libmv_RegionTracker *libmv_hybridRegionTrackerNew(int max_iterations, int half_w
 	libmv::BruteRegionTracker *brute_region_tracker = new libmv::BruteRegionTracker;
 	brute_region_tracker->half_window_size = half_window_size;
 
+	/* do not use correlation check for brute checker itself,
+	 * this check will happen in esm tracker */
+	brute_region_tracker->minimum_correlation = 0.0;
+
 	libmv::HybridRegionTracker *hybrid_region_tracker =
 		new libmv::HybridRegionTracker(brute_region_tracker, esm_region_tracker);
 
 	return (libmv_RegionTracker *)hybrid_region_tracker;
+}
+
+libmv_RegionTracker *libmv_bruteRegionTrackerNew(int half_window_size, double minimum_correlation)
+{
+	libmv::BruteRegionTracker *brute_region_tracker = new libmv::BruteRegionTracker;
+	brute_region_tracker->half_window_size = half_window_size;
+	brute_region_tracker->minimum_correlation = minimum_correlation;
+
+	return (libmv_RegionTracker *)brute_region_tracker;
 }
 
 static void floatBufToImage(const float *buf, int width, int height, libmv::FloatImage *image)
@@ -312,33 +323,6 @@ void libmv_regionTrackerDestroy(libmv_RegionTracker *libmv_tracker)
 	libmv::RegionTracker *region_tracker= (libmv::RegionTracker *)libmv_tracker;
 
 	delete region_tracker;
-}
-
-/* ************ Tracks ************ */
-
-void libmv_SADSamplePattern(unsigned char *image, int stride,
-			float warp[3][2], unsigned char *pattern, int pattern_size)
-{
-	libmv::mat32 mat32;
-
-	memcpy(mat32.data, warp, sizeof(float)*3*2);
-
-	libmv::SamplePattern(image, stride, mat32, pattern, pattern_size);
-}
-
-float libmv_SADTrackerTrack(unsigned char *pattern, unsigned char *warped, int pattern_size, unsigned char *image, int stride,
-			int width, int height, float warp[3][2])
-{
-	float result;
-	libmv::mat32 mat32;
-
-	memcpy(mat32.data, warp, sizeof(float)*3*2);
-
-	result = libmv::Track(pattern, warped, pattern_size, image, stride, width, height, &mat32, 16, 16);
-
-	memcpy(warp, mat32.data, sizeof(float)*3*2);
-
-	return result;
 }
 
 /* ************ Tracks ************ */

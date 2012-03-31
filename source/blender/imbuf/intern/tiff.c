@@ -85,7 +85,7 @@ typedef struct ImbTIFFMemFile {
 	toff_t offset;		/* Current offset within the file.      */
 	tsize_t size;		/* Size of the TIFF file.               */
 } ImbTIFFMemFile;
-#define IMB_TIFF_GET_MEMFILE(x) ((ImbTIFFMemFile*)(x));
+#define IMB_TIFF_GET_MEMFILE(x) ((ImbTIFFMemFile*)(x))
 
 
 
@@ -492,7 +492,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 
 void imb_inittiff(void)
 {
-	if (!(G.f & G_DEBUG))
+	if (!(G.debug & G_DEBUG))
 		TIFFSetErrorHandler(NULL);
 }
 

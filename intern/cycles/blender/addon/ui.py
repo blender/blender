@@ -197,6 +197,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_emit")
         col.prop(rl, "use_pass_environment")
         col.prop(rl, "use_pass_ambient_occlusion")
+        col.prop(rl, "use_pass_shadow")
 
         col = split.column()
         col.label()
@@ -804,7 +805,9 @@ def draw_pause(self, context):
 
         if view.viewport_shade == 'RENDERED':
             cscene = scene.cycles
+            layername = scene.render.layers.active.name
             layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
+            layout.prop(cscene, "preview_active_layer", icon="RENDERLAYERS", text=layername)
 
 
 def get_panels():

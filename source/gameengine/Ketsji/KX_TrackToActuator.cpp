@@ -72,7 +72,7 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 
 	{
 		// if the object is vertex parented, don't check parent orientation as the link is broken
-		if (!((KX_GameObject*)gameobj)->IsVertexParent()){
+		if (!((KX_GameObject*)gameobj)->IsVertexParent()) {
 			m_parentobj = ((KX_GameObject*)gameobj)->GetParent(); // check if the object is parented 
 			if (m_parentobj) {  
 				// if so, store the initial local rotation
@@ -391,7 +391,7 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 		mat= matrix3x3_interpol(oldmat, mat, m_time);
 		
 
-		if (m_parentobj){ // check if the model is parented and calculate the child transform
+		if (m_parentobj) { // check if the model is parented and calculate the child transform
 				
 			MT_Point3 localpos;
 			localpos = curobj->GetSGNode()->GetLocalPosition();

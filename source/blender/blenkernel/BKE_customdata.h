@@ -125,7 +125,7 @@ void CustomData_free_temporary(struct CustomData *data, int totelem);
  * backed by an external data array. the different allocation types are
  * defined above. returns the data of the layer.
  *
- * in editmode, use EM_add_data_layer instead of this function
+ * in editmode, use EDBM_data_layer_add instead of this function
  */
 void *CustomData_add_layer(struct CustomData *data, int type, int alloctype,
 						   void *layer, int totelem);
@@ -136,14 +136,14 @@ void *CustomData_add_layer_named(struct CustomData *data, int type, int alloctyp
 /* frees the active or first data layer with the give type.
  * returns 1 on succes, 0 if no layer with the given type is found
  *
- * in editmode, use EM_free_data_layer instead of this function
+ * in editmode, use EDBM_data_layer_free instead of this function
  */
 int CustomData_free_layer(struct CustomData *data, int type, int totelem, int index);
 
 /* frees the layer index with the give type.
  * returns 1 on succes, 0 if no layer with the given type is found
  *
- * in editmode, use EM_free_data_layer instead of this function
+ * in editmode, use EDBM_data_layer_free instead of this function
  */
 int CustomData_free_layer_active(struct CustomData *data, int type, int totelem);
 

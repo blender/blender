@@ -217,7 +217,7 @@ void RAS_2DFilterManager::StartShaderProgram(int passindex)
 	}
 
 	/* send depth texture to glsl program if it needs */
-	if (texflag[passindex] & 0x1){
+	if (texflag[passindex] & 0x1) {
 		uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_DepthTexture");
 		glActiveTextureARB(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texname[1]);
@@ -229,7 +229,7 @@ void RAS_2DFilterManager::StartShaderProgram(int passindex)
 	}
 
 	/* send luminance texture to glsl program if it needs */
-	if (texflag[passindex] & 0x2){
+	if (texflag[passindex] & 0x2) {
 		uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_LuminanceTexture");
 		glActiveTextureARB(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texname[2]);
@@ -296,7 +296,7 @@ void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-	if (depth){
+	if (depth) {
 		glGenTextures(1, (GLuint*)&texname[1]);
 		glBindTexture(GL_TEXTURE_2D, texname[1]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, texturewidth,textureheight,
@@ -309,7 +309,7 @@ void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	}
 
-	if (luminance){
+	if (luminance) {
 		glGenTextures(1, (GLuint*)&texname[2]);
 		glBindTexture(GL_TEXTURE_2D, texname[2]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE16, texturewidth, textureheight,
@@ -384,7 +384,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 
 	for (passindex =0; passindex<MAX_RENDER_PASS; passindex++)
 	{
-		if (m_filters[passindex] && m_enabled[passindex]){
+		if (m_filters[passindex] && m_enabled[passindex]) {
 			num_filters ++;
 			if (texflag[passindex] & 0x1)
 				need_depth = true;
@@ -414,13 +414,13 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 		need_tex_update = false;
 	}
 
-	if (need_depth){
+	if (need_depth) {
 		glActiveTextureARB(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texname[1]);
 		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, 0, 0, texturewidth,textureheight, 0);
 	}
 	
-	if (need_luminance){
+	if (need_luminance) {
 		glActiveTextureARB(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texname[2]);
 		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, 0, 0, texturewidth,textureheight, 0);

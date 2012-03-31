@@ -60,7 +60,6 @@ double round(double x)
 double round(double x);
 #endif
 
-
 /* from python 3.1 floatobject.c
  * ndigits must be between 0 and 21 */
 double double_round(double x, int ndigits)
@@ -69,7 +68,7 @@ double double_round(double x, int ndigits)
 	if (ndigits >= 0) {
 		pow1 = pow(10.0, (double)ndigits);
 		pow2 = 1.0;
-		y = (x*pow1)*pow2;
+		y = (x * pow1) * pow2;
 		/* if y overflows, then rounded value is exactly x */
 		if (!finite(y))
 			return x;
@@ -81,9 +80,9 @@ double double_round(double x, int ndigits)
 	}
 
 	z = round(y);
-	if (fabs(y-z) == 0.5)
+	if (fabs(y - z) == 0.5)
 		/* halfway between two integers; use round-half-even */
-		z = 2.0*round(y/2.0);
+		z = 2.0 * round(y / 2.0);
 
 	if (ndigits >= 0)
 		z = (z / pow2) / pow1;
@@ -93,4 +92,3 @@ double double_round(double x, int ndigits)
 	/* if computation resulted in overflow, raise OverflowError */
 	return z;
 }
-

@@ -61,7 +61,7 @@ typedef struct BMEditMesh {
 	int lastDataMask;
 
 	/* index tables, to map indices to elements via
-	 * EDBM_init_index_arrays and associated functions.  don't
+	 * EDBM_index_arrays_init and associated functions.  don't
 	 * touch this or read it directly.*/
 	struct BMVert **vert_index;
 	struct BMEdge **edge_index;
@@ -79,10 +79,6 @@ typedef struct BMEditMesh {
 	int mirror_cdlayer; /* -1 is invalid */
 	int mirr_free_arrays;
 } BMEditMesh;
-
-/* undo triggers editmesh tessface update, this is odd but works OK.
- * BMESH_TODO, look into having the update elsewhere. */
-#define BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND
 
 void BMEdit_RecalcTessellation(BMEditMesh *tm);
 BMEditMesh *BMEdit_Create(BMesh *bm, int do_tessellate);

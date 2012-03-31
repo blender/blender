@@ -478,6 +478,41 @@ class CLIP_PT_track(Panel):
             layout.label(text=label_text)
 
 
+class CLIP_PT_track_settings(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Tracking Settings"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        return sc.mode == 'TRACKING' and sc.clip
+
+    def draw(self, context):
+        layout = self.layout
+        clip = context.space_data.clip
+        settings = clip.tracking.settings
+
+        col = layout.column()
+
+        active = clip.tracking.tracks.active
+        if active:
+            col.prop(active, "tracker")
+
+            if active.tracker == 'KLT':
+                col.prop(active, "pyramid_levels")
+            col.prop(active, "correlation_min")
+
+            col.separator()
+            col.prop(active, "frames_limit")
+            col.prop(active, "margin")
+            col.prop(active, "pattern_match", text="Match")
+
+        col.prop(settings, "speed")
+
+
 class CLIP_PT_tracking_camera(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
@@ -595,41 +630,6 @@ class CLIP_PT_marker_display(Panel):
         row = col.row()
         row.active = sc.show_track_path
         row.prop(sc, "path_length", text="Length")
-
-
-class CLIP_PT_track_settings(Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'UI'
-    bl_label = "Tracking Settings"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-
-        return sc.mode == 'TRACKING' and sc.clip
-
-    def draw(self, context):
-        layout = self.layout
-        clip = context.space_data.clip
-        settings = clip.tracking.settings
-
-        col = layout.column()
-
-        active = clip.tracking.tracks.active
-        if active:
-            col.prop(active, "tracker")
-
-            if active.tracker == 'KLT':
-                col.prop(active, "pyramid_levels")
-            col.prop(active, "correlation_min")
-
-            col.separator()
-            col.prop(active, "frames_limit")
-            col.prop(active, "margin")
-            col.prop(active, "pattern_match", text="Match")
-
-        col.prop(settings, "speed")
 
 
 class CLIP_PT_stabilization(Panel):

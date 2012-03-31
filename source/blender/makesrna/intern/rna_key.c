@@ -83,7 +83,7 @@ void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 	}
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename("key_blocks", oldname, kb->name);
+	BKE_all_animdata_fix_paths_rename(NULL, "key_blocks", oldname, kb->name);
 }
 
 static void rna_ShapeKey_value_set(PointerRNA *ptr, float value)
@@ -93,7 +93,7 @@ static void rna_ShapeKey_value_set(PointerRNA *ptr, float value)
 	data->curval = value;
 }
 
-static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max)
+static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	KeyBlock *data = (KeyBlock*)ptr->data;
 
@@ -104,7 +104,7 @@ static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max)
 /* epsilon for how close one end of shapekey range can get to the other */
 #define SHAPEKEY_SLIDER_TOL 0.001f
 
-static void rna_ShapeKey_slider_min_range(PointerRNA *ptr, float *min, float *max)
+static void rna_ShapeKey_slider_min_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	KeyBlock *data = (KeyBlock*)ptr->data;
 
@@ -115,14 +115,14 @@ static void rna_ShapeKey_slider_min_range(PointerRNA *ptr, float *min, float *ma
 static void rna_ShapeKey_slider_min_set(PointerRNA *ptr, float value)
 {
 	KeyBlock *data = (KeyBlock*)ptr->data;
-	float min, max;
+	float min, max, softmin, softmax;
 	
-	rna_ShapeKey_slider_min_range(ptr, &min, &max);
+	rna_ShapeKey_slider_min_range(ptr, &min, &max, &softmin, &softmax);
 	CLAMP(value, min, max);
 	data->slidermin = value;
 }
 
-static void rna_ShapeKey_slider_max_range(PointerRNA *ptr, float *min, float *max)
+static void rna_ShapeKey_slider_max_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	KeyBlock *data = (KeyBlock*)ptr->data;
 
@@ -133,9 +133,9 @@ static void rna_ShapeKey_slider_max_range(PointerRNA *ptr, float *min, float *ma
 static void rna_ShapeKey_slider_max_set(PointerRNA *ptr, float value)
 {
 	KeyBlock *data = (KeyBlock*)ptr->data;
-	float min, max;
+	float min, max, softmin, softmax;
 	
-	rna_ShapeKey_slider_max_range(ptr, &min, &max);
+	rna_ShapeKey_slider_max_range(ptr, &min, &max, &softmin, &softmax);
 	CLAMP(value, min, max);
 	data->slidermax = value;
 }

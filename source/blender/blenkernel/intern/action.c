@@ -464,10 +464,11 @@ bPoseChannel *get_active_posechannel (Object *ob)
 {
 	bArmature *arm= (ob) ? ob->data : NULL;
 	bPoseChannel *pchan;
-	
-	if ELEM3(NULL, ob, ob->pose, arm)
+
+	if (ELEM3(NULL, ob, ob->pose, arm)) {
 		return NULL;
-	
+	}
+
 	/* find active */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if ((pchan->bone) && (pchan->bone == arm->act_bone) && (pchan->bone->layer & arm->layer))

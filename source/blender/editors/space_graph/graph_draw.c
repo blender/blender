@@ -73,18 +73,10 @@
  * drawing components for some F-Curve (fcu)
  *	- selected F-Curves should be more visible than partially visible ones
  */
-#define drawFCurveFade(fcu) ( ((fcu)->flag & FCURVE_SELECTED)? 1.0f : U.fcu_inactive_alpha )
-
-/* set the color for some point from some value given packed into an int 
- *	- intV: integer value containing color info packed into an int
- *	- alpha: float value describing the 
- */
-#define cpackA(intVC, alpha)                                                  \
-	{                                                                         \
-		float _cpackCol[3];                                                   \
-		cpack_to_rgb(intVC, &_cpackCol[0], &_cpackCol[1], &_cpackCol[2]);     \
-		glColor4f(_cpackCol[0], _cpackCol[1], _cpackCol[2], alpha);           \
-	}
+static float fcurve_display_alpha(FCurve *fcu)
+{
+	return (fcu->flag & FCURVE_SELECTED) ? 1.0f : U.fcu_inactive_alpha;
+}
 
 /* *************************** */
 /* F-Curve Modifier Drawing */
@@ -263,7 +255,7 @@ static void draw_fcurve_vertices_handles (FCurve *fcu, SpaceIpo *sipo, View2D *v
 static void set_fcurve_vertex_color (FCurve *fcu, short sel)
 {
 	/* Fade the 'intensity' of the vertices based on the selection of the curves too */
-	int alphaOffset= (int)((drawFCurveFade(fcu) - 1.0f) * 255);
+	int alphaOffset= (int)((fcurve_display_alpha(fcu) - 1.0f) * 255);
 	
 	/* Set color of curve vertex based on state of curve (i.e. 'Edit' Mode) */
 	if ((fcu->flag & FCURVE_PROTECTED)==0) {
@@ -369,7 +361,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 				/* only draw first handle if previous segment had handles */
 				if ((!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ))) {
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
-					col[3]= drawFCurveFade(fcu) * 255;
+					col[3]= fcurve_display_alpha(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
 					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
@@ -378,7 +370,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 				/* only draw second handle if this segment is bezier */
 				if (bezt->ipo == BEZT_IPO_BEZ) {
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
-					col[3]= drawFCurveFade(fcu) * 255;
+					col[3]= fcurve_display_alpha(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
 					
 					glVertex2fv(fp+3); glVertex2fv(fp+6); 
@@ -391,7 +383,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 				{
 					fp= bezt->vec[0];
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
-					col[3]= drawFCurveFade(fcu) * 255;
+					col[3]= fcurve_display_alpha(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
 					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
@@ -403,7 +395,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 				{
 					fp= bezt->vec[1];
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
-					col[3]= drawFCurveFade(fcu) * 255;
+					col[3]= fcurve_display_alpha(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
 					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
@@ -867,7 +859,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				/* set whatever color the curve has set 
 				 *	- unselected curves draw less opaque to help distinguish the selected ones
 				 */
-				glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], drawFCurveFade(fcu));
+				glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], fcurve_display_alpha(fcu));
 			}
 			
 			/* draw active F-Curve thicker than the rest to make it stand out */

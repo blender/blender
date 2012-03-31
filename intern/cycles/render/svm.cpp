@@ -326,6 +326,12 @@ void SVMCompiler::add_node(const float4& f)
 		__float_as_int(f.w)));
 }
 
+void SVMCompiler::add_array(float4 *f, int num)
+{
+	for(int i = 0; i < num; i++)
+		add_node(f[i]);
+}
+
 uint SVMCompiler::attribute(ustring name)
 {
 	return shader_manager->get_attribute_id(name);

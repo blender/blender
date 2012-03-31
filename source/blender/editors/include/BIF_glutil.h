@@ -47,6 +47,8 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1);
 void fdrawXORellipse(float xofs, float yofs, float hw, float hh);
 void fdrawXORcirc(float xofs, float yofs, float rad);
 
+void fdrawcheckerboard(float x1, float y1, float x2, float y2);
+
 /* glStipple defines */
 extern unsigned char stipple_halftone[128];
 extern unsigned char stipple_quarttone[128];

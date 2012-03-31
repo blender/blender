@@ -69,7 +69,8 @@ void operator_wrapper(wmOperatorType *ot, void *userdata)
 
 	operator_properties_init(ot);
 
-	{	/* XXX - not nice, set the first enum as searchable, should have a way for python to set */
+	/* XXX - not nice, set the first enum as searchable, should have a way for python to set */
+	{
 		PointerRNA ptr;
 		PropertyRNA *prop;
 

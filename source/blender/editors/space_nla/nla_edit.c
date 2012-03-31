@@ -399,7 +399,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	
 	if (act == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No valid Action to add");
-		//printf("Add strip - actname = '%s' \n", actname);
+		//printf("Add strip - actname = '%s'\n", actname);
 		return OPERATOR_CANCELLED;
 	}
 	else if (act->idroot == 0) {
@@ -520,7 +520,7 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 		NlaStrip *s1, *s2;
 		
 		/* get initial pair of strips */
-		if ELEM(nlt->strips.first, NULL, nlt->strips.last)
+		if (ELEM(nlt->strips.first, NULL, nlt->strips.last))
 			continue;
 		s1= nlt->strips.first;
 		s2= s1->next;
@@ -530,7 +530,7 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 			NlaStrip *strip;
 			
 			/* check if both are selected */
-			if ELEM(0, (s1->flag & NLASTRIP_FLAG_SELECT), (s2->flag & NLASTRIP_FLAG_SELECT))
+			if (ELEM(0, (s1->flag & NLASTRIP_FLAG_SELECT), (s2->flag & NLASTRIP_FLAG_SELECT)))
 				continue;
 			/* check if there's space between the two */
 			if (IS_EQF(s1->end, s2->start))

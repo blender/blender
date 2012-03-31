@@ -236,7 +236,7 @@ static float _final_goal(Object *ob,BodyPoint *bp)/*jow_go_for2_5 */
 			return (f);
 		}
 	}
-	printf("_final_goal failed! sb or bp ==NULL \n" );
+	printf("_final_goal failed! sb or bp ==NULL\n" );
 	return f; /*using crude but spot able values some times helps debuggin */
 }
 
@@ -248,7 +248,7 @@ static float _final_mass(Object *ob,BodyPoint *bp)
 			return(bp->mass*sb->nodemass);
 		}
 	}
-	printf("_final_mass failed! sb or bp ==NULL \n" );
+	printf("_final_mass failed! sb or bp ==NULL\n" );
 	return 1.0f;
 }
 /* helper functions for everything is animateble jow_go_for2_5 ------*/
@@ -1067,7 +1067,7 @@ static int sb_detect_aabb_collisionCached(	float UNUSED(force[3]), unsigned int 
 				}
 				else {
 					/*aye that should be cached*/
-					printf("missing cache error \n");
+					printf("missing cache error\n");
 					BLI_ghashIterator_step(ihash);
 					continue;
 				}
@@ -1134,7 +1134,7 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 				}
 				else {
 					/*aye that should be cached*/
-					printf("missing cache error \n");
+					printf("missing cache error\n");
 					BLI_ghashIterator_step(ihash);
 					continue;
 				}
@@ -1229,7 +1229,7 @@ static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],floa
 				}
 				else {
 					/*aye that should be cached*/
-					printf("missing cache error \n");
+					printf("missing cache error\n");
 					BLI_ghashIterator_step(ihash);
 					continue;
 				}
@@ -1457,7 +1457,7 @@ static int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],floa
 				}
 				else {
 					/*aye that should be cached*/
-					printf("missing cache error \n");
+					printf("missing cache error\n");
 					BLI_ghashIterator_step(ihash);
 					continue;
 				}
@@ -1794,7 +1794,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 				}
 				else {
 					/*aye that should be cached*/
-					printf("missing cache error \n");
+					printf("missing cache error\n");
 						BLI_ghashIterator_step(ihash);
 					continue;
 				}
@@ -2185,7 +2185,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 	/* --- could be done on object level to squeeze out the last bits of it */
 	}
 	else {
-		printf("Error expected a SB here \n");
+		printf("Error expected a SB here\n");
 		return (999);
 	}
 
@@ -2395,7 +2395,7 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 		totthread--;
 	}
 
-	/* printf("sb_cf_threads_run spawning %d threads \n",totthread); */
+	/* printf("sb_cf_threads_run spawning %d threads\n",totthread); */
 
 	sb_threads= MEM_callocN(sizeof(SB_thread_context)*totthread, "SBThread");
 	memset(sb_threads, 0, sizeof(SB_thread_context)*totthread);
@@ -2874,7 +2874,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					*/
 			}
 			else {
-				printf("Matrix inversion failed \n");
+				printf("Matrix inversion failed\n");
 				for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 					copy_v3_v3(bp->impdv,bp->force);
 				}
@@ -3017,7 +3017,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 		*err = MAX2(maxerrpos,maxerrvel);
 		else
 		*err = maxerrpos;
-		//printf("EP %f EV %f \n",maxerrpos,maxerrvel);
+		//printf("EP %f EV %f\n",maxerrpos,maxerrvel);
 		if (fuzzy) {
 			*err /= sb->fuzzyness;
 		}
@@ -3308,11 +3308,11 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		if (sb->namedVG_Mass[0])
 		{
 			int grp= defgroup_name_index (ob,sb->namedVG_Mass);
-			/* printf("VGN  %s %d \n",sb->namedVG_Mass,grp); */
+			/* printf("VGN  %s %d\n",sb->namedVG_Mass,grp); */
 			if (grp > -1) {
 				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->mass);
 				/* 2.5  bp->mass = bp->mass * sb->nodemass; */
-				/* printf("bp->mass  %f \n",bp->mass); */
+				/* printf("bp->mass  %f\n",bp->mass); */
 
 			}
 		}
@@ -3322,10 +3322,10 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		if (sb->namedVG_Spring_K[0])
 		{
 			int grp= defgroup_name_index (ob,sb->namedVG_Spring_K);
-			//printf("VGN  %s %d \n",sb->namedVG_Spring_K,grp);
+			//printf("VGN  %s %d\n",sb->namedVG_Spring_K,grp);
 			if (grp > -1) {
 				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->springweight);
-				//printf("bp->springweight  %f \n",bp->springweight);
+				//printf("bp->springweight  %f\n",bp->springweight);
 
 			}
 		}
@@ -3405,7 +3405,7 @@ static void reference_to_scratch(Object *ob)
 	}
 	mul_v3_fl(accu_pos,1.0f/accu_mass);
 	copy_v3_v3(sb->scratch->Ref.com,accu_pos);
-	/* printf("reference_to_scratch \n"); */
+	/* printf("reference_to_scratch\n"); */
 }
 
 /*
@@ -4012,7 +4012,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		interpolate_exciter(ob, 2, 2);
 		softbody_apply_goalsnap(ob);
 
-		//				if (G.f & G_DEBUG) {
+		//				if (G.debug & G_DEBUG) {
 		if (sb->solverflags & SBSO_MONITOR ) {
 			if (loops > HEUNWARNLIMIT) /* monitor high loop counts */
 				printf("\r needed %d steps/frame",loops);
@@ -4039,7 +4039,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 
 	if (sb->solverflags & SBSO_MONITOR ) {
 		sct=PIL_check_seconds_timer();
-		if ((sct-sst > 0.5f) || (G.f & G_DEBUG)) printf(" solver time %f sec %s \n",sct-sst,ob->id.name);
+		if ((sct-sst > 0.5f) || (G.debug & G_DEBUG)) printf(" solver time %f sec %s\n",sct-sst,ob->id.name);
 	}
 }
 

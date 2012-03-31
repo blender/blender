@@ -470,7 +470,7 @@ static float rna_PartSetting_linelentail_get(struct PointerRNA *ptr)
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
 	return settings->draw_line[0];
 }
-static void rna_PartSetting_pathstartend_range(PointerRNA *ptr, float *min, float *max)
+static void rna_PartSetting_pathstartend_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
 
@@ -526,7 +526,7 @@ static PointerRNA rna_ParticleSystem_active_particle_target_get(PointerRNA *ptr)
 	}
 	return rna_pointer_inherit_refine(ptr, &RNA_ParticleTarget, NULL);
 }
-static void rna_ParticleSystem_active_particle_target_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_ParticleSystem_active_particle_target_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	ParticleSystem *psys = (ParticleSystem*)ptr->data;
 	*min = 0;
@@ -666,7 +666,7 @@ static PointerRNA rna_ParticleDupliWeight_active_get(PointerRNA *ptr)
 	}
 	return rna_pointer_inherit_refine(ptr, &RNA_ParticleTarget, NULL);
 }
-static void rna_ParticleDupliWeight_active_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_ParticleDupliWeight_active_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	ParticleSettings *part = (ParticleSettings*)ptr->id.data;
 	*min = 0;
@@ -1766,7 +1766,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, rot_mode_items);
-	RNA_def_property_ui_text(prop, "Orientation axis", "Particle orientation axis (does not effect eplode modifier results)");
+	RNA_def_property_ui_text(prop, "Orientation axis", "Particle orientation axis (does not affect Explode modifier's results)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "angular_velocity_mode", PROP_ENUM, PROP_NONE);

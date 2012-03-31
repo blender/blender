@@ -66,7 +66,7 @@ SG_IObject(
 SG_IObject::
 AddSGController(
 	SG_Controller* cont
-){
+) {
 	m_SGcontrollers.push_back(cont);
 }
 

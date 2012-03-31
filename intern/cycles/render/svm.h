@@ -67,6 +67,7 @@ public:
 	void add_node(int a = 0, int b = 0, int c = 0, int d = 0);
 	void add_node(NodeType type, const float3& f);
 	void add_node(const float4& f);
+	void add_array(float4 *f, int num);
 	uint attribute(ustring name);
 	uint attribute(Attribute::Standard std);
 	uint encode_uchar4(uint x, uint y = 0, uint z = 0, uint w = 0);

@@ -161,7 +161,7 @@ void bfree(VBVHTree *tree)
 {
 	if (tot_pushup + tot_pushdown + tot_hints + tot_moves)
 	{
-		if (G.f & G_DEBUG) {
+		if (G.debug & G_DEBUG) {
 			printf("tot pushups: %d\n", tot_pushup);
 			printf("tot pushdowns: %d\n", tot_pushdown);
 			printf("tot moves: %d\n", tot_moves);

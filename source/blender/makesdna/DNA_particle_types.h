@@ -481,13 +481,13 @@ typedef struct ParticleSystem
 #define PART_CHILD_FACES		2
 
 /* psys->recalc */
-/* starts from 8 so that the first bits can be ob->recalc */
-#define PSYS_RECALC_REDO	8	/* only do pathcache etc */
-#define PSYS_RECALC_RESET	16	/* reset everything including pointcache */
-#define PSYS_RECALC_TYPE	32	/* handle system type change */
-#define PSYS_RECALC_CHILD	64	/* only child settings changed */
-#define PSYS_RECALC_PHYS	128	/* physics type changed */
-#define PSYS_RECALC			248
+/* starts from (1 << 3) so that the first bits can be ob->recalc */
+#define PSYS_RECALC_REDO   (1 << 3) /* only do pathcache etc */
+#define PSYS_RECALC_RESET  (1 << 4) /* reset everything including pointcache */
+#define PSYS_RECALC_TYPE   (1 << 5) /* handle system type change */
+#define PSYS_RECALC_CHILD  (1 << 6) /* only child settings changed */
+#define PSYS_RECALC_PHYS   (1 << 7) /* physics type changed */
+#define PSYS_RECALC        (PSYS_RECALC_REDO | PSYS_RECALC_RESET | PSYS_RECALC_TYPE | PSYS_RECALC_CHILD | PSYS_RECALC_PHYS)
 
 /* psys->flag */
 #define PSYS_CURRENT		1

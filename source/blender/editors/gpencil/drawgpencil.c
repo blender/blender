@@ -117,7 +117,7 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 		float oldpressure = points[0].pressure;
 		
 		/* draw stroke curve */
-		if (G.f & G_DEBUG) setlinestyle(2);
+		if (G.debug & G_DEBUG) setlinestyle(2);
 
 		glLineWidth(oldpressure * thickness);
 		glBegin(GL_LINE_STRIP);
@@ -147,7 +147,7 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 		/* reset for predictable OpenGL context */
 		glLineWidth(1.0f);
 		
-		if (G.f & G_DEBUG) setlinestyle(0);
+		if (G.debug & G_DEBUG) setlinestyle(0);
 	}
 }
 

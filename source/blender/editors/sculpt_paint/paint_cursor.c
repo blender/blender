@@ -76,26 +76,26 @@ typedef struct Snapshot {
 	int curve_changed_timestamp;
 } Snapshot;
 
-static int same_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
+static int same_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
 {
-	MTex* mtex = &brush->mtex;
+	MTex *mtex = &brush->mtex;
 
 	return (((mtex->tex) &&
-			 equals_v3v3(mtex->ofs, snap->ofs) &&
-			 equals_v3v3(mtex->size, snap->size) &&
-			 mtex->rot == snap->rot) &&
+	         equals_v3v3(mtex->ofs, snap->ofs) &&
+	         equals_v3v3(mtex->size, snap->size) &&
+	         mtex->rot == snap->rot) &&
 
-			/* make brush smaller shouldn't cause a resample */
-			((mtex->brush_map_mode == MTEX_MAP_MODE_FIXED &&
-			  (brush_size(vc->scene, brush) <= snap->brush_size)) ||
-			 (brush_size(vc->scene, brush) == snap->brush_size)) &&
+	        /* make brush smaller shouldn't cause a resample */
+	        ((mtex->brush_map_mode == MTEX_MAP_MODE_FIXED &&
+	          (brush_size(vc->scene, brush) <= snap->brush_size)) ||
+	         (brush_size(vc->scene, brush) == snap->brush_size)) &&
 
-			(mtex->brush_map_mode == snap->brush_map_mode) &&
-			(vc->ar->winx == snap->winx) &&
-			(vc->ar->winy == snap->winy));
+	        (mtex->brush_map_mode == snap->brush_map_mode) &&
+	        (vc->ar->winx == snap->winx) &&
+	        (vc->ar->winy == snap->winy));
 }
 
-static void make_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
+static void make_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
 {
 	if (brush->mtex.tex) {
 		snap->brush_map_mode = brush->mtex.brush_map_mode;
@@ -105,8 +105,8 @@ static void make_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
 	}
 	else {
 		snap->brush_map_mode = -1;
-		snap->ofs[0]= snap->ofs[1]= snap->ofs[2]= -1;
-		snap->size[0]= snap->size[1]= snap->size[2]= -1;
+		snap->ofs[0] = snap->ofs[1] = snap->ofs[2] = -1;
+		snap->size[0] = snap->size[1] = snap->size[2] = -1;
 		snap->rot = -1;
 	}
 
@@ -115,7 +115,7 @@ static void make_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
 	snap->winy = vc->ar->winy;
 }
 
-static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
+static int load_tex(Sculpt *sd, Brush *br, ViewContext *vc)
 {
 	static GLuint overlay_texture = 0;
 	static int init = 0;
@@ -124,7 +124,7 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 	static Snapshot snap;
 	static int old_size = -1;
 
-	GLubyte* buffer = NULL;
+	GLubyte *buffer = NULL;
 
 	int size;
 	int j;
@@ -137,13 +137,13 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 	if (br->mtex.brush_map_mode == MTEX_MAP_MODE_TILED && !br->mtex.tex) return 0;
 	
 	refresh = 
-		!overlay_texture ||
-		(br->mtex.tex && 
-		    (!br->mtex.tex->preview ||
-		      br->mtex.tex->preview->changed_timestamp[0] != tex_changed_timestamp)) ||
-		!br->curve ||
-		br->curve->changed_timestamp != curve_changed_timestamp ||
-		!same_snap(&snap, br, vc);
+	    !overlay_texture ||
+	    (br->mtex.tex &&
+	     (!br->mtex.tex->preview ||
+	      br->mtex.tex->preview->changed_timestamp[0] != tex_changed_timestamp)) ||
+	    !br->curve ||
+	    br->curve->changed_timestamp != curve_changed_timestamp ||
+	    !same_snap(&snap, br, vc);
 
 	if (refresh) {
 		if (br->mtex.tex && br->mtex.tex->preview)
@@ -161,7 +161,7 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 			for (s >>= 1; s > 0; s >>= 1)
 				r++;
 
-			size = (1<<r);
+			size = (1 << r);
 
 			if (size < 256)
 				size = 256;
@@ -183,26 +183,26 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 			old_size = size;
 		}
 
-		buffer = MEM_mallocN(sizeof(GLubyte)*size*size, "load_tex");
+		buffer = MEM_mallocN(sizeof(GLubyte) * size * size, "load_tex");
 
 		#pragma omp parallel for schedule(static) if (sd->flags & SCULPT_USE_OPENMP)
-		for (j= 0; j < size; j++) {
+		for (j = 0; j < size; j++) {
 			int i;
 			float y;
 			float len;
 
-			for (i= 0; i < size; i++) {
+			for (i = 0; i < size; i++) {
 
 				// largely duplicated from tex_strength
 
 				const float rotation = -br->mtex.rot;
 				float radius = brush_size(vc->scene, br);
-				int index = j*size + i;
+				int index = j * size + i;
 				float x;
 				float avg;
 
-				x = (float)i/size;
-				y = (float)j/size;
+				x = (float)i / size;
+				y = (float)j / size;
 
 				x -= 0.5f;
 				y -= 0.5f;
@@ -216,7 +216,7 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 					y *= 2;
 				}
 
-				len = sqrtf(x*x + y*y);
+				len = sqrtf(x * x + y * y);
 
 				if ((br->mtex.brush_map_mode == MTEX_MAP_MODE_TILED) || len <= 1) {
 					/* it is probably worth optimizing for those cases where 
@@ -240,9 +240,9 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 					avg += br->texture_sample_bias;
 
 					if (br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED)
-						avg *= brush_curve_strength(br, len, 1); /* Falloff curve */
+						avg *= brush_curve_strength(br, len, 1);  /* Falloff curve */
 
-					buffer[index] = 255 - (GLubyte)(255*avg);
+					buffer[index] = 255 - (GLubyte)(255 * avg);
 				}
 				else {
 					buffer[index] = 0;
@@ -254,7 +254,7 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 			glGenTextures(1, &overlay_texture);
 	}
 	else {
-		size= old_size;
+		size = old_size;
 	}
 
 	glBindTexture(GL_TEXTURE_2D, overlay_texture);
@@ -287,8 +287,8 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 }
 
 static int project_brush_radius(ViewContext *vc,
-								float radius,
-								const float location[3])
+                                float radius,
+                                const float location[3])
 {
 	float view[3], nonortho[3], ortho[3], offset[3], p1[2], p2[2];
 
@@ -328,9 +328,9 @@ static int project_brush_radius(ViewContext *vc,
 	return len_v2v2(p1, p2);
 }
 
-static int sculpt_get_brush_geometry(bContext* C, ViewContext *vc,
-									 int x, int y, int* pixel_radius,
-									 float location[3])
+static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
+                                     int x, int y, int *pixel_radius,
+                                     float location[3])
 {
 	Scene *scene = CTX_data_scene(C);
 	Paint *paint = paint_get_active(scene);
@@ -342,11 +342,11 @@ static int sculpt_get_brush_geometry(bContext* C, ViewContext *vc,
 	window[1] = y + vc->ar->winrct.ymin;
 
 	if (vc->obact->sculpt && vc->obact->sculpt->pbvh &&
-	   sculpt_stroke_get_location(C, location, window)) {
+	    sculpt_stroke_get_location(C, location, window)) {
 		*pixel_radius =
-			project_brush_radius(vc,
-								 brush_unprojected_radius(scene, brush),
-								 location);
+		    project_brush_radius(vc,
+		                         brush_unprojected_radius(scene, brush),
+		                         location);
 
 		if (*pixel_radius == 0)
 			*pixel_radius = brush_size(scene, brush);
@@ -356,8 +356,8 @@ static int sculpt_get_brush_geometry(bContext* C, ViewContext *vc,
 		hit = 1;
 	}
 	else {
-		Sculpt* sd    = CTX_data_tool_settings(C)->sculpt;
-		Brush*  brush = paint_brush(&sd->paint);
+		Sculpt *sd    = CTX_data_tool_settings(C)->sculpt;
+		Brush *brush = paint_brush(&sd->paint);
 
 		*pixel_radius = brush_size(scene, brush);
 		hit = 0;
@@ -370,26 +370,26 @@ static int sculpt_get_brush_geometry(bContext* C, ViewContext *vc,
  * have on brush strength */
 /* TODO: sculpt only for now */
 static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
-				     ViewContext *vc, int x, int y)
+                                     ViewContext *vc, int x, int y)
 {
 	rctf quad;
 
 	/* check for overlay mode */
 	if (!(brush->flag & BRUSH_TEXTURE_OVERLAY) ||
-	   !(ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_FIXED, MTEX_MAP_MODE_TILED)))
+	    !(ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_FIXED, MTEX_MAP_MODE_TILED)))
 		return;
 
 	/* save lots of GL state
 	 * TODO: check on whether all of these are needed? */
-	glPushAttrib(GL_COLOR_BUFFER_BIT|
-	             GL_CURRENT_BIT|
-	             GL_DEPTH_BUFFER_BIT|
-	             GL_ENABLE_BIT|
-	             GL_LINE_BIT|
-	             GL_POLYGON_BIT|
-	             GL_STENCIL_BUFFER_BIT|
-	             GL_TRANSFORM_BIT|
-	             GL_VIEWPORT_BIT|
+	glPushAttrib(GL_COLOR_BUFFER_BIT |
+	             GL_CURRENT_BIT |
+	             GL_DEPTH_BUFFER_BIT |
+	             GL_ENABLE_BIT |
+	             GL_LINE_BIT |
+	             GL_POLYGON_BIT |
+	             GL_STENCIL_BUFFER_BIT |
+	             GL_TRANSFORM_BIT |
+	             GL_VIEWPORT_BIT |
 	             GL_TEXTURE_BIT);
 
 	if (load_tex(sd, brush, vc)) {
@@ -408,26 +408,26 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 			glTranslatef(0.5, 0.5, 0);
 			glRotatef((double)RAD2DEGF((brush->flag & BRUSH_RAKE) ?
 			                           sd->last_angle : sd->special_rotation),
-			                           0.0, 0.0, 1.0);
+			          0.0, 0.0, 1.0);
 			glTranslatef(-0.5f, -0.5f, 0);
 
 			/* scale based on tablet pressure */
 			if (sd->draw_pressure && brush_use_size_pressure(vc->scene, brush)) {
 				glTranslatef(0.5f, 0.5f, 0);
-				glScalef(1.0f/sd->pressure_value, 1.0f/sd->pressure_value, 1);
+				glScalef(1.0f / sd->pressure_value, 1.0f / sd->pressure_value, 1);
 				glTranslatef(-0.5f, -0.5f, 0);
 			}
 
 			if (sd->draw_anchored) {
 				const float *aim = sd->anchored_initial_mouse;
 				const rcti *win = &vc->ar->winrct;
-				quad.xmin = aim[0]-sd->anchored_size - win->xmin;
-				quad.ymin = aim[1]-sd->anchored_size - win->ymin;
-				quad.xmax = aim[0]+sd->anchored_size - win->xmin;
-				quad.ymax = aim[1]+sd->anchored_size - win->ymin;
+				quad.xmin = aim[0] - sd->anchored_size - win->xmin;
+				quad.ymin = aim[1] - sd->anchored_size - win->ymin;
+				quad.xmax = aim[0] + sd->anchored_size - win->xmin;
+				quad.ymax = aim[1] + sd->anchored_size - win->ymin;
 			}
 			else {
-				const int radius= brush_size(vc->scene, brush);
+				const int radius = brush_size(vc->scene, brush);
 				quad.xmin = x - radius;
 				quad.ymin = y - radius;
 				quad.xmax = x + radius;
@@ -468,7 +468,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 /* Special actions taken when paint cursor goes over mesh */
 /* TODO: sculpt only for now */
 static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
-								const float location[3])
+                                const float location[3])
 {
 	float unprojected_radius, projected_radius;
 
@@ -486,7 +486,7 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 	
 		/* convert brush radius from 2D to 3D */
 		unprojected_radius = paint_calc_object_space_radius(vc, location,
-															projected_radius);
+		                                                    projected_radius);
 
 		/* scale 3D brush radius by pressure */
 		if (sd->draw_pressure && brush_use_size_pressure(vc->scene, brush))
@@ -541,11 +541,11 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 			const float dx = sd->last_x - x;
 			const float dy = sd->last_y - y;
 
-			if (dx*dx + dy*dy >= r*r) {
+			if (dx * dx + dy * dy >= r * r) {
 				sd->last_angle = atan2(dx, dy);
 
-				sd->last_x = u*sd->last_x + v*x;
-				sd->last_y = u*sd->last_y + v*y;
+				sd->last_x = u * sd->last_x + v * x;
+				sd->last_y = u * sd->last_y + v * y;
 			}
 		}
 
@@ -562,10 +562,10 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		/* TODO: no way currently to know state of pen flip or
 		 * invert key modifier without starting a stroke */
 		if ((!(brush->flag & BRUSH_INVERTED) ^
-		    !(brush->flag & BRUSH_DIR_IN)) &&
-		   ELEM5(brush->sculpt_tool, SCULPT_TOOL_DRAW,
-			 SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
-			 SCULPT_TOOL_PINCH, SCULPT_TOOL_CREASE))
+		     !(brush->flag & BRUSH_DIR_IN)) &&
+		    ELEM5(brush->sculpt_tool, SCULPT_TOOL_DRAW,
+		          SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
+		          SCULPT_TOOL_PINCH, SCULPT_TOOL_CREASE))
 			outline_col = brush->sub_col;
 
 		/* only do if brush is over the mesh */
@@ -588,7 +588,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	/* draw brush outline */
 	glTranslatef(translation[0], translation[1], 0);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, final_radius, 40);
+	glutil_draw_lined_arc(0.0, M_PI * 2.0, final_radius, 40);
 	glTranslatef(-translation[0], -translation[1], 0);
 
 	/* restore GL state */

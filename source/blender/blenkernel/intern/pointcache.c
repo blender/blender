@@ -74,7 +74,9 @@
 #include "BIK_api.h"
 
 /* both in intern */
+#ifdef WITH_SMOKE
 #include "smoke_API.h"
+#endif
 
 #ifdef WITH_LZO
 #include "minilzo.h"
@@ -90,11 +92,11 @@
 /* needed for directory lookup */
 /* untitled blend's need getpid for a unique name */
 #ifndef WIN32
-  #include <dirent.h>
-#include <unistd.h>
+#  include <dirent.h>
+#  include <unistd.h>
 #else
-#include <process.h>
-  #include "BLI_winstuff.h"
+#  include <process.h>
+#  include "BLI_winstuff.h"
 #endif
 
 #define PTCACHE_DATA_FROM(data, type, from)		if (data[type]) { memcpy(data[type], from, ptcache_data_size[type]); }
@@ -1621,7 +1623,7 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 
 	ptcache_file_close(pf);
 
-	if (error && G.f & G_DEBUG) 
+	if (error && G.debug & G_DEBUG)
 		printf("Error reading from disk cache\n");
 	
 	return pm;
@@ -1636,7 +1638,7 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 	pf = ptcache_file_open(pid, PTCACHE_FILE_WRITE, pm->frame);
 
 	if (pf==NULL) {
-		if (G.f & G_DEBUG) 
+		if (G.debug & G_DEBUG)
 			printf("Error opening disk cache file for writing\n");
 		return 0;
 	}
@@ -1705,7 +1707,7 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 
 	ptcache_file_close(pf);
 	
-	if (error && G.f & G_DEBUG) 
+	if (error && G.debug & G_DEBUG)
 		printf("Error writing to disk cache\n");
 
 	return error==0;
@@ -1720,7 +1722,7 @@ static int ptcache_read_stream(PTCacheID *pid, int cfra)
 		return 0;
 
 	if (pf == NULL) {
-		if (G.f & G_DEBUG) 
+		if (G.debug & G_DEBUG)
 			printf("Error opening disk cache file for reading\n");
 		return 0;
 	}
@@ -1931,7 +1933,7 @@ static int ptcache_write_stream(PTCacheID *pid, int cfra, int totpoint)
 	pf = ptcache_file_open(pid, PTCACHE_FILE_WRITE, cfra);
 
 	if (pf==NULL) {
-		if (G.f & G_DEBUG) 
+		if (G.debug & G_DEBUG)
 			printf("Error opening disk cache file for writing\n");
 		return 0;
 	}
@@ -1949,7 +1951,7 @@ static int ptcache_write_stream(PTCacheID *pid, int cfra, int totpoint)
 
 	ptcache_file_close(pf);
 
-	if (error && G.f & G_DEBUG) 
+	if (error && G.debug & G_DEBUG)
 		printf("Error writing to disk cache\n");
 
 	return error == 0;
@@ -2748,7 +2750,7 @@ static void *ptcache_bake_thread(void *ptr)
 				ptcache_dt_to_str(run, ctime-stime);
 				ptcache_dt_to_str(etd, fetd);
 
-				printf("Baked for %s, current frame: %i/%i (%.3fs), ETC: %s          \r", run, *data->cfra_ptr-sfra+1, efra-sfra+1, ctime-ptime, etd);
+				printf("Baked for %s, current frame: %i/%i (%.3fs), ETC: %s\r", run, *data->cfra_ptr-sfra+1, efra-sfra+1, ctime-ptime, etd);
 			}
 			ptime = ctime;
 		}
@@ -2756,7 +2758,7 @@ static void *ptcache_bake_thread(void *ptr)
 
 	if (usetimer) {
 		ptcache_dt_to_str(run, PIL_check_seconds_timer()-stime);
-		printf("Bake %s %s (%i frames simulated).                       \n", (data->break_operation ? "canceled after" : "finished in"), run, *data->cfra_ptr-sfra);
+		printf("Bake %s %s (%i frames simulated).\n", (data->break_operation ? "canceled after" : "finished in"), run, *data->cfra_ptr-sfra);
 	}
 
 	data->thread_ended = TRUE;
@@ -2839,40 +2841,44 @@ void BKE_ptcache_bake(PTCacheBaker* baker)
 			cache->flag &= ~PTCACHE_BAKED;
 		}
 	}
-	else for (SETLOOPER(scene, sce_iter, base)) {
-		/* cache/bake everything in the scene */
-		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
+	else {
+		for (SETLOOPER(scene, sce_iter, base)) {
+			/* cache/bake everything in the scene */
+			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
-		for (pid=pidlist.first; pid; pid=pid->next) {
-			cache = pid->cache;
-			if ((cache->flag & PTCACHE_BAKED)==0) {
-				if (pid->type==PTCACHE_TYPE_PARTICLES) {
-					ParticleSystem *psys = (ParticleSystem*)pid->calldata;
-					/* skip hair & keyed particles */
-					if (psys->part->type == PART_HAIR || psys->part->phystype == PART_PHYS_KEYED)
-						continue;
+			for (pid=pidlist.first; pid; pid=pid->next) {
+				cache = pid->cache;
+				if ((cache->flag & PTCACHE_BAKED)==0) {
+					if (pid->type==PTCACHE_TYPE_PARTICLES) {
+						ParticleSystem *psys = (ParticleSystem*)pid->calldata;
+						/* skip hair & keyed particles */
+						if (psys->part->type == PART_HAIR || psys->part->phystype == PART_PHYS_KEYED)
+							continue;
 
-					psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
+						psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
+					}
+
+					if ((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0) &&
+					    ((cache->flag & PTCACHE_QUICK_CACHE)==0 || render || bake))
+					{
+						BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
+					}
+
+					startframe = MIN2(startframe, cache->startframe);
+
+					if (bake || render) {
+						cache->flag |= PTCACHE_BAKING;
+
+						if (bake)
+							thread_data.endframe = MAX2(thread_data.endframe, cache->endframe);
+					}
+
+					cache->flag &= ~PTCACHE_BAKED;
+
 				}
-
-				if ((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0)
-					&& ((cache->flag & PTCACHE_QUICK_CACHE)==0 || render || bake))
-					BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
-
-				startframe = MIN2(startframe, cache->startframe);
-
-				if (bake || render) {
-					cache->flag |= PTCACHE_BAKING;
-
-					if (bake)
-						thread_data.endframe = MAX2(thread_data.endframe, cache->endframe);
-				}
-
-				cache->flag &= ~PTCACHE_BAKED;
-
 			}
+			BLI_freelistN(&pidlist);
 		}
-		BLI_freelistN(&pidlist);
 	}
 
 	CFRA = startframe;
@@ -2928,30 +2934,32 @@ void BKE_ptcache_bake(PTCacheBaker* baker)
 				BKE_ptcache_write(pid, 0);
 		}
 	}
-	else for (SETLOOPER(scene, sce_iter, base)) {
-		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
+	else {
+		for (SETLOOPER(scene, sce_iter, base)) {
+			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
-		for (pid=pidlist.first; pid; pid=pid->next) {
-			/* skip hair particles */
-			if (pid->type==PTCACHE_TYPE_PARTICLES && ((ParticleSystem*)pid->calldata)->part->type == PART_HAIR)
-				continue;
-		
-			cache = pid->cache;
+			for (pid=pidlist.first; pid; pid=pid->next) {
+				/* skip hair particles */
+				if (pid->type==PTCACHE_TYPE_PARTICLES && ((ParticleSystem*)pid->calldata)->part->type == PART_HAIR)
+					continue;
 
-			if (thread_data.step > 1)
-				cache->flag &= ~(PTCACHE_BAKING|PTCACHE_OUTDATED);
-			else
-				cache->flag &= ~(PTCACHE_BAKING|PTCACHE_REDO_NEEDED);
+				cache = pid->cache;
 
-			cache->flag |= PTCACHE_SIMULATION_VALID;
+				if (thread_data.step > 1)
+					cache->flag &= ~(PTCACHE_BAKING|PTCACHE_OUTDATED);
+				else
+					cache->flag &= ~(PTCACHE_BAKING|PTCACHE_REDO_NEEDED);
 
-			if (bake) {
-				cache->flag |= PTCACHE_BAKED;
-				if (cache->flag & PTCACHE_DISK_CACHE)
-					BKE_ptcache_write(pid, 0);
+				cache->flag |= PTCACHE_SIMULATION_VALID;
+
+				if (bake) {
+					cache->flag |= PTCACHE_BAKED;
+					if (cache->flag & PTCACHE_DISK_CACHE)
+						BKE_ptcache_write(pid, 0);
+				}
 			}
+			BLI_freelistN(&pidlist);
 		}
-		BLI_freelistN(&pidlist);
 	}
 
 	scene->r.framelen = frameleno;
@@ -3026,7 +3034,7 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 
 	if (!G.relbase_valid) {
 		cache->flag &= ~PTCACHE_DISK_CACHE;
-		if (G.f & G_DEBUG) 
+		if (G.debug & G_DEBUG)
 			printf("File must be saved before using disk cache!\n");
 		return;
 	}

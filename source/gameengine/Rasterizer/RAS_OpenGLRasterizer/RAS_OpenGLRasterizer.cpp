@@ -988,7 +988,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	float frustfar,
 	float focallength,
 	bool 
-){
+) {
 	MT_Matrix4x4 result;
 	double mat[16];
 
@@ -1037,7 +1037,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetOrthoMatrix(
 	float top,
 	float frustnear,
 	float frustfar
-){
+) {
 	MT_Matrix4x4 result;
 	double mat[16];
 

@@ -2879,7 +2879,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{ 0, "", 0, "In progress", ""},
 		/* using the utf8 flipped form of Arabic (العربية) */
 		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
-		{12, "BRAZILIAN_PORTUGUESE", 0, "Brazilian Portuguese (Português do Brasil)", "pt_BR"},
+		{12, "BRAZILIAN_PORTUGUESE", 0, "Portuguese (Português)", "pt"},
 		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
 		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
 		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
@@ -2890,7 +2890,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{ 2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
-		{29, "KYRGYZ", 0, "Kyrgyz (Kyrgyz tili)", "ki"},
+		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ki_KG"},
 		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},
 		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
 		/* using the utf8 flipped form of Persian (فارسی) */

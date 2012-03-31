@@ -179,7 +179,7 @@ RayObjectAPI* bvh_get_api(int maxstacksize)
 	
 	if (maxstacksize <= 1024) return &bvh_api256;
 	assert(maxstacksize <= 256);
-	return 0;
+	return NULL;
 }
 
 RayObject *RE_rayobject_svbvh_create(int size)

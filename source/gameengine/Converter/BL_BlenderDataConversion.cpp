@@ -740,7 +740,7 @@ bool ConvertMaterial(
 		int valid = 0;
 
 		// check for tface tex to fallback on
-		if ( validface ){
+		if ( validface ) {
 			material->img[0] = (Image*)(tface->tpage);
 			// ------------------------
 			if (material->img[0]) {
@@ -1918,16 +1918,20 @@ static KX_GameObject *gameobject_from_blenderobject(
 								KX_BlenderSceneConverter *converter) 
 {
 	KX_GameObject *gameobj = NULL;
+	Scene *blenderscene = kxscene->GetBlenderScene();
 	
 	switch(ob->type)
 	{
 	case OB_LAMP:
 	{
-		KX_LightObject* gamelight= gamelight_from_blamp(ob, static_cast<Lamp*>(ob->data), ob->lay, kxscene, rendertools, converter);
+		KX_LightObject* gamelight = gamelight_from_blamp(ob, static_cast<Lamp*>(ob->data), ob->lay, kxscene, rendertools, converter);
 		gameobj = gamelight;
 		
-		gamelight->AddRef();
-		kxscene->GetLightList()->Add(gamelight);
+		if (blenderscene->lay & ob->lay)
+		{
+			gamelight->AddRef();
+			kxscene->GetLightList()->Add(gamelight);
+		}
 
 		break;
 	}
@@ -2128,7 +2132,7 @@ void RBJconstraints(Object *ob)//not used
 #include "KX_IPhysicsController.h"
 #include "PHY_DynamicTypes.h"
 
-KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc){//not used
+KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
 
 	for (int j=0;j<sumolist->GetCount();j++)
 	{
@@ -2180,7 +2184,7 @@ static void bl_ConvertBlenderObject_Single(
 	);
 	MT_Vector3 eulxyz(blenderobject->rot);
 	MT_Vector3 scale(blenderobject->size);
-	if (converter->addInitFromFrame){//rcruiz
+	if (converter->addInitFromFrame) {//rcruiz
 		float eulxyzPrev[3];
 		blenderscene->r.cfra=blenderscene->r.sfra-1;
 		//XXX update_for_newframe();
@@ -2277,7 +2281,7 @@ static void bl_ConvertBlenderObject_Single(
 
 	logicbrick_conversionlist->Add(gameobj->AddRef());
 
-	if (converter->addInitFromFrame){
+	if (converter->addInitFromFrame) {
 		posPrev=gameobj->NodeGetWorldPosition();
 		angor=gameobj->NodeGetWorldOrientation();
 	}
@@ -2533,10 +2537,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		if (blenderobj->type==OB_MESH) {
 			Mesh *me = (Mesh*)blenderobj->data;
 	
-			if (me->dvert){
+			if (me->dvert) {
 				BL_DeformableGameObject *obj = (BL_DeformableGameObject*)converter->FindGameObject(blenderobj);
 
-				if (obj && BL_ModifierDeformer::HasArmatureDeformer(blenderobj) && blenderobj->parent && blenderobj->parent->type==OB_ARMATURE){
+				if (obj && BL_ModifierDeformer::HasArmatureDeformer(blenderobj) && blenderobj->parent && blenderobj->parent->type==OB_ARMATURE) {
 					KX_GameObject *par = converter->FindGameObject(blenderobj->parent);
 					if (par && obj->GetDeformer())
 						((BL_SkinDeformer*)obj->GetDeformer())->SetArmature((BL_ArmatureObject*) par);
@@ -2722,7 +2726,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		for (i=0;i<sumolist->GetCount();i++)
 		{
 			KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-			if (gameobj->IsDynamic()){
+			if (gameobj->IsDynamic()) {
 				gameobj->setLinearVelocity(inivel[i],false);
 				gameobj->setAngularVelocity(iniang[i],false);
 			}
@@ -2744,11 +2748,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 		if (conlist) {
 			for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
-				if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT){
+				if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT) {
 
 					bRigidBodyJointConstraint *dat=(bRigidBodyJointConstraint *)curcon->data;
 
-					if (!dat->child){
+					if (!dat->child) {
 
 						PHY_IPhysicsController* physctr2 = 0;
 

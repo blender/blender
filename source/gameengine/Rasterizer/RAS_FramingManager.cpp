@@ -43,7 +43,7 @@ ComputeDefaultFrustum(
 	const short sensor_fit,
 	const float design_aspect_ratio,
 	RAS_FrameFrustum & frustum
-){		
+) {		
 	float halfSize;
 	float sizeX;
 	float sizeY;
@@ -130,7 +130,7 @@ ComputeBestFitViewRect(
 	const RAS_Rect &availableViewport,
 	const float design_aspect_ratio,
 	RAS_Rect &viewport
-){
+) {
 	// try and honour the aspect ratio when setting the 
 	// drawable area. If we don't do this we are liable
 	// to get a lot of distortion in the rendered image.
@@ -165,7 +165,7 @@ ComputeViewport(
 	const RAS_FrameSettings &settings,
 	const RAS_Rect &availableViewport,
 	RAS_Rect &viewport
-){
+) {
 
 	RAS_FrameSettings::RAS_FrameType type = settings.FrameType();
 	const int winx = availableViewport.GetWidth();
@@ -224,7 +224,7 @@ ComputeFrustum(
 	const float camnear,
 	const float camfar,
 	RAS_FrameFrustum &frustum
-){
+) {
 
 	RAS_FrameSettings::RAS_FrameType type = settings.FrameType();
 

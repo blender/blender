@@ -57,7 +57,7 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
-#include "info_intern.h"	// own include
+#include "info_intern.h"  /* own include */
 
 /* ******************** default callbacks for info space ***************** */
 
@@ -66,31 +66,31 @@ static SpaceLink *info_new(const bContext *UNUSED(C))
 	ARegion *ar;
 	SpaceInfo *sinfo;
 	
-	sinfo= MEM_callocN(sizeof(SpaceInfo), "initinfo");
-	sinfo->spacetype= SPACE_INFO;
+	sinfo = MEM_callocN(sizeof(SpaceInfo), "initinfo");
+	sinfo->spacetype = SPACE_INFO;
 
-	sinfo->rpt_mask= INFO_RPT_OP;
+	sinfo->rpt_mask = INFO_RPT_OP;
 
 	/* header */
-	ar= MEM_callocN(sizeof(ARegion), "header for info");
+	ar = MEM_callocN(sizeof(ARegion), "header for info");
 	
 	BLI_addtail(&sinfo->regionbase, ar);
-	ar->regiontype= RGN_TYPE_HEADER;
-	ar->alignment= RGN_ALIGN_BOTTOM;
+	ar->regiontype = RGN_TYPE_HEADER;
+	ar->alignment = RGN_ALIGN_BOTTOM;
 	
 	/* main area */
-	ar= MEM_callocN(sizeof(ARegion), "main area for info");
+	ar = MEM_callocN(sizeof(ARegion), "main area for info");
 	
 	BLI_addtail(&sinfo->regionbase, ar);
-	ar->regiontype= RGN_TYPE_WINDOW;
+	ar->regiontype = RGN_TYPE_WINDOW;
 	
 	/* keep in sync with console */
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
-	ar->v2d.align |= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y; /* align bottom left */
+	ar->v2d.align |= V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y; /* align bottom left */
 	ar->v2d.keepofs |= V2D_LOCKOFS_X;
-	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
-	ar->v2d.keeptot= V2D_KEEPTOT_BOUNDS;
-	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+	ar->v2d.keeptot = V2D_KEEPTOT_BOUNDS;
+	ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
 
 	/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
 	//ar->v2d.keepzoom= (V2D_KEEPASPECT|V2D_LIMITZOOM);
@@ -114,7 +114,7 @@ static void info_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 
 static SpaceLink *info_duplicate(SpaceLink *sl)
 {
-	SpaceInfo *sinfon= MEM_dupallocN(sl);
+	SpaceInfo *sinfon = MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
 	
@@ -137,17 +137,17 @@ static void info_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void info_textview_update_rect(const bContext *C, ARegion *ar)
 {
-	SpaceInfo *sinfo= CTX_wm_space_info(C);
-	View2D *v2d= &ar->v2d;
+	SpaceInfo *sinfo = CTX_wm_space_info(C);
+	View2D *v2d = &ar->v2d;
 
-	UI_view2d_totRect_set(v2d, ar->winx-1, info_textview_height(sinfo, ar, CTX_wm_reports(C)));
+	UI_view2d_totRect_set(v2d, ar->winx - 1, info_textview_height(sinfo, ar, CTX_wm_reports(C)));
 }
 
 static void info_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceInfo *sinfo= CTX_wm_space_info(C);
-	View2D *v2d= &ar->v2d;
+	SpaceInfo *sinfo = CTX_wm_space_info(C);
+	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
 
 	/* clear and setup matrix */
@@ -169,7 +169,7 @@ static void info_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_GRID_CLAMP);
+	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_GRID_CLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 }
@@ -231,7 +231,7 @@ static void info_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	// SpaceInfo *sinfo= sa->spacedata.first;
 
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SPACE:
 			if (wmn->data == ND_SPACE_INFO_REPORT) {
 				/* redraw also but only for report view, could do less redraws by checking the type */
@@ -244,7 +244,7 @@ static void info_main_area_listener(ARegion *ar, wmNotifier *wmn)
 static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SCREEN:
 			if (ELEM(wmn->data, ND_SCREENCAST, ND_ANIMPLAY))
 				ED_region_tag_redraw(ar);
@@ -254,7 +254,7 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCENE:
-			if (wmn->data==ND_RENDER_RESULT)
+			if (wmn->data == ND_RENDER_RESULT)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:	
@@ -271,7 +271,7 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 {
 	struct RecentFile *recent;
-	uiLayout *layout= menu->layout;
+	uiLayout *layout = menu->layout;
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	if (G.recent_files.first) {
 		for (recent = G.recent_files.first; (recent); recent = recent->next) {
@@ -287,49 +287,49 @@ static void recent_files_menu_register(void)
 {
 	MenuType *mt;
 
-	mt= MEM_callocN(sizeof(MenuType), "spacetype info menu recent files");
+	mt = MEM_callocN(sizeof(MenuType), "spacetype info menu recent files");
 	strcpy(mt->idname, "INFO_MT_file_open_recent");
 	strcpy(mt->label, N_("Open Recent..."));
-	mt->draw= recent_files_menu_draw;
+	mt->draw = recent_files_menu_draw;
 	WM_menutype_add(mt);
 }
 
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_info(void)
 {
-	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype info");
+	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype info");
 	ARegionType *art;
 	
-	st->spaceid= SPACE_INFO;
+	st->spaceid = SPACE_INFO;
 	strncpy(st->name, "Info", BKE_ST_MAXNAME);
 	
-	st->new= info_new;
-	st->free= info_free;
-	st->init= info_init;
-	st->duplicate= info_duplicate;
-	st->operatortypes= info_operatortypes;
-	st->keymap= info_keymap;
+	st->new = info_new;
+	st->free = info_free;
+	st->init = info_init;
+	st->duplicate = info_duplicate;
+	st->operatortypes = info_operatortypes;
+	st->keymap = info_keymap;
 	
 	/* regions: main window */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype info region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype info region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
 
-	art->init= info_main_area_init;
-	art->draw= info_main_area_draw;
-	art->listener= info_main_area_listener;
+	art->init = info_main_area_init;
+	art->draw = info_main_area_draw;
+	art->listener = info_main_area_listener;
 
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype info region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype info region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->prefsizey= HEADERY;
+	art->prefsizey = HEADERY;
 	
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
-	art->listener= info_header_listener;
-	art->init= info_header_area_init;
-	art->draw= info_header_area_draw;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
+	art->listener = info_header_listener;
+	art->init = info_header_area_init;
+	art->draw = info_header_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

@@ -98,7 +98,7 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	PointerRNA ptr;
 	
 	/* verify pointers, and create RNA pointer for the node */
-	if ELEM(NULL, ntree, node)
+	if (ELEM(NULL, ntree, node))
 		return;
 	//if (node->id) /* for group nodes */
 	//	RNA_pointer_create(node->id, &RNA_Node, node, &ptr);

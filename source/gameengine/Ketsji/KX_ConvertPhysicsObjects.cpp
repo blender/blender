@@ -209,7 +209,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				shapeInfo->SetMesh(meshobj, dm, false);
 			}
 
-			// Soft bodies require welding. Only avoid remove doubles for non-soft bodies!
+			// Soft bodies can benefit from welding, don't do it on non-soft bodies
 			if (objprop->m_softbody)
 			{
 				shapeInfo->setVertexWeldingThreshold1(objprop->m_soft_welding); //todo: expose this to the UI

@@ -332,6 +332,9 @@ def creator(env):
         incs.append('#/extern/libmv')
         defs.append('WITH_LIBMV')
 
+    if env['WITH_BF_FFMPEG']:
+        defs.append('WITH_FFMPEG')
+
     if env['WITH_BF_PYTHON']:
         incs.append('#/source/blender/python')
         defs.append('WITH_PYTHON')
@@ -509,13 +512,12 @@ def WinPyBundle(target=None, source=None, env=None):
             print str(func) + ' failed on ' + str(path)
     print "Trying to remove existing py bundle."
     shutil.rmtree(py_target, False, printexception)
-    exclude_re=[re.compile('.*/test/.*'),
-                re.compile('^config/.*'),
-                re.compile('^config-*/.*'),
-                re.compile('^distutils/.*'),
-                re.compile('^idlelib/.*'),
-                re.compile('^lib2to3/.*'),
-                re.compile('^tkinter/.*'),
+    exclude_re=[re.compile('.*/test'),
+                re.compile('^test'),
+                re.compile('^distutils'),
+                re.compile('^idlelib'),
+                re.compile('^lib2to3'),
+                re.compile('^tkinter'),
                 re.compile('^_tkinter_d.pyd'),
                 re.compile('^turtledemo'),
                 re.compile('^turtle.py'),

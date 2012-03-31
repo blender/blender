@@ -156,7 +156,7 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 	FCurve *dfcu, *sfcu;
 	
 	/* sanity checks */
-	if ELEM(NULL, dst, src)
+	if (ELEM(NULL, dst, src))
 		return;
 	
 	/* clear destination list first */
@@ -370,7 +370,7 @@ int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short
 	 *	- keyframe to be added would replace one of the existing ones on bounds
 	 */
 	if ((arraylen <= 0) || (array == NULL)) {
-		printf("Warning: binarysearch_bezt_index() encountered invalid array \n");
+		printf("Warning: binarysearch_bezt_index() encountered invalid array\n");
 		return 0;
 	}
 	else {
@@ -420,10 +420,10 @@ int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short
 	
 	/* print error if loop-limit exceeded */
 	if (loopbreaker == (maxloop-1)) {
-		printf("Error: binarysearch_bezt_index() was taking too long \n");
+		printf("Error: binarysearch_bezt_index() was taking too long\n");
 		
 		// include debug info 
-		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
+		printf("\tround = %d: start = %d, end = %d, arraylen = %d\n", loopbreaker, start, end, arraylen);
 	}
 	
 	/* not found, so return where to place it */
@@ -546,7 +546,7 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 		if (ymax) *ymax= ymaxv;
 	}
 	else {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("F-Curve calc bounds didn't find anything, so assuming minimum bounds of 1.0\n");
 			
 		if (xmin) *xmin= 0.0f;
@@ -738,12 +738,12 @@ void fcurve_store_samples (FCurve *fcu, void *data, int start, int end, FcuSampl
 	
 	/* sanity checks */
 	// TODO: make these tests report errors using reports not printf's
-	if ELEM(NULL, fcu, sample_cb) {
+	if (ELEM(NULL, fcu, sample_cb)) {
 		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
 		return;
 	}
 	if (start >= end) {
-		printf("Error: Frame range for Sampled F-Curve creation is inappropriate \n");
+		printf("Error: Frame range for Sampled F-Curve creation is inappropriate\n");
 		return;
 	}
 	
@@ -834,7 +834,7 @@ void testhandles_fcurve (FCurve *fcu, const short use_handle)
 	unsigned int a;
 
 	/* only beztriples have handles (bpoints don't though) */
-	if ELEM(NULL, fcu, fcu->bezt)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return;
 	
 	/* loop over beztriples */
@@ -1001,7 +1001,7 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	float value= 0.0f;
 	
 	/* sanity check */
-	if ELEM(NULL, driver, dtar)
+	if (ELEM(NULL, driver, dtar))
 		return 0.0f;
 	
 	id= dtar_id_ensure_proxy_from(dtar->id);
@@ -1009,8 +1009,8 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	/* error check for missing pointer... */
 	// TODO: tag the specific target too as having issues
 	if (id == NULL) {
-		printf("Error: driver has an invalid target to use \n");
-		if (G.f & G_DEBUG) printf("\tpath = %s\n", dtar->rna_path);
+		printf("Error: driver has an invalid target to use\n");
+		if (G.debug & G_DEBUG) printf("\tpath = %s\n", dtar->rna_path);
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
 	}
@@ -1060,8 +1060,8 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 
 	}
 	else {
-		if (G.f & G_DEBUG)
-			printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, dtar->rna_path);
+		if (G.debug & G_DEBUG)
+			printf("Driver Evaluation Error: cannot resolve target for %s -> %s\n", id->name, dtar->rna_path);
 		
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
@@ -1075,7 +1075,7 @@ static bPoseChannel *dtar_get_pchan_ptr (ChannelDriver *driver, DriverTarget *dt
 {
 	ID *id;
 	/* sanity check */
-	if ELEM(NULL, driver, dtar)
+	if (ELEM(NULL, driver, dtar))
 		return NULL;
 
 	id= dtar_id_ensure_proxy_from(dtar->id);
@@ -1118,11 +1118,11 @@ static float dvar_eval_rotDiff (ChannelDriver *driver, DriverVar *dvar)
 		
 		/* check what the error was */
 		if ((pchan == NULL) && (pchan2 == NULL))
-			printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid \n");
+			printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid\n");
 		else if (pchan == NULL)
-			printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel \n");
+			printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel\n");
 		else if (pchan2 == NULL)
-			printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel \n");
+			printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel\n");
 			
 		/* stop here... */
 		return 0.0f;
@@ -1490,7 +1490,7 @@ void fcurve_free_driver(FCurve *fcu)
 	DriverVar *dvar, *dvarn;
 	
 	/* sanity checks */
-	if ELEM(NULL, fcu, fcu->driver)
+	if (ELEM(NULL, fcu, fcu->driver))
 		return;
 	driver= fcu->driver;
 	

@@ -72,11 +72,11 @@
  *
  * Stop job
  *   - signal job to end
- * 	on end, job will tag itself as sleeping
+ *  on end, job will tag itself as sleeping
  *
  * Remove job
  * - signal job to end
- * 	on end, job will remove itself
+ *  on end, job will remove itself
  *
  * When job is done:
  * - it puts timer to sleep (or removes?)
@@ -134,12 +134,12 @@ struct wmJob {
  */
 static wmJob *wm_job_find(wmWindowManager *wm, void *owner, const char *name)
 {
-	wmJob *steve, *found=NULL;
+	wmJob *steve, *found = NULL;
 	
-	for (steve= wm->jobs.first; steve; steve= steve->next)
-		if (steve->owner==owner) {
-			found= steve;
-			if (name && strcmp(steve->name, name)==0)
+	for (steve = wm->jobs.first; steve; steve = steve->next)
+		if (steve->owner == owner) {
+			found = steve;
+			if (name && strcmp(steve->name, name) == 0)
 				return steve;
 		}
 	
@@ -153,15 +153,15 @@ static wmJob *wm_job_find(wmWindowManager *wm, void *owner, const char *name)
  * when stopped it starts the new one */
 wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *name, int flag)
 {
-	wmJob *steve= wm_job_find(wm, owner, name);
+	wmJob *steve = wm_job_find(wm, owner, name);
 	
-	if (steve==NULL) {
-		steve= MEM_callocN(sizeof(wmJob), "new job");
+	if (steve == NULL) {
+		steve = MEM_callocN(sizeof(wmJob), "new job");
 	
 		BLI_addtail(&wm->jobs, steve);
-		steve->win= win;
-		steve->owner= owner;
-		steve->flag= flag;
+		steve->win = win;
+		steve->owner = owner;
+		steve->flag = flag;
 		BLI_strncpy(steve->name, name, sizeof(steve->name));
 	}
 	
@@ -173,8 +173,8 @@ int WM_jobs_test(wmWindowManager *wm, void *owner)
 {
 	wmJob *steve;
 	
-	for (steve= wm->jobs.first; steve; steve= steve->next)
-		if (steve->owner==owner)
+	for (steve = wm->jobs.first; steve; steve = steve->next)
+		if (steve->owner == owner)
 			if (steve->running)
 				return 1;
 	return 0;
@@ -182,7 +182,7 @@ int WM_jobs_test(wmWindowManager *wm, void *owner)
 
 float WM_jobs_progress(wmWindowManager *wm, void *owner)
 {
-	wmJob *steve= wm_job_find(wm, owner, NULL);
+	wmJob *steve = wm_job_find(wm, owner, NULL);
 	
 	if (steve && steve->flag & WM_JOB_PROGRESS)
 		return steve->progress;
@@ -192,7 +192,7 @@ float WM_jobs_progress(wmWindowManager *wm, void *owner)
 
 char *WM_jobs_name(wmWindowManager *wm, void *owner)
 {
-	wmJob *steve= wm_job_find(wm, owner, NULL);
+	wmJob *steve = wm_job_find(wm, owner, NULL);
 	
 	if (steve)
 		return steve->name;
@@ -205,7 +205,7 @@ int WM_jobs_is_running(wmJob *steve)
 	return steve->running;
 }
 
-void* WM_jobs_get_customdata(wmJob * steve)
+void *WM_jobs_get_customdata(wmJob *steve)
 {
 	if (!steve->customdata) {
 		return steve->run_customdata;
@@ -221,12 +221,12 @@ void WM_jobs_customdata(wmJob *steve, void *customdata, void (*free)(void *))
 	if (steve->customdata)
 		steve->free(steve->customdata);
 	
-	steve->customdata= customdata;
-	steve->free= free;
+	steve->customdata = customdata;
+	steve->free = free;
 
 	if (steve->running) {
 		/* signal job to end */
-		steve->stop= 1;
+		steve->stop = 1;
 	}
 }
 
@@ -238,23 +238,23 @@ void WM_jobs_timer(wmJob *steve, double timestep, unsigned int note, unsigned in
 }
 
 void WM_jobs_callbacks(wmJob *steve, 
-					   void (*startjob)(void *, short *, short *, float *),
-					   void (*initjob)(void *),
-					   void (*update)(void  *),
-					   void (*endjob)(void  *))
+                       void (*startjob)(void *, short *, short *, float *),
+                       void (*initjob)(void *),
+                       void (*update)(void  *),
+                       void (*endjob)(void  *))
 {
-	steve->startjob= startjob;
-	steve->initjob= initjob;
-	steve->update= update;
-	steve->endjob= endjob;
+	steve->startjob = startjob;
+	steve->initjob = initjob;
+	steve->update = update;
+	steve->endjob = endjob;
 }
 
 static void *do_job_thread(void *job_v)
 {
-	wmJob *steve= job_v;
+	wmJob *steve = job_v;
 	
 	steve->startjob(steve->run_customdata, &steve->stop, &steve->do_update, &steve->progress);
-	steve->ready= 1;
+	steve->ready = 1;
 	
 	return NULL;
 }
@@ -263,41 +263,41 @@ static void *do_job_thread(void *job_v)
 static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 {
 	wmJob *steve;
-	int suspend= 0;
+	int suspend = 0;
 	
 	/* job added with suspend flag, we wait 1 timer step before activating it */
 	if (test->flag & WM_JOB_SUSPEND) {
-		suspend= 1;
+		suspend = 1;
 		test->flag &= ~WM_JOB_SUSPEND;
 	}
 	else {
 		/* check other jobs */
-		for (steve= wm->jobs.first; steve; steve= steve->next) {
+		for (steve = wm->jobs.first; steve; steve = steve->next) {
 			/* obvious case, no test needed */
-			if (steve==test || !steve->running) continue;
+			if (steve == test || !steve->running) continue;
 			
 			/* if new job is not render, then check for same startjob */
-			if (0==(test->flag & WM_JOB_EXCL_RENDER)) 
-				if (steve->startjob!=test->startjob)
+			if (0 == (test->flag & WM_JOB_EXCL_RENDER))
+				if (steve->startjob != test->startjob)
 					continue;
 			
 			/* if new job is render, any render job should be stopped */
 			if (test->flag & WM_JOB_EXCL_RENDER)
-				if (0==(steve->flag & WM_JOB_EXCL_RENDER))
+				if (0 == (steve->flag & WM_JOB_EXCL_RENDER))
 					continue;
 
-			suspend= 1;
+			suspend = 1;
 
 			/* if this job has higher priority, stop others */
 			if (test->flag & WM_JOB_PRIORITY) {
-				steve->stop= 1;
+				steve->stop = 1;
 				// printf("job stopped: %s\n", steve->name);
 			}
 		}
 	}
 	
 	/* possible suspend ourselfs, waiting for other jobs, or de-suspend */
-	test->suspended= suspend;
+	test->suspended = suspend;
 	// if (suspend) printf("job suspended: %s\n", test->name);
 }
 
@@ -307,7 +307,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 {
 	if (steve->running) {
 		/* signal job to end and restart */
-		steve->stop= 1;
+		steve->stop = 1;
 		// printf("job started a running job, ending... %s\n", steve->name);
 	}
 	else {
@@ -316,20 +316,20 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 			
 			wm_jobs_test_suspend_stop(wm, steve);
 			
-			if (steve->suspended==0) {
+			if (steve->suspended == 0) {
 				/* copy to ensure proper free in end */
-				steve->run_customdata= steve->customdata;
-				steve->run_free= steve->free;
-				steve->free= NULL;
-				steve->customdata= NULL;
-				steve->running= 1;
+				steve->run_customdata = steve->customdata;
+				steve->run_free = steve->free;
+				steve->free = NULL;
+				steve->customdata = NULL;
+				steve->running = 1;
 				
 				if (steve->initjob)
 					steve->initjob(steve->run_customdata);
 				
-				steve->stop= 0;
-				steve->ready= 0;
-				steve->progress= 0.0;
+				steve->stop = 0;
+				steve->ready = 0;
+				steve->progress = 0.0;
 
 				// printf("job started: %s\n", steve->name);
 				
@@ -338,8 +338,8 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 			}
 			
 			/* restarted job has timer already */
-			if (steve->wt==NULL)
-				steve->wt= WM_event_add_timer(wm, steve->win, TIMERJOBS, steve->timestep);
+			if (steve->wt == NULL)
+				steve->wt = WM_event_add_timer(wm, steve->win, TIMERJOBS, steve->timestep);
 		}
 		else printf("job fails, not initialized\n");
 	}
@@ -350,7 +350,7 @@ static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *steve)
 {
 	if (steve->running) {
 		/* signal job to end */
-		steve->stop= 1;
+		steve->stop = 1;
 		BLI_end_threads(&steve->threads);
 
 		if (steve->endjob)
@@ -374,7 +374,7 @@ void WM_jobs_stop_all(wmWindowManager *wm)
 {
 	wmJob *steve;
 	
-	while ((steve= wm->jobs.first))
+	while ((steve = wm->jobs.first))
 		wm_jobs_kill_job(wm, steve);
 	
 }
@@ -384,10 +384,10 @@ void WM_jobs_stop(wmWindowManager *wm, void *owner, void *startjob)
 {
 	wmJob *steve;
 	
-	for (steve= wm->jobs.first; steve; steve= steve->next)
-		if (steve->owner==owner || steve->startjob==startjob)
+	for (steve = wm->jobs.first; steve; steve = steve->next)
+		if (steve->owner == owner || steve->startjob == startjob)
 			if (steve->running)
-				steve->stop= 1;
+				steve->stop = 1;
 }
 
 /* actually terminate thread and job timer */
@@ -395,15 +395,15 @@ void WM_jobs_kill(wmWindowManager *wm, void *owner, void (*startjob)(void *, sho
 {
 	wmJob *steve;
 	
-	steve= wm->jobs.first;
+	steve = wm->jobs.first;
 	while (steve) {
-		if (steve->owner==owner || steve->startjob==startjob) {
-			wmJob* bill = steve;
-			steve= steve->next;
+		if (steve->owner == owner || steve->startjob == startjob) {
+			wmJob *bill = steve;
+			steve = steve->next;
 			wm_jobs_kill_job(wm, bill);
 		}
 		else {
-			steve= steve->next;
+			steve = steve->next;
 		}
 	}
 }
@@ -414,8 +414,8 @@ void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
 {
 	wmJob *steve;
 	
-	for (steve= wm->jobs.first; steve; steve= steve->next) {
-		if (steve->wt==wt) {
+	for (steve = wm->jobs.first; steve; steve = steve->next) {
+		if (steve->wt == wt) {
 			wm_jobs_kill_job(wm, steve);
 			return;
 		}
@@ -425,15 +425,15 @@ void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
 /* hardcoded to event TIMERJOBS */
 void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 {
-	wmJob *steve= wm->jobs.first, *stevenext;
-	float total_progress= 0.f;
-	float jobs_progress=0;
+	wmJob *steve = wm->jobs.first, *stevenext;
+	float total_progress = 0.f;
+	float jobs_progress = 0;
 	
 	
-	for (; steve; steve= stevenext) {
-		stevenext= steve->next;
+	for (; steve; steve = stevenext) {
+		stevenext = steve->next;
 		
-		if (steve->wt==wt) {
+		if (steve->wt == wt) {
 			
 			/* running threads */
 			if (steve->threads.first) {
@@ -446,8 +446,8 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 						WM_event_add_notifier(C, steve->note, NULL);
 
 					if (steve->flag & WM_JOB_PROGRESS)
-						WM_event_add_notifier(C, NC_WM|ND_JOB, NULL);
-					steve->do_update= 0;
+						WM_event_add_notifier(C, NC_WM | ND_JOB, NULL);
+					steve->do_update = 0;
 				}	
 				
 				if (steve->ready) {
@@ -456,19 +456,19 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 
 					/* free own data */
 					steve->run_free(steve->run_customdata);
-					steve->run_customdata= NULL;
-					steve->run_free= NULL;
+					steve->run_customdata = NULL;
+					steve->run_free = NULL;
 					
 					// if (steve->stop) printf("job ready but stopped %s\n", steve->name);
 					// else printf("job finished %s\n", steve->name);
 
-					steve->running= 0;
+					steve->running = 0;
 					BLI_end_threads(&steve->threads);
 					
 					if (steve->endnote)
 						WM_event_add_notifier(C, steve->endnote, NULL);
 					
-					WM_event_add_notifier(C, NC_WM|ND_JOB, NULL);
+					WM_event_add_notifier(C, NC_WM | ND_JOB, NULL);
 					
 					/* new job added for steve? */
 					if (steve->customdata) {
@@ -477,7 +477,7 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 					}
 					else {
 						WM_event_remove_timer(wm, steve->win, steve->wt);
-						steve->wt= NULL;
+						steve->wt = NULL;
 						
 						/* remove steve */
 						BLI_remlink(&wm->jobs, steve);
@@ -520,7 +520,7 @@ int WM_jobs_has_running(wmWindowManager *wm)
 {
 	wmJob *steve;
 
-	for (steve= wm->jobs.first; steve; steve= steve->next)
+	for (steve = wm->jobs.first; steve; steve = steve->next)
 		if (steve->running)
 			return 1;
 

@@ -291,7 +291,7 @@ static void create_ghost_curves (bAnimContext *ac, int start, int end)
 	
 	/* sanity check */
 	if (start >= end) {
-		printf("Error: Frame range for Ghost F-Curve creation is inappropriate \n");
+		printf("Error: Frame range for Ghost F-Curve creation is inappropriate\n");
 		return;
 	}
 	

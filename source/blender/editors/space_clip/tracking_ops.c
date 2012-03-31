@@ -80,41 +80,41 @@
 
 static int space_clip_frame_poll(bContext *C)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc) {
-		MovieClip *clip= ED_space_clip(sc);
+		MovieClip *clip = ED_space_clip(sc);
 
 		if (clip)
 			return BKE_movieclip_has_frame(clip, &sc->user);
 	}
 
-	return 0;
+	return FALSE;
 }
 
 /********************** add marker operator *********************/
 
 static void add_marker(SpaceClip *sc, float x, float y)
 {
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track;
 	int width, height;
-	
+
 	ED_space_clip_size(sc, &width, &height);
 
-	track= BKE_tracking_add_track(tracking, tracksbase, x, y, sc->user.framenr, width, height);
+	track = BKE_tracking_add_track(tracking, tracksbase, x, y, sc->user.framenr, width, height);
 
 	BKE_tracking_select_track(tracksbase, track, TRACK_AREA_ALL, 0);
 
-	clip->tracking.act_track= track;
+	clip->tracking.act_track = track;
 }
 
 static int add_marker_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	float pos[2];
 	int width, height;
 
@@ -127,8 +127,8 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 	add_marker(sc, pos[0], pos[1]);
 
 	/* reset offset from locked position, so frame jumping wouldn't be so confusing */
-	sc->xlockof= 0;
-	sc->ylockof= 0;
+	sc->xlockof = 0;
+	sc->ylockof = 0;
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
 
@@ -170,23 +170,23 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 
 static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *track= tracksbase->first, *next;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *track = tracksbase->first, *next;
 
 	while (track) {
-		next= track->next;
+		next = track->next;
 
 		if (TRACK_VIEW_SELECTED(sc, track))
 			clip_delete_track(C, clip, tracksbase, track);
 
-		track= next;
+		track = next;
 	}
 
 	/* nothing selected now, unlock view so it can be scrolled nice again */
-	sc->flag&= ~SC_LOCK_SELECTION;
+	sc->flag &= ~SC_LOCK_SELECTION;
 
 	return OPERATOR_FINISHED;
 }
@@ -211,32 +211,32 @@ void CLIP_OT_delete_track(wmOperatorType *ot)
 
 static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
-	MovieTrackingTrack *track= tracksbase->first, *next;
-	int framenr= sc->user.framenr;
-	int has_selection= 0;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
+	MovieTrackingTrack *track = tracksbase->first, *next;
+	int framenr = sc->user.framenr;
+	int has_selection = 0;
 
 	while (track) {
-		next= track->next;
+		next = track->next;
 
 		if (TRACK_VIEW_SELECTED(sc, track)) {
-			MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, framenr);
+			MovieTrackingMarker *marker = BKE_tracking_exact_marker(track, framenr);
 
 			if (marker) {
-				has_selection|= track->markersnr>1;
+				has_selection |= track->markersnr>1;
 
 				clip_delete_marker(C, clip, tracksbase, track, marker);
 			}
 		}
 
-		track= next;
+		track = next;
 	}
 
 	if (!has_selection) {
 		/* nothing selected now, unlock view so it can be scrolled nice again */
-		sc->flag&= ~SC_LOCK_SELECTION;
+		sc->flag &= ~SC_LOCK_SELECTION;
 	}
 
 	return OPERATOR_FINISHED;
@@ -281,57 +281,57 @@ typedef struct {
 static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTrack *track,
 			MovieTrackingMarker *marker, wmEvent *event, int area, int action, int width, int height)
 {
-	SlideMarkerData *data= MEM_callocN(sizeof(SlideMarkerData), "slide marker data");
+	SlideMarkerData *data = MEM_callocN(sizeof(SlideMarkerData), "slide marker data");
 
-	marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
+	marker = BKE_tracking_ensure_marker(track, sc->user.framenr);
 
-	data->area= area;
-	data->action= action;
-	data->track= track;
-	data->marker= marker;
+	data->area = area;
+	data->action = action;
+	data->track = track;
+	data->marker = marker;
 
-	if (area==TRACK_AREA_POINT) {
-		data->pos= marker->pos;
-		data->offset= track->offset;
+	if (area == TRACK_AREA_POINT) {
+		data->pos = marker->pos;
+		data->offset = track->offset;
 		copy_v2_v2(data->spos, marker->pos);
 		copy_v2_v2(data->soff, track->offset);
 	}
-	else if (area==TRACK_AREA_PAT) {
-		if (action==SLIDE_ACTION_SIZE) {
-			data->min= track->pat_min;
-			data->max= track->pat_max;
+	else if (area == TRACK_AREA_PAT) {
+		if (action == SLIDE_ACTION_SIZE) {
+			data->min = track->pat_min;
+			data->max = track->pat_max;
 		}
 		else {
 			int a;
 
-			data->pos= marker->pos;
-			data->offset= track->offset;
+			data->pos = marker->pos;
+			data->offset = track->offset;
 
 			copy_v2_v2(data->soff, track->offset);
 
-			data->smarkers= MEM_callocN(sizeof(*data->smarkers)*track->markersnr, "slide marekrs");
-			for (a= 0; a<track->markersnr; a++)
+			data->smarkers = MEM_callocN(sizeof(*data->smarkers)*track->markersnr, "slide marekrs");
+			for (a = 0; a < track->markersnr; a++)
 				copy_v2_v2(data->smarkers[a], track->markers[a].pos);
 		}
 	}
-	else if (area==TRACK_AREA_SEARCH) {
-		data->min= track->search_min;
-		data->max= track->search_max;
+	else if (area == TRACK_AREA_SEARCH) {
+		data->min = track->search_min;
+		data->max = track->search_max;
 	}
 
-	if (area==TRACK_AREA_SEARCH || (area==TRACK_AREA_PAT && action!=SLIDE_ACTION_OFFSET)) {
+	if (area == TRACK_AREA_SEARCH || (area == TRACK_AREA_PAT && action != SLIDE_ACTION_OFFSET)) {
 		copy_v2_v2(data->smin, data->min);
 		copy_v2_v2(data->smax, data->max);
 	}
 
-	data->mval[0]= event->mval[0];
-	data->mval[1]= event->mval[1];
+	data->mval[0] = event->mval[0];
+	data->mval[1] = event->mval[1];
 
-	data->width= width;
-	data->height= height;
+	data->width = width;
+	data->height = height;
 
-	if (action==SLIDE_ACTION_SIZE)
-		data->lock= 1;
+	if (action == SLIDE_ACTION_SIZE)
+		data->lock = 1;
 
 	return data;
 }
@@ -339,14 +339,14 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 /* corner = 0: right-bottom corner,
  * corner = 1: left-top corner */
 static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-			int area, float co[2], int corner, int width, int height)
+                           int area, float co[2], int corner, int width, int height)
 {
-	int inside= 0;
-	float size= 12.0f;
+	int inside = 0;
+	float size = 12.0f;
 	float min[2], max[2];
 	float crn[2], dx, dy, tdx, tdy;
 
-	if (area==TRACK_AREA_SEARCH) {
+	if (area == TRACK_AREA_SEARCH) {
 		copy_v2_v2(min, track->search_min);
 		copy_v2_v2(max, track->search_max);
 	}
@@ -355,26 +355,26 @@ static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 		copy_v2_v2(max, track->pat_max);
 	}
 
-	dx= size/width/sc->zoom;
-	dy= size/height/sc->zoom;
+	dx = size / width / sc->zoom;
+	dy = size / height / sc->zoom;
 
-	tdx= 5.0f/width/sc->zoom;
-	tdy= 5.0f/height/sc->zoom;
+	tdx = 5.0f / width / sc->zoom;
+	tdy = 5.0f / height / sc->zoom;
 
-	dx= MIN2(dx, (max[0]-min[0])/6.0f) + tdx;
-	dy= MIN2(dy, (max[1]-min[1])/6.0f) + tdy;
+	dx = MIN2(dx, (max[0] - min[0]) / 6.0f) + tdx;
+	dy = MIN2(dy, (max[1] - min[1]) / 6.0f) + tdy;
 
-	if (corner==0) {
-		crn[0]= marker->pos[0]+max[0];
-		crn[1]= marker->pos[1]+min[1];
+	if (corner == 0) {
+		crn[0] = marker->pos[0] + max[0];
+		crn[1] = marker->pos[1] + min[1];
 
-		inside= co[0]>=crn[0]-dx && co[0]<=crn[0]+tdx && co[1]>=crn[1]-tdy && co[1]<=crn[1]+dy;
+		inside = co[0] >= crn[0] - dx && co[0] <= crn[0] + tdx && co[1] >= crn[1] - tdy && co[1] <= crn[1] + dy;
 	}
 	else {
-		crn[0]= marker->pos[0]+min[0];
-		crn[1]= marker->pos[1]+max[1];
+		crn[0] = marker->pos[0]+min[0];
+		crn[1] = marker->pos[1]+max[1];
 
-		inside= co[0]>=crn[0]-dx && co[0]<=crn[0]+dx && co[1]>=crn[1]-dy && co[1]<=crn[1]+dy;
+		inside = co[0] >= crn[0] - dx && co[0] <= crn[0] + dx && co[1] >= crn[1] - dy && co[1] <= crn[1] + dy;
 	}
 
 	return inside;
@@ -387,69 +387,69 @@ static int mouse_on_offset(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 
 	add_v2_v2v2(pos, marker->pos, track->offset);
 
-	dx= 12.0f/width/sc->zoom;
-	dy= 12.0f/height/sc->zoom;
+	dx = 12.0f / width / sc->zoom;
+	dy = 12.0f / height /sc->zoom;
 
-	dx=MIN2(dx, (track->pat_max[0]-track->pat_min[0])/2.0f);
-	dy=MIN2(dy, (track->pat_max[1]-track->pat_min[1])/2.0f);
+	dx = MIN2(dx, (track->pat_max[0] - track->pat_min[0]) / 2.0f);
+	dy = MIN2(dy, (track->pat_max[1] - track->pat_min[1]) / 2.0f);
 
-	return co[0]>=pos[0]-dx && co[0]<=pos[0]+dx && co[1]>=pos[1]-dy && co[1]<=pos[1]+dy;
+	return co[0] >= pos[0] - dx && co[0] <= pos[0] + dx && co[1] >= pos[1] - dy && co[1] <= pos[1] + dy;
 }
 
 static void hide_cursor(bContext *C)
 {
-	wmWindow *win= CTX_wm_window(C);
+	wmWindow *win = CTX_wm_window(C);
 
 	WM_cursor_set(win, CURSOR_NONE);
 }
 
 static void show_cursor(bContext *C)
 {
-	wmWindow *win= CTX_wm_window(C);
+	wmWindow *win = CTX_wm_window(C);
 
 	WM_cursor_set(win, CURSOR_STD);
 }
 
 static void *slide_marker_customdata(bContext *C, wmEvent *event)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
 	int width, height;
 	float co[2];
-	void *customdata= NULL;
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	void *customdata = NULL;
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 
 	ED_space_clip_size(sc, &width, &height);
 
-	if (width==0 || height==0)
+	if (width == 0 || height == 0)
 		return NULL;
 
 	ED_clip_mouse_pos(C, event, co);
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0) {
-			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
+		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
+			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
 
-			if ((marker->flag&MARKER_DISABLED)==0) {
+			if ((marker->flag & MARKER_DISABLED) == 0) {
 				if (!customdata)
 					if (mouse_on_offset(sc, track, marker, co, width, height))
-						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_POINT, SLIDE_ACTION_POS, width, height);
+						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_POINT, SLIDE_ACTION_POS, width, height);
 
-				if (sc->flag&SC_SHOW_MARKER_SEARCH) {
+				if (sc->flag & SC_SHOW_MARKER_SEARCH) {
 					if (mouse_on_corner(sc, track, marker, TRACK_AREA_SEARCH, co, 1, width, height))
-						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, SLIDE_ACTION_OFFSET, width, height);
+						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, SLIDE_ACTION_OFFSET, width, height);
 					else if (mouse_on_corner(sc, track, marker, TRACK_AREA_SEARCH, co, 0, width, height))
-						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, SLIDE_ACTION_SIZE, width, height);
+						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, SLIDE_ACTION_SIZE, width, height);
 				}
 
-				if (!customdata && sc->flag&SC_SHOW_MARKER_PATTERN) {
+				if (!customdata && (sc->flag & SC_SHOW_MARKER_PATTERN)) {
 					if (mouse_on_corner(sc, track, marker, TRACK_AREA_PAT, co, 1,  width, height))
-						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, SLIDE_ACTION_OFFSET, width, height);
+						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, SLIDE_ACTION_OFFSET, width, height);
 
 					if (!customdata && mouse_on_corner(sc, track, marker, TRACK_AREA_PAT, co, 0, width, height))
-						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, SLIDE_ACTION_SIZE, width, height);
+						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, SLIDE_ACTION_SIZE, width, height);
 				}
 
 				if (customdata)
@@ -457,7 +457,7 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 			}
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	return customdata;
@@ -465,16 +465,16 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 
 static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SlideMarkerData *slidedata= slide_marker_customdata(C, event);
+	SlideMarkerData *slidedata = slide_marker_customdata(C, event);
 
 	if (slidedata) {
-		SpaceClip *sc= CTX_wm_space_clip(C);
-		MovieClip *clip= ED_space_clip(sc);
-		MovieTracking *tracking= &clip->tracking;
+		SpaceClip *sc = CTX_wm_space_clip(C);
+		MovieClip *clip = ED_space_clip(sc);
+		MovieTracking *tracking = &clip->tracking;
 
-		tracking->act_track= slidedata->track;
+		tracking->act_track = slidedata->track;
 
-		op->customdata= slidedata;
+		op->customdata = slidedata;
 
 		hide_cursor(C);
 		WM_event_add_modal_handler(C, op);
@@ -491,20 +491,20 @@ static void cancel_mouse_slide(SlideMarkerData *data)
 {
 	/* cancel sliding */
 	if (data->area == TRACK_AREA_POINT) {
-		if (data->action==SLIDE_ACTION_OFFSET)
+		if (data->action == SLIDE_ACTION_OFFSET)
 			copy_v2_v2(data->offset, data->soff);
 		else
 			copy_v2_v2(data->pos, data->spos);
 	}
 	else {
-		if (data->action==SLIDE_ACTION_SIZE) {
+		if (data->action == SLIDE_ACTION_SIZE) {
 			copy_v2_v2(data->min, data->smin);
 			copy_v2_v2(data->max, data->smax);
 		}
 		else {
 			int a;
 
-			for (a= 0; a<data->track->markersnr; a++)
+			for (a = 0; a<data->track->markersnr; a++)
 				copy_v2_v2(data->track->markers[a].pos, data->smarkers[a]);
 
 			copy_v2_v2(data->offset, data->soff);
@@ -514,14 +514,16 @@ static void cancel_mouse_slide(SlideMarkerData *data)
 
 static void free_slide_data(SlideMarkerData *data)
 {
-	if (data->smarkers) MEM_freeN(data->smarkers);
+	if (data->smarkers)
+		MEM_freeN(data->smarkers);
+
 	MEM_freeN(data);
 }
 
 static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	SlideMarkerData *data= (SlideMarkerData *)op->customdata;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	SlideMarkerData *data = (SlideMarkerData *)op->customdata;
 	float dx, dy, mdelta[2];
 
 	switch(event->type) {
@@ -529,72 +531,76 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case RIGHTCTRLKEY:
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
-			if (data->action==SLIDE_ACTION_SIZE)
+			if (data->action == SLIDE_ACTION_SIZE)
 				if (ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY))
-					data->lock= event->val==KM_RELEASE;
+					data->lock = event->val == KM_RELEASE;
 
 			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
-				data->accurate= event->val==KM_PRESS;
+				data->accurate = event->val == KM_PRESS;
 
 			/* no break! update area size */
 
 		case MOUSEMOVE:
-			mdelta[0]= event->mval[0]-data->mval[0];
-			mdelta[1]= event->mval[1]-data->mval[1];
+			mdelta[0] = event->mval[0]-data->mval[0];
+			mdelta[1] = event->mval[1]-data->mval[1];
 
-			dx= mdelta[0]/data->width/sc->zoom;
+			dx = mdelta[0] / data->width / sc->zoom;
 
-			if (data->lock) dy= -dx/data->height*data->width;
-			else dy= mdelta[1]/data->height/sc->zoom;
+			if (data->lock)
+				dy = -dx / data->height * data->width;
+			else
+				dy = mdelta[1] / data->height / sc->zoom;
 
 			if (data->accurate) {
-				dx/= 5;
-				dy/= 5;
+				dx /= 5;
+				dy /= 5;
 			}
 
-			if (data->area==TRACK_AREA_POINT) {
-				if (data->action==SLIDE_ACTION_OFFSET) {
-					data->offset[0]= data->soff[0]+dx;
-					data->offset[1]= data->soff[1]+dy;
+			if (data->area == TRACK_AREA_POINT) {
+				if (data->action == SLIDE_ACTION_OFFSET) {
+					data->offset[0] = data->soff[0] + dx;
+					data->offset[1] = data->soff[1] + dy;
 				}
 				else {
-					data->pos[0]= data->spos[0]+dx;
-					data->pos[1]= data->spos[1]+dy;
+					data->pos[0] = data->spos[0] + dx;
+					data->pos[1] = data->spos[1] + dy;
 
-					data->marker->flag&= ~MARKER_TRACKED;
+					data->marker->flag &= ~MARKER_TRACKED;
 				}
 
 				WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 				DAG_id_tag_update(&sc->clip->id, 0);
 			}
 			else {
-				if (data->action==SLIDE_ACTION_SIZE) {
-					data->min[0]= data->smin[0]-dx;
-					data->max[0]= data->smax[0]+dx;
+				if (data->action == SLIDE_ACTION_SIZE) {
+					data->min[0] = data->smin[0] - dx;
+					data->max[0] = data->smax[0] + dx;
 
-					data->min[1]= data->smin[1]+dy;
-					data->max[1]= data->smax[1]-dy;
+					data->min[1] = data->smin[1] + dy;
+					data->max[1] = data->smax[1] - dy;
 
-					if (data->area==TRACK_AREA_SEARCH) BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_DIM);
-					else BKE_tracking_clamp_track(data->track, CLAMP_PAT_DIM);
+					if (data->area == TRACK_AREA_SEARCH)
+						BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_DIM);
+					else
+						BKE_tracking_clamp_track(data->track, CLAMP_PAT_DIM);
 				}
 				else {
-					float d[2]={dx, dy};
+					float d[2] = {dx, dy};
 
-					if (data->area==TRACK_AREA_SEARCH) {
+					if (data->area == TRACK_AREA_SEARCH) {
 						add_v2_v2v2(data->min, data->smin, d);
 						add_v2_v2v2(data->max, data->smax, d);
 					}
 					else {
 						int a;
 
-						for (a= 0; a<data->track->markersnr; a++)
+						for (a = 0; a<data->track->markersnr; a++)
 							add_v2_v2v2(data->track->markers[a].pos, data->smarkers[a], d);
 
 						sub_v2_v2v2(data->offset, data->soff, d);
 					}
 
-					if (data->area==TRACK_AREA_SEARCH)
+					if (data->area == TRACK_AREA_SEARCH)
 						BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_POS);
 				}
 			}
@@ -604,7 +610,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 
 		case LEFTMOUSE:
-			if (event->val==KM_RELEASE) {
+			if (event->val == KM_RELEASE) {
 				free_slide_data(op->customdata);
 
 				show_cursor(C);
@@ -653,10 +659,14 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 
 static int mouse_on_side(float co[2], float x1, float y1, float x2, float y2, float epsx, float epsy)
 {
-	if (x1>x2) SWAP(float, x1, x2);
-	if (y1>y2) SWAP(float, y1, y2);
+	if (x1 > x2)
 
-	return (co[0]>=x1-epsx && co[0]<=x2+epsx) && (co[1]>=y1-epsy && co[1]<=y2+epsy);
+		SWAP(float, x1, x2);
+
+	if (y1 > y2)
+		SWAP(float, y1, y2);
+
+	return (co[0] >= x1 - epsx && co[0] <= x2 + epsx) && (co[1] >= y1 - epsy && co[1] <= y2 + epsy);
 }
 
 static int mouse_on_rect(float co[2], float pos[2], float min[2], float max[2], float epsx, float epsy)
@@ -669,31 +679,32 @@ static int mouse_on_rect(float co[2], float pos[2], float min[2], float max[2], 
 
 static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *track)
 {
-	MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
+	MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
 	float epsx, epsy;
 	int width, height;
 
 	ED_space_clip_size(sc, &width, &height);
 
-	epsx= MIN4(track->pat_min[0]-track->search_min[0], track->search_max[0]-track->pat_max[0],
+	epsx = MIN4(track->pat_min[0]-track->search_min[0], track->search_max[0]-track->pat_max[0],
 	           fabsf(track->pat_min[0]), fabsf(track->pat_max[0])) / 2;
-	epsy= MIN4(track->pat_min[1]-track->search_min[1], track->search_max[1]-track->pat_max[1],
+	epsy = MIN4(track->pat_min[1]-track->search_min[1], track->search_max[1]-track->pat_max[1],
 	           fabsf(track->pat_min[1]), fabsf(track->pat_max[1])) / 2;
 
-	epsx= MAX2(epsx, 2.0f / width);
-	epsy= MAX2(epsy, 2.0f / height);
+	epsx = MAX2(epsx, 2.0f / width);
+	epsy = MAX2(epsy, 2.0f / height);
 
-	if (sc->flag&SC_SHOW_MARKER_SEARCH)
+	if (sc->flag & SC_SHOW_MARKER_SEARCH) {
 		if (mouse_on_rect(co, marker->pos, track->search_min, track->search_max, epsx, epsy))
 			return TRACK_AREA_SEARCH;
+	}
 
-	if ((marker->flag&MARKER_DISABLED)==0) {
-		if (sc->flag&SC_SHOW_MARKER_PATTERN)
+	if ((marker->flag & MARKER_DISABLED)== 0) {
+		if (sc->flag & SC_SHOW_MARKER_PATTERN)
 			if (mouse_on_rect(co, marker->pos, track->pat_min, track->pat_max, epsx, epsy))
 				return TRACK_AREA_PAT;
 
-		epsx= 12.0f/width;
-		epsy= 12.0f/height;
+		epsx = 12.0f / width;
+		epsy = 12.0f / height;
 
 		if (fabsf(co[0]-marker->pos[0]-track->offset[0])< epsx && fabsf(co[1]-marker->pos[1]-track->offset[1])<=epsy)
 			return TRACK_AREA_POINT;
@@ -705,51 +716,51 @@ static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *trac
 static float dist_to_rect(float co[2], float pos[2], float min[2], float max[2])
 {
 	float d1, d2, d3, d4;
-	float p[2]= {co[0]-pos[0], co[1]-pos[1]};
-	float v1[2]= {min[0], min[1]}, v2[2]= {max[0], min[1]},
-	      v3[2]= {max[0], max[1]}, v4[2]= {min[0], max[1]};
+	float p[2] = {co[0]-pos[0], co[1]-pos[1]};
+	float v1[2] = {min[0], min[1]}, v2[2] = {max[0], min[1]},
+	      v3[2] = {max[0], max[1]}, v4[2] = {min[0], max[1]};
 
-	d1= dist_to_line_segment_v2(p, v1, v2);
-	d2= dist_to_line_segment_v2(p, v2, v3);
-	d3= dist_to_line_segment_v2(p, v3, v4);
-	d4= dist_to_line_segment_v2(p, v4, v1);
+	d1 = dist_to_line_segment_v2(p, v1, v2);
+	d2 = dist_to_line_segment_v2(p, v2, v3);
+	d3 = dist_to_line_segment_v2(p, v3, v4);
+	d4 = dist_to_line_segment_v2(p, v4, v1);
 
 	return MIN4(d1, d2, d3, d4);
 }
 
 static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbase, float co[2])
 {
-	MovieTrackingTrack *track= NULL, *cur;
-	float mindist= 0.0f;
+	MovieTrackingTrack *track = NULL, *cur;
+	float mindist = 0.0f;
 
-	cur= tracksbase->first;
+	cur = tracksbase->first;
 	while (cur) {
-		MovieTrackingMarker *marker= BKE_tracking_get_marker(cur, sc->user.framenr);
+		MovieTrackingMarker *marker = BKE_tracking_get_marker(cur, sc->user.framenr);
 
-		if (((cur->flag&TRACK_HIDDEN)==0) && MARKER_VISIBLE(sc, marker)) {
-			float dist, d1, d2=FLT_MAX, d3=FLT_MAX;
+		if (((cur->flag & TRACK_HIDDEN) == 0) && MARKER_VISIBLE(sc, marker)) {
+			float dist, d1, d2 = FLT_MAX, d3 = FLT_MAX;
 
 			d1= sqrtf((co[0]-marker->pos[0]-cur->offset[0])*(co[0]-marker->pos[0]-cur->offset[0])+
 					  (co[1]-marker->pos[1]-cur->offset[1])*(co[1]-marker->pos[1]-cur->offset[1])); /* distance to marker point */
 
 			/* distance to pattern boundbox */
-			if (sc->flag&SC_SHOW_MARKER_PATTERN)
+			if (sc->flag & SC_SHOW_MARKER_PATTERN)
 				d2= dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max);
 
 			/* distance to search boundbox */
-			if (sc->flag&SC_SHOW_MARKER_SEARCH && TRACK_VIEW_SELECTED(sc, cur))
+			if (sc->flag & SC_SHOW_MARKER_SEARCH && TRACK_VIEW_SELECTED(sc, cur))
 				d3= dist_to_rect(co, marker->pos, cur->search_min, cur->search_max);
 
 			/* choose minimal distance. useful for cases of overlapped markers. */
-			dist= MIN3(d1, d2, d3);
+			dist = MIN3(d1, d2, d3);
 
-			if (track==NULL || dist<mindist) {
-				track= cur;
-				mindist= dist;
+			if (track == NULL || dist<mindist) {
+				track = cur;
+				mindist = dist;
 			}
 		}
 
-		cur= cur->next;
+		cur = cur->next;
 	}
 
 	return track;
@@ -757,39 +768,39 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbas
 
 static int mouse_select(bContext *C, float co[2], int extend)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
-	MovieTrackingTrack *track= NULL;	/* selected marker */
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
+	MovieTrackingTrack *track = NULL;	/* selected marker */
 
-	track= find_nearest_track(sc, tracksbase, co);
+	track = find_nearest_track(sc, tracksbase, co);
 
 	if (track) {
-		int area= track_mouse_area(sc, co, track);
+		int area = track_mouse_area(sc, co, track);
 
 		if (!extend || !TRACK_VIEW_SELECTED(sc, track))
-			area= TRACK_AREA_ALL;
+			area = TRACK_AREA_ALL;
 
 		if (extend && TRACK_AREA_SELECTED(track, area)) {
-			if (track==act_track)
+			if (track == act_track)
 				BKE_tracking_deselect_track(track, area);
 			else
-				clip->tracking.act_track= track;
+				clip->tracking.act_track = track;
 		}
 		else {
-			if (area==TRACK_AREA_POINT)
-				area= TRACK_AREA_ALL;
+			if (area == TRACK_AREA_POINT)
+				area = TRACK_AREA_ALL;
 
 			BKE_tracking_select_track(tracksbase, track, area, extend);
-			clip->tracking.act_track= track;
+			clip->tracking.act_track = track;
 		}
 	}
 
 	if (!extend) {
-		sc->xlockof= 0.0f;
-		sc->ylockof= 0.0f;
+		sc->xlockof = 0.0f;
+		sc->ylockof = 0.0f;
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
@@ -803,7 +814,7 @@ static int select_exec(bContext *C, wmOperator *op)
 	int extend;
 
 	RNA_float_get_array(op->ptr, "location", co);
-	extend= RNA_boolean_get(op->ptr, "extend");
+	extend = RNA_boolean_get(op->ptr, "extend");
 
 	return mouse_select(C, co, extend);
 }
@@ -811,16 +822,16 @@ static int select_exec(bContext *C, wmOperator *op)
 static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	float co[2];
-	int extend= RNA_boolean_get(op->ptr, "extend");
+	int extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (!extend) {
-		SlideMarkerData *slidedata= slide_marker_customdata(C, event);
+		SlideMarkerData *slidedata = slide_marker_customdata(C, event);
 
 		if (slidedata) {
-			SpaceClip *sc= CTX_wm_space_clip(C);
-			MovieClip *clip= ED_space_clip(sc);
+			SpaceClip *sc = CTX_wm_space_clip(C);
+			MovieClip *clip = ED_space_clip(sc);
 
-			clip->tracking.act_track= slidedata->track;
+			clip->tracking.act_track = slidedata->track;
 
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
 
@@ -862,13 +873,13 @@ void CLIP_OT_select(wmOperatorType *ot)
 
 static int border_select_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	rcti rect;
 	rctf rectf;
-	int change= 0, mode, extend;
+	int change = FALSE, mode, extend;
 
 	/* get rectangle from operator */
 	rect.xmin = RNA_int_get(op->ptr, "xmin");
@@ -879,14 +890,14 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	ED_clip_point_stable_pos(C, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	ED_clip_point_stable_pos(C, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
-	mode= RNA_int_get(op->ptr, "gesture_mode");
-	extend= RNA_boolean_get(op->ptr, "extend");
+	mode = RNA_int_get(op->ptr, "gesture_mode");
+	extend = RNA_boolean_get(op->ptr, "extend");
 
 	/* do actual selection */
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if ((track->flag&TRACK_HIDDEN)==0) {
-			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
+		if ((track->flag & TRACK_HIDDEN) == 0) {
+			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
 
 			if (MARKER_VISIBLE(sc, marker)) {
 				if (BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
@@ -896,11 +907,11 @@ static int border_select_exec(bContext *C, wmOperator *op)
 					BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, 1);
 				}
 
-				change= 1;
+				change = TRUE;
 			}
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	if (change) {
@@ -939,52 +950,52 @@ static int marker_inside_ellipse(MovieTrackingMarker *marker, float offset[2], f
 	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
 	float x, y;
 
-	x= (marker->pos[0] - offset[0])*ellipse[0];
-	y= (marker->pos[1] - offset[1])*ellipse[1];
+	x = (marker->pos[0] - offset[0])*ellipse[0];
+	y = (marker->pos[1] - offset[1])*ellipse[1];
 
 	return x*x + y*y < 1.0f;
 }
 
 static int circle_select_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	ARegion *ar = CTX_wm_region(C);
 	MovieTrackingTrack *track;
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
-	int x, y, radius, width, height, mode, change= 0;
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
+	int x, y, radius, width, height, mode, change = FALSE;
 	float zoomx, zoomy, offset[2], ellipse[2];
 
 	/* get operator properties */
-	x= RNA_int_get(op->ptr, "x");
-	y= RNA_int_get(op->ptr, "y");
-	radius= RNA_int_get(op->ptr, "radius");
+	x = RNA_int_get(op->ptr, "x");
+	y = RNA_int_get(op->ptr, "y");
+	radius = RNA_int_get(op->ptr, "radius");
 
-	mode= RNA_int_get(op->ptr, "gesture_mode");
+	mode = RNA_int_get(op->ptr, "gesture_mode");
 
 	/* compute ellipse and position in unified coordinates */
 	ED_space_clip_size(sc, &width, &height);
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 
-	ellipse[0]= width*zoomx/radius;
-	ellipse[1]= height*zoomy/radius;
+	ellipse[0] = width * zoomx / radius;
+	ellipse[1] = height * zoomy / radius;
 
 	ED_clip_point_stable_pos(C, x, y, &offset[0], &offset[1]);
 
 	/* do selection */
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if ((track->flag&TRACK_HIDDEN)==0) {
-			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
+		if ((track->flag & TRACK_HIDDEN) == 0) {
+			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
 
 			if (MARKER_VISIBLE(sc, marker) && marker_inside_ellipse(marker, offset, ellipse)) {
 				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
 
-				change= 1;
+				change = TRUE;
 			}
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	if (change) {
@@ -1023,66 +1034,66 @@ void CLIP_OT_select_circle(wmOperatorType *ot)
 
 static int select_all_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTrackingTrack *track= NULL;	/* selected track */
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTrackingTrack *track = NULL;	/* selected track */
 	MovieTrackingMarker *marker;
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
-	int action= RNA_enum_get(op->ptr, "action");
-	int framenr= sc->user.framenr;
-	int has_selection= 0;
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
+	int action = RNA_enum_get(op->ptr, "action");
+	int framenr = sc->user.framenr;
+	int has_selection = FALSE;
 
 	if (action == SEL_TOGGLE) {
-		action= SEL_SELECT;
-		track= tracksbase->first;
+		action = SEL_SELECT;
+		track = tracksbase->first;
 		while (track) {
 			if (TRACK_VIEW_SELECTED(sc, track)) {
-				marker= BKE_tracking_get_marker(track, framenr);
+				marker = BKE_tracking_get_marker(track, framenr);
 
 				if (MARKER_VISIBLE(sc, marker)) {
-					action= SEL_DESELECT;
+					action = SEL_DESELECT;
 					break;
 				}
 			}
 
-			track= track->next;
+			track = track->next;
 		}
 	}
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if ((track->flag&TRACK_HIDDEN)==0) {
-			marker= BKE_tracking_get_marker(track, framenr);
+		if ((track->flag & TRACK_HIDDEN)==0) {
+			marker = BKE_tracking_get_marker(track, framenr);
 
 			if (MARKER_VISIBLE(sc, marker)) {
 				switch (action) {
 					case SEL_SELECT:
-						track->flag|= SELECT;
-						track->pat_flag|= SELECT;
-						track->search_flag|= SELECT;
+						track->flag |= SELECT;
+						track->pat_flag |= SELECT;
+						track->search_flag |= SELECT;
 						break;
 					case SEL_DESELECT:
-						track->flag&= ~SELECT;
-						track->pat_flag&= ~SELECT;
-						track->search_flag&= ~SELECT;
+						track->flag &= ~SELECT;
+						track->pat_flag &= ~SELECT;
+						track->search_flag &= ~SELECT;
 						break;
 					case SEL_INVERT:
-						track->flag^= SELECT;
-						track->pat_flag^= SELECT;
-						track->search_flag^= SELECT;
+						track->flag ^= SELECT;
+						track->pat_flag ^= SELECT;
+						track->search_flag ^= SELECT;
 						break;
 				}
 			}
 		}
 
 		if (TRACK_VIEW_SELECTED(sc, track))
-			has_selection= 1;
+			has_selection = TRUE;
 
-		track= track->next;
+		track = track->next;
 	}
 
 	if (!has_selection)
-		sc->flag&= ~SC_LOCK_SELECTION;
+		sc->flag &= ~SC_LOCK_SELECTION;
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
 
@@ -1110,56 +1121,58 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 
 static int select_groped_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	int group= RNA_enum_get(op->ptr, "group");
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	int group = RNA_enum_get(op->ptr, "group");
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		int ok= 0;
+		int ok = FALSE;
 
-		marker= BKE_tracking_get_marker(track, sc->user.framenr);
+		marker = BKE_tracking_get_marker(track, sc->user.framenr);
 
-		if (group==0) { /* Keyframed */
-			ok= marker->framenr==sc->user.framenr && (marker->flag&MARKER_TRACKED)==0;
+		if (group == 0) { /* Keyframed */
+			ok = marker->framenr == sc->user.framenr && (marker->flag & MARKER_TRACKED)==0;
 		}
-		else if (group==1) { /* Estimated */
-			ok= marker->framenr!=sc->user.framenr;
+		else if (group == 1) { /* Estimated */
+			ok = marker->framenr != sc->user.framenr;
 		}
-		else if (group==2) { /* tracked */
-			ok= marker->framenr==sc->user.framenr && (marker->flag&MARKER_TRACKED);
+		else if (group == 2) { /* tracked */
+			ok = marker->framenr == sc->user.framenr && (marker->flag & MARKER_TRACKED);
 		}
-		else if (group==3) { /* locked */
-			ok= track->flag&TRACK_LOCKED;
+		else if (group == 3) { /* locked */
+			ok = track->flag & TRACK_LOCKED;
 		}
-		else if (group==4) { /* disabled */
-			ok= marker->flag&MARKER_DISABLED;
+		else if (group == 4) { /* disabled */
+			ok = marker->flag & MARKER_DISABLED;
 		}
-		else if (group==5) { /* color */
-			MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+		else if (group == 5) { /* color */
+			MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
 
 			if (act_track) {
-				ok= (track->flag&TRACK_CUSTOMCOLOR) == (act_track->flag&TRACK_CUSTOMCOLOR);
+				ok = (track->flag & TRACK_CUSTOMCOLOR) == (act_track->flag & TRACK_CUSTOMCOLOR);
 
-				if (ok && track->flag&TRACK_CUSTOMCOLOR)
-					ok= equals_v3v3(track->color, act_track->color);
+				if (ok && track->flag & TRACK_CUSTOMCOLOR)
+					ok = equals_v3v3(track->color, act_track->color);
 			}
 		}
-		else if (group==6) { /* failed */
-			ok= (track->flag&TRACK_HAS_BUNDLE) == 0;
+		else if (group == 6) { /* failed */
+			ok = (track->flag & TRACK_HAS_BUNDLE) == 0;
 		}
 
 		if (ok) {
-			track->flag|= SELECT;
-			if (sc->flag&SC_SHOW_MARKER_PATTERN) track->pat_flag|= SELECT;
-			if (sc->flag&SC_SHOW_MARKER_SEARCH) track->search_flag|= SELECT;
+			track->flag |= SELECT;
+			if (sc->flag & SC_SHOW_MARKER_PATTERN)
+				track->pat_flag |= SELECT;
+			if (sc->flag & SC_SHOW_MARKER_SEARCH)
+				track->search_flag |= SELECT;
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
@@ -1217,21 +1230,21 @@ static int track_markers_testbreak(void)
 
 static int track_count_markers(SpaceClip *sc, MovieClip *clip)
 {
-	int tot= 0;
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	int tot = 0;
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
-	int framenr= sc->user.framenr;
+	int framenr = sc->user.framenr;
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0) {
-			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, framenr);
+		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
+			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, framenr);
 
-			if (!marker || (marker->flag&MARKER_DISABLED) == 0)
+			if (!marker || (marker->flag & MARKER_DISABLED) == 0)
 				tot++;
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	return tot;
@@ -1239,13 +1252,13 @@ static int track_count_markers(SpaceClip *sc, MovieClip *clip)
 
 static void clear_invisible_track_selection(SpaceClip *sc, MovieClip *clip)
 {
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	int hidden = 0;
 
-	if ((sc->flag&SC_SHOW_MARKER_PATTERN)==0)
+	if ((sc->flag & SC_SHOW_MARKER_PATTERN)==0)
 		hidden |= TRACK_AREA_PAT;
 
-	if ((sc->flag&SC_SHOW_MARKER_SEARCH)==0)
+	if ((sc->flag & SC_SHOW_MARKER_SEARCH)==0)
 		hidden |= TRACK_AREA_SEARCH;
 
 	if (hidden) {
@@ -1262,128 +1275,139 @@ static void clear_invisible_track_selection(SpaceClip *sc, MovieClip *clip)
 
 static void track_init_markers(SpaceClip *sc, MovieClip *clip, int *frames_limit_r)
 {
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
-	int framenr= sc->user.framenr;
-	int frames_limit= 0;
+	int framenr = sc->user.framenr;
+	int frames_limit = 0;
 
 	clear_invisible_track_selection(sc, clip);
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track)) {
-			if ((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0) {
+			if ((track->flag & TRACK_HIDDEN)==0 && (track->flag & TRACK_LOCKED)==0) {
 				BKE_tracking_ensure_marker(track, framenr);
 
 				if (track->frames_limit) {
-					if (frames_limit==0)
-						frames_limit= track->frames_limit;
+					if (frames_limit == 0)
+						frames_limit = track->frames_limit;
 					else
-						frames_limit= MIN2(frames_limit, track->frames_limit);
+						frames_limit = MIN2(frames_limit, track->frames_limit);
 				}
 			}
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
-	*frames_limit_r= frames_limit;
+	*frames_limit_r = frames_limit;
 }
 
 static int track_markers_check_direction(int backwards, int curfra, int efra)
 {
 	if (backwards) {
-		if (curfra<efra) return 0;
+		if (curfra < efra)
+			return FALSE;
 	}
 	else {
-		if (curfra>efra) return 0;
+		if (curfra > efra)
+			return FALSE;
 	}
 
-	return 1;
+	return TRUE;
 }
 
 static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwards)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	Scene *scene= CTX_data_scene(C);
-	MovieTrackingSettings *settings= &clip->tracking.settings;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	Scene *scene = CTX_data_scene(C);
+	MovieTrackingSettings *settings = &clip->tracking.settings;
 	int frames_limit;
 
 	track_init_markers(sc, clip, &frames_limit);
 
-	tmj->sfra= sc->user.framenr;
-	tmj->clip= clip;
-	tmj->backwards= backwards;
+	tmj->sfra = sc->user.framenr;
+	tmj->clip = clip;
+	tmj->backwards = backwards;
 
-	if (backwards) tmj->efra= SFRA;
-	else tmj->efra= EFRA;
+	if (backwards)
+		tmj->efra = SFRA;
+	else
+		tmj->efra = EFRA;
 
 	/* limit frames to be tracked by user setting */
 	if (frames_limit) {
-		if (backwards) tmj->efra= MAX2(tmj->efra, tmj->sfra-frames_limit);
-		else tmj->efra= MIN2(tmj->efra, tmj->sfra+frames_limit);
+		if (backwards)
+			tmj->efra = MAX2(tmj->efra, tmj->sfra - frames_limit);
+		else
+			tmj->efra = MIN2(tmj->efra, tmj->sfra + frames_limit);
 	}
 
-	if (settings->speed!=TRACKING_SPEED_FASTEST) {
-		tmj->delay= 1.0f/scene->r.frs_sec*1000.0f;
+	if (settings->speed != TRACKING_SPEED_FASTEST) {
+		tmj->delay = 1.0f / scene->r.frs_sec * 1000.0f;
 
-		if (settings->speed==TRACKING_SPEED_HALF) tmj->delay*= 2;
-		else if (settings->speed==TRACKING_SPEED_QUARTER) tmj->delay*= 4;
-		else if (settings->speed==TRACKING_SPEED_DOUBLE) tmj->delay/= 2;
+		if (settings->speed == TRACKING_SPEED_HALF)
+			tmj->delay *= 2;
+		else if (settings->speed == TRACKING_SPEED_QUARTER)
+			tmj->delay *= 4;
+		else if (settings->speed == TRACKING_SPEED_DOUBLE)
+			tmj->delay /= 2;
 	}
 
-	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards, 1);
+	tmj->context = BKE_tracking_context_new(clip, &sc->user, backwards, 1);
 
-	clip->tracking_context= tmj->context;
+	clip->tracking_context = tmj->context;
 
-	tmj->lastfra= tmj->sfra;
+	tmj->lastfra = tmj->sfra;
 
 	/* XXX: silly to store this, but this data is needed to update scene and movie-clip
 	 *      frame numbers when tracking is finished. This introduces better feedback for artists.
 	 *      Maybe there's another way to solve this problem, but can't think better way atm.
 	 *      Anyway, this way isn't more unstable as animation rendering animation
 	 *      which uses the same approach (except storing screen). */
-	tmj->scene= scene;
-	tmj->main= CTX_data_main(C);
-	tmj->screen= CTX_wm_screen(C);
+	tmj->scene = scene;
+	tmj->main = CTX_data_main(C);
+	tmj->screen = CTX_wm_screen(C);
 
 	return track_markers_check_direction(backwards, tmj->sfra, tmj->efra);
 }
 
 static void track_markers_startjob(void *tmv, short *stop, short *do_update, float *progress)
 {
-	TrackMarkersJob *tmj= (TrackMarkersJob *)tmv;
-	int framenr= tmj->sfra;
-	//double t= PIL_check_seconds_timer();
+	TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
+	int framenr = tmj->sfra;
+	//double t = PIL_check_seconds_timer();
 
 	while (framenr != tmj->efra) {
-		if (tmj->delay>0) {
+		if (tmj->delay > 0) {
 			/* tracking should happen with fixed fps. Calculate time
 			 * using current timer value before tracking frame and after.
 			 *
 			 * Small (and maybe unneeded optimization): do not calculate exec_time
 			 * for "Fastest" tracking */
 
-			double start_time= PIL_check_seconds_timer(), exec_time;
+			double start_time = PIL_check_seconds_timer(), exec_time;
 
 			if (!BKE_tracking_next(tmj->context))
 				break;
 
-			exec_time= PIL_check_seconds_timer()-start_time;
+			exec_time = PIL_check_seconds_timer()-start_time;
 			if (tmj->delay > (float)exec_time)
 				PIL_sleep_ms(tmj->delay-(float)exec_time);
 		}
 		else if (!BKE_tracking_next(tmj->context))
 				break;
 
-		*do_update= 1;
-		*progress=(float)(framenr-tmj->sfra) / (tmj->efra-tmj->sfra);
+		*do_update = TRUE;
+		*progress = (float)(framenr-tmj->sfra) / (tmj->efra-tmj->sfra);
 
-		if (tmj->backwards) framenr--;
-		else framenr++;
+		if (tmj->backwards)
+			framenr--;
+		else
+			framenr++;
 
-		tmj->lastfra= framenr;
+		tmj->lastfra = framenr;
 
 		if (*stop || track_markers_testbreak())
 			break;
@@ -1394,17 +1418,17 @@ static void track_markers_startjob(void *tmv, short *stop, short *do_update, flo
 
 static void track_markers_updatejob(void *tmv)
 {
-	TrackMarkersJob *tmj= (TrackMarkersJob *)tmv;
+	TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
 
 	BKE_tracking_sync(tmj->context);
 }
 
 static void track_markers_freejob(void *tmv)
 {
-	TrackMarkersJob *tmj= (TrackMarkersJob *)tmv;
+	TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
 
-	tmj->clip->tracking_context= NULL;
-	tmj->scene->r.cfra= tmj->lastfra;
+	tmj->clip->tracking_context = NULL;
+	tmj->scene->r.cfra = tmj->lastfra;
 	ED_update_for_newframe(tmj->main, tmj->scene, tmj->screen, 0);
 
 	BKE_tracking_sync(tmj->context);
@@ -1417,14 +1441,14 @@ static void track_markers_freejob(void *tmv)
 
 static int track_markers_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	Scene *scene= CTX_data_scene(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	Scene *scene = CTX_data_scene(C);
 	struct MovieTrackingContext *context;
-	int framenr= sc->user.framenr;
-	int sfra= framenr, efra;
-	int backwards= RNA_boolean_get(op->ptr, "backwards");
-	int sequence= RNA_boolean_get(op->ptr, "sequence");
+	int framenr = sc->user.framenr;
+	int sfra = framenr, efra;
+	int backwards = RNA_boolean_get(op->ptr, "backwards");
+	int sequence = RNA_boolean_get(op->ptr, "sequence");
 	int frames_limit;
 
 	if (track_count_markers(sc, clip)==0)
@@ -1432,20 +1456,22 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 
 	track_init_markers(sc, clip, &frames_limit);
 
-	if (backwards) efra= SFRA;
-	else efra= EFRA;
+	if (backwards)
+		efra = SFRA;
+	else
+		efra = EFRA;
 
 	/* limit frames to be tracked by user setting */
 	if (frames_limit) {
-		if (backwards) efra= MAX2(efra, sfra-frames_limit);
-		else efra= MIN2(efra, sfra+frames_limit);
+		if (backwards) efra = MAX2(efra, sfra-frames_limit);
+		else efra = MIN2(efra, sfra+frames_limit);
 	}
 
 	if (!track_markers_check_direction(backwards, framenr, efra))
 		return OPERATOR_CANCELLED;
 
 	/* do not disable tracks due to threshold when tracking frame-by-frame */
-	context= BKE_tracking_context_new(clip, &sc->user, backwards, sequence);
+	context = BKE_tracking_context_new(clip, &sc->user, backwards, sequence);
 
 	while (framenr != efra) {
 		if (!BKE_tracking_next(context))
@@ -1462,7 +1488,7 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 	BKE_tracking_context_free(context);
 
 	/* update scene current frame to the lastes tracked frame */
-	scene->r.cfra= framenr;
+	scene->r.cfra = framenr;
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
@@ -1473,12 +1499,12 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	TrackMarkersJob *tmj;
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	ScrArea *sa = CTX_wm_area(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	wmJob *steve;
-	int backwards= RNA_boolean_get(op->ptr, "backwards");
-	int sequence= RNA_boolean_get(op->ptr, "sequence");
+	int backwards = RNA_boolean_get(op->ptr, "backwards");
+	int sequence = RNA_boolean_get(op->ptr, "sequence");
 
 	if (WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C))) {
 		/* only one tracking is allowed at a time */
@@ -1494,7 +1520,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	if (!sequence)
 		return track_markers_exec(C, op);
 
-	tmj= MEM_callocN(sizeof(TrackMarkersJob), "TrackMarkersJob data");
+	tmj = MEM_callocN(sizeof(TrackMarkersJob), "TrackMarkersJob data");
 	if (!track_markers_initjob(C, tmj, backwards)) {
 		track_markers_freejob(tmj);
 
@@ -1502,7 +1528,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	}
 
 	/* setup job */
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers", WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers", WM_JOB_PROGRESS);
 	WM_jobs_customdata(steve, tmj, track_markers_freejob);
 
 	/* if there's delay set in tracking job, tracking should happen
@@ -1514,7 +1540,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 
 	WM_jobs_callbacks(steve, track_markers_startjob, NULL, track_markers_updatejob, NULL);
 
-	G.afbreek= 0;
+	G.afbreek = 0;
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 	WM_cursor_wait(0);
@@ -1578,12 +1604,12 @@ typedef struct {
 
 static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op, char *error_msg, int max_error)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	Scene *scene= CTX_data_scene(C);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingSettings *settings= &clip->tracking.settings;
-	MovieTrackingObject *object= BKE_tracking_active_object(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	Scene *scene = CTX_data_scene(C);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingSettings *settings = &clip->tracking.settings;
+	MovieTrackingObject *object = BKE_tracking_active_object(tracking);
 	int width, height;
 
 	if (!BKE_tracking_can_reconstruct(tracking, object, error_msg, max_error))
@@ -1592,30 +1618,30 @@ static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op
 	/* could fail if footage uses images with different sizes */
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
-	scj->clip= clip;
-	scj->scene= scene;
-	scj->reports= op->reports;
-	scj->user= sc->user;
+	scj->clip = clip;
+	scj->scene = scene;
+	scj->reports = op->reports;
+	scj->user = sc->user;
 
-	scj->context= BKE_tracking_reconstruction_context_new(tracking, object,
+	scj->context = BKE_tracking_reconstruction_context_new(tracking, object,
 			settings->keyframe1, settings->keyframe2, width, height);
 
-	tracking->stats= MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
+	tracking->stats = MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
 
 	return 1;
 }
 
 static void solve_camera_updatejob(void *scv)
 {
-	SolveCameraJob *scj= (SolveCameraJob *)scv;
-	MovieTracking *tracking= &scj->clip->tracking;
+	SolveCameraJob *scj = (SolveCameraJob *)scv;
+	MovieTracking *tracking = &scj->clip->tracking;
 
 	BLI_strncpy(tracking->stats->message, scj->stats_message, sizeof(tracking->stats->message));
 }
 
 static void solve_camera_startjob(void *scv, short *stop, short *do_update, float *progress)
 {
-	SolveCameraJob *scj= (SolveCameraJob *)scv;
+	SolveCameraJob *scj = (SolveCameraJob *)scv;
 
 	BKE_tracking_solve_reconstruction(scj->context, stop, do_update, progress,
 			scj->stats_message, sizeof(scj->stats_message));
@@ -1623,10 +1649,10 @@ static void solve_camera_startjob(void *scv, short *stop, short *do_update, floa
 
 static void solve_camera_freejob(void *scv)
 {
-	SolveCameraJob *scj= (SolveCameraJob *)scv;
-	MovieTracking *tracking= &scj->clip->tracking;
-	Scene *scene= scj->scene;
-	MovieClip *clip= scj->clip;
+	SolveCameraJob *scj = (SolveCameraJob *)scv;
+	MovieTracking *tracking = &scj->clip->tracking;
+	Scene *scene = scj->scene;
+	MovieClip *clip = scj->clip;
 	int solved;
 
 	if (!scj->context) {
@@ -1635,7 +1661,7 @@ static void solve_camera_freejob(void *scv)
 		return;
 	}
 
-	solved= BKE_tracking_finish_reconstruction(scj->context, tracking);
+	solved = BKE_tracking_finish_reconstruction(scj->context, tracking);
 
 	if (!solved)
 		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
@@ -1646,12 +1672,12 @@ static void solve_camera_freejob(void *scv)
 	if (scene->clip)
 		id_us_min(&clip->id);
 
-	scene->clip= clip;
+	scene->clip = clip;
 	id_us_plus(&clip->id);
 
 	/* set blender camera focal length so result would look fine there */
 	if (scene->camera) {
-		Camera *camera= (Camera*)scene->camera->data;
+		Camera *camera = (Camera*)scene->camera->data;
 		int width, height;
 
 		BKE_movieclip_get_size(clip, &scj->user, &width, &height);
@@ -1662,7 +1688,7 @@ static void solve_camera_freejob(void *scv)
 	}
 
 	MEM_freeN(tracking->stats);
-	tracking->stats= NULL;
+	tracking->stats = NULL;
 
 	DAG_id_tag_update(&clip->id, 0);
 
@@ -1679,9 +1705,9 @@ static void solve_camera_freejob(void *scv)
 static int solve_camera_exec(bContext *C, wmOperator *op)
 {
 	SolveCameraJob *scj;
-	char error_msg[256]= "\0";
+	char error_msg[256] = "\0";
 
-	scj= MEM_callocN(sizeof(SolveCameraJob), "SolveCameraJob data");
+	scj = MEM_callocN(sizeof(SolveCameraJob), "SolveCameraJob data");
 	if (!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
 		if (error_msg[0])
 			BKE_report(op->reports, RPT_ERROR, error_msg);
@@ -1701,20 +1727,20 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	SolveCameraJob *scj;
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingReconstruction *reconstruction= BKE_tracking_get_reconstruction(tracking);
+	ScrArea *sa = CTX_wm_area(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingReconstruction *reconstruction = BKE_tracking_get_reconstruction(tracking);
 	wmJob *steve;
-	char error_msg[256]= "\0";
+	char error_msg[256] = "\0";
 
 	if (WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C))) {
 		/* only one solve is allowed at a time */
 		return OPERATOR_CANCELLED;
 	}
 
-	scj= MEM_callocN(sizeof(SolveCameraJob), "SolveCameraJob data");
+	scj = MEM_callocN(sizeof(SolveCameraJob), "SolveCameraJob data");
 	if (!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
 		if (error_msg[0])
 			BKE_report(op->reports, RPT_ERROR, error_msg);
@@ -1727,16 +1753,16 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	BLI_strncpy(tracking->stats->message, "Solving camera | Preparing solve", sizeof(tracking->stats->message));
 
 	/* hide reconstruction statistics from previous solve */
-	reconstruction->flag&= ~TRACKING_RECONSTRUCTED;
+	reconstruction->flag &= ~TRACKING_RECONSTRUCTED;
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
 
 	/* setup job */
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Solve Camera", WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Solve Camera", WM_JOB_PROGRESS);
 	WM_jobs_customdata(steve, scj, solve_camera_freejob);
 	WM_jobs_timer(steve, 0.1, NC_MOVIECLIP|NA_EVALUATED, 0);
 	WM_jobs_callbacks(steve, solve_camera_startjob, NULL, solve_camera_updatejob, NULL);
 
-	G.afbreek= 0;
+	G.afbreek = 0;
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 	WM_cursor_wait(0);
@@ -1750,7 +1776,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 static int solve_camera_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running solver, remove handler and pass through */
-	if (0==WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C)))
+	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C)))
 		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 
 	/* running tracking */
@@ -1784,26 +1810,26 @@ void CLIP_OT_solve_camera(wmOperatorType *ot)
 
 static int clear_solution_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
-	MovieTrackingReconstruction *reconstruction= BKE_tracking_get_reconstruction(tracking);
-	MovieTrackingTrack *track= tracksbase->first;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
+	MovieTrackingReconstruction *reconstruction = BKE_tracking_get_reconstruction(tracking);
+	MovieTrackingTrack *track = tracksbase->first;
 
 	while (track) {
-		track->flag&= ~TRACK_HAS_BUNDLE;
+		track->flag &= ~TRACK_HAS_BUNDLE;
 
-		track= track->next;
+		track = track->next;
 	}
 
 	if (reconstruction->cameras)
 		MEM_freeN(reconstruction->cameras);
 
-	reconstruction->cameras= NULL;
-	reconstruction->camnr= 0;
+	reconstruction->cameras = NULL;
+	reconstruction->camnr = 0;
 
-	reconstruction->flag&= ~TRACKING_RECONSTRUCTED;
+	reconstruction->flag &= ~TRACKING_RECONSTRUCTED;
 
 	DAG_id_tag_update(&clip->id, 0);
 
@@ -1832,24 +1858,24 @@ void CLIP_OT_clear_solution(wmOperatorType *ot)
 
 static int clear_track_path_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
-	int action= RNA_enum_get(op->ptr, "action");
-	int clear_active= RNA_boolean_get(op->ptr, "clear_active");
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
+	int action = RNA_enum_get(op->ptr, "action");
+	int clear_active = RNA_boolean_get(op->ptr, "clear_active");
 
 	if (clear_active) {
-		track= BKE_tracking_active_track(&clip->tracking);
+		track = BKE_tracking_active_track(&clip->tracking);
 		BKE_tracking_clear_path(track, sc->user.framenr, action);
 	}
 	else {
-		track= tracksbase->first;
+		track = tracksbase->first;
 		while (track) {
 			if (TRACK_VIEW_SELECTED(sc, track))
 				BKE_tracking_clear_path(track, sc->user.framenr, action);
 
-			track= track->next;
+			track = track->next;
 		}
 	}
 
@@ -1888,23 +1914,25 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 static int disable_markers_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *track= tracksbase->first;
-	int action= RNA_enum_get(op->ptr, "action");
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *track = tracksbase->first;
+	int action = RNA_enum_get(op->ptr, "action");
 
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0) {
-			MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
+		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED)==0) {
+			MovieTrackingMarker *marker = BKE_tracking_ensure_marker(track, sc->user.framenr);
 
-			if (action==0) marker->flag|= MARKER_DISABLED;
-			else if (action==1) marker->flag&= ~MARKER_DISABLED;
-			else marker->flag^= MARKER_DISABLED;
+			if (action == 0)
+				marker->flag |= MARKER_DISABLED;
+			else if (action == 1)
+				marker->flag &= ~MARKER_DISABLED;
+			else marker->flag ^= MARKER_DISABLED;
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	DAG_id_tag_update(&clip->id, 0);
@@ -1943,22 +1971,22 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
 
 static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
 {
-	Object *camera= scene->camera;
+	Object *camera = scene->camera;
 	Base *base;
 
 	if (camera && object_get_movieclip(scene, camera, 0)==clip)
 		return camera;
 
-	base= scene->base.first;
+	base = scene->base.first;
 	while (base) {
 		if (base->object->type == OB_CAMERA) {
 			if (object_get_movieclip(scene, base->object, 0)==clip) {
-				camera= base->object;
+				camera = base->object;
 				break;
 			}
 		}
 
-		base= base->next;
+		base = base->next;
 	}
 
 	return camera;
@@ -1966,22 +1994,22 @@ static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
 
 static Object *get_orientation_object(bContext *C)
 {
-	Scene *scene= CTX_data_scene(C);
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingObject *tracking_object= BKE_tracking_active_object(tracking);
-	Object *object= NULL;
+	Scene *scene = CTX_data_scene(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
+	Object *object = NULL;
 
-	if (tracking_object->flag&TRACKING_OBJECT_CAMERA) {
-		object= get_camera_with_movieclip(scene, clip);
+	if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
+		object = get_camera_with_movieclip(scene, clip);
 	}
 	else {
-		object= OBACT;
+		object = OBACT;
 	}
 
 	if (object && object->parent)
-		object= object->parent;
+		object = object->parent;
 
 	return object;
 }
@@ -1989,37 +2017,37 @@ static Object *get_orientation_object(bContext *C)
 static int set_orientation_poll(bContext *C)
 {
 	if (space_clip_frame_poll(C)) {
-		Scene *scene= CTX_data_scene(C);
-		SpaceClip *sc= CTX_wm_space_clip(C);
-		MovieClip *clip= ED_space_clip(sc);
-		MovieTracking *tracking= &clip->tracking;
-		MovieTrackingObject *tracking_object= BKE_tracking_active_object(tracking);
+		Scene *scene = CTX_data_scene(C);
+		SpaceClip *sc = CTX_wm_space_clip(C);
+		MovieClip *clip = ED_space_clip(sc);
+		MovieTracking *tracking = &clip->tracking;
+		MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
 
-		if (tracking_object->flag&TRACKING_OBJECT_CAMERA) {
-			return 1;
+		if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
+			return TRUE;
 		}
 		else {
 			return OBACT != NULL;
 		}
 	}
 
-	return 0;
+	return FALSE;
 }
 
 static int count_selected_bundles(bContext *C)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
-	int tot= 0;
+	int tot = 0;
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_HAS_BUNDLE))
+		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE))
 			tot++;
 
-		track= track->next;
+		track = track->next;
 	}
 
 	return tot;
@@ -2028,26 +2056,26 @@ static int count_selected_bundles(bContext *C)
 static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat[4][4])
 {
 	bConstraint *con;
-	int found= 0;
+	int found = FALSE;
 
-	for (con= ob->constraints.first; con; con=con->next) {
-		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+	for (con = ob->constraints.first; con; con = con->next) {
+		bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
 
 		if (!cti)
 			continue;
 
-		if (cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
-			bObjectSolverConstraint *data= (bObjectSolverConstraint *)con->data;
+		if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+			bObjectSolverConstraint *data = (bObjectSolverConstraint *)con->data;
 
 			if (!found) {
-				Object *cam= data->camera ? data->camera : scene->camera;
+				Object *cam = data->camera ? data->camera : scene->camera;
 
 				where_is_object_mat(scene, cam, invmat);
 			}
 
 			mult_m4_m4m4(invmat, invmat, data->invmat);
 
-			found= 1;
+			found = TRUE;
 		}
 	}
 
@@ -2061,14 +2089,14 @@ static Object *object_solver_camera(Scene *scene, Object *ob)
 {
 	bConstraint *con;
 
-	for (con= ob->constraints.first; con; con=con->next) {
-		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+	for (con = ob->constraints.first; con; con = con->next) {
+		bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
 
 		if (!cti)
 			continue;
 
-		if (cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
-			bObjectSolverConstraint *data= (bObjectSolverConstraint *)con->data;
+		if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+			bObjectSolverConstraint *data = (bObjectSolverConstraint *)con->data;
 
 			return data->camera ? data->camera : scene->camera;
 		}
@@ -2079,43 +2107,43 @@ static Object *object_solver_camera(Scene *scene, Object *ob)
 
 static int set_origin_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
 	MovieTrackingObject *tracking_object;
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 	Object *object;
-	Object *camera= get_camera_with_movieclip(scene, clip);
+	Object *camera = get_camera_with_movieclip(scene, clip);
 	ListBase *tracksbase;
 	float mat[4][4], vec[3], median[3];
-	int selected_count= count_selected_bundles(C);
+	int selected_count = count_selected_bundles(C);
 
-	if (selected_count==0) {
+	if (selected_count == 0) {
 		BKE_report(op->reports, RPT_ERROR, "At least one track with bundle should be selected to define origin position");
 
 		return OPERATOR_CANCELLED;
 	}
 
-	object= get_orientation_object(C);
+	object = get_orientation_object(C);
 	if (!object) {
 		BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
 
 		return OPERATOR_CANCELLED;
 	}
 
-	tracking_object= BKE_tracking_active_object(tracking);
+	tracking_object = BKE_tracking_active_object(tracking);
 
-	tracksbase= BKE_tracking_object_tracks(tracking, tracking_object);
+	tracksbase = BKE_tracking_object_tracks(tracking, tracking_object);
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	zero_v3(median);
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_HAS_BUNDLE)) {
+		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE)) {
 			add_v3_v3(median, track->bundle_pos);
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 	mul_v3_fl(median, 1.0f/selected_count);
 
@@ -2123,7 +2151,7 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 
 	mul_v3_m4v3(vec, mat, median);
 
-	if (tracking_object->flag&TRACKING_OBJECT_CAMERA) {
+	if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
 		sub_v3_v3(object->loc, vec);
 	}
 	else {
@@ -2164,9 +2192,9 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingObject *tracking_object,
 			MovieTrackingTrack *track, char axis)
 {
-	Object *camera= get_camera_with_movieclip(scene, clip);
-	int is_camera= tracking_object->flag&TRACKING_OBJECT_CAMERA;
-	int  flip= 0;
+	Object *camera = get_camera_with_movieclip(scene, clip);
+	int is_camera = tracking_object->flag & TRACKING_OBJECT_CAMERA;
+	int  flip = FALSE;
 	float mat[4][4], vec[3], obmat[4][4], dvec[3];
 
 	object_to_mat4(ob, obmat);
@@ -2192,24 +2220,24 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
 
 	unit_m4(mat);
 
-	if (axis=='X') {
-		if (fabsf(dvec[1])<1e-3f) {
-			flip= 1;
+	if (axis == 'X') {
+		if (fabsf(dvec[1]) < 1e-3f) {
+			flip = TRUE;
 
-			mat[0][0]= -1.0f; mat[0][1]= 0.0f; mat[0][2]= 0.0f;
-			mat[1][0]= 0.0f; mat[1][1]= -1.0f; mat[1][2]= 0.0f;
-			mat[2][0]= 0.0f; mat[2][1]= 0.0f; mat[2][2]= 1.0f;
+			mat[0][0] = -1.0f; mat[0][1] = 0.0f; mat[0][2] = 0.0f;
+			mat[1][0] = 0.0f; mat[1][1] = -1.0f; mat[1][2] = 0.0f;
+			mat[2][0] = 0.0f; mat[2][1] = 0.0f; mat[2][2] = 1.0f;
 		}
 		else {
 			copy_v3_v3(mat[0], vec);
 
-			if (is_camera || fabsf(vec[2])<1e-3f) {
-				mat[0][2]= 0.0f;
-				mat[2][0]= 0.0f; mat[2][1]= 0.0f; mat[2][2]= 1.0f;
+			if (is_camera || fabsf(vec[2]) < 1e-3f) {
+				mat[0][2] = 0.0f;
+				mat[2][0] = 0.0f; mat[2][1] = 0.0f; mat[2][2] = 1.0f;
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			}
 			else {
-				vec[2]= 0.0f;
+				vec[2] = 0.0f;
 
 				cross_v3_v3v3(mat[1], mat[0], vec);
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
@@ -2217,23 +2245,23 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
 		}
 	}
 	else {
-		if (fabsf(dvec[0])<1e-3f) {
-			flip= 1;
+		if (fabsf(dvec[0]) < 1e-3f) {
+			flip = TRUE;
 
-			mat[0][0]= -1.0f; mat[0][1]= 0.0f; mat[0][2]= 0.0f;
-			mat[1][0]= 0.0f; mat[1][1]= -1.0f; mat[1][2]= 0.0f;
-			mat[2][0]= 0.0f; mat[2][1]= 0.0f; mat[2][2]= 1.0f;
+			mat[0][0] = -1.0f; mat[0][1] = 0.0f; mat[0][2] = 0.0f;
+			mat[1][0] = 0.0f; mat[1][1] = -1.0f; mat[1][2] = 0.0f;
+			mat[2][0] = 0.0f; mat[2][1] = 0.0f; mat[2][2] = 1.0f;
 		}
 		else {
 			copy_v3_v3(mat[1], vec);
 
 			if (is_camera || fabsf(vec[2])<1e-3f) {
-				mat[1][2]= 0.0f;
-				mat[2][0]= 0.0f; mat[2][1]= 0.0f; mat[2][2]= 1.0f;
+				mat[1][2] = 0.0f;
+				mat[2][0] = 0.0f; mat[2][1] = 0.0f; mat[2][2] = 1.0f;
 				cross_v3_v3v3(mat[0], mat[1], mat[2]);
 			}
 			else {
-				vec[2]= 0.0f;
+				vec[2] = 0.0f;
 
 				cross_v3_v3v3(mat[0], vec, mat[1]);
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
@@ -2274,22 +2302,22 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
 
 static int set_plane_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	Scene *scene= CTX_data_scene(C);
-	MovieTracking *tracking= &clip->tracking;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	Scene *scene = CTX_data_scene(C);
+	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingObject *tracking_object;
-	MovieTrackingTrack *track, *axis_track= NULL, *act_track;
+	MovieTrackingTrack *track, *axis_track = NULL, *act_track;
 	ListBase *tracksbase;
 	Object *object;
-	Object *camera= get_camera_with_movieclip(scene, clip);
-	int tot= 0;
-	float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3]= {0.0f, 0.0f, 0.0f};
-	int plane= RNA_enum_get(op->ptr, "plane");
-	float rot[4][4]={{0.0f, 0.0f, -1.0f, 0.0f},
-	                 {0.0f, 1.0f, 0.0f, 0.0f},
-	                 {1.0f, 0.0f, 0.0f, 0.0f},
-	                 {0.0f, 0.0f, 0.0f, 1.0f}};	/* 90 degrees Y-axis rotation matrix */
+	Object *camera = get_camera_with_movieclip(scene, clip);
+	int tot = 0;
+	float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3] = {0.0f, 0.0f, 0.0f};
+	int plane = RNA_enum_get(op->ptr, "plane");
+	float rot[4][4] = {{0.0f, 0.0f, -1.0f, 0.0f},
+	                   {0.0f, 1.0f, 0.0f, 0.0f},
+	                   {1.0f, 0.0f, 0.0f, 0.0f},
+	                   {0.0f, 0.0f, 0.0f, 1.0f}};	/* 90 degrees Y-axis rotation matrix */
 
 	if (count_selected_bundles(C)!=3) {
 		BKE_report(op->reports, RPT_ERROR, "Three tracks with bundles are needed to orient the floor");
@@ -2297,11 +2325,11 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	tracking_object= BKE_tracking_active_object(tracking);
-	tracksbase= BKE_tracking_object_tracks(tracking, tracking_object);
-	act_track= BKE_tracking_active_track(tracking);
+	tracking_object = BKE_tracking_active_object(tracking);
+	tracksbase = BKE_tracking_object_tracks(tracking, tracking_object);
+	act_track = BKE_tracking_active_track(tracking);
 
-	object= get_orientation_object(C);
+	object = get_orientation_object(C);
 	if (!object) {
 		BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
 
@@ -2311,20 +2339,20 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 	BKE_get_tracking_mat(scene, camera, mat);
 
 	/* get 3 bundles to use as reference */
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track && tot<3) {
-		if (track->flag&TRACK_HAS_BUNDLE && TRACK_VIEW_SELECTED(sc, track)) {
+		if (track->flag & TRACK_HAS_BUNDLE && TRACK_VIEW_SELECTED(sc, track)) {
 			mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
 
-			if (tot==0 || track==act_track)
+			if (tot == 0 || track == act_track)
 				copy_v3_v3(orig, vec[tot]);
 			else
-				axis_track= track;
+				axis_track = track;
 
 			tot++;
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	sub_v3_v3(vec[1], vec[0]);
@@ -2349,11 +2377,11 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 	normalize_v3(mat[2]);
 
 	/* move to origin point */
-	mat[3][0]= orig[0];
-	mat[3][1]= orig[1];
-	mat[3][2]= orig[2];
+	mat[3][0] = orig[0];
+	mat[3][1] = orig[1];
+	mat[3][2] = orig[2];
 
-	if (tracking_object->flag&TRACKING_OBJECT_CAMERA) {
+	if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
 		invert_m4(mat);
 
 		object_to_mat4(object, obmat);
@@ -2412,15 +2440,15 @@ void CLIP_OT_set_plane(wmOperatorType *ot)
 
 static int set_axis_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingObject *tracking_object= BKE_tracking_active_object(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
 	MovieTrackingTrack *track;
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 	Object *object;
 	ListBase *tracksbase;
-	int axis= RNA_enum_get(op->ptr, "axis");
+	int axis = RNA_enum_get(op->ptr, "axis");
 
 	if (count_selected_bundles(C)!=1) {
 		BKE_report(op->reports, RPT_ERROR, "Single track with bundle should be selected to define axis");
@@ -2428,24 +2456,24 @@ static int set_axis_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	object= get_orientation_object(C);
+	object = get_orientation_object(C);
 	if (!object) {
 		BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
 
 		return OPERATOR_CANCELLED;
 	}
 
-	tracksbase= BKE_tracking_object_tracks(tracking, tracking_object);
+	tracksbase = BKE_tracking_object_tracks(tracking, tracking_object);
 
-	track=tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track))
 			break;
 
-		track= track->next;
+		track = track->next;
 	}
 
-	set_axis(scene, object, clip, tracking_object, track, axis==0?'X':'Y');
+	set_axis(scene, object, clip, tracking_object, track, axis == 0 ? 'X' : 'Y');
 
 	DAG_id_tag_update(&clip->id, 0);
 	DAG_id_tag_update(&object->id, OB_RECALC_OB);
@@ -2484,26 +2512,26 @@ void CLIP_OT_set_axis(wmOperatorType *ot)
 
 static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingObject *tracking_object= BKE_tracking_active_object(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
 	MovieTrackingTrack *track;
-	Scene *scene= CTX_data_scene(C);
-	Object *object= NULL;
-	Object *camera= get_camera_with_movieclip(scene, clip);
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	int tot= 0;
+	Scene *scene = CTX_data_scene(C);
+	Object *object = NULL;
+	Object *camera = get_camera_with_movieclip(scene, clip);
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	int tot = 0;
 	float vec[2][3], mat[4][4], scale;
-	float dist= RNA_float_get(op->ptr, "distance");
+	float dist = RNA_float_get(op->ptr, "distance");
 
-	if (count_selected_bundles(C)!=2) {
+	if (count_selected_bundles(C) != 2) {
 		BKE_report(op->reports, RPT_ERROR, "Two tracks with bundles should be selected to set scale");
 
 		return OPERATOR_CANCELLED;
 	}
 
-	object= get_orientation_object(C);
+	object = get_orientation_object(C);
 	if (!object) {
 		BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
 
@@ -2512,38 +2540,38 @@ static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
 
 	BKE_get_tracking_mat(scene, camera, mat);
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track)) {
 			mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
 			tot++;
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	sub_v3_v3(vec[0], vec[1]);
 
 	if (len_v3(vec[0])>1e-5f) {
-		scale= dist / len_v3(vec[0]);
+		scale = dist / len_v3(vec[0]);
 
-		if (tracking_object->flag&TRACKING_OBJECT_CAMERA) {
+		if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
 			mul_v3_fl(object->size, scale);
 			mul_v3_fl(object->loc, scale);
 		}
 		else if (!scale_solution) {
-			Object *solver_camera= object_solver_camera(scene, object);
+			Object *solver_camera = object_solver_camera(scene, object);
 
-			object->size[0]= object->size[1]= object->size[2]= 1.0f/scale;
+			object->size[0] = object->size[1] = object->size[2] = 1.0f/scale;
 
 			if (solver_camera) {
-				object->size[0]/= solver_camera->size[0];
-				object->size[1]/= solver_camera->size[1];
-				object->size[2]/= solver_camera->size[2];
+				object->size[0] /= solver_camera->size[0];
+				object->size[1] /= solver_camera->size[1];
+				object->size[2] /= solver_camera->size[2];
 			}
 		}
 		else {
-			tracking_object->scale= scale;
+			tracking_object->scale = scale;
 		}
 
 		DAG_id_tag_update(&clip->id, 0);
@@ -2565,8 +2593,8 @@ static int set_scale_exec(bContext *C, wmOperator *op)
 
 static int set_scale_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 
 	if (!RNA_struct_property_is_set(op->ptr, "distance"))
 		RNA_float_set(op->ptr, "distance", clip->tracking.settings.dist);
@@ -2599,12 +2627,12 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 static int set_solution_scale_poll(bContext *C)
 {
 	if (space_clip_frame_poll(C)) {
-		SpaceClip *sc= CTX_wm_space_clip(C);
-		MovieClip *clip= ED_space_clip(sc);
-		MovieTracking *tracking= &clip->tracking;
-		MovieTrackingObject *tracking_object= BKE_tracking_active_object(tracking);
+		SpaceClip *sc = CTX_wm_space_clip(C);
+		MovieClip *clip = ED_space_clip(sc);
+		MovieTracking *tracking = &clip->tracking;
+		MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
 
-		return (tracking_object->flag&TRACKING_OBJECT_CAMERA) == 0;
+		return (tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0;
 	}
 
 	return 0;
@@ -2617,8 +2645,8 @@ static int set_solution_scale_exec(bContext *C, wmOperator *op)
 
 static int set_solution_scale_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 
 	if (!RNA_struct_property_is_set(op->ptr, "distance"))
 		RNA_float_set(op->ptr, "distance", clip->tracking.settings.object_distance);
@@ -2650,17 +2678,17 @@ void CLIP_OT_set_solution_scale(wmOperatorType *ot)
 
 static int set_center_principal_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	int width, height;
 
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
-	if (width==0 || height==0)
+	if (width == 0 || height == 0)
 		return OPERATOR_CANCELLED;
 
-	clip->tracking.camera.principal[0]= ((float)width)/2.0f;
-	clip->tracking.camera.principal[1]= ((float)height)/2.0f;
+	clip->tracking.camera.principal[0] = ((float)width)/2.0f;
+	clip->tracking.camera.principal[1] = ((float)height)/2.0f;
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
 
@@ -2686,34 +2714,34 @@ void CLIP_OT_set_center_principal(wmOperatorType *ot)
 
 static int hide_tracks_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
 	int unselected;
 
-	unselected= RNA_boolean_get(op->ptr, "unselected");
+	unselected = RNA_boolean_get(op->ptr, "unselected");
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if (unselected==0 && TRACK_VIEW_SELECTED(sc, track)) {
-			track->flag|= TRACK_HIDDEN;
+		if (unselected == 0 && TRACK_VIEW_SELECTED(sc, track)) {
+			track->flag |= TRACK_HIDDEN;
 		}
-		else if (unselected==1 && !TRACK_VIEW_SELECTED(sc, track)) {
-			track->flag|= TRACK_HIDDEN;
+		else if (unselected == 1 && !TRACK_VIEW_SELECTED(sc, track)) {
+			track->flag |= TRACK_HIDDEN;
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
-	if (act_track && act_track->flag&TRACK_HIDDEN)
-		clip->tracking.act_track= NULL;
+	if (act_track && act_track->flag & TRACK_HIDDEN)
+		clip->tracking.act_track = NULL;
 
-	if (unselected==0) {
+	if (unselected == 0) {
 		/* no selection on screen now, unlock view so it can be scrolled nice again */
-		sc->flag&= ~SC_LOCK_SELECTION;
+		sc->flag &= ~SC_LOCK_SELECTION;
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, NULL);
@@ -2743,16 +2771,16 @@ void CLIP_OT_hide_tracks(wmOperatorType *ot)
 
 static int hide_tracks_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		track->flag&= ~TRACK_HIDDEN;
+		track->flag &= ~TRACK_HIDDEN;
 
-		track= track->next;
+		track = track->next;
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, NULL);
@@ -2784,12 +2812,12 @@ static bGPDlayer *detect_get_layer(MovieClip *clip)
 	if (!clip->gpd)
 		return NULL;
 
-	layer= clip->gpd->layers.first;
+	layer = clip->gpd->layers.first;
 	while (layer) {
-		if (layer->flag&GP_LAYER_ACTIVE)
+		if (layer->flag & GP_LAYER_ACTIVE)
 			return layer;
 
-		layer= layer->next;
+		layer = layer->next;
 	}
 
 	return NULL;
@@ -2797,32 +2825,32 @@ static bGPDlayer *detect_get_layer(MovieClip *clip)
 
 static int detect_features_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	int clip_flag= clip->flag&MCLIP_TIMECODE_FLAGS;
-	ImBuf *ibuf= BKE_movieclip_get_ibuf_flag(clip, &sc->user, clip_flag, MOVIECLIP_CACHE_SKIP);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *track= tracksbase->first;
-	int placement= RNA_enum_get(op->ptr, "placement");
-	int margin= RNA_int_get(op->ptr, "margin");
-	int min_trackability= RNA_int_get(op->ptr, "min_trackability");
-	int min_distance= RNA_int_get(op->ptr, "min_distance");
-	int place_outside_layer= 0;
-	bGPDlayer *layer= NULL;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	int clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
+	ImBuf *ibuf = BKE_movieclip_get_ibuf_flag(clip, &sc->user, clip_flag, MOVIECLIP_CACHE_SKIP);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *track = tracksbase->first;
+	int placement = RNA_enum_get(op->ptr, "placement");
+	int margin = RNA_int_get(op->ptr, "margin");
+	int min_trackability = RNA_int_get(op->ptr, "min_trackability");
+	int min_distance = RNA_int_get(op->ptr, "min_distance");
+	int place_outside_layer = 0;
+	bGPDlayer *layer = NULL;
 
-	if (placement!=0) {
-		layer= detect_get_layer(clip);
-		place_outside_layer= placement==2;
+	if (placement != 0) {
+		layer = detect_get_layer(clip);
+		place_outside_layer = placement == 2;
 	}
 
 	/* deselect existing tracks */
 	while (track) {
-		track->flag&= ~SELECT;
-		track->pat_flag&= ~SELECT;
-		track->search_flag&= ~SELECT;
+		track->flag &= ~SELECT;
+		track->pat_flag &= ~SELECT;
+		track->search_flag &= ~SELECT;
 
-		track= track->next;
+		track = track->next;
 	}
 
 	BKE_tracking_detect_fast(tracking, tracksbase, ibuf, sc->user.framenr, margin,
@@ -2867,58 +2895,58 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 
 static int frame_jump_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	Scene *scene = CTX_data_scene(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
-	int pos= RNA_enum_get(op->ptr, "position");
+	int pos = RNA_enum_get(op->ptr, "position");
 	int delta;
 
-	if (pos<=1) {	/* jump to path */
-		track= BKE_tracking_active_track(&clip->tracking);
+	if (pos <= 1) {	/* jump to path */
+		track = BKE_tracking_active_track(&clip->tracking);
 
 		if (!track)
 			return OPERATOR_CANCELLED;
 
-		delta= pos == 1 ? 1 : -1;
+		delta = pos == 1 ? 1 : -1;
 
 		while (sc->user.framenr+delta >= SFRA && sc->user.framenr+delta <= EFRA) {
-			MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, sc->user.framenr+delta);
+			MovieTrackingMarker *marker = BKE_tracking_exact_marker(track, sc->user.framenr+delta);
 
-			if (!marker || marker->flag&MARKER_DISABLED)
+			if (!marker || marker->flag & MARKER_DISABLED)
 				break;
 
-			sc->user.framenr+= delta;
+			sc->user.framenr += delta;
 		}
 	}
 	else {	/* to to failed frame */
-		if (clip->tracking.reconstruction.flag&TRACKING_RECONSTRUCTED) {
-			int a= sc->user.framenr;
-			MovieTracking *tracking= &clip->tracking;
-			MovieTrackingObject *object= BKE_tracking_active_object(tracking);
+		if (clip->tracking.reconstruction.flag & TRACKING_RECONSTRUCTED) {
+			int a = sc->user.framenr;
+			MovieTracking *tracking = &clip->tracking;
+			MovieTrackingObject *object = BKE_tracking_active_object(tracking);
 
-			delta= pos == 3 ? 1 : -1;
+			delta = pos == 3 ? 1 : -1;
 
-			a+= delta;
+			a += delta;
 
 			while (a+delta >= SFRA && a+delta <= EFRA) {
 				MovieReconstructedCamera *cam;
 
-				cam= BKE_tracking_get_reconstructed_camera(tracking, object, a);
+				cam = BKE_tracking_get_reconstructed_camera(tracking, object, a);
 
 				if (!cam) {
-					sc->user.framenr= a;
+					sc->user.framenr = a;
 
 					break;
 				}
 
-				a+= delta;
+				a += delta;
 			}
 		}
 	}
 
-	if (CFRA!=sc->user.framenr) {
-		CFRA= sc->user.framenr;
+	if (CFRA != sc->user.framenr) {
+		CFRA = sc->user.framenr;
 		sound_seek_scene(CTX_data_main(C), CTX_data_scene(C));
 
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
@@ -2959,34 +2987,34 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 
 static int join_tracks_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *act_track, *track, *next;
 
-	act_track= BKE_tracking_active_track(tracking);
+	act_track = BKE_tracking_active_track(tracking);
 
 	if (!act_track) {
 		BKE_report(op->reports, RPT_ERROR, "No active track to join to");
 		return OPERATOR_CANCELLED;
 	}
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		next= track->next;
+		next = track->next;
 
-		if (TRACK_VIEW_SELECTED(sc, track) && track!=act_track) {
+		if (TRACK_VIEW_SELECTED(sc, track) && track != act_track) {
 			BKE_tracking_join_tracks(act_track, track);
 
 			if (tracking->stabilization.rot_track == track)
-				tracking->stabilization.rot_track= act_track;
+				tracking->stabilization.rot_track = act_track;
 
 			BKE_tracking_free_track(track);
 			BLI_freelinkN(tracksbase, track);
 		}
 
-		track= next;
+		track = next;
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
@@ -3013,21 +3041,23 @@ void CLIP_OT_join_tracks(wmOperatorType *ot)
 
 static int lock_tracks_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *track= tracksbase->first;
-	int action= RNA_enum_get(op->ptr, "action");
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *track = tracksbase->first;
+	int action = RNA_enum_get(op->ptr, "action");
 
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track)) {
-			if (action==0) track->flag|= TRACK_LOCKED;
-			else if (action==1) track->flag&= ~TRACK_LOCKED;
-			else track->flag^= TRACK_LOCKED;
+			if (action == 0)
+				track->flag |= TRACK_LOCKED;
+			else if (action == 1)
+				track->flag &= ~TRACK_LOCKED;
+			else track->flag ^= TRACK_LOCKED;
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
@@ -3064,27 +3094,27 @@ void CLIP_OT_lock_tracks(wmOperatorType *ot)
 
 static int track_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *track, *act_track= BKE_tracking_active_track(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *track, *act_track = BKE_tracking_active_track(tracking);
 
 	if (!act_track)
 		return OPERATOR_CANCELLED;
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && track!=act_track) {
-			track->flag&= ~TRACK_CUSTOMCOLOR;
+		if (TRACK_VIEW_SELECTED(sc, track) && track != act_track) {
+			track->flag &= ~TRACK_CUSTOMCOLOR;
 
-			if (act_track->flag&TRACK_CUSTOMCOLOR) {
+			if (act_track->flag & TRACK_CUSTOMCOLOR) {
 				copy_v3_v3(track->color, act_track->color);
-				track->flag|= TRACK_CUSTOMCOLOR;
+				track->flag |= TRACK_CUSTOMCOLOR;
 			}
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
@@ -3111,28 +3141,28 @@ void CLIP_OT_track_copy_color(wmOperatorType *ot)
 
 static int stabilize_2d_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track;
-	MovieTrackingStabilization *stab= &tracking->stabilization;
-	int update= 0;
+	MovieTrackingStabilization *stab = &tracking->stabilization;
+	int update = 0;
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_USE_2D_STAB)==0) {
-			track->flag|= TRACK_USE_2D_STAB;
+		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_USE_2D_STAB)==0) {
+			track->flag |= TRACK_USE_2D_STAB;
 			stab->tot_track++;
 
-			update= 1;
+			update = 1;
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	if (update) {
-		stab->ok= 0;
+		stab->ok = 0;
 
 		DAG_id_tag_update(&clip->id, 0);
 		WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
@@ -3160,27 +3190,27 @@ void CLIP_OT_stabilize_2d_add(wmOperatorType *ot)
 
 static int stabilize_2d_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingStabilization *stab= &tracking->stabilization;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingStabilization *stab = &tracking->stabilization;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track;
-	int a= 0, update= 0;
+	int a = 0, update = 0;
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if (track->flag&TRACK_USE_2D_STAB) {
-			if (a==stab->act_track) {
-				track->flag&= ~TRACK_USE_2D_STAB;
+		if (track->flag & TRACK_USE_2D_STAB) {
+			if (a == stab->act_track) {
+				track->flag &= ~TRACK_USE_2D_STAB;
 
 				stab->act_track--;
 				stab->tot_track--;
 
 				if (stab->act_track<0)
-					stab->act_track= 0;
+					stab->act_track = 0;
 
-				update= 1;
+				update = 1;
 
 				break;
 			}
@@ -3188,11 +3218,11 @@ static int stabilize_2d_remove_exec(bContext *C, wmOperator *UNUSED(op))
 			a++;
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	if (update) {
-		stab->ok= 0;
+		stab->ok = 0;
 
 		DAG_id_tag_update(&clip->id, 0);
 		WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
@@ -3220,22 +3250,22 @@ void CLIP_OT_stabilize_2d_remove(wmOperatorType *ot)
 
 static int stabilize_2d_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track;
-	int update= 0;
+	int update = 0;
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		if (track->flag&TRACK_USE_2D_STAB) {
+		if (track->flag & TRACK_USE_2D_STAB) {
 			BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, 0);
 
-			update= 1;
+			update = 1;
 		}
 
-		track= track->next;
+		track = track->next;
 	}
 
 	if (update)
@@ -3263,16 +3293,16 @@ void CLIP_OT_stabilize_2d_select(wmOperatorType *ot)
 
 static int stabilize_2d_set_rotation_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
 
 	if (act_track) {
-		MovieTrackingStabilization *stab= &tracking->stabilization;
+		MovieTrackingStabilization *stab = &tracking->stabilization;
 
-		stab->rot_track= act_track;
-		stab->ok= 0;
+		stab->rot_track = act_track;
+		stab->ok = 0;
 
 		DAG_id_tag_update(&clip->id, 0);
 		WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
@@ -3300,43 +3330,43 @@ void CLIP_OT_stabilize_2d_set_rotation(wmOperatorType *ot)
 
 static int is_track_clean(MovieTrackingTrack *track, int frames, int del)
 {
-	int ok= 1, a, prev= -1, count= 0;
-	MovieTrackingMarker *markers= track->markers, *new_markers= NULL;
-	int start_disabled= 0;
-	int markersnr= track->markersnr;
+	int ok = 1, a, prev = -1, count = 0;
+	MovieTrackingMarker *markers = track->markers, *new_markers = NULL;
+	int start_disabled = 0;
+	int markersnr = track->markersnr;
 
 	if (del)
-		new_markers= MEM_callocN(markersnr*sizeof(MovieTrackingMarker), "track cleaned markers");
+		new_markers = MEM_callocN(markersnr*sizeof(MovieTrackingMarker), "track cleaned markers");
 
-	for (a= 0; a<markersnr; a++) {
-		int end= 0;
+	for (a = 0; a<markersnr; a++) {
+		int end = 0;
 
-		if (prev==-1) {
-			if ((markers[a].flag&MARKER_DISABLED)==0)
-				prev= a;
+		if (prev == -1) {
+			if ((markers[a].flag & MARKER_DISABLED)==0)
+				prev = a;
 			else
-				start_disabled= 1;
+				start_disabled = 1;
 		}
 
 		if (prev >= 0) {
-			end=  a == markersnr-1;
-			end|= (a < markersnr-1) && (markers[a].framenr != markers[a+1].framenr-1 ||
-			                            markers[a].flag&MARKER_DISABLED);
+			end =  a == markersnr-1;
+			end |= (a < markersnr-1) && (markers[a].framenr != markers[a+1].framenr-1 ||
+			                             markers[a].flag & MARKER_DISABLED);
 		}
 
 		if (end) {
-			int segok= 1, len= 0;
+			int segok = 1, len = 0;
 
 			if (a != prev && markers[a].framenr != markers[a-1].framenr+1)
-				len= a-prev;
-			else if (markers[a].flag&MARKER_DISABLED)
-				len= a-prev;
-			else len= a-prev+1;
+				len = a-prev;
+			else if (markers[a].flag & MARKER_DISABLED)
+				len = a-prev;
+			else len = a-prev+1;
 
 			if (frames) {
 				if (len < frames) {
-					segok= 0;
-					ok= 0;
+					segok = 0;
+					ok = 0;
 
 					if (!del)
 						break;
@@ -3345,32 +3375,32 @@ static int is_track_clean(MovieTrackingTrack *track, int frames, int del)
 
 			if (del) {
 				if (segok) {
-					int t= len;
+					int t = len;
 
-					if (markers[a].flag&MARKER_DISABLED)
+					if (markers[a].flag & MARKER_DISABLED)
 						t++;
 
 					/* place disabled marker in front of current segment */
 					if (start_disabled) {
 						memcpy(new_markers+count, markers+prev, sizeof(MovieTrackingMarker));
 						new_markers[count].framenr--;
-						new_markers[count].flag|= MARKER_DISABLED;
+						new_markers[count].flag |= MARKER_DISABLED;
 
 						count++;
-						start_disabled= 0;
+						start_disabled = 0;
 					}
 
 					memcpy(new_markers+count, markers+prev, t*sizeof(MovieTrackingMarker));
-					count+= t;
+					count += t;
 				}
-				else if (markers[a].flag&MARKER_DISABLED) {
+				else if (markers[a].flag & MARKER_DISABLED) {
 					/* current segment which would be deleted was finished by disabled marker,
 					 * so next segment should be started from disabled marker */
-					start_disabled= 1;
+					start_disabled = 1;
 				}
 			}
 
-			prev= -1;
+			prev = -1;
 		}
 	}
 
@@ -3378,14 +3408,14 @@ static int is_track_clean(MovieTrackingTrack *track, int frames, int del)
 		MEM_freeN(track->markers);
 
 		if (count) {
-			track->markers= new_markers;
+			track->markers = new_markers;
 		}
 		else {
-			track->markers= NULL;
+			track->markers = NULL;
 			MEM_freeN(new_markers);
 		}
 
-		track->markersnr= count;
+		track->markersnr = count;
 	}
 
 	return ok;
@@ -3393,45 +3423,45 @@ static int is_track_clean(MovieTrackingTrack *track, int frames, int del)
 
 static int clean_tracks_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *track, *next, *act_track= BKE_tracking_active_track(tracking);
-	int frames= RNA_int_get(op->ptr, "frames");
-	int action= RNA_enum_get(op->ptr, "action");
-	float error= RNA_float_get(op->ptr, "error");
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *track, *next, *act_track = BKE_tracking_active_track(tracking);
+	int frames = RNA_int_get(op->ptr, "frames");
+	int action = RNA_enum_get(op->ptr, "action");
+	float error = RNA_float_get(op->ptr, "error");
 
-	if (error && action==TRACKING_CLEAN_DELETE_SEGMENT)
-		action= TRACKING_CLEAN_DELETE_TRACK;
+	if (error && action == TRACKING_CLEAN_DELETE_SEGMENT)
+		action = TRACKING_CLEAN_DELETE_TRACK;
 
-	track= tracksbase->first;
+	track = tracksbase->first;
 	while (track) {
-		next= track->next;
+		next = track->next;
 
-		if ((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0) {
-			int ok= 1;
+		if ((track->flag & TRACK_HIDDEN)==0 && (track->flag & TRACK_LOCKED)==0) {
+			int ok = 1;
 
-			ok= (is_track_clean(track, frames, action==TRACKING_CLEAN_DELETE_SEGMENT)) &&
-			    (error == 0.0f || (track->flag&TRACK_HAS_BUNDLE)==0  || track->error < error);
+			ok = (is_track_clean(track, frames, action == TRACKING_CLEAN_DELETE_SEGMENT)) &&
+			    (error == 0.0f || (track->flag & TRACK_HAS_BUNDLE)==0  || track->error < error);
 
 			if (!ok) {
-				if (action==TRACKING_CLEAN_SELECT) {
+				if (action == TRACKING_CLEAN_SELECT) {
 					BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, 0);
 				}
-				else if (action==TRACKING_CLEAN_DELETE_TRACK) {
-					if (track==act_track)
-						clip->tracking.act_track= NULL;
+				else if (action == TRACKING_CLEAN_DELETE_TRACK) {
+					if (track == act_track)
+						clip->tracking.act_track = NULL;
 
 					BKE_tracking_free_track(track);
 					BLI_freelinkN(tracksbase, track);
-					track= NULL;
+					track = NULL;
 				}
 
 				/* happens when all tracking segments are not long enough */
-				if (track && track->markersnr==0) {
-					if (track==act_track)
-						clip->tracking.act_track= NULL;
+				if (track && track->markersnr == 0) {
+					if (track == act_track)
+						clip->tracking.act_track = NULL;
 
 					BKE_tracking_free_track(track);
 					BLI_freelinkN(tracksbase, track);
@@ -3439,7 +3469,7 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		track= next;
+		track = next;
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|ND_SELECT, clip);
@@ -3449,8 +3479,8 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 
 static int clean_tracks_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 
 	if (!RNA_struct_property_is_set(op->ptr, "frames"))
 		RNA_int_set(op->ptr, "frames", clip->tracking.settings.clean_frames);
@@ -3496,9 +3526,9 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 
 static int tracking_object_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
 
 	BKE_tracking_new_object(tracking, "Object");
 
@@ -3526,14 +3556,14 @@ void CLIP_OT_tracking_object_new(wmOperatorType *ot)
 
 static int tracking_object_remove_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingObject *object;
 
-	object= BKE_tracking_active_object(tracking);
+	object = BKE_tracking_active_object(tracking);
 
-	if (object->flag&TRACKING_OBJECT_CAMERA) {
+	if (object->flag & TRACKING_OBJECT_CAMERA) {
 		BKE_report(op->reports, RPT_WARNING, "Object used for camera tracking can't be deleted");
 		return OPERATOR_CANCELLED;
 	}

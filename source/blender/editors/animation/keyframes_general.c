@@ -145,7 +145,7 @@ void duplicate_fcurve_keys(FCurve *fcu)
 	int i;
 	
 	/* this can only work when there is an F-Curve, and also when there are some BezTriples */
-	if ELEM(NULL, fcu, fcu->bezt)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return;
 	
 	for (i=0; i < fcu->totvert; i++) {

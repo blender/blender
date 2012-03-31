@@ -401,7 +401,7 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 	nodeUniqueName(ntree, node);
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename("nodes", oldname, node->name);
+	BKE_all_animdata_fix_paths_rename(NULL, "nodes", oldname, node->name);
 }
 
 static void rna_NodeSocket_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -436,28 +436,28 @@ static void rna_NodeLink_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 }
 #endif
 
-static void rna_NodeSocketInt_range(PointerRNA *ptr, int *min, int *max)
+static void rna_NodeSocketInt_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	bNodeSocket *sock = (bNodeSocket*)ptr->data;
 	bNodeSocketValueInt *val = (bNodeSocketValueInt*)sock->default_value;
-	*min = val->min;
-	*max = val->max;
+	*softmin = val->min;
+	*softmax = val->max;
 }
 
-static void rna_NodeSocketFloat_range(PointerRNA *ptr, float *min, float *max)
+static void rna_NodeSocketFloat_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	bNodeSocket *sock = (bNodeSocket*)ptr->data;
 	bNodeSocketValueFloat *val = (bNodeSocketValueFloat*)sock->default_value;
-	*min = val->min;
-	*max = val->max;
+	*softmin = val->min;
+	*softmax = val->max;
 }
 
-static void rna_NodeSocketVector_range(PointerRNA *ptr, float *min, float *max)
+static void rna_NodeSocketVector_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
 	bNodeSocket *sock = (bNodeSocket*)ptr->data;
 	bNodeSocketValueVector *val = (bNodeSocketValueVector*)sock->default_value;
-	*min = val->min;
-	*max = val->max;
+	*softmin = val->min;
+	*softmax = val->max;
 }
 
 static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -578,7 +578,7 @@ static EnumPropertyItem *rna_Node_channel_itemf(bContext *UNUSED(C), PointerRNA 
 	return item;
 }
 
-static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *UNUSED(C), ReportList *reports,
+static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *reports,
                                     int type, bNodeTree *group)
 {
 	bNode *node;
@@ -591,6 +591,8 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *UNUSED(C), Repor
 	
 	ntemp.type = type;
 	ntemp.ngroup = group;
+	ntemp.scene = CTX_data_scene(C);
+	ntemp.main = CTX_data_main(C);
 	node = nodeAddNode(ntree, &ntemp);
 	
 	if (node == NULL) {

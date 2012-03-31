@@ -432,7 +432,7 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 	int keycode = PyLong_AsSsize_t(value);
 	
 	if ((keycode < SCA_IInputDevice::KX_BEGINKEY)
-		|| (keycode > SCA_IInputDevice::KX_ENDKEY)){
+		|| (keycode > SCA_IInputDevice::KX_ENDKEY)) {
 		PyErr_SetString(PyExc_AttributeError, "sensor.getKeyStatus(int): Keyboard Sensor, invalid keycode specified!");
 		return NULL;
 	}

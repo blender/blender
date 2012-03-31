@@ -84,7 +84,7 @@ FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_ind
 	FCurve *fcu;
 	
 	/* sanity checks */
-	if ELEM(NULL, id, rna_path)
+	if (ELEM(NULL, id, rna_path))
 		return NULL;
 	
 	/* init animdata if none available yet */

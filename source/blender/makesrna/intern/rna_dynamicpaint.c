@@ -186,7 +186,7 @@ static void rna_Surface_active_point_index_set(struct PointerRNA *ptr, int value
 	return;
 }
 
-static void rna_Surface_active_point_range(PointerRNA *ptr, int *min, int *max)
+static void rna_Surface_active_point_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings*)ptr->data;
 
