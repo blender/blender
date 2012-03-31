@@ -919,12 +919,14 @@ static float g[512+2][3]= {
 	{-0.944031, -0.326599, -0.045624},
 };
 
-#define setup(i,b0,b1,r0,r1) \
-		t = vec[i] + 10000.0f; \
-		b0 = ((int)t) & 255; \
-		b1 = (b0+1) & 255; \
-		r0 = t - floorf(t); \
-		r1 = r0 - 1.0f;
+#define SETUP(val, b0, b1, r0, r1)                                            \
+	{                                                                         \
+		t = val + 10000.0f;                                                   \
+		b0 = ((int)t) & 255;                                                  \
+		b1 = (b0 + 1) & 255;                                                  \
+		r0 = t - floorf(t);                                                   \
+		r1 = r0 - 1.0f;                                                       \
+	}
 
 
 static float noise3_perlin(float vec[3])
@@ -934,9 +936,9 @@ static float noise3_perlin(float vec[3])
 	register int i, j;
 
 
-	setup(0, bx0,bx1, rx0,rx1);
-	setup(1, by0,by1, ry0,ry1);
-	setup(2, bz0,bz1, rz0,rz1);
+	SETUP(vec[0],  bx0, bx1,  rx0, rx1);
+	SETUP(vec[1],  by0, by1,  ry0, ry1);
+	SETUP(vec[2],  bz0, bz1,  rz0, rz1);
 
 	i = p[ bx0 ];
 	j = p[ bx1 ];
@@ -946,46 +948,48 @@ static float noise3_perlin(float vec[3])
 	b01 = p[ i + by1 ];
 	b11 = p[ j + by1 ];
 
-#define at(rx,ry,rz) ( rx * q[0] + ry * q[1] + rz * q[2] )
-
-#define surve(t) ( t * t * (3.0f - 2.0f * t) )
+#define VALUE_AT(rx,ry,rz) (rx * q[0] + ry * q[1] + rz * q[2])
+#define SURVE(t) (t * t * (3.0f - 2.0f * t))
 
 /* lerp moved to improved perlin above */
 
-	sx = surve(rx0);
-	sy = surve(ry0);
-	sz = surve(rz0);
+	sx = SURVE(rx0);
+	sy = SURVE(ry0);
+	sz = SURVE(rz0);
 
 
 	q = g[ b00 + bz0 ];
-	u = at(rx0,ry0,rz0);
+	u = VALUE_AT(rx0,ry0,rz0);
 	q = g[ b10 + bz0 ];
-	v = at(rx1,ry0,rz0);
+	v = VALUE_AT(rx1,ry0,rz0);
 	a = lerp(sx, u, v);
 
 	q = g[ b01 + bz0 ];
-	u = at(rx0,ry1,rz0);
+	u = VALUE_AT(rx0,ry1,rz0);
 	q = g[ b11 + bz0 ];
-	v = at(rx1,ry1,rz0);
+	v = VALUE_AT(rx1,ry1,rz0);
 	b = lerp(sx, u, v);
 
 	c = lerp(sy, a, b);          /* interpolate in y at lo x */
 
 	q = g[ b00 + bz1 ];
-	u = at(rx0,ry0,rz1);
+	u = VALUE_AT(rx0,ry0,rz1);
 	q = g[ b10 + bz1 ];
-	v = at(rx1,ry0,rz1);
+	v = VALUE_AT(rx1,ry0,rz1);
 	a = lerp(sx, u, v);
 
 	q = g[ b01 + bz1 ];
-	u = at(rx0,ry1,rz1);
+	u = VALUE_AT(rx0,ry1,rz1);
 	q = g[ b11 + bz1 ];
-	v = at(rx1,ry1,rz1);
+	v = VALUE_AT(rx1,ry1,rz1);
 	b = lerp(sx, u, v);
 
 	d = lerp(sy, a, b);          /* interpolate in y at hi x */
 
 	return 1.5f * lerp(sz, c, d); /* interpolate in z */
+
+#undef VALUE_AT
+#undef SURVE
 }
 
 #if 0

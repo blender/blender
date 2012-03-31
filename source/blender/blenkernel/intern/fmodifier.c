@@ -335,7 +335,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 		case FCM_GENERATOR_FN_TAN: /* tangent wave */
 		{
 			/* check that argument is not on one of the discontinuities (i.e. 90deg, 270 deg, etc) */
-			if IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0) {
+			if (IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0)) {
 				if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
 					*cvalue = 0.0f; /* no value possible here */
 			}

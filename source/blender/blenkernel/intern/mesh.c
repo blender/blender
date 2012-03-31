@@ -2406,6 +2406,7 @@ int mesh_recalcTessellation(CustomData *fdata,
 			BLI_array_append(mface_orig_index,                                \
 		                     poly_orig_index[poly_index]);                    \
 		}                                                                     \
+		(void)0
 
 /* ALMOST IDENTICAL TO DEFINE ABOVE (see EXCEPTION) */
 #define ML_TO_MF_QUAD()                                                       \
@@ -2425,20 +2426,21 @@ int mesh_recalcTessellation(CustomData *fdata,
 		                     poly_orig_index[poly_index]);                    \
 		}                                                                     \
 		mf->edcode |= TESSFACE_IS_QUAD; /* EXCEPTION */                       \
+		(void)0
 
 
 		else if (mp->totloop == 3) {
-			ML_TO_MF(0, 1, 2)
+			ML_TO_MF(0, 1, 2);
 			mface_index++;
 		}
 		else if (mp->totloop == 4) {
 #ifdef USE_TESSFACE_QUADS
-			ML_TO_MF_QUAD()
+			ML_TO_MF_QUAD();
 			mface_index++;
 #else
-			ML_TO_MF(0, 1, 2)
+			ML_TO_MF(0, 1, 2);
 			mface_index++;
-			ML_TO_MF(0, 2, 3)
+			ML_TO_MF(0, 2, 3);
 			mface_index++;
 #endif
 		}
