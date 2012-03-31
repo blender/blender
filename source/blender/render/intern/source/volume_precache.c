@@ -57,10 +57,6 @@
 #include "volumetric.h"
 #include "volume_precache.h"
 
-#if defined( _MSC_VER ) && !defined( __cplusplus )
-# define inline __inline
-#endif // defined( _MSC_VER ) && !defined( __cplusplus )
-
 #include "BKE_global.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -265,19 +261,19 @@ static void lightcache_filter2(VolumePrecache *vp)
 }
 #endif
 
-static inline int ms_I(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
+BLI_INLINE int ms_I(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
 { 
 	/* different ordering to light cache */
 	return x*(n[1]+2)*(n[2]+2) + y*(n[2]+2) + z; 	
 }
 
-static inline int v_I_pad(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
+BLI_INLINE int v_I_pad(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
 { 
 	/* same ordering to light cache, with padding */
 	return z*(n[1]+2)*(n[0]+2) + y*(n[0]+2) + x;  	
 }
 
-static inline int lc_to_ms_I(int x, int y, int z, int *n)
+BLI_INLINE int lc_to_ms_I(int x, int y, int z, int *n)
 { 
 	/* converting light cache index to multiple scattering index */
 	return (x-1)*(n[1]*n[2]) + (y-1)*(n[2]) + z-1;

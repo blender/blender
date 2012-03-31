@@ -2809,36 +2809,36 @@ PyObject *BPyInit_bmesh_types(void)
 
 	submodule = PyModule_Create(&BPy_BM_types_module_def);
 
-#define mod_type_add(s, t) \
+#define MODULE_TYPE_ADD(s, t) \
 	PyModule_AddObject(s, t.tp_name, (PyObject *)&t); Py_INCREF((PyObject *)&t)
 
 	/* bmesh_py_types.c */
-	mod_type_add(submodule, BPy_BMesh_Type);
-	mod_type_add(submodule, BPy_BMVert_Type);
-	mod_type_add(submodule, BPy_BMEdge_Type);
-	mod_type_add(submodule, BPy_BMFace_Type);
-	mod_type_add(submodule, BPy_BMLoop_Type);
-	mod_type_add(submodule, BPy_BMElemSeq_Type);
-	mod_type_add(submodule, BPy_BMVertSeq_Type);
-	mod_type_add(submodule, BPy_BMEdgeSeq_Type);
-	mod_type_add(submodule, BPy_BMFaceSeq_Type);
-	mod_type_add(submodule, BPy_BMLoopSeq_Type);
-	mod_type_add(submodule, BPy_BMIter_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMesh_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMVert_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMEdge_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMFace_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMLoop_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMElemSeq_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMVertSeq_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMEdgeSeq_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMFaceSeq_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMLoopSeq_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMIter_Type);
 	/* bmesh_py_types_select.c */
-	mod_type_add(submodule, BPy_BMEditSelSeq_Type);
-	mod_type_add(submodule, BPy_BMEditSelIter_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMEditSelSeq_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMEditSelIter_Type);
 	/* bmesh_py_types_customdata.c */
-	mod_type_add(submodule, BPy_BMLayerAccessVert_Type);
-	mod_type_add(submodule, BPy_BMLayerAccessEdge_Type);
-	mod_type_add(submodule, BPy_BMLayerAccessFace_Type);
-	mod_type_add(submodule, BPy_BMLayerAccessLoop_Type);
-	mod_type_add(submodule, BPy_BMLayerCollection_Type);
-	mod_type_add(submodule, BPy_BMLayerItem_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMLayerAccessVert_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMLayerAccessEdge_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMLayerAccessFace_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMLayerAccessLoop_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMLayerCollection_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMLayerItem_Type);
 	/* bmesh_py_types_meshdata.c */
-	mod_type_add(submodule, BPy_BMLoopUV_Type);
-	mod_type_add(submodule, BPy_BMDeformVert_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMLoopUV_Type);
+	MODULE_TYPE_ADD(submodule, BPy_BMDeformVert_Type);
 
-#undef mod_type_add
+#undef MODULE_TYPE_ADD
 
 	return submodule;
 }
