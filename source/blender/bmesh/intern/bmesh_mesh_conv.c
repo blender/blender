@@ -256,10 +256,10 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
 		/* transfer flag */
-		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag & ~SELECT);
+		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag & ~ME_FACE_SEL);
 
 		/* this is necessary for selection counts to work properly */
-		if (mpoly->flag & SELECT) {
+		if (mpoly->flag & ME_FACE_SEL) {
 			BM_elem_select_set(bm, f, TRUE);
 		}
 
