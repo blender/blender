@@ -474,20 +474,20 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	}
 
 	if ((amd->flags & MOD_ARR_MERGE) &&
-		(amd->flags & MOD_ARR_MERGEFINAL) &&
-		(count > 1)) {
+	    (amd->flags & MOD_ARR_MERGEFINAL) &&
+	    (count > 1))
+	{
 		/* Merge first and last copies. Note that we can't use the
-		   indexMap for this because (unless the array is forming a
-		   loop) the offset between first and last is different from
-		   dupe X to dupe X+1. */
+		 * indexMap for this because (unless the array is forming a
+		 * loop) the offset between first and last is different from
+		 * dupe X to dupe X+1. */
 
 		merge_first_last(em->bm, amd, &first_dupe_op, &dupe_op, &weld_op);
 	}
 
 	/* start capping */
-	if (start_cap || end_cap)
-	{
-		BM_mesh_elem_flag_enable_all(em->bm, BM_VERT, BM_ELEM_TAG);
+	if (start_cap || end_cap) {
+		BM_mesh_elem_flag_enable_all(em->bm, BM_VERT, BM_ELEM_TAG, FALSE);
 
 		if (start_cap) {
 			float startoffset[4][4];

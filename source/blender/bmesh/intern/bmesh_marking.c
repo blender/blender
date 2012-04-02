@@ -762,7 +762,7 @@ void BM_select_history_validate(BMesh *bm)
 	}
 }
 
-void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag)
+void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag, int respecthide)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -778,7 +778,10 @@ void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag
 		BM_select_history_clear(bm);
 	}
 
-	if (htype == (BM_VERT | BM_EDGE | BM_FACE) && (hflag == BM_ELEM_SELECT)) {
+	if ((htype == (BM_VERT | BM_EDGE | BM_FACE)) &&
+	    (hflag == BM_ELEM_SELECT) &&
+	    (respecthide == FALSE))
+	{
 		/* fast path for deselect all, avoid topology loops
 		 * since we know all will be de-selected anyway. */
 		for (i = 0; i < 3; i++) {
@@ -794,6 +797,11 @@ void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag
 			if (htype & flag_types[i]) {
 				ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 				for ( ; ele; ele = BM_iter_step(&iter)) {
+
+					if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) {
+						continue;
+					}
+
 					if (hflag & BM_ELEM_SELECT) {
 						BM_elem_select_set(bm, ele, FALSE);
 					}
@@ -804,13 +812,18 @@ void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag
 	}
 }
 
-void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag)
+void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag, int respecthide)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
 	                            BM_FACES_OF_MESH};
 
 	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+
+	/* use the nosel version when setting so under no
+	 * condition may a hidden face become selected.
+	 * Applying other flags to hidden faces is OK. */
+	const char hflag_nosel = hflag & ~BM_ELEM_SELECT;
 
 	BMIter iter;
 	BMElem *ele;
@@ -828,10 +841,15 @@ void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag)
 		if (htype & flag_types[i]) {
 			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 			for ( ; ele; ele = BM_iter_step(&iter)) {
+
+				if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) {
+					continue;
+				}
+
 				if (hflag & BM_ELEM_SELECT) {
 					BM_elem_select_set(bm, ele, TRUE);
 				}
-				BM_elem_flag_enable(ele, hflag);
+				BM_elem_flag_enable(ele, hflag_nosel);
 			}
 		}
 	}
