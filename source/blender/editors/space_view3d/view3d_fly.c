@@ -982,10 +982,10 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					/* pause */
 					zero_v3(dvec_tmp);
 				}
-				if (!fly->use_freelook) {
+				else if (!fly->use_freelook) {
 					/* Normal operation */
 					/* define dvec, view direction vector */
-					dvec_tmp[0] = dvec_tmp[1] = dvec_tmp[2] = 0.0f;
+					zero_v3(dvec_tmp);
 					/* move along the current axis */
 					dvec_tmp[fly->axis] = 1.0f;
 
