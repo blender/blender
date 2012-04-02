@@ -14340,6 +14340,8 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 		}
 	}
 #endif
+
+	expand_doit(fd, mainvar, sce->clip);
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
