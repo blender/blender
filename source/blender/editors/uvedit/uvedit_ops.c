@@ -191,7 +191,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 		BMFace *efa= BM_active_face_get(em->bm, sloppy);
 
 		if (efa)
-			ED_object_assign_active_image(bmain, obedit, efa->mat_nr, ima);
+			ED_object_assign_active_image(bmain, obedit, efa->mat_nr+1, ima);
 	}
 	else {
 		/* old shading system, assign image to selected faces */
