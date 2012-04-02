@@ -1620,6 +1620,7 @@ static void select_all_perform(bContext *C, int action)
 			break;
 		case SEL_INVERT:
 			EDBM_select_swap(em);
+			EDBM_selectmode_flush(em);
 			break;
 		}
 	}

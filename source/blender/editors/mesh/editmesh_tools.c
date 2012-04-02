@@ -658,9 +658,10 @@ static int edbm_select_all_exec(bContext *C, wmOperator *op)
 			break;
 		case SEL_INVERT:
 			EDBM_select_swap(em);
+			EDBM_selectmode_flush(em);
 			break;
 	}
-	
+
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
