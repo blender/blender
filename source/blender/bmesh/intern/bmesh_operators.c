@@ -274,8 +274,7 @@ void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, 
 		}
 
 		if (!dest_slot->data.ghash) {
-			dest_slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-												  BLI_ghashutil_ptrcmp, "bmesh operator 2");
+			dest_slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh operator 2");
 		}
 
 		BLI_ghashIterator_init(&it, source_slot->data.ghash);
@@ -459,27 +458,24 @@ void BMO_slot_vec_get(BMOperator *op, const char *slotname, float r_vec[3])
 static int bmo_mesh_flag_count(BMesh *bm, const char htype, const short oflag,
                                int test_for_enabled)
 {
-	BMIter elements;
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
+
+	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+
+	BMIter iter;
 	int count = 0;
 	BMElemF *ele_f;
-	int test = (test_for_enabled ? oflag : 0);
+	const char hflag_test = (test_for_enabled ? oflag : 0);
+	int i;
 
-	if (htype & BM_VERT) {
-		for (ele_f = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); ele_f; ele_f = BM_iter_step(&elements)) {
-			if (BMO_elem_flag_test(bm, ele_f, oflag) == test)
-				count++;
-		}
-	}
-	if (htype & BM_EDGE) {
-		for (ele_f = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); ele_f; ele_f = BM_iter_step(&elements)) {
-			if (BMO_elem_flag_test(bm, ele_f, oflag) == test)
-				count++;
-		}
-	}
-	if (htype & BM_FACE) {
-		for (ele_f = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); ele_f; ele_f = BM_iter_step(&elements)) {
-			if (BMO_elem_flag_test(bm, ele_f, oflag) == test)
-				count++;
+	for (i = 0; i < 3; i++) {
+		if (htype & flag_types[i]) {
+			BM_ITER(ele_f, &iter, bm, iter_types[i], NULL) {
+				if (BMO_elem_flag_test(bm, ele_f, oflag) == hflag_test)
+					count++;
+			}
 		}
 	}
 
@@ -559,8 +555,7 @@ void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname
 	memcpy(mapping + 1, data, len);
 
 	if (!slot->data.ghash) {
-		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-		                                 BLI_ghashutil_ptrcmp, "bmesh slot map hash");
+		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh slot map hash");
 	}
 
 	BLI_ghash_insert(slot->data.ghash, element, mapping);
@@ -707,14 +702,15 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 		totelement = BM_mesh_disabled_flag_count(bm, htype, hflag, TRUE);
 
 	if (totelement) {
-		int test = (test_for_enabled ? hflag : 0);
+		const char hflag_test = (test_for_enabled ? hflag : 0);
 
 		bmo_slot_buffer_alloc(op, slotname, totelement);
 
 		if (htype & BM_VERT) {
 			for (ele = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
 				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
-					BM_elem_flag_test(ele, hflag) == test) {
+				    BM_elem_flag_test(ele, hflag) == hflag_test)
+				{
 					((BMElem **)output->data.p)[i] = ele;
 					i++;
 				}
@@ -724,7 +720,8 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 		if (htype & BM_EDGE) {
 			for (ele = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
 				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
-					BM_elem_flag_test(ele, hflag) == test) {
+				    BM_elem_flag_test(ele, hflag) == hflag_test)
+				{
 					((BMElem **)output->data.p)[i] = ele;
 					i++;
 				}
@@ -734,7 +731,8 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 		if (htype & BM_FACE) {
 			for (ele = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
 				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
-					BM_elem_flag_test(ele, hflag) == test) {
+				    BM_elem_flag_test(ele, hflag) == hflag_test)
+				{
 					((BMElem **)output->data.p)[i] = ele;
 					i++;
 				}
@@ -768,7 +766,7 @@ void BMO_slot_buffer_append(BMOperator *output_op, const char *output_slot_name,
 	BMOpSlot *other_slot = BMO_slot_get(other_op, other_slot_name);
 
 	BLI_assert(output_slot->slottype == BMO_OP_SLOT_ELEMENT_BUF &&
-			   other_slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
+	           other_slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
 	if (output_slot->len == 0) {
 		/* output slot is empty, copy rather than append */
