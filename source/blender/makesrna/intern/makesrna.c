@@ -93,7 +93,7 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 		return -1;                                                            \
 	}                                                                         \
 	remove(tmpfile);                                                          \
-	return 1;                                                                 \
+	return 1                                                                  \
 
 /* end REN_IF_DIFF */
 

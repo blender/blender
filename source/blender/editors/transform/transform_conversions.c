@@ -4491,7 +4491,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 				if (parsel->flag & SELECT) {
 					Base *parbase = object_in_scene(parsel, scene);
 					if (parbase) { /* in rare cases this can fail */
-						if TESTBASELIB_BGMODE(v3d, scene, parbase) {
+						if (TESTBASELIB_BGMODE(v3d, scene, parbase)) {
 							break;
 						}
 					}

@@ -859,7 +859,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		if (ob && !(ob->flag & SELECT)) ob = NULL;
 		
 		for (base= scene->base.first; base; base= base->next) {
-			if TESTBASELIB(v3d, base) {
+			if (TESTBASELIB(v3d, base)) {
 				if (ob == NULL) {
 					ob= base->object;
 					break;

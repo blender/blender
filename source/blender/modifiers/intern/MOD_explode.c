@@ -205,10 +205,11 @@ static MFace *get_dface(DerivedMesh *dm, DerivedMesh *split, int cur, int i, MFa
 }
 
 #define SET_VERTS(a, b, c, d) \
-			v[0]=mf->v##a; uv[0]=a-1; \
-			v[1]=mf->v##b; uv[1]=b-1; \
-			v[2]=mf->v##c; uv[2]=c-1; \
-			v[3]=mf->v##d; uv[3]=d-1;
+		v[0] = mf->v##a; uv[0]=a-1; \
+		v[1] = mf->v##b; uv[1]=b-1; \
+		v[2] = mf->v##c; uv[2]=c-1; \
+		v[3] = mf->v##d; uv[3]=d-1; \
+		(void)0
 
 #define GET_ES(v1, v2) edgecut_get(eh, v1, v2)
 #define INT_UV(uvf, c0, c1) interp_v2_v2v2(uvf, mf->uv[c0], mf->uv[c1], 0.5f)
@@ -683,30 +684,30 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 		case 10:
 		case 11:
 		case 15:
-			SET_VERTS(1, 2, 3, 4)
+			SET_VERTS(1, 2, 3, 4);
 			break;
 		case 5:
 		case 6:
 		case 7:
-			SET_VERTS(2, 3, 4, 1)
+			SET_VERTS(2, 3, 4, 1);
 			break;
 		case 9:
 		case 13:
-			SET_VERTS(4, 1, 2, 3)
+			SET_VERTS(4, 1, 2, 3);
 			break;
 		case 12:
 		case 14:
-			SET_VERTS(3, 4, 1, 2)
+			SET_VERTS(3, 4, 1, 2);
 			break;
 		case 21:
 		case 23:
-			SET_VERTS(1, 2, 3, 4)
+			SET_VERTS(1, 2, 3, 4);
 			break;
 		case 19:
-			SET_VERTS(2, 3, 1, 4)
+			SET_VERTS(2, 3, 1, 4);
 			break;
 		case 22:
-			SET_VERTS(3, 1, 2, 4)
+			SET_VERTS(3, 1, 2, 4);
 			break;
 		}
 

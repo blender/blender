@@ -45,8 +45,12 @@
 #undef AVIIF_KEYFRAME // redefined in AVI_avi.h
 #undef AVIIF_LIST // redefined in AVI_avi.h
 
-#define FIXCC(fcc)  if (fcc == 0)	fcc = mmioFOURCC('N', 'o', 'n', 'e'); \
-		if (fcc == BI_RLE8) fcc = mmioFOURCC('R', 'l', 'e', '8');
+#define FIXCC(fcc) \
+	{ \
+		if (fcc == 0)       { fcc = mmioFOURCC('N', 'o', 'n', 'e'); } \
+		if (fcc == BI_RLE8) { fcc = mmioFOURCC('R', 'l', 'e', '8'); } \
+	}
+
 #endif
 
 #include <sys/types.h>

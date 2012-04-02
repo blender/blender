@@ -362,7 +362,10 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 		else {\
 			filter_mode |= ANIMFILTER_TMP_PEEK; \
 		} \
-		(void) _doSubChannels;
+		  \
+		{ \
+			(void) _doSubChannels; \
+		}
 		/* ... standard sub-channel filtering can go on here now ... */
 #define END_ANIMFILTER_SUBCHANNELS \
 		filter_mode = _filter; \
@@ -954,7 +957,7 @@ static FCurve *animfilter_fcurve_next (bDopeSheet *ads, FCurve *first, bActionGr
 			/* only work with this channel and its subchannels if it is editable */
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected in a way consistent with the filtering requirements */
-				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu)) ) {
+				if (ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu))) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
 						/* name based filtering... */
@@ -1168,7 +1171,7 @@ static size_t animfilter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDo
 		/* only work with this channel and its subchannels if it is editable */
 		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_NLT(nlt)) {
 			/* only include this track if selected in a way consistent with the filtering requirements */
-			if ( ANIMCHANNEL_SELOK(SEL_NLT(nlt)) ) {
+			if (ANIMCHANNEL_SELOK(SEL_NLT(nlt))) {
 				/* only include if this track is active */
 				if (!(filter_mode & ANIMFILTER_ACTIVE) || (nlt->flag & NLATRACK_ACTIVE)) {
 					ANIMCHANNEL_NEW_CHANNEL(nlt, ANIMTYPE_NLATRACK, owner_id);
@@ -1348,7 +1351,7 @@ static size_t animdata_filter_ds_nodetree (bAnimContext *ac, ListBase *anim_data
 		/* include data-expand widget first */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by active status */
-			if ANIMCHANNEL_ACTIVEOK(ntree) {
+			if (ANIMCHANNEL_ACTIVEOK(ntree)) {
 				ANIMCHANNEL_NEW_CHANNEL(ntree, ANIMTYPE_DSNTREE, owner_id);
 			}
 		}
@@ -1433,7 +1436,7 @@ static size_t animdata_filter_ds_textures (bAnimContext *ac, ListBase *anim_data
 			/* include texture-expand widget? */
 			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 				/* check if filtering by active status */
-				if ANIMCHANNEL_ACTIVEOK(tex) {
+				if (ANIMCHANNEL_ACTIVEOK(tex)) {
 					ANIMCHANNEL_NEW_CHANNEL(tex, ANIMTYPE_DSTEX, owner_id);
 				}
 			}
@@ -1485,7 +1488,7 @@ static size_t animdata_filter_ds_materials (bAnimContext *ac, ListBase *anim_dat
 			// hmm... do we need to store the index of this material in the array anywhere?
 			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 				/* check if filtering by active status */
-				if ANIMCHANNEL_ACTIVEOK(ma) {
+				if (ANIMCHANNEL_ACTIVEOK(ma)) {
 					ANIMCHANNEL_NEW_CHANNEL(ma, ANIMTYPE_DSMAT, ma);
 				}
 			}
@@ -1527,7 +1530,7 @@ static size_t animdata_filter_ds_particles (bAnimContext *ac, ListBase *anim_dat
 			/* include particle-expand widget first */
 			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 				/* check if filtering by active status */
-				if ANIMCHANNEL_ACTIVEOK(psys->part) {
+				if (ANIMCHANNEL_ACTIVEOK(psys->part)) {
 					ANIMCHANNEL_NEW_CHANNEL(psys->part, ANIMTYPE_DSPART, psys->part);
 				}
 			}
@@ -1667,7 +1670,7 @@ static size_t animdata_filter_ds_obdata (bAnimContext *ac, ListBase *anim_data, 
 		/* include data-expand widget first */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by active status */
-			if ANIMCHANNEL_ACTIVEOK(iat) {
+			if (ANIMCHANNEL_ACTIVEOK(iat)) {
 				ANIMCHANNEL_NEW_CHANNEL(iat, type, iat);
 			}
 		}
@@ -1701,7 +1704,7 @@ static size_t animdata_filter_ds_keyanim (bAnimContext *ac, ListBase *anim_data,
 	if (tmp_items) {
 		/* include key-expand widget first */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-			if ANIMCHANNEL_ACTIVEOK(key) {
+			if (ANIMCHANNEL_ACTIVEOK(key)) {
 				ANIMCHANNEL_NEW_CHANNEL(key, ANIMTYPE_DSSKEY, ob);
 			}
 		}
@@ -1818,7 +1821,7 @@ static size_t animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_dat
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by selection */
 			// XXX: double-check on this - most of the time, a lot of tools need to filter out these channels!
-			if ANIMCHANNEL_SELOK((base->flag & SELECT)) {
+			if (ANIMCHANNEL_SELOK((base->flag & SELECT))) {
 				/* check if filtering by active status */
 				if (ANIMCHANNEL_ACTIVEOK(ob)) {
 					ANIMCHANNEL_NEW_CHANNEL(base, ANIMTYPE_OBJECT, ob);
@@ -1863,7 +1866,7 @@ static size_t animdata_filter_ds_world (bAnimContext *ac, ListBase *anim_data, b
 		/* include data-expand widget first */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by active status */
-			if ANIMCHANNEL_ACTIVEOK(wo) {
+			if (ANIMCHANNEL_ACTIVEOK(wo)) {
 				ANIMCHANNEL_NEW_CHANNEL(wo, ANIMTYPE_DSWOR, sce);
 			}
 		}
@@ -1968,7 +1971,7 @@ static size_t animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_
 		/* firstly add object expander if required */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by selection */
-			if ANIMCHANNEL_SELOK((sce->flag & SCE_DS_SELECTED)) {
+			if (ANIMCHANNEL_SELOK((sce->flag & SCE_DS_SELECTED))) {
 				/* NOTE: active-status doesn't matter for this! */
 				ANIMCHANNEL_NEW_CHANNEL(sce, ANIMTYPE_SCENE, sce);
 			}

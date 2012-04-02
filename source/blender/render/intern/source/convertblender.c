@@ -5861,7 +5861,7 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 	RE_SetView(re, mat);
 	
 	for (base= FIRSTBASE; base; base= base->next) {
-		if TESTBASELIB(v3d, base) {
+		if (TESTBASELIB(v3d, base)) {
 			if (base->object->type==OB_MESH) {
 				ob= base->object;
 				

@@ -47,66 +47,69 @@
 
 #ifdef UNIT_TEST
 
-#define DEF_VARS(type, prefix)								\
-	static type prefix ## arr[ARRAY_SIZE];					\
-	static type prefix ## darr[DYNAMIC_ARRAY_SIZE];			\
-	static int prefix ## darr_len = ARRAY_SIZE;				\
-	static type prefix ## marr MARRAY_DIM;					\
-	static type prefix ## dmarr DYNAMIC_MARRAY_DIM;			\
-	static int prefix ## dmarr_len = sizeof(prefix ## dmarr);
+#define DEF_VARS(type, prefix)                                \
+    static type prefix ## arr[ARRAY_SIZE];                    \
+    static type prefix ## darr[DYNAMIC_ARRAY_SIZE];           \
+    static int prefix ## darr_len = ARRAY_SIZE;               \
+    static type prefix ## marr MARRAY_DIM;                    \
+    static type prefix ## dmarr DYNAMIC_MARRAY_DIM;           \
+    static int prefix ## dmarr_len = sizeof(prefix ## dmarr); \
+    (void)0
 
-#define DEF_GET_SET(type, arr)											\
-	void rna_Test_ ## arr ## _get(PointerRNA *ptr, type *values)		\
-	{																	\
-		memcpy(values, arr, sizeof(arr));								\
-	}																	\
-																		\
-	void rna_Test_ ## arr ## _set(PointerRNA *ptr, const type *values)	\
-	{																	\
-		memcpy(arr, values, sizeof(arr));								\
-	}
+#define DEF_GET_SET(type, arr)                                          \
+    void rna_Test_ ## arr ## _get(PointerRNA * ptr, type * values)        \
+	{                                                                   \
+		memcpy(values, arr, sizeof(arr));                               \
+	}                                                                   \
+                                                                        \
+    void rna_Test_ ## arr ## _set(PointerRNA * ptr, const type * values)  \
+	{                                                                   \
+		memcpy(arr, values, sizeof(arr));                               \
+	}                                                                   \
+    (void)0
 
-#define DEF_GET_SET_LEN(arr, max)										\
-	static int rna_Test_ ## arr ## _get_length(PointerRNA *ptr)			\
-	{																	\
-		return arr ## _len;												\
-	}																	\
-																		\
-	static int rna_Test_ ## arr ## _set_length(PointerRNA *ptr, int length)	\
-	{																	\
-		if (length > max)												\
-			return 0;													\
-																		\
-		arr ## _len = length;											\
-																		\
-		return 1;														\
-	}																	\
+#define DEF_GET_SET_LEN(arr, max)                                       \
+    static int rna_Test_ ## arr ## _get_length(PointerRNA * ptr)         \
+	{                                                                   \
+		return arr ## _len;                                             \
+	}                                                                   \
+                                                                        \
+    static int rna_Test_ ## arr ## _set_length(PointerRNA * ptr, int length) \
+	{                                                                   \
+		if (length > max)                                               \
+			return 0;                                                   \
+                                                                        \
+		arr ## _len = length;                                           \
+                                                                        \
+		return 1;                                                       \
+	}                                                                   \
+    (void)0
 
-DEF_VARS(float, f)
-DEF_VARS(int, i)
-DEF_VARS(int, b)
+DEF_VARS(float, f);
+DEF_VARS(int, i);
+DEF_VARS(int, b);
 
-DEF_GET_SET(float, farr)
-DEF_GET_SET(int, iarr)
-DEF_GET_SET(int, barr)
+DEF_GET_SET(float, farr);
+DEF_GET_SET(int, iarr);
+DEF_GET_SET(int, barr);
 
-DEF_GET_SET(float, fmarr)
-DEF_GET_SET(int, imarr)
-DEF_GET_SET(int, bmarr)
+DEF_GET_SET(float, fmarr);
+DEF_GET_SET(int, imarr);
+DEF_GET_SET(int, bmarr);
 
-DEF_GET_SET(float, fdarr)
-DEF_GET_SET_LEN(fdarr, DYNAMIC_ARRAY_SIZE)
-DEF_GET_SET(int, idarr)
-DEF_GET_SET_LEN(idarr, DYNAMIC_ARRAY_SIZE)
-DEF_GET_SET(int, bdarr)
-DEF_GET_SET_LEN(bdarr, DYNAMIC_ARRAY_SIZE)
+DEF_GET_SET(float, fdarr);
+DEF_GET_SET_LEN(fdarr, DYNAMIC_ARRAY_SIZE);
+DEF_GET_SET(int, idarr);
+DEF_GET_SET_LEN(idarr, DYNAMIC_ARRAY_SIZE);
+DEF_GET_SET(int, bdarr);
+DEF_GET_SET_LEN(bdarr, DYNAMIC_ARRAY_SIZE);
 
-DEF_GET_SET(float, fdmarr)
-DEF_GET_SET_LEN(fdmarr, DYNAMIC_MARRAY_SIZE(float))
-DEF_GET_SET(int, idmarr)
-DEF_GET_SET_LEN(idmarr, DYNAMIC_MARRAY_SIZE(int))
-DEF_GET_SET(int, bdmarr)
-DEF_GET_SET_LEN(bdmarr, DYNAMIC_MARRAY_SIZE(int))
+DEF_GET_SET(float, fdmarr);
+DEF_GET_SET_LEN(fdmarr, DYNAMIC_MARRAY_SIZE(float));
+DEF_GET_SET(int, idmarr);
+DEF_GET_SET_LEN(idmarr, DYNAMIC_MARRAY_SIZE(int));
+DEF_GET_SET(int, bdmarr);
+DEF_GET_SET_LEN(bdmarr, DYNAMIC_MARRAY_SIZE(int));
 
 #endif
 
@@ -186,4 +189,4 @@ void RNA_def_test(BlenderRNA *brna)
 #endif
 }
 
-#endif	/* RNA_RUNTIME */
+#endif  /* RNA_RUNTIME */
