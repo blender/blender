@@ -1401,7 +1401,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			curve_to_filledpoly(cu, nubase, dispbase);
 		}
 
-		if (cu->flag & CU_PATH) calc_curvepath(ob);
+		if ((cu->flag & CU_PATH) && !forOrco) calc_curvepath(ob);
 
 		/* make copy of 'undeformed" displist for texture space calculation
 		 * actually, it's not totally undeformed -- pre-tessellation modifiers are
