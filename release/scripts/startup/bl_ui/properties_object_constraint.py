@@ -816,7 +816,7 @@ class ConstraintButtonsPanel():
         layout.operator("clip.constraint_to_fcurve")
 
     def SCRIPT(self, context, layout, con):
-        layout.label("Blender 2.5 has no py-constraints")
+        layout.label("Blender 2.6 doesn't support python constraints yet.")
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):
