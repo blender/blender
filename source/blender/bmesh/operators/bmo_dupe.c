@@ -464,9 +464,8 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 	BMOperator dupop, extop;
 	float cent[3], dvec[3];
 	float axis[3] = {0.0f, 0.0f, 1.0f};
-	float q[4];
 	float rmat[3][3];
-	float phi, si;
+	float phi;
 	int steps, do_dupli, a, usedvec;
 
 	BMO_slot_vec_get(op, "cent", cent);
@@ -475,16 +474,10 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_vec_get(op, "dvec", dvec);
 	usedvec = !is_zero_v3(dvec);
 	steps = BMO_slot_int_get(op, "steps");
-	phi = BMO_slot_float_get(op, "ang") * (float)M_PI / (360.0f * steps);
+	phi = BMO_slot_float_get(op, "ang") * DEG2RADF(1.0f) / steps;
 	do_dupli = BMO_slot_bool_get(op, "do_dupli");
 
-	/* BMESH_TODO - can replace this with BLI_math? */
-	si = (float)sin(phi);
-	q[0] = (float)cos(phi);
-	q[1] = axis[0] * si;
-	q[2] = axis[1] * si;
-	q[3] = axis[2] * si;
-	quat_to_mat3(rmat, q);
+	axis_angle_to_mat3(rmat, axis, phi);
 
 	BMO_slot_copy(op, op, "geom", "lastout");
 	for (a = 0; a < steps; a++) {
