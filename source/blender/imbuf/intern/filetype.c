@@ -80,7 +80,7 @@ ImFileType IMB_FILE_TYPES[]= {
 	{NULL, NULL, imb_is_a_openexr, imb_ftype_default, imb_load_openexr, imb_save_openexr, NULL, IM_FTYPE_FLOAT, OPENEXR},
 #endif
 #ifdef WITH_OPENJPEG
-	{NULL, NULL, imb_is_a_jp2, imb_ftype_default, imb_jp2_decode, imb_savejp2, NULL, IM_FTYPE_FLOAT, JP2},
+	{imb_initopenexr, NULL, imb_is_a_jp2, imb_ftype_default, imb_jp2_decode, imb_savejp2, NULL, IM_FTYPE_FLOAT, JP2},
 #endif
 #ifdef WITH_DDS
 	{NULL, NULL, imb_is_a_dds, imb_ftype_default, imb_load_dds, NULL, NULL, 0, DDS},

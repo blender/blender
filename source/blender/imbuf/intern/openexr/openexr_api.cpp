@@ -51,6 +51,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
+#include "BLI_threads.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -1066,5 +1067,11 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 	
 }
 
+void imb_initopenexr(void)
+{
+	int num_threads = BLI_system_thread_count();
+
+	setGlobalThreadCount(num_threads);
+}
 
 } // export "C"
