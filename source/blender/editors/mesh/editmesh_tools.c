@@ -2132,6 +2132,8 @@ static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *c
 	return dist_to_line_segment_v2(mvalf, vec1, vec2);
 }
 
+
+
 /* based on mouse cursor position, it defines how is being ripped */
 static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -2174,6 +2176,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	 * then rip two adjacent edges in the vert fan. */
 	if (bm->totvertsel == 1 && bm->totedgesel == 0 && bm->totfacesel == 0) {
 		BMEditSelection ese;
+		int totboundary_edge = 0;
 		singlesel = TRUE;
 
 		/* find selected vert - same some time and check history first */
@@ -2196,15 +2199,91 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if (v->e) {
 			/* find closest edge to mouse cursor */
 			BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
-				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && BM_edge_face_count(e) == 2) {
-					d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
-					if (d < dist) {
-						dist = d;
-						e2 = e;
+				int is_boundary = BM_edge_is_boundary(e);
+				/* consider wire as boundary for this purpose,
+				 * otherwise we can't a face away from a wire edge */
+				totboundary_edge += (is_boundary != 0 || BM_edge_is_wire(e));
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+					if (is_boundary == FALSE && BM_edge_face_count(e) == 2) {
+						d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
+						if (d < dist) {
+							dist = d;
+							e2 = e;
+						}
 					}
 				}
 			}
 
+		}
+
+		/* should we go ahead with edge rip or do we need to do special case, split off vertex?:
+		 * split off vertex if...
+		 * - we cant find an edge - this means we are ripping a faces vert that is connected to other
+		 *   geometry only at the vertex.
+		 * - the boundary edge total is greater then 2,
+		 *   in this case edge split _can_ work but we get far nicer results if we use this special case. */
+		if (totboundary_edge > 2) {
+			BMVert **vout;
+			int vout_len;
+
+			BM_elem_select_set(bm, v, FALSE);
+			bmesh_vert_separate(bm, v, &vout, &vout_len);
+
+			if (vout_len < 2) {
+				/* should never happen */
+				BKE_report(op->reports, RPT_ERROR, "Error ripping vertex from faces");
+				return OPERATOR_CANCELLED;
+			}
+			else {
+				int vi_best = 0;
+
+				dist = FLT_MAX;
+
+				for (i = 0; i < vout_len; i++) {
+					BM_ITER(l, &iter, bm, BM_LOOPS_OF_VERT, vout[i]) {
+						if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
+							float l_mid_co[3];
+							BM_loop_face_tangent(l, l_mid_co);
+
+							/* scale to average of surrounding edge size, only needs to be approx */
+							mul_v3_fl(l_mid_co, (BM_edge_length_calc(l->e) + BM_edge_length_calc(l->prev->e)) / 2.0f);
+							add_v3_v3(l_mid_co, v->co);
+
+							d = mesh_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval);
+
+							if (d < dist) {
+								dist = d;
+								vi_best = i;
+							}
+						}
+					}
+				}
+
+				/* select the vert from the best region */
+				v = vout[vi_best];
+				BM_elem_select_set(bm, v, TRUE);
+
+				/* splice all others back together */
+				if (vout_len > 2) {
+
+					/* vout[0]  == best
+					 * vout[1]  == glue
+					 * vout[2+] == splice with glue
+					 */
+					if (vi_best != 0) {
+						SWAP(BMVert *, vout[0], vout[vi_best]);
+						vi_best = 0;
+					}
+
+					for (i = 2; i < vout_len; i++) {
+						BM_vert_splice(bm, vout[i], vout[1]);
+					}
+				}
+
+				MEM_freeN(vout);
+
+				return OPERATOR_FINISHED;
+			}
 		}
 
 		if (!e2) {
