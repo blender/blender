@@ -397,39 +397,48 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
  */
 void BM_select_mode_set(BMesh *bm, int selectmode)
 {
-	BMVert *v;
-	BMEdge *e;
-	BMFace *f;
-	
-	BMIter verts;
-	BMIter edges;
-	BMIter faces;
+	BMIter iter;
+	BMElem *ele;
 	
 	bm->selectmode = selectmode;
 
 	if (bm->selectmode & SCE_SELECT_VERTEX) {
-		for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges))
-			BM_elem_flag_disable(e, 0);
-		for (f = BM_iter_new(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BM_iter_step(&faces))
-			BM_elem_flag_disable(f, 0);
+		/* disabled because selection flushing handles these */
+#if 0
+		BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_elem_flag_disable(ele, BM_ELEM_SELECT);
+		}
+		BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_elem_flag_disable(ele, BM_ELEM_SELECT);
+		}
+#endif
 		BM_mesh_select_mode_flush(bm);
 	}
 	else if (bm->selectmode & SCE_SELECT_EDGE) {
-		for (v = BM_iter_new(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BM_iter_step(&verts))
-			BM_elem_flag_disable(v, 0);
-		for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges)) {
-			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-				BM_edge_select_set(bm, e, TRUE);
+		/* disabled because selection flushing handles these */
+#if 0
+		BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_elem_flag_disable(ele, BM_ELEM_SELECT);
+		}
+#endif
+
+		BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
+				BM_edge_select_set(bm, (BMEdge *)ele, TRUE);
 			}
 		}
 		BM_mesh_select_mode_flush(bm);
 	}
 	else if (bm->selectmode & SCE_SELECT_FACE) {
-		for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges))
-			BM_elem_flag_disable(e, 0);
-		for (f = BM_iter_new(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BM_iter_step(&faces)) {
-			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-				BM_face_select_set(bm, f, TRUE);
+		/* disabled because selection flushing handles these */
+#if 0
+		BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_elem_flag_disable(ele, BM_ELEM_SELECT);
+		}
+#endif
+		BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
+				BM_face_select_set(bm, (BMFace *)ele, TRUE);
 			}
 		}
 		BM_mesh_select_mode_flush(bm);
