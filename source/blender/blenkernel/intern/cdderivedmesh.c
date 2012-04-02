@@ -583,10 +583,11 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 		GPU_normal_setup( dm );
 		if ( !GPU_buffer_legacy(dm) ) {
 			glShadeModel(GL_SMOOTH);
-			for ( a = 0; a < dm->drawObject->totmaterial; a++ ) {
-				if ( setMaterial(dm->drawObject->materials[a].mat_nr+1, NULL) )
+			for (a = 0; a < dm->drawObject->totmaterial; a++) {
+				if (setMaterial(dm->drawObject->materials[a].mat_nr + 1, NULL)) {
 					glDrawArrays(GL_TRIANGLES, dm->drawObject->materials[a].start,
-						     dm->drawObject->materials[a].totpoint);
+					             dm->drawObject->materials[a].totpoint);
+				}
 			}
 		}
 		GPU_buffer_unbind( );

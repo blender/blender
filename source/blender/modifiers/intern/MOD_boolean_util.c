@@ -418,7 +418,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		mface->v4 = (csgface.vertex_number == 4)? csgface.vertex_index[3]: 0;
 
 		// set material, based on lookup in hash table
-		orig_mat= give_current_material(orig_ob, mface->mat_nr+1);
+		orig_mat = give_current_material(orig_ob, mface->mat_nr + 1);
 
 		if (mat && orig_mat) {
 			if (!BLI_ghash_haskey(material_hash, orig_mat)) {

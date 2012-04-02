@@ -531,7 +531,7 @@ static Image *imapaint_face_image(const ImagePaintState *s, int face_index)
 
 	if (scene_use_new_shading_nodes(s->scene)) {
 		MFace *mf = &s->dm_mface[face_index];
-		ED_object_get_active_image(s->ob, mf->mat_nr+1, &ima, NULL, NULL);
+		ED_object_get_active_image(s->ob, mf->mat_nr + 1, &ima, NULL, NULL);
 	}
 	else {
 		MTFace *tf = &s->dm_mtface[face_index];
@@ -547,7 +547,7 @@ static Image *project_paint_face_image(const ProjPaintState *ps, MTFace *dm_mtfa
 
 	if (ps->do_new_shading_nodes) { /* cached scene_use_new_shading_nodes result */
 		MFace *mf = ps->dm_mface + face_index;
-		ED_object_get_active_image(ps->ob, mf->mat_nr+1, &ima, NULL, NULL);
+		ED_object_get_active_image(ps->ob, mf->mat_nr + 1, &ima, NULL, NULL);
 	}
 	else {
 		ima = dm_mtface[face_index].tpage;

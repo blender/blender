@@ -457,7 +457,7 @@ void BMO_slot_vec_get(BMOperator *op, const char *slotname, float r_vec[3])
  */
 
 static int bmo_mesh_flag_count(BMesh *bm, const char htype, const short oflag,
-							   int test_for_enabled)
+                               int test_for_enabled)
 {
 	BMIter elements;
 	int count = 0;
@@ -693,8 +693,8 @@ static void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot
  * enabled/disabled into a slot for an operator.
  */
 static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-									   const char htype, const char hflag,
-									   int test_for_enabled)
+                                       const char htype, const char hflag,
+                                       int test_for_enabled)
 {
 	BMIter elements;
 	BMElem *ele;
@@ -747,13 +747,13 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 }
 
 void BMO_slot_buffer_from_enabled_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-										const char htype, const char hflag)
+                                        const char htype, const char hflag)
 {
 	bmo_slot_buffer_from_hflag(bm, op, slotname, htype, hflag, TRUE);
 }
 
 void BMO_slot_buffer_from_disabled_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-										const char htype, const char hflag)
+                                         const char htype, const char hflag)
 {
 	bmo_slot_buffer_from_hflag(bm, op, slotname, htype, hflag, FALSE);
 }
@@ -797,8 +797,8 @@ void BMO_slot_buffer_append(BMOperator *output_op, const char *output_slot_name,
  * into an output slot for an operator.
  */
 static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
-									  const char htype, const short oflag,
-									  int test_for_enabled)
+                                      const char htype, const short oflag,
+                                      int test_for_enabled)
 {
 	BMIter elements;
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
@@ -807,14 +807,14 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 	if (test_for_enabled)
 		totelement = BMO_mesh_enabled_flag_count(bm, htype, oflag);
 	else
-		totelement = BMO_mesh_disabled_flag_count(bm, htype, oflag);	
+		totelement = BMO_mesh_disabled_flag_count(bm, htype, oflag);
 
 	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
 	if (totelement) {
 		BMHeader *ele;
 		BMHeader **ele_array;
-		int test = (test_for_enabled ? oflag : 0);
+		const char hflag_test = (test_for_enabled ? oflag : 0);
 
 		bmo_slot_buffer_alloc(op, slotname, totelement);
 
@@ -822,7 +822,7 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 
 		if (htype & BM_VERT) {
 			for (ele = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
-				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag) == test) {
+				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag) == hflag_test) {
 					ele_array[i] = ele;
 					i++;
 				}
@@ -831,7 +831,7 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 
 		if (htype & BM_EDGE) {
 			for (ele = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
-				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag) == test) {
+				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag) == hflag_test) {
 					ele_array[i] = ele;
 					i++;
 				}
@@ -840,7 +840,7 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 
 		if (htype & BM_FACE) {
 			for (ele = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
-				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag) == test) {
+				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag) == hflag_test) {
 					ele_array[i] = ele;
 					i++;
 				}
@@ -853,13 +853,13 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 }
 
 void BMO_slot_buffer_from_enabled_flag(BMesh *bm, BMOperator *op, const char *slotname,
-									   const char htype, const short oflag)
+                                       const char htype, const short oflag)
 {
 	bmo_slot_buffer_from_flag(bm, op, slotname, htype, oflag, TRUE);
 }
 
 void BMO_slot_buffer_from_disabled_flag(BMesh *bm, BMOperator *op, const char *slotname,
-										const char htype, const short oflag)
+                                        const char htype, const short oflag)
 {
 	bmo_slot_buffer_from_flag(bm, op, slotname, htype, oflag, FALSE);
 }

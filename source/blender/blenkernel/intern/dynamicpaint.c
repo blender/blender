@@ -1633,7 +1633,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 								#pragma omp parallel for schedule(static)
 								for (i=0; i<totpoly; i++) {
 									int j=0;
-									Material *material = give_current_material(ob, mp[i].mat_nr+1);
+									Material *material = give_current_material(ob, mp[i].mat_nr + 1);
 
 									for (; j<mp[i].totloop; j++) {
 										int l_index = mp[i].loopstart + j;
