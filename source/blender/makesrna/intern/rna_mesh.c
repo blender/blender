@@ -744,13 +744,13 @@ static void rna_MeshFloatPropertyLayer_data_begin(CollectionPropertyIterator *it
 {
 	Mesh *me = rna_mesh(ptr);
 	CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MFloatProperty), me->totface, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MFloatProperty), me->totpoly, 0, NULL);
 }
 
 static int rna_MeshFloatPropertyLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
-	return me->totface;
+	return me->totpoly;
 }
 
 static int rna_float_layer_check(CollectionPropertyIterator *iter, void *data)
@@ -781,13 +781,13 @@ static void rna_MeshIntPropertyLayer_data_begin(CollectionPropertyIterator *iter
 {
 	Mesh *me = rna_mesh(ptr);
 	CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MIntProperty), me->totface, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MIntProperty), me->totpoly, 0, NULL);
 }
 
 static int rna_MeshIntPropertyLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
-	return me->totface;
+	return me->totpoly;
 }
 
 static void rna_Mesh_polygon_int_layers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -812,13 +812,13 @@ static void rna_MeshStringPropertyLayer_data_begin(CollectionPropertyIterator *i
 {
 	Mesh *me = rna_mesh(ptr);
 	CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MStringProperty), me->totface, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MStringProperty), me->totpoly, 0, NULL);
 }
 
 static int rna_MeshStringPropertyLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
-	return me->totface;
+	return me->totpoly;
 }
 
 static void rna_Mesh_polygon_string_layers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1219,10 +1219,10 @@ static PointerRNA rna_Mesh_polygon_int_property_new(struct Mesh *me, struct bCon
 	CustomDataLayer *cdl = NULL;
 	int index;
 
-	CustomData_add_layer_named(&me->fdata, CD_PROP_INT, CD_DEFAULT, NULL, me->totface, name);
-	index = CustomData_get_named_layer_index(&me->fdata, CD_PROP_INT, name);
+	CustomData_add_layer_named(&me->pdata, CD_PROP_INT, CD_DEFAULT, NULL, me->totpoly, name);
+	index = CustomData_get_named_layer_index(&me->pdata, CD_PROP_INT, name);
 
-	cdl = (index == -1) ? NULL : &(me->fdata.layers[index]);
+	cdl = (index == -1) ? NULL : &(me->pdata.layers[index]);
 
 	RNA_pointer_create(&me->id, &RNA_MeshIntPropertyLayer, cdl, &ptr);
 	return ptr;
@@ -1234,10 +1234,10 @@ static PointerRNA rna_Mesh_polygon_float_property_new(struct Mesh *me, struct bC
 	CustomDataLayer *cdl = NULL;
 	int index;
 
-	CustomData_add_layer_named(&me->fdata, CD_PROP_FLT, CD_DEFAULT, NULL, me->totface, name);
-	index = CustomData_get_named_layer_index(&me->fdata, CD_PROP_FLT, name);
+	CustomData_add_layer_named(&me->pdata, CD_PROP_FLT, CD_DEFAULT, NULL, me->totpoly, name);
+	index = CustomData_get_named_layer_index(&me->pdata, CD_PROP_FLT, name);
 
-	cdl = (index == -1) ? NULL : &(me->fdata.layers[index]);
+	cdl = (index == -1) ? NULL : &(me->pdata.layers[index]);
 
 	RNA_pointer_create(&me->id, &RNA_MeshFloatPropertyLayer, cdl, &ptr);
 	return ptr;
@@ -1249,10 +1249,10 @@ static PointerRNA rna_Mesh_polygon_string_property_new(struct Mesh *me, struct b
 	CustomDataLayer *cdl = NULL;
 	int index;
 
-	CustomData_add_layer_named(&me->fdata, CD_PROP_STR, CD_DEFAULT, NULL, me->totface, name);
-	index = CustomData_get_named_layer_index(&me->fdata, CD_PROP_STR, name);
+	CustomData_add_layer_named(&me->pdata, CD_PROP_STR, CD_DEFAULT, NULL, me->totpoly, name);
+	index = CustomData_get_named_layer_index(&me->pdata, CD_PROP_STR, name);
 
-	cdl = (index == -1) ? NULL : &(me->fdata.layers[index]);
+	cdl = (index == -1) ? NULL : &(me->pdata.layers[index]);
 
 	RNA_pointer_create(&me->id, &RNA_MeshStringPropertyLayer, cdl, &ptr);
 	return ptr;
