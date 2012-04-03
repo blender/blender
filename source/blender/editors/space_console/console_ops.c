@@ -434,8 +434,8 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 static EnumPropertyItem console_delete_type_items[] = {
 	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
 	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
-//	{DEL_NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
-//	{DEL_PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
+	{DEL_NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
+	{DEL_PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -444,6 +444,8 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 	SpaceConsole *sc = CTX_wm_space_console(C);
 	ARegion *ar = CTX_wm_region(C);
 	ConsoleLine *ci = console_history_verify(C);
+	int pos;
+	int stride;
 
 	const short type = RNA_enum_get(op->ptr, "type");
 	int done = 0;
@@ -454,22 +456,38 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 	
 	switch (type) {
 		case DEL_NEXT_CHAR:
+		case DEL_NEXT_WORD:
 			if (ci->cursor < ci->len) {
-				memmove(ci->line + ci->cursor, ci->line + ci->cursor + 1, (ci->len - ci->cursor) + 1);
-				ci->len--;
-				done = 1;
+				pos = ci->cursor;
+				BLI_str_cursor_step_utf8(ci->line, ci->len,
+				                         &pos, STRCUR_DIR_NEXT,
+				                         (type == DEL_NEXT_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM);
+				stride = pos - ci->cursor;
+				if (stride) {
+					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
+					ci->len -= stride;
+					done = 1;
+				}
 			}
 			break;
 		case DEL_PREV_CHAR:
+		case DEL_PREV_WORD:
 			if (ci->cursor > 0) {
-				ci->cursor--; /* same as above */
-				memmove(ci->line + ci->cursor, ci->line + ci->cursor + 1, (ci->len - ci->cursor) + 1);
-				ci->len--;
-				done = 1;
+				pos = ci->cursor;
+				BLI_str_cursor_step_utf8(ci->line, ci->len,
+				                         &pos, STRCUR_DIR_PREV,
+				                         (type == DEL_PREV_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM);
+				stride = ci->cursor - pos;
+				if (stride) {
+					ci->cursor -= stride; /* same as above */
+					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
+					ci->len -= stride;
+					done = 1;
+				}
 			}
 			break;
 	}
-	
+
 	if (!done) {
 		return OPERATOR_CANCELLED;
 	}
