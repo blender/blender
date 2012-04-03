@@ -426,7 +426,7 @@ void EDBM_select_flush(BMEditMesh *em)
 void EDBM_select_more(BMEditMesh *em)
 {
 	BMOperator bmop;
-	int use_faces = em->selectmode > SCE_SELECT_EDGE;
+	int use_faces = em->selectmode == SCE_SELECT_FACE;
 
 	BMO_op_initf(em->bm, &bmop,
 	             "regionextend geom=%hvef constrict=%b use_faces=%b",
@@ -442,7 +442,7 @@ void EDBM_select_more(BMEditMesh *em)
 void EDBM_select_less(BMEditMesh *em)
 {
 	BMOperator bmop;
-	int use_faces = em->selectmode > SCE_SELECT_EDGE;
+	int use_faces = em->selectmode == SCE_SELECT_FACE;
 
 	BMO_op_initf(em->bm, &bmop,
 	             "regionextend geom=%hvef constrict=%b use_faces=%b",
