@@ -4402,7 +4402,7 @@ static int createSlideVerts(TransInfo *t)
 	int numsel, i, j;
 
 	if (!v3d) {
-		/*ok, let's try to survive this*/
+		/* ok, let's try to survive this */
 		unit_m4(projectMat);
 	}
 	else {
@@ -4428,15 +4428,20 @@ static int createSlideVerts(TransInfo *t)
 			}
 
 			if (numsel == 0 || numsel > 2) {
-				return 0; //invalid edge selection
+				MEM_freeN(sld);
+				BMBVH_FreeBVH(btree);
+				return 0; /* invalid edge selection */
 			}
 		}
 	}
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			if (BM_edge_face_count(e) != 2)
-				return 0; //can only handle exactly 2 faces around each edge
+			if (BM_edge_face_count(e) != 2) {
+				MEM_freeN(sld);
+				BMBVH_FreeBVH(btree);
+				return 0; /* can only handle exactly 2 faces around each edge */
+			}
 		}
 	}
 
@@ -4452,8 +4457,11 @@ static int createSlideVerts(TransInfo *t)
 		}
 	}
 
-	if (!j)
+	if (!j) {
+		MEM_freeN(sld);
+		BMBVH_FreeBVH(btree);
 		return 0;
+	}
 
 	tempsv = MEM_callocN(sizeof(TransDataSlideVert)*j, "tempsv");
 
