@@ -77,7 +77,7 @@ public:
 									 float* color,
 									 double* mat,
 									 float aspect);
-	/* @attention mode is ignored here */
+	/* \attention mode is ignored here */
 	void			    RenderText2D(RAS_TEXT_RENDER_MODE mode,
 									 const char* text,
 									 int xco,

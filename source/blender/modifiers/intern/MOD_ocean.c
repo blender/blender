@@ -240,7 +240,7 @@ static void dm_get_bounds(DerivedMesh *dm, float *sx, float *sy, float *ox, floa
 	copy_v3_v3(min, mvert->co);
 	copy_v3_v3(max, mvert->co);
 
-	for(v=1; v<totvert; v++, mvert++) {
+	for (v=1; v<totvert; v++, mvert++) {
 		min[0]=MIN2(min[0],mvert->co[0]);
 		min[1]=MIN2(min[1],mvert->co[1]);
 		min[2]=MIN2(min[2],mvert->co[2]);
@@ -352,7 +352,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 
 	/* add uvs */
 	cdlayer= CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);
-	if(cdlayer < MAX_MTFACE) {
+	if (cdlayer < MAX_MTFACE) {
 		MLoopUV *mloopuvs= CustomData_add_layer(&result->loopData, CD_MLOOPUV, CD_CALLOC, NULL, num_faces * 4);
 
 		if (mloopuvs) { /* unlikely to fail */
@@ -455,7 +455,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
 		int cdlayer= CustomData_number_of_layers(&dm->loopData, CD_MLOOPCOL);
 
-		if(cdlayer < MAX_MCOL) {
+		if (cdlayer < MAX_MCOL) {
 			MLoopCol *mloopcols= CustomData_add_layer_named(&dm->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, num_faces * 4, omd->foamlayername);
 
 			if (mloopcols) { /* unlikely to fail */
@@ -540,7 +540,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	result = doOcean(md, ob, derivedData, 0);
 
-	if(result != derivedData)
+	if (result != derivedData)
 		CDDM_calc_normals(result);
 
 	return result;

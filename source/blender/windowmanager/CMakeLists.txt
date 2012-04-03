@@ -136,4 +136,10 @@ if(WITH_BUILDINFO)
 	add_definitions(-DWITH_BUILDINFO)
 endif()
 
+if(WIN322)
+	list(APPEND INC
+		../../../intern/utfconv
+	)
+endif()
+
 blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}")

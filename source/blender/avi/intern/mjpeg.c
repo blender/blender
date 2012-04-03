@@ -159,7 +159,7 @@ static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsign
 	jpeg_create_decompress(&dinfo);
 	jpegmemsrcmgr_build(&dinfo, inBuffer, bufsize);
 	jpeg_read_header(&dinfo, TRUE);
-	if (dinfo.dc_huff_tbl_ptrs[0] == NULL){
+	if (dinfo.dc_huff_tbl_ptrs[0] == NULL) {
 		std_huff_tables(&dinfo);
 	}
 	dinfo.out_color_space = JCS_RGB;
@@ -181,13 +181,13 @@ static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsign
 
 	numbytes= 0;
 	jpeg_read_header(&dinfo, TRUE);
-	if (dinfo.dc_huff_tbl_ptrs[0] == NULL){
+	if (dinfo.dc_huff_tbl_ptrs[0] == NULL) {
 		std_huff_tables(&dinfo);
 	}
 
 	jpeg_start_decompress(&dinfo);
 	rowstride= dinfo.output_width*dinfo.output_components;
-	for (y= 0; y<dinfo.output_height; y++){
+	for (y= 0; y<dinfo.output_height; y++) {
 		jpeg_read_scanlines(&dinfo, (JSAMPARRAY) &outBuffer, 1);
 		outBuffer += rowstride;
 	}
@@ -251,7 +251,7 @@ static void Compress_JPEG(int quality, unsigned char *outbuffer, unsigned char *
 	jpeg_write_marker (&cinfo, JPEG_COM, marker, 60);
 
 	rowstride= cinfo.image_width*cinfo.input_components;
-	for (y = 0; y < cinfo.image_height; y++){
+	for (y = 0; y < cinfo.image_height; y++) {
 		jpeg_write_scanlines(&cinfo, (JSAMPARRAY) &inBuffer, 1);
 		inBuffer += rowstride;
 	}
@@ -301,7 +301,8 @@ static int check_and_decode_jpeg(unsigned char *inbuf, unsigned char *outbuf, in
 		MEM_freeN(tmpbuf);
 		
 		return ret;
-	} else {
+	}
+	else {
 		return Decode_JPEG(inbuf, outbuf, width, height, bufsize);
 	}
 }
@@ -329,7 +330,8 @@ static void check_and_compress_jpeg(int quality, unsigned char *outbuf, unsigned
 		Compress_JPEG(quality, outbuf, tmpbuf, jwidth, jheight, bufsize);
 
 		MEM_freeN(tmpbuf);
-	} else {
+	}
+	else {
 		Compress_JPEG(quality, outbuf, inbuf, width, height, bufsize);
 	}
 }
@@ -369,7 +371,8 @@ void *avi_converter_to_mjpeg (AviMovie *movie, int stream, unsigned char *buffer
 	buf = MEM_mallocN (movie->header->Height * movie->header->Width * 3, "avi.avi_converter_to_mjpeg 1");	
 	if (!movie->interlace) {
 		check_and_compress_jpeg(movie->streams[stream].sh.Quality/100, buf, buffer,  movie->header->Width, movie->header->Height, bufsize);
-	} else {
+	}
+	else {
 		deinterlace (movie->odd_fields, buf, buffer, movie->header->Width, movie->header->Height);
 		MEM_freeN (buffer);
 	

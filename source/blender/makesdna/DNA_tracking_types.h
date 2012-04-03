@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
  * All rights reserved.
  *
  * The Original Code is: all of this file.
@@ -218,6 +218,7 @@ enum {
 #define MARKER_TRACKED	(1<<1)
 #define MARKER_GRAPH_SEL_X (1<<2)
 #define MARKER_GRAPH_SEL_Y (1<<3)
+#define MARKER_GRAPH_SEL	(MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y)
 
 /* MovieTrackingTrack->flag */
 #define TRACK_HAS_BUNDLE	(1<<1)

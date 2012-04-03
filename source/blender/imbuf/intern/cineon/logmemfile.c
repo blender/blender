@@ -39,10 +39,12 @@ int logimage_fseek(void* logfile, intptr_t offsett, int origin)
 		if (origin==SEEK_SET) {
 			if (offset > file->membuffersize) return 1;
 			file->memcursor = file->membuffer + offset;
-		} else if (origin==SEEK_END) {
+		}
+		else if (origin==SEEK_END) {
 			if (offset > file->membuffersize) return 1;
 			file->memcursor = (file->membuffer + file->membuffersize) - offset;
-		} else if (origin==SEEK_CUR) {
+		}
+		else if (origin==SEEK_CUR) {
 			uintptr_t pos = (uintptr_t)file->membuffer - (uintptr_t)file->memcursor;
 			if (pos + offset > file->membuffersize) return 1;
 			if (pos < 0) return 1;
@@ -68,8 +70,8 @@ int logimage_fread(void *buffer, unsigned int size, unsigned int count, void *lo
 	if (file->file) return fread(buffer, size, count, file->file);
 	else { /*we're reading from memory*/
 		int i;
-		/*we convert ot uchar just on the off chance some platform can't handle
-		  pointer arithmetic with type (void*). */
+		/* we convert ot uchar just on the off chance some platform can't handle
+		 * pointer arithmetic with type (void*). */
 		unsigned char *buf = (unsigned char *) buffer; 
 		
 		for (i=0; i<count; i++) {

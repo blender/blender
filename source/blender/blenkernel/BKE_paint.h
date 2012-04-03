@@ -33,6 +33,8 @@
  */
 
 struct Brush;
+struct MDisps;
+struct MeshElemMap;
 struct MFace;
 struct MultireModifierData;
 struct MVert;
@@ -61,6 +63,11 @@ void paint_brush_set(struct Paint *paint, struct Brush *br);
 int paint_facesel_test(struct Object *ob);
 int paint_vertsel_test(struct Object *ob);
 
+/* partial visibility */
+int paint_is_face_hidden(const struct MFace *f, const struct MVert *mvert);
+int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
+							  int gridsize, int x, int y);
+
 /* Session data (mode-specific) */
 
 typedef struct SculptSession {
@@ -74,7 +81,7 @@ typedef struct SculptSession {
 	struct KeyBlock *kb;
 	
 	/* Mesh connectivity */
-	struct ListBase *pmap;
+	const struct MeshElemMap *pmap;
 
 	/* PBVH acceleration structure */
 	struct PBVH *pbvh;

@@ -294,7 +294,7 @@ bool SCA_KeyboardSensor::Evaluate()
 		}
 		
 		/* Modify the key state based on qual(s)
-		 * Tested carefuly. dont touch unless your really sure.
+		 * Tested carefully. don't touch unless your really sure.
 		 * note, this will only change the results if key modifiers are set.
 		 *
 		 * When all modifiers and keys are positive
@@ -432,7 +432,7 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 	int keycode = PyLong_AsSsize_t(value);
 	
 	if ((keycode < SCA_IInputDevice::KX_BEGINKEY)
-		|| (keycode > SCA_IInputDevice::KX_ENDKEY)){
+		|| (keycode > SCA_IInputDevice::KX_ENDKEY)) {
 		PyErr_SetString(PyExc_AttributeError, "sensor.getKeyStatus(int): Keyboard Sensor, invalid keycode specified!");
 		return NULL;
 	}

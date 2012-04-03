@@ -68,7 +68,7 @@
 #include "BLI_utildefines.h"
 
 #include "RE_engine.h"
-#include "RE_pipeline.h"		/* RE_ free stuff */
+#include "RE_pipeline.h"        /* RE_ free stuff */
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -125,20 +125,20 @@ int wm_start_with_console = 0; /* used in creator.c */
 void WM_init(bContext *C, int argc, const char **argv)
 {
 	if (!G.background) {
-		wm_ghost_init(C);	/* note: it assigns C to ghost! */
+		wm_ghost_init(C);   /* note: it assigns C to ghost! */
 		wm_init_cursor_data();
 	}
 	GHOST_CreateSystemPaths();
 	wm_operatortype_init();
 	WM_menutype_init();
 
-	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
+	set_free_windowmanager_cb(wm_close_and_free);   /* library.c */
 	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
 	DAG_editors_update_cb(ED_render_id_flush_update, ED_render_scene_update); /* depsgraph.c */
 	
-	ED_spacetypes_init();	/* editors/space_api/spacetype.c */
+	ED_spacetypes_init();   /* editors/space_api/spacetype.c */
 	
-	ED_file_init();			/* for fsmenu */
+	ED_file_init();         /* for fsmenu */
 	ED_init_node_butfuncs();	
 	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
@@ -162,7 +162,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 
 	BPY_driver_reset();
 	BPY_app_handlers_reset(FALSE); /* causes addon callbacks to be freed [#28068],
-	                           * but this is actually what we want. */
+	                                * but this is actually what we want. */
 	BPY_modules_load_user(C);
 #else
 	(void)argc; /* unused */
@@ -192,21 +192,21 @@ void WM_init(bContext *C, int argc, const char **argv)
 	WM_read_history();
 
 	/* allow a path of "", this is what happens when making a new file */
-	/*
-	if(G.main->name[0] == 0)
+#if 0
+	if (G.main->name[0] == 0)
 		BLI_make_file_string("/", G.main->name, BLI_getDefaultDocumentFolder(), "untitled.blend");
-	*/
+#endif
 
 	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
 }
 
 void WM_init_splash(bContext *C)
 {
-	if((U.uiflag & USER_SPLASH_DISABLE) == 0) {
-		wmWindowManager *wm= CTX_wm_manager(C);
-		wmWindow *prevwin= CTX_wm_window(C);
+	if ((U.uiflag & USER_SPLASH_DISABLE) == 0) {
+		wmWindowManager *wm = CTX_wm_manager(C);
+		wmWindow *prevwin = CTX_wm_window(C);
 	
-		if(wm->windows.first) {
+		if (wm->windows.first) {
 			CTX_wm_window_set(C, wm->windows.first);
 			WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
 			CTX_wm_window_set(C, prevwin);
@@ -216,28 +216,28 @@ void WM_init_splash(bContext *C)
 
 int WM_init_game(bContext *C)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmWindow* win;
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win;
 
 	ScrArea *sa;
-	ARegion *ar= NULL;
+	ARegion *ar = NULL;
 
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 
 	if (!scene) {
 		// XXX, this should not be needed.
 		Main *bmain = CTX_data_main(C);
-		scene= bmain->scene.first;
+		scene = bmain->scene.first;
 	}
 
 	win = wm->windows.first;
 
 	//first to get a valid window
-	if(win)
+	if (win)
 		CTX_wm_window_set(C, win);
 
 	sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0);
-	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 
 	// if we have a valid 3D view
 	if (sa && ar) {
@@ -247,32 +247,31 @@ int WM_init_game(bContext *C)
 		CTX_wm_region_set(C, ar);
 
 		/* disable quad view */
-		if(ar->alignment == RGN_ALIGN_QSPLIT)
+		if (ar->alignment == RGN_ALIGN_QSPLIT)
 			WM_operator_name_call(C, "SCREEN_OT_region_quadview", WM_OP_EXEC_DEFAULT, NULL);
 
 		/* toolbox, properties panel and header are hidden */
-		for(arhide=sa->regionbase.first; arhide; arhide=arhide->next) {
-			if(arhide->regiontype != RGN_TYPE_WINDOW) {
-				if(!(arhide->flag & RGN_FLAG_HIDDEN)) {
+		for (arhide = sa->regionbase.first; arhide; arhide = arhide->next) {
+			if (arhide->regiontype != RGN_TYPE_WINDOW) {
+				if (!(arhide->flag & RGN_FLAG_HIDDEN)) {
 					ED_region_toggle_hidden(C, arhide);
 				}
 			}
 		}
 
 		/* full screen the area */
-		if(!sa->full) {
+		if (!sa->full) {
 			ED_screen_full_toggle(C, win, sa);
 		}
 
 		/* Fullscreen */
-		if((scene->gm.playerflag & GAME_PLAYER_FULLSCREEN)) {
+		if ((scene->gm.playerflag & GAME_PLAYER_FULLSCREEN)) {
 			WM_operator_name_call(C, "WM_OT_window_fullscreen_toggle", WM_OP_EXEC_DEFAULT, NULL);
 			wm_get_screensize(&ar->winrct.xmax, &ar->winrct.ymax);
 			ar->winx = ar->winrct.xmax + 1;
 			ar->winy = ar->winrct.ymax + 1;
 		}
-		else
-		{
+		else {
 			GHOST_RectangleHandle rect = GHOST_GetClientBounds(win->ghostwin);
 			ar->winrct.ymax = GHOST_GetHeightRectangle(rect);
 			ar->winrct.xmax = GHOST_GetWidthRectangle(rect);
@@ -287,8 +286,7 @@ int WM_init_game(bContext *C)
 
 		return 1;
 	}
-	else
-	{
+	else {
 		ReportTimerInfo *rti;
 
 		BKE_report(&wm->reports, RPT_ERROR, "No valid 3D View found. Game auto start is not possible.");
@@ -310,7 +308,7 @@ static void free_openrecent(void)
 {
 	struct RecentFile *recent;
 	
-	for(recent = G.recent_files.first; recent; recent=recent->next)
+	for (recent = G.recent_files.first; recent; recent = recent->next)
 		MEM_freeN(recent->filepath);
 	
 	BLI_freelistN(&(G.recent_files));
@@ -319,10 +317,7 @@ static void free_openrecent(void)
 
 /* bad stuff*/
 
-extern wchar_t *copybuf;
-extern wchar_t *copybufinfo;
-
-	// XXX copy/paste buffer stuff...
+// XXX copy/paste buffer stuff...
 extern void free_anim_copybuf(void); 
 extern void free_anim_drivers_copybuf(void); 
 extern void free_fmodifiers_copybuf(void); 
@@ -340,13 +335,13 @@ void WM_exit_ext(bContext *C, const short do_python)
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
 	/* note; same code copied in wm_files.c */
-	if(C && CTX_wm_manager(C)) {
+	if (C && CTX_wm_manager(C)) {
 		
 		WM_jobs_stop_all(CTX_wm_manager(C));
 		
-		for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
+		for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
 			
-			CTX_wm_window_set(C, win);	/* needed by operator close callbacks */
+			CTX_wm_window_set(C, win);  /* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
 			WM_event_remove_handlers(C, &win->modalhandlers);
 			ED_screen_exit(C, win, win->screen);
@@ -357,7 +352,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	WM_menutype_free();
 	
 	/* all non-screen and non-space stuff editors did, like editmode */
-	if(C)
+	if (C)
 		ED_editors_exit(C);
 
 //	XXX	
@@ -371,15 +366,15 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 	BKE_freecubetable();
 	
-	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
+	ED_preview_free_dbase();  /* frees a Main dbase, before free_blender! */
 
-	if(C && CTX_wm_manager(C))
-		wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
+	if (C && CTX_wm_manager(C))
+		wm_free_reports(C);  /* before free_blender! - since the ListBases get freed there */
 
 	seq_free_clipboard(); /* sequencer.c */
 	BKE_tracking_free_clipboard();
 		
-	free_blender();				/* blender.c, does entire library and spacetypes */
+	free_blender();  /* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 	free_anim_copybuf();
 	free_anim_drivers_copybuf();
@@ -404,7 +399,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 
 #ifdef WITH_PYTHON
 	/* option not to close python so we can use 'atexit' */
-	if(do_python) {
+	if (do_python) {
 		/* XXX - old note */
 		/* before free_blender so py's gc happens while library still exists */
 		/* needed at least for a rare sigsegv that can happen in pydrivers */
@@ -421,11 +416,9 @@ void WM_exit_ext(bContext *C, const short do_python)
 	GPU_global_buffer_pool_free();
 	GPU_free_unused_buffers();
 	GPU_extensions_exit();
-	
-//	if (copybuf) MEM_freeN(copybuf);
-//	if (copybufinfo) MEM_freeN(copybufinfo);
+
 	if (!G.background) {
-		BKE_undo_save_quit();	// saves quit.blend if global undo is on
+		BKE_undo_save_quit();  /* saves quit.blend if global undo is on */
 	}
 	BKE_reset_undo(); 
 	
@@ -445,7 +438,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 	GHOST_DisposeSystemPaths();
 
-	if(MEM_get_memory_blocks_in_use()!=0) {
+	if (MEM_get_memory_blocks_in_use() != 0) {
 		printf("Error: Not freed memory blocks: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();
 	}
@@ -455,7 +448,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 #ifdef WIN32   
 	/* ask user to press enter when in debug mode */
-	if(G.f & G_DEBUG) {
+	if (G.debug & G_DEBUG) {
 		printf("press enter key to exit...\n\n");
 		getchar();
 	}
@@ -465,5 +458,5 @@ void WM_exit_ext(bContext *C, const short do_python)
 void WM_exit(bContext *C)
 {
 	WM_exit_ext(C, 1);
-	exit(G.afbreek==1);
+	exit(G.afbreek == 1);
 }

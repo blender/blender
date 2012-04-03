@@ -59,16 +59,14 @@
  * used by both C and C++ code, so we put all the C++ together.
  */
 
-#if _MSC_VER
- /* 4244: otherwise we get problems when substracting two size_t's to an int
-  * 4251: it's complaining about a private struct I've chosen not to dllexport
-  * 4355: we use this in a constructor, but we do it safely
-  * 4715: for some reason VC++ stopped realizing you can't return after abort()
-  * 4800: we know we're casting ints/char*'s to bools, and we're ok with that
-  * 4996: Yes, we're ok using "unsafe" functions like fopen() and strerror()
-  */
-# pragma warning(disable:4244 4251 4355 4715 4800 4996)
-#endif
+/* 4244: otherwise we get problems when substracting two size_t's to an int
+ * 4251: it's complaining about a private struct I've chosen not to dllexport
+ * 4355: we use this in a constructor, but we do it safely
+ * 4715: for some reason VC++ stopped realizing you can't return after abort()
+ * 4800: we know we're casting ints/char*'s to bools, and we're ok with that
+ * 4996: Yes, we're ok using "unsafe" functions like fopen() and strerror()
+ */
+#pragma warning(disable:4244 4251 4355 4715 4800 4996)
 
 /* file I/O */
 #define PATH_MAX 1024

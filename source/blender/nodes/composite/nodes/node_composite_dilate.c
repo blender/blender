@@ -117,11 +117,11 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 {
 	/* stack order in: mask */
 	/* stack order out: mask */
-	if(out[0]->hasoutput==0) 
+	if (out[0]->hasoutput==0) 
 		return;
 	
 	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
+	if (in[0]->data==NULL) {
 		out[0]->vec[0] = out[0]->vec[1] = out[0]->vec[2] = 0.0f;
 		out[0]->vec[3] = 0.0f;
 	}
@@ -134,12 +134,13 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 		if (node->custom2 > 0) { // positive, dilate
 			for (i = 0; i < node->custom2; i++)
 				morpho_dilate(stackbuf);
-		} else if (node->custom2 < 0) { // negative, erode
+		}
+		else if (node->custom2 < 0) { // negative, erode
 			for (i = 0; i > node->custom2; i--)
 				morpho_erode(stackbuf);
 		}
 		
-		if(cbuf!=in[0]->data)
+		if (cbuf!=in[0]->data)
 			free_compbuf(cbuf);
 		
 		out[0]->data= stackbuf;

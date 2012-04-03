@@ -57,7 +57,7 @@ _script_module_dirs = "startup", "modules"
 
 
 def _test_import(module_name, loaded_modules):
-    use_time = _bpy.app.debug
+    use_time = _bpy.app.debug_python
 
     if module_name in loaded_modules:
         return None
@@ -126,7 +126,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
        as modules.
     :type refresh_scripts: bool
     """
-    use_time = _bpy.app.debug
+    use_time = _bpy.app.debug_python
 
     prefs = _bpy.context.user_preferences
 
@@ -426,7 +426,7 @@ def preset_find(name, preset_path, display_name=False, ext=".py"):
 def keyconfig_set(filepath):
     from os.path import basename, splitext
 
-    if _bpy.app.debug:
+    if _bpy.app.debug_python:
         print("loading preset:", filepath)
 
     keyconfigs = _bpy.context.window_manager.keyconfigs

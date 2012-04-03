@@ -31,13 +31,16 @@
 
 #include <Python.h>
 
+#include "BLI_utildefines.h"
+
 #include "bmesh.h"
 
 #include "bmesh_py_types.h"
-#include "bmesh_py_utils.h"
-#include "bmesh_py_select.h"
+#include "bmesh_py_types_select.h"
+#include "bmesh_py_types_customdata.h"
+#include "bmesh_py_types_meshdata.h"
 
-#include "BLI_utildefines.h"
+#include "bmesh_py_utils.h"
 
 #include "BKE_tessmesh.h"
 
@@ -47,36 +50,68 @@
 
 #include "bmesh_py_api.h" /* own include */
 
-PyDoc_STRVAR(bpy_bm_from_mesh_doc,
-".. method:: from_mesh(mesh)\n"
+
+PyDoc_STRVAR(bpy_bm_new_doc,
+".. method:: new()\n"
+"\n"
+"   :return: Return a new, empty BMesh.\n"
+"   :rtype: :class:`bmesh.types.BMesh`\n"
+);
+
+static PyObject *bpy_bm_new(PyObject *UNUSED(self))
+{
+	BMesh *bm;
+
+	bm = BM_mesh_create(&bm_mesh_allocsize_default);
+
+	return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_NOP);
+}
+
+PyDoc_STRVAR(bpy_bm_from_edit_mesh_doc,
+".. method:: from_edit_mesh(mesh)\n"
 "\n"
 "   Return a BMesh from this mesh, currently the mesh must already be in editmode.\n"
 "\n"
 "   :return: the BMesh assosiated with this mesh.\n"
 "   :rtype: :class:`bmesh.types.BMesh`\n"
 );
-
-static PyObject *bpy_bm_from_mesh(PyObject *UNUSED(self), PyObject *value)
+static PyObject *bpy_bm_from_edit_mesh(PyObject *UNUSED(self), PyObject *value)
 {
+	BMesh *bm;
 	Mesh *me = PyC_RNA_AsPointer(value, "Mesh");
 
-	/* temp! */
-	if (!me->edit_btmesh) {
-		PyErr_SetString(PyExc_ValueError,
-		                "Mesh is not in editmode");
+	if (me == NULL) {
 		return NULL;
 	}
 
-	return BPy_BMesh_CreatePyObject(me->edit_btmesh->bm);
+	if (me->edit_btmesh == NULL) {
+		PyErr_SetString(PyExc_ValueError,
+		                "The mesh must be in editmode");
+		return NULL;
+	}
+
+	bm = me->edit_btmesh->bm;
+
+	return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_IS_WRAPPED);
 }
 
 static struct PyMethodDef BPy_BM_methods[] = {
-	{"from_mesh", (PyCFunction)bpy_bm_from_mesh, METH_O, bpy_bm_from_mesh_doc},
-	{NULL, NULL, 0, NULL}
+    {"new",            (PyCFunction)bpy_bm_new,            METH_NOARGS,  bpy_bm_new_doc},
+    {"from_edit_mesh", (PyCFunction)bpy_bm_from_edit_mesh, METH_O,       bpy_bm_from_edit_mesh_doc},
+    {NULL, NULL, 0, NULL}
 };
 
 PyDoc_STRVAR(BPy_BM_doc,
-"This module provides access to blenders bmesh data structures."
+"This module provides access to blenders bmesh data structures.\n"
+"\n"
+"\n"
+"Submodules:\n"
+"\n"
+"* :mod:`bmesh.utils`\n"
+"* :mod:`bmesh.types`\n"
+"\n"
+"\n"
+".. include:: include__bmesh.rst\n"
 );
 static struct PyModuleDef BPy_BM_module_def = {
 	PyModuleDef_HEAD_INIT,
@@ -97,17 +132,18 @@ PyObject *BPyInit_bmesh(void)
 	PyObject *sys_modules = PySys_GetObject("modules"); /* not pretty */
 
 	BPy_BM_init_types();
-	BPy_BM_init_select_types();
-
+	BPy_BM_init_types_select();
+	BPy_BM_init_types_customdata();
+	BPy_BM_init_types_meshdata();
 
 	mod = PyModule_Create(&BPy_BM_module_def);
 
 	/* bmesh.types */
-	PyModule_AddObject(mod, "types", (submodule=BPyInit_bmesh_types()));
+	PyModule_AddObject(mod, "types", (submodule = BPyInit_bmesh_types()));
 	PyDict_SetItemString(sys_modules, "bmesh.types", submodule);
 	Py_INCREF(submodule);
 
-	PyModule_AddObject(mod, "utils", (submodule=BPyInit_bmesh_utils()));
+	PyModule_AddObject(mod, "utils", (submodule = BPyInit_bmesh_utils()));
 	PyDict_SetItemString(sys_modules, "bmesh.utils", submodule);
 	Py_INCREF(submodule);
 

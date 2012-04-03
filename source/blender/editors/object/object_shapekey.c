@@ -76,7 +76,7 @@
 
 static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, int from_mix)
 {
-	if(object_insert_shape_key(scene, ob, NULL, from_mix)) {
+	if (object_insert_shape_key(scene, ob, NULL, from_mix)) {
 		Key *key= ob_get_key(ob);
 		ob->shapenr= BLI_countlist(&key->block);
 
@@ -94,22 +94,22 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 	//IpoCurve *icu;
 
 	key= ob_get_key(ob);
-	if(key==NULL)
+	if (key==NULL)
 		return 0;
 	
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
 
-	if(kb) {
-		for(rkb= key->block.first; rkb; rkb= rkb->next)
-			if(rkb->relative == ob->shapenr-1)
+	if (kb) {
+		for (rkb= key->block.first; rkb; rkb= rkb->next)
+			if (rkb->relative == ob->shapenr-1)
 				rkb->relative= 0;
 
 		BLI_remlink(&key->block, kb);
 		key->totkey--;
-		if(key->refkey== kb) {
+		if (key->refkey== kb) {
 			key->refkey= key->block.first;
 
-			if(key->refkey) {
+			if (key->refkey) {
 				/* apply new basis key on original data */
 				switch(ob->type) {
 					case OB_MESH:
@@ -126,36 +126,36 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 			}
 		}
 			
-		if(kb->data) MEM_freeN(kb->data);
+		if (kb->data) MEM_freeN(kb->data);
 		MEM_freeN(kb);
 		
-		for(kb= key->block.first; kb; kb= kb->next)
-			if(kb->adrcode>=ob->shapenr)
+		for (kb= key->block.first; kb; kb= kb->next)
+			if (kb->adrcode>=ob->shapenr)
 				kb->adrcode--;
 		
 #if 0 // XXX old animation system
-		if(key->ipo) {
+		if (key->ipo) {
 			
-			for(icu= key->ipo->curve.first; icu; icu= icu->next) {
-				if(icu->adrcode==ob->shapenr-1) {
+			for (icu= key->ipo->curve.first; icu; icu= icu->next) {
+				if (icu->adrcode==ob->shapenr-1) {
 					BLI_remlink(&key->ipo->curve, icu);
 					free_ipo_curve(icu);
 					break;
 				}
 			}
-			for(icu= key->ipo->curve.first; icu; icu= icu->next) 
-				if(icu->adrcode>=ob->shapenr)
+			for (icu= key->ipo->curve.first; icu; icu= icu->next) 
+				if (icu->adrcode>=ob->shapenr)
 					icu->adrcode--;
 		}
 #endif // XXX old animation system		
 		
-		if(ob->shapenr>1) ob->shapenr--;
+		if (ob->shapenr>1) ob->shapenr--;
 	}
 	
-	if(key->totkey==0) {
-		if(GS(key->from->name)==ID_ME) ((Mesh *)key->from)->key= NULL;
-		else if(GS(key->from->name)==ID_CU) ((Curve *)key->from)->key= NULL;
-		else if(GS(key->from->name)==ID_LT) ((Lattice *)key->from)->key= NULL;
+	if (key->totkey==0) {
+		if (GS(key->from->name)==ID_ME) ((Mesh *)key->from)->key= NULL;
+		else if (GS(key->from->name)==ID_CU) ((Curve *)key->from)->key= NULL;
+		else if (GS(key->from->name)==ID_LT) ((Lattice *)key->from)->key= NULL;
 
 		free_libblock_us(&(bmain->key), key);
 	}
@@ -172,33 +172,33 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 	Key *key;
 
 	key= ob_get_key(ob);
-	if(key==NULL)
+	if (key==NULL)
 		return 0;
 	
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
 
-	if(kb) {
+	if (kb) {
 		int i1, i2;
 		float *fp1, *fp2;
 		float tvec[3];
 		char *tag_elem= MEM_callocN(sizeof(char) * kb->totelem, "shape_key_mirror");
 
 
-		if(ob->type==OB_MESH) {
+		if (ob->type==OB_MESH) {
 			Mesh *me= ob->data;
 			MVert *mv;
 
 			mesh_octree_table(ob, NULL, NULL, 's');
 
-			for(i1=0, mv=me->mvert; i1<me->totvert; i1++, mv++) {
+			for (i1=0, mv=me->mvert; i1<me->totvert; i1++, mv++) {
 				i2= mesh_get_x_mirror_vert(ob, i1);
-				if(i2==i1) {
+				if (i2==i1) {
 					fp1= ((float *)kb->data) + i1*3;
 					fp1[0] = -fp1[0];
 					tag_elem[i1]= 1;
 				}
-				else if(i2 != -1) {
-					if(tag_elem[i1]==0 && tag_elem[i2]==0) {
+				else if (i2 != -1) {
+					if (tag_elem[i1]==0 && tag_elem[i2]==0) {
 						fp1= ((float *)kb->data) + i1*3;
 						fp2= ((float *)kb->data) + i2*3;
 
@@ -224,17 +224,17 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 			/* half but found up odd value */
 			const int pntsu_half = (lt->pntsu / 2) + (lt->pntsu % 2);
 
-			/* currently editmode isnt supported by mesh so
+			/* currently editmode isn't supported by mesh so
 			 * ignore here for now too */
 
-			/* if(lt->editlatt) lt= lt->editlatt->latt; */
+			/* if (lt->editlatt) lt= lt->editlatt->latt; */
 
-			for(w=0; w<lt->pntsw; w++) {
-				for(v=0; v<lt->pntsv; v++) {
-					for(u=0; u<pntsu_half; u++) {
+			for (w=0; w<lt->pntsw; w++) {
+				for (v=0; v<lt->pntsv; v++) {
+					for (u=0; u<pntsu_half; u++) {
 						int u_inv= (lt->pntsu - 1) - u;
 						float tvec[3];
-						if(u == u_inv) {
+						if (u == u_inv) {
 							i1= LT_INDEX(lt, u, v, w);
 							fp1= ((float *)kb->data) + i1*3;
 							fp1[0]= -fp1[0];
@@ -296,16 +296,16 @@ static int shape_key_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Shape Key";
-	ot->idname= "OBJECT_OT_shape_key_add";
-	ot->description= "Add shape key to the object";
+	ot->name = "Add Shape Key";
+	ot->idname = "OBJECT_OT_shape_key_add";
+	ot->description = "Add shape key to the object";
 	
 	/* api callbacks */
-	ot->poll= shape_key_mode_poll;
-	ot->exec= shape_key_add_exec;
+	ot->poll = shape_key_mode_poll;
+	ot->exec = shape_key_add_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "from_mix", 1, "From Mix", "Create the new shape key from the existing mix of keys");
@@ -315,7 +315,7 @@ static int shape_key_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 
-	if(!ED_object_shape_key_remove(C, ob))
+	if (!ED_object_shape_key_remove(C, ob))
 		return OPERATOR_CANCELLED;
 	
 	return OPERATOR_FINISHED;
@@ -324,16 +324,16 @@ static int shape_key_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Shape Key";
-	ot->idname= "OBJECT_OT_shape_key_remove";
-	ot->description= "Remove shape key from the object";
+	ot->name = "Remove Shape Key";
+	ot->idname = "OBJECT_OT_shape_key_remove";
+	ot->description = "Remove shape key from the object";
 	
 	/* api callbacks */
-	ot->poll= shape_key_mode_poll;
-	ot->exec= shape_key_remove_exec;
+	ot->poll = shape_key_mode_poll;
+	ot->exec = shape_key_remove_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
@@ -342,10 +342,10 @@ static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	Key *key= ob_get_key(ob);
 	KeyBlock *kb= ob_get_keyblock(ob);
 
-	if(!key || !kb)
+	if (!key || !kb)
 		return OPERATOR_CANCELLED;
 	
-	for(kb=key->block.first; kb; kb=kb->next)
+	for (kb=key->block.first; kb; kb=kb->next)
 		kb->curval= 0.0f;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -357,23 +357,23 @@ static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Shape Keys";
-	ot->description= "Clear weights for all shape keys";
-	ot->idname= "OBJECT_OT_shape_key_clear";
+	ot->name = "Clear Shape Keys";
+	ot->description = "Clear weights for all shape keys";
+	ot->idname = "OBJECT_OT_shape_key_clear";
 	
 	/* api callbacks */
-	ot->poll= shape_key_poll;
-	ot->exec= shape_key_clear_exec;
+	ot->poll = shape_key_poll;
+	ot->exec = shape_key_clear_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 
-	if(!object_shape_key_mirror(C, ob))
+	if (!object_shape_key_mirror(C, ob))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
@@ -382,15 +382,15 @@ static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mirror Shape Key";
-	ot->idname= "OBJECT_OT_shape_key_mirror";
+	ot->name = "Mirror Shape Key";
+	ot->idname = "OBJECT_OT_shape_key_mirror";
 
 	/* api callbacks */
-	ot->poll= shape_key_mode_poll;
-	ot->exec= shape_key_mirror_exec;
+	ot->poll = shape_key_mode_poll;
+	ot->exec = shape_key_mirror_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -401,26 +401,26 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 	int type= RNA_enum_get(op->ptr, "type");
 	Key *key= ob_get_key(ob);
 
-	if(key) {
+	if (key) {
 		KeyBlock *kb, *kb_other;
 		int shapenr_act= ob->shapenr-1;
 		int shapenr_swap= shapenr_act + type;
 		kb= BLI_findlink(&key->block, shapenr_act);
 
-		if((type==-1 && kb->prev==NULL) || (type==1 && kb->next==NULL)) {
+		if ((type==-1 && kb->prev==NULL) || (type==1 && kb->next==NULL)) {
 			return OPERATOR_CANCELLED;
 		}
 
-		for(kb_other= key->block.first; kb_other; kb_other= kb_other->next) {
-			if(kb_other->relative == shapenr_act) {
+		for (kb_other= key->block.first; kb_other; kb_other= kb_other->next) {
+			if (kb_other->relative == shapenr_act) {
 				kb_other->relative += type;
 			}
-			else if(kb_other->relative == shapenr_swap) {
+			else if (kb_other->relative == shapenr_swap) {
 				kb_other->relative -= type;
 			}
 		}
 
-		if(type==-1) {
+		if (type==-1) {
 			/* move back */
 			kb_other= kb->prev;
 			BLI_remlink(&key->block, kb);
@@ -451,15 +451,15 @@ void OBJECT_OT_shape_key_move(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Move Shape Key";
-	ot->idname= "OBJECT_OT_shape_key_move";
+	ot->name = "Move Shape Key";
+	ot->idname = "OBJECT_OT_shape_key_move";
 
 	/* api callbacks */
-	ot->poll= shape_key_mode_poll;
-	ot->exec= shape_key_move_exec;
+	ot->poll = shape_key_mode_poll;
+	ot->exec = shape_key_move_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }

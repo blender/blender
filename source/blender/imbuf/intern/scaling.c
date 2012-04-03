@@ -76,10 +76,10 @@ struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
 	_p1f = ibuf1->rect_float;
 	destf= ibuf2->rect_float;
 
-	for(y=ibuf2->y;y>0;y--) {
+	for (y=ibuf2->y;y>0;y--) {
 		p1 = _p1;
 		p1f = _p1f;
-		for(x = ibuf2->x; x>0; x--) {
+		for (x = ibuf2->x; x>0; x--) {
 			if (do_rect) {
 				a = *(p1++);
 				b = *(p1++);
@@ -136,7 +136,7 @@ struct ImBuf *IMB_double_fast_x(struct ImBuf *ibuf1)
 	p1f = (float *)ibuf1->rect_float;
 	destf = (float *)ibuf2->rect_float;
 
-	for(i = ibuf1->y * ibuf1->x; i > 0; i--) {
+	for (i = ibuf1->y * ibuf1->x; i > 0; i--) {
 		if (do_rect) {
 			col = *p1++;
 			*dest++ = col;
@@ -195,7 +195,7 @@ struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
 	_p1f = (float *) ibuf1->rect_float;
 	destf= (float *) ibuf2->rect_float;
 
-	for(y=ibuf2->y; y>0; y--) {
+	for (y=ibuf2->y; y>0; y--) {
 		if (do_rect) {
 			p1 = _p1;
 			p2 = _p1 + (ibuf1->x << 2);
@@ -204,7 +204,7 @@ struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
 			p1f = _p1f;
 			p2f = _p1f + (ibuf1->x << 2);
 		}
-		for(x = ibuf2->x; x > 0; x--) {
+		for (x = ibuf2->x; x > 0; x--) {
 			if (do_rect) {
 				a = *(p1++);
 				b = *(p1++);
@@ -263,15 +263,15 @@ struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1)
 	p1f = (float *) ibuf1->rect_float;
 	dest1f= (float *) ibuf2->rect_float;
 
-	for(y = ibuf1->y; y > 0; y--) {
+	for (y = ibuf1->y; y > 0; y--) {
 		if (do_rect) {
 			dest2 = dest1 + ibuf2->x;
-			for(x = ibuf2->x; x > 0; x--) *dest1++ = *dest2++ = *p1++;
+			for (x = ibuf2->x; x > 0; x--) *dest1++ = *dest2++ = *p1++;
 			dest1 = dest2;
 		}
 		if (do_float) {
 			dest2f = dest1f + (4*ibuf2->x);
-			for(x = ibuf2->x * 4; x > 0; x--) *dest1f++ = *dest2f++ = *p1f++;
+			for (x = ibuf2->x * 4; x > 0; x--) *dest1f++ = *dest2f++ = *p1f++;
 			dest1f = dest2f;
 		}
 	}
@@ -301,7 +301,7 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 	const short do_rect= (ibuf1->rect != NULL);
 	const short do_float= (ibuf1->rect_float != NULL) && (ibuf2->rect_float != NULL);
 
-	if(do_rect && (ibuf2->rect == NULL)) {
+	if (do_rect && (ibuf2->rect == NULL)) {
 		imb_addrectImBuf(ibuf2);
 	}
 
@@ -310,10 +310,10 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 	p1 = (uchar *) ibuf1->rect;
 	dest=(uchar *) ibuf2->rect;
 
-	for(y=ibuf2->y;y>0;y--) {
+	for (y=ibuf2->y;y>0;y--) {
 		if (do_rect) p2 = p1 + (ibuf1->x << 2);
 		if (do_float) p2f = p1f + (ibuf1->x << 2);
-		for(x=ibuf2->x;x>0;x--) {
+		for (x=ibuf2->x;x>0;x--) {
 			if (do_rect) {
 				dest[0] = (p1[0] + p2[0] + p1[4] + p2[4]) >> 2;
 				dest[1] = (p1[1] + p2[1] + p1[5] + p2[5]) >> 2;
@@ -335,7 +335,7 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 		}
 		if (do_rect) p1=p2;
 		if (do_float) p1f=p2f;
-		if(ibuf1->x & 1) {
+		if (ibuf1->x & 1) {
 			if (do_rect) p1+=4;
 			if (do_float) p1f+=4;
 		}
@@ -567,7 +567,8 @@ static void q_scale_byte(unsigned char* in, unsigned char* out, int in_width,
 	if (dst_width > in_width && dst_height > in_height) {
 		enlarge_picture_byte(in, out, in_width, in_height,
 					 dst_width, dst_height);
-	} else if (dst_width < in_width && dst_height < in_height) {
+	}
+	else if (dst_width < in_width && dst_height < in_height) {
 		shrink_picture_byte(in, out, in_width, in_height,
 					dst_width, dst_height);
 	}
@@ -767,33 +768,34 @@ static void q_scale_float(float* in, float* out, int in_width,
 	if (dst_width > in_width && dst_height > in_height) {
 		enlarge_picture_float(in, out, in_width, in_height,
 					  dst_width, dst_height);
-	} else if (dst_width < in_width && dst_height < in_height) {
+	}
+	else if (dst_width < in_width && dst_height < in_height) {
 		shrink_picture_float(in, out, in_width, in_height,
 					 dst_width, dst_height);
 	}
 }
 
-/* q_scale_linear_interpolation (derived from ppmqscale, http://libdv.sf.net)
-
-   q stands for quick _and_ quality :)
-
-   only handles common cases when we either
-
-   scale  both, x and y or
-   shrink both, x and y
-
-   but that is pretty fast:
-   * does only blit once instead of two passes like the old code
-	 (fewer cache misses)
-   * uses fixed point integer arithmetic for byte buffers
-   * doesn't branch in tight loops
-
-   Should be comparable in speed to the ImBuf ..._fast functions at least 
-   for byte-buffers.
-
-   NOTE: disabled, due to inacceptable inaccuracy and quality loss, see bug #18609 (ton)
-
-*/
+/**
+ * q_scale_linear_interpolation (derived from ppmqscale, http://libdv.sf.net)
+ *
+ * q stands for quick _and_ quality :)
+ *
+ * only handles common cases when we either
+ *
+ * scale  both, x and y or
+ * shrink both, x and y
+ *
+ * but that is pretty fast:
+ * - does only blit once instead of two passes like the old code
+ *   (fewer cache misses)
+ * - uses fixed point integer arithmetic for byte buffers
+ * - doesn't branch in tight loops
+ *
+ * Should be comparable in speed to the ImBuf ..._fast functions at least
+ * for byte-buffers.
+ *
+ * NOTE: disabled, due to inacceptable inaccuracy and quality loss, see bug #18609 (ton)
+ */
 static int q_scale_linear_interpolation(
 	struct ImBuf *ibuf, int newx, int newy)
 {
@@ -1473,7 +1475,7 @@ struct ImBuf *IMB_scaleImBuf(struct ImBuf * ibuf, unsigned int newx, unsigned in
 	if (newx == ibuf->x && newy == ibuf->y) { return ibuf; }
 
 	/* scaleup / scaledown functions below change ibuf->x and ibuf->y
-	   so we first scale the Z-buffer (if any) */
+	 * so we first scale the Z-buffer (if any) */
 	scalefast_Z_ImBuf(ibuf, newx, newy);
 
 	/* try to scale common cases in a fast way */
@@ -1511,7 +1513,7 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 	
 	if (newx == ibuf->x && newy == ibuf->y) return(ibuf);
 	
-	if(do_rect) {
+	if (do_rect) {
 		_newrect = MEM_mallocN(newx * newy * sizeof(int), "scalefastimbuf");
 		if (_newrect==NULL) return(ibuf);
 		newrect = _newrect;
@@ -1531,7 +1533,7 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 	ofsy = 32768;
 
 	for (y = newy; y > 0; y--) {
-		if(do_rect) {
+		if (do_rect) {
 			rect = ibuf->rect;
 			rect += (ofsy >> 16) * ibuf->x;
 		}

@@ -51,10 +51,10 @@ SCA_Joystick::SCA_Joystick(short int index)
 	m_istrig_button(0),
 	m_istrig_hat(0)
 {
-	for(int i=0; i<JOYAXIS_MAX; i++)
+	for (int i=0; i<JOYAXIS_MAX; i++)
 		m_axis_array[i]= 0;
 	
-	for(int i=0; i<JOYHAT_MAX; i++)
+	for (int i=0; i<JOYHAT_MAX; i++)
 		m_hat_array[i]= 0;
 	
 #ifdef WITH_SDL
@@ -89,12 +89,12 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 	{
 		int i;
 		// The video subsystem is required for joystick input to work. However,
-		// when GHOST is running under SDL, video is initialised elsewhere.
+		// when GHOST is running under SDL, video is initialized elsewhere.
 		// Do this once only.
 #  ifdef WITH_GHOST_SDL
-		if(SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1 ){
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1 ) {
 #  else
-		if(SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO) == -1 ){
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO) == -1 ) {
 #  endif
 			echo("Error-Initializing-SDL: " << SDL_GetError());
 			return NULL;
@@ -239,7 +239,7 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 	m_axismax = m_buttonmax = m_hatmax = 0;
 	return false;
 #else /* WITH_SDL */
-	if(m_isinit == false){
+	if (m_isinit == false) {
 		if (m_joyindex>=m_joynum) {
 			// don't print a message, because this is done anyway
 			//echo("Joystick-Error: " << SDL_NumJoysticks() << " avaiable joystick(s)");
@@ -264,9 +264,9 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 		else if (m_axismax < 0) m_axismax = 0;
 		
 		if (m_hatmax > JOYHAT_MAX) m_hatmax= JOYHAT_MAX;			/* very unlikely */
-		else if(m_hatmax<0) m_hatmax= 0;
+		else if (m_hatmax<0) m_hatmax= 0;
 		
-		if(m_buttonmax<0) m_buttonmax= 0;
+		if (m_buttonmax<0) m_buttonmax= 0;
 		
 	}
 	return true;
@@ -277,8 +277,8 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 void SCA_Joystick::DestroyJoystickDevice(void)
 {
 #ifdef WITH_SDL
-	if (m_isinit){
-		if(SDL_JoystickOpened(m_joyindex)){
+	if (m_isinit) {
+		if (SDL_JoystickOpened(m_joyindex)) {
 			echo("Closing-joystick " << m_joyindex);
 			SDL_JoystickClose(m_private->m_joystick);
 		}

@@ -80,7 +80,7 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 	*nr= -1;
 
 	/* hide if no entries */
-	if(nentries == 0)
+	if (nentries == 0)
 		return;
 
 	/* layout */
@@ -100,8 +100,8 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 		entry = fsmenu_get_entry(fsmenu, category, i);
 		
 		/* set this list item as active if we have a match */
-		if(sfile->params) {
-			if(BLI_path_cmp(sfile->params->dir, entry) == 0) {
+		if (sfile->params) {
+			if (BLI_path_cmp(sfile->params->dir, entry) == 0) {
 				*nr= i;
 			}
 		}
@@ -112,16 +112,16 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 		BLI_getlastdir(temp, dir, FILE_MAX);
 		BLI_del_slash(dir);
 
-		if(dir[0] == 0)
+		if (dir[0] == 0)
 			BLI_strncpy(dir, entry, FILE_MAX);
 
 		/* create list item */
-		but= uiDefIconTextButS(block, LISTROW, 0, icon, dir, 0,0,UI_UNIT_X*10,UI_UNIT_Y, nr, 0, i, 0, 0, entry);
+		but = uiDefIconTextButS(block, LISTROW, 0, icon, dir, 0,0,UI_UNIT_X*10,UI_UNIT_Y, nr, 0, i, 0, 0, entry);
 		uiButSetFunc(but, file_panel_cb, entry, NULL);
 		uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
 
 		/* create delete button */
-		if(allow_delete && fsmenu_can_save(fsmenu, category, i)) {
+		if (allow_delete && fsmenu_can_save(fsmenu, category, i)) {
 			uiBlockSetEmboss(block, UI_EMBOSSN);
 			uiItemIntO(layout, "", ICON_X, "FILE_OT_delete_bookmark", "index", i);
 			uiBlockSetEmboss(block, UI_EMBOSS);
@@ -133,7 +133,7 @@ static void file_panel_system(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
-	if(sfile)
+	if (sfile)
 		file_panel_category(C, pa, FS_CATEGORY_SYSTEM, &sfile->systemnr, ICON_DISK_DRIVE, 0, 0);
 }
 
@@ -142,7 +142,7 @@ static void file_panel_bookmarks(const bContext *C, Panel *pa)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	uiLayout *row;
 
-	if(sfile) {
+	if (sfile) {
 		row= uiLayoutRow(pa->layout, 0);
 		uiItemO(row, IFACE_("Add"), ICON_ZOOMIN, "file.bookmark_add");
 		uiItemL(row, NULL, ICON_NONE);
@@ -155,7 +155,7 @@ static void file_panel_recent(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
-	if(sfile) {
+	if (sfile) {
 		if ( !(U.uiflag & USER_HIDE_RECENT) ) {
 			file_panel_category(C, pa, FS_CATEGORY_RECENT, &sfile->recentnr, ICON_FILE_FOLDER, 0, 1);
 		}
@@ -205,25 +205,25 @@ void file_panels_register(ARegionType *art)
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype file system directories");
 	strcpy(pt->idname, "FILE_PT_system");
-	strcpy(pt->label, "System");
+	strcpy(pt->label, N_("System"));
 	pt->draw= file_panel_system;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype file bookmarks");
 	strcpy(pt->idname, "FILE_PT_bookmarks");
-	strcpy(pt->label, "Bookmarks");
+	strcpy(pt->label, N_("Bookmarks"));
 	pt->draw= file_panel_bookmarks;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype file recent directories");
 	strcpy(pt->idname, "FILE_PT_recent");
-	strcpy(pt->label, "Recent");
+	strcpy(pt->label, N_("Recent"));
 	pt->draw= file_panel_recent;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype file operator properties");
 	strcpy(pt->idname, "FILE_PT_operator");
-	strcpy(pt->label, "Operator");
+	strcpy(pt->label, N_("Operator"));
 	pt->poll= file_panel_operator_poll;
 	pt->draw_header= file_panel_operator_header;
 	pt->draw= file_panel_operator;

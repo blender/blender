@@ -45,7 +45,7 @@ class KX_BlenderSystem : public KX_ISystem
 
 public:
 	KX_BlenderSystem();
-	virtual ~KX_BlenderSystem() {};
+	virtual ~KX_BlenderSystem() {}
 	virtual double GetTimeInSeconds();
 
 #ifdef WITH_CXX_GUARDEDALLOC

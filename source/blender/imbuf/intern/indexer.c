@@ -61,14 +61,6 @@ static int tc_types[] = { IMB_TC_RECORD_RUN,
 
 #define INDEX_FILE_VERSION 1
 
-/* ---------------------------------------------------------------------- 
-   - special indexers
-   ---------------------------------------------------------------------- 
- */
-
-extern void IMB_indexer_dv_new(anim_index_builder * idx);
-
-
 /* ----------------------------------------------------------------------
    - time code index functions
    ---------------------------------------------------------------------- */
@@ -89,7 +81,7 @@ anim_index_builder * IMB_index_builder_create(const char * name)
 
 	BLI_make_existing_file(rv->temp_name);
 
-	rv->fp = fopen(rv->temp_name, "wb");
+	rv->fp = BLI_fopen(rv->temp_name, "wb");
 
 	if (!rv->fp) {
 		fprintf(stderr, "Couldn't open index target: %s! "
@@ -130,7 +122,8 @@ void IMB_index_builder_proc_frame(anim_index_builder * fp,
 		e.pts = pts;
 
 		fp->proc_frame(fp, buffer, data_size, &e);
-	} else {
+	}
+	else {
 		IMB_index_builder_add_entry(fp, frameno, seek_pos,
 					    seek_pos_dts, pts);
 	}
@@ -146,9 +139,10 @@ void IMB_index_builder_finish(anim_index_builder * fp, int rollback)
 	
 	if (rollback) {
 		unlink(fp->temp_name);
-	} else {
+	}
+	else {
 		unlink(fp->name);
-		rename(fp->temp_name, fp->name);
+		BLI_rename(fp->temp_name, fp->name);
 	}
 
 	MEM_freeN(fp);
@@ -158,7 +152,7 @@ struct anim_index * IMB_indexer_open(const char * name)
 {
 	char header[13];
 	struct anim_index * idx;
-	FILE * fp = fopen(name, "rb");
+	FILE * fp = BLI_fopen(name, "rb");
 	int i;
 
 	if (!fp) {
@@ -268,14 +262,16 @@ int IMB_indexer_get_frame_index(struct anim_index * idx, int frameno)
 			first = middle;
 			++first;
 			len = len - half - 1;
-		} else {
+		}
+		else {
 			len = half;
 		}
 	}
 
 	if (first == idx->num_entries) {
 		return idx->num_entries - 1;
-	} else {
+	}
+	else {
 		return first;
 	}
 }
@@ -369,7 +365,8 @@ static void get_index_dir(struct anim * anim, char * index_dir)
 		BLI_splitdirstring(index_dir, fname);
 		BLI_join_dirfile(index_dir, FILE_MAXDIR, index_dir, "BL_proxy");
 		BLI_join_dirfile(index_dir, FILE_MAXDIR, index_dir, fname);
-	} else {
+	}
+	else {
 		BLI_strncpy(index_dir, anim->index_dir, FILE_MAXDIR);
 	}
 }
@@ -513,7 +510,8 @@ static struct proxy_output_ctx * alloc_proxy_output_ffmpeg(
 
 	if (rv->codec->pix_fmts) {
 		rv->c->pix_fmt = rv->codec->pix_fmts[0];
-	} else {
+	}
+	else {
 		rv->c->pix_fmt = PIX_FMT_YUVJ420P;
 	}
 
@@ -641,7 +639,8 @@ static int add_to_proxy_output_ffmpeg(
 		}
 
 		return 1;
-	} else {
+	}
+	else {
 		return 0;
 	}
 }
@@ -694,11 +693,12 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx * ctx,
 
 	if (rollback) {
 		unlink(fname_tmp);
-	} else {
+	}
+	else {
 		get_proxy_filename(ctx->anim, ctx->proxy_size, 
 		                   fname, FALSE);
 		unlink(fname);
-		rename(fname_tmp, fname);
+		BLI_rename(fname_tmp, fname);
 	}
 	
 	MEM_freeN(ctx);
@@ -739,7 +739,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 	memset(context->proxy_ctx, 0, sizeof(context->proxy_ctx));
 	memset(context->indexer, 0, sizeof(context->indexer));
 
-	if(av_open_input_file(&context->iFormatCtx, anim->name, NULL, 0, NULL) != 0) {
+	if (av_open_input_file(&context->iFormatCtx, anim->name, NULL, 0, NULL) != 0) {
 		MEM_freeN(context);
 		return NULL;
 	}
@@ -755,7 +755,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 	/* Find the video stream */
 	context->videoStream = -1;
 	for (i = 0; i < context->iFormatCtx->nb_streams; i++)
-		if(context->iFormatCtx->streams[i]->codec->codec_type
+		if (context->iFormatCtx->streams[i]->codec->codec_type
 		   == AVMEDIA_TYPE_VIDEO) {
 			if (streamcount > 0) {
 				streamcount--;
@@ -863,7 +863,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 	frame_rate = av_q2d(context->iStream->r_frame_rate);
 	pts_time_base = av_q2d(context->iStream->time_base);
 
-	while(av_read_frame(context->iFormatCtx, &next_packet) >= 0) {
+	while (av_read_frame(context->iFormatCtx, &next_packet) >= 0) {
 		int frame_finished = 0;
 		float next_progress =  (float)((int)floor(((double) next_packet.pos) * 100 /
 		                                   ((double) stream_size)+0.5)) / 100;
@@ -927,7 +927,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 				if (context->tcs_in_use & tc_types[i]) {
 					int tc_frameno = frameno;
 
-					if(tc_types[i] == IMB_TC_RECORD_RUN_NO_GAPS)
+					if (tc_types[i] == IMB_TC_RECORD_RUN_NO_GAPS)
 						tc_frameno = frameno_gapless;
 
 					IMB_index_builder_proc_frame(
@@ -1056,7 +1056,8 @@ static void index_rebuild_fallback_finish(FallbackIndexBuilderContext *context, 
 
 			if (stop) {
 				unlink(fname_tmp);
-			} else {
+			}
+			else {
 				unlink(fname);
 				rename(fname_tmp, fname);
 			}

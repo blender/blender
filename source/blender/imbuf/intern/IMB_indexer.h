@@ -33,26 +33,24 @@
 #include <stdio.h>
 #include "BKE_utildefines.h"
 #include "IMB_anim.h"
-
 /*
-  separate animation index files to solve the following problems:
-
-  a) different timecodes within one file (like DTS/PTS, Timecode-Track, 
-     "implicit" timecodes within DV-files and HDV-files etc.)
-  b) seeking difficulties within ffmpeg for files with timestamp holes
-  c) broken files that miss several frames / have varying framerates
-  d) use proxies accordingly
-
-  ... we need index files, that provide us with 
-  
-  the binary(!) position, where we have to seek into the file *and*
-  the continuous frame number (ignoring the holes) starting from the 
-  beginning of the file, so that we know, which proxy frame to serve.
-
-  This index has to be only built once for a file and is written into
-  the BL_proxy directory structure for later reuse in different blender files.
-
-*/
+ * separate animation index files to solve the following problems:
+ *
+ * a) different timecodes within one file (like DTS/PTS, Timecode-Track,
+ *    "implicit" timecodes within DV-files and HDV-files etc.)
+ * b) seeking difficulties within ffmpeg for files with timestamp holes
+ * c) broken files that miss several frames / have varying framerates
+ * d) use proxies accordingly
+ *
+ * ... we need index files, that provide us with
+ *
+ * the binary(!) position, where we have to seek into the file *and*
+ * the continuous frame number (ignoring the holes) starting from the
+ * beginning of the file, so that we know, which proxy frame to serve.
+ *
+ * This index has to be only built once for a file and is written into
+ * the BL_proxy directory structure for later reuse in different blender files.
+ */
 
 typedef struct anim_index_entry {
 	int frameno;

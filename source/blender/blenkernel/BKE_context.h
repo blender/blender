@@ -170,10 +170,10 @@ const char *CTX_wm_operator_poll_msg_get(struct bContext *C);
 void CTX_wm_operator_poll_msg_set(struct bContext *C, const char *msg);
 
 /* Data Context
-
-   - listbases consist of CollectionPointerLink items and must be
-	 freed with BLI_freelistN!
-   - the dir listbase consits of LinkData items */
+ *
+ * - listbases consist of CollectionPointerLink items and must be
+ *   freed with BLI_freelistN!
+ * - the dir listbase consits of LinkData items */
 
 /* data type, needed so we can tell between a NULL pointer and an empty list */
 enum {
@@ -201,8 +201,10 @@ short CTX_data_type_get(struct bContextDataResult *result);
 int CTX_data_equals(const char *member, const char *str);
 int CTX_data_dir(const char *member);
 
-/*void CTX_data_pointer_set(bContextDataResult *result, void *data);
-void CTX_data_list_add(bContextDataResult *result, void *data);*/
+#if 0
+void CTX_data_pointer_set(bContextDataResult *result, void *data);
+void CTX_data_list_add(bContextDataResult *result, void *data);
+#endif
 
 #define CTX_DATA_BEGIN(C, Type, instance, member)                             \
 	{                                                                         \

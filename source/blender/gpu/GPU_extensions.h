@@ -92,18 +92,18 @@ typedef enum GPUDriverType {
 int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver);
 
 /* GPU Texture
-   - always returns unsigned char RGBA textures
-   - if texture with non square dimensions is created, depending on the
-	 graphics card capabilities the texture may actually be stored in a
-	 larger texture with power of two dimensions. the actual dimensions
-	 may be queried with GPU_texture_opengl_width/height. GPU_texture_coord_2f
-	 calls glTexCoord2f with the coordinates adjusted for this.
-   - can use reference counting:
-	   - reference counter after GPU_texture_create is 1
-	   - GPU_texture_ref increases by one
-	   - GPU_texture_free decreases by one, and frees if 0
-	- if created with from_blender, will not free the texture
-*/
+ * - always returns unsigned char RGBA textures
+ * - if texture with non square dimensions is created, depending on the
+ *   graphics card capabilities the texture may actually be stored in a
+ *   larger texture with power of two dimensions. the actual dimensions
+ *   may be queried with GPU_texture_opengl_width/height. GPU_texture_coord_2f
+ *   calls glTexCoord2f with the coordinates adjusted for this.
+ * - can use reference counting:
+ *     - reference counter after GPU_texture_create is 1
+ *     - GPU_texture_ref increases by one
+ *     - GPU_texture_free decreases by one, and frees if 0
+ *  - if created with from_blender, will not free the texture
+ */
 
 GPUTexture *GPU_texture_create_1D(int w, float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_2D(int w, int h, float *pixels, char err_out[256]);
@@ -126,11 +126,11 @@ int GPU_texture_opengl_height(GPUTexture *tex);
 int GPU_texture_opengl_bindcode(GPUTexture *tex);
 
 /* GPU Framebuffer
-   - this is a wrapper for an OpenGL framebuffer object (FBO). in practice
-	 multiple FBO's may be created, to get around limitations on the number
-	 of attached textures and the dimension requirements.
-   - after any of the GPU_framebuffer_* functions, GPU_framebuffer_restore must
-	 be called before rendering to the window framebuffer again */
+ * - this is a wrapper for an OpenGL framebuffer object (FBO). in practice
+ *   multiple FBO's may be created, to get around limitations on the number
+ *   of attached textures and the dimension requirements.
+ * - after any of the GPU_framebuffer_* functions, GPU_framebuffer_restore must
+ *   be called before rendering to the window framebuffer again */
 
 GPUFrameBuffer *GPU_framebuffer_create(void);
 int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, char err_out[256]);
@@ -142,8 +142,8 @@ void GPU_framebuffer_free(GPUFrameBuffer *fb);
 void GPU_framebuffer_restore(void);
 
 /* GPU OffScreen
-   - wrapper around framebuffer and texture for simple offscreen drawing 
-   - changes size if graphics card can't support it */
+ * - wrapper around framebuffer and texture for simple offscreen drawing
+ * - changes size if graphics card can't support it */
 
 GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256]);
 void GPU_offscreen_free(GPUOffScreen *ofs);
@@ -152,8 +152,8 @@ void GPU_offscreen_unbind(GPUOffScreen *ofs);
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels);
 
 /* GPU Shader
-   - only for fragment shaders now
-   - must call texture bind before setting a texture as uniform! */
+ * - only for fragment shaders now
+ * - must call texture bind before setting a texture as uniform! */
 
 GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *libcode); /*GPUShader *lib);*/
 /*GPUShader *GPU_shader_create_lib(const char *code);*/

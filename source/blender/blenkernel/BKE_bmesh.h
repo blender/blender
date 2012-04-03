@@ -37,6 +37,9 @@
 
 /*NOTE: this is the bmesh 1.0 code.  it's completely outdated.*/
 
+/* uncomment to use the new bevel operator as a modifier */
+// #define USE_BM_BEVEL_OP_AS_MOD
+
 /* bevel tool defines */
 /* element flags */
 #define BME_BEVEL_ORIG			1
@@ -84,6 +87,7 @@ typedef struct BME_TransData_Head {
 	int len;
 } BME_TransData_Head;
 
+/* this is no longer used */
 typedef struct BME_Glob { /* stored in Global G for Transform() purposes */
 	struct BMesh *bm;
 	BME_TransData_Head *td;
@@ -95,6 +99,7 @@ typedef struct BME_Glob { /* stored in Global G for Transform() purposes */
 
 struct BME_TransData *BME_get_transdata(struct BME_TransData_Head *td, struct BMVert *v);
 void BME_free_transdata(struct BME_TransData_Head *td);
-struct BMesh *BME_bevel(struct BMEditMesh *em, float value, int res, int options, int defgrp_index, float angle, BME_TransData_Head **rtd);
+struct BMesh *BME_bevel(struct BMEditMesh *em, float value, int res, int options, int defgrp_index, float angle,
+                        BME_TransData_Head **rtd, int do_tessface);
 
 #endif

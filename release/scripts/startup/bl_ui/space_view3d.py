@@ -54,6 +54,8 @@ class VIEW3D_HT_header(Header):
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
                 if mode_string in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'PAINT_TEXTURE'}:
                     sub.menu("VIEW3D_MT_brush")
+                if mode_string == 'SCULPT':
+                    sub.menu("VIEW3D_MT_hide")
             else:
                 sub.menu("VIEW3D_MT_object")
 
@@ -88,10 +90,10 @@ class VIEW3D_HT_header(Header):
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
             row.prop(toolsettings, "snap_element", text="", icon_only=True)
-            if snap_element not in {'INCREMENT', 'VOLUME'}:
+            if snap_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:
-                    if obj.mode == 'OBJECT':
+                    if obj.mode == 'OBJECT' and snap_element != 'VOLUME':
                         row.prop(toolsettings, "use_snap_align_rotation", text="")
                     elif obj.mode == 'EDIT':
                         row.prop(toolsettings, "use_snap_self", text="")
@@ -425,7 +427,7 @@ class VIEW3D_MT_select_object(Menu):
 
         layout.separator()
 
-        layout.operator("object.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("object.select_all").action = 'TOGGLE'
         layout.operator("object.select_all", text="Inverse").action = 'INVERT'
         layout.operator("object.select_random", text="Random")
         layout.operator("object.select_mirror", text="Mirror")
@@ -450,7 +452,7 @@ class VIEW3D_MT_select_pose(Menu):
 
         layout.separator()
 
-        layout.operator("pose.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("pose.select_all").action = 'TOGGLE'
         layout.operator("pose.select_all", text="Inverse").action = 'INVERT'
         layout.operator("pose.select_flip_active", text="Flip Active")
         layout.operator("pose.select_constraint_target", text="Constraint Target")
@@ -487,9 +489,9 @@ class VIEW3D_MT_select_particle(Menu):
 
         layout.separator()
 
-        layout.operator("particle.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("particle.select_all").action = 'TOGGLE'
         layout.operator("particle.select_linked")
-        layout.operator("particle.select_all").action = 'INVERT'
+        layout.operator("particle.select_all", text="Inverse").action = 'INVERT'
 
         layout.separator()
 
@@ -513,7 +515,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("mesh.select_all").action = 'TOGGLE'
         layout.operator("mesh.select_all", text="Inverse").action = 'INVERT'
 
         layout.separator()
@@ -527,10 +529,10 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_by_number_vertices", text = "By Number of Verts")
+        layout.operator("mesh.select_by_number_vertices", text="By Number of Verts")
         if context.scene.tool_settings.mesh_select_mode[2] == False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
-        layout.operator("mesh.select_loose_verts", text = "Loose Verts/Edges")
+        layout.operator("mesh.select_loose_verts", text="Loose Verts/Edges")
         layout.operator("mesh.select_similar", text="Similar")
 
         layout.separator()
@@ -564,7 +566,7 @@ class VIEW3D_MT_select_edit_curve(Menu):
 
         layout.separator()
 
-        layout.operator("curve.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("curve.select_all").action = 'TOGGLE'
         layout.operator("curve.select_all", text="Inverse").action = 'INVERT'
         layout.operator("curve.select_random")
         layout.operator("curve.select_nth", text="Every Nth Number of Points")
@@ -593,7 +595,7 @@ class VIEW3D_MT_select_edit_surface(Menu):
 
         layout.separator()
 
-        layout.operator("curve.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("curve.select_all").action = 'TOGGLE'
         layout.operator("curve.select_all", text="Inverse").action = 'INVERT'
         layout.operator("curve.select_random")
         layout.operator("curve.select_nth", text="Every Nth Number of Points")
@@ -619,7 +621,7 @@ class VIEW3D_MT_select_edit_metaball(Menu):
         layout.separator()
 
         layout.operator("mball.select_all").action = 'TOGGLE'
-        layout.operator("mball.select_all").action = 'INVERT'
+        layout.operator("mball.select_all", text="Inverse").action = 'INVERT'
 
         layout.separator()
 
@@ -636,7 +638,8 @@ class VIEW3D_MT_select_edit_lattice(Menu):
 
         layout.separator()
 
-        layout.operator("lattice.select_all", text="Select/Deselect All")
+        layout.operator("lattice.select_all").action = 'TOGGLE'
+        layout.operator("lattice.select_all", text="Inverse").action = 'INVERT'
 
 
 class VIEW3D_MT_select_edit_armature(Menu):
@@ -649,7 +652,7 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
         layout.separator()
 
-        layout.operator("armature.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("armature.select_all").action = 'TOGGLE'
         layout.operator("armature.select_all", text="Inverse").action = 'INVERT'
 
         layout.separator()
@@ -1032,7 +1035,7 @@ class VIEW3D_MT_object_game(Menu):
 
         layout.operator("object.game_property_clear")
 
-        
+
 # ********** Brush menu **********
 class VIEW3D_MT_brush(Menu):
     bl_label = "Brush"
@@ -1046,6 +1049,19 @@ class VIEW3D_MT_brush(Menu):
         ups = context.tool_settings.unified_paint_settings
         layout.prop(ups, "use_unified_size", text="Unified Size")
         layout.prop(ups, "use_unified_strength", text="Unified Strength")
+        layout.separator()
+
+        # brush paint modes
+        layout.menu("VIEW3D_MT_brush_paint_modes")
+
+        # brush tool
+        if context.sculpt_object:
+            layout.operator("brush.reset")
+            layout.prop_menu_enum(brush, "sculpt_tool")
+        elif context.image_paint_object:
+            layout.prop_menu_enum(brush, "image_tool")
+        elif context.vertex_paint_object or context.weight_paint_object:
+            layout.prop_menu_enum(brush, "vertex_tool")
 
         # skip if no active brush
         if not brush:
@@ -1071,6 +1087,21 @@ class VIEW3D_MT_brush(Menu):
                 if sculpt_tool == 'LAYER':
                     layout.prop(brush, "use_persistent")
                     layout.operator("sculpt.set_persistent_base")
+
+
+class VIEW3D_MT_brush_paint_modes(Menu):
+    bl_label = "Enabled Modes"
+
+    def draw(self, context):
+        layout = self.layout
+
+        settings = UnifiedPaintPanel.paint_settings(context)
+        brush = settings.brush
+
+        layout.prop(brush, "use_paint_sculpt", text="Sculpt")
+        layout.prop(brush, "use_paint_vertex", text="Vertex Paint")
+        layout.prop(brush, "use_paint_weight", text="Weight Paint")
+        layout.prop(brush, "use_paint_image", text="Texture Paint")
 
 # ********** Vertex paint menu **********
 
@@ -1157,6 +1188,7 @@ class VIEW3D_MT_paint_weight(Menu):
         layout.operator("object.vertex_group_invert", text="Invert")
         layout.operator("object.vertex_group_clean", text="Clean")
         layout.operator("object.vertex_group_levels", text="Levels")
+        layout.operator("object.vertex_group_blend", text="Blend")
         layout.operator("object.vertex_group_fix", text="Fix Deforms")
 
         layout.separator()
@@ -1193,6 +1225,25 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "show_low_resolution")
         layout.prop(sculpt, "show_brush")
         layout.prop(sculpt, "use_deform_only")
+
+
+class VIEW3D_MT_hide(Menu):
+    bl_label = "Hide"
+
+    def draw(self, context):
+        layout = self.layout
+
+        op = layout.operator("paint.hide_show", text="Show All")
+        op.action = 'SHOW'
+        op.area = 'ALL'
+
+        op = layout.operator("paint.hide_show", text="Hide Bounding Box")
+        op.action = 'HIDE'
+        op.area = 'INSIDE'
+
+        op = layout.operator("paint.hide_show", text="Show Bounding Box")
+        op.action = 'SHOW'
+        op.area = 'INSIDE'
 
 
 # ********** Particle menu **********
@@ -1517,9 +1568,9 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
         layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
-        layout.operator("mesh.dissolve_limited")
         layout.operator("mesh.duplicate_move")
-        layout.operator("mesh.delete", text="Delete...")
+        layout.menu("VIEW3D_MT_edit_mesh_delete")
+        layout.menu("VIEW3D_MT_edit_mesh_dissolve")
 
         layout.separator()
 
@@ -1553,10 +1604,9 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         """
         layout.operator("mesh.merge", text="Merge...")
         layout.operator("mesh.remove_doubles")
-        layout.operator("mesh.dissolve_limited")
         layout.operator("mesh.hide", text="Hide")
         layout.operator("mesh.reveal", text="Reveal")
-        layout.operator("mesh.select_all").action = 'INVERT'
+        layout.operator("mesh.select_all", text="Select Inverse").action = 'INVERT'
         layout.operator("mesh.flip_normals")
         layout.operator("mesh.vertices_smooth", text="Smooth")
         layout.operator("mesh.bevel", text="Bevel")
@@ -1682,7 +1732,8 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.bridge_edge_loops", text="Bridge Two Edge Loops")
+        layout.operator("mesh.edge_split")
+        layout.operator("mesh.bridge_edge_loops")
 
         layout.separator()
 
@@ -1708,11 +1759,11 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.flip_normals")
-        # layout.operator("mesh.bevel")
-        # layout.operator("mesh.bevel")
         layout.operator("mesh.edge_face_add")
         layout.operator("mesh.fill")
         layout.operator("mesh.beautify_fill")
+        layout.operator("mesh.inset")
+        layout.operator("mesh.bevel")
         layout.operator("mesh.solidify")
         layout.operator("mesh.sort_faces")
 
@@ -1753,6 +1804,44 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
         layout.separator()
 
         layout.operator("mesh.flip_normals")
+
+
+class VIEW3D_MT_edit_mesh_delete(Menu):
+    bl_label = "Delete"
+
+    def draw(self, context):
+        layout = self.layout
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_enum("mesh.delete", "type")
+
+        layout.separator()
+
+        layout.operator("mesh.dissolve")
+        layout.operator("mesh.edge_collapse")
+        layout.operator("mesh.delete_edgeloop")
+
+
+class VIEW3D_MT_edit_mesh_dissolve(Menu):
+    bl_label = "Dissolve"
+
+    def draw(self, context):
+        layout = self.layout
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("mesh.dissolve")
+
+        layout.separator()
+
+        layout.operator_enum("mesh.dissolve", "type")
+
+        layout.separator()
+
+        layout.operator("mesh.dissolve_limited")
 
 
 class VIEW3D_MT_edit_mesh_showhide(ShowHideMenu, Menu):

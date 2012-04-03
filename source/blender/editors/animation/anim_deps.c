@@ -81,19 +81,19 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 		
 	if (fcu && fcu->rna_path) {
 		/* if we have an fcurve, call the update for the property we
-		   are editing, this is then expected to do the proper redraws
-		   and depsgraph updates  */
+		 * are editing, this is then expected to do the proper redraws
+		 * and depsgraph updates  */
 		PointerRNA id_ptr, ptr;
 		PropertyRNA *prop;
 		
 		RNA_id_pointer_create(id, &id_ptr);
 			
-		if(RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop))
+		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop))
 			RNA_property_update_main(G.main, scene, &ptr, prop);
 	}
 	else {
 		/* in other case we do standard depsgaph update, ideally
-		   we'd be calling property update functions here too ... */
+		 * we'd be calling property update functions here too ... */
 		DAG_id_tag_update(id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}
 }
@@ -115,7 +115,7 @@ void ANIM_id_update(Scene *UNUSED(scene), ID *id)
 }
 
 /* **************************** animation data <-> data syncing ******************************** */
-/* This code here is used to synchronise the 
+/* This code here is used to synchronize the
  *	- selection (to find selected data easier)
  *	- ... (insert other relevant items here later) 
  * status in relevant Blender data with the status stored in animation channels.

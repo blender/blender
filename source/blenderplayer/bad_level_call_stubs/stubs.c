@@ -116,8 +116,8 @@ struct wmWindowManager;
 
 /*new render funcs */
 void EDBM_selectmode_set(struct BMEditMesh *em) {}
-void EDBM_LoadEditBMesh(struct Scene *scene, struct Object *ob) {}
-void EDBM_MakeEditBMesh(struct ToolSettings *ts, struct Scene *scene, struct Object *ob) {}
+void EDBM_mesh_load(struct Object *ob) {}
+void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object *ob) {}
 void *g_system;
 
 struct Heap* BLI_heap_new (void){return NULL;}
@@ -167,6 +167,7 @@ struct Render *RE_GetRender(const char *name){return (struct Render *) NULL;}
 
 /* blenkernel */
 void RE_FreeRenderResult(struct RenderResult *res){}
+void RE_FreeAllRenderResults(void){}
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty){return (struct RenderResult *) NULL;}
 void RE_GetResultImage(struct Render *re, struct RenderResult *rr){}
 int RE_RenderInProgress(struct Render *re){return 0;}
@@ -260,6 +261,8 @@ int WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2){ret
 
 
 /* rna editors */
+struct EditMesh;
+
 struct FCurve *verify_fcurve (struct bAction *act, const char group[], const char rna_path[], const int array_index, short add){return (struct FCurve *) NULL;}
 int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag){return 0;}
 void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc){}
@@ -293,6 +296,7 @@ void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 struct BGpic *ED_view3D_background_image_new(struct View3D *v3d){return (struct BGpic *) NULL;}
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic){}
 void ED_view3D_background_image_clear(struct View3D *v3d){}
+void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[][4], float winmat[][4]){}
 void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist){}
 int text_file_modified(struct Text *text){return 0;}
 void ED_node_shader_default(struct Material *ma){}
@@ -323,7 +327,7 @@ void ED_mesh_transform(struct Mesh *me, float *mat){}
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count){}
-void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_tessfaces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_loops_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_polys_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int count){}
@@ -350,11 +354,6 @@ void ED_space_image_size(struct SpaceImage *sima, int *width, int *height){}
 
 void ED_nurb_set_spline_type(struct Nurb *nu, int type){}
 
-void EM_selectmode_set(struct EditMesh *em){}
-int EM_texFaceCheck(struct EditMesh *em){return 0;}
-void make_editMesh(struct Scene *scene, struct Object *ob){}
-void load_editMesh(struct Scene *scene, struct Object *ob){}
-
 void make_editLatt(struct Object *obedit){}
 void load_editLatt(struct Object *obedit){}
 
@@ -364,7 +363,7 @@ void make_editNurb	(struct Object *obedit){}
 
 void uiItemR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, char *name, int icon){}
 
-struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a = {0}; return a;}
+struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a = {{0}}; return a;}
 struct uiLayout *uiLayoutRow(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumn(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumnFlow(struct uiLayout *layout, int number, int align){return (struct uiLayout *) NULL;}
@@ -485,8 +484,8 @@ float sculpt_get_brush_unprojected_radius(struct Brush *brush){return 0.0f;}
 void sculpt_set_brush_unprojected_radius(struct Brush *brush, float unprojected_radius){}
 float sculpt_get_brush_alpha(struct Brush *brush){return 0.0f;}
 void sculpt_set_brush_alpha(struct Brush *brush, float alpha){}
-void ED_sculpt_modifiers_changed(struct Object *ob){};
-
+void ED_sculpt_modifiers_changed(struct Object *ob){}
+void ED_mesh_calc_tessface(struct Mesh *mesh){}
 
 /* bpy/python internal api */
 void operator_wrapper(struct wmOperatorType *ot, void *userdata) {}

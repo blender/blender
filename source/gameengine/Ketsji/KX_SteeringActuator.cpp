@@ -484,7 +484,7 @@ void KX_SteeringActuator::HandleActorFace(MT_Vector3& velocity)
 	
 	
 	KX_GameObject* parentObject = curobj->GetParent();
-	if(parentObject)
+	if (parentObject)
 	{ 
 		MT_Point3 localpos;
 		localpos = curobj->GetSGNode()->GetLocalPosition();
@@ -502,7 +502,7 @@ void KX_SteeringActuator::HandleActorFace(MT_Vector3& velocity)
 
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -536,7 +536,7 @@ PyMethodDef KX_SteeringActuator::Methods[] = {
 };
 
 PyAttributeDef KX_SteeringActuator::Attributes[] = {
-	KX_PYATTRIBUTE_INT_RW("behaviour", KX_STEERING_NODEF+1, KX_STEERING_MAX-1, true, KX_SteeringActuator, m_mode),
+	KX_PYATTRIBUTE_INT_RW("behavior", KX_STEERING_NODEF+1, KX_STEERING_MAX-1, true, KX_SteeringActuator, m_mode),
 	KX_PYATTRIBUTE_RW_FUNCTION("target", KX_SteeringActuator, pyattr_get_target, pyattr_set_target),
 	KX_PYATTRIBUTE_RW_FUNCTION("navmesh", KX_SteeringActuator, pyattr_get_navmesh, pyattr_set_navmesh),
 	KX_PYATTRIBUTE_FLOAT_RW("distance", 0.0f, 1000.0f, KX_SteeringActuator, m_distance),
@@ -620,7 +620,7 @@ PyObject* KX_SteeringActuator::pyattr_get_steeringVec(void *self, const struct K
 	return PyObjectFrom(steeringVec);
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */
 

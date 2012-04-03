@@ -189,7 +189,7 @@ static void nupdate_ak_gpframe (void *node, void *data)
 /* Add the given BezTriple to the given 'list' of Keyframes */
 static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
 {
-	if ELEM(NULL, keys, bezt) 
+	if (ELEM(NULL, keys, bezt))
 		return;
 	else
 		BLI_dlrbTree_add(keys, compare_ak_bezt, nalloc_ak_bezt, nupdate_ak_bezt, bezt);
@@ -198,7 +198,7 @@ static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
 /* Add the given GPencil Frame to the given 'list' of Keyframes */
 static void add_gpframe_to_keycolumns_list(DLRBT_Tree *keys, bGPDframe *gpf)
 {
-	if ELEM(NULL, keys, gpf) 
+	if (ELEM(NULL, keys, gpf))
 		return;
 	else
 		BLI_dlrbTree_add(keys, compare_ak_gpframe, nalloc_ak_gpframe, nupdate_ak_gpframe, gpf);
@@ -269,8 +269,8 @@ static void nupdate_abk_bezt (void *node, void *data)
 	if (abk->numBezts >= MAX_ABK_BUFSIZE) {
 		// TODO: need to allocate new array to cater...
 		//bezts_extra= MEM_callocN(...);
-		if(G.f & G_DEBUG)
-			printf("FIXME: nupdate_abk_bezt() missing case for too many overlapping BezTriples \n");
+		if (G.debug & G_DEBUG)
+			printf("FIXME: nupdate_abk_bezt() missing case for too many overlapping BezTriples\n");
 	}
 	else {
 		/* just store an extra one */
@@ -374,7 +374,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, DLRBT_Tree *beztTree,
 		ActKeyBlock *ab, *abn=NULL;
 		
 		/* try to find a keyblock that starts on the previous beztriple, and add a new one if none start there
-		 * Note: we can't search from end to try to optimise this as it causes errors there's
+		 * Note: we can't search from end to try to optimize this as it causes errors there's
 		 * 		an A ___ B |---| B situation
 		 */
 		// FIXME: here there is a bug where we are trying to get the summary for the following channels
@@ -499,7 +499,7 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 	static GLuint displist1=0;
 	static GLuint displist2=0;
 	
-	/* initialise 2 display lists for diamond shape - one empty, one filled */
+	/* initialize 2 display lists for diamond shape - one empty, one filled */
 	if (displist1 == 0) {
 		displist1= glGenLists(1);
 			glNewList(displist1, GL_COMPILE);
@@ -538,7 +538,7 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 	glEnable(GL_LINE_SMOOTH);
 	
 	/* draw! */
-	if ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH) {
+	if (ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH)) {
 		/* interior - hardcoded colors (for selected and unselected only) */
 		switch (key_type) {
 			case BEZT_KEYTYPE_BREAKDOWN: /* bluish frames for now */
@@ -574,7 +574,7 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 		glCallList(displist2);
 	}
 	
-	if ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH) {
+	if (ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH)) {
 		/* exterior - black frame */
 		glColor4f(0.0f, 0.0f, 0.0f, alpha);
 		
@@ -621,7 +621,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 		float kalpha = (channelLocked)? 0.35f : 1.0f;
 		
 		for (ak= keys->first; ak; ak= ak->next) {
-			/* optimisation: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw 
+			/* optimization: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw 
 			 *	- this might give some improvements, since we current have to flip between view/region matrices
 			 */
 			if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax) == 0)

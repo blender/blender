@@ -83,19 +83,19 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(bmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+	if (bmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
 
 #define EDGE_MARK	1
 
+#ifdef USE_BM_BEVEL_OP_AS_MOD
 
 /* BMESH_TODO
  *
  * this bevel calls the operator which is missing many of the options
  * which the bevel modifier in trunk has.
- * - width is interpreted as percent (not distance)
  * - no vertex bevel
  * - no weight bevel
  *
@@ -105,10 +105,10 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
  * note: this code is very close to MOD_edgesplit.c.
  * note: if 0'd code from trunk included below.
  */
-static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
-						DerivedMesh *dm,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
+                                  DerivedMesh *dm,
+                                  int UNUSED(useRenderParams),
+                                  int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	BMesh *bm;
@@ -118,7 +118,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	BevelModifierData *bmd = (BevelModifierData*) md;
 	float threshold = cos((bmd->bevel_angle + 0.00001) * M_PI / 180.0);
 
-	em = DM_to_editbmesh(ob, dm, NULL, FALSE);
+	em = DM_to_editbmesh(dm, NULL, FALSE);
 	bm = em->bm;
 
 	BM_mesh_normals_update(bm, FALSE);
@@ -157,7 +157,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 }
 
 
-#if 0 /* from trunk, see note above */
+#else /* from trunk, see note above */
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 						DerivedMesh *derivedData,
@@ -165,26 +165,32 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
-	BME_Mesh *bm;
+	BMEditMesh *em;
 
 	/*bDeformGroup *def;*/
 	int /*i,*/ options, defgrp_index = -1;
 	BevelModifierData *bmd = (BevelModifierData*) md;
 
-	options = bmd->flags|bmd->val_flags|bmd->lim_flags|bmd->e_flags;
+	options = bmd->flags | bmd->val_flags | bmd->lim_flags | bmd->e_flags;
 
-	/*if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
+#if 0
+	if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
 		defgrp_index = defgroup_name_index(ob, bmd->defgrp_name);
 		if (defgrp_index < 0) {
 			options &= ~BME_BEVEL_VWEIGHT;
 		}
-	}*/
+	}
+#endif
 
-	bm = BME_derivedmesh_to_bmesh(derivedData);
-	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
-	result = BME_bmesh_to_derivedmesh(bm,derivedData);
-	BME_free_mesh(bm);
+	em = DM_to_editbmesh(derivedData, NULL, FALSE);
+	BME_bevel(em, bmd->value, bmd->res, options, defgrp_index, bmd->bevel_angle, NULL, FALSE);
+	BLI_assert(em->looptris == NULL);
+	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
+	BMEdit_Free(em);
+	MEM_freeN(em);
 
+	/* until we allow for dirty normal flag, always calc,
+	 * note: calculating on the CDDM is faster then the BMesh equivalent */
 	CDDM_calc_normals(result);
 
 	return result;

@@ -28,9 +28,9 @@
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 {
@@ -42,7 +42,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		v2 = BMO_slot_map_ptr_get(bm, op, "targetmap", l->v);
 		/* ok: if v2 is NULL (e.g. not in the map) then it's
-		 *     a target vert, otherwise it's a doubl */
+		 *     a target vert, otherwise it's a double */
 		if ((v2 && BM_vert_in_face(f, v2)) &&
 		    (v2 != l->prev->v) &&
 		    (v2 != l->next->v))
@@ -55,7 +55,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 
 	if (split && doub != v2) {
 		BMLoop *nl;
-		BMFace *f2 = BM_face_split(bm, f, doub, v2, &nl, NULL);
+		BMFace *f2 = BM_face_split(bm, f, doub, v2, &nl, NULL, FALSE);
 
 		remdoubles_splitface(f, bm, op);
 		remdoubles_splitface(f2, bm, op);
@@ -103,6 +103,7 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 	BMFace *f, *f2;
 	int a, b;
 
+	/* mark merge verts for deletion */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		if ((v2 = BMO_slot_map_ptr_get(bm, op, "targetmap", v))) {
 			BMO_elem_flag_enable(bm, v, ELE_DEL);
@@ -112,10 +113,12 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
+	/* check if any faces are getting their own corners merged
+	   together, split face if so */
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		remdoubles_splitface(f, bm, op);
 	}
-	
+
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, e->v1, ELE_DEL) || BMO_elem_flag_test(bm, e->v2, ELE_DEL)) {
 			v = BMO_slot_map_ptr_get(bm, op, "targetmap", e->v1);
@@ -149,6 +152,8 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 	}
 	bm->elem_index_dirty |= BM_FACE;
 
+	/* faces get "modified" by creating new faces here, then at the
+	   end the old faces are deleted */
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (!BMO_elem_flag_test(bm, f, FACE_MARK))
 			continue;
@@ -368,10 +373,11 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	BMO_op_callf(bm, "collapse_uvs edges=%s", op, "edges");
 	BMO_op_init(bm, &weldop, "weldverts");
 
-	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 
 	BMW_init(&walker, bm, BMW_SHELL,
-	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP, BMW_MASK_NOP,
+	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP,
+	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 	         BMW_NIL_LAY);
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -412,7 +418,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges);
 }
 
-/* uv collapse functio */
+/* uv collapse function */
 static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 {
 	BMIter iter, liter;
@@ -427,16 +433,17 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	/* clear all short flags */
 	BMO_mesh_flag_disable_all(bm, op, BM_ALL, (1 << 16) - 1);
 
-	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 
 	BMW_init(&walker, bm, BMW_LOOPDATA_ISLAND,
-	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP, BMW_MASK_NOP,
+	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP,
+	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 	         layer);
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
-				/* wal */
+				/* walk */
 				BLI_array_empty(blocks);
 				tot = 0;
 				l2 = BMW_begin(&walker, l);
@@ -453,7 +460,7 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 					CustomData_data_multiply(type, &max, 0.5f);
 					CustomData_data_add(type, &min, &max);
 
-					/* snap CD (uv, vcol) points to their centroi */
+					/* snap CD (uv, vcol) points to their centroid */
 					for (i = 0; i < tot; i++) {
 						CustomData_data_copy_value(type, &min, blocks[i]);
 					}
@@ -499,19 +506,21 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 		keepvert = BMO_iter_new(&oiter, bm, op, "keepverts", BM_VERT) != NULL;
 	}
 
-	/* sort by vertex coordinates added togethe */
+	/* sort by vertex coordinates added together */
 	qsort(verts, BLI_array_count(verts), sizeof(void *), vergaverco);
 
 	/* Flag keepverts */
 	if (keepvert) {
-		BMO_slot_buffer_flag_enable(bm, op, "keepverts", VERT_KEEP, BM_VERT);
+		BMO_slot_buffer_flag_enable(bm, op, "keepverts", BM_VERT, VERT_KEEP);
 	}
 
 	len = BLI_array_count(verts);
 	for (i = 0; i < len; i++) {
 		v = verts[i];
-		if (BMO_elem_flag_test(bm, v, VERT_DOUBLE)) continue;
-		
+		if (BMO_elem_flag_test(bm, v, VERT_DOUBLE)) {
+			continue;
+		}
+
 		for (j = i + 1; j < len; j++) {
 			v2 = verts[j];
 
@@ -569,7 +578,7 @@ void bmo_automerge_exec(BMesh *bm, BMOperator *op)
 	/* The "verts" input sent to this op is the set of verts that
 	 * can be merged away into any other verts. Mark all other verts
 	 * as VERT_KEEP. */
-	BMO_slot_buffer_flag_enable(bm, op, "verts", VERT_IN, BM_VERT);
+	BMO_slot_buffer_flag_enable(bm, op, "verts", BM_VERT, VERT_IN);
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BMO_elem_flag_test(bm, v, VERT_IN)) {
 			BMO_elem_flag_enable(bm, v, VERT_KEEP);

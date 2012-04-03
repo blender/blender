@@ -101,8 +101,8 @@ void node_operatortypes(void)
 	
 	WM_operatortype_append(NODE_OT_new_node_tree);
 	
-	WM_operatortype_append(NODE_OT_output_multi_file_add_socket);
-	WM_operatortype_append(NODE_OT_output_multi_file_remove_active_socket);
+	WM_operatortype_append(NODE_OT_output_file_add_socket);
+	WM_operatortype_append(NODE_OT_output_file_remove_active_socket);
 }
 
 void ED_operatormacros_node(void)
@@ -110,24 +110,24 @@ void ED_operatormacros_node(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *mot;
 	
-	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Duplicate selected nodes and move them";
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
 	/* modified operator call for duplicating with input links */
-	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Duplicate selected nodes keeping input links and move them";
 	mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	RNA_boolean_set(mot->ptr, "keep_inputs", TRUE);
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
-	ot= WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer", OPTYPE_UNDO);
+	ot = WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer", OPTYPE_UNDO);
 	ot->description = "Select node and link it to a viewer node";
 	WM_operatortype_macro_define(ot, "NODE_OT_select");
 	WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
 
-	ot= WM_operatortype_append_macro("NODE_OT_move_detach_links", "Detach", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links", "Detach", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Move a node to detach links";
 	WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
 	mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
@@ -140,15 +140,16 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 	
 	/* Entire Editor only ----------------- */
-	keymap= WM_keymap_find(keyconf, "Node Generic", SPACE_NODE, 0);
+	keymap = WM_keymap_find(keyconf, "Node Generic", SPACE_NODE, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	/* Main Area only ----------------- */
-	keymap= WM_keymap_find(keyconf, "Node Editor", SPACE_NODE, 0);
+	keymap = WM_keymap_find(keyconf, "Node Editor", SPACE_NODE, 0);
 	
 	/* mouse select in nodes used to be both keys, but perhaps this should be reduced? 
 	 * NOTE: mouse-clicks on left-mouse will fall through to allow transform-tweak, but also link/resize
+	 * NOTE 2: socket select is part of the node select operator, to handle overlapping cases
 	 */
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0);
 		RNA_boolean_set(kmi->ptr, "extend", FALSE);
@@ -169,9 +170,9 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_select_link_viewer", LEFTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_backimage_move", MIDDLEMOUSE, KM_PRESS, KM_ALT, 0);
-	kmi= WM_keymap_add_item(keymap, "NODE_OT_backimage_zoom", VKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_backimage_zoom", VKEY, KM_PRESS, 0, 0);
 		RNA_float_set(kmi->ptr, "factor", 0.83333f);
-	kmi= WM_keymap_add_item(keymap, "NODE_OT_backimage_zoom", VKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_backimage_zoom", VKEY, KM_PRESS, KM_ALT, 0);
 		RNA_float_set(kmi->ptr, "factor", 1.2f);
 	WM_keymap_add_item(keymap, "NODE_OT_backimage_sample", ACTIONMOUSE, KM_PRESS, KM_ALT, 0);
 

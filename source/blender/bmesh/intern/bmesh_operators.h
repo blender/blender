@@ -94,4 +94,6 @@ void BM_mesh_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float sm
                             float fractal, int beauty, int numcuts, int seltype,
                             int cornertype, int singleedge, int gridfill, int seed);
 
+#include "intern/bmesh_operator_api_inline.h"
+
 #endif /* __BMESH_OPERATORS_H__ */

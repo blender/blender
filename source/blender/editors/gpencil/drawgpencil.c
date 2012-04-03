@@ -79,7 +79,7 @@ typedef enum eDrawStrokeFlags {
 	GP_DRAWDATA_ONLYV2D		= (1<<2),	/* only draw 'canvas' strokes */
 	GP_DRAWDATA_ONLYI2D		= (1<<3),	/* only draw 'image' strokes */
 	GP_DRAWDATA_IEDITHACK	= (1<<4),	/* special hack for drawing strokes in Image Editor (weird coordinates) */
-	GP_DRAWDATA_NO_XRAY		= (1<<5),	/* dont draw xray in 3D view (which is default) */
+	GP_DRAWDATA_NO_XRAY		= (1<<5),	/* don't draw xray in 3D view (which is default) */
 } eDrawStrokeFlags;
 
 
@@ -117,7 +117,7 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 		float oldpressure = points[0].pressure;
 		
 		/* draw stroke curve */
-		if (G.f & G_DEBUG) setlinestyle(2);
+		if (G.debug & G_DEBUG) setlinestyle(2);
 
 		glLineWidth(oldpressure * thickness);
 		glBegin(GL_LINE_STRIP);
@@ -147,7 +147,7 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 		/* reset for predictable OpenGL context */
 		glLineWidth(1.0f);
 		
-		if (G.f & G_DEBUG) setlinestyle(0);
+		if (G.debug & G_DEBUG) setlinestyle(0);
 	}
 }
 
@@ -189,8 +189,7 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short dfl
 				glVertex2fv(co);
 			glEnd();
 		}
-		else 
-		{
+		else {
 			/* draw filled circle as is done in circf (but without the matrix push/pops which screwed things up) */
 			GLUquadricObj *qobj = gluNewQuadric(); 
 			
@@ -286,11 +285,10 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness_s
 		glEnd();
 	}
 	
-	/* tesselation code - draw stroke as series of connected quads with connection
+	/* tessellation code - draw stroke as series of connected quads with connection
 	 * edges rotated to minimise shrinking artifacts, and rounded endcaps
 	 */
-	else 
-	{ 
+	else {
 		bGPDspoint *pt1, *pt2;
 		float pm[2];
 		int i;
@@ -300,7 +298,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness_s
 		
 		for (i=0, pt1=points, pt2=points+1; i < (totpoints-1); i++, pt1++, pt2++) {
 			float s0[2], s1[2];		/* segment 'center' points */
-			float t0[2], t1[2];		/* tesselated coordinates */
+			float t0[2], t1[2];		/* tessellated coordinates */
 			float m1[2], m2[2];		/* gradient and normal */
 			float mt[2], sc[2];		/* gradient for thickness, point for end-cap */
 			float pthick;			/* thickness at segment point */
@@ -384,8 +382,8 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness_s
 				mt[1]= mb[1] * pthick;
 				athick= len_v2(mt);
 				dfac= pthick - (athick * 2);
-				if ( ((athick * 2.0f) < pthick) && (IS_EQF(athick, pthick)==0) )
-				{
+
+				if (((athick * 2.0f) < pthick) && (IS_EQF(athick, pthick)==0)) {
 					mt[0] += (mb[0] * dfac);
 					mt[1] += (mb[1] * dfac);
 				}	
@@ -515,12 +513,12 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 				glDepthMask(0);
 				glEnable(GL_DEPTH_TEST);
 				
-				/* first arg is normally rv3d->dist, but this isnt available here and seems to work quite well without */
+				/* first arg is normally rv3d->dist, but this isn't available here and seems to work quite well without */
 				bglPolygonOffset(1.0f, 1.0f);
-				/*
+#if 0
 				glEnable(GL_POLYGON_OFFSET_LINE);
 				glPolygonOffset(-1.0f, -1.0f);
-				*/
+#endif
 			}
 			
 			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, debug);
@@ -530,10 +528,10 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 				glDisable(GL_DEPTH_TEST);
 				
 				bglPolygonOffset(0.0, 0.0);
-				/*
+#if 0
 				glDisable(GL_POLYGON_OFFSET_LINE);
 				glPolygonOffset(0, 0);
-				*/
+#endif
 			}
 		}
 		else if (gps->totpoints > 1)	
@@ -785,7 +783,7 @@ void draw_gpencil_view3d (Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 	gpd= gpencil_data_get_active_v3d(scene); // XXX
 	if (gpd == NULL) return;
 
-	/* when rendering to the offscreen buffer we dont want to
+	/* when rendering to the offscreen buffer we don't want to
 	 * deal with the camera border, otherwise map the coords to the camera border. */
 	if ((rv3d->persp == RV3D_CAMOB) && !(G.f & G_RENDER_OGL)) {
 		rctf rectf;
@@ -793,10 +791,10 @@ void draw_gpencil_view3d (Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 		BLI_copy_rcti_rctf(&rect, &rectf);
 	}
 	else {
-		rect.xmin= 0;
-		rect.ymin= 0;
-		rect.xmax= ar->winx;
-		rect.ymax= ar->winy;
+		rect.xmin = 0;
+		rect.ymin = 0;
+		rect.xmax = ar->winx;
+		rect.ymax = ar->winy;
 	}
 	
 	/* draw it! */

@@ -95,7 +95,7 @@ if XCODE_CUR_VER >= '4.3':  ## since version 4.3, XCode and developer dir are bu
 
 #Defaults openMP to true if compiler handles it ( only gcc 4.6.1 and newer )
 # if your compiler does not have accurate suffix you may have to enable it by hand !
-if CC.endswith('4.6.1'):
+if CC[:-2].endswith('4.6'):
     WITH_BF_OPENMP = True  # multithreading for fluids, cloth, sculpt and smoke
 else:
     WITH_BF_OPENMP = False

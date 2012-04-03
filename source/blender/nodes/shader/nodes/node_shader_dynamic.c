@@ -83,7 +83,7 @@ static bNodeType *node_dynamic_find_typeinfo(ListBase *list, ID *id)
 {
 	bNodeType *ntype = list->first;
 
-	while(ntype) {
+	while (ntype) {
 		if (ntype->type == NODE_DYNAMIC && ntype->id == id)
 			break;
 		ntype = ntype->next;
@@ -459,7 +459,8 @@ static int node_dynamic_parse(struct bNode *node)
 	if (!pyresult) {
 		if (BTST(node->custom1, NODE_DYNAMIC_LOADED)) {
 			node_dynamic_disable(node);
-		} else {
+		}
+		else {
 		node_dynamic_disable_all_by_id(node->id);
 		}
 		node_dynamic_pyerror_print(node);
@@ -574,7 +575,8 @@ static void node_dynamic_setup(bNode *node)
 			}
 			else { nodeMakeDynamicType(node); }
 
-		} else {
+		}
+		else {
 			node_dynamic_rem_all_links(node->typeinfo);
 			node_dynamic_free_typeinfo_sockets(node->typeinfo);
 			node_dynamic_update_socket_links(node, NULL);
@@ -654,7 +656,7 @@ static void node_dynamic_setup(bNode *node)
  *  0: for loaded empty nodes
  *  NODE_DYNAMIC_MENU: for the default Dynamic node type
  *  > NODE_DYNAMIC_MENU: for the new types defined by scripts
-*/
+ */
 static void node_dynamic_init_cb(bNode *node)
 {
 	int type = node->custom2;
@@ -718,8 +720,10 @@ static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNode
 	if (!node->id)
 		return;
 
-	/*if (G.scene->r.threads > 1)
-		return;*/
+#if 0
+	if (G.scene->r.threads > 1)
+		return;
+#endif
 
 	if (BTST2(node->custom1, NODE_DYNAMIC_NEW, NODE_DYNAMIC_REPARSE)) {
 		node_dynamic_setup(node);

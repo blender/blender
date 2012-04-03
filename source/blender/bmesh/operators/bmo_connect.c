@@ -22,11 +22,11 @@
 
 #include "MEM_guardedalloc.h"
 
-
-#include "bmesh.h"
-
 #include "BLI_math.h"
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
+
+#include "bmesh.h"
 
 #define VERT_INPUT	1
 #define EDGE_OUT	1
@@ -45,13 +45,15 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(verts);
 	int i;
 	
-	BMO_slot_buffer_flag_enable(bm, op, "verts", VERT_INPUT, BM_VERT);
+	BMO_slot_buffer_flag_enable(bm, op, "verts", BM_VERT, VERT_INPUT);
 
 	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
 		BLI_array_empty(loops);
 		BLI_array_empty(verts);
 		
-		if (BMO_elem_flag_test(bm, f, FACE_NEW)) continue;
+		if (BMO_elem_flag_test(bm, f, FACE_NEW)) {
+			continue;
+		}
 
 		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 		lastl = NULL;
@@ -74,7 +76,9 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		if (BLI_array_count(loops) == 0) continue;
+		if (BLI_array_count(loops) == 0) {
+			continue;
+		}
 		
 		if (BLI_array_count(loops) > 2) {
 			BLI_array_growone(loops);
@@ -87,7 +91,9 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 		BM_face_legal_splits(bm, f, (BMLoop *(*)[2])loops, BLI_array_count(loops) / 2);
 		
 		for (i = 0; i < BLI_array_count(loops) / 2; i++) {
-			if (loops[i * 2] == NULL) continue;
+			if (loops[i * 2] == NULL) {
+				continue;
+			}
 
 			BLI_array_growone(verts);
 			verts[BLI_array_count(verts) - 1] = loops[i * 2]->v;
@@ -97,7 +103,7 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 		}
 
 		for (i = 0; i < BLI_array_count(verts) / 2; i++) {
-			nf = BM_face_split(bm, f, verts[i * 2], verts[i * 2 + 1], &nl, NULL);
+			nf = BM_face_split(bm, f, verts[i * 2], verts[i * 2 + 1], &nl, NULL, FALSE);
 			f = nf;
 			
 			if (!nl || !nf) {
@@ -110,7 +116,7 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_from_flag(bm, op, "edgeout", EDGE_OUT, BM_EDGE);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EDGE_OUT);
 
 	BLI_array_free(loops);
 	BLI_array_free(verts);
@@ -135,7 +141,15 @@ static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
 /* Clamp x to the interval {0..len-1}, with wrap-around */
 static int clamp_index(const int x, const int len)
 {
-	return (x < 0) ? (len - (-x % len)) : (x % len);
+	if (x >= 0)
+		return x % len;
+	else {
+		int r = len - (-x % len);
+		if(r == len)
+			return len - 1;
+		else
+			return r;
+	}
 }
 
 /* There probably is a better way to swap BLI_arrays, or if there
@@ -202,7 +216,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e, *nexte;
 	int c = 0, cl1 = 0, cl2 = 0;
 
-	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 		if (!BMO_elem_flag_test(bm, e, EDGE_DONE)) {

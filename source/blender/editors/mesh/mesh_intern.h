@@ -35,48 +35,52 @@
 #ifndef __MESH_INTERN_H__
 #define __MESH_INTERN_H__
 
-struct bContext;
-struct wmOperatorType;
-struct ViewContext;
-struct BMEditMesh;
-struct BMesh;
 struct BMEdge;
+struct BMEditMesh;
 struct BMFace;
+struct BMHeader;
 struct BMOperator;
-struct wmOperator;
-struct wmKeyMap;
-struct wmKeyConfig;
+struct BMesh;
 struct EnumPropertyItem;
+struct ViewContext;
+struct bContext;
+struct wmKeyConfig;
+struct wmKeyMap;
+struct wmOperator;
+struct wmOperatorType;
 
 /* ******************** bmeshutils.c */
 
 /*
-ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
-    BMEdit module is for code shared with blenkernel that concerns
-    the BMEditMesh structure.
-*/
+ * ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
+ * BMEdit module is for code shared with blenkernel that concerns
+ * the BMEditMesh structure.
+ */
 
 /*calls a bmesh op, reporting errors to the user, etc*/
-int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
+int EDBM_op_callf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
 
-/*same as above, but doesn't report errors.*/
-int EDBM_CallOpfSilent(struct BMEditMesh *em, const char *fmt, ...);
+int EDBM_op_call_and_selectf(struct BMEditMesh *em, struct wmOperator *op,
+                             const char *selectslot, const char *fmt, ...);
 
-/*these next two functions are the split version of EDBM_CallOpf, so you can
-  do stuff with a bmesh operator, after initializing it but before executing
-  it.
-  
-  execute the operator with BM_Exec_Op*/
-int EDBM_InitOpf(struct BMEditMesh *em, struct BMOperator *bmop,
+/* same as above, but doesn't report errors.*/
+int EDBM_op_call_silentf(struct BMEditMesh *em, const char *fmt, ...);
+
+/* these next two functions are the split version of EDBM_op_callf, so you can
+ * do stuff with a bmesh operator, after initializing it but before executing
+ * it.
+ *
+ * execute the operator with BM_Exec_Op */
+int EDBM_op_init(struct BMEditMesh *em, struct BMOperator *bmop,
                  struct wmOperator *op, const char *fmt, ...);
 /*cleans up after a bmesh operator*/
-int EDBM_FinishOp(struct BMEditMesh *em, struct BMOperator *bmop,
-                  struct wmOperator *op, const int report);
+int EDBM_op_finish(struct BMEditMesh *em, struct BMOperator *bmop,
+                   struct wmOperator *op, const int report);
 
 void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
-void EDBM_store_selection(struct BMEditMesh *em, void *data);
-void EDBM_validate_selections(struct BMEditMesh *em);
-void EDBM_remove_selection(struct BMEditMesh *em, void *data);
+void EDBM_editselection_store(struct BMEditMesh *em, struct BMHeader *ele);
+void EDBM_editselection_validate(struct BMEditMesh *em);
+void EDBM_editselection_remove(struct BMEditMesh *em, struct BMHeader *ele);
 void EDBM_stats_update(struct BMEditMesh *em);
 
 /* TODO, move to math_geometry.c */
@@ -155,6 +159,7 @@ void MESH_OT_fill(struct wmOperatorType *ot);
 void MESH_OT_beautify_fill(struct wmOperatorType *ot);
 void MESH_OT_quads_convert_to_tris(struct wmOperatorType *ot);
 void MESH_OT_tris_convert_to_quads(struct wmOperatorType *ot);
+void MESH_OT_dissolve(struct wmOperatorType *ot);
 void MESH_OT_dissolve_limited(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_smooth(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_flat(struct wmOperatorType *ot);
@@ -175,6 +180,8 @@ void MESH_OT_colors_rotate(struct wmOperatorType *ot);
 void MESH_OT_colors_reverse(struct wmOperatorType *ot);
 
 void MESH_OT_delete(struct wmOperatorType *ot);
+void MESH_OT_edge_collapse(struct wmOperatorType *ot);
+void MESH_OT_edge_collapse_loop(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);
 
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
@@ -198,7 +205,6 @@ void MESH_OT_extrude_region(struct wmOperatorType *ot);
 void MESH_OT_extrude_verts_indiv(struct wmOperatorType *ot);
 void MESH_OT_extrude_edges_indiv(struct wmOperatorType *ot);
 void MESH_OT_extrude_faces_indiv(struct wmOperatorType *ot);
-void MESH_OT_bm_test(struct wmOperatorType *ot);
 
 void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_loopcut(struct wmOperatorType *ot);
@@ -207,6 +213,7 @@ void MESH_OT_knifetool(struct wmOperatorType *ot);
 void MESH_OT_bevel(struct wmOperatorType *ot);
 
 void MESH_OT_bridge_edge_loops(struct wmOperatorType *ot);
+void MESH_OT_inset(struct wmOperatorType *ot);
 
 /* ******************* mesh_navmesh.c */
 void MESH_OT_navmesh_make(struct wmOperatorType *ot);

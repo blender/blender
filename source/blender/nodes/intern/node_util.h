@@ -65,7 +65,7 @@ ListBase node_internal_connect_default(struct bNodeTree *ntree, struct bNode *no
 
 #endif
 
-// this is needed for inlining behaviour
+// this is needed for inlining behavior
 #if defined _WIN32
 #   define DO_INLINE __inline
 #elif defined (__sun) || defined (__sun__)

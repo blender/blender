@@ -68,7 +68,7 @@ typedef struct EdgeData {
 
 typedef struct VertData {
 	BMEdge *e;
-	float no[3], offco[3], sco[3]; /* offco is vertex coordinate slightly offset randoml */
+	float no[3], offco[3], sco[3]; /* offco is vertex coordinate slightly offset randomly */
 	int tag;
 } VertData;
 
@@ -76,12 +76,11 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 /****  rotation system code * */
 
-#define RS_GET_EDGE_LINK(e, v, e_data)  (                                     \
-	(v) == ((BMEdge *)(e))->v1 ?                                              \
-			&(((EdgeData *)(e_data))->v1_disk_link) :                         \
-			&(((EdgeData *)(e_data))->v2_disk_link)                           \
-	)
-
+BLI_INLINE BMDiskLink *rs_edge_link_get(BMEdge *e, BMVert *v, EdgeData *e_data)
+{
+	return 	v == ((BMEdge *)e)->v1 ? &(((EdgeData *)e_data)->v1_disk_link) :
+	                                 &(((EdgeData *)e_data)->v2_disk_link) ;
+}
 
 static int rotsys_append_edge(BMEdge *e, BMVert *v,
                               EdgeData *edata, VertData *vdata)
@@ -90,7 +89,7 @@ static int rotsys_append_edge(BMEdge *e, BMVert *v,
 	VertData *vd = &vdata[BM_elem_index_get(v)];
 	
 	if (!vd->e) {
-		Link *e1 = (Link *)RS_GET_EDGE_LINK(e, v, ed);
+		Link *e1 = (Link *)rs_edge_link_get(e, v, ed);
 
 		vd->e = e;
 		e1->next = e1->prev = (Link *)e;
@@ -99,9 +98,9 @@ static int rotsys_append_edge(BMEdge *e, BMVert *v,
 		BMDiskLink *dl1, *dl2, *dl3;
 		EdgeData *ved = &edata[BM_elem_index_get(vd->e)];
 
-		dl1 = RS_GET_EDGE_LINK(e, v, ed);
-		dl2 = RS_GET_EDGE_LINK(vd->e, v, ved);
-		dl3 = dl2->prev ? RS_GET_EDGE_LINK(dl2->prev, v, &edata[BM_elem_index_get(dl2->prev)]) : NULL;
+		dl1 = rs_edge_link_get(e, v, ed);
+		dl2 = rs_edge_link_get(vd->e, v, ved);
+		dl3 = dl2->prev ? rs_edge_link_get(dl2->prev, v, &edata[BM_elem_index_get(dl2->prev)]) : NULL;
 
 		dl1->next = vd->e;
 		dl1->prev = dl2->prev;
@@ -122,14 +121,14 @@ static void UNUSED_FUNCTION(rotsys_remove_edge)(BMEdge *e, BMVert *v,
 	VertData *vd = vdata + BM_elem_index_get(v);
 	BMDiskLink *e1, *e2;
 
-	e1 = RS_GET_EDGE_LINK(e, v, ed);
+	e1 = rs_edge_link_get(e, v, ed);
 	if (e1->prev) {
-		e2 = RS_GET_EDGE_LINK(e1->prev, v, ed);
+		e2 = rs_edge_link_get(e1->prev, v, ed);
 		e2->next = e1->next;
 	}
 
 	if (e1->next) {
-		e2 = RS_GET_EDGE_LINK(e1->next, v, ed);
+		e2 = rs_edge_link_get(e1->next, v, ed);
 		e2->prev = e1->prev;
 	}
 
@@ -228,12 +227,14 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 		
 		rad = count_edge_faces(bm, e);
 		
-		if (rad < 2)
+		if (rad < 2) {
 			starte = e;
-		else
+		}
+		else {
 			continue;
-		
-		/* do two passes, going forward then backwar */
+		}
+
+		/* do two passes, going forward then backward */
 		for (i = 0; i < 2; i++) {
 			BLI_smallhash_init(hash);
 			
@@ -400,7 +401,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			normalize_v3(no);
 		}
 		
-		/* generate plane-flattened coordinate */
+		/* generate plane-flattened coordinates */
 		for (i = 0; i < totedge; i++) {
 			BMEdge *e1;
 			BMVert *v2;
@@ -465,7 +466,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				copy_v3_v3(cent, v->co);
 
 				for (j = 0; j < 3; j++) {
-					float fac = (BLI_frand() - 0.5f)*size;
+					float fac = (BLI_frand() - 0.5f) * size;
 					cent[j] += fac;
 				}
 				
@@ -494,7 +495,6 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				BMVert *v1, *v2, *v3;
 				VertData *vd1, *vd2, *vd3;
 				float vec1[3], vec2[3], vec3[3], n1[3], n2[3], n3[3];
-				int s1, s2, s3;
 				
 				e1 = edges[(i + totedge - 1) % totedge];
 				e2 = edges[i];
@@ -516,17 +516,26 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				cross_v3_v3v3(n2, vec2, vec3);
 				cross_v3_v3v3(n3, vec1, vec3);
 
+				/* this case happens often enough and probably not worth bothering users with,
+				 * maybe enable for debugging code but not for everyday use - campbell */
+#if 0
 				/* Other way to determine if two vectors approach are (nearly) parallel: the
 				 * cross product of the two vectors will approach zero */
-				s1 = (dot_v3v3(n1, n1) < (0.0f + FLT_EPSILON * 10));
-				s2 = (dot_v3v3(n2, n2) < (0.0f + FLT_EPSILON * 10));
-				s3 = (totedge < 3) ? 0 : (dot_v3v3(n3, n3) < (0.0f + FLT_EPSILON * 10));
+				{
+					int s1, s2, s3;
+					s1 = (dot_v3v3(n1, n1) < (0.0f + FLT_EPSILON * 10));
+					s2 = (dot_v3v3(n2, n2) < (0.0f + FLT_EPSILON * 10));
+					s3 = (totedge < 3) ? 0 : (dot_v3v3(n3, n3) < (0.0f + FLT_EPSILON * 10));
+
+					if (s1 || s2 || s3) {
+						fprintf(stderr, "%s: s1: %d, s2: %d, s3: %dx (bmesh internal error)\n", __func__, s1, s2, s3);
+					}
+				}
+#endif
 
 				normalize_v3(n1); normalize_v3(n2); normalize_v3(n3);
-				
-				if (s1 || s2 || s3) {
-					fprintf(stderr, "%s: s1: %d, s2: %d, s3: %dx (bmesh internal error)\n", __func__, s1, s2, s3);
-				}
+
+
 				if (dot_v3v3(n1, n2) < 0.0f) {
 					if (dot_v3v3(n1, n3) >= 0.0f + FLT_EPSILON * 10) {
 						SWAP(BMEdge *, edges[i], edges[(i + 1) % totedge]);
@@ -621,8 +630,8 @@ static PathBase *edge_pathbase_new(void)
 {
 	PathBase *pb = MEM_callocN(sizeof(PathBase), "PathBase");
 
-	pb->nodepool = BLI_mempool_create(sizeof(EPathNode), 1, 512, TRUE, FALSE);
-	pb->pathpool = BLI_mempool_create(sizeof(EPath), 1, 512, TRUE, FALSE);
+	pb->nodepool = BLI_mempool_create(sizeof(EPathNode), 1, 512, BLI_MEMPOOL_SYSMALLOC);
+	pb->pathpool = BLI_mempool_create(sizeof(EPath), 1, 512, BLI_MEMPOOL_SYSMALLOC);
 
 	return pb;
 }
@@ -748,7 +757,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 		v1 = last->v;
 		
 		if (v1 == endv) {
-			/* make sure this path loop doesn't already exist */
+			/* make sure this path loop doesn't already exists */
 			i = 0;
 			BLI_array_empty(verts);
 			for (i = 0, node = path->nodes.first; node; node = node->next, i++) {
@@ -813,7 +822,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 			continue;
 		}
 		
-		/* add path back into hea */
+		/* add path back into heap */
 		BLI_heap_insert(heap, path->weight, path);
 		
 		/* put v2 in gh ma */
@@ -857,6 +866,16 @@ static int count_edge_faces(BMesh *bm, BMEdge *e)
 	return i;
 }
 
+BLI_INLINE void vote_on_winding(BMEdge *edge, EPathNode *node, unsigned int winding[2])
+{
+	BMVert *test_v1, *test_v2;
+	/* we want to use the reverse winding to the existing order */
+	BM_edge_ordered_verts(edge, &test_v2, &test_v1);
+
+	/* edges vote on which winding wins out */
+	winding[(test_v1 == node->v)]++;
+}
+
 void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter;
@@ -885,8 +904,8 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	edata = MEM_callocN(sizeof(EdgeData) * bm->totedge, "EdgeData");
 	vdata = MEM_callocN(sizeof(VertData) * bm->totvert, "VertData");
 	
-	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
-	BMO_slot_buffer_flag_enable(bm, op, "excludefaces", FACE_IGNORE, BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
+	BMO_slot_buffer_flag_enable(bm, op, "excludefaces", BM_FACE, FACE_IGNORE);
 	
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -969,12 +988,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			
 			/* check on the winding */
 			if (e->l) {
-				BMVert *test_v1, *test_v2;
-				/* we want to use the reverse winding to the existing order */
-				BM_edge_ordered_verts(edge, &test_v2, &test_v1);
-
-				/* edges vote on which winding wins out */
-				winding[(test_v1 == node->v)]++;
+				vote_on_winding(e, node, winding);
 			}
 
 			edata[BM_elem_index_get(e)].ftag++;
@@ -984,6 +998,10 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			BLI_array_append(verts, node->v);
 		}
 		
+		if (edge->l) {
+			vote_on_winding(edge, path->nodes.last, winding);
+		}
+
 		BLI_array_growone(edges);
 		edges[i++] = edge;
 		edata[BM_elem_index_get(edge)].ftag++;
@@ -1008,7 +1026,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 
 			/* if these are even it doesnt really matter what to do,
 			 * with consistent geometry one will be zero, the choice is clear */
-			if (winding[0] > winding[1]) {
+			if (winding[0] < winding[1]) {
 				v1 = verts[0];
 				v2 = verts[1];
 			}
@@ -1035,7 +1053,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		edge_free_path(pathbase, path);
 	}
 
-	BMO_slot_from_flag(bm, op, "faceout", FACE_NEW, BM_FACE);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, FACE_NEW);
 
 	BLI_array_free(edges);
 	BLI_array_free(verts);
@@ -1075,7 +1093,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 	int ok = 1;
 	int i, count;
 
-	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 	
 	/* validate that each edge has at most one other tagged edge in the
 	 * disk cycle around each of it's vertices */
@@ -1232,13 +1250,16 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BMO_slot_from_flag(bm, op, "edgeout", ELE_NEW, BM_EDGE);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, ELE_NEW);
 
 	BLI_array_free(edges1);
 	BLI_array_free(edges2);
 }
 
-/* this is essentially new fke */
+/* This is what runs when pressing the F key
+ * doing the best thing here isn't always easy create vs dissolve, its nice to support
+ * but it it _really_ gives issues we might have to not call dissolve. - campbell
+ */
 void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator op2;
@@ -1330,17 +1351,17 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/* --- end special case support, continue as normal --- */
 
 	/* call edgenet create */
-	/* call edgenet prepare op so additional face creation cases wor */
+	/* call edgenet prepare op so additional face creation cases wore */
 	BMO_op_initf(bm, &op2, "edgenet_prepare edges=%fe", ELE_NEW);
 	BMO_op_exec(bm, &op2);
-	BMO_slot_buffer_flag_enable(bm, &op2, "edgeout", ELE_NEW, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, &op2, "edgeout", BM_EDGE, ELE_NEW);
 	BMO_op_finish(bm, &op2);
 
 	BMO_op_initf(bm, &op2, "edgenet_fill edges=%fe use_fill_check=%b", ELE_NEW, TRUE);
 	BMO_op_exec(bm, &op2);
 
-	/* return if edge net create did somethin */
-	if (BMO_slot_buf_count(bm, &op2, "faceout")) {
+	/* return if edge net create did something */
+	if (BMO_slot_buffer_count(bm, &op2, "faceout")) {
 		BMO_slot_copy(&op2, op, "faceout", "faceout");
 		BMO_op_finish(bm, &op2);
 		return;
@@ -1353,7 +1374,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_op_exec(bm, &op2);
 	
 	/* if we dissolved anything, then return */
-	if (BMO_slot_buf_count(bm, &op2, "regionout")) {
+	if (BMO_slot_buffer_count(bm, &op2, "regionout")) {
 		BMO_slot_copy(&op2, op, "regionout", "faceout");
 		BMO_op_finish(bm, &op2);
 		return;
@@ -1361,7 +1382,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_finish(bm, &op2);
 
-	/* now, count how many verts we hav */
+	/* now, count how many verts we have */
 	amount = 0;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, v, ELE_NEW)) {
@@ -1373,46 +1394,74 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (amount == 2) {
-		/* create edg */
+		/* create edge */
 		e = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
 		BMO_elem_flag_enable(bm, e, ELE_OUT);
 	}
-	else if (amount == 3) {
-		/* create triangl */
-		f = BM_face_create_quad_tri(bm, verts[0], verts[1], verts[2], NULL, NULL, TRUE);
+	else if (0) { /* nice feature but perhaps it should be a different tool? */
 
-		if (f) {
-			BMO_elem_flag_enable(bm, f, ELE_OUT);
+		/* tricky feature for making a line/edge from selection history...
+		 *
+		 * Rather then do nothing, when 5+ verts are selected, check if they are in our history,
+		 * when this is so, we can make edges from them, but _not_ a face,
+		 * if it is the intention to make a face the user can just hit F again since there will be edges next
+		 * time around.
+		 *
+		 * if all history verts have ELE_NEW flagged and the total number of history verts == totv,
+		 * then we know the history contains all verts here and we can continue...
+		 */
+
+		BMEditSelection *ese;
+		int tot_ese_v = 0;
+
+		for (ese = bm->selected.first; ese; ese = ese->next) {
+			if (ese->htype == BM_VERT) {
+				if (BMO_elem_flag_test(bm, (BMElemF *)ese->ele, ELE_NEW)) {
+					tot_ese_v++;
+				}
+				else {
+					/* unflagged vert means we are not in sync */
+					tot_ese_v = -1;
+					break;
+				}
+			}
 		}
+
+		if (tot_ese_v == totv) {
+			BMVert *v_prev = NULL;
+			/* yes, all select-history verts are accounted for, now make edges */
+
+			for (ese = bm->selected.first; ese; ese = ese->next) {
+				if (ese->htype == BM_VERT) {
+					v = (BMVert *)ese->ele;
+					if (v_prev) {
+						e = BM_edge_create(bm, v, v_prev, NULL, TRUE);
+						BMO_elem_flag_enable(bm, e, ELE_OUT);
+					}
+					v_prev = v;
+				}
+			}
+		}
+		/* done creating edges */
 	}
-	else if (amount == 4) {
-		f = NULL;
+	else if (amount > 2) {
+		/* TODO, all these verts may be connected by edges.
+		 * we should check on this before assuming they are a random set of verts */
 
-		/* the order of vertices can be anything, 6 cases to check */
-		if (is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[1], verts[2], verts[3], NULL, TRUE);
+		BMVert **vert_arr = MEM_mallocN(sizeof(BMVert **) * totv, __func__);
+		int i = 0;
+
+		BMO_ITER(v, &oiter, bm, op, "geom", BM_VERT) {
+			vert_arr[i] = v;
+			i++;
 		}
-		else if (is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[3]->co, verts[1]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[2], verts[3], verts[1], NULL, TRUE);
-		}
-		else if (is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[1]->co, verts[3]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[2], verts[1], verts[3], NULL, TRUE);
-		}
-		else if (is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[3]->co, verts[2]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[1], verts[3], verts[2], NULL, TRUE);
-		}
-		else if (is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[2]->co, verts[1]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[3], verts[2], verts[1], NULL, TRUE);
-		}
-		else if (is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[1]->co, verts[2]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[3], verts[1], verts[2], NULL, TRUE);
-		}
-		else {
-			printf("cannot find nice quad from concave set of vertices\n");
-		}
+
+		f = BM_face_create_ngon_vcloud(bm, vert_arr, totv, TRUE);
 
 		if (f) {
 			BMO_elem_flag_enable(bm, f, ELE_OUT);
 		}
+
+		MEM_freeN(vert_arr);
 	}
 }

@@ -61,16 +61,16 @@ static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		return NULL;
 
 	switch (PyTuple_GET_SIZE(args)) {
-	case 0:
-		break;
-	case 2:
-		if ((order = euler_order_from_string(order_str, "mathutils.Euler()")) == -1)
-			return NULL;
+		case 0:
+			break;
+		case 2:
+			if ((order = euler_order_from_string(order_str, "mathutils.Euler()")) == -1)
+				return NULL;
 		/* intentionally pass through */
-	case 1:
-		if (mathutils_array_parse(eul, EULER_SIZE, EULER_SIZE, seq, "mathutils.Euler()") == -1)
-			return NULL;
-		break;
+		case 1:
+			if (mathutils_array_parse(eul, EULER_SIZE, EULER_SIZE, seq, "mathutils.Euler()") == -1)
+				return NULL;
+			break;
 	}
 	return Euler_CreatePyObject(eul, order, Py_NEW, type);
 }
@@ -86,12 +86,12 @@ short euler_order_from_string(const char *str, const char *error_prefix)
 {
 	if ((str[0] && str[1] && str[2] && str[3] == '\0')) {
 		switch (*((PY_INT32_T *)str)) {
-			case 'X'|'Y'<<8|'Z'<<16:	return EULER_ORDER_XYZ;
-			case 'X'|'Z'<<8|'Y'<<16:	return EULER_ORDER_XZY;
-			case 'Y'|'X'<<8|'Z'<<16:	return EULER_ORDER_YXZ;
-			case 'Y'|'Z'<<8|'X'<<16:	return EULER_ORDER_YZX;
-			case 'Z'|'X'<<8|'Y'<<16:	return EULER_ORDER_ZXY;
-			case 'Z'|'Y'<<8|'X'<<16:	return EULER_ORDER_ZYX;
+			case 'X' | 'Y' << 8 | 'Z' << 16:    return EULER_ORDER_XYZ;
+			case 'X' | 'Z' << 8 | 'Y' << 16:    return EULER_ORDER_XZY;
+			case 'Y' | 'X' << 8 | 'Z' << 16:    return EULER_ORDER_YXZ;
+			case 'Y' | 'Z' << 8 | 'X' << 16:    return EULER_ORDER_YZX;
+			case 'Z' | 'X' << 8 | 'Y' << 16:    return EULER_ORDER_ZXY;
+			case 'Z' | 'Y' << 8 | 'X' << 16:    return EULER_ORDER_ZYX;
 		}
 	}
 
@@ -164,7 +164,7 @@ static PyObject *Euler_to_matrix(EulerObject *self)
 
 	eulO_to_mat3((float (*)[3])mat, self->eul, self->order);
 
-	return Matrix_CreatePyObject(mat, 3, 3 , Py_NEW, NULL);
+	return Matrix_CreatePyObject(mat, 3, 3, Py_NEW, NULL);
 }
 
 PyDoc_STRVAR(Euler_zero_doc,
@@ -299,6 +299,12 @@ static PyObject *Euler_copy(EulerObject *self)
 
 	return Euler_CreatePyObject(self->eul, self->order, Py_NEW, Py_TYPE(self));
 }
+static PyObject *Euler_deepcopy(EulerObject *self, PyObject *args)
+{
+	if (!mathutils_deepcopy_args_check(args))
+		return NULL;
+	return Euler_copy(self);
+}
 
 //----------------------------print object (internal)--------------
 //print the object to screen
@@ -349,21 +355,21 @@ static PyObject *Euler_richcmpr(PyObject *a, PyObject *b, int op)
 	}
 
 	switch (op) {
-	case Py_NE:
-		ok = !ok; /* pass through */
-	case Py_EQ:
-		res = ok ? Py_False : Py_True;
-		break;
+		case Py_NE:
+			ok = !ok; /* pass through */
+		case Py_EQ:
+			res = ok ? Py_False : Py_True;
+			break;
 
-	case Py_LT:
-	case Py_LE:
-	case Py_GT:
-	case Py_GE:
-		res = Py_NotImplemented;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
+		case Py_LT:
+		case Py_LE:
+		case Py_GT:
+		case Py_GE:
+			res = Py_NotImplemented;
+			break;
+		default:
+			PyErr_BadArgument();
+			return NULL;
 	}
 
 	return Py_INCREF(res), res;
@@ -550,16 +556,16 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
 
 //-----------------PROTCOL DECLARATIONS--------------------------
 static PySequenceMethods Euler_SeqMethods = {
-	(lenfunc) Euler_len,					/* sq_length */
-	(binaryfunc) NULL,						/* sq_concat */
-	(ssizeargfunc) NULL,					/* sq_repeat */
-	(ssizeargfunc) Euler_item,				/* sq_item */
-	(ssizessizeargfunc) NULL,				/* sq_slice, deprecated  */
-	(ssizeobjargproc) Euler_ass_item,		/* sq_ass_item */
-	(ssizessizeobjargproc) NULL,			/* sq_ass_slice, deprecated */
-	(objobjproc) NULL,						/* sq_contains */
-	(binaryfunc) NULL,						/* sq_inplace_concat */
-	(ssizeargfunc) NULL,					/* sq_inplace_repeat */
+	(lenfunc) Euler_len,                    /* sq_length */
+	(binaryfunc) NULL,                      /* sq_concat */
+	(ssizeargfunc) NULL,                    /* sq_repeat */
+	(ssizeargfunc) Euler_item,              /* sq_item */
+	(ssizessizeargfunc) NULL,               /* sq_slice, deprecated  */
+	(ssizeobjargproc) Euler_ass_item,       /* sq_ass_item */
+	(ssizessizeobjargproc) NULL,            /* sq_ass_slice, deprecated */
+	(objobjproc) NULL,                      /* sq_contains */
+	(binaryfunc) NULL,                      /* sq_inplace_concat */
+	(ssizeargfunc) NULL,                    /* sq_inplace_repeat */
 };
 
 static PyMappingMethods Euler_AsMapping = {
@@ -632,8 +638,9 @@ static struct PyMethodDef Euler_methods[] = {
 	{"rotate_axis", (PyCFunction) Euler_rotate_axis, METH_VARARGS, Euler_rotate_axis_doc},
 	{"rotate", (PyCFunction) Euler_rotate, METH_O, Euler_rotate_doc},
 	{"make_compatible", (PyCFunction) Euler_make_compatible, METH_O, Euler_make_compatible_doc},
-	{"__copy__", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
 	{"copy", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
+	{"__copy__", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
+	{"__deepcopy__", (PyCFunction) Euler_deepcopy, METH_VARARGS, Euler_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -643,64 +650,64 @@ PyDoc_STRVAR(euler_doc,
 );
 PyTypeObject euler_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"mathutils.Euler",				//tp_name
-	sizeof(EulerObject),			//tp_basicsize
-	0,								//tp_itemsize
-	(destructor)BaseMathObject_dealloc,		//tp_dealloc
-	NULL,							//tp_print
-	NULL,							//tp_getattr
-	NULL,							//tp_setattr
-	NULL,							//tp_compare
-	(reprfunc) Euler_repr,			//tp_repr
-	NULL,							//tp_as_number
-	&Euler_SeqMethods,				//tp_as_sequence
-	&Euler_AsMapping,				//tp_as_mapping
-	NULL,							//tp_hash
-	NULL,							//tp_call
-	(reprfunc) Euler_str,			//tp_str
-	NULL,							//tp_getattro
-	NULL,							//tp_setattro
-	NULL,							//tp_as_buffer
+	"mathutils.Euler",              //tp_name
+	sizeof(EulerObject),            //tp_basicsize
+	0,                              //tp_itemsize
+	(destructor)BaseMathObject_dealloc,     //tp_dealloc
+	NULL,                           //tp_print
+	NULL,                           //tp_getattr
+	NULL,                           //tp_setattr
+	NULL,                           //tp_compare
+	(reprfunc) Euler_repr,          //tp_repr
+	NULL,                           //tp_as_number
+	&Euler_SeqMethods,              //tp_as_sequence
+	&Euler_AsMapping,               //tp_as_mapping
+	NULL,                           //tp_hash
+	NULL,                           //tp_call
+	(reprfunc) Euler_str,           //tp_str
+	NULL,                           //tp_getattro
+	NULL,                           //tp_setattro
+	NULL,                           //tp_as_buffer
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, //tp_flags
 	euler_doc, //tp_doc
-	(traverseproc)BaseMathObject_traverse,	//tp_traverse
-	(inquiry)BaseMathObject_clear,	//tp_clear
-	(richcmpfunc)Euler_richcmpr,	//tp_richcompare
-	0,								//tp_weaklistoffset
-	NULL,							//tp_iter
-	NULL,							//tp_iternext
-	Euler_methods,					//tp_methods
-	NULL,							//tp_members
-	Euler_getseters,				//tp_getset
-	NULL,							//tp_base
-	NULL,							//tp_dict
-	NULL,							//tp_descr_get
-	NULL,							//tp_descr_set
-	0,								//tp_dictoffset
-	NULL,							//tp_init
-	NULL,							//tp_alloc
-	Euler_new,						//tp_new
-	NULL,							//tp_free
-	NULL,							//tp_is_gc
-	NULL,							//tp_bases
-	NULL,							//tp_mro
-	NULL,							//tp_cache
-	NULL,							//tp_subclasses
-	NULL,							//tp_weaklist
-	NULL							//tp_del
+	(traverseproc)BaseMathObject_traverse,  //tp_traverse
+	(inquiry)BaseMathObject_clear,  //tp_clear
+	(richcmpfunc)Euler_richcmpr,    //tp_richcompare
+	0,                              //tp_weaklistoffset
+	NULL,                           //tp_iter
+	NULL,                           //tp_iternext
+	Euler_methods,                  //tp_methods
+	NULL,                           //tp_members
+	Euler_getseters,                //tp_getset
+	NULL,                           //tp_base
+	NULL,                           //tp_dict
+	NULL,                           //tp_descr_get
+	NULL,                           //tp_descr_set
+	0,                              //tp_dictoffset
+	NULL,                           //tp_init
+	NULL,                           //tp_alloc
+	Euler_new,                      //tp_new
+	NULL,                           //tp_free
+	NULL,                           //tp_is_gc
+	NULL,                           //tp_bases
+	NULL,                           //tp_mro
+	NULL,                           //tp_cache
+	NULL,                           //tp_subclasses
+	NULL,                           //tp_weaklist
+	NULL                            //tp_del
 };
 //------------------------Euler_CreatePyObject (internal)-------------
 //creates a new euler object
-/*pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
- (i.e. it was allocated elsewhere by MEM_mallocN())
-  pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
- (i.e. it must be created here with PyMEM_malloc())*/
+/* pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
+ * (i.e. it was allocated elsewhere by MEM_mallocN())
+ * pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
+ * (i.e. it must be created here with PyMEM_malloc())*/
 PyObject *Euler_CreatePyObject(float *eul, short order, int type, PyTypeObject *base_type)
 {
 	EulerObject *self;
 
-	self = base_type ?	(EulerObject *)base_type->tp_alloc(base_type, 0) :
-						(EulerObject *)PyObject_GC_New(EulerObject, &euler_Type);
+	self = base_type ?  (EulerObject *)base_type->tp_alloc(base_type, 0) :
+	                    (EulerObject *)PyObject_GC_New(EulerObject, &euler_Type);
 
 	if (self) {
 		/* init callbacks as NULL */
@@ -732,14 +739,15 @@ PyObject *Euler_CreatePyObject(float *eul, short order, int type, PyTypeObject *
 	return (PyObject *)self;
 }
 
-PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, short order, int cb_type, int cb_subtype)
+PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, short order,
+                                  unsigned char cb_type, unsigned char cb_subtype)
 {
 	EulerObject *self = (EulerObject *)Euler_CreatePyObject(NULL, order, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 

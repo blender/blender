@@ -27,15 +27,10 @@
 
 /** \file blender/blenkernel/intern/library.c
  *  \ingroup bke
+ *
+ * Contains management of ID's and libraries
+ * allocate and free of all library data
  */
-
-
-/*
- *  Contains management of ID's and libraries
- *  allocate and free of all library data
- * 
- */
-
 
 #include <stdio.h>
 #include <ctype.h>
@@ -123,8 +118,8 @@
 #define MAX_IDPUP		60	/* was 24 */
 
 /* GS reads the memory pointed at in a specific ordering. 
-   only use this definition, makes little and big endian systems
-   work fine, in conjunction with MAKE_ID */
+ * only use this definition, makes little and big endian systems
+ * work fine, in conjunction with MAKE_ID */
 
 /* from blendef: */
 #define GS(a)	(*((short *)(a)))
@@ -148,8 +143,8 @@ void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 
 void id_lib_extern(ID *id)
 {
-	if(id) {
-		if(id->flag & LIB_INDIRECT) {
+	if (id) {
+		if (id->flag & LIB_INDIRECT) {
 			id->flag -= LIB_INDIRECT;
 			id->flag |= LIB_EXTERN;
 		}
@@ -158,9 +153,9 @@ void id_lib_extern(ID *id)
 
 void id_us_plus(ID *id)
 {
-	if(id) {
+	if (id) {
 		id->us++;
-		if(id->flag & LIB_INDIRECT) {
+		if (id->flag & LIB_INDIRECT) {
 			id->flag -= LIB_INDIRECT;
 			id->flag |= LIB_EXTERN;
 		}
@@ -169,19 +164,22 @@ void id_us_plus(ID *id)
 
 void id_us_min(ID *id)
 {
-	if(id) {
-		if(id->us<2 && (id->flag & LIB_FAKEUSER))
-		   id->us= 1;
-		else if(id->us<=0)
-			printf("ID user decrement error: %s \n", id->name);
-		else
+	if (id) {
+		if (id->us < 2 && (id->flag & LIB_FAKEUSER)) {
+			id->us= 1;
+		}
+		else if (id->us <= 0) {
+			printf("ID user decrement error: %s\n", id->name);
+		}
+		else {
 			id->us--;
+		}
 	}
 }
 
 int id_make_local(ID *id, int test)
 {
-	if(id->flag & LIB_INDIRECT)
+	if (id->flag & LIB_INDIRECT)
 		return 0;
 
 	switch(GS(id->name)) {
@@ -190,54 +188,54 @@ int id_make_local(ID *id, int test)
 		case ID_LI:
 			return 0; /* can't be linked */
 		case ID_OB:
-			if(!test) make_local_object((Object*)id);
+			if (!test) make_local_object((Object*)id);
 			return 1;
 		case ID_ME:
-			if(!test) {
+			if (!test) {
 				make_local_mesh((Mesh*)id);
 				make_local_key(((Mesh*)id)->key);
 			}
 			return 1;
 		case ID_CU:
-			if(!test) {
+			if (!test) {
 				make_local_curve((Curve*)id);
 				make_local_key(((Curve*)id)->key);
 			}
 			return 1;
 		case ID_MB:
-			if(!test) make_local_mball((MetaBall*)id);
+			if (!test) make_local_mball((MetaBall*)id);
 			return 1;
 		case ID_MA:
-			if(!test) make_local_material((Material*)id);
+			if (!test) make_local_material((Material*)id);
 			return 1;
 		case ID_TE:
-			if(!test) make_local_texture((Tex*)id);
+			if (!test) make_local_texture((Tex*)id);
 			return 1;
 		case ID_IM:
-			if(!test) make_local_image((Image*)id);
+			if (!test) make_local_image((Image*)id);
 			return 1;
 		case ID_LT:
-			if(!test) {
+			if (!test) {
 				make_local_lattice((Lattice*)id);
 				make_local_key(((Lattice*)id)->key);
 			}
 			return 1;
 		case ID_LA:
-			if(!test) make_local_lamp((Lamp*)id);
+			if (!test) make_local_lamp((Lamp*)id);
 			return 1;
 		case ID_CA:
-			if(!test) make_local_camera((Camera*)id);
+			if (!test) make_local_camera((Camera*)id);
 			return 1;
 		case ID_SPK:
-			if(!test) make_local_speaker((Speaker*)id);
+			if (!test) make_local_speaker((Speaker*)id);
 			return 1;
 		case ID_IP:
 			return 0; /* deprecated */
 		case ID_KE:
-			if(!test) make_local_key((Key*)id);
+			if (!test) make_local_key((Key*)id);
 			return 1;
 		case ID_WO:
-			if(!test) make_local_world((World*)id);
+			if (!test) make_local_world((World*)id);
 			return 1;
 		case ID_SCR:
 			return 0; /* can't be linked */
@@ -252,18 +250,18 @@ int id_make_local(ID *id, int test)
 		case ID_GR:
 			return 0; /* not implemented */
 		case ID_AR:
-			if(!test) make_local_armature((bArmature*)id);
+			if (!test) make_local_armature((bArmature*)id);
 			return 1;
 		case ID_AC:
-			if(!test) make_local_action((bAction*)id);
+			if (!test) make_local_action((bAction*)id);
 			return 1;
 		case ID_NT:
 			return 0; /* not implemented */
 		case ID_BR:
-			if(!test) make_local_brush((Brush*)id);
+			if (!test) make_local_brush((Brush*)id);
 			return 1;
 		case ID_PA:
-			if(!test) make_local_particlesettings((ParticleSettings*)id);
+			if (!test) make_local_particlesettings((ParticleSettings*)id);
 			return 1;
 		case ID_WM:
 			return 0; /* can't be linked */
@@ -276,7 +274,7 @@ int id_make_local(ID *id, int test)
 
 int id_copy(ID *id, ID **newid, int test)
 {
-	if(!test) *newid= NULL;
+	if (!test) *newid= NULL;
 
 	/* conventions:
 	 * - make shallow copy, only this ID block
@@ -287,74 +285,74 @@ int id_copy(ID *id, ID **newid, int test)
 		case ID_LI:
 			return 0; /* can't be copied from here */
 		case ID_OB:
-			if(!test) *newid= (ID*)copy_object((Object*)id);
+			if (!test) *newid= (ID*)copy_object((Object*)id);
 			return 1;
 		case ID_ME:
-			if(!test) *newid= (ID*)copy_mesh((Mesh*)id);
+			if (!test) *newid= (ID*)copy_mesh((Mesh*)id);
 			return 1;
 		case ID_CU:
-			if(!test) *newid= (ID*)copy_curve((Curve*)id);
+			if (!test) *newid= (ID*)copy_curve((Curve*)id);
 			return 1;
 		case ID_MB:
-			if(!test) *newid= (ID*)copy_mball((MetaBall*)id);
+			if (!test) *newid= (ID*)copy_mball((MetaBall*)id);
 			return 1;
 		case ID_MA:
-			if(!test) *newid= (ID*)copy_material((Material*)id);
+			if (!test) *newid= (ID*)copy_material((Material*)id);
 			return 1;
 		case ID_TE:
-			if(!test) *newid= (ID*)copy_texture((Tex*)id);
+			if (!test) *newid= (ID*)copy_texture((Tex*)id);
 			return 1;
 		case ID_IM:
-			if(!test) *newid= (ID*)copy_image((Image*)id);
+			if (!test) *newid= (ID*)copy_image((Image*)id);
 			return 1;
 		case ID_LT:
-			if(!test) *newid= (ID*)copy_lattice((Lattice*)id);
+			if (!test) *newid= (ID*)copy_lattice((Lattice*)id);
 			return 1;
 		case ID_LA:
-			if(!test) *newid= (ID*)copy_lamp((Lamp*)id);
+			if (!test) *newid= (ID*)copy_lamp((Lamp*)id);
 			return 1;
 		case ID_SPK:
-			if(!test) *newid= (ID*)copy_speaker((Speaker*)id);
+			if (!test) *newid= (ID*)copy_speaker((Speaker*)id);
 			return 1;
 		case ID_CA:
-			if(!test) *newid= (ID*)copy_camera((Camera*)id);
+			if (!test) *newid= (ID*)copy_camera((Camera*)id);
 			return 1;
 		case ID_IP:
 			return 0; /* deprecated */
 		case ID_KE:
-			if(!test) *newid= (ID*)copy_key((Key*)id);
+			if (!test) *newid= (ID*)copy_key((Key*)id);
 			return 1;
 		case ID_WO:
-			if(!test) *newid= (ID*)copy_world((World*)id);
+			if (!test) *newid= (ID*)copy_world((World*)id);
 			return 1;
 		case ID_SCR:
 			return 0; /* can't be copied from here */
 		case ID_VF:
 			return 0; /* not implemented */
 		case ID_TXT:
-			if(!test) *newid= (ID*)copy_text((Text*)id);
+			if (!test) *newid= (ID*)copy_text((Text*)id);
 			return 1;
 		case ID_SCRIPT:
 			return 0; /* deprecated */
 		case ID_SO:
 			return 0; /* not implemented */
 		case ID_GR:
-			if(!test) *newid= (ID*)copy_group((Group*)id);
+			if (!test) *newid= (ID*)copy_group((Group*)id);
 			return 1;
 		case ID_AR:
-			if(!test) *newid= (ID*)copy_armature((bArmature*)id);
+			if (!test) *newid= (ID*)copy_armature((bArmature*)id);
 			return 1;
 		case ID_AC:
-			if(!test) *newid= (ID*)copy_action((bAction*)id);
+			if (!test) *newid= (ID*)copy_action((bAction*)id);
 			return 1;
 		case ID_NT:
-			if(!test) *newid= (ID*)ntreeCopyTree((bNodeTree*)id);
+			if (!test) *newid= (ID*)ntreeCopyTree((bNodeTree*)id);
 			return 1;
 		case ID_BR:
-			if(!test) *newid= (ID*)copy_brush((Brush*)id);
+			if (!test) *newid= (ID*)copy_brush((Brush*)id);
 			return 1;
 		case ID_PA:
-			if(!test) *newid= (ID*)psys_copy_settings((ParticleSettings*)id);
+			if (!test) *newid= (ID*)psys_copy_settings((ParticleSettings*)id);
 			return 1;
 		case ID_WM:
 			return 0; /* can't be copied from here */
@@ -372,21 +370,21 @@ int id_unlink(ID *id, int test)
 
 	switch(GS(id->name)) {
 		case ID_TXT:
-			if(test) return 1;
+			if (test) return 1;
 			unlink_text(mainlib, (Text*)id);
 			break;
 		case ID_GR:
-			if(test) return 1;
+			if (test) return 1;
 			unlink_group((Group*)id);
 			break;
 		case ID_OB:
-			if(test) return 1;
+			if (test) return 1;
 			unlink_object((Object*)id);
 			break;
 	}
 
-	if(id->us == 0) {
-		if(test) return 1;
+	if (id->us == 0) {
+		if (test) return 1;
 
 		lb= which_libbase(mainlib, GS(id->name));
 		free_libblock(lb, id);
@@ -409,8 +407,8 @@ int id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 				/* copy animation actions too */
 				BKE_copy_animdata_id_action(id);
 				/* us is 1 by convention, but RNA_property_pointer_set
-				   will also incremement it, so set it to zero */
-				newid->us= 0;
+				 * will also increment it, so set it to zero */
+				newid->us = 0;
 				
 				/* assign copy */
 				RNA_id_pointer_create(newid, &idptr);
@@ -497,10 +495,11 @@ void flag_listbase_ids(ListBase *lb, short flag, short value)
 {
 	ID *id;
 	if (value) {
-		for(id= lb->first; id; id= id->next) id->flag |= flag;
-	} else {
+		for (id= lb->first; id; id= id->next) id->flag |= flag;
+	}
+	else {
 		flag = ~flag;
-		for(id= lb->first; id; id= id->next) id->flag &= flag;
+		for (id= lb->first; id; id= id->next) id->flag &= flag;
 	}
 }
 
@@ -510,7 +509,7 @@ void flag_all_listbases_ids(short flag, short value)
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a;
 	a= set_listbasepointers(G.main, lbarray);
-	while(a--)	flag_listbase_ids(lbarray[a], flag, value);
+	while (a--)	flag_listbase_ids(lbarray[a], flag, value);
 }
 
 void recalc_all_library_objects(Main *main)
@@ -518,8 +517,8 @@ void recalc_all_library_objects(Main *main)
 	Object *ob;
 
 	/* flag for full recalc */
-	for(ob=main->object.first; ob; ob=ob->id.next)
-		if(ob->id.lib)
+	for (ob=main->object.first; ob; ob=ob->id.next)
+		if (ob->id.lib)
 			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 }
 
@@ -577,14 +576,14 @@ int set_listbasepointers(Main *main, ListBase **lb)
 }
 
 /* *********** ALLOC AND FREE *****************
-  
-free_libblock(ListBase *lb, ID *id )
-	provide a list-basis and datablock, but only ID is read
-
-void *alloc_libblock(ListBase *lb, type, name)
-	inserts in list and returns a new ID
-
- ***************************** */
+ *
+ * free_libblock(ListBase *lb, ID *id )
+ * provide a list-basis and datablock, but only ID is read
+ *
+ * void *alloc_libblock(ListBase *lb, type, name)
+ * inserts in list and returns a new ID
+ *
+ * **************************** */
 
 static ID *alloc_libblock_notest(short type)
 {
@@ -691,7 +690,7 @@ void *alloc_libblock(ListBase *lb, short type, const char *name)
 	ID *id= NULL;
 	
 	id= alloc_libblock_notest(type);
-	if(id) {
+	if (id) {
 		BLI_addtail(lb, id);
 		id->us= 1;
 		id->icon_id = 0;
@@ -737,7 +736,7 @@ void *copy_libblock(ID *id)
 	assert(idn != NULL);
 
 	idn_len= MEM_allocN_len(idn);
-	if((int)idn_len - (int)sizeof(ID) > 0) { /* signed to allow neg result */
+	if ((int)idn_len - (int)sizeof(ID) > 0) { /* signed to allow neg result */
 		const char *cp= (const char *)id;
 		char *cpn= (char *)idn;
 
@@ -880,7 +879,7 @@ void free_libblock(ListBase *lb, void *idv)
 			psys_free_settings((ParticleSettings *)id);
 			break;
 		case ID_WM:
-			if(free_windowmanager_cb)
+			if (free_windowmanager_cb)
 				free_windowmanager_cb(NULL, (wmWindowManager *)id);
 			break;
 		case ID_GD:
@@ -910,12 +909,12 @@ void free_libblock_us(ListBase *lb, void *idv)		/* test users */
 	
 	id->us--;
 
-	if(id->us<0) {
-		if(id->lib) printf("ERROR block %s %s users %d\n", id->lib->name, id->name, id->us);
+	if (id->us<0) {
+		if (id->lib) printf("ERROR block %s %s users %d\n", id->lib->name, id->name, id->us);
 		else printf("ERROR block %s users %d\n", id->name, id->us);
 	}
-	if(id->us==0) {
-		if( GS(id->name)==ID_OB ) unlink_object((Object *)id);
+	if (id->us==0) {
+		if ( GS(id->name)==ID_OB ) unlink_object((Object *)id);
 		
 		free_libblock(lb, id);
 	}
@@ -929,7 +928,7 @@ void free_main(Main *mainvar)
 	int a;
 
 	a= set_listbasepointers(mainvar, lbarray);
-	while(a--) {
+	while (a--) {
 		ListBase *lb= lbarray[a];
 		ID *id;
 		
@@ -961,16 +960,16 @@ static void get_flags_for_id(ID *id, char *buf)
 		 * to have that explicit, oh well - zr
 		 */
 
-	if(GS(id->name)==ID_MA)
+	if (GS(id->name)==ID_MA)
 		isnode= ((Material *)id)->use_nodes;
-	if(GS(id->name)==ID_TE)
+	if (GS(id->name)==ID_TE)
 		isnode= ((Tex *)id)->use_nodes;
 	
 	if (id->us<0)
 		strcpy(buf, "-1W ");
 	else if (!id->lib && !isfake && id->us && !isnode)
 		strcpy(buf, "     ");
-	else if(isnode)
+	else if (isnode)
 		sprintf(buf, "%c%cN%c ", id->lib?'L':' ', isfake?'F':' ', (id->us==0)?'O':' ');
 	else
 		sprintf(buf, "%c%c%c ", id->lib?'L':' ', isfake?'F':' ', (id->us==0)?'O':' ');
@@ -987,7 +986,8 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 	if (nr && nids>MAX_IDPUP) {
 		BLI_dynstr_append(pupds, "DataBrowse %x-2");
 		*nr= -2;
-	} else {
+	}
+	else {
 		ID *id;
 		
 		for (i=0, id= lb->first; id; id= id->next, i++) {
@@ -1024,7 +1024,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 				break;
 			}
 			
-			if(id->next)
+			if (id->next)
 				BLI_dynstr_append(pupds, "|");
 		}
 	}
@@ -1081,19 +1081,19 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 	ID *idtest;
 	
 	/* insert alphabetically */
-	if(lb->first!=lb->last) {
+	if (lb->first!=lb->last) {
 		BLI_remlink(lb, id);
 		
 		idtest= lb->first;
-		while(idtest) {
-			if(BLI_strcasecmp(idtest->name, id->name)>0 || idtest->lib) {
+		while (idtest) {
+			if (BLI_strcasecmp(idtest->name, id->name)>0 || idtest->lib) {
 				BLI_insertlinkbefore(lb, idtest, id);
 				break;
 			}
 			idtest= idtest->next;
 		}
 		/* as last */
-		if(idtest==NULL) {
+		if (idtest==NULL) {
 			BLI_addtail(lb, id);
 		}
 	}
@@ -1108,13 +1108,13 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
 {
 	ID *idtest=NULL;
 	
-	for( idtest = lb->first; idtest; idtest = idtest->next ) {
+	for ( idtest = lb->first; idtest; idtest = idtest->next ) {
 		/* if idtest is not a lib */ 
-		if( id != idtest && idtest->lib == NULL ) {
+		if ( id != idtest && idtest->lib == NULL ) {
 			/* do not test alphabetic! */
 			/* optimized */
-			if( idtest->name[2] == name[0] ) {
-				if(strcmp(name, idtest->name+2)==0) break;
+			if ( idtest->name[2] == name[0] ) {
+				if (strcmp(name, idtest->name+2)==0) break;
 			}
 		}
 	}
@@ -1141,7 +1141,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 	char left[MAX_ID_NAME + 8], leftest[MAX_ID_NAME + 8];
 
 	/* make sure input name is terminated properly */
-	/* if( strlen(name) > MAX_ID_NAME-3 ) name[MAX_ID_NAME-3]= 0; */
+	/* if ( strlen(name) > MAX_ID_NAME-3 ) name[MAX_ID_NAME-3]= 0; */
 	/* removed since this is only ever called from one place - campbell */
 
 	while (1) {
@@ -1150,7 +1150,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		idtest = is_dupid(lb, id, name);
 
 		/* if there is no double, done */
-		if( idtest == NULL ) return 0;
+		if ( idtest == NULL ) return 0;
 
 		/* we have a dup; need to make a new name */
 		/* quick check so we can reuse one of first 64 ids if vacant */
@@ -1160,33 +1160,33 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		left_len= BLI_split_name_num(left, &nr, name, '.');
 
 		/* if new name will be too long, truncate it */
-		if(nr > 999 && left_len > (MAX_ID_NAME - 8)) {
+		if (nr > 999 && left_len > (MAX_ID_NAME - 8)) {
 			left[MAX_ID_NAME - 8]= 0;
 			left_len= MAX_ID_NAME - 8;
 		}
-		else if(left_len > (MAX_ID_NAME - 7)) {
+		else if (left_len > (MAX_ID_NAME - 7)) {
 			left[MAX_ID_NAME - 7]= 0;
 			left_len= MAX_ID_NAME - 7;
 		}
 
-		for(idtest= lb->first; idtest; idtest= idtest->next) {
-			if(		(id != idtest) &&
+		for (idtest= lb->first; idtest; idtest= idtest->next) {
+			if (		(id != idtest) &&
 					(idtest->lib == NULL) &&
 					(*name == *(idtest->name+2)) &&
 					(strncmp(name, idtest->name+2, left_len)==0) &&
 					(BLI_split_name_num(leftest, &nrtest, idtest->name+2, '.') == left_len)
 			) {
-				if(nrtest < sizeof(in_use))
+				if (nrtest < sizeof(in_use))
 					in_use[nrtest]= 1;	/* mark as used */
-				if(nr <= nrtest)
+				if (nr <= nrtest)
 					nr= nrtest+1;		/* track largest unused */
 			}
 		}
 
 		/* decide which value of nr to use */
-		for(a=0; a < sizeof(in_use); a++) {
-			if(a>=nr) break;	/* stop when we've check up to biggest */
-			if( in_use[a]==0 ) { /* found an unused value */
+		for (a=0; a < sizeof(in_use); a++) {
+			if (a>=nr) break;	/* stop when we've check up to biggest */
+			if ( in_use[a]==0 ) { /* found an unused value */
 				nr = a;
 				break;
 			}
@@ -1195,7 +1195,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		/* If the original name has no numeric suffix, 
 		 * rather than just chopping and adding numbers, 
 		 * shave off the end chars until we have a unique name.
-		 * Check the null terminators match as well so we dont get Cube.000 -> Cube.00 */
+		 * Check the null terminators match as well so we don't get Cube.000 -> Cube.00 */
 		if (nr==0 && name[left_len]== '\0') {
 			int len = left_len-1;
 			idtest= is_dupid(lb, id, name);
@@ -1208,10 +1208,10 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 			/* otherwise just continue and use a number suffix */
 		}
 		
-		if(nr > 999 && left_len > (MAX_ID_NAME - 8)) {
+		if (nr > 999 && left_len > (MAX_ID_NAME - 8)) {
 			/* this would overflow name buffer */
 			left[MAX_ID_NAME - 8] = 0;
-			/* left_len = MAX_ID_NAME - 8; */ /* for now this isnt used again */
+			/* left_len = MAX_ID_NAME - 8; */ /* for now this isn't used again */
 			memcpy(name, left, sizeof(char) * (MAX_ID_NAME - 7));
 			continue;
 		}
@@ -1235,14 +1235,14 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	char name[MAX_ID_NAME-2];
 
 	/* if library, don't rename */
-	if(id->lib) return 0;
+	if (id->lib) return 0;
 
 	/* if no libdata given, look up based on ID */
-	if(lb==NULL) lb= which_libbase(G.main, GS(id->name));
+	if (lb==NULL) lb= which_libbase(G.main, GS(id->name));
 
 	/* if no name given, use name of current ID
 	 * else make a copy (tname args can be const) */
-	if(tname==NULL)
+	if (tname==NULL)
 		tname= id->name+2;
 
 	strncpy(name, tname, sizeof(name)-1);
@@ -1251,13 +1251,13 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	 * easier to assign each time then to check if its needed */
 	name[sizeof(name)-1]= 0;
 
-	if(name[0] == '\0') {
+	if (name[0] == '\0') {
 		/* disallow empty names */
 		strcpy(name, ID_FALLBACK_NAME);
 	}
 	else {
 		/* disallow non utf8 chars,
-		 * the interface checks for this but new ID's based on file names dont */
+		 * the interface checks for this but new ID's based on file names don't */
 		BLI_utf8_invalid_strip(name, strlen(name));
 	}
 
@@ -1268,16 +1268,18 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	 * however all data in blender should be sorted, not just duplicate names
 	 * sorting should not hurt, but noting just incause it alters the way other
 	 * functions work, so sort every time */
-	/* if( result )
-		sort_alpha_id(lb, id);*/
-	
+#if 0
+	if ( result )
+		sort_alpha_id(lb, id);
+#endif
+
 	sort_alpha_id(lb, id);
 	
 	return result;
 }
 
 /* Pull an ID out of a library (make it local). Only call this for IDs that
-   don't have other library users. */
+ * don't have other library users. */
 void id_clear_lib_data(Main *bmain, ID *id)
 {
 	BKE_id_lib_local_paths(bmain, id->lib, id);
@@ -1295,9 +1297,9 @@ void clear_id_newpoins(void)
 	int a;
 
 	a= set_listbasepointers(G.main, lbarray);
-	while(a--) {
+	while (a--) {
 		id= lbarray[a]->first;
-		while(id) {
+		while (id) {
 			id->newid= NULL;
 			id->flag &= ~LIB_NEW;
 			id= id->next;
@@ -1305,21 +1307,21 @@ void clear_id_newpoins(void)
 	}
 }
 
-#define LIBTAG(a)	if(a && a->id.lib) {a->id.flag &=~LIB_INDIRECT; a->id.flag |= LIB_EXTERN;}
+#define LIBTAG(a)	if (a && a->id.lib) {a->id.flag &=~LIB_INDIRECT; a->id.flag |= LIB_EXTERN;}
 
 static void lib_indirect_test_id(ID *id, Library *lib)
 {
 	
-	if(id->lib) {
+	if (id->lib) {
 		/* datablocks that were indirectly related are now direct links
 		 * without this, appending data that has a link to other data will fail to write */
-		if(lib && id->lib->parent == lib) {
+		if (lib && id->lib->parent == lib) {
 			id_lib_extern(id);
 		}
 		return;
 	}
 	
-	if(GS(id->name)==ID_OB) {		
+	if (GS(id->name)==ID_OB) {		
 		Object *ob= (Object *)id;
 		Mesh *me;
 
@@ -1338,7 +1340,7 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 		// XXX: new animation system needs something like this?
 #endif
 
-		for(a=0; a<ob->totcol; a++) {
+		for (a=0; a<ob->totcol; a++) {
 			LIBTAG(ob->mat[a]);
 		}
 	
@@ -1353,13 +1355,13 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 void tag_main_lb(ListBase *lb, const short tag)
 {
 	ID *id;
-	if(tag) {
-		for(id= lb->first; id; id= id->next) {
+	if (tag) {
+		for (id= lb->first; id; id= id->next) {
 			id->flag |= LIB_DOIT;
 		}
 	}
 	else {
-		for(id= lb->first; id; id= id->next) {
+		for (id= lb->first; id; id= id->next) {
 			id->flag &= ~LIB_DOIT;
 		}
 	}
@@ -1378,7 +1380,7 @@ void tag_main(struct Main *mainvar, const short tag)
 	int a;
 
 	a= set_listbasepointers(mainvar, lbarray);
-	while(a--) {
+	while (a--) {
 		tag_main_lb(lbarray[a], tag);
 	}
 }
@@ -1392,23 +1394,23 @@ void BKE_library_make_local(Main *bmain, Library *lib, int untagged_only)
 	int a;
 
 	a= set_listbasepointers(bmain, lbarray);
-	while(a--) {
+	while (a--) {
 		id= lbarray[a]->first;
 		
-		while(id) {
+		while (id) {
 			id->newid= NULL;
 			idn= id->next;		/* id is possibly being inserted again */
 			
 			/* The check on the second line (LIB_PRE_EXISTING) is done so its
-			 * possible to tag data you dont want to be made local, used for
+			 * possible to tag data you don't want to be made local, used for
 			 * appending data, so any libdata already linked wont become local
 			 * (very nasty to discover all your links are lost after appending)  
 			 * */
-			if(id->flag & (LIB_EXTERN|LIB_INDIRECT|LIB_NEW) &&
+			if (id->flag & (LIB_EXTERN|LIB_INDIRECT|LIB_NEW) &&
 			  (untagged_only==0 || !(id->flag & LIB_PRE_EXISTING)))
 			{
-				if(lib==NULL || id->lib==lib) {
-					if(id->lib) {
+				if (lib==NULL || id->lib==lib) {
+					if (id->lib) {
 						id_clear_lib_data(bmain, id); /* sets 'id->flag' */
 
 						/* why sort alphabetically here but not in
@@ -1424,7 +1426,7 @@ void BKE_library_make_local(Main *bmain, Library *lib, int untagged_only)
 		}
 		
 		/* patch2: make it aphabetically */
-		while( (id=tempbase.first) ) {
+		while ( (id=tempbase.first) ) {
 			BLI_remlink(&tempbase, id);
 			BLI_addtail(lbarray[a], id);
 			new_id(lbarray[a], id, NULL);
@@ -1433,8 +1435,8 @@ void BKE_library_make_local(Main *bmain, Library *lib, int untagged_only)
 
 	/* patch 3: make sure library data isn't indirect falsely... */
 	a= set_listbasepointers(bmain, lbarray);
-	while(a--) {
-		for(id= lbarray[a]->first; id; id=id->next)
+	while (a--) {
+		for (id= lbarray[a]->first; id; id=id->next)
 			lib_indirect_test_id(id, lib);
 	}
 }
@@ -1448,22 +1450,22 @@ void test_idbutton(char *name)
 	
 
 	lb= which_libbase(G.main, GS(name-2) );
-	if(lb==NULL) return;
+	if (lb==NULL) return;
 	
 	/* search for id */
 	idtest= BLI_findstring(lb, name, offsetof(ID, name) + 2);
 
-	if(idtest) if( new_id(lb, idtest, name)==0 ) sort_alpha_id(lb, idtest);
+	if (idtest) if ( new_id(lb, idtest, name)==0 ) sort_alpha_id(lb, idtest);
 }
 
 void text_idbutton(struct ID *id, char *text)
 {
-	if(id) {
-		if(GS(id->name)==ID_SCE)
+	if (id) {
+		if (GS(id->name)==ID_SCE)
 			strcpy(text, "SCE: ");
-		else if(GS(id->name)==ID_SCR)
+		else if (GS(id->name)==ID_SCR)
 			strcpy(text, "SCR: ");
-		else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
+		else if (GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
 			strcpy(text, "NT: ");
 		else {
 			text[0]= id->name[0];

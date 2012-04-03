@@ -101,7 +101,7 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 	case KX_ClientObjectInfo::OBACTORSENSOR:
 		// this object may have multiple collision sensors, 
 		// check is any of them is interested in this object
-		for(std::list<SCA_ISensor*>::iterator it = info->m_sensors.begin();
+		for (std::list<SCA_ISensor*>::iterator it = info->m_sensors.begin();
 			it != info->m_sensors.end();
 			++it)
 		{

@@ -6,4 +6,9 @@ sources = env.Glob('*.c')
 incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include ../../blenloader'
 
-env.BlenderLib ( 'bf_editors_space_nla', sources, Split(incs), [], libtype=['core'], priority=[85] )
+defs = []
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
+env.BlenderLib ( 'bf_editors_space_nla', sources, Split(incs), defs, libtype=['core'], priority=[85] )

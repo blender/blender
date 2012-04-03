@@ -117,6 +117,8 @@ void SEQUENCER_OT_paste(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_rebuild_proxy(struct wmOperatorType *ot);
 
+void SEQUENCER_OT_update_strip_length(struct wmOperatorType *ot);
+
 /* preview specific operators */
 void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 
@@ -136,6 +138,7 @@ void SEQUENCER_OT_select_grouped(struct wmOperatorType *ot);
 /* sequencer_select.c */
 void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot);
+void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot);

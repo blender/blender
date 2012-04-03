@@ -57,7 +57,7 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 	char path[512];
 	RNA_string_get(op->ptr, "filepath", path);
 #ifdef WITH_PYTHON
-	if(BPY_filepath_exec(C, path, op->reports)) {
+	if (BPY_filepath_exec(C, path, op->reports)) {
 		ARegion *ar= CTX_wm_region(C);
 		ED_region_tag_redraw(ar);
 		return OPERATOR_FINISHED;
@@ -71,16 +71,16 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Run python file";
-	ot->description= "Run Python file";
-	ot->idname= "SCRIPT_OT_python_file_run";
+	ot->name = "Run python file";
+	ot->description = "Run Python file";
+	ot->idname = "SCRIPT_OT_python_file_run";
 	ot->flag = OPTYPE_UNDO;
 
 	/* api callbacks */
-	ot->exec= run_pyfile_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->exec = run_pyfile_exec;
+	ot->poll = ED_operator_areaactive;
 
-	RNA_def_string_file_path(ot->srna, "filepath", "", 512, "Path", "");
+	RNA_def_string_file_path(ot->srna, "filepath", "", FILE_MAX, "Path", "");
 }
 
 
@@ -103,10 +103,10 @@ static int script_reload_exec(bContext *C, wmOperator *UNUSED(op))
 void SCRIPT_OT_reload(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reload Scripts";
-	ot->description= "Reload Scripts";
-	ot->idname= "SCRIPT_OT_reload";
+	ot->name = "Reload Scripts";
+	ot->description = "Reload Scripts";
+	ot->idname = "SCRIPT_OT_reload";
 
 	/* api callbacks */
-	ot->exec= script_reload_exec;
+	ot->exec = script_reload_exec;
 }

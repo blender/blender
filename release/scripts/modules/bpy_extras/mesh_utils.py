@@ -19,17 +19,17 @@
 # <pep8-80 compliant>
 
 __all__ = (
-    "mesh_linked_faces",
+    "mesh_linked_tessfaces",
     "edge_face_count_dict",
     "edge_face_count",
-    "edge_loops_from_faces",
+    "edge_loops_from_tessfaces",
     "edge_loops_from_edges",
-    "ngon_tesselate",
+    "ngon_tessellate",
     "face_random_points",
     )
 
 
-def mesh_linked_faces(mesh):
+def mesh_linked_tessfaces(mesh):
     """
     Splits the mesh into connected faces, use this for seperating cubes from
     other mesh elements within 1 mesh datablock.
@@ -42,20 +42,20 @@ def mesh_linked_faces(mesh):
 
     # Build vert face connectivity
     vert_faces = [[] for i in range(len(mesh.vertices))]
-    for f in mesh.faces:
+    for f in mesh.tessfaces:
         for v in f.vertices:
             vert_faces[v].append(f)
 
     # sort faces into connectivity groups
-    face_groups = [[f] for f in mesh.faces]
-    face_mapping = list(range(len(mesh.faces)))  # map old, new face location
+    face_groups = [[f] for f in mesh.tessfaces]
+    face_mapping = list(range(len(mesh.tessfaces)))  # map old, new face location
 
     # Now clump faces iteratively
     ok = True
     while ok:
         ok = False
 
-        for i, f in enumerate(mesh.faces):
+        for i, f in enumerate(mesh.tessfaces):
             mapped_index = face_mapping[f.index]
             mapped_group = face_groups[mapped_index]
 
@@ -90,7 +90,7 @@ def edge_face_count_dict(mesh):
        faces using each edge.
     :rtype: dict
     """
-    face_edge_keys = [face.edge_keys for face in mesh.faces]
+    face_edge_keys = [face.edge_keys for face in mesh.tessfaces]
     face_edge_count = {}
     for face_keys in face_edge_keys:
         for key in face_keys:
@@ -112,11 +112,11 @@ def edge_face_count(mesh):
     return [get(edge_face_count, ed.key, 0) for ed in mesh.edges]
 
 
-def edge_loops_from_faces(mesh, faces=None, seams=()):
+def edge_loops_from_tessfaces(mesh, tessfaces=None, seams=()):
     """
     Edge loops defined by faces
 
-    Takes me.faces or a list of faces and returns the edge loops
+    Takes me.tessfaces or a list of faces and returns the edge loops
     These edge loops are the edges that sit between quads, so they dont touch
     1 quad, note: not connected will make 2 edge loops,
     both only containing 2 edges.
@@ -126,20 +126,20 @@ def edge_loops_from_faces(mesh, faces=None, seams=()):
 
     :arg mesh: the mesh used to get edge loops from.
     :type mesh: :class:`bpy.types.Mesh`
-    :arg faces: optional face list to only use some of the meshes faces.
-    :type faces: :class:`bpy.types.MeshFaces`, sequence or or NoneType
+    :arg tessfaces: optional face list to only use some of the meshes faces.
+    :type tessfaces: :class:`bpy.types.MeshTessFace`, sequence or or NoneType
     :return: return a list of edge vertex index lists.
     :rtype: list
     """
 
     OTHER_INDEX = 2, 3, 0, 1  # opposite face index
 
-    if faces is None:
-        faces = mesh.faces
+    if tessfaces is None:
+        tessfaces = mesh.tessfaces
 
     edges = {}
 
-    for f in faces:
+    for f in tessfaces:
         if len(f.vertices) == 4:
             edge_keys = f.edge_keys
             for i, edkey in enumerate(f.edge_keys):
@@ -256,7 +256,7 @@ def edge_loops_from_edges(mesh, edges=None):
     return line_polys
 
 
-def ngon_tesselate(from_data, indices, fix_loops=True):
+def ngon_tessellate(from_data, indices, fix_loops=True):
     '''
     Takes a polyline of indices (fgon) and returns a list of face
     indicie lists. Designed to be used for importers that need indices for an
@@ -269,7 +269,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
        polylines are delt with correctly.
     '''
 
-    from mathutils.geometry import tesselate_polygon
+    from mathutils.geometry import tessellate_polygon
     from mathutils import Vector
     vector_to_tuple = Vector.to_tuple
 
@@ -303,7 +303,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
             if verts[i][1] == verts[i - 1][0]:
                 verts.pop(i - 1)
 
-        fill = tesselate_polygon([verts])
+        fill = tessellate_polygon([verts])
 
     else:
         '''
@@ -411,7 +411,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
                     vert_map[i + ii] = vert[2]
                 ii += len(verts)
 
-        fill = tesselate_polygon([[v[0] for v in loop] for loop in loop_list])
+        fill = tessellate_polygon([[v[0] for v in loop] for loop in loop_list])
         #draw_loops(loop_list)
         #raise 'done loop'
         # map to original indices
@@ -442,14 +442,14 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
     return fill
 
 
-def face_random_points(num_points, faces):
+def face_random_points(num_points, tessfaces):
     """
-    Generates a list of random points over mesh faces.
+    Generates a list of random points over mesh tessfaces.
 
     :arg num_points: the number of random points to generate on each face.
     :type int:
-    :arg faces: list of the faces to generate points on.
-    :type faces: :class:`bpy.types.MeshFaces`, sequence
+    :arg tessfaces: list of the faces to generate points on.
+    :type tessfaces: :class:`bpy.types.MeshTessFace`, sequence
     :return: list of random points over all faces.
     :rtype: list
     """
@@ -459,7 +459,7 @@ def face_random_points(num_points, faces):
 
     # Split all quads into 2 tris, tris remain unchanged
     tri_faces = []
-    for f in faces:
+    for f in tessfaces:
         tris = []
         verts = f.id_data.vertices
         fv = f.vertices[:]
@@ -475,7 +475,7 @@ def face_random_points(num_points, faces):
         tri_faces.append(tris)
 
     # For each face, generate the required number of random points
-    sampled_points = [None] * (num_points * len(faces))
+    sampled_points = [None] * (num_points * len(tessfaces))
     for i, tf in enumerate(tri_faces):
         for k in range(num_points):
             # If this is a quad, we need to weight its 2 tris by their area

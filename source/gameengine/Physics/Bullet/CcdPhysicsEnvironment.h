@@ -132,7 +132,7 @@ protected:
 		}
 		//returns 0.f if no fixed timestep is used
 
-		virtual	float		getFixedTimeStep(){ return 0.f;};
+		virtual	float		getFixedTimeStep() { return 0.f; }
 
 		virtual void		setDebugMode(int debugMode);
 

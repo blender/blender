@@ -82,8 +82,8 @@ static ATTRIBUTE_NOINLINE void DemangleInplace(char *out, int out_size) {
   char demangled[256];  // Big enough for sane demangled symbols.
   if (Demangle(out, demangled, sizeof(demangled))) {
     // Demangling succeeded. Copy to out if the space allows.
-    int len = strlen(demangled);
-    if (len + 1 <= out_size) {  // +1 for '\0'.
+    size_t len = strlen(demangled);
+    if (len + 1 <= (size_t)out_size) {  // +1 for '\0'.
       SAFE_ASSERT(len < sizeof(demangled));
       memmove(out, demangled, len + 1);
     }
@@ -111,7 +111,7 @@ _END_GOOGLE_NAMESPACE_
 
 #include "symbolize.h"
 #include "config.h"
-#include "glog/raw_logging.h"
+#include <glog/raw_logging.h>
 
 // Re-runs fn until it doesn't cause EINTR.
 #define NO_INTR(fn)   do {} while ((fn) < 0 && errno == EINTR)
@@ -637,7 +637,7 @@ static ATTRIBUTE_NOINLINE bool SymbolizeAndDemangle(void *pc, char *out,
                                                     int out_size) {
   Dl_info info;
   if (dladdr(pc, &info)) {
-    if (strlen(info.dli_sname) < out_size) {
+    if ((int)strlen(info.dli_sname) < out_size) {
       strcpy(out, info.dli_sname);
       // Symbolization succeeded.  Now we try to demangle the symbol.
       DemangleInplace(out, out_size);

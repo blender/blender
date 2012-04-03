@@ -80,8 +80,8 @@ public:
 	 * Initializes the canvas for drawing.  Drawing to the canvas is
 	 * only allowed between BeginDraw() and EndDraw().
 	 *
-	 * @retval false Acquiring the canvas failed.
-	 * @retval true Acquiring the canvas succeeded.
+	 * \retval false Acquiring the canvas failed.
+	 * \retval true Acquiring the canvas succeeded.
 	 *
 	 */
 
@@ -170,7 +170,7 @@ public:
 	) = 0;
 
 	/**
-	 * Set the visible vieport 
+	 * Set the visible view-port 
 	 */
 
 	virtual

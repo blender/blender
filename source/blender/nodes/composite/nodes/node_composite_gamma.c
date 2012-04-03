@@ -48,7 +48,7 @@ static bNodeSocketTemplate cmp_node_gamma_out[]= {
 static void do_gamma(bNode *UNUSED(node), float *out, float *in, float *fac)
 {
 	int i=0;
-	for(i=0; i<3; i++) {
+	for (i=0; i<3; i++) {
 		/* check for negative to avoid nan's */
 		out[i] = (in[i] > 0.0f)? powf(in[i],fac[0]): in[i];
 	}
@@ -58,10 +58,10 @@ static void node_composit_exec_gamma(void *UNUSED(data), bNode *node, bNodeStack
 {
 	/* stack order in: Fac, Image */
 	/* stack order out: Image */
-	if(out[0]->hasoutput==0) return;
+	if (out[0]->hasoutput==0) return;
 	
 	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
+	if (in[0]->data==NULL) {
 		do_gamma(node, out[0]->vec, in[0]->vec, in[1]->vec);
 	}
 	else {

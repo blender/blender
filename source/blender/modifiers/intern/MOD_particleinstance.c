@@ -126,27 +126,27 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 
 	trackneg=((ob->trackflag>2)?1:0);
 
-	if(pimd->ob==ob){
+	if (pimd->ob==ob) {
 		pimd->ob= NULL;
 		return derivedData;
 	}
 
-	if(pimd->ob){
+	if (pimd->ob) {
 		psys = BLI_findlink(&pimd->ob->particlesystem,pimd->psys-1);
-		if(psys==NULL || psys->totpart==0)
+		if (psys==NULL || psys->totpart==0)
 			return derivedData;
 	}
 	else return derivedData;
 
-	if(pimd->flag & eParticleInstanceFlag_Parents)
+	if (pimd->flag & eParticleInstanceFlag_Parents)
 		totpart+=psys->totpart;
-	if(pimd->flag & eParticleInstanceFlag_Children){
-		if(totpart==0)
+	if (pimd->flag & eParticleInstanceFlag_Children) {
+		if (totpart==0)
 			first_particle=psys->totpart;
 		totpart+=psys->totchild;
 	}
 
-	if(totpart==0)
+	if (totpart==0)
 		return derivedData;
 
 	sim.scene = md->scene;
@@ -154,20 +154,20 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	sim.psys = psys;
 	sim.psmd = psys_get_modifier(pimd->ob, psys);
 
-	if(pimd->flag & eParticleInstanceFlag_UseSize) {
+	if (pimd->flag & eParticleInstanceFlag_UseSize) {
 		int p;
 		float *si;
 		si = size = MEM_callocN(totpart * sizeof(float), "particle size array");
 
-		if(pimd->flag & eParticleInstanceFlag_Parents) {
-			for(p=0, pa= psys->particles; p<psys->totpart; p++, pa++, si++)
+		if (pimd->flag & eParticleInstanceFlag_Parents) {
+			for (p=0, pa= psys->particles; p<psys->totpart; p++, pa++, si++)
 				*si = pa->size;
 		}
 
-		if(pimd->flag & eParticleInstanceFlag_Children) {
+		if (pimd->flag & eParticleInstanceFlag_Children) {
 			ChildParticle *cpa = psys->child;
 
-			for(p=0; p<psys->totchild; p++, cpa++, si++) {
+			for (p=0; p<psys->totchild; p++, cpa++, si++) {
 				*si = psys_get_child_size(psys, cpa, 0.0f, NULL);
 			}
 		}
@@ -183,7 +183,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 
 	psys->lattice=psys_get_lattice(&sim);
 
-	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED){
+	if (psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
 
 		float min_r[3], max_r[3];
 		INIT_MINMAX(min_r, max_r);
@@ -197,7 +197,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	mvert=result->getVertArray(result);
 	orig_mvert=dm->getVertArray(dm);
 
-	for(i=0; i<maxvert; i++){
+	for (i=0; i<maxvert; i++) {
 		MVert *inMV;
 		MVert *mv = mvert + i;
 		ParticleKey state;
@@ -212,20 +212,20 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		mv->co[(axis+1)%3]=temp_co[(track+1)%3];
 		mv->co[(axis+2)%3]=temp_co[(track+2)%3];
 
-		if((psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) && pimd->flag & eParticleInstanceFlag_Path){
+		if ((psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) && pimd->flag & eParticleInstanceFlag_Path) {
 			float ran = 0.0f;
-			if(pimd->random_position != 0.0f) {
+			if (pimd->random_position != 0.0f) {
 				BLI_srandom(psys->seed + (i/totvert)%totpart);
 				ran = pimd->random_position * BLI_frand();
 			}
 
-			if(pimd->flag & eParticleInstanceFlag_KeepShape) {
+			if (pimd->flag & eParticleInstanceFlag_KeepShape) {
 				state.time = pimd->position * (1.0f - ran);
 			}
 			else {
 				state.time=(mv->co[axis]-min_co)/(max_co-min_co) * pimd->position * (1.0f - ran);
 
-				if(trackneg)
+				if (trackneg)
 					state.time=1.0f-state.time;
 
 				mv->co[axis] = 0.0;
@@ -236,7 +236,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 			normalize_v3(state.vel);
 
 			/* TODO: incremental rotations somehow */
-			if(state.vel[axis] < -0.9999f || state.vel[axis] > 0.9999f) {
+			if (state.vel[axis] < -0.9999f || state.vel[axis] > 0.9999f) {
 				state.rot[0] = 1;
 				state.rot[1] = state.rot[2] = state.rot[3] = 0.0f;
 			}
@@ -251,13 +251,13 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 			}
 
 		}
-		else{
+		else {
 			state.time=-1.0;
 			psys_get_particle_state(&sim, first_particle + i/totvert, &state,1);
 		}
 
 		mul_qt_v3(state.rot,mv->co);
-		if(pimd->flag & eParticleInstanceFlag_UseSize)
+		if (pimd->flag & eParticleInstanceFlag_UseSize)
 			mul_v3_fl(mv->co, size[i/totvert]);
 		add_v3_v3(mv->co, state.co);
 	}
@@ -265,31 +265,36 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	mface=result->getTessFaceArray(result);
 	orig_mface=dm->getTessFaceArray(dm);
 
-	for(i=0; i<maxface; i++){
+	for (i=0; i<maxface; i++) {
 		MFace *inMF;
 		MFace *mf = mface + i;
 
-		if(pimd->flag & eParticleInstanceFlag_Parents){
-			if(i/totface>=psys->totpart){
-				if(psys->part->childtype==PART_CHILD_PARTICLES)
+		if (pimd->flag & eParticleInstanceFlag_Parents) {
+			if (i/totface>=psys->totpart) {
+				if (psys->part->childtype==PART_CHILD_PARTICLES) {
 					pa=psys->particles+(psys->child+i/totface-psys->totpart)->parent;
-				else
+				}
+				else {
 					pa= NULL;
+				}
 			}
-			else
+			else {
 				pa=pars+i/totface;
+			}
 		}
-		else{
-			if(psys->part->childtype==PART_CHILD_PARTICLES)
+		else {
+			if (psys->part->childtype==PART_CHILD_PARTICLES) {
 				pa=psys->particles+(psys->child+i/totface)->parent;
-			else
+			}
+			else {
 				pa= NULL;
+			}
 		}
 
-		if(pa){
-			if(pa->alive==PARS_UNBORN && (pimd->flag&eParticleInstanceFlag_Unborn)==0) continue;
-			if(pa->alive==PARS_ALIVE && (pimd->flag&eParticleInstanceFlag_Alive)==0) continue;
-			if(pa->alive==PARS_DEAD && (pimd->flag&eParticleInstanceFlag_Dead)==0) continue;
+		if (pa) {
+			if (pa->alive==PARS_UNBORN && (pimd->flag&eParticleInstanceFlag_Unborn)==0) continue;
+			if (pa->alive==PARS_ALIVE && (pimd->flag&eParticleInstanceFlag_Alive)==0) continue;
+			if (pa->alive==PARS_DEAD && (pimd->flag&eParticleInstanceFlag_Dead)==0) continue;
 		}
 
 		inMF = orig_mface + i%totface;
@@ -299,18 +304,19 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		mf->v1+=(i/totface)*totvert;
 		mf->v2+=(i/totface)*totvert;
 		mf->v3+=(i/totface)*totvert;
-		if(mf->v4)
+		if (mf->v4) {
 			mf->v4+=(i/totface)*totvert;
+		}
 	}
 
 	CDDM_calc_edges_tessface(result);
 
-	if(psys->lattice){
+	if (psys->lattice) {
 		end_latt_deform(psys->lattice);
 		psys->lattice= NULL;
 	}
 
-	if(size)
+	if (size)
 		MEM_freeN(size);
 
 	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/

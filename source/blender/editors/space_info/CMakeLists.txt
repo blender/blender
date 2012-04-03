@@ -48,4 +48,8 @@ set(SRC
 	textview.h
 )
 
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
 blender_add_lib(bf_editor_space_info "${SRC}" "${INC}" "${INC_SYS}")

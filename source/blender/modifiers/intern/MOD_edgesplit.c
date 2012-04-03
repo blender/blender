@@ -57,7 +57,7 @@
 
 #define EDGE_MARK	1
 
-static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *ob)
+static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *UNUSED(ob))
 {
 	DerivedMesh *result;
 	BMesh *bm;
@@ -66,7 +66,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	BMEdge *e;
 	float threshold = cos((emd->split_angle + 0.00001) * M_PI / 180.0);
 
-	em = DM_to_editbmesh(ob, dm, NULL, FALSE);
+	em = DM_to_editbmesh(dm, NULL, FALSE);
 	bm = em->bm;
 
 	BM_mesh_normals_update(bm, FALSE);
@@ -88,8 +88,13 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMFLAG) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (!BM_elem_flag_test(e, BM_ELEM_SMOOTH)) {
-				BMO_elem_flag_enable(bm, e, EDGE_MARK);
+			/* check for 2 or more edge users */
+			if ((e->l) &&
+			    (e->l->next != e->l))
+			{
+				if (!BM_elem_flag_test(e, BM_ELEM_SMOOTH)) {
+					BMO_elem_flag_enable(bm, e, EDGE_MARK);
+				}
 			}
 		}
 	}
@@ -97,6 +102,8 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	BMO_op_callf(bm, "edgesplit edges=%fe", EDGE_MARK);
 	
 	BMO_pop(bm);
+
+	/* BM_mesh_validate(bm); */ /* for troubleshooting */
 
 	BLI_assert(em->looptris == NULL);
 	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
@@ -110,8 +117,7 @@ static void initData(ModifierData *md)
 {
 	EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 
-	/* default to 30-degree split angle, sharpness from both angle & flag
-	*/
+	/* default to 30-degree split angle, sharpness from both angle & flag */
 	emd->split_angle = 30;
 	emd->flags = MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG;
 }
@@ -128,7 +134,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 					 Object *ob, DerivedMesh *dm)
 {
-	if(!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
+	if (!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
 		return dm;
 
 	return doEdgeSplit(dm, emd, ob);
@@ -143,7 +149,7 @@ static DerivedMesh *applyModifier(
 
 	result = edgesplitModifier_do(emd, ob, derivedData);
 
-	if(result != derivedData)
+	if (result != derivedData)
 		CDDM_calc_normals(result);
 
 	return result;

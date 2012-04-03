@@ -59,7 +59,7 @@ typedef struct RayHint {
 
 typedef struct Isect {
 	/* ray start, direction (normalized vector), and max distance. on hit,
-	   the distance is modified to be the distance to the hit point. */
+	 * the distance is modified to be the distance to the hit point. */
 	float start[3];
 	float dir[3];
 	float dist;

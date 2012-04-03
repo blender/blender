@@ -23,7 +23,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Regulates the top-level logic behaviour for one scene.
+ * Regulates the top-level logic behavior for one scene.
  */
 
 /** \file gameengine/GameLogic/SCA_LogicManager.cpp
@@ -189,11 +189,11 @@ void SCA_LogicManager::BeginFrame(double curtime, double fixedtime)
 	for (vector<SCA_EventManager*>::const_iterator ie=m_eventmanagers.begin(); !(ie==m_eventmanagers.end()); ie++)
 		(*ie)->NextFrame(curtime, fixedtime);
 
-	for(SG_QList* obj = (SG_QList*)m_triggeredControllerSet.Remove();
+	for (SG_QList* obj = (SG_QList*)m_triggeredControllerSet.Remove();
 		obj != NULL;
 		obj = (SG_QList*)m_triggeredControllerSet.Remove())
 	{
-		for(SCA_IController* contr = (SCA_IController*)obj->QRemove();
+		for (SCA_IController* contr = (SCA_IController*)obj->QRemove();
 			contr != NULL;
 			contr = (SCA_IController*)obj->QRemove())
 		{

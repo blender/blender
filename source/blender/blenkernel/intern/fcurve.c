@@ -156,7 +156,7 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 	FCurve *dfcu, *sfcu;
 	
 	/* sanity checks */
-	if ELEM(NULL, dst, src)
+	if (ELEM(NULL, dst, src))
 		return;
 	
 	/* clear destination list first */
@@ -183,7 +183,7 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 	PropertyRNA *prop;
 	char *path;
 
-	if(driven)
+	if (driven)
 		*driven = FALSE;
 	
 	/* only use the current action ??? */
@@ -204,7 +204,7 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 			/* if not animated, check if driven */
 			if ((fcu == NULL) && (adt->drivers.first)) {
 				fcu= list_find_fcurve(&adt->drivers, path, index);
-				if(fcu && driven)
+				if (fcu && driven)
 					*driven = TRUE;
 				fcu = NULL;
 			}
@@ -362,7 +362,7 @@ int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short
 	int start=0, end=arraylen;
 	int loopbreaker= 0, maxloop= arraylen * 2;
 	
-	/* initialise replace-flag first */
+	/* initialize replace-flag first */
 	*replace= 0;
 	
 	/* sneaky optimisations (don't go through searching process if...):
@@ -370,7 +370,7 @@ int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short
 	 *	- keyframe to be added would replace one of the existing ones on bounds
 	 */
 	if ((arraylen <= 0) || (array == NULL)) {
-		printf("Warning: binarysearch_bezt_index() encountered invalid array \n");
+		printf("Warning: binarysearch_bezt_index() encountered invalid array\n");
 		return 0;
 	}
 	else {
@@ -420,10 +420,10 @@ int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short
 	
 	/* print error if loop-limit exceeded */
 	if (loopbreaker == (maxloop-1)) {
-		printf("Error: binarysearch_bezt_index() was taking too long \n");
+		printf("Error: binarysearch_bezt_index() was taking too long\n");
 		
 		// include debug info 
-		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
+		printf("\tround = %d: start = %d, end = %d, arraylen = %d\n", loopbreaker, start, end, arraylen);
 	}
 	
 	/* not found, so return where to place it */
@@ -546,7 +546,7 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 		if (ymax) *ymax= ymaxv;
 	}
 	else {
-		if (G.f & G_DEBUG)
+		if (G.debug & G_DEBUG)
 			printf("F-Curve calc bounds didn't find anything, so assuming minimum bounds of 1.0\n");
 			
 		if (xmin) *xmin= 0.0f;
@@ -738,12 +738,12 @@ void fcurve_store_samples (FCurve *fcu, void *data, int start, int end, FcuSampl
 	
 	/* sanity checks */
 	// TODO: make these tests report errors using reports not printf's
-	if ELEM(NULL, fcu, sample_cb) {
+	if (ELEM(NULL, fcu, sample_cb)) {
 		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
 		return;
 	}
 	if (start >= end) {
-		printf("Error: Frame range for Sampled F-Curve creation is inappropriate \n");
+		printf("Error: Frame range for Sampled F-Curve creation is inappropriate\n");
 		return;
 	}
 	
@@ -827,26 +827,26 @@ void calchandles_fcurve (FCurve *fcu)
  * 		-> Auto handles: become aligned when selection status is NOT(000 || 111)
  * 		-> Vector handles: become 'nothing' when (one half selected AND other not)
  *  - PHASE 2: recalculate handles
-*/
+ */
 void testhandles_fcurve (FCurve *fcu, const short use_handle)
 {
 	BezTriple *bezt;
 	unsigned int a;
 
 	/* only beztriples have handles (bpoints don't though) */
-	if ELEM(NULL, fcu, fcu->bezt)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return;
 	
 	/* loop over beztriples */
 	for (a=0, bezt=fcu->bezt; a < fcu->totvert; a++, bezt++) {
 		short flag= 0;
 		
-		/* flag is initialised as selection status
+		/* flag is initialized as selection status
 		 * of beztriple control-points (labelled 0,1,2)
 		 */
 		if (bezt->f2 & SELECT) flag |= (1<<1); // == 2
-		if(use_handle == FALSE) {
-			if(flag & 2) {
+		if (use_handle == FALSE) {
+			if (flag & 2) {
 				flag |= (1<<0) | (1<<2);
 			}
 		}
@@ -1001,7 +1001,7 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	float value= 0.0f;
 	
 	/* sanity check */
-	if ELEM(NULL, driver, dtar)
+	if (ELEM(NULL, driver, dtar))
 		return 0.0f;
 	
 	id= dtar_id_ensure_proxy_from(dtar->id);
@@ -1009,8 +1009,8 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	/* error check for missing pointer... */
 	// TODO: tag the specific target too as having issues
 	if (id == NULL) {
-		printf("Error: driver has an invalid target to use \n");
-		if (G.f & G_DEBUG) printf("\tpath = %s\n", dtar->rna_path);
+		printf("Error: driver has an invalid target to use\n");
+		if (G.debug & G_DEBUG) printf("\tpath = %s\n", dtar->rna_path);
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
 	}
@@ -1020,7 +1020,7 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	
 	/* get property to read from, and get value as appropriate */
 	if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
-		if(RNA_property_array_check(prop)) {
+		if (RNA_property_array_check(prop)) {
 			/* array */
 			if (index < RNA_property_array_length(&ptr, prop)) {	
 				switch (RNA_property_type(prop)) {
@@ -1060,8 +1060,8 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 
 	}
 	else {
-		if (G.f & G_DEBUG)
-			printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, dtar->rna_path);
+		if (G.debug & G_DEBUG)
+			printf("Driver Evaluation Error: cannot resolve target for %s -> %s\n", id->name, dtar->rna_path);
 		
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
@@ -1075,7 +1075,7 @@ static bPoseChannel *dtar_get_pchan_ptr (ChannelDriver *driver, DriverTarget *dt
 {
 	ID *id;
 	/* sanity check */
-	if ELEM(NULL, driver, dtar)
+	if (ELEM(NULL, driver, dtar))
 		return NULL;
 
 	id= dtar_id_ensure_proxy_from(dtar->id);
@@ -1118,11 +1118,11 @@ static float dvar_eval_rotDiff (ChannelDriver *driver, DriverVar *dvar)
 		
 		/* check what the error was */
 		if ((pchan == NULL) && (pchan2 == NULL))
-			printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid \n");
+			printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid\n");
 		else if (pchan == NULL)
-			printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel \n");
+			printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel\n");
 		else if (pchan2 == NULL)
-			printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel \n");
+			printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel\n");
 			
 		/* stop here... */
 		return 0.0f;
@@ -1418,7 +1418,7 @@ void driver_free_variable (ChannelDriver *driver, DriverVar *dvar)
 
 #ifdef WITH_PYTHON
 	/* since driver variables are cached, the expression needs re-compiling too */
-	if(driver->type==DRIVER_TYPE_PYTHON)
+	if (driver->type==DRIVER_TYPE_PYTHON)
 		driver->flag |= DRIVER_FLAG_RENAMEVAR;
 #endif
 }
@@ -1446,7 +1446,7 @@ void driver_change_variable_type (DriverVar *dvar, int type)
 		/* store the flags */
 		dtar->flag = flags;
 		
-		/* object ID types only, or idtype not yet initialised*/
+		/* object ID types only, or idtype not yet initialized*/
 		if ((flags & DTAR_FLAG_ID_OB_ONLY) || (dtar->idtype == 0))
 			dtar->idtype= ID_OB;
 	}
@@ -1490,7 +1490,7 @@ void fcurve_free_driver(FCurve *fcu)
 	DriverVar *dvar, *dvarn;
 	
 	/* sanity checks */
-	if ELEM(NULL, fcu, fcu->driver)
+	if (ELEM(NULL, fcu, fcu->driver))
 		return;
 	driver= fcu->driver;
 	
@@ -1686,7 +1686,7 @@ static float evaluate_driver (ChannelDriver *driver, const float evaltime)
 /* The total length of the handles is not allowed to be more
  * than the horizontal distance between (v1-v4).
  * This is to prevent curve loops.
-*/
+ */
 void correct_bezpart(float v1[2], float v2[2], float v3[2], float v4[2])
 {
 	float h1[2], h2[2], len1, len2, len, fac;
@@ -1873,22 +1873,20 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 	lastbezt= prevbezt + a;
 	
 	/* evaluation time at or past endpoints? */
-	if (prevbezt->vec[1][0] >= evaltime) 
-	{
+	if (prevbezt->vec[1][0] >= evaltime) {
 		/* before or on first keyframe */
 		if ( (fcu->extend == FCURVE_EXTRAPOLATE_LINEAR) && (prevbezt->ipo != BEZT_IPO_CONST) &&
-			!(fcu->flag & FCURVE_DISCRETE_VALUES) ) 
+			!(fcu->flag & FCURVE_DISCRETE_VALUES) )
 		{
 			/* linear or bezier interpolation */
-			if (prevbezt->ipo==BEZT_IPO_LIN) 
-			{
+			if (prevbezt->ipo==BEZT_IPO_LIN) {
 				/* Use the next center point instead of our own handle for
 				 * linear interpolated extrapolate 
 				 */
-				if (fcu->totvert == 1) 
+				if (fcu->totvert == 1) {
 					cvalue= prevbezt->vec[1][1];
-				else 
-				{
+				}
+				else {
 					bezt = prevbezt+1;
 					dx= prevbezt->vec[1][0] - evaltime;
 					fac= bezt->vec[1][0] - prevbezt->vec[1][0];
@@ -1898,12 +1896,12 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 						fac= (bezt->vec[1][1] - prevbezt->vec[1][1]) / fac;
 						cvalue= prevbezt->vec[1][1] - (fac * dx);
 					}
-					else 
+					else {
 						cvalue= prevbezt->vec[1][1];
+					}
 				}
 			} 
-			else 
-			{
+			else {
 				/* Use the first handle (earlier) of first BezTriple to calculate the
 				 * gradient and thus the value of the curve at evaltime
 				 */
@@ -1915,34 +1913,32 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 					fac= (prevbezt->vec[1][1] - prevbezt->vec[0][1]) / fac;
 					cvalue= prevbezt->vec[1][1] - (fac * dx);
 				}
-				else 
+				else {
 					cvalue= prevbezt->vec[1][1];
+				}
 			}
 		}
-		else 
-		{
+		else {
 			/* constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation, 
 			 * so just extend first keyframe's value 
 			 */
 			cvalue= prevbezt->vec[1][1];
 		}
 	}
-	else if (lastbezt->vec[1][0] <= evaltime) 
-	{
+	else if (lastbezt->vec[1][0] <= evaltime) {
 		/* after or on last keyframe */
 		if ( (fcu->extend == FCURVE_EXTRAPOLATE_LINEAR) && (lastbezt->ipo != BEZT_IPO_CONST) &&
 			!(fcu->flag & FCURVE_DISCRETE_VALUES) ) 
 		{
 			/* linear or bezier interpolation */
-			if (lastbezt->ipo==BEZT_IPO_LIN) 
-			{
+			if (lastbezt->ipo==BEZT_IPO_LIN) {
 				/* Use the next center point instead of our own handle for
 				 * linear interpolated extrapolate 
 				 */
-				if (fcu->totvert == 1) 
+				if (fcu->totvert == 1) {
 					cvalue= lastbezt->vec[1][1];
-				else 
-				{
+				}
+				else {
 					prevbezt = lastbezt - 1;
 					dx= evaltime - lastbezt->vec[1][0];
 					fac= lastbezt->vec[1][0] - prevbezt->vec[1][0];
@@ -1952,12 +1948,12 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 						fac= (lastbezt->vec[1][1] - prevbezt->vec[1][1]) / fac;
 						cvalue= lastbezt->vec[1][1] + (fac * dx);
 					}
-					else 
+					else {
 						cvalue= lastbezt->vec[1][1];
+					}
 				}
 			} 
-			else 
-			{
+			else {
 				/* Use the gradient of the second handle (later) of last BezTriple to calculate the
 				 * gradient and thus the value of the curve at evaltime
 				 */
@@ -1969,38 +1965,33 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 					fac= (lastbezt->vec[2][1] - lastbezt->vec[1][1]) / fac;
 					cvalue= lastbezt->vec[1][1] + (fac * dx);
 				}
-				else 
+				else {
 					cvalue= lastbezt->vec[1][1];
+				}
 			}
 		}
-		else 
-		{
+		else {
 			/* constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation, 
 			 * so just extend last keyframe's value 
 			 */
 			cvalue= lastbezt->vec[1][1];
 		}
 	}
-	else 
-	{
+	else {
 		/* evaltime occurs somewhere in the middle of the curve */
-		for (a=0; prevbezt && bezt && (a < fcu->totvert-1); a++, prevbezt=bezt, bezt++) 
-		{
+		for (a=0; prevbezt && bezt && (a < fcu->totvert-1); a++, prevbezt=bezt, bezt++) {
 			/* use if the key is directly on the frame, rare cases this is needed else we get 0.0 instead. */
-			if(fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
+			if (fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
 				cvalue= bezt->vec[1][1];
 			}
 			/* evaltime occurs within the interval defined by these two keyframes */
-			else if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime))
-			{
+			else if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime)) {
 				/* value depends on interpolation mode */
-				if ((prevbezt->ipo == BEZT_IPO_CONST) || (fcu->flag & FCURVE_DISCRETE_VALUES))
-				{
+				if ((prevbezt->ipo == BEZT_IPO_CONST) || (fcu->flag & FCURVE_DISCRETE_VALUES)) {
 					/* constant (evaltime not relevant, so no interpolation needed) */
 					cvalue= prevbezt->vec[1][1];
 				}
-				else if (prevbezt->ipo == BEZT_IPO_LIN) 
-				{
+				else if (prevbezt->ipo == BEZT_IPO_LIN) {
 					/* linear - interpolate between values of the two keyframes */
 					fac= bezt->vec[1][0] - prevbezt->vec[1][0];
 					
@@ -2009,11 +2000,11 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 						fac= (evaltime - prevbezt->vec[1][0]) / fac;
 						cvalue= prevbezt->vec[1][1] + (fac * (bezt->vec[1][1] - prevbezt->vec[1][1]));
 					}
-					else
+					else {
 						cvalue= prevbezt->vec[1][1];
+					}
 				}
-				else 
-				{
+				else {
 					/* bezier interpolation */
 						/* v1,v2 are the first keyframe and its 2nd handle */
 					v1[0]= prevbezt->vec[1][0];

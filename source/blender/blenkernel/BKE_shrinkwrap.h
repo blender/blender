@@ -90,7 +90,7 @@ void space_transform_invert(const struct SpaceTransform *data, float *co);
  *    - Normal projection
  *
  * ShrinkwrapCalcData encapsulates all needed data for shrinkwrap functions.
- * (So that you dont have to pass an enormous amount of arguments to functions)
+ * (So that you don't have to pass an enormous amount of arguments to functions)
  */
 
 struct Object;

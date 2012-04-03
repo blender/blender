@@ -136,7 +136,7 @@ typedef struct Material {
 	short diff_shader, spec_shader;
 	float roughness, refrac;
 	/* XXX param[4] needs review and improvement (shader system as whole anyway)
-	   This is nasty reused variable for different goals and not easy to RNAify nicely. -jesterKing */
+	 * This is nasty reused variable for different goals and not easy to RNAify nicely. -jesterKing */
 	float param[4];		/* size, smooth, size, smooth, for toonshader, 0 (fac) and 1 (fresnel) also for fresnel shader */
 	float rms;
 	float darkness;
@@ -168,7 +168,7 @@ typedef struct Material {
 	float sss_front, sss_back;
 	short sss_flag, sss_preset;
 
-	int mapto_textured;	/* render-time cache to optimise texture lookups */
+	int mapto_textured;	/* render-time cache to optimize texture lookups */
 	short shadowonly_flag;  /* "shadowsonly" type */
 	short index;            /* custom index for render passes */
 
@@ -206,7 +206,7 @@ typedef struct Material {
 /* maximum number of materials per material array.
  * (on object, mesh, lamp, etc.). limited by
  * short mat_nr in verts, faces.
- * -1 becayse for active material we store the index + 1 */
+ * -1 because for active material we store the index + 1 */
 #define MAXMAT			(32767-1)
 
 /* material_type */

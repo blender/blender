@@ -32,7 +32,8 @@ void  BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float center[3]);
 void  BM_face_center_mean_calc(BMesh *bm, BMFace *f, float center[3]);
 
 void  BM_face_normal_update(BMesh *bm, BMFace *f);
-void  BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3], float (*vertexCos)[3]);
+void  BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
+                                 float const (*vertexCos)[3]);
 
 void  BM_edge_normals_update(BMesh *bm, BMEdge *e);
 
@@ -43,7 +44,8 @@ void  BM_face_normal_flip(BMesh *bm, BMFace *f);
 int   BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3]);
 
 void  BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
-                         const short newedge_oflag, const short newface_oflag, BMFace **newfaces);
+                          const short newedge_oflag, const short newface_oflag, BMFace **newfaces,
+                          const short use_beauty);
 
 void  BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len);
 

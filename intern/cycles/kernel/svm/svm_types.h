@@ -88,7 +88,9 @@ typedef enum NodeType {
 	NODE_NORMAL = 5500,
 	NODE_GAMMA = 5600,
 	NODE_TEX_CHECKER = 5700,
-	NODE_BRIGHTCONTRAST = 5800
+	NODE_BRIGHTCONTRAST = 5800,
+	NODE_RGB_RAMP = 5900,
+	NODE_RGB_CURVES = 6000
 } NodeType;
 
 typedef enum NodeAttributeType {

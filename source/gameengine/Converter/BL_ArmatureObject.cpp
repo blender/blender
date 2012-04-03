@@ -120,8 +120,10 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 		}
 
 		// fails to link, props are not used in the BGE yet.
-		/* if(pchan->prop)
-			pchan->prop= IDP_CopyProperty(pchan->prop); */
+#if 0
+		if (pchan->prop)
+			pchan->prop= IDP_CopyProperty(pchan->prop);
+#endif
 		pchan->prop= NULL;
 	}
 
@@ -144,7 +146,7 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 	float dstweight;
 	int i;
 
-	switch (mode){
+	switch (mode) {
 	case ACTSTRIPMODE_BLEND:
 		dstweight = 1.0F - srcweight;
 		break;
@@ -156,7 +158,7 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 	}
 	
 	schan= (bPoseChannel*)src->chanbase.first;
-	for (dchan = (bPoseChannel*)dst->chanbase.first; dchan; dchan=(bPoseChannel*)dchan->next, schan= (bPoseChannel*)schan->next){
+	for (dchan = (bPoseChannel*)dst->chanbase.first; dchan; dchan=(bPoseChannel*)dchan->next, schan= (bPoseChannel*)schan->next) {
 		// always blend on all channels since we don't know which one has been set
 		/* quat interpolation done separate */
 		if (schan->rotmode == ROT_MODE_QUAT) {
@@ -184,7 +186,7 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 			if (schan->rotmode)
 				dchan->eul[i] = (dchan->eul[i]*dstweight) + (schan->eul[i]*srcweight);
 		}
-		for(dcon= (bConstraint*)dchan->constraints.first, scon= (bConstraint*)schan->constraints.first; dcon && scon; dcon= (bConstraint*)dcon->next, scon= (bConstraint*)scon->next) {
+		for (dcon= (bConstraint*)dchan->constraints.first, scon= (bConstraint*)schan->constraints.first; dcon && scon; dcon= (bConstraint*)dcon->next, scon= (bConstraint*)scon->next) {
 			/* no 'add' option for constraint blending */
 			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
 		}
@@ -287,6 +289,7 @@ void BL_ArmatureObject::LoadConstraints(KX_BlenderSceneConverter* converter)
 			// which constraint should we support?
 			switch (pcon->type) {
 			case CONSTRAINT_TYPE_TRACKTO:
+			case CONSTRAINT_TYPE_DAMPTRACK:
 			case CONSTRAINT_TYPE_KINEMATIC:
 			case CONSTRAINT_TYPE_ROTLIKE:
 			case CONSTRAINT_TYPE_LOCLIKE:
@@ -466,7 +469,7 @@ void BL_ArmatureObject::ApplyPose()
 	// in the GE, we use ctime to store the timestep
 	m_pose->ctime = (float)m_timestep;
 	//m_scene->r.cfra++;
-	if(m_lastapplyframe != m_lastframe) {
+	if (m_lastapplyframe != m_lastframe) {
 		// update the constraint if any, first put them all off so that only the active ones will be updated
 		SG_DList::iterator<BL_ArmatureConstraint> cit(m_controlledConstraints);
 		for (cit.begin(); !cit.end(); ++cit) {
@@ -499,7 +502,7 @@ void BL_ArmatureObject::SetPose(bPose *pose)
 
 bool BL_ArmatureObject::SetActiveAction(BL_ActionActuator *act, short priority, double curtime)
 {
-	if (curtime != m_lastframe){
+	if (curtime != m_lastframe) {
 		m_activePriority = 9999;
 		// compute the timestep for the underlying IK algorithm
 		m_timestep = curtime-m_lastframe;
@@ -545,11 +548,11 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 	/* Otherwise, copy the armature's pose channels into the caller-supplied pose */
 		
 	if (!*pose) {
-		/*	probably not to good of an idea to
-			duplicate everying, but it clears up 
-			a crash and memory leakage when 
-			&BL_ActionActuator::m_pose is freed
-		*/
+		/* probably not to good of an idea to
+		 * duplicate everything, but it clears up 
+		 * a crash and memory leakage when 
+		 * &BL_ActionActuator::m_pose is freed
+		 */
 		game_copy_pose(pose, m_pose, 0);
 	}
 	else {
@@ -588,7 +591,7 @@ bool BL_ArmatureObject::GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix)
 
 	ApplyPose();
 	pchan = get_pose_channel(m_objArma->pose, bone->name);
-	if(pchan)
+	if (pchan)
 		matrix.setValue(&pchan->pose_mat[0][0]);
 	RestorePose();
 

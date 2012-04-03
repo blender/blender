@@ -36,6 +36,7 @@ public:
 	int components;
 	bool filter;
 	bool exposure;
+	PassType divide_type;
 
 	static void add(PassType type, vector<Pass>& passes);
 	static bool equals(const vector<Pass>& A, const vector<Pass>& B);

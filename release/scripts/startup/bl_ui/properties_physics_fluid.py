@@ -42,14 +42,14 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
         md = context.fluid
         fluid = md.settings
 
-        row = layout.row()
+        col = layout.column()
         if fluid is None:
-            row.label("Built without fluids")
+            col.label("Built without fluids")
             return
 
-        row.prop(fluid, "type")
+        col.prop(fluid, "type")
         if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID'}:
-            row.prop(fluid, "use", text="")
+            col.prop(fluid, "use")
 
         layout = layout.column()
         if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID'}:
@@ -134,14 +134,10 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
             col.prop(fluid, "inflow_velocity", text="")
 
         elif fluid.type == 'OUTFLOW':
-            split = layout.split()
-
-            col = split.column()
+            col = layout.column()
             col.label(text="Volume Initialization:")
             col.prop(fluid, "volume_initialization", text="")
             col.prop(fluid, "use_animated_mesh")
-
-            split.column()
 
         elif fluid.type == 'PARTICLE':
             split = layout.split()

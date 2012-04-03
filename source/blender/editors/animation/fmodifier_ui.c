@@ -45,6 +45,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLF_translation.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
@@ -124,7 +126,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 	/* col= uiLayoutColumn(layout, 1); */ /* UNUSED */
 	block= uiLayoutGetBlock(layout);
 	uiBlockBeginAlign(block);
-		but= uiDefButR(block, MENU, B_FMODIFIER_REDRAW, NULL, 0, 0, width-30, UI_UNIT_Y, &ptr, "mode", -1, 0, 0, -1, -1, NULL);
+		but = uiDefButR(block, MENU, B_FMODIFIER_REDRAW, NULL, 0, 0, width-30, UI_UNIT_Y, &ptr, "mode", -1, 0, 0, -1, -1, NULL);
 		uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
 		
 		uiDefButR(block, TOG, B_FMODIFIER_REDRAW, NULL, 0, 0, width-30, UI_UNIT_Y, &ptr, "use_additive", -1, 0, 0, -1, -1, NULL);
@@ -141,41 +143,52 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			/* draw polynomial order selector */
 			row= uiLayoutRow(layout, 0);
 			block= uiLayoutGetBlock(row);
-				but= uiDefButI(block, NUM, B_FMODIFIER_REDRAW, "Poly Order: ", 10,0,width-30,19, &data->poly_order, 1, 100, 0, 0, "'Order' of the Polynomial - for a polynomial with n terms, 'order' is n-1");
+				but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 10, 0, width-30, 19,
+				               &data->poly_order, 1, 100, 0, 0,
+				               TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
 				uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
 			
 			
 			/* draw controls for each coefficient and a + sign at end of row */
 			row= uiLayoutRow(layout, 1);
 			block= uiLayoutGetBlock(row);
-				uiDefBut(block, LABEL, 1, "y = ", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
 			
 			cp= data->coefficients;
 			for (i=0; (i < data->arraysize) && (cp); i++, cp++) {
+				/* To align with first line */
+				if (i)
+					uiDefBut(block, LABEL, 1, "   ", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+				else
+					uiDefBut(block, LABEL, 1, "y =", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
 				/* coefficient */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 150, 20, cp, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Coefficient for polynomial");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 150, 20, cp, -UI_FLT_MAX, UI_FLT_MAX,
+				          10, 3, TIP_("Coefficient for polynomial"));
 				
 				/* 'x' param (and '+' if necessary) */
-				if (i) {
-					if (i == 1)
-						strcpy(xval, "x");
-					else
-						sprintf(xval, "x^%u", i);
-					uiDefBut(block, LABEL, 1, xval, 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "Power of x");
-				}
+				if (i == 0)
+					strcpy(xval, "");
+				else if (i == 1)
+					strcpy(xval, "x");
+				else
+					sprintf(xval, "x^%u", i);
+				uiDefBut(block, LABEL, 1, xval, 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, TIP_("Power of x"));
 				
 				if ( (i != (data->arraysize - 1)) || ((i==0) && data->arraysize==2) ) {
-					uiDefBut(block, LABEL, 1, "+", 0,0 , 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, "+", 0, 0, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 					
 					/* next coefficient on a new row */
 					row= uiLayoutRow(layout, 1);
 					block= uiLayoutGetBlock(row);
 				}
+				else {
+					/* For alignement in UI! */
+					uiDefBut(block, LABEL, 1, " ", 0, 0, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+				}
 			}
-		}
 			break;
+		}
 		
-		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial expression */
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* Factorized polynomial expression */
 		{
 			float *cp = NULL;
 			unsigned int i;
@@ -183,26 +196,34 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			/* draw polynomial order selector */
 			row= uiLayoutRow(layout, 0);
 			block= uiLayoutGetBlock(row);
-				but= uiDefButI(block, NUM, B_FMODIFIER_REDRAW, "Poly Order: ", 0,0,width-30,19, &data->poly_order, 1, 100, 0, 0, "'Order' of the Polynomial - for a polynomial with n terms, 'order' is n-1");
+				but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 0, 0, width-30, 19,
+				               &data->poly_order, 1, 100, 0, 0,
+				               TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
 				uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
 			
 			
 			/* draw controls for each pair of coefficients */
 			row= uiLayoutRow(layout, 1);
 			block= uiLayoutGetBlock(row);
-				uiDefBut(block, LABEL, 1, "y=", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
 			
 			cp= data->coefficients;
 			for (i=0; (i < data->poly_order) && (cp); i++, cp+=2) {
+				/* To align with first line */
+				if (i)
+					uiDefBut(block, LABEL, 1, "   ", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+				else
+					uiDefBut(block, LABEL, 1, "y =", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
 				/* opening bracket */
 				uiDefBut(block, LABEL, 1, "(", 0, 0, 20, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
 				/* coefficients */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 100, 20, cp, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Coefficient of x");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 100, 20, cp, -UI_FLT_MAX, UI_FLT_MAX,
+				          10, 3, TIP_("Coefficient of x"));
 				
-				uiDefBut(block, LABEL, 1, "x+", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+				uiDefBut(block, LABEL, 1, "x +", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 100, 20, cp+1, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Second coefficient");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 100, 20, cp+1, -UI_FLT_MAX, UI_FLT_MAX,
+				          10, 3, TIP_("Second coefficient"));
 				
 				/* closing bracket and '+' sign */
 				if ( (i != (data->poly_order - 1)) || ((i==0) && data->poly_order==2) ) {
@@ -261,13 +282,13 @@ static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, shor
 	
 	/* before range */
 	col= uiLayoutColumn(split, 1);
-		uiItemL(col, "Before:", ICON_NONE);
+		uiItemL(col, IFACE_("Before:"), ICON_NONE);
 		uiItemR(col, &ptr, "mode_before", 0, "", ICON_NONE);
 		uiItemR(col, &ptr, "cycles_before", 0, NULL, ICON_NONE);
 		
 	/* after range */
 	col= uiLayoutColumn(split, 1);
-		uiItemL(col, "After:", ICON_NONE);
+		uiItemL(col, IFACE_("After:"), ICON_NONE);
 		uiItemR(col, &ptr, "mode_after", 0, "", ICON_NONE);
 		uiItemR(col, &ptr, "cycles_after", 0, NULL, ICON_NONE);
 }
@@ -312,7 +333,7 @@ static int binarysearch_fcm_envelopedata_index (FCM_EnvelopeData array[], float 
 	int start=0, end=arraylen;
 	int loopbreaker= 0, maxloop= arraylen * 2;
 	
-	/* initialise exists-flag first */
+	/* initialize exists-flag first */
 	*exists= 0;
 	
 	/* sneaky optimisations (don't go through searching process if...):
@@ -320,7 +341,7 @@ static int binarysearch_fcm_envelopedata_index (FCM_EnvelopeData array[], float 
 	 *	- keyframe to be added would replace one of the existing ones on bounds
 	 */
 	if ((arraylen <= 0) || (array == NULL)) {
-		printf("Warning: binarysearch_fcm_envelopedata_index() encountered invalid array \n");
+		printf("Warning: binarysearch_fcm_envelopedata_index() encountered invalid array\n");
 		return 0;
 	}
 	else {
@@ -370,10 +391,10 @@ static int binarysearch_fcm_envelopedata_index (FCM_EnvelopeData array[], float 
 	
 	/* print error if loop-limit exceeded */
 	if (loopbreaker == (maxloop-1)) {
-		printf("Error: binarysearch_fcm_envelopedata_index() was taking too long \n");
+		printf("Error: binarysearch_fcm_envelopedata_index() was taking too long\n");
 		
 		// include debug info 
-		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
+		printf("\tround = %d: start = %d, end = %d, arraylen = %d\n", loopbreaker, start, end, arraylen);
 	}
 	
 	/* not found, so return where to place it */
@@ -479,12 +500,12 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	
 	/* general settings */
 	col= uiLayoutColumn(layout, 1);
-		uiItemL(col, "Envelope:", ICON_NONE);
+		uiItemL(col, IFACE_("Envelope:"), ICON_NONE);
 		uiItemR(col, &ptr, "reference_value", 0, NULL, ICON_NONE);
 		
 		row= uiLayoutRow(col, 1);
-			uiItemR(row, &ptr, "default_min", 0, "Min", ICON_NONE);
-			uiItemR(row, &ptr, "default_max", 0, "Max", ICON_NONE);
+			uiItemR(row, &ptr, "default_min", 0, IFACE_("Min"), ICON_NONE);
+			uiItemR(row, &ptr, "default_max", 0, IFACE_("Max"), ICON_NONE);
 			
 	/* control points header */
 	// TODO: move this control-point control stuff to using the new special widgets for lists
@@ -492,9 +513,10 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	row= uiLayoutRow(layout, 0);
 	block= uiLayoutGetBlock(row);
 		
-		uiDefBut(block, LABEL, 1, "Control Points:", 0, 0, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefBut(block, LABEL, 1, IFACE_("Control Points:"), 0, 0, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
 		
-		but= uiDefBut(block, BUT, B_FMODIFIER_REDRAW, "Add Point", 0,0,150,19, NULL, 0, 0, 0, 0, "Adds a new control-point to the envelope on the current frame");
+		but = uiDefBut(block, BUT, B_FMODIFIER_REDRAW, IFACE_("Add Point"), 0, 0, 150, 19,
+		              NULL, 0, 0, 0, 0, TIP_("Add a new control-point to the envelope on the current frame"));
 		uiButSetFunc(but, fmod_envelope_addpoint_cb, env, NULL);
 		
 	/* control points list */
@@ -504,13 +526,17 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 		block= uiLayoutGetBlock(row);
 		
 		uiBlockBeginAlign(block);
-			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Fra:", 0, 0, 90, 20, &fed->time, -MAXFRAMEF, MAXFRAMEF, 10, 1, "Frame that envelope point occurs");
+			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Fra:"), 0, 0, 90, 20,
+			              &fed->time, -MAXFRAMEF, MAXFRAMEF, 10, 1, TIP_("Frame that envelope point occurs"));
 			uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
 			
-			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 0, 0, 100, 20, &fed->min, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, "Minimum bound of envelope at this point");
-			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Max:", 0, 0, 100, 20, &fed->max, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, "Maximum bound of envelope at this point");
+			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Min:"), 0, 0, 100, 20,
+			          &fed->min, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, TIP_("Minimum bound of envelope at this point"));
+			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Max:"), 0, 0, 100, 20,
+			          &fed->max, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, TIP_("Maximum bound of envelope at this point"));
 			
-			but= uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 0, 0, 18, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete envelope control point");
+			but = uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 0, 0, 18, 20,
+			                  NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Delete envelope control point"));
 			uiButSetFunc(but, fmod_envelope_deletepoint_cb, env, SET_INT_IN_POINTER(i));
 		uiBlockBeginAlign(block);
 	}
@@ -648,7 +674,8 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* delete button */
-		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete F-Curve Modifier");
+		but = uiDefIconBut(block, BUT, B_REDR, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+		                  NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Delete F-Curve Modifier"));
 		uiButSetFunc(but, delete_fmodifier_cb, modifiers, fcm);
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
@@ -709,14 +736,14 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 				/* second row: settings */
 				row = uiLayoutRow(col, 1);
 				
-				uiItemR(row, &ptr, "frame_start", 0, "Start", ICON_NONE);
-				uiItemR(row, &ptr, "frame_end", 0, "End", ICON_NONE);
+				uiItemR(row, &ptr, "frame_start", 0, IFACE_("Start"), ICON_NONE);
+				uiItemR(row, &ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
 				
 				/* third row: blending influence */
 				row = uiLayoutRow(col, 1);
 				
-				uiItemR(row, &ptr, "blend_in", 0, "In", ICON_NONE);
-				uiItemR(row, &ptr, "blend_out", 0, "Out", ICON_NONE);
+				uiItemR(row, &ptr, "blend_in", 0, IFACE_("In"), ICON_NONE);
+				uiItemR(row, &ptr, "blend_out", 0, IFACE_("Out"), ICON_NONE);
 			}
 			
 			/* influence -------------------------------------------------------------- */
@@ -757,7 +784,7 @@ short ANIM_fmodifiers_copy_to_buf (ListBase *modifiers, short active)
 	short ok = 1;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->first)
+	if (ELEM(NULL, modifiers, modifiers->first))
 		return 0;
 		
 	/* copy the whole list, or just the active one? */

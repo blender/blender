@@ -77,7 +77,7 @@ ImFileType IMB_FILE_TYPES[]= {
 	{NULL, NULL, imb_is_a_hdr, imb_ftype_default, imb_loadhdr, imb_savehdr, NULL, IM_FTYPE_FLOAT, RADHDR},
 #endif
 #ifdef WITH_OPENEXR
-	{NULL, NULL, imb_is_a_openexr, imb_ftype_default, imb_load_openexr, imb_save_openexr, NULL, IM_FTYPE_FLOAT, OPENEXR},
+	{imb_initopenexr, NULL, imb_is_a_openexr, imb_ftype_default, imb_load_openexr, imb_save_openexr, NULL, IM_FTYPE_FLOAT, OPENEXR},
 #endif
 #ifdef WITH_OPENJPEG
 	{NULL, NULL, imb_is_a_jp2, imb_ftype_default, imb_jp2_decode, imb_savejp2, NULL, IM_FTYPE_FLOAT, JP2},
@@ -94,8 +94,8 @@ void imb_filetypes_init(void)
 {
 	ImFileType *type;
 
-	for(type=IMB_FILE_TYPES; type->is_a; type++)
-		if(type->init)
+	for (type=IMB_FILE_TYPES; type->is_a; type++)
+		if (type->init)
 			type->init();
 }
 
@@ -103,8 +103,8 @@ void imb_filetypes_exit(void)
 {
 	ImFileType *type;
 
-	for(type=IMB_FILE_TYPES; type->is_a; type++)
-		if(type->exit)
+	for (type=IMB_FILE_TYPES; type->is_a; type++)
+		if (type->exit)
 			type->exit();
 }
 

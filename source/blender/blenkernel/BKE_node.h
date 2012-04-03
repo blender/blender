@@ -364,6 +364,7 @@ int				nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
 void			nodeFreePreview(struct bNode *node);
 
 int				nodeSocketIsHidden(struct bNodeSocket *sock);
+void			nodeSocketSetType(struct bNodeSocket *sock, int type);
 
 /* ************** NODE TYPE ACCESS *************** */
 
@@ -636,7 +637,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_TRANSFORM	264
 #define CMP_NODE_MOVIEDISTORTION	265
 #define CMP_NODE_DOUBLEEDGEMASK    266
-#define CMP_NODE_OUTPUT_MULTI_FILE	267
+#define CMP_NODE_OUTPUT_MULTI_FILE__DEPRECATED	267	/* DEPRECATED multi file node has been merged into regular CMP_NODE_OUTPUT_FILE */
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302
@@ -676,8 +677,9 @@ void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositForceHidden(struct bNodeTree *ntree, struct Scene *scene);
 void ntreeCompositClearTags(struct bNodeTree *ntree);
 
-void ntreeCompositOutputMultiFileAddSocket(struct bNodeTree *ntree, struct bNode *node, struct ImageFormatData *im_format);
-int ntreeCompositOutputMultiFileRemoveActiveSocket(struct bNodeTree *ntree, struct bNode *node);
+struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree, struct bNode *node,
+                                                     const char *name, struct ImageFormatData *im_format);
+int ntreeCompositOutputFileRemoveActiveSocket(struct bNodeTree *ntree, struct bNode *node);
 
 /* ************** TEXTURE NODES *************** */
 

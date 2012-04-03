@@ -55,7 +55,7 @@ struct wmWindowManager;
 #include "RNA_types.h"
 
 /* spacetype has everything stored to get an editor working, it gets initialized via 
-   ED_spacetypes_init() in editors/area/spacetypes.c   */
+ * ED_spacetypes_init() in editors/area/spacetypes.c   */
 /* an editor in Blender is a combined ScrArea + SpaceType + SpaceData */
 
 #define BKE_ST_MAXNAME	64

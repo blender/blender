@@ -69,11 +69,11 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
  *
  * 1. jpeg - standard printing, u & v at quarter of resulution
  * 2. jvid - standaard video, u & v half resolution, frame not interlaced
-
-type 3 is unsupported as of jul 05 2000 Frank.
-
+ *
+ * type 3 is unsupported as of jul 05 2000 Frank.
+ *
  * 3. jstr - as 2, but written in 2 separate fields
-
+ *
  * 4. jmax - no scaling in the components
  */
 
@@ -142,8 +142,8 @@ static boolean fill_input_buffer(j_decompress_ptr cinfo)
 	my_src_ptr src = (my_src_ptr) cinfo->src;
 
 	/* Since we have given all we have got already
-	* we simply fake an end of file
-	*/
+	 * we simply fake an end of file
+	 */
 
 	src->pub.next_input_byte = src->terminal;
 	src->pub.bytes_in_buffer = 2;
@@ -158,7 +158,7 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 {
 	my_src_ptr src = (my_src_ptr) cinfo->src;
 
-	if(num_bytes > 0) {
+	if (num_bytes > 0) {
 		// prevent skipping over file end
 		size_t skip_size = (size_t)num_bytes <= src->pub.bytes_in_buffer ? num_bytes : src->pub.bytes_in_buffer;
 
@@ -177,8 +177,7 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
 {
 	my_src_ptr src;
 
-	if (cinfo->src == NULL)
-	{	/* first time for this JPEG object? */
+	if (cinfo->src == NULL) { /* first time for this JPEG object? */
 		cinfo->src = (struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)
 			((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
 	}
@@ -373,8 +372,8 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 			}
 
 			marker= cinfo->marker_list;
-			while(marker) {
-				if(marker->marker != JPEG_COM)
+			while (marker) {
+				if (marker->marker != JPEG_COM)
 					goto next_stamp_marker;
 
 				/*
@@ -386,7 +385,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 				 * That is why we need split it to the
 				 * common key/value here.
 				 */
-				if(strncmp((char *) marker->data, "Blender", 7)) {
+				if (strncmp((char *) marker->data, "Blender", 7)) {
 					/*
 					 * Maybe the file have text that
 					 * we don't know "what it's", in that
@@ -406,7 +405,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 				/*
 				 * A little paranoid, but the file maybe
 				 * is broken... and a "extra" check is better
-				 * that a segfaul ;)
+				 * then segfault ;)
 				 */
 				if (!key) {
 					MEM_freeN(str);
@@ -433,7 +432,7 @@ next_stamp_marker:
 		}
 		
 		jpeg_destroy((j_common_ptr) cinfo);
-		if(ibuf) {
+		if (ibuf) {
 			ibuf->ftype = ibuf_ftype;
 			ibuf->profile = IB_PROFILE_SRGB;
 		}
@@ -448,7 +447,7 @@ ImBuf * imb_load_jpeg (unsigned char * buffer, size_t size, int flags)
 	struct my_error_mgr jerr;
 	ImBuf * ibuf;
 
-	if(!imb_is_a_jpeg(buffer)) return NULL;
+	if (!imb_is_a_jpeg(buffer)) return NULL;
 	
 	cinfo->err = jpeg_std_error(&jerr.pub);
 	jerr.pub.error_exit = jpeg_error;
@@ -489,11 +488,11 @@ static void write_jpeg(struct jpeg_compress_struct * cinfo, struct ImBuf * ibuf)
 	memcpy(neogeo + 6, &ibuf_ftype, 4);
 	jpeg_write_marker(cinfo, 0xe1, (JOCTET*) neogeo, 10);
 
-	if(ibuf->metadata) {
+	if (ibuf->metadata) {
 		/* key + max value + "Blender" */
 		text= MEM_mallocN(530, "stamp info read");
 		iptr= ibuf->metadata;
-		while(iptr) {
+		while (iptr) {
 			if (!strcmp (iptr->key, "None")) {
 				jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *) iptr->value, strlen (iptr->value) + 1);
 				goto next_stamp_info;
@@ -521,11 +520,11 @@ next_stamp_info:
 					 cinfo->input_components *
 					 cinfo->image_width, "jpeg row_pointer");
 
-	for(y = ibuf->y - 1; y >= 0; y--){
+	for (y = ibuf->y - 1; y >= 0; y--) {
 		rect = (uchar *) (ibuf->rect + y * ibuf->x);
 		buffer = row_pointer[0];
 
-		switch(cinfo->in_color_space){
+		switch(cinfo->in_color_space) {
 			case JCS_RGB:
 				for (x = 0; x < ibuf->x; x++) {
 					*buffer++ = rect[0];
@@ -578,7 +577,7 @@ static int init_jpeg(FILE * outfile, struct jpeg_compress_struct * cinfo, struct
 
 	if (ibuf->planes == 32) cinfo->in_color_space = JCS_UNKNOWN;
 #endif
-	switch(cinfo->in_color_space){
+	switch(cinfo->in_color_space) {
 		case JCS_RGB:
 			cinfo->input_components = 3;
 			break;
@@ -609,7 +608,7 @@ static int save_stdjpeg(const char *name, struct ImBuf *ibuf)
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;
 
-	if ((outfile = fopen(name, "wb")) == NULL) return 0;
+	if ((outfile = BLI_fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 75;
 
 	cinfo->err = jpeg_std_error(&jerr.pub);
@@ -643,7 +642,7 @@ static int save_vidjpeg(const char *name, struct ImBuf *ibuf)
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;
 
-	if ((outfile = fopen(name, "wb")) == NULL) return 0;
+	if ((outfile = BLI_fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 90;
 
 	cinfo->err = jpeg_std_error(&jerr.pub);
@@ -713,7 +712,7 @@ static int save_maxjpeg(const char *name, struct ImBuf *ibuf)
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;
 
-	if ((outfile = fopen(name, "wb")) == NULL) return 0;
+	if ((outfile = BLI_fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 100;
 
 	cinfo->err = jpeg_std_error(&jerr.pub);

@@ -26,6 +26,7 @@
 #include "libmv/logging/logging.h"
 #include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
+#include "libmv/image/correlation.h"
 #include "libmv/image/sample.h"
 #include "libmv/numeric/numeric.h"
 
@@ -53,24 +54,6 @@ static bool RegionIsInBounds(const FloatImage &image1,
 
   // Ok, we're good.
   return true;
-}
-
-// Sample a region centered at x,y in image with size extending by half_width
-// from x,y. Channels specifies the number of channels to sample from.
-static void SamplePattern(const FloatImage &image,
-                   double x, double y,
-                   int half_width,
-                   int channels,
-                   FloatImage *sampled) {
-  sampled->Resize(2 * half_width + 1, 2 * half_width + 1, channels);
-  for (int r = -half_width; r <= half_width; ++r) {
-    for (int c = -half_width; c <= half_width; ++c) {
-      for (int i = 0; i < channels; ++i) {
-        (*sampled)(r + half_width, c + half_width, i) =
-            SampleLinear(image, y + r, x + c, i);
-      }
-    }
-  }
 }
 
 // Estimate "reasonable" error by computing autocorrelation for a small shift.
@@ -276,22 +259,9 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
     if (d.squaredNorm() < min_update_squared_distance) {
       // Compute the Pearson product-moment correlation coefficient to check
       // for sanity.
-      // TODO(keir): Put this somewhere smarter.
-      double sX=0,sY=0,sXX=0,sYY=0,sXY=0;
-      for (int r = 0; r < width; ++r) {
-        for (int c = 0; c < width; ++c) {
-          double x = image_and_gradient1_sampled(r, c, 0);
-          double y = image_and_gradient2_sampled[new_image](r, c, 0);
-          sX += x;
-          sY += y;
-          sXX += x*x;
-          sYY += y*y;
-          sXY += x*y;
-        }
-      }
-      double N = width*width;
-      sX /= N, sY /= N, sXX /= N, sYY /= N, sXY /= N;
-      double correlation = (sXY-sX*sY)/sqrt(double((sXX-sX*sX)*(sYY-sY*sY)));
+      double correlation = PearsonProductMomentCorrelation(image_and_gradient1_sampled,
+                                                           image_and_gradient2_sampled[new_image],
+                                                           width);
       LG << "Final correlation: " << correlation;
 
       if (correlation < minimum_correlation) {

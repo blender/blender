@@ -82,8 +82,8 @@ void make_editMball(Object *obedit)
 
 	ml= mb->elems.first;
 	
-	while(ml) {
-		if(ml->flag & SELECT) mb->lastelem = ml;
+	while (ml) {
+		if (ml->flag & SELECT) mb->lastelem = ml;
 		ml= ml->next;
 	}
 
@@ -106,7 +106,7 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int UNU
 
 	/* Deselect all existing metaelems */
 	ml= mball->editelems->first;
-	while(ml) {
+	while (ml) {
 		ml->flag &= ~SELECT;
 		ml= ml->next;
 	}
@@ -131,11 +131,11 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	ml= mb->editelems->first;
-	if(ml) {
+	if (ml) {
 		if (action == SEL_TOGGLE) {
 			action = SEL_SELECT;
-			while(ml) {
-				if(ml->flag & SELECT) {
+			while (ml) {
+				if (ml->flag & SELECT) {
 					action = SEL_DESELECT;
 					break;
 				}
@@ -144,7 +144,7 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 		}
 
 		ml= mb->editelems->first;
-		while(ml) {
+		while (ml) {
 			switch (action) {
 			case SEL_SELECT:
 				ml->flag |= SELECT;
@@ -167,16 +167,16 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 void MBALL_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
-	ot->description= "Change selection of all meta elements";
-	ot->idname= "MBALL_OT_select_all";
+	ot->name = "(De)select All";
+	ot->description = "Change selection of all meta elements";
+	ot->idname = "MBALL_OT_select_all";
 
 	/* callback functions */
-	ot->exec= mball_select_all_exec;
-	ot->poll= ED_operator_editmball;
+	ot->exec = mball_select_all_exec;
+	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -191,15 +191,15 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 	MetaElem *ml;
 	float percent= RNA_float_get(op->ptr, "percent");
 	
-	if(percent == 0.0f)
+	if (percent == 0.0f)
 		return OPERATOR_CANCELLED;
 	
 	ml= mb->editelems->first;
 	BLI_srand( BLI_rand() );	/* Random seed */
 	
 	/* Stupid version of random selection. Should be improved. */
-	while(ml) {
-		if(BLI_frand() < percent)
+	while (ml) {
+		if (BLI_frand() < percent)
 			ml->flag |= SELECT;
 		else
 			ml->flag &= ~SELECT;
@@ -215,17 +215,17 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Random...";
-	ot->description= "Randomly select metaelements";
-	ot->idname= "MBALL_OT_select_random_metaelems";
+	ot->name = "Random...";
+	ot->description = "Randomly select metaelements";
+	ot->idname = "MBALL_OT_select_random_metaelems";
 	
 	/* callback functions */
-	ot->exec= select_random_metaelems_exec;
-	ot->invoke= WM_operator_props_popup;
-	ot->poll= ED_operator_editmball;
+	ot->exec = select_random_metaelems_exec;
+	ot->invoke = WM_operator_props_popup;
+	ot->poll = ED_operator_editmball;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of metaelems to select randomly", 0.0001f, 1.0f);
@@ -241,9 +241,9 @@ static int duplicate_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 	MetaElem *ml, *newml;
 	
 	ml= mb->editelems->last;
-	if(ml) {
-		while(ml) {
-			if(ml->flag & SELECT) {
+	if (ml) {
+		while (ml) {
+			if (ml->flag & SELECT) {
 				newml= MEM_dupallocN(ml);
 				BLI_addtail(mb->editelems, newml);
 				mb->lastelem= newml;
@@ -274,17 +274,17 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Metaelements";
-	ot->description= "Delete selected metaelement(s)";
-	ot->idname= "MBALL_OT_duplicate_metaelems";
+	ot->name = "Duplicate Metaelements";
+	ot->description = "Delete selected metaelement(s)";
+	ot->idname = "MBALL_OT_duplicate_metaelems";
 
 	/* callback functions */
-	ot->exec= duplicate_metaelems_exec;
-	ot->invoke= duplicate_metaelems_invoke;
-	ot->poll= ED_operator_editmball;
+	ot->exec = duplicate_metaelems_exec;
+	ot->invoke = duplicate_metaelems_invoke;
+	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
 	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
@@ -300,11 +300,11 @@ static int delete_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 	MetaElem *ml, *next;
 	
 	ml= mb->editelems->first;
-	if(ml) {
-		while(ml) {
+	if (ml) {
+		while (ml) {
 			next= ml->next;
-			if(ml->flag & SELECT) {
-				if(mb->lastelem==ml) mb->lastelem= NULL;
+			if (ml->flag & SELECT) {
+				if (mb->lastelem==ml) mb->lastelem= NULL;
 				BLI_remlink(mb->editelems, ml);
 				MEM_freeN(ml);
 			}
@@ -320,16 +320,16 @@ static int delete_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
-	ot->description= "Delete selected metaelement(s)";
-	ot->idname= "MBALL_OT_delete_metaelems";
+	ot->name = "Delete";
+	ot->description = "Delete selected metaelement(s)";
+	ot->idname = "MBALL_OT_delete_metaelems";
 
 	/* callback functions */
-	ot->exec= delete_metaelems_exec;
-	ot->poll= ED_operator_editmball;
+	ot->exec = delete_metaelems_exec;
+	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;	
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;	
 }
 
 /***************************** Hide operator *****************************/
@@ -344,9 +344,9 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
 
 	ml= mb->editelems->first;
 
-	if(ml) {
-		while(ml) {
-			if((ml->flag & SELECT) != invert)
+	if (ml) {
+		while (ml) {
+			if ((ml->flag & SELECT) != invert)
 				ml->flag |= MB_HIDE;
 			ml= ml->next;
 		}
@@ -360,16 +360,16 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
 void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide";
-	ot->description= "Hide (un)selected metaelement(s)";
-	ot->idname= "MBALL_OT_hide_metaelems";
+	ot->name = "Hide";
+	ot->description = "Hide (un)selected metaelement(s)";
+	ot->idname = "MBALL_OT_hide_metaelems";
 
 	/* callback functions */
-	ot->exec= hide_metaelems_exec;
-	ot->poll= ED_operator_editmball;
+	ot->exec = hide_metaelems_exec;
+	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
@@ -386,8 +386,8 @@ static int reveal_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ml= mb->editelems->first;
 
-	if(ml) {
-		while(ml) {
+	if (ml) {
+		while (ml) {
 			ml->flag &= ~MB_HIDE;
 			ml= ml->next;
 		}
@@ -401,16 +401,16 @@ static int reveal_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal";
-	ot->description= "Reveal all hidden metaelements";
-	ot->idname= "MBALL_OT_reveal_metaelems";
+	ot->name = "Reveal";
+	ot->description = "Reveal all hidden metaelements";
+	ot->idname = "MBALL_OT_reveal_metaelems";
 	
 	/* callback functions */
-	ot->exec= reveal_metaelems_exec;
-	ot->poll= ED_operator_editmball;
+	ot->exec = reveal_metaelems_exec;
+	ot->poll = ED_operator_editmball;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;	
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;	
 }
 
 /* Select MetaElement with mouse click (user can select radius circle or
@@ -428,49 +428,49 @@ int mouse_mball(bContext *C, const int mval[2], int extend)
 
 	view3d_set_viewcontext(C, &vc);
 
-	rect.xmin= mval[0]-12;
-	rect.xmax= mval[0]+12;
-	rect.ymin= mval[1]-12;
-	rect.ymax= mval[1]+12;
+	rect.xmin = mval[0]-12;
+	rect.xmax = mval[0]+12;
+	rect.ymin = mval[1]-12;
+	rect.ymax = mval[1]+12;
 
 	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 
 	/* does startelem exist? */
 	ml= mb->editelems->first;
-	while(ml) {
-		if(ml==startelem) break;
+	while (ml) {
+		if (ml==startelem) break;
 		ml= ml->next;
 	}
 
-	if(ml==NULL) startelem= mb->editelems->first;
+	if (ml==NULL) startelem= mb->editelems->first;
 	
-	if(hits>0) {
+	if (hits>0) {
 		ml= startelem;
-		while(ml) {
-			for(a=0; a<hits; a++) {
+		while (ml) {
+			for (a=0; a<hits; a++) {
 				/* index converted for gl stuff */
-				if(ml->selcol1==buffer[ 4 * a + 3 ]) {
+				if (ml->selcol1==buffer[ 4 * a + 3 ]) {
 					ml->flag |= MB_SCALE_RAD;
 					act= ml;
 				}
-				if(ml->selcol2==buffer[ 4 * a + 3 ]) {
+				if (ml->selcol2==buffer[ 4 * a + 3 ]) {
 					ml->flag &= ~MB_SCALE_RAD;
 					act= ml;
 				}
 			}
-			if(act) break;
+			if (act) break;
 			ml= ml->next;
-			if(ml==NULL) ml= mb->editelems->first;
-			if(ml==startelem) break;
+			if (ml==NULL) ml= mb->editelems->first;
+			if (ml==startelem) break;
 		}
 		
 		/* When some metaelem was found, then it is necessary to select or
-		 * deselet it. */
-		if(act) {
-			if(extend==0) {
+		 * deselect it. */
+		if (act) {
+			if (extend==0) {
 				/* Deselect all existing metaelems */
 				ml= mb->editelems->first;
-				while(ml) {
+				while (ml) {
 					ml->flag &= ~SELECT;
 					ml= ml->next;
 				}
@@ -478,7 +478,7 @@ int mouse_mball(bContext *C, const int mval[2], int extend)
 				act->flag |= SELECT;
 			}
 			else {
-				if(act->flag & SELECT)
+				if (act->flag & SELECT)
 					act->flag &= ~SELECT;
 				else
 					act->flag |= SELECT;
@@ -502,10 +502,10 @@ static void freeMetaElemlist(ListBase *lb)
 {
 	MetaElem *ml, *next;
 
-	if(lb==NULL) return;
+	if (lb==NULL) return;
 
 	ml= lb->first;
-	while(ml) {
+	while (ml) {
 		next= ml->next;
 		BLI_remlink(lb, ml);
 		MEM_freeN(ml);
@@ -526,7 +526,7 @@ static void undoMball_to_editMball(void *lbu, void *lbe, void *UNUSED(obe))
 
 	/* copy 'undo' MetaElems to 'edit' MetaElems */
 	ml= lb->first;
-	while(ml) {
+	while (ml) {
 		newml= MEM_dupallocN(ml);
 		BLI_addtail(editelems, newml);
 		ml= ml->next;
@@ -546,7 +546,7 @@ static void *editMball_to_undoMball(void *lbe, void *UNUSED(obe))
 	
 	/* copy contents of current ListBase to the undo ListBase */
 	ml= editelems->first;
-	while(ml) {
+	while (ml) {
 		newml= MEM_dupallocN(ml);
 		BLI_addtail(lb, newml);
 		ml= ml->next;
@@ -566,7 +566,7 @@ static void free_undoMball(void *lbv)
 
 static ListBase *metaball_get_editelems(Object *ob)
 {
-	if(ob && ob->type==OB_MBALL) {
+	if (ob && ob->type==OB_MBALL) {
 		struct MetaBall *mb= (struct MetaBall*)ob->data;
 		return mb->editelems;
 	}

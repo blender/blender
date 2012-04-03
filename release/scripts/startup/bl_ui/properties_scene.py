@@ -115,7 +115,8 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
             row = layout.row()
 
             col = row.column()
-            col.prop(ks, "name")
+            col.prop(ks, "bl_label")
+            col.prop(ks, "bl_description")
 
             subcol = col.column()
             subcol.operator_context = 'INVOKE_DEFAULT'

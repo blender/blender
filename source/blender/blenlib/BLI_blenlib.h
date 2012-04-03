@@ -44,7 +44,7 @@
  * \subsection issues Known issues with BLI
  *
  * - blenlib is written in C.
- * - The posix-compliancy may move to a separate lib that deals with 
+ * - The posix-compliance may move to a separate lib that deals with
  *   platform dependencies. (There are other platform-dependent 
  *   fixes as well.)
  * - The file i/o has some redundant code. It should be cleaned.

@@ -130,7 +130,7 @@ extern char build_rev[];
 char *bc_CustomData_get_layer_name(const struct CustomData *data, int type, int n)
 {
 	int layer_index = CustomData_get_layer_index(data, type);
-	if(layer_index < 0) return NULL;
+	if (layer_index < 0) return NULL;
 
 	return data->layers[layer_index+n].name;
 }
@@ -139,7 +139,7 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
 {
 	/* get the layer index of the active layer of type */
 	int layer_index = CustomData_get_active_layer_index(data, type);
-	if(layer_index < 0) return NULL;
+	if (layer_index < 0) return NULL;
 
 	return data->layers[layer_index].name;
 }
@@ -178,30 +178,30 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	switch(RNA_property_enum_get(&unit_settings, system)) {
 		case USER_UNIT_NONE:
 		case USER_UNIT_METRIC:
-			if(linearmeasure == 0.001f) {
+			if (linearmeasure == 0.001f) {
 				unitname = "millimeter";
 			}
-			else if(linearmeasure == 0.01f) {
+			else if (linearmeasure == 0.01f) {
 				unitname = "centimeter";
 			}
-			else if(linearmeasure == 0.1f) {
+			else if (linearmeasure == 0.1f) {
 				unitname = "decimeter";
 			}
-			else if(linearmeasure == 1.0f) {
+			else if (linearmeasure == 1.0f) {
 				unitname = "meter";
 			}
-			else if(linearmeasure == 1000.0f) {
+			else if (linearmeasure == 1000.0f) {
 				unitname = "kilometer";
 			}
 			break;
 		case USER_UNIT_IMPERIAL:
-			if(linearmeasure == 0.0254f) {
+			if (linearmeasure == 0.0254f) {
 				unitname = "inch";
 			}
-			else if(linearmeasure == 0.3048f) {
+			else if (linearmeasure == 0.3048f) {
 				unitname = "foot";
 			}
-			else if(linearmeasure == 0.9144f) {
+			else if (linearmeasure == 0.9144f) {
 				unitname = "yard";
 			}
 			break;
@@ -211,7 +211,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 
 	asset.setUnit(unitname, linearmeasure);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
-	if(U.author[0] != '\0') {
+	if (U.author[0] != '\0') {
 		asset.getContributor().mAuthor = U.author;
 	}
 	else {
@@ -227,13 +227,13 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	asset.add();
 	
 	// <library_cameras>
-	if(has_object_type(sce, OB_CAMERA)) {
+	if (has_object_type(sce, OB_CAMERA)) {
 		CamerasExporter ce(&sw, this->export_settings);
 		ce.exportCameras(sce);
 	}
 	
 	// <library_lights>
-	if(has_object_type(sce, OB_LAMP)) {
+	if (has_object_type(sce, OB_LAMP)) {
 		LightsExporter le(&sw, this->export_settings);
 		le.exportLights(sce);
 	}
@@ -251,7 +251,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	me.exportMaterials(sce);
 
 	// <library_geometries>
-	if(has_object_type(sce, OB_MESH)) {
+	if (has_object_type(sce, OB_MESH)) {
 		GeometryExporter ge(&sw, this->export_settings);
 		ge.exportGeom(sce);
 	}
@@ -262,7 +262,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 
 	// <library_controllers>
 	ArmatureExporter arm_exporter(&sw, this->export_settings);
-	if(has_object_type(sce, OB_ARMATURE)) {
+	if (has_object_type(sce, OB_ARMATURE)) {
 		arm_exporter.export_controllers(sce);
 	}
 

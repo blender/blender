@@ -55,11 +55,11 @@
 
 #ifdef HAVE_LIB_GFLAGS
 
-#include "third_party/gflags/gflags.h"
+#include "third_party/gflags/gflags/gflags.h"
 
 #else
 
-#include "glog/logging.h"
+#include <glog/logging.h>
 
 #define DECLARE_VARIABLE(type, name, tn)                                      \
   namespace FLAG__namespace_do_not_use_directly_use_DECLARE_##tn##_instead {  \

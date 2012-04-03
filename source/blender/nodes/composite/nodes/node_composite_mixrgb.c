@@ -48,7 +48,7 @@ static void do_mix_rgb(bNode *node, float *out, float *in1, float *in2, float *f
 	float col[3];
 	
 	copy_v3_v3(col, in1);
-	if(node->custom2)
+	if (node->custom2)
 		ramp_blend(node->custom1, col, in2[3]*fac[0], in2);
 	else
 		ramp_blend(node->custom1, col, fac[0], in2);
@@ -62,10 +62,10 @@ static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in,
 	/* stack order out: Image */
 	float *fac= in[0]->vec;
 	
-	if(out[0]->hasoutput==0) return;
+	if (out[0]->hasoutput==0) return;
 	
 	/* input no image? then only color operation */
-	if(in[1]->data==NULL && in[2]->data==NULL) {
+	if (in[1]->data==NULL && in[2]->data==NULL) {
 		do_mix_rgb(node, out[0]->vec, in[1]->vec, in[2]->vec, fac);
 	}
 	else {

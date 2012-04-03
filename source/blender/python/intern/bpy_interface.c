@@ -52,6 +52,7 @@
 #include "DNA_text_types.h"
 
 #include "BLI_path_util.h"
+#include "BLI_fileops.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -77,7 +78,7 @@
 
 /* for internal use, when starting and ending python scripts */
 
-/* incase a python script triggers another python call, stop bpy_context_clear from invalidating */
+/* in case a python script triggers another python call, stop bpy_context_clear from invalidating */
 static int py_call_level = 0;
 BPy_StructRNA *bpy_context_module = NULL; /* for fast access */
 
@@ -85,10 +86,10 @@ BPy_StructRNA *bpy_context_module = NULL; /* for fast access */
 
 #ifdef TIME_PY_RUN
 #include "PIL_time.h"
-static int		bpy_timer_count = 0;
-static double	bpy_timer; /* time since python starts */
-static double	bpy_timer_run; /* time for each python script run */
-static double	bpy_timer_run_tot; /* accumulate python runs */
+static int     bpy_timer_count = 0;
+static double  bpy_timer;   /* time since python starts */
+static double  bpy_timer_run;   /* time for each python script run */
+static double  bpy_timer_run_tot;   /* accumulate python runs */
 #endif
 
 /* use for updating while a python script runs - in case of file load */
@@ -96,7 +97,7 @@ void bpy_context_update(bContext *C)
 {
 	BPy_SetContext(C);
 	bpy_import_main_set(CTX_data_main(C));
-	BPY_modules_update(C); /* can give really bad results if this isnt here */
+	BPY_modules_update(C); /* can give really bad results if this isn't here */
 }
 
 void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
@@ -183,7 +184,7 @@ extern PyObject *AUD_initPython(void);
 /* defined in cycles module */
 static PyObject *CCL_initPython(void)
 {
-	return (PyObject*)CCL_python_module_init();
+	return (PyObject *)CCL_python_module_init();
 }
 #endif
 
@@ -194,8 +195,8 @@ static struct _inittab bpy_internal_modules[] = {
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
 	{(char *)"bmesh", BPyInit_bmesh},
-    // {(char *)"bmesh.types", BPyInit_bmesh_types},
-    // {(char *)"bmesh.utils", BPyInit_bmesh_utils},
+	// {(char *)"bmesh.types", BPyInit_bmesh_types},
+	// {(char *)"bmesh.utils", BPyInit_bmesh_utils},
 #ifdef WITH_AUDASPACE
 	{(char *)"aud", AUD_initPython},
 #endif
@@ -238,7 +239,7 @@ void BPY_python_start(int argc, const char **argv)
 	Py_Initialize();
 
 	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
-	/* sigh, why do python guys not have a char** version anymore? :( */
+	/* sigh, why do python guys not have a (char **) version anymore? */
 	{
 		int i;
 		PyObject *py_argv = PyList_New(argc);
@@ -307,10 +308,10 @@ void BPY_python_end(void)
 	printf("tot exec: %d,  ", bpy_timer_count);
 	printf("tot run: %.4fsec,  ", bpy_timer_run_tot);
 	if (bpy_timer_count > 0)
-		printf("average run: %.6fsec,  ", (bpy_timer_run_tot/bpy_timer_count));
+		printf("average run: %.6fsec,  ", (bpy_timer_run_tot / bpy_timer_count));
 
 	if (bpy_timer > 0.0)
-		printf("tot usage %.4f%%", (bpy_timer_run_tot/bpy_timer) * 100.0);
+		printf("tot usage %.4f%%", (bpy_timer_run_tot / bpy_timer) * 100.0);
 
 	printf("\n");
 
@@ -366,7 +367,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 		char fn_dummy[FILE_MAXDIR];
 		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
 
-		if (text->compiled == NULL) {	/* if it wasn't already compiled, do it now */
+		if (text->compiled == NULL) {   /* if it wasn't already compiled, do it now */
 			char *buf = txt_to_buf(text);
 
 			text->compiled = Py_CompileString(buf, fn_dummy, Py_file_input);
@@ -388,7 +389,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 
 	}
 	else {
-		FILE *fp = fopen(fn, "r");
+		FILE *fp = BLI_fopen(fn, "r");
 
 		if (fp) {
 			py_dict = PyC_DefaultNameSpace(fn);
@@ -497,7 +498,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const short ve
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
-		PyDict_Merge(py_dict, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
+		PyDict_Merge(py_dict, PyModule_GetDict(mod), 0); /* 0 - don't overwrite existing values */
 		Py_DECREF(mod);
 	}
 	else { /* highly unlikely but possibly */
@@ -671,11 +672,11 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 				PyObject *list_item = PySequence_Fast_GET_ITEM(seq_fast, i);
 
 				if (BPy_StructRNA_Check(list_item)) {
-					/*
+#if 0
 					CollectionPointerLink *link = MEM_callocN(sizeof(CollectionPointerLink), "bpy_context_get");
 					link->ptr = ((BPy_StructRNA *)item)->ptr;
 					BLI_addtail(&result->list, link);
-					*/
+#endif
 					ptr = &(((BPy_StructRNA *)list_item)->ptr);
 					CTX_data_list_add(result, ptr->id.data, ptr->type, ptr->data);
 				}
@@ -691,11 +692,11 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 	}
 
 	if (done == 0) {
-		if (item)	printf("PyContext '%s' not a valid type\n", member);
-		else		printf("PyContext '%s' not found\n", member);
+		if (item) printf("PyContext '%s' not a valid type\n", member);
+		else      printf("PyContext '%s' not found\n", member);
 	}
 	else {
-		if (G.f & G_DEBUG) {
+		if (G.debug & G_DEBUG_PYTHON) {
 			printf("PyContext '%s' found\n", member);
 		}
 	}
@@ -705,7 +706,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 #ifdef WITH_PYTHON_MODULE
 #include "BLI_fileops.h"
-/* TODO, reloading the module isnt functional at the moment. */
+/* TODO, reloading the module isn't functional at the moment. */
 
 static void bpy_module_free(void *mod);
 extern int main_python_enter(int argc, const char **argv);
@@ -782,7 +783,7 @@ PyInit_bpy(void)
 	 *    we may end up having to rename this module so there is no naming conflict here eg:
 	 *    'from blender import bpy'
 	 *
-	 * 3) we dont know the filename at this point, workaround by assigning a dummy value
+	 * 3) we don't know the filename at this point, workaround by assigning a dummy value
 	 *    which calls back when its freed so the real loading can take place.
 	 */
 

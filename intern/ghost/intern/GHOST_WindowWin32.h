@@ -236,7 +236,7 @@ public:
 	 * Returns the name of the window class.
 	 * @return The name of the window class.
 	 */
-	static LPCSTR getWindowClassName() { return s_windowClassName; }
+	static wchar_t* getWindowClassName() { return s_windowClassName; }
 
 	/**
 	 * Register a mouse click event (should be called 
@@ -351,7 +351,7 @@ protected:
 	/** ITaskbarList3 structure for progress bar*/
 	ITaskbarList3 * m_Bar;
 
-	static LPCSTR s_windowClassName;
+	static wchar_t* s_windowClassName;
 	static const int s_maxTitleLength;
 
 	/** WinTab dll handle */

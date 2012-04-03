@@ -51,7 +51,7 @@ bool ImagesExporter::hasImages(Scene *sce)
 	while(base) {
 		Object *ob= base->object;
 		int a;
-		for(a = 0; a < ob->totcol; a++)
+		for (a = 0; a < ob->totcol; a++)
 		{
 			Material *ma = give_current_material(ob, a+1);
 
@@ -71,7 +71,7 @@ bool ImagesExporter::hasImages(Scene *sce)
 
 void ImagesExporter::exportImages(Scene *sce)
 {
-	if(hasImages(sce)) {
+	if (hasImages(sce)) {
 		openLibrary();
 		MaterialFunctor mf;
 		mf.forEachMaterialInScene<ImagesExporter>(sce, *this, this->export_settings->selected);
@@ -109,7 +109,7 @@ void ImagesExporter::operator()(Material *ma, Object *ob)
 				BLI_make_existing_file(abs);
 			
 				if (BLI_copy(src, abs) != 0) {
-					fprintf(stderr, "Cannot copy image to file's directory. \n");
+					fprintf(stderr, "Cannot copy image to file's directory.\n");
 				}
 			} 
 			

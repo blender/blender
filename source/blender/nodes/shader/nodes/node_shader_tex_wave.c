@@ -56,7 +56,7 @@ static void node_shader_init_tex_wave(bNodeTree *UNUSED(ntree), bNode* node, bNo
 
 static int node_shader_gpu_tex_wave(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
-	if(!in[0].link)
+	if (!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);

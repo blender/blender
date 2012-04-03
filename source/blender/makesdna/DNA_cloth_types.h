@@ -33,16 +33,16 @@
 #define __DNA_CLOTH_TYPES_H__
 
 /**
-* This struct contains all the global data required to run a simulation.
-* At the time of this writing, this structure contains data appropriate
-* to run a simulation as described in Deformation Constraints in a
-* Mass-Spring Model to Describe Rigid Cloth Behavior by Xavier Provot.
-*
-* I've tried to keep similar, if not exact names for the variables as
-* are presented in the paper.  Where I've changed the concept slightly,
-* as in stepsPerFrame comapred to the time step in the paper, I've used
-* variables with different names to minimize confusion.
-**/
+ * This struct contains all the global data required to run a simulation.
+ * At the time of this writing, this structure contains data appropriate
+ * to run a simulation as described in Deformation Constraints in a
+ * Mass-Spring Model to Describe Rigid Cloth Behavior by Xavier Provot.
+ *
+ * I've tried to keep similar, if not exact names for the variables as
+ * are presented in the paper.  Where I've changed the concept slightly,
+ * as in stepsPerFrame comapred to the time step in the paper, I've used
+ * variables with different names to minimize confusion.
+ */
 
 typedef struct ClothSimSettings
 {

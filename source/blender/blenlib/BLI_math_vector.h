@@ -70,6 +70,14 @@ MINLINE void copy_v4_v4_short(short r[4], const short a[4]);
 MINLINE void copy_v2_v2_int(int r[2], const int a[2]);
 MINLINE void copy_v3_v3_int(int r[3], const int a[3]);
 MINLINE void copy_v4_v4_int(int r[4], const int a[4]);
+/* double -> float */
+MINLINE void copy_v2fl_v2db(float r[2], const double a[2]);
+MINLINE void copy_v3fl_v3db(float r[3], const double a[3]);
+MINLINE void copy_v4fl_v4db(float r[4], const double a[4]);
+/* float -> double */
+MINLINE void copy_v2db_v2fl(double r[2], const float a[2]);
+MINLINE void copy_v3db_v3fl(double r[3], const float a[3]);
+MINLINE void copy_v4db_v4fl(double r[4], const float a[4]);
 
 /********************************* Arithmetic ********************************/
 
@@ -121,6 +129,7 @@ MINLINE void star_m3_v3(float rmat[3][3],float a[3]);
 /*********************************** Length **********************************/
 
 MINLINE float len_squared_v2(const float v[2]);
+MINLINE float len_squared_v3(const float v[3]);
 MINLINE float len_v2(const float a[2]);
 MINLINE float len_v2v2(const float a[2], const float b[2]);
 MINLINE float len_squared_v2v2(const float a[2], const float b[2]);
@@ -168,6 +177,7 @@ MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const flo
 /* - angle_normalized_* is faster equivalent if vectors are normalized       */
 
 float angle_v2v2(const float a[2], const float b[2]);
+float angle_signed_v2v2(const float v1[2], const float v2[2]);
 float angle_v2v2v2(const float a[2], const float b[2], const float c[2]);
 float angle_normalized_v2v2(const float a[2], const float b[2]);
 float angle_v3v3(const float a[3], const float b[3]);
@@ -181,6 +191,7 @@ void angle_poly_v3(float* angles, const float* verts[3], int len);
 
 void project_v2_v2v2(float c[2], const float v1[2], const float v2[2]);
 void project_v3_v3v3(float r[3], const float p[3], const float n[3]);
+void project_v3_plane(float v[3], const float n[3], const float p[3]);
 void reflect_v3_v3v3(float r[3], const float v[3], const float n[3]);
 void ortho_basis_v3v3_v3(float r1[3], float r2[3], const float a[3]);
 void bisect_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3]);

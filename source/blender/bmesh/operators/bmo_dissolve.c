@@ -26,9 +26,9 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define FACE_MARK	1
 #define FACE_ORIG	2
@@ -47,13 +47,15 @@ static int UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 	/* checks if there are any unmarked boundary edges in the face regio */
 
 	BMW_init(&regwalker, bm, BMW_ISLAND,
-	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+	         BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 	         BMW_NIL_LAY);
+
 	f2 = BMW_begin(&regwalker, f);
 	for ( ; f2; f2 = BMW_step(&regwalker)) {
 		l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
 		for ( ; l2; l2 = BM_iter_step(&liter2)) {
-			l3 = bmesh_radial_loop_next(l2);
+			l3 = l2->radial_next;
 			if ( BMO_elem_flag_test(bm, l3->f, FACE_MARK) !=
 			     BMO_elem_flag_test(bm, l2->f, FACE_MARK))
 			{
@@ -92,18 +94,22 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_flag_enable(bm, op, "faces", FACE_MARK, BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, op, "faces", BM_FACE, FACE_MARK);
 	
 	/* collect region */
 	BMO_ITER(f, &oiter, bm, op, "faces", BM_FACE) {
-		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) continue;
+
+		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) {
+			continue;
+		}
 
 		BLI_array_empty(faces);
 		faces = NULL; /* forces different allocatio */
 
 		/* yay, walk */
 		BMW_init(&regwalker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+		         BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
+		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
 		         BMW_NIL_LAY);
 
 		f2 = BMW_begin(&regwalker, f);
@@ -171,12 +177,14 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (BMO_error_occurred(bm)) goto cleanup;
+	if (BMO_error_occurred(bm)) {
+		goto cleanup;
+	}
 
-	BMO_slot_from_flag(bm, op, "regionout", FACE_NEW, BM_FACE);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "regionout", BM_FACE, FACE_NEW);
 
 cleanup:
-	/* free/cleanu */
+	/* free/cleanup */
 	for (i = 0; i < BLI_array_count(regions); i++) {
 		if (regions[i]) MEM_freeN(regions[i]);
 	}
@@ -193,17 +201,16 @@ void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, **verts = NULL;
 	BLI_array_declare(verts);
 	BMEdge *e;
-	/* BMFace *f; */
+	BMFace *fa, *fb;
 	int i;
 
+
 	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
-		if (BM_edge_face_count(e) == 2) {
+		if (BM_edge_face_pair(e, &fa, &fb)) {
 			BMO_elem_flag_enable(bm, e->v1, VERT_MARK);
 			BMO_elem_flag_enable(bm, e->v2, VERT_MARK);
 
-			BM_faces_join_pair(bm, e->l->f,
-			                   e->l->radial_next->f,
-			                   e);
+			BM_faces_join_pair(bm, fa, fb, e);
 		}
 	}
 
@@ -251,13 +258,12 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_ITER(e, &eiter, bm, op, "edges", BM_EDGE) {
-		const int edge_face_count = BM_edge_face_count(e);
-		if (edge_face_count == 2) {
+		BMFace *fa, *fb;
+
+		if (BM_edge_face_pair(e, &fa, &fb)) {
 
 			/* join faces */
-			BM_faces_join_pair(bm, e->l->f,
-			                   e->l->radial_next->f,
-			                   e);
+			BM_faces_join_pair(bm, fa, fb, e);
 		}
 	}
 
@@ -319,14 +325,12 @@ static int test_extra_verts(BMesh *bm, BMVert *v)
 }
 void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 {
-	BMOpSlot *vinput;
 	BMIter iter, fiter;
 	BMVert *v;
 	BMFace *f;
 	/* int i; */
-	
-	vinput = BMO_slot_get(op, "verts");
-	BMO_slot_buffer_flag_enable(bm, op, "verts", VERT_MARK, BM_VERT);
+
+	BMO_slot_buffer_flag_enable(bm, op, "verts", BM_VERT, VERT_MARK);
 	
 	for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
@@ -436,7 +440,8 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 						BM_face_kill(bm, f);
 						BM_edge_kill(bm, fe);
 					}
-				} /* else if (f->len == 3) {
+				}
+				/* else if (f->len == 3) {
 					BMEdge *ed[3];
 					BMVert *vt[3];
 					BMLoop *lp[3];
@@ -463,14 +468,14 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 #endif
 
 /**/
-typedef struct DissolveElemWeight_t {
+typedef struct DissolveElemWeight {
 	BMHeader *ele;
 	float weight;
-} DissolveElemWeight_t;
+} DissolveElemWeight;
 
 static int dissolve_elem_cmp(const void *a1, const void *a2)
 {
-	const struct DissolveElemWeight_t *d1 = a1, *d2 = a2;
+	const struct DissolveElemWeight *d1 = a1, *d2 = a2;
 
 	if      (d1->weight > d2->weight) return  1;
 	else if (d1->weight < d2->weight) return -1;
@@ -483,8 +488,8 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	BMOpSlot *vinput = BMO_slot_get(op, "verts");
 	const float angle_max = (float)M_PI / 2.0f;
 	const float angle_limit = minf(angle_max, BMO_slot_float_get(op, "angle_limit"));
-	DissolveElemWeight_t *weight_elems = MEM_mallocN(MAX2(einput->len, vinput->len) *
-	                                                 sizeof(DissolveElemWeight_t), __func__);
+	DissolveElemWeight *weight_elems = MEM_mallocN(MAX2(einput->len, vinput->len) *
+	                                                 sizeof(DissolveElemWeight), __func__);
 	int i, tot_found;
 
 	/* --- first edges --- */
@@ -492,7 +497,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	/* go through and split edge */
 	for (i = 0, tot_found = 0; i < einput->len; i++) {
 		BMEdge *e = ((BMEdge **)einput->data.p)[i];
-		const float angle = BM_edge_face_angle(bm, e);
+		const float angle = BM_edge_face_angle(e);
 
 		if (angle < angle_limit) {
 			weight_elems[i].ele = (BMHeader *)e;
@@ -506,17 +511,17 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (tot_found != 0) {
-		qsort(weight_elems, einput->len, sizeof(DissolveElemWeight_t), dissolve_elem_cmp);
+		qsort(weight_elems, einput->len, sizeof(DissolveElemWeight), dissolve_elem_cmp);
 
 		for (i = 0; i < tot_found; i++) {
 			BMEdge *e = (BMEdge *)weight_elems[i].ele;
-			/* check twice because cumulative effect could disolve over angle limit */
-			if (BM_edge_face_angle(bm, e) < angle_limit) {
+			/* check twice because cumulative effect could dissolve over angle limit */
+			if (BM_edge_face_angle(e) < angle_limit) {
 				BMFace *nf = BM_faces_join_pair(bm, e->l->f,
 				                                e->l->radial_next->f,
 				                                e); /* join faces */
 
-				/* there may be some errors, we dont mind, just move on */
+				/* there may be some errors, we don't mind, just move on */
 				if (nf == NULL) {
 					BMO_error_clear(bm);
 				}
@@ -527,7 +532,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	/* --- second verts --- */
 	for (i = 0, tot_found = 0; i < vinput->len; i++) {
 		BMVert *v = ((BMVert **)vinput->data.p)[i];
-		const float angle = BM_vert_edge_angle(bm, v);
+		const float angle = BM_vert_edge_angle(v);
 
 		if (angle < angle_limit) {
 			weight_elems[i].ele = (BMHeader *)v;
@@ -541,12 +546,12 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (tot_found != 0) {
-		qsort(weight_elems, vinput->len, sizeof(DissolveElemWeight_t), dissolve_elem_cmp);
+		qsort(weight_elems, vinput->len, sizeof(DissolveElemWeight), dissolve_elem_cmp);
 
 		for (i = 0; i < tot_found; i++) {
 			BMVert *v = (BMVert *)weight_elems[i].ele;
-			/* check twice because cumulative effect could disolve over angle limit */
-			if (BM_vert_edge_angle(bm, v) < angle_limit) {
+			/* check twice because cumulative effect could dissolve over angle limit */
+			if (BM_vert_edge_angle(v) < angle_limit) {
 				BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
 			}
 		}

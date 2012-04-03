@@ -88,18 +88,18 @@ bool KX_SoftBodyDeformer::Apply(class RAS_IPolyMaterial *polymat)
 	// share the same mesh (=the same cache). As the rendering is done per polymaterial
 	// cycling through the objects, the entire mesh cache cannot be updated in one shot.
 	mmat = m_pMeshObject->GetMeshMaterial(polymat);
-	if(!mmat->m_slots[(void*)m_gameobj])
+	if (!mmat->m_slots[(void*)m_gameobj])
 		return true;
 
 	slot = *mmat->m_slots[(void*)m_gameobj];
 
 	// for each array
-	for(slot->begin(it); !slot->end(it); slot->next(it)) 
+	for (slot->begin(it); !slot->end(it); slot->next(it)) 
 	{
 		btSoftBody::tNodeArray&   nodes(softBody->m_nodes);
 
 		int index = 0;
-		for(i=it.startvertex; i<it.endvertex; i++,index++) {
+		for (i=it.startvertex; i<it.endvertex; i++,index++) {
 			RAS_TexVert& v = it.vertex[i];
 			btAssert(v.getSoftBodyIndex() >= 0);
 

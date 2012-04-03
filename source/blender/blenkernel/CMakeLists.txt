@@ -23,7 +23,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC 
+set(INC
 	.
 	../avi
 	../blenfont
@@ -38,15 +38,11 @@ set(INC
 	../modifiers
 	../nodes
 	../render/extern/include
-	../../../intern/bsp/extern
-	../../../intern/decimation/extern
-	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
 	../../../intern/iksolver/extern
 	../../../intern/memutil
 	../../../intern/mikktspace
 	../../../intern/opennl/extern
-	../../../intern/smoke/extern
 
 	# XXX - BAD LEVEL CALL WM_api.h
 	../windowmanager
@@ -85,8 +81,8 @@ set(SRC
 	intern/depsgraph.c
 	intern/displist.c
 	intern/dynamicpaint.c
-	intern/effect.c
 	intern/editderivedmesh.c
+	intern/effect.c
 	intern/fcurve.c
 	intern/fluidsim.c
 	intern/fmodifier.c
@@ -114,8 +110,8 @@ set(SRC
 	intern/multires.c
 	intern/nla.c
 	intern/node.c
-	intern/ocean.c
 	intern/object.c
+	intern/ocean.c
 	intern/packedFile.c
 	intern/paint.c
 	intern/particle.c
@@ -144,7 +140,6 @@ set(SRC
 	intern/unit.c
 	intern/world.c
 	intern/writeavi.c
-	intern/writeffmpeg.c
 	intern/writeframeserver.c
 	
 	BKE_DerivedMesh.h
@@ -200,8 +195,8 @@ set(SRC
 	BKE_multires.h
 	BKE_nla.h
 	BKE_node.h
-	BKE_ocean.h
 	BKE_object.h
+	BKE_ocean.h
 	BKE_packedFile.h
 	BKE_paint.h
 	BKE_particle.h
@@ -230,11 +225,10 @@ set(SRC
 	BKE_utildefines.h
 	BKE_world.h
 	BKE_writeavi.h
-	BKE_writeffmpeg.h
 	BKE_writeframeserver.h
 	depsgraph_private.h
-	intern/CCGSubSurf.h
 	nla_private.h
+	intern/CCGSubSurf.h
 )
 
 add_definitions(-DGLEW_STATIC)
@@ -299,6 +293,10 @@ if(WITH_CODEC_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
+	list(APPEND SRC
+		intern/writeffmpeg.c
+		BKE_writeffmpeg.h
+	)
 	list(APPEND INC
 		../../../intern/ffmpeg
 	)
@@ -331,15 +329,33 @@ if(WITH_OPENMP)
 endif()
 
 if(WITH_MOD_FLUID)
+	list(APPEND INC
+		../../../intern/elbeem/extern
+	)
 	add_definitions(-DWITH_MOD_FLUID)
 endif()
 
 if(WITH_MOD_SMOKE)
+	list(APPEND INC
+		../../../intern/smoke/extern
+	)
 	add_definitions(-DWITH_SMOKE)
 endif()
 
 if(WITH_MOD_OCEANSIM)
 	add_definitions(-DWITH_OCEANSIM)
+endif()
+
+if(WITH_MOD_DECIMATE)
+	list(APPEND INC
+		../../../intern/decimation/extern
+	)
+endif()
+
+if(WITH_MOD_BOOLEAN)
+	list(APPEND INC
+		../../../intern/bsp/extern
+	)
 endif()
 
 if(WITH_JACK)
@@ -384,6 +400,10 @@ if(WITH_FFTW3)
 		${FFTW3_INCLUDE_DIRS}
 	)
 	add_definitions(-DFFTW3=1)
+endif()
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 ## Warnings as errors, this is too strict!

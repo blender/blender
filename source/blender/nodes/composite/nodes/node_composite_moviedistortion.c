@@ -30,6 +30,8 @@
  *  \ingroup cmpnodes
  */
 
+#include "BLF_translation.h"
+
 
 #include "node_composite_util.h"
 
@@ -47,8 +49,8 @@ static bNodeSocketTemplate cmp_node_moviedistortion_out[]= {
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	if(in[0]->data) {
-		if(node->id) {
+	if (in[0]->data) {
+		if (node->id) {
 			MovieClip *clip= (MovieClip *)node->id;
 			CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 			CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 0);
@@ -56,7 +58,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 
 			ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
 
-			if(ibuf) {
+			if (ibuf) {
 				RenderData *rd= data;
 				ImBuf *obuf;
 				MovieTracking *tracking= &clip->tracking;
@@ -70,10 +72,10 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 
 				BKE_movieclip_get_size(clip, &user, &width, &height);
 
-				if(!node->storage)
+				if (!node->storage)
 					node->storage= BKE_tracking_distortion_create();
 
-				if(node->custom1==0)
+				if (node->custom1==0)
 					obuf= BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 1);
 				else
 					obuf= BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 0);
@@ -91,9 +93,10 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 			/* pass on output and free */
 			out[0]->data= stackbuf;
 
-			if(cbuf!=in[0]->data)
+			if (cbuf!=in[0]->data)
 				free_compbuf(cbuf);
-		} else {
+		}
+		else {
 			CompBuf *cbuf= in[0]->data;
 			CompBuf *stackbuf= pass_on_compbuf(cbuf);
 
@@ -104,15 +107,15 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 
 static const char *label(bNode *node)
 {
-	if(node->custom1==0)
-		return "Undistortion";
+	if (node->custom1==0)
+		return IFACE_("Undistortion");
 	else
-		return "Distortion";
+		return IFACE_("Distortion");
 }
 
 static void storage_free(bNode *node)
 {
-	if(node->storage)
+	if (node->storage)
 		BKE_tracking_distortion_destroy(node->storage);
 
 	node->storage= NULL;
@@ -120,7 +123,7 @@ static void storage_free(bNode *node)
 
 static void storage_copy(bNode *orig_node, bNode *new_node)
 {
-	if(orig_node->storage)
+	if (orig_node->storage)
 		new_node->storage= BKE_tracking_distortion_copy(orig_node->storage);
 }
 

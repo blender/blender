@@ -159,7 +159,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	pso->ob->pose->flag |= POSE_LOCKED;
 	pso->ob->pose->flag &= ~POSE_DO_UNLOCK;
 	
-	/* do basic initialise of RB-BST used for finding keyframes, but leave the filling of it up 
+	/* do basic initialize of RB-BST used for finding keyframes, but leave the filling of it up 
 	 * to the caller of this (usually only invoke() will do it, to make things more efficient).
 	 */
 	BLI_dlrbTree_init(&pso->keys);
@@ -239,7 +239,7 @@ static void pose_slide_apply_val (tPoseSlideOp *pso, FCurve *fcu, float *val)
 	switch (pso->mode) {
 		case POSESLIDE_PUSH: /* make the current pose more pronounced */
 		{
-			/* perform a weighted average here, favouring the middle pose 
+			/* perform a weighted average here, favoring the middle pose
 			 *	- numerator should be larger than denominator to 'expand' the result
 			 *	- perform this weighting a number of times given by the percentage...
 			 */
@@ -253,7 +253,7 @@ static void pose_slide_apply_val (tPoseSlideOp *pso, FCurve *fcu, float *val)
 			
 		case POSESLIDE_RELAX: /* make the current pose more like its surrounding ones */
 		{
-			/* perform a weighted average here, favouring the middle pose 
+			/* perform a weighted average here, favoring the middle pose
 			 *	- numerator should be smaller than denominator to 'relax' the result
 			 *	- perform this weighting a number of times given by the percentage...
 			 */
@@ -660,14 +660,14 @@ static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 			/* clean up temp data */
 			pose_slide_exit(op);
 			
-			/* cancelled! */
+			/* canceled! */
 			return OPERATOR_CANCELLED;
 		}
 			
 		case MOUSEMOVE: /* calculate new position */
 		{
 			/* calculate percentage based on position of mouse (we only use x-axis for now.
-			 * since this is more conveninent for users to do), and store new percentage value 
+			 * since this is more convenient for users to do), and store new percentage value
 			 */
 			pso->percentage= (evt->x - pso->ar->winrct.xmin) / ((float)pso->ar->winx);
 			RNA_float_set(op->ptr, "percentage", pso->percentage);
@@ -730,7 +730,7 @@ static int pose_slide_push_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data  */
+	/* initialize data  */
 	if (pose_slide_init(C, op, POSESLIDE_PUSH) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -747,7 +747,7 @@ static int pose_slide_push_exec (bContext *C, wmOperator *op)
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data (from RNA-props) */
+	/* initialize data (from RNA-props) */
 	if (pose_slide_init(C, op, POSESLIDE_PUSH) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -762,19 +762,19 @@ static int pose_slide_push_exec (bContext *C, wmOperator *op)
 void POSE_OT_push (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Push Pose";
-	ot->idname= "POSE_OT_push";
-	ot->description= "Exaggerate the current pose";
+	ot->name = "Push Pose";
+	ot->idname = "POSE_OT_push";
+	ot->description = "Exaggerate the current pose";
 	
 	/* callbacks */
-	ot->exec= pose_slide_push_exec;
-	ot->invoke= pose_slide_push_invoke;
-	ot->modal= pose_slide_modal;
-	ot->cancel= pose_slide_cancel;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_slide_push_exec;
+	ot->invoke = pose_slide_push_invoke;
+	ot->modal = pose_slide_modal;
+	ot->cancel = pose_slide_cancel;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* Properties */
 	pose_slide_opdef_properties(ot);
@@ -787,7 +787,7 @@ static int pose_slide_relax_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data  */
+	/* initialize data  */
 	if (pose_slide_init(C, op, POSESLIDE_RELAX) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -804,7 +804,7 @@ static int pose_slide_relax_exec (bContext *C, wmOperator *op)
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data (from RNA-props) */
+	/* initialize data (from RNA-props) */
 	if (pose_slide_init(C, op, POSESLIDE_RELAX) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -819,19 +819,19 @@ static int pose_slide_relax_exec (bContext *C, wmOperator *op)
 void POSE_OT_relax (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Relax Pose";
-	ot->idname= "POSE_OT_relax";
-	ot->description= "Make the current pose more similar to its surrounding ones";
+	ot->name = "Relax Pose";
+	ot->idname = "POSE_OT_relax";
+	ot->description = "Make the current pose more similar to its surrounding ones";
 	
 	/* callbacks */
-	ot->exec= pose_slide_relax_exec;
-	ot->invoke= pose_slide_relax_invoke;
-	ot->modal= pose_slide_modal;
-	ot->cancel= pose_slide_cancel;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_slide_relax_exec;
+	ot->invoke = pose_slide_relax_invoke;
+	ot->modal = pose_slide_modal;
+	ot->cancel = pose_slide_cancel;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* Properties */
 	pose_slide_opdef_properties(ot);
@@ -844,7 +844,7 @@ static int pose_slide_breakdown_invoke (bContext *C, wmOperator *op, wmEvent *UN
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data  */
+	/* initialize data  */
 	if (pose_slide_init(C, op, POSESLIDE_BREAKDOWN) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -861,7 +861,7 @@ static int pose_slide_breakdown_exec (bContext *C, wmOperator *op)
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data (from RNA-props) */
+	/* initialize data (from RNA-props) */
 	if (pose_slide_init(C, op, POSESLIDE_BREAKDOWN) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -876,19 +876,19 @@ static int pose_slide_breakdown_exec (bContext *C, wmOperator *op)
 void POSE_OT_breakdown (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pose Breakdowner";
-	ot->idname= "POSE_OT_breakdown";
-	ot->description= "Create a suitable breakdown pose on the current frame";
+	ot->name = "Pose Breakdowner";
+	ot->idname = "POSE_OT_breakdown";
+	ot->description = "Create a suitable breakdown pose on the current frame";
 	
 	/* callbacks */
-	ot->exec= pose_slide_breakdown_exec;
-	ot->invoke= pose_slide_breakdown_invoke;
-	ot->modal= pose_slide_modal;
-	ot->cancel= pose_slide_cancel;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_slide_breakdown_exec;
+	ot->invoke = pose_slide_breakdown_invoke;
+	ot->modal = pose_slide_modal;
+	ot->cancel = pose_slide_cancel;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* Properties */
 	pose_slide_opdef_properties(ot);
@@ -939,7 +939,7 @@ static float pose_propagate_get_boneHoldEndFrame (Object *ob, tPChanFCurveLink *
 	LinkData *ld;
 	float endFrame = startFrame;
 	
-	/* set up optimised data-structures for searching for relevant keyframes + holds */
+	/* set up optimized data-structures for searching for relevant keyframes + holds */
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
 	
@@ -1102,7 +1102,7 @@ static void pose_propagate_fcurve (wmOperator *op, Object *ob, FCurve *fcu,
 	 * doesn't need to firstly keyframe the pose (though this doesn't mean that 
 	 * they can't either)
 	 */
-	if( !pose_propagate_get_refVal(ob, fcu, &refVal))
+	if ( !pose_propagate_get_refVal(ob, fcu, &refVal))
 		return;
 	
 	/* find the first keyframe to start propagating from 
@@ -1231,7 +1231,7 @@ static int pose_propagate_exec (bContext *C, wmOperator *op)
 void POSE_OT_propagate (wmOperatorType *ot)
 {
 	static EnumPropertyItem terminate_items[]= {
-		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, "While Held", "Propagate pose to all keyframes after current frame that don't change (Default behaviour)"},
+		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, "While Held", "Propagate pose to all keyframes after current frame that don't change (Default behavior)"},
 		{POSE_PROPAGATE_NEXT_KEY, "NEXT_KEY", 0, "To Next Keyframe", "Propagate pose to first keyframe following the current frame only"},
 		{POSE_PROPAGATE_LAST_KEY, "LAST_KEY", 0, "To Last Keyframe", "Propagate pose to the last keyframe only (i.e. making action cyclic)"},
 		{POSE_PROPAGATE_BEFORE_FRAME, "BEFORE_FRAME", 0, "Before Frame", "Propagate pose to all keyframes between current frame and 'Frame' property"},
@@ -1240,20 +1240,20 @@ void POSE_OT_propagate (wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 		
 	/* identifiers */
-	ot->name= "Propagate Pose";
-	ot->idname= "POSE_OT_propagate";
-	ot->description= "Copy selected aspects of the current pose to subsequent poses already keyframed";
+	ot->name = "Propagate Pose";
+	ot->idname = "POSE_OT_propagate";
+	ot->description = "Copy selected aspects of the current pose to subsequent poses already keyframed";
 	
 	/* callbacks */
-	ot->exec= pose_propagate_exec;
-	ot->poll= ED_operator_posemode; // XXX: needs selected bones!
+	ot->exec = pose_propagate_exec;
+	ot->poll = ED_operator_posemode; // XXX: needs selected bones!
 	
 	/* flag */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	// TODO: add "fade out" control for tapering off amount of propagation as time goes by?
-	ot->prop= RNA_def_enum(ot->srna, "mode", terminate_items, POSE_PROPAGATE_SMART_HOLDS, "Terminate Mode", "Method used to determine when to stop propagating pose to keyframes");
+	ot->prop = RNA_def_enum(ot->srna, "mode", terminate_items, POSE_PROPAGATE_SMART_HOLDS, "Terminate Mode", "Method used to determine when to stop propagating pose to keyframes");
 	RNA_def_float(ot->srna, "end_frame", 250.0, FLT_MIN, FLT_MAX, "End Frame", "Frame to stop propagating frames to (for 'Before Frame' mode)", 1.0, 250.0);
 }
 

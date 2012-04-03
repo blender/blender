@@ -436,7 +436,8 @@ static void node_composit_exec_glare(void *UNUSED(data), bNode *node, bNodeStack
 	if (img->type != CB_RGBA) {
 		new = typecheck_compbuf(img, CB_RGBA);
 		src = typecheck_compbuf(img, CB_RGBA);
-	} else {
+	}
+	else {
 		new = dupalloc_compbuf(img);
 		src = dupalloc_compbuf(img);
 	}

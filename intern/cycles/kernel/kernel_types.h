@@ -29,6 +29,7 @@ CCL_NAMESPACE_BEGIN
 #define OBJECT_SIZE 		16
 #define LIGHT_SIZE			4
 #define FILTER_TABLE_SIZE	256
+#define RAMP_TABLE_SIZE		256
 
 /* device capabilities */
 #ifdef __KERNEL_CPU__
@@ -174,7 +175,8 @@ typedef enum PassType {
 	PASS_TRANSMISSION_DIRECT = 32768,
 	PASS_EMISSION = 65536,
 	PASS_BACKGROUND = 131072,
-	PASS_AO = 262144
+	PASS_AO = 262144,
+	PASS_SHADOW = 524288
 } PassType;
 
 #define PASS_ALL (~0)
@@ -205,6 +207,8 @@ typedef struct PathRadiance {
 	float3 indirect_diffuse;
 	float3 indirect_glossy;
 	float3 indirect_transmission;
+
+	float4 shadow;
 } PathRadiance;
 
 typedef struct BsdfEval {
@@ -463,7 +467,7 @@ typedef struct KernelFilm {
 	int pass_emission;
 	int pass_background;
 	int pass_ao;
-	int pass_pad2;
+	int pass_shadow;
 } KernelFilm;
 
 typedef struct KernelBackground {

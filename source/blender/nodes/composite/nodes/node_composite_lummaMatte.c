@@ -51,10 +51,10 @@ static void do_luma_matte(bNode *node, float *out, float *in)
 	float alpha;
 
 	/* test range*/
-	if(in[0]>c->t1) {
+	if (in[0]>c->t1) {
 		alpha=1.0;
 	}
-	else if(in[0]<c->t2){
+	else if (in[0]<c->t2) {
 		alpha=0.0;
 	}
 	else {/*blend */
@@ -76,9 +76,9 @@ static void node_composit_exec_luma_matte(void *data, bNode *node, bNodeStack **
 	CompBuf *cbuf;
 	CompBuf *outbuf;
 	
-	if(in[0]->hasinput==0)  return;
-	if(in[0]->data==NULL) return;
-	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
+	if (in[0]->hasinput==0)  return;
+	if (in[0]->data==NULL) return;
+	if (out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
 	
 	cbuf=typecheck_compbuf(in[0]->data, CB_RGBA);
 	
@@ -92,7 +92,7 @@ static void node_composit_exec_luma_matte(void *data, bNode *node, bNodeStack **
 	out[0]->data=outbuf;
 	if (out[1]->hasoutput)
 		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
-	if(cbuf!=in[0]->data)
+	if (cbuf!=in[0]->data)
 		free_compbuf(cbuf);
 }
 

@@ -137,7 +137,7 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
 		ED_region_draw_cb_exit(((ARegion *)self->ptr.data)->type, handle);
 	}
 
-	/* dont allow reuse */
+	/* don't allow reuse */
 	PyCapsule_SetName(py_handle, RNA_CAPSULE_ID_INVALID);
 
 	Py_RETURN_NONE;

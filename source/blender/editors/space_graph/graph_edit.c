@@ -53,6 +53,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
@@ -182,16 +184,16 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_previewrange_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Auto-Set Preview Range";
-	ot->idname= "GRAPH_OT_previewrange_set";
-	ot->description= "Automatically set Preview Range based on range of keyframes";
+	ot->name = "Auto-Set Preview Range";
+	ot->idname = "GRAPH_OT_previewrange_set";
+	ot->description = "Automatically set Preview Range based on range of keyframes";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_previewrange_exec;
-	ot->poll= ED_operator_graphedit_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
+	ot->exec = graphkeys_previewrange_exec;
+	ot->poll = ED_operator_graphedit_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ****************** View-All Operator ****************** */
@@ -244,31 +246,31 @@ static int graphkeys_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_view_all (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
-	ot->idname= "GRAPH_OT_view_all";
-	ot->description= "Reset viewable area to show full keyframe range";
+	ot->name = "View All";
+	ot->idname = "GRAPH_OT_view_all";
+	ot->description = "Reset viewable area to show full keyframe range";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_viewall_exec;
-	ot->poll= ED_operator_graphedit_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
+	ot->exec = graphkeys_viewall_exec;
+	ot->poll = ED_operator_graphedit_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void GRAPH_OT_view_selected (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Selected";
-	ot->idname= "GRAPH_OT_view_selected";
-	ot->description= "Reset viewable area to show selected keyframe range";
+	ot->name = "View Selected";
+	ot->idname = "GRAPH_OT_view_selected";
+	ot->description = "Reset viewable area to show selected keyframe range";
 
 	/* api callbacks */
-	ot->exec= graphkeys_view_selected_exec;
-	ot->poll= ED_operator_graphedit_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
+	ot->exec = graphkeys_view_selected_exec;
+	ot->poll = ED_operator_graphedit_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Create Ghost-Curves Operator *********************** */
@@ -289,7 +291,7 @@ static void create_ghost_curves (bAnimContext *ac, int start, int end)
 	
 	/* sanity check */
 	if (start >= end) {
-		printf("Error: Frame range for Ghost F-Curve creation is inappropriate \n");
+		printf("Error: Frame range for Ghost F-Curve creation is inappropriate\n");
 		return;
 	}
 	
@@ -374,16 +376,16 @@ static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op)
 void GRAPH_OT_ghost_curves_create (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Create Ghost Curves";
-	ot->idname= "GRAPH_OT_ghost_curves_create";
-	ot->description= "Create snapshot (Ghosts) of selected F-Curves as background aid for active Graph Editor";
+	ot->name = "Create Ghost Curves";
+	ot->idname = "GRAPH_OT_ghost_curves_create";
+	ot->description = "Create snapshot (Ghosts) of selected F-Curves as background aid for active Graph Editor";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_create_ghostcurves_exec;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->exec = graphkeys_create_ghostcurves_exec;
+	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	// todo: add props for start/end frames
 }
@@ -417,16 +419,16 @@ static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_ghost_curves_clear (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Ghost Curves";
-	ot->idname= "GRAPH_OT_ghost_curves_clear";
-	ot->description= "Clear F-Curve snapshots (Ghosts) for active Graph Editor";
+	ot->name = "Clear Ghost Curves";
+	ot->idname = "GRAPH_OT_ghost_curves_clear";
+	ot->description = "Clear F-Curve snapshots (Ghosts) for active Graph Editor";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_clear_ghostcurves_exec;
-	ot->poll= ED_operator_graphedit_active;
+	ot->exec = graphkeys_clear_ghostcurves_exec;
+	ot->poll = ED_operator_graphedit_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************************************************************** */
@@ -512,20 +514,20 @@ static int graphkeys_insertkey_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_keyframe_insert (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Insert Keyframes";
-	ot->idname= "GRAPH_OT_keyframe_insert";
-	ot->description= "Insert keyframes for the specified channels";
+	ot->name = "Insert Keyframes";
+	ot->idname = "GRAPH_OT_keyframe_insert";
+	ot->description = "Insert keyframes for the specified channels";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= graphkeys_insertkey_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = graphkeys_insertkey_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_graphkeys_insertkey_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_graphkeys_insertkey_types, 0, "Type", "");
 }
 
 /* ******************** Click-Insert Keyframes Operator ************************* */
@@ -619,17 +621,17 @@ static int graphkeys_click_insert_invoke (bContext *C, wmOperator *op, wmEvent *
 void GRAPH_OT_click_insert (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Click-Insert Keyframes";
-	ot->idname= "GRAPH_OT_click_insert";
-	ot->description= "Insert new keyframe at the cursor position for the active F-Curve";
+	ot->name = "Click-Insert Keyframes";
+	ot->idname = "GRAPH_OT_click_insert";
+	ot->description = "Insert new keyframe at the cursor position for the active F-Curve";
 	
 	/* api callbacks */
-	ot->invoke= graphkeys_click_insert_invoke;
-	ot->exec= graphkeys_click_insert_exec;
-	ot->poll= graphop_active_fcurve_poll;
+	ot->invoke = graphkeys_click_insert_invoke;
+	ot->exec = graphkeys_click_insert_exec;
+	ot->poll = graphop_active_fcurve_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_float(ot->srna, "frame", 1.0f, -FLT_MAX, FLT_MAX, "Frame Number", "Frame to insert keyframe on", 0, 100);
@@ -702,16 +704,16 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_copy (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Keyframes";
-	ot->idname= "GRAPH_OT_copy";
-	ot->description= "Copy selected keyframes to the copy/paste buffer";
+	ot->name = "Copy Keyframes";
+	ot->idname = "GRAPH_OT_copy";
+	ot->description = "Copy selected keyframes to the copy/paste buffer";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_copy_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->exec = graphkeys_copy_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -747,17 +749,17 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_paste (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste Keyframes";
-	ot->idname= "GRAPH_OT_paste";
-	ot->description= "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame";
+	ot->name = "Paste Keyframes";
+	ot->idname = "GRAPH_OT_paste";
+	ot->description = "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame";
 	
 	/* api callbacks */
-//	ot->invoke= WM_operator_props_popup; // better wait for graph redo panel
-	ot->exec= graphkeys_paste_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+//	ot->invoke = WM_operator_props_popup; // better wait for graph redo panel
+	ot->exec = graphkeys_paste_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
 	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merging pasted keys and existing");
@@ -816,17 +818,17 @@ static int graphkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void GRAPH_OT_duplicate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Keyframes";
-	ot->idname= "GRAPH_OT_duplicate";
-	ot->description= "Make a copy of all selected keyframes";
+	ot->name = "Duplicate Keyframes";
+	ot->idname = "GRAPH_OT_duplicate";
+	ot->description = "Make a copy of all selected keyframes";
 	
 	/* api callbacks */
-	ot->invoke= graphkeys_duplicate_invoke;
-	ot->exec= graphkeys_duplicate_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->invoke = graphkeys_duplicate_invoke;
+	ot->exec = graphkeys_duplicate_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
 	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
@@ -886,17 +888,17 @@ static int graphkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_delete (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Keyframes";
-	ot->idname= "GRAPH_OT_delete";
-	ot->description= "Remove all selected keyframes";
+	ot->name = "Delete Keyframes";
+	ot->idname = "GRAPH_OT_delete";
+	ot->description = "Remove all selected keyframes";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= graphkeys_delete_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = graphkeys_delete_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Clean Keyframes Operator ************************* */
@@ -948,20 +950,20 @@ static int graphkeys_clean_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_clean (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clean Keyframes";
-	ot->idname= "GRAPH_OT_clean";
-	ot->description= "Simplify F-Curves by removing closely spaced keyframes";
+	ot->name = "Clean Keyframes";
+	ot->idname = "GRAPH_OT_clean";
+	ot->description = "Simplify F-Curves by removing closely spaced keyframes";
 	
 	/* api callbacks */
-	//ot->invoke=  // XXX we need that number popup for this! 
-	ot->exec= graphkeys_clean_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	//ot->invoke =  // XXX we need that number popup for this! 
+	ot->exec = graphkeys_clean_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_float(ot->srna, "threshold", 0.001f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 1000.0f);
+	ot->prop = RNA_def_float(ot->srna, "threshold", 0.001f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 1000.0f);
 }
 
 /* ******************** Bake F-Curve Operator *********************** */
@@ -1031,17 +1033,17 @@ static int graphkeys_bake_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_bake (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bake Curve";
-	ot->idname= "GRAPH_OT_bake";
-	ot->description= "Bake selected F-Curves to a set of sampled points defining a similar curve";
+	ot->name = "Bake Curve";
+	ot->idname = "GRAPH_OT_bake";
+	ot->description = "Bake selected F-Curves to a set of sampled points defining a similar curve";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm; // FIXME...
-	ot->exec= graphkeys_bake_exec;
-	ot->poll= graphop_selected_fcurve_poll; 
+	ot->invoke = WM_operator_confirm; // FIXME...
+	ot->exec = graphkeys_bake_exec;
+	ot->poll = graphop_selected_fcurve_poll; 
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	// todo: add props for start/end frames
 }
@@ -1072,7 +1074,7 @@ static float fcurve_samplingcb_sound (FCurve *UNUSED(fcu), void *data, float eva
 	tSoundBakeInfo *sbi= (tSoundBakeInfo *)data;
 
 	int position = evaltime - sbi->cfra;
-	if((position < 0) || (position >= sbi->length))
+	if ((position < 0) || (position >= sbi->length))
 		return 0.0f;
 
 	return sbi->samples[position];
@@ -1175,17 +1177,17 @@ static int graphkeys_sound_bake_invoke (bContext *C, wmOperator *op, wmEvent *ev
 void GRAPH_OT_sound_bake (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bake Sound to F-Curves";
-	ot->idname= "GRAPH_OT_sound_bake";
-	ot->description= "Bakes a sound wave to selected F-Curves";
+	ot->name = "Bake Sound to F-Curves";
+	ot->idname = "GRAPH_OT_sound_bake";
+	ot->description = "Bakes a sound wave to selected F-Curves";
 
 	/* api callbacks */
-	ot->invoke= graphkeys_sound_bake_invoke;
-	ot->exec= graphkeys_sound_bake_exec;
-	ot->poll= graphop_selected_fcurve_poll;
+	ot->invoke = graphkeys_sound_bake_invoke;
+	ot->exec = graphkeys_sound_bake_exec;
+	ot->poll = graphop_selected_fcurve_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
@@ -1249,16 +1251,16 @@ static int graphkeys_sample_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_sample (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sample Keyframes";
-	ot->idname= "GRAPH_OT_sample";
-	ot->description= "Add keyframes on every frame between the selected keyframes";
+	ot->name = "Sample Keyframes";
+	ot->idname = "GRAPH_OT_sample";
+	ot->description = "Add keyframes on every frame between the selected keyframes";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_sample_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->exec = graphkeys_sample_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -1358,20 +1360,20 @@ static int graphkeys_expo_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_extrapolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Keyframe Extrapolation";
-	ot->idname= "GRAPH_OT_extrapolation_type";
-	ot->description= "Set extrapolation mode for selected F-Curves";
+	ot->name = "Set Keyframe Extrapolation";
+	ot->idname = "GRAPH_OT_extrapolation_type";
+	ot->description = "Set extrapolation mode for selected F-Curves";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= graphkeys_expo_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = graphkeys_expo_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_graphkeys_expo_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_graphkeys_expo_types, 0, "Type", "");
 }
 
 /* ******************** Set Interpolation-Type Operator *********************** */
@@ -1427,20 +1429,20 @@ static int graphkeys_ipo_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_interpolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Keyframe Interpolation";
-	ot->idname= "GRAPH_OT_interpolation_type";
-	ot->description= "Set interpolation mode for the F-Curve segments starting from the selected keyframes";
+	ot->name = "Set Keyframe Interpolation";
+	ot->idname = "GRAPH_OT_interpolation_type";
+	ot->description = "Set interpolation mode for the F-Curve segments starting from the selected keyframes";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= graphkeys_ipo_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = graphkeys_ipo_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
 }
 
 /* ******************** Set Handle-Type Operator *********************** */
@@ -1504,20 +1506,20 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
  void GRAPH_OT_handle_type (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Keyframe Handle Type";
-	ot->idname= "GRAPH_OT_handle_type";
-	ot->description= "Set type of handle for selected keyframes";
+	ot->name = "Set Keyframe Handle Type";
+	ot->idname = "GRAPH_OT_handle_type";
+	ot->description = "Set type of handle for selected keyframes";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= graphkeys_handletype_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = graphkeys_handletype_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", keyframe_handle_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", keyframe_handle_type_items, 0, "Type", "");
 }
 
 /* ************************************************************************** */
@@ -1582,7 +1584,7 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 			continue;
 		}
 		
-		/* optimisation: assume that xyz curves will always be stored consecutively,
+		/* optimization: assume that xyz curves will always be stored consecutively,
 		 * so if the paths or the ID's don't match up, then a curve needs to be added 
 		 * to a new group
 		 */
@@ -1698,16 +1700,16 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 void GRAPH_OT_euler_filter (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Euler Discontinuity Filter";
-	ot->idname= "GRAPH_OT_euler_filter";
-	ot->description= "Fixes the most common causes of gimbal lock in the selected Euler Rotation F-Curves";
+	ot->name = "Euler Discontinuity Filter";
+	ot->idname = "GRAPH_OT_euler_filter";
+	ot->description = "Fixes the most common causes of gimbal lock in the selected Euler Rotation F-Curves";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_euler_filter_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->exec = graphkeys_euler_filter_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ***************** Jump to Selected Frames Operator *********************** */
@@ -1772,16 +1774,16 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_frame_jump (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Jump to Frame";
-	ot->idname= "GRAPH_OT_frame_jump";
-	ot->description= "Set the current frame to the average frame of the selected keyframes";
+	ot->name = "Jump to Frame";
+	ot->idname = "GRAPH_OT_frame_jump";
+	ot->description = "Set the current frame to the average frame of the selected keyframes";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_framejump_exec;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->exec = graphkeys_framejump_exec;
+	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Snap Keyframes Operator *********************** */
@@ -1876,20 +1878,20 @@ static int graphkeys_snap_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_snap (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Keys";
-	ot->idname= "GRAPH_OT_snap";
-	ot->description= "Snap selected keyframes to the chosen times/values";
+	ot->name = "Snap Keys";
+	ot->idname = "GRAPH_OT_snap";
+	ot->description = "Snap selected keyframes to the chosen times/values";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= graphkeys_snap_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = graphkeys_snap_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_graphkeys_snap_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_graphkeys_snap_types, 0, "Type", "");
 }
 
 /* ******************** Mirror Keyframes Operator *********************** */
@@ -1994,20 +1996,20 @@ static int graphkeys_mirror_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_mirror (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mirror Keys";
-	ot->idname= "GRAPH_OT_mirror";
-	ot->description= "Flip selected keyframes over the selected mirror line";
+	ot->name = "Mirror Keys";
+	ot->idname = "GRAPH_OT_mirror";
+	ot->description = "Flip selected keyframes over the selected mirror line";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= graphkeys_mirror_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = graphkeys_mirror_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_graphkeys_mirror_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_graphkeys_mirror_types, 0, "Type", "");
 }
 
 /* ******************** Smooth Keyframes Operator *********************** */
@@ -2049,16 +2051,16 @@ static int graphkeys_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_smooth (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Smooth Keys";
-	ot->idname= "GRAPH_OT_smooth";
-	ot->description= "Apply weighted moving means to make selected F-Curves less bumpy";
+	ot->name = "Smooth Keys";
+	ot->idname = "GRAPH_OT_smooth";
+	ot->description = "Apply weighted moving means to make selected F-Curves less bumpy";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_smooth_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->exec = graphkeys_smooth_exec;
+	ot->poll = graphop_editable_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************************************************************** */
@@ -2074,7 +2076,7 @@ static int graph_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *UNU
 	uiLayout *layout;
 	int i;
 	
-	pup= uiPupMenuBegin(C, "Add F-Curve Modifier", ICON_NONE);
+	pup= uiPupMenuBegin(C, IFACE_("Add F-Curve Modifier"), ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	
 	/* start from 1 to skip the 'Invalid' modifier type */
@@ -2087,7 +2089,8 @@ static int graph_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *UNU
 			continue;
 		
 		/* create operator menu item with relevant properties filled in */
-		props_ptr= uiItemFullO_ptr(layout, ot, fmi->name, ICON_NONE, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		props_ptr= uiItemFullO_ptr(layout, ot, IFACE_(fmi->name), ICON_NONE,
+		                           NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 			/* the only thing that gets set from the menu is the type of F-Modifier to add */
 		RNA_enum_set(&props_ptr, "type", i);
 			/* the following properties are just repeats of existing ones... */
@@ -2152,20 +2155,20 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add F-Curve Modifier";
-	ot->idname= "GRAPH_OT_fmodifier_add";
-	ot->description= "Add F-Modifiers to the selected F-Curves";
+	ot->name = "Add F-Curve Modifier";
+	ot->idname = "GRAPH_OT_fmodifier_add";
+	ot->description = "Add F-Modifiers to the selected F-Curves";
 	
 	/* api callbacks */
-	ot->invoke= graph_fmodifier_add_invoke;
-	ot->exec= graph_fmodifier_add_exec;
-	ot->poll= graphop_selected_fcurve_poll; 
+	ot->invoke = graph_fmodifier_add_invoke;
+	ot->exec = graph_fmodifier_add_exec;
+	ot->poll = graphop_selected_fcurve_poll; 
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
 	RNA_def_boolean(ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve");
 }
 
@@ -2210,16 +2213,16 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_fmodifier_copy (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy F-Modifiers";
-	ot->idname= "GRAPH_OT_fmodifier_copy";
-	ot->description= "Copy the F-Modifier(s) of the active F-Curve";
+	ot->name = "Copy F-Modifiers";
+	ot->idname = "GRAPH_OT_fmodifier_copy";
+	ot->description = "Copy the F-Modifier(s) of the active F-Curve";
 	
 	/* api callbacks */
-	ot->exec= graph_fmodifier_copy_exec;
-	ot->poll= graphop_active_fcurve_poll; 
+	ot->exec = graph_fmodifier_copy_exec;
+	ot->poll = graphop_active_fcurve_poll; 
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	//ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All F-Modifiers", "Copy all the F-Modifiers, instead of just the active one");
@@ -2272,16 +2275,16 @@ static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_fmodifier_paste (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste F-Modifiers";
-	ot->idname= "GRAPH_OT_fmodifier_paste";
-	ot->description= "Add copied F-Modifiers to the selected F-Curves";
+	ot->name = "Paste F-Modifiers";
+	ot->idname = "GRAPH_OT_fmodifier_paste";
+	ot->description = "Add copied F-Modifiers to the selected F-Curves";
 	
 	/* api callbacks */
-	ot->exec= graph_fmodifier_paste_exec;
-	ot->poll= graphop_active_fcurve_poll;
+	ot->exec = graph_fmodifier_paste_exec;
+	ot->poll = graphop_active_fcurve_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************************************************************** */

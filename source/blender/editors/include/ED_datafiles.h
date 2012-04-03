@@ -56,7 +56,7 @@ extern char datatoc_bmonofont_ttf[];
 
 /* Brush icon datafiles */
 /* TODO: this could be simplified by putting all
-   the brush icons in one file */
+ * the brush icons in one file */
 extern int datatoc_add_png_size;
 extern char datatoc_add_png[];
 
@@ -68,6 +68,9 @@ extern char datatoc_blur_png[];
 
 extern int datatoc_clay_png_size;
 extern char datatoc_clay_png[];
+
+extern int datatoc_claystrips_png_size;
+extern char datatoc_claystrips_png[];
 
 extern int datatoc_clone_png_size;
 extern char datatoc_clone_png[];

@@ -28,9 +28,10 @@
  * See: bmesh_iterators_inlin.c too, some functions are here for speed reasons.
  */
 
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
 	'\0',
@@ -291,11 +292,13 @@ void  *bmiter__loops_of_edge_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if (iter->nextloop)
-		iter->nextloop = bmesh_radial_loop_next(iter->nextloop);
+	if (iter->nextloop) {
+		iter->nextloop = iter->nextloop->radial_next;
+	}
 
-	if (iter->nextloop == iter->firstloop)
+	if (iter->nextloop == iter->firstloop) {
 		iter->nextloop = NULL;
+	}
 
 	if (current) {
 		return current;
@@ -314,7 +317,7 @@ void  bmiter__loops_of_loop_begin(BMIter *iter)
 	init_iterator(iter);
 
 	iter->firstloop = l;
-	iter->nextloop = bmesh_radial_loop_next(iter->firstloop);
+	iter->nextloop = iter->firstloop->radial_next;
 	
 	if (iter->nextloop == iter->firstloop)
 		iter->nextloop = NULL;
@@ -324,9 +327,13 @@ void  *bmiter__loops_of_loop_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 	
-	if (iter->nextloop) iter->nextloop = bmesh_radial_loop_next(iter->nextloop);
+	if (iter->nextloop) {
+		iter->nextloop = iter->nextloop->radial_next;
+	}
 
-	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
+	if (iter->nextloop == iter->firstloop) {
+		iter->nextloop = NULL;
+	}
 
 	if (current) {
 		return current;
@@ -353,7 +360,9 @@ void  *bmiter__face_of_edge_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if (iter->nextloop) iter->nextloop = bmesh_radial_loop_next(iter->nextloop);
+	if (iter->nextloop) {
+		iter->nextloop = iter->nextloop->radial_next;
+	}
 
 	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 

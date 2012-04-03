@@ -276,7 +276,7 @@ int KX_SceneActuator::pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_
 	if (actuator->m_camera)
 		actuator->m_camera->UnregisterActuator(actuator);
 	
-	if(camOb==NULL) {
+	if (camOb==NULL) {
 		actuator->m_camera= NULL;
 	}
 	else {	

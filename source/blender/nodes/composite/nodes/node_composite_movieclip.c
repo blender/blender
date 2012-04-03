@@ -44,19 +44,22 @@ static bNodeSocketTemplate cmp_node_movieclip_out[]= {
 
 static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, MovieClipUser *user)
 {
-	ImBuf *ibuf;
+	ImBuf *orig_ibuf, *ibuf;
 	CompBuf *stackbuf;
 	int type;
 
 	float *rect;
 	int alloc= FALSE;
 
-	ibuf= BKE_movieclip_get_ibuf(clip, user);
+	orig_ibuf= BKE_movieclip_get_ibuf(clip, user);
 
-	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
-		IMB_freeImBuf(ibuf);
+	if (orig_ibuf==NULL || (orig_ibuf->rect==NULL && orig_ibuf->rect_float==NULL)) {
+		IMB_freeImBuf(orig_ibuf);
 		return NULL;
 	}
+
+	ibuf= IMB_dupImBuf(orig_ibuf);
+	IMB_freeImBuf(orig_ibuf);
 
 	if (ibuf->rect_float == NULL || ibuf->userflags&IB_RECT_INVALID) {
 		IMB_float_from_rect(ibuf);
@@ -64,7 +67,7 @@ static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, Mov
 	}
 
 	/* now we need a float buffer from the image with matching color management */
-	if(ibuf->channels == 4) {
+	if (ibuf->channels == 4) {
 		rect= node_composit_get_float_buffer(rd, ibuf, &alloc);
 	}
 	else {
@@ -73,16 +76,16 @@ static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, Mov
 	}
 	/* done coercing into the correct color management */
 
-	if(!alloc) {
+	if (!alloc) {
 		rect= MEM_dupallocN(rect);
 		alloc= 1;
 	}
 
 	type= ibuf->channels;
 
-	if(rd->scemode & R_COMP_CROP) {
+	if (rd->scemode & R_COMP_CROP) {
 		stackbuf= get_cropped_compbuf(&rd->disprect, rect, ibuf->x, ibuf->y, type);
-		if(alloc)
+		if (alloc)
 			MEM_freeN(rect);
 	}
 	else {
@@ -99,7 +102,7 @@ static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, Mov
 
 static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
-	if(node->id) {
+	if (node->id) {
 		RenderData *rd= data;
 		MovieClip *clip= (MovieClip *)node->id;
 		MovieClipUser *user= (MovieClipUser *)node->storage;
@@ -115,7 +118,7 @@ static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **U
 			/* put image on stack */
 			out[0]->data= stackbuf;
 
-			if(stab->flag&TRACKING_2D_STABILIZATION) {
+			if (stab->flag&TRACKING_2D_STABILIZATION) {
 				float loc[2], scale, angle;
 
 				BKE_tracking_stabilization_data(&clip->tracking, rd->cfra, stackbuf->x, stackbuf->y,

@@ -146,7 +146,7 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	/* 'standard' behaviour - check if selected, then apply relevant selection */
+	/* 'standard' behavior - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
 		deselect_action_keys(&ac, 0, SELECT_INVERT);
 	else
@@ -161,19 +161,19 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 void ACTION_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select All";
-	ot->idname= "ACTION_OT_select_all_toggle";
-	ot->description= "Toggle selection of all keyframes";
+	ot->name = "Select All";
+	ot->idname = "ACTION_OT_select_all_toggle";
+	ot->description = "Toggle selection of all keyframes";
 	
 	/* api callbacks */
-	ot->exec= actkeys_deselectall_exec;
-	ot->poll= ED_operator_action_active;
+	ot->exec = actkeys_deselectall_exec;
+	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -281,10 +281,10 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 		deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
 	
 	/* get settings from operator */
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 		
 	gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
 	if (gesture_mode == GESTURE_MODAL_SELECT)
@@ -296,7 +296,7 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
 		/* mode depends on which axis of the range is larger to determine which axis to use 
 		 *	- checking this in region-space is fine, as it's fundamentally still going to be a different rect size
-		 *	- the frame-range select option is favoured over the channel one (x over y), as frame-range one is often
+		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
 		if ((rect.xmax - rect.xmin) >= (rect.ymax - rect.ymin))
@@ -319,25 +319,25 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 void ACTION_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->idname= "ACTION_OT_select_border";
-	ot->description= "Select all keyframes within the specified region";
+	ot->name = "Border Select";
+	ot->idname = "ACTION_OT_select_border";
+	ot->description = "Select all keyframes within the specified region";
 	
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= actkeys_borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = actkeys_borderselect_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 	
-	ot->poll= ED_operator_action_active;
+	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);
 	
-	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+	ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }
 
 /* ******************** Column Select Operator **************************** */
@@ -422,7 +422,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	KeyframeEditFunc select_cb, ok_cb;
 	KeyframeEditData ked= {{NULL}};
 	
-	/* initialise keyframe editing data */
+	/* initialize keyframe editing data */
 	
 	/* build list of columns */
 	switch (mode) {
@@ -527,19 +527,19 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 void ACTION_OT_select_column (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select All";
-	ot->idname= "ACTION_OT_select_column";
-	ot->description= "Select all keyframes on the specified frame(s)";
+	ot->name = "Select All";
+	ot->idname = "ACTION_OT_select_column";
+	ot->description = "Select all keyframes on the specified frame(s)";
 	
 	/* api callbacks */
-	ot->exec= actkeys_columnselect_exec;
-	ot->poll= ED_operator_action_active;
+	ot->exec = actkeys_columnselect_exec;
+	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
+	ot->prop = RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
 }
 
 /* ******************** Select Linked Operator *********************** */
@@ -586,15 +586,15 @@ void ACTION_OT_select_linked (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Linked";
-	ot->idname= "ACTION_OT_select_linked";
+	ot->idname = "ACTION_OT_select_linked";
 	ot->description = "Select keyframes occurring in the same F-Curves as selected ones";
 	
 	/* api callbacks */
-	ot->exec= actkeys_select_linked_exec;
-	ot->poll= ED_operator_action_active;
+	ot->exec = actkeys_select_linked_exec;
+	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
 /* ******************** Select More/Less Operators *********************** */
@@ -663,15 +663,15 @@ void ACTION_OT_select_more (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select More";
-	ot->idname= "ACTION_OT_select_more";
+	ot->idname = "ACTION_OT_select_more";
 	ot->description = "Select keyframes beside already selected ones";
 	
 	/* api callbacks */
-	ot->exec= actkeys_select_more_exec;
-	ot->poll= ED_operator_action_active;
+	ot->exec = actkeys_select_more_exec;
+	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
 /* ----------------- */
@@ -697,15 +697,15 @@ void ACTION_OT_select_less (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Less";
-	ot->idname= "ACTION_OT_select_less";
+	ot->idname = "ACTION_OT_select_less";
 	ot->description = "Deselect keyframes on ends of selection islands";
 	
 	/* api callbacks */
-	ot->exec= actkeys_select_less_exec;
-	ot->poll= ED_operator_action_active;
+	ot->exec = actkeys_select_less_exec;
+	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
 /* ******************** Select Left/Right Operator ************************* */
@@ -785,7 +785,7 @@ static void actkeys_select_leftright (bAnimContext *ac, short leftright, short s
 			TimeMarker *marker;
 			
 			for (marker= markers->first; marker; marker= marker->next) {
-				if(	((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
+				if (	((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
 					((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA)) ) 
 				{
 					marker->flag |= SELECT;
@@ -863,20 +863,20 @@ static int actkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 void ACTION_OT_select_leftright (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Left/Right";
-	ot->idname= "ACTION_OT_select_leftright";
-	ot->description= "Select keyframes to the left or the right of the current frame";
+	ot->name = "Select Left/Right";
+	ot->idname = "ACTION_OT_select_leftright";
+	ot->description = "Select keyframes to the left or the right of the current frame";
 	
 	/* api callbacks  */
-	ot->invoke= actkeys_select_leftright_invoke;
-	ot->exec= actkeys_select_leftright_exec;
-	ot->poll= ED_operator_action_active;
+	ot->invoke = actkeys_select_leftright_invoke;
+	ot->exec = actkeys_select_leftright_exec;
+	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", prop_actkeys_leftright_select_types, ACTKEYS_LRSEL_TEST, "Mode", "");
+	ot->prop = RNA_def_enum(ot->srna, "mode", prop_actkeys_leftright_select_types, ACTKEYS_LRSEL_TEST, "Mode", "");
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
 }
 
@@ -997,7 +997,7 @@ static void mouse_action_keys (bAnimContext *ac, const int mval[2], short select
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		printf("Error: animation channel (index = %d) not found in mouse_action_keys() \n", channel_index);
+		printf("Error: animation channel (index = %d) not found in mouse_action_keys()\n", channel_index);
 		BLI_freelistN(&anim_data);
 		return;
 	}
@@ -1177,16 +1177,16 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 void ACTION_OT_clickselect (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Select Keys";
-	ot->idname= "ACTION_OT_clickselect";
-	ot->description= "Select keyframes by clicking on them";
+	ot->name = "Mouse Select Keys";
+	ot->idname = "ACTION_OT_clickselect";
+	ot->description = "Select keyframes by clicking on them";
 	
 	/* api callbacks - absolutely no exec() this yet... */
-	ot->invoke= actkeys_clickselect_invoke;
-	ot->poll= ED_operator_action_active;
+	ot->invoke = actkeys_clickselect_invoke;
+	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY

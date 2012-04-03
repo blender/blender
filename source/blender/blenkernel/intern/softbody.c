@@ -236,7 +236,7 @@ static float _final_goal(Object *ob,BodyPoint *bp)/*jow_go_for2_5 */
 			return (f);
 		}
 	}
-	printf("_final_goal failed! sb or bp ==NULL \n" );
+	printf("_final_goal failed! sb or bp ==NULL\n" );
 	return f; /*using crude but spot able values some times helps debuggin */
 }
 
@@ -248,7 +248,7 @@ static float _final_mass(Object *ob,BodyPoint *bp)
 			return(bp->mass*sb->nodemass);
 		}
 	}
-	printf("_final_mass failed! sb or bp ==NULL \n" );
+	printf("_final_mass failed! sb or bp ==NULL\n" );
 	return 1.0f;
 }
 /* helper functions for everything is animateble jow_go_for2_5 ------*/
@@ -860,7 +860,7 @@ static void renew_softbody(Scene *scene, Object *ob, int totpoint, int totspring
 		if (totspring)
 			sb->bspring= MEM_mallocN( totspring*sizeof(BodySpring), "bodyspring");
 
-			/* initialise BodyPoint array */
+			/* initialize BodyPoint array */
 		for (i=0; i<totpoint; i++) {
 			BodyPoint *bp = &sb->bpoint[i];
 
@@ -974,7 +974,7 @@ static void free_softbody_intern(SoftBody *sb)
 ** Q: why not use 'simple' collision here like bouncing back a particle
 **   --> reverting is velocity on the face normal
 ** A: because our particles are not alone here
-**    and need to tell their neighbours exactly what happens via spring forces
+**    and need to tell their neighbors exactly what happens via spring forces
 ** unless sbObjectStep( .. ) is called on sub frame timing level
 ** BTW that also questions the use of a 'implicit' solvers on softbodies
 ** since that would only valid for 'slow' moving collision targets and dito particles
@@ -988,7 +988,7 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 	v[2] += s*v1[2];
 }
 
-/* +++ dependancy information functions*/
+/* +++ dependency information functions*/
 
 static int are_there_deflectors(Scene *scene, unsigned int layer)
 {
@@ -1007,7 +1007,7 @@ static int query_external_colliders(Scene *scene, Object *me)
 {
 	return(are_there_deflectors(scene, me->lay));
 }
-/* --- dependancy information functions*/
+/* --- dependency information functions*/
 
 
 /* +++ the aabb "force" section*/
@@ -1055,7 +1055,7 @@ static int sb_detect_aabb_collisionCached(	float UNUSED(force[3]), unsigned int 
 						(aabbmin[0] > ccdm->bbmax[0]) ||
 						(aabbmin[1] > ccdm->bbmax[1]) ||
 						(aabbmin[2] > ccdm->bbmax[2]) ) {
-						/* boxes dont intersect */
+						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
 					}
@@ -1065,9 +1065,9 @@ static int sb_detect_aabb_collisionCached(	float UNUSED(force[3]), unsigned int 
 					deflected = 2;
 
 				}
-				else{
+				else {
 					/*aye that should be cached*/
-					printf("missing cache error \n");
+					printf("missing cache error\n");
 					BLI_ghashIterator_step(ihash);
 					continue;
 				}
@@ -1126,15 +1126,15 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 						(aabbmin[0] > ccdm->bbmax[0]) ||
 						(aabbmin[1] > ccdm->bbmax[1]) ||
 						(aabbmin[2] > ccdm->bbmax[2]) ) {
-						/* boxes dont intersect */
+						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
 					}
 
 				}
-				else{
+				else {
 					/*aye that should be cached*/
-					printf("missing cache error \n");
+					printf("missing cache error\n");
 					BLI_ghashIterator_step(ihash);
 					continue;
 				}
@@ -1142,7 +1142,7 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 
 				/* use mesh*/
 				if (mvert) {
-					while(a) {
+					while (a) {
 						copy_v3_v3(nv1,mvert[a-1].co);
 						if (mprevvert) {
 							mul_v3_fl(nv1,time);
@@ -1169,7 +1169,7 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 							}
 						}
 						a--;
-					}/* while(a)*/
+					}/* while (a)*/
 				} /* if (mvert) */
 			} /* if (ob->pd && ob->pd->deflect) */
 			BLI_ghashIterator_step(ihash);
@@ -1221,15 +1221,15 @@ static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],floa
 						(aabbmin[0] > ccdm->bbmax[0]) ||
 						(aabbmin[1] > ccdm->bbmax[1]) ||
 						(aabbmin[2] > ccdm->bbmax[2]) ) {
-						/* boxes dont intersect */
+						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
 					}
 
 				}
-				else{
+				else {
 					/*aye that should be cached*/
-					printf("missing cache error \n");
+					printf("missing cache error\n");
 					BLI_ghashIterator_step(ihash);
 					continue;
 				}
@@ -1449,15 +1449,15 @@ static int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],floa
 						(aabbmin[0] > ccdm->bbmax[0]) ||
 						(aabbmin[1] > ccdm->bbmax[1]) ||
 						(aabbmin[2] > ccdm->bbmax[2]) ) {
-						/* boxes dont intersect */
+						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
 					}
 
 				}
-				else{
+				else {
 					/*aye that should be cached*/
-					printf("missing cache error \n");
+					printf("missing cache error\n");
 					BLI_ghashIterator_step(ihash);
 					continue;
 				}
@@ -1601,12 +1601,12 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 						add_v3_v3(vel, speed);
 					}
 					/* media in rest */
-					else{
+					else {
 						add_v3_v3v3(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
 					}
 					f = normalize_v3(vel);
 					f = -0.0001f*f*f*sb->aeroedge;
-					/* (todo) add a nice angle dependant function done for now BUT */
+					/* (todo) add a nice angle dependent function done for now BUT */
 					/* still there could be some nice drag/lift function, but who needs it */
 
 					sub_v3_v3v3(sp, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
@@ -1617,7 +1617,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 						normalize_v3(sp);
 						Vec3PlusStVec(bs->ext_force,f*(1.0f-ABS(dot_v3v3(vel,sp))),vel);
 					}
-					else{
+					else {
 						Vec3PlusStVec(bs->ext_force,f,vel); // to keep compatible with 2.45 release files
 					}
 				}
@@ -1792,9 +1792,9 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							continue;
 					}
 				}
-				else{
+				else {
 					/*aye that should be cached*/
-					printf("missing cache error \n");
+					printf("missing cache error\n");
 						BLI_ghashIterator_step(ihash);
 					continue;
 				}
@@ -2048,7 +2048,7 @@ static void dfdx_spring(int ia, int ic, int op, float dir[3],float L,float len,f
 				nlMatrixAdd(ia+i,op+ic+j,m);
 			}
 	}
-	else{
+	else {
 		for (i=0;i<3;i++)
 			for (j=0;j<3;j++) {
 				m=factor*dir[i]*dir[j];
@@ -2097,7 +2097,7 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float UN
 		ic =3*bs->v1;
 #endif
 	}
-	else{
+	else {
 		/* TODO make this debug option */
 		/**/
 		printf("bodypoint <bpi> is not attached to spring  <*bs> --> sb_spring_force()\n");
@@ -2185,7 +2185,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 	/* --- could be done on object level to squeeze out the last bits of it */
 	}
 	else {
-		printf("Error expected a SB here \n");
+		printf("Error expected a SB here\n");
 		return (999);
 	}
 
@@ -2217,7 +2217,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 				compare = (obp->colball + bp->colball);
 				sub_v3_v3v3(def, bp->pos, obp->pos);
 				/* rather check the AABBoxes before ever calulating the real distance */
-				/* mathematically it is completly nuts, but performace is pretty much (3) times faster */
+				/* mathematically it is completly nuts, but performance is pretty much (3) times faster */
 				if ((ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare)) continue;
 				distance = normalize_v3(def);
 				if (distance < compare ) {
@@ -2395,7 +2395,7 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 		totthread--;
 	}
 
-	/* printf("sb_cf_threads_run spawning %d threads \n",totthread); */
+	/* printf("sb_cf_threads_run spawning %d threads\n",totthread); */
 
 	sb_threads= MEM_callocN(sizeof(SB_thread_context)*totthread, "SBThread");
 	memset(sb_threads, 0, sizeof(SB_thread_context)*totthread);
@@ -2490,7 +2490,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		softbody_calc_forcesEx(scene, ob, forcetime, timenow, nl_flags);
 		return;
 	}
-	else{
+	else {
 		/* so the following will die  */
 		/* |||||||||||||||||||||||||| */
 		/* VVVVVVVVVVVVVVVVVVVVVVVVVV */
@@ -2588,7 +2588,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					sub_v3_v3v3(def, bp->pos, obp->pos);
 
 					/* rather check the AABBoxes before ever calulating the real distance */
-					/* mathematically it is completly nuts, but performace is pretty much (3) times faster */
+					/* mathematically it is completly nuts, but performance is pretty much (3) times faster */
 					if ((ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare)) continue;
 
 					distance = normalize_v3(def);
@@ -2756,13 +2756,13 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 								/*bjornmose:  uugh.. what an evil hack
 								violation of the 'don't touch bp->pos in here' rule
 								but works nice, like this-->
-								we predict the solution beeing out of the collider
+								we predict the solution being out of the collider
 								in heun step No1 and leave the heun step No2 adapt to it
 								so we kind of introduced a implicit solver for this case
 								*/
 								Vec3PlusStVec(bp->pos,-intrusion,facenormal);
 							}
-							else{
+							else {
 
 								sub_v3_v3v3(cfforce,bp->vec,vel);
 								Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
@@ -2773,7 +2773,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 							bp->loc_flag |= SBF_DOFUZZY;
 							bp->choke = sb->choke*0.01f;
 						}
-						else{
+						else {
 							sub_v3_v3v3(cfforce,bp->vec,vel);
 							Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
 						}
@@ -2873,8 +2873,8 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					}
 					*/
 			}
-			else{
-				printf("Matrix inversion failed \n");
+			else {
+				printf("Matrix inversion failed\n");
 				for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 					copy_v3_v3(bp->impdv,bp->force);
 				}
@@ -2963,7 +2963,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			if  ((dot_v3v3(dx,dx)<freezeloc )&&(dot_v3v3(bp->force,bp->force)<freezeforce )) {
 				bp->frozen /=2;
 			}
-			else{
+			else {
 				bp->frozen = MIN2(bp->frozen*1.05f,1.0f);
 			}
 			mul_v3_fl(dx,bp->frozen);
@@ -3017,7 +3017,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 		*err = MAX2(maxerrpos,maxerrvel);
 		else
 		*err = maxerrpos;
-		//printf("EP %f EV %f \n",maxerrpos,maxerrvel);
+		//printf("EP %f EV %f\n",maxerrpos,maxerrvel);
 		if (fuzzy) {
 			*err /= sb->fuzzyness;
 		}
@@ -3289,13 +3289,13 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 
 			get_scalar_from_vertexgroup(ob, a,(short) (sb->vertgroup-1), &bp->goal);
 			/* do this always, regardless successfull read from vertex group */
-			/* this is where '2.5 every thing is animateable' goes wrong in the first place jow_go_for2_5 */
+			/* this is where '2.5 every thing is animatable' goes wrong in the first place jow_go_for2_5 */
 			/* 1st coding action to take : move this to frame level */
 			/* reads: leave the bp->goal as it was read from vertex group / or default .. we will need it at per frame call */
 			/* should be fixed for meshes */
 			// bp->goal= sb->mingoal + bp->goal*goalfac; /* do not do here jow_go_for2_5 */
 		}
-		else{
+		else {
 			/* in consequence if no group was set .. but we want to animate it laters */
 			/* logically attach to goal with default first */
 			if (ob->softflag & OB_SB_GOAL) {bp->goal = sb->defgoal;}
@@ -3308,11 +3308,11 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		if (sb->namedVG_Mass[0])
 		{
 			int grp= defgroup_name_index (ob,sb->namedVG_Mass);
-			/* printf("VGN  %s %d \n",sb->namedVG_Mass,grp); */
+			/* printf("VGN  %s %d\n",sb->namedVG_Mass,grp); */
 			if (grp > -1) {
 				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->mass);
 				/* 2.5  bp->mass = bp->mass * sb->nodemass; */
-				/* printf("bp->mass  %f \n",bp->mass); */
+				/* printf("bp->mass  %f\n",bp->mass); */
 
 			}
 		}
@@ -3322,10 +3322,10 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		if (sb->namedVG_Spring_K[0])
 		{
 			int grp= defgroup_name_index (ob,sb->namedVG_Spring_K);
-			//printf("VGN  %s %d \n",sb->namedVG_Spring_K,grp);
+			//printf("VGN  %s %d\n",sb->namedVG_Spring_K,grp);
 			if (grp > -1) {
 				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->springweight);
-				//printf("bp->springweight  %f \n",bp->springweight);
+				//printf("bp->springweight  %f\n",bp->springweight);
 
 			}
 		}
@@ -3405,7 +3405,7 @@ static void reference_to_scratch(Object *ob)
 	}
 	mul_v3_fl(accu_pos,1.0f/accu_mass);
 	copy_v3_v3(sb->scratch->Ref.com,accu_pos);
-	/* printf("reference_to_scratch \n"); */
+	/* printf("reference_to_scratch\n"); */
 }
 
 /*
@@ -3585,7 +3585,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 		if (nu->bezt) {
 			/* bezier case ; this is nicly said naive; who ever wrote this part, it was not me (JOW) :) */
 			/* a: never ever make tangent handles (sub) and or (ob)ject to collision */
-			/* b: rather calculate them using some C2 (C2= continous in second derivate -> no jump in bending ) condition */
+			/* b: rather calculate them using some C2 (C2= continuous in second derivate -> no jump in bending ) condition */
 			/* not too hard to do, but needs some more code to care for;  some one may want look at it  JOW 2010/06/12*/
 			for (bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++, bp+=3, curindex+=3) {
 				if (setgoal) {
@@ -3610,13 +3610,13 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 					bs->v1= curindex;
 					bs->v2= curindex+1;
 					bs->springtype=SB_HANDLE;
-					bs->len= globallen( bezt->vec[0], bezt->vec[1], ob );
+					bs->len= globallen(bezt->vec[0], bezt->vec[1], ob);
 					bs++;
 
 					bs->v1= curindex+1;
 					bs->v2= curindex+2;
 					bs->springtype=SB_HANDLE;
-					bs->len= globallen( bezt->vec[1], bezt->vec[2], ob );
+					bs->len= globallen(bezt->vec[1], bezt->vec[2], ob);
 					bs++;
 				}
 			}
@@ -3800,18 +3800,18 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 
 /* void SB_estimate_transform */
 /* input   Object *ob out (says any object that can do SB like mesh,lattice,curve )
-   output  float lloc[3],float lrot[3][3],float lscale[3][3]
-   that is:
-   a precise position vector denoting the motion of the center of mass
-   give a rotation/scale matrix using averaging method, that's why estimate and not calculate
-   see: this is kind of reverse engeneering: having to states of a point cloud and recover what happend
-   our advantage here we know the identity of the vertex
-   there are others methods giving other results.
-   lloc,lrot,lscale are allowed to be NULL, just in case you don't need it.
-   should be pretty useful for pythoneers :)
-   not! velocity .. 2nd order stuff
-   vcloud_estimate_transform see
-   */
+ * output  float lloc[3],float lrot[3][3],float lscale[3][3]
+ * that is:
+ * a precise position vector denoting the motion of the center of mass
+ * give a rotation/scale matrix using averaging method, that's why estimate and not calculate
+ * see: this is kind of reverse engeneering: having to states of a point cloud and recover what happend
+ * our advantage here we know the identity of the vertex
+ * there are others methods giving other results.
+ * lloc,lrot,lscale are allowed to be NULL, just in case you don't need it.
+ * should be pretty useful for pythoneers :)
+ * not! velocity .. 2nd order stuff
+ * vcloud_estimate_transform see
+ */
 
 void SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscale[3][3])
 {
@@ -3860,16 +3860,16 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
 
 		/* the bp->prev*'s are for rolling back from a canceled try to propagate in time
-		adaptive step size algo in a nutshell:
-		1.  set sheduled time step to new dtime
-		2.  try to advance the sheduled time step, beeing optimistic execute it
-		3.  check for success
-		3.a we 're fine continue, may be we can increase sheduled time again ?? if so, do so!
-		3.b we did exceed error limit --> roll back, shorten the sheduled time and try again at 2.
-		4.  check if we did reach dtime
-		4.a nope we need to do some more at 2.
-		4.b yup we're done
-		*/
+		 * adaptive step size algo in a nutshell:
+		 * 1.  set scheduled time step to new dtime
+		 * 2.  try to advance the scheduled time step, being optimistic execute it
+		 * 3.  check for success
+		 * 3.a we 're fine continue, may be we can increase scheduled time again ?? if so, do so!
+		 * 3.b we did exceed error limit --> roll back, shorten the scheduled time and try again at 2.
+		 * 4.  check if we did reach dtime
+		 * 4.a nope we need to do some more at 2.
+		 * 4.b yup we're done
+		 */
 
 		copy_v3_v3(bp->prevpos, bp->pos);
 		copy_v3_v3(bp->prevvec, bp->vec);
@@ -3917,9 +3917,9 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 
 	sst=PIL_check_seconds_timer();
 	/* Integration back in time is possible in theory, but pretty useless here.
-	So we refuse to do so. Since we do not know anything about 'outside' canges
-	especially colliders we refuse to go more than 10 frames.
-	*/
+	 * So we refuse to do so. Since we do not know anything about 'outside' canges
+	 * especially colliders we refuse to go more than 10 frames.
+	 */
 	if (dtime < 0 || dtime > 10.5f) return;
 
 	ccd_update_deflector_hash(scene, ob, sb->scratch->colliderhash);
@@ -3938,9 +3938,8 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		float forcetimemax = 1.0f; /* set defaults guess we shall do one frame */
 		float forcetimemin = 0.01f; /* set defaults guess 1/100 is tight enough */
 		float timedone =0.0; /* how far did we get without violating error condition */
-							 /* loops = counter for emergency brake
-							 * we don't want to lock up the system if physics fail
-		*/
+		                     /* loops = counter for emergency brake
+		                      * we don't want to lock up the system if physics fail */
 		int loops = 0;
 
 		SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
@@ -4013,7 +4012,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		interpolate_exciter(ob, 2, 2);
 		softbody_apply_goalsnap(ob);
 
-		//				if (G.f & G_DEBUG) {
+		//				if (G.debug & G_DEBUG) {
 		if (sb->solverflags & SBSO_MONITOR ) {
 			if (loops > HEUNWARNLIMIT) /* monitor high loop counts */
 				printf("\r needed %d steps/frame",loops);
@@ -4033,14 +4032,14 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		//removed
 
 	}/*SOLVER SELECT*/
-	else{
+	else {
 		printf("softbody no valid solver ID!");
 	}/*SOLVER SELECT*/
 	if (sb->plastic) { apply_spring_memory(ob);}
 
 	if (sb->solverflags & SBSO_MONITOR ) {
 		sct=PIL_check_seconds_timer();
-		if ((sct-sst > 0.5f) || (G.f & G_DEBUG)) printf(" solver time %f sec %s \n",sct-sst,ob->id.name);
+		if ((sct-sst > 0.5f) || (G.debug & G_DEBUG)) printf(" solver time %f sec %s\n",sct-sst,ob->id.name);
 	}
 }
 
@@ -4133,7 +4132,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	}
 
 	/* try to read from cache */
-	cache_result = BKE_ptcache_read(&pid, framenr);
+	cache_result = BKE_ptcache_read(&pid, (float)framenr+scene->r.subframe);
 
 	if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
 		softbody_to_object(ob, vertexCos, numVerts, sb->local);

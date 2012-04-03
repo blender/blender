@@ -147,8 +147,8 @@ bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, KX_RayCast* resu
 	return true;
 }
 
-/* this function is used to pre-filter the object before casting the ray on them.
-   This is useful for "X-Ray" option when we want to see "through" unwanted object.
+/* This function is used to pre-filter the object before casting the ray on them.
+ * This is useful for "X-Ray" option when we want to see "through" unwanted object.
  */
 bool KX_ConstraintActuator::NeedRayCast(KX_ClientObjectInfo* client)
 {
@@ -175,7 +175,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		/* low-pass filtered time response, if the damp time is unequal to 0.     */
 
 		/* Having to retrieve location/rotation and setting it afterwards may not */
-		/* be efficient enough... Somthing to look at later.                      */
+		/* be efficient enough... Something to look at later.                     */
 		KX_GameObject  *obj = (KX_GameObject*) GetParent();
 		MT_Point3    position = obj->NodeGetWorldPosition();
 		MT_Point3    newposition;

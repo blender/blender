@@ -37,7 +37,7 @@
  * the iterators provided in this file instead
  * of inspecting the structure directly.
  *
-*/
+ */
 
 #include "BLI_mempool.h"
 
@@ -143,6 +143,6 @@ void *bmiter__edge_of_face_step(struct BMIter *iter);
 void  bmiter__loop_of_face_begin(struct BMIter *iter);
 void *bmiter__loop_of_face_step(struct BMIter *iter);
 
-#include "intern/bmesh_iterators_inline.c"
+#include "intern/bmesh_iterators_inline.h"
 
 #endif /* __BMESH_ITERATORS_H__ */

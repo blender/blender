@@ -50,26 +50,26 @@ bool GPC_RawImage::Load(
 {
 	int srcWidth, srcHeight;
 	bool success = true;
-	if(strcmp(srcName, "BlenderLogo") == 0)
+	if (strcmp(srcName, "BlenderLogo") == 0)
 		GetRawBlenderLogo(&m_data, &srcWidth, &srcHeight);
 	else
-		if(strcmp(srcName, "Blender3DLogo") == 0)
+		if (strcmp(srcName, "Blender3DLogo") == 0)
 			GetRawBlender3DLogo(&m_data, &srcWidth, &srcHeight);
 #if 0
 	else
-		if(strcmp(srcName, "NaNLogo") == 0)
+		if (strcmp(srcName, "NaNLogo") == 0)
 			GetRawNaNLogo(&m_data, &srcWidth, &srcHeight);
 #endif
 		else  // unknown image
 			success = false;
 
-	if(success)
+	if (success)
 	{
 		unsigned char *tempData = m_data;
 
 		int numBytes = destWidth * destHeight * 4;
 		m_data = new unsigned char[numBytes];  // re-use m_data ('unsigned char' was 'char')
-		if(m_data)
+		if (m_data)
 		{
 			::memset(m_data, 0x00000000, numBytes);
 			m_width = destWidth;
@@ -80,11 +80,11 @@ bool GPC_RawImage::Load(
 			int numRows = (srcHeight + offsetY) < m_height ? srcHeight : m_height - offsetY;
 			numBytes = (srcWidth + offsetX) < m_width ? srcBytesWidth : (m_width - offsetX) * 4;
 
-			if((offsetX < m_width) && (offsetY < m_height))
+			if ((offsetX < m_width) && (offsetY < m_height))
 			{
 				unsigned char* src = (unsigned char*)tempData;
 				unsigned char* dst = (unsigned char*)m_data;
-				if(alignment == alignTopLeft)
+				if (alignment == alignTopLeft)
 				{
 					// Put original in upper left corner
 

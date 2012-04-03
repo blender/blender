@@ -60,7 +60,7 @@ CValue*		BL_DeformableGameObject::GetReplica()
 
 bool BL_DeformableGameObject::SetActiveAction(BL_ShapeActionActuator *act, short priority, double curtime)
 {
-	if (curtime != m_lastframe){
+	if (curtime != m_lastframe) {
 		m_activePriority = 9999;
 		m_lastframe= curtime;
 		m_activeAct = NULL;
@@ -108,7 +108,7 @@ void BL_DeformableGameObject::SetDeformer(class RAS_Deformer* deformer)
 	m_pDeformer = deformer;
 
 	SG_QList::iterator<RAS_MeshSlot> mit(m_meshSlots);
-	for(mit.begin(); !mit.end(); ++mit)
+	for (mit.begin(); !mit.end(); ++mit)
 	{
 		(*mit)->SetDeformer(deformer);
 	}

@@ -80,16 +80,13 @@ static void constraintAutoValues(TransInfo *t, float vec[3])
 	{
 		float nval = (t->flag & T_NULL_ONE)?1.0f:0.0f;
 
-		if ((mode & CON_AXIS0) == 0)
-		{
+		if ((mode & CON_AXIS0) == 0) {
 			vec[0] = nval;
 		}
-		if ((mode & CON_AXIS1) == 0)
-		{
+		if ((mode & CON_AXIS1) == 0) {
 			vec[1] = nval;
 		}
-		if ((mode & CON_AXIS2) == 0)
-		{
+		if ((mode & CON_AXIS2) == 0) {
 			vec[2] = nval;
 		}
 	}
@@ -165,8 +162,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
 	}
 
 	/* autovalues is operator param, use that directly but not if snapping is forced */
-	if (t->flag & T_AUTOVALUES && (t->tsnap.status & SNAP_FORCED) == 0)
-	{
+	if (t->flag & T_AUTOVALUES && (t->tsnap.status & SNAP_FORCED) == 0) {
 		mul_v3_m3v3(vec, t->con.imtx, t->auto_values);
 		constraintAutoValues(t, vec);
 		/* inverse transformation at the end */
@@ -187,21 +183,21 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
 
 static void viewAxisCorrectCenter(TransInfo *t, float t_con_center[3])
 {
-	if(t->spacetype == SPACE_VIEW3D) {
+	if (t->spacetype == SPACE_VIEW3D) {
 		// View3D *v3d = t->sa->spacedata.first;
 		const float min_dist= 1.0f; // v3d->near;
 		float dir[3];
 		float l;
 
 		sub_v3_v3v3(dir, t_con_center, t->viewinv[3]);
-		if(dot_v3v3(dir, t->viewinv[2]) < 0.0f) {
+		if (dot_v3v3(dir, t->viewinv[2]) < 0.0f) {
 			negate_v3(dir);
 		}
 		project_v3_v3v3(dir, dir, t->viewinv[2]);
 
 		l= len_v3(dir);
 
-		if(l < min_dist) {
+		if (l < min_dist) {
 			float diff[3];
 			normalize_v3_v3(diff, t->viewinv[2]);
 			mul_v3_fl(diff, min_dist - l);
@@ -216,7 +212,7 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	float norm[3], vec[3], factor, angle;
 	float t_con_center[3];
 
-	if(in[0]==0.0f && in[1]==0.0f && in[2]==0.0f)
+	if (in[0]==0.0f && in[1]==0.0f && in[2]==0.0f)
 		return;
 
 	copy_v3_v3(t_con_center, t->con.center);
@@ -231,13 +227,13 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	angle = RAD2DEGF(angle);
 
 	/* For when view is parallel to constraint... will cause NaNs otherwise
-	   So we take vertical motion in 3D space and apply it to the
-	   constraint axis. Nice for camera grab + MMB */
-	if(angle < 5.0f) {
+	 * So we take vertical motion in 3D space and apply it to the
+	 * constraint axis. Nice for camera grab + MMB */
+	if (angle < 5.0f) {
 		project_v3_v3v3(vec, in, t->viewinv[1]);
 		factor = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 		/* since camera distance is quite relative, use quadratic relationship. holding shift can compensate */
-		if(factor<0.0f) factor*= -factor;
+		if (factor<0.0f) factor*= -factor;
 		else factor*= factor;
 
 		copy_v3_v3(out, axis);
@@ -265,10 +261,12 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 			copy_v3_v3(out, axis);
 			if (factor > 0) {
 				mul_v3_fl(out, 1000000000.0f);
-			} else {
+			}
+			else {
 				mul_v3_fl(out, -1000000000.0f);
 			}
-		} else {
+		}
+		else {
 			add_v3_v3v3(v2, t_con_center, axis);
 			add_v3_v3v3(v4, v, norm);
 			
@@ -280,9 +278,9 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 
 			/* possible some values become nan when
 			 * viewpoint and object are both zero */
-			if(!finite(out[0])) out[0]= 0.0f;
-			if(!finite(out[1])) out[1]= 0.0f;
-			if(!finite(out[2])) out[2]= 0.0f;
+			if (!finite(out[0])) out[0]= 0.0f;
+			if (!finite(out[1])) out[1]= 0.0f;
+			if (!finite(out[2])) out[2]= 0.0f;
 		}
 	}
 }
@@ -597,11 +595,11 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
 }
 
 /*
-	Set the constraint according to the user defined orientation
-
-	ftext is a format string passed to BLI_snprintf. It will add the name of
-	the orientation where %s is (logically).
-*/
+ * Set the constraint according to the user defined orientation
+ *
+ * ftext is a format string passed to BLI_snprintf. It will add the name of
+ * the orientation where %s is (logically).
+ */
 void setUserConstraint(TransInfo *t, short orientation, int mode, const char ftext[])
 {
 	char text[40];
@@ -658,7 +656,7 @@ void drawConstraint(TransInfo *t)
 
 	/* nasty exception for Z constraint in camera view */
 	// TRANSFORM_FIX_ME
-//	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB)
+//	if ((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB)
 //		return;
 
 	if (tc->drawExtra) {
@@ -680,7 +678,7 @@ void drawConstraint(TransInfo *t)
 			glColor3ubv((GLubyte *)col2);
 
 			depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
-			if(depth_test_enabled)
+			if (depth_test_enabled)
 				glDisable(GL_DEPTH_TEST);
 
 			setlinestyle(1);
@@ -690,7 +688,7 @@ void drawConstraint(TransInfo *t)
 			glEnd();
 			setlinestyle(0);
 
-			if(depth_test_enabled)
+			if (depth_test_enabled)
 				glEnable(GL_DEPTH_TEST);
 		}
 
@@ -716,13 +714,11 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 
 		UI_ThemeColor(TH_GRID);
 
-		if(t->spacetype == SPACE_VIEW3D && rv3d != NULL)
-		{
+		if (t->spacetype == SPACE_VIEW3D && rv3d != NULL) {
 			copy_m4_m4(tmat, rv3d->viewmat);
 			invert_m4_m4(imat, tmat);
 		}
-		else
-		{
+		else {
 			unit_m4(tmat);
 			unit_m4(imat);
 		}
@@ -731,12 +727,10 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 
 		copy_v3_v3(center, t->center);
 
-		if((t->spacetype == SPACE_VIEW3D) && t->obedit)
-		{
+		if ((t->spacetype == SPACE_VIEW3D) && t->obedit) {
 			mul_m4_v3(t->obedit->obmat, center); /* because t->center is in local space */
 		}
-		else if(t->spacetype == SPACE_IMAGE)
-		{
+		else if (t->spacetype == SPACE_IMAGE) {
 			float aspx, aspy;
 
 			ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
@@ -757,10 +751,10 @@ static void drawObjectConstraint(TransInfo *t)
 	TransData * td = t->data;
 
 	/* Draw the first one lighter because that's the one who controls the others.
-	   Meaning the transformation is projected on that one and just copied on the others
-	   constraint space.
-	   In a nutshell, the object with light axis is controlled by the user and the others follow.
-	   Without drawing the first light, users have little clue what they are doing.
+	 * Meaning the transformation is projected on that one and just copied on the others
+	 * constraint space.
+	 * In a nutshell, the object with light axis is controlled by the user and the others follow.
+	 * Without drawing the first light, users have little clue what they are doing.
 	 */
 	if (t->con.mode & CON_AXIS0) {
 		drawLine(t, td->ob->obmat[3], td->axismtx[0], 'X', DRAWLIGHT);
@@ -774,7 +768,7 @@ static void drawObjectConstraint(TransInfo *t)
 
 	td++;
 
-	for(i=1;i<t->total;i++,td++) {
+	for (i=1;i<t->total;i++,td++) {
 		if (t->con.mode & CON_AXIS0) {
 			drawLine(t, td->ob->obmat[3], td->axismtx[0], 'X', 0);
 		}
@@ -896,12 +890,12 @@ static void setNearestAxis3d(TransInfo *t)
 	mvec[2] = 0.0f;
 
 	/* we need to correct axis length for the current zoomlevel of view,
-	   this to prevent projected values to be clipped behind the camera
-	   and to overflow the short integers.
-	   The formula used is a bit stupid, just a simplification of the substraction
-	   of two 2D points 30 pixels apart (that's the last factor in the formula) after
-	   projecting them with window_to_3d_delta and then get the length of that vector.
-	*/
+	 * this to prevent projected values to be clipped behind the camera
+	 * and to overflow the short integers.
+	 * The formula used is a bit stupid, just a simplification of the subtraction
+	 * of two 2D points 30 pixels apart (that's the last factor in the formula) after
+	 * projecting them with window_to_3d_delta and then get the length of that vector.
+	 */
 	zfac= t->persmat[0][3]*t->center[0]+ t->persmat[1][3]*t->center[1]+ t->persmat[2][3]*t->center[2]+ t->persmat[3][3];
 	zfac = len_v3(t->persinv[0]) * 2.0f/t->ar->winx * zfac * 30.0f;
 
@@ -1041,10 +1035,10 @@ int getConstraintSpaceDimension(TransInfo *t)
 
 	return n;
 /*
-  Someone willing to do it criptically could do the following instead:
-
-  return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
-
-  Based on the assumptions that the axis flags are one after the other and start at 1
-*/
+ * Someone willing to do it cryptically could do the following instead:
+ *
+ * return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
+ *
+ * Based on the assumptions that the axis flags are one after the other and start at 1
+ */
 }

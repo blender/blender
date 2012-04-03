@@ -771,7 +771,7 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 
 	// prepare operands for actual boolean operation. it's needed because operands might consist of
 	// several intersecting meshes and in case if another operands intersect an edge loop of intersecting that
-	// meshes tesselation of operation result can't be done properly. the only way to make such situations
+	// meshes tessellation of operation result can't be done properly. the only way to make such situations
 	// working is to union intersecting meshes of the same operand
 	Carve_unionIntersections(&left, &right, oface_num);
 

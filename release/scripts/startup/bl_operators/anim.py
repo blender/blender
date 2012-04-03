@@ -67,15 +67,16 @@ class ANIM_OT_keying_set_export(Operator):
         scene = context.scene
         ks = scene.keying_sets.active
 
-        f.write("# Keying Set: %s\n" % ks.name)
+        f.write("# Keying Set: %s\n" % ks.bl_idname)
 
         f.write("import bpy\n\n")
-        # XXX, why not current scene?
-        f.write("scene= bpy.data.scenes[0]\n\n")
+        f.write("scene = bpy.context.scene\n\n")
 
         # Add KeyingSet and set general settings
         f.write("# Keying Set Level declarations\n")
-        f.write("ks= scene.keying_sets.new(name=\"%s\")\n" % ks.name)
+        f.write("ks = scene.keying_sets.new(idname=\"%s\", name=\"%s\")\n"
+                "" % (ks.bl_idname, ks.bl_label))
+        f.write("ks.bl_description = \"%s\"\n" % ks.bl_description)
 
         if not ks.is_path_absolute:
             f.write("ks.is_path_absolute = False\n")

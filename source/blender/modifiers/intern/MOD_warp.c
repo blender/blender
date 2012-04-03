@@ -88,11 +88,11 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(wmd->defgrp_name[0]) dataMask |= (CD_MASK_MDEFORMVERT);
+	if (wmd->defgrp_name[0]) dataMask |= (CD_MASK_MDEFORMVERT);
 	dataMask |= (CD_MASK_MDEFORMVERT);
 
 	/* ask for UV coordinates if we need them */
-	if(wmd->texmapping == MOD_DISP_MAP_UV) dataMask |= (1 << CD_MTFACE);
+	if (wmd->texmapping == MOD_DISP_MAP_UV) dataMask |= (1 << CD_MTFACE);
 
 	return dataMask;
 }
@@ -101,7 +101,7 @@ static int dependsOnTime(ModifierData *md)
 {
 	WarpModifierData *wmd = (WarpModifierData *)md;
 
-	if(wmd->texture) {
+	if (wmd->texture) {
 		return BKE_texture_dependsOnTime(wmd->texture);
 	}
 	else {
@@ -153,7 +153,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UN
 {
 	WarpModifierData *wmd = (WarpModifierData*) md;
 
-	if(wmd->object_from && wmd->object_to) {
+	if (wmd->object_from && wmd->object_to) {
 		DagNode *fromNode = dag_get_node(forest, wmd->object_from);
 		DagNode *toNode = dag_get_node(forest, wmd->object_to);
 
@@ -161,7 +161,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UN
 		dag_add_relation(forest, toNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Warp Modifier2");
 	}
 
-	if((wmd->texmapping == MOD_DISP_MAP_OBJECT) && wmd->map_object) {
+	if ((wmd->texmapping == MOD_DISP_MAP_OBJECT) && wmd->map_object) {
 		DagNode *curNode = dag_get_node(forest, wmd->map_object);
 		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Warp Modifier3");
 	}
@@ -187,12 +187,12 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 
 	float (*tex_co)[3]= NULL;
 
-	if(!(wmd->object_from && wmd->object_to))
+	if (!(wmd->object_from && wmd->object_to))
 		return;
 
 	modifier_get_vgroup(ob, dm, wmd->defgrp_name, &dvert, &defgrp_index);
 
-	if(wmd->curfalloff==NULL) /* should never happen, but bad lib linking could cause it */
+	if (wmd->curfalloff==NULL) /* should never happen, but bad lib linking could cause it */
 		wmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 
 	invert_m4_m4(obinv, ob->obmat);
@@ -207,7 +207,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 
 	unit_m4(mat_unit);
 
-	if(strength < 0.0f) {
+	if (strength < 0.0f) {
 		float loc[3];
 		strength = -strength;
 
@@ -219,24 +219,24 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 	}
 	weight= strength;
 
-	if(wmd->texture) {
+	if (wmd->texture) {
 		tex_co = MEM_mallocN(sizeof(*tex_co) * numVerts, "warpModifier_do tex_co");
 		get_texture_coords((MappingInfoModifierData *)wmd, ob, dm, vertexCos, tex_co, numVerts);
 	}
 
-	for(i = 0; i < numVerts; i++) {
+	for (i = 0; i < numVerts; i++) {
 		float *co = vertexCos[i];
 
-		if(wmd->falloff_type==eWarp_Falloff_None ||
+		if (wmd->falloff_type==eWarp_Falloff_None ||
 		        ((fac=len_v3v3(co, mat_from[3])) < wmd->falloff_radius && (fac=(wmd->falloff_radius-fac)/wmd->falloff_radius)) ) {
 
 			/* skip if no vert group found */
-			if(dvert && defgrp_index >= 0) {
+			if (dvert && defgrp_index >= 0) {
 				dv = &dvert[i];
 
-				if(dv) {
+				if (dv) {
 					weight = defvert_find_weight(dv, defgrp_index) * strength;
-					if(weight <= 0.0f) /* Should never occure... */
+					if (weight <= 0.0f) /* Should never occure... */
 						continue;
 				}
 			}
@@ -272,7 +272,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 
 			fac *= weight;
 
-			if(tex_co) {
+			if (tex_co) {
 				TexResult texres;
 				texres.nor = NULL;
 				get_texture_value(wmd->texture, tex_co[i], &texres);
@@ -282,11 +282,11 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 			/* into the 'from' objects space */
 			mul_m4_v3(mat_from_inv, co);
 
-			if(fac >= 1.0f) {
+			if (fac >= 1.0f) {
 				mul_m4_v3(mat_final, co);
 			}
-			else if(fac > 0.0f) {
-				if(wmd->flag & MOD_WARP_VOLUME_PRESERVE) {
+			else if (fac > 0.0f) {
+				if (wmd->flag & MOD_WARP_VOLUME_PRESERVE) {
 					/* interpolate the matrix for nicer locations */
 					blend_m4_m4m4(tmat, mat_unit, mat_final, fac);
 					mul_m4_v3(tmat, co);
@@ -303,7 +303,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 		}
 	}
 
-	if(tex_co)
+	if (tex_co)
 		MEM_freeN(tex_co);
 
 }
@@ -319,14 +319,14 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	DerivedMesh *dm= NULL;
 	int use_dm= warp_needs_dm((WarpModifierData *)md);
 
-	if(use_dm) {
+	if (use_dm) {
 		dm= get_cddm(ob, NULL, derivedData, vertexCos);
 	}
 
 	warpModifier_do((WarpModifierData *)md, ob, dm, vertexCos, numVerts);
 
-	if(use_dm) {
-		if(dm != derivedData) dm->release(dm);
+	if (use_dm) {
+		if (dm != derivedData) dm->release(dm);
 	}
 }
 
@@ -336,15 +336,15 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editD
 	DerivedMesh *dm = derivedData;
 	int use_dm= warp_needs_dm((WarpModifierData *)md);
 
-	if(use_dm) {
-		if(!derivedData)
+	if (use_dm) {
+		if (!derivedData)
 			dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
 	}
 
 	deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
 
-	if(use_dm) {
-		if(!derivedData) dm->release(dm);
+	if (use_dm) {
+		if (!derivedData) dm->release(dm);
 	}
 }
 

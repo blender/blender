@@ -44,7 +44,7 @@
  * GHOST implementation of GPC_KeyboardDevice.
  * The contructor fills the keyboard code translation map.
  * Base class GPC_KeyboardDevice does the rest.
- * @see SCA_IInputDevice
+ * \see SCA_IInputDevice
  */
 class GPG_KeyboardDevice : public GPC_KeyboardDevice
 {

@@ -64,6 +64,7 @@ public:
 
 	ImageManager *image_manager;
 	int slot;
+	bool is_float;
 	string filename;
 	ustring color_space;
 
@@ -78,10 +79,13 @@ public:
 
 	ImageManager *image_manager;
 	int slot;
+	bool is_float;
 	string filename;
 	ustring color_space;
+	ustring projection;
 
 	static ShaderEnum color_space_enum;
+	static ShaderEnum projection_enum;
 };
 
 class SkyTextureNode : public TextureNode {
@@ -384,6 +388,18 @@ public:
 class BumpNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BumpNode)
+};
+
+class RGBCurvesNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(RGBCurvesNode)
+	float4 curves[RAMP_TABLE_SIZE];
+};
+
+class RGBRampNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(RGBRampNode)
+	float4 ramp[RAMP_TABLE_SIZE];
 };
 
 CCL_NAMESPACE_END

@@ -83,10 +83,10 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(smd->vgroup_name[0])
+	if (smd->vgroup_name[0])
 		dataMask |= CD_MASK_MDEFORMVERT;
 
-	if(smd->shrinkType == MOD_SHRINKWRAP_PROJECT
+	if (smd->shrinkType == MOD_SHRINKWRAP_PROJECT
 	&& smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
 		dataMask |= CD_MASK_MVERT;
 		
@@ -119,12 +119,12 @@ static void deformVerts(ModifierData *md, Object *ob,
 	CustomDataMask dataMask = requiredDataMask(ob, md);
 
 	/* ensure we get a CDDM with applied vertex coords */
-	if(dataMask)
+	if (dataMask)
 		dm= get_cddm(ob, NULL, dm, vertexCos);
 
 	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData)
+	if (dm != derivedData)
 		dm->release(dm);
 }
 
@@ -134,12 +134,12 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editD
 	CustomDataMask dataMask = requiredDataMask(ob, md);
 
 	/* ensure we get a CDDM with applied vertex coords */
-	if(dataMask)
+	if (dataMask)
 		dm= get_cddm(ob, editData, dm, vertexCos);
 
 	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData)
+	if (dm != derivedData)
 		dm->release(dm);
 }
 

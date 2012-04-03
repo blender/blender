@@ -54,7 +54,8 @@ public:
 						const char *constraintname,
 						KX_GameObject* targetobj,
 						KX_GameObject* subtargetobj,
-						float weight);
+						float weight,
+						float influence);
 
 	virtual ~BL_ArmatureActuator();
 
@@ -88,6 +89,7 @@ private:
 	STR_String		m_posechannel;
 	STR_String		m_constraintname;
 	float			m_weight;
+	float			m_influence;
 	int				m_type;
 };
 

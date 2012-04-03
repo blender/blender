@@ -42,12 +42,14 @@
 
 #include <stdlib.h>
 
+#include "BLI_utildefines.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "math.h"
 
 /* This define should be relocated to a global header some where  Kent Mein 
-I stole it from util.h in the plugins api */
+ * I stole it from util.h in the plugins api */
 #define MAX2(x,y)                ( (x)>(y) ? (x) : (y) )
 
 /* Only this one is used liberally here, and in imbuf */
@@ -60,7 +62,7 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 	if (ibuf->rect) {
 		size = ibuf->x * ibuf->y;
 
-		while(size-- > 0) {
+		while (size-- > 0) {
 			rt= cp[0];
 			cp[0]= cp[3];
 			cp[3]= rt;
@@ -74,7 +76,7 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 	if (ibuf->rect_float) {
 		size = ibuf->x * ibuf->y;
 
-		while(size-- > 0) {
+		while (size-- > 0) {
 			rtf= cpf[0];
 			cpf[0]= cpf[3];
 			cpf[3]= rtf;
@@ -98,16 +100,15 @@ static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **
 }
 
 /**************************************************************************
-*                            INTERPOLATIONS 
-*
-* Reference and docs:
-* http://wiki.blender.org/index.php/User:Damiles#Interpolations_Algorithms
-***************************************************************************/
+ *                            INTERPOLATIONS
+ *
+ * Reference and docs:
+ * http://wiki.blender.org/index.php/User:Damiles#Interpolations_Algorithms
+ ***************************************************************************/
 
-/* BICUBIC Interpolation functions */
-/*  More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
-*/
-/* function assumes out to be zero'ed, only does RGBA */
+/* BICUBIC Interpolation functions
+ *  More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
+ * function assumes out to be zero'ed, only does RGBA */
 
 static float P(float k)
 {
@@ -134,6 +135,10 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *o
 	unsigned char *dataI;
 	float a,b,w,wx,wy[4], outR,outG,outB,outA,*dataF;
 
+	/* sample area entirely outside image? */
+	if (ceil(u)<0 || floor(u)>in->x-1 || ceil(v)<0 || floor(v)>in->y-1)
+		return;
+
 	/* ImBuf in must have a valid rect or rect_float, assume this is already checked */
 
 	i= (int)floor(u);
@@ -151,33 +156,31 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *o
 	wy[2] = P(b-  1);
 	wy[3] = P(b-  2);
 	
-	for(n= -1; n<= 2; n++){
+	for (n= -1; n<= 2; n++) {
 		x1= i+n;
-		if (x1>0 && x1 < in->x) {
-			wx = P(n-a);
-			for(m= -1; m<= 2; m++){
-				y1= j+m;
-				if (y1>0 && y1<in->y) {
-					/* normally we could do this */
-					/* w = P(n-a) * P(b-m); */
-					/* except that would call P() 16 times per pixel therefor pow() 64 times, better precalc these */
-					w = wx * wy[m+1];
-					
-					if (outF) {
-						dataF= in->rect_float + in->x * y1 * 4 + 4*x1;
-						outR+= dataF[0] * w;
-						outG+= dataF[1] * w;
-						outB+= dataF[2] * w;
-						outA+= dataF[3] * w;
-					}
-					if (outI) {
-						dataI= (unsigned char*)in->rect + in->x * y1 * 4 + 4*x1;
-						outR+= dataI[0] * w;
-						outG+= dataI[1] * w;
-						outB+= dataI[2] * w;
-						outA+= dataI[3] * w;
-					}
-				}
+		CLAMP(x1, 0, in->x-1);
+		wx = P(n-a);
+		for (m= -1; m<= 2; m++) {
+			y1= j+m;
+			CLAMP(y1, 0, in->y-1);
+			/* normally we could do this */
+			/* w = P(n-a) * P(b-m); */
+			/* except that would call P() 16 times per pixel therefor pow() 64 times, better precalc these */
+			w = wx * wy[m+1];
+
+			if (outF) {
+				dataF= in->rect_float + in->x * y1 * 4 + 4*x1;
+				outR+= dataF[0] * w;
+				outG+= dataF[1] * w;
+				outB+= dataF[2] * w;
+				outA+= dataF[3] * w;
+			}
+			if (outI) {
+				dataI= (unsigned char*)in->rect + in->x * y1 * 4 + 4*x1;
+				outR+= dataI[0] * w;
+				outG+= dataI[1] * w;
+				outB+= dataI[2] * w;
+				outA+= dataI[3] * w;
 			}
 		}
 	}
@@ -186,8 +189,8 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *o
 	
 #if 0 
 	/* older, slower function, works the same as above */
-	for(n= -1; n<= 2; n++){
-		for(m= -1; m<= 2; m++){
+	for (n= -1; n<= 2; n++) {
+		for (m= -1; m<= 2; m++) {
 			x1= i+n;
 			y1= j+m;
 			if (x1>0 && x1 < in->x && y1>0 && y1<in->y) {
@@ -335,11 +338,11 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 	if (x2<0 || x1>in->x-1 || y2<0 || y1>in->y-1) return;
 	
 	/* wrap interpolation pixels - main difference from bilinear_interpolation_color  */
-	if(x1<0)x1= in->x+x1;
-	if(y1<0)y1= in->y+y1;
+	if (x1<0)x1= in->x+x1;
+	if (y1<0)y1= in->y+y1;
 	
-	if(x2>=in->x)x2= x2-in->x;
-	if(y2>=in->y)y2= y2-in->y;
+	if (x2>=in->x)x2= x2-in->x;
+	if (y2>=in->y)y2= y2-in->y;
 
 	if (outF) {
 		// sample including outside of edges of image 
@@ -420,7 +423,8 @@ void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 			outF[2]= 0.0f;
 			outF[3]= 0.0f;
 		}
-	} else {
+	}
+	else {
 		dataI= (unsigned char *)in->rect + in->x * y1 * 4 + 4*x1;
 		if (outI) {
 			outI[0]= dataI[0];

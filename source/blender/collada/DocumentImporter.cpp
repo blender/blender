@@ -121,10 +121,12 @@ bool DocumentImporter::import()
 	
 	loader.registerExtraDataCallbackHandler(ehandler);
 
-	if (!root.loadDocument(mFilename))
+	if (!root.loadDocument(mFilename)) {
+		fprintf(stderr, "COLLADAFW::Root::loadDocument() returned false on 1st pass\n");
 		return false;
+	}
 	
-	if(errorHandler.hasError())
+	if (errorHandler.hasError())
 		return false;
 	
 	/** TODO set up scene graph and such here */
@@ -134,8 +136,10 @@ bool DocumentImporter::import()
 	COLLADASaxFWL::Loader loader2;
 	COLLADAFW::Root root2(&loader2, this);
 	
-	if (!root2.loadDocument(mFilename))
+	if (!root2.loadDocument(mFilename)) {
+		fprintf(stderr, "COLLADAFW::Root::loadDocument() returned false on 2nd pass\n");
 		return false;
+	}
 	
 	
 	delete ehandler;
@@ -153,11 +157,11 @@ void DocumentImporter::cancel(const COLLADAFW::String& errorMessage)
 	// The latter sounds better.
 }
 
-void DocumentImporter::start(){}
+void DocumentImporter::start() {}
 
 void DocumentImporter::finish()
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return;
 		
 	/** TODO Break up and put into 2-pass parsing of DAE */
@@ -235,7 +239,15 @@ void DocumentImporter::finish()
 
 void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW::Node *par = NULL, Object *parob = NULL)
 {
-	if (par && par->getType() == COLLADAFW::Node::JOINT) {
+
+	// The split in #29246, rootmap must point at actual root when
+	// calculating bones in apply_curves_as_matrix.
+	// This has to do with inverse bind poses being world space
+	// (the sources for skinned bones' restposes) and the way
+	// non-skinning nodes have their "restpose" recursively calculated.
+	// XXX TODO: design issue, how to support unrelated joints taking
+	// part in skinning.
+	if (par) { // && par->getType() == COLLADAFW::Node::JOINT) {
 		// par is root if there's no corresp. key in root_map
 		if (root_map.find(par->getUniqueId()) == root_map.end())
 			root_map[node->getUniqueId()] = par;
@@ -264,7 +276,7 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 }
 
 /** When this method is called, the writer must write the global document asset.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeGlobalAsset ( const COLLADAFW::FileInfo* asset ) 
 {
 	unit_converter.read_asset(asset);
@@ -273,7 +285,7 @@ bool DocumentImporter::writeGlobalAsset ( const COLLADAFW::FileInfo* asset )
 }
 
 /** When this method is called, the writer must write the scene.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeScene ( const COLLADAFW::Scene* scene ) 
 {
 	// XXX could store the scene id, but do nothing for now
@@ -300,7 +312,7 @@ Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 {
 	const COLLADAFW::UniqueId& lamp_uid = lamp->getInstanciatedObjectId();
 	if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {	
-		fprintf(stderr, "Couldn't find lamp by UID. \n");
+		fprintf(stderr, "Couldn't find lamp by UID.\n");
 		return NULL;
 	}
 	Object *ob = add_object(sce, OB_LAMP);
@@ -313,8 +325,10 @@ Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 	return ob;
 }
 
-Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Node *source_node, COLLADAFW::Node *instance_node, Scene *sce, Object *par_ob, bool is_library_node)
+Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Node *source_node, COLLADAFW::Node *instance_node, Scene *sce, bool is_library_node)
 {
+	fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ? instance_node->getOriginalId().c_str() : NULL, source_node ? source_node->getOriginalId().c_str() : NULL);
+
 	Object *obn = copy_object(source_ob);
 	obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 	scene_add_base(sce, obn);
@@ -325,7 +339,7 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 		// transformation matrix and apply it to the newly instantiated
 		// object to account for node hierarchy transforms in
 		// .dae
-		if(source_node) {
+		if (source_node) {
 			COLLADABU::Math::Matrix4 mat4 = source_node->getTransformationMatrix();
 			COLLADABU::Math::Matrix4 bmat4 = mat4.transpose(); // transpose to get blender row-major order
 			float mat[4][4];
@@ -357,10 +371,10 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 			Object *new_child = NULL;
 			if (inodes.getCount()) { // \todo loop through instance nodes
 				const COLLADAFW::UniqueId& id = inodes[0]->getInstanciatedObjectId();
-				new_child = create_instance_node(object_map[id], node_map[id], child_node, sce, NULL, is_library_node);
+				new_child = create_instance_node(object_map[id], node_map[id], child_node, sce, is_library_node);
 			}
 			else {
-				new_child = create_instance_node(object_map[child_id], child_node, NULL, sce, NULL, is_library_node);
+				new_child = create_instance_node(object_map[child_id], child_node, NULL, sce, is_library_node);
 			}
 			bc_set_parent(new_child, obn, mContext, true);
 
@@ -369,21 +383,14 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 		}
 	}
 
-	// when we have an instance_node, don't return the object, because otherwise
-	// its correct location gets overwritten in write_node(). Fixes bug #26012.
-	if(instance_node) {
-		if (par_ob && obn)
-			bc_set_parent(obn, par_ob, mContext);
-		return NULL;
-	}
-
-	else return obn;
+	return obn;
 }
 
 void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
 {
 	Object *ob = NULL;
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
+	bool read_transform = true;
 
 	if (is_joint) {
 		if ( par ) {
@@ -432,16 +439,18 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		while (inst_done < inst_node.getCount()) {
 			const COLLADAFW::UniqueId& node_id = inst_node[inst_done]->getInstanciatedObjectId();
 			if (object_map.find(node_id) == object_map.end()) {
-				fprintf(stderr, "Cannot find node to instanciate.\n");
+				fprintf(stderr, "Cannot find object for node referenced by <instance_node name=\"%s\">.\n", inst_node[inst_done]->getName().c_str());
 				ob = NULL;
 			}
 			else {
 				Object *source_ob = object_map[node_id];
 				COLLADAFW::Node *source_node = node_map[node_id];
 
-				ob = create_instance_node(source_ob, source_node, node, sce, par, is_library_node);
+				ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);
 			}
 			++inst_done;
+
+			read_transform = false;
 		}
 		// if node is empty - create empty object
 		// XXX empty node may not mean it is empty object, not sure about this
@@ -449,7 +458,8 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 			ob = add_object(sce, OB_EMPTY);
 		}
 		
-		// check if object is not NULL
+		// XXX: if there're multiple instances, only one is stored
+
 		if (!ob) return;
 		
 		std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
@@ -462,7 +472,8 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 			libnode_ob.push_back(ob);
 	}
 
-	anim_importer.read_node_transform(node, ob); // overwrites location set earlier
+	if (read_transform)
+		anim_importer.read_node_transform(node, ob); // overwrites location set earlier
 
 	if (!is_joint) {
 		// if par was given make this object child of the previous 
@@ -478,10 +489,10 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 }
 
 /** When this method is called, the writer must write the entire visual scene.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeVisualScene ( const COLLADAFW::VisualScene* visualScene ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	// this method called on post process after writeGeometry, writeMaterial, etc.
@@ -501,10 +512,10 @@ bool DocumentImporter::writeVisualScene ( const COLLADAFW::VisualScene* visualSc
 
 /** When this method is called, the writer must handle all nodes contained in the 
 	library nodes.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeLibraryNodes ( const COLLADAFW::LibraryNodes* libraryNodes ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	Scene *sce = CTX_data_scene(mContext);
@@ -519,20 +530,20 @@ bool DocumentImporter::writeLibraryNodes ( const COLLADAFW::LibraryNodes* librar
 }
 
 /** When this method is called, the writer must write the geometry.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeGeometry ( const COLLADAFW::Geometry* geom ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	return mesh_importer.write_geometry(geom);
 }
 
 /** When this method is called, the writer must write the material.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	const std::string& str_mat_id = cmat->getName().size() ? cmat->getName() : cmat->getOriginalId();
@@ -688,10 +699,10 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 		}
 	}
 	
-	if(ef->getOpacity().isTexture()) {
+	if (ef->getOpacity().isTexture()) {
 		COLLADAFW::Texture ctex = ef->getOpacity().getTexture();
 		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
-		if(mtex != NULL) {
+		if (mtex != NULL) {
 			mtex->mapto = MAP_ALPHA;
 			mtex->tex->imaflag |= TEX_USEALPHA;
 			i++;
@@ -717,11 +728,11 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 }
 
 /** When this method is called, the writer must write the effect.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 
 bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 	
 	const COLLADAFW::UniqueId& uid = effect->getUniqueId();
@@ -733,7 +744,7 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 	
 	Material *ma = uid_effect_map[uid];
 	std::map<COLLADAFW::UniqueId, Material*>::iterator  iter;
-	for(iter = uid_material_map.begin(); iter != uid_material_map.end() ; iter++ )
+	for (iter = uid_material_map.begin(); iter != uid_material_map.end() ; iter++ )
 	{
 		if ( iter->second == ma ) {
 			this->FW_object_map[iter->first] = effect;
@@ -756,10 +767,10 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 
 
 /** When this method is called, the writer must write the camera.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	Camera *cam = NULL;
@@ -771,7 +782,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	else cam = (Camera*)add_camera((char*)cam_id.c_str());
 	
 	if (!cam) {
-		fprintf(stderr, "Cannot create camera. \n");
+		fprintf(stderr, "Cannot create camera.\n");
 		return true;
 	}
 	cam->clipsta = camera->getNearClippingPlane().getValue();
@@ -791,7 +802,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 		break;
 	case COLLADAFW::Camera::UNDEFINED_CAMERATYPE:
 		{
-			fprintf(stderr, "Current camera type is not supported. \n");
+			fprintf(stderr, "Current camera type is not supported.\n");
 			cam->type = CAM_PERSP;
 		}
 		break;
@@ -872,10 +883,10 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 }
 
 /** When this method is called, the writer must write the image.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeImage( const COLLADAFW::Image* image ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	// XXX maybe it is necessary to check if the path is absolute or relative
@@ -888,7 +899,7 @@ bool DocumentImporter::writeImage( const COLLADAFW::Image* image )
 	BLI_join_dirfile(full_path, sizeof(full_path), dir, filepath.c_str());
 	Image *ima = BKE_add_image_file(full_path);
 	if (!ima) {
-		fprintf(stderr, "Cannot create image. \n");
+		fprintf(stderr, "Cannot create image.\n");
 		return true;
 	}
 	this->uid_image_map[image->getUniqueId()] = ima;
@@ -897,10 +908,10 @@ bool DocumentImporter::writeImage( const COLLADAFW::Image* image )
 }
 
 /** When this method is called, the writer must write the light.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeLight( const COLLADAFW::Light* light ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 
 	Lamp *lamp = NULL;
@@ -909,7 +920,7 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 	TagsMap::iterator etit;
 	ExtraTags *et = 0;
 	etit = uid_tags_map.find(light->getUniqueId().toAscii());
-	if(etit != uid_tags_map.end())
+	if (etit != uid_tags_map.end())
 		et = etit->second;
 
 	la_id = light->getOriginalId();
@@ -918,12 +929,12 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 	else lamp = (Lamp*)add_lamp((char*)la_id.c_str());
 
 	if (!lamp) {
-		fprintf(stderr, "Cannot create lamp. \n");
+		fprintf(stderr, "Cannot create lamp.\n");
 		return true;
 	}
 
 	// if we find an ExtraTags for this, use that instead.
-	if(et && et->isProfile("blender")) {
+	if (et && et->isProfile("blender")) {
 		et->setData("type", &(lamp->type));
 		et->setData("flag", &(lamp->flag));
 		et->setData("mode", &(lamp->mode));
@@ -996,17 +1007,19 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 			lamp->b = col.getBlue();
 		}
 
-		if(IS_EQ(linatt, 0.0f) && quadatt > 0.0f) {
+		if (IS_EQ(linatt, 0.0f) && quadatt > 0.0f) {
 			att2 = quadatt;
 			d = sqrt(1.0f/quadatt);
 		}
 		// linear light
-		else if(IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
+		else if (IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
 			att1 = linatt;
 			d = (1.0f/linatt);
-		} else if (IS_EQ(constatt, 1.0f)) {
+		}
+		else if (IS_EQ(constatt, 1.0f)) {
 			att1 = 1.0f;
-		} else {
+		}
+		else {
 			// assuming point light (const att = 1.0);
 			att1 = 1.0f;
 		}
@@ -1028,9 +1041,9 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 					lamp->type = LA_SPOT;
 					lamp->att1 = att1;
 					lamp->att2 = att2;
-					if(IS_EQ(att1, 0.0f) && att2 > 0)
+					if (IS_EQ(att1, 0.0f) && att2 > 0)
 						lamp->falloff_type = LA_FALLOFF_INVSQUARE;
-					if(IS_EQ(att2, 0.0f) && att1 > 0)
+					if (IS_EQ(att2, 0.0f) && att1 > 0)
 						lamp->falloff_type = LA_FALLOFF_INVLINEAR;
 					lamp->spotsize = light->getFallOffAngle().getValue();
 					lamp->spotblend = light->getFallOffExponent().getValue();
@@ -1048,15 +1061,15 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 					lamp->type = LA_LOCAL;
 					lamp->att1 = att1;
 					lamp->att2 = att2;
-					if(IS_EQ(att1, 0.0f) && att2 > 0)
+					if (IS_EQ(att1, 0.0f) && att2 > 0)
 						lamp->falloff_type = LA_FALLOFF_INVSQUARE;
-					if(IS_EQ(att2, 0.0f) && att1 > 0)
+					if (IS_EQ(att2, 0.0f) && att1 > 0)
 						lamp->falloff_type = LA_FALLOFF_INVLINEAR;
 				}
 				break;
 			case COLLADAFW::Light::UNDEFINED:
 				{
-					fprintf(stderr, "Current lamp type is not supported. \n");
+					fprintf(stderr, "Current lamp type is not supported.\n");
 					lamp->type = LA_LOCAL;
 				}
 				break;
@@ -1071,7 +1084,7 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 // this function is called only for animations that pass COLLADAFW::validate
 bool DocumentImporter::writeAnimation( const COLLADAFW::Animation* anim ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	// return true;
@@ -1081,7 +1094,7 @@ bool DocumentImporter::writeAnimation( const COLLADAFW::Animation* anim )
 // called on post-process stage after writeVisualScenes
 bool DocumentImporter::writeAnimationList( const COLLADAFW::AnimationList* animationList ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	// return true;
@@ -1089,7 +1102,7 @@ bool DocumentImporter::writeAnimationList( const COLLADAFW::AnimationList* anima
 }
 
 /** When this method is called, the writer must write the skin controller data.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeSkinControllerData( const COLLADAFW::SkinControllerData* skin ) 
 {
 	return armature_importer.write_skin_controller_data(skin);
@@ -1098,7 +1111,7 @@ bool DocumentImporter::writeSkinControllerData( const COLLADAFW::SkinControllerD
 // this is called on postprocess, before writeVisualScenes
 bool DocumentImporter::writeController( const COLLADAFW::Controller* controller ) 
 {
-	if(mImportStage!=General)
+	if (mImportStage!=General)
 		return true;
 		
 	return armature_importer.write_controller(controller);
@@ -1116,7 +1129,7 @@ bool DocumentImporter::writeKinematicsScene( const COLLADAFW::KinematicsScene* k
 
 ExtraTags* DocumentImporter::getExtraTags(const COLLADAFW::UniqueId &uid)
 {
-	if(uid_tags_map.find(uid.toAscii())==uid_tags_map.end()) {
+	if (uid_tags_map.find(uid.toAscii())==uid_tags_map.end()) {
 		return NULL;
 	}
 	return uid_tags_map[uid.toAscii()];

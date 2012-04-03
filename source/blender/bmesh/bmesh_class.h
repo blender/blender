@@ -47,6 +47,19 @@ struct Object;
  *
  * hrm. it doesnt but stull works ok, remove the comment above? - campbell.
  */
+
+/**
+ * BMHeader
+ *
+ * All mesh elements begin with a BMHeader. This structure
+ * hold several types of data
+ *
+ * 1: The type of the element (vert, edge, loop or face)
+ * 2: Persistent "header" flags/markings (smooth, seam, select, hidden, ect)
+ *     note that this is different from the "tool" flags.
+ * 3: Unique ID in the bmesh.
+ * 4: some elements for internal record keeping.
+ */
 typedef struct BMHeader {
 	void *data; /* customdata layers */
 	int index; /* notes:
@@ -54,7 +67,7 @@ typedef struct BMHeader {
 	            * - Unitialized to -1 so we can easily tell its not set.
 	            * - Used for edge/vert/face, check BMesh.elem_index_dirty for valid index values,
 	            *   this is abused by various tools which set it dirty.
-	            * - For loops this is used for sorting during tesselation. */
+	            * - For loops this is used for sorting during tessellation. */
 
 	char htype; /* element geometric type (verts/edges/loops/faces) */
 	char hflag; /* this would be a CD layer, see below */
@@ -97,6 +110,8 @@ typedef struct BMLoop {
 	struct BMEdge *e; /* edge, using verts (v, next->v) */
 	struct BMFace *f;
 
+	/* circular linked list of loops which all use the same edge as this one '->e',
+	 * but not necessarily the same vertex (can be either v1 or v2 of our own '->e') */
 	struct BMLoop *radial_next, *radial_prev;
 
 	/* these were originally commented as private but are used all over the code */
@@ -104,7 +119,7 @@ typedef struct BMLoop {
 	struct BMLoop *next, *prev; /* next/prev verts around the face */
 } BMLoop;
 
-/* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these dont have a flag layer */
+/* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these don't have a flag layer */
 typedef struct BMElemF {
 	BMHeader head;
 	struct BMFlagLayer *oflags; /* keep after header, an array of flags, mostly used by the operator stack */
@@ -149,7 +164,7 @@ typedef struct BMesh {
 	/* flag index arrays as being dirty so we can check if they are clean and
 	 * avoid looping over the entire vert/edge/face array in those cases.
 	 * valid flags are - BM_VERT | BM_EDGE | BM_FACE.
-	 * BM_LOOP isnt handled so far. */
+	 * BM_LOOP isn't handled so far. */
 	char elem_index_dirty;
 	
 	/*element pools*/
@@ -168,7 +183,7 @@ typedef struct BMesh {
 
 	/* should be copy of scene select mode */
 	/* stored in BMEditMesh too, this is a bit confusing,
-	 * make sure the're in sync!
+	 * make sure they're in sync!
 	 * Only use when the edit mesh cant be accessed - campbell */
 	short selectmode;
 	
@@ -181,11 +196,63 @@ typedef struct BMesh {
 	BMFace *act_face;
 
 	ListBase errorstack;
-	struct Object *ob; /* owner object */
-	
+
 	void *py_handle;
 
 	int opflag; /* current operator flag */
 } BMesh;
+
+/* BMHeader->htype (char) */
+enum {
+	BM_VERT = 1,
+	BM_EDGE = 2,
+	BM_LOOP = 4,
+	BM_FACE = 8
+};
+
+#define BM_ALL (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
+
+/* BMHeader->hflag (char) */
+enum {
+	BM_ELEM_SELECT  = (1 << 0),
+	BM_ELEM_HIDDEN  = (1 << 1),
+	BM_ELEM_SEAM    = (1 << 2),
+	BM_ELEM_SMOOTH  = (1 << 3), /* used for faces and edges, note from the user POV,
+                                 * this is a sharp edge when disabled */
+
+	BM_ELEM_TAG     = (1 << 4), /* internal flag, used for ensuring correct normals
+                                 * during multires interpolation, and any other time
+                                 * when temp tagging is handy.
+                                 * always assume dirty & clear before use. */
+
+	/* we have 2 spare flags which is awesome but since we're limited to 8
+	 * only add new flags with care! - campbell */
+	/* BM_ELEM_SPARE  = (1 << 5), */
+	/* BM_ELEM_SPARE  = (1 << 6), */
+
+	BM_ELEM_INTERNAL_TAG = (1 << 7) /* for low level internal API tagging,
+                                     * since tools may want to tag verts and
+                                     * not have functions clobber them */
+};
+
+/* defines */
+
+/*forward declarations*/
+
+#ifdef USE_BMESH_HOLES
+#  define BM_FACE_FIRST_LOOP(p) (((BMLoopList *)((p)->loops.first))->first)
+#else
+#  define BM_FACE_FIRST_LOOP(p) ((p)->l_first)
+#endif
+
+/* size to use for static arrays when dealing with NGons,
+ * alloc after this limit is reached.
+ * this value is rather arbitrary */
+#define BM_NGON_STACK_SIZE 32
+
+/* avoid inf loop, this value is arbitrary
+ * but should not error on valid cases */
+#define BM_LOOP_RADIAL_MAX 10000
+#define BM_NGON_MAX 100000
 
 #endif /* __BMESH_CLASS_H__ */

@@ -30,12 +30,12 @@
  *  \ingroup bli
  */
 
-
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 #include "BLI_memarena.h"
 #include "BLI_heap.h"
+#include "BLI_utildefines.h"
 
 /***/
 
@@ -54,27 +54,25 @@ struct Heap {
 	HeapNode **tree;
 };
 
-#define SWAP(type, a, b) \
-	{ type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
-#define HEAP_PARENT(i) ((i-1)>>1)
-#define HEAP_LEFT(i)   ((i<<1)+1)
-#define HEAP_RIGHT(i)  ((i<<1)+2)
+#define HEAP_PARENT(i) ((i - 1) >> 1)
+#define HEAP_LEFT(i)   ((i << 1) + 1)
+#define HEAP_RIGHT(i)  ((i << 1) + 2)
 #define HEAP_COMPARE(a, b) (a->value < b->value)
 #define HEAP_EQUALS(a, b) (a->value == b->value)
 #define HEAP_SWAP(heap, i, j) \
 {                                                                             \
 	SWAP(int, heap->tree[i]->index, heap->tree[j]->index);                    \
-	SWAP(HeapNode*, heap->tree[i], heap->tree[j]);                            \
+	SWAP(HeapNode *, heap->tree[i], heap->tree[j]);                           \
 }
 
 /***/
 
 Heap *BLI_heap_new(void)
 {
-	Heap *heap = (Heap*)MEM_callocN(sizeof(Heap), "BLIHeap");
+	Heap *heap = (Heap *)MEM_callocN(sizeof(Heap), __func__);
 	heap->bufsize = 1;
-	heap->tree = (HeapNode**)MEM_mallocN(sizeof(HeapNode*), "BLIHeapTree");
-	heap->arena = BLI_memarena_new(1<<16, "heap arena");
+	heap->tree = (HeapNode **)MEM_mallocN(sizeof(HeapNode *), "BLIHeapTree");
+	heap->arena = BLI_memarena_new(1 << 16, "heap arena");
 
 	return heap;
 }
@@ -86,7 +84,7 @@ void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
 	if (ptrfreefp)
 		for (i = 0; i < heap->size; i++)
 			ptrfreefp(heap->tree[i]->ptr);
-	
+
 	MEM_freeN(heap->tree);
 	BLI_memarena_free(heap->arena);
 	MEM_freeN(heap);
@@ -99,11 +97,11 @@ static void BLI_heap_down(Heap *heap, int i)
 		int l = HEAP_LEFT(i);
 		int r = HEAP_RIGHT(i);
 
-		smallest = ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[i]))? l: i;
+		smallest = ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[i])) ? l : i;
 
 		if ((r < size) && HEAP_COMPARE(heap->tree[r], heap->tree[smallest]))
 			smallest = r;
-		
+
 		if (smallest == i)
 			break;
 
@@ -130,11 +128,11 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 	HeapNode *node;
 
 	if ((heap->size + 1) > heap->bufsize) {
-		int newsize = heap->bufsize*2;
+		int newsize = heap->bufsize * 2;
 		HeapNode **newtree;
 
-		newtree = (HeapNode**)MEM_mallocN(newsize*sizeof(*newtree), "BLIHeapTree");
-		memcpy(newtree, heap->tree, sizeof(HeapNode*)*heap->size);
+		newtree = (HeapNode **)MEM_mallocN(newsize * sizeof(*newtree), __func__);
+		memcpy(newtree, heap->tree, sizeof(HeapNode *) * heap->size);
 		MEM_freeN(heap->tree);
 
 		heap->tree = newtree;
@@ -143,10 +141,10 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 
 	if (heap->freenodes) {
 		node = heap->freenodes;
-		heap->freenodes = (HeapNode*)(((HeapNode*)heap->freenodes)->ptr);
+		heap->freenodes = (HeapNode *)(((HeapNode *)heap->freenodes)->ptr);
 	}
 	else
-		node = (HeapNode*)BLI_memarena_alloc(heap->arena, sizeof *node);
+		node = (HeapNode *)BLI_memarena_alloc(heap->arena, sizeof *node);
 
 	node->value = value;
 	node->ptr = ptr;
@@ -156,7 +154,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 
 	heap->size++;
 
-	BLI_heap_up(heap, heap->size-1);
+	BLI_heap_up(heap, heap->size - 1);
 
 	return node;
 }

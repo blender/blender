@@ -37,7 +37,7 @@
 #include "BLI_array.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /* forward declarations */
 static void bmo_flag_layer_alloc(BMesh *bm);
@@ -55,7 +55,7 @@ static const char *bmo_error_messages[] = {
 	"Could not traverse mesh",
 	"Could not dissolve faces",
 	"Could not dissolve vertices",
-	"Tesselation error",
+	"Tessellation error",
 	"Can not deal with non-manifold geometry",
 	"Invalid selection",
 	"Internal mesh error",
@@ -64,16 +64,17 @@ static const char *bmo_error_messages[] = {
 
 /* operator slot type information - size of one element of the type given. */
 const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
-	0,
-	sizeof(int),
-	sizeof(int),
-	sizeof(float),
-	sizeof(void *),
-	0, /* unused */
-	0, /* unused */
-	0, /* unused */
-	sizeof(void *),	/* pointer buffer */
-	sizeof(BMOElemMapping)
+	0,                      /*  0: BMO_OP_SLOT_SENTINEL */
+	sizeof(int),            /*  1: BMO_OP_SLOT_BOOL */ 
+	sizeof(int),            /*  2: BMO_OP_SLOT_INT */ 
+	sizeof(float),          /*  3: BMO_OP_SLOT_FLT */ 
+	sizeof(void *),         /*  4: BMO_OP_SLOT_PNT */ 
+	sizeof(void *),         /*  5: BMO_OP_SLOT_PNT */
+	0,                      /*  6: unused */
+	0,                      /*  7: unused */
+	sizeof(float) * 3,      /*  8: BMO_OP_SLOT_VEC */
+	sizeof(void *),	        /*  9: BMO_OP_SLOT_ELEMENT_BUF */
+	sizeof(BMOElemMapping)  /* 10: BMO_OP_SLOT_MAPPING */
 };
 
 /* Dummy slot so there is something to return when slot name lookup fails */
@@ -153,8 +154,8 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const char *opname)
 	op->exec = opdefines[opcode]->exec;
 
 	/* memarena, used for operator's slot buffers */
-	op->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "bmesh operator");
-	BLI_memarena_use_calloc (op->arena);
+	op->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+	BLI_memarena_use_calloc(op->arena);
 }
 
 /**
@@ -248,44 +249,45 @@ void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, 
 	if (source_slot == dest_slot)
 		return;
 
-	if (source_slot->slottype != dest_slot->slottype)
+	if (source_slot->slottype != dest_slot->slottype) {
+		/* possibly assert here? */
 		return;
-	
-	if (dest_slot->slottype > BMO_OP_SLOT_VEC) {
-		if (dest_slot->slottype != BMO_OP_SLOT_MAPPING) {
-			/* do buffer copy */
-			dest_slot->data.buf = NULL;
-			dest_slot->len = source_slot->len;
-			if (dest_slot->len) {
-				const int slot_alloc_size = BMO_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len;
-				dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, slot_alloc_size);
-				memcpy(dest_slot->data.buf, source_slot->data.buf, slot_alloc_size);
-			}
+	}
+
+	if (dest_slot->slottype  == BMO_OP_SLOT_ELEMENT_BUF) {
+		/* do buffer copy */
+		dest_slot->data.buf = NULL;
+		dest_slot->len = source_slot->len;
+		if (dest_slot->len) {
+			const int slot_alloc_size = BMO_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len;
+			dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, slot_alloc_size);
+			memcpy(dest_slot->data.buf, source_slot->data.buf, slot_alloc_size);
 		}
-		else {
-			GHashIterator it;
-			BMOElemMapping *srcmap, *dstmap;
+	}
+	else if (dest_slot->slottype  == BMO_OP_SLOT_MAPPING) {
+		GHashIterator it;
+		BMOElemMapping *srcmap, *dstmap;
 
-			/* sanity check */
-			if (!source_slot->data.ghash) return;
-			
-			if (!dest_slot->data.ghash) {
-				dest_slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-				                                      BLI_ghashutil_ptrcmp, "bmesh operator 2");
-			}
+		/* sanity check */
+		if (!source_slot->data.ghash) {
+			return;
+		}
 
-			BLI_ghashIterator_init(&it, source_slot->data.ghash);
-			for ( ; (srcmap = BLI_ghashIterator_getValue(&it));
-			      BLI_ghashIterator_step(&it))
-			{
-				dstmap = BLI_memarena_alloc(dest_op->arena, sizeof(*dstmap) + srcmap->len);
+		if (!dest_slot->data.ghash) {
+			dest_slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh operator 2");
+		}
 
-				dstmap->element = srcmap->element;
-				dstmap->len = srcmap->len;
-				memcpy(dstmap + 1, srcmap + 1, srcmap->len);
+		BLI_ghashIterator_init(&it, source_slot->data.ghash);
+		for ( ; (srcmap = BLI_ghashIterator_getValue(&it));
+			  BLI_ghashIterator_step(&it))
+		{
+			dstmap = BLI_memarena_alloc(dest_op->arena, sizeof(*dstmap) + srcmap->len);
 
-				BLI_ghash_insert(dest_slot->data.ghash, dstmap->element, dstmap);
-			}
+			dstmap->element = srcmap->element;
+			dstmap->len = srcmap->len;
+			memcpy(dstmap + 1, srcmap + 1, srcmap->len);
+
+			BLI_ghash_insert(dest_slot->data.ghash, dstmap->element, dstmap);
 		}
 	}
 	else {
@@ -448,37 +450,48 @@ void BMO_slot_vec_get(BMOperator *op, const char *slotname, float r_vec[3])
 /*
  * BMO_COUNTFLAG
  *
- * Counts the number of elements of a certain type that
- * have a specific flag set.
+ * Counts the number of elements of a certain type that have a
+ * specific flag enabled (or disabled if test_for_enabled is false).
  *
  */
 
-int BMO_mesh_flag_count(BMesh *bm, const short oflag, const char htype)
+static int bmo_mesh_flag_count(BMesh *bm, const char htype, const short oflag,
+                               const short test_for_enabled)
 {
-	BMIter elements;
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
+
+	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+
+	BMIter iter;
 	int count = 0;
 	BMElemF *ele_f;
+	int i;
 
-	if (htype & BM_VERT) {
-		for (ele_f = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); ele_f; ele_f = BM_iter_step(&elements)) {
-			if (BMO_elem_flag_test(bm, ele_f, oflag))
-				count++;
-		}
-	}
-	if (htype & BM_EDGE) {
-		for (ele_f = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); ele_f; ele_f = BM_iter_step(&elements)) {
-			if (BMO_elem_flag_test(bm, ele_f, oflag))
-				count++;
-		}
-	}
-	if (htype & BM_FACE) {
-		for (ele_f = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); ele_f; ele_f = BM_iter_step(&elements)) {
-			if (BMO_elem_flag_test(bm, ele_f, oflag))
-				count++;
+	BLI_assert(ELEM(TRUE, FALSE, test_for_enabled));
+
+	for (i = 0; i < 3; i++) {
+		if (htype & flag_types[i]) {
+			BM_ITER(ele_f, &iter, bm, iter_types[i], NULL) {
+				if (BMO_elem_flag_test_bool(bm, ele_f, oflag) == test_for_enabled)
+					count++;
+			}
 		}
 	}
 
 	return count;
+}
+
+
+int BMO_mesh_enabled_flag_count(BMesh *bm, const char htype, const short oflag)
+{
+	return bmo_mesh_flag_count(bm, htype, oflag, TRUE);
+}
+
+int BMO_mesh_disabled_flag_count(BMesh *bm, const char htype, const short oflag)
+{
+	return bmo_mesh_flag_count(bm, htype, oflag, FALSE);
 }
 
 void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char htype, const short oflag)
@@ -502,13 +515,13 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char hty
 	}
 }
 
-int BMO_slot_buf_count(BMesh *UNUSED(bm), BMOperator *op, const char *slotname)
+int BMO_slot_buffer_count(BMesh *UNUSED(bm), BMOperator *op, const char *slotname)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
-	BLI_assert(slot->slottype > BMO_OP_SLOT_VEC);
+	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 	
 	/* check if its actually a buffer */
-	if (!(slot->slottype > BMO_OP_SLOT_VEC))
+	if (slot->slottype != BMO_OP_SLOT_ELEMENT_BUF)
 		return 0;
 
 	return slot->len;
@@ -534,11 +547,7 @@ void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname
 {
 	BMOElemMapping *mapping;
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
-
-	/*sanity check*/
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) {
-		return;
-	}
+	BLI_assert(slot->slottype == BMO_OP_SLOT_MAPPING);
 
 	mapping = (BMOElemMapping *) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
 
@@ -547,22 +556,23 @@ void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname
 	memcpy(mapping + 1, data, len);
 
 	if (!slot->data.ghash) {
-		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-		                                 BLI_ghashutil_ptrcmp, "bmesh op");
+		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh slot map hash");
 	}
 
 	BLI_ghash_insert(slot->data.ghash, element, mapping);
 }
 
 #if 0
-void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
+void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 {
 	BMOpSlot *slot = &op->slots[slotcode];
 	void *tmp;
 	ssize_t allocsize;
 	
+	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
+
 	/* check if its actually a buffer */
-	if (!(slot->slottype > BMO_OP_SLOT_VEC))
+	if (slot->slottype != BMO_OP_SLOT_ELEMENT_BUF)
 		return NULL;
 
 	if (slot->flag & BMOS_DYNAMIC_ARRAY) {
@@ -595,8 +605,8 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 }
 #endif
 
-void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op,
-                          const char *slotname, const short oflag)
+void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slotname,
+                          const char htype, const short oflag)
 {
 	GHashIterator it;
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
@@ -605,23 +615,23 @@ void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op,
 	BLI_assert(slot->slottype == BMO_OP_SLOT_MAPPING);
 
 	/* sanity check */
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) return;
 	if (!slot->data.ghash) return;
 
 	BLI_ghashIterator_init(&it, slot->data.ghash);
 	for ( ; (ele_f = BLI_ghashIterator_getKey(&it)); BLI_ghashIterator_step(&it)) {
-		BMO_elem_flag_enable(bm, ele_f, oflag);
+		if (ele_f->head.htype & htype) {
+			BMO_elem_flag_enable(bm, ele_f, oflag);
+		}
 	}
 }
 
 static void *bmo_slot_buffer_alloc(BMOperator *op, const char *slotname, int len)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
-
-	BLI_assert(slot->slottype > BMO_OP_SLOT_VEC);
+	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
 	/* check if its actually a buffer */
-	if (!(slot->slottype > BMO_OP_SLOT_VEC))
+	if (slot->slottype != BMO_OP_SLOT_ELEMENT_BUF)
 		return NULL;
 	
 	slot->len = len;
@@ -635,10 +645,8 @@ static void *bmo_slot_buffer_alloc(BMOperator *op, const char *slotname, int len
  *
  * Copies all elements of a certain type into an operator slot.
  */
-static void BMO_slot_from_all(BMesh *bm, BMOperator *op, const char *slotname, const char htype)
+static void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slotname, const char htype)
 {
-	BMIter elements;
-	BMHeader *e;
 	BMOpSlot *output = BMO_slot_get(op, slotname);
 	int totelement = 0, i = 0;
 	
@@ -647,25 +655,30 @@ static void BMO_slot_from_all(BMesh *bm, BMOperator *op, const char *slotname, c
 	if (htype & BM_FACE) totelement += bm->totface;
 
 	if (totelement) {
+		BMIter iter;
+		BMHeader *ele;
+
 		bmo_slot_buffer_alloc(op, slotname, totelement);
 
+		/* TODO - collapse these loops into one */
+
 		if (htype & BM_VERT) {
-			for (e = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
-				((BMHeader **)output->data.p)[i] = e;
+			BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+				((BMHeader **)output->data.p)[i] = ele;
 				i++;
 			}
 		}
 
 		if (htype & BM_EDGE) {
-			for (e = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
-				((BMHeader **)output->data.p)[i] = e;
+			BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+				((BMHeader **)output->data.p)[i] = ele;
 				i++;
 			}
 		}
 
 		if (htype & BM_FACE) {
-			for (e = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
-				((BMHeader **)output->data.p)[i] = e;
+			BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
+				((BMHeader **)output->data.p)[i] = ele;
 				i++;
 			}
 		}
@@ -675,25 +688,36 @@ static void BMO_slot_from_all(BMesh *bm, BMOperator *op, const char *slotname, c
 /**
  * \brief BMO_HEADERFLAG_TO_SLOT
  *
- * Copies elements of a certain type, which have a certain header flag set
- * into a slot for an operator.
+ * Copies elements of a certain type, which have a certain header flag
+ * enabled/disabled into a slot for an operator.
  */
-void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-                         const char hflag, const char htype)
+static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
+                                       const char htype, const char hflag,
+                                       const short test_for_enabled)
 {
-	BMIter elements;
-	BMElem *ele;
 	BMOpSlot *output = BMO_slot_get(op, slotname);
 	int totelement = 0, i = 0;
-	
-	totelement = BM_mesh_count_flag(bm, htype, hflag, 1);
+
+	BLI_assert(ELEM(TRUE, FALSE, test_for_enabled));
+
+	if (test_for_enabled)
+		totelement = BM_mesh_enabled_flag_count(bm, htype, hflag, TRUE);
+	else
+		totelement = BM_mesh_disabled_flag_count(bm, htype, hflag, TRUE);
 
 	if (totelement) {
+		BMIter iter;
+		BMElem *ele;
+
 		bmo_slot_buffer_alloc(op, slotname, totelement);
 
+		/* TODO - collapse these loops into one */
+
 		if (htype & BM_VERT) {
-			for (ele = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
-				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) && BM_elem_flag_test(ele, hflag)) {
+			BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
+				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
+				{
 					((BMElem **)output->data.p)[i] = ele;
 					i++;
 				}
@@ -701,8 +725,10 @@ void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
 		}
 
 		if (htype & BM_EDGE) {
-			for (ele = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
-				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) && BM_elem_flag_test(ele, hflag)) {
+			BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
+				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
+				{
 					((BMElem **)output->data.p)[i] = ele;
 					i++;
 				}
@@ -710,8 +736,10 @@ void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
 		}
 
 		if (htype & BM_FACE) {
-			for (ele = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
-				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) && BM_elem_flag_test(ele, hflag)) {
+			BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
+				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
+				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
+				{
 					((BMElem **)output->data.p)[i] = ele;
 					i++;
 				}
@@ -720,6 +748,49 @@ void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
 	}
 	else {
 		output->len = 0;
+	}
+}
+
+void BMO_slot_buffer_from_enabled_hflag(BMesh *bm, BMOperator *op, const char *slotname,
+                                        const char htype, const char hflag)
+{
+	bmo_slot_buffer_from_hflag(bm, op, slotname, htype, hflag, TRUE);
+}
+
+void BMO_slot_buffer_from_disabled_hflag(BMesh *bm, BMOperator *op, const char *slotname,
+                                         const char htype, const char hflag)
+{
+	bmo_slot_buffer_from_hflag(bm, op, slotname, htype, hflag, FALSE);
+}
+
+/**
+ * Copies the values from another slot to the end of the output slot.
+ */
+void BMO_slot_buffer_append(BMOperator *output_op, const char *output_slot_name,
+                            BMOperator *other_op, const char *other_slot_name)
+{
+	BMOpSlot *output_slot = BMO_slot_get(output_op, output_slot_name);
+	BMOpSlot *other_slot = BMO_slot_get(other_op, other_slot_name);
+
+	BLI_assert(output_slot->slottype == BMO_OP_SLOT_ELEMENT_BUF &&
+	           other_slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
+
+	if (output_slot->len == 0) {
+		/* output slot is empty, copy rather than append */
+		BMO_slot_copy(other_op, output_op, other_slot_name, output_slot_name);
+	}
+	else if (other_slot->len != 0) {
+		int elem_size = BMO_OPSLOT_TYPEINFO[output_slot->slottype];
+		int alloc_size = elem_size * (output_slot->len + other_slot->len);
+		/* allocate new buffer */
+		void *buf = BLI_memarena_alloc(output_op->arena, alloc_size);
+
+		/* copy slot data */
+		memcpy(buf, output_slot->data.buf, elem_size * output_slot->len);
+		memcpy(((char *)buf) + elem_size * output_slot->len, other_slot->data.buf, elem_size * other_slot->len);
+
+		output_slot->data.buf = buf;
+		output_slot->len += other_slot->len;
 	}
 }
 
@@ -729,49 +800,75 @@ void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
  * Copies elements of a certain type, which have a certain flag set
  * into an output slot for an operator.
  */
-void BMO_slot_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
-                        const short oflag, const char htype)
+static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
+                                      const char htype, const short oflag,
+                                      const short test_for_enabled)
 {
-	BMIter elements;
-	BMHeader *ele;
-	BMOpSlot *output = BMO_slot_get(op, slotname);
-	int totelement = BMO_mesh_flag_count(bm, oflag, htype), i = 0;
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
+	int totelement, i = 0;
 
-	BLI_assert(output->slottype > BMO_OP_SLOT_VEC);
+	BLI_assert(ELEM(TRUE, FALSE, test_for_enabled));
+
+	if (test_for_enabled)
+		totelement = BMO_mesh_enabled_flag_count(bm, htype, oflag);
+	else
+		totelement = BMO_mesh_disabled_flag_count(bm, htype, oflag);
+
+	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
 	if (totelement) {
+		BMIter iter;
+		BMHeader *ele;
+		BMHeader **ele_array;
+
 		bmo_slot_buffer_alloc(op, slotname, totelement);
 
+		ele_array = (BMHeader **)slot->data.p;
+
+		/* TODO - collapse these loops into one */
+
 		if (htype & BM_VERT) {
-			for (ele = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
-				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag)) {
-					((BMHeader **)output->data.p)[i] = ele;
+			BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+				if (BMO_elem_flag_test_bool(bm, (BMElemF *)ele, oflag) == test_for_enabled) {
+					ele_array[i] = ele;
 					i++;
 				}
 			}
 		}
 
 		if (htype & BM_EDGE) {
-			for (ele = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
-				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag)) {
-					((BMHeader **)output->data.p)[i] = ele;
+			BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+				if (BMO_elem_flag_test_bool(bm, (BMElemF *)ele, oflag) == test_for_enabled) {
+					ele_array[i] = ele;
 					i++;
 				}
 			}
 		}
 
 		if (htype & BM_FACE) {
-			for (ele = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); ele; ele = BM_iter_step(&elements)) {
-				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag)) {
-					((BMHeader **)output->data.p)[i] = ele;
+			BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
+				if (BMO_elem_flag_test_bool(bm, (BMElemF *)ele, oflag) == test_for_enabled) {
+					ele_array[i] = ele;
 					i++;
 				}
 			}
 		}
 	}
 	else {
-		output->len = 0;
+		slot->len = 0;
 	}
+}
+
+void BMO_slot_buffer_from_enabled_flag(BMesh *bm, BMOperator *op, const char *slotname,
+                                       const char htype, const short oflag)
+{
+	bmo_slot_buffer_from_flag(bm, op, slotname, htype, oflag, TRUE);
+}
+
+void BMO_slot_buffer_from_disabled_flag(BMesh *bm, BMOperator *op, const char *slotname,
+                                        const char htype, const short oflag)
+{
+	bmo_slot_buffer_from_flag(bm, op, slotname, htype, oflag, FALSE);
 }
 
 /**
@@ -781,26 +878,29 @@ void BMO_slot_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const char hflag, const char htype, char do_flush_select)
+                                  const char htype, const char hflag, const char do_flush)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMElem **data =  slot->data.p;
 	int i;
+	const char do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
+	const char do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
 
-	BLI_assert(slot->slottype > BMO_OP_SLOT_VEC);
+	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
-	if (!(hflag & BM_ELEM_SELECT)) {
-		do_flush_select = FALSE;
-	}
-
-	for (i = 0; i < slot->len; i++) {
-		if (!(htype & data[i]->head.htype))
+	for (i = 0; i < slot->len; i++, data++) {
+		if (!(htype & (*data)->head.htype))
 			continue;
 
 		if (do_flush_select) {
-			BM_elem_select_set(bm, data[i], TRUE);
+			BM_elem_select_set(bm, *data, TRUE);
 		}
-		BM_elem_flag_enable(data[i], hflag);
+
+		if (do_flush_hide) {
+			BM_elem_hide_set(bm, *data, FALSE);
+		}
+
+		BM_elem_flag_enable(*data, hflag);
 	}
 }
 
@@ -811,29 +911,32 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotnam
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                   const char hflag, const char htype, char do_flush_select)
+                                   const char htype, const char hflag, const char do_flush)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMElem **data =  slot->data.p;
 	int i;
+	const char do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
+	const char do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
 
-	BLI_assert(slot->slottype > BMO_OP_SLOT_VEC);
+	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
-	if (!(hflag & BM_ELEM_SELECT)) {
-		do_flush_select = FALSE;
-	}
-
-	for (i = 0; i < slot->len; i++) {
-		if (!(htype & data[i]->head.htype))
+	for (i = 0; i < slot->len; i++, data++) {
+		if (!(htype & (*data)->head.htype))
 			continue;
 
 		if (do_flush_select) {
-			BM_elem_select_set(bm, data[i], FALSE);
+			BM_elem_select_set(bm, *data, FALSE);
 		}
 
-		BM_elem_flag_disable(data[i], hflag);
+		if (do_flush_hide) {
+			BM_elem_hide_set(bm, *data, FALSE);
+		}
+
+		BM_elem_flag_disable(*data, hflag);
 	}
 }
+
 int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
 {
 	int count = 0;
@@ -859,13 +962,13 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
  * Flags elements in a slots buffer
  */
 void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                 const short oflag, const char htype)
+                                 const char htype, const short oflag)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
 
-	BLI_assert(slot->slottype > BMO_OP_SLOT_VEC);
+	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
 	for (i = 0; i < slot->len; i++) {
 		if (!(htype & data[i]->htype))
@@ -881,12 +984,14 @@ void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname
  * Removes flags from elements in a slots buffer
  */
 void BMO_slot_buffer_flag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const short oflag, const char htype)
+                                  const char htype, const short oflag)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
-	
+
+	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
+
 	for (i = 0; i < slot->len; i++) {
 		if (!(htype & data[i]->htype))
 			continue;
@@ -927,22 +1032,22 @@ static void bmo_flag_layer_alloc(BMesh *bm)
 	bm->totflags++;
 
 	/* allocate new flag poo */
-	bm->toolflagpool = newpool = BLI_mempool_create(sizeof(BMFlagLayer) * bm->totflags, 512, 512, FALSE, FALSE);
+	bm->toolflagpool = newpool = BLI_mempool_create(sizeof(BMFlagLayer) * bm->totflags, 512, 512, 0);
 	
 	/* now go through and memcpy all the flags. Loops don't get a flag layer at this time.. */
-	for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
+	BM_ITER_INDEX(ele, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, old_totflags_size);
 		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
+	BM_ITER_INDEX(ele, &iter, bm, BM_EDGES_OF_MESH, NULL, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, old_totflags_size);
 		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
+	BM_ITER_INDEX(ele, &iter, bm, BM_FACES_OF_MESH, NULL, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, old_totflags_size);
@@ -972,22 +1077,22 @@ static void bmo_flag_layer_free(BMesh *bm)
 	/* de-increment the totflags first.. */
 	bm->totflags--;
 	/* allocate new flag poo */
-	bm->toolflagpool = newpool = BLI_mempool_create(new_totflags_size, 512, 512, TRUE, FALSE);
+	bm->toolflagpool = newpool = BLI_mempool_create(new_totflags_size, 512, 512, BLI_MEMPOOL_SYSMALLOC);
 	
 	/* now go through and memcpy all the flag */
-	for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
+	BM_ITER_INDEX(ele, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, new_totflags_size);
 		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
+	BM_ITER_INDEX(ele, &iter, bm, BM_EDGES_OF_MESH, NULL, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, new_totflags_size);
 		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
+	BM_ITER_INDEX(ele, &iter, bm, BM_FACES_OF_MESH, NULL, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, new_totflags_size);
@@ -1010,15 +1115,15 @@ static void bmo_flag_layer_clear(BMesh *bm)
 	const int totflags_offset = bm->totflags - 1;
 
 	/* now go through and memcpy all the flag */
-	for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
+	BM_ITER_INDEX(ele, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
 		memset(ele->oflags + totflags_offset, 0, sizeof(BMFlagLayer));
 		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
+	BM_ITER_INDEX(ele, &iter, bm, BM_EDGES_OF_MESH, NULL, i) {
 		memset(ele->oflags + totflags_offset, 0, sizeof(BMFlagLayer));
 		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
+	BM_ITER_INDEX(ele, &iter, bm, BM_FACES_OF_MESH, NULL, i) {
 		memset(ele->oflags + totflags_offset, 0, sizeof(BMFlagLayer));
 		BM_elem_index_set(ele, i); /* set_inline */
 	}
@@ -1026,7 +1131,7 @@ static void bmo_flag_layer_clear(BMesh *bm)
 	bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
 }
 
-void *BMO_slot_elem_first(BMOperator *op, const char *slotname)
+void *BMO_slot_buffer_elem_first(BMOperator *op, const char *slotname)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	
@@ -1036,6 +1141,12 @@ void *BMO_slot_elem_first(BMOperator *op, const char *slotname)
 	return slot->data.buf ? *(void **)slot->data.buf : NULL;
 }
 
+/**
+ * \brief New Iterator
+ *
+ * \param restrictmask restricts the iteration to certain element types
+ * (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating
+ * over an element buffer (not a mapping). */
 void *BMO_iter_new(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
                    const char *slotname, const char restrictmask)
 {
@@ -1227,20 +1338,27 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	BMOpDefine *def;
 	char *opname, *ofmt, *fmt;
 	char slotname[64] = {0};
-	int i /*, n = strlen(fmt) */, stop /*, slotcode = -1 */, ret, type, state;
+	int i /*, n = strlen(fmt) */, stop /*, slotcode = -1 */, type, state;
+	char htype;
 	int noslot = 0;
 
 
 	/* basic useful info to help find where bmop formatting strings fail */
+	const char *err_reason = "Unknown";
 	int lineno = -1;
-#   define GOTO_ERROR { lineno = __LINE__; goto error; }
 
+#define GOTO_ERROR(reason)   \
+	{                        \
+		err_reason = reason; \
+		lineno = __LINE__;   \
+		goto error;          \
+	} (void)0
 
 	/* we muck around in here, so dup i */
 	fmt = ofmt = BLI_strdup(_fmt);
 	
-	/* find operator nam */
-	i = strcspn(fmt, " \t");
+	/* find operator name */
+	i = strcspn(fmt, " ");
 
 	opname = fmt;
 	if (!opname[i]) noslot = 1;
@@ -1264,22 +1382,24 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	while (*fmt) {
 		if (state) {
 			/* jump past leading whitespac */
-			i = strspn(fmt, " \t");
+			i = strspn(fmt, " ");
 			fmt += i;
 			
 			/* ignore trailing whitespac */
 			if (!fmt[i])
 				break;
 
-			/* find end of slot name.  currently this is
-			 * a little flexible, allowing "slot=%f",
-			 * "slot %f", "slot%f", and "slot\t%f". */
-			i = strcspn(fmt, "= \t%");
-			if (!fmt[i]) GOTO_ERROR;
+			/* find end of slot name, only "slot=%f", can be used */
+			i = strcspn(fmt, "=");
+			if (!fmt[i]) {
+				GOTO_ERROR("could not match end of slot name");
+			}
 
 			fmt[i] = 0;
 
-			if (bmo_name_to_slotcode_check(def, fmt) < 0) GOTO_ERROR;
+			if (bmo_name_to_slotcode_check(def, fmt) < 0) {
+				GOTO_ERROR("name to slot code check failed");
+			}
 			
 			BLI_strncpy(slotname, fmt, sizeof(slotname));
 			
@@ -1289,7 +1409,6 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 		else {
 			switch (*fmt) {
 				case ' ':
-				case '\t':
 				case '=':
 				case '%':
 					break;
@@ -1299,9 +1418,9 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 					c = NEXT_CHAR(fmt);
 					fmt++;
 
-					if (c == '3') size = 3;
+					if      (c == '3') size = 3;
 					else if (c == '4') size = 4;
-					else GOTO_ERROR;
+					else GOTO_ERROR("matrix size was not 3 or 4");
 
 					BMO_slot_mat_set(op, slotname, va_arg(vlist, void *), size);
 					state = 1;
@@ -1344,21 +1463,23 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 					state = 1;
 					break;
 				case 'f':
+				case 'F':
 				case 'h':
+				case 'H':
 				case 'a':
 					type = *fmt;
 
-					if (NEXT_CHAR(fmt) == ' ' || NEXT_CHAR(fmt) == '\t' || NEXT_CHAR(fmt) == '\0') {
+					if (NEXT_CHAR(fmt) == ' ' || NEXT_CHAR(fmt) == '\0') {
 						BMO_slot_float_set(op, slotname, va_arg(vlist, double));
 					}
 					else {
-						ret = 0;
+						htype = 0;
 						stop = 0;
 						while (1) {
 							switch (NEXT_CHAR(fmt)) {
-								case 'f': ret |= BM_FACE; break;
-								case 'e': ret |= BM_EDGE; break;
-								case 'v': ret |= BM_VERT; break;
+								case 'f': htype |= BM_FACE; break;
+								case 'e': htype |= BM_EDGE; break;
+								case 'v': htype |= BM_VERT; break;
 								default:
 									stop = 1;
 									break;
@@ -1371,13 +1492,19 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 						}
 
 						if (type == 'h') {
-							BMO_slot_from_hflag(bm, op, slotname, va_arg(vlist, int), ret);
+							BMO_slot_buffer_from_enabled_hflag(bm, op, slotname, htype, va_arg(vlist, int));
+						}
+						else if (type == 'H') {
+							BMO_slot_buffer_from_disabled_hflag(bm, op, slotname, htype, va_arg(vlist, int));
 						}
 						else if (type == 'a') {
-							BMO_slot_from_all(bm, op, slotname, ret);
+							BMO_slot_buffer_from_all(bm, op, slotname, htype);
 						}
-						else {
-							BMO_slot_from_flag(bm, op, slotname, va_arg(vlist, int), ret);
+						else if (type == 'f') {
+							BMO_slot_buffer_from_enabled_flag(bm, op, slotname, htype, va_arg(vlist, int));
+						}
+						else if (type == 'F') {
+							BMO_slot_buffer_from_disabled_flag(bm, op, slotname, htype, va_arg(vlist, int));
 						}
 					}
 
@@ -1398,9 +1525,24 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 error:
 
 	/* non urgent todo - explain exactly what is failing */
-	fprintf(stderr,
-	        "%s: error parsing formatting string, %d in '%s'\n    see - %s:%d\n",
-	        __func__, (int)(fmt - ofmt), _fmt, __FILE__, lineno);
+	fprintf(stderr, "%s: error parsing formatting string\n", __func__);
+
+	fprintf(stderr, "string: '%s', position %d\n", _fmt, (int)(fmt - ofmt));
+	fprintf(stderr, "         ");
+	{
+		int pos = (int)(fmt - ofmt);
+		int i;
+		for (i = 0; i < pos; i++) {
+			fprintf(stderr, " ");
+		}
+		fprintf(stderr, "^\n");
+	}
+
+	fprintf(stderr, "source code:  %s:%d\n", __FILE__, lineno);
+
+	fprintf(stderr, "reason: %s\n", err_reason);
+
+
 	MEM_freeN(ofmt);
 
 	BMO_op_finish(bm, op);

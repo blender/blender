@@ -26,8 +26,8 @@ Developed as part of a Research and Development project for SAT - La Soci�t�
  *  \ingroup ketsji
  */
 
-#if !defined KX_DOME_H
-#define KX_DOME_H
+#ifndef __KX_DOME_H__
+#define __KX_DOME_H__
 
 #include "KX_Scene.h"
 #include "KX_Camera.h"
@@ -112,7 +112,7 @@ public:
 	int nfacestop, nfacesbottom, nfacesleft, nfacesright, nfacesfront, nfacesback;
 	int nfacesleftback, nfacesrightback;
 
-	int GetNumberRenders(){return m_numfaces;};
+	int GetNumberRenders() { return m_numfaces; }
 
 	void RenderDome(void);
 	void RenderDomeFrame(KX_Scene* scene, KX_Camera* cam, int i);
@@ -163,7 +163,7 @@ protected:
 	int m_numfaces;		// 4 to 6 depending on the kind of dome image
 	int m_numimages;	//numfaces +1 if we have warp mesh
 
-	short m_resolution;	//resolution to tesselate the mesh
+	short m_resolution;	//resolution to tessellate the mesh
 	short m_mode;		// the mode (truncated, warped, panoramic,...)
 	short m_angle;		//the angle of the fisheye
 	float m_radangle;	//the angle of the fisheye in radians
@@ -196,5 +196,4 @@ public:
 #endif
 };
 
-#endif
-
+#endif /* __KX_DOME_H__ */

@@ -43,7 +43,7 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /**
  * \brief Data, Interp From Verts
@@ -283,7 +283,7 @@ static int quad_co(float *x, float *y, float v1[3], float v2[3], float v3[3], fl
 
 	normal_quad_v3(n2, projverts[0], projverts[1], projverts[2], projverts[3]);
 
-	if (INPR(n, n2) < -FLT_EPSILON) {
+	if (dot_v3v3(n, n2) < -FLT_EPSILON) {
 		return 0;
 	}
 
@@ -426,6 +426,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 		MDisps *md2 = CustomData_bmesh_get(&bm->ldata, BM_FACE_FIRST_LOOP(source)->head.data, CD_MDISPS);
 		
 		mdisps->totdisp = md2->totdisp;
+		mdisps->level = md2->level;
 		if (mdisps->totdisp) {
 			mdisps->disps = MEM_callocN(sizeof(float) * 3 * mdisps->totdisp,
 			                            "mdisp->disps in bmesh_loop_intern_mdisps");
@@ -632,7 +633,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 
 	axis_dominant_v3(&ax, &ay, source->no);
 
-	/* scale source face coordinates a bit, so points sitting directonly on an
+	/* scale source face coordinates a bit, so points sitting directly on an
 	 * edge will work. */
 	mul_v3_fl(cent, 1.0f / (float)source->len);
 	for (i = 0; i < source->len; i++) {
@@ -695,7 +696,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 
-	/* scale source face coordinates a bit, so points sitting directonly on an
+	/* scale source face coordinates a bit, so points sitting directly on an
 	 * edge will work. */
 	mul_v3_fl(cent, 1.0f / (float)source->len);
 	for (i = 0; i < source->len; i++) {
@@ -720,11 +721,11 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 	BLI_mempool *oldpool = olddata->pool;
 	void *block;
 
-	CustomData_bmesh_init_pool(data, data == &bm->ldata ? 2048 : 512);
-
 	if (data == &bm->vdata) {
 		BMVert *eve;
-		
+
+		CustomData_bmesh_init_pool(data, bm->totvert, BM_VERT);
+
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
@@ -736,6 +737,8 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 	else if (data == &bm->edata) {
 		BMEdge *eed;
 
+		CustomData_bmesh_init_pool(data, bm->totedge, BM_EDGE);
+
 		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
@@ -744,30 +747,38 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 			eed->head.data = block;
 		}
 	}
-	else if (data == &bm->pdata || data == &bm->ldata) {
+	else if (data == &bm->ldata) {
 		BMIter liter;
 		BMFace *efa;
 		BMLoop *l;
 
+		CustomData_bmesh_init_pool(data, bm->totloop, BM_LOOP);
 		BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			if (data == &bm->pdata) {
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
 				block = NULL;
 				CustomData_bmesh_set_default(data, &block);
-				CustomData_bmesh_copy_data(olddata, data, efa->head.data, &block);
-				CustomData_bmesh_free_block(olddata, &efa->head.data);
-				efa->head.data = block;
-			}
-
-			if (data == &bm->ldata) {
-				BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-					block = NULL;
-					CustomData_bmesh_set_default(data, &block);
-					CustomData_bmesh_copy_data(olddata, data, l->head.data, &block);
-					CustomData_bmesh_free_block(olddata, &l->head.data);
-					l->head.data = block;
-				}
+				CustomData_bmesh_copy_data(olddata, data, l->head.data, &block);
+				CustomData_bmesh_free_block(olddata, &l->head.data);
+				l->head.data = block;
 			}
 		}
+	}
+	else if (data == &bm->pdata) {
+		BMFace *efa;
+
+		CustomData_bmesh_init_pool(data, bm->totface, BM_FACE);
+
+		BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			block = NULL;
+			CustomData_bmesh_set_default(data, &block);
+			CustomData_bmesh_copy_data(olddata, data, efa->head.data, &block);
+			CustomData_bmesh_free_block(olddata, &efa->head.data);
+			efa->head.data = block;
+		}
+	}
+	else {
+		/* should never reach this! */
+		BLI_assert(0);
 	}
 
 	if (oldpool) {

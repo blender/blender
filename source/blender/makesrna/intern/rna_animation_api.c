@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -49,7 +49,7 @@
 
 static void rna_KeyingSet_context_refresh(KeyingSet *ks, bContext *C, ReportList *reports)
 {
-	// TODO: enable access to providing a list of overrides (dsources)?
+	/* TODO: enable access to providing a list of overrides (dsources)? */
 	int success = ANIM_validate_keyingset(C, NULL, ks);
 	
 	if (success != 0) {
@@ -70,13 +70,14 @@ static void rna_KeyingSet_context_refresh(KeyingSet *ks, bContext *C, ReportList
 void RNA_api_keyingset(StructRNA *srna)
 {
 	FunctionRNA *func;
-	//PropertyRNA *parm;
+	/*PropertyRNA *parm; */
 	
 	/* validate relative Keying Set (used to ensure paths are ok for context) */
-	func= RNA_def_function(srna, "refresh", "rna_KeyingSet_context_refresh");
-	RNA_def_function_ui_description(func, "Refresh Keying Set to ensure that it is valid for the current context. Call before each use of one");
+	func = RNA_def_function(srna, "refresh", "rna_KeyingSet_context_refresh");
+	RNA_def_function_ui_description(func,
+	                                "Refresh Keying Set to ensure that it is valid for the current context "
+	                                "(call before each use of one)");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 }
 
 #endif
-

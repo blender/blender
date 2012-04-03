@@ -93,8 +93,8 @@ static ShaderEnum color_space_init()
 {
 	ShaderEnum enm;
 
-	enm.insert("Linear", 0);
-	enm.insert("sRGB", 1);
+	enm.insert("None", 0);
+	enm.insert("Color", 1);
 
 	return enm;
 }
@@ -106,8 +106,9 @@ ImageTextureNode::ImageTextureNode()
 {
 	image_manager = NULL;
 	slot = -1;
+	is_float = false;
 	filename = "";
-	color_space = ustring("sRGB");
+	color_space = ustring("Color");
 
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_UV);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -125,6 +126,7 @@ ShaderNode *ImageTextureNode::clone() const
 	ImageTextureNode *node = new ImageTextureNode(*this);
 	node->image_manager = NULL;
 	node->slot = -1;
+	node->is_float = false;
 	return node;
 }
 
@@ -136,7 +138,7 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 
 	image_manager = compiler.image_manager;
 	if(slot == -1)
-		slot = image_manager->add_image(filename);
+		slot = image_manager->add_image(filename, is_float);
 
 	if(!color_out->links.empty())
 		compiler.stack_assign(color_out);
@@ -146,16 +148,24 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 	if(slot != -1) {
 		compiler.stack_assign(vector_in);
 
-		if(!tex_mapping.skip())
-			tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+		int srgb = (is_float || color_space != "Color")? 0: 1;
+		int vector_offset = vector_in->stack_offset;
+
+		if(!tex_mapping.skip()) {
+			vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+			tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+		}
 
 		compiler.add_node(NODE_TEX_IMAGE,
 			slot,
 			compiler.encode_uchar4(
-				vector_in->stack_offset,
+				vector_offset,
 				color_out->stack_offset,
 				alpha_out->stack_offset,
-				color_space_enum[color_space]));
+				srgb));
+	
+		if(vector_offset != vector_in->stack_offset)
+			compiler.stack_clear_offset(vector_in->type, vector_offset);
 	}
 	else {
 		/* image not found */
@@ -171,21 +181,37 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 void ImageTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("filename", filename.c_str());
-	compiler.parameter("color_space", color_space.c_str());
+	if(is_float || color_space != "Color")
+		compiler.parameter("color_space", "Linear");
+	else
+		compiler.parameter("color_space", "sRGB");
 	compiler.add(this, "node_image_texture");
 }
 
 /* Environment Texture */
 
+static ShaderEnum projection_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Equirectangular", 0);
+	enm.insert("Mirror Ball", 1);
+
+	return enm;
+}
+
 ShaderEnum EnvironmentTextureNode::color_space_enum = color_space_init();
+ShaderEnum EnvironmentTextureNode::projection_enum = projection_init();
 
 EnvironmentTextureNode::EnvironmentTextureNode()
 : TextureNode("environment_texture")
 {
 	image_manager = NULL;
 	slot = -1;
+	is_float = false;
 	filename = "";
-	color_space = ustring("sRGB");
+	color_space = ustring("Color");
+	projection = ustring("Equirectangular");
 
 	add_input("Vector", SHADER_SOCKET_VECTOR, ShaderInput::POSITION);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -203,6 +229,7 @@ ShaderNode *EnvironmentTextureNode::clone() const
 	EnvironmentTextureNode *node = new EnvironmentTextureNode(*this);
 	node->image_manager = NULL;
 	node->slot = -1;
+	node->is_float = false;
 	return node;
 }
 
@@ -214,26 +241,35 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 
 	image_manager = compiler.image_manager;
 	if(slot == -1)
-		slot = image_manager->add_image(filename);
+		slot = image_manager->add_image(filename, is_float);
 
 	if(!color_out->links.empty())
 		compiler.stack_assign(color_out);
 	if(!alpha_out->links.empty())
 		compiler.stack_assign(alpha_out);
-
+	
 	if(slot != -1) {
 		compiler.stack_assign(vector_in);
 
-		if(!tex_mapping.skip())
-			tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+		int srgb = (is_float || color_space != "Color")? 0: 1;
+		int vector_offset = vector_in->stack_offset;
+
+		if(!tex_mapping.skip()) {
+			vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+			tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+		}
 
 		compiler.add_node(NODE_TEX_ENVIRONMENT,
 			slot,
 			compiler.encode_uchar4(
-				vector_in->stack_offset,
+				vector_offset,
 				color_out->stack_offset,
 				alpha_out->stack_offset,
-				color_space_enum[color_space]));
+				srgb),
+			projection_enum[projection]);
+	
+		if(vector_offset != vector_in->stack_offset)
+			compiler.stack_clear_offset(vector_in->type, vector_offset);
 	}
 	else {
 		/* image not found */
@@ -249,7 +285,10 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("filename", filename.c_str());
-	compiler.parameter("color_space", color_space.c_str());
+	if(is_float || color_space != "Color")
+		compiler.parameter("color_space", "Linear");
+	else
+		compiler.parameter("color_space", "sRGB");
 	compiler.add(this, "node_environment_texture");
 }
 
@@ -338,11 +377,19 @@ void SkyTextureNode::compile(SVMCompiler& compiler)
 
 	if(vector_in->link)
 		compiler.stack_assign(vector_in);
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+
+	int vector_offset = vector_in->stack_offset;
+
+	if(!tex_mapping.skip()) {
+		vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+		tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+	}
 
 	compiler.stack_assign(color_out);
-	compiler.add_node(NODE_TEX_SKY, vector_in->stack_offset, color_out->stack_offset);
+	compiler.add_node(NODE_TEX_SKY, vector_offset, color_out->stack_offset);
+
+	if(vector_offset != vector_in->stack_offset)
+		compiler.stack_clear_offset(vector_in->type, vector_offset);
 }
 
 void SkyTextureNode::compile(OSLCompiler& compiler)
@@ -389,8 +436,12 @@ void GradientTextureNode::compile(SVMCompiler& compiler)
 
 	if(vector_in->link) compiler.stack_assign(vector_in);
 
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+	int vector_offset = vector_in->stack_offset;
+
+	if(!tex_mapping.skip()) {
+		vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+		tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+	}
 
 	if(!fac_out->links.empty())
 		compiler.stack_assign(fac_out);
@@ -398,7 +449,10 @@ void GradientTextureNode::compile(SVMCompiler& compiler)
 		compiler.stack_assign(color_out);
 
 	compiler.add_node(NODE_TEX_GRADIENT,
-		compiler.encode_uchar4(type_enum[type], vector_in->stack_offset, fac_out->stack_offset, color_out->stack_offset));
+		compiler.encode_uchar4(type_enum[type], vector_offset, fac_out->stack_offset, color_out->stack_offset));
+
+	if(vector_offset != vector_in->stack_offset)
+		compiler.stack_clear_offset(vector_in->type, vector_offset);
 }
 
 void GradientTextureNode::compile(OSLCompiler& compiler)
@@ -435,8 +489,12 @@ void NoiseTextureNode::compile(SVMCompiler& compiler)
 	if(detail_in->link) compiler.stack_assign(detail_in);
 	if(distortion_in->link) compiler.stack_assign(distortion_in);
 
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+	int vector_offset = vector_in->stack_offset;
+
+	if(!tex_mapping.skip()) {
+		vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+		tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+	}
 
 	if(!fac_out->links.empty())
 		compiler.stack_assign(fac_out);
@@ -444,12 +502,15 @@ void NoiseTextureNode::compile(SVMCompiler& compiler)
 		compiler.stack_assign(color_out);
 
 	compiler.add_node(NODE_TEX_NOISE,
-		compiler.encode_uchar4(vector_in->stack_offset, scale_in->stack_offset, detail_in->stack_offset, distortion_in->stack_offset),
+		compiler.encode_uchar4(vector_offset, scale_in->stack_offset, detail_in->stack_offset, distortion_in->stack_offset),
 		compiler.encode_uchar4(color_out->stack_offset, fac_out->stack_offset));
 	compiler.add_node(
 		__float_as_int(scale_in->value.x),
 		__float_as_int(detail_in->value.x),
 		__float_as_int(distortion_in->value.x));
+
+	if(vector_offset != vector_in->stack_offset)
+		compiler.stack_clear_offset(vector_in->type, vector_offset);
 }
 
 void NoiseTextureNode::compile(OSLCompiler& compiler)
@@ -493,16 +554,23 @@ void VoronoiTextureNode::compile(SVMCompiler& compiler)
 	if(vector_in->link) compiler.stack_assign(vector_in);
 	if(scale_in->link) compiler.stack_assign(scale_in);
 
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+	int vector_offset = vector_in->stack_offset;
+
+	if(!tex_mapping.skip()) {
+		vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+		tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+	}
 
 	compiler.stack_assign(color_out);
 	compiler.stack_assign(fac_out);
 
 	compiler.add_node(NODE_TEX_VORONOI,
 		coloring_enum[coloring],
-		compiler.encode_uchar4(scale_in->stack_offset, vector_in->stack_offset, fac_out->stack_offset, color_out->stack_offset),
+		compiler.encode_uchar4(scale_in->stack_offset, vector_offset, fac_out->stack_offset, color_out->stack_offset),
 		__float_as_int(scale_in->value.x));
+
+	if(vector_offset != vector_in->stack_offset)
+		compiler.stack_clear_offset(vector_in->type, vector_offset);
 }
 
 void VoronoiTextureNode::compile(OSLCompiler& compiler)
@@ -565,8 +633,12 @@ void MusgraveTextureNode::compile(SVMCompiler& compiler)
 	if(gain_in->link) compiler.stack_assign(gain_in);
 	if(scale_in->link) compiler.stack_assign(scale_in);
 
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+	int vector_offset = vector_in->stack_offset;
+
+	if(!tex_mapping.skip()) {
+		vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+		tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+	}
 
 	if(!fac_out->links.empty())
 		compiler.stack_assign(fac_out);
@@ -574,7 +646,7 @@ void MusgraveTextureNode::compile(SVMCompiler& compiler)
 		compiler.stack_assign(color_out);
 
 	compiler.add_node(NODE_TEX_MUSGRAVE,
-		compiler.encode_uchar4(type_enum[type], vector_in->stack_offset, color_out->stack_offset, fac_out->stack_offset),
+		compiler.encode_uchar4(type_enum[type], vector_offset, color_out->stack_offset, fac_out->stack_offset),
 		compiler.encode_uchar4(dimension_in->stack_offset, lacunarity_in->stack_offset, detail_in->stack_offset, offset_in->stack_offset),
 		compiler.encode_uchar4(gain_in->stack_offset, scale_in->stack_offset));
 	compiler.add_node(__float_as_int(dimension_in->value.x),
@@ -583,6 +655,9 @@ void MusgraveTextureNode::compile(SVMCompiler& compiler)
 		__float_as_int(offset_in->value.x));
 	compiler.add_node(__float_as_int(gain_in->value.x),
 		__float_as_int(scale_in->value.x));
+
+	if(vector_offset != vector_in->stack_offset)
+		compiler.stack_clear_offset(vector_in->type, vector_offset);
 }
 
 void MusgraveTextureNode::compile(OSLCompiler& compiler)
@@ -637,8 +712,12 @@ void WaveTextureNode::compile(SVMCompiler& compiler)
 	if(dscale_in->link) compiler.stack_assign(dscale_in);
 	if(vector_in->link) compiler.stack_assign(vector_in);
 
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+	int vector_offset = vector_in->stack_offset;
+
+	if(!tex_mapping.skip()) {
+		vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+		tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+	}
 
 	if(!fac_out->links.empty())
 		compiler.stack_assign(fac_out);
@@ -647,13 +726,16 @@ void WaveTextureNode::compile(SVMCompiler& compiler)
 
 	compiler.add_node(NODE_TEX_WAVE,
 		compiler.encode_uchar4(type_enum[type], color_out->stack_offset, fac_out->stack_offset, dscale_in->stack_offset),
-		compiler.encode_uchar4(vector_in->stack_offset, scale_in->stack_offset, detail_in->stack_offset, distortion_in->stack_offset));
+		compiler.encode_uchar4(vector_offset, scale_in->stack_offset, detail_in->stack_offset, distortion_in->stack_offset));
 
 	compiler.add_node(
 		__float_as_int(scale_in->value.x),
 		__float_as_int(detail_in->value.x),
 		__float_as_int(distortion_in->value.x),
 		__float_as_int(dscale_in->value.x));
+
+	if(vector_offset != vector_in->stack_offset)
+		compiler.stack_clear_offset(vector_in->type, vector_offset);
 }
 
 void WaveTextureNode::compile(OSLCompiler& compiler)
@@ -690,8 +772,12 @@ void MagicTextureNode::compile(SVMCompiler& compiler)
 	if(distortion_in->link) compiler.stack_assign(distortion_in);
 	if(scale_in->link) compiler.stack_assign(scale_in);
 
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+	int vector_offset = vector_in->stack_offset;
+
+	if(!tex_mapping.skip()) {
+		vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+		tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+	}
 
 	if(!fac_out->links.empty())
 		compiler.stack_assign(fac_out);
@@ -700,10 +786,13 @@ void MagicTextureNode::compile(SVMCompiler& compiler)
 
 	compiler.add_node(NODE_TEX_MAGIC,
 		compiler.encode_uchar4(depth, color_out->stack_offset, fac_out->stack_offset),
-		compiler.encode_uchar4(vector_in->stack_offset, scale_in->stack_offset, distortion_in->stack_offset));
+		compiler.encode_uchar4(vector_offset, scale_in->stack_offset, distortion_in->stack_offset));
 	compiler.add_node(
 		__float_as_int(scale_in->value.x),
 		__float_as_int(distortion_in->value.x));
+
+	if(vector_offset != vector_in->stack_offset)
+		compiler.stack_clear_offset(vector_in->type, vector_offset);
 }
 
 void MagicTextureNode::compile(OSLCompiler& compiler)
@@ -741,8 +830,12 @@ void CheckerTextureNode::compile(SVMCompiler& compiler)
 	compiler.stack_assign(color2_in);
 	if(scale_in->link) compiler.stack_assign(scale_in);
 
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+	int vector_offset = vector_in->stack_offset;
+
+	if(!tex_mapping.skip()) {
+		vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+		tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+	}
 
 	if(!color_out->links.empty())
 		compiler.stack_assign(color_out);
@@ -750,9 +843,12 @@ void CheckerTextureNode::compile(SVMCompiler& compiler)
 		compiler.stack_assign(fac_out);
 
 	compiler.add_node(NODE_TEX_CHECKER,
-		compiler.encode_uchar4(vector_in->stack_offset, color1_in->stack_offset, color2_in->stack_offset, scale_in->stack_offset),
+		compiler.encode_uchar4(vector_offset, color1_in->stack_offset, color2_in->stack_offset, scale_in->stack_offset),
 		compiler.encode_uchar4(color_out->stack_offset, fac_out->stack_offset),
 		__float_as_int(scale_in->value.x));
+
+	if(vector_offset != vector_in->stack_offset)
+		compiler.stack_clear_offset(vector_in->type, vector_offset);
 }
 
 void CheckerTextureNode::compile(OSLCompiler& compiler)
@@ -2254,6 +2350,66 @@ void BumpNode::compile(SVMCompiler& compiler)
 void BumpNode::compile(OSLCompiler& compiler)
 {
 	compiler.add(this, "node_bump");
+}
+
+/* RGBCurvesNode */
+
+RGBCurvesNode::RGBCurvesNode()
+: ShaderNode("rgb_curves")
+{
+	add_input("Fac", SHADER_SOCKET_FLOAT);
+	add_input("Color", SHADER_SOCKET_COLOR);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+void RGBCurvesNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *fac_in = input("Fac");
+	ShaderInput *color_in = input("Color");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(fac_in);
+	compiler.stack_assign(color_in);
+	compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_RGB_CURVES, fac_in->stack_offset, color_in->stack_offset, color_out->stack_offset);
+	compiler.add_array(curves, RAMP_TABLE_SIZE);
+}
+
+void RGBCurvesNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_rgb_curves");
+}
+
+/* RGBRampNode */
+
+RGBRampNode::RGBRampNode()
+: ShaderNode("rgb_ramp")
+{
+	add_input("Fac", SHADER_SOCKET_FLOAT);
+	add_output("Color", SHADER_SOCKET_COLOR);
+	add_output("Alpha", SHADER_SOCKET_FLOAT);
+}
+
+void RGBRampNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *fac_in = input("Fac");
+	ShaderOutput *color_out = output("Color");
+	ShaderOutput *alpha_out = output("Alpha");
+
+	compiler.stack_assign(fac_in);
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
+	if(!alpha_out->links.empty())
+		compiler.stack_assign(alpha_out);
+
+	compiler.add_node(NODE_RGB_RAMP, fac_in->stack_offset, color_out->stack_offset, alpha_out->stack_offset);
+	compiler.add_array(ramp, RAMP_TABLE_SIZE);
+}
+
+void RGBRampNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_rgb_ramp");
 }
 
 CCL_NAMESPACE_END

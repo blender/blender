@@ -37,7 +37,6 @@
 #include "BKE_report.h"
 #include "BKE_global.h" /* G.background only */
 
-
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -59,7 +58,7 @@ static const char *report_type_str(int type)
 
 void BKE_reports_init(ReportList *reports, int flag)
 {
-	if(!reports)
+	if (!reports)
 		return;
 
 	memset(reports, 0, sizeof(ReportList));
@@ -73,7 +72,7 @@ void BKE_reports_clear(ReportList *reports)
 {
 	Report *report, *report_next;
 
-	if(!reports)
+	if (!reports)
 		return;
 
 	report= reports->list.first;
@@ -95,12 +94,12 @@ void BKE_report(ReportList *reports, ReportType type, const char *message)
 
 	/* in background mode always print otherwise there are cases the errors wont be displayed,
 	 * but still add to the report list since this is used for python exception handling */
-	if(G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
+	if (G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
 		printf("%s: %s\n", report_type_str(type), message);
 		fflush(stdout); /* this ensures the message is printed before a crash */
 	}
 
-	if(reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
+	if (reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
 		char *message_alloc;
 		report= MEM_callocN(sizeof(Report), "Report");
 		report->type= type;
@@ -121,7 +120,7 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
 	Report *report;
 	va_list args;
 
-	if(G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
+	if (G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
 		va_start(args, format);
 		vprintf(format, args);
 		va_end(args);
@@ -129,7 +128,7 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
 		fflush(stdout); /* this ensures the message is printed before a crash */
 	}
 
-	if(reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
+	if (reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
 		report= MEM_callocN(sizeof(Report), "Report");
 
 		ds= BLI_dynstr_new();
@@ -153,10 +152,10 @@ void BKE_reports_prepend(ReportList *reports, const char *prepend)
 	Report *report;
 	DynStr *ds;
 
-	if(!reports)
+	if (!reports)
 		return;
 
-	for(report=reports->list.first; report; report=report->next) {
+	for (report=reports->list.first; report; report=report->next) {
 		ds= BLI_dynstr_new();
 
 		BLI_dynstr_append(ds, prepend);
@@ -176,10 +175,10 @@ void BKE_reports_prependf(ReportList *reports, const char *prepend, ...)
 	DynStr *ds;
 	va_list args;
 
-	if(!reports)
+	if (!reports)
 		return;
 
-	for(report=reports->list.first; report; report=report->next) {
+	for (report=reports->list.first; report; report=report->next) {
 		ds= BLI_dynstr_new();
 		va_start(args, prepend);
 		BLI_dynstr_vappendf(ds, prepend, args);
@@ -197,7 +196,7 @@ void BKE_reports_prependf(ReportList *reports, const char *prepend, ...)
 
 ReportType BKE_report_print_level(ReportList *reports)
 {
-	if(!reports)
+	if (!reports)
 		return RPT_ERROR;
 
 	return reports->printlevel;
@@ -205,7 +204,7 @@ ReportType BKE_report_print_level(ReportList *reports)
 
 void BKE_report_print_level_set(ReportList *reports, ReportType level)
 {
-	if(!reports)
+	if (!reports)
 		return;
 
 	reports->printlevel= level;
@@ -213,7 +212,7 @@ void BKE_report_print_level_set(ReportList *reports, ReportType level)
 
 ReportType BKE_report_store_level(ReportList *reports)
 {
-	if(!reports)
+	if (!reports)
 		return RPT_ERROR;
 
 	return reports->storelevel;
@@ -221,7 +220,7 @@ ReportType BKE_report_store_level(ReportList *reports)
 
 void BKE_report_store_level_set(ReportList *reports, ReportType level)
 {
-	if(!reports)
+	if (!reports)
 		return;
 
 	reports->storelevel= level;
@@ -233,12 +232,12 @@ char *BKE_reports_string(ReportList *reports, ReportType level)
 	DynStr *ds;
 	char *cstring;
 
-	if(!reports || !reports->list.first)
+	if (!reports || !reports->list.first)
 		return NULL;
 
 	ds= BLI_dynstr_new();
-	for(report=reports->list.first; report; report=report->next)
-		if(report->type >= level)
+	for (report=reports->list.first; report; report=report->next)
+		if (report->type >= level)
 			BLI_dynstr_appendf(ds, "%s: %s\n", report->typestr, report->message);
 
 	if (BLI_dynstr_get_len(ds))
@@ -257,19 +256,31 @@ void BKE_reports_print(ReportList *reports, ReportType level)
 	if (cstring == NULL)
 		return;
 	
-	printf("%s", cstring);
+	puts(cstring);
 	fflush(stdout);
 	MEM_freeN(cstring);
 }
 
 Report *BKE_reports_last_displayable(ReportList *reports)
 {
-	Report *report=NULL;
+	Report *report;
 	
-	for (report= (Report *)reports->list.last; report; report=report->prev) {
+	for (report= reports->list.last; report; report=report->prev) {
 		if (ELEM3(report->type, RPT_ERROR, RPT_WARNING, RPT_INFO))
 			return report;
 	}
 	
 	return NULL;
 }
+
+int BKE_reports_contain(ReportList *reports, ReportType level)
+{
+	Report *report;
+	if (reports != NULL) {
+		for (report=reports->list.first; report; report=report->next)
+			if (report->type >= level)
+				return TRUE;
+	}
+	return FALSE;
+}
+

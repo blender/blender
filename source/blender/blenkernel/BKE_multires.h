@@ -32,26 +32,35 @@
  *  \ingroup bke
  */
 
+enum MultiresModifiedFlags;
 struct DerivedMesh;
-struct Mesh;
+struct GridHidden;
+struct MDisps;
 struct MFace;
+struct Mesh;
+struct ModifierData;
 struct Multires;
 struct MultiresModifierData;
-struct ModifierData;
 struct Object;
 struct Scene;
-struct MDisps;
 
-void multires_mark_as_modified(struct Object *ob);
+/* Delete mesh mdisps */
+void multires_customdata_delete(struct Mesh *me);
+
+void multires_mark_as_modified(struct Object *ob, enum MultiresModifiedFlags flags);
 
 void multires_force_update(struct Object *ob);
 void multires_force_render_update(struct Object *ob);
 void multires_force_external_reload(struct Object *ob);
 
+/* internal, only called in subsurf_ccg.c */
+void multires_modifier_update_mdisps(struct DerivedMesh *dm);
+void multires_modifier_update_hidden(struct DerivedMesh *dm);
+
 void multiresModifier_set_levels_from_disps(struct MultiresModifierData *mmd, struct Object *ob);
 
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,
-	int local_mmd, struct DerivedMesh*, struct Object *, int, int);
+	int local_mmd, struct DerivedMesh*, struct Object *, int);
 
 struct MultiresModifierData *find_multires_modifier_before(struct Scene *scene,
 	struct ModifierData *lastmd);
@@ -75,7 +84,7 @@ void multires_stitch_grids(struct Object *);
 enum {
 	MULTIRES_SPACE_TANGENT,
 	MULTIRES_SPACE_OBJECT,
-	MULTIRES_SPACE_ABSOLUTE,
+	MULTIRES_SPACE_ABSOLUTE
 };
 void multires_set_space(struct DerivedMesh *dm, struct Object *ob, int from, int to);
 

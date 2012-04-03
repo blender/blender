@@ -35,7 +35,7 @@ MaterialsExporter::MaterialsExporter(COLLADASW::StreamWriter *sw, const ExportSe
 
 void MaterialsExporter::exportMaterials(Scene *sce)
 {
-	if(hasMaterials(sce)) {
+	if (hasMaterials(sce)) {
 		openLibrary();
 
 		MaterialFunctor mf;
@@ -53,7 +53,7 @@ bool MaterialsExporter::hasMaterials(Scene *sce)
 	while(base) {
 		Object *ob= base->object;
 		int a;
-		for(a = 0; a < ob->totcol; a++)
+		for (a = 0; a < ob->totcol; a++)
 		{
 			Material *ma = give_current_material(ob, a+1);
 

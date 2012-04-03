@@ -36,19 +36,19 @@ extern "C" {
 #endif
 
 /* ****************************************************************************
-Suggestions should be added in sorted order although a linear sorting method is
-implemented. The list is then divided up based on the prefix provided by
-update_suggestions:
-
-Example:
-  Prefix: ab
-  aaa <-- first
-  aab
-  aba <-- firstmatch
-  abb <-- lastmatch
-  baa
-  bab <-- last
-**************************************************************************** */
+ * Suggestions should be added in sorted order although a linear sorting method is
+ * implemented. The list is then divided up based on the prefix provided by
+ * update_suggestions:
+ *
+ * Example:
+ *   Prefix: ab
+ *   aaa <-- first
+ *   aab
+ *   aba <-- firstmatch
+ *   abb <-- lastmatch
+ *   baa
+ *   bab <-- last
+ **************************************************************************** */
 
 struct Text;
 

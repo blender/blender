@@ -24,20 +24,20 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+/**
+ * pre: false
+ * effect: constructs a new CStringValue
+ */
 CStringValue::CStringValue()
-/*
-pre: false
-effect: constructs a new CStringValue
-*/
 {
 	m_strString = "[Illegal String constructor call]";
 }
 
+/**
+ * pre:
+ * effect: constructs a new CStringValue containing text txt
+ */
 CStringValue::CStringValue(const char *txt,const char *name,AllocationTYPE alloctype)
-/*
-pre:
-effect: constructs a new CStringValue containing text txt
-*/
 {
 	m_strString = txt;
 	SetName(name);
@@ -52,23 +52,23 @@ effect: constructs a new CStringValue containing text txt
 }
 
 
+/**
+ * pre:
+ * ret: a new object containing the result of applying operator op to this
+ * object and val
+ */
 CValue* CStringValue::Calc(VALUE_OPERATOR op, CValue *val)
-/*
-pre:
-ret: a new object containing the result of applying operator op to this
-object and val
-*/
 {
 	//return val->CalrcString(op, this);
 	return val->CalcFinal(VALUE_STRING_TYPE, op, this);
 }
 
+/**
+ * pre: the type of val is dtype
+ * ret: a new object containing the result of applying operator op to val and
+ * this object
+ */
 CValue* CStringValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val)
-/*
-pre: the type of val is dtype
-ret: a new object containing the result of applying operator op to val and
-this object
-*/
 {
 	CValue *ret;
 	

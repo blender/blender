@@ -95,18 +95,18 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 	*/
 
 	/* Using parentinv should allow use of existing curves */
-	if(ob->parent)
+	if (ob->parent)
 	{
 		// If parentinv is identity don't add it.
 		bool add_parinv = false;
 
-		for(int i = 0; i < 16; ++i)
+		for (int i = 0; i < 16; ++i)
 		{
 			float f = (i % 4 == i / 4) ? 1.0f : 0.0f;
 			add_parinv |= (ob->parentinv[i % 4][i / 4] != f);
 		}
 
-		if(add_parinv)
+		if (add_parinv)
 		{
 			double dmat[4][4];
 			UnitConverter converter;

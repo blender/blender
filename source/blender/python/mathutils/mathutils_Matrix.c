@@ -44,6 +44,7 @@ typedef enum eMatrixAccess_t {
 } eMatrixAccess_t;
 
 static PyObject *Matrix_copy(MatrixObject *self);
+static PyObject *Matrix_deepcopy(MatrixObject *self, PyObject *args);
 static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value);
 static PyObject *matrix__apply_to_copy(PyNoArgsFunction matrix_func, MatrixObject *self);
 static PyObject *MatrixAccess_CreatePyObject(MatrixObject *matrix, const eMatrixAccess_t type);
@@ -78,7 +79,7 @@ static int matrix_col_vector_check(MatrixObject *mat, VectorObject *vec, int col
  * matrix row callbacks
  * this is so you can do matrix[i][j] = val OR matrix.row[i][j] = val */
 
-int mathutils_matrix_row_cb_index = -1;
+unsigned char mathutils_matrix_row_cb_index = -1;
 
 static int mathutils_matrix_row_check(BaseMathObject *bmo)
 {
@@ -162,7 +163,7 @@ Mathutils_Callback mathutils_matrix_row_cb = {
  * matrix row callbacks
  * this is so you can do matrix.col[i][j] = val */
 
-int mathutils_matrix_col_cb_index = -1;
+unsigned char mathutils_matrix_col_cb_index = -1;
 
 static int mathutils_matrix_col_check(BaseMathObject *bmo)
 {
@@ -255,7 +256,7 @@ Mathutils_Callback mathutils_matrix_col_cb = {
  * this is so you can do matrix.translation = val
  * note, this is _exactly like matrix.col except the 4th component is always omitted */
 
-int mathutils_matrix_translation_cb_index = -1;
+unsigned char mathutils_matrix_translation_cb_index = -1;
 
 static int mathutils_matrix_translation_check(BaseMathObject *bmo)
 {
@@ -431,8 +432,8 @@ static PyObject *C_Matrix_Identity(PyObject *cls, PyObject *args)
 
 	if (matSize < 2 || matSize > 4) {
 		PyErr_SetString(PyExc_RuntimeError,
-						"Matrix.Identity(): "
-						"size must be between 2 and 4");
+		                "Matrix.Identity(): "
+		                "size must be between 2 and 4");
 		return NULL;
 	}
 
@@ -461,9 +462,9 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 	int matSize;
 	double angle; /* use double because of precision problems at high values */
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 1.0f};
+		             0.0f, 0.0f, 0.0f, 0.0f,
+		             0.0f, 0.0f, 0.0f, 0.0f,
+		             0.0f, 0.0f, 0.0f, 1.0f};
 
 	if (!PyArg_ParseTuple(args, "di|O:Matrix.Rotation", &angle, &matSize, &vec)) {
 		return NULL;
@@ -549,7 +550,7 @@ PyDoc_STRVAR(C_Matrix_Translation_doc,
 );
 static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 {
-	float mat[4][4]= MAT4_UNITY;
+	float mat[4][4] = MAT4_UNITY;
 
 	if (mathutils_array_parse(mat[3], 3, 4, value, "mathutils.Matrix.Translation(vector), invalid vector arg") == -1)
 		return NULL;
@@ -601,7 +602,7 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 			return NULL;
 		}
 	}
-	if (vec == NULL) {	//scaling along axis
+	if (vec == NULL) {  //scaling along axis
 		if (matSize == 2) {
 			mat[0] = factor;
 			mat[3] = factor;
@@ -612,8 +613,9 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 			mat[8] = factor;
 		}
 	}
-	else { //scaling in arbitrary direction
-		//normalize arbitrary axis
+	else {
+		/* scaling in arbitrary direction
+		 * normalize arbitrary axis */
 		float norm = 0.0f;
 		int x;
 		for (x = 0; x < vec_size; x++) {
@@ -624,21 +626,21 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 			tvec[x] /= norm;
 		}
 		if (matSize == 2) {
-			mat[0] = 1 + ((factor - 1) *(tvec[0] * tvec[0]));
-			mat[1] =     ((factor - 1) *(tvec[0] * tvec[1]));
-			mat[2] =     ((factor - 1) *(tvec[0] * tvec[1]));
-			mat[3] = 1 + ((factor - 1) *(tvec[1] * tvec[1]));
+			mat[0] = 1 + ((factor - 1) * (tvec[0] * tvec[0]));
+			mat[1] =     ((factor - 1) * (tvec[0] * tvec[1]));
+			mat[2] =     ((factor - 1) * (tvec[0] * tvec[1]));
+			mat[3] = 1 + ((factor - 1) * (tvec[1] * tvec[1]));
 		}
 		else {
-			mat[0] = 1 + ((factor - 1) *(tvec[0] * tvec[0]));
-			mat[1] =     ((factor - 1) *(tvec[0] * tvec[1]));
-			mat[2] =     ((factor - 1) *(tvec[0] * tvec[2]));
-			mat[3] =     ((factor - 1) *(tvec[0] * tvec[1]));
-			mat[4] = 1 + ((factor - 1) *(tvec[1] * tvec[1]));
-			mat[5] =     ((factor - 1) *(tvec[1] * tvec[2]));
-			mat[6] =     ((factor - 1) *(tvec[0] * tvec[2]));
-			mat[7] =     ((factor - 1) *(tvec[1] * tvec[2]));
-			mat[8] = 1 + ((factor - 1) *(tvec[2] * tvec[2]));
+			mat[0] = 1 + ((factor - 1) * (tvec[0] * tvec[0]));
+			mat[1] =     ((factor - 1) * (tvec[0] * tvec[1]));
+			mat[2] =     ((factor - 1) * (tvec[0] * tvec[2]));
+			mat[3] =     ((factor - 1) * (tvec[0] * tvec[1]));
+			mat[4] = 1 + ((factor - 1) * (tvec[1] * tvec[1]));
+			mat[5] =     ((factor - 1) * (tvec[1] * tvec[2]));
+			mat[6] =     ((factor - 1) * (tvec[0] * tvec[2]));
+			mat[7] =     ((factor - 1) * (tvec[1] * tvec[2]));
+			mat[8] = 1 + ((factor - 1) * (tvec[2] * tvec[2]));
 		}
 	}
 	if (matSize == 4) {
@@ -684,7 +686,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 		return NULL;
 	}
 
-	if (PyUnicode_Check(axis)) {	//ortho projection onto cardinal plane
+	if (PyUnicode_Check(axis)) {    //ortho projection onto cardinal plane
 		Py_ssize_t plane_len;
 		const char *plane = _PyUnicode_AsStringAndSize(axis, &plane_len);
 		if (matSize == 2) {
@@ -780,7 +782,7 @@ PyDoc_STRVAR(C_Matrix_Shear_doc,
 "   :arg size: The size of the shear matrix to construct [2, 4].\n"
 "   :type size: int\n"
 "   :arg factor: The factor of shear to apply. For a 3 or 4 *size* matrix\n"
-"      pass a pair of floats corrasponding with the *plane* axis.\n"
+"      pass a pair of floats corresponding with the *plane* axis.\n"
 "   :type factor: float or float pair\n"
 "   :return: A new shear matrix.\n"
 "   :rtype: :class:`Matrix`\n"
@@ -971,10 +973,10 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 	}
 
 	/*must be 3-4 cols, 3-4 rows, square matrix */
-	if (self->num_row ==3 && self->num_col ==3) {
+	if (self->num_row == 3 && self->num_col == 3) {
 		mat = (float (*)[3])self->matrix;
 	}
-	else if (self->num_row ==4 && self->num_col ==4) {
+	else if (self->num_row == 4 && self->num_col == 4) {
 		copy_m3_m4(tmat, (float (*)[4])self->matrix);
 		mat = tmat;
 	}
@@ -993,12 +995,12 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 	}
 
 	if (eul_compat) {
-		if (order == 1)	mat3_to_compatible_eul(eul, eul_compatf, mat);
-		else			mat3_to_compatible_eulO(eul, eul_compatf, order, mat);
+		if (order == 1) mat3_to_compatible_eul(eul, eul_compatf, mat);
+		else mat3_to_compatible_eulO(eul, eul_compatf, order, mat);
 	}
 	else {
-		if (order == 1)	mat3_to_eul(eul, mat);
-		else			mat3_to_eulO(eul, order, mat);
+		if (order == 1) mat3_to_eul(eul, mat);
+		else mat3_to_eulO(eul, order, mat);
 	}
 
 	return Euler_CreatePyObject(eul, order, Py_NEW, NULL);
@@ -1202,10 +1204,10 @@ static PyObject *Matrix_invert(MatrixObject *self)
 			mat[3] =  MATRIX_ITEM(self, 0, 0);
 		}
 		else if (self->num_col == 3) {
-			adjoint_m3_m3((float (*)[3]) mat,(float (*)[3])self->matrix);
+			adjoint_m3_m3((float (*)[3])mat, (float (*)[3])self->matrix);
 		}
 		else if (self->num_col == 4) {
-			adjoint_m4_m4((float (*)[4]) mat, (float (*)[4])self->matrix);
+			adjoint_m4_m4((float (*)[4])mat, (float (*)[4])self->matrix);
 		}
 		/* divide by determinate */
 		for (x = 0; x < (self->num_col * self->num_row); x++) {
@@ -1218,8 +1220,6 @@ static PyObject *Matrix_invert(MatrixObject *self)
 				z++;
 			}
 		}
-		/*transpose
-		Matrix_transpose(self);*/
 	}
 	else {
 		PyErr_SetString(PyExc_ValueError,
@@ -1520,6 +1520,12 @@ static PyObject *Matrix_copy(MatrixObject *self)
 
 	return Matrix_CreatePyObject((float (*))self->matrix, self->num_col, self->num_row, Py_NEW, Py_TYPE(self));
 }
+static PyObject *Matrix_deepcopy(MatrixObject *self, PyObject *args)
+{
+	if (!mathutils_deepcopy_args_check(args))
+		return NULL;
+	return Matrix_copy(self);
+}
 
 /*----------------------------print object (internal)-------------*/
 /* print the object to screen */
@@ -1538,17 +1544,17 @@ static PyObject *Matrix_repr(MatrixObject *self)
 		}
 	}
 	switch (self->num_row) {
-	case 2:	return PyUnicode_FromFormat("Matrix((%R,\n"
-										"        %R))", rows[0], rows[1]);
+		case 2: return PyUnicode_FromFormat("Matrix((%R,\n"
+		                                    "        %R))", rows[0], rows[1]);
 
-	case 3:	return PyUnicode_FromFormat("Matrix((%R,\n"
-										"        %R,\n"
-										"        %R))", rows[0], rows[1], rows[2]);
+		case 3: return PyUnicode_FromFormat("Matrix((%R,\n"
+		                                    "        %R,\n"
+		                                    "        %R))", rows[0], rows[1], rows[2]);
 
-	case 4:	return PyUnicode_FromFormat("Matrix((%R,\n"
-										"        %R,\n"
-										"        %R,\n"
-										"        %R))", rows[0], rows[1], rows[2], rows[3]);
+		case 4: return PyUnicode_FromFormat("Matrix((%R,\n"
+		                                    "        %R,\n"
+		                                    "        %R,\n"
+		                                    "        %R))", rows[0], rows[1], rows[2], rows[3]);
 	}
 
 	Py_FatalError("Matrix(): invalid row size!");
@@ -1603,43 +1609,43 @@ static PyObject *Matrix_richcmpr(PyObject *a, PyObject *b, int op)
 		if (BaseMath_ReadCallback(matA) == -1 || BaseMath_ReadCallback(matB) == -1)
 			return NULL;
 
-		ok = (  (matA->num_row == matB->num_row) &&
-		        (matA->num_col == matB->num_col) &&
-		         EXPP_VectorsAreEqual(matA->matrix, matB->matrix, (matA->num_col * matA->num_row), 1)
-			) ? 0 : -1;
+		ok = ((matA->num_row == matB->num_row) &&
+		      (matA->num_col == matB->num_col) &&
+		      EXPP_VectorsAreEqual(matA->matrix, matB->matrix, (matA->num_col * matA->num_row), 1)
+		      ) ? 0 : -1;
 	}
 
 	switch (op) {
-	case Py_NE:
-		ok = !ok; /* pass through */
-	case Py_EQ:
-		res = ok ? Py_False : Py_True;
-		break;
+		case Py_NE:
+			ok = !ok; /* pass through */
+		case Py_EQ:
+			res = ok ? Py_False : Py_True;
+			break;
 
-	case Py_LT:
-	case Py_LE:
-	case Py_GT:
-	case Py_GE:
-		res = Py_NotImplemented;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
+		case Py_LT:
+		case Py_LE:
+		case Py_GT:
+		case Py_GE:
+			res = Py_NotImplemented;
+			break;
+		default:
+			PyErr_BadArgument();
+			return NULL;
 	}
 
 	return Py_INCREF(res), res;
 }
 
 /*---------------------SEQUENCE PROTOCOLS------------------------
-  ----------------------------len(object)------------------------
-  sequence length */
+ * ----------------------------len(object)------------------------
+ * sequence length */
 static int Matrix_len(MatrixObject *self)
 {
 	return (self->num_row);
 }
 /*----------------------------object[]---------------------------
-  sequence accessor (get)
-  the wrapped vector gives direct access to the matrix data */
+ * sequence accessor (get)
+ * the wrapped vector gives direct access to the matrix data */
 static PyObject *Matrix_item_row(MatrixObject *self, int row)
 {
 	if (BaseMath_ReadCallback(self) == -1)
@@ -1669,7 +1675,7 @@ static PyObject *Matrix_item_col(MatrixObject *self, int col)
 }
 
 /*----------------------------object[]-------------------------
-  sequence accessor (set) */
+ * sequence accessor (set) */
 
 static int Matrix_ass_item_row(MatrixObject *self, int row, PyObject *value)
 {
@@ -1724,7 +1730,7 @@ static int Matrix_ass_item_col(MatrixObject *self, int col, PyObject *value)
 
 
 /*----------------------------object[z:y]------------------------
-  sequence slice (get)*/
+ * sequence slice (get)*/
 static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
 {
 
@@ -1741,14 +1747,13 @@ static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
 	tuple = PyTuple_New(end - begin);
 	for (count = begin; count < end; count++) {
 		PyTuple_SET_ITEM(tuple, count - begin,
-				Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_row_cb_index, count));
-
+		                 Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_row_cb_index, count));
 	}
 
 	return tuple;
 }
 /*----------------------------object[z:y]------------------------
-  sequence slice (set)*/
+ * sequence slice (set)*/
 static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value)
 {
 	PyObject *value_fast = NULL;
@@ -1807,7 +1812,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 	}
 }
 /*------------------------NUMERIC PROTOCOLS----------------------
-  ------------------------obj + obj------------------------------*/
+ *------------------------obj + obj------------------------------*/
 static PyObject *Matrix_add(PyObject *m1, PyObject *m2)
 {
 	float mat[16];
@@ -1839,7 +1844,7 @@ static PyObject *Matrix_add(PyObject *m1, PyObject *m2)
 	return Matrix_CreatePyObject(mat, mat1->num_col, mat1->num_row, Py_NEW, Py_TYPE(mat1));
 }
 /*------------------------obj - obj------------------------------
-  subtraction*/
+ * subtraction */
 static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 {
 	float mat[16];
@@ -1852,8 +1857,7 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 		PyErr_Format(PyExc_TypeError,
 		             "Matrix subtraction: (%s - %s) "
 		             "invalid type for this operation",
-		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name
-		             );
+		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 		return NULL;
 	}
 
@@ -1872,7 +1876,7 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 	return Matrix_CreatePyObject(mat, mat1->num_col, mat1->num_row, Py_NEW, Py_TYPE(mat1));
 }
 /*------------------------obj * obj------------------------------
-  mulplication*/
+ * mulplication */
 static PyObject *matrix_mul_float(MatrixObject *mat, const float scalar)
 {
 	float tmat[16];
@@ -1909,8 +1913,8 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 
 		if (mat1->num_col != mat2->num_row) {
 			PyErr_SetString(PyExc_ValueError,
-							"matrix1 * matrix2: matrix1 number of columns "
-							"and the matrix2 number of rows must be the same");
+			                "matrix1 * matrix2: matrix1 number of columns "
+			                "and the matrix2 number of rows must be the same");
 			return NULL;
 		}
 
@@ -1970,16 +1974,16 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 
 /*-----------------PROTOCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Matrix_SeqMethods = {
-	(lenfunc) Matrix_len,						/* sq_length */
-	(binaryfunc) NULL,							/* sq_concat */
-	(ssizeargfunc) NULL,						/* sq_repeat */
-	(ssizeargfunc) Matrix_item_row,				/* sq_item */
-	(ssizessizeargfunc) NULL,					/* sq_slice, deprecated */
-	(ssizeobjargproc) Matrix_ass_item_row,		/* sq_ass_item */
-	(ssizessizeobjargproc) NULL,				/* sq_ass_slice, deprecated */
-	(objobjproc) NULL,							/* sq_contains */
-	(binaryfunc) NULL,							/* sq_inplace_concat */
-	(ssizeargfunc) NULL,						/* sq_inplace_repeat */
+	(lenfunc) Matrix_len,                       /* sq_length */
+	(binaryfunc) NULL,                          /* sq_concat */
+	(ssizeargfunc) NULL,                        /* sq_repeat */
+	(ssizeargfunc) Matrix_item_row,             /* sq_item */
+	(ssizessizeargfunc) NULL,                   /* sq_slice, deprecated */
+	(ssizeobjargproc) Matrix_ass_item_row,      /* sq_ass_item */
+	(ssizessizeobjargproc) NULL,                /* sq_ass_slice, deprecated */
+	(objobjproc) NULL,                          /* sq_contains */
+	(binaryfunc) NULL,                          /* sq_inplace_concat */
+	(ssizeargfunc) NULL,                        /* sq_inplace_repeat */
 };
 
 
@@ -2060,40 +2064,40 @@ static PyMappingMethods Matrix_AsMapping = {
 
 
 static PyNumberMethods Matrix_NumMethods = {
-		(binaryfunc)	Matrix_add,	/*nb_add*/
-		(binaryfunc)	Matrix_sub,	/*nb_subtract*/
-		(binaryfunc)	Matrix_mul,	/*nb_multiply*/
-		NULL,							/*nb_remainder*/
-		NULL,							/*nb_divmod*/
-		NULL,							/*nb_power*/
-		(unaryfunc) 	0,	/*nb_negative*/
-		(unaryfunc) 	0,	/*tp_positive*/
-		(unaryfunc) 	0,	/*tp_absolute*/
-		(inquiry)	0,	/*tp_bool*/
-		(unaryfunc)	Matrix_inverted,	/*nb_invert*/
-		NULL,				/*nb_lshift*/
-		(binaryfunc)0,	/*nb_rshift*/
-		NULL,				/*nb_and*/
-		NULL,				/*nb_xor*/
-		NULL,				/*nb_or*/
-		NULL,				/*nb_int*/
-		NULL,				/*nb_reserved*/
-		NULL,				/*nb_float*/
-		NULL,				/* nb_inplace_add */
-		NULL,				/* nb_inplace_subtract */
-		NULL,				/* nb_inplace_multiply */
-		NULL,				/* nb_inplace_remainder */
-		NULL,				/* nb_inplace_power */
-		NULL,				/* nb_inplace_lshift */
-		NULL,				/* nb_inplace_rshift */
-		NULL,				/* nb_inplace_and */
-		NULL,				/* nb_inplace_xor */
-		NULL,				/* nb_inplace_or */
-		NULL,				/* nb_floor_divide */
-		NULL,				/* nb_true_divide */
-		NULL,				/* nb_inplace_floor_divide */
-		NULL,				/* nb_inplace_true_divide */
-		NULL,				/* nb_index */
+	(binaryfunc)    Matrix_add,     /*nb_add*/
+	(binaryfunc)    Matrix_sub,     /*nb_subtract*/
+	(binaryfunc)    Matrix_mul,     /*nb_multiply*/
+	NULL,                               /*nb_remainder*/
+	NULL,                               /*nb_divmod*/
+	NULL,                               /*nb_power*/
+	(unaryfunc)     0,      /*nb_negative*/
+	(unaryfunc)     0,      /*tp_positive*/
+	(unaryfunc)     0,      /*tp_absolute*/
+	(inquiry)   0,      /*tp_bool*/
+	(unaryfunc) Matrix_inverted,        /*nb_invert*/
+	NULL,                   /*nb_lshift*/
+	(binaryfunc)0,      /*nb_rshift*/
+	NULL,                   /*nb_and*/
+	NULL,                   /*nb_xor*/
+	NULL,                   /*nb_or*/
+	NULL,                   /*nb_int*/
+	NULL,                   /*nb_reserved*/
+	NULL,                   /*nb_float*/
+	NULL,                   /* nb_inplace_add */
+	NULL,                   /* nb_inplace_subtract */
+	NULL,                   /* nb_inplace_multiply */
+	NULL,                   /* nb_inplace_remainder */
+	NULL,                   /* nb_inplace_power */
+	NULL,                   /* nb_inplace_lshift */
+	NULL,                   /* nb_inplace_rshift */
+	NULL,                   /* nb_inplace_and */
+	NULL,                   /* nb_inplace_xor */
+	NULL,                   /* nb_inplace_or */
+	NULL,                   /* nb_floor_divide */
+	NULL,                   /* nb_true_divide */
+	NULL,                   /* nb_inplace_floor_divide */
+	NULL,                   /* nb_inplace_true_divide */
+	NULL,                   /* nb_index */
 };
 
 PyDoc_STRVAR(Matrix_translation_doc,
@@ -2215,12 +2219,33 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closu
 
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if (self->num_row == 4 && self->num_col == 4)
+		return PyBool_FromLong(is_orthonormal_m4((float (*)[4])self->matrix));
+	else if (self->num_row == 3 && self->num_col == 3)
+		return PyBool_FromLong(is_orthonormal_m3((float (*)[3])self->matrix));
+	else {
+		PyErr_SetString(PyExc_AttributeError,
+		                "Matrix.is_orthogonal: "
+		                "inappropriate matrix size - expects 3x3 or 4x4 matrix");
+		return NULL;
+	}
+}
+
+PyDoc_STRVAR(Matrix_is_orthogonal_axis_vectors_doc,
+"True if this matrix has got orthogonal axis vectors, 3x3 and 4x4 only, (read-only).\n\n:type: bool"
+);
+static PyObject *Matrix_is_orthogonal_axis_vectors_get(MatrixObject *self, void *UNUSED(closure))
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	/*must be 3-4 cols, 3-4 rows, square matrix*/
+	if (self->num_row == 4 && self->num_col == 4)
 		return PyBool_FromLong(is_orthogonal_m4((float (*)[4])self->matrix));
 	else if (self->num_row == 3 && self->num_col == 3)
 		return PyBool_FromLong(is_orthogonal_m3((float (*)[3])self->matrix));
 	else {
 		PyErr_SetString(PyExc_AttributeError,
-		                "Matrix.is_orthogonal: "
+		                "Matrix.is_orthogonal_axis_vectors: "
 		                "inappropriate matrix size - expects 3x3 or 4x4 matrix");
 		return NULL;
 	}
@@ -2236,8 +2261,9 @@ static PyGetSetDef Matrix_getseters[] = {
 	{(char *)"col", (getter)Matrix_col_get, (setter)NULL, Matrix_col_doc, NULL},
 	{(char *)"is_negative", (getter)Matrix_is_negative_get, (setter)NULL, Matrix_is_negative_doc, NULL},
 	{(char *)"is_orthogonal", (getter)Matrix_is_orthogonal_get, (setter)NULL, Matrix_is_orthogonal_doc, NULL},
+	{(char *)"is_orthogonal_axis_vectors", (getter)Matrix_is_orthogonal_axis_vectors_get, (setter)NULL, Matrix_is_orthogonal_axis_vectors_doc, NULL},
 	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, BaseMathObject_is_wrapped_doc, NULL},
-	{(char *)"owner",(getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
+	{(char *)"owner", (getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
@@ -2272,6 +2298,7 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"lerp", (PyCFunction) Matrix_lerp, METH_VARARGS, Matrix_lerp_doc},
 	{"copy", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
 	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
+	{"__deepcopy__", (PyCFunction) Matrix_deepcopy, METH_VARARGS, Matrix_copy_doc},
 
 	/* class methods */
 	{"Identity", (PyCFunction) C_Matrix_Identity, METH_VARARGS | METH_CLASS, C_Matrix_Identity_doc},
@@ -2289,51 +2316,51 @@ PyDoc_STRVAR(matrix_doc,
 );
 PyTypeObject matrix_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"mathutils.Matrix",					/*tp_name*/
-	sizeof(MatrixObject),				/*tp_basicsize*/
-	0,									/*tp_itemsize*/
-	(destructor)BaseMathObject_dealloc,	/*tp_dealloc*/
-	NULL,								/*tp_print*/
-	NULL,								/*tp_getattr*/
-	NULL,								/*tp_setattr*/
-	NULL,								/*tp_compare*/
-	(reprfunc) Matrix_repr,				/*tp_repr*/
-	&Matrix_NumMethods,					/*tp_as_number*/
-	&Matrix_SeqMethods,					/*tp_as_sequence*/
-	&Matrix_AsMapping,					/*tp_as_mapping*/
-	NULL,								/*tp_hash*/
-	NULL,								/*tp_call*/
-	(reprfunc) Matrix_str,				/*tp_str*/
-	NULL,								/*tp_getattro*/
-	NULL,								/*tp_setattro*/
-	NULL,								/*tp_as_buffer*/
+	"mathutils.Matrix",                 /*tp_name*/
+	sizeof(MatrixObject),               /*tp_basicsize*/
+	0,                                  /*tp_itemsize*/
+	(destructor)BaseMathObject_dealloc, /*tp_dealloc*/
+	NULL,                               /*tp_print*/
+	NULL,                               /*tp_getattr*/
+	NULL,                               /*tp_setattr*/
+	NULL,                               /*tp_compare*/
+	(reprfunc) Matrix_repr,             /*tp_repr*/
+	&Matrix_NumMethods,                 /*tp_as_number*/
+	&Matrix_SeqMethods,                 /*tp_as_sequence*/
+	&Matrix_AsMapping,                  /*tp_as_mapping*/
+	NULL,                               /*tp_hash*/
+	NULL,                               /*tp_call*/
+	(reprfunc) Matrix_str,              /*tp_str*/
+	NULL,                               /*tp_getattro*/
+	NULL,                               /*tp_setattro*/
+	NULL,                               /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-	matrix_doc,							/*tp_doc*/
-	(traverseproc)BaseMathObject_traverse,	//tp_traverse
-	(inquiry)BaseMathObject_clear,	//tp_clear
-	(richcmpfunc)Matrix_richcmpr,		/*tp_richcompare*/
-	0,									/*tp_weaklistoffset*/
-	NULL,								/*tp_iter*/
-	NULL,								/*tp_iternext*/
-	Matrix_methods,						/*tp_methods*/
-	NULL,								/*tp_members*/
-	Matrix_getseters,					/*tp_getset*/
-	NULL,								/*tp_base*/
-	NULL,								/*tp_dict*/
-	NULL,								/*tp_descr_get*/
-	NULL,								/*tp_descr_set*/
-	0,									/*tp_dictoffset*/
-	NULL,								/*tp_init*/
-	NULL,								/*tp_alloc*/
-	Matrix_new,							/*tp_new*/
-	NULL,								/*tp_free*/
-	NULL,								/*tp_is_gc*/
-	NULL,								/*tp_bases*/
-	NULL,								/*tp_mro*/
-	NULL,								/*tp_cache*/
-	NULL,								/*tp_subclasses*/
-	NULL,								/*tp_weaklist*/
-	NULL								/*tp_del*/
+	matrix_doc,                         /*tp_doc*/
+	(traverseproc)BaseMathObject_traverse,  //tp_traverse
+	(inquiry)BaseMathObject_clear,  //tp_clear
+	(richcmpfunc)Matrix_richcmpr,       /*tp_richcompare*/
+	0,                                  /*tp_weaklistoffset*/
+	NULL,                               /*tp_iter*/
+	NULL,                               /*tp_iternext*/
+	Matrix_methods,                     /*tp_methods*/
+	NULL,                               /*tp_members*/
+	Matrix_getseters,                   /*tp_getset*/
+	NULL,                               /*tp_base*/
+	NULL,                               /*tp_dict*/
+	NULL,                               /*tp_descr_get*/
+	NULL,                               /*tp_descr_set*/
+	0,                                  /*tp_dictoffset*/
+	NULL,                               /*tp_init*/
+	NULL,                               /*tp_alloc*/
+	Matrix_new,                         /*tp_new*/
+	NULL,                               /*tp_free*/
+	NULL,                               /*tp_is_gc*/
+	NULL,                               /*tp_bases*/
+	NULL,                               /*tp_mro*/
+	NULL,                               /*tp_cache*/
+	NULL,                               /*tp_subclasses*/
+	NULL,                               /*tp_weaklist*/
+	NULL                                /*tp_del*/
 };
 
 /* pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
@@ -2378,7 +2405,7 @@ PyObject *Matrix_CreatePyObject(float *mat,
 				return NULL;
 			}
 
-			if (mat) {	/*if a float array passed*/
+			if (mat) {  /*if a float array passed*/
 				memcpy(self->matrix, mat, num_col * num_row * sizeof(float));
 			}
 			else if (num_col == num_row) {
@@ -2402,14 +2429,14 @@ PyObject *Matrix_CreatePyObject(float *mat,
 
 PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
                                    const unsigned short num_col, const unsigned short num_row,
-                                   int cb_type, int cb_subtype)
+                                   unsigned char cb_type, unsigned char cb_subtype)
 {
 	MatrixObject *self = (MatrixObject *)Matrix_CreatePyObject(NULL, num_col, num_row, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 	return (PyObject *) self;
@@ -2452,8 +2479,8 @@ static void MatrixAccess_dealloc(MatrixAccessObject *self)
 static int MatrixAccess_len(MatrixAccessObject *self)
 {
 	return (self->type == MAT_ACCESS_ROW) ?
-	            self->matrix_user->num_row :
-	            self->matrix_user->num_col;
+	       self->matrix_user->num_row :
+	       self->matrix_user->num_col;
 }
 
 static PyObject *MatrixAccess_slice(MatrixAccessObject *self, int begin, int end)
@@ -2589,30 +2616,30 @@ static PyMappingMethods MatrixAccess_AsMapping = {
 
 PyTypeObject matrix_access_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"MatrixAccess",						/*tp_name*/
-	sizeof(MatrixAccessObject),			/*tp_basicsize*/
-	0,									/*tp_itemsize*/
-	(destructor)MatrixAccess_dealloc,	/*tp_dealloc*/
-	NULL,								/*tp_print*/
-	NULL,								/*tp_getattr*/
-	NULL,								/*tp_setattr*/
-	NULL,								/*tp_compare*/
-	NULL,								/*tp_repr*/
-	NULL,								/*tp_as_number*/
-	NULL /*&MatrixAccess_SeqMethods*/ /* TODO */,			/*tp_as_sequence*/
-	&MatrixAccess_AsMapping,			/*tp_as_mapping*/
-	NULL,								/*tp_hash*/
-	NULL,								/*tp_call*/
-	NULL,								/*tp_str*/
-	NULL,								/*tp_getattro*/
-	NULL,								/*tp_setattro*/
-	NULL,								/*tp_as_buffer*/
+	"MatrixAccess",                     /*tp_name*/
+	sizeof(MatrixAccessObject),         /*tp_basicsize*/
+	0,                                  /*tp_itemsize*/
+	(destructor)MatrixAccess_dealloc,   /*tp_dealloc*/
+	NULL,                               /*tp_print*/
+	NULL,                               /*tp_getattr*/
+	NULL,                               /*tp_setattr*/
+	NULL,                               /*tp_compare*/
+	NULL,                               /*tp_repr*/
+	NULL,                               /*tp_as_number*/
+	NULL /*&MatrixAccess_SeqMethods*/ /* TODO */,           /*tp_as_sequence*/
+	&MatrixAccess_AsMapping,            /*tp_as_mapping*/
+	NULL,                               /*tp_hash*/
+	NULL,                               /*tp_call*/
+	NULL,                               /*tp_str*/
+	NULL,                               /*tp_getattro*/
+	NULL,                               /*tp_setattro*/
+	NULL,                               /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-	NULL,								/*tp_doc*/
-	(traverseproc)MatrixAccess_traverse,	//tp_traverse
-	(inquiry)MatrixAccess_clear,	//tp_clear
+	NULL,                               /*tp_doc*/
+	(traverseproc)MatrixAccess_traverse,    //tp_traverse
+	(inquiry)MatrixAccess_clear,    //tp_clear
 	NULL /* (richcmpfunc)MatrixAccess_richcmpr */ /* TODO*/, /*tp_richcompare*/
-	0,									/*tp_weaklistoffset*/
+	0,                                  /*tp_weaklistoffset*/
 	(getiterfunc)MatrixAccess_iter, /* getiterfunc tp_iter; */
 };
 

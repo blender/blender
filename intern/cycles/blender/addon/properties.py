@@ -74,6 +74,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Pause all viewport preview renders",
                 default=False,
                 )
+        cls.preview_active_layer = BoolProperty(
+                name="Preview Active Layer",
+                description="Preview active render layer in viewport",
+                default=False,
+                )
 
         cls.no_caustics = BoolProperty(
                 name="No Caustics",
@@ -231,11 +236,27 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
                 type=cls,
                 )
 
+        cls.aperture_type = EnumProperty(
+                name="Aperture Type",
+                description="Use F/stop number or aperture radius",
+                items=enums.aperture_types,
+                default='RADIUS',
+                )
+        cls.aperture_fstop = FloatProperty(
+                name="Aperture F/stop",
+                description="F/stop ratio (lower numbers give more defocus, higher numbers give a sharper image)",
+                min=0.0, soft_min=0.1, soft_max=64.0,
+                default=5.6,
+                step=10,
+                precision=1,
+                )
         cls.aperture_size = FloatProperty(
                 name="Aperture Size",
-                description="Radius of the aperture for depth of field",
-                min=0.0, max=10.0,
+                description="Radius of the aperture for depth of field (higher values give more defocus)",
+                min=0.0, soft_max=10.0,
                 default=0.0,
+                step=1,
+                precision=4,
                 )
         cls.aperture_blades = IntProperty(
                 name="Aperture Blades",

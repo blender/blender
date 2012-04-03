@@ -94,6 +94,24 @@ typedef struct RegionView3D {
 	float viewmatob[4][4];
 	float persmatob[4][4];
 
+
+	/* user defined clipping planes */
+	float clip[6][4];
+	float clip_local[6][4]; /* clip in object space, means we can test for clipping in editmode without first going into worldspace */
+	struct BoundBox *clipbb;
+
+	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
+
+	struct RegionView3D *localvd; /* allocated backup of its self while in localview */
+	struct RenderInfo *ri;
+	struct RenderEngine *render_engine;
+	struct ViewDepths *depths;
+
+	/* animated smooth view */
+	struct SmoothViewStore *sms;
+	struct wmTimer *smooth_timer;
+
+
 	/* transform widget matrix */
 	float twmat[4][4];
 
@@ -104,32 +122,17 @@ typedef struct RegionView3D {
 	float pixsize;				/* runtime only */
 	float ofs[3];				/* view center & orbit pivot, negative of worldspace location,
 								 * also matches -viewinv[3][0:3] in ortho mode.*/
-	short camzoom;				/* viewport zoom on the camera frame, see BKE_screen_view3d_zoom_to_fac */
-	short twdrawflag;
+	float camzoom;				/* viewport zoom on the camera frame, see BKE_screen_view3d_zoom_to_fac */
 	char is_persp;				/* check if persp/ortho view, since 'persp' cant be used for this since
 								 * it can have cameras assigned as well. (only set in setwinmatrixview3d) */
-	char pad[3];
+	char persp;
+	char view;
+	char viewlock;
+
+	short twdrawflag;
+	short rflag;
 	
-	short rflag, viewlock;
-	short persp;
-	short view;
-	
-	/* user defined clipping planes */
-	float clip[6][4];
-	float clip_local[6][4]; /* clip in object space, means we can test for clipping in editmode without first going into worldspace */
-	struct BoundBox *clipbb;	
-	
-	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
-	
-	struct RegionView3D *localvd; /* allocated backup of its self while in localview */
-	struct RenderInfo *ri;
-	struct RenderEngine *render_engine;
-	struct ViewDepths *depths;
-	
-	/* animated smooth view */
-	struct SmoothViewStore *sms;
-	struct wmTimer *smooth_timer;
-	
+
 	/* last view */
 	float lviewquat[4];
 	short lpersp, lview; /* lpersp can never be set to 'RV3D_CAMOB' */
@@ -137,11 +140,10 @@ typedef struct RegionView3D {
 	
 	float twangle[3];
 
+
 	/* active rotation from NDOF or elsewhere */
 	float rot_angle;
 	float rot_axis[3];
-	
-	char pad2[4];
 
 } RegionView3D;
 

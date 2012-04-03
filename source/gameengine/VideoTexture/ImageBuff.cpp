@@ -324,7 +324,7 @@ static PyObject * plot (PyImage * self, PyObject * args)
 	if (PyArg_ParseTuple(args, "s*hhhh|h:plot", &buffer, &width, &height, &x, &y, &mode))
 	{
 		// correct decoding, verify that buffer size is correct
-		// we need a continous memory buffer
+		// we need a continuous memory buffer
 		if (testPyBuffer(&buffer, width, height, 4))
 		{
 			getImageBuff(self)->plot((unsigned char*)buffer.buf, width, height, x, y, mode);
@@ -370,7 +370,7 @@ static PyGetSetDef imageBuffGetSets[] =
 	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
-	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbor)", NULL},
 	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
 	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{NULL}

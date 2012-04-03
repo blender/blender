@@ -96,7 +96,7 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 		lt->dvert= NULL;
 	}
 	
-	while(uNew*vNew*wNew > 32000) {
+	while (uNew*vNew*wNew > 32000) {
 		if ( uNew>=vNew && uNew>=wNew) uNew--;
 		else if ( vNew>=uNew && vNew>=wNew) vNew--;
 		else wNew--;
@@ -153,7 +153,7 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 
 		copy_m4_m4(mat, ltOb->obmat);
 		unit_m4(ltOb->obmat);
-		lattice_deform_verts(ltOb, NULL, NULL, vertexCos, uNew*vNew*wNew, NULL);
+		lattice_deform_verts(ltOb, NULL, NULL, vertexCos, uNew*vNew*wNew, NULL, 1.0f);
 		copy_m4_m4(ltOb->obmat, mat);
 
 		lt->typeu = typeu;
@@ -329,7 +329,8 @@ void init_latt_deform(Object *oblatt, Object *ob)
 					fp[0] = co[0] - fu;
 					fp[1] = co[1] - fv;
 					fp[2] = co[2] - fw;
-				} else {
+				}
+				else {
 					fp[0] = bp->vec[0] - fu;
 					fp[1] = bp->vec[1] - fv;
 					fp[2] = bp->vec[2] - fw;
@@ -459,7 +460,7 @@ void end_latt_deform(Object *ob)
 }
 
 	/* calculations is in local space of deformed object
-	   so we store in latmat transform from path coord inside object 
+	 * so we store in latmat transform from path coord inside object 
 	 */
 typedef struct {
 	float dmin[3], dmax[3];
@@ -661,8 +662,10 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 			use_vgroups = 0;
 		else
 			use_vgroups = 1;
-	} else
+	}
+	else {
 		use_vgroups = 0;
+	}
 	
 	if (vgroup && vgroup[0] && use_vgroups) {
 		Mesh *me= target->data;
@@ -782,7 +785,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
 }
 
 void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
-                          float (*vertexCos)[3], int numVerts, const char *vgroup)
+                          float (*vertexCos)[3], int numVerts, const char *vgroup, float fac)
 {
 	int a;
 	int use_vgroups;
@@ -802,8 +805,10 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 			use_vgroups = 0;
 		else
 			use_vgroups = 1;
-	} else
+	}
+	else {
 		use_vgroups = 0;
+	}
 	
 	if (vgroup && vgroup[0] && use_vgroups) {
 		Mesh *me = target->data;
@@ -819,12 +824,13 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 				weight= defvert_find_weight(dvert, index);
 
 				if (weight > 0.0f)
-					calc_latt_deform(laOb, vertexCos[a], weight);
+					calc_latt_deform(laOb, vertexCos[a], weight * fac);
 			}
 		}
-	} else {
+	}
+	else {
 		for (a = 0; a < numVerts; a++) {
-			calc_latt_deform(laOb, vertexCos[a], 1.0f);
+			calc_latt_deform(laOb, vertexCos[a], fac);
 		}
 	}
 	end_latt_deform(laOb);
@@ -837,11 +843,12 @@ int object_deform_mball(Object *ob, ListBase *dispbase)
 
 		for (dl=dispbase->first; dl; dl=dl->next) {
 			lattice_deform_verts(ob->parent, ob, NULL,
-								 (float(*)[3]) dl->verts, dl->nr, NULL);
+								 (float(*)[3]) dl->verts, dl->nr, NULL, 1.0f);
 		}
 
 		return 1;
-	} else {
+	}
+	else {
 		return 0;
 	}
 }

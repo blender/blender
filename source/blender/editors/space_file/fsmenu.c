@@ -177,7 +177,8 @@ void fsmenu_insert_entry(struct FSMenu* fsmenu, FSMenuCategory category, const c
 			else if (sorted && cmp_ret < 0) {
 				break;
 			}
-		} else {
+		}
+		else {
 			// if we're bookmarking this, file should come 
 			// before the last separator, only automatically added
 			// current dir go after the last sep.
@@ -194,7 +195,8 @@ void fsmenu_insert_entry(struct FSMenu* fsmenu, FSMenuCategory category, const c
 	if (prev) {
 		fsme->next= prev->next;
 		prev->next= fsme;
-	} else {
+	}
+	else {
 		fsme->next= fsms;
 		fsmenu_set_category(fsmenu, category, fsme);
 	}
@@ -210,14 +212,15 @@ void fsmenu_remove_entry(struct FSMenu* fsmenu, FSMenuCategory category, int idx
 
 	if (fsme) {
 		/* you should only be able to remove entries that were 
-		   not added by default, like windows drives.
-		   also separators (where path == NULL) shouldn't be removed */
+		 * not added by default, like windows drives.
+		 * also separators (where path == NULL) shouldn't be removed */
 		if (fsme->save && fsme->path) {
 
 			/* remove fsme from list */
 			if (prev) {
 				prev->next= fsme->next;
-			} else {
+			}
+			else {
 				fsms= fsme->next;
 				fsmenu_set_category(fsmenu, category, fsms);
 			}
@@ -233,7 +236,7 @@ void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
 	FSMenuEntry *fsme= NULL;
 	int nskip= 0;
 
-	FILE *fp = fopen(filename, "w");
+	FILE *fp = BLI_fopen(filename, "w");
 	if (!fp) return;
 	
 	fprintf(fp, "[Bookmarks]\n");
@@ -262,16 +265,18 @@ void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
 	FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
 	FILE *fp;
 
-	fp = fopen(filename, "r");
+	fp = BLI_fopen(filename, "r");
 	if (!fp) return;
 
 	while ( fgets ( line, 256, fp ) != NULL ) /* read a line */
 	{
-		if (strncmp(line, "[Bookmarks]", 11)==0){
+		if (strncmp(line, "[Bookmarks]", 11)==0) {
 			category = FS_CATEGORY_BOOKMARKS;
-		} else if (strncmp(line, "[Recent]", 8)==0){
+		}
+		else if (strncmp(line, "[Recent]", 8)==0) {
 			category = FS_CATEGORY_RECENT;
-		} else {
+		}
+		else {
 			int len = strlen(line);
 			if (len>0) {
 				if (line[len-1] == '\n') {
@@ -334,17 +339,17 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 				continue;
 			
 			FSRefMakePath(&dir, path, FILE_MAX);
-			if (strcmp((char*)path, "/home") && strcmp((char*)path, "/net"))
-			{ /* /net and /home are meaningless on OSX, home folders are stored in /Users */
+			if (strcmp((char*)path, "/home") && strcmp((char*)path, "/net")) {
+				/* /net and /home are meaningless on OSX, home folders are stored in /Users */
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
 			}
 		}
 
 		/* As 10.4 doesn't provide proper API to retrieve the favorite places,
-		 assume they are the standard ones 
-		 TODO : replace hardcoded paths with proper BLI_get_folder calls */
+		 * assume they are the standard ones 
+		 * TODO : replace hardcoded paths with proper BLI_get_folder calls */
 		home = getenv("HOME");
-		if(home) {
+		if (home) {
 			BLI_snprintf(line, 256, "%s/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 			BLI_snprintf(line, 256, "%s/Desktop/", home);
@@ -465,7 +470,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 	{
 		const char *home= getenv("HOME");
 
-		if(home) {
+		if (home) {
 			BLI_snprintf(line, FILE_MAXDIR, "%s/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 			BLI_snprintf(line, FILE_MAXDIR, "%s/Desktop/", home);
@@ -489,11 +494,11 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 			else {
 				while ((mnt = getmntent (fp))) {
 					/* not sure if this is right, but seems to give the relevant mnts */
-					if(strncmp(mnt->mnt_fsname, "/dev", 4))
+					if (strncmp(mnt->mnt_fsname, "/dev", 4))
 						continue;
 
 					len= strlen(mnt->mnt_dir);
-					if(len && mnt->mnt_dir[len-1] != '/') {
+					if (len && mnt->mnt_dir[len-1] != '/') {
 						BLI_snprintf(line, FILE_MAXDIR, "%s/", mnt->mnt_dir);
 						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, 1, 0);
 					}
@@ -509,7 +514,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 #endif
 
 			/* fallback */
-			if(!found)
+			if (!found)
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, "/", 1, 0);
 		}
 	}

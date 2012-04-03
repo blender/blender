@@ -108,7 +108,7 @@ void CParser::TermChar(char c)
 {
 	// generates an error if the next char isn't the specified char c,
 	// otherwise, skip the char
-	if(ch == c)
+	if (ch == c)
 	{
 		NextCh();
 	}
@@ -166,7 +166,7 @@ void CParser::GrabRealString(int start)
 	const_as_string = STR_String();
 	for (i=start;i<chcount;i++) {
 		tmpch= text[i];
-		if ((tmpch =='\\') && (text[i+1] == 'n')){
+		if ((tmpch =='\\') && (text[i+1] == 'n')) {
 			tmpch = '\n';
 			i++;
 		}
@@ -379,7 +379,7 @@ void CParser::Term(int s)
 {
 	// generates an error if the next symbol isn't the specified symbol s
 	// otherwise, skip the symbol
-	if(s == sym) NextSym();
+	if (s == sym) NextSym();
 	else {
 		STR_String msg;
 		msg.Format("Warning: " + Symbol2Str(s) + " expected\ncontinuing without it");
@@ -579,12 +579,12 @@ CExpression* CParser::ProcessText
 	}
 	
 	ch = text[0];
-	/*if (ch != '=') {
-	expr = new CConstExpr(new CStringValue(text));
-	*dependant = deplist;
-	return expr;
-	} else 
-	*/
+	/* if (ch != '=') {
+	 * expr = new CConstExpr(new CStringValue(text));
+	 * *dependent = deplist;
+	 * return expr;
+	 * } else
+	 */
 	//	NextCh();
 	NextSym();
 	expr = Expr();

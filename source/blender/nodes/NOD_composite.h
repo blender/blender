@@ -55,7 +55,6 @@ void register_node_type_cmp_composite(struct bNodeTreeType *ttype);
 void register_node_type_cmp_viewer(struct bNodeTreeType *ttype);
 void register_node_type_cmp_splitviewer(struct bNodeTreeType *ttype);
 void register_node_type_cmp_output_file(struct bNodeTreeType *ttype);
-void register_node_type_cmp_output_multi_file(struct bNodeTreeType *ttype);
 void register_node_type_cmp_view_levels(struct bNodeTreeType *ttype);
 
 void register_node_type_cmp_curve_rgb(struct bNodeTreeType *ttype);

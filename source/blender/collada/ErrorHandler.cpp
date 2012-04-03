@@ -83,5 +83,9 @@ bool ErrorHandler::handleError( const COLLADASaxFWL::IError* error )
 		COLLADASaxFWL::SaxFWLError* saxFWLError = (COLLADASaxFWL::SaxFWLError*) error;
 		std::cout << "Sax FWL Error: " << saxFWLError->getErrorMessage() << std::endl;
 	}
+	else {
+		std::cout << "opencollada error: " << error->getFullErrorMessage() << std::endl;
+	}
+
 	return false;
 }

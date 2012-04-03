@@ -20,7 +20,7 @@
 #define __SUBD_SPLIT_H__
 
 /* DiagSplit: Parallel, Crack-free, Adaptive Tessellation for Micropolygon Rendering
- * Splits up patches and determines edge tesselation factors for dicing. Patch
+ * Splits up patches and determines edge tessellation factors for dicing. Patch
  * evaluation at arbitrary points is required for this to work. See the paper
  * for more details. */
 

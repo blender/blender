@@ -45,15 +45,16 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 {
 	MVert *mv, *mvert;
 	MEdge *me, *medge;
-	MPoly *mpoly, *mp;
+	MPoly /* *mpoly, */ /* UNUSED */ *mp;
 	MLoop *mloop, *ml;
 	BMVert *v, **vtable, **verts = NULL;
 	BMEdge *e, **etable, **edges = NULL;
+	float has_face_normals;
 	BMFace *f;
 	BMIter liter;
 	BLI_array_declare(verts);
 	BLI_array_declare(edges);
-	int i, j, k, totvert, totedge, totface;
+	int i, j, k, totvert, totedge /* , totface */ /* UNUSED */ ;
 
 	/*merge custom data layout*/
 	CustomData_bmesh_merge(&dm->vertData, &bm->vdata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_VERT);
@@ -63,7 +64,10 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
-	totface = dm->getNumPolys(dm);
+	/* totface = dm->getNumPolys(dm); */ /* UNUSED */
+
+	/* add crease layer */
+	BM_data_layer_add(bm, &bm->edata, CD_CREASE);
 
 	vtable = MEM_callocN(sizeof(void**) * totvert, "vert table in BMDM_Copy");
 	etable = MEM_callocN(sizeof(void**) * totedge, "edge table in BMDM_Copy");
@@ -89,12 +93,16 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 		CustomData_to_bmesh_block(&dm->edgeData, &bm->edata, i, &e->head.data);
 		etable[i] = e;
+
+		/* add crease */
+		BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (float)me->crease / 255.0f);
 	}
 	MEM_freeN(medge);
 
 	/*do faces*/
-	mpoly = mp = dm->getPolyArray(dm);
+	mp = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
+	has_face_normals = CustomData_has_layer(&dm->polyData, CD_NORMAL);
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		BMLoop *l;
 
@@ -120,13 +128,19 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		f->mat_nr = mp->mat_nr;
 
 		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
-		k = mp->loopstart;
 
-		for (j = 0; l; l = BM_iter_step(&liter), k++) {
+		for (k = mp->loopstart; l; l = BM_iter_step(&liter), k++) {
 			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, k, &l->head.data);
 		}
 
 		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, i, &f->head.data);
+
+		if (has_face_normals) {
+			float *fno;
+
+			fno = CustomData_bmesh_get(&bm->pdata, &f->head.data, CD_NORMAL);
+			copy_v3_v3(f->no, fno);
+		}
 	}
 
 	MEM_freeN(vtable);
@@ -138,33 +152,37 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 /* converts a cddm to a BMEditMesh.  if existing is non-NULL, the
  * new geometry will be put in there.*/
-BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int do_tesselate)
+BMEditMesh *DM_to_editbmesh(DerivedMesh *dm, BMEditMesh *existing, int do_tessellate)
 {
 	BMEditMesh *em = existing;
 	BMesh *bm;
 
-	if (em) bm = em->bm;
-	else bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
+	if (em) {
+		bm = em->bm;
+	}
+	else {
+		bm = BM_mesh_create(&bm_mesh_allocsize_default);
+	}
 
 	DM_to_bmesh_ex(dm, bm);
 
 	if (!em) {
-		em = BMEdit_Create(bm, do_tesselate);
+		em = BMEdit_Create(bm, do_tessellate);
 	}
 	else {
-		if (do_tesselate) {
-			BMEdit_RecalcTesselation(em);
+		if (do_tessellate) {
+			BMEdit_RecalcTessellation(em);
 		}
 	}
 
 	return em;
 }
 
-BMesh *DM_to_bmesh(Object *ob, DerivedMesh *dm)
+BMesh *DM_to_bmesh(DerivedMesh *dm)
 {
 	BMesh *bm;
 
-	bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
+	bm = BM_mesh_create(&bm_mesh_allocsize_default);
 
 	DM_to_bmesh_ex(dm, bm);
 

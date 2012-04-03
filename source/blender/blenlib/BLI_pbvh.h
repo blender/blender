@@ -26,13 +26,16 @@
  *  \brief A BVH for high poly meshes.
  */
 
-struct MFace;
-struct MVert;
+#include "BLI_bitmap.h"
+
+struct DMFlagMat;
 struct DMGridAdjacency;
 struct DMGridData;
+struct ListBase;
+struct MFace;
+struct MVert;
 struct PBVH;
 struct PBVHNode;
-struct ListBase;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
@@ -56,12 +59,13 @@ void BLI_pbvh_build_mesh(PBVH *bvh, struct MFace *faces, struct MVert *verts,
 			int totface, int totvert);
 void BLI_pbvh_build_grids(PBVH *bvh, struct DMGridData **grids,
 	struct DMGridAdjacency *gridadj, int totgrid,
-	int gridsize, void **gridfaces);
+	int gridsize, void **gridfaces, struct DMFlagMat *flagmats,
+	unsigned int **grid_hidden);
 void BLI_pbvh_free(PBVH *bvh);
 
 /* Hierarchical Search in the BVH, two methods:
-   * for each hit calling a callback
-   * gather nodes in an array (easy to multithread) */
+ * - for each hit calling a callback
+ * - gather nodes in an array (easy to multithread) */
 
 void BLI_pbvh_search_callback(PBVH *bvh,
 	BLI_pbvh_SearchCallback scb, void *search_data,
@@ -72,9 +76,9 @@ void BLI_pbvh_search_gather(PBVH *bvh,
 	PBVHNode ***array, int *tot);
 
 /* Raycast
-   the hit callback is called for all leaf nodes intersecting the ray;
-   it's up to the callback to find the primitive within the leaves that is
-   hit first */
+ * the hit callback is called for all leaf nodes intersecting the ray;
+ * it's up to the callback to find the primitive within the leaves that is
+ * hit first */
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
                       float ray_start[3], float ray_normal[3], int original);
@@ -84,8 +88,19 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 /* Drawing */
 
 void BLI_pbvh_node_draw(PBVHNode *node, void *data);
-int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
-void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smooth);
+void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
+				   int (*setMaterial)(int, void *attribs));
+
+/* PBVH Access */
+typedef enum {
+	PBVH_FACES,
+	PBVH_GRIDS,
+} PBVHType;
+
+PBVHType BLI_pbvh_type(const PBVH *bvh);
+
+/* multires hidden data, only valid for type == PBVH_GRIDS */
+unsigned int **BLI_pbvh_grid_hidden(const PBVH *bvh);
 
 /* Node Access */
 
@@ -96,10 +111,15 @@ typedef enum {
 	PBVH_UpdateBB = 4,
 	PBVH_UpdateOriginalBB = 8,
 	PBVH_UpdateDrawBuffers = 16,
-	PBVH_UpdateRedraw = 32
+	PBVH_UpdateRedraw = 32,
+
+	PBVH_RebuildDrawBuffers = 64,
+	PBVH_FullyHidden = 128
 } PBVHNodeFlags;
 
 void BLI_pbvh_node_mark_update(PBVHNode *node);
+void BLI_pbvh_node_mark_rebuild_draw(PBVHNode *node);
+void BLI_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden);
 
 void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node,
 	int **grid_indices, int *totgrid, int *maxgrid, int *gridsize,
@@ -113,6 +133,11 @@ void BLI_pbvh_node_get_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
 void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
 
 float BLI_pbvh_node_get_tmin(PBVHNode* node);
+
+/* test if AABB is at least partially inside the planes' volume */
+int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
+/* test if AABB is at least partially outside the planes' volume */
+int BLI_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data);
 
 /* Update Normals/Bounding Box/Draw Buffers/Redraw and clear flags */
 
@@ -131,9 +156,11 @@ int BLI_pbvh_isDeformed(struct PBVH *pbvh);
 /* Vertex Iterator */
 
 /* this iterator has quite a lot of code, but it's designed to:
-   - allow the compiler to eliminate dead code and variables
-   - spend most of the time in the relatively simple inner loop */
+ * - allow the compiler to eliminate dead code and variables
+ * - spend most of the time in the relatively simple inner loop */
 
+/* note: PBVH_ITER_ALL does not skip hidden vertices,
+   PBVH_ITER_UNIQUE does */
 #define PBVH_ITER_ALL		0
 #define PBVH_ITER_UNIQUE	1
 
@@ -149,6 +176,7 @@ typedef struct PBVHVertexIter {
 	/* grid */
 	struct DMGridData **grids;
 	struct DMGridData *grid;
+	BLI_bitmap *grid_hidden, gh;
 	int *grid_indices;
 	int totgrid;
 	int gridsize;
@@ -159,7 +187,7 @@ typedef struct PBVHVertexIter {
 	int *vert_indices;
 
 	/* result: these are all computed in the macro, but we assume
-	   that compiler optimizations will skip the ones we don't use */
+	 * that compiler optimization's will skip the ones we don't use */
 	struct MVert *mvert;
 	float *co;
 	short *no;
@@ -181,6 +209,8 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 			vi.width= vi.gridsize; \
 			vi.height= vi.gridsize; \
 			vi.grid= vi.grids[vi.grid_indices[vi.g]]; \
+			if(mode == PBVH_ITER_UNIQUE) \
+				vi.gh= vi.grid_hidden[vi.grid_indices[vi.g]];	\
 		} \
 		else { \
 			vi.width= vi.totvert; \
@@ -193,9 +223,15 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 					vi.co= vi.grid->co; \
 					vi.fno= vi.grid->no; \
 					vi.grid++; \
+					if(vi.gh) { \
+						if(BLI_BITMAP_GET(vi.gh, vi.gy * vi.gridsize + vi.gx)) \
+							continue; \
+					} \
 				} \
 				else { \
 					vi.mvert= &vi.mverts[vi.vert_indices[vi.gx]]; \
+					if(mode == PBVH_ITER_UNIQUE && vi.mvert->flag & ME_HIDE) \
+						continue; \
 					vi.co= vi.mvert->co; \
 					vi.no= vi.mvert->no; \
 				} \

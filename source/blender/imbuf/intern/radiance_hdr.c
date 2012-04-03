@@ -30,12 +30,12 @@
  */
 
 /* ----------------------------------------------------------------------
-  Radiance High Dynamic Range image file IO
-  For description and code for reading/writing of radiance hdr files 
-	by Greg Ward, refer to:
-  http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
-----------------------------------------------------------------------
-*/
+ * Radiance High Dynamic Range image file IO
+ * For description and code for reading/writing of radiance hdr files
+ * by Greg Ward, refer to:
+ * http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
+ * ----------------------------------------------------------------------
+ */
 
 #ifdef WIN32
 #  include <io.h>
@@ -43,7 +43,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 
 #include "imbuf.h"
 
@@ -183,8 +183,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags)
 	unsigned char* ptr;
 	char oriY[80], oriX[80];
 
-	if (imb_is_a_hdr((void*)mem))
-	{
+	if (imb_is_a_hdr((void *)mem)) {
 		/* find empty line, next line is resolution info */
 		for (x=1;x<size;x++) {
 			if ((mem[x-1]=='\n') && (mem[x]=='\n')) {
@@ -263,7 +262,8 @@ static int fwritecolrs(FILE* file, int width, int channels, unsigned char* ibufs
 			fcol[RED] = fpscan[j];
 			fcol[GRN] = (channels >= 2)? fpscan[j+1]: fpscan[j];
 			fcol[BLU] = (channels >= 3)? fpscan[j+2]: fpscan[j];
-		} else {
+		}
+		else {
 			fcol[RED] = (float)ibufscan[j] / 255.f;
 			fcol[GRN] = (float)((channels >= 2)? ibufscan[j+1]: ibufscan[j]) / 255.f;
 			fcol[BLU] = (float)((channels >= 3)? ibufscan[j+2]: ibufscan[j]) / 255.f;
@@ -333,7 +333,7 @@ static void writeHeader(FILE *file, int width, int height)
 
 int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 {
-	FILE* file = fopen(name, "wb");
+	FILE* file = BLI_fopen(name, "wb");
 	float *fp= NULL;
 	int y, width=ibuf->x, height=ibuf->y;
 	unsigned char *cp= NULL;
@@ -344,9 +344,9 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 
 	writeHeader(file, width, height);
 
-	if(ibuf->rect)
+	if (ibuf->rect)
 		cp= (unsigned char *)ibuf->rect + ibuf->channels*(height-1)*width;
-	if(ibuf->rect_float)
+	if (ibuf->rect_float)
 		fp= ibuf->rect_float + ibuf->channels*(height-1)*width;
 	
 	for (y=height-1;y>=0;y--) {
@@ -355,8 +355,8 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 			printf("HDR write error\n");
 			return 0;
 		}
-		if(cp) cp-= ibuf->channels*width;
-		if(fp) fp-= ibuf->channels*width;
+		if (cp) cp-= ibuf->channels*width;
+		if (fp) fp-= ibuf->channels*width;
 	}
 
 	fclose(file);

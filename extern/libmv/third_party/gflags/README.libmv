@@ -1,7 +1,7 @@
 Project: Google Flags
 URL: http://code.google.com/p/google-gflags/
 License: New BSD
-Upstream version: 1.5
+Upstream version: 2.0
 Local modifications:
 
 - Flattened the tree and only included files needed for libmv. This involved

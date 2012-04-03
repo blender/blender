@@ -27,7 +27,9 @@
 namespace libmv {
 
 struct BruteRegionTracker : public RegionTracker {
-  BruteRegionTracker() : half_window_size(4) {}
+  BruteRegionTracker()
+      : half_window_size(4),
+      minimum_correlation(0.78) {}
   
   virtual ~BruteRegionTracker() {}
 
@@ -39,6 +41,7 @@ struct BruteRegionTracker : public RegionTracker {
 
   // No point in creating getters or setters.
   int half_window_size;
+  double minimum_correlation;
 };
 
 }  // namespace libmv

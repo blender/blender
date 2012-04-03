@@ -99,7 +99,7 @@ public:
 	virtual bool UnlinkObject(SCA_IObject* clientobj);
 	const MT_Vector3& GetSteeringVec();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -113,7 +113,7 @@ public:
 	static PyObject* pyattr_get_steeringVec(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 }; /* end of class KX_SteeringActuator : public SCA_PropertyActuator */
 

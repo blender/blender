@@ -31,7 +31,7 @@
 
 #include "bmesh.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 /*
  * JOIN_TRIANGLES.C
@@ -50,13 +50,13 @@
 static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
                               BMVert *v3, BMVert *v4, float limit)
 {
-	/* gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would mak */
+	/* gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would make */
 	/* Note: this is more complicated than it needs to be and should be cleaned up.. */
 	float n1[3], n2[3], measure = 0.0f, angle1, angle2, diff;
 	float edgeVec1[3], edgeVec2[3], edgeVec3[3], edgeVec4[3];
 	float minarea, maxarea, areaA, areaB;
 
-	/* First Test: Normal differenc */
+	/* First Test: Normal difference */
 	normal_tri_v3(n1, v1->co, v2->co, v3->co);
 	normal_tri_v3(n2, v1->co, v3->co, v4->co);
 
@@ -74,7 +74,7 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 		return measure;
 	}
 
-	/* Second test: Colinearit */
+	/* Second test: Colinearity */
 	sub_v3_v3v3(edgeVec1, v1->co, v2->co);
 	sub_v3_v3v3(edgeVec2, v2->co, v3->co);
 	sub_v3_v3v3(edgeVec3, v3->co, v4->co);
@@ -95,7 +95,7 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 		return measure;
 	}
 
-	/* Third test: Concavit */
+	/* Third test: Concavity */
 	areaA = area_tri_v3(v1->co, v2->co, v3->co) + area_tri_v3(v1->co, v3->co, v4->co);
 	areaB = area_tri_v3(v2->co, v3->co, v4->co) + area_tri_v3(v4->co, v1->co, v2->co);
 
@@ -176,7 +176,9 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 
 	/* do UV */
 	if (luv1 && douvs) {
-		if (tp1->tpage != tp2->tpage); /* do nothin */
+		if (tp1->tpage != tp2->tpage) {
+			/* do nothing */
+		}
 		else {
 			int i;
 
@@ -251,13 +253,10 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
-		if (BM_edge_face_count(e) != 2) {
+		if (!BM_edge_face_pair(e, &f1, &f2)) {
 			BMO_elem_flag_disable(bm, e, EDGE_MARK);
 			continue;
 		}
-
-		f1 = e->l->f;
-		f2 = e->l->radial_next->f;
 
 		if (f1->len != 3 || f2->len != 3) {
 			BMO_elem_flag_disable(bm, e, EDGE_MARK);
@@ -332,9 +331,8 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_elem_flag_test(bm, e, EDGE_CHOSEN))
 			continue;
 
-		f1 = e->l->f;
-		f2 = e->l->radial_next->f;
 
+		BM_edge_face_pair(e, &f1, &f2); /* checked above */
 		BM_faces_join_pair(bm, f1, f2, e);
 	}
 

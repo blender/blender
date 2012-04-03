@@ -53,7 +53,7 @@ class SCA_RandomNumberGenerator {
 	unsigned long mt[624];
 
 	/** mti==N+1 means mt[KX_MT_VectorLenght] is not initialized */
-	int mti; /* initialised in the cpp file */
+	int mti; /* initialized in the cpp file */
 
 	/** Calculate a start vector */
 	void SetStartVector(void);

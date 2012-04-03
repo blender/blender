@@ -7,4 +7,9 @@ incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna 
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' #/intern/audaspace/intern ../../blenloader'
 
-env.BlenderLib ( 'bf_editors_space_graph', sources, Split(incs), [], libtype=['core'], priority=[50] )
+defs = []
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
+env.BlenderLib ( 'bf_editors_space_graph', sources, Split(incs), defs, libtype=['core'], priority=[50] )

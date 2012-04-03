@@ -359,7 +359,7 @@ static int setBackground (PyImage * self, PyObject * value, void * closure)
 	getImageRender(self)->setBackground((unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
 		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))),
 		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2))),
-        (unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 3))));
+		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 3))));
 	// success
 	return 0;
 }
@@ -383,7 +383,7 @@ static PyGetSetDef imageRenderGetSets[] =
 	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
-	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)",	NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbor)",	NULL},
 	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
 	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{NULL}
@@ -459,7 +459,7 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 		else
 			THRWEXCP(SceneInvalid, S_OK);
 		
-		if(scenePtr==NULL) /* incase the python proxy reference is invalid */
+		if (scenePtr==NULL) /* in case the python proxy reference is invalid */
 			THRWEXCP(SceneInvalid, S_OK);
 		
 		// get observer pointer
@@ -471,7 +471,7 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 		else
 			THRWEXCP(ObserverInvalid, S_OK);
 		
-		if(observerPtr==NULL) /* incase the python proxy reference is invalid */
+		if (observerPtr==NULL) /* in case the python proxy reference is invalid */
 			THRWEXCP(ObserverInvalid, S_OK);
 
 		// get mirror pointer
@@ -481,7 +481,7 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 		else
 			THRWEXCP(MirrorInvalid, S_OK);
 		
-		if(mirrorPtr==NULL) /* incase the python proxy reference is invalid */
+		if (mirrorPtr==NULL) /* in case the python proxy reference is invalid */
 			THRWEXCP(MirrorInvalid, S_OK);
 
 		// locate the material in the mirror
@@ -545,7 +545,7 @@ static PyGetSetDef imageMirrorGetSets[] =
 	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
-	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)",	NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbor)",	NULL},
 	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
 	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{NULL}

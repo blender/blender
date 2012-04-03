@@ -33,40 +33,40 @@ typedef struct RayObjectControl {
 int RE_rayobjectcontrol_test_break(RayObjectControl *c);
 
 /* RayObject
-	
-	A ray object is everything where we can cast rays like:
-		* a face/triangle
-		* an octree
-		* a bvh tree
-		* an octree of bvh's
-		* a bvh of bvh's
-	
-		
-	All types of RayObjects can be created by implementing the
-	callbacks of the RayObject.
-
-	Due to high computing time evolved with casting on faces
-	there is a special type of RayObject (named RayFace)
-	which won't use callbacks like other generic nodes.
-	
-	In order to allow a mixture of RayFace+RayObjects,
-	all RayObjects must be 4byte aligned, allowing us to use the
-	2 least significant bits (with the mask 0x03) to define the
-	type of RayObject.
-	
-	This leads to 4 possible types of RayObject:
-
-	 addr&3  - type of object
-		0		Self (reserved for each structure)
-		1     	RayFace (tri/quad primitive)
-		2		RayObject (generic with API callbacks)
-		3		VlakPrimitive
-				(vlak primitive - to be used when we have a vlak describing the data
-				 eg.: on render code)
-
-	0 means it's reserved and has it own meaning inside each ray acceleration structure
-	(this way each structure can use the allign offset to determine if a node represents a
-	 RayObject primitive, which can be used to save memory)
+ *
+ *  A ray object is everything where we can cast rays like:
+ *      * a face/triangle
+ *      * an octree
+ *      * a bvh tree
+ *      * an octree of bvh's
+ *      * a bvh of bvh's
+ *
+ *
+ *  All types of RayObjects can be created by implementing the
+ *  callbacks of the RayObject.
+ *
+ *  Due to high computing time evolved with casting on faces
+ *  there is a special type of RayObject (named RayFace)
+ *  which won't use callbacks like other generic nodes.
+ *
+ *  In order to allow a mixture of RayFace+RayObjects,
+ *  all RayObjects must be 4byte aligned, allowing us to use the
+ *  2 least significant bits (with the mask 0x03) to define the
+ *  type of RayObject.
+ *
+ *  This leads to 4 possible types of RayObject:
+ *
+ *   addr&3  - type of object
+ *      0       Self (reserved for each structure)
+ *      1       RayFace (tri/quad primitive)
+ *      2       RayObject (generic with API callbacks)
+ *      3       VlakPrimitive
+ *              (vlak primitive - to be used when we have a vlak describing the data
+ *               eg.: on render code)
+ *
+ *  0 means it's reserved and has it own meaning inside each ray acceleration structure
+ *  (this way each structure can use the allign offset to determine if a node represents a
+ *   RayObject primitive, which can be used to save memory)
  */
 
 /* used to test the type of ray object */

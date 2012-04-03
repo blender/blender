@@ -36,7 +36,7 @@
  */
 
 /**
- * @attention Defined in scanfill.c
+ * \attention Defined in scanfill.c
  */
 extern struct ListBase fillvertbase;
 extern struct ListBase filledgebase;
@@ -82,7 +82,7 @@ struct ScanFillVert *BLI_addfillvert(const float vec[3]);
 struct ScanFillEdge *BLI_addfilledge(struct ScanFillVert *v1, struct ScanFillVert *v2);
 
 /* Optionally set ScanFillEdge f to this to mark original boundary edges.
-  Only needed if there are internal diagonal edges pased to BLI_edgefill. */
+ * Only needed if there are internal diagonal edges passed to BLI_edgefill. */
 #define FILLBOUNDARY 1
 
 int BLI_begin_edgefill(void);
@@ -94,8 +94,8 @@ void BLI_end_edgefill(void);
 /**
  * Set a function taking a char* as argument to flag errors. If the
  * callback is not set, the error is discarded.
- * @param f The function to use as callback
- * @attention used in creator.c
+ * \param f The function to use as callback
+ * \attention used in creator.c
  */
 void BLI_setErrorCallBack(void (*f)(const char*));
 
@@ -104,8 +104,8 @@ void BLI_setErrorCallBack(void (*f)(const char*));
  * in this module. If the function returns true, the execution will
  * terminate gracefully. If the callback is not set, interruption is
  * not possible.
- * @param f The function to use as callback
- * @attention used in creator.c
+ * \param f The function to use as callback
+ * \attention used in creator.c
  */
 void BLI_setInterruptCallBack(int (*f)(void));
 

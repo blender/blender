@@ -21,6 +21,14 @@ import bpy
 from bpy.types import Operator
 import mathutils
 
+from bpy.props import (FloatProperty,
+                       IntProperty,
+                       BoolProperty,
+                       FloatVectorProperty,
+                       )
+
+from bpy_extras import object_utils
+
 
 def add_torus(major_rad, minor_rad, major_seg, minor_seg):
     from math import cos, sin, pi
@@ -75,14 +83,8 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
 
     return verts, faces
 
-from bpy.props import (FloatProperty,
-                       IntProperty,
-                       BoolProperty,
-                       FloatVectorProperty,
-                       )
 
-
-class AddTorus(Operator):
+class AddTorus(Operator, object_utils.AddObjectHelper):
     '''Add a torus mesh'''
     bl_idname = "mesh.primitive_torus_add"
     bl_label = "Add Torus"
@@ -131,42 +133,32 @@ class AddTorus(Operator):
             default=0.5,
             )
 
-    # generic transform props
-    view_align = BoolProperty(
-            name="Align to View",
-            default=False,
-            )
-    location = FloatVectorProperty(
-            name="Location",
-            subtype='TRANSLATION',
-            )
-    rotation = FloatVectorProperty(
-            name="Rotation",
-            subtype='EULER',
-            )
-
     def execute(self, context):
-
         if self.use_abso == True:
             extra_helper = (self.abso_major_rad - self.abso_minor_rad) * 0.5
             self.major_radius = self.abso_minor_rad + extra_helper
             self.minor_radius = extra_helper
 
         verts_loc, faces = add_torus(self.major_radius,
-                                    self.minor_radius,
-                                    self.major_segments,
-                                    self.minor_segments)
+                                     self.minor_radius,
+                                     self.major_segments,
+                                     self.minor_segments)
 
         mesh = bpy.data.meshes.new("Torus")
 
         mesh.vertices.add(len(verts_loc) // 3)
-        mesh.faces.add(len(faces) // 4)
+
+        nbr_loops = len(faces)
+        nbr_polys = nbr_loops // 4
+        mesh.loops.add(nbr_loops)
+        mesh.polygons.add(nbr_polys)
 
         mesh.vertices.foreach_set("co", verts_loc)
-        mesh.faces.foreach_set("vertices_raw", faces)
+        mesh.polygons.foreach_set("loop_start", range(0, nbr_loops, 4))
+        mesh.polygons.foreach_set("loop_total", (4,) * nbr_polys)
+        mesh.loops.foreach_set("vertex_index", faces)
         mesh.update()
 
-        from bpy_extras import object_utils
         object_utils.object_data_add(context, mesh, operator=self)
 
         return {'FINISHED'}

@@ -53,7 +53,7 @@ UpdateChildCoordinates(
 	SG_Spatial * child,
 	const SG_Spatial * parent,
 	bool& parentUpdated	
-){
+) {
 	MT_assert(child != NULL);
 
 	if (!parentUpdated && !child->IsModified())
@@ -83,20 +83,20 @@ UpdateChildCoordinates(
 	SG_ParentRelation *
 KX_NormalParentRelation::
 NewCopy(
-){
+) {
 	return new KX_NormalParentRelation();
 }
 
 KX_NormalParentRelation::
 ~KX_NormalParentRelation(
-){
+) {
 	//nothing to do
 }
 
 
 KX_NormalParentRelation::
 KX_NormalParentRelation(
-){
+) {
 	// nothing to do
 }
 
@@ -108,7 +108,7 @@ KX_NormalParentRelation(
 	KX_VertexParentRelation *
 KX_VertexParentRelation::
 New(
-){
+) {
 	return new KX_VertexParentRelation();
 }
 		
@@ -122,7 +122,7 @@ UpdateChildCoordinates(
 	SG_Spatial * child,
 	const SG_Spatial * parent,
 	bool& parentUpdated	
-){
+) {
 
 	MT_assert(child != NULL);
 
@@ -148,20 +148,20 @@ UpdateChildCoordinates(
 	SG_ParentRelation *
 KX_VertexParentRelation::
 NewCopy(
-){
+) {
 	return new KX_VertexParentRelation();
 };
 
 KX_VertexParentRelation::
 ~KX_VertexParentRelation(
-){
+) {
 	//nothing to do
 }
 
 
 KX_VertexParentRelation::
 KX_VertexParentRelation(
-){
+) {
 	//nothing to do
 }
 
@@ -174,7 +174,7 @@ KX_VertexParentRelation(
 KX_SlowParentRelation::
 New(
 	MT_Scalar relaxation
-){
+) {
 	return new 	KX_SlowParentRelation(relaxation);
 }	
 
@@ -188,7 +188,7 @@ UpdateChildCoordinates(
 	SG_Spatial * child,
 	const SG_Spatial * parent,
 	bool& parentUpdated	
-){
+) {
 	MT_assert(child != NULL);
 
 	// the child will move even if the parent is not
@@ -273,7 +273,7 @@ UpdateChildCoordinates(
 	SG_ParentRelation *
 KX_SlowParentRelation::
 NewCopy(
-){
+) {
 	return new 	KX_SlowParentRelation(m_relax);
 }
 
@@ -289,7 +289,7 @@ KX_SlowParentRelation(
 
 KX_SlowParentRelation::
 ~KX_SlowParentRelation(
-){
+) {
 	//nothing to do
 }
 

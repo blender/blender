@@ -92,7 +92,7 @@ typedef enum {
 	eModifierTypeFlag_RequiresOriginalData = (1<<5),
 
 	/* For modifiers that support pointcache, so we can check to see if it has files we need to deal with
-	*/
+	 */
 	eModifierTypeFlag_UsesPointCache = (1<<6),
 
 	/* For physics modifiers, max one per type */
@@ -101,7 +101,7 @@ typedef enum {
 	/* Some modifier can't be added manually by user */
 	eModifierTypeFlag_NoUserAdd = (1<<8),
 
-	/* For modifiers that use CD_WEIGHT_MCOL for preview. */
+	/* For modifiers that use CD_PREVIEW_MCOL for preview. */
 	eModifierTypeFlag_UsesPreview = (1<<9)
 } ModifierTypeFlag;
 
@@ -357,16 +357,21 @@ int           modifiers_isPreview(struct Object *ob);
 
 int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md);
 
+typedef struct CDMaskLink {
+	struct CDMaskLink *next;
+	CustomDataMask mask;
+} CDMaskLink;
+
 /* Calculates and returns a linked list of CustomDataMasks indicating the
  * data required by each modifier in the stack pointed to by md for correct
  * evaluation, assuming the data indicated by dataMask is required at the
  * end of the stack.
  */
-struct LinkNode *modifiers_calcDataMasks(struct Scene *scene, 
-										 struct Object *ob,
-										 struct ModifierData *md,
-										 CustomDataMask dataMask,
-										 int required_mode);
+struct CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, 
+										   struct Object *ob,
+										   struct ModifierData *md,
+										   CustomDataMask dataMask,
+										   int required_mode);
 struct ModifierData *modifiers_getLastPreview(struct Scene *scene,
                                               struct ModifierData *md,
                                               int required_mode);

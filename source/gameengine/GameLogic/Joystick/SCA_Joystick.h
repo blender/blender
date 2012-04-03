@@ -74,7 +74,7 @@ class SCA_Joystick
 
 	/**
 	 * max # of buttons avail
-	*/
+	 */
 	
 	int 			m_axismax;
 	int 			m_buttonmax;
@@ -114,7 +114,7 @@ class SCA_Joystick
 	void DestroyJoystickDevice(void);
 
 	/**
-	 * fills the axis mnember values 
+	 * fills the axis member values
 	 */
 	void pFillButtons(void);
 
@@ -134,8 +134,8 @@ class SCA_Joystick
 	
 public:
 
-	static SCA_Joystick *GetInstance( short int joyindex );
-	static void HandleEvents( void );
+	static SCA_Joystick *GetInstance(short int joyindex);
+	static void HandleEvents(void);
 	void ReleaseInstance();
 	
 

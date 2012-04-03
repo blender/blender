@@ -73,10 +73,10 @@ static void freeData(ModifierData *md)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
-	if(smd->mCache) {
+	if (smd->mCache) {
 		ccgSubSurf_free(smd->mCache);
 	}
-	if(smd->emCache) {
+	if (smd->emCache) {
 		ccgSubSurf_free(smd->emCache);
 	}
 }
@@ -100,7 +100,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	result = subsurf_make_derived_from_derived(derivedData, smd,
 			useRenderParams, NULL, isFinalCalc, 0, (ob->flag & OB_MODE_EDIT));
 	
-	if(useRenderParams || !isFinalCalc) {
+	if (useRenderParams || !isFinalCalc) {
 		DerivedMesh *cddm= CDDM_copy(result);
 		result->release(result);
 		result= cddm;

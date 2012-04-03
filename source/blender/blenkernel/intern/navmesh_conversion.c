@@ -44,12 +44,12 @@
 
 #include "recast-capi.h"
 
-BM_INLINE float area2(const float* a, const float* b, const float* c)
+BLI_INLINE float area2(const float* a, const float* b, const float* c)
 {
 	return (b[0] - a[0]) * (c[2] - a[2]) - (c[0] - a[0]) * (b[2] - a[2]);
 }
 
-BM_INLINE int left(const float* a, const float* b, const float* c)
+BLI_INLINE int left(const float* a, const float* b, const float* c)
 {
 	return area2(a, b, c) < 0;
 }
@@ -248,8 +248,7 @@ int buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
 				//move to next edge					
 				edge = (edge+1)%3;
 			}
-			else
-			{
+			else {
 				//move to next tri
 				int twinedge = -1;
 				for (k=0; k<3; k++)
@@ -502,7 +501,7 @@ exit:
 int polyFindVertex(const unsigned short* p, const int vertsPerPoly, unsigned short vertexIdx)
 {
 	int i, res = -1;
-	for(i=0; i<vertsPerPoly; i++)
+	for (i=0; i<vertsPerPoly; i++)
 	{
 		if (p[i]==0xffff)
 			break;

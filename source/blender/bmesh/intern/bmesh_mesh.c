@@ -41,24 +41,25 @@
 
 #include "ED_mesh.h"
 
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /* used as an extern, defined in bmesh.h */
-int bm_mesh_allocsize_default[4] = {512, 512, 2048, 512};
+BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
+BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
 
-static void bm_mempool_init(BMesh *bm, const int allocsize[4])
+static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 {
-	bm->vpool =        BLI_mempool_create(sizeof(BMVert),     allocsize[0], allocsize[0], FALSE, TRUE);
-	bm->epool =        BLI_mempool_create(sizeof(BMEdge),     allocsize[1], allocsize[1], FALSE, TRUE);
-	bm->lpool =        BLI_mempool_create(sizeof(BMLoop),     allocsize[2], allocsize[2], FALSE, FALSE);
-	bm->fpool =        BLI_mempool_create(sizeof(BMFace),     allocsize[3], allocsize[3], FALSE, TRUE);
+	bm->vpool = BLI_mempool_create(sizeof(BMVert), allocsize->totvert, bm_mesh_chunksize_default.totvert, BLI_MEMPOOL_ALLOW_ITER);
+	bm->epool = BLI_mempool_create(sizeof(BMEdge), allocsize->totedge, bm_mesh_chunksize_default.totedge, BLI_MEMPOOL_ALLOW_ITER);
+	bm->lpool = BLI_mempool_create(sizeof(BMLoop), allocsize->totloop, bm_mesh_chunksize_default.totloop, 0);
+	bm->fpool = BLI_mempool_create(sizeof(BMFace), allocsize->totface, bm_mesh_chunksize_default.totface, BLI_MEMPOOL_ALLOW_ITER);
 
 #ifdef USE_BMESH_HOLES
 	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), allocsize[3], allocsize[3], FALSE, FALSE);
 #endif
 
-	/* allocate one flag pool that we dont get rid of. */
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
+	/* allocate one flag pool that we don't get rid of. */
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0);
 }
 
 /**
@@ -70,17 +71,15 @@ static void bm_mempool_init(BMesh *bm, const int allocsize[4])
  *
  * \note ob is needed by multires
  */
-BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4])
+BMesh *BM_mesh_create(BMAllocTemplate *allocsize)
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
-
-	bm->ob = ob;
 	
 	/* allocate the memory pools for the mesh elements */
 	bm_mempool_init(bm, allocsize);
 
-	/* allocate one flag pool that we dont get rid of. */
+	/* allocate one flag pool that we don't get rid of. */
 	bm->stackdepth = 1;
 	bm->totflags = 1;
 
@@ -102,20 +101,18 @@ void BM_mesh_data_free(BMesh *bm)
 	BMFace *f;
 	
 
-	BMIter verts;
-	BMIter edges;
-	BMIter faces;
-	BMIter loops;
+	BMIter iter;
+	BMIter itersub;
 	
-	for (v = BM_iter_new(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BM_iter_step(&verts)) {
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		CustomData_bmesh_free_block(&(bm->vdata), &(v->head.data));
 	}
-	for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges)) {
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		CustomData_bmesh_free_block(&(bm->edata), &(e->head.data));
 	}
-	for (f = BM_iter_new(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BM_iter_step(&faces)) {
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		CustomData_bmesh_free_block(&(bm->pdata), &(f->head.data));
-		for (l = BM_iter_new(&loops, bm, BM_LOOPS_OF_FACE, f); l; l = BM_iter_step(&loops)) {
+		BM_ITER(l, &itersub, bm, BM_LOOPS_OF_FACE, f) {
 			CustomData_bmesh_free_block(&(bm->ldata), &(l->head.data));
 		}
 	}
@@ -145,7 +142,7 @@ void BM_mesh_data_free(BMesh *bm)
 	BLI_mempool_destroy(bm->looplistpool);
 #endif
 
-	/* These tables aren't used yet, so it's not stricly necessary
+	/* These tables aren't used yet, so it's not strictly necessary
 	 * to 'end' them (with 'e' param) but if someone tries to start
 	 * using them, having these in place will save a lot of pain */
 	mesh_octree_table(NULL, NULL, NULL, 'e');
@@ -163,17 +160,12 @@ void BM_mesh_data_free(BMesh *bm)
  */
 void BM_mesh_clear(BMesh *bm)
 {
-	Object *ob = bm->ob;
-	
 	/* free old mesh */
 	BM_mesh_data_free(bm);
 	memset(bm, 0, sizeof(BMesh));
-	
-	/* re-initialize mesh */
-	bm->ob = ob;
-	
+
 	/* allocate the memory pools for the mesh elements */
-	bm_mempool_init(bm, bm_mesh_allocsize_default);
+	bm_mempool_init(bm, &bm_mesh_allocsize_default);
 
 	bm->stackdepth = 1;
 	bm->totflags = 1;
@@ -187,6 +179,16 @@ void BM_mesh_clear(BMesh *bm)
 void BM_mesh_free(BMesh *bm)
 {
 	BM_mesh_data_free(bm);
+
+	if (bm->py_handle) {
+		/* keep this out of 'BM_mesh_data_free' because we wan't python
+		 * to be able to clear the mesh and maintain access. */
+		extern void bpy_bm_generic_invalidate(void *self);
+
+		bpy_bm_generic_invalidate(bm->py_handle);
+		bm->py_handle = NULL;
+	}
+
 	MEM_freeN(bm);
 }
 
@@ -205,24 +207,8 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 	BMIter faces;
 	BMIter loops;
 	BMIter edges;
-	unsigned int maxlength = 0;
 	int index;
-	float (*projectverts)[3];
 	float (*edgevec)[3];
-
-	/* first, find out the largest face in mesh */
-	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
-		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
-			continue;
-
-		if (f->len > maxlength) maxlength = f->len;
-	}
-	
-	/* make sure we actually have something to do */
-	if (maxlength < 3) return;
-
-	/* allocate projectverts array */
-	projectverts = MEM_callocN(sizeof(float) * maxlength * 3, "BM normal computation array");
 	
 	/* calculate all face normals */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
@@ -233,7 +219,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 			continue;
 #endif
 
-		bmesh_face_normal_update(bm, f, f->no, projectverts);
+		BM_face_normal_update(bm, f);
 	}
 	
 	/* Zero out vertex normals */
@@ -306,7 +292,6 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 	}
 	
 	MEM_freeN(edgevec);
-	MEM_freeN(projectverts);
 }
 
 /*
@@ -350,11 +335,10 @@ static void bm_rationalize_normals(BMesh *bm, int undo)
 	BMO_op_finish(bm, &bmop);
 }
 
-static void bm_mdisps_space_set(BMesh *bm, int from, int to)
+static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from, int to)
 {
 	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		Object *ob = bm->ob;
 		BMEditMesh *em = BMEdit_Create(bm, FALSE);
 		DerivedMesh *dm = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 		MDisps *mdisps;
@@ -385,6 +369,7 @@ static void bm_mdisps_space_set(BMesh *bm, int from, int to)
 					
 					lmd->disps = MEM_dupallocN(mdisps->disps);
 					lmd->totdisp = mdisps->totdisp;
+					lmd->level = mdisps->level;
 				}
 				
 				mdisps++;

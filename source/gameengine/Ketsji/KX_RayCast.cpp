@@ -61,7 +61,7 @@ void KX_RayCast::reportHit(PHY_RayCastResult* result)
 
 bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_Point3& _frompoint, const MT_Point3& topoint, KX_RayCast& callback)
 {
-	if(physics_environment==NULL) return false; /* prevents crashing in some cases */
+	if (physics_environment==NULL) return false; /* prevents crashing in some cases */
 	
 	// Loops over all physics objects between frompoint and topoint,
 	// calling callback.RayHit for each one.

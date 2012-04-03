@@ -114,7 +114,7 @@ void BLI_remlink(ListBase *listbase, void *vlink)
 
 int BLI_remlink_safe(ListBase *listbase, void *vlink)
 {
-	if(BLI_findindex(listbase, vlink) != -1) {
+	if (BLI_findindex(listbase, vlink) != -1) {
 		BLI_remlink(listbase, vlink);
 		return 1;
 	}
@@ -182,16 +182,14 @@ void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
 	if (cmp == NULL) return;
 	if (listbase == NULL) return;
 
-	if (listbase->first != listbase->last)
-	{
-		for( previous = listbase->first, current = previous->next; current; current = next )
-		{
+	if (listbase->first != listbase->last) {
+		for (previous = listbase->first, current = previous->next; current; current = next) {
 			next = current->next;
 			previous = current->prev;
 			
 			BLI_remlink(listbase, current);
 			
-			while(previous && cmp(previous, current) == 1)
+			while (previous && cmp(previous, current) == 1)
 			{
 				previous = previous->prev;
 			}
@@ -338,6 +336,21 @@ void *BLI_findlink(const ListBase *listbase, int number)
 	return link;
 }
 
+void *BLI_rfindlink(const ListBase *listbase, int number)
+{
+	Link *link = NULL;
+
+	if (number >= 0) {
+		link = listbase->last;
+		while (link != NULL && number != 0) {
+			number--;
+			link = link->prev;
+		}
+	}
+
+	return link;
+}
+
 int BLI_findindex(const ListBase *listbase, void *vlink)
 {
 	Link *link= NULL;
@@ -444,7 +457,7 @@ int BLI_findstringindex(const ListBase *listbase, const char *id, const int offs
 	while (link) {
 		id_iter= ((const char *)link) + offset;
 
-		if(id[0] == id_iter[0] && strcmp(id, id_iter)==0)
+		if (id[0] == id_iter[0] && strcmp(id, id_iter)==0)
 			return i;
 		i++;
 		link= link->next;
@@ -461,7 +474,7 @@ void BLI_duplicatelist(ListBase *dst, const ListBase *src)
 	src_link= src->first;
 	dst->first= dst->last= NULL;
 
-	while(src_link) {
+	while (src_link) {
 		dst_link= MEM_dupallocN(src_link);
 		BLI_addtail(dst, dst_link);
 

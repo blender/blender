@@ -24,8 +24,8 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined BLENDTYPE_H
-#define BLENDTYPE_H
+#ifndef __BLENDTYPE_H__
+#define __BLENDTYPE_H__
 
 
 /// class allows check type of blender python object and access its contained object

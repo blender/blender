@@ -290,9 +290,9 @@ void make_local_material(Material *ma)
 	int a, is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
 	
 	if (ma->id.lib==NULL) return;
 
@@ -304,10 +304,10 @@ void make_local_material(Material *ma)
 	}
 
 	/* Check which other IDs reference this one to determine if it's used by
-	   lib or local */
+	 * lib or local */
 	/* test objects */
 	ob= bmain->object.first;
-	while(ob) {
+	while (ob) {
 		if (ob->mat) {
 			for (a=0; a<ob->totcol; a++) {
 				if (ob->mat[a]==ma) {
@@ -320,7 +320,7 @@ void make_local_material(Material *ma)
 	}
 	/* test meshes */
 	me= bmain->mesh.first;
-	while(me) {
+	while (me) {
 		if (me->mat) {
 			for (a=0; a<me->totcol; a++) {
 				if (me->mat[a]==ma) {
@@ -333,7 +333,7 @@ void make_local_material(Material *ma)
 	}
 	/* test curves */
 	cu= bmain->curve.first;
-	while(cu) {
+	while (cu) {
 		if (cu->mat) {
 			for (a=0; a<cu->totcol; a++) {
 				if (cu->mat[a]==ma) {
@@ -346,7 +346,7 @@ void make_local_material(Material *ma)
 	}
 	/* test mballs */
 	mb= bmain->mball.first;
-	while(mb) {
+	while (mb) {
 		if (mb->mat) {
 			for (a=0; a<mb->totcol; a++) {
 				if (mb->mat[a]==ma) {
@@ -374,7 +374,7 @@ void make_local_material(Material *ma)
 
 		/* do objects */
 		ob= bmain->object.first;
-		while(ob) {
+		while (ob) {
 			if (ob->mat) {
 				for (a=0; a<ob->totcol; a++) {
 					if (ob->mat[a]==ma) {
@@ -390,7 +390,7 @@ void make_local_material(Material *ma)
 		}
 		/* do meshes */
 		me= bmain->mesh.first;
-		while(me) {
+		while (me) {
 			if (me->mat) {
 				for (a=0; a<me->totcol; a++) {
 					if (me->mat[a]==ma) {
@@ -406,7 +406,7 @@ void make_local_material(Material *ma)
 		}
 		/* do curves */
 		cu= bmain->curve.first;
-		while(cu) {
+		while (cu) {
 			if (cu->mat) {
 				for (a=0; a<cu->totcol; a++) {
 					if (cu->mat[a]==ma) {
@@ -422,7 +422,7 @@ void make_local_material(Material *ma)
 		}
 		/* do mballs */
 		mb= bmain->mball.first;
-		while(mb) {
+		while (mb) {
 			if (mb->mat) {
 				for (a=0; a<mb->totcol; a++) {
 					if (mb->mat[a]==ma) {
@@ -458,7 +458,7 @@ Material ***give_matarar(Object *ob)
 		me= ob->data;
 		return &(me->mat);
 	}
-	else if ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF) {
+	else if (ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
 		cu= ob->data;
 		return &(cu->mat);
 	}
@@ -479,7 +479,7 @@ short *give_totcolp(Object *ob)
 		me= ob->data;
 		return &(me->totcol);
 	}
-	else if ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF) {
+	else if (ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
 		cu= ob->data;
 		return &(cu->totcol);
 	}
@@ -533,7 +533,7 @@ static void data_delete_material_index_id(ID *id, short index)
 		curve_delete_material_index((Curve *)id, index);
 		break;
 	case ID_MB:
-		/* meta-elems dont have materials atm */
+		/* meta-elems don't have materials atm */
 		break;
 	}
 }
@@ -840,7 +840,7 @@ void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
 	int actcol_orig= ob->actcol;
 	short i;
 
-	while(object_remove_material_slot(ob)) {};
+	while (object_remove_material_slot(ob)) {};
 
 	/* now we have the right number of slots */
 	for (i=0; i<totcol; i++)
@@ -903,7 +903,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			ma->mapto |= mtex->mapto;
 
 			/* always get derivatives for these textures */
-			if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
+			if (ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP)) ma->texco |= TEXCO_OSA;
 			else if (mtex->texflag & (MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP|MTEX_BICUBIC_BUMP)) ma->texco |= TEXCO_OSA;
 			
 			if (ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;
@@ -1144,7 +1144,7 @@ int object_remove_material_slot(Object *ob)
 	
 	actcol= ob->actcol;
 	obt= G.main->object.first;
-	while(obt) {
+	while (obt) {
 	
 		if (obt->data==ob->data) {
 			
@@ -1614,7 +1614,7 @@ static void calculate_tface_materialname(char *matname, char *newname, int flag)
 	// otherwise do:
 	int digits = integer_getdigits(flag);
 	/* clamp the old name, remove the MA prefix and add the .TF.flag suffix
-	e.g. matname = "MALoooooooooooooongName"; newname = "Loooooooooooooon.TF.2" */
+	 * e.g. matname = "MALoooooooooooooongName"; newname = "Loooooooooooooon.TF.2" */
 	BLI_snprintf(newname, MAX_ID_NAME, "%.*s.TF.%0*d", MAX_ID_NAME-(digits+5), matname, digits, flag);
 }
 
@@ -1886,7 +1886,7 @@ int do_version_tface(Main *main, int fileload)
 						ma->game.flag = -flag;
 						
 						/* some people uses multitexture with TexFace by creating a texture
-						 * channel which not neccessarly the tf->tpage image. But the game engine
+						 * channel which not necessarily the tf->tpage image. But the game engine
 						 * was enabling it. Now it's required to set "Face Texture [Alpha] in the
 						 * material settings. */
 						if (!fileload)

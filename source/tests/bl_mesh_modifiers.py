@@ -20,7 +20,7 @@
 
 # Currently this script only generates images from different modifier
 # combinations and does not validate they work correctly,
-# this is because we dont get 1:1 match with bmesh.
+# this is because we don't get 1:1 match with bmesh.
 #
 # Later, we may have a way to check the results are valid.
 

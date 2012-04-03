@@ -53,7 +53,7 @@ unsigned int blf_hash(unsigned int val)
 {
 	unsigned int key;
 
-	key= val;
+	key = val;
 	key += ~(key << 16);
 	key ^= (key >> 5);
 	key += (key << 3);

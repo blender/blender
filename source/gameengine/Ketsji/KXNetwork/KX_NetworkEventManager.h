@@ -27,7 +27,7 @@
 
 /** \file KX_NetworkEventManager.h
  *  \ingroup ketsjinet
- *  \brief Ketsji Logic Extenstion: Network Event Manager class
+ *  \brief Ketsji Logic Extension: Network Event Manager class
  */
 
 #ifndef __KX_NETWORKEVENTMANAGER_H__

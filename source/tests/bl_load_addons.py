@@ -57,7 +57,7 @@ def reload_addons(do_reload=True, do_reverse=True):
                 imp.reload(sys.modules[mod_name])
 
             if do_reverse:
-                # incase order matters when it shouldnt
+                # in case order matters when it shouldnt
                 modules.reverse()
 
 

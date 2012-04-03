@@ -97,9 +97,9 @@ typedef struct MTex {
 #ifndef DNA_USHORT_FIX
 #define DNA_USHORT_FIX
 /**
- * @deprecated This typedef serves to avoid badly typed functions when
- * @deprecated compiling while delivering a proper dna.c. Do not use
- * @deprecated it in any case.
+ * \deprecated This typedef serves to avoid badly typed functions when
+ * \deprecated compiling while delivering a proper dna.c. Do not use
+ * \deprecated it in any case.
  */
 typedef unsigned short dna_ushort_fix;
 #endif
@@ -232,7 +232,7 @@ typedef struct Tex {
 	/* newnoise: distorted noise amount, musgrave & voronoi ouput scale */
 	float dist_amount, ns_outscale;
 
-	/* newnoise: voronoi nearest neighbour weights, minkovsky exponent, distance metric & color type */
+	/* newnoise: voronoi nearest neighbor weights, minkovsky exponent, distance metric & color type */
 	float vn_w1;
 	float vn_w2;
 	float vn_w3;

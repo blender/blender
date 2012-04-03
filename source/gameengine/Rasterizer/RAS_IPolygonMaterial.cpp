@@ -124,7 +124,7 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 
 bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 {
-	if(m_flag &RAS_BLENDERMAT)
+	if (m_flag &RAS_BLENDERMAT)
 	{
 		bool test = (
 			this->m_multimode			==		lhs.m_multimode &&
@@ -254,10 +254,10 @@ bool RAS_IPolyMaterial::UsesLighting(RAS_IRasterizer *rasty) const
 {
 	bool dolights = false;
 
-	if(m_flag & RAS_BLENDERMAT)
+	if (m_flag & RAS_BLENDERMAT)
 		dolights = (m_flag &RAS_MULTILIGHT)!=0;
-	else if(rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID);
-	else if(rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW);
+	else if (rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID);
+	else if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW);
 	else
 		dolights = m_light;
 	

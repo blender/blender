@@ -298,8 +298,8 @@ public:
 	
 	virtual void	EnableMotionBlur(float motionblurvalue);
 	virtual void	DisableMotionBlur();
-	virtual float	GetMotionBlurValue(){return m_motionblurvalue;};
-	virtual int		GetMotionBlurState(){return m_motionblur;};
+	virtual float	GetMotionBlurValue() { return m_motionblurvalue; }
+	virtual int		GetMotionBlurState() { return m_motionblur; }
 	virtual void	SetMotionBlurState(int newstate)
 	{
 		if(newstate<0) 

@@ -119,7 +119,6 @@ public:
 	bool draw_ready();
 
 protected:
-	void draw_transparency_grid();
 	void device_free();
 
 	Device *device;

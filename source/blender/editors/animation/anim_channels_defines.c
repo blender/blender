@@ -87,12 +87,9 @@
 #define ANIM_CHAN_NAME_SIZE 256
 
 /* macros used for type defines */
-	/* get the pointer used for some flag */
-#define GET_ACF_FLAG_PTR(ptr) \
-	{ \
-		*type= sizeof((ptr)); \
-		return &(ptr); \
-	} 
+
+/* get the pointer used for some flag and return */
+#define GET_ACF_FLAG_PTR(ptr, type) ((*(type) = sizeof((ptr))), &(ptr))
 
 
 /* *********************************************** */
@@ -453,7 +450,7 @@ static void *acf_summary_setting_ptr(bAnimListElem *ale, int setting, short *typ
 		bDopeSheet *ads= &saction->ads;
 		
 		/* return pointer to DopeSheet's flag */
-		GET_ACF_FLAG_PTR(ads->flag);
+		return GET_ACF_FLAG_PTR(ads->flag, type);
 	}
 	else {
 		/* can't return anything useful - unsupported */
@@ -547,15 +544,15 @@ static void *acf_scene_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
-			GET_ACF_FLAG_PTR(scene->flag);
+			return GET_ACF_FLAG_PTR(scene->flag, type);
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(scene->flag);
+			return GET_ACF_FLAG_PTR(scene->flag, type);
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (scene->adt)
-				GET_ACF_FLAG_PTR(scene->adt->flag)
+				return GET_ACF_FLAG_PTR(scene->adt->flag, type);
 			else
 				return NULL;
 			
@@ -694,15 +691,15 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, int setting, short *type
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
-			GET_ACF_FLAG_PTR(ob->flag);
+			return GET_ACF_FLAG_PTR(ob->flag, type);
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(ob->nlaflag); // xxx
+			return GET_ACF_FLAG_PTR(ob->nlaflag, type); // xxx
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ob->adt)
-				GET_ACF_FLAG_PTR(ob->adt->flag)
+				return GET_ACF_FLAG_PTR(ob->adt->flag, type);
 			else
 				return NULL;
 			
@@ -817,7 +814,7 @@ static int acf_group_setting_flag(bAnimContext *ac, int setting, short *neg)
 			return AGRP_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			//*neg= 1; - if we change this to edtiability
+			// *neg= 1; - if we change this to edtiability
 			return AGRP_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
@@ -835,7 +832,7 @@ static void *acf_group_setting_ptr(bAnimListElem *ale, int UNUSED(setting), shor
 	bActionGroup *agrp= (bActionGroup *)ale->data;
 	
 	/* all flags are just in agrp->flag for now... */
-	GET_ACF_FLAG_PTR(agrp->flag);
+	return GET_ACF_FLAG_PTR(agrp->flag, type);
 }
 
 /* group type define */
@@ -905,7 +902,7 @@ static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			return FCURVE_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			//*neg= 1; - if we change this to edtiability
+			// *neg= 1; - if we change this to edtiability
 			return FCURVE_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
@@ -922,7 +919,7 @@ static void *acf_fcurve_setting_ptr(bAnimListElem *ale, int UNUSED(setting), sho
 	FCurve *fcu= (FCurve *)ale->data;
 	
 	/* all flags are just in agrp->flag for now... */
-	GET_ACF_FLAG_PTR(fcu->flag);
+	return GET_ACF_FLAG_PTR(fcu->flag, type);
 }
 
 /* fcurve type define */
@@ -997,13 +994,13 @@ static void *acf_fillactd_setting_ptr(bAnimListElem *ale, int setting, short *ty
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
 			if (adt) {
-				GET_ACF_FLAG_PTR(adt->flag);
+				return GET_ACF_FLAG_PTR(adt->flag, type);
 			}
 			else
 				return NULL;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(act->flag);
+			return GET_ACF_FLAG_PTR(act->flag, type);
 		
 		default: /* unsupported */
 			return NULL;
@@ -1082,7 +1079,7 @@ static void *acf_filldrivers_setting_ptr(bAnimListElem *ale, int setting, short 
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(adt->flag);
+			return GET_ACF_FLAG_PTR(adt->flag, type);
 		
 		default: /* unsupported */
 			return NULL;
@@ -1152,13 +1149,13 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(ma->flag);
+			return GET_ACF_FLAG_PTR(ma->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ma->adt)
-				GET_ACF_FLAG_PTR(ma->adt->flag)
+				return GET_ACF_FLAG_PTR(ma->adt->flag, type);
 			else
 				return NULL;	
 		
@@ -1229,13 +1226,13 @@ static void *acf_dslam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(la->flag);
+			return GET_ACF_FLAG_PTR(la->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (la->adt)
-				GET_ACF_FLAG_PTR(la->adt->flag)
+				return GET_ACF_FLAG_PTR(la->adt->flag, type);
 			else
 				return NULL;	
 		
@@ -1313,13 +1310,13 @@ static void *acf_dstex_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(tex->flag);
+			return GET_ACF_FLAG_PTR(tex->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (tex->adt)
-				GET_ACF_FLAG_PTR(tex->adt->flag)
+				return GET_ACF_FLAG_PTR(tex->adt->flag, type);
 			else
 				return NULL;	
 		
@@ -1390,13 +1387,13 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(ca->flag);
+			return GET_ACF_FLAG_PTR(ca->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ca->adt)
-				GET_ACF_FLAG_PTR(ca->adt->flag)
+				return GET_ACF_FLAG_PTR(ca->adt->flag, type);
 			else
 				return NULL;
 		
@@ -1477,13 +1474,13 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(cu->flag);
+			return GET_ACF_FLAG_PTR(cu->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (cu->adt)
-				GET_ACF_FLAG_PTR(cu->adt->flag)
+				return GET_ACF_FLAG_PTR(cu->adt->flag, type);
 			else
 				return NULL;
 		
@@ -1554,13 +1551,13 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, int setting, short *type
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(key->flag);
+			return GET_ACF_FLAG_PTR(key->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (key->adt)
-				GET_ACF_FLAG_PTR(key->adt->flag)
+				return GET_ACF_FLAG_PTR(key->adt->flag, type);
 			else
 				return NULL;
 		
@@ -1631,13 +1628,13 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(wo->flag);
+			return GET_ACF_FLAG_PTR(wo->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (wo->adt)
-				GET_ACF_FLAG_PTR(wo->adt->flag)
+				return GET_ACF_FLAG_PTR(wo->adt->flag, type);
 			else
 				return NULL;
 		
@@ -1708,13 +1705,13 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, int setting, short *type
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(part->flag);
+			return GET_ACF_FLAG_PTR(part->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (part->adt)
-				GET_ACF_FLAG_PTR(part->adt->flag)
+				return GET_ACF_FLAG_PTR(part->adt->flag, type);
 			else
 				return NULL;
 		
@@ -1785,13 +1782,13 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale, int setting, short *typ
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(mb->flag);
+			return GET_ACF_FLAG_PTR(mb->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (mb->adt)
-				GET_ACF_FLAG_PTR(mb->adt->flag)
+				return GET_ACF_FLAG_PTR(mb->adt->flag, type);
 			else
 				return NULL;
 		
@@ -1862,13 +1859,13 @@ static void *acf_dsarm_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(arm->flag);
+			return GET_ACF_FLAG_PTR(arm->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (arm->adt)
-				GET_ACF_FLAG_PTR(arm->adt->flag)
+				return GET_ACF_FLAG_PTR(arm->adt->flag, type);
 			else
 				return NULL;
 		
@@ -1950,13 +1947,13 @@ static void *acf_dsntree_setting_ptr(bAnimListElem *ale, int setting, short *typ
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(ntree->flag);
+			return GET_ACF_FLAG_PTR(ntree->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ntree->adt)
-				GET_ACF_FLAG_PTR(ntree->adt->flag)
+				return GET_ACF_FLAG_PTR(ntree->adt->flag, type);
 				else
 					return NULL;
 			
@@ -2027,13 +2024,13 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, int setting, short *type
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(me->flag);
+			return GET_ACF_FLAG_PTR(me->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (me->adt)
-				GET_ACF_FLAG_PTR(me->adt->flag)
+				return GET_ACF_FLAG_PTR(me->adt->flag, type);
 				else
 					return NULL;
 			
@@ -2104,13 +2101,13 @@ static void *acf_dslat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(lt->flag);
+			return GET_ACF_FLAG_PTR(lt->flag, type);
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (lt->adt)
-				GET_ACF_FLAG_PTR(lt->adt->flag)
+				return GET_ACF_FLAG_PTR(lt->adt->flag, type);
 				else
 					return NULL;
 			
@@ -2181,13 +2178,13 @@ static void *acf_dsspk_setting_ptr(bAnimListElem *ale, int setting, short *type)
 
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(spk->flag);
+			return GET_ACF_FLAG_PTR(spk->flag, type);
 		
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (spk->adt)
-				GET_ACF_FLAG_PTR(spk->adt->flag)
+				return GET_ACF_FLAG_PTR(spk->adt->flag, type);
 			else
 				return NULL;
 		
@@ -2296,7 +2293,7 @@ static void *acf_shapekey_setting_ptr(bAnimListElem *ale, int setting, short *ty
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted */
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			GET_ACF_FLAG_PTR(kb->flag)
+			return GET_ACF_FLAG_PTR(kb->flag, type);
 		
 		default: /* unsupported */
 			return NULL;
@@ -2375,7 +2372,7 @@ static void *acf_gpd_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short 
 	bGPdata *gpd= (bGPdata *)ale->data;
 	
 	/* all flags are just in gpd->flag for now... */
-	GET_ACF_FLAG_PTR(gpd->flag);
+	return GET_ACF_FLAG_PTR(gpd->flag, type);
 }
 
 /* gpencil datablock type define */
@@ -2399,7 +2396,7 @@ static bAnimChannelType ACF_GPD =
 
 /* GPencil Layer ------------------------------------------- */
 
-/* name for grase pencil layer entries */
+/* name for grease pencil layer entries */
 static void acf_gpl_name(bAnimListElem *ale, char *name)
 {
 	bGPDlayer *gpl = (bGPDlayer *)ale->data;
@@ -2450,7 +2447,7 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, short *ne
 			return GP_LAYER_HIDE;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			//*neg= 1; - if we change this to edtiability
+			// *neg= 1; - if we change this to edtiability
 			return GP_LAYER_LOCKED;
 			
 		default: /* unsupported */
@@ -2464,7 +2461,7 @@ static void *acf_gpl_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short 
 	bGPDlayer *gpl= (bGPDlayer *)ale->data;
 	
 	/* all flags are just in agrp->flag for now... */
-	GET_ACF_FLAG_PTR(gpl->flag);
+	return GET_ACF_FLAG_PTR(gpl->flag, type);
 }
 
 /* grease pencil layer type define */
@@ -2493,12 +2490,12 @@ static bAnimChannelType ACF_GPL =
 static bAnimChannelType *animchannelTypeInfo[ANIMTYPE_NUM_TYPES];
 static short ACF_INIT= 1; /* when non-zero, the list needs to be updated */
 
-/* Initialise type info definitions */
+/* Initialize type info definitions */
 static void ANIM_init_channel_typeinfo_data (void)
 {
 	int type= 0;
 	
-	/* start initialising if necessary... */
+	/* start initializing if necessary... */
 	if (ACF_INIT) {
 		ACF_INIT= 0;
 		
@@ -2600,8 +2597,7 @@ short ANIM_channel_setting_get (bAnimContext *ac, bAnimListElem *ale, int settin
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
 	/* 1) check that the setting exists for the current context */
-	if ( (acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting)) ) 
-	{
+	if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
 		/* 2) get pointer to check for flag in, and the flag to check for */
 		short negflag, ptrsize;
 		int flag;
@@ -2678,8 +2674,7 @@ void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
 	/* 1) check that the setting exists for the current context */
-	if ( (acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting)) ) 
-	{
+	if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
 		/* 2) get pointer to check for flag in, and the flag to check for */
 		short negflag, ptrsize;
 		int flag;
@@ -2735,7 +2730,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 	float y, ymid, ytext;
 	
 	/* sanity checks - don't draw anything */
-	if ELEM(NULL, acf, ale)
+	if (ELEM(NULL, acf, ale))
 		return;
 	
 	/* get initial offset */
@@ -2831,8 +2826,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		UI_DrawString(offset, ytext, name);
 		
 		/* draw red underline if channel is disabled */
-		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) 
-		{
+		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) {
 			// FIXME: replace hardcoded color here, and check on extents!
 			glColor3f(1.0f, 0.0f, 0.0f);
 			glLineWidth(2.0);
@@ -3121,17 +3115,17 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 	if (ptr && flag) {
 		switch (ptrsize) {
 			case sizeof(int):	/* integer pointer for setting */
-				but= uiDefIconButBitI(block, butType, flag, 0, icon, 
+				but = uiDefIconButBitI(block, butType, flag, 0, icon, 
 						xpos, ypos, ICON_WIDTH, ICON_WIDTH, ptr, 0, 0, 0, 0, tooltip);
 				break;
 				
 			case sizeof(short):	/* short pointer for setting */
-				but= uiDefIconButBitS(block, butType, flag, 0, icon, 
+				but = uiDefIconButBitS(block, butType, flag, 0, icon, 
 						xpos, ypos, ICON_WIDTH, ICON_WIDTH, ptr, 0, 0, 0, 0, tooltip);
 				break;
 				
 			case sizeof(char):	/* char pointer for setting */
-				but= uiDefIconButBitC(block, butType, flag, 0, icon, 
+				but = uiDefIconButBitC(block, butType, flag, 0, icon, 
 						xpos, ypos, ICON_WIDTH, ICON_WIDTH, ptr, 0, 0, 0, 0, tooltip);
 				break;
 		}
@@ -3164,7 +3158,7 @@ void ANIM_channel_draw_widgets (bContext *C, bAnimContext *ac, bAnimListElem *al
 	short offset;
 	
 	/* sanity checks - don't draw anything */
-	if ELEM3(NULL, acf, ale, block)
+	if (ELEM3(NULL, acf, ale, block))
 		return;
 	
 	/* get initial offset */
@@ -3282,7 +3276,7 @@ void ANIM_channel_draw_widgets (bContext *C, bAnimContext *ac, bAnimListElem *al
 		 *	- even if we can draw sliders for this view, we must also check that the channel-type supports them
 		 *	  (only only F-Curves really can support them for now)
 		 *	- to make things easier, we use RNA-autobuts for this so that changes are reflected immediately, 
-		 *	  whereever they occurred. BUT, we don't use the layout engine, otherwise we'd get wrong alignment,
+		 *	  wherever they occurred. BUT, we don't use the layout engine, otherwise we'd get wrong alignment,
 		 *	  and wouldn't be able to auto-keyframe...
 		 *	- slider should start before the toggles (if they're visible) to keep a clean line down the side
 		 */
@@ -3326,7 +3320,7 @@ void ANIM_channel_draw_widgets (bContext *C, bAnimContext *ac, bAnimListElem *al
 						uiBut *but;
 						
 						/* create the slider button, and assign relevant callback to ensure keyframes are inserted... */
-						but= uiDefAutoButR(block, &ptr, prop, array_index, "", ICON_NONE, (int)v2d->cur.xmax-offset, ymid, SLIDER_WIDTH, (int)ymaxc-yminc);
+						but = uiDefAutoButR(block, &ptr, prop, array_index, "", ICON_NONE, (int)v2d->cur.xmax-offset, ymid, SLIDER_WIDTH, (int)ymaxc-yminc);
 						
 						/* assign keyframing function according to slider type */
 						if (ale->type == ANIMTYPE_SHAPEKEY)

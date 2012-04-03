@@ -199,7 +199,7 @@ typedef struct bTwoDFilterActuator {
 	/* Tells what type of 2D Filter */
 	short type;
 	/* (flag == 0) means 2D filter is activate and
-	   (flag != 0) means 2D filter is inactive */
+	 * (flag != 0) means 2D filter is inactive */
 	short flag;
 	int   int_arg;
 	/* a float argument */
@@ -224,6 +224,8 @@ typedef struct bArmatureActuator {
 	char constraint[64];	/* MAX_NAME */
 	int type;		/* 0=run, 1=enable, 2=disable, 3=set target, 4=set weight */
 	float weight;
+	float influence;
+	float pad;
 	struct Object *target;
 	struct Object *subtarget;
 } bArmatureActuator;
@@ -511,8 +513,9 @@ typedef struct bActuator {
 #define ACT_ARM_DISABLE		2
 #define ACT_ARM_SETTARGET	3
 #define ACT_ARM_SETWEIGHT	4
-/* update this define if more type are addedd */
-#define ACT_ARM_MAXTYPE		4
+#define ACT_ARM_SETINFLUENCE	5
+/* update this define if more types are added */
+#define ACT_ARM_MAXTYPE		5
 
 /* stateactuator->type */
 #define ACT_STATE_SET		0

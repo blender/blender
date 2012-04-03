@@ -48,7 +48,7 @@ static bNodeSocketTemplate outputs[]= {
 static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	int i;
-	for(i = 0; i < 4; i++)
+	for (i = 0; i < 4; i++)
 		out[i] = tex_input_value(in[i], p, thread);
 }
 

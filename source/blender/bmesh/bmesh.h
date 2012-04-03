@@ -198,137 +198,17 @@
 extern "C" {
 #endif
 
-#include "DNA_listBase.h"
-#include "DNA_customdata_types.h"
+#include "DNA_listBase.h" /* selection history uses */
+#include "DNA_customdata_types.h" /* BMesh struct in bmesh_class.h uses */
 
-#include "BLI_utildefines.h"
+#include <stdlib.h>
+// #include "BLI_utildefines.h"
 
 #include "bmesh_class.h"
 
-/*forward declarations*/
-
-/*
- * BMHeader
- *
- * All mesh elements begin with a BMHeader. This structure
- * hold several types of data
- *
- * 1: The type of the element (vert, edge, loop or face)
- * 2: Persistant "header" flags/markings (sharp, seam, select, hidden, ect)
-      note that this is different from the "tool" flags.
- * 3: Unique ID in the bmesh.
- * 4: some elements for internal record keeping.
- *
-*/
-
-/* BMHeader->htype (char) */
-enum {
-	BM_VERT = 1,
-	BM_EDGE = 2,
-	BM_LOOP = 4,
-	BM_FACE = 8
-};
-
-#define BM_ALL (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
-
-/* BMHeader->hflag (char) */
-enum {
-	BM_ELEM_SELECT  = (1 << 0),
-	BM_ELEM_HIDDEN  = (1 << 1),
-	BM_ELEM_SEAM    = (1 << 2),
-	BM_ELEM_SMOOTH  = (1 << 3), /* used for faces and edges, note from the user POV,
-                                  * this is a sharp edge when disabled */
-
-	BM_ELEM_TAG     = (1 << 4), /* internal flag, used for ensuring correct normals
-                                 * during multires interpolation, and any other time
-                                 * when temp tagging is handy.
-                                 * always assume dirty & clear before use. */
-
-	/* we have 2 spare flags which is awesome but since we're limited to 8
-	 * only add new flags with care! - campbell */
-	/* BM_ELEM_SPARE  = (1 << 5), */
-	/* BM_ELEM_SPARE  = (1 << 6), */
-
-	BM_ELEM_INTERNAL_TAG = (1 << 7) /* for low level internal API tagging,
-                                     * since tools may want to tag verts and
-                                     * not have functions clobber them */
-};
-
-/* Mesh Level Ops */
-extern int bm_mesh_allocsize_default[4];
-
-
-/* ------------------------------------------------------------------------- */
-/* bmesh_inline.c */
-
-/* stuff for dealing with header flags */
-#define BM_elem_flag_test(   ele, hflag)      _bm_elem_flag_test    (&(ele)->head, hflag)
-#define BM_elem_flag_enable( ele, hflag)      _bm_elem_flag_enable  (&(ele)->head, hflag)
-#define BM_elem_flag_disable(ele, hflag)      _bm_elem_flag_disable (&(ele)->head, hflag)
-#define BM_elem_flag_set(    ele, hflag, val) _bm_elem_flag_set     (&(ele)->head, hflag, val)
-#define BM_elem_flag_toggle( ele, hflag)      _bm_elem_flag_toggle  (&(ele)->head, hflag)
-#define BM_elem_flag_merge(  ele_a, ele_b)    _bm_elem_flag_merge   (&(ele_a)->head, &(ele_b)->head)
-
-BM_INLINE char _bm_elem_flag_test(const BMHeader *head, const char hflag);
-BM_INLINE void _bm_elem_flag_enable(BMHeader *head, const char hflag);
-BM_INLINE void _bm_elem_flag_disable(BMHeader *head, const char hflag);
-BM_INLINE void _bm_elem_flag_set(BMHeader *head, const char hflag, const int val);
-BM_INLINE void _bm_elem_flag_toggle(BMHeader *head, const char hflag);
-BM_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b);
-
-/* notes on BM_elem_index_set(...) usage,
- * Set index is sometimes abused as temp storage, other times we cant be
- * sure if the index values are valid because certain operations have modified
- * the mesh structure.
- *
- * To set the elements to valid indicies 'BM_mesh_elem_index_ensure' should be used
- * rather then adding inline loops, however there are cases where we still
- * set the index directly
- *
- * In an attempt to manage this, here are 3 tags Im adding to uses of
- * 'BM_elem_index_set'
- *
- * - 'set_inline'  -- since the data is already being looped over set to a
- *                    valid value inline.
- *
- * - 'set_dirty!'  -- intentionally sets the index to an invalid value,
- *                    flagging 'bm->elem_index_dirty' so we dont use it.
- *
- * - 'set_ok'      -- this is valid use since the part of the code is low level.
- *
- * - 'set_ok_invalid'  -- set to -1 on purpose since this should not be
- *                    used without a full array re-index, do this on
- *                    adding new vert/edge/faces since they may be added at
- *                    the end of the array.
- *
- * - 'set_loop'    -- currently loop index values are not used used much so
- *                    assume each case they are dirty.
- * - campbell */
-
-#define BM_elem_index_get(ele)           _bm_elem_index_get(&(ele)->head)
-#define BM_elem_index_set(ele, index)    _bm_elem_index_set(&(ele)->head, index)
-BM_INLINE int  _bm_elem_index_get(const BMHeader *ele);
-BM_INLINE void _bm_elem_index_set(BMHeader *ele, const int index);
-
-#ifdef USE_BMESH_HOLES
-#  define BM_FACE_FIRST_LOOP(p) (((BMLoopList *)((p)->loops.first))->first)
-#else
-#  define BM_FACE_FIRST_LOOP(p) ((p)->l_first)
-#endif
-
-/* size to use for static arrays when dealing with NGons,
- * alloc after this limit is reached.
- * this value is rather arbitrary */
-#define BM_NGON_STACK_SIZE 32
-
-/* avoid inf loop, this value is arbtrary
- * but should not error on valid cases */
-#define BM_LOOP_RADIAL_MAX 10000
-#define BM_NGON_MAX 100000
-
 /* include the rest of the API */
-#include "bmesh_operator_api.h"
-#include "bmesh_error.h"
+#include "intern/bmesh_operator_api.h"
+#include "intern/bmesh_error.h"
 
 #include "intern/bmesh_construct.h"
 #include "intern/bmesh_core.h"
@@ -336,15 +216,15 @@ BM_INLINE void _bm_elem_index_set(BMHeader *ele, const int index);
 #include "intern/bmesh_iterators.h"
 #include "intern/bmesh_marking.h"
 #include "intern/bmesh_mesh.h"
+#include "intern/bmesh_mesh_conv.h"
+#include "intern/bmesh_mesh_validate.h"
 #include "intern/bmesh_mods.h"
 #include "intern/bmesh_operators.h"
 #include "intern/bmesh_polygon.h"
 #include "intern/bmesh_queries.h"
 #include "intern/bmesh_walkers.h"
-#include "intern/bmesh_walkers.h"
 
-#include "intern/bmesh_inline.c"
-#include "intern/bmesh_operator_api_inline.c"
+#include "intern/bmesh_inline.h"
 
 #ifdef __cplusplus
 }

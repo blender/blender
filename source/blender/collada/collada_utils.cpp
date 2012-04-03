@@ -61,8 +61,8 @@ int bc_test_parent_loop(Object *par, Object *ob)
 {
 	/* test if 'ob' is a parent somewhere in par's parents */
 	
-	if(par == NULL) return 0;
-	if(ob == par) return 1;
+	if (par == NULL) return 0;
+	if (ob == par) return 1;
 	
 	return bc_test_parent_loop(par->parent, ob);
 }

@@ -45,27 +45,27 @@
 #define MAX_ARRAY_DIMENSION 10
 
 typedef void (*ItemConvertFunc)(PyObject *, char *);
-typedef int  (*ItemTypeCheckFunc)(PyObject *);
+typedef int (*ItemTypeCheckFunc)(PyObject *);
 typedef void (*RNA_SetArrayFunc)(PointerRNA *, PropertyRNA *, const char *);
 typedef void (*RNA_SetIndexFunc)(PointerRNA *, PropertyRNA *, int index, void *);
 
 /*
-  arr[3][4][5]
-	  0  1  2  <- dimension index
-*/
+ * arr[3][4][5]
+ *     0  1  2  <- dimension index
+ */
 
 /*
-  arr[2] = x
-
-  py_to_array_index(arraydim=0, arrayoffset=0, index=2)
-	validate_array(lvalue_dim=0)
-	... make real index ...
-*/
+ *  arr[2] = x
+ *
+ *  py_to_array_index(arraydim=0, arrayoffset=0, index=2)
+ *      validate_array(lvalue_dim=0)
+ *      ... make real index ...
+ */
 
 /* arr[3] = x, self->arraydim is 0, lvalue_dim is 1 */
 /* Ensures that a python sequence has expected number of items/sub-items and items are of desired type. */
 static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[],
-							   ItemTypeCheckFunc check_item_type, const char *item_type_str, const char *error_prefix)
+                               ItemTypeCheckFunc check_item_type, const char *item_type_str, const char *error_prefix)
 {
 	Py_ssize_t i;
 
@@ -101,8 +101,8 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 			 * dim = 0 */
 			else if (PySequence_Size(item) != dimsize[dim + 1]) {
 				/* BLI_snprintf(error_str, error_str_size,
-				                "sequences of dimension %d should contain %d items",
-				                (int)dim + 1, (int)dimsize[dim + 1]); */
+				 *              "sequences of dimension %d should contain %d items",
+				 *              (int)dim + 1, (int)dimsize[dim + 1]); */
 				PyErr_Format(PyExc_ValueError, "%s sequences of dimension %d should contain %d items",
 				             error_prefix, (int)dim + 1, (int)dimsize[dim + 1]);
 				ok = 0;
@@ -205,8 +205,8 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 			/* length is flexible */
 			if (!RNA_property_dynamic_array_set_length(ptr, prop, tot)) {
 				/* BLI_snprintf(error_str, error_str_size,
-				                "%s.%s: array length cannot be changed to %d",
-				                RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot); */
+				 *              "%s.%s: array length cannot be changed to %d",
+				 *              RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot); */
 				PyErr_Format(PyExc_ValueError, "%s %s.%s: array length cannot be changed to %d",
 				             error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot);
 				return -1;
@@ -232,18 +232,18 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 			len = 1;
 
 			/* arr[3][4][5]
-
-			   arr[2] = x
-			   dimsize = {4, 5}
-			   dimsize[1] = 4
-			   dimsize[2] = 5
-			   lvalue_dim = 0, totdim = 3
-
-			   arr[2][3] = x
-			   lvalue_dim = 1
-
-			   arr[2][3][4] = x
-			   lvalue_dim = 2 */
+			 *
+			 *    arr[2] = x
+			 *    dimsize = {4, 5}
+			 *    dimsize[1] = 4
+			 *    dimsize[2] = 5
+			 *    lvalue_dim = 0, totdim = 3
+			 * 
+			 *    arr[2][3] = x
+			 *    lvalue_dim = 1
+			 * 
+			 *    arr[2][3][4] = x
+			 *    lvalue_dim = 2 */
 			for (i = lvalue_dim; i < totdim; i++)
 				len *= dimsize[i];
 		}
@@ -462,12 +462,12 @@ static int py_to_array_index(PyObject *py, PointerRNA *ptr, PropertyRNA *prop,
 	/* convert index */
 
 	/* arr[3][4][5]
-
-	   arr[2] = x
-	   lvalue_dim = 0, index = 0 + 2 * 4 * 5
-
-	   arr[2][3] = x
-	   lvalue_dim = 1, index = 40 + 3 * 5 */
+	 *
+	 *    arr[2] = x
+	 *    lvalue_dim = 0, index = 0 + 2 * 4 * 5
+	 *
+	 *    arr[2][3] = x
+	 *    lvalue_dim = 1, index = 40 + 3 * 5 */
 
 	lvalue_dim++;
 
@@ -550,21 +550,21 @@ int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data,
 {
 	int ret;
 	switch (RNA_property_type(prop)) {
-	case PROP_FLOAT:
-		ret = py_to_array(py, ptr, prop, param_data, py_float_check, "float", sizeof(float),
-		                 py_to_float, (RNA_SetArrayFunc)RNA_property_float_set_array, error_prefix);
-		break;
-	case PROP_INT:
-		ret = py_to_array(py, ptr, prop, param_data, py_int_check, "int", sizeof(int),
-		                 py_to_int, (RNA_SetArrayFunc)RNA_property_int_set_array, error_prefix);
-		break;
-	case PROP_BOOLEAN:
-		ret = py_to_array(py, ptr, prop, param_data, py_bool_check, "boolean", sizeof(int),
-		                 py_to_bool, (RNA_SetArrayFunc)RNA_property_boolean_set_array, error_prefix);
-		break;
-	default:
-		PyErr_SetString(PyExc_TypeError, "not an array type");
-		ret = -1;
+		case PROP_FLOAT:
+			ret = py_to_array(py, ptr, prop, param_data, py_float_check, "float", sizeof(float),
+			                  py_to_float, (RNA_SetArrayFunc)RNA_property_float_set_array, error_prefix);
+			break;
+		case PROP_INT:
+			ret = py_to_array(py, ptr, prop, param_data, py_int_check, "int", sizeof(int),
+			                  py_to_int, (RNA_SetArrayFunc)RNA_property_int_set_array, error_prefix);
+			break;
+		case PROP_BOOLEAN:
+			ret = py_to_array(py, ptr, prop, param_data, py_bool_check, "boolean", sizeof(int),
+			                  py_to_bool, (RNA_SetArrayFunc)RNA_property_boolean_set_array, error_prefix);
+			break;
+		default:
+			PyErr_SetString(PyExc_TypeError, "not an array type");
+			ret = -1;
 	}
 
 	return ret;
@@ -575,21 +575,21 @@ int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, in
 {
 	int ret;
 	switch (RNA_property_type(prop)) {
-	case PROP_FLOAT:
-		ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
-		                       py_float_check, "float", py_to_float, float_set_index, error_prefix);
-		break;
-	case PROP_INT:
-		ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
-		                       py_int_check, "int", py_to_int, int_set_index, error_prefix);
-		break;
-	case PROP_BOOLEAN:
-		ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
-		                       py_bool_check, "boolean", py_to_bool, bool_set_index, error_prefix);
-		break;
-	default:
-		PyErr_SetString(PyExc_TypeError, "not an array type");
-		ret = -1;
+		case PROP_FLOAT:
+			ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
+			                        py_float_check, "float", py_to_float, float_set_index, error_prefix);
+			break;
+		case PROP_INT:
+			ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
+			                        py_int_check, "int", py_to_int, int_set_index, error_prefix);
+			break;
+		case PROP_BOOLEAN:
+			ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
+			                        py_bool_check, "boolean", py_to_bool, bool_set_index, error_prefix);
+			break;
+		default:
+			PyErr_SetString(PyExc_TypeError, "not an array type");
+			ret = -1;
 	}
 
 	return ret;
@@ -600,18 +600,18 @@ PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 	PyObject *item;
 
 	switch (RNA_property_type(prop)) {
-	case PROP_FLOAT:
-		item = PyFloat_FromDouble(RNA_property_float_get_index(ptr, prop, index));
-		break;
-	case PROP_BOOLEAN:
-		item = PyBool_FromLong(RNA_property_boolean_get_index(ptr, prop, index));
-		break;
-	case PROP_INT:
-		item = PyLong_FromSsize_t(RNA_property_int_get_index(ptr, prop, index));
-		break;
-	default:
-		PyErr_SetString(PyExc_TypeError, "not an array type");
-		item = NULL;
+		case PROP_FLOAT:
+			item = PyFloat_FromDouble(RNA_property_float_get_index(ptr, prop, index));
+			break;
+		case PROP_BOOLEAN:
+			item = PyBool_FromLong(RNA_property_boolean_get_index(ptr, prop, index));
+			break;
+		case PROP_INT:
+			item = PyLong_FromSsize_t(RNA_property_int_get_index(ptr, prop, index));
+			break;
+		default:
+			PyErr_SetString(PyExc_TypeError, "not an array type");
+			item = NULL;
 	}
 
 	return item;
@@ -664,7 +664,7 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 	len = RNA_property_multi_array_length(ptr, prop, arraydim);
 	if (index >= len || index < 0) {
 		/* this shouldn't happen because higher level funcs must check for invalid index */
-		if (G.f & G_DEBUG) printf("pyrna_py_from_array_index: invalid index %d for array with length=%d\n", index, len);
+		if (G.debug & G_DEBUG_PYTHON) printf("pyrna_py_from_array_index: invalid index %d for array with length=%d\n", index, len);
 
 		PyErr_SetString(PyExc_IndexError, "out of range");
 		return NULL;
@@ -677,12 +677,12 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 		ret->arraydim = arraydim + 1;
 
 		/* arr[3][4][5]
-
-		   x = arr[2]
-		   index = 0 + 2 * 4 * 5
-
-		   x = arr[2][3]
-		   index = offset + 3 * 5 */
+		 *
+		 *    x = arr[2]
+		 *    index = 0 + 2 * 4 * 5
+		 * 
+		 *    x = arr[2][3]
+		 *    index = offset + 3 * 5 */
 
 		for (i = arraydim + 1; i < totdim; i++)
 			index *= dimsize[i];

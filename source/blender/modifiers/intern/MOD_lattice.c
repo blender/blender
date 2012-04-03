@@ -40,7 +40,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
@@ -49,6 +48,11 @@
 
 #include "MOD_util.h"
 
+static void initData(ModifierData *md)
+{
+	LatticeModifierData *lmd = (LatticeModifierData*) md;
+	lmd->strength = 1.0f;
+}
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
@@ -65,7 +69,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(lmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+	if (lmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
@@ -94,7 +98,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
-	if(lmd->object) {
+	if (lmd->object) {
 		DagNode *latNode = dag_get_node(forest, lmd->object);
 
 		dag_add_relation(forest, latNode, obNode,
@@ -115,7 +119,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
 	lattice_deform_verts(lmd->object, ob, derivedData,
-	                     vertexCos, numVerts, lmd->name);
+	                     vertexCos, numVerts, lmd->name, lmd->strength);
 }
 
 static void deformVertsEM(
@@ -124,11 +128,11 @@ static void deformVertsEM(
 {
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
+	if (!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
 
 	deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
 
-	if(!derivedData) dm->release(dm);
+	if (!derivedData) dm->release(dm);
 }
 
 
@@ -146,7 +150,7 @@ ModifierTypeInfo modifierType_Lattice = {
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
-	/* initData */          NULL,
+	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,

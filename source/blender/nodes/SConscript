@@ -26,6 +26,9 @@ if env['WITH_BF_PYTHON']:
     if env['BF_DEBUG']:
         defs.append('_DEBUG')
 
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'

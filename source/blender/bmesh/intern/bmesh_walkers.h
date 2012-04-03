@@ -30,13 +30,18 @@
 #include "BLI_ghash.h"
 
 /*
-  NOTE: do NOT modify topology while walking a mesh!
-*/
+ * NOTE: do NOT modify topology while walking a mesh!
+ */
 
 typedef enum {
 	BMW_DEPTH_FIRST,
 	BMW_BREADTH_FIRST
 } BMWOrder;
+
+typedef enum {
+	BMW_FLAG_NOP = 0,
+	BMW_FLAG_TEST_HIDDEN = (1 << 0)
+} BMWFlag;
 
 /*Walkers*/
 typedef struct BMWalker {
@@ -54,13 +59,16 @@ typedef struct BMWalker {
 	BLI_mempool *worklist;
 	ListBase states;
 
-	/* these masks are to be tested against elements BMO_elem_flag_test() */
+	/* these masks are to be tested against elements BMO_elem_flag_test(),
+	 * should never be accessed directly only through BMW_init() and bmw_mask_check_*() functions */
 	short mask_vert;
 	short mask_edge;
-	short mask_loop;
 	short mask_face;
 
+	BMWFlag flag;
+
 	GHash *visithash;
+	GHash *secvisithash;
 	int depth;
 } BMWalker;
 
@@ -70,7 +78,8 @@ typedef struct BMWalker {
 /* initialize a walker.  searchmask restricts some (not all) walkers to
  * elements with a specific tool flag set.  flags is specific to each walker.*/
 void BMW_init(struct BMWalker *walker, BMesh *bm, int type,
-              short mask_vert, short mask_edge, short mask_loop, short mask_face,
+              short mask_vert, short mask_edge, short mask_face,
+              BMWFlag flag,
               int layer);
 void *BMW_begin(BMWalker *walker, void *start);
 void *BMW_step(struct BMWalker *walker);
@@ -85,25 +94,25 @@ void *BMW_walk(BMWalker *walker);
 void  BMW_reset(BMWalker *walker);
 
 /*
-example of usage, walking over an island of tool flagged faces:
-
-BMWalker walker;
-BMFace *f;
-
-BMW_init(&walker, bm, BMW_ISLAND, SOME_OP_FLAG);
-f = BMW_begin(&walker, some_start_face);
-for (; f; f = BMW_step(&walker))
-{
-	//do something with f
-}
-BMW_end(&walker);
-*/
+ * example of usage, walking over an island of tool flagged faces:
+ *
+ * BMWalker walker;
+ * BMFace *f;
+ *
+ * BMW_init(&walker, bm, BMW_ISLAND, SOME_OP_FLAG);
+ * f = BMW_begin(&walker, some_start_face);
+ * for (; f; f = BMW_step(&walker))
+ * {
+ *     //do something with f
+ * }
+ * BMW_end(&walker);
+ */
 
 enum {
 	/* walk over connected geometry.  can restrict to a search flag,
 	 * or not, it's optional.
 	 *
-	 * takes a vert as an arugment, and spits out edges, restrict flag acts
+	 * takes a vert as an argument, and spits out edges, restrict flag acts
 	 * on the edges as well. */
 	BMW_SHELL,
 	/*walk over an edge loop.  search flag doesn't do anything.*/
@@ -121,7 +130,7 @@ enum {
 	/* walk over an island of flagged faces.  note, that this doesn't work on
 	 * non-manifold geometry.  it might be better to rewrite this to extract
 	 * boundary info from the island walker, rather then directly walking
-	 * over the boundary.  raises an error if it encouters nonmanifold
+	 * over the boundary.  raises an error if it encounters nonmanifold
 	 * geometry. */
 	BMW_ISLANDBOUND,
 	/* walk over all faces in an island of tool flagged faces. */

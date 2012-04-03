@@ -36,7 +36,7 @@ struct bScreen;
 struct Scene;
 
 /**
- * FileGlobal stores a part of the current user-unterface settings at
+ * FileGlobal stores a part of the current user-interface settings at
  * the moment of saving, and the file-specific settings.
  */
 typedef struct FileGlobal {

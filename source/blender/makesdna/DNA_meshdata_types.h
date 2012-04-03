@@ -38,7 +38,7 @@
 struct Bone;
 struct Image;
 
-/*tesselation face, see MLoop/MPoly for the real face data*/
+/*tessellation face, see MLoop/MPoly for the real face data*/
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	short mat_nr;
@@ -68,15 +68,15 @@ typedef struct MVert {
 	char flag, bweight;
 } MVert;
 
-/* tesselation vertex color data.
+/* tessellation vertex color data.
  * at the moment alpha is abused for vertex painting
  * and not used for transparency, note that red and blue are swapped */
 typedef struct MCol {
 	char a, r, g, b;	
 } MCol;
 
-/*new face structure, replaces MFace, which is now
-  only used for storing tesselations.*/
+/* new face structure, replaces MFace, which is now
+ * only used for storing tessellations.*/
 typedef struct MPoly {
 	/* offset into loop array and number of loops in the face */
 	int loopstart;
@@ -85,8 +85,8 @@ typedef struct MPoly {
 	char flag, pad;
 } MPoly;
 
-/*the e here is because we want to move away from
-  relying on edge hashes.*/
+/* the e here is because we want to move away from
+ * relying on edge hashes.*/
 typedef struct MLoop {
 	unsigned int v; /*vertex index*/
 	unsigned int e; /*edge index*/
@@ -122,8 +122,29 @@ typedef struct MLoopUV {
 /* at the moment alpha is abused for vertex painting
  * and not used for transparency, note that red and blue are swapped */
 typedef struct MLoopCol {
-	char a, r, g, b;
+	char r, g, b, a;
 } MLoopCol;
+
+#define MESH_MLOOPCOL_FROM_MCOL(_mloopcol, _mcol) \
+{                                                 \
+	MLoopCol   *mloopcol__tmp = _mloopcol;        \
+	const MCol *mcol__tmp     = _mcol;            \
+	mloopcol__tmp->r = mcol__tmp->b;              \
+	mloopcol__tmp->g = mcol__tmp->g;              \
+	mloopcol__tmp->b = mcol__tmp->r;              \
+	mloopcol__tmp->a = mcol__tmp->a;              \
+} (void)0
+
+
+#define MESH_MLOOPCOL_TO_MCOL(_mloopcol, _mcol) \
+{                                               \
+	const MLoopCol *mloopcol__tmp = _mloopcol;  \
+	MCol           *mcol__tmp     = _mcol;      \
+	mcol__tmp->b = mloopcol__tmp->r;            \
+	mcol__tmp->g = mloopcol__tmp->g;            \
+	mcol__tmp->r = mloopcol__tmp->b;            \
+	mcol__tmp->a = mloopcol__tmp->a;            \
+} (void)0
 
 typedef struct MSticky {
 	float co[2];
@@ -134,7 +155,7 @@ typedef struct MSelect {
 	int type; /* EDITVERT/EDITEDGE/EDITFACE */
 } MSelect;
 
-/*tesselation uv face data*/
+/*tessellation uv face data*/
 typedef struct MTFace {
 	float uv[4][2];
 	struct Image *tpage;
@@ -164,8 +185,14 @@ typedef struct OrigSpaceLoop {
 typedef struct MDisps {
 	/* Strange bug in SDNA: if disps pointer comes first, it fails to see totdisp */
 	int totdisp;
-	char pad[4];
+	int level;
 	float (*disps)[3];
+	
+	/* Used for hiding parts of a multires mesh. Essentially the multires
+	   equivalent of MVert.flag's ME_HIDE bit.
+	
+	   This is a bitmap, keep in sync with type used in BLI_bitmap.h */
+	unsigned int *hidden;
 } MDisps;
 
 /** Multires structs kept for compatibility with old files **/

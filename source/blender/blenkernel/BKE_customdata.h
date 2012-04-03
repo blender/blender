@@ -59,7 +59,7 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 /* for ORIGINDEX layer type, indicates no original index for this element */
 #define ORIGINDEX_NONE -1
 
-/* initialises a CustomData object with the same layer setup as source and
+/* initializes a CustomData object with the same layer setup as source and
  * memory space for totelem elements. mask must be an array of length
  * CD_NUMTYPES elements, that indicate if a layer can be copied. */
 
@@ -69,18 +69,19 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 #define CD_DEFAULT   2  /* allocate and set to default */
 #define CD_REFERENCE 3  /* use data pointers, set layer flag NOFREE */
 #define CD_DUPLICATE 4  /* do a full copy of all layers, only allowed if source
-						   has same number of elements */
+                         * has same number of elements */
 
 #define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
 
-/* Checks if the layer at physical offset layern (in data->layers) support math
+/**
+ * Checks if the layer at physical offset \a layer_n (in data->layers) support math
  * the below operations.
  */
-int CustomData_layer_has_math(struct CustomData *data, int layern);
+int CustomData_layer_has_math(struct CustomData *data, int layer_n);
 
-/*copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
-  another, while not overwriting anything else (e.g. flags).  probably only
-  implemented for mloopuv/mloopcol, for now.*/
+/* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
+ * another, while not overwriting anything else (e.g. flags).  probably only
+ * implemented for mloopuv/mloopcol, for now.*/
 void CustomData_data_copy_value(int type, void *source, void *dest);
 
 /* compares if data1 is equal to data2.  type is a valid CustomData type
@@ -92,7 +93,7 @@ void CustomData_data_dominmax(int type, void *data, void *min, void *max);
 void CustomData_data_multiply(int type, void *data, float fac);
 void CustomData_data_add(int type, void *data1, void *data2);
 
-/* initialises a CustomData object with the same layer setup as source.
+/* initializes a CustomData object with the same layer setup as source.
  * mask is a bitfield where (mask & (1 << (layer type))) indicates
  * if a layer should be copied or not. alloctype must be one of the above. */
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
@@ -106,11 +107,11 @@ void CustomData_update_typemap(struct CustomData *data);
 void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 					  CustomDataMask mask, int alloctype, int totelem);
 
-/*bmesh version of CustomData_merge; merges the layouts of source and dest,
-  then goes through the mesh and makes sure all the customdata blocks are
-  consistent with the new layout.*/
+/* bmesh version of CustomData_merge; merges the layouts of source and dest,
+ * then goes through the mesh and makes sure all the customdata blocks are
+ * consistent with the new layout.*/
 void CustomData_bmesh_merge(struct CustomData *source, struct CustomData *dest, 
-                            int mask, int alloctype, struct BMesh *bm, int type);
+                            int mask, int alloctype, struct BMesh *bm, const char htype);
 
 /* frees data associated with a CustomData object (doesn't free the object
  * itself, though)
@@ -124,7 +125,7 @@ void CustomData_free_temporary(struct CustomData *data, int totelem);
  * backed by an external data array. the different allocation types are
  * defined above. returns the data of the layer.
  *
- * in editmode, use EM_add_data_layer instead of this function
+ * in editmode, use EDBM_data_layer_add instead of this function
  */
 void *CustomData_add_layer(struct CustomData *data, int type, int alloctype,
 						   void *layer, int totelem);
@@ -135,14 +136,14 @@ void *CustomData_add_layer_named(struct CustomData *data, int type, int alloctyp
 /* frees the active or first data layer with the give type.
  * returns 1 on succes, 0 if no layer with the given type is found
  *
- * in editmode, use EM_free_data_layer instead of this function
+ * in editmode, use EDBM_data_layer_free instead of this function
  */
 int CustomData_free_layer(struct CustomData *data, int type, int totelem, int index);
 
 /* frees the layer index with the give type.
  * returns 1 on succes, 0 if no layer with the given type is found
  *
- * in editmode, use EM_free_data_layer instead of this function
+ * in editmode, use EDBM_data_layer_free instead of this function
  */
 int CustomData_free_layer_active(struct CustomData *data, int type, int totelem);
 
@@ -210,8 +211,8 @@ void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks,
 
 
 /* swaps the data in the element corners, to new corners with indices as
-   specified in corner_indices. for edges this is an array of length 2, for
-   faces an array of length 4 */
+ * specified in corner_indices. for edges this is an array of length 2, for
+ * faces an array of length 4 */
 void CustomData_swap(struct CustomData *data, int index, const int *corner_indices);
 
 /* gets a pointer to the data element at index from the first layer of type
@@ -311,7 +312,7 @@ void CustomData_set_layer_unique_name(struct CustomData *data, int index);
 void CustomData_validate_layer_name(const struct CustomData *data, int type, char *name, char *outname);
 
 /* for file reading compatibility, returns false if the layer was freed,
-   only after this test passes, layer->data should be assigned */
+ * only after this test passes, layer->data should be assigned */
 int CustomData_verify_versions(struct CustomData *data, int index);
 
 /*BMesh specific customdata stuff*/
@@ -319,7 +320,7 @@ void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata,
                              struct CustomData *ldata, int totloop, int totpoly);
 void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata, int total);
 void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
-void CustomData_bmesh_init_pool(struct CustomData *data, int allocsize);
+void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, const char htype);
 
 /* External file storage */
 

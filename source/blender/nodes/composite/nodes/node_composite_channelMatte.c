@@ -105,10 +105,10 @@ static void do_channel_matte(bNode *node, float *out, float *in)
 	alpha=1-alpha;
 	
 	/* test range*/
-	if(alpha>c->t1) {
+	if (alpha>c->t1) {
 		alpha=in[3]; /*whatever it was prior */
 	}
-	else if(alpha<c->t2){
+	else if (alpha<c->t2) {
 		alpha=0.0;
 	}
 	else {/*blend */
@@ -130,9 +130,9 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 	CompBuf *cbuf;
 	CompBuf *outbuf;
 	
-	if(in[0]->hasinput==0) return;
-	if(in[0]->data==NULL) return;
-	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
+	if (in[0]->hasinput==0) return;
+	if (in[0]->data==NULL) return;
+	if (out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
 	
 	cbuf=typecheck_compbuf(in[0]->data, CB_RGBA);
 	
@@ -177,10 +177,10 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 
 	generate_preview(data, node, outbuf);
 	out[0]->data=outbuf;
-	if(out[1]->hasoutput)
+	if (out[1]->hasoutput)
 		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
 	
-	if(cbuf!=in[0]->data)
+	if (cbuf!=in[0]->data)
 		free_compbuf(cbuf);
 
 }

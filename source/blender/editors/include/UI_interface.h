@@ -178,11 +178,11 @@ typedef struct uiLayout uiLayout;
 #define UI_DPI_ICON_SIZE ((float)16 * UI_DPI_ICON_FAC)
 
 /* Button types, bits stored in 1 value... and a short even!
-- bits 0-4:  bitnr (0-31)
-- bits 5-7:  pointer type
-- bit  8:    for 'bit'
-- bit  9-15: button type (now 6 bits, 64 types)
-*/
+ * - bits 0-4:  bitnr (0-31)
+ * - bits 5-7:  pointer type
+ * - bit  8:    for 'bit'
+ * - bit  9-15: button type (now 6 bits, 64 types)
+ * */
 
 #define CHA	32
 #define SHO	64
@@ -497,7 +497,7 @@ int uiButGetUnitType(uiBut *but);
 
 /* Special Buttons
  *
- * Butons with a more specific purpose:
+ * Buttons with a more specific purpose:
  * - IDPoinBut: for creating buttons that work on a pointer to an ID block.
  * - MenuBut: buttons that popup a menu (in headers usually).
  * - PulldownBut: like MenuBut, but creating a uiBlock (for compatibility).

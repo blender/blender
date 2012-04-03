@@ -62,7 +62,7 @@ void IMB_flipy(struct ImBuf * ibuf)
 	
 		y >>= 1;
 
-		for(;y>0;y--) {
+		for (;y>0;y--) {
 			memcpy(line, top, x*sizeof(int));
 			memcpy(top, bottom, x*sizeof(int));
 			memcpy(bottom, line, x*sizeof(int));
@@ -85,7 +85,7 @@ void IMB_flipy(struct ImBuf * ibuf)
 
 		y >>= 1;
 
-		for(;y>0;y--) {
+		for (;y>0;y--) {
 			memcpy(linef, topf, 4*x*sizeof(float));
 			memcpy(topf, bottomf, 4*x*sizeof(float));
 			memcpy(bottomf, linef, 4*x*sizeof(float));
@@ -108,16 +108,16 @@ void IMB_flipx(struct ImBuf * ibuf)
 	y = ibuf->y;
 
 	if (ibuf->rect) {
-		for(yi=y-1;yi>=0;yi--) {
-			for(xr=x-1, xl=0; xr>=xl; xr--, xl++) {
+		for (yi=y-1;yi>=0;yi--) {
+			for (xr=x-1, xl=0; xr>=xl; xr--, xl++) {
 				SWAP(unsigned int, ibuf->rect[(x*yi)+xr], ibuf->rect[(x*yi)+xl]);
 			}
 		}
 	}
 	
 	if (ibuf->rect_float) {
-		for(yi=y-1;yi>=0;yi--) {
-			for(xr=x-1, xl=0; xr>=xl; xr--, xl++) {
+		for (yi=y-1;yi>=0;yi--) {
+			for (xr=x-1, xl=0; xr>=xl; xr--, xl++) {
 				memcpy(&px_f, &ibuf->rect_float[((x*yi)+xr)*4], 4*sizeof(float));
 				memcpy(&ibuf->rect_float[((x*yi)+xr)*4], &ibuf->rect_float[((x*yi)+xl)*4], 4*sizeof(float));
 				memcpy(&ibuf->rect_float[((x*yi)+xl)*4], &px_f, 4*sizeof(float));

@@ -86,7 +86,7 @@ struct bSound* sound_new_file(struct Main *bmain, const char *filename)
 	BLI_path_abs(str, path);
 
 	len = strlen(filename);
-	while(len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
+	while (len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
 		len--;
 
 	sound = alloc_libblock(&bmain->sound, ID_SO, filename+len);
@@ -141,7 +141,7 @@ static void sound_sync_callback(void* data, int mode, float time)
 	struct Scene* scene;
 
 	scene = bmain->scene.first;
-	while(scene)
+	while (scene)
 	{
 		if (scene->audio.flag & AUDIO_SYNC)
 		{
@@ -351,7 +351,7 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			/* load sound */
 			PackedFile* pf = sound->packedfile;
 
-			/* dont modify soundact->sound->name, only change a copy */
+			/* don't modify soundact->sound->name, only change a copy */
 			BLI_strncpy(fullpath, sound->name, sizeof(fullpath));
 			BLI_path_abs(fullpath, ID_BLEND_PATH(bmain, &sound->id));
 
@@ -628,19 +628,16 @@ void sound_seek_scene(struct Main *bmain, struct Scene *scene)
 		AUD_resume(scene->sound_scene_handle);
 		if (scene->sound_scrub_handle && AUD_getStatus(scene->sound_scrub_handle) != AUD_STATUS_INVALID)
 			AUD_seek(scene->sound_scrub_handle, 0);
-		else
-		{
+		else {
 			if (scene->sound_scrub_handle)
 				AUD_stop(scene->sound_scrub_handle);
 			scene->sound_scrub_handle = AUD_pauseAfter(scene->sound_scene_handle, 1 / FPS);
 		}
 	}
-	else
-	{
+	else {
 		if (scene->audio.flag & AUDIO_SYNC)
 			AUD_seekSequencer(scene->sound_scene_handle, CFRA / FPS);
-		else
-		{
+		else {
 			if (status == AUD_STATUS_PLAYING)
 				AUD_seek(scene->sound_scene_handle, CFRA / FPS);
 		}
@@ -731,14 +728,12 @@ void sound_update_scene(struct Scene* scene)
 							{
 								if (speaker->sound)
 									AUD_moveSequence(strip->speaker_handle, strip->start / FPS, -1, 0);
-								else
-								{
+								else {
 									AUD_removeSequence(scene->sound_scene, strip->speaker_handle);
 									strip->speaker_handle = NULL;
 								}
 							}
-							else
-							{
+							else {
 								if (speaker->sound)
 								{
 									strip->speaker_handle = AUD_addSequence(scene->sound_scene, speaker->sound->playback_handle, strip->start / FPS, -1, 0);
@@ -770,7 +765,7 @@ void sound_update_scene(struct Scene* scene)
 		}
 	}
 
-	while((handle = AUD_getSet(scene->speaker_handles)))
+	while ((handle = AUD_getSet(scene->speaker_handles)))
 	{
 		AUD_removeSequence(scene->sound_scene, handle);
 	}

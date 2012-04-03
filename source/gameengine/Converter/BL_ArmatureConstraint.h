@@ -104,6 +104,11 @@ public:
 			con->weight = weight;
 		}
 	}
+	void SetInfluence(float influence)
+	{
+		if (m_constraint)
+			m_constraint->enforce = influence;
+	}
 	void SetTarget(KX_GameObject* target);
 	void SetSubtarget(KX_GameObject* subtarget);
 

@@ -39,6 +39,8 @@
 
 #include "DNA_anim_types.h"
 
+#include "BLF_translation.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_utildefines.h"
@@ -99,7 +101,7 @@ static FModifierTypeInfo FMI_MODNAME = {
 /* Generators available:
  * 	1) simple polynomial generator:
  *		- Exanded form - (y = C[0]*(x^(n)) + C[1]*(x^(n-1)) + ... + C[n])  
- *		- Factorised form - (y = (C[0][0]*x + C[0][1]) * (C[1][0]*x + C[1][1]) * ... * (C[n][0]*x + C[n][1]))
+ *		- Factorized form - (y = (C[0][0]*x + C[0][1]) * (C[1][0]*x + C[1][1]) * ... * (C[n][0]*x + C[n][1]))
  */
 
 static void fcm_generator_free (FModifier *fcm)
@@ -198,7 +200,7 @@ static void fcm_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, float *
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	
-	/* behaviour depends on mode 
+	/* behavior depends on mode 
 	 * NOTE: the data in its default state is fine too
 	 */
 	switch (data->mode) {
@@ -238,7 +240,7 @@ static void fcm_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, float *
 		}
 			break;
 			
-		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial */
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* Factorized polynomial */
 		{
 			float value= 1.0f, *cp=NULL;
 			unsigned int i;
@@ -264,7 +266,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
 	sizeof(FMod_Generator), /* size */
 	FMI_TYPE_GENERATE_CURVE, /* action type */
 	FMI_REQUIRES_NOTHING, /* requirements */
-	"Generator", /* name */
+	N_("Generator"), /* name */
 	"FMod_Generator", /* struct name */
 	fcm_generator_free, /* free data */
 	fcm_generator_copy, /* copy data */
@@ -333,7 +335,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 		case FCM_GENERATOR_FN_TAN: /* tangent wave */
 		{
 			/* check that argument is not on one of the discontinuities (i.e. 90deg, 270 deg, etc) */
-			if IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0) {
+			if (IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0)) {
 				if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
 					*cvalue = 0.0f; /* no value possible here */
 			}
@@ -367,7 +369,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 			break;
 		
 		default:
-			printf("Invalid Function-Generator for F-Modifier - %d \n", data->type);
+			printf("Invalid Function-Generator for F-Modifier - %d\n", data->type);
 	}
 	
 	/* execute function callback to set value if appropriate */
@@ -386,7 +388,7 @@ static FModifierTypeInfo FMI_FN_GENERATOR = {
 	sizeof(FMod_FunctionGenerator), /* size */
 	FMI_TYPE_GENERATE_CURVE, /* action type */
 	FMI_REQUIRES_NOTHING, /* requirements */
-	"Built-In Function", /* name */
+	N_("Built-In Function"), /* name */
 	"FMod_FunctionGenerator", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -493,7 +495,7 @@ static FModifierTypeInfo FMI_ENVELOPE = {
 	sizeof(FMod_Envelope), /* size */
 	FMI_TYPE_REPLACE_VALUES, /* action type */
 	0, /* requirements */
-	"Envelope", /* name */
+	N_("Envelope"), /* name */
 	"FMod_Envelope", /* struct name */
 	fcm_envelope_free, /* free data */
 	fcm_envelope_copy, /* copy data */
@@ -506,13 +508,15 @@ static FModifierTypeInfo FMI_ENVELOPE = {
 /* Cycles F-Curve Modifier  --------------------------- */
 
 /* This modifier changes evaltime to something that exists within the curve's frame-range, 
- * then re-evaluates modifier stack up to this point using the new time. This re-entrant behaviour
- * is very likely to be more time-consuming than the original approach... (which was tighly integrated into 
+ * then re-evaluates modifier stack up to this point using the new time. This re-entrant behavior
+ * is very likely to be more time-consuming than the original approach... (which was tightly integrated into
  * the calculation code...).
  *
- * NOTE: this needs to be at the start of the stack to be of use, as it needs to know the extents of the keyframes/sample-data
- * Possible TODO - store length of cycle information that can be initialised from the extents of the keyframes/sample-data, and adjusted
- * 				as appropriate
+ * NOTE: this needs to be at the start of the stack to be of use, as it needs to know the extents of the
+ * keyframes/sample-data.
+ *
+ * Possible TODO - store length of cycle information that can be initialized from the extents of the
+ * keyframes/sample-data, and adjusted as appropriate.
  */
 
 /* temp data used during evaluation */
@@ -586,7 +590,7 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float UNUSED(cvalue),
 			ofs= lastkey[0];
 		}
 	}
-	if ELEM(0, side, mode)
+	if ((ELEM(0, side, mode)))
 		return evaltime;
 		
 	/* find relative place within a cycle */
@@ -623,7 +627,7 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float UNUSED(cvalue),
 		
 		/* check if 'cyclic extrapolation', and thus calculate y-offset for this cycle */
 		if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
-			if(side < 0)
+			if (side < 0)
 				cycyofs = (float)floor((evaltime - ofs) / cycdx);
 			else
 				cycyofs = (float)ceil((evaltime - ofs) / cycdx);
@@ -631,10 +635,10 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float UNUSED(cvalue),
 		}
 		
 		/* special case for cycle start/end */
-		if(cyct == 0.0f) {
+		if (cyct == 0.0f) {
 			evaltime = (side == 1 ? lastkey[0] : prevkey[0]);
 			
-			if((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)cycle % 2))
+			if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)cycle % 2))
 				evaltime = (side == 1 ? prevkey[0] : lastkey[0]);
 		}
 		/* calculate where in the cycle we are (overwrite evaltime to reflect this) */
@@ -688,7 +692,7 @@ static FModifierTypeInfo FMI_CYCLES = {
 	sizeof(FMod_Cycles), /* size */
 	FMI_TYPE_EXTRAPOLATION, /* action type */
 	FMI_REQUIRES_ORIGINAL_DATA, /* requirements */
-	"Cycles", /* name */
+	N_("Cycles"), /* name */
 	"FMod_Cycles", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -746,7 +750,7 @@ static FModifierTypeInfo FMI_NOISE = {
 	sizeof(FMod_Noise), /* size */
 	FMI_TYPE_REPLACE_VALUES, /* action type */
 	0, /* requirements */
-	"Noise", /* name */
+	N_("Noise"), /* name */
 	"FMod_Noise", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -764,7 +768,7 @@ static FModifierTypeInfo FMI_FILTER = {
 	sizeof(FMod_Filter), /* size */
 	FMI_TYPE_REPLACE_VALUES, /* action type */
 	0, /* requirements */
-	"Filter", /* name */
+	N_("Filter"), /* name */
 	"FMod_Filter", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -820,7 +824,7 @@ static FModifierTypeInfo FMI_PYTHON = {
 	sizeof(FMod_Python), /* size */
 	FMI_TYPE_GENERATE_CURVE, /* action type */
 	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
-	"Python", /* name */
+	N_("Python"), /* name */
 	"FMod_Python", /* struct name */
 	fcm_python_free, /* free data */
 	fcm_python_copy, /* copy data */
@@ -863,7 +867,7 @@ static FModifierTypeInfo FMI_LIMITS = {
 	sizeof(FMod_Limits), /* size */
 	FMI_TYPE_GENERATE_CURVE, /* action type */  /* XXX... err... */   
 	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
-	"Limits", /* name */
+	N_("Limits"), /* name */
 	"FMod_Limits", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -916,7 +920,7 @@ static FModifierTypeInfo FMI_STEPPED = {
 	sizeof(FMod_Limits), /* size */
 	FMI_TYPE_GENERATE_CURVE, /* action type */  /* XXX... err... */   
 	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
-	"Stepped", /* name */
+	N_("Stepped"), /* name */
 	"FMod_Stepped", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -955,7 +959,7 @@ static void fmods_init_typeinfo (void)
  */
 FModifierTypeInfo *get_fmodifier_typeinfo (int type)
 {
-	/* initialise the type-info list? */
+	/* initialize the type-info list? */
 	if (FMI_INIT) {
 		fmods_init_typeinfo();
 		FMI_INIT = 0;
@@ -969,7 +973,7 @@ FModifierTypeInfo *get_fmodifier_typeinfo (int type)
 		return fmodifiersTypeInfo[type];
 	}
 	else {
-		printf("No valid F-Curve Modifier type-info data available. Type = %i \n", type);
+		printf("No valid F-Curve Modifier type-info data available. Type = %i\n", type);
 	}
 	
 	return NULL;
@@ -996,14 +1000,14 @@ FModifier *add_fmodifier (ListBase *modifiers, int type)
 	FModifier *fcm;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, fmi)
+	if (ELEM(NULL, modifiers, fmi))
 		return NULL;
 	
 	/* special checks for whether modifier can be added */
 	if ((modifiers->first) && (type == FMODIFIER_TYPE_CYCLES)) {
 		/* cycles modifier must be first in stack, so for now, don't add if it can't be */
 		// TODO: perhaps there is some better way, but for now, 
-		printf("Error: Cannot add 'Cycles' modifier to F-Curve, as 'Cycles' modifier can only be first in stack. \n");
+		printf("Error: Cannot add 'Cycles' modifier to F-Curve, as 'Cycles' modifier can only be first in stack.\n");
 		return NULL;
 	}
 	
@@ -1059,7 +1063,7 @@ void copy_fmodifiers (ListBase *dst, ListBase *src)
 {
 	FModifier *fcm, *srcfcm;
 	
-	if ELEM(NULL, dst, src)
+	if (ELEM(NULL, dst, src))
 		return;
 	
 	dst->first= dst->last= NULL;
@@ -1102,7 +1106,7 @@ int remove_fmodifier (ListBase *modifiers, FModifier *fcm)
 	} 
 	else {
 		// XXX this case can probably be removed some day, as it shouldn't happen...
-		printf("remove_fmodifier() - no modifier stack given \n");
+		printf("remove_fmodifier() - no modifier stack given\n");
 		MEM_freeN(fcm);
 		return 0;
 	}
@@ -1130,7 +1134,7 @@ FModifier *find_active_fmodifier (ListBase *modifiers)
 	FModifier *fcm;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->first)
+	if (ELEM(NULL, modifiers, modifiers->first))
 		return NULL;
 	
 	/* loop over modifiers until 'active' one is found */
@@ -1149,7 +1153,7 @@ void set_active_fmodifier (ListBase *modifiers, FModifier *fcm)
 	FModifier *fm;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->first)
+	if (ELEM(NULL, modifiers, modifiers->first))
 		return;
 	
 	/* deactivate all, and set current one active */
@@ -1174,7 +1178,7 @@ short list_has_suitable_fmodifier (ListBase *modifiers, int mtype, short acttype
 		return (modifiers && modifiers->first);
 		
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->first)
+	if (ELEM(NULL, modifiers, modifiers->first))
 		return 0;
 		
 	/* find the first mdifier fitting these criteria */
@@ -1241,7 +1245,7 @@ static float eval_fmodifier_influence (FModifier *fcm, float evaltime)
 }
 
 /* evaluate time modifications imposed by some F-Curve Modifiers
- *	- this step acts as an optimisation to prevent the F-Curve stack being evaluated 
+ *	- this step acts as an optimization to prevent the F-Curve stack being evaluated 
  *	  several times by modifiers requesting the time be modified, as the final result
  *	  would have required using the modified time
  *	- modifiers only ever receive the unmodified time, as subsequent modifiers should be
@@ -1254,7 +1258,7 @@ float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, 
 	FModifier *fcm;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->last)
+	if (ELEM(NULL, modifiers, modifiers->last))
 		return evaltime;
 		
 	/* Starting from the end of the stack, calculate the time effects of various stacked modifiers 
@@ -1303,7 +1307,7 @@ void evaluate_value_fmodifiers (ListBase *modifiers, FCurve *fcu, float *cvalue,
 	FModifier *fcm;
 	
 	/* sanity checks */
-	if ELEM(NULL, modifiers, modifiers->first)
+	if (ELEM(NULL, modifiers, modifiers->first))
 		return;
 	
 	/* evaluate modifiers */
@@ -1341,7 +1345,7 @@ void fcurve_bake_modifiers (FCurve *fcu, int start, int end)
 	
 	/* sanity checks */
 	// TODO: make these tests report errors using reports not printf's
-	if ELEM(NULL, fcu, fcu->modifiers.first) {
+	if (ELEM(NULL, fcu, fcu->modifiers.first)) {
 		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
 		return;
 	}

@@ -92,7 +92,7 @@ static void init_render_jit(Render *re)
 	static int lastjit= 0;
 	static int last_mblur_jit= 0;
 	
-	if(lastjit!=re->r.osa || last_mblur_jit != re->r.mblur_samples) {
+	if (lastjit!=re->r.osa || last_mblur_jit != re->r.mblur_samples) {
 		memset(jit, 0, sizeof(jit));
 		BLI_initjit(jit[0], re->r.osa);
 		
@@ -169,11 +169,11 @@ float RE_filter_value(int type, float x)
 	
 	switch(type) {
 		case R_FILTER_BOX:
-			if(x>1.0f) return 0.0f;
+			if (x>1.0f) return 0.0f;
 			return 1.0f;
 			
 		case R_FILTER_TENT:
-			if(x>1.0f) return 0.0f;
+			if (x>1.0f) return 0.0f;
 			return 1.0f-x;
 			
 		case R_FILTER_GAUSS:
@@ -200,7 +200,7 @@ static float calc_weight(Render *re, float *weight, int i, int j)
 	float x, y, dist, totw= 0.0;
 	int a;
 
-	for(a=0; a<re->osa; a++) {
+	for (a=0; a<re->osa; a++) {
 		x= re->jit[a][0] + i;
 		y= re->jit[a][1] + j;
 		dist= sqrt(x*x+y*y);
@@ -210,11 +210,11 @@ static float calc_weight(Render *re, float *weight, int i, int j)
 		/* Weighting choices */
 		switch(re->r.filtertype) {
 		case R_FILTER_BOX:
-			if(i==0 && j==0) weight[a]= 1.0;
+			if (i==0 && j==0) weight[a]= 1.0;
 			break;
 			
 		case R_FILTER_TENT:
-			if(dist < re->r.gauss)
+			if (dist < re->r.gauss)
 				weight[a]= re->r.gauss - dist;
 			break;
 			
@@ -251,8 +251,8 @@ void free_sample_tables(Render *re)
 {
 	int a;
 	
-	if(re->samples) {
-		for(a=0; a<9; a++) {
+	if (re->samples) {
+		for (a=0; a<9; a++) {
 			MEM_freeN(re->samples->fmask1[a]);
 			MEM_freeN(re->samples->fmask2[a]);
 		}
@@ -273,7 +273,7 @@ void make_sample_tables(Render *re)
 	int i, j, a;
 
 	/* optimization tables, only once */
-	if(firsttime) {
+	if (firsttime) {
 		firsttime= 0;
 	}
 	
@@ -281,7 +281,7 @@ void make_sample_tables(Render *re)
 	
 	init_render_jit(re);	/* needed for mblur too */
 	
-	if(re->osa==0) {
+	if (re->osa==0) {
 		/* just prevents cpu cycles for larger render and copying */
 		re->r.filtertype= 0;
 		return;
@@ -289,78 +289,78 @@ void make_sample_tables(Render *re)
 	
 	st= re->samples= MEM_callocN(sizeof(SampleTables), "sample tables");
 	
-	for(a=0; a<9;a++) {
+	for (a=0; a<9;a++) {
 		st->fmask1[a]= MEM_callocN(256*sizeof(float), "initfilt");
 		st->fmask2[a]= MEM_callocN(256*sizeof(float), "initfilt");
 	}
-	for(a=0; a<256; a++) {
+	for (a=0; a<256; a++) {
 		st->cmask[a]= 0;
-		if(a &   1) st->cmask[a]++;
-		if(a &   2) st->cmask[a]++;
-		if(a &   4) st->cmask[a]++;
-		if(a &   8) st->cmask[a]++;
-		if(a &  16) st->cmask[a]++;
-		if(a &  32) st->cmask[a]++;
-		if(a &  64) st->cmask[a]++;
-		if(a & 128) st->cmask[a]++;
+		if (a &   1) st->cmask[a]++;
+		if (a &   2) st->cmask[a]++;
+		if (a &   4) st->cmask[a]++;
+		if (a &   8) st->cmask[a]++;
+		if (a &  16) st->cmask[a]++;
+		if (a &  32) st->cmask[a]++;
+		if (a &  64) st->cmask[a]++;
+		if (a & 128) st->cmask[a]++;
 	}
 	
 	st->centmask= MEM_mallocN((1<<re->osa), "Initfilt3");
 	
-	for(a=0; a<16; a++) {
+	for (a=0; a<16; a++) {
 		st->centLut[a]= -0.45f+((float)a)/16.0f;
 	}
 
 	/* calculate totw */
 	totw= 0.0;
-	for(j= -1; j<2; j++) {
-		for(i= -1; i<2; i++) {
+	for (j= -1; j<2; j++) {
+		for (i= -1; i<2; i++) {
 			totw+= calc_weight(re, weight, i, j);
 		}
 	}
 
-	for(j= -1; j<2; j++) {
-		for(i= -1; i<2; i++) {
+	for (j= -1; j<2; j++) {
+		for (i= -1; i<2; i++) {
 			/* calculate using jit, with offset the weights */
 
 			memset(weight, 0, sizeof(weight));
 			calc_weight(re, weight, i, j);
 
-			for(a=0; a<16; a++) flweight[a]= weight[a]*(1.0f/totw);
+			for (a=0; a<16; a++) flweight[a]= weight[a]*(1.0f/totw);
 
 			m3= st->fmask1[ 3*(j+1)+i+1 ];
 			m4= st->fmask2[ 3*(j+1)+i+1 ];
 
-			for(a=0; a<256; a++) {
-				if(a &   1) {
+			for (a=0; a<256; a++) {
+				if (a &   1) {
 					m3[a]+= flweight[0];
 					m4[a]+= flweight[8];
 				}
-				if(a &   2) {
+				if (a &   2) {
 					m3[a]+= flweight[1];
 					m4[a]+= flweight[9];
 				}
-				if(a &   4) {
+				if (a &   4) {
 					m3[a]+= flweight[2];
 					m4[a]+= flweight[10];
 				}
-				if(a &   8) {
+				if (a &   8) {
 					m3[a]+= flweight[3];
 					m4[a]+= flweight[11];
 				}
-				if(a &  16) {
+				if (a &  16) {
 					m3[a]+= flweight[4];
 					m4[a]+= flweight[12];
 				}
-				if(a &  32) {
+				if (a &  32) {
 					m3[a]+= flweight[5];
 					m4[a]+= flweight[13];
 				}
-				if(a &  64) {
+				if (a &  64) {
 					m3[a]+= flweight[6];
 					m4[a]+= flweight[14];
 				}
-				if(a & 128) {
+				if (a & 128) {
 					m3[a]+= flweight[7];
 					m4[a]+= flweight[15];
 				}
@@ -374,52 +374,52 @@ void make_sample_tables(Render *re)
 	fpx2= MEM_mallocN(256*sizeof(float), "initgauss4");
 	fpy1= MEM_mallocN(256*sizeof(float), "initgauss4");
 	fpy2= MEM_mallocN(256*sizeof(float), "initgauss4");
-	for(a=0; a<256; a++) {
+	for (a=0; a<256; a++) {
 		fpx1[a]= fpx2[a]= 0.0;
 		fpy1[a]= fpy2[a]= 0.0;
-		if(a & 1) {
+		if (a & 1) {
 			fpx1[a]+= re->jit[0][0];
 			fpy1[a]+= re->jit[0][1];
 			fpx2[a]+= re->jit[8][0];
 			fpy2[a]+= re->jit[8][1];
 		}
-		if(a & 2) {
+		if (a & 2) {
 			fpx1[a]+= re->jit[1][0];
 			fpy1[a]+= re->jit[1][1];
 			fpx2[a]+= re->jit[9][0];
 			fpy2[a]+= re->jit[9][1];
 		}
-		if(a & 4) {
+		if (a & 4) {
 			fpx1[a]+= re->jit[2][0];
 			fpy1[a]+= re->jit[2][1];
 			fpx2[a]+= re->jit[10][0];
 			fpy2[a]+= re->jit[10][1];
 		}
-		if(a & 8) {
+		if (a & 8) {
 			fpx1[a]+= re->jit[3][0];
 			fpy1[a]+= re->jit[3][1];
 			fpx2[a]+= re->jit[11][0];
 			fpy2[a]+= re->jit[11][1];
 		}
-		if(a & 16) {
+		if (a & 16) {
 			fpx1[a]+= re->jit[4][0];
 			fpy1[a]+= re->jit[4][1];
 			fpx2[a]+= re->jit[12][0];
 			fpy2[a]+= re->jit[12][1];
 		}
-		if(a & 32) {
+		if (a & 32) {
 			fpx1[a]+= re->jit[5][0];
 			fpy1[a]+= re->jit[5][1];
 			fpx2[a]+= re->jit[13][0];
 			fpy2[a]+= re->jit[13][1];
 		}
-		if(a & 64) {
+		if (a & 64) {
 			fpx1[a]+= re->jit[6][0];
 			fpy1[a]+= re->jit[6][1];
 			fpx2[a]+= re->jit[14][0];
 			fpy2[a]+= re->jit[14][1];
 		}
-		if(a & 128) {
+		if (a & 128) {
 			fpx1[a]+= re->jit[7][0];
 			fpy1[a]+= re->jit[7][1];
 			fpx2[a]+= re->jit[15][0];
@@ -427,7 +427,7 @@ void make_sample_tables(Render *re)
 		}
 	}
 
-	for(a= (1<<re->osa)-1; a>0; a--) {
+	for (a= (1<<re->osa)-1; a>0; a--) {
 		val= st->cmask[a & 255] + st->cmask[a>>8];
 		i= 8+(15.9f*(fpy1[a & 255]+fpy2[a>>8])/val);
 		CLAMP(i, 0, 15);
@@ -531,9 +531,9 @@ void freeparts(Render *re)
 {
 	RenderPart *part= re->parts.first;
 	
-	while(part) {
-		if(part->rectp) MEM_freeN(part->rectp);
-		if(part->rectz) MEM_freeN(part->rectz);
+	while (part) {
+		if (part->rectp) MEM_freeN(part->rectp);
+		if (part->rectz) MEM_freeN(part->rectz);
 		part= part->next;
 	}
 	BLI_freelistN(&re->parts);
@@ -561,16 +561,16 @@ void initparts(Render *re)
 	yparts= re->r.yparts;
 	
 	/* mininum part size, but for exr tile saving it was checked already */
-	if(!(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE))) {
-		if(re->r.mode & R_PANORAMA) {
-			if(ceil(re->rectx/(float)xparts) < 8) 
+	if (!(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE))) {
+		if (re->r.mode & R_PANORAMA) {
+			if (ceil(re->rectx/(float)xparts) < 8) 
 				xparts= 1 + re->rectx/8;
 		}
 		else
-			if(ceil(re->rectx/(float)xparts) < 64) 
+			if (ceil(re->rectx/(float)xparts) < 64) 
 				xparts= 1 + re->rectx/64;
 		
-		if(ceil(re->recty/(float)yparts) < 64) 
+		if (ceil(re->recty/(float)yparts) < 64) 
 			yparts= 1 + re->recty/64;
 	}
 	
@@ -584,43 +584,43 @@ void initparts(Render *re)
 	re->party= party;
 	
 	/* calculate rotation factor of 1 pixel */
-	if(re->r.mode & R_PANORAMA)
+	if (re->r.mode & R_PANORAMA)
 		re->panophi= panorama_pixel_rot(re);
 	
-	for(nr=0; nr<xparts*yparts; nr++) {
+	for (nr=0; nr<xparts*yparts; nr++) {
 		rcti disprect;
 		int rectx, recty;
 		
 		xd= (nr % xparts);
 		yd= (nr-xd)/xparts;
 		
-		disprect.xmin= xminb+ xd*partx;
-		disprect.ymin= yminb+ yd*party;
+		disprect.xmin = xminb+ xd*partx;
+		disprect.ymin = yminb+ yd*party;
 		
 		/* ensure we cover the entire picture, so last parts go to end */
-		if(xd<xparts-1) {
-			disprect.xmax= disprect.xmin + partx;
-			if(disprect.xmax > xmaxb)
+		if (xd<xparts-1) {
+			disprect.xmax = disprect.xmin + partx;
+			if (disprect.xmax > xmaxb)
 				disprect.xmax = xmaxb;
 		}
-		else disprect.xmax= xmaxb;
+		else disprect.xmax = xmaxb;
 		
-		if(yd<yparts-1) {
-			disprect.ymax= disprect.ymin + party;
-			if(disprect.ymax > ymaxb)
+		if (yd<yparts-1) {
+			disprect.ymax = disprect.ymin + party;
+			if (disprect.ymax > ymaxb)
 				disprect.ymax = ymaxb;
 		}
-		else disprect.ymax= ymaxb;
+		else disprect.ymax = ymaxb;
 		
 		rectx= disprect.xmax - disprect.xmin;
 		recty= disprect.ymax - disprect.ymin;
 		
 		/* so, now can we add this part? */
-		if(rectx>0 && recty>0) {
+		if (rectx>0 && recty>0) {
 			RenderPart *pa= MEM_callocN(sizeof(RenderPart), "new part");
 			
 			/* Non-box filters need 2 pixels extra to work */
-			if((re->r.filtertype || (re->r.mode & R_EDGE))) {
+			if ((re->r.filtertype || (re->r.mode & R_EDGE))) {
 				pa->crop= 2;
 				disprect.xmin -= pa->crop;
 				disprect.ymin -= pa->crop;

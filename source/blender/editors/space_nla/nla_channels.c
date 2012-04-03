@@ -92,8 +92,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		if (G.f & G_DEBUG)
-			printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
+		if (G.debug & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in mouse_anim_channels()\n", channel_index);
 		
 		BLI_freelistN(&anim_data);
 		return 0;
@@ -284,8 +284,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			break;
 			
 		default:
-			if (G.f & G_DEBUG)
-				printf("Error: Invalid channel type in mouse_nla_channels() \n");
+			if (G.debug & G_DEBUG)
+				printf("Error: Invalid channel type in mouse_nla_channels()\n");
 	}
 	
 	/* free channels */
@@ -344,16 +344,16 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 void NLA_OT_channels_click (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Click on NLA Channels";
-	ot->idname= "NLA_OT_channels_click";
-	ot->description= "Handle clicks to select NLA channels";
+	ot->name = "Mouse Click on NLA Channels";
+	ot->idname = "NLA_OT_channels_click";
+	ot->description = "Handle clicks to select NLA channels";
 	
 	/* api callbacks */
-	ot->invoke= nlachannels_mouseclick_invoke;
-	ot->poll= ED_operator_nla_active;
+	ot->invoke = nlachannels_mouseclick_invoke;
+	ot->poll = ED_operator_nla_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
@@ -418,16 +418,16 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 void NLA_OT_tracks_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Track(s)";
-	ot->idname= "NLA_OT_tracks_add";
-	ot->description= "Add NLA-Tracks above/after the selected tracks";
+	ot->name = "Add Track(s)";
+	ot->idname = "NLA_OT_tracks_add";
+	ot->description = "Add NLA-Tracks above/after the selected tracks";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_add_tracks_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_add_tracks_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "above_selected", 0, "Above Selected", "Add a new NLA Track above every existing selected one");
@@ -454,7 +454,7 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *UNUSED(op))
 	
 	/* delete tracks */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		if(ale->type == ANIMTYPE_NLATRACK) {
+		if (ale->type == ANIMTYPE_NLATRACK) {
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			AnimData *adt= ale->adt;
 			
@@ -482,16 +482,16 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_delete_tracks (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Tracks";
-	ot->idname= "NLA_OT_delete_tracks";
-	ot->description= "Delete selected NLA-Tracks and the strips they contain";
+	ot->name = "Delete Tracks";
+	ot->idname = "NLA_OT_delete_tracks";
+	ot->description = "Delete selected NLA-Tracks and the strips they contain";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_delete_tracks_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_delete_tracks_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *********************************************** */

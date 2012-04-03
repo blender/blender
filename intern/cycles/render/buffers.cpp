@@ -173,28 +173,65 @@ bool RenderBuffers::get_pass(PassType type, float exposure, int sample, int comp
 		else if(components == 3) {
 			assert(pass.components == 4);
 
-			/* RGB/vector */
-			for(int i = 0; i < size; i++, in += pass_stride, pixels += 3) {
-				float3 f = make_float3(in[0], in[1], in[2]);
+			if(pass.divide_type != PASS_NONE) {
+				/* RGB lighting passes that need to divide out color */
+				pass_offset = 0;
+				foreach(Pass& color_pass, params.passes) {
+					if(color_pass.type == pass.divide_type)
+						break;
+					pass_offset += color_pass.components;
+				}
 
-				pixels[0] = f.x*scale_exposure;
-				pixels[1] = f.y*scale_exposure;
-				pixels[2] = f.z*scale_exposure;
+				float *in_divide = (float*)buffer.data_pointer + pass_offset;
+
+				for(int i = 0; i < size; i++, in += pass_stride, in_divide += pass_stride, pixels += 3) {
+					float3 f = make_float3(in[0], in[1], in[2]);
+					float3 f_divide = make_float3(in_divide[0], in_divide[1], in_divide[2]);
+
+					f = safe_divide_color(f*exposure, f_divide);
+
+					pixels[0] = f.x;
+					pixels[1] = f.y;
+					pixels[2] = f.z;
+				}
+			}
+			else {
+				/* RGB/vector */
+				for(int i = 0; i < size; i++, in += pass_stride, pixels += 3) {
+					float3 f = make_float3(in[0], in[1], in[2]);
+
+					pixels[0] = f.x*scale_exposure;
+					pixels[1] = f.y*scale_exposure;
+					pixels[2] = f.z*scale_exposure;
+				}
 			}
 		}
 		else if(components == 4) {
 			assert(pass.components == components);
 
 			/* RGBA */
-			for(int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
-				float4 f = make_float4(in[0], in[1], in[2], in[3]);
+			if(type == PASS_SHADOW) {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
+					float4 f = make_float4(in[0], in[1], in[2], in[3]);
+					float invw = (f.w > 0.0f)? 1.0f/f.w: 1.0f;
 
-				pixels[0] = f.x*scale_exposure;
-				pixels[1] = f.y*scale_exposure;
-				pixels[2] = f.z*scale_exposure;
+					pixels[0] = f.x*invw;
+					pixels[1] = f.y*invw;
+					pixels[2] = f.z*invw;
+					pixels[3] = 1.0f;
+				}
+			}
+			else {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
+					float4 f = make_float4(in[0], in[1], in[2], in[3]);
 
-				/* clamp since alpha might be > 1.0 due to russian roulette */
-				pixels[3] = clamp(f.w*scale, 0.0f, 1.0f);
+					pixels[0] = f.x*scale_exposure;
+					pixels[1] = f.y*scale_exposure;
+					pixels[2] = f.z*scale_exposure;
+
+					/* clamp since alpha might be > 1.0 due to russian roulette */
+					pixels[3] = clamp(f.w*scale, 0.0f, 1.0f);
+				}
 			}
 		}
 
@@ -250,36 +287,10 @@ void DisplayBuffer::draw_set(int width, int height)
 	draw_height = height;
 }
 
-void DisplayBuffer::draw_transparency_grid()
-{
-	GLubyte checker_stipple_sml[32*32/8] = {
-		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-	};
-
-	glColor4ub(50, 50, 50, 255);
-	glRectf(0, 0, params.width, params.height);
-	glEnable(GL_POLYGON_STIPPLE);
-	glColor4ub(55, 55, 55, 255);
-	glPolygonStipple(checker_stipple_sml);
-	glRectf(0, 0, params.width, params.height);
-	glDisable(GL_POLYGON_STIPPLE);
-}
-
 void DisplayBuffer::draw(Device *device)
 {
-	if(draw_width != 0 && draw_height != 0) {
-		if(transparent)
-			draw_transparency_grid();
-
+	if(draw_width != 0 && draw_height != 0)
 		device->draw_pixels(rgba, 0, draw_width, draw_height, 0, params.width, params.height, transparent);
-	}
 }
 
 bool DisplayBuffer::draw_ready()

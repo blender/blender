@@ -59,13 +59,13 @@ extern BPy_StructRNA *bpy_context_module;
 static EnumPropertyItem property_flag_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
-	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
+	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem property_flag_enum_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
-	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
+	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
 	{PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", ""},
 	{0, NULL, 0, NULL, NULL}};
 
@@ -155,10 +155,10 @@ static void printf_func_error(PyObject *py_func)
 
 	/* use py style error */
 	fprintf(stderr, "File \"%s\", line %d, in %s\n",
-			_PyUnicode_AsString(f_code->co_filename),
-			f_code->co_firstlineno,
-			_PyUnicode_AsString(((PyFunctionObject *)py_func)->func_name)
-			);
+	        _PyUnicode_AsString(f_code->co_filename),
+	        f_code->co_firstlineno,
+	        _PyUnicode_AsString(((PyFunctionObject *)py_func)->func_name)
+	        );
 }
 
 /* operators and classes use this so it can store the args given but defer
@@ -372,7 +372,7 @@ static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 
 /* Function that sets RNA, NOTE - self is NULL when called from python,
  * but being abused from C so we can pass the srna along.
- * This isnt incorrect since its a python object - but be careful */
+ * This isn't incorrect since its a python object - but be careful */
 PyDoc_STRVAR(BPy_BoolProperty_doc,
 ".. function:: BoolProperty(name=\"\", "
                            "description=\"\", "
@@ -399,7 +399,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
-		                              "options", "subtype", "update", NULL};
+		                               "options", "subtype", "update", NULL};
 		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		int def = 0;
@@ -475,7 +475,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
-		                              "options", "subtype", "size", "update", NULL};
+		                               "options", "subtype", "size", "update", NULL};
 		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		int def[PYRNA_STACK_ARRAY] = {0};
@@ -561,7 +561,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
-		                              "min", "max", "soft_min", "soft_max",
+		                               "min", "max", "soft_min", "soft_max",
 		                               "step", "options", "subtype", "update", NULL};
 		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
@@ -642,8 +642,8 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
-		                              "min", "max", "soft_min", "soft_max",
-		                              "step", "options", "subtype", "size", "update", NULL};
+		                               "min", "max", "soft_min", "soft_max",
+		                               "step", "options", "subtype", "size", "update", NULL};
 		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		int min = INT_MIN, max = INT_MAX, soft_min = INT_MIN, soft_max = INT_MAX, step = 1;
@@ -736,8 +736,8 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
-		                              "min", "max", "soft_min", "soft_max",
-		                              "step", "precision", "options", "subtype", "unit", "update", NULL};
+		                               "min", "max", "soft_min", "soft_max",
+		                               "step", "precision", "options", "subtype", "unit", "update", NULL};
 		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		float min = -FLT_MAX, max = FLT_MAX, soft_min = -FLT_MAX, soft_max = FLT_MAX, step = 3, def = 0.0f;
@@ -829,8 +829,8 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
-		                              "min", "max", "soft_min", "soft_max",
-		                              "step", "precision", "options", "subtype", "unit", "size", "update", NULL};
+		                               "min", "max", "soft_min", "soft_max",
+		                               "step", "precision", "options", "subtype", "unit", "size", "update", NULL};
 		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		float min = -FLT_MAX, max = FLT_MAX, soft_min = -FLT_MAX, soft_max = FLT_MAX, step = 3;
@@ -924,7 +924,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
-		                              "maxlen", "options", "subtype", "update", NULL};
+		                               "maxlen", "options", "subtype", "update", NULL};
 		const char *id = NULL, *name = NULL, *description = "", *def = "";
 		int id_len;
 		int maxlen = 0;
@@ -952,7 +952,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 		}
 
 		prop = RNA_def_property(srna, id, PROP_STRING, subtype);
-		if (maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen + 1); /* +1 since it includes null terminator */
+		if (maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen + 1);  /* +1 since it includes null terminator */
 		if (def) RNA_def_property_string_default(prop, def);
 		RNA_def_property_ui_text(prop, name ? name : id, description);
 
@@ -1033,14 +1033,14 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 		item = PySequence_Fast_GET_ITEM(seq_fast, i);
 
-		if ( (PyTuple_CheckExact(item)) &&
-		     (item_size = PyTuple_GET_SIZE(item)) &&
-		     (item_size == 3 || item_size == 4) &&
-		     (tmp.identifier =  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
-		     (tmp.name =        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
-		     (tmp.description = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
-		     /* TODO, number isnt ensured to be unique from the script author */
-		     (item_size < 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1))
+		if ((PyTuple_CheckExact(item)) &&
+		    (item_size = PyTuple_GET_SIZE(item)) &&
+		    (item_size == 3 || item_size == 4) &&
+		    (tmp.identifier =  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
+		    (tmp.name =        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
+		    (tmp.description = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
+		    /* TODO, number isn't ensured to be unique from the script author */
+		    (item_size < 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1))
 		{
 			if (is_enum_flag) {
 				if (item_size < 4) {
@@ -1110,7 +1110,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 	 * annoying because it works most of the time without this. */
 	{
 		EnumPropertyItem *items_dup = MEM_mallocN((sizeof(EnumPropertyItem) * (seq_len + 1)) + (sizeof(char) * totbuf),
-		                                         "enum_items_from_py2");
+		                                          "enum_items_from_py2");
 		EnumPropertyItem *items_ptr = items_dup;
 		char *buf = ((char *)items_dup) + (sizeof(EnumPropertyItem) * (seq_len + 1));
 		memcpy(items_dup, items, sizeof(EnumPropertyItem) * (seq_len + 1));
@@ -1162,7 +1162,7 @@ static EnumPropertyItem *bpy_props_enum_itemf(struct bContext *C, PointerRNA *pt
 		int defvalue_dummy = 0;
 
 		if (!(items_fast = PySequence_Fast(items, "EnumProperty(...): "
-		                                  "return value from the callback was not a sequence")))
+		                                   "return value from the callback was not a sequence")))
 		{
 			err = -1;
 		}
@@ -1230,7 +1230,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 	
 	if (srna) {
 		static const char *kwlist[] = {"attr", "items", "name", "description", "default",
-		                              "options", "update", NULL};
+		                               "options", "update", NULL};
 		const char *id = NULL, *name = NULL, *description = "";
 		PyObject *def = NULL;
 		int id_len;
@@ -1260,7 +1260,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		}
 
 		/* items can be a list or a callable */
-		if (PyFunction_Check(items)) { /* dont use PyCallable_Check because we need the function code for errors */
+		if (PyFunction_Check(items)) { /* don't use PyCallable_Check because we need the function code for errors */
 			PyCodeObject *f_code = (PyCodeObject *)PyFunction_GET_CODE(items);
 			if (f_code->co_argcount != 2) {
 				PyErr_Format(PyExc_ValueError,
@@ -1281,7 +1281,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		}
 		else {
 			if (!(items_fast = PySequence_Fast(items, "EnumProperty(...): "
-			                                  "expected a sequence of tuples for the enum items or a function")))
+			                                   "expected a sequence of tuples for the enum items or a function")))
 			{
 				return NULL;
 			}
@@ -1531,18 +1531,18 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 }
 
 static struct PyMethodDef props_methods[] = {
-	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolProperty_doc},
-	{"BoolVectorProperty", (PyCFunction)BPy_BoolVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolVectorProperty_doc},
-	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, BPy_IntProperty_doc},
-	{"IntVectorProperty", (PyCFunction)BPy_IntVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_IntVectorProperty_doc},
-	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, BPy_FloatProperty_doc},
-	{"FloatVectorProperty", (PyCFunction)BPy_FloatVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_FloatVectorProperty_doc},
-	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, BPy_StringProperty_doc},
-	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, BPy_EnumProperty_doc},
-	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, BPy_PointerProperty_doc},
-	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, BPy_CollectionProperty_doc},
+	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS | METH_KEYWORDS, BPy_BoolProperty_doc},
+	{"BoolVectorProperty", (PyCFunction)BPy_BoolVectorProperty, METH_VARARGS | METH_KEYWORDS, BPy_BoolVectorProperty_doc},
+	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS | METH_KEYWORDS, BPy_IntProperty_doc},
+	{"IntVectorProperty", (PyCFunction)BPy_IntVectorProperty, METH_VARARGS | METH_KEYWORDS, BPy_IntVectorProperty_doc},
+	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS | METH_KEYWORDS, BPy_FloatProperty_doc},
+	{"FloatVectorProperty", (PyCFunction)BPy_FloatVectorProperty, METH_VARARGS | METH_KEYWORDS, BPy_FloatVectorProperty_doc},
+	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS | METH_KEYWORDS, BPy_StringProperty_doc},
+	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS | METH_KEYWORDS, BPy_EnumProperty_doc},
+	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS | METH_KEYWORDS, BPy_PointerProperty_doc},
+	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS | METH_KEYWORDS, BPy_CollectionProperty_doc},
 
-	{"RemoveProperty", (PyCFunction)BPy_RemoveProperty, METH_VARARGS|METH_KEYWORDS, BPy_RemoveProperty_doc},
+	{"RemoveProperty", (PyCFunction)BPy_RemoveProperty, METH_VARARGS | METH_KEYWORDS, BPy_RemoveProperty_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1551,7 +1551,7 @@ static struct PyModuleDef props_module = {
 	"bpy.props",
 	"This module defines properties to extend blenders internal data, the result of these functions"
 	" is used to assign properties to classes registered with blender and can't be used directly.",
-	-1,/* multiple "initialization" just copies the module dict. */
+	-1, /* multiple "initialization" just copies the module dict. */
 	props_methods,
 	NULL, NULL, NULL, NULL
 };

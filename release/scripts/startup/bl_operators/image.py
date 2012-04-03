@@ -67,7 +67,7 @@ class EditExternally(Operator):
             self.report({'ERROR'}, "Image path not set")
             return {'CANCELLED'}
 
-        if not os.path.exists(filepath):
+        if not os.path.exists(filepath) or not os.path.isfile(filepath):
             self.report({'ERROR'},
                         "Image path %r not found, image may be packed or "
                         "unsaved" % filepath)

@@ -224,6 +224,38 @@ __device float3 equirectangular_to_direction(float u, float v)
 		cos(theta));
 }
 
+/* Mirror Ball <-> Cartesion direction */
+
+__device float3 mirrorball_to_direction(float u, float v)
+{
+	/* point on sphere */
+	float3 dir;
+
+	dir.x = 2.0f*u - 1.0f;
+	dir.z = 2.0f*v - 1.0f;
+	dir.y = -sqrt(max(1.0f - dir.x*dir.x - dir.z*dir.z, 0.0f));
+
+	/* reflection */
+	float3 I = make_float3(0.0f, -1.0f, 0.0f);
+
+	return 2.0f*dot(dir, I)*dir - I;
+}
+
+__device float2 direction_to_mirrorball(float3 dir)
+{
+	/* inverse of mirrorball_to_direction */
+	dir.y -= 1.0f;
+
+	float div = 2.0f*sqrt(max(-0.5f*dir.y, 0.0f));
+	if(div > 0.0f)
+		dir /= div;
+
+	float u = 0.5f*(dir.x + 1.0f);
+	float v = 0.5f*(dir.z + 1.0f);
+
+	return make_float2(u, v);
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __KERNEL_MONTECARLO_CL__ */

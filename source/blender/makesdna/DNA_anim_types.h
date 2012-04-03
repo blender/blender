@@ -373,7 +373,7 @@ typedef struct ChannelDriver {
 	 * which relates the target 'variables' in some way to yield a single usable value
 	 */
 	char expression[256];	/* expression to compile for evaluation */
-	void *expr_comp; 		/* PyObject - compiled expression, dont save this */
+	void *expr_comp; 		/* PyObject - compiled expression, don't save this */
 	
 	float curval;		/* result of previous evaluation */
 	float influence;	/* influence of driver on result */ // XXX to be implemented... this is like the constraint influence setting
@@ -408,7 +408,7 @@ typedef enum eDriver_Flags {
 	//DRIVER_FLAG_LAYERING	= (1<<2),
 		/* use when the expression needs to be recompiled */
 	DRIVER_FLAG_RECOMPILE	= (1<<3),
-		/* the names are cached so they dont need have python unicode versions created each time */
+		/* the names are cached so they don't need have python unicode versions created each time */
 	DRIVER_FLAG_RENAMEVAR	= (1<<4),
 		/* intermediate values of driver should be shown in the UI for debugging purposes */
 	DRIVER_FLAG_SHOWDEBUG	= (1<<5)
@@ -528,7 +528,7 @@ typedef struct AnimMapPair {
 
 /* Retargetting Information for Actions 
  *
- * This should only be used if it is strictly necessary (i.e. user will need to explictly 
+ * This should only be used if it is strictly necessary (i.e. user will need to explicitly 
  * add this when they find that some channels do not match, or motion is not going to right 
  * places). When executing an action, this will be checked to see if it provides any useful
  * remaps for the given paths.
@@ -559,7 +559,7 @@ typedef struct NlaStrip {
 	
 	ListBase strips;			/* 'Child' strips (used for 'meta' strips) */
 	bAction *act;				/* Action that is referenced by this strip (strip is 'user' of the action) */
-	AnimMapper *remap;			/* Remapping info this strip (for tweaking correspondance of action with context) */
+	AnimMapper *remap;			/* Remapping info this strip (for tweaking correspondence of action with context) */
 	
 	ListBase fcurves;			/* F-Curves for controlling this strip's influence and timing */	// TODO: move out?
 	ListBase modifiers;			/* F-Curve modifiers to be applied to the entire strip's referenced F-Curves */
@@ -661,7 +661,7 @@ typedef enum eNlaStrip_Type {
 
 /* NLA Track (nlt)
  *
- * A track groups a bunch of 'strips', which should form a continous set of 
+ * A track groups a bunch of 'strips', which should form a continuous set of 
  * motion, on top of which other such groups can be layered. This should allow
  * for animators to work in a non-destructive manner, layering tweaks, etc. over
  * 'rough' blocks of their work.
@@ -752,7 +752,7 @@ typedef enum eKSP_Grouping {
  * be keyframed together, providing a convenient way for animators
  * to insert keyframes without resorting to Auto-Keyframing.
  *
- * A few 'generic' (non-absolute and dependant on templates) KeyingSets 
+ * A few 'generic' (non-absolute and dependent on templates) KeyingSets 
  * are defined 'built-in' to facilitate easy animating for the casual
  * animator without the need to add extra steps to the rigging process.
  */
@@ -761,7 +761,9 @@ typedef struct KeyingSet {
 	
 	ListBase paths;			/* (KS_Path) paths to keyframe to */
 	
+	char idname[64];		/* unique name (for search, etc.) */
 	char name[64];			/* user-viewable name for KeyingSet (for menus, etc.) */
+	char description[240];	/* (RNA_DYN_DESCR_MAX) short help text. */
 	char typeinfo[64];		/* name of the typeinfo data used for the relative paths */
 	
 	short flag;				/* settings for KeyingSet */

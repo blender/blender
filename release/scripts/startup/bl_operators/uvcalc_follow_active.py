@@ -54,7 +54,7 @@ def extend(obj, operator, EXTEND_MODE):
 
         def face_edge_vs(vi):
             vlen = len(vi)
-            return [(vi[i], vi[(i+1) % vlen]) for i in range(vlen)]
+            return [(vi[i], vi[(i + 1) % vlen]) for i in range(vlen)]
 
         vidx_source = face_source.vertices
         vidx_target = face_target.vertices
@@ -168,7 +168,7 @@ def extend(obj, operator, EXTEND_MODE):
                 edge_faces[edkey] = [i]
 
     if EXTEND_MODE == 'LENGTH':
-        edge_loops = mesh_utils.edge_loops_from_faces(me, face_sel, [ed.key for ed in me.edges if ed.use_seam])
+        edge_loops = mesh_utils.edge_loops_from_tessfaces(me, face_sel, [ed.key for ed in me.edges if ed.use_seam])
         me_verts = me.vertices
         for loop in edge_loops:
             looplen = [0.0]

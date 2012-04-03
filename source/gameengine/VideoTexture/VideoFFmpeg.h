@@ -24,10 +24,14 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined VIDEOFFMPEG_H
-#define VIDEOFFMPEG_H
+#ifndef __VIDEOFFMPEG_H__
+#define __VIDEOFFMPEG_H__
 
 #ifdef WITH_FFMPEG
+#if defined(__FreeBSD__)
+/* this needs to be parsed with __cplusplus defined before included through ffmpeg_compat.h */
+#include <inttypes.h>
+#endif
 extern "C" {
 #undef __cplusplus
 #include <pthread.h>

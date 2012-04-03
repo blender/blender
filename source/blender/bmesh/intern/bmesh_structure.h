@@ -35,7 +35,7 @@
  * None of these functions should ever be exported to the rest of Blender.
  *
  * in the vast majority of cases thes should not be used directly.
- * if absolutely necassary, see function defitions in code for
+ * if absolutely necessary, see function definitions in code for
  * descriptive comments.  but seriously, don't use this stuff.
  */
 
@@ -56,11 +56,15 @@ BMEdge *bmesh_disk_faceedge_find_next(BMEdge *e, BMVert *v);
 /* RADIAL CYCLE MANAGMENT */
 void    bmesh_radial_append(BMEdge *e, BMLoop *l);
 void    bmesh_radial_loop_remove(BMLoop *l, BMEdge *e);
-BMLoop *bmesh_radial_loop_next(BMLoop *l);
+/* note:
+ *      bmesh_radial_loop_next(BMLoop *l) / prev.
+ * just use member access l->radial_next, l->radial_prev now */
+
 int     bmesh_radial_face_find(BMEdge *e, BMFace *f);
 int     bmesh_radial_facevert_count(BMLoop *l, BMVert *v);
 BMLoop *bmesh_radial_faceloop_find_first(BMLoop *l, BMVert *v);
 BMLoop *bmesh_radial_faceloop_find_next(BMLoop *l, BMVert *v);
+BMLoop *bmesh_radial_faceloop_find_vert(BMFace *f, BMVert *v);
 int     bmesh_radial_validate(int radlen, BMLoop *l);
 
 /* EDGE UTILITIES */

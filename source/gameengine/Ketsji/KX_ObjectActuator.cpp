@@ -385,12 +385,12 @@ PyAttributeDef KX_ObjectActuator::Attributes[] = {
 #define MATHUTILS_VEC_CB_LINV 1
 #define MATHUTILS_VEC_CB_ANGV 2
 
-static int mathutils_kxobactu_vector_cb_index= -1; /* index for our callbacks */
+static unsigned char mathutils_kxobactu_vector_cb_index = -1; /* index for our callbacks */
 
 static int mathutils_obactu_generic_check(BaseMathObject *bmo)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
-	if(self==NULL)
+	if (self==NULL)
 		return -1;
 
 	return 0;
@@ -399,7 +399,7 @@ static int mathutils_obactu_generic_check(BaseMathObject *bmo)
 static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
-	if(self==NULL)
+	if (self==NULL)
 		return -1;
 
 	switch(subtype) {
@@ -417,7 +417,7 @@ static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype)
 static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
-	if(self==NULL)
+	if (self==NULL)
 		return -1;
 
 	switch(subtype) {
@@ -435,7 +435,7 @@ static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype)
 static int mathutils_obactu_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	/* lazy, avoid repeteing the case statement */
-	if(mathutils_obactu_vector_get(bmo, subtype) == -1)
+	if (mathutils_obactu_vector_get(bmo, subtype) == -1)
 		return -1;
 	return 0;
 }
@@ -445,7 +445,7 @@ static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, i
 	float f= bmo->data[index];
 
 	/* lazy, avoid repeteing the case statement */
-	if(mathutils_obactu_vector_get(bmo, subtype) == -1)
+	if (mathutils_obactu_vector_get(bmo, subtype) == -1)
 		return -1;
 
 	bmo->data[index]= f;
@@ -496,7 +496,7 @@ int KX_ObjectActuator::pyattr_set_angV(void *self_v, const KX_PYATTRIBUTE_DEF *a
 void KX_ObjectActuator_Mathutils_Callback_Init(void)
 {
 	// register mathutils callbacks, ok to run more then once.
-	mathutils_kxobactu_vector_cb_index= Mathutils_RegisterCallback(&mathutils_obactu_vector_cb);
+	mathutils_kxobactu_vector_cb_index = Mathutils_RegisterCallback(&mathutils_obactu_vector_cb);
 }
 
 #endif // USE_MATHUTILS
@@ -629,7 +629,7 @@ int KX_ObjectActuator::pyattr_set_reference(void *self, const struct KX_PYATTRIB
 	if (actuator->m_reference)
 		actuator->m_reference->UnregisterActuator(actuator);
 	
-	if(refOb==NULL) {
+	if (refOb==NULL) {
 		actuator->m_reference= NULL;
 	}
 	else {	

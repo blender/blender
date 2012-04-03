@@ -8,4 +8,7 @@ incs += ' ../../bmesh ../../windowmanager #/intern/guardedalloc #/extern/glew/in
 
 defs = []
 
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
 env.BlenderLib ( 'bf_editors_space_info', sources, Split(incs), defs, libtype=['core'], priority=[70] )

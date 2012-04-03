@@ -53,7 +53,7 @@
 #include "RAS_2DFilterManager.h"
 
 /**
- * @section Forward declarations
+ * \section Forward declarations
  */
 struct SM_MaterialProps;
 struct SM_ShapeProps;
@@ -160,8 +160,8 @@ protected:
 	// Used to deregister objects that are deleted
 	class KX_BlenderSceneConverter*		m_sceneConverter;
 	/**
-	* physics engine abstraction
-	*/
+	 * physics engine abstraction
+	 */
 	//e_PhysicsEngine m_physicsEngine; //who needs this ?
 	class PHY_IPhysicsEnvironment*		m_physicsEnvironment;
 
@@ -176,12 +176,12 @@ protected:
 	STR_String	m_sceneName;
 	
 	/**
-	 * stores the worldsettings for a scene
+	 * stores the world-settings for a scene
 	 */
 	KX_WorldInfo* m_worldinfo;
 
 	/**
-	 * @section Different scenes, linked to ketsji scene
+	 * \section Different scenes, linked to ketsji scene
 	 */
 
 	/**
@@ -191,7 +191,7 @@ protected:
 	NG_NetworkScene* m_networkScene;
 
 	/**
-	 * A temoprary variable used to parent objects together on
+	 * A temporary variable used to parent objects together on
 	 * replication. Don't get confused by the name it is not
 	 * the scene's root node!
 	 */
@@ -342,7 +342,7 @@ public:
 	void RemoveAnimatedObject(CValue* gameobj);
 
 	/**
-	 * @section Logic stuff
+	 * \section Logic stuff
 	 * Initiate an update of the logic system.
 	 */
 	void LogicBeginFrame(double curtime);
@@ -451,7 +451,7 @@ public:
 
 	/**
 	 * Activates new desired canvas width set at design time.
-	 * @param width	The new desired width.
+	 * \param width	The new desired width.
 	 */
 		void					
 	SetCanvasDesignWidth(
@@ -459,7 +459,7 @@ public:
 	);
 	/**
 	 * Activates new desired canvas height set at design time.
-	 * @param width	The new desired height.
+	 * \param width	The new desired height.
 	 */
 		void					
 	SetCanvasDesignHeight(
@@ -467,7 +467,7 @@ public:
 	);
 	/**
 	 * Returns the current desired canvas width set at design time.
-	 * @return The desired width.
+	 * \return The desired width.
 	 */
 		unsigned int			
 	GetCanvasDesignWidth(
@@ -476,7 +476,7 @@ public:
 
 	/**
 	 * Returns the current desired canvas height set at design time.
-	 * @return The desired height.
+	 * \return The desired height.
 	 */
 		unsigned int			
 	GetCanvasDesignHeight(
@@ -495,7 +495,7 @@ public:
 	/**
 	 * Return a const reference to the framing 
 	 * type set by the above call.
-	 * The contents are not guarenteed to be sensible
+	 * The contents are not guaranteed to be sensible
 	 * if you don't call the above function.
 	 */
 
@@ -518,7 +518,7 @@ public:
 	const RAS_Rect& GetSceneViewport() const;
 	
 	/**
-	 * @section Accessors to different scenes of this scene
+	 * \section Accessors to different scenes of this scene
 	 */
 	void SetNetworkDeviceInterface(NG_NetworkDeviceInterface* newInterface);
 	void SetNetworkScene(NG_NetworkScene *newScene);
@@ -558,10 +558,10 @@ public:
 	bool IsClearingZBuffer();
 	void EnableZBufferClearing(bool isclearingZbuffer);
 	// use of DBVT tree for camera culling
-	void SetDbvtCulling(bool b) { m_dbvt_culling = b; };
-	bool GetDbvtCulling() { return m_dbvt_culling; };
-	void SetDbvtOcclusionRes(int i) { m_dbvt_occlusion_res = i; };
-	int GetDbvtOcclusionRes() { return m_dbvt_occlusion_res; };
+	void SetDbvtCulling(bool b) { m_dbvt_culling = b; }
+	bool GetDbvtCulling() { return m_dbvt_culling; }
+	void SetDbvtOcclusionRes(int i) { m_dbvt_occlusion_res = i; }
+	int GetDbvtOcclusionRes() { return m_dbvt_occlusion_res; }
 	
 	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
 
@@ -582,12 +582,12 @@ public:
 	void SetNodeTree(SG_Tree* root);
 
 	/**
-	* 2D Filters
-	*/
+	 * 2D Filters
+	 */
 	void Update2DFilter(std::vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
 	void Render2DFilters(RAS_ICanvas* canvas);
 
-	KX_ObstacleSimulation* GetObstacleSimulation() {return m_obstacleSimulation;};
+	KX_ObstacleSimulation* GetObstacleSimulation() { return m_obstacleSimulation; }
 
 #ifdef WITH_PYTHON
 	/* --------------------------------------------------------------------- */
@@ -628,8 +628,8 @@ public:
 	 */
 	void RunDrawingCallbacks(PyObject* cb_list);
 	
-	PyObject* GetPreDrawCB() { return m_draw_call_pre; };
-	PyObject* GetPostDrawCB() { return m_draw_call_post; };
+	PyObject* GetPreDrawCB() { return m_draw_call_pre; }
+	PyObject* GetPostDrawCB() { return m_draw_call_post; }
 #endif
 
 	/**
