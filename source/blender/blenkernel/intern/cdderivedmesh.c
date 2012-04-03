@@ -1467,13 +1467,13 @@ static void cdDM_foreachMappedFaceCenter(
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 	MVert *mv = cddm->mvert;
-	MPoly *mf = cddm->mpoly;
+	MPoly *mp = cddm->mpoly;
 	MLoop *ml = cddm->mloop;
 	int i, j, orig, *index;
 
 	index = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
-	mf = cddm->mpoly;
-	for (i = 0; i < dm->numPolyData; i++, mf++) {
+	mp = cddm->mpoly;
+	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		float cent[3];
 		float no[3];
 
@@ -1484,20 +1484,26 @@ static void cdDM_foreachMappedFaceCenter(
 		else
 			orig = i;
 		
-		ml = &cddm->mloop[mf->loopstart];
+		ml = &cddm->mloop[mp->loopstart];
 		cent[0] = cent[1] = cent[2] = 0.0f;
-		for (j=0; j<mf->totloop; j++, ml++) {
+		for (j=0; j<mp->totloop; j++, ml++) {
 			add_v3_v3v3(cent, cent, mv[ml->v].co);
 		}
 		mul_v3_fl(cent, 1.0f / (float)j);
 
-		ml = &cddm->mloop[mf->loopstart];
+		ml = &cddm->mloop[mp->loopstart];
 		if (j > 3) {
-			normal_quad_v3(no, mv[ml->v].co, mv[(ml+1)->v].co,
-				       mv[(ml+2)->v].co, mv[(ml+3)->v].co);
+			normal_quad_v3(no,
+			               mv[(ml + 0)->v].co,
+			               mv[(ml + 1)->v].co,
+			               mv[(ml + 2)->v].co,
+			               mv[(ml + 3)->v].co);
 		}
 		else {
-			normal_tri_v3(no, mv[ml->v].co, mv[(ml+1)->v].co, mv[(ml+2)->v].co);
+			normal_tri_v3(no,
+			              mv[(ml + 0)->v].co,
+			              mv[(ml + 1)->v].co,
+			              mv[(ml + 2)->v].co);
 		}
 
 		func(userData, orig, cent, no);

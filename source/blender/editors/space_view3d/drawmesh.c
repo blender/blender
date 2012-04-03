@@ -172,8 +172,8 @@ static DMDrawOption draw_mesh_face_select__drawFaceOptsInv(void *userData, int i
 {
 	Mesh *me = (Mesh *)userData;
 
-	MPoly *mface = &me->mpoly[index];
-	if (!(mface->flag & ME_HIDE) && !(mface->flag & ME_FACE_SEL))
+	MPoly *mpoly = &me->mpoly[index];
+	if (!(mpoly->flag & ME_HIDE) && !(mpoly->flag & ME_FACE_SEL))
 		return DM_DRAW_OPTION_NO_MCOL;  /* Don't set color */
 	else
 		return DM_DRAW_OPTION_SKIP;

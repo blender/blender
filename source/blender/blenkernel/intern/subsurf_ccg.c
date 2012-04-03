@@ -1270,7 +1270,7 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 	}
 }
 
-static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mface)
+static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mpoly)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -1291,12 +1291,12 @@ static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mface)
 		for (S = 0; S < numVerts; S++) {
 			for (y = 0; y < gridSize - 1; y++) {
 				for (x = 0; x < gridSize - 1; x++) {
-					MPoly *mf = &mface[i];
+					MPoly *mp = &mpoly[i];
 
-					mf->mat_nr = mat_nr;
-					mf->flag = flag;
-					mf->loopstart = k;
-					mf->totloop = 4;
+					mp->mat_nr = mat_nr;
+					mp->flag = flag;
+					mp->loopstart = k;
+					mp->totloop = 4;
 
 					k += 4;
 					i++;

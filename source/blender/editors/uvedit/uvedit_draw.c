@@ -384,17 +384,17 @@ static void draw_uvs_other(Scene *scene, Object *obedit, Image *curimage)
 			Mesh *me= ob->data;
 
 			if (me->mtpoly) {
-				MPoly *mface= me->mpoly;
-				MTexPoly *mtpoly= me->mtpoly;
+				MPoly *mpoly = me->mpoly;
+				MTexPoly *mtpoly = me->mtpoly;
 				MLoopUV *mloopuv;
 				int a, b;
 
-				for (a=me->totpoly; a>0; a--, mtpoly++, mface++) {
+				for (a = me->totpoly; a > 0; a--, mtpoly++, mpoly++) {
 					if (mtpoly->tpage == curimage) {
 						glBegin(GL_LINE_LOOP);
 
-						mloopuv = me->mloopuv + mface->loopstart;
-						for (b=0; b<mface->totloop; b++, mloopuv++) {
+						mloopuv = me->mloopuv + mpoly->loopstart;
+						for (b = 0; b < mpoly->totloop; b++, mloopuv++) {
 							glVertex2fv(mloopuv->uv);
 						}
 						glEnd();
@@ -416,17 +416,17 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
 	glColor3ub(112, 112, 112);
 
 	if (me->mtface) {
-		MPoly *mface= me->mpoly;
+		MPoly *mpoly= me->mpoly;
 		MTexPoly *tface= me->mtpoly;
 		MLoopUV *mloopuv;
 		int a, b;
 
-		for (a=me->totpoly; a>0; a--, tface++, mface++) {
+		for (a=me->totpoly; a>0; a--, tface++, mpoly++) {
 			if (tface->tpage == curimage) {
 				glBegin(GL_LINE_LOOP);
 
-				mloopuv = me->mloopuv + mface->loopstart;
-				for (b=0; b<mface->totloop; b++, mloopuv++) {
+				mloopuv = me->mloopuv + mpoly->loopstart;
+				for (b=0; b<mpoly->totloop; b++, mloopuv++) {
 					glVertex2fv(mloopuv->uv);
 				}
 				glEnd();
