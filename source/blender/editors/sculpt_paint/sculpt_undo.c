@@ -274,7 +274,8 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 
 		if (ss->modifiers_active) {
 			Mesh *mesh = ob->data;
-			mesh_calc_normals_mapping(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
+			mesh_calc_normals_tessface(mesh->mvert, mesh->totvert,
+									   mesh->mface, mesh->totface, NULL);
 
 			free_sculptsession_deformMats(ss);
 			tag_update |= 1;
@@ -471,14 +472,6 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 	BLI_unlock_thread(LOCK_CUSTOM1);
 
 	/* copy threaded, hopefully this is the performance critical part */
-	switch (type) {
-		case SCULPT_UNDO_COORDS:
-			sculpt_undo_store_coords(ob, unode);
-			break;
-		case SCULPT_UNDO_HIDDEN:
-			sculpt_undo_store_hidden(ob, unode);
-			break;
-	}
 
 	if (unode->grids) {
 		int totgrid, *grids;
@@ -491,6 +484,15 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 		BLI_pbvh_node_num_verts(ss->pbvh, node, NULL, &allvert);
 		BLI_pbvh_node_get_verts(ss->pbvh, node, &vert_indices, NULL);
 		memcpy(unode->index, vert_indices, sizeof(int) * unode->totvert);
+	}
+
+	switch (type) {
+		case SCULPT_UNDO_COORDS:
+			sculpt_undo_store_coords(ob, unode);
+			break;
+		case SCULPT_UNDO_HIDDEN:
+			sculpt_undo_store_hidden(ob, unode);
+			break;
 	}
 
 	/* store active shape key */
