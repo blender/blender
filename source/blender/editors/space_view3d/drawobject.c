@@ -109,12 +109,6 @@
 
 #include "view3d_intern.h"  // own include
 
-
-/* this condition has been made more complex since editmode can draw textures */
-#define CHECK_OB_DRAWTEXTURE(vd, dt)                                          \
-    ((ELEM(vd->drawtype, OB_TEXTURE, OB_MATERIAL) && dt > OB_SOLID) ||          \
-     (vd->drawtype == OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
-
 typedef enum eWireDrawMode {
 	OBDRAW_WIRE_OFF = 0,
 	OBDRAW_WIRE_ON = 1,
@@ -182,6 +176,20 @@ static void drawcube_size(float size);
 static void drawcircle_size(float size);
 static void draw_empty_sphere(float size);
 static void draw_empty_cone(float size);
+
+/* this condition has been made more complex since editmode can draw textures */
+static int check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
+{
+	/* texture and material draw modes */
+    if(ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID)
+		return TRUE;
+
+	/* textured solid */
+	if(v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !scene_use_new_shading_nodes(scene))
+		return TRUE;
+	
+	return FALSE;
+}
 
 static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 {
@@ -315,7 +323,7 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 		return 0;
 	if (G.f & G_PICKSEL)
 		return 0;
-	if (!CHECK_OB_DRAWTEXTURE(v3d, dt))
+	if (!check_object_draw_texture(scene, v3d, dt))
 		return 0;
 	if (ob == OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return 0;
@@ -3032,7 +3040,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	EDBM_index_arrays_init(em, 1, 1, 1);
 
 	if (dt > OB_WIRE) {
-		if (CHECK_OB_DRAWTEXTURE(v3d, dt)) {
+		if (check_object_draw_texture(scene, v3d, dt)) {
 			if (draw_glsl_material(scene, ob, v3d, dt)) {
 				glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
@@ -3085,7 +3093,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		glDepthMask(0);     // disable write in zbuffer, needed for nice transp
 		
 		/* don't draw unselected faces, only selected, this is MUCH nicer when texturing */
-		if (CHECK_OB_DRAWTEXTURE(v3d, dt))
+		if (check_object_draw_texture(scene, v3d, dt))
 			col1[3] = 0;
 		
 		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
@@ -3112,7 +3120,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	}
 
 	/* here starts all fancy draw-extra over */
-	if ((me->drawflag & ME_DRAWEDGES) == 0 && CHECK_OB_DRAWTEXTURE(v3d, dt)) {
+	if ((me->drawflag & ME_DRAWEDGES) == 0 && check_object_draw_texture(scene, v3d, dt)) {
 		/* we are drawing textures and 'ME_DRAWEDGES' is disabled, don't draw any edges */
 		
 		/* only draw selected edges otherwise there is no way of telling if a face is selected */
@@ -3258,7 +3266,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		draw_wire = OBDRAW_WIRE_ON; /* draw wire only, no depth buffer stuff  */
 	}
 	else if ( (draw_flags & DRAW_FACE_SELECT || (is_obact && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
-	          CHECK_OB_DRAWTEXTURE(v3d, dt))
+	          check_object_draw_texture(scene, v3d, dt))
 	{
 		if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
 		     ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
