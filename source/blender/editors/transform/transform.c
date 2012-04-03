@@ -4768,12 +4768,14 @@ void projectSVData(TransInfo *t, int final)
 				}
 			}
 			
-			/*make sure face-attributes are correct (e.g. MTexPoly)*/
+			/* make sure face-attributes are correct (e.g. MTexPoly) */
 			BM_elem_attrs_copy(em->bm, em->bm, copyf2, f);
 			
-			/*restore selection and hidden flags*/
+			/* restore selection and hidden flags */
 			BM_elem_select_set(em->bm, f, sel);
-			BM_elem_hide_set(em->bm, f, hide);
+			if (!hide) { /* this check is a workaround for bug, see note - [#30735], without this edge can be hidden and selected */
+				BM_elem_hide_set(em->bm, f, hide);
+			}
 		}
 	}
 	
