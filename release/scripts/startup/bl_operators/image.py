@@ -96,6 +96,10 @@ class EditExternally(Operator):
             self.report({'ERROR'}, "Context incorrect, image not found")
             return {'CANCELLED'}
 
+        if image.packed_file:
+            self.report({'ERROR'}, "Image is packed, unpack before editing")
+            return {'CANCELLED'}
+
         filepath = bpy.path.abspath(image.filepath, library=image.library)
 
         self.filepath = os.path.normpath(filepath)
