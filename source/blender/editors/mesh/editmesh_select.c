@@ -1919,7 +1919,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
 		BMW_init(&walker, em->bm, BMW_SHELL,
 		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
