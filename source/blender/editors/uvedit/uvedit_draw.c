@@ -383,14 +383,14 @@ static void draw_uvs_other(Scene *scene, Object *obedit, Image *curimage)
 		if ((ob->type==OB_MESH) && (ob!=obedit)) {
 			Mesh *me= ob->data;
 
-			if (me->mtface) {
+			if (me->mtpoly) {
 				MPoly *mface= me->mpoly;
-				MTexPoly *tface= me->mtpoly;
+				MTexPoly *mtpoly= me->mtpoly;
 				MLoopUV *mloopuv;
 				int a, b;
 
-				for (a=me->totpoly; a>0; a--, tface++, mface++) {
-					if (tface->tpage == curimage) {
+				for (a=me->totpoly; a>0; a--, mtpoly++, mface++) {
+					if (mtpoly->tpage == curimage) {
 						glBegin(GL_LINE_LOOP);
 
 						mloopuv = me->mloopuv + mface->loopstart;
