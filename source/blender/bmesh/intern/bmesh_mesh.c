@@ -101,20 +101,18 @@ void BM_mesh_data_free(BMesh *bm)
 	BMFace *f;
 	
 
-	BMIter verts;
-	BMIter edges;
-	BMIter faces;
-	BMIter loops;
+	BMIter iter;
+	BMIter itersub;
 	
-	for (v = BM_iter_new(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BM_iter_step(&verts)) {
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		CustomData_bmesh_free_block(&(bm->vdata), &(v->head.data));
 	}
-	for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges)) {
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		CustomData_bmesh_free_block(&(bm->edata), &(e->head.data));
 	}
-	for (f = BM_iter_new(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BM_iter_step(&faces)) {
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		CustomData_bmesh_free_block(&(bm->pdata), &(f->head.data));
-		for (l = BM_iter_new(&loops, bm, BM_LOOPS_OF_FACE, f); l; l = BM_iter_step(&loops)) {
+		BM_ITER(l, &itersub, bm, BM_LOOPS_OF_FACE, f) {
 			CustomData_bmesh_free_block(&(bm->ldata), &(l->head.data));
 		}
 	}
