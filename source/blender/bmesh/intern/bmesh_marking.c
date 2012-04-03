@@ -449,29 +449,30 @@ void BM_select_mode_set(BMesh *bm, int selectmode)
  * counts number of elements with flag enabled/disabled
  */
 static int bm_mesh_flag_count(BMesh *bm, const char htype, const char hflag,
-                              int respecthide, int test_for_enabled)
+                              const short respecthide, const short test_for_enabled)
 {
 	BMElem *ele;
 	BMIter iter;
-	const char hflag_test = (test_for_enabled ? hflag : 0);
 	int tot = 0;
+
+	BLI_assert(ELEM(TRUE, FALSE, test_for_enabled));
 
 	if (htype & BM_VERT) {
 		for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); ele; ele = BM_iter_step(&iter)) {
 			if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) continue;
-			if (BM_elem_flag_test(ele, hflag) == hflag_test) tot++;
+			if (BM_elem_flag_test_bool(ele, hflag) == test_for_enabled) tot++;
 		}
 	}
 	if (htype & BM_EDGE) {
 		for (ele = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); ele; ele = BM_iter_step(&iter)) {
 			if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) continue;
-			if (BM_elem_flag_test(ele, hflag) == hflag_test) tot++;
+			if (BM_elem_flag_test_bool(ele, hflag) == test_for_enabled) tot++;
 		}
 	}
 	if (htype & BM_FACE) {
 		for (ele = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); ele; ele = BM_iter_step(&iter)) {
 			if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) continue;
-			if (BM_elem_flag_test(ele, hflag) == hflag_test) tot++;
+			if (BM_elem_flag_test_bool(ele, hflag) == test_for_enabled) tot++;
 		}
 	}
 

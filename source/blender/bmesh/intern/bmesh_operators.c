@@ -456,7 +456,7 @@ void BMO_slot_vec_get(BMOperator *op, const char *slotname, float r_vec[3])
  */
 
 static int bmo_mesh_flag_count(BMesh *bm, const char htype, const short oflag,
-                               int test_for_enabled)
+                               const short test_for_enabled)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -467,13 +467,14 @@ static int bmo_mesh_flag_count(BMesh *bm, const char htype, const short oflag,
 	BMIter iter;
 	int count = 0;
 	BMElemF *ele_f;
-	const char hflag_test = (test_for_enabled ? oflag : 0);
 	int i;
+
+	BLI_assert(ELEM(TRUE, FALSE, test_for_enabled));
 
 	for (i = 0; i < 3; i++) {
 		if (htype & flag_types[i]) {
 			BM_ITER(ele_f, &iter, bm, iter_types[i], NULL) {
-				if (BMO_elem_flag_test(bm, ele_f, oflag) == hflag_test)
+				if (BMO_elem_flag_test_bool(bm, ele_f, oflag) == test_for_enabled)
 					count++;
 			}
 		}
@@ -692,10 +693,12 @@ static void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot
  */
 static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
                                        const char htype, const char hflag,
-                                       int test_for_enabled)
+                                       const short test_for_enabled)
 {
 	BMOpSlot *output = BMO_slot_get(op, slotname);
 	int totelement = 0, i = 0;
+
+	BLI_assert(ELEM(TRUE, FALSE, test_for_enabled));
 
 	if (test_for_enabled)
 		totelement = BM_mesh_enabled_flag_count(bm, htype, hflag, TRUE);
@@ -706,8 +709,6 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 		BMIter iter;
 		BMElem *ele;
 
-		const char hflag_test = (test_for_enabled ? hflag : 0);
-
 		bmo_slot_buffer_alloc(op, slotname, totelement);
 
 		/* TODO - collapse these loops into one */
@@ -715,7 +716,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 		if (htype & BM_VERT) {
 			BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
-				    BM_elem_flag_test(ele, hflag) == hflag_test)
+				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
 				{
 					((BMElem **)output->data.p)[i] = ele;
 					i++;
@@ -726,7 +727,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 		if (htype & BM_EDGE) {
 			BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
-				    BM_elem_flag_test(ele, hflag) == hflag_test)
+				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
 				{
 					((BMElem **)output->data.p)[i] = ele;
 					i++;
@@ -737,7 +738,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 		if (htype & BM_FACE) {
 			BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
 				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
-				    BM_elem_flag_test(ele, hflag) == hflag_test)
+				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
 				{
 					((BMElem **)output->data.p)[i] = ele;
 					i++;
@@ -786,8 +787,7 @@ void BMO_slot_buffer_append(BMOperator *output_op, const char *output_slot_name,
 
 		/* copy slot data */
 		memcpy(buf, output_slot->data.buf, elem_size * output_slot->len);
-		memcpy(((char*)buf) + elem_size * output_slot->len,
-			   other_slot->data.buf, elem_size * other_slot->len);
+		memcpy(((char *)buf) + elem_size * output_slot->len, other_slot->data.buf, elem_size * other_slot->len);
 
 		output_slot->data.buf = buf;
 		output_slot->len += other_slot->len;
@@ -802,10 +802,12 @@ void BMO_slot_buffer_append(BMOperator *output_op, const char *output_slot_name,
  */
 static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
                                       const char htype, const short oflag,
-                                      int test_for_enabled)
+                                      const short test_for_enabled)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	int totelement, i = 0;
+
+	BLI_assert(ELEM(TRUE, FALSE, test_for_enabled));
 
 	if (test_for_enabled)
 		totelement = BMO_mesh_enabled_flag_count(bm, htype, oflag);
@@ -818,7 +820,6 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 		BMIter iter;
 		BMHeader *ele;
 		BMHeader **ele_array;
-		const char hflag_test = (test_for_enabled ? oflag : 0);
 
 		bmo_slot_buffer_alloc(op, slotname, totelement);
 
@@ -828,7 +829,7 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 
 		if (htype & BM_VERT) {
 			BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag) == hflag_test) {
+				if (BMO_elem_flag_test_bool(bm, (BMElemF *)ele, oflag) == test_for_enabled) {
 					ele_array[i] = ele;
 					i++;
 				}
@@ -837,7 +838,7 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 
 		if (htype & BM_EDGE) {
 			BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag) == hflag_test) {
+				if (BMO_elem_flag_test_bool(bm, (BMElemF *)ele, oflag) == test_for_enabled) {
 					ele_array[i] = ele;
 					i++;
 				}
@@ -846,7 +847,7 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 
 		if (htype & BM_FACE) {
 			BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
-				if (BMO_elem_flag_test(bm, (BMElemF *)ele, oflag) == hflag_test) {
+				if (BMO_elem_flag_test_bool(bm, (BMElemF *)ele, oflag) == test_for_enabled) {
 					ele_array[i] = ele;
 					i++;
 				}
