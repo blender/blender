@@ -15,4 +15,7 @@ incs += Split(env['BF_OPENEXR_INC'])
 
 defs = ['WITH_OPENEXR']
 
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+    incs.append(env['BF_PTHREADS_INC'])
+
 env.BlenderLib ('bf_imbuf_openexr', source_files, incs, defs, libtype=['core','player'], priority = [225,180])
