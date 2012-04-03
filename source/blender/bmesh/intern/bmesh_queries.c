@@ -537,21 +537,21 @@ int BM_vert_is_manifold(BMVert *v)
 
 /**
  * Tests whether or not this edge is manifold.
- * A manifold edge either has 1 or 2 faces attached to it.
+ * A manifold edge has exactly 2 faces attached to it.
  */
 
 #if 1 /* fast path for checking manifold */
 int BM_edge_is_manifold(BMEdge *e)
 {
 	const BMLoop *l = e->l;
-	return (l && ((l->radial_next == l) ||              /* 1 face user  */
-	              (l->radial_next->radial_next == l))); /* 2 face users */
+	return (l && (l->radial_next != l) &&             /* not 0 or 1 face users */
+	             (l->radial_next->radial_next == l)); /* 2 face users */
 }
 #else
 int BM_edge_is_manifold(BMEdge *e)
 {
 	int count = BM_edge_face_count(e);
-	if (count == 2 || count == 1) {
+	if (count == 2) {
 		return TRUE;
 	}
 	else {

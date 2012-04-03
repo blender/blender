@@ -667,7 +667,7 @@ static int bmw_FaceLoopWalker_edge_begins_loop(BMWalker *walker, BMEdge *e)
 	
 	/* Don't start a loop from a boundary edge if it cannot
 	 * be extended to cover any faces */
-	if (BM_edge_face_count(e) == 1) {
+	if (BM_edge_is_boundary(e)) {
 		if (!bmw_FaceLoopWalker_include_face(walker, e->l)) {
 			return FALSE;
 		}
@@ -843,7 +843,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	int i, len;
 #endif
 
-#define EDGE_CHECK(e) (bmw_mask_check_edge(walker, e) && BM_edge_is_manifold(e))
+#define EDGE_CHECK(e) (bmw_mask_check_edge(walker, e) && (BM_edge_is_boundary(e) || BM_edge_is_manifold(e)))
 
 	BMW_state_remove(walker);
 

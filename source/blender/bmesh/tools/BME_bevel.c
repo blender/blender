@@ -905,7 +905,7 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_ind
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		BMO_elem_flag_enable(bm, e, BME_BEVEL_ORIG);
-		if (!BM_edge_is_manifold(e)) {
+		if (!(BM_edge_is_boundary(e) || BM_edge_is_manifold(e))) {
 			BMO_elem_flag_enable(bm, e->v1, BME_BEVEL_NONMAN);
 			BMO_elem_flag_enable(bm, e->v2, BME_BEVEL_NONMAN);
 			BMO_elem_flag_enable(bm, e, BME_BEVEL_NONMAN);
