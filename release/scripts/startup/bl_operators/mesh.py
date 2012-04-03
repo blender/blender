@@ -55,7 +55,7 @@ class MeshMirrorUV(Operator):
         mirror_gt = {}
         mirror_lt = {}
 
-        vcos = [v.co.to_tuple(5) for v in mesh.vertices]
+        vcos = (v.co.to_tuple(5) for v in mesh.vertices)
 
         for i, co in enumerate(vcos):
             if co[0] > 0.0:
@@ -76,51 +76,60 @@ class MeshMirrorUV(Operator):
                 if j is not None:
                     vmap[i] = j
 
-        active_uv_layer = mesh.uv_textures.active.data
-        fuvs = [(uv.uv1, uv.uv2, uv.uv3, uv.uv4) for uv in active_uv_layer]
-        fuvs_cpy = [(uv[0].copy(), uv[1].copy(), uv[2].copy(), uv[3].copy())
-                    for uv in fuvs]
+        polys = mesh.polygons
+        loops = mesh.loops
+        verts = mesh.vertices
+        uv_loops = mesh.uv_loop_layers.active.data
+        nbr_polys = len(polys)
 
-        # as a list
-        # BMESH_TODO - use polygons
-        faces = mesh.faces[:]
+        mirror_pm = {}
+        pmap = {}
+        puvs = [None] * nbr_polys
+        puvs_cpy = [None] * nbr_polys
+        puvsel = [None] * nbr_polys
+        pcents = [None] * nbr_polys
+        vidxs = [None] * nbr_polys
+        for i, p in enumerate(polys):
+            lstart = lend = p.loop_start
+            lend += p.loop_total
+            puvs[i] = tuple(uv.uv for uv in uv_loops[lstart:lend])
+            puvs_cpy[i] = tuple(uv.copy() for uv in puvs[i])
+            puvsel[i] = (False not in
+                               (uv.select for uv in uv_loops[lstart:lend]))
+            # Vert idx of the poly.
+            vidxs[i] = tuple(sorted(l.vertex_index
+                                    for l in loops[lstart:lend]))
+            # As we have no poly.center yet...
+            pcents[i] = tuple(map(lambda x : x / p.loop_total,
+                                  map(sum, zip(*(verts[idx].co
+                                                 for idx in vidxs[i])))))
+            # Preparing next step finding matching polys.
+            mirror_pm[vidxs[i]] = i
 
-        fuvsel = [(False not in uv.select_uv) for uv in active_uv_layer]
-        fcents = [f.center for f in faces]
-
-        # find mirror faces
-        mirror_fm = {}
-        for i, f in enumerate(faces):
-            verts = list(f.vertices)
-            verts.sort()
-            verts = tuple(verts)
-            mirror_fm[verts] = i
-
-        fmap = {}
-        for i, f in enumerate(faces):
-            verts = [vmap.get(j) for j in f.vertices]
-            if None not in verts:
-                verts.sort()
-                j = mirror_fm.get(tuple(verts))
+        for i in range(nbr_polys):
+            # Find matching mirror poly.
+            tvidxs = [vmap.get(j) for j in vidxs[i]]
+            if None not in tvidxs:
+                tvidxs.sort()
+                j = mirror_pm.get(tuple(tvidxs))
                 if j is not None:
-                    fmap[i] = j
+                    pmap[i] = j
 
-        for i, j in fmap.items():
-
-            if not fuvsel[i] or not fuvsel[j]:
+        for i, j in pmap.items():
+            if not puvsel[i] or not puvsel[j]:
                 continue
-            elif DIR == 0 and fcents[i][0] < 0.0:
+            elif DIR == 0 and pcents[i][0] < 0.0:
                 continue
-            elif DIR == 1 and fcents[i][0] > 0.0:
+            elif DIR == 1 and pcents[i][0] > 0.0:
                 continue
 
             # copy UVs
-            uv1 = fuvs[i]
-            uv2 = fuvs_cpy[j]
+            uv1 = puvs[i]
+            uv2 = puvs_cpy[j]
 
             # get the correct rotation
-            v1 = faces[j].vertices[:]
-            v2 = [vmap[k] for k in faces[i].vertices[:]]
+            v1 = vidxs[j]
+            v2 = tuple(vmap[k] for k in vidxs[i])
 
             if len(v1) == len(v2):
                 for k in range(len(v1)):
