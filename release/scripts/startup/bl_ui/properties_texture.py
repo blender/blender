@@ -52,7 +52,7 @@ class TEXTURE_MT_envmap_specials(Menu):
         layout.operator("texture.envmap_clear", icon='FILE_REFRESH')
         layout.operator("texture.envmap_clear_all", icon='FILE_REFRESH')
 
-from .properties_material import active_node_mat
+from bl_ui.properties_material import active_node_mat
 
 
 def context_tex_datablock(context):

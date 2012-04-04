@@ -845,7 +845,7 @@ class USERPREF_PT_file(Panel):
         col.prop(system, "use_tabs_as_spaces")
 
 
-from .space_userpref_keymap import InputKeyMapPanel
+from bl_ui.space_userpref_keymap import InputKeyMapPanel
 
 
 class USERPREF_MT_ndof_settings(Menu):
