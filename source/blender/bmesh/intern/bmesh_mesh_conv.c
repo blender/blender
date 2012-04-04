@@ -849,10 +849,8 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 			mvert = me->mvert;
 			while (eve) {
 				keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-				if (!keyi) {
-					break;
-				}
-				if (*keyi >= 0 && *keyi < currkey->totelem) { // valid old vertex
+
+				if (keyi && *keyi != ORIGINDEX_NONE && *keyi < currkey->totelem) { /* valid old vertex */
 					if (currkey == actkey) {
 						if (actkey == me->key->refkey) {
 							copy_v3_v3(fp, mvert->co);
