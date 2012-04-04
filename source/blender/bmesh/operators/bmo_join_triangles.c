@@ -333,7 +333,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
 
 		BM_edge_face_pair(e, &f1, &f2); /* checked above */
-		BM_faces_join_pair(bm, f1, f2, e);
+		BM_faces_join_pair(bm, f1, f2, e, TRUE);
 	}
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -365,7 +365,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 				continue;
 			}
 
-			BM_faces_join_pair(bm, f1, f2, e);
+			BM_faces_join_pair(bm, f1, f2, e, TRUE);
 		}
 	}
 

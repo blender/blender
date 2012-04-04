@@ -153,7 +153,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		f = e->l->f;
 		f2 = e->l->radial_next->f;
 
-		if (f != f2 && !BM_faces_join_pair(bm, f, f2, e)) {
+		if (f != f2 && !BM_faces_join_pair(bm, f, f2, e, TRUE)) {
 			return FALSE;
 		}
 
@@ -170,7 +170,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 				f = NULL;
 				len = bmesh_radial_length(e->l);
 				if (len == 2 && (e != baseedge) && (e != keepedge)) {
-					f = BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e);
+					f = BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE);
 					/* return if couldn't join faces in manifold
 					 * conditions */
 					//!disabled for testing why bad things happen
@@ -200,7 +200,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 
 		if (f != f2) {
 			/* join two remaining face */
-			if (!BM_faces_join_pair(bm, f, f2, e)) {
+			if (!BM_faces_join_pair(bm, f, f2, e, TRUE)) {
 				return FALSE;
 			}
 		}
@@ -224,7 +224,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
  *
  * \return pointer to the combined face
  */
-BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
+BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, const short do_del)
 {
 	BMLoop *l1, *l2;
 	BMEdge *jed = NULL;
@@ -260,7 +260,7 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 		bmesh_loop_reverse(bm, f2);
 	}
 
-	f1 = BM_faces_join(bm, faces, 2);
+	f1 = BM_faces_join(bm, faces, 2, do_del);
 	
 	return f1;
 }
@@ -526,7 +526,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 		}
 
 		if (BLI_array_count(faces) >= 2) {
-			BMFace *f2 = BM_faces_join(bm, faces, BLI_array_count(faces));
+			BMFace *f2 = BM_faces_join(bm, faces, BLI_array_count(faces), TRUE);
 			if (f2) {
 				BMLoop *nl = NULL;
 				if (BM_face_split(bm, f2, tv, tv2, &nl, NULL, FALSE)) {
@@ -1057,7 +1057,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	f_hflag_prev_2 = l2->f->head.hflag;
 
 	/* don't delete the edge, manually remove the egde after so we can copy its attributes */
-	f = BM_faces_join_pair(bm, l1->f, l2->f, NULL);
+	f = BM_faces_join_pair(bm, l1->f, l2->f, NULL, TRUE);
 
 	if (f == NULL) {
 		return NULL;
