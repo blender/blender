@@ -66,6 +66,17 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 	int totuv, i, j;
 
 	if (!me || !me->totvert) {
+		if (me) { /*no verts? still copy customdata layout*/
+			CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_ASSIGN, 0);
+			CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_ASSIGN, 0);
+			CustomData_copy(&me->ldata, &bm->ldata, CD_MASK_BMESH, CD_ASSIGN, 0);
+			CustomData_copy(&me->pdata, &bm->pdata, CD_MASK_BMESH, CD_ASSIGN, 0);
+
+			CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
+			CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
+			CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
+			CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
+		}
 		return; /* sanity check */
 	}
 
