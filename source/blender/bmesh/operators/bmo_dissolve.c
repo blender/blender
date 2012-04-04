@@ -505,14 +505,10 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 		const float angle = BM_edge_face_angle(e);
 
 		if (angle < angle_limit) {
-			weight_elems[i].ele = (BMHeader *)e;
-			weight_elems[i].weight = angle;
 			tot_found++;
 		}
-		else {
-			weight_elems[i].ele = NULL;
-			weight_elems[i].weight = angle_max;
-		}
+		weight_elems[i].ele = (BMHeader *)e;
+		weight_elems[i].weight = angle;
 	}
 
 	if (tot_found != 0) {
@@ -520,17 +516,36 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 
 		for (i = 0; i < tot_found; i++) {
 			BMEdge *e = (BMEdge *)weight_elems[i].ele;
-			/* check twice because cumulative effect could dissolve over angle limit */
-			if (BM_edge_face_angle(e) < angle_limit) {
+
+			if (/* may have become non-manifold */
+			    BM_edge_is_manifold(e) &&
+			    /* check twice because cumulative effect could dissolve over angle limit */
+			    (BM_edge_face_angle(e) < angle_limit))
+			{
 				BMFace *nf = BM_faces_join_pair(bm, e->l->f,
 				                                e->l->radial_next->f,
 				                                e,
-				                                TRUE); /* join faces */
+				                                FALSE); /* join faces */
 
 				/* there may be some errors, we don't mind, just move on */
-				if (nf == NULL) {
+				if (nf) {
+					BM_face_normal_update(bm, nf);
+				}
+				else {
 					BMO_error_clear(bm);
 				}
+			}
+		}
+
+		/* remove all edges/verts left behind from dissolving */
+		for (i = 0; i < einput->len; i++) {
+			BMEdge *e = (BMEdge *)weight_elems[i].ele;
+			if (BM_edge_is_wire(e)) {
+				BMVert *v1 = e->v1;
+				BMVert *v2 = e->v2;
+				BM_edge_kill(bm, e);
+				if (v1->e == NULL) BM_vert_kill(bm, v1);
+				if (v2->e == NULL) BM_vert_kill(bm, v2);
 			}
 		}
 	}

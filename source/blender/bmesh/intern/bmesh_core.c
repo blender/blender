@@ -1035,6 +1035,13 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del
 			BM_vert_kill(bm, delverts[i]);
 		}
 	}
+	else {
+		/* otherwise we get both old and new faces */
+		for (i = 0; i < totface; i++) {
+			f = faces[i];
+			BM_face_kill(bm, f);
+		}
+	}
 	
 	BLI_array_free(edges);
 	BLI_array_free(deledges);
