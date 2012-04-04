@@ -11,6 +11,7 @@
                    bone_pose="#50c8ff"
                    bone_solid="#c8c8c8"
                    bundle_solid="#c8c8c8"
+                   camera="#000000"
                    camera_path="#000000"
                    frame_current="#60c040"
                    edge_crease="#ce33b8"
@@ -19,6 +20,7 @@
                    edge_select="#f68d46"
                    edge_sharp="#ff4c00"
                    edge_facesel="#4b4b4b"
+                   empty="#000000"
                    face="#75757512"
                    extra_face_angle="#002000"
                    extra_face_area="#0059ee"
@@ -404,6 +406,7 @@
     </properties>
     <sequence_editor>
       <ThemeSequenceEditor audio_strip="#2e8f8f"
+                           movieclip_strip="#20208f"
                            frame_current="#c06e11"
                            draw_action="#50c8ff"
                            effect_strip="#a9547c"
@@ -412,8 +415,8 @@
                            keyframe="#f47421"
                            meta_strip="#6d9183"
                            movie_strip="#516987"
-                           movieclip_strip="#20208f"
                            plugin_strip="#7e7e50"
+                           preview_back="#000000"
                            scene_strip="#4e983e"
                            transition_strip="#a25f6f"
                            window_sliders="#a0a0a0">
@@ -688,6 +691,18 @@
                              text_sel="#f47421">
           </ThemeWidgetColors>
         </wcol_tool>
+        <wcol_tooltip>
+          <ThemeWidgetColors inner="#191919e6"
+                             inner_sel="#2d2d2de6"
+                             item="#646464ff"
+                             outline="#000000"
+                             shadedown="-20"
+                             shadetop="25"
+                             show_shaded="FALSE"
+                             text="#ffffff"
+                             text_sel="#ffffff">
+          </ThemeWidgetColors>
+        </wcol_tooltip>
       </ThemeUserInterface>
     </user_interface>
     <user_preferences>
