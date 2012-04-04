@@ -33,7 +33,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <inttypes.h>
 #endif
 extern "C" {
-#undef __cplusplus
+// #undef __cplusplus // was done for mingw4.4, see r23608
 #include <pthread.h>
 
 #include "ffmpeg_compat.h"
@@ -41,7 +41,7 @@ extern "C" {
 #include "DNA_listBase.h"
 #include "BLI_threads.h"
 #include "BLI_blenlib.h"
-#define __cplusplus
+// #define __cplusplus
 }
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
