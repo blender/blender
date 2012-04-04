@@ -230,6 +230,7 @@ void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 			case OB_MESH:
 				EDBM_mesh_load(ob);
 				EDBM_mesh_make(scene->toolsettings, scene, ob);
+				EDBM_mesh_normals_update(((Mesh*)ob->data)->edit_btmesh);
 				BMEdit_RecalcTessellation(((Mesh*)ob->data)->edit_btmesh);
 				break;
 			case OB_CURVE:
