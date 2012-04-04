@@ -2083,9 +2083,10 @@ void node_tex_environment(vec3 co, sampler2D ima, out vec4 color)
 	color = texture2D(ima, vec2(u, v));
 }
 
-void node_tex_image(vec3 co, sampler2D ima, out vec4 color)
+void node_tex_image(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
 	color = texture2D(ima, co.xy);
+	alpha = color.a;
 }
 
 void node_tex_magic(vec3 p, float scale, float distortion, out vec4 color, out float fac)
