@@ -164,7 +164,7 @@ void Session::run_gpu()
 	paused_time = 0.0;
 
 	if(!params.background)
-		progress.set_start_time(start_time - paused_time);
+		progress.set_start_time(start_time + paused_time);
 
 	while(!progress.get_cancel()) {
 		/* advance to next tile */
@@ -191,7 +191,7 @@ void Session::run_gpu()
 					paused_time += time_dt() - pause_start;
 
 					if(!params.background)
-						progress.set_start_time(start_time - paused_time);
+						progress.set_start_time(start_time + paused_time);
 
 					update_status_time(pause, no_tiles);
 					progress.set_update();
@@ -340,7 +340,7 @@ void Session::run_cpu()
 					paused_time += time_dt() - pause_start;
 
 					if(!params.background)
-						progress.set_start_time(start_time - paused_time);
+						progress.set_start_time(start_time + paused_time);
 
 					update_status_time(pause, no_tiles);
 					progress.set_update();
@@ -473,7 +473,7 @@ void Session::reset_(BufferParams& buffer_params, int samples)
 	sample = 0;
 
 	if(!params.background)
-		progress.set_start_time(start_time - paused_time);
+		progress.set_start_time(start_time + paused_time);
 }
 
 void Session::reset(BufferParams& buffer_params, int samples)
