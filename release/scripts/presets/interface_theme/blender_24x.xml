@@ -692,14 +692,14 @@
           </ThemeWidgetColors>
         </wcol_tool>
         <wcol_tooltip>
-          <ThemeWidgetColors inner="#191919e6"
+          <ThemeWidgetColors inner="#ffffddff"
                              inner_sel="#2d2d2de6"
                              item="#646464ff"
                              outline="#000000"
                              shadedown="-20"
                              shadetop="25"
                              show_shaded="FALSE"
-                             text="#ffffff"
+                             text="#000000"
                              text_sel="#ffffff">
           </ThemeWidgetColors>
         </wcol_tooltip>
