@@ -727,7 +727,7 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
 
         row = layout.row()
 
-        row.column().prop(mapping, "location")
+        row.column().prop(mapping, "translation")
         row.column().prop(mapping, "rotation")
         row.column().prop(mapping, "scale")
 

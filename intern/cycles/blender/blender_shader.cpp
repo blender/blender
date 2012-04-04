@@ -80,7 +80,7 @@ static void get_tex_mapping(TextureMapping *mapping, BL::TexMapping b_mapping)
 	if(!b_mapping)
 		return;
 
-	mapping->translation = get_float3(b_mapping.location());
+	mapping->translation = get_float3(b_mapping.translation());
 	mapping->rotation = get_float3(b_mapping.rotation());
 	mapping->scale = get_float3(b_mapping.scale());
 
@@ -94,7 +94,7 @@ static void get_tex_mapping(TextureMapping *mapping, BL::ShaderNodeMapping b_map
 	if(!b_mapping)
 		return;
 
-	mapping->translation = get_float3(b_mapping.location());
+	mapping->translation = get_float3(b_mapping.translation());
 	mapping->rotation = get_float3(b_mapping.rotation());
 	mapping->scale = get_float3(b_mapping.scale());
 }
