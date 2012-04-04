@@ -99,7 +99,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		actkey = NULL;
 	}
 
-	if (actkey && actkey->totelem == me->totvert) {
+	if (me->key) {
 		CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
 
 		/* check if we need to generate unique ids for the shapekeys.
@@ -117,8 +117,11 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 			}
 		}
 
-		keyco = actkey->data;
-		bm->shapenr = act_key_nr;
+		if (actkey && actkey->totelem == me->totvert) {
+			keyco = actkey->data;
+			bm->shapenr = act_key_nr;
+		}
+
 		for (i = 0, block = me->key->block.first; block; block = block->next, i++) {
 			CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY,
 			                           CD_ASSIGN, NULL, 0, block->name);
