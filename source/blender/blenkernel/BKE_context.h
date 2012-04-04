@@ -117,6 +117,7 @@ bContext *CTX_copy(const bContext *C);
 /* Stored Context */
 
 bContextStore *CTX_store_add(ListBase *contexts, const char *name, PointerRNA *ptr);
+bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context);
 void CTX_store_set(bContext *C, bContextStore *store);
 bContextStore *CTX_store_copy(bContextStore *store);
 void CTX_store_free(bContextStore *store);

@@ -256,10 +256,10 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
 		/* transfer flag */
-		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag & ~SELECT);
+		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag & ~ME_FACE_SEL);
 
 		/* this is necessary for selection counts to work properly */
-		if (mpoly->flag & SELECT) {
+		if (mpoly->flag & ME_FACE_SEL) {
 			BM_elem_select_set(bm, f, TRUE);
 		}
 
@@ -849,10 +849,8 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 			mvert = me->mvert;
 			while (eve) {
 				keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-				if (!keyi) {
-					break;
-				}
-				if (*keyi >= 0 && *keyi < currkey->totelem) { // valid old vertex
+
+				if (keyi && *keyi != ORIGINDEX_NONE && *keyi < currkey->totelem) { /* valid old vertex */
 					if (currkey == actkey) {
 						if (actkey == me->key->refkey) {
 							copy_v3_v3(fp, mvert->co);

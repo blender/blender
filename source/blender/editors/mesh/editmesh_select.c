@@ -1509,12 +1509,13 @@ int mouse_mesh(bContext *C, const int mval[2], short extend)
 		
 		EDBM_selectmode_flush(vc.em);
 		  
-//		if (EM_texFaceCheck()) {
-
+		/* change active material on object */
 		if (efa && efa->mat_nr != vc.obedit->actcol - 1) {
 			vc.obedit->actcol = efa->mat_nr + 1;
 			vc.em->mat_nr = efa->mat_nr;
-//			BIF_preview_changed(ID_MA);
+
+			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, NULL);
+
 		}
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit);
@@ -1928,7 +1929,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
 		BMW_init(&walker, em->bm, BMW_SHELL,
 		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {

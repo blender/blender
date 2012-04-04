@@ -164,7 +164,7 @@ kmi = km.keymap_items.new('view3d.zoom_border', 'B', 'PRESS', shift=True)
 kmi = km.keymap_items.new('view3d.render_border', 'B', 'PRESS', shift=True)
 kmi = km.keymap_items.new('view3d.camera_to_view', 'NUMPAD_0', 'PRESS', ctrl=True, alt=True)
 kmi = km.keymap_items.new('view3d.object_as_camera', 'NUMPAD_0', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('wm.call_menu', 'S', 'PRESS', shift=True)
+kmi = km.keymap_items.new('wm.call_menu', 'S', 'PRESS', shift=True, ctrl=True)
 kmi.properties.name = 'VIEW3D_MT_snap'
 kmi = km.keymap_items.new('wm.context_set_enum', 'COMMA', 'PRESS')
 kmi.properties.data_path = 'space_data.pivot_point'

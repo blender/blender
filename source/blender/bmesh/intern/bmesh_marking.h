@@ -45,8 +45,8 @@ void BM_face_hide_set(BMesh *bm, BMFace *f, int hide);
 #define BM_elem_select_set(bm, ele, hide) _bm_elem_select_set(bm, &(ele)->head, hide)
 void _bm_elem_select_set(BMesh *bm, BMHeader *ele, int select);
 
-void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag);
-void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag);
+void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag, int respecthide);
+void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag, int respecthide);
 
 /* individual element select functions, BM_elem_select_set is a shortcut for these
  * that automatically detects which one to use*/

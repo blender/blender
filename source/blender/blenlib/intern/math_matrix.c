@@ -816,9 +816,6 @@ int is_orthogonal_m3(float m[][3])
 			if (fabsf(dot_v3v3(m[i], m[j])) > 1.5f * FLT_EPSILON)
 				return 0;
 		}
-
-		if (fabsf(dot_v3v3(m[i], m[i]) - 1) > 1.5f * FLT_EPSILON)
-			return 0;
 	}
 
 	return 1;
@@ -834,11 +831,39 @@ int is_orthogonal_m4(float m[][4])
 				return 0;
 		}
 
-		if (fabsf(dot_vn_vn(m[i], m[i], 4) - 1) > 1.5f * FLT_EPSILON)
-			return 0;
 	}
 
 	return 1;
+}
+
+int is_orthonormal_m3(float m[][3])
+{
+	if (is_orthogonal_m3(m)) {
+		int i;
+
+		for (i = 0; i < 3; i++)
+			if (fabsf(dot_v3v3(m[i], m[i]) - 1) > 1.5f * FLT_EPSILON)
+				return 0;
+
+		return 1;
+	}
+
+	return 0;
+}
+
+int is_orthonormal_m4(float m[][4])
+{
+	if (is_orthogonal_m4(m)) {
+		int i;
+
+		for (i = 0; i < 4; i++)
+			if (fabsf(dot_vn_vn(m[i], m[i], 4) - 1) > 1.5f * FLT_EPSILON)
+				return 0;
+
+		return 1;
+	}
+
+	return 0;
 }
 
 void normalize_m3(float mat[][3])

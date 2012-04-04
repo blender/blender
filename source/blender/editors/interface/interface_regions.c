@@ -2404,16 +2404,18 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	/* some enums reversing is strange, currently we have no good way to
 	 * reverse some enum's but not others, so reverse all so the first menu
 	 * items are always close to the mouse cursor */
-#if 0
 	else {
+#if 0
 		/* if this is an rna button then we can assume its an enum
 		 * flipping enums is generally not good since the order can be
 		 * important [#28786] */
 		if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
 			pup->block->flag |= UI_BLOCK_NO_FLIP;
 		}
-	}
 #endif
+		if (but->context)
+			uiLayoutContextCopy(pup->layout, but->context);
+	}
 
 	if (str) {
 		/* menu is created from a string */

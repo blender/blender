@@ -206,7 +206,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	if (select) {
 		BMW_init(&walker, em->bm, BMW_EDGERING,
 		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
 		eed = BMW_begin(&walker, startedge);
@@ -220,7 +220,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 	BMW_init(&walker, em->bm, BMW_EDGERING,
 	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+	         BMW_FLAG_TEST_HIDDEN,
 	         BMW_NIL_LAY);
 
 	eed = startedge = BMW_begin(&walker, startedge);
@@ -240,6 +240,8 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 			edgering_find_order(em, lasteed, eed, lastv1, v);
 			lastv1 = v[0][0];
 
+			BLI_array_growitems(edges, previewlines);
+
 			for (i = 1; i <= previewlines; i++) {
 				co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0]) * (i / ((float)previewlines + 1)) + v[0][0]->co[0];
 				co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1]) * (i / ((float)previewlines + 1)) + v[0][0]->co[1];
@@ -249,7 +251,6 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 				co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1]) * (i / ((float)previewlines + 1)) + v[1][0]->co[1];
 				co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2]) * (i / ((float)previewlines + 1)) + v[1][0]->co[2];
 
-				BLI_array_growone(edges);
 				copy_v3_v3(edges[tot][0], co[0]);
 				copy_v3_v3(edges[tot][1], co[1]);
 				tot++;
@@ -264,6 +265,8 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 		edgering_find_order(em, lasteed, startedge, lastv1, v);
 		
+		BLI_array_growitems(edges, previewlines);
+
 		for (i = 1; i <= previewlines; i++) {
 			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1])
 				continue;
@@ -276,7 +279,6 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 			co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1]) * (i / ((float)previewlines + 1)) + v[1][0]->co[1];
 			co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2]) * (i / ((float)previewlines + 1)) + v[1][0]->co[2];
 			
-			BLI_array_growone(edges);
 			copy_v3_v3(edges[tot][0], co[0]);
 			copy_v3_v3(edges[tot][1], co[1]);
 			tot++;

@@ -1774,7 +1774,7 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 
 	if (buffers->totface) {
 		const MFace *f = &buffers->mface[buffers->face_indices[0]];
-		if (!setMaterial(f->mat_nr+1, NULL))
+		if (!setMaterial(f->mat_nr + 1, NULL))
 			return;
 
 		smooth = f->flag & ME_SMOOTH;
@@ -1782,7 +1782,7 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 	}
 	else if (buffers->totgrid) {
 		const DMFlagMat *f = &buffers->grid_flag_mats[buffers->grid_indices[0]];
-		if (!setMaterial(f->mat_nr+1, NULL))
+		if (!setMaterial(f->mat_nr + 1, NULL))
 			return;
 
 		smooth = f->flag & ME_SMOOTH;

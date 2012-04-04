@@ -603,7 +603,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 
 			if (efa) {
 				Image *node_ima;
-				ED_object_get_active_image(obedit, efa->mat_nr, &node_ima, NULL, NULL);
+				ED_object_get_active_image(obedit, efa->mat_nr + 1, &node_ima, NULL, NULL);
 
 				if (node_ima)
 					sima->image = node_ima;

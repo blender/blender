@@ -407,8 +407,30 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					}
 				} 
 				else { /* direction == BONE_SELECT_CHILD */
+
+					/* the child member is only assigned to connected bones, see [#30340] */
+#if 0
 					if (pchan->child == NULL) continue;
 					else chbone = pchan->child->bone;
+#else
+					/* instead. find _any_ visible child bone, using the first one is a little arbitrary  - campbell */
+					chbone = pchan->child ? pchan->child->bone : NULL;
+					if (chbone == NULL) {
+						bPoseChannel *pchan_child;
+
+						for (pchan_child = ob->pose->chanbase.first; pchan_child; pchan_child = pchan_child->next) {
+							/* possible we have multiple children, some invisible */
+							if (PBONE_VISIBLE(arm, pchan_child->bone)) {
+								if (pchan_child->parent == pchan) {
+									chbone = pchan_child->bone;
+									break;
+								}
+							}
+						}
+					}
+
+					if (chbone == NULL) continue;
+#endif
 					
 					if (PBONE_VISIBLE(arm, chbone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;

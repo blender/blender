@@ -1249,91 +1249,132 @@ static void vgroup_invert(Object *ob, const short auto_assign, const short auto_
 	}
 }
 
-static void vgroup_blend(Object *ob)
+static void vgroup_blend(Object *ob, const float fac)
 {
+	MDeformVert *dv;
 	MDeformWeight *dw;
-	MDeformVert *dvert_array=NULL, *dvert;
 	int i, dvert_tot=0;
-	const int def_nr= ob->actdef-1;
+	const int def_nr= ob->actdef - 1;
 
-	BMEditMesh *em;
+	BLI_assert(fac >= 0.0 && fac <= 1.0f);
 
-	if (ob->type != OB_MESH || ((em = BMEdit_FromObject(ob)) == NULL)) {
+	if (ob->type != OB_MESH) {
 		return;
 	}
 
 	if (BLI_findlink(&ob->defbase, def_nr)) {
+		const float ifac = 1.0f - fac;
+		int i1, i2;
+
+		BMEditMesh *em = BMEdit_FromObject(ob);
+		BMesh *bm = em ? em->bm : NULL;
+		Mesh  *me = em ? NULL   : ob->data;
+
+		/* bmesh only*/
 		BMEdge *eed;
 		BMVert *eve;
 		BMIter iter;
 
-		int i1, i2;
+		/* mesh only */
+		MDeformVert *dvert_array = NULL;
+
 
 		float *vg_weights;
 		float *vg_users;
 		int sel1, sel2;
 
-		BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+		if (bm) {
+			BM_mesh_elem_index_ensure(bm, BM_VERT);
+			dvert_tot = bm->totvert;
+		}
+		else {
+			dvert_tot = me->totvert;
+			dvert_array = me->dvert;
+		}
 
-		dvert_tot= em->bm->totvert;
+		vg_weights = MEM_callocN(sizeof(float) * dvert_tot, "vgroup_blend_f");
+		vg_users = MEM_callocN(sizeof(int) * dvert_tot, "vgroup_blend_i");
 
-		vg_weights= MEM_callocN(sizeof(float)*dvert_tot, "vgroup_blend_f");
-		vg_users= MEM_callocN(sizeof(int)*dvert_tot, "vgroup_blend_i");
+		if (bm) {
+			BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+				sel1 = BM_elem_flag_test(eed->v1, BM_ELEM_SELECT);
+				sel2 = BM_elem_flag_test(eed->v2, BM_ELEM_SELECT);
 
-		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-			sel1= BM_elem_flag_test(eed->v1, BM_ELEM_SELECT);
-			sel2= BM_elem_flag_test(eed->v2, BM_ELEM_SELECT);
+				if (sel1 != sel2) {
+					/* i1 is always the selected one */
+					if (sel1) {
+						i1= BM_elem_index_get(eed->v1);
+						i2= BM_elem_index_get(eed->v2);
+						eve= eed->v2;
+					}
+					else {
+						i2= BM_elem_index_get(eed->v1);
+						i1= BM_elem_index_get(eed->v2);
+						eve= eed->v1;
+					}
 
-			if (sel1 != sel2) {
-				/* i1 is always the selected one */
-				if (sel1==TRUE && sel2==FALSE) {
-					i1= BM_elem_index_get(eed->v1);
-					i2= BM_elem_index_get(eed->v2);
-					eve= eed->v2;
+					dv = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MDEFORMVERT);
+					dw = defvert_find_index(dv, def_nr);
+					if (dw) {
+						vg_weights[i1] += dw->weight;
+					}
+					vg_users[i1]++;
 				}
-				else {
-					i2= BM_elem_index_get(eed->v1);
-					i1= BM_elem_index_get(eed->v2);
-					eve= eed->v1;
+			}
+
+			BM_ITER_INDEX(eve, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
+				if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && vg_users[i] > 0) {
+					dv = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MDEFORMVERT);
+
+					dw = defvert_verify_index(dv, def_nr);
+					dw->weight = (fac * (vg_weights[i] / (float)vg_users[i])) + (ifac * dw->weight);
+					/* in case of division errors */
+					CLAMP(dw->weight, 0.0f, 1.0f);
 				}
+			}
+		}
+		else {
+			MEdge *ed = me->medge;
+			MVert *mv;
 
-				vg_users[i1]++;
+			for (i = 0; i < me->totedge; i++, ed++) {
+				sel1 = me->mvert[ed->v1].flag & SELECT;
+				sel2 = me->mvert[ed->v2].flag & SELECT;
 
-				/* TODO, we may want object mode blending */
-#if 0
-				if (em) {
-					dvert = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+				if (sel1 != sel2) {
+					/* i1 is always the selected one */
+					if (sel1) {
+						i1 = ed->v1;
+						i2 = ed->v2;
+					}
+					else {
+						i2 = ed->v1;
+						i1 = ed->v2;
+					}
+
+					dv = &dvert_array[i2];
+					dw = defvert_find_index(dv, def_nr);
+					if (dw) {
+						vg_weights[i1] += dw->weight;
+					}
+					vg_users[i1]++;
 				}
-				else
-#endif
-				{
-					dvert= dvert_array+i2;
-				}
+			}
 
-				dw = defvert_find_index(dvert, def_nr);
+			mv = me->mvert;
+			dv = dvert_array;
 
-				if (dw) {
-					vg_weights[i1] += dw->weight;
+			for (i = 0; i < dvert_tot; i++, mv++, dv++) {
+				if ((mv->flag & SELECT) && (vg_users[i] > 0)) {
+					dw = defvert_verify_index(dv, def_nr);
+					dw->weight = (fac * (vg_weights[i] / (float)vg_users[i])) + (ifac * dw->weight);
+
+					/* in case of division errors */
+					CLAMP(dw->weight, 0.0f, 1.0f);
 				}
 			}
 		}
 
-		i= 0;
-		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && vg_users[i] > 0) {
-				/* TODO, we may want object mode blending */
-				if (em)  dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
-				else	dvert= dvert_array+i;
-
-				dw= defvert_verify_index(dvert, def_nr);
-				dw->weight= vg_weights[i] / (float)vg_users[i];
-
-				/* in case of division errors */
-				CLAMP(dw->weight, 0.0f, 1.0f);
-			}
-
-			i++;
-		}
 		MEM_freeN(vg_weights);
 		MEM_freeN(vg_users);
 	}
@@ -2482,11 +2523,12 @@ void OBJECT_OT_vertex_group_invert(wmOperatorType *ot)
 }
 
 
-static int vertex_group_blend_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_group_blend_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= ED_object_context(C);
+	Object *ob = ED_object_context(C);
+	float fac = RNA_float_get(op->ptr, "factor");
 
-	vgroup_blend(ob);
+	vgroup_blend(ob, fac);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
@@ -2495,19 +2537,53 @@ static int vertex_group_blend_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
+/* check we have a vertex selection, either in weight paint or editmode */
+static int vertex_group_blend_poll(bContext *C)
+{
+	Object *ob = ED_object_context(C);
+	ID *data = (ob) ? ob->data: NULL;
+
+	if (!(ob && !ob->id.lib && data && !data->lib))
+		return FALSE;
+
+	if (vgroup_object_in_edit_mode(ob)) {
+		return TRUE;
+	}
+	else if ((ob->type == OB_MESH) && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
+		if (ME_EDIT_PAINT_SEL_MODE(((Mesh *)data)) == SCE_SELECT_VERTEX) {
+			return TRUE;
+		}
+		else {
+			CTX_wm_operator_poll_msg_set(C, "Vertex select needs to be enabled in weight paint mode");
+			return FALSE;
+		}
+
+	}
+	else {
+		return FALSE;
+	}
+}
+
 void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Blend Vertex Group";
 	ot->idname = "OBJECT_OT_vertex_group_blend";
-	ot->description = "";
+	ot->description = "Blend selected vertex weights with unselected for the active group";
 
 	/* api callbacks */
-	ot->poll = vertex_group_poll_edit; /* TODO - add object mode support */
+	ot->poll = vertex_group_blend_poll;
 	ot->exec = vertex_group_blend_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	prop = RNA_def_property(ot->srna, "factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_ui_text(prop, "Factor", "");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_float_default(prop, 1.0f);
 }
 
 

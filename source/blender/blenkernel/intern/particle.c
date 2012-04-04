@@ -1616,13 +1616,13 @@ static void psys_origspace_to_w(OrigSpaceFace *osface, int quad, const float w[4
 int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const float fw[4], struct LinkNode *node)
 {
 	Mesh *me= (Mesh*)ob->data;
-	MPoly *mface;
+	MPoly *mpoly;
 	OrigSpaceFace *osface;
 	int *origindex;
 	int quad, findex, totface;
 	float uv[2], (*faceuv)[2];
 
-	mface = dm->getPolyArray(dm);
+	mpoly = dm->getPolyArray(dm);
 	origindex = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	osface = dm->getTessFaceDataArray(dm, CD_ORIGSPACE);
 
@@ -1648,7 +1648,7 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 		for (;node; node=node->next) {
 			findex= GET_INT_FROM_POINTER(node->link);
 			faceuv= osface[findex].uv;
-			quad = (mface[findex].totloop == 4);
+			quad = (mpoly[findex].totloop == 4);
 
 			/* check that this intersects - Its possible this misses :/ -
 			 * could also check its not between */
@@ -1664,7 +1664,7 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 		for (findex=0; findex<totface; findex++) {
 			if (origindex[findex] == index) {
 				faceuv= osface[findex].uv;
-				quad = (mface[findex].totloop == 4);
+				quad = (mpoly[findex].totloop == 4);
 
 				/* check that this intersects - Its possible this misses :/ -
 				 * could also check its not between */

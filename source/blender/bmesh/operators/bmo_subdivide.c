@@ -1023,9 +1023,9 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 
 /* editmesh-emulating function */
 void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth,
-                       float fractal, int beauty, int numcuts,
-                       int seltype, int cornertype, int singleedge,
-                       int gridfill, int seed)
+                            float fractal, int beauty, int numcuts,
+                            int seltype, int cornertype, int singleedge,
+                            int gridfill, int seed)
 {
 	BMOperator op;
 	
@@ -1053,7 +1053,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 		// int i;
 		
 		/* deselect input */
-		BM_mesh_elem_flag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT);
+		BM_mesh_elem_flag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
 
 		ele = BMO_iter_new(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
 		for ( ; ele; ele = BMO_iter_step(&iter)) {
@@ -1069,14 +1069,12 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 					     BM_elem_flag_test(e->v2, BM_ELEM_SELECT))
 					{
 						BM_elem_select_set(bm, e, TRUE);
-						bm->totedgesel += 1;
 					}
 					else if (BM_elem_flag_test(e, BM_ELEM_SELECT) &&
 					         (!BM_elem_flag_test(e->v1, BM_ELEM_SELECT) ||
 					          !BM_elem_flag_test(e->v2, BM_ELEM_SELECT)))
 					{
 						BM_elem_select_set(bm, e, FALSE);
-						bm->totedgesel -= 1;
 					}
 				}
 			}

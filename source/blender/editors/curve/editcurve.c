@@ -4378,6 +4378,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	BPoint *bp, *newbp = NULL;
 	float imat[4][4], temp[3];
 	int ok= 0;
+	BezTriple *bezt_recalc[3] = {NULL};
 
 	invert_m4_m4(imat, obedit->obmat);
 
@@ -4471,9 +4472,14 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			newbezt+= nu->pntsu;
 			BEZ_SEL(newbezt);
 			cu->lastsel= newbezt;
-			newbezt->h2= newbezt->h1;
+			newbezt->h1 = newbezt->h2;
 			bezt= nu->bezt+nu->pntsu-1;
 			ok= 1;
+
+			if (nu->pntsu > 1) {
+				bezt_recalc[1] = newbezt;
+				bezt_recalc[0] = newbezt - 1;
+			}
 		}
 		else if (bezt== nu->bezt) {   /* first */
 			BEZ_DESEL(bezt);
@@ -4489,6 +4495,11 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			nu->bezt= newbezt;
 			bezt= newbezt+1;
 			ok= 1;
+
+			if (nu->pntsu > 1) {
+				bezt_recalc[1] = newbezt;
+				bezt_recalc[2] = newbezt + 1;
+			}
 		}
 		else if (mode!='e') {
 			BEZ_DESEL(bezt);
@@ -4523,8 +4534,19 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			else {
 				mul_v3_m4v3(newbezt->vec[1], imat, location);
 				sub_v3_v3v3(temp, newbezt->vec[1],temp);
-				add_v3_v3v3(newbezt->vec[0], bezt->vec[0],temp);
-				add_v3_v3v3(newbezt->vec[2], bezt->vec[2],temp);
+
+				if (bezt_recalc[1]) {
+					const char h1 = bezt_recalc[1]->h1, h2 = bezt_recalc[1]->h2;
+					bezt_recalc[1]->h1 = bezt_recalc[1]->h2 = HD_AUTO;
+					calchandleNurb(bezt_recalc[1], bezt_recalc[0], bezt_recalc[2], 0);
+					bezt_recalc[1]->h1 = h1;
+					bezt_recalc[1]->h2 = h2;
+				}
+				else {
+					add_v3_v3v3(newbezt->vec[0], bezt->vec[0],temp);
+					add_v3_v3v3(newbezt->vec[2], bezt->vec[2],temp);
+				}
+				
 
 				if (newnu) calchandlesNurb(newnu);
 				else calchandlesNurb(nu);

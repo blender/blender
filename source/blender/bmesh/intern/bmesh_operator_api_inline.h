@@ -40,7 +40,12 @@
 /* flags 15 and 16 (1 << 14 and 1 << 15) are reserved for bmesh api use */
 BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-    return oflags[bm->stackdepth - 1].f & oflag;
+	return oflags[bm->stackdepth - 1].f & oflag;
+}
+
+BLI_INLINE short _bmo_elem_flag_test_bool(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+{
+	return (oflags[bm->stackdepth - 1].f & oflag) != 0;
 }
 
 BLI_INLINE void _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
@@ -65,13 +70,13 @@ BLI_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const shor
 }
 
 BLI_INLINE void BMO_slot_map_int_insert(BMesh *bm, BMOperator *op, const char *slotname,
-                                       void *element, int val)
+                                        void *element, int val)
 {
 	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(int));
 }
 
 BLI_INLINE void BMO_slot_map_float_insert(BMesh *bm, BMOperator *op, const char *slotname,
-                                         void *element, float val)
+                                          void *element, float val)
 {
 	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(float));
 }
@@ -83,7 +88,7 @@ BLI_INLINE void BMO_slot_map_float_insert(BMesh *bm, BMOperator *op, const char 
  * use BMO_slot_map_data_get and BMO_slot_map_insert, which copies the data. */
 
 BLI_INLINE void BMO_slot_map_ptr_insert(BMesh *bm, BMOperator *op, const char *slotname,
-                                       void *element, void *val)
+                                        void *element, void *val)
 {
 	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(void *));
 }
@@ -100,7 +105,7 @@ BLI_INLINE int BMO_slot_map_contains(BMesh *UNUSED(bm), BMOperator *op, const ch
 }
 
 BLI_INLINE void *BMO_slot_map_data_get(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
-                                      void *element)
+                                       void *element)
 {
 	BMOElemMapping *mapping;
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
@@ -117,7 +122,7 @@ BLI_INLINE void *BMO_slot_map_data_get(BMesh *UNUSED(bm), BMOperator *op, const 
 }
 
 BLI_INLINE float BMO_slot_map_float_get(BMesh *bm, BMOperator *op, const char *slotname,
-                                       void *element)
+                                        void *element)
 {
 	float *val = (float *) BMO_slot_map_data_get(bm, op, slotname, element);
 	if (val) return *val;
@@ -126,7 +131,7 @@ BLI_INLINE float BMO_slot_map_float_get(BMesh *bm, BMOperator *op, const char *s
 }
 
 BLI_INLINE int BMO_slot_map_int_get(BMesh *bm, BMOperator *op, const char *slotname,
-                                   void *element)
+                                    void *element)
 {
 	int *val = (int *) BMO_slot_map_data_get(bm, op, slotname, element);
 	if (val) return *val;
@@ -135,7 +140,7 @@ BLI_INLINE int BMO_slot_map_int_get(BMesh *bm, BMOperator *op, const char *slotn
 }
 
 BLI_INLINE void *BMO_slot_map_ptr_get(BMesh *bm, BMOperator *op, const char *slotname,
-                                     void *element)
+                                      void *element)
 {
 	void **val = (void **) BMO_slot_map_data_get(bm, op, slotname, element);
 	if (val) return *val;

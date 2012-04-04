@@ -37,6 +37,14 @@
 
 #ifdef RNA_RUNTIME
 
+#include "WM_api.h"
+
+static void rna_TimelineMarker_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	WM_main_add_notifier(NC_SCENE|ND_MARKERS, NULL);
+	WM_main_add_notifier(NC_ANIMATION|ND_MARKERS, NULL);
+}
+
 #else
 
 static void rna_def_timeline_marker(BlenderRNA *brna)
@@ -52,16 +60,16 @@ static void rna_def_timeline_marker(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_update(prop, NC_ANIMATION, NULL);
+	RNA_def_property_update(prop, 0, "rna_TimelineMarker_update");
 
 	prop = RNA_def_property(srna, "frame", PROP_INT, PROP_TIME);
 	RNA_def_property_ui_text(prop, "Frame", "The frame on which the timeline marker appears");
-	RNA_def_property_update(prop, NC_ANIMATION, NULL);
+	RNA_def_property_update(prop, 0, "rna_TimelineMarker_update");
 
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1 /*SELECT*/);
 	RNA_def_property_ui_text(prop, "Select", "Marker selection state");
-	RNA_def_property_update(prop, NC_ANIMATION, NULL);
+	RNA_def_property_update(prop, 0, "rna_TimelineMarker_update");
 
 #ifdef DURIAN_CAMERA_SWITCH
 	prop = RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);

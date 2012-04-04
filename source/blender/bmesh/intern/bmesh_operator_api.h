@@ -75,17 +75,19 @@ extern "C" {
 
 struct GHashIterator;
 
-#define BMO_elem_flag_test(   bm, ele, oflag)      _bmo_elem_flag_test    (bm, (ele)->oflags, oflag)
-#define BMO_elem_flag_enable( bm, ele, oflag)      _bmo_elem_flag_enable  (bm, (ele)->oflags, oflag)
-#define BMO_elem_flag_disable(bm, ele, oflag)      _bmo_elem_flag_disable (bm, (ele)->oflags, oflag)
-#define BMO_elem_flag_set(    bm, ele, oflag, val) _bmo_elem_flag_set     (bm, (ele)->oflags, oflag, val)
-#define BMO_elem_flag_toggle( bm, ele, oflag)      _bmo_elem_flag_toggle  (bm, (ele)->oflags, oflag)
+#define BMO_elem_flag_test(     bm, ele, oflag)      _bmo_elem_flag_test     (bm, (ele)->oflags, oflag)
+#define BMO_elem_flag_test_bool(bm, ele, oflag)      _bmo_elem_flag_test_bool(bm, (ele)->oflags, oflag)
+#define BMO_elem_flag_enable(   bm, ele, oflag)      _bmo_elem_flag_enable   (bm, (ele)->oflags, oflag)
+#define BMO_elem_flag_disable(  bm, ele, oflag)      _bmo_elem_flag_disable  (bm, (ele)->oflags, oflag)
+#define BMO_elem_flag_set(      bm, ele, oflag, val) _bmo_elem_flag_set      (bm, (ele)->oflags, oflag, val)
+#define BMO_elem_flag_toggle(   bm, ele, oflag)      _bmo_elem_flag_toggle   (bm, (ele)->oflags, oflag)
 
-BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BLI_INLINE void  _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BLI_INLINE void  _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BLI_INLINE void  _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val);
-BLI_INLINE void  _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE short _bmo_elem_flag_test(     BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE short _bmo_elem_flag_test_bool(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void  _bmo_elem_flag_enable(   BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void  _bmo_elem_flag_disable(  BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void  _bmo_elem_flag_set(      BMesh *bm, BMFlagLayer *oflags, const short oflag, int val);
+BLI_INLINE void  _bmo_elem_flag_toggle(   BMesh *bm, BMFlagLayer *oflags, const short oflag);
 
 /* slot type arrays are terminated by the last member
  * having a slot type of 0.*/
@@ -297,17 +299,17 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *op, const char htype, cons
 
 /* copies the values from another slot to the end of the output slot */
 void BMO_slot_buffer_append(BMOperator *output_op, const char *output_op_slot,
-							BMOperator *other_op, const char *other_op_slot);
+                            BMOperator *other_op, const char *other_op_slot);
 
 /* puts every element of type 'type' (which is a bitmask) with tool
  * flag 'flag', into a slot. */
 void BMO_slot_buffer_from_enabled_flag(BMesh *bm, BMOperator *op, const char *slotname,
-									   const char htype, const short oflag);
+                                       const char htype, const short oflag);
 
 /* puts every element of type 'type' (which is a bitmask) without tool
  * flag 'flag', into a slot. */
 void BMO_slot_buffer_from_disabled_flag(BMesh *bm, BMOperator *op, const char *slotname,
-										const char htype, const short oflag);
+                                        const char htype, const short oflag);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
 void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname,
@@ -327,15 +329,15 @@ void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotna
  * flag 'flag', into a slot.  note: ignores hidden elements
  * (e.g. elements with header flag BM_ELEM_HIDDEN set).*/
 void BMO_slot_buffer_from_enabled_hflag(BMesh *bm, BMOperator *op,
-										const char *slotname,
-										const char htype, const char hflag);
+                                        const char *slotname,
+                                        const char htype, const char hflag);
 
 /* puts every element of type 'type' (which is a bitmask) without
  * header flag 'flag', into a slot.  note: ignores hidden elements
  * (e.g. elements with header flag BM_ELEM_HIDDEN set).*/
 void BMO_slot_buffer_from_disabled_hflag(BMesh *bm, BMOperator *op,
-										 const char *slotname,
-										 const char htype, const char hflag);
+                                         const char *slotname,
+                                         const char htype, const char hflag);
 
 /* counts number of elements inside a slot array. */
 int BMO_slot_buffer_count(BMesh *bm, BMOperator *op, const char *slotname);

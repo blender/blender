@@ -225,7 +225,7 @@ int EDBM_op_call_and_selectf(BMEditMesh *em, wmOperator *op, const char *selects
 
 	BMO_op_exec(bm, &bmop);
 
-	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT);
+	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
 
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, selectslot, BM_ALL, BM_ELEM_SELECT, TRUE);
 
@@ -426,7 +426,7 @@ void EDBM_select_flush(BMEditMesh *em)
 void EDBM_select_more(BMEditMesh *em)
 {
 	BMOperator bmop;
-	int use_faces = em->selectmode > SCE_SELECT_EDGE;
+	int use_faces = em->selectmode == SCE_SELECT_FACE;
 
 	BMO_op_initf(em->bm, &bmop,
 	             "regionextend geom=%hvef constrict=%b use_faces=%b",
@@ -442,7 +442,7 @@ void EDBM_select_more(BMEditMesh *em)
 void EDBM_select_less(BMEditMesh *em)
 {
 	BMOperator bmop;
-	int use_faces = em->selectmode > SCE_SELECT_EDGE;
+	int use_faces = em->selectmode == SCE_SELECT_FACE;
 
 	BMO_op_initf(em->bm, &bmop,
 	             "regionextend geom=%hvef constrict=%b use_faces=%b",
@@ -490,12 +490,12 @@ int EDBM_editselection_active_get(BMEditMesh *em, BMEditSelection *ese)
 
 void EDBM_flag_disable_all(BMEditMesh *em, const char hflag)
 {
-	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag);
+	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag, FALSE);
 }
 
 void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
 {
-	BM_mesh_elem_flag_enable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag);
+	BM_mesh_elem_flag_enable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag, TRUE);
 }
 
 /**************-------------- Undo ------------*****************/

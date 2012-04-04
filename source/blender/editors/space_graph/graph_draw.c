@@ -118,7 +118,7 @@ static void draw_fcurve_modifier_controls_envelope (FModifier *fcm, View2D *v2d)
 		/* only draw if visible
 		 *	- min/max here are fixed, not relative
 		 */
-		if IN_RANGE(fed->time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac)) {
+		if (IN_RANGE(fed->time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
 			glVertex2f(fed->time, fed->min);
 			glVertex2f(fed->time, fed->max);
 		}
@@ -149,7 +149,7 @@ static void draw_fcurve_vertices_keyframes (FCurve *fcu, SpaceIpo *UNUSED(sipo),
 		/* as an optimization step, only draw those in view 
 		 *	- we apply a correction factor to ensure that points don't pop in/out due to slight twitches of view size
 		 */
-		if IN_RANGE(bezt->vec[1][0], (v2d->cur.xmin - fac), (v2d->cur.xmax + fac)) {
+		if (IN_RANGE(bezt->vec[1][0], (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
 			if (edit) {
 				/* 'Keyframe' vertex only, as handle lines and handles have already been drawn
 				 *	- only draw those with correct selection state for the current drawing color

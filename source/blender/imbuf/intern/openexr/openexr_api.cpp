@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <string>
+#include <set>
 
 
 #include <openexr_api.h>
@@ -51,6 +52,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
+#include "BLI_threads.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -93,7 +95,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 using namespace Imf;
 using namespace Imath;
 
-class Mem_IStream: public IStream
+class Mem_IStream: public Imf::IStream
 {
 public:
 	
@@ -211,7 +213,7 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		if (ibuf->planes==32 && channels >= 4)
 			header.channels().insert ("A", Channel (HALF));
 		if (write_zbuf)		// z we do as float always
-			header.channels().insert ("Z", Channel (FLOAT));
+			header.channels().insert ("Z", Channel (Imf::FLOAT));
 		
 		FrameBuffer frameBuffer;			
 		OutputFile *file = new OutputFile(name, header);			
@@ -229,7 +231,7 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		if (ibuf->planes==32 && channels >= 4)
 			frameBuffer.insert ("A", Slice (HALF, (char *) &pixels[0].a, xstride, ystride));
 		if (write_zbuf)
-			frameBuffer.insert ("Z", Slice (FLOAT, (char *)(ibuf->zbuf_float + (height-1)*width),
+			frameBuffer.insert ("Z", Slice (Imf::FLOAT, (char *)(ibuf->zbuf_float + (height-1)*width),
 											sizeof(float), sizeof(float) * -width));
 		if (ibuf->rect_float) {
 			float *from;
@@ -315,13 +317,13 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		openexr_header_compression(&header, ibuf->ftype & OPENEXR_COMPRESS);
 		openexr_header_metadata(&header, ibuf);
 		
-		header.channels().insert ("R", Channel (FLOAT));
-		header.channels().insert ("G", Channel (FLOAT));
-		header.channels().insert ("B", Channel (FLOAT));
+		header.channels().insert ("R", Channel (Imf::FLOAT));
+		header.channels().insert ("G", Channel (Imf::FLOAT));
+		header.channels().insert ("B", Channel (Imf::FLOAT));
 		if (ibuf->planes==32 && channels >= 4)
-			header.channels().insert ("A", Channel (FLOAT));
+			header.channels().insert ("A", Channel (Imf::FLOAT));
 		if (write_zbuf)
-			header.channels().insert ("Z", Channel (FLOAT));
+			header.channels().insert ("Z", Channel (Imf::FLOAT));
 		
 		FrameBuffer frameBuffer;			
 		OutputFile *file = new OutputFile(name, header);			
@@ -335,13 +337,13 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		rect[2]= rect[0]+2;
 		rect[3]= (channels >= 4)? rect[0]+3:rect[0]; /* red as alpha, is this needed since alpha isn't written? */
 
-		frameBuffer.insert ("R", Slice (FLOAT,  (char *)rect[0], xstride, ystride));
-		frameBuffer.insert ("G", Slice (FLOAT,  (char *)rect[1], xstride, ystride));
-		frameBuffer.insert ("B", Slice (FLOAT,  (char *)rect[2], xstride, ystride));
+		frameBuffer.insert ("R", Slice (Imf::FLOAT,  (char *)rect[0], xstride, ystride));
+		frameBuffer.insert ("G", Slice (Imf::FLOAT,  (char *)rect[1], xstride, ystride));
+		frameBuffer.insert ("B", Slice (Imf::FLOAT,  (char *)rect[2], xstride, ystride));
 		if (ibuf->planes==32 && channels >= 4)
-			frameBuffer.insert ("A", Slice (FLOAT,  (char *)rect[3], xstride, ystride));
+			frameBuffer.insert ("A", Slice (Imf::FLOAT,  (char *)rect[3], xstride, ystride));
 		if (write_zbuf)
-			frameBuffer.insert ("Z", Slice (FLOAT, (char *) (ibuf->zbuf_float + (height-1)*width),
+			frameBuffer.insert ("Z", Slice (Imf::FLOAT, (char *) (ibuf->zbuf_float + (height-1)*width),
 											sizeof(float), sizeof(float) * -width));
 		file->setFrameBuffer (frameBuffer);				  
 		file->writePixels (height);					  
@@ -480,7 +482,7 @@ int IMB_exr_begin_write(void *handle, const char *filename, int width, int heigh
 	data->height= height;
 	
 	for (echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
-		header.channels().insert (echan->name, Channel (FLOAT));
+		header.channels().insert (echan->name, Channel (Imf::FLOAT));
 	
 	openexr_header_compression(&header, compress);
 	// openexr_header_metadata(&header, ibuf); // no imbuf. cant write
@@ -513,7 +515,7 @@ void IMB_exrtile_begin_write(void *handle, const char *filename, int mipmap, int
 	data->mipmap= mipmap;
 	
 	for (echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
-		header.channels().insert (echan->name, Channel (FLOAT));
+		header.channels().insert (echan->name, Channel (Imf::FLOAT));
 	
 	header.setTileDescription (TileDescription (tilex, tiley, (mipmap)? MIPMAP_LEVELS: ONE_LEVEL));
 	header.lineOrder() = RANDOM_Y;
@@ -590,7 +592,7 @@ void IMB_exrtile_write_channels(void *handle, int partx, int party, int level)
 	for (echan= (ExrChannel *)data->channels.first; echan; echan= echan->next) {
 		float *rect= echan->rect - echan->xstride*partx - echan->ystride*party;
 
-		frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)rect, 
+		frameBuffer.insert (echan->name, Slice (Imf::FLOAT,  (char *)rect,
 							echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
 	}
 	
@@ -616,7 +618,7 @@ void IMB_exr_write_channels(void *handle)
 			/* last scanline, stride negative */
 			float *rect = echan->rect + echan->xstride*(data->height-1)*data->width;
 			
-			frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)rect, 
+			frameBuffer.insert (echan->name, Slice (Imf::FLOAT,  (char *)rect,
 													echan->xstride*sizeof(float), -echan->ystride*sizeof(float)));
 		}
 		
@@ -647,10 +649,10 @@ void IMB_exr_read_channels(void *handle)
 		
 		if (echan->rect) {
 			if (flip)
-				frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
+				frameBuffer.insert (echan->name, Slice (Imf::FLOAT,  (char *)echan->rect,
 											echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
 			else
-				frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)(echan->rect + echan->xstride*(data->height-1)*data->width), 
+				frameBuffer.insert (echan->name, Slice (Imf::FLOAT,  (char *)(echan->rect + echan->xstride*(data->height-1)*data->width),
 											echan->xstride*sizeof(float), -echan->ystride*sizeof(float)));
 		}
 		else 
@@ -944,12 +946,17 @@ static int exr_has_zbuffer(InputFile *file)
 	return !(file->header().channels().findChannel("Z") == NULL);
 }
 
-static int exr_is_renderresult(InputFile *file)
+static int exr_is_multilayer(InputFile *file)
 {
 	const StringAttribute *comments= file->header().findTypedAttribute<StringAttribute>("BlenderMultiChannel");
-	if (comments)
-//		if (comments->value() == "Blender MultiChannel")
+	const ChannelList &channels = file->header().channels();
+	std::set <std::string> layerNames;
+
+	channels.layers(layerNames);
+
+	if (comments || layerNames.size()>1)
 			return 1;
+
 	return 0;
 }
 
@@ -976,7 +983,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 		if (0) // debug
 			exr_print_filecontents(file);
 		
-		is_multi= exr_is_renderresult(file);
+		is_multi= exr_is_multilayer(file);
 		
 		/* do not make an ibuf when */
 		if (is_multi && !(flags & IB_test) && !(flags & IB_multilayer)) 
@@ -1017,14 +1024,14 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 					first+= 4*(height-1)*width;
 					
 					frameBuffer.insert ( exr_rgba_channelname(file, "R"), 
-										Slice (FLOAT,  (char *) first, xstride, ystride));
+										Slice (Imf::FLOAT,  (char *) first, xstride, ystride));
 					frameBuffer.insert ( exr_rgba_channelname(file, "G"), 
-										Slice (FLOAT,  (char *) (first+1), xstride, ystride));
+										Slice (Imf::FLOAT,  (char *) (first+1), xstride, ystride));
 					frameBuffer.insert ( exr_rgba_channelname(file, "B"), 
-										Slice (FLOAT,  (char *) (first+2), xstride, ystride));
+										Slice (Imf::FLOAT,  (char *) (first+2), xstride, ystride));
 																			
 					frameBuffer.insert ( exr_rgba_channelname(file, "A"), 
-										Slice (FLOAT,  (char *) (first+3), xstride, ystride, 1, 1, 1.0f)); /* 1.0 is fill value */
+										Slice (Imf::FLOAT,  (char *) (first+3), xstride, ystride, 1, 1, 1.0f)); /* 1.0 is fill value */
 
 					if (exr_has_zbuffer(file)) 
 					{
@@ -1033,7 +1040,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 						addzbuffloatImBuf(ibuf);
 						firstz= ibuf->zbuf_float - (dw.min.x - dw.min.y*width);
 						firstz+= (height-1)*width;
-						frameBuffer.insert ("Z", Slice (FLOAT,  (char *)firstz , sizeof(float), -width*sizeof(float)));
+						frameBuffer.insert ("Z", Slice (Imf::FLOAT,  (char *)firstz , sizeof(float), -width*sizeof(float)));
 					}
 					
 					file->setFrameBuffer (frameBuffer);
@@ -1066,5 +1073,11 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 	
 }
 
+void imb_initopenexr(void)
+{
+	int num_threads = BLI_system_thread_count();
+
+	setGlobalThreadCount(num_threads);
+}
 
 } // export "C"

@@ -2219,12 +2219,33 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closu
 
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if (self->num_row == 4 && self->num_col == 4)
+		return PyBool_FromLong(is_orthonormal_m4((float (*)[4])self->matrix));
+	else if (self->num_row == 3 && self->num_col == 3)
+		return PyBool_FromLong(is_orthonormal_m3((float (*)[3])self->matrix));
+	else {
+		PyErr_SetString(PyExc_AttributeError,
+		                "Matrix.is_orthogonal: "
+		                "inappropriate matrix size - expects 3x3 or 4x4 matrix");
+		return NULL;
+	}
+}
+
+PyDoc_STRVAR(Matrix_is_orthogonal_axis_vectors_doc,
+"True if this matrix has got orthogonal axis vectors, 3x3 and 4x4 only, (read-only).\n\n:type: bool"
+);
+static PyObject *Matrix_is_orthogonal_axis_vectors_get(MatrixObject *self, void *UNUSED(closure))
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	/*must be 3-4 cols, 3-4 rows, square matrix*/
+	if (self->num_row == 4 && self->num_col == 4)
 		return PyBool_FromLong(is_orthogonal_m4((float (*)[4])self->matrix));
 	else if (self->num_row == 3 && self->num_col == 3)
 		return PyBool_FromLong(is_orthogonal_m3((float (*)[3])self->matrix));
 	else {
 		PyErr_SetString(PyExc_AttributeError,
-		                "Matrix.is_orthogonal: "
+		                "Matrix.is_orthogonal_axis_vectors: "
 		                "inappropriate matrix size - expects 3x3 or 4x4 matrix");
 		return NULL;
 	}
@@ -2240,6 +2261,7 @@ static PyGetSetDef Matrix_getseters[] = {
 	{(char *)"col", (getter)Matrix_col_get, (setter)NULL, Matrix_col_doc, NULL},
 	{(char *)"is_negative", (getter)Matrix_is_negative_get, (setter)NULL, Matrix_is_negative_doc, NULL},
 	{(char *)"is_orthogonal", (getter)Matrix_is_orthogonal_get, (setter)NULL, Matrix_is_orthogonal_doc, NULL},
+	{(char *)"is_orthogonal_axis_vectors", (getter)Matrix_is_orthogonal_axis_vectors_get, (setter)NULL, Matrix_is_orthogonal_axis_vectors_doc, NULL},
 	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, BaseMathObject_is_wrapped_doc, NULL},
 	{(char *)"owner", (getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */

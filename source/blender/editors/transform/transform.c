@@ -4402,7 +4402,7 @@ static int createSlideVerts(TransInfo *t)
 	int numsel, i, j;
 
 	if (!v3d) {
-		/*ok, let's try to survive this*/
+		/* ok, let's try to survive this */
 		unit_m4(projectMat);
 	}
 	else {
@@ -4428,15 +4428,20 @@ static int createSlideVerts(TransInfo *t)
 			}
 
 			if (numsel == 0 || numsel > 2) {
-				return 0; //invalid edge selection
+				MEM_freeN(sld);
+				BMBVH_FreeBVH(btree);
+				return 0; /* invalid edge selection */
 			}
 		}
 	}
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			if (BM_edge_face_count(e) != 2)
-				return 0; //can only handle exactly 2 faces around each edge
+			if (BM_edge_face_count(e) != 2) {
+				MEM_freeN(sld);
+				BMBVH_FreeBVH(btree);
+				return 0; /* can only handle exactly 2 faces around each edge */
+			}
 		}
 	}
 
@@ -4452,8 +4457,11 @@ static int createSlideVerts(TransInfo *t)
 		}
 	}
 
-	if (!j)
+	if (!j) {
+		MEM_freeN(sld);
+		BMBVH_FreeBVH(btree);
 		return 0;
+	}
 
 	tempsv = MEM_callocN(sizeof(TransDataSlideVert)*j, "tempsv");
 
@@ -4760,12 +4768,14 @@ void projectSVData(TransInfo *t, int final)
 				}
 			}
 			
-			/*make sure face-attributes are correct (e.g. MTexPoly)*/
+			/* make sure face-attributes are correct (e.g. MTexPoly) */
 			BM_elem_attrs_copy(em->bm, em->bm, copyf2, f);
 			
-			/*restore selection and hidden flags*/
+			/* restore selection and hidden flags */
 			BM_elem_select_set(em->bm, f, sel);
-			BM_elem_hide_set(em->bm, f, hide);
+			if (!hide) { /* this check is a workaround for bug, see note - [#30735], without this edge can be hidden and selected */
+				BM_elem_hide_set(em->bm, f, hide);
+			}
 		}
 	}
 	

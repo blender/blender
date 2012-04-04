@@ -708,7 +708,10 @@ void eulO_to_axis_angle(float axis[3], float *angle, const float eul[3], const s
 	quat_to_axis_angle(axis, angle, q);
 }
 
-/* axis angle to 3x3 matrix - safer version (normalization of axis performed) */
+/* axis angle to 3x3 matrix - safer version (normalization of axis performed)
+ *
+ * note: we may want a normalized and non normalized version of this function.
+ */
 void axis_angle_to_mat3(float mat[3][3], const float axis[3], const float angle)
 {
 	float nor[3], nsi[3], co, si, ico;
@@ -818,7 +821,7 @@ void single_axis_angle_to_mat3(float mat[3][3], const char axis, const float ang
 /****************************** Vector/Rotation ******************************/
 /* TODO: the following calls should probably be depreceated sometime         */
 
-/* axis angle to 3x3 matrix */
+/* ODO, replace use of this function with axis_angle_to_mat3() */
 void vec_rot_to_mat3(float mat[][3], const float vec[3], const float phi)
 {
 	/* rotation of phi radials around vec */

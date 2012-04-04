@@ -397,7 +397,7 @@ static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3
 		case MA_VOL_PH_RAYLEIGH:
 			return normalize * 3.f/4.f * (1 + costheta * costheta);
 		case MA_VOL_PH_HG:
-			return normalize * (1.f - g*g) / powf(1.f + g*g - 2.f * g * costheta, 1.5f));
+			return normalize * (1.f - g * g) / powf(1.f + g * g - 2.f * g * costheta, 1.5f);
 		case MA_VOL_PH_SCHLICK:
 		{
 			const float k = 1.55f * g - .55f * g * g * g;

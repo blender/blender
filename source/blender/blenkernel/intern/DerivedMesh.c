@@ -382,6 +382,13 @@ void DM_ensure_tessface(DerivedMesh *dm)
 			       __func__, numPolys, dm->type);
 		}
 	}
+
+	else if (dm->dirty && DM_DIRTY_TESS_CDLAYERS) {
+		BLI_assert(CustomData_has_layer(&dm->faceData, CD_POLYINDEX));
+		DM_update_tessface_data(dm);
+	}
+
+	dm->dirty &= ~DM_DIRTY_TESS_CDLAYERS;
 }
 
 /* Update tessface CD data from loop/poly ones. Needed when not retessellating after modstack evaluation. */
@@ -1629,7 +1636,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 					deformedVerts = NULL;
 				}
-			} 
+			}
 
 			/* create an orco derivedmesh in parallel */
 			if (nextmask & CD_MASK_ORCO) {
@@ -3061,6 +3068,8 @@ void DM_init_origspace(DerivedMesh *dm)
 			}
 		}
 	}
+
+	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
 }
 
 
