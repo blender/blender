@@ -259,8 +259,9 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
                     col.prop_search(kb, "relative_key", key, "key_blocks", text="")
 
             else:
-                row = layout.row()
+                row = layout.column()
                 row.active = enable_edit_value
+                row.prop(key, "eval_time")
                 row.prop(key, "slurph")
 
 

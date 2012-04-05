@@ -1106,36 +1106,28 @@ static float *get_weights_array(Object *ob, char *vgroup)
 static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
 {
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
-	float cfra, ctime, t[4], delta;
-	int a, flag = 0, step;
-	
-	if (key->slurph && key->type!=KEY_RELATIVE ) {
-		delta= key->slurph;
-		delta/= tot;
-		
-		step= 1;
-		if (tot>100 && slurph_opt) {
-			step= tot/50;
-			delta*= step;
+	float cfra, t[4], delta;
+	int a, flag = 0;
+
+	if (key->slurph && key->type != KEY_RELATIVE) {
+		const float ctime_scaled = key->ctime / 100.0f;
+		int step;
+
+		delta = (float)key->slurph / tot;
+
+		if (tot > 100 && slurph_opt) {
+			step = tot / 50;
+			delta *= step;
 			/* in do_key and cp_key the case a>tot is handled */
 		}
-		
+		else {
+			step = 1;
+		}
+
 		cfra= (float)scene->r.cfra;
 		
 		for (a=0; a<tot; a+=step, cfra+= delta) {
-			
-			ctime= BKE_curframe(scene);
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
-				ctime /= 100.0;
-				CLAMP(ctime, 0.0, 1.0);
-			}
-#endif // XXX old animation system
-			// XXX for now... since speed curve cannot be directly ported yet
-			ctime /= 100.0f;
-			CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
-		
-			flag= setkeys(ctime, &key->block, k, t, 0);
+			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 			if (flag==0)
 				do_key(a, a+step, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
@@ -1158,19 +1150,9 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 			}
 		}
 		else {
-			ctime= BKE_curframe(scene);
-			
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
-				ctime /= 100.0;
-				CLAMP(ctime, 0.0, 1.0);
-			}
-#endif // XXX old animation system
-			// XXX for now... since speed curve cannot be directly ported yet
-			ctime /= 100.0f;
-			CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
-			
-			flag= setkeys(ctime, &key->block, k, t, 0);
+			const float ctime_scaled = key->ctime / 100.0f;
+
+			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 			if (flag==0)
 				do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
@@ -1199,7 +1181,7 @@ static void do_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock **k, float 
 	}
 }
 
-static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, float UNUSED(ctime), char *out, const int tot)
+static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, char *out, const int tot)
 {
 	Nurb *nu;
 	int a, step;
@@ -1222,20 +1204,23 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 {
 	Curve *cu= ob->data;
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
-	float cfra, ctime, t[4], delta;
-	int a, flag = 0, step = 0;
+	float cfra, t[4], delta;
+	int a, flag = 0;
 
-	if (key->slurph  && key->type!=KEY_RELATIVE) {
+	if (key->slurph && key->type != KEY_RELATIVE) {
+		const float ctime_scaled = key->ctime / 100.0f;
 		Nurb *nu;
-		int mode=0, i= 0, remain= 0, estep=0, count=0;
+		int mode = 0, i = 0, remain = 0, step, estep = 0, count = 0;
 
-		delta= (float)key->slurph / tot;
+		delta = (float)key->slurph / tot;
 
-		step= 1;
-		if (tot>100 && slurph_opt) {
-			step= tot/50;
-			delta*= step;
+		if (tot > 100 && slurph_opt) {
+			step = tot / 50;
+			delta *= step;
 			/* in do_key and cp_key the case a>tot has been handled */
+		}
+		else {
+			step = 1;
 		}
 
 		cfra= (float)scene->r.cfra;
@@ -1250,17 +1235,13 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 				estep= 3*nu->pntsu;
 			}
 			else
-				step= 0;
+				step= 0; /* XXX - is this some mistake??? - the estep from last iter could be used - campbell */
 
 			a= 0;
 			while (a < estep) {
 				if (remain <= 0) {
 					cfra+= delta;
-					ctime= BKE_curframe(scene);
-
-					ctime /= 100.0f;
-					CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
-					flag= setkeys(ctime, &key->block, k, t, 0);
+					flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 					remain= step;
 				}
@@ -1282,22 +1263,14 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 		}
 	}
 	else {
-		
-		ctime= BKE_curframe(scene);
-		
 		if (key->type==KEY_RELATIVE) {
-			do_rel_cu_key(cu, cu->key, actkb, ctime, out, tot);
+			do_rel_cu_key(cu, cu->key, actkb, out, tot);
 		}
 		else {
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
-				ctime /= 100.0;
-				CLAMP(ctime, 0.0, 1.0);
-			}
-#endif // XXX old animation system
-			
-			flag= setkeys(ctime, &key->block, k, t, 0);
-			
+			const float ctime_scaled = key->ctime / 100.0f;
+
+			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
+
 			if (flag==0) do_cu_key(cu, key, actkb, k, t, out, tot);
 			else cp_cu_key(cu, key, actkb, k[2], 0, tot, out, tot);
 		}
@@ -1308,26 +1281,18 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 {
 	Lattice *lt= ob->data;
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
-	float delta, cfra, ctime, t[4];
+	float delta, cfra, t[4];
 	int a, flag;
 	
-	if (key->slurph) {
-		delta= key->slurph;
-		delta/= (float)tot;
+	if (key->slurph  && key->type != KEY_RELATIVE) {
+		const float ctime_scaled = key->ctime / 100.0f;
+
+		delta = (float)key->slurph / tot;
 		
-		cfra= (float)scene->r.cfra;
+		cfra = (float)scene->r.cfra;
 		
 		for (a=0; a<tot; a++, cfra+= delta) {
-			
-			ctime= BKE_curframe(scene);
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
-				ctime /= 100.0;
-				CLAMP(ctime, 0.0, 1.0);
-			}
-#endif // XXX old animation system
-		
-			flag= setkeys(ctime, &key->block, k, t, 0);
+			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 			if (flag==0)
 				do_key(a, a+1, tot, out, key, actkb, k, t, KEY_MODE_DUMMY);
@@ -1350,16 +1315,9 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 			}
 		}
 		else {
-			ctime= BKE_curframe(scene);
-
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
-				ctime /= 100.0;
-				CLAMP(ctime, 0.0, 1.0);
-			}
-#endif // XXX old animation system
+			const float ctime_scaled = key->ctime / 100.0f;
 			
-			flag= setkeys(ctime, &key->block, k, t, 0);
+			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 			if (flag==0)
 				do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
@@ -1446,7 +1404,7 @@ float *do_ob_key(Scene *scene, Object *ob)
 	else {
 		/* do shapekey local drivers */
 		float ctime= (float)scene->r.cfra; // XXX this needs to be checked
-		
+
 		BKE_animsys_evaluate_animdata(scene, &key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
 		
 		if (ob->type==OB_MESH) do_mesh_key(scene, ob, key, out, tot);

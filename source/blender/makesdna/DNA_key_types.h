@@ -74,9 +74,10 @@ typedef struct Key {
 
 	short type, totkey;
 	short slurph, flag;
+	float ctime;
 
 	/*can never be 0, this is used for detecting old data*/
-	int uidgen, pad; /*current free uid for keyblocks*/
+	int uidgen; /*current free uid for keyblocks*/
 } Key;
 
 /* **************** KEY ********************* */
