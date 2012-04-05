@@ -2572,6 +2572,9 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 	if (!psmd->dm)
 		return;
 
+	/* NOTE: this is not nice to use tessfaces but hard to avoid since pa->num uses tessfaces */
+	BKE_mesh_tessface_ensure(me);
+
 	mirrorfaces= mesh_get_x_mirror_faces(ob, NULL);
 
 	if (!edit->mirror_cache)
