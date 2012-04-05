@@ -1106,14 +1106,14 @@ static float *get_weights_array(Object *ob, char *vgroup)
 static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
 {
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
-	float cfra, t[4], delta;
-	int a, flag = 0;
+	float t[4];
+	int flag = 0;
 
 	if (key->slurph && key->type != KEY_RELATIVE) {
 		const float ctime_scaled = key->ctime / 100.0f;
-		int step;
-
-		delta = (float)key->slurph / tot;
+		float delta = (float)key->slurph / tot;
+		float cfra = (float)scene->r.cfra;
+		int step, a;
 
 		if (tot > 100 && slurph_opt) {
 			step = tot / 50;
@@ -1124,8 +1124,6 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 			step = 1;
 		}
 
-		cfra= (float)scene->r.cfra;
-		
 		for (a=0; a<tot; a+=step, cfra+= delta) {
 			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
@@ -1204,15 +1202,16 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 {
 	Curve *cu= ob->data;
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
-	float cfra, t[4], delta;
-	int a, flag = 0;
+	float t[4];
+	int flag = 0;
 
 	if (key->slurph && key->type != KEY_RELATIVE) {
 		const float ctime_scaled = key->ctime / 100.0f;
+		float delta = (float)key->slurph / tot;
+		float cfra = (float)scene->r.cfra;
 		Nurb *nu;
-		int mode = 0, i = 0, remain = 0, step, estep = 0, count = 0;
-
-		delta = (float)key->slurph / tot;
+		int i = 0, remain = 0;
+		int step, a;
 
 		if (tot > 100 && slurph_opt) {
 			step = tot / 50;
@@ -1223,22 +1222,26 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 			step = 1;
 		}
 
-		cfra= (float)scene->r.cfra;
-
 		for (nu=cu->nurb.first; nu; nu=nu->next) {
+			int estep, mode;
+
 			if (nu->bp) {
-				mode= KEY_MODE_BPOINT;
-				estep= nu->pntsu*nu->pntsv;
+				mode = KEY_MODE_BPOINT;
+				estep = nu->pntsu * nu->pntsv;
 			}
 			else if (nu->bezt) {
-				mode= KEY_MODE_BEZTRIPLE;
-				estep= 3*nu->pntsu;
+				mode = KEY_MODE_BEZTRIPLE;
+				estep = 3 * nu->pntsu;
 			}
-			else
-				step= 0; /* XXX - is this some mistake??? - the estep from last iter could be used - campbell */
+			else {
+				mode = 0;
+				estep = 0;
+			}
 
-			a= 0;
+			a = 0;
 			while (a < estep) {
+				int count;
+
 				if (remain <= 0) {
 					cfra+= delta;
 					flag = setkeys(ctime_scaled, &key->block, k, t, 0);
@@ -1246,7 +1249,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 					remain= step;
 				}
 
-				count= MIN2(remain, estep);
+				count = MIN2(remain, estep);
 				if (mode == KEY_MODE_BEZTRIPLE) {
 					count += 3 - count % 3;
 				}
@@ -1281,16 +1284,15 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 {
 	Lattice *lt= ob->data;
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
-	float delta, cfra, t[4];
-	int a, flag;
+	float t[4];
+	int flag;
 	
 	if (key->slurph  && key->type != KEY_RELATIVE) {
 		const float ctime_scaled = key->ctime / 100.0f;
+		float delta = (float)key->slurph / tot;
+		float cfra = (float)scene->r.cfra;
+		int a;
 
-		delta = (float)key->slurph / tot;
-		
-		cfra = (float)scene->r.cfra;
-		
 		for (a=0; a<tot; a++, cfra+= delta) {
 			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
