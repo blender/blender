@@ -2869,29 +2869,29 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{ 0, "", 0, "In progress", ""},
 		/* using the utf8 flipped form of Arabic (العربية) */
 		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
-		{12, "BRAZILIAN_PORTUGUESE", 0, "Portuguese (Português)", "pt"},
 		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
 		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
 		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
 		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
-		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},
+/*		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},*/ /* XXX No po's yet. */
 		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
 		{ 5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{ 2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
 		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ki_KG"},
-		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},
+/*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},*/ /* XXX No po's yet. */
 		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
 		/* using the utf8 flipped form of Persian (فارسی) */
 		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"},
 		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
-		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},
+		{12, "BRAZILIAN_PORTUGUESE", 0, "Portuguese (Português)", "pt"},
+/*		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},*/ /* XXX No po's yet. */
 		{17, "SERBIAN", 0, "Serbian (Српски)", "sr_RS"},
 		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr_RS@latin"},
 		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
 		{30, "TURKISH", 0, "Turkish (Türkçe)", "tr_TR"},
-		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
+/*		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},*/ /* XXX No po's yet. */
 		{ 0, NULL, 0, NULL, NULL}};
 
 #ifdef WITH_CYCLES
