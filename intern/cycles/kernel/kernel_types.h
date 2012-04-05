@@ -60,6 +60,7 @@ CCL_NAMESPACE_BEGIN
 #define __RAY_DIFFERENTIALS__
 #define __CAMERA_CLIPPING__
 #define __INTERSECTION_REFINE__
+#define __CLAMP_SAMPLE__
 
 #ifdef __KERNEL_SHADING__
 #define __SVM__
@@ -521,7 +522,12 @@ typedef struct KernelIntegrator {
 
 	/* render layer */
 	int layer_flag;
-	int pad1, pad2;
+
+	/* clamp */
+	float sample_clamp;
+
+	/* padding */
+	int pad;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

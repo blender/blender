@@ -67,6 +67,7 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "samples", text="Render")
         sub.prop(cscene, "preview_samples", text="Preview")
         sub.prop(cscene, "seed")
+        sub.prop(cscene, "sample_clamp")
 
         sub = col.column(align=True)
         sub.label("Transparency:")

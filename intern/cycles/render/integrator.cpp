@@ -43,6 +43,7 @@ Integrator::Integrator()
 	no_caustics = false;
 	seed = 0;
 	layer_flag = ~0;
+	sample_clamp = 0.0f;
 
 	need_update = true;
 }
@@ -85,6 +86,8 @@ void Integrator::device_update(Device *device, DeviceScene *dscene)
 
 	kintegrator->use_ambient_occlusion =
 		((dscene->data.film.pass_flag & PASS_AO) || dscene->data.background.ao_factor != 0.0f);
+	
+	kintegrator->sample_clamp = (sample_clamp == 0.0f)? FLT_MAX: sample_clamp*3.0f;
 
 	/* sobol directions table */
 	int dimensions = PRNG_BASE_NUM + (max_bounce + transparent_max_bounce + 2)*PRNG_BOUNCE_NUM;
@@ -117,7 +120,8 @@ bool Integrator::modified(const Integrator& integrator)
 		transparent_shadows == integrator.transparent_shadows &&
 		no_caustics == integrator.no_caustics &&
 		layer_flag == integrator.layer_flag &&
-		seed == integrator.seed);
+		seed == integrator.seed &&
+		sample_clamp == integrator.sample_clamp);
 }
 
 void Integrator::tag_update(Scene *scene)

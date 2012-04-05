@@ -157,6 +157,8 @@ void BlenderSync::sync_integrator()
 
 	integrator->layer_flag = render_layer.layer;
 
+	integrator->sample_clamp = get_float(cscene, "sample_clamp");
+
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
 }

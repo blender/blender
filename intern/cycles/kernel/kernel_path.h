@@ -396,6 +396,10 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 	float3 L_sum = path_radiance_sum(&L);
 
+#ifdef __CLAMP_SAMPLE__
+	path_radiance_clamp(&L, &L_sum, kernel_data.integrator.sample_clamp);
+#endif
+
 	kernel_write_light_passes(kg, buffer, &L, sample);
 
 	return make_float4(L_sum.x, L_sum.y, L_sum.z, 1.0f - L_transparent);
