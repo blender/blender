@@ -472,7 +472,29 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 
 #endif
 
-/**/
+/* Limited Dissolve */
+
+#define UNIT_TO_ANGLE DEG2RADF(90.0)
+#define ANGLE_TO_UNIT (1.0 / UNIT_TO_ANGLE)
+
+/* multiply vertex edge angle by face angle
+ * this means we are not left with sharp corners between _almost_ planer faces
+ * convert angles [0-PI/2] -> [0-1], multiply together, then convert back to radians. */
+float bm_vert_edge_face_angle(BMVert *v)
+{
+	const float angle = BM_vert_edge_angle(v);
+	/*note: could be either edge, it doesnt matter */
+	if (v->e && BM_edge_is_manifold(v->e)) {
+		return ((angle * ANGLE_TO_UNIT) * (BM_edge_face_angle(v->e) * ANGLE_TO_UNIT)) * UNIT_TO_ANGLE;
+	}
+	else {
+		return angle;
+	}
+}
+
+#undef UNIT_TO_ANGLE
+#undef ANGLE_TO_UNIT
+
 typedef struct DissolveElemWeight {
 	BMHeader *ele;
 	float weight;
@@ -553,7 +575,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	/* --- second verts --- */
 	for (i = 0, tot_found = 0; i < vinput->len; i++) {
 		BMVert *v = ((BMVert **)vinput->data.p)[i];
-		const float angle = BM_vert_edge_angle(v);
+		const float angle = bm_vert_edge_face_angle(v);
 
 		if (angle < angle_limit) {
 			weight_elems[i].ele = (BMHeader *)v;
@@ -571,9 +593,16 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 
 		for (i = 0; i < tot_found; i++) {
 			BMVert *v = (BMVert *)weight_elems[i].ele;
-			/* check twice because cumulative effect could dissolve over angle limit */
-			if (BM_vert_edge_angle(v) < angle_limit) {
-				BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
+			if (/* topology changes may cause this to be un-collapsable */
+			    (BM_vert_edge_count(v) == 2) &&
+			    /* check twice because cumulative effect could dissolve over angle limit */
+			    bm_vert_edge_face_angle(v) < angle_limit)
+			{
+				BMEdge *ne = BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
+
+				if (ne && ne->l) {
+					BM_edge_normals_update(bm, ne);
+				}
 			}
 		}
 	}
