@@ -1342,7 +1342,7 @@ void KX_Dome::FlattenPanorama(MT_Vector3 verts[3])
 {
 // it creates a full spherical panoramic (360deg)
 	int i;
-	double phi;
+	double phi, theta;
 	bool edge=false;
 
 	for (i=0;i<3;i++) {
@@ -1355,8 +1355,8 @@ void KX_Dome::FlattenPanorama(MT_Vector3 verts[3])
 		verts[i][0] = phi / MT_PI;
 		verts[i][1] = 0;
 
-		verts[i][2] = atan2(verts[i][2], 1.0);
-		verts[i][2] /= MT_PI / 2;
+		theta = asin(verts[i][2]);
+		verts[i][2] = theta / MT_PI;
 	}
 	if (edge) {
 		bool right=false;
