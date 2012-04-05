@@ -157,10 +157,10 @@
     </dopesheet_editor>
     <file_browser>
       <ThemeFileBrowser active_file="#828282"
-                        active_file_text="#fafafa"
+                        active_file_text="#ffffff"
                         scroll_handle="#7f7070"
                         scrollbar="#a0a0a0"
-                        selected_file="#7f7f7f"
+                        selected_file="#a0a0d0"
                         tiles="#b4b4b4">
         <space>
           <ThemeSpaceGeneric header="#b4b4b4"
@@ -173,7 +173,7 @@
                              text="#000000"
                              text_hi="#0f0f0f"
                              title="#000000"
-                             back="#b4b4b4">
+                             back="#808080">
           </ThemeSpaceGeneric>
         </space>
         <space_list>
@@ -262,7 +262,7 @@
                              text="#000000"
                              text_hi="#ffffff"
                              title="#000000"
-                             back="#757575">
+                             back="#353535">
           </ThemeSpaceGeneric>
         </space>
       </ThemeImageEditor>
@@ -381,7 +381,7 @@
                              text="#000000"
                              text_hi="#ffffff"
                              title="#000000"
-                             back="#b4b4b4">
+                             back="#999999">
           </ThemeSpaceGeneric>
         </space>
       </ThemeOutliner>

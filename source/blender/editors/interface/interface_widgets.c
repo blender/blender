@@ -934,7 +934,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 	}
 
 	if (ui_but_draw_menu_icon(but)) {
-		xs = rect->xmax - 17;
+		xs = rect->xmax - UI_DPI_ICON_SIZE - 1;
 		ys = (rect->ymin + rect->ymax - height) / 2;
 		
 		UI_icon_draw_aspect(xs, ys, ICON_RIGHTARROW_THIN, aspect, alpha);
