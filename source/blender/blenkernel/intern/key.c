@@ -1136,9 +1136,11 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 	else {
 		if (key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
-			
-			for (kb= key->block.first; kb; kb= kb->next)
+			float f = 0.0;
+			for (kb= key->block.first; kb; kb= kb->next, f += 0.1f) {
 				kb->weights= get_weights_array(ob, kb->vgroup);
+				// kb->pos = f;
+			}
 
 			do_rel_key(0, tot, tot, (char *)out, key, actkb, KEY_MODE_DUMMY);
 			
@@ -1472,18 +1474,12 @@ KeyBlock *add_keyblock(Key *key, const char *name)
 	kb->slidermax= 1.0f;
 	
 	// XXX kb->pos is the confusing old horizontal-line RVK crap in old IPO Editor...
-	if (key->type == KEY_RELATIVE) 
+	if (key->type == KEY_RELATIVE)  {
 		kb->pos= curpos + 0.1f;
+	}
 	else {
-#if 0 // XXX old animation system
-		curpos= BKE_curframe(scene);
-		if (calc_ipo_spec(key->ipo, KEY_SPEED, &curpos)==0) {
-			curpos /= 100.0;
-		}
-		kb->pos= curpos;
-		
+		kb->pos = key->ctime / 100.0f;
 		sort_keys(key);
-#endif // XXX old animation system
 	}
 	return kb;
 }

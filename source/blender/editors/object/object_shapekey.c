@@ -76,9 +76,11 @@
 
 static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, int from_mix)
 {
-	if (object_insert_shape_key(scene, ob, NULL, from_mix)) {
+	KeyBlock *kb;
+	if ((kb = object_insert_shape_key(scene, ob, NULL, from_mix))) {
 		Key *key= ob_get_key(ob);
-		ob->shapenr= BLI_countlist(&key->block);
+		/* for absolute shape keys, new keys may not be added last */
+		ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	}
