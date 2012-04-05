@@ -685,14 +685,14 @@ static void rna_NodeTree_node_clear(bNodeTree *ntree)
 	WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 }
 
-static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, bNodeSocket *in, bNodeSocket *out)
+static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, bNodeSocket *fromsock, bNodeSocket *tosock)
 {
 	bNodeLink *ret;
 	bNode *fromnode = NULL, *tonode = NULL;
 	int from_in_out, to_in_out;
 
-	nodeFindNode(ntree, in, &fromnode, NULL, &from_in_out);
-	nodeFindNode(ntree, out, &tonode, NULL, &to_in_out);
+	nodeFindNode(ntree, fromsock, &fromnode, NULL, &from_in_out);
+	nodeFindNode(ntree, tosock, &tonode, NULL, &to_in_out);
 	
 	if (&from_in_out == &to_in_out) {
 		BKE_reportf(reports, RPT_ERROR, "Same input/output direction of sockets");
@@ -700,9 +700,12 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, b
 	}
 
 	/* unlink node input socket */
-	nodeRemSocketLinks(ntree, out);
+	if (to_in_out == SOCK_IN)
+		nodeRemSocketLinks(ntree, tosock);
+	else
+		nodeRemSocketLinks(ntree, fromsock);
 
-	ret = nodeAddLink(ntree, fromnode, in, tonode, out);
+	ret = nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
 	
 	if (ret) {
 		nodeUpdate(ntree, tonode);
@@ -711,6 +714,7 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, b
 
 		WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 	}
+
 	return ret;
 }
 
