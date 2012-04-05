@@ -144,7 +144,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Remove:")
-        col.operator("mesh.delete")
+        col.menu("VIEW3D_MT_edit_mesh_delete")
         col.operator("mesh.merge")
         col.operator("mesh.remove_doubles")
 
