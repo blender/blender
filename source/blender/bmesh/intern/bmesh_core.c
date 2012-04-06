@@ -866,7 +866,7 @@ static int disk_is_flagged(BMVert *v, int flag)
  * \note this is a generic, flexible join faces function,
  * almost everything uses this, including #BM_faces_join_pair
  */
-BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
+BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del)
 {
 	BMFace *f, *newf;
 #ifdef USE_BMESH_HOLES
@@ -924,18 +924,24 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 					/* don't remove an edge it makes up the side of another face
 					 * else this will remove the face as well - campbell */
 					if (BM_edge_face_count(l_iter->e) <= 2) {
-						BLI_array_append(deledges, l_iter->e);
+						if (do_del) {
+							BLI_array_append(deledges, l_iter->e);
+						}
 						BM_ELEM_API_FLAG_ENABLE(l_iter->e, _FLAG_JF);
 					}
 				}
 				else {
 					if (d1 && !BM_ELEM_API_FLAG_TEST(l_iter->e->v1, _FLAG_JF)) {
-						BLI_array_append(delverts, l_iter->e->v1);
+						if (do_del) {
+							BLI_array_append(delverts, l_iter->e->v1);
+						}
 						BM_ELEM_API_FLAG_ENABLE(l_iter->e->v1, _FLAG_JF);
 					}
 
 					if (d2 && !BM_ELEM_API_FLAG_TEST(l_iter->e->v2, _FLAG_JF)) {
-						BLI_array_append(delverts, l_iter->e->v2);
+						if (do_del) {
+							BLI_array_append(delverts, l_iter->e->v2);
+						}
 						BM_ELEM_API_FLAG_ENABLE(l_iter->e->v2, _FLAG_JF);
 					}
 				}
@@ -1019,13 +1025,21 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 		} while ((l_iter = l_iter->next) != l_first);
 	}
 
-	/* delete old geometr */
-	for (i = 0; i < BLI_array_count(deledges); i++) {
-		BM_edge_kill(bm, deledges[i]);
-	}
+	/* delete old geometry */
+	if (do_del) {
+		for (i = 0; i < BLI_array_count(deledges); i++) {
+			BM_edge_kill(bm, deledges[i]);
+		}
 
-	for (i = 0; i < BLI_array_count(delverts); i++) {
-		BM_vert_kill(bm, delverts[i]);
+		for (i = 0; i < BLI_array_count(delverts); i++) {
+			BM_vert_kill(bm, delverts[i]);
+		}
+	}
+	else {
+		/* otherwise we get both old and new faces */
+		for (i = 0; i < totface; i++) {
+			BM_face_kill(bm, faces[i]);
+		}
 	}
 	
 	BLI_array_free(edges);

@@ -64,6 +64,7 @@ CCL_NAMESPACE_BEGIN
 #define copysignf(x, y) ((float)_copysign(x, y))
 #define hypotf(x, y) _hypotf(x, y)
 #define isnan(x) _isnan(x)
+#define isfinite(x) _finite(x)
 #endif
 
 #endif

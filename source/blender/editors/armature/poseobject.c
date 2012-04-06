@@ -1217,6 +1217,8 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 
 void POSE_OT_paste (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Paste Pose";
 	ot->idname = "POSE_OT_paste";
@@ -1230,7 +1232,9 @@ void POSE_OT_paste (wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "flipped", FALSE, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
+	prop = RNA_def_boolean(ot->srna, "flipped", FALSE, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
 	RNA_def_boolean(ot->srna, "selected_mask", FALSE, "On Selected Only", "Only paste the stored pose on to selected bones in the current pose");
 }
 

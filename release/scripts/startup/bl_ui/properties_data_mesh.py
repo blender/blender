@@ -233,7 +233,10 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
             sub.prop(ob, "use_shape_key_edit_mode", text="")
 
             sub = row.row()
-            sub.operator("object.shape_key_clear", icon='X', text="")
+            if key.use_relative:
+                sub.operator("object.shape_key_clear", icon='X', text="")
+            else:
+                sub.operator("object.shape_key_retime", icon='RECOVER_LAST', text="")
 
             row = layout.row()
             row.prop(kb, "name")
@@ -259,8 +262,9 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
                     col.prop_search(kb, "relative_key", key, "key_blocks", text="")
 
             else:
-                row = layout.row()
+                row = layout.column()
                 row.active = enable_edit_value
+                row.prop(key, "eval_time")
                 row.prop(key, "slurph")
 
 

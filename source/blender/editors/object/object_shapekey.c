@@ -76,9 +76,11 @@
 
 static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, int from_mix)
 {
-	if (object_insert_shape_key(scene, ob, NULL, from_mix)) {
+	KeyBlock *kb;
+	if ((kb = object_insert_shape_key(scene, ob, NULL, from_mix))) {
 		Key *key= ob_get_key(ob);
-		ob->shapenr= BLI_countlist(&key->block);
+		/* for absolute shape keys, new keys may not be added last */
+		ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	}
@@ -369,6 +371,41 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* starting point and step size could be optional */
+static int shape_key_retime_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = ED_object_context(C);
+	Key *key = ob_get_key(ob);
+	KeyBlock *kb = ob_get_keyblock(ob);
+	float cfra = 0.0f;
+
+	if (!key || !kb)
+		return OPERATOR_CANCELLED;
+
+	for (kb=key->block.first; kb; kb=kb->next)
+		kb->pos = (cfra += 0.1f);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_retime(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Re-Time Shape Keys";
+	ot->description = "Resets the timing for absolute shape keys";
+	ot->idname = "OBJECT_OT_shape_key_retime";
+
+	/* api callbacks */
+	ot->poll = shape_key_poll;
+	ot->exec = shape_key_retime_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
@@ -434,6 +471,8 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 			BLI_insertlinkafter(&key->block, kb_other, kb);
 			ob->shapenr++;
 		}
+
+		SWAP(float, kb_other->pos, kb->pos) /* for absolute shape keys */
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

@@ -192,7 +192,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		bool mouse_state = startscene->gm.flag & GAME_SHOW_MOUSE;
 		bool restrictAnimFPS = startscene->gm.flag & GAME_RESTRICT_ANIM_UPDATES;
 
-		if (animation_record) usefixed= true; /* override since you's always want fixed time for sim recording */
+		if (animation_record) usefixed= false; /* override since you don't want to run full-speed for sim recording */
 
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, area_rect, ar);

@@ -48,7 +48,7 @@ int     bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_
 
 int     bmesh_loop_reverse(BMesh *bm, BMFace *f);
 
-BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface);
+BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del);
 int     BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
                          BMEdge **e_in, int e_in_len);
 

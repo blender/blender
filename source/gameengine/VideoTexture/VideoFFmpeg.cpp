@@ -39,8 +39,8 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include <string>
 
-#include "Exception.h"
 #include "VideoFFmpeg.h"
+#include "Exception.h"
 
 
 // default framerate

@@ -1189,6 +1189,7 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Vertex Connect";
 	ot->idname = "MESH_OT_vert_connect";
+	ot->description = "Connect 2 vertices in a face with by an edge, splitting the face in half";
 	
 	/* api callbacks */
 	ot->exec = edbm_vert_connect;
@@ -2464,6 +2465,7 @@ void MESH_OT_rip(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Rip";
 	ot->idname = "MESH_OT_rip";
+	ot->description = "Disconnect vertex or edges from connected geometry";
 
 	/* api callbacks */
 	ot->invoke = edbm_rip_invoke;
@@ -3335,6 +3337,7 @@ void MESH_OT_fill(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Fill";
 	ot->idname = "MESH_OT_fill";
+	ot->description = "Fill a selected edge loop with faces";
 
 	/* api callbacks */
 	ot->exec = edbm_fill_exec;
@@ -3390,8 +3393,9 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Quads to Tris";
+	ot->name = "Triangulate Faces";
 	ot->idname = "MESH_OT_quads_convert_to_tris";
+	ot->description = "Triangulate selected faces";
 
 	/* api callbacks */
 	ot->exec = edbm_quads_convert_to_tris_exec;
@@ -3434,6 +3438,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Tris to Quads";
 	ot->idname = "MESH_OT_tris_convert_to_quads";
+	ot->description = "Join triangles into quads";
 
 	/* api callbacks */
 	ot->exec = edbm_tris_convert_to_quads_exec;
@@ -3562,6 +3567,7 @@ void MESH_OT_split(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Split";
 	ot->idname = "MESH_OT_split";
+	ot->description = "Split off selected geometry from connected unselected geometry";
 
 	/* api callbacks */
 	ot->exec = edbm_split_exec;

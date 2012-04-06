@@ -300,7 +300,7 @@ public:
 		
 		/* full shading only on NVIDIA cards at the moment */
 		if(platform_name == "NVIDIA CUDA")
-			build_options += "-D__KERNEL_SHADING__ -D__MULTI_CLOSURE__ -cl-nv-maxrregcount=24 -cl-nv-verbose ";
+			build_options += "-D__MULTI_CLOSURE__ -cl-nv-maxrregcount=24 -cl-nv-verbose ";
 		if(platform_name == "Apple" || platform_name == "AMD Accelerated Parallel Processing")
 			build_options += " -D__CL_NO_FLOAT3__ ";
 

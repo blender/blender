@@ -289,7 +289,7 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
                 row.prop(itasc, "damping_max", text="Damp", slider=True)
                 row.prop(itasc, "damping_epsilon", text="Eps", slider=True)
 
-from .properties_animviz import (
+from bl_ui.properties_animviz import (
     MotionPathButtonsPanel,
     OnionSkinButtonsPanel,
     )

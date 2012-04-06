@@ -65,7 +65,25 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 	int *keyi;
 	int totuv, i, j;
 
+	/* free custom data */
+	/* this isnt needed in most cases but do just incase */
+	CustomData_free(&bm->vdata, bm->totvert);
+	CustomData_free(&bm->edata, bm->totedge);
+	CustomData_free(&bm->ldata, bm->totloop);
+	CustomData_free(&bm->pdata, bm->totface);
+
 	if (!me || !me->totvert) {
+		if (me) { /*no verts? still copy customdata layout*/
+			CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_ASSIGN, 0);
+			CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_ASSIGN, 0);
+			CustomData_copy(&me->ldata, &bm->ldata, CD_MASK_BMESH, CD_ASSIGN, 0);
+			CustomData_copy(&me->pdata, &bm->pdata, CD_MASK_BMESH, CD_ASSIGN, 0);
+
+			CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
+			CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
+			CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
+			CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
+		}
 		return; /* sanity check */
 	}
 
@@ -99,7 +117,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		actkey = NULL;
 	}
 
-	if (actkey && actkey->totelem == me->totvert) {
+	if (me->key) {
 		CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
 
 		/* check if we need to generate unique ids for the shapekeys.
@@ -117,8 +135,11 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 			}
 		}
 
-		keyco = actkey->data;
-		bm->shapenr = act_key_nr;
+		if (actkey && actkey->totelem == me->totvert) {
+			keyco = actkey->data;
+			bm->shapenr = act_key_nr;
+		}
+
 		for (i = 0, block = me->key->block.first; block; block = block->next, i++) {
 			CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY,
 			                           CD_ASSIGN, NULL, 0, block->name);

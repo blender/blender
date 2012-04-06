@@ -33,7 +33,7 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v);
 
 int BM_disk_dissolve(BMesh *bm, BMVert *v);
 
-BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
+BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, const short do_del);
 
 BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f);
 

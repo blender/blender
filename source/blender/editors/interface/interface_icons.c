@@ -858,7 +858,7 @@ static void icon_set_image(bContext *C, ID *id, PreviewImage *prv_img, enum eIco
 	                    prv_img->w[size], prv_img->h[size]);
 }
 
-static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect), int rw, int rh, unsigned int *rect, float alpha, float *rgb, short is_preview)
+static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect), int rw, int rh, unsigned int *rect, float alpha, const float rgb[3], short is_preview)
 {
 	ImBuf *ima = NULL;
 
@@ -911,7 +911,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	}
 }
 
-static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy, int UNUSED(iw), int ih, float alpha, float *rgb)
+static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy, int UNUSED(iw), int ih, float alpha, const float rgb[3])
 {
 	float x1, x2, y1, y2;
 
@@ -954,7 +954,7 @@ static int get_draw_size(enum eIconSizes size)
 	return 0;
 }
 
-static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, float *rgb, enum eIconSizes size, int draw_size, int UNUSED(nocreate), short is_preview)
+static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, const float rgb[3], enum eIconSizes size, int draw_size, int UNUSED(nocreate), short is_preview)
 {
 	bTheme *btheme = UI_GetTheme();
 	Icon *icon = NULL;
@@ -1147,7 +1147,7 @@ void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect, float alph
 	icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, 0);
 }
 
-void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, float *rgb)
+void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, const float rgb[3])
 {
 	int draw_size = get_draw_size(ICON_SIZE_ICON);
 	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, ICON_SIZE_ICON, draw_size, FALSE, FALSE);

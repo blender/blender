@@ -105,6 +105,7 @@ static const char *locales[] = {
 	"indonesian", "id_ID",
 	"serbian (latin)", "sr_RS@latin",
 	"kyrgyz", "ky_KG",
+	"turkish", "tr_TR",
 };
 
 void BLF_lang_init(void)

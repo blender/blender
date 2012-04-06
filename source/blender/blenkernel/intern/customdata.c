@@ -2251,8 +2251,11 @@ void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
 	const LayerTypeInfo *typeInfo;
 	int dest_i, src_i;
 
-	if (!*dest_block)
+	if (!*dest_block) {
 		CustomData_bmesh_alloc_block(dest, dest_block);
+		if (*dest_block)
+			memset(*dest_block, 0, dest->totsize);
+	}
 	
 	/* copies a layer at a time */
 	dest_i = 0;

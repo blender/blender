@@ -67,6 +67,7 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "samples", text="Render")
         sub.prop(cscene, "preview_samples", text="Preview")
         sub.prop(cscene, "seed")
+        sub.prop(cscene, "sample_clamp")
 
         sub = col.column(align=True)
         sub.label("Transparency:")
@@ -727,7 +728,7 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
 
         row = layout.row()
 
-        row.column().prop(mapping, "location")
+        row.column().prop(mapping, "translation")
         row.column().prop(mapping, "rotation")
         row.column().prop(mapping, "scale")
 

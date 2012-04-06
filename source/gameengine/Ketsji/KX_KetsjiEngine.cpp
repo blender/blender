@@ -1772,8 +1772,8 @@ void	KX_KetsjiEngine::SetAnimRecordMode(bool animation_record, int startFrame)
 	m_animation_record = animation_record;
 	if (animation_record)
 	{
-		//when recording physics keyframes, always run at a fixed framerate
-		m_bFixedTime = true;
+		//when recording physics keyframes, run at a variable (capped) frame rate (fixed time == full speed)
+		m_bFixedTime = false;
 	}
 	m_currentFrame = startFrame;
 }

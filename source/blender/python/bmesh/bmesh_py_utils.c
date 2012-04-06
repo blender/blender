@@ -443,23 +443,31 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 
 
 PyDoc_STRVAR(bpy_bm_utils_face_join_doc,
-".. method:: face_join(faces)\n"
+".. method:: face_join(faces, remove=True)\n"
 "\n"
 "   Joins a sequence of faces.\n"
 "\n"
 "   :arg faces: Sequence of faces.\n"
 "   :type faces: :class:`bmesh.types.BMFace`\n"
+"   :arg remove: Remove the edges and vertices between the faces.\n"
+"   :type remove: boolean\n"
 "   :return: The newly created face or None on failure.\n"
 "   :rtype: :class:`bmesh.types.BMFace`\n"
 );
-static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
+static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *args)
 {
 	BMesh *bm = NULL;
+	PyObject *py_face_array;
 	BMFace **face_array;
 	Py_ssize_t face_seq_len = 0;
 	BMFace *f_new;
+	int do_remove = TRUE;
 
-	face_array = BPy_BMElem_PySeq_As_Array(&bm, value, 2, PY_SSIZE_T_MAX,
+	if (!PyArg_ParseTuple(args, "O|i:face_join", &py_face_array, &do_remove)) {
+		return NULL;
+	}
+
+	face_array = BPy_BMElem_PySeq_As_Array(&bm, py_face_array, 2, PY_SSIZE_T_MAX,
 	                                       &face_seq_len, BM_FACE,
 	                                       TRUE, TRUE, "face_join(...)");
 
@@ -469,7 +477,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
 
 	/* Go ahead and join the face!
 	 * --------------------------- */
-	f_new = BM_faces_join(bm, face_array, (int)face_seq_len);
+	f_new = BM_faces_join(bm, face_array, (int)face_seq_len, do_remove);
 
 	PyMem_FREE(face_array);
 
@@ -615,7 +623,7 @@ static struct PyMethodDef BPy_BM_utils_methods[] = {
     {"edge_split",          (PyCFunction)bpy_bm_utils_edge_split,          METH_VARARGS, bpy_bm_utils_edge_split_doc},
     {"edge_rotate",         (PyCFunction)bpy_bm_utils_edge_rotate,         METH_VARARGS, bpy_bm_utils_edge_rotate_doc},
     {"face_split",          (PyCFunction)bpy_bm_utils_face_split,          METH_VARARGS, bpy_bm_utils_face_split_doc},
-    {"face_join",           (PyCFunction)bpy_bm_utils_face_join,           METH_O,       bpy_bm_utils_face_join_doc},
+    {"face_join",           (PyCFunction)bpy_bm_utils_face_join,           METH_VARARGS, bpy_bm_utils_face_join_doc},
     {"face_vert_separate",  (PyCFunction)bpy_bm_utils_face_vert_separate,  METH_VARARGS, bpy_bm_utils_face_vert_separate_doc},
     {"face_flip",           (PyCFunction)bpy_bm_utils_face_flip,           METH_O,       bpy_bm_utils_face_flip_doc},
     {"loop_separate",       (PyCFunction)bpy_bm_utils_loop_separate,       METH_O,       bpy_bm_utils_loop_separate_doc},

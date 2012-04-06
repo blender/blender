@@ -468,7 +468,7 @@ static void rna_def_texmapping(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "TexMapping", NULL);
 	RNA_def_struct_ui_text(srna, "Texture Mapping", "Texture coordinate mapping settings");
 
-	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
+	prop = RNA_def_property(srna, "translation", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_mapping_update");
