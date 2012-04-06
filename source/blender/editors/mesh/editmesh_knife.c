@@ -270,13 +270,14 @@ static KnifeVert *get_bm_knife_vert(knifetool_opdata *kcd, BMVert *v)
 	return kfv;
 }
 
-/* get a KnifeEdge wrapper for an existing BMEdge */
+/**
+ * get a KnifeEdge wrapper for an existing BMEdge
+ * \note #knife_get_face_kedges / #get_bm_knife_edge are called recusively - KEEP STACK MEM USAGE LOW */
 static KnifeEdge *get_bm_knife_edge(knifetool_opdata *kcd, BMEdge *e)
 {
 	KnifeEdge *kfe = BLI_ghash_lookup(kcd->origedgemap, e);
 	if (!kfe) {
-		BMIter iter;
-		BMFace *f;
+		BMLoop *l_iter, *l_first;
 
 		kfe = new_knife_edge(kcd);
 		kfe->e = e;
@@ -287,13 +288,17 @@ static KnifeEdge *get_bm_knife_edge(knifetool_opdata *kcd, BMEdge *e)
 
 		BLI_ghash_insert(kcd->origedgemap, e, kfe);
 
-		BM_ITER(f, &iter, kcd->em->bm, BM_FACES_OF_EDGE, e) {
-			knife_append_list(kcd, &kfe->faces, f);
+		/* avoid BM_ITER because of stack memory usage
+		 * otherwise we could use BM_FACES_OF_EDGE */
+		l_iter = l_first = e->l;
+		do {
+			knife_append_list(kcd, &kfe->faces, l_iter->f);
 
 			/* ensures the kedges lst for this f is initialized,
 			 * it automatically adds kfe by itself */
-			knife_get_face_kedges(kcd, f);
-		}
+			knife_get_face_kedges(kcd, l_iter->f);
+
+		} while ((l_iter = l_iter->radial_next) != l_first);
 	}
 
 	return kfe;
@@ -323,19 +328,23 @@ static void knife_start_cut(knifetool_opdata *kcd)
 	}
 }
 
+/**
+ * \note #knife_get_face_kedges / #get_bm_knife_edge are called recusively - KEEP STACK MEM USAGE LOW */
 static ListBase *knife_get_face_kedges(knifetool_opdata *kcd, BMFace *f)
 {
 	ListBase *lst = BLI_ghash_lookup(kcd->kedgefacemap, f);
 
 	if (!lst) {
-		BMIter iter;
-		BMEdge *e;
+		BMLoop *l_iter, *l_first;
 
 		lst = knife_empty_list(kcd);
 
-		BM_ITER(e, &iter, kcd->em->bm, BM_EDGES_OF_FACE, f) {
-			knife_append_list(kcd, lst, get_bm_knife_edge(kcd, e));
-		}
+		/* avoid BM_ITER because of stack memory usage
+		 * otherwise we could use BM_EDGES_OF_FACE */
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			knife_append_list(kcd, lst, get_bm_knife_edge(kcd, l_iter->e));
+		} while ((l_iter = l_iter->next) != l_first);
 
 		BLI_ghash_insert(kcd->kedgefacemap, f, lst);
 	}
