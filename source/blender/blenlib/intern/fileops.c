@@ -222,6 +222,11 @@ gzFile BLI_gzopen(const char *filename, const char *mode)
 		wchar_t short_name_16 [256];
 		char short_name [256];
 		int i=0;
+
+		/* xxx Creates file before transcribing the path */
+		if(mode[0]=='w')
+			fclose(ufopen(filename,"a"));
+
 		UTF16_ENCODE(filename);
 
 		GetShortPathNameW(filename_16,short_name_16,256);
