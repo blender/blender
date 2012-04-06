@@ -325,12 +325,15 @@ static char *shapekey_adrcodes_to_paths (int adrcode, int *UNUSED(array_index))
 {
 	static char buf[128];
 	
-	/* block will be attached to ID_KE block, and setting that we alter is the 'value' (which sets keyblock.curval) */
-	// XXX adrcode 0 was dummy 'speed' curve 
-	if (adrcode == 0) 
-		strcpy(buf, "speed");
-	else
+	/* block will be attached to ID_KE block... */
+	if (adrcode == 0) {
+		/* adrcode=0 was the misnamed "speed" curve (now "evaluation time") */
+		BLI_strncpy(buf, "eval_time", sizeof(buf));
+	}
+	else {
+		/* setting that we alter is the "value" (i.e. keyblock.curval) */
 		BLI_snprintf(buf, sizeof(buf), "key_blocks[%d].value", adrcode);
+	}
 	return buf;
 }
 
