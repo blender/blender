@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_bevel.c
+ *  \ingroup bmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.h"
@@ -29,6 +33,8 @@
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
+
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define BEVEL_FLAG	1
 #define BEVEL_DEL	2

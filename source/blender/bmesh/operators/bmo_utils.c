@@ -20,6 +20,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_subdivide.c
+ *  \ingroup bmesh
+ *
+ * utility bmesh operators, e.g. transform,
+ * translate, rotate, scale, etc.
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_meshdata_types.h"
@@ -33,14 +40,6 @@
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
-
-/*
- * UTILS.C
- *
- * utility bmesh operators, e.g. transform,
- * translate, rotate, scale, etc.
- *
- */
 
 void bmo_makevert_exec(BMesh *bm, BMOperator *op)
 {

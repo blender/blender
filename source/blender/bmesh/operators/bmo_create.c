@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_create.c
+ *  \ingroup bmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_heap.h"
@@ -31,6 +35,7 @@
 
 #include "bmesh.h"
 
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define EDGE_MARK	1
 #define EDGE_VIS	2

@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_connect.c
+ *  \ingroup bmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
@@ -27,6 +31,8 @@
 #include "BLI_utildefines.h"
 
 #include "bmesh.h"
+
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define VERT_INPUT	1
 #define EDGE_OUT	1

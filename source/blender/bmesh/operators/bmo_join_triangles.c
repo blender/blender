@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_join_triangles.c
+ *  \ingroup bmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_meshdata_types.h"
@@ -32,14 +36,6 @@
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
-
-/*
- * JOIN_TRIANGLES.C
- *
- * utility bmesh operators, e.g. transform,
- * translate, rotate, scale, etc.
- *
- */
 
 /* Bitflags for edges */
 #define T2QDELETE	1
