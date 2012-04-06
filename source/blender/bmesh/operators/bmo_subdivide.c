@@ -767,10 +767,8 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	BMO_slot_map_to_flag(bmesh, op, "edgepercents",
 	                     BM_EDGE, EDGE_PERCENT);
 
-	for (face = BM_iter_new(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
-	     face;
-	     face = BM_iter_step(&fiter))
-	{
+
+	BM_ITER(face, &fiter, bmesh, BM_FACES_OF_MESH, NULL) {
 		BMEdge *e1 = NULL, *e2 = NULL;
 		float vec1[3], vec2[3];
 
@@ -778,24 +776,23 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 
 		BLI_array_empty(edges);
 		BLI_array_empty(verts);
+
+		BLI_array_growitems(edges, face->len);
+		BLI_array_growitems(verts, face->len);
+
 		matched = 0;
 
-		i = 0;
 		totesel = 0;
-		for (nl = BM_iter_new(&liter, bmesh, BM_LOOPS_OF_FACE, face); nl; nl = BM_iter_step(&liter)) {
-			BLI_array_growone(edges);
-			BLI_array_growone(verts);
+		BM_ITER_INDEX(nl, &liter, bmesh, BM_LOOPS_OF_FACE, face, i) {
 			edges[i] = nl->e;
 			verts[i] = nl->v;
 
 			if (BMO_elem_flag_test(bmesh, edges[i], SUBD_SPLIT)) {
 				if (!e1) e1 = edges[i];
-				else e2 = edges[i];
+				else     e2 = edges[i];
 
 				totesel++;
 			}
-
-			i++;
 		}
 
 		/* make sure the two edges have a valid angle to each other */

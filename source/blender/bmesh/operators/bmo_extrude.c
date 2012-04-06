@@ -58,13 +58,14 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
 		BLI_array_empty(edges);
+		BLI_array_growitems(edges, f->len);
+
 		i = 0;
 		firstv = lastv = NULL;
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-			BLI_array_growone(edges);
-
 			v = BM_vert_create(bm, l->v->co, l->v);
 
+			/* skip on the first iteration */
 			if (lastv) {
 				e = BM_edge_create(bm, lastv, v, l->e, FALSE);
 				edges[i++] = e;
@@ -75,7 +76,7 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 			if (!firstv) firstv = v;
 		}
 
-		BLI_array_growone(edges);
+		/* this fits in the array because we skip one in the loop above */
 		e = BM_edge_create(bm, v, firstv, laste, FALSE);
 		edges[i++] = e;
 
