@@ -4517,6 +4517,7 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 	const int use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
 	const float thickness         = RNA_float_get(op->ptr, "thickness");
 	const int use_outset          = RNA_boolean_get(op->ptr, "use_outset");
+	const int use_select_inset    = RNA_boolean_get(op->ptr, "use_select_inset"); /* not passed onto the BMO */
 
 	EDBM_op_init(em, &bmop, op,
 	             "inset faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b thickness=%f use_outset=%b",
@@ -4524,10 +4525,14 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 
 	BMO_op_exec(em->bm, &bmop);
 
-	/* deselect original verts */
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
+	if (use_select_inset) {
+		/* deselect original faces/verts */
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
+	}
+	else {
+		BMO_slot_buffer_hflag_disable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
+	}
 
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -4564,4 +4569,5 @@ void MESH_OT_inset(wmOperatorType *ot)
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
 
 	RNA_def_boolean(ot->srna, "use_outset", FALSE, "Outset", "Outset rather than inset");
+	RNA_def_boolean(ot->srna, "use_select_inset", TRUE, "Select Outer", "Select the new inset faces");
 }
