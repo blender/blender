@@ -1387,21 +1387,24 @@ static void render_composit_stats(void *UNUSED(arg), char *str)
 	R.i.infostr= NULL;
 }
 
-
 /* invokes Freestyle stroke rendering */
 static void add_freestyle(Render *re)
 {
-	SceneRenderLayer *srl;
+	SceneRenderLayer *srl, *actsrl;
 	LinkData *link;
+
+	actsrl = BLI_findlink(&re->r.layers, re->r.actlay);
 
 	FRS_init_stroke_rendering(re);
 
-	for(srl= (SceneRenderLayer *)re->scene->r.layers.first; srl; srl= srl->next) {
+	for (srl= (SceneRenderLayer *)re->r.layers.first; srl; srl= srl->next) {
 
 		link = (LinkData *)MEM_callocN(sizeof(LinkData), "LinkData to Freestyle render");
 		BLI_addtail(&re->freestyle_renders, link);
 
-		if( FRS_is_freestyle_enabled(srl) ) {
+		if ((re->r.scemode & R_SINGLE_LAYER) && srl != actsrl)
+			continue;
+		if (FRS_is_freestyle_enabled(srl)) {
 			link->data = (void *)FRS_do_stroke_rendering(re, srl);
 		}
 	}
@@ -1413,12 +1416,16 @@ static void add_freestyle(Render *re)
 static void composite_freestyle_renders(Render *re, int sample)
 {
 	Render *freestyle_render;
-	SceneRenderLayer *srl;
+	SceneRenderLayer *srl, *actsrl;
 	LinkData *link;
 
+	actsrl = BLI_findlink(&re->r.layers, re->r.actlay);
+
 	link = (LinkData *)re->freestyle_renders.first;
-	for(srl= (SceneRenderLayer *)re->scene->r.layers.first; srl; srl= srl->next) {
-		if( FRS_is_freestyle_enabled(srl) ) {
+	for (srl= (SceneRenderLayer *)re->r.layers.first; srl; srl= srl->next) {
+		if ((re->r.scemode & R_SINGLE_LAYER) && srl != actsrl)
+			continue;
+		if (FRS_is_freestyle_enabled(srl)) {
 			freestyle_render = (Render *)link->data;
 			render_result_exr_file_read(freestyle_render, sample);
 			FRS_composite_result(re, srl, freestyle_render);
@@ -1435,7 +1442,7 @@ static void free_all_freestyle_renders(Scene *scene)
 	Render *re1, *freestyle_render;
 	LinkData *link;
 
-	for(re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
+	for (re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
 		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
 			if (link->data) {
 				freestyle_render = (Render *)link->data;
