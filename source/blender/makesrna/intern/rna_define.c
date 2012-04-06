@@ -376,16 +376,14 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 {
 	int a = 0;
 	
-	/*  list from http://docs.python.org/reference/lexical_analysis.html#id5 */
+	/*  list from http://docs.python.org/py3k/reference/lexical_analysis.html#keywords */
 	static const char *kwlist[] = {
+		/* "False", "None", "True", */
 		"and", "as", "assert", "break",
-		"class", "continue", "def", "del",
-		"elif", "else", "except", "exec",
-		"finally", "for", "from", "global",
-		"if", "import", "in", "is",
-		"lambda", "not", "or", "pass",
-		"print", "raise", "return", "try",
-		"while", "with", "yield", NULL
+		"class", "continue", "def", "del", "elif", "else", "except",
+		"finally", "for", "from", "global", "if", "import", "in",
+		"is", "lambda", "nonlocal", "not", "or", "pass", "raise",
+		"return", "try", "while", "with", "yield", NULL
 	};
 	
 	

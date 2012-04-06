@@ -184,16 +184,23 @@ void flatten_string_free(FlattenString *fs)
  * a non-identifier (see text_check_identifier(char)) or null character.
  * 
  * If a built-in function is found, the length of the matching name is returned.
- * Otherwise, -1 is returned. */
+ * Otherwise, -1 is returned.
+ *
+ * See:
+ * http://docs.python.org/py3k/reference/lexical_analysis.html#keywords
+ */
 
 static int find_builtinfunc(char *string)
 {
 	int a, i;
-	char builtinfuncs[][9] = {"and", "as", "assert", "break", "class", "continue", "def",
-	                          "del", "elif", "else", "except", "exec", "finally",
-	                          "for", "from", "global", "if", "import", "in",
-	                          "is", "lambda", "not", "or", "pass", "print",
-	                          "raise", "return", "try", "while", "yield", "with"};
+	const char *builtinfuncs[] = {
+		/* "False", "None", "True", */ /* see find_bool() */
+		"and", "as", "assert", "break",
+		"class", "continue", "def", "del", "elif", "else", "except",
+		"finally", "for", "from", "global", "if", "import", "in",
+		"is", "lambda", "nonlocal", "not", "or", "pass", "raise",
+		"return", "try", "while", "with", "yield",
+	};
 
 	for (a = 0; a < sizeof(builtinfuncs) / sizeof(builtinfuncs[0]); a++) {
 		i = 0;

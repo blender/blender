@@ -30,8 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "limits.h"
+#include <limits.h>
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
