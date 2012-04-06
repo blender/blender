@@ -47,7 +47,7 @@
 #define SHARD_PATHA     0x00000002L
 #endif
 
-#if !defined(SHARD_PATHA)
+#if !defined(SHARD_PATHW)
 #define SHARD_PATHW     0x00000003L
 #endif
 
