@@ -46,7 +46,7 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "math.h"
+#include <math.h>
 
 /* This define should be relocated to a global header some where  Kent Mein 
  * I stole it from util.h in the plugins api */

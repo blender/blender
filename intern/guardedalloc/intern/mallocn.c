@@ -319,7 +319,7 @@ void *MEM_mallocN(size_t len, const char *str)
 
 #ifdef DEBUG_MEMCOUNTER
 		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
-			memcount_raise("MEM_mallocN");
+			memcount_raise(__func__);
 		memh->_count= _mallocn_count++;
 #endif
 		return (++memh);
@@ -344,7 +344,7 @@ void *MEM_callocN(size_t len, const char *str)
 		mem_unlock_thread();
 #ifdef DEBUG_MEMCOUNTER
 		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
-			memcount_raise("MEM_callocN");
+			memcount_raise(__func__);
 		memh->_count= _mallocn_count++;
 #endif
 		return (++memh);
@@ -374,7 +374,7 @@ void *MEM_mapallocN(size_t len, const char *str)
 		mem_unlock_thread();
 #ifdef DEBUG_MEMCOUNTER
 		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
-			memcount_raise("MEM_mapallocN");
+			memcount_raise(__func__);
 		memh->_count= _mallocn_count++;
 #endif
 		return (++memh);

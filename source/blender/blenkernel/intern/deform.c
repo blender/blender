@@ -32,7 +32,7 @@
 
 #include <string.h>
 #include <math.h>
-#include "ctype.h"
+#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
