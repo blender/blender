@@ -438,13 +438,12 @@
     </sequence_editor>
     <text_editor>
       <ThemeTextEditor cursor="#ff0000"
+                       syntax_special="#969629"
                        line_numbers_background="#191919"
-                       scroll_bar="#acacac"
                        selected_text="#ffffff"
                        syntax_builtin="#cf3d99"
                        syntax_comment="#249d60"
                        syntax_numbers="#3c68ff"
-                       syntax_special="#969629"
                        syntax_string="#cc3535">
         <space>
           <ThemeSpaceGeneric header="#000000"
