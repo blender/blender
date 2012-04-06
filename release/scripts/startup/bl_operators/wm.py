@@ -29,9 +29,6 @@ from bpy.props import (StringProperty,
 
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
-import subprocess
-import os
-
 
 class MESH_OT_delete_edgeloop(Operator):
     '''Delete an edge loop by merging the faces on each side to a single face loop'''
@@ -1200,20 +1197,24 @@ class WM_OT_blenderplayer_start(Operator):
     bl_idname = "wm.blenderplayer_start"
     bl_label = "Start"
 
-    blender_bin_path = bpy.app.binary_path
-    blender_bin_dir = os.path.dirname(blender_bin_path)
-    ext = os.path.splitext(blender_bin_path)[-1]
-    player_path = os.path.join(blender_bin_dir, "blenderplayer" + ext)
-
     def execute(self, context):
+        import os
         import sys
+        import subprocess
+
+        # these remain the same every execution
+        blender_bin_path = bpy.app.binary_path
+        blender_bin_dir = os.path.dirname(blender_bin_path)
+        ext = os.path.splitext(blender_bin_path)[-1]
+        player_path = os.path.join(blender_bin_dir, "blenderplayer" + ext)
+        # done static vars
 
         if sys.platform == "darwin":
-            self.player_path = os.path.join(self.blender_bin_dir, "../../../blenderplayer.app/Contents/MacOS/blenderplayer")
+            player_path = os.path.join(blender_bin_dir, "../../../blenderplayer.app/Contents/MacOS/blenderplayer")
 
-        filepath = bpy.app.tempdir + "game.blend"
+        filepath = os.path.join(bpy.app.tempdir, "game.blend")
         bpy.ops.wm.save_as_mainfile(filepath=filepath, check_existing=False, copy=True)
-        subprocess.call([self.player_path, filepath])
+        subprocess.call([player_path, filepath])
         return {'FINISHED'}
 
 

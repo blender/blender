@@ -92,7 +92,6 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
 from bpy.props import (IntProperty,
                        BoolProperty,
                        FloatVectorProperty)
-from math import pi
 
 
 class RandomizeLocRotSize(Operator):
@@ -136,8 +135,8 @@ class RandomizeLocRotSize(Operator):
     rot = FloatVectorProperty(
             name="Rotation",
             description="Maximun rotation over each axis",
-            min=-pi,
-            max=pi,
+            min=-3.141592,  # math.pi
+            max=+3.141592,
             default=(0.0, 0.0, 0.0),
             subtype='EULER',
             )
