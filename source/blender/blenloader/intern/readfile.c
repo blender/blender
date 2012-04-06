@@ -14587,9 +14587,17 @@ static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, cons
 				found= 1;
 				id= is_yet_read(fd, mainl, bhead);
 				if (id==NULL) {
+					/* not read yet */
 					read_libblock(fd, mainl, bhead, LIB_TESTEXT, &id);
+
+					if (id) {
+						/* sort by name in list */
+						ListBase *lb= which_libbase(mainl, idcode);
+						id_sort_by_name(lb, id);
+					}
 				}
 				else {
+					/* already linked */
 					printf("append: already linked\n");
 					oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 					if (id->flag & LIB_INDIRECT) {

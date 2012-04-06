@@ -58,6 +58,7 @@ int id_make_local(struct ID *id, int test);
 int id_single_user(struct bContext *C, struct ID *id, struct PointerRNA *ptr, struct PropertyRNA *prop);
 int id_copy(struct ID *id, struct ID **newid, int test);
 int id_unlink(struct ID *id, int test);
+void id_sort_by_name(struct ListBase *lb, struct ID *id);
 
 int new_id(struct ListBase *lb, struct ID *id, const char *name);
 void id_clear_lib_data(struct Main *bmain, struct ID *id);
