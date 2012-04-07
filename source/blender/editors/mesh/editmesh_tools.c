@@ -1949,10 +1949,10 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), 
 				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
 			}
 			else if (em->bm->selected.first && ((BMEditSelection *)em->bm->selected.first)->htype == BM_VERT) {
-				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
 			}
 			else if (em->bm->selected.last && ((BMEditSelection *)em->bm->selected.last)->htype == BM_VERT) {
-				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
 			}
 		}
 
