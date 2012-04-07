@@ -20,35 +20,25 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/editmesh_slide.c
+ *  \ingroup edmesh
+ */
+
 /* Takes heavily from editmesh_loopcut.c */
 
-#include <float.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdio.h>
-
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_space_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.h"
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 
-#include "BKE_blender.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -129,7 +119,7 @@ static int vtx_slide_init(bContext *C, wmOperator *op)
 	}
 
 	EDBM_selectmode_flush(em);
-	ese = em->bm->selected.first;
+	ese = em->bm->selected.last;
 
 	/* Is there a starting vertex  ? */
 	if (ese == NULL || ese->htype != BM_VERT) {
@@ -210,7 +200,8 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 	
 		EDBM_op_callf(em, op, "pointmerge verts=%hv mergeco=%v", BM_ELEM_SELECT, other->co);
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	} else {
+	}
+	else {
 		/* Store edit selection of the active vertex, allows other
 		 *  ops to run without reselecting */
 		EDBM_editselection_store(em, &vso->start_vtx->head);
@@ -268,8 +259,9 @@ static void vtx_slide_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	if (vso && vso->sel_edge) {
 		/* Get 3d view */
 		View3D *view3d = CTX_wm_view3d(C);
-		int outline_w = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 1;
+		const int outline_w = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 1;
 		int i = 0;
+
 		if (view3d && view3d->zbuf)
 			glDisable(GL_DEPTH_TEST);
 
@@ -335,10 +327,16 @@ static BMEdge* vtx_slide_nrst_in_frame(VertexSlideOp *vso, const float mval[2])
 		float v1_proj[3], v2_proj[3];
 		float dist = 0;
 		float min_dist = FLT_MAX;
+
 		for (i = 0; i < vso->disk_edges; i++) {
 			edge = vso->edge_frame[i];
-			project_float_noclip(vso->active_region, edge->v1->co, v1_proj);
-			project_float_noclip(vso->active_region, edge->v2->co, v2_proj);
+
+			mul_v3_m4v3(v1_proj, vso->obj->obmat, edge->v1->co);
+			project_float_noclip(vso->active_region, v1_proj, v1_proj);
+
+			mul_v3_m4v3(v2_proj, vso->obj->obmat, edge->v2->co);
+			project_float_noclip(vso->active_region, v2_proj, v2_proj);
+
 			dist = dist_to_line_segment_v2(mval, v1_proj, v2_proj);
 			if (dist < min_dist) {
 				min_dist = dist;
@@ -357,11 +355,10 @@ static void vtx_slide_find_edge(VertexSlideOp *vso, wmEvent *event)
 	/* Temp Vtx */
 	BMVert *start_vtx = vso->start_vtx;
 
-	float mval_float[] = { (float)event->mval[0], (float)event->mval[1]};
+	const float mval_float[] = { (float)event->mval[0], (float)event->mval[1]};
 
 	/* Set mouse coords */
-	vso->view_context->mval[0] = event->mval[0];
-	vso->view_context->mval[1] = event->mval[1];
+	copy_v2_v2_int(vso->view_context->mval, event->mval);
 
 	/* Find nearest edge */
 	nst_edge = vtx_slide_nrst_in_frame(vso, mval_float);
@@ -370,8 +367,7 @@ static void vtx_slide_find_edge(VertexSlideOp *vso, wmEvent *event)
 		/* Find a connected edge */
 		if (nst_edge->v1 == start_vtx || nst_edge->v2 == start_vtx) {
 			/* Save mouse coords */
-			vso->m_co[0] = event->mval[0];
-			vso->m_co[1] = event->mval[1];
+			copy_v2_v2_int(vso->m_co, event->mval);
 
 			/* Set edge */
 			vso->sel_edge = nst_edge;
@@ -383,13 +379,15 @@ static void vtx_slide_find_edge(VertexSlideOp *vso, wmEvent *event)
 static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 {
 	BMEdge *edge;
-	float edge_other_proj[3];
-	float start_vtx_proj[3];
-	BMVert *other;
+
 	/* Find nearest edge */
 	edge = vso->sel_edge;
 
 	if (edge) {
+		float edge_other_proj[3];
+		float start_vtx_proj[3];
+		BMVert *other;
+
 		float interp[3];
 
 		/* Calculate interpolation value for preview */
@@ -401,9 +399,11 @@ static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 		other = BM_edge_other_vert(edge, vso->start_vtx);
 
 		/* Project points onto screen and do interpolation in 2D */
-		project_float_noclip(vso->active_region, vso->start_vtx->co, start_vtx_proj);
+		mul_v3_m4v3(start_vtx_proj, vso->obj->obmat, vso->start_vtx->co);
+		project_float_noclip(vso->active_region, start_vtx_proj, start_vtx_proj);
 
-		project_float_noclip(vso->active_region, other->co, edge_other_proj);
+		mul_v3_m4v3(edge_other_proj, vso->obj->obmat, other->co);
+		project_float_noclip(vso->active_region, edge_other_proj, edge_other_proj);
 
 		closest_to_line_v2(closest_2d, mval_float, start_vtx_proj, edge_other_proj);
 
@@ -476,10 +476,7 @@ static void vtx_slide_set_frame(VertexSlideOp *vso)
 	{
 		BLI_array_growone(vtx_frame);
 
-		if (sel_vtx == edge->v1)
-			copy_v3_v3(vtx_frame[idx], edge->v2->co);
-		else
-			copy_v3_v3(vtx_frame[idx], edge->v1->co);
+		copy_v3_v3(vtx_frame[idx], BM_edge_other_vert(edge, sel_vtx)->co);
 
 		BLI_array_append(edge_frame, edge);
 		vso->disk_edges++;
@@ -621,6 +618,7 @@ static int edbm_vert_slide_exec(bContext *C, wmOperator *op)
 	/* Invoked modally? */
 	if (op->type->modal == edbm_vert_slide_modal && op->customdata) {
 		VertexSlideOp *vso = op->customdata;
+
 		if (bm->totedgesel > 1) {
 			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 			BM_edge_select_set(bm, vso->sel_edge, TRUE);
