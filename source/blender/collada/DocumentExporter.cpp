@@ -222,7 +222,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION, build_rev);
 	asset.getContributor().mAuthoringTool = version_buf;
 #else
-	asset.getContributor().mAuthoringTool = "Blender 2.5x";
+	asset.getContributor().mAuthoringTool = "Blender 2.6x";
 #endif
 	asset.add();
 	
