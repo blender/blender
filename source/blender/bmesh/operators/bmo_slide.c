@@ -47,10 +47,10 @@ void bmo_vert_slide_exec(BMesh *bm, BMOperator *op)
 	BMHeader *h;
 	BMVert *vertex;
 	BMEdge *edge;
+	BMEdge *slide_edge;
 	int is_start_v1 = 0;
 
 	/* Selection counts */
-	int selected_verts = 0;
 	int selected_edges = 0;
 
 	/* Get slide amount */
@@ -69,9 +69,6 @@ void bmo_vert_slide_exec(BMesh *bm, BMOperator *op)
 	/* Count selected edges */
 	BMO_ITER(h, &oiter, bm, op, "edge", BM_VERT | BM_EDGE) {
 		switch (h->htype) {
-			case BM_VERT:
-				selected_verts++;
-				break;
 			case BM_EDGE:
 				selected_edges++;
 				/* Mark all selected edges (cast BMHeader->BMEdge) */
@@ -80,9 +77,8 @@ void bmo_vert_slide_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	/* Only allow sliding between two verts */
-
-	if (selected_verts != 2 || selected_edges == 0) {
+	/* Only allow sliding if an edge is selected */
+	if (selected_edges == 0) {
 		if (G.debug & G_DEBUG)
 			fprintf(stderr, "vertslide: select a single edge\n");
 		return;
@@ -90,15 +86,15 @@ void bmo_vert_slide_exec(BMesh *bm, BMOperator *op)
 
 	/* Make sure we get the correct edge. */
 	BM_ITER(edge, &iter, bm, BM_EDGES_OF_VERT, vertex) {
-		if (BMO_elem_flag_test(bm, edge, EDGE_MARK)) {
-			is_start_v1 = (edge->v1 == vertex);
+		if (BMO_elem_flag_test(bm, edge, EDGE_MARK) && BM_vert_in_edge(edge, vertex)) {
+			slide_edge = edge;
 			break;
 		}
 	}
 
 	/* Found edge */
-	if (edge) {
-		BMVert *other = BM_edge_other_vert(edge, vertex);
+	if (slide_edge) {
+		BMVert *other = BM_edge_other_vert(slide_edge, vertex);
 
 		/* mark */
 		BMO_elem_flag_enable(bm, vertex, VERT_MARK);
