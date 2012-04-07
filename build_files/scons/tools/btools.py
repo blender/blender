@@ -147,7 +147,6 @@ def validate_arguments(args, bc):
             'WITH_BF_DOCS',
             'BF_NUMJOBS',
             'BF_MSVS',
-            'BF_VERSION',
             'WITH_BF_RAYOPTIMIZATION',
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
             'WITH_BF_FLUID',
@@ -243,8 +242,8 @@ def SetupSpawn( env ):
 def read_opts(env, cfg, args):
     localopts = Variables.Variables(cfg, args)
     localopts.AddVariables(
-        ('LCGDIR', 'location of cvs lib dir'),
-        ('LIBDIR', 'root dir of libs'),
+        ('LCGDIR', 'Location of SVN lib dir'),
+        ('LIBDIR', 'Root dir of libs'),
         (BoolVariable('WITH_BF_PYTHON', 'Compile with python', True)),
         (BoolVariable('WITH_BF_PYTHON_SAFETY', 'Internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency)', False)),
         ('BF_PYTHON', 'Base path for python', ''),
@@ -533,8 +532,6 @@ def read_opts(env, cfg, args):
         ('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
         ('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
         ('BF_MSVS', 'Generate MSVS project files and solution', False),
-
-        ('BF_VERSION', 'The root path for Unix (non-apple)', '2.5'),
 
         (BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False)),
         

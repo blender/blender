@@ -1,8 +1,7 @@
 LCGDIR = '#../lib/win64'
 LIBDIR = '${LCGDIR}'
 
-# enable ffmpeg  support
-WITH_BF_FFMPEG = True # -DWITH_FFMPEG
+WITH_BF_FFMPEG = True
 BF_FFMPEG = LIBDIR +'/ffmpeg'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include ${BF_FFMPEG}/include/msvc '
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
@@ -29,11 +28,6 @@ BF_SNDFILE_INC = '${BF_SNDFILE}/include'
 BF_SNDFILE_LIB = 'libsndfile-1'
 BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
 
-# TODO - are these useful on win32?
-# BF_CXX = '/usr'
-# WITH_BF_STATICCXX = False
-# BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
-
 WITH_BF_ICONV = True
 BF_ICONV = LIBDIR + '/iconv'
 BF_ICONV_INC = '${BF_ICONV}/include'
@@ -53,16 +47,12 @@ BF_PTHREADS_INC = '${BF_PTHREADS}/include'
 BF_PTHREADS_LIB = 'pthreadVC2'
 BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 
-WITH_BF_FMOD = False
-BF_FMOD = LIBDIR + '/fmod'
-
 WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/IlmImf ${BF_OPENEXR}/include/Iex ${BF_OPENEXR}/include/Imath '
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread '
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
-# Warning, this static lib configuration is untested! users of this OS please confirm.
 BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 
 WITH_BF_DDS = True
@@ -112,14 +102,13 @@ BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
 WITH_BF_BINRELOC = False
 
-# enable freetype2 support for text objects
 BF_WITH_FREETYPE = True
 BF_FREETYPE = LIBDIR + '/freetype'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype2ST'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
-WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME
+WITH_BF_QUICKTIME = False
 BF_QUICKTIME = LIBDIR + '/QTDevWin'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/CIncludes'
 BF_QUICKTIME_LIB = 'qtmlClient'
@@ -209,6 +198,6 @@ LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 
 
 PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/STACK:2097152','/OPT:NOREF','/INCREMENTAL:NO', '/NODEFAULTLIB:msvcrt.lib', '/NODEFAULTLIB:msvcmrt.lib', '/NODEFAULTLIB:msvcurt.lib', '/NODEFAULTLIB:msvcrtd.lib']
 
-BF_BUILDDIR = '..\\build\\blender25-win64-vc'
-BF_INSTALLDIR='..\\install\\blender25-win64-vc'
+BF_BUILDDIR = '..\\build\\win64-vc'
+BF_INSTALLDIR='..\\install\\win64-vc'
 
