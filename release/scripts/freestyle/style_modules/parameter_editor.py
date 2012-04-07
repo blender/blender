@@ -88,6 +88,80 @@ class CurveMappingModifier(ScalarBlendModifier):
     def evaluate(self, t):
         return self.__mapping(t)
 
+class ThicknessModifierMixIn:
+    def __init__(self):
+        scene = Freestyle.getCurrentScene()
+        self.__persp_camera = (scene.camera.data.type == "PERSP")
+    def set_thickness(self, sv, outer, inner):
+        fe = sv.A().getFEdge(sv.B())
+        nature = fe.getNature()
+        if (nature & Nature.BORDER):
+            if self.__persp_camera:
+                point = -sv.getPoint3D()
+                point.normalize()
+                dir = point.dot(fe.normalB())
+            else:
+                dir = fe.normalB().z
+            if dir < 0.0: # the back side is visible
+                outer, inner = inner, outer
+        elif (nature & Nature.SILHOUETTE):
+            if fe.isSmooth(): # TODO more tests needed
+                outer, inner = inner, outer
+        else:
+            outer = inner = (outer + inner) / 2
+        sv.attribute().setThickness(outer, inner)
+
+class ThicknessBlenderMixIn(ThicknessModifierMixIn):
+    def __init__(self, position, ratio):
+        ThicknessModifierMixIn.__init__(self)
+        self.__position = position
+        self.__ratio = ratio
+    def blend_thickness(self, outer, inner, v):
+        if self.__position == "CENTER":
+            outer = self.__modifier.blend(outer, v / 2)
+            inner = self.__modifier.blend(inner, v / 2)
+        elif self.__position == "INSIDE":
+            inner = self.__modifier.blend(inner, v)
+        elif self.__position == "OUTSIDE":
+            outer = self.__modifier.blend(outer, v)
+        elif self.__position == "RELATIVE":
+            outer = self.__modifier.blend(outer, v * self.ratio)
+            inner = self.__modifier.blend(inner, v * (1 - self.ratio))
+        else:
+            raise ValueError("unknown thickness position: " + self.__position)
+        return outer, inner
+
+class BaseColorShader(ConstantColorShader):
+    def getName(self):
+        return "BaseColorShader"
+
+class BaseThicknessShader(StrokeShader, ThicknessModifierMixIn):
+    def __init__(self, thickness, position, ratio):
+        StrokeShader.__init__(self)
+        ThicknessModifierMixIn.__init__(self)
+        if position == "CENTER":
+            self.__outer = thickness / 2
+            self.__inner = thickness / 2
+        elif position == "INSIDE":
+            self.__outer = 0
+            self.__inner = thickness
+        elif position == "OUTSIDE":
+            self.__outer = thickness
+            self.__inner = 0
+        elif position == "RELATIVE":
+            self.__outer = thickness * ratio
+            self.__inner = thickness * (1 - ratio)
+        else:
+            raise ValueError("unknown thickness position: " + self.position)
+    def getName(self):
+        return "BaseThicknessShader"
+    def shade(self, stroke):
+        it = stroke.strokeVerticesBegin()
+        while it.isEnd() == 0:
+            sv = it.getObject()
+            self.set_thickness(sv, self.__outer, self.__inner)
+            it.increment()
+
 # Along Stroke modifiers
 
 def iter_t2d_along_stroke(stroke):
@@ -125,8 +199,10 @@ class AlphaAlongStrokeShader(CurveMappingModifier):
             c = self.blend(a, b)
             attr.setAlpha(c)
 
-class ThicknessAlongStrokeShader(CurveMappingModifier):
-    def __init__(self, blend, influence, mapping, invert, curve, value_min, value_max):
+class ThicknessAlongStrokeShader(ThicknessBlenderMixIn, CurveMappingModifier):
+    def __init__(self, thickness_position, thickness_ratio,
+                 blend, influence, mapping, invert, curve, value_min, value_max):
+        ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         self.__value_min = value_min
         self.__value_max = value_max
@@ -134,12 +210,11 @@ class ThicknessAlongStrokeShader(CurveMappingModifier):
         return "ThicknessAlongStrokeShader"
     def shade(self, stroke):
         for it, t in iter_t2d_along_stroke(stroke):
-            attr = it.getObject().attribute()
-            a = attr.getThicknessRL()
-            a = a[0] + a[1]
+            sv = it.getObject()
+            a = sv.attribute().getThicknessRL()
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
-            c = self.blend(a, b)
-            attr.setThickness(c/2, c/2)
+            c = self.blend_thickness(a[0], a[1], b)
+            self.set_thickness(sv, c[0], c[1])
 
 # Distance from Camera modifiers
 
@@ -188,8 +263,10 @@ class AlphaDistanceFromCameraShader(CurveMappingModifier):
             c = self.blend(a, b)
             attr.setAlpha(c)
 
-class ThicknessDistanceFromCameraShader(CurveMappingModifier):
-    def __init__(self, blend, influence, mapping, invert, curve, range_min, range_max, value_min, value_max):
+class ThicknessDistanceFromCameraShader(ThicknessBlenderMixIn, CurveMappingModifier):
+    def __init__(self, thickness_position, thickness_ratio,
+                 blend, influence, mapping, invert, curve, range_min, range_max, value_min, value_max):
+        ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         self.__range_min = range_min
         self.__range_max = range_max
@@ -199,12 +276,11 @@ class ThicknessDistanceFromCameraShader(CurveMappingModifier):
         return "ThicknessDistanceFromCameraShader"
     def shade(self, stroke):
         for it, t in iter_distance_from_camera(stroke, self.__range_min, self.__range_max):
-            attr = it.getObject().attribute()
-            a = attr.getThicknessRL()
-            a = a[0] + a[1]
+            sv = it.getObject()
+            a = sv.attribute().getThicknessRL()
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
-            c = self.blend(a, b)
-            attr.setThickness(c/2, c/2)
+            c = self.blend_thickness(a[0], a[1], b)
+            self.set_thickness(sv, c[0], c[1])
 
 # Distance from Object modifiers
 
@@ -263,8 +339,10 @@ class AlphaDistanceFromObjectShader(CurveMappingModifier):
             c = self.blend(a, b)
             attr.setAlpha(c)
 
-class ThicknessDistanceFromObjectShader(CurveMappingModifier):
-    def __init__(self, blend, influence, mapping, invert, curve, target, range_min, range_max, value_min, value_max):
+class ThicknessDistanceFromObjectShader(ThicknessBlenderMixIn, CurveMappingModifier):
+    def __init__(self, thickness_position, thickness_ratio,
+                 blend, influence, mapping, invert, curve, target, range_min, range_max, value_min, value_max):
+        ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         self.__target = target
         self.__range_min = range_min
@@ -277,12 +355,11 @@ class ThicknessDistanceFromObjectShader(CurveMappingModifier):
         if self.__target is None:
             return
         for it, t in iter_distance_from_object(stroke, self.__target, self.__range_min, self.__range_max):
-            attr = it.getObject().attribute()
-            a = attr.getThicknessRL()
-            a = a[0] + a[1]
+            sv = it.getObject()
+            a = sv.attribute().getThicknessRL()
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
-            c = self.blend(a, b)
-            attr.setThickness(c/2, c/2)
+            c = self.blend_thickness(a[0], a[1], b)
+            self.set_thickness(sv, c[0], c[1])
 
 # Material modifiers
 
@@ -376,8 +453,10 @@ class AlphaMaterialShader(CurveMappingModifier):
             c = self.blend(a, b)
             attr.setAlpha(c)
 
-class ThicknessMaterialShader(CurveMappingModifier):
-    def __init__(self, blend, influence, mapping, invert, curve, material_attr, value_min, value_max):
+class ThicknessMaterialShader(ThicknessBlenderMixIn, CurveMappingModifier):
+    def __init__(self, thickness_position, thickness_ratio,
+                 blend, influence, mapping, invert, curve, material_attr, value_min, value_max):
+        ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         self.__material_attr = material_attr
         self.__value_min = value_min
@@ -386,17 +465,18 @@ class ThicknessMaterialShader(CurveMappingModifier):
         return "ThicknessMaterialShader"
     def shade(self, stroke):
         for it, t in iter_material_value(stroke, self.__material_attr):
-            attr = it.getObject().attribute()
-            a = attr.getThicknessRL()
-            a = a[0] + a[1]
+            sv = it.getObject()
+            a = sv.attribute().getThicknessRL()
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
-            c = self.blend(a, b)
-            attr.setThickness(c/2, c/2)
+            c = self.blend_thickness(a[0], a[1], b)
+            self.set_thickness(sv, c[0], c[1])
 
 # Calligraphic thickness modifier
 
-class CalligraphicThicknessShader(ScalarBlendModifier):
-    def __init__(self, blend, influence, orientation, min_thickness, max_thickness):
+class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
+    def __init__(self, thickness_position, thickness_ratio,
+                 blend, influence, orientation, min_thickness, max_thickness):
+        ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
         ScalarBlendModifier.__init__(self, blend, influence)
         rad = orientation / 180.0 * math.pi
         self.__orientation = mathutils.Vector((math.cos(rad), math.sin(rad)))
@@ -410,13 +490,12 @@ class CalligraphicThicknessShader(ScalarBlendModifier):
             orthDir = mathutils.Vector((-dir.y, dir.x))
             orthDir.normalize()
             fac = abs(orthDir * self.__orientation)
-            attr = it.getObject().attribute()
-            a = attr.getThicknessRL()
-            a = a[0] + a[1]
+            sv = it.getObject()
+            a = sv.attribute().getThicknessRL()
             b = self.__min_thickness + fac * (self.__max_thickness - self.__min_thickness)
             b = max(b, 0.0)
-            c = self.blend(a, b)
-            attr.setThickness(c/2, c/2)
+            c = self.blend_thickness(a[0], a[1], b)
+            self.set_thickness(sv, c[0], c[1])
             it.increment()
 
 # Geometry modifiers
@@ -1132,8 +1211,10 @@ def process(layer_name, lineset_name):
             shaders_list.append(Transform2DShader(
                 m.pivot, m.scale_x, m.scale_y, m.angle, m.pivot_u, m.pivot_x, m.pivot_y))
     color = linestyle.color
-    shaders_list.append(ConstantColorShader(color.r, color.g, color.b, linestyle.alpha))
-    shaders_list.append(ConstantThicknessShader(linestyle.thickness))
+    shaders_list.append(BaseColorShader(color.r, color.g, color.b, linestyle.alpha))
+    shaders_list.append(BaseThicknessShader(linestyle.thickness,
+                                            linestyle.thickness_position,
+                                            linestyle.thickness_ratio))
     for m in linestyle.color_modifiers:
         if not m.use:
             continue
@@ -1175,22 +1256,27 @@ def process(layer_name, lineset_name):
             continue
         if m.type == "ALONG_STROKE":
             shaders_list.append(ThicknessAlongStrokeShader(
+                linestyle.thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.value_min, m.value_max))
         elif m.type == "DISTANCE_FROM_CAMERA":
             shaders_list.append(ThicknessDistanceFromCameraShader(
+                linestyle.thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.range_min, m.range_max, m.value_min, m.value_max))
         elif m.type == "DISTANCE_FROM_OBJECT":
             shaders_list.append(ThicknessDistanceFromObjectShader(
+                linestyle.thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
                 m.range_min, m.range_max, m.value_min, m.value_max))
         elif m.type == "MATERIAL":
             shaders_list.append(ThicknessMaterialShader(
+                linestyle.thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.material_attr, m.value_min, m.value_max))
         elif m.type == "CALLIGRAPHY":
             shaders_list.append(CalligraphicThicknessShader(
+                linestyle.thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence,
                 m.orientation, m.min_thickness, m.max_thickness))
     if linestyle.caps == "ROUND":

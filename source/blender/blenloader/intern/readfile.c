@@ -13566,6 +13566,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		for(linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
+			if (linestyle->thickness_position == 0) {
+				linestyle->thickness_position= LS_THICKNESS_CENTER;
+				linestyle->thickness_ratio= 0.5f;
+			}
 			if (linestyle->chaining == 0)
 				linestyle->chaining= LS_CHAINING_PLAIN;
 			if (linestyle->rounds == 0)

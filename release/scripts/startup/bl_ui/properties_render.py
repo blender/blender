@@ -696,6 +696,12 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
             col.label(text="Base Thickness:")
             col.prop(linestyle, "thickness")
             col = layout.column()
+            row = col.row()
+            row.prop(linestyle, "thickness_position", expand=True)
+            row = col.row()
+            row.prop(linestyle, "thickness_ratio")
+            row.enabled = linestyle.thickness_position == "RELATIVE"
+            col = layout.column()
             col.label(text="Modifiers:")
             col.operator_menu_enum("scene.freestyle_thickness_modifier_add", "type", text="Add Modifier")
             for modifier in linestyle.thickness_modifiers:

@@ -875,6 +875,12 @@ static void rna_def_linestyle(BlenderRNA *brna)
 		{LS_CAPS_ROUND, "ROUND", 0, "Round", "Round cap (half-circle)"},
 		{LS_CAPS_SQUARE, "SQUARE", 0, "Square", "Square cap (flat and extended)"},
 		{0, NULL, 0, NULL, NULL}};
+	static EnumPropertyItem thickness_position_items[] = {
+		{LS_THICKNESS_CENTER, "CENTER", 0, "Center", "Stroke is centered along stroke geometry"},
+		{LS_THICKNESS_INSIDE, "INSIDE", 0, "Inside", "Stroke is drawn inside stroke geometry"},
+		{LS_THICKNESS_OUTSIDE, "OUTSIDE", 0, "Outside", "Stroke is drawn outside stroke geometry"},
+		{LS_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative", "Stroke thinkness is split by a user-defined ratio"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FreestyleLineStyle", "ID");
 	RNA_def_struct_ui_text(srna, "Freestyle Line Style", "Freestyle line style, reusable by multiple line sets");
@@ -902,6 +908,18 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "thickness");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Thickness", "Base line thickness, possibly modified by line thickness modifiers");
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
+
+	prop= RNA_def_property(srna, "thickness_position", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "thickness_position");
+	RNA_def_property_enum_items(prop, thickness_position_items);
+	RNA_def_property_ui_text(prop, "Thickness Position", "Select the position of stroke thickness");
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
+
+	prop= RNA_def_property(srna, "thickness_ratio", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "thickness_ratio");
+	RNA_def_property_range(prop, 0.f, 1.f);
+	RNA_def_property_ui_text(prop, "Thickness Ratio", "A number between 0 (inside) and 1 (outside) specifying the relative position of stroke thickness");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "color_modifiers", PROP_COLLECTION, PROP_NONE);

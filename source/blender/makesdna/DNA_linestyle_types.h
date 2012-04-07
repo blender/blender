@@ -400,12 +400,20 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_CAPS_ROUND   2
 #define LS_CAPS_SQUARE  3
 
+/* FreestyleLineStyle::thickness_position */
+#define LS_THICKNESS_CENTER    1
+#define LS_THICKNESS_INSIDE    2
+#define LS_THICKNESS_OUTSIDE   3
+#define LS_THICKNESS_RELATIVE  4 /* thickness_ratio is used */
+
 typedef struct FreestyleLineStyle {
 	ID id;
 	struct AnimData *adt;
 
 	float r, g, b, alpha;
 	float thickness;
+	int thickness_position;
+	float thickness_ratio;
 	int flag, caps;
 	int chaining;
 	unsigned int rounds;

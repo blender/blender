@@ -75,6 +75,8 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->r = linestyle->g = linestyle->b = 0.0;
 	linestyle->alpha = 1.0;
 	linestyle->thickness = 1.0;
+	linestyle->thickness_position = LS_THICKNESS_CENTER;
+	linestyle->thickness_ratio = 0.5f;
 	linestyle->chaining = LS_CHAINING_PLAIN;
 	linestyle->rounds = 3;
 	linestyle->min_angle = 0.0f;
@@ -135,6 +137,8 @@ FreestyleLineStyle *FRS_copy_linestyle(FreestyleLineStyle *linestyle)
 	new_linestyle->b = linestyle->b;
 	new_linestyle->alpha = linestyle->alpha;
 	new_linestyle->thickness = linestyle->thickness;
+	new_linestyle->thickness_position = linestyle->thickness_position;
+	new_linestyle->thickness_ratio = linestyle->thickness_ratio;
 	new_linestyle->flag = linestyle->flag;
 	new_linestyle->caps = linestyle->caps;
 	new_linestyle->chaining = linestyle->chaining;
