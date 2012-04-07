@@ -46,6 +46,7 @@ set(SRC
 	editmesh_select.c
 	editmesh_tools.c
 	editmesh_utils.c
+	editmesh_slide.c
 	mesh_data.c
 	mesh_ops.c
 	meshtools.c

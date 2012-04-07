@@ -1103,6 +1103,23 @@ static BMOpDefine bmo_inset_def = {
 	0
 };
 
+/*
+ * Vertex Slide
+ *
+ * Translates vertes along an edge
+ */
+static BMOpDefine bmo_vert_slide_def = {
+"vertslide",
+	{{BMO_OP_SLOT_ELEMENT_BUF, "vert"},
+	 {BMO_OP_SLOT_ELEMENT_BUF, "edge"},
+	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"},
+	 {BMO_OP_SLOT_FLT, "distance_t"},
+	 {0} /* null-terminating sentinel */},
+	bmo_vert_slide_exec,
+	BMO_OP_FLAG_UNTAN_MULTIRES
+};
+
+
 BMOpDefine *opdefines[] = {
 	&bmo_split_def,
 	&bmo_spin_def,
@@ -1170,6 +1187,7 @@ BMOpDefine *opdefines[] = {
 	&bmo_bridge_loops_def,
 	&bmo_solidify_def,
 	&bmo_inset_def,
+	&bmo_vert_slide_def,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void *));
