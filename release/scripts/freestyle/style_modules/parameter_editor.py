@@ -118,15 +118,17 @@ class ThicknessBlenderMixIn(ThicknessModifierMixIn):
         self.__ratio = ratio
     def blend_thickness(self, outer, inner, v):
         if self.__position == "CENTER":
-            outer = self.__modifier.blend(outer, v / 2)
-            inner = self.__modifier.blend(inner, v / 2)
+            outer = self.blend(outer, v / 2)
+            inner = self.blend(inner, v / 2)
         elif self.__position == "INSIDE":
-            inner = self.__modifier.blend(inner, v)
+            outer = self.blend(outer, 0)
+            inner = self.blend(inner, v)
         elif self.__position == "OUTSIDE":
-            outer = self.__modifier.blend(outer, v)
+            outer = self.blend(outer, v)
+            inner = self.blend(inner, 0)
         elif self.__position == "RELATIVE":
-            outer = self.__modifier.blend(outer, v * self.ratio)
-            inner = self.__modifier.blend(inner, v * (1 - self.ratio))
+            outer = self.blend(outer, v * self.__ratio)
+            inner = self.blend(inner, v * (1 - self.__ratio))
         else:
             raise ValueError("unknown thickness position: " + self.__position)
         return outer, inner
