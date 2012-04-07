@@ -492,6 +492,8 @@ FEdge * ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer
   fe->setFrsMaterialIndex(ifl.fl->getFace()->frs_materialIndex());
   fe->setFace(ifl.fl->getFace());
   fe->setFaceMark(ifl.fl->getFace()->GetMark());
+  if(feprevious == 0)
+	  normal.normalize();
   fe->setNormal(normal);
   fe->setPreviousEdge(feprevious);
   if(feprevious)
