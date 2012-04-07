@@ -224,10 +224,10 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 	ED_region_tag_redraw(vso->active_region);
 }
 
-static void vtx_slide_exit(const bContext *C, wmOperator *op) {
+static void vtx_slide_exit(const bContext *C, wmOperator *op)
+{
 	/* Fetch custom data */
 	VertexSlideOp *vso = op->customdata;
-	BMEditMesh *em = BMEdit_FromObject(vso->obj);
 
 	/* Clean-up the custom data */
 	ED_region_draw_cb_exit(vso->active_region->type, vso->draw_handle);
@@ -258,7 +258,6 @@ static void vtx_slide_exit(const bContext *C, wmOperator *op) {
 
 	/* Clear the header */
 	ED_area_headerprint(CTX_wm_area(C), NULL);
-
 }
 
 static void vtx_slide_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
@@ -637,7 +636,7 @@ static int edbm_vert_slide_exec(bContext *C, wmOperator *op)
 	}
 
 	/* Is there a starting vertex  ? */
-	if (ese == NULL || ese->htype != BM_VERT && ese->htype != BM_EDGE) {
+	if ((ese == NULL) || (ese->htype != BM_VERT && ese->htype != BM_EDGE)) {
 		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex Slide Error: Select a (single) vertex");
 		return OPERATOR_CANCELLED;
 	}

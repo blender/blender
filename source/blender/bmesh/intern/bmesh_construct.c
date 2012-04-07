@@ -397,7 +397,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 
 	/* --- */
 
-	/* now calcualte every points angle around the normal (signed) */
+	/* now calculate every points angle around the normal (signed) */
 	vang = MEM_mallocN(sizeof(AngleIndexPair) * totv, __func__);
 
 	for (i = 0; i < totv; i++) {
@@ -521,7 +521,7 @@ void BMO_remove_tagged_verts(BMesh *bm, const short oflag)
  * api functions that take a filter callback.....
  * and this new filter type will be for opstack flags.
  * This is because the BM_remove_taggedXXX functions bypass iterator API.
- *  - Ops don't care about 'UI' considerations like selection state, hide state, ect.
+ *  - Ops don't care about 'UI' considerations like selection state, hide state, etc.
  *    If you want to work on unhidden selections for instance,
  *    copy output from a 'select context' operator to another operator....
  */

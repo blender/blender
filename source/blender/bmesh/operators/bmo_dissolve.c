@@ -487,7 +487,7 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 float bm_vert_edge_face_angle(BMVert *v)
 {
 	const float angle = BM_vert_edge_angle(v);
-	/*note: could be either edge, it doesnt matter */
+	/* note: could be either edge, it doesn't matter */
 	if (v->e && BM_edge_is_manifold(v->e)) {
 		return ((angle * ANGLE_TO_UNIT) * (BM_edge_face_angle(v->e) * ANGLE_TO_UNIT)) * UNIT_TO_ANGLE;
 	}

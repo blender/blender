@@ -212,7 +212,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 /**
  * \brief Faces Join Pair
  *
- * Joins two adjacent faces togather.
+ * Joins two adjacent faces together.
  *
  * Because this method calls to #BM_faces_join to do its work, if a pair
  * of faces share multiple edges, the pair of faces will be joined at
@@ -233,7 +233,7 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, const s
 	jed = e;
 	if (!jed) {
 		BMLoop *l_first;
-		/* search for an edge that has both these faces in its radial cycl */
+		/* search for an edge that has both these faces in its radial cycle */
 		l1 = l_first = BM_FACE_FIRST_LOOP(f1);
 		do {
 			if (l1->radial_next->f == f2) {
@@ -269,7 +269,7 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, const s
  * \brief Connect Verts, Split Face
  *
  * connects two verts together, automatically (if very naively) finding the
- * face they both share (if there is one) and splittling it.  Use this at your
+ * face they both share (if there is one) and splitting it.  Use this at your
  * own risk, as it doesn't handle the many complex cases it should (like zero-area faces,
  * multiple faces, etc).
  *
@@ -626,12 +626,12 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 	SmallHash hash;
 	const int do_mdisp = (e->l && CustomData_has_layer(&bm->ldata, CD_MDISPS));
 
-	/* we need this for handling multire */
+	/* we need this for handling multi-res */
 	if (!r_e) {
 		r_e = &e_dummy;
 	}
 
-	/* do we have a multires layer */
+	/* do we have a multi-res layer */
 	if (do_mdisp) {
 		BMLoop *l;
 		int i;
@@ -703,7 +703,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 			BM_face_verts_kill(bm, oldfaces[i]);
 		}
 		
-		/* fix boundaries a bit, doesn't work too well quite ye */
+		/* fix boundaries a bit, doesn't work too well quite yet */
 #if 0
 		for (j = 0; j < 2; j++) {
 			BMEdge *e1 = j ? *r_e : e;
@@ -820,7 +820,7 @@ void BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
 	BM_edge_face_pair(e, &fa, &fb);
 
 	/* so we can use ccw variable correctly,
-	 * otherwise we could use the egdes verts direct */
+	 * otherwise we could use the edges verts direct */
 	BM_edge_ordered_verts(e, &v1, &v2);
 
 	/* we could swap the verts _or_ the faces, swapping faces
@@ -853,7 +853,7 @@ int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
 		lb = BM_face_other_vert_loop(fb, e->v2, e->v1);
 
 		/* check that the next vert in both faces isn't the same
-		 * (ie - the next edge doesnt share the same faces).
+		 * (ie - the next edge doesn't share the same faces).
 		 * since we can't rotate usefully in this case. */
 		if (la->v == lb->v) {
 			return FALSE;

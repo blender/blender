@@ -2433,7 +2433,7 @@ static int pyrna_prop_collection_type_check(BPy_PropertyRNA *self, PyObject *val
 		if (RNA_property_flag(self->prop) & PROP_NEVER_NULL) {
 			PyErr_Format(PyExc_TypeError,
 			             "bpy_prop_collection[key] = value: invalid, "
-			             "this collection doesnt support None assignment");
+			             "this collection doesn't support None assignment");
 			return -1;
 		}
 		else {

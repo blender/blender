@@ -765,7 +765,7 @@ void BM_loop_face_tangent(BMLoop *l, float r_tangent[3])
 
 	if (compare_v3v3(v_prev, v_next, FLT_EPSILON) == FALSE) {
 		float dir[3];
-		float nor[3]; /* for this purpose doesnt need to be normalized */
+		float nor[3]; /* for this purpose doesn't need to be normalized */
 		add_v3_v3v3(dir, v_prev, v_next);
 		cross_v3_v3v3(nor, v_prev, v_next);
 		cross_v3_v3v3(r_tangent, dir, nor);

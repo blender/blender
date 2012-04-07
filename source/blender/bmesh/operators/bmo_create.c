@@ -1029,7 +1029,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			 * otherwise we could leave this as-is */
 			edge = edges[0];
 
-			/* if these are even it doesnt really matter what to do,
+			/* if these are even it doesn't really matter what to do,
 			 * with consistent geometry one will be zero, the choice is clear */
 			if (winding[0] < winding[1]) {
 				v1 = verts[0];
