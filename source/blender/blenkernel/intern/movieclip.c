@@ -80,7 +80,7 @@
 
 /*********************** movieclip buffer loaders *************************/
 
-static int sequence_guess_offset(const char *full_name, int head_len, int numlen)
+static int sequence_guess_offset(const char *full_name, int head_len, unsigned short numlen)
 {
 	char num[FILE_MAX] = {0};
 
@@ -273,17 +273,26 @@ static void movieclip_calc_length(MovieClip *clip)
 	}
 	else if (clip->source == MCLIP_SRC_SEQUENCE) {
 		int framenr = 1;
-		char name[FILE_MAX];
+		short numlen;
+		char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
 
-		for (;;) {
-			get_sequence_fname(clip, framenr, name);
+		BLI_stringdec(clip->name, head, tail, &numlen);
 
-			if (!BLI_exists(name)) {
-				clip->len = framenr + 1;
-				break;
+		if (numlen == 0) {
+			/* there's no number group in file name, assume it's single framed sequence */
+			clip->len = framenr + 1;
+		}
+		else {
+			for (;;) {
+				get_sequence_fname(clip, framenr, name);
+
+				if (!BLI_exists(name)) {
+					clip->len = framenr + 1;
+					break;
+				}
+
+				framenr++;
 			}
-
-			framenr++;
 		}
 	}
 }
