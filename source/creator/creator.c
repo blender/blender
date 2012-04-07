@@ -447,7 +447,7 @@ static int playback_mode(int UNUSED(argc), const char **UNUSED(argv), void *UNUS
 #if 0   /* TODO, bring player back? */
 		playanim(argc, argv); /* not the same argc and argv as before */
 #else
-		fprintf(stderr, "Playback mode not supported in blender 2.5x\n");
+		fprintf(stderr, "Playback mode not supported in blender 2.6x\n");
 		exit(0);
 #endif
 	}

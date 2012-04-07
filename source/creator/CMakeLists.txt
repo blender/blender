@@ -396,7 +396,7 @@ if(UNIX AND NOT APPLE)
 		)
 	endif()
 
-		# plugins in blender 2.5 don't work at the moment.
+		# plugins in blender 2.6 don't work at the moment.
 		#
 		# install(
 		# 	DIRECTORY ${CMAKE_SOURCE_DIR}/release/plugins
@@ -462,7 +462,7 @@ elseif(WIN32)
 		endif()
 	endif()
 
-	# plugins in blender 2.5 don't work at the moment.
+	# plugins in blender 2.6 don't work at the moment.
 	#
 	# install(
 	# 	DIRECTORY ${CMAKE_SOURCE_DIR}/release/plugins
