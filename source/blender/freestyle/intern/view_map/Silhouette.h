@@ -1310,11 +1310,14 @@ public:
         newEdge = new FEdgeSmooth(ioNewVertex, B);
         FEdgeSmooth * se = dynamic_cast<FEdgeSmooth*>(newEdge);
         FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(ioEdge);
+		se->setNormal(fes->normal());
         se->setFrsMaterialIndex(fes->frs_materialIndex());
       }else{
         newEdge = new FEdgeSharp(ioNewVertex, B);
         FEdgeSharp * se = dynamic_cast<FEdgeSharp*>(newEdge);
         FEdgeSharp * fes = dynamic_cast<FEdgeSharp*>(ioEdge);
+		se->setNormalA(fes->normalA());
+		se->setNormalB(fes->normalB());
         se->setaFrsMaterialIndex(fes->aFrsMaterialIndex());
         se->setbFrsMaterialIndex(fes->bFrsMaterialIndex());
       }
