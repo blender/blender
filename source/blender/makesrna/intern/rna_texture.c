@@ -708,7 +708,7 @@ static void rna_def_filter_common(StructRNA *srna)
 	prop = RNA_def_property(srna, "filter_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "filtersize");
 	RNA_def_property_range(prop, 0.1, 50.0);
-	RNA_def_property_ui_range(prop, 0.1, 50.0, 1, 0.2);
+	RNA_def_property_ui_range(prop, 0.1, 50.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Filter Size", "Multiply the filter size used by MIP Map and Interpolation");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
@@ -1229,7 +1229,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "checker_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "checkerdist");
 	RNA_def_property_range(prop, 0.0, 0.99);
-	RNA_def_property_ui_range(prop, 0.0, 0.99, 0.1, 0.01);
+	RNA_def_property_ui_range(prop, 0.0, 0.99, 0.1, 2);
 	RNA_def_property_ui_text(prop, "Checker Distance", "Distance between checker tiles");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
@@ -1250,28 +1250,28 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "crop_min_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cropxmin");
 	RNA_def_property_range(prop, -10.0, 10.0);
-	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 0.2);
+	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Crop Minimum X", "Minimum X value to crop the image");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop = RNA_def_property(srna, "crop_min_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cropymin");
 	RNA_def_property_range(prop, -10.0, 10.0);
-	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 0.2);
+	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Crop Minimum Y", "Minimum Y value to crop the image");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop = RNA_def_property(srna, "crop_max_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cropxmax");
 	RNA_def_property_range(prop, -10.0, 10.0);
-	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 0.2);
+	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Crop Maximum X", "Maximum X value to crop the image");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop = RNA_def_property(srna, "crop_max_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cropymax");
 	RNA_def_property_range(prop, -10.0, 10.0);
-	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 0.2);
+	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Crop Maximum Y", "Maximum Y value to crop the image");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 

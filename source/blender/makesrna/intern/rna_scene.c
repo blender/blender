@@ -1788,7 +1788,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 0.001);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Strength", "How powerful the effect of the brush is when applied");
 
 	prop = RNA_def_property(srna, "use_pressure_size", PROP_BOOLEAN, PROP_NONE);
@@ -2435,7 +2435,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "dome_buffer_resolution", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dome.resbuf");
-	RNA_def_property_ui_range(prop, 0.1, 1.0, 0.1, 0.1);
+	RNA_def_property_ui_range(prop, 0.1, 1.0, 0.1, 2);
 	RNA_def_property_ui_text(prop, "Buffer Resolution", "Buffer Resolution - decrease it to increase speed");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
