@@ -24,7 +24,6 @@ import mathutils
 from bpy.props import (FloatProperty,
                        IntProperty,
                        BoolProperty,
-                       FloatVectorProperty,
                        )
 
 from bpy_extras import object_utils
