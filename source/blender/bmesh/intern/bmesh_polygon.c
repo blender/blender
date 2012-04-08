@@ -235,7 +235,7 @@ void BM_face_center_mean_calc(BMesh *UNUSED(bm), BMFace *f, float r_cent[3])
  * a plane defined by the average
  * of its edges cross products
  */
-void compute_poly_plane(float (*verts)[3], int nverts)
+void compute_poly_plane(float (*verts)[3], const int nverts)
 {
 	
 	float avgc[3], norm[3], mag, avgn[3];
@@ -257,14 +257,8 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 		add_v3_v3(avgn, norm);
 	}
 
-	/* what was this bit for */
-	if (is_zero_v3(avgn)) {
-		avgn[0] = 0.0f;
-		avgn[1] = 0.0f;
+	if (UNLIKELY(normalize_v3(avgn) == 0.0f)) {
 		avgn[2] = 1.0f;
-	}
-	else {
-		normalize_v3(avgn);
 	}
 	
 	for (i = 0; i < nverts; i++) {
@@ -511,7 +505,7 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 	int w1, w2, w3, w4, w5 /*, re */;
 	float mv1[2], mv2[2], mv3[2], mv4[2];
 	
-	/* now test windin */
+	/* now test winding */
 	w1 = testedgesidef(v1, v3, v2);
 	w2 = testedgesidef(v2, v4, v1);
 	w3 = !testedgesidef(v1, v2, v3);
@@ -607,8 +601,9 @@ int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 	return crosses % 2 != 0;
 }
 
-static int goodline(float const (*projectverts)[3], BMFace *f, int v1i,
-                    int v2i, int v3i, int UNUSED(nvert))
+static int goodline(float const (*projectverts)[3], BMFace *f,
+                    int v1i, int v2i, int v3i,
+                    int UNUSED(nvert))
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -684,17 +679,20 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
 
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			isear = 1;
+			isear = TRUE;
 
 			v1 = l_iter->prev->v;
 			v2 = l_iter->v;
 			v3 = l_iter->next->v;
 
 			if (BM_edge_exists(v1, v3)) {
-				isear = 0;
+				isear = FALSE;
 			}
-			else if (!goodline((float const (*)[3])verts, f, BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3), nvert)) {
-				isear = 0;
+			else if (!goodline((float const (*)[3])verts, f,
+			                   BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3),
+			                   nvert))
+			{
+				isear = FALSE;
 			}
 
 			if (isear) {

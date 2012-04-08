@@ -273,7 +273,7 @@ static void movieclip_calc_length(MovieClip *clip)
 	}
 	else if (clip->source == MCLIP_SRC_SEQUENCE) {
 		int framenr = 1;
-		short numlen;
+		unsigned short numlen;
 		char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
 
 		BLI_stringdec(clip->name, head, tail, &numlen);

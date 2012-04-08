@@ -365,9 +365,6 @@ static void vtx_slide_find_edge(VertexSlideOp *vso, wmEvent *event)
 	/* Nearest edge */
 	BMEdge *nst_edge = NULL;
 
-	/* Temp Vtx */
-	BMVert *start_vtx = vso->start_vtx;
-
 	const float mval_float[] = { (float)event->mval[0], (float)event->mval[1]};
 
 	/* Set mouse coords */

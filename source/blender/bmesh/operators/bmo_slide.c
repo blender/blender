@@ -48,7 +48,6 @@ void bmo_vert_slide_exec(BMesh *bm, BMOperator *op)
 	BMVert *vertex;
 	BMEdge *edge;
 	BMEdge *slide_edge;
-	int is_start_v1 = 0;
 
 	/* Selection counts */
 	int selected_edges = 0;
