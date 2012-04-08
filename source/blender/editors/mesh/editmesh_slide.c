@@ -198,7 +198,7 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 	/* Invoke operator */
 	edbm_vert_slide_exec(C, op);
 
-	if(vso->snap_n_merge) {
+	if (vso->snap_n_merge) {
 		float other_d;
 		BMVert* other = BM_edge_other_vert(vso->sel_edge, vso->start_vtx);
 		other_d = len_v3v3(vso->interp, other->co);
@@ -209,9 +209,10 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 			BM_vert_select_set(bm, vso->start_vtx, TRUE);
 			EDBM_op_callf(em, op, "pointmerge verts=%hv mergeco=%v", BM_ELEM_SELECT, other->co);
 			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-		} else {
+		}
+		else {
 			/* Store in historty if not merging */
-			EDBM_editselection_store(em, &vso->start_vtx->head);		
+			EDBM_editselection_store(em, &vso->start_vtx->head);
 		}
 	}
 	else {
@@ -247,7 +248,7 @@ static void vtx_slide_exit(const bContext *C, wmOperator *op)
 		MEM_freeN(vso->edge_frame);
 	}
 
-	if(vso->vtx_frame) {
+	if (vso->vtx_frame) {
 		MEM_freeN(vso->vtx_frame);
 	}
 

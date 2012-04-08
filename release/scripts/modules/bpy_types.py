@@ -671,7 +671,9 @@ class Header(StructRNA, _GenericUI, metaclass=RNAMeta):
 class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
     __slots__ = ()
 
-    def path_menu(self, searchpaths, operator, props_default={}, filter_ext=None):
+    def path_menu(self, searchpaths, operator,
+                  props_default={}, filter_ext=None):
+
         layout = self.layout
         # hard coded to set the operators 'filepath' to the filename.
 

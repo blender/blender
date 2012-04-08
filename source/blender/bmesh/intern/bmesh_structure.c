@@ -547,8 +547,8 @@ int bmesh_loop_validate(BMFace *f)
 
 	/* Validate that the face loop cycle is the length specified by f->len */
 	for (i = 1, l_iter = l_first->next; i < len; i++, l_iter = l_iter->next) {
-		if ( (l_iter->f != f) ||
-		     (l_iter == l_first))
+		if ((l_iter->f != f) ||
+		    (l_iter == l_first))
 		{
 			return FALSE;
 		}
