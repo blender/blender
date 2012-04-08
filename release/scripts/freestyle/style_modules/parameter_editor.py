@@ -1213,9 +1213,14 @@ def process(layer_name, lineset_name):
             shaders_list.append(Transform2DShader(
                 m.pivot, m.scale_x, m.scale_y, m.angle, m.pivot_u, m.pivot_x, m.pivot_y))
     color = linestyle.color
+    if (not linestyle.use_chaining) or (linestyle.chaining == "PLAIN" and linestyle.same_object):
+        thickness_position = linestyle.thickness_position
+    else:
+        thickness_position = "CENTER"
+        print("Warning: Thickness poisition options are applied when chaining is disabled")
+        print("    or the Plain chaining is used with the Same Object option enabled.")
     shaders_list.append(BaseColorShader(color.r, color.g, color.b, linestyle.alpha))
-    shaders_list.append(BaseThicknessShader(linestyle.thickness,
-                                            linestyle.thickness_position,
+    shaders_list.append(BaseThicknessShader(linestyle.thickness, thickness_position,
                                             linestyle.thickness_ratio))
     for m in linestyle.color_modifiers:
         if not m.use:
@@ -1258,27 +1263,27 @@ def process(layer_name, lineset_name):
             continue
         if m.type == "ALONG_STROKE":
             shaders_list.append(ThicknessAlongStrokeShader(
-                linestyle.thickness_position, linestyle.thickness_ratio,
+                thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.value_min, m.value_max))
         elif m.type == "DISTANCE_FROM_CAMERA":
             shaders_list.append(ThicknessDistanceFromCameraShader(
-                linestyle.thickness_position, linestyle.thickness_ratio,
+                thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.range_min, m.range_max, m.value_min, m.value_max))
         elif m.type == "DISTANCE_FROM_OBJECT":
             shaders_list.append(ThicknessDistanceFromObjectShader(
-                linestyle.thickness_position, linestyle.thickness_ratio,
+                thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
                 m.range_min, m.range_max, m.value_min, m.value_max))
         elif m.type == "MATERIAL":
             shaders_list.append(ThicknessMaterialShader(
-                linestyle.thickness_position, linestyle.thickness_ratio,
+                thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.material_attr, m.value_min, m.value_max))
         elif m.type == "CALLIGRAPHY":
             shaders_list.append(CalligraphicThicknessShader(
-                linestyle.thickness_position, linestyle.thickness_ratio,
+                thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence,
                 m.orientation, m.min_thickness, m.max_thickness))
     if linestyle.caps == "ROUND":
