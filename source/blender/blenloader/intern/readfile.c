@@ -5706,8 +5706,8 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 			RegionView3D *rv3d;
 			
 			rv3d= ar->regiondata= MEM_callocN(sizeof(RegionView3D), "region v3d patch");
-			rv3d->persp= v3d->persp;
-			rv3d->view= v3d->view;
+			rv3d->persp= (char)v3d->persp;
+			rv3d->view= (char)v3d->view;
 			rv3d->dist= v3d->dist;
 			copy_v3_v3(rv3d->ofs, v3d->ofs);
 			copy_qt_qt(rv3d->viewquat, v3d->viewquat);

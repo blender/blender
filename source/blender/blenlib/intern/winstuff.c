@@ -217,8 +217,6 @@ static wchar_t * BLI_alloc_utf16_from_8(char * in8, size_t add)
 
 
 struct dirent *readdir(DIR *dp) {
-	char * FileName;
-	size_t size;
 	if (dp->direntry.d_name) {
 		MEM_freeN(dp->direntry.d_name);
 		dp->direntry.d_name= NULL;

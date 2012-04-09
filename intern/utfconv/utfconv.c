@@ -25,7 +25,7 @@
 
 #include "utfconv.h"
 
-size_t count_utf_8_from_16(wchar_t * string16)
+size_t count_utf_8_from_16(const wchar_t * string16)
 {
 	int i;
 	size_t count = 0;
@@ -50,7 +50,7 @@ size_t count_utf_8_from_16(wchar_t * string16)
 }
 
 
-size_t count_utf_16_from_8(char * string8)
+size_t count_utf_16_from_8(const char * string8)
 {
 		size_t count = 0;
 		char u;
@@ -88,7 +88,7 @@ size_t count_utf_16_from_8(char * string8)
 
 
 
-int conv_utf_16_to_8(wchar_t * in16, char * out8, size_t size8)
+int conv_utf_16_to_8(const wchar_t * in16, char * out8, size_t size8)
 {
 	char * out8end = out8+size8;
 	wchar_t u = 0;
@@ -139,7 +139,7 @@ int conv_utf_16_to_8(wchar_t * in16, char * out8, size_t size8)
 }
 
 
-int conv_utf_8_to_16(char * in8, wchar_t * out16, size_t size16)
+int conv_utf_8_to_16(const char * in8, wchar_t * out16, size_t size16)
 {
 	char u;
 	char type = 0;
@@ -186,7 +186,7 @@ int conv_utf_8_to_16(char * in8, wchar_t * out16, size_t size16)
 	return err;
 }
 
-int is_ascii(char * in8)
+int is_ascii(const char * in8)
 {
 	for(in8; *in8; in8++) 
 		if(0x80 & *in8) return 0;
@@ -210,7 +210,7 @@ void utf_8_cut_end(char * inout8, size_t maxcutpoint)
 
 
 
-char * alloc_utf_8_from_16(wchar_t * in16, size_t add)
+char * alloc_utf_8_from_16(const wchar_t * in16, size_t add)
 {
 	size_t bsize = count_utf_8_from_16(in16);
 	char * out8 = NULL;
@@ -220,7 +220,7 @@ char * alloc_utf_8_from_16(wchar_t * in16, size_t add)
 	return out8;
 }
 
-wchar_t * alloc_utf16_from_8(char * in8, size_t add)
+wchar_t * alloc_utf16_from_8(const char * in8, size_t add)
 {
 	size_t bsize = count_utf_16_from_8(in8);
 	wchar_t * out16 = NULL;
