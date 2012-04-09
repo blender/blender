@@ -111,7 +111,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
  * then goes through the mesh and makes sure all the customdata blocks are
  * consistent with the new layout.*/
 void CustomData_bmesh_merge(struct CustomData *source, struct CustomData *dest, 
-                            int mask, int alloctype, struct BMesh *bm, const char htype);
+                            CustomDataMask mask, int alloctype, struct BMesh *bm, const char htype);
 
 /* frees data associated with a CustomData object (doesn't free the object
  * itself, though)
