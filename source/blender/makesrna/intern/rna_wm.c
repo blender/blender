@@ -1296,6 +1296,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");
 	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
 
 	prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
@@ -1362,6 +1363,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");
 	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
 
 	prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->flag");

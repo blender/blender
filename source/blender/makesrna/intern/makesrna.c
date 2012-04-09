@@ -539,6 +539,14 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				            "BLI_strncpy" : "BLI_strncpy_utf8";
 
 				rna_print_data_get(f, dp);
+
+				if (!(prop->flag & PROP_NEVER_NULL)) {
+					fprintf(f, "	if (data->%s == NULL) {\n", dp->dnaname);
+					fprintf(f, "		*value = '\\0';\n");
+					fprintf(f, "		return;\n");
+					fprintf(f, "	}\n");
+				}
+
 				if (sprop->maxlength)
 					fprintf(f, "	%s(value, data->%s, %d);\n", string_copy_func, dp->dnaname, sprop->maxlength);
 				else
@@ -781,6 +789,13 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				            "BLI_strncpy" : "BLI_strncpy_utf8";
 
 				rna_print_data_get(f, dp);
+
+				if (!(prop->flag & PROP_NEVER_NULL)) {
+					fprintf(f, "	if (data->%s == NULL) {\n", dp->dnaname);
+					fprintf(f, "		return;\n");
+					fprintf(f, "	}\n");
+				}
+
 				if (sprop->maxlength)
 					fprintf(f, "	%s(data->%s, value, %d);\n", string_copy_func, dp->dnaname, sprop->maxlength);
 				else
@@ -956,6 +971,9 @@ static char *rna_def_property_length_func(FILE *f, StructRNA *srna, PropertyRNA 
 		}
 		else {
 			rna_print_data_get(f, dp);
+			if (!(prop->flag & PROP_NEVER_NULL)) {
+				fprintf(f, "	if (data->%s == NULL) return 0;\n", dp->dnaname);
+			}
 			fprintf(f, "	return strlen(data->%s);\n", dp->dnaname);
 		}
 		fprintf(f, "}\n\n");

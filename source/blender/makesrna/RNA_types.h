@@ -180,6 +180,9 @@ typedef enum PropertyFlag {
 	/* disallow assigning a variable to its self, eg an object tracking its self
 	 * only apply this to types that are derived from an ID ()*/
 	PROP_ID_SELF_CHECK = 1<<20,
+	/* use for...
+	 * - pointers: in the UI and python so unsetting or setting to None won't work
+	 * - strings: so our internal generated get/length/set functions know to do NULL checks before access [#30865] */
 	PROP_NEVER_NULL = 1<<18,
 	/* currently only used for UI, this is similar to PROP_NEVER_NULL
 	 * except that the value may be NULL at times, used for ObData, where an Empty's will be NULL
