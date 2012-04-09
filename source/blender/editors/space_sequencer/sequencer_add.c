@@ -50,6 +50,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_sequencer.h"
 #include "BKE_movieclip.h"
@@ -323,7 +324,10 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	seq->type = SEQ_MOVIECLIP;
 	seq->blend_mode = SEQ_CROSS;
 	seq->clip = clip;
-	
+
+	if (seq->clip->id.us == 0)
+		seq->clip->id.us = 1;
+
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
 	seq->len =  BKE_movieclip_get_duration(clip);
