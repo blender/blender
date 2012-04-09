@@ -2397,7 +2397,12 @@ static void knife_make_chain_cut(knifetool_opdata *kcd, BMFace *f, ListBase *cha
 	BLI_assert(i == nco);
 	lnew = NULL;
 	if (nco == 0) {
-		*newface = BM_face_split(bm, f, v1, v2, &lnew, NULL, TRUE);
+		/* Want to prevent creating two-sided polygons */
+		if (BM_edge_exists(v1, v2)) {
+			*newface = NULL;
+		} else {
+			*newface = BM_face_split(bm, f, v1, v2, &lnew, NULL, TRUE);
+		}
 	}
 	else {
 		fnew = BM_face_split_n(bm, f, v1, v2, cos, nco, &lnew, NULL);
@@ -2430,7 +2435,6 @@ static void knife_make_face_cuts(knifetool_opdata *kcd, BMFace *f, ListBase *kfe
 	while ((chain = find_chain(kcd, kfedges)) != NULL) {
 		knife_make_chain_cut(kcd, f, chain, &fnew);
 		if (!fnew) {
-			BLI_assert("!knife failed chain cut");
 			return;
 		}
 
