@@ -28,6 +28,7 @@ set(INC
 	../Expressions
 	../Rasterizer
 	../SceneGraph
+	../../blender/blenlib
 	../../../intern/container
 	../../../intern/moto/include
 	../../../intern/string

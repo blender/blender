@@ -39,6 +39,10 @@
 #include "StringValue.h"
 #include "SCA_IInputDevice.h"
 
+extern "C" {
+	#include "BLI_string_cursor_utf8.h"
+}
+
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -338,7 +342,11 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 				STR_String newprop = tprop->GetText();
 				int oldlength = newprop.Length();
 				if (oldlength >= 1 ) {
-					newprop.SetLength(oldlength - 1);
+					int newlength=oldlength;
+
+					BLI_str_cursor_step_prev_utf8(newprop, NULL, &newlength);
+					newprop.SetLength(newlength);
+
 					CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);
 					GetParent()->SetProperty(m_targetprop, newstringprop);
 					newstringprop->Release();
