@@ -2882,7 +2882,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{ 2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
-		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ki_KG"},
+		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ky_KG"},
 /*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},*/ /* XXX No po's yet. */
 		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
 		/* using the utf8 flipped form of Persian (فارسی) */
