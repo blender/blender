@@ -405,6 +405,7 @@ static BMOpDefine bmo_contextual_create_def = {
 	"contextual_create",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, //input geometry.
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, //newly-made face(s)
+	 {BMO_OP_SLOT_INT,         "mat_nr"},  /* material to use */
 	 {0, /* null-terminating sentinel */}},
 	bmo_contextual_create_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
@@ -431,6 +432,7 @@ static BMOpDefine bmo_edgenet_fill_def = {
 	 {BMO_OP_SLOT_ELEMENT_BUF, "excludefaces"}, /* list of faces to ignore for manifold check */
 	 {BMO_OP_SLOT_MAPPING,     "faceout_groupmap"}, /* maps new faces to the group numbers they came fro */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* new face */
+	 {BMO_OP_SLOT_INT,         "mat_nr"},  /* material to use */
 	 {0, /* null-terminating sentinel */}},
 	bmo_edgenet_fill_exec,
 	0,

@@ -1022,7 +1022,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
-	if (!EDBM_op_init(em, &bmop, op, "contextual_create geom=%hfev", BM_ELEM_SELECT))
+	if (!EDBM_op_init(em, &bmop, op, "contextual_create geom=%hfev mat_nr=%i", BM_ELEM_SELECT, em->mat_nr))
 		return OPERATOR_CANCELLED;
 	
 	BMO_op_exec(em->bm, &bmop);
