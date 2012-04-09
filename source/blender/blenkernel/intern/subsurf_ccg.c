@@ -1391,7 +1391,10 @@ static void ccgdm_getVertCos(DerivedMesh *dm, float (*cos)[3])
 	MEM_freeN(faceMap2);
 }
 
-static void ccgDM_foreachMappedVert(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no_f, short *no_s), void *userData)
+static void ccgDM_foreachMappedVert(
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3]),
+        void *userData)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGVertIterator *vi = ccgSubSurf_getVertIterator(ccgdm->ss);
@@ -1408,7 +1411,10 @@ static void ccgDM_foreachMappedVert(DerivedMesh *dm, void (*func)(void *userData
 	ccgVertIterator_free(vi);
 }
 
-static void ccgDM_foreachMappedEdge(DerivedMesh *dm, void (*func)(void *userData, int index, float *v0co, float *v1co), void *userData)
+static void ccgDM_foreachMappedEdge(
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
+        void *userData)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -2382,7 +2388,10 @@ static void ccgDM_drawMappedEdgesInterp(DerivedMesh *dm,
 	ccgEdgeIterator_free(ei);
 }
 
-static void ccgDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no), void *userData)
+static void ccgDM_foreachMappedFaceCenter(
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float co[3], const float no[3]),
+        void *userData)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;

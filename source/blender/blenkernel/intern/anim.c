@@ -840,7 +840,8 @@ typedef struct vertexDupliData {
 
 /* ------------- */
 
-static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
+                                  const float no_f[3], const short no_s[3])
 {
 	DupliObject *dob;
 	vertexDupliData *vdd= userData;

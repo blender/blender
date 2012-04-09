@@ -2026,7 +2026,8 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
  * if not, ED_view3d_init_mats_rv3d() can be used for selection tools
  * but would not give correct results with dupli's for eg. which don't
  * use the object matrix in the usual way */
-static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const float co[3],
+                                            const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	foreachScreenVert_userData *data = userData;
 	BMVert *eve = EDBM_vert_at_index(data->vc.em, index);
@@ -2072,7 +2073,8 @@ void mesh_foreachScreenVert(
 }
 
 /*  draw callback */
-static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void drawSelectedVertices__mapFunc(void *userData, int index, const float co[3],
+                                          const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	MVert *mv = &((MVert *)userData)[index];
 
@@ -2105,7 +2107,7 @@ static int is_co_in_region(ARegion *ar, const short co[2])
 	        (co[1] >= 0)          &&
 	        (co[1] <  ar->winy));
 }
-static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
+static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const float v0co[3], const float v1co[3])
 {
 	foreachScreenEdge_userData *data = userData;
 	BMEdge *eed = EDBM_edge_at_index(data->vc.em, index);
@@ -2162,7 +2164,7 @@ void mesh_foreachScreenEdge(
 	dm->release(dm);
 }
 
-static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *UNUSED(no))
+static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
 {
 	foreachScreenFace_userData *data = userData;
 	BMFace *efa = EDBM_face_at_index(data->vc.em, index);
@@ -2266,7 +2268,7 @@ void nurbs_foreachScreenVert(
  * logic!!!
  */
 
-static void draw_dm_face_normals__mapFunc(void *userData, int index, float *cent, float *no)
+static void draw_dm_face_normals__mapFunc(void *userData, int index, const float cent[3], const float no[3])
 {
 	drawDMNormal_userData *data = userData;
 	BMFace *efa = EDBM_face_at_index(data->em, index);
@@ -2290,7 +2292,7 @@ static void draw_dm_face_normals(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 	glEnd();
 }
 
-static void draw_dm_face_centers__mapFunc(void *userData, int index, float *cent, float *UNUSED(no))
+static void draw_dm_face_centers__mapFunc(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
 {
 	BMFace *efa = EDBM_face_at_index(((void **)userData)[0], index);
 	int sel = *(((int **)userData)[1]);
@@ -2308,7 +2310,7 @@ static void draw_dm_face_centers(BMEditMesh *em, DerivedMesh *dm, int sel)
 	bglEnd();
 }
 
-static void draw_dm_vert_normals__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+static void draw_dm_vert_normals__mapFunc(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3])
 {
 	drawDMNormal_userData *data = userData;
 	BMVert *eve = EDBM_vert_at_index(data->em, index);
@@ -2341,7 +2343,8 @@ static void draw_dm_vert_normals(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 }
 
 /* Draw verts with color set based on selection */
-static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
+                                   const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	drawDMVerts_userData *data = userData;
 	BMVert *eve = EDBM_vert_at_index(data->em, index);
@@ -2616,7 +2619,8 @@ static DMDrawOption draw_dm_bweights__setDrawOptions(void *userData, int index)
 		return DM_DRAW_OPTION_SKIP;
 	}
 }
-static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void draw_dm_bweights__mapFunc(void *userData, int index, const float co[3],
+                                      const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	BMEditMesh *em = userData;
 	BMVert *eve = EDBM_vert_at_index(userData, index);
@@ -7145,7 +7149,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
-static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, const float co[3],
+                                           const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	bbsObmodeMeshVerts_userData *data = userData;
 	MVert *mv = &data->mvert[index];
@@ -7171,7 +7176,8 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 	glPointSize(1.0);
 }
 
-static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void bbs_mesh_verts__mapFunc(void *userData, int index, const float co[3],
+                                    const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	void **ptrs = userData;
 	int offset = (intptr_t) ptrs[0];
@@ -7228,7 +7234,7 @@ static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int inde
 	}
 }
 
-static void bbs_mesh_solid__drawCenter(void *userData, int index, float *cent, float *UNUSED(no))
+static void bbs_mesh_solid__drawCenter(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
 {
 	BMFace *efa = EDBM_face_at_index(((void **)userData)[0], index);
 

@@ -2306,7 +2306,8 @@ DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMEditMesh *em)
 
 /* ********* For those who don't grasp derived stuff! (ton) :) *************** */
 
-static void make_vertexcosnos__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+static void make_vertexcosnos__mapFunc(void *userData, int index, const float co[3],
+                                       const float no_f[3], const short no_s[3])
 {
 	float *vec = userData;
 	

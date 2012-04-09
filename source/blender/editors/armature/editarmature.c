@@ -4508,7 +4508,8 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
 	return 0;
 }
 
-static void add_vgroups__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void add_vgroups__mapFunc(void *userData, int index, const float co[3],
+                                 const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	/* DerivedMesh mapFunc for getting final coords in weight paint mode */
 
