@@ -45,7 +45,7 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 #ifdef __KERNEL_OPENCL__
-#define __KERNEL_SHADING__
+//#define __KERNEL_SHADING__
 //#define __KERNEL_ADV_SHADING__
 #endif
 
