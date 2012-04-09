@@ -1205,7 +1205,7 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, unsigned char *result, 
 			if (compressed == 2)
 			{
 				size_t sizeOfIt;
-				size_t leni = in_len, leno = out_len;
+				size_t leni = in_len, leno = len;
 				ptcache_file_read(pf, &size, 1, sizeof(unsigned int));
 				sizeOfIt = (size_t)size;
 				ptcache_file_read(pf, props, sizeOfIt, sizeof(unsigned char));
