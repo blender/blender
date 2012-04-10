@@ -198,6 +198,8 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         col.label("Edge Select Mode:")
         col.prop(tool_settings, "edge_path_mode", text="")
         col.prop(tool_settings, "edge_path_live_unwrap")
+        col.label("Double Threshold:")
+        col.prop(tool_settings, "double_threshold", text="")
 
 # ********** default tools for editmode_curve ****************
 
