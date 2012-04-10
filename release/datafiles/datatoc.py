@@ -62,9 +62,9 @@ except:
     sys.exit(1)
 
 fpout.write("/* DataToC output of file <%s> */\n\n" % filename)
-fpout.write("int datatoc_%s_size= %d;\n" % (filename, size))
+fpout.write("int datatoc_%s_size = %d;\n" % (filename, size))
 
-fpout.write("char datatoc_%s[]= {\n" % filename)
+fpout.write("char datatoc_%s[] = {\n" % filename)
 
 while size > 0:
     size -= 1
