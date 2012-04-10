@@ -33,6 +33,7 @@
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_winstuff.h"
 
 #define TEMP_STR_SIZE 256
@@ -418,6 +419,11 @@ void bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
 	unit_as_string(str, len_max, value, prec, usys, NULL, pad ? ' ' : '\0');
 }
 
+BLI_INLINE int isalpha_or_utf8(const int ch)
+{
+	return (ch >= 128 || isalpha(ch));
+}
+
 static const char *unit_find_str(const char *str, const char *substr)
 {
 	const char *str_found;
@@ -426,11 +432,15 @@ static const char *unit_find_str(const char *str, const char *substr)
 		str_found = strstr(str, substr);
 		if (str_found) {
 			/* previous char cannot be a letter */
-			if (str_found == str || isalpha(*(str_found-1)) == 0) {
+			if (str_found == str ||
+			    /* weak unicode support!, so "µm" won't match up be replaced by "m"
+			     * since non ascii utf8 values will NEVER return TRUE */
+			    isalpha_or_utf8(*BLI_str_prev_char_utf8(str_found)) == 0)
+			{
 				/* next char cannot be alphanum */
 				int len_name = strlen(substr);
 
-				if (!isalpha(*(str_found+len_name))) {
+				if (!isalpha_or_utf8(*(str_found + len_name))) {
 					return str_found;
 				}
 			}
