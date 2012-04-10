@@ -2373,8 +2373,8 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         col.separator()
         col.label(text="Normals:")
         row = col.row(align=True)
-        row.prop(mesh, "show_normal_face", text="", icon='VERTEXSEL')
-        row.prop(mesh, "show_normal_vertex", text="", icon='FACESEL')
+        row.prop(mesh, "show_normal_vertex", text="", icon='VERTEXSEL')
+        row.prop(mesh, "show_normal_face", text="", icon='FACESEL')
         row.prop(context.scene.tool_settings, "normal_size", text="Size")
 
         col.separator()
