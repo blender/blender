@@ -3059,6 +3059,9 @@ static int hide_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
+	/* flush vertex selection changes */
+	if(!facemode && em->selectmode != SCE_SELECT_FACE)
+		EDBM_selectmode_flush(em);
 	
 	EDBM_editselection_validate(em);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
