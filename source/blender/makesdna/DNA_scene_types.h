@@ -526,6 +526,10 @@ typedef struct RenderData {
 	float pad2;
 	struct Text *dometext  DNA_DEPRECATED;	//  XXX deprecated since 2.5
 
+	/* Freestyle line thickness options */
+	int line_thickness_mode;
+	float unit_line_thickness; /* in pixels */
+
 	/* render engine */
 	char engine[32];
 } RenderData;
@@ -1277,6 +1281,10 @@ typedef struct Scene {
 
 /* simplify_flag */
 #define R_SIMPLE_NO_TRIANGULATE		1
+
+/* line_thickness_mode */
+#define R_LINE_THICKNESS_ABSOLUTE 1
+#define R_LINE_THICKNESS_RELATIVE 2
 
 /* sequencer seq_prev_type seq_rend_type */
 

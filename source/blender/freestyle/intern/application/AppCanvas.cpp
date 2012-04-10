@@ -26,6 +26,7 @@
 #include "../stroke/StrokeRenderer.h"
 #include "AppCanvas.h"
 #include "AppConfig.h"
+#include "../stroke/StyleModule.h"
 
 #include "../system/StringUtils.h"
 
@@ -73,6 +74,11 @@ BBox<Vec2i> AppCanvas::border() const
   return _pViewer->border();
 }
 
+float AppCanvas::thickness() const
+{
+  return _pViewer->thickness();
+}
+
 BBox<Vec3r> AppCanvas::scene3DBBox() const 
 {
   return _pViewer->scene3DBBox();
@@ -100,7 +106,12 @@ void AppCanvas::init()
 
 void AppCanvas::postDraw()
 {
-	Canvas::postDraw();
+  for (unsigned i = 0; i < _StyleModules.size(); i++) {
+    if(!_StyleModules[i]->getDisplayed() || !_Layers[i])
+      continue;
+    _Layers[i]->ScaleThickness(thickness());
+  }
+  Canvas::postDraw();
 }
 
 void AppCanvas::Erase()

@@ -107,6 +107,16 @@ extern "C" {
 		int xmax = re->disprect.xmax;
 		int ymax = re->disprect.ymax;
 		
+		float thickness = 1.f;
+		switch (re->r.line_thickness_mode) {
+		case R_LINE_THICKNESS_ABSOLUTE:
+			thickness = re->r.unit_line_thickness * (re->r.size / 100.f);
+			break;
+		case R_LINE_THICKNESS_RELATIVE:
+			thickness = height / 480.f;
+			break;
+		}
+
 		freestyle_viewport[0] = freestyle_viewport[1] = 0;
 		freestyle_viewport[2] = width;
 		freestyle_viewport[3] = height;
@@ -114,12 +124,14 @@ extern "C" {
 		view->setWidth( width );
 		view->setHeight( height );
 		view->setBorder( xmin, ymin, xmax, ymax );
+		view->setThickness( thickness );
 
 		cout << "\n===  Dimensions of the 2D image coordinate system  ===" << endl;
 		cout << "Width  : " << width << endl;
 		cout << "Height : " << height << endl;
 		if (re->r.mode & R_BORDER)
 			cout << "Border : (" << xmin << ", " << ymin << ") - (" << xmax << ", " << ymax << ")" << endl;
+		cout << "Unit line thickness : " << thickness << " pixel(s)" << endl;
 	}
 
 	static void init_camera(Render* re){

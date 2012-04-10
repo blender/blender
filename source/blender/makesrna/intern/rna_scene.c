@@ -3648,6 +3648,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, "BLENDER_RENDER", 0, "Blender Render", "Use the Blender internal rendering engine for rendering"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem freestyle_thickness_items[] = {
+		{R_LINE_THICKNESS_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Specify unit line thickness in pixels"},
+		{R_LINE_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative", "Unit line thickness is scaled by the proportion of the present vertical image resolution to 480 pixels"},
+		{0, NULL, 0, NULL, NULL}};
+
 	rna_def_scene_ffmpeg_settings(brna);
 #ifdef WITH_QUICKTIME
 	rna_def_scene_quicktime_settings(brna);
@@ -4318,6 +4323,17 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_simplify_triangulate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_flag", R_SIMPLE_NO_TRIANGULATE);
 	RNA_def_property_ui_text(prop, "Skip Quad to Triangles", "Disable non-planar quads being triangulated");
+
+	/* Freestyle line thickness options */
+	prop = RNA_def_property(srna, "line_thickness_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "line_thickness_mode");
+	RNA_def_property_enum_items(prop, freestyle_thickness_items);
+	RNA_def_property_ui_text(prop, "Line Thickness Mode", "Line thickness mode for Freestyle line drawing");
+
+	prop = RNA_def_property(srna, "unit_line_thickness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "unit_line_thickness");
+	RNA_def_property_range(prop, 0.f, 10000.f);
+	RNA_def_property_ui_text(prop, "Unit Line Thickness", "Unit line thickness in pixels");
 
 	/* Scene API */
 	RNA_api_scene_render(srna);

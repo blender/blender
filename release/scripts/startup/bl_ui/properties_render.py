@@ -946,8 +946,17 @@ class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
         layout.separator()
 
         split = layout.split()
+
         col = split.column()
         col.prop(rd, "use_freestyle", text="Freestyle")
+        sub = col.column()
+        sub.label(text="Line Thickness:")
+        sub.active = rd.use_freestyle
+        sub.row().prop(rd, "line_thickness_mode", expand=True)
+        subrow = sub.row()
+        subrow.active = (rd.line_thickness_mode == "ABSOLUTE")
+        subrow.prop(rd, "unit_line_thickness")
+
 
 class RENDER_PT_stamp(RenderButtonsPanel, Panel):
     bl_label = "Stamp"

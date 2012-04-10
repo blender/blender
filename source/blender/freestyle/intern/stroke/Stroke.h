@@ -470,6 +470,7 @@ public:
   void UpdateLength();
 
   /* Render method */
+  void ScaleThickness(float iFactor);
   void Render(const StrokeRenderer *iRenderer );
   void RenderBasic(const StrokeRenderer *iRenderer );
 

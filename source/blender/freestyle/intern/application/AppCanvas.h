@@ -41,6 +41,7 @@ public:
   virtual int width() const ;
   virtual int height() const ;
   virtual BBox<Vec2i> border() const ;
+  virtual float thickness() const ;
 
 	AppView *_pViewer;
   inline const AppView * viewer() const {return _pViewer;}

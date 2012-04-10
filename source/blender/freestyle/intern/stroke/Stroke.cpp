@@ -746,6 +746,17 @@ Interface0DIterator Stroke::pointsEnd(float t) {
   return verticesEnd();
 }
 
+void Stroke::ScaleThickness(float iFactor)
+{
+  for(vertex_container::iterator it=_Vertices.begin(), itend=_Vertices.end();
+      it!=itend;
+      ++it)
+  {
+    StrokeAttribute& attr = (*it)->attribute();
+    attr.setThickness(iFactor * attr.getThicknessR(), iFactor * attr.getThicknessL());
+  }
+}
+
 void Stroke::Render(const StrokeRenderer *iRenderer)
 {
   if(!_rep)

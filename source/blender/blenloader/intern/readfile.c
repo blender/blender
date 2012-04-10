@@ -13558,6 +13558,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		FreestyleLineStyle *linestyle;
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			if (sce->r.line_thickness_mode == 0) {
+				sce->r.line_thickness_mode= R_LINE_THICKNESS_ABSOLUTE;
+				sce->r.unit_line_thickness= 1.f;
+			}
 			for(srl= sce->r.layers.first; srl; srl= srl->next) {
 				if (srl->freestyleConfig.mode == 0)
 					srl->freestyleConfig.mode= FREESTYLE_CONTROL_EDITOR_MODE;
