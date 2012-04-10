@@ -97,6 +97,8 @@ typedef enum PropertyUnit {
 
 #define RNA_ENUM_BITFLAG_SIZE 32
 
+#define RNA_TRANSLATION_PREC_DEFAULT 5
+
 /* also update enums in bpy_props.c when adding items here
  * watch it: these values are written to files as part of
  * node socket button subtypes!

@@ -1731,7 +1731,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Items", "Items in the keymap, linking an operator to an input event");
 	rna_def_keymap_items(brna, prop);
 
-	prop = RNA_def_property(srna, "is_user_modified", PROP_BOOLEAN, PROP_NEVER_NULL);
+	prop = RNA_def_property(srna, "is_user_modified", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_USER_MODIFIED);
 	RNA_def_property_ui_text(prop, "User Defined", "Keymap is defined by the user");
 

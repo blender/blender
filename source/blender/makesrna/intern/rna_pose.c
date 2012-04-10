@@ -790,6 +790,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_location_editable");
 	RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 		/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
@@ -873,11 +874,13 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "pose_head");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Head Position", "Location of head of the channel's bone");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 
 	prop = RNA_def_property(srna, "tail", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "pose_tail");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Tail Position", "Location of tail of the channel's bone");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	
 	/* IK Settings */
 	prop = RNA_def_property(srna, "is_in_ik_chain", PROP_BOOLEAN, PROP_NONE);
@@ -1058,7 +1061,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
 	/* transform locks */
-	prop = RNA_def_property(srna, "lock_location", PROP_BOOLEAN, PROP_XYZ);
+	prop = RNA_def_property(srna, "lock_location", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_LOCX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Location", "Lock editing of location in the interface");
@@ -1066,7 +1069,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
-	prop = RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_XYZ);
+	prop = RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Rotation", "Lock editing of rotation in the interface");
@@ -1092,7 +1095,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
-	prop = RNA_def_property(srna, "lock_scale", PROP_BOOLEAN, PROP_XYZ);
+	prop = RNA_def_property(srna, "lock_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_SCALEX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface");

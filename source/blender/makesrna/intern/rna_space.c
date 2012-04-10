@@ -1731,7 +1731,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	                             "rna_RegionView3D_view_location_set", NULL);
 #endif
 	RNA_def_property_ui_text(prop, "View Location", "View pivot location");
-	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
+	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop = RNA_def_property(srna, "view_rotation", PROP_FLOAT, PROP_QUATERNION); /* cant use because its inverted */

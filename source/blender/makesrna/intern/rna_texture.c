@@ -471,6 +471,7 @@ static void rna_def_texmapping(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "translation", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, 0, "rna_Texture_mapping_update");
 	
 		/* Not PROP_XYZ, this is now in radians, no more degrees */
@@ -610,7 +611,7 @@ static void rna_def_mtex(BlenderRNA *brna)
 	/* mapping */
 	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "ofs");
-	RNA_def_property_ui_range(prop, -10, 10, 10, 2);
+	RNA_def_property_ui_range(prop, -10, 10, 10, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_ui_text(prop, "Offset", "Fine tune of the texture mapping X, Y and Z locations");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 

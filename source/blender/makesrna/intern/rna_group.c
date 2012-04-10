@@ -119,7 +119,7 @@ void RNA_def_group(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
 	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the origin to use when instancing as DupliGroup");
-	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
+	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, RNA_TRANSLATION_PREC_DEFAULT);
 
 	prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);

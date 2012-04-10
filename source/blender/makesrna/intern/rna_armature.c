@@ -639,24 +639,28 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Tail", "Location of tail end of the bone");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 
 	prop = RNA_def_property(srna, "tail_local", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "arm_tail");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Armature-Relative Tail", "Location of tail end of the bone relative to armature");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 
 	prop = RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "head");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Head", "Location of head end of the bone relative to its parent");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 
 	prop = RNA_def_property(srna, "head_local", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "arm_head");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Armature-Relative Head", "Location of head end of the bone relative to armature");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 
 	RNA_api_bone(srna);
 }

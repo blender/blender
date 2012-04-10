@@ -911,6 +911,13 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 
 	switch (type) {
 		case PROP_BOOLEAN:
+			if (DefRNA.preprocess) {
+				if ((subtype & ~(PROP_LAYER_MEMBER)) != PROP_NONE) {
+					fprintf(stderr, "%s: subtype does not apply to 'PROP_BOOLEAN' \"%s.%s\"\n", __func__,
+					        CONTAINER_RNA_ID(cont), identifier);
+					DefRNA.error = 1;
+				}
+			}
 			break;
 		case PROP_INT: {
 			IntPropertyRNA *iprop = (IntPropertyRNA*)prop;
