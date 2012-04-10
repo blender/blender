@@ -892,7 +892,12 @@ bool ConvertMaterial(
 	if (validmat)
 		material->matname	=(mat->id.name);
 
-	material->tface		= tface;
+	if (tface) {
+		material->tface		= *tface;
+	}
+	else {
+		memset(&material->tface, 0, sizeof(material->tface));
+	}
 	material->material	= mat;
 	return true;
 }
