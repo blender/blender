@@ -105,9 +105,8 @@ class INFO_MT_file(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_context = 'EXEC_AREA'
-        layout.operator("wm.read_homefile", text="New", icon='NEW')
         layout.operator_context = 'INVOKE_AREA'
+        layout.operator("wm.read_homefile", text="New", icon='NEW')
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
         layout.menu("INFO_MT_file_open_recent", icon='OPEN_RECENT')
         layout.operator("wm.recover_last_session", icon='RECOVER_LAST')
