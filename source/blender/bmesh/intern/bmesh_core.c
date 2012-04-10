@@ -1133,7 +1133,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	BMLoop *l_iter, *l_first;
 	BMLoop *v1loop = NULL, *v2loop = NULL, *f1loop = NULL, *f2loop = NULL;
 	BMEdge *e;
-	int i, len, f1len, f2len;
+	int i, len, f1len, f2len, first_loop_f1;
 
 	/* verify that v1 and v2 are in face */
 	len = f->len;
@@ -1170,8 +1170,36 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	lst2->first = lst2->last = f2loop;
 	lst->first = lst->last = f1loop;
 #else
-	f2->l_first = f2loop;
-	f->l_first = f1loop;
+	/* find which of the faces the original first loop is in */
+	l_iter = l_first = f1loop;
+	first_loop_f1 = 0;
+	do {
+		if(l_iter == f->l_first)
+			first_loop_f1 = 1;
+	} while ((l_iter = l_iter->next) != l_first);
+
+	if(first_loop_f1) {
+		/* original first loop was in f1, find a suitable first loop for f2
+		   which is as similar as possible to f1. the order matters for tools
+		   such as duplifaces. */
+		if(f->l_first->prev == f1loop)
+			f2->l_first = f2loop->prev;
+		else if(f->l_first->next == f1loop)
+			f2->l_first = f2loop->next;
+		else
+			f2->l_first = f2loop;
+	}
+	else {
+		/* original first loop was in f2, further do same as above */
+		f2->l_first = f->l_first;
+
+		if(f->l_first->prev == f2loop)
+			f->l_first = f1loop->prev;
+		else if(f->l_first->next == f2loop)
+			f->l_first = f1loop->next;
+		else
+			f->l_first = f1loop;
+	}
 #endif
 
 	/* validate both loop */
