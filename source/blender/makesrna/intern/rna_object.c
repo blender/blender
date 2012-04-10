@@ -1486,7 +1486,8 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "inertia");
-	RNA_def_property_range(prop, 0.01, 10.0);
+	RNA_def_property_range(prop, 0.01f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.01f, 10.0f, 1, 3);
 	RNA_def_property_ui_text(prop, "Radius", "Radius of bounding sphere and material physics");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
