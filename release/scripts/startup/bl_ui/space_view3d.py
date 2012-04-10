@@ -2478,10 +2478,12 @@ class VIEW3D_PT_background_image(Panel):
                     column.prop(bg.clip_user, "use_render_undistorted")
 
                 if has_bg:
-                    box.prop(bg, "opacity", slider=True)
+                    col = box.column()
+                    col.prop(bg, "show_on_foreground")
+                    col.prop(bg, "opacity", slider=True)
                     if bg.view_axis != 'CAMERA':
-                        box.prop(bg, "size")
-                        row = box.row(align=True)
+                        col.prop(bg, "size")
+                        row = col.row(align=True)
                         row.prop(bg, "offset_x", text="X")
                         row.prop(bg, "offset_y", text="Y")
 

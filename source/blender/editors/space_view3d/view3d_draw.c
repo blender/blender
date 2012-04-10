@@ -1515,7 +1515,7 @@ exit:
 
 /* ************************************************************* */
 
-static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
+static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	BGpic *bgpic;
@@ -1524,9 +1524,12 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	ImBuf *ibuf = NULL, *freeibuf;
 	float vec[4], fac, asp, zoomx, zoomy;
 	float x1, y1, x2, y2, cx, cy;
-
+	int fg_flag = foreground ? V3D_BGPIC_FOREGROUND : 0;
 
 	for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
+
+		if ((bgpic->flag & V3D_BGPIC_FOREGROUND) != fg_flag)
+			continue;
 
 		if ((bgpic->view == 0) || /* zero for any */
 		    (bgpic->view & (1 << rv3d->view)) || /* check agaist flags */
@@ -1677,6 +1680,26 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			if (freeibuf)
 				IMB_freeImBuf(freeibuf);
 		}
+	}
+}
+
+static void draw_bgpics(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	if ((v3d->flag & V3D_DISPBGPICS) == 0)
+		return;
+
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE)
+		return;
+
+	if ((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
+		if (rv3d->persp == RV3D_CAMOB) {
+			draw_bgpic(scene, ar, v3d, foreground);
+		}
+	}
+	else {
+			draw_bgpic(scene, ar, v3d, foreground);
 	}
 }
 
@@ -2750,12 +2773,15 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 
 	/* render result draw */
 	if (v3d->flag & V3D_DISPBGPICS)
-		draw_bgpic(scene, ar, v3d);
+		draw_bgpic(scene, ar, v3d, FALSE);
 	else
 		fdrawcheckerboard(0, 0, ar->winx, ar->winy);
 
 	type = rv3d->render_engine->type;
 	type->view_draw(rv3d->render_engine, C);
+
+	if (v3d->flag & V3D_DISPBGPICS)
+		draw_bgpic(scene, ar, v3d, TRUE);
 
 	return 1;
 }
@@ -2837,9 +2863,6 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 					              star_stuff_term_func);
 				}
 			}
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-				if (v3d->flag & V3D_DISPBGPICS) draw_bgpic(scene, ar, v3d);
-			}
 		}
 	}
 	else {
@@ -2851,13 +2874,11 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 			glLoadMatrixf(rv3d->winmat);
 			glMatrixMode(GL_MODELVIEW);
 			glLoadMatrixf(rv3d->viewmat);
-
-			if (v3d->flag & V3D_DISPBGPICS) {
-				draw_bgpic(scene, ar, v3d);
-			}
 		}
 	}
-	
+
+	draw_bgpics(scene, ar, v3d, FALSE);
+
 	if (rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_set(rv3d);
 
@@ -2914,6 +2935,8 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 				draw_object(scene, ar, v3d, base, 0);
 		}
 	}
+
+	draw_bgpics(scene, ar, v3d, TRUE);
 
 //	REEB_draw();
 
