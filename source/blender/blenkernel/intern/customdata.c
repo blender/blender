@@ -2092,6 +2092,8 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 			CustomData_add_layer_named(fdata, CD_ORIGSPACE, CD_CALLOC, NULL, total, ldata->layers[i].name);
 		}
 	}
+
+	CustomData_bmesh_update_active_layers(fdata, pdata, ldata);
 }
 
 void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *pdata, CustomData *ldata)
