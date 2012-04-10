@@ -91,9 +91,9 @@ typedef enum PropertyUnit {
 	PROP_UNIT_ACCELERATION = (8<<16)	/* m/(s^2) */
 } PropertyUnit;
 
-#define RNA_SUBTYPE_UNIT(subtype) ((subtype) & 0x00FF0000)
-#define RNA_SUBTYPE_VALUE(subtype) ((subtype) & ~0x00FF0000)
-#define RNA_SUBTYPE_UNIT_VALUE(subtype) ((subtype)>>16)
+#define RNA_SUBTYPE_UNIT(subtype)       ((subtype) &  0x00FF0000)
+#define RNA_SUBTYPE_VALUE(subtype)      ((subtype) & ~0x00FF0000)
+#define RNA_SUBTYPE_UNIT_VALUE(subtype) ((subtype) >> 16)
 
 #define RNA_ENUM_BITFLAG_SIZE 32
 
