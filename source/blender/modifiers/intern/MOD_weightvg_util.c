@@ -38,6 +38,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_colortools.h"       /* CurveMapping. */
@@ -113,7 +114,7 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
  */
 void weightvg_do_mask(int num, const int *indices, float *org_w, const float *new_w,
                       Object *ob, DerivedMesh *dm, float fact, const char defgrp_name[MAX_VGROUP_NAME],
-                      Tex *texture, int tex_use_channel, int tex_mapping,
+                      Scene *scene, Tex *texture, int tex_use_channel, int tex_mapping,
                       Object *tex_map_object, const char *tex_uvlayer_name)
 {
 	int ref_didx;
@@ -144,6 +145,8 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 		tex_co = MEM_callocN(sizeof(*tex_co) * num, "WeightVG Modifier, TEX mode, tex_co");
 		get_texture_coords(&t_map, ob, dm, v_co, tex_co, num);
 		MEM_freeN(v_co);
+
+		modifier_init_texture(scene, texture);
 
 		/* For each weight (vertex), make the mix between org and new weights. */
 		for (i = 0; i < num; ++i) {
