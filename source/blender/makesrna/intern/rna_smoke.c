@@ -147,6 +147,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 24, 512);
 	RNA_def_property_ui_range(prop, 24, 512, 2, 0);
 	RNA_def_property_ui_text(prop, "Max Res", "Maximal resolution used in the fluid domain");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "amplify", PROP_INT, PROP_NONE);
@@ -154,11 +155,13 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_range(prop, 1, 10, 1, 0);
 	RNA_def_property_ui_text(prop, "Amplification", "Enhance the resolution of smoke by this factor using noise");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "use_high_resolution", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_HIGHRES);
 	RNA_def_property_ui_text(prop, "High res", "Enable high resolution (using amplification)");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "show_high_resolution", PROP_BOOLEAN, PROP_NONE);
@@ -170,6 +173,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "noise");
 	RNA_def_property_enum_items(prop, prop_noise_type_items);
 	RNA_def_property_ui_text(prop, "Noise Method", "Noise method which is used for creating the high resolution");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
