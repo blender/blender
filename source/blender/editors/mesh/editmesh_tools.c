@@ -4457,7 +4457,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Bevel";
-	ot->description = "Edge/Vertex Bevel";
+	ot->description = "Edge Bevel";
 	ot->idname = "MESH_OT_bevel";
 
 	/* api callbacks */
