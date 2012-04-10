@@ -242,21 +242,25 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 {
 	static Material *c_ma;
 	static int c_textured;
-	static MTFace *c_texface;
+	static MTFace c_texface;
 	static int c_backculled;
 	static int c_badtex;
 	static int c_lit;
+	static int c_has_texface;
 
 	Object *litob = NULL; //to get mode to turn off mipmap in painting mode
 	int backculled = GEMAT_BACKCULL;
 	int alphablend = 0;
 	int textured = 0;
 	int lit = 0;
-	
+	int has_texface = texface != NULL;
+	int need_set_tpage = FALSE;
+
 	if (clearcache) {
 		c_textured = c_lit = c_backculled = -1;
-		c_texface = (MTFace *) -1;
+		memset(&c_texface, 0, sizeof(MTFace));
 		c_badtex = 0;
+		c_has_texface = -1;
 	}
 	else {
 		textured = gtexdraw.istex;
@@ -290,7 +294,12 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 		c_backculled = backculled;
 	}
 
-	if (textured != c_textured || texface != c_texface) {
+	/* need to re-set tpage if textured flag changed or existsment of texface changed..  */
+	need_set_tpage = textured != c_textured || has_texface != c_has_texface;
+	/* ..or if settings inside texface were changed (if texface was used) */
+	need_set_tpage |= texface && memcmp(&c_texface, texface, sizeof(c_texface));
+
+	if (need_set_tpage) {
 		if (textured) {
 			c_badtex = !GPU_set_tpage(texface, !(litob->mode & OB_MODE_TEXTURE_PAINT), alphablend);
 		}
@@ -299,7 +308,9 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 			c_badtex = 0;
 		}
 		c_textured = textured;
-		c_texface = texface;
+		c_has_texface = has_texface;
+		if (texface)
+			memcpy(&c_texface, texface, sizeof(c_texface));
 	}
 
 	if (c_badtex) lit = 0;
