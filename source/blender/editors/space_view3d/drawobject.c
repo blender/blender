@@ -127,6 +127,7 @@ typedef struct foreachScreenEdge_userData {
 	void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index);
 	void *userData;
 	ViewContext vc;
+	rcti win_rect; /* copy of: vc.ar->winx/winy, use for faster tests, minx/y will always be 0 */
 	eV3DClipTest clipVerts;
 } foreachScreenEdge_userData;
 
@@ -2099,14 +2100,7 @@ static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
 	glEnd();
 }
-static int is_co_in_region(ARegion *ar, const short co[2])
-{
-	return ((co[0] != IS_CLIPPED) && /* may be the only initialized value, check first */
-	        (co[0] >= 0)          &&
-	        (co[0] <  ar->winx)   &&
-	        (co[1] >= 0)          &&
-	        (co[1] <  ar->winy));
-}
+
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const float v0co[3], const float v1co[3])
 {
 	foreachScreenEdge_userData *data = userData;
@@ -2129,9 +2123,10 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 			project_short_noclip(data->vc.ar, v2_co, s[1]);
 
 			if (data->clipVerts == V3D_CLIP_TEST_REGION) {
-				if (!is_co_in_region(data->vc.ar, s[0]) &&
-				    !is_co_in_region(data->vc.ar, s[1]))
-				{
+				/* make an int copy */
+				int s_int[2][2] = {{s[0][0], s[0][1]},
+				                   {s[1][0], s[1][1]}};
+				if (!BLI_segment_in_rcti(&data->win_rect, s_int[0], s_int[1])) {
 					return;
 				}
 			}
@@ -2150,6 +2145,12 @@ void mesh_foreachScreenEdge(
 	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	data.vc = *vc;
+
+	data.win_rect.xmin = 0;
+	data.win_rect.ymin = 0;
+	data.win_rect.xmax = vc->ar->winx;
+	data.win_rect.ymax = vc->ar->winy;
+
 	data.func = func;
 	data.userData = userData;
 	data.clipVerts = clipVerts;
