@@ -614,7 +614,7 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float
 	return sel;
 }
 
-static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[3])
+static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[2])
 {
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *efa;
@@ -624,7 +624,7 @@ static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[3
 	MLoopUV *luv;
 	unsigned int sel= 0;
 
-	zero_v3(co);
+	zero_v2(co);
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		if (!uvedit_face_visible(scene, ima, efa, tf))
@@ -639,36 +639,29 @@ static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[3
 		}
 	}
 
-	mul_v3_fl(co, 1.0f/(float)sel);
+	mul_v2_fl(co, 1.0f/(float)sel);
 
 	return (sel != 0);
 }
 
-static int uvedit_center(Scene *scene, Image *ima, Object *obedit, float *cent, char mode)
+static int uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2], char mode)
 {
-	float min[2], max[2];
-	int change= 0;
+	int change = FALSE;
 	
-	if (mode==V3D_CENTER) { /* bounding box */
+	if (mode == V3D_CENTER) {  /* bounding box */
+		float min[2], max[2];
 		if (ED_uvedit_minmax(scene, ima, obedit, min, max)) {
-			change = 1;
-
-			cent[0]= (min[0]+max[0])/2.0f;
-			cent[1]= (min[1]+max[1])/2.0f;
+			mid_v2_v2v2(cent, min, max);
+			change = TRUE;
 		}
 	}
 	else {
 		if (ED_uvedit_median(scene, ima, obedit, cent)) {
-			change = 1;
+			change = TRUE;
 		}
-
 	}
 
-	if (change) {
-		return 1;
-	}
-
-	return 0;
+	return change;
 }
 
 /************************** find nearest ****************************/
