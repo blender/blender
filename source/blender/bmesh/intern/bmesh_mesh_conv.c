@@ -317,56 +317,39 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 	}
 
 	if (me->mselect && me->totselect != 0) {
-		BMIter iter;
-		BMVert *vertex;
-		BMEdge *edge;
-		BMFace *face;
-		BMVert **vertex_array = MEM_callocN(sizeof(BMVert *) * bm->totvert,
-		                                    "Selection Conversion Vertex Pointer Array");
+
+		BMVert **vert_array = MEM_callocN(sizeof(BMVert *) * bm->totvert,
+		                                  "Selection Conversion Vertex Pointer Array");
 		BMEdge **edge_array = MEM_callocN(sizeof(BMEdge *) * bm->totedge,
 		                                  "Selection Conversion Edge Pointer Array");
 		BMFace **face_array = MEM_callocN(sizeof(BMFace *) * bm->totface,
 		                                  "Selection Conversion Face Pointer Array");
 
-		for (i = 0, vertex = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		     vertex;
-		     i++, vertex = BM_iter_step(&iter))
-		{
-			vertex_array[i] = vertex;
-		}
+		BMIter  iter;
+		BMVert  *vert;
+		BMEdge  *edge;
+		BMFace  *face;
+		MSelect *msel;
 
-		for (i = 0, edge = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL);
-		     edge;
-		     i++, edge = BM_iter_step(&iter))
-		{
-			edge_array[i] = edge;
-		}
+		BM_ITER_INDEX(vert, &iter, bm, BM_VERTS_OF_MESH, NULL, i) { vert_array[i] = vert; }
+		BM_ITER_INDEX(edge, &iter, bm, BM_EDGES_OF_MESH, NULL, i) { edge_array[i] = edge; }
+		BM_ITER_INDEX(face, &iter, bm, BM_FACES_OF_MESH, NULL, i) { face_array[i] = face; }
 
-		for (i = 0, face = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL);
-		     face;
-		     i++, face = BM_iter_step(&iter))
-		{
-			face_array[i] = face;
-		}
-
-		if (me->mselect) {
-			for (i = 0; i < me->totselect; i++) {
-				if (me->mselect[i].type == ME_VSEL) {
-					BM_select_history_store(bm, (BMElem *)vertex_array[me->mselect[i].index]);
-				}
-				else if (me->mselect[i].type == ME_ESEL) {
-					BM_select_history_store(bm, (BMElem *)edge_array[me->mselect[i].index]);
-				}
-				else if (me->mselect[i].type == ME_FSEL) {
-					BM_select_history_store(bm, (BMElem *)face_array[me->mselect[i].index]);
-				}
+		for (i = 0, msel = me->mselect; i < me->totselect; i++, msel++) {
+			switch (msel->type) {
+				case ME_VSEL:
+					BM_select_history_store(bm, (BMElem *)vert_array[msel->index]);
+					break;
+				case ME_ESEL:
+					BM_select_history_store(bm, (BMElem *)edge_array[msel->index]);
+					break;
+				case ME_FSEL:
+					BM_select_history_store(bm, (BMElem *)face_array[msel->index]);
+					break;
 			}
 		}
-		else {
-			me->totselect = 0;
-		}
 
-		MEM_freeN(vertex_array);
+		MEM_freeN(vert_array);
 		MEM_freeN(edge_array);
 		MEM_freeN(face_array);
 	}
