@@ -119,7 +119,7 @@ void circf(float x, float y, float rad)
 	
 	glPushMatrix(); 
 	
-	glTranslatef(x,  y, 0.); 
+	glTranslatef(x, y, 0.0);
 	
 	gluDisk(qobj, 0.0,  rad, 32, 1);
 	
@@ -136,7 +136,7 @@ void circ(float x, float y, float rad)
 	
 	glPushMatrix(); 
 	
-	glTranslatef(x,  y, 0.); 
+	glTranslatef(x, y, 0.0);
 	
 	gluDisk(qobj, 0.0,  rad, 32, 1);
 	

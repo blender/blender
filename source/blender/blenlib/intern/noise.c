@@ -1002,11 +1002,11 @@ static float turbulence_perlin(float *point, float lofreq, float hifreq)
 	p[2] = point[2];
 
 	t = 0;
-	for (freq = lofreq ; freq < hifreq ; freq *= 2.) {
+	for (freq = lofreq ; freq < hifreq ; freq *= 2.0) {
 		t += fabsf(noise3_perlin(p)) / freq;
-		p[0] *= 2.;
-		p[1] *= 2.;
-		p[2] *= 2.;
+		p[0] *= 2.0f;
+		p[1] *= 2.0f;
+		p[2] *= 2.0f;
 	}
 	return t - 0.3; /* readjust to make mean value = 0.0 */
 }

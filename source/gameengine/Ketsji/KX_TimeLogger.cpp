@@ -87,7 +87,7 @@ void KX_TimeLogger::NextMeasurement(double now)
 	EndLog(now);
 
 	// Add a new measurement at the front
-	double m = 0.;
+	double m = 0.0;
 	m_measurements.push_front(m);
 
 	// Remove measurement if we grow beyond the maximum size
@@ -102,7 +102,7 @@ void KX_TimeLogger::NextMeasurement(double now)
 
 double KX_TimeLogger::GetAverage(void) const
 {
-	double avg = 0.;
+	double avg = 0.0;
 
 	unsigned int numMeasurements = m_measurements.size();
 	if (numMeasurements > 1) {

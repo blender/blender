@@ -744,7 +744,7 @@ static void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float *no, 
 	length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
 
 	if (length > EPSILON) {
-		float invLength = 1.f/length;
+		float invLength = 1.0f / length;
 
 		no[0] *= invLength;
 		no[1] *= invLength;

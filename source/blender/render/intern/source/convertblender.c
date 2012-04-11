@@ -5478,8 +5478,8 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 			ver++;
 
 		// get fluid velocity
-		fsvec[3] = 0.; 
-		//fsvec[0] = fsvec[1] = fsvec[2] = fsvec[3] = 0.; fsvec[2] = 2.; // NT fixed test
+		fsvec[3] = 0.0f;
+		//fsvec[0] = fsvec[1] = fsvec[2] = fsvec[3] = 0.0; fsvec[2] = 2.0f; // NT fixed test
 		for (j=0;j<3;j++) fsvec[j] = velarray[a].vel[j];
 		
 		/* (bad) HACK insert average velocity if none is there (see previous comment) */

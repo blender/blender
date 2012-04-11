@@ -134,7 +134,7 @@ struct Scene;
 struct DerivedMesh;
 struct SmokeModifierData;
 
-#define TRI_UVOFFSET (1./4.)
+#define TRI_UVOFFSET (1.0 / 4.0)
 
 /* forward declerations */
 static void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int numfaces, int numtris, int **tridivs, float cell_len);
@@ -949,8 +949,8 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						if (usqr>maxusqr) { 									
 						// cutoff at maxVelVal 									
 						for (int jj=0; jj<3; jj++) { 										
-						if (objvel[jj]>0.) objvel[jj] =  maxVelVal;  										
-						if (objvel[jj]<0.) objvel[jj] = -maxVelVal; 									
+						if (objvel[jj] > 0.0) objvel[jj] =  maxVelVal;
+						if (objvel[jj] < 0.0) objvel[jj] = -maxVelVal;
 						} 								
 						} 
 						} 								

@@ -103,7 +103,7 @@ bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_
 		// Note that retrieving in a single shot multiple hit points would be possible 
 		// but it would require some change in Bullet.
 		prevpoint = callback.m_hitPoint;
-		/* We add 0.001 of fudge, so that if the margin && radius == 0., we don't endless loop. */
+		/* We add 0.001 of fudge, so that if the margin && radius == 0.0, we don't endless loop. */
 		MT_Scalar marg = 0.001 + hit_controller->GetMargin();
 		marg *= 2.f;
 		/* Calculate the other side of this object */

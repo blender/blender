@@ -306,14 +306,14 @@ void KX_Camera::ExtractFrustumSphere()
 		MT_Vector4 nfar;    // far point in device normalized coordinate
 		MT_Point3 farpoint; // most extreme far point in camera coordinate
 		MT_Point3 nearpoint;// most extreme near point in camera coordinate
-		MT_Point3 farcenter(0.,0.,0.);// center of far cliping plane in camera coordinate
+		MT_Point3 farcenter(0.0, 0.0, 0.0);// center of far cliping plane in camera coordinate
 		MT_Scalar F=-1.0, N; // square distance of far and near point to origin
 		MT_Scalar f, n;     // distance of far and near point to z axis. f is always > 0 but n can be < 0
 		MT_Scalar e, s;     // far and near clipping distance (<0)
 		MT_Scalar c;        // slope of center line = distance of far clipping center to z axis / far clipping distance
 		MT_Scalar z;        // projection of sphere center on z axis (<0)
 		// tmp value
-		MT_Vector4 npoint(1., 1., 1., 1.);
+		MT_Vector4 npoint(1.0, 1.0, 1.0, 1.0);
 		MT_Vector4 hpoint;
 		MT_Point3 point;
 		MT_Scalar len;
@@ -337,7 +337,7 @@ void KX_Camera::ExtractFrustumSphere()
 		// the far center is the average of the far clipping points
 		farcenter *= 0.25;
 		// the extreme near point is the opposite point on the near clipping plane
-		nfar.setValue(-nfar[0], -nfar[1], -1., 1.);
+		nfar.setValue(-nfar[0], -nfar[1], -1.0, 1.0);
 		nfar = clip_camcs_matrix*nfar;
 		nearpoint.setValue(nfar[0]/nfar[3], nfar[1]/nfar[3], nfar[2]/nfar[3]);
 		// this is a frustrum projection
@@ -362,7 +362,7 @@ void KX_Camera::ExtractFrustumSphere()
 	{
 		// orthographic projection
 		// The most extreme points on the near and far plane. (normalized device coords)
-		MT_Vector4 hnear(1., 1., 1., 1.), hfar(-1., -1., -1., 1.);
+		MT_Vector4 hnear(1.0, 1.0, 1.0, 1.0), hfar(-1.0, -1.0, -1.0, 1.0);
 		
 		// Transform to hom camera local space
 		hnear = clip_camcs_matrix*hnear;
@@ -389,7 +389,7 @@ bool KX_Camera::PointInsideFrustum(const MT_Point3& x)
 	
 	for ( unsigned int i = 0; i < 6 ; i++ )
 	{
-		if (m_planes[i][0]*x[0] + m_planes[i][1]*x[1] + m_planes[i][2]*x[2] + m_planes[i][3] < 0.)
+		if (m_planes[i][0] * x[0] + m_planes[i][1] * x[1] + m_planes[i][2] * x[2] + m_planes[i][3] < 0.0)
 			return false;
 	}
 	return true;
@@ -407,7 +407,7 @@ int KX_Camera::BoxInsideFrustum(const MT_Point3 *box)
 		// 8 box vertices.
 		for (unsigned int v = 0; v < 8 ; v++)
 		{
-			if (m_planes[p][0]*box[v][0] + m_planes[p][1]*box[v][1] + m_planes[p][2]*box[v][2] + m_planes[p][3] < 0.)
+			if (m_planes[p][0] * box[v][0] + m_planes[p][1] * box[v][1] + m_planes[p][2] * box[v][2] + m_planes[p][3] < 0.0)
 				behindCount++;
 		}
 		

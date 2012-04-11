@@ -847,8 +847,8 @@ Object *add_only_object(int type, const char *name)
 	ob->init_state=1;
 	ob->state=1;
 	/* ob->pad3 == Contact Processing Threshold */
-	ob->m_contactProcessingThreshold = 1.;
-	ob->obstacleRad = 1.;
+	ob->m_contactProcessingThreshold = 1.0f;
+	ob->obstacleRad = 1.0f;
 	
 	/* NT fluid sim defaults */
 	ob->fluidsimSettings = NULL;

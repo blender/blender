@@ -5624,7 +5624,7 @@ static void draw_empty_cone(float size)
 	radius = size;
 	glTranslatef(cent, cent, cent);
 	glScalef(radius, size * 2.0f, radius);
-	glRotatef(-90., 1.0, 0.0, 0.0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
 
 	glPopMatrix();
