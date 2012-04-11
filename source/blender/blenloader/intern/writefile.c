@@ -1728,6 +1728,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				if (mesh->adt) write_animdata(wd, mesh->adt);
 
 				writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
+				writedata(wd, DATA, sizeof(MSelect) * mesh->totselect, mesh->mselect);
 
 				write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, -1, 0);
 				write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, -1, 0);
@@ -1793,6 +1794,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				if (mesh->adt) write_animdata(wd, mesh->adt);
 
 				writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
+				/* writedata(wd, DATA, sizeof(MSelect) * mesh->totselect, mesh->mselect); */ /* pre-bmesh NULL's */
 
 				write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, -1, 0);
 				write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, -1, 0);

@@ -3838,6 +3838,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->mloopcol= newdataadr(fd, mesh->mloopcol);
 	mesh->mloopuv= newdataadr(fd, mesh->mloopuv);
 	mesh->mtpoly= newdataadr(fd, mesh->mtpoly);
+	mesh->mselect = newdataadr(fd, mesh->mselect);
 
 	/* animdata */
 	mesh->adt= newdataadr(fd, mesh->adt);
@@ -3884,7 +3885,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 
 	mesh->bb= NULL;
-	mesh->mselect = NULL;
 	mesh->edit_btmesh= NULL;
 	
 	/* Multires data */
