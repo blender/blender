@@ -3324,13 +3324,15 @@ static void pyrna_dir_members_py(PyObject *list, PyObject *self)
 	/* since this is least common case, handle it last */
 	if (BPy_PropertyRNA_Check(self)) {
 		BPy_PropertyRNA *self_prop = (BPy_PropertyRNA *)self;
-		PointerRNA r_ptr;
+		if (RNA_property_type(self_prop->prop) == PROP_COLLECTION) {
+			PointerRNA r_ptr;
 
-		if (RNA_property_collection_type_get(&self_prop->ptr, self_prop->prop, &r_ptr)) {
-			PyObject *cls = pyrna_struct_Subtype(&r_ptr); /* borrows */
-			dict = ((PyTypeObject *)cls)->tp_dict;
-			pyrna_dir_members_py__add_keys(list, dict);
-			Py_DECREF(cls);
+			if (RNA_property_collection_type_get(&self_prop->ptr, self_prop->prop, &r_ptr)) {
+				PyObject *cls = pyrna_struct_Subtype(&r_ptr); /* borrows */
+				dict = ((PyTypeObject *)cls)->tp_dict;
+				pyrna_dir_members_py__add_keys(list, dict);
+				Py_DECREF(cls);
+			}
 		}
 	}
 }
