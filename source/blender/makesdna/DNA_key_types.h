@@ -83,20 +83,28 @@ typedef struct Key {
 /* **************** KEY ********************* */
 
 /* key->type */
-#define KEY_NORMAL      0
-#define KEY_RELATIVE    1
+enum {
+	KEY_NORMAL      = 0,
+	KEY_RELATIVE    = 1
+};
 
 /* key->flag */
-#define KEY_DS_EXPAND	1
+enum {
+	KEY_DS_EXPAND   = 1
+};
 
 /* keyblock->type */
-#define KEY_LINEAR      0
-#define KEY_CARDINAL    1
-#define KEY_BSPLINE     2
+enum {
+	KEY_LINEAR      = 0,
+	KEY_CARDINAL    = 1,
+	KEY_BSPLINE     = 2
+};
 
 /* keyblock->flag */
-#define KEYBLOCK_MUTE			(1<<0)
-#define KEYBLOCK_SEL			(1<<1)
-#define KEYBLOCK_LOCKED			(1<<2)
-#define KEYBLOCK_MISSING		(1<<3) /*temporary flag*/
-#endif
+enum {
+	KEYBLOCK_MUTE       = (1 << 0),
+	KEYBLOCK_SEL        = (1 << 1),
+	KEYBLOCK_LOCKED     = (1 << 2)
+};
+
+#endif /* __DNA_KEY_TYPES_H__  */
