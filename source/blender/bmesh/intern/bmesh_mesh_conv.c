@@ -763,104 +763,63 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 			ofs = bm_to_mesh_shape_basis_offset(me, bm); /* may be NULL */
 		}
 
-
 		for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
 			int apply_offset = (ofs && (currkey != actkey) && (bm->shapenr - 1 == currkey->relative));
 			int *keyi;
 			float (*ofs_pt)[3] = ofs;
-			float *fp;
+			float *newkey, *oldkey, *fp;
 
 			j = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
 
-			if (j != -1) {
-				/* new bmesh conversion method */
-				float *co;
+			/* new bmesh conversion method */
 
-				if (currkey->data)
-					MEM_freeN(currkey->data);
-				currkey->data = fp = MEM_mallocN(sizeof(float) * 3 * bm->totvert, "shape key data");
-				currkey->totelem = bm->totvert;
+			fp = newkey = MEM_callocN(me->key->elemsize * bm->totvert,  "currkey->data");
+			oldkey = currkey->data;
 
-				mvert = me->mvert;
-				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-					co = (currkey == actkey) ?
-								eve->co :
-								CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
+			mvert = me->mvert;
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 
-					copy_v3_v3(fp, co);
+				if (currkey == actkey) {
+					copy_v3_v3(fp, eve->co);
 
-					/* propagate edited basis offsets to other shapes */
-					if (apply_offset) {
-						add_v3_v3(fp, *ofs_pt++);
-					}
-
-					if (currkey == actkey && oldverts) {
-						keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-
-						if (*keyi >= 0 && *keyi < currkey->totelem) // valid old vertex
-							copy_v3_v3(mvert->co, oldverts[*keyi].co);
-
-						mvert++;
-					}
-
-					fp += 3;
-				}
-			}
-			else {
-				/* if we didn't find a shapekey, tag the block to be reconstructed
-				 * via the old method below */
-
-				/* old method of reconstructing keys via vertice's original key indices,
-				 * currently used if the new method above fails (which is theoretically
-				 * possible in certain cases of undo) */
-
-				float *newkey, *oldkey;
-
-				printf("warning: had to hackishly reconstruct shape key \"%s\","
-				       " it may not be correct anymore.\n", currkey->name);
-
-				fp = newkey = MEM_callocN(me->key->elemsize * bm->totvert,  "currkey->data");
-				oldkey = currkey->data;
-
-				mvert = me->mvert;
-				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-
-					if (keyi && *keyi != ORIGINDEX_NONE && *keyi < currkey->totelem) { /* valid old vertex */
-						if (currkey == actkey) {
-							if (actkey == me->key->refkey) {
-								copy_v3_v3(fp, mvert->co);
-							}
-							else {
-								copy_v3_v3(fp, mvert->co);
-								if (oldverts) {
-									copy_v3_v3(mvert->co, oldverts[*keyi].co);
-								}
-							}
-						}
-						else {
-							if (oldkey) {
-								copy_v3_v3(fp, oldkey + 3 * *keyi);
+					if (actkey != me->key->refkey) {
+						if (oldverts) {
+							keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+							if (*keyi != ORIGINDEX_NONE && *keyi < currkey->totelem) { // valid old vertex
+								copy_v3_v3(mvert->co, oldverts[*keyi].co);
 							}
 						}
 					}
-					else {
-						copy_v3_v3(fp, mvert->co);
-					}
-
-					/* propagate edited basis offsets to other shapes */
-					if (apply_offset) {
-						add_v3_v3(fp, *ofs_pt++);
-					}
-
-					fp += 3;
-					mvert++;
 				}
-				currkey->totelem = bm->totvert;
-				if (currkey->data) MEM_freeN(currkey->data);
-				currkey->data = newkey;
-				/* end old compad code */
+				else if (j != -1) {
+					/* in most cases this runs */
+					copy_v3_v3(fp, CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j));
+				}
+				else if (oldkey) {
+					/* old method of reconstructing keys via vertice's original key indices,
+					 * currently used if the new method above fails (which is theoretically
+					 * possible in certain cases of undo) */
+					copy_v3_v3(fp, oldkey + 3 * *keyi);
+				}
+				else {
+					/* fail! fill in with dummy value */
+					copy_v3_v3(fp, mvert->co);
+				}
+
+				/* propagate edited basis offsets to other shapes */
+				if (apply_offset) {
+					add_v3_v3(fp, *ofs_pt++);
+				}
+
+				fp += 3;
+				mvert++;
 			}
+
+			currkey->totelem = bm->totvert;
+			if (currkey->data) {
+				MEM_freeN(currkey->data);
+			}
+			currkey->data = newkey;
 		}
 
 		if (ofs) MEM_freeN(ofs);
