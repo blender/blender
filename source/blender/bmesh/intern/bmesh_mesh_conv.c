@@ -414,6 +414,46 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	return vertMap;
 }
 
+static float (*bm_to_mesh_shape_basis_offset(Mesh *me, BMesh *bm))[3]
+{
+	KeyBlock *actkey = BLI_findlink(&me->key->block, bm->shapenr - 1);
+	KeyBlock *currkey;
+	float (*ofs)[3]  = NULL;
+	int act_is_basis = 0;
+
+
+	/* find if this key is a basis for any others */
+	for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
+		if (bm->shapenr - 1 == currkey->relative) {
+			act_is_basis = 1;
+			break;
+		}
+	}
+
+	if (act_is_basis) { /* active key is a base */
+		float (*fp)[3] = actkey->data;
+		int *keyi;
+		int i;
+		BMIter iter;
+		BMVert *eve;
+		MVert  *mvert;
+
+		i = 0;
+		ofs = MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
+		mvert = me->mvert;
+		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+			if (keyi && *keyi != ORIGINDEX_NONE) {
+				sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
+			}
+			i++;
+			mvert++;
+		}
+	}
+
+	return ofs;
+}
+
 BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 {
 	/* this is a cheap way to set the edge draw, its not precise and will
@@ -440,6 +480,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	BMFace *f;
 	BMIter iter, liter;
 	int i, j, *keyi, ototvert;
+	int use_old_key_code_fallback = FALSE;
 
 	ototvert = me->totvert;
 
@@ -701,30 +742,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 		/* editing the base key should update others */
 		if (me->key->type == KEY_RELATIVE && oldverts) {
-			int act_is_basis = 0;
-			/* find if this key is a basis for any others */
-			for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
-				if (bm->shapenr - 1 == currkey->relative) {
-					act_is_basis = 1;
-					break;
-				}
-			}
-
-			if (act_is_basis) { /* active key is a base */
-				float (*fp)[3] = actkey->data;
-				int *keyi;
-				i = 0;
-				ofs = MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
-				mvert = me->mvert;
-				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-					if (keyi && *keyi != ORIGINDEX_NONE) {
-						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
-					}
-					i++;
-					mvert++;
-				}
-			}
+			ofs = bm_to_mesh_shape_basis_offset(me, bm); /* may be NULL */
 		}
 
 
@@ -779,6 +797,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 			 * via the old method below */
 			if (j == CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY)) {
 				currkey->flag |= KEYBLOCK_MISSING;
+				use_old_key_code_fallback = TRUE;
 			}
 		}
 
@@ -793,7 +812,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	/* old method of reconstructing keys via vertice's original key indices,
 	 * currently used if the new method above fails (which is theoretically
 	 * possible in certain cases of undo) */
-	if (me->key) {
+	if (me->key && use_old_key_code_fallback) {
 		float *fp, *newkey, *oldkey;
 		KeyBlock *currkey;
 		KeyBlock *actkey = BLI_findlink(&me->key->block, bm->shapenr - 1);
@@ -802,36 +821,12 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 		/* editing the base key should update others */
 		if (me->key->type == KEY_RELATIVE && oldverts) {
-			int act_is_basis = 0;
-			/* find if this key is a basis for any others */
-			for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
-				if (bm->shapenr - 1 == currkey->relative) {
-					act_is_basis = 1;
-					break;
-				}
-			}
-
-			if (act_is_basis) { /* active key is a base */
-				float (*fp)[3] = actkey->data;
-				int *keyi;
-				i = 0;
-				ofs = MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
-				mvert = me->mvert;
-				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-					if (keyi && *keyi != ORIGINDEX_NONE) {
-						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
-					}
-					i++;
-					mvert++;
-				}
-			}
+			ofs = bm_to_mesh_shape_basis_offset(me, bm); /* may be NULL */
 		}
 
 		/* Lets reorder the key data so that things line up roughly
 		 * with the way things were before editmode */
-		currkey = me->key->block.first;
-		while (currkey) {
+		for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
 			int apply_offset = (ofs && (currkey != actkey) && (bm->shapenr - 1 == currkey->relative));
 
 			if (!(currkey->flag & KEYBLOCK_MISSING)) {
@@ -849,9 +844,8 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 			eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
 
-			i = 0;
 			mvert = me->mvert;
-			while (eve) {
+			BM_ITER_INDEX(eve, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
 				keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 
 				if (keyi && *keyi != ORIGINDEX_NONE && *keyi < currkey->totelem) { /* valid old vertex */
@@ -882,15 +876,11 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 				}
 
 				fp += 3;
-				i++;
 				mvert++;
-				eve = BM_iter_step(&iter);
 			}
 			currkey->totelem = bm->totvert;
 			if (currkey->data) MEM_freeN(currkey->data);
 			currkey->data = newkey;
-
-			currkey = currkey->next;
 		}
 
 		if (ofs) MEM_freeN(ofs);
