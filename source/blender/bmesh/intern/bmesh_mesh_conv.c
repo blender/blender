@@ -454,6 +454,25 @@ static float (*bm_to_mesh_shape_basis_offset(Mesh *me, BMesh *bm))[3]
 	return ofs;
 }
 
+/**
+ * returns customdata shapekey index from a keyblock or -1
+ * \note could split this out into a more generic function */
+static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
+{
+	int i;
+	int j = 0;
+
+	for (i = 0; i < bm->vdata.totlayer; i++) {
+		if (bm->vdata.layers[i].type == CD_SHAPEKEY) {
+			if (currkey->uid == bm->vdata.layers[i].uid) {
+				return j;
+			}
+			j++;
+		}
+	}
+	return -1;
+}
+
 BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 {
 	/* this is a cheap way to set the edge draw, its not precise and will
@@ -747,55 +766,46 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 
 		for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
-			j = 0;
+			j = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
 
-			for (i = 0; i < bm->vdata.totlayer; i++) {
-				if (bm->vdata.layers[i].type != CD_SHAPEKEY)
-					continue;
+			if (j != -1) {
+				int apply_offset = (ofs && (currkey != actkey) && (bm->shapenr - 1 == currkey->relative));
+				float *fp, *co;
+				float (*ofs_pt)[3] = ofs;
 
-				if (currkey->uid == bm->vdata.layers[i].uid) {
-					int apply_offset = (ofs && (currkey != actkey) && (bm->shapenr - 1 == currkey->relative));
-					float *fp, *co;
-					float (*ofs_pt)[3] = ofs;
+				if (currkey->data)
+					MEM_freeN(currkey->data);
+				currkey->data = fp = MEM_mallocN(sizeof(float) * 3 * bm->totvert, "shape key data");
+				currkey->totelem = bm->totvert;
 
-					if (currkey->data)
-						MEM_freeN(currkey->data);
-					currkey->data = fp = MEM_mallocN(sizeof(float) * 3 * bm->totvert, "shape key data");
-					currkey->totelem = bm->totvert;
+				mvert = me->mvert;
+				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+					co = (currkey == actkey) ?
+								eve->co :
+								CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
 
-					mvert = me->mvert;
-					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-						co = (currkey == actkey) ?
-						            eve->co :
-						            CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
+					copy_v3_v3(fp, co);
 
-						copy_v3_v3(fp, co);
-
-						/* propagate edited basis offsets to other shapes */
-						if (apply_offset) {
-							add_v3_v3(fp, *ofs_pt++);
-						}
-
-						if (currkey == actkey && oldverts) {
-							keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-
-							if (*keyi >= 0 && *keyi < currkey->totelem) // valid old vertex
-								copy_v3_v3(mvert->co, oldverts[*keyi].co);
-
-							mvert++;
-						}
-
-						fp += 3;
+					/* propagate edited basis offsets to other shapes */
+					if (apply_offset) {
+						add_v3_v3(fp, *ofs_pt++);
 					}
-					break;
+
+					if (currkey == actkey && oldverts) {
+						keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+
+						if (*keyi >= 0 && *keyi < currkey->totelem) // valid old vertex
+							copy_v3_v3(mvert->co, oldverts[*keyi].co);
+
+						mvert++;
+					}
+
+					fp += 3;
 				}
-
-				j++;
 			}
-
-			/* if we didn't find a shapekey, tag the block to be reconstructed
-			 * via the old method below */
-			if (j == CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY)) {
+			else {
+				/* if we didn't find a shapekey, tag the block to be reconstructed
+				 * via the old method below */
 				currkey->flag |= KEYBLOCK_MISSING;
 				use_old_key_code_fallback = TRUE;
 			}
