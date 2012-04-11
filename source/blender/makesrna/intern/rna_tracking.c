@@ -1351,7 +1351,8 @@ static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_trackingObject_new");
 	RNA_def_function_ui_description(func, "Add tracking object to this movie clip");
-	RNA_def_string(func, "name", "", 0, "", "Name of new object");
+	parm = RNA_def_string(func, "name", "", 0, "", "Name of new object");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "object", "MovieTrackingObject", "", "New motion tracking object");
 	RNA_def_function_return(func, parm);
 
