@@ -2762,7 +2762,7 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(f, BM_ELEM_TAG)) {           /* face: visible */
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-				if (BM_elem_flag_test(f, BM_ELEM_TAG)) {   /* loop: selected*/
+				if (BM_elem_flag_test(l, BM_ELEM_TAG)) {   /* loop: selected*/
 					float uv[2] = {0.0f, 0.0f};
 					int uv_tot = 0;
 
