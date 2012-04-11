@@ -6,6 +6,7 @@ libmv/image/array_nd.cc
 libmv/image/array_nd.h
 libmv/image/convolve.cc
 libmv/image/convolve.h
+libmv/image/correlation.h
 libmv/image/image.h
 libmv/image/sample.h
 libmv/image/tuple.h
@@ -64,8 +65,6 @@ libmv/tracking/pyramid_region_tracker.h
 libmv/tracking/region_tracker.h
 libmv/tracking/retrack_region_tracker.cc
 libmv/tracking/retrack_region_tracker.h
-libmv/tracking/sad.cc
-libmv/tracking/sad.h
 libmv/tracking/trklt_region_tracker.cc
 libmv/tracking/trklt_region_tracker.h
 third_party/fast/fast_10.c
@@ -103,6 +102,7 @@ third_party/glog/src/base/googleinit.h
 third_party/glog/src/base/mutex.h
 third_party/glog/src/config_freebsd.h
 third_party/glog/src/config.h
+third_party/glog/src/config_hurd.h
 third_party/glog/src/config_linux.h
 third_party/glog/src/config_mac.h
 third_party/glog/src/demangle.cc

@@ -1,3 +1,29 @@
+commit 9618d9a1d48bb3c28da605d9027f57a74f462785
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 11 14:17:14 2012 +0600
+
+    Added configuration file for glog to compile smooth on Hurd platform.
+    
+    Patch by Pino Toscano <pino@debian.org>, thanks!
+
+commit 63b2bd20237c8599fa73ce42556e4fb99b9f7cca
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Mar 22 17:03:34 2012 +0600
+
+    Trackers refactoring:
+    - Deduplicate pattern sampling used in esm and lmicklt trackers
+      and move SamplePattern to image/sample.h
+    - Move computation of Pearson product-moment correlation into
+      own function in new file image/correlation.h so all trackers
+      can use it to check final correlation.
+    - Remove SAD tracker. It's almost the same as brute tracker,
+      with only two differences:
+      1. It does brute search of affine transformation which in some cases
+         helps to track rotating features
+      2. It didn't use common tracker api which probably gave some speed
+         advantage, but lead to a real headache to use it together with
+         other trackers leading to duplicated code in 3d-party software.
+
 commit 9fe49c32e990f28c83f2bbb1d18057aed8879af7
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Mar 12 09:36:15 2012 +0600
@@ -475,17 +501,3 @@ Date:   Fri Aug 19 14:19:27 2011 +0200
     Add LaplaceFilter.
     Add regularization in affine SAD Tracker (keep constant area and good condition number).
     UI: Better track display (+enable line antialiasing).
-
-commit 6d26d9a8ccc4ce009fbf253898fea8864dd5001a
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Aug 19 10:25:26 2011 +0200
-
-    Add optimization for integer pixel search.
-    Allows more agressive settings for affine coordinate descent.
-
-commit 70ceae81c0ab561b07e640ecb9933f0a902b57cd
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Aug 19 00:02:12 2011 +0200
-
-    Document coordinate descent method in affine SAD matcher.
-    Add heuristic to prevent high distortions.

@@ -47,7 +47,7 @@ if(APPLE)
 		list(APPEND INC_SYS
 			${CMAKE_OSX_SYSROOT}/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin10/4.2.1/include
 		)
-	endif()	
+	endif()
 endif()
 # XXX - END
 
@@ -102,8 +102,8 @@ set(SRC
 	libmv/base/vector_utils.h
 	libmv/image/array_nd.h
 	libmv/image/convolve.h
-	libmv/image/image.h
 	libmv/image/correlation.h
+	libmv/image/image.h
 	libmv/image/sample.h
 	libmv/image/tuple.h
 	libmv/logging/logging.h
@@ -217,6 +217,7 @@ else()
 		third_party/glog/src/base/mutex.h
 		third_party/glog/src/config_freebsd.h
 		third_party/glog/src/config.h
+		third_party/glog/src/config_hurd.h
 		third_party/glog/src/config_linux.h
 		third_party/glog/src/config_mac.h
 		third_party/glog/src/demangle.h
