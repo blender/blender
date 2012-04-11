@@ -344,7 +344,7 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 				if (oldlength >= 1 ) {
 					int newlength=oldlength;
 
-					BLI_str_cursor_step_prev_utf8(newprop, NULL, &newlength);
+					BLI_str_cursor_step_prev_utf8(newprop, newprop.Length(), &newlength);
 					newprop.SetLength(newlength);
 
 					CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);
