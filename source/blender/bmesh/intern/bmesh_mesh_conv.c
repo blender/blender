@@ -198,9 +198,6 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 			bm->vdata.layers[j].uid = block->uid;
 		}
 	}
-	else if (actkey) {
-		printf("shapekey <-> mesh mismatch!\n");
-	}
 
 	CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
 	CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
@@ -764,7 +761,11 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 
 		/* editing the base key should update others */
-		if (me->key->type == KEY_RELATIVE && oldverts) {
+		if ((me->key->type == KEY_RELATIVE) && /* only need offsets for relative shape keys */
+		    (actkey   != NULL) &&              /* unlikely, but the active key may not be valid if the
+		                                        * bmesh and the mesh are out of sync */
+		    (oldverts != NULL))                /* not used here, but 'oldverts' is used later for applyig 'ofs' */
+		{
 			int act_is_basis = FALSE;
 
 			/* find if this key is a basis for any others */
