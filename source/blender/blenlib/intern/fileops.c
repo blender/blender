@@ -184,14 +184,14 @@ int BLI_file_is_writable(const char *filename)
 
 int BLI_file_touch(const char *file)
 {
-	FILE *f = BLI_fopen(file,"r+b");
+	FILE *f = BLI_fopen(file, "r+b");
 	if (f != NULL) {
 		char c = getc(f);
 		rewind(f);
-		putc(c,f);
+		putc(c, f);
 	}
 	else {
-		f = BLI_fopen(file,"wb");
+		f = BLI_fopen(file, "wb");
 	}
 	if (f) {
 		fclose(f);
@@ -250,7 +250,7 @@ int BLI_delete(const char *file, int dir, int recursive)
 {
 	int err;
 	
-	UTF16_ENCODE(file)
+	UTF16_ENCODE(file);
 
 	if (recursive) {
 		callLocalErrorCallBack("Recursive delete is unsupported on Windows");
@@ -265,7 +265,7 @@ int BLI_delete(const char *file, int dir, int recursive)
 		if (err) callLocalErrorCallBack("Unable to delete file");
 	}
 
-	UTF16_UN_ENCODE(file)
+	UTF16_UN_ENCODE(file);
 
 	return err;
 }
@@ -286,11 +286,11 @@ int BLI_move(const char *file, const char *to)
 		}
 	}
 	
-	UTF16_ENCODE(file)
-	UTF16_ENCODE(str)
+	UTF16_ENCODE(file);
+	UTF16_ENCODE(str);
 	err= !MoveFileW(file_16, str_16);
-	UTF16_UN_ENCODE(str)
-	UTF16_UN_ENCODE(file)
+	UTF16_UN_ENCODE(str);
+	UTF16_UN_ENCODE(file);
 
 	if (err) {
 		callLocalErrorCallBack("Unable to move file");
@@ -317,11 +317,11 @@ int BLI_copy(const char *file, const char *to)
 		}
 	}
 
-	UTF16_ENCODE(file)
-	UTF16_ENCODE(str)
-	err= !CopyFileW(file_16,str_16,FALSE);
-	UTF16_UN_ENCODE(str)
-	UTF16_UN_ENCODE(file)
+	UTF16_ENCODE(file);
+	UTF16_ENCODE(str);
+	err = !CopyFileW(file_16, str_16, FALSE);
+	UTF16_UN_ENCODE(str);
+	UTF16_UN_ENCODE(file);
 
 	if (err) {
 		callLocalErrorCallBack("Unable to copy file!");
@@ -344,10 +344,10 @@ void BLI_dir_create_recursive(const char *dirname)
 	char *lslash;
 	char tmp[MAXPATHLEN];
 	
-	// First remove possible slash at the end of the dirname.
-	// This routine otherwise tries to create
-	// blah1/blah2/ (with slash) after creating
-	// blah1/blah2 (without slash)
+	/* First remove possible slash at the end of the dirname.
+	 * This routine otherwise tries to create
+	 * blah1/blah2/ (with slash) after creating
+	 * blah1/blah2 (without slash) */
 
 	BLI_strncpy(tmp, dirname, sizeof(tmp));
 	lslash= BLI_last_slash(tmp);
@@ -357,10 +357,10 @@ void BLI_dir_create_recursive(const char *dirname)
 	}
 	
 	if (BLI_exists(tmp)) return;
-		
+
 	lslash= BLI_last_slash(tmp);
 	if (lslash) {
-			/* Split about the last slash and recurse */	
+		/* Split about the last slash and recurse */
 		*lslash = 0;
 		BLI_dir_create_recursive(tmp);
 	}
