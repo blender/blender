@@ -885,7 +885,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	l = l->radial_next;
 	l = l->next->next;
 	
-	if ((l->f->len != 4) || !EDGE_CHECK(l->e)) {
+	if ((l->f->len != 4) || !EDGE_CHECK(l->e) || !bmw_mask_check_face(walker, l->f)) {
 		l = lwalk->l->next->next;
 	}
 	/* only walk to manifold edge */
