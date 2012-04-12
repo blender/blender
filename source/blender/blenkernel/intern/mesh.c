@@ -325,13 +325,16 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
 
 			CustomData_from_bmeshpoly(&me->fdata, &me->pdata, &me->ldata, me->totface);
 
-			/* note: this warning may be un-called for if we are inirializing the mesh for the
-			 * first time from bmesh, rather then giving a warning about this we could be smarter
-			 * and check if there was any data to begin with, for now just print the warning with
-			 * some info to help troubleshoot whats going on - campbell */
-			printf("%s: warning! Tessellation uvs or vcol data got out of sync, "
-			       "had to reset!\n    CD_MTFACE: %d != CD_MTEXPOLY: %d || CD_MCOL: %d != CD_MLOOPCOL: %d\n",
-			       __func__, tottex_tessface, tottex_original, totcol_tessface, totcol_original);
+			/* TODO - add some --debug-mesh option */
+			if (G.debug & G_DEBUG) {
+				/* note: this warning may be un-called for if we are inirializing the mesh for the
+				 * first time from bmesh, rather then giving a warning about this we could be smarter
+				 * and check if there was any data to begin with, for now just print the warning with
+				 * some info to help troubleshoot whats going on - campbell */
+				printf("%s: warning! Tessellation uvs or vcol data got out of sync, "
+					   "had to reset!\n    CD_MTFACE: %d != CD_MTEXPOLY: %d || CD_MCOL: %d != CD_MLOOPCOL: %d\n",
+					   __func__, tottex_tessface, tottex_original, totcol_tessface, totcol_original);
+			}
 		}
 	}
 }

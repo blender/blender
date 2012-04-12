@@ -453,7 +453,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	}
 
 	if (G.debug & G_DEBUG)
-		printf("Updated tessellated customdata of dm %p\n", dm);
+		printf("%s: Updated tessellated customdata of dm %p\n", __func__, dm);
 
 	dm->dirty &= ~DM_DIRTY_TESS_CDLAYERS;
 }
@@ -544,7 +544,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	 * which shouuld be fed through the modifier
 	 * stack*/
 	if (tmp.totvert != me->totvert && !did_shapekeys && me->key) {
-		printf("YEEK! this should be recoded! Shape key loss!!!\n");
+		printf("%s: YEEK! this should be recoded! Shape key loss!: ID '%s'\n", __func__, tmp.id.name);
 		if (tmp.key) tmp.key->id.us--;
 		tmp.key = NULL;
 	}
@@ -1300,7 +1300,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 			
 			kb->totelem = dm->numVertData;
 			kb->data = MEM_callocN(sizeof(float)*3*kb->totelem, "kb->data derivedmesh.c");
-			fprintf(stderr, "%s: lost a shapekey layer! (bmesh internal error)\n", __func__);
+			fprintf(stderr, "%s: lost a shapekey layer: '%s'! (bmesh internal error)\n", __func__, kb->name);
 		}
 	}
 }
@@ -1329,8 +1329,8 @@ static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *UNUSED(ob))
 
 		if (me->totvert != kb->totelem) {
 			fprintf(stderr,
-			        "%s: vertex size mismatch (mesh/keyblock) '%s' (%d != %d)\n",
-			        __func__, me->id.name+2, me->totvert, kb->totelem);
+			        "%s: vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)\n",
+			        __func__, me->id.name + 2, me->totvert, kb->name, kb->totelem);
 			array = MEM_callocN(shape_alloc_len, __func__);
 		}
 		else {
@@ -3022,7 +3022,7 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 		}
 	}
 	else {
-		printf("Error during creation polygon infos\n");
+		printf("%s: Error during creation polygon infos\n", __func__);
 	}
 
 	/* clean up */
