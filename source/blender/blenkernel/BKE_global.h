@@ -166,6 +166,11 @@ enum {
 #  error Either __BIG_ENDIAN__ or __LITTLE_ENDIAN__ must be defined.
 #endif
 
+/* there is really no good place for this */
+#if defined(FREE_WINDOWS) && ((__GNUC__ < 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ < 6)))
+#  error "Mingw requires GCC 4.6 minimum"
+#endif
+
 #define L_ENDIAN	1
 #define B_ENDIAN	0
 
