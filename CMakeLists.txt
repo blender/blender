@@ -148,11 +148,14 @@ mark_as_advanced(WITH_AUDASPACE)
 
 
 # (unix defaults to OpenMP On)
+
 if(UNIX AND NOT APPLE)
-	option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
+	set(PLATFORM_DEFAULT ON)
 else()
-	option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
+	set(PLATFORM_DEFAULT OFF)
 endif()
+option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" PLATFORM_DEFAULT)
+unset(PLATFORM_DEFAULT)
 
 if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
@@ -171,19 +174,27 @@ else()
 endif()
 
 # Modifiers
-option(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
-option(WITH_MOD_SMOKE        	"Enable Smoke Modifier (Smoke Simulation)" ON)
-option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
-option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
-option(WITH_MOD_REMESH        	"Enable Remesh Modifier" ON)
-option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experimental cloth solver" OFF)
+option(WITH_MOD_FLUID           "Enable Elbeem Modifier (Fluid Simulation)" ON)
+option(WITH_MOD_SMOKE           "Enable Smoke Modifier (Smoke Simulation)" ON)
+option(WITH_MOD_DECIMATE        "Enable Decimate Modifier" ON)
+option(WITH_MOD_BOOLEAN         "Enable Boolean Modifier" ON)
+option(WITH_MOD_REMESH          "Enable Remesh Modifier" ON)
+option(WITH_MOD_CLOTH_ELTOPO    "Enable Experimental cloth solver" OFF)
 mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
 option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" OFF)
 
 # Image format support
-option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
+
+if(NOT MINGW)
+	set(PLATFORM_DEFAULT ON)
+else()
+	set(PLATFORM_DEFAULT OFF)
+endif()
+option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ${PLATFORM_DEFAULT})
+option(WITH_IMAGE_TIFF          "Enable LibTIFF Support"                          ${PLATFORM_DEFAULT})
+unset(PLATFORM_DEFAULT)
+
 option(WITH_IMAGE_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
-option(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
 option(WITH_IMAGE_DDS           "Enable DDS Image Support" ON)
 option(WITH_IMAGE_CINEON        "Enable CINEON and DPX Image Support" ON)
 option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
@@ -225,7 +236,14 @@ endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
 # Cycles
-option(WITH_CYCLES					"Enable cycles Render Engine" ON)
+if(NOT MINGW)
+	set(PLATFORM_DEFAULT ON)
+else()
+	set(PLATFORM_DEFAULT OFF)
+endif()
+option(WITH_CYCLES					"Enable cycles Render Engine" ${PLATFORM_DEFAULT})
+unset(PLATFORM_DEFAULT)
+
 option(WITH_CYCLES_TEST				"Build cycles test application" OFF)
 option(WITH_CYCLES_CUDA_BINARIES	"Build cycles CUDA binaries" OFF)
 set(CYCLES_CUDA_BINARIES_ARCH		sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build binaries for")
@@ -325,13 +343,29 @@ if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()
 
+# mingw needs some work to support all windows libs
+# ...until then complain if they are used rather then failing.
 if(MINGW)
-	if(WITH_CODEC_QUICKTIME)
-		message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
-							"because it is currently unsupported, remove this "
-							"line if youre a developer who wants to add support.")
-	endif()
+
+	# temp macro to avoid lots of copy/paste messages
+	macro(mingw_unsupported
+	      opt)
+
+		if(${opt})
+			message(FATAL_ERROR "MINGW requires " ${opt} " to be OFF "
+			                    "because it is currently unsupported, remove this "
+			                    "line if youre a developer who wants to add support.")
+		endif()
+	endmacro()
+
+	mingw_unsupported(WITH_CODEC_QUICKTIME)
+	mingw_unsupported(WITH_CYCLES)
+	mingw_unsupported(WITH_IMAGE_OPENEXR)
+	mingw_unsupported(WITH_IMAGE_TIFF)
+
+	unset(mingw_unsupported)
 endif()
+
 
 if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
 	message(FATAL_ERROR "WITH_MOD_OCEANSIM requires WITH_FFTW3 to be ON")
@@ -358,7 +392,7 @@ if(WITH_INSTALL_PORTABLE)
 endif()
 
 if(WITH_GHOST_SDL OR WITH_HEADLESS)
-    set(WITH_GHOST_XDND OFF)
+	set(WITH_GHOST_XDND OFF)
 endif()
 
 TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
@@ -1660,6 +1694,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_X11_XF86VMODE)
 	info_cfg_option(WITH_X11_XINPUT)
 	info_cfg_option(WITH_BUILTIN_GLEW)
+	info_cfg_option(WITH_MEM_JEMALLOC)
 
 	info_cfg_text("Image Formats:")
 	info_cfg_option(WITH_IMAGE_CINEON)
