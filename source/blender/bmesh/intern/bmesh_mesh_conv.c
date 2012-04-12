@@ -764,7 +764,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 		if ((me->key->type == KEY_RELATIVE) && /* only need offsets for relative shape keys */
 		    (actkey   != NULL) &&              /* unlikely, but the active key may not be valid if the
 		                                        * bmesh and the mesh are out of sync */
-		    (oldverts != NULL))                /* not used here, but 'oldverts' is used later for applyig 'ofs' */
+		    (oldverts != NULL))                /* not used here, but 'oldverts' is used later for applying 'ofs' */
 		{
 			int act_is_basis = FALSE;
 
@@ -780,15 +780,13 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 				float (*fp)[3] = actkey->data;
 				int *keyi;
 
-				i = 0;
 				ofs = MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
 				mvert = me->mvert;
-				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+				BM_ITER_INDEX(eve, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
 					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 					if (keyi && *keyi != ORIGINDEX_NONE) {
 						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
 					}
-					i++;
 					mvert++;
 				}
 			}

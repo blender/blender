@@ -130,28 +130,10 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 			
 		if (kb->data) MEM_freeN(kb->data);
 		MEM_freeN(kb);
-		
-		for (kb= key->block.first; kb; kb= kb->next)
-			if (kb->adrcode>=ob->shapenr)
-				kb->adrcode--;
-		
-#if 0 // XXX old animation system
-		if (key->ipo) {
-			
-			for (icu= key->ipo->curve.first; icu; icu= icu->next) {
-				if (icu->adrcode==ob->shapenr-1) {
-					BLI_remlink(&key->ipo->curve, icu);
-					free_ipo_curve(icu);
-					break;
-				}
-			}
-			for (icu= key->ipo->curve.first; icu; icu= icu->next) 
-				if (icu->adrcode>=ob->shapenr)
-					icu->adrcode--;
+
+		if (ob->shapenr > 1) {
+			ob->shapenr--;
 		}
-#endif // XXX old animation system		
-		
-		if (ob->shapenr>1) ob->shapenr--;
 	}
 	
 	if (key->totkey==0) {

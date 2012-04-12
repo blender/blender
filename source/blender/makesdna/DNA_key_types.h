@@ -43,8 +43,8 @@ typedef struct KeyBlock {
 	
 	float pos;
 	float curval;
-	short type, adrcode, relative, flag;	/* relative == 0 means first key is reference */
-	int totelem, pad2;
+	short type, pad1, relative, flag;	/* relative == 0 means first key is reference */
+	int totelem, uid;
 	
 	void *data;
 	float *weights;
@@ -53,8 +53,6 @@ typedef struct KeyBlock {
 
 	float slidermin;
 	float slidermax;
-
-	int uid, pad3;
 } KeyBlock;
 
 

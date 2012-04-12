@@ -238,8 +238,6 @@ void make_local_key(Key *key)
 void sort_keys(Key *key)
 {
 	KeyBlock *kb;
-	//short i, adrcode;
-	//IpoCurve *icu = NULL;
 	KeyBlock *kb2;
 
 	/* locate the key which is out of position */ 
@@ -259,43 +257,6 @@ void sort_keys(Key *key)
 				break;
 			}
 		}
-		
-		/* if more than one Ipo curve, see if this key had a curve */
-#if 0 // XXX old animation system
-		if (key->ipo && key->ipo->curve.first != key->ipo->curve.last ) {
-			for (icu= key->ipo->curve.first; icu; icu= icu->next) {
-				/* if we find the curve, remove it and reinsert in the 
-				 * right place */
-				if (icu->adrcode==kb->adrcode) {
-					IpoCurve *icu2;
-					BLI_remlink(&key->ipo->curve, icu);
-					for (icu2= key->ipo->curve.first; icu2; icu2= icu2->next) {
-						if (icu2->adrcode >= kb2->adrcode) {
-							BLI_insertlink(&key->ipo->curve, icu2->prev, icu);
-							break;
-						}
-					}
-					break;
-				}
-			}
-		}
-		
-		/* kb points at the moved key, icu at the moved ipo (if it exists).
-		 * go back now and renumber adrcodes */
-
-		/* first new code */
-		adrcode = kb2->adrcode;
-		for (i = kb->adrcode - adrcode; i >= 0; i--, adrcode++) {
-			/* if the next ipo curve matches the current key, renumber it */
-			if (icu && icu->adrcode == kb->adrcode ) {
-				icu->adrcode = adrcode;
-				icu = icu->next;
-			}
-			/* renumber the shape key */
-			kb->adrcode = adrcode;
-			kb = kb->next;
-		}
-#endif // XXX old animation system
 	}
 
 	/* new rule; first key is refkey, this to match drawing channels... */
@@ -1463,8 +1424,6 @@ KeyBlock *add_keyblock(Key *key, const char *name)
 
 	BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), sizeof(kb->name));
 
-	// XXX this is old anim system stuff? (i.e. the 'index' of the shapekey)
-	kb->adrcode= tot-1;
 	kb->uid = key->uidgen++;
 
 	key->totkey++;
