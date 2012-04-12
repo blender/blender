@@ -883,6 +883,7 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0);
 
 			/* bind texture */
+			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 			glEnable(GL_COLOR_MATERIAL);
 			glEnable(GL_TEXTURE_2D);
 
