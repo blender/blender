@@ -24,6 +24,55 @@
  *  \ingroup bmesh
  *
  * BM mesh conversion functions.
+ *
+ * \section bm_mesh_conv_shapekey Converting Shape Keys
+ *
+ * When converting to/from a Mesh/BMesh you can optionally pass a shape key to edit.
+ * This has the effect of editing the shape key-block rather then the original mesh vertex coords
+ * (although additional geometry is still allowed and uses fallback locations on converting).
+ *
+ * While this works for any mesh/bmesh this is made use of by entering and exiting edit-mode.
+ *
+ * There are comments in code but this should help explain the general
+ * intention as to how this works converting from/to bmesh.
+ *
+ *
+ * \subsection user_pov User Perspective
+ *
+ * - Editmode operations when a shape key-block is active edits only that key-block.
+ * - The first Basis key-block always matches the Mesh verts.
+ * - Changing vertex locations of _any_ Basis will apply offsets to those shape keys using this as their Basis.
+ *
+ *
+ * \subsection enter_editmode Entering EditMode - #BM_mesh_bm_from_me
+ *
+ * - the active key-block is used for BMesh vertex locations on entering edit-mode.
+ * So obviously the meshes vertex locations remain unchanged and the shape key its self is not being edited directly.
+ * Simply the #BMVert.co is a initialized from active shape key (when its set).
+ * - all key-blocks are added as CustomData layers (read code for details).
+ *
+ *
+ * \subsection exit_editmode Exiting EditMode - #BM_mesh_bm_to_me
+ *
+ * This is where the most confusing code is! Won't attempt to document the details here, for that read the code.
+ * But basics are as follows.
+ *
+ * - Vertex locations (possibly modified from initial active key-block) are copied directly into #MVert.co
+ * (special confusing note that these may be restored later, when editing the 'Basis', read on).
+ * - if the 'Key' is relative, and the active key-block is the basis for ANY other key-blocks - get an array of offsets
+ * between the new vertex locations and the original shape key (before entering edit-mode),
+ * these offsets get applied later on to inactive key-blocks using the active one (which we are editing) as their Basis.
+ *
+ * Copying the locations back to the shape keys is quite confusing...
+ * One main area of confusion is that when editing a 'Basis' key-block 'me->key->refkey'
+ * The coords are written into the mesh, from the users perspective the Basis coords are written into the mesh
+ * when exiting edit-mode.
+ *
+ * When _not_ editing the 'Basis', the original vertex locations (stored in the mesh and unchanged during edit-mode),
+ * are copied back into the mesh.
+ *
+ * This has the effect from the users POV of leaving the mesh un-touched, and only editing the active shape key-block.
+ *
  */
 
 #include "DNA_mesh_types.h"
