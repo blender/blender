@@ -1418,10 +1418,9 @@ static void cdDM_drawMappedEdges(DerivedMesh *dm, DMSetDrawOptions setDrawOption
 }
 
 static void cdDM_foreachMappedVert(
-						   DerivedMesh *dm,
-						   void (*func)(void *userData, int index, float *co,
-										float *no_f, short *no_s),
-						   void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3]),
+        void *userData)
 {
 	MVert *mv = CDDM_get_verts(dm);
 	int i, orig, *index = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
@@ -1438,10 +1437,9 @@ static void cdDM_foreachMappedVert(
 }
 
 static void cdDM_foreachMappedEdge(
-						   DerivedMesh *dm,
-						   void (*func)(void *userData, int index,
-										float *v0co, float *v1co),
-						   void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
+        void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mv = cddm->mvert;
@@ -1460,20 +1458,19 @@ static void cdDM_foreachMappedEdge(
 }
 
 static void cdDM_foreachMappedFaceCenter(
-						   DerivedMesh *dm,
-						   void (*func)(void *userData, int index,
-										float *cent, float *no),
-						   void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float cent[3], const float no[3]),
+        void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 	MVert *mv = cddm->mvert;
-	MPoly *mf = cddm->mpoly;
+	MPoly *mp = cddm->mpoly;
 	MLoop *ml = cddm->mloop;
 	int i, j, orig, *index;
 
 	index = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
-	mf = cddm->mpoly;
-	for (i = 0; i < dm->numPolyData; i++, mf++) {
+	mp = cddm->mpoly;
+	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		float cent[3];
 		float no[3];
 
@@ -1484,20 +1481,26 @@ static void cdDM_foreachMappedFaceCenter(
 		else
 			orig = i;
 		
-		ml = &cddm->mloop[mf->loopstart];
+		ml = &cddm->mloop[mp->loopstart];
 		cent[0] = cent[1] = cent[2] = 0.0f;
-		for (j=0; j<mf->totloop; j++, ml++) {
+		for (j=0; j<mp->totloop; j++, ml++) {
 			add_v3_v3v3(cent, cent, mv[ml->v].co);
 		}
 		mul_v3_fl(cent, 1.0f / (float)j);
 
-		ml = &cddm->mloop[mf->loopstart];
+		ml = &cddm->mloop[mp->loopstart];
 		if (j > 3) {
-			normal_quad_v3(no, mv[ml->v].co, mv[(ml+1)->v].co,
-				       mv[(ml+2)->v].co, mv[(ml+3)->v].co);
+			normal_quad_v3(no,
+			               mv[(ml + 0)->v].co,
+			               mv[(ml + 1)->v].co,
+			               mv[(ml + 2)->v].co,
+			               mv[(ml + 3)->v].co);
 		}
 		else {
-			normal_tri_v3(no, mv[ml->v].co, mv[(ml+1)->v].co, mv[(ml+2)->v].co);
+			normal_tri_v3(no,
+			              mv[(ml + 0)->v].co,
+			              mv[(ml + 1)->v].co,
+			              mv[(ml + 2)->v].co);
 		}
 
 		func(userData, orig, cent, no);

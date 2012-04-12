@@ -831,7 +831,6 @@ const char *BLI_getDefaultDocumentFolder(void)
 		return getenv("HOME");
 
 #else /* Windows */
-		const char * ret;
 		static char documentfolder[MAXPATHLEN];
 		HRESULT hResult;
 

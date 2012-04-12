@@ -1076,7 +1076,7 @@ void IMAnames_to_pupstring(const char **str, const char *title, const char *extr
 	BLI_dynstr_free(pupds);
 }
 
-static void sort_alpha_id(ListBase *lb, ID *id)
+void id_sort_by_name(ListBase *lb, ID *id)
 {
 	ID *idtest;
 	
@@ -1086,7 +1086,7 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 		
 		idtest= lb->first;
 		while (idtest) {
-			if (BLI_strcasecmp(idtest->name, id->name)>0 || idtest->lib) {
+			if (BLI_strcasecmp(idtest->name, id->name)>0 || (idtest->lib && !id->lib)) {
 				BLI_insertlinkbefore(lb, idtest, id);
 				break;
 			}
@@ -1270,10 +1270,10 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	 * functions work, so sort every time */
 #if 0
 	if ( result )
-		sort_alpha_id(lb, id);
+		id_sort_by_name(lb, id);
 #endif
 
-	sort_alpha_id(lb, id);
+	id_sort_by_name(lb, id);
 	
 	return result;
 }
@@ -1415,7 +1415,7 @@ void BKE_library_make_local(Main *bmain, Library *lib, int untagged_only)
 
 						/* why sort alphabetically here but not in
 						 * id_clear_lib_data() ? - campbell */
-						sort_alpha_id(lbarray[a], id);
+						id_sort_by_name(lbarray[a], id);
 					}
 					else {
 						id->flag &= ~(LIB_EXTERN|LIB_INDIRECT|LIB_NEW);
@@ -1455,7 +1455,7 @@ void test_idbutton(char *name)
 	/* search for id */
 	idtest= BLI_findstring(lb, name, offsetof(ID, name) + 2);
 
-	if (idtest) if ( new_id(lb, idtest, name)==0 ) sort_alpha_id(lb, idtest);
+	if (idtest) if ( new_id(lb, idtest, name)==0 ) id_sort_by_name(lb, idtest);
 }
 
 void text_idbutton(struct ID *id, char *text)

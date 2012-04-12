@@ -474,6 +474,17 @@ inline Mat23 SkewMatMinimal(const Vec2 &x) {
           1, 0, -x(0);
   return skew;
 }
+
+/// Returns the rotaiton matrix built from given vector of euler angles
+inline Mat3 RotationFromEulerVector(Vec3 euler_vector) {
+  double theta = euler_vector.norm();
+  if (theta == 0.0) {
+    return Mat3::Identity();
+  }
+  Vec3 w = euler_vector / theta;
+  Mat3 w_hat = CrossProductMatrix(w);
+  return Mat3::Identity() + w_hat*sin(theta) + w_hat*w_hat*(1 - cos(theta));
+}
 } // namespace libmv
 
 #endif  // LIBMV_NUMERIC_NUMERIC_H

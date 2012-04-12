@@ -45,6 +45,8 @@ public:
 	int seed;
 	int layer_flag;
 
+	float sample_clamp;
+
 	bool need_update;
 
 	Integrator();

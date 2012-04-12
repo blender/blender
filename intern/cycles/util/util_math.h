@@ -38,6 +38,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Float Pi variations */
+
 #ifndef M_PI_F
 #define M_PI_F		((float)3.14159265358979323846264338327950288)
 #endif
@@ -64,9 +66,12 @@ CCL_NAMESPACE_BEGIN
 #define copysignf(x, y) ((float)_copysign(x, y))
 #define hypotf(x, y) _hypotf(x, y)
 #define isnan(x) _isnan(x)
+#define isfinite(x) _finite(x)
 #endif
 
 #endif
+
+#ifndef __KERNEL_OPENCL__
 
 __device_inline float fmaxf(float a, float b)
 {
@@ -77,6 +82,8 @@ __device_inline float fminf(float a, float b)
 {
 	return (a < b)? a: b;
 }
+
+#endif
 
 #endif
 

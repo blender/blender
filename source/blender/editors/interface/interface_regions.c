@@ -1845,7 +1845,7 @@ void ui_set_but_hsv(uiBut *but)
 }
 
 /* also used by small picker, be careful with name checks below... */
-static void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
+static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3])
 {
 	uiBut *bt;
 	float *hsv = ui_block_hsv_get(block);
@@ -2051,7 +2051,7 @@ static void square_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, in
 
 
 /* a HS circle, V slider, rgb/hsv/hex sliders */
-static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyRNA *prop)
+static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, PropertyRNA *prop)
 {
 	static short colormode = 0;  /* temp? 0=rgb, 1=hsv, 2=hex */
 	uiBut *bt;
@@ -2070,19 +2070,19 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	/* existence of profile means storage is in linear color space, with display correction */
 	if (block->color_profile == BLI_PR_NONE) {
 		BLI_strncpy(tip, "Value in Display Color Space", sizeof(tip));
-		copy_v3_v3(rgb_gamma, rgb);
+		copy_v3_v3(rgb_gamma, rgba);
 	}
 	else {
 		BLI_strncpy(tip, "Value in Linear RGB Color Space", sizeof(tip));
 		/* make an sRGB version, for Hex code */
-		linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
+		linearrgb_to_srgb_v3_v3(rgb_gamma, rgba);
 	}
 	
 	/* sneaky way to check for alpha */
-	rgb[3] = FLT_MAX;
+	rgba[3] = FLT_MAX;
 
 	RNA_property_float_ui_range(ptr, prop, &min, &max, &step, &precision);
-	RNA_property_float_get_array(ptr, prop, rgb);
+	RNA_property_float_get_array(ptr, prop, rgba);
 
 	switch (U.color_picker_type) {
 		case USER_CP_CIRCLE:
@@ -2134,12 +2134,12 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
 
-	if (rgb[3] != FLT_MAX) {
+	if (rgba[3] != FLT_MAX) {
 		bt = uiDefButR_prop(block, NUMSLI, 0, "A ",  0, -120, butwidth, UI_UNIT_Y, ptr, prop, 3, 0.0, 0.0, 0, 0, "Alpha");
 		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	}
 	else {
-		rgb[3] = 1.0f;
+		rgba[3] = 1.0f;
 	}
 
 	BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
@@ -2148,7 +2148,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
 	uiDefBut(block, LABEL, 0, "(Gamma Corrected)", 0, -80, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+	rgb_to_hsv(rgba[0], rgba[1], rgba[2], hsv, hsv + 1, hsv + 2);
 
 	picker_new_hide_reveal(block, colormode);
 }
@@ -2404,16 +2404,18 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	/* some enums reversing is strange, currently we have no good way to
 	 * reverse some enum's but not others, so reverse all so the first menu
 	 * items are always close to the mouse cursor */
-#if 0
 	else {
+#if 0
 		/* if this is an rna button then we can assume its an enum
 		 * flipping enums is generally not good since the order can be
 		 * important [#28786] */
 		if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
 			pup->block->flag |= UI_BLOCK_NO_FLIP;
 		}
-	}
 #endif
+		if (but->context)
+			uiLayoutContextCopy(pup->layout, but->context);
+	}
 
 	if (str) {
 		/* menu is created from a string */

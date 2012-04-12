@@ -166,7 +166,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 	float d /*, d0 */ /* UNUSED */, dd, ds;
 	float *points = NULL;
 	int numpoints = 0;
-	float cor[3] = {1., 1., 1.};
+	float cor[3] = {1.0f, 1.0f, 1.0f};
 	int gl_depth = 0, gl_blend = 0;
 
 	/* draw slices of smoke is adapted from c++ code authored

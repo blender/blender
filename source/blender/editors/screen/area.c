@@ -204,8 +204,8 @@ static void region_draw_azone_icon(AZone *az)
 		
 	qobj = gluNewQuadric();
 	
-	glPushMatrix(); 	
-	glTranslatef(midx, midy, 0.); 
+	glPushMatrix();
+	glTranslatef(midx, midy, 0.0);
 	
 	/* outlined circle */
 	glEnable(GL_LINE_SMOOTH);

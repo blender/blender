@@ -105,13 +105,12 @@ BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
 
-# enable freetype2 support for text objects
 BF_FREETYPE = '/usr'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 #BF_FREETYPE_LIB_STATIC = '${BF_FREETYPE}/lib/libfreetype.a'
 
-WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME
+WITH_BF_QUICKTIME = False
 BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
 
@@ -124,7 +123,7 @@ BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 WITH_BF_BINRELOC = True
 
 # enable ffmpeg  support
-WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
+WITH_BF_FFMPEG = True
 BF_FFMPEG = LIBDIR + '/ffmpeg'
 if os.path.exists(LCGDIR + '/ffmpeg'):
     WITH_BF_STATICFFMPEG = True

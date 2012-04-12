@@ -840,6 +840,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Menu_bl_description_set");
 	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
 
 	RNA_define_verify_sdna(1);
 }

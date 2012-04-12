@@ -614,7 +614,7 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float
 	return sel;
 }
 
-static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[3])
+static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[2])
 {
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *efa;
@@ -624,7 +624,7 @@ static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[3
 	MLoopUV *luv;
 	unsigned int sel= 0;
 
-	zero_v3(co);
+	zero_v2(co);
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		if (!uvedit_face_visible(scene, ima, efa, tf))
@@ -639,36 +639,29 @@ static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[3
 		}
 	}
 
-	mul_v3_fl(co, 1.0f/(float)sel);
+	mul_v2_fl(co, 1.0f/(float)sel);
 
 	return (sel != 0);
 }
 
-static int uvedit_center(Scene *scene, Image *ima, Object *obedit, float *cent, char mode)
+static int uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2], char mode)
 {
-	float min[2], max[2];
-	int change= 0;
+	int change = FALSE;
 	
-	if (mode==V3D_CENTER) { /* bounding box */
+	if (mode == V3D_CENTER) {  /* bounding box */
+		float min[2], max[2];
 		if (ED_uvedit_minmax(scene, ima, obedit, min, max)) {
-			change = 1;
-
-			cent[0]= (min[0]+max[0])/2.0f;
-			cent[1]= (min[1]+max[1])/2.0f;
+			mid_v2_v2v2(cent, min, max);
+			change = TRUE;
 		}
 	}
 	else {
 		if (ED_uvedit_median(scene, ima, obedit, cent)) {
-			change = 1;
+			change = TRUE;
 		}
-
 	}
 
-	if (change) {
-		return 1;
-	}
-
-	return 0;
+	return change;
 }
 
 /************************** find nearest ****************************/
@@ -2743,97 +2736,56 @@ static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, SpaceIma
 static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obedit)
 {
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	BMFace *efa;
-	BMLoop *l;
-	BMIter iter, liter;
-	BMVert *eve;
+	BMesh *bm = em->bm;
+	BMFace *f;
+	BMLoop *l, *lsub;
+	BMIter iter, liter, lsubiter;
 	MTexPoly *tface;
 	MLoopUV *luv;
-	short change = 0;
-	int count = 0;
-	float *coords;
-	short *usercount, users;
-
-	/* BMESH_TODO - stop setting the index, bad juju
-	 * not totally simple because 3 states and because the count is not
-	 * based on the global vertex index :S - campbell */
-
-	/* set all verts to -1 : an unused index*/
-	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
-		BM_elem_index_set(eve, -1); /* set_dirty! */
-	em->bm->elem_index_dirty |= BM_VERT;
+	short change = FALSE;
 	
 	/* index every vert that has a selected UV using it, but only once so as to
 	 * get unique indices and to count how much to malloc */
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		tface= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-		if (!uvedit_face_visible(scene, ima, efa, tface)) {
-			BM_elem_flag_disable(efa, BM_ELEM_TAG);
-			continue;
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		tface = CustomData_bmesh_get(&bm->pdata, f->head.data, CD_MTEXPOLY);
+		if (uvedit_face_visible(scene, ima, f, tface)) {
+			BM_elem_flag_enable(f, BM_ELEM_TAG);
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+				BM_elem_flag_set(l, BM_ELEM_TAG, uvedit_uv_selected(em, scene, l));
+			}
 		}
 		else {
-			BM_elem_flag_enable(efa, BM_ELEM_TAG);
+			BM_elem_flag_disable(f, BM_ELEM_TAG);
 		}
+	}
 
-		change = 1;
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-			if (uvedit_uv_selected(em, scene, l) && BM_elem_index_get(l->v) == -1) {
-				BM_elem_index_set(l->v, count); /* set_dirty! */
-				count++;
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		if (BM_elem_flag_test(f, BM_ELEM_TAG)) {           /* face: visible */
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+				if (BM_elem_flag_test(l, BM_ELEM_TAG)) {   /* loop: selected*/
+					float uv[2] = {0.0f, 0.0f};
+					int uv_tot = 0;
+
+					BM_ITER(lsub, &lsubiter, bm, BM_LOOPS_OF_VERT, l->v) {
+						if (BM_elem_flag_test(lsub->f, BM_ELEM_TAG) && /* face: visible */
+						    !BM_elem_flag_test(lsub, BM_ELEM_TAG))     /* loop: unselected  */
+						{
+
+							luv = CustomData_bmesh_get(&bm->ldata, lsub->head.data, CD_MLOOPUV);
+							add_v2_v2(uv, luv->uv);
+							uv_tot++;
+						}
+					}
+
+					if (uv_tot) {
+						luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+						mul_v2_v2fl(luv->uv, uv, 1.0f / (float)uv_tot);
+						change = TRUE;
+					}
+				}
 			}
 		}
 	}
-	em->bm->elem_index_dirty |= BM_VERT; /* set above but include for completeness since they are made dirty again */
-	
-	coords = MEM_callocN(sizeof(float)*count*2, "snap to adjacent coords");
-	usercount = MEM_callocN(sizeof(short)*count, "snap to adjacent counts");
-	
-	/* add all UV coords from visible, unselected UV coords as well as counting them to average later */
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
-			continue;
-
-		tface= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-		if (!uvedit_face_visible(scene, ima, efa, tface))
-			continue;
-
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-			if (BM_elem_index_get(l->v) >= 0 && 
-			    (!uvedit_uv_selected(em, scene, l))) {
-				    luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					add_v2_v2(&coords[BM_elem_index_get(l->v) * 2], luv->uv);
-				    change = 1;
-			}
-		}
-	}
-	
-	/* no other verts selected, bail out */
-	if (!change) {
-		MEM_freeN(coords);
-		MEM_freeN(usercount);
-		return change;
-	}
-	
-	/* copy the averaged unselected UVs back to the selected UVs */
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
-			continue;
-
-		tface= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-		if (!uvedit_face_visible(scene, ima, efa, tface))
-			continue;
-
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-			if (uvedit_uv_selected(em, scene, l) && BM_elem_index_get(l->v) >= 0
-			    && (users = usercount[BM_elem_index_get(l->v)])) {
-				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				copy_v2_v2(luv->uv, &coords[BM_elem_index_get(l->v) * 2]);
-			}
-		}
-	}
-	
-	MEM_freeN(coords);
-	MEM_freeN(usercount);
 
 	return change;
 }
@@ -3100,6 +3052,9 @@ static int hide_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
+	/* flush vertex selection changes */
+	if(!facemode && em->selectmode != SCE_SELECT_FACE)
+		EDBM_selectmode_flush(em);
 	
 	EDBM_editselection_validate(em);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);

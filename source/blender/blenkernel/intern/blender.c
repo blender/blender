@@ -272,7 +272,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		CTX_wm_menu_set(C, NULL);
 	}
 	
-	/* this can happen when active scene was lib-linked, and doesnt exist anymore */
+	/* this can happen when active scene was lib-linked, and doesn't exist anymore */
 	if (CTX_data_scene(C)==NULL) {
 		CTX_data_scene_set(C, bfd->main->scene.first);
 		CTX_wm_screen(C)->scene= CTX_data_scene(C);
@@ -472,7 +472,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	char mainstr[sizeof(G.main->name)];
 	int success=0, fileflags;
 	
-	/* This is needed so undoing/redoing doesnt crash with threaded previews going */
+	/* This is needed so undoing/redoing doesn't crash with threaded previews going */
 	WM_jobs_stop_all(CTX_wm_manager(C));
 
 	BLI_strncpy(mainstr, G.main->name, sizeof(mainstr));	/* temporal store */

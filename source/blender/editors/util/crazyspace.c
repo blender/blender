@@ -72,7 +72,8 @@ static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, 
 }
 #undef TAN_MAKE_VEC
 
-static void make_vertexcos__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void make_vertexcos__mapFunc(void *userData, int index, const float co[3],
+                                    const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	MappedUserData *mappedData = (MappedUserData *)userData;
 	float *vec = mappedData->vertexcos;

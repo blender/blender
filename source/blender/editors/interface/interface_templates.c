@@ -2165,6 +2165,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	else if (itemptr->type == &RNA_ShapeKey) {
 		Object *ob = (Object *)activeptr->data;
 		Key *key = (Key *)itemptr->id.data;
+		KeyBlock *kb = (KeyBlock *)itemptr->data;
 
 		split = uiLayoutSplit(sub, 0.66f, 0);
 
@@ -2176,8 +2177,8 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		else uiItemR(row, itemptr, "value", 0, "", ICON_NONE);
 		uiItemR(row, itemptr, "mute", 0, "", 0);
 
-		if ( (key->flag & KEYBLOCK_MUTE) ||
-		     (ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH)) )
+		if ((kb->flag & KEYBLOCK_MUTE) ||
+		    (ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH)))
 		{
 			uiLayoutSetActive(row, 0);
 		}

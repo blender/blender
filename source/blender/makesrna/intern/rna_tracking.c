@@ -802,7 +802,7 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	/* position */
 	prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 5);
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
 	RNA_def_property_ui_text(prop, "Position", "Marker position at frame in normalized coordinates");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
@@ -882,7 +882,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	/* Pattern */
 	prop = RNA_def_property(srna, "pattern_min", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 5);
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_float_sdna(prop, NULL, "pat_min");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Pattern Min",
@@ -892,7 +892,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "pattern_max", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 5);
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_float_sdna(prop, NULL, "pat_max");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Pattern Max",
@@ -903,7 +903,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	/* Search */
 	prop = RNA_def_property(srna, "search_min", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 5);
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_float_sdna(prop, NULL, "search_min");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Search Min",
@@ -913,7 +913,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "search_max", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 5);
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_float_sdna(prop, NULL, "search_max");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Search Max",
@@ -1022,6 +1022,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "bundle_pos");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bundle", "Position of bundle reconstructed from this track");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 
 	/* hide */
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
@@ -1350,7 +1351,8 @@ static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_trackingObject_new");
 	RNA_def_function_ui_description(func, "Add tracking object to this movie clip");
-	RNA_def_string(func, "name", "", 0, "", "Name of new object");
+	parm = RNA_def_string(func, "name", "", 0, "", "Name of new object");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "object", "MovieTrackingObject", "", "New motion tracking object");
 	RNA_def_function_return(func, parm);
 

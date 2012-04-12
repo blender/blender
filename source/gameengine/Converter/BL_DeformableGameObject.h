@@ -70,7 +70,7 @@ public:
 		KX_GameObject(sgReplicationInfo,callbacks),
 		m_pDeformer(NULL),
 		m_activeAct(NULL),
-		m_lastframe(0.),
+		m_lastframe(0.0),
 		m_blendobj(blendobj),
 		m_activePriority(9999)
 	{

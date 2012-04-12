@@ -48,6 +48,7 @@ struct wmWindowManager;
 struct wmOperator;
 struct AutoComplete;
 struct bContext;
+struct bContextStore;
 struct Panel;
 struct PanelType;
 struct PointerRNA;
@@ -692,6 +693,7 @@ uiBlock *uiLayoutGetBlock(uiLayout *layout);
 
 void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, struct PointerRNA *ptr);
+void uiLayoutContextCopy(uiLayout *layout, struct bContextStore *context);
 const char *uiLayoutIntrospect(uiLayout *layout); // XXX - testing
 void uiLayoutOperatorButs(const struct bContext *C, struct uiLayout *layout, struct wmOperator *op, int (*check_prop)(struct PointerRNA *, struct PropertyRNA *), const char label_align, const short flag);
 struct MenuType *uiButGetMenuType(uiBut *but);

@@ -1035,7 +1035,7 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 	
 	uiItemL(layout, "Location:", ICON_NONE);
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "location", 0, "", ICON_NONE);
+	uiItemR(row, ptr, "translation", 0, "", ICON_NONE);
 	
 	uiItemL(layout, "Rotation:", ICON_NONE);
 	row= uiLayoutRow(layout, 1);

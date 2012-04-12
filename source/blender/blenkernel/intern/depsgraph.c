@@ -1795,7 +1795,7 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 		}
 	}
 	
-	// temporal correction for circular dependancies
+	/* temporal correction for circular dependencies */
 	base = sce->base.first;
 	while (base) {
 		BLI_remlink(&sce->base,base);
@@ -2913,7 +2913,7 @@ void DAG_pose_sort(Object *ob)
 		}
 	}
 	
-	// temporal correction for circular dependancies
+	/* temporal correction for circular dependencies */
 	while (pose->chanbase.first) {
 		pchan= pose->chanbase.first;
 		BLI_remlink(&pose->chanbase, pchan);

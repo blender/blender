@@ -101,7 +101,7 @@
 		if (data) {                                                                             \
 			CustomDataLayer *layer;                                                             \
 			int layer_index = CustomData_get_layer_index(data, layer_type);                     \
-			for (layer = data->layers, a = 0; layer_index + a < data->totlayer; layer++, a++) { \
+			for (layer = data->layers + layer_index, a = 0; layer_index + a < data->totlayer; layer++, a++) { \
 				if (value.data == layer) {                                                      \
 					CustomData_set_layer_##active_type(data, layer_type, a);                    \
 					                                                                            \

@@ -238,8 +238,6 @@ void make_local_key(Key *key)
 void sort_keys(Key *key)
 {
 	KeyBlock *kb;
-	//short i, adrcode;
-	//IpoCurve *icu = NULL;
 	KeyBlock *kb2;
 
 	/* locate the key which is out of position */ 
@@ -259,43 +257,6 @@ void sort_keys(Key *key)
 				break;
 			}
 		}
-		
-		/* if more than one Ipo curve, see if this key had a curve */
-#if 0 // XXX old animation system
-		if (key->ipo && key->ipo->curve.first != key->ipo->curve.last ) {
-			for (icu= key->ipo->curve.first; icu; icu= icu->next) {
-				/* if we find the curve, remove it and reinsert in the 
-				 * right place */
-				if (icu->adrcode==kb->adrcode) {
-					IpoCurve *icu2;
-					BLI_remlink(&key->ipo->curve, icu);
-					for (icu2= key->ipo->curve.first; icu2; icu2= icu2->next) {
-						if (icu2->adrcode >= kb2->adrcode) {
-							BLI_insertlink(&key->ipo->curve, icu2->prev, icu);
-							break;
-						}
-					}
-					break;
-				}
-			}
-		}
-		
-		/* kb points at the moved key, icu at the moved ipo (if it exists).
-		 * go back now and renumber adrcodes */
-
-		/* first new code */
-		adrcode = kb2->adrcode;
-		for (i = kb->adrcode - adrcode; i >= 0; i--, adrcode++) {
-			/* if the next ipo curve matches the current key, renumber it */
-			if (icu && icu->adrcode == kb->adrcode ) {
-				icu->adrcode = adrcode;
-				icu = icu->next;
-			}
-			/* renumber the shape key */
-			kb->adrcode = adrcode;
-			kb = kb->next;
-		}
-#endif // XXX old animation system
 	}
 
 	/* new rule; first key is refkey, this to match drawing channels... */
@@ -1106,36 +1067,26 @@ static float *get_weights_array(Object *ob, char *vgroup)
 static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
 {
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
-	float cfra, ctime, t[4], delta;
-	int a, flag = 0, step;
-	
-	if (key->slurph && key->type!=KEY_RELATIVE ) {
-		delta= key->slurph;
-		delta/= tot;
-		
-		step= 1;
-		if (tot>100 && slurph_opt) {
-			step= tot/50;
-			delta*= step;
+	float t[4];
+	int flag = 0;
+
+	if (key->slurph && key->type != KEY_RELATIVE) {
+		const float ctime_scaled = key->ctime / 100.0f;
+		float delta = (float)key->slurph / tot;
+		float cfra = (float)scene->r.cfra;
+		int step, a;
+
+		if (tot > 100 && slurph_opt) {
+			step = tot / 50;
+			delta *= step;
 			/* in do_key and cp_key the case a>tot is handled */
 		}
-		
-		cfra= (float)scene->r.cfra;
-		
+		else {
+			step = 1;
+		}
+
 		for (a=0; a<tot; a+=step, cfra+= delta) {
-			
-			ctime= BKE_curframe(scene);
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
-				ctime /= 100.0;
-				CLAMP(ctime, 0.0, 1.0);
-			}
-#endif // XXX old animation system
-			// XXX for now... since speed curve cannot be directly ported yet
-			ctime /= 100.0f;
-			CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
-		
-			flag= setkeys(ctime, &key->block, k, t, 0);
+			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 			if (flag==0)
 				do_key(a, a+step, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
@@ -1146,9 +1097,11 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 	else {
 		if (key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
-			
-			for (kb= key->block.first; kb; kb= kb->next)
+			float f = 0.0;
+			for (kb= key->block.first; kb; kb= kb->next, f += 0.1f) {
 				kb->weights= get_weights_array(ob, kb->vgroup);
+				// kb->pos = f;
+			}
 
 			do_rel_key(0, tot, tot, (char *)out, key, actkb, KEY_MODE_DUMMY);
 			
@@ -1158,19 +1111,9 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 			}
 		}
 		else {
-			ctime= BKE_curframe(scene);
-			
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
-				ctime /= 100.0;
-				CLAMP(ctime, 0.0, 1.0);
-			}
-#endif // XXX old animation system
-			// XXX for now... since speed curve cannot be directly ported yet
-			ctime /= 100.0f;
-			CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
-			
-			flag= setkeys(ctime, &key->block, k, t, 0);
+			const float ctime_scaled = key->ctime / 100.0f;
+
+			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 			if (flag==0)
 				do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
@@ -1199,7 +1142,7 @@ static void do_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock **k, float 
 	}
 }
 
-static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, float UNUSED(ctime), char *out, const int tot)
+static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, char *out, const int tot)
 {
 	Nurb *nu;
 	int a, step;
@@ -1222,50 +1165,54 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 {
 	Curve *cu= ob->data;
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
-	float cfra, ctime, t[4], delta;
-	int a, flag = 0, step = 0;
+	float t[4];
+	int flag = 0;
 
-	if (key->slurph  && key->type!=KEY_RELATIVE) {
+	if (key->slurph && key->type != KEY_RELATIVE) {
+		const float ctime_scaled = key->ctime / 100.0f;
+		float delta = (float)key->slurph / tot;
+		float cfra = (float)scene->r.cfra;
 		Nurb *nu;
-		int mode=0, i= 0, remain= 0, estep=0, count=0;
+		int i = 0, remain = 0;
+		int step, a;
 
-		delta= (float)key->slurph / tot;
-
-		step= 1;
-		if (tot>100 && slurph_opt) {
-			step= tot/50;
-			delta*= step;
+		if (tot > 100 && slurph_opt) {
+			step = tot / 50;
+			delta *= step;
 			/* in do_key and cp_key the case a>tot has been handled */
 		}
-
-		cfra= (float)scene->r.cfra;
+		else {
+			step = 1;
+		}
 
 		for (nu=cu->nurb.first; nu; nu=nu->next) {
+			int estep, mode;
+
 			if (nu->bp) {
-				mode= KEY_MODE_BPOINT;
-				estep= nu->pntsu*nu->pntsv;
+				mode = KEY_MODE_BPOINT;
+				estep = nu->pntsu * nu->pntsv;
 			}
 			else if (nu->bezt) {
-				mode= KEY_MODE_BEZTRIPLE;
-				estep= 3*nu->pntsu;
+				mode = KEY_MODE_BEZTRIPLE;
+				estep = 3 * nu->pntsu;
 			}
-			else
-				step= 0;
+			else {
+				mode = 0;
+				estep = 0;
+			}
 
-			a= 0;
+			a = 0;
 			while (a < estep) {
+				int count;
+
 				if (remain <= 0) {
 					cfra+= delta;
-					ctime= BKE_curframe(scene);
-
-					ctime /= 100.0f;
-					CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
-					flag= setkeys(ctime, &key->block, k, t, 0);
+					flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 					remain= step;
 				}
 
-				count= MIN2(remain, estep);
+				count = MIN2(remain, estep);
 				if (mode == KEY_MODE_BEZTRIPLE) {
 					count += 3 - count % 3;
 				}
@@ -1282,22 +1229,14 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 		}
 	}
 	else {
-		
-		ctime= BKE_curframe(scene);
-		
 		if (key->type==KEY_RELATIVE) {
-			do_rel_cu_key(cu, cu->key, actkb, ctime, out, tot);
+			do_rel_cu_key(cu, cu->key, actkb, out, tot);
 		}
 		else {
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
-				ctime /= 100.0;
-				CLAMP(ctime, 0.0, 1.0);
-			}
-#endif // XXX old animation system
-			
-			flag= setkeys(ctime, &key->block, k, t, 0);
-			
+			const float ctime_scaled = key->ctime / 100.0f;
+
+			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
+
 			if (flag==0) do_cu_key(cu, key, actkb, k, t, out, tot);
 			else cp_cu_key(cu, key, actkb, k[2], 0, tot, out, tot);
 		}
@@ -1308,26 +1247,17 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 {
 	Lattice *lt= ob->data;
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
-	float delta, cfra, ctime, t[4];
-	int a, flag;
+	float t[4];
+	int flag;
 	
-	if (key->slurph) {
-		delta= key->slurph;
-		delta/= (float)tot;
-		
-		cfra= (float)scene->r.cfra;
-		
+	if (key->slurph  && key->type != KEY_RELATIVE) {
+		const float ctime_scaled = key->ctime / 100.0f;
+		float delta = (float)key->slurph / tot;
+		float cfra = (float)scene->r.cfra;
+		int a;
+
 		for (a=0; a<tot; a++, cfra+= delta) {
-			
-			ctime= BKE_curframe(scene);
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
-				ctime /= 100.0;
-				CLAMP(ctime, 0.0, 1.0);
-			}
-#endif // XXX old animation system
-		
-			flag= setkeys(ctime, &key->block, k, t, 0);
+			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 			if (flag==0)
 				do_key(a, a+1, tot, out, key, actkb, k, t, KEY_MODE_DUMMY);
@@ -1350,16 +1280,9 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 			}
 		}
 		else {
-			ctime= BKE_curframe(scene);
-
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
-				ctime /= 100.0;
-				CLAMP(ctime, 0.0, 1.0);
-			}
-#endif // XXX old animation system
+			const float ctime_scaled = key->ctime / 100.0f;
 			
-			flag= setkeys(ctime, &key->block, k, t, 0);
+			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 			if (flag==0)
 				do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
@@ -1446,7 +1369,7 @@ float *do_ob_key(Scene *scene, Object *ob)
 	else {
 		/* do shapekey local drivers */
 		float ctime= (float)scene->r.cfra; // XXX this needs to be checked
-		
+
 		BKE_animsys_evaluate_animdata(scene, &key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
 		
 		if (ob->type==OB_MESH) do_mesh_key(scene, ob, key, out, tot);
@@ -1501,8 +1424,6 @@ KeyBlock *add_keyblock(Key *key, const char *name)
 
 	BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), sizeof(kb->name));
 
-	// XXX this is old anim system stuff? (i.e. the 'index' of the shapekey)
-	kb->adrcode= tot-1;
 	kb->uid = key->uidgen++;
 
 	key->totkey++;
@@ -1510,21 +1431,30 @@ KeyBlock *add_keyblock(Key *key, const char *name)
 	
 	kb->slidermin= 0.0f;
 	kb->slidermax= 1.0f;
-	
-	// XXX kb->pos is the confusing old horizontal-line RVK crap in old IPO Editor...
-	if (key->type == KEY_RELATIVE) 
-		kb->pos= curpos + 0.1f;
-	else {
-#if 0 // XXX old animation system
-		curpos= BKE_curframe(scene);
-		if (calc_ipo_spec(key->ipo, KEY_SPEED, &curpos)==0) {
-			curpos /= 100.0;
-		}
-		kb->pos= curpos;
-		
+
+	/**
+	 * \note caller may want to set this to current time, but don't do it here since we need to sort
+	 * which could cause problems in some cases, see #add_keyblock_ctime */
+	kb->pos = curpos + 0.1f; /* only used for absolute shape keys */
+
+	return kb;
+}
+
+/**
+ * \note sorting is a problematic side effect in some cases,
+ * better only do this explicitly by having its own function,
+ *
+ * \param do_force always use ctime even for relative keys.
+ */
+KeyBlock *add_keyblock_ctime(Key *key, const char *name, const short do_force)
+{
+	KeyBlock *kb = add_keyblock(key, name);
+
+	if (do_force || (key->type != KEY_RELATIVE)) {
+		kb->pos = key->ctime / 100.0f;
 		sort_keys(key);
-#endif // XXX old animation system
 	}
+
 	return kb;
 }
 

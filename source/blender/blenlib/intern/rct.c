@@ -66,6 +66,55 @@ int BLI_in_rctf(rctf *rect, float x, float y)
 	return 1;
 }
 
+/* based closely on 'isect_line_line_v2_int', but in modified so corner cases are treated as intersections */
+static int isect_segments(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
+{
+	const double div = (double)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
+	if (div == 0.0f) {
+		return 1; /* co-linear */
+	}
+	else {
+		const double labda = (double)((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
+		const double mu    = (double)((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
+		return (labda >= 0.0f && labda <= 1.0f && mu >= 0.0f && mu <= 1.0f);
+	}
+}
+
+int BLI_segment_in_rcti(rcti *rect, int s1[2], int s2[2])
+{
+	/* first do outside-bounds check for both points of the segment */
+	if (s1[0] < rect->xmin && s2[0] < rect->xmin) return 0;
+	if (s1[0] > rect->xmax && s2[0] > rect->xmax) return 0;
+	if (s1[1] < rect->ymin && s2[1] < rect->ymin) return 0;
+	if (s1[1] > rect->ymax && s2[1] > rect->ymax) return 0;
+
+	/* if either points intersect then we definetly intersect */
+	if (BLI_in_rcti(rect, s1[0], s1[1]) || BLI_in_rcti(rect, s2[0], s2[1])) {
+		return 1;
+	}
+	else {
+		/* both points are outside but may insersect the rect */
+		int tvec1[2];
+		int tvec2[2];
+		/* diagonal: [/] */
+		tvec1[0] = rect->xmin; tvec1[1] = rect->ymin;
+		tvec2[0] = rect->xmin; tvec2[1] = rect->ymax;
+		if (isect_segments(s1, s2, tvec1, tvec2)) {
+			return 1;
+		}
+
+		/* diagonal: [\] */
+		tvec1[0] = rect->xmin; tvec1[1] = rect->ymax;
+		tvec2[0] = rect->xmax; tvec2[1] = rect->ymin;
+		if (isect_segments(s1, s2, tvec1, tvec2)) {
+			return 1;
+		}
+
+		/* no intersection */
+		return 0;
+	}
+}
+
 void BLI_union_rctf(rctf *rct1, rctf *rct2)
 {
 	if (rct1->xmin > rct2->xmin) rct1->xmin = rct2->xmin;

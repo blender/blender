@@ -685,14 +685,14 @@ static void rna_NodeTree_node_clear(bNodeTree *ntree)
 	WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 }
 
-static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, bNodeSocket *in, bNodeSocket *out)
+static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, bNodeSocket *fromsock, bNodeSocket *tosock)
 {
 	bNodeLink *ret;
 	bNode *fromnode = NULL, *tonode = NULL;
 	int from_in_out, to_in_out;
 
-	nodeFindNode(ntree, in, &fromnode, NULL, &from_in_out);
-	nodeFindNode(ntree, out, &tonode, NULL, &to_in_out);
+	nodeFindNode(ntree, fromsock, &fromnode, NULL, &from_in_out);
+	nodeFindNode(ntree, tosock, &tonode, NULL, &to_in_out);
 	
 	if (&from_in_out == &to_in_out) {
 		BKE_reportf(reports, RPT_ERROR, "Same input/output direction of sockets");
@@ -700,9 +700,12 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, b
 	}
 
 	/* unlink node input socket */
-	nodeRemSocketLinks(ntree, out);
+	if (to_in_out == SOCK_IN)
+		nodeRemSocketLinks(ntree, tosock);
+	else
+		nodeRemSocketLinks(ntree, fromsock);
 
-	ret = nodeAddLink(ntree, fromnode, in, tonode, out);
+	ret = nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
 	
 	if (ret) {
 		nodeUpdate(ntree, tonode);
@@ -711,6 +714,7 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, b
 
 		WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 	}
+
 	return ret;
 }
 
@@ -1173,7 +1177,7 @@ static void def_sh_mapping(StructRNA *srna)
 	
 	RNA_def_struct_sdna_from(srna, "TexMapping", "storage");
 
-	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
+	prop = RNA_def_property(srna, "translation", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, 0, "rna_Mapping_Node_update");
@@ -1671,7 +1675,8 @@ static void def_cmp_vector_blur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fac");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_range(prop, 0.0, 20.0);
+	RNA_def_property_ui_range(prop, 0.0, 2.0, 1.0, 2);
 	RNA_def_property_ui_text(prop, "Blur Factor",
 	                         "Scaling factor for motion vectors (actually, 'shutter speed', in frames)");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");

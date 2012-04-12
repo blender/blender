@@ -1452,11 +1452,14 @@ static void rna_def_userdef_theme_space_text(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Line Numbers Background", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+	/* no longer used */
+#if 0
 	prop = RNA_def_property(srna, "scroll_bar", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "shade1");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Scroll Bar", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+#endif
 
 	prop = RNA_def_property(srna, "selected_text", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "shade2");
@@ -1479,7 +1482,7 @@ static void rna_def_userdef_theme_space_text(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "syntax_special", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "syntaxv");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Syntax Special", "");
+	RNA_def_property_ui_text(prop, "Decorator", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "syntax_comment", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -2855,7 +2858,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
 	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
 	/* Note: As this list is in alphabetical order, and not defined order,
-	 *       here is the highest define currently in use: 29 (kyrgyz). */
+	 *       here is the highest define currently in use: 30 (turkish). */
 	static EnumPropertyItem language_items[] = {
 		{ 0, "", 0, "Nearly done", ""},
 		{ 0, "DEFAULT", 0, "Default (Default)", ""},
@@ -2869,28 +2872,29 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{ 0, "", 0, "In progress", ""},
 		/* using the utf8 flipped form of Arabic (العربية) */
 		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
-		{12, "BRAZILIAN_PORTUGUESE", 0, "Portuguese (Português)", "pt"},
 		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
 		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
 		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
 		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
-		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},
+/*		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},*/ /* XXX No po's yet. */
 		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
 		{ 5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{ 2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
-		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ki_KG"},
-		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},
+		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ky_KG"},
+/*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},*/ /* XXX No po's yet. */
 		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
 		/* using the utf8 flipped form of Persian (فارسی) */
 		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"},
 		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
-		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},
+		{12, "BRAZILIAN_PORTUGUESE", 0, "Portuguese (Português)", "pt"},
+/*		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},*/ /* XXX No po's yet. */
 		{17, "SERBIAN", 0, "Serbian (Српски)", "sr_RS"},
 		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr_RS@latin"},
 		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
-		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
+		{30, "TURKISH", 0, "Turkish (Türkçe)", "tr_TR"},
+/*		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},*/ /* XXX No po's yet. */
 		{ 0, NULL, 0, NULL, NULL}};
 
 #ifdef WITH_CYCLES

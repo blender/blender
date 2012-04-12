@@ -201,7 +201,7 @@ void BL_ConvertTextProperty(Object* object, KX_FontObject* fontobj,SCA_TimeEvent
 		}
 		case GPROP_FLOAT:
 		{
-			float floatprop = atof(str);
+			float floatprop = (float)atof(str);
 			propval = new CFloatValue(floatprop);
 			tprop->SetValue(propval);
 			break;
@@ -214,7 +214,7 @@ void BL_ConvertTextProperty(Object* object, KX_FontObject* fontobj,SCA_TimeEvent
 		}
 		case GPROP_TIME:
 		{
-			float floatprop = atof(str);
+			float floatprop = (float)atof(str);
 
 			CValue* timeval = new CFloatValue(floatprop);
 			// set a subproperty called 'timer' so that

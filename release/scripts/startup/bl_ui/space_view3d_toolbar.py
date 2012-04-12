@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Menu, Panel
-from .properties_paint_common import UnifiedPaintPanel
+from bl_ui.properties_paint_common import UnifiedPaintPanel
 
 
 class View3DPanel():
@@ -144,7 +144,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Remove:")
-        col.operator("mesh.delete")
+        col.menu("VIEW3D_MT_edit_mesh_delete")
         col.operator("mesh.merge")
         col.operator("mesh.remove_doubles")
 
@@ -198,6 +198,8 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         col.label("Edge Select Mode:")
         col.prop(tool_settings, "edge_path_mode", text="")
         col.prop(tool_settings, "edge_path_live_unwrap")
+        col.label("Double Threshold:")
+        col.prop(tool_settings, "double_threshold", text="")
 
 # ********** default tools for editmode_curve ****************
 

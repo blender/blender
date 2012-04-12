@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_join_triangles.c
+ *  \ingroup bmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_meshdata_types.h"
@@ -32,14 +36,6 @@
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
-
-/*
- * JOIN_TRIANGLES.C
- *
- * utility bmesh operators, e.g. transform,
- * translate, rotate, scale, etc.
- *
- */
 
 /* Bitflags for edges */
 #define T2QDELETE	1
@@ -333,7 +329,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
 
 		BM_edge_face_pair(e, &f1, &f2); /* checked above */
-		BM_faces_join_pair(bm, f1, f2, e);
+		BM_faces_join_pair(bm, f1, f2, e, TRUE);
 	}
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -365,7 +361,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 				continue;
 			}
 
-			BM_faces_join_pair(bm, f1, f2, e);
+			BM_faces_join_pair(bm, f1, f2, e, TRUE);
 		}
 	}
 

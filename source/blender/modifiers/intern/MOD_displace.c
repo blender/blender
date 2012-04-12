@@ -187,6 +187,8 @@ static void displaceModifier_do(
 				 "displaceModifier_do tex_co");
 	get_texture_coords((MappingInfoModifierData *)dmd, ob, dm, vertexCos, tex_co, numVerts);
 
+	modifier_init_texture(dmd->modifier.scene, dmd->texture);
+
 	for (i = 0; i < numVerts; ++i) {
 		TexResult texres;
 		float delta = 0, strength = dmd->strength;

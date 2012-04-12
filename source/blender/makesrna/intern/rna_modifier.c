@@ -1440,14 +1440,15 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	/* Offset parameters */
-	prop = RNA_def_property(srna, "use_constant_offset", PROP_BOOLEAN, PROP_TRANSLATION);
+	prop = RNA_def_property(srna, "use_constant_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_CONST);
-	RNA_def_property_ui_text(prop, "Constant Offset", "Add a constant offset");
+	RNA_def_property_ui_text(prop, "Constant Offset", "Add a constant offset");;
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	
 	prop = RNA_def_property(srna, "constant_offset_displace", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Constant Offset Displacement", "Value for the distance between arrayed items");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_relative_offset", PROP_BOOLEAN, PROP_NONE);

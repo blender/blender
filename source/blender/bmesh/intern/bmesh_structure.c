@@ -83,7 +83,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  * (this is somewhat outdate, though bits of its API are still used) - joeedh
  *
  * Cycles are circular doubly linked lists that form the basis of adjacency
- * information in the BME modeller. Full adjacency relations can be derived
+ * information in the BME modeler. Full adjacency relations can be derived
  * from examining these cycles very quickly. Although each cycle is a double
  * circular linked list, each one is considered to have a 'base' or 'head',
  * and care must be taken by Euler code when modifying the contents of a cycle.
@@ -100,7 +100,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  * Base: vertex->edge pointer.
  *
  * This cycle is the most complicated in terms of its structure. Each bmesh_Edge contains
- * two bmesh_CycleNode structures to keep track of that edge's membership in the disk cycle
+ * two bmesh_CycleNode structures to keep track of that edges membership in the disk cycle
  * of each of its vertices. However for any given vertex it may be the first in some edges
  * in its disk cycle and the second for others. The bmesh_disk_XXX family of functions contain
  * some nice utilities for navigating disk cycles in a way that hides this detail from the
@@ -547,8 +547,8 @@ int bmesh_loop_validate(BMFace *f)
 
 	/* Validate that the face loop cycle is the length specified by f->len */
 	for (i = 1, l_iter = l_first->next; i < len; i++, l_iter = l_iter->next) {
-		if ( (l_iter->f != f) ||
-		     (l_iter == l_first))
+		if ((l_iter->f != f) ||
+		    (l_iter == l_first))
 		{
 			return FALSE;
 		}

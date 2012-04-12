@@ -230,6 +230,7 @@ void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 			case OB_MESH:
 				EDBM_mesh_load(ob);
 				EDBM_mesh_make(scene->toolsettings, scene, ob);
+				EDBM_mesh_normals_update(((Mesh*)ob->data)->edit_btmesh);
 				BMEdit_RecalcTessellation(((Mesh*)ob->data)->edit_btmesh);
 				break;
 			case OB_CURVE:
@@ -1485,7 +1486,8 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "inertia");
-	RNA_def_property_range(prop, 0.01, 10.0);
+	RNA_def_property_range(prop, 0.01f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.01f, 10.0f, 1, 3);
 	RNA_def_property_ui_text(prop, "Radius", "Radius of bounding sphere and material physics");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
@@ -2016,8 +2018,8 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_editable_array_func(prop, "rna_Object_location_editable");
-	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
 	RNA_def_property_ui_text(prop, "Location", "Location of the object");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
 	
 	prop = RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
@@ -2072,6 +2074,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "delta_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dloc");
 	RNA_def_property_ui_text(prop, "Delta Location", "Extra translation added to the location of the object");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
 	
 	prop = RNA_def_property(srna, "delta_rotation_euler", PROP_FLOAT, PROP_EULER);
@@ -2096,7 +2099,7 @@ static void rna_def_object(BlenderRNA *brna)
 	                         "Extra rotation added to the rotation of the object (when using Axis-Angle rotations)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
 #endif
-	
+
 	prop = RNA_def_property(srna, "delta_scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "dscale");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
@@ -2105,14 +2108,14 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
 	
 	/* transform locks */
-	prop = RNA_def_property(srna, "lock_location", PROP_BOOLEAN, PROP_XYZ);
+	prop = RNA_def_property(srna, "lock_location", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_LOCX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Location", "Lock editing of location in the interface");
 	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
 
-	prop = RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_XYZ);
+	prop = RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Rotation", "Lock editing of rotation in the interface");
@@ -2132,7 +2135,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock Rotations (4D)",
 	                         "Lock editing of four component rotations by components (instead of as Eulers)");
 
-	prop = RNA_def_property(srna, "lock_scale", PROP_BOOLEAN, PROP_XYZ);
+	prop = RNA_def_property(srna, "lock_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_SCALEX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface");

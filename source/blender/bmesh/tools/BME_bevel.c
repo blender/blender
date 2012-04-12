@@ -905,7 +905,7 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_ind
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		BMO_elem_flag_enable(bm, e, BME_BEVEL_ORIG);
-		if (!BM_edge_is_manifold(e)) {
+		if (!(BM_edge_is_boundary(e) || BM_edge_is_manifold(e))) {
 			BMO_elem_flag_enable(bm, e->v1, BME_BEVEL_NONMAN);
 			BMO_elem_flag_enable(bm, e->v2, BME_BEVEL_NONMAN);
 			BMO_elem_flag_enable(bm, e, BME_BEVEL_NONMAN);
@@ -988,7 +988,7 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 	/* get rid of beveled edge */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, e, BME_BEVEL_BEVEL) && BMO_elem_flag_test(bm, e, BME_BEVEL_ORIG)) {
-			BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e);
+			BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE);
 		}
 	}
 

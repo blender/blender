@@ -141,6 +141,35 @@ bContextStore *CTX_store_add(ListBase *contexts, const char *name, PointerRNA *p
 	return ctx;
 }
 
+bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context)
+{
+	bContextStoreEntry *entry, *tentry;
+	bContextStore *ctx, *lastctx;
+
+	/* ensure we have a context to put the entries in, if it was already used
+	 * we have to copy the context to ensure */
+	ctx= contexts->last;
+
+	if (!ctx || ctx->used) {
+		if (ctx) {
+			lastctx= ctx;
+			ctx= MEM_dupallocN(lastctx);
+			BLI_duplicatelist(&ctx->entries, &lastctx->entries);
+		}
+		else
+			ctx= MEM_callocN(sizeof(bContextStore), "bContextStore");
+
+		BLI_addtail(contexts, ctx);
+	}
+
+	for (tentry= context->entries.first; tentry; tentry= tentry->next) {
+		entry= MEM_dupallocN(tentry);
+		BLI_addtail(&ctx->entries, entry);
+	}
+
+	return ctx;
+}
+
 void CTX_store_set(bContext *C, bContextStore *store)
 {
 	C->wm.store= store;

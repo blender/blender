@@ -134,7 +134,7 @@ struct Scene;
 struct DerivedMesh;
 struct SmokeModifierData;
 
-#define TRI_UVOFFSET (1./4.)
+#define TRI_UVOFFSET (1.0 / 4.0)
 
 /* forward declerations */
 static void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int numfaces, int numtris, int **tridivs, float cell_len);
@@ -276,8 +276,17 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 
 		smd->time = scene->r.cfra;
 
-		// update particle lifetime to be one frame
-		// smd->flow->psys->part->lifetime = scene->r.efra + 1;
+		if (smd->flow->psys && smd->flow->psys->part && !(smd->flow->flags & MOD_SMOKE_FLOW_INIT))
+		{
+			// update particle lifetime to be one frame
+			smd->flow->psys->part->lifetime = 1; // scene->r.efra + 1;
+
+			// use "unborn" flag as standard setting
+			smd->flow->psys->part->flag |= PART_UNBORN;
+
+			smd->flow->flags |= MOD_SMOKE_FLOW_INIT;
+		}
+
 /*
 		if (!smd->flow->bvh)
 		{
@@ -940,8 +949,8 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						if (usqr>maxusqr) { 									
 						// cutoff at maxVelVal 									
 						for (int jj=0; jj<3; jj++) { 										
-						if (objvel[jj]>0.) objvel[jj] =  maxVelVal;  										
-						if (objvel[jj]<0.) objvel[jj] = -maxVelVal; 									
+						if (objvel[jj] > 0.0) objvel[jj] =  maxVelVal;
+						if (objvel[jj] < 0.0) objvel[jj] = -maxVelVal;
 						} 								
 						} 
 						} 								

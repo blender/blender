@@ -20,12 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BMO_SUBDIVIDE_H__
-#define __BMO_SUBDIVIDE_H__
-
 /** \file blender/bmesh/operators/bmo_subdivide.h
  *  \ingroup bmesh
  */
+
+#ifndef __BMO_SUBDIVIDE_H__
+#define __BMO_SUBDIVIDE_H__
 
 typedef struct SubDParams {
 	int numcuts;

@@ -118,8 +118,7 @@ KX_BlenderMaterial::~KX_BlenderMaterial()
 MTFace* KX_BlenderMaterial::GetMTFace(void) const 
 {
 	// fonts on polys
-	MT_assert(mMaterial->tface);
-	return mMaterial->tface;
+	return &mMaterial->tface;
 }
 
 unsigned int* KX_BlenderMaterial::GetMCol(void) const 
@@ -238,9 +237,7 @@ void KX_BlenderMaterial::OnExit()
 	/* used to call with 'mMaterial->tface' but this can be a freed array,
 	 * see: [#30493], so just call with NULL, this is best since it clears
 	 * the 'lastface' pointer in GPU too - campbell */
-	if (mMaterial->tface) {
-		GPU_set_tpage(NULL, 1, mMaterial->alphablend);
-	}
+	GPU_set_tpage(NULL, 1, mMaterial->alphablend);
 }
 
 

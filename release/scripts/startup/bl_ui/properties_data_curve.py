@@ -93,7 +93,7 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             col.label(text="Twisting:")
             col.prop(curve, "twist_mode", text="")
             col.prop(curve, "twist_smooth", text="Smooth")
-        if is_text:
+        elif is_text:
             col.label(text="Display:")
             col.prop(curve, "use_fast_edit", text="Fast Editing")
 
@@ -116,9 +116,9 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
         if is_curve:
             col.label(text="Path / Curve-Deform:")
             sub = col.column()
-            rowsub = sub.row()
-            rowsub.prop(curve, "use_radius")
-            rowsub.prop(curve, "use_stretch")
+            subsub = sub.row()
+            subsub.prop(curve, "use_radius")
+            subsub.prop(curve, "use_stretch")
             sub.prop(curve, "use_deform_bounds")
 
 
@@ -194,8 +194,8 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
         layout.active = curve.use_path
 
         col = layout.column()
-        layout.prop(curve, "path_duration", text="Frames")
-        layout.prop(curve, "eval_time")
+        col.prop(curve, "path_duration", text="Frames")
+        col.prop(curve, "eval_time")
 
         # these are for paths only
         row = layout.row()
@@ -322,10 +322,10 @@ class DATA_PT_font(CurveButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        colsub = col.column(align=True)
-        colsub.label(text="Underline:")
-        colsub.prop(text, "underline_position", text="Position")
-        colsub.prop(text, "underline_height", text="Thickness")
+        sub = col.column(align=True)
+        sub.label(text="Underline:")
+        sub.prop(text, "underline_position", text="Position")
+        sub.prop(text, "underline_height", text="Thickness")
 
         col = split.column()
         col.label(text="Character:")

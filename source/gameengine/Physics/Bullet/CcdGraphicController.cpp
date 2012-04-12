@@ -86,12 +86,12 @@ void CcdGraphicController::getAabb(btVector3& aabbMin, btVector3& aabbMax)
 	btVector3 tmpAabbMin = m_localAabbMin * scale;
 	btVector3 tmpAabbMax = m_localAabbMax * scale;
 
-	localAabbMin[0] = (scale.getX() >= 0.) ? tmpAabbMin[0] : tmpAabbMax[0];
-	localAabbMin[1] = (scale.getY() >= 0.) ? tmpAabbMin[1] : tmpAabbMax[1];
-	localAabbMin[2] = (scale.getZ() >= 0.) ? tmpAabbMin[2] : tmpAabbMax[2];
-	localAabbMax[0] = (scale.getX() <= 0.) ? tmpAabbMin[0] : tmpAabbMax[0];
-	localAabbMax[1] = (scale.getY() <= 0.) ? tmpAabbMin[1] : tmpAabbMax[1];
-	localAabbMax[2] = (scale.getZ() <= 0.) ? tmpAabbMin[2] : tmpAabbMax[2];
+	localAabbMin[0] = (scale.getX() >= 0.0) ? tmpAabbMin[0] : tmpAabbMax[0];
+	localAabbMin[1] = (scale.getY() >= 0.0) ? tmpAabbMin[1] : tmpAabbMax[1];
+	localAabbMin[2] = (scale.getZ() >= 0.0) ? tmpAabbMin[2] : tmpAabbMax[2];
+	localAabbMax[0] = (scale.getX() <= 0.0) ? tmpAabbMin[0] : tmpAabbMax[0];
+	localAabbMax[1] = (scale.getY() <= 0.0) ? tmpAabbMin[1] : tmpAabbMax[1];
+	localAabbMax[2] = (scale.getZ() <= 0.0) ? tmpAabbMin[2] : tmpAabbMax[2];
 
 	btVector3 localHalfExtents = btScalar(0.5)*(localAabbMax-localAabbMin);
 	btVector3 localCenter = btScalar(0.5)*(localAabbMax+localAabbMin);

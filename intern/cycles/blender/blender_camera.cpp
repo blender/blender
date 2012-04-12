@@ -288,7 +288,7 @@ void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int 
 
 	if(b_rv3d.view_perspective() == BL::RegionView3D::view_perspective_CAMERA) {
 		/* camera view */
-		BL::Object b_ob = b_scene.camera();
+		BL::Object b_ob = (b_v3d.lock_camera_and_layers())? b_scene.camera(): b_v3d.camera();
 
 		if(b_ob) {
 			blender_camera_from_object(&bcam, b_ob);

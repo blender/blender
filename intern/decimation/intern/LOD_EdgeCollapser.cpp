@@ -57,7 +57,7 @@ TJunctionTest(
 	LOD_EdgeInd collapse_edge
 ){
 
-	// we need to copy the egdes in e_v0v1 from the mesh
+	// we need to copy the edges in e_v0v1 from the mesh
 	// into a new buffer -> we are going to modify them
 
 	int original_size = e_v0v1.size();

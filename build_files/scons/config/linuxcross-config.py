@@ -100,14 +100,13 @@ BF_BULLET_LIB = 'extern_bullet'
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
-# enable freetype2 support for text objects
 BF_WITH_FREETYPE = True
 BF_FREETYPE = LIBDIR + '/gcc/freetype'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
-WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME
+WITH_BF_QUICKTIME = False
 BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
 
@@ -120,7 +119,7 @@ BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 WITH_BF_BINRELOC = False
 
 # enable ffmpeg  support
-WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
+WITH_BF_FFMPEG = True
 BF_FFMPEG = LIBDIR + '/ffmpeg'
 BF_FFMPEG_LIB = 'avformat-53 avcodec-53 avdevice-53 avutil-51 swscale-2'
 BF_FFMPEG_DLL = '${BF_FFMPEG_LIBPATH}/avformat-53.dll ${BF_FFMPEG_LIBPATH}/avcodec-53.dll ${BF_FFMPEG_LIBPATH}/avdevice-53.dll ${BF_FFMPEG_LIBPATH}/avutil-51.dll ${BF_FFMPEG_LIBPATH}/swscale-2.dll'

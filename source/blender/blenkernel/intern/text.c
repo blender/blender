@@ -622,7 +622,7 @@ void write_text(Text *text, const char *str) /* called directly from rna */
 /* Editing utility functions */
 /*****************************/
 
-static void make_new_line (TextLine *line, char *newline) 
+static void make_new_line(TextLine *line, char *newline)
 {
 	if (line->line) MEM_freeN(line->line);
 	if (line->format) MEM_freeN(line->format);
@@ -770,7 +770,7 @@ static void txt_curs_first (Text *text, TextLine **linep, int *charp)
 /* Cursor movement functions */
 /*****************************/
 
-int txt_utf8_offset_to_index(char *str, int offset)
+int txt_utf8_offset_to_index(const char *str, int offset)
 {
 	int index= 0, pos= 0;
 	while (pos != offset) {
@@ -780,7 +780,7 @@ int txt_utf8_offset_to_index(char *str, int offset)
 	return index;
 }
 
-int txt_utf8_index_to_offset(char *str, int index)
+int txt_utf8_index_to_offset(const char *str, int index)
 {
 	int offset= 0, pos= 0;
 	while (pos != index) {
@@ -3244,7 +3244,7 @@ TextMarker *txt_next_marker(Text *text, TextMarker *marker)
 /* Character utility functions */
 /*******************************/
 
-int text_check_bracket(char ch)
+int text_check_bracket(const char ch)
 {
 	int a;
 	char opens[] = "([{";
@@ -3259,10 +3259,11 @@ int text_check_bracket(char ch)
 	return 0;
 }
 
-int text_check_delim(char ch)
+/* TODO, have a function for operators - http://docs.python.org/py3k/reference/lexical_analysis.html#operators */
+int text_check_delim(const char ch)
 {
 	int a;
-	char delims[] = "():\"\' ~!%^&*-+=[]{};/<>|.#\t,";
+	char delims[] = "():\"\' ~!%^&*-+=[]{};/<>|.#\t,@";
 
 	for (a=0; a<(sizeof(delims)-1); a++) {
 		if (ch==delims[a])
@@ -3271,14 +3272,14 @@ int text_check_delim(char ch)
 	return 0;
 }
 
-int text_check_digit(char ch)
+int text_check_digit(const char ch)
 {
 	if (ch < '0') return 0;
 	if (ch <= '9') return 1;
 	return 0;
 }
 
-int text_check_identifier(char ch)
+int text_check_identifier(const char ch)
 {
 	if (ch < '0') return 0;
 	if (ch <= '9') return 1;
@@ -3289,7 +3290,7 @@ int text_check_identifier(char ch)
 	return 0;
 }
 
-int text_check_whitespace(char ch)
+int text_check_whitespace(const char ch)
 {
 	if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
 		return 1;

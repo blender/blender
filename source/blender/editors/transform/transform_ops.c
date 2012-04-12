@@ -517,7 +517,7 @@ void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Translate";
-	ot->description = "Translate selected items";
+	ot->description = "Translate (move) selected items";
 	ot->idname = OP_TRANSLATION;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -537,7 +537,7 @@ void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Resize";
-	ot->description = "Resize selected items"; 
+	ot->description = "Scale (resize) selected items"; 
 	ot->idname = OP_RESIZE;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 

@@ -26,7 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "math.h"
+#include <math.h>
 #include "plugin.h"
 
 /* ******************** GLOBAL VARIABLES ***************** */

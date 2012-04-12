@@ -314,6 +314,7 @@ typedef struct View3D {
 #define V3D_BGPIC_EXPANDED		2
 #define V3D_BGPIC_CAMERACLIP	4
 #define V3D_BGPIC_DISABLED		8
+#define V3D_BGPIC_FOREGROUND		16
 
 /* BGPic->source */
 /* may want to use 1 for select ?*/

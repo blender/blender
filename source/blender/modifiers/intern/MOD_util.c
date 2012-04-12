@@ -32,11 +32,13 @@
 
 #include <string.h>
 
+#include "DNA_curve_types.h"
+#include "DNA_image_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_meshdata_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
@@ -44,6 +46,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
+#include "BKE_image.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_displist.h"
@@ -56,6 +59,15 @@
 #include "MEM_guardedalloc.h"
 
 #include "RE_shader_ext.h"
+
+void modifier_init_texture(Scene *scene, Tex *tex)
+{
+	if (!tex)
+		return;
+
+	if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
+		BKE_image_user_calc_frame(&tex->iuser, scene->r.cfra, 0);
+}
 
 void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 {

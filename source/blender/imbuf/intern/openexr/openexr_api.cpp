@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <string>
+#include <set>
 
 
 #include <openexr_api.h>
@@ -945,12 +946,17 @@ static int exr_has_zbuffer(InputFile *file)
 	return !(file->header().channels().findChannel("Z") == NULL);
 }
 
-static int exr_is_renderresult(InputFile *file)
+static int exr_is_multilayer(InputFile *file)
 {
 	const StringAttribute *comments= file->header().findTypedAttribute<StringAttribute>("BlenderMultiChannel");
-	if (comments)
-//		if (comments->value() == "Blender MultiChannel")
+	const ChannelList &channels = file->header().channels();
+	std::set <std::string> layerNames;
+
+	channels.layers(layerNames);
+
+	if (comments || layerNames.size()>1)
 			return 1;
+
 	return 0;
 }
 
@@ -977,7 +983,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 		if (0) // debug
 			exr_print_filecontents(file);
 		
-		is_multi= exr_is_renderresult(file);
+		is_multi= exr_is_multilayer(file);
 		
 		/* do not make an ibuf when */
 		if (is_multi && !(flags & IB_test) && !(flags & IB_multilayer)) 

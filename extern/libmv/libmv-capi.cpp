@@ -36,6 +36,8 @@
 
 #include "Math/v3d_optimization.h"
 
+#include "libmv/numeric/numeric.h"
+
 #include "libmv/tracking/esm_region_tracker.h"
 #include "libmv/tracking/brute_region_tracker.h"
 #include "libmv/tracking/hybrid_region_tracker.h"
@@ -51,6 +53,7 @@
 #include "libmv/simple_pipeline/detect.h"
 #include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/camera_intrinsics.h"
+#include "libmv/simple_pipeline/rigid_registration.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -837,4 +840,57 @@ void libmv_InvertIntrinsics(double focal_length, double principal_x, double prin
 
 		intrinsics.InvertIntrinsics(x, y, x1, y1);
 	}
+}
+
+/* ************ point clouds ************ */
+
+void libmvTransformToMat4(libmv::Mat3 &R, libmv::Vec3 &S, libmv::Vec3 &t, double M[4][4])
+{
+	for (int j = 0; j < 3; ++j)
+		for (int k = 0; k < 3; ++k)
+			M[j][k] = R(k, j) * S(j);
+
+	for (int i = 0; i < 3; ++i) {
+		M[3][0] = t(0);
+		M[3][1] = t(1);
+		M[3][2] = t(2);
+
+		M[0][3] = M[1][3] = M[2][3] = 0;
+	}
+
+	M[3][3] = 1.0;
+}
+
+void libmv_rigidRegistration(float (*reference_points)[3], float (*points)[3], int total_points,
+                             int use_scale, int use_translation, double M[4][4])
+{
+	libmv::Mat3 R;
+	libmv::Vec3 S;
+	libmv::Vec3 t;
+	libmv::vector<libmv::Vec3> reference_points_vector, points_vector;
+
+	for (int i = 0; i < total_points; i++) {
+		reference_points_vector.push_back(libmv::Vec3(reference_points[i][0],
+		                                              reference_points[i][1],
+		                                              reference_points[i][2]));
+
+		points_vector.push_back(libmv::Vec3(points[i][0],
+		                                    points[i][1],
+		                                    points[i][2]));
+	}
+
+	if (use_scale && use_translation) {
+		libmv::RigidRegistration(reference_points_vector, points_vector, R, S, t);
+	}
+	else if (use_translation) {
+		S = libmv::Vec3(1.0, 1.0, 1.0);
+		libmv::RigidRegistration(reference_points_vector, points_vector, R, t);
+	}
+	else {
+		S = libmv::Vec3(1.0, 1.0, 1.0);
+		t = libmv::Vec3::Zero();
+		libmv::RigidRegistration(reference_points_vector, points_vector, R);
+	}
+
+	libmvTransformToMat4(R, S, t, M);
 }

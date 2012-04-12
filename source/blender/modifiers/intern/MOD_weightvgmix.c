@@ -370,8 +370,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* Do masking. */
 	weightvg_do_mask(numIdx, indices, org_w, new_w, ob, dm, wmd->mask_constant,
-	                 wmd->mask_defgrp_name, wmd->mask_texture, wmd->mask_tex_use_channel,
-	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
+	                 wmd->mask_defgrp_name, wmd->modifier.scene, wmd->mask_texture,
+	                 wmd->mask_tex_use_channel, wmd->mask_tex_mapping,
+	                 wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Update (add to) vgroup.
 	 * XXX Depending on the MOD_WVG_SET_xxx option chosen, we might have to add vertices to vgroup.

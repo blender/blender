@@ -214,6 +214,7 @@ void MESH_OT_bevel(struct wmOperatorType *ot);
 
 void MESH_OT_bridge_edge_loops(struct wmOperatorType *ot);
 void MESH_OT_inset(struct wmOperatorType *ot);
+void MESH_OT_vert_slide(struct wmOperatorType *ot);
 
 /* ******************* mesh_navmesh.c */
 void MESH_OT_navmesh_make(struct wmOperatorType *ot);

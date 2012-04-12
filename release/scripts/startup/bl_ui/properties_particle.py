@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
-from .properties_physics_common import (
+from bl_ui.properties_physics_common import (
     point_cache_ui,
     effector_weights_ui,
     basic_force_field_settings_ui,
@@ -1184,42 +1184,33 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
         ob = context.object
         psys = context.particle_system
 
-        row = layout.row()
-        row.label(text="Vertex Group")
-        row.label(text="Negate")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
-        row.prop(psys, "invert_vertex_group_density", text="")
-
+        split = layout.split(percentage=0.85)
+        
+        col = split.column()
+        col.label(text="Vertex Group:")
+        col.prop_search(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
+        col.prop_search(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
+        col.prop_search(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
+        col.prop_search(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
+        col.prop_search(psys, "vertex_group_roughness_1", ob, "vertex_groups", text="Roughness 1")
+        col.prop_search(psys, "vertex_group_roughness_2", ob, "vertex_groups", text="Roughness 2")
+        col.prop_search(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
+        
+        col = split.column()
+        col.label(text="Negate:")
+        col.alignment = 'RIGHT'
+        col.prop(psys, "invert_vertex_group_density", text="")
+        col.prop(psys, "invert_vertex_group_length", text="")
+        col.prop(psys, "invert_vertex_group_clump", text="")
+        col.prop(psys, "invert_vertex_group_kink", text="")
+        col.prop(psys, "invert_vertex_group_roughness_1", text="")
+        col.prop(psys, "invert_vertex_group_roughness_2", text="")
+        col.prop(psys, "invert_vertex_group_roughness_end", text="")
+        
         # Commented out vertex groups don't work and are still waiting for better implementation
         # row = layout.row()
         # row.prop_search(psys, "vertex_group_velocity", ob, "vertex_groups", text="Velocity")
         # row.prop(psys, "invert_vertex_group_velocity", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
-        row.prop(psys, "invert_vertex_group_length", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
-        row.prop(psys, "invert_vertex_group_clump", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
-        row.prop(psys, "invert_vertex_group_kink", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_roughness_1", ob, "vertex_groups", text="Roughness 1")
-        row.prop(psys, "invert_vertex_group_roughness_1", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_roughness_2", ob, "vertex_groups", text="Roughness 2")
-        row.prop(psys, "invert_vertex_group_roughness_2", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
-        row.prop(psys, "invert_vertex_group_roughness_end", text="")
 
         # row = layout.row()
         # row.prop_search(psys, "vertex_group_size", ob, "vertex_groups", text="Size")

@@ -1022,7 +1022,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
-	if (!EDBM_op_init(em, &bmop, op, "contextual_create geom=%hfev", BM_ELEM_SELECT))
+	if (!EDBM_op_init(em, &bmop, op, "contextual_create geom=%hfev mat_nr=%i", BM_ELEM_SELECT, em->mat_nr))
 		return OPERATOR_CANCELLED;
 	
 	BMO_op_exec(em->bm, &bmop);
@@ -1189,6 +1189,7 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Vertex Connect";
 	ot->idname = "MESH_OT_vert_connect";
+	ot->description = "Connect 2 vertices in a face with by an edge, splitting the face in half";
 	
 	/* api callbacks */
 	ot->exec = edbm_vert_connect;
@@ -1948,10 +1949,10 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), 
 				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
 			}
 			else if (em->bm->selected.first && ((BMEditSelection *)em->bm->selected.first)->htype == BM_VERT) {
-				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
 			}
 			else if (em->bm->selected.last && ((BMEditSelection *)em->bm->selected.last)->htype == BM_VERT) {
-				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
 			}
 		}
 
@@ -2464,6 +2465,7 @@ void MESH_OT_rip(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Rip";
 	ot->idname = "MESH_OT_rip";
+	ot->description = "Disconnect vertex or edges from connected geometry";
 
 	/* api callbacks */
 	ot->invoke = edbm_rip_invoke;
@@ -3335,6 +3337,7 @@ void MESH_OT_fill(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Fill";
 	ot->idname = "MESH_OT_fill";
+	ot->description = "Fill a selected edge loop with faces";
 
 	/* api callbacks */
 	ot->exec = edbm_fill_exec;
@@ -3390,8 +3393,9 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Quads to Tris";
+	ot->name = "Triangulate Faces";
 	ot->idname = "MESH_OT_quads_convert_to_tris";
+	ot->description = "Triangulate selected faces";
 
 	/* api callbacks */
 	ot->exec = edbm_quads_convert_to_tris_exec;
@@ -3434,6 +3438,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Tris to Quads";
 	ot->idname = "MESH_OT_tris_convert_to_quads";
+	ot->description = "Join triangles into quads";
 
 	/* api callbacks */
 	ot->exec = edbm_tris_convert_to_quads_exec;
@@ -3562,6 +3567,7 @@ void MESH_OT_split(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Split";
 	ot->idname = "MESH_OT_split";
+	ot->description = "Split off selected geometry from connected unselected geometry";
 
 	/* api callbacks */
 	ot->exec = edbm_split_exec;
@@ -4451,7 +4457,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Bevel";
-	ot->description = "Edge/Vertex Bevel";
+	ot->description = "Edge Bevel";
 	ot->idname = "MESH_OT_bevel";
 
 	/* api callbacks */
@@ -4511,6 +4517,7 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 	const int use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
 	const float thickness         = RNA_float_get(op->ptr, "thickness");
 	const int use_outset          = RNA_boolean_get(op->ptr, "use_outset");
+	const int use_select_inset    = RNA_boolean_get(op->ptr, "use_select_inset"); /* not passed onto the BMO */
 
 	EDBM_op_init(em, &bmop, op,
 	             "inset faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b thickness=%f use_outset=%b",
@@ -4518,10 +4525,17 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 
 	BMO_op_exec(em->bm, &bmop);
 
-	/* deselect original verts */
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
+	if (use_select_inset) {
+		/* deselect original faces/verts */
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
+	}
+	else {
+		BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE, BM_ELEM_SELECT, FALSE);
+		BMO_slot_buffer_hflag_disable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, FALSE);
+		/* so selected faces verts & edges get selected */
+		BM_mesh_select_flush_strip(em->bm, BM_VERT | BM_EDGE, BM_FACE);
+	}
 
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -4558,4 +4572,5 @@ void MESH_OT_inset(wmOperatorType *ot)
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
 
 	RNA_def_boolean(ot->srna, "use_outset", FALSE, "Outset", "Outset rather than inset");
+	RNA_def_boolean(ot->srna, "use_select_inset", TRUE, "Select Outer", "Select the new inset faces");
 }

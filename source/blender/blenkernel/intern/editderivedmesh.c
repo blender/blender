@@ -351,9 +351,9 @@ static void emDM_recalcTessellation(DerivedMesh *UNUSED(dm))
 }
 
 static void emDM_foreachMappedVert(
-		DerivedMesh *dm,
-		void (*func)(void *userData, int index, float *co, float *no_f, short *no_s),
-		void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3]),
+        void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMVert *eve;
@@ -371,9 +371,9 @@ static void emDM_foreachMappedVert(
 	}
 }
 static void emDM_foreachMappedEdge(
-		DerivedMesh *dm,
-		void (*func)(void *userData, int index, float *v0co, float *v1co),
-		void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
+        void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMEdge *eed;
@@ -551,9 +551,9 @@ static void emDM__calcFaceCent(BMesh *bm, BMFace *efa, float cent[3], float (*ve
 }
 
 static void emDM_foreachMappedFaceCenter(
-		DerivedMesh *dm,
-		void (*func)(void *userData, int index, float *co, float *no),
-		void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float co[3], const float no[3]),
+        void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	float (*polyNos)[3] = NULL;

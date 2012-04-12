@@ -1,6 +1,6 @@
 bl_info = {
     "name": "New Object",
-    "author": "YourNameHere",
+    "author": "Your Name Here",
     "version": (1, 0),
     "blender": (2, 5, 5),
     "location": "View3D > Add > Mesh > New Object",
@@ -12,8 +12,9 @@ bl_info = {
 
 
 import bpy
+from bpy.types import Operator
 from bpy.props import FloatVectorProperty
-from add_utils import AddObjectHelper, add_object_data
+from bpy_extras.object_utils import AddObjectHelper, object_data_add
 from mathutils import Vector
 
 
@@ -30,14 +31,14 @@ def add_object(self, context):
     edges = []
     faces = [[0, 1, 2, 3]]
 
-    mesh = bpy.data.meshes.new(name='New Object Mesh')
+    mesh = bpy.data.meshes.new(name="New Object Mesh")
     mesh.from_pydata(verts, edges, faces)
     # useful for development when the mesh may be invalid.
     # mesh.validate(verbose=True)
-    add_object_data(context, mesh, operator=self)
+    object_data_add(context, mesh, operator=self)
 
 
-class OBJECT_OT_add_object(bpy.types.Operator, AddObjectHelper):
+class OBJECT_OT_add_object(Operator, AddObjectHelper):
     """Add a Mesh Object"""
     bl_idname = "mesh.add_object"
     bl_label = "Add Mesh Object"
@@ -45,10 +46,10 @@ class OBJECT_OT_add_object(bpy.types.Operator, AddObjectHelper):
     bl_options = {'REGISTER', 'UNDO'}
 
     scale = FloatVectorProperty(
-            name='scale',
+            name="scale",
             default=(1.0, 1.0, 1.0),
             subtype='TRANSLATION',
-            description='scaling',
+            description="scaling",
             )
 
     def execute(self, context):
@@ -77,5 +78,5 @@ def unregister():
     bpy.types.INFO_MT_mesh_add.remove(add_object_button)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     register()

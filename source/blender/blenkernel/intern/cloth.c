@@ -114,9 +114,9 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
 void cloth_init ( ClothModifierData *clmd )
 {	
 	/* Initialize our new data structure to reasonable values. */
-	clmd->sim_parms->gravity [0] = 0.0;
-	clmd->sim_parms->gravity [1] = 0.0;
-	clmd->sim_parms->gravity [2] = -9.81;
+	clmd->sim_parms->gravity[0] = 0.0;
+	clmd->sim_parms->gravity[1] = 0.0;
+	clmd->sim_parms->gravity[2] = -9.81;
 	clmd->sim_parms->structural = 15.0;
 	clmd->sim_parms->shear = 15.0;
 	clmd->sim_parms->bending = 0.5;

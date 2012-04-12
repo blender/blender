@@ -47,7 +47,7 @@ if(APPLE)
 		list(APPEND INC_SYS
 			${CMAKE_OSX_SYSROOT}/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin10/4.2.1/include
 		)
-	endif()	
+	endif()
 endif()
 # XXX - END
 
@@ -72,6 +72,7 @@ set(SRC
 	libmv/simple_pipeline/pipeline.cc
 	libmv/simple_pipeline/reconstruction.cc
 	libmv/simple_pipeline/resect.cc
+	libmv/simple_pipeline/rigid_registration.cc
 	libmv/simple_pipeline/tracks.cc
 	libmv/tracking/brute_region_tracker.cc
 	libmv/tracking/esm_region_tracker.cc
@@ -102,8 +103,8 @@ set(SRC
 	libmv/base/vector_utils.h
 	libmv/image/array_nd.h
 	libmv/image/convolve.h
-	libmv/image/image.h
 	libmv/image/correlation.h
+	libmv/image/image.h
 	libmv/image/sample.h
 	libmv/image/tuple.h
 	libmv/logging/logging.h
@@ -128,6 +129,7 @@ set(SRC
 	libmv/simple_pipeline/pipeline.h
 	libmv/simple_pipeline/reconstruction.h
 	libmv/simple_pipeline/resect.h
+	libmv/simple_pipeline/rigid_registration.h
 	libmv/simple_pipeline/tracks.h
 	libmv/tracking/brute_region_tracker.h
 	libmv/tracking/esm_region_tracker.h
@@ -217,6 +219,7 @@ else()
 		third_party/glog/src/base/mutex.h
 		third_party/glog/src/config_freebsd.h
 		third_party/glog/src/config.h
+		third_party/glog/src/config_hurd.h
 		third_party/glog/src/config_linux.h
 		third_party/glog/src/config_mac.h
 		third_party/glog/src/demangle.h

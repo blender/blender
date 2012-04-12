@@ -120,7 +120,7 @@ double KX_TimeCategoryLogger::GetAverage(TimeCategory tc)
 
 double KX_TimeCategoryLogger::GetAverage(void)
 {
-	double time = 0.;
+	double time = 0.0;
 
 	KX_TimeLoggerMap::iterator it;
 	for (it = m_loggers.begin(); it != m_loggers.end(); it++) {

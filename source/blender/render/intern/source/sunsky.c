@@ -26,10 +26,7 @@
  * http://www.cs.utah.edu/vissim/papers/sunsky/code/
  */
 
-
-
 #include "sunsky.h"
-#include "math.h"
 #include "BLI_math.h"
 #include "BKE_global.h"
 

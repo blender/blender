@@ -20,6 +20,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_subdivide.c
+ *  \ingroup bmesh
+ *
+ * utility bmesh operators, e.g. transform,
+ * translate, rotate, scale, etc.
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_meshdata_types.h"
@@ -33,14 +40,6 @@
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
-
-/*
- * UTILS.C
- *
- * utility bmesh operators, e.g. transform,
- * translate, rotate, scale, etc.
- *
- */
 
 void bmo_makevert_exec(BMesh *bm, BMOperator *op)
 {
@@ -1084,17 +1083,16 @@ void bmo_face_reverseuvs_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
 		if (CustomData_has_layer(&(bm->ldata), CD_MLOOPUV)) {
 			BMLoop *lf;	/* current face loops */
-			int i = 0;
+			int i;
 
 			BLI_array_empty(uvs);
-			BM_ITER(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+			BLI_array_growitems(uvs, fs->len);
+
+			BM_ITER_INDEX(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs, i) {
 				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
 
 				/* current loop uv is the previous loop uv */
-				BLI_array_growone(uvs);
-				uvs[i][0] = luv->uv[0];
-				uvs[i][1] = luv->uv[1];
-				i++;
+				copy_v2_v2(uvs[i], luv->uv);
 			}
 
 			/* now that we have the uvs in the array, reverse! */

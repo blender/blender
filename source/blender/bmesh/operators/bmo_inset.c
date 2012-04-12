@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_inset.c
+ *  \ingroup bmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
@@ -239,7 +243,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 				bmesh_vert_separate(bm, v, &vout, &r_vout_len);
 				v = NULL; /* don't use again */
 
-				/* in some cases the edge doesnt split off */
+				/* in some cases the edge doesn't split off */
 				if (r_vout_len == 1) {
 					MEM_freeN(vout);
 					continue;

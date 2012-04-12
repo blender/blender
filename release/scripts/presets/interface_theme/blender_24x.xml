@@ -11,6 +11,7 @@
                    bone_pose="#50c8ff"
                    bone_solid="#c8c8c8"
                    bundle_solid="#c8c8c8"
+                   camera="#000000"
                    camera_path="#000000"
                    frame_current="#60c040"
                    edge_crease="#cc0099"
@@ -19,6 +20,7 @@
                    edge_select="#cece38"
                    edge_sharp="#ff2020"
                    edge_facesel="#4b4b4b"
+                   empty="#000000"
                    face="#0032961e"
                    extra_face_angle="#000080"
                    extra_face_area="#002000"
@@ -155,10 +157,10 @@
     </dopesheet_editor>
     <file_browser>
       <ThemeFileBrowser active_file="#828282"
-                        active_file_text="#fafafa"
+                        active_file_text="#ffffff"
                         scroll_handle="#7f7070"
                         scrollbar="#a0a0a0"
-                        selected_file="#7f7f7f"
+                        selected_file="#a0a0d0"
                         tiles="#b4b4b4">
         <space>
           <ThemeSpaceGeneric header="#b4b4b4"
@@ -171,7 +173,7 @@
                              text="#000000"
                              text_hi="#0f0f0f"
                              title="#000000"
-                             back="#b4b4b4">
+                             back="#808080">
           </ThemeSpaceGeneric>
         </space>
         <space_list>
@@ -260,7 +262,7 @@
                              text="#000000"
                              text_hi="#ffffff"
                              title="#000000"
-                             back="#757575">
+                             back="#353535">
           </ThemeSpaceGeneric>
         </space>
       </ThemeImageEditor>
@@ -379,7 +381,7 @@
                              text="#000000"
                              text_hi="#ffffff"
                              title="#000000"
-                             back="#b4b4b4">
+                             back="#999999">
           </ThemeSpaceGeneric>
         </space>
       </ThemeOutliner>
@@ -404,6 +406,7 @@
     </properties>
     <sequence_editor>
       <ThemeSequenceEditor audio_strip="#2e8f8f"
+                           movieclip_strip="#20208f"
                            frame_current="#60c040"
                            draw_action="#50c8ff"
                            effect_strip="#a9547c"
@@ -412,8 +415,8 @@
                            keyframe="#ff8500"
                            meta_strip="#6d9183"
                            movie_strip="#516987"
-                           movieclip_strip="#20208f"
                            plugin_strip="#7e7e50"
+                           preview_back="#000000"
                            scene_strip="#4e983e"
                            transition_strip="#a25f6f"
                            window_sliders="#a0a0a0">
@@ -435,13 +438,12 @@
     </sequence_editor>
     <text_editor>
       <ThemeTextEditor cursor="#ff0000"
+                       syntax_special="#5f5f00"
                        line_numbers_background="#818181"
-                       scroll_bar="#8f8f8f"
                        selected_text="#c67777"
                        syntax_builtin="#800050"
                        syntax_comment="#006432"
                        syntax_numbers="#0000c8"
-                       syntax_special="#5f5f00"
                        syntax_string="#640000">
         <space>
           <ThemeSpaceGeneric header="#b4b4b4"
@@ -688,6 +690,18 @@
                              text_sel="#ffffff">
           </ThemeWidgetColors>
         </wcol_tool>
+        <wcol_tooltip>
+          <ThemeWidgetColors inner="#ffffddff"
+                             inner_sel="#2d2d2de6"
+                             item="#646464ff"
+                             outline="#000000"
+                             shadedown="-20"
+                             shadetop="25"
+                             show_shaded="FALSE"
+                             text="#000000"
+                             text_sel="#ffffff">
+          </ThemeWidgetColors>
+        </wcol_tooltip>
       </ThemeUserInterface>
     </user_interface>
     <user_preferences>

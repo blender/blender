@@ -262,29 +262,28 @@ struct DerivedMesh {
 	 * coordinate and normal. For historical reasons the normal can be
 	 * passed as a float or short array, only one should be non-NULL.
 	 */
-	void (*foreachMappedVert)(
-						  DerivedMesh *dm,
-						  void (*func)(void *userData, int index, float *co,
-									   float *no_f, short *no_s),
-						  void *userData);
+	void (*foreachMappedVert)(DerivedMesh *dm,
+	                          void (*func)(void *userData, int index, const float co[3],
+	                                       const float no_f[3], const short no_s[3]),
+	                          void *userData);
 
 	/* Iterate over each mapped edge in the derived mesh, calling the
 	 * given function with the original edge and the mapped edge's new
 	 * coordinates.
 	 */
 	void (*foreachMappedEdge)(DerivedMesh *dm,
-							  void (*func)(void *userData, int index,
-										   float *v0co, float *v1co),
-							  void *userData);
+	                          void (*func)(void *userData, int index,
+	                                       const float v0co[3], const float v1co[3]),
+	                          void *userData);
 
 	/* Iterate over each mapped face in the derived mesh, calling the
 	 * given function with the original face and the mapped face's (or
 	 * faces') center and normal.
 	 */
 	void (*foreachMappedFaceCenter)(DerivedMesh *dm,
-									void (*func)(void *userData, int index,
-												 float *cent, float *no),
-									void *userData);
+	                                void (*func)(void *userData, int index,
+	                                             const float cent[3], const float no[3]),
+	                                void *userData);
 
 	/* Iterate over all vertex points, calling DO_MINMAX with given args.
 	 *

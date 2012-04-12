@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_primitive.c
+ *  \ingroup bmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
@@ -29,7 +33,7 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-
+#include "intern/bmesh_operators_private.h" /* own include */
 
 /* ************************ primitives ******************* */
 
@@ -71,9 +75,9 @@ static short icoface[20][3] = {
 	{10,9,11}
 };
 
-// HACK: these can also be found in cmoview.tga.c, but are here so that they can be found by linker
-// this hack is only used so that scons & mingw + split-sources hack works
-// ------------------------------- start copied code
+/* HACK: these can also be found in cmoview.tga.c, but are here so that they can be found by linker
+ * this hack is only used so that scons & mingw + split-sources hack works
+ * ------------------------------- start copied code */
 /* these are not the monkeys you are looking for */
 static int monkeyo = 4;
 static int monkeynv = 271;
@@ -420,12 +424,12 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 
 	dia *= 200.0f;
 
-	for (a = 1; a < subdiv; a++) {
+	if (subdiv > 1) {
 		BMOperator bmop;
 
 		BMO_op_initf(bm, &bmop,
 		             "esubd edges=%fe smooth=%f numcuts=%i gridfill=%b beauty=%i",
-		             EDGE_MARK, dia, 1, TRUE, B_SPHERE);
+		             EDGE_MARK, dia, (1 << (subdiv-1)) - 1, TRUE, B_SPHERE);
 		BMO_op_exec(bm, &bmop);
 		BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", BM_VERT, VERT_MARK);
 		BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", BM_EDGE, EDGE_MARK);

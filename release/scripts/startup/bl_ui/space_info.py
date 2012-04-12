@@ -105,9 +105,8 @@ class INFO_MT_file(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_context = 'EXEC_AREA'
-        layout.operator("wm.read_homefile", text="New", icon='NEW')
         layout.operator_context = 'INVOKE_AREA'
+        layout.operator("wm.read_homefile", text="New", icon='NEW')
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
         layout.menu("INFO_MT_file_open_recent", icon='OPEN_RECENT')
         layout.operator("wm.recover_last_session", icon='RECOVER_LAST')
@@ -362,7 +361,7 @@ class INFO_MT_help(Menu):
         layout = self.layout
 
         layout.operator("wm.url_open", text="Manual", icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:2.6/Manual'
-        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-262/'
+        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-263/'
 
         layout.separator()
 

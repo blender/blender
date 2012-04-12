@@ -1051,7 +1051,7 @@ static void draw_default_sensor_header(bSensor *sens,
 	/* Pulsing and frequency */
 	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, TOG, SENS_PULSE_REPEAT, 1, ICON_DOTSUP,
-			 (short)(x + 10 + 0. * (w-20)), (short)(y - 21), (short)(0.1 * (w-20)), 19,
+			 (short)(x + 10 + 0.0 * (w - 20)), (short)(y - 21), (short)(0.1 * (w - 20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
 			 "Activate TRUE level triggering (pulse mode)");
 

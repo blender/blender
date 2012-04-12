@@ -867,7 +867,7 @@ DO_INLINE int get_bin_float(float f)
 	return bin;
 }
 
-DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, float *rgb, float *ycc)
+DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, const float rgb[3], const float ycc[3])
 {
 	float yuv[3];
 

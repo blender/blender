@@ -473,7 +473,7 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 {
 	Mesh *me = ob->data;
-	MPoly *mf;
+	MPoly *mp;
 	MDeformWeight *dw, *dw_prev;
 	int vgroup_active, vgroup_mirror = -1;
 	unsigned int index;
@@ -492,15 +492,15 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	
 	copy_wpaint_prev(wp, me->dvert, me->totvert);
 	
-	for (index = 0, mf = me->mpoly; index < me->totpoly; index++, mf++) {
-		unsigned int fidx = mf->totloop - 1;
+	for (index = 0, mp = me->mpoly; index < me->totpoly; index++, mp++) {
+		unsigned int fidx = mp->totloop - 1;
 
-		if ((paint_selmode == SCE_SELECT_FACE) && !(mf->flag & ME_FACE_SEL)) {
+		if ((paint_selmode == SCE_SELECT_FACE) && !(mp->flag & ME_FACE_SEL)) {
 			continue;
 		}
 
 		do {
-			unsigned int vidx = me->mloop[mf->loopstart + fidx].v;
+			unsigned int vidx = me->mloop[mp->loopstart + fidx].v;
 
 			if (!me->dvert[vidx].flag) {
 				if ((paint_selmode == SCE_SELECT_VERTEX) && !(me->mvert[vidx].flag & SELECT)) {
@@ -1032,7 +1032,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				BKE_report(op->reports, RPT_WARNING, "The modifier used does not support deformed locations");
 			}
 			else {
-				MPoly *mf = ((MPoly *)me->mpoly) + index - 1;
+				MPoly *mp = ((MPoly *)me->mpoly) + (index - 1);
 				const int vgroup_active = vc.obact->actdef - 1;
 				ToolSettings *ts = vc.scene->toolsettings;
 				float mval_f[2];
@@ -1043,10 +1043,10 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				mval_f[0] = (float)event->mval[0];
 				mval_f[1] = (float)event->mval[1];
 
-				fidx = mf->totloop - 1;
+				fidx = mp->totloop - 1;
 				do {
 					float co[3], sco[3], len;
-					const int v_idx = me->mloop[mf->loopstart + fidx].v;
+					const int v_idx = me->mloop[mp->loopstart + fidx].v;
 					dm->getVertCo(dm, v_idx, co);
 					project_float_noclip(vc.ar, co, sco);
 					len = len_squared_v2v2(mval_f, sco);
@@ -1112,13 +1112,13 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 				if (index && index <= me->totpoly) {
 					const int defbase_tot = BLI_countlist(&vc.obact->defbase);
 					if (defbase_tot) {
-						MPoly *mf = ((MPoly *)me->mpoly) + index - 1;
-						unsigned int fidx = mf->totloop - 1;
+						MPoly *mp = ((MPoly *)me->mpoly) + (index - 1);
+						unsigned int fidx = mp->totloop - 1;
 						int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
 						int found = FALSE;
 
 						do {
-							MDeformVert *dvert = me->dvert + me->mloop[mf->loopstart + fidx].v;
+							MDeformVert *dvert = me->dvert + me->mloop[mp->loopstart + fidx].v;
 							int i = dvert->totweight;
 							MDeformWeight *dw;
 							for (dw = dvert->dw; i > 0; dw++, i--) {

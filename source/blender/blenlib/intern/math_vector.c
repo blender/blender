@@ -109,6 +109,12 @@ void mid_v3_v3v3(float v[3], const float v1[3], const float v2[3])
 	v[2] = 0.5f * (v1[2] + v2[2]);
 }
 
+void mid_v2_v2v2(float v[2], const float v1[2], const float v2[2])
+{
+	v[0] = 0.5f * (v1[0] + v2[0]);
+	v[1] = 0.5f * (v1[1] + v2[1]);
+}
+
 /********************************** Angles ***********************************/
 
 /* Return the angle in radians between vecs 1-2 and 2-3 in radians
