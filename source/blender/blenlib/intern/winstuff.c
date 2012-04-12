@@ -46,13 +46,14 @@
 
 #define WIN32_SKIP_HKEY_PROTECTION		// need to use HKEY
 #include "BLI_winstuff.h"
+#include "BLI_utildefines.h"
 
 #include "utf_winfunc.h"
 #include "utfconv.h"
 
  /* FILE_MAXDIR + FILE_MAXFILE */
 
-int BLI_getInstallationDir( char * str )
+int BLI_getInstallationDir(char * str)
 {
 	char dir[FILE_MAXDIR];
 	int a;
@@ -89,7 +90,7 @@ void RegisterBlendExtension(void)
 	char BlPath[MAX_PATH];
 	char InstallDir[FILE_MAXDIR];
 	char SysDir[FILE_MAXDIR];
-	const char* ThumbHandlerDLL;
+    const char *ThumbHandlerDLL;
 	char RegCmd[MAX_PATH*2];
 	char MBox[256];
 	BOOL IsWOW64;
@@ -172,7 +173,7 @@ void RegisterBlendExtension(void)
 
 DIR *opendir (const char *path)
 {
-	wchar_t * path_16 = alloc_utf16_from_8(path, 0);
+    wchar_t *path_16 = alloc_utf16_from_8(path, 0);
 
 	if (GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) {
 		DIR *newd= MEM_mallocN(sizeof(DIR), "opendir");
@@ -194,20 +195,20 @@ DIR *opendir (const char *path)
 	}
 }
 
-static char * BLI_alloc_utf_8_from_16(wchar_t * in16, size_t add)
+static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
 {
 	size_t bsize = count_utf_8_from_16(in16);
-	char * out8 = NULL;
+    char *out8 = NULL;
 	if (!bsize) return NULL;
 	out8 = (char*)MEM_mallocN(sizeof(char) * (bsize + add),"UTF-8 String");
 	conv_utf_16_to_8(in16,out8, bsize);
 	return out8;
 }
 
-static wchar_t * BLI_alloc_utf16_from_8(char * in8, size_t add)
+static wchar_t *UNUSED_FUNCTION(BLI_alloc_utf16_from_8)(char *in8, size_t add)
 {
 	size_t bsize = count_utf_16_from_8(in8);
-	wchar_t * out16 = NULL;
+    wchar_t *out16 = NULL;
 	if (!bsize) return NULL;
 	out16 =(wchar_t*) MEM_mallocN(sizeof(wchar_t) * (bsize + add), "UTF-16 String");
 	conv_utf_8_to_16(in8,out16, bsize);
@@ -216,14 +217,15 @@ static wchar_t * BLI_alloc_utf16_from_8(char * in8, size_t add)
 
 
 
-struct dirent *readdir(DIR *dp) {
+struct dirent *readdir(DIR *dp)
+{
 	if (dp->direntry.d_name) {
 		MEM_freeN(dp->direntry.d_name);
 		dp->direntry.d_name= NULL;
 	}
 		
 	if (dp->handle==INVALID_HANDLE_VALUE) {
-		wchar_t * path_16 = alloc_utf16_from_8(dp->path, 0);
+        wchar_t *path_16 = alloc_utf16_from_8(dp->path, 0);
 		dp->handle= FindFirstFileW(path_16, &(dp->data));
 		free(path_16);
 		if (dp->handle==INVALID_HANDLE_VALUE)
@@ -253,7 +255,7 @@ int closedir (DIR *dp)
 	return 0;
 }
 
-void get_default_root(char* root)
+void get_default_root(char *root)
 {
 	char str[MAX_PATH+1];
 	
@@ -333,7 +335,7 @@ int check_file_chars(char *filename)
  * is freely granted, provided that this notice is preserved.
  */
 #include <string.h>
-char* dirname(char *path)
+const char *dirname(char *path)
 {
 	char *p;
 	if ( path == NULL || *path == '\0' )

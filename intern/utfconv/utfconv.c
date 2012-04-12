@@ -34,7 +34,7 @@ size_t count_utf_8_from_16(const wchar_t *string16)
 		return 0;
 	}
 
-	for (i = 0; u = string16[i]; i++) {
+    for (i = 0; (u = string16[i]); i++) {
 		if (u < 0x0080) {
 			count += 1;
 		}
