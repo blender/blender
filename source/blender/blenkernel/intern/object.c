@@ -2869,7 +2869,7 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, int 
 
 	if (newkey || from_mix==FALSE) {
 		/* create from mesh */
-		kb= add_keyblock(key, name);
+		kb = add_keyblock_ctime(key, name, FALSE);
 		mesh_to_key(me, kb);
 	}
 	else {
@@ -2877,7 +2877,7 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, int 
 		float *data= do_ob_key(scene, ob);
 
 		/* create new block with prepared data */
-		kb= add_keyblock(key, name);
+		kb = add_keyblock_ctime(key, name, FALSE);
 		kb->data= data;
 		kb->totelem= me->totvert;
 	}
@@ -2899,7 +2899,7 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int 
 	}
 
 	if (newkey || from_mix==FALSE) {
-		kb= add_keyblock(key, name);
+		kb = add_keyblock_ctime(key, name, FALSE);
 		if (!newkey) {
 			KeyBlock *basekb= (KeyBlock *)key->block.first;
 			kb->data= MEM_dupallocN(basekb->data);
@@ -2914,7 +2914,7 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int 
 		float *data= do_ob_key(scene, ob);
 
 		/* create new block with prepared data */
-		kb= add_keyblock(key, name);
+		kb = add_keyblock_ctime(key, name, FALSE);
 		kb->totelem= lt->pntsu*lt->pntsv*lt->pntsw;
 		kb->data= data;
 	}
@@ -2938,7 +2938,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 
 	if (newkey || from_mix==FALSE) {
 		/* create from curve */
-		kb= add_keyblock(key, name);
+		kb = add_keyblock_ctime(key, name, FALSE);
 		if (!newkey) {
 			KeyBlock *basekb= (KeyBlock *)key->block.first;
 			kb->data= MEM_dupallocN(basekb->data);
@@ -2953,7 +2953,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 		float *data= do_ob_key(scene, ob);
 
 		/* create new block with prepared data */
-		kb= add_keyblock(key, name);
+		kb = add_keyblock_ctime(key, name, FALSE);
 		kb->totelem= count_curveverts(lb);
 		kb->data= data;
 	}

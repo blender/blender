@@ -1472,15 +1472,30 @@ KeyBlock *add_keyblock(Key *key, const char *name)
 	
 	kb->slidermin= 0.0f;
 	kb->slidermax= 1.0f;
-	
-	// XXX kb->pos is the confusing old horizontal-line RVK crap in old IPO Editor...
-	if (key->type == KEY_RELATIVE)  {
-		kb->pos= curpos + 0.1f;
-	}
-	else {
+
+	/**
+	 * \note caller may want to set this to current time, but don't do it here since we need to sort
+	 * which could cause problems in some cases, see #add_keyblock_ctime */
+	kb->pos = curpos + 0.1f; /* only used for absolute shape keys */
+
+	return kb;
+}
+
+/**
+ * \note sorting is a problematic side effect in some cases,
+ * better only do this explicitly by having its own function,
+ *
+ * \param do_force always use ctime even for relative keys.
+ */
+KeyBlock *add_keyblock_ctime(Key *key, const char *name, const short do_force)
+{
+	KeyBlock *kb = add_keyblock(key, name);
+
+	if (do_force || (key->type != KEY_RELATIVE)) {
 		kb->pos = key->ctime / 100.0f;
 		sort_keys(key);
 	}
+
 	return kb;
 }
 
