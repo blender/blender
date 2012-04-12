@@ -238,10 +238,10 @@ static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edg
 	}
 }
 
-static void get_face_uv_map_vert(UvVertMap *vmap, struct MPoly *mp, struct MLoop *ml, int fi, CCGVertHDL *fverts)
+static void get_face_uv_map_vert(UvVertMap *vmap, struct MPoly *mpoly, struct MLoop *ml, int fi, CCGVertHDL *fverts)
 {
 	UvMapVert *v, *nv;
-	int j, nverts= mp->totloop;
+	int j, nverts= mpoly[fi].totloop;
 
 	for (j=0; j<nverts; j++) {
 		for (nv=v=get_uv_map_vert(vmap, ml[j].v); v; v=v->next) {
@@ -251,7 +251,7 @@ static void get_face_uv_map_vert(UvVertMap *vmap, struct MPoly *mp, struct MLoop
 				break;
 		}
 
-		fverts[j]= SET_INT_IN_POINTER(nv->f*4 + nv->tfindex);
+		fverts[j]= SET_INT_IN_POINTER(mpoly[nv->f].loopstart + nv->tfindex);
 	}
 }
 
@@ -293,9 +293,10 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		for (v=get_uv_map_vert(vmap, i); v; v=v->next) {
 			if (v->separate) {
 				CCGVert *ssv;
-				CCGVertHDL vhdl = SET_INT_IN_POINTER(v->f*4 + v->tfindex);
+				int loopid = mpoly[v->f].loopstart + v->tfindex;
+				CCGVertHDL vhdl = SET_INT_IN_POINTER(loopid);
 
-				copy_v2_v2(uv, mloopuv[mpoly[v->f].loopstart + v->tfindex].uv);
+				copy_v2_v2(uv, mloopuv[loopid].uv);
 
 				ccgSubSurf_syncVert(ss, vhdl, uv, seam, &ssv);
 			}
@@ -315,7 +316,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		BLI_array_empty(fverts);
 		BLI_array_growitems(fverts, nverts);
 
-		get_face_uv_map_vert(vmap, mp, ml, i, fverts);
+		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 
 		for (j=0; j<nverts; j++) {
 			int v0 = GET_INT_FROM_POINTER(fverts[j]);
@@ -325,7 +326,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 			if (!BLI_edgehash_haskey(ehash, v0, v1)) {
 				CCGEdge *e, *orige= ccgSubSurf_getFaceEdge(origf, j);
-				CCGEdgeHDL ehdl= SET_INT_IN_POINTER(i*4 + j);
+				CCGEdgeHDL ehdl= SET_INT_IN_POINTER(mp->loopstart + j);
 				float crease;
 
 				if ((mv0->flag&mv1->flag) & ME_VERT_MERGED)
@@ -351,7 +352,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		BLI_array_empty(fverts);
 		BLI_array_growitems(fverts, nverts);
 
-		get_face_uv_map_vert(vmap, mp, ml, i, fverts);
+		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 		ccgSubSurf_syncFace(ss, SET_INT_IN_POINTER(i), nverts, fverts, &f);
 	}
 
