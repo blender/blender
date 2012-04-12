@@ -92,6 +92,7 @@
 
 #include "BKE_global.h" /* ugh - for looping over all objects */
 #include "BKE_main.h"
+#include "BKE_key.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* for element checking */
@@ -463,46 +464,6 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	return vertMap;
 }
 
-static float (*bm_to_mesh_shape_basis_offset(Mesh *me, BMesh *bm))[3]
-{
-	KeyBlock *actkey = BLI_findlink(&me->key->block, bm->shapenr - 1);
-	KeyBlock *currkey;
-	float (*ofs)[3]  = NULL;
-	int act_is_basis = 0;
-
-
-	/* find if this key is a basis for any others */
-	for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
-		if (bm->shapenr - 1 == currkey->relative) {
-			act_is_basis = 1;
-			break;
-		}
-	}
-
-	if (act_is_basis) { /* active key is a base */
-		float (*fp)[3] = actkey->data;
-		int *keyi;
-		int i;
-		BMIter iter;
-		BMVert *eve;
-		MVert  *mvert;
-
-		i = 0;
-		ofs = MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
-		mvert = me->mvert;
-		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-			if (keyi && *keyi != ORIGINDEX_NONE) {
-				sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
-			}
-			i++;
-			mvert++;
-		}
-	}
-
-	return ofs;
-}
-
 /**
  * returns customdata shapekey index from a keyblock or -1
  * \note could split this out into a more generic function */
@@ -794,13 +755,8 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 			}
 
 			if (!currkey) {
-				currkey = MEM_callocN(sizeof(KeyBlock), "KeyBlock mesh_conv.c");
-				currkey->type = KEY_LINEAR;
-				currkey->slidermin = 0.0f;
-				currkey->slidermax = 1.0f;
-
-				BLI_addtail(&me->key->block, currkey);
-				me->key->totkey++;
+				currkey = add_keyblock(me->key, bm->vdata.layers[i].name);
+				currkey->uid = bm->vdata.layers[i].uid;
 			}
 
 			j++;
@@ -809,7 +765,32 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 		/* editing the base key should update others */
 		if (me->key->type == KEY_RELATIVE && oldverts) {
-			ofs = bm_to_mesh_shape_basis_offset(me, bm); /* may be NULL */
+			int act_is_basis = FALSE;
+
+			/* find if this key is a basis for any others */
+			for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
+				if (bm->shapenr - 1 == currkey->relative) {
+					act_is_basis = TRUE;
+					break;
+				}
+			}
+
+			if (act_is_basis) { /* active key is a base */
+				float (*fp)[3] = actkey->data;
+				int *keyi;
+
+				i = 0;
+				ofs = MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
+				mvert = me->mvert;
+				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+					if (keyi && *keyi != ORIGINDEX_NONE) {
+						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
+					}
+					i++;
+					mvert++;
+				}
+			}
 		}
 
 		for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
@@ -820,7 +801,6 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 			j = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
 
-			/* new bmesh conversion method */
 
 			fp = newkey = MEM_callocN(me->key->elemsize * bm->totvert,  "currkey->data");
 			oldkey = currkey->data;
@@ -831,10 +811,10 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 				if (currkey == actkey) {
 					copy_v3_v3(fp, eve->co);
 
-					if (actkey != me->key->refkey) {
+					if (actkey != me->key->refkey) { /* important see bug [#30771] */
 						if (oldverts) {
 							keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-							if (*keyi != ORIGINDEX_NONE && *keyi < currkey->totelem) { // valid old vertex
+							if (*keyi != ORIGINDEX_NONE && *keyi < currkey->totelem) { /* valid old vertex */
 								copy_v3_v3(mvert->co, oldverts[*keyi].co);
 							}
 						}
@@ -848,7 +828,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 					/* old method of reconstructing keys via vertice's original key indices,
 					 * currently used if the new method above fails (which is theoretically
 					 * possible in certain cases of undo) */
-					copy_v3_v3(fp, oldkey + 3 * *keyi);
+					copy_v3_v3(fp, &oldkey[3 * (*keyi)]);
 				}
 				else {
 					/* fail! fill in with dummy value */
