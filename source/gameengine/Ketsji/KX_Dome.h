@@ -174,7 +174,7 @@ protected:
 
 	MT_Matrix4x4 m_projmat;
 
-	MT_Matrix3x3 m_locRot [6];// the rotation matrix
+	MT_Matrix3x3 m_locRot[6]; // the rotation matrix
 
 	/// rendered scene
 	KX_Scene * m_scene;

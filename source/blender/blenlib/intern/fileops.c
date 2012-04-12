@@ -202,7 +202,7 @@ int BLI_file_touch(const char *file)
 
 #ifdef WIN32
 
-static char str[MAXPATHLEN+12];
+static char str[MAXPATHLEN + 12];
 
 FILE *BLI_fopen(const char *filename, const char *mode)
 {
@@ -212,33 +212,32 @@ FILE *BLI_fopen(const char *filename, const char *mode)
 gzFile BLI_gzopen(const char *filename, const char *mode)
 {
 	gzFile gzfile;
-	int fi;
 
-	if (!filename || !mode) {return 0;}
-	else
-
-	{
-			
-		wchar_t short_name_16 [256];
-		char short_name [256];
-		int i=0;
+	if (!filename || !mode) {
+		return 0;
+	}
+	else {
+		wchar_t short_name_16[256];
+		char short_name[256];
+		int i = 0;
 
 		/* xxx Creates file before transcribing the path */
-		if(mode[0]=='w')
+		if(mode[0] == 'w')
 			fclose(ufopen(filename,"a"));
 
 		UTF16_ENCODE(filename);
 
-		GetShortPathNameW(filename_16,short_name_16,256);
+		GetShortPathNameW(filename_16,short_name_16, 256);
 
-		for (i=0;i<256;i++) {short_name[i]=short_name_16[i];};
-
+		for (i = 0; i < 256; i++) {
+			short_name[i] = short_name_16[i];
+		}
 
 		gzfile = gzopen(short_name,mode);
 
 		UTF16_UN_ENCODE(filename);
-
 	}
+
 	return gzfile;
 }
 
