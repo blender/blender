@@ -15,15 +15,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
+ * The Original Code is Copyright (C) 2012 Blender Foundation.
  * All rights reserved.
  *
  * Contributor(s): Alexandr Kuznetsov, Andrea Weikert
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
-#ifdef WIN32
 
 #ifndef _WIN32_IE
 #define _WIN32_IE 0x0501
@@ -153,5 +151,3 @@ int uputenv(const char *name, const char *value)
 
 	return r;
 }
-
-#endif /* WIN32 */

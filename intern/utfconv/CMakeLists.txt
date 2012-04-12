@@ -28,10 +28,11 @@ set(SRC
 	utfconv.c
 
 	utfconv.h
-	#utf_func.h
 )
 
-
+# This is odd but leave it for now...
+# Why have win32 check here? - this is only used for windows.
+# ... because one day we might want to use it on other platforms.
 if(WIN32)
 	list(APPEND SRC
 		utf_winfunc.c
