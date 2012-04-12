@@ -48,6 +48,8 @@ libmv/simple_pipeline/reconstruction.cc
 libmv/simple_pipeline/reconstruction.h
 libmv/simple_pipeline/resect.cc
 libmv/simple_pipeline/resect.h
+libmv/simple_pipeline/rigid_registration.cc
+libmv/simple_pipeline/rigid_registration.h
 libmv/simple_pipeline/tracks.cc
 libmv/simple_pipeline/tracks.h
 libmv/tracking/brute_region_tracker.cc
