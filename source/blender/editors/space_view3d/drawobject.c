@@ -3447,7 +3447,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 				GPU_disable_material();
 			}
-			else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) {
+			else if (ob->mode & OB_MODE_VERTEX_PAINT) {
 				if (me->mloopcol)
 					dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, NULL,
 					                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
@@ -6527,9 +6527,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					zbufoff = 1;
 					dt = OB_SOLID;
 				}
-				else {
+				else if(ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))
 					dt = OB_PAINT;
-				}
 
 				glEnable(GL_DEPTH_TEST);
 			}
