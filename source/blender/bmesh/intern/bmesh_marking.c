@@ -395,7 +395,7 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
  * Sets the selection mode for the bmesh,
  * updating the selection state.
  */
-void BM_select_mode_set(BMesh *bm, int selectmode)
+void BM_mesh_select_mode_set(BMesh *bm, int selectmode)
 {
 	BMIter iter;
 	BMElem *ele;
@@ -443,6 +443,47 @@ void BM_select_mode_set(BMesh *bm, int selectmode)
 		}
 		BM_mesh_select_mode_flush(bm);
 	}
+}
+
+/**
+ * \brief De-Select, Re-Select elements
+ * Awkwardly named function
+ *
+ * Deselect's one type of elements then re-selects another,
+ * Use case is to de-select stray edges or verts.
+ */
+void BM_mesh_select_flush_strip(BMesh *bm, const char htype_desel, const char htype_sel)
+{
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
+
+	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+
+	BMIter iter;
+	BMElem *ele;
+	int i;
+
+	for (i = 0; i < 3; i++) {
+		if (htype_desel & flag_types[i]) {
+			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
+			for ( ; ele; ele = BM_iter_step(&iter)) {
+				BM_elem_flag_disable(ele, BM_ELEM_SELECT);
+			}
+		}
+	}
+
+	for (i = 0; i < 3; i++) {
+		if (htype_sel & flag_types[i]) {
+			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
+			for ( ; ele; ele = BM_iter_step(&iter)) {
+				if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
+					BM_elem_select_set(bm, ele, TRUE);
+				}
+			}
+		}
+	}
+
 }
 
 /**

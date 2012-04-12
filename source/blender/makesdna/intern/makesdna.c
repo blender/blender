@@ -1179,7 +1179,7 @@ int main(int argc, char ** argv)
 	return(return_status);
 }
 
-// include files for automatic dependancies
+/* include files for automatic dependencies */
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 #include "DNA_ID.h"

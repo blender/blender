@@ -54,11 +54,13 @@ void BM_vert_select_set(BMesh *bm, BMVert *v, int select);
 void BM_edge_select_set(BMesh *bm, BMEdge *e, int select);
 void BM_face_select_set(BMesh *bm, BMFace *f, int select);
 
-void BM_select_mode_set(BMesh *bm, int selectmode);
+void BM_mesh_select_mode_set(BMesh *bm, int selectmode);
 void BM_mesh_select_mode_flush(BMesh *bm);
 
 void BM_mesh_deselect_flush(BMesh *bm);
 void BM_mesh_select_flush(BMesh *bm);
+
+void BM_mesh_select_flush_strip(BMesh *bm, const char htype_desel, const char htype_sel);
 
 int BM_mesh_enabled_flag_count(BMesh *bm, const char htype, const char hflag, int respecthide);
 int BM_mesh_disabled_flag_count(BMesh *bm, const char htype, const char hflag, int respecthide);
