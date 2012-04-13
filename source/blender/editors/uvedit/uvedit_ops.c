@@ -3001,7 +3001,9 @@ static int hide_exec(bContext *C, wmOperator *op)
 
 		return OPERATOR_FINISHED;
 	}
-	
+
+#define BOOL_CMP(test, bool_test) ((!!(test)) == bool_test)
+
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		int hide = 0;
 
@@ -3022,17 +3024,18 @@ static int hide_exec(bContext *C, wmOperator *op)
 
 		if (swap)
 			hide = !hide;
-		
+
 		if (hide) {
 			if (facemode) {
-				/*check that every UV is selected*/
+				/* check that every UV is selected */
 				luv = NULL;
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					if (!(luv->flag & MLOOPUV_VERTSEL))
+					if (!BOOL_CMP((luv->flag & MLOOPUV_VERTSEL), !swap)) {
 						break;
+					}
 				}
-				
+
 				if (!luv) {
 					BM_elem_select_set(em->bm, efa, FALSE);
 					uvedit_face_deselect(scene, em, efa);
@@ -3042,24 +3045,26 @@ static int hide_exec(bContext *C, wmOperator *op)
 				/*check if a UV is selected*/
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					if (luv->flag & MLOOPUV_VERTSEL) {
+					if (BOOL_CMP((luv->flag & MLOOPUV_VERTSEL), !swap)) {
 						BM_elem_select_set(em->bm, efa, FALSE);
 					}
-					luv->flag &= ~MLOOPUV_VERTSEL;
+					if (!swap) luv->flag &= ~MLOOPUV_VERTSEL;
 				}
 			}
 			else {
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					if (luv->flag & MLOOPUV_VERTSEL) {
+					if (BOOL_CMP((luv->flag & MLOOPUV_VERTSEL), !swap)) {
 						BM_elem_select_set(em->bm, l->v, FALSE);
-						luv->flag &= ~MLOOPUV_VERTSEL;
+						if (!swap) luv->flag &= ~MLOOPUV_VERTSEL;
 					}
 				}
 			}
 		}
 	}
 	
+#undef BOOL_CMP
+
 	/* flush vertex selection changes */
 	if (!facemode && em->selectmode != SCE_SELECT_FACE)
 		EDBM_selectmode_flush(em);
