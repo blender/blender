@@ -4534,7 +4534,7 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 		BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE, BM_ELEM_SELECT, FALSE);
 		BMO_slot_buffer_hflag_disable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, FALSE);
 		/* so selected faces verts & edges get selected */
-		BM_mesh_select_flush_strip(em->bm, BM_VERT | BM_EDGE, BM_FACE);
+		BM_mesh_select_flush_strip(em->bm, BM_VERT | BM_EDGE, BM_FACE, BM_ELEM_SELECT);
 	}
 
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {

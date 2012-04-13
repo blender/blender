@@ -3094,6 +3094,9 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	int facemode= sima ? sima->flag & SI_SELACTFACE : 0;
 	int stickymode= sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
 
+	/* note on tagging, selecting faces needs to be delayed so it doesn't select the verts and
+	 * confuse our checks on selected verts. */
+
 	/* call the mesh function if we are in mesh sync sel */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		EDBM_mesh_reveal(em);
@@ -3104,12 +3107,14 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	if (facemode) {
 		if (em->selectmode == SCE_SELECT_FACE) {
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+				BM_elem_flag_disable(efa, BM_ELEM_TAG);
 				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-					BM_elem_select_set(em->bm, efa, TRUE);
 					BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 						luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 						luv->flag |= MLOOPUV_VERTSEL;
 					}
+					/* BM_elem_select_set(em->bm, efa, TRUE); */
+					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				}
 			}
 		}
@@ -3117,6 +3122,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 			/* enable adjacent faces to have disconnected UV selections if sticky is disabled */
 			if (!stickymode) {
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+					BM_elem_flag_disable(efa, BM_ELEM_TAG);
 					if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 						int totsel=0;
 						BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -3128,14 +3134,15 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 								luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 								luv->flag |= MLOOPUV_VERTSEL;
 							}
-							
-							BM_elem_select_set(em->bm, efa, TRUE);
+							/* BM_elem_select_set(em->bm, efa, TRUE); */
+							BM_elem_flag_enable(efa, BM_ELEM_TAG);
 						}
 					}
 				}
 			}
 			else {
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+					BM_elem_flag_disable(efa, BM_ELEM_TAG);
 					if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 						BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 							if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)==0) {
@@ -3143,8 +3150,8 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 								luv->flag |= MLOOPUV_VERTSEL;
 							}
 						}
-						
-						BM_elem_select_set(em->bm, efa, TRUE);
+						/* BM_elem_select_set(em->bm, efa, TRUE); */
+						BM_elem_flag_enable(efa, BM_ELEM_TAG);
 					}
 				}
 			}
@@ -3152,18 +3159,20 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	else if (em->selectmode == SCE_SELECT_FACE) {
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					luv->flag |= MLOOPUV_VERTSEL;
 				}
-				
-				BM_elem_select_set(em->bm, efa, TRUE);
+				/* BM_elem_select_set(em->bm, efa, TRUE); */
+				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 			}
 		}
 	}
 	else {
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)==0) {
@@ -3171,12 +3180,15 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 						luv->flag |= MLOOPUV_VERTSEL;
 					}
 				}
-				
-				BM_elem_select_set(em->bm, efa, TRUE);
+				/* BM_elem_select_set(em->bm, efa, TRUE); */
+				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 			}
 		}
 	}
 	
+	/* de-select none, re-select tagged faces */
+	BM_mesh_select_flush_strip(em->bm, 0, BM_FACE, BM_ELEM_TAG);
+
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;

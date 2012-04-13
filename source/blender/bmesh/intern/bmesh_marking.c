@@ -452,7 +452,7 @@ void BM_mesh_select_mode_set(BMesh *bm, int selectmode)
  * Deselect's one type of elements then re-selects another,
  * Use case is to de-select stray edges or verts.
  */
-void BM_mesh_select_flush_strip(BMesh *bm, const char htype_desel, const char htype_sel)
+void BM_mesh_select_flush_strip(BMesh *bm, const char htype_desel, const char htype_sel, const char hflag_test)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -477,7 +477,7 @@ void BM_mesh_select_flush_strip(BMesh *bm, const char htype_desel, const char ht
 		if (htype_sel & flag_types[i]) {
 			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 			for ( ; ele; ele = BM_iter_step(&iter)) {
-				if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
+				if (BM_elem_flag_test(ele, hflag_test)) {
 					BM_elem_select_set(bm, ele, TRUE);
 				}
 			}

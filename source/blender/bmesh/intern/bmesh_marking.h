@@ -60,7 +60,7 @@ void BM_mesh_select_mode_flush(BMesh *bm);
 void BM_mesh_deselect_flush(BMesh *bm);
 void BM_mesh_select_flush(BMesh *bm);
 
-void BM_mesh_select_flush_strip(BMesh *bm, const char htype_desel, const char htype_sel);
+void BM_mesh_select_flush_strip(BMesh *bm, const char htype_desel, const char htype_sel, const char hflag_test);
 
 int BM_mesh_enabled_flag_count(BMesh *bm, const char htype, const char hflag, int respecthide);
 int BM_mesh_disabled_flag_count(BMesh *bm, const char htype, const char hflag, int respecthide);
