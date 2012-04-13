@@ -2990,7 +2990,9 @@ static int hide_exec(bContext *C, wmOperator *op)
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
+	MTexPoly *tf;
 	int swap = RNA_boolean_get(op->ptr, "unselected");
+	Image *ima = sima ? sima->image : NULL;
 	int facemode = sima ? sima->flag & SI_SELACTFACE : 0;
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
@@ -3002,6 +3004,12 @@ static int hide_exec(bContext *C, wmOperator *op)
 	
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		int hide = 0;
+
+		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+
+		if (!uvedit_face_visible(scene, ima, efa, tf)) {
+			continue;
+		}
 
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
