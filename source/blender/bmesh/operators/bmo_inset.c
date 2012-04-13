@@ -482,6 +482,11 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		/* yes - reverse face is correct in this case */
 		f = BM_face_create_quad_tri_v(bm, varr, j, es->l->f, FALSE);
 		BMO_elem_flag_enable(bm, f, ELE_NEW);
+
+		/* copy for loop data, otherwise UV's and vcols are no good.
+		 * tiny speedup here we could be more clever and copy from known adjacent data
+		 * also - we could attempt to interpolate the loop data, this would be much slower but more useful too */
+		BM_face_copy_shared(bm, f);
 	}
 
 	MEM_freeN(edge_info);

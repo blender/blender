@@ -125,25 +125,35 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 	return f;
 }
 
-/* copies face data from shared adjacent faces */
+/**
+ * \brief copies face loop data from shared adjacent faces.
+ * \note when a matching edge is found, both loops of that edge are copied
+ * this is done since the face may not be completely surrounded by faces,
+ * this way: a quad with 2 connected quads on either side will still get all 4 loops updated */
 void BM_face_copy_shared(BMesh *bm, BMFace *f)
 {
-	BMIter iter;
-	BMLoop *l, *l_other;
+	BMLoop *l_first;
+	BMLoop *l_iter;
 
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-		l_other = l->radial_next;
-		
-		if (l_other && l_other != l) {
-			if (l_other->v == l->v) {
-				bm_loop_attrs_copy(bm, bm, l_other, l);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		BMLoop *l_other = l_iter->radial_next;
+
+		if (l_other && l_other != l_iter) {
+			if (l_other->v == l_iter->v) {
+				bm_loop_attrs_copy(bm, bm, l_other, l_iter);
+				bm_loop_attrs_copy(bm, bm, l_other->next, l_iter->next);
 			}
 			else {
-				l_other = l_other->next;
-				bm_loop_attrs_copy(bm, bm, l_other, l);
+				bm_loop_attrs_copy(bm, bm, l_other->next, l_iter);
+				bm_loop_attrs_copy(bm, bm, l_other, l_iter->next);
+			}
+			/* since we copy both loops of the shared edge, step over the next loop here */
+			if ((l_iter = l_iter->next) == l_first) {
+				break;
 			}
 		}
-	}
+	} while ((l_iter = l_iter->next) != l_first);
 }
 
 /**
