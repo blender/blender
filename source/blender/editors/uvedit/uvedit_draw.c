@@ -71,37 +71,37 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 	ED_space_image_size(sima, &width, &height);
 	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
 
-	w= zoomx*width/256.0f;
-	h= zoomy*height/256.0f;
+	w = zoomx * width / 256.0f;
+	h = zoomy * height / 256.0f;
 	
 	cpack(0xFFFFFF);
 	glTranslatef(sima->cursor[0], sima->cursor[1], 0.0);
-	fdrawline(-0.05f/w, 0, 0, 0.05f/h);
-	fdrawline(0, 0.05f/h, 0.05f/w, 0.0f);
-	fdrawline(0.05f/w, 0.0f, 0.0f, -0.05f/h);
-	fdrawline(0.0f, -0.05f/h, -0.05f/w, 0.0f);
+	fdrawline(-0.05f / w, 0, 0, 0.05f / h);
+	fdrawline(0, 0.05f / h, 0.05f / w, 0.0f);
+	fdrawline(0.05f / w, 0.0f, 0.0f, -0.05f / h);
+	fdrawline(0.0f, -0.05f / h, -0.05f / w, 0.0f);
 
 	setlinestyle(4);
 	cpack(0xFF);
-	fdrawline(-0.05f/w, 0.0f, 0.0f, 0.05f/h);
-	fdrawline(0.0f, 0.05f/h, 0.05f/w, 0.0f);
-	fdrawline(0.05f/w, 0.0f, 0.0f, -0.05f/h);
-	fdrawline(0.0f, -0.05f/h, -0.05f/w, 0.0f);
+	fdrawline(-0.05f / w, 0.0f, 0.0f, 0.05f / h);
+	fdrawline(0.0f, 0.05f / h, 0.05f / w, 0.0f);
+	fdrawline(0.05f / w, 0.0f, 0.0f, -0.05f / h);
+	fdrawline(0.0f, -0.05f / h, -0.05f / w, 0.0f);
 
 
 	setlinestyle(0.0f);
 	cpack(0x0);
-	fdrawline(-0.020f/w, 0.0f, -0.1f/w, 0.0f);
-	fdrawline(0.1f/w, 0.0f, 0.020f/w, 0.0f);
-	fdrawline(0.0f, -0.020f/h, 0.0f, -0.1f/h);
-	fdrawline(0.0f, 0.1f/h, 0.0f, 0.020f/h);
+	fdrawline(-0.020f / w, 0.0f, -0.1f / w, 0.0f);
+	fdrawline(0.1f / w, 0.0f, 0.020f / w, 0.0f);
+	fdrawline(0.0f, -0.020f / h, 0.0f, -0.1f / h);
+	fdrawline(0.0f, 0.1f / h, 0.0f, 0.020f / h);
 
 	setlinestyle(1);
 	cpack(0xFFFFFF);
-	fdrawline(-0.020f/w, 0.0f, -0.1f/w, 0.0f);
-	fdrawline(0.1f/w, 0.0f, 0.020f/w, 0.0f);
-	fdrawline(0.0f, -0.020f/h, 0.0f, -0.1f/h);
-	fdrawline(0.0f, 0.1f/h, 0.0f, 0.020f/h);
+	fdrawline(-0.020f / w, 0.0f, -0.1f / w, 0.0f);
+	fdrawline(0.1f / w, 0.0f, 0.020f / w, 0.0f);
+	fdrawline(0.0f, -0.020f / h, 0.0f, -0.1f / h);
+	fdrawline(0.0f, 0.1f / h, 0.0f, 0.020f / h);
 
 	glTranslatef(-sima->cursor[0], -sima->cursor[1], 0.0);
 	setlinestyle(0);
@@ -109,7 +109,7 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 
 static int draw_uvs_face_check(Scene *scene)
 {
-	ToolSettings *ts= scene->toolsettings;
+	ToolSettings *ts = scene->toolsettings;
 
 	/* checks if we are selecting only faces */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
@@ -139,7 +139,7 @@ static void draw_uvs_shadow(Object *obedit)
 	BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		glBegin(GL_LINE_LOOP);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-			luv= CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+			luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
 
 			glVertex2fv(luv->uv);
 		}
@@ -168,7 +168,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 	BMIter iter, liter;
 	MTexPoly *tf;
 	MLoopUV *luv;
-	Image *ima= sima->image;
+	Image *ima = sima->image;
 	BLI_array_declare(tf_uv);
 	BLI_array_declare(tf_uvorig);
 	float aspx, aspy, col[4], (*tf_uv)[2] = NULL, (*tf_uvorig)[2] = NULL;
@@ -176,13 +176,13 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 
 	ED_space_image_uv_aspect(sima, &aspx, &aspy);
 	
-	switch(sima->dt_uvstretch) {
+	switch (sima->dt_uvstretch) {
 		case SI_UVDT_STRETCH_AREA:
 		{
-			float totarea=0.0f, totuvarea=0.0f, areadiff, uvarea, area;
+			float totarea = 0.0f, totuvarea = 0.0f, areadiff, uvarea, area;
 			
 			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-				tf= CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+				tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
 				
 				BLI_array_empty(tf_uv);
 				BLI_array_empty(tf_uvorig);
@@ -191,7 +191,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 
 				i = 0;
 				BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-					luv= CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+					luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
 
 					copy_v2_v2(tf_uvorig[i], luv->uv);
 
@@ -209,7 +209,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				}
 				else {
 					if (tf == activetf)
-						activetf= NULL;
+						activetf = NULL;
 					BM_elem_flag_disable(efa, BM_ELEM_TAG);
 				}
 			}
@@ -241,7 +241,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 
 						i = 0;
 						BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-							luv= CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+							luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
 
 							copy_v2_v2(tf_uvorig[i], luv->uv);
 
@@ -255,10 +255,10 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						
 						if (area < FLT_EPSILON || uvarea < FLT_EPSILON)
 							areadiff = 1.0f;
-						else if (area>uvarea)
-							areadiff = 1.0f-(uvarea/area);
+						else if (area > uvarea)
+							areadiff = 1.0f - (uvarea / area);
 						else
-							areadiff = 1.0f-(area/uvarea);
+							areadiff = 1.0f - (area / uvarea);
 						
 						weight_to_rgb(col, areadiff);
 						glColor3fv(col);
@@ -278,8 +278,8 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 		{
 			float *uvang = NULL;
 			float *ang = NULL;
-			float (* av)[3] = NULL; /* use for 2d and 3d  angle vectors */
-			float (* auv)[2] = NULL;
+			float (*av)[3] = NULL;  /* use for 2d and 3d  angle vectors */
+			float (*auv)[2] = NULL;
 			float a;
 
 			BLI_array_declare(uvang);
@@ -292,7 +292,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			glShadeModel(GL_SMOOTH);
 			
 			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-				tf= CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+				tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
 				
 				if (uvedit_face_visible(scene, ima, efa, tf)) {
 					nverts = efa->len;
@@ -324,22 +324,22 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						j = i;
 					}
 
-					for(i = 0; i < nverts; i++) {
+					for (i = 0; i < nverts; i++) {
 #if 0
 						/* Simple but slow, better reuse normalized vectors
 						 * (Not ported to bmesh, copied for reference) */
 						uvang1 = RAD2DEG(angle_v2v2v2(tf_uv[3], tf_uv[0], tf_uv[1]));
 						ang1 = RAD2DEG(angle_v3v3v3(efa->v4->co, efa->v1->co, efa->v2->co));
 #endif
-						uvang[i] = angle_normalized_v2v2(auv[i], auv[(i+1)%nverts]);
-						ang[i] = angle_normalized_v3v3(av[i], av[(i+1)%nverts]);
+						uvang[i] = angle_normalized_v2v2(auv[i], auv[(i + 1) % nverts]);
+						ang[i] = angle_normalized_v3v3(av[i], av[(i + 1) % nverts]);
 					}
 
 					glBegin(GL_POLYGON);
 					BM_ITER_INDEX(l, &liter, bm, BM_LOOPS_OF_FACE, efa, i) {
 						luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-						a = fabsf(uvang[i]-ang[i])/(float)M_PI;
-						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
+						a = fabsf(uvang[i] - ang[i]) / (float)M_PI;
+						weight_to_rgb(col, 1.0f - powf((1.0f - a), 2.0f));
 						glColor3fv(col);
 						glVertex2fv(luv->uv);
 					}
@@ -347,7 +347,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				}
 				else {
 					if (tf == activetf)
-						activetf= NULL;
+						activetf = NULL;
 					BM_elem_flag_disable(efa, BM_ELEM_TAG);
 				}
 			}
@@ -373,15 +373,15 @@ static void draw_uvs_other(Scene *scene, Object *obedit, Image *curimage)
 
 	glColor3ub(96, 96, 96);
 
-	for (base=scene->base.first; base; base=base->next) {
-		Object *ob= base->object;
+	for (base = scene->base.first; base; base = base->next) {
+		Object *ob = base->object;
 
 		if (!(base->flag & SELECT)) continue;
 		if (!(base->lay & scene->lay)) continue;
 		if (ob->restrictflag & OB_RESTRICT_VIEW) continue;
 
-		if ((ob->type==OB_MESH) && (ob!=obedit)) {
-			Mesh *me= ob->data;
+		if ((ob->type == OB_MESH) && (ob != obedit)) {
+			Mesh *me = ob->data;
 
 			if (me->mtpoly) {
 				MPoly *mpoly = me->mpoly;
@@ -407,7 +407,7 @@ static void draw_uvs_other(Scene *scene, Object *obedit, Image *curimage)
 
 static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
 {
-	Mesh *me= ob->data;
+	Mesh *me = ob->data;
 	Image *curimage = ED_space_image(sima);
 
 	if (sima->flag & SI_DRAW_OTHER)
@@ -416,17 +416,17 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
 	glColor3ub(112, 112, 112);
 
 	if (me->mtface) {
-		MPoly *mpoly= me->mpoly;
-		MTexPoly *tface= me->mtpoly;
+		MPoly *mpoly = me->mpoly;
+		MTexPoly *tface = me->mtpoly;
 		MLoopUV *mloopuv;
 		int a, b;
 
-		for (a=me->totpoly; a>0; a--, tface++, mpoly++) {
+		for (a = me->totpoly; a > 0; a--, tface++, mpoly++) {
 			if (tface->tpage == curimage) {
 				glBegin(GL_LINE_LOOP);
 
 				mloopuv = me->mloopuv + mpoly->loopstart;
-				for (b=0; b<mpoly->totloop; b++, mloopuv++) {
+				for (b = 0; b < mpoly->totloop; b++, mloopuv++) {
 					glVertex2fv(mloopuv->uv);
 				}
 				glEnd();
@@ -451,23 +451,23 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	unsigned char col1[4], col2[4];
 	float pointsize;
 	int drawfaces, interpedges;
-	Image *ima= sima->image;
+	Image *ima = sima->image;
 
 	StitchPreviewer *stitch_preview = uv_get_stitch_previewer();
 
-	activetf= EDBM_mtexpoly_active_get(em, &efa_act, FALSE); /* will be set to NULL if hidden */
+	activetf = EDBM_mtexpoly_active_get(em, &efa_act, FALSE); /* will be set to NULL if hidden */
 	activef = BM_active_face_get(bm, FALSE);
-	ts= scene->toolsettings;
+	ts = scene->toolsettings;
 
-	drawfaces= draw_uvs_face_check(scene);
+	drawfaces = draw_uvs_face_check(scene);
 	if (ts->uv_flag & UV_SYNC_SELECTION)
-		interpedges= (ts->selectmode & SCE_SELECT_VERTEX);
+		interpedges = (ts->selectmode & SCE_SELECT_VERTEX);
 	else
-		interpedges= (ts->uv_selectmode == UV_SELECT_VERTEX);
+		interpedges = (ts->uv_selectmode == UV_SELECT_VERTEX);
 	
 	/* draw other uvs */
 	if (sima->flag & SI_DRAW_OTHER) {
-		Image *curimage= (activetf)? activetf->tpage: NULL;
+		Image *curimage = (activetf) ? activetf->tpage : NULL;
 
 		draw_uvs_other(scene, obedit, curimage);
 	}
@@ -478,7 +478,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		/* first try existing derivedmesh */
 		if (!draw_uvs_dm_shadow(em->derivedFinal)) {
 			/* create one if it does not exist */
-			cagedm = editbmesh_get_derived_cage_and_final(scene, obedit, me->edit_btmesh, &finaldm, CD_MASK_BAREMESH|CD_MASK_MTFACE);
+			cagedm = editbmesh_get_derived_cage_and_final(scene, obedit, me->edit_btmesh, &finaldm, CD_MASK_BAREMESH | CD_MASK_MTFACE);
 
 			/* when sync selection is enabled, all faces are drawn (except for hidden)
 			 * so if cage is the same as the final, theres no point in drawing this */
@@ -504,11 +504,11 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		glEnable(GL_BLEND);
 		
 		BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			tf= CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+			tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
 			
 			if (uvedit_face_visible(scene, ima, efa, tf)) {
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
-				if (tf==activetf) continue; /* important the temp boolean is set above */
+				if (tf == activetf) continue;  /* important the temp boolean is set above */
 
 				if (uvedit_face_selected(scene, em, efa))
 					glColor4ubv((GLubyte *)col2);
@@ -524,7 +524,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			}
 			else {
 				if (tf == activetf)
-					activetf= NULL;
+					activetf = NULL;
 				BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			}
 		}
@@ -534,14 +534,14 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
 		
 		BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			tf= CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+			tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 			if (uvedit_face_visible(scene, ima, efa, tf)) {		
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 			}
 			else {
 				if (tf == activetf)
-					activetf= NULL;
+					activetf = NULL;
 				BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			}
 		}
@@ -580,7 +580,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	
-	switch(sima->dt_uv) {
+	switch (sima->dt_uv) {
 		case SI_UVDT_DASH:
 			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
 				if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
@@ -609,10 +609,10 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 #if 0
 					glBegin(GL_LINE_STRIP);
-						luv = CustomData_bmesh_get(&bm->ldata, efa->lbase->head.data, CD_MLOOPUV);
-						glVertex2fv(luv->uv);
-						luv = CustomData_bmesh_get(&bm->ldata, efa->lbase->next->head.data, CD_MLOOPUV);
-						glVertex2fv(luv->uv);
+					luv = CustomData_bmesh_get(&bm->ldata, efa->lbase->head.data, CD_MLOOPUV);
+					glVertex2fv(luv->uv);
+					luv = CustomData_bmesh_get(&bm->ldata, efa->lbase->next->head.data, CD_MLOOPUV);
+					glVertex2fv(luv->uv);
 					glEnd();
 #endif
 
@@ -622,7 +622,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			break;
 		case SI_UVDT_BLACK: /* black/white */
 		case SI_UVDT_WHITE: 
-			if (sima->dt_uv==SI_UVDT_WHITE) glColor3f(1.0f, 1.0f, 1.0f);
+			if (sima->dt_uv == SI_UVDT_WHITE) glColor3f(1.0f, 1.0f, 1.0f);
 			else glColor3f(0.0f, 0.0f, 0.0f);
 
 			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
@@ -670,7 +670,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 						glBegin(GL_LINE_LOOP);
 						BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-							sel = (uvedit_uv_selected(em, scene, l)? 1 : 0);
+							sel = (uvedit_uv_selected(em, scene, l) ? 1 : 0);
 							glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2);
 
 							luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
@@ -688,7 +688,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 						glBegin(GL_LINES);
 						BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-							sel = (uvedit_edge_selected(em, scene, l)? 1 : 0);
+							sel = (uvedit_edge_selected(em, scene, l) ? 1 : 0);
 							if (sel != lastsel) {
 								glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2);
 								lastsel = sel;
@@ -787,7 +787,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	
 		/* pinned uvs */
 		/* give odd pointsizes odd pin pointsizes */
-		glPointSize(pointsize*2 + (((int)pointsize % 2)? (-1): 0));
+		glPointSize(pointsize * 2 + (((int)pointsize % 2) ? (-1) : 0));
 		cpack(0xFF);
 	
 		bglBegin(GL_POINTS);
@@ -834,7 +834,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		UI_ThemeColor4(TH_STITCH_PREVIEW_ACTIVE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->static_tris);
-		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_static_tris*3);
+		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_static_tris * 3);
 
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_polys);
 		for (i = 0; i < stitch_preview->num_polys; i++) {
@@ -850,12 +850,12 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 #if 0
 		UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
-		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris*3);
+		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris * 3);
 #endif
 		glDisable(GL_BLEND);
 
 		/* draw vert preview */
-		glPointSize(pointsize*2.0);
+		glPointSize(pointsize * 2.0);
 		UI_ThemeColor4(TH_STITCH_PREVIEW_STITCHABLE);
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_stitchable);
 		glDrawArrays(GL_POINTS, 0, stitch_preview->num_stitchable);
@@ -877,8 +877,8 @@ void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedi
 	int show_uvedit, show_uvshadow, show_texpaint_uvshadow;
 
 	show_texpaint_uvshadow = (obact && obact->type == OB_MESH && obact->mode == OB_MODE_TEXTURE_PAINT);
-	show_uvedit= ED_space_image_show_uvedit(sima, obedit);
-	show_uvshadow= ED_space_image_show_uvshadow(sima, obedit);
+	show_uvedit = ED_space_image_show_uvedit(sima, obedit);
+	show_uvshadow = ED_space_image_show_uvshadow(sima, obedit);
 
 	if (show_uvedit || show_uvshadow || show_texpaint_uvshadow) {
 		if (show_uvshadow)

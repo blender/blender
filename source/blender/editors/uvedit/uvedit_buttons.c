@@ -58,7 +58,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#define B_UVEDIT_VERTEX		3
+#define B_UVEDIT_VERTEX     3
 
 /* UV Utilities */
 
@@ -138,27 +138,27 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 		}
 
 		if (sima->flag & SI_COORDFLOATS) {
-			step= 1;
-			digits= 3;
+			step = 1;
+			digits = 3;
 		}
 		else {
-			step= 100;
-			digits= 2;
+			step = 100;
+			digits = 2;
 		}
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_UVEDIT_VERTEX, "X:",	10, 10, 145, 19, &uvedit_old_center[0], -10*imx, 10.0*imx, step, digits, "");
-		uiDefButF(block, NUM, B_UVEDIT_VERTEX, "Y:",	165, 10, 145, 19, &uvedit_old_center[1], -10*imy, 10.0*imy, step, digits, "");
+		uiDefButF(block, NUM, B_UVEDIT_VERTEX, "X:",    10, 10, 145, 19, &uvedit_old_center[0], -10 * imx, 10.0 * imx, step, digits, "");
+		uiDefButF(block, NUM, B_UVEDIT_VERTEX, "Y:",    165, 10, 145, 19, &uvedit_old_center[1], -10 * imy, 10.0 * imy, step, digits, "");
 		uiBlockEndAlign(block);
 	}
 }
 
 static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	Image *ima= sima->image;
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
+	Image *ima = sima->image;
 	BMEditMesh *em;
 	float center[2], delta[2];
 	int imx, imy;
@@ -172,12 +172,12 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 	uvedit_center(scene, em, ima, center);
 
 	if (sima->flag & SI_COORDFLOATS) {
-		delta[0]= uvedit_old_center[0] - center[0];
-		delta[1]= uvedit_old_center[1] - center[1];
+		delta[0] = uvedit_old_center[0] - center[0];
+		delta[1] = uvedit_old_center[1] - center[1];
 	}
 	else {
-		delta[0]= uvedit_old_center[0]/imx - center[0];
-		delta[1]= uvedit_old_center[1]/imy - center[1];
+		delta[0] = uvedit_old_center[0] / imx - center[0];
+		delta[1] = uvedit_old_center[1] / imy - center[1];
 	}
 
 	uvedit_translate(scene, em, ima, delta);
@@ -189,7 +189,7 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 
 static int image_panel_uv_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	Object *obedit= CTX_data_edit_object(C);
+	Object *obedit = CTX_data_edit_object(C);
 	return ED_uvedit_test(obedit);
 }
 
@@ -197,7 +197,7 @@ static void image_panel_uv(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
 	
-	block= uiLayoutAbsoluteBlock(pa->layout);
+	block = uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_uvedit_vertex, NULL);
 
 	uvedit_vertex_buttons(C, block);
@@ -207,11 +207,11 @@ void ED_uvedit_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
+	pt = MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
 	strcpy(pt->idname, "IMAGE_PT_uv");
 	strcpy(pt->label, "UV Vertex");
-	pt->draw= image_panel_uv;
-	pt->poll= image_panel_uv_poll;
+	pt->draw = image_panel_uv;
+	pt->poll = image_panel_uv_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
 
