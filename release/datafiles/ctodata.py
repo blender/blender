@@ -48,10 +48,14 @@ data = bytes([int(v) for v in data])
 
 dname = filename + ".ctodata"
 
+sys.stdout.write("Making DATA file <%s>\n" % dname)
+
 try:
     fpout = open(dname, "wb")
 except:
     sys.stdout.write("Unable to open output %s\n" % dname)
     sys.exit(1)
 
-fpout.write(data)
+size = fpout.write(data)
+
+sys.stdout.write("%d\n" % size)
