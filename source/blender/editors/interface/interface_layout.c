@@ -1500,7 +1500,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 	if (layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon = ICON_BLANK1;
 
-	ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL, mt->description);
+	ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL, TIP_(mt->description));
 }
 
 /* label item */
@@ -1618,7 +1618,7 @@ void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname,
 	}
 
 	if (!name)
-		name = ot->name;
+		name = RNA_struct_ui_name(ot->srna);
 	if (layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon = ICON_BLANK1;
 
@@ -1627,7 +1627,7 @@ void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname,
 	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext = layout->root->opcontext;
 
-	ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl, ot->description);
+	ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl, RNA_struct_ui_description(ot->srna));
 }
 
 static void menu_item_enum_rna_menu(bContext *UNUSED(C), uiLayout *layout, void *arg)
@@ -2830,14 +2830,14 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op, i
 	}
 
 	if (flag & UI_LAYOUT_OP_SHOW_TITLE) {
-		uiItemL(layout, op->type->name, ICON_NONE);
+		uiItemL(layout, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 	}
 
 	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
 	 * just fails silently */
 	if (!WM_operator_repeat_check(C, op)) {
 		uiBlockSetButLock(uiLayoutGetBlock(layout), TRUE, "Operator cannot redo");
-		uiItemL(layout, "* Redo Unsupported *", ICON_NONE); // XXX, could give some nicer feedback or not show redo panel at all?
+		uiItemL(layout, IFACE_("* Redo Unsupported *"), ICON_NONE); // XXX, could give some nicer feedback or not show redo panel at all?
 	}
 
 	/* menu */
