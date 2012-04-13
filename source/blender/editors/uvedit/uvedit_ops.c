@@ -2979,6 +2979,27 @@ static void UV_OT_select_pinned(wmOperatorType *ot)
 
 /********************** hide operator *********************/
 
+/* check if we are selected or unselected based on 'bool_test' arg,
+ * needed for select swap support */
+#define UV_SEL_TEST(luv, bool_test) ((((luv)->flag & MLOOPUV_VERTSEL) == MLOOPUV_VERTSEL) == bool_test)
+
+/* is every UV vert selected or unselected depending on bool_test */
+static int bm_face_is_all_uv_sel(BMesh *bm, BMFace *f, int bool_test)
+{
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, l_iter->head.data, CD_MLOOPUV);
+		if (!UV_SEL_TEST(luv, bool_test)) {
+			return FALSE;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return TRUE;
+}
+
 static int hide_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
@@ -2993,7 +3014,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	MTexPoly *tf;
 	int swap = RNA_boolean_get(op->ptr, "unselected");
 	Image *ima = sima ? sima->image : NULL;
-	int facemode = sima ? sima->flag & SI_SELACTFACE : 0;
+	int facemode = (ts->uv_selectmode == UV_SELECT_FACE);
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		EDBM_mesh_hide(em, swap);
@@ -3001,10 +3022,6 @@ static int hide_exec(bContext *C, wmOperator *op)
 
 		return OPERATOR_FINISHED;
 	}
-
-	/* check if we are selected or unselected based on 'bool_test' arg,
-	 * needed for select swap support */
-#define UV_SEL_TEST(luv, bool_test) ((((luv)->flag & MLOOPUV_VERTSEL) == MLOOPUV_VERTSEL) == bool_test)
 
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		int hide = 0;
@@ -3018,39 +3035,42 @@ static int hide_exec(bContext *C, wmOperator *op)
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-			if (luv->flag & MLOOPUV_VERTSEL) {
+			if (UV_SEL_TEST(luv, !swap)) {
 				hide = 1;
 				break;
 			}
 		}
 
-		if (swap)
-			hide = !hide;
-
 		if (hide) {
+			/* note, a special case for edges could be used,
+			 * for now edges act like verts and get flushed */
 			if (facemode) {
-				/* check that every UV is selected */
-				luv = NULL;
-				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					if (!UV_SEL_TEST(luv, !swap)) {
-						break;
+				if (em->selectmode == SCE_SELECT_FACE) {
+					/* check that every UV is selected */
+					if (bm_face_is_all_uv_sel(em->bm, efa, TRUE) == !swap) {
+						BM_elem_select_set(em->bm, efa, FALSE);
 					}
-				}
-
-				if (!luv) {
-					BM_elem_select_set(em->bm, efa, FALSE);
 					uvedit_face_deselect(scene, em, efa);
+				}
+				else {
+					if (bm_face_is_all_uv_sel(em->bm, efa, TRUE) == !swap) {
+						BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+							luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+							if (UV_SEL_TEST(luv, !swap)) {
+								BM_elem_select_set(em->bm, l->v, FALSE);
+							}
+						}
+					}
+					if (!swap) uvedit_face_deselect(scene, em, efa);
+
+
 				}
 			}
 			else if (em->selectmode == SCE_SELECT_FACE) {
-				/*check if a UV is selected*/
-				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					if (UV_SEL_TEST(luv, !swap)) {
-						BM_elem_select_set(em->bm, efa, FALSE);
-					}
-					if (!swap) luv->flag &= ~MLOOPUV_VERTSEL;
+				/* check if a UV is de-selected */
+				if (bm_face_is_all_uv_sel(em->bm, efa, FALSE) != !swap) {
+					BM_elem_select_set(em->bm, efa, FALSE);
+					uvedit_face_deselect(scene, em, efa);
 				}
 			}
 			else {
@@ -3064,18 +3084,18 @@ static int hide_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	
-#undef UV_SEL_TEST
 
 	/* flush vertex selection changes */
-	if (!facemode && em->selectmode != SCE_SELECT_FACE)
-		EDBM_selectmode_flush(em);
+	if (em->selectmode != SCE_SELECT_FACE)
+		EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX | SCE_SELECT_EDGE);
 	
 	EDBM_editselection_validate(em);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
+
+#undef UV_SEL_TEST
 
 static void UV_OT_hide(wmOperatorType *ot)
 {
@@ -3106,7 +3126,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
-	int facemode = sima ? sima->flag & SI_SELACTFACE : 0;
+	int facemode = (ts->uv_selectmode == UV_SELECT_FACE);
 	int stickymode = sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
 
 	/* note on tagging, selecting faces needs to be delayed so it doesn't select the verts and

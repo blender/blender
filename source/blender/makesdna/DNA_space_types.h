@@ -705,7 +705,7 @@ enum FileSortTypeE {
 #define SI_DRAWTOOL		(1<<3)
 #define SI_NO_DRAWFACES	(1<<4)
 #define SI_DRAWSHADOW   (1<<5)
-#define SI_SELACTFACE   (1<<6)	/* deprecated */
+/* #define SI_SELACTFACE   (1<<6) */ /* deprecated */
 #define SI_DEPRECATED2	(1<<7)
 #define SI_DEPRECATED3  (1<<8)	/* stick UV selection to mesh vertex (UVs wont always be touching) */
 #define SI_COORDFLOATS  (1<<9)
