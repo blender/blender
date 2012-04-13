@@ -55,7 +55,7 @@ public:
 	/* sync */
 	bool sync_recalc();
 	void sync_data(BL::SpaceView3D b_v3d, const char *layer = 0);
-	void sync_camera(int width, int height);
+	void sync_camera(BL::Object b_override, int width, int height);
 	void sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height);
 
 	/* get parameters */
