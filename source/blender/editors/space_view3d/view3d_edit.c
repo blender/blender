@@ -675,6 +675,8 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		float m[3][3];
 		float m_inv[3][3];
 		const float zvec_global[3] = {0.0f, 0.0f, 1.0f};
+		float xaxis[3];
+
 		/* Sensitivity will control how fast the viewport rotates.  0.007 was
 		 * obtained experimentally by looking at viewport rotation sensitivities
 		 * on other modeling programs. */
@@ -685,11 +687,30 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		quat_to_mat3(m, vod->viewquat);
 		invert_m3_m3(m_inv, m);
 
+		/* avoid gimble lock */
+#if 1
+		if (len_squared_v3v3(zvec_global, m_inv[2]) > 0.001f) {
+			float fac;
+			cross_v3_v3v3(xaxis, zvec_global, m_inv[2]);
+			if (dot_v3v3(xaxis, m_inv[0]) < 0) {
+				negate_v3(xaxis);
+			}
+			fac = angle_normalized_v3v3(zvec_global, m_inv[2]) / M_PI;
+			fac = fabsf(fac - 0.5f) * 2;
+			fac = fac * fac;
+			interp_v3_v3v3(xaxis, xaxis, m_inv[0], fac);
+		}
+		else
+#endif
+		{
+			copy_v3_v3(xaxis, m_inv[0]);
+		}
+
 		/* Determine the direction of the x vector (for rotating up and down) */
 		/* This can likely be computed directly from the quaternion. */
 
 		/* Perform the up/down rotation */
-		axis_angle_to_quat(q1, m_inv[0], sensitivity * -(y - vod->oldy));
+		axis_angle_to_quat(q1, xaxis, sensitivity * -(y - vod->oldy));
 		mul_qt_qtqt(vod->viewquat, vod->viewquat, q1);
 
 		if (vod->use_dyn_ofs) {
