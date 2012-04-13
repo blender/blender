@@ -123,11 +123,11 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	int i, j, k;
 
 	if (use_outset == FALSE) {
-		BM_mesh_elem_flag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
 		BMO_slot_buffer_hflag_enable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
 	}
 	else {
-		BM_mesh_elem_flag_enable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
 		BMO_slot_buffer_hflag_disable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
 	}
 

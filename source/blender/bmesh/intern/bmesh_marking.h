@@ -45,8 +45,15 @@ void BM_face_hide_set(BMesh *bm, BMFace *f, int hide);
 #define BM_elem_select_set(bm, ele, hide) _bm_elem_select_set(bm, &(ele)->head, hide)
 void _bm_elem_select_set(BMesh *bm, BMHeader *ele, int select);
 
-void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag, int respecthide);
-void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag, int respecthide);
+void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hflag,
+                                    int respecthide, const char hflag_test);
+void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hflag,
+                                     int respecthide, const char hflag_test);
+
+void BM_mesh_elem_hflag_enable_all(BMesh *bm, const char htype, const char hflag,
+                                   int respecthide);
+void BM_mesh_elem_hflag_disable_all(BMesh *bm, const char htype, const char hflag,
+                                    int respecthide);
 
 /* individual element select functions, BM_elem_select_set is a shortcut for these
  * that automatically detects which one to use*/
@@ -60,10 +67,8 @@ void BM_mesh_select_mode_flush(BMesh *bm);
 void BM_mesh_deselect_flush(BMesh *bm);
 void BM_mesh_select_flush(BMesh *bm);
 
-void BM_mesh_select_flush_strip(BMesh *bm, const char htype_desel, const char htype_sel, const char hflag_test);
-
-int BM_mesh_enabled_flag_count(BMesh *bm, const char htype, const char hflag, int respecthide);
-int BM_mesh_disabled_flag_count(BMesh *bm, const char htype, const char hflag, int respecthide);
+int BM_mesh_elem_hflag_count_enabled(BMesh *bm, const char htype, const char hflag, int respecthide);
+int BM_mesh_elem_hflag_count_disabled(BMesh *bm, const char htype, const char hflag, int respecthide);
 
 /* edit selection stuff */
 void    BM_active_face_set(BMesh *em, BMFace *f);

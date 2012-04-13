@@ -3186,8 +3186,8 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 	
-	/* de-select none, re-select tagged faces */
-	BM_mesh_select_flush_strip(em->bm, 0, BM_FACE, BM_ELEM_TAG);
+	/* re-select tagged faces */
+	BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, TRUE, BM_ELEM_TAG);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 

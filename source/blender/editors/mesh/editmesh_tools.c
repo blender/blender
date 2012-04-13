@@ -3548,7 +3548,7 @@ static int edbm_split_exec(bContext *C, wmOperator *op)
 
 	EDBM_op_init(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, FALSE);
 	BMO_op_exec(em->bm, &bmop);
-	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
+	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ALL, BM_ELEM_SELECT, TRUE);
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -4531,10 +4531,10 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
 	}
 	else {
-		BM_mesh_elem_flag_disable_all(em->bm, BM_VERT | BM_EDGE, BM_ELEM_SELECT, FALSE);
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE, BM_ELEM_SELECT, FALSE);
 		BMO_slot_buffer_hflag_disable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, FALSE);
-		/* so selected faces verts & edges get selected */
-		BM_mesh_select_flush_strip(em->bm, BM_VERT | BM_EDGE, BM_FACE, BM_ELEM_SELECT);
+		/* re-select faces so the verts and edges get selected too */
+		BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, TRUE, BM_ELEM_SELECT);
 	}
 
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {

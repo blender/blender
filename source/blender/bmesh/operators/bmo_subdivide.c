@@ -1054,7 +1054,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 		// int i;
 		
 		/* deselect input */
-		BM_mesh_elem_flag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
 
 		ele = BMO_iter_new(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
 		for ( ; ele; ele = BMO_iter_step(&iter)) {
