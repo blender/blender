@@ -3708,7 +3708,14 @@ static void lib_link_mesh(FileData *fd, Main *main)
 
 			/*check if we need to convert mfaces to mpolys*/
 			if (me->totface && !me->totpoly) {
+				/* temporarily switch main so that reading from
+				   external CustomData works */
+				Main *gmain = G.main;
+				G.main = main;
+				
 				BKE_mesh_convert_mfaces_to_mpolys(me);
+
+				G.main = gmain;
 			}
 			
 			/*

@@ -1978,6 +1978,11 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 		float (*disps)[3] = fd->disps;
 		int i, tot = mf->v4 ? 4 : 3;
 		int side, corners;
+
+		if (CustomData_external_test(&me->fdata, CD_MDISPS)) {
+			CustomData_external_add(&me->ldata, &me->id, CD_MDISPS,
+									me->totloop, me->fdata.external->filename);
+		}
 		
 		corners = multires_mdisp_corners(fd);
 		
@@ -2041,6 +2046,9 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 	CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_ASSIGN, mesh->mloop, totloop);
 	CustomData_to_bmeshpoly(&mesh->fdata, &mesh->pdata, &mesh->ldata,
 		mesh->totloop, mesh->totpoly);
+
+	/* ensure external data is transferred */
+	CustomData_external_read(&mesh->fdata, &mesh->id, CD_MASK_MDISPS, mesh->totface);
 
 	eh = BLI_edgehash_new();
 

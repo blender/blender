@@ -490,7 +490,7 @@ static int rna_MultiresModifier_external_get(PointerRNA *ptr)
 static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 {
 	Object *ob = (Object*)ptr->id.data;
-	CustomDataExternal *external = ((Mesh*)ob->data)->fdata.external;
+	CustomDataExternal *external = ((Mesh*)ob->data)->ldata.external;
 
 	BLI_strncpy(value, (external)? external->filename: "", sizeof(external->filename));
 }
@@ -498,7 +498,7 @@ static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = (Object*)ptr->id.data;
-	CustomDataExternal *external = ((Mesh*)ob->data)->fdata.external;
+	CustomDataExternal *external = ((Mesh*)ob->data)->ldata.external;
 
 	if (external && strcmp(external->filename, value)) {
 		BLI_strncpy(external->filename, value, sizeof(external->filename));
@@ -509,7 +509,7 @@ static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value
 static int rna_MultiresModifier_filepath_length(PointerRNA *ptr)
 {
 	Object *ob = (Object*)ptr->id.data;
-	CustomDataExternal *external = ((Mesh*)ob->data)->fdata.external;
+	CustomDataExternal *external = ((Mesh*)ob->data)->ldata.external;
 
 	return strlen((external)? external->filename: "");
 }
