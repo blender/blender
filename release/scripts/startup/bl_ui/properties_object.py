@@ -181,7 +181,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
                 col.prop(group, "dupli_offset", text="")
 
                 props = col.operator("object.dupli_offset_from_cursor", text="From Cursor")
-                props.index = index
+                props.group = index
                 index += 1
 
 
