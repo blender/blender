@@ -65,13 +65,20 @@
 
 /* ******************* node space & buttons ************** */
 
+/* poll for active nodetree */
+static int active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	
+	return (snode && snode->nodetree);
+}
+
 /* poll callback for active node */
 static int active_node_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
-	// TODO: include check for whether there is an active node...
-	return (snode && snode->nodetree);
+	return (snode && snode->edittree && nodeGetActive(snode->edittree));
 }
 
 /* active node */
@@ -160,7 +167,7 @@ void node_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "NODE_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");
 	pt->draw= gpencil_panel_standard;
-	pt->poll= active_node_poll;
+	pt->poll= active_nodetree_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
 
