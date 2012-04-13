@@ -44,7 +44,11 @@ except:
 data = fpin.read().rsplit("{")[-1].split("}")[0]
 data = data.replace(",", " ")
 data = data.split()
-data = bytes([int(v) for v in data])
+data = [int(v) for v in data]
+# for some reason all data gets trailing byte
+last = data.pop()
+assert(last == 0)
+data = bytes(data)
 
 dname = filename + ".ctodata"
 
