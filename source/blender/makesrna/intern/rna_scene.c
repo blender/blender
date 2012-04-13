@@ -2515,8 +2515,8 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "physics_step_sub", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "physubstep");
+	RNA_def_property_range(prop, 1, 50);
 	RNA_def_property_ui_range(prop, 1, 5, 1, 1);
-	RNA_def_property_range(prop, 1, 5);
 	RNA_def_property_ui_text(prop, "Physics Sub Steps",
 	                         "Number of simulation substep per physic timestep, "
 	                         "higher value give better physics precision");
