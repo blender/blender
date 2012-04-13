@@ -35,6 +35,8 @@ Background::Background()
 	ao_factor = 0.0f;
 	ao_distance = FLT_MAX;
 
+	use = true;
+
 	transparent = false;
 	need_update = true;
 }
@@ -57,7 +59,10 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kbackground->ao_distance = ao_distance;
 
 	kbackground->transparent = transparent;
-	kbackground->shader = scene->shader_manager->get_shader_id(scene->default_background);
+	if(use)
+		kbackground->shader = scene->shader_manager->get_shader_id(scene->default_background);
+	else
+		kbackground->shader = scene->shader_manager->get_shader_id(scene->default_empty);
 
 	need_update = false;
 }
@@ -69,6 +74,7 @@ void Background::device_free(Device *device, DeviceScene *dscene)
 bool Background::modified(const Background& background)
 {
 	return !(transparent == background.transparent &&
+		use == background.use &&
 		ao_factor == background.ao_factor &&
 		ao_distance == background.ao_distance);
 }

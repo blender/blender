@@ -32,6 +32,8 @@ public:
 	float ao_factor;
 	float ao_distance;
 
+	bool use;
+
 	bool transparent;
 	bool need_update;
 

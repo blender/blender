@@ -272,6 +272,17 @@ void ShaderManager::add_default(Scene *scene)
 		scene->shaders.push_back(shader);
 		scene->default_holdout = scene->shaders.size() - 1;
 	}
+
+	/* default empty */
+	{
+		graph = new ShaderGraph();
+
+		shader = new Shader();
+		shader->name = "default_empty";
+		shader->graph = graph;
+		scene->shaders.push_back(shader);
+		scene->default_empty = scene->shaders.size() - 1;
+	}
 }
 
 CCL_NAMESPACE_END

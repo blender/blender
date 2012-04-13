@@ -181,6 +181,8 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col.label(text="Material:")
         col.prop(rl, "material_override", text="")
 
+        col.prop(rl, "use_sky", "Use Environment")
+
         col = split.column()
         col.prop(rl, "layers", text="Layer")
         col.label(text="Mask Layers:")
