@@ -671,15 +671,15 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 	}
 	else {
 		/* New turntable view code by John Aughey */
-		float phi, q1[4];
+		float q1[4];
 		float m[3][3];
 		float m_inv[3][3];
-		float xvec[3] = {1.0f, 0.0f, 0.0f};
-		/* Sensitivity will control how fast the viewport rotates.  0.0035 was
+		const float zvec_global[3] = {0.0f, 0.0f, 1.0f};
+		/* Sensitivity will control how fast the viewport rotates.  0.007 was
 		 * obtained experimentally by looking at viewport rotation sensitivities
 		 * on other modeling programs. */
 		/* Perhaps this should be a configurable user parameter. */
-		const float sensitivity = 0.0035f;
+		const float sensitivity = 0.007f;
 
 		/* Get the 3x3 matrix and its inverse from the quaternion */
 		quat_to_mat3(m, vod->viewquat);
@@ -687,12 +687,9 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		/* Determine the direction of the x vector (for rotating up and down) */
 		/* This can likely be computed directly from the quaternion. */
-		mul_m3_v3(m_inv, xvec);
 
 		/* Perform the up/down rotation */
-		phi = sensitivity * -(y - vod->oldy);
-		q1[0] = cos(phi);
-		mul_v3_v3fl(q1 + 1, xvec, sin(phi));
+		axis_angle_to_quat(q1, m_inv[0], sensitivity * -(y - vod->oldy));
 		mul_qt_qtqt(vod->viewquat, vod->viewquat, q1);
 
 		if (vod->use_dyn_ofs) {
@@ -703,10 +700,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		}
 
 		/* Perform the orbital rotation */
-		phi = sensitivity * vod->reverse * (x - vod->oldx);
-		q1[0] = cos(phi);
-		q1[1] = q1[2] = 0.0;
-		q1[3] = sin(phi);
+		axis_angle_to_quat(q1, zvec_global, sensitivity * vod->reverse * (x - vod->oldx));
 		mul_qt_qtqt(vod->viewquat, vod->viewquat, q1);
 
 		if (vod->use_dyn_ofs) {
