@@ -37,7 +37,10 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
+
 #include "BLI_math.h"
+
+#include "BLF_translation.h"
 
 #include "BKE_tessmesh.h"
 
@@ -204,11 +207,11 @@ EnumPropertyItem image_only_type_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem image_type_items[] = {
-	{0, "", 0, "Image", NULL},
+	{0, "", 0, N_("Image"), NULL},
 
 	IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
-	{0, "", 0, "Movie", NULL},
+	{0, "", 0, N_("Movie"), NULL},
 #ifdef _WIN32
 		/* XXX Missing codec menu */
 	{R_IMF_IMTYPE_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", "Output video in AVI format"},

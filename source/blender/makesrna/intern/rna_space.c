@@ -34,6 +34,8 @@
 
 #include "rna_internal.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_key.h"
 #include "BKE_movieclip.h"
 
@@ -1248,19 +1250,19 @@ static void rna_def_background_image(BlenderRNA *brna)
 
 	/* note: combinations work but don't flip so arnt that useful */
 	static EnumPropertyItem bgpic_axis_items[] = {
-		{0, "", 0, "X Axis", ""},
+		{0, "", 0, N_("X Axis"), ""},
 		{(1<<RV3D_VIEW_LEFT), "LEFT", 0, "Left", "Show background image while looking to the left"},
 		{(1<<RV3D_VIEW_RIGHT), "RIGHT", 0, "Right", "Show background image while looking to the right"},
 		/*{(1<<RV3D_VIEW_LEFT)|(1<<RV3D_VIEW_RIGHT), "LEFT_RIGHT", 0, "Left/Right", ""},*/
-		{0, "", 0, "Y Axis", ""},
+		{0, "", 0, N_("Y Axis"), ""},
 		{(1<<RV3D_VIEW_BACK), "BACK", 0, "Back", "Show background image in back view"},
 		{(1<<RV3D_VIEW_FRONT), "FRONT", 0, "Front", "Show background image in front view"},
 		/*{(1<<RV3D_VIEW_BACK)|(1<<RV3D_VIEW_FRONT), "BACK_FRONT", 0, "Back/Front", ""},*/
-		{0, "", 0, "Z Axis", ""},
+		{0, "", 0, N_("Z Axis"), ""},
 		{(1<<RV3D_VIEW_BOTTOM), "BOTTOM", 0, "Bottom", "Show background image in bottom view"},
 		{(1<<RV3D_VIEW_TOP), "TOP", 0, "Top", "Show background image in top view"},
 		/*{(1<<RV3D_VIEW_BOTTOM)|(1<<RV3D_VIEW_TOP), "BOTTOM_TOP", 0, "Top/Bottom", ""},*/
-		{0, "", 0, "Other", ""},
+		{0, "", 0, N_("Other"), ""},
 		{0, "ALL", 0, "All Views", "Show background image in all views"},
 		{(1<<RV3D_VIEW_CAMERA), "CAMERA", 0, "Camera", "Show background image in camera view"},
 		{0, NULL, 0, NULL, NULL}};

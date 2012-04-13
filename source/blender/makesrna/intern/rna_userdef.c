@@ -43,6 +43,7 @@
 #include "WM_types.h"
 
 #include "BLI_utildefines.h"
+
 #include "BLF_translation.h"
 
 #include "BKE_sound.h"
@@ -2860,7 +2861,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* Note: As this list is in alphabetical order, and not defined order,
 	 *       here is the highest define currently in use: 30 (turkish). */
 	static EnumPropertyItem language_items[] = {
-		{ 0, "", 0, "Nearly done", ""},
+		{ 0, "", 0, N_("Nearly done"), ""},
 		{ 0, "DEFAULT", 0, "Default (Default)", ""},
 		{ 1, "ENGLISH", 0, "English (English)", "en_US"},
 		{ 8, "FRENCH", 0, "French (Français)", "fr_FR"},
@@ -2869,7 +2870,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{13, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese (简体中文)", "zh_CN"},
 		{ 9, "SPANISH", 0, "Spanish (Español)", "es"},
 		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
-		{ 0, "", 0, "In progress", ""},
+		{ 0, "", 0, N_("In progress"), ""},
 		/* using the utf8 flipped form of Arabic (العربية) */
 		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
 		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
