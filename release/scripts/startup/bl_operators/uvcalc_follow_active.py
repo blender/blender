@@ -60,8 +60,8 @@ def extend(obj, operator, EXTEND_MODE):
         vidx_target = face_target.vertices
 
         uv_layer = me.uv_loop_layers.active.data
-        uvs_source = [uv_layer[i].uv for i in face_source.loops]
-        uvs_target = [uv_layer[i].uv for i in face_target.loops]
+        uvs_source = [uv_layer[i].uv for i in face_source.loop_indices]
+        uvs_target = [uv_layer[i].uv for i in face_target.loop_indices]
 
         # vertex index is the key, uv is the value
 

@@ -457,7 +457,7 @@ class MeshPolygon(StructRNA):
         return [ord_ind(verts[i], verts[(i + 1) % vlen]) for i in range(vlen)]
 
     @property
-    def loops(self):
+    def loop_indices(self):
         start = self.loop_start
         end = start + self.loop_total
         return range(start, end)
