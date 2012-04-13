@@ -987,20 +987,19 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 	IconPreviewSize *cur_size = ip->sizes.first;
 
 	while (cur_size) {
-		ShaderPreview sp;
-
-		memset(&sp, 0, sizeof(ShaderPreview));
+		ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
 
 		/* construct shader preview from image size and previewcustomdata */
-		sp.scene = ip->scene;
-		sp.owner = ip->owner;
-		sp.sizex = cur_size->sizex;
-		sp.sizey = cur_size->sizey;
-		sp.pr_method = PR_ICON_RENDER;
-		sp.pr_rect = cur_size->rect;
-		sp.id = ip->id;
+		sp->scene = ip->scene;
+		sp->owner = ip->owner;
+		sp->sizex = cur_size->sizex;
+		sp->sizey = cur_size->sizey;
+		sp->pr_method = PR_ICON_RENDER;
+		sp->pr_rect = cur_size->rect;
+		sp->id = ip->id;
 
-		common_preview_startjob(&sp, stop, do_update, progress);
+		common_preview_startjob(sp, stop, do_update, progress);
+		shader_preview_free(sp);
 
 		cur_size = cur_size->next;
 	}
