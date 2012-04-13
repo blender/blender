@@ -48,50 +48,6 @@
 
 #include "sequencer_intern.h"
 
-
-static void do_sequencer_panel_events(bContext *UNUSED(C), void *UNUSED(arg), int UNUSED(event))
-{
-
-}
-
-
-static void sequencer_panel_view_properties(const bContext *UNUSED(C), Panel *pa)
-{
-	uiBlock *block;
-
-	block = uiLayoutAbsoluteBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_sequencer_panel_events, NULL);
-	
-}
-
-
-static void sequencer_panel_properties(const bContext *UNUSED(C), Panel *pa)
-{
-	uiBlock *block;
-	
-	block = uiLayoutAbsoluteBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_sequencer_panel_events, NULL);
-
-}	
-
-void sequencer_buttons_register(ARegionType *art)
-{
-	PanelType *pt;
-
-	pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer strip properties");
-	strcpy(pt->idname, "SEQUENCER_PT_properties");
-	strcpy(pt->label, "Strip Properties");
-	pt->draw = sequencer_panel_properties;
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer view properties");
-	strcpy(pt->idname, "SEQUENCER_PT_view_properties");
-	strcpy(pt->label, "View Properties");
-	pt->draw = sequencer_panel_view_properties;
-	BLI_addtail(&art->paneltypes, pt);
-
-}
-
 /* **************** operator to open/close properties view ************* */
 
 static int sequencer_properties(bContext *C, wmOperator *UNUSED(op))
