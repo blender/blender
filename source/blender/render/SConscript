@@ -5,7 +5,7 @@ sources = env.Glob('intern/source/*.c')
 raysources = env.Glob('intern/raytrace/*.cpp')
 
 incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna ../makesrna'
-incs += ' extern/include ../blenkernel ../radiosity/extern/include ../imbuf ../blenfont'
+incs += ' extern/include ../blenkernel ../imbuf ../blenfont'
 incs += ' ../include ../blenloader ../../../intern/smoke/extern ../../../intern/mikktspace ../bmesh'
 
 cflags_raytrace = env['CCFLAGS']

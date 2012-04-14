@@ -1854,7 +1854,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	}
 	shr->alpha= shi->alpha;
 	
-	/* from now stuff everything in shr->combined: ambient, AO, radio, ramps, exposure */
+	/* from now stuff everything in shr->combined: ambient, AO, ramps, exposure */
 	if (!(ma->sss_flag & MA_DIFF_SSS) || !sss_pass_done(&R, ma)) {
 		if (R.r.mode & R_SHADOW) {
 			/* add AO in combined? */
