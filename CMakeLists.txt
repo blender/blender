@@ -199,7 +199,7 @@ if(MINGW)
 else()
 	set(PLATFORM_DEFAULT OFF)
 endif()
-option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" (PLATFORM_DEFAULT)
+option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" PLATFORM_DEFAULT)
 unset(PLATFORM_DEFAULT)
 
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
