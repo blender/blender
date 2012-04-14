@@ -227,7 +227,11 @@ class CLIP_PT_tools_solve(Panel):
                      else "Object Motion")
         col.operator("clip.clear_solution")
 
+        col = layout.column()
+        col.prop(settings, "use_tripod_solver")
+
         col = layout.column(align=True)
+        col.active = not settings.use_tripod_solver
         col.prop(settings, "keyframe_a")
         col.prop(settings, "keyframe_b")
 
