@@ -26,7 +26,8 @@ defs = [ 'GLEW_STATIC' ]
 if env['WITH_BF_SMOKE']:
     defs.append('WITH_SMOKE')
 
-defs.append('WITH_FRAMESERVER')  # TODO, make optional
+if env['WITH_BF_FRAMESERVER']:
+    defs.append('WITH_FRAMESERVER')
 
 if env['WITH_BF_PYTHON']:
     incs += ' ../python'
