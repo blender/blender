@@ -23,7 +23,9 @@ incs += ' ' + env['BF_ZLIB_INC']
 
 defs = [ 'GLEW_STATIC' ]
 
-defs.append('WITH_SMOKE')  # TODO, make optional
+if env['WITH_BF_SMOKE']:
+    defs.append('WITH_SMOKE')
+
 defs.append('WITH_FRAMESERVER')  # TODO, make optional
 
 if env['WITH_BF_PYTHON']:

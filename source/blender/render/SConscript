@@ -14,7 +14,8 @@ cxxflags_raytrace = env['CXXFLAGS']
 defs = []
 defs_raytrace = []
 
-defs.append('WITH_SMOKE')  # TODO, make optional
+if env['WITH_BF_SMOKE']:
+    defs.append('WITH_SMOKE')
 
 if env['WITH_BF_PYTHON']:
     incs += ' ../python'
