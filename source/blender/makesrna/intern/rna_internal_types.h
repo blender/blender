@@ -77,18 +77,19 @@ typedef int (*PropIntGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropIntSetFunc)(struct PointerRNA *ptr, int value);
 typedef void (*PropIntArrayGetFunc)(struct PointerRNA *ptr, int *values);
 typedef void (*PropIntArraySetFunc)(struct PointerRNA *ptr, const int *values);
-typedef void (*PropIntRangeFunc)(struct PointerRNA *ptr, int *min, int *max);
+typedef void (*PropIntRangeFunc)(struct PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax);
 typedef float (*PropFloatGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropFloatSetFunc)(struct PointerRNA *ptr, float value);
 typedef void (*PropFloatArrayGetFunc)(struct PointerRNA *ptr, float *values);
 typedef void (*PropFloatArraySetFunc)(struct PointerRNA *ptr, const float *values);
-typedef void (*PropFloatRangeFunc)(struct PointerRNA *ptr, float *min, float *max);
+typedef void (*PropFloatRangeFunc)(struct PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax);
 typedef void (*PropStringGetFunc)(struct PointerRNA *ptr, char *value);
 typedef int (*PropStringLengthFunc)(struct PointerRNA *ptr);
 typedef void (*PropStringSetFunc)(struct PointerRNA *ptr, const char *value);
 typedef int (*PropEnumGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropEnumSetFunc)(struct PointerRNA *ptr, int value);
-typedef EnumPropertyItem *(*PropEnumItemFunc)(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int *free);
+typedef EnumPropertyItem *(*PropEnumItemFunc)(struct bContext *C, struct PointerRNA *ptr,
+                                              struct PropertyRNA *prop, int *free);
 typedef PointerRNA (*PropPointerGetFunc)(struct PointerRNA *ptr);
 typedef StructRNA* (*PropPointerTypeFunc)(struct PointerRNA *ptr);
 typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, const PointerRNA value);
@@ -312,6 +313,8 @@ struct StructRNA {
 	const char *name;
 	/* single line description, displayed in the tooltip for example */
 	const char *description;
+	/* context for translation */
+	const char *translation_context;
 	/* icon ID */
 	int icon;
 	
@@ -331,21 +334,21 @@ struct StructRNA {
 	struct StructRNA *nested;
 
 	/* function to give the more specific type */
-	StructRefineFunc refine; 
+	StructRefineFunc refine;
 
 	/* function to find path to this struct in an ID */
-	StructPathFunc path; 
+	StructPathFunc path;
 
 	/* function to register/unregister subclasses */
-	StructRegisterFunc reg; 
-	StructUnregisterFunc unreg; 
+	StructRegisterFunc reg;
+	StructUnregisterFunc unreg;
 	StructInstanceFunc instance;
 
 	/* callback to get id properties */
 	IDPropertiesFunc idproperties;
 
 	/* functions of this struct */
-	ListBase functions; 
+	ListBase functions;
 };
 
 /* Blender RNA

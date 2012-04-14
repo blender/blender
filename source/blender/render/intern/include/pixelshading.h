@@ -25,14 +25,9 @@
 
 /** \file blender/render/intern/include/pixelshading.h
  *  \ingroup render
+ *
+ * These functions determine what actual color a pixel will have.
  */
-
-
-/* pixelshading.h
-*
-* These functions determine what actual color a pixel will have.
-*/
-
 
 #ifndef __PIXELSHADING_H__
 #define __PIXELSHADING_H__
@@ -46,7 +41,7 @@
  * t[3] - type ZB_POLY or ZB_HALO
  * t[4] - max. distance
  * mask is pixel coverage in bits
- * @return pointer to the object
+ * \return pointer to the object
  */
 int shadeHaloFloat(HaloRen *har, 
 					float *col, int zz, 

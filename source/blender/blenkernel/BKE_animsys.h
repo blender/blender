@@ -81,7 +81,7 @@ void BKE_relink_animdata(struct AnimData *adt);
 /* KeyingSets API */
 
 /* Used to create a new 'custom' KeyingSet for the user, that will be automatically added to the stack */
-struct KeyingSet *BKE_keyingset_add(struct ListBase *list, const char name[], short flag, short keyingflag);
+struct KeyingSet *BKE_keyingset_add(struct ListBase *list, const char idname[], const char name[], short flag, short keyingflag);
 
 /* Add a path to a KeyingSet */
 struct KS_Path *BKE_keyingset_add_path(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode);
@@ -105,10 +105,12 @@ void BKE_keyingsets_free(struct ListBase *list);
 /* Path Fixing API */
 
 /* Fix all the paths for the given ID+AnimData */
-void BKE_animdata_fix_paths_rename(struct ID *owner_id, struct AnimData *adt, const char *prefix, const char *oldName, const char *newName, int oldSubscript, int newSubscript, int verify_paths);
+void BKE_animdata_fix_paths_rename(struct ID *owner_id, struct AnimData *adt, struct ID *ref_id, const char *prefix,
+                                   const char *oldName, const char *newName, int oldSubscript, int newSubscript,
+                                   int verify_paths);
 
 /* Fix all the paths for the entire database... */
-void BKE_all_animdata_fix_paths_rename(const char *prefix, const char *oldName, const char *newName);
+void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const char *oldName, const char *newName);
 
 /* -------------------------------------- */
 

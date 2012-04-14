@@ -66,3 +66,7 @@ if(WITH_CYCLES)
 	add_subdirectory(cycles)
 endif()
 
+# only windows needs utf16 converter
+if(WIN32)
+	add_subdirectory(utfconv)
+endif()

@@ -29,8 +29,8 @@
  *  \ingroup bgenet
  *  \brief generic Network Message class
  */
-#ifndef NG_NETWORKMESSAGE_H
-#define NG_NETWORKMESSAGE_H
+#ifndef __NG_NETWORKMESSAGE_H__
+#define __NG_NETWORKMESSAGE_H__
 
 #include "STR_HashedString.h"
 
@@ -84,17 +84,17 @@ public:
 	/**
 	 * get the (read-only) To part of this message
 	 */
-	const STR_String& GetDestinationName() { return m_to;};
+	const STR_String& GetDestinationName() { return m_to; }
 
 	/**
 	 * get the (read-only) From part of this message
 	 */
-	const STR_String& GetSenderName() { return m_from;};
+	const STR_String& GetSenderName() { return m_from; }
 
 	/**
 	 * get the (read-only) Subject part of this message
 	 */
-	const STR_String& GetSubject() { return m_subject;};
+	const STR_String& GetSubject() { return m_subject; }
 
 	/**
 	 * get the (read-only) Body part of this message
@@ -137,5 +137,5 @@ public:
 #endif
 };
 
-#endif //NG_NETWORKMESSAGE_H
+#endif //__NG_NETWORKMESSAGE_H__
 

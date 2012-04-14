@@ -38,6 +38,7 @@
 struct Bone;
 struct Image;
 
+/*tessellation face, see MLoop/MPoly for the real face data*/
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	short mat_nr;
@@ -67,16 +68,15 @@ typedef struct MVert {
 	char flag, bweight;
 } MVert;
 
-/* at the moment alpha is abused for vertex painting
- * and not used for transperency, note that red and blue are swapped */
+/* tessellation vertex color data.
+ * at the moment alpha is abused for vertex painting
+ * and not used for transparency, note that red and blue are swapped */
 typedef struct MCol {
 	char a, r, g, b;	
 } MCol;
 
-#ifdef USE_BMESH_FORWARD_COMPAT
-
-/*new face structure, replaces MFace, which is now
-  only used for storing tesselations.*/
+/* new face structure, replaces MFace, which is now
+ * only used for storing tessellations.*/
 typedef struct MPoly {
 	/* offset into loop array and number of loops in the face */
 	int loopstart;
@@ -85,29 +85,66 @@ typedef struct MPoly {
 	char flag, pad;
 } MPoly;
 
-/*the e here is because we want to move away from
-  relying on edge hashes.*/
+/* the e here is because we want to move away from
+ * relying on edge hashes.*/
 typedef struct MLoop {
 	unsigned int v; /*vertex index*/
 	unsigned int e; /*edge index*/
 } MLoop;
 
-#endif /* USE_BMESH_FORWARD_COMPAT */
-
-/*bmesh custom data stuff*/
 typedef struct MTexPoly {
 	struct Image *tpage;
 	char flag, transp;
 	short mode,tile,unwrap;
 } MTexPoly;
 
+/* can copy from/to MTexPoly/MTFace */
+#define ME_MTEXFACE_CPY(dst, src)   \
+{                                   \
+	(dst)->tpage  = (src)->tpage;   \
+	(dst)->flag   = (src)->flag;    \
+	(dst)->transp = (src)->transp;  \
+	(dst)->mode   = (src)->mode;    \
+	(dst)->tile   = (src)->tile;    \
+	(dst)->unwrap = (src)->unwrap;  \
+}
+
 typedef struct MLoopUV {
 	float uv[2];
+	int flag;
 } MLoopUV;
 
+/*mloopuv->flag*/
+#define MLOOPUV_EDGESEL	1
+#define MLOOPUV_VERTSEL	2
+#define MLOOPUV_PINNED	4
+
+/* at the moment alpha is abused for vertex painting
+ * and not used for transparency, note that red and blue are swapped */
 typedef struct MLoopCol {
-	char a, r, g, b;
+	char r, g, b, a;
 } MLoopCol;
+
+#define MESH_MLOOPCOL_FROM_MCOL(_mloopcol, _mcol) \
+{                                                 \
+	MLoopCol   *mloopcol__tmp = _mloopcol;        \
+	const MCol *mcol__tmp     = _mcol;            \
+	mloopcol__tmp->r = mcol__tmp->b;              \
+	mloopcol__tmp->g = mcol__tmp->g;              \
+	mloopcol__tmp->b = mcol__tmp->r;              \
+	mloopcol__tmp->a = mcol__tmp->a;              \
+} (void)0
+
+
+#define MESH_MLOOPCOL_TO_MCOL(_mloopcol, _mcol) \
+{                                               \
+	const MLoopCol *mloopcol__tmp = _mloopcol;  \
+	MCol           *mcol__tmp     = _mcol;      \
+	mcol__tmp->b = mloopcol__tmp->r;            \
+	mcol__tmp->g = mloopcol__tmp->g;            \
+	mcol__tmp->r = mloopcol__tmp->b;            \
+	mcol__tmp->a = mloopcol__tmp->a;            \
+} (void)0
 
 typedef struct MSticky {
 	float co[2];
@@ -118,6 +155,7 @@ typedef struct MSelect {
 	int type; /* EDITVERT/EDITEDGE/EDITFACE */
 } MSelect;
 
+/*tessellation uv face data*/
 typedef struct MTFace {
 	float uv[4][2];
 	struct Image *tpage;
@@ -140,11 +178,21 @@ typedef struct OrigSpaceFace {
 	float uv[4][2];
 } OrigSpaceFace;
 
+typedef struct OrigSpaceLoop {
+	float uv[2];
+} OrigSpaceLoop;
+
 typedef struct MDisps {
 	/* Strange bug in SDNA: if disps pointer comes first, it fails to see totdisp */
 	int totdisp;
-	char pad[4];
+	int level;
 	float (*disps)[3];
+	
+	/* Used for hiding parts of a multires mesh. Essentially the multires
+	   equivalent of MVert.flag's ME_HIDE bit.
+	
+	   This is a bitmap, keep in sync with type used in BLI_bitmap.h */
+	unsigned int *hidden;
 } MDisps;
 
 /** Multires structs kept for compatibility with old files **/
@@ -231,7 +279,16 @@ typedef struct MRecast {
 /* flag (mface) */
 #define ME_SMOOTH			1
 #define ME_FACE_SEL			2
-						/* flag ME_HIDE==16 is used here too */ 
+/* flag ME_HIDE==16 is used here too */ 
+
+#define ME_POLY_LOOP_PREV(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + (mp)->totloop - 1) % (mp)->totloop)])
+#define ME_POLY_LOOP_NEXT(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + 1) % (mp)->totloop)])
+
+/* mselect->type */
+#define ME_VSEL	0
+#define ME_ESEL 1
+#define ME_FSEL 2
+
 /* mtface->flag */
 #define TF_SELECT	1 /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
 #define TF_ACTIVE	2 /* deprecated! */

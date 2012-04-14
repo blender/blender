@@ -5,6 +5,8 @@ sources = env.Glob('intern/*.c')
 
 cflags=''
 incs = '. ../makesdna ../blenkernel #/intern/guardedalloc #/intern/ghost ../editors/include ../gpu ../blenloader'
+incs += ' ../windowmanager ../bmesh #/extern/glew/include'
+
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 defs = []
@@ -16,6 +18,7 @@ if env['WITH_BF_BINRELOC']:
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
+    incs += ' ../../../intern/utfconv'
 
 if env['OURPLATFORM'] == 'linuxcross':
     if env['WITH_BF_OPENMP']:
@@ -25,4 +28,4 @@ if env['OURPLATFORM'] == 'darwin':
     if env['WITH_BF_OPENMP']:
        env.Append(CFLAGS=['-DPARALLEL=1'])
 
-env.BlenderLib ( 'bf_blenlib', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [363,170], compileflags =cflags )
+env.BlenderLib ( 'bf_blenlib', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [370,230], compileflags =cflags )

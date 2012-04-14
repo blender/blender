@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef __KX_NAVMESHOBJECT
-#define __KX_NAVMESHOBJECT
+#ifndef __KX_NAVMESHOBJECT_H__
+#define __KX_NAVMESHOBJECT_H__
 #include "DetourStatNavMesh.h"
 #include "KX_GameObject.h"
 #include "PyObjectPlus.h"
@@ -65,7 +65,7 @@ public:
 
 	MT_Point3 TransformToLocalCoords(const MT_Point3& wpos);
 	MT_Point3 TransformToWorldCoords(const MT_Point3& lpos);
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
@@ -74,8 +74,8 @@ public:
 	KX_PYMETHOD_DOC(KX_NavMeshObject, raycast);
 	KX_PYMETHOD_DOC(KX_NavMeshObject, draw);
 	KX_PYMETHOD_DOC_NOARGS(KX_NavMeshObject, rebuild);
-#endif
+#endif // WITH_PYTHON
 };
 
-#endif //__KX_NAVMESHOBJECT
+#endif //__KX_NAVMESHOBJECT_H__
 

@@ -332,6 +332,9 @@ def creator(env):
         incs.append('#/extern/libmv')
         defs.append('WITH_LIBMV')
 
+    if env['WITH_BF_FFMPEG']:
+        defs.append('WITH_FFMPEG')
+
     if env['WITH_BF_PYTHON']:
         incs.append('#/source/blender/python')
         defs.append('WITH_PYTHON')
@@ -340,6 +343,7 @@ def creator(env):
 
     if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
         incs.append(env['BF_PTHREADS_INC'])
+        incs.append('#/intern/utfconv')
 
     env.Append(CPPDEFINES=defs)
     env.Append(CPPPATH=incs)
@@ -508,13 +512,12 @@ def WinPyBundle(target=None, source=None, env=None):
             print str(func) + ' failed on ' + str(path)
     print "Trying to remove existing py bundle."
     shutil.rmtree(py_target, False, printexception)
-    exclude_re=[re.compile('.*/test/.*'),
-                re.compile('^config/.*'),
-                re.compile('^config-*/.*'),
-                re.compile('^distutils/.*'),
-                re.compile('^idlelib/.*'),
-                re.compile('^lib2to3/.*'),
-                re.compile('^tkinter/.*'),
+    exclude_re=[re.compile('.*/test'),
+                re.compile('^test'),
+                re.compile('^distutils'),
+                re.compile('^idlelib'),
+                re.compile('^lib2to3'),
+                re.compile('^tkinter'),
                 re.compile('^_tkinter_d.pyd'),
                 re.compile('^turtledemo'),
                 re.compile('^turtle.py'),
@@ -617,7 +620,7 @@ def AppIt(target=None, source=None, env=None):
     commands.getoutput(cmd)
     cmd = 'find %s/%s.app -name __MACOSX -exec rm -rf {} \;'%(installdir, binary)
     commands.getoutput(cmd)
-    if env['CC'].endswith('4.6.1'): # for correct errorhandling with gcc 4.6.1 we need the gcc.dylib to link, thus distribute in app-bundle
+    if env['CC'][:-2].endswith('4.6'): # for correct errorhandling with gcc 4.6.x we need the gcc.dylib to link, thus distribute in app-bundle
         cmd = 'mkdir %s/%s.app/Contents/MacOS/lib'%(installdir, binary)
         commands.getoutput(cmd)
         instname = env['BF_CXX']

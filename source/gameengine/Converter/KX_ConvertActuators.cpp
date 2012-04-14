@@ -106,8 +106,8 @@
 #include "BL_BlenderDataConversion.h"
 
 /** 
-KX_BLENDERTRUNC needed to round 'almost' zero values to zero, else velocities etc. are incorrectly set 
-*/
+ * KX_BLENDERTRUNC needed to round 'almost' zero values to zero, else velocities etc. are incorrectly set
+ */
 
 #define KX_BLENDERTRUNC(x)  (( x < 0.0001 && x > -0.0001 )  ? 0.0 : x)
 
@@ -232,7 +232,7 @@ void BL_ConvertActuators(const char* maggiename,
 			}
 		case ACT_SHAPEACTION:
 			{
-				if (blenderobject->type==OB_MESH){
+				if (blenderobject->type==OB_MESH) {
 					bActionActuator* actact = (bActionActuator*) bact->data;
 					STR_String propname = (actact->name ? actact->name : "");
 					STR_String propframe = (actact->frameProp ? actact->frameProp : "");
@@ -310,30 +310,26 @@ void BL_ConvertActuators(const char* maggiename,
 			{
 				bMessageActuator *msgAct = (bMessageActuator *) bact->data;
 				
-				/**
-				* Get the name of the properties that objects must own that
-				* we're sending to, if present
-				*/
+				/* Get the name of the properties that objects must own that
+				 * we're sending to, if present
+				 */
 				STR_String toPropName = (msgAct->toPropName
 					? (char*) msgAct->toPropName
 					: "");
 				
-				/**
-				* Get the Message Subject to send.
-				*/
+				/* Get the Message Subject to send.
+				 */
 				STR_String subject = (msgAct->subject
 					? (char*) msgAct->subject
 					: "");
 				
-				/**
-				* Get the bodyType
-				*/
+				/* Get the bodyType
+				 */
 				int bodyType = msgAct->bodyType;
 				
-				/**
-				* Get the body (text message or property name whose value
-				* we'll be sending, might be empty
-				*/
+				/* Get the body (text message or property name whose value
+				 * we'll be sending, might be empty
+				 */
 				STR_String body = (msgAct->body
 					? (char*) msgAct->body
 					: "");
@@ -400,7 +396,7 @@ void BL_ConvertActuators(const char* maggiename,
 					settings.reference_distance = soundact->sound3D.reference_distance;
 					settings.rolloff_factor = soundact->sound3D.rolloff_factor;
 
-					if(!sound)
+					if (!sound)
 					{
 						std::cout <<	"WARNING: Sound actuator \"" << bact->name <<
 										"\" from object \"" <<  blenderobject->id.name+2 <<
@@ -411,12 +407,12 @@ void BL_ConvertActuators(const char* maggiename,
 						snd_sound = *reinterpret_cast<AUD_Reference<AUD_IFactory>*>(sound->playback_handle);
 
 						// if sound shall be 3D but isn't mono, we have to make it mono!
-						if(is3d)
+						if (is3d)
 						{
 							try
 							{
 								AUD_Reference<AUD_IReader> reader = snd_sound->createReader();
-								if(reader->getSpecs().channels != AUD_CHANNELS_MONO)
+								if (reader->getSpecs().channels != AUD_CHANNELS_MONO)
 								{
 									AUD_DeviceSpecs specs;
 									specs.channels = AUD_CHANNELS_MONO;
@@ -451,13 +447,13 @@ void BL_ConvertActuators(const char* maggiename,
 				SCA_IObject* destinationObj = NULL;
 				
 				/*
-				here the destinationobject is searched. problem with multiple scenes: other scenes
-				have not been converted yet, so the destobj will not be found, so the prop will
-				not be copied.
-				possible solutions:
-				- convert everything when possible and not realtime only when needed.
-				- let the object-with-property report itself to the act when converted
-				*/
+				 * here the destinationobject is searched. problem with multiple scenes: other scenes
+				 * have not been converted yet, so the destobj will not be found, so the prop will
+				 * not be copied.
+				 * possible solutions:
+				 * - convert everything when possible and not realtime only when needed.
+				 * - let the object-with-property report itself to the act when converted
+				 */
 				if (propact->ob)
 					destinationObj = converter->FindGameObject(propact->ob);
 				
@@ -1060,7 +1056,7 @@ void BL_ConvertActuators(const char* maggiename,
 				bArmatureActuator* armAct = (bArmatureActuator*) bact->data;
 				KX_GameObject *tmpgob = converter->FindGameObject(armAct->target);
 				KX_GameObject *subgob = converter->FindGameObject(armAct->subtarget);
-				BL_ArmatureActuator* tmparmact = new BL_ArmatureActuator(gameobj, armAct->type, armAct->posechannel, armAct->constraint, tmpgob, subgob, armAct->weight);
+				BL_ArmatureActuator* tmparmact = new BL_ArmatureActuator(gameobj, armAct->type, armAct->posechannel, armAct->constraint, tmpgob, subgob, armAct->weight, armAct->influence);
 				baseact = tmparmact;
 				break;
 			}

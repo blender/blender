@@ -215,10 +215,10 @@ typedef struct SpaceFile {
 	ListBase *folders_next; /* holds the list of next directories (pushed from previous) to show */
 
 	/* operator that is invoking fileselect 
-	   op->exec() will be called on the 'Load' button.
-	   if operator provides op->cancel(), then this will be invoked
-	   on the cancel button.
-	*/
+	 * op->exec() will be called on the 'Load' button.
+	 * if operator provides op->cancel(), then this will be invoked
+	 * on the cancel button.
+	 */
 	struct wmOperator *op; 
 
 	struct wmTimer *smoothscroll_timer;
@@ -348,7 +348,7 @@ typedef struct Script {
 	char scriptname[1024]; /* 1024 = FILE_MAX */
 	char scriptarg[256]; /* 1024 = FILE_MAX */
 } Script;
-#define SCRIPT_SET_NULL(_script) _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = _script->py_globaldict = NULL; _script->flags = 0;
+#define SCRIPT_SET_NULL(_script) _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = _script->py_globaldict = NULL; _script->flags = 0
 
 typedef struct SpaceScript {
 	SpaceLink *next, *prev;
@@ -516,11 +516,13 @@ typedef struct SpaceClip {
 	/* current stabilization data */
 	float loc[2], scale, angle;	/* pre-composed stabilization data */
 	int pad;
-	float stabmat[4][4], unistabmat[4][4];		/* current stabilization matrix and the same matrix in unified space,
-												   defined when drawing and used for mouse position calculation */
+	float stabmat[4][4], unistabmat[4][4];  /* current stabilization matrix and the same matrix in unified space,
+	                                         * defined when drawing and used for mouse position calculation */
 
 	/* movie postprocessing */
-	int postproc_flag, pad2;
+	int postproc_flag;
+
+	int runtime_flag;			/* different runtime flags */
 
 	void *draw_context;
 } SpaceClip;
@@ -635,7 +637,7 @@ enum FileSortTypeE {
 
 /* filesel types */
 #define FILE_UNIX			8
-#define FILE_BLENDER		8 /* dont display relative paths */
+#define FILE_BLENDER		8 /* don't display relative paths */
 #define FILE_SPECIAL		9
 
 #define FILE_LOADLIB		1
@@ -693,7 +695,7 @@ enum FileSortTypeE {
 
 /* SpaceImage->sticky
  * Note DISABLE should be 0, however would also need to re-arrange icon order,
- * also, sticky loc is the default mode so this means we dont need to 'do_versons' */
+ * also, sticky loc is the default mode so this means we don't need to 'do_versons' */
 #define SI_STICKY_LOC		0
 #define SI_STICKY_DISABLE	1
 #define SI_STICKY_VERTEX	2
@@ -705,7 +707,7 @@ enum FileSortTypeE {
 #define SI_DRAWTOOL		(1<<3)
 #define SI_NO_DRAWFACES	(1<<4)
 #define SI_DRAWSHADOW   (1<<5)
-#define SI_SELACTFACE   (1<<6)	/* deprecated */
+/* #define SI_SELACTFACE   (1<<6) */ /* deprecated */
 #define SI_DEPRECATED2	(1<<7)
 #define SI_DEPRECATED3  (1<<8)	/* stick UV selection to mesh vertex (UVs wont always be touching) */
 #define SI_COORDFLOATS  (1<<9)
@@ -866,7 +868,7 @@ enum {
 /* sseq->flag */
 #define SEQ_DRAWFRAMES   1
 #define SEQ_MARKER_TRANS 2
-#define SEQ_DRAW_COLOR_SEPERATED     4
+#define SEQ_DRAW_COLOR_SEPARATED     4
 #define SEQ_DRAW_SAFE_MARGINS        8
 #define SEQ_DRAW_GPENCIL			16
 #define SEQ_NO_DRAW_CFRANUM			32
@@ -914,6 +916,9 @@ enum {
 /* SpaceClip->view */
 #define SC_VIEW_CLIP		0
 #define SC_VIEW_GRAPH		1
+
+/* SpaceClip->runtime_flag */
+#define SC_GRAPH_BOTTOM		(1<<0)
 
 /* space types, moved from DNA_screen_types.h */
 /* Do NOT change order, append on end. types are hardcoded needed */

@@ -48,6 +48,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -72,18 +73,10 @@
  * drawing components for some F-Curve (fcu)
  *	- selected F-Curves should be more visible than partially visible ones
  */
-#define drawFCurveFade(fcu) ( ((fcu)->flag & FCURVE_SELECTED)? 1.0f : 0.25f )
-
-/* set the color for some point from some value given packed into an int 
- *	- intV: integer value containing color info packed into an int
- *	- alpha: float value describing the 
- */
-#define cpackA(intVC, alpha)                                                  \
-	{                                                                         \
-		float _cpackCol[3];                                                   \
-		cpack_to_rgb(intVC, &_cpackCol[0], &_cpackCol[1], &_cpackCol[2]);     \
-		glColor4f(_cpackCol[0], _cpackCol[1], _cpackCol[2], alpha);           \
-	}
+static float fcurve_display_alpha(FCurve *fcu)
+{
+	return (fcu->flag & FCURVE_SELECTED) ? 1.0f : U.fcu_inactive_alpha;
+}
 
 /* *************************** */
 /* F-Curve Modifier Drawing */
@@ -125,7 +118,7 @@ static void draw_fcurve_modifier_controls_envelope (FModifier *fcm, View2D *v2d)
 		/* only draw if visible
 		 *	- min/max here are fixed, not relative
 		 */
-		if IN_RANGE(fed->time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac)) {
+		if (IN_RANGE(fed->time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
 			glVertex2f(fed->time, fed->min);
 			glVertex2f(fed->time, fed->max);
 		}
@@ -153,10 +146,10 @@ static void draw_fcurve_vertices_keyframes (FCurve *fcu, SpaceIpo *UNUSED(sipo),
 	bglBegin(GL_POINTS);
 	
 	for (i = 0; i < fcu->totvert; i++, bezt++) {
-		/* as an optimisation step, only draw those in view 
+		/* as an optimization step, only draw those in view 
 		 *	- we apply a correction factor to ensure that points don't pop in/out due to slight twitches of view size
 		 */
-		if IN_RANGE(bezt->vec[1][0], (v2d->cur.xmin - fac), (v2d->cur.xmax + fac)) {
+		if (IN_RANGE(bezt->vec[1][0], (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
 			if (edit) {
 				/* 'Keyframe' vertex only, as handle lines and handles have already been drawn
 				 *	- only draw those with correct selection state for the current drawing color
@@ -185,7 +178,7 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 {
 	static GLuint displist=0;
 	
-	/* initialise round circle shape */
+	/* initialize round circle shape */
 	if (displist == 0) {
 		GLUquadricObj *qobj;
 		
@@ -262,7 +255,7 @@ static void draw_fcurve_vertices_handles (FCurve *fcu, SpaceIpo *sipo, View2D *v
 static void set_fcurve_vertex_color (FCurve *fcu, short sel)
 {
 	/* Fade the 'intensity' of the vertices based on the selection of the curves too */
-	int alphaOffset= (int)((drawFCurveFade(fcu) - 1.0f) * 255);
+	int alphaOffset= (int)((fcurve_display_alpha(fcu) - 1.0f) * 255);
 	
 	/* Set color of curve vertex based on state of curve (i.e. 'Edit' Mode) */
 	if ((fcu->flag & FCURVE_PROTECTED)==0) {
@@ -292,8 +285,7 @@ static void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu, shor
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	
 	/* draw the two handles first (if they're shown, the curve doesn't have just a single keyframe, and the curve is being edited) */
-	if (do_handles)
-	{
+	if (do_handles) {
 		set_fcurve_vertex_color(fcu, 0);
 		draw_fcurve_vertices_handles(fcu, sipo, v2d, 0, sel_handle_only);
 		
@@ -327,8 +319,7 @@ static int draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
 	{
 		return 0;
 	} 
-	else 
-	{
+	else {
 		return 1;
 	}
 }
@@ -368,20 +359,18 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 				fp= bezt->vec[0];
 				
 				/* only draw first handle if previous segment had handles */
-				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) 
-				{
+				if ((!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ))) {
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
-					col[3]= drawFCurveFade(fcu) * 255;
+					col[3]= fcurve_display_alpha(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
 					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
 				
 				/* only draw second handle if this segment is bezier */
-				if (bezt->ipo == BEZT_IPO_BEZ) 
-				{
+				if (bezt->ipo == BEZT_IPO_BEZ) {
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
-					col[3]= drawFCurveFade(fcu) * 255;
+					col[3]= fcurve_display_alpha(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
 					
 					glVertex2fv(fp+3); glVertex2fv(fp+6); 
@@ -394,7 +383,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 				{
 					fp= bezt->vec[0];
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
-					col[3]= drawFCurveFade(fcu) * 255;
+					col[3]= fcurve_display_alpha(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
 					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
@@ -406,7 +395,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 				{
 					fp= bezt->vec[1];
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
-					col[3]= drawFCurveFade(fcu) * 255;
+					col[3]= fcurve_display_alpha(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
 					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
@@ -428,7 +417,7 @@ static void draw_fcurve_sample_control (float x, float y, float xscale, float ys
 {
 	static GLuint displist=0;
 	
-	/* initialise X shape */
+	/* initialize X shape */
 	if (displist == 0) {
 		displist= glGenLists(1);
 		glNewList(displist, GL_COMPILE);
@@ -502,7 +491,7 @@ static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2
 	/* when opening a blend file on a different sized screen or while dragging the toolbar this can happen
 	 * best just bail out in this case */
 	UI_view2d_grid_size(grid, &dx, &dy);
-	if(dx <= 0.0f)
+	if (dx <= 0.0f)
 		return;
 
 
@@ -678,7 +667,7 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 	}
 	
 	/* draw curve between first and last keyframe (if there are enough to do so) */
-	// TODO: optimise this to not have to calc stuff out of view too?
+	// TODO: optimize this to not have to calc stuff out of view too?
 	while (b--) {
 		if (prevbezt->ipo==BEZT_IPO_CONST) {
 			/* Constant-Interpolation: draw segment between previous keyframe and next, but holding same value */
@@ -850,7 +839,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		/* draw curve:
 		 *	- curve line may be result of one or more destructive modifiers or just the raw data,
 		 *	  so we need to check which method should be used
-		 *	- controls from active modifier take precidence over keyframes
+		 *	- controls from active modifier take precedence over keyframes
 		 *	  (XXX! editing tools need to take this into account!)
 		 */
 		 
@@ -870,7 +859,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				/* set whatever color the curve has set 
 				 *	- unselected curves draw less opaque to help distinguish the selected ones
 				 */
-				glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], drawFCurveFade(fcu));
+				glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], fcurve_display_alpha(fcu));
 			}
 			
 			/* draw active F-Curve thicker than the rest to make it stand out */

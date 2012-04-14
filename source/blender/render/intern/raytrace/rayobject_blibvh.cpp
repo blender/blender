@@ -102,11 +102,11 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *UNUSED(ray
 	Isect *isec = data->isec;
 	RayObject *face = data->leafs[index];
 	
-	if(RE_rayobject_intersect(face,isec))
+	if (RE_rayobject_intersect(face,isec))
 	{
 		hit->index = index;
 
-		if(isec->mode == RE_RAY_SHADOW)
+		if (isec->mode == RE_RAY_SHADOW)
 			hit->dist = 0;
 		else
 			hit->dist = isec->dist;
@@ -154,10 +154,10 @@ static void RE_rayobject_blibvh_free(RayObject *o)
 {
 	BVHObject *obj = (BVHObject*)o;
 
-	if(obj->bvh)
+	if (obj->bvh)
 		BLI_bvhtree_free(obj->bvh);
 
-	if(obj->leafs)
+	if (obj->leafs)
 		MEM_freeN(obj->leafs);
 
 	MEM_freeN(obj);

@@ -71,17 +71,15 @@ SK_Sketch* createSketch(void)
 	return sketch;
 }
 
-void sk_initPoint(SK_Point *pt, SK_DrawData *dd, float *no)
+void sk_initPoint(SK_Point *pt, SK_DrawData *dd, const float no[3])
 {
-	if (no)
-	{
+	if (no) {
 		normalize_v3_v3(pt->no, no);
 	}
-	else
-	{
-		pt->no[0] = 0;
-		pt->no[1] = 0;
-		pt->no[2] = 1;
+	else {
+		pt->no[0] = 0.0f;
+		pt->no[1] = 0.0f;
+		pt->no[2] = 1.0f;
 	}
 	pt->p2d[0] = dd->mval[0];
 	pt->p2d[1] = dd->mval[1];
@@ -260,8 +258,7 @@ void sk_straightenStroke(SK_Stroke *stk, int start, int end, float p_start[3], f
 		float delta = (float)i / (float)total;
 		float *p = stk->points[start + 1 + i].p;
 
-		VECCOPY(p, delta_p);
-		mul_v3_fl(p, delta);
+		mul_v3_v3fl(p, delta_p, delta);
 		add_v3_v3(p, p_start);
 	}
 }
@@ -335,7 +332,7 @@ void sk_flattenStroke(SK_Stroke *stk, int start, int end)
 		sub_v3_v3v3(distance, p, stk->points[start].p);
 		project_v3_v3v3(distance, distance, normal);
 
-		VECCOPY(offset, normal);
+		copy_v3_v3(offset, normal);
 		mul_v3_fl(offset, d);
 
 		sub_v3_v3(p, distance);
@@ -417,7 +414,7 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 			float max_dist = 16; /* more than 4 pixels */
 			
 			/* find the next marked point */
-			while(marked[le] == 0)
+			while (marked[le] == 0)
 			{
 				le++;
 			}
@@ -427,7 +424,7 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 			v1[0] = old_points[ls].p2d[1] - old_points[le].p2d[1]; 
 			
 
-			for( i = ls + 1; i < le; i++ )
+			for ( i = ls + 1; i < le; i++ )
 			{
 				float mul;
 				float dist;
@@ -576,15 +573,13 @@ void sk_selectAllSketch(SK_Sketch *sketch, int mode)
 			stk->selected = 0;
 		}
 	}
-	else if (mode == 0)
-	{
+	else if (mode == 0) {
 		for (stk = sketch->strokes.first; stk; stk = stk->next)
 		{
 			stk->selected = 1;
 		}
 	}
-	else if (mode == 1)
-	{
+	else if (mode == 1) {
 		int selected = 1;
 
 		for (stk = sketch->strokes.first; stk; stk = stk->next)

@@ -29,8 +29,8 @@
  *  \ingroup bgesg
  */
  
-#ifndef __SG_NODE_H
-#define __SG_NODE_H
+#ifndef __SG_NODE_H__
+#define __SG_NODE_H__
 
 #include "SG_Spatial.h"
 #include <vector>
@@ -81,7 +81,7 @@ public:
 	);
 
 	/**
-	 * Return true if the node is the ancessor of child
+	 * Return true if the node is the ancestor of child
 	 */
 		bool
 	IsAncessor(
@@ -91,7 +91,7 @@ public:
 	 * Get the current list of children. Do not use this interface for
 	 * adding or removing children please use the methods of this class for
 	 * that.
-	 * @return a reference to the list of children of this node.
+	 * \return a reference to the list of children of this node.
 	 */
 	
 	NodeList& GetSGChildren()
@@ -101,7 +101,7 @@ public:
 
 	/**
 	 * Get the current list of children.
-	 * @return a const reference to the current list of children of this node.
+	 * \return a const reference to the current list of children of this node.
 	 */
 
 	const NodeList& GetSGChildren() const
@@ -277,5 +277,5 @@ public:
 #endif
 };
 
-#endif //__SG_NODE_H
+#endif //__SG_NODE_H__
 

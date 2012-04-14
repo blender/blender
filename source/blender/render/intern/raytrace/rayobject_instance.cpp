@@ -99,7 +99,7 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 	int changed = 0, i, res;
 	
 	// TODO - this is disabling self intersection on instances
-	if(isec->orig.ob == obj->ob && obj->ob)
+	if (isec->orig.ob == obj->ob && obj->ob)
 	{
 		changed = 1;
 		isec->orig.ob = obj->target_ob;
@@ -117,7 +117,7 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 	isec->dist *= normalize_v3(isec->dir);
 	
 	// update idot_axis and bv_index
-	for(i=0; i<3; i++)
+	for (i=0; i<3; i++)
 	{
 		isec->idot_axis[i]		= 1.0f / isec->dir[i];
 		
@@ -132,7 +132,7 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 	res = RE_rayobject_intersect(obj->target, isec);
 
 	// map dist into original coordinate space
-	if(res == 0)
+	if (res == 0)
 	{
 		isec->dist = dist;
 	}
@@ -161,11 +161,11 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 	copy_v3_v3(isec->dir, dir);
 	copy_v3_v3(isec->idot_axis, idot_axis);
 	
-	if(changed)
+	if (changed)
 		isec->orig.ob = obj->ob;
 
 	// restore bv_index
-	for(i=0; i<3; i++)
+	for (i=0; i<3; i++)
 	{
 		isec->bv_index[2*i]		= isec->idot_axis[i] < 0.0 ? 1 : 0;
 		isec->bv_index[2*i+1]	= 1 - isec->bv_index[2*i];
@@ -202,9 +202,9 @@ static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max)
 	RE_rayobject_merge_bb(obj->target, m, M);
 
 	//There must be a faster way than rotating all the 8 vertexs of the BB
-	for(i=0; i<8; i++)
+	for (i=0; i<8; i++)
 	{
-		for(j=0; j<3; j++) t[j] = i&(1<<j) ? M[j] : m[j];
+		for (j=0; j<3; j++) t[j] = i&(1<<j) ? M[j] : m[j];
 		mul_m4_v3(obj->target2global, t);
 		DO_MINMAX(t, min, max);
 	}

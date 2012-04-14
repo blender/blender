@@ -40,9 +40,17 @@ blender_include_dirs(
 	../blender/windowmanager
 )
 
+if(WIN32)
+	blender_include_dirs(../../intern/utfconv)
+endif()
+
 if(WITH_LIBMV)
 	blender_include_dirs(../../extern/libmv)
 	add_definitions(-DWITH_LIBMV)
+endif()
+
+if(WITH_CODEC_FFMPEG)
+	add_definitions(-DWITH_FFMPEG)
 endif()
 
 if(WITH_PYTHON)
@@ -226,7 +234,7 @@ set(BLENDER_TEXT_FILES
 
 
 # -----------------------------------------------------------------------------
-# Platform Spesific Var: TARGETDIR_VER
+# Platform Specific Var: TARGETDIR_VER
 
 if(UNIX AND NOT APPLE)
 	if(WITH_INSTALL_PORTABLE)
@@ -388,7 +396,7 @@ if(UNIX AND NOT APPLE)
 		)
 	endif()
 
-		# plugins in blender 2.5 don't work at the moment.
+		# plugins in blender 2.6 don't work at the moment.
 		#
 		# install(
 		# 	DIRECTORY ${CMAKE_SOURCE_DIR}/release/plugins
@@ -454,7 +462,7 @@ elseif(WIN32)
 		endif()
 	endif()
 
-	# plugins in blender 2.5 don't work at the moment.
+	# plugins in blender 2.6 don't work at the moment.
 	#
 	# install(
 	# 	DIRECTORY ${CMAKE_SOURCE_DIR}/release/plugins
@@ -797,8 +805,10 @@ endif()
 		bf_python
 		bf_python_ext
 		bf_python_mathutils
+		bf_python_bmesh
 		bf_ikplugin
 		bf_modifiers
+		bf_bmesh
 		bf_blenkernel
 		bf_nodes
 		bf_gpu
@@ -821,6 +831,7 @@ endif()
 		bf_intern_memutil
 		bf_intern_guardedalloc
 		bf_intern_ctr
+		bf_intern_utfconv
 		ge_blen_routines
 		ge_converter
 		ge_phys_dummy

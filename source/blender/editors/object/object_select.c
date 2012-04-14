@@ -107,7 +107,7 @@ void ED_base_object_activate(bContext *C, Base *base)
 	/* sets scene->basact */
 	BASACT= base;
 	
-	if(base) {
+	if (base) {
 		
 		/* XXX old signals, remember to handle notifiers now! */
 		//		select_actionchannel_by_name(base->object->action, "Object", 1);
@@ -123,12 +123,12 @@ void ED_base_object_activate(bContext *C, Base *base)
 static int objects_selectable_poll(bContext *C)
 {
 	/* we don't check for linked scenes here, selection is
-	   still allowed then for inspection of scene */
+	 * still allowed then for inspection of scene */
 	Object *obact= CTX_data_active_object(C);
 
-	if(CTX_data_edit_object(C))
+	if (CTX_data_edit_object(C))
 		return 0;
-	if(obact && obact->mode)
+	if (obact && obact->mode)
 		return 0;
 	
 	return 1;
@@ -151,7 +151,7 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 	}
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if(base->object->type==obtype) {
+		if (base->object->type==obtype) {
 			ED_base_object_select(base, BA_SELECT);
 		}
 	}
@@ -165,21 +165,21 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_by_type(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select By Type";
+	ot->name = "Select By Type";
 	ot->description = "Select all visible objects that are of a type";
-	ot->idname= "OBJECT_OT_select_by_type";
+	ot->idname = "OBJECT_OT_select_by_type";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_select_by_type_exec;
-	ot->poll= objects_selectable_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_select_by_type_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
-	ot->prop= RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
 }
 
 /*********************** Selection by Links *********************/
@@ -225,67 +225,67 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	}
 	
 	ob= OBACT;
-	if(ob==NULL){ 
+	if (ob==NULL) { 
 		BKE_report(op->reports, RPT_ERROR, "No Active Object");
 		return OPERATOR_CANCELLED;
 	}
 	
-	if(nr==1) {	
+	if (nr==1) {	
 			// XXX old animation system
 		//ipo= ob->ipo;
 		//if(ipo==0) return OPERATOR_CANCELLED;
 		return OPERATOR_CANCELLED;
 	}
-	else if(nr==2) {
-		if(ob->data==NULL) return OPERATOR_CANCELLED;
+	else if (nr==2) {
+		if (ob->data==NULL) return OPERATOR_CANCELLED;
 		obdata= ob->data;
 	}
-	else if(nr==3 || nr==4) {
+	else if (nr==3 || nr==4) {
 		mat= give_current_material(ob, ob->actcol);
-		if(mat==NULL) return OPERATOR_CANCELLED;
-		if(nr==4) {
-			if(mat->mtex[ (int)mat->texact ]) tex= mat->mtex[ (int)mat->texact ]->tex;
-			if(tex==NULL) return OPERATOR_CANCELLED;
+		if (mat==NULL) return OPERATOR_CANCELLED;
+		if (nr==4) {
+			if (mat->mtex[ (int)mat->texact ]) tex= mat->mtex[ (int)mat->texact ]->tex;
+			if (tex==NULL) return OPERATOR_CANCELLED;
 		}
 	}
-	else if(nr==5) {
-		if(ob->dup_group==NULL) return OPERATOR_CANCELLED;
+	else if (nr==5) {
+		if (ob->dup_group==NULL) return OPERATOR_CANCELLED;
 	}
-	else if(nr==6) {
-		if(ob->particlesystem.first==NULL) return OPERATOR_CANCELLED;
+	else if (nr==6) {
+		if (ob->particlesystem.first==NULL) return OPERATOR_CANCELLED;
 	}
-	else if(nr==7) {
+	else if (nr==7) {
 		/* do nothing */
 	}
-	else if(nr==8) {
-		if(ob->data==NULL) return OPERATOR_CANCELLED;
+	else if (nr==8) {
+		if (ob->data==NULL) return OPERATOR_CANCELLED;
 	}
 	else
 		return OPERATOR_CANCELLED;
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if(nr==1) {
+		if (nr==1) {
 				// XXX old animation system
 			//if(base->object->ipo==ipo) base->flag |= SELECT;
 			//changed = 1;
 		}
-		else if(nr==2) {
-			if(base->object->data==obdata) base->flag |= SELECT;
+		else if (nr==2) {
+			if (base->object->data==obdata) base->flag |= SELECT;
 			changed = 1;
 		}
-		else if(nr==3 || nr==4) {
+		else if (nr==3 || nr==4) {
 			ob= base->object;
 			
-			for(a=1; a<=ob->totcol; a++) {
+			for (a=1; a<=ob->totcol; a++) {
 				mat1= give_current_material(ob, a);
-				if(nr==3) {
-					if(mat1==mat) base->flag |= SELECT;
+				if (nr==3) {
+					if (mat1==mat) base->flag |= SELECT;
 					changed = 1;
 				}
-				else if(mat1 && nr==4) {
-					for(b=0; b<MAX_MTEX; b++) {
-						if(mat1->mtex[b]) {
-							if(tex==mat1->mtex[b]->tex) {
+				else if (mat1 && nr==4) {
+					for (b=0; b<MAX_MTEX; b++) {
+						if (mat1->mtex[b]) {
+							if (tex==mat1->mtex[b]->tex) {
 								base->flag |= SELECT;
 								changed = 1;
 								break;
@@ -295,19 +295,19 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-		else if(nr==5) {
-			if(base->object->dup_group==ob->dup_group) {
+		else if (nr==5) {
+			if (base->object->dup_group==ob->dup_group) {
 				base->flag |= SELECT;
 				changed = 1;
 			}
 		}
-		else if(nr==6) {
+		else if (nr==6) {
 			/* loop through other, then actives particles*/
 			ParticleSystem *psys;
 			ParticleSystem *psys_act;
 			
-			for(psys=base->object->particlesystem.first; psys; psys=psys->next) {
-				for(psys_act=ob->particlesystem.first; psys_act; psys_act=psys_act->next) {
+			for (psys=base->object->particlesystem.first; psys; psys=psys->next) {
+				for (psys_act=ob->particlesystem.first; psys_act; psys_act=psys_act->next) {
 					if (psys->part == psys_act->part) {
 						base->flag |= SELECT;
 						changed = 1;
@@ -320,14 +320,14 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-		else if(nr==7) {
-			if(ob->id.lib == base->object->id.lib) {
+		else if (nr==7) {
+			if (ob->id.lib == base->object->id.lib) {
 				base->flag |= SELECT;
 				changed= 1;
 			}
 		}
-		else if(nr==8) {
-			if(base->object->data && ((ID *)ob->data)->lib == ((ID *)base->object->data)->lib) {
+		else if (nr==8) {
+			if (base->object->data && ((ID *)ob->data)->lib == ((ID *)base->object->data)->lib) {
 				base->flag |= SELECT;
 				changed= 1;
 			}
@@ -347,21 +347,21 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked";
+	ot->name = "Select Linked";
 	ot->description = "Select all visible objects that are linked";
-	ot->idname= "OBJECT_OT_select_linked";
+	ot->idname = "OBJECT_OT_select_linked";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_select_linked_exec;
-	ot->poll= objects_selectable_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_select_linked_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
 }
 
 /*********************** Selected Grouped ********************/
@@ -414,7 +414,7 @@ static short select_grouped_parent(bContext *C)	/* Makes parent active and de-se
 	baspar= object_in_scene(basact->object->parent, scene);
 
 	/* can be NULL if parent in other scene */
-	if(baspar && BASE_SELECTABLE(v3d, baspar)) {
+	if (baspar && BASE_SELECTABLE(v3d, baspar)) {
 		ED_base_object_select(basact, BA_DESELECT);
 		ED_base_object_select(baspar, BA_SELECT);
 		ED_base_object_activate(C, baspar);
@@ -492,7 +492,7 @@ static short select_grouped_object_hooks(bContext *C, Object *ob)
 	return changed;
 }
 
-/* Select objects woth the same parent as the active (siblings),
+/* Select objects with the same parent as the active (siblings),
  * parent can be NULL also */
 static short select_grouped_siblings(bContext *C, Object *ob)
 {
@@ -569,7 +569,7 @@ static short objects_share_gameprop(Object *a, Object *b)
 	bProperty *prop;
 	/*make a copy of all its properties*/
 
-	for( prop= a->prop.first; prop; prop = prop->next ) {
+	for ( prop= a->prop.first; prop; prop = prop->next ) {
 		if ( get_ob_property(b, prop->name) )
 			return 1;
 	}
@@ -644,23 +644,23 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	}
 	
 	ob= OBACT;
-	if(ob==NULL) { 
+	if (ob==NULL) { 
 		BKE_report(op->reports, RPT_ERROR, "No Active Object");
 		return OPERATOR_CANCELLED;
 	}
 	
-	if(nr==1)		changed |= select_grouped_children(C, ob, 1);
-	else if(nr==2)	changed |= select_grouped_children(C, ob, 0);
-	else if(nr==3)	changed |= select_grouped_parent(C);
-	else if(nr==4)	changed |= select_grouped_siblings(C, ob);
-	else if(nr==5)	changed |= select_grouped_type(C, ob);
-	else if(nr==6)	changed |= select_grouped_layer(C, ob);
-	else if(nr==7)	changed |= select_grouped_group(C, ob);
-	else if(nr==8)	changed |= select_grouped_object_hooks(C, ob);
-	else if(nr==9)	changed |= select_grouped_index_object(C, ob);
-	else if(nr==10)	changed |= select_grouped_color(C, ob);
-	else if(nr==11)	changed |= select_grouped_gameprops(C, ob);
-	else if(nr==12) changed |= select_grouped_keyingset(C, ob);
+	if (nr==1)		changed |= select_grouped_children(C, ob, 1);
+	else if (nr==2)	changed |= select_grouped_children(C, ob, 0);
+	else if (nr==3)	changed |= select_grouped_parent(C);
+	else if (nr==4)	changed |= select_grouped_siblings(C, ob);
+	else if (nr==5)	changed |= select_grouped_type(C, ob);
+	else if (nr==6)	changed |= select_grouped_layer(C, ob);
+	else if (nr==7)	changed |= select_grouped_group(C, ob);
+	else if (nr==8)	changed |= select_grouped_object_hooks(C, ob);
+	else if (nr==9)	changed |= select_grouped_index_object(C, ob);
+	else if (nr==10)	changed |= select_grouped_color(C, ob);
+	else if (nr==11)	changed |= select_grouped_gameprops(C, ob);
+	else if (nr==12) changed |= select_grouped_keyingset(C, ob);
 	
 	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
@@ -673,21 +673,21 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_grouped(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Grouped";
+	ot->name = "Select Grouped";
 	ot->description = "Select all visible objects grouped by various properties";
-	ot->idname= "OBJECT_OT_select_grouped";
+	ot->idname = "OBJECT_OT_select_grouped";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_select_grouped_exec;
-	ot->poll= objects_selectable_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_select_grouped_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
 /************************* Select by Layer **********************/
@@ -708,7 +708,7 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 	}
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if(base->lay == (1<< (layernum -1)))
+		if (base->lay == (1<< (layernum -1)))
 			ED_base_object_select(base, BA_SELECT);
 	}
 	CTX_DATA_END;
@@ -722,17 +722,17 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select by Layer";
+	ot->name = "Select by Layer";
 	ot->description = "Select all visible objects on a layer";
-	ot->idname= "OBJECT_OT_select_by_layer";
+	ot->idname = "OBJECT_OT_select_by_layer";
 	
 	/* api callbacks */
 	/*ot->invoke = XXX - need a int grid popup*/
-	ot->exec= object_select_by_layer_exec;
-	ot->poll= objects_selectable_poll;
+	ot->exec = object_select_by_layer_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
@@ -770,7 +770,8 @@ static int object_select_all_exec(bContext *C, wmOperator *op)
 		case SEL_INVERT:
 			if (base->flag & SELECT) {
 				ED_base_object_select(base, BA_DESELECT);
-			} else {
+			}
+			else {
 				ED_base_object_select(base, BA_SELECT);
 			}
 			break;
@@ -787,16 +788,16 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name = "(De)select All";
 	ot->description = "Change selection of all visible objects in scene";
-	ot->idname= "OBJECT_OT_select_all";
+	ot->idname = "OBJECT_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= object_select_all_exec;
-	ot->poll= objects_selectable_poll;
+	ot->exec = object_select_all_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -836,16 +837,16 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Select Same Group";
+	ot->name = "Select Same Group";
 	ot->description = "Select object in the same group";
-	ot->idname= "OBJECT_OT_select_same_group";
+	ot->idname = "OBJECT_OT_select_same_group";
 	
 	/* api callbacks */
-	ot->exec= object_select_same_group_exec;
-	ot->poll= objects_selectable_poll;
+	ot->exec = object_select_same_group_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_string(ot->srna, "group", "", MAX_ID_NAME, "Group", "Name of the group to select");
 }
@@ -863,12 +864,12 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 
 		flip_side_name(tmpname, primbase->object->id.name+2, TRUE);
 		
-		if(strcmp(tmpname, primbase->object->id.name+2)!=0) { /* names differ */
+		if (strcmp(tmpname, primbase->object->id.name+2)!=0) { /* names differ */
 			Object *ob= (Object *)find_id("OB", tmpname);
-			if(ob) {
+			if (ob) {
 				Base *secbase= object_in_scene(ob, scene);
 
-				if(secbase) {
+				if (secbase) {
 					ED_base_object_select(secbase, BA_SELECT);
 				}
 			}
@@ -889,16 +890,16 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Select Mirror";
+	ot->name = "Select Mirror";
 	ot->description = "Select the Mirror objects of the selected object eg. L.sword -> R.sword";
-	ot->idname= "OBJECT_OT_select_mirror";
+	ot->idname = "OBJECT_OT_select_mirror";
 	
 	/* api callbacks */
-	ot->exec= object_select_mirror_exec;
-	ot->poll= objects_selectable_poll;
+	ot->exec = object_select_mirror_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
 }
@@ -936,17 +937,17 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Random";
+	ot->name = "Select Random";
 	ot->description = "Set select on random visible objects";
-	ot->idname= "OBJECT_OT_select_random";
+	ot->idname = "OBJECT_OT_select_random";
 	
 	/* api callbacks */
-	/*ot->invoke= object_select_random_invoke XXX - need a number popup ;*/
+	/*ot->invoke = object_select_random_invoke XXX - need a number popup ;*/
 	ot->exec = object_select_random_exec;
-	ot->poll= objects_selectable_poll;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of objects to select randomly", 0.f, 100.0f);

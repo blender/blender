@@ -35,12 +35,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_packedFile_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -67,22 +67,22 @@
 
 void ED_editors_init(bContext *C)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *sce= CTX_data_scene(C);
-	Object *ob, *obact= (sce && sce->basact)? sce->basact->object: NULL;
+	Main *bmain = CTX_data_main(C);
+	Scene *sce = CTX_data_scene(C);
+	Object *ob, *obact = (sce && sce->basact) ? sce->basact->object : NULL;
 	ID *data;
 
 	/* toggle on modes for objects that were saved with these enabled. for
-	   e.g. linked objects we have to ensure that they are actually the
-	   active object in this scene. */
-	for(ob=bmain->object.first; ob; ob=ob->id.next) {
-		int mode= ob->mode;
+	 * e.g. linked objects we have to ensure that they are actually the
+	 * active object in this scene. */
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		int mode = ob->mode;
 
-		if(mode && (mode != OB_MODE_POSE)) {
-			ob->mode= 0;
-			data= ob->data;
+		if (mode && (mode != OB_MODE_POSE)) {
+			ob->mode = 0;
+			data = ob->data;
 
-			if(ob == obact && !ob->id.lib && !(data && data->lib))
+			if (ob == obact && !ob->id.lib && !(data && data->lib))
 				ED_object_toggle_modes(C, mode);
 		}
 	}
@@ -91,30 +91,30 @@ void ED_editors_init(bContext *C)
 /* frees all editmode stuff */
 void ED_editors_exit(bContext *C)
 {
-	Main *bmain= CTX_data_main(C);
+	Main *bmain = CTX_data_main(C);
 	Scene *sce;
 
-	if(!bmain)
+	if (!bmain)
 		return;
 	
 	/* frees all editmode undos */
 	undo_editmode_clear();
 	ED_undo_paint_free();
 	
-	for(sce=bmain->scene.first; sce; sce= sce->id.next) {
-		if(sce->obedit) {
-			Object *ob= sce->obedit;
+	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		if (sce->obedit) {
+			Object *ob = sce->obedit;
 		
-			if(ob) {
-				if(ob->type==OB_MESH) {
-					Mesh *me= ob->data;
-					if(me->edit_mesh) {
-						free_editMesh(me->edit_mesh);
-						MEM_freeN(me->edit_mesh);
-						me->edit_mesh= NULL;
+			if (ob) {
+				if (ob->type == OB_MESH) {
+					Mesh *me = ob->data;
+					if (me->edit_btmesh) {
+						EDBM_mesh_free(me->edit_btmesh);
+						MEM_freeN(me->edit_btmesh);
+						me->edit_btmesh = NULL;
 					}
 				}
-				else if(ob->type==OB_ARMATURE) {
+				else if (ob->type == OB_ARMATURE) {
 					ED_armature_edit_free(ob);
 				}
 			}
@@ -135,17 +135,17 @@ void ED_editors_exit(bContext *C)
 void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert)
 {
 	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
-	if(invert)
-		ctrl= !ctrl;
+	if (invert)
+		ctrl = !ctrl;
 	
-	if(ctrl && shift) {
-		if(fac3 != 0.0f) *val= fac3*floorf(*val/fac3 +0.5f);
+	if (ctrl && shift) {
+		if (fac3 != 0.0f) *val = fac3 * floorf(*val / fac3 + 0.5f);
 	}
-	else if(ctrl) {
-		if(fac2 != 0.0f) *val= fac2*floorf(*val/fac2 +0.5f);
+	else if (ctrl) {
+		if (fac2 != 0.0f) *val = fac2 * floorf(*val / fac2 + 0.5f);
 	}
 	else {
-		if(fac1 != 0.0f) *val= fac1*floorf(*val/fac1 +0.5f);
+		if (fac1 != 0.0f) *val = fac1 * floorf(*val / fac1 + 0.5f);
 	}
 }
 
@@ -154,7 +154,7 @@ int GetButStringLength(const char *str)
 {
 	int rt;
 	
-	rt= UI_GetStringWidth(str);
+	rt = UI_GetStringWidth(str);
 	
 	return rt + 15;
 }
@@ -168,25 +168,25 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 	char line[FILE_MAX + 100];
 	wmOperatorType *ot = WM_operatortype_find(opname, 1);
 
-	pup= uiPupMenuBegin(C, "Unpack file", ICON_NONE);
-	layout= uiPupMenuLayout(pup);
+	pup = uiPupMenuBegin(C, "Unpack file", ICON_NONE);
+	layout = uiPupMenuLayout(pup);
 
 	strcpy(line, "Remove Pack");
-	props_ptr= uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	props_ptr = uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&props_ptr, "method", PF_REMOVE);
 	RNA_string_set(&props_ptr, "id", id_name);
 
-	if(G.relbase_valid) {
+	if (G.relbase_valid) {
 		char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
 
 		BLI_strncpy(local_name, abs_name, sizeof(local_name));
 		BLI_splitdirstring(local_name, fi);
 		BLI_snprintf(local_name, sizeof(local_name), "//%s/%s", folder, fi);
-		if(strcmp(abs_name, local_name)!=0) {
-			switch(checkPackedFile(local_name, pf)) {
+		if (strcmp(abs_name, local_name) != 0) {
+			switch (checkPackedFile(local_name, pf)) {
 				case PF_NOFILE:
 					BLI_snprintf(line, sizeof(line), "Create %s", local_name);
-					props_ptr= uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+					props_ptr = uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 					RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
 					RNA_string_set(&props_ptr, "id", id_name);
 
@@ -194,7 +194,7 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 				case PF_EQUAL:
 					BLI_snprintf(line, sizeof(line), "Use %s (identical)", local_name);
 					//uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_LOCAL);
-					props_ptr= uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+					props_ptr = uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 					RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
 					RNA_string_set(&props_ptr, "id", id_name);
 
@@ -202,13 +202,13 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 				case PF_DIFFERS:
 					BLI_snprintf(line, sizeof(line), "Use %s (differs)", local_name);
 					//uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_LOCAL);
-					props_ptr= uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+					props_ptr = uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 					RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
 					RNA_string_set(&props_ptr, "id", id_name);
 
 					BLI_snprintf(line, sizeof(line), "Overwrite %s", local_name);
 					//uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_WRITE_LOCAL);
-					props_ptr= uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+					props_ptr = uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 					RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
 					RNA_string_set(&props_ptr, "id", id_name);
 					break;
@@ -216,31 +216,31 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 		}
 	}
 
-	switch(checkPackedFile(abs_name, pf)) {
+	switch (checkPackedFile(abs_name, pf)) {
 		case PF_NOFILE:
 			BLI_snprintf(line, sizeof(line), "Create %s", abs_name);
 			//uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_WRITE_ORIGINAL);
-			props_ptr= uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			props_ptr = uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 			RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
 			RNA_string_set(&props_ptr, "id", id_name);
 			break;
 		case PF_EQUAL:
 			BLI_snprintf(line, sizeof(line), "Use %s (identical)", abs_name);
 			//uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_ORIGINAL);
-			props_ptr= uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			props_ptr = uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 			RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
 			RNA_string_set(&props_ptr, "id", id_name);
 			break;
 		case PF_DIFFERS:
 			BLI_snprintf(line, sizeof(line), "Use %s (differs)", abs_name);
 			//uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_ORIGINAL);
-			props_ptr= uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			props_ptr = uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 			RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
 			RNA_string_set(&props_ptr, "id", id_name);
 
 			BLI_snprintf(line, sizeof(line), "Overwrite %s", abs_name);
 			//uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_WRITE_ORIGINAL);
-			props_ptr= uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			props_ptr = uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 			RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
 			RNA_string_set(&props_ptr, "id", id_name);
 			break;

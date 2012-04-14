@@ -174,7 +174,7 @@ public:
 		GHOST_TSuccess 
 	getModifierKeys(
 		GHOST_ModifierKeys& keys
-	) const ;
+	) const;
 
 	/**
 	 * Returns the state of the mouse buttons (ouside the message queue).
@@ -310,7 +310,7 @@ private :
 		GHOST_WindowX11 * 
 	findGhostWindow(
 		Window xwind
-	) const ;
+	) const;
 
 		void
 	processEvent(

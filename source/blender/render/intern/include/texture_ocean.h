@@ -23,6 +23,4 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-void prepare_ocean_tex_modifier(struct OceanTex *ot);
-
 int ocean_texture(struct Tex *tex, float *texvec, struct TexResult *texres);

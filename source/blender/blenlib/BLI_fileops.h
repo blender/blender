@@ -33,6 +33,9 @@
 #ifndef __BLI_FILEOPS_H__
 #define __BLI_FILEOPS_H__
 
+#include <stdio.h>
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,6 +44,8 @@ extern "C" {
 
 /* for size_t (needed on windows) */
 #include <stddef.h>
+
+struct gzFile;
 
 /* Common */
 
@@ -64,6 +69,10 @@ char  *BLI_current_working_dir(char *dir, const int maxlen);
 unsigned int BLI_dir_contents(const char *dir, struct direntry **filelist);
 
 /* Files */
+
+FILE  *BLI_fopen(const char *filename, const char *mode);
+void  *BLI_gzopen(const char *filename, const char *mode);
+int    BLI_open(const char *filename, int oflag, int pmode);
 
 int    BLI_file_is_writable(const char *file);
 int    BLI_file_touch(const char *file);

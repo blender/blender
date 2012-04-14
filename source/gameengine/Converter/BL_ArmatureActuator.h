@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef BL_ARMATUREACTUATOR
-#define BL_ARMATUREACTUATOR
+#ifndef __BL_ARMATUREACTUATOR_H__
+#define __BL_ARMATUREACTUATOR_H__
 
 #include "SCA_IActuator.h"
 #include "BL_ArmatureConstraint.h"
@@ -54,7 +54,8 @@ public:
 						const char *constraintname,
 						KX_GameObject* targetobj,
 						KX_GameObject* subtargetobj,
-						float weight);
+						float weight,
+						float influence);
 
 	virtual ~BL_ArmatureActuator();
 
@@ -88,9 +89,10 @@ private:
 	STR_String		m_posechannel;
 	STR_String		m_constraintname;
 	float			m_weight;
+	float			m_influence;
 	int				m_type;
 };
 
-#endif //BL_ARMATUREACTUATOR
+#endif //__BL_ARMATUREACTUATOR_H__
 
 

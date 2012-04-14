@@ -82,7 +82,7 @@ You might want to reference a script relative to the blend file.
    import bpy
    import os
 
-   filename = os.path.join(os.path.basename(bpy.data.filepath), "myscript.py")
+   filename = os.path.join(os.path.dirname(bpy.data.filepath), "myscript.py")
    exec(compile(open(filename).read(), filename, 'exec'))
 
 

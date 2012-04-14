@@ -119,7 +119,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 					bez.vec[1][1] = bc_get_float_value(output, j * dim + i);
 
 
-					if( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
+					if ( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
 						curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP) 
 					{
 						COLLADAFW::FloatOrDoubleArray& intan = curve->getInTangentValues();
@@ -132,7 +132,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 						// outtangent
 						bez.vec[2][0] = bc_get_float_value(outtan, (j * 2 * dim ) + (2 * i)) * fps;
 						bez.vec[2][1] = bc_get_float_value(outtan, (j * 2 * dim )+ (2 * i) + 1);
-						if(curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER) 
+						if (curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER) 
 							bez.ipo = BEZT_IPO_BEZ;
 						else 
 							bez.ipo = BEZT_IPO_CONST;
@@ -261,7 +261,7 @@ bool AnimationImporter::write_animation(const COLLADAFW::Animation* anim)
 		// XXX Don't know if it's necessary
 		// Should we check outPhysicalDimension?
 		if (curve->getInPhysicalDimension() != COLLADAFW::PHYSICAL_DIMENSION_TIME) {
-			fprintf(stderr, "Inputs physical dimension is not time. \n");
+			fprintf(stderr, "Inputs physical dimension is not time.\n");
 			return true;
 		}
 
@@ -610,9 +610,10 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type)
 {
 	char rna_path[100];
-	if (animlist_map.find(listid) == animlist_map.end()) return ;
-	else 
-	{
+	if (animlist_map.find(listid) == animlist_map.end()) {
+		return;
+	}
+	else {
 		//anim_type has animations
 		const COLLADAFW::AnimationList *animlist = animlist_map[listid];
 		const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
@@ -665,7 +666,7 @@ void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& 
 	}
 	// new curves to assign matrix transform animation
 	FCurve *newcu[10]; // if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale
-	unsigned int totcu = 10 ;
+	unsigned int totcu = 10;
 	const char *tm_str = NULL;
 	char rna_path[200];
 	for (int i = 0; i < totcu; i++) {
@@ -824,9 +825,10 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 			const COLLADAFW::UniqueId& listid = transform->getAnimationList();
 
 			//check if transformation has animations
-			if (animlist_map.find(listid) == animlist_map.end()) continue ; 
-			else 
-			{
+			if (animlist_map.find(listid) == animlist_map.end()) {
+				continue;
+			}
+			else {
 				//transformation has animations
 				const COLLADAFW::AnimationList *animlist = animlist_map[listid];
 				const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
@@ -946,7 +948,7 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 
 		}
 	}
-	if ( animType->material != 0){
+	if ( animType->material != 0) {
 		Material *ma = give_current_material(ob, 1);
 		if (!ma->adt || !ma->adt->action) act = verify_adt_action((ID*)&ma->id, 1);
 		else act = ma->adt->action;
@@ -962,25 +964,25 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 				if (ef != NULL) { /* can be NULL [#28909] */
 					const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
 					COLLADAFW::EffectCommon *efc = commonEffects[0];
-					if((animType->material & MATERIAL_SHININESS) != 0){
+					if ((animType->material & MATERIAL_SHININESS) != 0) {
 						const COLLADAFW::FloatOrParam *shin = &(efc->getShininess());
 						const COLLADAFW::UniqueId& listid =  shin->getAnimationList();
 						Assign_float_animations( listid, AnimCurves , "specular_hardness" );
 					}
 
-					if((animType->material & MATERIAL_IOR) != 0){
+					if ((animType->material & MATERIAL_IOR) != 0) {
 						const COLLADAFW::FloatOrParam *ior = &(efc->getIndexOfRefraction());
 						const COLLADAFW::UniqueId& listid =  ior->getAnimationList();
 						Assign_float_animations( listid, AnimCurves , "raytrace_transparency.ior" );
 					}
 
-					if((animType->material & MATERIAL_SPEC_COLOR) != 0){
+					if ((animType->material & MATERIAL_SPEC_COLOR) != 0) {
 						const COLLADAFW::ColorOrTexture *cot = &(efc->getSpecular());
 						const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
 						Assign_color_animations( listid, AnimCurves , "specular_color" );
 					}
 
-					if((animType->material & MATERIAL_DIFF_COLOR) != 0){
+					if ((animType->material & MATERIAL_DIFF_COLOR) != 0) {
 						const COLLADAFW::ColorOrTexture *cot = &(efc->getDiffuse());
 						const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
 						Assign_color_animations( listid, AnimCurves , "diffuse_color" );
@@ -1030,7 +1032,7 @@ void AnimationImporter::add_bone_animation_sampled(Object * ob, std::vector<FCur
 
 	// new curves to assign matrix transform animation
 	FCurve *newcu[10]; // if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale
-	unsigned int totcu = 10 ;
+	unsigned int totcu = 10;
 	const char *tm_str = NULL;
 	char rna_path[200];
 	for (int i = 0; i < totcu; i++) {
@@ -1136,9 +1138,10 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 		const COLLADAFW::UniqueId& listid = transform->getAnimationList();
 
 		//check if transformation has animations
-		if (animlist_map.find(listid) == animlist_map.end()) continue ;
-		else 
-		{
+		if (animlist_map.find(listid) == animlist_map.end()) {
+			continue;
+		}
+		else {
 			types->transform = types->transform|NODE_TRANSFORM;
 			break;
 		}
@@ -1182,7 +1185,7 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 			const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
 			if (ef != NULL) { /* can be NULL [#28909] */
 				const COLLADAFW::CommonEffectPointerArray& commonEffects = ef->getCommonEffects();
-				if(!commonEffects.empty()) {
+				if (!commonEffects.empty()) {
 					COLLADAFW::EffectCommon *efc = commonEffects[0];
 					types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
 					types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);
@@ -1868,7 +1871,7 @@ void AnimationImporter::add_bezt(FCurve *fcu, float fra, float value)
 	//float fps = (float)FPS;
 	BezTriple bez;
 	memset(&bez, 0, sizeof(BezTriple));
-	bez.vec[1][0] = fra ;
+	bez.vec[1][0] = fra;
 	bez.vec[1][1] = value;
 	bez.ipo = BEZT_IPO_LIN ;/* use default interpolation mode here... */
 	bez.f1 = bez.f2 = bez.f3 = SELECT;

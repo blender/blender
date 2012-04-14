@@ -159,7 +159,7 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_PART_RAD (1<<0) /* use particle radius */
 #define MOD_DPAINT_USE_MATERIAL (1<<1) /* use object material */
 #define MOD_DPAINT_ABS_ALPHA (1<<2) /* don't increase alpha unless
-									paint alpha is higher than existing */
+                                     * paint alpha is higher than existing */
 #define MOD_DPAINT_ERASE (1<<3) /* removes paint */
 
 #define MOD_DPAINT_RAMP_ALPHA (1<<4) /* only read falloff ramp alpha */

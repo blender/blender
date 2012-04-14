@@ -69,10 +69,10 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
 
 	gpd_ptr= gpencil_data_get_pointers(C, NULL);
 
-	if(step==1) {	/* undo */
+	if (step==1) {	/* undo */
 		//printf("\t\tGP - undo step\n");
-		if(cur_node->prev) {
-			if(!name || strcmp(cur_node->name, name) == 0) {
+		if (cur_node->prev) {
+			if (!name || strcmp(cur_node->name, name) == 0) {
 				cur_node= cur_node->prev;
 				new_gpd= cur_node->gpd;
 			}
@@ -80,17 +80,17 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
 	}
 	else if (step==-1) {
 		//printf("\t\tGP - redo step\n");
-		if(cur_node->next) {
-			if(!name || strcmp(cur_node->name, name) == 0) {
+		if (cur_node->next) {
+			if (!name || strcmp(cur_node->name, name) == 0) {
 				cur_node= cur_node->next;
 				new_gpd= cur_node->gpd;
 			}
 		}
 	}
 
-	if(new_gpd) {
-		if(gpd_ptr) {
-			if(*gpd_ptr) {
+	if (new_gpd) {
+		if (gpd_ptr) {
+			if (*gpd_ptr) {
 				bGPdata *gpd= *gpd_ptr;
 				bGPDlayer *gpl, *gpld;
 
@@ -124,11 +124,11 @@ void gpencil_undo_push(bGPdata *gpd)
 
 	//printf("\t\tGP - undo push\n");
 
-	if(cur_node) {
+	if (cur_node) {
 		/* remove all un-done nodes from stack */
 		undo_node= cur_node->next;
 
-		while(undo_node) {
+		while (undo_node) {
 			bGPundonode *next_node= undo_node->next;
 
 			free_gpencil_data(undo_node->gpd);
@@ -153,7 +153,7 @@ void gpencil_undo_finish(void)
 {
 	bGPundonode *undo_node= undo_nodes.first;
 
-	while(undo_node) {
+	while (undo_node) {
 		free_gpencil_data(undo_node->gpd);
 		MEM_freeN(undo_node->gpd);
 

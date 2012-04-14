@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __BL_GPUSHADER_H__
-#define __BL_GPUSHADER_H__
+#ifndef __BL_BLENDERSHADER_H__
+#define __BL_BLENDERSHADER_H__
 
 #include "GPU_material.h"
 
@@ -103,4 +103,4 @@ public:
 #endif
 };
 
-#endif//__BL_GPUSHADER_H__
+#endif//__BL_BLENDERSHADER_H__

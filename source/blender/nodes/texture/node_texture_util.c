@@ -53,10 +53,10 @@
 
 static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)
 {
-	if(dg->node->need_exec) {
+	if (dg->node->need_exec) {
 		dg->fn(out, params, dg->node, dg->in, thread);
 
-		if(dg->cdata->do_preview)
+		if (dg->cdata->do_preview)
 			tex_do_preview(dg->node, params->previewco, out);
 	}
 }
@@ -64,10 +64,10 @@ static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, sh
 static void tex_input(float *out, int sz, bNodeStack *in, TexParams *params, short thread)
 {
 	TexDelegate *dg = in->data;
-	if(dg) {
+	if (dg) {
 		tex_call_delegate(dg, in->vec, params, thread);
 	
-		if(in->hasoutput && in->sockettype == SOCK_FLOAT)
+		if (in->hasoutput && in->sockettype == SOCK_FLOAT)
 			in->vec[1] = in->vec[2] = in->vec[0];
 	}
 	memcpy(out, in->vec, sz * sizeof(float));
@@ -82,13 +82,12 @@ void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread)
 {
 	tex_input(out, 4, in, params, thread);
 	
-	if(in->hasoutput && in->sockettype == SOCK_FLOAT)
-	{
+	if (in->hasoutput && in->sockettype == SOCK_FLOAT) {
 		out[1] = out[2] = out[0];
 		out[3] = 1;
 	}
 	
-	if(in->hasoutput && in->sockettype == SOCK_VECTOR) {
+	if (in->hasoutput && in->sockettype == SOCK_VECTOR) {
 		out[0] = out[0] * .5f + .5f;
 		out[1] = out[1] * .5f + .5f;
 		out[2] = out[2] * .5f + .5f;
@@ -119,7 +118,7 @@ void tex_do_preview(bNode *node, float *co, float *col)
 {
 	bNodePreview *preview= node->preview;
 
-	if(preview) {
+	if (preview) {
 		int xs= ((co[0] + 1.0f)*0.5f)*preview->xsize;
 		int ys= ((co[1] + 1.0f)*0.5f)*preview->ysize;
 
@@ -130,7 +129,7 @@ void tex_do_preview(bNode *node, float *co, float *col)
 void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn, TexCallData *cdata)
 {
 	TexDelegate *dg;
-	if(!out->data)
+	if (!out->data)
 		/* Freed in tex_end_exec (node.c) */
 		dg = out->data = MEM_mallocN(sizeof(TexDelegate), "tex delegate");
 	else
@@ -143,116 +142,24 @@ void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn, TexC
 	dg->type = out->sockettype;
 }
 
-/* Used for muted nodes, just pass the TexDelegate data from input to output…
- * XXX That *%!?¿§ callback TextureDelegate system is a nightmare here!
- *     So I have to use an ugly hack (checking inputs twice!)… Yuk!
- *     I’d be very happy if someone can imagine a better solution
- *     (without changing the whole stuff).
- * WARNING: These are only suitable for default muting behavior. If you want a custom
- *          one for your texnode, you must not use them!
- */
-static void passonvalfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
-{
-	bNodeSocket *sock;
-	int i;
-
-	/* test the inputs */
-	for(i=0, sock = node->inputs.first; sock; sock = sock->next, i++) {
-		if(sock->link && sock->type==SOCK_FLOAT && in) {
-			out[0] = tex_input_value(in[i], p, thread);
-			break;
-		}
-	}
-}
-
-static void passonvecfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
-{
-	bNodeSocket *sock;
-	int i;
-
-	/* test the inputs */
-	for(i=0, sock = node->inputs.first; sock; sock = sock->next, i++) {
-		if(sock->link && sock->type==SOCK_VECTOR && in) {
-			tex_input_vec(out, in[i], p, thread);
-			break;
-		}
-	}
-}
-
-static void passoncolfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
-{
-	bNodeSocket *sock;
-	int i;
-
-	/* test the inputs */
-	for(i=0, sock = node->inputs.first; sock; sock = sock->next, i++) {
-		if(sock->link && sock->type==SOCK_RGBA && in) {
-			tex_input_rgba(out, in[i], p, thread);
-			break;
-		}
-	}
-}
-
-void node_tex_pass_on(void *data, int UNUSED(thread), struct bNode *node, void *UNUSED(nodedata),
-                      struct bNodeStack **in, struct bNodeStack **out)
-{
-	ListBase links;
-	LinkInOutsMuteNode *lnk;
-	int i;
-
-	if(node->typeinfo->mutelinksfunc == NULL)
-		return;
-
-	/* Get default muting links (as bNodeStack pointers). */
-	links = node->typeinfo->mutelinksfunc(NULL, node, in, out, NULL, NULL);
-
-	for(lnk = links.first; lnk; lnk = lnk->next) {
-		/* XXX This breaks the generality of the system.
-		 *     Again, unfortunately, I see no other way to do due to tex nodes behavior...
-		 */
-		void (*passonfn)(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread);
-		switch(((bNodeStack*)(lnk->in))->sockettype) {
-		case SOCK_FLOAT:
-			passonfn = passonvalfn;
-			break;
-		case SOCK_VECTOR:
-			passonfn = passonvecfn;
-			break;
-		case SOCK_RGBA:
-			passonfn = passoncolfn;
-			break;
-		default:
-			passonfn = NULL;
-		}
-		for(i = 0; i < lnk->num_outs; i++) {
-			if(((bNodeStack*)(lnk->in))->data && passonfn)
-				tex_output(node, in, ((bNodeStack*)(lnk->outs))+i, passonfn, data);
-		}
-		/* If num_outs > 1, lnk->outs was an allocated table of pointers... */
-		if(i > 1)
-			MEM_freeN(lnk->outs);
-	}
-	BLI_freelistN(&links);
-}
-
 void ntreeTexCheckCyclics(struct bNodeTree *ntree)
 {
 	bNode *node;
-	for(node= ntree->nodes.first; node; node= node->next) {
+	for (node= ntree->nodes.first; node; node= node->next) {
 		
-		if(node->type == TEX_NODE_TEXTURE && node->id)
-		{
+		if (node->type == TEX_NODE_TEXTURE && node->id) {
 			/* custom2 stops the node from rendering */
-			if(node->custom1) {
+			if (node->custom1) {
 				node->custom2 = 1;
 				node->custom1 = 0;
-			} else {
+			}
+			else {
 				Tex *tex = (Tex *)node->id;
 				
 				node->custom2 = 0;
 			
 				node->custom1 = 1;
-				if(tex->use_nodes && tex->nodetree) {
+				if (tex->use_nodes && tex->nodetree) {
 					ntreeTexCheckCyclics(tex->nodetree);
 				}
 				node->custom1 = 0;

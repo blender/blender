@@ -29,8 +29,8 @@
  *  \ingroup bgerastoglfilters
  */
 
-#ifndef __RAS_SEPIA2DFILTER
-#define __RAS_SEPIA2DFILTER
+#ifndef __RAS_SEPIA2DFILTER_H__
+#define __RAS_SEPIA2DFILTER_H__
 
 const char * SepiaFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;

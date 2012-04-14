@@ -308,9 +308,12 @@ extern StructRNA RNA_Menu;
 extern StructRNA RNA_Mesh;
 extern StructRNA RNA_MeshColor;
 extern StructRNA RNA_MeshColorLayer;
+extern StructRNA RNA_MeshLoopColorLayer;
 extern StructRNA RNA_MeshDeformModifier;
 extern StructRNA RNA_MeshEdge;
-extern StructRNA RNA_MeshFace;
+extern StructRNA RNA_MeshPolygon;
+extern StructRNA RNA_MeshTessFace;
+extern StructRNA RNA_MeshLoop;
 extern StructRNA RNA_MeshFloatProperty;
 extern StructRNA RNA_MeshFloatPropertyLayer;
 extern StructRNA RNA_MeshIntProperty;
@@ -320,6 +323,8 @@ extern StructRNA RNA_MeshStringProperty;
 extern StructRNA RNA_MeshStringPropertyLayer;
 extern StructRNA RNA_MeshTextureFace;
 extern StructRNA RNA_MeshTextureFaceLayer;
+extern StructRNA RNA_MeshTexturePoly;
+extern StructRNA RNA_MeshTexturePolyLayer;
 extern StructRNA RNA_MeshVertex;
 extern StructRNA RNA_MessageSensor;
 extern StructRNA RNA_MetaBall;
@@ -331,6 +336,7 @@ extern StructRNA RNA_MotionPath;
 extern StructRNA RNA_MotionPathVert;
 extern StructRNA RNA_MouseSensor;
 extern StructRNA RNA_MovieSequence;
+extern StructRNA RNA_MovieClipSequence;
 extern StructRNA RNA_MovieTrackingObject;
 extern StructRNA RNA_MulticamSequence;
 extern StructRNA RNA_MultiresModifier;
@@ -342,6 +348,7 @@ extern StructRNA RNA_NlaTrack;
 extern StructRNA RNA_Node;
 extern StructRNA RNA_NodeForLoop;
 extern StructRNA RNA_NodeGroup;
+extern StructRNA RNA_NodeImageFileSocket;
 extern StructRNA RNA_NodeLink;
 extern StructRNA RNA_NodeSocket;
 extern StructRNA RNA_NodeSocketPanel;
@@ -945,6 +952,13 @@ int RNA_property_is_idprop(PropertyRNA *prop);
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 char *RNA_pointer_as_string(struct bContext *C, PointerRNA *ptr);
+char *RNA_pointer_as_string_keywords_ex(struct bContext *C, PointerRNA *ptr, PointerRNA *ptr_default,
+                                        const short skip_optional_value, const short all_args,
+                                        PropertyRNA *iterprop);
+char *RNA_pointer_as_string_keywords(struct bContext *C, PointerRNA *ptr, PointerRNA *ptr_default,
+                                     const short skip_optional_value, const short all_args);
+char *RNA_function_as_string_keywords(struct bContext *C, FunctionRNA *func, PointerRNA *ptr_default,
+                                     const short as_function, const short all_args);
 
 /* Function */
 

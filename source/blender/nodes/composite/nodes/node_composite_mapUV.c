@@ -64,10 +64,10 @@ static void do_mapuv(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *uvbuf, float thr
 	sx= stackbuf->x;
 	sy= stackbuf->y;
 	
-	for(y=0; y<sy; y++) {
-		for(x=0; x<sx; x++, out+=4, uv+=3, uvnext+=3, uvprev+=3) {
-			if(x>0 && x<sx-1 && y>0 && y<sy-1) {
-				if(uv[2]!=0.0f) {
+	for (y=0; y<sy; y++) {
+		for (x=0; x<sx; x++, out+=4, uv+=3, uvnext+=3, uvprev+=3) {
+			if (x>0 && x<sx-1 && y>0 && y<sy-1) {
+				if (uv[2]!=0.0f) {
 					float uv_l, uv_r;
 					
 					/* adaptive sampling, red (U) channel */
@@ -113,16 +113,16 @@ static void do_mapuv(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *uvbuf, float thr
 					
 					/* UV to alpha threshold */
 					alpha= 1.0f - threshold*(dx+dy);
-					if(alpha<0.0f) alpha= 0.0f;
+					if (alpha<0.0f) alpha= 0.0f;
 					else alpha*= uv[2];
 					
 					/* should use mipmap */
-					if(dx > 0.20f) dx= 0.20f;
-					if(dy > 0.20f) dy= 0.20f;
+					if (dx > 0.20f) dx= 0.20f;
+					if (dy > 0.20f) dy= 0.20f;
 					
 					ibuf_sample(ibuf, uv[0], uv[1], dx, dy, out);
 					/* premul */
-					if(alpha<1.0f) {
+					if (alpha<1.0f) {
 						out[0]*= alpha;
 						out[1]*= alpha;
 						out[2]*= alpha;
@@ -139,10 +139,10 @@ static void do_mapuv(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *uvbuf, float thr
 
 static void node_composit_exec_mapuv(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	if(out[0]->hasoutput==0)
+	if (out[0]->hasoutput==0)
 		return;
 	
-	if(in[0]->data && in[1]->data) {
+	if (in[0]->data && in[1]->data) {
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *uvbuf= in[1]->data;
 		CompBuf *stackbuf;
@@ -155,9 +155,9 @@ static void node_composit_exec_mapuv(void *UNUSED(data), bNode *node, bNodeStack
 		
 		out[0]->data= stackbuf;
 		
-		if(cbuf!=in[0]->data)
+		if (cbuf!=in[0]->data)
 			free_compbuf(cbuf);
-		if(uvbuf!=in[1]->data)
+		if (uvbuf!=in[1]->data)
 			free_compbuf(uvbuf);
 	}
 }

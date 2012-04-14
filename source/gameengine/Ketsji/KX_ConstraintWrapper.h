@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef KX_CONSTRAINT_WRAPPER
-#define KX_CONSTRAINT_WRAPPER
+#ifndef __KX_CONSTRAINTWRAPPER_H__
+#define __KX_CONSTRAINTWRAPPER_H__
 
 #include "Value.h"
 #include "PHY_DynamicTypes.h"
@@ -41,7 +41,7 @@ class	KX_ConstraintWrapper : public PyObjectPlus
 public:
 	KX_ConstraintWrapper(PHY_ConstraintType ctype,int constraintId,class PHY_IPhysicsEnvironment* physenv);
 	virtual ~KX_ConstraintWrapper ();
-	int			getConstraintId() { return m_constraintId;};
+	int			getConstraintId() { return m_constraintId; }
 	
 #ifdef WITH_PYTHON
 	KX_PYMETHOD_NOARGS(KX_ConstraintWrapper,GetConstraintId);
@@ -57,5 +57,5 @@ private:
 	PHY_IPhysicsEnvironment* m_physenv;
 };
 
-#endif //KX_CONSTRAINT_WRAPPER
+#endif //__KX_CONSTRAINTWRAPPER_H__
 

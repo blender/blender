@@ -79,8 +79,10 @@ set(SRC
 	intern/rand.c
 	intern/rct.c
 	intern/scanfill.c
+	intern/smallhash.c
 	intern/storage.c
 	intern/string.c
+	intern/string_cursor_utf8.c
 	intern/string_utf8.c
 	intern/threads.c
 	intern/time.c
@@ -89,6 +91,8 @@ set(SRC
 	intern/winstuff.c
 
 	BLI_array.h
+	BLI_bitmap.h
+	BLI_smallhash.h
 	BLI_args.h
 	BLI_blenlib.h
 	BLI_boxpack2d.h
@@ -130,6 +134,7 @@ set(SRC
 	BLI_rect.h
 	BLI_scanfill.h
 	BLI_string.h
+	BLI_string_cursor_utf8.h
 	BLI_string_utf8.h
 	BLI_threads.h
 	BLI_utildefines.h
@@ -138,7 +143,6 @@ set(SRC
 	BLI_voxel.h
 	BLI_winstuff.h
 	PIL_time.h
-	intern/dynamiclist.h
 )
 
 if(WITH_BINRELOC)
@@ -154,6 +158,12 @@ endif()
 
 if(WITH_XDG_USER_DIRS)
 	add_definitions(-DWITH_XDG_USER_DIRS)
+endif()
+
+if(WIN32)
+	list(APPEND INC
+		../../../intern/utfconv
+	)
 endif()
 
 blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}")

@@ -666,7 +666,7 @@ PyObject* initPythonConstraintBinding()
 	/* Use existing module where possible
 	 * be careful not to init any runtime vars after this */
 	m = PyImport_ImportModule( "PhysicsConstraints" );
-	if(m) {
+	if (m) {
 		Py_DECREF(m);
 		return m;
 	}

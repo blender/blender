@@ -7,6 +7,8 @@ incs = '. .. #/intern/guardedalloc ../blenlib ../imbuf ../makesdna ../blenloader
 
 defs = []
 
+incs += ' ' + env["BF_PTHREADS_INC"]
+
 if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
     incs += ' ' + env['BF_QUICKTIME_INC']

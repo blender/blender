@@ -104,6 +104,10 @@ set(SRC
 
 if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
+else()
+	list(APPEND SRC
+		intern/openexr/openexr_stub.cpp
+	)
 endif()
 
 if(WITH_IMAGE_TIFF)
@@ -174,6 +178,12 @@ if(WITH_IMAGE_HDR)
 		intern/radiance_hdr.c
 	)
 	add_definitions(-DWITH_HDR)
+endif()
+
+if(WIN32)
+	list(APPEND INC
+		../../../intern/utfconv
+	)
 endif()
 
 blender_add_lib(bf_imbuf "${SRC}" "${INC}" "${INC_SYS}")

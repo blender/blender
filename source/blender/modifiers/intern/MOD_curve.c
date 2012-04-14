@@ -73,7 +73,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(cmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+	if (cmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
@@ -126,16 +126,16 @@ static void deformVerts(ModifierData *md, Object *ob,
 }
 
 static void deformVertsEM(
-					ModifierData *md, Object *ob, struct EditMesh *editData,
+					ModifierData *md, Object *ob, struct BMEditMesh *editData,
 	 DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+	if (!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
 
 	deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
 
-	if(!derivedData) dm->release(dm);
+	if (!derivedData) dm->release(dm);
 }
 
 

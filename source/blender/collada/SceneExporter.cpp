@@ -47,7 +47,7 @@ void SceneExporter::exportHierarchy(Scene *sce)
 		Object *ob = base->object;
 
 		if (!ob->parent) {
-			if(sce->lay & ob->lay) {
+			if (sce->lay & ob->lay) {
 				switch(ob->type) {
 					case OB_MESH:
 					case OB_CAMERA:
@@ -77,6 +77,29 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 	node.start();
 
 	bool is_skinned_mesh = arm_exporter->is_skinned_mesh(ob);
+	std::list<Object*> child_objects;
+
+	// list child objects
+	Base *b = (Base*) sce->base.first;
+	while(b) {
+		// cob - child object
+		Object *cob = b->object;
+
+		if (cob->parent == ob) {
+			switch(cob->type) {
+				case OB_MESH:
+				case OB_CAMERA:
+				case OB_LAMP:
+				case OB_EMPTY:
+				case OB_ARMATURE:
+					child_objects.push_back(cob);
+					break;
+			}
+		}
+
+		b = b->next;
+	}
+
 
 	if (ob->type == OB_MESH && is_skinned_mesh)
 		// for skinned mesh we write obmat in <bind_shape_matrix>
@@ -101,7 +124,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 
 	// <instance_controller>
 	else if (ob->type == OB_ARMATURE) {
-		arm_exporter->add_armature_bones(ob, sce);
+		arm_exporter->add_armature_bones(ob, sce, this, child_objects);
 
 		// XXX this looks unstable...
 		node.end();
@@ -121,37 +144,21 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 
 	// empty object
 	else if (ob->type == OB_EMPTY) { // TODO: handle groups (OB_DUPLIGROUP
-		if((ob->transflag & OB_DUPLIGROUP) == OB_DUPLIGROUP && ob->dup_group) {
+		if ((ob->transflag & OB_DUPLIGROUP) == OB_DUPLIGROUP && ob->dup_group) {
 			GroupObject *go = NULL;
 			Group *gr = ob->dup_group;
 			/* printf("group detected '%s'\n", gr->id.name+2); */
-			for(go = (GroupObject*)(gr->gobject.first); go; go=go->next) {
+			for (go = (GroupObject*)(gr->gobject.first); go; go=go->next) {
 				printf("\t%s\n", go->ob->id.name);
 			}
 		}
 	}
 
-	// write nodes for child objects
-	Base *b = (Base*) sce->base.first;
-	while(b) {
-		// cob - child object
-		Object *cob = b->object;
-
-		if (cob->parent == ob) {
-			switch(cob->type) {
-				case OB_MESH:
-				case OB_CAMERA:
-				case OB_LAMP:
-				case OB_EMPTY:
-				case OB_ARMATURE:
-					// write node...
-					writeNodes(cob, sce);
-					break;
-			}
-		}
-
-		b = b->next;
+	for (std::list<Object*>::iterator i= child_objects.begin(); i != child_objects.end(); ++i)
+	{
+		writeNodes(*i, sce);
 	}
+
 
 	if (ob->type != OB_ARMATURE)
 		node.end();

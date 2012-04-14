@@ -30,8 +30,8 @@
  *  \brief Abstract system
  */
 
-#ifndef __KX_ISYSTEM
-#define __KX_ISYSTEM
+#ifndef __KX_ISYSTEM_H__
+#define __KX_ISYSTEM_H__
 
 #include <vector>
 using namespace std;

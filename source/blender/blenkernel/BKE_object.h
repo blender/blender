@@ -67,6 +67,8 @@ void update_base_layer(struct Scene *scene, struct Object *ob);
 void free_object(struct Object *ob);
 void object_free_display(struct Object *ob);
 
+int object_support_modifier_type(struct Object *ob, int modifier_type);
+
 void object_link_modifiers(struct Object *ob, struct Object *from);
 void object_free_modifiers(struct Object *ob);
 
@@ -83,9 +85,6 @@ struct Object *copy_object(struct Object *ob);
 void make_local_object(struct Object *ob);
 int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
-void set_mblur_offs(float blur);
-void set_field_offs(float field);
-void disable_speed_curve(int val);
 
 void object_scale_to_mat3(struct Object *ob, float mat[][3]);
 void object_rot_to_mat3(struct Object *ob, float mat[][3]);
@@ -104,13 +103,13 @@ void where_is_object_mat(struct Scene *scene, struct Object *ob, float obmat[4][
 struct BoundBox *unit_boundbox(void);
 void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);
 struct BoundBox *object_get_boundbox(struct Object *ob);
-void object_get_dimensions(struct Object *ob, float *value);
+void object_get_dimensions(struct Object *ob, float vec[3]);
 void object_set_dimensions(struct Object *ob, const float *value);
 void object_boundbox_flag(struct Object *ob, int flag, int set);
 void minmax_object(struct Object *ob, float min[3], float max[3]);
-int minmax_object_duplis(struct Scene *scene, struct Object *ob, float *min, float *max);
+int minmax_object_duplis(struct Scene *scene, struct Object *ob, float min[3], float max[3]);
 
-/* sometimes min-max isnt enough, we need to loop over each point */
+/* sometimes min-max isn't enough, we need to loop over each point */
 void BKE_object_foreach_display_point(
         struct Object *ob, float obmat[4][4],
         void (*func_cb)(const float[3], void *), void *user_data);
@@ -122,7 +121,6 @@ void BKE_scene_foreach_display_point(
 
 int BKE_object_parent_loop_check(const struct Object *parent, const struct Object *ob);
 
-void solve_tracking (struct Object *ob, float targetmat[][4]);
 int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
 
 void *object_tfm_backup(struct Object *ob);

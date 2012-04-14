@@ -33,8 +33,8 @@
  */
 
 /*
- Resizable Icons for Blender
-*/
+ * Resizable Icons for Blender
+ */
 
 typedef void (*DrawInfoFreeFP) (void *drawinfo);
 
@@ -82,7 +82,7 @@ void BKE_previewimg_free(struct PreviewImage **prv);
 void BKE_previewimg_free_id(struct ID *id);
 
 /* create a new preview image */
-struct PreviewImage* BKE_previewimg_create(void) ;
+struct PreviewImage* BKE_previewimg_create(void);
 
 /* create a copy of the preview image */
 struct PreviewImage* BKE_previewimg_copy(struct PreviewImage *prv);

@@ -23,7 +23,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Ketsji Logic Extenstion: Network Message Sensor generic implementation
+ * Ketsji Logic Extension: Network Message Sensor generic implementation
  */
 
 /** \file gameengine/Ketsji/KXNetwork/KX_NetworkMessageSensor.cpp
@@ -72,7 +72,8 @@ KX_NetworkMessageSensor::~KX_NetworkMessageSensor()
 {
 }
 
-CValue* KX_NetworkMessageSensor::GetReplica() {
+CValue* KX_NetworkMessageSensor::GetReplica()
+{
 	// This is the standard sensor implementation of GetReplica
 	// There may be more network message sensor specific stuff to do here.
 	CValue* replica = new KX_NetworkMessageSensor(*this);

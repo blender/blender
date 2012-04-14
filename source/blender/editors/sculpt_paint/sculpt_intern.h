@@ -37,6 +37,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_key_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_pbvh.h"
 
 struct bContext;
@@ -50,35 +51,31 @@ struct Sculpt;
 struct SculptStroke;
 
 /* Interface */
-void sculptmode_selectbrush_menu(void);
-void sculptmode_draw_mesh(int);
-void sculpt_paint_brush(char clear);
-void sculpt_stroke_draw(struct SculptStroke *);
-void sculpt_radialcontrol_start(int mode);
 struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
-
-struct Brush *sculptmode_brush(void);
 
 void sculpt(Sculpt *sd);
 
+int sculpt_mode_poll(struct bContext *C);
 int sculpt_poll(struct bContext *C);
-void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob, int need_fmap);
+void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob, int need_pmap);
 
 /* Deformed mesh sculpt */
 void free_sculptsession_deformMats(struct SculptSession *ss);
 
 /* Stroke */
-struct SculptStroke *sculpt_stroke_new(const int max);
-void sculpt_stroke_free(struct SculptStroke *);
-void sculpt_stroke_add_point(struct SculptStroke *, const short x, const short y);
-void sculpt_stroke_apply(struct Sculpt *sd, struct SculptStroke *);
-void sculpt_stroke_apply_all(struct Sculpt *sd, struct SculptStroke *);
 int sculpt_stroke_get_location(bContext *C, float out[3], float mouse[2]);
 
 /* Undo */
 
+typedef enum {
+	SCULPT_UNDO_COORDS,
+	SCULPT_UNDO_HIDDEN
+} SculptUndoType;
+
 typedef struct SculptUndoNode {
 	struct SculptUndoNode *next, *prev;
+
+	SculptUndoType type;
 
 	char idname[MAX_ID_NAME];	/* name instead of pointer*/
 	void *node;					/* only during push, not valid afterwards! */
@@ -91,12 +88,14 @@ typedef struct SculptUndoNode {
 	/* non-multires */
 	int maxvert;				/* to verify if totvert it still the same */
 	int *index;					/* to restore into right location */
+	BLI_bitmap vert_hidden;
 
 	/* multires */
 	int maxgrid;				/* same for grid */
 	int gridsize;				/* same for grid */
 	int totgrid;				/* to restore into right location */
 	int *grids;					/* to restore into right location */
+	BLI_bitmap *grid_hidden;
 
 	/* layer brush */
 	float *layer_disp;
@@ -105,7 +104,7 @@ typedef struct SculptUndoNode {
 	char shapeName[sizeof(((KeyBlock *)0))->name];
 } SculptUndoNode;
 
-SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node);
+SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
 void sculpt_undo_push_begin(const char *name);
 void sculpt_undo_push_end(void);

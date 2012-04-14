@@ -111,14 +111,14 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 	out[1]=in[1];
 	out[2]=in[2];
 
-	if(kfg>0.0f) {  /* found a pixel that is within key color */
+	if (kfg>0.0f) {  /* found a pixel that is within key color */
 		alpha=(1.0f-kfg)*(c->fstrength);
 
 		beta=atan2(z,x);
 		angle2=c->t2; /* t2 is radians. */
 
 		/* if beta is within the cutoff angle */
-		if(fabsf(beta) < (angle2/2.0f)) {
+		if (fabsf(beta) < (angle2/2.0f)) {
 			alpha=0.0;
 		}
 
@@ -144,9 +144,9 @@ static void node_composit_exec_chroma_matte(void *data, bNode *node, bNodeStack 
 	CompBuf *chromabuf;
 	NodeChroma *c;
 	
-	if(in[0]->hasinput==0) return;
-	if(in[0]->data==NULL) return;
-	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
+	if (in[0]->hasinput==0) return;
+	if (in[0]->data==NULL) return;
+	if (out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
 	
 	cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 	
@@ -166,12 +166,12 @@ static void node_composit_exec_chroma_matte(void *data, bNode *node, bNodeStack 
 	composit1_pixel_processor(node, chromabuf, chromabuf, in[0]->vec, do_ycca_to_rgba_normalized, CB_RGBA);
 	
 	out[0]->data= chromabuf;
-	if(out[1]->hasoutput)
+	if (out[1]->hasoutput)
 		out[1]->data= valbuf_from_rgbabuf(chromabuf, CHAN_A);
 	
 	generate_preview(data, node, chromabuf);
 
-	if(cbuf!=in[0]->data)
+	if (cbuf!=in[0]->data)
 		free_compbuf(cbuf);
 }
 

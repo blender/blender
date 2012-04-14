@@ -132,10 +132,12 @@ typedef struct KeyingSetInfo {
 	struct KeyingSetInfo *next, *prev;
 	
 	/* info */
-		/* identifier so that user can hook this up to a KeyingSet */
-	char name[64];
 		/* identifier used for class name, which KeyingSet instances reference as "Typeinfo Name" */
 	char idname[64];
+		/* identifier so that user can hook this up to a KeyingSet (used as label). */
+	char name[64];
+		/* short help/description. */
+	char description[240]; /* RNA_DYN_DESCR_MAX */
 		/* keying settings */
 	short keyingflag;
 	
@@ -207,9 +209,6 @@ int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks);
 
 /* Get Keying Set to use for Auto-Keyframing some transforms */
 struct KeyingSet *ANIM_get_keyingset_for_autokeying(struct Scene *scene, const char *tranformKSName);
-
-/* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
-void ANIM_keying_sets_menu_setup(struct bContext *C, const char title[], const char op_name[]);
 
 /* Dynamically populate an enum of Keying Sets */
 struct EnumPropertyItem *ANIM_keying_sets_enum_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int *free);

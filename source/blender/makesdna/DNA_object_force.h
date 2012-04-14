@@ -130,7 +130,7 @@ typedef struct EffectorWeights {
  * - to add new data types update:
  *		* BKE_ptcache_data_size()
  *		* ptcache_file_init_pointers()
-*/
+ */
 #define BPHYS_DATA_INDEX		0
 #define BPHYS_DATA_LOCATION		1
 #define BPHYS_DATA_SMOKE_LOW	1
@@ -276,9 +276,10 @@ typedef struct SoftBody {
 	
 	/* general options */
 	float nodemass;		/* softbody mass of *vertex* */
-	char  namedVG_Mass[64]; /* MAX_VGROUP_NAME */ /* along with it introduce mass painting
-							starting to fix old bug .. nastyness that VG are indexes 
-								rather find them by name tag to find it -> jow20090613 */
+	char  namedVG_Mass[64]; /* MAX_VGROUP_NAME */
+	                        /* along with it introduce mass painting
+	                         * starting to fix old bug .. nastyness that VG are indexes
+	                         * rather find them by name tag to find it -> jow20090613 */
 	float grav;			/* softbody amount of gravitaion to apply */
 	float mediafrict;	/* friction to env */
 	float rklimit;		/* error limit for ODE solver */
@@ -291,17 +292,19 @@ typedef struct SoftBody {
 	float maxgoal;
 	float defgoal;		/* default goal for vertices without vgroup */
 	short vertgroup;	/* index starting at 1 */
-	char  namedVG_Softgoal[64]; /* MAX_VGROUP_NAME */ /* starting to fix old bug .. nastyness that VG are indexes 
-								rather find them by name tag to find it -> jow20090613 */
+	char  namedVG_Softgoal[64]; /* MAX_VGROUP_NAME */
+	                            /* starting to fix old bug .. nastyness that VG are indexes
+	                             * rather find them by name tag to find it -> jow20090613 */
   
 	short fuzzyness;      /* */
 	
 	/* springs */
 	float inspring;		/* softbody inner springs */
 	float infrict;		/* softbody inner springs friction */
-	char  namedVG_Spring_K[64]; /* MAX_VGROUP_NAME */ /* along with it introduce Spring_K painting
-	                               starting to fix old bug .. nastyness that VG are indexes
-	                               rather find them by name tag to find it -> jow20090613 */
+	char  namedVG_Spring_K[64]; /* MAX_VGROUP_NAME */
+	                            /* along with it introduce Spring_K painting
+	                             * starting to fix old bug .. nastyness that VG are indexes
+	                             * rather find them by name tag to find it -> jow20090613 */
 	
 	/* baking */
 	int sfra, efra;
@@ -325,7 +328,7 @@ typedef struct SoftBody {
 		choke,
 		solver_ID,
 		plastic,springpreload
-		;   
+		;
 
 	struct SBScratch *scratch;	/* scratch pad/cache on live time not saved in file */
 	float shearstiff;
@@ -398,7 +401,7 @@ typedef struct SoftBody {
 #define PTCACHE_FRAMES_SKIPPED		256
 #define PTCACHE_EXTERNAL			512
 #define PTCACHE_READ_INFO			1024
-/* dont use the filename of the blendfile the data is linked from (write a local cache) */
+/* don't use the filename of the blendfile the data is linked from (write a local cache) */
 #define PTCACHE_IGNORE_LIBPATH		2048
 /* high resolution cache is saved for smoke for backwards compatibility, so set this flag to know it's a "fake" cache */
 #define PTCACHE_FAKE_SMOKE			(1<<12)

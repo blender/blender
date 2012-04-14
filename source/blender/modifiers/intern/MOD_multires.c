@@ -36,12 +36,14 @@
 #include <stddef.h>
 
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
+#include "BKE_subsurf.h"
 
 #include "MOD_util.h"
 
@@ -71,33 +73,47 @@ static void copyData(ModifierData *md, ModifierData *target)
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 						   int useRenderParams, int isFinalCalc)
 {
-	SculptSession *ss= ob->sculpt;
-	int sculpting= (ob->mode & OB_MODE_SCULPT) && ss;
 	MultiresModifierData *mmd = (MultiresModifierData*)md;
 	DerivedMesh *result;
 	Mesh *me= (Mesh*)ob->data;
 
-	if(mmd->totlvl) {
-		if(!CustomData_get_layer(&me->fdata, CD_MDISPS)) {
+	if (mmd->totlvl) {
+		if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
 			/* multires always needs a displacement layer */
-			CustomData_add_layer(&me->fdata, CD_MDISPS, CD_CALLOC, NULL, me->totface);
+			CustomData_add_layer(&me->ldata, CD_MDISPS, CD_CALLOC, NULL, me->totloop);
 		}
 	}
 
-	result = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams, isFinalCalc);
+	result = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams);
 
-	if(result == dm)
+	if (result == dm)
 		return dm;
 
-	if(useRenderParams || !isFinalCalc) {
-		DerivedMesh *cddm= CDDM_copy(result);
+	if (useRenderParams || !isFinalCalc) {
+		DerivedMesh *cddm;
+		
+		cddm= CDDM_copy(result);
+
+		/* copy hidden flag to vertices */
+		if (!useRenderParams) {
+			struct MDisps *mdisps;
+			mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
+			if (mdisps) {
+				subsurf_copy_grid_hidden(result, me->mpoly,
+										 cddm->getVertArray(cddm),
+										 mdisps);
+
+				mesh_flush_hidden_from_verts(cddm->getVertArray(cddm),
+											 cddm->getLoopArray(cddm),
+											 cddm->getEdgeArray(cddm),
+											 cddm->getNumEdges(cddm),
+											 cddm->getPolyArray(cddm),
+											 cddm->getNumPolys(cddm));
+			}
+		}
+
 		result->release(result);
 		result= cddm;
-	}
-	else if(sculpting) {
-		/* would be created on the fly too, just nicer this
-		   way on first stroke after e.g. switching levels */
-		ss->pbvh= result->getPBVH(ob, result);
 	}
 
 	return result;

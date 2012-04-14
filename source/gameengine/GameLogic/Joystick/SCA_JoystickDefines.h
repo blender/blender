@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef _SCA_JOYSTICKDEFINES_H_
-#define _SCA_JOYSTICKDEFINES_H_
+#ifndef __SCA_JOYSTICKDEFINES_H__
+#define __SCA_JOYSTICKDEFINES_H__
 
 #ifdef main
 #undef main

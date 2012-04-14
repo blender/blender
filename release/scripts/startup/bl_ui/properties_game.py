@@ -122,7 +122,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             col = split.column()
             col.label(text="Attributes:")
             col.prop(game, "mass")
-            col.prop(soft, "weld_threshold")
+            # disabled in the code
+            # col.prop(soft, "weld_threshold")
             col.prop(soft, "location_iterations")
             col.prop(soft, "linear_stiffness", slider=True)
             col.prop(soft, "dynamic_friction", slider=True)
@@ -329,7 +330,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
                 col.prop(gs, "dome_angle", slider=True)
 
                 col = split.column()
-                col.prop(gs, "dome_tesselation", text="Tesselation")
+                col.prop(gs, "dome_tessellation", text="Tessellation")
                 col.prop(gs, "dome_tilt")
 
             elif dome_type == 'PANORAM_SPH':
@@ -337,7 +338,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
 
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
                 col = split.column()
-                col.prop(gs, "dome_tesselation", text="Tesselation")
+                col.prop(gs, "dome_tessellation", text="Tessellation")
 
             else:  # cube map
                 col = split.column()

@@ -61,7 +61,7 @@ void KX_RayCast::reportHit(PHY_RayCastResult* result)
 
 bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_Point3& _frompoint, const MT_Point3& topoint, KX_RayCast& callback)
 {
-	if(physics_environment==NULL) return false; /* prevents crashing in some cases */
+	if (physics_environment==NULL) return false; /* prevents crashing in some cases */
 	
 	// Loops over all physics objects between frompoint and topoint,
 	// calling callback.RayHit for each one.
@@ -103,7 +103,7 @@ bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_
 		// Note that retrieving in a single shot multiple hit points would be possible 
 		// but it would require some change in Bullet.
 		prevpoint = callback.m_hitPoint;
-		/* We add 0.001 of fudge, so that if the margin && radius == 0., we don't endless loop. */
+		/* We add 0.001 of fudge, so that if the margin && radius == 0.0, we don't endless loop. */
 		MT_Scalar marg = 0.001 + hit_controller->GetMargin();
 		marg *= 2.f;
 		/* Calculate the other side of this object */

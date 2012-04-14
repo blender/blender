@@ -368,7 +368,7 @@ bool rcBuildHeightfieldLayers(rcContext* ctx, rcCompactHeightfield& chf,
 				rcLayerRegion& rj = regs[j];
 				if (!rj.base) continue;
 				
-				// Skip if teh regions are not close to each other.
+				// Skip if the regions are not close to each other.
 				if (!overlapRange(ri.ymin,ri.ymax+mergeHeight, rj.ymin,rj.ymax+mergeHeight))
 					continue;
 				// Skip if the height range would become too large.

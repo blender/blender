@@ -41,7 +41,7 @@ if len(sys.argv) >= 3:
 # scons does own packaging
 if builder.find('scons') != -1:
     os.chdir('../blender')
-    scons_options = ['BF_QUICK=slnt', 'BUILDBOT_BRANCH=' + branch, 'buildslave']
+    scons_options = ['BF_QUICK=slnt', 'BUILDBOT_BRANCH=' + branch, 'buildslave', 'BF_FANCY=False']
 
     if builder.find('linux') != -1:
         buildbot_dir = os.path.dirname(os.path.realpath(__file__))

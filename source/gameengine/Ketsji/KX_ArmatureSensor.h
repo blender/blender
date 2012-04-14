@@ -30,8 +30,8 @@
  *  \brief Property sensor
  */
 
-#ifndef __KX_ARMATURESENSOR
-#define __KX_ARMATURESENSOR
+#ifndef __KX_ARMATURESENSOR_H__
+#define __KX_ARMATURESENSOR_H__
 
 struct bConstraint;
 

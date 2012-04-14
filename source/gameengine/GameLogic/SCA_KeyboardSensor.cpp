@@ -39,6 +39,10 @@
 #include "StringValue.h"
 #include "SCA_IInputDevice.h"
 
+extern "C" {
+	#include "BLI_string_cursor_utf8.h"
+}
+
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -294,7 +298,7 @@ bool SCA_KeyboardSensor::Evaluate()
 		}
 		
 		/* Modify the key state based on qual(s)
-		 * Tested carefuly. dont touch unless your really sure.
+		 * Tested carefully. don't touch unless your really sure.
 		 * note, this will only change the results if key modifiers are set.
 		 *
 		 * When all modifiers and keys are positive
@@ -338,7 +342,11 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 				STR_String newprop = tprop->GetText();
 				int oldlength = newprop.Length();
 				if (oldlength >= 1 ) {
-					newprop.SetLength(oldlength - 1);
+					int newlength=oldlength;
+
+					BLI_str_cursor_step_prev_utf8(newprop, newprop.Length(), &newlength);
+					newprop.SetLength(newlength);
+
 					CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);
 					GetParent()->SetProperty(m_targetprop, newstringprop);
 					newstringprop->Release();
@@ -432,7 +440,7 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 	int keycode = PyLong_AsSsize_t(value);
 	
 	if ((keycode < SCA_IInputDevice::KX_BEGINKEY)
-		|| (keycode > SCA_IInputDevice::KX_ENDKEY)){
+		|| (keycode > SCA_IInputDevice::KX_ENDKEY)) {
 		PyErr_SetString(PyExc_AttributeError, "sensor.getKeyStatus(int): Keyboard Sensor, invalid keycode specified!");
 		return NULL;
 	}

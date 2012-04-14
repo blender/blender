@@ -171,7 +171,7 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	/* 'standard' behaviour - check if selected, then apply relevant selection */
+	/* 'standard' behavior - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
 		deselect_nla_strips(&ac, DESELECT_STRIPS_NOTEST, SELECT_INVERT);
 	else
@@ -186,16 +186,16 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 void NLA_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
-	ot->idname= "NLA_OT_select_all_toggle";
-	ot->description= "(De)Select all NLA-Strips";
+	ot->name = "(De)select All";
+	ot->idname = "NLA_OT_select_all_toggle";
+	ot->description = "Select or deselect all NLA-Strips";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_deselectall_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_deselectall_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
@@ -294,10 +294,10 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 		deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_SUBTRACT);
 
 	/* get settings from operator */
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
 		
 	if (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT)
 		selectmode = SELECT_ADD;
@@ -308,7 +308,7 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
 		/* mode depends on which axis of the range is larger to determine which axis to use 
 		 *	- checking this in region-space is fine, as it's fundamentally still going to be a different rect size
-		 *	- the frame-range select option is favoured over the channel one (x over y), as frame-range one is often
+		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
 		if ((rect.xmax - rect.xmin) >= (rect.ymax - rect.ymin))
@@ -331,20 +331,20 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 void NLA_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->idname= "NLA_OT_select_border";
-	ot->description= "Use box selection to grab NLA-Strips";
+	ot->name = "Border Select";
+	ot->idname = "NLA_OT_select_border";
+	ot->description = "Use box selection to grab NLA-Strips";
 	
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= nlaedit_borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = nlaedit_borderselect_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 	
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, 1);
@@ -484,20 +484,20 @@ static int nlaedit_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 void NLA_OT_select_leftright (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Left/Right";
-	ot->idname= "NLA_OT_select_leftright";
-	ot->description= "Select strips to the left or the right of the current frame";
+	ot->name = "Select Left/Right";
+	ot->idname = "NLA_OT_select_leftright";
+	ot->description = "Select strips to the left or the right of the current frame";
 	
 	/* api callbacks  */
-	ot->invoke= nlaedit_select_leftright_invoke;
-	ot->exec= nlaedit_select_leftright_exec;
-	ot->poll= ED_operator_nla_active;
+	ot->invoke = nlaedit_select_leftright_invoke;
+	ot->exec = nlaedit_select_leftright_exec;
+	ot->poll = ED_operator_nla_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
+	ot->prop = RNA_def_enum(ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
 }
 
@@ -538,7 +538,7 @@ static void mouse_nla_strips (bContext *C, bAnimContext *ac, const int mval[2], 
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		printf("Error: animation channel (index = %d) not found in mouse_nla_strips() \n", channel_index);
+		printf("Error: animation channel (index = %d) not found in mouse_nla_strips()\n", channel_index);
 		BLI_freelistN(&anim_data);
 		return;
 	}
@@ -646,16 +646,16 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 void NLA_OT_click_select (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Select";
-	ot->idname= "NLA_OT_click_select";
-	ot->description= "Handle clicks to select NLA Strips";
+	ot->name = "Mouse Select";
+	ot->idname = "NLA_OT_click_select";
+	ot->description = "Handle clicks to select NLA Strips";
 	
 	/* api callbacks - absolutely no exec() this yet... */
-	ot->invoke= nlaedit_clickselect_invoke;
-	ot->poll= ED_operator_nla_active;
+	ot->invoke = nlaedit_clickselect_invoke;
+	ot->poll = ED_operator_nla_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY

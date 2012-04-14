@@ -34,13 +34,15 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_group_types.h"
+#include "DNA_lattice_types.h"
 
 #include "BLI_math.h"
-#include "BLI_editVert.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
@@ -48,9 +50,11 @@
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
+#include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_tessmesh.h"
 #include "BKE_multires.h"
 #include "BKE_armature.h"
 
@@ -115,7 +119,7 @@ static void object_clear_rot(Object *ob)
 				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
 					ob->quat[3]= ob->dquat[3]= 0.0f;
 					
-				// TODO: does this quat need normalising now?
+				// TODO: does this quat need normalizing now?
 			}
 			else {
 				/* the flag may have been set for the other modes, so just ignore the extra flag... */
@@ -212,7 +216,7 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	KeyingSet *ks;
 	
 	/* sanity checks */
-	if ELEM(NULL, clear_func, default_ksName) {
+	if (ELEM(NULL, clear_func, default_ksName)) {
 		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform func or Keying Set Name");
 		return OPERATOR_CANCELLED;
 	}
@@ -256,16 +260,16 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Location";
+	ot->name = "Clear Location";
 	ot->description = "Clear the object's location";
-	ot->idname= "OBJECT_OT_location_clear";
+	ot->idname = "OBJECT_OT_location_clear";
 	
 	/* api callbacks */
-	ot->exec= object_location_clear_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec = object_location_clear_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_rotation_clear_exec(bContext *C, wmOperator *op)
@@ -276,16 +280,16 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Rotation";
+	ot->name = "Clear Rotation";
 	ot->description = "Clear the object's rotation";
-	ot->idname= "OBJECT_OT_rotation_clear";
+	ot->idname = "OBJECT_OT_rotation_clear";
 	
 	/* api callbacks */
-	ot->exec= object_rotation_clear_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec = object_rotation_clear_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_scale_clear_exec(bContext *C, wmOperator *op)
@@ -296,16 +300,16 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Scale";
+	ot->name = "Clear Scale";
 	ot->description = "Clear the object's scale";
-	ot->idname= "OBJECT_OT_scale_clear";
+	ot->idname = "OBJECT_OT_scale_clear";
 	
 	/* api callbacks */
-	ot->exec= object_scale_clear_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec = object_scale_clear_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* --------------- */
@@ -342,16 +346,16 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Origin";
+	ot->name = "Clear Origin";
 	ot->description = "Clear the object's origin";
-	ot->idname= "OBJECT_OT_origin_clear";
+	ot->idname = "OBJECT_OT_origin_clear";
 	
 	/* api callbacks */
-	ot->exec= object_origin_clear_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec = object_origin_clear_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /*************************** Apply Transformation ****************************/
@@ -364,8 +368,8 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob )
 	Object *ob_child;
 	
 	/* a change was made, adjust the children to compensate */
-	for(ob_child=bmain->object.first; ob_child; ob_child=ob_child->id.next) {
-		if(ob_child->parent == ob) {
+	for (ob_child=bmain->object.first; ob_child; ob_child=ob_child->id.next) {
+		if (ob_child->parent == ob) {
 			object_apply_mat4(ob_child, ob_child->obmat, TRUE, FALSE);
 			what_does_parent(scene, ob_child, &workob);
 			invert_m4_m4(ob_child->parentinv, workob.obmat);
@@ -383,33 +387,39 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	/* first check if we can execute */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
-		if(ob->type==OB_MESH) {
-			if(ID_REAL_USERS(ob->data) > 1) {
+		if (ob->type==OB_MESH) {
+			if (ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user mesh, doing nothing");
 				return OPERATOR_CANCELLED;
 			}
 		}
-		else if(ob->type==OB_ARMATURE) {
-			if(ID_REAL_USERS(ob->data) > 1) {
+		else if (ob->type==OB_ARMATURE) {
+			if (ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user armature, doing nothing");
 				return OPERATOR_CANCELLED;
 			}
 		}
-		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		else if (ob->type == OB_LATTICE) {
+			if (ID_REAL_USERS(ob->data) > 1) {
+				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user lattice, doing nothing");
+				return OPERATOR_CANCELLED;
+			}
+		}
+		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Curve *cu;
 
-			if(ID_REAL_USERS(ob->data) > 1) {
+			if (ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user curve, doing nothing");
 				return OPERATOR_CANCELLED;
 			}
 
 			cu= ob->data;
 
-			if(!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
+			if (!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
 				BKE_report(reports, RPT_ERROR, "Neither rotation nor location could be applied to a 2d curve, doing nothing");
 				return OPERATOR_CANCELLED;
 			}
-			if(cu->key) {
+			if (cu->key) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a curve with vertex keys, doing nothing");
 				return OPERATOR_CANCELLED;
 			}
@@ -421,11 +431,11 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
 		/* calculate rotation/scale matrix */
-		if(apply_scale && apply_rot)
+		if (apply_scale && apply_rot)
 			object_to_mat3(ob, rsmat);
-		else if(apply_scale)
+		else if (apply_scale)
 			object_scale_to_mat3(ob, rsmat);
-		else if(apply_rot) {
+		else if (apply_rot) {
 			float tmat[3][3], timat[3][3];
 
 			/* simple rotation matrix */
@@ -443,10 +453,10 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		copy_m4_m3(mat, rsmat);
 
 		/* calculate translation */
-		if(apply_loc) {
+		if (apply_loc) {
 			copy_v3_v3(mat[3], ob->loc);
 
-			if(!(apply_scale && apply_rot)) {
+			if (!(apply_scale && apply_rot)) {
 				/* correct for scale and rotation that is still applied */
 				object_to_mat3(ob, obmat);
 				invert_m3_m3(iobmat, obmat);
@@ -456,7 +466,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		}
 
 		/* apply to object data */
-		if(ob->type==OB_MESH) {
+		if (ob->type==OB_MESH) {
 			Mesh *me= ob->data;
 			MVert *mvert;
 
@@ -464,27 +474,37 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			
 			/* adjust data */
 			mvert= me->mvert;
-			for(a=0; a<me->totvert; a++, mvert++)
+			for (a=0; a<me->totvert; a++, mvert++)
 				mul_m4_v3(mat, mvert->co);
 			
-			if(me->key) {
+			if (me->key) {
 				KeyBlock *kb;
 				
-				for(kb=me->key->block.first; kb; kb=kb->next) {
+				for (kb=me->key->block.first; kb; kb=kb->next) {
 					float *fp= kb->data;
 					
-					for(a=0; a<kb->totelem; a++, fp+=3)
+					for (a=0; a<kb->totelem; a++, fp+=3)
 						mul_m4_v3(mat, fp);
 				}
 			}
 			
 			/* update normals */
-			mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+			mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 		}
 		else if (ob->type==OB_ARMATURE) {
 			ED_armature_apply_transform(ob, mat);
 		}
-		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		else if (ob->type == OB_LATTICE) {
+			Lattice *lt = ob->data;
+			BPoint *bp = lt->def;
+			int a = lt->pntsu * lt->pntsv * lt->pntsw;
+			
+			while (a--) {
+				mul_m4_v3(mat, bp->vec);
+				bp++;
+			}
+		}
+		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= ob->data;
 
 			Nurb *nu;
@@ -493,10 +513,10 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 			scale = mat3_to_scale(rsmat);
 
-			for(nu=cu->nurb.first; nu; nu=nu->next) {
-				if(nu->type == CU_BEZIER) {
+			for (nu=cu->nurb.first; nu; nu=nu->next) {
+				if (nu->type == CU_BEZIER) {
 					a= nu->pntsu;
-					for(bezt= nu->bezt; a--; bezt++) {
+					for (bezt= nu->bezt; a--; bezt++) {
 						mul_m4_v3(mat, bezt->vec[0]);
 						mul_m4_v3(mat, bezt->vec[1]);
 						mul_m4_v3(mat, bezt->vec[2]);
@@ -506,7 +526,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 				}
 				else {
 					a= nu->pntsu*nu->pntsv;
-					for(bp= nu->bp; a--; bp++)
+					for (bp= nu->bp; a--; bp++)
 						mul_m4_v3(mat, bp->vec);
 				}
 			}
@@ -514,18 +534,18 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		else
 			continue;
 
-		if(apply_loc)
+		if (apply_loc)
 			zero_v3(ob->loc);
-		if(apply_scale)
+		if (apply_scale)
 			ob->size[0]= ob->size[1]= ob->size[2]= 1.0f;
-		if(apply_rot) {
+		if (apply_rot) {
 			zero_v3(ob->rot);
 			unit_qt(ob->quat);
 			unit_axis_angle(ob->rotAxis, &ob->rotAngle);
 		}
 
 		where_is_object(scene, ob);
-		if(ob->type==OB_ARMATURE) {
+		if (ob->type==OB_ARMATURE) {
 			where_is_pose(scene, ob); /* needed for bone parents */
 		}
 
@@ -537,7 +557,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	}
 	CTX_DATA_END;
 
-	if(!change)
+	if (!change)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
@@ -561,7 +581,7 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	CTX_DATA_END;
 
-	if(!change)
+	if (!change)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
@@ -571,16 +591,16 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Visual Transform";
+	ot->name = "Apply Visual Transform";
 	ot->description = "Apply the object's visual transformation to its data";
-	ot->idname= "OBJECT_OT_visual_transform_apply";
+	ot->idname = "OBJECT_OT_visual_transform_apply";
 	
 	/* api callbacks */
-	ot->exec= visual_transform_apply_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec = visual_transform_apply_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_transform_apply_exec(bContext *C, wmOperator *op)
@@ -589,7 +609,7 @@ static int object_transform_apply_exec(bContext *C, wmOperator *op)
 	const int rot= RNA_boolean_get(op->ptr, "rotation");
 	const int sca= RNA_boolean_get(op->ptr, "scale");
 
-	if(loc || rot || sca) {
+	if (loc || rot || sca) {
 		return apply_objects_internal(C, op->reports, loc, rot, sca);
 	}
 	else {
@@ -600,16 +620,16 @@ static int object_transform_apply_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Object Transform";
+	ot->name = "Apply Object Transform";
 	ot->description = "Apply the object's transformation to its data";
-	ot->idname= "OBJECT_OT_transform_apply";
+	ot->idname = "OBJECT_OT_transform_apply";
 
 	/* api callbacks */
-	ot->exec= object_transform_apply_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->exec = object_transform_apply_exec;
+	ot->poll = ED_operator_objectmode;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "location", 0, "Location", "");
 	RNA_def_boolean(ot->srna, "rotation", 0, "Rotation", "");
@@ -642,51 +662,52 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		/* get the view settings if 'around' isnt set and the view is available */
+		/* get the view settings if 'around' isn't set and the view is available */
 		View3D *v3d= CTX_wm_view3d(C);
 		copy_v3_v3(cursor, give_cursor(scene, v3d));
-		if(v3d && !RNA_struct_property_is_set(op->ptr, "center"))
+		if (v3d && !RNA_struct_property_is_set(op->ptr, "center"))
 			around= v3d->around;
 	}
 
 	zero_v3(cent);
 
-	if(obedit) {
+	if (obedit) {
 		INIT_MINMAX(min, max);
 
-		if(obedit->type==OB_MESH) {
+		if (obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			EditMesh *em = BKE_mesh_get_editmesh(me);
-			EditVert *eve;
-
-			if(around==V3D_CENTROID) {
-				int total= 0;
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					total++;
-					add_v3_v3(cent, eve->co);
-				}
-				if(total) {
-					mul_v3_fl(cent, 1.0f/(float)total);
-				}
+			BMEditMesh *em = me->edit_btmesh;
+			BMVert *eve;
+			BMIter iter;
+			int total = 0;
+			
+			if (centermode == ORIGIN_TO_CURSOR) {
+				copy_v3_v3(cent, cursor);
+				invert_m4_m4(obedit->imat, obedit->obmat);
+				mul_m4_v3(obedit->imat, cent);
 			}
 			else {
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					DO_MINMAX(eve->co, min, max);
+				BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+					if (around==V3D_CENTROID) {
+						total++;
+						add_v3_v3(cent, eve->co);
+						mul_v3_fl(cent, 1.0f/(float)total);
+					}
+					else {
+						DO_MINMAX(eve->co, min, max);
+						mid_v3_v3v3(cent, min, max);
+					}
 				}
-				mid_v3_v3v3(cent, min, max);
+			}
+			
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+				sub_v3_v3(eve->co, cent);
 			}
 
-			if(!is_zero_v3(cent)) {
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					sub_v3_v3(eve->co, cent);
-				}
-
-				recalc_editnormals(em);
-				tot_change++;
-				DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
-			}
-			BKE_mesh_end_editmesh(me, em);
-		}
+			EDBM_mesh_normals_update(em);
+			tot_change++;
+			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	    }
 	}
 
 	/* reset flags */
@@ -696,31 +717,31 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	for (tob= bmain->object.first; tob; tob= tob->id.next) {
-		if(tob->data)
+		if (tob->data)
 			((ID *)tob->data)->flag &= ~LIB_DOIT;
-		if(tob->dup_group)
+		if (tob->dup_group)
 			((ID *)tob->dup_group)->flag &= ~LIB_DOIT;
 	}
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if((ob->flag & OB_DONE)==0) {
+		if ((ob->flag & OB_DONE)==0) {
 			int do_inverse_offset = FALSE;
 			ob->flag |= OB_DONE;
 
-			if(centermode == ORIGIN_TO_CURSOR) {
+			if (centermode == ORIGIN_TO_CURSOR) {
 				copy_v3_v3(cent, cursor);
 				invert_m4_m4(ob->imat, ob->obmat);
 				mul_m4_v3(ob->imat, cent);
 			}
 			
-			if(ob->data == NULL) {
+			if (ob->data == NULL) {
 				/* special support for dupligroups */
-				if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group && (ob->dup_group->id.flag & LIB_DOIT)==0) {
-					if(ob->dup_group->id.lib) {
+				if ((ob->transflag & OB_DUPLIGROUP) && ob->dup_group && (ob->dup_group->id.flag & LIB_DOIT)==0) {
+					if (ob->dup_group->id.lib) {
 						tot_lib_error++;
 					}
 					else {
-						if(centermode == ORIGIN_TO_CURSOR) { /* done */ }
+						if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
 						else {
 							/* only bounds support */
 							INIT_MINMAX(min, max);
@@ -742,11 +763,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				tot_lib_error++;
 			}
 
-			if(obedit==NULL && ob->type==OB_MESH) {
+			if (obedit==NULL && ob->type==OB_MESH) {
 				Mesh *me= ob->data;
 
-				if(centermode == ORIGIN_TO_CURSOR) { /* done */ }
-				else if(around==V3D_CENTROID) { mesh_center_median(me, cent); }
+				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				else if (around==V3D_CENTROID) { mesh_center_median(me, cent); }
 				else { mesh_center_bounds(me, cent); }
 
 				negate_v3_v3(cent_neg, cent);
@@ -759,12 +780,12 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 				Curve *cu= ob->data;
 
-				if(centermode == ORIGIN_TO_CURSOR) { /* done */ }
-				else if(around==V3D_CENTROID) { curve_center_median(cu, cent); }
+				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				else if (around==V3D_CENTROID) { curve_center_median(cu, cent); }
 				else { curve_center_bounds(cu, cent);	}
 
 				/* don't allow Z change if curve is 2D */
-				if((ob->type == OB_CURVE) && !(cu->flag & CU_3D))
+				if ((ob->type == OB_CURVE) && !(cu->flag & CU_3D))
 					cent[2] = 0.0;
 
 				negate_v3_v3(cent_neg, cent);
@@ -774,23 +795,23 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				cu->id.flag |= LIB_DOIT;
 				do_inverse_offset= TRUE;
 
-				if(obedit) {
+				if (obedit) {
 					if (centermode == GEOMETRY_TO_ORIGIN) {
 						DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 					}
 					break;
 				}
 			}
-			else if(ob->type==OB_FONT) {
+			else if (ob->type==OB_FONT) {
 				/* get from bb */
 
 				Curve *cu= ob->data;
 
-				if(cu->bb==NULL && (centermode != ORIGIN_TO_CURSOR)) {
+				if (cu->bb==NULL && (centermode != ORIGIN_TO_CURSOR)) {
 					/* do nothing*/
 				}
 				else {
-					if(centermode == ORIGIN_TO_CURSOR) {
+					if (centermode == ORIGIN_TO_CURSOR) {
 						/* done */
 					}
 					else {
@@ -808,12 +829,14 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					do_inverse_offset= TRUE;
 				}
 			}
-			else if(ob->type==OB_ARMATURE) {
+			else if (ob->type==OB_ARMATURE) {
 				bArmature *arm = ob->data;
 
-				if(ID_REAL_USERS(arm) > 1) {
-					/*BKE_report(op->reports, RPT_ERROR, "Can't apply to a multi user armature");
-					return;*/
+				if (ID_REAL_USERS(arm) > 1) {
+#if 0
+					BKE_report(op->reports, RPT_ERROR, "Can't apply to a multi user armature");
+					return;
+#endif
 					tot_multiuser_arm_error++;
 				}
 				else {
@@ -831,13 +854,34 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					ignore_parent_tx(bmain, scene, ob);
 
-					if(obedit)
+					if (obedit)
 						break;
+				}
+			}
+			else if (ob->type == OB_MBALL) {
+				MetaBall *mb = ob->data;
+
+				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				else if (around==V3D_CENTROID) { BKE_metaball_center_median(mb, cent); }
+				else { BKE_metaball_center_bounds(mb, cent);	}
+
+				negate_v3_v3(cent_neg, cent);
+				BKE_metaball_translate(mb, cent_neg);
+
+				tot_change++;
+				mb->id.flag |= LIB_DOIT;
+				do_inverse_offset= TRUE;
+
+				if (obedit) {
+					if (centermode == GEOMETRY_TO_ORIGIN) {
+						DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+					}
+					break;
 				}
 			}
 
 			/* offset other selected objects */
-			if(do_inverse_offset && (centermode != GEOMETRY_TO_ORIGIN)) {
+			if (do_inverse_offset && (centermode != GEOMETRY_TO_ORIGIN)) {
 				/* was the object data modified
 				 * note: the functions above must set 'cent' */
 				copy_v3_v3(centn, cent);
@@ -845,7 +889,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				add_v3_v3(ob->loc, centn);
 
 				where_is_object(scene, ob);
-				if(ob->type==OB_ARMATURE) {
+				if (ob->type==OB_ARMATURE) {
 					where_is_pose(scene, ob); /* needed for bone parents */
 				}
 
@@ -853,7 +897,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				
 				/* other users? */
 				CTX_DATA_BEGIN(C, Object*, ob_other, selected_editable_objects) {
-					if(		(ob_other->flag & OB_DONE)==0 &&
+					if (		(ob_other->flag & OB_DONE)==0 &&
 							(	(ob->data && (ob->data == ob_other->data)) ||
 								(ob->dup_group==ob_other->dup_group && (ob->transflag|ob_other->transflag) & OB_DUPLIGROUP) )
 					) {
@@ -865,7 +909,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						add_v3_v3(ob_other->loc, centn);
 
 						where_is_object(scene, ob_other);
-						if(ob_other->type==OB_ARMATURE) {
+						if (ob_other->type==OB_ARMATURE) {
 							where_is_pose(scene, ob_other); /* needed for bone parents */
 						}
 						ignore_parent_tx(bmain, scene, ob_other);
@@ -878,7 +922,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	for (tob= bmain->object.first; tob; tob= tob->id.next)
-		if(tob->data && (((ID *)tob->data)->flag & LIB_DOIT))
+		if (tob->data && (((ID *)tob->data)->flag & LIB_DOIT))
 			DAG_id_tag_update(&tob->id, OB_RECALC_OB|OB_RECALC_DATA);
 
 	if (tot_change) {
@@ -914,20 +958,20 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	};
 	
 	/* identifiers */
-	ot->name= "Set Origin";
+	ot->name = "Set Origin";
 	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3d cursor";
-	ot->idname= "OBJECT_OT_origin_set";
+	ot->idname = "OBJECT_OT_origin_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_origin_set_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_origin_set_exec;
 	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
 	RNA_def_enum(ot->srna, "center", prop_set_bounds_types, V3D_CENTROID, "Center", "");
 }
 

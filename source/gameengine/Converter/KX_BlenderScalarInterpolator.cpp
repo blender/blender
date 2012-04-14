@@ -41,17 +41,19 @@ extern "C" {
 #include "BKE_fcurve.h"
 }
 
-float BL_ScalarInterpolator::GetValue(float currentTime) const {
+float BL_ScalarInterpolator::GetValue(float currentTime) const
+{
 	// XXX 2.4x IPO_GetFloatValue(m_blender_adt, m_channel, currentTime);
 	return evaluate_fcurve(m_fcu, currentTime);
 }
 
-BL_InterpolatorList::BL_InterpolatorList(bAction *action) {
-	if(action==NULL)
+BL_InterpolatorList::BL_InterpolatorList(bAction *action)
+{
+	if (action==NULL)
 		return;
 	
-	for(FCurve *fcu= (FCurve *)action->curves.first; fcu; fcu= (FCurve *)fcu->next) {
-		if(fcu->rna_path) {
+	for (FCurve *fcu= (FCurve *)action->curves.first; fcu; fcu= (FCurve *)fcu->next) {
+		if (fcu->rna_path) {
 			BL_ScalarInterpolator *new_ipo = new BL_ScalarInterpolator(fcu); 
 			//assert(new_ipo);
 			push_back(new_ipo);
@@ -59,7 +61,8 @@ BL_InterpolatorList::BL_InterpolatorList(bAction *action) {
 	}
 }
 
-BL_InterpolatorList::~BL_InterpolatorList() {
+BL_InterpolatorList::~BL_InterpolatorList()
+{
 	BL_InterpolatorList::iterator i;
 	for (i = begin(); !(i == end()); ++i) {
 		delete *i;
@@ -68,10 +71,10 @@ BL_InterpolatorList::~BL_InterpolatorList() {
 
 KX_IScalarInterpolator *BL_InterpolatorList::GetScalarInterpolator(const char *rna_path, int array_index)
 {
-	for(BL_InterpolatorList::iterator i = begin(); (i != end()) ; i++ )
+	for (BL_InterpolatorList::iterator i = begin(); (i != end()) ; i++ )
 	{
 		FCurve *fcu= (static_cast<BL_ScalarInterpolator *>(*i))->GetFCurve();
-		if(array_index==fcu->array_index && strcmp(rna_path, fcu->rna_path)==0)
+		if (array_index==fcu->array_index && strcmp(rna_path, fcu->rna_path)==0)
 			return *i;
 	}
 	return NULL;

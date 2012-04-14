@@ -3,8 +3,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef KX_BULLET2PHYSICS_CONTROLLER
-#define KX_BULLET2PHYSICS_CONTROLLER
+#ifndef __KX_BULLETPHYSICSCONTROLLER_H__
+#define __KX_BULLETPHYSICSCONTROLLER_H__
 
 
 #include "KX_IPhysicsController.h"
@@ -98,5 +98,5 @@ public:
 #endif
 };
 
-#endif //KX_BULLET2PHYSICS_CONTROLLER
+#endif //__KX_BULLETPHYSICSCONTROLLER_H__
 

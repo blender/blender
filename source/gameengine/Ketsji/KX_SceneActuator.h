@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_SCENEACTUATOR
-#define __KX_SCENEACTUATOR
+#ifndef __KX_SCENEACTUATOR_H__
+#define __KX_SCENEACTUATOR_H__
 
 #include "SCA_IActuator.h"
 #include "SCA_IScene.h" /* Replace_IScene only */

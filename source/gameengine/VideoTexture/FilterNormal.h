@@ -24,8 +24,8 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined FILTERNORMAL_H
-#define FILTERNORMAL_H
+#ifndef __FILTERNORMAL_H__
+#define __FILTERNORMAL_H__
 
 #include "Common.h"
 

@@ -548,7 +548,7 @@ PyObject* KX_VertexProxy::PySetUV2(PyObject* args)
 	unsigned int unit= RAS_TexVert::SECOND_UV;
 
 	PyObject* list= NULL;
-	if(!PyArg_ParseTuple(args, "O|i:setUV2", &list, &unit))
+	if (!PyArg_ParseTuple(args, "O|i:setUV2", &list, &unit))
 		return NULL;
 
 	if (!PyVecTo(list, vec))

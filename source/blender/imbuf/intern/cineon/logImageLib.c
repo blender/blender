@@ -36,6 +36,7 @@
 #include <netinet/in.h>	 /* htonl() */
 #endif
 #include <string.h>			 /* memset */
+#include "BLI_fileops.h"
 
 #define MIN_GAMMA 0.01
 #define MAX_GAMMA 99.9
@@ -44,43 +45,51 @@
 #define DEFAULT_WHITE_POINT 685
 
 void
-logImageSetVerbose(int verbosity) {
+logImageSetVerbose(int verbosity)
+{
 	cineonSetVerbose(verbosity);
 	dpxSetVerbose(verbosity);
 }
 
 LogImageFile*
-logImageOpen(const char* filename, int cineon) {
+logImageOpen(const char* filename, int cineon)
+{
 	if (cineon) {
 		return cineonOpen(filename);
-	} else {
+	}
+	else {
 		return dpxOpen(filename);
 	}
 	return 0;
 }
 
 LogImageFile*
-logImageOpenFromMem(unsigned char *buffer, unsigned int size, int cineon) {
+logImageOpenFromMem(unsigned char *buffer, unsigned int size, int cineon)
+{
 	if (cineon) {
 		return cineonOpenFromMem(buffer, size);
-	} else {
+	}
+	else {
 		return dpxOpenFromMem(buffer, size);
 	}
 	return 0;
 }
 
 LogImageFile*
-logImageCreate(const char* filename, int cineon, int width, int height, int depth) {
+logImageCreate(const char* filename, int cineon, int width, int height, int depth)
+{
 	if (cineon) {
 		return cineonCreate(filename, width, height, depth);
-	} else {
+	}
+	else {
 		return dpxCreate(filename, width, height, depth);
 	}
 	return 0;
 }
 
 int
-logImageGetSize(const LogImageFile* logImage, int* width, int* height, int* depth) {
+logImageGetSize(const LogImageFile* logImage, int* width, int* height, int* depth)
+{
 	*width = logImage->width;
 	*height = logImage->height;
 	*depth = logImage->depth;
@@ -88,7 +97,8 @@ logImageGetSize(const LogImageFile* logImage, int* width, int* height, int* dept
 }
 
 int
-logImageGetByteConversionDefaults(LogImageByteConversionParameters* params) {
+logImageGetByteConversionDefaults(LogImageByteConversionParameters* params)
+{
 	params->gamma = DEFAULT_GAMMA;
 	params->blackPoint = DEFAULT_BLACK_POINT;
 	params->whitePoint = DEFAULT_WHITE_POINT;
@@ -97,7 +107,8 @@ logImageGetByteConversionDefaults(LogImageByteConversionParameters* params) {
 }
 
 int
-logImageGetByteConversion(const LogImageFile* logImage, LogImageByteConversionParameters* params) {
+logImageGetByteConversion(const LogImageFile* logImage, LogImageByteConversionParameters* params)
+{
 	params->gamma = logImage->params.gamma;
 	params->blackPoint = logImage->params.blackPoint;
 	params->whitePoint = logImage->params.whitePoint;
@@ -106,7 +117,8 @@ logImageGetByteConversion(const LogImageFile* logImage, LogImageByteConversionPa
 }
 
 int
-logImageSetByteConversion(LogImageFile* logImage, const LogImageByteConversionParameters* params) {
+logImageSetByteConversion(LogImageFile* logImage, const LogImageByteConversionParameters* params)
+{
 	if ((params->gamma >= MIN_GAMMA) &&
 			(params->gamma <= MAX_GAMMA) &&
 			(params->blackPoint >= 0) &&
@@ -123,26 +135,30 @@ logImageSetByteConversion(LogImageFile* logImage, const LogImageByteConversionPa
 }
 
 int
-logImageGetRowBytes(LogImageFile* logImage, unsigned short* row, int y) {
+logImageGetRowBytes(LogImageFile* logImage, unsigned short* row, int y)
+{
 	return logImage->getRow(logImage, row, y);
 }
 
 int
-logImageSetRowBytes(LogImageFile* logImage, const unsigned short* row, int y) {
+logImageSetRowBytes(LogImageFile* logImage, const unsigned short* row, int y)
+{
 	return logImage->setRow(logImage, row, y);
 }
 
 void
-logImageClose(LogImageFile* logImage) {
+logImageClose(LogImageFile* logImage)
+{
 	logImage->close(logImage);
 }
 
 void
-logImageDump(const char* filename) {
+logImageDump(const char* filename)
+{
 
 	U32 magic;
 
-	FILE* foo = fopen(filename, "rb");
+	FILE* foo = BLI_fopen(filename, "rb");
 	if (foo == 0) {
 		return;
 	}
@@ -158,7 +174,8 @@ logImageDump(const char* filename) {
 #if 0
 		cineonDump(filename);
 #endif
-	} else if (magic == ntohl(DPX_FILE_MAGIC)) {
+	}
+	else if (magic == ntohl(DPX_FILE_MAGIC)) {
 		dpxDump(filename);
 	}
 }

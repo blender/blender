@@ -120,13 +120,9 @@ __device float3 background_light_sample(KernelGlobals *kg, float randu, float ra
 	float du = (randu - cdf_u.y) / (cdf_next_u.y - cdf_u.y);
 	float u = (index_u + du) / res;
 
-	/* spherical coordinates */
-	float theta = v * M_PI_F;
-	float phi = u * M_PI_F * 2.0f;
-
 	/* compute pdf */
 	float denom = cdf_last_u.x * cdf_last_v.x;
-	float sin_theta = sinf(theta);
+	float sin_theta = sinf(M_PI_F * v);
 
 	if(sin_theta == 0.0f || denom == 0.0f)
 		*pdf = 0.0f;
@@ -136,7 +132,7 @@ __device float3 background_light_sample(KernelGlobals *kg, float randu, float ra
 	*pdf *= kernel_data.integrator.pdf_lights;
 
 	/* compute direction */
-	return spherical_to_direction(theta, phi);
+	return -equirectangular_to_direction(u, v);
 }
 
 __device float background_light_pdf(KernelGlobals *kg, float3 direction)

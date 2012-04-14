@@ -100,7 +100,7 @@ bool KX_MouseFocusSensor::Evaluate()
 //  	cout << "evaluate focus mouse sensor "<<endl;
 	m_reset = false;
 	if (m_focusmode) {
-		/* Focus behaviour required. Test mouse-on. The rest is
+		/* Focus behavior required. Test mouse-on. The rest is
 		 * equivalent to handling a key. */
 		obHasFocus = ParentObjectHasFocus();
 		
@@ -114,7 +114,7 @@ bool KX_MouseFocusSensor::Evaluate()
 			if (!m_mouse_over_in_previous_frame) {
 				result = true;
 			}
-			else if(m_bTouchPulse && (m_hitObject != m_hitObject_Last)) {
+			else if (m_bTouchPulse && (m_hitObject != m_hitObject_Last)) {
 				result = true;
 			}
 		} 
@@ -123,7 +123,7 @@ bool KX_MouseFocusSensor::Evaluate()
 			result = true;
 		}
 	} else {
-		/* No focus behaviour required: revert to the basic mode. This
+		/* No focus behavior required: revert to the basic mode. This
 		 * mode is never used, because the converter never makes this
 		 * sensor for a mouse-key event. It is here for
 		 * completeness. */
@@ -142,11 +142,11 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, KX_RayCast* r
 	KX_GameObject* hitKXObj = client_info->m_gameobject;
 	
 	/* Is this me? In the ray test, there are a lot of extra checks
-	* for aliasing artefacts from self-hits. That doesn't happen
-	* here, so a simple test suffices. Or does the camera also get
-	* self-hits? (No, and the raysensor shouldn't do it either, since
-	* self-hits are excluded by setting the correct ignore-object.)
-	* Hitspots now become valid. */
+	 * for aliasing artefacts from self-hits. That doesn't happen
+	 * here, so a simple test suffices. Or does the camera also get
+	 * self-hits? (No, and the raysensor shouldn't do it either, since
+	 * self-hits are excluded by setting the correct ignore-object.)
+	 * Hitspots now become valid. */
 	KX_GameObject* thisObj = (KX_GameObject*) GetParent();
 	if ((m_focusmode == 2) || hitKXObj == thisObj)
 	{
@@ -303,7 +303,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus()
 	
 	KX_Camera *cam= m_kxscene->GetActiveCamera();
 	
-	if(ParentObjectHasFocusCamera(cam))
+	if (ParentObjectHasFocusCamera(cam))
 		return true;
 
 	list<class KX_Camera*>* cameras = m_kxscene->GetCameras();
@@ -311,7 +311,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus()
 	
 	while(it != cameras->end())
 	{
-		if(((*it) != cam) && (*it)->GetViewport())
+		if (((*it) != cam) && (*it)->GetViewport())
 			if (ParentObjectHasFocusCamera(*it))
 				return true;
 		
@@ -408,7 +408,7 @@ PyObject* KX_MouseFocusSensor::pyattr_get_ray_direction(void *self_v, const KX_P
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	MT_Vector3 dir = self->RayTarget() - self->RaySource();
-	if(MT_fuzzyZero(dir))	dir.setValue(0,0,0);
+	if (MT_fuzzyZero(dir))	dir.setValue(0,0,0);
 	else					dir.normalize();
 	return PyObjectFrom(dir);
 }
@@ -417,7 +417,7 @@ PyObject* KX_MouseFocusSensor::pyattr_get_hit_object(void *self_v, const KX_PYAT
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	
-	if(self->m_hitObject)
+	if (self->m_hitObject)
 		return self->m_hitObject->GetProxy();
 	
 	Py_RETURN_NONE;

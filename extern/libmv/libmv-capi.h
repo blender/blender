@@ -45,15 +45,10 @@ void libmv_setLoggingVerbosity(int verbosity);
 /* RegionTracker */
 struct libmv_RegionTracker *libmv_pyramidRegionTrackerNew(int max_iterations, int pyramid_level, int half_window_size, double minimum_correlation);
 struct libmv_RegionTracker *libmv_hybridRegionTrackerNew(int max_iterations, int half_window_size, double minimum_correlation);
+struct libmv_RegionTracker *libmv_bruteRegionTrackerNew(int half_window_size, double minimum_correlation);
 int libmv_regionTrackerTrack(struct libmv_RegionTracker *libmv_tracker, const float *ima1, const float *ima2,
 			int width, int height, double  x1, double  y1, double *x2, double *y2);
 void libmv_regionTrackerDestroy(struct libmv_RegionTracker *libmv_tracker);
-
-/* SAD Tracker */
-void libmv_SADSamplePattern(unsigned char *image, int stride,
-			float warp[3][2], unsigned char *pattern, int pattern_size);
-float libmv_SADTrackerTrack(unsigned char *pattern, unsigned char *warped, int pattern_size, unsigned char *image,
-			int stride, int width, int height, float warp[3][2]);
 
 /* Tracks */
 struct libmv_Tracks *libmv_tracksNew(void);
@@ -133,6 +128,10 @@ void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double
 			double x, double y, double *x1, double *y1);
 void libmv_InvertIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
 			double x, double y, double *x1, double *y1);
+
+/* point clouds */
+void libmv_rigidRegistration(float (*reference_points)[3], float (*points)[3], int total_points,
+                             int use_scale, int use_translation, double M[4][4]);
 
 #ifdef __cplusplus
 }

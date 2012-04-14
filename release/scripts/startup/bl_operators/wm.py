@@ -29,9 +29,6 @@ from bpy.props import (StringProperty,
 
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
-import subprocess
-import os
-
 
 class MESH_OT_delete_edgeloop(Operator):
     '''Delete an edge loop by merging the faces on each side to a single face loop'''
@@ -146,12 +143,12 @@ class BRUSH_OT_active_index_set(Operator):
     bl_label = "Set Brush Number"
 
     mode = StringProperty(
-            name="mode",
+            name="Mode",
             description="Paint mode to set brush for",
             maxlen=1024,
             )
     index = IntProperty(
-            name="number",
+            name="Number",
             description="Brush number",
             )
 
@@ -644,6 +641,10 @@ class WM_OT_context_modal_mouse(Operator):
 
     data_path_iter = data_path_iter
     data_path_item = data_path_item
+    header_text = StringProperty(
+            name="Header Text",
+            description="Text to display in header during scale",
+            )
 
     input_scale = FloatProperty(
             description="Scale the mouse movement by this value before applying the delta",
@@ -703,14 +704,24 @@ class WM_OT_context_modal_mouse(Operator):
         if event_type == 'MOUSEMOVE':
             delta = event.mouse_x - self.initial_x
             self._values_delta(delta)
+            header_text = self.header_text
+            if header_text:
+                if len(self._values) == 1:
+                    (item, ) = self._values.keys()
+                    header_text = header_text % eval("item.%s" % self.data_path_item)
+                else:
+                    header_text = (self.header_text % delta) + " (delta)"
+                context.area.header_text_set(header_text)
 
         elif 'LEFTMOUSE' == event_type:
             item = next(iter(self._values.keys()))
             self._values_clear()
+            context.area.header_text_set()
             return operator_value_undo_return(item)
 
         elif event_type in {'RIGHTMOUSE', 'ESC'}:
             self._values_restore()
+            context.area.header_text_set()
             return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}
@@ -1028,6 +1039,7 @@ class WM_OT_properties_add(Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_add"
     bl_label = "Add Property"
+    bl_options = {'UNDO'}
 
     data_path = rna_path
 
@@ -1070,6 +1082,7 @@ class WM_OT_properties_remove(Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_remove"
     bl_label = "Remove Property"
+    bl_options = {'UNDO'}
 
     data_path = rna_path
     property = rna_property
@@ -1184,20 +1197,24 @@ class WM_OT_blenderplayer_start(Operator):
     bl_idname = "wm.blenderplayer_start"
     bl_label = "Start"
 
-    blender_bin_path = bpy.app.binary_path
-    blender_bin_dir = os.path.dirname(blender_bin_path)
-    ext = os.path.splitext(blender_bin_path)[-1]
-    player_path = os.path.join(blender_bin_dir, "blenderplayer" + ext)
-
     def execute(self, context):
+        import os
         import sys
+        import subprocess
+
+        # these remain the same every execution
+        blender_bin_path = bpy.app.binary_path
+        blender_bin_dir = os.path.dirname(blender_bin_path)
+        ext = os.path.splitext(blender_bin_path)[-1]
+        player_path = os.path.join(blender_bin_dir, "blenderplayer" + ext)
+        # done static vars
 
         if sys.platform == "darwin":
-            self.player_path = os.path.join(self.blender_bin_dir, "../../../blenderplayer.app/Contents/MacOS/blenderplayer")
+            player_path = os.path.join(blender_bin_dir, "../../../blenderplayer.app/Contents/MacOS/blenderplayer")
 
-        filepath = bpy.app.tempdir + "game.blend"
+        filepath = os.path.join(bpy.app.tempdir, "game.blend")
         bpy.ops.wm.save_as_mainfile(filepath=filepath, check_existing=False, copy=True)
-        subprocess.call([self.player_path, filepath])
+        subprocess.call([player_path, filepath])
         return {'FINISHED'}
 
 

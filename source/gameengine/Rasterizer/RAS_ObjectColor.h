@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_OBJECTCOLOR_H
-#define __RAS_OBJECTCOLOR_H
+#ifndef __RAS_OBJECTCOLOR_H__
+#define __RAS_OBJECTCOLOR_H__
 
 struct	RAS_ObjectColor {
 	float	m_red;
@@ -38,5 +38,5 @@ struct	RAS_ObjectColor {
 	float	m_blue;
 };
 
-#endif //__RAS_OBJECTCOLOR_H
+#endif //__RAS_OBJECTCOLOR_H__
 

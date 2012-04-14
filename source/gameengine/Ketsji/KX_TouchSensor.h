@@ -30,8 +30,8 @@
  *  \brief Senses touch and collision events
  */
 
-#ifndef __KX_TOUCHSENSOR
-#define __KX_TOUCHSENSOR
+#ifndef __KX_TOUCHSENSOR_H__
+#define __KX_TOUCHSENSOR_H__
 
 #include "SCA_ISensor.h"
 #include "ListValue.h"
@@ -68,7 +68,7 @@ protected:
 
 	// Use with m_bTouchPulse to detect changes
 	int						m_bLastCount;		/* size of m_colliders last tick */
-	uint_ptr				m_bColliderHash;	/* hash collision objects pointers to trigger incase one object collides and another takes its place */
+	uint_ptr				m_bColliderHash;	/* hash collision objects pointers to trigger in case one object collides and another takes its place */
 	uint_ptr				m_bLastColliderHash;
 
 	SCA_IObject*		    m_hitObject;
@@ -79,7 +79,7 @@ public:
 		class KX_GameObject* gameobj,
 		bool bFindMaterial,
 		bool bTouchPulse,
-		const STR_String& touchedpropname) ;
+		const STR_String& touchedpropname);
 	virtual ~KX_TouchSensor();
 
 	virtual CValue* GetReplica();
@@ -132,5 +132,5 @@ public:
 	
 };
 
-#endif //__KX_TOUCHSENSOR
+#endif //__KX_TOUCHSENSOR_H__
 

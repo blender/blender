@@ -34,7 +34,7 @@
 #include "utilities.h"
 #include "stacktrace.h"
 #include "symbolize.h"
-#include "glog/logging.h"
+#include <glog/logging.h>
 
 #include <signal.h>
 #include <time.h>
@@ -142,7 +142,9 @@ class MinimalFormatter {
 
 // Writes the given data with the size to the standard error.
 void WriteToStderr(const char* data, int size) {
-  write(STDERR_FILENO, data, size);
+  if (write(STDERR_FILENO, data, size) < 0) {
+    // Ignore errors.
+  }
 }
 
 // The writer function can be changed by InstallFailureWriter().
@@ -167,7 +169,7 @@ void DumpTimeInfo() {
 void DumpSignalInfo(int signal_number, siginfo_t *siginfo) {
   // Get the signal name.
   const char* signal_name = NULL;
-  for (int i = 0; i < ARRAYSIZE(kFailureSignals); ++i) {
+  for (size_t i = 0; i < ARRAYSIZE(kFailureSignals); ++i) {
     if (signal_number == kFailureSignals[i].number) {
       signal_name = kFailureSignals[i].name;
     }
@@ -336,7 +338,7 @@ void InstallFailureSignalHandler() {
   sig_action.sa_flags |= SA_SIGINFO;
   sig_action.sa_sigaction = &FailureSignalHandler;
 
-  for (int i = 0; i < ARRAYSIZE(kFailureSignals); ++i) {
+  for (size_t i = 0; i < ARRAYSIZE(kFailureSignals); ++i) {
     CHECK_ERR(sigaction(kFailureSignals[i].number, &sig_action, NULL));
   }
 }

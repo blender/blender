@@ -166,13 +166,18 @@ struct Object *find_basis_mball(struct Scene *scene, struct Object *ob);
 int is_basis_mball(struct Object *ob);
 int is_mball_basis_for(struct Object *ob1, struct Object *ob2);
 void metaball_polygonize(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
-void calc_mballco(struct MetaElem *ml, float *vec);
+void calc_mballco(struct MetaElem *ml, float vec[3]);
 float densfunc(struct MetaElem *ball, float x, float y, float z);
 float metaball(float x, float y, float z);
 void accum_mballfaces(int i1, int i2, int i3, int i4);
 void *new_pgn_element(int size);
 int nextcwedge (int edge, int face);
 void BKE_freecubetable(void);
+
+int BKE_metaball_minmax(struct MetaBall *mb, float min[3], float max[3]);
+int BKE_metaball_center_median(struct MetaBall *mb, float cent[3]);
+int BKE_metaball_center_bounds(struct MetaBall *mb, float cent[3]);
+void BKE_metaball_translate(struct MetaBall *mb, float offset[3]);
 
 #endif
 

@@ -26,7 +26,7 @@ class NLA_HT_header(Header):
     bl_space_type = 'NLA_EDITOR'
 
     def draw(self, context):
-        from .space_dopesheet import dopesheet_filter
+        from bl_ui.space_dopesheet import dopesheet_filter
 
         layout = self.layout
 
@@ -104,7 +104,7 @@ class NLA_MT_marker(Menu):
     def draw(self, context):
         layout = self.layout
 
-        from .space_time import marker_menu_generic
+        from bl_ui.space_time import marker_menu_generic
         marker_menu_generic(layout)
 
 

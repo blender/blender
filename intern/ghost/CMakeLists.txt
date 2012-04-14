@@ -281,6 +281,10 @@ elseif(WIN32)
 		${WINTAB_INC}
 	)
 
+	list(APPEND INC
+		../utfconv
+	)
+
 	list(APPEND SRC
 		intern/GHOST_DisplayManagerWin32.cpp
 		intern/GHOST_SystemWin32.cpp

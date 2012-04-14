@@ -40,7 +40,7 @@ BL_Uniform::BL_Uniform(int data_size)
 BL_Uniform::~BL_Uniform()
 {
 #ifdef SORT_UNIFORMS
-	if(mData) {
+	if (mData) {
 		MEM_freeN(mData);
 		mData=0;
 	}
@@ -52,7 +52,7 @@ void BL_Uniform::Apply(class BL_Shader *shader)
 #ifdef SORT_UNIFORMS
 	MT_assert(mType > UNI_NONE && mType < UNI_MAX && mData);
 
-	if(!mDirty) 
+	if (!mDirty) 
 		return;
 
 	switch(mType)
@@ -136,15 +136,15 @@ BL_Shader::BL_Shader()
 
 BL_Shader::~BL_Shader()
 {
-	//for (int i=0; i<MAXTEX; i++){
-	//	if(mSampler[i].mOwn) {
-	//		if(mSampler[i].mTexture)
+	//for (int i=0; i<MAXTEX; i++) {
+	//	if (mSampler[i].mOwn) {
+	//		if (mSampler[i].mTexture)
 	//			mSampler[i].mTexture->DeleteTex();
 	//	}
 	//}
 	ClearUniforms();
 
-	if( mShader ) {
+	if ( mShader ) {
 		glDeleteObjectARB(mShader);
 		mShader = 0;
 	}
@@ -157,7 +157,7 @@ BL_Shader::~BL_Shader()
 void BL_Shader::ClearUniforms()
 {
 	BL_UniformVec::iterator it = mUniforms.begin();
-	while(it != mUniforms.end()){
+	while(it != mUniforms.end()) {
 		delete (*it);
 		it++;
 	}
@@ -179,7 +179,7 @@ BL_Uniform  *BL_Shader::FindUniform(const int location)
 #ifdef SORT_UNIFORMS
 	BL_UniformVec::iterator it = mUniforms.begin();
 	while(it != mUniforms.end()) {
-		if((*it)->GetLocation() == location)
+		if ((*it)->GetLocation() == location)
 			return (*it);
 		it++;
 	}
@@ -191,7 +191,7 @@ void BL_Shader::SetUniformfv(int location, int type, float *param,int size, bool
 {
 #ifdef SORT_UNIFORMS
 	BL_Uniform *uni= FindUniform(location);
-	if(uni) {
+	if (uni) {
 		memcpy(uni->getData(), param, size);
 		uni->SetData(location, type, transpose);
 	}
@@ -210,7 +210,7 @@ void BL_Shader::SetUniformiv(int location, int type, int *param,int size, bool t
 {
 #ifdef SORT_UNIFORMS
 	BL_Uniform *uni= FindUniform(location);
-	if(uni) {
+	if (uni) {
 		memcpy(uni->getData(), param, size);
 		uni->SetData(location, type, transpose);
 	}
@@ -228,10 +228,10 @@ void BL_Shader::SetUniformiv(int location, int type, int *param,int size, bool t
 void BL_Shader::ApplyShader()
 {
 #ifdef SORT_UNIFORMS
-	if(!mDirty) 
+	if (!mDirty) 
 		return;
 
-	for(unsigned int i=0; i<mUniforms.size(); i++)
+	for (unsigned int i=0; i<mUniforms.size(); i++)
 		mUniforms[i]->Apply(this);
 
 	mDirty = false;
@@ -252,18 +252,18 @@ bool BL_Shader::LinkProgram()
 	int char_len=0;
 	char *logInf =0;
 
-	if(mError)
+	if (mError)
 		goto programError;
 
-	if(!vertProg || !fragProg){
+	if (!vertProg || !fragProg) {
 		spit("Invalid GLSL sources");
 		return false;
 	}
-	if( !GLEW_ARB_fragment_shader) {
+	if ( !GLEW_ARB_fragment_shader) {
 		spit("Fragment shaders not supported");
 		return false;
 	}
-	if( !GLEW_ARB_vertex_shader) {
+	if ( !GLEW_ARB_vertex_shader) {
 		spit("Vertex shaders not supported");
 		return false;
 	}
@@ -275,10 +275,10 @@ bool BL_Shader::LinkProgram()
 	glGetObjectParameterivARB(tmpVert, GL_OBJECT_INFO_LOG_LENGTH_ARB,(GLint*) &vertlen);
 	
 	// print info if any
-	if( vertlen > 0 && vertlen < MAX_LOG_LEN){
+	if ( vertlen > 0 && vertlen < MAX_LOG_LEN) {
 		logInf = (char*)MEM_mallocN(vertlen, "vert-log");
 		glGetInfoLogARB(tmpVert, vertlen, (GLsizei*)&char_len, logInf);
-		if(char_len >0) {
+		if (char_len >0) {
 			spit("---- Vertex Shader Error ----");
 			spit(logInf);
 		}
@@ -287,7 +287,7 @@ bool BL_Shader::LinkProgram()
 	}
 	// check for compile errors
 	glGetObjectParameterivARB(tmpVert, GL_OBJECT_COMPILE_STATUS_ARB,(GLint*)&vertstatus);
-	if(!vertstatus) {
+	if (!vertstatus) {
 		spit("---- Vertex shader failed to compile ----");
 		goto programError;
 	}
@@ -297,10 +297,10 @@ bool BL_Shader::LinkProgram()
 	glShaderSourceARB(tmpFrag, 1,(const char**)&fragProg, 0);
 	glCompileShaderARB(tmpFrag);
 	glGetObjectParameterivARB(tmpFrag, GL_OBJECT_INFO_LOG_LENGTH_ARB, (GLint*) &fraglen);
-	if(fraglen >0 && fraglen < MAX_LOG_LEN){
+	if (fraglen >0 && fraglen < MAX_LOG_LEN) {
 		logInf = (char*)MEM_mallocN(fraglen, "frag-log");
 		glGetInfoLogARB(tmpFrag, fraglen,(GLsizei*) &char_len, logInf);
-		if(char_len >0) {
+		if (char_len >0) {
 			spit("---- Fragment Shader Error ----");
 			spit(logInf);
 		}
@@ -309,7 +309,7 @@ bool BL_Shader::LinkProgram()
 	}
 
 	glGetObjectParameterivARB(tmpFrag, GL_OBJECT_COMPILE_STATUS_ARB, (GLint*) &fragstatus);
-	if(!fragstatus){
+	if (!fragstatus) {
 		spit("---- Fragment shader failed to compile ----");
 		goto programError;
 	}
@@ -325,10 +325,10 @@ bool BL_Shader::LinkProgram()
 	glGetObjectParameterivARB(tmpProg, GL_OBJECT_LINK_STATUS_ARB, (GLint*) &progstatus);
 	
 
-	if(proglen > 0 && proglen < MAX_LOG_LEN) {
+	if (proglen > 0 && proglen < MAX_LOG_LEN) {
 		logInf = (char*)MEM_mallocN(proglen, "prog-log");
 		glGetInfoLogARB(tmpProg, proglen, (GLsizei*)&char_len, logInf);
-		if(char_len >0) {
+		if (char_len >0) {
 			spit("---- GLSL Program ----");
 			spit(logInf);
 		}
@@ -336,7 +336,7 @@ bool BL_Shader::LinkProgram()
 		logInf=0;
 	}
 
-	if(!progstatus){
+	if (!progstatus) {
 		spit("---- GLSL program failed to link ----");
 		goto programError;
 	}
@@ -350,16 +350,16 @@ bool BL_Shader::LinkProgram()
 	return true;
 
 programError:
-	if(tmpVert) {
+	if (tmpVert) {
 		glDeleteObjectARB(tmpVert);
 		tmpVert=0;
 	}
-	if(tmpFrag) {
+	if (tmpFrag) {
 		glDeleteObjectARB(tmpFrag);
 		tmpFrag=0;
 	}
 
-	if(tmpProg) {
+	if (tmpProg) {
 		glDeleteObjectARB(tmpProg);
 		tmpProg=0;
 	}
@@ -403,7 +403,7 @@ unsigned int BL_Shader::GetProg()
 
 void BL_Shader::SetSampler(int loc, int unit)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -422,12 +422,12 @@ void BL_Shader::SetSampler(int loc, int unit)
 
 void BL_Shader::SetProg(bool enable)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
 	{
-		if(	mShader != 0 && mOk && enable) {
+		if (	mShader != 0 && mOk && enable) {
 			glUseProgramObjectARB(mShader);
 		}
 		else {
@@ -438,10 +438,10 @@ void BL_Shader::SetProg(bool enable)
 
 void BL_Shader::Update( const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 {
-	if(!Ok() || !mPreDef.size()) 
+	if (!Ok() || !mPreDef.size()) 
 		return;
 
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -450,14 +450,14 @@ void BL_Shader::Update( const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 		model.setValue(ms.m_OpenGLMatrix);
 		const MT_Matrix4x4& view = rasty->GetViewMatrix();
 
-		if(mAttr==SHD_TANGENT)
+		if (mAttr==SHD_TANGENT)
 			ms.m_mesh->SetMeshModified(true);
 
 		BL_UniformVecDef::iterator it;
-		for(it = mPreDef.begin(); it!= mPreDef.end(); it++)
+		for (it = mPreDef.begin(); it!= mPreDef.end(); it++)
 		{
 			BL_DefUniform *uni = (*it);
-			if(uni->mLoc == -1) continue;
+			if (uni->mLoc == -1) continue;
 
 			switch (uni->mType)
 			{
@@ -554,7 +554,7 @@ void BL_Shader::Update( const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 
 int BL_Shader::GetAttribLocation(const STR_String& name)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -567,7 +567,7 @@ int BL_Shader::GetAttribLocation(const STR_String& name)
 
 void BL_Shader::BindAttribute(const STR_String& attr, int loc)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -578,14 +578,14 @@ void BL_Shader::BindAttribute(const STR_String& attr, int loc)
 
 int BL_Shader::GetUniformLocation(const STR_String& name)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
 	{
 		MT_assert(mShader!=0);
 		int location = glGetUniformLocationARB(mShader, name.ReadPtr());
-		if(location == -1)
+		if (location == -1)
 			spit("Invalid uniform value: " << name.ReadPtr() << ".");
 		return location;
 	}
@@ -595,7 +595,7 @@ int BL_Shader::GetUniformLocation(const STR_String& name)
 
 void BL_Shader::SetUniform(int uniform, const MT_Tuple2& vec)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -609,7 +609,7 @@ void BL_Shader::SetUniform(int uniform, const MT_Tuple2& vec)
 
 void BL_Shader::SetUniform(int uniform, const MT_Tuple3& vec)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -622,7 +622,7 @@ void BL_Shader::SetUniform(int uniform, const MT_Tuple3& vec)
 
 void BL_Shader::SetUniform(int uniform, const MT_Tuple4& vec)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -635,7 +635,7 @@ void BL_Shader::SetUniform(int uniform, const MT_Tuple4& vec)
 
 void BL_Shader::SetUniform(int uniform, const unsigned int& val)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -646,7 +646,7 @@ void BL_Shader::SetUniform(int uniform, const unsigned int& val)
 
 void BL_Shader::SetUniform(int uniform, const int val)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -657,7 +657,7 @@ void BL_Shader::SetUniform(int uniform, const int val)
 
 void BL_Shader::SetUniform(int uniform, const float& val)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -668,7 +668,7 @@ void BL_Shader::SetUniform(int uniform, const float& val)
 
 void BL_Shader::SetUniform(int uniform, const MT_Matrix4x4& vec, bool transpose)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -682,7 +682,7 @@ void BL_Shader::SetUniform(int uniform, const MT_Matrix4x4& vec, bool transpose)
 
 void BL_Shader::SetUniform(int uniform, const MT_Matrix3x3& vec, bool transpose)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
@@ -697,12 +697,12 @@ void BL_Shader::SetUniform(int uniform, const MT_Matrix3x3& vec, bool transpose)
 
 void BL_Shader::SetUniform(int uniform, const float* val, int len)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
 	{
-		if(len == 2) 
+		if (len == 2) 
 			glUniform2fvARB(uniform, 1,(GLfloat*)val);
 		else if (len == 3)
 			glUniform3fvARB(uniform, 1,(GLfloat*)val);
@@ -715,12 +715,12 @@ void BL_Shader::SetUniform(int uniform, const float* val, int len)
 
 void BL_Shader::SetUniform(int uniform, const int* val, int len)
 {
-	if( GLEW_ARB_fragment_shader &&
+	if ( GLEW_ARB_fragment_shader &&
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
 	{
-		if(len == 2) 
+		if (len == 2) 
 			glUniform2ivARB(uniform, 1, (GLint*)val);
 		else if (len == 3)
 			glUniform3ivARB(uniform, 1, (GLint*)val);
@@ -793,18 +793,18 @@ PyTypeObject BL_Shader::Type = {
 
 KX_PYMETHODDEF_DOC( BL_Shader, setSource," setSource(vertexProgram, fragmentProgram)" )
 {
-	if(mShader !=0 && mOk  )
+	if (mShader !=0 && mOk  )
 	{
 		// already set...
 		Py_RETURN_NONE;
 	}
 	char *v,*f;
 	int apply=0;
-	if( PyArg_ParseTuple(args, "ssi:setSource", &v, &f, &apply) )
+	if ( PyArg_ParseTuple(args, "ssi:setSource", &v, &f, &apply) )
 	{
 		vertProg = v;
 		fragProg = f;
-		if( LinkProgram() ) {
+		if ( LinkProgram() ) {
 			glUseProgramObjectARB( mShader );
 			mUse = apply!=0;
 			Py_RETURN_NONE;
@@ -847,10 +847,10 @@ KX_PYMETHODDEF_DOC( BL_Shader, getFragmentProg ,"getFragmentProg( )" )
 
 KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
-	if(mShader==0) {
+	if (mShader==0) {
 		PyErr_SetString(PyExc_TypeError, "shader.validate(): BL_Shader, invalid shader object");
 		return NULL;
 	}
@@ -859,12 +859,12 @@ KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 	glGetObjectParameterivARB(mShader, GL_OBJECT_VALIDATE_STATUS_ARB,(GLint*) &stat);
 
 
-	if(stat > 0 && stat < MAX_LOG_LEN) {
+	if (stat > 0 && stat < MAX_LOG_LEN) {
 		int char_len=0;
 		char *logInf = (char*)MEM_mallocN(stat, "validate-log");
 
 		glGetInfoLogARB(mShader, stat,(GLsizei*) &char_len, logInf);
-		if(char_len >0) {
+		if (char_len >0) {
 			spit("---- GLSL Validation ----");
 			spit(logInf);
 		}
@@ -877,17 +877,17 @@ KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 
 KX_PYMETHODDEF_DOC( BL_Shader, setSampler, "setSampler(name, index)" )
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 
 	const char *uniform="";
 	int index=-1;
-	if(PyArg_ParseTuple(args, "si:setSampler", &uniform, &index)) 
+	if (PyArg_ParseTuple(args, "si:setSampler", &uniform, &index)) 
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1) {
-			if(index >= MAXTEX || index < 0)
+		if (loc != -1) {
+			if (index >= MAXTEX || index < 0)
 				spit("Invalid texture sample index: " << index);
 
 #ifdef SORT_UNIFORMS
@@ -895,7 +895,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSampler, "setSampler(name, index)" )
 #else
 			SetUniform(loc, index);
 #endif
-			//if(index <= MAXTEX)
+			//if (index <= MAXTEX)
 			//	mSampler[index].mLoc = loc;
 			//else
 			//	spit("Invalid texture sample index: " << index);
@@ -908,7 +908,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSampler, "setSampler(name, index)" )
 KX_PYMETHODDEF_DOC( BL_Shader, setNumberOfPasses, "setNumberOfPasses( max-pass )" )
 {
 	int pass = 1;
-	if(!PyArg_ParseTuple(args, "i:setNumberOfPasses", &pass))
+	if (!PyArg_ParseTuple(args, "i:setNumberOfPasses", &pass))
 		return NULL;
 
 	mPass = 1;
@@ -918,16 +918,16 @@ KX_PYMETHODDEF_DOC( BL_Shader, setNumberOfPasses, "setNumberOfPasses( max-pass )
 /// access functions
 KX_PYMETHODDEF_DOC( BL_Shader, setUniform1f, "setUniform1f(name, fx)" )
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 
 	const char *uniform="";
 	float value=0;
-	if(PyArg_ParseTuple(args, "sf:setUniform1f", &uniform, &value ))
+	if (PyArg_ParseTuple(args, "sf:setUniform1f", &uniform, &value ))
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1)
+		if (loc != -1)
 		{
 #ifdef SORT_UNIFORMS
 			SetUniformfv(loc, BL_Uniform::UNI_FLOAT, &value, sizeof(float));
@@ -943,15 +943,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1f, "setUniform1f(name, fx)" )
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniform2f , "setUniform2f(name, fx, fy)")
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
 	float array[2]={ 0,0 };
-	if(PyArg_ParseTuple(args, "sff:setUniform2f", &uniform, &array[0],&array[1] ))
+	if (PyArg_ParseTuple(args, "sff:setUniform2f", &uniform, &array[0],&array[1] ))
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1)
+		if (loc != -1)
 		{
 #ifdef SORT_UNIFORMS
 			SetUniformfv(loc, BL_Uniform::UNI_FLOAT2, array, (sizeof(float)*2) );
@@ -967,15 +967,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform2f , "setUniform2f(name, fx, fy)")
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniform3f, "setUniform3f(name, fx,fy,fz) ")
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
 	float array[3]={0,0,0};
-	if(PyArg_ParseTuple(args, "sfff:setUniform3f", &uniform, &array[0],&array[1],&array[2]))
+	if (PyArg_ParseTuple(args, "sfff:setUniform3f", &uniform, &array[0],&array[1],&array[2]))
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1)
+		if (loc != -1)
 		{
 #ifdef SORT_UNIFORMS
 			SetUniformfv(loc, BL_Uniform::UNI_FLOAT3, array, (sizeof(float)*3) );
@@ -992,15 +992,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform3f, "setUniform3f(name, fx,fy,fz) ")
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniform4f, "setUniform4f(name, fx,fy,fz, fw) ")
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
 	float array[4]={0,0,0,0};
-	if(PyArg_ParseTuple(args, "sffff:setUniform4f", &uniform, &array[0],&array[1],&array[2], &array[3]))
+	if (PyArg_ParseTuple(args, "sffff:setUniform4f", &uniform, &array[0],&array[1],&array[2], &array[3]))
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1)
+		if (loc != -1)
 		{
 #ifdef SORT_UNIFORMS
 			SetUniformfv(loc, BL_Uniform::UNI_FLOAT4, array, (sizeof(float)*4) );
@@ -1016,15 +1016,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4f, "setUniform4f(name, fx,fy,fz, fw) "
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniform1i, "setUniform1i(name, ix)" )
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
 	int value=0;
-	if(PyArg_ParseTuple(args, "si:setUniform1i", &uniform, &value ))
+	if (PyArg_ParseTuple(args, "si:setUniform1i", &uniform, &value ))
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1)
+		if (loc != -1)
 		{
 #ifdef SORT_UNIFORMS
 			SetUniformiv(loc, BL_Uniform::UNI_INT, &value, sizeof(int));
@@ -1040,15 +1040,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1i, "setUniform1i(name, ix)" )
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniform2i , "setUniform2i(name, ix, iy)")
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
 	int array[2]={ 0,0 };
-	if(PyArg_ParseTuple(args, "sii:setUniform2i", &uniform, &array[0],&array[1] ))
+	if (PyArg_ParseTuple(args, "sii:setUniform2i", &uniform, &array[0],&array[1] ))
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1)
+		if (loc != -1)
 		{
 #ifdef SORT_UNIFORMS
 			SetUniformiv(loc, BL_Uniform::UNI_INT2, array, sizeof(int)*2);
@@ -1064,16 +1064,16 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform2i , "setUniform2i(name, ix, iy)")
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniform3i, "setUniform3i(name, ix,iy,iz) ")
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 
 	const char *uniform="";
 	int array[3]={0,0,0};
-	if(PyArg_ParseTuple(args, "siii:setUniform3i", &uniform, &array[0],&array[1],&array[2]))
+	if (PyArg_ParseTuple(args, "siii:setUniform3i", &uniform, &array[0],&array[1],&array[2]))
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1)
+		if (loc != -1)
 		{
 #ifdef SORT_UNIFORMS
 			SetUniformiv(loc, BL_Uniform::UNI_INT3, array, sizeof(int)*3);
@@ -1088,15 +1088,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform3i, "setUniform3i(name, ix,iy,iz) ")
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniform4i, "setUniform4i(name, ix,iy,iz, iw) ")
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
 	int array[4]={0,0,0, 0};
-	if(PyArg_ParseTuple(args, "siiii:setUniform4i", &uniform, &array[0],&array[1],&array[2], &array[3] ))
+	if (PyArg_ParseTuple(args, "siiii:setUniform4i", &uniform, &array[0],&array[1],&array[2], &array[3] ))
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1)
+		if (loc != -1)
 		{
 #ifdef SORT_UNIFORMS
 			SetUniformiv(loc, BL_Uniform::UNI_INT4, array, sizeof(int)*4);
@@ -1111,23 +1111,23 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4i, "setUniform4i(name, ix,iy,iz, iw) "
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or list3 or list4) )")
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 	const char *uniform = "";
 	PyObject *listPtr =0;
 	float array_data[4] = {0.f,0.f,0.f,0.f};
 
-	if(PyArg_ParseTuple(args, "sO:setUniformfv", &uniform, &listPtr))
+	if (PyArg_ParseTuple(args, "sO:setUniformfv", &uniform, &listPtr))
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1)
+		if (loc != -1)
 		{
-			if(PySequence_Check(listPtr))
+			if (PySequence_Check(listPtr))
 			{
 				unsigned int list_size = PySequence_Size(listPtr);
 				
-				for(unsigned int i=0; (i<list_size && i<4); i++)
+				for (unsigned int i=0; (i<list_size && i<4); i++)
 				{
 					PyObject *item = PySequence_GetItem(listPtr, i);
 					array_data[i] = (float)PyFloat_AsDouble(item);
@@ -1180,38 +1180,38 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or lis
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( uniform_name, (list2 or list3 or list4) )")
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 	const char *uniform = "";
 	PyObject *listPtr =0;
 	int array_data[4] = {0,0,0,0};
 
-	if(!PyArg_ParseTuple(args, "sO:setUniformiv", &uniform, &listPtr))
+	if (!PyArg_ParseTuple(args, "sO:setUniformiv", &uniform, &listPtr))
 		return NULL;
 	
 	int loc = GetUniformLocation(uniform);
 	
-	if(loc == -1) {
+	if (loc == -1) {
 		PyErr_SetString(PyExc_TypeError, "shader.setUniformiv(...): BL_Shader, first string argument is not a valid uniform value");
 		return NULL;
 	}
 	
-	if(!PySequence_Check(listPtr)) {
+	if (!PySequence_Check(listPtr)) {
 		PyErr_SetString(PyExc_TypeError, "shader.setUniformiv(...): BL_Shader, second argument is not a sequence");
 		return NULL;
 	}
 	
 	unsigned int list_size = PySequence_Size(listPtr);
 	
-	for(unsigned int i=0; (i<list_size && i<4); i++)
+	for (unsigned int i=0; (i<list_size && i<4); i++)
 	{
 		PyObject *item = PySequence_GetItem(listPtr, i);
 		array_data[i] = PyLong_AsSsize_t(item);
 		Py_DECREF(item);
 	}
 	
-	if(PyErr_Occurred()) {
+	if (PyErr_Occurred()) {
 		PyErr_SetString(PyExc_TypeError, "shader.setUniformiv(...): BL_Shader, one or more values in the list is not an int");
 		return NULL;
 	}
@@ -1266,7 +1266,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( uniform_name, (list2
 KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4, 
 "setUniformMatrix4(uniform_name, mat-4x4, transpose(row-major=true, col-major=false)" )
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 
@@ -1281,12 +1281,12 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4,
 	PyObject *matrix=0;
 	int transp=0; // python use column major by default, so no transpose....
 	
-	if(!PyArg_ParseTuple(args, "sO|i:setUniformMatrix4",&uniform, &matrix,&transp))
+	if (!PyArg_ParseTuple(args, "sO|i:setUniformMatrix4",&uniform, &matrix,&transp))
 		return NULL;
 
 	int loc = GetUniformLocation(uniform);
 	
-	if(loc == -1) {
+	if (loc == -1) {
 		PyErr_SetString(PyExc_TypeError, "shader.setUniformMatrix4(...): BL_Shader, first string argument is not a valid uniform value");
 		return NULL;
 	}
@@ -1313,7 +1313,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4,
 KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 "setUniformMatrix3(uniform_name, list[3x3], transpose(row-major=true, col-major=false)" )
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 
@@ -1326,12 +1326,12 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 	const char *uniform="";
 	PyObject *matrix=0;
 	int transp=0; // python use column major by default, so no transpose....
-	if(!PyArg_ParseTuple(args, "sO|i:setUniformMatrix3",&uniform, &matrix,&transp))
+	if (!PyArg_ParseTuple(args, "sO|i:setUniformMatrix3",&uniform, &matrix,&transp))
 		return NULL;
 	
 	int loc = GetUniformLocation(uniform);
 	
-	if(loc == -1) {
+	if (loc == -1) {
 		PyErr_SetString(PyExc_TypeError, "shader.setUniformMatrix3(...): BL_Shader, first string argument is not a valid uniform value");
 		return NULL;
 	}
@@ -1356,18 +1356,18 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 
 KX_PYMETHODDEF_DOC( BL_Shader, setAttrib, "setAttrib(enum)" )
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 	
 	int attr=0;
 	
-	if(!PyArg_ParseTuple(args, "i:setAttrib", &attr))
+	if (!PyArg_ParseTuple(args, "i:setAttrib", &attr))
 		return NULL;
 
 	attr= SHD_TANGENT; /* user input is ignored for now, there is only 1 attr */
 
-	if(mShader==0) {
+	if (mShader==0) {
 		PyErr_SetString(PyExc_ValueError, "shader.setAttrib() BL_Shader, invalid shader object");
 		return NULL;
 	}
@@ -1381,27 +1381,27 @@ KX_PYMETHODDEF_DOC( BL_Shader, setAttrib, "setAttrib(enum)" )
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniformDef, "setUniformDef(name, enum)" )
 {
-	if(mError) {
+	if (mError) {
 		Py_RETURN_NONE;
 	}
 
 	const char *uniform="";
 	int nloc=0;
-	if(PyArg_ParseTuple(args, "si:setUniformDef",&uniform, &nloc))
+	if (PyArg_ParseTuple(args, "si:setUniformDef",&uniform, &nloc))
 	{
 		int loc = GetUniformLocation(uniform);
-		if(loc != -1)
+		if (loc != -1)
 		{
 			bool defined = false;
 			BL_UniformVecDef::iterator it = mPreDef.begin();
 			while(it != mPreDef.end()) {
-				if((*it)->mLoc == loc) {
+				if ((*it)->mLoc == loc) {
 					defined = true;
 					break;
 				}
 				it++;
 			}
-			if(defined)
+			if (defined)
 			{
 				Py_RETURN_NONE;
 			}

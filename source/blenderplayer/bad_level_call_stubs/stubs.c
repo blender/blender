@@ -38,32 +38,33 @@
 
 struct ARegion;
 struct ARegionType;
+struct BMEditMesh;
 struct Base;
 struct Brush;
-struct bNodeTree;
-struct bNodeSocket;
 struct CSG_FaceIteratorDescriptor;
 struct CSG_VertexIteratorDescriptor;
+struct ChannelDriver;
 struct ColorBand;
-struct CurveMapping;
+struct Context;
 struct Curve;
+struct CurveMapping;
 struct DerivedMesh;
 struct EditBone;
-struct EditFace;
-struct EditMesh;
 struct EnvMap;
-struct ID;
 struct FCurve;
+struct Heap;
+struct HeapNode;
+struct ID;
 struct ImBuf;
 struct Image;
 struct ImageUser;
-struct KeyingSetInfo;
 struct KeyingSet;
+struct KeyingSetInfo;
 struct LOD_Decimation_Info;
+struct MCol;
 struct MTex;
 struct Main;
 struct Material;
-struct MCol;
 struct MenuType;
 struct Mesh;
 struct ModifierData;
@@ -79,21 +80,32 @@ struct RenderEngineType;
 struct RenderLayer;
 struct RenderResult;
 struct Scene;
+struct Scene;
 struct ScrArea;
 struct SculptSession;
 struct ShadeInput;
 struct ShadeResult;
+struct SmallHash;
+struct SmallHashIter;
 struct SpaceClip;
 struct SpaceImage;
 struct SpaceNode;
 struct Tex;
 struct TexResult;
 struct Text;
+struct ToolSettings;
+struct View3D;
 struct bAction;
 struct bArmature;
 struct bConstraint;
+struct bConstraintOb;
+struct bConstraintTarget;
+struct bContextDataResult;
 struct bNode;
+struct bNodeSocket;
+struct bNodeTree;
 struct bPoseChannel;
+struct bPythonConstraint;
 struct uiLayout;
 struct wmEvent;
 struct wmKeyConfig;
@@ -101,16 +113,33 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmWindow;
 struct wmWindowManager;
-struct View3D;
-struct ToolSettings;
-struct bContextDataResult;
-struct bConstraintTarget;
-struct bPythonConstraint;
-struct bConstraintOb;
-struct Context;
-struct ChannelDriver;
 
 /*new render funcs */
+void EDBM_selectmode_set(struct BMEditMesh *em) {}
+void EDBM_mesh_load(struct Object *ob) {}
+void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object *ob) {}
+void EDBM_mesh_normals_update(struct BMEditMesh *em) {}
+void *g_system;
+
+struct Heap* BLI_heap_new (void){return NULL;}
+void BLI_heap_free (struct Heap *heap, void *ptrfreefp) {}
+struct HeapNode* BLI_heap_insert (struct Heap *heap, float value, void *ptr){return NULL;}
+void BLI_heap_remove (struct Heap *heap, struct HeapNode *node) {}
+int BLI_heap_empty (struct Heap *heap) {return 0;}
+int BLI_heap_size (struct Heap *heap){return 0;}
+struct HeapNode* BLI_heap_top (struct Heap *heap){return NULL;}
+void* BLI_heap_popmin (struct Heap *heap){return NULL;}
+
+void BLI_smallhash_init(struct SmallHash *hash) {}
+void BLI_smallhash_release(struct SmallHash *hash) {}
+void BLI_smallhash_insert(struct SmallHash *hash, uintptr_t key, void *item) {}
+void BLI_smallhash_remove(struct SmallHash *hash, uintptr_t key) {}
+void *BLI_smallhash_lookup(struct SmallHash *hash, uintptr_t key) { return NULL; }
+int BLI_smallhash_haskey(struct SmallHash *hash, uintptr_t key) { return 0; }
+int BLI_smallhash_count(struct SmallHash *hash) { return 0; }
+void *BLI_smallhash_iternext(struct SmallHashIter *iter, uintptr_t *key) { return NULL; }
+void *BLI_smallhash_iternew(struct SmallHash *hash, struct SmallHashIter *iter, uintptr_t *key) { return NULL; }
+
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return (float *) NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name) {return (struct RenderLayer *)NULL;}
@@ -139,6 +168,7 @@ struct Render *RE_GetRender(const char *name){return (struct Render *) NULL;}
 
 /* blenkernel */
 void RE_FreeRenderResult(struct RenderResult *res){}
+void RE_FreeAllRenderResults(void){}
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty){return (struct RenderResult *) NULL;}
 void RE_GetResultImage(struct Render *re, struct RenderResult *rr){}
 int RE_RenderInProgress(struct Render *re){return 0;}
@@ -228,11 +258,12 @@ void WM_keymap_restore_to_default(struct wmKeyMap *keymap){}
 void WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
 void WM_keymap_properties_reset(struct wmKeyMapItem *kmi){}
 void WM_keyconfig_update_tag(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi) {}
-int WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap) {return 0;}
 int WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2){return 0;}
 
 
 /* rna editors */
+struct EditMesh;
+
 struct FCurve *verify_fcurve (struct bAction *act, const char group[], const char rna_path[], const int array_index, short add){return (struct FCurve *) NULL;}
 int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag){return 0;}
 void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc){}
@@ -266,6 +297,7 @@ void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 struct BGpic *ED_view3D_background_image_new(struct View3D *v3d){return (struct BGpic *) NULL;}
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic){}
 void ED_view3D_background_image_clear(struct View3D *v3d){}
+void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[][4], float winmat[][4]){}
 void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist){}
 int text_file_modified(struct Text *text){return 0;}
 void ED_node_shader_default(struct Material *ma){}
@@ -296,7 +328,9 @@ void ED_mesh_transform(struct Mesh *me, float *mat){}
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count){}
-void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_tessfaces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_loops_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_polys_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_edges_remove(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_faces_remove(struct Mesh *mesh, struct ReportList *reports, int count){}
@@ -312,18 +346,14 @@ void ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertn
 void ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup){}
 void ED_vgroup_clear(struct Object *ob){}
 void ED_vgroup_object_is_edit_mode(struct Object *ob){}
+long mesh_mirrtopo_table(struct Object *ob, char mode) { return 0; }
+intptr_t mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode) { return 0; }
 
 void ED_sequencer_update_view(struct bContext *C, int view){}
 float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.0f;}
 void ED_space_image_size(struct SpaceImage *sima, int *width, int *height){}
 
 void ED_nurb_set_spline_type(struct Nurb *nu, int type){}
-
-void EM_selectmode_set(struct EditMesh *em){}
-int EM_texFaceCheck(struct EditMesh *em){return 0;}
-struct MTFace *EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloopy){return (struct MTFace *)NULL;}
-void make_editMesh(struct Scene *scene, struct Object *ob){}
-void load_editMesh(struct Scene *scene, struct Object *ob){}
 
 void make_editLatt(struct Object *obedit){}
 void load_editLatt(struct Object *obedit){}
@@ -334,7 +364,7 @@ void make_editNurb	(struct Object *obedit){}
 
 void uiItemR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, char *name, int icon){}
 
-struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a; return a;}
+struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a = {{0}}; return a;}
 struct uiLayout *uiLayoutRow(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumn(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumnFlow(struct uiLayout *layout, int number, int align){return (struct uiLayout *) NULL;}
@@ -455,8 +485,8 @@ float sculpt_get_brush_unprojected_radius(struct Brush *brush){return 0.0f;}
 void sculpt_set_brush_unprojected_radius(struct Brush *brush, float unprojected_radius){}
 float sculpt_get_brush_alpha(struct Brush *brush){return 0.0f;}
 void sculpt_set_brush_alpha(struct Brush *brush, float alpha){}
-void ED_sculpt_modifiers_changed(struct Object *ob){};
-
+void ED_sculpt_modifiers_changed(struct Object *ob){}
+void ED_mesh_calc_tessface(struct Mesh *mesh){}
 
 /* bpy/python internal api */
 void operator_wrapper(struct wmOperatorType *ot, void *userdata) {}
@@ -467,7 +497,7 @@ void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTa
 float BPY_driver_exec(struct ChannelDriver *driver, const float evaltime) {return 0.0f;} /* might need this one! */
 void BPY_DECREF(void *pyob_ptr) {}
 void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
-void macro_wrapper(struct wmOperatorType *ot, void *userdata) {} ;
+void macro_wrapper(struct wmOperatorType *ot, void *userdata) {}
 
 /* intern/dualcon */
 struct DualConMesh;

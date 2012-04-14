@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef KX_INPUTDEVICE_H
-#define KX_INPUTDEVICE_H
+#ifndef __SCA_IINPUTDEVICE_H__
+#define __SCA_IINPUTDEVICE_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -295,7 +295,7 @@ public:
 	virtual int		GetNumActiveEvents();
 
 	/**
-	 * Get the number of ramping events (just_activated, just_released)
+	 * Get the number of remapping events (just_activated, just_released)
 	 */
 	virtual int		GetNumJustEvents();
 	
@@ -322,5 +322,5 @@ public:
 #endif
 };
 
-#endif	//KX_INPUTDEVICE_H
+#endif	//__SCA_IINPUTDEVICE_H__
 

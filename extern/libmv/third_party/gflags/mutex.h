@@ -28,7 +28,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // ---
-// Author: Craig Silverstein.
 //
 // A simple mutex wrapper, supporting locks and read-write locks.
 // You should assume the locks are *not* re-entrant.
@@ -117,7 +116,12 @@
 #if defined(NO_THREADS)
   typedef int MutexType;      // to keep a lock-count
 #elif defined(_WIN32) || defined(__CYGWIN32__) || defined(__CYGWIN64__)
-# define WIN32_LEAN_AND_MEAN  // We only need minimal includes
+# ifndef WIN32_LEAN_AND_MEAN
+#   define WIN32_LEAN_AND_MEAN  // We only need minimal includes
+# endif
+# ifndef NOMINMAX
+#   define NOMINMAX             // Don't want windows to override min()/max()
+# endif
 # ifdef GMUTEX_TRYLOCK
   // We need Windows NT or later for TryEnterCriticalSection().  If you
   // don't need that functionality, you can remove these _WIN32_WINNT
@@ -134,7 +138,10 @@
   // *does* cause problems for FreeBSD, or MacOSX, but isn't needed
   // for locking there.)
 # ifdef __linux__
-#   define _XOPEN_SOURCE 500  // may be needed to get the rwlock calls
+#   if _XOPEN_SOURCE < 500      // including not being defined at all
+#     undef _XOPEN_SOURCE
+#     define _XOPEN_SOURCE 500  // may be needed to get the rwlock calls
+#   endif
 # endif
 # include <pthread.h>
   typedef pthread_rwlock_t MutexType;

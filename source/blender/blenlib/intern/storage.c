@@ -78,6 +78,7 @@
 #include <io.h>
 #include <direct.h>
 #include "BLI_winstuff.h"
+#include "utfconv.h"
 #endif
 
 
@@ -86,10 +87,13 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
+#include "BLI_fileops.h"
+
+#include "BLI_fileops_types.h"
 #include "BLI_string.h"
+#include "BLI_fileops.h"
 
 #include "BKE_utildefines.h"
 
@@ -104,7 +108,7 @@ static struct ListBase *dirbase = &dirbase_;
 char *BLI_current_working_dir(char *dir, const int maxncpy)
 {
 	const char *pwd= getenv("PWD");
-	if (pwd){
+	if (pwd) {
 		BLI_strncpy(dir, pwd, maxncpy);
 		return dir;
 	}
@@ -117,24 +121,26 @@ static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 {
 	/* type is equal to stat.st_mode */
 
-	if (S_ISDIR(entry1->type)){
+	if (S_ISDIR(entry1->type)) {
 		if (S_ISDIR(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISDIR(entry2->type)) return (1);
 	}
-	if (S_ISREG(entry1->type)){
+	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type)==0) return (-1);
-	} else{
+	}
+	else {
 		if (S_ISREG(entry2->type)) return (1);
 	}
 	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
 	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
 	
 	/* make sure "." and ".." are always first */
-	if( strcmp(entry1->relname, ".")==0 ) return (-1);
-	if( strcmp(entry2->relname, ".")==0 ) return (1);
-	if( strcmp(entry1->relname, "..")==0 ) return (-1);
-	if( strcmp(entry2->relname, "..")==0 ) return (1);
+	if ( strcmp(entry1->relname, ".")==0 ) return (-1);
+	if ( strcmp(entry2->relname, ".")==0 ) return (1);
+	if ( strcmp(entry1->relname, "..")==0 ) return (-1);
+	if ( strcmp(entry2->relname, "..")==0 ) return (1);
 
 	return (BLI_natstrcmp(entry1->relname,entry2->relname));
 }
@@ -150,7 +156,8 @@ double BLI_dir_free_space(const char *dir)
 	if (dir[0]=='/' || dir[0]=='\\') {
 		tmp[0]='\\';
 		tmp[1]=0;
-	} else if (dir[1]==':') {
+	}
+	else if (dir[1]==':') {
 		tmp[0]=dir[0];
 		tmp[1]=':';
 		tmp[2]='\\';
@@ -175,10 +182,11 @@ double BLI_dir_free_space(const char *dir)
 	
 	strcpy(name,dir);
 
-	if(len){
+	if (len) {
 		slash = strrchr(name,'/');
 		if (slash) slash[1] = 0;
-	} else strcpy(name,"/");
+	}
+	else strcpy(name,"/");
 
 #if defined (__FreeBSD__) || defined (linux) || defined (__OpenBSD__) || defined (__APPLE__) || defined(__GNU__) || defined(__GLIBC__)
 	if (statfs(name, &disk)) return(-1);
@@ -206,20 +214,29 @@ static void bli_builddir(const char *dirname, const char *relname)
 	BLI_strncpy(buf, relname, sizeof(buf));
 	rellen=strlen(relname);
 
-	if (rellen){
+	if (rellen) {
 		buf[rellen]='/';
 		rellen++;
 	}
-
-	if (chdir(dirname) == -1){
+#ifndef WIN32
+	if (chdir(dirname) == -1) {
 		perror(dirname);
 		return;
 	}
+#else
+	UTF16_ENCODE(dirname);
+	if (!SetCurrentDirectoryW(dirname_16)) {
+		perror(dirname);
+		free(dirname_16);
+		return;
+	}
+	UTF16_UN_ENCODE(dirname);
 
-	if ( (dir = (DIR *)opendir(".")) ){
+#endif
+	if ((dir = (DIR *)opendir("."))) {
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
 			dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-			if (dlink){
+			if (dlink) {
 				BLI_strncpy(buf + rellen ,fname->d_name, sizeof(buf) - rellen);
 				dlink->name = BLI_strdup(buf);
 				BLI_addhead(dirbase,dlink);
@@ -227,34 +244,39 @@ static void bli_builddir(const char *dirname, const char *relname)
 			}
 		}
 		
-		if (newnum){
+		if (newnum) {
 
-			if(files) {
-				void *tmp= realloc(files, (totnum+newnum) * sizeof(struct direntry));
-				if(tmp) {
-					files= (struct direntry *)tmp;
+			if (files) {
+				void *tmp = realloc(files, (totnum+newnum) * sizeof(struct direntry));
+				if (tmp) {
+					files = (struct direntry *)tmp;
 				}
 				else { /* realloc fail */
 					free(files);
-					files= NULL;
+					files = NULL;
 				}
 			}
 			
-			if(files==NULL)
+			if (files==NULL)
 				files=(struct direntry *)malloc(newnum * sizeof(struct direntry));
 
-			if (files){
+			if (files) {
 				dlink = (struct dirlink *) dirbase->first;
-				while(dlink){
+				while (dlink) {
 					memset(&files[actnum], 0 , sizeof(struct direntry));
 					files[actnum].relname = dlink->name;
 					files[actnum].path = BLI_strdupcat(dirname, dlink->name);
 // use 64 bit file size, only needed for WIN32 and WIN64. 
-// Excluding other than current MSVC compiler until able to test.
+// Excluding other than current MSVC compiler until able to test
+#ifdef WIN32
+					{wchar_t * name_16 = alloc_utf16_from_8(dlink->name,0);
 #if (defined(WIN32) || defined(WIN64)) && (_MSC_VER>=1500)
-					_stat64(dlink->name,&files[actnum].s);
+					_wstat64(name_16,&files[actnum].s);
 #elif defined(__MINGW32__)
 					_stati64(dlink->name,&files[actnum].s);
+#endif
+					free(name_16);};
+
 #else
 					stat(dlink->name,&files[actnum].s);
 #endif
@@ -264,19 +286,22 @@ static void bli_builddir(const char *dirname, const char *relname)
 					actnum++;
 					dlink = dlink->next;
 				}
-			} else{
+			}
+			else {
 				printf("Couldn't get memory for dir\n");
 				exit(1);
 			}
 
 			BLI_freelist(dirbase);
 			if (files) qsort(files, actnum, sizeof(struct direntry), (int (*)(const void *,const void*))bli_compare);
-		} else {
+		}
+		else {
 			printf("%s empty directory\n",dirname);
 		}
 
 		closedir(dir);
-	} else {
+	}
+	else {
 		printf("%s non-existant directory\n",dirname);
 	}
 }
@@ -298,7 +323,7 @@ static void bli_adddirstrings(void)
 	struct tm *tm;
 	time_t zero= 0;
 	
-	for(num=0, file= files; num<actnum; num++, file++){
+	for (num=0, file= files; num<actnum; num++, file++) {
 #ifdef WIN32
 		mode = 0;
 		BLI_strncpy(file->mode1, types[0], sizeof(file->mode1));
@@ -313,14 +338,14 @@ static void bli_adddirstrings(void)
 		
 		if (((mode & S_ISGID) == S_ISGID) && (file->mode2[2]=='-'))file->mode2[2]='l';
 
-		if (mode & (S_ISUID | S_ISGID)){
+		if (mode & (S_ISUID | S_ISGID)) {
 			if (file->mode1[2]=='x') file->mode1[2]='s';
 			else file->mode1[2]='S';
 
 			if (file->mode2[2]=='x')file->mode2[2]='s';
 		}
 
-		if (mode & S_ISVTX){
+		if (mode & S_ISVTX) {
 			if (file->mode3[2] == 'x') file->mode3[2] = 't';
 			else file->mode3[2] = 'T';
 		}
@@ -334,7 +359,8 @@ static void bli_adddirstrings(void)
 			pwuser = getpwuid(file->s.st_uid);
 			if ( pwuser ) {
 				BLI_strncpy(file->owner, pwuser->pw_name, sizeof(file->owner));
-			} else {
+			}
+			else {
 				BLI_snprintf(file->owner, sizeof(file->owner), "%d", file->s.st_uid);
 			}
 		}
@@ -342,7 +368,7 @@ static void bli_adddirstrings(void)
 
 		tm= localtime(&file->s.st_mtime);
 		// prevent impossible dates in windows
-		if(tm==NULL) tm= localtime(&zero);
+		if (tm==NULL) tm= localtime(&zero);
 		strftime(file->time, sizeof(file->time), "%H:%M", tm);
 		strftime(file->date, sizeof(file->date), "%d-%b-%y", tm);
 
@@ -408,7 +434,8 @@ unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 
 	if (files) {
 		*(filelist) = files;
-	} else {
+	}
+	else {
 		// keep blender happy. Blender stores this in a variable
 		// where 0 has special meaning.....
 		*(filelist) = files = malloc(sizeof(struct direntry));
@@ -423,13 +450,13 @@ size_t BLI_file_descriptor_size(int file)
 	struct stat buf;
 
 	if (file <= 0) return (-1);
-	fstat(file, &buf);
+	fstat(file, &buf);//CHANGE
 	return (buf.st_size);
 }
 
 size_t BLI_file_size(const char *path)
 {
-	int size, file = open(path, O_BINARY|O_RDONLY);
+	int size, file = BLI_open(path, O_BINARY|O_RDONLY, 0);
 	
 	if (file == -1)
 		return -1;
@@ -442,27 +469,26 @@ size_t BLI_file_size(const char *path)
 
 int BLI_exists(const char *name)
 {
-#if defined(WIN32) && !defined(__MINGW32__)
+#if defined(WIN32) 
+#ifndef __MINGW32__
 	struct _stat64i32 st;
+#else
+	struct _stati64 st;
+#endif
 	/*  in Windows stat doesn't recognize dir ending on a slash 
 		To not break code where the ending slash is expected we
 		don't mess with the argument name directly here - elubie */
-	char tmp[FILE_MAX];
+	wchar_t * tmp_16 = alloc_utf16_from_8(name, 0);
 	int len, res;
-	BLI_strncpy(tmp, name, FILE_MAX);
-	len = strlen(tmp);
-	if (len > 3 && ( tmp[len-1]=='\\' || tmp[len-1]=='/') ) tmp[len-1] = '\0';
-	res = _stat(tmp, &st);
+	len = wcslen(tmp_16);
+	if (len > 3 && ( tmp_16[len-1]==L'\\' || tmp_16[len-1]==L'/') ) tmp_16[len-1] = '\0';
+#ifndef __MINGW32__
+	res = _wstat(tmp_16, &st);
+#else
+	res = _wstati64(tmp_16, &st);
+#endif
+	free(tmp_16);
 	if (res == -1) return(0);
-#elif defined(__MINGW32__)
-	struct _stati64 st;
-	char tmp[FILE_MAX];
-	int len, res;
-	BLI_strncpy(tmp, name, FILE_MAX);
-	len = strlen(tmp);
-	if (len > 3 && ( tmp[len-1]=='\\' || tmp[len-1]=='/') ) tmp[len-1] = '\0';
-	res = _stati64(tmp, &st);
-	if (res) return(0);
 #else
 	struct stat st;
 	if (stat(name,&st)) return(0);	
@@ -484,7 +510,7 @@ int BLI_is_file(const char *path)
 
 LinkNode *BLI_file_read_as_lines(const char *name)
 {
-	FILE *fp= fopen(name, "r");
+	FILE *fp= BLI_fopen(name, "r");
 	LinkNode *lines= NULL;
 	char *buf;
 	size_t size;
@@ -530,11 +556,23 @@ void BLI_file_free_lines(LinkNode *lines)
 
 int BLI_file_older(const char *file1, const char *file2)
 {
+#ifdef WIN32
+	struct _stat st1, st2;
+
+	UTF16_ENCODE(file1);
+	UTF16_ENCODE(file2);
+	
+	if (_wstat(file1_16, &st1)) return 0;
+	if (_wstat(file2_16, &st2)) return 0;
+
+	UTF16_UN_ENCODE(file2);
+	UTF16_UN_ENCODE(file1);
+#else
 	struct stat st1, st2;
 
-	if(stat(file1, &st1)) return 0;
-	if(stat(file2, &st2)) return 0;
-
+	if (stat(file1, &st1)) return 0;
+	if (stat(file2, &st2)) return 0;
+#endif
 	return (st1.st_mtime < st2.st_mtime);
 }
 

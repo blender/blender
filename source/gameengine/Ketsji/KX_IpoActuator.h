@@ -30,8 +30,8 @@
  *  \brief Do an object ipo
  */
 
-#ifndef __KX_IPOACTUATOR
-#define __KX_IPOACTUATOR
+#ifndef __KX_IPOACTUATOR_H__
+#define __KX_IPOACTUATOR_H__
 
 #include "SCA_IActuator.h"
 
@@ -40,13 +40,13 @@ class KX_IpoActuator : public SCA_IActuator
 	Py_Header
 private:
 	/** Computes the IPO start time from the current time
-	    and the current frame. */
+	 *  and the current frame. */
 	void SetStartTime(float curtime);
 	/** Computes the current frame from the current time
-	    and the IPO start time. */
+	 *  and the IPO start time. */
 	void SetLocalTime(float curtime);
 	/** Ensures the current frame is between the start and
-	    end frames. */
+	 *  end frames. */
 	bool ClampLocalTime();
 
 protected:
@@ -150,5 +150,5 @@ public:
 	
 };
 
-#endif //__KX_IPOACTUATOR
+#endif //__KX_IPOACTUATOR_H__
 

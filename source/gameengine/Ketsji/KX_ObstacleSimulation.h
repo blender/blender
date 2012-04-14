@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __KX_OBSTACLESIMULATION
-#define __KX_OBSTACLESIMULATION
+#ifndef __KX_OBSTACLESIMULATION_H__
+#define __KX_OBSTACLESIMULATION_H__
 
 #include <vector>
 #include "MT_Point2.h"

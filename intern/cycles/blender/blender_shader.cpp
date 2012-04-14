@@ -80,7 +80,7 @@ static void get_tex_mapping(TextureMapping *mapping, BL::TexMapping b_mapping)
 	if(!b_mapping)
 		return;
 
-	mapping->translation = get_float3(b_mapping.location());
+	mapping->translation = get_float3(b_mapping.translation());
 	mapping->rotation = get_float3(b_mapping.rotation());
 	mapping->scale = get_float3(b_mapping.scale());
 
@@ -94,7 +94,7 @@ static void get_tex_mapping(TextureMapping *mapping, BL::ShaderNodeMapping b_map
 	if(!b_mapping)
 		return;
 
-	mapping->translation = get_float3(b_mapping.location());
+	mapping->translation = get_float3(b_mapping.translation());
 	mapping->rotation = get_float3(b_mapping.rotation());
 	mapping->scale = get_float3(b_mapping.scale());
 }
@@ -105,7 +105,6 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 
 	switch(b_node.type()) {
 		/* not supported */
-		case BL::ShaderNode::type_CURVE_RGB: break;
 		case BL::ShaderNode::type_CURVE_VEC: break;
 		case BL::ShaderNode::type_GEOMETRY: break;
 		case BL::ShaderNode::type_MATERIAL: break;
@@ -114,10 +113,21 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 		case BL::ShaderNode::type_SCRIPT: break;
 		case BL::ShaderNode::type_SQUEEZE: break;
 		case BL::ShaderNode::type_TEXTURE: break;
-		case BL::ShaderNode::type_VALTORGB: break;
 		/* handled outside this function */
 		case BL::ShaderNode::type_GROUP: break;
 		/* existing blender nodes */
+		case BL::ShaderNode::type_CURVE_RGB: {
+			RGBCurvesNode *ramp = new RGBCurvesNode();
+			node = ramp;
+			break;
+		}
+		case BL::ShaderNode::type_VALTORGB: {
+			RGBRampNode *ramp = new RGBRampNode();
+			BL::ShaderNodeValToRGB b_ramp_node(b_node);
+			colorramp_to_array(b_ramp_node.color_ramp(), ramp->ramp, RAMP_TABLE_SIZE);
+			node = ramp;
+			break;
+		}
 		case BL::ShaderNode::type_RGB: {
 			ColorNode *color = new ColorNode();
 			color->value = get_node_output_rgba(b_node, "Color");
@@ -332,6 +342,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 			if(b_image)
 				env->filename = blender_absolute_path(b_data, b_image, b_image.filepath());
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
+			env->projection = EnvironmentTextureNode::projection_enum[(int)b_env_node.projection()];
 			get_tex_mapping(&env->tex_mapping, b_env_node.texture_mapping());
 			node = env;
 			break;
@@ -517,6 +528,9 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 			/* add proxy converter nodes for inputs and outputs */
 			BL::NodeGroup b_gnode(*b_node);
 			BL::ShaderNodeTree b_group_ntree(b_gnode.node_tree());
+			if (!b_group_ntree)
+				continue;
+
 			BL::Node::inputs_iterator b_input;
 			BL::Node::outputs_iterator b_output;
 			
@@ -696,12 +710,25 @@ void BlenderSync::sync_world()
 			graph->connect(closure->output("Background"), out->input("Surface"));
 		}
 
+		/* AO */
+		if(b_world) {
+			BL::WorldLighting b_light = b_world.light_settings();
+
+			if(b_light.use_ambient_occlusion())
+				background->ao_factor = b_light.ao_factor();
+			else
+				background->ao_factor = 0.0f;
+
+			background->ao_distance = b_light.distance();
+		}
+
 		shader->set_graph(graph);
 		shader->tag_update(scene);
 	}
 
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 	background->transparent = get_boolean(cscene, "film_transparent");
+	background->use = render_layer.use_background;
 
 	if(background->modified(prevbackground))
 		background->tag_update(scene);

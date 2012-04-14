@@ -62,8 +62,7 @@ void register_node_type_sh_output_material(bNodeTreeType *ttype)
 	node_type_gpu(&ntype, node_shader_gpu_output_material);
 
 	/* Do not allow muting output node. */
-	node_type_mute(&ntype, NULL, NULL);
-	node_type_gpu_mute(&ntype, NULL);
+	node_type_internal_connect(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

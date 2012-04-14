@@ -91,13 +91,13 @@ static int seqcache_hashcmp(const void *a_, const void *b_)
 
 void seq_stripelem_cache_destruct(void)
 {
-	if(moviecache)
+	if (moviecache)
 		IMB_moviecache_free(moviecache);
 }
 
 void seq_stripelem_cache_cleanup(void)
 {
-	if(moviecache) {
+	if (moviecache) {
 		IMB_moviecache_free(moviecache);
 		moviecache = IMB_moviecache_create(sizeof(seqCacheKey), seqcache_hashhash,
 				seqcache_hashcmp, NULL);
@@ -109,7 +109,7 @@ struct ImBuf * seq_stripelem_cache_get(
 	float cfra, seq_stripelem_ibuf_t type)
 {
 
-	if(moviecache && seq) {
+	if (moviecache && seq) {
 		seqCacheKey key;
 
 		key.seq = seq;
@@ -133,7 +133,7 @@ void seq_stripelem_cache_put(
 		return;
 	}
 
-	if(!moviecache) {
+	if (!moviecache) {
 		moviecache = IMB_moviecache_create(sizeof(seqCacheKey), seqcache_hashhash,
 				seqcache_hashcmp, NULL);
 	}

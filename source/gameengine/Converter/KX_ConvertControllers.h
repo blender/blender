@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __KX_CONVERTCONTROLLERS_H
-#define __KX_CONVERTCONTROLLERS_H
+#ifndef __KX_CONVERTCONTROLLERS_H__
+#define __KX_CONVERTCONTROLLERS_H__
 
 #include "KX_Python.h"
 
@@ -44,5 +44,5 @@ void BL_ConvertControllers(
 );
 
 
-#endif //__KX_CONVERTCONTROLLERS_H
+#endif //__KX_CONVERTCONTROLLERS_H__
 

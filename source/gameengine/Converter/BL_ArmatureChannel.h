@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __BL_ARMATURECHANNEL
-#define __BL_ARMATURECHANNEL
+#ifndef __BL_ARMATURECHANNEL_H__
+#define __BL_ARMATURECHANNEL_H__
 
 #include "DNA_action_types.h"
 #include "CTR_HashedPtr.h"
@@ -72,8 +72,8 @@ public:
 };
 
 /* this is a factory class to access bBone data field in the GE.
-   It's not supposed to be instantiated, we only need it for the Attributes and Method array.
-   The actual proxy object will be manually created using NewProxyPtr */
+ * It's not supposed to be instantiated, we only need it for the Attributes and Method array.
+ * The actual proxy object will be manually created using NewProxyPtr */
 class BL_ArmatureBone : public PyObjectPlus
 {
 	// use Py_HeaderPtr since we use generic pointer in proxy
@@ -94,5 +94,5 @@ public:
 };
 
 
-#endif //__BL_ARMATURECHANNEL
+#endif //__BL_ARMATURECHANNEL_H__
 

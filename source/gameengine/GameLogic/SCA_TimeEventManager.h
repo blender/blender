@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_TIMEEVENTMANAGER
-#define __KX_TIMEEVENTMANAGER
+#ifndef __SCA_TIMEEVENTMANAGER_H__
+#define __SCA_TIMEEVENTMANAGER_H__
 
 #include "SCA_EventManager.h"
 #include "Value.h"
@@ -61,5 +61,5 @@ public:
 #endif
 };
 
-#endif //__KX_TIMEEVENTMANAGER
+#endif //__SCA_TIMEEVENTMANAGER_H__
 

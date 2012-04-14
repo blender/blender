@@ -94,7 +94,7 @@ public:
 	Mesh *mesh;
 	list<Attribute> attributes;
 
-	AttributeSet(Mesh *mesh);
+	AttributeSet();
 	~AttributeSet();
 
 	Attribute *add(ustring name, TypeDesc type, Attribute::Element element);

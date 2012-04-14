@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_TIME_CATEGORY_LOGGER_H
-#define __KX_TIME_CATEGORY_LOGGER_H
+#ifndef __KX_TIMECATEGORYLOGGER_H__
+#define __KX_TIMECATEGORYLOGGER_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
@@ -52,7 +52,7 @@ public:
 
 	/**
 	 * Constructor.
-	 * @param maxNumMesasurements Maximum number of measurements stored (> 1).
+	 * \param maxNumMesasurements Maximum number of measurements stored (> 1).
 	 */
 	KX_TimeCategoryLogger(unsigned int maxNumMeasurements = 10);
 
@@ -73,40 +73,40 @@ public:
 
 	/**
 	 * Adds a category.
-	 * @param category	The new category.
+	 * \param category	The new category.
 	 */
 	virtual void AddCategory(TimeCategory tc);
 
 	/**
 	 * Starts logging in current measurement for the given category.
-	 * @param tc					The category to log to.
-	 * @param now					The current time.
-	 * @param endOtherCategories	Whether to stop logging to other categories.
+	 * \param tc					The category to log to.
+	 * \param now					The current time.
+	 * \param endOtherCategories	Whether to stop logging to other categories.
 	 */
 	virtual void StartLog(TimeCategory tc, double now, bool endOtherCategories = true);
 
 	/**
 	 * End logging in current measurement for the given category.
-	 * @param tc	The category to log to.
-	 * @param now	The current time.
+	 * \param tc	The category to log to.
+	 * \param now	The current time.
 	 */
 	virtual void EndLog(TimeCategory tc, double now);
 
 	/**
 	 * End logging in current measurement for all categories.
-	 * @param now	The current time.
+	 * \param now	The current time.
 	 */
 	virtual void EndLog(double now);
 
 	/**
 	 * Logs time in next measurement.
-	 * @param now	The current time.
+	 * \param now	The current time.
 	 */
 	virtual void NextMeasurement(double now);
 
 	/**
 	 * Returns average of all but the current measurement time.
-	 * @return The average of all but the current measurement.
+	 * \return The average of all but the current measurement.
 	 */
 	virtual double GetAverage(TimeCategory tc);
 
@@ -135,5 +135,5 @@ public:
 #endif
 };
 
-#endif // __KX_TIME_CATEGORY_LOGGER_H
+#endif // __KX_TIMECATEGORYLOGGER_H__
 

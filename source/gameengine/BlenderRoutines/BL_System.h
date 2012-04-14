@@ -31,8 +31,8 @@
  *  \ingroup blroutines
  */
 
-#ifndef BL_SYSTEM_H
-#define BL_SYSTEM_H
+#ifndef __BL_SYSTEM_H__
+#define __BL_SYSTEM_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,5 +66,5 @@ extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar,
 }
 #endif
 
-#endif /* BL_SYSTEM_H */
+#endif /* __BL_SYSTEM_H__ */
 

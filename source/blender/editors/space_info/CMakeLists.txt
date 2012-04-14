@@ -25,6 +25,7 @@ set(INC
 	../../blenlib
 	../../blenloader
 	../../imbuf
+	../../bmesh
 	../../makesdna
 	../../makesrna
 	../../windowmanager
@@ -46,5 +47,9 @@ set(SRC
 	info_intern.h
 	textview.h
 )
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
 
 blender_add_lib(bf_editor_space_info "${SRC}" "${INC}" "${INC_SYS}")

@@ -89,10 +89,10 @@ unsigned int BOP_BSPNode::addFace(const BOP_BSPPoints& pts,
 		else {
 			m_outChild = new BOP_BSPNode(plane);
 			newDeep = 2;
-		}      
+		}
 	} else { // face lies in both half-spaces: split it
 		BOP_BSPPoints inside, outside;
-  		MT_Point3 lpoint= pts[pts.size()-1];
+		MT_Point3 lpoint= pts[pts.size()-1];
 		BOP_TAG ltag = testPoint(lpoint);
 		BOP_TAG tstate = ltag;
 

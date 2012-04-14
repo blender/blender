@@ -72,7 +72,7 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 	int width, height, depth;
 	float *frow;
 
-	logImageSetVerbose((G.f & G_DEBUG) ? 1:0);
+	logImageSetVerbose((G.debug & G_DEBUG) ? 1:0);
 	
 	image = logImageOpenFromMem(mem, size, use_cineon);
 	
@@ -149,12 +149,12 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 		return 0;
 	}
 	
-	logImageSetVerbose((G.f & G_DEBUG) ? 1:0);
+	logImageSetVerbose((G.debug & G_DEBUG) ? 1:0);
 	logImage = logImageCreate(filename, use_cineon, width, height, depth);
 
 	if (!logImage) return 0;
 	
-	if(logImageSetByteConversion(logImage, &conversion)==0) {
+	if (logImageSetByteConversion(logImage, &conversion)==0) {
 		printf("error setting args\n");
 	}
 
@@ -184,7 +184,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 
 	MEM_freeN(line);
 	
-	if(is_alloc) {
+	if (is_alloc) {
 		MEM_freeN(fbuf);
 	}
 	
@@ -204,7 +204,7 @@ int imb_is_cineon(unsigned char *buf)
 
 ImBuf *imb_loadcineon(unsigned char *mem, size_t size, int flags)
 {
-	if(imb_is_cineon(mem))
+	if (imb_is_cineon(mem))
 		return imb_load_dpx_cineon(mem, 1, size, flags);
 	return NULL;
 }
@@ -221,7 +221,7 @@ int imb_is_dpx(unsigned char *buf)
 
 ImBuf *imb_loaddpx(unsigned char *mem, size_t size, int flags)
 {
-	if(imb_is_dpx(mem))
+	if (imb_is_dpx(mem))
 		return imb_load_dpx_cineon(mem, 0, size, flags);
 	return NULL;
 }

@@ -31,7 +31,7 @@
 // #define DEBUG_NDOF_BUTTONS
 
 typedef enum {
-	NDOF_UnknownDevice, // <-- motion will work fine, buttons are ignored
+	NDOF_UnknownDevice,
 
 	// current devices
 	NDOF_SpaceNavigator,
@@ -41,7 +41,8 @@ typedef enum {
 
 	// older devices
 	NDOF_SpacePilot,
-	NDOF_Spaceball5000
+	NDOF_Spaceball5000,
+	NDOF_SpaceTraveler
 
 	} NDOF_DeviceT;
 
@@ -76,6 +77,11 @@ typedef enum {
 	NDOF_BUTTON_DOMINANT,
 	NDOF_BUTTON_PLUS,
 	NDOF_BUTTON_MINUS,
+	// keyboard emulation
+	NDOF_BUTTON_ESC,
+	NDOF_BUTTON_ALT,
+	NDOF_BUTTON_SHIFT,
+	NDOF_BUTTON_CTRL,
 	// general-purpose buttons
 	// users can assign functions via keymap editor
 	NDOF_BUTTON_1,
@@ -149,6 +155,7 @@ private:
 	NDOF_DeviceT m_deviceType;
 	int m_buttonCount;
 	int m_buttonMask;
+	const NDOF_ButtonT* m_hidMap;
 
 	short m_translation[3];
 	short m_rotation[3];

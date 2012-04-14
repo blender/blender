@@ -73,10 +73,11 @@ GLubyte stipple_halftone[128] = {
 
 
 /*  repeat this pattern
-	X000X000
-	00000000
-	00X000X0
-	00000000 */
+ *
+ *     X000X000
+ *     00000000
+ *     00X000X0
+ *     00000000 */
 
 
 GLubyte stipple_quarttone[128] = { 
@@ -148,8 +149,10 @@ void fdrawbezier(float vec[4][3])
 	glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
 	glBegin(GL_LINE_STRIP);
 	while (spline_step < 1.000001f) {
-		/*if(do_shaded)
-			UI_ThemeColorBlend(th_col1, th_col2, spline_step);*/
+#if 0
+		if (do_shaded)
+			UI_ThemeColorBlend(th_col1, th_col2, spline_step);
+#endif
 		glEvalCoord1f(spline_step);
 		spline_step += dist;
 	}
@@ -188,6 +191,31 @@ void fdrawbox(float x1, float y1, float x2, float y2)
 	glEnd();
 }
 
+void fdrawcheckerboard(float x1, float y1, float x2, float y2)
+{
+	unsigned char col1[4]= {40, 40, 40}, col2[4]= {50, 50, 50};
+
+	GLubyte checker_stipple[32*32/8] = {
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+	};
+	
+	glColor3ubv(col1);
+	glRectf(x1, y1, x2, y2);
+	glColor3ubv(col2);
+
+	glEnable(GL_POLYGON_STIPPLE);
+	glPolygonStipple(checker_stipple);
+	glRectf(x1, y1, x2, y2);
+	glDisable(GL_POLYGON_STIPPLE);
+}
+
 void sdrawline(short x1, short y1, short x2, short y2)
 {
 	short v[2];
@@ -201,14 +229,12 @@ void sdrawline(short x1, short y1, short x2, short y2)
 }
 
 /*
-
-	x1,y2
-	|  \
-	|   \
-	|    \
-	x1,y1-- x2,y1
-
-*/
+ *     x1,y2
+ *     |  \
+ *     |   \
+ *     |    \
+ *     x1,y1-- x2,y1
+ */
 
 static void sdrawtripoints(short x1, short y1, short x2, short y2)
 {
@@ -260,7 +286,7 @@ void sdrawbox(short x1, short y1, short x2, short y2)
 
 void setlinestyle(int nr)
 {
-	if(nr==0) {
+	if (nr==0) {
 		glDisable(GL_LINE_STIPPLE);
 	}
 	else {
@@ -283,7 +309,7 @@ void set_inverted_drawing(int enable)
 
 void sdrawXORline(int x0, int y0, int x1, int y1)
 {
-	if(x0==x1 && y0==y1) return;
+	if (x0==x1 && y0==y1) return;
 
 	set_inverted_drawing(1);
 	
@@ -305,7 +331,7 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1)
 	set_inverted_drawing(1);
 		
 	glBegin(GL_LINES);
-	if(nr== -1) { /* flush */
+	if (nr== -1) { /* flush */
 		for (nr=0; nr<4; nr++) {
 			if (flags[nr]) {
 				glVertex2sv(old[nr][0]);
@@ -313,9 +339,10 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1)
 				flags[nr]= 0;
 			}
 		}
-	} else {
-		if(nr>=0 && nr<4) {
-			if(flags[nr]) {
+	}
+	else {
+		if (nr>=0 && nr<4) {
+			if (flags[nr]) {
 				glVertex2sv(old[nr][0]);
 				glVertex2sv(old[nr][1]);
 			}
@@ -338,7 +365,7 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1)
 
 void fdrawXORellipse(float xofs, float yofs, float hw, float hh)
 {
-	if(hw==0) return;
+	if (hw==0) return;
 
 	set_inverted_drawing(1);
 
@@ -410,7 +437,7 @@ void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y
 	GLubyte dummy= 0;
 
 		/* As long as known good coordinates are correct
-		 * this is guarenteed to generate an ok raster
+		 * this is guaranteed to generate an ok raster
 		 * position (ignoring potential (real) overflow
 		 * issues).
 		 */
@@ -501,28 +528,28 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 			float rast_y= y+subpart_y*offset_y*yzoom;
 			
 			/* check if we already got these because we always get 2 more when doing seamless*/
-			if(subpart_w<=seamless || subpart_h<=seamless)
+			if (subpart_w<=seamless || subpart_h<=seamless)
 				continue;
 			
-			if(format==GL_FLOAT) {
+			if (format==GL_FLOAT) {
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_FLOAT, &f_rect[subpart_y*offset_y*img_w*4 + subpart_x*offset_x*4]);
 				
 				/* add an extra border of pixels so linear looks ok at edges of full image. */
-				if(subpart_w<tex_w)
+				if (subpart_w<tex_w)
 					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, 0, 1, subpart_h, GL_RGBA, GL_FLOAT, &f_rect[subpart_y*offset_y*img_w*4 + (subpart_x*offset_x+subpart_w-1)*4]);
-				if(subpart_h<tex_h)
+				if (subpart_h<tex_h)
 					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, subpart_h, subpart_w, 1, GL_RGBA, GL_FLOAT, &f_rect[(subpart_y*offset_y+subpart_h-1)*img_w*4 + subpart_x*offset_x*4]);
-				if(subpart_w<tex_w && subpart_h<tex_h)
+				if (subpart_w<tex_w && subpart_h<tex_h)
 					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, subpart_h, 1, 1, GL_RGBA, GL_FLOAT, &f_rect[(subpart_y*offset_y+subpart_h-1)*img_w*4 + (subpart_x*offset_x+subpart_w-1)*4]);
 			}
 			else {
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[subpart_y*offset_y*img_w*4 + subpart_x*offset_x*4]);
 				
-				if(subpart_w<tex_w)
+				if (subpart_w<tex_w)
 					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, 0, 1, subpart_h, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[subpart_y*offset_y*img_w*4 + (subpart_x*offset_x+subpart_w-1)*4]);
-				if(subpart_h<tex_h)
+				if (subpart_h<tex_h)
 					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, subpart_h, subpart_w, 1, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[(subpart_y*offset_y+subpart_h-1)*img_w*4 + subpart_x*offset_x*4]);
-				if(subpart_w<tex_w && subpart_h<tex_h)
+				if (subpart_w<tex_w && subpart_h<tex_h)
 					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, subpart_h, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[(subpart_y*offset_y+subpart_h-1)*img_w*4 + (subpart_x*offset_x+subpart_w-1)*4]);
 			}
 
@@ -607,27 +634,28 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 			/* Don't use safe RasterPos (slower) if we can avoid it. */
 		if (rast_x>=0 && rast_y>=0) {
 			glRasterPos2f(rast_x, rast_y);
-		} else {
+		}
+		else {
 			glaRasterPosSafe2f(rast_x, rast_y, 0, 0);
 		}
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, row_w);
-		if(format==GL_LUMINANCE || format==GL_RED) {
-			if(type==GL_FLOAT) {
+		if (format==GL_LUMINANCE || format==GL_RED) {
+			if (type==GL_FLOAT) {
 				float *f_rect= (float *)rect;
 				glDrawPixels(draw_w, draw_h, format, type, f_rect + (off_y*row_w + off_x));
 			}
-			else if(type==GL_INT || type==GL_UNSIGNED_INT) {
+			else if (type==GL_INT || type==GL_UNSIGNED_INT) {
 				int *i_rect= (int *)rect;
 				glDrawPixels(draw_w, draw_h, format, type, i_rect + (off_y*row_w + off_x));
 			}
 		}
 		else { /* RGBA */
-			if(type==GL_FLOAT) {
+			if (type==GL_FLOAT) {
 				float *f_rect= (float *)rect;
 				glDrawPixels(draw_w, draw_h, format, type, f_rect + (off_y*row_w + off_x)*4);
 			}
-			else if(type==GL_UNSIGNED_BYTE) {
+			else if (type==GL_UNSIGNED_BYTE) {
 				unsigned char *uc_rect= (unsigned char *) rect;
 				glDrawPixels(draw_w, draw_h, format, type, uc_rect + (off_y*row_w + off_x)*4);
 			}
@@ -708,11 +736,12 @@ gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect)
 	di->screen_rect= *screen_rect;
 	if (world_rect) {
 		di->world_rect= *world_rect;
-	} else {
-		di->world_rect.xmin= di->screen_rect.xmin;
-		di->world_rect.ymin= di->screen_rect.ymin;
-		di->world_rect.xmax= di->screen_rect.xmax;
-		di->world_rect.ymax= di->screen_rect.ymax;
+	}
+	else {
+		di->world_rect.xmin = di->screen_rect.xmin;
+		di->world_rect.ymin = di->screen_rect.ymin;
+		di->world_rect.xmax = di->screen_rect.xmax;
+		di->world_rect.ymax = di->screen_rect.ymax;
 	}
 
 	sc_w= (di->screen_rect.xmax-di->screen_rect.xmin);
@@ -764,13 +793,13 @@ void bglBegin(int mode)
 {
 	curmode= mode;
 	
-	if(mode==GL_POINTS) {
+	if (mode==GL_POINTS) {
 		float value[4];
 		glGetFloatv(GL_POINT_SIZE_RANGE, value);
-		if(value[1] < 2.0f) {
+		if (value[1] < 2.0f) {
 			glGetFloatv(GL_POINT_SIZE, value);
 			pointhack= floor(value[0] + 0.5f);
-			if(pointhack>4) pointhack= 4;
+			if (pointhack>4) pointhack= 4;
 		}
 		else glBegin(mode);
 	}
@@ -781,20 +810,20 @@ int bglPointHack(void)
 	float value[4];
 	int pointhack_px;
 	glGetFloatv(GL_POINT_SIZE_RANGE, value);
-	if(value[1] < 2.0f) {
+	if (value[1] < 2.0f) {
 		glGetFloatv(GL_POINT_SIZE, value);
 		pointhack_px= floorf(value[0]+0.5f);
-		if(pointhack_px>4) pointhack_px= 4;
+		if (pointhack_px>4) pointhack_px= 4;
 		return pointhack_px;
 	}
 	return 0;
 }
 
-void bglVertex3fv(float *vec)
+void bglVertex3fv(const float vec[3])
 {
 	switch(curmode) {
 	case GL_POINTS:
-		if(pointhack) {
+		if (pointhack) {
 			glRasterPos3fv(vec);
 			glBitmap(pointhack, pointhack, (float)pointhack/2.0f, (float)pointhack/2.0f, 0.0, 0.0, Squaredot);
 		}
@@ -807,7 +836,7 @@ void bglVertex3f(float x, float y, float z)
 {
 	switch(curmode) {
 	case GL_POINTS:
-		if(pointhack) {
+		if (pointhack) {
 			glRasterPos3f(x, y, z);
 			glBitmap(pointhack, pointhack, (float)pointhack/2.0f, (float)pointhack/2.0f, 0.0, 0.0, Squaredot);
 		}
@@ -816,11 +845,11 @@ void bglVertex3f(float x, float y, float z)
 	}
 }
 
-void bglVertex2fv(float *vec)
+void bglVertex2fv(const float vec[2])
 {
 	switch(curmode) {
 	case GL_POINTS:
-		if(pointhack) {
+		if (pointhack) {
 			glRasterPos2fv(vec);
 			glBitmap(pointhack, pointhack, (float)pointhack/2, pointhack/2, 0.0, 0.0, Squaredot);
 		}
@@ -832,7 +861,7 @@ void bglVertex2fv(float *vec)
 
 void bglEnd(void)
 {
-	if(pointhack) pointhack= 0;
+	if (pointhack) pointhack= 0;
 	else glEnd();
 	
 }
@@ -847,11 +876,11 @@ void bgl_get_mats(bglMats *mats)
 	glGetIntegerv(GL_VIEWPORT, (GLint *)mats->viewport);
 	
 	/* Very strange code here - it seems that certain bad values in the
-	   modelview matrix can cause gluUnProject to give bad results. */
-	if(mats->modelview[0] < badvalue &&
+	 * modelview matrix can cause gluUnProject to give bad results. */
+	if (mats->modelview[0] < badvalue &&
 	   mats->modelview[0] > -badvalue)
 		mats->modelview[0]= 0;
-	if(mats->modelview[5] < badvalue &&
+	if (mats->modelview[5] < badvalue &&
 	   mats->modelview[5] > -badvalue)
 		mats->modelview[5]= 0;
 	
@@ -867,7 +896,7 @@ void bglPolygonOffset(float viewdist, float dist)
 {
 	static float winmat[16], offset=0.0;	
 	
-	if(dist != 0.0f) {
+	if (dist != 0.0f) {
 		float offs;
 		
 		// glEnable(GL_POLYGON_OFFSET_FILL);
@@ -879,7 +908,7 @@ void bglPolygonOffset(float viewdist, float dist)
 		
 		/* dist is from camera to center point */
 		
-		if(winmat[15]>0.5f) offs= 0.00001f*dist*viewdist;  // ortho tweaking
+		if (winmat[15]>0.5f) offs= 0.00001f*dist*viewdist;  // ortho tweaking
 		else offs= 0.0005f*dist;  // should be clipping value or so...
 		
 		winmat[14]-= offs;
@@ -902,7 +931,7 @@ void bglFlush(void)
 {
 	glFlush();
 #ifdef __APPLE__
-//	if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_OFFICIAL))
+//	if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_OFFICIAL))
 // XXX		myswapbuffers(); //hack to get mac intel graphics to show frontbuffer
 #endif
 }

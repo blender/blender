@@ -8,28 +8,27 @@ typedef void* CCGVertHDL;
 typedef void* CCGEdgeHDL;
 typedef void* CCGFaceHDL;
 
-typedef struct _CCGVert CCGVert;
-typedef struct _CCGEdge CCGEdge;
-typedef struct _CCGFace CCGFace;
+typedef struct CCGSubSurf CCGSubSurf;
+typedef struct CCGVert CCGVert;
+typedef struct CCGEdge CCGEdge;
+typedef struct CCGFace CCGFace;
 
-typedef struct _CCGMeshIFC CCGMeshIFC;
-struct _CCGMeshIFC {
+typedef struct CCGMeshIFC {
 	int			vertUserSize, edgeUserSize, faceUserSize;
 
 	int			vertDataSize;
-};
+} CCGMeshIFC;
 
 /***/
 
 typedef void* CCGAllocatorHDL;
 
-typedef struct _CCGAllocatorIFC CCGAllocatorIFC;
-struct _CCGAllocatorIFC {
+typedef struct CCGAllocatorIFC {
 	void*		(*alloc)			(CCGAllocatorHDL a, int numBytes);
 	void*		(*realloc)			(CCGAllocatorHDL a, void *ptr, int newSize, int oldSize);
 	void		(*free)				(CCGAllocatorHDL a, void *ptr);
 	void		(*release)			(CCGAllocatorHDL a);
-};
+} CCGAllocatorIFC;
 
 /***/
 
@@ -46,12 +45,8 @@ typedef enum {
 
 /***/
 
-typedef struct _CCGSubSurf CCGSubSurf;
-
 CCGSubSurf*	ccgSubSurf_new	(CCGMeshIFC *ifc, int subdivisionLevels, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator);
 void		ccgSubSurf_free	(CCGSubSurf *ss);
-
-CCGError	ccgSubSurf_sync	(CCGSubSurf *ss);
 
 CCGError	ccgSubSurf_initFullSync		(CCGSubSurf *ss);
 CCGError	ccgSubSurf_initPartialSync	(CCGSubSurf *ss);
@@ -121,10 +116,10 @@ void*		ccgSubSurf_getEdgeData				(CCGSubSurf *ss, CCGEdge *e, int x);
 void*		ccgSubSurf_getEdgeLevelData			(CCGSubSurf *ss, CCGEdge *e, int x, int level);
 
 CCGFace*	ccgSubSurf_getFace					(CCGSubSurf *ss, CCGFaceHDL f);
-CCGFaceHDL	ccgSubSurf_getFaceFaceHandle		(CCGSubSurf *ss, CCGFace *f);
+CCGFaceHDL	ccgSubSurf_getFaceFaceHandle		(CCGFace *f);
 int			ccgSubSurf_getFaceNumVerts			(CCGFace *f);
-CCGVert*	ccgSubSurf_getFaceVert				(CCGSubSurf *ss, CCGFace *f, int index);
-CCGEdge*	ccgSubSurf_getFaceEdge				(CCGSubSurf *ss, CCGFace *f, int index);
+CCGVert*	ccgSubSurf_getFaceVert				(CCGFace *f, int index);
+CCGEdge*	ccgSubSurf_getFaceEdge				(CCGFace *f, int index);
 int			ccgSubSurf_getFaceEdgeIndex			(CCGFace *f, CCGEdge *e);
 
 int			ccgSubSurf_getFaceAge				(CCGSubSurf *ss, CCGFace *f);
@@ -141,9 +136,9 @@ int			ccgSubSurf_getNumFinalFaces		(const CCGSubSurf *ss);
 
 /***/
 
-typedef struct _CCGVertIterator CCGVertIterator;
-typedef struct _CCGEdgeIterator CCGEdgeIterator;
-typedef struct _CCGFaceIterator CCGFaceIterator;
+typedef struct CCGVertIterator CCGVertIterator;
+typedef struct CCGEdgeIterator CCGEdgeIterator;
+typedef struct CCGFaceIterator CCGFaceIterator;
 
 CCGVertIterator*	ccgSubSurf_getVertIterator	(CCGSubSurf *ss);
 CCGEdgeIterator*	ccgSubSurf_getEdgeIterator	(CCGSubSurf *ss);

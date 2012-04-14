@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_TIME_LOGGER_H
-#define __KX_TIME_LOGGER_H
+#ifndef __KX_TIMELOGGER_H__
+#define __KX_TIMELOGGER_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
@@ -49,7 +49,7 @@ class KX_TimeLogger {
 public:
 	/**
 	 * Constructor.
-	 * @param maxNumMesasurements Maximum number of measurements stored (>1).
+	 * \param maxNumMesasurements Maximum number of measurements stored (>1).
 	 */
 	KX_TimeLogger(unsigned int maxNumMeasurements = 10);
 
@@ -70,25 +70,25 @@ public:
 
 	/**
 	 * Starts logging in current measurement.
-	 * @param now	The current time.
+	 * \param now	The current time.
 	 */
 	virtual void StartLog(double now);
 
 	/**
 	 * End logging in current measurement.
-	 * @param now	The current time.
+	 * \param now	The current time.
 	 */
 	virtual void EndLog(double now);
 
 	/**
 	 * Logs time in next measurement.
-	 * @param now	The current time.
+	 * \param now	The current time.
 	 */
 	virtual void NextMeasurement(double now);
 
 	/**
 	 * Returns average of all but the current measurement.
-	 * @return The average of all but the current measurement.
+	 * \return The average of all but the current measurement.
 	 */
 	virtual double GetAverage(void) const;
 
@@ -113,5 +113,5 @@ public:
 #endif
 };
 
-#endif // __KX_TIME_LOGGER_H
+#endif // __KX_TIMELOGGER_H__
 

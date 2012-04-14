@@ -29,6 +29,7 @@ CCL_NAMESPACE_BEGIN
 #define OBJECT_SIZE 		16
 #define LIGHT_SIZE			4
 #define FILTER_TABLE_SIZE	256
+#define RAMP_TABLE_SIZE		256
 
 /* device capabilities */
 #ifdef __KERNEL_CPU__
@@ -59,6 +60,7 @@ CCL_NAMESPACE_BEGIN
 #define __RAY_DIFFERENTIALS__
 #define __CAMERA_CLIPPING__
 #define __INTERSECTION_REFINE__
+#define __CLAMP_SAMPLE__
 
 #ifdef __KERNEL_SHADING__
 #define __SVM__
@@ -72,6 +74,7 @@ CCL_NAMESPACE_BEGIN
 #define __TRANSPARENT_SHADOWS__
 #define __PASSES__
 #define __BACKGROUND_MIS__
+#define __AO__
 #endif
 
 //#define __MULTI_LIGHT__
@@ -172,7 +175,9 @@ typedef enum PassType {
 	PASS_GLOSSY_DIRECT = 16384,
 	PASS_TRANSMISSION_DIRECT = 32768,
 	PASS_EMISSION = 65536,
-	PASS_BACKGROUND = 131072
+	PASS_BACKGROUND = 131072,
+	PASS_AO = 262144,
+	PASS_SHADOW = 524288
 } PassType;
 
 #define PASS_ALL (~0)
@@ -181,11 +186,12 @@ typedef enum PassType {
 
 typedef float3 PathThroughput;
 
-struct PathRadiance {
+typedef struct PathRadiance {
 	int use_light_pass;
 
 	float3 emission;
 	float3 background;
+	float3 ao;
 
 	float3 indirect;
 	float3 direct_throughput;
@@ -202,16 +208,18 @@ struct PathRadiance {
 	float3 indirect_diffuse;
 	float3 indirect_glossy;
 	float3 indirect_transmission;
-};
 
-struct BsdfEval {
+	float4 shadow;
+} PathRadiance;
+
+typedef struct BsdfEval {
 	int use_light_pass;
 
 	float3 diffuse;
 	float3 glossy;
 	float3 transmission;
 	float3 transparent;
-};
+} BsdfEval;
 
 #else
 
@@ -237,8 +245,17 @@ typedef enum LightType {
 	LIGHT_POINT,
 	LIGHT_DISTANT,
 	LIGHT_BACKGROUND,
-	LIGHT_AREA
+	LIGHT_AREA,
+	LIGHT_AO
 } LightType;
+
+/* Camera Type */
+
+enum CameraType {
+	CAMERA_PERSPECTIVE,
+	CAMERA_ORTHOGRAPHIC,
+	CAMERA_ENVIRONMENT
+};
 
 /* Differential */
 
@@ -387,7 +404,7 @@ typedef struct ShaderData {
 
 typedef struct KernelCamera {
 	/* type */
-	int ortho;
+	int type;
 	int pad1, pad2, pad3;
 
 	/* matrices */
@@ -450,15 +467,18 @@ typedef struct KernelFilm {
 
 	int pass_emission;
 	int pass_background;
-	int pass_pad1;
-	int pass_pad2;
+	int pass_ao;
+	int pass_shadow;
 } KernelFilm;
 
 typedef struct KernelBackground {
 	/* only shader index */
 	int shader;
 	int transparent;
-	int pad1, pad2;
+
+	/* ambient occlusion */
+	float ao_factor;
+	float ao_distance;
 } KernelBackground;
 
 typedef struct KernelSunSky {
@@ -474,6 +494,7 @@ typedef struct KernelSunSky {
 typedef struct KernelIntegrator {
 	/* emission */
 	int use_direct_light;
+	int use_ambient_occlusion;
 	int num_distribution;
 	int num_all_lights;
 	float pdf_triangles;
@@ -501,7 +522,12 @@ typedef struct KernelIntegrator {
 
 	/* render layer */
 	int layer_flag;
-	int pad1, pad2, pad3;
+
+	/* clamp */
+	float sample_clamp;
+
+	/* padding */
+	int pad;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

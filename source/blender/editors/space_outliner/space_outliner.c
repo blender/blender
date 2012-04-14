@@ -66,7 +66,7 @@ static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
+	keymap = WM_keymap_find(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
 	/* don't pass on view2d mask, it's always set with scrollbar space, hide fails */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, &ar->winrct);
 
@@ -83,15 +83,15 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	float fmval[2];
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-	if(drag->type == WM_DRAG_ID) {
+	if (drag->type == WM_DRAG_ID) {
 		ID *id = (ID *)drag->poin;
-		if( GS(id->name) == ID_OB ) {
+		if ( GS(id->name) == ID_OB ) {
 			/* Ensure item under cursor is valid drop target */
 			/* Find object hovered over */
-			for(te= soops->tree.first; te; te= te->next) {
+			for (te= soops->tree.first; te; te= te->next) {
 				TreeElement *te_valid;
 				te_valid= outliner_dropzone_parent(C, event, te, fmval);
-				if(te_valid) return 1;
+				if (te_valid) return 1;
 			}
 		}
 	}
@@ -114,20 +114,20 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, wmEvent *event)
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-	if(drag->type == WM_DRAG_ID) {
+	if (drag->type == WM_DRAG_ID) {
 		ID *id = (ID *)drag->poin;
-		if( GS(id->name) == ID_OB ) {
+		if ( GS(id->name) == ID_OB ) {
 			//TODO: Check if no parent?
 			/* Ensure location under cursor is valid dropzone */
-			for(te= soops->tree.first; te; te= te->next) {
-				if(outliner_dropzone_parent_clear(C, event, te, fmval)) return 1;
+			for (te= soops->tree.first; te; te= te->next) {
+				if (outliner_dropzone_parent_clear(C, event, te, fmval)) return 1;
 			}
 			/* Check if mouse cursor is below the tree */
 			te= soops->tree.last;
-			while(((te->flag & TE_LAZY_CLOSED)==0) && (te->subtree.last)) {
+			while (((te->flag & TE_LAZY_CLOSED)==0) && (te->subtree.last)) {
 				te= te->subtree.last;
 			}
-			if(fmval[1] < te->ys) return 1;
+			if (fmval[1] < te->ys) return 1;
 		}
 	}
 	return 0;
@@ -232,15 +232,15 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_LAMP:
 			/* For updating lamp icons, when changing lamp type */
-			if(wmn->data == ND_LIGHTING_DRAW)
+			if (wmn->data == ND_LIGHTING_DRAW)
 				ED_region_tag_redraw(ar);
 				break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_OUTLINER)
+			if (wmn->data == ND_SPACE_OUTLINER)
 				ED_region_tag_redraw(ar);
 				break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_MATERIAL:
@@ -269,7 +269,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_ANIMCHAN:
-					if(wmn->action==NA_SELECTED)
+					if (wmn->action==NA_SELECTED)
 						ED_region_tag_redraw(ar);
 					break;
 			}
@@ -301,11 +301,11 @@ static void outliner_header_area_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
-			if(wmn->data == ND_KEYINGSET)
+			if (wmn->data == ND_KEYINGSET)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_OUTLINER)
+			if (wmn->data == ND_SPACE_OUTLINER)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -349,8 +349,8 @@ static void outliner_free(SpaceLink *sl)
 	SpaceOops *soutliner= (SpaceOops*)sl;
 	
 	outliner_free_tree(&soutliner->tree);
-	if(soutliner->treestore) {
-		if(soutliner->treestore->data) MEM_freeN(soutliner->treestore->data);
+	if (soutliner->treestore) {
+		if (soutliner->treestore->data) MEM_freeN(soutliner->treestore->data);
 		MEM_freeN(soutliner->treestore);
 	}
 	

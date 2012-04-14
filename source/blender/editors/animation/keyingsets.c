@@ -127,7 +127,7 @@ static int add_default_keyingset_exec (bContext *C, wmOperator *UNUSED(op))
 	keyingflag = ANIM_get_keyframing_flags(scene, 0);
 	
 	/* call the API func, and set the active keyingset index */
-	BKE_keyingset_add(&scene->keyingsets, NULL, flag, keyingflag);
+	BKE_keyingset_add(&scene->keyingsets, NULL, NULL, flag, keyingflag);
 	
 	scene->active_keyingset= BLI_countlist(&scene->keyingsets);
 	
@@ -140,13 +140,13 @@ static int add_default_keyingset_exec (bContext *C, wmOperator *UNUSED(op))
 void ANIM_OT_keying_set_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Empty Keying Set";
-	ot->idname= "ANIM_OT_keying_set_add";
-	ot->description= "Add a new (empty) Keying Set to the active Scene";
+	ot->name = "Add Empty Keying Set";
+	ot->idname = "ANIM_OT_keying_set_add";
+	ot->description = "Add a new (empty) Keying Set to the active Scene";
 	
 	/* callbacks */
-	ot->exec= add_default_keyingset_exec;
-	ot->poll= keyingset_poll_default_add;
+	ot->exec = add_default_keyingset_exec;
+	ot->poll = keyingset_poll_default_add;
 }
 
 /* Remove 'Active' Keying Set ------------------------- */
@@ -187,13 +187,13 @@ static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Removed Active Keying Set";
-	ot->idname= "ANIM_OT_keying_set_remove";
-	ot->description= "Remove the active Keying Set";
+	ot->name = "Remove Active Keying Set";
+	ot->idname = "ANIM_OT_keying_set_remove";
+	ot->description = "Remove the active Keying Set";
 	
 	/* callbacks */
-	ot->exec= remove_active_keyingset_exec;
-	ot->poll= keyingset_poll_active_edit;
+	ot->exec = remove_active_keyingset_exec;
+	ot->poll = keyingset_poll_active_edit;
 }
 
 /* Add Empty Keying Set Path ------------------------- */
@@ -230,13 +230,13 @@ static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_path_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Empty Keying Set Path";
-	ot->idname= "ANIM_OT_keying_set_path_add";
-	ot->description= "Add empty path to active Keying Set";
+	ot->name = "Add Empty Keying Set Path";
+	ot->idname = "ANIM_OT_keying_set_path_add";
+	ot->description = "Add empty path to active Keying Set";
 	
 	/* callbacks */
-	ot->exec= add_empty_ks_path_exec;
-	ot->poll= keyingset_poll_active_edit;
+	ot->exec = add_empty_ks_path_exec;
+	ot->poll = keyingset_poll_active_edit;
 }
 
 /* Remove Active Keying Set Path ------------------------- */
@@ -273,13 +273,13 @@ static int remove_active_ks_path_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_path_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Active Keying Set Path";
-	ot->idname= "ANIM_OT_keying_set_path_remove";
-	ot->description= "Remove active Path from active Keying Set";
+	ot->name = "Remove Active Keying Set Path";
+	ot->idname = "ANIM_OT_keying_set_path_remove";
+	ot->description = "Remove active Path from active Keying Set";
 	
 	/* callbacks */
-	ot->exec= remove_active_ks_path_exec;
-	ot->poll= keyingset_poll_activePath_edit;
+	ot->exec = remove_active_ks_path_exec;
+	ot->poll = keyingset_poll_activePath_edit;
 }
 
 /* ************************************************** */
@@ -317,7 +317,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 			keyingflag |= INSERTKEY_XYZ2RGB;
 			
 		/* call the API func, and set the active keyingset index */
-		ks= BKE_keyingset_add(&scene->keyingsets, "ButtonKeyingSet", flag, keyingflag);
+		ks= BKE_keyingset_add(&scene->keyingsets, "ButtonKeyingSet", "Button Keying Set", flag, keyingflag);
 		
 		scene->active_keyingset= BLI_countlist(&scene->keyingsets);
 	}
@@ -371,15 +371,15 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyingset_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add to Keying Set";
-	ot->idname= "ANIM_OT_keyingset_button_add";
+	ot->name = "Add to Keying Set";
+	ot->idname = "ANIM_OT_keyingset_button_add";
 	
 	/* callbacks */
-	ot->exec= add_keyingset_button_exec; 
+	ot->exec = add_keyingset_button_exec; 
 	//op->poll= ???
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Add all elements of the array to a Keying Set");
@@ -450,15 +450,15 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove from Keying Set";
-	ot->idname= "ANIM_OT_keyingset_button_remove";
+	ot->name = "Remove from Keying Set";
+	ot->idname = "ANIM_OT_keyingset_button_remove";
 	
 	/* callbacks */
-	ot->exec= remove_keyingset_button_exec; 
+	ot->exec = remove_keyingset_button_exec; 
 	//op->poll= ???
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************************************* */
@@ -468,22 +468,26 @@ void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 
 static int keyingset_active_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	/* call the menu, which will call this operator again, hence the cancelled */
-	ANIM_keying_sets_menu_setup(C, op->type->name, "ANIM_OT_keying_set_active_set");
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	
+	/* call the menu, which will call this operator again, hence the canceled */
+	pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+	layout = uiPupMenuLayout(pup);
+	uiItemsEnumO(layout, "ANIM_OT_keying_set_active_set", "type");
+	uiPupMenuEnd(C, pup);
+	
 	return OPERATOR_CANCELLED;
 }
 
 static int keyingset_active_menu_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	int type= RNA_int_get(op->ptr, "type");
+	Scene *scene = CTX_data_scene(C);
+	int type = RNA_enum_get(op->ptr, "type");
 	
-	/* simply set the scene's active keying set index, unless the type == 0 
-	 * (i.e. which happens if we want the current active to be maintained) 
-	 */
-	if (type)
-		scene->active_keyingset= type;
-		
+	/* If type == 0, it will deselect any active keying set. */
+	scene->active_keyingset = type;
+	
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
 	
@@ -492,22 +496,24 @@ static int keyingset_active_menu_exec (bContext *C, wmOperator *op)
  
 void ANIM_OT_keying_set_active_set (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
-	ot->name= "Set Active Keying Set";
-	ot->idname= "ANIM_OT_keying_set_active_set";
+	ot->name = "Set Active Keying Set";
+	ot->idname = "ANIM_OT_keying_set_active_set";
 	
 	/* callbacks */
-	ot->invoke= keyingset_active_menu_invoke;
-	ot->exec= keyingset_active_menu_exec; 
-	ot->poll= ED_operator_areaactive;
+	ot->invoke = keyingset_active_menu_invoke;
+	ot->exec = keyingset_active_menu_exec; 
+	ot->poll = ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	/* keyingset to use
-	 *	- here the type is int not enum, since many of the indices here are determined dynamically
-	 */
-	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+	/* keyingset to use (dynamic enum) */
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
+	RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
+/*	RNA_def_property_flag(prop, PROP_HIDDEN);*/
 }
 
 /* ******************************************* */
@@ -546,10 +552,10 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, const char name[
 		first= prevKS->next;
 	else
 		first= builtin_keyingsets.first;
-		
+	
 	/* loop over KeyingSets checking names */
 	for (ks= first; ks; ks= ks->next) {
-		if (strcmp(name, ks->name) == 0)
+		if (strcmp(name, ks->idname) == 0)
 			return ks;
 	}
 
@@ -572,10 +578,13 @@ void ANIM_keyingset_info_register (KeyingSetInfo *ksi)
 	/* create a new KeyingSet 
 	 *	- inherit name and keyframing settings from the typeinfo
 	 */
-	ks = BKE_keyingset_add(&builtin_keyingsets, ksi->name, 1, ksi->keyingflag);
+	ks = BKE_keyingset_add(&builtin_keyingsets, ksi->idname, ksi->name, 1, ksi->keyingflag);
 	
 	/* link this KeyingSet with its typeinfo */
 	memcpy(&ks->typeinfo, ksi->idname, sizeof(ks->typeinfo));
+	
+	/* Copy description... */
+	BLI_strncpy(ks->description, ksi->description, sizeof(ks->description));
 	
 	/* add type-info to the list */
 	BLI_addtail(&keyingset_type_infos, ksi);
@@ -598,7 +607,7 @@ void ANIM_keyingset_info_unregister (Main *bmain, KeyingSetInfo *ksi)
 			BKE_keyingset_free(ks);
 			BLI_remlink(&builtin_keyingsets, ks);
 
-			for(scene= bmain->scene.first; scene; scene= scene->id.next)
+			for (scene= bmain->scene.first; scene; scene= scene->id.next)
 				BLI_remlink_safe(&scene->keyingsets, ks);
 
 			MEM_freeN(ks);
@@ -717,23 +726,26 @@ EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(p
 	 */
 	if (scene->active_keyingset) {
 		/* active Keying Set */
-		item_tmp.identifier= item_tmp.name= "Active Keying Set";
-		item_tmp.value= i++;
+		item_tmp.identifier= "__ACTIVE__";
+		item_tmp.name= "Active Keying Set";
+		item_tmp.value= i;
 		RNA_enum_item_add(&item, &totitem, &item_tmp);
 		
 		/* separator */
 		RNA_enum_item_add_separator(&item, &totitem);
 	}
-	else
-		i++;
-		
+	
+	i++;
+	
 	/* user-defined Keying Sets 
 	 *	- these are listed in the order in which they were defined for the active scene
 	 */
 	if (scene->keyingsets.first) {
 		for (ks= scene->keyingsets.first; ks; ks= ks->next, i++) {
 			if (ANIM_keyingset_context_ok_poll(C, ks)) {
-				item_tmp.identifier= item_tmp.name= ks->name;
+				item_tmp.identifier = ks->idname;
+				item_tmp.name = ks->name;
+				item_tmp.description = ks->description;
 				item_tmp.value= i;
 				RNA_enum_item_add(&item, &totitem, &item_tmp);
 			}
@@ -748,7 +760,9 @@ EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(p
 	for (ks= builtin_keyingsets.first; ks; ks= ks->next, i--) {
 		/* only show KeyingSet if context is suitable */
 		if (ANIM_keyingset_context_ok_poll(C, ks)) {
-			item_tmp.identifier= item_tmp.name= ks->name;
+			item_tmp.identifier = ks->idname;
+			item_tmp.name = ks->name;
+			item_tmp.description = ks->description;
 			item_tmp.value= i;
 			RNA_enum_item_add(&item, &totitem, &item_tmp);
 		}
@@ -759,50 +773,6 @@ EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(p
 
 	return item;
 }
-
-/* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
-void ANIM_keying_sets_menu_setup (bContext *C, const char title[], const char op_name[])
-{
-	Scene *scene= CTX_data_scene(C);
-	KeyingSet *ks;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	int i = 0;
-	
-	pup= uiPupMenuBegin(C, title, ICON_NONE);
-	layout= uiPupMenuLayout(pup);
-	
-	/* active Keying Set 
-	 *	- only include entry if it exists
-	 */
-	if (scene->active_keyingset) {
-		uiItemEnumO(layout, op_name, "Active Keying Set", ICON_NONE, "type", i++);
-		uiItemS(layout);
-	}
-	else
-		i++;
-	
-	/* user-defined Keying Sets 
-	 *	- these are listed in the order in which they were defined for the active scene
-	 */
-	if (scene->keyingsets.first) {
-		for (ks= scene->keyingsets.first; ks; ks=ks->next, i++) {
-			if (ANIM_keyingset_context_ok_poll(C, ks))
-				uiItemEnumO(layout, op_name, ks->name, ICON_NONE, "type", i);
-		}
-		uiItemS(layout);
-	}
-	
-	/* builtin Keying Sets */
-	i= -1;
-	for (ks= builtin_keyingsets.first; ks; ks=ks->next, i--) {
-		/* only show KeyingSet if context is suitable */
-		if (ANIM_keyingset_context_ok_poll(C, ks))
-			uiItemEnumO(layout, op_name, ks->name, ICON_NONE, "type", i);
-	}
-	
-	uiPupMenuEnd(C, pup);
-} 
 
 /* ******************************************* */
 /* KEYFRAME MODIFICATION */
@@ -839,7 +809,7 @@ typedef struct tRKS_DSource {
 } tRKS_DSource;
 
 
-/* Iterator used for overriding the behaviour of iterators defined for 
+/* Iterator used for overriding the behavior of iterators defined for 
  * relative Keying Sets, with the main usage of this being operators 
  * requiring Auto Keyframing. Internal Use Only!
  */

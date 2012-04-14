@@ -38,6 +38,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Float Pi variations */
+
 #ifndef M_PI_F
 #define M_PI_F		((float)3.14159265358979323846264338327950288)
 #endif
@@ -64,9 +66,12 @@ CCL_NAMESPACE_BEGIN
 #define copysignf(x, y) ((float)_copysign(x, y))
 #define hypotf(x, y) _hypotf(x, y)
 #define isnan(x) _isnan(x)
+#define isfinite(x) _finite(x)
 #endif
 
 #endif
+
+#ifndef __KERNEL_OPENCL__
 
 __device_inline float fmaxf(float a, float b)
 {
@@ -77,6 +82,8 @@ __device_inline float fminf(float a, float b)
 {
 	return (a < b)? a: b;
 }
+
+#endif
 
 #endif
 
@@ -797,6 +804,19 @@ __device_inline void make_orthonormals(const float3 N, float3 *a, float3 *b)
 
 	*a = normalize(*a);
 	*b = cross(N, *a);
+}
+
+/* Color division */
+
+__device_inline float3 safe_divide_color(float3 a, float3 b)
+{
+	float x, y, z;
+
+	x = (b.x != 0.0f)? a.x/b.x: 0.0f;
+	y = (b.y != 0.0f)? a.y/b.y: 0.0f;
+	z = (b.z != 0.0f)? a.z/b.z: 0.0f;
+
+	return make_float3(x, y, z);
 }
 
 CCL_NAMESPACE_END

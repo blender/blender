@@ -54,7 +54,7 @@ float area_tri_v3(const float a[3], const float b[3], const float c[3]);
 float area_quad_v3(const float a[3], const float b[3], const float c[3], const float d[3]);
 float area_poly_v3(int nr, float verts[][3], const float normal[3]);
 
-int is_quad_convex_v3(const float *v1, const float *v2, const float *v3, const float *v4);
+int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 
 /********************************* Distance **********************************/
 
@@ -73,6 +73,7 @@ void  closest_to_plane_v3(float r[3], const float plane_co[3], const float plane
 
 float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3]);
 float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2]);
+void  limit_dist_v3(float v1[3], float v2[3], const float dist);
 
 /******************************* Intersection ********************************/
 
@@ -103,20 +104,20 @@ int isect_line_line_strict_v3(const float v1[3], const float v2[3],
                               const float v3[3], const float v4[3],
                               float vi[3], float *r_lambda);
 
-/*if clip is nonzero, will only return true if lambda is >= 0.0
-  (i.e. intersection point is along positive d)*/
+/* if clip is nonzero, will only return true if lambda is >= 0.0
+ * (i.e. intersection point is along positive d)*/
 int isect_ray_plane_v3(const float p1[3], const float d[3],
                        const float v0[3], const float v1[3], const float v2[3],
                        float *r_lambda, const int clip);
 
 /**
  * Intersect line/plane, optionally treat line as directional (like a ray) with the no_flip argument.
- * @param out The intersection point.
- * @param l1 The first point of the line.
- * @param l2 The second point of the line.
- * @param plane_co A point on the plane to intersect with.
- * @param plane_no The direction of the plane (does not need to be normalized).
- * @param no_flip When true, the intersection point will always be from l1 to l2, even if this is not on the plane.
+ * \param out The intersection point.
+ * \param l1 The first point of the line.
+ * \param l2 The second point of the line.
+ * \param plane_co A point on the plane to intersect with.
+ * \param plane_no The direction of the plane (does not need to be normalized).
+ * \param no_flip When true, the intersection point will always be from l1 to l2, even if this is not on the plane.
  */
 int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3],
                         const float plane_co[3], const float plane_no[3], const short no_flip);
@@ -125,12 +126,12 @@ int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3],
  * Intersect two planes, return a point on the intersection and a vector
  * that runs on the direction of the intersection.
  * Return error code is the same as 'isect_line_line_v3'.
- * @param r_isect_co The resulting intersection point.
- * @param r_isect_no The resulting vector of the intersection.
- * @param plane_a_co The point on the first plane.
- * @param plane_a_no The normal of the first plane.
- * @param plane_b_co The point on the second plane.
- * @param plane_b_no The normal of the second plane.
+ * \param r_isect_co The resulting intersection point.
+ * \param r_isect_no The resulting vector of the intersection.
+ * \param plane_a_co The point on the first plane.
+ * \param plane_a_no The normal of the first plane.
+ * \param plane_b_co The point on the second plane.
+ * \param plane_b_no The normal of the second plane.
  */
 void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
                           const float plane_a_co[3], const float plane_a_no[3],
@@ -214,8 +215,8 @@ void box_minmax_bounds_m4(float min[3], float max[3],
 
 /********************************** Mapping **********************************/
 
-void map_to_tube(float *u, float *v, const float x, const float y, const float z);
-void map_to_sphere(float *u, float *v, const float x, const float y, const float z);
+void map_to_tube(float *r_u, float *r_v, const float x, const float y, const float z);
+void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const float z);
 
 /********************************** Normals **********************************/
 
@@ -248,9 +249,9 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,
 /****************************** Spherical Harmonics *************************/
 
 /* Uses 2nd order SH => 9 coefficients, stored in this order:
-   0 = (0,0),
-   1 = (1,-1), 2 = (1,0), 3 = (1,1),
-   4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
+ * 0 = (0,0),
+ * 1 = (1,-1), 2 = (1,0), 3 = (1,1),
+ * 4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
 
 MINLINE void zero_sh(float r[9]);
 MINLINE void copy_sh_sh(float r[9], const float a[9]);

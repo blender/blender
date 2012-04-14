@@ -24,6 +24,7 @@ set(INC
 	../../blenkernel
 	../../blenlib
 	../../blenloader
+	../../bmesh
 	../../gpu
 	../../imbuf
 	../../makesdna
@@ -67,5 +68,9 @@ if(WITH_GAMEENGINE)
 endif()
 
 add_definitions(-DGLEW_STATIC)
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
 
 blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}")

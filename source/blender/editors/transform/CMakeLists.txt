@@ -24,6 +24,7 @@ set(INC
 	../../blenkernel
 	../../blenlib
 	../../blenloader
+	../../bmesh
 	../../makesdna
 	../../makesrna
 	../../windowmanager
@@ -47,5 +48,9 @@ set(SRC
 
 	transform.h
 )
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
 
 blender_add_lib(bf_editor_transform "${SRC}" "${INC}" "${INC_SYS}")

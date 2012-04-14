@@ -75,7 +75,7 @@ typedef struct BVHTreeFromMesh
  *
  * The tree is build in mesh space coordinates, this means special care must be made on queries
  * so that the coordinates and rays are first translated on the mesh local coordinates.
- * Reason for this is that later bvh_from_mesh_* might use a cache system and so it becames possible to reuse
+ * Reason for this is that later bvh_from_mesh_* might use a cache system and so it becomes possible to reuse
  * a BVHTree.
  * 
  * free_bvhtree_from_mesh should be called when the tree is no longer needed.
@@ -88,7 +88,7 @@ BVHTree* bvhtree_from_mesh_verts(struct BVHTreeFromMesh *data, struct DerivedMes
  *
  * The tree is build in mesh space coordinates, this means special care must be made on queries
  * so that the coordinates and rays are first translated on the mesh local coordinates.
- * Reason for this is that later bvh_from_mesh_* might use a cache system and so it becames possible to reuse
+ * Reason for this is that later bvh_from_mesh_* might use a cache system and so it becomes possible to reuse
  * a BVHTree.
  *
  * The returned value is the same as in data->tree, its only returned to make it easier to test
@@ -106,8 +106,8 @@ BVHTree* bvhtree_from_mesh_edges(struct BVHTreeFromMesh *data, struct DerivedMes
 void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data);
 
 /*
-* Math functions used by callbacks
-*/
+ * Math functions used by callbacks
+ */
 float bvhtree_ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, const float v0[3], const float v1[3], const float v2[3]);
 float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const float v2[3], const float p[3], int *v, int *e, float nearest[3]);
 
@@ -124,7 +124,7 @@ typedef struct LinkNode* BVHCache;
 
 
 /*
- * Queries a bvhcache for the chache bvhtree of the request type
+ * Queries a bvhcache for the cache bvhtree of the request type
  */
 BVHTree *bvhcache_find(BVHCache *cache, int type);
 

@@ -64,18 +64,13 @@
 
 
 /* ******************* node space & buttons ************** */
-#define B_NOP		1
-#define B_REDR		2
 
-static void do_node_region_buttons(bContext *C, void *UNUSED(arg), int event)
+/* poll for active nodetree */
+static int active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	//SpaceNode *snode= CTX_wm_space_node(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	
-	switch(event) {
-	case B_REDR:
-		ED_area_tag_redraw(CTX_wm_area(C));
-		return; /* no notifier! */
-	}
+	return (snode && snode->nodetree);
 }
 
 /* poll callback for active node */
@@ -83,8 +78,7 @@ static int active_node_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
-	// TODO: include check for whether there is an active node...
-	return (snode && snode->nodetree);
+	return (snode && snode->edittree && nodeGetActive(snode->edittree));
 }
 
 /* active node */
@@ -94,21 +88,15 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	bNodeTree *ntree= (snode) ? snode->edittree : NULL;
 	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL; // xxx... for editing group nodes
 	uiLayout *layout= pa->layout;
-	uiBlock *block;
 	PointerRNA ptr;
 	
 	/* verify pointers, and create RNA pointer for the node */
-	if ELEM(NULL, ntree, node)
+	if (ELEM(NULL, ntree, node))
 		return;
 	//if (node->id) /* for group nodes */
 	//	RNA_pointer_create(node->id, &RNA_Node, node, &ptr);
 	//else
 		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr); 
-	
-	/* set update callback */
-	// xxx is this really needed
-	block= uiLayoutGetBlock(layout);
-	uiBlockSetHandleFunc(block, do_node_region_buttons, NULL);
 	
 	/* draw this node's name, etc. */
 	uiItemR(layout, &ptr, "label", 0, NULL, ICON_NODE);
@@ -142,10 +130,10 @@ static void node_sockets_panel(const bContext *C, Panel *pa)
 	uiLayout *layout= pa->layout, *split;
 	char name[UI_MAX_NAME_STR];
 	
-	if(ELEM(NULL, ntree, node))
+	if (ELEM(NULL, ntree, node))
 		return;
 	
-	for(sock=node->inputs.first; sock; sock=sock->next) {
+	for (sock=node->inputs.first; sock; sock=sock->next) {
 		BLI_snprintf(name, sizeof(name), "%s:", sock->name);
 
 		split = uiLayoutSplit(layout, 0.35f, 0);
@@ -179,6 +167,7 @@ void node_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "NODE_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");
 	pt->draw= gpencil_panel_standard;
+	pt->poll= active_nodetree_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
 
@@ -187,7 +176,7 @@ static int node_properties(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= node_has_buttons_region(sa);
 	
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
@@ -202,13 +191,13 @@ static int node_properties_poll(bContext *C)
 
 void NODE_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
-	ot->description= "Toggles the properties panel display";
-	ot->idname= "NODE_OT_properties";
+	ot->name = "Properties";
+	ot->description = "Toggles the properties panel display";
+	ot->idname = "NODE_OT_properties";
 	
-	ot->exec= node_properties;
-	ot->poll= node_properties_poll;
+	ot->exec = node_properties;
+	ot->poll = node_properties_poll;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }

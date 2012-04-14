@@ -42,13 +42,14 @@ typedef struct {
 	BASE_MATH_MEMBERS(col);
 } ColorObject;
 
-/*struct data contains a pointer to the actual data that the
-object uses. It can use either PyMem allocated data (which will
-be stored in py_data) or be a wrapper for data allocated through
-blender (stored in blend_data). This is an either/or struct not both*/
+/* struct data contains a pointer to the actual data that the
+ * object uses. It can use either PyMem allocated data (which will
+ * be stored in py_data) or be a wrapper for data allocated through
+ * blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *Color_CreatePyObject( float *col, int type, PyTypeObject *base_type);
-PyObject *Color_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
+PyObject *Color_CreatePyObject(float *col, int type, PyTypeObject *base_type);
+PyObject *Color_CreatePyObject_cb(PyObject *cb_user,
+                                  unsigned char cb_type, unsigned char cb_subtype);
 
 #endif /* __MATHUTILS_COLOR_H__ */

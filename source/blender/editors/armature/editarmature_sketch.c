@@ -1008,7 +1008,7 @@ static void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end,
 		mul_v3_fl(ray_normal, distance * progress / length);
 		add_v3_v3(stk->points[i].p, ray_normal);
 
-		progress += delta ;
+		progress += delta;
 	}
 }
 
@@ -1079,7 +1079,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 
 		mvalf[0]= dd->mval[0];
 		mvalf[1]= dd->mval[1];
-		peelObjectsContext(C, &sketch->depth_peels, mvalf);
+		peelObjectsContext(C, &sketch->depth_peels, mvalf, SNAP_ALL);
 
 		if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
 		{
@@ -1799,7 +1799,7 @@ void sk_applyCutGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UNUSED
 		SK_Point pt;
 
 		pt.type = PT_EXACT;
-		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
+		pt.mode = PT_PROJECT; /* take mode from neighboring points */
 		copy_v3_v3(pt.p, isect->p);
 		copy_v3_v3(pt.no, isect->stroke->points[isect->before].no);
 
@@ -1841,7 +1841,7 @@ void sk_applyTrimGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UNUSE
 		float stroke_dir[3];
 
 		pt.type = PT_EXACT;
-		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
+		pt.mode = PT_PROJECT; /* take mode from neighboring points */
 		copy_v3_v3(pt.p, isect->p);
 		copy_v3_v3(pt.no, isect->stroke->points[isect->before].no);
 
@@ -1870,7 +1870,7 @@ int sk_detectCommandGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UN
 		SK_Intersection *isect, *self_isect;
 
 		/* get the the last intersection of the first pair */
-		for( isect = gest->intersections.first; isect; isect = isect->next )
+		for ( isect = gest->intersections.first; isect; isect = isect->next )
 		{
 			if (isect->stroke == isect->next->stroke)
 			{
@@ -1897,7 +1897,7 @@ void sk_applyCommandGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UN
 
 //	XXX
 //	command = pupmenu("Action %t|Flatten %x1|Straighten %x2|Polygonize %x3");
-	if(command < 1) return;
+	if (command < 1) return;
 
 	for (isect = gest->intersections.first; isect; isect = isect->next)
 	{
@@ -2166,10 +2166,10 @@ static int sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], in
 
 	view3d_set_viewcontext(C, &vc);
 
-	rect.xmin= mval[0]-5;
-	rect.xmax= mval[0]+5;
-	rect.ymin= mval[1]-5;
-	rect.ymax= mval[1]+5;
+	rect.xmin = mval[0]-5;
+	rect.xmax = mval[0]+5;
+	rect.ymin = mval[1]-5;
+	rect.ymax = mval[1]+5;
 
 	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 
@@ -2177,7 +2177,7 @@ static int sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], in
 	{
 		int besthitresult = -1;
 
-		if(hits == 1) {
+		if (hits == 1) {
 			besthitresult = buffer[3];
 		}
 		else {
@@ -2839,130 +2839,130 @@ int ED_operator_sketch_mode(const bContext *C)
 void SKETCH_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "delete";
-	ot->idname= "SKETCH_OT_delete";
+	ot->name = "Delete";
+	ot->idname = "SKETCH_OT_delete";
 
 	/* api callbacks */
-	ot->invoke= sketch_delete;
+	ot->invoke = sketch_delete;
 
-	ot->poll= ED_operator_sketch_full_mode;
+	ot->poll = ED_operator_sketch_full_mode;
 
 	/* flags */
-//	ot->flag= OPTYPE_UNDO;
+//	ot->flag = OPTYPE_UNDO;
 }
 
 void SKETCH_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "select";
-	ot->idname= "SKETCH_OT_select";
+	ot->name = "Select";
+	ot->idname = "SKETCH_OT_select";
 
 	/* api callbacks */
-	ot->invoke= sketch_select;
+	ot->invoke = sketch_select;
 
-	ot->poll= ED_operator_sketch_full_mode;
+	ot->poll = ED_operator_sketch_full_mode;
 
 	/* flags */
-//	ot->flag= OPTYPE_UNDO;
+//	ot->flag = OPTYPE_UNDO;
 }
 
 void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "cancel stroke";
-	ot->idname= "SKETCH_OT_cancel_stroke";
+	ot->name = "Cancel Stroke";
+	ot->idname = "SKETCH_OT_cancel_stroke";
 
 	/* api callbacks */
-	ot->invoke= sketch_cancel;
+	ot->invoke = sketch_cancel;
 
-	ot->poll= ED_operator_sketch_mode_active_stroke;
+	ot->poll = ED_operator_sketch_mode_active_stroke;
 
 	/* flags */
-//	ot->flag= OPTYPE_UNDO;
+//	ot->flag = OPTYPE_UNDO;
 }
 
 void SKETCH_OT_convert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "convert";
-	ot->idname= "SKETCH_OT_convert";
+	ot->name = "Convert";
+	ot->idname = "SKETCH_OT_convert";
 
 	/* api callbacks */
-	ot->invoke= sketch_convert;
+	ot->invoke = sketch_convert;
 
-	ot->poll= ED_operator_sketch_full_mode;
+	ot->poll = ED_operator_sketch_full_mode;
 
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 }
 
 void SKETCH_OT_finish_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "end stroke";
-	ot->idname= "SKETCH_OT_finish_stroke";
+	ot->name = "End Stroke";
+	ot->idname = "SKETCH_OT_finish_stroke";
 
 	/* api callbacks */
-	ot->invoke= sketch_finish;
+	ot->invoke = sketch_finish;
 
-	ot->poll= ED_operator_sketch_mode_active_stroke;
+	ot->poll = ED_operator_sketch_mode_active_stroke;
 
 	/* flags */
-//	ot->flag= OPTYPE_UNDO;
+//	ot->flag = OPTYPE_UNDO;
 }
 
 void SKETCH_OT_draw_preview(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "draw preview";
-	ot->idname= "SKETCH_OT_draw_preview";
+	ot->name = "Draw Preview";
+	ot->idname = "SKETCH_OT_draw_preview";
 
 	/* api callbacks */
-	ot->invoke= sketch_draw_preview;
+	ot->invoke = sketch_draw_preview;
 
-	ot->poll= ED_operator_sketch_mode_active_stroke;
+	ot->poll = ED_operator_sketch_mode_active_stroke;
 
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
-//	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+//	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "draw stroke";
-	ot->idname= "SKETCH_OT_draw_stroke";
+	ot->name = "Draw Stroke";
+	ot->idname = "SKETCH_OT_draw_stroke";
 
 	/* api callbacks */
 	ot->invoke = sketch_draw_stroke;
 	ot->modal  = sketch_draw_stroke_modal;
 	ot->cancel = sketch_draw_stroke_cancel;
 
-	ot->poll= (int (*)(bContext *))ED_operator_sketch_mode;
+	ot->poll = (int (*)(bContext *))ED_operator_sketch_mode;
 
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING; // OPTYPE_REGISTER|OPTYPE_UNDO
+	ot->flag = OPTYPE_BLOCKING; // OPTYPE_REGISTER|OPTYPE_UNDO
 }
 
 void SKETCH_OT_gesture(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "gesture";
-	ot->idname= "SKETCH_OT_gesture";
+	ot->name = "Gesture";
+	ot->idname = "SKETCH_OT_gesture";
 
 	/* api callbacks */
 	ot->invoke = sketch_draw_gesture;
 	ot->modal  = sketch_draw_gesture_modal;
 	ot->cancel = sketch_draw_gesture_cancel;
 
-	ot->poll= ED_operator_sketch_mode_gesture;
+	ot->poll = ED_operator_sketch_mode_gesture;
 
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING; // OPTYPE_UNDO
+	ot->flag = OPTYPE_BLOCKING; // OPTYPE_UNDO
 }
 

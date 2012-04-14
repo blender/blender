@@ -1,6 +1,7 @@
-/** \file blender/imbuf/intern/md5.c
+/** \file blender/blenlib/intern/md5.c
  *  \ingroup imbuf
  */
+
 /* md5.c - Functions to compute MD5 message digest of files or memory blocks
    according to the definition of MD5 in RFC 1321 from April 1992.
    Copyright (C) 1995 Software Foundation, Inc.

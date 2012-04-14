@@ -109,7 +109,7 @@ typedef struct RPCReceive {
 	: socket(socket_), archive_stream(NULL), archive(NULL)
 	{
 		/* read head with fixed size */
-  		vector<char> header(8);
+		vector<char> header(8);
 		size_t len = boost::asio::read(socket, boost::asio::buffer(header));
 
 		/* verify if we got something */
@@ -170,7 +170,7 @@ public:
 	: listen_socket(io_service), collect_servers(false)
 	{
 		/* setup listen socket */
-	  	listen_endpoint.address(boost::asio::ip::address_v4::any());
+		listen_endpoint.address(boost::asio::ip::address_v4::any());
 		listen_endpoint.port(DISCOVER_PORT);
 
 		listen_socket.open(listen_endpoint.protocol());
@@ -178,7 +178,7 @@ public:
 		boost::asio::socket_base::reuse_address option(true);
 		listen_socket.set_option(option);
 
-	  	listen_socket.bind(listen_endpoint);
+		listen_socket.bind(listen_endpoint);
 
 		/* setup receive callback */
 		async_receive();

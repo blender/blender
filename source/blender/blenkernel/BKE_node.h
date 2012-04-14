@@ -50,6 +50,7 @@ struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeStack;
 struct ID;
+struct ImageFormatData;
 struct ListBase;
 struct Main;
 struct uiBlock;
@@ -112,8 +113,9 @@ typedef struct bNodeSocketType {
 typedef struct bNodeTemplate {
 	int type;
 	
-	/* group tree */
-	struct bNodeTree *ngroup;
+	struct Main *main;
+	struct Scene *scene;
+	struct bNodeTree *ngroup;	/* group tree */
 } bNodeTemplate;
 
 /** Defines a node type.
@@ -163,7 +165,7 @@ typedef struct bNodeType {
 	/// Create a template from an existing node.
 	struct bNodeTemplate (*templatefunc)(struct bNode *);
 	/** If a node can be made from the template in the given node tree.
-	 * \example Node groups can not be created inside their own node tree.
+	 * \note Node groups can not be created inside their own node tree.
 	 */
 	int (*validfunc)(struct bNodeTree *ntree, struct bNodeTemplate *ntemp);
 	
@@ -178,6 +180,10 @@ typedef struct bNodeType {
 	struct bNodeTree *(*group_edit_set)(struct bNode *node, int edit);
 	void (*group_edit_clear)(struct bNode *node);
 	
+	/* Generate a temporary list of internal links (bNodeLink), for muting and disconnect operators.
+	 * Result must be freed by caller!
+	 */
+	ListBase (*internal_connect)(struct bNodeTree *, struct bNode *node);
 	
 	/* **** execution callbacks **** */
 	void *(*initexecfunc)(struct bNode *node);
@@ -187,24 +193,10 @@ typedef struct bNodeType {
 	 * when a final generic version of execution code is defined, this will be changed anyway
 	 */
 	void (*newexecfunc)(void *data, int thread, struct bNode *, void *nodedata, struct bNodeStack **, struct bNodeStack **);
-	/* This is the muting callback.
-	 * XXX Mimics the newexecfunc signature... Not sure all of this will be useful, we will see.
-	 */
-	void (*mutefunc)(void *data, int thread, struct bNode *, void *nodedata, struct bNodeStack **, struct bNodeStack **);
-	/* And the muting util.
-	 * Returns links as a ListBase, as pairs of bNodeStack* if in/out bNodeStacks were provided,
-	 * else as pairs of bNodeSocket* if node tree was provided.
-	 */
-	ListBase (*mutelinksfunc)(struct bNodeTree *, struct bNode *, struct bNodeStack **, struct bNodeStack **,
-	                          struct GPUNodeStack *, struct GPUNodeStack *);
 	/* gpu */
 	int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out);
 	/* extended gpu function */
 	int (*gpuextfunc)(struct GPUMaterial *mat, struct bNode *node, void *nodedata, struct GPUNodeStack *in, struct GPUNodeStack *out);
-	/* This is the muting gpu callback.
-	 * XXX Mimics the gpuextfunc signature... Not sure all of this will be useful, we will see.
-	 */
-	int (*gpumutefunc)(struct GPUMaterial *, struct bNode *, void *, struct GPUNodeStack *, struct GPUNodeStack *);
 } bNodeType;
 
 /* node->exec, now in use for composites (#define for break is same as ready yes) */
@@ -282,12 +274,8 @@ typedef struct bNodeTreeType
 	
 	int (*validate_link)(struct bNodeTree *ntree, struct bNodeLink *link);
 
-	/* Default muting pointers. */
-	void (*mutefunc)(void *data, int thread, struct bNode *, void *nodedata, struct bNodeStack **, struct bNodeStack **);
-	ListBase (*mutelinksfunc)(struct bNodeTree *, struct bNode *, struct bNodeStack **, struct bNodeStack **,
-	                          struct GPUNodeStack *, struct GPUNodeStack *);
-	/* gpu */
-	int (*gpumutefunc)(struct GPUMaterial *, struct bNode *, void *, struct GPUNodeStack *, struct GPUNodeStack *);
+	/* Default internal linking. */
+	ListBase (*internal_connect)(struct bNodeTree *, struct bNode *node);
 } bNodeTreeType;
 
 /* ************** GENERIC API, TREES *************** */
@@ -341,7 +329,7 @@ struct bNode	*nodeAddNode(struct bNodeTree *ntree, struct bNodeTemplate *ntemp);
 void			nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
 void			nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
 
-void			nodeRegisterType(struct bNodeTreeType *ttype, struct bNodeType *ntype) ;
+void			nodeRegisterType(struct bNodeTreeType *ttype, struct bNodeType *ntype);
 void			nodeMakeDynamicType(struct bNode *node);
 int				nodeDynamicUnlinkText(struct ID *txtid);
 
@@ -351,6 +339,7 @@ struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
 void			nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void			nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
+void			nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
 void			nodeSpaceCoords(struct bNode *node, float *locx, float *locy);
 void			nodeAttachNode(struct bNode *node, struct bNode *parent);
@@ -375,6 +364,7 @@ int				nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
 void			nodeFreePreview(struct bNode *node);
 
 int				nodeSocketIsHidden(struct bNodeSocket *sock);
+void			nodeSocketSetType(struct bNodeSocket *sock, int type);
 
 /* ************** NODE TYPE ACCESS *************** */
 
@@ -416,18 +406,12 @@ void			node_type_exec_new(struct bNodeType *ntype,
 								   void (*freeexecfunc)(struct bNode *node, void *nodedata),
 								   void (*newexecfunc)(void *data, int thread, struct bNode *, void *nodedata,
 								                       struct bNodeStack **, struct bNodeStack **));
-void			node_type_mute(struct bNodeType *ntype,
-                               void (*mutefunc)(void *data, int thread, struct bNode *, void *nodedata,
-                                                struct bNodeStack **, struct bNodeStack **),
-                               ListBase (*mutelinksfunc)(struct bNodeTree *, struct bNode *, struct bNodeStack **,
-                                                         struct bNodeStack **, struct GPUNodeStack*, struct GPUNodeStack*));
+void			node_type_internal_connect(struct bNodeType *ntype, ListBase (*internal_connect)(struct bNodeTree *, struct bNode *));
 void			node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node,
                                                                       struct GPUNodeStack *in, struct GPUNodeStack *out));
 void			node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMaterial *mat, struct bNode *node,
                                                                              void *nodedata, struct GPUNodeStack *in,
                                                                              struct GPUNodeStack *out));
-void			node_type_gpu_mute(struct bNodeType *ntype, int (*gpumutefunc)(struct GPUMaterial *, struct bNode *, void *,
-                                                                               struct GPUNodeStack *, struct GPUNodeStack *));
 void			node_type_compatibility(struct bNodeType *ntype, short compatibility);
 
 /* ************** COMMON NODES *************** */
@@ -653,6 +637,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_TRANSFORM	264
 #define CMP_NODE_MOVIEDISTORTION	265
 #define CMP_NODE_DOUBLEEDGEMASK    266
+#define CMP_NODE_OUTPUT_MULTI_FILE__DEPRECATED	267	/* DEPRECATED multi file node has been merged into regular CMP_NODE_OUTPUT_FILE */
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302
@@ -692,6 +677,9 @@ void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositForceHidden(struct bNodeTree *ntree, struct Scene *scene);
 void ntreeCompositClearTags(struct bNodeTree *ntree);
 
+struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree, struct bNode *node,
+                                                     const char *name, struct ImageFormatData *im_format);
+int ntreeCompositOutputFileRemoveActiveSocket(struct bNodeTree *ntree, struct bNode *node);
 
 /* ************** TEXTURE NODES *************** */
 
@@ -727,9 +715,7 @@ struct TexResult;
 
 /* API */
 int  ntreeTexTagAnimated(struct bNodeTree *ntree);
-void ntreeTexSetPreviewFlag(int);
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
-char* ntreeTexOutputMenu(struct bNodeTree *ntree);
 
 struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree, int use_tree_data);
 void ntreeTexEndExecTree(struct bNodeTreeExec *exec, int use_tree_data);

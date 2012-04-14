@@ -24,30 +24,30 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined VIDEOFFMPEG_H
-#define VIDEOFFMPEG_H
+#ifndef __VIDEOFFMPEG_H__
+#define __VIDEOFFMPEG_H__
 
 #ifdef WITH_FFMPEG
+/* this needs to be parsed with __cplusplus defined before included through ffmpeg_compat.h */
+#if defined(__FreeBSD__)
+#  include <inttypes.h>
+#endif
 extern "C" {
-#undef __cplusplus
 #include <pthread.h>
-
 #include "ffmpeg_compat.h"
-
 #include "DNA_listBase.h"
 #include "BLI_threads.h"
 #include "BLI_blenlib.h"
-#define __cplusplus
 }
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
-#define FFMPEG_OLD_FRAME_RATE 1
+#  define FFMPEG_OLD_FRAME_RATE 1
 #else
-#define FFMPEG_CODEC_IS_POINTER 1
+#  define FFMPEG_CODEC_IS_POINTER 1
 #endif
 
 #if LIBAVFORMAT_VERSION_INT >= (52 << 16)
-#define FFMPEG_PB_IS_POINTER 1
+#  define FFMPEG_PB_IS_POINTER 1
 #endif
 
 #ifdef FFMPEG_CODEC_IS_POINTER

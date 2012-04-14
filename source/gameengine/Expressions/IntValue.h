@@ -16,8 +16,8 @@
  *  \ingroup expressions
  */
 
-#if !defined _INTVALUE_H
-#define _INTVALUE_H
+#ifndef __INTVALUE_H__
+#define __INTVALUE_H__
 
 
 #include "Value.h"
@@ -71,5 +71,5 @@ public:
 #endif
 };
 
-#endif // !defined _INTVALUE_H
+#endif // !defined __INTVALUE_H__
 

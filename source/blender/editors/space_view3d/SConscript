@@ -7,7 +7,7 @@ defs = [ 'GLEW_STATIC' ]
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include ../../blenloader'
-incs += ' ../../gpu ../../makesrna ../../blenfont'
+incs += ' ../../gpu ../../makesrna ../../blenfont ../../bmesh'
 incs += ' #/intern/smoke/extern'
 incs += ' #source/gameengine/BlenderRoutines'
 
@@ -15,5 +15,8 @@ if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
 
 env.BlenderLib ( 'bf_editors_space_view3d', sources, Split(incs), defines = defs, libtype=['core'], priority=[40] )

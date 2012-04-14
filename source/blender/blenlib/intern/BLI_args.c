@@ -103,7 +103,8 @@ static int keycmp(const void *a, const void *b)
 			return BLI_strcasecmp(ka->arg, kb->arg);
 		else
 			return strcmp(ka->arg, kb->arg);
-	} else {
+	}
+	else {
 		return BLI_ghashutil_intcmp((const void*)ka->pass, (const void*)kb->pass);
 	}
 }
@@ -237,8 +238,7 @@ void BLI_argsPrintArgDoc(struct bArgs *ba, const char *arg)
 {
 	bArgument *a = lookUp(ba, arg, -1, -1);
 
-	if (a)
-	{
+	if (a) {
 		bArgDoc *d = a->doc;
 
 		internalDocPrint(d);
@@ -251,10 +251,8 @@ void BLI_argsPrintOtherDoc(struct bArgs *ba)
 {
 	bArgDoc *d;
 
-	for( d = ba->docs.first; d; d = d->next)
-	{
-		if (d->done == 0)
-		{
+	for (d = ba->docs.first; d; d = d->next) {
+		if (d->done == 0) {
 			internalDocPrint(d);
 		}
 	}
@@ -264,7 +262,7 @@ void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *
 {
 	int i = 0;
 
-	for( i = 1; i < ba->argc; i++) { /* skip argv[0] */
+	for ( i = 1; i < ba->argc; i++) { /* skip argv[0] */
 		if (ba->passes[i] == 0) {
 			 /* -1 signal what side of the comparison it is */
 			bArgument *a = lookUp(ba, ba->argv[i], pass, -1);
@@ -274,7 +272,8 @@ void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *
 			if (a) {
 				func = a->func;
 				data = a->data;
-			} else {
+			}
+			else {
 				func = default_cb;
 				data = default_data;
 			}
@@ -290,7 +289,8 @@ void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *
 						ba->passes[i + j] = pass;
 					}
 					i += retval;
-				} else if (retval == -1){
+				}
+				else if (retval == -1) {
 					if (a) {
 						if (a->key->pass != -1)
 							ba->passes[i] = pass;

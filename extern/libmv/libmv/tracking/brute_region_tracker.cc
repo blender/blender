@@ -44,6 +44,7 @@
 
 #include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
+#include "libmv/image/correlation.h"
 #include "libmv/image/sample.h"
 #include "libmv/logging/logging.h"
 
@@ -332,6 +333,29 @@ bool BruteRegionTracker::Track(const FloatImage &image1,
   if (best_sad != INT_MAX) {
     *x2 = best_j + half_window_size;
     *y2 = best_i + half_window_size;
+
+    if (minimum_correlation > 0) {
+      Array3Df image_and_gradient1_sampled, image_and_gradient2_sampled;
+
+      SamplePattern(image_and_gradient1, x1, y1, half_window_size, 3,
+                    &image_and_gradient1_sampled);
+      SamplePattern(image_and_gradient2, *x2, *y2, half_window_size, 3,
+                    &image_and_gradient2_sampled);
+
+      // Compute the Pearson product-moment correlation coefficient to check
+      // for sanity.
+      double correlation = PearsonProductMomentCorrelation(image_and_gradient1_sampled,
+                                                           image_and_gradient2_sampled,
+                                                           pattern_width);
+      LG << "Final correlation: " << correlation;
+
+      if (correlation < minimum_correlation) {
+        LG << "Correlation " << correlation << " greater than "
+           << minimum_correlation << "; bailing.";
+        return false;
+      }
+    }
+
     return true;
   }
   return false;

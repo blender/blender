@@ -32,8 +32,8 @@
  * on a per-generator basis.
  */
 
-#ifndef __KX_RANDOMNUMBERGENERATOR
-#define __KX_RANDOMNUMBERGENERATOR
+#ifndef __SCA_RANDOMNUMBERGENERATOR_H__
+#define __SCA_RANDOMNUMBERGENERATOR_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -53,7 +53,7 @@ class SCA_RandomNumberGenerator {
 	unsigned long mt[624];
 
 	/** mti==N+1 means mt[KX_MT_VectorLenght] is not initialized */
-	int mti; /* initialised in the cpp file */
+	int mti; /* initialized in the cpp file */
 
 	/** Calculate a start vector */
 	void SetStartVector(void);
@@ -83,5 +83,5 @@ public:
 #endif
 };
 
-#endif /* __KX_RANDOMNUMBERGENERATOR */
+#endif /* __SCA_RANDOMNUMBERGENERATOR_H__ */
 

@@ -29,15 +29,15 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_RADAR_SENSOR_H
-#define __KX_RADAR_SENSOR_H
+#ifndef __KX_RADARSENSOR_H__
+#define __KX_RADARSENSOR_H__
 
 #include "KX_NearSensor.h"
 #include "MT_Point3.h"
 
 /**
-* Radar 'cone' sensor. Very similar to a near-sensor, but instead of a sphere, a cone is used.
-*/
+ * Radar 'cone' sensor. Very similar to a near-sensor, but instead of a sphere, a cone is used.
+ */
 class KX_RadarSensor : public KX_NearSensor
 {
  protected:
@@ -95,5 +95,5 @@ public:
 
 };
 
-#endif //__KX_RADAR_SENSOR_H
+#endif //__KX_RADARSENSOR_H__
 

@@ -182,7 +182,7 @@ public:
 	void resize(unsigned int size)
 	{
 		m_array.resize(size);
-		for( unsigned int i = 0; i < size; i++)
+		for ( unsigned int i = 0; i < size; i++)
 		{
 			m_array[i].resize(size - i);
 		}
@@ -353,11 +353,11 @@ SG_Tree* SG_TreeFactory::MakeTreeUp()
 	
 	unsigned int x, y;
 	TreeSet::iterator xit, yit;
-	for( y = 0, yit = m_objects.begin(); y < num_objects; y++, ++yit)
+	for ( y = 0, yit = m_objects.begin(); y < num_objects; y++, ++yit)
 	{
 		sizes(y, y) = *yit;
 		xit = yit;
-		for( x = y+1, ++xit; x < num_objects; x++, ++xit)
+		for ( x = y+1, ++xit; x < num_objects; x++, ++xit)
 		{
 			sizes(x, y) = new SG_Tree(*xit, *yit);
 			
@@ -370,9 +370,9 @@ SG_Tree* SG_TreeFactory::MakeTreeUp()
 		MT_Scalar min_volume = FLT_MAX;
 		SG_Tree *min = NULL;
 		//char temp[16];
-		for( y = 0; y < num_objects; y++)
+		for ( y = 0; y < num_objects; y++)
 		{
-			for( x = y+1; x < num_objects; x++)
+			for ( x = y+1; x < num_objects; x++)
 			{
 				if (sizes(x, y)->volume() < min_volume)
 				{
@@ -387,7 +387,7 @@ SG_Tree* SG_TreeFactory::MakeTreeUp()
 		/* Remove other bboxes that contain the two bboxes */
 		sizes.delete_column(miny);
 		
-		for( x = miny + 1; x < num_objects; x++)
+		for ( x = miny + 1; x < num_objects; x++)
 		{
 			if (x == minx)
 				continue;
@@ -398,12 +398,12 @@ SG_Tree* SG_TreeFactory::MakeTreeUp()
 		num_objects--;
 		minx--;
 		sizes(minx, minx) = min;
-		for( x = minx + 1; x < num_objects; x++)
+		for ( x = minx + 1; x < num_objects; x++)
 		{
 			delete sizes(x, minx);
 			sizes(x, minx) = new SG_Tree(min, sizes(x, x));
 		}
-		for( y = 0; y < minx; y++)
+		for ( y = 0; y < minx; y++)
 		{
 			delete sizes(minx, y);
 			sizes(minx, y) = new SG_Tree(sizes(y, y), min);

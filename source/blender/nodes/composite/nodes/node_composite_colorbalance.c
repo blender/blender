@@ -69,7 +69,7 @@ DO_INLINE float colorbalance_cdl(float in, float offset, float power, float slop
 /* note: lift_lgg is just 2-lift, gamma_inv is 1.0/gamma */
 DO_INLINE float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float gain)
 {
-	/* 1:1 match with the sequencer with linear/srgb conversions, the conversion isnt pretty
+	/* 1:1 match with the sequencer with linear/srgb conversions, the conversion isn'tisn't pretty
 	 * but best keep it this way, sice testing for durian shows a similar calculation
 	 * without lin/srgb conversions gives bad results (over-saturated shadows) with colors
 	 * slightly below 1.0. some correction can be done but it ends up looking bad for shadows or lighter tones - campbell */
@@ -130,9 +130,9 @@ static void node_composit_exec_colorbalance(void *UNUSED(data), bNode *node, bNo
 	
 	/* stack order input:  fac, image */
 	/* stack order output: image */
-	if(out[0]->hasoutput==0) return;
+	if (out[0]->hasoutput==0) return;
 	
-	if(in[0]->vec[0] == 0.f && in[0]->data == NULL) {
+	if (in[0]->vec[0] == 0.f && in[0]->data == NULL) {
 		out[0]->data = pass_on_compbuf(cbuf);
 		return;
 	}
@@ -158,7 +158,8 @@ static void node_composit_exec_colorbalance(void *UNUSED(data), bNode *node, bNo
 			else {
 				composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_colorbalance_lgg_fac, CB_RGBA, CB_VAL);
 			}
-		} else {
+		}
+		else {
 			/* offset/power/slope : ASC-CDL */
 			if ((in[0]->data==NULL) && (in[0]->vec[0] >= 1.f)) {
 				composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_colorbalance_cdl, CB_RGBA);

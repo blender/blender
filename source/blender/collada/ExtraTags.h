@@ -28,7 +28,7 @@
 #include <map>
 #include <vector>
 
-/** \brief Class for saving <extra> tags for a specific UniqueId.
+/** \brief Class for saving \<extra\> tags for a specific UniqueId.
  */
 class ExtraTags
 {

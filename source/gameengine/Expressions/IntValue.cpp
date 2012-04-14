@@ -278,12 +278,11 @@ this object
 }
 
 
-
+/**
+ * pre:
+ * ret: the cInt stored in the object
+ */
 cInt CIntValue::GetInt()
-/*
-pre:
-ret: the cInt stored in the object
-*/
 {
 	return m_int;
 }
@@ -308,7 +307,8 @@ const STR_String & CIntValue::GetText()
 
 
 
-CValue* CIntValue::GetReplica() { 
+CValue* CIntValue::GetReplica()
+{
 	CIntValue* replica = new CIntValue(*this);
 	replica->ProcessReplica();
 	replica->m_pstrRep = NULL;
@@ -328,7 +328,7 @@ void CIntValue::SetValue(CValue* newval)
 #ifdef WITH_PYTHON
 PyObject* CIntValue::ConvertValueToPython()
 {
-	if((m_int > INT_MIN) && (m_int < INT_MAX))
+	if ((m_int > INT_MIN) && (m_int < INT_MAX))
 		return PyLong_FromSsize_t(m_int);
 	else
 		return PyLong_FromLongLong(m_int);

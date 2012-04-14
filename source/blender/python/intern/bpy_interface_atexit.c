@@ -62,7 +62,7 @@ static void atexit_func_call(const char *func_name, PyObject *atexit_func_arg)
 	PyObject *ret;
 
 	PyTuple_SET_ITEM(args, 0, atexit_func_arg);
-	Py_INCREF(atexit_func_arg); /* only incref so we dont dec'ref along with 'args' */
+	Py_INCREF(atexit_func_arg); /* only incref so we don't dec'ref along with 'args' */
 
 	ret = PyObject_CallObject(atexit_func, args);
 
@@ -92,5 +92,5 @@ void BPY_atexit_unregister(void)
 	BLI_assert(func_bpy_atregister != NULL);
 
 	atexit_func_call("unregister", func_bpy_atregister);
-	func_bpy_atregister = NULL; /* don't really need to set but just incase */
+	func_bpy_atregister = NULL; /* don't really need to set but just in case */
 }

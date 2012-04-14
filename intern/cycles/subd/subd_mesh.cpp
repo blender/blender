@@ -285,7 +285,7 @@ void SubdMesh::link_boundary_edge(SubdEdge *edge)
 		edge->vert->edge = edge;
 }
 
-void SubdMesh::tesselate(DiagSplit *split, bool linear, Mesh *mesh, int shader, bool smooth)
+void SubdMesh::tessellate(DiagSplit *split, bool linear, Mesh *mesh, int shader, bool smooth)
 {
 	SubdBuilder *builder = SubdBuilder::create(linear);
 	int num_faces = faces.size();

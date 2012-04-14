@@ -78,8 +78,8 @@
 
 
 /* NDOF (from SpaceNavigator & friends)
-   These should be kept in sync with GHOST_NDOFManager.h
-   Ordering matters, exact values do not. */
+ * These should be kept in sync with GHOST_NDOFManager.h
+ * Ordering matters, exact values do not. */
 
 #define NDOF_MOTION 400
 
@@ -112,6 +112,11 @@ enum {
 	NDOF_BUTTON_DOMINANT,
 	NDOF_BUTTON_PLUS,
 	NDOF_BUTTON_MINUS,
+	// keyboard emulation
+	NDOF_BUTTON_ESC,
+	NDOF_BUTTON_ALT,
+	NDOF_BUTTON_SHIFT,
+	NDOF_BUTTON_CTRL,
 	// general-purpose buttons
 	NDOF_BUTTON_1,
 	NDOF_BUTTON_2,
@@ -123,6 +128,11 @@ enum {
 	NDOF_BUTTON_8,
 	NDOF_BUTTON_9,
 	NDOF_BUTTON_10,
+	// more general-purpose buttons
+	NDOF_BUTTON_A,
+	NDOF_BUTTON_B,
+	NDOF_BUTTON_C,
+	// the end
 	NDOF_LAST
 	};
 

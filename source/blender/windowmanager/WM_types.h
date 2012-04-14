@@ -137,13 +137,13 @@ typedef struct wmNotifier {
 } wmNotifier;
 
 
-/* 4 levels 
-
-0xFF000000; category
-0x00FF0000; data
-0x0000FF00; data subtype (unused?)
-0x000000FF; action
-*/
+/* 4 levels
+ *
+ * 0xFF000000; category
+ * 0x00FF0000; data
+ * 0x0000FF00; data subtype (unused?)
+ * 0x000000FF; action
+ */
 
 /* category */
 #define NOTE_CATEGORY		0xFF000000
@@ -348,8 +348,8 @@ typedef struct wmEvent {
 	int mval[2];		/* region mouse position, name convention pre 2.5 :) */
 	char utf8_buf[6];	/* from, ghost if utf8 is enabled for the platform,
 						 * BLI_str_utf8_size() must _always_ be valid, check
-						 * when assigning s we dont need to check on every access after */
-	char ascii;			/* from ghost, fallback if utf8 isnt set */
+						 * when assigning s we don't need to check on every access after */
+	char ascii;			/* from ghost, fallback if utf8 isn't set */
 	char pad;
 
 	/* previous state */
@@ -428,6 +428,8 @@ typedef struct wmTimer {
 	int sleep;				/* internal, put timers to sleep when needed */
 } wmTimer;
 
+/* Default context for operator names/labels. */
+#define WM_OPERATOR_DEFAULT_I18NCONTEXT "Operator"
 
 typedef struct wmOperatorType {
 	const char *name;		/* text for ui, undo */
@@ -448,7 +450,7 @@ typedef struct wmOperatorType {
 
 	/* for modal temporary operators, initially invoke is called. then
 	 * any further events are handled in modal. if the operation is
-	 * cancelled due to some external reason, cancel is called
+	 * canceled due to some external reason, cancel is called
 	 * - see defines below for return values */
 	int (*invoke)(struct bContext *, struct wmOperator *, struct wmEvent *);
 	int (*cancel)(struct bContext *, struct wmOperator *);
@@ -463,6 +465,9 @@ typedef struct wmOperatorType {
 
 	/* rna for properties */
 	struct StructRNA *srna;
+
+	/* previous settings - for initializing on re-use */
+	struct IDProperty *last_properties;
 
 	/* rna property to use for generic invoke functions.
 	 * menus, enum search... etc */

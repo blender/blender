@@ -29,8 +29,8 @@
  *  \ingroup bgerastogl
  */
 
-#ifndef __RAS_OPENGLRASTERIZER
-#define __RAS_OPENGLRASTERIZER
+#ifndef __RAS_OPENGLRASTERIZER_H__
+#define __RAS_OPENGLRASTERIZER_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786)
@@ -298,8 +298,8 @@ public:
 	
 	virtual void	EnableMotionBlur(float motionblurvalue);
 	virtual void	DisableMotionBlur();
-	virtual float	GetMotionBlurValue(){return m_motionblurvalue;};
-	virtual int		GetMotionBlurState(){return m_motionblur;};
+	virtual float	GetMotionBlurValue() { return m_motionblurvalue; }
+	virtual int		GetMotionBlurState() { return m_motionblur; }
 	virtual void	SetMotionBlurState(int newstate)
 	{
 		if(newstate<0) 
@@ -324,6 +324,6 @@ public:
 #endif
 };
 
-#endif //__RAS_OPENGLRASTERIZER
+#endif //__RAS_OPENGLRASTERIZER_H__
 
 

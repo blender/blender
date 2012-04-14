@@ -39,25 +39,24 @@
 
 #include "DNA_defs.h" /* USE_BMESH_FORWARD_COMPAT */
 
+struct AnimData;
 struct DerivedMesh;
 struct Ipo;
 struct Key;
-struct Material;
-struct MVert;
+struct MCol;
 struct MEdge;
 struct MFace;
-struct MCol;
-struct MSticky;
-struct Mesh;
-struct OcInfo;
-struct MPoly;
-struct MTexPoly;
 struct MLoop;
-struct MLoopUV;
 struct MLoopCol;
+struct MLoopUV;
+struct MPoly;
+struct MSticky;
+struct MTexPoly;
+struct MVert;
+struct Material;
+struct Mesh;
 struct Multires;
-struct EditMesh;
-struct AnimData;
+struct OcInfo;
 
 typedef struct Mesh {
 	ID id;
@@ -68,8 +67,8 @@ typedef struct Mesh {
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Key *key;
 	struct Material **mat;
+	struct MSelect *mselect;
 
-/*#ifdef USE_BMESH_FORWARD_COMPAT*/ /* XXX - ifdefs dont work here! */
 /* BMESH ONLY */
 	/*new face structures*/
 	struct MPoly *mpoly;
@@ -78,36 +77,35 @@ typedef struct Mesh {
 	struct MLoopUV *mloopuv;
 	struct MLoopCol *mloopcol;
 /* END BMESH ONLY */
-/*#endif*/
 
-	struct MFace *mface;	/* array of mesh object mode faces */
-	struct MTFace *mtface;	/* store face UV's and texture here */
+	/* mface stores the tessellation (triangulation) of the mesh,
+	 * real faces are now stored in nface.*/
+	struct MFace *mface;	/* array of mesh object mode faces for tessellation */
+	struct MTFace *mtface;	/* store tessellation face UV's and texture here */
 	struct TFace *tface;	/* depecrated, use mtface */
 	struct MVert *mvert;	/* array of verts */
 	struct MEdge *medge;	/* array of edges */
 	struct MDeformVert *dvert;	/* deformgroup vertices */
-	struct MCol *mcol;		/* array of colors, this must be the number of faces * 4 */
+
+	/* array of colors for the tessellated faces, must be number of tessellated
+	 * faces * 4 in length */
+	struct MCol *mcol;		
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
-	struct MSelect *mselect;
 	
-	struct EditMesh *edit_mesh;	/* not saved in file! */
+	struct BMEditMesh *edit_btmesh;	/* not saved in file! */
 
 	struct CustomData vdata, edata, fdata;
 
-/*#ifdef USE_BMESH_FORWARD_COMPAT*/ /* XXX - ifdefs dont work here! */
 /* BMESH ONLY */
 	struct CustomData pdata, ldata;
 /* END BMESH ONLY */
-/*#endif*/
 
 	int totvert, totedge, totface, totselect;
 
-/*#ifdef USE_BMESH_FORWARD_COMPAT*/
 /* BMESH ONLY */
 	int totpoly, totloop;
 /* END BMESH ONLY */
-/*#endif*/ /* XXX - ifdefs dont work here! */
 
 	/* the last selected vertex/edge/face are used for the active face however
 	 * this means the active face must always be selected, this is to keep track
@@ -144,7 +142,7 @@ typedef struct TFace {
 /* **************** MESH ********************* */
 
 /* texflag */
-#define AUTOSPACE	1
+#define ME_AUTOSPACE	1
 
 /* me->editflag */
 #define ME_EDIT_MIRROR_X (1 << 0)
@@ -196,27 +194,6 @@ typedef struct TFace {
 /* debug only option */
 #define ME_DRAWEXTRA_INDICES (1 << 13)
 
-/* old global flags:
-#define G_DRAWEDGES		(1 << 18)
-#define G_DRAWFACES		(1 <<  7)
-#define G_DRAWNORMALS	(1 <<  6)
-#define G_DRAW_VNORMALS	(1 << 14)
-
-#define G_ALLEDGES		(1 << 11)
-#define G_HIDDENEDGES   (1 << 21)
-
-#define G_DRAWCREASES	(1 << 19)
-#define G_DRAWSEAMS     (1 << 20)
-#define G_DRAWSHARP     (1 << 28)
-#define G_DRAWBWEIGHTS	(1 << 31)
-
-#define G_DRAW_EDGELEN  (1 << 22) 
-#define G_DRAW_FACEAREA (1 << 23)
-#define G_DRAW_EDGEANG  (1 << 24)
-*/
-
-
-
 /* Subsurf Type */
 #define ME_CC_SUBSURF 		0
 #define ME_SIMPLE_SUBSURF 	1
@@ -226,9 +203,13 @@ typedef struct TFace {
 /* this is so we can save bmesh files that load in trunk, ignoring NGons
  * will eventually be removed */
 
-#if 0 /* enable in bmesh branch only for now */
 #define USE_BMESH_SAVE_AS_COMPAT
-#endif
+#define USE_BMESH_SAVE_WITHOUT_MFACE
 
+/* enable this to calculate mpoly normal layer and face origindex mapping */
+// #define USE_BMESH_MPOLY_NORMALS
+
+/* enable this so meshes get tessfaces calculated by default */
+// #define USE_TESSFACE_DEFAULT
 
 #endif

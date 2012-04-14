@@ -366,14 +366,15 @@ class Mesh(bpy_types.ID):
         :type edges: iterable object
         :arg faces:
 
-           iterator of faces, each faces contains three or four indices to
+           iterator of faces, each faces contains three or more indices to
            the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
 
         :type faces: iterable object
         """
         self.vertices.add(len(vertices))
         self.edges.add(len(edges))
-        self.faces.add(len(faces))
+        self.loops.add(sum((len(f) for f in faces)))
+        self.polygons.add(len(faces))
 
         vertices_flat = [f for v in vertices for f in v]
         self.vertices.foreach_set("co", vertices_flat)
@@ -383,19 +384,19 @@ class Mesh(bpy_types.ID):
         self.edges.foreach_set("vertices", edges_flat)
         del edges_flat
 
-        def treat_face(f):
-            if len(f) == 3:
-                if f[2] == 0:
-                    return f[2], f[0], f[1], 0
-                else:
-                    return f[0], f[1], f[2], 0
-            elif f[2] == 0 or f[3] == 0:
-                return f[2], f[3], f[0], f[1]
-            return f
+        # this is different in bmesh
+        loop_index = 0
+        for i, p in enumerate(self.polygons):
+            f = faces[i]
+            loop_len = len(f)
+            p.loop_start = loop_index
+            p.loop_total = loop_len
+            p.vertices = f
+            loop_index += loop_len
 
-        faces_flat = [v for f in faces for v in treat_face(f)]
-        self.faces.foreach_set("vertices_raw", faces_flat)
-        del faces_flat
+        # if no edges - calculae them
+        if faces and (not edges):
+            self.update(calc_edges=True)
 
     @property
     def edge_keys(self):
@@ -410,7 +411,7 @@ class MeshEdge(StructRNA):
         return ord_ind(*tuple(self.vertices))
 
 
-class MeshFace(StructRNA):
+class MeshTessFace(StructRNA):
     __slots__ = ()
 
     @property
@@ -444,6 +445,22 @@ class MeshFace(StructRNA):
                     ord_ind(verts[2], verts[3]),
                     ord_ind(verts[3], verts[0]),
                     )
+
+
+class MeshPolygon(StructRNA):
+    __slots__ = ()
+
+    @property
+    def edge_keys(self):
+        verts = self.vertices[:]
+        vlen = len(self.vertices)
+        return [ord_ind(verts[i], verts[(i + 1) % vlen]) for i in range(vlen)]
+
+    @property
+    def loop_indices(self):
+        start = self.loop_start
+        end = start + self.loop_total
+        return range(start, end)
 
 
 class Text(bpy_types.ID):
@@ -654,7 +671,9 @@ class Header(StructRNA, _GenericUI, metaclass=RNAMeta):
 class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
     __slots__ = ()
 
-    def path_menu(self, searchpaths, operator, props_default={}):
+    def path_menu(self, searchpaths, operator,
+                  props_default={}, filter_ext=None):
+
         layout = self.layout
         # hard coded to set the operators 'filepath' to the filename.
 
@@ -670,17 +689,16 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         files = []
         for directory in searchpaths:
             files.extend([(f, os.path.join(directory, f))
-                           for f in os.listdir(directory)])
+                           for f in os.listdir(directory)
+                           if (not f.startswith("."))
+                           if ((filter_ext is None) or
+                               (filter_ext(os.path.splitext(f)[1])))
+                          ])
 
         files.sort()
 
         for f, filepath in files:
-
-            if f.startswith("."):
-                continue
-
-            preset_name = bpy.path.display_name(f)
-            props = layout.operator(operator, text=preset_name)
+            props = layout.operator(operator, text=bpy.path.display_name(f))
 
             for attr, value in props_default.items():
                 setattr(props, attr, value)
@@ -697,4 +715,5 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         """
         import bpy
         self.path_menu(bpy.utils.preset_paths(self.preset_subdir),
-                       self.preset_operator)
+                       self.preset_operator,
+                       filter_ext=lambda ext: ext.lower() in {".py", ".xml"})

@@ -32,8 +32,8 @@
  *  \ingroup bgesg
  */
  
-#ifndef __SG_CONTROLLER_H
-#define __SG_CONTROLLER_H
+#ifndef __SG_CONTROLLER_H__
+#define __SG_CONTROLLER_H__
 
 #include "SG_IObject.h"
 
@@ -88,12 +88,12 @@ public:
 
 	/**
 	 * Hacky way of passing options to specific controllers
-	 * @param option An integer identifying the option.
-	 * @param value  The value of this option.
-	 * @attention This has been placed here to give sca-elements 
-	 * @attention some control over the controllers. This is 
-	 * @attention necessary because the identity of the controller
-	 * @attention is lost on the way here.
+	 * \param option An integer identifying the option.
+	 * \param value  The value of this option.
+	 * \attention This has been placed here to give sca-elements 
+	 * \attention some control over the controllers. This is 
+	 * \attention necessary because the identity of the controller
+	 * \attention is lost on the way here.
 	 */
 	virtual
 		void
@@ -124,5 +124,5 @@ protected:
 
 };
 
-#endif //__SG_CONTROLLER_H
+#endif //__SG_CONTROLLER_H__
 

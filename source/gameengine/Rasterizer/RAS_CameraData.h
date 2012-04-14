@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_CAMERADATA_H
-#define __RAS_CAMERADATA_H
+#ifndef __RAS_CAMERADATA_H__
+#define __RAS_CAMERADATA_H__
 
 struct RAS_CameraData
 {
@@ -71,5 +71,5 @@ struct RAS_CameraData
 	}
 };
 
-#endif //__RAS_CAMERADATA_H
+#endif //__RAS_CAMERADATA_H__
 

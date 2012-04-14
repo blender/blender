@@ -45,9 +45,8 @@ static void dump_background_pixels(Device *device, DeviceScene *dscene, int res,
 		for(int x = 0; x < width; x++) {
 			float u = x/(float)width;
 			float v = y/(float)height;
-			float3 D = -equirectangular_to_direction(u, v);
 
-			uint4 in = make_uint4(__float_as_int(D.x), __float_as_int(D.y), __float_as_int(D.z), 0);
+			uint4 in = make_uint4(__float_as_int(u), __float_as_int(v), 0, 0);
 			d_input_data[x + y*width] = in;
 		}
 	}

@@ -28,8 +28,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // ---
-// Author: Dave Nicponski
-//
+
 // Bash-style command line flag completion for C++ binaries
 //
 // This module implements bash-style completions.  It achieves this
@@ -58,7 +57,12 @@
 #include <utility>
 #include <vector>
 
-#include "gflags.h"
+#include "gflags/gflags.h"
+#include "util.h"
+
+using std::set;
+using std::string;
+using std::vector;
 
 #ifndef PATH_SEPARATOR
 #define PATH_SEPARATOR  '/'
@@ -74,11 +78,6 @@ DEFINE_int32(tab_completion_columns, 80,
 _START_GOOGLE_NAMESPACE_
 
 namespace {
-
-using std::set;
-using std::string;
-using std::vector;
-
 // Function prototypes and Type forward declarations.  Code may be
 // more easily understood if it is roughly ordered according to
 // control flow, rather than by C's "declare before use" ordering
@@ -210,12 +209,12 @@ static void PrintFlagCompletionInfo(void) {
       &canonical_token,
       &options);
 
-  //VLOG(1) << "Identified canonical_token: '" << canonical_token << "'";
+  DVLOG(1) << "Identified canonical_token: '" << canonical_token << "'";
 
   vector<CommandLineFlagInfo> all_flags;
   set<const CommandLineFlagInfo *> matching_flags;
   GetAllFlags(&all_flags);
-  //VLOG(2) << "Found " << all_flags.size() << " flags overall";
+  DVLOG(2) << "Found " << all_flags.size() << " flags overall";
 
   string longest_common_prefix;
   FindMatchingFlags(
@@ -224,28 +223,28 @@ static void PrintFlagCompletionInfo(void) {
       canonical_token,
       &matching_flags,
       &longest_common_prefix);
-  //VLOG(1) << "Identified " << matching_flags.size() << " matching flags";
-  //VLOG(1) << "Identified " << longest_common_prefix
-  //        << " as longest common prefix.";
+  DVLOG(1) << "Identified " << matching_flags.size() << " matching flags";
+  DVLOG(1) << "Identified " << longest_common_prefix
+          << " as longest common prefix.";
   if (longest_common_prefix.size() > canonical_token.size()) {
     // There's actually a shared common prefix to all matching flags,
     // so may as well output that and quit quickly.
-    //VLOG(1) << "The common prefix '" << longest_common_prefix
-    //        << "' was longer than the token '" << canonical_token
-    //        << "'.  Returning just this prefix for completion.";
+    DVLOG(1) << "The common prefix '" << longest_common_prefix
+            << "' was longer than the token '" << canonical_token
+            << "'.  Returning just this prefix for completion.";
     fprintf(stdout, "--%s", longest_common_prefix.c_str());
     return;
   }
   if (matching_flags.empty()) {
-    //VLOG(1) << "There were no matching flags, returning nothing.";
+    VLOG(1) << "There were no matching flags, returning nothing.";
     return;
   }
 
   string module;
   string package_dir;
   TryFindModuleAndPackageDir(all_flags, &module, &package_dir);
-  //VLOG(1) << "Identified module: '" << module << "'";
-  //VLOG(1) << "Identified package_dir: '" << package_dir << "'";
+  DVLOG(1) << "Identified module: '" << module << "'";
+  DVLOG(1) << "Identified package_dir: '" << package_dir << "'";
 
   NotableFlags notable_flags;
   CategorizeAllMatchingFlags(
@@ -254,12 +253,12 @@ static void PrintFlagCompletionInfo(void) {
       module,
       package_dir,
       &notable_flags);
-  //VLOG(2) << "Categorized matching flags:";
-  //VLOG(2) << " perfect_match: " << notable_flags.perfect_match_flag.size();
-  //VLOG(2) << " module: " << notable_flags.module_flags.size();
-  //VLOG(2) << " package: " << notable_flags.package_flags.size();
-  //VLOG(2) << " most common: " << notable_flags.most_common_flags.size();
-  //VLOG(2) << " subpackage: " << notable_flags.subpackage_flags.size();
+  DVLOG(2) << "Categorized matching flags:";
+  DVLOG(2) << " perfect_match: " << notable_flags.perfect_match_flag.size();
+  DVLOG(2) << " module: " << notable_flags.module_flags.size();
+  DVLOG(2) << " package: " << notable_flags.package_flags.size();
+  DVLOG(2) << " most common: " << notable_flags.most_common_flags.size();
+  DVLOG(2) << " subpackage: " << notable_flags.subpackage_flags.size();
 
   vector<string> completions;
   FinalizeCompletionOutput(
@@ -271,13 +270,13 @@ static void PrintFlagCompletionInfo(void) {
   if (options.force_no_update)
     completions.push_back("~");
 
-  //VLOG(1) << "Finalized with " << completions.size()
-  //        << " chosen completions";
+  DVLOG(1) << "Finalized with " << completions.size()
+          << " chosen completions";
 
   for (vector<string>::const_iterator it = completions.begin();
       it != completions.end();
       ++it) {
-    //VLOG(9) << "  Completion entry: '" << *it << "'";
+    DVLOG(9) << "  Completion entry: '" << *it << "'";
     fprintf(stdout, "%s\n", it->c_str());
   }
 }
@@ -397,7 +396,7 @@ static bool DoesSingleFlagMatch(
       flag.filename.find(match_token) != string::npos)
     return true;
 
-  // TODO(daven): All searches should probably be case-insensitive
+  // TODO(user): All searches should probably be case-insensitive
   // (especially this one...)
   if (options.flag_description_substring_search &&
       flag.description.find(match_token) != string::npos)
@@ -426,8 +425,8 @@ static void CategorizeAllMatchingFlags(
         all_matches.begin();
       it != all_matches.end();
       ++it) {
-    //VLOG(2) << "Examining match '" << (*it)->name << "'";
-    //VLOG(7) << "  filename: '" << (*it)->filename << "'";
+    DVLOG(2) << "Examining match '" << (*it)->name << "'";
+    DVLOG(7) << "  filename: '" << (*it)->filename << "'";
     string::size_type pos = string::npos;
     if (!package_dir.empty())
       pos = (*it)->filename.find(package_dir);
@@ -440,36 +439,34 @@ static void CategorizeAllMatchingFlags(
     if ((*it)->name == search_token) {
       // Exact match on some flag's name
       notable_flags->perfect_match_flag.insert(*it);
-      //VLOG(3) << "Result: perfect match";
+      DVLOG(3) << "Result: perfect match";
     } else if (!module.empty() && (*it)->filename == module) {
       // Exact match on module filename
       notable_flags->module_flags.insert(*it);
-      //VLOG(3) << "Result: module match";
+      DVLOG(3) << "Result: module match";
     } else if (!package_dir.empty() &&
         pos != string::npos && slash == string::npos) {
       // In the package, since there was no slash after the package portion
       notable_flags->package_flags.insert(*it);
-      //VLOG(3) << "Result: package match";
+      DVLOG(3) << "Result: package match";
     } else if (false) {
       // In the list of the XXX most commonly supplied flags overall
-      // TODO(daven): Compile this list.
-      //VLOG(3) << "Result: most-common match";
+      // TODO(user): Compile this list.
+      DVLOG(3) << "Result: most-common match";
     } else if (!package_dir.empty() &&
         pos != string::npos && slash != string::npos) {
       // In a subdirectory of the package
       notable_flags->subpackage_flags.insert(*it);
-      //VLOG(3) << "Result: subpackage match";
+      DVLOG(3) << "Result: subpackage match";
     }
 
-    //VLOG(3) << "Result: not special match";
+    DVLOG(3) << "Result: not special match";
   }
 }
 
 static void PushNameWithSuffix(vector<string>* suffixes, const char* suffix) {
-  string s("/");
-  s += ProgramInvocationShortName();
-  s += suffix;
-  suffixes->push_back(s);
+  suffixes->push_back(
+      StringPrintf("/%s%s", ProgramInvocationShortName(), suffix));
 }
 
 static void TryFindModuleAndPackageDir(
@@ -480,7 +477,7 @@ static void TryFindModuleAndPackageDir(
   package_dir->clear();
 
   vector<string> suffixes;
-  // TODO(daven): There's some inherant ambiguity here - multiple directories
+  // TODO(user): There's some inherant ambiguity here - multiple directories
   // could share the same trailing folder and file structure (and even worse,
   // same file names), causing us to be unsure as to which of the two is the
   // actual package for this binary.  In this case, we'll arbitrarily choose.
@@ -499,7 +496,7 @@ static void TryFindModuleAndPackageDir(
     for (vector<string>::const_iterator suffix = suffixes.begin();
         suffix != suffixes.end();
         ++suffix) {
-      // TODO(daven): Make sure the match is near the end of the string
+      // TODO(user): Make sure the match is near the end of the string
       if (it->filename.find(*suffix) != string::npos) {
         *module = it->filename;
         string::size_type sep = it->filename.rfind(PATH_SEPARATOR);
@@ -696,12 +693,14 @@ static void OutputSingleGroupWithLimit(
 static string GetShortFlagLine(
     const string &line_indentation,
     const CommandLineFlagInfo &info) {
-  string prefix =
-    line_indentation + "--" + info.name + " [" +
-    (info.type == "string" ?
-       ("'" + info.default_value + "'") :
-       info.default_value)
-    + "] ";
+  string prefix;
+  bool is_string = (info.type == "string");
+  SStringPrintf(&prefix, "%s--%s [%s%s%s] ",
+                line_indentation.c_str(),
+                info.name.c_str(),
+                (is_string ? "'" : ""),
+                info.default_value.c_str(),
+                (is_string ? "'" : ""));
   int remainder =
       FLAGS_tab_completion_columns - static_cast<int>(prefix.size());
   string suffix;
@@ -731,8 +730,12 @@ static string GetLongFlagLine(
   static const char kNewlineWithIndent[] = "\n    ";
   output.replace(output.find(" type:"), 1, string(kNewlineWithIndent));
   output.replace(output.find(" default:"), 1, string(kNewlineWithIndent));
-  output = line_indentation + " Details for '--" + info.name + "':\n" +
-     output + "    defined: " + info.filename;
+  output = StringPrintf("%s Details for '--%s':\n"
+                        "%s    defined: %s",
+                        line_indentation.c_str(),
+                        info.name.c_str(),
+                        output.c_str(),
+                        info.filename.c_str());
 
   // Eliminate any doubled newlines that crept in.  Specifically, if
   // DescribeOneFlag() decided to break the line just before "type"
@@ -759,7 +762,7 @@ static string GetLongFlagLine(
 void HandleCommandLineCompletions(void) {
   if (FLAGS_tab_completion_word.empty()) return;
   PrintFlagCompletionInfo();
-  exit(0);
+  gflags_exitfunc(0);
 }
 
 _END_GOOGLE_NAMESPACE_

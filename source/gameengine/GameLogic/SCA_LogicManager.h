@@ -26,10 +26,10 @@
  */
 /** \file SCA_IController.h
  *  \ingroup gamelogic
- *  \brief Regulates the top-level logic behaviour for one scene.
+ *  \brief Regulates the top-level logic behavior for one scene.
  */
-#ifndef __KX_LOGICMANAGER
-#define __KX_LOGICMANAGER
+#ifndef __SCA_LOGICMANAGER_H__
+#define __SCA_LOGICMANAGER_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786)
@@ -127,8 +127,8 @@ public:
 	// for the scripting... needs a FactoryManager later (if we would have time... ;)
 	void	RegisterMeshName(const STR_String& meshname,void* mesh);
 	void	UnregisterMeshName(const STR_String& meshname,void* mesh);
-	CTR_Map<STR_HashedString,void*>&	GetMeshMap() { return m_mapStringToMeshes; };
-	CTR_Map<STR_HashedString,void*>&	GetActionMap() { return m_mapStringToActions; };
+	CTR_Map<STR_HashedString,void*>&	GetMeshMap() { return m_mapStringToMeshes; }
+	CTR_Map<STR_HashedString,void*>&	GetActionMap() { return m_mapStringToActions; }
 	
 	void	RegisterActionName(const STR_String& actname,void* action);
 
@@ -153,5 +153,5 @@ public:
 #endif
 };
 
-#endif //__KX_LOGICMANAGER
+#endif //__SCA_LOGICMANAGER_H__
 

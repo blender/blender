@@ -98,6 +98,24 @@ inline void DownsampleChannelsBy2(const Array3Df &in, Array3Df *out) {
 
 }
 
+// Sample a region centered at x,y in image with size extending by half_width
+// from x,y. Channels specifies the number of channels to sample from.
+inline void SamplePattern(const FloatImage &image,
+                   double x, double y,
+                   int half_width,
+                   int channels,
+                   FloatImage *sampled) {
+  sampled->Resize(2 * half_width + 1, 2 * half_width + 1, channels);
+  for (int r = -half_width; r <= half_width; ++r) {
+    for (int c = -half_width; c <= half_width; ++c) {
+      for (int i = 0; i < channels; ++i) {
+        (*sampled)(r + half_width, c + half_width, i) =
+            SampleLinear(image, y + r, x + c, i);
+      }
+    }
+  }
+}
+
 }  // namespace libmv
 
 #endif  // LIBMV_IMAGE_SAMPLE_H_

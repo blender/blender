@@ -56,7 +56,7 @@
 
 #include "utilities.h"
 #include "config.h"
-#include "glog/logging.h"
+#include <glog/logging.h>
 
 #ifdef HAVE_SYMBOLIZE
 

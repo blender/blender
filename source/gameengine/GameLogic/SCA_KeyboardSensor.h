@@ -30,8 +30,8 @@
  *  \brief Sensor for keyboard input
  */
 
-#ifndef __KX_KEYBOARDSENSOR
-#define __KX_KEYBOARDSENSOR
+#ifndef __SCA_KEYBOARDSENSOR_H__
+#define __SCA_KEYBOARDSENSOR_H__
 
 #include "SCA_ISensor.h"
 #include "BoolValue.h"
@@ -137,7 +137,7 @@ bool IsPrintable(int keyIndex);
 bool IsDelete(int keyIndex);
 
 
-#endif //__KX_KEYBOARDSENSOR
+#endif //__SCA_KEYBOARDSENSOR_H__
 
 
 

@@ -37,7 +37,7 @@
 #define __GAMMACORRECTIONTABLES_H__
 
 /**
- * Initialise the gamma lookup tables
+ * Initialize the gamma lookup tables
  */
 void makeGammaTables(float gamma);
 

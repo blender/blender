@@ -16,8 +16,8 @@
  *  \ingroup expressions
  */
 
-#if !defined _EXPRESSION_H
-#define _EXPRESSION_H
+#ifndef __EXPRESSION_H__
+#define __EXPRESSION_H__
 
 #include "Value.h"
 
@@ -150,5 +150,5 @@ public:
 #endif
 };
 
-#endif // !defined _EXPRESSION_H
+#endif // !defined __EXPRESSION_H__
 

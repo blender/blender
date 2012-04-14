@@ -19,6 +19,8 @@
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
 
+#include "kernel_types.h"
+
 #include "util_transform.h"
 #include "util_types.h"
 
@@ -44,8 +46,8 @@ public:
 	uint blades;
 	float bladesrotation;
 
-	/* orthographic/perspective */
-	bool ortho;
+	/* type */
+	CameraType type;
 	float fov;
 
 	/* clipping */

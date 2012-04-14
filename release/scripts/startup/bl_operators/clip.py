@@ -99,11 +99,11 @@ def CLIP_default_settings_from_track(clip, track):
     pattern = track.pattern_max - track.pattern_min
     search = track.search_max - track.search_min
 
-    pattern[0] = pattern[0] * clip.size[0]
-    pattern[1] = pattern[1] * clip.size[1]
+    pattern[0] = pattern[0] * width
+    pattern[1] = pattern[1] * height
 
-    search[0] = search[0] * clip.size[0]
-    search[1] = search[1] * clip.size[1]
+    search[0] = search[0] * width
+    search[1] = search[1] * height
 
     settings.default_tracker = track.tracker
     settings.default_pyramid_levels = track.pyramid_levels
@@ -709,17 +709,23 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
     @staticmethod
     def _createMesh(scene, name, vertices, faces):
-        from bpy_extras.io_utils import unpack_list, unpack_face_list
+        from bpy_extras.io_utils import unpack_list
 
         mesh = bpy.data.meshes.new(name=name)
 
         mesh.vertices.add(len(vertices))
         mesh.vertices.foreach_set("co", unpack_list(vertices))
 
-        mesh.faces.add(len(faces))
-        mesh.faces.foreach_set("vertices_raw", unpack_face_list(faces))
+        nbr_loops = len(faces)
+        nbr_polys = nbr_loops // 4
+        mesh.loops.add(nbr_loops)
+        mesh.polygons.add(nbr_polys)
 
-        mesh.update(calc_edges=True)
+        mesh.polygons.foreach_set("loop_start", range(0, nbr_loops, 4))
+        mesh.polygons.foreach_set("loop_total", (4,) * nbr_polys)
+        mesh.loops.foreach_set("vertex_index", faces)
+
+        mesh.update()
 
         ob = bpy.data.objects.new(name=name, object_data=mesh)
 
@@ -737,7 +743,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
     def _createGround(self, scene):
         vertices = self._getPlaneVertices(4.0, 0.0)
-        faces = [(0, 1, 2, 3)]
+        faces = [0, 1, 2, 3]
 
         ob = self._createMesh(scene, "Ground", vertices, faces)
         ob["is_ground"] = True
@@ -775,12 +781,12 @@ class CLIP_OT_setup_tracking_scene(Operator):
     def _createSampleObject(self, scene):
         vertices = self._getPlaneVertices(1.0, -1.0) + \
             self._getPlaneVertices(1.0, 1.0)
-        faces = ((0, 1, 2, 3),
-                 (4, 7, 6, 5),
-                 (0, 4, 5, 1),
-                 (1, 5, 6, 2),
-                 (2, 6, 7, 3),
-                 (3, 7, 4, 0))
+        faces = (0, 1, 2, 3,
+                 4, 7, 6, 5,
+                 0, 4, 5, 1,
+                 1, 5, 6, 2,
+                 2, 6, 7, 3,
+                 3, 7, 4, 0)
 
         return self._createMesh(scene, "Cube", vertices, faces)
 

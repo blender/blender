@@ -39,7 +39,8 @@ int BLI_linklist_length(LinkNode *list)
 {
 	if (0) {
 		return list?(1+BLI_linklist_length(list->next)):0;
-	} else {
+	}
+	else {
 		int len;
 
 		for (len=0; list; list= list->next)
@@ -104,10 +105,11 @@ void BLI_linklist_append(LinkNode **listp, void *ptr)
 	nlink->link = ptr;
 	nlink->next = NULL;
 	
-	if(node == NULL){
+	if (node == NULL) {
 		*listp = nlink;
-	} else {
-		while(node->next != NULL){
+	}
+	else {
+		while (node->next != NULL) {
 			node = node->next;   
 		}
 		node->next = nlink;
@@ -130,7 +132,7 @@ void BLI_linklist_insert_after(LinkNode **listp, void *ptr)
 
 	nlink->link = ptr;
 
-	if(node) {
+	if (node) {
 		nlink->next = node->next;
 		node->next = nlink;
 	}

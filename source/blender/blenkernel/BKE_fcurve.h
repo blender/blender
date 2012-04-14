@@ -135,7 +135,7 @@ typedef struct FModifierTypeInfo {
 	void (*evaluate_modifier)(struct FCurve *fcu, struct FModifier *fcm, float *cvalue, float evaltime);
 } FModifierTypeInfo;
 
-/* Values which describe the behaviour of a FModifier Type */
+/* Values which describe the behavior of a FModifier Type */
 typedef enum eFMI_Action_Types {
 		/* modifier only modifies values outside of data range */
 	FMI_TYPE_EXTRAPOLATION = 0,

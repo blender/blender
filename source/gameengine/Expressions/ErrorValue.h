@@ -16,8 +16,8 @@
  *  \ingroup expressions
  */
 
-#if !defined _ERRORVALUE_H
-#define _ERRORVALUE_H
+#ifndef __ERRORVALUE_H__
+#define __ERRORVALUE_H__
 
 #include "Value.h"
 
@@ -45,5 +45,5 @@ public:
 #endif
 };
 
-#endif // !defined _ERRORVALUE_H
+#endif // !defined __ERRORVALUE_H__
 

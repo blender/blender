@@ -59,7 +59,7 @@ UpdateChildCoordinates(
 	SG_Spatial * child,
 	const SG_Spatial * parent,
 	bool& parentUpdated	
-){
+) {
 	MT_assert(child != NULL);
 	
 	// This way of accessing child coordinates is a bit cumbersome
@@ -134,14 +134,14 @@ UpdateChildCoordinates(
 	SG_ParentRelation *
 KX_BoneParentRelation::
 NewCopy(
-){
+) {
 	KX_BoneParentRelation* bone_parent = new KX_BoneParentRelation(m_bone);
 	return bone_parent;
 }
 
 KX_BoneParentRelation::
 ~KX_BoneParentRelation(
-){
+) {
 	//nothing to do
 }
 

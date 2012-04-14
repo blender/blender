@@ -112,6 +112,10 @@
 /* define if your compiler has __sync_val_compare_and_swap */
 /* #undef HAVE___SYNC_VAL_COMPARE_AND_SWAP */
 
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#define LT_OBJDIR ".libs/"
+
 /* Name of package */
 #define PACKAGE "glog"
 
@@ -122,13 +126,16 @@
 #define PACKAGE_NAME "glog"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "glog 0.3.1"
+#define PACKAGE_STRING "glog 0.3.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "glog"
 
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
+
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.3.1"
+#define PACKAGE_VERSION "0.3.2"
 
 /* How to access the PC from a struct ucontext */
 #if defined(_M_X64) || defined(__amd64__) || defined(__x86_64__)
@@ -157,10 +164,16 @@
 #define TEST_SRC_DIR "."
 
 /* Version number of package */
-#define VERSION "0.3.1"
+#define VERSION "0.3.2"
 
 /* Stops putting the code inside the Google namespace */
 #define _END_GOOGLE_NAMESPACE_ }
 
 /* Puts following code inside the Google namespace */
 #define _START_GOOGLE_NAMESPACE_ namespace google {
+
+/* isn't getting defined by configure script when clang compilers are used
+   and cuases compilation errors in stactrace/unwind modules */
+#ifdef __clang__
+#  define NO_FRAME_POINTER
+#endif

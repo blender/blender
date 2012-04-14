@@ -1,4 +1,4 @@
-.TH "BLENDER" "1" "December 10, 2011" "Blender Blender 2\&.60 (sub 7)"
+.TH "BLENDER" "1" "April 05, 2012" "Blender Blender 2\&.62 (sub 3)"
 
 .SH NAME
 blender \- a 3D modelling and rendering package
@@ -15,7 +15,7 @@ Use Blender to create TV commercials, to make technical visualizations, business
 http://www.blender.org
 .SH OPTIONS
 
-Blender 2.60 (sub 7)
+Blender 2.62 (sub 3)
 Usage: blender [args ...] [file] [args ...]
 .br
 .SS "Render Options:"
@@ -133,9 +133,17 @@ Use amount of <threads> for rendering in background
 .SS "Animation Playback Options:"
 
 .TP
-.B \-a or \-\-render\-anim
+.B \-a <options> <file(s)>
 .br
-Render frames from start to end (inclusive)
+Playback <file(s)>, only operates this way when not running in background.
+.br
+    \-p <sx> <sy> Open with lower left corner at <sx>, <sy>
+.br
+    \-m Read from disk (Don't buffer)
+.br
+    \-f <fps> <fps\-base> Specify FPS to start with
+.br
+    \-j <frame> Set frame step to <frame>
 .br
 
 .IP
@@ -204,6 +212,12 @@ Turn debugging on
 .B \-\-debug\-fpe
 .br
 Enable floating point exceptions
+.br
+
+.TP
+.B \-\-debug\-ffmpeg
+.br
+Enable debug messages from FFmpeg library
 .br
 
 .IP
@@ -331,17 +345,27 @@ Print this help text and exit (windows only)
 .br
 
 .TP
-.B \-a <options> <file(s)>
+.B \-\-debug\-python
 .br
-Playback <file(s)>, only operates this way when not running in background.
+Enable debug messages for python
 .br
-    \-p <sx> <sy> Open with lower left corner at <sx>, <sy>
+
+.TP
+.B \-\-debug\-events
 .br
-    \-m Read from disk (Don't buffer)
+Enable debug messages for the event system
 .br
-    \-f <fps> <fps\-base> Specify FPS to start with
+
+.TP
+.B \-\-debug\-wm
 .br
-    \-j <frame> Set frame step to <frame>
+Enable debug messages for the window manager
+.br
+
+.TP
+.B \-\-debug\-all
+.br
+Enable all debug messages (excludes libmv)
 .br
 
 .TP
@@ -378,7 +402,7 @@ Arguments are executed in the order they are given. eg
   \fIBLENDER_USER_CONFIG\fR Directory for user configuration files.
   \fIBLENDER_USER_SCRIPTS\fR Directory for user scripts.
   \fIBLENDER_SYSTEM_SCRIPTS\fR Directory for system wide scripts.
-  \fIBLENDER_USER_DAT`AFILES\fR Directory for user data files (icons, translations, ..).
+  \fIDirectory\fR for user data files (icons, translations, ..).
   \fIBLENDER_SYSTEM_DATAFILES\fR Directory for system wide data files.
   \fIBLENDER_SYSTEM_PYTHON\fR Directory for system python libraries.
   \fITMP\fR or \fITMPDIR\fR Store temporary files here.

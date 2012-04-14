@@ -57,13 +57,13 @@ static void fill_bins(bNode* node, CompBuf* in, int* bins)
 	int x,y;
 
 	/*fill bins */
-	for(y=0; y<in->y; y++) {
-		for(x=0; x<in->x; x++) {
+	for (y=0; y<in->y; y++) {
+		for (x=0; x<in->x; x++) {
 
 			/* get the pixel */
 			qd_getPixel(in, x, y, value);
 
-			if(value[3] > 0.0f) { /* don't count transparent pixels */
+			if (value[3] > 0.0f) { /* don't count transparent pixels */
 				switch(node->custom1) {
 					case 1: { /* all colors */
 						rgb_tobw(value[0],value[1],value[2], &value[0]);
@@ -97,8 +97,8 @@ static void fill_bins(bNode* node, CompBuf* in, int* bins)
 				} /*end switch */
 
 				/*clip*/
-				if(ivalue<0) ivalue=0;
-				if(ivalue>255) ivalue=255;
+				if (ivalue<0) ivalue=0;
+				if (ivalue>255) ivalue=255;
 
 				/*put in the correct bin*/
 				bins[ivalue]+=1;
@@ -114,13 +114,13 @@ static float brightness_mean(bNode* node, CompBuf* in)
 	int x,y;
 	float value[4];
 
-	for(x=0; x< in->x; x++) {
-		for(y=0; y < in->y; y++) {
+	for (x=0; x< in->x; x++) {
+		for (y=0; y < in->y; y++) {
 			
 			/* get the pixel */
 			qd_getPixel(in, x, y, value);
 
-			if(value[3] > 0.0f) { /* don't count transparent pixels */
+			if (value[3] > 0.0f) { /* don't count transparent pixels */
 				numPixels++;
 				switch(node->custom1)
 				{
@@ -166,13 +166,13 @@ static float brightness_standard_deviation(bNode* node, CompBuf* in, float mean)
 	int x,y;
 	float value[4];
 
-	for(x=0; x< in->x; x++) {
-		for(y=0; y < in->y; y++) {
+	for (x=0; x< in->x; x++) {
+		for (y=0; y < in->y; y++) {
 			
 			/* get the pixel */
 			qd_getPixel(in, x, y, value);
 
-			if(value[3] > 0.0f) { /* don't count transparent pixels */
+			if (value[3] > 0.0f) { /* don't count transparent pixels */
 				numPixels++;
 				switch(node->custom1)
 				{
@@ -224,18 +224,18 @@ static void draw_histogram(bNode *node, CompBuf *out, int* bins)
 
 	/* find max value */
 	max=0;
-	for(x=0; x<256; x++) {
-		if(bins[x]>max) max=bins[x];
+	for (x=0; x<256; x++) {
+		if (bins[x]>max) max=bins[x];
 	}
 
 	/*draw histogram in buffer */
-	for(x=0; x<out->x; x++) {
-		for(y=0;y<out->y; y++) {
+	for (x=0; x<out->x; x++) {
+		for (y=0;y<out->y; y++) {
 
 			/* get normalized value (0..255) */
 			value=((float)bins[x]/(float)max)*255.0f;
 
-			if(y < (int)value) { /*if the y value is below the height of the bar for this line then draw with the color */
+			if (y < (int)value) { /*if the y value is below the height of the bar for this line then draw with the color */
 				switch (node->custom1) {
 					case 1: { /* draw in black */
 						color[0]=0.0; color[1]=0.0; color[2]=0.0; color[3]=1.0;
@@ -259,7 +259,7 @@ static void draw_histogram(bNode *node, CompBuf *out, int* bins)
 					}
 				}
 			}
-			else{
+			else {
 				color[0]=0.8; color[1]=0.8; color[2]=0.8; color[3]=1.0;
 			}
 
@@ -277,14 +277,14 @@ static void node_composit_exec_view_levels(void *data, bNode *node, bNodeStack *
 	int bins[256];
 	int x;
 
-	if(in[0]->hasinput==0)  return;
-	if(in[0]->data==NULL) return;
+	if (in[0]->hasinput==0)  return;
+	if (in[0]->data==NULL) return;
 
 	histogram=alloc_compbuf(256, 256, CB_RGBA, 1);	
 	cbuf=typecheck_compbuf(in[0]->data, CB_RGBA);	
 		
 	/*initalize bins*/
-	for(x=0; x<256; x++) {
+	for (x=0; x<256; x++) {
 		bins[x]=0;
 	}
 	
@@ -303,14 +303,14 @@ static void node_composit_exec_view_levels(void *data, bNode *node, bNodeStack *
 	printf("Std Dev: %f\n", std_dev);
 	*/
 
-	if(out[0]->hasoutput)
+	if (out[0]->hasoutput)
 			out[0]->vec[0]= mean;
-	if(out[1]->hasoutput)
+	if (out[1]->hasoutput)
 			out[1]->vec[0]= std_dev;
 
 	generate_preview(data, node, histogram);
 
-	if(cbuf!=in[0]->data)
+	if (cbuf!=in[0]->data)
 		free_compbuf(cbuf);
 	free_compbuf(histogram);
 }

@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __KX_SCALARINTERPOLATOR_H
-#define __KX_SCALARINTERPOLATOR_H
+#ifndef __KX_BLENDERSCALARINTERPOLATOR_H__
+#define __KX_BLENDERSCALARINTERPOLATOR_H__
 
 #include <vector>
 
@@ -48,7 +48,7 @@ public:
 	virtual ~BL_ScalarInterpolator() {}
 	
 	virtual float GetValue(float currentTime) const;
-	struct FCurve *GetFCurve() { return m_fcu;};
+	struct FCurve *GetFCurve() { return m_fcu; }
 
 private:
 	struct FCurve *m_fcu;
@@ -77,5 +77,5 @@ public:
 #endif
 };
 
-#endif //__KX_SCALARINTERPOLATOR_H
+#endif //__KX_BLENDERSCALARINTERPOLATOR_H__
 

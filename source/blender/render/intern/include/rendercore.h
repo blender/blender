@@ -84,9 +84,6 @@ void calc_renderco_ortho(float co[3], float x, float y, int z);
 
 int count_mask(unsigned short mask);
 
-void zbufshade(void);
-void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
-
 void zbufshade_tile(struct RenderPart *pa);
 void zbufshadeDA_tile(struct RenderPart *pa);
 

@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_crop_out[]= {
 
 static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	if(in[0]->data) {
+	if (in[0]->data) {
 		NodeTwoXYs *ntxy= node->storage;
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf;
@@ -53,7 +53,7 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 		float *srcfp, *outfp;
 		rcti outputrect;
 
-		if(node->custom2) {
+		if (node->custom2) {
 			ntxy->x1= cbuf->x* ntxy->fac_x1;
 			ntxy->x2= cbuf->x* ntxy->fac_x2;
 			ntxy->y1= cbuf->y* ntxy->fac_y1;
@@ -61,16 +61,16 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 		}
 
 		/* check input image size */
-		if(cbuf->x <= ntxy->x1 + 1)
+		if (cbuf->x <= ntxy->x1 + 1)
 			ntxy->x1= cbuf->x - 1;
 
-		if(cbuf->y <= ntxy->y1 + 1)
+		if (cbuf->y <= ntxy->y1 + 1)
 			ntxy->y1= cbuf->y - 1;
 
-		if(cbuf->x <= ntxy->x2 + 1)
+		if (cbuf->x <= ntxy->x2 + 1)
 			ntxy->x2= cbuf->x - 1;
 
-		if(cbuf->y <= ntxy->y2 + 1)
+		if (cbuf->y <= ntxy->y2 + 1)
 			ntxy->y2= cbuf->y - 1;
 
 		/* figure out the minimums and maximums */
@@ -79,7 +79,7 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 		outputrect.ymax=MAX2(ntxy->y1, ntxy->y2) + 1;
 		outputrect.ymin=MIN2(ntxy->y1, ntxy->y2);
 
-		if(node->custom1) {
+		if (node->custom1) {
 			/* this option crops the image size too  */	
 			stackbuf= get_cropped_compbuf(&outputrect, cbuf->rect, cbuf->x, cbuf->y, cbuf->type);
 		}
@@ -89,10 +89,10 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 			stackbuf = alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1);
 
 			/* select the cropped part of the image and set it to the output */
-			for(y=outputrect.ymin; y<outputrect.ymax; y++){
+			for (y=outputrect.ymin; y<outputrect.ymax; y++) {
 				srcfp= cbuf->rect     + (y * cbuf->x     + outputrect.xmin) * cbuf->type;
 				outfp= stackbuf->rect + (y * stackbuf->x + outputrect.xmin) * stackbuf->type;
-				for(x=outputrect.xmin; x<outputrect.xmax; x++, outfp+= stackbuf->type, srcfp+= cbuf->type)
+				for (x=outputrect.xmin; x<outputrect.xmax; x++, outfp+= stackbuf->type, srcfp+= cbuf->type)
 							memcpy(outfp, srcfp, sizeof(float)*stackbuf->type);
 			}
 		}

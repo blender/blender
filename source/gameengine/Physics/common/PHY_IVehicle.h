@@ -3,8 +3,8 @@
  *  \ingroup phys
  */
 
-#ifndef PHY_IVEHICLE_H
-#define PHY_IVEHICLE_H
+#ifndef __PHY_IVEHICLE_H__
+#define __PHY_IVEHICLE_H__
 
 //PHY_IVehicle provides a generic interface for (raycast based) vehicles. Mostly targetting 4 wheel cars and 2 wheel motorbikes.
 
@@ -68,4 +68,4 @@ public:
 #endif
 };
 
-#endif //PHY_IVEHICLE_H
+#endif //__PHY_IVEHICLE_H__

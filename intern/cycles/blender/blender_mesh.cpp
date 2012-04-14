@@ -73,10 +73,10 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		*N= get_float3(v->normal());
 
 	/* create faces */
-	BL::Mesh::faces_iterator f;
+	BL::Mesh::tessfaces_iterator f;
 	vector<int> nverts;
 
-	for(b_mesh.faces.begin(f); f != b_mesh.faces.end(); ++f) {
+	for(b_mesh.tessfaces.begin(f); f != b_mesh.tessfaces.end(); ++f) {
 		int4 vi = get_int4(f->vertices_raw());
 		int n = (vi[3] == 0)? 3: 4;
 		int mi = clamp(f->material_index(), 0, used_shaders.size()-1);
@@ -115,9 +115,9 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 
 	/* create vertex color attributes */
 	{
-		BL::Mesh::vertex_colors_iterator l;
+		BL::Mesh::tessface_vertex_colors_iterator l;
 
-		for(b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l) {
+		for(b_mesh.tessface_vertex_colors.begin(l); l != b_mesh.tessface_vertex_colors.end(); ++l) {
 			if(!mesh_need_attribute(scene, mesh, ustring(l->name().c_str())))
 				continue;
 
@@ -147,9 +147,9 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 
 	/* create uv map attributes */
 	{
-		BL::Mesh::uv_textures_iterator l;
+		BL::Mesh::tessface_uv_textures_iterator l;
 
-		for(b_mesh.uv_textures.begin(l); l != b_mesh.uv_textures.end(); ++l) {
+		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
 			Attribute::Standard std = (l->active_render())? Attribute::STD_UV: Attribute::STD_NONE;
 			ustring name = ustring(l->name().c_str());
 
@@ -196,9 +196,9 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 		sdmesh.add_vert(get_float3(v->co()));
 
 	/* create faces */
-	BL::Mesh::faces_iterator f;
+	BL::Mesh::tessfaces_iterator f;
 
-	for(b_mesh.faces.begin(f); f != b_mesh.faces.end(); ++f) {
+	for(b_mesh.tessfaces.begin(f); f != b_mesh.tessfaces.end(); ++f) {
 		int4 vi = get_int4(f->vertices_raw());
 		int n= (vi[3] == 0)? 3: 4;
 		//int shader = used_shaders[f->material_index()];
@@ -217,32 +217,38 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 	dsplit.camera = NULL;
 	dsplit.dicing_rate = RNA_float_get(cmesh, "dicing_rate");
 
-	sdmesh.tesselate(&dsplit, false, mesh, used_shaders[0], true);
+	sdmesh.tessellate(&dsplit, false, mesh, used_shaders[0], true);
 }
 
 /* Sync */
 
-Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
+Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool holdout, bool object_updated)
 {
 	/* test if we can instance or if the object is modified */
 	BL::ID b_ob_data = b_ob.data();
-	BL::ID key = (object_is_modified(b_ob))? b_ob: b_ob_data;
+	BL::ID key = (object_is_modified(b_ob) || holdout)? b_ob: b_ob_data;
 
 	/* find shader indices */
 	vector<uint> used_shaders;
 
 	BL::Object::material_slots_iterator slot;
 	for(b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot) {
-		BL::Material material_override = render_layers.front().material_override;
+		BL::Material material_override = render_layer.material_override;
 
-		if(material_override)
+		if(holdout)
+			find_shader(PointerRNA_NULL, used_shaders, scene->default_holdout);
+		else if(material_override)
 			find_shader(material_override, used_shaders, scene->default_surface);
 		else
 			find_shader(slot->material(), used_shaders, scene->default_surface);
 	}
 
-	if(used_shaders.size() == 0)
-		used_shaders.push_back(scene->default_surface);
+	if(used_shaders.size() == 0) {
+		if(holdout)
+			used_shaders.push_back(scene->default_holdout);
+		else
+			used_shaders.push_back(scene->default_surface);
+	}
 	
 	/* test if we need to sync */
 	Mesh *mesh;

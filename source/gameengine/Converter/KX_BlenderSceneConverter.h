@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __KX_BLENDERSCENECONVERTER_H
-#define __KX_BLENDERSCENECONVERTER_H
+#ifndef __KX_BLENDERSCENECONVERTER_H__
+#define __KX_BLENDERSCENECONVERTER_H__
 
 #include "KX_HashedPtr.h"
 #include "CTR_Map.h"
@@ -38,6 +38,8 @@
 
 #include "KX_ISceneConverter.h"
 #include "KX_IpoConvert.h"
+
+using namespace std;
 
 class KX_WorldInfo;
 class SCA_IActuator;
@@ -141,7 +143,7 @@ public:
 
 	struct Scene* GetBlenderSceneForName(const STR_String& name);
 
-//	struct Main* GetMain() { return m_maggie; };
+//	struct Main* GetMain() { return m_maggie; }
 	struct Main*		  GetMainDynamicPath(const char *path);
 	vector<struct Main*> &GetMainDynamic();
 	
@@ -195,5 +197,5 @@ public:
 #endif
 };
 
-#endif //__KX_BLENDERSCENECONVERTER_H
+#endif //__KX_BLENDERSCENECONVERTER_H__
 

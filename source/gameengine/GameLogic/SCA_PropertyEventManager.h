@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_PROPERTYEVENTMANAGER
-#define __KX_PROPERTYEVENTMANAGER
+#ifndef __SCA_PROPERTYEVENTMANAGER_H__
+#define __SCA_PROPERTYEVENTMANAGER_H__
 
 #include "SCA_EventManager.h"
 
@@ -54,5 +54,5 @@ public:
 #endif
 };
 
-#endif //__KX_PROPERTYEVENTMANAGER
+#endif //__SCA_PROPERTYEVENTMANAGER_H__
 

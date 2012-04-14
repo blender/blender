@@ -65,11 +65,11 @@
 static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 {
 	wmOperatorType *ot;
-	char		*opname;
-	PyObject	*context_dict = NULL; /* optional args */
-	PyObject	*context_dict_back;
-	char		*context_str = NULL;
-	PyObject	*ret;
+	char     *opname;
+	PyObject *context_dict = NULL; /* optional args */
+	PyObject *context_dict_back;
+	char     *context_str = NULL;
+	PyObject *ret;
 
 	int context = WM_OP_EXEC_DEFAULT;
 
@@ -139,11 +139,11 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	PointerRNA ptr;
 	int operator_ret = OPERATOR_CANCELLED;
 
-	char		*opname;
-	char		*context_str = NULL;
-	PyObject	*kw = NULL; /* optional args */
-	PyObject	*context_dict = NULL; /* optional args */
-	PyObject	*context_dict_back;
+	char     *opname;
+	char     *context_str = NULL;
+	PyObject *kw = NULL; /* optional args */
+	PyObject *context_dict = NULL; /* optional args */
+	PyObject *context_dict_back;
 
 	/* note that context is an int, python does the conversion in this case */
 	int context = WM_OP_EXEC_DEFAULT;
@@ -225,7 +225,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 			ReportList *reports;
 
 			reports = MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
-			BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD); /* own so these dont move into global reports */
+			BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD); /* own so these don't move into global reports */
 
 #ifdef BPY_RELEASE_GIL
 			/* release GIL, since a thread could be started from an operator
@@ -257,8 +257,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 			}
 	
 			BKE_reports_clear(reports);
-			if ((reports->flag & RPT_FREE) == 0)
-			{
+			if ((reports->flag & RPT_FREE) == 0) {
 				MEM_freeN(reports);
 			}
 		}
@@ -307,8 +306,8 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 	wmOperatorType *ot;
 	PointerRNA ptr;
 
-	char		*opname;
-	PyObject	*kw = NULL; /* optional args */
+	char     *opname;
+	PyObject *kw = NULL; /* optional args */
 	int all_args = 1;
 	int error_val = 0;
 
@@ -434,7 +433,7 @@ static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
 	op = PyMem_MALLOC(sizeof(wmOperator));
 	memset(op, 0, sizeof(wmOperator));
 #endif
-	BLI_strncpy(op->idname, op->idname, sizeof(op->idname)); /* incase its needed */
+	BLI_strncpy(op->idname, op->idname, sizeof(op->idname)); /* in case its needed */
 	op->type = ot;
 
 	RNA_pointer_create(NULL, &RNA_Operator, op, &ptr);
@@ -463,7 +462,7 @@ static struct PyModuleDef bpy_ops_module = {
 	PyModuleDef_HEAD_INIT,
 	"_bpy.ops",
 	NULL,
-	-1,/* multiple "initialization" just copies the module dict. */
+	-1, /* multiple "initialization" just copies the module dict. */
 	bpy_ops_methods,
 	NULL, NULL, NULL, NULL
 };

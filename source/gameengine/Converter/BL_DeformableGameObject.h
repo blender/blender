@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef BL_DEFORMABLEGAMEOBJECT
-#define BL_DEFORMABLEGAMEOBJECT
+#ifndef __BL_DEFORMABLEGAMEOBJECT_H__
+#define __BL_DEFORMABLEGAMEOBJECT_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
@@ -70,7 +70,7 @@ public:
 		KX_GameObject(sgReplicationInfo,callbacks),
 		m_pDeformer(NULL),
 		m_activeAct(NULL),
-		m_lastframe(0.),
+		m_lastframe(0.0),
 		m_blendobj(blendobj),
 		m_activePriority(9999)
 	{

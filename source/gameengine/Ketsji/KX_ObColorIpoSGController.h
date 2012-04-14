@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef KX_OBCOLORIPOSGCONTROLLER_H
-#define KX_OBCOLORIPOSGCONTROLLER_H
+#ifndef __KX_OBCOLORIPOSGCONTROLLER_H__
+#define __KX_OBCOLORIPOSGCONTROLLER_H__
 
 #include "SG_Controller.h"
 #include "SG_Spatial.h"
@@ -79,5 +79,5 @@ public:
 #endif
 };
 
-#endif // KX_OBCOLORIPOSGCONTROLLER_H
+#endif // __KX_OBCOLORIPOSGCONTROLLER_H__
 

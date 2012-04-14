@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_BUCKETMANAGER
-#define __RAS_BUCKETMANAGER
+#ifndef __RAS_BUCKETMANAGER_H__
+#define __RAS_BUCKETMANAGER_H__
 
 #include "MT_Transform.h"
 #include "RAS_MaterialBucket.h"
@@ -65,8 +65,8 @@ public:
 
 	/* for merging */
 	void MergeBucketManager(RAS_BucketManager *other, SCA_IScene *scene);
-	BucketList & GetSolidBuckets() {return m_SolidBuckets;};
-	BucketList & GetAlphaBuckets() {return m_AlphaBuckets;};
+	BucketList & GetSolidBuckets() {return m_SolidBuckets;}
+	BucketList & GetAlphaBuckets() {return m_AlphaBuckets;}
 
 	/*void PrintStats(int verbose_level) {
 		printf("\nMappings...\n");
@@ -91,5 +91,5 @@ public:
 #endif
 };
 
-#endif //__RAS_BUCKETMANAGER
+#endif //__RAS_BUCKETMANAGER_H__
 

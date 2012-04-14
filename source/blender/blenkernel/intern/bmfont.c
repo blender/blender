@@ -138,14 +138,14 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 			bmfont->glyphs[i].sizey    = buffer[index++];
 			bmfont->glyphs[i].advance  = buffer[index++];
 			bmfont->glyphs[i].reserved = buffer[index++];
-			if (G.f & G_DEBUG) {
+			if (G.debug & G_DEBUG) {
 				printfGlyph(&bmfont->glyphs[i]);
 			}
 		}
 		
 		MEM_freeN(buffer);
 		
-		if (G.f & G_DEBUG) {
+		if (G.debug & G_DEBUG) {
 			printf("Oldy = %d Newy = %d\n", ibuf->y, ibuf->y - ysize);
 			printf("glyphcount = %d\n", glyphcount);
 			printf("bytes = %d\n", bytes);
@@ -163,7 +163,8 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 			// we're going to fake alpha here:
 			calcAlpha(ibuf);
 		}
-	} else {
+	}
+	else {
 		printf("readBitmapFontVersion0: corrupted bitmapfont\n");
 	}
 }
@@ -183,7 +184,8 @@ void detectBitmapFont(ImBuf *ibuf)
 				// printf("found 8bit font !\n");
 				// round y size down
 				// do the 8 bit font stuff. (not yet)
-			} else {
+			}
+			else {
 				// we try all 4 possible combinations
 				for (i = 0; i < 4; i++) {
 					if (rect[0] == 'B' && rect[4] == 'F' && rect[8] == 'N' && rect[12] == 'T') {
@@ -194,7 +196,8 @@ void detectBitmapFont(ImBuf *ibuf)
 						
 						if (version == 0) {
 							readBitmapFontVersion0(ibuf, rect, 4);
-						} else {
+						}
+						else {
 							printf("detectBitmapFont :Unsupported version %d\n", version);
 						}
 						
@@ -223,10 +226,12 @@ int locateGlyph(bmFont *bmfont, unsigned short unicode)
 
 			if (bmfont->glyphs[current].unicode == unicode) {
 				break;
-			} else if (bmfont->glyphs[current].unicode < unicode) {
+			}
+			else if (bmfont->glyphs[current].unicode < unicode) {
 				// have to move up
 				min = current;
-			} else {
+			}
+			else {
 				// have to move down
 				max = current;
 			}
@@ -281,7 +286,7 @@ void matrixGlyph(ImBuf * ibuf, unsigned short unicode,
 				*advance = 2.0f * bmfont->glyphs[index].advance / (float) bmfont->glyphs[0].advance;
 
 				// printfGlyph(&bmfont->glyphs[index]);
-				// printf("%c %d %0.5f %0.5f %0.5f %0.5f %0.5f \n", unicode, index, *sizex, *sizey, *transx, *transy, *advance);
+				// printf("%c %d %0.5f %0.5f %0.5f %0.5f %0.5f\n", unicode, index, *sizex, *sizey, *transx, *transy, *advance);
 			}
 		}
 	}

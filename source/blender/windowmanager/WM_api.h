@@ -97,7 +97,6 @@ int			WM_read_homefile	(struct bContext *C, struct ReportList *reports, short fr
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, const char *filepath, struct ReportList *reports);
 int			WM_write_file		(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
-void		WM_read_autosavefile(struct bContext *C);
 void		WM_autosave_init	(struct wmWindowManager *wm);
 
 			/* mouse cursors */
@@ -109,7 +108,11 @@ void		WM_cursor_grab(struct wmWindow *win, int wrap, int hide, int *bounds);
 void		WM_cursor_ungrab(struct wmWindow *win);
 void		WM_timecursor		(struct wmWindow *win, int nr);
 
-void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int, void *customdata), void *customdata);
+void		*WM_paint_cursor_activate(struct wmWindowManager *wm,
+                                      int (*poll)(struct bContext *C),
+                                      void (*draw)(struct bContext *C, int, int, void *customdata),
+                                      void *customdata);
+
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
 void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
@@ -211,6 +214,9 @@ void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 int         WM_operator_check_ui_enabled(const struct bContext *C, const char *idname);
 wmOperator *WM_operator_last_redo(const struct bContext *C);
 
+int         WM_operator_last_properties_init(struct wmOperator *op);
+int         WM_operator_last_properties_store(struct wmOperator *op);
+
 /* MOVE THIS SOMEWHERE ELSE */
 #define	SEL_TOGGLE		0
 #define	SEL_SELECT		1
@@ -227,7 +233,7 @@ wmOperator *WM_operator_last_redo(const struct bContext *C);
 #define WM_FILESEL_FILES		(1 << 4)
 
 
-		/* operator as a python command (resultuing string must be free'd) */
+		/* operator as a python command (resultuing string must be freed) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
@@ -255,9 +261,6 @@ int			WM_gesture_lasso_cancel(struct bContext *C, struct wmOperator *op);
 int			WM_gesture_straightline_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_straightline_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_straightline_cancel(struct bContext *C, struct wmOperator *op);
-
-			/* default operator for arearegions, generates event */
-void		WM_OT_tweak_gesture(struct wmOperatorType *ot);
 
 			/* Gesture manager API */
 struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
@@ -328,11 +331,6 @@ void		WM_clipboard_text_set(char *buf, int selection);
 			/* progress */
 void		WM_progress_set(struct wmWindow *win, float progress);
 void		WM_progress_clear(struct wmWindow *win);
-
-#ifdef WIN32
-			/* Windows System Console */
-void		WM_console_toggle(struct bContext *C, short show);
-#endif
 
 			/* Draw (for screenshot) */
 void		WM_redraw_windows(struct bContext *C);

@@ -208,8 +208,11 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	if(object_map.sync(&object, b_ob, b_parent, key))
 		object_updated = true;
 	
+	/* holdout? */
+	bool holdout = (layer_flag & render_layer.holdout_layer) != 0;
+
 	/* mesh sync */
-	object->mesh = sync_mesh(b_ob, object_updated);
+	object->mesh = sync_mesh(b_ob, holdout, object_updated);
 
 	/* object sync */
 	if(object_updated || (object->mesh && object->mesh->need_update)) {
@@ -238,7 +241,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 {
 	/* layer data */
-	uint scene_layer = render_layers.front().scene_layer;
+	uint scene_layer = render_layer.scene_layer;
 	
 	/* prepare for sync */
 	light_map.pre_sync();

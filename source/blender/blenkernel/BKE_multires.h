@@ -32,26 +32,35 @@
  *  \ingroup bke
  */
 
+enum MultiresModifiedFlags;
 struct DerivedMesh;
-struct Mesh;
+struct GridHidden;
+struct MDisps;
 struct MFace;
+struct Mesh;
+struct ModifierData;
 struct Multires;
 struct MultiresModifierData;
-struct ModifierData;
 struct Object;
 struct Scene;
-struct MDisps;
 
-void multires_mark_as_modified(struct Object *ob);
+/* Delete mesh mdisps */
+void multires_customdata_delete(struct Mesh *me);
+
+void multires_mark_as_modified(struct Object *ob, enum MultiresModifiedFlags flags);
 
 void multires_force_update(struct Object *ob);
 void multires_force_render_update(struct Object *ob);
 void multires_force_external_reload(struct Object *ob);
 
+/* internal, only called in subsurf_ccg.c */
+void multires_modifier_update_mdisps(struct DerivedMesh *dm);
+void multires_modifier_update_hidden(struct DerivedMesh *dm);
+
 void multiresModifier_set_levels_from_disps(struct MultiresModifierData *mmd, struct Object *ob);
 
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,
-	int local_mmd, struct DerivedMesh*, struct Object *, int, int);
+	int local_mmd, struct DerivedMesh*, struct Object *, int);
 
 struct MultiresModifierData *find_multires_modifier_before(struct Scene *scene,
 	struct ModifierData *lastmd);
@@ -71,6 +80,14 @@ int multiresModifier_reshapeFromDeformMod(struct Scene *scene, struct MultiresMo
 
 void multires_stitch_grids(struct Object *);
 
+/*switch mdisp data in dm between tangent and object space*/
+enum {
+	MULTIRES_SPACE_TANGENT,
+	MULTIRES_SPACE_OBJECT,
+	MULTIRES_SPACE_ABSOLUTE
+};
+void multires_set_space(struct DerivedMesh *dm, struct Object *ob, int from, int to);
+
 /* Related to the old multires */
 void multires_free(struct Multires *mr);
 void multires_load_old(struct Object *ob, struct Mesh *me);
@@ -80,19 +97,13 @@ void multiresModifier_scale_disp(struct Scene *scene, struct Object *ob);
 void multiresModifier_prepare_join(struct Scene *scene, struct Object *ob, struct Object *to_ob);
 
 int multires_mdisp_corners(struct MDisps *s);
-void multires_mdisp_smooth_bounds(struct MDisps *disps);
 
 /* update multires data after topology changing */
 void multires_topology_changed(struct Scene *scene, struct Object *ob);
 
 /**** interpolation stuff ****/
 void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v);
-void mdisp_rot_crn_to_face(const int S, const int corners, const int face_side, const float x, const float y, float *u, float *v);
 int mdisp_rot_face_to_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y);
-int mdisp_rot_face_to_quad_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y);
-void mdisp_apply_weight(const int S, const int corners, int x, int y, const int face_side, float crn_weight[4][2], float *u_r, float *v_r);
-void mdisp_flip_disp(const int S, const int corners, const float axis_x[2], const float axis_y[2], float disp[3]);
-void mdisp_join_tris(struct MDisps *dst, struct MDisps *tri1, struct MDisps *tri2);
 
 #endif // __BKE_MULTIRES_H__
 

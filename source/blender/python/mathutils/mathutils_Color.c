@@ -50,17 +50,17 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	}
 
 	switch (PyTuple_GET_SIZE(args)) {
-	case 0:
-		break;
-	case 1:
-		if ((mathutils_array_parse(col, COLOR_SIZE, COLOR_SIZE, PyTuple_GET_ITEM(args, 0), "mathutils.Color()")) == -1)
+		case 0:
+			break;
+		case 1:
+			if ((mathutils_array_parse(col, COLOR_SIZE, COLOR_SIZE, PyTuple_GET_ITEM(args, 0), "mathutils.Color()")) == -1)
+				return NULL;
+			break;
+		default:
+			PyErr_SetString(PyExc_TypeError,
+			                "mathutils.Color(): "
+			                "more then a single arg given");
 			return NULL;
-		break;
-	default:
-		PyErr_SetString(PyExc_TypeError,
-		                "mathutils.Color(): "
-		                "more then a single arg given");
-		return NULL;
 	}
 	return Color_CreatePyObject(col, Py_NEW, type);
 }
@@ -106,6 +106,12 @@ static PyObject *Color_copy(ColorObject *self)
 		return NULL;
 
 	return Color_CreatePyObject(self->col, Py_NEW, Py_TYPE(self));
+}
+static PyObject *Color_deepcopy(ColorObject *self, PyObject *args)
+{
+	if (!mathutils_deepcopy_args_check(args))
+		return NULL;
+	return Color_copy(self);
 }
 
 //----------------------------print object (internal)--------------
@@ -159,21 +165,21 @@ static PyObject *Color_richcmpr(PyObject *a, PyObject *b, int op)
 	}
 
 	switch (op) {
-	case Py_NE:
-		ok = !ok; /* pass through */
-	case Py_EQ:
-		res = ok ? Py_False : Py_True;
-		break;
+		case Py_NE:
+			ok = !ok; /* pass through */
+		case Py_EQ:
+			res = ok ? Py_False : Py_True;
+			break;
 
-	case Py_LT:
-	case Py_LE:
-	case Py_GT:
-	case Py_GE:
-		res = Py_NotImplemented;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
+		case Py_LT:
+		case Py_LE:
+		case Py_GT:
+		case Py_GE:
+			res = Py_NotImplemented;
+			break;
+		default:
+			PyErr_BadArgument();
+			return NULL;
 	}
 
 	return Py_INCREF(res), res;
@@ -194,7 +200,7 @@ static PyObject *Color_item(ColorObject *self, int i)
 
 	if (i < 0 || i >= COLOR_SIZE) {
 		PyErr_SetString(PyExc_IndexError,
-		                "color[attribute]: "
+		                "color[item]: "
 		                "array index out of range");
 		return NULL;
 	}
@@ -213,15 +219,15 @@ static int Color_ass_item(ColorObject *self, int i, PyObject *value)
 
 	if (f == -1 && PyErr_Occurred()) { // parsed item not a number
 		PyErr_SetString(PyExc_TypeError,
-		                "color[attribute] = x: "
+		                "color[item] = x: "
 		                "argument not a number");
 		return -1;
 	}
 
-	if (i < 0) i= COLOR_SIZE - i;
+	if (i < 0) i = COLOR_SIZE - i;
 
 	if (i < 0 || i >= COLOR_SIZE) {
-		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: "
+		PyErr_SetString(PyExc_IndexError, "color[item] = x: "
 		                "array assignment index out of range");
 		return -1;
 	}
@@ -358,16 +364,16 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
 
 //-----------------PROTCOL DECLARATIONS--------------------------
 static PySequenceMethods Color_SeqMethods = {
-	(lenfunc) Color_len,					/* sq_length */
-	(binaryfunc) NULL,						/* sq_concat */
-	(ssizeargfunc) NULL,					/* sq_repeat */
-	(ssizeargfunc) Color_item,				/* sq_item */
-	NULL,									/* sq_slice, deprecated */
-	(ssizeobjargproc) Color_ass_item,		/* sq_ass_item */
-	NULL,									/* sq_ass_slice, deprecated */
-	(objobjproc) NULL,						/* sq_contains */
-	(binaryfunc) NULL,						/* sq_inplace_concat */
-	(ssizeargfunc) NULL,					/* sq_inplace_repeat */
+	(lenfunc) Color_len,                    /* sq_length */
+	(binaryfunc) NULL,                      /* sq_concat */
+	(ssizeargfunc) NULL,                    /* sq_repeat */
+	(ssizeargfunc) Color_item,              /* sq_item */
+	NULL,                                   /* sq_slice, deprecated */
+	(ssizeobjargproc) Color_ass_item,       /* sq_ass_item */
+	NULL,                                   /* sq_ass_slice, deprecated */
+	(objobjproc) NULL,                      /* sq_contains */
+	(binaryfunc) NULL,                      /* sq_inplace_concat */
+	(ssizeargfunc) NULL,                    /* sq_inplace_repeat */
 };
 
 static PyMappingMethods Color_AsMapping = {
@@ -490,12 +496,12 @@ static PyObject *Color_mul(PyObject *v1, PyObject *v2)
 	ColorObject *color1 = NULL, *color2 = NULL;
 	float scalar;
 
-	if ColorObject_Check(v1) {
+	if (ColorObject_Check(v1)) {
 		color1 = (ColorObject *)v1;
 		if (BaseMath_ReadCallback(color1) == -1)
 			return NULL;
 	}
-	if ColorObject_Check(v2) {
+	if (ColorObject_Check(v2)) {
 		color2 = (ColorObject *)v2;
 		if (BaseMath_ReadCallback(color2) == -1)
 			return NULL;
@@ -504,7 +510,7 @@ static PyObject *Color_mul(PyObject *v1, PyObject *v2)
 
 	/* make sure v1 is always the vector */
 	if (color1 && color2) {
-		/* col * col, dont support yet! */
+		/* col * col, don't support yet! */
 	}
 	else if (color1) {
 		if (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0) { /* COLOR * FLOAT */
@@ -532,7 +538,7 @@ static PyObject *Color_div(PyObject *v1, PyObject *v2)
 	ColorObject *color1 = NULL;
 	float scalar;
 
-	if ColorObject_Check(v1) {
+	if (ColorObject_Check(v1)) {
 		color1 = (ColorObject *)v1;
 		if (BaseMath_ReadCallback(color1) == -1)
 			return NULL;
@@ -619,7 +625,7 @@ static PyObject *Color_idiv(PyObject *v1, PyObject *v2)
 }
 
 /* -obj
-  returns the negative of this object */
+ * returns the negative of this object */
 static PyObject *Color_neg(ColorObject *self)
 {
 	float tcol[COLOR_SIZE];
@@ -633,40 +639,40 @@ static PyObject *Color_neg(ColorObject *self)
 
 
 static PyNumberMethods Color_NumMethods = {
-	(binaryfunc) Color_add,	/*nb_add*/
-	(binaryfunc) Color_sub,	/*nb_subtract*/
-	(binaryfunc) Color_mul,	/*nb_multiply*/
-	NULL,				/*nb_remainder*/
-	NULL,				/*nb_divmod*/
-	NULL,				/*nb_power*/
+	(binaryfunc) Color_add, /*nb_add*/
+	(binaryfunc) Color_sub, /*nb_subtract*/
+	(binaryfunc) Color_mul, /*nb_multiply*/
+	NULL,               /*nb_remainder*/
+	NULL,               /*nb_divmod*/
+	NULL,               /*nb_power*/
 	(unaryfunc) Color_neg, /*nb_negative*/
-	(unaryfunc) NULL,	/*tp_positive*/
-	(unaryfunc) NULL,	/*tp_absolute*/
-	(inquiry)	NULL,	/*tp_bool*/
-	(unaryfunc)	NULL,	/*nb_invert*/
-	NULL,				/*nb_lshift*/
-	(binaryfunc)NULL,	/*nb_rshift*/
-	NULL,				/*nb_and*/
-	NULL,				/*nb_xor*/
-	NULL,				/*nb_or*/
-	NULL,				/*nb_int*/
-	NULL,				/*nb_reserved*/
-	NULL,				/*nb_float*/
-	Color_iadd,			/* nb_inplace_add */
-	Color_isub,			/* nb_inplace_subtract */
-	Color_imul,			/* nb_inplace_multiply */
-	NULL,				/* nb_inplace_remainder */
-	NULL,				/* nb_inplace_power */
-	NULL,				/* nb_inplace_lshift */
-	NULL,				/* nb_inplace_rshift */
-	NULL,				/* nb_inplace_and */
-	NULL,				/* nb_inplace_xor */
-	NULL,				/* nb_inplace_or */
-	NULL,				/* nb_floor_divide */
-	Color_div,			/* nb_true_divide */
-	NULL,				/* nb_inplace_floor_divide */
-	Color_idiv,			/* nb_inplace_true_divide */
-	NULL,				/* nb_index */
+	(unaryfunc) NULL,   /*tp_positive*/
+	(unaryfunc) NULL,   /*tp_absolute*/
+	(inquiry)   NULL,   /*tp_bool*/
+	(unaryfunc) NULL,   /*nb_invert*/
+	NULL,               /*nb_lshift*/
+	(binaryfunc)NULL,   /*nb_rshift*/
+	NULL,               /*nb_and*/
+	NULL,               /*nb_xor*/
+	NULL,               /*nb_or*/
+	NULL,               /*nb_int*/
+	NULL,               /*nb_reserved*/
+	NULL,               /*nb_float*/
+	Color_iadd,         /* nb_inplace_add */
+	Color_isub,         /* nb_inplace_subtract */
+	Color_imul,         /* nb_inplace_multiply */
+	NULL,               /* nb_inplace_remainder */
+	NULL,               /* nb_inplace_power */
+	NULL,               /* nb_inplace_lshift */
+	NULL,               /* nb_inplace_rshift */
+	NULL,               /* nb_inplace_and */
+	NULL,               /* nb_inplace_xor */
+	NULL,               /* nb_inplace_or */
+	NULL,               /* nb_floor_divide */
+	Color_div,          /* nb_true_divide */
+	NULL,               /* nb_inplace_floor_divide */
+	Color_idiv,         /* nb_inplace_true_divide */
+	NULL,               /* nb_index */
 };
 
 /* color channel, vector.r/g/b */
@@ -679,7 +685,7 @@ static PyObject *Color_channel_get(ColorObject *self, void *type)
 	return Color_item(self, GET_INT_FROM_POINTER(type));
 }
 
-static int Color_channel_set(ColorObject *self, PyObject *value, void * type)
+static int Color_channel_set(ColorObject *self, PyObject *value, void *type)
 {
 	return Color_ass_item(self, GET_INT_FROM_POINTER(type), value);
 }
@@ -702,7 +708,7 @@ static PyObject *Color_channel_hsv_get(ColorObject *self, void *type)
 	return PyFloat_FromDouble(hsv[i]);
 }
 
-static int Color_channel_hsv_set(ColorObject *self, PyObject *value, void * type)
+static int Color_channel_hsv_set(ColorObject *self, PyObject *value, void *type)
 {
 	float hsv[3];
 	int i = GET_INT_FROM_POINTER(type);
@@ -789,8 +795,9 @@ static PyGetSetDef Color_getseters[] = {
 
 //-----------------------METHOD DEFINITIONS ----------------------
 static struct PyMethodDef Color_methods[] = {
-	{"__copy__", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
 	{"copy", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
+	{"__copy__", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
+	{"__deepcopy__", (PyCFunction) Color_deepcopy, METH_VARARGS, Color_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -800,64 +807,64 @@ PyDoc_STRVAR(color_doc,
 );
 PyTypeObject color_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"mathutils.Color",				//tp_name
-	sizeof(ColorObject),			//tp_basicsize
-	0,								//tp_itemsize
-	(destructor)BaseMathObject_dealloc,		//tp_dealloc
-	NULL,							//tp_print
-	NULL,							//tp_getattr
-	NULL,							//tp_setattr
-	NULL,							//tp_compare
-	(reprfunc) Color_repr,			//tp_repr
-	&Color_NumMethods,				//tp_as_number
-	&Color_SeqMethods,				//tp_as_sequence
-	&Color_AsMapping,				//tp_as_mapping
-	NULL,							//tp_hash
-	NULL,							//tp_call
-	(reprfunc) Color_str,			//tp_str
-	NULL,							//tp_getattro
-	NULL,							//tp_setattro
-	NULL,							//tp_as_buffer
+	"mathutils.Color",              //tp_name
+	sizeof(ColorObject),            //tp_basicsize
+	0,                              //tp_itemsize
+	(destructor)BaseMathObject_dealloc,     //tp_dealloc
+	NULL,                           //tp_print
+	NULL,                           //tp_getattr
+	NULL,                           //tp_setattr
+	NULL,                           //tp_compare
+	(reprfunc) Color_repr,          //tp_repr
+	&Color_NumMethods,              //tp_as_number
+	&Color_SeqMethods,              //tp_as_sequence
+	&Color_AsMapping,               //tp_as_mapping
+	NULL,                           //tp_hash
+	NULL,                           //tp_call
+	(reprfunc) Color_str,           //tp_str
+	NULL,                           //tp_getattro
+	NULL,                           //tp_setattro
+	NULL,                           //tp_as_buffer
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, //tp_flags
 	color_doc, //tp_doc
-	(traverseproc)BaseMathObject_traverse,	//tp_traverse
-	(inquiry)BaseMathObject_clear,	//tp_clear
-	(richcmpfunc)Color_richcmpr,	//tp_richcompare
-	0,								//tp_weaklistoffset
-	NULL,							//tp_iter
-	NULL,							//tp_iternext
-	Color_methods,					//tp_methods
-	NULL,							//tp_members
-	Color_getseters,				//tp_getset
-	NULL,							//tp_base
-	NULL,							//tp_dict
-	NULL,							//tp_descr_get
-	NULL,							//tp_descr_set
-	0,								//tp_dictoffset
-	NULL,							//tp_init
-	NULL,							//tp_alloc
-	Color_new,						//tp_new
-	NULL,							//tp_free
-	NULL,							//tp_is_gc
-	NULL,							//tp_bases
-	NULL,							//tp_mro
-	NULL,							//tp_cache
-	NULL,							//tp_subclasses
-	NULL,							//tp_weaklist
-	NULL							//tp_del
+	(traverseproc)BaseMathObject_traverse,  //tp_traverse
+	(inquiry)BaseMathObject_clear,  //tp_clear
+	(richcmpfunc)Color_richcmpr,    //tp_richcompare
+	0,                              //tp_weaklistoffset
+	NULL,                           //tp_iter
+	NULL,                           //tp_iternext
+	Color_methods,                  //tp_methods
+	NULL,                           //tp_members
+	Color_getseters,                //tp_getset
+	NULL,                           //tp_base
+	NULL,                           //tp_dict
+	NULL,                           //tp_descr_get
+	NULL,                           //tp_descr_set
+	0,                              //tp_dictoffset
+	NULL,                           //tp_init
+	NULL,                           //tp_alloc
+	Color_new,                      //tp_new
+	NULL,                           //tp_free
+	NULL,                           //tp_is_gc
+	NULL,                           //tp_bases
+	NULL,                           //tp_mro
+	NULL,                           //tp_cache
+	NULL,                           //tp_subclasses
+	NULL,                           //tp_weaklist
+	NULL                            //tp_del
 };
 //------------------------Color_CreatePyObject (internal)-------------
 //creates a new color object
-/*pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
- (i.e. it was allocated elsewhere by MEM_mallocN())
-  pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
- (i.e. it must be created here with PyMEM_malloc())*/
+/* pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
+ *  (i.e. it was allocated elsewhere by MEM_mallocN())
+ *   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
+ *  (i.e. it must be created here with PyMEM_malloc())*/
 PyObject *Color_CreatePyObject(float *col, int type, PyTypeObject *base_type)
 {
 	ColorObject *self;
 
-	self = base_type ?	(ColorObject *)base_type->tp_alloc(base_type, 0) :
-						(ColorObject *)PyObject_GC_New(ColorObject, &color_Type);
+	self = base_type ?  (ColorObject *)base_type->tp_alloc(base_type, 0) :
+	                    (ColorObject *)PyObject_GC_New(ColorObject, &color_Type);
 
 	if (self) {
 		/* init callbacks as NULL */
@@ -885,14 +892,15 @@ PyObject *Color_CreatePyObject(float *col, int type, PyTypeObject *base_type)
 	return (PyObject *)self;
 }
 
-PyObject *Color_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype)
+PyObject *Color_CreatePyObject_cb(PyObject *cb_user,
+                                  unsigned char cb_type, unsigned char cb_subtype)
 {
 	ColorObject *self = (ColorObject *)Color_CreatePyObject(NULL, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 

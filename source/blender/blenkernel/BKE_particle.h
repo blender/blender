@@ -64,7 +64,7 @@ struct BVHTreeRayHit;
 #define LOOP_EXISTING_PARTICLES for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++) if(!(pa->flag & PARS_UNEXIST))
 #define LOOP_SHOWN_PARTICLES for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++) if(!(pa->flag & (PARS_UNEXIST|PARS_NO_DISP)))
 /* OpenMP: Can only advance one variable within loop definition. */
-#define LOOP_DYNAMIC_PARTICLES for(p=0; p<psys->totpart; p++ ) if((pa=psys->particles+p)->state.time > 0.f)
+#define LOOP_DYNAMIC_PARTICLES for(p=0; p<psys->totpart; p++ ) if((pa=psys->particles+p)->state.time > 0.0f)
 
 #define PSYS_FRAND_COUNT	1024
 #define PSYS_FRAND(seed)	psys->frand[(seed) % PSYS_FRAND_COUNT]
@@ -80,8 +80,8 @@ typedef struct ParticleSimulationData {
 	struct ParticleSystemModifierData *psmd;
 	struct ListBase *colliders;
 	/* Courant number. This is used to implement an adaptive time step. Only the
-	   maximum value per time step is important. Only sph_integrate makes use of
-	   this at the moment. Other solvers could, too. */
+	 * maximum value per time step is important. Only sph_integrate makes use of
+	 * this at the moment. Other solvers could, too. */
 	float courant_num;
 } ParticleSimulationData;
 
@@ -319,7 +319,7 @@ void psys_free_particles(struct ParticleSystem *psys);
 void psys_free_children(struct ParticleSystem *psys);
 
 void psys_interpolate_particle(short type, struct ParticleKey keys[4], float dt, struct ParticleKey *result, int velocity);
-void psys_vec_rot_to_face(struct DerivedMesh *dm, struct ParticleData *pa, float *vec);
+void psys_vec_rot_to_face(struct DerivedMesh *dm, struct ParticleData *pa, float vec[3]);
 void psys_mat_hair_to_object(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
 void psys_mat_hair_to_global(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
 void psys_mat_hair_to_orco(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);

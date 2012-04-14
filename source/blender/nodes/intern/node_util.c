@@ -36,6 +36,8 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_colortools.h"
 #include "BKE_node.h"
 
@@ -74,87 +76,95 @@ const char *node_blend_label(bNode *node)
 {
 	const char *name;
 	RNA_enum_name(ramp_blend_items, node->custom1, &name);
-	return name;
+	return IFACE_(name);
 }
 
 const char *node_math_label(bNode *node)
 {
 	const char *name;
 	RNA_enum_name(node_math_items, node->custom1, &name);
-	return name;
+	return IFACE_(name);
 }
 
 const char *node_vect_math_label(bNode *node)
 {
 	const char *name;
 	RNA_enum_name(node_vec_math_items, node->custom1, &name);
-	return name;
+	return IFACE_(name);
 }
 
 const char *node_filter_label(bNode *node)
 {
 	const char *name;
 	RNA_enum_name(node_filter_items, node->custom1, &name);
-	return name;
+	return IFACE_(name);
 }
 
-/* Returns a list of mapping of some input bNodeStack, GPUNodeStack or bNodeSocket
- * to one or more outputs of the same type.
- * *ntree or (**nsin, **nsout) or (*gnsin, *gnsout) must not be NULL. */
-ListBase node_mute_get_links(bNodeTree *ntree, bNode *node, bNodeStack **nsin, bNodeStack **nsout,
-                             GPUNodeStack *gnsin, GPUNodeStack *gnsout)
+ListBase node_internal_connect_default(bNodeTree *ntree, bNode *node)
 {
-	static int types[] = { SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA };
-	bNodeLink link = {NULL};
 	ListBase ret;
-	LinkInOutsMuteNode *lnk;
-	int in, out, i;
+	bNodeSocket *fromsock_first=NULL, *tosock_first=NULL;	/* used for fallback link if no other reconnections are found */
+	int datatype;
+	int num_links_in = 0, num_links_out = 0, num_reconnect = 0;
 
 	ret.first = ret.last = NULL;
 
 	/* Security check! */
-	if(!(ntree || (nsin && nsout) || (gnsin && gnsout)))
+	if (!ntree)
 		return ret;
 
-	/* Connect the first input of each type with first output of the same type. */
-
-	link.fromnode = link.tonode = node;
-	for (i=0; i < 3; ++i) {
-		/* find input socket */
-		for (in=0, link.fromsock=node->inputs.first; link.fromsock; in++, link.fromsock=link.fromsock->next) {
-			if (link.fromsock->type==types[i] && (ntree ? nodeCountSocketLinks(ntree, link.fromsock) : nsin ? nsin[in]->hasinput : gnsin[in].hasinput))
+	for (datatype=0; datatype < NUM_SOCKET_TYPES; ++datatype) {
+		bNodeSocket *fromsock=NULL, *tosock=NULL;
+		bNodeLink *link;
+		
+		/* Connect the first input of each type with outputs of the same type. */
+		
+		for (link=ntree->links.first; link; link=link->next) {
+			if (link->tonode == node && link->tosock->type == datatype) {
+				fromsock = link->tosock;
+				++num_links_in;
+				if (!fromsock_first)
+					fromsock_first = fromsock;
 				break;
-		}
-		if (link.fromsock) {
-			for (out=0, link.tosock=node->outputs.first; link.tosock; out++, link.tosock=link.tosock->next) {
-				if (link.tosock->type==types[i] && (ntree ? nodeCountSocketLinks(ntree, link.tosock) : nsout ? nsout[out]->hasoutput : gnsout[out].hasoutput))
-					break;
 			}
-			if (link.tosock) {
-				if(nsin && nsout) {
-					lnk = MEM_mallocN(sizeof(LinkInOutsMuteNode), "Muting node: new in to outs link.");
-					lnk->in = nsin[in];
-					lnk->outs = nsout[out];
-					lnk->num_outs = 1;
-					BLI_addtail(&ret, lnk);
-				}
-				else if(gnsin && gnsout) {
-					lnk = MEM_mallocN(sizeof(LinkInOutsMuteNode), "Muting node: new in to outs link.");
-					lnk->in = &gnsin[in];
-					lnk->outs = &gnsout[out];
-					lnk->num_outs = 1;
-					BLI_addtail(&ret, lnk);
-				}
-				else {
-					lnk = MEM_mallocN(sizeof(LinkInOutsMuteNode), "Muting node: new in to outs link.");
-					lnk->in = link.fromsock;
-					lnk->outs = link.tosock;
-					lnk->num_outs = 1;
-					BLI_addtail(&ret, lnk);
+		}
+		
+		for (link=ntree->links.first; link; link=link->next) {
+			if (link->fromnode == node && link->fromsock->type == datatype) {
+				tosock = link->fromsock;
+				++num_links_out;
+				if (!tosock_first)
+					tosock_first = tosock;
+				
+				if (fromsock) {
+					bNodeLink *ilink = MEM_callocN(sizeof(bNodeLink), "internal node link");
+					ilink->fromnode = node;
+					ilink->fromsock = fromsock;
+					ilink->tonode = node;
+					ilink->tosock = tosock;
+					/* internal link is always valid */
+					ilink->flag |= NODE_LINK_VALID;
+					BLI_addtail(&ret, ilink);
+					
+					++num_reconnect;
 				}
 			}
 		}
 	}
-
+	
+	/* if there is one input and one output link, but no reconnections by type,
+	 * simply connect those two sockets.
+	 */
+	if (num_reconnect==0 && num_links_in==1 && num_links_out==1) {
+		bNodeLink *ilink = MEM_callocN(sizeof(bNodeLink), "internal node link");
+		ilink->fromnode = node;
+		ilink->fromsock = fromsock_first;
+		ilink->tonode = node;
+		ilink->tosock = tosock_first;
+		/* internal link is always valid */
+		ilink->flag |= NODE_LINK_VALID;
+		BLI_addtail(&ret, ilink);
+	}
+	
 	return ret;
 }

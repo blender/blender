@@ -78,7 +78,7 @@ SG_Node* SG_Node::GetSGReplica()
 SG_Node::
 ProcessSGReplica(
 	SG_Node** replica
-){
+) {
 	// Apply the replication call back function.
 	if (!ActivateReplicationCallback(*replica)) 
 	{
@@ -159,7 +159,7 @@ bool SG_Node::IsAncessor(const SG_Node* child) const
 	void 
 SG_Node::
 DisconnectFromParent(
-){
+) {
 	if (m_SGparent)
 	{
 		m_SGparent->RemoveChild(this);

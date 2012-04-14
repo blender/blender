@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_PYTHON_INIT
-#define __KX_PYTHON_INIT
+#ifndef __KX_PYTHONINIT_H__
+#define __KX_PYTHONINIT_H__
 
 #include "KX_Python.h"
 #include "STR_String.h"
@@ -74,5 +74,5 @@ void		KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar rad
 										 const MT_Vector3& normal, int nsector);
 
 
-#endif //__KX_PYTHON_INIT
+#endif //__KX_PYTHONINIT_H__
 

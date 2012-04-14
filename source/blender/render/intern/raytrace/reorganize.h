@@ -144,7 +144,7 @@ void remove_useless(Node *node, Node **new_node)
 		{
 			Node *next = (*prev)->sibling;
 			remove_useless(*prev, prev);
-			if(*prev == 0)
+			if(*prev == NULL)
 				*prev = next;
 			else
 			{
@@ -158,8 +158,10 @@ void remove_useless(Node *node, Node **new_node)
 		if(RE_rayobject_isAligned(node->child) && node->child->sibling == 0)
 			*new_node = node->child;
 	}
-	else if(node->child == 0)
-		*new_node = 0;	
+	else if(node->child == NULL)
+	{
+		*new_node = NULL;
+	}
 }
 
 /*
@@ -175,8 +177,8 @@ void pushup(Node *parent)
 	Node **prev = &parent->child;
 	for(Node *child = parent->child; RE_rayobject_isAligned(child) && child; )
 	{
-		float c_area = bb_area(child->bb, child->bb+3) ;
-		int nchilds = count_childs(child);
+		const float c_area = bb_area(child->bb, child->bb + 3);
+		const int nchilds = count_childs(child);
 		float original_cost = ((p_area != 0.0f)? (c_area / p_area)*nchilds: 1.0f) + 1;
 		float flatten_cost = nchilds;
 		if(flatten_cost < original_cost && nchilds >= 2)
@@ -271,8 +273,9 @@ void pushdown(Node *parent)
 		s_child = next_s_child;
 	}
 	
-	for(Node *i = parent->child; RE_rayobject_isAligned(i) && i; i = i->sibling)
-		pushdown( i );	
+	for (Node *i = parent->child; RE_rayobject_isAligned(i) && i; i = i->sibling) {
+		pushdown(i);
+	}
 }
 
 
@@ -526,7 +529,7 @@ struct VBVH_optimalPackSIMD
 			if(num == 0) { num++; first = true; }
 			
 			calc_costs(node);
-			if((G.f & G_DEBUG) && first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize );
+			if((G.debug & G_DEBUG) && first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize );
 			node->optimize();
 		}
 		return node;		

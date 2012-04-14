@@ -130,25 +130,19 @@ FaceCollPair;
 // used in modifier.c from collision.c
 /////////////////////////////////////////////////
 
-BVHTree *bvhtree_build_from_mvert ( struct MFace *mfaces, unsigned int numfaces, struct MVert *x, unsigned int numverts, float epsilon );
-void bvhtree_update_from_mvert ( BVHTree * bvhtree, struct MFace *faces, int numfaces, struct MVert *x, struct MVert *xnew, int numverts, int moving );
+BVHTree *bvhtree_build_from_mvert(struct MFace *mfaces, unsigned int numfaces, struct MVert *x, unsigned int numverts, float epsilon );
+void bvhtree_update_from_mvert(BVHTree * bvhtree, struct MFace *faces, int numfaces, struct MVert *x, struct MVert *xnew, int numverts, int moving );
 
 /////////////////////////////////////////////////
 
-struct LinkNode *BLI_linklist_append_fast ( struct LinkNode **listp, void *ptr );
-
 // move Collision modifier object inter-frame with step = [0,1]
 // defined in collisions.c
-void collision_move_object ( struct CollisionModifierData *collmd, float step, float prevstep );
-
-// interface for collision functions
-void collisions_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 );
-void interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3 );
+void collision_move_object(struct CollisionModifierData *collmd, float step, float prevstep);
 
 /////////////////////////////////////////////////
 // used in effect.c
 /////////////////////////////////////////////////
-struct Object **get_collisionobjects(struct Scene *scene, struct Object *self, struct Group *group, unsigned int *numcollobj);
+struct Object **get_collisionobjects(struct Scene *scene, struct Object *self, struct Group *group, unsigned int *numcollobj, unsigned int modifier_type);
 
 typedef struct ColliderCache {
 	struct ColliderCache *next, *prev;

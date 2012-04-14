@@ -71,7 +71,8 @@ const STR_String & CListValue::GetText()
 
 
 
-CValue* CListValue::GetReplica() {
+CValue* CListValue::GetReplica()
+{
 	CListValue* replica = new CListValue(*this);
 
 	replica->ProcessReplica();
@@ -214,7 +215,7 @@ CValue* CListValue::Calc(VALUE_OPERATOR op,CValue *val)
 	//assert(false); // todo: implement me!
 	static int error_printed =  0;
 	if (error_printed==0) {
-		fprintf(stderr, "CValueList::Calc not yet implimented\n");
+		fprintf(stderr, "CValueList::Calc not yet implemented\n");
 		error_printed = 1;
 	}
 	return NULL;
@@ -227,7 +228,7 @@ CValue* CListValue::CalcFinal(VALUE_DATA_TYPE dtype,
 	//assert(false); // todo: implement me!
 	static int error_printed =  0;
 	if (error_printed==0) {
-		fprintf(stderr, "CValueList::CalcFinal not yet implimented\n");
+		fprintf(stderr, "CValueList::CalcFinal not yet implemented\n");
 		error_printed = 1;
 	}
 	return NULL;
@@ -328,7 +329,7 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 		CValue *item = ((CListValue*) list)->FindValue(_PyUnicode_AsString(pyindex));
 		if (item) {
 			PyObject* pyobj = item->ConvertValueToPython();
-			if(pyobj)
+			if (pyobj)
 				return pyobj;
 			else
 				return item->GetProxy();
@@ -399,7 +400,7 @@ static PyObject *listvalue_buffer_concat(PyObject * self, PyObject * other)
 	// and CListValue concatenated to Python Lists
 	// and CListValue concatenated with another CListValue
 	
-	/* Shallow copy, dont use listval->GetReplica(), it will screw up with KX_GameObjects */
+	/* Shallow copy, don't use listval->GetReplica(), it will screw up with KX_GameObjects */
 	CListValue* listval_new = new CListValue();
 	
 	if (PyList_Check(other))
@@ -427,7 +428,7 @@ static PyObject *listvalue_buffer_concat(PyObject * self, PyObject * other)
 		}
 		
 		if (error) {
-			listval_new->Resize(numitems_orig+i); /* resize so we dont try release NULL pointers */
+			listval_new->Resize(numitems_orig+i); /* resize so we don't try release NULL pointers */
 			listval_new->Release();
 			return NULL; /* ConvertPythonToValue above sets the error */ 
 		}
@@ -436,7 +437,7 @@ static PyObject *listvalue_buffer_concat(PyObject * self, PyObject * other)
 	else if (PyObject_TypeCheck(other, &CListValue::Type)) {
 		// add items from otherlist to this list
 		CListValue* otherval = static_cast<CListValue *>(BGE_PROXY_REF(other));
-		if(otherval==NULL) {
+		if (otherval==NULL) {
 			listval_new->Release();
 			PyErr_SetString(PyExc_SystemError, "CList+other, "BGE_PROXY_ERROR_MSG);
 			return NULL;
@@ -445,7 +446,7 @@ static PyObject *listvalue_buffer_concat(PyObject * self, PyObject * other)
 		numitems = otherval->GetCount();
 		
 		/* copy the first part of the list */
-		listval_new->Resize(numitems_orig + numitems); /* resize so we dont try release NULL pointers */
+		listval_new->Resize(numitems_orig + numitems); /* resize so we don't try release NULL pointers */
 		for (i=0;i<numitems_orig;i++)
 			listval_new->SetValue(i, listval->GetValue(i)->AddRef());
 		

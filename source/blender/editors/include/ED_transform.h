@@ -108,13 +108,6 @@ struct Base;
 struct Scene;
 struct Object;
 
-#if 0 /* UNUSED, deprecate? */
-void BIF_setSingleAxisConstraint(float vec[3], char *text);
-void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
-void BIF_setLocalAxisConstraint(char axis, char *text);
-void BIF_setLocalLockConstraint(char axis, char *text);
-#endif
-
 int BIF_snappingSupported(struct Object *obedit);
 
 struct TransformOrientation;
@@ -125,7 +118,6 @@ void BIF_clearTransformOrientation(struct bContext *C);
 void BIF_removeTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
 void BIF_removeTransformOrientationIndex(struct bContext *C, int index);
 void BIF_createTransformOrientation(struct bContext *C, struct ReportList *reports, char *name, int use, int overwrite);
-int BIF_menuselectTransformOrientation(void);
 void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
 void BIF_selectTransformOrientationValue(struct bContext *C, int orientation);
 
@@ -183,8 +175,8 @@ typedef enum SnapMode
 
 #define SNAP_MIN_DISTANCE 30
 
-int peelObjectsTransForm(struct TransInfo *t, struct ListBase *depth_peels, const float mval[2]);
-int peelObjectsContext(struct bContext *C, struct ListBase *depth_peels, const float mval[2]);
+int peelObjectsTransForm(struct TransInfo *t, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
+int peelObjectsContext(struct bContext *C, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
 int snapObjectsTransform(struct TransInfo *t, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode);
 int snapObjectsContext(struct bContext *C, const float mval[2], int *r_dist, float r_loc[3], float r_no[3], SnapMode mode);
 

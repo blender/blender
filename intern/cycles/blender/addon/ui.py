@@ -67,6 +67,7 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "samples", text="Render")
         sub.prop(cscene, "preview_samples", text="Preview")
         sub.prop(cscene, "seed")
+        sub.prop(cscene, "sample_clamp")
 
         sub = col.column(align=True)
         sub.label("Transparency:")
@@ -177,11 +178,15 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(scene, "layers", text="Scene")
+        col.label(text="Material:")
+        col.prop(rl, "material_override", text="")
+
+        col.prop(rl, "use_sky", "Use Environment")
 
         col = split.column()
         col.prop(rl, "layers", text="Layer")
-
-        layout.separator()
+        col.label(text="Mask Layers:")
+        col.prop(rl, "layers_zmask", text="")
 
         split = layout.split()
 
@@ -194,6 +199,8 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_material_index")
         col.prop(rl, "use_pass_emit")
         col.prop(rl, "use_pass_environment")
+        col.prop(rl, "use_pass_ambient_occlusion")
+        col.prop(rl, "use_pass_shadow")
 
         col = split.column()
         col.label()
@@ -212,11 +219,6 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         row.prop(rl, "use_pass_transmission_direct", text="Direct", toggle=True)
         row.prop(rl, "use_pass_transmission_indirect", text="Indirect", toggle=True)
         row.prop(rl, "use_pass_transmission_color", text="Color", toggle=True)
-
-        layout.separator()
-
-        rl = rd.layers[0]
-        layout.prop(rl, "material_override", text="Material")
 
 
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
@@ -265,7 +267,12 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
         col = split.column()
 
         col.label("Aperture:")
-        col.prop(ccam, "aperture_size", text="Size")
+        sub = col.column(align=True)
+        sub.prop(ccam, "aperture_type", text="")
+        if ccam.aperture_type == 'RADIUS':
+            sub.prop(ccam, "aperture_size", text="Size")
+        elif ccam.aperture_type == 'FSTOP':
+            sub.prop(ccam, "aperture_fstop", text="Number")
 
         sub = col.column(align=True)
         sub.prop(ccam, "aperture_blades", text="Blades")
@@ -398,7 +405,7 @@ def find_node_input(node, name):
 
 
 def panel_node_draw(layout, id_data, output_type, input_name):
-    if not id_data.node_tree:
+    if not id_data.use_nodes:
         layout.prop(id_data, "use_nodes", icon='NODETREE')
         return False
 
@@ -487,6 +494,48 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
             layout.prop(world, "horizon_color", text="Color")
 
 
+class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
+    bl_label = "Volume"
+    bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        # world = context.world
+        # world and world.node_tree and CyclesButtonsPanel.poll(context)
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+        layout.active = False
+
+        world = context.world
+        panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
+
+
+class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
+    bl_label = "Ambient Occlusion"
+    bl_context = "world"
+
+    @classmethod
+    def poll(cls, context):
+        return context.world and CyclesButtonsPanel.poll(context)
+
+    def draw_header(self, context):
+        light = context.world.light_settings
+        self.layout.prop(light, "use_ambient_occlusion", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        light = context.world.light_settings
+
+        layout.active = light.use_ambient_occlusion
+
+        row = layout.row()
+        row.prop(light, "ao_factor", text="Factor")
+        row.prop(light, "distance", text="Distance")
+
+
 class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
     bl_label = "Settings"
     bl_context = "world"
@@ -508,25 +557,6 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         row = col.row()
         row.active = cworld.sample_as_light
         row.prop(cworld, "sample_map_resolution")
-
-
-class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
-    bl_label = "Volume"
-    bl_context = "world"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        # world = context.world
-        # world and world.node_tree and CyclesButtonsPanel.poll(context)
-        return False
-
-    def draw(self, context):
-        layout = self.layout
-        layout.active = False
-
-        world = context.world
-        panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
 
 
 class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
@@ -623,7 +653,6 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
         pin_id = space.pin_id
         use_pin_id = space.use_pin_id
         user = context.texture_user
-        # node = context.texture_node
 
         if not use_pin_id or not isinstance(pin_id, bpy.types.Texture):
             pin_id = None
@@ -701,7 +730,7 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
 
         row = layout.row()
 
-        row.column().prop(mapping, "location")
+        row.column().prop(mapping, "translation")
         row.column().prop(mapping, "rotation")
         row.column().prop(mapping, "scale")
 
@@ -779,7 +808,9 @@ def draw_pause(self, context):
 
         if view.viewport_shade == 'RENDERED':
             cscene = scene.cycles
+            layername = scene.render.layers.active.name
             layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
+            layout.prop(cscene, "preview_active_layer", icon="RENDERLAYERS", text=layername)
 
 
 def get_panels():

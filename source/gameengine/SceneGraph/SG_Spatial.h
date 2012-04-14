@@ -29,8 +29,8 @@
  *  \ingroup bgesg
  */
  
-#ifndef __SG_SPATIAL_H
-#define __SG_SPATIAL_H
+#ifndef __SG_SPATIAL_H__
+#define __SG_SPATIAL_H__
 
 #include <MT_Vector3.h>
 #include <MT_Point3.h>
@@ -83,14 +83,14 @@ public:
 		m_ogldirty = false;
 	}
 	/** 
-	 * Define the realtionship this node has with it's parent
+	 * Define the relationship this node has with it's parent
 	 * node. You should pass an unshared instance of an SG_ParentRelation
 	 * allocated on the heap to this method. Ownership of this
 	 * instance is assumed by this class. 
 	 * You may call this function several times in the lifetime 
 	 * of a node to change the relationship dynamically. 
 	 * You must call this method before the first call to UpdateSpatialData().
-	 * An assertion willl be fired at run-time in debug if this is not 
+	 * An assertion will be fired at run-time in debug if this is not 
 	 * the case.
 	 * The relation is activated only if no controllers of this object
 	 * updated the coordinates of the child.
@@ -293,5 +293,5 @@ public:
 #endif
 };
 
-#endif //__SG_SPATIAL_H
+#endif //__SG_SPATIAL_H__
 

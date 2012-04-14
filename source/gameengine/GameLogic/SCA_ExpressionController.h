@@ -32,8 +32,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_EXPRESSIONCONTROLLER
-#define __KX_EXPRESSIONCONTROLLER
+#ifndef __SCA_EXPRESSIONCONTROLLER_H__
+#define __SCA_EXPRESSIONCONTROLLER_H__
 
 #include "SCA_IController.h"
 
@@ -65,5 +65,5 @@ public:
 #endif
 };
 
-#endif //__KX_EXPRESSIONCONTROLLER
+#endif //__SCA_EXPRESSIONCONTROLLER_H__
 

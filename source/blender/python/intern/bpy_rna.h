@@ -83,14 +83,14 @@ extern PyTypeObject pyrna_func_Type;
 #define BPy_PropertyRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_prop_Type))
 #define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
 
-#define PYRNA_STRUCT_CHECK_OBJ(obj) if(pyrna_struct_validity_check(obj) == -1) { return NULL; }
-#define PYRNA_STRUCT_CHECK_INT(obj) if(pyrna_struct_validity_check(obj) == -1) { return -1; }
+#define PYRNA_STRUCT_CHECK_OBJ(obj) if (UNLIKELY(pyrna_struct_validity_check(obj) == -1)) { return NULL; } (void)0
+#define PYRNA_STRUCT_CHECK_INT(obj) if (UNLIKELY(pyrna_struct_validity_check(obj) == -1)) { return -1;   } (void)0
 
-#define PYRNA_PROP_CHECK_OBJ(obj) if(pyrna_prop_validity_check(obj) == -1) { return NULL; }
-#define PYRNA_PROP_CHECK_INT(obj) if(pyrna_prop_validity_check(obj) == -1) { return -1; }
+#define PYRNA_PROP_CHECK_OBJ(obj) if (UNLIKELY(pyrna_prop_validity_check(obj) == -1)) { return NULL; } (void)0
+#define PYRNA_PROP_CHECK_INT(obj) if (UNLIKELY(pyrna_prop_validity_check(obj) == -1)) { return -1;   } (void)0
 
-#define PYRNA_STRUCT_IS_VALID(pysrna) (((BPy_StructRNA *)(pysrna))->ptr.type != NULL)
-#define PYRNA_PROP_IS_VALID(pysrna) (((BPy_PropertyRNA *)(pysrna))->ptr.type != NULL)
+#define PYRNA_STRUCT_IS_VALID(pysrna) (LIKELY(((BPy_StructRNA *)(pysrna))->ptr.type != NULL))
+#define PYRNA_PROP_IS_VALID(pysrna)   (LIKELY(((BPy_PropertyRNA *)(pysrna))->ptr.type != NULL))
 
 /* 'in_weakreflist' MUST be aligned */
 

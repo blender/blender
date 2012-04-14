@@ -45,7 +45,7 @@ static bNodeSocketTemplate valtorgb_out[]= {
 
 static void valtorgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	if(node->storage) {
+	if (node->storage) {
 		float fac = tex_input_value(in[0], p, thread);
 
 		do_colorband(node->storage, fac, out);

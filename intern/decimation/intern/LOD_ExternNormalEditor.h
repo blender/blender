@@ -122,7 +122,7 @@ private :
 		MT_Vector3 
 	ComputeNormal(
 		const LOD_TriFace &face
-	) const ;
+	) const;
 
 	const 
 		MT_Vector3

@@ -142,7 +142,7 @@ void sk_reverseStroke(SK_Stroke *stk);
 void sk_filterLastContinuousStroke(SK_Stroke *stk);
 void sk_filterStroke(SK_Stroke *stk, int start, int end);
 
-void sk_initPoint(SK_Point *pt, SK_DrawData *dd, float *no);
+void sk_initPoint(SK_Point *pt, SK_DrawData *dd, const float no[3]);
 void sk_copyPoint(SK_Point *dst, SK_Point *src);
 
 int sk_stroke_filtermval(SK_DrawData *dd);

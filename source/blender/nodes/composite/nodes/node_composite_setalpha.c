@@ -49,7 +49,7 @@ static void node_composit_exec_setalpha(void *UNUSED(data), bNode *node, bNodeSt
 	/* stack order in: col, alpha */
 	
 	/* input no image? then only color operation */
-	if(in[0]->data==NULL && in[1]->data==NULL) {
+	if (in[0]->data==NULL && in[1]->data==NULL) {
 		out[0]->vec[0] = in[0]->vec[0];
 		out[0]->vec[1] = in[0]->vec[1];
 		out[0]->vec[2] = in[0]->vec[2];
@@ -60,7 +60,7 @@ static void node_composit_exec_setalpha(void *UNUSED(data), bNode *node, bNodeSt
 		CompBuf *cbuf= in[0]->data?in[0]->data:in[1]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
-		if(in[1]->data==NULL && in[1]->vec[0]==1.0f) {
+		if (in[1]->data==NULL && in[1]->vec[0]==1.0f) {
 			/* pass on image */
 			composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_copy_rgb, CB_RGBA);
 		}

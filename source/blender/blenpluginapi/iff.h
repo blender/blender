@@ -57,9 +57,9 @@ typedef struct ImBuf {
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
 
-	float *rect_float;		/**< floating point Rect equivalent
-								Linear RGB color space - may need gamma correction to 
-								sRGB when generating 8bit representations */
+	float *rect_float;		/** < floating point Rect equivalent
+							 * Linear RGB color space - may need gamma correction to
+							 * sRGB when generating 8bit representations */
 	int channels;			/**< amount of channels in rect_float (0 = 4 channel default) */
 	float dither;			/**< random dither value, for conversion from float -> byte rect */
 	short profile;			/** color space/profile preset that the byte rect buffer represents */

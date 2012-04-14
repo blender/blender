@@ -3,8 +3,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef KX_VEHICLE_WRAPPER
-#define KX_VEHICLE_WRAPPER
+#ifndef __KX_VEHICLEWRAPPER_H__
+#define __KX_VEHICLEWRAPPER_H__
 
 #include "Value.h"
 #include "PHY_DynamicTypes.h"
@@ -59,4 +59,4 @@ private:
 	PHY_IPhysicsEnvironment* m_physenv;
 };
 
-#endif //KX_VEHICLE_WRAPPER
+#endif //__KX_VEHICLEWRAPPER_H__

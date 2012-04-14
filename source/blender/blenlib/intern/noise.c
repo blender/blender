@@ -332,7 +332,7 @@ static float orgBlenderNoise(float x, float y, float z)
 		h=hashvectf+ 3*hash[b21+b11];
 		n+= i*(h[0]*jx+h[1]*jy+h[2]*jz);
 
-	if(n<0.0f) n=0.0f; else if(n>1.0f) n=1.0f;
+	if (n<0.0f) n=0.0f; else if (n>1.0f) n=1.0f;
 	return n;
 }
 
@@ -345,7 +345,7 @@ static float orgBlenderNoiseS(float x, float y, float z)
 /* separated from orgBlenderNoise above, with scaling */
 float BLI_hnoise(float noisesize, float x, float y, float z)
 {
-	if(noisesize==0.0f) return 0.0f;
+	if (noisesize==0.0f) return 0.0f;
 	x= (1.0f+x)/noisesize;
 	y= (1.0f+y)/noisesize;
 	z= (1.0f+z)/noisesize;
@@ -360,7 +360,7 @@ float BLI_turbulence(float noisesize, float x, float y, float z, int nr)
 
 	s= BLI_hnoise(noisesize, x, y, z);
 	
-	while(nr>0) {
+	while (nr>0) {
 	
 		s+= d*BLI_hnoise(noisesize*d, x, y, z);
 		div+= d;
@@ -377,7 +377,7 @@ float BLI_turbulence1(float noisesize, float x, float y, float z, int nr)
 
 	s= fabsf( (-1.0f+2.0f*BLI_hnoise(noisesize, x, y, z)));
 	
-	while(nr>0) {
+	while (nr>0) {
 	
 		s+= fabsf(d* (-1.0f+2.0f*BLI_hnoise(noisesize*d, x, y, z)));
 		div+= d;
@@ -919,12 +919,14 @@ static float g[512+2][3]= {
 	{-0.944031, -0.326599, -0.045624},
 };
 
-#define setup(i,b0,b1,r0,r1) \
-		t = vec[i] + 10000.0f; \
-		b0 = ((int)t) & 255; \
-		b1 = (b0+1) & 255; \
-		r0 = t - floorf(t); \
-		r1 = r0 - 1.0f;
+#define SETUP(val, b0, b1, r0, r1)                                            \
+	{                                                                         \
+		t = val + 10000.0f;                                                   \
+		b0 = ((int)t) & 255;                                                  \
+		b1 = (b0 + 1) & 255;                                                  \
+		r0 = t - floorf(t);                                                   \
+		r1 = r0 - 1.0f;                                                       \
+	}
 
 
 static float noise3_perlin(float vec[3])
@@ -934,9 +936,9 @@ static float noise3_perlin(float vec[3])
 	register int i, j;
 
 
-	setup(0, bx0,bx1, rx0,rx1);
-	setup(1, by0,by1, ry0,ry1);
-	setup(2, bz0,bz1, rz0,rz1);
+	SETUP(vec[0],  bx0, bx1,  rx0, rx1);
+	SETUP(vec[1],  by0, by1,  ry0, ry1);
+	SETUP(vec[2],  bz0, bz1,  rz0, rz1);
 
 	i = p[ bx0 ];
 	j = p[ bx1 ];
@@ -946,46 +948,48 @@ static float noise3_perlin(float vec[3])
 	b01 = p[ i + by1 ];
 	b11 = p[ j + by1 ];
 
-#define at(rx,ry,rz) ( rx * q[0] + ry * q[1] + rz * q[2] )
-
-#define surve(t) ( t * t * (3.0f - 2.0f * t) )
+#define VALUE_AT(rx,ry,rz) (rx * q[0] + ry * q[1] + rz * q[2])
+#define SURVE(t) (t * t * (3.0f - 2.0f * t))
 
 /* lerp moved to improved perlin above */
 
-	sx = surve(rx0);
-	sy = surve(ry0);
-	sz = surve(rz0);
+	sx = SURVE(rx0);
+	sy = SURVE(ry0);
+	sz = SURVE(rz0);
 
 
-	q = g[ b00 + bz0 ] ;
-	u = at(rx0,ry0,rz0);
-	q = g[ b10 + bz0 ] ;
-	v = at(rx1,ry0,rz0);
+	q = g[ b00 + bz0 ];
+	u = VALUE_AT(rx0,ry0,rz0);
+	q = g[ b10 + bz0 ];
+	v = VALUE_AT(rx1,ry0,rz0);
 	a = lerp(sx, u, v);
 
-	q = g[ b01 + bz0 ] ;
-	u = at(rx0,ry1,rz0);
-	q = g[ b11 + bz0 ] ;
-	v = at(rx1,ry1,rz0);
+	q = g[ b01 + bz0 ];
+	u = VALUE_AT(rx0,ry1,rz0);
+	q = g[ b11 + bz0 ];
+	v = VALUE_AT(rx1,ry1,rz0);
 	b = lerp(sx, u, v);
 
 	c = lerp(sy, a, b);          /* interpolate in y at lo x */
 
-	q = g[ b00 + bz1 ] ;
-	u = at(rx0,ry0,rz1);
-	q = g[ b10 + bz1 ] ;
-	v = at(rx1,ry0,rz1);
+	q = g[ b00 + bz1 ];
+	u = VALUE_AT(rx0,ry0,rz1);
+	q = g[ b10 + bz1 ];
+	v = VALUE_AT(rx1,ry0,rz1);
 	a = lerp(sx, u, v);
 
-	q = g[ b01 + bz1 ] ;
-	u = at(rx0,ry1,rz1);
-	q = g[ b11 + bz1 ] ;
-	v = at(rx1,ry1,rz1);
+	q = g[ b01 + bz1 ];
+	u = VALUE_AT(rx0,ry1,rz1);
+	q = g[ b11 + bz1 ];
+	v = VALUE_AT(rx1,ry1,rz1);
 	b = lerp(sx, u, v);
 
 	d = lerp(sy, a, b);          /* interpolate in y at hi x */
 
 	return 1.5f * lerp(sz, c, d); /* interpolate in z */
+
+#undef VALUE_AT
+#undef SURVE
 }
 
 #if 0
@@ -998,11 +1002,11 @@ static float turbulence_perlin(float *point, float lofreq, float hifreq)
 	p[2] = point[2];
 
 	t = 0;
-	for (freq = lofreq ; freq < hifreq ; freq *= 2.) {
+	for (freq = lofreq ; freq < hifreq ; freq *= 2.0) {
 		t += fabsf(noise3_perlin(p)) / freq;
-		p[0] *= 2.;
-		p[1] *= 2.;
-		p[2] *= 2.;
+		p[0] *= 2.0f;
+		p[1] *= 2.0f;
+		p[2] *= 2.0f;
 	}
 	return t - 0.3; /* readjust to make mean value = 0.0 */
 }
@@ -1043,7 +1047,8 @@ float BLI_hnoisep(float noisesize, float x, float y, float z)
 	return noise3_perlin(vec);
 }
 
-/*static float turbulencep(float noisesize, float x, float y, float z, int nr)
+#if 0
+static float turbulencep(float noisesize, float x, float y, float z, int nr)
 {
 	float vec[3];
 
@@ -1052,7 +1057,8 @@ float BLI_hnoisep(float noisesize, float x, float y, float z)
 	vec[2]= z/noisesize;
 	nr++;
 	return turbulence_perlin(vec, 1.0, (float)(1<<nr));
-}*/
+}
+#endif
 
 /******************/
 /* VORONOI/WORLEY */
@@ -1106,7 +1112,7 @@ static float dist_Minkovsky(float x, float y, float z, float e)
 
 
 /* Not 'pure' Worley, but the results are virtually the same.
-	 Returns distances in da and point coords in pa */
+ * Returns distances in da and point coords in pa */
 void voronoi(float x, float y, float z, float* da, float* pa, float me, int dtype)
 {
 	int xx, yy, zz, xi, yi, zi;
@@ -1222,7 +1228,7 @@ static float voronoi_Cr(float x, float y, float z)
 
 
 /* Signed version of all 6 of the above, just 2x-1, not really correct though (range is potentially (0, sqrt(6)).
-   Used in the musgrave functions */
+ * Used in the musgrave functions */
 static float voronoi_F1S(float x, float y, float z)
 {
 	float da[4], pa[12];
@@ -1506,9 +1512,10 @@ float mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves
  *    ``octaves''  is the number of frequencies in the fBm
  *    ``offset''  is the zero offset, which determines multifractality (NOT USED??)
  */
- /* this one is in fact rather confusing,
-	 * there seem to be errors in the original source code (in all three versions of proc.text&mod),
-	* I modified it to something that made sense to me, so it might be wrong... */
+
+/* this one is in fact rather confusing,
+ * there seem to be errors in the original source code (in all three versions of proc.text&mod),
+ * I modified it to something that made sense to me, so it might be wrong... */
 float mg_MultiFractal(float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
 	float	rmd, value=1.0, pwr=1.0, pwHL=powf(lacunarity, -H);
@@ -1768,7 +1775,7 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 	result = signal;
 
 
-	for( i=1; i<(int)octaves; i++ ) {
+	for ( i=1; i<(int)octaves; i++ ) {
 		x *= lacunarity;
 		y *= lacunarity;
 		z *= lacunarity;

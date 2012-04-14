@@ -30,8 +30,8 @@
  *  \brief Actuator to toggle visibility/invisibility of objects
  */
 
-#ifndef __KX_STATEACTUATOR
-#define __KX_STATEACTUATOR
+#ifndef __KX_STATEACTUATOR_H__
+#define __KX_STATEACTUATOR_H__
 
 #include "SCA_IActuator.h"
 

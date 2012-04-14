@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef KX_IINTERPOLATOR_H
-#define KX_IINTERPOLATOR_H
+#ifndef __KX_IINTERPOLATOR_H__
+#define __KX_IINTERPOLATOR_H__
 
 #include <vector>
 

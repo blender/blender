@@ -232,7 +232,7 @@ void usage(const char* program, bool isBlenderPlayer)
 	printf("             sphericalpanoramic     (Spherical Panoramic)\n");
 	printf("                             depending on the type of dome you are using\n\n");
 	printf("  -m: maximum anti-aliasing (eg. 2,4,8,16)\n\n");
-	printf("  -i: parent windows ID \n\n");
+	printf("  -i: parent windows ID\n\n");
 #ifdef _WIN32
 	printf("  -c: keep console window open\n\n");
 #endif
@@ -297,7 +297,7 @@ static void get_filename(int argc, char **argv, char *filename)
 #else
 	filename[0] = '\0';
 
-	if(argc > 1)
+	if (argc > 1)
 		BLI_strncpy(filename, argv[argc-1], FILE_MAX);
 #endif // !_APPLE
 }
@@ -437,7 +437,7 @@ int main(int argc, char** argv)
 			break;
 		case SCREEN_SAVER_MODE_PASSWORD:
 			/* This is W95 only, which we currently do not support.
-			   Fall-back to normal screen saver behaviour in that case... */
+			   Fall-back to normal screen saver behavior in that case... */
 		case SCREEN_SAVER_MODE_SAVER:
 			fullScreen = true;
 			fullScreenParFound = true;
@@ -527,7 +527,7 @@ int main(int argc, char** argv)
 
 			case 'd':
 				i++;
-				G.f |= G_DEBUG;     /* std output printf's */
+				G.debug |= G_DEBUG;     /* std output printf's */
 				MEM_set_memory_debug();
 				break;
 
@@ -606,29 +606,29 @@ int main(int argc, char** argv)
 					if (stereomode < RAS_IRasterizer::RAS_STEREO_NOSTEREO || stereomode >= RAS_IRasterizer::RAS_STEREO_MAXSTEREO)
 						stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
 					
-					if(!strcmp(argv[i], "nostereo"))  // ok, redundant but clear
+					if (!strcmp(argv[i], "nostereo"))  // ok, redundant but clear
 						stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
 					
 					// only the hardware pageflip method needs a stereo window
-					else if(!strcmp(argv[i], "hwpageflip")) {
+					else if (!strcmp(argv[i], "hwpageflip")) {
 						stereomode = RAS_IRasterizer::RAS_STEREO_QUADBUFFERED;
 						stereoWindow = true;
 					}
-					else if(!strcmp(argv[i], "syncdoubling"))
+					else if (!strcmp(argv[i], "syncdoubling"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_ABOVEBELOW;
 					
-					else if(!strcmp(argv[i], "anaglyph"))
+					else if (!strcmp(argv[i], "anaglyph"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_ANAGLYPH;
 					
-					else if(!strcmp(argv[i], "sidebyside"))
+					else if (!strcmp(argv[i], "sidebyside"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_SIDEBYSIDE;
 					
-					else if(!strcmp(argv[i], "vinterlace"))
+					else if (!strcmp(argv[i], "vinterlace"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_VINTERLACE;
 					
 #if 0
 					// future stuff
-					else if(!strcmp(argv[i], "stencil")
+					else if (!strcmp(argv[i], "stencil")
 						stereomode = RAS_STEREO_STENCIL;
 #endif
 					
@@ -648,33 +648,33 @@ int main(int argc, char** argv)
 				i++;
 				if ((i + 1) <= validArguments)
 				{
-					if(!strcmp(argv[i], "angle")){
+					if (!strcmp(argv[i], "angle")) {
 						i++;
 						domeFov = atoi(argv[i++]);
 					}
-					if(!strcmp(argv[i], "tilt")){
+					if (!strcmp(argv[i], "tilt")) {
 						i++;
 						domeTilt = atoi(argv[i++]);
 					}
-					if(!strcmp(argv[i], "warpdata")){
+					if (!strcmp(argv[i], "warpdata")) {
 						i++;
 						domeWarp = argv[i++];
 					}
-					if(!strcmp(argv[i], "mode")){
+					if (!strcmp(argv[i], "mode")) {
 						i++;
-						if(!strcmp(argv[i], "fisheye"))
+						if (!strcmp(argv[i], "fisheye"))
 							domeMode = DOME_FISHEYE;
 							
-						else if(!strcmp(argv[i], "truncatedfront"))
+						else if (!strcmp(argv[i], "truncatedfront"))
 							domeMode = DOME_TRUNCATED_FRONT;
 							
-						else if(!strcmp(argv[i], "truncatedrear"))
+						else if (!strcmp(argv[i], "truncatedrear"))
 							domeMode = DOME_TRUNCATED_REAR;
 							
-						else if(!strcmp(argv[i], "cubemap"))
+						else if (!strcmp(argv[i], "cubemap"))
 							domeMode = DOME_ENVMAP;
 							
-						else if(!strcmp(argv[i], "sphericalpanoramic"))
+						else if (!strcmp(argv[i], "sphericalpanoramic"))
 							domeMode = DOME_PANORAM_SPH;
 
 						else
@@ -749,7 +749,7 @@ int main(int argc, char** argv)
 				char *titlename;
 
 				get_filename(argc_py_clamped, argv, filename);
-				if(filename[0])
+				if (filename[0])
 					BLI_path_cwd(filename);
 				
 
@@ -802,7 +802,7 @@ int main(int argc, char** argv)
 #if !defined(DEBUG)
 						if (closeConsole)
 						{
-							//::FreeConsole();    // Close a console window
+							system->toggleConsole(0); // Close a console window
 						}
 #endif // !defined(DEBUG)
 #endif // WIN32
@@ -846,7 +846,7 @@ int main(int argc, char** argv)
 						// Check whether the game should be displayed in stereo
 						if (!stereoParFound)
 						{
-							if(scene->gm.stereoflag == STEREO_ENABLED){
+							if (scene->gm.stereoflag == STEREO_ENABLED) {
 								stereomode = (RAS_IRasterizer::StereoMode) scene->gm.stereomode;
 								if (stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 									stereoWindow = true;
@@ -858,7 +858,7 @@ int main(int argc, char** argv)
 						if (!samplesParFound)
 							aasamples = scene->gm.aasamples;
 
-						if (stereoFlag == STEREO_DOME){
+						if (stereoFlag == STEREO_DOME) {
 							stereomode = RAS_IRasterizer::RAS_STEREO_DOME;
 							scene->gm.stereoflag = STEREO_DOME;
 							if (domeFov > 89)
@@ -871,7 +871,7 @@ int main(int argc, char** argv)
 							{
 								//XXX to do: convert relative to absolute path
 								domeText= add_text(domeWarp, "");
-								if(!domeText)
+								if (!domeText)
 									printf("error: invalid warpdata text file - %s\n", domeWarp);
 								else
 									scene->gm.dome.warptext = domeText;
@@ -881,7 +881,7 @@ int main(int argc, char** argv)
 						//					GPG_Application app (system, maggie, startscenename);
 						app.SetGameEngineData(maggie, scene, &gs, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
-						if(G.main != maggie) {
+						if (G.main != maggie) {
 							BLI_strncpy(G.main->name, maggie->name, sizeof(G.main->name));
 						}
 #ifdef WITH_PYTHON
@@ -1014,7 +1014,7 @@ int main(int argc, char** argv)
 	SYS_DeleteSystem(syshandle);
 
 	int totblock= MEM_get_memory_blocks_in_use();
-	if(totblock!=0) {
+	if (totblock!=0) {
 		printf("Error Totblock: %d\n",totblock);
 		MEM_set_error_callback(mem_error_cb);
 		MEM_printmemlist();

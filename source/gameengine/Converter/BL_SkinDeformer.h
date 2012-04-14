@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef BL_SKINDEFORMER
-#define BL_SKINDEFORMER
+#ifndef __BL_SKINDEFORMER_H__
+#define __BL_SKINDEFORMER_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning

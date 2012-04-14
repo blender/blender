@@ -56,26 +56,28 @@
 
 #include "bpy_rna.h"
 
+#include "../generic/py_capi_utils.h"
+
 #include "gpu.h"
 
-#define PY_MODULE_ADD_CONSTANT(module, name) PyModule_AddIntConstant(module, #name, name)
+#define PY_MODULE_ADD_CONSTANT(module, name) PyModule_AddIntConstant(module, # name, name)
 
 PyDoc_STRVAR(M_gpu_doc,
-			 "This module provides access to the GLSL shader.");
-
+"This module provides access to the GLSL shader."
+);
 static struct PyModuleDef gpumodule = {
 	PyModuleDef_HEAD_INIT,
 	"gpu",     /* name of module */
 	M_gpu_doc, /* module documentation */
 	-1,        /* size of per-interpreter state of the module,
-				  or -1 if the module keeps state in global variables. */
-   NULL, NULL, NULL, NULL, NULL
+	            *  or -1 if the module keeps state in global variables. */
+	NULL, NULL, NULL, NULL, NULL
 };
 
 PyMODINIT_FUNC
 PyInit_gpu(void)
 {
-	PyObject* m;
+	PyObject *m;
 
 	m = PyModule_Create(&gpumodule);
 	if (m == NULL)
@@ -114,35 +116,35 @@ PyInit_gpu(void)
 	return m;
 }
 
-#define PY_DICT_ADD_STRING(d,s,f) \
-	val = PyUnicode_FromString(s->f);	\
-	PyDict_SetItemString(d, #f, val);	\
+#define PY_DICT_ADD_STRING(d, s, f)      \
+	val = PyUnicode_FromString(s->f);    \
+	PyDict_SetItemString(d, # f, val);   \
 	Py_DECREF(val)
 
-#define PY_DICT_ADD_LONG(d,s,f) \
-	val = PyLong_FromLong(s->f);	\
-	PyDict_SetItemString(d, #f, val);	\
+#define PY_DICT_ADD_LONG(d, s, f)        \
+	val = PyLong_FromLong(s->f);         \
+	PyDict_SetItemString(d, # f, val);   \
 	Py_DECREF(val)
 
-#define PY_DICT_ADD_ID(d,s,f) \
-	RNA_id_pointer_create((struct ID*)s->f, &tptr);	\
-	val = pyrna_struct_CreatePyObject(&tptr);	\
-	PyDict_SetItemString(d, #f, val);	\
+#define PY_DICT_ADD_ID(d, s, f)                      \
+	RNA_id_pointer_create((struct ID *)s->f, &tptr); \
+	val = pyrna_struct_CreatePyObject(&tptr);        \
+	PyDict_SetItemString(d, # f, val);               \
 	Py_DECREF(val)
 
-#define PY_OBJ_ADD_ID(d,s,f) \
-	val = PyUnicode_FromString(&s->f->id.name[2]);	\
-	PyObject_SetAttrString(d, #f, val);	\
+#define PY_OBJ_ADD_ID(d, s, f)                      \
+	val = PyUnicode_FromString(&s->f->id.name[2]);  \
+	PyObject_SetAttrString(d, # f, val);            \
 	Py_DECREF(val)
 
-#define PY_OBJ_ADD_LONG(d,s,f) \
-	val = PyLong_FromLong(s->f);	\
-	PyObject_SetAttrString(d, #f, val);	\
+#define PY_OBJ_ADD_LONG(d, s, f)         \
+	val = PyLong_FromLong(s->f);         \
+	PyObject_SetAttrString(d, # f, val); \
 	Py_DECREF(val)
 
-#define PY_OBJ_ADD_STRING(d,s,f) \
-	val = PyUnicode_FromString(s->f);	\
-	PyObject_SetAttrString(d, #f, val);	\
+#define PY_OBJ_ADD_STRING(d, s, f)       \
+	val = PyUnicode_FromString(s->f);    \
+	PyObject_SetAttrString(d, # f, val); \
 	Py_DECREF(val)
 
 PyDoc_STRVAR(GPU_export_shader_doc,
@@ -153,16 +155,14 @@ PyDoc_STRVAR(GPU_export_shader_doc,
 "   :return: Dictionary defining the shader, uniforms and attributes.\n"
 "   :rtype: Dict"
 );
-static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObject *kwds)
+static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-	PyObject* pyscene;
-	PyObject* pymat;
-	PyObject* as_pointer;
-	PyObject* pointer;
-	PyObject* result;
-	PyObject* dict;
-	PyObject* val;
-	PyObject* seq;
+	PyObject *pyscene;
+	PyObject *pymat;
+	PyObject *result;
+	PyObject *dict;
+	PyObject *val;
+	PyObject *seq;
 
 	int i;
 	Scene *scene;
@@ -174,50 +174,19 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 
 	static const char *kwlist[] = {"scene", "material", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:export_shader", (char**)(kwlist), &pyscene, &pymat))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:export_shader", (char **)(kwlist), &pyscene, &pymat))
 		return NULL;
 
-	if (!strcmp(Py_TYPE(pyscene)->tp_name, "Scene") && 
-		(as_pointer = PyObject_GetAttrString(pyscene, "as_pointer")) != NULL &&
-		PyCallable_Check(as_pointer)) {
-		// must be a scene object
-		pointer = PyObject_CallObject(as_pointer, NULL);
-		if (!pointer) {
-			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
-			return NULL;
-		}
-		scene = (Scene*)PyLong_AsVoidPtr(pointer);
-		Py_DECREF(pointer);
-		if (!scene) {
-			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
-			return NULL;
-		}
-	}
-	else {
-		PyErr_SetString(PyExc_TypeError, "gpu.export_shader() first argument should be of Scene type");
+	scene = (Scene *)PyC_RNA_AsPointer(pyscene, "Scene");
+	if (scene == NULL) {
 		return NULL;
 	}
 
-	if (!strcmp(Py_TYPE(pymat)->tp_name, "Material") && 
-		(as_pointer = PyObject_GetAttrString(pymat, "as_pointer")) != NULL &&
-		PyCallable_Check(as_pointer)) {
-		// must be a material object
-		pointer = PyObject_CallObject(as_pointer, NULL);
-		if (!pointer) {
-			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
-			return NULL;
-		}
-		material = (Material*)PyLong_AsVoidPtr(pointer);
-		Py_DECREF(pointer);
-		if (!material) {
-			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
-			return NULL;
-		}
-	}
-	else {
-		PyErr_SetString(PyExc_TypeError, "gpu.export_shader() second argument should be of Material type");
+	material = (Material *)PyC_RNA_AsPointer(pymat, "Material");
+	if (material == NULL) {
 		return NULL;
 	}
+
 	// we can call our internal function at last:
 	shader = GPU_shader_export(scene, material);
 	if (!shader) {
@@ -227,33 +196,34 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 	// build a dictionary
 	result = PyDict_New();
 	if (shader->fragment) {
-		PY_DICT_ADD_STRING(result,shader,fragment);
+		PY_DICT_ADD_STRING(result, shader, fragment);
 	}
 	if (shader->vertex) {
-		PY_DICT_ADD_STRING(result,shader,vertex);
+		PY_DICT_ADD_STRING(result, shader, vertex);
 	}
 	seq = PyList_New(BLI_countlist(&shader->uniforms));
-	for (i=0, uniform=shader->uniforms.first; uniform; uniform=uniform->next, i++) {
+	for (i = 0, uniform = shader->uniforms.first; uniform; uniform = uniform->next, i++) {
 		dict = PyDict_New();
-		PY_DICT_ADD_STRING(dict,uniform,varname);
-		PY_DICT_ADD_LONG(dict,uniform,datatype);
-		PY_DICT_ADD_LONG(dict,uniform,type);
+		PY_DICT_ADD_STRING(dict, uniform, varname);
+		PY_DICT_ADD_LONG(dict, uniform, datatype);
+		PY_DICT_ADD_LONG(dict, uniform, type);
 		if (uniform->lamp) {
-			PY_DICT_ADD_ID(dict,uniform,lamp);
+			PY_DICT_ADD_ID(dict, uniform, lamp);
 		}
 		if (uniform->image) {
-			PY_DICT_ADD_ID(dict,uniform,image);
+			PY_DICT_ADD_ID(dict, uniform, image);
 		}
 		if (uniform->type == GPU_DYNAMIC_SAMPLER_2DBUFFER ||
-			uniform->type == GPU_DYNAMIC_SAMPLER_2DIMAGE ||
-			uniform->type == GPU_DYNAMIC_SAMPLER_2DSHADOW) {
-			PY_DICT_ADD_LONG(dict,uniform,texnumber);
+		    uniform->type == GPU_DYNAMIC_SAMPLER_2DIMAGE ||
+		    uniform->type == GPU_DYNAMIC_SAMPLER_2DSHADOW)
+		{
+			PY_DICT_ADD_LONG(dict, uniform, texnumber);
 		}
 		if (uniform->texpixels) {
 			val = PyByteArray_FromStringAndSize((const char *)uniform->texpixels, uniform->texsize * 4);
 			PyDict_SetItemString(dict, "texpixels", val);
 			Py_DECREF(val);
-			PY_DICT_ADD_LONG(dict,uniform,texsize);
+			PY_DICT_ADD_LONG(dict, uniform, texsize);
 		}
 		PyList_SET_ITEM(seq, i, dict);
 	}
@@ -261,15 +231,15 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 	Py_DECREF(seq);
 
 	seq = PyList_New(BLI_countlist(&shader->attributes));
-	for (i=0, attribute=shader->attributes.first; attribute; attribute=attribute->next, i++) {
+	for (i = 0, attribute = shader->attributes.first; attribute; attribute = attribute->next, i++) {
 		dict = PyDict_New();
-		PY_DICT_ADD_STRING(dict,attribute,varname);
-		PY_DICT_ADD_LONG(dict,attribute,datatype);
-		PY_DICT_ADD_LONG(dict,attribute,type);
-		PY_DICT_ADD_LONG(dict,attribute,number);
+		PY_DICT_ADD_STRING(dict, attribute, varname);
+		PY_DICT_ADD_LONG(dict, attribute, datatype);
+		PY_DICT_ADD_LONG(dict, attribute, type);
+		PY_DICT_ADD_LONG(dict, attribute, number);
 		if (attribute->name) {
 			if (attribute->name[0] != 0) {
-				PY_DICT_ADD_STRING(dict,attribute,name);
+				PY_DICT_ADD_STRING(dict, attribute, name);
 			}
 			else {
 				val = PyLong_FromLong(0);
@@ -291,9 +261,9 @@ static PyMethodDef meth_export_shader[] = {
 	{"export_shader", (PyCFunction)GPU_export_shader, METH_VARARGS | METH_KEYWORDS, GPU_export_shader_doc}
 };
 
-PyObject* GPU_initPython(void)
+PyObject *GPU_initPython(void)
 {
-	PyObject* module = PyInit_gpu();
+	PyObject *module = PyInit_gpu();
 	PyModule_AddObject(module, "export_shader", (PyObject *)PyCFunction_New(meth_export_shader, NULL));
 	PyDict_SetItemString(PyImport_GetModuleDict(), "gpu", module);
 

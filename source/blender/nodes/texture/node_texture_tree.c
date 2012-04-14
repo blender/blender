@@ -57,8 +57,8 @@
 static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 {
 	Tex *tx;
-	for(tx= main->tex.first; tx; tx= tx->id.next) {
-		if(tx->nodetree) {
+	for (tx= main->tex.first; tx; tx= tx->id.next) {
+		if (tx->nodetree) {
 			func(calldata, &tx->id, tx->nodetree);
 		}
 	}
@@ -77,17 +77,32 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
 	func(calldata, NODE_CLASS_LAYOUT, IFACE_("Layout"));
 }
 
+static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
+{
+	bNode *node, *node_next;
+	
+	/* replace muted nodes by internal links */
+	for (node= localtree->nodes.first; node; node= node_next) {
+		node_next = node->next;
+		
+		if (node->flag & NODE_MUTED) {
+			nodeInternalRelink(localtree, node);
+			nodeFreeNode(localtree, node);
+		}
+	}
+}
+
 static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 {
 	bNode *lnode;
 	
 	/* copy over contents of previews */
-	for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
-		if(ntreeNodeExists(ntree, lnode->new_node)) {
+	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+		if (ntreeNodeExists(ntree, lnode->new_node)) {
 			bNode *node= lnode->new_node;
 			
-			if(node->preview && node->preview->rect) {
-				if(lnode->preview && lnode->preview->rect) {
+			if (node->preview && node->preview->rect) {
+				if (lnode->preview && lnode->preview->rect) {
 					int xsize= node->preview->xsize;
 					int ysize= node->preview->ysize;
 					memcpy(node->preview->rect, lnode->preview->rect, 4*xsize + xsize*ysize*sizeof(char)*4);
@@ -107,30 +122,28 @@ bNodeTreeType ntreeType_Texture = {
 	/* free_node_cache */		NULL,
 	/* foreach_nodetree */	foreach_nodetree,
 	/* foreach_nodeclass */	foreach_nodeclass,
-	/* localize */			NULL,
+	/* localize */			localize,
 	/* local_sync */		local_sync,
 	/* local_merge */		NULL,
 	/* update */			NULL,
 	/* update_node */		NULL,
 	/* validate_link */		NULL,
-	/* mute node */			node_tex_pass_on,
-	/* mute links node */	node_mute_get_links,
-	/* gpu mute node */		NULL
+	/* internal_connect */	node_internal_connect_default
 };
 
 int ntreeTexTagAnimated(bNodeTree *ntree)
 {
 	bNode *node;
 	
-	if(ntree==NULL) return 0;
+	if (ntree==NULL) return 0;
 	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type==TEX_NODE_CURVE_TIME) {
+	for (node= ntree->nodes.first; node; node= node->next) {
+		if (node->type==TEX_NODE_CURVE_TIME) {
 			nodeUpdate(ntree, node);
 			return 1;
 		}
-		else if(node->type==NODE_GROUP) {
-			if( ntreeTexTagAnimated((bNodeTree *)node->id) ) {
+		else if (node->type==NODE_GROUP) {
+			if ( ntreeTexTagAnimated((bNodeTree *)node->id) ) {
 				return 1;
 			}
 		}
@@ -161,7 +174,7 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree, int use_tree_data)
 	/* allocate the thread stack listbase array */
 	exec->threadstack= MEM_callocN(BLENDER_MAX_THREADS*sizeof(ListBase), "thread stack array");
 	
-	for(node= exec->nodetree->nodes.first; node; node= node->next)
+	for (node= exec->nodetree->nodes.first; node; node= node->next)
 		node->need_exec= 1;
 	
 	if (use_tree_data) {
@@ -181,10 +194,10 @@ static void tex_free_delegates(bNodeTreeExec *exec)
 	bNodeStack *ns;
 	int th, a;
 	
-	for(th=0; th<BLENDER_MAX_THREADS; th++)
-		for(nts=exec->threadstack[th].first; nts; nts=nts->next)
-			for(ns= nts->stack, a=0; a<exec->stacksize; a++, ns++)
-				if(ns->data && !ns->is_copy)
+	for (th=0; th<BLENDER_MAX_THREADS; th++)
+		for (nts=exec->threadstack[th].first; nts; nts=nts->next)
+			for (ns= nts->stack, a=0; a<exec->stacksize; a++, ns++)
+				if (ns->data && !ns->is_copy)
 					MEM_freeN(ns->data);
 }
 
@@ -193,16 +206,16 @@ static void tex_free_delegates(bNodeTreeExec *exec)
  */
 void ntreeTexEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 {
-	if(exec) {
+	if (exec) {
 		bNodeTree *ntree= exec->nodetree;
 		bNodeThreadStack *nts;
 		int a;
 		
-		if(exec->threadstack) {
+		if (exec->threadstack) {
 			tex_free_delegates(exec);
 			
-			for(a=0; a<BLENDER_MAX_THREADS; a++) {
-				for(nts=exec->threadstack[a].first; nts; nts=nts->next)
+			for (a=0; a<BLENDER_MAX_THREADS; a++) {
+				for (nts=exec->threadstack[a].first; nts; nts=nts->next)
 					if (nts->stack) MEM_freeN(nts->stack);
 				BLI_freelistN(&exec->threadstack[a]);
 			}
@@ -233,7 +246,7 @@ int ntreeTexExecTree(
 	int preview,
 	ShadeInput *shi,
 	MTex *mtex
-){
+) {
 	TexCallData data;
 	float *nor= texres->nor;
 	int retval = TEX_INT;
@@ -255,7 +268,7 @@ int ntreeTexExecTree(
 	/* ensure execdata is only initialized once */
 	if (!exec) {
 		BLI_lock_thread(LOCK_NODES);
-		if(!nodes->execdata)
+		if (!nodes->execdata)
 			ntreeTexBeginExecTree(nodes, 1);
 		BLI_unlock_thread(LOCK_NODES);
 
@@ -266,7 +279,7 @@ int ntreeTexExecTree(
 	ntreeExecThreadNodes(exec, nts, &data, thread);
 	ntreeReleaseThreadStack(nts);
 
-	if(texres->nor) retval |= TEX_NOR;
+	if (texres->nor) retval |= TEX_NOR;
 	retval |= TEX_RGB;
 	/* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was set
 	   however, the texture code checks this for other reasons (namely, a normal is required for material) */

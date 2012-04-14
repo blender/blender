@@ -88,7 +88,7 @@ static void do_sepycca_jfif(bNode *UNUSED(node), float *out, float *in)
 static void node_composit_exec_sepycca(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
+	if (in[0]->data==NULL) {
 		float y, cb, cr;
 	
 		switch(node->custom1)
@@ -132,17 +132,17 @@ static void node_composit_exec_sepycca(void *UNUSED(data), bNode *node, bNodeSta
 		}
 	
 		/* separate each of those channels */
-		if(out[0]->hasoutput)
+		if (out[0]->hasoutput)
 			out[0]->data= valbuf_from_rgbabuf(cbuf2, CHAN_R);
-		if(out[1]->hasoutput)
+		if (out[1]->hasoutput)
 			out[1]->data= valbuf_from_rgbabuf(cbuf2, CHAN_G);
-		if(out[2]->hasoutput)
+		if (out[2]->hasoutput)
 			out[2]->data= valbuf_from_rgbabuf(cbuf2, CHAN_B);
-		if(out[3]->hasoutput)
+		if (out[3]->hasoutput)
 			out[3]->data= valbuf_from_rgbabuf(cbuf2, CHAN_A);
 
 		/*not used anymore */
-		if(cbuf2!=cbuf)
+		if (cbuf2!=cbuf)
 			free_compbuf(cbuf2);
 		free_compbuf(cbuf);
 	}
@@ -235,7 +235,7 @@ static void node_composit_exec_combycca(void *UNUSED(data), bNode *node, bNodeSt
 	/* stack order in: 4 value channels */
 	
 	/* input no image? then only color operation */
-	if((in[0]->data==NULL) && (in[1]->data==NULL) && (in[2]->data==NULL) && (in[3]->data==NULL)) {
+	if ((in[0]->data==NULL) && (in[1]->data==NULL) && (in[2]->data==NULL) && (in[3]->data==NULL)) {
 		float y = in[0]->vec[0] * 255;
 		float cb = in[1]->vec[0] * 255;
 		float cr = in[2]->vec[0] * 255;

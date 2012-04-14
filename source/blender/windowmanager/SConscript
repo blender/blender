@@ -10,7 +10,7 @@ sources = env.Glob('intern/*.c')
 incs = '. ../editors/include ../python ../makesdna ../blenlib ../blenkernel'
 incs += ' ../nodes ../imbuf ../blenloader ../render/extern/include'
 incs += ' ../radiosity/extern/include'
-incs += ' ../makesrna ../gpu ../blenfont'
+incs += ' ../makesrna ../gpu ../blenfont ../bmesh'
 
 incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost'
 incs += ' #/intern/elbeem #/extern/glew/include'
@@ -32,6 +32,7 @@ if env['OURPLATFORM'] == 'linux':
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
+    incs += ' ../../intern/utfconv'
 
 if env['OURPLATFORM'] != 'darwin' or env['WITH_GHOST_COCOA']:
     sources.remove('intern' + os.sep + 'wm_apple.c')

@@ -71,7 +71,7 @@ void mul_m3_m3m3(float R[3][3], float A[3][3], float B[3][3]);
 void mul_m4_m3m4(float R[4][4], float A[3][3], float B[4][4]);
 void mul_m4_m4m3(float R[4][4], float A[4][4], float B[3][3]);
 /* note: the A,B arguments are reversed compared to previous mul_m4_m4m4
-   function, for consistency with above functions & math notation. */
+ * function, for consistency with above functions & math notation. */
 void mult_m4_m4m4(float R[4][4], float A[4][4], float B[4][4]);
 void mult_m3_m3m4(float R[3][3], float A[4][4], float B[3][3]);
 
@@ -103,6 +103,11 @@ int invert_m3_m3(float R[3][3], float A[3][3]);
 int invert_m4(float R[4][4]);
 int invert_m4_m4(float R[4][4], float A[4][4]);
 
+/* double ariphmetics */
+void mul_m4_v4d(float M[4][4], double r[4]);
+void mul_v4d_m4v4d(double r[4], float M[4][4], double v[4]);
+
+
 /****************************** Linear Algebra *******************************/
 
 void transpose_m3(float R[3][3]);
@@ -118,6 +123,8 @@ void orthogonalize_m4(float R[4][4], int axis);
 
 int is_orthogonal_m3(float mat[3][3]);
 int is_orthogonal_m4(float mat[4][4]);
+int is_orthonormal_m3(float mat[3][3]);
+int is_orthonormal_m4(float mat[4][4]);
 
 void adjoint_m3_m3(float R[3][3], float A[3][3]);
 void adjoint_m4_m4(float R[4][4], float A[4][4]);

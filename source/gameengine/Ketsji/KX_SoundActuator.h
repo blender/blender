@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_SOUNDACTUATOR
-#define __KX_SOUNDACTUATOR
+#ifndef __KX_SOUNDACTUATOR_H__
+#define __KX_SOUNDACTUATOR_H__
 
 #include "SCA_IActuator.h"
 
@@ -127,5 +127,5 @@ public:
 
 };
 
-#endif //__KX_SOUNDACTUATOR
+#endif //__KX_SOUNDACTUATOR_H__
 

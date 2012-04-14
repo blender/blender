@@ -5,7 +5,7 @@ sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../gpu ../../blenloader'
+incs += ' ../../bmesh ../../gpu ../../blenloader'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
 
 env.BlenderLib ( 'bf_editors_curve', sources, Split(incs), [], libtype=['core'], priority=[45] )

@@ -65,17 +65,17 @@
 #include "RNA_access.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
-
-  - Pose is the local (object level) component of armature. The current
-	object pose is saved in files, and (will be) is presorted for dependency
-  - Actions have fewer (or other) channels, and write data to a Pose
-  - Currently ob->pose data is controlled in where_is_pose only. The (recalc)
-	event system takes care of calling that
-  - The NLA system (here too) uses Poses as interpolation format for Actions
-  - Therefore we assume poses to be static, and duplicates of poses have channels in
-	same order, for quick interpolation reasons
-
-  ****************************** (ton) ************************************ */
+ *
+ * - Pose is the local (object level) component of armature. The current
+ *   object pose is saved in files, and (will be) is presorted for dependency
+ * - Actions have fewer (or other) channels, and write data to a Pose
+ * - Currently ob->pose data is controlled in where_is_pose only. The (recalc)
+ *   event system takes care of calling that
+ * - The NLA system (here too) uses Poses as interpolation format for Actions
+ * - Therefore we assume poses to be static, and duplicates of poses have channels in
+ *   same order, for quick interpolation reasons
+ *
+ * ****************************** (ton) ************************************ */
 
 /* ***************** Library data level operations on action ************** */
 
@@ -415,7 +415,7 @@ bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
 	if (ELEM(NULL, pose, name) || (name[0] == 0))
 		return NULL;
 	
-	if(pose->chanhash)
+	if (pose->chanhash)
 		return BLI_ghash_lookup(pose->chanhash, (void *)name);
 	
 	return BLI_findstring(&((bPose *)pose)->chanbase, name, offsetof(bPoseChannel, name));
@@ -432,7 +432,7 @@ bPoseChannel *verify_pose_channel(bPose *pose, const char *name)
 	
 	/* See if this channel exists */
 	chan= BLI_findstring(&pose->chanbase, name, offsetof(bPoseChannel, name));
-	if(chan) {
+	if (chan) {
 		return chan;
 	}
 
@@ -464,10 +464,11 @@ bPoseChannel *get_active_posechannel (Object *ob)
 {
 	bArmature *arm= (ob) ? ob->data : NULL;
 	bPoseChannel *pchan;
-	
-	if ELEM3(NULL, ob, ob->pose, arm)
+
+	if (ELEM3(NULL, ob, ob->pose, arm)) {
 		return NULL;
-	
+	}
+
 	/* find active */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if ((pchan->bone) && (pchan->bone == arm->act_bone) && (pchan->bone->layer & arm->layer))
@@ -523,7 +524,7 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 			pchan->mpath= NULL; /* motion paths should not get copied yet... */
 		}
 		
-		if(pchan->prop) {
+		if (pchan->prop) {
 			pchan->prop= IDP_CopyProperty(pchan->prop);
 		}
 	}
@@ -545,8 +546,8 @@ void init_pose_itasc(bItasc *itasc)
 		itasc->numstep = 4;
 		itasc->precision = 0.005f;
 		itasc->flag = ITASC_AUTO_STEP|ITASC_INITIAL_REITERATION;
-		itasc->feedback = 20.f;
-		itasc->maxvel = 50.f;
+		itasc->feedback = 20.0f;
+		itasc->maxvel = 50.0f;
 		itasc->solver = ITASC_SOLVER_SDLS;
 		itasc->dampmax = 0.5;
 		itasc->dampeps = 0.15;
@@ -570,18 +571,18 @@ void init_pose_ikparam(bPose *pose)
 
 void make_pose_channels_hash(bPose *pose) 
 {
-	if(!pose->chanhash) {
+	if (!pose->chanhash) {
 		bPoseChannel *pchan;
 
 		pose->chanhash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "make_pose_chan gh");
-		for(pchan=pose->chanbase.first; pchan; pchan=pchan->next)
+		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next)
 			BLI_ghash_insert(pose->chanhash, pchan->name, pchan);
 	}
 }
 
 void free_pose_channels_hash(bPose *pose) 
 {
-	if(pose->chanhash) {
+	if (pose->chanhash) {
 		BLI_ghash_free(pose->chanhash, NULL, NULL);
 		pose->chanhash= NULL;
 	}
@@ -656,7 +657,7 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	pchan->flag= chan->flag;
 	
 	con= chan->constraints.first;
-	for(pcon= pchan->constraints.first; pcon && con; pcon= pcon->next, con= con->next) {
+	for (pcon= pchan->constraints.first; pcon && con; pcon= pcon->next, con= con->next) {
 		pcon->enforce= con->enforce;
 		pcon->headtail= con->headtail;
 	}
@@ -689,13 +690,13 @@ void duplicate_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *pchan_
 	copy_constraints(&pchan->constraints, &pchan_from->constraints, TRUE);
 
 	/* id-properties */
-	if(pchan->prop) {
+	if (pchan->prop) {
 		/* unlikely but possible it exists */
 		IDP_FreeProperty(pchan->prop);
 		MEM_freeN(pchan->prop);
 		pchan->prop= NULL;
 	}
-	if(pchan_from->prop) {
+	if (pchan_from->prop) {
 		pchan->prop= IDP_CopyProperty(pchan_from->prop);
 	}
 
@@ -727,19 +728,19 @@ void update_pose_constraint_flags(bPose *pose)
 				
 				pchan->constflag |= PCHAN_HAS_IK;
 				
-				if(data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0))
+				if (data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0))
 					pchan->constflag |= PCHAN_HAS_TARGET;
 				
 				/* negative rootbone = recalc rootbone index. used in do_versions */
-				if(data->rootbone<0) {
+				if (data->rootbone<0) {
 					data->rootbone= 0;
 					
-					if(data->flag & CONSTRAINT_IK_TIP) parchan= pchan;
+					if (data->flag & CONSTRAINT_IK_TIP) parchan= pchan;
 					else parchan= pchan->parent;
 					
-					while(parchan) {
+					while (parchan) {
 						data->rootbone++;
-						if((parchan->bone->flag & BONE_CONNECTED)==0)
+						if ((parchan->bone->flag & BONE_CONNECTED)==0)
 							break;
 						parchan= parchan->parent;
 					}
@@ -837,7 +838,7 @@ void pose_remove_group (Object *ob)
 		/* now, remove it from the pose */
 		BLI_freelinkN(&pose->agroups, grp);
 		pose->active_group--;
-		if(pose->active_group < 0 || pose->agroups.first == NULL) {
+		if (pose->active_group < 0 || pose->agroups.first == NULL) {
 			pose->active_group= 0;
 		}
 	}
@@ -932,7 +933,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 	}	
 	
 	if (foundvert || foundmod) {
-		if(min==max) max+= 1.0f;
+		if (min==max) max+= 1.0f;
 		*start= min;
 		*end= max;
 	}
@@ -1054,7 +1055,7 @@ short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan,
 /* Copy the data from the action-pose (src) into the pose */
 /* both args are assumed to be valid */
 /* exported to game engine */
-/* Note! this assumes both poses are aligned, this isnt always true when dealing with user poses */
+/* Note! this assumes both poses are aligned, this isn't always true when dealing with user poses */
 void extract_pose_from_pose(bPose *pose, const bPose *src)
 {
 	const bPoseChannel *schan;
@@ -1097,7 +1098,7 @@ void copy_pose_result(bPose *to, bPose *from)
 {
 	bPoseChannel *pchanto, *pchanfrom;
 	
-	if(to==NULL || from==NULL) {
+	if (to==NULL || from==NULL) {
 		printf("pose result copy error to:%p from:%p\n", (void *)to, (void *)from); // debug temp
 		return;
 	}
@@ -1108,9 +1109,9 @@ void copy_pose_result(bPose *to, bPose *from)
 	}
 
 
-	for(pchanfrom= from->chanbase.first; pchanfrom; pchanfrom= pchanfrom->next) {
+	for (pchanfrom= from->chanbase.first; pchanfrom; pchanfrom= pchanfrom->next) {
 		pchanto= get_pose_channel(to, pchanfrom->name);
-		if(pchanto) {
+		if (pchanto) {
 			copy_m4_m4(pchanto->pose_mat, pchanfrom->pose_mat);
 			copy_m4_m4(pchanto->chan_mat, pchanfrom->chan_mat);
 			
@@ -1199,7 +1200,7 @@ static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mo
 {
 	float dstweight;
 	
-	switch (mode){
+	switch (mode) {
 		case ACTSTRIPMODE_BLEND:
 			dstweight = 1.0F - srcweight;
 			break;
@@ -1214,23 +1215,22 @@ static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mo
 }
 
 
-/* 
-
-bone matching diagram, strips A and B
-
-				 .------------------------.
-				 |         A              |
-				 '------------------------'
-				 .          .             b2
-				 .          .-------------v----------.
-				 .      	|         B   .          |
-				 .          '------------------------'
-				 .          .             .
-				 .          .             .
-offset:          .    0     .    A-B      .  A-b2+B     
-				 .          .             .
-
-*/
+/*
+ * bone matching diagram, strips A and B
+ * 
+ *                  .------------------------.
+ *                  |         A              |
+ *                  '------------------------'
+ *                  .          .             b2
+ *                  .          .-------------v----------.
+ *                  .          |         B   .          |
+ *                  .          '------------------------'
+ *                  .          .             .
+ *                  .          .             .
+ * offset:          .    0     .    A-B      .  A-b2+B
+ *                  .          .             .
+ *
+ * */
 
 
 static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, float srcweight, short mode)
@@ -1238,15 +1238,15 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 	/* matching offset bones */
 	/* take dst offset, and put src on on that location */
 	
-	if(strip->offs_bone[0]==0)
+	if (strip->offs_bone[0]==0)
 		return;
 	
 	/* are we also blending with matching bones? */
-	if(strip->prev && strip->start>=strip->prev->start) {
+	if (strip->prev && strip->start>=strip->prev->start) {
 		bPoseChannel *dpchan= get_pose_channel(dst, strip->offs_bone);
-		if(dpchan) {
+		if (dpchan) {
 			bPoseChannel *spchan= get_pose_channel(src, strip->offs_bone);
-			if(spchan) {
+			if (spchan) {
 				float vec[3];
 				
 				/* dst->ctime has the internal strip->prev action time */
@@ -1254,7 +1254,7 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 				
 				float ctime= get_actionstrip_frame(strip, src->ctime, 1);
 				
-				if( ctime > strip->prev->end) {
+				if ( ctime > strip->prev->end) {
 					bActionChannel *achan;
 					
 					/* add src to dest, minus the position of src on strip->prev->end */
@@ -1262,7 +1262,7 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 					ctime= get_actionstrip_frame(strip, strip->prev->end, 0);
 					
 					achan= get_action_channel(strip->act, strip->offs_bone);
-					if(achan && achan->ipo) {
+					if (achan && achan->ipo) {
 						bPoseChannel pchan;
 						/* Evaluates and sets the internal ipo value */
 						calc_ipo(achan->ipo, ctime);
@@ -1294,8 +1294,8 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 }
 
 /* added "sizecorr" here, to allow armatures to be scaled and still have striding.
-   Only works for uniform scaling. In general I'd advise against scaling armatures ever though! (ton)
-*/
+ * Only works for uniform scaling. In general I'd advise against scaling armatures ever though! (ton)
+ */
 static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip, Path *path, float pathdist, float *stride_offset)
 {
 	bAction *act= strip->act;
@@ -1303,19 +1303,19 @@ static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip
 	bActionChannel *achan= get_action_channel(act, name);
 	int stride_axis= strip->stride_axis;
 
-	if(achan && achan->ipo) {
+	if (achan && achan->ipo) {
 		IpoCurve *icu= NULL;
 		float minx=0.0f, maxx=0.0f, miny=0.0f, maxy=0.0f;
 		int foundvert= 0;
 		
-		if(stride_axis==0) stride_axis= AC_LOC_X;
-		else if(stride_axis==1) stride_axis= AC_LOC_Y;
+		if (stride_axis==0) stride_axis= AC_LOC_X;
+		else if (stride_axis==1) stride_axis= AC_LOC_Y;
 		else stride_axis= AC_LOC_Z;
 		
 		/* calculate the min/max */
 		for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
-			if(icu->adrcode==stride_axis) {
-				if(icu->totvert>1) {
+			if (icu->adrcode==stride_axis) {
+				if (icu->totvert>1) {
 					foundvert= 1;
 					minx= icu->bezt[0].vec[1][0];
 					maxx= icu->bezt[icu->totvert-1].vec[1][0];
@@ -1327,7 +1327,7 @@ static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip
 			}
 		}
 		
-		if(foundvert && miny!=maxy) {
+		if (foundvert && miny!=maxy) {
 			float stridelen= sizecorr*fabs(maxy-miny), striptime;
 			float actiondist, pdist, pdistNewNormalized, offs;
 			float vec1[4], vec2[4], dir[3];
@@ -1367,10 +1367,10 @@ static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip
 static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float time)
 {
 	/* only called when strip has cyclic, so >= 1.0f works... */
-	if(time >= 1.0f) {
+	if (time >= 1.0f) {
 		bActionChannel *achan= get_action_channel(strip->act, strip->offs_bone);
 
-		if(achan && achan->ipo) {
+		if (achan && achan->ipo) {
 			IpoCurve *icu= NULL;
 			Bone *bone;
 			float min[3]={0.0f, 0.0f, 0.0f}, max[3]={0.0f, 0.0f, 0.0f};
@@ -1378,13 +1378,13 @@ static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float
 			
 			/* calculate the min/max */
 			for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
-				if(icu->totvert>1) {
+				if (icu->totvert>1) {
 					
-					if(icu->adrcode==AC_LOC_X)
+					if (icu->adrcode==AC_LOC_X)
 						index= 0;
-					else if(icu->adrcode==AC_LOC_Y)
+					else if (icu->adrcode==AC_LOC_Y)
 						index= 1;
-					else if(icu->adrcode==AC_LOC_Z)
+					else if (icu->adrcode==AC_LOC_Z)
 						index= 2;
 					else
 						continue;
@@ -1394,11 +1394,11 @@ static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float
 					max[index]= icu->bezt[icu->totvert-1].vec[1][1];
 				}
 			}
-			if(foundvert) {
+			if (foundvert) {
 				/* bring it into armature space */
 				sub_v3_v3v3(min, max, min);
 				bone= get_named_bone(ob->data, strip->offs_bone);	/* weak */
-				if(bone) {
+				if (bone) {
 					mul_mat3_m4_v3(bone->arm_mat, min);
 					
 					/* dominant motion, cyclic_offset was cleared in rest_pose */
@@ -1406,10 +1406,11 @@ static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float
 						if (strip->flag & ACTSTRIP_CYCLIC_USEX) pose->cyclic_offset[0]= time*min[0];
 						if (strip->flag & ACTSTRIP_CYCLIC_USEY) pose->cyclic_offset[1]= time*min[1];
 						if (strip->flag & ACTSTRIP_CYCLIC_USEZ) pose->cyclic_offset[2]= time*min[2];
-					} else {
-						if( fabs(min[0]) >= fabs(min[1]) && fabs(min[0]) >= fabs(min[2]))
+					}
+					else {
+						if ( fabs(min[0]) >= fabs(min[1]) && fabs(min[0]) >= fabs(min[2]))
 							pose->cyclic_offset[0]= time*min[0];
-						else if( fabs(min[1]) >= fabs(min[0]) && fabs(min[1]) >= fabs(min[2]))
+						else if ( fabs(min[1]) >= fabs(min[0]) && fabs(min[1]) >= fabs(min[2]))
 							pose->cyclic_offset[1]= time*min[1];
 						else
 							pose->cyclic_offset[2]= time*min[2];
@@ -1426,12 +1427,12 @@ static Object *get_parent_path(Object *ob)
 {
 	bConstraint *con;
 	
-	if(ob->parent && ob->parent->type==OB_CURVE)
+	if (ob->parent && ob->parent->type==OB_CURVE)
 		return ob->parent;
 	
 	for (con = ob->constraints.first; con; con=con->next) {
-		if(con->type==CONSTRAINT_TYPE_FOLLOWPATH) {
-			if(con->enforce>0.5f) {
+		if (con->type==CONSTRAINT_TYPE_FOLLOWPATH) {
+			if (con->enforce>0.5f) {
 				bFollowPathConstraint *data= con->data;
 				return data->tar;
 			}
@@ -1455,7 +1456,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 	float scene_cfra= BKE_curframe(scene);
 	int	doit, dostride;
 	
-	if(blocktype==ID_AR) {
+	if (blocktype==ID_AR) {
 		copy_pose(&tpose, ob->pose, 1);
 		rest_pose(ob->pose);		// potentially destroying current not-keyed pose
 	}
@@ -1466,30 +1467,30 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 	/* check on extend to left or right, when no strip is hit by 'cfra' */
 	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
 		/* escape loop on a hit */
-		if( scene_cfra >= strip->start && scene_cfra <= strip->end + 0.1f)	/* note 0.1 comes back below */
+		if ( scene_cfra >= strip->start && scene_cfra <= strip->end + 0.1f)	/* note 0.1 comes back below */
 			break;
-		if(scene_cfra < strip->start) {
-			if(stripfirst==NULL)
+		if (scene_cfra < strip->start) {
+			if (stripfirst==NULL)
 				stripfirst= strip;
-			else if(stripfirst->start > strip->start)
+			else if (stripfirst->start > strip->start)
 				stripfirst= strip;
 		}
-		else if(scene_cfra > strip->end) {
-			if(striplast==NULL)
+		else if (scene_cfra > strip->end) {
+			if (striplast==NULL)
 				striplast= strip;
-			else if(striplast->end < strip->end)
+			else if (striplast->end < strip->end)
 				striplast= strip;
 		}
 	}
-	if(strip==NULL) {	/* extend */
-		if(striplast)
+	if (strip==NULL) {	/* extend */
+		if (striplast)
 			scene_cfra= striplast->end;
-		else if(stripfirst)
+		else if (stripfirst)
 			scene_cfra= stripfirst->start;
 	}
 	
 	/* and now go over all strips */
-	for (strip=ob->nlastrips.first; strip; strip=strip->next){
+	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
 		doit=dostride= 0;
 		
 		if (strip->act && !(strip->flag & ACTSTRIP_MUTE)) {	/* so theres an action */
@@ -1497,41 +1498,41 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 			/* Determine if the current frame is within the strip's range */
 			length = strip->end-strip->start;
 			actlength = strip->actend-strip->actstart;
-			striptime = (scene_cfra-(strip->start)) / length;
-			stripframe = (scene_cfra-(strip->start)) ;
+			striptime = (scene_cfra - strip->start) / length;
+			stripframe = (scene_cfra - strip->start);
 
-			if (striptime>=0.0){
+			if (striptime>=0.0) {
 				
-				if(blocktype==ID_AR) 
+				if (blocktype==ID_AR) 
 					rest_pose(tpose);
 				
 				/* To handle repeat, we add 0.1 frame extra to make sure the last frame is included */
 				if (striptime < 1.0f + 0.1f/length) {
 					
 					/* Handle path */
-					if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0){
+					if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0) {
 						Object *parent= get_parent_path(ob);
 						
 						if (parent) {
 							Curve *cu = parent->data;
 							float ctime, pdist;
 							
-							if (cu->flag & CU_PATH){
+							if (cu->flag & CU_PATH) {
 								/* Ensure we have a valid path */
-								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(scene, parent, 0);
-								if(cu->path) {
+								if (cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(scene, parent, 0);
+								if (cu->path) {
 									
 									/* Find the position on the path */
 									ctime= bsystem_time(scene, ob, scene_cfra, 0.0);
 									
-									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
+									if (calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
 										/* correct for actions not starting on zero */
 										ctime= (ctime - strip->actstart)/cu->pathlen;
 										CLAMP(ctime, 0.0, 1.0);
 									}
 									pdist = ctime*cu->path->totdist;
 									
-									if(tpose && strip->stridechannel[0]) {
+									if (tpose && strip->stridechannel[0]) {
 										striptime= stridechannel_frame(parent, ob->size[0], strip, cu->path, pdist, tpose->stride_offset);
 									}									
 									else {
@@ -1546,12 +1547,12 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 									frametime = (striptime * actlength) + strip->actstart;
 									frametime= bsystem_time(scene, ob, frametime, 0.0);
 									
-									if(blocktype==ID_AR) {
+									if (blocktype==ID_AR) {
 										extract_pose_from_action (tpose, strip->act, frametime);
 									}
-									else if(blocktype==ID_OB) {
+									else if (blocktype==ID_OB) {
 										extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
-										if(key)
+										if (key)
 											extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
 									}
 									doit=dostride= 1;
@@ -1563,25 +1564,25 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 					else  {
 						
 						/* Mod to repeat */
-						if(strip->repeat!=1.0f) {
+						if (strip->repeat!=1.0f) {
 							float cycle= striptime*strip->repeat;
 							
 							striptime = (float)fmod (cycle, 1.0f + 0.1f/length);
 							cycle-= striptime;
 							
-							if(blocktype==ID_AR)
+							if (blocktype==ID_AR)
 								cyclic_offs_bone(ob, tpose, strip, cycle);
 						}
 
 						frametime = (striptime * actlength) + strip->actstart;
 						frametime= nla_time(scene, frametime, (float)strip->repeat);
 							
-						if(blocktype==ID_AR) {
+						if (blocktype==ID_AR) {
 							extract_pose_from_action (tpose, strip->act, frametime);
 						}
-						else if(blocktype==ID_OB) {
+						else if (blocktype==ID_OB) {
 							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
-							if(key)
+							if (key)
 								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
 						}
 						
@@ -1590,24 +1591,24 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 				}
 				/* Handle extend */
 				else {
-					if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
+					if (strip->flag & ACTSTRIP_HOLDLASTFRAME) {
 						/* we want the strip to hold on the exact fraction of the repeat value */
 						
 						frametime = actlength * (strip->repeat-(int)strip->repeat);
-						if(frametime<=0.000001f) frametime= actlength;	/* rounding errors... */
+						if (frametime<=0.000001f) frametime= actlength;	/* rounding errors... */
 						frametime= bsystem_time(scene, ob, frametime+strip->actstart, 0.0);
 						
-						if(blocktype==ID_AR)
+						if (blocktype==ID_AR)
 							extract_pose_from_action (tpose, strip->act, frametime);
-						else if(blocktype==ID_OB) {
+						else if (blocktype==ID_OB) {
 							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
-							if(key)
+							if (key)
 								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
 						}
 						
 						/* handle cycle hold */
-						if(strip->repeat!=1.0f) {
-							if(blocktype==ID_AR)
+						if (strip->repeat!=1.0f) {
+							if (blocktype==ID_AR)
 								cyclic_offs_bone(ob, tpose, strip, strip->repeat-1.0f);
 						}
 						
@@ -1616,24 +1617,24 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 				}
 				
 				/* Handle blendin & blendout */
-				if (doit){
+				if (doit) {
 					/* Handle blendin */
 					
-					if (strip->blendin>0.0 && stripframe<=strip->blendin && scene_cfra>=strip->start){
+					if (strip->blendin>0.0 && stripframe<=strip->blendin && scene_cfra>=strip->start) {
 						blendfac = stripframe/strip->blendin;
 					}
-					else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && scene_cfra<=strip->end){
+					else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && scene_cfra<=strip->end) {
 						blendfac = (length-stripframe)/(strip->blendout);
 					}
 					else
 						blendfac = 1;
 					
-					if(blocktype==ID_AR) {/* Blend this pose with the accumulated pose */
+					if (blocktype==ID_AR) {/* Blend this pose with the accumulated pose */
 						/* offset bone, for matching cycles */
 						blend_pose_offset_bone (strip, ob->pose, tpose, blendfac, strip->mode);
 						
 						blend_poses (ob->pose, tpose, blendfac, strip->mode);
-						if(dostride)
+						if (dostride)
 							blend_pose_strides (ob->pose, tpose, blendfac, strip->mode);
 					}
 					else {
@@ -1645,10 +1646,10 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 		}
 	}
 	
-	if(blocktype==ID_OB) {
+	if (blocktype==ID_OB) {
 		execute_ipochannels(&chanbase);
 	}
-	else if(blocktype==ID_AR) {
+	else if (blocktype==ID_AR) {
 		/* apply stride offset to object */
 		add_v3_v3(ob->obmat[3], ob->pose->stride_offset);
 	}
@@ -1656,7 +1657,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 	/* free */
 	if (tpose)
 		free_pose(tpose);
-	if(chanbase.first)
+	if (chanbase.first)
 		BLI_freelistN(&chanbase);
 }
 

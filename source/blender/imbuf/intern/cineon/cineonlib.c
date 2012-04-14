@@ -38,6 +38,7 @@
 #include <string.h>			 /* memset */
 
 #include "BLI_utildefines.h"
+#include "BLI_fileops.h"
 
 #include "cin_debug_stuff.h"
 #include "logmemfile.h"
@@ -135,7 +136,8 @@ fillCineonImageInfo(CineonFile* cineon, CineonImageInformation* imageInfo) {
 	if (cineon->depth == 1) {
 		fillCineonChannelInfo(cineon, &imageInfo->channel[0], 0);
 
-	} else if (cineon->depth == 3) {
+	}
+	else if (cineon->depth == 3) {
 		fillCineonChannelInfo(cineon, &imageInfo->channel[0], 1);
 		fillCineonChannelInfo(cineon, &imageInfo->channel[1], 2);
 		fillCineonChannelInfo(cineon, &imageInfo->channel[2], 3);
@@ -214,7 +216,8 @@ dumpCineonFormatInfo(CineonFormatInformation* formatInfo) {
 	d_printf("Packing %d,", formatInfo->packing);
 	if (formatInfo->packing & 0x80) { 
 		d_printf(" multi pixel,");
-	} else {
+	}
+	else {
 		d_printf(" single pixel,");
 	}
 	switch (formatInfo->packing & 0x7F) {
@@ -230,13 +233,15 @@ dumpCineonFormatInfo(CineonFormatInformation* formatInfo) {
 	d_printf("Sign %d,", formatInfo->signage);
 	if (formatInfo->signage) { 
 		d_printf(" signed\n");
-	} else {
+	}
+	else {
 		d_printf(" unsigned\n");
 	}
 	d_printf("Sense %d,", formatInfo->signage);
 	if (formatInfo->signage) { 
 		d_printf(" negative\n");
-	} else {
+	}
+	else {
 		d_printf(" positive\n");
 	}
 	d_printf("End of line padding %ld\n", (intptr_t)ntohl(formatInfo->line_padding));
@@ -335,10 +340,11 @@ cineonGetRowBytes(CineonFile* cineon, unsigned short* row, int y) {
 
 	longsRead = logimage_fread(cineon->lineBuffer, 4, cineon->lineBufferLength, cineon);
 	if (longsRead != cineon->lineBufferLength) {
-		if (verbose) 
-	{	d_printf("Couldn't read line %d length %d\n", y, cineon->lineBufferLength * 4);
-		perror("cineonGetRowBytes");
-	}
+		if (verbose) {
+			d_printf("Couldn't read line %d length %d\n", y, cineon->lineBufferLength * 4);
+			perror("cineonGetRowBytes");
+		}
+
 		return 1;
 	}
 
@@ -360,7 +366,7 @@ cineonGetRowBytes(CineonFile* cineon, unsigned short* row, int y) {
 
 	/* extract required pixels */
 	for (pixelIndex = 0; pixelIndex < numPixels; ++pixelIndex) {
-		if(cineon->params.doLogarithm)
+		if (cineon->params.doLogarithm)
 			row[pixelIndex] = cineon->lut10_16[cineon->pixelBuffer[pixelIndex]];
 		else
 			row[pixelIndex] = cineon->pixelBuffer[pixelIndex] << 6;
@@ -379,7 +385,7 @@ cineonSetRowBytes(CineonFile* cineon, const unsigned short* row, int y) {
 
 	/* put new pixels into pixelBuffer */
 	for (pixelIndex = 0; pixelIndex < numPixels; ++pixelIndex) {
-		if(cineon->params.doLogarithm)
+		if (cineon->params.doLogarithm)
 			cineon->pixelBuffer[pixelIndex] = cineon->lut16_16[row[pixelIndex]];
 		else
 			cineon->pixelBuffer[pixelIndex] = row[pixelIndex] >> 6;
@@ -522,7 +528,7 @@ cineonOpen(const char* filename) {
 	cineon->memcursor = 0;
 	cineon->membuffersize = 0;
 	
-	cineon->file = fopen(filename, "rb");
+	cineon->file = BLI_fopen(filename, "rb");
 	if (cineon->file == 0) {
 		if (verbose) d_printf("Failed to open file \"%s\".\n", filename);
 		cineonClose(cineon);
@@ -602,7 +608,8 @@ int cineonIsMemFileCineon(unsigned char *mem)
 	
 	if (num != ntohl(CINEON_FILE_MAGIC)) {
 		return 0;
-	} else return 1;
+	}
+	else return 1;
 }
 
 CineonFile* 
@@ -726,7 +733,7 @@ cineonCreate(const char* filename, int width, int height, int depth) {
 	cineon->lineBuffer = 0;
 	cineon->pixelBuffer = 0;
 
-	cineon->file = fopen(filename, "wb");
+	cineon->file = BLI_fopen(filename, "wb");
 	if (cineon->file == 0) {
 		if (verbose) d_printf("Couldn't open file %s\n", filename);
 		cineonClose(cineon);
@@ -761,7 +768,8 @@ cineonCreate(const char* filename, int width, int height, int depth) {
 	shortFilename = strrchr(filename, '/');
 	if (shortFilename == 0) {
 		shortFilename = filename;
-	} else {
+	}
+	else {
 		++shortFilename;
 	}
 

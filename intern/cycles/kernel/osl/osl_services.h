@@ -66,7 +66,7 @@ public:
 		void *renderstate, void *val);
 	bool has_userdata(ustring name, TypeDesc type, void *renderstate);
 
- 	void *get_pointcloud_attr_query(ustring *attr_names,
+	void *get_pointcloud_attr_query(ustring *attr_names,
 		TypeDesc *attr_types, int nattrs);
 	int pointcloud(ustring filename, const OSL::Vec3 &center, float radius,
 		int max_points, void *attr_query, void **attr_outdata);

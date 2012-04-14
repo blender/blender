@@ -70,7 +70,7 @@
  * which take the data they operate on, a few callbacks defining what operations to perform.
  *
  * As operators which work on keyframes usually apply the same operation on all BezTriples in 
- * every channel, the code has been optimised providing a set of functions which will get the 
+ * every channel, the code has been optimized providing a set of functions which will get the 
  * appropriate bezier-modify function to set. These functions (ANIM_editkeyframes_*) will need
  * to be called before getting any channels.
  * 
@@ -136,8 +136,8 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEdi
 				if (ked) ked->curIndex= i;
 				
 				/* Exit with return-code '1' if function returns positive
-				* This is useful if finding if some BezTriple satisfies a condition.
-				*/
+				 * This is useful if finding if some BezTriple satisfies a condition.
+				 */
 				if (key_cb(ked, bezt)) return 1;
 			}
 		}
@@ -751,7 +751,6 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 			return mirror_bezier_value;
 		default: /* just in case */
 			return mirror_bezier_yaxis;
-			break;
 	}
 }
 
@@ -761,11 +760,13 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 /* standard validation step for a few of these (implemented as macro for inlining without fn-call overhead):
  *	"if the handles are not of the same type, set them to type free"
  */
-#define ENSURE_HANDLES_MATCH(bezt) \
-		if (bezt->h1 != bezt->h2) { \
-			if ELEM3(bezt->h1, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM) bezt->h1= HD_FREE; \
-			if ELEM3(bezt->h2, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM) bezt->h2= HD_FREE; \
-		}
+#define ENSURE_HANDLES_MATCH(bezt)                                            \
+	if (bezt->h1 != bezt->h2) {                                               \
+		if (ELEM3(bezt->h1, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM))                 \
+			bezt->h1= HD_FREE;                                                \
+		if (ELEM3(bezt->h2, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM))                 \
+		bezt->h2= HD_FREE;                                                    \
+	}
 
 /* Sets the selected bezier handles to type 'auto' */
 static short set_bezier_auto(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 

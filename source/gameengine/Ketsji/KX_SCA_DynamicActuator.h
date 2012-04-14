@@ -30,8 +30,8 @@
  *  \brief Add object to the game world on action of this actuator
  */
 
-#ifndef __KX_SCA_DYNAMICACTUATOR
-#define __KX_SCA_DYNAMICACTUATOR
+#ifndef __KX_SCA_DYNAMICACTUATOR_H__
+#define __KX_SCA_DYNAMICACTUATOR_H__
 
 #include "SCA_IActuator.h"
 #include "SCA_PropertyActuator.h"

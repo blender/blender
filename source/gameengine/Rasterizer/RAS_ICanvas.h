@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_ICANVAS
-#define __RAS_ICANVAS
+#ifndef __RAS_ICANVAS_H__
+#define __RAS_ICANVAS_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -80,8 +80,8 @@ public:
 	 * Initializes the canvas for drawing.  Drawing to the canvas is
 	 * only allowed between BeginDraw() and EndDraw().
 	 *
-	 * @retval false Acquiring the canvas failed.
-	 * @retval true Acquiring the canvas succeeded.
+	 * \retval false Acquiring the canvas failed.
+	 * \retval true Acquiring the canvas succeeded.
 	 *
 	 */
 
@@ -170,7 +170,7 @@ public:
 	) = 0;
 
 	/**
-	 * Set the visible vieport 
+	 * Set the visible view-port 
 	 */
 
 	virtual
@@ -225,5 +225,5 @@ public:
 #endif
 };
 
-#endif //__RAS_ICANVAS
+#endif //__RAS_ICANVAS_H__
 

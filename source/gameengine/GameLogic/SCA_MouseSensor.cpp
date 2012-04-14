@@ -156,7 +156,7 @@ bool SCA_MouseSensor::Evaluate()
 	case KX_MOUSESENSORMODE_WHEELDOWN:
 		{
 			const SCA_InputEvent& mevent = mousedev->GetEventValue(m_hotkey);
-			switch (mevent.m_status){	
+			switch (mevent.m_status) {	
 			case SCA_InputEvent::KX_JUSTACTIVATED:
 				m_val = 1;
 				result = true;
@@ -253,7 +253,7 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 		int button = PyLong_AsSsize_t(value);
 		
 		if ((button < SCA_IInputDevice::KX_LEFTMOUSE)
-			|| (button > SCA_IInputDevice::KX_RIGHTMOUSE)){
+			|| (button > SCA_IInputDevice::KX_RIGHTMOUSE)) {
 			PyErr_SetString(PyExc_ValueError, "sensor.getButtonStatus(int): Mouse Sensor, invalid button specified!");
 			return NULL;
 		}

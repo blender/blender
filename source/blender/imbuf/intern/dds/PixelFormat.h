@@ -63,7 +63,7 @@
 	namespace PixelFormat
 	{
 
-		// Convert component @a c having @a inbits to the returned value having @a outbits.
+		// Convert component \a c having \a inbits to the returned value having \a outbits.
 		inline uint convert(uint c, uint inbits, uint outbits)
 		{
 			if (inbits == 0)

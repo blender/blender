@@ -62,7 +62,6 @@ typedef struct bNodeLinkDrag
 ARegion *node_has_buttons_region(ScrArea *sa);
 
 /* node_header.c */
-void node_header_buttons(const bContext *C, ARegion *ar);
 void node_menus_register(void);
 
 /* node_draw.c */
@@ -82,7 +81,13 @@ void node_operatortypes(void);
 void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.c */
+void node_select(struct bNode *node);
+void node_deselect(struct bNode *node);
 void node_deselect_all(struct SpaceNode *snode);
+void node_socket_select(struct bNode *node, struct bNodeSocket *sock);
+void node_socket_deselect(struct bNode *node, struct bNodeSocket *sock, int deselect_node);
+void node_deselect_all_input_sockets(struct SpaceNode *snode, int deselect_nodes);
+void node_deselect_all_output_sockets(struct SpaceNode *snode, int deselect_nodes);
 int node_select_same_type(struct SpaceNode *snode);
 int node_select_same_type_np(struct SpaceNode *snode, int dir);
 void node_select_single(struct bContext *C, struct bNode *node);
@@ -105,7 +110,6 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
 void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
 void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage);
-void draw_nodespace_color_info(struct ARegion *ar, int color_manage, int channels, int x, int y, const char cp[4], const float fp[4]);
 
 /* node_edit.c */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);
@@ -116,11 +120,11 @@ void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
-void node_tree_verify_groups(bNodeTree *nodetree);
 void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace);
 int node_has_hidden_sockets(bNode *node, short flag);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, short flag, int set);
 int node_render_changed_exec(bContext *, wmOperator *);
+int node_find_indicated_socket(struct SpaceNode *snode, struct bNode **nodep, struct bNodeSocket **sockp, int in_out);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
@@ -130,6 +134,7 @@ void NODE_OT_resize(struct wmOperatorType *ot);
 void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_link_make(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
+void NODE_OT_links_detach(struct wmOperatorType *ot);
 
 void NODE_OT_group_make(struct wmOperatorType *ot);
 void NODE_OT_group_ungroup(struct wmOperatorType *ot);
@@ -158,6 +163,9 @@ void NODE_OT_backimage_sample(wmOperatorType *ot);
 void NODE_OT_add_file(struct wmOperatorType *ot);
 
 void NODE_OT_new_node_tree(struct wmOperatorType *ot);
+
+void NODE_OT_output_file_add_socket(struct wmOperatorType *ot);
+void NODE_OT_output_file_remove_active_socket(struct wmOperatorType *ot);
 
 extern const char *node_context_dir[];
 

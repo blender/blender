@@ -28,9 +28,9 @@
 
 /** \file SG_ParentRelation.h
  *  \ingroup bgesg
- * @page SG_ParentRelationPage SG_ParentRelation   
+ * \page SG_ParentRelationPage SG_ParentRelation   
 
- * @section SG_ParentRelationSection SG_ParentRelation
+ * \section SG_ParentRelationSection SG_ParentRelation
  * 
  * This is an abstract interface class to the Scene Graph library. 
  * It allows you to specify how child nodes react to parent nodes.
@@ -49,8 +49,8 @@
  *
  */
  
-#ifndef __SG_ParentRelation_h
-#define __SG_ParentRelation_h
+#ifndef __SG_PARENTRELATION_H__
+#define __SG_PARENTRELATION_H__
 
 class SG_Spatial;
 

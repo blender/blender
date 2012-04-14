@@ -53,7 +53,7 @@
 static int AVI_DEBUG=0;
 static char DEBUG_FCC[4];
 
-#define DEBUG_PRINT(x) if(AVI_DEBUG) printf("AVI DEBUG: " x);
+#define DEBUG_PRINT(x) if (AVI_DEBUG) { printf("AVI DEBUG: " x); } (void)0
 
 /* local functions */
 char *fcc_to_char (unsigned int fcc);
@@ -197,13 +197,12 @@ AviError AVI_print_error (AviError in_error)
 
 	return in_error;
 }
-/*
+#if 0
 void AVI_set_debug (int mode)
 {
 	AVI_DEBUG= mode;
 }
-*/
-/*
+
 int AVI_is_avi (char *name)
 {
 	FILE *fp;
@@ -217,14 +216,15 @@ int AVI_is_avi (char *name)
 		!GET_FCC (fp) ||
 		GET_FCC (fp) != FCC("AVI ")) {
 		ret = 0;
-	} else {
+	}
+	else {
 		ret = 1;
 	}
 
 	fclose(fp);
 	return ret;
 }
-*/
+#endif
 
 int AVI_is_avi (const char *name)
 {
@@ -313,9 +313,11 @@ int AVI_is_avi (const char *name)
 				fcca == FCC ("RAW ") ||
 				fcca == 0) {
 				movie.streams[temp].format = AVI_FORMAT_AVI_RGB;
-			} else if (fcca == FCC ("mjpg")||fcca == FCC ("MJPG")) {
+			}
+			else if (fcca == FCC ("mjpg")||fcca == FCC ("MJPG")) {
 				movie.streams[temp].format = AVI_FORMAT_MJPEG;
-			} else {
+			}
+			else {
 				MEM_freeN(movie.streams);
 				fclose(movie.fp);
 				return 0;
@@ -380,10 +382,12 @@ int AVI_is_avi (const char *name)
 						fcca == FCC ("rgb ") ||
 						fcca == FCC ("RAW ") ||
 						fcca == 0 ) {
-					} else if ( fcca == FCC ("mjpg") || 
+					}
+					else if ( fcca == FCC ("mjpg") ||
 						fcca == FCC ("MJPG")) {
 							movie.streams[temp].format = AVI_FORMAT_MJPEG;
-					} else {
+					}
+					else {
 						MEM_freeN(movie.streams);
 						fclose(movie.fp);
 						return 0;
@@ -392,7 +396,8 @@ int AVI_is_avi (const char *name)
 
 			} 
 			if (j > 0) fseek (movie.fp, j, SEEK_CUR);
-		} else fseek (movie.fp, movie.streams[temp].sf_size, SEEK_CUR);
+		}
+		else fseek (movie.fp, movie.streams[temp].sf_size, SEEK_CUR);
 
 		/* Walk to the next LIST */		
 		while (GET_FCC (movie.fp) != FCC("LIST")) {
@@ -496,9 +501,11 @@ AviError AVI_open_movie (const char *name, AviMovie *movie)
 				fcca == FCC ("RAW ") ||
 				fcca == 0) {
 				movie->streams[temp].format = AVI_FORMAT_AVI_RGB;
-			} else if (fcca == FCC ("mjpg")||fcca == FCC ("MJPG")) {
+			}
+			else if (fcca == FCC ("mjpg")||fcca == FCC ("MJPG")) {
 				movie->streams[temp].format = AVI_FORMAT_MJPEG;
-			} else {
+			}
+			else {
 				return AVI_ERROR_COMPRESSION;
 			}
 		}
@@ -559,17 +566,20 @@ AviError AVI_open_movie (const char *name, AviMovie *movie)
 						fcca == FCC ("rgb ") ||
 						fcca == FCC ("RAW ") ||
 						fcca == 0 ) {
-					} else if ( fcca == FCC ("mjpg") || 
+					}
+					else if ( fcca == FCC ("mjpg") ||
 						fcca == FCC ("MJPG")) {
 							movie->streams[temp].format = AVI_FORMAT_MJPEG;
-					} else {
+					}
+					else {
 						return AVI_ERROR_COMPRESSION;
 					}
 				}
 
 			} 
 			if (j > 0) fseek (movie->fp, j, SEEK_CUR);
-		} else fseek (movie->fp, movie->streams[temp].sf_size, SEEK_CUR);
+		}
+		else fseek (movie->fp, movie->streams[temp].sf_size, SEEK_CUR);
 		
 		/* Walk to the next LIST */		
 		while (GET_FCC (movie->fp) != FCC("LIST")) {
@@ -596,7 +606,8 @@ AviError AVI_open_movie (const char *name, AviMovie *movie)
 				break;
 			else
 				fseek (movie->fp, size-4, SEEK_CUR);
-		} else {
+		}
+		else {
 			fseek (movie->fp, size, SEEK_CUR);
 		}
 		if (ftell(movie->fp) > movie->size) {
@@ -659,8 +670,8 @@ void *AVI_read_frame (AviMovie *movie, AviFormat format, int frame, int stream)
 	void *buffer;
 
 	/* Retrieve the record number of the desired frame in the index 
-		If a chunk has Size 0 we need to rewind to previous frame */
-	while(rewind && frame > -1) {
+	 * If a chunk has Size 0 we need to rewind to previous frame */
+	while (rewind && frame > -1) {
 		i=0;
 		cur_frame=-1;
 		rewind = 0;
@@ -671,7 +682,8 @@ void *AVI_read_frame (AviMovie *movie, AviFormat format, int frame, int stream)
 				if ((cur_frame == frame -1) && (movie->entries[i].Size == 0)) {
 					rewind = 1;
 					frame = frame -1;
-				} else {
+				}
+				else {
 					cur_frame++;
 				}
 			}
@@ -729,6 +741,7 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 	int i;
 	int64_t header_pos1, header_pos2;
 	int64_t stream_pos1, stream_pos2;
+	int64_t junk_pos;
 
 	movie->type = AVI_MOVIE_WRITE;
 	movie->fp = fopen (name, "wb");
@@ -798,13 +811,14 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 		movie->streams[i].sh.bottom = 0;
 
 		if (movie->streams[i].sh.Type == FCC("vids")) {	
-/*
+#if 0
 			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
 				movie->streams[i].sf = MEM_mallocN (sizeof(AviBitmapInfoHeader) 
 										+ sizeof(AviMJPEGUnknown),"moviestreamformatL");
 				movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader) + sizeof(AviMJPEGUnknown);
-			} else {
-*/
+			}
+			else {
+#endif
 			movie->streams[i].sf = MEM_mallocN (sizeof(AviBitmapInfoHeader),  "moviestreamformatS");
 			movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader);
 
@@ -836,8 +850,10 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 				tmp->f = 2;
 				tmp->g = 1;
 			}
-		} else if (movie->streams[i].sh.Type == FCC("auds")) {
-			;
+		}
+		else if (movie->streams[i].sh.Type == FCC("auds")) {
+			// pass
+		}
 */
 		}
 	}
@@ -884,9 +900,11 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 		fseek (movie->fp, stream_pos2, SEEK_SET);
 	}
 
-	if (ftell(movie->fp) < 2024 - 8) {
+	junk_pos= ftell(movie->fp);
+
+	if (junk_pos < 2024 - 8) {
 		chunk.fcc = FCC("JUNK");
-		chunk.size = 2024-8-ftell(movie->fp);
+		chunk.size = 2024 - 8 - (int)junk_pos;
 
 		awrite (movie, &chunk, 1, sizeof(AviChunk), movie->fp, AVI_CHUNK);
 

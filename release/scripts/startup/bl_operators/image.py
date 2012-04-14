@@ -67,7 +67,7 @@ class EditExternally(Operator):
             self.report({'ERROR'}, "Image path not set")
             return {'CANCELLED'}
 
-        if not os.path.exists(filepath):
+        if not os.path.exists(filepath) or not os.path.isfile(filepath):
             self.report({'ERROR'},
                         "Image path %r not found, image may be packed or "
                         "unsaved" % filepath)
@@ -94,6 +94,10 @@ class EditExternally(Operator):
             image = context.space_data.image
         except AttributeError:
             self.report({'ERROR'}, "Context incorrect, image not found")
+            return {'CANCELLED'}
+
+        if image.packed_file:
+            self.report({'ERROR'}, "Image is packed, unpack before editing")
             return {'CANCELLED'}
 
         filepath = bpy.path.abspath(image.filepath, library=image.library)

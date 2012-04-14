@@ -83,7 +83,7 @@ bool SCA_PropertyActuator::Update()
 	
 	if (m_type==KX_ACT_PROP_TOGGLE)
 	{
-		/* dont use */
+		/* don't use */
 		CValue* newval;
 		CValue* oldprop = propowner->GetProperty(m_propname);
 		if (oldprop)
@@ -172,7 +172,7 @@ isValid(
 
 	SCA_PropertyActuator::KX_ACT_PROP_MODE mode
 
-){
+) {
 	bool res = false;	
 	res = ((mode > KX_ACT_PROP_NODEF) && (mode < KX_ACT_PROP_MAX));
 	return res;
@@ -183,7 +183,8 @@ isValid(
 
 SCA_PropertyActuator::
 
-GetReplica() {
+GetReplica()
+{
 
 	SCA_PropertyActuator* replica = new SCA_PropertyActuator(*this);
 

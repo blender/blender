@@ -67,13 +67,13 @@ static void snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode* snode)
 	oldwidth= cur->xmax - cur->xmin;
 	oldheight= cur->ymax - cur->ymin;
 	
-	cur->xmin= cur->ymin= 0.0f;
+	cur->xmin = cur->ymin = 0.0f;
 	cur->xmax=ar->winx;
 	cur->ymax=ar->winy;
 	
-	if(snode->edittree) {
-		for(node= snode->edittree->nodes.first; node; node= node->next) {
-			if(first) {
+	if (snode->edittree) {
+		for (node= snode->edittree->nodes.first; node; node= node->next) {
+			if (first) {
 				first= 0;
 				ar->v2d.cur= node->totr;
 			}
@@ -88,17 +88,17 @@ static void snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode* snode)
 	width= cur->xmax - cur->xmin;
 	height= cur->ymax- cur->ymin;
 
-	if(width > height) {
+	if (width > height) {
 		float newheight;
 		newheight= oldheight * width/oldwidth;
-		cur->ymin= cur->ymin - newheight/4;
-		cur->ymax= cur->ymax + newheight/4;
+		cur->ymin = cur->ymin - newheight/4;
+		cur->ymax = cur->ymax + newheight/4;
 	}
 	else {
 		float newwidth;
 		newwidth= oldwidth * height/oldheight;
-		cur->xmin= cur->xmin - newwidth/4;
-		cur->xmax= cur->xmax + newwidth/4;
+		cur->xmin = cur->xmin - newwidth/4;
+		cur->xmax = cur->xmax + newwidth/4;
 	}
 
 	ar->v2d.tot= ar->v2d.cur;
@@ -120,14 +120,14 @@ static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
-	ot->idname= "NODE_OT_view_all";
-	ot->description= "Resize view so you can see all nodes";
+	ot->name = "View All";
+	ot->idname = "NODE_OT_view_all";
+	ot->description = "Resize view so you can see all nodes";
 	
 	/* api callbacks */
-	ot->exec= node_view_all_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_view_all_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }

@@ -266,6 +266,7 @@ if 'blenderlite' in B.targets:
     target_env_defs['WITH_BF_REMESH'] = False
     target_env_defs['WITH_BF_PYTHON'] = False
     target_env_defs['WITH_BF_3DMOUSE'] = False
+    target_env_defs['WITH_BF_LIBMV'] = False
     
     # Merge blenderlite, let command line to override
     for k,v in target_env_defs.iteritems():
@@ -274,7 +275,7 @@ if 'blenderlite' in B.targets:
 
 # Extended OSX_SDK and 3D_CONNEXION_CLIENT_LIBRARY and JAckOSX detection for OSX
 if env['OURPLATFORM']=='darwin':
-    print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'][:9] + " --"
+    print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'] + " --"
     print "Available " + env['MACOSX_SDK_CHECK']
     if not 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
         print  B.bc.OKGREEN + "MacOSX10.5.sdk not available:" + B.bc.ENDC + " using MacOSX10.6.sdk"

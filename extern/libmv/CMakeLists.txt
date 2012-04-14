@@ -39,6 +39,19 @@ set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
 )
 
+
+# XXX - FIXME
+# this is a momentary hack to find unwind.h in 10.6.sdk
+if(APPLE)
+	if(${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.6")
+		list(APPEND INC_SYS
+			${CMAKE_OSX_SYSROOT}/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin10/4.2.1/include
+		)
+	endif()
+endif()
+# XXX - END
+
+
 set(SRC
 	libmv-capi.cpp
 	libmv/image/array_nd.cc
@@ -59,6 +72,7 @@ set(SRC
 	libmv/simple_pipeline/pipeline.cc
 	libmv/simple_pipeline/reconstruction.cc
 	libmv/simple_pipeline/resect.cc
+	libmv/simple_pipeline/rigid_registration.cc
 	libmv/simple_pipeline/tracks.cc
 	libmv/tracking/brute_region_tracker.cc
 	libmv/tracking/esm_region_tracker.cc
@@ -67,7 +81,6 @@ set(SRC
 	libmv/tracking/lmicklt_region_tracker.cc
 	libmv/tracking/pyramid_region_tracker.cc
 	libmv/tracking/retrack_region_tracker.cc
-	libmv/tracking/sad.cc
 	libmv/tracking/trklt_region_tracker.cc
 
 	third_party/fast/fast_10.c
@@ -90,6 +103,7 @@ set(SRC
 	libmv/base/vector_utils.h
 	libmv/image/array_nd.h
 	libmv/image/convolve.h
+	libmv/image/correlation.h
 	libmv/image/image.h
 	libmv/image/sample.h
 	libmv/image/tuple.h
@@ -115,6 +129,7 @@ set(SRC
 	libmv/simple_pipeline/pipeline.h
 	libmv/simple_pipeline/reconstruction.h
 	libmv/simple_pipeline/resect.h
+	libmv/simple_pipeline/rigid_registration.h
 	libmv/simple_pipeline/tracks.h
 	libmv/tracking/brute_region_tracker.h
 	libmv/tracking/esm_region_tracker.h
@@ -124,14 +139,15 @@ set(SRC
 	libmv/tracking/pyramid_region_tracker.h
 	libmv/tracking/region_tracker.h
 	libmv/tracking/retrack_region_tracker.h
-	libmv/tracking/sad.h
 	libmv/tracking/trklt_region_tracker.h
 
 	third_party/fast/fast.h
 	third_party/gflags/config.h
-	third_party/gflags/gflags_completions.h
-	third_party/gflags/gflags.h
+	third_party/gflags/gflags/gflags_completions.h
+	third_party/gflags/gflags/gflags_declare.h
+	third_party/gflags/gflags/gflags.h
 	third_party/gflags/mutex.h
+	third_party/gflags/util.h
 	third_party/ldl/Include/ldl.h
 	third_party/msinttypes/inttypes.h
 	third_party/msinttypes/stdint.h
@@ -203,6 +219,7 @@ else()
 		third_party/glog/src/base/mutex.h
 		third_party/glog/src/config_freebsd.h
 		third_party/glog/src/config.h
+		third_party/glog/src/config_hurd.h
 		third_party/glog/src/config_linux.h
 		third_party/glog/src/config_mac.h
 		third_party/glog/src/demangle.h

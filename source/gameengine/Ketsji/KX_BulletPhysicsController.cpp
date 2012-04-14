@@ -235,9 +235,9 @@ void	KX_BulletPhysicsController::setRigidBody(bool rigid)
 }
 
 /* This function dynamically adds the collision shape of another controller to
-   the current controller shape provided it is a compound shape.
-   The idea is that dynamic parenting on a compound object will dynamically extend the shape
-*/
+ * the current controller shape provided it is a compound shape.
+ * The idea is that dynamic parenting on a compound object will dynamically extend the shape
+ */
 void    KX_BulletPhysicsController::AddCompoundChild(KX_IPhysicsController* child)
 { 
 	if (child == NULL || !IsCompound())
@@ -308,8 +308,8 @@ void    KX_BulletPhysicsController::AddCompoundChild(KX_IPhysicsController* chil
 }
 
 /* Reverse function of the above, it will remove a shape from a compound shape
-   provided that the former was added to the later using  AddCompoundChild()
-*/
+ * provided that the former was added to the later using  AddCompoundChild()
+ */
 void    KX_BulletPhysicsController::RemoveCompoundChild(KX_IPhysicsController* child)
 { 
 	if (child == NULL || !IsCompound())

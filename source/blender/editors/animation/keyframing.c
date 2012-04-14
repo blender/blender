@@ -71,6 +71,7 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -105,8 +106,7 @@ short ANIM_get_keyframing_flags (Scene *scene, short incl_mode)
 	}
 		
 	/* only if including settings from the autokeying mode... */
-	if (incl_mode) 
-	{ 
+	if (incl_mode) { 
 		/* keyframing mode - only replace existing keyframes */
 		if (IS_AUTOKEY_MODE(scene, EDITKEYS)) 
 			flag |= INSERTKEY_REPLACE;
@@ -131,7 +131,7 @@ bAction *verify_adt_action (ID *id, short add)
 		adt= BKE_id_add_animdata(id);
 	if (adt == NULL) { 
 		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
-		printf("ERROR: Couldn't add AnimData (ID = %s) \n", (id) ? (id->name) : "<None>");
+		printf("ERROR: Couldn't add AnimData (ID = %s)\n", (id) ? (id->name) : "<None>");
 		return NULL;
 	}
 		
@@ -156,7 +156,7 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
 	FCurve *fcu;
 	
 	/* sanity checks */
-	if ELEM(NULL, act, rna_path)
+	if (ELEM(NULL, act, rna_path))
 		return NULL;
 		
 	/* try to find f-curve matching for this setting 
@@ -317,9 +317,9 @@ int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 	/* use default interpolation mode, with exceptions for int/discrete values */
 	beztr.ipo= U.ipo_new;
 
-	if(fcu->flag & FCURVE_DISCRETE_VALUES)
+	if (fcu->flag & FCURVE_DISCRETE_VALUES)
 		beztr.ipo = BEZT_IPO_CONST;
-	else if(beztr.ipo == BEZT_IPO_BEZ && (fcu->flag & FCURVE_INT_VALUES))
+	else if (beztr.ipo == BEZT_IPO_BEZ && (fcu->flag & FCURVE_INT_VALUES))
 		beztr.ipo = BEZT_IPO_LIN;
 	
 	/* add temp beztriple to keyframes */
@@ -375,7 +375,7 @@ enum {
 
 /* This helper function determines whether a new keyframe is needed */
 /* Cases where keyframes should not be added:
- *	1. Keyframe to be added bewteen two keyframes with similar values
+ *	1. Keyframe to be added between two keyframes with similar values
  *	2. Keyframe to be added on frame where two keyframes are already situated
  *	3. Keyframe lies at point that intersects the linear line between two keyframes
  */
@@ -446,7 +446,7 @@ static short new_key_needed (FCurve *fcu, float cFrame, float nValue)
 		}
 		else {
 			/* just add a keyframe if there's only one keyframe 
-			 * and the new one occurs before the exisiting one does.
+			 * and the new one occurs before the existing one does.
 			 */
 			if ((cFrame < beztPosi) && (totCount==1))
 				return KEYNEEDED_JUSTADD;
@@ -573,7 +573,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		return 0;
 		
 	/* location or rotation identifiers only... */
-	if(identifier == NULL) {
+	if (identifier == NULL) {
 		printf("%s failed: NULL identifier\n", __func__);
 		return 0;
 	}
@@ -584,7 +584,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		searchtype= VISUALKEY_ROT;
 	}
 	else {
-		printf("%s failed: identifier - '%s' \n", __func__, identifier);
+		printf("%s failed: identifier - '%s'\n", __func__, identifier);
 		return 0;
 	}
 	
@@ -755,7 +755,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
  * 	Use this when validation of necessary animation data is not necessary, since an RNA-pointer to the necessary
  *	data being keyframed, and a pointer to the F-Curve to use have both been provided.
  *
- *	The flag argument is used for special settings that alter the behaviour of
+ *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
@@ -874,7 +874,7 @@ short insert_keyframe_direct (ReportList *reports, PointerRNA ptr, PropertyRNA *
 /* Main Keyframing API call:
  *	Use this when validation of necessary animation data is necessary, since it may not exist yet.
  *	
- *	The flag argument is used for special settings that alter the behaviour of
+ *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  *
@@ -968,7 +968,7 @@ short insert_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
  *	Use this when validation of necessary animation data isn't necessary as it
  *	already exists. It will delete a keyframe at the current frame.
  *	
- *	The flag argument is used for special settings that alter the behaviour of
+ *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe deletion. These include the quick refresh options.
  */
 short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short UNUSED(flag))
@@ -980,7 +980,7 @@ short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 	int ret= 0;
 	
 	/* sanity checks */
-	if ELEM(NULL, id, adt) {
+	if (ELEM(NULL, id, adt)) {
 		BKE_report(reports, RPT_ERROR, "No ID-Block and/Or AnimData to delete keyframe from");
 		return 0;
 	}
@@ -1007,7 +1007,7 @@ short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 			cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP); 
 		}
 		else {
-			BKE_reportf(reports, RPT_ERROR, "No Action to delete keyframes from for ID = %s \n", id->name);
+			BKE_reportf(reports, RPT_ERROR, "No Action to delete keyframes from for ID = %s\n", id->name);
 			return 0;
 		}
 	}
@@ -1036,8 +1036,8 @@ short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 			continue;
 			
 		if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
-			if (G.f & G_DEBUG)
-				printf("WARNING: not deleting keyframe for locked F-Curve \n");
+			if (G.debug & G_DEBUG)
+				printf("WARNING: not deleting keyframe for locked F-Curve\n");
 			continue;
 		}
 		
@@ -1116,7 +1116,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	if (type == 0) 
 		type= scene->active_keyingset;
 	if (type > 0)
-		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+		ks= BLI_findlink(&scene->keyingsets, type-1);
 	else
 		ks= BLI_findlink(&builtin_keyingsets, -type-1);
 		
@@ -1128,8 +1128,8 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	
 	/* try to insert keyframes for the channels specified by KeyingSet */
 	success= ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
-	if (G.f & G_DEBUG)
-		BKE_reportf(op->reports, RPT_INFO, "KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
+	if (G.debug & G_DEBUG)
+		BKE_reportf(op->reports, RPT_INFO, "KeyingSet '%s' - Successfully added %d Keyframes\n", ks->name, success);
 	
 	/* report failure or do updates? */
 	if (success == MODIFYKEY_INVALID_CONTEXT) {
@@ -1158,22 +1158,22 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Insert Keyframe";
-	ot->idname= "ANIM_OT_keyframe_insert";
-	ot->description= "Insert keyframes on the current frame for all properties in the specified Keying Set";
+	ot->name = "Insert Keyframe";
+	ot->idname = "ANIM_OT_keyframe_insert";
+	ot->description = "Insert keyframes on the current frame for all properties in the specified Keying Set";
 	
 	/* callbacks */
-	ot->exec= insert_key_exec; 
-	ot->poll= modify_key_op_poll;
+	ot->exec = insert_key_exec; 
+	ot->poll = modify_key_op_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* keyingset to use (dynamic enum) */
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
 	RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
-	ot->prop= prop;
+	ot->prop = prop;
 	
 	/* confirm whether a keyframe was added by showing a popup 
 	 *	- by default, this is enabled, since this operator is assumed to be called independently
@@ -1194,8 +1194,15 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(
 	
 	/* if prompting or no active Keying Set, show the menu */
 	if ((scene->active_keyingset == 0) || RNA_boolean_get(op->ptr, "always_prompt")) {
-		/* call the menu, which will call this operator again, hence the cancelled */
-		ANIM_keying_sets_menu_setup(C, op->type->name, "ANIM_OT_keyframe_insert_menu");
+		uiPopupMenu *pup;
+		uiLayout *layout;
+		
+		/* call the menu, which will call this operator again, hence the canceled */
+		pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+		layout = uiPupMenuLayout(pup);
+		uiItemsEnumO(layout, "ANIM_OT_keyframe_insert_menu", "type");
+		uiPupMenuEnd(C, pup);
+		
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -1212,23 +1219,23 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Insert Keyframe Menu";
-	ot->idname= "ANIM_OT_keyframe_insert_menu";
-	ot->description= "Insert Keyframes for specified Keying Set, with menu of available Keying Sets if undefined";
+	ot->name = "Insert Keyframe Menu";
+	ot->idname = "ANIM_OT_keyframe_insert_menu";
+	ot->description = "Insert Keyframes for specified Keying Set, with menu of available Keying Sets if undefined";
 	
 	/* callbacks */
-	ot->invoke= insert_key_menu_invoke;
-	ot->exec= insert_key_exec; 
-	ot->poll= ED_operator_areaactive;
+	ot->invoke = insert_key_menu_invoke;
+	ot->exec = insert_key_exec; 
+	ot->poll = ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* keyingset to use (dynamic enum) */
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
 	RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
-	ot->prop= prop;
+	ot->prop = prop;
 	
 	/* confirm whether a keyframe was added by showing a popup 
 	 *	- by default, this is disabled so that if a menu is shown, this doesn't come up too
@@ -1239,8 +1246,8 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	
 	/* whether the menu should always be shown 
-	 *	- by default, the menu should only be shown when there is no active Keying Set (2.5 behaviour),
-	 *	  although in some cases it might be useful to always shown (pre 2.5 behaviour)
+	 *	- by default, the menu should only be shown when there is no active Keying Set (2.5 behavior),
+	 *	  although in some cases it might be useful to always shown (pre 2.5 behavior)
 	 */
 	prop= RNA_def_boolean(ot->srna, "always_prompt", 0, "Always Show Menu", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -1265,7 +1272,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	if (type == 0) 
 		type= scene->active_keyingset;
 	if (type > 0)
-		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+		ks= BLI_findlink(&scene->keyingsets, type-1);
 	else
 		ks= BLI_findlink(&builtin_keyingsets, -type-1);
 	
@@ -1277,8 +1284,8 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	
 	/* try to delete keyframes for the channels specified by KeyingSet */
 	success= ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
-	if (G.f & G_DEBUG)
-		printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
+	if (G.debug & G_DEBUG)
+		printf("KeyingSet '%s' - Successfully removed %d Keyframes\n", ks->name, success);
 	
 	/* report failure or do updates? */
 	if (success == MODIFYKEY_INVALID_CONTEXT) {
@@ -1307,22 +1314,22 @@ void ANIM_OT_keyframe_delete (wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Delete Keying-Set Keyframe";
-	ot->idname= "ANIM_OT_keyframe_delete";
-	ot->description= "Delete keyframes on the current frame for all properties in the specified Keying Set";
+	ot->name = "Delete Keying-Set Keyframe";
+	ot->idname = "ANIM_OT_keyframe_delete";
+	ot->description = "Delete keyframes on the current frame for all properties in the specified Keying Set";
 	
 	/* callbacks */
-	ot->exec= delete_key_exec; 
-	ot->poll= modify_key_op_poll;
+	ot->exec = delete_key_exec; 
+	ot->poll = modify_key_op_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* keyingset to use (dynamic enum) */
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
 	RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
-	ot->prop= prop;
+	ot->prop = prop;
 	
 	/* confirm whether a keyframe was added by showing a popup 
 	 *	- by default, this is enabled, since this operator is assumed to be called independently
@@ -1380,18 +1387,18 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyframe_delete_v3d (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Keyframe";
-	ot->description= "Remove keyframes on current frame for selected object";
-	ot->idname= "ANIM_OT_keyframe_delete_v3d";
+	ot->name = "Delete Keyframe";
+	ot->description = "Remove keyframes on current frame for selected object";
+	ot->idname = "ANIM_OT_keyframe_delete_v3d";
 	
 	/* callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= delete_key_v3d_exec; 
+	ot->invoke = WM_operator_confirm;
+	ot->exec = delete_key_v3d_exec; 
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll = ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -1422,7 +1429,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 			if (all) {
 				length= RNA_property_array_length(&ptr, prop);
 				
-				if(length) index= 0;
+				if (length) index= 0;
 				else length= 1;
 			}
 			else
@@ -1441,17 +1448,17 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 			success+= insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, 0);
 		}
 		else {
-			if (G.f & G_DEBUG)
-				printf("Button Insert-Key: no path to property \n");
+			if (G.debug & G_DEBUG)
+				printf("Button Insert-Key: no path to property\n");
 			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property. Try using a Keying Set instead");
 		}
 	}
-	else if (G.f & G_DEBUG) {
+	else if (G.debug & G_DEBUG) {
 		printf("ptr.data = %p, prop = %p,", (void *)ptr.data, (void *)prop);
 		if (prop)
-			printf("animateable = %d \n", RNA_property_animateable(&ptr, prop));
+			printf("animatable = %d\n", RNA_property_animateable(&ptr, prop));
 		else
-			printf("animateable = NULL \n");
+			printf("animatable = NULL\n");
 	}
 	
 	if (success) {
@@ -1470,15 +1477,15 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyframe_insert_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Insert Keyframe (Buttons)";
-	ot->idname= "ANIM_OT_keyframe_insert_button";
+	ot->name = "Insert Keyframe (Buttons)";
+	ot->idname = "ANIM_OT_keyframe_insert_button";
 	
 	/* callbacks */
-	ot->exec= insert_key_button_exec; 
-	ot->poll= modify_key_op_poll;
+	ot->exec = insert_key_button_exec; 
+	ot->poll = modify_key_op_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array");
@@ -1518,11 +1525,11 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 			
 			MEM_freeN(path);
 		}
-		else if (G.f & G_DEBUG)
-			printf("Button Delete-Key: no path to property \n");
+		else if (G.debug & G_DEBUG)
+			printf("Button Delete-Key: no path to property\n");
 	}
-	else if (G.f & G_DEBUG) {
-		printf("ptr.data = %p, prop = %p \n", (void *)ptr.data, (void *)prop);
+	else if (G.debug & G_DEBUG) {
+		printf("ptr.data = %p, prop = %p\n", (void *)ptr.data, (void *)prop);
 	}
 	
 	
@@ -1542,15 +1549,15 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyframe_delete_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Keyframe (Buttons)";
-	ot->idname= "ANIM_OT_keyframe_delete_button";
+	ot->name = "Delete Keyframe (Buttons)";
+	ot->idname = "ANIM_OT_keyframe_delete_button";
 	
 	/* callbacks */
-	ot->exec= delete_key_button_exec; 
-	ot->poll= modify_key_op_poll;
+	ot->exec = delete_key_button_exec; 
+	ot->poll = modify_key_op_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array");
@@ -1711,7 +1718,7 @@ short id_frame_has_keyframe (ID *id, float frame, short filter)
 			break;
 			
 		case ID_SCE: /* scene */
-		// XXX TODO... for now, just use 'normal' behaviour
+		// XXX TODO... for now, just use 'normal' behavior
 		//	break;
 		
 		default: 	/* 'normal type' */

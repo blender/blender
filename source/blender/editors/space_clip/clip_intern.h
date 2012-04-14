@@ -58,10 +58,13 @@ void clip_draw_graph(struct SpaceClip *sc, struct ARegion *ar, struct Scene *sce
 void ED_clip_graph_center_current_frame(struct Scene *scene, struct ARegion *ar);
 
 void CLIP_OT_graph_select(struct wmOperatorType *ot);
+void CLIP_OT_graph_select_border(struct wmOperatorType *ot);
+void CLIP_OT_graph_select_all_markers(struct wmOperatorType *ot);
 void CLIP_OT_graph_delete_curve(struct wmOperatorType *ot);
 void CLIP_OT_graph_delete_knot(struct wmOperatorType *ot);
 void CLIP_OT_graph_view_all(struct wmOperatorType *ot);
 void CLIP_OT_graph_center_current_frame(struct wmOperatorType *ot);
+void CLIP_OT_graph_disable_markers(struct wmOperatorType *ot);
 
 /* clip_ops.c */
 void CLIP_OT_open(struct wmOperatorType *ot);
@@ -94,7 +97,7 @@ void clip_graph_tracking_values_iterate(struct SpaceClip *sc, void *userdata,
 			void (*segment_end) (void *userdata));
 
 void clip_graph_tracking_iterate(struct SpaceClip *sc, void *userdata,
-			void (*func) (void *userdata, struct MovieTrackingMarker *marker));
+                                 void (*func) (void *userdata, struct MovieTrackingMarker *marker));
 
 void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track);
 void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
@@ -125,7 +128,7 @@ void CLIP_OT_hide_tracks_clear(struct wmOperatorType *ot);
 void CLIP_OT_lock_tracks(struct wmOperatorType *ot);
 
 void CLIP_OT_set_origin(struct wmOperatorType *ot);
-void CLIP_OT_set_floor(struct wmOperatorType *ot);
+void CLIP_OT_set_plane(struct wmOperatorType *ot);
 void CLIP_OT_set_axis(struct wmOperatorType *ot);
 void CLIP_OT_set_scale(struct wmOperatorType *ot);
 void CLIP_OT_set_solution_scale(struct wmOperatorType *ot);

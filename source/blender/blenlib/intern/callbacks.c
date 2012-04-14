@@ -33,7 +33,7 @@ void BLI_exec_cb(struct Main *main, struct ID *self, eCbEvent evt)
 	ListBase *lb= &callback_slots[evt];
 	bCallbackFuncStore *funcstore;
 
-	for(funcstore= (bCallbackFuncStore *)lb->first; funcstore; funcstore= (bCallbackFuncStore *)funcstore->next) {
+	for (funcstore= (bCallbackFuncStore *)lb->first; funcstore; funcstore= (bCallbackFuncStore *)funcstore->next) {
 		funcstore->func(main, self, funcstore->arg);
 	}
 }
@@ -53,14 +53,14 @@ void BLI_cb_init(void)
 void BLI_cb_finalize(void)
 {
 	eCbEvent evt;
-	for(evt= 0; evt < BLI_CB_EVT_TOT; evt++) {
+	for (evt= 0; evt < BLI_CB_EVT_TOT; evt++) {
 		ListBase *lb= &callback_slots[evt];
 		bCallbackFuncStore *funcstore;
 		bCallbackFuncStore *funcstore_next;
-		for(funcstore= (bCallbackFuncStore *)lb->first; funcstore; funcstore= funcstore_next) {
+		for (funcstore= (bCallbackFuncStore *)lb->first; funcstore; funcstore= funcstore_next) {
 			funcstore_next= (bCallbackFuncStore *)funcstore->next;
 			BLI_remlink(lb, funcstore);
-			if(funcstore->alloc) {
+			if (funcstore->alloc) {
 				MEM_freeN(funcstore);
 			}
 		}

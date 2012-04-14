@@ -51,8 +51,6 @@
 #include <cstring>
 #include <cstdlib>
 
-using namespace std;
-
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif
@@ -95,8 +93,10 @@ public:
 	inline void			Clear()										{ Len = pData[0] = 0; }
 	inline const STR_String	& Reverse()
 	{
-		for (int i1=0, i2=Len-1; i1<i2; i1++, i2--)
-			swap(pData[i1], pData[i2]); return *this;
+		for (int i1 = 0, i2 = Len - 1; i1 < i2; i1++, i2--) {
+			std::swap(pData[i1], pData[i2]);
+		}
+		return *this;
 	}
 
 	// Properties
@@ -133,7 +133,7 @@ public:
 	int				FindOneOf(const char *set, int pos = 0) const;
 	int				RFindOneOf(const char *set, int pos = 0) const;
 
-	vector<STR_String>	Explode(char c) const;
+	std::vector<STR_String> Explode(char c) const;
 
 	// Formatting
 	STR_String&			Upper();

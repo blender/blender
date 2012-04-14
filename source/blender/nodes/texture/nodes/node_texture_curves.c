@@ -46,7 +46,7 @@ static void time_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNU
 	/* stack order output: fac */
 	float fac= 0.0f;
 	
-	if(node->custom1 < node->custom2)
+	if (node->custom1 < node->custom2)
 		fac = (p->cfra - node->custom1)/(float)(node->custom2-node->custom1);
 	
 	fac = curvemapping_evaluateF(node->storage, 0, fac);

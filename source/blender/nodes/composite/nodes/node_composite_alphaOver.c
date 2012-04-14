@@ -48,10 +48,10 @@ static void do_alphaover_premul(bNode *UNUSED(node), float *out, float *src, flo
 {
 	
 	/* Zero alpha values should still permit an add of RGB data */	
-	if(over[3]<0.0f) {
+	if (over[3]<0.0f) {
 		copy_v4_v4(out, src);
 	}
-	else if(fac[0]==1.0f && over[3]>=1.0f) {
+	else if (fac[0]==1.0f && over[3]>=1.0f) {
 		copy_v4_v4(out, over);
 	}
 	else {
@@ -68,10 +68,10 @@ static void do_alphaover_premul(bNode *UNUSED(node), float *out, float *src, flo
 static void do_alphaover_key(bNode *UNUSED(node), float *out, float *src, float *over, float *fac)
 {
 	
-	if(over[3]<=0.0f) {
+	if (over[3]<=0.0f) {
 		copy_v4_v4(out, src);
 	}
-	else if(fac[0]==1.0f && over[3]>=1.0f) {
+	else if (fac[0]==1.0f && over[3]>=1.0f) {
 		copy_v4_v4(out, over);
 	}
 	else {
@@ -89,10 +89,10 @@ static void do_alphaover_key(bNode *UNUSED(node), float *out, float *src, float 
 static void do_alphaover_mixed(bNode *node, float *out, float *src, float *over, float *fac)
 {
 	
-	if(over[3]<=0.0f) {
+	if (over[3]<=0.0f) {
 		copy_v4_v4(out, src);
 	}
-	else if(fac[0]==1.0f && over[3]>=1.0f) {
+	else if (fac[0]==1.0f && over[3]>=1.0f) {
 		copy_v4_v4(out, over);
 	}
 	else {
@@ -115,11 +115,11 @@ static void node_composit_exec_alphaover(void *UNUSED(data), bNode *node, bNodeS
 {
 	/* stack order in: col col */
 	/* stack order out: col */
-	if(out[0]->hasoutput==0) 
+	if (out[0]->hasoutput==0) 
 		return;
 	
 	/* input no image? then only color operation */
-	if(in[1]->data==NULL && in[2]->data==NULL) {
+	if (in[1]->data==NULL && in[2]->data==NULL) {
 		do_alphaover_premul(node, out[0]->vec, in[1]->vec, in[2]->vec, in[0]->vec);
 	}
 	else {
@@ -128,9 +128,9 @@ static void node_composit_exec_alphaover(void *UNUSED(data), bNode *node, bNodeS
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		NodeTwoFloats *ntf= node->storage;
 		
-		if(ntf->x != 0.0f)
+		if (ntf->x != 0.0f)
 			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec, do_alphaover_mixed, CB_RGBA, CB_RGBA, CB_VAL);
-		else if(node->custom1)
+		else if (node->custom1)
 			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec, do_alphaover_key, CB_RGBA, CB_RGBA, CB_VAL);
 		else
 			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec, do_alphaover_premul, CB_RGBA, CB_RGBA, CB_VAL);

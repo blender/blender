@@ -55,7 +55,6 @@
 #include "BLI_linklist.h"
 #include "BLI_string.h"
 
-#include "BKE_bmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_key.h"
 #include "BKE_multires.h"
@@ -78,7 +77,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 	}
 
 	/* type unsigned, no need to chech < 0 */
-	if(type < NUM_MODIFIER_TYPES && types[type]->name[0] != '\0') {
+	if (type < NUM_MODIFIER_TYPES && types[type]->name[0] != '\0') {
 		return types[type];
 	}
 	else {
@@ -206,8 +205,8 @@ void modifiers_foreachIDLink(Object *ob, IDWalkFunc walk, void *userData)
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if(mti->foreachIDLink) mti->foreachIDLink(md, ob, walk, userData);
-		else if(mti->foreachObjectLink) {
+		if (mti->foreachIDLink) mti->foreachIDLink(md, ob, walk, userData);
+		else if (mti->foreachObjectLink) {
 			/* each Object can masquerade as an ID, so this should be OK */
 			ObjectWalkFunc fp = (ObjectWalkFunc)walk;
 			mti->foreachObjectLink(md, ob, fp, userData);
@@ -222,7 +221,7 @@ void modifiers_foreachTexLink(Object *ob, TexWalkFunc walk, void *userData)
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if(mti->foreachTexLink)
+		if (mti->foreachTexLink)
 			mti->foreachTexLink(md, ob, walk, userData);
 	}
 }
@@ -291,7 +290,7 @@ int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *lastPossibleCag
 	ModifierData *md = (virtual_)? modifiers_getVirtualModifierList(ob): ob->modifiers.first;
 	int i, cageIndex = -1;
 
-	if(lastPossibleCageIndex_r) {
+	if (lastPossibleCageIndex_r) {
 		/* ensure the value is initialized */
 		*lastPossibleCageIndex_r= -1;
 	}
@@ -347,53 +346,57 @@ int modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode)
 
 	md->scene= scene;
 
-	if((md->mode & required_mode) != required_mode) return 0;
-	if(mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return 0;
-	if(md->mode & eModifierMode_DisableTemporary) return 0;
-	if(required_mode & eModifierMode_Editmode)
-		if(!(mti->flags & eModifierTypeFlag_SupportsEditmode)) return 0;
+	if ((md->mode & required_mode) != required_mode) return 0;
+	if (mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return 0;
+	if (md->mode & eModifierMode_DisableTemporary) return 0;
+	if (required_mode & eModifierMode_Editmode)
+		if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) return 0;
 	
 	return 1;
 }
 
-LinkNode *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
+CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
 {
-	LinkNode *dataMasks = NULL;
-	LinkNode *curr, *prev;
+	CDMaskLink *dataMasks = NULL;
+	CDMaskLink *curr, *prev;
 
 	/* build a list of modifier data requirements in reverse order */
-	for(; md; md = md->next) {
+	for (; md; md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		CustomDataMask mask = 0;
 
-		if(modifier_isEnabled(scene, md, required_mode))
-			if(mti->requiredDataMask)
-				mask = mti->requiredDataMask(ob, md);
+		curr = MEM_callocN(sizeof(CDMaskLink), "CDMaskLink");
+		
+		if (modifier_isEnabled(scene, md, required_mode))
+			if (mti->requiredDataMask)
+				curr->mask = mti->requiredDataMask(ob, md);
 
-		BLI_linklist_prepend(&dataMasks, SET_INT_IN_POINTER(mask));
+		/* prepend new datamask */
+		curr->next = dataMasks;
+		dataMasks = curr;
 	}
 
 	/* build the list of required data masks - each mask in the list must
-	* include all elements of the masks that follow it
-	*
-	* note the list is currently in reverse order, so "masks that follow it"
-	* actually means "masks that precede it" at the moment
-	*/
-	for(curr = dataMasks, prev = NULL; curr; prev = curr, curr = curr->next) {
-		if(prev) {
-			CustomDataMask prev_mask = (CustomDataMask)GET_INT_FROM_POINTER(prev->link);
-			CustomDataMask curr_mask = (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
+	 * include all elements of the masks that follow it
+	 *
+	 * note the list is currently in reverse order, so "masks that follow it"
+	 * actually means "masks that precede it" at the moment
+	 */
+	for (curr = dataMasks, prev = NULL; curr; prev = curr, curr = curr->next) {
+		if (prev) {
+			CustomDataMask prev_mask = prev->mask;
+			CustomDataMask curr_mask = curr->mask;
 
-			curr->link = SET_INT_IN_POINTER(curr_mask | prev_mask);
-		} else {
-			CustomDataMask curr_mask = (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
+			curr->mask = curr_mask | prev_mask;
+		}
+		else {
+			CustomDataMask curr_mask = curr->mask;
 
-			curr->link = SET_INT_IN_POINTER(curr_mask | dataMask);
+			curr->mask = curr_mask | dataMask;
 		}
 	}
 
 	/* reverse the list so it's in the correct order */
-	BLI_linklist_reverse(&dataMasks);
+	BLI_linklist_reverse((LinkNode**)&dataMasks);
 
 	return dataMasks;
 }
@@ -406,8 +409,8 @@ ModifierData *modifiers_getLastPreview(struct Scene *scene, ModifierData *md, in
 		return tmp_md;
 
 	/* Find the latest modifier in stack generating preview. */
-	for(; md; md = md->next) {
-		if(modifier_isEnabled(scene, md, required_mode) && modifier_isPreview(md))
+	for (; md; md = md->next) {
+		if (modifier_isEnabled(scene, md, required_mode) && modifier_isPreview(md))
 			tmp_md = md;
 	}
 	return tmp_md;
@@ -415,9 +418,9 @@ ModifierData *modifiers_getLastPreview(struct Scene *scene, ModifierData *md, in
 
 ModifierData *modifiers_getVirtualModifierList(Object *ob)
 {
-		/* Kinda hacky, but should be fine since we are never
-	* reentrant and avoid free hassles.
-		*/
+	/* Kinda hacky, but should be fine since we are never
+	 * re-entrant and avoid free hassles.
+	 */
 	static ArmatureModifierData amd;
 	static CurveModifierData cmd;
 	static LatticeModifierData lmd;
@@ -452,18 +455,20 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 
 	md = ob->modifiers.first;
 
-	if(ob->parent) {
-		if(ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
+	if (ob->parent) {
+		if (ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
 			amd.object = ob->parent;
 			amd.modifier.next = md;
 			amd.deformflag= ((bArmature *)(ob->parent->data))->deformflag;
 			md = &amd.modifier;
-		} else if(ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
+		}
+		else if (ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
 			cmd.object = ob->parent;
 			cmd.defaxis = ob->trackflag + 1;
 			cmd.modifier.next = md;
 			md = &cmd.modifier;
-		} else if(ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
+		}
+		else if (ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
 			lmd.object = ob->parent;
 			lmd.modifier.next = md;
 			md = &lmd.modifier;
@@ -471,8 +476,8 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 	}
 
 	/* shape key modifier, not yet for curves */
-	if(ELEM(ob->type, OB_MESH, OB_LATTICE) && ob_get_key(ob)) {
-		if(ob->type == OB_MESH && (ob->shapeflag & OB_SHAPE_EDIT_MODE))
+	if (ELEM(ob->type, OB_MESH, OB_LATTICE) && ob_get_key(ob)) {
+		if (ob->type == OB_MESH && (ob->shapeflag & OB_SHAPE_EDIT_MODE))
 			smd.modifier.mode |= eModifierMode_Editmode|eModifierMode_OnCage;
 		else
 			smd.modifier.mode &= ~eModifierMode_Editmode|eModifierMode_OnCage;
@@ -492,8 +497,7 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ArmatureModifierData *amd= NULL;
 	
-	/* return the first selected armature, this lets us use multiple armatures
-	*/
+	/* return the first selected armature, this lets us use multiple armatures */
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Armature) {
 			amd = (ArmatureModifierData*) md;
@@ -509,16 +513,15 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 }
 
 /* Takes an object and returns its first selected lattice, else just its
-* lattice
-* This should work for multiple lattics per object
-*/
+ * lattice
+ * This should work for multiple lattics per object
+ */
 Object *modifiers_isDeformedByLattice(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	LatticeModifierData *lmd= NULL;
 	
-	/* return the first selected lattice, this lets us use multiple lattices
-	*/
+	/* return the first selected lattice, this lets us use multiple lattices */
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Lattice) {
 			lmd = (LatticeModifierData*) md;
@@ -565,9 +568,9 @@ int modifiers_isCorrectableDeformed(Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
-		if(ob->mode==OB_MODE_EDIT && (md->mode & eModifierMode_Editmode)==0);
+		if (ob->mode==OB_MODE_EDIT && (md->mode & eModifierMode_Editmode)==0);
 		else 
-			if(modifier_isCorrectableDeformed(md))
+			if (modifier_isCorrectableDeformed(md))
 				return 1;
 	}
 	return 0;
@@ -593,16 +596,16 @@ int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
 	ModifierData *md;
 	
 	for (md=ob->modifiers.first; (md && md_seek!=md); md=md->next, i++);
-	if (!md) return -1; /* modifier isnt in the object */
+	if (!md) return -1; /* modifier isn't in the object */
 	return i;
 }
 
 void modifier_freeTemporaryData(ModifierData *md)
 {
-	if(md->type == eModifierType_Armature) {
+	if (md->type == eModifierType_Armature) {
 		ArmatureModifierData *amd= (ArmatureModifierData*)md;
 
-		if(amd->prevCos) {
+		if (amd->prevCos) {
 			MEM_freeN(amd->prevCos);
 			amd->prevCos= NULL;
 		}
@@ -615,12 +618,12 @@ void test_object_modifiers(Object *ob)
 	ModifierData *md;
 
 	/* just multires checked for now, since only multires
-	   modifies mesh data */
+	 * modifies mesh data */
 
-	if(ob->type != OB_MESH) return;
+	if (ob->type != OB_MESH) return;
 
-	for(md = ob->modifiers.first; md; md = md->next) {
-		if(md->type == eModifierType_Multires) {
+	for (md = ob->modifiers.first; md; md = md->next) {
+		if (md->type == eModifierType_Multires) {
 			MultiresModifierData *mmd = (MultiresModifierData*)md;
 
 			multiresModifier_set_levels_from_disps(mmd, ob);
@@ -637,7 +640,7 @@ void test_object_modifiers(Object *ob)
  *
  * - if the ID is from a library, return library path
  * - else if the file has been saved return the blend file path.
- * - else if the file isn't saved and the ID isnt from a library, return the temp dir.
+ * - else if the file isn't saved and the ID isn't from a library, return the temp dir.
  */
 const char *modifier_path_relbase(Object *ob)
 {

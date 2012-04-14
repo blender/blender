@@ -244,6 +244,9 @@ class USERPREF_PT_interface(Panel):
 
         col.prop(view, "show_splash")
 
+        if os.name == 'nt':
+            col.prop(view, "quit_dialog")
+
 
 class USERPREF_PT_edit(Panel):
     bl_space_type = 'USER_PREFERENCES'
@@ -301,6 +304,11 @@ class USERPREF_PT_edit(Panel):
         col.separator()
         col.label(text="Playback:")
         col.prop(edit, "use_negative_frames")
+        col.separator()
+        col.separator()
+        col.separator()
+        col.label(text="Animation Editors:")
+        col.prop(edit, "fcurve_unselected_alpha", text="F-Curve Visibility")
 
         row.separator()
         row.separator()
@@ -625,6 +633,14 @@ class USERPREF_PT_theme(Panel):
             col.label(text="Menu Back:")
             ui_items_general(col, ui)
 
+            ui = theme.user_interface.wcol_tooltip
+            col.label(text="Tooltip:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_tooltip
+            col.label(text="Tooltip:")
+            ui_items_general(col, ui)
+
             ui = theme.user_interface.wcol_menu_item
             col.label(text="Menu Item:")
             ui_items_general(col, ui)
@@ -829,7 +845,7 @@ class USERPREF_PT_file(Panel):
         col.prop(system, "use_tabs_as_spaces")
 
 
-from .space_userpref_keymap import InputKeyMapPanel
+from bl_ui.space_userpref_keymap import InputKeyMapPanel
 
 
 class USERPREF_MT_ndof_settings(Menu):
@@ -899,6 +915,7 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         sub1.prop(inputs, "use_mouse_emulate_3_button")
         sub.prop(inputs, "use_mouse_continuous")
         sub.prop(inputs, "drag_threshold")
+        sub.prop(inputs, "tweak_threshold")
 
         sub.label(text="Select With:")
         sub.row().prop(inputs, "select_mouse", expand=True)
@@ -935,8 +952,6 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         sub = col.column()
         sub.label(text="NDOF Device:")
         sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
-
-        col.prop(inputs, "tweak_threshold")
 
         row.separator()
 
@@ -1107,6 +1122,10 @@ class USERPREF_PT_addons(Panel):
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Location:")
                         split.label(text=info["location"])
+                    if mod:
+                        split = colsub.row().split(percentage=0.15)
+                        split.label(text="File:")
+                        split.label(text=mod.__file__)
                     if info["author"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Author:")

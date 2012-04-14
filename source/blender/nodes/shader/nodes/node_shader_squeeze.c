@@ -54,7 +54,7 @@ bNodeStack **out)
 	nodestack_get_vec(vec+1, SOCK_FLOAT, in[1]);
 	nodestack_get_vec(vec+2, SOCK_FLOAT, in[2]);
 
-	out[0]->vec[0] = 1.0f / (1.0f + pow(2.71828183,-((vec[0]-vec[2])*vec[1]))) ;
+	out[0]->vec[0] = 1.0f / (1.0f + pow(2.71828183, -((vec[0] - vec[2]) * vec[1])));
 }
 
 static int gpu_shader_squeeze(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)

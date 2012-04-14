@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef _SCA_JOYSTICK_H_
-#define _SCA_JOYSTICK_H_
+#ifndef __SCA_JOYSTICK_H__
+#define __SCA_JOYSTICK_H__
 
 #include "SCA_JoystickDefines.h"
 #ifdef WITH_SDL
@@ -74,7 +74,7 @@ class SCA_Joystick
 
 	/**
 	 * max # of buttons avail
-	*/
+	 */
 	
 	int 			m_axismax;
 	int 			m_buttonmax;
@@ -114,7 +114,7 @@ class SCA_Joystick
 	void DestroyJoystickDevice(void);
 
 	/**
-	 * fills the axis mnember values 
+	 * fills the axis member values
 	 */
 	void pFillButtons(void);
 
@@ -134,8 +134,8 @@ class SCA_Joystick
 	
 public:
 
-	static SCA_Joystick *GetInstance( short int joyindex );
-	static void HandleEvents( void );
+	static SCA_Joystick *GetInstance(short int joyindex);
+	static void HandleEvents(void);
 	void ReleaseInstance();
 	
 
@@ -193,9 +193,6 @@ public:
 	 */
 	int Connected(void);
 };
-#ifdef WITH_SDL
-void Joystick_HandleEvents( void );
-#endif
 
 #endif
 

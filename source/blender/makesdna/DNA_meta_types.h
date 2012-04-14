@@ -87,8 +87,8 @@ typedef struct MetaBall {
 	float wiresize, rendersize; /* display and render res */
 	
 	/* bias elements to have an offset volume.
-	mother ball changes will effect other objects thresholds,
-	but these may also have their own thresh as an offset */
+	 * mother ball changes will effect other objects thresholds,
+	 * but these may also have their own thresh as an offset */
 	float thresh;
 
 	/* used in editmode */

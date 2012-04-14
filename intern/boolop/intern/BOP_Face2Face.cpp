@@ -538,10 +538,10 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 			for(i=0;i<size;i++) {
 				if (position[i] == 1) {
 					invertA = true;
-          				break;
-        			}
-        			else if (position[i] == 0) break;
-      			}
+					break;
+				}
+				else if (position[i] == 0) break;
+			}
 
 			// invertBø?
 			if (size == 4) {
@@ -597,7 +597,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 						sortedFaces[i] = sortedFaces[i+1];
 					}
 					size--;
-				}        
+				}
 			}
 			else {
 				// merge 0 and 1
@@ -616,7 +616,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 						size--;
 					}
 				}
-			}     
+			}
 		}
 		else {
 			if (BOP_fuzzyZero(d2) && sortedFaces[1] != sortedFaces[2])  {
@@ -637,14 +637,14 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 				}
 			}
 		}
-    
+
 		// Merge initial points ...
 		for(i=0;i<size;i++) {
 			points[i] = sortedPoints[i];
 			face[i] = sortedFaces[i];
 		}
 
-  	}
+	}
 }
 
 
@@ -1058,17 +1058,17 @@ void triangulate(BOP_Mesh *mesh, BOP_Faces *faces, BOP_Face *face, BOP_Segment s
 		else {
 			//  EDGE(v1) + EDGE(v2)
 			if (BOP_Segment::getEdge(s.m_cfg1) == BOP_Segment::getEdge(s.m_cfg2)) {
-				 // EDGE(v1) == EDGE(v2)
+				// EDGE(v1) == EDGE(v2)
 				BOP_Edge *edge = mesh->getEdge(face,BOP_Segment::getEdge(s.m_cfg1));
-				BOP_triangulateD(mesh, faces, face, s.m_v1, s.m_v2, 
-								 BOP_Segment::getEdge(s.m_cfg1)); 
+				BOP_triangulateD(mesh, faces, face, s.m_v1, s.m_v2,
+				                 BOP_Segment::getEdge(s.m_cfg1));
 				BOP_Face *opposite = BOP_getOppositeFace(mesh,faces,face,edge);
 				if (opposite != NULL) {
-				  unsigned int e;
-				  opposite->getEdgeIndex(edge->getVertex1(), edge->getVertex2(),e);
-				  BOP_triangulateD(mesh, faces, opposite, s.m_v1, s.m_v2, e);
+					unsigned int e;
+					opposite->getEdgeIndex(edge->getVertex1(), edge->getVertex2(),e);
+					BOP_triangulateD(mesh, faces, opposite, s.m_v1, s.m_v2, e);
 				}
-    		}
+			}
 			else { // EDGE(v1) != EDGE(v2)
 				BOP_Edge *edge1 = mesh->getEdge(face,BOP_Segment::getEdge(s.m_cfg1));
 				BOP_Edge *edge2 = mesh->getEdge(face,BOP_Segment::getEdge(s.m_cfg2));

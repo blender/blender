@@ -30,9 +30,11 @@ set(INC
 	../blenkernel
 	../blenkernel/intern
 	../blenlib
+	../blenfont
 	../blenloader
 	../makesdna
 	../makesrna
+	../bmesh
 	../render/extern/include
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
@@ -136,6 +138,10 @@ if(WITH_GAMEENGINE)
 		../gpu
 		../../../extern/recastnavigation
 	)
+endif()
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_OPENMP)

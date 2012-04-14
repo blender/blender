@@ -362,7 +362,10 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 		else {\
 			filter_mode |= ANIMFILTER_TMP_PEEK; \
 		} \
-		(void) _doSubChannels;
+		  \
+		{ \
+			(void) _doSubChannels; \
+		}
 		/* ... standard sub-channel filtering can go on here now ... */
 #define END_ANIMFILTER_SUBCHANNELS \
 		filter_mode = _filter; \
@@ -954,7 +957,7 @@ static FCurve *animfilter_fcurve_next (bDopeSheet *ads, FCurve *first, bActionGr
 			/* only work with this channel and its subchannels if it is editable */
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected in a way consistent with the filtering requirements */
-				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu)) ) {
+				if (ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu))) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
 						/* name based filtering... */
@@ -1038,8 +1041,7 @@ static size_t animfilter_act_group (bAnimContext *ac, ListBase *anim_data, bDope
 			 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
 			 * all its sub-curves to be shown
 			 */
-			if ( !(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
-			{
+			if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE)) {
 				/* group must be editable for its children to be editable (if we care about this) */
 				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
 					/* get first F-Curve which can be used here */
@@ -1101,7 +1103,7 @@ static size_t animfilter_action (bAnimContext *ac, ListBase *anim_data, bDopeShe
 	}
 	
 	/* un-grouped F-Curves (only if we're not only considering those channels in the active group) */
-	if (!(filter_mode & ANIMFILTER_ACTGROUPED))  {
+	if (!(filter_mode & ANIMFILTER_ACTGROUPED)) {
 		FCurve *firstfcu = (lastchan)? (lastchan->next) : (act->curves.first);
 		items += animfilter_fcurves(anim_data, ads, firstfcu, NULL, filter_mode, owner_id);
 	}
@@ -1169,7 +1171,7 @@ static size_t animfilter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDo
 		/* only work with this channel and its subchannels if it is editable */
 		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_NLT(nlt)) {
 			/* only include this track if selected in a way consistent with the filtering requirements */
-			if ( ANIMCHANNEL_SELOK(SEL_NLT(nlt)) ) {
+			if (ANIMCHANNEL_SELOK(SEL_NLT(nlt))) {
 				/* only include if this track is active */
 				if (!(filter_mode & ANIMFILTER_ACTIVE) || (nlt->flag & NLATRACK_ACTIVE)) {
 					ANIMCHANNEL_NEW_CHANNEL(nlt, ANIMTYPE_NLATRACK, owner_id);
@@ -1189,7 +1191,7 @@ static size_t animfilter_block_data (bAnimContext *ac, ListBase *anim_data, bDop
 	size_t items = 0;
 
 	/* image object datablocks have no anim-data so check for NULL */
-	if(adt) {
+	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate*)id;
 
 		/* NOTE: this macro is used instead of inlining the logic here, since this sort of filtering is still needed
@@ -1229,7 +1231,7 @@ static size_t animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, K
 		
 		/* loop through the channels adding ShapeKeys as appropriate */
 		for (kb= key->block.first; kb; kb= kb->next) {
-			/* skip the first one, since that's the non-animateable basis */
+			/* skip the first one, since that's the non-animatable basis */
 			// XXX maybe in future this may become handy?
 			if (kb == key->block.first) continue;
 			
@@ -1285,7 +1287,7 @@ static size_t animdata_filter_gpencil_data (ListBase *anim_data, bGPdata *gpd, i
 	return items;
 }
 
-/* Grab all Grase Pencil datablocks in file */
+/* Grab all Grease Pencil datablocks in file */
 // TODO: should this be amalgamated with the dopesheet filtering code?
 static size_t animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int filter_mode)
 {
@@ -1349,7 +1351,7 @@ static size_t animdata_filter_ds_nodetree (bAnimContext *ac, ListBase *anim_data
 		/* include data-expand widget first */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by active status */
-			if ANIMCHANNEL_ACTIVEOK(ntree) {
+			if (ANIMCHANNEL_ACTIVEOK(ntree)) {
 				ANIMCHANNEL_NEW_CHANNEL(ntree, ANIMTYPE_DSNTREE, owner_id);
 			}
 		}
@@ -1397,8 +1399,8 @@ static size_t animdata_filter_ds_textures (bAnimContext *ac, ListBase *anim_data
 		default: 
 		{
 			/* invalid/unsupported option */
-			if (G.f & G_DEBUG)
-				printf("ERROR: unsupported owner_id (i.e. texture stack) for filter textures - %s \n", owner_id->name);
+			if (G.debug & G_DEBUG)
+				printf("ERROR: unsupported owner_id (i.e. texture stack) for filter textures - %s\n", owner_id->name);
 			return 0;
 		}
 	}
@@ -1434,7 +1436,7 @@ static size_t animdata_filter_ds_textures (bAnimContext *ac, ListBase *anim_data
 			/* include texture-expand widget? */
 			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 				/* check if filtering by active status */
-				if ANIMCHANNEL_ACTIVEOK(tex) {
+				if (ANIMCHANNEL_ACTIVEOK(tex)) {
 					ANIMCHANNEL_NEW_CHANNEL(tex, ANIMTYPE_DSTEX, owner_id);
 				}
 			}
@@ -1486,7 +1488,7 @@ static size_t animdata_filter_ds_materials (bAnimContext *ac, ListBase *anim_dat
 			// hmm... do we need to store the index of this material in the array anywhere?
 			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 				/* check if filtering by active status */
-				if ANIMCHANNEL_ACTIVEOK(ma) {
+				if (ANIMCHANNEL_ACTIVEOK(ma)) {
 					ANIMCHANNEL_NEW_CHANNEL(ma, ANIMTYPE_DSMAT, ma);
 				}
 			}
@@ -1528,7 +1530,7 @@ static size_t animdata_filter_ds_particles (bAnimContext *ac, ListBase *anim_dat
 			/* include particle-expand widget first */
 			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 				/* check if filtering by active status */
-				if ANIMCHANNEL_ACTIVEOK(psys->part) {
+				if (ANIMCHANNEL_ACTIVEOK(psys->part)) {
 					ANIMCHANNEL_NEW_CHANNEL(psys->part, ANIMTYPE_DSPART, psys->part);
 				}
 			}
@@ -1668,7 +1670,7 @@ static size_t animdata_filter_ds_obdata (bAnimContext *ac, ListBase *anim_data, 
 		/* include data-expand widget first */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by active status */
-			if ANIMCHANNEL_ACTIVEOK(iat) {
+			if (ANIMCHANNEL_ACTIVEOK(iat)) {
 				ANIMCHANNEL_NEW_CHANNEL(iat, type, iat);
 			}
 		}
@@ -1702,7 +1704,7 @@ static size_t animdata_filter_ds_keyanim (bAnimContext *ac, ListBase *anim_data,
 	if (tmp_items) {
 		/* include key-expand widget first */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-			if ANIMCHANNEL_ACTIVEOK(key) {
+			if (ANIMCHANNEL_ACTIVEOK(key)) {
 				ANIMCHANNEL_NEW_CHANNEL(key, ANIMTYPE_DSSKEY, ob);
 			}
 		}
@@ -1819,7 +1821,7 @@ static size_t animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_dat
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by selection */
 			// XXX: double-check on this - most of the time, a lot of tools need to filter out these channels!
-			if ANIMCHANNEL_SELOK((base->flag & SELECT)) {
+			if (ANIMCHANNEL_SELOK((base->flag & SELECT))) {
 				/* check if filtering by active status */
 				if (ANIMCHANNEL_ACTIVEOK(ob)) {
 					ANIMCHANNEL_NEW_CHANNEL(base, ANIMTYPE_OBJECT, ob);
@@ -1864,7 +1866,7 @@ static size_t animdata_filter_ds_world (bAnimContext *ac, ListBase *anim_data, b
 		/* include data-expand widget first */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by active status */
-			if ANIMCHANNEL_ACTIVEOK(wo) {
+			if (ANIMCHANNEL_ACTIVEOK(wo)) {
 				ANIMCHANNEL_NEW_CHANNEL(wo, ANIMTYPE_DSWOR, sce);
 			}
 		}
@@ -1969,7 +1971,7 @@ static size_t animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_
 		/* firstly add object expander if required */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by selection */
-			if ANIMCHANNEL_SELOK((sce->flag & SCE_DS_SELECTED)) {
+			if (ANIMCHANNEL_SELOK((sce->flag & SCE_DS_SELECTED))) {
 				/* NOTE: active-status doesn't matter for this! */
 				ANIMCHANNEL_NEW_CHANNEL(sce, ANIMTYPE_SCENE, sce);
 			}
@@ -1995,8 +1997,8 @@ static size_t animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, 
 	/* check that we do indeed have a scene */
 	if ((ads->source == NULL) || (GS(ads->source->name)!=ID_SCE)) {
 		printf("DopeSheet Error: Not scene!\n");
-		if (G.f & G_DEBUG)
-			printf("\tPointer = %p, Name = '%s' \n", (void *)ads->source, (ads->source)?ads->source->name:NULL);
+		if (G.debug & G_DEBUG)
+			printf("\tPointer = %p, Name = '%s'\n", (void *)ads->source, (ads->source)?ads->source->name:NULL);
 		return 0;
 	}
 	
@@ -2043,7 +2045,7 @@ static size_t animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, 
 			}
 			
 			/* check selection and object type filters */
-			if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/) )  {
+			if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/) ) {
 				/* only selected should be shown */
 				continue;
 			}

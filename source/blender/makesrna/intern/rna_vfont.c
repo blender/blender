@@ -42,17 +42,17 @@ void RNA_def_vfont(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "VectorFont", "ID");
+	srna = RNA_def_struct(brna, "VectorFont", "ID");
 	RNA_def_struct_ui_text(srna, "Vector Font", "Vector font for Text objects");
 	RNA_def_struct_sdna(srna, "VFont");
 	RNA_def_struct_ui_icon(srna, ICON_FILE_FONT);
 
-	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "File Path", "");
 
-	prop= RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
 	RNA_def_property_ui_text(prop, "Packed File", "");
 }

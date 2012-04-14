@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_ACTUATOREVENTMANAGER
-#define __KX_ACTUATOREVENTMANAGER
+#ifndef __SCA_ACTUATOREVENTMANAGER_H__
+#define __SCA_ACTUATOREVENTMANAGER_H__
 
 #include "SCA_EventManager.h"
 
@@ -55,5 +55,5 @@ public:
 #endif
 };
 
-#endif //__KX_ACTUATOREVENTMANAGER
+#endif //__SCA_ACTUATOREVENTMANAGER_H__
 

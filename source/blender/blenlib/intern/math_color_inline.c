@@ -31,8 +31,8 @@
 #include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
-#ifndef BLI_MATH_COLOR_INLINE_H
-#define BLI_MATH_COLOR_INLINE_H
+#ifndef __MATH_COLOR_INLINE_C__
+#define __MATH_COLOR_INLINE_C__
 
 /******************************** Color Space ********************************/
 
@@ -79,21 +79,21 @@ MINLINE void linearrgb_to_srgb_uchar4(unsigned char srgb[4], const float linear[
 }
 
 /* predivide versions to work on associated/premultipled alpha. if this should
-   be done or not depends on the background the image will be composited over,
-   ideally you would never do color space conversion on an image with alpha
-   because it is ill defined */
+ * be done or not depends on the background the image will be composited over,
+ * ideally you would never do color space conversion on an image with alpha
+ * because it is ill defined */
 
 MINLINE void srgb_to_linearrgb_predivide_v4(float linear[4], const float srgb[4])
 {
 	float alpha, inv_alpha;
 
-	if(srgb[3] == 1.0f || srgb[3] == 0.0f) {
+	if (srgb[3] == 1.0f || srgb[3] == 0.0f) {
 		alpha = 1.0f;
 		inv_alpha = 1.0f;
 	}
 	else {
 		alpha = srgb[3];
-		inv_alpha = 1.0f/alpha;
+		inv_alpha = 1.0f / alpha;
 	}
 
 	linear[0] = srgb_to_linearrgb(srgb[0] * inv_alpha) * alpha;
@@ -106,13 +106,13 @@ MINLINE void linearrgb_to_srgb_predivide_v4(float srgb[4], const float linear[4]
 {
 	float alpha, inv_alpha;
 
-	if(linear[3] == 1.0f || linear[3] == 0.0f) {
+	if (linear[3] == 1.0f || linear[3] == 0.0f) {
 		alpha = 1.0f;
 		inv_alpha = 1.0f;
 	}
 	else {
 		alpha = linear[3];
-		inv_alpha = 1.0f/alpha;
+		inv_alpha = 1.0f / alpha;
 	}
 
 	srgb[0] = linearrgb_to_srgb(linear[0] * inv_alpha) * alpha;
@@ -128,6 +128,7 @@ extern unsigned short BLI_color_to_srgb_table[0x10000];
 
 MINLINE unsigned short to_srgb_table_lookup(const float f)
 {
+
 	union {
 		float f;
 		unsigned short us[2];
@@ -153,17 +154,17 @@ MINLINE void linearrgb_to_srgb_ushort4_predivide(unsigned short srgb[4], const f
 	float alpha, inv_alpha, t;
 	int i;
 
-	if(linear[3] == 1.0f || linear[3] == 0.0f) {
+	if (linear[3] == 1.0f || linear[3] == 0.0f) {
 		linearrgb_to_srgb_ushort4(srgb, linear);
 		return;
 	}
 
 	alpha = linear[3];
-	inv_alpha = 1.0f/alpha;
+	inv_alpha = 1.0f / alpha;
 
-	for(i=0; i<3; ++i) {
+	for (i = 0; i < 3; ++i) {
 		t = linear[i] * inv_alpha;
-		srgb[i] = (t < 1.0f)? (unsigned short)(to_srgb_table_lookup(t) * alpha) : FTOUSHORT(linearrgb_to_srgb(t) * alpha);
+		srgb[i] = (t < 1.0f) ? (unsigned short) (to_srgb_table_lookup(t) * alpha) : FTOUSHORT(linearrgb_to_srgb(t) * alpha);
 	}
 
 	srgb[3] = FTOUSHORT(linear[3]);
@@ -174,27 +175,44 @@ MINLINE void srgb_to_linearrgb_uchar4(float linear[4], const unsigned char srgb[
 	linear[0] = BLI_color_from_srgb_table[srgb[0]];
 	linear[1] = BLI_color_from_srgb_table[srgb[1]];
 	linear[2] = BLI_color_from_srgb_table[srgb[2]];
-	linear[3] = srgb[3] * (1.0f/255.0f);
+	linear[3] = srgb[3] * (1.0f / 255.0f);
 }
 
 MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned char srgb[4])
 {
-	float alpha, inv_alpha;
+	float fsrgb[4];
 	int i;
 
-	if(srgb[3] == 255 || srgb[3] == 0) {
+	if (srgb[3] == 255 || srgb[3] == 0) {
 		srgb_to_linearrgb_uchar4(linear, srgb);
 		return;
 	}
 
-	alpha = srgb[3] * (1.0f/255.0f);
-	inv_alpha = 1.0f/alpha;
+	for (i = 0; i < 4; i++)
+		fsrgb[i] = srgb[i] * (1.0f / 255.0f);
 
-	for(i=0; i<3; ++i)
-		linear[i] = linearrgb_to_srgb(srgb[i] * inv_alpha) * alpha;
-
-	linear[3] = alpha;
+	srgb_to_linearrgb_predivide_v4(linear, fsrgb);
 }
 
-#endif /* BLI_MATH_COLOR_INLINE_H */
+/* color macros for themes */
+#define rgba_char_args_set_fl(col, r, g, b, a)  rgba_char_args_set(col, r * 255, g * 255, b * 255, a * 255)
 
+MINLINE void rgba_char_args_set(char col[4], const char r, const char g, const char b, const char a)
+{
+	col[0] = r;
+	col[1] = g;
+	col[2] = b;
+	col[3] = a;
+}
+
+MINLINE void rgba_char_args_test_set(char col[4], const char r, const char g, const char b, const char a)
+{
+	if (col[3] == 0) {
+		col[0] = r;
+		col[1] = g;
+		col[2] = b;
+		col[3] = a;
+	}
+}
+
+#endif /* __MATH_COLOR_INLINE_C__ */

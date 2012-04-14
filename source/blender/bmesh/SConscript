@@ -1,0 +1,21 @@
+#!/usr/bin/python
+Import ('env')
+
+cflags=''
+
+sources = env.Glob('intern/*.c')
+sources += env.Glob('operators/*.c')
+sources += env.Glob('tools/*.c')
+
+incs = [
+	'#/intern/guardedalloc',
+	'../blenlib',
+	'../blenloader',
+	'../makesdna',
+	'../blenkernel',
+	'./',
+	'../editors/include',
+	]
+
+defs = []
+env.BlenderLib ( libname = 'bf_bmesh', sources = sources, includes = Split(incs), libtype = ['core','player'], defines=defs, priority=[100, 100], compileflags=cflags )

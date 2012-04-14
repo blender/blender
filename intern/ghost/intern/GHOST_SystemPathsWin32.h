@@ -85,7 +85,7 @@ public:
 	/**
 	 * Add the file to the operating system most recently used files
 	 */
-	void addToSystemRecentFiles(const char* filename) const;
+	void addToSystemRecentFiles(const char *filename) const;
 };
 
 #endif // __GHOST_SYSTEMPATHSWIN32_H__

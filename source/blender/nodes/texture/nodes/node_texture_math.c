@@ -51,7 +51,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	float in0 = tex_input_value(in[0], p, thread);
 	float in1 = tex_input_value(in[1], p, thread);
 	
-	switch(node->custom1){ 
+	switch(node->custom1) {
 	
 	case 0: /* Add */
 		*out= in0 + in1; 
@@ -64,7 +64,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		break; 
 	case 3: /* Divide */
 		{
-			if(in1==0)	/* We don't want to divide by zero. */
+			if (in1==0)	/* We don't want to divide by zero. */
 				*out= 0.0;
 			else
 				*out= in0 / in1;
@@ -88,7 +88,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	case 7: /* Arc-Sine */
 		{
 			/* Can't do the impossible... */
-			if( in0 <= 1 && in0 >= -1 )
+			if ( in0 <= 1 && in0 >= -1 )
 				*out= asin(in0);
 			else
 				*out= 0.0;
@@ -97,7 +97,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	case 8: /* Arc-Cosine */
 		{
 			/* Can't do the impossible... */
-			if( in0 <= 1 && in0 >= -1 )
+			if ( in0 <= 1 && in0 >= -1 )
 				*out= acos(in0);
 			else
 				*out= 0.0;
@@ -111,13 +111,15 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	case 10: /* Power */
 		{
 			/* Only raise negative numbers by full integers */
-			if( in0 >= 0 ) {
+			if ( in0 >= 0 ) {
 				out[0]= pow(in0, in1);
-			} else {
+			}
+			else {
 				float y_mod_1 = fmod(in1, 1);
 				if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
 					*out = pow(in0, floor(in1 + 0.5f));
-				} else {
+				}
+				else {
 					*out = 0.0;
 				}
 			}
@@ -126,7 +128,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	case 11: /* Logarithm */
 		{
 			/* Don't want any imaginary numbers... */
-			if( in0 > 0  && in1 > 0 )
+			if ( in0 > 0  && in1 > 0 )
 				*out= log(in0) / log(in1);
 			else
 				*out= 0.0;
@@ -134,7 +136,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		break;
 	case 12: /* Minimum */
 		{
-			if( in0 < in1 )
+			if ( in0 < in1 )
 				*out= in0;
 			else
 				*out= in1;
@@ -142,7 +144,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		break;
 	case 13: /* Maximum */
 		{
-			if( in0 > in1 )
+			if ( in0 > in1 )
 				*out= in0;
 			else
 				*out= in1;
@@ -156,7 +158,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		
 	case 15: /* Less Than */
 		{
-			if( in0 < in1 )
+			if ( in0 < in1 )
 				*out= 1.0f;
 			else
 				*out= 0.0f;
@@ -165,7 +167,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		
 	case 16: /* Greater Than */
 		{
-			if( in0 > in1 )
+			if ( in0 > in1 )
 				*out= 1.0f;
 			else
 				*out= 0.0f;

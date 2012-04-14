@@ -151,7 +151,7 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void 
 }
 
 /* this function is used to pre-filter the object before casting the ray on them.
-   This is useful for "X-Ray" option when we want to see "through" unwanted object.
+ * This is useful for "X-Ray" option when we want to see "through" unwanted object.
  */
 bool KX_RaySensor::NeedRayCast(KX_ClientObjectInfo* client)
 {

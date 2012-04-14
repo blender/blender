@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-from .properties_paint_common import UnifiedPaintPanel
+from bl_ui.properties_paint_common import UnifiedPaintPanel
 
 
 class ImagePaintPanel(UnifiedPaintPanel):
@@ -97,7 +97,7 @@ class IMAGE_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("uv.select_all")
+        layout.operator("uv.select_all").action = 'TOGGLE'
         layout.operator("uv.select_all", text="Inverse").action = 'INVERT'
         layout.operator("uv.unlink_selected")
 

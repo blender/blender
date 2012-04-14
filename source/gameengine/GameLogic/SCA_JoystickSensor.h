@@ -65,7 +65,7 @@ class SCA_JoystickSensor :public SCA_ISensor
 	 */
 	int 	m_hatf;
 	/**
-	 * The threshold value the axis acts opon
+	 * The threshold value the axis acts upon
 	 */
 	int 	m_precision;
 	/**

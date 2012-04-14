@@ -30,8 +30,8 @@
  * Please look here for revision history.
  */
 
-#ifndef __KX_SCA_AddObjectActuator
-#define __KX_SCA_AddObjectActuator
+#ifndef __KX_SCA_ADDOBJECTACTUATOR_H__
+#define __KX_SCA_ADDOBJECTACTUATOR_H__
 
 /* Actuator tree */
 #include "SCA_IActuator.h"
@@ -93,7 +93,7 @@ public:
 
 		CValue* 
 	GetReplica(
-	) ;
+	);
 
 	virtual void 
 	ProcessReplica();
@@ -114,7 +114,7 @@ public:
 
 		SCA_IObject*	
 	GetLastCreatedObject(
-	) const ;
+	) const;
 
 	void	InstantAddObject();
 

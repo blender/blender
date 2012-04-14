@@ -33,7 +33,7 @@
 
 
 /**
-* add 1 pixel to into filtered three lines 
+ * add 1 pixel to into filtered three lines
  * (float vecs to float vec)
  */
 void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w);
@@ -62,12 +62,4 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac);
  */
 void addalphaAddFloat(float *dest, float *source);
 
-/**
- * Blend bron under doel, while doing gamma correction
- */
-void addalphaUnderGammaFloat(float *doel, float *bron);
-
-
-
 #endif /* __PIXELBLENDING_H__ */
-

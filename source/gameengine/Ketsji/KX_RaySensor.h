@@ -30,8 +30,8 @@
  *  \brief Cast a ray and feel for objects
  */
 
-#ifndef __KX_RAYSENSOR_H
-#define __KX_RAYSENSOR_H
+#ifndef __KX_RAYSENSOR_H__
+#define __KX_RAYSENSOR_H__
 
 #include "SCA_ISensor.h"
 #include "MT_Point3.h"
@@ -100,5 +100,5 @@ public:
 
 };
 
-#endif //__KX_RAYSENSOR_H
+#endif //__KX_RAYSENSOR_H__
 

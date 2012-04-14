@@ -29,8 +29,8 @@
  *  \ingroup bgerastoglfilters
  */
 
-#ifndef __RAS_SHARPEN2DFILTER
-#define __RAS_SHARPEN2DFILTER
+#ifndef __RAS_SHARPEN2DFILTER_H__
+#define __RAS_SHARPEN2DFILTER_H__
 
 const char * SharpenFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;

@@ -66,6 +66,8 @@ void RNA_def_struct_ui_icon(StructRNA *srna, int icon);
 void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *ext);
 void RNA_struct_free(BlenderRNA *brna, StructRNA *srna);
 
+void RNA_def_struct_translation_context(StructRNA *srna, const char *context);
+
 /* Compact Property Definitions */
 
 typedef void StructOrFunctionRNA;
@@ -100,10 +102,10 @@ PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont, const char *ident
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_array(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value,
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
-	/*
-PropertyRNA *RNA_def_float_dynamic_array(StructOrFunctionRNA *cont, const char *identifier, float hardmin, float hardmax,
-	const char *ui_name, const char *ui_description, float softmin, float softmax, unsigned int dimension, unsigned short dim_size[]);
-	*/
+
+//PropertyRNA *RNA_def_float_dynamic_array(StructOrFunctionRNA *cont, const char *identifier, float hardmin, float hardmax,
+//	const char *ui_name, const char *ui_description, float softmin, float softmax, unsigned int dimension, unsigned short dim_size[]);
+
 PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax,
 	const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_factor(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax,

@@ -73,19 +73,19 @@ static void freeData(ModifierData *md)
 	
 	if (collmd) 
 	{
-		if(collmd->bvhtree)
+		if (collmd->bvhtree)
 			BLI_bvhtree_free(collmd->bvhtree);
-		if(collmd->x)
+		if (collmd->x)
 			MEM_freeN(collmd->x);
-		if(collmd->xnew)
+		if (collmd->xnew)
 			MEM_freeN(collmd->xnew);
-		if(collmd->current_x)
+		if (collmd->current_x)
 			MEM_freeN(collmd->current_x);
-		if(collmd->current_xnew)
+		if (collmd->current_xnew)
 			MEM_freeN(collmd->current_xnew);
-		if(collmd->current_v)
+		if (collmd->current_v)
 			MEM_freeN(collmd->current_v);
-		if(collmd->mfaces)
+		if (collmd->mfaces)
 			MEM_freeN(collmd->mfaces);
 		
 		collmd->x = NULL;
@@ -117,16 +117,16 @@ static void deformVerts(ModifierData *md, Object *ob,
 	MVert *tempVert = NULL;
 	
 	/* if possible use/create DerivedMesh */
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+	if (derivedData) dm = CDDM_copy(derivedData);
+	else if (ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 	
-	if(!ob->pd)
+	if (!ob->pd)
 	{
 		printf("CollisionModifier deformVerts: Should not happen!\n");
 		return;
 	}
 	
-	if(dm)
+	if (dm)
 	{
 		float current_time = 0;
 		unsigned int numverts = 0;
@@ -136,20 +136,20 @@ static void deformVerts(ModifierData *md, Object *ob,
 		
 		current_time = BKE_curframe(md->scene);
 		
-		if(G.rt > 0)
+		if (G.rt > 0)
 			printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
 		
 		numverts = dm->getNumVerts ( dm );
 		
-		if((current_time > collmd->time_xnew)|| (BKE_ptcache_get_continue_physics()))
+		if ((current_time > collmd->time_xnew)|| (BKE_ptcache_get_continue_physics()))
 		{
 			unsigned int i;
 
 			// check if mesh has changed
-			if(collmd->x && (numverts != collmd->numverts))
+			if (collmd->x && (numverts != collmd->numverts))
 				freeData((ModifierData *)collmd);
 			
-			if(collmd->time_xnew == -1000) // first time
+			if (collmd->time_xnew == -1000) // first time
 			{
 				collmd->x = dm->dupVertArray(dm); // frame start position
 				
@@ -166,16 +166,17 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 				collmd->numverts = numverts;
 				
-				collmd->mfaces = dm->dupFaceArray(dm);
-				collmd->numfaces = dm->getNumFaces(dm);
+				DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
+				collmd->mfaces = dm->dupTessFaceArray(dm);
+				collmd->numfaces = dm->getNumTessFaces(dm);
 				
 				// create bounding box hierarchy
 				collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
 				
 				collmd->time_x = collmd->time_xnew = current_time;
 			}
-			else if(numverts == collmd->numverts)
-			{
+			else if (numverts == collmd->numverts) {
 				// put positions to old positions
 				tempVert = collmd->x;
 				collmd->x = collmd->xnew;
@@ -184,8 +185,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				
 				memcpy(collmd->xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
 				
-				for ( i = 0; i < numverts; i++ )
-				{
+				for (i = 0; i < numverts; i++) {
 					// we save global positions
 					mul_m4_v3( ob->obmat, collmd->xnew[i].co );
 				}
@@ -194,10 +194,8 @@ static void deformVerts(ModifierData *md, Object *ob,
 				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
 				
 				/* check if GUI setting has changed for bvh */
-				if(collmd->bvhtree) 
-				{
-					if(ob->pd->pdef_sboft != BLI_bvhtree_getepsilon(collmd->bvhtree))
-					{
+				if (collmd->bvhtree) {
+					if (ob->pd->pdef_sboft != BLI_bvhtree_getepsilon(collmd->bvhtree)) {
 						BLI_bvhtree_free(collmd->bvhtree);
 						collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 					}
@@ -205,38 +203,32 @@ static void deformVerts(ModifierData *md, Object *ob,
 				}
 				
 				/* happens on file load (ONLY when i decomment changes in readfile.c) */
-				if(!collmd->bvhtree)
-				{
+				if (!collmd->bvhtree) {
 					collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 				}
-				else
-				{
+				else {
 					// recalc static bounding boxes
 					bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
 				}
 				
 				collmd->time_xnew = current_time;
 			}
-			else if(numverts != collmd->numverts)
-			{
+			else if (numverts != collmd->numverts) {
 				freeData((ModifierData *)collmd);
 			}
 			
 		}
-		else if(current_time < collmd->time_xnew)
-		{	
+		else if (current_time < collmd->time_xnew) {
 			freeData((ModifierData *)collmd);
 		}
-		else
-		{
-			if(numverts != collmd->numverts)
-			{
+		else {
+			if (numverts != collmd->numverts) {
 				freeData((ModifierData *)collmd);
 			}
 		}
 	}
 	
-	if(dm)
+	if (dm)
 		dm->release(dm);
 }
 

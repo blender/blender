@@ -83,7 +83,7 @@ EdgeHash *BLI_edgehash_new(void)
 	eh->nbuckets = _ehash_hashsizes[eh->cursize];
 	
 	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets 2");
-	eh->epool = BLI_mempool_create(sizeof(EdgeEntry), 512, 512, TRUE, FALSE);
+	eh->epool = BLI_mempool_create(sizeof(EdgeEntry), 512, 512, BLI_MEMPOOL_SYSMALLOC);
 
 	return eh;
 }
@@ -93,6 +93,9 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 {
 	unsigned int hash;
 	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
+
+	/* this helps to track down errors with bad edge data */
+	BLI_assert(v0 != v1);
 
 	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
 

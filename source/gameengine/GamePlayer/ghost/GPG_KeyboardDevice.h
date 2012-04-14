@@ -30,8 +30,8 @@
  *  \brief GHOST Blender Player keyboard device.
  */
 
-#ifndef _GPG_KEYBOARDDEVICE_H_
-#define _GPG_KEYBOARDDEVICE_H_
+#ifndef __GPG_KEYBOARDDEVICE_H__
+#define __GPG_KEYBOARDDEVICE_H__
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -44,7 +44,7 @@
  * GHOST implementation of GPC_KeyboardDevice.
  * The contructor fills the keyboard code translation map.
  * Base class GPC_KeyboardDevice does the rest.
- * @see SCA_IInputDevice
+ * \see SCA_IInputDevice
  */
 class GPG_KeyboardDevice : public GPC_KeyboardDevice
 {
@@ -53,5 +53,5 @@ public:
 	virtual ~GPG_KeyboardDevice(void);
 };
 
-#endif //_GPG_KEYBOARDDEVICE_H_
+#endif //__GPG_KEYBOARDDEVICE_H__
 

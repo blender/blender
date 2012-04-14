@@ -66,6 +66,8 @@ char *BKE_reports_string(ReportList *reports, ReportType level);
 void BKE_reports_print(ReportList *reports, ReportType level);
 
 Report *BKE_reports_last_displayable(ReportList *reports);
+
+int BKE_reports_contain(ReportList *reports, ReportType level);
 	
 #ifdef __cplusplus
 }

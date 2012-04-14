@@ -18,8 +18,8 @@ subject to the following restrictions:
  */
 
 
-#ifndef BULLET2_PHYSICSCONTROLLER_H
-#define BULLET2_PHYSICSCONTROLLER_H
+#ifndef __CCDPHYSICSCONTROLLER_H__
+#define __CCDPHYSICSCONTROLLER_H__
 
 #include <vector>
 #include <map>
@@ -178,7 +178,7 @@ public:
 													// original mesh that correspond to shape triangles.
 													// only set for concave mesh shape.
 	
-	std::vector<int>		m_triFaceArray;	// Contains an array of triplets of face indicies
+	std::vector<int>		m_triFaceArray;	// Contains an array of triplets of face indices
 											// quads turn into 2 tris
 
 	std::vector<UVco>		m_triFaceUVcoArray;	// Contains an array of pair of UV coordinate for each vertex of faces
@@ -525,7 +525,7 @@ protected:
 			return m_cci.m_collisionFilterMask;
 		}
 
-		virtual void	calcXform() {} ;
+		virtual void calcXform() {}
 		virtual void SetMargin(float margin) 
 		{
 			if (m_collisionShape)
@@ -656,4 +656,4 @@ public:
 };
 
 
-#endif //BULLET2_PHYSICSCONTROLLER_H
+#endif //__CCDPHYSICSCONTROLLER_H__

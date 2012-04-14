@@ -29,8 +29,8 @@
  *  \ingroup player
  */
 
-#ifndef __GPC_KEYBOARDDEVICE_H
-#define __GPC_KEYBOARDDEVICE_H
+#ifndef __GPC_KEYBOARDDEVICE_H__
+#define __GPC_KEYBOARDDEVICE_H__
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -45,7 +45,7 @@
  * System independent implementation of SCA_IInputDevice.
  * System dependent keyboard devices need only to inherit this class
  * and fill the m_reverseKeyTranslateTable key translation map.
- * @see SCA_IInputDevice
+ * \see SCA_IInputDevice
  */
 
 class GPC_KeyboardDevice : public SCA_IInputDevice

@@ -57,9 +57,10 @@ static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **
 	int yi = (int)fabs(floor(0.00001f + y / sz));
 	int zi = (int)fabs(floor(0.00001f + z / sz));
 	
-	if( (xi % 2 == yi % 2) == (zi % 2) ) {
+	if ( (xi % 2 == yi % 2) == (zi % 2) ) {
 		tex_input_rgba(out, in[0], p, thread);
-	} else {
+	}
+	else {
 		tex_input_rgba(out, in[1], p, thread);
 	} 
 }

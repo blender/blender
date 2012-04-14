@@ -32,8 +32,8 @@
  */
 
 
-#ifndef __KX_MOUSEMANAGER
-#define __KX_MOUSEMANAGER
+#ifndef __SCA_MOUSEMANAGER_H__
+#define __SCA_MOUSEMANAGER_H__
 
 
 #include "SCA_EventManager.h"
@@ -60,7 +60,7 @@ public:
 
 	/**
 	 * Checks whether a mouse button is depressed. Ignores requests on non-
-	 * mouse related evenst. Can also flag mouse movement.
+	 * mouse related events. Can also flag mouse movement.
 	 */
 	bool IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode);
 	virtual void 	NextFrame();	
@@ -74,5 +74,5 @@ public:
 #endif
 };
 
-#endif //__KX_MOUSEMANAGER
+#endif //__SCA_MOUSEMANAGER_H__
 

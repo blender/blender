@@ -124,7 +124,7 @@ struct dirent {
 
 typedef struct _DIR {
 	HANDLE handle;
-	WIN32_FIND_DATA data;
+	WIN32_FIND_DATAW data;
 	char path[MAX_PATH];
 	long dd_loc;
 	long dd_size;
@@ -140,7 +140,7 @@ struct dirent *readdir(DIR *dp);
 int closedir (DIR *dp);
 void get_default_root(char *root);
 int check_file_chars(char *filename);
-char *dirname(char *path);
+const char *dirname(char *path);
 
 int BLI_getInstallationDir(char *str);
 

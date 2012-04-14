@@ -35,33 +35,58 @@
 #ifndef __MESH_INTERN_H__
 #define __MESH_INTERN_H__
 
-struct bContext;
-struct wmOperatorType;
-struct wmOperator;
+struct BMEdge;
+struct BMEditMesh;
+struct BMFace;
+struct BMHeader;
+struct BMOperator;
+struct BMesh;
+struct EnumPropertyItem;
 struct ViewContext;
+struct bContext;
+struct wmKeyConfig;
+struct wmKeyMap;
+struct wmOperator;
+struct wmOperatorType;
+
+/* ******************** bmeshutils.c */
+
+/*
+ * ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
+ * BMEdit module is for code shared with blenkernel that concerns
+ * the BMEditMesh structure.
+ */
+
+/*calls a bmesh op, reporting errors to the user, etc*/
+int EDBM_op_callf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
+
+int EDBM_op_call_and_selectf(struct BMEditMesh *em, struct wmOperator *op,
+                             const char *selectslot, const char *fmt, ...);
+
+/* same as above, but doesn't report errors.*/
+int EDBM_op_call_silentf(struct BMEditMesh *em, const char *fmt, ...);
+
+/* these next two functions are the split version of EDBM_op_callf, so you can
+ * do stuff with a bmesh operator, after initializing it but before executing
+ * it.
+ *
+ * execute the operator with BM_Exec_Op */
+int EDBM_op_init(struct BMEditMesh *em, struct BMOperator *bmop,
+                 struct wmOperator *op, const char *fmt, ...);
+/*cleans up after a bmesh operator*/
+int EDBM_op_finish(struct BMEditMesh *em, struct BMOperator *bmop,
+                   struct wmOperator *op, const int report);
+
+void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
+void EDBM_editselection_store(struct BMEditMesh *em, struct BMHeader *ele);
+void EDBM_editselection_validate(struct BMEditMesh *em);
+void EDBM_editselection_remove(struct BMEditMesh *em, struct BMHeader *ele);
+void EDBM_stats_update(struct BMEditMesh *em);
+
+/* TODO, move to math_geometry.c */
+float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3]);
 
 /* ******************** editface.c */
-
-int edgetag_context_check(Scene *scene, EditEdge *eed);
-void edgetag_context_set(Scene *scene, EditEdge *eed, int val);
-int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge *target);
-
-/* ******************* editmesh.c */
-
-extern void free_editvert(EditMesh *em, EditVert *eve);
-extern void free_editedge(EditMesh *em, EditEdge *eed);
-extern void free_editface(EditMesh *em, EditFace *efa);
-
-extern void free_vertlist(EditMesh *em, ListBase *edve);
-extern void free_edgelist(EditMesh *em, ListBase *lb);
-extern void free_facelist(EditMesh *em, ListBase *lb);
-
-extern void remedge(EditMesh *em, EditEdge *eed);
-
-extern struct EditVert *addvertlist(EditMesh *em, float *vec, struct EditVert *example);
-extern struct EditEdge *addedgelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditEdge *example);
-extern struct EditFace *addfacelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
-extern struct EditEdge *findedgelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2);
 
 void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);
 
@@ -82,66 +107,18 @@ void MESH_OT_edge_face_add(struct wmOperatorType *ot);
 void MESH_OT_dupli_extrude_cursor(struct wmOperatorType *ot);
 void MESH_OT_duplicate(struct wmOperatorType *ot);
 
-void MESH_OT_fgon_make(struct wmOperatorType *ot);
-void MESH_OT_fgon_clear(struct wmOperatorType *ot);
-
-/* ******************* editmesh_lib.c */
-void EM_stats_update(EditMesh *em);
-
-extern void EM_fgon_flags(EditMesh *em);
-extern void EM_hide_reset(EditMesh *em);
-
-extern int faceselectedOR(EditFace *efa, int flag);
-extern int faceselectedAND(EditFace *efa, int flag);
-
-void EM_remove_selection(EditMesh *em, void *data, int type);
-void EM_clear_flag_all(EditMesh *em, int flag);
-void EM_set_flag_all(EditMesh *em, int flag);
-void EM_set_flag_all_selectmode(EditMesh *em, int flag);
-
-void EM_data_interp_from_verts(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *eve, float fac);
-void EM_data_interp_from_faces(EditMesh *em, EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4);
-
-int EM_nvertices_selected(EditMesh *em);
-int EM_nedges_selected(EditMesh *em);
-int EM_nfaces_selected(EditMesh *em);
-
-float EM_face_perimeter(EditFace *efa);
-
-void EM_store_selection(EditMesh *em, void *data, int type);
-
-extern EditFace *exist_face(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4);
-extern void flipface(EditMesh *em, EditFace *efa); // flips for normal direction
-extern int compareface(EditFace *vl1, EditFace *vl2);
-
-/* flag for selection bits, *nor will be filled with normal for extrusion constraint */
-/* return value defines if such normal was set */
-extern short extrudeflag_face_indiv(EditMesh *em, short flag, float *nor);
-extern short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor);
-extern short extrudeflag_edges_indiv(EditMesh *em, short flag, float *nor);
-extern short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int all);
-extern short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor, int all);
-
-extern void adduplicateflag(EditMesh *em, int flag);
-extern void delfaceflag(EditMesh *em, int flag);
-
-extern void rotateflag(EditMesh *em, short flag, float *cent, float rotmat[][3]);
-extern void translateflag(EditMesh *em, short flag, float *vec);
-
-extern int convex(float *v1, float *v2, float *v3, float *v4);
-
-extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
-										   struct EditFace *efa2, int i1, int i2, int i3, int i4);
-
 extern int EM_view3d_poll(struct bContext *C);
 
-/* ******************* editmesh_loop.c */
+struct wmKeyMap* knifetool_modal_keymap(struct wmKeyConfig *keyconf);
+
+/* ******************* knifetool.c */
 
 void MESH_OT_knife_cut(struct wmOperatorType *ot);
 
-/* ******************* editmesh_mods.c */
+/* ******************* bmesh_select.c */
 void MESH_OT_loop_select(struct wmOperatorType *ot);
 void MESH_OT_select_all(struct wmOperatorType *ot);
+void MESH_OT_select_interior_faces(struct wmOperatorType *ot);
 void MESH_OT_select_more(struct wmOperatorType *ot);
 void MESH_OT_select_less(struct wmOperatorType *ot);
 void MESH_OT_select_non_manifold(struct wmOperatorType *ot);
@@ -150,6 +127,7 @@ void MESH_OT_select_linked_pick(struct wmOperatorType *ot);
 void MESH_OT_hide(struct wmOperatorType *ot);
 void MESH_OT_reveal(struct wmOperatorType *ot);
 void MESH_OT_select_by_number_vertices(struct wmOperatorType *ot);
+void MESH_OT_select_loose_verts(struct wmOperatorType *ot);
 void MESH_OT_select_mirror(struct wmOperatorType *ot);
 void MESH_OT_normals_make_consistent(struct wmOperatorType *ot);
 void MESH_OT_faces_select_linked_flat(struct wmOperatorType *ot);
@@ -165,52 +143,15 @@ void MESH_OT_noise(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
 void MESH_OT_solidify(struct wmOperatorType *ot);
 void MESH_OT_select_nth(struct wmOperatorType *ot);
+void MESH_OT_select_next_loop(struct wmOperatorType *ot);
 
-
-extern EditEdge *findnearestedge(struct ViewContext *vc, int *dist);
-void editmesh_select_by_material(EditMesh *em, int index);
-void EM_recalc_normal_direction(EditMesh *em, int inside, int select);	/* makes faces righthand turning */
-void EM_select_more(EditMesh *em);
-void selectconnected_mesh_all(EditMesh *em);
-void faceloop_select(EditMesh *em, EditEdge *startedge, int select);
-
-/**
- * findnearestvert
- * 
- * dist (in/out): minimal distance to the nearest and at the end, actual distance
- * sel: selection bias
- * 		if SELECT, selected vertice are given a 5 pixel bias to make them farter than unselect verts
- * 		if 0, unselected vertice are given the bias
- * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
- */
-extern EditVert *findnearestvert(struct ViewContext *vc, int *dist, short sel, short strict);
-
-
-/* ******************* editmesh_tools.c */
-
-#define SUBDIV_SELECT_ORIG      0
-#define SUBDIV_SELECT_INNER     1
-#define SUBDIV_SELECT_INNER_SEL 2
-#define SUBDIV_SELECT_LOOPCUT 3
-
-/* edge subdivide corner cut types */
-#define SUBDIV_CORNER_PATH		0
-#define SUBDIV_CORNER_INNERVERT	1
-#define SUBDIV_CORNER_FAN		2
-
-extern EnumPropertyItem corner_type_items[];
-
-void join_triangles(EditMesh *em);
-int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
-void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beautify, int numcuts, int corner_pattern, int seltype);
-int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
+extern struct EnumPropertyItem *corner_type_items;
 
 void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);
 void MESH_OT_remove_doubles(struct wmOperatorType *ot);
 void MESH_OT_vertices_randomize(struct wmOperatorType *ot);
 void MESH_OT_vertices_sort(struct wmOperatorType *ot);
-void MESH_OT_extrude(struct wmOperatorType *ot);
 void MESH_OT_spin(struct wmOperatorType *ot);
 void MESH_OT_screw(struct wmOperatorType *ot);
 
@@ -218,7 +159,8 @@ void MESH_OT_fill(struct wmOperatorType *ot);
 void MESH_OT_beautify_fill(struct wmOperatorType *ot);
 void MESH_OT_quads_convert_to_tris(struct wmOperatorType *ot);
 void MESH_OT_tris_convert_to_quads(struct wmOperatorType *ot);
-void MESH_OT_edge_flip(struct wmOperatorType *ot);
+void MESH_OT_dissolve(struct wmOperatorType *ot);
+void MESH_OT_dissolve_limited(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_smooth(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_flat(struct wmOperatorType *ot);
 void MESH_OT_split(struct wmOperatorType *ot);
@@ -230,11 +172,16 @@ void MESH_OT_region_to_loop(struct wmOperatorType *ot);
 void MESH_OT_select_axis(struct wmOperatorType *ot);
 
 void MESH_OT_uvs_rotate(struct wmOperatorType *ot);
-void MESH_OT_uvs_mirror(struct wmOperatorType *ot);
+//void MESH_OT_uvs_mirror(struct wmOperatorType *ot);
+void MESH_OT_uvs_reverse(struct wmOperatorType *ot);
 void MESH_OT_colors_rotate(struct wmOperatorType *ot);
-void MESH_OT_colors_mirror(struct wmOperatorType *ot);
+//void MESH_OT_colors_mirror(struct wmOperatorType *ot);
+
+void MESH_OT_colors_reverse(struct wmOperatorType *ot);
 
 void MESH_OT_delete(struct wmOperatorType *ot);
+void MESH_OT_edge_collapse(struct wmOperatorType *ot);
+void MESH_OT_edge_collapse_loop(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);
 
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
@@ -251,8 +198,23 @@ void MESH_OT_sticky_add(struct wmOperatorType *ot);
 void MESH_OT_sticky_remove(struct wmOperatorType *ot);
 void MESH_OT_drop_named_image(struct wmOperatorType *ot);
 
+/* ************* bmesh_tools.c ***********/
+void MESH_OT_vert_connect(struct wmOperatorType *ot);
+void MESH_OT_edge_split(struct wmOperatorType *ot);
+void MESH_OT_extrude_region(struct wmOperatorType *ot);
+void MESH_OT_extrude_verts_indiv(struct wmOperatorType *ot);
+void MESH_OT_extrude_edges_indiv(struct wmOperatorType *ot);
+void MESH_OT_extrude_faces_indiv(struct wmOperatorType *ot);
+
 void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_loopcut(struct wmOperatorType *ot);
+
+void MESH_OT_knifetool(struct wmOperatorType *ot);
+void MESH_OT_bevel(struct wmOperatorType *ot);
+
+void MESH_OT_bridge_edge_loops(struct wmOperatorType *ot);
+void MESH_OT_inset(struct wmOperatorType *ot);
+void MESH_OT_vert_slide(struct wmOperatorType *ot);
 
 /* ******************* mesh_navmesh.c */
 void MESH_OT_navmesh_make(struct wmOperatorType *ot);

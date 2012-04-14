@@ -1,4 +1,4 @@
-// Copyright (c) 2006, Google Inc.
+// Copyright (c) 1999, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // ---
-// Author: Ray Sidney
+//
 // Revamped and reorganized by Craig Silverstein
 //
 // This file contains code for handling the 'reporting' flags.  These
@@ -40,7 +40,7 @@
 // HandleCommandLineHelpFlags().  (Well, actually, ShowUsageWithFlags(),
 // ShowUsageWithFlagsRestrict(), and DescribeOneFlag() can be called
 // externally too, but there's little need for it.)  These are all
-// declared in the main commandlineflags.h header file.
+// declared in the main gflags.h header file.
 //
 // HandleCommandLineHelpFlags() will check what 'reporting' flags have
 // been defined, if any -- the "help" part of the function name is a
@@ -55,14 +55,15 @@
 #include <assert.h>
 #include <string>
 #include <vector>
-#include "gflags.h"
-#include "gflags_completions.h"
+#include "gflags/gflags.h"
+#include "gflags/gflags_completions.h"
+#include "util.h"
 
 #ifndef PATH_SEPARATOR
 #define PATH_SEPARATOR  '/'
 #endif
 
-// The 'reporting' flags.  They all call exit().
+// The 'reporting' flags.  They all call gflags_exitfunc().
 DEFINE_bool(help, false,
             "show help on all flags [tip: all flags can have two dashes]");
 DEFINE_bool(helpfull, false,
@@ -85,11 +86,12 @@ _START_GOOGLE_NAMESPACE_
 using std::string;
 using std::vector;
 
+
 // --------------------------------------------------------------------
 // DescribeOneFlag()
 // DescribeOneFlagInXML()
 //    Routines that pretty-print info about a flag.  These use
-//    a CommandLineFlagInfo, which is the way the commandlineflags
+//    a CommandLineFlagInfo, which is the way the gflags
 //    API exposes static info about a flag.
 // --------------------------------------------------------------------
 
@@ -114,17 +116,19 @@ static string PrintStringFlagsWithQuotes(const CommandLineFlagInfo& flag,
   const char* c_string = (current ? flag.current_value.c_str() :
                           flag.default_value.c_str());
   if (strcmp(flag.type.c_str(), "string") == 0) {  // add quotes for strings
-    return text + ": \"" + c_string + "\"";
+    return StringPrintf("%s: \"%s\"", text.c_str(), c_string);
   } else {
-    return text + ": " + c_string;
+    return StringPrintf("%s: %s", text.c_str(), c_string);
   }
 }
 
 // Create a descriptive string for a flag.
 // Goes to some trouble to make pretty line breaks.
 string DescribeOneFlag(const CommandLineFlagInfo& flag) {
-  string main_part = (string("    -") + flag.name +
-                      " (" + flag.description + ')');
+  string main_part;
+  SStringPrintf(&main_part, "    -%s (%s)",
+                flag.name.c_str(),
+                flag.description.c_str());
   const char* c_string = main_part.c_str();
   int chars_left = static_cast<int>(main_part.length());
   string final_string = "";
@@ -164,7 +168,7 @@ string DescribeOneFlag(const CommandLineFlagInfo& flag) {
     }
     if (*c_string == '\0')
       break;
-    final_string += "\n      ";
+    StringAppendF(&final_string, "\n      ");
     chars_in_line = 6;
   }
 
@@ -173,7 +177,7 @@ string DescribeOneFlag(const CommandLineFlagInfo& flag) {
   // The listed default value will be the actual default from the flag
   // definition in the originating source file, unless the value has
   // subsequently been modified using SetCommandLineOptionWithMode() with mode
-  // SET_FLAGS_DEFAULT, or by setting FLAGS_foo = bar before initializing.
+  // SET_FLAGS_DEFAULT, or by setting FLAGS_foo = bar before ParseCommandLineFlags().
   AddString(PrintStringFlagsWithQuotes(flag, "default", false), &final_string,
             &chars_in_line);
   if (!flag.is_default) {
@@ -181,7 +185,7 @@ string DescribeOneFlag(const CommandLineFlagInfo& flag) {
               &final_string, &chars_in_line);
   }
 
-  final_string += '\n';
+  StringAppendF(&final_string, "\n");
   return final_string;
 }
 
@@ -196,14 +200,9 @@ static string XMLText(const string& txt) {
 }
 
 static void AddXMLTag(string* r, const char* tag, const string& txt) {
-  *r += ('<');
-  *r += (tag);
-  *r += ('>');
-  *r += (XMLText(txt));
-  *r += ("</");
-  *r += (tag);
-  *r += ('>');
+  StringAppendF(r, "<%s>%s</%s>", tag, XMLText(txt).c_str(), tag);
 }
+
 
 static string DescribeOneFlagInXML(const CommandLineFlagInfo& flag) {
   // The file and flagname could have been attributes, but default
@@ -265,9 +264,9 @@ static bool FileMatchesSubstring(const string& filename,
 
 // Show help for every filename which matches any of the target substrings.
 // If substrings is empty, shows help for every file. If a flag's help message
-// has been stripped (e.g. by adding '#define STRIP_FLAG_HELP 1' before
-// including gflags/gflags.h), then this flag will not be displayed by
-// '--help' and its variants.
+// has been stripped (e.g. by adding '#define STRIP_FLAG_HELP 1'
+// before including gflags/gflags.h), then this flag will not be displayed
+// by '--help' and its variants.
 static void ShowUsageWithFlagsMatching(const char *argv0,
                                        const vector<string> &substrings) {
   fprintf(stdout, "%s: %s\n", Basename(argv0), ProgramUsage());
@@ -347,10 +346,13 @@ static void ShowXMLOfFlags(const char *prog_name) {
 // --------------------------------------------------------------------
 
 static void ShowVersion() {
-  fprintf(stdout, "%s\n", ProgramInvocationShortName());
-  // TODO: add other stuff, like a timestamp, who built it, what
-  //       target they built, etc.
-
+  const char* version_string = VersionString();
+  if (version_string && *version_string) {
+    fprintf(stdout, "%s version %s\n",
+            ProgramInvocationShortName(), version_string);
+  } else {
+    fprintf(stdout, "%s\n", ProgramInvocationShortName());
+  }
 # if !defined(NDEBUG)
   fprintf(stdout, "Debug build (NDEBUG not #defined)\n");
 # endif
@@ -375,7 +377,6 @@ static void AppendPrognameStrings(vector<string>* substrings,
 
 void HandleCommandLineHelpFlags() {
   const char* progname = ProgramInvocationShortName();
-  extern void (*commandlineflags_exitfunc)(int);   // in gflags.cc
 
   HandleCommandLineCompletions();
 
@@ -386,21 +387,21 @@ void HandleCommandLineHelpFlags() {
     // show only flags related to this binary:
     // E.g. for fileutil.cc, want flags containing   ... "/fileutil." cc
     ShowUsageWithFlagsMatching(progname, substrings);
-    commandlineflags_exitfunc(1);   // almost certainly exit()
+    gflags_exitfunc(1);
 
   } else if (FLAGS_help || FLAGS_helpfull) {
     // show all options
     ShowUsageWithFlagsRestrict(progname, "");   // empty restrict
-    commandlineflags_exitfunc(1);
+    gflags_exitfunc(1);
 
   } else if (!FLAGS_helpon.empty()) {
     string restrict = "/" + FLAGS_helpon + ".";
     ShowUsageWithFlagsRestrict(progname, restrict.c_str());
-    commandlineflags_exitfunc(1);
+    gflags_exitfunc(1);
 
   } else if (!FLAGS_helpmatch.empty()) {
     ShowUsageWithFlagsRestrict(progname, FLAGS_helpmatch.c_str());
-    commandlineflags_exitfunc(1);
+    gflags_exitfunc(1);
 
   } else if (FLAGS_helppackage) {
     // Shows help for all files in the same directory as main().  We
@@ -419,27 +420,27 @@ void HandleCommandLineHelpFlags() {
       const string package = Dirname(flag->filename) + "/";
       if (package != last_package) {
         ShowUsageWithFlagsRestrict(progname, package.c_str());
+        VLOG(7) << "Found package: " << package;
         if (!last_package.empty()) {      // means this isn't our first pkg
-          fprintf(stderr, "WARNING: Multiple packages contain a file=%s\n",
-                  progname);
+          LOG(WARNING) << "Multiple packages contain a file=" << progname;
         }
         last_package = package;
       }
     }
     if (last_package.empty()) {   // never found a package to print
-      fprintf(stderr, "WARNING: Unable to find a package for file=%s\n",
-              progname);
+      LOG(WARNING) << "Unable to find a package for file=" << progname;
     }
-    commandlineflags_exitfunc(1);
+    gflags_exitfunc(1);
 
   } else if (FLAGS_helpxml) {
     ShowXMLOfFlags(progname);
-    commandlineflags_exitfunc(1);
+    gflags_exitfunc(1);
 
   } else if (FLAGS_version) {
     ShowVersion();
     // Unlike help, we may be asking for version in a script, so return 0
-    commandlineflags_exitfunc(0);
+    gflags_exitfunc(0);
+
   }
 }
 

@@ -86,7 +86,7 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	
 	flag = cmd->flag & (MOD_CAST_X|MOD_CAST_Y|MOD_CAST_Z);
 
-	if((cmd->fac == 0.0f) || flag == 0) return 1;
+	if ((cmd->fac == 0.0f) || flag == 0) return 1;
 
 	return 0;
 }
@@ -97,7 +97,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(cmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+	if (cmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
@@ -154,10 +154,10 @@ static void sphere_do(
 	ctrl_ob = cmd->object;
 
 	/* spherify's center is {0, 0, 0} (the ob's own center in its local
-	* space), by default, but if the user defined a control object,
-	* we use its location, transformed to ob's local space */
+	 * space), by default, but if the user defined a control object,
+	 * we use its location, transformed to ob's local space */
 	if (ctrl_ob) {
-		if(flag & MOD_CAST_USE_OB_TRANSFORM) {
+		if (flag & MOD_CAST_USE_OB_TRANSFORM) {
 			invert_m4_m4(ctrl_ob->imat, ctrl_ob->obmat);
 			mult_m4_m4m4(mat, ctrl_ob->imat, ob->obmat);
 			invert_m4_m4(imat, mat);
@@ -171,21 +171,21 @@ static void sphere_do(
 
 	/* 1) (flag was checked in the "if (ctrl_ob)" block above) */
 	/* 2) cmd->radius > 0.0f: only the vertices within this radius from
-	* the center of the effect should be deformed */
+	 * the center of the effect should be deformed */
 	if (cmd->radius > FLT_EPSILON) has_radius = 1;
 
 	/* 3) if we were given a vertex group name,
-	* only those vertices should be affected */
+	 * only those vertices should be affected */
 	modifier_get_vgroup(ob, dm, cmd->defgrp_name, &dvert, &defgrp_index);
 
-	if(flag & MOD_CAST_SIZE_FROM_RADIUS) {
+	if (flag & MOD_CAST_SIZE_FROM_RADIUS) {
 		len = cmd->radius;
 	}
 	else {
 		len = cmd->size;
 	}
 
-	if(len <= 0) {
+	if (len <= 0) {
 		for (i = 0; i < numVerts; i++) {
 			len += len_v3v3(center, vertexCos[i]);
 		}
@@ -195,10 +195,10 @@ static void sphere_do(
 	}
 
 	/* ready to apply the effect, one vertex at a time;
-	* tiny optimization: the code is separated (with parts repeated)
+	 * tiny optimization: the code is separated (with parts repeated)
 	 * in two possible cases:
-	* with or w/o a vgroup. With lots of if's in the code below,
-	* further optimizations are possible, if needed */
+	 * with or w/o a vgroup. With lots of if's in the code below,
+	 * further optimization's are possible, if needed */
 	if (dvert) { /* with a vgroup */
 		MDeformVert *dv= dvert;
 		float fac_orig = fac;
@@ -207,10 +207,11 @@ static void sphere_do(
 			float weight;
 
 			copy_v3_v3(tmp_co, vertexCos[i]);
-			if(ctrl_ob) {
-				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
+			if (ctrl_ob) {
+				if (flag & MOD_CAST_USE_OB_TRANSFORM) {
 					mul_m4_v3(mat, tmp_co);
-				} else {
+				}
+				else {
 					sub_v3_v3(tmp_co, center);
 				}
 			}
@@ -239,10 +240,11 @@ static void sphere_do(
 			if (flag & MOD_CAST_Z)
 				tmp_co[2] = fac*vec[2]*len + facm*tmp_co[2];
 
-			if(ctrl_ob) {
-				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
+			if (ctrl_ob) {
+				if (flag & MOD_CAST_USE_OB_TRANSFORM) {
 					mul_m4_v3(imat, tmp_co);
-				} else {
+				}
+				else {
 					add_v3_v3(tmp_co, center);
 				}
 			}
@@ -257,10 +259,11 @@ static void sphere_do(
 		float tmp_co[3];
 
 		copy_v3_v3(tmp_co, vertexCos[i]);
-		if(ctrl_ob) {
-			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
+		if (ctrl_ob) {
+			if (flag & MOD_CAST_USE_OB_TRANSFORM) {
 				mul_m4_v3(mat, tmp_co);
-			} else {
+			}
+			else {
 				sub_v3_v3(tmp_co, center);
 			}
 		}
@@ -283,10 +286,11 @@ static void sphere_do(
 		if (flag & MOD_CAST_Z)
 			tmp_co[2] = fac*vec[2]*len + facm*tmp_co[2];
 
-		if(ctrl_ob) {
-			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
+		if (ctrl_ob) {
+			if (flag & MOD_CAST_USE_OB_TRANSFORM) {
 				mul_m4_v3(imat, tmp_co);
-			} else {
+			}
+			else {
 				add_v3_v3(tmp_co, center);
 			}
 		}
@@ -321,15 +325,15 @@ static void cuboid_do(
 
 	/* 1) (flag was checked in the "if (ctrl_ob)" block above) */
 	/* 2) cmd->radius > 0.0f: only the vertices within this radius from
-	* the center of the effect should be deformed */
+	 * the center of the effect should be deformed */
 	if (cmd->radius > FLT_EPSILON) has_radius = 1;
 
 	/* 3) if we were given a vertex group name,
-	* only those vertices should be affected */
+	 * only those vertices should be affected */
 	modifier_get_vgroup(ob, dm, cmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (ctrl_ob) {
-		if(flag & MOD_CAST_USE_OB_TRANSFORM) {
+		if (flag & MOD_CAST_USE_OB_TRANSFORM) {
 			invert_m4_m4(ctrl_ob->imat, ctrl_ob->obmat);
 			mult_m4_m4m4(mat, ctrl_ob->imat, ob->obmat);
 			invert_m4_m4(imat, mat);
@@ -339,25 +343,27 @@ static void cuboid_do(
 		mul_v3_m4v3(center, ob->imat, ctrl_ob->obmat[3]);
 	}
 
-	if((flag & MOD_CAST_SIZE_FROM_RADIUS) && has_radius) {
-		for(i = 0; i < 3; i++) {
+	if ((flag & MOD_CAST_SIZE_FROM_RADIUS) && has_radius) {
+		for (i = 0; i < 3; i++) {
 			min[i] = -cmd->radius;
 			max[i] = cmd->radius;
 		}
-	} else if(!(flag & MOD_CAST_SIZE_FROM_RADIUS) && cmd->size > 0) {
-		for(i = 0; i < 3; i++) {
+	}
+	else if (!(flag & MOD_CAST_SIZE_FROM_RADIUS) && cmd->size > 0) {
+		for (i = 0; i < 3; i++) {
 			min[i] = -cmd->size;
 			max[i] = cmd->size;
 		}
-	} else {
+	}
+	else {
 		/* get bound box */
 		/* We can't use the object's bound box because other modifiers
-		* may have changed the vertex data. */
+		 * may have changed the vertex data. */
 		INIT_MINMAX(min, max);
 
 		/* Cast's center is the ob's own center in its local space,
-		* by default, but if the user defined a control object, we use
-		* its location, transformed to ob's local space. */
+		 * by default, but if the user defined a control object, we use
+		 * its location, transformed to ob's local space. */
 		if (ctrl_ob) {
 			float vec[3];
 
@@ -393,10 +399,10 @@ static void cuboid_do(
 	bb[4][2] = bb[5][2] = bb[6][2] = bb[7][2] = max[2];
 
 	/* ready to apply the effect, one vertex at a time;
-	* tiny optimization: the code is separated (with parts repeated)
+	 * tiny optimization: the code is separated (with parts repeated)
 	 * in two possible cases:
-	* with or w/o a vgroup. With lots of if's in the code below,
-	* further optimizations are possible, if needed */
+	 * with or w/o a vgroup. With lots of if's in the code below,
+	 * further optimization's are possible, if needed */
 	if (dvert) { /* with a vgroup */
 		float fac_orig = fac;
 		for (i = 0; i < numVerts; i++) {
@@ -406,10 +412,11 @@ static void cuboid_do(
 			float tmp_co[3];
 
 			copy_v3_v3(tmp_co, vertexCos[i]);
-			if(ctrl_ob) {
-				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
+			if (ctrl_ob) {
+				if (flag & MOD_CAST_USE_OB_TRANSFORM) {
 					mul_m4_v3(mat, tmp_co);
-				} else {
+				}
+				else {
 					sub_v3_v3(tmp_co, center);
 				}
 			}
@@ -421,7 +428,7 @@ static void cuboid_do(
 			}
 
 			for (j = 0; j < dvert[i].totweight; ++j) {
-				if(dvert[i].dw[j].def_nr == defgrp_index) {
+				if (dvert[i].dw[j].def_nr == defgrp_index) {
 					dw = &dvert[i].dw[j];
 					break;
 				}
@@ -434,10 +441,10 @@ static void cuboid_do(
 			/* The algo used to project the vertices to their
 			 * bounding box (bb) is pretty simple:
 			 * for each vertex v:
-			* 1) find in which octant v is in;
-			* 2) find which outer "wall" of that octant is closer to v;
-			* 3) calculate factor (var fbb) to project v to that wall;
-			* 4) project. */
+			 * 1) find in which octant v is in;
+			 * 2) find which outer "wall" of that octant is closer to v;
+			 * 3) calculate factor (var fbb) to project v to that wall;
+			 * 4) project. */
 
 			/* find in which octant this vertex is in */
 			octant = 0;
@@ -471,7 +478,7 @@ static void cuboid_do(
 				continue;
 
 			/* finally, this is the factor we wanted, to project the vertex
-			* to its bounding box (bb) */
+			 * to its bounding box (bb) */
 			fbb = apex[coord] / tmp_co[coord];
 
 			/* calculate the new vertex position */
@@ -482,10 +489,11 @@ static void cuboid_do(
 			if (flag & MOD_CAST_Z)
 				tmp_co[2] = facm * tmp_co[2] + fac * tmp_co[2] * fbb;
 
-			if(ctrl_ob) {
-				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
+			if (ctrl_ob) {
+				if (flag & MOD_CAST_USE_OB_TRANSFORM) {
 					mul_m4_v3(imat, tmp_co);
-				} else {
+				}
+				else {
 					add_v3_v3(tmp_co, center);
 				}
 			}
@@ -502,10 +510,11 @@ static void cuboid_do(
 		float tmp_co[3];
 
 		copy_v3_v3(tmp_co, vertexCos[i]);
-		if(ctrl_ob) {
-			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
+		if (ctrl_ob) {
+			if (flag & MOD_CAST_USE_OB_TRANSFORM) {
 				mul_m4_v3(mat, tmp_co);
-			} else {
+			}
+			else {
 				sub_v3_v3(tmp_co, center);
 			}
 		}
@@ -550,10 +559,11 @@ static void cuboid_do(
 		if (flag & MOD_CAST_Z)
 			tmp_co[2] = facm * tmp_co[2] + fac * tmp_co[2] * fbb;
 
-		if(ctrl_ob) {
-			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
+		if (ctrl_ob) {
+			if (flag & MOD_CAST_USE_OB_TRANSFORM) {
 				mul_m4_v3(imat, tmp_co);
-			} else {
+			}
+			else {
 				add_v3_v3(tmp_co, center);
 			}
 		}
@@ -576,16 +586,17 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
 		cuboid_do(cmd, ob, dm, vertexCos, numVerts);
-	} else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
+	}
+	else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
 		sphere_do(cmd, ob, dm, vertexCos, numVerts);
 	}
 
-	if(dm != derivedData)
+	if (dm != derivedData)
 		dm->release(dm);
 }
 
 static void deformVertsEM(
-					   ModifierData *md, Object *ob, struct EditMesh *editData,
+					   ModifierData *md, Object *ob, struct BMEditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, 0);
@@ -593,11 +604,12 @@ static void deformVertsEM(
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
 		cuboid_do(cmd, ob, dm, vertexCos, numVerts);
-	} else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
+	}
+	else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
 		sphere_do(cmd, ob, dm, vertexCos, numVerts);
 	}
 
-	if(dm != derivedData)
+	if (dm != derivedData)
 		dm->release(dm);
 }
 

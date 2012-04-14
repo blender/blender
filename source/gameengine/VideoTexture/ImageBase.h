@@ -24,8 +24,8 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined IMAGEBASE_H
-#define IMAGEBASE_H
+#ifndef __IMAGEBASE_H__
+#define __IMAGEBASE_H__
 
 #include "Common.h"
 
@@ -166,7 +166,7 @@ protected:
 						// copy pixel
 						*dstBuff = filter.convert(srcBuff, x, y, srcSize, pixSize);
 			}
-			// else scale picture (nearest neighbour)
+			// else scale picture (nearest neighbor)
 		else
 		{
 			// interpolation accumulator

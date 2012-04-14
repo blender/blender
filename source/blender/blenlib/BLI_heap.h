@@ -41,12 +41,12 @@ typedef struct HeapNode HeapNode;
 typedef	void	(*HeapFreeFP)(void *ptr);
 
 /* Creates a new heap. BLI_memarena is used for allocating nodes. Removed nodes
-   are recycled, so memory usage will not shrink. */
+ * are recycled, so memory usage will not shrink. */
 Heap*			BLI_heap_new	(void);
 void			BLI_heap_free	(Heap *heap, HeapFreeFP ptrfreefp);
 
 /* Insert heap node with a value (often a 'cost') and pointer into the heap,
-   duplicate values are allowed. */
+ * duplicate values are allowed. */
 HeapNode*		BLI_heap_insert		(Heap *heap, float value, void *ptr);
 
 /* Remove a heap node. */

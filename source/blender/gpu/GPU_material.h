@@ -46,7 +46,6 @@ struct Lamp;
 struct Image;
 struct bNode;
 struct LinkNode;
-struct LinkInOutsMuteNode;
 struct Scene;
 struct GPUVertexAttribs;
 struct GPUNode;
@@ -116,7 +115,6 @@ GPUNodeLink *GPU_builtin(GPUBuiltin builtin);
 
 int GPU_link(GPUMaterial *mat, const char *name, ...);
 int GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...);
-int GPU_stack_link_mute(GPUMaterial *mat, const char *name, struct LinkInOutsMuteNode *mlnk);
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_enable_alpha(GPUMaterial *material);

@@ -117,7 +117,6 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags);
 void imb_loadtiletiff(struct ImBuf *ibuf, unsigned char *mem, size_t size,
 	int tx, int ty, unsigned int *rect);
 int imb_savetiff(struct ImBuf *ibuf, const char *name, int flags);
-void *libtiff_findsymbol(char *name);
 
 #endif	/* __IMB_FILETYPE_H__ */
 

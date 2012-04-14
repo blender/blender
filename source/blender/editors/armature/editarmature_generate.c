@@ -161,9 +161,8 @@ int nextFixedSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int sta
 
 		current_length += len_v3v3(v1, v2);
 
-		if (current_length >= length_threshold)
-		{
-			VECCOPY(p, v2);
+		if (current_length >= length_threshold) {
+			copy_v3_v3(p, v2);
 			return i;
 		}
 		
@@ -190,10 +189,9 @@ int nextAdaptativeSubdivision(ToolSettings *toolsettings, BArcIterator *iter, in
 		IT_peek(iter, i);
 		sub_v3_v3v3(n, iter->p, head);
 
-		if (calcArcCorrelation(iter, start, i, start_p, n) < correlation_threshold)
-		{
+		if (calcArcCorrelation(iter, start, i, start_p, n) < correlation_threshold) {
 			IT_peek(iter, i - 1);
-			VECCOPY(p, iter->p);
+			copy_v3_v3(p, iter->p);
 			return i - 1;
 		}
 	}
@@ -240,25 +238,22 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 				
 				//printf("a %f, b %f, c %f, f %f\n", a, b, c, f);
 				
-				if (isnan(f) == 0 && f < 1.0f)
-				{
-					VECCOPY(p, dv);
+				if (isnan(f) == 0 && f < 1.0f) {
+					copy_v3_v3(p, dv);
 					mul_v3_fl(p, f);
 					add_v3_v3(p, vec0);
 				}
-				else
-				{
-					VECCOPY(p, vec1);
+				else {
+					copy_v3_v3(p, vec1);
 				}
 			}
-			else
-			{
+			else {
 				float dv[3];
 				
 				sub_v3_v3v3(dv, vec1, vec0);
 				normalize_v3(dv);
 				 
-				VECCOPY(p, dv);
+				copy_v3_v3(p, dv);
 				mul_v3_fl(p, lengthLimit);
 				add_v3_v3(p, head);
 			}
@@ -289,7 +284,7 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 	IT_head(iter);
 	
 	parent = ED_armature_edit_bone_add(arm, "Bone");
-	VECCOPY(parent->head, iter->p);
+	copy_v3_v3(parent->head, iter->p);
 	
 	if (iter->size > 0)
 	{
@@ -304,7 +299,7 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 		IT_peek(iter, index);
 
 		child = ED_armature_edit_bone_add(arm, "Bone");
-		VECCOPY(child->head, parent->tail);
+		copy_v3_v3(child->head, parent->tail);
 		child->parent = parent;
 		child->flag |= BONE_CONNECTED;
 		
@@ -329,9 +324,8 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 	
 	iter->tail(iter);
 
-	VECCOPY(parent->tail, iter->p);
-	if (iter->size > 0)
-	{
+	copy_v3_v3(parent->tail, iter->p);
+	if (iter->size > 0) {
 		parent->rad_tail = iter->size * size_buffer;
 	}
 		

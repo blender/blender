@@ -29,8 +29,8 @@
  *  \ingroup player
  */
 
-#ifndef __GPC_RENDERTOOLS_H
-#define __GPC_RENDERTOOLS_H
+#ifndef __GPC_RENDERTOOLS_H__
+#define __GPC_RENDERTOOLS_H__
 
 #ifdef WIN32
 // don't show stl-warnings
@@ -77,7 +77,7 @@ public:
 									 float* color,
 									 double* mat,
 									 float aspect);
-	/* @attention mode is ignored here */
+	/* \attention mode is ignored here */
 	void			    RenderText2D(RAS_TEXT_RENDER_MODE mode,
 									 const char* text,
 									 int xco,
@@ -106,7 +106,7 @@ public:
 	virtual void SetClientObject(RAS_IRasterizer *rasty, void* obj);
 };
 
-#endif  // __GPC_RENDERTOOLS_H
+#endif  // __GPC_RENDERTOOLS_H__
 
 
 

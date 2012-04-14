@@ -198,10 +198,10 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 				/* Patch: floating point values cant use strings usefully since you can have "0.0" == "0.0000"
 				 * this could be made into a generic Value class function for comparing values with a string.
 				 */
-				if(result==false && dynamic_cast<CFloatValue *>(orgprop) != NULL) {
+				if (result==false && dynamic_cast<CFloatValue *>(orgprop) != NULL) {
 					float f;
 					
-					if(EOF == sscanf(m_checkpropval.ReadPtr(), "%f", &f))
+					if (EOF == sscanf(m_checkpropval.ReadPtr(), "%f", &f))
 					{
 						//error
 					} 

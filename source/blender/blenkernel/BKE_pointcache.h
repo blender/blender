@@ -288,12 +288,6 @@ void BKE_ptcache_mem_pointers_init(struct PTCacheMem *pm);
 void BKE_ptcache_mem_pointers_incr(struct PTCacheMem *pm);
 int  BKE_ptcache_mem_pointers_seek(int point_index, struct PTCacheMem *pm);
 
-/* Copy a specific data type from cache data to point data. */
-void	BKE_ptcache_data_get(void **data, int type, int index, void *to);
-
-/* Copy a specific data type from point data to cache data. */
-void	BKE_ptcache_data_set(void **data, int type, void *from);
-
 /* Main cache reading call. */
 int		BKE_ptcache_read(PTCacheID *pid, float cfra);
 

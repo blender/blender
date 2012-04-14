@@ -25,6 +25,7 @@ class ModifierButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "modifier"
+    bl_options = {'HIDE_HEADER'}
 
 
 class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
@@ -121,6 +122,14 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         split.prop(md, "width")
         split.prop(md, "use_only_vertices")
+
+        # -- new modifier only, this may be reverted in favor of 2.62 mod.
+        '''
+        split = layout.split()
+        split.prop(md, "use_even_offset")
+        split.prop(md, "use_distance_offset")
+        '''
+        # -- end
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
@@ -309,6 +318,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+
+        layout.separator()
+        layout.prop(md, "strength", slider=True)
 
     def MASK(self, layout, ob, md):
         split = layout.split()

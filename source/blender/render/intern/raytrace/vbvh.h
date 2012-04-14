@@ -65,14 +65,17 @@ inline static void bvh_node_push_childs(Node *node, Isect *UNUSED(isec), Node **
 	{
 		while(child)
 		{
-			//Skips BB tests on primitives
-/*
-			if(is_leaf(child->child))
+			/* Skips BB tests on primitives */
+#if 0
+			if(is_leaf(child->child)) {
 				stack[stack_pos++] = child->child;
+			}
 			else
-*/
+#endif
+			{
 				stack[stack_pos++] = child;
-				
+			}
+
 			child = child->sibling;
 		}
 	}
@@ -164,8 +167,8 @@ struct BuildBinaryVBVH
 		{
 			Node *node = create_node();
 			INIT_MINMAX(node->bb, node->bb+3);
-			rtbuild_merge_bb(builder, node->bb, node->bb+3);		
-			node->child = (Node*) rtbuild_get_primitive( builder, 0 );
+			rtbuild_merge_bb(builder, node->bb, node->bb+3);
+			node->child = (Node *) rtbuild_get_primitive(builder, 0);
 			return node;
 		}
 		else
@@ -191,13 +194,13 @@ struct BuildBinaryVBVH
 				child = &((*child)->sibling);
 			}
 
-			*child = 0;
+			*child = NULL;
 			return node;
 		}
 	}
 };
 
-/*
+#if 0
 template<class Tree,class OldNode>
 struct Reorganize_VBVH
 {
@@ -242,4 +245,4 @@ struct Reorganize_VBVH
 		return node;
 	}	
 };
-*/
+#endif

@@ -31,21 +31,28 @@
  *  \ingroup bke
  */
 
+/* struct DerivedMesh is used directly */
+#include "BKE_DerivedMesh.h"
+
+struct DMFlagMat;
 struct DMGridAdjacency;
 struct DMGridData;
 struct DerivedMesh;
-struct EditMesh;
-struct IndexNode;
-struct ListBase;
+struct MeshElemMap;
 struct Mesh;
+struct MPoly;
 struct MultiresSubsurf;
 struct Object;
 struct PBVH;
 struct SubsurfModifierData;
-struct _CCGEdge;
-struct _CCGFace;
-struct _CCGSubsurf;
-struct _CCGVert;
+struct CCGEdge;
+struct CCGFace;
+struct CCGSubsurf;
+struct CCGVert;
+struct EdgeHash;
+struct PBVH;
+struct DMGridData;
+struct DMGridAdjacency;
 
 /**************************** External *****************************/
 
@@ -57,31 +64,56 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 
 void subsurf_calculate_limit_positions(struct Mesh *me, float (*positions_r)[3]);
 
+/* get gridsize from 'level', level must be greater than zero */
+int ccg_gridsize(int level);
+
+/* x/y grid coordinates at 'low_level' can be multiplied by the result
+   of this function to convert to grid coordinates at 'high_level' */
+int ccg_factor(int low_level, int high_level);
+
+void subsurf_copy_grid_hidden(struct DerivedMesh *dm,
+							  const struct MPoly *mpoly,
+							  struct MVert *mvert,
+							  const struct MDisps *mdisps);
+
+typedef enum MultiresModifiedFlags {
+	/* indicates the grids have been sculpted on, so MDisps
+	   have to be updated */
+	MULTIRES_COORDS_MODIFIED = 1,
+	/* indicates elements have been hidden or unhidden */
+	MULTIRES_HIDDEN_MODIFIED = 2
+} MultiresModifiedFlags;
+
 /**************************** Internal *****************************/
 
 typedef struct CCGDerivedMesh {
 	DerivedMesh dm;
 
-	struct _CCGSubSurf *ss;
+	struct CCGSubSurf *ss;
 	int freeSS;
 	int drawInteriorEdges, useSubsurfUv;
 
-	struct {int startVert; struct _CCGVert *vert;} *vertMap;
-	struct {int startVert; int startEdge; struct _CCGEdge *edge;} *edgeMap;
+	struct {int startVert; struct CCGVert *vert;} *vertMap;
+	struct {int startVert; int startEdge; struct CCGEdge *edge;} *edgeMap;
 	struct {int startVert; int startEdge;
-			int startFace; struct _CCGFace *face;} *faceMap;
+			int startFace; struct CCGFace *face;} *faceMap;
 
 	short *edgeFlags;
-	char *faceFlags;
+	struct DMFlagMat *faceFlags;
+
+	int *reverseFaceMap;
 
 	struct PBVH *pbvh;
-	struct ListBase *fmap;
-	struct IndexNode *fmap_mem;
+
+	struct MeshElemMap *pmap;
+	int *pmap_mem;
 
 	struct DMGridData **gridData;
 	struct DMGridAdjacency *gridAdjacency;
 	int *gridOffset;
-	struct _CCGFace **gridFaces;
+	struct CCGFace **gridFaces;
+	struct DMFlagMat *gridFlagMats;
+	unsigned int **gridHidden;
 
 	struct {
 		struct MultiresModifierData *mmd;
@@ -91,10 +123,10 @@ typedef struct CCGDerivedMesh {
 		float (*orco)[3];
 
 		struct Object *ob;
-		int modified;
-
-		void (*update)(DerivedMesh*);
+		MultiresModifiedFlags modified_flags;
 	} multires;
+
+	struct EdgeHash *ehash;
 } CCGDerivedMesh;
 
 #endif

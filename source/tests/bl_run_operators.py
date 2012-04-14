@@ -42,6 +42,9 @@ op_blacklist = (
     "wm.doc_view",
     "wm.path_open",
     "help.operator_cheat_sheet",
+    "wm.keyconfig_test",     # just annoying - but harmless
+    "wm.memory_statistics",  # another annoying one
+    # "mesh.vertex_color_remove",  #crashes! fixme
     )
 
 
@@ -64,7 +67,7 @@ def run_ops(operators, setup_func=None):
     for op_id, op in operators:
         if op.poll():
             print("    operator:", op_id)
-            sys.stdout.flush()  # incase of crash
+            sys.stdout.flush()  # in case of crash
 
             # disable will get blender in a bad state and crash easy!
             bpy.ops.wm.read_factory_settings()

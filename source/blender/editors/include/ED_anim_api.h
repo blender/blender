@@ -339,7 +339,7 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* ------------------------ Drawing TypeInfo -------------------------- */
 
-/* flag-setting behaviour */
+/* flag-setting behavior */
 typedef enum eAnimChannels_SetFlag {
 	ACHANNEL_SETFLAG_CLEAR = 0,		/* turn off */
 	ACHANNEL_SETFLAG_ADD,			/* turn on */
@@ -358,7 +358,7 @@ typedef enum eAnimChannel_Settings {
 } eAnimChannel_Settings;
 
 
-/* Drawing, mouse handling, and flag setting behaviour... */
+/* Drawing, mouse handling, and flag setting behavior... */
 typedef struct bAnimChannelType {
 	/* type data */
 		/* name of the channel type, for debugging */
@@ -427,7 +427,7 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
  *	- anim_data: list of the all the anim channels that can be chosen
  *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
  *		  then the channels under closed expanders get ignored...
- *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
+ *	- ale_setting: the anim channel (not in the anim_data list directly, though occurring there)
  *		with the new state of the setting that we want flushed up/down the hierarchy 
  *	- setting: type of setting to set
  *	- on: whether the visibility setting has been enabled or disabled 

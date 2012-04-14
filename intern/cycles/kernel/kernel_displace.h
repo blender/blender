@@ -41,9 +41,11 @@ __device void kernel_shader_evaluate(KernelGlobals *kg, uint4 *input, float4 *ou
 	else { // SHADER_EVAL_BACKGROUND
 		/* setup ray */
 		Ray ray;
+		float u = __int_as_float(in.x);
+		float v = __int_as_float(in.y);
 
 		ray.P = make_float3(0.0f, 0.0f, 0.0f);
-		ray.D = make_float3(__int_as_float(in.x), __int_as_float(in.y), __int_as_float(in.z));
+		ray.D = equirectangular_to_direction(u, v);
 		ray.t = 0.0f;
 
 #ifdef __RAY_DIFFERENTIALS__

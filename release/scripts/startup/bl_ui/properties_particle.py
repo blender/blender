@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
-from .properties_physics_common import (
+from bl_ui.properties_physics_common import (
     point_cache_ui,
     effector_weights_ui,
     basic_force_field_settings_ui,
@@ -380,6 +380,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
     bl_label = "Rotation"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -394,6 +395,15 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
         else:
             return False
 
+    def draw_header(self, context):
+        psys = context.particle_system
+        if psys:
+            part = psys.settings
+        else:
+            part = context.space_data.pin_id
+
+        self.layout.prop(part, "use_rotations", text="")
+
     def draw(self, context):
         layout = self.layout
 
@@ -403,14 +413,9 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
         else:
             part = context.space_data.pin_id
 
-        layout.enabled = particle_panel_enabled(context, psys)
+        layout.enabled = particle_panel_enabled(context, psys) and part.use_rotations
 
-        layout.prop(part, "use_dynamic_rotation")
-
-        if part.use_dynamic_rotation:
-            layout.label(text="Initial Rotation Axis:")
-        else:
-            layout.label(text="Rotation Axis:")
+        layout.label(text="Initial Orientation:")
 
         split = layout.split()
 
@@ -423,16 +428,17 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
         col.prop(part, "phase_factor_random", text="Random", slider=True)
 
         if part.type != 'HAIR':
-            col = layout.column()
-            if part.use_dynamic_rotation:
-                col.label(text="Initial Angular Velocity:")
-            else:
-                col.label(text="Angular Velocity:")
-            sub = col.row(align=True)
-            sub.prop(part, "angular_velocity_mode", text="")
-            subsub = sub.column()
-            subsub.active = part.angular_velocity_mode != 'NONE'
-            subsub.prop(part, "angular_velocity_factor", text="")
+            layout.label(text="Angular Velocity:")
+
+            split = layout.split()
+            col = split.column(align=True)
+            col.prop(part, "angular_velocity_mode", text="")
+            sub = col.column()
+            sub.active = part.angular_velocity_mode != 'NONE'
+            sub.prop(part, "angular_velocity_factor", text="")
+
+            col = split.column()
+            col.prop(part, "use_dynamic_rotation")
 
 
 class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
@@ -1178,42 +1184,33 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
         ob = context.object
         psys = context.particle_system
 
-        row = layout.row()
-        row.label(text="Vertex Group")
-        row.label(text="Negate")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
-        row.prop(psys, "invert_vertex_group_density", text="")
-
+        split = layout.split(percentage=0.85)
+        
+        col = split.column()
+        col.label(text="Vertex Group:")
+        col.prop_search(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
+        col.prop_search(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
+        col.prop_search(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
+        col.prop_search(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
+        col.prop_search(psys, "vertex_group_roughness_1", ob, "vertex_groups", text="Roughness 1")
+        col.prop_search(psys, "vertex_group_roughness_2", ob, "vertex_groups", text="Roughness 2")
+        col.prop_search(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
+        
+        col = split.column()
+        col.label(text="Negate:")
+        col.alignment = 'RIGHT'
+        col.prop(psys, "invert_vertex_group_density", text="")
+        col.prop(psys, "invert_vertex_group_length", text="")
+        col.prop(psys, "invert_vertex_group_clump", text="")
+        col.prop(psys, "invert_vertex_group_kink", text="")
+        col.prop(psys, "invert_vertex_group_roughness_1", text="")
+        col.prop(psys, "invert_vertex_group_roughness_2", text="")
+        col.prop(psys, "invert_vertex_group_roughness_end", text="")
+        
         # Commented out vertex groups don't work and are still waiting for better implementation
         # row = layout.row()
         # row.prop_search(psys, "vertex_group_velocity", ob, "vertex_groups", text="Velocity")
         # row.prop(psys, "invert_vertex_group_velocity", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
-        row.prop(psys, "invert_vertex_group_length", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
-        row.prop(psys, "invert_vertex_group_clump", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
-        row.prop(psys, "invert_vertex_group_kink", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_roughness_1", ob, "vertex_groups", text="Roughness 1")
-        row.prop(psys, "invert_vertex_group_roughness_1", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_roughness_2", ob, "vertex_groups", text="Roughness 2")
-        row.prop(psys, "invert_vertex_group_roughness_2", text="")
-
-        row = layout.row()
-        row.prop_search(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
-        row.prop(psys, "invert_vertex_group_roughness_end", text="")
 
         # row = layout.row()
         # row.prop_search(psys, "vertex_group_size", ob, "vertex_groups", text="Size")

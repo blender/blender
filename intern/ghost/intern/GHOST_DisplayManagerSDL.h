@@ -34,8 +34,8 @@ extern "C" {
 	#include "SDL.h"
 }
 
-#if !SDL_VERSION_ATLEAST(1, 3, 0)
-#  error "SDL 1.3 or newer is needed to build with Ghost"
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+#  error "SDL 2.0 or newer is needed to build with Ghost"
 #endif
 
 class GHOST_SystemSDL;
@@ -62,11 +62,15 @@ public:
 	                         GHOST_DisplaySetting& setting) const;
 
 	GHOST_TSuccess
+	getCurrentDisplayModeSDL(SDL_DisplayMode &mode) const;
+
+	GHOST_TSuccess
 	setCurrentDisplaySetting(GHOST_TUns8 display,
 	                         const GHOST_DisplaySetting& setting);
 
 private :
 	GHOST_SystemSDL * m_system;
+	SDL_DisplayMode m_mode;
 };
 
 #endif /* __GHOST_DISPLAYMANAGERSDL_H__ */

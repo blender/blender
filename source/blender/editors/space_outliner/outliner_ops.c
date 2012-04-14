@@ -84,7 +84,7 @@ void outliner_operatortypes(void)
 
 void outliner_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Outliner", SPACE_OUTLINER, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "Outliner", SPACE_OUTLINER, 0);
 	wmKeyMapItem *kmi;
 	
 	WM_keymap_add_item(keymap, "OUTLINER_OT_item_rename", LEFTMOUSE, KM_DBL_CLICK, 0, 0);

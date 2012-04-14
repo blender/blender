@@ -68,7 +68,7 @@
 
 #include "text_intern.h"
 
-#define HEADER_PATH_MAX	260
+#define HEADER_PATH_MAX 260
 
 /* ************************ header area region *********************** */
 
@@ -78,20 +78,20 @@ static ARegion *text_has_properties_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 
-	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if(ar) return ar;
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
+	if (ar) return ar;
 	
 	/* add subdiv level; after header */
-	ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if(ar==NULL) return NULL;
+	if (ar == NULL) return NULL;
 	
-	arnew= MEM_callocN(sizeof(ARegion), "properties region");
+	arnew = MEM_callocN(sizeof(ARegion), "properties region");
 	
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-	arnew->regiontype= RGN_TYPE_UI;
-	arnew->alignment= RGN_ALIGN_LEFT;
+	arnew->regiontype = RGN_TYPE_UI;
+	arnew->alignment = RGN_ALIGN_LEFT;
 	
 	arnew->flag = RGN_FLAG_HIDDEN;
 	
@@ -105,10 +105,10 @@ static int text_properties_poll(bContext *C)
 
 static int text_properties_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= text_has_properties_region(sa);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = text_has_properties_region(sa);
 	
-	if(ar)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
@@ -117,13 +117,13 @@ static int text_properties_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_properties(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Properties";
-	ot->description= "Toggle text properties panel";
-	ot->idname= "TEXT_OT_properties";
+	ot->name = "Properties";
+	ot->description = "Toggle text properties panel";
+	ot->idname = "TEXT_OT_properties";
 	
 	/* api callbacks */
-	ot->exec= text_properties_exec;
-	ot->poll= text_properties_poll;
+	ot->exec = text_properties_exec;
+	ot->poll = text_properties_poll;
 }
 
 /******************** XXX popup menus *******************/
@@ -134,9 +134,9 @@ void TEXT_OT_properties(wmOperatorType *ot)
 
 	uiPopupMenu *pup;
 
-	if(text) {
-		pup= uiPupMenuBegin(C, "Text", ICON_NONE);
-		if(txt_has_sel(text)) {
+	if (text) {
+		pup = uiPupMenuBegin(C, "Text", ICON_NONE);
+		if (txt_has_sel(text)) {
 			uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_cut");
 			uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_copy");
 		}
@@ -149,7 +149,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 		uiPupMenuEnd(C, pup);
 	}
 	else {
-		pup= uiPupMenuBegin(C, "File", ICON_NONE);
+		pup = uiPupMenuBegin(C, "File", ICON_NONE);
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_new");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_open");
 		uiPupMenuEnd(C, pup);
@@ -161,7 +161,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 
 	uiPopupMenu *pup;
 
-	pup= uiPupMenuBegin(C, "Edit", ICON_NONE);
+	pup = uiPupMenuBegin(C, "Edit", ICON_NONE);
 	uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_cut");
 	uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_copy");
 	uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_paste");
@@ -173,8 +173,8 @@ void TEXT_OT_properties(wmOperatorType *ot)
 
 	uiPopupMenu *pup;
 
-	if(text) {
-		pup= uiPupMenuBegin(C, "Text", ICON_NONE);
+	if (text) {
+		pup = uiPupMenuBegin(C, "Text", ICON_NONE);
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_new");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_open");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_save");
@@ -183,7 +183,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 		uiPupMenuEnd(C, pup);
 	}
 	else {
-		pup= uiPupMenuBegin(C, "File", ICON_NONE);
+		pup = uiPupMenuBegin(C, "File", ICON_NONE);
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_new");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_open");
 		uiPupMenuEnd(C, pup);
@@ -195,7 +195,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 
 	uiPopupMenu *pup;
 
-	pup= uiPupMenuBegin(C, "Text", ICON_NONE);
+	pup = uiPupMenuBegin(C, "Text", ICON_NONE);
 	uiItemEnumO(layout, "TEXT_OT_move", "Top of File", 0, "type", FILE_TOP);
 	uiItemEnumO(layout, "TEXT_OT_move", "Bottom of File", 0, "type", FILE_BOTTOM);
 	uiItemEnumO(layout, "TEXT_OT_move", "Page Up", 0, "type", PREV_PAGE);

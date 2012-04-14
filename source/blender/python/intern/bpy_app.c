@@ -108,6 +108,8 @@ static PyObject *make_app_info(void)
 	PyStructSequence_SET_ITEM(app_info, pos++, PyLong_FromLong(flag))
 #define SetStrItem(str) \
 	PyStructSequence_SET_ITEM(app_info, pos++, PyUnicode_FromString(str))
+#define SetBytesItem(str) \
+	PyStructSequence_SET_ITEM(app_info, pos++, PyBytes_FromString(str))
 #define SetObjItem(obj) \
 	PyStructSequence_SET_ITEM(app_info, pos++, obj)
 
@@ -121,27 +123,28 @@ static PyObject *make_app_info(void)
 	SetStrItem(BLI_program_path());
 	SetObjItem(PyBool_FromLong(G.background));
 
-	/* build info */
+	/* build info, use bytes since we can't assume _any_ encoding:
+	 * see patch [#30154] for issue */
 #ifdef BUILD_DATE
-	SetStrItem(build_date);
-	SetStrItem(build_time);
-	SetStrItem(build_rev);
-	SetStrItem(build_platform);
-	SetStrItem(build_type);
-	SetStrItem(build_cflags);
-	SetStrItem(build_cxxflags);
-	SetStrItem(build_linkflags);
-	SetStrItem(build_system);
+	SetBytesItem(build_date);
+	SetBytesItem(build_time);
+	SetBytesItem(build_rev);
+	SetBytesItem(build_platform);
+	SetBytesItem(build_type);
+	SetBytesItem(build_cflags);
+	SetBytesItem(build_cxxflags);
+	SetBytesItem(build_linkflags);
+	SetBytesItem(build_system);
 #else
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
 #endif
 
 	SetObjItem(BPY_app_ffmpeg_struct());
@@ -149,6 +152,7 @@ static PyObject *make_app_info(void)
 
 #undef SetIntItem
 #undef SetStrItem
+#undef SetBytesItem
 #undef SetObjItem
 
 	if (PyErr_Occurred()) {
@@ -162,24 +166,26 @@ static PyObject *make_app_info(void)
  * they are not static */
 
 PyDoc_STRVAR(bpy_app_debug_doc,
-"Boolean, set when blender is running in debug mode (started with --debug)"
+"Boolean, for debug info (started with --debug / --debug_* matching this attribute name)"
 );
-static PyObject *bpy_app_debug_get(PyObject *UNUSED(self), void *UNUSED(closure))
+static PyObject *bpy_app_debug_get(PyObject *UNUSED(self), void *closure)
 {
-	return PyBool_FromLong(G.f & G_DEBUG);
+	const int flag = GET_INT_FROM_POINTER(closure);
+	return PyBool_FromLong(G.debug & flag);
 }
 
-static int bpy_app_debug_set(PyObject *UNUSED(self), PyObject *value, void *UNUSED(closure))
+static int bpy_app_debug_set(PyObject *UNUSED(self), PyObject *value, void *closure)
 {
-	int param = PyObject_IsTrue(value);
+	const int flag = GET_INT_FROM_POINTER(closure);
+	const int param = PyObject_IsTrue(value);
 
 	if (param < 0) {
 		PyErr_SetString(PyExc_TypeError, "bpy.app.debug can only be True/False");
 		return -1;
 	}
 	
-	if (param)  G.f |=  G_DEBUG;
-	else        G.f &= ~G_DEBUG;
+	if (param)  G.debug |=  flag;
+	else        G.debug &= ~flag;
 	
 	return 0;
 }
@@ -219,10 +225,11 @@ PyDoc_STRVAR(bpy_app_driver_dict_doc,
 );
 static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
-	if (bpy_pydriver_Dict == NULL)
+	if (bpy_pydriver_Dict == NULL) {
 		if (bpy_pydriver_create_dict() != 0) {
 			PyErr_SetString(PyExc_RuntimeError, "bpy.app.driver_namespace failed to create dictionary");
 			return NULL;
+		}
 	}
 
 	Py_INCREF(bpy_pydriver_Dict);
@@ -231,7 +238,12 @@ static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(cl
 
 
 static PyGetSetDef bpy_app_getsets[] = {
-	{(char *)"debug", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, NULL},
+	{(char *)"debug",        bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG},
+	{(char *)"debug_ffmpeg", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_FFMPEG},
+	{(char *)"debug_python", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_PYTHON},
+	{(char *)"debug_events", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_EVENTS},
+	{(char *)"debug_wm",     bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_WM},
+
 	{(char *)"debug_value", bpy_app_debug_value_get, bpy_app_debug_value_set, (char *)bpy_app_debug_value_doc, NULL},
 	{(char *)"tempdir", bpy_app_tempdir_get, NULL, (char *)bpy_app_tempdir_doc, NULL},
 	{(char *)"driver_namespace", bpy_app_driver_dict_get, NULL, (char *)bpy_app_driver_dict_doc, NULL},

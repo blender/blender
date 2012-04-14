@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_IPHYSICSCONTROLLER_H
-#define __KX_IPHYSICSCONTROLLER_H
+#ifndef __KX_IPHYSICSCONTROLLER_H__
+#define __KX_IPHYSICSCONTROLLER_H__
 
 #include "SG_Controller.h"
 #include "MT_Vector3.h"
@@ -41,11 +41,11 @@
 struct KX_ClientObjectInfo;
 
 /**
-	Physics Controller, a special kind of Scene Graph Transformation Controller.
-	It get's callbacks from Physics in case a transformation change took place.
-	Each time the scene graph get's updated, the controller get's a chance
-	in the 'Update' method to reflect changed.
-*/
+ * Physics Controller, a special kind of Scene Graph Transformation Controller.
+ * It get's callbacks from Physics in case a transformation change took place.
+ * Each time the scene graph get's updated, the controller get's a chance
+ * in the 'Update' method to reflect changed.
+ */
 
 class KX_IPhysicsController : public SG_Controller
 							 
@@ -138,5 +138,5 @@ public:
 #endif
 };
 
-#endif //__KX_IPHYSICSCONTROLLER_H
+#endif //__KX_IPHYSICSCONTROLLER_H__
 

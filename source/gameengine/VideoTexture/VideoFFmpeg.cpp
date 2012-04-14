@@ -39,8 +39,8 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include <string>
 
-#include "Exception.h"
 #include "VideoFFmpeg.h"
+#include "Exception.h"
 
 
 // default framerate
@@ -169,10 +169,10 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 	AVCodec			*codec;
 	AVCodecContext	*codecCtx;
 
-	if(av_open_input_file(&formatCtx, filename, inputFormat, 0, formatParams)!=0)
+	if (av_open_input_file(&formatCtx, filename, inputFormat, 0, formatParams)!=0)
 		return -1;
 
-	if(av_find_stream_info(formatCtx)<0) 
+	if (av_find_stream_info(formatCtx)<0) 
 	{
 		av_close_input_file(formatCtx);
 		return -1;
@@ -180,9 +180,9 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 
 	/* Find the first video stream */
 	videoStream=-1;
-	for(i=0; i<formatCtx->nb_streams; i++)
+	for (i=0; i<formatCtx->nb_streams; i++)
 	{
-		if(formatCtx->streams[i] &&
+		if (formatCtx->streams[i] &&
 			get_codec_from_stream(formatCtx->streams[i]) && 
 			(get_codec_from_stream(formatCtx->streams[i])->codec_type==AVMEDIA_TYPE_VIDEO))
 		{
@@ -191,7 +191,7 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 		}
 	}
 
-	if(videoStream==-1) 
+	if (videoStream==-1) 
 	{
 		av_close_input_file(formatCtx);
 		return -1;
@@ -201,20 +201,20 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 
 	/* Find the decoder for the video stream */
 	codec=avcodec_find_decoder(codecCtx->codec_id);
-	if(codec==NULL) 
+	if (codec==NULL) 
 	{
 		av_close_input_file(formatCtx);
 		return -1;
 	}
 	codecCtx->workaround_bugs = 1;
-	if(avcodec_open(codecCtx, codec)<0) 
+	if (avcodec_open(codecCtx, codec)<0) 
 	{
 		av_close_input_file(formatCtx);
 		return -1;
 	}
 
 #ifdef FFMPEG_OLD_FRAME_RATE
-	if(codecCtx->frame_rate>1000 && codecCtx->frame_rate_base==1)
+	if (codecCtx->frame_rate>1000 && codecCtx->frame_rate_base==1)
 		codecCtx->frame_rate_base=1000;
 	m_baseFrameRate = (double)codecCtx->frame_rate / (double)codecCtx->frame_rate_base;
 #else
@@ -294,7 +294,7 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 /*
  * This thread is used to load video frame asynchronously.
  * It provides a frame caching service. 
- * The main thread is responsible for positionning the frame pointer in the
+ * The main thread is responsible for positioning the frame pointer in the
  * file correctly before calling startCache() which starts this thread.
  * The cache is organized in two layers: 1) a cache of 20-30 undecoded packets to keep
  * memory and CPU low 2) a cache of 5 decoded frames. 
@@ -373,7 +373,7 @@ void *VideoFFmpeg::cacheThread(void *data)
 				avcodec_decode_video2(video->m_codecCtx, 
 					video->m_frame, &frameFinished, 
 					&cachePacket->packet);
-				if(frameFinished) 
+				if (frameFinished) 
 				{
 					AVFrame * input = video->m_frame;
 
@@ -793,7 +793,7 @@ void VideoFFmpeg::calcImage (unsigned int texId, double ts)
 		{
 			AVFrame* frame;
 			// get image
-			if((frame = grabFrame(actFrame)) != NULL)
+			if ((frame = grabFrame(actFrame)) != NULL)
 			{
 				if (!m_isFile && !m_cacheStarted) 
 				{
@@ -844,7 +844,7 @@ void VideoFFmpeg::setPositions (void)
 		m_startTime -= double(m_lastFrame) / actFrameRate();
 	else {
 		m_startTime -= m_range[0];
-		// start from begining, stop cache just in case
+		// start from beginning, stop cache just in case
 		stopCache();
 	}
 }
@@ -959,7 +959,7 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 				// of the file.
 				if (position <= m_preseek)
 				{
-					// we can safely go the begining of the file
+					// we can safely go the beginning of the file
 					if (av_seek_frame(m_formatCtx, m_videoStream, 0, AVSEEK_FLAG_BYTE) >= 0)
 					{
 						// binary seek does not reset the timestamp, must do it now
@@ -999,7 +999,7 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 	// return the next frame. This is not quite correct, may need more work
 	while(av_read_frame(m_formatCtx, &packet)>=0) 
 	{
-		if(packet.stream_index == m_videoStream) 
+		if (packet.stream_index == m_videoStream) 
 		{
 			avcodec_decode_video2(m_codecCtx, 
 				m_frame, &frameFinished, 
@@ -1188,7 +1188,7 @@ static PyGetSetDef videoGetSets[] =
 	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
-	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbor)", NULL},
 	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
 	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{(char*)"preseek", (getter)VideoFFmpeg_getPreseek, (setter)VideoFFmpeg_setPreseek, (char*)"nb of frames of preseek", NULL},
@@ -1309,7 +1309,7 @@ static PyGetSetDef imageGetSets[] =
 	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
-	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbor)", NULL},
 	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
 	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{NULL}

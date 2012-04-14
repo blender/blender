@@ -104,8 +104,8 @@ typedef struct tGPsdata {
 	short radius;		/* radius of influence for eraser */
 	short flags;		/* flags that can get set during runtime */
 
-	float imat[4][4];	/* inverted transformation matrix applying when converting coords from screen-space
-						 * to region space */
+	float imat[4][4];   /* inverted transformation matrix applying when converting coords from screen-space
+	                     * to region space */
 
 	float custom_color[4]; /* custom color for (?) */
 } tGPsdata;
@@ -187,15 +187,14 @@ static int gpencil_project_check (tGPsdata *p)
 /* Utilities --------------------------------- */
 
 /* get the reference point for stroke-point conversions */
-static void gp_get_3d_reference (tGPsdata *p, float *vec)
+static void gp_get_3d_reference (tGPsdata *p, float vec[3])
 {
 	View3D *v3d= p->sa->spacedata.first;
 	float *fp= give_cursor(p->scene, v3d);
 	
 	/* the reference point used depends on the owner... */
 #if 0 // XXX: disabled for now, since we can't draw relative to the owner yet
-	if (p->ownerPtr.type == &RNA_Object) 
-	{
+	if (p->ownerPtr.type == &RNA_Object) {
 		Object *ob= (Object *)p->ownerPtr.data;
 		
 		/* active Object 
@@ -517,14 +516,12 @@ static void gp_stroke_simplify (tGPsdata *p)
 		pressure += old_points[offs].pressure * sfac; \
 	}
 	
-	for (i = 0, j = 0; i < num_points; i++)
-	{
-		if (i - j == 3)
-		{
+	for (i = 0, j = 0; i < num_points; i++) {
+		if (i - j == 3) {
 			float co[2], pressure;
 			int mco[2];
 			
-			/* initialise values */
+			/* initialize values */
 			co[0]= 0;
 			co[1]= 0;
 			pressure = 0;
@@ -572,14 +569,14 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	
 	/* exit with error if no valid points from this stroke */
 	if (totelem == 0) {
-		if (G.f & G_DEBUG) 
-			printf("Error: No valid points in stroke buffer to convert (tot=%d) \n", gpd->sbuffer_size);
+		if (G.debug & G_DEBUG)
+			printf("Error: No valid points in stroke buffer to convert (tot=%d)\n", gpd->sbuffer_size);
 		return;
 	}
 	
 	/* special case for poly line -- for already added stroke during session
-	   coordinates are getting added to stroke immediatelly to allow more
-	   interactive behavior */
+	 * coordinates are getting added to stroke immediately to allow more
+	 * interactive behavior */
 	if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		if (p->flags & GP_PAINTFLAG_STROKEADDED)
 			return;
@@ -701,7 +698,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 		
 		pt= gps->points;
 		
-		/* convert all points (normal behaviour) */
+		/* convert all points (normal behavior) */
 		for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++, pt++) {
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &ptc->x, &pt->x, depth_arr ? depth_arr+i:NULL);
@@ -802,7 +799,7 @@ static short gp_stroke_eraser_strokeinside (int mval[], int UNUSED(mvalo[]), sho
 } 
 
 /* eraser tool - evaluation per stroke */
-// TODO: this could really do with some optimisation (KD-Tree/BVH?)
+// TODO: this could really do with some optimization (KD-Tree/BVH?)
 static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], short rad, rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
 {
 	bGPDspoint *pt1, *pt2;
@@ -905,7 +902,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 			}
 #endif
 			else {
-				if(p->subrect == NULL) { /* normal 3D view */
+				if (p->subrect == NULL) { /* normal 3D view */
 					x0= (int)(pt1->x / 100 * p->ar->winx);
 					y0= (int)(pt1->y / 100 * p->ar->winy);
 					x1= (int)(pt2->x / 100 * p->ar->winx);
@@ -943,10 +940,10 @@ static void gp_stroke_doeraser (tGPsdata *p)
 	rcti rect;
 	
 	/* rect is rectangle of eraser */
-	rect.xmin= p->mval[0] - p->radius;
-	rect.ymin= p->mval[1] - p->radius;
-	rect.xmax= p->mval[0] + p->radius;
-	rect.ymax= p->mval[1] + p->radius;
+	rect.xmin = p->mval[0] - p->radius;
+	rect.ymin = p->mval[1] - p->radius;
+	rect.xmax = p->mval[0] + p->radius;
+	rect.ymax = p->mval[1] + p->radius;
 	
 	/* loop over strokes, checking segments for intersections */
 	for (gps= gpf->strokes.first; gps; gps= gpn) {
@@ -990,8 +987,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 	/* make sure the active view (at the starting time) is a 3d-view */
 	if (curarea == NULL) {
 		p->status= GP_STATUS_ERROR;
-		if (G.f & G_DEBUG) 
-			printf("Error: No active view for painting \n");
+		if (G.debug & G_DEBUG)
+			printf("Error: No active view for painting\n");
 		return 0;
 	}
 	
@@ -1016,8 +1013,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			
 			if (ar->regiondata == NULL) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG)
-					printf("Error: 3D-View active region doesn't have any region data, so cannot be drawable \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: 3D-View active region doesn't have any region data, so cannot be drawable\n");
 				return 0;
 			}
 
@@ -1025,8 +1022,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			/* check that gpencil data is allowed to be drawn */
 			if ((v3d->flag2 & V3D_DISPGP)==0) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view, Grease Pencil not shown \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown\n");
 				return 0;
 			}
 #endif
@@ -1046,8 +1043,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			/* check that gpencil data is allowed to be drawn */
 			if ((snode->flag & SNODE_DISPGP)==0) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view, Grease Pencil not shown \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown\n");
 				return 0;
 			}
 #endif
@@ -1066,14 +1063,14 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			/* check that gpencil data is allowed to be drawn */
 			if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil\n");
 				return 0;
 			}
 			if ((sseq->flag & SEQ_DRAW_GPENCIL)==0) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view, Grease Pencil not shown \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown\n");
 				return 0;
 			}
 		}
@@ -1093,8 +1090,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			/* check that gpencil data is allowed to be drawn */
 			if ((sima->flag & SI_DISPGP)==0) {
 				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG)
-					printf("Error: In active view, Grease Pencil not shown \n");
+				if (G.debug & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown\n");
 				return 0;
 			}
 #endif
@@ -1124,8 +1121,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 		default:
 		{
 			p->status= GP_STATUS_ERROR;
-			if (G.f & G_DEBUG) 
-				printf("Error: Active view not appropriate for Grease Pencil drawing \n");
+			if (G.debug & G_DEBUG)
+				printf("Error: Active view not appropriate for Grease Pencil drawing\n");
 			return 0;
 		}
 			break;
@@ -1135,8 +1132,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 	gpd_ptr= gpencil_data_get_pointers(C, &p->ownerPtr);
 	if (gpd_ptr == NULL) {
 		p->status= GP_STATUS_ERROR;
-		if (G.f & G_DEBUG)
-			printf("Error: Current context doesn't allow for any Grease Pencil data \n");
+		if (G.debug & G_DEBUG)
+			printf("Error: Current context doesn't allow for any Grease Pencil data\n");
 		return 0;
 	}
 	else {
@@ -1148,7 +1145,7 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 	
 	if (ED_gpencil_session_active()==0) {
 		/* initialize undo stack,
-		   also, existing undo stack would make buffer drawn */
+		 * also, existing undo stack would make buffer drawn */
 		gpencil_undo_init(p->gpd);
 	}
 	
@@ -1207,13 +1204,13 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 	if (p->gpl == NULL) {
 		p->gpl= gpencil_layer_addnew(p->gpd);
 
-		if(p->custom_color[3])
+		if (p->custom_color[3])
 			copy_v3_v3(p->gpl->color, p->custom_color);
 	}
 	if (p->gpl->flag & GP_LAYER_LOCKED) {
 		p->status= GP_STATUS_ERROR;
-		if (G.f & G_DEBUG)
-			printf("Error: Cannot paint on locked layer \n");
+		if (G.debug & G_DEBUG)
+			printf("Error: Cannot paint on locked layer\n");
 		return;
 	}
 		
@@ -1221,8 +1218,8 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 	p->gpf= gpencil_layer_getframe(p->gpl, p->scene->r.cfra, 1);
 	if (p->gpf == NULL) {
 		p->status= GP_STATUS_ERROR;
-		if (G.f & G_DEBUG) 
-			printf("Error: No frame created (gpencil_paint_init) \n");
+		if (G.debug & G_DEBUG)
+			printf("Error: No frame created (gpencil_paint_init)\n");
 		return;
 	}
 	else
@@ -1316,7 +1313,7 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				 *
 				 * Admittedly, this is a bit hacky, but it works much nicer from an ergonomic standpoint!
 				 */
-				if ELEM(NULL, sima, sima->image) {
+				if (ELEM(NULL, sima, sima->image)) {
 					/* make strokes be drawn in screen space */
 					p->gpd->sbuffer_sflag &= ~GP_STROKE_2DSPACE;
 					p->gpd->flag &= ~GP_DATA_VIEWALIGN;
@@ -1369,7 +1366,7 @@ static void gp_paint_strokeend (tGPsdata *p)
 static void gp_paint_cleanup (tGPsdata *p)
 {
 	/* p->gpd==NULL happens when stroke failed to initialize,
-	      for example. when GP is hidden in current space (sergey) */
+	 * for example. when GP is hidden in current space (sergey) */
 	if (p->gpd) {
 		/* finish off a stroke */
 		gp_paint_strokeend(p);
@@ -1522,8 +1519,8 @@ static void gpencil_draw_apply (wmOperator *op, tGPsdata *p)
 			BKE_report(op->reports, RPT_ERROR, "Cannot paint stroke");
 			p->status = GP_STATUS_ERROR;
 			
-			if (G.f & G_DEBUG) 
-				printf("Error: Grease-Pencil Paint - Add Point Invalid \n");
+			if (G.debug & G_DEBUG)
+				printf("Error: Grease-Pencil Paint - Add Point Invalid\n");
 			return;
 		}
 		
@@ -1598,27 +1595,26 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 {
 	tGPsdata *p = NULL;
 	
-	//printf("GPencil - Starting Re-Drawing \n");
+	//printf("GPencil - Starting Re-Drawing\n");
 	
-	/* try to initialise context data needed while drawing */
+	/* try to initialize context data needed while drawing */
 	if (!gpencil_draw_init(C, op)) {
 		if (op->customdata) MEM_freeN(op->customdata);
-		//printf("\tGP - no valid data \n");
+		//printf("\tGP - no valid data\n");
 		return OPERATOR_CANCELLED;
 	}
 	else
 		p= op->customdata;
 	
-	//printf("\tGP - Start redrawing stroke \n");
+	//printf("\tGP - Start redrawing stroke\n");
 	
 	/* loop over the stroke RNA elements recorded (i.e. progress of mouse movement),
 	 * setting the relevant values in context at each step, then applying
 	 */
-	RNA_BEGIN(op->ptr, itemptr, "stroke") 
-	{
+	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		float mousef[2];
 		
-		//printf("\t\tGP - stroke elem \n");
+		//printf("\t\tGP - stroke elem\n");
 		
 		/* get relevant data for this point from stroke */
 		RNA_float_get_array(&itemptr, "mouse", mousef);
@@ -1651,7 +1647,7 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 	}
 	RNA_END;
 	
-	//printf("\tGP - done \n");
+	//printf("\tGP - done\n");
 	
 	/* cleanup */
 	gpencil_draw_exit(C, op);
@@ -1671,15 +1667,15 @@ static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	tGPsdata *p = NULL;
 	wmWindow *win= CTX_wm_window(C);
 	
-	if (G.f & G_DEBUG)
-		printf("GPencil - Starting Drawing \n");
+	if (G.debug & G_DEBUG)
+		printf("GPencil - Starting Drawing\n");
 	
-	/* try to initialise context data needed while drawing */
+	/* try to initialize context data needed while drawing */
 	if (!gpencil_draw_init(C, op)) {
 		if (op->customdata) 
 			MEM_freeN(op->customdata);
-		if (G.f & G_DEBUG)
-			printf("\tGP - no valid data \n");
+		if (G.debug & G_DEBUG)
+			printf("\tGP - no valid data\n");
 		return OPERATOR_CANCELLED;
 	}
 	else
@@ -1746,11 +1742,11 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	 * otherwise we could crash (see bug #20586)
 	 */
 	if (CTX_wm_area(C) != p->sa) {
-		printf("\t\t\tGP - wrong area execution abort! \n");
+		printf("\t\t\tGP - wrong area execution abort!\n");
 		p->status= GP_STATUS_ERROR;
 	}
 
-	//printf("\t\tGP - start stroke \n");
+	//printf("\t\tGP - start stroke\n");
 
 	/* we may need to set up paint env again if we're resuming */
 	// XXX: watch it with the paintmode! in future, it'd be nice to allow changing paint-mode when in sketching-sessions
@@ -1759,7 +1755,7 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	if (gp_session_initdata(C, p))
 		gp_paint_initstroke(p, p->paintmode);
 
-	if(p->status != GP_STATUS_ERROR)
+	if (p->status != GP_STATUS_ERROR)
 		p->status= GP_STATUS_PAINTING;
 
 	return op->customdata;
@@ -1855,15 +1851,14 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 	/* handle mode-specific events */
 	if (p->status == GP_STATUS_PAINTING) {
 		/* handle painting mouse-movements? */
-		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) 
-		{
+		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) {
 			/* handle drawing event */
 			//printf("\t\tGP - add point\n");
 			gpencil_draw_apply_event(op, event);
 			
 			/* finish painting operation if anything went wrong just now */
 			if (p->status == GP_STATUS_ERROR) {
-				printf("\t\t\t\tGP - add error done! \n");
+				printf("\t\t\t\tGP - add error done!\n");
 				estate = OPERATOR_CANCELLED;
 			}
 			else {
@@ -1923,22 +1918,22 @@ static EnumPropertyItem prop_gpencil_drawmodes[] = {
 void GPENCIL_OT_draw (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Grease Pencil Draw";
-	ot->idname= "GPENCIL_OT_draw";
-	ot->description= "Make annotations on the active data";
+	ot->name = "Grease Pencil Draw";
+	ot->idname = "GPENCIL_OT_draw";
+	ot->description = "Make annotations on the active data";
 	
 	/* api callbacks */
-	ot->exec= gpencil_draw_exec;
-	ot->invoke= gpencil_draw_invoke;
-	ot->modal= gpencil_draw_modal;
-	ot->cancel= gpencil_draw_cancel;
-	ot->poll= gpencil_draw_poll;
+	ot->exec = gpencil_draw_exec;
+	ot->invoke = gpencil_draw_invoke;
+	ot->modal = gpencil_draw_modal;
+	ot->cancel = gpencil_draw_cancel;
+	ot->poll = gpencil_draw_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* settings for drawing */
-	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements");
+	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to interpret mouse movements");
 	
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }

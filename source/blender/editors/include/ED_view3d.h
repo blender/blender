@@ -33,27 +33,29 @@
 
 /* ********* exports for space_view3d/ module ********** */
 struct ARegion;
-struct bContext;
-struct BezTriple;
-struct bglMats;
-struct BoundBox;
+struct BMEdge;
+struct BMFace;
+struct BMVert;
 struct BPoint;
-struct EditEdge;
-struct EditFace;
-struct EditVert;
+struct BezTriple;
+struct BezTriple;
+struct BoundBox;
 struct ImBuf;
+struct MVert;
 struct Main;
 struct Nurb;
+struct Nurb;
 struct Object;
-struct rcti;
 struct RegionView3D;
 struct Scene;
 struct View3D;
 struct ViewContext;
-struct wmWindow;
-struct MVert;
-struct wmOperatorType;
+struct bContext;
+struct bglMats;
+struct rcti;
 struct wmOperator;
+struct wmOperatorType;
+struct wmWindow;
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
@@ -63,7 +65,7 @@ typedef struct ViewContext {
 	struct ARegion *ar;
 	struct View3D *v3d;
 	struct RegionView3D *rv3d;
-	struct EditMesh *em;
+	struct BMEditMesh *em;
 	int mval[2];
 } ViewContext;
 
@@ -89,10 +91,10 @@ int initgrabz(struct RegionView3D *rv3d, float x, float y, float z);
 
 /**
  * Calculate a 3d location from 2d window coordinates.
- * @param ar The region (used for the window width and height).
- * @param depth_pt The reference location used to calculate the Z depth.
- * @param mval The area relative location (such as event->mval converted to floats).
- * @param out The resulting world-space location.
+ * \param ar The region (used for the window width and height).
+ * \param depth_pt The reference location used to calculate the Z depth.
+ * \param mval The area relative location (such as event->mval converted to floats).
+ * \param out The resulting world-space location.
  */
 void ED_view3d_win_to_3d(struct ARegion *ar, const float depth_pt[3], const float mval[2], float out[3]);
 
@@ -100,9 +102,9 @@ void ED_view3d_win_to_3d(struct ARegion *ar, const float depth_pt[3], const floa
  * Calculate a 3d difference vector from 2d window offset.
  * note that initgrabz() must be called first to determine
  * the depth used to calculate the delta.
- * @param ar The region (used for the window width and height).
- * @param mval The area relative 2d difference (such as event->mval[0] - other_x).
- * @param out The resulting world-space delta.
+ * \param ar The region (used for the window width and height).
+ * \param mval The area relative 2d difference (such as event->mval[0] - other_x).
+ * \param out The resulting world-space delta.
  */
 void ED_view3d_win_to_delta(struct ARegion *ar, const float mval[2], float out[3]);
 
@@ -110,9 +112,9 @@ void ED_view3d_win_to_delta(struct ARegion *ar, const float mval[2], float out[3
  * Calculate a 3d direction vector from 2d window coordinates.
  * This direction vector starts and the view in the direction of the 2d window coordinates.
  * In orthographic view all window coordinates yield the same vector.
- * @param ar The region (used for the window width and height).
- * @param mval The area relative 2d location (such as event->mval converted to floats).
- * @param out The resulting normalized world-space direction vector.
+ * \param ar The region (used for the window width and height).
+ * \param mval The area relative 2d location (such as event->mval converted to floats).
+ * \param out The resulting normalized world-space direction vector.
  */
 void ED_view3d_win_to_vector(struct ARegion *ar, const float mval[2], float out[3]);
 
@@ -122,11 +124,11 @@ void ED_view3d_win_to_vector(struct ARegion *ar, const float mval[2], float out[
  * ray_start and ray_end are clipped by the view near and far limits
  * so points along this line are always in view.
  * In orthographic view all resulting segments will be parallel.
- * @param ar The region (used for the window width and height).
- * @param v3d The 3d viewport (used for near and far clipping range).
- * @param mval The area relative 2d location (such as event->mval, converted into float[2]).
- * @param ray_start The world-space starting point of the segment.
- * @param ray_end The world-space end point of the segment.
+ * \param ar The region (used for the window width and height).
+ * \param v3d The 3d viewport (used for near and far clipping range).
+ * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param ray_start The world-space starting point of the segment.
+ * \param ray_end The world-space end point of the segment.
  */
 void ED_view3d_win_to_segment_clip(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
 
@@ -135,64 +137,64 @@ void ED_view3d_win_to_segment_clip(struct ARegion *ar, struct View3D *v3d, const
  * This ray_start is located at the viewpoint, ray_normal is the direction towards mval.
  * ray_start is clipped by the view near limit so points in front of it are always in view.
  * In orthographic view the resulting ray_normal will match the view vector.
- * @param ar The region (used for the window width and height).
- * @param v3d The 3d viewport (used for near clipping value).
- * @param mval The area relative 2d location (such as event->mval, converted into float[2]).
- * @param ray_start The world-space starting point of the segment.
- * @param ray_normal The normalized world-space direction of towards mval.
+ * \param ar The region (used for the window width and height).
+ * \param v3d The 3d viewport (used for near clipping value).
+ * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param ray_start The world-space starting point of the segment.
+ * \param ray_normal The normalized world-space direction of towards mval.
  */
 void ED_view3d_win_to_ray(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3]);
 
 /**
  * Calculate a normalized 3d direction vector from the viewpoint towards a global location.
  * In orthographic view the resulting vector will match the view vector.
- * @param rv3d The region (used for the window width and height).
- * @param coord The world-space location.
- * @param vec The resulting normalized vector.
+ * \param rv3d The region (used for the window width and height).
+ * \param coord The world-space location.
+ * \param vec The resulting normalized vector.
  */
 void ED_view3d_global_to_vector(struct RegionView3D *rv3d, const float coord[3], float vec[3]);
 
 /**
  * Calculate the view transformation matrix from RegionView3D input.
- * The resulting matrix is equivilent to RegionView3D.viewinv
- * @param mat The view 4x4 transformation matrix to calculate.
- * @param ofs The view offset, normally from RegionView3D.ofs.
- * @param quat The view rotation, quaternion normally from RegionView3D.viewquat.
- * @param dist The view distance from ofs, normally from RegionView3D.dist.
+ * The resulting matrix is equivalent to RegionView3D.viewinv
+ * \param mat The view 4x4 transformation matrix to calculate.
+ * \param ofs The view offset, normally from RegionView3D.ofs.
+ * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.
+ * \param dist The view distance from ofs, normally from RegionView3D.dist.
  */
 void ED_view3d_to_m4(float mat[][4], const float ofs[3], const float quat[4], const float dist);
 
 /**
  * Set the view transformation from a 4x4 matrix.
- * @param mat The view 4x4 transformation matrix to assign.
- * @param ofs The view offset, normally from RegionView3D.ofs.
- * @param quat The view rotation, quaternion normally from RegionView3D.viewquat.
- * @param dist The view distance from ofs, normally from RegionView3D.dist.
+ * \param mat The view 4x4 transformation matrix to assign.
+ * \param ofs The view offset, normally from RegionView3D.ofs.
+ * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.
+ * \param dist The view distance from ofs, normally from RegionView3D.dist.
  */
 void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist);
 
 /**
  * Set the RegionView3D members from an objects transformation and optionally lens.
- * @param ob The object to set the view to.
- * @param ofs The view offset to be set, normally from RegionView3D.ofs.
- * @param quat The view rotation to be set, quaternion normally from RegionView3D.viewquat.
- * @param dist The view distance from ofs to be set, normally from RegionView3D.dist.
- * @param lens The view lens angle set for cameras and lamps, normally from View3D.lens.
+ * \param ob The object to set the view to.
+ * \param ofs The view offset to be set, normally from RegionView3D.ofs.
+ * \param quat The view rotation to be set, quaternion normally from RegionView3D.viewquat.
+ * \param dist The view distance from ofs to be set, normally from RegionView3D.dist.
+ * \param lens The view lens angle set for cameras and lamps, normally from View3D.lens.
  */
 void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
 
 /**
  * Set the object transformation from RegionView3D members.
- * @param ob The object which has the transformation assigned.
- * @param ofs The view offset, normally from RegionView3D.ofs.
- * @param quat The view rotation, quaternion normally from RegionView3D.viewquat.
- * @param dist The view distance from ofs, normally from RegionView3D.dist.
+ * \param ob The object which has the transformation assigned.
+ * \param ofs The view offset, normally from RegionView3D.ofs.
+ * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.
+ * \param dist The view distance from ofs, normally from RegionView3D.dist.
  */
 void ED_view3d_to_object(struct Object *ob, const float ofs[3], const float quat[4], const float dist);
 
-#if 0 /* UNUSED */
+//#if 0 /* UNUSED */
 void view3d_unproject(struct bglMats *mats, float out[3], const short x, const short y, const float z);
-#endif
+//#endif
 
 /* Depth buffer */
 void ED_view3d_depth_update(struct ARegion *ar);
@@ -217,20 +219,24 @@ void project_float_noclip(struct ARegion *ar, const float vec[3], float adr[2]);
 int ED_view3d_clip_range_get(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
 int ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, struct rctf *viewplane, float *clipsta, float *clipend);
 void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
-void ED_view3d_project_float(const struct ARegion *a, const float vec[3], float adr[2], float mat[4][4]);
 void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, struct rctf *viewborder_r, short no_shift);
+void ED_view3d_project_float_v2(const struct ARegion *a, const float vec[3], float adr[2], float mat[4][4]);
+void ED_view3d_project_float_v3(struct ARegion *a, const float vec[3], float adr[3], float mat[4][4]);
 void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, float size_r[2]);
 
 /* drawobject.c iterators */
-void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, eV3DClipTest clipVerts);
-void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts);
-void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);
+void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BMVert *eve, int x, int y, int index), void *userData, eV3DClipTest clipVerts);
+void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct BMEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts);
+void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct BMFace *efa, int x, int y, int index), void *userData);
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 
-void ED_view3d_local_clipping(struct RegionView3D *rv3d, float mat[][4]);
-int ED_view3d_test_clipping(struct RegionView3D *rv3d, const float vec[3], const int local);
-void ED_view3d_align_axis_to_vector(struct View3D *v3d, struct RegionView3D *rv3d, int axisidx, float vec[3]);
+void ED_view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);
+int  ED_view3d_clipping_test(struct RegionView3D *rv3d, const float vec[3], const int is_local);
+void ED_view3d_clipping_set(struct RegionView3D *rv3d);
+void ED_view3d_clipping_enable(void);
+void ED_view3d_clipping_disable(void);
+
 float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3]);
 
 void drawcircball(int mode, const float cent[3], float rad, float tmat[][4]);
@@ -278,14 +284,15 @@ int ED_view3d_scene_layer_set(int lay, const int *values, int *active);
 
 int ED_view3d_context_activate(struct bContext *C);
 void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct ARegion *ar,
-	int winx, int winy, float viewmat[][4], float winmat[][4]);
+	int winx, int winy, float viewmat[][4], float winmat[][4], int draw_background);
 
-struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag, char err_out[256]);
-struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Scene *scene, struct Object *camera, int width, int height, unsigned int flag, int drawtype, char err_out[256]);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag, int draw_background, char err_out[256]);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Scene *scene, struct Object *camera, int width, int height, unsigned int flag, int drawtype, int draw_background, char err_out[256]);
 
 
 struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, short do_clip);
+void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[][4], float winmat[][4]);
 int ED_view3d_lock(struct RegionView3D *rv3d);
 
 uint64_t ED_view3d_datamask(struct Scene *scene, struct View3D *v3d);

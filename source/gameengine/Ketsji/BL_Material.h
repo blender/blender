@@ -8,6 +8,7 @@
 
 #include "STR_String.h"
 #include "MT_Point2.h"
+#include "DNA_meshdata_types.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -24,11 +25,11 @@ struct EnvMap;
 // --
 
 /** max units
-	this will default to users available units
-	to build with more available, just increment this value
-	although the more you add the slower the search time will be.
-	we will go for eight, which should be enough
-*/
+ * this will default to users available units
+ * to build with more available, just increment this value
+ * although the more you add the slower the search time will be.
+ * we will go for eight, which should be enough
+ */
 #define MAXTEX			8	//match in RAS_TexVert & RAS_OpenGLRasterizer
 
 // different mapping modes
@@ -83,7 +84,7 @@ public:
 
 
 	Material*			material;
-	MTFace*				tface;
+	MTFace				tface; /* copy of the derived meshes tface */
 	Image*				img[MAXTEX];
 	EnvMap*				cubemap[MAXTEX];
 

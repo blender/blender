@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_IRENDERTOOLS
-#define __RAS_IRENDERTOOLS
+#ifndef __RAS_IRENDERTOOLS_H__
+#define __RAS_IRENDERTOOLS_H__
 
 #include "MT_Transform.h"
 #include "RAS_IRasterizer.h"
@@ -103,13 +103,13 @@ public:
 
 	/**
 	 * Renders 3D text string using BFL.
-	 * @param fontid	The id of the font.
-	 * @param text		The string to render.
-	 * @param size		The size of the text.
-	 * @param dpi		The resolution of the text.
-	 * @param color		The color of the object.
-	 * @param mat		The Matrix of the text object.
-	 * @param aspect	A scaling factor to compensate for the size.
+	 * \param fontid	The id of the font.
+	 * \param text		The string to render.
+	 * \param size		The size of the text.
+	 * \param dpi		The resolution of the text.
+	 * \param color		The color of the object.
+	 * \param mat		The Matrix of the text object.
+	 * \param aspect	A scaling factor to compensate for the size.
 	 */
 	virtual 
 		void	
@@ -125,12 +125,12 @@ public:
 
 	/**
 	 * Renders 2D text string.
-	 * @param mode      The type of text
-	 * @param text		The string to render.
-	 * @param xco		Position on the screen (origin in lower left corner).
-	 * @param yco		Position on the screen (origin in lower left corner).
-	 * @param width		Width of the canvas to draw to.
-	 * @param height	Height of the canvas to draw to.
+	 * \param mode      The type of text
+	 * \param text		The string to render.
+	 * \param xco		Position on the screen (origin in lower left corner).
+	 * \param yco		Position on the screen (origin in lower left corner).
+	 * \param width		Width of the canvas to draw to.
+	 * \param height	Height of the canvas to draw to.
 	 */
 	virtual 
 		void	
@@ -210,7 +210,7 @@ public:
 #endif
 };
 
-#endif //__RAS_IRENDERTOOLS
+#endif //__RAS_IRENDERTOOLS_H__
 
 
 

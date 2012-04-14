@@ -29,8 +29,8 @@
  *  \ingroup phys
  */
 
-#ifndef _IPHYSICSENVIRONMENT
-#define _IPHYSICSENVIRONMENT
+#ifndef __PHY_IPHYSICSENVIRONMENT_H__
+#define __PHY_IPHYSICSENVIRONMENT_H__
 
 #include <vector>
 #include "PHY_DynamicTypes.h"
@@ -129,7 +129,7 @@ class PHY_IPhysicsEnvironment
 		virtual void		setContactBreakingTreshold(float contactBreakingTreshold) {}
 		///continuous collision detection mode, very experimental for Bullet
 		virtual void		setCcdMode(int ccdMode) {}
-		///successive overrelaxation constant, in case PSOR is used, values in between 1 and 2 guarantee converging behaviour
+		///successive overrelaxation constant, in case PSOR is used, values in between 1 and 2 guarantee converging behavior
 		virtual void		setSolverSorConstant(float sor) {}
 		///setSolverType, internal setting, chooses solvertype, PSOR, Dantzig, impulse based, penalty based
 		virtual void		setSolverType(int solverType) {}
@@ -187,5 +187,5 @@ public:
 #endif
 };
 
-#endif //_IPHYSICSENVIRONMENT
+#endif //__PHY_IPHYSICSENVIRONMENT_H__
 
