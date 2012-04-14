@@ -40,68 +40,91 @@ struct Ipo;
 
 typedef struct KeyBlock {
 	struct KeyBlock *next, *prev;
-	
-	float pos;
-	float curval;
-	short type, pad1, relative, flag;	/* relative == 0 means first key is reference */
-	int totelem, uid;
-	
-	void *data;
-	float *weights;
-	char  name[64];	/* MAX_NAME */
-	char vgroup[64];	/* MAX_VGROUP_NAME */
 
+	float pos;         /* point in time   (Key->type == KEY_NORMAL) only,
+	                    * for historic reasons this is relative to (Key->ctime / 100),
+	                    * so this value increments by 0.1f per frame. */
+	float curval;      /* influence (typically [0 - 1] but can be more), (Key->type == KEY_RELATIVE) only.*/
+
+	short type;        /* interpolation type (Key->type == KEY_NORMAL) only. */
+	short pad1;
+
+	short relative;    /* relative == 0 means first key is reference, otherwise the index of Key->blocks */
+	short flag;
+
+	int totelem;       /* total number if items in the keyblock (compare with mesh/curve verts to chech we match) */
+	int uid;           /* for meshes only, match the unique number with the customdata layer */
+	
+	void  *data;       /* array of shape key values, size is (Key->elemsize * KeyBlock->totelem) */
+	float *weights;    /* store an aligned array of weights from 'vgroup' */
+	char   name[64];   /* MAX_NAME (unique name, user assigned) */
+	char   vgroup[64]; /* MAX_VGROUP_NAME (optional vertex group), array gets allocated into 'weights' when set */
+
+	/* ranges, for RNA and UI only to clamp 'curval' */
 	float slidermin;
 	float slidermax;
+
 } KeyBlock;
 
 
 typedef struct Key {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
-	
+
+	/* commonly called 'Basis', (Key->type == KEY_RELATIVE) only.
+	 * Looks like this is  _always_ 'key->block.first',
+	 * perhaps later on it could be defined as some other KeyBlock - campbell */
 	KeyBlock *refkey;
+
 	/* this is not a regular string, although it is \0 terminated
 	 * this is an array of (element_array_size, element_type) pairs
 	 * (each one char) used for calculating shape key-blocks */
 	char elemstr[32];
-	int elemsize;
-	float curval  DNA_DEPRECATED;
+	int elemsize;  /* size of each element in #KeyBlock.data, use for allocation and stride */
+	int pad;
 	
-	ListBase block;
+	ListBase block;  /* list of KeyBlock's */
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
-	
+
 	ID *from;
 
-	short type, totkey;
-	short slurph, flag;
+	short type;    /* absolute or relative shape key */
+	short totkey;  /* (totkey == BLI_countlist(&key->block)) */
+	short slurph;  /* quaint feature to delay moving points based on their order (Key->type == KEY_NORMAL) only */
+	short flag;
+
+	/* only used when (Key->type == KEY_NORMAL), this value is used as a time slider,
+	 * rather then using the scenes time, this value can be animated to give greater control */
 	float ctime;
 
-	/*can never be 0, this is used for detecting old data*/
-	int uidgen; /*current free uid for keyblocks*/
+	/* can never be 0, this is used for detecting old data */
+	int uidgen; /* current free uid for keyblocks */
 } Key;
 
 /* **************** KEY ********************* */
 
-/* key->type */
+/* Key->type: KeyBlocks are interpreted as... */
 enum {
+	/* Sequencial positions over time (using KeyBlock->pos and Key->ctime) */
 	KEY_NORMAL      = 0,
+
+	/* States to blend between (default) */
 	KEY_RELATIVE    = 1
 };
 
-/* key->flag */
+/* Key->flag */
 enum {
 	KEY_DS_EXPAND   = 1
 };
 
-/* keyblock->type */
+/* KeyBlock->type */
 enum {
 	KEY_LINEAR      = 0,
 	KEY_CARDINAL    = 1,
 	KEY_BSPLINE     = 2
 };
 
-/* keyblock->flag */
+/* KeyBlock->flag */
 enum {
 	KEYBLOCK_MUTE       = (1 << 0),
 	KEYBLOCK_SEL        = (1 << 1),

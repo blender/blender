@@ -326,7 +326,7 @@ void key_curve_tangent_weights(float t, float *data, int type)
 		t2 = t * t;
 
 		data[0] = -0.5f * t2  + t         - 0.5f;
-		data[1] =  1.5f * t2  - 2.0f * t;
+		data[1] =  1.5f * t2  - t * 2.0f;
 		data[2] = -1.5f * t2  + t         + 0.5f;
 		data[3] =  0.5f * t2;
 	}
@@ -346,10 +346,10 @@ void key_curve_normal_weights(float t, float *data, int type)
 	else if (type == KEY_CARDINAL) {
 		fc = 0.71f;
 
-		data[0] = -6.0f * fc * t           + 4.0f * fc;
+		data[0] = -6.0f * fc          * t  + 4.0f * fc;
 		data[1] =  6.0f * (2.0f - fc) * t  + 2.0f * (fc - 3.0f);
 		data[2] =  6.0f * (fc - 2.0f) * t  + 2.0f * (3.0f - 2.0f * fc);
-		data[3] =  6.0f * fc * t           - 2.0f * fc;
+		data[3] =  6.0f * fc          * t  - 2.0f * fc;
 	}
 	else if (type == KEY_BSPLINE) {
 		data[0] = -1.0f * t  + 1.0f;
