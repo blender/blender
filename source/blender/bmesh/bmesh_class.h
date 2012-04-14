@@ -45,7 +45,7 @@ struct Object;
  * pointers. this is a requirement of mempool's method of
  * iteration.
  *
- * hrm. it doesnt but stull works ok, remove the comment above? - campbell.
+ * hrm. it doesn't but stull works ok, remove the comment above? - campbell.
  */
 
 /**
@@ -55,7 +55,7 @@ struct Object;
  * hold several types of data
  *
  * 1: The type of the element (vert, edge, loop or face)
- * 2: Persistent "header" flags/markings (smooth, seam, select, hidden, ect)
+ * 2: Persistent "header" flags/markings (smooth, seam, select, hidden, etc)
  *     note that this is different from the "tool" flags.
  * 3: Unique ID in the bmesh.
  * 4: some elements for internal record keeping.

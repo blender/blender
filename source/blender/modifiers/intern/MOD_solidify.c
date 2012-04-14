@@ -293,7 +293,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		edge_users= MEM_mallocN(sizeof(int) * numEdges, "solid_mod edges");
 		edge_order= MEM_mallocN(sizeof(char) * numEdges, "solid_mod eorder");
-		memset(edge_users, INVALID_UNUSED, sizeof(int) * numEdges);
+		fill_vn_i(edge_users, numEdges, INVALID_UNUSED);
 		
 		for (i=0, mp=orig_mpoly; i<numFaces; i++, mp++) {
 			MLoop *ml;

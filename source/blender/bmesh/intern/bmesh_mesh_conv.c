@@ -24,6 +24,55 @@
  *  \ingroup bmesh
  *
  * BM mesh conversion functions.
+ *
+ * \section bm_mesh_conv_shapekey Converting Shape Keys
+ *
+ * When converting to/from a Mesh/BMesh you can optionally pass a shape key to edit.
+ * This has the effect of editing the shape key-block rather then the original mesh vertex coords
+ * (although additional geometry is still allowed and uses fallback locations on converting).
+ *
+ * While this works for any mesh/bmesh this is made use of by entering and exiting edit-mode.
+ *
+ * There are comments in code but this should help explain the general
+ * intention as to how this works converting from/to bmesh.
+ *
+ *
+ * \subsection user_pov User Perspective
+ *
+ * - Editmode operations when a shape key-block is active edits only that key-block.
+ * - The first Basis key-block always matches the Mesh verts.
+ * - Changing vertex locations of _any_ Basis will apply offsets to those shape keys using this as their Basis.
+ *
+ *
+ * \subsection enter_editmode Entering EditMode - #BM_mesh_bm_from_me
+ *
+ * - the active key-block is used for BMesh vertex locations on entering edit-mode.
+ * So obviously the meshes vertex locations remain unchanged and the shape key its self is not being edited directly.
+ * Simply the #BMVert.co is a initialized from active shape key (when its set).
+ * - all key-blocks are added as CustomData layers (read code for details).
+ *
+ *
+ * \subsection exit_editmode Exiting EditMode - #BM_mesh_bm_to_me
+ *
+ * This is where the most confusing code is! Won't attempt to document the details here, for that read the code.
+ * But basics are as follows.
+ *
+ * - Vertex locations (possibly modified from initial active key-block) are copied directly into #MVert.co
+ * (special confusing note that these may be restored later, when editing the 'Basis', read on).
+ * - if the 'Key' is relative, and the active key-block is the basis for ANY other key-blocks - get an array of offsets
+ * between the new vertex locations and the original shape key (before entering edit-mode),
+ * these offsets get applied later on to inactive key-blocks using the active one (which we are editing) as their Basis.
+ *
+ * Copying the locations back to the shape keys is quite confusing...
+ * One main area of confusion is that when editing a 'Basis' key-block 'me->key->refkey'
+ * The coords are written into the mesh, from the users perspective the Basis coords are written into the mesh
+ * when exiting edit-mode.
+ *
+ * When _not_ editing the 'Basis', the original vertex locations (stored in the mesh and unchanged during edit-mode),
+ * are copied back into the mesh.
+ *
+ * This has the effect from the users POV of leaving the mesh un-touched, and only editing the active shape key-block.
+ *
  */
 
 #include "DNA_mesh_types.h"
@@ -43,6 +92,7 @@
 
 #include "BKE_global.h" /* ugh - for looping over all objects */
 #include "BKE_main.h"
+#include "BKE_key.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* for element checking */
@@ -147,9 +197,6 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 			j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
 			bm->vdata.layers[j].uid = block->uid;
 		}
-	}
-	else if (actkey) {
-		printf("shapekey <-> mesh mismatch!\n");
 	}
 
 	CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
@@ -317,56 +364,39 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 	}
 
 	if (me->mselect && me->totselect != 0) {
-		BMIter iter;
-		BMVert *vertex;
-		BMEdge *edge;
-		BMFace *face;
-		BMVert **vertex_array = MEM_callocN(sizeof(BMVert *) * bm->totvert,
-		                                    "Selection Conversion Vertex Pointer Array");
+
+		BMVert **vert_array = MEM_callocN(sizeof(BMVert *) * bm->totvert,
+		                                  "Selection Conversion Vertex Pointer Array");
 		BMEdge **edge_array = MEM_callocN(sizeof(BMEdge *) * bm->totedge,
 		                                  "Selection Conversion Edge Pointer Array");
 		BMFace **face_array = MEM_callocN(sizeof(BMFace *) * bm->totface,
 		                                  "Selection Conversion Face Pointer Array");
 
-		for (i = 0, vertex = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		     vertex;
-		     i++, vertex = BM_iter_step(&iter))
-		{
-			vertex_array[i] = vertex;
-		}
+		BMIter  iter;
+		BMVert  *vert;
+		BMEdge  *edge;
+		BMFace  *face;
+		MSelect *msel;
 
-		for (i = 0, edge = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL);
-		     edge;
-		     i++, edge = BM_iter_step(&iter))
-		{
-			edge_array[i] = edge;
-		}
+		BM_ITER_INDEX(vert, &iter, bm, BM_VERTS_OF_MESH, NULL, i) { vert_array[i] = vert; }
+		BM_ITER_INDEX(edge, &iter, bm, BM_EDGES_OF_MESH, NULL, i) { edge_array[i] = edge; }
+		BM_ITER_INDEX(face, &iter, bm, BM_FACES_OF_MESH, NULL, i) { face_array[i] = face; }
 
-		for (i = 0, face = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL);
-		     face;
-		     i++, face = BM_iter_step(&iter))
-		{
-			face_array[i] = face;
-		}
-
-		if (me->mselect) {
-			for (i = 0; i < me->totselect; i++) {
-				if (me->mselect[i].type == ME_VSEL) {
-					BM_select_history_store(bm, (BMElem *)vertex_array[me->mselect[i].index]);
-				}
-				else if (me->mselect[i].type == ME_ESEL) {
-					BM_select_history_store(bm, (BMElem *)edge_array[me->mselect[i].index]);
-				}
-				else if (me->mselect[i].type == ME_FSEL) {
-					BM_select_history_store(bm, (BMElem *)face_array[me->mselect[i].index]);
-				}
+		for (i = 0, msel = me->mselect; i < me->totselect; i++, msel++) {
+			switch (msel->type) {
+				case ME_VSEL:
+					BM_select_history_store(bm, (BMElem *)vert_array[msel->index]);
+					break;
+				case ME_ESEL:
+					BM_select_history_store(bm, (BMElem *)edge_array[msel->index]);
+					break;
+				case ME_FSEL:
+					BM_select_history_store(bm, (BMElem *)face_array[msel->index]);
+					break;
 			}
 		}
-		else {
-			me->totselect = 0;
-		}
 
-		MEM_freeN(vertex_array);
+		MEM_freeN(vert_array);
 		MEM_freeN(edge_array);
 		MEM_freeN(face_array);
 	}
@@ -431,6 +461,25 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	return vertMap;
 }
 
+/**
+ * returns customdata shapekey index from a keyblock or -1
+ * \note could split this out into a more generic function */
+static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
+{
+	int i;
+	int j = 0;
+
+	for (i = 0; i < bm->vdata.totlayer; i++) {
+		if (bm->vdata.layers[i].type == CD_SHAPEKEY) {
+			if (currkey->uid == bm->vdata.layers[i].uid) {
+				return j;
+			}
+			j++;
+		}
+	}
+	return -1;
+}
+
 BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 {
 	/* this is a cheap way to set the edge draw, its not precise and will
@@ -456,7 +505,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	BMLoop *l;
 	BMFace *f;
 	BMIter iter, liter;
-	int i, j, *keyi, ototvert;
+	int i, j, ototvert;
 
 	ototvert = me->totvert;
 
@@ -703,13 +752,8 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 			}
 
 			if (!currkey) {
-				currkey = MEM_callocN(sizeof(KeyBlock), "KeyBlock mesh_conv.c");
-				currkey->type = KEY_LINEAR;
-				currkey->slidermin = 0.0f;
-				currkey->slidermax = 1.0f;
-
-				BLI_addtail(&me->key->block, currkey);
-				me->key->totkey++;
+				currkey = add_keyblock(me->key, bm->vdata.layers[i].name);
+				currkey->uid = bm->vdata.layers[i].uid;
 			}
 
 			j++;
@@ -717,12 +761,17 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 
 		/* editing the base key should update others */
-		if (me->key->type == KEY_RELATIVE && oldverts) {
-			int act_is_basis = 0;
+		if ((me->key->type == KEY_RELATIVE) && /* only need offsets for relative shape keys */
+		    (actkey   != NULL) &&              /* unlikely, but the active key may not be valid if the
+		                                        * bmesh and the mesh are out of sync */
+		    (oldverts != NULL))                /* not used here, but 'oldverts' is used later for applying 'ofs' */
+		{
+			int act_is_basis = FALSE;
+
 			/* find if this key is a basis for any others */
 			for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
 				if (bm->shapenr - 1 == currkey->relative) {
-					act_is_basis = 1;
+					act_is_basis = TRUE;
 					break;
 				}
 			}
@@ -730,184 +779,75 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 			if (act_is_basis) { /* active key is a base */
 				float (*fp)[3] = actkey->data;
 				int *keyi;
-				i = 0;
+
 				ofs = MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
 				mvert = me->mvert;
-				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+				BM_ITER_INDEX(eve, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
 					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 					if (keyi && *keyi != ORIGINDEX_NONE) {
 						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
 					}
-					i++;
 					mvert++;
 				}
 			}
 		}
-
 
 		for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
-			j = 0;
-
-			for (i = 0; i < bm->vdata.totlayer; i++) {
-				if (bm->vdata.layers[i].type != CD_SHAPEKEY)
-					continue;
-
-				if (currkey->uid == bm->vdata.layers[i].uid) {
-					int apply_offset = (ofs && (currkey != actkey) && (bm->shapenr - 1 == currkey->relative));
-					float *fp, *co;
-					float (*ofs_pt)[3] = ofs;
-
-					if (currkey->data)
-						MEM_freeN(currkey->data);
-					currkey->data = fp = MEM_mallocN(sizeof(float) * 3 * bm->totvert, "shape key data");
-					currkey->totelem = bm->totvert;
-
-					mvert = me->mvert;
-					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-						co = (currkey == actkey) ?
-						            eve->co :
-						            CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
-
-						copy_v3_v3(fp, co);
-
-						/* propagate edited basis offsets to other shapes */
-						if (apply_offset) {
-							add_v3_v3(fp, *ofs_pt++);
-						}
-
-						if (currkey == actkey && oldverts) {
-							keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-
-							if (*keyi >= 0 && *keyi < currkey->totelem) // valid old vertex
-								copy_v3_v3(mvert->co, oldverts[*keyi].co);
-
-							mvert++;
-						}
-
-						fp += 3;
-					}
-					break;
-				}
-
-				j++;
-			}
-
-			/* if we didn't find a shapekey, tag the block to be reconstructed
-			 * via the old method below */
-			if (j == CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY)) {
-				currkey->flag |= KEYBLOCK_MISSING;
-			}
-		}
-
-		if (ofs) MEM_freeN(ofs);
-	}
-
-	/* XXX, code below is from trunk and a duplicate functionality
-	 * to the block above.
-	 * We should use one or the other, having both means we have to maintain
-	 * both and keep them working the same way which is a hassle - campbell */
-
-	/* old method of reconstructing keys via vertice's original key indices,
-	 * currently used if the new method above fails (which is theoretically
-	 * possible in certain cases of undo) */
-	if (me->key) {
-		float *fp, *newkey, *oldkey;
-		KeyBlock *currkey;
-		KeyBlock *actkey = BLI_findlink(&me->key->block, bm->shapenr - 1);
-
-		float (*ofs)[3] = NULL;
-
-		/* editing the base key should update others */
-		if (me->key->type == KEY_RELATIVE && oldverts) {
-			int act_is_basis = 0;
-			/* find if this key is a basis for any others */
-			for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
-				if (bm->shapenr - 1 == currkey->relative) {
-					act_is_basis = 1;
-					break;
-				}
-			}
-
-			if (act_is_basis) { /* active key is a base */
-				float (*fp)[3] = actkey->data;
-				int *keyi;
-				i = 0;
-				ofs = MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
-				mvert = me->mvert;
-				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-					if (keyi && *keyi != ORIGINDEX_NONE) {
-						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
-					}
-					i++;
-					mvert++;
-				}
-			}
-		}
-
-		/* Lets reorder the key data so that things line up roughly
-		 * with the way things were before editmode */
-		currkey = me->key->block.first;
-		while (currkey) {
 			int apply_offset = (ofs && (currkey != actkey) && (bm->shapenr - 1 == currkey->relative));
+			int *keyi;
+			float (*ofs_pt)[3] = ofs;
+			float *newkey, *oldkey, *fp;
 
-			if (!(currkey->flag & KEYBLOCK_MISSING)) {
-				currkey = currkey->next;
-				continue;
-			}
+			j = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
 
-			printf("warning: had to hackishly reconstruct shape key \"%s\","
-			       " it may not be correct anymore.\n", currkey->name);
-
-			currkey->flag &= ~KEYBLOCK_MISSING;
 
 			fp = newkey = MEM_callocN(me->key->elemsize * bm->totvert,  "currkey->data");
 			oldkey = currkey->data;
 
-			eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-
-			i = 0;
 			mvert = me->mvert;
-			while (eve) {
-				keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 
-				if (keyi && *keyi != ORIGINDEX_NONE && *keyi < currkey->totelem) { /* valid old vertex */
-					if (currkey == actkey) {
-						if (actkey == me->key->refkey) {
-							copy_v3_v3(fp, mvert->co);
-						}
-						else {
-							copy_v3_v3(fp, mvert->co);
-							if (oldverts) {
+				if (currkey == actkey) {
+					copy_v3_v3(fp, eve->co);
+
+					if (actkey != me->key->refkey) { /* important see bug [#30771] */
+						if (oldverts) {
+							keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+							if (*keyi != ORIGINDEX_NONE && *keyi < currkey->totelem) { /* valid old vertex */
 								copy_v3_v3(mvert->co, oldverts[*keyi].co);
 							}
 						}
 					}
-					else {
-						if (oldkey) {
-							copy_v3_v3(fp, oldkey + 3 * *keyi);
-						}
-					}
+				}
+				else if (j != -1) {
+					/* in most cases this runs */
+					copy_v3_v3(fp, CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j));
+				}
+				else if (oldkey) {
+					/* old method of reconstructing keys via vertice's original key indices,
+					 * currently used if the new method above fails (which is theoretically
+					 * possible in certain cases of undo) */
+					copy_v3_v3(fp, &oldkey[3 * (*keyi)]);
 				}
 				else {
+					/* fail! fill in with dummy value */
 					copy_v3_v3(fp, mvert->co);
 				}
 
 				/* propagate edited basis offsets to other shapes */
 				if (apply_offset) {
-					add_v3_v3(fp, ofs[i]);
+					add_v3_v3(fp, *ofs_pt++);
 				}
 
 				fp += 3;
-				i++;
 				mvert++;
-				eve = BM_iter_step(&iter);
 			}
-			currkey->totelem = bm->totvert;
-			if (currkey->data) MEM_freeN(currkey->data);
-			currkey->data = newkey;
 
-			currkey = currkey->next;
+			currkey->totelem = bm->totvert;
+			if (currkey->data) {
+				MEM_freeN(currkey->data);
+			}
+			currkey->data = newkey;
 		}
 
 		if (ofs) MEM_freeN(ofs);

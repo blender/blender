@@ -222,6 +222,8 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 	if (wmd->texture) {
 		tex_co = MEM_mallocN(sizeof(*tex_co) * numVerts, "warpModifier_do tex_co");
 		get_texture_coords((MappingInfoModifierData *)wmd, ob, dm, vertexCos, tex_co, numVerts);
+
+		modifier_init_texture(wmd->modifier.scene, wmd->texture);
 	}
 
 	for (i = 0; i < numVerts; i++) {

@@ -150,7 +150,7 @@ void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 				MEM_freeN(message);
 			message= NULL;
 
-			/* retval doesnt include \0 terminator */
+			/* retval doesn't include \0 terminator */
 			len= retval + 1;
 		}
 		else
@@ -206,7 +206,7 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 				MEM_freeN(message);
 			message= NULL;
 
-			/* retval doesnt include \0 terminator */
+			/* retval doesn't include \0 terminator */
 			len= retval + 1;
 		}
 		else

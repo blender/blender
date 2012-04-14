@@ -60,8 +60,8 @@ void	txt_order_cursors	(struct Text *text);
 int		txt_find_string		(struct Text *text, const char *findstr, int wrap, int match_case);
 int		txt_has_sel			(struct Text *text);
 int		txt_get_span		(struct TextLine *from, struct TextLine *to);
-int		txt_utf8_offset_to_index(char *str, int offset);
-int		txt_utf8_index_to_offset(char *str, int index);
+int		txt_utf8_offset_to_index(const char *str, int offset);
+int		txt_utf8_index_to_offset(const char *str, int index);
 void	txt_move_up			(struct Text *text, short sel);
 void	txt_move_down		(struct Text *text, short sel);
 void	txt_move_left		(struct Text *text, short sel);
@@ -107,11 +107,11 @@ struct TextMarker	*txt_prev_marker		(struct Text *text, struct TextMarker *marke
 struct TextMarker	*txt_next_marker		(struct Text *text, struct TextMarker *marker);
 
 /* utility functions, could be moved somewhere more generic but are python/text related  */
-int text_check_bracket(char ch);
-int text_check_delim(char ch);
-int text_check_digit(char ch);
-int text_check_identifier(char ch);
-int text_check_whitespace(char ch);
+int text_check_bracket(const char ch);
+int text_check_delim(const char ch);
+int text_check_digit(const char ch);
+int text_check_identifier(const char ch);
+int text_check_whitespace(const char ch);
 
 
 /* Undo opcodes */

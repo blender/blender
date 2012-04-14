@@ -247,7 +247,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							kbn = MEM_dupallocN(kb);
 							kbn->prev = kbn->next = NULL;
 							
-							/* adjust adrcode and other settings to fit (allocate a new data-array) */
+							/* adjust settings to fit (allocate a new data-array) */
 							kbn->data = MEM_callocN(sizeof(float) * 3 * totvert, "joined_shapekey");
 							kbn->totelem = totvert;
 							kbn->weights = NULL;
@@ -260,7 +260,6 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 								kbn->pos = curpos;
 							
 							BLI_addtail(&key->block, kbn);
-							kbn->adrcode = key->totkey;
 							key->totkey++;
 							if (key->totkey == 1) key->refkey = kbn;
 							

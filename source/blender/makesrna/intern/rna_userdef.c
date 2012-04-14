@@ -43,6 +43,7 @@
 #include "WM_types.h"
 
 #include "BLI_utildefines.h"
+
 #include "BLF_translation.h"
 
 #include "BKE_sound.h"
@@ -1462,11 +1463,14 @@ static void rna_def_userdef_theme_space_text(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Line Numbers Background", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+	/* no longer used */
+#if 0
 	prop = RNA_def_property(srna, "scroll_bar", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "shade1");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Scroll Bar", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+#endif
 
 	prop = RNA_def_property(srna, "selected_text", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "shade2");
@@ -1489,7 +1493,7 @@ static void rna_def_userdef_theme_space_text(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "syntax_special", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "syntaxv");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Syntax Special", "");
+	RNA_def_property_ui_text(prop, "Decorator", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "syntax_comment", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -2867,7 +2871,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* Note: As this list is in alphabetical order, and not defined order,
 	 *       here is the highest define currently in use: 30 (turkish). */
 	static EnumPropertyItem language_items[] = {
-		{ 0, "", 0, "Nearly done", ""},
+		{ 0, "", 0, N_("Nearly done"), ""},
 		{ 0, "DEFAULT", 0, "Default (Default)", ""},
 		{ 1, "ENGLISH", 0, "English (English)", "en_US"},
 		{ 8, "FRENCH", 0, "French (Français)", "fr_FR"},
@@ -2876,7 +2880,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{13, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese (简体中文)", "zh_CN"},
 		{ 9, "SPANISH", 0, "Spanish (Español)", "es"},
 		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
-		{ 0, "", 0, "In progress", ""},
+		{ 0, "", 0, N_("In progress"), ""},
 		/* using the utf8 flipped form of Arabic (العربية) */
 		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
 		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
@@ -2889,7 +2893,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{ 2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
-		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ki_KG"},
+		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ky_KG"},
 /*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},*/ /* XXX No po's yet. */
 		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
 		/* using the utf8 flipped form of Persian (فارسی) */

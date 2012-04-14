@@ -40,6 +40,7 @@ struct Scene;
 struct Tex;
 struct TexResult;
 
+void modifier_init_texture(struct Scene *scene, struct Tex *texture);
 void get_texture_value(struct Tex *texture, float *tex_co, struct TexResult *texres);
 void get_texture_coords(struct MappingInfoModifierData *dmd, struct Object *ob, struct DerivedMesh *dm, float (*co)[3], float (*texco)[3], int numVerts);
 void modifier_vgroup_cache(struct ModifierData *md, float (*vertexCos)[3]);

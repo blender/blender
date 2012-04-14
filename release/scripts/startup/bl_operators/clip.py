@@ -99,11 +99,11 @@ def CLIP_default_settings_from_track(clip, track):
     pattern = track.pattern_max - track.pattern_min
     search = track.search_max - track.search_min
 
-    pattern[0] = pattern[0] * clip.size[0]
-    pattern[1] = pattern[1] * clip.size[1]
+    pattern[0] = pattern[0] * width
+    pattern[1] = pattern[1] * height
 
-    search[0] = search[0] * clip.size[0]
-    search[1] = search[1] * clip.size[1]
+    search[0] = search[0] * width
+    search[1] = search[1] * height
 
     settings.default_tracker = track.tracker
     settings.default_pyramid_levels = track.pyramid_levels
@@ -709,7 +709,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
     @staticmethod
     def _createMesh(scene, name, vertices, faces):
-        from bpy_extras.io_utils import unpack_list, unpack_face_list
+        from bpy_extras.io_utils import unpack_list
 
         mesh = bpy.data.meshes.new(name=name)
 

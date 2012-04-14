@@ -405,6 +405,7 @@ static BMOpDefine bmo_contextual_create_def = {
 	"contextual_create",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, //input geometry.
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, //newly-made face(s)
+	 {BMO_OP_SLOT_INT,         "mat_nr"},  /* material to use */
 	 {0, /* null-terminating sentinel */}},
 	bmo_contextual_create_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
@@ -431,6 +432,7 @@ static BMOpDefine bmo_edgenet_fill_def = {
 	 {BMO_OP_SLOT_ELEMENT_BUF, "excludefaces"}, /* list of faces to ignore for manifold check */
 	 {BMO_OP_SLOT_MAPPING,     "faceout_groupmap"}, /* maps new faces to the group numbers they came fro */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* new face */
+	 {BMO_OP_SLOT_INT,         "mat_nr"},  /* material to use */
 	 {0, /* null-terminating sentinel */}},
 	bmo_edgenet_fill_exec,
 	0,
@@ -1103,6 +1105,23 @@ static BMOpDefine bmo_inset_def = {
 	0
 };
 
+/*
+ * Vertex Slide
+ *
+ * Translates vertes along an edge
+ */
+static BMOpDefine bmo_vert_slide_def = {
+"vertslide",
+	{{BMO_OP_SLOT_ELEMENT_BUF, "vert"},
+	 {BMO_OP_SLOT_ELEMENT_BUF, "edge"},
+	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"},
+	 {BMO_OP_SLOT_FLT, "distance_t"},
+	 {0} /* null-terminating sentinel */},
+	bmo_vert_slide_exec,
+	BMO_OP_FLAG_UNTAN_MULTIRES
+};
+
+
 BMOpDefine *opdefines[] = {
 	&bmo_split_def,
 	&bmo_spin_def,
@@ -1170,6 +1189,7 @@ BMOpDefine *opdefines[] = {
 	&bmo_bridge_loops_def,
 	&bmo_solidify_def,
 	&bmo_inset_def,
+	&bmo_vert_slide_def,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void *));

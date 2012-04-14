@@ -221,6 +221,8 @@ static void waveModifier_do(WaveModifierData *md,
 		tex_co = MEM_mallocN(sizeof(*tex_co) * numVerts,
 					 "waveModifier_do tex_co");
 		get_texture_coords((MappingInfoModifierData *)wmd, ob, dm, vertexCos, tex_co, numVerts);
+
+		modifier_init_texture(wmd->modifier.scene, wmd->texture);
 	}
 
 	if (lifefac != 0.0f) {

@@ -393,7 +393,7 @@ void RAS_OpenGLRasterizer::FlushDebugShapes()
 		glBegin(GL_LINE_LOOP);
 		glColor4f(m_debugShapes[i].m_color[0],m_debugShapes[i].m_color[1],m_debugShapes[i].m_color[2],1.f);
 
-		static const MT_Vector3 worldUp(0.,0.,1.);
+		static const MT_Vector3 worldUp(0.0, 0.0, 1.0);
 		MT_Vector3 norm = m_debugShapes[i].m_param;
 		MT_Matrix3x3 tr;
 		if (norm.fuzzyZero() || norm == worldUp)
@@ -414,7 +414,7 @@ void RAS_OpenGLRasterizer::FlushDebugShapes()
 		for (int j = 0; j<n; j++)
 		{
 			MT_Scalar theta = j*M_PI*2/n;
-			MT_Vector3 pos(cos(theta)*rad, sin(theta)*rad, 0.);
+			MT_Vector3 pos(cos(theta) * rad, sin(theta) * rad, 0.0);
 			pos = pos*tr;
 			pos += m_debugShapes[i].m_pos;
 			const MT_Scalar* posPtr = &pos.x();

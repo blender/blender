@@ -250,7 +250,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 
 /* Sync Render Camera */
 
-void BlenderSync::sync_camera(int width, int height)
+void BlenderSync::sync_camera(BL::Object b_override, int width, int height)
 {
 	BlenderCamera bcam;
 	blender_camera_init(&bcam);
@@ -263,6 +263,9 @@ void BlenderSync::sync_camera(int width, int height)
 
 	/* camera object */
 	BL::Object b_ob = b_scene.camera();
+
+	if(b_override)
+		b_ob = b_override;
 
 	if(b_ob) {
 		blender_camera_from_object(&bcam, b_ob);
@@ -288,7 +291,7 @@ void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int 
 
 	if(b_rv3d.view_perspective() == BL::RegionView3D::view_perspective_CAMERA) {
 		/* camera view */
-		BL::Object b_ob = b_scene.camera();
+		BL::Object b_ob = (b_v3d.lock_camera_and_layers())? b_scene.camera(): b_v3d.camera();
 
 		if(b_ob) {
 			blender_camera_from_object(&bcam, b_ob);

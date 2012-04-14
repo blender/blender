@@ -1122,6 +1122,10 @@ class USERPREF_PT_addons(Panel):
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Location:")
                         split.label(text=info["location"])
+                    if mod:
+                        split = colsub.row().split(percentage=0.15)
+                        split.label(text="File:")
+                        split.label(text=mod.__file__)
                     if info["author"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Author:")

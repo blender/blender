@@ -33,6 +33,8 @@
 
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
@@ -43,11 +45,11 @@
 #include "WM_types.h"
 
 EnumPropertyItem constraint_type_items[] = {
-	{0, "", 0, "Motion Tracking", ""},
+	{0, "", 0, N_("Motion Tracking"), ""},
 	{CONSTRAINT_TYPE_CAMERASOLVER, "CAMERA_SOLVER", ICON_CONSTRAINT_DATA, "Camera Solver", ""},
 	{CONSTRAINT_TYPE_OBJECTSOLVER, "OBJECT_SOLVER", ICON_CONSTRAINT_DATA, "Object Solver", ""},
 	{CONSTRAINT_TYPE_FOLLOWTRACK, "FOLLOW_TRACK", ICON_CONSTRAINT_DATA, "Follow Track", ""},
-	{0, "", 0, "Transform", ""},
+	{0, "", 0, N_("Transform"), ""},
 	{CONSTRAINT_TYPE_LOCLIKE, "COPY_LOCATION", ICON_CONSTRAINT_DATA, "Copy Location", ""},
 	{CONSTRAINT_TYPE_ROTLIKE, "COPY_ROTATION", ICON_CONSTRAINT_DATA, "Copy Rotation", ""},
 	{CONSTRAINT_TYPE_SIZELIKE, "COPY_SCALE", ICON_CONSTRAINT_DATA, "Copy Scale", ""},
@@ -58,7 +60,7 @@ EnumPropertyItem constraint_type_items[] = {
 	{CONSTRAINT_TYPE_SIZELIMIT, "LIMIT_SCALE", ICON_CONSTRAINT_DATA, "Limit Scale", ""},
 	{CONSTRAINT_TYPE_SAMEVOL, "MAINTAIN_VOLUME", ICON_CONSTRAINT_DATA, "Maintain Volume", ""},
 	{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", ICON_CONSTRAINT_DATA, "Transformation", ""},
-	{0, "", 0, "Tracking", ""},
+	{0, "", 0, N_("Tracking"), ""},
 	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", ICON_CONSTRAINT_DATA, "Clamp To", ""},
 	{CONSTRAINT_TYPE_DAMPTRACK, "DAMPED_TRACK", ICON_CONSTRAINT_DATA, "Damped Track",
 	                            "Tracking by taking the shortest path"},
@@ -69,7 +71,7 @@ EnumPropertyItem constraint_type_items[] = {
 	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO",ICON_CONSTRAINT_DATA, "Stretch To", ""},
 	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", ICON_CONSTRAINT_DATA, "Track To",
 	                          "Legacy tracking constraint prone to twisting artifacts"},
-	{0, "", 0, "Relationship", ""},
+	{0, "", 0, N_("Relationship"), ""},
 	{CONSTRAINT_TYPE_ACTION, "ACTION", ICON_CONSTRAINT_DATA, "Action", ""},
 	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", ICON_CONSTRAINT_DATA, "Child Of", ""},
 	{CONSTRAINT_TYPE_MINMAX, "FLOOR", ICON_CONSTRAINT_DATA, "Floor", ""},

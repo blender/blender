@@ -149,10 +149,13 @@ mark_as_advanced(WITH_AUDASPACE)
 
 # (unix defaults to OpenMP On)
 if(UNIX AND NOT APPLE)
-	option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
+	set(PLATFORM_DEFAULT ON)
 else()
-	option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
+	set(PLATFORM_DEFAULT OFF)
 endif()
+option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" PLATFORM_DEFAULT)
+unset(PLATFORM_DEFAULT)
+
 
 if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
@@ -304,8 +307,8 @@ if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
 
-if(NOT WITH_AUDASPACE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
-	message(FATAL_ERROR "WITH_OPENAL/WITH_SDL/WITH_JACK/WITH_CODEC_FFMPEG require WITH_AUDASPACE")
+if(NOT WITH_AUDASPACE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK OR WITH_GAMEENGINE))
+	message(FATAL_ERROR "WITH_OPENAL/WITH_SDL/WITH_JACK/WITH_CODEC_FFMPEG/WITH_GAMEENGINE require WITH_AUDASPACE")
 endif()
 
 if(NOT WITH_SDL AND WITH_GHOST_SDL)
@@ -325,13 +328,6 @@ if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()
 
-if(MINGW)
-	if(WITH_CODEC_QUICKTIME)
-		message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
-							"because it is currently unsupported, remove this "
-							"line if youre a developer who wants to add support.")
-	endif()
-endif()
 
 if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
 	message(FATAL_ERROR "WITH_MOD_OCEANSIM requires WITH_FFTW3 to be ON")
@@ -358,7 +354,7 @@ if(WITH_INSTALL_PORTABLE)
 endif()
 
 if(WITH_GHOST_SDL OR WITH_HEADLESS)
-    set(WITH_GHOST_XDND OFF)
+	set(WITH_GHOST_XDND OFF)
 endif()
 
 TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
@@ -1660,6 +1656,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_X11_XF86VMODE)
 	info_cfg_option(WITH_X11_XINPUT)
 	info_cfg_option(WITH_BUILTIN_GLEW)
+	info_cfg_option(WITH_MEM_JEMALLOC)
 
 	info_cfg_text("Image Formats:")
 	info_cfg_option(WITH_IMAGE_CINEON)

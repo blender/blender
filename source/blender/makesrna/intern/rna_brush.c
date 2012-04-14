@@ -587,7 +587,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 0.001);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Strength", "How powerful the effect of the brush is when applied");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
@@ -595,7 +595,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "plane_offset");
 	RNA_def_property_float_default(prop, 0);
 	RNA_def_property_range(prop, -2.0f, 2.0f);
-	RNA_def_property_ui_range(prop, -0.5f, 0.5f, 0.001, 0.001);
+	RNA_def_property_ui_range(prop, -0.5f, 0.5f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Plane Offset",
 	                         "Adjust plane on which the brush acts towards or away from the object surface");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -640,7 +640,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "autosmooth_factor");
 	RNA_def_property_float_default(prop, 0);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 0.001);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Autosmooth", "Amount of smoothing to automatically apply to each stroke");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 

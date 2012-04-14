@@ -194,8 +194,8 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
         layout.active = curve.use_path
 
         col = layout.column()
-        layout.prop(curve, "path_duration", text="Frames")
-        layout.prop(curve, "eval_time")
+        col.prop(curve, "path_duration", text="Frames")
+        col.prop(curve, "eval_time")
 
         # these are for paths only
         row = layout.row()

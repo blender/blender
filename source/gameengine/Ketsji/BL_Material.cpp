@@ -58,7 +58,7 @@ void BL_Material::Initialize()
 	alpha = 1.f;
 	emit = 0.f;
 	material = 0;
-	tface = 0;
+	memset(&tface, 0, sizeof(tface));
 	materialindex = 0;
 	amb=0.5f;
 	num_enabled = 0;

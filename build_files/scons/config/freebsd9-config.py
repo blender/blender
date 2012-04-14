@@ -91,13 +91,12 @@ BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
 
-# enable freetype2 support for text objects
 BF_FREETYPE = '/usr/local'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 
 ### XXX Find what this actually wants; it doesn't want libquicktime.
-WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME
+WITH_BF_QUICKTIME = False
 BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
 
@@ -110,7 +109,7 @@ BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 WITH_BF_BINRELOC = True
 
 # enable ffmpeg  support
-WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
+WITH_BF_FFMPEG = True
 BF_FFMPEG = '/usr/local'
 BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'

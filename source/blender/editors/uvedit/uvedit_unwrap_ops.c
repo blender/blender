@@ -112,21 +112,21 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 		return 0;
 	}
 
-	ima= CTX_data_edit_image(C);
+	ima = CTX_data_edit_image(C);
 
 	if (!ima) {
 		/* no image in context in the 3d view, we find first image window .. */
-		sc= CTX_wm_screen(C);
+		sc = CTX_wm_screen(C);
 
-		for (sa=sc->areabase.first; sa; sa=sa->next) {
-			slink= sa->spacedata.first;
+		for (sa = sc->areabase.first; sa; sa = sa->next) {
+			slink = sa->spacedata.first;
 			if (slink->spacetype == SPACE_IMAGE) {
-				sima= (SpaceImage*)slink;
+				sima = (SpaceImage *)slink;
 
-				ima= sima->image;
+				ima = sima->image;
 				if (ima) {
-					if (ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
-						ima= NULL;
+					if (ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE)
+						ima = NULL;
 					else
 						break;
 				}
@@ -183,8 +183,8 @@ static int uvedit_have_selection(Scene *scene, BMEditMesh *em, short implicit)
 }
 
 static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em, 
-				    short implicit, short fill, short sel, 
-				    short correct_aspect)
+                                           short implicit, short fill, short sel,
+                                           short correct_aspect)
 {
 	ParamHandle *handle;
 	BMFace *efa;
@@ -200,11 +200,11 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 		if (efa) {
 			float aspx, aspy;
-			tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 			ED_image_uv_aspect(tf->tpage, &aspx, &aspy);
 		
-			if (aspx!=aspy)
+			if (aspx != aspy)
 				param_aspect_ratio(handle, aspx, aspy);
 		}
 	}
@@ -223,7 +223,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		float *uv[4];
 		int lsel;
 
-		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT)==0))
+		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0))
 			continue;
 
 		/* tf= (MTexPoly *)CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
@@ -251,8 +251,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 			v = BLI_addfillvert(l->v->co);
 			
 			/*add small random offset*/
-			for (i=0; i<3; i++) {
-				v->co[i] += (BLI_drand()-0.5f)*FLT_EPSILON*50;
+			for (i = 0; i < 3; i++) {
+				v->co[i] += (BLI_drand() - 0.5f) * FLT_EPSILON * 50;
 			}
 			
 			v->tmp.p = l;
@@ -270,7 +270,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		
 		/*mode 2 enables faster handling of tri/quads*/
 		BLI_edgefill(2);
-		for (sefa = fillfacebase.first; sefa; sefa=sefa->next) {
+		for (sefa = fillfacebase.first; sefa; sefa = sefa->next) {
 			ls[0] = sefa->v1->tmp.p;
 			ls[1] = sefa->v2->tmp.p;
 			ls[2] = sefa->v3->tmp.p;
@@ -299,8 +299,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 			select[1] = uvedit_uv_selected(em, scene, ls[1]) != 0;
 			select[2] = uvedit_uv_selected(em, scene, ls[2]) != 0;
 
-			if (!p_face_exists(handle,vkeys,0,1,2))
-					param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
+			if (!p_face_exists(handle, vkeys, 0, 1, 2))
+				param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
 		}
 
 		BLI_end_edgefill();
@@ -340,7 +340,7 @@ static void texface_from_original_index(BMFace *efa, int index, float **uv, Para
 		if (BM_elem_index_get(l->v) == index) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			*uv = luv->uv;
-			*pin = (luv->flag & MLOOPUV_PINNED)? 1 : 0;
+			*pin = (luv->flag & MLOOPUV_PINNED) ? 1 : 0;
 			*select = (uvedit_uv_selected(em, scene, l) != 0);
 		}
 	}
@@ -383,11 +383,11 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 		if (editFace) {
 			MTexPoly *tf;
 			float aspx, aspy;
-			tf= CustomData_bmesh_get(&em->bm->pdata, editFace->head.data, CD_MTEXPOLY);
+			tf = CustomData_bmesh_get(&em->bm->pdata, editFace->head.data, CD_MTEXPOLY);
 
 			ED_image_uv_aspect(tf->tpage, &aspx, &aspy);
 
-			if (aspx!=aspy)
+			if (aspx != aspy)
 				param_aspect_ratio(handle, aspx, aspy);
 		}
 	}
@@ -398,7 +398,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 		
 	initialDerived = CDDM_from_BMEditMesh(em, NULL, 0, 0);
 	derivedMesh = subsurf_make_derived_from_derived(initialDerived, &smd,
-		0, NULL, 0, 0, 1);
+	                                                0, NULL, 0, 0, 1);
 
 	initialDerived->release(initialDerived);
 
@@ -414,7 +414,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 	numOfEdges = derivedMesh->getNumEdges(derivedMesh);
 	numOfFaces = derivedMesh->getNumTessFaces(derivedMesh);
 
-	faceMap = MEM_mallocN(numOfFaces*sizeof(BMFace *), "unwrap_edit_face_map");
+	faceMap = MEM_mallocN(numOfFaces * sizeof(BMFace *), "unwrap_edit_face_map");
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 	EDBM_index_arrays_init(em, 0, 1, 1);
@@ -423,13 +423,13 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 	for (i = 0; i < numOfFaces; i++)
 		faceMap[i] = EDBM_face_at_index(em, origFaceIndices[i]);
 
-	edgeMap = MEM_mallocN(numOfEdges*sizeof(BMEdge *), "unwrap_edit_edge_map");
+	edgeMap = MEM_mallocN(numOfEdges * sizeof(BMEdge *), "unwrap_edit_edge_map");
 
 	/* map subsurfed edges to original editEdges */
 	for (i = 0; i < numOfEdges; i++) {
 		/* not all edges correspond to an old edge */
-		edgeMap[i] = (origEdgeIndices[i] != -1)?
-			EDBM_edge_at_index(em, origEdgeIndices[i]) : NULL;
+		edgeMap[i] = (origEdgeIndices[i] != -1) ?
+		             EDBM_edge_at_index(em, origEdgeIndices[i]) : NULL;
 	}
 
 	EDBM_index_arrays_free(em);
@@ -442,7 +442,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 		float *uv[4];
 		BMFace *origFace = faceMap[i];
 		
-		face = subsurfedFaces+i;
+		face = subsurfedFaces + i;
 
 		if (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
 			if (BM_elem_flag_test(origFace, BM_ELEM_HIDDEN))
@@ -521,29 +521,29 @@ static int minimize_stretch_init(bContext *C, wmOperator *op)
 		return 0;
 	}
 
-	ms= MEM_callocN(sizeof(MinStretch), "MinStretch");
-	ms->scene= scene;
-	ms->obedit= obedit;
-	ms->em= em;
-	ms->blend= RNA_float_get(op->ptr, "blend");
-	ms->iterations= RNA_int_get(op->ptr, "iterations");
-	ms->i= 0;
-	ms->handle= construct_param_handle(scene, em, implicit, fill_holes, 1, 1);
-	ms->lasttime= PIL_check_seconds_timer();
+	ms = MEM_callocN(sizeof(MinStretch), "MinStretch");
+	ms->scene = scene;
+	ms->obedit = obedit;
+	ms->em = em;
+	ms->blend = RNA_float_get(op->ptr, "blend");
+	ms->iterations = RNA_int_get(op->ptr, "iterations");
+	ms->i = 0;
+	ms->handle = construct_param_handle(scene, em, implicit, fill_holes, 1, 1);
+	ms->lasttime = PIL_check_seconds_timer();
 
 	param_stretch_begin(ms->handle);
 	if (ms->blend != 0.0f)
 		param_stretch_blend(ms->handle, ms->blend);
 
-	op->customdata= ms;
+	op->customdata = ms;
 
 	return 1;
 }
 
 static void minimize_stretch_iteration(bContext *C, wmOperator *op, int interactive)
 {
-	MinStretch *ms= op->customdata;
-	ScrArea *sa= CTX_wm_area(C);
+	MinStretch *ms = op->customdata;
+	ScrArea *sa = CTX_wm_area(C);
 
 	param_stretch_blend(ms->handle, ms->blend);
 	param_stretch_iter(ms->handle);
@@ -564,14 +564,14 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, int interact
 		ms->lasttime = PIL_check_seconds_timer();
 
 		DAG_id_tag_update(ms->obedit->data, 0);
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, ms->obedit->data);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ms->obedit->data);
 	}
 }
 
 static void minimize_stretch_exit(bContext *C, wmOperator *op, int cancel)
 {
-	MinStretch *ms= op->customdata;
-	ScrArea *sa= CTX_wm_area(C);
+	MinStretch *ms = op->customdata;
+	ScrArea *sa = CTX_wm_area(C);
 
 	if (sa)
 		ED_area_headerprint(sa, NULL);
@@ -587,10 +587,10 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, int cancel)
 	param_delete(ms->handle);
 
 	DAG_id_tag_update(ms->obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ms->obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ms->obedit->data);
 
 	MEM_freeN(ms);
-	op->customdata= NULL;
+	op->customdata = NULL;
 }
 
 static int minimize_stretch_exec(bContext *C, wmOperator *op)
@@ -600,8 +600,8 @@ static int minimize_stretch_exec(bContext *C, wmOperator *op)
 	if (!minimize_stretch_init(C, op))
 		return OPERATOR_CANCELLED;
 
-	iterations= RNA_int_get(op->ptr, "iterations");
-	for (i=0; i<iterations; i++)
+	iterations = RNA_int_get(op->ptr, "iterations");
+	for (i = 0; i < iterations; i++)
 		minimize_stretch_iteration(C, op, 0);
 	minimize_stretch_exit(C, op, 0);
 
@@ -617,18 +617,18 @@ static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 
 	minimize_stretch_iteration(C, op, 1);
 
-	ms= op->customdata;
+	ms = op->customdata;
 	WM_event_add_modal_handler(C, op);
-	ms->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+	ms->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
 static int minimize_stretch_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	MinStretch *ms= op->customdata;
+	MinStretch *ms = op->customdata;
 
-	switch(event->type) {
+	switch (event->type) {
 		case ESCKEY:
 		case RIGHTMOUSE:
 			minimize_stretch_exit(C, op, 1);
@@ -642,7 +642,7 @@ static int minimize_stretch_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case WHEELUPMOUSE:
 			if (ms->blend < 0.95f) {
 				ms->blend += 0.1f;
-				ms->lasttime= 0.0f;
+				ms->lasttime = 0.0f;
 				RNA_float_set(op->ptr, "blend", ms->blend);
 				minimize_stretch_iteration(C, op, 1);
 			}
@@ -651,14 +651,14 @@ static int minimize_stretch_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case WHEELDOWNMOUSE:
 			if (ms->blend > 0.05f) {
 				ms->blend -= 0.1f;
-				ms->lasttime= 0.0f;
+				ms->lasttime = 0.0f;
 				RNA_float_set(op->ptr, "blend", ms->blend);
 				minimize_stretch_iteration(C, op, 1);
 			}
 			break;
 		case TIMER:
 			if (ms->timer == event->customdata) {
-				double start= PIL_check_seconds_timer();
+				double start = PIL_check_seconds_timer();
 
 				do {
 					minimize_stretch_iteration(C, op, 1);
@@ -687,7 +687,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Minimize Stretch";
 	ot->idname = "UV_OT_minimize_stretch";
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_GRAB_POINTER|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_POINTER | OPTYPE_BLOCKING;
 	ot->description = "Reduce UV stretching by relaxing angles";
 	
 	/* api callbacks */
@@ -718,7 +718,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	}
 
 	if (RNA_struct_property_is_set(op->ptr, "margin")) {
-		scene->toolsettings->uvcalc_margin= RNA_float_get(op->ptr, "margin");
+		scene->toolsettings->uvcalc_margin = RNA_float_get(op->ptr, "margin");
 	}
 	else {
 		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
@@ -730,7 +730,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	param_delete(handle);
 	
 	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -740,7 +740,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Pack Islands";
 	ot->idname = "UV_OT_pack_islands";
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = pack_islands_exec;
@@ -764,13 +764,13 @@ static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	}
 
-	handle= construct_param_handle(scene, em, implicit, 0, 1, 1);
+	handle = construct_param_handle(scene, em, implicit, 0, 1, 1);
 	param_average(handle);
 	param_flush(handle);
 	param_delete(handle);
 	
 	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -780,7 +780,7 @@ void UV_OT_average_islands_scale(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Average Islands Scale";
 	ot->idname = "UV_OT_average_islands_scale";
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = average_islands_scale_exec;
@@ -832,27 +832,27 @@ void ED_uvedit_live_unwrap_end(short cancel)
 /*************** UV Map Common Transforms *****************/
 
 #define VIEW_ON_EQUATOR 0
-#define VIEW_ON_POLES	1
-#define ALIGN_TO_OBJECT	2
+#define VIEW_ON_POLES   1
+#define ALIGN_TO_OBJECT 2
 
-#define POLAR_ZX	0
-#define POLAR_ZY	1
+#define POLAR_ZX    0
+#define POLAR_ZY    1
 
 static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result, 
-				    Object *ob, BMEditMesh *em)
+                                    Object *ob, BMEditMesh *em)
 {
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
 	float min[3], max[3], *cursx;
-	int around= (v3d)? v3d->around: V3D_CENTER;
+	int around = (v3d) ? v3d->around : V3D_CENTER;
 
 	/* only operates on the edit object - this is all that's needed now */
 
 	switch (around) {
 		case V3D_CENTER: /* bounding box center */
-			min[0]= min[1]= min[2]= 1e20f;
-			max[0]= max[1]= max[2]= -1e20f; 
+			min[0] = min[1] = min[2] = 1e20f;
+			max[0] = max[1] = max[2] = -1e20f;
 			
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 				if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
@@ -865,17 +865,17 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 			break;
 
 		case V3D_CURSOR: /*cursor center*/ 
-			cursx= give_cursor(scene, v3d);
+			cursx = give_cursor(scene, v3d);
 			/* shift to objects world */
-			result[0]= cursx[0]-ob->obmat[3][0];
-			result[1]= cursx[1]-ob->obmat[3][1];
-			result[2]= cursx[2]-ob->obmat[3][2];
+			result[0] = cursx[0] - ob->obmat[3][0];
+			result[1] = cursx[1] - ob->obmat[3][1];
+			result[2] = cursx[2] - ob->obmat[3][2];
 			break;
 
 		case V3D_LOCAL: /*object center*/
 		case V3D_CENTROID: /* multiple objects centers, only one object here*/
 		default:
-			result[0]= result[1]= result[2]= 0.0;
+			result[0] = result[1] = result[2] = 0.0;
 			break;
 	}
 }
@@ -884,7 +884,7 @@ static void uv_map_rotation_matrix(float result[][4], RegionView3D *rv3d, Object
                                    float upangledeg, float sideangledeg, float radius)
 {
 	float rotup[4][4], rotside[4][4], viewmatrix[4][4], rotobj[4][4];
-	float sideangle= 0.0f, upangle= 0.0f;
+	float sideangle = 0.0f, upangle = 0.0f;
 	int k;
 
 	/* get rotation of the current view matrix */
@@ -894,15 +894,15 @@ static void uv_map_rotation_matrix(float result[][4], RegionView3D *rv3d, Object
 		unit_m4(viewmatrix);
 
 	/* but shifting */
-	for (k=0; k<4; k++)
-		viewmatrix[3][k] =0.0f;
+	for (k = 0; k < 4; k++)
+		viewmatrix[3][k] = 0.0f;
 
 	/* get rotation of the current object matrix */
-	copy_m4_m4(rotobj,ob->obmat);
+	copy_m4_m4(rotobj, ob->obmat);
 
 	/* but shifting */
-	for (k=0; k<4; k++)
-		rotobj[3][k] =0.0f;
+	for (k = 0; k < 4; k++)
+		rotobj[3][k] = 0.0f;
 
 	zero_m4(rotup);
 	zero_m4(rotside);
@@ -910,19 +910,19 @@ static void uv_map_rotation_matrix(float result[][4], RegionView3D *rv3d, Object
 	/* compensate front/side.. against opengl x,y,z world definition */
 	/* this is "kanonen gegen spatzen", a few plus minus 1 will do here */
 	/* i wanted to keep the reason here, so we're rotating*/
-	sideangle= (float)M_PI*(sideangledeg + 180.0f)/180.0f;
-	rotside[0][0]= (float)cos(sideangle);
-	rotside[0][1]= -(float)sin(sideangle);
-	rotside[1][0]= (float)sin(sideangle);
-	rotside[1][1]= (float)cos(sideangle);
-	rotside[2][2]= 1.0f;
+	sideangle = (float)M_PI * (sideangledeg + 180.0f) / 180.0f;
+	rotside[0][0] = (float)cos(sideangle);
+	rotside[0][1] = -(float)sin(sideangle);
+	rotside[1][0] = (float)sin(sideangle);
+	rotside[1][1] = (float)cos(sideangle);
+	rotside[2][2] = 1.0f;
 
-	upangle= (float)M_PI*upangledeg/180.0f;
-	rotup[1][1]= (float)cos(upangle)/radius;
-	rotup[1][2]= -(float)sin(upangle)/radius;
-	rotup[2][1]= (float)sin(upangle)/radius;
-	rotup[2][2]= (float)cos(upangle)/radius;
-	rotup[0][0]= (float)1.0f/radius;
+	upangle = (float)M_PI * upangledeg / 180.0f;
+	rotup[1][1] = (float)cos(upangle) / radius;
+	rotup[1][2] = -(float)sin(upangle) / radius;
+	rotup[2][1] = (float)sin(upangle) / radius;
+	rotup[2][2] = (float)cos(upangle) / radius;
+	rotup[0][0] = (float)1.0f / radius;
 
 	/* calculate transforms*/
 	mul_serie_m4(result, rotup, rotside, viewmatrix, rotobj, NULL, NULL, NULL, NULL);
@@ -937,21 +937,21 @@ static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	/* common operator properties */
-	int align= RNA_enum_get(op->ptr, "align");
-	int direction= RNA_enum_get(op->ptr, "direction");
-	float radius= RNA_struct_find_property(op->ptr, "radius")? RNA_float_get(op->ptr, "radius"): 1.0f;
+	int align = RNA_enum_get(op->ptr, "align");
+	int direction = RNA_enum_get(op->ptr, "direction");
+	float radius = RNA_struct_find_property(op->ptr, "radius") ? RNA_float_get(op->ptr, "radius") : 1.0f;
 	float upangledeg, sideangledeg;
 
 	uv_map_transform_center(scene, v3d, center, obedit, em);
 
 	if (direction == VIEW_ON_EQUATOR) {
-		upangledeg= 90.0f;
-		sideangledeg= 0.0f;
+		upangledeg = 90.0f;
+		sideangledeg = 0.0f;
 	}
 	else {
-		upangledeg= 0.0f;
-		if (align == POLAR_ZY) sideangledeg= 0.0f;
-		else sideangledeg= 90.0f;
+		upangledeg = 0.0f;
+		if (align == POLAR_ZY) sideangledeg = 0.0f;
+		else sideangledeg = 90.0f;
 	}
 
 	/* be compatible to the "old" sphere/cylinder mode */
@@ -964,13 +964,13 @@ static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float
 
 static void uv_transform_properties(wmOperatorType *ot, int radius)
 {
-	static EnumPropertyItem direction_items[]= {
+	static EnumPropertyItem direction_items[] = {
 		{VIEW_ON_EQUATOR, "VIEW_ON_EQUATOR", 0, "View on Equator", "3D view is on the equator"},
 		{VIEW_ON_POLES, "VIEW_ON_POLES", 0, "View on Poles", "3D view is on the poles"},
 		{ALIGN_TO_OBJECT, "ALIGN_TO_OBJECT", 0, "Align to Object", "Align according to object transform"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static EnumPropertyItem align_items[]= {
+	static EnumPropertyItem align_items[] = {
 		{POLAR_ZX, "POLAR_ZX", 0, "Polar ZX", "Polar 0 is X"},
 		{POLAR_ZY, "POLAR_ZY", 0, "Polar ZY", "Polar 0 is Y"},
 		{0, NULL, 0, NULL, NULL}
@@ -987,11 +987,11 @@ static void uv_transform_properties(wmOperatorType *ot, int radius)
 
 static void correct_uv_aspect(BMEditMesh *em)
 {
-	BMFace *efa= BM_active_face_get(em->bm, TRUE);
+	BMFace *efa = BM_active_face_get(em->bm, TRUE);
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
-	float scale, aspx= 1.0f, aspy=1.0f;
+	float scale, aspx = 1.0f, aspy = 1.0f;
 	
 	if (efa) {
 		MTexPoly *tf;
@@ -1004,7 +1004,7 @@ static void correct_uv_aspect(BMEditMesh *em)
 		return;
 		
 	if (aspx > aspy) {
-		scale= aspy/aspx;
+		scale = aspy / aspx;
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT) || BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
@@ -1012,20 +1012,20 @@ static void correct_uv_aspect(BMEditMesh *em)
 			
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				luv->uv[0] = ((luv->uv[0]-0.5)*scale)+0.5;
+				luv->uv[0] = ((luv->uv[0] - 0.5) * scale) + 0.5;
 			}
 		}
 	}
 	else {
-		scale= aspx/aspy;
+		scale = aspx / aspy;
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)||BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
+			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT) || BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 				continue;
 			
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				luv->uv[1] = ((luv->uv[1]-0.5)*scale)+0.5;
+				luv->uv[1] = ((luv->uv[1] - 0.5) * scale) + 0.5;
 			}
 		}
 	}
@@ -1050,9 +1050,9 @@ static void uv_map_clip_correct(BMEditMesh *em, wmOperator *op)
 	BMIter iter, liter;
 	MLoopUV *luv;
 	float dx, dy, min[2], max[2];
-	int correct_aspect= RNA_boolean_get(op->ptr, "correct_aspect");
-	int clip_to_bounds= RNA_boolean_get(op->ptr, "clip_to_bounds");
-	int scale_to_bounds= RNA_boolean_get(op->ptr, "scale_to_bounds");
+	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
+	int clip_to_bounds = RNA_boolean_get(op->ptr, "clip_to_bounds");
+	int scale_to_bounds = RNA_boolean_get(op->ptr, "scale_to_bounds");
 
 	/* correct for image aspect ratio */
 	if (correct_aspect)
@@ -1072,13 +1072,13 @@ static void uv_map_clip_correct(BMEditMesh *em, wmOperator *op)
 		}
 		
 		/* rescale UV to be in 1/1 */
-		dx= (max[0]-min[0]);
-		dy= (max[1]-min[1]);
+		dx = (max[0] - min[0]);
+		dy = (max[1] - min[1]);
 
 		if (dx > 0.0f)
-			dx= 1.0f/dx;
+			dx = 1.0f / dx;
 		if (dy > 0.0f)
-			dy= 1.0f/dy;
+			dy = 1.0f / dy;
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
@@ -1087,8 +1087,8 @@ static void uv_map_clip_correct(BMEditMesh *em, wmOperator *op)
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				
-				luv->uv[0] = (luv->uv[0]-min[0])*dx;
-				luv->uv[1] = (luv->uv[1]-min[1])*dy;
+				luv->uv[0] = (luv->uv[0] - min[0]) * dx;
+				luv->uv[1] = (luv->uv[1] - min[1]) * dy;
 			}
 		}
 	}
@@ -1115,14 +1115,14 @@ void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	ParamHandle *handle;
 
-	const short fill_holes= scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
-	const short correct_aspect= !(scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT);
+	const short fill_holes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
+	const short correct_aspect = !(scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT);
 	const short use_subsurf = scene->toolsettings->uvcalc_flag & UVCALC_USESUBSURF;
 
 	if (use_subsurf)
 		handle = construct_param_handle_subsurfed(scene, em, fill_holes, sel, correct_aspect);
 	else
-		handle= construct_param_handle(scene, em, 0, fill_holes, sel, correct_aspect);
+		handle = construct_param_handle(scene, em, 0, fill_holes, sel, correct_aspect);
 
 	param_lscm_begin(handle, PARAM_FALSE, scene->toolsettings->unwrapper == 0);
 	param_lscm_solve(handle);
@@ -1146,7 +1146,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	int use_subsurf = RNA_boolean_get(op->ptr, "use_subsurf_data");
 	int subsurf_level = RNA_int_get(op->ptr, "uv_subsurf_level");
 	float obsize[3], unitsize[3] = {1.0f, 1.0f, 1.0f};
-	short implicit= 0;
+	short implicit = 0;
 
 	if (!uvedit_have_selection(scene, em, implicit)) {
 		return OPERATOR_CANCELLED;
@@ -1166,20 +1166,20 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	
 	scene->toolsettings->uv_subsurf_level = subsurf_level;
 
-	if (fill_holes)		scene->toolsettings->uvcalc_flag |=  UVCALC_FILLHOLES;
-	else				scene->toolsettings->uvcalc_flag &= ~UVCALC_FILLHOLES;
+	if (fill_holes) scene->toolsettings->uvcalc_flag |=  UVCALC_FILLHOLES;
+	else scene->toolsettings->uvcalc_flag &= ~UVCALC_FILLHOLES;
 
-	if (correct_aspect)	scene->toolsettings->uvcalc_flag &= ~UVCALC_NO_ASPECT_CORRECT;
-	else				scene->toolsettings->uvcalc_flag |=  UVCALC_NO_ASPECT_CORRECT;
+	if (correct_aspect) scene->toolsettings->uvcalc_flag &= ~UVCALC_NO_ASPECT_CORRECT;
+	else scene->toolsettings->uvcalc_flag |=  UVCALC_NO_ASPECT_CORRECT;
 
-	if (use_subsurf)		scene->toolsettings->uvcalc_flag |= UVCALC_USESUBSURF;
-	else				scene->toolsettings->uvcalc_flag &= ~UVCALC_USESUBSURF;
+	if (use_subsurf) scene->toolsettings->uvcalc_flag |= UVCALC_USESUBSURF;
+	else scene->toolsettings->uvcalc_flag &= ~UVCALC_USESUBSURF;
 
 	/* execute unwrap */
 	ED_unwrap_lscm(scene, obedit, TRUE);
 
 	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1195,7 +1195,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
 	ot->name = "Unwrap";
 	ot->description = "Unwrap the mesh of the object being edited";
 	ot->idname = "UV_OT_unwrap";
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = unwrap_exec;
@@ -1209,9 +1209,9 @@ void UV_OT_unwrap(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect",
 	                "Map UVs taking image aspect ratio into account");
 	RNA_def_boolean(ot->srna, "use_subsurf_data", 0, "Use Subsurf Data",
-	                          "Map UVs taking vertex position after subsurf into account");
+	                "Map UVs taking vertex position after subsurf into account");
 	RNA_def_int(ot->srna, "uv_subsurf_level", 1, 1, 6, "SubSurf Target",
-	                      "Number of times to subdivide before calculating UVs", 1, 6);
+	            "Number of times to subdivide before calculating UVs", 1, 6);
 }
 
 /**************** Project From View operator **************/
@@ -1236,8 +1236,8 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 	}
 
 	/* establish the camera object, so we can default to view mapping if anything is wrong with it */
-	if ((rv3d->persp==RV3D_CAMOB) && (v3d->camera) && (v3d->camera->type==OB_CAMERA)) {
-		camera= v3d->camera->data;
+	if ((rv3d->persp == RV3D_CAMOB) && (v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
+		camera = v3d->camera->data;
 	}
 
 	if (RNA_boolean_get(op->ptr, "orthographic")) {
@@ -1254,7 +1254,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if (camera) {
-		struct UvCameraInfo *uci= project_camera_info(v3d->camera, obedit->obmat, scene->r.xsch, scene->r.ysch);
+		struct UvCameraInfo *uci = project_camera_info(v3d->camera, obedit->obmat, scene->r.xsch, scene->r.ysch);
 		
 		if (uci) {
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
@@ -1287,14 +1287,14 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 	uv_map_clip_correct(em, op);
 
 	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
 
 static int uv_from_view_poll(bContext *C)
 {
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
 	if (!ED_operator_uvmap(C))
 		return 0;
@@ -1307,7 +1307,7 @@ void UV_OT_from_view(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Project From View";
 	ot->idname = "UV_OT_project_from_view";
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = uv_from_view_exec;
@@ -1322,9 +1322,9 @@ void UV_OT_from_view(wmOperatorType *ot)
 
 static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	Mesh *me = (Mesh*)obedit->data;
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
+	Mesh *me = (Mesh *)obedit->data;
 
 	/* add uvs if they don't exist yet */
 	if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
@@ -1336,7 +1336,7 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1346,7 +1346,7 @@ void UV_OT_reset(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Reset";
 	ot->idname = "UV_OT_reset";
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = reset_exec;
@@ -1362,7 +1362,7 @@ static void uv_sphere_project(float target[2], float source[3], float center[3],
 	sub_v3_v3v3(pv, source, center);
 	mul_m4_v3(rotmat, pv);
 
-	map_to_sphere( &target[0], &target[1],pv[0], pv[1], pv[2]);
+	map_to_sphere(&target[0], &target[1], pv[0], pv[1], pv[2]);
 
 	/* split line is always zero */
 	if (target[0] >= 1.0f)
@@ -1387,11 +1387,11 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 	}
 
 	mi = 0;
-	for (i=1; i<efa->len; i++)
+	for (i = 1; i < efa->len; i++)
 		if (uvs[i][0] > uvs[mi][0])
 			mi = i;
 
-	for (i=0; i<efa->len; i++) {
+	for (i = 0; i < efa->len; i++) {
 		if (i != mi) {
 			dx = uvs[mi][0] - uvs[i][0];
 			if (dx > 0.5f) uvs[i][0] += 1.0f;
@@ -1437,7 +1437,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 	uv_map_clip_correct(em, op);
 
 	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1447,7 +1447,7 @@ void UV_OT_sphere_project(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Sphere Projection";
 	ot->idname = "UV_OT_sphere_project";
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = sphere_project_exec;
@@ -1467,7 +1467,7 @@ static void uv_cylinder_project(float target[2], float source[3], float center[3
 	sub_v3_v3v3(pv, source, center);
 	mul_m4_v3(rotmat, pv);
 
-	map_to_tube( &target[0], &target[1],pv[0], pv[1], pv[2]);
+	map_to_tube(&target[0], &target[1], pv[0], pv[1], pv[2]);
 
 	/* split line is always zero */
 	if (target[0] >= 1.0f)
@@ -1510,7 +1510,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 	uv_map_clip_correct(em, op);
 
 	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1520,7 +1520,7 @@ void UV_OT_cylinder_project(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Cylinder Projection";
 	ot->idname = "UV_OT_cylinder_project";
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = cylinder_project_exec;
@@ -1551,14 +1551,14 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	loc= obedit->obmat[3];
-	cube_size= RNA_float_get(op->ptr, "cube_size");
+	loc = obedit->obmat[3];
+	cube_size = RNA_float_get(op->ptr, "cube_size");
 
 	/* choose x,y,z axis for projection depending on the largest normal
-	 * component, but clusters all together around the center of map. */
+	* component, but clusters all together around the center of map. */
 
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		int first=1;
+		int first = 1;
 
 		/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 		if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
@@ -1570,8 +1570,8 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-			luv->uv[0] = 0.5f+0.5f*cube_size*(loc[cox] + l->v->co[cox]);
-			luv->uv[1] = 0.5f+0.5f*cube_size*(loc[coy] + l->v->co[coy]);
+			luv->uv[0] = 0.5f + 0.5f * cube_size * (loc[cox] + l->v->co[cox]);
+			luv->uv[1] = 0.5f + 0.5f * cube_size * (loc[coy] + l->v->co[coy]);
 			
 			if (first) {
 				dx = floor(luv->uv[0]);
@@ -1588,7 +1588,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 	uv_map_clip_correct(em, op);
 
 	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1598,7 +1598,7 @@ void UV_OT_cube_project(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Cube Projection";
 	ot->idname = "UV_OT_cube_project";
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = cube_project_exec;

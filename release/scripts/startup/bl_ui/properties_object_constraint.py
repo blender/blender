@@ -796,7 +796,6 @@ class ConstraintButtonsPanel():
         layout.operator("clip.constraint_to_fcurve")
 
     def OBJECT_SOLVER(self, context, layout, con):
-        scene = context.scene
         clip = self._getConstraintClip(context, con)
 
         layout.prop(con, "use_active_clip")

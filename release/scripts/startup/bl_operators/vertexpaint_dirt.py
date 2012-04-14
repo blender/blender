@@ -26,8 +26,6 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     from mathutils import Vector
     from math import acos
 
-    #BPyMesh.meshCalcNormals(me)
-
     vert_tone = [0.0] * len(me.vertices)
 
     min_tone = 180.0
@@ -95,7 +93,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     tone_range = max_tone - min_tone
 
     if not tone_range:
-        return
+        return {'CANCELLED'}
 
     active_col_layer = None
 
@@ -109,18 +107,17 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
         active_col_layer = me.vertex_colors[0].data
 
     if not active_col_layer:
-        return('CANCELLED', )
+        return
 
-    for i, f in enumerate(me.faces):
-        if not me.use_paint_mask or f.select:
+    use_paint_mask = me.use_paint_mask
 
-            f_col = active_col_layer[i]
-
-            f_col = [f_col.color1, f_col.color2, f_col.color3, f_col.color4]
-
-            for j, v in enumerate(f.vertices):
-                col = f_col[j]
-                tone = vert_tone[me.vertices[v].index]
+    for i, p in enumerate(me.polygons):
+        if not use_paint_mask or p.select:
+            for loop_index in p.loop_indices:
+                loop = me.loops[loop_index]
+                v = loop.vertex_index
+                col = active_col_layer[loop_index].color
+                tone = vert_tone[v]
                 tone = (tone - min_tone) / tone_range
 
                 if dirt_only:
@@ -130,6 +127,8 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
                 col[0] = tone * col[0]
                 col[1] = tone * col[1]
                 col[2] = tone * col[2]
+
+    return {'FINISHED'}
 
 
 import bpy
@@ -185,8 +184,8 @@ class VertexPaintDirt(Operator):
 
         t = time.time()
 
-        applyVertexDirt(mesh, self.blur_iterations, self.blur_strength, radians(self.dirt_angle), radians(self.clean_angle), self.dirt_only)
+        ret = applyVertexDirt(mesh, self.blur_iterations, self.blur_strength, radians(self.dirt_angle), radians(self.clean_angle), self.dirt_only)
 
         print('Dirt calculated in %.6f' % (time.time() - t))
 
-        return {'FINISHED'}
+        return ret

@@ -53,8 +53,8 @@ sys.stdout.write("Making C file <%s>\n" % cname)
 
 filename = filename.split("/")[-1].split("\\")[-1]
 filename = filename.replace(".", "_")
-sys.stdout.write(str(size))
-sys.stdout.write("\n")
+sys.stdout.write("%d\n" % size)
+
 try:
     fpout = open(cname, "w")
 except:
@@ -62,9 +62,9 @@ except:
     sys.exit(1)
 
 fpout.write("/* DataToC output of file <%s> */\n\n" % filename)
-fpout.write("int datatoc_%s_size= %d;\n" % (filename, size))
+fpout.write("int datatoc_%s_size = %d;\n" % (filename, size))
 
-fpout.write("char datatoc_%s[]= {\n" % filename)
+fpout.write("char datatoc_%s[] = {\n" % filename)
 
 while size > 0:
     size -= 1

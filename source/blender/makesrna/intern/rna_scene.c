@@ -38,7 +38,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_linestyle_types.h"
+
 #include "BLI_math.h"
+
+#include "BLF_translation.h"
 
 #include "BKE_tessmesh.h"
 
@@ -205,11 +208,11 @@ EnumPropertyItem image_only_type_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem image_type_items[] = {
-	{0, "", 0, "Image", NULL},
+	{0, "", 0, N_("Image"), NULL},
 
 	IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
-	{0, "", 0, "Movie", NULL},
+	{0, "", 0, N_("Movie"), NULL},
 #ifdef _WIN32
 		/* XXX Missing codec menu */
 	{R_IMF_IMTYPE_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", "Output video in AVI format"},
@@ -1610,6 +1613,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_range(prop, 0.01, 10.0, 10.0, 2);
 	RNA_def_property_update(prop, NC_GEOM|ND_DATA, NULL);
 
+	prop = RNA_def_property(srna, "double_threshold", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "doublimit");
+	RNA_def_property_ui_text(prop, "Double Threshold", "Limit for removing duplicates and 'Auto Merge'");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_range(prop, 0.0, 0.1, 0.01, 6);
+
 	prop = RNA_def_property(srna, "use_mesh_automerge", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "automerge", 0);
 	RNA_def_property_ui_text(prop, "AutoMerge Editing", "Automatically merge vertices moved to the same location");
@@ -1835,7 +1844,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 0.001);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Strength", "How powerful the effect of the brush is when applied");
 
 	prop = RNA_def_property(srna, "use_pressure_size", PROP_BOOLEAN, PROP_NONE);
@@ -1947,7 +1956,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "layflag", SCE_LAY_DISABLE);
 	RNA_def_property_ui_text(prop, "Enabled", "Disable or enable the render layer");
-	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_zmask", PROP_BOOLEAN, PROP_NONE);
@@ -1990,7 +1999,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	prop = RNA_def_property(srna, "use_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SKY);
 	RNA_def_property_ui_text(prop, "Sky", "Render Sky in this Layer");
-	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_edge_enhance", PROP_BOOLEAN, PROP_NONE);
@@ -2856,7 +2865,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "dome_buffer_resolution", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dome.resbuf");
-	RNA_def_property_ui_range(prop, 0.1, 1.0, 0.1, 0.1);
+	RNA_def_property_ui_range(prop, 0.1, 1.0, 0.1, 2);
 	RNA_def_property_ui_text(prop, "Buffer Resolution", "Buffer Resolution - decrease it to increase speed");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
@@ -2930,8 +2939,8 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "physics_step_sub", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "physubstep");
+	RNA_def_property_range(prop, 1, 50);
 	RNA_def_property_ui_range(prop, 1, 5, 1, 1);
-	RNA_def_property_range(prop, 1, 5);
 	RNA_def_property_ui_text(prop, "Physics Sub Steps",
 	                         "Number of simulation substep per physic timestep, "
 	                         "higher value give better physics precision");
@@ -3935,6 +3944,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.01f, 10.0f);
 	RNA_def_property_ui_range(prop, 0.01, 2.0f, 1, 0);
 	RNA_def_property_ui_text(prop, "Shutter", "Time taken in frames between shutter open and close");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	/* border */

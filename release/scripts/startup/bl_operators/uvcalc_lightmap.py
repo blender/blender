@@ -505,7 +505,7 @@ def lightmap_uvpack(meshes,
 
             for f in face_sel:
                 # f.image = image
-                f.id_data.uv_loop_layers.active.data[f.index].image = image  # XXX25
+                f.id_data.uv_textures.active.data[f.index].image = image  # XXX25
 
     for me in meshes:
         me.update()

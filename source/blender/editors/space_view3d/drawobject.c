@@ -127,6 +127,7 @@ typedef struct foreachScreenEdge_userData {
 	void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index);
 	void *userData;
 	ViewContext vc;
+	rcti win_rect; /* copy of: vc.ar->winx/winy, use for faster tests, minx/y will always be 0 */
 	eV3DClipTest clipVerts;
 } foreachScreenEdge_userData;
 
@@ -2026,7 +2027,8 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
  * if not, ED_view3d_init_mats_rv3d() can be used for selection tools
  * but would not give correct results with dupli's for eg. which don't
  * use the object matrix in the usual way */
-static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const float co[3],
+                                            const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	foreachScreenVert_userData *data = userData;
 	BMVert *eve = EDBM_vert_at_index(data->vc.em, index);
@@ -2072,7 +2074,8 @@ void mesh_foreachScreenVert(
 }
 
 /*  draw callback */
-static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void drawSelectedVertices__mapFunc(void *userData, int index, const float co[3],
+                                          const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	MVert *mv = &((MVert *)userData)[index];
 
@@ -2097,15 +2100,8 @@ static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
 	glEnd();
 }
-static int is_co_in_region(ARegion *ar, const short co[2])
-{
-	return ((co[0] != IS_CLIPPED) && /* may be the only initialized value, check first */
-	        (co[0] >= 0)          &&
-	        (co[0] <  ar->winx)   &&
-	        (co[1] >= 0)          &&
-	        (co[1] <  ar->winy));
-}
-static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
+
+static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const float v0co[3], const float v1co[3])
 {
 	foreachScreenEdge_userData *data = userData;
 	BMEdge *eed = EDBM_edge_at_index(data->vc.em, index);
@@ -2127,9 +2123,10 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 			project_short_noclip(data->vc.ar, v2_co, s[1]);
 
 			if (data->clipVerts == V3D_CLIP_TEST_REGION) {
-				if (!is_co_in_region(data->vc.ar, s[0]) &&
-				    !is_co_in_region(data->vc.ar, s[1]))
-				{
+				/* make an int copy */
+				int s_int[2][2] = {{s[0][0], s[0][1]},
+				                   {s[1][0], s[1][1]}};
+				if (!BLI_segment_in_rcti(&data->win_rect, s_int[0], s_int[1])) {
 					return;
 				}
 			}
@@ -2148,6 +2145,12 @@ void mesh_foreachScreenEdge(
 	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	data.vc = *vc;
+
+	data.win_rect.xmin = 0;
+	data.win_rect.ymin = 0;
+	data.win_rect.xmax = vc->ar->winx;
+	data.win_rect.ymax = vc->ar->winy;
+
 	data.func = func;
 	data.userData = userData;
 	data.clipVerts = clipVerts;
@@ -2162,7 +2165,7 @@ void mesh_foreachScreenEdge(
 	dm->release(dm);
 }
 
-static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *UNUSED(no))
+static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
 {
 	foreachScreenFace_userData *data = userData;
 	BMFace *efa = EDBM_face_at_index(data->vc.em, index);
@@ -2266,7 +2269,7 @@ void nurbs_foreachScreenVert(
  * logic!!!
  */
 
-static void draw_dm_face_normals__mapFunc(void *userData, int index, float *cent, float *no)
+static void draw_dm_face_normals__mapFunc(void *userData, int index, const float cent[3], const float no[3])
 {
 	drawDMNormal_userData *data = userData;
 	BMFace *efa = EDBM_face_at_index(data->em, index);
@@ -2290,7 +2293,7 @@ static void draw_dm_face_normals(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 	glEnd();
 }
 
-static void draw_dm_face_centers__mapFunc(void *userData, int index, float *cent, float *UNUSED(no))
+static void draw_dm_face_centers__mapFunc(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
 {
 	BMFace *efa = EDBM_face_at_index(((void **)userData)[0], index);
 	int sel = *(((int **)userData)[1]);
@@ -2308,7 +2311,7 @@ static void draw_dm_face_centers(BMEditMesh *em, DerivedMesh *dm, int sel)
 	bglEnd();
 }
 
-static void draw_dm_vert_normals__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+static void draw_dm_vert_normals__mapFunc(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3])
 {
 	drawDMNormal_userData *data = userData;
 	BMVert *eve = EDBM_vert_at_index(data->em, index);
@@ -2341,7 +2344,8 @@ static void draw_dm_vert_normals(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 }
 
 /* Draw verts with color set based on selection */
-static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
+                                   const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	drawDMVerts_userData *data = userData;
 	BMVert *eve = EDBM_vert_at_index(data->em, index);
@@ -2632,7 +2636,8 @@ static DMDrawOption draw_dm_bweights__setDrawOptions(void *userData, int index)
 		return DM_DRAW_OPTION_SKIP;
 	}
 }
-static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void draw_dm_bweights__mapFunc(void *userData, int index, const float co[3],
+                                      const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	BMEditMesh *em = userData;
 	BMVert *eve = EDBM_vert_at_index(userData, index);
@@ -3472,7 +3477,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 				GPU_disable_material();
 			}
-			else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) {
+			else if (ob->mode & OB_MODE_VERTEX_PAINT) {
 				if (me->mloopcol)
 					dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, NULL,
 					                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
@@ -5649,7 +5654,7 @@ static void draw_empty_cone(float size)
 	radius = size;
 	glTranslatef(cent, cent, cent);
 	glScalef(radius, size * 2.0f, radius);
-	glRotatef(-90., 1.0, 0.0, 0.0);
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
 
 	glPopMatrix();
@@ -6552,9 +6557,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					zbufoff = 1;
 					dt = OB_SOLID;
 				}
-				else {
+				else if(ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))
 					dt = OB_PAINT;
-				}
 
 				glEnable(GL_DEPTH_TEST);
 			}
@@ -7175,7 +7179,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
-static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, const float co[3],
+                                           const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	bbsObmodeMeshVerts_userData *data = userData;
 	MVert *mv = &data->mvert[index];
@@ -7201,7 +7206,8 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 	glPointSize(1.0);
 }
 
-static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+static void bbs_mesh_verts__mapFunc(void *userData, int index, const float co[3],
+                                    const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	void **ptrs = userData;
 	int offset = (intptr_t) ptrs[0];
@@ -7258,7 +7264,7 @@ static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int inde
 	}
 }
 
-static void bbs_mesh_solid__drawCenter(void *userData, int index, float *cent, float *UNUSED(no))
+static void bbs_mesh_solid__drawCenter(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
 {
 	BMFace *efa = EDBM_face_at_index(((void **)userData)[0], index);
 

@@ -599,13 +599,13 @@ static void verify_tree(BVHTree *tree)
 //This code can be easily reduced (basicly this is only method to calculate pow(k, n) in O(1).. and stuff like that)
 typedef struct BVHBuildHelper
 {
-	int tree_type;				//
-	int totleafs;				//
+	int tree_type;				/* */
+	int totleafs;				/* */
 
-	int leafs_per_child  [32];	//Min number of leafs that are archievable from a node at depth N
-	int branches_on_level[32];	//Number of nodes at depth N (tree_type^N)
+	int leafs_per_child[32];	/* Min number of leafs that are archievable from a node at depth N */
+	int branches_on_level[32];	/* Number of nodes at depth N (tree_type^N) */
 
-	int remain_leafs;			//Number of leafs that are placed on the level that is not 100% filled
+	int remain_leafs;			/* Number of leafs that are placed on the level that is not 100% filled */
 
 } BVHBuildHelper;
 

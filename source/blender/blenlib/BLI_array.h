@@ -64,7 +64,7 @@
 #define BLI_array_staticdeclare(arr, maxstatic)                               \
 	int   _##arr##_count = 0;                                                 \
 	void *_##arr##_tmp;                                                       \
-	char _##arr##_static[maxstatic*sizeof(arr)]
+	char _##arr##_static[maxstatic * sizeof(arr)]
 
 
 /* this returns the entire size of the array, including any buffering. */
@@ -117,8 +117,8 @@
 
 /* grow an array by a specified number of items */
 #define BLI_array_growitems(arr, num)  (                                      \
-	((void *)(arr)==NULL && (void *)(_##arr##_static) != NULL) ?              \
-	    ((arr= (void*)_##arr##_static), (_##arr##_count += num)) :            \
+	((void *)(arr) == NULL && (void *)(_##arr##_static) != NULL) ?            \
+	    ((arr = (void*)_##arr##_static), (_##arr##_count += num)) :           \
 	    _bli_array_grow_items(arr, num)                                       \
 )
 
@@ -141,7 +141,7 @@
 )
 
 #define BLI_array_reserve(arr, num)                                           \
-	BLI_array_growitems(arr, num), (void)(_##arr##_count -= num)
+	BLI_array_growitems(arr, num), (void)(_##arr##_count -= (num))
 
 
 #define BLI_array_free(arr)                                                   \
@@ -159,7 +159,7 @@
 /* resets the logical size of an array to zero, but doesn't
  * free the memory. */
 #define BLI_array_empty(arr)                                                  \
-	_##arr##_count=0
+	_##arr##_count = 0
 
 /* set the count of the array, doesn't actually increase the allocated array
  * size.  don't use this unless you know what you're doing. */
@@ -177,9 +177,9 @@
  * same purpose as BLI_array_staticdeclare()
  * but use when the max size is known ahead of time */
 #define BLI_array_fixedstack_declare(arr, maxstatic, realsize, allocstr)      \
-	char _##arr##_static[maxstatic*sizeof(*(arr))];                           \
-	const int _##arr##_is_static= ((void *)_##arr##_static) != (              \
-	    arr= ((realsize) <= maxstatic) ?                                      \
+	char _##arr##_static[maxstatic * sizeof(*(arr))];                         \
+	const int _##arr##_is_static = ((void *)_##arr##_static) != (             \
+	    arr = ((realsize) <= maxstatic) ?                                     \
 	        (void *)_##arr##_static :                                         \
 	        MEM_mallocN(sizeof(*(arr)) * (realsize), allocstr)                \
 	    )                                                                     \

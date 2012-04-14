@@ -125,25 +125,35 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 	return f;
 }
 
-/* copies face data from shared adjacent faces */
+/**
+ * \brief copies face loop data from shared adjacent faces.
+ * \note when a matching edge is found, both loops of that edge are copied
+ * this is done since the face may not be completely surrounded by faces,
+ * this way: a quad with 2 connected quads on either side will still get all 4 loops updated */
 void BM_face_copy_shared(BMesh *bm, BMFace *f)
 {
-	BMIter iter;
-	BMLoop *l, *l_other;
+	BMLoop *l_first;
+	BMLoop *l_iter;
 
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-		l_other = l->radial_next;
-		
-		if (l_other && l_other != l) {
-			if (l_other->v == l->v) {
-				bm_loop_attrs_copy(bm, bm, l_other, l);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		BMLoop *l_other = l_iter->radial_next;
+
+		if (l_other && l_other != l_iter) {
+			if (l_other->v == l_iter->v) {
+				bm_loop_attrs_copy(bm, bm, l_other, l_iter);
+				bm_loop_attrs_copy(bm, bm, l_other->next, l_iter->next);
 			}
 			else {
-				l_other = l_other->next;
-				bm_loop_attrs_copy(bm, bm, l_other, l);
+				bm_loop_attrs_copy(bm, bm, l_other->next, l_iter);
+				bm_loop_attrs_copy(bm, bm, l_other, l_iter->next);
+			}
+			/* since we copy both loops of the shared edge, step over the next loop here */
+			if ((l_iter = l_iter->next) == l_first) {
+				break;
 			}
 		}
-	}
+	} while ((l_iter = l_iter->next) != l_first);
 }
 
 /**
@@ -397,7 +407,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 
 	/* --- */
 
-	/* now calcualte every points angle around the normal (signed) */
+	/* now calculate every points angle around the normal (signed) */
 	vang = MEM_mallocN(sizeof(AngleIndexPair) * totv, __func__);
 
 	for (i = 0; i < totv; i++) {
@@ -521,7 +531,7 @@ void BMO_remove_tagged_verts(BMesh *bm, const short oflag)
  * api functions that take a filter callback.....
  * and this new filter type will be for opstack flags.
  * This is because the BM_remove_taggedXXX functions bypass iterator API.
- *  - Ops don't care about 'UI' considerations like selection state, hide state, ect.
+ *  - Ops don't care about 'UI' considerations like selection state, hide state, etc.
  *    If you want to work on unhidden selections for instance,
  *    copy output from a 'select context' operator to another operator....
  */

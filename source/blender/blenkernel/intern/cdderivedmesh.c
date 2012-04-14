@@ -1418,10 +1418,9 @@ static void cdDM_drawMappedEdges(DerivedMesh *dm, DMSetDrawOptions setDrawOption
 }
 
 static void cdDM_foreachMappedVert(
-						   DerivedMesh *dm,
-						   void (*func)(void *userData, int index, float *co,
-										float *no_f, short *no_s),
-						   void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3]),
+        void *userData)
 {
 	MVert *mv = CDDM_get_verts(dm);
 	int i, orig, *index = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
@@ -1438,10 +1437,9 @@ static void cdDM_foreachMappedVert(
 }
 
 static void cdDM_foreachMappedEdge(
-						   DerivedMesh *dm,
-						   void (*func)(void *userData, int index,
-										float *v0co, float *v1co),
-						   void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
+        void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mv = cddm->mvert;
@@ -1460,10 +1458,9 @@ static void cdDM_foreachMappedEdge(
 }
 
 static void cdDM_foreachMappedFaceCenter(
-						   DerivedMesh *dm,
-						   void (*func)(void *userData, int index,
-										float *cent, float *no),
-						   void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float cent[3], const float no[3]),
+        void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 	MVert *mv = cddm->mvert;

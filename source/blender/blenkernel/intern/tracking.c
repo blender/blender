@@ -1125,6 +1125,9 @@ void BKE_tracking_disable_imbuf_channels(ImBuf *ibuf, int disable_red, int disab
 			}
 		}
 	}
+
+	if (ibuf->rect_float)
+		ibuf->userflags |= IB_RECT_INVALID;
 }
 
 static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int grayscale)

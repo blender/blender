@@ -38,6 +38,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Float Pi variations */
+
 #ifndef M_PI_F
 #define M_PI_F		((float)3.14159265358979323846264338327950288)
 #endif
@@ -69,6 +71,8 @@ CCL_NAMESPACE_BEGIN
 
 #endif
 
+#ifndef __KERNEL_OPENCL__
+
 __device_inline float fmaxf(float a, float b)
 {
 	return (a > b)? a: b;
@@ -78,6 +82,8 @@ __device_inline float fminf(float a, float b)
 {
 	return (a < b)? a: b;
 }
+
+#endif
 
 #endif
 

@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_inset.c
+ *  \ingroup bmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
@@ -119,11 +123,11 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	int i, j, k;
 
 	if (use_outset == FALSE) {
-		BM_mesh_elem_flag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
 		BMO_slot_buffer_hflag_enable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
 	}
 	else {
-		BM_mesh_elem_flag_enable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
 		BMO_slot_buffer_hflag_disable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
 	}
 
@@ -239,7 +243,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 				bmesh_vert_separate(bm, v, &vout, &r_vout_len);
 				v = NULL; /* don't use again */
 
-				/* in some cases the edge doesnt split off */
+				/* in some cases the edge doesn't split off */
 				if (r_vout_len == 1) {
 					MEM_freeN(vout);
 					continue;
@@ -478,6 +482,11 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		/* yes - reverse face is correct in this case */
 		f = BM_face_create_quad_tri_v(bm, varr, j, es->l->f, FALSE);
 		BMO_elem_flag_enable(bm, f, ELE_NEW);
+
+		/* copy for loop data, otherwise UV's and vcols are no good.
+		 * tiny speedup here we could be more clever and copy from known adjacent data
+		 * also - we could attempt to interpolate the loop data, this would be much slower but more useful too */
+		BM_face_copy_shared(bm, f);
 	}
 
 	MEM_freeN(edge_info);

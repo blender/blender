@@ -68,6 +68,9 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 	/* add crease layer */
 	BM_data_layer_add(bm, &bm->edata, CD_CREASE);
+	/* add bevel weight layers */
+	BM_data_layer_add(bm, &bm->edata, CD_BWEIGHT);
+	BM_data_layer_add(bm, &bm->vdata, CD_BWEIGHT);
 
 	vtable = MEM_callocN(sizeof(void**) * totvert, "vert table in BMDM_Copy");
 	etable = MEM_callocN(sizeof(void**) * totedge, "edge table in BMDM_Copy");
@@ -80,6 +83,9 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		v->head.hflag = BM_vert_flag_from_mflag(mv->flag);
 
 		CustomData_to_bmesh_block(&dm->vertData, &bm->vdata, i, &v->head.data);
+
+		/* add bevel weight */
+		BM_elem_float_data_set(&bm->vdata, v, CD_BWEIGHT, (float)mv->bweight / 255.0f);
 		vtable[i] = v;
 	}
 	MEM_freeN(mvert);
@@ -96,6 +102,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 		/* add crease */
 		BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (float)me->crease / 255.0f);
+		/* add bevel weight */
+		BM_elem_float_data_set(&bm->edata, e, CD_BWEIGHT, (float)me->bweight / 255.0f);
 	}
 	MEM_freeN(medge);
 

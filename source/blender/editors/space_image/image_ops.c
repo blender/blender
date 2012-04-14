@@ -1265,6 +1265,8 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return image_save_as_exec(C, op);
 
+	save_image_options_defaults(&simopts);
+
 	if (save_image_options_init(&simopts, sima, scene, TRUE) == 0)
 		return OPERATOR_CANCELLED;
 	save_image_options_to_op(&simopts, op);

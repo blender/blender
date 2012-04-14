@@ -449,7 +449,7 @@ static int playback_mode(int UNUSED(argc), const char **UNUSED(argv), void *UNUS
 #if 0   /* TODO, bring player back? */
 		playanim(argc, argv); /* not the same argc and argv as before */
 #else
-		fprintf(stderr, "Playback mode not supported in blender 2.5x\n");
+		fprintf(stderr, "Playback mode not supported in blender 2.6x\n");
 		exit(0);
 #endif
 	}
@@ -1171,7 +1171,7 @@ char **environ = NULL;
 
 
 #ifdef WIN32
-int main(int argc, const char **argv_c) /*Do not mess with const*/
+int main(int argc, const char **UNUSED(argv_c)) /* Do not mess with const */
 #else
 int main(int argc, const char **argv)
 #endif
@@ -1184,8 +1184,7 @@ int main(int argc, const char **argv)
 	wchar_t **argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);
 	int argci = 0;
 	char **argv = MEM_mallocN(argc * sizeof(char *), "argv array");
-	for (argci = 0; argci < argc; argci++)
-	{
+	for (argci = 0; argci < argc; argci++) {
 		argv[argci] = alloc_utf_8_from_16(argv_16[argci], 0);
 	}
 	LocalFree(argv_16);

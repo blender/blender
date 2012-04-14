@@ -134,7 +134,8 @@ static Py_hash_t BPy_IDGroup_hash(BPy_IDProperty *self)
 
 static PyObject *BPy_IDGroup_repr(BPy_IDProperty *self)
 {
-	return PyUnicode_FromFormat("<bpy id property from \"%s\">", self->id->name);
+	return PyUnicode_FromFormat("<bpy id prop: owner=\"%s\", name=\"%s\", address=%p>",
+	                            self->id ? self->id->name : "<NONE>", self->prop->name, self->prop);
 }
 
 PyObject *BPy_IDGroup_WrapData(ID *id, IDProperty *prop, IDProperty *parent)

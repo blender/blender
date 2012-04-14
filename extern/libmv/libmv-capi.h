@@ -129,6 +129,10 @@ void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double
 void libmv_InvertIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
 			double x, double y, double *x1, double *y1);
 
+/* point clouds */
+void libmv_rigidRegistration(float (*reference_points)[3], float (*points)[3], int total_points,
+                             int use_scale, int use_translation, double M[4][4]);
+
 #ifdef __cplusplus
 }
 #endif

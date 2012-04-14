@@ -65,7 +65,7 @@ int bmesh_disk_count(BMVert *v);
 #define BM_ELEM_API_FLAG_DISABLE(element, f) ((element)->oflags[0].pflag &= ~(f))
 #define BM_ELEM_API_FLAG_TEST(element, f)    ((element)->oflags[0].pflag &   (f))
 
-void compute_poly_plane(float (*verts)[3], int nverts);
+void compute_poly_plane(float (*verts)[3], const int nverts);
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts);
 
 /* include the rest of our private declarations */

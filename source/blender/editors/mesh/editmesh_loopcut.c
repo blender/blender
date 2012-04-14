@@ -327,8 +327,6 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 				EDBM_selectmode_set(em);
 
 				WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, CTX_data_scene(C));
-
-				WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, CTX_data_scene(C));
 			}
 
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT | ND_DATA, lcd->ob->data);

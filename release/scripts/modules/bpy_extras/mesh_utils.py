@@ -48,7 +48,8 @@ def mesh_linked_tessfaces(mesh):
 
     # sort faces into connectivity groups
     face_groups = [[f] for f in mesh.tessfaces]
-    face_mapping = list(range(len(mesh.tessfaces)))  # map old, new face location
+    # map old, new face location
+    face_mapping = list(range(len(mesh.tessfaces)))
 
     # Now clump faces iteratively
     ok = True

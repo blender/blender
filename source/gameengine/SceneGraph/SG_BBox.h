@@ -81,7 +81,7 @@ public:
 	/**
 	 * Scales the bounding box about the optional point.
 	 */
-	void scale(const MT_Vector3 &size, const MT_Point3 &point = MT_Point3(0., 0., 0.));
+	void scale(const MT_Vector3 &size, const MT_Point3 &point = MT_Point3(0.0, 0.0, 0.0));
 #endif
 	SG_BBox transform(const MT_Transform &world) const;
 	/**

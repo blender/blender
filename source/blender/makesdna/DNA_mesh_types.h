@@ -67,6 +67,7 @@ typedef struct Mesh {
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Key *key;
 	struct Material **mat;
+	struct MSelect *mselect;
 
 /* BMESH ONLY */
 	/*new face structures*/
@@ -91,7 +92,6 @@ typedef struct Mesh {
 	struct MCol *mcol;		
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
-	struct MSelect *mselect;
 	
 	struct BMEditMesh *edit_btmesh;	/* not saved in file! */
 

@@ -1,12 +1,15 @@
 #!/usr/bin/python
 Import ('env')
 
-sources = env.Glob('*.c')
+sources = ['utfconv.c']
 
 incs = '.'
 defs = ''
 
-
-
+# This is odd but leave it for now...
+# Why have win32 check here? - this is only used for windows.
+# ... because one day we might want to use it on other platforms.
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
-    env.BlenderLib ('bf_utfconv', sources, Split(incs), Split(defs), libtype=['intern','player'], priority=[0,0] )
+	sources += ['utf_winfunc.c']
+
+env.BlenderLib('bf_utfconv', sources, Split(incs), Split(defs), libtype=['intern','player'], priority=[0,0])

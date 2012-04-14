@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Menu, OperatorProperties
+from bpy.types import Menu
 
 
 class USERPREF_MT_keyconfigs(Menu):

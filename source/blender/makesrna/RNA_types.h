@@ -91,11 +91,13 @@ typedef enum PropertyUnit {
 	PROP_UNIT_ACCELERATION = (8<<16)	/* m/(s^2) */
 } PropertyUnit;
 
-#define RNA_SUBTYPE_UNIT(subtype) ((subtype) & 0x00FF0000)
-#define RNA_SUBTYPE_VALUE(subtype) ((subtype) & ~0x00FF0000)
-#define RNA_SUBTYPE_UNIT_VALUE(subtype) ((subtype)>>16)
+#define RNA_SUBTYPE_UNIT(subtype)       ((subtype) &  0x00FF0000)
+#define RNA_SUBTYPE_VALUE(subtype)      ((subtype) & ~0x00FF0000)
+#define RNA_SUBTYPE_UNIT_VALUE(subtype) ((subtype) >> 16)
 
 #define RNA_ENUM_BITFLAG_SIZE 32
+
+#define RNA_TRANSLATION_PREC_DEFAULT 5
 
 /* also update enums in bpy_props.c when adding items here
  * watch it: these values are written to files as part of
@@ -180,6 +182,9 @@ typedef enum PropertyFlag {
 	/* disallow assigning a variable to its self, eg an object tracking its self
 	 * only apply this to types that are derived from an ID ()*/
 	PROP_ID_SELF_CHECK = 1<<20,
+	/* use for...
+	 * - pointers: in the UI and python so unsetting or setting to None won't work
+	 * - strings: so our internal generated get/length/set functions know to do NULL checks before access [#30865] */
 	PROP_NEVER_NULL = 1<<18,
 	/* currently only used for UI, this is similar to PROP_NEVER_NULL
 	 * except that the value may be NULL at times, used for ObData, where an Empty's will be NULL

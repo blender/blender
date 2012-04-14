@@ -20,13 +20,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "MEM_guardedalloc.h"
+/** \file blender/bmesh/operators/bmo_dupe.c
+ *  \ingroup bmesh
+ */
 
+#include "MEM_guardedalloc.h"
 
 #include "BLI_array.h"
 #include "BLI_math.h"
 
 #include "bmesh.h"
+
+#include "intern/bmesh_operators_private.h" /* own include */
 
 /* local flag define */
 #define DUPE_INPUT      1 /* input from operator */

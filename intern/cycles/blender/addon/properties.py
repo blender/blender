@@ -176,7 +176,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.sample_clamp = FloatProperty(
                 name="Clamp",
-                description="If non-zero, the maximum value for a sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy.",
+                description="If non-zero, the maximum value for a sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy",
                 min=0.0, max=1e8,
                 default=0.0,
                 )

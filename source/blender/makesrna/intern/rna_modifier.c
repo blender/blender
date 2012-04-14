@@ -45,6 +45,8 @@
 
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_bmesh.h" /* For BevelModifierData */
 #include "BKE_dynamicpaint.h"
@@ -55,13 +57,13 @@
 #include "WM_types.h"
 
 EnumPropertyItem modifier_type_items[] = {
-	{0, "", 0, "Modify", ""},
+	{0, "", 0, N_("Modify"), ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
 	{eModifierType_WeightVGEdit, "VERTEX_WEIGHT_EDIT", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Edit", ""},
 	{eModifierType_WeightVGMix, "VERTEX_WEIGHT_MIX", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Mix", ""},
 	{eModifierType_WeightVGProximity, "VERTEX_WEIGHT_PROXIMITY", ICON_MOD_VERTEX_WEIGHT,
 	                                  "Vertex Weight Proximity", ""},
-	{0, "", 0, "Generate", ""},
+	{0, "", 0, N_("Generate"), ""},
 	{eModifierType_Array, "ARRAY", ICON_MOD_ARRAY, "Array", ""},
 	{eModifierType_Bevel, "BEVEL", ICON_MOD_BEVEL, "Bevel", ""},
 	{eModifierType_Boolean, "BOOLEAN", ICON_MOD_BOOLEAN, "Boolean", ""},
@@ -75,7 +77,7 @@ EnumPropertyItem modifier_type_items[] = {
 	{eModifierType_Screw, "SCREW", ICON_MOD_SCREW, "Screw", ""},
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
-	{0, "", 0, "Deform", ""},
+	{0, "", 0, N_("Deform"), ""},
 	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
 	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
 	{eModifierType_Curve, "CURVE", ICON_MOD_CURVE, "Curve", ""},
@@ -88,7 +90,7 @@ EnumPropertyItem modifier_type_items[] = {
 	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
 	{eModifierType_Warp, "WARP", ICON_MOD_WARP, "Warp", ""},
 	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
-	{0, "", 0, "Simulate", ""},
+	{0, "", 0, N_("Simulate"), ""},
 	{eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
 	{eModifierType_Collision, "COLLISION", ICON_MOD_PHYSICS, "Collision", ""},
 	{eModifierType_DynamicPaint, "DYNAMIC_PAINT", ICON_MOD_DYNAMICPAINT, "Dynamic Paint", ""},
@@ -490,7 +492,7 @@ static int rna_MultiresModifier_external_get(PointerRNA *ptr)
 static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 {
 	Object *ob = (Object*)ptr->id.data;
-	CustomDataExternal *external = ((Mesh*)ob->data)->fdata.external;
+	CustomDataExternal *external = ((Mesh*)ob->data)->ldata.external;
 
 	BLI_strncpy(value, (external)? external->filename: "", sizeof(external->filename));
 }
@@ -498,7 +500,7 @@ static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = (Object*)ptr->id.data;
-	CustomDataExternal *external = ((Mesh*)ob->data)->fdata.external;
+	CustomDataExternal *external = ((Mesh*)ob->data)->ldata.external;
 
 	if (external && strcmp(external->filename, value)) {
 		BLI_strncpy(external->filename, value, sizeof(external->filename));
@@ -509,7 +511,7 @@ static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value
 static int rna_MultiresModifier_filepath_length(PointerRNA *ptr)
 {
 	Object *ob = (Object*)ptr->id.data;
-	CustomDataExternal *external = ((Mesh*)ob->data)->fdata.external;
+	CustomDataExternal *external = ((Mesh*)ob->data)->ldata.external;
 
 	return strlen((external)? external->filename: "");
 }
@@ -1440,14 +1442,15 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	/* Offset parameters */
-	prop = RNA_def_property(srna, "use_constant_offset", PROP_BOOLEAN, PROP_TRANSLATION);
+	prop = RNA_def_property(srna, "use_constant_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_CONST);
-	RNA_def_property_ui_text(prop, "Constant Offset", "Add a constant offset");
+	RNA_def_property_ui_text(prop, "Constant Offset", "Add a constant offset");;
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	
 	prop = RNA_def_property(srna, "constant_offset_displace", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Constant Offset Displacement", "Value for the distance between arrayed items");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_relative_offset", PROP_BOOLEAN, PROP_NONE);

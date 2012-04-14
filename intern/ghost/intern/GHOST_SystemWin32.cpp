@@ -724,19 +724,25 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 		wchar_t utf16[3]={0};
 		BYTE state[256] ={0};
 		int r;
-		GetKeyboardState((PBYTE)state);  
+		GetKeyboardState((PBYTE)state);
 
-		if(r = ToUnicodeEx(vk, 0, state, utf16, 2, 0, system->m_keylayout))
+		if(r = ToUnicodeEx(vk, 0, state, utf16, 2, 0, system->m_keylayout)) {
+			if((r>0 && r<3)){
+				utf16[r]=0;
+				conv_utf_16_to_8(utf16,utf8_char,6);
+			}
+			else if (r==-1) {
+				utf8_char[0] = '\0';
+			}
+		}
 
-									if((r>0 && r<3)){utf16[r]=0;
-										
-										conv_utf_16_to_8(utf16,utf8_char,6);}
-									else if (r==-1)  utf8_char[0] = '\0';
-
-		
-
-		if(!keyDown) {utf8_char[0] = '\0'; ascii='\0';}
-			else ascii = utf8_char[0]& 0x80?'?':utf8_char[0];
+		if(!keyDown) {
+			utf8_char[0] = '\0';
+			ascii='\0';
+		}
+		else {
+			ascii = utf8_char[0]& 0x80?'?' : utf8_char[0];
+		}
 
 		if(0x80&state[VK_MENU]) utf8_char[0]='\0';
 
@@ -1253,7 +1259,6 @@ GHOST_TUns8* GHOST_SystemWin32::getClipboard(bool selection) const
 	
 	if ( IsClipboardFormatAvailable(CF_UNICODETEXT) && OpenClipboard(NULL) ) {
 		wchar_t *buffer;
-		size_t len = 0;
 		HANDLE hData = GetClipboardData( CF_UNICODETEXT );
 		if (hData == NULL) {
 			CloseClipboard();

@@ -3709,7 +3709,14 @@ static void lib_link_mesh(FileData *fd, Main *main)
 
 			/*check if we need to convert mfaces to mpolys*/
 			if (me->totface && !me->totpoly) {
+				/* temporarily switch main so that reading from
+				   external CustomData works */
+				Main *gmain = G.main;
+				G.main = main;
+				
 				BKE_mesh_convert_mfaces_to_mpolys(me);
+
+				G.main = gmain;
 			}
 			
 			/*
@@ -3839,6 +3846,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->mloopcol= newdataadr(fd, mesh->mloopcol);
 	mesh->mloopuv= newdataadr(fd, mesh->mloopuv);
 	mesh->mtpoly= newdataadr(fd, mesh->mtpoly);
+	mesh->mselect = newdataadr(fd, mesh->mselect);
 
 	/* animdata */
 	mesh->adt= newdataadr(fd, mesh->adt);
@@ -3885,7 +3893,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 
 	mesh->bb= NULL;
-	mesh->mselect = NULL;
 	mesh->edit_btmesh= NULL;
 	
 	/* Multires data */
@@ -4843,6 +4850,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				}
 				if (seq->clip) {
 					seq->clip = newlibadr(fd, sce->id.lib, seq->clip);
+					seq->clip->id.us++;
 				}
 				if (seq->scene_camera) seq->scene_camera= newlibadr(fd, sce->id.lib, seq->scene_camera);
 				if (seq->sound) {
@@ -5720,8 +5728,8 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 			RegionView3D *rv3d;
 			
 			rv3d= ar->regiondata= MEM_callocN(sizeof(RegionView3D), "region v3d patch");
-			rv3d->persp= v3d->persp;
-			rv3d->view= v3d->view;
+			rv3d->persp= (char)v3d->persp;
+			rv3d->view= (char)v3d->view;
 			rv3d->dist= v3d->dist;
 			copy_v3_v3(rv3d->ofs, v3d->ofs);
 			copy_qt_qt(rv3d->viewquat, v3d->viewquat);
@@ -6798,31 +6806,6 @@ static void ntree_version_242(bNodeTree *ntree)
 				node->storage= MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
 	}
 	
-}
-
-
-/* somehow, probably importing via python, keyblock adrcodes are not in order */
-static void sort_shape_fix(Main *main)
-{
-	Key *key;
-	KeyBlock *kb;
-	int sorted= 0;
-	
-	while (sorted==0) {
-		sorted= 1;
-		for (key= main->key.first; key; key= key->id.next) {
-			for (kb= key->block.first; kb; kb= kb->next) {
-				if (kb->next && kb->adrcode>kb->next->adrcode) {
-					KeyBlock *next= kb->next;
-					BLI_remlink(&key->block, kb);
-					BLI_insertlink(&key->block, next, kb);
-					kb= next;
-					sorted= 0;
-				}
-			}
-		}
-		if (sorted==0) printf("warning, shape keys were sorted incorrect, fixed it!\n");
-	}
 }
 
 static void customdata_version_242(Mesh *me)
@@ -9476,24 +9459,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for (key= main->key.first; key; key= key->id.next) {
 			KeyBlock *kb;
-			int index= 1;
-			
-			/* trick to find out if we already introduced adrcode */
-			for (kb= key->block.first; kb; kb= kb->next)
-				if (kb->adrcode) break;
-			
-			if (kb==NULL) {
-				for (kb= key->block.first; kb; kb= kb->next) {
-					if (kb==key->refkey) {
-						if (kb->name[0]==0)
-							strcpy(kb->name, "Basis");
+			int index = 1;
+
+			for (kb= key->block.first; kb; kb= kb->next) {
+				if (kb==key->refkey) {
+					if (kb->name[0]==0)
+						strcpy(kb->name, "Basis");
+				}
+				else {
+					if (kb->name[0]==0) {
+						BLI_snprintf(kb->name, sizeof(kb->name), "Key %d", index);
 					}
-					else {
-						if (kb->name[0]==0) {
-							BLI_snprintf(kb->name, sizeof(kb->name), "Key %d", index);
-						}
-						kb->adrcode= index++;
-					}
+					index++;
 				}
 			}
 		}
@@ -9848,10 +9825,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (group= main->group.first; group; group= group->id.next)
 			if (group->layer==0)
 				group->layer= (1<<20)-1;
-		
-		/* History fix (python?), shape key adrcode numbers have to be sorted */
-		sort_shape_fix(main);
-				
+
 		/* now, subversion control! */
 		if (main->subversionfile < 3) {
 			Image *ima;
@@ -10966,7 +10940,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		World *wrld;
 		for (ob = main->object.first; ob; ob= ob->id.next) {
-			ob->m_contactProcessingThreshold = 1.; //pad3 is used for m_contactProcessingThreshold
+			ob->m_contactProcessingThreshold = 1.0f; //pad3 is used for m_contactProcessingThreshold
 			if (ob->parent) {
 				/* check if top parent has compound shape set and if yes, set this object
 				   to compound shaper as well (was the behavior before, now it's optional) */
@@ -14836,9 +14810,17 @@ static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, cons
 				found= 1;
 				id= is_yet_read(fd, mainl, bhead);
 				if (id==NULL) {
+					/* not read yet */
 					read_libblock(fd, mainl, bhead, LIB_TESTEXT, &id);
+
+					if (id) {
+						/* sort by name in list */
+						ListBase *lb= which_libbase(mainl, idcode);
+						id_sort_by_name(lb, id);
+					}
 				}
 				else {
+					/* already linked */
 					printf("append: already linked\n");
 					oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 					if (id->flag & LIB_INDIRECT) {

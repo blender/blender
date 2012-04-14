@@ -892,7 +892,12 @@ bool ConvertMaterial(
 	if (validmat)
 		material->matname	=(mat->id.name);
 
-	material->tface		= tface;
+	if (tface) {
+		material->tface		= *tface;
+	}
+	else {
+		memset(&material->tface, 0, sizeof(material->tface));
+	}
 	material->material	= mat;
 	return true;
 }
@@ -2363,8 +2368,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			frame_type = RAS_FrameSettings::e_frame_scale;
 		}
 		
-		aspect_width = blenderscene->r.xsch*blenderscene->r.xasp;
-		aspect_height = blenderscene->r.ysch*blenderscene->r.yasp;
+		aspect_width  = (int)(blenderscene->r.xsch * blenderscene->r.xasp);
+		aspect_height = (int)(blenderscene->r.ysch * blenderscene->r.yasp);
 	}
 	
 	RAS_FrameSettings frame_settings(

@@ -759,7 +759,7 @@ class thickface(object):
     __slost__= "v", "uv", "no", "area", "edge_keys"
     def __init__(self, face, uv_layer, mesh_verts):
         self.v = [mesh_verts[i] for i in face.vertices]
-        self.uv = [uv_layer[i].uv for i in face.loops]
+        self.uv = [uv_layer[i].uv for i in face.loop_indices]
 
         self.no = face.normal
         self.area = face.area

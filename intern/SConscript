@@ -3,7 +3,6 @@ Import ('env')
 
 SConscript(['audaspace/SConscript',
             'string/SConscript',
-			'utfconv/SConscript',
             'ghost/SConscript',
             'guardedalloc/SConscript',
             'moto/SConscript',
@@ -21,10 +20,10 @@ SConscript(['audaspace/SConscript',
 # getting it to compile is difficult
 # intern/bsp has been used anyway, so
 # perhaps get rid of intern/csg?
-NEW_CSG='false'
+NEW_CSG = 'false'
 
 if env ['WITH_BF_REMESH']:
-	SConscript(['dualcon/SConscript'])
+    SConscript(['dualcon/SConscript'])
 
 if env['WITH_BF_FLUID']:
     SConscript(['elbeem/SConscript'])
@@ -32,7 +31,10 @@ if env['WITH_BF_FLUID']:
 if env['WITH_BF_CYCLES']:
     SConscript(['cycles/SConscript'])
 
-if NEW_CSG=='false':
+if NEW_CSG == 'false':
     SConscript(['bsp/SConscript'])
 else:
     SConscript(['csg/SConscript'])
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+    SConscript(['utfconv/SConscript'])

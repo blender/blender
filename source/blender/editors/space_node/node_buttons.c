@@ -64,18 +64,13 @@
 
 
 /* ******************* node space & buttons ************** */
-#define B_NOP		1
-#define B_REDR		2
 
-static void do_node_region_buttons(bContext *C, void *UNUSED(arg), int event)
+/* poll for active nodetree */
+static int active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	//SpaceNode *snode= CTX_wm_space_node(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	
-	switch(event) {
-	case B_REDR:
-		ED_area_tag_redraw(CTX_wm_area(C));
-		return; /* no notifier! */
-	}
+	return (snode && snode->nodetree);
 }
 
 /* poll callback for active node */
@@ -83,8 +78,7 @@ static int active_node_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
-	// TODO: include check for whether there is an active node...
-	return (snode && snode->nodetree);
+	return (snode && snode->edittree && nodeGetActive(snode->edittree));
 }
 
 /* active node */
@@ -94,7 +88,6 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	bNodeTree *ntree= (snode) ? snode->edittree : NULL;
 	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL; // xxx... for editing group nodes
 	uiLayout *layout= pa->layout;
-	uiBlock *block;
 	PointerRNA ptr;
 	
 	/* verify pointers, and create RNA pointer for the node */
@@ -104,11 +97,6 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	//	RNA_pointer_create(node->id, &RNA_Node, node, &ptr);
 	//else
 		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr); 
-	
-	/* set update callback */
-	// xxx is this really needed
-	block= uiLayoutGetBlock(layout);
-	uiBlockSetHandleFunc(block, do_node_region_buttons, NULL);
 	
 	/* draw this node's name, etc. */
 	uiItemR(layout, &ptr, "label", 0, NULL, ICON_NODE);
@@ -179,6 +167,7 @@ void node_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "NODE_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");
 	pt->draw= gpencil_panel_standard;
+	pt->poll= active_nodetree_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

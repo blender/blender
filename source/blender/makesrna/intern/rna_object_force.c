@@ -1723,6 +1723,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "location_mass_center", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "lcom");
 	RNA_def_property_ui_text(prop, "Center of mass", "Location of Center of mass");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 
 	/* matrix */
 	prop = RNA_def_property(srna, "rotation_estimate", PROP_FLOAT, PROP_MATRIX);

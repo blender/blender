@@ -48,7 +48,6 @@ struct ARegion *logic_has_buttons_region(struct ScrArea *sa);
 /* logic_ops.c */
 
 /* logic_buttons.c */
-void logic_buttons_register(struct ARegionType *art);
 void LOGIC_OT_properties(struct wmOperatorType *ot);
 void LOGIC_OT_links_cut(struct wmOperatorType *ot);
 

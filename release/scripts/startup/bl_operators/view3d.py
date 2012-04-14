@@ -76,7 +76,9 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
             bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN',
                     TRANSFORM_OT_translate={
                         "constraint_orientation": 'NORMAL',
-                        "constraint_axis": (True, True, False)})
+                        # not a popular choice, too restrictive for retopo.
+                        #~ "constraint_axis": (True, True, False)})
+                        "constraint_axis": (False, False, False)})
         else:
             bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN')
 

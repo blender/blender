@@ -243,8 +243,12 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool holdout, bool object_updated)
 			find_shader(slot->material(), used_shaders, scene->default_surface);
 	}
 
-	if(used_shaders.size() == 0)
-		used_shaders.push_back(scene->default_surface);
+	if(used_shaders.size() == 0) {
+		if(holdout)
+			used_shaders.push_back(scene->default_holdout);
+		else
+			used_shaders.push_back(scene->default_surface);
+	}
 	
 	/* test if we need to sync */
 	Mesh *mesh;

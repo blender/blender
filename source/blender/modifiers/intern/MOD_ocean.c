@@ -353,7 +353,8 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	/* add uvs */
 	cdlayer= CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);
 	if (cdlayer < MAX_MTFACE) {
-		MLoopUV *mloopuvs= CustomData_add_layer(&result->loopData, CD_MLOOPUV, CD_CALLOC, NULL, num_faces * 4);
+		MLoopUV *mloopuvs = CustomData_add_layer(&result->loopData, CD_MLOOPUV, CD_CALLOC, NULL, num_faces * 4);
+		CustomData_add_layer(&result->polyData, CD_MTEXPOLY, CD_CALLOC, NULL, num_faces);
 
 		if (mloopuvs) { /* unlikely to fail */
 			ix = 1.0 / rx;

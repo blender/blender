@@ -37,8 +37,8 @@
  #include "SG_Node.h"
  
 SG_BBox::SG_BBox() :
-	m_min(0., 0., 0.),
-	m_max(0., 0., 0.)
+	m_min(0.0, 0.0, 0.0),
+	m_max(0.0, 0.0, 0.0)
 {
 }
 

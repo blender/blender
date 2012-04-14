@@ -871,10 +871,17 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
 		const char *path;
 		path = RNA_path_from_ID_to_struct(&self->ptr);
 		if (path) {
-			ret = PyUnicode_FromFormat("bpy.data.%s[%R].%s",
-			                           BKE_idcode_to_name_plural(GS(id->name)),
-			                           tmp_str,
-			                           path);
+			if (GS(id->name) == ID_NT) { /* nodetree paths are not accurate */
+				ret = PyUnicode_FromFormat("bpy.data...%s",
+										   path);
+			}
+			else {
+				ret = PyUnicode_FromFormat("bpy.data.%s[%R].%s",
+				                           BKE_idcode_to_name_plural(GS(id->name)),
+				                           tmp_str,
+				                           path);
+			}
+
 			MEM_freeN((void *)path);
 		}
 		else { /* cant find, print something sane */
@@ -971,10 +978,17 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 
 	path = RNA_path_from_ID_to_property(&self->ptr, self->prop);
 	if (path) {
-		ret = PyUnicode_FromFormat("bpy.data.%s[%R].%s",
-		                           BKE_idcode_to_name_plural(GS(id->name)),
-		                           tmp_str,
-		                           path);
+		if (GS(id->name) == ID_NT) { /* nodetree paths are not accurate */
+			ret = PyUnicode_FromFormat("bpy.data...%s",
+									   path);
+		}
+		else {
+			ret = PyUnicode_FromFormat("bpy.data.%s[%R].%s",
+			                           BKE_idcode_to_name_plural(GS(id->name)),
+			                           tmp_str,
+		    	                       path);
+		}
+
 		MEM_freeN((void *)path);
 	}
 	else { /* cant find, print something sane */
@@ -1138,10 +1152,6 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 		return -1;
 	}
 	else {
-		/* hack so that dynamic enums used for operator properties will be able to be built (i.e. context will be supplied to itemf)
-		 * and thus running defining operator buttons for such operators in UI will work */
-		RNA_def_property_clear_flag(prop, PROP_ENUM_NO_CONTEXT);
-
 		if (!RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, val)) {
 			const char *enum_str = pyrna_enum_as_string(ptr, prop);
 			PyErr_Format(PyExc_TypeError,
@@ -2433,7 +2443,7 @@ static int pyrna_prop_collection_type_check(BPy_PropertyRNA *self, PyObject *val
 		if (RNA_property_flag(self->prop) & PROP_NEVER_NULL) {
 			PyErr_Format(PyExc_TypeError,
 			             "bpy_prop_collection[key] = value: invalid, "
-			             "this collection doesnt support None assignment");
+			             "this collection doesn't support None assignment");
 			return -1;
 		}
 		else {
@@ -3310,13 +3320,15 @@ static void pyrna_dir_members_py(PyObject *list, PyObject *self)
 	/* since this is least common case, handle it last */
 	if (BPy_PropertyRNA_Check(self)) {
 		BPy_PropertyRNA *self_prop = (BPy_PropertyRNA *)self;
-		PointerRNA r_ptr;
+		if (RNA_property_type(self_prop->prop) == PROP_COLLECTION) {
+			PointerRNA r_ptr;
 
-		if (RNA_property_collection_type_get(&self_prop->ptr, self_prop->prop, &r_ptr)) {
-			PyObject *cls = pyrna_struct_Subtype(&r_ptr); /* borrows */
-			dict = ((PyTypeObject *)cls)->tp_dict;
-			pyrna_dir_members_py__add_keys(list, dict);
-			Py_DECREF(cls);
+			if (RNA_property_collection_type_get(&self_prop->ptr, self_prop->prop, &r_ptr)) {
+				PyObject *cls = pyrna_struct_Subtype(&r_ptr); /* borrows */
+				dict = ((PyTypeObject *)cls)->tp_dict;
+				pyrna_dir_members_py__add_keys(list, dict);
+				Py_DECREF(cls);
+			}
 		}
 	}
 }

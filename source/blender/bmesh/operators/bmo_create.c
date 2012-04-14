@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_create.c
+ *  \ingroup bmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_heap.h"
@@ -31,6 +35,7 @@
 
 #include "bmesh.h"
 
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define EDGE_MARK	1
 #define EDGE_VIS	2
@@ -893,6 +898,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(edges);
 	int use_restrict   = BMO_slot_bool_get(op, "use_restrict");
 	int use_fill_check = BMO_slot_bool_get(op, "use_fill_check");
+	const short mat_nr = BMO_slot_int_get(op, "mat_nr");
 	int i, j, group = 0;
 	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
 
@@ -1024,7 +1030,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			 * otherwise we could leave this as-is */
 			edge = edges[0];
 
-			/* if these are even it doesnt really matter what to do,
+			/* if these are even it doesn't really matter what to do,
 			 * with consistent geometry one will be zero, the choice is clear */
 			if (winding[0] < winding[1]) {
 				v1 = verts[0];
@@ -1042,6 +1048,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				f = BM_face_create_ngon(bm, v1, v2, edges, i, TRUE);
 				if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {
 					BMO_elem_flag_enable(bm, f, FACE_NEW);
+					f->mat_nr = mat_nr;
 				}
 
 				if (use_restrict) {
@@ -1270,6 +1277,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	BMFace *f;
 	int totv = 0, tote = 0, totf = 0, amount;
+	const short mat_nr = BMO_slot_int_get(op, "mat_nr");
 
 	/* count number of each element type we were passe */
 	BMO_ITER(h, &oiter, bm, op, "geom", BM_VERT|BM_EDGE|BM_FACE) {
@@ -1357,7 +1365,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, &op2, "edgeout", BM_EDGE, ELE_NEW);
 	BMO_op_finish(bm, &op2);
 
-	BMO_op_initf(bm, &op2, "edgenet_fill edges=%fe use_fill_check=%b", ELE_NEW, TRUE);
+	BMO_op_initf(bm, &op2, "edgenet_fill edges=%fe use_fill_check=%b mat_nr=%i", ELE_NEW, TRUE, mat_nr);
 	BMO_op_exec(bm, &op2);
 
 	/* return if edge net create did something */
@@ -1460,6 +1468,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 		if (f) {
 			BMO_elem_flag_enable(bm, f, ELE_OUT);
+			f->mat_nr = mat_nr;
 		}
 
 		MEM_freeN(vert_arr);

@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmo_connect.c
+ *  \ingroup bmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
@@ -27,6 +31,8 @@
 #include "BLI_utildefines.h"
 
 #include "bmesh.h"
+
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define VERT_INPUT	1
 #define EDGE_OUT	1
@@ -141,11 +147,12 @@ static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
 /* Clamp x to the interval {0..len-1}, with wrap-around */
 static int clamp_index(const int x, const int len)
 {
-	if (x >= 0)
+	if (x >= 0) {
 		return x % len;
+	}
 	else {
 		int r = len - (-x % len);
-		if(r == len)
+		if (r == len)
 			return len - 1;
 		else
 			return r;

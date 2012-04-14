@@ -337,8 +337,6 @@ void ED_spacetype_logic(void)
 	art->draw= logic_buttons_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 
-	logic_buttons_register(art);
-
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype logic region");
 	art->regionid = RGN_TYPE_HEADER;

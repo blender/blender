@@ -110,6 +110,7 @@ typedef struct SmokeDomainSettings {
 /* flags */
 #define MOD_SMOKE_FLOW_ABSOLUTE (1<<1) /*old style emission*/
 #define MOD_SMOKE_FLOW_INITVELOCITY (1<<2) /* passes particles speed to the smoke */
+#define MOD_SMOKE_FLOW_INIT  (1 << 3) /* is the flow object already initialized? */
 
 
 typedef struct SmokeFlowSettings {

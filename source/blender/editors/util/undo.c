@@ -44,6 +44,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -456,7 +458,9 @@ static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 		}
 		
 		if (name) {
-			item_tmp.identifier = item_tmp.name = name;
+			item_tmp.identifier = name;
+			/* XXX This won’t work with non-default contexts (e.g. operators) :/ */
+			item_tmp.name = IFACE_(name);
 			if (active)
 				item_tmp.icon = ICON_RESTRICT_VIEW_OFF;
 			else 
@@ -484,7 +488,7 @@ static int undo_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 		EnumPropertyItem *item = rna_undo_itemf(C, undosys, &totitem);
 		
 		if (totitem > 0) {
-			uiPopupMenu *pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+			uiPopupMenu *pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 			uiLayout *layout = uiPupMenuLayout(pup);
 			uiLayout *split = uiLayoutSplit(layout, 0, 0), *column = NULL;
 			int i, c;

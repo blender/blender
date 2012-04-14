@@ -112,13 +112,12 @@ BF_BULLET_LIB = 'extern_bullet'
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
-# enable freetype2 support for text objects
 BF_FREETYPE = LIBDIR + '/gcc/freetype'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
-WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME
+WITH_BF_QUICKTIME = False
 BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
 

@@ -292,7 +292,7 @@ int mathutils_deepcopy_args_check(PyObject *args)
 /* Mathutils Callbacks */
 
 /* for mathutils internal use only, eventually should re-alloc but to start with we only have a few users */
-#define MATHUTILS_TOT_CB 8
+#define MATHUTILS_TOT_CB 10
 static Mathutils_Callback *mathutils_callbacks[MATHUTILS_TOT_CB] = {NULL};
 
 unsigned char Mathutils_RegisterCallback(Mathutils_Callback *cb)
@@ -305,7 +305,7 @@ unsigned char Mathutils_RegisterCallback(Mathutils_Callback *cb)
 			return i;
 	}
 
-	BLI_assert(i < MATHUTILS_TOT_CB);
+	BLI_assert(i + 1 < MATHUTILS_TOT_CB);
 
 	mathutils_callbacks[i] = cb;
 	return i;

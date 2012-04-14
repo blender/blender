@@ -741,6 +741,7 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 	int i;
 	int64_t header_pos1, header_pos2;
 	int64_t stream_pos1, stream_pos2;
+	int64_t junk_pos;
 
 	movie->type = AVI_MOVIE_WRITE;
 	movie->fp = fopen (name, "wb");
@@ -899,9 +900,11 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 		fseek (movie->fp, stream_pos2, SEEK_SET);
 	}
 
-	if (ftell(movie->fp) < 2024 - 8) {
+	junk_pos= ftell(movie->fp);
+
+	if (junk_pos < 2024 - 8) {
 		chunk.fcc = FCC("JUNK");
-		chunk.size = 2024-8-ftell(movie->fp);
+		chunk.size = 2024 - 8 - (int)junk_pos;
 
 		awrite (movie, &chunk, 1, sizeof(AviChunk), movie->fp, AVI_CHUNK);
 

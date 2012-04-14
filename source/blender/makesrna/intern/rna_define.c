@@ -376,16 +376,14 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 {
 	int a = 0;
 	
-	/*  list from http://docs.python.org/reference/lexical_analysis.html#id5 */
+	/*  list from http://docs.python.org/py3k/reference/lexical_analysis.html#keywords */
 	static const char *kwlist[] = {
+		/* "False", "None", "True", */
 		"and", "as", "assert", "break",
-		"class", "continue", "def", "del",
-		"elif", "else", "except", "exec",
-		"finally", "for", "from", "global",
-		"if", "import", "in", "is",
-		"lambda", "not", "or", "pass",
-		"print", "raise", "return", "try",
-		"while", "with", "yield", NULL
+		"class", "continue", "def", "del", "elif", "else", "except",
+		"finally", "for", "from", "global", "if", "import", "in",
+		"is", "lambda", "nonlocal", "not", "or", "pass", "raise",
+		"return", "try", "while", "with", "yield", NULL
 	};
 	
 	
@@ -913,6 +911,13 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 
 	switch (type) {
 		case PROP_BOOLEAN:
+			if (DefRNA.preprocess) {
+				if ((subtype & ~(PROP_LAYER_MEMBER)) != PROP_NONE) {
+					fprintf(stderr, "%s: subtype does not apply to 'PROP_BOOLEAN' \"%s.%s\"\n", __func__,
+					        CONTAINER_RNA_ID(cont), identifier);
+					DefRNA.error = 1;
+				}
+			}
 			break;
 		case PROP_INT: {
 			IntPropertyRNA *iprop = (IntPropertyRNA*)prop;
@@ -951,7 +956,6 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 			StringPropertyRNA *sprop = (StringPropertyRNA*)prop;
 
 			sprop->defaultvalue = "";
-			sprop->maxlength = 0;
 			break;
 		}
 		case PROP_ENUM:
@@ -983,6 +987,12 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 	
 		if (type != PROP_STRING)
 			prop->flag |= PROP_ANIMATABLE;
+	}
+
+	if (type == PROP_STRING) {
+		/* used so generated 'get/length/set' functions skip a NULL check
+		 * in some cases we want it */
+		RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	}
 
 	if (DefRNA.preprocess) {

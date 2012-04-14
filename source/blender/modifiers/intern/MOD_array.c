@@ -487,7 +487,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	/* start capping */
 	if (start_cap || end_cap) {
-		BM_mesh_elem_flag_enable_all(em->bm, BM_VERT, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_enable_all(em->bm, BM_VERT, BM_ELEM_TAG, FALSE);
 
 		if (start_cap) {
 			float startoffset[4][4];

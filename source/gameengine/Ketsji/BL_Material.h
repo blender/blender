@@ -8,6 +8,7 @@
 
 #include "STR_String.h"
 #include "MT_Point2.h"
+#include "DNA_meshdata_types.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -83,7 +84,7 @@ public:
 
 
 	Material*			material;
-	MTFace*				tface;
+	MTFace				tface; /* copy of the derived meshes tface */
 	Image*				img[MAXTEX];
 	EnvMap*				cubemap[MAXTEX];
 

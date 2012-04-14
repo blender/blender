@@ -90,7 +90,7 @@ BLI_INLINE void  _bmo_elem_flag_set(      BMesh *bm, BMFlagLayer *oflags, const 
 BLI_INLINE void  _bmo_elem_flag_toggle(   BMesh *bm, BMFlagLayer *oflags, const short oflag);
 
 /* slot type arrays are terminated by the last member
- * having a slot type of 0.*/
+ * having a slot type of 0 */
 enum {
 	BMO_OP_SLOT_SENTINEL = 0,
 	BMO_OP_SLOT_BOOL = 1,

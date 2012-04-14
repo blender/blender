@@ -118,9 +118,9 @@ static void tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
 			dp[x][1] /= ((dg == 0.f) ? 1.f : dg);
 			dp[x][2] /= ((db == 0.f) ? 1.f : db);
 			if (igm != 0.f) {
-				dp[x][0] = pow((double)MAX2(dp[x][0], 0.), igm);
-				dp[x][1] = pow((double)MAX2(dp[x][1], 0.), igm);
-				dp[x][2] = pow((double)MAX2(dp[x][2], 0.), igm);
+				dp[x][0] = pow((double)MAX2(dp[x][0], 0.0), igm);
+				dp[x][1] = pow((double)MAX2(dp[x][1], 0.0), igm);
+				dp[x][2] = pow((double)MAX2(dp[x][2], 0.0), igm);
 			}
 		}
 	}

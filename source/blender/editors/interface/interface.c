@@ -1588,7 +1588,7 @@ void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen)
 		orig_str = MEM_callocN(sizeof(char) * maxlen + 1, "textedit sub str");
 		memcpy(orig_str, str, maxlen);
 		
-		bUnit_ToUnitAltName(str, maxlen, orig_str, unit->system, unit_type >> 16);
+		bUnit_ToUnitAltName(str, maxlen, orig_str, unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type));
 		
 		MEM_freeN(orig_str);
 	}
@@ -1607,12 +1607,13 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 	if (precision > PRECISION_FLOAT_MAX) precision = PRECISION_FLOAT_MAX;
 	else if (precision == 0) precision = 2;
 
-	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision, unit->system, unit_type >> 16, do_split, pad);
+	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision,
+	               unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type), do_split, pad);
 }
 
 static float ui_get_but_step_unit(uiBut *but, float step_default)
 {
-	int unit_type = uiButGetUnitType(but) >> 16;
+	int unit_type = RNA_SUBTYPE_UNIT_VALUE(uiButGetUnitType(but));
 	float step;
 
 	step = bUnit_ClosestScalar(ui_get_but_scale_unit(but, step_default), but->block->unit->system, unit_type);
@@ -1707,8 +1708,10 @@ static int ui_set_but_string_eval_num_unit(bContext *C, uiBut *but, const char *
 
 	BLI_strncpy(str_unit_convert, str, sizeof(str_unit_convert));
 
-	/* ugly, use the draw string to get the value, this could cause problems if it includes some text which resolves to a unit */
-	bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), but->drawstr, ui_get_but_scale_unit(but, 1.0), but->block->unit->system, unit_type >> 16);
+	/* ugly, use the draw string to get the value,
+	 * this could cause problems if it includes some text which resolves to a unit */
+	bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), but->drawstr,
+	                    ui_get_but_scale_unit(but, 1.0), but->block->unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type));
 
 	return (BPY_button_exec(C, str_unit_convert, value, TRUE) != -1);
 }
@@ -3388,7 +3391,7 @@ PointerRNA *uiButGetOperatorPtrRNA(uiBut *but)
 
 void uiButSetUnitType(uiBut *but, const int unit_type)
 {
-	but->unit_type = (unsigned char)(unit_type >> 16);
+	but->unit_type = (unsigned char)(RNA_SUBTYPE_UNIT_VALUE(unit_type));
 }
 
 int uiButGetUnitType(uiBut *but)

@@ -64,7 +64,7 @@ struct BVHTreeRayHit;
 #define LOOP_EXISTING_PARTICLES for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++) if(!(pa->flag & PARS_UNEXIST))
 #define LOOP_SHOWN_PARTICLES for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++) if(!(pa->flag & (PARS_UNEXIST|PARS_NO_DISP)))
 /* OpenMP: Can only advance one variable within loop definition. */
-#define LOOP_DYNAMIC_PARTICLES for(p=0; p<psys->totpart; p++ ) if((pa=psys->particles+p)->state.time > 0.f)
+#define LOOP_DYNAMIC_PARTICLES for(p=0; p<psys->totpart; p++ ) if((pa=psys->particles+p)->state.time > 0.0f)
 
 #define PSYS_FRAND_COUNT	1024
 #define PSYS_FRAND(seed)	psys->frand[(seed) % PSYS_FRAND_COUNT]

@@ -296,7 +296,7 @@ __device_inline float3 path_radiance_sum(PathRadiance *L)
 
 __device_inline void path_radiance_clamp(PathRadiance *L, float3 *L_sum, float clamp)
 {
-	float sum = fabsf(L_sum->x) + fabsf(L_sum->y) + fabsf(L_sum->z);
+	float sum = fabsf((*L_sum).x) + fabsf((*L_sum).y) + fabsf((*L_sum).z);
 
 	if(!isfinite(sum)) {
 		/* invalid value, reject */
