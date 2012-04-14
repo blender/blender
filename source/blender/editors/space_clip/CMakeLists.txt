@@ -31,7 +31,6 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-	../../gpu
 	../../../../intern/guardedalloc
 	${GLEW_INCLUDE_PATH}
 )

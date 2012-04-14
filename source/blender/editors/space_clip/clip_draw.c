@@ -229,6 +229,9 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 	int x, y;
 	MovieClip *clip = ED_space_clip(sc);
 
+	/* set zoom */
+	glPixelZoom(zoomx*width/ibuf->x, zoomy*height/ibuf->y);
+
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
@@ -239,35 +242,8 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 	else {
 		verify_buffer_float(ibuf);
 
-		if(ibuf->rect) {
-			if(sc->flag & SC_TEXTURE_BUFFER) {
-				ED_space_clip_load_movieclip_buffer(sc, ibuf);
-
-				glPushMatrix();
-				glTranslatef(x, y, 0.0f);
-				glScalef(zoomx, zoomy, 1.0f);
-
-				glBegin(GL_QUADS);
-					glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f,  0.0f);
-					glTexCoord2f(1.0f, 0.0f); glVertex2f(width, 0.0f);
-					glTexCoord2f(1.0f, 1.0f); glVertex2f(width, height);
-					glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f,  height);
-				glEnd();
-
-				glPopMatrix();
-
-				ED_space_clip_unload_movieclip_buffer(sc);
-			}
-			else {
-				/* set zoom */
-				glPixelZoom(zoomx*width/ibuf->x, zoomy*height/ibuf->y);
-
-				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-
-				/* reset zoom */
-				glPixelZoom(1.0f, 1.0f);
-			}
-		}
+		if (ibuf->rect)
+			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	}
 
 	/* draw boundary border for frame if stabilization is enabled */
@@ -279,9 +255,9 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 		glLogicOp(GL_NOR);
 
 		glPushMatrix();
-		glTranslatef(x, y, 0.0f);
+		glTranslatef(x, y, 0);
 
-		glScalef(zoomx, zoomy, 1.0f);
+		glScalef(zoomx, zoomy, 0);
 		glMultMatrixf(sc->stabmat);
 
 		glBegin(GL_LINE_LOOP);
@@ -296,6 +272,10 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 		glDisable(GL_COLOR_LOGIC_OP);
 		glDisable(GL_LINE_STIPPLE);
 	}
+
+
+	/* reset zoom */
+	glPixelZoom(1.0f, 1.0f);
 }
 
 static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackingTrack *track)
