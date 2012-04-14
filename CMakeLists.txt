@@ -194,7 +194,14 @@ option(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 option(WITH_IMAGE_FRAMESERVER   "Enable image FrameServer Support for rendering" ON)
 
 # Audio/Video format support
-option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
+if(MINGW)
+	set(PLATFORM_DEFAULT ON)
+else()
+	set(PLATFORM_DEFAULT OFF)
+endif()
+option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" (PLATFORM_DEFAULT)
+unset(PLATFORM_DEFAULT)
+
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 if(APPLE OR (WIN32 AND NOT UNIX))
 	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
