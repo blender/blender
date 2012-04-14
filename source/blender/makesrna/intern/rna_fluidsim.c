@@ -287,11 +287,13 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "resolutionxyz");
 	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_text(prop, "Resolution", "Domain resolution in X,Y and Z direction");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "preview_resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "previewresxyz");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Preview Resolution", "Preview resolution in X,Y and Z direction");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "viewport_display_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "guiDisplayMode");
@@ -421,7 +423,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "surface_noobs", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSSG_NOOBS);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Hide fluid surface", "");
+	RNA_def_property_ui_text(prop, "Remove air bubbles", "Removes the air space between fluid surface and obstacles. WARNING: Can result in a dissolving surface in other areas.");
 
 	/* particles */
 
