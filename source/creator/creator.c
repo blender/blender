@@ -1256,7 +1256,7 @@ int main(int argc, const char **argv)
 #endif
 
 	/* first test for background */
-	ba = BLI_argsInit(argc, argv); /* skip binary path */
+	ba = BLI_argsInit(argc, (const char **)argv); /* skip binary path */
 	setupArguments(C, ba, &syshandle);
 
 	BLI_argsParse(ba, 1, NULL, NULL);
@@ -1281,7 +1281,7 @@ int main(int argc, const char **argv)
 		BLI_argsParse(ba, 2, NULL, NULL);
 		BLI_argsParse(ba, 3, NULL, NULL);
 
-		WM_init(C, argc, argv);
+		WM_init(C, argc, (const char **)argv);
 
 		/* this is properly initialized with user defs, but this is default */
 		/* call after loading the startup.blend so we can read U.tempdir */
@@ -1294,7 +1294,7 @@ int main(int argc, const char **argv)
 	else {
 		BLI_argsParse(ba, 3, NULL, NULL);
 
-		WM_init(C, argc, argv);
+		WM_init(C, argc, (const char **)argv);
 
 		/* don't use user preferences temp dir */
 		BLI_init_temporary_dir(NULL);
