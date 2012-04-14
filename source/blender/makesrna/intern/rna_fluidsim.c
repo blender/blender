@@ -598,7 +598,7 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 2.0);
 	RNA_def_property_ui_text(prop, "Alpha Influence",
 	                         "Amount of particle alpha change, inverse of size influence: 0=off (all same alpha), "
-	                         "1=full (large particles get lower alphas, smaller ones higher values)");
+	                         "1=full (larger particles get lower alphas, smaller ones higher values)");
 
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_maxlength(prop, FILE_MAX);

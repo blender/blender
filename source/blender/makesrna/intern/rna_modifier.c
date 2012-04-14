@@ -2709,7 +2709,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, weightvg_edit_falloff_type_items);
-	RNA_def_property_ui_text(prop, "Falloff Type", "How weights are mapped to there new values");
+	RNA_def_property_ui_text(prop, "Falloff Type", "How weights are mapped to their new values");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_add", PROP_BOOLEAN, PROP_NONE);
@@ -2907,7 +2907,7 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, weightvg_proximity_falloff_type_items);
-	RNA_def_property_ui_text(prop, "Falloff Type", "How weights are mapped to there new values");
+	RNA_def_property_ui_text(prop, "Falloff Type", "How weights are mapped to their new values");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	/* Common masking properties. */

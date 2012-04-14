@@ -1181,7 +1181,7 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "viscosity_beta");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 2.0f, 1, 3);
-	RNA_def_property_ui_text(prop, "Stiff viscosity", "Creates viscosity for expanding fluid)");
+	RNA_def_property_ui_text(prop, "Stiff viscosity", "Creates viscosity for expanding fluid");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* Double density relaxation */

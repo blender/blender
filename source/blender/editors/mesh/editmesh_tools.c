@@ -1189,7 +1189,7 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Vertex Connect";
 	ot->idname = "MESH_OT_vert_connect";
-	ot->description = "Connect 2 vertices in a face with by an edge, splitting the face in half";
+	ot->description = "Connect 2 vertices of a face by an edge, splitting the face in two";
 	
 	/* api callbacks */
 	ot->exec = edbm_vert_connect;

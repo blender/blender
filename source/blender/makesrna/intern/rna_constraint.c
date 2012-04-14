@@ -1501,7 +1501,7 @@ static void rna_def_constraint_clamp_to(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ClampToConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Clamp To Constraint",
-	                       "Constrains an object's location to the nearest point along the target path");
+	                       "Constrain an object's location to the nearest point along the target path");
 	RNA_def_struct_sdna_from(srna, "bClampToConstraint", "data");
 
 	prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
@@ -1541,7 +1541,7 @@ static void rna_def_constraint_transform(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "TransformConstraint", "Constraint");
-	RNA_def_struct_ui_text(srna, "Transformation Constraint", "Maps transformations of the target to the object");
+	RNA_def_struct_ui_text(srna, "Transformation Constraint", "Map transformations of the target to the object");
 	RNA_def_struct_sdna_from(srna, "bTransformConstraint", "data");
 
 	prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
