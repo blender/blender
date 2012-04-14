@@ -66,7 +66,7 @@ void register_node_type_tex_valtorgb(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(ttype, &ntype, TEX_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, TEX_NODE_VALTORGB, "Value to RGB", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, valtorgb_in, valtorgb_out);
 	node_type_size(&ntype, 240, 200, 300);
 	node_type_init(&ntype, valtorgb_init);

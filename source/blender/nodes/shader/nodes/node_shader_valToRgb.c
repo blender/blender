@@ -75,7 +75,7 @@ void register_node_type_sh_valtorgb(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, SH_NODE_VALTORGB, "Value to RGB", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_valtorgb_in, sh_node_valtorgb_out);
 	node_type_size(&ntype, 240, 200, 300);

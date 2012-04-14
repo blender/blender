@@ -2,10 +2,14 @@
 Import ('env')
 
 sources = env.Glob('*.c')
+defs = []
 
 incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../makesrna ../../bmesh'
 incs += ' ../../blenloader'
 
-env.BlenderLib ( 'bf_editors_util', sources, Split(incs), [], libtype=['core','player'], priority=[330,210] )
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
+env.BlenderLib ( 'bf_editors_util', sources, Split(incs), defines=defs, libtype=['core','player'], priority=[330,210] )

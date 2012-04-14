@@ -87,7 +87,7 @@ void register_node_type_cmp_valtorgb(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_VALTORGB, "Value to RGB", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_valtorgb_in, cmp_node_valtorgb_out);
 	node_type_size(&ntype, 240, 200, 300);
 	node_type_init(&ntype, node_composit_init_valtorgb);

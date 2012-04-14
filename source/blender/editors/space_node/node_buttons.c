@@ -44,6 +44,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_node.h"
@@ -150,7 +152,7 @@ void node_buttons_register(ARegionType *art)
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype node panel active node");
 	strcpy(pt->idname, "NODE_PT_item");
-	strcpy(pt->label, "Active Node");
+	strcpy(pt->label, IFACE_("Active Node"));
 	pt->draw= active_node_panel;
 	pt->poll= active_node_poll;
 	BLI_addtail(&art->paneltypes, pt);
