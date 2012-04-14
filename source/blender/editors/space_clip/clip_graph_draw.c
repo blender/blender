@@ -87,60 +87,6 @@ static void draw_curve_knot(float x, float y, float xscale, float yscale, float 
 	glPopMatrix();
 }
 
-static void draw_graph_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
-{
-	View2D *v2d = &ar->v2d;
-	float xscale, yscale;
-	float vec[2];
-
-	/* Draw a light green line to indicate current frame */
-	vec[0] = (float)(sc->user.framenr * scene->r.framelen);
-
-	UI_ThemeColor(TH_CFRAME);
-	glLineWidth(2.0);
-
-	glBegin(GL_LINE_STRIP);
-		vec[1] = v2d->cur.ymin;
-		glVertex2fv(vec);
-
-		vec[1] = v2d->cur.ymax;
-		glVertex2fv(vec);
-	glEnd();
-
-	glLineWidth(1.0);
-
-	UI_view2d_view_orthoSpecial(ar, v2d, 1);
-
-	/* because the frame number text is subject to the same scaling as the contents of the view */
-	UI_view2d_getscale(v2d, &xscale, &yscale);
-	glScalef(1.0f/xscale, 1.0f, 1.0f);
-
-	clip_draw_curfra_label(sc, (float)sc->user.framenr * xscale, 18);
-
-	/* restore view transform */
-	glScalef(xscale, 1.0, 1.0);
-}
-
-static void draw_graph_sfra_efra(Scene *scene, View2D *v2d)
-{
-	UI_view2d_view_ortho(v2d);
-
-	/* currently clip editor supposes that editing clip length is equal to scene frame range */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-		glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-
-		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)SFRA, v2d->cur.ymax);
-		glRectf((float)EFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
-	glDisable(GL_BLEND);
-
-	UI_ThemeColorShade(TH_BACK, -60);
-
-	/* thin lines where the actual frames are */
-	fdrawline((float)SFRA, v2d->cur.ymin, (float)SFRA, v2d->cur.ymax);
-	fdrawline((float)EFRA, v2d->cur.ymin, (float)EFRA, v2d->cur.ymax);
-}
-
 static void tracking_segment_point_cb(void *UNUSED(userdata), MovieTrackingTrack *UNUSED(track),
 			MovieTrackingMarker *marker, int UNUSED(coord), float val)
 {
@@ -280,8 +226,8 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 	}
 
 	/* frame range */
-	draw_graph_sfra_efra(scene, v2d);
+	clip_draw_sfra_efra(v2d, scene);
 
 	/* current frame */
-	draw_graph_cfra(sc, ar, scene);
+	clip_draw_cfra(sc, ar, scene);
 }

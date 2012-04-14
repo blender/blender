@@ -230,6 +230,7 @@ enum {
 #define TRACK_CUSTOMCOLOR	(1<<7)
 #define TRACK_USE_2D_STAB	(1<<8)
 #define TRACK_PREVIEW_GRAYSCALE	(1<<9)
+#define TRACK_DOPE_SEL		(1<<10)
 
 /* MovieTrackingTrack->tracker */
 #define TRACKER_KLT		0

@@ -1024,8 +1024,9 @@ static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, 
 static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceClip *sc = (SpaceClip*)(ptr->data);
+	bScreen *screen = (bScreen*)ptr->id.data;
 
-	ED_space_clip_set(NULL, sc, (MovieClip*)value.data);
+	ED_space_clip_set(NULL, screen, sc, (MovieClip*)value.data);
 }
 
 static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -2930,6 +2931,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	static EnumPropertyItem view_items[] = {
 		{SC_VIEW_CLIP, "CLIP", ICON_SEQUENCE, "Clip", "Show editing clip preview"},
 		{SC_VIEW_GRAPH, "GRAPH", ICON_IPO, "Graph", "Show graph view for active element"},
+		{SC_VIEW_DOPESHEET, "DOPESHEET", ICON_ACTION, "Dopesheet", "Dopesheet view for tracking data"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "SpaceClipEditor", "Space");
@@ -3103,6 +3105,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_grayscale_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "postproc_flag", MOVIECLIP_PREVIEW_GRAYSCALE);
 	RNA_def_property_ui_text(prop, "Grayscale", "Display frame in grayscale mode");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* timeline */
+	prop = RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_SECONDS);
+	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 }
 

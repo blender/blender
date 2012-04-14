@@ -66,12 +66,14 @@ static int ED_space_clip_graph_poll(bContext *C)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc && sc->clip) {
-		ARegion *ar = CTX_wm_region(C);
+		if (sc->view == SC_VIEW_GRAPH) {
+			ARegion *ar = CTX_wm_region(C);
 
-		return ar->regiontype == RGN_TYPE_PREVIEW;
+			return ar->regiontype == RGN_TYPE_PREVIEW;
+		}
 	}
 
-	return 0;
+	return FALSE;
 }
 
 typedef struct {
@@ -233,8 +235,8 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 			tracking->act_track = userdata.track;
 
 			/* make active track be centered to screen */
+			/* XXX: doesn't work in other opened spaces */
 			marker = BKE_tracking_get_marker(userdata.track, sc->user.framenr);
-
 			clip_view_center_to_point(sc, marker->pos[0], marker->pos[1]);
 
 			/* deselect all knots on newly selected curve */
