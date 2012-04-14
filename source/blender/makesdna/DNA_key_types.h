@@ -61,7 +61,10 @@ typedef struct Key {
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	KeyBlock *refkey;
-	char elemstr[64];	/* MAX_NAME */
+	/* this is not a regular string, although it is \0 terminated
+	 * this is an array of (element_array_size, element_type) pairs
+	 * (each one char) used for calculating shape key-blocks */
+	char elemstr[32];
 	int elemsize;
 	float curval  DNA_DEPRECATED;
 	

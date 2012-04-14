@@ -69,7 +69,7 @@
 #define KEY_MODE_BPOINT     1
 #define KEY_MODE_BEZTRIPLE  2
 
-// old defines from DNA_ipo_types.h for data-type
+/* old defines from DNA_ipo_types.h for data-type, stored in DNA - don't modify! */
 #define IPO_FLOAT       4
 #define IPO_BEZTRIPLE   100
 #define IPO_BPOINT      101
@@ -660,7 +660,7 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 					return;
 			}
 
-			poin += ofsp[0];
+			poin += *ofsp;
 			cp += 2; ofsp++;
 		}
 		
@@ -796,7 +796,7 @@ void do_rel_key(const int start, int end, const int tot, char *basispoin, Key *k
 								return;
 						}
 
-						poin += ofsp[0];
+						poin += *ofsp;
 						
 						cp += 2;
 						ofsp++;
@@ -963,7 +963,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 					return;
 			}
 			
-			poin += ofsp[0];
+			poin += *ofsp;
 			cp += 2;
 			ofsp++;
 		}
