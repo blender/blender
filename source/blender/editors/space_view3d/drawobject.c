@@ -1288,7 +1288,6 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		if (la->mode & LA_SPHERE) {
 			drawcircball(GL_LINE_LOOP, vec, la->dist, imat);
 		}
-		/* yafray: for photonlight also draw lightcone as for spot */
 	}
 	
 	glPopMatrix();  /* back in object space */
