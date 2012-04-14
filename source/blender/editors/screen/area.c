@@ -1813,3 +1813,63 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 	BLF_position(fontid, 12, rect.ymin + 5, 0.0f);
 	BLF_draw(fontid, text, BLF_DRAW_STR_DUMMY_MAX);
 }
+
+void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
+{
+	float gridsize, gridstep = 1.0f / 32.0f;
+	float fac, blendfac;
+	int x1, y1, x2, y2;
+
+	/* the image is located inside (0,0),(1, 1) as set by view2d */
+	UI_ThemeColorShade(TH_BACK, 20);
+
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x1, &y1);
+	UI_view2d_to_region_no_clip(&ar->v2d, 1.0f, 1.0f, &x2, &y2);
+	glRectf(x1, y1, x2, y2);
+
+	/* gridsize adapted to zoom level */
+	gridsize = 0.5f * (zoomx + zoomy);
+	if (gridsize <= 0.0f)
+		return;
+
+	if (gridsize < 1.0f) {
+		while (gridsize < 1.0f) {
+			gridsize *= 4.0f;
+			gridstep *= 4.0f;
+		}
+	}
+	else {
+		while (gridsize >= 4.0f) {
+			gridsize /= 4.0f;
+			gridstep /= 4.0f;
+		}
+	}
+
+	/* the fine resolution level */
+	blendfac = 0.25f * gridsize - floorf(0.25f * gridsize);
+	CLAMP(blendfac, 0.0f, 1.0f);
+	UI_ThemeColorShade(TH_BACK, (int)(20.0f * (1.0f - blendfac)));
+
+	fac = 0.0f;
+	glBegin(GL_LINES);
+	while (fac < 1.0f) {
+		glVertex2f(x1, y1 * (1.0f - fac) + y2 * fac);
+		glVertex2f(x2, y1 * (1.0f - fac) + y2 * fac);
+		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y1);
+		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y2);
+		fac += gridstep;
+	}
+
+	/* the large resolution level */
+	UI_ThemeColor(TH_BACK);
+
+	fac = 0.0f;
+	while (fac < 1.0f) {
+		glVertex2f(x1, y1 * (1.0f - fac) + y2 * fac);
+		glVertex2f(x2, y1 * (1.0f - fac) + y2 * fac);
+		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y1);
+		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y2);
+		fac += 4.0f * gridstep;
+	}
+	glEnd();
+}

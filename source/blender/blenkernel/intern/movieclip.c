@@ -925,8 +925,8 @@ void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, in
 			real_ibuf_size(clip, user, ibuf, width, height);
 		}
 		else {
-			*width = 0;
-			*height = 0;
+			*width = clip->lastsize[0];
+			*height = clip->lastsize[1];
 		}
 
 		if (ibuf)
