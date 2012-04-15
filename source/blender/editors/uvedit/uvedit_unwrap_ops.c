@@ -220,10 +220,9 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		ParamKey key, vkeys[4];
 		ParamBool pin[4], select[4];
 		BMLoop *ls[3];
-		MLoopUV *luvs[3];
 		float *co[4];
 		float *uv[4];
-		int lsel;
+		int i, lsel;
 
 		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0))
 			continue;
@@ -242,69 +241,73 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 		key = (ParamKey)efa;
 
-		/* scanfill time! */
-		BLI_begin_edgefill();
-		
-		firstv = lastv = NULL;
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-			int i;
-			
-			v = BLI_addfillvert(l->v->co);
-			
-			/* add small random offset */
-			for (i = 0; i < 3; i++) {
-				v->co[i] += (BLI_frand() - 0.5f) * FLT_EPSILON * 50;
-			}
-			
-			v->tmp.p = l;
 
-			if (lastv) {
-				BLI_addfilledge(lastv, v);
+		if(efa->len == 3 || efa->len == 4) {
+			/* for quads let parametrize split, it can make better decisions
+			   about which split is best for unwrapping than scanfill */
+			i = 0;
+			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+				MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				vkeys[i] = (ParamKey)BM_elem_index_get(l->v);
+				co[i] = l->v->co;
+				uv[i] = luv->uv;
+				pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
+				select[i] = uvedit_uv_selected(em, scene, l) != 0;
+
+				i++;
 			}
 
-			lastv = v;
-			if (!firstv) 
-				firstv = v;
+			param_face_add(handle, key, i, vkeys, co, uv, pin, select);
 		}
-
-		BLI_addfilledge(firstv, v);
-		
-		/* mode 2 enables faster handling of tri/quads */
-		BLI_edgefill(2);
-		for (sefa = fillfacebase.first; sefa; sefa = sefa->next) {
-			ls[0] = sefa->v1->tmp.p;
-			ls[1] = sefa->v2->tmp.p;
-			ls[2] = sefa->v3->tmp.p;
+		else {
+			/* ngon - scanfill time! */
+			BLI_begin_edgefill();
 			
-			luvs[0] = CustomData_bmesh_get(&em->bm->ldata, ls[0]->head.data, CD_MLOOPUV);
-			luvs[1] = CustomData_bmesh_get(&em->bm->ldata, ls[1]->head.data, CD_MLOOPUV);
-			luvs[2] = CustomData_bmesh_get(&em->bm->ldata, ls[2]->head.data, CD_MLOOPUV);
+			firstv = lastv = NULL;
+			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+				int i;
+				
+				v = BLI_addfillvert(l->v->co);
+				
+				/* add small random offset */
+				for (i = 0; i < 3; i++) {
+					v->co[i] += (BLI_frand() - 0.5f) * FLT_EPSILON * 50;
+				}
+				
+				v->tmp.p = l;
 
-			vkeys[0] = (ParamKey)BM_elem_index_get(ls[0]->v);
-			vkeys[1] = (ParamKey)BM_elem_index_get(ls[1]->v);
-			vkeys[2] = (ParamKey)BM_elem_index_get(ls[2]->v);
+				if (lastv) {
+					BLI_addfilledge(lastv, v);
+				}
 
-			co[0] = ls[0]->v->co;
-			co[1] = ls[1]->v->co;
-			co[2] = ls[2]->v->co;
+				lastv = v;
+				if (!firstv) 
+					firstv = v;
+			}
 
-			uv[0] = luvs[0]->uv;
-			uv[1] = luvs[1]->uv;
-			uv[2] = luvs[2]->uv;
+			BLI_addfilledge(firstv, v);
+			
+			/* mode 2 enables faster handling of tri/quads */
+			BLI_edgefill(2);
+			for (sefa = fillfacebase.first; sefa; sefa = sefa->next) {
+				ls[0] = sefa->v1->tmp.p;
+				ls[1] = sefa->v2->tmp.p;
+				ls[2] = sefa->v3->tmp.p;
 
-			pin[0] = (luvs[0]->flag & MLOOPUV_PINNED) != 0;
-			pin[1] = (luvs[1]->flag & MLOOPUV_PINNED) != 0;
-			pin[2] = (luvs[2]->flag & MLOOPUV_PINNED) != 0;
+				for(i = 0; i < 3; i++) {
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, ls[i]->head.data, CD_MLOOPUV);
+					vkeys[i] = (ParamKey)BM_elem_index_get(ls[i]->v);
+					co[i] = ls[i]->v->co;
+					uv[i] = luv->uv;
+					pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
+					select[i] = uvedit_uv_selected(em, scene, ls[i]) != 0;
+				}
 
-			select[0] = uvedit_uv_selected(em, scene, ls[0]) != 0;
-			select[1] = uvedit_uv_selected(em, scene, ls[1]) != 0;
-			select[2] = uvedit_uv_selected(em, scene, ls[2]) != 0;
-
-			if (!p_face_exists(handle, vkeys, 0, 1, 2))
 				param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
-		}
+			}
 
-		BLI_end_edgefill();
+			BLI_end_edgefill();
+		}
 	}
 
 	if (!implicit) {
