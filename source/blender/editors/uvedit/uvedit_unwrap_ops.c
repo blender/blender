@@ -211,6 +211,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	
 	/* we need the vert indices */
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+
+	BLI_srand(0);
 	
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		ScanFillVert *v, *lastv, *firstv;
@@ -226,7 +228,6 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0))
 			continue;
 
-		/* tf= (MTexPoly *)CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 		lsel = 0;
 
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -241,7 +242,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 		key = (ParamKey)efa;
 
-		/*scanfill time!*/
+		/* scanfill time! */
 		BLI_begin_edgefill();
 		
 		firstv = lastv = NULL;
@@ -250,9 +251,9 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 			
 			v = BLI_addfillvert(l->v->co);
 			
-			/*add small random offset*/
+			/* add small random offset */
 			for (i = 0; i < 3; i++) {
-				v->co[i] += (BLI_drand() - 0.5f) * FLT_EPSILON * 50;
+				v->co[i] += (BLI_frand() - 0.5f) * FLT_EPSILON * 50;
 			}
 			
 			v->tmp.p = l;

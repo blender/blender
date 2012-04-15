@@ -1610,7 +1610,7 @@ static void rnd_offset_co(float co[3], float scale)
 	int i;
 
 	for (i = 0; i < 3; i++) {
-		co[i] += (BLI_drand() - 0.5) * scale;
+		co[i] += (BLI_frand() - 0.5) * scale;
 	}
 }
 
@@ -1808,6 +1808,8 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			}
 		}
 	}
+
+	BLI_srand(0);
 
 	for (i = 0; i < totface; i++) {
 		SmallHash *hash = &shash;
