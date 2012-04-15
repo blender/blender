@@ -13323,6 +13323,30 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 4))
+	{
+		/* Read Viscosity presets from older files */
+		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Fluidsim) {
+					FluidsimModifierData *fmd = (FluidsimModifierData *)md;
+					if(fmd->fss->viscosityMode == 3) {
+						fmd->fss->viscosityValue = 5.0;
+						fmd->fss->viscosityExponent = 5;
+					}
+					else if(fmd->fss->viscosityMode == 4) {
+						fmd->fss->viscosityValue = 2.0;
+						fmd->fss->viscosityExponent = 3;
+					}
+				}
+			}
+		}
+	}
+
+
 
 	{
 		/* Default for old files is to save particle rotations to pointcache */

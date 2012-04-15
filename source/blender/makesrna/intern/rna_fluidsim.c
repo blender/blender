@@ -269,13 +269,6 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 		{OB_FSDOM_FINAL, "FINAL", 0, "Final", "Display final quality results"},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem viscosity_items[] = {
-		{1, "MANUAL", 0, "Manual", "Manual viscosity settings"},
-		{2, "WATER", 0, "Water", "Viscosity of 1.0 * 10^-6"},
-		{3, "OIL", 0, "Oil", "Viscosity of 5.0 * 10^-5"},
-		{4, "HONEY", 0, "Honey", "Viscosity of 2.0 * 10^-3"},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna = RNA_def_struct(brna, "DomainFluidSettings", "FluidSettings");
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
 	RNA_def_struct_ui_text(srna, "Domain Fluid Simulation Settings",
@@ -360,12 +353,6 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "animRate");
 	RNA_def_property_range(prop, 0.0, 100.0);
 	RNA_def_property_ui_text(prop, "Simulation Speed", "Fluid motion rate (0 = stationary, 1 = normal speed)");
-	
-	prop = RNA_def_property(srna, "viscosity_preset", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "viscosityMode");
-	RNA_def_property_enum_items(prop, viscosity_items);
-	RNA_def_property_ui_text(prop, "Viscosity Preset",
-	                         "Set viscosity of the fluid to a preset value, or use manual input");
 
 	prop = RNA_def_property(srna, "viscosity_base", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "viscosityValue");
