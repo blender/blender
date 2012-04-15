@@ -872,12 +872,12 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Similar";
 	ot->idname = "MESH_OT_select_similar";
+	ot->description = "Select similar vertices, edges or faces by property types";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = edbm_select_similar_exec;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "Select similar vertices, edges or faces by property types";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -975,11 +975,11 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Multi Select Loops";
 	ot->idname = "MESH_OT_loop_multi_select";
+	ot->description = "Select a loop of connected edges by connection type";
 	
 	/* api callbacks */
 	ot->exec = edbm_loop_multiselect_exec;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "Select a loop of connected edges by connection type";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1080,12 +1080,11 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Loop Select";
 	ot->idname = "MESH_OT_loop_select";
-	ot->description = "Select a loop";
+	ot->description = "Select a loop of connected edges";
 	
 	/* api callbacks */
 	ot->invoke = edbm_select_loop_invoke;
 	ot->poll = ED_operator_editmesh_region_view3d;
-	ot->description = "Select a loop of connected edges";
 	
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
@@ -1433,11 +1432,11 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Shortest Path Select";
 	ot->idname = "MESH_OT_select_shortest_path";
+	ot->description = "Select shortest path between two selections";
 	
 	/* api callbacks */
 	ot->invoke = edbm_shortest_path_select_invoke;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "Select shortest path between two selections";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1849,11 +1848,11 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked";
 	ot->idname = "MESH_OT_select_linked_pick";
+	ot->description = "(De)select all vertices linked to the edge under the mouse cursor";
 	
 	/* api callbacks */
 	ot->invoke = edbm_select_linked_pick_invoke;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "(De)select all vertices linked to the edge under the mouse cursor";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1947,11 +1946,11 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked All";
 	ot->idname = "MESH_OT_select_linked";
+	ot->description = "Select all vertices linked to the active mesh";
 	
 	/* api callbacks */
 	ot->exec = edbm_select_linked_exec;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "Select all vertices linked to the active mesh";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2187,8 +2186,8 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Nth";
-	ot->description = "";
 	ot->idname = "MESH_OT_select_nth";
+	ot->description = "Select every Nth element starting from a selected vertex, edge or face";
 
 	/* api callbacks */
 	ot->exec = edbm_select_nth_exec;
@@ -2513,7 +2512,7 @@ void MESH_OT_select_next_loop(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Next Loop";
 	ot->idname = "MESH_OT_select_next_loop";
-	ot->description = "";
+	ot->description = "Select next edge loop adjacent to a selected loop";
 
 	/* api callbacks */
 	ot->exec = edbm_select_next_loop_exec;
@@ -2581,6 +2580,7 @@ void MESH_OT_region_to_loop(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Boundary Loop";
 	ot->idname = "MESH_OT_region_to_loop";
+	ot->description = "Select boundary edges around the selected faces";
 
 	/* api callbacks */
 	ot->exec = edbm_region_to_loop_exec;
@@ -2762,6 +2762,7 @@ void MESH_OT_loop_to_region(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Loop Inner-Region";
 	ot->idname = "MESH_OT_loop_to_region";
+	ot->description = "Select region of faces inside of a selected loop of edges";
 
 	/* api callbacks */
 	ot->exec = edbm_loop_to_region_exec;
