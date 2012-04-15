@@ -54,7 +54,7 @@
 #include "MEM_guardedalloc.h"
 
 #ifdef WIN32
-#include "BLI_winstuff.h"
+#  include "BLI_winstuff.h"
 #endif
 
 #include "BLI_args.h"

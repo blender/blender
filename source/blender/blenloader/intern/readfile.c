@@ -42,11 +42,11 @@
 #include <stdarg.h> /* for va_start/end */
 
 #ifndef WIN32
-	#include <unistd.h> // for read close
+#  include <unistd.h> // for read close
 #else
-	#include <io.h> // for open close read
-#include "winsock2.h"
-#include "BLI_winstuff.h"
+#  include <io.h> // for open close read
+#  include "winsock2.h"
+#  include "BLI_winstuff.h"
 #endif
 
 /* allow readfile to use deprecated functionality */

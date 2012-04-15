@@ -36,22 +36,16 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifdef WIN32
-#include <io.h>
-#include <direct.h>
-#include "BLI_winstuff.h"
-#else
-#include <unistd.h>
-#include <sys/times.h>
-#endif   
-
 /* path/file handeling stuff */
-#ifndef WIN32
-  #include <dirent.h>
-  #include <unistd.h>
+#ifdef WIN32
+#  include <io.h>
+#  include <direct.h>
+#  include "BLI_winstuff.h"
 #else
-  #include <io.h>
-  #include "BLI_winstuff.h"
+#  include <unistd.h>
+#  include <sys/times.h>
+#  include <dirent.h>
+#  include <unistd.h>
 #endif
 
 #include "DNA_space_types.h"

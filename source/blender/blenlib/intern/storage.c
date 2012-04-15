@@ -68,19 +68,16 @@
 #include <fcntl.h>
 #include <string.h>			/* strcpy etc.. */
 
-#ifndef WIN32
-#include <sys/ioctl.h>
-#include <unistd.h>			/*  */
-#include <pwd.h>
-#endif
-
 #ifdef WIN32
-#include <io.h>
-#include <direct.h>
-#include "BLI_winstuff.h"
-#include "utfconv.h"
+#  include <io.h>
+#  include <direct.h>
+#  include "BLI_winstuff.h"
+#  include "utfconv.h"
+#else
+#  include <sys/ioctl.h>
+#  include <unistd.h>
+#  include <pwd.h>
 #endif
-
 
 /* lib includes */
 #include "MEM_guardedalloc.h"

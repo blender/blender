@@ -53,17 +53,18 @@
 #include <stdio.h>
 
 #ifdef WIN32
-#include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
-#endif
-#include <shlobj.h> /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff because 'near' is disabled through BLI_windstuff */
-#include <process.h> /* getpid */
-#include <direct.h> /* chdir */
-#include "BLI_winstuff.h"
-#include "utfconv.h"
+#  include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
+#  ifndef _WIN32_IE
+#    define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
+#  endif
+#  include <shlobj.h>  /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff
+                        * because 'near' is disabled through BLI_windstuff */
+#  include <process.h> /* getpid */
+#  include <direct.h> /* chdir */
+#  include "BLI_winstuff.h"
+#  include "utfconv.h"
 #else
-#include <unistd.h>
+#  include <unistd.h>
 #endif
 
 #define URI_MAX FILE_MAX*3 + 8

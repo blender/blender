@@ -64,8 +64,8 @@
 
 #include "BLO_sys_types.h" // needed for intptr_t
 
-#ifdef _WIN32
-#include "BLI_winstuff.h"
+#ifdef WIN32
+#  include "BLI_winstuff.h"
 #endif
 
 /* local prototypes --------------------- */

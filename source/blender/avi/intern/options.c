@@ -34,12 +34,13 @@
  *  \ingroup avi
  */
 
-
 #include "AVI_avi.h"
 #include "avi_intern.h"
 #include "endian.h"
 
-#include "BLI_winstuff.h"
+#ifdef WIN32
+#  include "BLI_winstuff.h"
+#endif
 
 /* avi_set_compress_options gets its own file... now don't WE feel important? */
 
