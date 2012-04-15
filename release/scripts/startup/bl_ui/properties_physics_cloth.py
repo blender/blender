@@ -31,9 +31,6 @@ def cloth_panel_enabled(md):
 
 
 class CLOTH_MT_presets(Menu):
-    '''
-    Creates the menu items by scanning scripts/templates
-    '''
     bl_label = "Cloth Presets"
     preset_subdir = "cloth"
     preset_operator = "script.execute_preset"
