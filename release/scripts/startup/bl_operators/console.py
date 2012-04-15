@@ -23,15 +23,19 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 
 
+def _lang_module_get(sc):
+    return __import__("console_" + sc.language)
+
+
 class ConsoleExec(Operator):
-    '''Execute the current console line as a python expression'''
+    """Execute the current console line as a python expression"""
     bl_idname = "console.execute"
     bl_label = "Console Execute"
 
     def execute(self, context):
         sc = context.space_data
 
-        module = __import__("console_" + sc.language)
+        module = _lang_module_get(sc)
         execute = getattr(module, "execute", None)
 
         if execute:
@@ -50,7 +54,7 @@ class ConsoleAutocomplete(Operator):
 
     def execute(self, context):
         sc = context.space_data
-        module = __import__("console_" + sc.language)
+        module = _lang_module_get(sc)
         autocomplete = getattr(module, "autocomplete", None)
 
         if autocomplete:
@@ -62,7 +66,7 @@ class ConsoleAutocomplete(Operator):
 
 
 class ConsoleBanner(Operator):
-    '''Print a message when the terminal initializes'''
+    """Print a message when the terminal initializes"""
     bl_idname = "console.banner"
     bl_label = "Console Banner"
 
@@ -73,7 +77,7 @@ class ConsoleBanner(Operator):
         if not sc.language:
             sc.language = 'python'
 
-        module = __import__("console_" + sc.language)
+        module = _lang_module_get(sc)
         banner = getattr(module, "banner", None)
 
         if banner:
@@ -85,7 +89,7 @@ class ConsoleBanner(Operator):
 
 
 class ConsoleLanguage(Operator):
-    '''Set the current language for this console'''
+    """Set the current language for this console"""
     bl_idname = "console.language"
     bl_label = "Console Language"
 
