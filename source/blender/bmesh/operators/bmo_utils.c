@@ -459,36 +459,6 @@ void bmo_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 }
 
 /*
- * compute the perimeter of an ngon
- *
- * NOTE: This should probably go to bmesh_polygon.c
- */
-static float ngon_perimeter(BMesh *bm, BMFace *f)
-{
-	BMIter  liter;
-	BMLoop *l;
-	int     num_verts = 0;
-	float   v[3], sv[3];
-	float   perimeter = 0.0f;
-
-	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-		if (num_verts == 0) {
-			copy_v3_v3(v, l->v->co);
-			copy_v3_v3(sv, l->v->co);
-		}
-		else {
-			perimeter += len_v3v3(v, l->v->co);
-			copy_v3_v3(v, l->v->co);
-		}
-		num_verts++;
-	}
-
-	perimeter += len_v3v3(v, sv);
-
-	return perimeter;
-}
-
-/*
  * compute the fake surface of an ngon
  * This is done by decomposing the ngon into triangles who share the centroid of the ngon
  * while this method is far from being exact, it should garantee an invariance.
@@ -593,7 +563,7 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 			switch (type) {
 				case SIMFACE_PERIMETER:
 					/* set the perimeter */
-					f_ext[i].perim = ngon_perimeter(bm, f_ext[i].f);
+					f_ext[i].perim = BM_face_perimeter_calc(bm, f_ext[i].f);
 					break;
 
 				case SIMFACE_COPLANAR:

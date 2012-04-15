@@ -191,6 +191,22 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 }
 
 /**
+ * compute the perimeter of an ngon
+ */
+float BM_face_perimeter_calc(BMesh *UNUSED(bm), BMFace *f)
+{
+	BMLoop *l_iter, *l_first;
+	float perimeter = 0.0f;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		perimeter += len_v3v3(l_iter->v->co, l_iter->next->v->co);
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return perimeter;
+}
+
+/**
  * computes center of face in 3d.  uses center of bounding box.
  */
 void BM_face_center_bounds_calc(BMesh *UNUSED(bm), BMFace *f, float r_cent[3])
