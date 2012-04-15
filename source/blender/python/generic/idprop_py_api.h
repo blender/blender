@@ -64,6 +64,8 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, struct IDPropert
 
 void IDProp_Init_Types(void);
 
+PyObject *BPyInit_idprop(void);
+
 #define IDPROP_ITER_KEYS	0
 #define IDPROP_ITER_ITEMS	1
 

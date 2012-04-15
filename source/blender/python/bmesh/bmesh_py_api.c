@@ -129,7 +129,7 @@ PyObject *BPyInit_bmesh(void)
 {
 	PyObject *mod;
 	PyObject *submodule;
-	PyObject *sys_modules = PySys_GetObject("modules"); /* not pretty */
+	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
 
 	BPy_BM_init_types();
 	BPy_BM_init_types_select();
@@ -140,11 +140,11 @@ PyObject *BPyInit_bmesh(void)
 
 	/* bmesh.types */
 	PyModule_AddObject(mod, "types", (submodule = BPyInit_bmesh_types()));
-	PyDict_SetItemString(sys_modules, "bmesh.types", submodule);
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
 	Py_INCREF(submodule);
 
 	PyModule_AddObject(mod, "utils", (submodule = BPyInit_bmesh_utils()));
-	PyDict_SetItemString(sys_modules, "bmesh.utils", submodule);
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
 	Py_INCREF(submodule);
 
 	return mod;
