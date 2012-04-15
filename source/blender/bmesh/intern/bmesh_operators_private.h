@@ -43,7 +43,7 @@ void bmo_dissolve_faces_exec(BMesh *bmesh, BMOperator *op);
 void bmo_dissolve_verts_exec(BMesh *bmesh, BMOperator *op);
 void bmo_dissolve_limit_exec(BMesh *bmesh, BMOperator *op);
 void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op);
-void bmo_vert_slide_exec(BMesh *bm, BMOperator *op);
+void bmo_vertex_slide_exec(BMesh *bm, BMOperator *op);
 void bmo_connectverts_exec(BMesh *bm, BMOperator *op);
 void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op);
 void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op);
