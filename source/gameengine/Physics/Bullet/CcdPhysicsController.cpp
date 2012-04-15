@@ -1918,6 +1918,10 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 			}
 		}
 
+		// This case happens when none of the polys are colliders
+		if (tot_bt_tris == 0 || tot_bt_verts == 0)
+			return false;
+
 		m_vertexArray.resize(tot_bt_verts*3);
 		btScalar *bt= &m_vertexArray[0];
 
