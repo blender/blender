@@ -2147,6 +2147,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 static void WM_OT_collada_export(wmOperatorType *ot)
 {
 	ot->name = "Export COLLADA";
+	ot->description = "Save a Collada file";
 	ot->idname = "WM_OT_collada_export";
 	
 	ot->invoke = wm_collada_export_invoke;
@@ -2181,6 +2182,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 static void WM_OT_collada_import(wmOperatorType *ot)
 {
 	ot->name = "Import COLLADA";
+	ot->description = "Load a Collada file";
 	ot->idname = "WM_OT_collada_import";
 	
 	ot->invoke = WM_operator_filesel;
