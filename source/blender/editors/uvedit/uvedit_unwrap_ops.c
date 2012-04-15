@@ -268,7 +268,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 		BLI_addfilledge(firstv, v);
 		
-		/*mode 2 enables faster handling of tri/quads*/
+		/* mode 2 enables faster handling of tri/quads */
 		BLI_edgefill(2);
 		for (sefa = fillfacebase.first; sefa; sefa = sefa->next) {
 			ls[0] = sefa->v1->tmp.p;
@@ -827,6 +827,16 @@ void ED_uvedit_live_unwrap_end(short cancel)
 		param_delete(liveHandle);
 		liveHandle = NULL;
 	}
+}
+
+void ED_uvedit_live_unwrap(Scene *scene, Object *obedit)
+{
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+
+    if (scene->toolsettings->edge_mode_live_unwrap &&
+        CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
+        ED_unwrap_lscm(scene, obedit, FALSE); /* unwrap all not just sel */
+    }
 }
 
 /*************** UV Map Common Transforms *****************/

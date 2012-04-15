@@ -58,10 +58,11 @@
 #include "WM_types.h"
 
 #include "ED_mesh.h"
-#include "ED_view3d.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
-#include "ED_object.h"
+#include "ED_uvedit.h"
+#include "ED_view3d.h"
 
 #include "RE_render_ext.h"
 
@@ -1056,6 +1057,7 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 
 static int edbm_mark_seam(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Mesh *me = ((Mesh *)obedit->data);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -1085,6 +1087,7 @@ static int edbm_mark_seam(bContext *C, wmOperator *op)
 		}
 	}
 
+	ED_uvedit_live_unwrap(scene, obedit);
 	EDBM_update_generic(C, em, TRUE);
 
 	return OPERATOR_FINISHED;

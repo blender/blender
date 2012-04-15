@@ -78,6 +78,8 @@ void ED_uvedit_live_unwrap_begin(struct Scene *scene, struct Object *obedit);
 void ED_uvedit_live_unwrap_re_solve(void);
 void ED_uvedit_live_unwrap_end(short cancel);
 
+void ED_uvedit_live_unwrap(struct Scene *scene, struct Object *obedit);
+
 /* single call up unwrap using scene settings, used for edge tag unwrapping */
 void ED_unwrap_lscm(struct Scene *scene, struct Object *obedit, const short sel);
 

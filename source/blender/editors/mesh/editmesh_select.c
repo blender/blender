@@ -56,6 +56,7 @@
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_uvedit.h"
 #include "ED_view3d.h"
 
 #include "BIF_gl.h"
@@ -1399,6 +1400,7 @@ static void mouse_mesh_shortest_path(bContext *C, int mval[2])
 			
 			case EDGE_MODE_TAG_SEAM:
 				me->drawflag |= ME_DRAWSEAMS;
+				ED_uvedit_live_unwrap(vc.scene, vc.obedit);
 				break;
 			case EDGE_MODE_TAG_SHARP:
 				me->drawflag |= ME_DRAWSHARP;
