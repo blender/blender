@@ -685,7 +685,8 @@ static void rna_NodeTree_node_clear(bNodeTree *ntree)
 	WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 }
 
-static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, bNodeSocket *fromsock, bNodeSocket *tosock)
+static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
+                                        bNodeSocket *fromsock, bNodeSocket *tosock)
 {
 	bNodeLink *ret;
 	bNode *fromnode = NULL, *tonode = NULL;

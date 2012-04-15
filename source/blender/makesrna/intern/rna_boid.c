@@ -217,7 +217,8 @@ static PointerRNA rna_BoidSettings_active_boid_state_get(PointerRNA *ptr)
 	}
 	return rna_pointer_inherit_refine(ptr, &RNA_BoidState, NULL);
 }
-static void rna_BoidSettings_active_boid_state_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_BoidSettings_active_boid_state_index_range(PointerRNA *ptr, int *min, int *max,
+                                                           int *softmin, int *softmax)
 {
 	BoidSettings *boids = (BoidSettings*)ptr->data;
 	*min = 0;

@@ -644,7 +644,8 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 	assign_material(ob, value.data, ob->actcol);
 }
 
-static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max,
+                                                          int *softmin, int *softmax)
 {
 	Object *ob = (Object*)ptr->id.data;
 	*min = 0;

@@ -423,7 +423,9 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "surface_noobs", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSSG_NOOBS);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Remove air bubbles", "Removes the air gap between fluid surface and obstacles. WARNING: Can result in a dissolving surface in other areas.");
+	RNA_def_property_ui_text(prop, "Remove air bubbles",
+	                         "Removes the air gap between fluid surface and obstacles - WARNING: Can result "
+	                         "in a dissolving surface in other areas");
 
 	/* particles */
 

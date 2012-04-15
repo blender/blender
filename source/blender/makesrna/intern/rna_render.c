@@ -356,7 +356,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "is_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", RE_ENGINE_PREVIEW);
 
-	prop= RNA_def_property(srna, "camera_override", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "camera_override", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "camera_override");
 	RNA_def_property_struct_type(prop, "Object");
 
