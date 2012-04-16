@@ -84,9 +84,7 @@ static void compute_poly_normal(float normal[3], float verts[][3], int nverts)
 
 	/* Newell's Method */
 	for (i = 0; i < nverts; v_prev = v_curr, v_curr = verts[++i]) {
-		n[0] += (v_prev[1] - v_curr[1]) * (v_prev[2] + v_curr[2]);
-		n[1] += (v_prev[2] - v_curr[2]) * (v_prev[0] + v_curr[0]);
-		n[2] += (v_prev[0] - v_curr[0]) * (v_prev[1] + v_curr[1]);
+		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
 	}
 
 	if (UNLIKELY(normalize_v3_v3(normal, n) == 0.0f)) {
@@ -109,9 +107,7 @@ static void bm_face_compute_poly_normal(BMFace *f)
 
 	/* Newell's Method */
 	do {
-		n[0] += (v_prev[1] - v_curr[1]) * (v_prev[2] + v_curr[2]);
-		n[1] += (v_prev[2] - v_curr[2]) * (v_prev[0] + v_curr[0]);
-		n[2] += (v_prev[0] - v_curr[0]) * (v_prev[1] + v_curr[1]);
+		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
 
 		l_iter = l_iter->next;
 		v_prev = v_curr;
@@ -142,9 +138,7 @@ static void bm_face_compute_poly_normal_vertex_cos(BMFace *f, float n[3],
 
 	/* Newell's Method */
 	do {
-		n[0] += (v_prev[1] - v_curr[1]) * (v_prev[2] + v_curr[2]);
-		n[1] += (v_prev[2] - v_curr[2]) * (v_prev[0] + v_curr[0]);
-		n[2] += (v_prev[0] - v_curr[0]) * (v_prev[1] + v_curr[1]);
+		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
 
 		l_iter = l_iter->next;
 		v_prev = v_curr;

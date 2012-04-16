@@ -124,6 +124,8 @@ MINLINE float dot_v3v3(const float a[3], const float b[3]);
 MINLINE float cross_v2v2(const float a[2], const float b[2]);
 MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3]);
 
+MINLINE void add_newell_cross_v3_v3v3(float n[3], const float v_prev[3], const float v_curr[3]);
+
 MINLINE void star_m3_v3(float rmat[3][3],float a[3]);
 
 /*********************************** Length **********************************/
