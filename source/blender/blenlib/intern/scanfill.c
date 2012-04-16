@@ -792,7 +792,7 @@ int BLI_begin_edgefill(void)
 	return 1;
 }
 
-int BLI_edgefill(short mat_nr)
+int BLI_edgefill(const short do_quad_tri_speedup)
 {
 	/*
 	 * - fill works with its own lists, so create that first (no faces!)
@@ -821,34 +821,28 @@ int BLI_edgefill(short mat_nr)
 		a += 1;
 	}
 
-	if (a == 3 && (mat_nr & 2)) {
+	if (do_quad_tri_speedup && (a == 3)) {
 		eve = fillvertbase.first;
 
 		addfillface(eve, eve->next, eve->next->next);
 		return 1;
 	}
-	else if (a == 4 && (mat_nr & 2)) {
+	else if (do_quad_tri_speedup && (a == 4)) {
 		float vec1[3], vec2[3];
 
 		eve = fillvertbase.first;
 		/* no need to check 'eve->next->next->next' is valid, already counted */
-		if (1) { //BMESH_TODO) {
-			/*use shortest diagonal for quad*/
-			sub_v3_v3v3(vec1, eve->co, eve->next->next->co);
-			sub_v3_v3v3(vec2, eve->next->co, eve->next->next->next->co);
-			
-			if (dot_v3v3(vec1, vec1) < dot_v3v3(vec2, vec2)) {
-				addfillface(eve, eve->next, eve->next->next);
-				addfillface(eve->next->next, eve->next->next->next, eve);
-			}
-			else {
-				addfillface(eve->next, eve->next->next, eve->next->next->next);
-				addfillface(eve->next->next->next, eve, eve->next);
-			}
+		/*use shortest diagonal for quad*/
+		sub_v3_v3v3(vec1, eve->co, eve->next->next->co);
+		sub_v3_v3v3(vec2, eve->next->co, eve->next->next->next->co);
+
+		if (dot_v3v3(vec1, vec1) < dot_v3v3(vec2, vec2)) {
+			addfillface(eve, eve->next, eve->next->next);
+			addfillface(eve->next->next, eve->next->next->next, eve);
 		}
 		else {
-				addfillface(eve, eve->next, eve->next->next);
-				addfillface(eve->next->next, eve->next->next->next, eve);
+			addfillface(eve->next, eve->next->next, eve->next->next->next);
+			addfillface(eve->next->next->next, eve, eve->next);
 		}
 		return 2;
 	}

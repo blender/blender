@@ -286,9 +286,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 			}
 
 			BLI_addfilledge(firstv, v);
-			
-			/* mode 2 enables faster handling of tri/quads */
-			BLI_edgefill(2);
+
+			BLI_edgefill(TRUE);
 			for (sefa = fillfacebase.first; sefa; sefa = sefa->next) {
 				ls[0] = sefa->v1->tmp.p;
 				ls[1] = sefa->v2->tmp.p;

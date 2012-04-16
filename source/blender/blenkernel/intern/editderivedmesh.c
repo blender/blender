@@ -216,7 +216,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 			/*complete the loop*/
 			BLI_addfilledge(firstv, v);
 
-			totfilltri = BLI_edgefill(2);
+			totfilltri = BLI_edgefill(FALSE);
 			BLI_array_growitems(looptris, totfilltri);
 
 			for (efa = fillfacebase.first; efa; efa=efa->next) {

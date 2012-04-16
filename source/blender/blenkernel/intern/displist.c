@@ -472,7 +472,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 			dl= dl->next;
 		}
 		
-		if (totvert && (tot= BLI_edgefill(0))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
+		if (totvert && (tot= BLI_edgefill(FALSE))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
 			if (tot) {
 				dlnew= MEM_callocN(sizeof(DispList), "filldisplist");
 				dlnew->type= DL_INDEX3;

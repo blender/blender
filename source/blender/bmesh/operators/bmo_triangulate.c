@@ -194,7 +194,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		/* eed->tmp.p = e; */ /* UNUSED */
 	}
 	
-	BLI_edgefill(0);
+	BLI_edgefill(FALSE);
 	
 	for (efa = fillfacebase.first; efa; efa = efa->next) {
 		BMFace *f = BM_face_create_quad_tri(bm,

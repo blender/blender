@@ -2478,7 +2478,7 @@ int mesh_recalcTessellation(CustomData *fdata,
 			}
 			BLI_addfilledge(lastv, firstv);
 			
-			totfilltri = BLI_edgefill(2);
+			totfilltri = BLI_edgefill(FALSE);
 			if (totfilltri) {
 				BLI_array_growitems(mface_to_poly_map, totfilltri);
 				BLI_array_growitems(mface, totfilltri);

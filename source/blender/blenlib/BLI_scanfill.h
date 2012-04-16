@@ -86,7 +86,7 @@ struct ScanFillEdge *BLI_addfilledge(struct ScanFillVert *v1, struct ScanFillVer
 #define FILLBOUNDARY 1
 
 int BLI_begin_edgefill(void);
-int BLI_edgefill(short mat_nr);
+int BLI_edgefill(const short do_quad_tri_speedup);
 void BLI_end_edgefill(void);
 
 /* These callbacks are needed to make the lib finction properly */

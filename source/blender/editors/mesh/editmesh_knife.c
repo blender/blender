@@ -1873,7 +1873,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			}
 		}
 
-		BLI_edgefill(0);
+		BLI_edgefill(FALSE);
 
 		for (efa = fillfacebase.first; efa; efa = efa->next) {
 			BMVert *v1 = efa->v3->tmp.p, *v2 = efa->v2->tmp.p, *v3 = efa->v1->tmp.p;
