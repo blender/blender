@@ -89,6 +89,7 @@
 
 #include "BKE_mesh.h"
 #include "BKE_customdata.h"
+#include "BKE_multires.h"
 
 #include "BKE_global.h" /* ugh - for looping over all objects */
 #include "BKE_main.h"
@@ -854,4 +855,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	}
 
 	if (oldverts) MEM_freeN(oldverts);
+
+	/* topology could be changed, ensure mdisps are ok */
+	multires_topology_changed(me);
 }

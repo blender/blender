@@ -313,7 +313,6 @@ void EDBM_mesh_load(Object *ob)
 #ifdef USE_TESSFACE_DEFAULT
 	BKE_mesh_tessface_calc(me);
 #endif
-
 }
 
 void EDBM_mesh_free(BMEditMesh *tm)
