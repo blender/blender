@@ -73,11 +73,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER(v, &siter, bm, &dupeop, "newout", BM_VERT) {
 		BLI_array_growone(vmap);
 		vmap[i] = v;
-
-		/* BMESH_TODO, double check this is being used, calling following operators will overwrite anyway - campbell */
-		BM_elem_index_set(v2, i); /* set_dirty! */
 		v2 = BM_iter_step(&iter);
-
 		i++;
 	}
 	bm->elem_index_dirty |= BM_VERT;

@@ -52,7 +52,7 @@ static int UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 
 	BMW_init(&regwalker, bm, BMW_ISLAND,
 	         BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
-	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+	         BMW_FLAG_NOP,
 	         BMW_NIL_LAY);
 
 	f2 = BMW_begin(&regwalker, f);
