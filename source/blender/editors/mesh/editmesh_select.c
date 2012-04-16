@@ -2066,7 +2066,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	/* Walk over selected elements starting at active */
 	BMW_init(&walker, bm, walktype,
 	         mask_vert, mask_edge, mask_face,
-	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+	         BMW_FLAG_NOP, /* don't use BMW_FLAG_TEST_HIDDEN here since we want to desel all */
 	         BMW_NIL_LAY);
 
 	BLI_assert(walker.order == BMW_BREADTH_FIRST);

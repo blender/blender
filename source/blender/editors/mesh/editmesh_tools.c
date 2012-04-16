@@ -143,8 +143,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-	/* BMESH_TODO, this currently does nothing, just add to stop UI from erroring out! */
-	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor (BMESH TODO)", 0.0f, 1.0f);
+	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor", 0.0f, 1.0f);
 
 	RNA_def_boolean(ot->srna, "quadtri", 0, "Quad/Tri Mode", "Tries to prevent ngons");
 	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_STRAIGHT_CUT,

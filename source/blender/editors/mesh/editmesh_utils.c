@@ -517,7 +517,6 @@ static void *getEditMesh(bContext *C)
 typedef struct UndoMesh {
 	Mesh me;
 	int selectmode;
-	char obname[MAX_ID_NAME - 2];
 } UndoMesh;
 
 /* undo simply makes copies of a bmesh */
@@ -527,7 +526,6 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	Mesh *obme = obdata;
 	
 	UndoMesh *um = MEM_callocN(sizeof(UndoMesh), "undo Mesh");
-	BLI_strncpy(um->obname, em->ob->id.name + 2, sizeof(um->obname));
 	
 	/* make sure shape keys work */
 	um->me.key = obme->key ? copy_key_nolib(obme->key) : NULL;
@@ -544,12 +542,10 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 {
 	BMEditMesh *em = em_v, *em_tmp;
-	Object *ob;
+	Object *ob = em->ob;
 	UndoMesh *um = umv;
 	BMesh *bm;
 
-	/* BMESH_TODO - its possible the name wont be found right?, should fallback */
-	ob = (Object *)find_id("OB", um->obname);
 	ob->shapenr = em->bm->shapenr;
 
 	BMEdit_Free(em);
