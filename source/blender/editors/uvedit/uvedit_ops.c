@@ -1481,12 +1481,20 @@ static void weld_align_uv(bContext *C, int tool)
 				/* we know the returns from these must be valid */
 				float *uv_start = uv_sel_co_from_eve(scene, ima, em, eve_line[0]);
 				float *uv_end   = uv_sel_co_from_eve(scene, ima, em, eve_line[BLI_array_count(eve_line) - 1]);
+				/* For t & u modes */
+				float a = 0.0f;
 
 				if (tool == 't') {
-					uv_start[0] = uv_end[0] = (uv_start[0] + uv_end[0]) * 0.5f;
+					if (uv_start[1] == uv_end[1])
+						tool = 's';
+					else
+						a = (uv_end[0] - uv_start[0]) / (uv_end[1] - uv_start[1]);
 				}
 				else if (tool == 'u') {
-					uv_start[1] = uv_end[1] = (uv_start[1] + uv_end[1]) * 0.5f;
+					if (uv_start[0] == uv_end[0])
+						tool = 's';
+					else
+						a = (uv_end[1] - uv_start[1]) / (uv_end[0] - uv_start[0]);
 				}
 
 				/* go over all verts except for endpoints */
@@ -1499,7 +1507,16 @@ static void weld_align_uv(bContext *C, int tool)
 
 						if (uvedit_uv_selected(em, scene, l)) {
 							MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-							closest_to_line_segment_v2(luv->uv, luv->uv, uv_start, uv_end);
+							/* Projection of point (x, y) over line (x1, y1, x2, y2) along X axis:
+							 * new_y = (y2 - y1) / (x2 - x1) * (x - x1) + y1
+							 * Maybe this should be a BLI func? Or is it already existing?
+							 * Could use interp_v2_v2v2, but not sure it’s worth it here...*/
+							if (tool == 't')
+								luv->uv[0] = a * (luv->uv[1] - uv_start[1]) + uv_start[0];
+							else if (tool == 'u')
+								luv->uv[1] = a * (luv->uv[0] - uv_start[0]) + uv_start[1];
+							else
+								closest_to_line_segment_v2(luv->uv, luv->uv, uv_start, uv_end);
 						}
 					}
 				}
