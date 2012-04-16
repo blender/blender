@@ -529,8 +529,8 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 	GETMIN2(v1, v2, mv1, mv2);
 	GETMIN2(v3, v4, mv3, mv4);
 	
-	/* do an interval test on the x and y axe */
-	/* first do x axi */
+	/* do an interval test on the x and y axes */
+	/* first do x axis */
 	if (ABS(v1[1] - v2[1]) < EPS &&
 	    ABS(v3[1] - v4[1]) < EPS &&
 	    ABS(v1[1] - v3[1]) < EPS)
@@ -538,7 +538,7 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 		return (mv4[0] >= mv1[0] && mv3[0] <= mv2[0]);
 	}
 
-	/* now do y axi */
+	/* now do y axis */
 	if (ABS(v1[0] - v2[0]) < EPS &&
 	    ABS(v3[0] - v4[0]) < EPS &&
 	    ABS(v1[0] - v3[0]) < EPS)

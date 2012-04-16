@@ -774,6 +774,11 @@ int BLI_begin_edgefill(ScanFillContext *sf_ctx)
 
 int BLI_edgefill(ScanFillContext *sf_ctx, const short do_quad_tri_speedup)
 {
+	return BLI_edgefill_ex(sf_ctx, do_quad_tri_speedup, NULL);
+}
+
+int BLI_edgefill_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup, const float nor_proj[3])
+{
 	/*
 	 * - fill works with its own lists, so create that first (no faces!)
 	 * - for vertices, put in ->tmp.v the old pointer
@@ -852,21 +857,28 @@ int BLI_edgefill(ScanFillContext *sf_ctx, const short do_quad_tri_speedup)
 		return 0;
 	}
 	else {
-		/* define projection: with 'best' normal */
-		/* Newell's Method */
-		/* Similar code used elsewhere, but this checks for double ups
-		 * which historically this function supports so better not change */
-		float *v_prev;
-		float n[3] = {0.0f};
+		float n[3];
 
-		eve = sf_ctx->fillvertbase.last;
-		v_prev = eve->co;
+		if (nor_proj) {
+			copy_v3_v3(n, nor_proj);
+		}
+		else {
+			/* define projection: with 'best' normal */
+			/* Newell's Method */
+			/* Similar code used elsewhere, but this checks for double ups
+			 * which historically this function supports so better not change */
+			float *v_prev;
 
-		for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
-			if (LIKELY(!compare_v3v3(v_prev, eve->co, COMPLIMIT))) {
-				add_newell_cross_v3_v3v3(n, v_prev, eve->co);
-			}
+			zero_v3(n);
+			eve = sf_ctx->fillvertbase.last;
 			v_prev = eve->co;
+
+			for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
+				if (LIKELY(!compare_v3v3(v_prev, eve->co, COMPLIMIT))) {
+					add_newell_cross_v3_v3v3(n, v_prev, eve->co);
+				}
+				v_prev = eve->co;
+			}
 		}
 
 		if (UNLIKELY(normalize_v3(n) == 0.0f)) {

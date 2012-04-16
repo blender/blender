@@ -288,7 +288,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 			BLI_addfilledge(&sf_ctx, firstv, v);
 
-			BLI_edgefill(&sf_ctx, TRUE);
+			BLI_edgefill_ex(&sf_ctx, TRUE, efa->no);
 			for (sefa = sf_ctx.fillfacebase.first; sefa; sefa = sefa->next) {
 				ls[0] = sefa->v1->tmp.p;
 				ls[1] = sefa->v2->tmp.p;
