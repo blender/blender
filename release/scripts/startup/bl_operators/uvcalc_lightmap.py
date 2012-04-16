@@ -549,7 +549,6 @@ class LightMapPack(Operator):
     '''Follow UVs from active quads along continuous face loops'''
     bl_idname = "uv.lightmap_pack"
     bl_label = "Lightmap Pack"
-    bl_options = {'REGISTER', 'UNDO'}
 
     PREF_CONTEXT = bpy.props.EnumProperty(
             name="Selection",
