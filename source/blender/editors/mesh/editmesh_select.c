@@ -1221,9 +1221,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	/* note, would pass BM_EDGE except we are looping over all edges anyway */
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT /* | BM_EDGE */);
 
-	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL)
-	{
-		e->oflags[0].f = 0; /* XXX, whats this for, BMESH_TODO, double check if this is needed */
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 			BLI_smallhash_insert(&visithash, (uintptr_t)e, NULL);
 		}
@@ -1276,15 +1274,6 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	 * the same data as the cost arry, but inverted: it is a worklist of edges prioritized
 	 * by the shortest path found so far to the edge.
 	 */
-
-#if 0 /* UNUSED */ /* this block does nothing, not sure why its here? - campbell */
-	for (i = 0; i < totvert; i++) {
-		int start = nedges[i], end = nedges[i + 1], cur;
-		for (cur = start; cur < end; cur++) {
-			BMEdge *e = EDBM_edge_at_index(em, edges[cur]);
-		}
-	}
-#endif
 
 	/* regular dijkstra shortest path, but over edges instead of vertices */
 	heap = BLI_heap_new();

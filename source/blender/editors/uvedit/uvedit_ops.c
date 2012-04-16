@@ -2355,11 +2355,6 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		vmap = EDBM_uv_vert_map_create(em, 0, 0, limit);
 		
 		/* verts are numbered above in make_uv_vert_map_EM, make sure this stays true! */
-		/* BMESH_TODO - why keep this commented? - campbell */
-#if 0
-		for (a = 0, eve = em->verts.first; eve; a++, eve = eve->next)
-			eve->tmp.l = a;
-#endif
 		if (vmap == NULL) {
 			return;
 		}
