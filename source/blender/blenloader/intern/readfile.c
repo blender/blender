@@ -7672,32 +7672,6 @@ static void do_versions_nodetree_socket_use_flags_2_62(bNodeTree *ntree)
 	}
 }
 
-/* set the SOCK_AUTO_HIDDEN flag on collapsed nodes */
-static void do_versions_nodetree_socket_auto_hidden_flags_2_62(bNodeTree *ntree)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	
-	for (node=ntree->nodes.first; node; node=node->next) {
-		if (node->flag & NODE_HIDDEN) {
-			for (sock=node->inputs.first; sock; sock=sock->next) {
-				if (sock->link==NULL)
-					sock->flag |= SOCK_AUTO_HIDDEN;
-			}
-			for (sock=node->outputs.first; sock; sock= sock->next) {
-				if (nodeCountSocketLinks(ntree, sock)==0)
-					sock->flag |= SOCK_AUTO_HIDDEN;
-			}
-		}
-		else {
-			for (sock=node->inputs.first; sock; sock= sock->next)
-				sock->flag &= ~SOCK_AUTO_HIDDEN;
-			for (sock=node->outputs.first; sock; sock= sock->next)
-				sock->flag &= ~SOCK_AUTO_HIDDEN;
-		}
-	}
-}
-
 static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNodeTree *ntree)
 {
 	bNode *node;
@@ -13119,38 +13093,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
-		}
-		{
-			/* set the SOCK_AUTO_HIDDEN flag on collapsed nodes */
-			Scene *sce;
-			Material *mat;
-			Tex *tex;
-			Lamp *lamp;
-			World *world;
-			bNodeTree *ntree;
-
-			for (sce=main->scene.first; sce; sce=sce->id.next)
-				if (sce->nodetree)
-					do_versions_nodetree_socket_auto_hidden_flags_2_62(sce->nodetree);
-
-			for (mat=main->mat.first; mat; mat=mat->id.next)
-				if (mat->nodetree)
-					do_versions_nodetree_socket_auto_hidden_flags_2_62(mat->nodetree);
-
-			for (tex=main->tex.first; tex; tex=tex->id.next)
-				if (tex->nodetree)
-					do_versions_nodetree_socket_auto_hidden_flags_2_62(tex->nodetree);
-
-			for (lamp=main->lamp.first; lamp; lamp=lamp->id.next)
-				if (lamp->nodetree)
-					do_versions_nodetree_socket_auto_hidden_flags_2_62(lamp->nodetree);
-
-			for (world=main->world.first; world; world=world->id.next)
-				if (world->nodetree)
-					do_versions_nodetree_socket_auto_hidden_flags_2_62(world->nodetree);
-
-			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
-				do_versions_nodetree_socket_auto_hidden_flags_2_62(ntree);
 		}
 	}
 
