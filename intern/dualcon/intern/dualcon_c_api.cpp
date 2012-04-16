@@ -113,6 +113,15 @@ public:
 			curface++;
 		}
 
+		/* remove triangle if it contains invalid coords */
+		for(int i = 0; i < 3; i++) {
+			const float *co = t->vt[i];
+			if(isnan(co[0]) || isnan(co[1]) || isnan(co[2])) {
+				delete t;
+				return getNextTriangle();
+			}
+		}
+
 		return t;
 	}
 
