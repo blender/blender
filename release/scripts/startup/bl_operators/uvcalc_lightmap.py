@@ -550,6 +550,16 @@ class LightMapPack(Operator):
     bl_idname = "uv.lightmap_pack"
     bl_label = "Lightmap Pack"
 
+    # Disable REGISTER flag for now because this operator might create new
+    # images. This leads to non-proper operator redo because current undo
+    # stack is local for edit mode and can not remove images created by this
+    # oprtator.
+    # Proper solution would be to make undo stack aware of such things,
+    # but for now just disable redo. Keep undo here so unwanted changes to uv
+    # coords might be undone.
+    # This fixes infinite image creation reported there [#30968] (sergey)
+    bl_options = {'UNDO'}
+
     PREF_CONTEXT = bpy.props.EnumProperty(
             name="Selection",
             items=(('SEL_FACES', "Selected Faces", "Space all UVs evently"),
