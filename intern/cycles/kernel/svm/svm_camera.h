@@ -25,7 +25,7 @@ __device void svm_node_camera(KernelGlobals *kg, ShaderData *sd, float *stack, u
 	float3 vector;
 
 	Transform tfm = kernel_data.cam.worldtocamera;
-	vector = transform(&tfm, sd->P);
+	vector = transform_point(&tfm, sd->P);
 	zdepth = vector.z;
 	distance = len(vector);
 

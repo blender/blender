@@ -76,8 +76,8 @@ public:
 	bool valid(void) const
 	{
 		return (min.x <= max.x) && (min.y <= max.y) && (min.z <= max.z) &&
-		       !(isnan(min.x) || isnan(min.y) || isnan(min.z)) &&
-		       !(isnan(max.x) || isnan(max.y) || isnan(max.z));
+		       (isfinite(min.x) && isfinite(min.y) && isfinite(min.z)) &&
+		       (isfinite(max.x) && isfinite(max.y) && isfinite(max.z));
 	}
 
 	BoundBox transformed(const Transform *tfm)
@@ -91,7 +91,7 @@ public:
 			p.y = (i & 2)? min.y: max.y;
 			p.z = (i & 4)? min.z: max.z;
 
-			result.grow(transform(tfm, p));
+			result.grow(transform_point(tfm, p));
 		}
 
 		return result;
