@@ -805,6 +805,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 
 		/* run this function after because the file cant be written before the blend is */
 		if (ibuf_thumb) {
+			IMB_thumb_delete(filepath, THB_FAIL); /* without this a failed thumb overrides */
 			ibuf_thumb = IMB_thumb_create(filepath, THB_NORMAL, THB_SOURCE_BLEND, ibuf_thumb);
 			IMB_freeImBuf(ibuf_thumb);
 		}
