@@ -30,6 +30,7 @@
 #define GRID_DIMENSION 20
 
 #if defined(_WIN32) && !defined(__MINGW32__)
+#define isnan(n) _isnan(n)
 #define LONG __int64
 #else
 #include <stdint.h>
