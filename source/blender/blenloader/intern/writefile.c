@@ -81,12 +81,12 @@ Any case: direct data is ALWAYS after the lib block
 #include "zlib.h"
 
 #ifndef WIN32
-#include <unistd.h>
+#  include <unistd.h>
 #else
-#include "winsock2.h"
-#include <io.h>
-#include <process.h> // for getpid
-#include "BLI_winstuff.h"
+#  include "winsock2.h"
+#  include <io.h>
+#  include <process.h> // for getpid
+#  include "BLI_winstuff.h"
 #endif
 
 /* allow writefile to use deprecated functionality (for forward compatibility code) */

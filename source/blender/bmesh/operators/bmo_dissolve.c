@@ -52,7 +52,7 @@ static int UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 
 	BMW_init(&regwalker, bm, BMW_ISLAND,
 	         BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
-	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+	         BMW_FLAG_NOP,
 	         BMW_NIL_LAY);
 
 	f2 = BMW_begin(&regwalker, f);
@@ -110,10 +110,9 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		BLI_array_empty(faces);
 		faces = NULL; /* forces different allocatio */
 
-		/* yay, walk */
 		BMW_init(&regwalker, bm, BMW_ISLAND,
 		         BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
-		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+		         BMW_FLAG_NOP, /* no need to check BMW_FLAG_TEST_HIDDEN, faces are already marked by the bmo */
 		         BMW_NIL_LAY);
 
 		f2 = BMW_begin(&regwalker, f);

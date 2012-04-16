@@ -107,10 +107,10 @@ void Camera::update()
 		dy = transform_direction(&rastertocamera, make_float3(0, 1, 0));
 	}
 	else if(type == CAMERA_PERSPECTIVE) {
-		dx = transform(&rastertocamera, make_float3(1, 0, 0)) -
-		     transform(&rastertocamera, make_float3(0, 0, 0));
-		dy = transform(&rastertocamera, make_float3(0, 1, 0)) -
-		     transform(&rastertocamera, make_float3(0, 0, 0));
+		dx = transform_perspective(&rastertocamera, make_float3(1, 0, 0)) -
+		     transform_perspective(&rastertocamera, make_float3(0, 0, 0));
+		dy = transform_perspective(&rastertocamera, make_float3(0, 1, 0)) -
+		     transform_perspective(&rastertocamera, make_float3(0, 0, 0));
 	}
 	else {
 		dx = make_float3(0, 0, 0);

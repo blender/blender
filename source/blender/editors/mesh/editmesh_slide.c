@@ -55,7 +55,7 @@
 
 #include "mesh_intern.h"
 
-#define VTX_SLIDE_SNAP_THRSH 0.15
+#define VTX_SLIDE_SNAP_THRSH 15
 
 /* Cusom VertexSlide Operator data */
 typedef struct VertexSlideOp {
@@ -99,9 +99,9 @@ typedef struct VertexSlideOp {
 } VertexSlideOp;
 
 static void vtx_slide_draw(const bContext *C, ARegion *ar, void *arg);
-static int edbm_vert_slide_exec(bContext *C, wmOperator *op);
+static int edbm_vertex_slide_exec(bContext *C, wmOperator *op);
 static void vtx_slide_exit(const bContext *C, wmOperator *op);
-static void vtx_slide_set_frame(VertexSlideOp *vso);
+static int vtx_slide_set_frame(VertexSlideOp *vso);
 
 static int vtx_slide_init(bContext *C, wmOperator *op)
 {
@@ -158,9 +158,6 @@ static int vtx_slide_init(bContext *C, wmOperator *op)
 
 	vso->snap_threshold = 0.2f;
 
-	/* Add handler for the vertex sliding */
-	WM_event_add_modal_handler(C, op);
-
 	/* Notify the viewport */
 	view3d_operator_needs_opengl(C);
 
@@ -178,7 +175,14 @@ static int vtx_slide_init(bContext *C, wmOperator *op)
 	vso->obj = obedit;
 
 	/* Init frame */
-	vtx_slide_set_frame(vso);
+	if (!vtx_slide_set_frame(vso)) {
+		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex Slide: Can't find starting vertex!");
+		vtx_slide_exit(C, op);
+		return FALSE;
+	}
+
+	/* Add handler for the vertex sliding */
+	WM_event_add_modal_handler(C, op);
 
 	/* Tag for redraw */
 	ED_region_tag_redraw(vso->active_region);
@@ -196,7 +200,7 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 	BM_edge_select_set(bm, vso->sel_edge, TRUE);
 
 	/* Invoke operator */
-	edbm_vert_slide_exec(C, op);
+	edbm_vertex_slide_exec(C, op);
 
 	if (vso->snap_n_merge) {
 		float other_d;
@@ -260,6 +264,7 @@ static void vtx_slide_exit(const bContext *C, wmOperator *op)
 
 	MEM_freeN(vso);
 	vso = NULL;
+	op->customdata = NULL;
 
 	/* Clear the header */
 	ED_area_headerprint(CTX_wm_area(C), NULL);
@@ -273,7 +278,9 @@ static void vtx_slide_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	if (vso && vso->sel_edge) {
 		/* Get 3d view */
 		View3D *view3d = CTX_wm_view3d(C);
-		const int outline_w = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 1;
+		const float outline_w = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.8f;
+		const float pt_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5;
+
 		int i = 0;
 
 		if (view3d && view3d->zbuf)
@@ -286,17 +293,7 @@ static void vtx_slide_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		/* Draw selected edge
-		 * Add color offset and reduce alpha */
-		UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 50, -50);
-
-		glLineWidth(outline_w);
-
-		glBegin(GL_LINES);
-		bglVertex3fv(vso->sel_edge->v1->co);
-		bglVertex3fv(vso->sel_edge->v2->co);
-		glEnd();
+			
 
 		if (vso->slide_mode && vso->disk_edges > 0) {
 			/* Draw intermediate edge frame */
@@ -310,10 +307,21 @@ static void vtx_slide_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 			}
 		}
 
+			/* Draw selected edge
+		 * Add color offset and reduce alpha */
+		UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 40, -50);
+
+		glLineWidth(outline_w);
+
+		glBegin(GL_LINES);
+		bglVertex3fv(vso->sel_edge->v1->co);
+		bglVertex3fv(vso->sel_edge->v2->co);
+		glEnd();
+
 		if (vso->slide_mode) {
 			/* Draw interpolated vertex */
-			int pt_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 2;
-			UI_ThemeColorShadeAlpha(TH_FACE_DOT, -90, -50);
+			
+			UI_ThemeColorShadeAlpha(TH_FACE_DOT, -80, -50);
 
 			glPointSize(pt_size);
 
@@ -377,17 +385,12 @@ static void vtx_slide_find_edge(VertexSlideOp *vso, wmEvent *event)
 	if (nst_edge) {
 		/* Find a connected edge */
 		if (BM_vert_in_edge(nst_edge, vso->start_vtx)) {
-			float edge_len;
 
 			/* Save mouse coords */
 			copy_v2_v2_int(vso->m_co, event->mval);
 
 			/* Set edge */
 			vso->sel_edge = nst_edge;
-			
-			/* Set snap threshold to be proportional to edge length */
-			edge_len = len_v3v3(nst_edge->v1->co, nst_edge->v2->co);
-			vso->snap_threshold = edge_len * VTX_SLIDE_SNAP_THRSH;
 		}
 	}
 }
@@ -403,6 +406,7 @@ static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 	if (edge) {
 		float edge_other_proj[3];
 		float start_vtx_proj[3];
+		float edge_len;
 		BMVert *other;
 
 		float interp[3];
@@ -425,6 +429,16 @@ static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 		closest_to_line_v2(closest_2d, mval_float, start_vtx_proj, edge_other_proj);
 
 		t_val = line_point_factor_v2(closest_2d, start_vtx_proj, edge_other_proj);
+
+		/* Set snap threshold to be proportional to edge length */
+		edge_len = len_v3v3(start_vtx_proj, edge_other_proj);
+		
+		if (edge_len <= 0.0f)
+			edge_len = VTX_SLIDE_SNAP_THRSH;
+
+		edge_len =  (len_v3v3(edge->v1->co, edge->v2->co) * VTX_SLIDE_SNAP_THRSH) / edge_len;
+
+		vso->snap_threshold =  edge_len;
 
 		/* Snap to mid */
 		if (vso->snap_to_mid) {
@@ -463,11 +477,12 @@ static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 }
 
 /* Sets the outline frame */
-static void vtx_slide_set_frame(VertexSlideOp *vso)
+static int vtx_slide_set_frame(VertexSlideOp *vso)
 {
 	BMEdge *edge;
 	float (*vtx_frame)[3] = NULL;
 	BMEdge** edge_frame = NULL;
+	BMVert *curr_vert = NULL;
 	BLI_array_declare(vtx_frame);
 	BLI_array_declare(edge_frame);
 	BMIter iter;
@@ -491,12 +506,15 @@ static void vtx_slide_set_frame(VertexSlideOp *vso)
 	/* Iterate over edges of vertex and copy them */
 	BM_ITER_INDEX(edge, &iter, bm, BM_EDGES_OF_VERT, sel_vtx, idx)
 	{
-		BLI_array_growone(vtx_frame);
+		curr_vert = BM_edge_other_vert(edge, sel_vtx);
+		if (curr_vert) {
+			BLI_array_growone(vtx_frame);
 
-		copy_v3_v3(vtx_frame[idx], BM_edge_other_vert(edge, sel_vtx)->co);
+			copy_v3_v3(vtx_frame[idx], curr_vert->co);
 
-		BLI_array_append(edge_frame, edge);
-		vso->disk_edges++;
+			BLI_array_append(edge_frame, edge);
+			vso->disk_edges++;
+		}
 	}
 
 	vso->edge_frame = edge_frame;
@@ -504,11 +522,17 @@ static void vtx_slide_set_frame(VertexSlideOp *vso)
 
 	/* Set the interp at starting vtx */
 	copy_v3_v3(vso->interp, sel_vtx->co);
+
+	return vso->disk_edges > 0;
 }
 
-static int edbm_vert_slide_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_vertex_slide_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	VertexSlideOp *vso = op->customdata;
+	char buff[128];
+
+	if (!vso)
+		return OPERATOR_CANCELLED;
 
 	/* Notify the viewport */
 	view3d_operator_needs_opengl(C);
@@ -588,13 +612,14 @@ static int edbm_vert_slide_modal(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		case MOUSEMOVE:
 		{
+			sprintf(buff, "Vertex Slide: %f", vso->distance);
 			if (!vso->slide_mode) {
 				vtx_slide_find_edge(vso, event);
 			}
 			else {
 				vtx_slide_update(vso, event);
 			}
-
+			ED_area_headerprint(CTX_wm_area(C), buff);
 			ED_region_tag_redraw(vso->active_region);
 			break;
 		}
@@ -603,7 +628,7 @@ static int edbm_vert_slide_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int edbm_vert_slide_cancel(bContext *C, wmOperator *op)
+static int edbm_vertex_slide_cancel(bContext *C, wmOperator *op)
 {
 	/* Exit the modal */
 	vtx_slide_exit(C, op);
@@ -611,7 +636,7 @@ static int edbm_vert_slide_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int edbm_vert_slide_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int edbm_vertex_slide_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	/* Initialize the operator */
 	if (vtx_slide_init(C, op))
@@ -621,20 +646,20 @@ static int edbm_vert_slide_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 }
 
 /* Vertex Slide */
-static int edbm_vert_slide_exec(bContext *C, wmOperator *op)
+static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMVert *start_vert;
 	BMOperator bmop;
-	BMEditSelection *ese = em->bm->selected.last;
+	BMEditSelection *ese = (BMEditSelection *)em->bm->selected.last;
 
 	float distance_t = 0.0f;
 
 	/* Invoked modally? */
-	if (op->type->modal == edbm_vert_slide_modal && op->customdata) {
-		VertexSlideOp *vso = op->customdata;
+	if (op->type->modal == edbm_vertex_slide_modal && op->customdata) {
+		VertexSlideOp *vso = (VertexSlideOp *)op->customdata;
 
 		if (bm->totedgesel > 1) {
 			/* Reset selections */
@@ -644,7 +669,7 @@ static int edbm_vert_slide_exec(bContext *C, wmOperator *op)
 
 			EDBM_editselection_store(em, &vso->sel_edge->head);
 			EDBM_editselection_store(em, &vso->start_vtx->head);			
-			ese = em->bm->selected.last;
+			ese = (BMEditSelection *)em->bm->selected.last;
 		}
 		distance_t = vso->distance;
 		RNA_float_set(op->ptr, "distance_t", distance_t);
@@ -663,13 +688,16 @@ static int edbm_vert_slide_exec(bContext *C, wmOperator *op)
 	start_vert = (BMVert *)ese->ele;
 
 	/* Prepare operator */
-	if (!EDBM_op_init(em, &bmop, op, "vertslide vert=%e edge=%hev distance_t=%f", start_vert, BM_ELEM_SELECT, distance_t))  {
+	if (!EDBM_op_init(em, &bmop, op, "vertex_slide vert=%e edge=%hev distance_t=%f", start_vert, BM_ELEM_SELECT, distance_t))  {
 		return OPERATOR_CANCELLED;
 	}
 	/* Execute operator */
 	BMO_op_exec(bm, &bmop);
 
-	/* Select the edge */
+	/* Deselect the input edges */
+	BMO_slot_buffer_hflag_disable(bm, &bmop, "edge", BM_ALL, BM_ELEM_SELECT, TRUE);
+
+	/* Select the output vert */
 	BMO_slot_buffer_hflag_enable(bm, &bmop, "vertout", BM_ALL, BM_ELEM_SELECT, TRUE);
 
 	/* Flush the select buffers */
@@ -695,12 +723,12 @@ void MESH_OT_vert_slide(wmOperatorType *ot)
 	ot->description = "Vertex slide";
 
 	/* api callback */
-	ot->invoke = edbm_vert_slide_invoke;
-	ot->modal = edbm_vert_slide_modal;
-	ot->cancel = edbm_vert_slide_cancel;
+	ot->invoke = edbm_vertex_slide_invoke;
+	ot->modal = edbm_vertex_slide_modal;
+	ot->cancel = edbm_vertex_slide_cancel;
 	ot->poll = ED_operator_editmesh_region_view3d;
 
-	/* ot->exec = edbm_vert_slide_exec;
+	/* ot->exec = edbm_vertex_slide_exec;
 	 * ot->poll = ED_operator_editmesh; */
 
 	/* flags */

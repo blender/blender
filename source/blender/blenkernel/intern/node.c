@@ -1367,7 +1367,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 
 int nodeSocketIsHidden(bNodeSocket *sock)
 {
-	return ((sock->flag & (SOCK_HIDDEN | SOCK_AUTO_HIDDEN | SOCK_UNAVAIL)) != 0);
+	return ((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0);
 }
 
 void nodeSocketSetType(bNodeSocket *sock, int type)

@@ -26,6 +26,11 @@
 #include "octree.h"
 
 #include <cstdio>
+#include <float.h>
+
+#if defined(_WIN32) && !defined(__MINGW32__)
+#define isnan(n) _isnan(n)
+#endif
 
 void veccopy(float dst[3], const float src[3])
 {
@@ -111,6 +116,15 @@ public:
 		else {
 			offset = 0;
 			curface++;
+		}
+
+		/* remove triangle if it contains invalid coords */
+		for(int i = 0; i < 3; i++) {
+			const float *co = t->vt[i];
+			if(isnan(co[0]) || isnan(co[1]) || isnan(co[2])) {
+				delete t;
+				return getNextTriangle();
+			}
 		}
 
 		return t;

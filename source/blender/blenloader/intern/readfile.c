@@ -42,11 +42,11 @@
 #include <stdarg.h> /* for va_start/end */
 
 #ifndef WIN32
-	#include <unistd.h> // for read close
+#  include <unistd.h> // for read close
 #else
-	#include <io.h> // for open close read
-#include "winsock2.h"
-#include "BLI_winstuff.h"
+#  include <io.h> // for open close read
+#  include "winsock2.h"
+#  include "BLI_winstuff.h"
 #endif
 
 /* allow readfile to use deprecated functionality */
@@ -7673,32 +7673,6 @@ static void do_versions_nodetree_socket_use_flags_2_62(bNodeTree *ntree)
 	}
 }
 
-/* set the SOCK_AUTO_HIDDEN flag on collapsed nodes */
-static void do_versions_nodetree_socket_auto_hidden_flags_2_62(bNodeTree *ntree)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	
-	for (node=ntree->nodes.first; node; node=node->next) {
-		if (node->flag & NODE_HIDDEN) {
-			for (sock=node->inputs.first; sock; sock=sock->next) {
-				if (sock->link==NULL)
-					sock->flag |= SOCK_AUTO_HIDDEN;
-			}
-			for (sock=node->outputs.first; sock; sock= sock->next) {
-				if (nodeCountSocketLinks(ntree, sock)==0)
-					sock->flag |= SOCK_AUTO_HIDDEN;
-			}
-		}
-		else {
-			for (sock=node->inputs.first; sock; sock= sock->next)
-				sock->flag &= ~SOCK_AUTO_HIDDEN;
-			for (sock=node->outputs.first; sock; sock= sock->next)
-				sock->flag &= ~SOCK_AUTO_HIDDEN;
-		}
-	}
-}
-
 static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNodeTree *ntree)
 {
 	bNode *node;
@@ -13121,38 +13095,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-		{
-			/* set the SOCK_AUTO_HIDDEN flag on collapsed nodes */
-			Scene *sce;
-			Material *mat;
-			Tex *tex;
-			Lamp *lamp;
-			World *world;
-			bNodeTree *ntree;
-
-			for (sce=main->scene.first; sce; sce=sce->id.next)
-				if (sce->nodetree)
-					do_versions_nodetree_socket_auto_hidden_flags_2_62(sce->nodetree);
-
-			for (mat=main->mat.first; mat; mat=mat->id.next)
-				if (mat->nodetree)
-					do_versions_nodetree_socket_auto_hidden_flags_2_62(mat->nodetree);
-
-			for (tex=main->tex.first; tex; tex=tex->id.next)
-				if (tex->nodetree)
-					do_versions_nodetree_socket_auto_hidden_flags_2_62(tex->nodetree);
-
-			for (lamp=main->lamp.first; lamp; lamp=lamp->id.next)
-				if (lamp->nodetree)
-					do_versions_nodetree_socket_auto_hidden_flags_2_62(lamp->nodetree);
-
-			for (world=main->world.first; world; world=world->id.next)
-				if (world->nodetree)
-					do_versions_nodetree_socket_auto_hidden_flags_2_62(world->nodetree);
-
-			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
-				do_versions_nodetree_socket_auto_hidden_flags_2_62(ntree);
-		}
 	}
 
 	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 2))
@@ -13323,6 +13265,30 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+
+	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 4))
+	{
+		/* Read Viscosity presets from older files */
+		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Fluidsim) {
+					FluidsimModifierData *fmd = (FluidsimModifierData *)md;
+					if(fmd->fss->viscosityMode == 3) {
+						fmd->fss->viscosityValue = 5.0;
+						fmd->fss->viscosityExponent = 5;
+					}
+					else if(fmd->fss->viscosityMode == 4) {
+						fmd->fss->viscosityValue = 2.0;
+						fmd->fss->viscosityExponent = 3;
+					}
+				}
+			}
+		}
+	}
+
 
 
 	{

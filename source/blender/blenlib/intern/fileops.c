@@ -43,16 +43,16 @@
 
 #ifdef WIN32
 #include <io.h>
-#include "BLI_winstuff.h"
-#include "BLI_callbacks.h"
-#include "utf_winfunc.h"
-#include "utfconv.h"
+#  include "BLI_winstuff.h"
+#  include "BLI_callbacks.h"
+#  include "utf_winfunc.h"
+#  include "utfconv.h"
 #else
-#include <unistd.h> // for read close
-#include <sys/param.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <sys/stat.h>
+#  include <unistd.h> // for read close
+#  include <sys/param.h>
+#  include <dirent.h>
+#  include <unistd.h>
+#  include <sys/stat.h>
 #endif
 
 #include "MEM_guardedalloc.h"

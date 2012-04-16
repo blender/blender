@@ -51,7 +51,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "BLI_winstuff.h"
+#ifdef WIN32
+#  include "BLI_winstuff.h"
+#endif
 
 /* Extensions support */
 

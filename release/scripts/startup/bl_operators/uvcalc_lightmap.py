@@ -89,7 +89,7 @@ class prettyface(object):
 
         else:  # blender face
             uv_layer = data.id_data.uv_loop_layers.active.data
-            self.uv = [uv_layer[i].uv for i in data.loops]
+            self.uv = [uv_layer[i].uv for i in data.loop_indices]
 
             # cos = [v.co for v in data]
             cos = [data.id_data.vertices[v].co for v in data.vertices]  # XXX25
@@ -245,7 +245,7 @@ def lightmap_uvpack(meshes,
             print("\tWarning, less then 4 faces, skipping")
             continue
 
-        pretty_faces = [prettyface(f) for f in face_sel if len(f.vertices) == 4]
+        pretty_faces = [prettyface(f) for f in face_sel if f.loop_total == 4]
 
         # Do we have any triangles?
         if len(pretty_faces) != len(face_sel):
@@ -269,7 +269,7 @@ def lightmap_uvpack(meshes,
 
                 return f, lens, lens_order
 
-            tri_lengths = [trylens(f) for f in face_sel if len(f.vertices) == 3]
+            tri_lengths = [trylens(f) for f in face_sel if f.loop_total == 3]
             del trylens
 
             def trilensdiff(t1, t2):
@@ -549,7 +549,6 @@ class LightMapPack(Operator):
     '''Follow UVs from active quads along continuous face loops'''
     bl_idname = "uv.lightmap_pack"
     bl_label = "Lightmap Pack"
-    bl_options = {'REGISTER', 'UNDO'}
 
     PREF_CONTEXT = bpy.props.EnumProperty(
             name="Selection",

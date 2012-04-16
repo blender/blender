@@ -87,7 +87,7 @@ int CU_select_nth(struct Object *obedit, int nth);
 void ED_curve_beztcpy(struct EditNurb *editnurb, struct BezTriple *dst, struct BezTriple *src, int count);
 void ED_curve_bpcpy(struct EditNurb *editnurb, struct BPoint *dst, struct BPoint *src, int count);
 
-int ED_curve_updateAnimPaths(struct Object *obedit);
+int ED_curve_updateAnimPaths(struct Curve *cu);
 
 int ED_curve_actSelection(struct Curve *cu, float center[3]);
 

@@ -121,8 +121,8 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
 void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace);
-int node_has_hidden_sockets(bNode *node, short flag);
-void node_set_hidden_sockets(SpaceNode *snode, bNode *node, short flag, int set);
+int node_has_hidden_sockets(bNode *node);
+void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
 int node_render_changed_exec(bContext *, wmOperator *);
 int node_find_indicated_socket(struct SpaceNode *snode, struct bNode **nodep, struct bNodeSocket **sockp, int in_out);
 

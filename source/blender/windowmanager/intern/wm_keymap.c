@@ -1190,6 +1190,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	else if (strstr(opname, "MARKER_OT")) {
 		km = WM_keymap_find_all(C, "Markers", 0, 0);
 	}
+	/* Import/Export*/
+	else if (strstr(opname, "IMPORT_") || strstr(opname, "EXPORT_")) {
+		km = WM_keymap_find_all(C, "Window", 0, 0);
+	}
 	
 	
 	/* 3D View */

@@ -213,9 +213,9 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 					offset++;
 
 					Mesh::Triangle t = mesh->triangles[i];
-					float3 p1 = transform(&tfm, mesh->verts[t.v[0]]);
-					float3 p2 = transform(&tfm, mesh->verts[t.v[1]]);
-					float3 p3 = transform(&tfm, mesh->verts[t.v[2]]);
+					float3 p1 = transform_point(&tfm, mesh->verts[t.v[0]]);
+					float3 p2 = transform_point(&tfm, mesh->verts[t.v[1]]);
+					float3 p3 = transform_point(&tfm, mesh->verts[t.v[2]]);
 
 					totarea += triangle_area(p1, p2, p3);
 				}

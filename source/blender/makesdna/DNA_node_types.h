@@ -136,7 +136,8 @@ typedef struct bNodeSocket {
 	/* hide socket value, if it gets auto default */
 #define SOCK_HIDE_VALUE			128
 	/* socket hidden automatically, to distinguish from manually hidden */
-#define SOCK_AUTO_HIDDEN		256
+	/* DEPRECATED, only kept here to avoid reusing the flag */
+#define SOCK_AUTO_HIDDEN__DEPRECATED	256
 
 typedef struct bNodePreview {
 	unsigned char *rect;

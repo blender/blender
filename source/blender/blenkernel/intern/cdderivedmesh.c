@@ -1989,13 +1989,6 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 
-	/* any callers that need tessface data can calculate it - campbell */
-#if 0
-	/* BMESH_TODO: Find out why this is necessary (or else find a way to remove
-	 * it). If it is necessary, add a comment explaining why. */
-	CDDM_recalc_tessellation((DerivedMesh *)cddm);
-#endif
-
 	return dm;
 }
 

@@ -2791,7 +2791,7 @@ PyDoc_STRVAR(vector_doc,
 PyTypeObject vector_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	/*  For printing, in format "<module>.<name>" */
-	"mathutils.Vector",             /* char *tp_name; */
+	"Vector",             /* char *tp_name; */
 	sizeof(VectorObject),         /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 

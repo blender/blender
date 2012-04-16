@@ -28,6 +28,7 @@
  */
 
 float BM_face_area_calc(BMesh *bm, BMFace *f);
+float BM_face_perimeter_calc(BMesh *bm, BMFace *f);
 void  BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float center[3]);
 void  BM_face_center_mean_calc(BMesh *bm, BMFace *f, float center[3]);
 

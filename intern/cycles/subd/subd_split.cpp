@@ -57,7 +57,7 @@ float3 DiagSplit::project(Patch *patch, float2 uv)
 
 	patch->eval(&P, NULL, NULL, uv.x, uv.y);
 	if(camera)
-		P = transform(&camera->worldtoraster, P);
+		P = transform_perspective(&camera->worldtoraster, P);
 
 	return P;
 }

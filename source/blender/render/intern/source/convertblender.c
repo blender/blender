@@ -4675,9 +4675,7 @@ void RE_Database_Free(Render *re)
 
 	/* free orco */
 	free_mesh_orco_hash(re);
-#if 0	/* radio can be redone better */
-	end_radio_render();
-#endif
+
 	end_render_materials(re->main);
 	end_render_textures(re);
 	

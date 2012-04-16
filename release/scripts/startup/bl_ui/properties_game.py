@@ -166,7 +166,12 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             subsub.active = game.use_anisotropic_friction
             subsub.prop(game, "friction_coefficients", text="", slider=True)
 
-        elif physics_type in {'SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'}:
+        elif physics_type =='SENSOR':
+            col = layout.column()
+            col.prop(game, "use_actor", text="Detect Actors")
+            col.prop(ob, "hide_render", text="Invisible")
+
+        elif physics_type in {'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'}:
             layout.prop(ob, "hide_render", text="Invisible")
 
         elif physics_type == 'NAVMESH':

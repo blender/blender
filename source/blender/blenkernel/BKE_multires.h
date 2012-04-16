@@ -99,7 +99,7 @@ void multiresModifier_prepare_join(struct Scene *scene, struct Object *ob, struc
 int multires_mdisp_corners(struct MDisps *s);
 
 /* update multires data after topology changing */
-void multires_topology_changed(struct Scene *scene, struct Object *ob);
+void multires_topology_changed(struct Mesh *me);
 
 /**** interpolation stuff ****/
 void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v);

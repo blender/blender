@@ -2166,58 +2166,38 @@ void multiresModifier_prepare_join(Scene *scene, Object *ob, Object *to_ob)
 }
 
 /* update multires data after topology changing */
-#if 0 // BMESH_TODO
-void multires_topology_changed(Scene *scene, Object *ob)
+void multires_topology_changed(Mesh *me)
 {
-	Mesh *me= (Mesh*)ob->data;
-	MDisps *mdisp= NULL, *cur= NULL;
-	int i, grid= 0, corners;
-	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 1);
+	MDisps *mdisp = NULL, *cur = NULL;
+	int i, grid = 0;
 
-	if (mmd)
-		multires_set_tot_mdisps(me, mmd->totlvl);
+	CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totface);
+	mdisp = CustomData_get_layer(&me->ldata, CD_MDISPS);
 
-	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
-	mdisp= CustomData_get_layer(&me->fdata, CD_MDISPS);
+	if (!mdisp)
+		return;
 
-	if (!mdisp) return;
-
-	cur= mdisp;
-	for (i = 0; i < me->totface; i++, cur++) {
-		if (mdisp->totdisp) {
-			corners= multires_mdisp_corners(mdisp);
-			grid= mdisp->totdisp / corners;
+	cur = mdisp;
+	for (i = 0; i < me->totloop; i++, cur++) {
+		if (cur->totdisp) {
+			grid = mdisp->totdisp;
 
 			break;
 		}
 	}
 
-	for (i = 0; i < me->totface; i++, mdisp++) {
-		int nvert= me->mface[i].v4 ? 4 : 3;
-
+	for (i = 0; i < me->totloop; i++, mdisp++) {
 		/* allocate memory for mdisp, the whole disp layer would be erased otherwise */
 		if (!mdisp->totdisp || !mdisp->disps) {
 			if (grid) {
-				mdisp->totdisp= nvert*grid;
-				mdisp->disps= MEM_callocN(mdisp->totdisp*sizeof(float)*3, "mdisp topology");
+				mdisp->totdisp = grid;
+				mdisp->disps = MEM_callocN(3 * mdisp->totdisp * sizeof(float), "mdisp topology");
 			}
 
 			continue;
 		}
-
-		corners= multires_mdisp_corners(mdisp);
-
-		if (corners!=nvert) {
-			mdisp->totdisp= (mdisp->totdisp/corners)*nvert;
-
-			if (mdisp->disps)
-				MEM_freeN(mdisp->disps);
-
-			mdisp->disps= MEM_callocN(mdisp->totdisp*sizeof(float)*3, "mdisp topology");
-		}
 	}
 }
-#endif // BMESH_TODO
 
 /***************** Multires interpolation stuff *****************/
 

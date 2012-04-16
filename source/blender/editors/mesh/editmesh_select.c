@@ -56,6 +56,7 @@
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_uvedit.h"
 #include "ED_view3d.h"
 
 #include "BIF_gl.h"
@@ -871,12 +872,12 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Similar";
 	ot->idname = "MESH_OT_select_similar";
+	ot->description = "Select similar vertices, edges or faces by property types";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = edbm_select_similar_exec;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "Select similar vertices, edges or faces by property types";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -974,11 +975,11 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Multi Select Loops";
 	ot->idname = "MESH_OT_loop_multi_select";
+	ot->description = "Select a loop of connected edges by connection type";
 	
 	/* api callbacks */
 	ot->exec = edbm_loop_multiselect_exec;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "Select a loop of connected edges by connection type";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1079,12 +1080,11 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Loop Select";
 	ot->idname = "MESH_OT_loop_select";
-	ot->description = "Select a loop";
+	ot->description = "Select a loop of connected edges";
 	
 	/* api callbacks */
 	ot->invoke = edbm_select_loop_invoke;
 	ot->poll = ED_operator_editmesh_region_view3d;
-	ot->description = "Select a loop of connected edges";
 	
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
@@ -1221,9 +1221,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	/* note, would pass BM_EDGE except we are looping over all edges anyway */
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT /* | BM_EDGE */);
 
-	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL)
-	{
-		e->oflags[0].f = 0; /* XXX, whats this for, BMESH_TODO, double check if this is needed */
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 			BLI_smallhash_insert(&visithash, (uintptr_t)e, NULL);
 		}
@@ -1276,15 +1274,6 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	 * the same data as the cost arry, but inverted: it is a worklist of edges prioritized
 	 * by the shortest path found so far to the edge.
 	 */
-
-#if 0 /* UNUSED */ /* this block does nothing, not sure why its here? - campbell */
-	for (i = 0; i < totvert; i++) {
-		int start = nedges[i], end = nedges[i + 1], cur;
-		for (cur = start; cur < end; cur++) {
-			BMEdge *e = EDBM_edge_at_index(em, edges[cur]);
-		}
-	}
-#endif
 
 	/* regular dijkstra shortest path, but over edges instead of vertices */
 	heap = BLI_heap_new();
@@ -1399,6 +1388,7 @@ static void mouse_mesh_shortest_path(bContext *C, int mval[2])
 			
 			case EDGE_MODE_TAG_SEAM:
 				me->drawflag |= ME_DRAWSEAMS;
+				ED_uvedit_live_unwrap(vc.scene, vc.obedit);
 				break;
 			case EDGE_MODE_TAG_SHARP:
 				me->drawflag |= ME_DRAWSHARP;
@@ -1431,11 +1421,11 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Shortest Path Select";
 	ot->idname = "MESH_OT_select_shortest_path";
+	ot->description = "Select shortest path between two selections";
 	
 	/* api callbacks */
 	ot->invoke = edbm_shortest_path_select_invoke;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "Select shortest path between two selections";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1847,11 +1837,11 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked";
 	ot->idname = "MESH_OT_select_linked_pick";
+	ot->description = "(De)select all vertices linked to the edge under the mouse cursor";
 	
 	/* api callbacks */
 	ot->invoke = edbm_select_linked_pick_invoke;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "(De)select all vertices linked to the edge under the mouse cursor";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1894,7 +1884,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
 		BMW_init(&walker, bm, BMW_ISLAND,
 		         BMW_MASK_NOP, limit ? BM_ELEM_SELECT : BMW_MASK_NOP, BMW_MASK_NOP,
-		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
@@ -1945,11 +1935,11 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked All";
 	ot->idname = "MESH_OT_select_linked";
+	ot->description = "Select all vertices linked to the active mesh";
 	
 	/* api callbacks */
 	ot->exec = edbm_select_linked_exec;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "Select all vertices linked to the active mesh";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2065,7 +2055,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	/* Walk over selected elements starting at active */
 	BMW_init(&walker, bm, walktype,
 	         mask_vert, mask_edge, mask_face,
-	         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+	         BMW_FLAG_NOP, /* don't use BMW_FLAG_TEST_HIDDEN here since we want to desel all */
 	         BMW_NIL_LAY);
 
 	BLI_assert(walker.order == BMW_BREADTH_FIRST);
@@ -2185,8 +2175,8 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Nth";
-	ot->description = "";
 	ot->idname = "MESH_OT_select_nth";
+	ot->description = "Select every Nth element starting from a selected vertex, edge or face";
 
 	/* api callbacks */
 	ot->exec = edbm_select_nth_exec;
@@ -2511,7 +2501,7 @@ void MESH_OT_select_next_loop(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Next Loop";
 	ot->idname = "MESH_OT_select_next_loop";
-	ot->description = "";
+	ot->description = "Select next edge loop adjacent to a selected loop";
 
 	/* api callbacks */
 	ot->exec = edbm_select_next_loop_exec;
@@ -2579,6 +2569,7 @@ void MESH_OT_region_to_loop(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Boundary Loop";
 	ot->idname = "MESH_OT_region_to_loop";
+	ot->description = "Select boundary edges around the selected faces";
 
 	/* api callbacks */
 	ot->exec = edbm_region_to_loop_exec;
@@ -2760,6 +2751,7 @@ void MESH_OT_loop_to_region(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Loop Inner-Region";
 	ot->idname = "MESH_OT_loop_to_region";
+	ot->description = "Select region of faces inside of a selected loop of edges";
 
 	/* api callbacks */
 	ot->exec = edbm_loop_to_region_exec;

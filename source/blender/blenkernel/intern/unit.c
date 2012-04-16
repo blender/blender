@@ -34,7 +34,10 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_winstuff.h"
+
+#ifdef WIN32
+#  include "BLI_winstuff.h"
+#endif
 
 #define TEMP_STR_SIZE 256
 

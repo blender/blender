@@ -1610,7 +1610,7 @@ static void rnd_offset_co(float co[3], float scale)
 	int i;
 
 	for (i = 0; i < 3; i++) {
-		co[i] += (BLI_drand() - 0.5) * scale;
+		co[i] += (BLI_frand() - 0.5) * scale;
 	}
 }
 
@@ -1809,6 +1809,8 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		}
 	}
 
+	BLI_srand(0);
+
 	for (i = 0; i < totface; i++) {
 		SmallHash *hash = &shash;
 		ScanFillFace *efa;
@@ -1822,11 +1824,11 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		if (face_nets[i].first)
 			BMO_elem_flag_enable(bm, f, DEL);
 
-		BLI_begin_edgefill();
+		BLI_begin_edgefill(&sf_ctx);
 
 		for (entry = face_nets[i].first; entry; entry = entry->next) {
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v1)) {
-				eve = BLI_addfillvert(entry->kfe->v1->v->co);
+				eve = BLI_addfillvert(&sf_ctx, entry->kfe->v1->v->co);
 				eve->poly_nr = 0;
 				rnd_offset_co(eve->co, rndscale);
 				eve->tmp.p = entry->kfe->v1->v;
@@ -1834,7 +1836,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			}
 
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v2)) {
-				eve = BLI_addfillvert(entry->kfe->v2->v->co);
+				eve = BLI_addfillvert(&sf_ctx, entry->kfe->v2->v->co);
 				eve->poly_nr = 0;
 				rnd_offset_co(eve->co, rndscale);
 				eve->tmp.p = entry->kfe->v2->v;
@@ -1856,7 +1858,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 
 			if (eve->poly_nr > 1 && lasteve->poly_nr > 1) {
 				ScanFillEdge *eed;
-				eed = BLI_addfilledge(lasteve, eve);
+				eed = BLI_addfilledge(&sf_ctx, lasteve, eve);
 				if (entry->kfe->oe)
 					eed->f = FILLBOUNDARY;  /* mark as original boundary edge */
 
@@ -1871,7 +1873,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			}
 		}
 
-		BLI_edgefill(0);
+		BLI_edgefill(&sf_ctx, FALSE);
 
 		for (efa = fillfacebase.first; efa; efa = efa->next) {
 			BMVert *v1 = efa->v3->tmp.p, *v2 = efa->v2->tmp.p, *v3 = efa->v1->tmp.p;

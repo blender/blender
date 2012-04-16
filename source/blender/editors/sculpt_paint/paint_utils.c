@@ -388,8 +388,6 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 	ot->exec = brush_curve_preset_exec;
 	ot->poll = brush_curve_preset_poll;
 
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
 	RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
 }
 

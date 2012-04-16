@@ -147,7 +147,7 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType *))
 	ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna = RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
-	RNA_def_struct_translation_context(ot->srna, WM_OPERATOR_DEFAULT_I18NCONTEXT);
+	RNA_def_struct_translation_context(ot->srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 	opfunc(ot);
 
 	if (ot->name == NULL) {
@@ -169,7 +169,7 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *, void *), void *
 	ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna = RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
-	RNA_def_struct_translation_context(ot->srna, WM_OPERATOR_DEFAULT_I18NCONTEXT);
+	RNA_def_struct_translation_context(ot->srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 	opfunc(ot, userdata);
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description : N_("(undocumented operator)"));
 	RNA_def_struct_identifier(ot->srna, ot->idname);
@@ -371,7 +371,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
 	RNA_def_struct_identifier(ot->srna, ot->idname);
-	RNA_def_struct_translation_context(ot->srna, WM_OPERATOR_DEFAULT_I18NCONTEXT);
+	RNA_def_struct_translation_context(ot->srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 
 	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 
@@ -396,7 +396,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *, void *), 
 		ot->description = N_("(undocumented operator)");
 
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
-	RNA_def_struct_translation_context(ot->srna, WM_OPERATOR_DEFAULT_I18NCONTEXT);
+	RNA_def_struct_translation_context(ot->srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 	opfunc(ot, userdata);
 
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
@@ -2147,6 +2147,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 static void WM_OT_collada_export(wmOperatorType *ot)
 {
 	ot->name = "Export COLLADA";
+	ot->description = "Save a Collada file";
 	ot->idname = "WM_OT_collada_export";
 	
 	ot->invoke = wm_collada_export_invoke;
@@ -2181,6 +2182,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 static void WM_OT_collada_import(wmOperatorType *ot)
 {
 	ot->name = "Import COLLADA";
+	ot->description = "Load a Collada file";
 	ot->idname = "WM_OT_collada_import";
 	
 	ot->invoke = WM_operator_filesel;
@@ -2237,9 +2239,11 @@ static int wm_console_toggle_op(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 static void WM_OT_console_toggle(wmOperatorType *ot)
 {
-	ot->name = "Toggle System Console";
+	/* XXX Have to mark these for xgettext, as under linux they do not exists...
+	 *     And even worth, have to give the context as text, as xgettext doesn’t expand macros. :( */
+	ot->name = CTX_N_("Operator"/* BLF_I18NCONTEXT_OPERATOR_DEFAULT */, "Toggle System Console");
 	ot->idname = "WM_OT_console_toggle";
-	ot->description = "Toggle System Console";
+	ot->description = N_("Toggle System Console");
 	
 	ot->exec = wm_console_toggle_op;
 	ot->poll = WM_operator_winactive;

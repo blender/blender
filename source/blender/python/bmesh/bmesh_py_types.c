@@ -1400,6 +1400,21 @@ static PyObject *bpy_bmface_calc_area(BPy_BMFace *self)
 }
 
 
+PyDoc_STRVAR(bpy_bmface_calc_perimeter_doc,
+".. method:: calc_perimeter()\n"
+"\n"
+"   Return the perimeter of the face.\n"
+"\n"
+"   :return: Return the perimeter of the face.\n"
+"   :rtype: float\n"
+);
+static PyObject *bpy_bmface_calc_perimeter(BPy_BMFace *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyFloat_FromDouble(BM_face_perimeter_calc(self->bm, self->f));
+}
+
+
 PyDoc_STRVAR(bpy_bmface_calc_center_mean_doc,
 ".. method:: calc_center_median()\n"
 "\n"
@@ -2081,6 +2096,7 @@ static struct PyMethodDef bpy_bmface_methods[] = {
     {"copy", (PyCFunction)bpy_bmface_copy, METH_VARARGS|METH_KEYWORDS, bpy_bmface_copy_doc},
 
     {"calc_area",          (PyCFunction)bpy_bmface_calc_area,          METH_NOARGS, bpy_bmface_calc_area_doc},
+    {"calc_perimeter",     (PyCFunction)bpy_bmface_calc_perimeter,     METH_NOARGS, bpy_bmface_calc_perimeter_doc},
     {"calc_center_median", (PyCFunction)bpy_bmface_calc_center_mean,   METH_NOARGS, bpy_bmface_calc_center_mean_doc},
     {"calc_center_bounds", (PyCFunction)bpy_bmface_calc_center_bounds, METH_NOARGS, bpy_bmface_calc_center_bounds_doc},
 

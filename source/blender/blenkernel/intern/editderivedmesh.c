@@ -120,6 +120,8 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 	BMLoop *l;
 	int i = 0, j;
 
+	ScanFillContext sf_ctx;
+
 #if 0
 	/* note, we could be clever and re-use this array but would need to ensure
 	 * its realloced at some point, for now just free it */
@@ -195,18 +197,18 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 			ScanFillFace *efa;
 			int totfilltri;
 
-			BLI_begin_edgefill();
+			BLI_begin_edgefill(&sf_ctx);
 			/*scanfill time*/
 			l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 			for (j=0; l; l=BM_iter_step(&liter), j++) {
 				/*mark order*/
 				BM_elem_index_set(l, j); /* set_loop */
 
-				v = BLI_addfillvert(l->v->co);
+				v = BLI_addfillvert(&sf_ctx, l->v->co);
 				v->tmp.p = l;
 
 				if (lastv) {
-					/* e = */ BLI_addfilledge(lastv, v);
+					/* e = */ BLI_addfilledge(&sf_ctx, lastv, v);
 				}
 
 				lastv = v;
@@ -214,12 +216,12 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 			}
 
 			/*complete the loop*/
-			BLI_addfilledge(firstv, v);
+			BLI_addfilledge(&sf_ctx, firstv, v);
 
-			totfilltri = BLI_edgefill(2);
+			totfilltri = BLI_edgefill(&sf_ctx, FALSE);
 			BLI_array_growitems(looptris, totfilltri);
 
-			for (efa = fillfacebase.first; efa; efa=efa->next) {
+			for (efa = sf_ctx.fillfacebase.first; efa; efa=efa->next) {
 				BMLoop *l1= efa->v1->tmp.p;
 				BMLoop *l2= efa->v2->tmp.p;
 				BMLoop *l3= efa->v3->tmp.p;
@@ -234,7 +236,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 				i += 1;
 			}
 
-			BLI_end_edgefill();
+			BLI_end_edgefill(&sf_ctx);
 		}
 	}
 
@@ -1492,35 +1494,49 @@ static void *emDM_getTessFaceDataArray(DerivedMesh *dm, int type)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMesh *bm= bmdm->tc->bm;
-	BMFace *efa;
-	char *data, *bmdata;
 	void *datalayer;
-	int index /*, offset*/ /*UNUSED */, size, i;
 
 	datalayer = DM_get_tessface_data_layer(dm, type);
 	if (datalayer)
 		return datalayer;
 
-	/* layers are store per face for editmesh, we convert to a tbmporary
+	/* layers are store per face for editmesh, we convert to a temporary
 	 * data layer array in the derivedmesh when these are requested */
 	if (type == CD_MTFACE || type == CD_MCOL) {
-		index = CustomData_get_layer_index(&bm->pdata, type);
+		const int type_from = (type == CD_MTFACE) ? CD_MTEXPOLY : CD_MLOOPCOL;
+		int index;
+		char *data, *bmdata;
+		index = CustomData_get_layer_index(&bm->pdata, type_from);
 
 		if (index != -1) {
 			/* offset = bm->pdata.layers[index].offset; */ /* UNUSED */
-			size = CustomData_sizeof(type);
+			const int size = CustomData_sizeof(type);
+			int i, j;
 
 			DM_add_tessface_layer(dm, type, CD_CALLOC, NULL);
 			index = CustomData_get_layer_index(&dm->faceData, type);
 			dm->faceData.layers[index].flag |= CD_FLAG_TEMPORARY;
 
 			data = datalayer = DM_get_tessface_data_layer(dm, type);
-			for (i=0; i<bmdm->tc->tottri; i++, data+=size) {
-				efa = bmdm->tc->looptris[i][0]->f;
-				/* BMESH_TODO: need to still add tface data,
-				 * derived from the loops.*/
-				bmdata = CustomData_bmesh_get(&bm->pdata, efa->head.data, type);
-				memcpy(data, bmdata, size);
+
+			if (type == CD_MTFACE) {
+				for (i = 0; i < bmdm->tc->tottri; i++, data += size) {
+					BMFace *efa = bmdm->tc->looptris[i][0]->f;
+					bmdata = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+					ME_MTEXFACE_CPY(((MTFace *)data), ((MTexPoly *)bmdata));
+					for (j = 0; j < 3; j++) {
+						bmdata = CustomData_bmesh_get(&bm->ldata, bmdm->tc->looptris[i][j]->head.data, CD_MLOOPUV);
+						copy_v2_v2(((MTFace *)data)->uv[j], ((MLoopUV *)bmdata)->uv);
+					}
+				}
+			}
+			else {
+				for (i = 0; i < bmdm->tc->tottri; i++, data += size) {
+					for (j = 0; j < 3; j++) {
+						bmdata = CustomData_bmesh_get(&bm->ldata, bmdm->tc->looptris[i][j]->head.data, CD_MLOOPCOL);
+						MESH_MLOOPCOL_TO_MCOL(((MLoopCol *)bmdata), (((MCol *)data) + j));
+					}
+				}
 			}
 		}
 	}

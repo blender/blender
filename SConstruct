@@ -251,6 +251,7 @@ if 'blenderlite' in B.targets:
     target_env_defs['WITH_BF_REDCODE'] = False
     target_env_defs['WITH_BF_DDS'] = False
     target_env_defs['WITH_BF_CINEON'] = False
+    target_env_defs['WITH_BF_FRAMESERVER'] = False
     target_env_defs['WITH_BF_HDR'] = False
     target_env_defs['WITH_BF_ZLIB'] = False
     target_env_defs['WITH_BF_SDL'] = False
@@ -261,6 +262,7 @@ if 'blenderlite' in B.targets:
     target_env_defs['BF_BUILDINFO'] = False
     target_env_defs['WITH_BF_FLUID'] = False
     target_env_defs['WITH_BF_OCEANSIM'] = False
+    target_env_defs['WITH_BF_SMOKE'] = False
     target_env_defs['WITH_BF_DECIMATE'] = False
     target_env_defs['WITH_BF_BOOLEAN'] = False
     target_env_defs['WITH_BF_REMESH'] = False

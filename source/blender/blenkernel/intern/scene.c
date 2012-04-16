@@ -123,6 +123,12 @@ Scene *copy_scene(Scene *sce, int type)
 		lb= scen->r.layers;
 		scen->r= sce->r;
 		scen->r.layers= lb;
+		scen->unit= sce->unit;
+		scen->physics_settings= sce->physics_settings;
+		scen->gm= sce->gm;
+		scen->audio= sce->audio;
+
+		MEM_freeN(scen->toolsettings);
 	}
 	else {
 		scen= copy_libblock(&sce->id);
@@ -137,37 +143,9 @@ Scene *copy_scene(Scene *sce, int type)
 		scen->ed= NULL;
 		scen->theDag= NULL;
 		scen->obedit= NULL;
-		scen->toolsettings= MEM_dupallocN(sce->toolsettings);
 		scen->stats= NULL;
 		scen->fps_info= NULL;
 
-		ts= scen->toolsettings;
-		if (ts) {
-			if (ts->vpaint) {
-				ts->vpaint= MEM_dupallocN(ts->vpaint);
-				ts->vpaint->paintcursor= NULL;
-				ts->vpaint->vpaint_prev= NULL;
-				ts->vpaint->wpaint_prev= NULL;
-				copy_paint(&ts->vpaint->paint, &ts->vpaint->paint);
-			}
-			if (ts->wpaint) {
-				ts->wpaint= MEM_dupallocN(ts->wpaint);
-				ts->wpaint->paintcursor= NULL;
-				ts->wpaint->vpaint_prev= NULL;
-				ts->wpaint->wpaint_prev= NULL;
-				copy_paint(&ts->wpaint->paint, &ts->wpaint->paint);
-			}
-			if (ts->sculpt) {
-				ts->sculpt= MEM_dupallocN(ts->sculpt);
-				copy_paint(&ts->sculpt->paint, &ts->sculpt->paint);
-			}
-
-			copy_paint(&ts->imapaint.paint, &ts->imapaint.paint);
-			ts->imapaint.paintcursor= NULL;
-
-			ts->particle.paintcursor= NULL;
-		}
-		
 		BLI_duplicatelist(&(scen->markers), &(sce->markers));
 		BLI_duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
 		BLI_duplicatelist(&(scen->r.layers), &(sce->r.layers));
@@ -187,6 +165,35 @@ Scene *copy_scene(Scene *sce, int type)
 			obase= obase->next;
 			base= base->next;
 		}
+	}
+
+	/* tool settings */
+	scen->toolsettings= MEM_dupallocN(sce->toolsettings);
+
+	ts= scen->toolsettings;
+	if (ts) {
+		if (ts->vpaint) {
+			ts->vpaint= MEM_dupallocN(ts->vpaint);
+			ts->vpaint->paintcursor= NULL;
+			ts->vpaint->vpaint_prev= NULL;
+			ts->vpaint->wpaint_prev= NULL;
+			copy_paint(&ts->vpaint->paint, &ts->vpaint->paint);
+		}
+		if (ts->wpaint) {
+			ts->wpaint= MEM_dupallocN(ts->wpaint);
+			ts->wpaint->paintcursor= NULL;
+			ts->wpaint->vpaint_prev= NULL;
+			ts->wpaint->wpaint_prev= NULL;
+			copy_paint(&ts->wpaint->paint, &ts->wpaint->paint);
+		}
+		if (ts->sculpt) {
+			ts->sculpt= MEM_dupallocN(ts->sculpt);
+			copy_paint(&ts->sculpt->paint, &ts->sculpt->paint);
+		}
+
+		copy_paint(&ts->imapaint.paint, &ts->imapaint.paint);
+		ts->imapaint.paintcursor= NULL;
+		ts->particle.paintcursor= NULL;
 	}
 	
 	/* make a private copy of the avicodecdata */
