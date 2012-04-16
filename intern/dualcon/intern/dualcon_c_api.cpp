@@ -26,6 +26,11 @@
 #include "octree.h"
 
 #include <cstdio>
+#include <float.h>
+
+#if defined(_WIN32) && !defined(__MINGW32__)
+#define isnan(n) _isnan(n)
+#endif
 
 void veccopy(float dst[3], const float src[3])
 {
