@@ -119,7 +119,7 @@ void RenderBuffers::reset(Device *device, BufferParams& params_)
 	
 	for(x=0; x<width; x++)
 		for(y=0; y<height; y++)
-			init_state[x + y*width] = hash_int_2d(x, y);
+			init_state[x + y*width] = hash_int_2d(params.full_x+x, params.full_y+y);
 
 	device->mem_alloc(rng_state, MEM_READ_WRITE);
 	device->mem_copy_to(rng_state);
