@@ -153,6 +153,8 @@ void BlenderSync::sync_integrator()
 	integrator->transparent_shadows = get_boolean(cscene, "use_transparent_shadows");
 
 	integrator->no_caustics = get_boolean(cscene, "no_caustics");
+	integrator->blur_glossy = get_float(cscene, "blur_glossy");
+
 	integrator->seed = get_int(cscene, "seed");
 
 	integrator->layer_flag = render_layer.layer;

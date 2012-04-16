@@ -87,11 +87,11 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "diffuse_bounces", text="Diffuse")
         sub.prop(cscene, "glossy_bounces", text="Glossy")
         sub.prop(cscene, "transmission_bounces", text="Transmission")
-        sub.prop(cscene, "no_caustics")
 
-        #row = col.row()
-        #row.prop(cscene, "blur_caustics")
-        #row.active = not cscene.no_caustics
+        col.separator()
+
+        col.prop(cscene, "no_caustics")
+        col.prop(cscene, "blur_glossy")
 
 
 class CyclesRender_PT_film(CyclesButtonsPanel, Panel):

@@ -223,6 +223,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 	path_radiance_init(&L, kernel_data.film.use_light_pass);
 
+	float min_ray_pdf = FLT_MAX;
 	float ray_pdf = 0.0f;
 	PathState state;
 	int rng_offset = PRNG_BASE_NUM;
@@ -259,6 +260,18 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 		kernel_write_data_passes(kg, buffer, &L, &sd, sample, state.flag, throughput);
 
+		/* blurring of bsdf after bounces, for rays that have a small likelihood
+		   of following this particular path (diffuse, rough glossy) */
+		if(kernel_data.integrator.blur_glossy != FLT_MAX) {
+			float blur_pdf = kernel_data.integrator.blur_glossy*min_ray_pdf;
+
+			if(blur_pdf < 1.0f) {
+				float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;
+				shader_bsdf_blur(kg, &sd, blur_roughness);
+			}
+		}
+
+		/* holdout */
 #ifdef __HOLDOUT__
 		if((sd.flag & SD_HOLDOUT) && (state.flag & PATH_RAY_CAMERA)) {
 			float3 holdout_weight = shader_holdout_eval(kg, &sd);
@@ -378,8 +391,10 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 		path_radiance_bsdf_bounce(&L, &throughput, &bsdf_eval, bsdf_pdf, state.bounce, label);
 
 		/* set labels */
-		if(!(label & LABEL_TRANSPARENT))
+		if(!(label & LABEL_TRANSPARENT)) {
 			ray_pdf = bsdf_pdf;
+			min_ray_pdf = fminf(bsdf_pdf, min_ray_pdf);
+		}
 
 		/* update path state */
 		path_state_next(kg, &state, label);
