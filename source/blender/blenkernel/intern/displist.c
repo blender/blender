@@ -416,6 +416,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 
 void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 {
+	ScanFillContext sf_ctx;
 	ScanFillVert *eve, *v1, *vlast;
 	ScanFillFace *efa;
 	DispList *dlnew=NULL, *dl;
@@ -431,7 +432,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 		totvert= 0;
 		nextcol= 0;
 		
-		BLI_begin_edgefill();
+		BLI_begin_edgefill(&sf_ctx);
 		
 		dl= dispbase->first;
 		while (dl) {
@@ -448,18 +449,18 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 						while (a--) {
 							vlast= eve;
 
-							eve= BLI_addfillvert(f1);
+							eve = BLI_addfillvert(&sf_ctx, f1);
 							totvert++;
 
 							if (vlast==NULL) v1= eve;
 							else {
-								BLI_addfilledge(vlast, eve);
+								BLI_addfilledge(&sf_ctx, vlast, eve);
 							}
 							f1+=3;
 						}
 
 						if (eve!=NULL && v1!=NULL) {
-							BLI_addfilledge(eve, v1);
+							BLI_addfilledge(&sf_ctx, eve, v1);
 						}
 					}
 					else if (colnr<dl->col) {
@@ -472,7 +473,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 			dl= dl->next;
 		}
 		
-		if (totvert && (tot= BLI_edgefill(FALSE))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
+		if (totvert && (tot= BLI_edgefill(&sf_ctx, FALSE))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
 			if (tot) {
 				dlnew= MEM_callocN(sizeof(DispList), "filldisplist");
 				dlnew->type= DL_INDEX3;
@@ -486,7 +487,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 				/* vert data */
 				f1= dlnew->verts;
 				totvert= 0;
-				eve= fillvertbase.first;
+				eve= sf_ctx.fillvertbase.first;
 				while (eve) {
 					copy_v3_v3(f1, eve->co);
 					f1+= 3;
@@ -499,7 +500,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 				}
 				
 				/* index data */
-				efa= fillfacebase.first;
+				efa = sf_ctx.fillfacebase.first;
 				index= dlnew->index;
 				while (efa) {
 					index[0]= (intptr_t)efa->v1->tmp.l;
@@ -517,7 +518,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 			BLI_addhead(to, dlnew);
 			
 		}
-		BLI_end_edgefill();
+		BLI_end_edgefill(&sf_ctx);
 
 		if (nextcol) {
 			/* stay at current char but fill polys with next material */

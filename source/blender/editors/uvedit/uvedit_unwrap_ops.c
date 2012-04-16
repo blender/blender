@@ -186,6 +186,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
                                            short implicit, short fill, short sel,
                                            short correct_aspect)
 {
+	ScanFillContext sf_ctx;
 	ParamHandle *handle;
 	BMFace *efa;
 	BMLoop *l;
@@ -261,13 +262,13 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		}
 		else {
 			/* ngon - scanfill time! */
-			BLI_begin_edgefill();
+			BLI_begin_edgefill(&sf_ctx);
 			
 			firstv = lastv = NULL;
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				int i;
 				
-				v = BLI_addfillvert(l->v->co);
+				v = BLI_addfillvert(&sf_ctx, l->v->co);
 				
 				/* add small random offset */
 				for (i = 0; i < 3; i++) {
@@ -277,7 +278,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 				v->tmp.p = l;
 
 				if (lastv) {
-					BLI_addfilledge(lastv, v);
+					BLI_addfilledge(&sf_ctx, lastv, v);
 				}
 
 				lastv = v;
@@ -285,10 +286,10 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 					firstv = v;
 			}
 
-			BLI_addfilledge(firstv, v);
+			BLI_addfilledge(&sf_ctx, firstv, v);
 
-			BLI_edgefill(TRUE);
-			for (sefa = fillfacebase.first; sefa; sefa = sefa->next) {
+			BLI_edgefill(&sf_ctx, TRUE);
+			for (sefa = sf_ctx.fillfacebase.first; sefa; sefa = sefa->next) {
 				ls[0] = sefa->v1->tmp.p;
 				ls[1] = sefa->v2->tmp.p;
 				ls[2] = sefa->v3->tmp.p;
@@ -305,7 +306,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 				param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
 			}
 
-			BLI_end_edgefill();
+			BLI_end_edgefill(&sf_ctx);
 		}
 	}
 

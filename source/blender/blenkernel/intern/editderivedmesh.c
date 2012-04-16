@@ -120,6 +120,8 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 	BMLoop *l;
 	int i = 0, j;
 
+	ScanFillContext sf_ctx;
+
 #if 0
 	/* note, we could be clever and re-use this array but would need to ensure
 	 * its realloced at some point, for now just free it */
@@ -195,18 +197,18 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 			ScanFillFace *efa;
 			int totfilltri;
 
-			BLI_begin_edgefill();
+			BLI_begin_edgefill(&sf_ctx);
 			/*scanfill time*/
 			l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 			for (j=0; l; l=BM_iter_step(&liter), j++) {
 				/*mark order*/
 				BM_elem_index_set(l, j); /* set_loop */
 
-				v = BLI_addfillvert(l->v->co);
+				v = BLI_addfillvert(&sf_ctx, l->v->co);
 				v->tmp.p = l;
 
 				if (lastv) {
-					/* e = */ BLI_addfilledge(lastv, v);
+					/* e = */ BLI_addfilledge(&sf_ctx, lastv, v);
 				}
 
 				lastv = v;
@@ -214,12 +216,12 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 			}
 
 			/*complete the loop*/
-			BLI_addfilledge(firstv, v);
+			BLI_addfilledge(&sf_ctx, firstv, v);
 
-			totfilltri = BLI_edgefill(FALSE);
+			totfilltri = BLI_edgefill(&sf_ctx, FALSE);
 			BLI_array_growitems(looptris, totfilltri);
 
-			for (efa = fillfacebase.first; efa; efa=efa->next) {
+			for (efa = sf_ctx.fillfacebase.first; efa; efa=efa->next) {
 				BMLoop *l1= efa->v1->tmp.p;
 				BMLoop *l2= efa->v2->tmp.p;
 				BMLoop *l3= efa->v3->tmp.p;
@@ -234,7 +236,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 				i += 1;
 			}
 
-			BLI_end_edgefill();
+			BLI_end_edgefill(&sf_ctx);
 		}
 	}
 

@@ -25,11 +25,12 @@
  */
 
 #include "MEM_guardedalloc.h"
+#include "DNA_listBase.h"
 
-#include "BLI_scanfill.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
 #include "BLI_smallhash.h"
+#include "BLI_scanfill.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
@@ -164,6 +165,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMEdge *e;
 	BMOperator bmop;
+	ScanFillContext sf_ctx;
 	/* ScanFillEdge *eed; */ /* UNUSED */
 	ScanFillVert *eve, *v1, *v2;
 	ScanFillFace *efa;
@@ -171,32 +173,32 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
 	BLI_smallhash_init(&hash);
 	
-	BLI_begin_edgefill();
+	BLI_begin_edgefill(&sf_ctx);
 	
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 		BMO_elem_flag_enable(bm, e, EDGE_MARK);
 		
 		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v1)) {
-			eve = BLI_addfillvert(e->v1->co);
+			eve = BLI_addfillvert(&sf_ctx, e->v1->co);
 			eve->tmp.p = e->v1;
 			BLI_smallhash_insert(&hash, (uintptr_t)e->v1, eve);
 		}
 		
 		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v2)) {
-			eve = BLI_addfillvert(e->v2->co);
+			eve = BLI_addfillvert(&sf_ctx, e->v2->co);
 			eve->tmp.p = e->v2;
 			BLI_smallhash_insert(&hash, (uintptr_t)e->v2, eve);
 		}
 		
 		v1 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v1);
 		v2 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v2);
-		/* eed = */ BLI_addfilledge(v1, v2);
+		/* eed = */ BLI_addfilledge(&sf_ctx, v1, v2);
 		/* eed->tmp.p = e; */ /* UNUSED */
 	}
 	
-	BLI_edgefill(FALSE);
+	BLI_edgefill(&sf_ctx, FALSE);
 	
-	for (efa = fillfacebase.first; efa; efa = efa->next) {
+	for (efa = sf_ctx.fillfacebase.first; efa; efa = efa->next) {
 		BMFace *f = BM_face_create_quad_tri(bm,
 		                                    efa->v1->tmp.p, efa->v2->tmp.p, efa->v3->tmp.p, NULL,
 		                                    NULL, TRUE);
@@ -211,7 +213,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BLI_end_edgefill();
+	BLI_end_edgefill(&sf_ctx);
 	BLI_smallhash_release(&hash);
 	
 	/* clean up fill */

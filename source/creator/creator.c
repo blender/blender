@@ -59,7 +59,6 @@
 
 #include "BLI_args.h"
 #include "BLI_threads.h"
-#include "BLI_scanfill.h" /* for BLI_setErrorCallBack, TODO, move elsewhere */
 #include "BLI_utildefines.h"
 #include "BLI_callbacks.h"
 
@@ -102,6 +101,8 @@
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
+
+#include "BLI_scanfill.h" /* for BLI_setErrorCallBack, TODO, move elsewhere */
 
 #ifdef WITH_BUILDINFO_HEADER
 #define BUILD_DATE
