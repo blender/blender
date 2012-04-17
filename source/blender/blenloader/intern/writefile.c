@@ -204,7 +204,7 @@ static WriteData *writedata_new(int file)
 	return wd;
 }
 
-static void writedata_do_write(WriteData *wd, void *mem, int memlen)
+static void writedata_do_write(WriteData *wd, const void *mem, int memlen)
 {
 	if ((wd == NULL) || wd->error || (mem == NULL) || memlen < 1) return;
 	if (wd->error) return;
@@ -239,7 +239,7 @@ static void writedata_free(WriteData *wd)
  
 #define MYWRITE_FLUSH		NULL
 
-static void mywrite( WriteData *wd, void *adr, int len)
+static void mywrite( WriteData *wd, const void *adr, int len)
 {
 	if (wd->error) return;
 
@@ -265,7 +265,7 @@ static void mywrite( WriteData *wd, void *adr, int len)
 		do {
 			int writelen= MIN2(len, MYWRITE_MAX_CHUNK);
 			writedata_do_write(wd, adr, writelen);
-			adr = (char*)adr + writelen;
+			adr = (const char *)adr + writelen;
 			len -= writelen;
 		} while (len > 0);
 
@@ -354,22 +354,22 @@ static void writestruct(WriteData *wd, int filecode, const char *structname, int
 	mywrite(wd, adr, bh.len);
 }
 
-static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not use for structs */
+static void writedata(WriteData *wd, int filecode, int len, const void *adr)  /* do not use for structs */
 {
 	BHead bh;
 
 	if (adr==NULL) return;
 	if (len==0) return;
 
-	len+= 3;
-	len-= ( len % 4);
+	len += 3;
+	len -= (len % 4);
 
 	/* init BHead */
-	bh.code= filecode;
-	bh.old= adr;
-	bh.nr= 1;
-	bh.SDNAnr= 0;
-	bh.len= len;
+	bh.code   = filecode;
+	bh.old    = (void *)adr;  /* this is safe to cast from const */
+	bh.nr     = 1;
+	bh.SDNAnr = 0;
+	bh.len    = len;
 
 	mywrite(wd, &bh, sizeof(BHead));
 	if (len) mywrite(wd, adr, len);
@@ -2764,7 +2764,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
  * second are an RGBA image (unsigned char)
  * note, this uses 'TEST' since new types will segfault on file load for older blender versions.
  */
-static void write_thumb(WriteData *wd, int *img)
+static void write_thumb(WriteData *wd, const int *img)
 {
 	if (img)
 		writedata(wd, TEST, (2 + img[0] * img[1]) * sizeof(int), img);
@@ -2772,7 +2772,7 @@ static void write_thumb(WriteData *wd, int *img)
 
 /* if MemFile * there's filesave to memory */
 static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFile *current, 
-							 int write_user_block, int write_flags, int *thumb)
+                             int write_user_block, int write_flags, const int *thumb)
 {
 	BHead bhead;
 	ListBase mainlist;
@@ -2880,7 +2880,7 @@ static int do_history(const char *name, ReportList *reports)
 }
 
 /* return: success (1) */
-int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportList *reports, int *thumb)
+int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportList *reports, const int *thumb)
 {
 	char userfilename[FILE_MAX];
 	char tempname[FILE_MAX+1];

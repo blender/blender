@@ -85,9 +85,11 @@ void BLO_merge_memfile(MemFile *first, MemFile *second)
 	BLO_free_memfile(first);
 }
 
-static int my_memcmp(int *mem1, int *mem2, int len)
+static int my_memcmp(const int *mem1, const int *mem2, const int len)
 {
-	register int a= len, *mema= mem1, *memb= mem2;
+	register int a = len;
+	register const int *mema = mem1;
+	register const int *memb = mem2;
 	
 	while (a--) {
 		if ( *mema != *memb) return 1;
@@ -97,7 +99,7 @@ static int my_memcmp(int *mem1, int *mem2, int len)
 	return 0;
 }
 
-void add_memfilechunk(MemFile *compare, MemFile *current, char *buf, unsigned int size)
+void add_memfilechunk(MemFile *compare, MemFile *current, const char *buf, unsigned int size)
 {
 	static MemFileChunk *compchunk=NULL;
 	MemFileChunk *curchunk;
@@ -121,7 +123,7 @@ void add_memfilechunk(MemFile *compare, MemFile *current, char *buf, unsigned in
 	/* we compare compchunk with buf */
 	if (compchunk) {
 		if (compchunk->size == curchunk->size) {
-			if ( my_memcmp((int *)compchunk->buf, (int *)buf, size/4)==0) {
+			if (my_memcmp((int *)compchunk->buf, (const int *)buf, size / 4) == 0) {
 				curchunk->buf= compchunk->buf;
 				curchunk->ident= 1;
 			}
