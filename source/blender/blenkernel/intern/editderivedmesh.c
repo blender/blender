@@ -1628,8 +1628,6 @@ DerivedMesh *getEditDerivedBMesh(
 	DM_init((DerivedMesh*)bmdm, DM_TYPE_EDITBMESH, em->bm->totvert,
 		 em->bm->totedge, em->tottri, em->bm->totloop, em->bm->totface);
 
-	CustomData_from_bmeshpoly(&bmdm->dm.faceData, &em->bm->pdata, &em->bm->ldata, 0);
-
 	bmdm->dm.getVertCos = emDM_getVertCos;
 	bmdm->dm.getMinMax = emDM_getMinMax;
 

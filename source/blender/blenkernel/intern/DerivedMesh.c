@@ -2757,7 +2757,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 	fdata = tfdata = dm->getTessFaceDataLayout(dm);
 	
 	/* calc auto bump scale if necessary */
-	if (dm->auto_bump_scale<=0.0f)
+	if (dm->auto_bump_scale <= 0.0f)
 		DM_calc_auto_bump_scale(dm);
 
 	/* add a tangent layer if necessary */
@@ -2769,58 +2769,76 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 	for (b = 0; b < gattribs->totlayer; b++) {
 		if (gattribs->layer[b].type == CD_MTFACE) {
 			/* uv coordinates */
-			if (gattribs->layer[b].name[0])
-				layer = CustomData_get_named_layer_index(tfdata, CD_MTFACE,
-					gattribs->layer[b].name);
-			else
-				layer = CustomData_get_active_layer_index(tfdata, CD_MTFACE);
+			if(dm->type == DM_TYPE_EDITBMESH) {
+				/* exception .. */
+				CustomData *ldata = dm->getLoopDataLayout(dm);
 
-			if (layer != -1) {
-				a = attribs->tottface++;
-
-				attribs->tface[a].array = tfdata->layers[layer].data;
-				attribs->tface[a].emOffset = tfdata->layers[layer].offset;
-				attribs->tface[a].glIndex = gattribs->layer[b].glindex;
-				attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
-			}
-			/* BMESH_TODO - BMESH ONLY, may need to get this working?, otherwise remove */
-#if 0
-			else {
-				int player;
-				CustomData *pdata = dm->getPolyDataLayout(dm);
-				
 				if (gattribs->layer[b].name[0])
-					player = CustomData_get_named_layer_index(pdata, CD_MTEXPOLY,
+					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV,
 						gattribs->layer[b].name);
 				else
-					player = CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
-				
-				if (player != -1) {
+					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
+
+				if (layer != -1) {
 					a = attribs->tottface++;
-	
-					attribs->tface[a].array = NULL;
-					attribs->tface[a].emOffset = pdata->layers[layer].offset;
+
+					attribs->tface[a].array = tfdata->layers[layer].data;
+					attribs->tface[a].emOffset = tfdata->layers[layer].offset;
 					attribs->tface[a].glIndex = gattribs->layer[b].glindex;
 					attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
-					
 				}
 			}
-#endif
+			else {
+				if (gattribs->layer[b].name[0])
+					layer = CustomData_get_named_layer_index(tfdata, CD_MTFACE,
+						gattribs->layer[b].name);
+				else
+					layer = CustomData_get_active_layer_index(tfdata, CD_MTFACE);
+
+				if (layer != -1) {
+					a = attribs->tottface++;
+
+					attribs->tface[a].array = tfdata->layers[layer].data;
+					attribs->tface[a].emOffset = tfdata->layers[layer].offset;
+					attribs->tface[a].glIndex = gattribs->layer[b].glindex;
+					attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
+				}
+			}
 		}
 		else if (gattribs->layer[b].type == CD_MCOL) {
-			/* vertex colors */
-			if (gattribs->layer[b].name[0])
-				layer = CustomData_get_named_layer_index(tfdata, CD_MCOL,
-					gattribs->layer[b].name);
-			else
-				layer = CustomData_get_active_layer_index(tfdata, CD_MCOL);
+			if(dm->type == DM_TYPE_EDITBMESH) {
+				/* exception .. */
+				CustomData *ldata = dm->getLoopDataLayout(dm);
 
-			if (layer != -1) {
-				a = attribs->totmcol++;
+				if (gattribs->layer[b].name[0])
+					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPCOL,
+						gattribs->layer[b].name);
+				else
+					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
 
-				attribs->mcol[a].array = tfdata->layers[layer].data;
-				attribs->mcol[a].emOffset = tfdata->layers[layer].offset;
-				attribs->mcol[a].glIndex = gattribs->layer[b].glindex;
+				if (layer != -1) {
+					a = attribs->totmcol++;
+
+					attribs->mcol[a].array = tfdata->layers[layer].data;
+					attribs->mcol[a].emOffset = tfdata->layers[layer].offset;
+					attribs->mcol[a].glIndex = gattribs->layer[b].glindex;
+				}
+			}
+			else {
+				/* vertex colors */
+				if (gattribs->layer[b].name[0])
+					layer = CustomData_get_named_layer_index(tfdata, CD_MCOL,
+						gattribs->layer[b].name);
+				else
+					layer = CustomData_get_active_layer_index(tfdata, CD_MCOL);
+
+				if (layer != -1) {
+					a = attribs->totmcol++;
+
+					attribs->mcol[a].array = tfdata->layers[layer].data;
+					attribs->mcol[a].emOffset = tfdata->layers[layer].offset;
+					attribs->mcol[a].glIndex = gattribs->layer[b].glindex;
+				}
 			}
 		}
 		else if (gattribs->layer[b].type == CD_TANGENT) {
