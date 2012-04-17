@@ -49,10 +49,6 @@ class ImportSomeData(Operator, ImportHelper):
             default='OPT_A',
             )
 
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
     def execute(self, context):
         return read_some_data(context, self.filepath, self.use_setting)
 

@@ -46,10 +46,6 @@ class ExportSomeData(Operator, ExportHelper):
             default='OPT_A',
             )
 
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
     def execute(self, context):
         return write_some_data(context, self.filepath, self.use_setting)
 
