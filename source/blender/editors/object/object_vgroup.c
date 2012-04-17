@@ -405,6 +405,12 @@ int ED_vgroup_copy_single(Object *ob_dst, const Object *ob_src)
 	index_src= BLI_findindex(&ob_src->defbase, dg_src);
 	index_dst= BLI_findindex(&ob_dst->defbase, dg_dst);
 
+	/*Check if indices are matching, delete and return if not*/
+	if (ob_dst==ob_src || dv_tot_dst==0 || (dv_tot_dst != dv_tot_src) || dv_array_src==NULL || dv_array_dst==NULL) {
+		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_dst->name));
+		return 0;
+	}
+
 	/* Loop through the vertices and copy weight*/
 	for(i=0; i<dv_tot_dst; i++, dv_array_src++, dv_array_dst++) {
 		dw_src = defvert_verify_index(*dv_array_src, index_src);
@@ -2806,6 +2812,12 @@ static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op
 	if((change == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
 		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indicies",
+		            change, fail);
+	}
+
+	if ((change == 0 && fail == 0) || fail) {
+		BKE_reportf(op->reports, RPT_ERROR,
+		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indices",
 		            change, fail);
 	}
 
