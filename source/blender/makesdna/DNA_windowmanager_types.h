@@ -222,6 +222,7 @@ typedef struct wmKeyMapItem {
 	IDProperty *properties;			/* operator properties, assigned to ptr->data and can be written to a file */
 	
 	/* modal */
+	char propvalue_str[64];			/* runtime temporary storage for loading */
 	short propvalue;				/* if used, the item is from modal map */
 
 	/* event */

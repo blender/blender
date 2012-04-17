@@ -3711,7 +3711,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Gesture Circle");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap) return;
+	if (keymap && keymap->modal_items) return;
 
 	keymap = WM_modalkeymap_add(keyconf, "View3D Gesture Circle", modal_items);
 
@@ -3758,7 +3758,7 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Gesture Straight Line");
 	
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap) return;
+	if (keymap && keymap->modal_items) return;
 	
 	keymap = WM_modalkeymap_add(keyconf, "Gesture Straight Line", modal_items);
 	
@@ -3787,7 +3787,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Gesture Border");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap) return;
+	if (keymap && keymap->modal_items) return;
 
 	keymap = WM_modalkeymap_add(keyconf, "Gesture Border", modal_items);
 
@@ -3846,7 +3846,7 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Gesture Zoom Border");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap) return;
+	if (keymap && keymap->modal_items) return;
 
 	keymap = WM_modalkeymap_add(keyconf, "Gesture Zoom Border", modal_items);
 

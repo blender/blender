@@ -500,12 +500,12 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	
 	if (flags & P_OPTIONS)
 	{
-		RNA_def_boolean(ot->srna, "texture_space", 0, "Edit Object data texture space", "");
+		RNA_def_boolean(ot->srna, "texture_space", 0, "Edit Texture Space", "Edit Object data texture space");
 	}
 
 	if (flags & P_CORRECT_UV)
 	{
-		RNA_def_boolean(ot->srna, "correct_uv", 0, "Correct UV coords when transforming", "");
+		RNA_def_boolean(ot->srna, "correct_uv", 0, "Correct UVs", "Correct UV coordinates when transforming");
 	}
 
 	// Add confirm method all the time. At the end because it's not really that important and should be hidden only in log, not in keymap edit

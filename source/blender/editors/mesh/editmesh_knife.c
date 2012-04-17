@@ -2817,7 +2817,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Knife Tool Modal Map");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap)
+	if (keymap && keymap->modal_items)
 		return NULL;
 
 	keymap = WM_modalkeymap_add(keyconf, "Knife Tool Modal Map", modal_items);

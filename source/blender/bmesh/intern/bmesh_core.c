@@ -1864,13 +1864,14 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 	 * if you are tidying up code - campbell */
 	BLI_array_empty(stack);
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
-		if ((l->v == v) && (i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, l->e)))) {
-			BM_elem_index_set(l, i); /* would be nice to assign vert here but cant, so assign the vert index */
+		if (l->v == v) {
 			BLI_array_append(stack, (BMEdge *)l);
 		}
 	}
 	while ((l = (BMLoop *)(BLI_array_pop(stack)))) {
-		l->v = verts[BM_elem_index_get(l)];
+		if ((i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, l->e)))) {
+			l->v = verts[i];
+		}
 	}
 #endif
 
