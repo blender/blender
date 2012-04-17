@@ -2051,8 +2051,8 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 /************************ Vertex Path Operator *************************/
 
 typedef struct PathNode {
-	int u;
-	int visited;
+	/* int u; */       /* UNUSED */
+	/* int visited; */ /* UNUSED */
 	ListBase edges;
 } PathNode;
 

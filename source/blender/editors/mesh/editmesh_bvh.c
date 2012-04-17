@@ -305,19 +305,6 @@ BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, float *co, float maxdist)
 	return NULL;
 }
 
-typedef struct walklist {
-	BMVert *v;
-	int valence;
-	int depth;
-	float w, r;
-	int totwalked;
-
-	/* state data */
-	BMVert *lastv;
-	BMLoop *curl, *firstl;
-	BMEdge *cure;
-} walklist;
-
 /* UNUSED */
 #if 0
 static short winding(float *v1, float *v2, float *v3)
