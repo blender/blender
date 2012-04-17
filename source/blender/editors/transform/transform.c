@@ -539,7 +539,7 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
 	
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap) return NULL;
+	if (keymap && keymap->modal_items) return NULL;
 	
 	keymap= WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
 	
