@@ -134,7 +134,7 @@ static float edbm_rip_edge_side_measure(BMEdge *e,
  *     connected edge loops.
  *     The reason for using loops like this is because when the edges are split we don't which face user gets the newly
  *     created edge (its as good as random so we cant assume new edges will be on once side).
- *     After splitting walking along boundary loops is very simple and each has only edges from one side of another.
+ *     After splittingm, its very simple to walk along boundary loops since each only has one edge from a single side.
  * - The end loop pairs are stored in an array however to support multiple edge-selection-islands, so you can rip
  *   multiple selections at once.
  * - * Execute the split *
@@ -142,8 +142,7 @@ static float edbm_rip_edge_side_measure(BMEdge *e,
  * - Deselect the edge loop facing away.
  *
  * Limitation!
- * This currently works very poorly for edge selections that include junctions of 3+ split edges at one vertex.
- * It this wont work with intersecting edge islands (verts with more then 2 tagged edges)
+ * This currently works very poorly with intersecting edge islands (verts with more then 2 tagged edges)
  * This is nice to but for now not essential.
  *
  * - campbell.
@@ -196,14 +195,14 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 	BLI_array_declare(eloop_pairs);
 	EdgeLoopPair *lp;
 
-	/* untag all loops */
+	/* initialize loops with dummy invalid index values */
 	BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			BM_elem_index_set(l, INVALID_UID);
 		}
 	}
 
-	/* build contiguous array */
+	/* set contiguous loops ordered 'uid' values for walking after split */
 	while (TRUE) {
 		int tot = 0;
 		BMIter eiter;
@@ -227,7 +226,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 
 		e_first = e;
 
-		/* initialize, avoid loop on loop */
+		/* initialize  */
 		v_step = e_first->v1;
 
 		uid_start = uid;
@@ -238,12 +237,14 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 			tot++;
 		}
 
-		/* always store the highest 'uid' edge */
+		/* this edges loops have the highest uid's, store this to walk down later */
 		e_last = e_step;
 
+		/* always store the highest 'uid' edge for the stride */
 		uid_end = uid - 1;
 		uid = uid_start - 1;
 
+		/* initialize */
 		v_step = e_first->v1;
 
 		while ((e = edbm_ripsel_edge_mark_step(bm, v_step, uid))) {
@@ -390,6 +391,8 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			v = (BMVert *)ese.ele;
 		}
 		else {
+			ese.ele = NULL;
+
 			BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if (BM_elem_flag_test(v, BM_ELEM_SELECT))
 					break;
@@ -436,12 +439,18 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			bmesh_vert_separate(bm, v, &vout, &vout_len);
 
 			if (vout_len < 2) {
+				/* set selection back to avoid active-unselected vertex */
+				BM_elem_select_set(bm, v, TRUE);
 				/* should never happen */
 				BKE_report(op->reports, RPT_ERROR, "Error ripping vertex from faces");
 				return OPERATOR_CANCELLED;
 			}
 			else {
 				int vi_best = 0;
+
+				if (ese.ele) {
+					EDBM_editselection_remove(em, &ese.ele->head);
+				}
 
 				dist = FLT_MAX;
 
@@ -468,6 +477,10 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				/* select the vert from the best region */
 				v = vout[vi_best];
 				BM_elem_select_set(bm, v, TRUE);
+
+				if (ese.ele) {
+					EDBM_editselection_store(em, &v->head);
+				}
 
 				/* splice all others back together */
 				if (vout_len > 2) {
