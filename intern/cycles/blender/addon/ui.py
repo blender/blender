@@ -178,15 +178,21 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(scene, "layers", text="Scene")
-        col.label(text="Material:")
-        col.prop(rl, "material_override", text="")
-
-        col.prop(rl, "use_sky", "Use Environment")
+        col.prop(rl, "layers_exclude", text="Exclude")
 
         col = split.column()
         col.prop(rl, "layers", text="Layer")
         col.label(text="Mask Layers:")
         col.prop(rl, "layers_zmask", text="")
+
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Material:")
+        col.prop(rl, "material_override", text="")
+
+        col = split.column()
+        col.prop(rl, "use_sky", "Use Environment")
 
         split = layout.split()
 
