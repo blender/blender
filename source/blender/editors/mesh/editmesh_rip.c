@@ -37,6 +37,7 @@
 #include "RNA_access.h"
 
 #include "BLI_math.h"
+#include "BLI_array.h"
 
 #include "BKE_context.h"
 #include "BKE_object.h"
@@ -53,7 +54,7 @@
 #include "mesh_intern.h"
 
 /* helper to find edge for edge_rip */
-static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const float mvalf[2])
+static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const float mvalf[2])
 {
 	float vec1[3], vec2[3];
 
@@ -62,6 +63,280 @@ static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *c
 
 	return dist_to_line_segment_v2(mvalf, vec1, vec2);
 }
+
+static float edbm_rip_edge_side_measure(BMEdge *e,
+                                        ARegion *ar,
+                                        float projectMat[4][4], const float fmval[2])
+{
+	float cent[3] = {0, 0, 0}, mid[3];
+
+	float vec[2];
+	float fmval_tweak[2];
+	float e_v1_co[2], e_v2_co[2];
+	float score;
+
+	BMVert *v1_other;
+	BMVert *v2_other;
+
+	/* method for calculating distance:
+	 *
+	 * for each edge: calculate face center, then made a vector
+	 * from edge midpoint to face center.  offset edge midpoint
+	 * by a small amount along this vector. */
+
+	/* rather then the face center, get the middle of
+	 * both edge verts connected to this one */
+	v1_other = BM_face_other_vert_loop(e->l->f, e->v2, e->v1)->v;
+	v2_other = BM_face_other_vert_loop(e->l->f, e->v1, e->v2)->v;
+	mid_v3_v3v3(cent, v1_other->co, v2_other->co);
+	mid_v3_v3v3(mid, e->v1->co, e->v2->co);
+
+	ED_view3d_project_float_v2(ar, cent, cent, projectMat);
+	ED_view3d_project_float_v2(ar, mid, mid, projectMat);
+
+	ED_view3d_project_float_v2(ar, e->v1->co, e_v1_co, projectMat);
+	ED_view3d_project_float_v2(ar, e->v2->co, e_v2_co, projectMat);
+
+	sub_v2_v2v2(vec, cent, mid);
+	normalize_v2(vec);
+	mul_v2_fl(vec, 0.01f);
+
+	/* rather then adding to both verts, subtract from the mouse */
+	sub_v2_v2v2(fmval_tweak, fmval, vec);
+
+	score = len_v2v2(e_v1_co, e_v2_co);
+
+	if (dist_to_line_segment_v2(fmval_tweak, e_v1_co, e_v2_co) >
+		dist_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
+	{
+		return  score;
+	}
+	else {
+		return -score;
+	}
+}
+
+
+/* - Advanced selection handling 'ripsel' functions ----- */
+
+/**
+ * How rip selection works
+ *
+ * Firstly - rip is basically edge split with side-selection & grab.
+ * Things would be much more simple if we didn't have to worry about side selection
+ *
+ * The method used for checking the side of selection is as follows...
+ * - First tag all rip-able edges.
+ * - Build a contiguous edge list by looping over tagged edges and following each ones tagged siblings in both
+ *   directions.
+ *   - The loops are not stored in an array, Instead both loops on either side of each edge has its index values set
+ *     to count down from the last edge, this way, once we have the 'last' edge its very easy to walk down the
+ *     connected edge loops.
+ *     The reason for using loops like this is because when the edges are split we don't which face user gets the newly
+ *     created edge (its as good as random so we cant assume new edges will be on once side).
+ *     After splitting walking along boundary loops is very simple and each has only edges from one side of another.
+ * - The end loop pairs are stored in an array however to support multiple edge-selection-islands, so you can rip
+ *   multiple selections at once.
+ * - * Execute the split *
+ * - For each #EdgeLoopPair walk down both sides of the split using the loops and measure which is facing the mouse.
+ * - Deselect the edge loop facing away.
+ *
+ * Limitation!
+ * This currently works very poorly for edge selections that include junctions of 3+ split edges at one vertex.
+ * It this wont work with intersecting edge islands (verts with more then 2 tagged edges)
+ * This is nice to but for now not essential.
+ *
+ * - campbell.
+ */
+
+
+#define IS_VISIT_POSSIBLE(e)   (BM_edge_is_manifold(e) && BM_elem_flag_test(e, BM_ELEM_TAG))
+#define IS_VISIT_DONE(e) ((e)->l && (BM_elem_index_get((e)->l) != INVALID_UID))
+#define INVALID_UID INT_MIN
+
+/* mark, assign uid and step */
+static BMEdge *edbm_ripsel_edge_mark_step(BMesh *bm, BMVert *v, const int uid)
+{
+	BMIter iter;
+	BMEdge *e;
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+		if (IS_VISIT_POSSIBLE(e) && !IS_VISIT_DONE(e)) {
+			BMLoop *l_a, *l_b;
+
+			BM_edge_loop_pair(e, &l_a, &l_b); /* no need to check, we know this will be true */
+
+			/* so (IS_VISIT_DONE == TRUE) */
+			BM_elem_index_set(l_a, uid);
+			BM_elem_index_set(l_b, uid);
+
+			return e;
+		}
+	}
+	return NULL;
+}
+
+typedef struct EdgeLoopPair {
+	BMLoop *l_a;
+	BMLoop *l_b;
+} EdgeLoopPair;
+
+static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
+{
+	BMIter fiter;
+	BMIter liter;
+
+	BMFace *f;
+	BMLoop *l;
+
+	int uid_start;
+	int uid_end;
+	int uid = bm->totedge; /* can start anywhere */
+
+	EdgeLoopPair *eloop_pairs = NULL;
+	BLI_array_declare(eloop_pairs);
+	EdgeLoopPair *lp;
+
+	/* untag all loops */
+	BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			BM_elem_index_set(l, INVALID_UID);
+		}
+	}
+
+	/* build contiguous array */
+	while (TRUE) {
+		int tot = 0;
+		BMIter eiter;
+		BMEdge *e_step;
+		BMVert *v_step;
+		BMEdge *e;
+		BMEdge *e_first;
+		BMEdge *e_last;
+
+		e_first = NULL;
+		BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+			if (IS_VISIT_POSSIBLE(e) && !IS_VISIT_DONE(e)) {
+				e_first = e;
+				break;
+			}
+		}
+
+		if (e_first == NULL) {
+			break;
+		}
+
+		e_first = e;
+
+		/* initialize, avoid loop on loop */
+		v_step = e_first->v1;
+
+		uid_start = uid;
+		while ((e = edbm_ripsel_edge_mark_step(bm, v_step, uid))) {
+			BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
+			v_step = BM_edge_other_vert((e_step = e), v_step);
+			uid++; /* only different line */
+			tot++;
+		}
+
+		/* always store the highest 'uid' edge */
+		e_last = e_step;
+
+		uid_end = uid - 1;
+		uid = uid_start - 1;
+
+		v_step = e_first->v1;
+
+		while ((e = edbm_ripsel_edge_mark_step(bm, v_step, uid))) {
+			BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
+			v_step = BM_edge_other_vert((e_step = e), v_step);
+			uid--; /* only different line */
+			tot++;
+		}
+
+		/* stride far enough not to _ever_ overlap range */
+		uid_start = uid;
+		uid = uid_end + bm->totedge;
+
+		BLI_array_growone(eloop_pairs);
+		lp = &eloop_pairs[BLI_array_count(eloop_pairs) - 1];
+		BM_edge_loop_pair(e_last, &lp->l_a, &lp->l_b); /* no need to check, we know this will be true */
+
+
+		BLI_assert(tot == uid_end - uid_start);
+
+#if 0
+		printf("%s: found contiguous edge loop of (%d)\n", __func__, uid_end - uid_start);
+#endif
+
+	}
+
+	/* null terminate */
+	BLI_array_growone(eloop_pairs);
+	lp = &eloop_pairs[BLI_array_count(eloop_pairs) - 1];
+	lp->l_a = lp->l_b = NULL;
+
+	return eloop_pairs;
+}
+
+
+/* - De-Select the worst rip-edge side -------------------------------- */
+
+
+static BMEdge *edbm_ripsel_edge_uid_step(BMesh *bm, BMEdge *e_orig, BMVert **v_prev)
+{
+	BMIter eiter;
+	BMEdge *e;
+	BMVert *v = BM_edge_other_vert(e_orig, *v_prev);
+	const int uid_cmp = BM_elem_index_get(e_orig->l) - 1;
+
+	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+		if (BM_elem_index_get(e->l) == uid_cmp) {
+			*v_prev = v;
+			return e;
+		}
+	}
+	return NULL;
+}
+
+static BMVert *edbm_ripsel_edloop_pair_start_vert(BMesh *bm, BMEdge *e)
+{
+	/* try step in a direction, if it fails we know do go the other way */
+	BMVert *v_test = e->v1;
+	return (edbm_ripsel_edge_uid_step(bm, e, &v_test)) ? e->v1 : e->v2;
+}
+
+static void edbm_ripsel_deselect_helper(BMesh *bm, EdgeLoopPair *eloop_pairs,
+                                        ARegion *ar, float projectMat[4][4], float fmval[2])
+{
+	EdgeLoopPair *lp;
+
+	for (lp = eloop_pairs; lp->l_a; lp++) {
+		BMEdge *e;
+		BMVert *v_prev;
+
+		float score_a = 0.0f;
+		float score_b = 0.0f;
+
+		e = lp->l_a->e;
+		v_prev = edbm_ripsel_edloop_pair_start_vert(bm, e);
+		for (; e; e = edbm_ripsel_edge_uid_step(bm, e, &v_prev)) {
+			score_a += edbm_rip_edge_side_measure(e, ar, projectMat, fmval);
+		}
+		e = lp->l_b->e;
+		v_prev = edbm_ripsel_edloop_pair_start_vert(bm, e);
+		for (; e; e = edbm_ripsel_edge_uid_step(bm, e, &v_prev)) {
+			score_b += edbm_rip_edge_side_measure(e, ar, projectMat, fmval);
+		}
+
+		e = (score_a > score_b) ? lp->l_a->e : lp->l_b->e;
+		v_prev = edbm_ripsel_edloop_pair_start_vert(bm, e);
+		for (; e; e = edbm_ripsel_edge_uid_step(bm, e, &v_prev)) {
+			BM_elem_select_set(bm, e, FALSE);
+		}
+	}
+}
+/* --- end 'ripsel' selection handling code --- */
+
 
 
 /* based on mouse cursor position, it defines how is being ripped */
@@ -73,7 +348,6 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMOperator bmop;
-	BMOIter siter;
 	BMIter iter, eiter, liter;
 	BMLoop *l;
 	BMEdge *e, *e2;
@@ -83,6 +357,8 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	float dist = FLT_MAX;
 	float d;
 	const int totedge_orig = bm->totedge;
+
+	EdgeLoopPair *eloop_pairs;
 
 	/* note on selection:
 	 * When calling edge split we operate on tagged edges rather then selected
@@ -135,7 +411,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				totboundary_edge += (is_boundary != 0 || BM_edge_is_wire(e));
 				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 					if (is_boundary == FALSE && BM_edge_face_count(e) == 2) {
-						d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
+						d = edbm_rip_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
 						if (d < dist) {
 							dist = d;
 							e2 = e;
@@ -179,7 +455,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 							mul_v3_fl(l_mid_co, (BM_edge_length_calc(l->e) + BM_edge_length_calc(l->prev->e)) / 2.0f);
 							add_v3_v3(l_mid_co, v->co);
 
-							d = mesh_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval);
+							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval);
 
 							if (d < dist) {
 								dist = d;
@@ -269,8 +545,11 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
+	eloop_pairs = edbm_ripsel_looptag_helper(bm);
+
 	if (!EDBM_op_init(em, &bmop, op, "edgesplit edges=%he verts=%hv use_verts=%b",
 	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
+		MEM_freeN(eloop_pairs);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -280,51 +559,25 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		EDBM_op_finish(em, &bmop, op, TRUE);
 
 		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
+		MEM_freeN(eloop_pairs);
 		return OPERATOR_CANCELLED;
 	}
 
-	BMO_ITER(e, &siter, bm, &bmop, "edgeout", BM_EDGE) {
-		float cent[3] = {0, 0, 0}, mid[3];
-
-		float vec[2];
-		float fmval_tweak[2];
-		float e_v1_co[2], e_v2_co[2];
-
-		BMVert *v1_other;
-		BMVert *v2_other;
-
-		/* method for calculating distance:
-		 *
-		 * for each edge: calculate face center, then made a vector
-		 * from edge midpoint to face center.  offset edge midpoint
-		 * by a small amount along this vector. */
-
-		/* rather then the face center, get the middle of
-		 * both edge verts connected to this one */
-		v1_other = BM_face_other_vert_loop(e->l->f, e->v2, e->v1)->v;
-		v2_other = BM_face_other_vert_loop(e->l->f, e->v1, e->v2)->v;
-		mid_v3_v3v3(cent, v1_other->co, v2_other->co);
-		mid_v3_v3v3(mid, e->v1->co, e->v2->co);
-
-		ED_view3d_project_float_v2(ar, cent, cent, projectMat);
-		ED_view3d_project_float_v2(ar, mid, mid, projectMat);
-
-		ED_view3d_project_float_v2(ar, e->v1->co, e_v1_co, projectMat);
-		ED_view3d_project_float_v2(ar, e->v2->co, e_v2_co, projectMat);
-
-		sub_v2_v2v2(vec, cent, mid);
-		normalize_v2(vec);
-		mul_v2_fl(vec, 0.01f);
-
-		/* rather then adding to both verts, subtract from the mouse */
-		sub_v2_v2v2(fmval_tweak, fmval, vec);
-
-		if (dist_to_line_segment_v2(fmval_tweak, e_v1_co, e_v2_co) >
-		    dist_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
-		{
-			BM_elem_select_set(bm, e, FALSE);
+#if 1
+	edbm_ripsel_deselect_helper(bm, eloop_pairs,
+	                            ar, projectMat, fmval);
+	MEM_freeN(eloop_pairs);
+#else
+	{
+		/* simple per edge selection check, saves a lot of code and is almost good enough */
+		BMOIter siter;
+		BMO_ITER(e, &siter, bm, &bmop, "edgeout", BM_EDGE) {
+			if (edbm_rip_edge_side_measure(e, ar, projectMat, fmval) > 0.0f) {
+				BM_elem_select_set(bm, e, FALSE);
+			}
 		}
 	}
+#endif
 
 	if (singlesel) {
 		BMVert *v_best = NULL;
@@ -356,7 +609,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					add_v3_v3v3(l_corner_co, l_prev_co, l_next_co);
 					add_v3_v3(l_corner_co, l->v->co);
 
-					d = mesh_rip_edgedist(ar, projectMat, l->v->co, l_corner_co, fmval);
+					d = edbm_rip_rip_edgedist(ar, projectMat, l->v->co, l_corner_co, fmval);
 					if (d < dist) {
 						v_best = v;
 						dist = d;
