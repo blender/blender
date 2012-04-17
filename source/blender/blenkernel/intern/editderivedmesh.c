@@ -1320,6 +1320,8 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 	ev = BM_vert_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
 
 	bmvert_to_mvert(bmdm->tc->bm, ev, vert_r);
+	if(bmdm->vertexCos)
+		copy_v3_v3(vert_r->co, bmdm->vertexCos[index]);
 }
 
 static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
@@ -1378,13 +1380,18 @@ static void emDM_getTessFace(DerivedMesh *dm, int index, MFace *face_r)
 
 static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 {
-	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMesh *bm = bmdm->tc->bm;
 	BMVert *ev;
 	BMIter iter;
+	int i;
 
 	ev = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for ( ; ev; ev = BM_iter_step(&iter), ++vert_r) {
-		copy_v3_v3(vert_r->co, ev->co);
+	for (i = 0 ; ev; ev = BM_iter_step(&iter), ++vert_r, ++i) {
+		if (bmdm->vertexCos)
+			copy_v3_v3(vert_r->co, bmdm->vertexCos[i]);
+		else
+			copy_v3_v3(vert_r->co, ev->co);
 
 		normal_float_to_short_v3(vert_r->no, ev->no);
 
