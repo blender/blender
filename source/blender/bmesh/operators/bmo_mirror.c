@@ -43,7 +43,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMOperator dupeop, weldop;
 	BMOIter siter;
 	BMIter iter;
-	BMVert *v, *v2, **vmap = NULL;
+	BMVert *v /* , *v2 */ /* UNUSED */, **vmap = NULL;
 	BLI_array_declare(vmap);
 	BMEdge /*  *e, */ **emap = NULL;
 	BLI_array_declare(emap);
@@ -69,11 +69,11 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 
 	/* create old -> new mappin */
 	i = 0;
-	v2 = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+	/* v2 = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); */ /* UNUSED */
 	BMO_ITER(v, &siter, bm, &dupeop, "newout", BM_VERT) {
 		BLI_array_growone(vmap);
 		vmap[i] = v;
-		v2 = BM_iter_step(&iter);
+		/* v2 = BM_iter_step(&iter); */ /* UNUSED */
 		i++;
 	}
 	bm->elem_index_dirty |= BM_VERT;

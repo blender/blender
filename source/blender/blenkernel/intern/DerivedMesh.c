@@ -1753,18 +1753,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			add_orco_dm(ob, NULL, *deform_r, NULL, CD_ORCO);
 	}
 
-#ifdef WITH_GAMEENGINE
-	/* NavMesh - this is a hack but saves having a NavMesh modifier */
-	if ((ob->gameflag & OB_NAVMESH) && (finaldm->type == DM_TYPE_CDDM)) {
-		DerivedMesh *tdm;
-		tdm= navmesh_dm_createNavMeshForVisualization(finaldm);
-		if (finaldm != tdm) {
-			finaldm->release(finaldm);
-			finaldm= tdm;
-		}
-	}
-#endif /* WITH_GAMEENGINE */
-
 	{
 		/* calculating normals can re-calculate tessfaces in some cases */
 #if 0
@@ -1819,6 +1807,18 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			CDDM_calc_normals_mapping_ex(finaldm, TRUE);
 		}
 	}
+
+#ifdef WITH_GAMEENGINE
+	/* NavMesh - this is a hack but saves having a NavMesh modifier */
+	if ((ob->gameflag & OB_NAVMESH) && (finaldm->type == DM_TYPE_CDDM)) {
+		DerivedMesh *tdm;
+		tdm= navmesh_dm_createNavMeshForVisualization(finaldm);
+		if (finaldm != tdm) {
+			finaldm->release(finaldm);
+			finaldm= tdm;
+		}
+	}
+#endif /* WITH_GAMEENGINE */
 
 	*final_r = finaldm;
 
@@ -2898,7 +2898,7 @@ static void navmesh_drawColored(DerivedMesh *dm)
 	int a, glmode;
 	MVert *mvert = (MVert *)CustomData_get_layer(&dm->vertData, CD_MVERT);
 	MFace *mface = (MFace *)CustomData_get_layer(&dm->faceData, CD_MFACE);
-	int *polygonIdx = (int *)CustomData_get_layer(&dm->faceData, CD_RECAST);
+	int *polygonIdx = (int *)CustomData_get_layer(&dm->polyData, CD_RECAST);
 	float col[3];
 
 	if (!polygonIdx)
@@ -2980,14 +2980,14 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 	int res;
 
 	result = CDDM_copy(dm);
-	if (!CustomData_has_layer(&result->faceData, CD_RECAST)) {
-		int *sourceRecastData = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
+	if (!CustomData_has_layer(&result->polyData, CD_RECAST)) {
+		int *sourceRecastData = (int*)CustomData_get_layer(&dm->polyData, CD_RECAST);
 		if (sourceRecastData) {
-			CustomData_add_layer_named(&result->faceData, CD_RECAST, CD_DUPLICATE,
+			CustomData_add_layer_named(&result->polyData, CD_RECAST, CD_DUPLICATE,
 			                           sourceRecastData, maxFaces, "recastData");
 		}
 	}
-	recastData = (int*)CustomData_get_layer(&result->faceData, CD_RECAST);
+	recastData = (int*)CustomData_get_layer(&result->polyData, CD_RECAST);
 
 	/* note: This is not good design! - really should not be doing this */
 	result->drawFacesTex =  navmesh_DM_drawFacesTex;

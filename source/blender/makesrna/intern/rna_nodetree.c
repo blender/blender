@@ -357,7 +357,7 @@ static void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	node_update(bmain, scene, ntree, node);
 }
 
-static void rna_Node_image_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Node_tex_image_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree = (bNodeTree*)ptr->id.data;
 	bNode *node = (bNode*)ptr->data;
@@ -1299,7 +1299,7 @@ static void def_sh_tex_environment(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_image_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_tex_image_update");
 
 	RNA_def_struct_sdna_from(srna, "NodeTexEnvironment", "storage");
 	def_sh_tex(srna);
@@ -1333,7 +1333,7 @@ static void def_sh_tex_image(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_image_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_tex_image_update");
 
 	RNA_def_struct_sdna_from(srna, "NodeTexImage", "storage");
 	def_sh_tex(srna);

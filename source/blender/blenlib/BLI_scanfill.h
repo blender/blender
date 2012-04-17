@@ -100,6 +100,8 @@ struct ScanFillEdge *BLI_addfilledge(ScanFillContext *sf_ctx, struct ScanFillVer
 
 int BLI_begin_edgefill(ScanFillContext *sf_ctx);
 int BLI_edgefill(ScanFillContext *sf_ctx, const short do_quad_tri_speedup);
+int BLI_edgefill_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup,
+                    const float nor_proj[3]);
 void BLI_end_edgefill(ScanFillContext *sf_ctx);
 
 /* These callbacks are needed to make the lib finction properly */

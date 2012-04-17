@@ -1616,6 +1616,7 @@ int nodeUpdateID(bNodeTree *ntree, ID *id)
 		for (node= ntree->nodes.first; node; node= node->next) {
 			if (node->id==id) {
 				change = TRUE;
+				node->update |= NODE_UPDATE_ID;
 				ntreetype->update_node(ntree, node);
 				/* clear update flag */
 				node->update = 0;
@@ -1626,6 +1627,7 @@ int nodeUpdateID(bNodeTree *ntree, ID *id)
 		for (node= ntree->nodes.first; node; node= node->next) {
 			if (node->id==id) {
 				change = TRUE;
+				node->update |= NODE_UPDATE_ID;
 				if (node->typeinfo->updatefunc)
 					node->typeinfo->updatefunc(ntree, node);
 				/* clear update flag */

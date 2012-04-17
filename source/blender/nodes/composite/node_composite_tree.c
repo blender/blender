@@ -757,26 +757,14 @@ void ntreeCompositForceHidden(bNodeTree *ntree, Scene *curscene)
 			if (srl)
 				force_hidden_passes(node, srl->passflag);
 		}
+		/* XXX this stuff is called all the time, don't want that.
+		 * Updates should only happen when actually necessary.
+		 */
+		#if 0
 		else if ( node->type==CMP_NODE_IMAGE) {
-			Image *ima= (Image *)node->id;
-			if (ima) {
-				if (ima->rr) {
-					ImageUser *iuser= node->storage;
-					RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
-					if (rl)
-						force_hidden_passes(node, rl->passflag);
-					else
-						force_hidden_passes(node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
-				}
-				else if (ima->type!=IMA_TYPE_MULTILAYER) {	/* if ->rr not yet read we keep inputs */
-					force_hidden_passes(node, RRES_OUT_IMAGE|RRES_OUT_ALPHA|RRES_OUT_Z);
-				}
-				else
-					force_hidden_passes(node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
-			}
-			else
-				force_hidden_passes(node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
+			nodeUpdate(ntree, node);
 		}
+		#endif
 	}
 
 }

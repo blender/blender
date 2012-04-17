@@ -345,6 +345,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 
 	/* create custom data layer to save polygon idx */
 	CustomData_add_layer_named(&em->bm->pdata, CD_RECAST, CD_CALLOC, NULL, 0, "createRepresentation recastData");
+	CustomData_bmesh_init_pool(&em->bm->pdata, 0, BM_FACE);
 	
 	/* create verts and faces for detailed mesh */
 	meshes = recast_polyMeshDetailGetMeshes(dmesh, &nmeshes);

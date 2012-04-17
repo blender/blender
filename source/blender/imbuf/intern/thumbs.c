@@ -223,6 +223,8 @@ static void thumbname_from_uri(const char* uri, char* thumb, const int thumb_len
 	to_hex_char(hexdigest, digest, 16);
 	hexdigest[32] = '\0';
 	BLI_snprintf(thumb, thumb_len, "%s.png", hexdigest);
+
+	// printf("%s: '%s' --> '%s'\n", __func__, uri, thumb);
 }
 
 static int thumbpath_from_uri(const char* uri, char* path, const int path_len, ThumbSize size)
@@ -378,7 +380,9 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 		if (IMB_saveiff(img, temp, IB_rect | IB_metadata)) {
 #ifndef WIN32
 			chmod(temp, S_IRUSR | S_IWUSR);
-#endif	
+#endif
+			// printf("%s saving thumb: '%s'\n", __func__, tpath);
+
 			BLI_rename(temp, tpath);
 		}
 
@@ -441,7 +445,13 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 	if (thumbpath_from_uri(uri, thumb, sizeof(thumb), THB_FAIL)) {
 		/* failure thumb exists, don't try recreating */
 		if (BLI_exists(thumb)) {
-			return NULL;
+			/* clear out of date fail case */
+			if (BLI_file_older(thumb, path)) {
+				BLI_delete(thumb, 0, 0);
+			}
+			else {
+				return NULL;
+			}
 		}
 	}
 
