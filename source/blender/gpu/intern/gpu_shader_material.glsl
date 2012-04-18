@@ -2041,12 +2041,13 @@ void node_geometry(vec3 I, vec3 N, mat4 toworld,
 	backfacing = 0.0;
 }
 
-void node_tex_coord(vec3 I, vec3 N, mat4 toworld,
+void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 	vec3 attr_orco, vec3 attr_uv,
-	out vec3 generated, out vec3 uv, out vec3 object,
+	out vec3 generated, out vec3 normal, out vec3 uv, out vec3 object,
 	out vec3 camera, out vec3 window, out vec3 reflection)
 {
 	generated = attr_orco;
+	normal = normalize((obinvmat*(viewinvmat*vec4(N, 0.0))).xyz);
 	uv = attr_uv;
 	object = I;
 	camera = I;
