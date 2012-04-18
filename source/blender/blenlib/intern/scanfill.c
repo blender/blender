@@ -581,12 +581,12 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 		 * fix to #4544. */
 		if (eed->v1->f == 255) {
 			v1 = eed->v1;
-			while ((eed->v1->f == 255) && (eed->v1->tmp.v != v1)) 
+			while ((eed->v1->f == 255) && (eed->v1->tmp.v != v1) && (eed->v1 != eed->v1->tmp.v))
 				eed->v1 = eed->v1->tmp.v;
 		}
 		if (eed->v2->f == 255) {
 			v2 = eed->v2;
-			while ((eed->v2->f == 255) && (eed->v2->tmp.v != v2))
+			while ((eed->v2->f == 255) && (eed->v2->tmp.v != v2) && (eed->v2 != eed->v2->tmp.v))
 				eed->v2 = eed->v2->tmp.v;
 		}
 		if (eed->v1 != eed->v2) addedgetoscanlist(sf_ctx, eed, verts);
@@ -876,8 +876,8 @@ int BLI_edgefill_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup, co
 			for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
 				if (LIKELY(!compare_v3v3(v_prev, eve->co, COMPLIMIT))) {
 					add_newell_cross_v3_v3v3(n, v_prev, eve->co);
+					v_prev = eve->co;
 				}
-				v_prev = eve->co;
 			}
 		}
 
