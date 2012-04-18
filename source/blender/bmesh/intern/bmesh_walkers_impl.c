@@ -743,7 +743,7 @@ static void *bmw_FaceLoopWalker_step(BMWalker *walker)
 	if (!bmw_FaceLoopWalker_include_face(walker, l)) {
 		l = lwalk->l;
 		l = l->next->next;
-		if (BM_edge_face_count(l->e) != 2) {
+		if (!BM_edge_is_manifold(l->e)) {
 			l = l->prev->prev;
 		}
 		l = l->radial_next;

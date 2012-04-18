@@ -1594,13 +1594,13 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
  * \par Examples:
  *
  *           A                   B
- *      ----------           ----------
+ *      +--------+           +--------+
  *      |        |           |        |
  *      |   f1   |           |   f1   |
  *     v1========v2 = Ok!    v1==V2==v3 == Wrong!
  *      |   f2   |           |   f2   |
  *      |        |           |        |
- *      ----------           ----------
+ *      +--------+           +--------+
  *
  * In the example A, faces \a f1 and \a f2 are joined by a single edge,
  * and the euler can safely be used.
@@ -1617,36 +1617,25 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
 	BMLoop *l_iter, *f1loop = NULL, *f2loop = NULL;
-	int newlen = 0, i, f1len = 0, f2len = 0, radlen = 0, edok, shared;
-	BMIter iter;
+	int newlen = 0, i, f1len = 0, f2len = 0, edok;
 
-	/* can't join a face to itsel */
+	/* can't join a face to itself */
 	if (f1 == f2) {
+		return NULL;
+	}
+
+	/* validate that edge is 2-manifold edge */
+	if (!BM_edge_is_manifold(e)) {
 		return NULL;
 	}
 
 	/* verify that e is in both f1 and f2 */
 	f1len = f1->len;
 	f2len = f2->len;
-	BM_ITER(l_iter, &iter, bm, BM_LOOPS_OF_FACE, f1) {
-		if (l_iter->e == e) {
-			f1loop = l_iter;
-			break;
-		}
-	}
-	BM_ITER(l_iter, &iter, bm, BM_LOOPS_OF_FACE, f2) {
-		if (l_iter->e == e) {
-			f2loop = l_iter;
-			break;
-		}
-	}
-	if (!(f1loop && f2loop)) {
-		return NULL;
-	}
-	
-	/* validate that edge is 2-manifold edg */
-	radlen = bmesh_radial_length(f1loop);
-	if (radlen != 2) {
+
+	if (!((f1loop = BM_face_edge_share_loop(f1, e)) &&
+	      (f2loop = BM_face_edge_share_loop(f2, e))))
+	{
 		return NULL;
 	}
 
@@ -1657,37 +1646,36 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 
 	/* validate that for each face, each vertex has another edge in its disk cycle that is
 	 * not e, and not shared. */
-	if ( bmesh_radial_face_find(f1loop->next->e, f2) ||
-	     bmesh_radial_face_find(f1loop->prev->e, f2) ||
-	     bmesh_radial_face_find(f2loop->next->e, f1) ||
-	     bmesh_radial_face_find(f2loop->prev->e, f1) )
+	if (bmesh_radial_face_find(f1loop->next->e, f2) ||
+	    bmesh_radial_face_find(f1loop->prev->e, f2) ||
+	    bmesh_radial_face_find(f2loop->next->e, f1) ||
+	    bmesh_radial_face_find(f2loop->prev->e, f1) )
 	{
 		return NULL;
 	}
 
-	/* validate only one shared edg */
-	shared = BM_face_share_edge_count(f1, f2);
-	if (shared > 1) {
+	/* validate only one shared edge */
+	if (BM_face_share_edge_count(f1, f2) > 1) {
 		return NULL;
 	}
 
 	/* validate no internal join */
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
-		BM_elem_flag_disable(l_iter->v, BM_ELEM_TAG);
+		BM_elem_flag_disable(l_iter->v, BM_ELEM_INTERNAL_TAG);
 	}
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
-		BM_elem_flag_disable(l_iter->v, BM_ELEM_TAG);
+		BM_elem_flag_disable(l_iter->v, BM_ELEM_INTERNAL_TAG);
 	}
 
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
 		if (l_iter != f1loop) {
-			BM_elem_flag_enable(l_iter->v, BM_ELEM_TAG);
+			BM_elem_flag_enable(l_iter->v, BM_ELEM_INTERNAL_TAG);
 		}
 	}
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
 		if (l_iter != f2loop) {
 			/* as soon as a duplicate is found, bail out */
-			if (BM_elem_flag_test(l_iter->v, BM_ELEM_TAG)) {
+			if (BM_elem_flag_test(l_iter->v, BM_ELEM_INTERNAL_TAG)) {
 				return NULL;
 			}
 		}
@@ -1707,7 +1695,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	/* increase length of f1 */
 	f1->len += (f2->len - 2);
 
-	/* make sure each loop points to the proper fac */
+	/* make sure each loop points to the proper face */
 	newlen = f1->len;
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < newlen; i++, l_iter = l_iter->next)
 		l_iter->f = f1;

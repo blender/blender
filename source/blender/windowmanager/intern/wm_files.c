@@ -80,6 +80,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
+#include "BKE_screen.h"
 #include "BKE_texture.h"
 
 
@@ -662,23 +663,47 @@ static void write_history(void)
 	}
 }
 
-static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
+/* screen can be NULL */
+static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, int **thumb_pt)
 {
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
 	int *thumb;
 	char err_out[256] = "unknown";
 
+	/* screen if no camera found */
+	ScrArea *sa = NULL;
+	ARegion *ar = NULL;
+	View3D *v3d = NULL;
+
 	*thumb_pt = NULL;
 
 	/* scene can be NULL if running a script at startup and calling the save operator */
-	if (G.background || scene == NULL || scene->camera == NULL)
+	if (G.background || scene == NULL)
 		return NULL;
 
+	if ((scene->camera == NULL) && (screen != NULL)) {
+		sa = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
+		ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+		if (ar) {
+			v3d = sa->spacedata.first;
+		}
+	}
+
+	if (scene->camera == NULL && v3d == NULL) {
+		return NULL;
+	}
+
 	/* gets scaled to BLEN_THUMB_SIZE */
-	ibuf = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera,
-	                                             BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
-	                                             IB_rect, OB_SOLID, FALSE, err_out);
+	if (scene->camera) {
+		ibuf = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera,
+		                                             BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
+		                                             IB_rect, OB_SOLID, FALSE, err_out);
+	}
+	else {
+		ibuf = ED_view3d_draw_offscreen_imbuf(scene, v3d, ar, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
+		                                      IB_rect, FALSE, err_out);
+	}
 
 	if (ibuf) {		
 		float aspect = (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
@@ -763,7 +788,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	/* blend file thumbnail */
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
 	if (U.flag & USER_SAVE_PREVIEWS) {
-		ibuf_thumb = blend_file_thumb(CTX_data_scene(C), &thumb);
+		ibuf_thumb = blend_file_thumb(CTX_data_scene(C), CTX_wm_screen(C), &thumb);
 	}
 
 	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_SAVE_PRE);

@@ -853,11 +853,12 @@ static void knifetool_draw_angle_snapping(knifetool_opdata *kcd)
 }
 
 /* modal loop selection drawing callback */
-static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
+static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 {
+	View3D *v3d = CTX_wm_view3d(C);
 	knifetool_opdata *kcd = arg;
 
-	glDisable(GL_DEPTH_TEST);
+	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 
 	glPolygonOffset(1.0f, 1.0f);
 
@@ -995,7 +996,8 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 	}
 
 	glPopMatrix();
-	glEnable(GL_DEPTH_TEST);
+
+	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 }
 
 static float len_v3_tri_side_max(const float v1[3], const float v2[3], const float v3[3])

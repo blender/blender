@@ -47,7 +47,7 @@ typedef struct MemFile {
 } MemFile;
 
 /* actually only used writefile.c */
-extern void add_memfilechunk(MemFile *compare, MemFile *current, char *buf, unsigned int size);
+extern void add_memfilechunk(MemFile *compare, MemFile *current, const char *buf, unsigned int size);
 
 /* exports */
 extern void BLO_free_memfile(MemFile *memfile);

@@ -545,17 +545,27 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 		/* ne = BM_edge_exists(tv, tv2); */ /* same as return above */
 
 		if (kill_degenerate_faces) {
+			BLI_array_declare(bad_faces);
+			BMFace **bad_faces = NULL;
+
 			BMIter fiter;
 			BMFace *f;
 			BMVert *verts[2] = {ne->v1, ne->v2};
 			int i;
+
 			for (i = 0; i < 2; i++) {
+				/* cant kill data we loop on, build a list and remove those */
+				BLI_array_empty(bad_faces);
 				BM_ITER(f, &fiter, bm, BM_FACES_OF_VERT, verts[i]) {
 					if (f->len < 3) {
-						BM_face_kill(bm, f);
+						BLI_array_append(bad_faces, f);
 					}
 				}
+				while ((f = BLI_array_pop(bad_faces))) {
+					BM_face_kill(bm, f);
+				}
 			}
+			BLI_array_free(bad_faces);
 		}
 	}
 

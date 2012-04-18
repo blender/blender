@@ -308,7 +308,7 @@ static int test_extra_verts(BMesh *bm, BMVert *v)
 				found = FALSE;
 				e = BM_iter_new(&iter2, bm, BM_EDGES_OF_VERT, l->v);
 				for ( ; e; e = BM_iter_step(&iter2)) {
-					if (BM_edge_face_count(e) == 1) {
+					if (BM_edge_is_boundary(e)) {
 						found = TRUE;
 					}
 					f2 = BM_iter_new(&iter3, bm, BM_FACES_OF_EDGE, e);

@@ -2371,7 +2371,7 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && BM_edge_face_count(e) != 2) {
+		if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && !BM_edge_is_manifold(e)) {
 			BM_elem_select_set(em->bm, e, TRUE);
 		}
 	}

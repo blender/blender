@@ -882,7 +882,7 @@ int BLI_edgefill_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup, co
 		}
 
 		if (UNLIKELY(normalize_v3(n) == 0.0f)) {
-			n[2] = 1.0f; /* other axis set to 0.0 */
+			return 0;
 		}
 
 		axis_dominant_v3(&co_x, &co_y, n);

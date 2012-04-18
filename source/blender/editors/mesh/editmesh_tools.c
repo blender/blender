@@ -2801,7 +2801,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN))
 			continue;
 
-		if (BM_edge_face_count(e) != 0) {
+		if (!BM_edge_is_wire(e)) {
 			BM_elem_select_set(em->bm, e, FALSE);
 		}
 	}

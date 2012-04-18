@@ -106,7 +106,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			BMVert *v1, *v2, *v3, *v4;
 			
-			if (BM_edge_face_count(e) != 2 || BMO_elem_flag_test(bm, e, EDGE_MARK)) {
+			if (!BM_edge_is_manifold(e) || BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 				continue;
 			}
 

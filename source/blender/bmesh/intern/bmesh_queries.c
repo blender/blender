@@ -470,10 +470,10 @@ int BM_edge_is_wire(BMEdge *e)
 
 /**
  * A vertex is non-manifold if it meets the following conditions:
- * 1: Loose - (has no edges/faces incident upon it)
- * 2: Joins two distinct regions - (two pyramids joined at the tip)
- * 3: Is part of a non-manifold edge (edge with more than 2 faces)
- * 4: Is part of a wire edge
+ * 1: Loose - (has no edges/faces incident upon it).
+ * 2: Joins two distinct regions - (two pyramids joined at the tip).
+ * 3: Is part of a an edge with more than 2 faces.
+ * 4: Is part of a wire edge.
  */
 int BM_vert_is_manifold(BMVert *v)
 {
@@ -487,18 +487,17 @@ int BM_vert_is_manifold(BMVert *v)
 	}
 
 	/* count edges while looking for non-manifold edges */
-	oe = v->e;
-	for (len = 0, e = v->e; e != oe || (e == oe && len == 0); len++, e = bmesh_disk_edge_next(e, v)) {
-		if (e->l == NULL) {
-			/* loose edge */
+	len = 0;
+	oe = e = v->e;
+	do {
+		/* loose edge or edge shared by more than two faces,
+		 * edges with 1 face user are OK, otherwise we could
+		 * use BM_edge_is_manifold() here */
+		if (e->l == NULL || bmesh_radial_length(e->l) > 2) {
 			return FALSE;
 		}
-
-		if (bmesh_radial_length(e->l) > 2) {
-			/* edge shared by more than two faces */
-			return FALSE;
-		}
-	}
+		len++;
+	} while((e = bmesh_disk_edge_next(e, v)) != oe);
 
 	count = 1;
 	flag = 1;
@@ -652,7 +651,7 @@ BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2)
 }
 
 /**
- * \brief Radial Find a Vertex Loop in Face
+ * \brief Return the Loop Shared by Face and Vertex
  *
  * Finds the loop used which uses \a v in face loop \a l
  *
@@ -675,30 +674,45 @@ BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v)
 }
 
 /**
+ * \brief Return the Loop Shared by Face and Edge
+ *
+ * Finds the loop used which uses \a e in face loop \a l
+ *
+ * \note currenly this just uses simple loop in future may be speeded up
+ * using radial vars
+ */
+BMLoop *BM_face_edge_share_loop(BMFace *f, BMEdge *e)
+{
+	BMLoop *l_first;
+	BMLoop *l_iter;
+
+	l_iter = l_first = e->l;
+	do {
+		if (l_iter->f == f) {
+			return l_iter;
+		}
+	} while ((l_iter = l_iter->radial_next) != l_first);
+
+	return NULL;
+}
+
+/**
  * Returns the verts of an edge as used in a face
  * if used in a face at all, otherwise just assign as used in the edge.
  *
  * Useful to get a deterministic winding order when calling
  * BM_face_create_ngon() on an arbitrary array of verts,
  * though be sure to pick an edge which has a face.
+ *
+ * \note This is infact quite a simple check, mainly include this function so the intent is more obvious.
+ * We know these 2 verts will _always_ make up the loops edge
  */
 void BM_edge_ordered_verts_ex(BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
                               BMLoop *edge_loop)
 {
 	BLI_assert(edge_loop->e == edge);
-
-	if ((edge_loop == NULL) ||
-	    (((edge_loop->prev->v == edge->v1) && (edge_loop->v == edge->v2)) ||
-	     ((edge_loop->v == edge->v1) && (edge_loop->next->v == edge->v2)))
-	    )
-	{
-		*r_v1 = edge->v1;
-		*r_v2 = edge->v2;
-	}
-	else {
-		*r_v1 = edge->v2;
-		*r_v2 = edge->v1;
-	}
+	*r_v1 = edge_loop->v;
+	*r_v2 = edge_loop->next->v;
 }
 
 void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
@@ -788,7 +802,7 @@ void BM_loop_face_tangent(BMLoop *l, float r_tangent[3])
  */
 float BM_edge_face_angle(BMEdge *e)
 {
-	if (BM_edge_face_count(e) == 2) {
+	if (BM_edge_is_manifold(e)) {
 		BMLoop *l1 = e->l;
 		BMLoop *l2 = e->l->radial_next;
 		return angle_normalized_v3v3(l1->f->no, l2->f->no);
