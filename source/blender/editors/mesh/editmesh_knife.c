@@ -61,6 +61,9 @@
 #include "DNA_object_types.h"
 #include "BKE_tessmesh.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "mesh_intern.h"
 
 /* this code here is kindof messy. . .I might need to eventually rework it - joeedh */
@@ -2696,6 +2699,10 @@ static void knifetool_exit(bContext *UNUSED(C), wmOperator *op)
 	if (!kcd)
 		return;
 
+	/* remember setting for later */
+	RNA_boolean_set(op->ptr, "use_occlude_geometry", !kcd->cut_through);
+	WM_operator_last_properties_store(op); /* XXX - this is clunky but modal ops wont do this automatic */
+
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(kcd->ar->type, kcd->draw_handle);
 
@@ -2801,7 +2808,7 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	kcd->kedgefacemap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife origvertmap");
 
 	/* cut all the way through the mesh if use_occlude_geometry button not pushed */
-	kcd->cut_through = !(kcd->vc.v3d->flag & V3D_ZBUF_SELECT);
+	kcd->cut_through = !RNA_boolean_get(op->ptr, "use_occlude_geometry");
 
 	knife_pos_data_clear(&kcd->cur);
 	knife_pos_data_clear(&kcd->prev);
@@ -2833,7 +2840,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 
 	ED_area_headerprint(CTX_wm_area(C),
 	                    "LMB: define cut lines, Return or RMB: confirm, E: new cut, Ctrl: midpoint snap, "
-	                    "Shift: ignore snap, C: angle constrain, Turn off limit selection to visibile: cut through");
+	                    "Shift: ignore snap, C: angle constrain, Z: cut through");
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -2847,7 +2854,8 @@ enum {
 	KNF_MODEL_IGNORE_SNAP_ON,
 	KNF_MODEL_IGNORE_SNAP_OFF,
 	KNF_MODAL_ADD_CUT,
-	KNF_MODAL_ANGLE_SNAP_TOGGLE
+	KNF_MODAL_ANGLE_SNAP_TOGGLE,
+	KNF_MODAL_CUT_THROUGH_TOGGLE
 };
 
 wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
@@ -2860,6 +2868,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 		{KNF_MODEL_IGNORE_SNAP_ON, "IGNORE_SNAP_ON", 0, "Ignore Snapping On", ""},
 		{KNF_MODEL_IGNORE_SNAP_OFF, "IGNORE_SNAP_OFF", 0, "Ignore Snapping Off", ""},
 		{KNF_MODAL_ANGLE_SNAP_TOGGLE, "ANGLE_SNAP_TOGGLE", 0, "Toggle Angle Snapping", ""},
+		{KNF_MODAL_CUT_THROUGH_TOGGLE, "CUT_THROUGH_TOGGLE", 0, "Toggle Cut Through", ""},
 		{KNF_MODAL_NEW_CUT, "NEW_CUT", 0, "End Current Cut", ""},
 		{KNF_MODAL_ADD_CUT, "ADD_CUT", 0, "Add Cut", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -2875,7 +2884,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_ADD_CUT);
-	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, EKEY, KM_PRESS, 0, 0, KNF_MODAL_NEW_CUT);
@@ -2891,6 +2900,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RIGHTSHIFTKEY, KM_RELEASE, KM_ANY, 0, KNF_MODEL_IGNORE_SNAP_OFF);
 
 	WM_modalkeymap_add_item(keymap, CKEY, KM_PRESS, 0, 0, KNF_MODAL_ANGLE_SNAP_TOGGLE);
+	WM_modalkeymap_add_item(keymap, ZKEY, KM_PRESS, 0, 0, KNF_MODAL_CUT_THROUGH_TOGGLE);
 
 	WM_modalkeymap_assign(keymap, "MESH_OT_knifetool");
 
@@ -2963,6 +2973,9 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 			case KNF_MODAL_ANGLE_SNAP_TOGGLE:
 				kcd->angle_snapping = !kcd->angle_snapping;
 				break;
+			case KNF_MODAL_CUT_THROUGH_TOGGLE:
+				kcd->cut_through = !kcd->cut_through;
+				break;
 			case KNF_MODAL_NEW_CUT:
 				ED_region_tag_redraw(kcd->ar);
 				knife_finish_cut(kcd);
@@ -3033,4 +3046,6 @@ void MESH_OT_knifetool(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+
+	RNA_def_boolean(ot->srna, "use_occlude_geometry", 0, "Occlude Geometry", "Only cut the front most geometry");
 }
