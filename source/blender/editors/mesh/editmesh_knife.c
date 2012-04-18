@@ -188,6 +188,22 @@ static ListBase *knife_get_face_kedges(knifetool_opdata *kcd, BMFace *f);
 static void knife_input_ray_cast(knifetool_opdata *kcd, const int mval_i[2],
                                  float r_origin[3], float r_ray[3]);
 
+static void knife_update_header(bContext *C, knifetool_opdata *kcd)
+{
+	#define HEADER_LENGTH 170
+	char header[HEADER_LENGTH];
+
+	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return or RMB: confirm, E: new cut, Ctrl: midpoint snap (%s), "
+				 "Shift: ignore snap (%s), C: angle constrain (%s), Z: cut through (%s)",
+				 kcd->snap_midpoints? "On" : "Off",
+				 kcd->ignore_edge_snapping?  "On" : "Off",
+				 kcd->angle_snapping? "On" : "Off",
+				 kcd->cut_through? "On" : "Off");
+
+	ED_area_headerprint(CTX_wm_area(C), header);
+}
+
+
 static void knife_project_v3(knifetool_opdata *kcd, const float co[3], float sco[3])
 {
 	ED_view3d_project_float_v3(kcd->ar, co, sco, kcd->projmat);
@@ -2838,9 +2854,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	kcd = op->customdata;
 	knifetool_update_mval(kcd, evt->mval);
 
-	ED_area_headerprint(CTX_wm_area(C),
-	                    "LMB: define cut lines, Return or RMB: confirm, E: new cut, Ctrl: midpoint snap, "
-	                    "Shift: ignore snap, C: angle constrain, Z: cut through");
+	knife_update_header(C, kcd);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -2953,6 +2967,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 				knife_recalc_projmat(kcd);
 				knife_update_active(kcd);
+				knife_update_header(C, kcd);
 				ED_region_tag_redraw(kcd->ar);
 				break;
 			case KNF_MODAL_MIDPOINT_OFF:
@@ -2960,21 +2975,26 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 				knife_recalc_projmat(kcd);
 				knife_update_active(kcd);
+				knife_update_header(C, kcd);
 				ED_region_tag_redraw(kcd->ar);
 				break;
 			case KNF_MODEL_IGNORE_SNAP_ON:
 				ED_region_tag_redraw(kcd->ar);
 				kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = 1;
+				knife_update_header(C, kcd);
 				break;
 			case KNF_MODEL_IGNORE_SNAP_OFF:
 				ED_region_tag_redraw(kcd->ar);
 				kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = 0;
+				knife_update_header(C, kcd);
 				break;
 			case KNF_MODAL_ANGLE_SNAP_TOGGLE:
 				kcd->angle_snapping = !kcd->angle_snapping;
+				knife_update_header(C, kcd);
 				break;
 			case KNF_MODAL_CUT_THROUGH_TOGGLE:
 				kcd->cut_through = !kcd->cut_through;
+				knife_update_header(C, kcd);
 				break;
 			case KNF_MODAL_NEW_CUT:
 				ED_region_tag_redraw(kcd->ar);
