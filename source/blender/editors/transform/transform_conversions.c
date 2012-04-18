@@ -2662,6 +2662,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 	td= t->data;
 	t->customData= MEM_callocN(t->total*sizeof(TransDataNla), "TransDataNla (NLA Editor)");
 	tdn= t->customData;
+	t->flag |= T_FREE_CUSTOMDATA;
 	
 	/* loop 2: build transdata array */
 	for (ale= anim_data.first; ale; ale= ale->next) {
