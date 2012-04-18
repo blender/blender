@@ -470,10 +470,10 @@ int BM_edge_is_wire(BMEdge *e)
 
 /**
  * A vertex is non-manifold if it meets the following conditions:
- * 1: Loose - (has no edges/faces incident upon it)
- * 2: Joins two distinct regions - (two pyramids joined at the tip)
- * 3: Is part of a non-manifold edge (edge with more than 2 faces)
- * 4: Is part of a wire edge
+ * 1: Loose - (has no edges/faces incident upon it).
+ * 2: Joins two distinct regions - (two pyramids joined at the tip).
+ * 3: Is part of a an edge with more than 2 faces.
+ * 4: Is part of a wire edge.
  */
 int BM_vert_is_manifold(BMVert *v)
 {
@@ -487,18 +487,17 @@ int BM_vert_is_manifold(BMVert *v)
 	}
 
 	/* count edges while looking for non-manifold edges */
-	oe = v->e;
-	for (len = 0, e = v->e; e != oe || (e == oe && len == 0); len++, e = bmesh_disk_edge_next(e, v)) {
-		if (e->l == NULL) {
-			/* loose edge */
+	len = 0;
+	oe = e = v->e;
+	do {
+		/* loose edge or edge shared by more than two faces,
+		 * edges with 1 face user are OK, otherwise we could
+		 * use BM_edge_is_manifold() here */
+		if (e->l == NULL || bmesh_radial_length(e->l) > 2) {
 			return FALSE;
 		}
-
-		if (bmesh_radial_length(e->l) > 2) {
-			/* edge shared by more than two faces */
-			return FALSE;
-		}
-	}
+		len++;
+	} while((e = bmesh_disk_edge_next(e, v)) != oe);
 
 	count = 1;
 	flag = 1;
