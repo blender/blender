@@ -315,27 +315,27 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 		uiBlockBeginAlign(block);
 		if (tot == 1) {
-			uiDefBut(block, LABEL, 0, IFACE_("Vertex:"), 0, 150, 200, 20, NULL, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, IFACE_("Vertex:"), 0, 170, 200, 20, NULL, 0, 0, 0, 0, "");
 		}
 		else {
-			uiDefBut(block, LABEL, 0, IFACE_("Median:"), 0, 150, 200, 20, NULL, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, IFACE_("Median:"), 0, 170, 200, 20, NULL, 0, 0, 0, 0, "");
 		}
 
 		uiBlockBeginAlign(block);
 
 		/* Should be no need to translate these. */
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:", 0, 130, 200, 20,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:", 0, 150, 200, 20,
 		                &(tfp->ve_median[0]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:", 0, 110, 200, 20,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:", 0, 130, 200, 20,
 		                &(tfp->ve_median[1]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:", 0, 90, 200, 20,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:", 0, 110, 200, 20,
 		                &(tfp->ve_median[2]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
 
 		if (totw == tot) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:", 0, 70, 200, 20,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:", 0, 90, 200, 20,
 			          &(tfp->ve_median[3]), 0.01, 100.0, 1, 3, "");
 		}
 
