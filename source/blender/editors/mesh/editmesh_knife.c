@@ -1680,7 +1680,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 		if (BLI_array_count(faces) > 0) {
 			idx = BM_elem_index_get(faces[0]);
 
-			f2 = BM_faces_join(bm, faces, BLI_array_count(faces));
+			f2 = BM_faces_join(bm, faces, BLI_array_count(faces), TRUE);
 			if (f2) {
 				BMO_elem_flag_enable(bm, f2, FACE_NEW);
 				BM_elem_index_set(f2, idx); /* set_dirty! *//* BMESH_TODO, check if this is valid or not */
@@ -1700,6 +1700,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 /* use edgenet to fill faces.  this is a bit annoying and convoluted.*/
 static void knifenet_fill_faces(knifetool_opdata *kcd)
 {
+	ScanFillContext sf_ctx;
 	BMesh *bm = kcd->em->bm;
 	BMIter bmiter;
 	BLI_mempool_iter iter;
@@ -1869,15 +1870,15 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			}
 			else {
 				if (lasteve->poly_nr < 2)
-					BLI_remlink(&fillvertbase, lasteve);
+					BLI_remlink(&sf_ctx.fillvertbase, lasteve);
 				if (eve->poly_nr < 2)
-					BLI_remlink(&fillvertbase, eve);
+					BLI_remlink(&sf_ctx.fillvertbase, eve);
 			}
 		}
 
 		BLI_edgefill(&sf_ctx, FALSE);
 
-		for (efa = fillfacebase.first; efa; efa = efa->next) {
+		for (efa = sf_ctx.fillfacebase.first; efa; efa = efa->next) {
 			BMVert *v1 = efa->v3->tmp.p, *v2 = efa->v2->tmp.p, *v3 = efa->v1->tmp.p;
 			BMFace *f2;
 			BMLoop *l_iter;
@@ -1908,7 +1909,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			}
 		}
 
-		BLI_end_edgefill();
+		BLI_end_edgefill(&sf_ctx);
 		BLI_smallhash_release(hash);
 	}
 	bm->elem_index_dirty |= BM_FACE;
