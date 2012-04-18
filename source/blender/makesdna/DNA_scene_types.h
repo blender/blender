@@ -183,6 +183,9 @@ typedef struct SceneRenderLayer {
 	
 	int passflag;			/* pass_xor has to be after passflag */
 	int pass_xor;
+
+	int samples;
+	int pad;
 } SceneRenderLayer;
 
 /* srl->layflag */

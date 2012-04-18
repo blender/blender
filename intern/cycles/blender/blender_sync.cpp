@@ -210,6 +210,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.holdout_layer = 0;
 			render_layer.material_override = PointerRNA_NULL;
 			render_layer.use_background = true;
+			render_layer.samples = 0;
 			return;
 		}
 	}
@@ -228,6 +229,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.layer |= render_layer.holdout_layer;
 			render_layer.material_override = b_rlay->material_override();
 			render_layer.use_background = b_rlay->use_sky();
+			render_layer.samples = b_rlay->samples();
 		}
 
 		first_layer = false;

@@ -192,6 +192,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col.prop(rl, "material_override", text="")
 
         col = split.column()
+        col.prop(rl, "samples")
         col.prop(rl, "use_sky", "Use Environment")
 
         split = layout.split()
