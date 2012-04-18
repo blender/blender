@@ -79,6 +79,7 @@ int     BM_edge_share_vert_count(BMEdge *e1, BMEdge *e2);
 
 BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2);
 BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v);
+BMLoop *BM_face_edge_share_loop(BMFace *f, BMEdge *e);
 
 void    BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2);
 void    BM_edge_ordered_verts_ex(BMEdge *edge, BMVert **r_v1, BMVert **r_v2,

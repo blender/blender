@@ -1618,7 +1618,6 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
 	BMLoop *l_iter, *f1loop = NULL, *f2loop = NULL;
 	int newlen = 0, i, f1len = 0, f2len = 0, radlen = 0, edok, shared;
-	BMIter iter;
 
 	/* can't join a face to itsel */
 	if (f1 == f2) {
@@ -1628,19 +1627,10 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	/* verify that e is in both f1 and f2 */
 	f1len = f1->len;
 	f2len = f2->len;
-	BM_ITER(l_iter, &iter, bm, BM_LOOPS_OF_FACE, f1) {
-		if (l_iter->e == e) {
-			f1loop = l_iter;
-			break;
-		}
-	}
-	BM_ITER(l_iter, &iter, bm, BM_LOOPS_OF_FACE, f2) {
-		if (l_iter->e == e) {
-			f2loop = l_iter;
-			break;
-		}
-	}
-	if (!(f1loop && f2loop)) {
+
+	if (!((f1loop = BM_face_edge_share_loop(f1, e)) &&
+	      (f2loop = BM_face_edge_share_loop(f2, e))))
+	{
 		return NULL;
 	}
 	
@@ -1673,21 +1663,21 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 
 	/* validate no internal join */
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
-		BM_elem_flag_disable(l_iter->v, BM_ELEM_TAG);
+		BM_elem_flag_disable(l_iter->v, BM_ELEM_INTERNAL_TAG);
 	}
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
-		BM_elem_flag_disable(l_iter->v, BM_ELEM_TAG);
+		BM_elem_flag_disable(l_iter->v, BM_ELEM_INTERNAL_TAG);
 	}
 
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
 		if (l_iter != f1loop) {
-			BM_elem_flag_enable(l_iter->v, BM_ELEM_TAG);
+			BM_elem_flag_enable(l_iter->v, BM_ELEM_INTERNAL_TAG);
 		}
 	}
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
 		if (l_iter != f2loop) {
 			/* as soon as a duplicate is found, bail out */
-			if (BM_elem_flag_test(l_iter->v, BM_ELEM_TAG)) {
+			if (BM_elem_flag_test(l_iter->v, BM_ELEM_INTERNAL_TAG)) {
 				return NULL;
 			}
 		}

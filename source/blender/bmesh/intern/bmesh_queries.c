@@ -652,7 +652,7 @@ BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2)
 }
 
 /**
- * \brief Radial Find a Vertex Loop in Face
+ * \brief Return the Loop Shared by Face and Vertex
  *
  * Finds the loop used which uses \a v in face loop \a l
  *
@@ -675,30 +675,45 @@ BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v)
 }
 
 /**
+ * \brief Return the Loop Shared by Face and Edge
+ *
+ * Finds the loop used which uses \a e in face loop \a l
+ *
+ * \note currenly this just uses simple loop in future may be speeded up
+ * using radial vars
+ */
+BMLoop *BM_face_edge_share_loop(BMFace *f, BMEdge *e)
+{
+	BMLoop *l_first;
+	BMLoop *l_iter;
+
+	l_iter = l_first = e->l;
+	do {
+		if (l_iter->f == f) {
+			return l_iter;
+		}
+	} while ((l_iter = l_iter->radial_next) != l_first);
+
+	return NULL;
+}
+
+/**
  * Returns the verts of an edge as used in a face
  * if used in a face at all, otherwise just assign as used in the edge.
  *
  * Useful to get a deterministic winding order when calling
  * BM_face_create_ngon() on an arbitrary array of verts,
  * though be sure to pick an edge which has a face.
+ *
+ * \note This is infact quite a simple check, mainly include this function so the intent is more obvious.
+ * We know these 2 verts will _always_ make up the loops edge
  */
 void BM_edge_ordered_verts_ex(BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
                               BMLoop *edge_loop)
 {
 	BLI_assert(edge_loop->e == edge);
-
-	if ((edge_loop == NULL) ||
-	    (((edge_loop->prev->v == edge->v1) && (edge_loop->v == edge->v2)) ||
-	     ((edge_loop->v == edge->v1) && (edge_loop->next->v == edge->v2)))
-	    )
-	{
-		*r_v1 = edge->v1;
-		*r_v2 = edge->v2;
-	}
-	else {
-		*r_v1 = edge->v2;
-		*r_v2 = edge->v1;
-	}
+	*r_v1 = edge_loop->v;
+	*r_v2 = edge_loop->next->v;
 }
 
 void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
