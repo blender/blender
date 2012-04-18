@@ -51,7 +51,7 @@ typedef struct ScanFillContext
 	 * only to be used within loops, and not by one function at a time
 	 * free in the end, with argument '-1'
 	 */
-	#define MEM_ELEM_BLOCKSIZE 16384
+#define MEM_ELEM_BLOCKSIZE 16384
 	struct mem_elements *melem__cur;
 	int melem__offs;                   /* the current free address */
 	ListBase melem__lb;
@@ -66,8 +66,8 @@ typedef struct ScanFillVert
 	struct ScanFillVert *next, *prev;
 	union {
 		struct ScanFillVert *v;
-		void            *p;
-		intptr_t         l;
+		void                *p;
+		intptr_t             l;
 	} tmp;
 	float co[3]; /* vertex location */
 	float xy[2]; /* 2D copy of vertex location (using dominant axis) */
@@ -93,10 +93,6 @@ typedef struct ScanFillFace
 /* scanfill.c: used in displist only... */
 struct ScanFillVert *BLI_addfillvert(ScanFillContext *sf_ctx, const float vec[3]);
 struct ScanFillEdge *BLI_addfilledge(ScanFillContext *sf_ctx, struct ScanFillVert *v1, struct ScanFillVert *v2);
-
-/* Optionally set ScanFillEdge f to this to mark original boundary edges.
- * Only needed if there are internal diagonal edges passed to BLI_edgefill. */
-#define FILLBOUNDARY 1
 
 int BLI_begin_edgefill(ScanFillContext *sf_ctx);
 int BLI_edgefill(ScanFillContext *sf_ctx, const short do_quad_tri_speedup);

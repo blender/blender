@@ -1862,7 +1862,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 				ScanFillEdge *eed;
 				eed = BLI_addfilledge(&sf_ctx, lasteve, eve);
 				if (entry->kfe->oe)
-					eed->f = FILLBOUNDARY;  /* mark as original boundary edge */
+					eed->f = SF_EDGE_BOUNDARY;  /* mark as original boundary edge */
 
 				BMO_elem_flag_disable(bm, entry->kfe->e->v1, DEL);
 				BMO_elem_flag_disable(bm, entry->kfe->e->v2, DEL);

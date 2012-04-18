@@ -93,7 +93,17 @@ typedef struct ScanFillVertLink {
 
 /* local funcs */
 
-#define COMPLIMIT   0.00003f
+#define SF_EPSILON   0.00003f
+
+#define SF_VERT_UNKNOWN  1    /* TODO, what is this for exactly? - need to document it! */
+#define SF_VERT_ZERO_LEN 255
+
+/* Optionally set ScanFillEdge f to this to mark original boundary edges.
+ * Only needed if there are internal diagonal edges passed to BLI_edgefill. */
+#define SF_EDGE_BOUNDARY 1
+#define SF_EDGE_UNKNOWN  2    /* TODO, what is this for exactly? - need to document it! */
+
+
 
 /* ****  FUNCTIONS FOR QSORT *************************** */
 
@@ -199,9 +209,7 @@ ScanFillVert *BLI_addfillvert(ScanFillContext *sf_ctx, const float vec[3])
 	eve = mem_element_new(sf_ctx, sizeof(ScanFillVert));
 	BLI_addtail(&sf_ctx->fillvertbase, eve);
 	
-	eve->co[0] = vec[0];
-	eve->co[1] = vec[1];
-	eve->co[2] = vec[2];
+	copy_v3_v3(eve->co, vec);
 
 	return eve;	
 }
@@ -319,10 +327,11 @@ static short addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
 	}
 	else fac1 = (x - eed->v2->xy[0]) / fac1;
 
-	ed = sc->first;
-	while (ed) {
+	for (ed = sc->first; ed; ed = ed->next) {
 
-		if (ed->v2 == eed->v2) return 0;
+		if (ed->v2 == eed->v2) {
+			return 0;
+		}
 
 		fac = ed->v2->xy[1] - y;
 		if (fac == 0.0f) {
@@ -332,9 +341,9 @@ static short addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
 			fac = (x - ed->v2->xy[0]) / fac;
 		}
 
-		if (fac > fac1) break;
-
-		ed = ed->next;
+		if (fac > fac1) {
+			break;
+		}
 	}
 	if (ed) BLI_insertlinkbefore((ListBase *)&(sc->first), ed, eed);
 	else BLI_addtail((ListBase *)&(sc->first), eed);
@@ -409,13 +418,9 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 
 	ScanFillVert *eve;
 	ScanFillEdge *eed, *ed1;
-	float dist, vec1[2], vec2[2], vec3[2];
 
-	eve = sf_ctx->fillvertbase.first;
-	while (eve) {
+	for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
 		if (eve->h == 1) {
-			vec3[0] = eve->xy[0];
-			vec3[1] = eve->xy[1];
 			/* find the edge which has vertex eve */
 			ed1 = sf_ctx->filledgebase.first;
 			while (ed1) {
@@ -426,29 +431,25 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 				ed1->v1 = ed1->v2;
 				ed1->v2 = eve;
 			}
-			eed = sf_ctx->filledgebase.first;
-			while (eed) {
+
+			for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
 				if (eve != eed->v1 && eve != eed->v2 && eve->poly_nr == eed->poly_nr) {
-					if (compare_v3v3(eve->co, eed->v1->co, COMPLIMIT)) {
+					if (compare_v3v3(eve->co, eed->v1->co, SF_EPSILON)) {
 						ed1->v2 = eed->v1;
 						eed->v1->h++;
 						eve->h = 0;
 						break;
 					}
-					else if (compare_v3v3(eve->co, eed->v2->co, COMPLIMIT)) {
+					else if (compare_v3v3(eve->co, eed->v2->co, SF_EPSILON)) {
 						ed1->v2 = eed->v2;
 						eed->v2->h++;
 						eve->h = 0;
 						break;
 					}
 					else {
-						vec1[0] = eed->v1->xy[0];
-						vec1[1] = eed->v1->xy[1];
-						vec2[0] = eed->v2->xy[0];
-						vec2[1] = eed->v2->xy[1];
 						if (boundinsideEV(eed, eve)) {
-							dist = dist_to_line_v2(vec1, vec2, vec3);
-							if (dist < COMPLIMIT) {
+							const float dist = dist_to_line_v2(eed->v1->xy, eed->v2->xy, eve->xy);
+							if (dist < SF_EPSILON) {
 								/* new edge */
 								ed1 = BLI_addfilledge(sf_ctx, eed->v1, eve);
 								
@@ -462,10 +463,8 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 						}
 					}
 				}
-				eed = eed->next;
 			}
 		}
-		eve = eve->next;
 	}
 }
 
@@ -530,19 +529,19 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 	while (eed) {
 		if (eed->v1->xy[0] == eed->v2->xy[0]) {
 			if (eed->v1->xy[1] == eed->v2->xy[1]) {
-				if (eed->v1->f == 255 && eed->v2->f != 255) {
-					eed->v2->f = 255;
+				if (eed->v1->f == SF_VERT_ZERO_LEN && eed->v2->f != SF_VERT_ZERO_LEN) {
+					eed->v2->f = SF_VERT_ZERO_LEN;
 					eed->v2->tmp.v = eed->v1->tmp.v;
 				}
-				else if (eed->v2->f == 255 && eed->v1->f != 255) {
-					eed->v1->f = 255;
+				else if (eed->v2->f == SF_VERT_ZERO_LEN && eed->v1->f != SF_VERT_ZERO_LEN) {
+					eed->v1->f = SF_VERT_ZERO_LEN;
 					eed->v1->tmp.v = eed->v2->tmp.v;
 				}
-				else if (eed->v2->f == 255 && eed->v1->f == 255) {
+				else if (eed->v2->f == SF_VERT_ZERO_LEN && eed->v1->f == SF_VERT_ZERO_LEN) {
 					eed->v1->tmp.v = eed->v2->tmp.v;
 				}
 				else {
-					eed->v2->f = 255;
+					eed->v2->f = SF_VERT_ZERO_LEN;
 					eed->v2->tmp.v = eed->v1;
 				}
 			}
@@ -558,7 +557,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 	verts = 0;
 	while (eve) {
 		if (eve->poly_nr == nr) {
-			if (eve->f != 255) {
+			if (eve->f != SF_VERT_ZERO_LEN) {
 				verts++;
 				eve->f = 0;  /* flag for connectedges later on */
 				sc->v1 = eve;
@@ -579,14 +578,14 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 		 * fix trunk bug #4544, so if that comes back, this code
 		 * may need some work, or there will have to be a better
 		 * fix to #4544. */
-		if (eed->v1->f == 255) {
+		if (eed->v1->f == SF_VERT_ZERO_LEN) {
 			v1 = eed->v1;
-			while ((eed->v1->f == 255) && (eed->v1->tmp.v != v1) && (eed->v1 != eed->v1->tmp.v))
+			while ((eed->v1->f == SF_VERT_ZERO_LEN) && (eed->v1->tmp.v != v1) && (eed->v1 != eed->v1->tmp.v))
 				eed->v1 = eed->v1->tmp.v;
 		}
-		if (eed->v2->f == 255) {
+		if (eed->v2->f == SF_VERT_ZERO_LEN) {
 			v2 = eed->v2;
-			while ((eed->v2->f == 255) && (eed->v2->tmp.v != v2) && (eed->v2 != eed->v2->tmp.v))
+			while ((eed->v2->f == SF_VERT_ZERO_LEN) && (eed->v2->tmp.v != v2) && (eed->v2 != eed->v2->tmp.v))
 				eed->v2 = eed->v2->tmp.v;
 		}
 		if (eed->v1 != eed->v2) addedgetoscanlist(sf_ctx, eed, verts);
@@ -627,7 +626,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 				if (ed1->v1->h > 1) ed1->v1->h--;
 				if (ed1->v2->h > 1) ed1->v2->h--;
 			}
-			else ed1->v2->f = 1;
+			else ed1->v2->f = SF_VERT_UNKNOWN;
 
 			ed1 = nexted;
 		}
@@ -685,8 +684,8 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 					ed3 = BLI_addfilledge(sf_ctx, v2, sc1->v1);
 					BLI_remlink(&sf_ctx->filledgebase, ed3);
 					BLI_insertlinkbefore((ListBase *)&(sc->first), ed2, ed3);
-					ed3->v2->f = 1;
-					ed3->f = 2;
+					ed3->v2->f = SF_VERT_UNKNOWN;
+					ed3->f = SF_EDGE_UNKNOWN;
 					ed3->v1->h++; 
 					ed3->v2->h++;
 				}
@@ -701,7 +700,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 					ed1->v1->h--; 
 					ed1->v2->h--;
 					/* ed2 can be removed when it's a boundary edge */
-					if ((ed2->f == 0 && twoconnected) || (ed2->f == FILLBOUNDARY)) {
+					if ((ed2->f == 0 && twoconnected) || (ed2->f == SF_EDGE_BOUNDARY)) {
 						BLI_remlink((ListBase *)&(sc->first), ed2);
 						BLI_addtail(&sf_ctx->filledgebase, ed2);
 						ed2->v2->f = 0;
@@ -712,7 +711,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 					/* new edge */
 					ed3 = BLI_addfilledge(sf_ctx, v1, v3);
 					BLI_remlink(&sf_ctx->filledgebase, ed3);
-					ed3->f = 2;
+					ed3->f = SF_EDGE_UNKNOWN;
 					ed3->v1->h++; 
 					ed3->v2->h++;
 					
@@ -727,7 +726,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 						ed3 = sc1->first;
 						while (ed3) {
 							if ( (ed3->v1 == v1 && ed3->v2 == v3) || (ed3->v1 == v3 && ed3->v2 == v1) ) {
-								if (twoconnected || ed3->f == FILLBOUNDARY) {
+								if (twoconnected || ed3->f == SF_EDGE_BOUNDARY) {
 									BLI_remlink((ListBase *)&(sc1->first), ed3);
 									BLI_addtail(&sf_ctx->filledgebase, ed3);
 									ed3->v1->h--; 
@@ -838,15 +837,15 @@ int BLI_edgefill_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup, co
 	eed = sf_ctx->filledgebase.first;
 	while (eed) {
 		eed->poly_nr = 0;
-		eed->v1->f = 1;
-		eed->v2->f = 1;
+		eed->v1->f = SF_VERT_UNKNOWN;
+		eed->v2->f = SF_VERT_UNKNOWN;
 
 		eed = eed->next;
 	}
 
 	eve = sf_ctx->fillvertbase.first;
 	while (eve) {
-		if (eve->f & 1) {
+		if (eve->f & SF_VERT_UNKNOWN) {
 			ok = 1;
 			break;
 		}
@@ -874,7 +873,7 @@ int BLI_edgefill_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup, co
 			v_prev = eve->co;
 
 			for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
-				if (LIKELY(!compare_v3v3(v_prev, eve->co, COMPLIMIT))) {
+				if (LIKELY(!compare_v3v3(v_prev, eve->co, SF_EPSILON))) {
 					add_newell_cross_v3_v3v3(n, v_prev, eve->co);
 					v_prev = eve->co;
 				}
