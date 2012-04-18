@@ -2516,6 +2516,8 @@ int Shear(TransInfo *t, const int UNUSED(mval[2]))
 		sprintf(str, "Shear: %.3f %s", value, t->proptext);
 	}
 	
+	t->values[0] = value;
+
 	unit_m3(smat);
 	
 	// Custom data signals shear direction
@@ -3616,6 +3618,7 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		sprintf(str, "Shrink/Fatten: %.4f %s", distance, t->proptext);
 	}
 
+	t->values[0] = distance;
 
 	for (i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
@@ -3820,6 +3823,8 @@ int PushPull(TransInfo *t, const int UNUSED(mval[2]))
 		/* default header print */
 		sprintf(str, "Push/Pull: %.4f%s %s", distance, t->con.text, t->proptext);
 	}
+
+	t->values[0] = distance;
 
 	if (t->con.applyRot && t->con.mode & CON_APPLY) {
 		t->con.applyRot(t, NULL, axis, NULL);
@@ -4922,6 +4927,8 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	CLAMP(final, -1.0f, 1.0f);
+
+	t->values[0] = final;
 
 	/*do stuff here*/
 	if (t->customData)

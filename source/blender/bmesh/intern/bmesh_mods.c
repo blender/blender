@@ -544,7 +544,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 		ne = bmesh_jekv(bm, ke, kv, TRUE);
 		/* ne = BM_edge_exists(tv, tv2); */ /* same as return above */
 
-		if (kill_degenerate_faces) {
+		if (ne && kill_degenerate_faces) {
 			BLI_array_declare(bad_faces);
 			BMFace **bad_faces = NULL;
 

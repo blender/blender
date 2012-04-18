@@ -120,49 +120,36 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 
 static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e, BMEdge *newedge)
 {
-	BMIter iter;
-	BMLoop *l, *l_other;
+	/* 'a' is the starting edge #e, 'b' is the final edge #newedge */
+	BMLoop *l_dst_a = BM_face_edge_share_loop(f, e);
+	BMLoop *l_dst_b = newedge->l; /* will only ever be one loop */
+	BMLoop *l_src_a = l_dst_a->radial_next;
+	/* there is no l_src_b */
 
-	/* copy attributes */
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-		if (l->e != e && l->e != newedge) {
-			continue;
-		}
+	/* sanity */
+	BLI_assert(l_src_a->f != l_dst_a->f);
+	BLI_assert(l_dst_a->f == l_dst_b->f);
 
-		l_other = l->radial_next;
-		
-		if (l_other == l) {
-			l_other = newedge->l;
 
-			if (l_other != l) {
-				BM_elem_attrs_copy(bm, bm, l_other->f, f);
-				BM_elem_flag_disable(f, BM_ELEM_HIDDEN); /* possibly we copy from a hidden face */
+	BM_elem_attrs_copy(bm, bm, l_src_a->f, l_dst_a->f);
+	BM_elem_flag_disable(f, BM_ELEM_HIDDEN); /* possibly we copy from a hidden face */
 
-				BM_elem_attrs_copy(bm, bm, l_other, l);
-				l_other = l_other->next;
-				l = l->next;
-				BM_elem_attrs_copy(bm, bm, l_other, l);
-			}
-		}
-		else {
-			BM_elem_attrs_copy(bm, bm, l_other->f, f);
-			BM_elem_flag_disable(f, BM_ELEM_HIDDEN); /* possibly we copy from a hidden face */
 
-			/* copy data */
-			if (l_other->v == l->v) {
-				BM_elem_attrs_copy(bm, bm, l_other, l);
-				l_other = l_other->next;
-				l = l->next;
-				BM_elem_attrs_copy(bm, bm, l_other, l);
-			}
-			else {
-				l_other = l_other->next;
-				BM_elem_attrs_copy(bm, bm, l_other, l);
-				l_other = l_other->prev;
-				l = l->next;
-				BM_elem_attrs_copy(bm, bm, l_other, l);
-			}
-		}
+	/* copy data */
+	if (l_src_a->v == l_dst_a->v) {
+		BM_elem_attrs_copy(bm, bm, l_src_a, l_dst_a);
+		BM_elem_attrs_copy(bm, bm, l_src_a, l_dst_b->next);
+
+		BM_elem_attrs_copy(bm, bm, l_src_a->next, l_dst_a->next);
+		BM_elem_attrs_copy(bm, bm, l_src_a->next, l_dst_b);
+	}
+	else {
+		l_src_a = l_src_a->next;
+		BM_elem_attrs_copy(bm, bm, l_src_a, l_dst_a);
+		BM_elem_attrs_copy(bm, bm, l_src_a, l_dst_b->next);
+
+		BM_elem_attrs_copy(bm, bm, l_src_a->prev, l_dst_a->next);
+		BM_elem_attrs_copy(bm, bm, l_src_a->prev, l_dst_b);
 	}
 }
 
