@@ -2736,6 +2736,17 @@ static void cage_mapped_verts_callback(void *userData, int index, const float co
 	}
 }
 
+static void knifetool_update_mval(knifetool_opdata *kcd, int mval[2])
+{
+	knife_recalc_projmat(kcd);
+	kcd->vc.mval[0] = mval[0];
+	kcd->vc.mval[1] = mval[1];
+
+	if (knife_update_active(kcd)) {
+		ED_region_tag_redraw(kcd->ar);
+	}
+}
+
 /* called when modal loop selection gets set up... */
 static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 {
@@ -2818,8 +2829,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	WM_event_add_modal_handler(C, op);
 
 	kcd = op->customdata;
-	kcd->vc.mval[0] = evt->mval[0];
-	kcd->vc.mval[1] = evt->mval[1];
+	knifetool_update_mval(kcd, evt->mval);
 
 	ED_area_headerprint(CTX_wm_area(C),
 	                    "LMB: define cut lines, Return or RMB: confirm, E: new cut, Ctrl: midpoint snap, "
@@ -2997,12 +3007,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			case MOUSEMOVE: /* mouse moved somewhere to select another loop */
 				if (kcd->mode != MODE_PANNING) {
-					knife_recalc_projmat(kcd);
-					kcd->vc.mval[0] = event->mval[0];
-					kcd->vc.mval[1] = event->mval[1];
-
-					if (knife_update_active(kcd))
-						ED_region_tag_redraw(kcd->ar);
+					knifetool_update_mval(kcd, event->mval);
 				}
 
 				break;
