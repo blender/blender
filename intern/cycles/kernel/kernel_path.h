@@ -240,13 +240,17 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 			/* eval background shader if nothing hit */
 			if(kernel_data.background.transparent && (state.flag & PATH_RAY_CAMERA)) {
 				L_transparent += average(throughput);
+
+#ifdef __PASSES__
+				if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
+#endif
+					break;
 			}
+
 #ifdef __BACKGROUND__
-			else {
-				/* sample background shader */
-				float3 L_background = indirect_background(kg, &ray, state.flag, ray_pdf);
-				path_radiance_accum_background(&L, throughput, L_background, state.bounce);
-			}
+			/* sample background shader */
+			float3 L_background = indirect_background(kg, &ray, state.flag, ray_pdf);
+			path_radiance_accum_background(&L, throughput, L_background, state.bounce);
 #endif
 
 			break;
@@ -409,7 +413,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 #endif
 	}
 
-	float3 L_sum = path_radiance_sum(&L);
+	float3 L_sum = path_radiance_sum(kg, &L);
 
 #ifdef __CLAMP_SAMPLE__
 	path_radiance_clamp(&L, &L_sum, kernel_data.integrator.sample_clamp);
