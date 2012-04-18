@@ -802,7 +802,7 @@ void BM_loop_face_tangent(BMLoop *l, float r_tangent[3])
  */
 float BM_edge_face_angle(BMEdge *e)
 {
-	if (BM_edge_face_count(e) == 2) {
+	if (BM_edge_is_manifold(e)) {
 		BMLoop *l1 = e->l;
 		BMLoop *l2 = e->l->radial_next;
 		return angle_normalized_v3v3(l1->f->no, l2->f->no);

@@ -413,7 +413,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				 * otherwise we can't a face away from a wire edge */
 				totboundary_edge += (is_boundary != 0 || BM_edge_is_wire(e));
 				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-					if (is_boundary == FALSE && BM_edge_face_count(e) == 2) {
+					if (is_boundary == FALSE && BM_edge_is_manifold(e)) {
 						d = edbm_rip_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
 						if (d < dist) {
 							dist = d;
@@ -511,7 +511,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 
 		/* rip two adjacent edges */
-		if (BM_edge_face_count(e2) == 1 || BM_vert_face_count(v) == 2) {
+		if (BM_edge_is_boundary(e2) || BM_vert_face_count(v) == 2) {
 			l = e2->l;
 			ripvert = BM_face_vert_separate(bm, l->f, v);
 
@@ -520,7 +520,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_CANCELLED;
 			}
 		}
-		else if (BM_edge_face_count(e2) == 2) {
+		else if (BM_edge_is_manifold(e2)) {
 			l = e2->l;
 			e = BM_face_other_edge_loop(l->f, e2, v)->e;
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
