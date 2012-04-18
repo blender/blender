@@ -3514,7 +3514,7 @@ static int mark_seam_exec(bContext *C, wmOperator *UNUSED(op))
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		BM_ITER(loop, &liter, bm, BM_LOOPS_OF_FACE, efa) {
 			if (uvedit_edge_selected(em, scene, loop)) {
-				BM_elem_flag_enable(loop, BM_ELEM_SEAM);
+				BM_elem_flag_enable(loop->e, BM_ELEM_SEAM);
 			}
 		}
 	}
