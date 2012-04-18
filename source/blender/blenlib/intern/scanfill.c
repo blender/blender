@@ -405,7 +405,9 @@ static short boundinsideEV(ScanFillEdge *eed, ScanFillVert *eve)
 			miny = eed->v2->xy[1];
 			maxy = eed->v1->xy[1];
 		}
-		if (eve->xy[1] >= miny && eve->xy[1] <= maxy) return 1;
+		if (eve->xy[1] >= miny && eve->xy[1] <= maxy) {
+			return 1;
+		}
 	}
 	return 0;
 }
@@ -503,7 +505,6 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 	ScanFillVertLink *sc = NULL, *sc1;
 	ScanFillVert *eve, *v1, *v2, *v3;
 	ScanFillEdge *eed, *nexted, *ed1, *ed2, *ed3;
-	float miny = 0.0;
 	int a, b, verts, maxface, totface;
 	short nr, test, twoconnected = 0;
 
@@ -527,23 +528,21 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 	/* STEP 0: remove zero sized edges */
 	eed = sf_ctx->filledgebase.first;
 	while (eed) {
-		if (eed->v1->xy[0] == eed->v2->xy[0]) {
-			if (eed->v1->xy[1] == eed->v2->xy[1]) {
-				if (eed->v1->f == SF_VERT_ZERO_LEN && eed->v2->f != SF_VERT_ZERO_LEN) {
-					eed->v2->f = SF_VERT_ZERO_LEN;
-					eed->v2->tmp.v = eed->v1->tmp.v;
-				}
-				else if (eed->v2->f == SF_VERT_ZERO_LEN && eed->v1->f != SF_VERT_ZERO_LEN) {
-					eed->v1->f = SF_VERT_ZERO_LEN;
-					eed->v1->tmp.v = eed->v2->tmp.v;
-				}
-				else if (eed->v2->f == SF_VERT_ZERO_LEN && eed->v1->f == SF_VERT_ZERO_LEN) {
-					eed->v1->tmp.v = eed->v2->tmp.v;
-				}
-				else {
-					eed->v2->f = SF_VERT_ZERO_LEN;
-					eed->v2->tmp.v = eed->v1;
-				}
+		if (equals_v2v2(eed->v1->xy, eed->v2->xy)) {
+			if (eed->v1->f == SF_VERT_ZERO_LEN && eed->v2->f != SF_VERT_ZERO_LEN) {
+				eed->v2->f = SF_VERT_ZERO_LEN;
+				eed->v2->tmp.v = eed->v1->tmp.v;
+			}
+			else if (eed->v2->f == SF_VERT_ZERO_LEN && eed->v1->f != SF_VERT_ZERO_LEN) {
+				eed->v1->f = SF_VERT_ZERO_LEN;
+				eed->v1->tmp.v = eed->v2->tmp.v;
+			}
+			else if (eed->v2->f == SF_VERT_ZERO_LEN && eed->v1->f == SF_VERT_ZERO_LEN) {
+				eed->v1->tmp.v = eed->v2->tmp.v;
+			}
+			else {
+				eed->v2->f = SF_VERT_ZERO_LEN;
+				eed->v2->tmp.v = eed->v1;
 			}
 		}
 		eed = eed->next;
@@ -651,13 +650,14 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 			}
 			else {
 				/* test rest of vertices */
+				float miny;
 				v1 = ed1->v2;
 				v2 = ed1->v1;
 				v3 = ed2->v2;
 				/* this happens with a serial of overlapping edges */
 				if (v1 == v2 || v2 == v3) break;
 				/* printf("test verts %x %x %x\n",v1,v2,v3); */
-				miny = ( (v1->xy[1]) < (v3->xy[1]) ? (v1->xy[1]) : (v3->xy[1]) );
+				miny = minf(v1->xy[1], v3->xy[1]);
 				/*  miny= MIN2(v1->xy[1],v3->xy[1]); */
 				sc1 = sc + 1;
 				test = 0;
