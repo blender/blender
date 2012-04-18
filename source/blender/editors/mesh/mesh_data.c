@@ -816,12 +816,9 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 
 		/* would only be converting back again, don't bother */
 		tessface_input = TRUE;
-
-		/* it also happens that converting the faces calculates edges, skip this */
-		calc_edges = FALSE;
 	}
 
-	if (calc_edges || (mesh->totpoly && mesh->totedge == 0))
+	if (calc_edges || ((mesh->totpoly || mesh->totface) && mesh->totedge == 0))
 		BKE_mesh_calc_edges(mesh, calc_edges);
 
 	if (calc_tessface) {
