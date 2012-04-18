@@ -67,6 +67,8 @@
 
 #define KMAXDIST    10  /* max mouse distance from edge before not detecting it */
 
+#define USE_SELECTED_ONLY
+
 /* knifetool operator */
 typedef struct KnifeVert {
 	BMVert *v; /* non-NULL if this is an original vert */
@@ -713,6 +715,15 @@ static void knife_add_cut(knifetool_opdata *kcd)
 			if (len_v3v3(kcd->cur.cage, lh->realhit) < FLT_EPSILON * 80)
 				continue;
 
+#if 0		/* not working perfect, ignore for now */
+#ifdef USE_SELECTED_ONLY
+			/* don't mess up logic by skipping too early */
+			if (lh->kfe->e && !BM_elem_flag_test(lh->kfe->e, BM_ELEM_SELECT)) {
+				continue;
+			}
+#endif
+#endif
+
 			if (kcd->prev.is_space) {
 				kcd->prev.is_space = 0;
 				copy_v3_v3(kcd->prev.co, lh->hit);
@@ -923,6 +934,13 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		lh = kcd->linehits;
 		for (i = 0; i < kcd->totlinehit; i++, lh++) {
 			float sv1[3], sv2[3];
+			int do_draw = TRUE;
+
+#ifdef USE_SELECTED_ONLY
+			if (!BM_elem_flag_test(lh->f, BM_ELEM_SELECT)) {
+				do_draw = FALSE;
+			}
+#endif
 
 			knife_project_v3(kcd, lh->kfe->v1->cageco, sv1);
 			knife_project_v3(kcd, lh->kfe->v2->cageco, sv2);
@@ -930,12 +948,12 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 			if (len_v2v2(lh->schit, sv1) < kcd->vthresh / 4.0f) {
 				copy_v3_v3(lh->cagehit, lh->kfe->v1->cageco);
-				glVertex3fv(lh->cagehit);
+				if (do_draw) glVertex3fv(lh->cagehit);
 				lh->v = lh->kfe->v1;
 			}
 			else if (len_v2v2(lh->schit, sv2) < kcd->vthresh / 4.0f) {
 				copy_v3_v3(lh->cagehit, lh->kfe->v2->cageco);
-				glVertex3fv(lh->cagehit);
+				if (do_draw) glVertex3fv(lh->cagehit);
 				lh->v = lh->kfe->v2;
 			}
 		}
@@ -947,6 +965,13 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		glBegin(GL_POINTS);
 		lh = kcd->linehits;
 		for (i = 0; i < kcd->totlinehit; i++, lh++) {
+
+#ifdef USE_SELECTED_ONLY
+			if (!BM_elem_flag_test(lh->f, BM_ELEM_SELECT)) {
+				continue;
+			}
+#endif
+
 			glVertex3fv(lh->cagehit);
 		}
 		glEnd();
@@ -2588,6 +2613,12 @@ static void knife_make_cuts(knifetool_opdata *kcd)
 	for (lst = BLI_smallhash_iternew(ehash, &hiter, (uintptr_t *)&e); lst;
 	     lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&e))
 	{
+#ifdef USE_SELECTED_ONLY
+		if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+			continue;
+		}
+#endif
+
 		sort_by_frac_along(lst, e);
 		for (ref = lst->first; ref; ref = ref->next) {
 			kfv = ref->ref;
@@ -2600,6 +2631,12 @@ static void knife_make_cuts(knifetool_opdata *kcd)
 	for (lst = BLI_smallhash_iternew(fhash, &hiter, (uintptr_t *)&f); lst;
 	     lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&f))
 	{
+#ifdef USE_SELECTED_ONLY
+		if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+			continue;
+		}
+#endif
+
 		knife_make_face_cuts(kcd, f, lst);
 	}
 
@@ -2733,7 +2770,7 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	cage->foreachMappedVert(cage, cage_mapped_verts_callback, data);
 	BLI_smallhash_release(&shash);
 
-	kcd->bmbvh = BMBVH_NewBVH(kcd->em, BMBVH_USE_CAGE | BMBVH_RETURN_ORIG, scene, obedit);
+	kcd->bmbvh = BMBVH_NewBVH(kcd->em, BMBVH_USE_CAGE | BMBVH_RETURN_ORIG | BMBVH_RESPECT_HIDDEN, scene, obedit);
 	kcd->arena = BLI_memarena_new(1 << 15, "knife");
 	kcd->vthresh = KMAXDIST - 1;
 	kcd->ethresh = KMAXDIST;

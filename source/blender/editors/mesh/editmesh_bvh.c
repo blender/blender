@@ -90,6 +90,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	SmallHash shash;
 	float cos[3][3], (*cagecos)[3] = NULL;
 	int i;
+	int tottri;
 
 	/* when initializing cage verts, we only want the first cage coordinate for each vertex,
 	 * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
@@ -104,7 +105,19 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	tree->epsilon = FLT_EPSILON * 2.0f;
 	tree->flag = flag;
 	
-	tree->tree = BLI_bvhtree_new(em->tottri, tree->epsilon, 8, 8);
+	if (flag & BMBVH_RESPECT_HIDDEN) {
+		tottri = 0;
+		for (i = 0; i < em->tottri; i++) {
+			if (!BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_HIDDEN)) {
+				tottri++;
+			}
+		}
+	}
+	else {
+		tottri = em->tottri;
+	}
+
+	tree->tree = BLI_bvhtree_new(tottri, tree->epsilon, 8, 8);
 	
 	if (flag & BMBVH_USE_CAGE) {
 		BMIter iter;
@@ -132,6 +145,14 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	tree->cagecos = cagecos;
 	
 	for (i = 0; i < em->tottri; i++) {
+
+		if (flag & BMBVH_RESPECT_HIDDEN) {
+			/* note, the arrays wont allign now! take care */
+			if (BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_HIDDEN)) {
+				continue;
+			}
+		}
+
 		if (flag & BMBVH_USE_CAGE) {
 			copy_v3_v3(cos[0], cagecos[BM_elem_index_get(em->looptris[i][0]->v)]);
 			copy_v3_v3(cos[1], cagecos[BM_elem_index_get(em->looptris[i][1]->v)]);
