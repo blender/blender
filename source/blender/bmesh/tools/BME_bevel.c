@@ -144,65 +144,34 @@ float *BME_new_transdata_float(BME_TransData_Head *td)
 	return BLI_memarena_alloc(td->ma, sizeof(float));
 }
 
-/* BM_disk_dissolve is a real mess, and crashes bevel if called instead of this.
- * The drawback, though, is that this code doesn't merge customdata. */
-static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
+/* ported from before bmesh merge into trunk (was called)
+ * problem with this is it creates 2 vert faces */
+static void BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 {
-	BMIter iter;
-	BMEdge *e, *elast;
-	BMLoop *l1, *l2;
+	BMFace *f;
+	BMEdge *e;
+	int done;
 
-	if (!BM_vert_is_manifold(v)) {
-		return 0;
-	}
-
-	/* hrmf, we could have a version of BM_vert_is_manifold() which checks for this case */
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
-		if (!BM_edge_is_manifold(e)) {
-			return 0;
-		}
-	}
-
-	if (BM_vert_edge_count(v) > 2) {
-		while (BM_vert_edge_count(v) > 2) {
-			e = v->e;
-			l1 = e->l;
-			l2 = l1->radial_next;
-			if (l1->v == l2->v) {
-				/* faces have incompatible directions; need to reverse one */
-				if (!bmesh_loop_reverse(bm, l2->f)) {
-					BLI_assert(!"bevel dissolve disk cannot reverse loop");
-					return 0;
+	if (v->e) {
+		done = 0;
+		while (!done){
+			done = 1;
+			e = v->e; /*loop the edge looking for a edge to dissolve*/
+			do {
+				f = NULL;
+				if (BM_edge_is_manifold(e)) {
+					f = bmesh_jfke(bm, e->l->f, e->l->radial_next->f, e);
 				}
-				l2 = l1->radial_next;
-			}
-			if (!bmesh_jfke(bm, l1->f, l2->f, e)) {
-				BLI_assert(!"bevel dissolve disk cannot join faces");
-				return 0;
-			}
-		}
-
-		e = v->e;
-		elast = bmesh_disk_edge_next(e, v);
-
-		/* BMESH_TODO, figure out if its possible we had a double edge here and need to splice it,
-		 * last bool arg */
-		bmesh_jekv(bm, e, v, FALSE);
-
-		l1 = elast->l;
-		l2 = l1->radial_next;
-		if (l1->v == l2->v) {
-			/* faces have incompatible directions */
-				if (!bmesh_loop_reverse(bm, l2->f)) {
-					BLI_assert(!"bevel dissolve disk cannot reverse loop");
-					return 0;
+				if (f) {
+					done = 0;
+					break;
 				}
-				l2 = l1->radial_next;
+				e = bmesh_disk_edge_next(e, v);
+			} while(e != v->e);
 		}
-		bmesh_jfke(bm, l1->f, l2->f, elast);
+		BM_vert_collapse_edge(bm, v->e, v, TRUE);
+		// bmesh_jekv(bm, v->e, v, FALSE);
 	}
-
-	return 1;
 }
 
 static int BME_bevel_is_split_vert(BMesh *bm, BMLoop *l)
