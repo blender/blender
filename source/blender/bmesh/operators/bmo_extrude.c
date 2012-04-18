@@ -118,39 +118,53 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, EXT_KEEP);
 }
 
-static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e, BMEdge *newedge)
+/**
+ * \brief Copy the loop pair from an adjacent face to both sides of this quad.
+ *
+ * The face is assumed to be a quad, created by extruding.
+ * This function won't crash if its not but won't work right either.
+ * \a e_b is the new edge.
+ *
+ * \note this function could be exposed as an api call if other areas need it,
+ * so far only extrude does.
+ */
+static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e_a, BMEdge *e_b)
 {
 	/* 'a' is the starting edge #e, 'b' is the final edge #newedge */
-	BMLoop *l_dst_a = BM_face_edge_share_loop(f, e);
-	BMLoop *l_dst_b = newedge->l; /* will only ever be one loop */
-	BMLoop *l_src_a = l_dst_a->radial_next;
+	BMLoop *l_dst_a = BM_face_edge_share_loop(f, e_a);
+	BMLoop *l_dst_b = BM_face_edge_share_loop(f, e_b);
+	/* we could only have a face on one-or the other edges,
+	 * chech if either side of the face has an adjacent face */
+	BMLoop *l_src_1;
+	BMLoop *l_src_2;
+
 	/* there is no l_src_b */
 
 	/* sanity */
-	BLI_assert(l_src_a->f != l_dst_a->f);
 	BLI_assert(l_dst_a->f == l_dst_b->f);
 
-
-	BM_elem_attrs_copy(bm, bm, l_src_a->f, l_dst_a->f);
-	BM_elem_flag_disable(f, BM_ELEM_HIDDEN); /* possibly we copy from a hidden face */
-
-
-	/* copy data */
-	if (l_src_a->v == l_dst_a->v) {
-		BM_elem_attrs_copy(bm, bm, l_src_a, l_dst_a);
-		BM_elem_attrs_copy(bm, bm, l_src_a, l_dst_b->next);
-
-		BM_elem_attrs_copy(bm, bm, l_src_a->next, l_dst_a->next);
-		BM_elem_attrs_copy(bm, bm, l_src_a->next, l_dst_b);
+	if (l_dst_a != l_dst_a->radial_next) {
+		l_src_1 = l_dst_a->radial_next;
+		l_src_2 = l_src_1->next;
+	}
+	else if (l_dst_b != l_dst_b->radial_next) {
+		l_src_2 = l_dst_b->radial_next;
+		l_src_1 = l_src_2->next;
 	}
 	else {
-		l_src_a = l_src_a->next;
-		BM_elem_attrs_copy(bm, bm, l_src_a, l_dst_a);
-		BM_elem_attrs_copy(bm, bm, l_src_a, l_dst_b->next);
-
-		BM_elem_attrs_copy(bm, bm, l_src_a->prev, l_dst_a->next);
-		BM_elem_attrs_copy(bm, bm, l_src_a->prev, l_dst_b);
+		/* no new faces on either edge, nothing to copy from */
+		return;
 	}
+
+	BM_elem_attrs_copy(bm, bm, l_src_1->f, l_dst_a->f);
+	BM_elem_flag_disable(f, BM_ELEM_HIDDEN); /* possibly we copy from a hidden face */
+
+	/* copy data */
+	BM_elem_attrs_copy(bm, bm, l_src_2, l_dst_a);
+	BM_elem_attrs_copy(bm, bm, l_src_2, l_dst_b->next);
+
+	BM_elem_attrs_copy(bm, bm, l_src_1, l_dst_a->next);
+	BM_elem_attrs_copy(bm, bm, l_src_1, l_dst_b);
 }
 
 void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
