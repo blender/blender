@@ -148,18 +148,11 @@ float *BME_new_transdata_float(BME_TransData_Head *td)
  * The drawback, though, is that this code doesn't merge customdata. */
 static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 {
-	BMIter iter;
 	BMEdge *e, *elast;
 	BMLoop *l1, *l2;
 
 	if (!BM_vert_is_manifold(v)) {
 		return 0;
-	}
-
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
-		if (BM_edge_face_count(e) != 2) {
-			return 0;
-		}
 	}
 
 	if (BM_vert_edge_count(v) > 2) {
@@ -1011,12 +1004,14 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 		}
 	}
 
+#ifdef DEBUG
 	/* Debug print, remov */
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (f->len == 2) {
-			printf("warning");
+			printf("%s: warning, 2 edge face\n", __func__);
 		}
 	}
+#endif
 
 	return bm;
 }
