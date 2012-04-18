@@ -158,7 +158,7 @@ static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 
 	/* hrmf, we could have a version of BM_vert_is_manifold() which checks for this case */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
-		if (BM_edge_face_count(e) != 2) {
+		if (!BM_edge_is_manifold(e)) {
 			return 0;
 		}
 	}

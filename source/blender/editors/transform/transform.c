@@ -4437,7 +4437,7 @@ static int createSlideVerts(TransInfo *t)
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			if (BM_edge_face_count(e) != 2) {
+			if (!BM_edge_is_manifold(e)) {
 				MEM_freeN(sld);
 				BMBVH_FreeBVH(btree);
 				return 0; /* can only handle exactly 2 faces around each edge */
