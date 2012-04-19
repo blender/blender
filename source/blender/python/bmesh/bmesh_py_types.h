@@ -176,7 +176,7 @@ char     *BPy_BMElem_StringFromHType(const char htype);
 #define BPY_BM_IS_VALID(obj) (LIKELY((obj)->bm != NULL))
 
 #define BM_ITER_BPY_BM_SEQ(ele, iter, bpy_bmelemseq)                \
-	BM_ITER(ele, iter, (bpy_bmelemseq)->bm, (bpy_bmelemseq)->itype, \
+	BM_ITER (ele, iter, (bpy_bmelemseq)->bm, (bpy_bmelemseq)->itype, \
 	(bpy_bmelemseq)->py_ele ? ((BPy_BMElem *)(bpy_bmelemseq)->py_ele)->ele : NULL)
 
 #endif /* __BMESH_TYPES_H__ */

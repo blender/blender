@@ -159,7 +159,7 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, Object *obedit, BMEditMes
 	BMIter iter;
 	BMVert *eve;
 
-	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)	{
+	BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)	{
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 			float mval[2], vec[3], no_dummy[3];
 			int dist_dummy;
@@ -190,11 +190,11 @@ static short edbm_extrude_face_indiv(BMEditMesh *em, wmOperator *op, const char 
 
 	BMO_op_exec(em->bm, &bmop);
 	
-	BMO_ITER(f, &siter, em->bm, &bmop, "faceout", BM_FACE) {
+	BMO_ITER (f, &siter, em->bm, &bmop, "faceout", BM_FACE) {
 		BM_elem_select_set(em->bm, f, TRUE);
 
 		/* set face vertex normals to face normal */
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
 			copy_v3_v3(l->v->no, f->no);
 		}
 	}
@@ -327,7 +327,7 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 
 	zero_v3(nor);
 	
-	BMO_ITER(ele, &siter, bm, &extop, "geomout", BM_ALL) {
+	BMO_ITER (ele, &siter, bm, &extop, "geomout", BM_ALL) {
 		BM_elem_select_set(bm, ele, TRUE);
 
 		if (ele->head.htype == BM_FACE) {
@@ -735,7 +735,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 
 	INIT_MINMAX(min, max);
 	
-	BM_ITER(v1, &iter, vc.em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER (v1, &iter, vc.em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_elem_flag_test(v1, BM_ELEM_SELECT)) {
 			DO_MINMAX(v1->co, min, max);
 			done = 1;
@@ -757,7 +757,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 
 		/* check for edges that are half selected, use for rotation */
 		done = 0;
-		BM_ITER(eed, &iter, vc.em->bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER (eed, &iter, vc.em->bm, BM_EDGES_OF_MESH, NULL) {
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				float co1[3], co2[3];
 				mul_v3_m4v3(co1, vc.obedit->obmat, eed->v1->co);
@@ -859,7 +859,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		EDBM_op_init(vc.em, &bmop, op, "makevert co=%v", min);
 		BMO_op_exec(vc.em->bm, &bmop);
 
-		BMO_ITER(v1, &oiter, vc.em->bm, &bmop, "newvertout", BM_VERT) {
+		BMO_ITER (v1, &oiter, vc.em->bm, &bmop, "newvertout", BM_VERT) {
 			BM_elem_select_set(vc.em->bm, v1, TRUE);
 		}
 
@@ -1075,7 +1075,7 @@ static int edbm_mark_seam(bContext *C, wmOperator *op)
 	}
 
 	if (clear) {
-		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
 			
@@ -1083,7 +1083,7 @@ static int edbm_mark_seam(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
 			BM_elem_flag_enable(eed, BM_ELEM_SEAM);
@@ -1129,7 +1129,7 @@ static int edbm_mark_sharp(bContext *C, wmOperator *op)
 	}
 
 	if (!clear) {
-		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
 			
@@ -1137,7 +1137,7 @@ static int edbm_mark_sharp(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
 			
@@ -1341,7 +1341,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 	}
 
 	/* first see if we have two adjacent faces */
-	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		BM_elem_flag_disable(eed, BM_ELEM_TAG);
 		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 			BMFace *fa, *fb;
@@ -1581,7 +1581,7 @@ static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
 
 	if (em == NULL) return;
 	
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			BM_elem_flag_set(efa, BM_ELEM_SMOOTH, smooth);
 		}
@@ -1863,7 +1863,7 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 	else {
 		float fac;
 		int i = 0;
-		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER (v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(v, BM_ELEM_SELECT))
 				continue;
 			add_v3_v3(cent, v->co);
@@ -2149,7 +2149,7 @@ static void shape_propagate(BMEditMesh *em, wmOperator *op)
 		return;
 	}
 	
-	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
 			continue;
 
@@ -2218,7 +2218,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 	if (totshape == 0 || shape < 0 || shape >= totshape)
 		return OPERATOR_CANCELLED;
 
-	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
 			continue;
 
@@ -2323,7 +2323,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 		else if (mode == 1)
 			value += limit;
 
-		BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER (ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(ev, BM_ELEM_HIDDEN)) {
 				switch (mode) {
 					case -1: /* aligned */
@@ -2797,7 +2797,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	EDBM_op_callf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_FACES);
 
 	/* clean up any loose edges */
-	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN))
 			continue;
 
@@ -2808,7 +2808,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	EDBM_op_callf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_EDGES);
 
 	/* clean up any loose verts */
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER (v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
@@ -2844,7 +2844,7 @@ static int mesh_separate_material(Main *bmain, Scene *scene, Base *editbase, wmO
 		const short mat_nr = f_cmp->mat_nr;
 		int tot = 0;
 
-		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 			if (f->mat_nr == mat_nr) {
 				BM_face_select_set(bm, f, TRUE);
 				tot++;
@@ -2888,7 +2888,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 	for (i = 0; i < max_iter; i++) {
 		/* Get a seed vertex to start the walk */
 		v_seed = NULL;
-		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			v_seed = v;
 			break;
 		}
@@ -3664,8 +3664,7 @@ static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))
 
 	amount = em->bm->totvert;
 	sortblock = MEM_callocN(sizeof(xvertsort) * amount, "xsort");
-	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
-	{
+	BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
 			sortblock[i].v1 = eve;
 	}
@@ -4012,7 +4011,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 	if (tex->type == TEX_STUCCI) {
 		float b2, vec[3];
 		float ofs = tex->turbul / 200.0;
-		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				b2 = BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]);
 				if (tex->stype) ofs *= (b2 * b2);
@@ -4025,7 +4024,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				float tin, dum;
 				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum, 0);
@@ -4076,7 +4075,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 	BM_data_layer_add(em->bm, &em->bm->edata, CD_PROP_FLT);
 	li = CustomData_number_of_layers(&em->bm->edata, CD_PROP_FLT) - 1;
 	
-	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		float d = len_v3v3(eed->v1->co, eed->v2->co);
 		float *dv = CustomData_bmesh_get_n(&em->bm->edata, eed->head.data, CD_PROP_FLT, li);
 		

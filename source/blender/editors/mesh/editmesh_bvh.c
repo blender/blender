@@ -125,7 +125,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 		void *data[3];
 		
 		tree->cos = MEM_callocN(sizeof(float) * 3 * em->bm->totvert, "bmbvh cos");
-		BM_ITER_INDEX(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL, i) {
+		BM_ITER_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, NULL, i) {
 			BM_elem_index_set(v, i); /* set_inline */
 			copy_v3_v3(tree->cos[i], v->co);
 		}

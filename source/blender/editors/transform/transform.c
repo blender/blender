@@ -4318,7 +4318,7 @@ static BMEdge *get_other_edge(BMesh *bm, BMVert *v, BMEdge *e)
 	BMIter iter;
 	BMEdge *e2;
 
-	BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, v) {
+	BM_ITER (e2, &iter, bm, BM_EDGES_OF_VERT, v) {
 		if (BM_elem_flag_test(e2, BM_ELEM_SELECT) && e2 != e)
 			return e2;
 	}
@@ -4419,10 +4419,10 @@ static int createSlideVerts(TransInfo *t)
 	BLI_smallhash_init(&table);
 	
 	/*ensure valid selection*/
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER (v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 			numsel = 0;
-			BM_ITER(e, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER (e, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
 				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 					/* BMESH_TODO: this is probably very evil,
 					 * set v->e to a selected edge*/
@@ -4440,7 +4440,7 @@ static int createSlideVerts(TransInfo *t)
 		}
 	}
 
-	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			if (!BM_edge_is_manifold(e)) {
 				MEM_freeN(sld);
@@ -4451,7 +4451,7 @@ static int createSlideVerts(TransInfo *t)
 	}
 
 	j = 0;
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER (v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 			BM_elem_flag_enable(v, BM_ELEM_TAG);
 			BLI_smallhash_insert(&table, (uintptr_t)v, SET_INT_IN_POINTER(j));
@@ -4473,7 +4473,7 @@ static int createSlideVerts(TransInfo *t)
 	j = 0;
 	while (1) {
 		v = NULL;
-		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER (v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG))
 				break;
 
@@ -4591,7 +4591,7 @@ static int createSlideVerts(TransInfo *t)
 	/* size = 50.0; */ /* UNUSED */
 	zero_v3(lastvec); zero_v3(dir);
 	/* ee = le = NULL; */ /* UNUSED */
-	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			BMIter iter2;
 			BMEdge *e2;
@@ -4602,7 +4602,7 @@ static int createSlideVerts(TransInfo *t)
 			dis2 = -1.0f;
 			for (i=0; i<2; i++) {
 				v = i?e->v1:e->v2;
-				BM_ITER(e2, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
+				BM_ITER (e2, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
 					if (BM_elem_flag_test(e2, BM_ELEM_SELECT))
 						continue;
 					
@@ -4648,14 +4648,14 @@ static int createSlideVerts(TransInfo *t)
 		BMFace *f;
 		BMLoop *l;
 		
-		BM_ITER(f, &fiter, em->bm, BM_FACES_OF_VERT, tempsv->v) {
+		BM_ITER (f, &fiter, em->bm, BM_FACES_OF_VERT, tempsv->v) {
 			
 			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
 				BMFace *copyf = BM_face_copy(em->bm, f, TRUE, TRUE);
 				
 				BM_elem_select_set(em->bm, copyf, FALSE);
 				BM_elem_flag_enable(copyf, BM_ELEM_HIDDEN);
-				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, copyf) {
+				BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_FACE, copyf) {
 					BM_elem_select_set(em->bm, l->v, FALSE);
 					BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
 					BM_elem_select_set(em->bm, l->e, FALSE);
@@ -4720,7 +4720,7 @@ void projectSVData(TransInfo *t, int final)
 		BMIter fiter;
 		BMFace *f;
 		
-		BM_ITER(f, &fiter, em->bm, BM_FACES_OF_VERT, tempsv->v) {
+		BM_ITER (f, &fiter, em->bm, BM_FACES_OF_VERT, tempsv->v) {
 			BMIter liter2;
 			BMFace *copyf, *copyf2;
 			BMLoop *l2;
@@ -4740,7 +4740,7 @@ void projectSVData(TransInfo *t, int final)
 			copyf2 = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
 			
 			/* project onto copied projection face */
-			BM_ITER(l2, &liter2, em->bm, BM_LOOPS_OF_FACE, f) {
+			BM_ITER (l2, &liter2, em->bm, BM_LOOPS_OF_FACE, f) {
 				copyf = copyf2;
 				
 				if (BM_elem_flag_test(l2->e, BM_ELEM_SELECT) || BM_elem_flag_test(l2->prev->e, BM_ELEM_SELECT)) {

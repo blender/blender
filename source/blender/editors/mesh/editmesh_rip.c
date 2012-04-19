@@ -158,7 +158,7 @@ static BMEdge *edbm_ripsel_edge_mark_step(BMesh *bm, BMVert *v, const int uid)
 {
 	BMIter iter;
 	BMEdge *e;
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+	BM_ITER (e, &iter, bm, BM_EDGES_OF_VERT, v) {
 		if (IS_VISIT_POSSIBLE(e) && !IS_VISIT_DONE(e)) {
 			BMLoop *l_a, *l_b;
 
@@ -196,8 +196,8 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 	EdgeLoopPair *lp;
 
 	/* initialize loops with dummy invalid index values */
-	BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+	BM_ITER (f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			BM_elem_index_set(l, INVALID_UID);
 		}
 	}
@@ -213,7 +213,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 		BMEdge *e_last;
 
 		e_first = NULL;
-		BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER (e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (IS_VISIT_POSSIBLE(e) && !IS_VISIT_DONE(e)) {
 				e_first = e;
 				break;
@@ -290,7 +290,7 @@ static BMEdge *edbm_ripsel_edge_uid_step(BMesh *bm, BMEdge *e_orig, BMVert **v_p
 	BMVert *v = BM_edge_other_vert(e_orig, *v_prev);
 	const int uid_cmp = BM_elem_index_get(e_orig->l) - 1;
 
-	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+	BM_ITER (e, &eiter, bm, BM_EDGES_OF_VERT, v) {
 		if (BM_elem_index_get(e->l) == uid_cmp) {
 			*v_prev = v;
 			return e;
@@ -374,7 +374,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
 	/* BM_ELEM_SELECT --> BM_ELEM_TAG */
-	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
 	}
 
@@ -393,7 +393,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		else {
 			ese.ele = NULL;
 
-			BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if (BM_elem_flag_test(v, BM_ELEM_SELECT))
 					break;
 			}
@@ -407,7 +407,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (v->e) {
 			/* find closest edge to mouse cursor */
-			BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER (e, &iter, bm, BM_EDGES_OF_VERT, v) {
 				int is_boundary = BM_edge_is_boundary(e);
 				/* consider wire as boundary for this purpose,
 				 * otherwise we can't a face away from a wire edge */
@@ -455,7 +455,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				dist = FLT_MAX;
 
 				for (i = 0; i < vout_len; i++) {
-					BM_ITER(l, &iter, bm, BM_LOOPS_OF_VERT, vout[i]) {
+					BM_ITER (l, &iter, bm, BM_LOOPS_OF_VERT, vout[i]) {
 						if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
 							float l_mid_co[3];
 							BM_loop_face_tangent(l, l_mid_co);
@@ -534,10 +534,10 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		/* expand edge selection */
-		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			e2 = NULL;
 			i = 0;
-			BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER (e, &eiter, bm, BM_EDGES_OF_VERT, v) {
 				/* important to check selection rather then tag here
 				 * else we get feedback loop */
 				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
@@ -584,7 +584,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	{
 		/* simple per edge selection check, saves a lot of code and is almost good enough */
 		BMOIter siter;
-		BMO_ITER(e, &siter, bm, &bmop, "edgeout", BM_EDGE) {
+		BMO_ITER (e, &siter, bm, &bmop, "edgeout", BM_EDGE) {
 			if (edbm_rip_edge_side_measure(e, ar, projectMat, fmval) > 0.0f) {
 				BM_elem_select_set(bm, e, FALSE);
 			}
@@ -604,12 +604,12 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 #else
 
 		dist = FLT_MAX;
-		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER (v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				/* disable by default, re-enable winner at end */
 				BM_elem_select_set(bm, v, FALSE);
 
-				BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+				BM_ITER (l, &liter, bm, BM_LOOPS_OF_VERT, v) {
 					/* calculate a point in the face, rather then calculate the middle,
 					 * make a vector pointing between the 2 edges attached to this loop */
 					sub_v3_v3v3(l_prev_co, l->prev->v->co, l->v->co);

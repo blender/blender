@@ -93,7 +93,7 @@ int BM_iter_as_array(BMesh *bm, const char type, void *data, void **array, const
 		BMIter iter;
 		void *val;
 
-		BM_ITER(val, &iter, bm, type, data) {
+		BM_ITER (val, &iter, bm, type, data) {
 			array[i] = val;
 			i++;
 			if (i == len) {

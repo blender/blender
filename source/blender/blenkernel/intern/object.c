@@ -1770,7 +1770,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 			BMVert *eve;
 			BMIter iter;
 
-			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				int *keyindex = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 				
 				if (keyindex && *keyindex==nr) {

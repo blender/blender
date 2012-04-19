@@ -520,7 +520,7 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
 				a = 0;
 				co = MEM_callocN(sizeof(float) * 3 * me->edit_btmesh->bm->totvert, "key_block_get_data");
 
-				BM_ITER(eve, &iter, me->edit_btmesh->bm, BM_VERTS_OF_MESH, NULL) {
+				BM_ITER (eve, &iter, me->edit_btmesh->bm, BM_VERTS_OF_MESH, NULL) {
 					copy_v3_v3(co[a], eve->co);
 					a++;
 				}

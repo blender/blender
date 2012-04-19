@@ -1929,7 +1929,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 		mp->loopstart = j;
 		mp->mat_nr = efa->mat_nr;
 		
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
 			mloop->v = BM_elem_index_get(l->v);
 			mloop->e = BM_elem_index_get(l->e);
 			CustomData_from_bmesh_block(&bm->ldata, &dm->loopData, l->head.data, j);

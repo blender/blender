@@ -122,7 +122,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 	/* first count all inset edges we will split */
 	/* fill in array and initialize tagging */
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (
 		    /* tag if boundary is enabled */
 		    (use_boundary && BM_edge_is_boundary(e) && BM_elem_flag_test(e->l->f, BM_ELEM_TAG)) ||
@@ -152,7 +152,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 	/* fill in array and initialize tagging */
 	es = edge_info;
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		i = BM_elem_index_get(e);
 		if (i != -1) {
 			/* calc edge-split info */
@@ -246,7 +246,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 					int vecpair[2];
 
 					/* find adjacent */
-					BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v_split) {
+					BM_ITER (e, &iter, bm, BM_EDGES_OF_VERT, v_split) {
 						if (BM_elem_flag_test(e, BM_ELEM_TAG) &&
 						    e->l && BM_elem_flag_test(e->l->f, BM_ELEM_TAG))
 						{
@@ -411,7 +411,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 					if (r_vout_len > 2) {
 						int ok = TRUE;
 						/* last step, NULL this vertex if has a tagged face */
-						BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, v_split) {
+						BM_ITER (f, &iter, bm, BM_FACES_OF_VERT, v_split) {
 							if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
 								ok = FALSE;
 								break;

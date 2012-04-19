@@ -94,7 +94,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_slot_buffer_flag_enable(bm, op, "constrain_edges", BM_EDGE, EDGE_MARK);
 	
-	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
+	BMO_ITER (f, &siter, bm, op, "faces", BM_FACE) {
 		if (f->len == 3) {
 			BMO_elem_flag_enable(bm, f, FACE_MARK);
 		}
@@ -103,7 +103,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	while (!stop) {
 		stop = 1;
 		
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			BMVert *v1, *v2, *v3, *v4;
 			
 			if (!BM_edge_is_manifold(e) || BMO_elem_flag_test(bm, e, EDGE_MARK)) {
@@ -175,7 +175,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	
 	BLI_begin_edgefill(&sf_ctx);
 	
-	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+	BMO_ITER (e, &siter, bm, op, "edges", BM_EDGE) {
 		BMO_elem_flag_enable(bm, e, EDGE_MARK);
 		
 		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v1)) {
@@ -206,7 +206,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		BMIter liter;
 		
 		BMO_elem_flag_enable(bm, f, ELE_NEW);
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (!BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
 				BMO_elem_flag_enable(bm, l->e, ELE_NEW);
 			}

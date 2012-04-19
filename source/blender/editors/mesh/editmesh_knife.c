@@ -556,7 +556,7 @@ static void knife_get_vert_faces(knifetool_opdata *kcd, KnifeVert *kfv, BMFace *
 	}
 	else if (kfv->v) {
 		BMesh *bm = kcd->em->bm;
-		BM_ITER(f, &bmiter, bm, BM_FACES_OF_VERT, kfv->v) {
+		BM_ITER (f, &bmiter, bm, BM_FACES_OF_VERT, kfv->v) {
 			knife_append_list(kcd, lst, f);
 		}
 	}
@@ -569,7 +569,7 @@ static void knife_get_edge_faces(knifetool_opdata *kcd, KnifeEdge *kfe, ListBase
 
 	if (kfe->e) {
 		BMesh *bm = kcd->em->bm;
-		BM_ITER(f, &bmiter, bm, BM_FACES_OF_EDGE, kfe->e) {
+		BM_ITER (f, &bmiter, bm, BM_FACES_OF_EDGE, kfe->e) {
 			knife_append_list(kcd, lst, f);
 		}
 	}
@@ -1681,7 +1681,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 	BMO_op_finish(bm, &bmop);
 
 	BLI_smallhash_init(visit);
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BMIter eiter;
 		BMEdge *e;
 		BMFace *f2;
@@ -1702,14 +1702,14 @@ static void remerge_faces(knifetool_opdata *kcd)
 
 			BLI_array_append(faces, f2);
 
-			BM_ITER(e, &eiter, bm, BM_EDGES_OF_FACE, f2) {
+			BM_ITER (e, &eiter, bm, BM_EDGES_OF_FACE, f2) {
 				BMIter fiter;
 				BMFace *f3;
 
 				if (BMO_elem_flag_test(bm, e, BOUNDARY))
 					continue;
 
-				BM_ITER(f3, &fiter, bm, BM_FACES_OF_EDGE, e) {
+				BM_ITER (f3, &fiter, bm, BM_FACES_OF_EDGE, e) {
 					if (!BMO_elem_flag_test(bm, f3, FACE_NEW))
 						continue;
 					if (BLI_smallhash_haskey(visit, (intptr_t)f3))
@@ -1764,14 +1764,14 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 
 	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	i = 0;
-	BM_ITER(f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER (f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_elem_index_set(f, i); /* set_inline */
 		faces[i] = f;
 		i++;
 	}
 	bm->elem_index_dirty &= ~BM_FACE;
 
-	BM_ITER(e, &bmiter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &bmiter, bm, BM_EDGES_OF_MESH, NULL) {
 		BMO_elem_flag_enable(bm, e, BOUNDARY);
 	}
 
@@ -1959,7 +1959,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	bm->elem_index_dirty |= BM_FACE;
 
 	/* interpolate customdata */
-	BM_ITER(f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER (f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
 		BMLoop *l1;
 		BMFace *f2;
 		BMIter liter1;
@@ -1974,7 +1974,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 
 		BM_elem_attrs_copy(bm, bm, f2, f);
 
-		BM_ITER(l1, &liter1, bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER (l1, &liter1, bm, BM_LOOPS_OF_FACE, f) {
 			BM_loop_interp_from_face(bm, l1, f2, TRUE, TRUE);
 		}
 	}
@@ -2281,7 +2281,7 @@ static int find_hole_chains(knifetool_opdata *kcd, ListBase *hole, BMFace *f, Li
 	}
 
 	j = 0;
-	BM_ITER(v, &iter, kcd->em->bm, BM_VERTS_OF_FACE, f) {
+	BM_ITER (v, &iter, kcd->em->bm, BM_VERTS_OF_FACE, f) {
 		fco[j] = BLI_memarena_alloc(kcd->arena, 2 * sizeof(float));
 		fco[j][0] = v->co[ax];
 		fco[j][1] = v->co[ay];
@@ -2388,7 +2388,7 @@ static int knife_edge_in_face(knifetool_opdata *kcd, KnifeEdge *kfe, BMFace *f)
 	l2 = NULL;
 
 	/* find out if v1 and v2, if set, are part of the face */
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+	BM_ITER (l, &iter, bm, BM_LOOPS_OF_FACE, f) {
 		if (v1 && l->v == v1)
 			l1 = l;
 		if (v2 && l->v == v2)

@@ -170,8 +170,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 			BMIter iter;
 
 			if (em) {
-				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL)
-				{
+				BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 					if (BM_elem_flag_test(efa, BM_ELEM_SELECT))
 						efa->mat_nr = ob->actcol - 1;
 				}

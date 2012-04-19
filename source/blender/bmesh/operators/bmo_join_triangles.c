@@ -237,15 +237,15 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	int i, totedge;
 
 	/* flag all edges of all input face */
-	BMO_ITER(f1, &siter, bm, op, "faces", BM_FACE) {
+	BMO_ITER (f1, &siter, bm, op, "faces", BM_FACE) {
 		BMO_elem_flag_enable(bm, f1, FACE_INPUT);
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f1) {
+		BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f1) {
 			BMO_elem_flag_enable(bm, l->e, EDGE_MARK);
 		}
 	}
 
 	/* unflag edges that are invalid; e.g. aren't surrounded by triangle */
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
@@ -266,7 +266,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	i = 0;
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		BMVert *v1, *v2, *v3, *v4;
 		BMFace *f1, *f2;
 		float measure;
@@ -323,7 +323,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, e, EDGE_CHOSEN);
 	}
 
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (!BMO_elem_flag_test(bm, e, EDGE_CHOSEN))
 			continue;
 
@@ -332,7 +332,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		BM_faces_join_pair(bm, f1, f2, e, TRUE);
 	}
 
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 			/* ok, this edge wasn't merged, check if it's
 			 * in a 2-tri-pair island, and if so merg */
@@ -344,7 +344,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 				continue;
 
 			for (i = 0; i < 2; i++) {
-				BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, i ? f2 : f1) {
+				BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, i ? f2 : f1) {
 					if (l->e != e && BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
 						break;
 					}

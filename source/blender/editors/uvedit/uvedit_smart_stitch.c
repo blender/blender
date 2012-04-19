@@ -686,7 +686,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 		}
 
 		/* copy data from MTFaces to the preview display buffers */
-		BM_ITER(efa, &iter, state->em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER (efa, &iter, state->em->bm, BM_FACES_OF_MESH, NULL) {
 			/* just to test if face was added for processing. uvs of inselected vertices will return NULL */
 			UvElement *element = ED_uv_element_get(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
 
@@ -696,7 +696,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 				int face_preview_pos = preview_position[index].data_position;
 				if (face_preview_pos != STITCH_NO_PREVIEW) {
 					preview->uvs_per_polygon[preview_position[index].polycount_position] = efa->len;
-					BM_ITER_INDEX(l, &liter, state->em->bm, BM_LOOPS_OF_FACE, efa, i) {
+					BM_ITER_INDEX (l, &liter, state->em->bm, BM_LOOPS_OF_FACE, efa, i) {
 						luv = CustomData_bmesh_get(&state->em->bm->ldata, l->head.data, CD_MLOOPUV);
 						copy_v2_v2(preview->preview_polys + face_preview_pos + i * 2, luv->uv);
 					}
@@ -706,7 +706,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 					BMLoop *fl = BM_FACE_FIRST_LOOP(efa);
 					MLoopUV *fuv = CustomData_bmesh_get(&state->em->bm->ldata, fl->head.data, CD_MLOOPUV);
 
-					BM_ITER_INDEX(l, &liter, state->em->bm, BM_LOOPS_OF_FACE, efa, i) {
+					BM_ITER_INDEX (l, &liter, state->em->bm, BM_LOOPS_OF_FACE, efa, i) {
 						if (i < numoftris) {
 							/* using next since the first uv is already accounted for */
 							BMLoop *lnext = l->next;
@@ -1061,11 +1061,11 @@ static int stitch_init(bContext *C, wmOperator *op)
 
 	counter = 0;
 	/* Now, on to generate our uv connectivity data */
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		if (!(ts->uv_flag & UV_SYNC_SELECTION) && ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || !BM_elem_flag_test(efa, BM_ELEM_SELECT)))
 			continue;
 
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			UvElement *element = ED_uv_element_get(state->element_map, efa, l);
 			int offset1, itmp1 = element - state->element_map->buf;
 			int offset2, itmp2 = ED_uv_element_get(state->element_map, efa, l->next) - state->element_map->buf;
@@ -1177,9 +1177,9 @@ static int stitch_init(bContext *C, wmOperator *op)
 
 	}
 	else {
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			i = 0;
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				if (uvedit_uv_selected(em, scene, l)) {
 					UvElement *element = ED_uv_element_get(state->element_map, efa, l);
 					stitch_select_uv(element, state, 1);
@@ -1197,7 +1197,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 		state->tris_per_island[i] = 0;
 	}
 
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		UvElement *element = ED_uv_element_get(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
 
 		if (element) {

@@ -70,7 +70,7 @@ int BM_mesh_validate(BMesh *bm)
 	bm->elem_index_dirty |= BM_ALL;
 	BM_mesh_elem_index_ensure(bm, BM_ALL);
 
-	BM_ITER_INDEX(v, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
+	BM_ITER_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT | BM_ELEM_HIDDEN) == (BM_ELEM_SELECT | BM_ELEM_HIDDEN)) {
 			ERRMSG("vert %d: is hidden and selected", i);
 		}
@@ -83,13 +83,13 @@ int BM_mesh_validate(BMesh *bm)
 	}
 
 	/* check edges */
-	BM_ITER_INDEX(e, &iter, bm, BM_EDGES_OF_MESH, NULL, i) {
+	BM_ITER_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, NULL, i) {
 		if (e->v1 == e->v2)
 		ERRMSG("edge %d: duplicate index: %d", i, BM_elem_index_get(e->v1));
 	}
 
 	/* edge radial structure */
-	BM_ITER_INDEX(e, &iter, bm, BM_EDGES_OF_MESH, NULL, i) {
+	BM_ITER_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, NULL, i) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT | BM_ELEM_HIDDEN) == (BM_ELEM_SELECT | BM_ELEM_HIDDEN)) {
 			ERRMSG("edge %d: is hidden and selected", i);
 		}
@@ -117,7 +117,7 @@ int BM_mesh_validate(BMesh *bm)
 	}
 
 	/* face structure */
-	BM_ITER_INDEX(f, &iter, bm, BM_FACES_OF_MESH, NULL, i) {
+	BM_ITER_INDEX (f, &iter, bm, BM_FACES_OF_MESH, NULL, i) {
 		BMLoop *l_iter;
 		BMLoop *l_first;
 

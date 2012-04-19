@@ -370,7 +370,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* and now do imat */
-	BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER (eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, eve, VERT_MARK)) {
 			mul_m4_v3(mat, eve->co);
 		}
@@ -415,7 +415,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 
 		eftemp = BM_face_create_quad_tri(bm, v1, v2, v3, NULL, NULL, FALSE);
 		
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, eftemp) {
+		BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, eftemp) {
 			BMO_elem_flag_enable(bm, l->e, EDGE_MARK);
 		}
 
@@ -437,7 +437,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* must transform after because of sphere subdivision */
-	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER (v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 			mul_m4_v3(mat, v->co);
 		}

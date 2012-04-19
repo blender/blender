@@ -1746,7 +1746,7 @@ int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 	}
 
 	/* retarget all the loops of v to vtarget */
-	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+	BM_ITER (l, &liter, bm, BM_LOOPS_OF_VERT, v) {
 		l->v = vtarget;
 	}
 
@@ -1792,7 +1792,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 	visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 
 	maxindex = 0;
-	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+	BM_ITER (e, &eiter, bm, BM_EDGES_OF_VERT, v) {
 		if (BLI_ghash_haskey(visithash, e)) {
 			continue;
 		}
@@ -1805,7 +1805,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 		while ((e = BLI_array_pop(stack))) {
 			BLI_ghash_insert(visithash, e, SET_INT_IN_POINTER(maxindex));
 
-			BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
+			BM_ITER (l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
 				nl = (l->v == v) ? l->prev : l->next;
 				if (!BLI_ghash_haskey(visithash, nl->e)) {
 					BLI_array_append(stack, nl->e);
@@ -1825,7 +1825,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 
 	/* Replace v with the new verts in each group */
 #if 0
-	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+	BM_ITER (l, &liter, bm, BM_LOOPS_OF_VERT, v) {
 		/* call first since its faster then a hash lookup */
 		if (l->v != v) {
 			continue;
@@ -1851,7 +1851,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 	 * bad practice but save alloc'ing a new array - note, the comment above is useful, keep it
 	 * if you are tidying up code - campbell */
 	BLI_array_empty(stack);
-	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+	BM_ITER (l, &liter, bm, BM_LOOPS_OF_VERT, v) {
 		if (l->v == v) {
 			BLI_array_append(stack, (BMEdge *)l);
 		}
@@ -1865,7 +1865,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 
 	BLI_array_free(stack);
 
-	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+	BM_ITER (e, &eiter, bm, BM_EDGES_OF_VERT, v) {
 		i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, e));
 		if (i == 0) {
 			continue;

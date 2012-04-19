@@ -68,7 +68,7 @@ void bmo_vertex_slide_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* Count selected edges */
-	BMO_ITER(h, &oiter, bm, op, "edge", BM_VERT | BM_EDGE) {
+	BMO_ITER (h, &oiter, bm, op, "edge", BM_VERT | BM_EDGE) {
 		switch (h->htype) {
 			case BM_EDGE:
 				selected_edges++;
@@ -88,7 +88,7 @@ void bmo_vertex_slide_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* Make sure we get the correct edge. */
-	BM_ITER(edge, &iter, bm, BM_EDGES_OF_VERT, vertex) {
+	BM_ITER (edge, &iter, bm, BM_EDGES_OF_VERT, vertex) {
 		if (BMO_elem_flag_test(bm, edge, EDGE_MARK) && BM_vert_in_edge(edge, vertex)) {
 			slide_edge = edge;
 			break;

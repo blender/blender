@@ -125,7 +125,7 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
 
 	BLI_assert(BM_edge_exists(v_prev, v) != NULL);
 
-	BM_ITER(l_iter, &liter, NULL, BM_LOOPS_OF_VERT, v) {
+	BM_ITER (l_iter, &liter, NULL, BM_LOOPS_OF_VERT, v) {
 		if (l_iter->f == f) {
 			break;
 		}
@@ -379,7 +379,7 @@ int BM_vert_edge_count_nonwire(BMVert *v)
 	int count = 0;
 	BMIter eiter;
 	BMEdge *edge;
-	BM_ITER(edge, &eiter, NULL, BM_EDGES_OF_VERT, v) {
+	BM_ITER (edge, &eiter, NULL, BM_EDGES_OF_VERT, v) {
 		if (edge->l) {
 			count++;
 		}
@@ -416,7 +416,7 @@ int BM_vert_face_count(BMVert *v)
 	BMLoop *l;
 	BMIter iter;
 
-	BM_ITER(l, &iter, NULL, BM_LOOPS_OF_VERT, v) {
+	BM_ITER (l, &iter, NULL, BM_LOOPS_OF_VERT, v) {
 		count++;
 	}
 
@@ -877,7 +877,7 @@ BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2)
 	BMIter iter;
 	BMEdge *e;
 
-	BM_ITER(e, &iter, NULL, BM_EDGES_OF_VERT, v1) {
+	BM_ITER (e, &iter, NULL, BM_EDGES_OF_VERT, v1) {
 		if (e->v1 == v2 || e->v2 == v2)
 			return e;
 	}
@@ -902,7 +902,7 @@ int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlap
 	int i, amount;
 
 	for (i = 0; i < len; i++) {
-		BM_ITER(f, &viter, bm, BM_FACES_OF_VERT, varr[i]) {
+		BM_ITER (f, &viter, bm, BM_FACES_OF_VERT, varr[i]) {
 			amount = BM_verts_in_face(bm, f, varr, len);
 			if (amount >= len) {
 				if (r_overlapface) {
@@ -932,7 +932,7 @@ int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
 	int i, amount;
 
 	for (i = 0; i < len; i++) {
-		BM_ITER(f, &viter, bm, BM_FACES_OF_VERT, varr[i]) {
+		BM_ITER (f, &viter, bm, BM_FACES_OF_VERT, varr[i]) {
 			amount = BM_verts_in_face(bm, f, varr, len);
 			if (amount == len && amount == f->len) {
 				if (r_existface) {
@@ -978,15 +978,15 @@ int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 	for (i = 0; i < len; i++) {
 		/* save some time by looping over edge faces rather then vert faces
 		 * will still loop over some faces twice but not as many */
-		BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, earr[i]) {
+		BM_ITER (f, &fiter, bm, BM_FACES_OF_EDGE, earr[i]) {
 			BM_elem_flag_disable(f, BM_ELEM_INTERNAL_TAG);
-			BM_ITER(v, &viter, bm, BM_VERTS_OF_FACE, f) {
+			BM_ITER (v, &viter, bm, BM_VERTS_OF_FACE, f) {
 				BM_elem_flag_disable(v, BM_ELEM_INTERNAL_TAG);
 			}
 		}
 
 		/* clear all edge tags */
-		BM_ITER(e, &fiter, bm, BM_EDGES_OF_VERT, varr[i]) {
+		BM_ITER (e, &fiter, bm, BM_EDGES_OF_VERT, varr[i]) {
 			BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
 		}
 	}
@@ -1005,10 +1005,10 @@ int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 	/* 1) tag all faces connected to edges - if all their verts are boundary */
 	tot_tag = 0;
 	for (i = 0; i < len; i++) {
-		BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, earr[i]) {
+		BM_ITER (f, &fiter, bm, BM_FACES_OF_EDGE, earr[i]) {
 			if (!BM_elem_flag_test(f, BM_ELEM_INTERNAL_TAG)) {
 				ok = TRUE;
-				BM_ITER(v, &viter, bm, BM_VERTS_OF_FACE, f) {
+				BM_ITER (v, &viter, bm, BM_VERTS_OF_FACE, f) {
 					if (!BM_elem_flag_test(v, BM_ELEM_INTERNAL_TAG)) {
 						ok = FALSE;
 						break;
@@ -1036,7 +1036,7 @@ int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 	 *    check each have 2 tagges faces connected (faces that only use 'varr' verts) */
 	ok = TRUE;
 	for (i = 0; i < len; i++) {
-		BM_ITER(e, &fiter, bm, BM_EDGES_OF_VERT, varr[i]) {
+		BM_ITER (e, &fiter, bm, BM_EDGES_OF_VERT, varr[i]) {
 
 			if (/* non-boundary edge */
 			    BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG) == FALSE &&
@@ -1045,7 +1045,7 @@ int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 			    BM_elem_flag_test(e->v2, BM_ELEM_INTERNAL_TAG) == TRUE)
 			{
 				int tot_face_tag = 0;
-				BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
+				BM_ITER (f, &fiter, bm, BM_FACES_OF_EDGE, e) {
 					if (BM_elem_flag_test(f, BM_ELEM_INTERNAL_TAG)) {
 						tot_face_tag++;
 					}

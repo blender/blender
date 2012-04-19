@@ -495,7 +495,7 @@ void BMO_remove_tagged_faces(BMesh *bm, const short oflag)
 	BMFace *f;
 	BMIter iter;
 
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, f, oflag)) {
 			BM_face_kill(bm, f);
 		}
@@ -507,7 +507,7 @@ void BMO_remove_tagged_edges(BMesh *bm, const short oflag)
 	BMEdge *e;
 	BMIter iter;
 
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, e, oflag)) {
 			BM_edge_kill(bm, e);
 		}
@@ -519,7 +519,7 @@ void BMO_remove_tagged_verts(BMesh *bm, const short oflag)
 	BMVert *v;
 	BMIter iter;
 
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, v, oflag)) {
 			BM_vert_kill(bm, v);
 		}
@@ -545,14 +545,14 @@ static void bmo_remove_tagged_context_verts(BMesh *bm, const short oflag)
 	BMIter iter;
 	BMIter itersub;
 
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, v, oflag)) {
 			/* Visit edge */
-			BM_ITER(e, &itersub, bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER (e, &itersub, bm, BM_EDGES_OF_VERT, v) {
 				BMO_elem_flag_enable(bm, e, oflag);
 			}
 			/* Visit face */
-			BM_ITER(f, &itersub, bm, BM_FACES_OF_VERT, v) {
+			BM_ITER (f, &itersub, bm, BM_FACES_OF_VERT, v) {
 				BMO_elem_flag_enable(bm, f, oflag);
 			}
 		}
@@ -571,9 +571,9 @@ static void bmo_remove_tagged_context_edges(BMesh *bm, const short oflag)
 	BMIter iter;
 	BMIter itersub;
 
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, e, oflag)) {
-			BM_ITER(f, &itersub, bm, BM_FACES_OF_EDGE, e) {
+			BM_ITER (f, &itersub, bm, BM_FACES_OF_EDGE, e) {
 				BMO_elem_flag_enable(bm, f, oflag);
 			}
 		}
@@ -610,7 +610,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		case DEL_EDGES:
 		{
 			/* flush down to vert */
-			BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_ITER (e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
 				if (BMO_elem_flag_test(bm, e, oflag)) {
 					BMO_elem_flag_enable(bm, e->v1, oflag);
 					BMO_elem_flag_enable(bm, e->v2, oflag);
@@ -618,7 +618,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 			}
 			bmo_remove_tagged_context_edges(bm, oflag);
 			/* remove loose vertice */
-			BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER (v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 				if (BMO_elem_flag_test(bm, v, oflag) && (!(v->e)))
 					BMO_elem_flag_enable(bm, v, DEL_WIREVERT);
 			}
@@ -649,7 +649,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		case DEL_FACES:
 		{
 			/* go through and mark all edges and all verts of all faces for delet */
-			BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER (f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
 				if (BMO_elem_flag_test(bm, f, oflag)) {
 					for (e = BM_iter_new(&eiter, bm, BM_EDGES_OF_FACE, f); e; e = BM_iter_step(&eiter))
 						BMO_elem_flag_enable(bm, e, oflag);
@@ -658,7 +658,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 				}
 			}
 			/* now go through and mark all remaining faces all edges for keeping */
-			BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER (f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
 				if (!BMO_elem_flag_test(bm, f, oflag)) {
 					for (e = BM_iter_new(&eiter, bm, BM_EDGES_OF_FACE, f); e; e = BM_iter_step(&eiter)) {
 						BMO_elem_flag_disable(bm, e, oflag);
@@ -669,7 +669,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 				}
 			}
 			/* also mark all the vertices of remaining edges for keeping */
-			BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_ITER (e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
 				if (!BMO_elem_flag_test(bm, e, oflag)) {
 					BMO_elem_flag_disable(bm, e->v1, oflag);
 					BMO_elem_flag_disable(bm, e->v2, oflag);
@@ -687,13 +687,13 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		case DEL_ALL:
 		{
 			/* does this option even belong in here? */
-			BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER (f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
 				BMO_elem_flag_enable(bm, f, oflag);
 			}
-			BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_ITER (e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
 				BMO_elem_flag_enable(bm, e, oflag);
 			}
-			BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER (v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 				BMO_elem_flag_enable(bm, v, oflag);
 			}
 

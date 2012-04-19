@@ -70,7 +70,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	/* create old -> new mappin */
 	i = 0;
 	/* v2 = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); */ /* UNUSED */
-	BMO_ITER(v, &siter, bm, &dupeop, "newout", BM_VERT) {
+	BMO_ITER (v, &siter, bm, &dupeop, "newout", BM_VERT) {
 		BLI_array_growone(vmap);
 		vmap[i] = v;
 		/* v2 = BM_iter_step(&iter); */ /* UNUSED */
@@ -101,8 +101,8 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 		int totlayer;
 		BMIter liter;
 
-		BMO_ITER(f, &siter, bm, &dupeop, "newout", BM_FACE) {
-			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		BMO_ITER (f, &siter, bm, &dupeop, "newout", BM_FACE) {
+			BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 				totlayer = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
 				for (i = 0; i < totlayer; i++) {
 					luv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);

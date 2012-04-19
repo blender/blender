@@ -73,7 +73,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	BMO_push(bm, NULL);
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMANGLE) {
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			/* check for 1 edge having 2 face users */
 			BMLoop *l1, *l2;
 			if ( (l1= e->l) &&
@@ -87,7 +87,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	}
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMFLAG) {
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			/* check for 2 or more edge users */
 			if ((e->l) &&
 			    (e->l->next != e->l))

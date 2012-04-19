@@ -594,8 +594,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 
 		/* Now, on to generate our uv connectivity data */
 		counter = 0;
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				int offset1, itmp1 = uv_element_offset_from_face_get(data->elementMap, efa, l, island_index, do_island_optimization);
 				int offset2, itmp2 = uv_element_offset_from_face_get(data->elementMap, efa, l->next, island_index, do_island_optimization);
 

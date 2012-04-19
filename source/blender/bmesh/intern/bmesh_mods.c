@@ -286,8 +286,8 @@ BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f)
 	BMFace *f_iter;
 
 	/* be warned: this can do weird things in some ngon situation, see BM_face_legal_splits */
-	BM_ITER(f_iter, &fiter, bm, BM_FACES_OF_VERT, v1) {
-		BM_ITER(v_iter, &viter, bm, BM_FACES_OF_VERT, f_iter) {
+	BM_ITER (f_iter, &fiter, bm, BM_FACES_OF_VERT, v1) {
+		BM_ITER (v_iter, &viter, bm, BM_FACES_OF_VERT, f_iter) {
 			if (v_iter == v2) {
 				BMLoop *nl;
 
@@ -521,7 +521,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 		BMFace *f;
 		BLI_array_staticdeclare(faces, 8);
 
-		BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, kv) {
+		BM_ITER (f, &iter, bm, BM_FACES_OF_VERT, kv) {
 			BLI_array_append(faces, f);
 		}
 
@@ -556,7 +556,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 			for (i = 0; i < 2; i++) {
 				/* cant kill data we loop on, build a list and remove those */
 				BLI_array_empty(bad_faces);
-				BM_ITER(f, &fiter, bm, BM_FACES_OF_VERT, verts[i]) {
+				BM_ITER (f, &fiter, bm, BM_FACES_OF_VERT, verts[i]) {
 					if (f->len < 3) {
 						BLI_array_append(bad_faces, f);
 					}
