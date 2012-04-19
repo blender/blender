@@ -309,6 +309,59 @@ BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
 }
 
 /**
+ * The function takes a vertex at the center of a fan and returns the opposite edge in the fan.
+ * All edges in the fan must be manifold, otherwise return NULL.
+ *
+ * \note This could (probably) be done more effieiently.
+ */
+BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e_first)
+{
+	BMLoop *l_a;
+	int tot = 0;
+	int i;
+
+	BLI_assert(BM_vert_in_edge(e_first, v));
+
+	l_a = e_first->l;
+	do {
+		l_a = BM_loop_other_vert_loop(l_a, v);
+		l_a = BM_vert_in_edge(l_a->e, v) ? l_a : l_a->prev;
+		if (BM_edge_is_manifold(l_a->e)) {
+			l_a = l_a->radial_next;
+		}
+		else {
+			return NULL;
+		}
+
+		tot++;
+	} while (l_a != e_first->l);
+
+	/* we know the total, now loop half way */
+	tot /= 2;
+	i = 0;
+
+	l_a = e_first->l;
+	do {
+		if (i == tot) {
+			l_a = BM_vert_in_edge(l_a->e, v) ? l_a : l_a->prev;
+			return l_a->e;
+		}
+
+		l_a = BM_loop_other_vert_loop(l_a, v);
+		l_a = BM_vert_in_edge(l_a->e, v) ? l_a : l_a->prev;
+		if (BM_edge_is_manifold(l_a->e)) {
+			l_a = l_a->radial_next;
+		}
+		/* this wont have changed from the previous loop */
+
+
+		i++;
+	} while (l_a != e_first->l);
+
+	return NULL;
+}
+
+/**
  * Returms edge length
  */
 float BM_edge_length_calc(BMEdge *e)

@@ -814,8 +814,7 @@ static int UNUSED_FUNCTION(count_flagged_disk)(BMVert *v, int flag)
 
 	do {
 		i += BM_ELEM_API_FLAG_TEST(e, flag) ? 1 : 0;
-		e = bmesh_disk_edge_next(e, v);
-	} while (e != v->e);
+	} while ((e = bmesh_disk_edge_next(e, v)) != v->e);
 
 	return i;
 }
