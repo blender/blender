@@ -78,7 +78,7 @@ static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, floa
 	BMIter iter;
 	int *index, nr, totvert=0;
 	
-	BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) totvert++;
 	}
 	if (totvert==0) return 0;
@@ -88,7 +88,7 @@ static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, floa
 	nr= 0;
 	zero_v3(cent);
 	
-	BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 			*index= nr; index++;
 			add_v3_v3(cent, eve->co);
@@ -114,7 +114,7 @@ static int return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *name, fl
 		BMIter iter;
 
 		/* find the vertices */
-		BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 
 			if (dvert) {
@@ -146,7 +146,7 @@ static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 	if (hmd->indexar == NULL)
 		return;
 	
-	BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (nr==hmd->indexar[index]) {
 			BM_elem_select_set(em->bm, eve, TRUE);
 			if (index < hmd->totindex-1) index++;

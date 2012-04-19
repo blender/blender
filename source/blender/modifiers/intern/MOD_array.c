@@ -240,7 +240,7 @@ static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4],
 		BMO_slot_buffer_append(&find_op, "verts", dupe_op, dupe_slot_name);
 
 		/* transform and tag verts */
-		BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				mul_m4_v3(mat, v->co);
 				BM_elem_flag_enable(v, BM_ELEM_TAG);
@@ -259,7 +259,7 @@ static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4],
 	}
 	else {
 		/* transform and tag verts */
-		BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				mul_m4_v3(mat, v->co);
 				BM_elem_flag_enable(v, BM_ELEM_TAG);

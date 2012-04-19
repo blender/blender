@@ -164,7 +164,7 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 
 	BLI_array_fixedstack_declare(verts, BM_NGON_STACK_SIZE, f->len, __func__);
 
-	BM_ITER_INDEX (l, &iter, bm, BM_LOOPS_OF_FACE, f, i) {
+	BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
 		copy_v3_v3(verts[i], l->v->co);
 	}
 
@@ -360,7 +360,7 @@ void BM_vert_normal_update(BMesh *bm, BMVert *v)
 
 	zero_v3(v->no);
 
-	BM_ITER (l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
 		/* Same calculation used in BM_mesh_normals_update */
 		sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
 		sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
@@ -384,7 +384,7 @@ void BM_vert_normal_update_all(BMesh *bm, BMVert *v)
 	BMIter iter;
 	BMFace *f;
 
-	BM_ITER (f, &iter, bm, BM_FACES_OF_VERT, v) {
+	BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
 		BM_face_normal_update(bm, f);
 	}
 

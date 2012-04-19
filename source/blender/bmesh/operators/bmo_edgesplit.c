@@ -60,7 +60,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
 	vtouch = MEM_callocN(sizeof(char) * bm->totvert, __func__);
 
 	/* tag all boundary verts so as not to untag an edge which is inbetween only 2 faces [] */
-	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 
 		/* unrelated to flag assignment in this function - since this is the
 		 * only place we loop over all edges, disable tag */

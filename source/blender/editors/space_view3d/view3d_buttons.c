@@ -157,7 +157,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		BMEdge *eed;
 		BMIter iter;
 
-		BM_ITER (eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				evedef = eve;
 				tot++;
@@ -165,7 +165,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			}
 		}
 
-		BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				float *f;
 
@@ -404,7 +404,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 			if (len_v3(median) > 0.000001f) {
 
-				BM_ITER (eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+				BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 					if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 						add_v3_v3(eve->co, median);
 					}
@@ -418,7 +418,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				const float sca = compute_scale_factor(ve_median[3], median[3]);
 
 				if (ELEM(sca, 0.0f, 1.0f)) {
-					BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
 							if (crease) {
@@ -428,7 +428,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					}
 				}
 				else if (sca > 0.0f) {
-					BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 							float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
 							if (crease) {
@@ -439,7 +439,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					}
 				}
 				else {
-					BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 							float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
 							if (crease) {
@@ -456,7 +456,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				const float sca = compute_scale_factor(ve_median[6], median[6]);
 
 				if (ELEM(sca, 0.0f, 1.0f)) {
-					BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
 							if (bweight) {
@@ -466,7 +466,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					}
 				}
 				else if (sca > 0.0f) {
-					BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 							float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
 							if (bweight) {
@@ -477,7 +477,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					}
 				}
 				else {
-					BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 							float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
 							if (bweight) {
@@ -678,7 +678,7 @@ static void vgroup_copy_active_to_sel(Object *ob)
 		MDeformVert *dvert;
 		int index = 0;
 
-		BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && eve != eve_act) {
 				dvert = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 				if (dvert) {

@@ -137,7 +137,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		 * so re-create it here */
 		makeDerivedMesh(scene, obedit, em, CD_MASK_BAREMESH, 0);
 
-		BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				if (v1==0) v1= nr;
 				else if (v2==0) v2= nr;

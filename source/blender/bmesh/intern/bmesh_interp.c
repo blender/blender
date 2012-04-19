@@ -489,7 +489,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
 		return;
 	
-	BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		MDisps *mdp = CustomData_bmesh_get(&bm->ldata, l->prev->head.data, CD_MDISPS);
 		MDisps *mdl = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
 		MDisps *mdn = CustomData_bmesh_get(&bm->ldata, l->next->head.data, CD_MDISPS);
@@ -521,7 +521,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 		}
 	}
 	
-	BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		MDisps *mdl1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
 		MDisps *mdl2;
 		float co1[3], co2[3], co[3];
@@ -726,7 +726,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 
 		CustomData_bmesh_init_pool(data, bm->totvert, BM_VERT);
 
-		BM_ITER (eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
 			CustomData_bmesh_copy_data(olddata, data, eve->head.data, &block);
@@ -739,7 +739,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 
 		CustomData_bmesh_init_pool(data, bm->totedge, BM_EDGE);
 
-		BM_ITER (eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
 			CustomData_bmesh_copy_data(olddata, data, eed->head.data, &block);
@@ -753,8 +753,8 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 		BMLoop *l;
 
 		CustomData_bmesh_init_pool(data, bm->totloop, BM_LOOP);
-		BM_ITER (efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				block = NULL;
 				CustomData_bmesh_set_default(data, &block);
 				CustomData_bmesh_copy_data(olddata, data, l->head.data, &block);
@@ -768,7 +768,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 
 		CustomData_bmesh_init_pool(data, bm->totface, BM_FACE);
 
-		BM_ITER (efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
 			CustomData_bmesh_copy_data(olddata, data, efa->head.data, &block);

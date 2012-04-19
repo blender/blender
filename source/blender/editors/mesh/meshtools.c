@@ -803,7 +803,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 			BMIter iter;
 			BMVert *eve;
 			
-			BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 				DO_MINMAX(eve->co, min, max);
 			}
 		}
@@ -840,7 +840,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 			BMVert *eve;
 			BMIter iter;
 
-			BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (intptr_t)(eve));
 			}
 		}
@@ -953,7 +953,7 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, struct BMEditMesh *e
 		BMVert *v;
 		
 		index = 0;
-		BM_ITER (v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (v == eve)
 				break;
 			index++;
@@ -1015,14 +1015,14 @@ static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float 
 		BMIter iter;
 		BMFace *efa;
 		
-		BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			poly_uv_center(em, efa, cent);
 			
 			if ( (fabs(cent[0] - cent_vec[0]) < 0.001) && (fabs(cent[1] - cent_vec[1]) < 0.001) ) {
 				BMIter liter;
 				BMLoop *l;
 				
-				BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					if ( (fabs(luv->uv[0] - vec[0]) < 0.001) && (fabs(luv->uv[1] - vec[1]) < 0.001) ) {
 						return luv->uv;

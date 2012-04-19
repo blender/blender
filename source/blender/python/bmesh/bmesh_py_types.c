@@ -998,13 +998,13 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
 		mat_ptr = mat->matrix;
 
 		if (!filter_flags) {
-			BM_ITER (eve, &iter, self->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
 				mul_m4_v3((float (*)[4])mat_ptr, eve->co);
 			}
 		}
 		else {
 			char filter_flags_ch = (char)filter_flags;
-			BM_ITER (eve, &iter, self->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
 				if (eve->head.hflag & filter_flags_ch) {
 					mul_m4_v3((float (*)[4])mat_ptr, eve->co);
 				}

@@ -493,7 +493,7 @@ static void emDM_drawUVEdges(DerivedMesh *dm)
 	BMIter iter;
 
 	glBegin(GL_LINES);
-	BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		BMIter liter;
 		BMLoop *l;
 		MLoopUV *lastluv = NULL, *firstluv = NULL;
@@ -501,7 +501,7 @@ static void emDM_drawUVEdges(DerivedMesh *dm)
 		if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 			continue;
 
-		BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 			if (luv) {
@@ -1468,8 +1468,8 @@ static void emDM_copyLoopArray(DerivedMesh *dm, MLoop *loop_r)
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE);
 
-	BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			loop_r->v = BM_elem_index_get(l->v);
 			loop_r->e = BM_elem_index_get(l->e);
 			loop_r++;
@@ -1486,7 +1486,7 @@ static void emDM_copyPolyArray(DerivedMesh *dm, MPoly *poly_r)
 	int i;
 
 	i = 0;
-	BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		poly_r->flag = BM_face_flag_to_mflag(f);
 		poly_r->loopstart = i;
 		poly_r->totloop = f->len;
@@ -1559,7 +1559,7 @@ static void emDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
 	int i;
 
 	i= 0;
-	BM_ITER (eve, &iter, emdm->tc->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (eve, &iter, emdm->tc->bm, BM_VERTS_OF_MESH) {
 		if (emdm->vertexCos) {
 			copy_v3_v3(cos_r[i], emdm->vertexCos[i]);
 		}
@@ -1709,7 +1709,7 @@ DerivedMesh *getEditDerivedBMesh(
 		bmdm->polyNos = MEM_mallocN(sizeof(*bmdm->polyNos)*bm->totface, "bmdm_pno");
 
 		i = 0;
-		BM_ITER (efa, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &fiter, bm, BM_FACES_OF_MESH) {
 			BM_elem_index_set(efa, i); /* set_inline */
 			BM_face_normal_update_vcos(bm, efa, bmdm->polyNos[i], (float const (*)[3])vertexCos);
 			i++;
@@ -1719,7 +1719,7 @@ DerivedMesh *getEditDerivedBMesh(
 		eve=BM_iter_new(&viter, bm, BM_VERTS_OF_MESH, NULL);
 		for (i=0; eve; eve=BM_iter_step(&viter), i++) {
 			float *no = bmdm->vertexNos[i];
-			BM_ITER (efa, &fiter, bm, BM_FACES_OF_VERT, eve) {
+			BM_ITER_ELEM (efa, &fiter, eve, BM_FACES_OF_VERT) {
 				add_v3_v3(no, bmdm->polyNos[BM_elem_index_get(efa)]);
 			}
 

@@ -572,7 +572,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 							insert = 0;
 						}
 						else {
-							BM_ITER (v, &iter, em->bm, BM_VERTS_OF_FACE, f) {
+							BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
 								if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 									/* Don't insert triangles tessellated from faces that have
 									 * any selected verts.*/

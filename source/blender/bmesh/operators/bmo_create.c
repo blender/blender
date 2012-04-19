@@ -225,7 +225,7 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 	SmallHash visithash, *hash = &visithash;
 	int i;
 	
-	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		BMEdge *e2, *starte;
 		BMVert *startv;
 		int rad, ok;
@@ -366,7 +366,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	
 #define SIGN(n) ((n)<0.0f)
 	
-	BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		BMIter eiter;
 		float no[3], cent[3];
 		int j, k = 0, totedge = 0;
@@ -376,7 +376,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 		
 		BLI_array_empty(edges);
 		
-		BM_ITER (e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+		BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 			if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 				BLI_array_append(edges, e);
 				totedge++;
@@ -581,7 +581,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 #if 0
 	/* create visualizing geometr */
 	BMVert *lastv;
-	BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		BMVert *v2;
 		BMFace *f;
 		int totedge = BM_vert_edge_count(v);
@@ -915,12 +915,12 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-	BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		BMO_elem_flag_enable(bm, f, ELE_ORIG);
 	}
 
 	i = 0;
-	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		BM_elem_index_set(e, i); /* set_inline */
 		
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK)) {
@@ -1076,7 +1076,7 @@ static BMEdge *edge_next(BMesh *bm, BMEdge *e)
 	int i;
 
 	for (i = 0; i < 2; i++) {
-		BM_ITER (e2, &iter, bm, BM_EDGES_OF_VERT, i ? e->v2 : e->v1) {
+		BM_ITER_ELEM (e2, &iter, i ? e->v2 : e->v1, BM_EDGES_OF_VERT) {
 			if ((BMO_elem_flag_test(bm, e2, EDGE_MARK)) &&
 			    (!BMO_elem_flag_test(bm, e2, EDGE_VIS)) &&
 			    (e2 != e))
@@ -1317,7 +1317,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		BMO_ITER (v, &oiter, bm, op, "geom", BM_VERT) {
 			/* count how many flagged edges this vertex uses */
 			int tot_edges = 0;
-			BM_ITER (e, &iter, bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 				if (BMO_elem_flag_test(bm, e, ELE_NEW)) {
 					tot_edges++;
 					if (tot_edges > 2) {
@@ -1392,7 +1392,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	/* now, count how many verts we have */
 	amount = 0;
-	BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, ELE_NEW)) {
 			verts[amount] = v;
 			amount++;

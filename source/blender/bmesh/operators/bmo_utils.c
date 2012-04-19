@@ -181,13 +181,13 @@ static void bmo_regionextend_extend(BMesh *bm, BMOperator *op, int usefaces)
 
 	if (!usefaces) {
 		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
-			BM_ITER (e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 				if (!BMO_elem_flag_test(bm, e, SEL_ORIG))
 					break;
 			}
 
 			if (e) {
-				BM_ITER (e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+				BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 					BMO_elem_flag_enable(bm, e, SEL_FLAG);
 					BMO_elem_flag_enable(bm, BM_edge_other_vert(e, v), SEL_FLAG);
 				}
@@ -200,8 +200,8 @@ static void bmo_regionextend_extend(BMesh *bm, BMOperator *op, int usefaces)
 		BMLoop *l;
 
 		BMO_ITER (f, &siter, bm, op, "geom", BM_FACE) {
-			BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-				BM_ITER (f2, &fiter, bm, BM_FACES_OF_EDGE, l->e) {
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				BM_ITER_ELEM (f2, &fiter, l->e, BM_FACES_OF_EDGE) {
 					if (!BMO_elem_flag_test(bm, f2, SEL_ORIG)) {
 						BMO_elem_flag_enable(bm, f2, SEL_FLAG);
 					}
@@ -220,7 +220,7 @@ static void bmo_regionextend_constrict(BMesh *bm, BMOperator *op, int usefaces)
 
 	if (!usefaces) {
 		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
-			BM_ITER (e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 				if (!BMO_elem_flag_test(bm, e, SEL_ORIG))
 					break;
 			}
@@ -228,7 +228,7 @@ static void bmo_regionextend_constrict(BMesh *bm, BMOperator *op, int usefaces)
 			if (e) {
 				BMO_elem_flag_enable(bm, v, SEL_FLAG);
 
-				BM_ITER (e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+				BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 					BMO_elem_flag_enable(bm, e, SEL_FLAG);
 				}
 
@@ -241,8 +241,8 @@ static void bmo_regionextend_constrict(BMesh *bm, BMOperator *op, int usefaces)
 		BMLoop *l;
 
 		BMO_ITER (f, &siter, bm, op, "geom", BM_FACE) {
-			BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-				BM_ITER (f2, &fiter, bm, BM_FACES_OF_EDGE, l->e) {
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				BM_ITER_ELEM (f2, &fiter, l->e, BM_FACES_OF_EDGE) {
 					if (!BMO_elem_flag_test(bm, f2, SEL_ORIG)) {
 						BMO_elem_flag_enable(bm, f, SEL_FLAG);
 						break;
@@ -358,8 +358,8 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 		f = fstack[i];
 		i--;
 
-		BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-			BM_ITER (l2, &liter2, bm, BM_LOOPS_OF_LOOP, l) {
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+			BM_ITER_ELEM (l2, &liter2, l, BM_LOOPS_OF_LOOP) {
 				if (!BMO_elem_flag_test(bm, l2->f, FACE_FLAG) || l2 == l)
 					continue;
 
@@ -424,7 +424,7 @@ void bmo_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 		co = cos[i];
 		
 		j  = 0;
-		BM_ITER (e, &iter, bm, BM_EDGES_OF_VERT, v) {
+		BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 			co2 = BM_edge_other_vert(e, v)->co;
 			add_v3_v3v3(co, co, co2);
 			j += 1;
@@ -475,7 +475,7 @@ static float ngon_fake_area(BMesh *bm, BMFace *f)
 
 	BM_face_center_mean_calc(bm, f, c);
 
-	BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		if (num_verts == 0) {
 			copy_v3_v3(v, l->v->co);
 			copy_v3_v3(sv, l->v->co);
@@ -545,7 +545,7 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 	f_ext = (SimSel_FaceExt *)MEM_callocN(sizeof(SimSel_FaceExt) * num_total, "f_ext util.c");
 
 	/* loop through all the faces and fill the faces/indices structure */
-	BM_ITER (fm, &fm_iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (fm, &fm_iter, bm, BM_FACES_OF_MESH) {
 		f_ext[i].f = fm;
 		if (BMO_elem_flag_test(bm, fm, FACE_MARK)) {
 			indices[idx] = i;
@@ -673,7 +673,7 @@ static float edge_angle(BMesh *bm, BMEdge *e)
 
 	/* first edge faces, don't account for 3+ */
 
-	BM_ITER (f, &fiter, bm, BM_FACES_OF_EDGE, e) {
+	BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
 		if (f_prev == NULL) {
 			f_prev = f;
 		}
@@ -733,7 +733,7 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 	e_ext = (SimSel_EdgeExt *)MEM_callocN(sizeof(SimSel_EdgeExt) * num_total, "e_ext util.c");
 
 	/* loop through all the edges and fill the edges/indices structure */
-	BM_ITER (e, &e_iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &e_iter, bm, BM_EDGES_OF_MESH) {
 		e_ext[i].e = e;
 		if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 			indices[idx] = i;
@@ -897,7 +897,7 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 	v_ext = (SimSel_VertExt *)MEM_mallocN(sizeof(SimSel_VertExt) * num_total, "vertex extra");
 
 	/* loop through all the vertices and fill the vertices/indices structure */
-	BM_ITER (v, &v_iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &v_iter, bm, BM_VERTS_OF_MESH) {
 		v_ext[i].v = v;
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 			indices[idx] = i;
@@ -993,7 +993,7 @@ void bmo_face_rotateuvs_exec(BMesh *bm, BMOperator *op)
 				float t_uv[2];	/* tmp uvs */
 
 				int n = 0;
-				BM_ITER (lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+				BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
 					/* current loop uv is the previous loop uv */
 					MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
 					if (n == 0) {
@@ -1017,7 +1017,7 @@ void bmo_face_rotateuvs_exec(BMesh *bm, BMOperator *op)
 				float t_uv[2];	/* current uvs */
 
 				int n = 0;
-				BM_ITER (lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+				BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
 					/* previous loop uv is the current loop uv */
 					luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
 					if (n == 0) {
@@ -1058,7 +1058,7 @@ void bmo_face_reverseuvs_exec(BMesh *bm, BMOperator *op)
 			BLI_array_empty(uvs);
 			BLI_array_growitems(uvs, fs->len);
 
-			BM_ITER_INDEX (lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs, i) {
+			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
 				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
 
 				/* current loop uv is the previous loop uv */
@@ -1067,7 +1067,7 @@ void bmo_face_reverseuvs_exec(BMesh *bm, BMOperator *op)
 
 			/* now that we have the uvs in the array, reverse! */
 			i = 0;
-			BM_ITER (lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+			BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
 				/* current loop uv is the previous loop uv */
 				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
 				luv->uv[0] = uvs[(fs->len - i - 1)][0];
@@ -1102,7 +1102,7 @@ void bmo_rotatecolors_exec(BMesh *bm, BMOperator *op)
 				MLoopCol t_col;	/* tmp color */
 
 				int n = 0;
-				BM_ITER (lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+				BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
 					/* current loop color is the previous loop color */
 					MLoopCol *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
 					if (n == 0) {
@@ -1126,7 +1126,7 @@ void bmo_rotatecolors_exec(BMesh *bm, BMOperator *op)
 				MLoopCol t_col;	/* current color */
 
 				int n = 0;
-				BM_ITER (lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+				BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
 					/* previous loop color is the current loop color */
 					lcol = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
 					if (n == 0) {
@@ -1164,7 +1164,7 @@ void bmo_face_reversecolors_exec(BMesh *bm, BMOperator *op)
 			int i = 0;
 
 			BLI_array_empty(cols);
-			BM_ITER (lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+			BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
 				MLoopCol *lcol = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
 
 				/* current loop uv is the previous loop color */
@@ -1175,7 +1175,7 @@ void bmo_face_reversecolors_exec(BMesh *bm, BMOperator *op)
 
 			/* now that we have the uvs in the array, reverse! */
 			i = 0;
-			BM_ITER (lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+			BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
 				/* current loop uv is the previous loop color */
 				MLoopCol *lcol = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
 				*lcol = cols[(fs->len - i - 1)];
@@ -1227,7 +1227,7 @@ void bmo_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 	/* iterate through all the mesh vertices */
 	/* loop through all the vertices and fill the vertices/indices structure */
 	i = 0;
-	BM_ITER (v, &v_iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &v_iter, bm, BM_VERTS_OF_MESH) {
 		vert_list[i].v = v;
 		vert_list[i].parent = NULL;
 		vert_list[i].weight = FLT_MAX;
@@ -1262,7 +1262,7 @@ void bmo_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 
 		v_weight = vert_list[BM_elem_index_get(v)].weight;
 
-		BM_ITER (e, &e_i, bm, BM_EDGES_OF_VERT, v) {
+		BM_ITER_ELEM (e, &e_i, v, BM_EDGES_OF_VERT) {
 			BMVert *u;
 			float e_weight = v_weight;
 

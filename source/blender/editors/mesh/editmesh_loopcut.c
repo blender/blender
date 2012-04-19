@@ -145,7 +145,7 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 
 	/* find correct order for v[1] */
 	if (!(BM_edge_in_face(l->f, eed) && BM_edge_in_face(l->f, lasteed))) {
-		BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_LOOP, l) {
+		BM_ITER_ELEM (l, &liter, l, BM_LOOPS_OF_LOOP) {
 			if (BM_edge_in_face(l->f, eed) && BM_edge_in_face(l->f, lasteed))
 				break;
 		}

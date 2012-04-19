@@ -138,8 +138,8 @@ void BPy_BM_init_types(void);
 PyObject *BPyInit_bmesh_types(void);
 
 enum {
-	BPY_BMFLAG_NOP = 0,       /* do nothing */
-	BPY_BMFLAG_IS_WRAPPED = 1 /* the mesh is owned by editmode */
+    BPY_BMFLAG_NOP = 0,       /* do nothing */
+    BPY_BMFLAG_IS_WRAPPED = 1 /* the mesh is owned by editmode */
 };
 
 PyObject *BPy_BMesh_CreatePyObject(BMesh *bm, int flag);
@@ -175,8 +175,15 @@ char     *BPy_BMElem_StringFromHType(const char htype);
 
 #define BPY_BM_IS_VALID(obj) (LIKELY((obj)->bm != NULL))
 
-#define BM_ITER_BPY_BM_SEQ(ele, iter, bpy_bmelemseq)                \
-	BM_ITER (ele, iter, (bpy_bmelemseq)->bm, (bpy_bmelemseq)->itype, \
-	(bpy_bmelemseq)->py_ele ? ((BPy_BMElem *)(bpy_bmelemseq)->py_ele)->ele : NULL)
+#define BM_ITER_BPY_BM_SEQ(ele, iter, bpy_bmelemseq)                          \
+	for (ele = BM_iter_new(iter,                                              \
+	                       (bpy_bmelemseq)->bm,                               \
+	                       (bpy_bmelemseq)->itype,                            \
+	                       (bpy_bmelemseq)->py_ele ?                          \
+	                           ((BPy_BMElem *)(bpy_bmelemseq)->py_ele)->ele : \
+	                           NULL                                           \
+	                       );                                                 \
+	     ele;                                                                 \
+	     ele = BM_iter_step(iter))
 
 #endif /* __BMESH_TYPES_H__ */

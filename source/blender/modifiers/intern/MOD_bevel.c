@@ -125,7 +125,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	BMO_push(bm, NULL);
 
 	if (bmd->lim_flags & BME_BEVEL_ANGLE) {
-		BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			/* check for 1 edge having 2 face users */
 			BMLoop *l1, *l2;
 			if ( (l1= e->l) &&
@@ -139,7 +139,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	}
 	else {
 		/* crummy, is there a way just to operator on all? - campbell */
-		BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			BMO_elem_flag_enable(bm, e, EDGE_MARK);
 		}
 	}

@@ -309,7 +309,7 @@ static void createTransEdge(TransInfo *t)
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 
-	BM_ITER (eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) countsel++;
 			if (propmode) count++;
@@ -331,7 +331,7 @@ static void createTransEdge(TransInfo *t)
 	copy_m3_m4(mtx, t->obedit->obmat);
 	invert_m3_m3(smtx, mtx);
 
-	BM_ITER (eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || propmode)) { 
 			float *bweight = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
 			float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
@@ -1888,7 +1888,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 
 	BLI_smallhash_init(visit);
 
-	BM_ITER (v, &viter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &viter, em->bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT)==0 || BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 			
@@ -1909,7 +1909,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 		v2 = queue[start];
 		d = dqueue[start];
 		
-		BM_ITER (e, &eiter, em->bm, BM_EDGES_OF_VERT, v2) {
+		BM_ITER_ELEM (e, &eiter, v2, BM_EDGES_OF_VERT) {
 			float d2;
 			v3 = BM_edge_other_vert(e, v2);
 			
@@ -1959,7 +1959,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	BMFace *efa;
 	BMIter iter;
 
-	BM_ITER (efa, &iter, bm, BM_FACES_OF_VERT, eve) {
+	BM_ITER_ELEM (efa, &iter, eve, BM_FACES_OF_VERT) {
 		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			BM_face_center_mean_calc(bm, efa, cent_r);
 			break;
@@ -1972,7 +1972,7 @@ static void get_edge_center(float cent_r[3], BMesh *bm, BMVert *eve)
 	BMEdge *eed;
 	BMIter iter;
 
-	BM_ITER (eed, &iter, bm, BM_EDGES_OF_VERT, eve) {
+	BM_ITER_ELEM (eed, &iter, eve, BM_EDGES_OF_VERT) {
 		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 			mid_v3_v3v3(cent_r, eed->v1->co, eed->v2->co);
 			break;
@@ -2051,7 +2051,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if (selectmode & SCE_SELECT_VERTEX) {
-		BM_ITER (eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 			BM_elem_flag_set(eve, BM_ELEM_TAG, BM_elem_flag_test(eve, BM_ELEM_SELECT));
 		}
 	}
@@ -2452,7 +2452,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	if (!ED_space_image_show_uvedit(sima, t->obedit)) return;
 
 	/* count */
-	BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 		if (!uvedit_face_visible(scene, ima, efa, tf)) {
@@ -2461,7 +2461,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 		}
 		
 		BM_elem_flag_enable(efa, BM_ELEM_TAG);
-		BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			if (uvedit_uv_selected(em, scene, l)) 
 				countsel++;
 
@@ -2485,11 +2485,11 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	td= t->data;
 	td2d= t->data2d;
 
-	BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 			continue;
 
-		BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			if (!propmode && !uvedit_uv_selected(em, scene, l))
 				continue;
 			

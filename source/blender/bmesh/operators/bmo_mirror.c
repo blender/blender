@@ -102,7 +102,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 		BMIter liter;
 
 		BMO_ITER (f, &siter, bm, &dupeop, "newout", BM_FACE) {
-			BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				totlayer = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
 				for (i = 0; i < totlayer; i++) {
 					luv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);

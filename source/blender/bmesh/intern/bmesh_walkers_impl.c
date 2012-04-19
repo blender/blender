@@ -115,7 +115,7 @@ static void bmw_ShellWalker_begin(BMWalker *walker, void *data)
 			/* starting the walk at a vert, add all the edges
 			 * to the worklist */
 			v = (BMVert *)h;
-			BM_ITER (e, &eiter, walker->bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 				bmw_ShellWalker_visitEdge(walker, e);
 			}
 			break;
@@ -151,7 +151,7 @@ static void *bmw_ShellWalker_step(BMWalker *walker)
 
 	for (i = 0; i < 2; i++) {
 		v = i ? e->v2 : e->v1;
-		BM_ITER (e2, &iter, walker->bm, BM_EDGES_OF_VERT, v) {
+		BM_ITER_ELEM (e2, &iter, v, BM_EDGES_OF_VERT) {
 			bmw_ShellWalker_visitEdge(walker, e2);
 		}
 	}
@@ -249,7 +249,7 @@ static void *bmw_ConnectedVertexWalker_step(BMWalker *walker)
 
 	BMW_state_remove(walker);
 
-	BM_ITER (e, &iter, walker->bm, BM_EDGES_OF_VERT, v) {
+	BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 		v2 = BM_edge_other_vert(e, v);
 		if (!BLI_ghash_haskey(walker->visithash, v2)) {
 			bmw_ConnectedVertexWalker_visitVertex(walker, v2);
@@ -450,7 +450,7 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 		BMFace *f_iter;
 		BMFace *f_best = NULL;
 
-		BM_ITER (f_iter, &iter, walker->bm, BM_FACES_OF_EDGE, e) {
+		BM_ITER_ELEM (f_iter, &iter, e, BM_FACES_OF_EDGE) {
 			if (f_best == NULL || f_best->len < f_iter->len) {
 				f_best = f_iter;
 			}
@@ -606,7 +606,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 		for (i = 0; i < 2; i++) {
 			v = i ? e->v2 : e->v1;
 
-			BM_ITER (nexte, &eiter, walker->bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER_ELEM (nexte, &eiter, v, BM_EDGES_OF_VERT) {
 				if ((nexte->l == NULL) &&
 				    bmw_mask_check_edge(walker, nexte) &&
 				    !BLI_ghash_haskey(walker->visithash, nexte))
@@ -953,7 +953,7 @@ static void *bmw_UVEdgeWalker_step(BMWalker *walker)
 	 * mloopuv's coordinates. in addition, push on l->next if necessary */
 	for (i = 0; i < 2; i++) {
 		cl = i ? nl : l;
-		BM_ITER (l2, &liter, walker->bm, BM_LOOPS_OF_VERT, cl->v) {
+		BM_ITER_ELEM (l2, &liter, cl->v, BM_LOOPS_OF_VERT) {
 			d1 = CustomData_bmesh_get_layer_n(&walker->bm->ldata,
 			                                  cl->head.data, walker->layer);
 			

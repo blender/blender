@@ -104,15 +104,15 @@ void BM_mesh_data_free(BMesh *bm)
 	BMIter iter;
 	BMIter itersub;
 	
-	BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		CustomData_bmesh_free_block(&(bm->vdata), &(v->head.data));
 	}
-	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		CustomData_bmesh_free_block(&(bm->edata), &(e->head.data));
 	}
-	BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		CustomData_bmesh_free_block(&(bm->pdata), &(f->head.data));
-		BM_ITER (l, &itersub, bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER_ELEM (l, &itersub, f, BM_LOOPS_OF_FACE) {
 			CustomData_bmesh_free_block(&(bm->ldata), &(l->head.data));
 		}
 	}
@@ -211,7 +211,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 	float (*edgevec)[3];
 	
 	/* calculate all face normals */
-	BM_ITER (f, &faces, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &faces, bm, BM_FACES_OF_MESH) {
 		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 #if 0   /* UNUSED */
@@ -223,7 +223,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 	}
 	
 	/* Zero out vertex normals */
-	BM_ITER (v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &verts, bm, BM_VERTS_OF_MESH) {
 		if (skip_hidden && BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
@@ -235,7 +235,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 	 * normals */
 	index = 0;
 	edgevec = MEM_callocN(sizeof(float) * 3 * bm->totedge, "BM normal computation array");
-	BM_ITER (e, &edges, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &edges, bm, BM_EDGES_OF_MESH) {
 		BM_elem_index_set(e, index); /* set_inline */
 
 		if (e->l) {
@@ -251,12 +251,12 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 	bm->elem_index_dirty &= ~BM_EDGE;
 
 	/* add weighted face normals to vertices */
-	BM_ITER (f, &faces, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &faces, bm, BM_FACES_OF_MESH) {
 
 		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 
-		BM_ITER (l, &loops, bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER_ELEM (l, &loops, f, BM_LOOPS_OF_FACE) {
 			float *e1diff, *e2diff;
 			float dotprod;
 			float fac;
@@ -282,7 +282,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 	}
 	
 	/* normalize the accumulated vertex normals */
-	BM_ITER (v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &verts, bm, BM_VERTS_OF_MESH) {
 		if (skip_hidden && BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
@@ -312,7 +312,7 @@ static void bm_rationalize_normals(BMesh *bm, int undo)
 	BMIter iter;
 	
 	if (undo) {
-		BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
 				BM_face_normal_flip(bm, f);
 			}
@@ -327,7 +327,7 @@ static void bm_rationalize_normals(BMesh *bm, int undo)
 	BMO_push(bm, &bmop);
 	bmo_righthandfaces_exec(bm, &bmop);
 	
-	BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		BM_elem_flag_set(f, BM_ELEM_TAG, BMO_elem_flag_test(bm, f, FACE_FLIP));
 	}
 
@@ -350,10 +350,10 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from
 		
 		mdisps = CustomData_get_layer(&dm->loopData, CD_MDISPS);
 		
-		BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			BMLoop *l;
 			BMIter liter;
-			BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				MDisps *lmd = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
 				
 				if (!lmd->disps) {
@@ -463,7 +463,7 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 	if (hflag & BM_VERT) {
 		if (bm->elem_index_dirty & BM_VERT) {
 			int index = 0;
-			BM_ITER (ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
 				BM_elem_index_set(ele, index); /* set_ok */
 				index++;
 			}
@@ -478,7 +478,7 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 	if (hflag & BM_EDGE) {
 		if (bm->elem_index_dirty & BM_EDGE) {
 			int index = 0;
-			BM_ITER (ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
 				BM_elem_index_set(ele, index); /* set_ok */
 				index++;
 			}
@@ -493,7 +493,7 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 	if (hflag & BM_FACE) {
 		if (bm->elem_index_dirty & BM_FACE) {
 			int index = 0;
-			BM_ITER (ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
 				BM_elem_index_set(ele, index); /* set_ok */
 				index++;
 			}
@@ -712,7 +712,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 	/* And now, fix all vertices/edges/faces/loops pointers! */
 	/* Verts' pointers, only edge pointers... */
 	if (eptr_map) {
-		BM_ITER (ve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (ve, &iter, bm, BM_VERTS_OF_MESH) {
 /*			printf("Vert e: %p -> %p\n", ve->e, BLI_ghash_lookup(eptr_map, (const void*)ve->e));*/
 			ve->e = BLI_ghash_lookup(eptr_map, (const void *)ve->e);
 		}
@@ -720,7 +720,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 
 	/* Edges' pointers, only vert pointers (as we don’t mess with loops!)... */
 	if (vptr_map) {
-		BM_ITER (ed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
 /*			printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, (const void*)ed->v1));*/
 /*			printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, (const void*)ed->v2));*/
 			ed->v1 = BLI_ghash_lookup(vptr_map, (const void *)ed->v1);
@@ -729,8 +729,8 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 	}
 
 	/* Faces' pointers (loops, in fact), always needed... */
-	BM_ITER (fa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		BM_ITER (lo, &iterl, bm, BM_LOOPS_OF_FACE, fa) {
+	BM_ITER_MESH (fa, &iter, bm, BM_FACES_OF_MESH) {
+		BM_ITER_ELEM (lo, &iterl, fa, BM_LOOPS_OF_FACE) {
 			if (vptr_map) {
 /*				printf("Loop v: %p -> %p\n", lo->v, BLI_ghash_lookup(vptr_map, (const void*)lo->v));*/
 				lo->v = BLI_ghash_lookup(vptr_map, (const void *)lo->v);

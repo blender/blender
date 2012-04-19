@@ -315,7 +315,7 @@ int calc_manipulator_stats(const bContext *C)
 				 * mode. note we can't use just vertex selection flag because
 				 * it is not flush down on changes */
 				if (ts->selectmode & SCE_SELECT_VERTEX) {
-					BM_ITER (eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 						if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 							if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 								totsel++;
@@ -327,10 +327,10 @@ int calc_manipulator_stats(const bContext *C)
 				else if (ts->selectmode & SCE_SELECT_EDGE) {
 					BMIter itersub;
 					BMEdge *eed;
-					BM_ITER (eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 						if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 							/* check the vertex has a selected edge, only add it once */
-							BM_ITER (eed, &itersub, bm, BM_EDGES_OF_VERT, eve) {
+							BM_ITER_ELEM (eed, &itersub, eve, BM_EDGES_OF_VERT) {
 								if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 									totsel++;
 									calc_tw_center(scene, eve->co);
@@ -343,10 +343,10 @@ int calc_manipulator_stats(const bContext *C)
 				else {
 					BMIter itersub;
 					BMFace *efa;
-					BM_ITER (eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 						if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 							/* check the vertex has a selected face, only add it once */
-							BM_ITER (efa, &itersub, bm, BM_FACES_OF_VERT, eve) {
+							BM_ITER_ELEM (efa, &itersub, eve, BM_FACES_OF_VERT) {
 								if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 									totsel++;
 									calc_tw_center(scene, eve->co);

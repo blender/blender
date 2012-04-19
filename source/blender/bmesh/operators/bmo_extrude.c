@@ -62,7 +62,7 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 
 		i = 0;
 		firstv = lastv = NULL;
-		BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			v = BM_vert_create(bm, l->v->co, l->v);
 
 			/* skip on the first iteration */
@@ -93,7 +93,7 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 		BM_elem_attrs_copy(bm, bm, f, f2);
 
 		l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
-		BM_ITER (l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			BM_elem_attrs_copy(bm, bm, l, l2);
 
 			l3 = l->next;
@@ -258,7 +258,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	/* if one flagged face is bordered by an un-flagged face, then we delete
 	 * original geometry unless caller explicitly asked to keep it. */
 	if (!BMO_slot_bool_get(op, "alwayskeeporig")) {
-		BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 
 			int edge_face_tot;
 
@@ -269,7 +269,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 			found = FALSE; /* found a face that isn't input? */
 			edge_face_tot = 0; /* edge/face count */
 
-			BM_ITER (f, &fiter, bm, BM_FACES_OF_EDGE, e) {
+			BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
 				if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
 					found = TRUE;
 					delorig = TRUE;
@@ -287,10 +287,10 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* calculate verts to delete */
-	BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		found = FALSE;
 
-		BM_ITER (e, &viter, bm, BM_EDGES_OF_VERT, v) {
+		BM_ITER_ELEM (e, &viter, v, BM_EDGES_OF_VERT) {
 			if (!BMO_elem_flag_test(bm, e, EXT_INPUT) || !BMO_elem_flag_test(bm, e, EXT_DEL)) {
 				found = TRUE;
 				break;
@@ -299,7 +299,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 		/* avoid an extra loop */
 		if (found == TRUE) {
-			BM_ITER (f, &viter, bm, BM_FACES_OF_VERT, v) {
+			BM_ITER_ELEM (f, &viter, v, BM_FACES_OF_VERT) {
 				if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
 					found = TRUE;
 					break;
@@ -312,7 +312,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, f, EXT_INPUT)) {
 			BMO_elem_flag_enable(bm, f, EXT_DEL);
 		}
@@ -335,7 +335,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	
 	/* if not delorig, reverse loops of original face */
 	if (!delorig) {
-		BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			if (BMO_elem_flag_test(bm, f, EXT_INPUT)) {
 				BM_face_normal_flip(bm, f);
 			}
@@ -418,18 +418,18 @@ static void calc_solidify_normals(BMesh *bm)
 	/* can't use BM_edge_face_count because we need to count only marked faces */
 	int *edge_face_count = MEM_callocN(sizeof(int) * bm->totedge, __func__);
 
-	BM_ITER (v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 		BM_elem_flag_enable(v, BM_ELEM_TAG);
 	}
 
 	BM_mesh_elem_index_ensure(bm, BM_EDGE);
 
-	BM_ITER (f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) {
 			continue;
 		}
 
-		BM_ITER (e, &eiter, bm, BM_EDGES_OF_FACE, f) {
+		BM_ITER_ELEM (e, &eiter, f, BM_EDGES_OF_FACE) {
 
 			/* And mark all edges and vertices on the
 			 * marked faces */
@@ -440,7 +440,7 @@ static void calc_solidify_normals(BMesh *bm)
 		}
 	}
 
-	BM_ITER (e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 			continue;
 		}
@@ -458,7 +458,7 @@ static void calc_solidify_normals(BMesh *bm)
 	MEM_freeN(edge_face_count);
 	edge_face_count = NULL; /* don't re-use */
 
-	BM_ITER (v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 		if (!BM_vert_is_manifold(v)) {
 			BMO_elem_flag_enable(bm, v, VERT_NONMAN);
 			continue;
@@ -469,7 +469,7 @@ static void calc_solidify_normals(BMesh *bm)
 		}
 	}
 
-	BM_ITER (e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
 
 		/* If the edge is not part of a the solidify region
 		 * its normal should not be considered */
@@ -485,7 +485,7 @@ static void calc_solidify_normals(BMesh *bm)
 
 		f1 = f2 = NULL;
 
-		BM_ITER (f, &fiter, bm, BM_FACES_OF_EDGE, e) {
+		BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
 			if (BMO_elem_flag_test(bm, f, FACE_MARK)) {
 				if (f1 == NULL) {
 					f1 = f;
@@ -530,7 +530,7 @@ static void calc_solidify_normals(BMesh *bm)
 	}
 
 	/* normalize accumulated vertex normal */
-	BM_ITER (v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 		if (!BMO_elem_flag_test(bm, v, VERT_MARK)) {
 			continue;
 		}
@@ -542,7 +542,7 @@ static void calc_solidify_normals(BMesh *bm)
 		else if (normalize_v3(v->no) == 0.0f && !BM_elem_flag_test(v, BM_ELEM_TAG)) {
 			/* exceptional case, totally flat. use the normal
 			 * of any marked face around the vertex */
-			BM_ITER (f, &fiter, bm, BM_FACES_OF_VERT, v) {
+			BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
 				if (BMO_elem_flag_test(bm, f, FACE_MARK)) {
 					break;
 				}
@@ -571,13 +571,13 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-	BM_ITER (f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) {
 			continue;
 		}
 
 		BLI_array_growitems(verts, f->len);
-		BM_ITER_INDEX (l, &loopIter, bm, BM_LOOPS_OF_FACE, f, i) {
+		BM_ITER_ELEM_INDEX (l, &loopIter, f, BM_LOOPS_OF_FACE, i) {
 			verts[i] = l->v->co;
 		}
 
@@ -585,7 +585,7 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
 		angle_poly_v3(face_angles, (const float **)verts, f->len);
 
 		i = 0;
-		BM_ITER (l, &loopIter, bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER_ELEM (l, &loopIter, f, BM_LOOPS_OF_FACE) {
 			v = l->v;
 			index = BM_elem_index_get(v);
 			vert_accum[index] += face_angles[i];
@@ -597,7 +597,7 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
 		BLI_array_empty(face_angles);
 	}
 
-	BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		index = BM_elem_index_get(v);
 		if (vert_accum[index]) { /* zero if unselected */
 			madd_v3_v3fl(v->co, v->no, dist * (vert_angles[index] / vert_accum[index]));

@@ -742,7 +742,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	BM_data_layer_add(bmesh, &bmesh->vdata, CD_SHAPEKEY);
 	skey = CustomData_number_of_layers(&bmesh->vdata, CD_SHAPEKEY) - 1;
 	
-	BM_ITER (v, &viter, bmesh, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &viter, bmesh, BM_VERTS_OF_MESH) {
 		float *co = CustomData_bmesh_get_n(&bmesh->vdata, v->head.data, CD_SHAPEKEY, skey);
 		copy_v3_v3(co, v->co);
 	}
@@ -768,7 +768,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	                     BM_EDGE, EDGE_PERCENT);
 
 
-	BM_ITER (face, &fiter, bmesh, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (face, &fiter, bmesh, BM_FACES_OF_MESH) {
 		BMEdge *e1 = NULL, *e2 = NULL;
 		float vec1[3], vec2[3];
 
@@ -783,7 +783,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 		matched = 0;
 
 		totesel = 0;
-		BM_ITER_INDEX (nl, &liter, bmesh, BM_LOOPS_OF_FACE, face, i) {
+		BM_ITER_ELEM_INDEX (nl, &liter, face, BM_LOOPS_OF_FACE, i) {
 			edges[i] = nl->e;
 			verts[i] = nl->v;
 
@@ -894,7 +894,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	}
 
 	/* copy original-geometry displacements to current coordinates */
-	BM_ITER (v, &viter, bmesh, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &viter, bmesh, BM_VERTS_OF_MESH) {
 		float *co = CustomData_bmesh_get_n(&bmesh->vdata, v->head.data, CD_SHAPEKEY, skey);
 		copy_v3_v3(v->co, co);
 	}
@@ -916,7 +916,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 			BLI_array_empty(splits);
 
 			/* for case of two edges, connecting them shouldn't be too hard */
-			BM_ITER (l, &liter, bmesh, BM_LOOPS_OF_FACE, face) {
+			BM_ITER_ELEM (l, &liter, face, BM_LOOPS_OF_FACE) {
 				BLI_array_growone(loops);
 				loops[BLI_array_count(loops) - 1] = l;
 			}
@@ -1003,7 +1003,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	}
 
 	/* copy original-geometry displacements to current coordinates */
-	BM_ITER (v, &viter, bmesh, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &viter, bmesh, BM_VERTS_OF_MESH) {
 		float *co = CustomData_bmesh_get_n(&bmesh->vdata, v->head.data, CD_SHAPEKEY, skey);
 		copy_v3_v3(v->co, co);
 	}
@@ -1064,7 +1064,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 				BMEdge *e;
 				BMIter eiter;
 
-				BM_ITER (e, &eiter, bm, BM_EDGES_OF_VERT, ele) {
+				BM_ITER_ELEM (e, &eiter, ele, BM_EDGES_OF_VERT) {
 					if (!BM_elem_flag_test(e, BM_ELEM_SELECT) &&
 					     BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
 					     BM_elem_flag_test(e->v2, BM_ELEM_SELECT))

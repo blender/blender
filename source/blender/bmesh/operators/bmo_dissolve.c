@@ -93,7 +93,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		BMIter viter;
 		BMVert *v;
 
-		BM_ITER (v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 			BMO_elem_flag_set(bm, v, VERT_MARK, (BM_vert_edge_count(v) != 2));
 		}
 	}
@@ -171,7 +171,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		BMIter viter;
 		BMVert *v;
 
-		BM_ITER (v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 				if (BM_vert_edge_count(v) == 2) {
 					BM_vert_collapse_edge(bm, v->e, v, TRUE);
@@ -219,7 +219,7 @@ void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK) && BM_vert_edge_count(v) == 2) {
 			BLI_array_append(verts, v);
 		}
@@ -257,7 +257,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	int use_verts = BMO_slot_bool_get(op, "use_verts");
 
 	if (use_verts) {
-		BM_ITER (v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 			BMO_elem_flag_set(bm, v, VERT_MARK, (BM_vert_edge_count(v) != 2));
 		}
 	}
@@ -276,7 +276,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (use_verts) {
-		BM_ITER (v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 				if (BM_vert_edge_count(v) == 2) {
 					BM_vert_collapse_edge(bm, v->e, v, TRUE);

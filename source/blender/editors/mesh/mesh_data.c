@@ -199,7 +199,7 @@ static void editmesh_face_copy_customdata(BMEditMesh *em, int type, int index)
 	const int n = CustomData_get_active_layer(pdata, type);
 
 	/* ensure all current elements follow new customdata layout */
-	BM_ITER (efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 		void *data = CustomData_bmesh_get_n(pdata, efa->head.data, type, n);
 		CustomData_bmesh_set_n(pdata, efa->head.data, type, index, data);
 	}
@@ -217,8 +217,8 @@ static void editmesh_loop_copy_customdata(BMEditMesh *em, int type, int index)
 	const int n = CustomData_get_active_layer(ldata, type);
 
 	/* ensure all current elements follow new customdata layout */
-	BM_ITER (efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		BM_ITER (loop, &liter, bm, BM_LOOPS_OF_FACE, efa) {
+	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+		BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
 			void *data = CustomData_bmesh_get_n(ldata, loop->head.data, type, n);
 			CustomData_bmesh_set_n(ldata, loop->head.data, type, index, data);
 		}
@@ -245,12 +245,12 @@ int ED_mesh_uv_loop_reset_ex(struct bContext *C, struct Mesh *me, const int laye
 
 		BLI_assert(CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV));
 
-		BM_ITER (efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 				continue;
 
 			i = 0;
-			BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get_n(&em->bm->ldata, l->head.data, CD_MLOOPUV, layernum);
 				BLI_array_append(uvs, luv->uv);
 				i++;

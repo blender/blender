@@ -135,7 +135,7 @@ static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
 	int i;
 
 	i = 0;
-	BM_ITER (e2, &iter, bm, BM_EDGES_OF_VERT, e->v1) {
+	BM_ITER_ELEM (e2, &iter, e->v1, BM_EDGES_OF_VERT) {
 		if (BMO_elem_flag_test(bm, e2, EDGE_MARK)) {
 			i++;
 		}
@@ -191,7 +191,7 @@ static void bm_vert_loop_pair(BMesh *bm, BMVert *v1, BMVert *v2, BMLoop **l1, BM
 	if ((v1->e && v1->e->l) &&
 	    (v2->e && v2->e->l))
 	{
-		BM_ITER (l, &liter, bm, BM_LOOPS_OF_VERT, v1) {
+		BM_ITER_ELEM (l, &liter, v1, BM_LOOPS_OF_VERT) {
 			if (l->prev->v == v2) {
 				*l1 = l;
 				*l2 = l->prev;
@@ -241,7 +241,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			do {
 				v = BM_edge_other_vert(e2, v);
 				nexte = NULL;
-				BM_ITER (e3, &iter, bm, BM_EDGES_OF_VERT, v) {
+				BM_ITER_ELEM (e3, &iter, v, BM_EDGES_OF_VERT) {
 					if (e3 != e2 && BMO_elem_flag_test(bm, e3, EDGE_MARK)) {
 						if (nexte == NULL) {
 							nexte = e3;
@@ -278,7 +278,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				BMO_elem_flag_enable(bm, e2, EDGE_DONE);
 				
 				v = BM_edge_other_vert(e2, v);
-				BM_ITER (e3, &iter, bm, BM_EDGES_OF_VERT, v) {
+				BM_ITER_ELEM (e3, &iter, v, BM_EDGES_OF_VERT) {
 					if (e3 != e2 && BMO_elem_flag_test(bm, e3, EDGE_MARK) && !BMO_elem_flag_test(bm, e3, EDGE_DONE)) {
 						break;
 					}

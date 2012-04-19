@@ -149,11 +149,11 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 
-	BM_ITER (v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (!BM_elem_flag_test(v, BM_ELEM_SELECT) || BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 		
-		BM_ITER (l, &liter, em->bm, BM_LOOPS_OF_VERT, v) {
+		BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
 			BMLoop *l2 = BM_face_other_edge_loop(l->f, l->e, v);
 			
 			/* retrieve mapped coordinates */
@@ -176,7 +176,7 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 	}
 
 	index = 0;
-	BM_ITER (v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (vert_table[index] != 0)
 			BM_elem_index_set(v, vert_table[index] - 1);  /* set_dirty! */
 		else
