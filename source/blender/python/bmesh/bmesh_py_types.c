@@ -1189,9 +1189,9 @@ static PyObject *bpy_bmvert_copy_from_face_interp(BPy_BMVert *self, PyObject *ar
 PyDoc_STRVAR(bpy_bmvert_calc_edge_angle_doc,
 ".. method:: calc_edge_angle()\n"
 "\n"
-"   Return the angle between 2 connected edges.\n"
+"   Return the angle between this verts 2 connected edges.\n"
 "\n"
-"   :return: The angle between both edges in radians.\n"
+"   :return: Angle between edges in radians.\n"
 "   :rtype: float\n"
 );
 static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
@@ -1200,6 +1200,21 @@ static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
 	return PyFloat_FromDouble(BM_vert_edge_angle(self->v));
 }
 
+PyDoc_STRVAR(bpy_bmvert_calc_shell_factor_doc,
+".. method:: calc_shell_factor()\n"
+"\n"
+"   Return a multiplier calculated based on the sharpness of the vertex.\n"
+"   Where a flat surface gives 1.0, and higher values sharper edges.\n"
+"   This is used to maintain shell thickness when offsetting verts along their normals.\n"
+"\n"
+"   :return: offset multiplier\n"
+"   :rtype: float\n"
+);
+static PyObject *bpy_bmvert_calc_shell_factor(BPy_BMVert *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyFloat_FromDouble(BM_vert_shell_factor(self->v));
+}
 
 PyDoc_STRVAR(bpy_bmvert_normal_update_doc,
 ".. method:: normal_update()\n"
@@ -2094,7 +2109,8 @@ static struct PyMethodDef bpy_bmvert_methods[] = {
     {"copy_from_face_interp", (PyCFunction)bpy_bmvert_copy_from_face_interp, METH_VARARGS, bpy_bmvert_copy_from_face_interp_doc},
     {"copy_from_vert_interp", (PyCFunction)bpy_bmvert_copy_from_vert_interp, METH_VARARGS, bpy_bmvert_copy_from_vert_interp_doc},
 
-    {"calc_vert_angle", (PyCFunction)bpy_bmvert_calc_edge_angle, METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
+    {"calc_vert_angle",   (PyCFunction)bpy_bmvert_calc_edge_angle,   METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
+    {"calc_shell_factor", (PyCFunction)bpy_bmvert_calc_shell_factor, METH_NOARGS, bpy_bmvert_calc_shell_factor_doc},
 
     {"normal_update",  (PyCFunction)bpy_bmvert_normal_update,  METH_NOARGS,  bpy_bmvert_normal_update_doc},
 
