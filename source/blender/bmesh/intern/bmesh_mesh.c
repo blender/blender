@@ -584,6 +584,176 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 
 }
 
+/**
+ * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
+ * (xxx_idx[org_index] = new_index).
+ *
+ * A NULL array means no changes.
+ *
+ * Note: - Does not mess with indices, just sets elem_index_dirty flag.
+ *       - For verts/edges/faces only (as loops must remain "ordered" and "aligned"
+ *         on a per-face basis...).
+ *
+ * WARNING: Be careful if you keep pointers to affected BM elements, or arrays, when using this func!
+ */
+void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
+{
+	/* Mapping old to new pointers. */
+	GHash *vptr_map = NULL, *eptr_map = NULL, *fptr_map = NULL;
+	BMIter iter, iterl;
+	BMVert *ve;
+	BMEdge *ed;
+	BMFace *fa;
+	BMLoop *lo;
+
+	if (!(vert_idx || edge_idx || face_idx))
+		return;
+
+	/* Remap vertices */
+	if (vert_idx) {
+		BMVert **verts_pool, *verts_copy, **vep;
+		int i, totvert = bm->totvert;
+		int *new_idx = NULL;
+
+		/* Init the old-to-new vert pointers mapping */
+		vptr_map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "BM_mesh_remap vert pointers mapping");
+
+		/* Make a copy of all vertices. */
+		verts_pool = MEM_callocN(sizeof(BMVert*) * totvert, "BM_mesh_remap verts pool");
+		BM_iter_as_array(bm, BM_VERTS_OF_MESH, NULL, (void**)verts_pool, totvert);
+		verts_copy = MEM_mallocN(sizeof(BMVert) * totvert, "BM_mesh_remap verts copy");
+		for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--; ve--, vep--) {
+			*ve = **vep;
+/*			printf("*vep: %p, verts_pool[%d]: %p\n", *vep, i, verts_pool[i]);*/
+		}
+
+		/* Copy back verts to their new place, and update old2new pointers mapping. */
+		new_idx = vert_idx + totvert - 1;
+		ve = verts_copy + totvert - 1;
+		vep = verts_pool + totvert - 1; /* old, org pointer */
+		for (i = totvert; i--; new_idx--, ve--, vep--) {
+			BMVert *new_vep = verts_pool[*new_idx];
+			*new_vep = *ve;
+/*			printf("mapping vert from %d to %d (%p/%p to %p)\n", i, *new_idx, *vep, verts_pool[i], new_vep);*/
+			BLI_ghash_insert(vptr_map, (void*)*vep, (void*)new_vep);
+		}
+		bm->elem_index_dirty |= BM_VERT;
+
+		MEM_freeN(verts_pool);
+		MEM_freeN(verts_copy);
+	}
+
+	/* XXX Code not tested yet (though I don't why it would fail)! */
+	if (edge_idx) {
+		BMEdge **edges_pool, *edges_copy, **edp;
+		int i, totedge = bm->totedge;
+		int *new_idx = NULL;
+
+		/* Init the old-to-new vert pointers mapping */
+		eptr_map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "BM_mesh_remap edge pointers mapping");
+
+		/* Make a copy of all vertices. */
+		edges_pool = MEM_callocN(sizeof(BMEdge*) * totedge, "BM_mesh_remap edges pool");
+		BM_iter_as_array(bm, BM_EDGES_OF_MESH, NULL, (void**)edges_pool, totedge);
+		edges_copy = MEM_mallocN(sizeof(BMEdge) * totedge, "BM_mesh_remap edges copy");
+		for (i = totedge, ed = edges_copy + totedge - 1, edp = edges_pool + totedge - 1; i--; ed--, edp--) {
+			*ed = **edp;
+		}
+
+		/* Copy back verts to their new place, and update old2new pointers mapping. */
+		new_idx = edge_idx + totedge - 1;
+		ed = edges_copy + totedge - 1;
+		edp = edges_pool + totedge - 1; /* old, org pointer */
+		for (i = totedge; i--; new_idx--, ed--, edp--) {
+			BMEdge *new_edp = edges_pool[*new_idx];
+			*new_edp = *ed;
+			BLI_ghash_insert(eptr_map, (void*)*edp, (void*)new_edp);
+		}
+
+		bm->elem_index_dirty |= BM_EDGE;
+
+		MEM_freeN(edges_pool);
+		MEM_freeN(edges_copy);
+	}
+
+	/* XXX Code not tested yet (though I don't why it would fail)! */
+	if (face_idx) {
+		BMFace **faces_pool, *faces_copy, **fap;
+		int i, totface = bm->totface;
+		int *new_idx = NULL;
+
+		/* Init the old-to-new vert pointers mapping */
+		fptr_map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "BM_mesh_remap face pointers mapping");
+
+		/* Make a copy of all vertices. */
+		faces_pool = MEM_callocN(sizeof(BMFace*) * totface, "BM_mesh_remap faces pool");
+		BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void**)faces_pool, totface);
+		faces_copy = MEM_mallocN(sizeof(BMFace) * totface, "BM_mesh_remap faces copy");
+		for (i = totface, fa = faces_copy + totface - 1, fap = faces_pool + totface - 1; i--; fa--, fap--) {
+			*fa = **fap;
+		}
+
+		/* Copy back verts to their new place, and update old2new pointers mapping. */
+		new_idx = face_idx + totface - 1;
+		fa = faces_copy + totface - 1;
+		fap = faces_pool + totface - 1; /* old, org pointer */
+		for (i = totface; i--; new_idx--, fa--, fap--) {
+			BMFace *new_fap = faces_pool[*new_idx];
+			*new_fap = *fa;
+			BLI_ghash_insert(fptr_map, (void*)*fap, (void*)new_fap);
+		}
+
+		bm->elem_index_dirty |= BM_FACE;
+
+		MEM_freeN(faces_pool);
+		MEM_freeN(faces_copy);
+	}
+
+	/* And now, fix all vertices/edges/faces/loops pointers! */
+	/* Verts' pointers, only edge pointers... */
+	if (eptr_map) {
+		BM_ITER(ve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+/*			printf("Vert e: %p -> %p\n", ve->e, BLI_ghash_lookup(eptr_map, (const void*)ve->e));*/
+			ve->e = BLI_ghash_lookup(eptr_map, (const void*)ve->e);
+		}
+	}
+
+	/* Edges' pointers, only vert pointers (as we don’t mess with loops!)... */
+	if (vptr_map) {
+		BM_ITER(ed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+/*			printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, (const void*)ed->v1));*/
+/*			printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, (const void*)ed->v2));*/
+			ed->v1 = BLI_ghash_lookup(vptr_map, (const void*)ed->v1);
+			ed->v2 = BLI_ghash_lookup(vptr_map, (const void*)ed->v2);
+		}
+	}
+
+	/* Faces' pointers (loops, in fact), always needed... */
+	BM_ITER(fa, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER(lo, &iterl, bm, BM_LOOPS_OF_FACE, fa) {
+			if (vptr_map) {
+/*				printf("Loop v: %p -> %p\n", lo->v, BLI_ghash_lookup(vptr_map, (const void*)lo->v));*/
+				lo->v = BLI_ghash_lookup(vptr_map, (const void*)lo->v);
+			}
+			if (eptr_map) {
+/*				printf("Loop e: %p -> %p\n", lo->e, BLI_ghash_lookup(eptr_map, (const void*)lo->e));*/
+				lo->e = BLI_ghash_lookup(eptr_map, (const void*)lo->e);
+			}
+			if (fptr_map) {
+/*				printf("Loop f: %p -> %p\n", lo->f, BLI_ghash_lookup(fptr_map, (const void*)lo->f));*/
+				lo->f = BLI_ghash_lookup(fptr_map, (const void*)lo->f);
+			}
+		}
+	}
+
+	if (vptr_map)
+		BLI_ghash_free(vptr_map, NULL, NULL);
+	if (eptr_map)
+		BLI_ghash_free(eptr_map, NULL, NULL);
+	if (fptr_map)
+		BLI_ghash_free(fptr_map, NULL, NULL);
+}
+
 BMVert *BM_vert_at_index(BMesh *bm, const int index)
 {
 	return BLI_mempool_findelem(bm->vpool, index);

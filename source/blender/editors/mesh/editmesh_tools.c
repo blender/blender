@@ -3599,15 +3599,14 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
 }
 
-#if 0 /* UNUSED */
 /* qsort routines.  not sure how to make these
  * work, since we aren't using linked lists for
  * geometry anymore.  might need a sortof "swap"
  * function for bmesh elements. */
 
 typedef struct xvertsort {
-	float x;
-	BMVert *v1;
+	int x; /* X screen-coordinate */
+	int org_idx; /* Original index of this vertex _in the mempool_ */
 } xvertsort;
 
 
@@ -3615,11 +3614,13 @@ static int vergxco(const void *v1, const void *v2)
 {
 	const xvertsort *x1 = v1, *x2 = v2;
 
-	if (x1->x > x2->x) return 1;
-	else if (x1->x < x2->x) return -1;
-	return 0;
+	/* We move unchanged vertices (org_idx < 0) at the begining of the sorted list. */
+	if (x1->org_idx >= 0 && x2->org_idx >= 0)
+		return (x1->x > x2->x) - (x1->x < x2->x);
+	return (x2->org_idx < 0) - (x1->org_idx < 0);
 }
 
+#if 0 /* Unused */
 struct facesort {
 	uintptr_t x;
 	struct EditFace *efa;
@@ -3635,66 +3636,77 @@ static int vergface(const void *v1, const void *v2)
 }
 #endif
 
-// XXX is this needed?
-/* called from buttons */
-#if 0 /* UNUSED */
-static void xsortvert_flag__doSetX(void *userData, EditVert *UNUSED(eve), int x, int UNUSED(y), int index)
+static void xsortvert_flag__doSetX(void *userData, BMVert *UNUSED(eve), int x, int UNUSED(y), int index)
 {
 	xvertsort *sortblock = userData;
 
 	sortblock[index].x = x;
 }
-#endif
 
 /* all verts with (flag & 'flag') are sorted */
-static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))
+static void xsortvert_flag(bContext *C, int flag)
 {
-	/* BMESH_TODO */
-#if 0 //hrm, geometry isn't in linked lists anymore. . .
 	ViewContext vc;
 	BMEditMesh *em;
-	BMVert *eve;
+	BMVert *ve;
 	BMIter iter;
 	xvertsort *sortblock;
-	ListBase tbase;
-	int i, amount;
+	int *unchangedblock, *vmap;
+	int totvert, sorted = 0, unchanged = 0, i;
 
 	em_setup_viewcontext(C, &vc);
 	em = vc.em;
 
-	amount = em->bm->totvert;
-	sortblock = MEM_callocN(sizeof(xvertsort) * amount, "xsort");
-	BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
-			sortblock[i].v1 = eve;
+	totvert = em->bm->totvert;
+
+	sortblock = MEM_callocN(sizeof(xvertsort) * totvert, "xsort sorted");
+	/* Stores unchanged verts, will be reused as final old2new vert mapping... */
+	unchangedblock = MEM_callocN(sizeof(int) * totvert, "xsort unchanged");
+	BM_ITER_INDEX(ve, &iter, em->bm, BM_VERTS_OF_MESH, NULL, i) {
+		if (BM_elem_flag_test(ve, flag)) {
+			sortblock[i].org_idx = i;
+			sorted++;
+		}
+		else {
+			unchangedblock[unchanged++] = i;
+			sortblock[i].org_idx = -1;
+		}
 	}
-	
+/*	printf("%d verts: %d to be sorted, %d unchanged…\n", totvert, sorted, unchanged);*/
+	if (sorted == 0)
+		return;
+
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, V3D_CLIP_TEST_OFF);
 
-	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
+	qsort(sortblock, totvert, sizeof(xvertsort), vergxco);
 
-	/* make temporal listbase */
-	tbase.first = tbase.last = 0;
-	for (i = 0; i < amount; i++) {
-		eve = sortblock[i].v1;
-
-		if (eve) {
-			BLI_remlink(&vc.em->verts, eve);
-			BLI_addtail(&tbase, eve);
-		}
+	/* Convert sortblock into an array mapping old idx to new. */
+	vmap = unchangedblock;
+	unchangedblock = NULL;
+	if (unchanged) {
+		unchangedblock = MEM_mallocN(sizeof(int) * unchanged, "xsort unchanged");
+		memcpy(unchangedblock, vmap, unchanged * sizeof(int));
+	}
+	for (i = totvert; i--; ) {
+		if (i < unchanged)
+			vmap[unchangedblock[i]] = i;
+		else
+			vmap[sortblock[i].org_idx] = i;
 	}
 
-	BLI_movelisttolist(&vc.em->verts, &tbase);
-
 	MEM_freeN(sortblock);
-#endif
+	if (unchangedblock)
+		MEM_freeN(unchangedblock);
 
+	BM_mesh_remap(em->bm, vmap, NULL, NULL);
+
+	MEM_freeN(vmap);
 }
 
 static int edbm_vertices_sort_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	xsortvert_flag(C, SELECT);
+	xsortvert_flag(C, BM_ELEM_SELECT);
 	return OPERATOR_FINISHED;
 }
 
