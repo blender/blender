@@ -962,7 +962,7 @@ int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
  *
  * \a earr and \a varr can be in any order, however they _must_ form a closed loop.
  */
-int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
+int BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len)
 {
 	BMFace *f;
 	BMEdge *e;
@@ -1068,7 +1068,7 @@ int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 }
 
 /* same as 'BM_face_exists_multi' but built vert array from edges */
-int BM_face_exists_multi_edge(BMesh *bm, BMEdge **earr, int len)
+int BM_face_exists_multi_edge(BMEdge **earr, int len)
 {
 	BMVert **varr;
 	BLI_array_fixedstack_declare(varr, BM_NGON_STACK_SIZE, len, __func__);
@@ -1091,7 +1091,7 @@ int BM_face_exists_multi_edge(BMesh *bm, BMEdge **earr, int len)
 		return FALSE;
 	}
 
-	ok = BM_face_exists_multi(bm, varr, earr, len);
+	ok = BM_face_exists_multi(varr, earr, len);
 
 	BLI_array_fixedstack_free(varr);
 

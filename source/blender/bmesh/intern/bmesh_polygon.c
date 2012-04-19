@@ -153,7 +153,7 @@ static void bm_face_compute_poly_normal_vertex_cos(BMFace *f, float n[3],
 /**
  * get the area of the face
  */
-float BM_face_area_calc(BMesh *bm, BMFace *f)
+float BM_face_area_calc(BMFace *f)
 {
 	BMLoop *l;
 	BMIter iter;
@@ -187,7 +187,7 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 /**
  * compute the perimeter of an ngon
  */
-float BM_face_perimeter_calc(BMesh *UNUSED(bm), BMFace *f)
+float BM_face_perimeter_calc(BMFace *f)
 {
 	BMLoop *l_iter, *l_first;
 	float perimeter = 0.0f;
@@ -203,7 +203,7 @@ float BM_face_perimeter_calc(BMesh *UNUSED(bm), BMFace *f)
 /**
  * computes center of face in 3d.  uses center of bounding box.
  */
-void BM_face_center_bounds_calc(BMesh *UNUSED(bm), BMFace *f, float r_cent[3])
+void BM_face_center_bounds_calc(BMFace *f, float r_cent[3])
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -222,7 +222,7 @@ void BM_face_center_bounds_calc(BMesh *UNUSED(bm), BMFace *f, float r_cent[3])
 /**
  * computes the center of a face, using the mean average
  */
-void BM_face_center_mean_calc(BMesh *UNUSED(bm), BMFace *f, float r_cent[3])
+void BM_face_center_mean_calc(BMFace *f, float r_cent[3])
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -332,24 +332,23 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 /**
  * updates face and vertex normals incident on an edge
  */
-void BM_edge_normals_update(BMesh *bm, BMEdge *e)
+void BM_edge_normals_update(BMEdge *e)
 {
 	BMIter iter;
 	BMFace *f;
 	
-	f = BM_iter_new(&iter, bm, BM_FACES_OF_EDGE, e);
-	for (; f; f = BM_iter_step(&iter)) {
-		BM_face_normal_update(bm, f);
+	BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
+		BM_face_normal_update(f);
 	}
 
-	BM_vert_normal_update(bm, e->v1);
-	BM_vert_normal_update(bm, e->v2);
+	BM_vert_normal_update(e->v1);
+	BM_vert_normal_update(e->v2);
 }
 
 /**
  * update a vert normal (but not the faces incident on it)
  */
-void BM_vert_normal_update(BMesh *bm, BMVert *v)
+void BM_vert_normal_update(BMVert *v)
 {
 	/* TODO, we can normalize each edge only once, then compare with previous edge */
 
@@ -379,16 +378,16 @@ void BM_vert_normal_update(BMesh *bm, BMVert *v)
 	}
 }
 
-void BM_vert_normal_update_all(BMesh *bm, BMVert *v)
+void BM_vert_normal_update_all(BMVert *v)
 {
 	BMIter iter;
 	BMFace *f;
 
 	BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
-		BM_face_normal_update(bm, f);
+		BM_face_normal_update(f);
 	}
 
-	BM_vert_normal_update(bm, v);
+	BM_vert_normal_update(v);
 }
 
 /**
@@ -401,7 +400,7 @@ void BM_vert_normal_update_all(BMesh *bm, BMVert *v)
  * is passed in as well.
  */
 
-void BM_face_normal_update(BMesh *UNUSED(bm), BMFace *f)
+void BM_face_normal_update(BMFace *f)
 {
 	BMLoop *l;
 
@@ -564,7 +563,7 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
  * instead of projecting co directly into f's orientation space,
  * so there might be accuracy issues.
  */
-int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
+int BM_face_point_inside_test(BMFace *f, const float co[3])
 {
 	int ax, ay;
 	float co2[2], cent[2] = {0.0f, 0.0f}, out[2] = {FLT_MAX * 0.5f, FLT_MAX * 0.5f};
@@ -574,7 +573,7 @@ int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 	float onepluseps = 1.0f + (float)FLT_EPSILON * 150.0f;
 	
 	if (dot_v3v3(f->no, f->no) <= FLT_EPSILON * 10)
-		BM_face_normal_update(bm, f);
+		BM_face_normal_update(f);
 	
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
 	 * the 2d projected coords are the same and faster to compute
@@ -659,7 +658,7 @@ static int goodline(float const (*projectverts)[3], BMFace *f,
  *
  * \param use_beauty Currently only applies to quads, can be extended later on.
  */
-static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const int nvert, const int use_beauty)
+static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int nvert, const int use_beauty)
 {
 	BMLoop *bestear = NULL;
 
@@ -779,7 +778,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	done = 0;
 	while (!done && f->len > 3) {
 		done = 1;
-		l_iter = find_ear(bm, f, projectverts, nvert, use_beauty);
+		l_iter = find_ear(f, projectverts, nvert, use_beauty);
 		if (l_iter) {
 			done = 0;
 			/* v = l->v; */ /* UNUSED */

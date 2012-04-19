@@ -134,7 +134,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 /* given two opposite edges in a face, finds the ordering of their vertices so
  * that cut preview lines won't cross each other */
-static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed, 
+static void edgering_find_order(BMEdge *lasteed, BMEdge *eed,
                                 BMVert *lastv1, BMVert *v[2][2])
 {
 	BMIter liter;
@@ -237,7 +237,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 				lastv1 = lasteed->v1;
 			}
 
-			edgering_find_order(em, lasteed, eed, lastv1, v);
+			edgering_find_order(lasteed, eed, lastv1, v);
 			lastv1 = v[0][0];
 
 			BLI_array_growitems(edges, previewlines);
@@ -263,7 +263,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 		v[1][0] = v[0][0];
 		v[1][1] = v[0][1];
 
-		edgering_find_order(em, lasteed, startedge, lastv1, v);
+		edgering_find_order(lasteed, startedge, lastv1, v);
 		
 		BLI_array_growitems(edges, previewlines);
 

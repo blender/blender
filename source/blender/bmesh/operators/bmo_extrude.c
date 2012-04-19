@@ -537,7 +537,7 @@ static void calc_solidify_normals(BMesh *bm)
 
 		if (BMO_elem_flag_test(bm, v, VERT_NONMAN)) {
 			/* use standard normals for vertices connected to non-manifold edges */
-			BM_vert_normal_update(bm, v);
+			BM_vert_normal_update(v);
 		}
 		else if (normalize_v3(v->no) == 0.0f && !BM_elem_flag_test(v, BM_ELEM_TAG)) {
 			/* exceptional case, totally flat. use the normal

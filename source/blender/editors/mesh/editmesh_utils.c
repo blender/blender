@@ -1270,9 +1270,9 @@ void EDBM_update_generic(bContext *C, BMEditMesh *em, const short do_tessface)
  * need (at the moment) to wrap them, but on the other hand having these
  * wrapped avoids a confusing mess of mixing BM_ and EDBM_ namespaces. */
 
-void EDBM_editselection_center(BMEditMesh *em, float *center, BMEditSelection *ese)
+void EDBM_editselection_center(float *center, BMEditSelection *ese)
 {
-	BM_editselection_center(em->bm, center, ese);
+	BM_editselection_center(center, ese);
 }
 
 void EDBM_editselection_normal(float *normal, BMEditSelection *ese)

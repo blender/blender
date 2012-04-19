@@ -4313,7 +4313,7 @@ int BoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 }
 
 /* ********************  Edge Slide   *************** */
-static BMEdge *get_other_edge(BMesh *bm, BMVert *v, BMEdge *e)
+static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
 {
 	BMIter iter;
 	BMEdge *e2;
@@ -4326,7 +4326,7 @@ static BMEdge *get_other_edge(BMesh *bm, BMVert *v, BMEdge *e)
 	return NULL;
 }
 
-static BMLoop *get_next_loop(BMesh *UNUSED(bm), BMVert *v, BMLoop *l, 
+static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
                              BMEdge *olde, BMEdge *nexte, float vec[3])
 {
 	BMLoop *firstl;
@@ -4419,7 +4419,7 @@ static int createSlideVerts(TransInfo *t)
 	BLI_smallhash_init(&table);
 	
 	/*ensure valid selection*/
-	BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 			numsel = 0;
 			BM_ITER_ELEM (e, &iter2, v, BM_EDGES_OF_VERT) {
@@ -4440,7 +4440,7 @@ static int createSlideVerts(TransInfo *t)
 		}
 	}
 
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			if (!BM_edge_is_manifold(e)) {
 				MEM_freeN(sld);
@@ -4451,7 +4451,7 @@ static int createSlideVerts(TransInfo *t)
 	}
 
 	j = 0;
-	BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 			BM_elem_flag_enable(v, BM_ELEM_TAG);
 			BLI_smallhash_insert(&table, (uintptr_t)v, SET_INT_IN_POINTER(j));
@@ -4473,7 +4473,7 @@ static int createSlideVerts(TransInfo *t)
 	j = 0;
 	while (1) {
 		v = NULL;
-		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG))
 				break;
 
@@ -4493,7 +4493,7 @@ static int createSlideVerts(TransInfo *t)
 		/*first, rewind*/
 		numsel = 0;
 		do {
-			e = get_other_edge(bm, v, e);
+			e = get_other_edge(v, e);
 			if (!e) {
 				e = v->e;
 				break;
@@ -4546,7 +4546,7 @@ static int createSlideVerts(TransInfo *t)
 			v2=v, v = BM_edge_other_vert(e, v);
 
 			e1 = e;
-			e = get_other_edge(bm, v, e);
+			e = get_other_edge(v, e);
 			if (!e) {
 				//v2=v, v = BM_edge_other_vert(l1->e, v);
 
@@ -4571,8 +4571,8 @@ static int createSlideVerts(TransInfo *t)
 				break;
 			}
 
-			l1 = get_next_loop(bm, v, l1, e1, e, vec);
-			l2 = l2 ? get_next_loop(bm, v, l2, e1, e, vec2) : NULL;
+			l1 = get_next_loop(v, l1, e1, e, vec);
+			l2 = l2 ? get_next_loop(v, l2, e1, e, vec2) : NULL;
 
 			j += 1;
 
@@ -4591,7 +4591,7 @@ static int createSlideVerts(TransInfo *t)
 	/* size = 50.0; */ /* UNUSED */
 	zero_v3(lastvec); zero_v3(dir);
 	/* ee = le = NULL; */ /* UNUSED */
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			BMIter iter2;
 			BMEdge *e2;
@@ -4639,7 +4639,7 @@ static int createSlideVerts(TransInfo *t)
 		}
 	}
 
-	bmesh_edit_begin(em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
+	bmesh_edit_begin(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/*create copies of faces for customdata projection*/
 	tempsv = sld->sv;
@@ -4651,14 +4651,14 @@ static int createSlideVerts(TransInfo *t)
 		BM_ITER_ELEM (f, &fiter, tempsv->v, BM_FACES_OF_VERT) {
 			
 			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
-				BMFace *copyf = BM_face_copy(em->bm, f, TRUE, TRUE);
+				BMFace *copyf = BM_face_copy(bm, f, TRUE, TRUE);
 				
-				BM_elem_select_set(em->bm, copyf, FALSE);
+				BM_elem_select_set(bm, copyf, FALSE);
 				BM_elem_flag_enable(copyf, BM_ELEM_HIDDEN);
 				BM_ITER_ELEM (l, &liter, copyf, BM_LOOPS_OF_FACE) {
-					BM_elem_select_set(em->bm, l->v, FALSE);
+					BM_elem_select_set(bm, l->v, FALSE);
 					BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
-					BM_elem_select_set(em->bm, l->e, FALSE);
+					BM_elem_select_set(bm, l->e, FALSE);
 					BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
 				}
 

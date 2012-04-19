@@ -154,7 +154,7 @@ static float edbm_rip_edge_side_measure(BMEdge *e,
 #define INVALID_UID INT_MIN
 
 /* mark, assign uid and step */
-static BMEdge *edbm_ripsel_edge_mark_step(BMesh *bm, BMVert *v, const int uid)
+static BMEdge *edbm_ripsel_edge_mark_step(BMVert *v, const int uid)
 {
 	BMIter iter;
 	BMEdge *e;
@@ -230,7 +230,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 		v_step = e_first->v1;
 
 		uid_start = uid;
-		while ((e = edbm_ripsel_edge_mark_step(bm, v_step, uid))) {
+		while ((e = edbm_ripsel_edge_mark_step(v_step, uid))) {
 			BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
 			v_step = BM_edge_other_vert((e_step = e), v_step);
 			uid++; /* only different line */
@@ -247,7 +247,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 		/* initialize */
 		v_step = e_first->v1;
 
-		while ((e = edbm_ripsel_edge_mark_step(bm, v_step, uid))) {
+		while ((e = edbm_ripsel_edge_mark_step(v_step, uid))) {
 			BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
 			v_step = BM_edge_other_vert((e_step = e), v_step);
 			uid--; /* only different line */
@@ -283,7 +283,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 /* - De-Select the worst rip-edge side -------------------------------- */
 
 
-static BMEdge *edbm_ripsel_edge_uid_step(BMesh *bm, BMEdge *e_orig, BMVert **v_prev)
+static BMEdge *edbm_ripsel_edge_uid_step(BMEdge *e_orig, BMVert **v_prev)
 {
 	BMIter eiter;
 	BMEdge *e;
@@ -299,11 +299,11 @@ static BMEdge *edbm_ripsel_edge_uid_step(BMesh *bm, BMEdge *e_orig, BMVert **v_p
 	return NULL;
 }
 
-static BMVert *edbm_ripsel_edloop_pair_start_vert(BMesh *bm, BMEdge *e)
+static BMVert *edbm_ripsel_edloop_pair_start_vert(BMEdge *e)
 {
 	/* try step in a direction, if it fails we know do go the other way */
 	BMVert *v_test = e->v1;
-	return (edbm_ripsel_edge_uid_step(bm, e, &v_test)) ? e->v1 : e->v2;
+	return (edbm_ripsel_edge_uid_step(e, &v_test)) ? e->v1 : e->v2;
 }
 
 static void edbm_ripsel_deselect_helper(BMesh *bm, EdgeLoopPair *eloop_pairs,
@@ -319,19 +319,19 @@ static void edbm_ripsel_deselect_helper(BMesh *bm, EdgeLoopPair *eloop_pairs,
 		float score_b = 0.0f;
 
 		e = lp->l_a->e;
-		v_prev = edbm_ripsel_edloop_pair_start_vert(bm, e);
-		for (; e; e = edbm_ripsel_edge_uid_step(bm, e, &v_prev)) {
+		v_prev = edbm_ripsel_edloop_pair_start_vert(e);
+		for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
 			score_a += edbm_rip_edge_side_measure(e, ar, projectMat, fmval);
 		}
 		e = lp->l_b->e;
-		v_prev = edbm_ripsel_edloop_pair_start_vert(bm, e);
-		for (; e; e = edbm_ripsel_edge_uid_step(bm, e, &v_prev)) {
+		v_prev = edbm_ripsel_edloop_pair_start_vert(e);
+		for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
 			score_b += edbm_rip_edge_side_measure(e, ar, projectMat, fmval);
 		}
 
 		e = (score_a > score_b) ? lp->l_a->e : lp->l_b->e;
-		v_prev = edbm_ripsel_edloop_pair_start_vert(bm, e);
-		for (; e; e = edbm_ripsel_edge_uid_step(bm, e, &v_prev)) {
+		v_prev = edbm_ripsel_edloop_pair_start_vert(e);
+		for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
 			BM_elem_select_set(bm, e, FALSE);
 		}
 	}

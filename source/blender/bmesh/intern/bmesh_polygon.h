@@ -27,22 +27,22 @@
  *  \ingroup bmesh
  */
 
-float BM_face_area_calc(BMesh *bm, BMFace *f);
-float BM_face_perimeter_calc(BMesh *bm, BMFace *f);
-void  BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float center[3]);
-void  BM_face_center_mean_calc(BMesh *bm, BMFace *f, float center[3]);
+float BM_face_area_calc(BMFace *f);
+float BM_face_perimeter_calc(BMFace *f);
+void  BM_face_center_bounds_calc(BMFace *f, float center[3]);
+void  BM_face_center_mean_calc(BMFace *f, float center[3]);
 
-void  BM_face_normal_update(BMesh *bm, BMFace *f);
+void  BM_face_normal_update(BMFace *f);
 void  BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
                                  float const (*vertexCos)[3]);
 
-void  BM_edge_normals_update(BMesh *bm, BMEdge *e);
+void  BM_edge_normals_update(BMEdge *e);
 
-void  BM_vert_normal_update(BMesh *bm, BMVert *v);
-void  BM_vert_normal_update_all(BMesh *bm, BMVert *v);
+void  BM_vert_normal_update(BMVert *v);
+void  BM_vert_normal_update_all(BMVert *v);
 
 void  BM_face_normal_flip(BMesh *bm, BMFace *f);
-int   BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3]);
+int   BM_face_point_inside_test(BMFace *f, const float co[3]);
 
 void  BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
                           const short newedge_oflag, const short newface_oflag, BMFace **newfaces,

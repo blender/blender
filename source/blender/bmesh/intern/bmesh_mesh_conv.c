@@ -582,7 +582,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 		i++;
 		mvert++;
 
-		BM_CHECK_ELEMENT(bm, v);
+		BM_CHECK_ELEMENT(v);
 	}
 	bm->elem_index_dirty &= ~BM_VERT;
 
@@ -608,7 +608,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 		i++;
 		med++;
-		BM_CHECK_ELEMENT(bm, e);
+		BM_CHECK_ELEMENT(e);
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
 
@@ -627,9 +627,9 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 			/* copy over customdat */
 			CustomData_from_bmesh_block(&bm->ldata, &me->ldata, l->head.data, j);
-			BM_CHECK_ELEMENT(bm, l);
-			BM_CHECK_ELEMENT(bm, l->e);
-			BM_CHECK_ELEMENT(bm, l->v);
+			BM_CHECK_ELEMENT(l);
+			BM_CHECK_ELEMENT(l->e);
+			BM_CHECK_ELEMENT(l->v);
 		}
 
 		if (f == bm->act_face) me->act_face = i;
@@ -639,7 +639,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 		i++;
 		mpoly++;
-		BM_CHECK_ELEMENT(bm, f);
+		BM_CHECK_ELEMENT(f);
 	}
 
 	/* patch hook indices and vertex parents */

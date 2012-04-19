@@ -1043,7 +1043,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 
 			if ((use_fill_check == FALSE) ||
 			    /* fairly expensive check - see if there are already faces filling this area */
-			    (BM_face_exists_multi_edge(bm, edges, i) == FALSE))
+			    (BM_face_exists_multi_edge(edges, i) == FALSE))
 			{
 				f = BM_face_create_ngon(bm, v1, v2, edges, i, TRUE);
 				if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {

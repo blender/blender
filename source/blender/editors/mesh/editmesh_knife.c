@@ -556,7 +556,6 @@ static void knife_get_vert_faces(knifetool_opdata *kcd, KnifeVert *kfv, BMFace *
 		knife_append_list(kcd, lst, facef);
 	}
 	else if (kfv->v) {
-		BMesh *bm = kcd->em->bm;
 		BM_ITER_ELEM (f, &bmiter, kfv->v, BM_FACES_OF_VERT) {
 			knife_append_list(kcd, lst, f);
 		}
@@ -569,7 +568,6 @@ static void knife_get_edge_faces(knifetool_opdata *kcd, KnifeEdge *kfe, ListBase
 	BMFace *f;
 
 	if (kfe->e) {
-		BMesh *bm = kcd->em->bm;
 		BM_ITER_ELEM (f, &bmiter, kfe->e, BM_FACES_OF_EDGE) {
 			knife_append_list(kcd, lst, f);
 		}
@@ -1972,7 +1970,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			BMO_elem_flag_disable(bm, f2, DEL);
 			BM_elem_index_set(f2, i); /* set_dirty! *//* note, not 100% sure this is dirty? need to check */
 
-			BM_face_normal_update(bm, f2);
+			BM_face_normal_update(f2);
 			if (dot_v3v3(f->no, f2->no) < 0.0f) {
 				BM_face_normal_flip(bm, f2);
 			}
@@ -2395,9 +2393,9 @@ static int find_hole_chains(knifetool_opdata *kcd, ListBase *hole, BMFace *f, Li
 	}
 }
 
-static int knife_edge_in_face(knifetool_opdata *kcd, KnifeEdge *kfe, BMFace *f)
+static int knife_edge_in_face(knifetool_opdata *UNUSED(kcd), KnifeEdge *kfe, BMFace *f)
 {
-	BMesh *bm = kcd->em->bm;
+	/* BMesh *bm = kcd->em->bm; */ /* UNUSED */
 	BMVert *v1, *v2;
 	BMLoop *l1, *l2, *l;
 	float mid[3];
@@ -2421,8 +2419,8 @@ static int knife_edge_in_face(knifetool_opdata *kcd, KnifeEdge *kfe, BMFace *f)
 	}
 
 	/* BM_face_point_inside_test uses best-axis projection so this isn't most accurate test... */
-	v1inside = l1 ? 0 : BM_face_point_inside_test(bm, f, kfe->v1->co);
-	v2inside = l2 ? 0 : BM_face_point_inside_test(bm, f, kfe->v2->co);
+	v1inside = l1 ? 0 : BM_face_point_inside_test(f, kfe->v1->co);
+	v2inside = l2 ? 0 : BM_face_point_inside_test(f, kfe->v2->co);
 	if ((l1 && v2inside) || (l2 && v1inside) || (v1inside && v2inside))
 		return TRUE;
 	if (l1 && l2) {
@@ -2431,7 +2429,7 @@ static int knife_edge_in_face(knifetool_opdata *kcd, KnifeEdge *kfe, BMFace *f)
 		 * but it is expensive and maybe a bit buggy, so use a simple
 		 * "is the midpoint in the face" test */
 		mid_v3_v3v3(mid, kfe->v1->co, kfe->v2->co);
-		return BM_face_point_inside_test(bm, f, mid);
+		return BM_face_point_inside_test(f, mid);
 	}
 	return FALSE;
 }

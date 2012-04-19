@@ -486,8 +486,6 @@ static int vtx_slide_set_frame(VertexSlideOp *vso)
 	BLI_array_declare(vtx_frame);
 	BLI_array_declare(edge_frame);
 	BMIter iter;
-	BMEditMesh *em = BMEdit_FromObject(vso->obj);
-	BMesh *bm = em->bm;
 	BMVert *sel_vtx = vso->start_vtx;
 	int idx = 0;
 

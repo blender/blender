@@ -563,7 +563,7 @@ BMFace *BM_active_face_get(BMesh *bm, int sloppy)
  * - #EM_editselection_normal
  * - #EM_editselection_plane
  */
-void BM_editselection_center(BMesh *bm, float r_center[3], BMEditSelection *ese)
+void BM_editselection_center(float r_center[3], BMEditSelection *ese)
 {
 	if (ese->htype == BM_VERT) {
 		BMVert *eve = (BMVert *)ese->ele;
@@ -576,7 +576,7 @@ void BM_editselection_center(BMesh *bm, float r_center[3], BMEditSelection *ese)
 	}
 	else if (ese->htype == BM_FACE) {
 		BMFace *efa = (BMFace *)ese->ele;
-		BM_face_center_bounds_calc(bm, efa, r_center);
+		BM_face_center_bounds_calc(efa, r_center);
 	}
 }
 
@@ -621,7 +621,7 @@ void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese)
 		float vec[3] = {0.0f, 0.0f, 0.0f};
 		
 		if (ese->prev) { /* use previously selected data to make a useful vertex plane */
-			BM_editselection_center(bm, vec, ese->prev);
+			BM_editselection_center(vec, ese->prev);
 			sub_v3_v3v3(r_plane, vec, eve->co);
 		}
 		else {
@@ -890,7 +890,7 @@ void BM_mesh_elem_hflag_enable_all(BMesh *bm, const char htype, const char hflag
 
 /***************** Mesh Hiding stuff *********** */
 
-static void vert_flush_hide_set(BMesh *bm, BMVert *v)
+static void vert_flush_hide_set(BMVert *v)
 {
 	BMIter iter;
 	BMEdge *e;
@@ -903,7 +903,7 @@ static void vert_flush_hide_set(BMesh *bm, BMVert *v)
 	BM_elem_flag_set(v, BM_ELEM_HIDDEN, hide);
 }
 
-static void edge_flush_hide(BMesh *bm, BMEdge *e)
+static void edge_flush_hide(BMEdge *e)
 {
 	BMIter iter;
 	BMFace *f;
@@ -916,7 +916,7 @@ static void edge_flush_hide(BMesh *bm, BMEdge *e)
 	BM_elem_flag_set(e, BM_ELEM_HIDDEN, hide);
 }
 
-void BM_vert_hide_set(BMesh *bm, BMVert *v, int hide)
+void BM_vert_hide_set(BMVert *v, int hide)
 {
 	/* vert hiding: vert + surrounding edges and faces */
 	BMIter iter, fiter;
@@ -934,7 +934,7 @@ void BM_vert_hide_set(BMesh *bm, BMVert *v, int hide)
 	}
 }
 
-void BM_edge_hide_set(BMesh *bm, BMEdge *e, int hide)
+void BM_edge_hide_set(BMEdge *e, int hide)
 {
 	BMIter iter;
 	BMFace *f;
@@ -948,11 +948,11 @@ void BM_edge_hide_set(BMesh *bm, BMEdge *e, int hide)
 	BM_elem_flag_set(e, BM_ELEM_HIDDEN, hide);
 
 	/* hide vertices if necessary */
-	vert_flush_hide_set(bm, e->v1);
-	vert_flush_hide_set(bm, e->v2);
+	vert_flush_hide_set(e->v1);
+	vert_flush_hide_set(e->v2);
 }
 
-void BM_face_hide_set(BMesh *bm, BMFace *f, int hide)
+void BM_face_hide_set(BMFace *f, int hide)
 {
 	BMIter iter;
 	BMLoop *l;
@@ -960,11 +960,11 @@ void BM_face_hide_set(BMesh *bm, BMFace *f, int hide)
 	BM_elem_flag_set(f, BM_ELEM_HIDDEN, hide);
 
 	BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
-		edge_flush_hide(bm, l->e);
+		edge_flush_hide(l->e);
 	}
 
 	BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
-		vert_flush_hide_set(bm, l->v);
+		vert_flush_hide_set(l->v);
 	}
 }
 
@@ -975,15 +975,15 @@ void _bm_elem_hide_set(BMesh *bm, BMHeader *head, int hide)
 	switch (head->htype) {
 		case BM_VERT:
 			if (hide) BM_vert_select_set(bm, (BMVert *)head, FALSE);
-			BM_vert_hide_set(bm, (BMVert *)head, hide);
+			BM_vert_hide_set((BMVert *)head, hide);
 			break;
 		case BM_EDGE:
 			if (hide) BM_edge_select_set(bm, (BMEdge *)head, FALSE);
-			BM_edge_hide_set(bm, (BMEdge *)head, hide);
+			BM_edge_hide_set((BMEdge *)head, hide);
 			break;
 		case BM_FACE:
 			if (hide) BM_face_select_set(bm, (BMFace *)head, FALSE);
-			BM_face_hide_set(bm, (BMFace *)head, hide);
+			BM_face_hide_set((BMFace *)head, hide);
 			break;
 		default:
 			BMESH_ASSERT(0);

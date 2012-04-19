@@ -1210,7 +1210,7 @@ static PyObject *bpy_bmvert_normal_update(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	BM_vert_normal_update(self->bm, self->v);
+	BM_vert_normal_update(self->v);
 
 	Py_RETURN_NONE;
 }
@@ -1325,7 +1325,7 @@ static PyObject *bpy_bmedge_normal_update(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	BM_edge_normals_update(self->bm, self->e);
+	BM_edge_normals_update(self->e);
 
 	Py_RETURN_NONE;
 }
@@ -1426,7 +1426,7 @@ PyDoc_STRVAR(bpy_bmface_calc_area_doc,
 static PyObject *bpy_bmface_calc_area(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_face_area_calc(self->bm, self->f));
+	return PyFloat_FromDouble(BM_face_area_calc(self->f));
 }
 
 
@@ -1441,7 +1441,7 @@ PyDoc_STRVAR(bpy_bmface_calc_perimeter_doc,
 static PyObject *bpy_bmface_calc_perimeter(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_face_perimeter_calc(self->bm, self->f));
+	return PyFloat_FromDouble(BM_face_perimeter_calc(self->f));
 }
 
 
@@ -1458,7 +1458,7 @@ static PyObject *bpy_bmface_calc_center_mean(BPy_BMFace *self)
 	float cent[3];
 
 	BPY_BM_CHECK_OBJ(self);
-	BM_face_center_mean_calc(self->bm, self->f, cent);
+	BM_face_center_mean_calc(self->f, cent);
 	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
 }
 
@@ -1476,7 +1476,7 @@ static PyObject *bpy_bmface_calc_center_bounds(BPy_BMFace *self)
 	float cent[3];
 
 	BPY_BM_CHECK_OBJ(self);
-	BM_face_center_bounds_calc(self->bm, self->f, cent);
+	BM_face_center_bounds_calc(self->f, cent);
 	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
 }
 
@@ -1490,7 +1490,7 @@ static PyObject *bpy_bmface_normal_update(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	BM_face_normal_update(self->bm, self->f);
+	BM_face_normal_update(self->f);
 
 	Py_RETURN_NONE;
 }

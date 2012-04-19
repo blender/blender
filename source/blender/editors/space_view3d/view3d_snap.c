@@ -994,7 +994,7 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 			BMEditSelection ese;
 			
 			if (EDBM_editselection_active_get(me->edit_btmesh, &ese)) {
-				EDBM_editselection_center(me->edit_btmesh, curs, &ese);
+				EDBM_editselection_center(curs, &ese);
 			}
 			
 			mul_m4_v3(obedit->obmat, curs);

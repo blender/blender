@@ -817,14 +817,14 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
  *
  * \note #BM_edge_rotate_check must have already run.
  */
-void BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
+void BM_edge_rotate_calc(BMEdge *e, int ccw,
                          BMLoop **r_l1, BMLoop **r_l2)
 {
 	BMVert *v1, *v2;
 	BMFace *fa, *fb;
 
 	/* this should have already run */
-	BLI_assert(BM_edge_rotate_check(bm, e) == TRUE);
+	BLI_assert(BM_edge_rotate_check(e) == TRUE);
 
 	/* we know this will work */
 	BM_edge_face_pair(e, &fa, &fb);
@@ -842,9 +842,6 @@ void BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
 
 	*r_l1 = BM_face_other_vert_loop(fb, v2, v1);
 	*r_l2 = BM_face_other_vert_loop(fa, v1, v2);
-
-	/* when assert isn't used */
-	(void)bm;
 }
 
 /**
@@ -853,7 +850,7 @@ void BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
  * Quick check to see if we could rotate the edge,
  * use this to avoid calling exceptions on common cases.
  */
-int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
+int BM_edge_rotate_check(BMEdge *e)
 {
 	BMFace *fa, *fb;
 	if (BM_edge_face_pair(e, &fa, &fb)) {
@@ -894,8 +891,7 @@ int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
  * \param l1,l2 are the loops of the proposed verts to rotate too and should
  * be the result of calling #BM_edge_rotate_calc
  */
-int BM_edge_rotate_check_degenerate(BMesh *bm, BMEdge *e,
-                                    BMLoop *l1, BMLoop *l2)
+int BM_edge_rotate_check_degenerate(BMEdge *e, BMLoop *l1, BMLoop *l2)
 {
 	/* note: for these vars 'old' just means initial edge state. */
 
@@ -922,7 +918,7 @@ int BM_edge_rotate_check_degenerate(BMesh *bm, BMEdge *e,
 	BMVert *v1_alt, *v2_alt;
 
 	/* this should have already run */
-	BLI_assert(BM_edge_rotate_check(bm, e) == TRUE);
+	BLI_assert(BM_edge_rotate_check(e) == TRUE);
 
 	BM_edge_ordered_verts(e, &v1_old, &v2_old);
 
@@ -981,12 +977,9 @@ int BM_edge_rotate_check_degenerate(BMesh *bm, BMEdge *e,
 	}
 
 	return TRUE;
-
-	/* when assert isn't used */
-	(void)bm;
 }
 
-int BM_edge_rotate_check_beauty(BMesh *UNUSED(bm), BMEdge *e,
+int BM_edge_rotate_check_beauty(BMEdge *e,
                                 BMLoop *l1, BMLoop *l2)
 {
 	/* Stupid check for now:
@@ -1019,11 +1012,11 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	char f_hflag_prev_1;
 	char f_hflag_prev_2;
 
-	if (!BM_edge_rotate_check(bm, e)) {
+	if (!BM_edge_rotate_check(e)) {
 		return NULL;
 	}
 
-	BM_edge_rotate_calc(bm, e, ccw, &l1, &l2);
+	BM_edge_rotate_calc(e, ccw, &l1, &l2);
 
 	/* the loops will be freed so assign verts */
 	v1 = l1->v;
@@ -1033,7 +1026,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	/* Checking Code - make sure we can rotate */
 
 	if (check_flag & BM_EDGEROT_CHECK_BEAUTY) {
-		if (!BM_edge_rotate_check_beauty(bm, e, l1, l2)) {
+		if (!BM_edge_rotate_check_beauty(e, l1, l2)) {
 			return NULL;
 		}
 	}
@@ -1047,7 +1040,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 
 	/* slowest, check last */
 	if (check_flag & BM_EDGEROT_CHECK_DEGENERATE) {
-		if (!BM_edge_rotate_check_degenerate(bm, e, l1, l2)) {
+		if (!BM_edge_rotate_check_degenerate(e, l1, l2)) {
 			return NULL;
 		}
 	}

@@ -43,7 +43,7 @@
 #define T2QJOIN		4
 
 /* assumes edges are validated before reaching this poin */
-static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
+static float measure_facepair(BMVert *v1, BMVert *v2,
                               BMVert *v3, BMVert *v4, float limit)
 {
 	/* gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would make */
@@ -291,7 +291,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		if (domat && f1->mat_nr != f2->mat_nr)
 			continue;
 
-		measure = measure_facepair(bm, v1, v2, v3, v4, limit);
+		measure = measure_facepair(v1, v2, v3, v4, limit);
 		if (measure < limit) {
 			BLI_array_growone(jedges);
 

@@ -327,16 +327,16 @@ static void mdisp_axis_from_quad(float v1[3], float v2[3], float UNUSED(v3[3]), 
 
 /* tl is loop to project onto, l is loop whose internal displacement, co, is being
  * projected.  x and y are location in loop's mdisps grid of point co. */
-static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, float p[3], float *x, float *y,
+static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float *y,
                               int res, float axis_x[3], float axis_y[3])
 {
 	float v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	float eps = FLT_EPSILON * 4000;
 	
 	if (len_v3(l->v->no) == 0.0f)
-		BM_vert_normal_update_all(bm, l->v);
+		BM_vert_normal_update_all(l->v);
 	if (len_v3(tl->v->no) == 0.0f)
-		BM_vert_normal_update_all(bm, tl->v);
+		BM_vert_normal_update_all(tl->v);
 
 	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
 
@@ -466,7 +466,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 				md1 = CustomData_bmesh_get(&bm->ldata, target->head.data, CD_MDISPS);
 				md2 = CustomData_bmesh_get(&bm->ldata, l_iter->head.data, CD_MDISPS);
 				
-				if (mdisp_in_mdispquad(bm, target, l_iter, co, &x2, &y2, res, src_axis_x, src_axis_y)) {
+				if (mdisp_in_mdispquad(target, l_iter, co, &x2, &y2, res, src_axis_x, src_axis_y)) {
 					old_mdisps_bilinear(md1->disps[iy * res + ix], md2->disps, res, (float)x2, (float)y2);
 					bm_loop_flip_disp(src_axis_x, src_axis_y, axis_x, axis_y, md1->disps[iy * res + ix]);
 

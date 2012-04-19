@@ -135,7 +135,7 @@ void bmo_edgerotate_exec(BMesh *bm, BMOperator *op)
 		/**
 		 * this ends up being called twice, could add option to not to call check in
 		 * #BM_edge_rotate to get some extra speed */
-		if (BM_edge_rotate_check(bm, e)) {
+		if (BM_edge_rotate_check(e)) {
 			BMFace *fa, *fb;
 			if (BM_edge_face_pair(e, &fa, &fb)) {
 
@@ -322,7 +322,7 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 		if (!startf) startf = f;
 
-		BM_face_center_bounds_calc(bm, f, cent);
+		BM_face_center_bounds_calc(f, cent);
 
 		if ((maxx_test = dot_v3v3(cent, cent)) > maxx) {
 			maxx = maxx_test;
@@ -332,7 +332,7 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 	if (!startf) return;
 
-	BM_face_center_bounds_calc(bm, startf, cent);
+	BM_face_center_bounds_calc(startf, cent);
 
 	/* make sure the starting face has the correct winding */
 	if (dot_v3v3(cent, startf->no) < 0.0f) {
@@ -465,7 +465,7 @@ void bmo_vertexsmooth_exec(BMesh *bm, BMOperator *op)
  *
  * NOTE: This should probably go to bmesh_polygon.c
  */
-static float ngon_fake_area(BMesh *bm, BMFace *f)
+static float ngon_fake_area(BMFace *f)
 {
 	BMIter  liter;
 	BMLoop *l;
@@ -473,7 +473,7 @@ static float ngon_fake_area(BMesh *bm, BMFace *f)
 	float   v[3], sv[3], c[3];
 	float   area = 0.0f;
 
-	BM_face_center_mean_calc(bm, f, c);
+	BM_face_center_mean_calc(f, c);
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		if (num_verts == 0) {
@@ -563,12 +563,12 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 			switch (type) {
 				case SIMFACE_PERIMETER:
 					/* set the perimeter */
-					f_ext[i].perim = BM_face_perimeter_calc(bm, f_ext[i].f);
+					f_ext[i].perim = BM_face_perimeter_calc(f_ext[i].f);
 					break;
 
 				case SIMFACE_COPLANAR:
 					/* compute the center of the polygon */
-					BM_face_center_mean_calc(bm, f_ext[i].f, f_ext[i].c);
+					BM_face_center_mean_calc(f_ext[i].f, f_ext[i].c);
 
 					/* normalize the polygon normal */
 					copy_v3_v3(t_no, f_ext[i].f->no);
@@ -579,7 +579,7 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 					break;
 
 				case SIMFACE_AREA:
-					f_ext[i].area = ngon_fake_area(bm, f_ext[i].f);
+					f_ext[i].area = ngon_fake_area(f_ext[i].f);
 					break;
 
 				case SIMFACE_IMAGE:
@@ -664,27 +664,6 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 #define EDGE_MARK 1
 
 /*
- * compute the angle of an edge (i.e. the angle between two faces)
- */
-static float edge_angle(BMesh *bm, BMEdge *e)
-{
-	BMIter fiter;
-	BMFace *f, *f_prev = NULL;
-
-	/* first edge faces, don't account for 3+ */
-
-	BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
-		if (f_prev == NULL) {
-			f_prev = f;
-		}
-		else {
-			return angle_v3v3(f_prev->no, f->no);
-		}
-	}
-
-	return 0.0f;
-}
-/*
  * extra edge information
  */
 typedef struct SimSel_EdgeExt {
@@ -761,7 +740,7 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 				case SIMEDGE_FACE_ANGLE:
 					e_ext[i].faces = BM_edge_face_count(e_ext[i].e);
 					if (e_ext[i].faces == 2)
-						e_ext[i].angle = edge_angle(bm, e_ext[i].e);
+						e_ext[i].angle = BM_edge_face_angle(e_ext[i].e);
 					break;
 			}
 		}

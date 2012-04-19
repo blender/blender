@@ -2578,7 +2578,7 @@ void MESH_OT_region_to_loop(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int loop_find_region(BMEditMesh *em, BMLoop *l, int flag, 
+static int loop_find_region(BMLoop *l, int flag,
                             SmallHash *fhash, BMFace ***region_out)
 {
 	BLI_array_declare(region);
@@ -2676,7 +2676,7 @@ static int loop_find_regions(BMEditMesh *em, int selbigger)
 			if (BLI_smallhash_haskey(&visithash, (uintptr_t)l->f))
 				continue;
 						
-			c = loop_find_region(em, l, BM_ELEM_SELECT, &visithash, &region_out);
+			c = loop_find_region(l, BM_ELEM_SELECT, &visithash, &region_out);
 
 			if (!region || (selbigger ? c >= tot : c < tot)) {
 				/* this region is the best seen so far */

@@ -1953,7 +1953,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 }
 
 /* loop-in-a-loop I know, but we need it! (ton) */
- static void get_face_center(float cent_r[3], BMesh *bm, BMVert *eve)
+ static void get_face_center(float cent_r[3], BMVert *eve)
 
 {
 	BMFace *efa;
@@ -1961,13 +1961,13 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 
 	BM_ITER_ELEM (efa, &iter, eve, BM_FACES_OF_VERT) {
 		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-			BM_face_center_mean_calc(bm, efa, cent_r);
+			BM_face_center_mean_calc(efa, cent_r);
 			break;
 		}
 	}
 }
 
-static void get_edge_center(float cent_r[3], BMesh *bm, BMVert *eve)
+static void get_edge_center(float cent_r[3], BMVert *eve)
 {
 	BMEdge *eed;
 	BMIter iter;
@@ -1993,9 +1993,9 @@ static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert
 
 	if (t->around==V3D_LOCAL) {
 		if (em->selectmode & SCE_SELECT_FACE)
-			get_face_center(td->center, em->bm, eve);
+			get_face_center(td->center, eve);
 		else if (em->selectmode & SCE_SELECT_EDGE)
-			get_edge_center(td->center, em->bm, eve);
+			get_edge_center(td->center, eve);
 	}
 	copy_v3_v3(td->iloc, td->loc);
 

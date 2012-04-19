@@ -554,7 +554,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 
 				/* there may be some errors, we don't mind, just move on */
 				if (nf) {
-					BM_face_normal_update(bm, nf);
+					BM_face_normal_update(nf);
 				}
 				else {
 					BMO_error_clear(bm);
@@ -604,7 +604,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 				BMEdge *ne = BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
 
 				if (ne && ne->l) {
-					BM_edge_normals_update(bm, ne);
+					BM_edge_normals_update(ne);
 				}
 			}
 		}

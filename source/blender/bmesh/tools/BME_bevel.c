@@ -740,7 +740,7 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 	return NULL;
 }
 
-static float BME_bevel_get_angle(BMesh *UNUSED(bm), BMEdge *e, BMVert *v)
+static float BME_bevel_get_angle(BMEdge *e, BMVert *v)
 {
 	BMVert *v1, *v2;
 	BMLoop *l1, *l2;
@@ -779,7 +779,7 @@ static float BME_bevel_get_angle(BMesh *UNUSED(bm), BMEdge *e, BMVert *v)
 	return dot_v3v3(vec3, vec4);
 }
 
-static float UNUSED_FUNCTION(BME_bevel_get_angle_vert)(BMesh *bm, BMVert *v)
+static float UNUSED_FUNCTION(BME_bevel_get_angle_vert)(BMVert *v)
 {
 	BMIter iter;
 	BMLoop *l;
@@ -902,14 +902,14 @@ static void bevel_init_edges(BMesh *bm, int options, float angle, BME_TransData_
 			}
 			else if (options & BME_BEVEL_ANGLE) {
 				/* dont set weight_v1/weight_v2 here, add direct */
-				if (!BMO_elem_flag_test(bm, e->v1, BME_BEVEL_NONMAN) && BME_bevel_get_angle(bm, e, e->v1) < threshold) {
+				if (!BMO_elem_flag_test(bm, e->v1, BME_BEVEL_NONMAN) && BME_bevel_get_angle(e, e->v1) < threshold) {
 					BMO_elem_flag_enable(bm, e, BME_BEVEL_BEVEL);
 					BME_bevel_add_vweight(td, bm, e->v1, 1.0, 1.0, options);
 				}
 				else {
 					BME_bevel_add_vweight(td, bm, e->v1, 0.0, 1.0, options);
 				}
-				if (!BMO_elem_flag_test(bm, e->v2, BME_BEVEL_NONMAN) && BME_bevel_get_angle(bm, e, e->v2) < threshold) {
+				if (!BMO_elem_flag_test(bm, e->v2, BME_BEVEL_NONMAN) && BME_bevel_get_angle(e, e->v2) < threshold) {
 					BMO_elem_flag_enable(bm, e, BME_BEVEL_BEVEL);
 					BME_bevel_add_vweight(td, bm, e->v2, 1.0, 1.0, options);
 				}

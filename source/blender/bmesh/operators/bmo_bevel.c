@@ -53,7 +53,7 @@ typedef struct EdgeTag {
 	BMVert *newv1, *newv2;
 } EdgeTag;
 
-static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
+static void calc_corner_co(BMLoop *l, const float fac, float r_co[3],
                            const short do_dist, const short do_even)
 {
 	float  no[3], l_vec_prev[3], l_vec_next[3], l_co_prev[3], l_co[3], l_co_next[3], co_ofs[3];
@@ -370,7 +370,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			if (BMO_elem_flag_test(bm, l->e, BEVEL_FLAG)) {
 				if (BMO_elem_flag_test(bm, l->prev->e, BEVEL_FLAG)) {
 					tag = tags + BM_elem_index_get(l);
-					calc_corner_co(bm, l, fac, co, do_dist, do_even);
+					calc_corner_co(l, fac, co, do_dist, do_even);
 					tag->newv = BM_vert_create(bm, co, l->v);
 				}
 				else {
