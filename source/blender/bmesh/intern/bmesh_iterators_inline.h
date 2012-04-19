@@ -161,10 +161,12 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			iter->edata = data;
 			break;
 		default:
+			return FALSE;
 			break;
 	}
-
+	
 	iter->begin(iter);
+
 	return TRUE;
 }
 
