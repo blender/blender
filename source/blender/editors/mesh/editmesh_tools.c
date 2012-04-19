@@ -3604,6 +3604,10 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
  * geometry anymore.  might need a sortof "swap"
  * function for bmesh elements. */
 
+/* TODO All this section could probably use a refresh...
+ *      face code works in object mode, does everything in one op, while vert uses several...
+ */
+
 typedef struct xvertsort {
 	int x; /* X screen-coordinate */
 	int org_idx; /* Original index of this vertex _in the mempool_ */
@@ -3908,75 +3912,66 @@ void MESH_OT_sort_faces(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
-#if 0
-/* called from buttons */
-static void hashvert_flag(EditMesh *em, int flag)
+/* ******************************* Randomize verts ************************* */
+static void hashvert_flag(BMEditMesh *em, int flag, unsigned int seed)
 {
-	/* switch vertex order using hash table */
-	EditVert *eve;
-	struct xvertsort *sortblock, *sb, onth, *newsort;
-	ListBase tbase;
-	int amount, a, b;
+	BMVert *ve;
+	BMIter iter;
+	char *block/* Just to mark protected vertices */, *t_blk;
+	int *randblock, *vmap, *t_idx, *r_idx;
+	int totvert, randomized = 0, /*protected = 0, */ i;
 
-	/* count */
-	eve = em->verts.first;
-	amount = 0;
-	while (eve) {
-		if (eve->f & flag) amount++;
-		eve = eve->next;
-	}
-	if (amount == 0) return;
+	totvert = em->bm->totvert;
 
-	/* allocate memory */
-	sb = sortblock = (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort) * amount, "sortremovedoub");
-	eve = em->verts.first;
-	while (eve) {
-		if (eve->f & flag) {
-			sb->v1 = eve;
-			sb++;
+	block = MEM_callocN(sizeof(char) * totvert, "randvert block");
+	randblock = MEM_callocN(sizeof(int) * totvert, "randvert randblock");
+	BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+		if (BM_elem_flag_test(ve, flag)) {
+			block[i] = FALSE;
+			randblock[randomized++] = i;
 		}
-		eve = eve->next;
-	}
-
-	BLI_srand(1);
-
-	sb = sortblock;
-	for (a = 0; a < amount; a++, sb++) {
-		b = (int)(amount * BLI_drand());
-		if (b >= 0 && b < amount) {
-			newsort = sortblock + b;
-			onth = *sb;
-			*sb = *newsort;
-			*newsort = onth;
+		else {
+			block[i] = TRUE;
 		}
 	}
+/*	protected = totvert - randomized;*/
+/*	printf("%d verts: %d to be randomized, %d protected…\n", totvert, randomized, protected);*/
+	if (randomized == 0)
+		return;
 
-	/* make temporal listbase */
-	tbase.first = tbase.last = 0;
-	sb = sortblock;
-	while (amount--) {
-		eve = sb->v1;
-		BLI_remlink(&em->verts, eve);
-		BLI_addtail(&tbase, eve);
-		sb++;
+	
+	/* Randomize non-protected vertices indices, and create an array mapping old idx to new
+	 *  from both blocks, keeping protected vertices at the same indices. */
+	vmap = randblock;
+	randblock = MEM_mallocN(sizeof(int) * randomized, "randvert randblock");
+	memcpy(randblock, vmap, randomized * sizeof(int));
+	BLI_array_randomize	((void*)randblock, sizeof(int), randomized, seed);
+	t_blk = block + totvert - 1;
+	t_idx = vmap + totvert - 1;
+	r_idx = randblock + randomized - 1;
+	for (i = totvert; i--; t_blk--, t_idx--) {
+		if (*t_blk) /* Protected! */
+			*t_idx = i;
+		else
+			*t_idx = *r_idx--;
 	}
 
-	BLI_movelisttolist(&em->verts, &tbase);
+	MEM_freeN(randblock);
+	MEM_freeN(block);
 
-	MEM_freeN(sortblock);
+	BM_mesh_remap(em->bm, vmap, NULL, NULL);
 
+	MEM_freeN(vmap);
 }
-#endif
 
-static int edbm_vertices_randomize_exec(bContext *C, wmOperator *UNUSED(op))
+static int edbm_vertices_randomize_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-#if 1 /* BMESH TODO */
-	(void)em;
-#else
-	hashvert_flag(em, SELECT);
-#endif
+	unsigned int seed = RNA_int_get(op->ptr, "seed");
+
+	hashvert_flag(em, BM_ELEM_SELECT, seed);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -3994,6 +3989,9 @@ void MESH_OT_vertices_randomize(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* Properties */
+	ot->prop = RNA_def_int(ot->srna, "seed", 0, 0, INT_MAX, "Seed", "Seed for the random generator", 0, 255);
 }
 
 /******end of qsort stuff ****/
