@@ -194,7 +194,7 @@ static void knife_update_header(bContext *C, knifetool_opdata *kcd)
 	#define HEADER_LENGTH 170
 	char header[HEADER_LENGTH];
 
-	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return or RMB: confirm, E: new cut, Ctrl: midpoint snap (%s), "
+	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
 				 "Shift: ignore snap (%s), C: angle constrain (%s), Z: cut through (%s)",
 				 kcd->snap_midpoints? "On" : "Off",
 				 kcd->ignore_edge_snapping?  "On" : "Off",
