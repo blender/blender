@@ -59,14 +59,20 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 	/* inlining optimizes out this switch when called with the defined type */
 	switch ((BMIterType)itype) {
 		case BM_VERTS_OF_MESH:
+			BLI_assert(bm != NULL);
+			BLI_assert(data == NULL);
 			iter->begin = bmiter__vert_of_mesh_begin;
 			iter->step =  bmiter__vert_of_mesh_step;
 			break;
 		case BM_EDGES_OF_MESH:
+			BLI_assert(bm != NULL);
+			BLI_assert(data == NULL);
 			iter->begin = bmiter__edge_of_mesh_begin;
 			iter->step =  bmiter__edge_of_mesh_step;
 			break;
 		case BM_FACES_OF_MESH:
+			BLI_assert(bm != NULL);
+			BLI_assert(data == NULL);
 			iter->begin = bmiter__face_of_mesh_begin;
 			iter->step =  bmiter__face_of_mesh_step;
 			break;
@@ -161,6 +167,8 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			iter->edata = data;
 			break;
 		default:
+			/* should never happen */
+			BLI_assert(0);
 			return FALSE;
 			break;
 	}
