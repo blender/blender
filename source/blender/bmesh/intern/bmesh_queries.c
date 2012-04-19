@@ -867,6 +867,26 @@ float BM_vert_edge_angle(BMVert *v)
 }
 
 /**
+ * \note this isn't optimal to run on an array of verts,
+ * see 'solidify_add_thickness' for a function which runs on an array.
+ */
+float BM_vert_shell_factor(BMVert *v)
+{
+	BMIter iter;
+	BMLoop *l;
+	float accum_shell = 0.0f;
+	float accum_angle = 0.0f;
+
+	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+		const float face_angle = BM_loop_face_angle(l);
+		accum_shell += shell_angle_to_dist(angle_normalized_v3v3(v->no, l->f->no)) * face_angle;
+		accum_angle += face_angle;
+	}
+
+	return accum_shell / accum_angle;
+}
+
+/**
  * Returns the edge existing between v1 and v2, or NULL if there isn't one.
  *
  * \note multiple edges may exist between any two vertices, and therefore
