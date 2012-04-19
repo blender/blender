@@ -42,17 +42,6 @@ typedef struct SplitEdgeInfo {
 	BMLoop *l;
 } SplitEdgeInfo;
 
-static void edge_loop_tangent(BMEdge *e, BMLoop *e_loop, float r_no[3])
-{
-	float tvec[3];
-	BMVert *v1, *v2;
-	BM_edge_ordered_verts_ex(e, &v1, &v2, e_loop);
-
-	sub_v3_v3v3(tvec, v1->co, v2->co); /* use for temp storage */
-	cross_v3_v3v3(r_no, tvec, e_loop->f->no);
-	normalize_v3(r_no);
-}
-
 /**
  * return the tag loop where there is...
  * - only 1 tagged face attached to this edge.
@@ -188,7 +177,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 		/* calc edge-split info */
 		es->e_new = es->l->e;
-		edge_loop_tangent(es->e_new, es->l, es->no);
+		BM_edge_face_tangent(es->e_new, es->l, es->no);
 
 		if (es->e_new == es->e_old) { /* happens on boundary edges */
 			/* take care here, we're creating this double edge which _must_ have its verts replaced later on */

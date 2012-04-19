@@ -813,6 +813,31 @@ float BM_edge_face_angle(BMEdge *e)
 }
 
 /**
+ * \brief BMESH EDGE/FACE TANGENT
+ *
+ * Calculate the tangent at this loop corner or fallback to the face normal on straignt lines.
+ * This vector always points inward into the face.
+ *
+ * \brief BM_edge_face_tangent
+ * \param e
+ * \param e_loop The loop to calculate the tangent at,
+ * used to get the face and winding direction.
+ */
+
+void BM_edge_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3])
+{
+	float tvec[3];
+	BMVert *v1, *v2;
+	BM_edge_ordered_verts_ex(e, &v1, &v2, e_loop);
+
+	sub_v3_v3v3(tvec, v1->co, v2->co); /* use for temp storage */
+	/* note, we could average the tangents of both loops,
+	 * for non flat ngons it will give a better direction */
+	cross_v3_v3v3(r_tangent, tvec, e_loop->f->no);
+	normalize_v3(r_tangent);
+}
+
+/**
  * \brief BMESH VERT/EDGE ANGLE
  *
  * Calculates the angle a verts 2 edges.

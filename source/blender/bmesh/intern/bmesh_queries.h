@@ -62,6 +62,8 @@ void    BM_loop_face_normal(BMLoop *l, float r_normal[3]);
 void    BM_loop_face_tangent(BMLoop *l, float r_tangent[3]);
 
 float   BM_edge_face_angle(BMEdge *e);
+void    BM_edge_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3]);
+
 float   BM_vert_edge_angle(BMVert *v);
 
 BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2);
