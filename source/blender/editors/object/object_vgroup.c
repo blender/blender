@@ -421,6 +421,87 @@ int ED_vgroup_copy_single(Object *ob_dst, const Object *ob_src)
 	return 1;
 }
 
+/*return distance between coordinates that are comparable to other instances but not right*/
+float comparable_distance_between_coordinates(const float co_1[3], const float co_2[3]){
+	float x_dist, y_dist, z_dist, dist_XY_square, distance;
+	x_dist= co_1[0] - co_2[0];
+	y_dist= co_1[1] - co_2[1];
+	z_dist= co_1[2] - co_2[2];
+	dist_XY_square= x_dist * x_dist + y_dist * y_dist;
+	distance= dist_XY_square + z_dist * z_dist;
+	return distance;
+}
+
+/*return the closest weight*/
+MDeformWeight *dweight_get_nearest(MVert *mv_dst, MDeformVert **dv_array_src, MVert *mv_src, int mv_tot_src, int index)
+{
+	MDeformWeight *dw;
+	float min_dist, dist;
+	int i;
+	/*initiate*/
+	dw= (*dv_array_src)->dw;
+	min_dist= comparable_distance_between_coordinates(mv_dst->co, mv_src->co);
+	/*get closest*/
+	for(i=0; i<mv_tot_src; i++, mv_src++, dv_array_src++){
+		dist= comparable_distance_between_coordinates(mv_dst->co, mv_src->co);
+		if(min_dist > dist){
+			min_dist= dist;
+			dw= defvert_verify_index((*dv_array_src), index);
+		}
+	}
+	return dw;
+}
+
+/*Copy a single vertex group from source to destination with weights, get the closest weight on source*/
+int ED_vgroup_copy_by_closest_single(Object *ob_dst, const Object *ob_src)
+{
+	MDeformVert **dv_array_src;
+	MDeformVert **dv_array_dst;
+	MDeformWeight *dw_dst, *dw_src;
+	int dv_tot_src, dv_tot_dst;
+	int i, index_dst, index_src;
+	bDeformGroup *dg_src, *dg_dst;
+	Mesh *me_src, *me_dst;
+	MVert *mv_src, *mv_dst;
+
+	/*get source deform group*/
+	dg_src = BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
+
+	/*Create new and overwrite vertex group on destination without data*/
+	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
+	ED_vgroup_add_name(ob_dst, dg_src->name);
+
+	/*get destination deformgroup*/
+	dg_dst= defgroup_find_name(ob_dst, dg_src->name);
+
+	/*get meshes*/
+	me_dst= ob_dst->data;
+	me_src= ob_src->data;
+
+	/*get vertex group arrays*/
+	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
+	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, FALSE);
+
+	/*get indexes of vertex groups*/
+	index_src= BLI_findindex(&ob_src->defbase, dg_src);
+	index_dst= BLI_findindex(&ob_dst->defbase, dg_dst);
+
+	/*get vertices*/
+	mv_dst= me_dst->mvert;
+	mv_src= me_src->mvert;
+
+	/*TODO: Check if it should be used and return 0 if not*/
+
+	/* Loop through the vertices and copy weight from closest to destination*/
+	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++) {
+		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+		dw_src= dweight_get_nearest(mv_dst, dv_array_src, mv_src, me_src->totvert, index_src);
+		dw_dst->weight = dw_src->weight;
+	}
+
+	return 1;
+}
+
 /* for Mesh in Object mode */
 /* allows editmode for Lattice */
 static void ED_vgroup_nr_vert_add(Object *ob,
@@ -2800,8 +2881,12 @@ static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op
 	CTX_DATA_BEGIN(C, Object*, obslc, selected_editable_objects)
 	{
 		if(obact != obslc) {
+			/*Trying function for matching number of vertices*/
 			if(ED_vgroup_copy_single(obslc, obact)) change++;
-			else                                fail++;
+			/*Trying function for get weight from closest vertex*/
+			else if(ED_vgroup_copy_by_closest_single(obslc, obact)) change++;
+			/*Triggers error message*/
+			else fail++;
 			/*event notifiers for correct display of data*/
 			DAG_id_tag_update(&obslc->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obslc);
@@ -2809,15 +2894,11 @@ static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op
 		}
 	}
 	CTX_DATA_END;
+
+	/*reports error when: 1: indices are not matching. 2: smart functions fails.*/
 	if((change == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
-		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indicies",
-		            change, fail);
-	}
-
-	if ((change == 0 && fail == 0) || fail) {
-		BKE_reportf(op->reports, RPT_ERROR,
-		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indices",
+		            "Copy to VGroups to Selected warning done %d, failed %d, Noob coder is noob!",
 		            change, fail);
 	}
 
