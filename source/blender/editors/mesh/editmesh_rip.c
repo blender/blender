@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_define.h"
@@ -360,6 +361,25 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	const int totedge_orig = bm->totedge;
 
 	EdgeLoopPair *eloop_pairs;
+
+	/* running in face mode hardly makes sense, if we try to run code below it almost works ok
+	 * but doesnt make sense logically because ripping is supposed to rip an edge apart.
+	 *
+	 * Rather then disable, we can split in this case
+	 */
+	if (em->selectmode == SCE_SELECT_FACE) {
+		EDBM_op_init(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, TRUE);
+		BMO_op_exec(em->bm, &bmop);
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
+		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ALL, BM_ELEM_SELECT, TRUE);
+		if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+			return OPERATOR_CANCELLED;
+		}
+		else {
+			return OPERATOR_FINISHED;
+		}
+	}
+
 
 	/* note on selection:
 	 * When calling edge split we operate on tagged edges rather then selected
