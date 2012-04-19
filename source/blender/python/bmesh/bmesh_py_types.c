@@ -998,13 +998,13 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
 		mat_ptr = mat->matrix;
 
 		if (!filter_flags) {
-			BM_ITER(eve, &iter, self->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
 				mul_m4_v3((float (*)[4])mat_ptr, eve->co);
 			}
 		}
 		else {
 			char filter_flags_ch = (char)filter_flags;
-			BM_ITER(eve, &iter, self->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
 				if (eve->head.hflag & filter_flags_ch) {
 					mul_m4_v3((float (*)[4])mat_ptr, eve->co);
 				}
@@ -1210,7 +1210,7 @@ static PyObject *bpy_bmvert_normal_update(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	BM_vert_normal_update(self->bm, self->v);
+	BM_vert_normal_update(self->v);
 
 	Py_RETURN_NONE;
 }
@@ -1241,6 +1241,36 @@ static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 	return PyFloat_FromDouble(BM_edge_face_angle(self->e));
+}
+
+PyDoc_STRVAR(bpy_bmedge_calc_tangent_doc,
+".. method:: calc_tangent(loop)\n"
+"\n"
+"   Return the tangent at this edge relative to a face (pointing inward into the face).\n"
+"   This uses the face normal for calculation.\n"
+"\n"
+"   :arg loop: The loop used for tangent calculation.\n"
+"   :type loop: :class:`BMLoop`\n"
+"   :return: a normalized vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *bpy_bmedge_calc_tangent(BPy_BMEdge *self, PyObject *args)
+{
+	BPy_BMLoop *py_loop;
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTuple(args, "O!:BMEdge.calc_face_tangent",
+	                      &BPy_BMLoop_Type, &py_loop))
+	{
+		return NULL;
+	}
+	else {
+		float vec[3];
+		BPY_BM_CHECK_OBJ(py_loop);
+		/* no need to check if they are from the same mesh or even connected */
+		BM_edge_face_tangent(self->e, py_loop->l, vec);
+		return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
+	}
 }
 
 
@@ -1295,7 +1325,7 @@ static PyObject *bpy_bmedge_normal_update(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	BM_edge_normals_update(self->bm, self->e);
+	BM_edge_normals_update(self->e);
 
 	Py_RETURN_NONE;
 }
@@ -1396,7 +1426,7 @@ PyDoc_STRVAR(bpy_bmface_calc_area_doc,
 static PyObject *bpy_bmface_calc_area(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_face_area_calc(self->bm, self->f));
+	return PyFloat_FromDouble(BM_face_area_calc(self->f));
 }
 
 
@@ -1411,7 +1441,7 @@ PyDoc_STRVAR(bpy_bmface_calc_perimeter_doc,
 static PyObject *bpy_bmface_calc_perimeter(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_face_perimeter_calc(self->bm, self->f));
+	return PyFloat_FromDouble(BM_face_perimeter_calc(self->f));
 }
 
 
@@ -1428,7 +1458,7 @@ static PyObject *bpy_bmface_calc_center_mean(BPy_BMFace *self)
 	float cent[3];
 
 	BPY_BM_CHECK_OBJ(self);
-	BM_face_center_mean_calc(self->bm, self->f, cent);
+	BM_face_center_mean_calc(self->f, cent);
 	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
 }
 
@@ -1446,7 +1476,7 @@ static PyObject *bpy_bmface_calc_center_bounds(BPy_BMFace *self)
 	float cent[3];
 
 	BPY_BM_CHECK_OBJ(self);
-	BM_face_center_bounds_calc(self->bm, self->f, cent);
+	BM_face_center_bounds_calc(self->f, cent);
 	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
 }
 
@@ -1460,7 +1490,7 @@ static PyObject *bpy_bmface_normal_update(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	BM_face_normal_update(self->bm, self->f);
+	BM_face_normal_update(self->f);
 
 	Py_RETURN_NONE;
 }
@@ -2078,8 +2108,9 @@ static struct PyMethodDef bpy_bmedge_methods[] = {
 
     {"other_vert", (PyCFunction)bpy_bmedge_other_vert, METH_O, bpy_bmedge_other_vert_doc},
 
-    {"calc_length",     (PyCFunction)bpy_bmedge_calc_length,     METH_NOARGS, bpy_bmedge_calc_length_doc},
-    {"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS, bpy_bmedge_calc_face_angle_doc},
+    {"calc_length",     (PyCFunction)bpy_bmedge_calc_length,     METH_NOARGS,  bpy_bmedge_calc_length_doc},
+    {"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS,  bpy_bmedge_calc_face_angle_doc},
+    {"calc_tangent",    (PyCFunction)bpy_bmedge_calc_tangent,    METH_VARARGS, bpy_bmedge_calc_tangent_doc},
 
     {"normal_update",  (PyCFunction)bpy_bmedge_normal_update,  METH_NOARGS,  bpy_bmedge_normal_update_doc},
 

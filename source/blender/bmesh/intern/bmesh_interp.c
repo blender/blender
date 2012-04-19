@@ -327,16 +327,16 @@ static void mdisp_axis_from_quad(float v1[3], float v2[3], float UNUSED(v3[3]), 
 
 /* tl is loop to project onto, l is loop whose internal displacement, co, is being
  * projected.  x and y are location in loop's mdisps grid of point co. */
-static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, float p[3], float *x, float *y,
+static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float *y,
                               int res, float axis_x[3], float axis_y[3])
 {
 	float v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	float eps = FLT_EPSILON * 4000;
 	
 	if (len_v3(l->v->no) == 0.0f)
-		BM_vert_normal_update_all(bm, l->v);
+		BM_vert_normal_update_all(l->v);
 	if (len_v3(tl->v->no) == 0.0f)
-		BM_vert_normal_update_all(bm, tl->v);
+		BM_vert_normal_update_all(tl->v);
 
 	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
 
@@ -466,7 +466,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 				md1 = CustomData_bmesh_get(&bm->ldata, target->head.data, CD_MDISPS);
 				md2 = CustomData_bmesh_get(&bm->ldata, l_iter->head.data, CD_MDISPS);
 				
-				if (mdisp_in_mdispquad(bm, target, l_iter, co, &x2, &y2, res, src_axis_x, src_axis_y)) {
+				if (mdisp_in_mdispquad(target, l_iter, co, &x2, &y2, res, src_axis_x, src_axis_y)) {
 					old_mdisps_bilinear(md1->disps[iy * res + ix], md2->disps, res, (float)x2, (float)y2);
 					bm_loop_flip_disp(src_axis_x, src_axis_y, axis_x, axis_y, md1->disps[iy * res + ix]);
 
@@ -489,7 +489,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
 		return;
 	
-	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		MDisps *mdp = CustomData_bmesh_get(&bm->ldata, l->prev->head.data, CD_MDISPS);
 		MDisps *mdl = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
 		MDisps *mdn = CustomData_bmesh_get(&bm->ldata, l->next->head.data, CD_MDISPS);
@@ -521,7 +521,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 		}
 	}
 	
-	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		MDisps *mdl1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
 		MDisps *mdl2;
 		float co1[3], co2[3], co[3];
@@ -726,7 +726,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 
 		CustomData_bmesh_init_pool(data, bm->totvert, BM_VERT);
 
-		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
 			CustomData_bmesh_copy_data(olddata, data, eve->head.data, &block);
@@ -739,7 +739,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 
 		CustomData_bmesh_init_pool(data, bm->totedge, BM_EDGE);
 
-		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
 			CustomData_bmesh_copy_data(olddata, data, eed->head.data, &block);
@@ -753,8 +753,8 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 		BMLoop *l;
 
 		CustomData_bmesh_init_pool(data, bm->totloop, BM_LOOP);
-		BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				block = NULL;
 				CustomData_bmesh_set_default(data, &block);
 				CustomData_bmesh_copy_data(olddata, data, l->head.data, &block);
@@ -768,7 +768,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 
 		CustomData_bmesh_init_pool(data, bm->totface, BM_FACE);
 
-		BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
 			CustomData_bmesh_copy_data(olddata, data, efa->head.data, &block);

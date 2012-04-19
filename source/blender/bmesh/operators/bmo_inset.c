@@ -42,17 +42,6 @@ typedef struct SplitEdgeInfo {
 	BMLoop *l;
 } SplitEdgeInfo;
 
-static void edge_loop_tangent(BMEdge *e, BMLoop *e_loop, float r_no[3])
-{
-	float tvec[3];
-	BMVert *v1, *v2;
-	BM_edge_ordered_verts_ex(e, &v1, &v2, e_loop);
-
-	sub_v3_v3v3(tvec, v1->co, v2->co); /* use for temp storage */
-	cross_v3_v3v3(r_no, tvec, e_loop->f->no);
-	normalize_v3(r_no);
-}
-
 /**
  * return the tag loop where there is...
  * - only 1 tagged face attached to this edge.
@@ -133,7 +122,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 	/* first count all inset edges we will split */
 	/* fill in array and initialize tagging */
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (
 		    /* tag if boundary is enabled */
 		    (use_boundary && BM_edge_is_boundary(e) && BM_elem_flag_test(e->l->f, BM_ELEM_TAG)) ||
@@ -163,7 +152,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 	/* fill in array and initialize tagging */
 	es = edge_info;
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		i = BM_elem_index_get(e);
 		if (i != -1) {
 			/* calc edge-split info */
@@ -188,7 +177,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 		/* calc edge-split info */
 		es->e_new = es->l->e;
-		edge_loop_tangent(es->e_new, es->l, es->no);
+		BM_edge_face_tangent(es->e_new, es->l, es->no);
 
 		if (es->e_new == es->e_old) { /* happens on boundary edges */
 			/* take care here, we're creating this double edge which _must_ have its verts replaced later on */
@@ -257,7 +246,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 					int vecpair[2];
 
 					/* find adjacent */
-					BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v_split) {
+					BM_ITER_ELEM (e, &iter, v_split, BM_EDGES_OF_VERT) {
 						if (BM_elem_flag_test(e, BM_ELEM_TAG) &&
 						    e->l && BM_elem_flag_test(e->l->f, BM_ELEM_TAG))
 						{
@@ -422,7 +411,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 					if (r_vout_len > 2) {
 						int ok = TRUE;
 						/* last step, NULL this vertex if has a tagged face */
-						BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, v_split) {
+						BM_ITER_ELEM (f, &iter, v_split, BM_FACES_OF_VERT) {
 							if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
 								ok = FALSE;
 								break;

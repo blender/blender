@@ -2757,7 +2757,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 					bRigidBodyJointConstraint *dat=(bRigidBodyJointConstraint *)curcon->data;
 
-					if (!dat->child) {
+					if (!dat->child && !(curcon->flag & CONSTRAINT_OFF)) {
 
 						PHY_IPhysicsController* physctr2 = 0;
 

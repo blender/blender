@@ -37,13 +37,13 @@
  */
 
 /* returns positive nonzero on error */
-int bmesh_elem_check(BMesh *bm, void *element, const char htype);
+int bmesh_elem_check(void *element, const char htype);
 
-#define BM_CHECK_ELEMENT(bm, el)                                              \
-    if (bmesh_elem_check(bm, el, ((BMHeader *)el)->htype)) {                  \
+#define BM_CHECK_ELEMENT(el)                                                  \
+    if (bmesh_elem_check(el, ((BMHeader *)el)->htype)) {                      \
         printf("check_element failure, with code %i on line %i in file\n"     \
         "    \"%s\"\n\n",                                                     \
-        bmesh_elem_check(bm, el, ((BMHeader *)el)->htype),                    \
+        bmesh_elem_check(el, ((BMHeader *)el)->htype),                    \
         __LINE__, __FILE__);                                                  \
     }
 

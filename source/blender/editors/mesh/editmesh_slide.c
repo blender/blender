@@ -486,8 +486,6 @@ static int vtx_slide_set_frame(VertexSlideOp *vso)
 	BLI_array_declare(vtx_frame);
 	BLI_array_declare(edge_frame);
 	BMIter iter;
-	BMEditMesh *em = BMEdit_FromObject(vso->obj);
-	BMesh *bm = em->bm;
 	BMVert *sel_vtx = vso->start_vtx;
 	int idx = 0;
 
@@ -504,8 +502,7 @@ static int vtx_slide_set_frame(VertexSlideOp *vso)
 	}
 
 	/* Iterate over edges of vertex and copy them */
-	BM_ITER_INDEX(edge, &iter, bm, BM_EDGES_OF_VERT, sel_vtx, idx)
-	{
+	BM_ITER_ELEM_INDEX (edge, &iter, sel_vtx, BM_EDGES_OF_VERT, idx) {
 		curr_vert = BM_edge_other_vert(edge, sel_vtx);
 		if (curr_vert) {
 			BLI_array_growone(vtx_frame);

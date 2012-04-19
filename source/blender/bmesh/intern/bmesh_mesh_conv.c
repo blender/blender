@@ -336,7 +336,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		if (i == me->act_face) bm->act_face = f;
 
 		j = 0;
-		BM_ITER_INDEX(l, &iter, bm, BM_LOOPS_OF_FACE, f, j) {
+		BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, j) {
 			/* Save index of correspsonding MLoop */
 			BM_elem_index_set(l, mpoly->loopstart + j); /* set_loop */
 		}
@@ -355,8 +355,8 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		 * but is an optimization, to avoid copying a bunch of interpolated customdata
 		 * for each BMLoop (from previous BMLoops using the same edge), always followed
 		 * by freeing the interpolated data and overwriting it with data from the Mesh. */
-		BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
-			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				int li = BM_elem_index_get(l);
 				CustomData_to_bmesh_block(&me->ldata, &bm->ldata, li, &l->head.data);
 				BM_elem_index_set(l, 0); /* set_loop */
@@ -379,9 +379,9 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		BMFace  *face;
 		MSelect *msel;
 
-		BM_ITER_INDEX(vert, &iter, bm, BM_VERTS_OF_MESH, NULL, i) { vert_array[i] = vert; }
-		BM_ITER_INDEX(edge, &iter, bm, BM_EDGES_OF_MESH, NULL, i) { edge_array[i] = edge; }
-		BM_ITER_INDEX(face, &iter, bm, BM_FACES_OF_MESH, NULL, i) { face_array[i] = face; }
+		BM_ITER_MESH_INDEX (vert, &iter, bm, BM_VERTS_OF_MESH, i) { vert_array[i] = vert; }
+		BM_ITER_MESH_INDEX (edge, &iter, bm, BM_EDGES_OF_MESH, i) { edge_array[i] = edge; }
+		BM_ITER_MESH_INDEX (face, &iter, bm, BM_FACES_OF_MESH, i) { face_array[i] = face; }
 
 		for (i = 0, msel = me->mselect; i < me->totselect; i++, msel++) {
 			switch (msel->type) {
@@ -432,7 +432,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	vertMap = MEM_callocN(sizeof(*vertMap) * ototvert, "vertMap");
 	if (CustomData_has_layer(&bm->vdata, CD_SHAPE_KEYINDEX)) {
 		int *keyi;
-		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 			keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 			if (keyi) {
 				if (((index = *keyi) != ORIGINDEX_NONE) && (index < ototvert)) {
@@ -448,7 +448,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 		}
 	}
 	else {
-		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 			if (i < ototvert) {
 				vertMap[i] = eve;
 			}
@@ -564,7 +564,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	mesh_update_customdata_pointers(me, 0);
 
 	i = 0;
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		float *bweight = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_BWEIGHT);
 
 		mvert->bweight = bweight ? (char)((*bweight) * 255) : 0;
@@ -582,13 +582,13 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 		i++;
 		mvert++;
 
-		BM_CHECK_ELEMENT(bm, v);
+		BM_CHECK_ELEMENT(v);
 	}
 	bm->elem_index_dirty &= ~BM_VERT;
 
 	med = medge;
 	i = 0;
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		float *crease = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
 		float *bweight = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT);
 
@@ -608,13 +608,13 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 		i++;
 		med++;
-		BM_CHECK_ELEMENT(bm, e);
+		BM_CHECK_ELEMENT(e);
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
 
 	i = 0;
 	j = 0;
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		mpoly->loopstart = j;
 		mpoly->totloop = f->len;
 		mpoly->mat_nr = f->mat_nr;
@@ -627,9 +627,9 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 			/* copy over customdat */
 			CustomData_from_bmesh_block(&bm->ldata, &me->ldata, l->head.data, j);
-			BM_CHECK_ELEMENT(bm, l);
-			BM_CHECK_ELEMENT(bm, l->e);
-			BM_CHECK_ELEMENT(bm, l->v);
+			BM_CHECK_ELEMENT(l);
+			BM_CHECK_ELEMENT(l->e);
+			BM_CHECK_ELEMENT(l->v);
 		}
 
 		if (f == bm->act_face) me->act_face = i;
@@ -639,7 +639,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 		i++;
 		mpoly++;
-		BM_CHECK_ELEMENT(bm, f);
+		BM_CHECK_ELEMENT(f);
 	}
 
 	/* patch hook indices and vertex parents */
@@ -783,7 +783,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 				ofs = MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
 				mvert = me->mvert;
-				BM_ITER_INDEX(eve, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
+				BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
 					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 					if (keyi && *keyi != ORIGINDEX_NONE) {
 						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
@@ -806,7 +806,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 			oldkey = currkey->data;
 
 			mvert = me->mvert;
-			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 
 				if (currkey == actkey) {
 					copy_v3_v3(fp, eve->co);

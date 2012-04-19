@@ -62,6 +62,8 @@ void    BM_loop_face_normal(BMLoop *l, float r_normal[3]);
 void    BM_loop_face_tangent(BMLoop *l, float r_tangent[3]);
 
 float   BM_edge_face_angle(BMEdge *e);
+void    BM_edge_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3]);
+
 float   BM_vert_edge_angle(BMVert *v);
 
 BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2);
@@ -70,8 +72,8 @@ int     BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_exi
 
 int     BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface);
 
-int     BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len);
-int     BM_face_exists_multi_edge(BMesh *bm, BMEdge **earr, int len);
+int     BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len);
+int     BM_face_exists_multi_edge(BMEdge **earr, int len);
 
 int     BM_face_share_edge_count(BMFace *f1, BMFace *f2);
 int     BM_edge_share_face_count(BMEdge *e1, BMEdge *e2);

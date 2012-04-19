@@ -119,6 +119,8 @@ void rng_shuffleArray(RNG *rng, void *data, int elemSize, int numElems)
 
 	temp = malloc(elemSize);
 
+	/* XXX Shouldn’t it rather be "while (i--) {" ?
+	 *     Else we have no guaranty first (0) element has a chance to be shuffled... --mont29 */
 	while (--i) {
 		int j = rng_getInt(rng)%numElems;
 		if (i!=j) {
