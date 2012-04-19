@@ -60,6 +60,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "BKE_tessmesh.h"
+#include "UI_resources.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -874,7 +875,7 @@ static void knifetool_draw_angle_snapping(knifetool_opdata *kcd)
 	             mats.modelview, mats.projection, mats.viewport,
 	             &v2[0], &v2[1], &v2[2]);
 
-	glColor3f(0.6, 0.6, 0.6);
+	UI_ThemeColor(TH_TRANSFORM);
 	glLineWidth(2.0);
 	glBegin(GL_LINES);
 	glVertex3dv(v1);
@@ -882,11 +883,32 @@ static void knifetool_draw_angle_snapping(knifetool_opdata *kcd)
 	glEnd();
 }
 
+static void knife_colors(unsigned char c_line[3],
+                         unsigned char c_edge[3],
+                         unsigned char c_curpoint[3],
+                         unsigned char c_curpoint_a[4],
+                         unsigned char c_point[3],
+                         unsigned char c_point_a[4]) {
+          /* possible BMESH_TODO: add explicit themes or calculate these by
+            * figuring out constrasting colors with grid / edges / verts
+            * a la UI_make_axis_color */
+	UI_GetThemeColor3ubv(TH_NURB_VLINE, c_line);
+	UI_GetThemeColor3ubv(TH_NURB_ULINE, c_edge);
+	UI_GetThemeColor3ubv(TH_HANDLE_SEL_VECT, c_curpoint);
+	UI_GetThemeColor3ubv(TH_HANDLE_SEL_VECT, c_curpoint_a);
+	c_curpoint_a[3] = 0.4;
+	UI_GetThemeColor3ubv(TH_ACTIVE_SPLINE, c_point);
+	UI_GetThemeColor3ubv(TH_ACTIVE_SPLINE, c_point_a);
+	c_point_a[3] = 0.4;
+}
+
 /* modal loop selection drawing callback */
 static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	knifetool_opdata *kcd = arg;
+	unsigned char c_line[3], c_edge[3], c_curpoint[3], c_point[3];
+	unsigned char c_curpoint_a[4], c_point_a[4];
 
 	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 
@@ -895,11 +917,14 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	glPushMatrix();
 	glMultMatrixf(kcd->ob->obmat);
 
+	knife_colors(c_line, c_edge, c_curpoint, c_curpoint_a, c_point, c_point_a);
+
 	if (kcd->mode == MODE_DRAGGING) {
 		if (kcd->angle_snapping != ANGLE_FREE)
 			knifetool_draw_angle_snapping(kcd);
 
-		glColor3f(0.1, 0.1, 0.1);
+		glColor3ubv(c_line);
+		
 		glLineWidth(2.0);
 
 		glBegin(GL_LINES);
@@ -911,7 +936,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	}
 
 	if (kcd->cur.edge) {
-		glColor3f(0.5, 0.3, 0.15);
+		glColor3ubv(c_edge);
 		glLineWidth(2.0);
 
 		glBegin(GL_LINES);
@@ -922,7 +947,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		glLineWidth(1.0);
 	}
 	else if (kcd->cur.vert) {
-		glColor3f(0.8, 0.2, 0.1);
+		glColor3ubv(c_point);
 		glPointSize(11);
 
 		glBegin(GL_POINTS);
@@ -931,7 +956,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	}
 
 	if (kcd->cur.bmface) {
-		glColor3f(0.1, 0.8, 0.05);
+		glColor3ubv(c_curpoint);
 		glPointSize(9);
 
 		glBegin(GL_POINTS);
@@ -947,7 +972,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		/* draw any snapped verts first */
-		glColor4f(0.8, 0.2, 0.1, 0.4);
+		glColor4ubv(c_point_a);
 		glPointSize(11);
 		glBegin(GL_POINTS);
 		lh = kcd->linehits;
@@ -979,7 +1004,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		glEnd();
 
 		/* now draw the rest */
-		glColor4f(0.1, 0.8, 0.05, 0.4);
+		glColor4ubv(c_curpoint_a);
 		glPointSize(7);
 		glBegin(GL_POINTS);
 		lh = kcd->linehits;
@@ -1009,7 +1034,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 			if (!kfe->draw)
 				continue;
 
-			glColor3f(0.2, 0.2, 0.2);
+			glColor3ubv(c_line);
 
 			glVertex3fv(kfe->v1->cageco);
 			glVertex3fv(kfe->v2->cageco);
@@ -1031,7 +1056,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 			if (!kfv->draw)
 				continue;
 
-			glColor3f(0.6, 0.1, 0.2);
+			glColor3ubv(c_point);
 
 			glVertex3fv(kfv->cageco);
 		}
