@@ -2201,7 +2201,7 @@ static struct PyMethodDef bpy_bmfaceseq_methods[] = {
 
 static struct PyMethodDef bpy_bmloopseq_methods[] = {
     /* odd function, initializes index values */
-    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+    /* no: index_update() function since we cant iterate over loops */
     {NULL, NULL, 0, NULL}
 };
 
