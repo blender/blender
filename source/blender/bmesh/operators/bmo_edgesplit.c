@@ -135,7 +135,11 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 			/* this flag gets copied so we can be sure duplicate edges get it too (important) */
 			BM_elem_flag_enable(e, BM_ELEM_INTERNAL_TAG);
 
-			bmesh_edge_separate(bm, e, e->l);
+			/* keep splitting until each loop has its own edge */
+			do {
+				bmesh_edge_separate(bm, e, e->l);
+			} while (!BM_edge_is_boundary(e));
+
 			BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
 			BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
 		}
