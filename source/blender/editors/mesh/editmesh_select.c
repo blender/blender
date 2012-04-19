@@ -2518,13 +2518,8 @@ static int edbm_region_to_loop_exec(bContext *C, wmOperator *UNUSED(op))
 	BMFace *f;
 	BMEdge *e;
 	BMIter iter;
-	ViewContext vc;
-	
-	em_setup_viewcontext(C, &vc);
-	
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		BM_elem_flag_disable(e, BM_ELEM_TAG);
-	}
+
+	BM_mesh_elem_hflag_disable_all(em->bm, BM_EDGE, BM_ELEM_TAG, FALSE);
 
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
 		BMLoop *l1, *l2;
@@ -2546,8 +2541,9 @@ static int edbm_region_to_loop_exec(bContext *C, wmOperator *UNUSED(op))
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 	
 	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(e, BM_ELEM_TAG) && !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 			BM_edge_select_set(em->bm, e, TRUE);
+		}
 	}
 
 	/* If in face-only select mode, switch to edge select mode so that

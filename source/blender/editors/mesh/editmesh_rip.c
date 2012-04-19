@@ -45,6 +45,7 @@
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_mesh.h"
@@ -339,6 +340,27 @@ static void edbm_ripsel_deselect_helper(BMesh *bm, EdgeLoopPair *eloop_pairs,
 }
 /* --- end 'ripsel' selection handling code --- */
 
+/* return TRUE if the face is...
+*/
+int edbm_rip_edge_is_ripable(BMEdge *e)
+{
+	int tot;
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	l_iter = l_first = e->l;
+	/* we could do more checks here, but save for face checks */
+	do {
+		if (!BM_elem_flag_test(l_iter->f, BM_ELEM_HIDDEN)) {
+			if (!BM_elem_flag_test(l_iter->f, BM_ELEM_SELECT)) {
+				return TRUE;
+			}
+			tot++;
+		}
+	} while ((l_iter = l_iter->radial_next) != l_first);
+
+	return tot < 2;
+}
 
 
 /* based on mouse cursor position, it defines how is being ripped */
@@ -362,24 +384,10 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	EdgeLoopPair *eloop_pairs;
 
-	/* running in face mode hardly makes sense, if we try to run code below it almost works ok
-	 * but doesnt make sense logically because ripping is supposed to rip an edge apart.
-	 *
-	 * Rather then disable, we can split in this case
-	 */
-	if (em->selectmode == SCE_SELECT_FACE) {
-		EDBM_op_init(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, TRUE);
-		BMO_op_exec(em->bm, &bmop);
-		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
-		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ALL, BM_ELEM_SELECT, TRUE);
-		if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
-			return OPERATOR_CANCELLED;
-		}
-		else {
-			return OPERATOR_FINISHED;
-		}
+	/* running in face mode hardly makes sense, so convert to region loop and rip */
+	if (em->bm->totfacesel) {
+		WM_operator_name_call(C, "MESH_OT_region_to_loop", WM_OP_INVOKE_DEFAULT, NULL);
 	}
-
 
 	/* note on selection:
 	 * When calling edge split we operate on tagged edges rather then selected
@@ -395,7 +403,9 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* BM_ELEM_SELECT --> BM_ELEM_TAG */
 	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
+		if (edbm_rip_edge_is_ripable(e)) {
+			BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
+		}
 	}
 
 	/* handle case of one vert selected.  identify
