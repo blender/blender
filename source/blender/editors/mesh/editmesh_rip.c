@@ -340,29 +340,6 @@ static void edbm_ripsel_deselect_helper(BMesh *bm, EdgeLoopPair *eloop_pairs,
 }
 /* --- end 'ripsel' selection handling code --- */
 
-/* return TRUE if the face is...
-*/
-int edbm_rip_edge_is_ripable(BMEdge *e)
-{
-	int tot;
-	BMLoop *l_iter;
-	BMLoop *l_first;
-
-	l_iter = l_first = e->l;
-	/* we could do more checks here, but save for face checks */
-	do {
-		if (!BM_elem_flag_test(l_iter->f, BM_ELEM_HIDDEN)) {
-			if (!BM_elem_flag_test(l_iter->f, BM_ELEM_SELECT)) {
-				return TRUE;
-			}
-			tot++;
-		}
-	} while ((l_iter = l_iter->radial_next) != l_first);
-
-	return tot < 2;
-}
-
-
 /* based on mouse cursor position, it defines how is being ripped */
 static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -403,9 +380,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* BM_ELEM_SELECT --> BM_ELEM_TAG */
 	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (edbm_rip_edge_is_ripable(e)) {
-			BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
-		}
+		BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
 	}
 
 	/* handle case of one vert selected.  identify

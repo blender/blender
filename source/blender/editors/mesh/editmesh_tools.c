@@ -730,7 +730,8 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	
 	em_setup_viewcontext(C, &vc);
 	
-	use_proj = (vc.scene->toolsettings->snap_flag & SCE_SNAP) &&    (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE);
+	use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
+	            (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE));
 
 	INIT_MINMAX(min, max);
 	
