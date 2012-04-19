@@ -346,8 +346,10 @@ static void UI_OT_reset_default_button(wmOperatorType *ot)
 
 /* Copy To Selected Operator ------------------------ */
 
-static int copy_to_selected_list(bContext *C, PointerRNA *ptr, ListBase *lb)
+static int copy_to_selected_list(bContext *C, PointerRNA *ptr, ListBase *lb, int *use_path)
 {
+	*use_path = 0;
+
 	if (RNA_struct_is_a(ptr->type, &RNA_EditBone))
 		*lb = CTX_data_collection_get(C, "selected_editable_bones");
 	else if (RNA_struct_is_a(ptr->type, &RNA_PoseBone))
@@ -357,8 +359,10 @@ static int copy_to_selected_list(bContext *C, PointerRNA *ptr, ListBase *lb)
 	else {
 		ID *id = ptr->id.data;
 
-		if(id && GS(id->name) == ID_OB)
+		if (id && GS(id->name) == ID_OB) {
 			*lb = CTX_data_collection_get(C, "selected_editable_objects");
+			*use_path = 1;
+		}
 		else
 			return 0;
 	}
@@ -375,26 +379,39 @@ static int copy_to_selected_button_poll(bContext *C)
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 
 	if (ptr.data && prop) {
-		char *path = RNA_path_from_ID_to_property(&ptr, prop);
+		char *path = NULL;
+		int use_path;
 		CollectionPointerLink *link;
 		ListBase lb;
 
-		if (path && copy_to_selected_list(C, &ptr, &lb)) {
+		if (!copy_to_selected_list(C, &ptr, &lb, &use_path))
+			return success;
+
+		if (!use_path || (path = RNA_path_from_ID_to_property(&ptr, prop))) {
 			for (link = lb.first; link; link = link->next) {
 				if (link->ptr.data != ptr.data) {
-					RNA_id_pointer_create(link->ptr.id.data, &idptr);
+					if (use_path) {
+						lprop = NULL;
+						RNA_id_pointer_create(link->ptr.id.data, &idptr);
+						RNA_path_resolve(&idptr, path, &lptr, &lprop);
+					}
+					else {
+						lptr = link->ptr;
+						lprop = prop;
+					}
 
-					if (RNA_path_resolve(&idptr, path, &lptr, &lprop) && lprop == prop) {
+					if (lprop == prop) {
 						if (RNA_property_editable(&lptr, prop))
 							success = 1;
 					}
 				}
 			}
 
-			BLI_freelistN(&lb);
+			if (path)
+				MEM_freeN(path);
 		}
 
-		MEM_freeN(path);
+		BLI_freelistN(&lb);
 	}
 
 	return success;
@@ -412,16 +429,29 @@ static int copy_to_selected_button_exec(bContext *C, wmOperator *op)
 	
 	/* if there is a valid property that is editable... */
 	if (ptr.data && prop) {
-		char *path = RNA_path_from_ID_to_property(&ptr, prop);
+		char *path = NULL;
+		int use_path;
 		CollectionPointerLink *link;
 		ListBase lb;
 
-		if (path && copy_to_selected_list(C, &ptr, &lb)) {
+		if (!copy_to_selected_list(C, &ptr, &lb, &use_path))
+			return success;
+
+		if (!use_path || (path = RNA_path_from_ID_to_property(&ptr, prop))) {
 			for (link = lb.first; link; link = link->next) {
 				if (link->ptr.data != ptr.data) {
-					RNA_id_pointer_create(link->ptr.id.data, &idptr);
-					if (RNA_path_resolve(&idptr, path, &lptr, &lprop) && lprop == prop) {
-						if(RNA_property_editable(&lptr, lprop)) {
+					if (use_path) {
+						lprop = NULL;
+						RNA_id_pointer_create(link->ptr.id.data, &idptr);
+						RNA_path_resolve(&idptr, path, &lptr, &lprop);
+					}
+					else {
+						lptr = link->ptr;
+						lprop = prop;
+					}
+
+					if (lprop == prop) {
+						if (RNA_property_editable(&lptr, lprop)) {
 							if (RNA_property_copy(&lptr, &ptr, prop, (all) ? -1 : index)) {
 								RNA_property_update(C, &lptr, prop);
 								success = 1;
@@ -431,10 +461,11 @@ static int copy_to_selected_button_exec(bContext *C, wmOperator *op)
 				}
 			}
 
-			BLI_freelistN(&lb);
+			if (path)
+				MEM_freeN(path);
 		}
 
-		MEM_freeN(path);
+		BLI_freelistN(&lb);
 	}
 	
 	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
