@@ -183,7 +183,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 #endif
 
 	em = DM_to_editbmesh(derivedData, NULL, FALSE);
-	BME_bevel(em, bmd->value, bmd->res, options, defgrp_index, bmd->bevel_angle, NULL, FALSE);
+	BME_bevel(em, bmd->value, bmd->res, options, defgrp_index, DEG2RADF(bmd->bevel_angle), NULL, FALSE);
 	BLI_assert(em->looptris == NULL);
 	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 	BMEdit_Free(em);

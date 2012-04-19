@@ -51,7 +51,7 @@
  * Sender: Andrew Wiggin
  * Status update: I have code changes to actually make basic bevel modifier work. The things that still need to be done:
  * - clean up the changes
- * - get bevel by weight and bevel by angles working
+ * - get bevel by weight and bevel by angles working for vertex only bevel.
  * - the code uses adaptations of a couple of bmesh APIs,
  * that work a little differently. for example, a join faces that doesn't just create a new face and then delete the
  * original two faces and all associated loops, it extends one of the original faces to cover all the original loops
@@ -83,10 +83,9 @@ void BME_free_transdata(BME_TransData_Head *td)
 	MEM_freeN(td);
 }
 
-BME_TransData *BME_assign_transdata(
-        BME_TransData_Head *td, BMesh *bm, BMVert *v,
-        float *co, float *org, float *vec, float *loc,
-        float factor, float weight, float maxfactor, float *max)
+BME_TransData *BME_assign_transdata(BME_TransData_Head *td, BMesh *bm, BMVert *v,
+                                    float *co, float *org, float *vec, float *loc,
+                                    float factor, float weight, float maxfactor, float *max)
 {
 	BME_TransData *vtd;
 	int is_new = 0;
@@ -741,6 +740,69 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 	return NULL;
 }
 
+static float BME_bevel_get_angle(BMesh *UNUSED(bm), BMEdge *e, BMVert *v)
+{
+	BMVert *v1, *v2;
+	BMLoop *l1, *l2;
+	float vec1[3], vec2[3], vec3[3], vec4[3];
+
+	l1 = e->l;
+	l2 = e->l->radial_next;
+	if (l1->v == v) {
+		v1 = l1->prev->v;
+		v2 = l1->next->v;
+	}
+	else {
+		v1 = l1->next->next->v;
+		v2 = l1->v;
+	}
+	sub_v3_v3v3(vec1, v1->co, v->co);
+	sub_v3_v3v3(vec2, v2->co, v->co);
+	cross_v3_v3v3(vec3, vec1, vec2);
+
+	l1 = l2;
+	if (l1->v == v) {
+		v1 = l1->prev->v;
+		v2 = l1->next->v;
+	}
+	else {
+		v1 = l1->next->next->v;
+		v2 = l1->v;
+	}
+	sub_v3_v3v3(vec1, v1->co, v->co);
+	sub_v3_v3v3(vec2, v2->co, v->co);
+	cross_v3_v3v3(vec4, vec2, vec1);
+
+	normalize_v3(vec3);
+	normalize_v3(vec4);
+
+	return dot_v3v3(vec3, vec4);
+}
+
+static float UNUSED_FUNCTION(BME_bevel_get_angle_vert)(BMesh *bm, BMVert *v)
+{
+	BMIter iter;
+	BMLoop *l;
+	float n[3];
+	float n_tmp[3];
+	float angle_diff = 0.0f;
+
+
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_VERT, v) {
+		BM_loop_face_normal(l, n_tmp);
+		madd_v3_v3fl(n, n_tmp, BM_loop_face_angle(l));
+	}
+	normalize_v3(n);
+
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_VERT, v) {
+		/* could cache from before */
+		BM_loop_face_normal(l, n_tmp);
+		angle_diff += angle_normalized_v3v3(n, n_tmp) * (BM_loop_face_angle(l) * (float)(M_PI * 0.5));
+	}
+
+	return angle_diff;
+}
+
 static void BME_bevel_add_vweight(BME_TransData_Head *td, BMesh *bm, BMVert *v, float weight, float factor, int options)
 {
 	BME_TransData *vtd;
@@ -778,11 +840,14 @@ static void BME_bevel_add_vweight(BME_TransData_Head *td, BMesh *bm, BMVert *v, 
 	}
 }
 
-static void bevel_init_verts(BMesh *bm, int options, BME_TransData_Head *td)
+static void bevel_init_verts(BMesh *bm, int options, float angle, BME_TransData_Head *td)
 {
 	BMVert *v;
 	BMIter iter;
 	float weight;
+//	const float threshold = (options & BME_BEVEL_ANGLE) ? cosf(angle + 0.001) : 0.0f;
+	(void)angle;
+
 	BM_ITER (v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		weight = 0.0f;
 		if (!BMO_elem_flag_test(bm, v, BME_BEVEL_NONMAN)) {
@@ -796,6 +861,14 @@ static void bevel_init_verts(BMesh *bm, int options, BME_TransData_Head *td)
 			else if (options & BME_BEVEL_WEIGHT) {
 				weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
 			}
+#if 0 // not working well
+			else if (options & BME_BEVEL_ANGLE) {
+				/* dont set weight_v1/weight_v2 here, add direct */
+				if (BME_bevel_get_angle_vert(bm, v) < threshold) {
+					weight = 1.0f;
+				}
+			}
+#endif
 			else {
 				weight = 1.0f;
 			}
@@ -808,20 +881,41 @@ static void bevel_init_verts(BMesh *bm, int options, BME_TransData_Head *td)
 	}
 }
 
-static void bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td)
+static void bevel_init_edges(BMesh *bm, int options, float angle, BME_TransData_Head *td)
 {
 	BMEdge *e;
 	int count;
 	float weight;
 	BMIter iter;
+	const float threshold = (options & BME_BEVEL_ANGLE) ? cosf(angle + 0.001) : 0.0f;
+
 	BM_ITER (e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		weight = 0.0;
 		if (!BMO_elem_flag_test(bm, e, BME_BEVEL_NONMAN)) {
 			if (options & BME_BEVEL_SELECT) {
-				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) weight = 1.0;
+				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+					weight = 1.0;
+				}
 			}
 			else if (options & BME_BEVEL_WEIGHT) {
 				weight = BM_elem_float_data_get(&bm->edata, e, CD_BWEIGHT);
+			}
+			else if (options & BME_BEVEL_ANGLE) {
+				/* dont set weight_v1/weight_v2 here, add direct */
+				if (!BMO_elem_flag_test(bm, e->v1, BME_BEVEL_NONMAN) && BME_bevel_get_angle(bm, e, e->v1) < threshold) {
+					BMO_elem_flag_enable(bm, e, BME_BEVEL_BEVEL);
+					BME_bevel_add_vweight(td, bm, e->v1, 1.0, 1.0, options);
+				}
+				else {
+					BME_bevel_add_vweight(td, bm, e->v1, 0.0, 1.0, options);
+				}
+				if (!BMO_elem_flag_test(bm, e->v2, BME_BEVEL_NONMAN) && BME_bevel_get_angle(bm, e, e->v2) < threshold) {
+					BMO_elem_flag_enable(bm, e, BME_BEVEL_BEVEL);
+					BME_bevel_add_vweight(td, bm, e->v2, 1.0, 1.0, options);
+				}
+				else {
+					BME_bevel_add_vweight(td, bm, e->v2, 0.0, 1.0, options);
+				}
 			}
 			else {
 				weight = 1.0;
@@ -844,7 +938,7 @@ static void bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td)
 	}
 }
 
-static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_index), float UNUSED(angle), BME_TransData_Head *td)
+static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_index), float angle, BME_TransData_Head *td)
 {
 	BMVert *v /*, *v2 */;
 	BMEdge *e /*, *curedg */;
@@ -888,10 +982,10 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_ind
 	}
 
 	if (options & BME_BEVEL_VERT) {
-		bevel_init_verts(bm, options, td);
+		bevel_init_verts(bm, options, angle, td);
 	}
 	else {
-		bevel_init_edges(bm, options, td);
+		bevel_init_edges(bm, options, angle, td);
 	}
 
 	return bm;
