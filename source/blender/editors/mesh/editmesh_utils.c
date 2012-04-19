@@ -1189,7 +1189,7 @@ void EDBM_mesh_hide(BMEditMesh *em, int swap)
 	else
 		itermode = BM_FACES_OF_MESH;
 
-	BM_ITER (ele, &iter, em->bm, itermode, NULL) {
+	BM_ITER_MESH (ele, &iter, em->bm, itermode) {
 		if (BM_elem_flag_test(ele, BM_ELEM_SELECT) ^ swap)
 			BM_elem_hide_set(em->bm, ele, TRUE);
 	}
@@ -1223,7 +1223,7 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 	/* Use tag flag to remember what was hidden before all is revealed.
 	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
 	for (i = 0; i < 3; i++) {
-		BM_ITER (ele, &iter, em->bm, iter_types[i], NULL) {
+		BM_ITER_MESH (ele, &iter, em->bm, iter_types[i]) {
 			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
 		}
 	}
@@ -1237,7 +1237,7 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 			continue;
 		}
 
-		BM_ITER (ele, &iter, em->bm, iter_types[i], NULL) {
+		BM_ITER_MESH (ele, &iter, em->bm, iter_types[i]) {
 			if (BM_elem_flag_test(ele, BM_ELEM_TAG)) {
 				BM_elem_select_set(em->bm, ele, TRUE);
 			}

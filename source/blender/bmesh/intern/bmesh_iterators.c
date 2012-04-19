@@ -83,18 +83,17 @@ void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index)
  * Sometimes its convenient to get the iterator as an array
  * to avoid multiple calls to #BM_iter_at_index.
  */
-int BM_iter_as_array(BMesh *bm, const char type, void *data, void **array, const int len)
+int BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, const int len)
 {
 	int i = 0;
 
 	/* sanity check */
 	if (len > 0) {
-
 		BMIter iter;
-		void *val;
+		void *ele;
 
-		BM_ITER (val, &iter, bm, type, data) {
-			array[i] = val;
+		for (ele = BM_iter_new(&iter, bm, itype, data); ele; ele = BM_iter_step(&iter)) {
+			array[i] = ele;
 			i++;
 			if (i == len) {
 				return len;

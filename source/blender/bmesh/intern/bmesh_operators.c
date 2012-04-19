@@ -473,7 +473,7 @@ static int bmo_mesh_flag_count(BMesh *bm, const char htype, const short oflag,
 
 	for (i = 0; i < 3; i++) {
 		if (htype & flag_types[i]) {
-			BM_ITER (ele_f, &iter, bm, iter_types[i], NULL) {
+			BM_ITER_MESH (ele_f, &iter, bm, iter_types[i]) {
 				if (BMO_elem_flag_test_bool(bm, ele_f, oflag) == test_for_enabled)
 					count++;
 			}
@@ -508,7 +508,7 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char hty
 
 	for (i = 0; i < 3; i++) {
 		if (htype & flag_types[i]) {
-			BM_ITER (ele, &iter, bm, iter_types[i], NULL) {
+			BM_ITER_MESH (ele, &iter, bm, iter_types[i]) {
 				BMO_elem_flag_disable(bm, ele, oflag);
 			}
 		}

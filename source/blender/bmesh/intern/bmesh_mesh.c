@@ -214,7 +214,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 	BM_ITER (f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
-#if 0	/* UNUSED */
+#if 0   /* UNUSED */
 		if (f->head.flag & BM_NONORMCALC)
 			continue;
 #endif
@@ -304,7 +304,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
  */
 
 //keep in sycn with utils.c!
-#define FACE_FLIP	8
+#define FACE_FLIP   8
 static void bm_rationalize_normals(BMesh *bm, int undo)
 {
 	BMOperator bmop;
@@ -540,7 +540,7 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 		int err_val = 0;
 		int err_idx = 0;
 
-		BM_ITER (ele, &iter, bm, iter_types[i], NULL) {
+		BM_ITER_MESH (ele, &iter, bm, iter_types[i]) {
 			if (!is_dirty) {
 				if (BM_elem_index_get(ele) != index) {
 					err_val = BM_elem_index_get(ele);
@@ -561,7 +561,7 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 		}
 		else if ((is_error == FALSE) && (is_dirty == TRUE)) {
 
-#if 0		/* mostly annoying */
+#if 0       /* mostly annoying */
 
 			/* dirty may have been incorrectly set */
 			fprintf(stderr,
@@ -619,8 +619,8 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		vptr_map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "BM_mesh_remap vert pointers mapping");
 
 		/* Make a copy of all vertices. */
-		verts_pool = MEM_callocN(sizeof(BMVert*) * totvert, "BM_mesh_remap verts pool");
-		BM_iter_as_array(bm, BM_VERTS_OF_MESH, NULL, (void**)verts_pool, totvert);
+		verts_pool = MEM_callocN(sizeof(BMVert *) * totvert, "BM_mesh_remap verts pool");
+		BM_iter_as_array(bm, BM_VERTS_OF_MESH, NULL, (void **)verts_pool, totvert);
 		verts_copy = MEM_mallocN(sizeof(BMVert) * totvert, "BM_mesh_remap verts copy");
 		for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--; ve--, vep--) {
 			*ve = **vep;
@@ -635,7 +635,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 			BMVert *new_vep = verts_pool[*new_idx];
 			*new_vep = *ve;
 /*			printf("mapping vert from %d to %d (%p/%p to %p)\n", i, *new_idx, *vep, verts_pool[i], new_vep);*/
-			BLI_ghash_insert(vptr_map, (void*)*vep, (void*)new_vep);
+			BLI_ghash_insert(vptr_map, (void *)*vep, (void *)new_vep);
 		}
 		bm->elem_index_dirty |= BM_VERT;
 
@@ -653,8 +653,8 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		eptr_map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "BM_mesh_remap edge pointers mapping");
 
 		/* Make a copy of all vertices. */
-		edges_pool = MEM_callocN(sizeof(BMEdge*) * totedge, "BM_mesh_remap edges pool");
-		BM_iter_as_array(bm, BM_EDGES_OF_MESH, NULL, (void**)edges_pool, totedge);
+		edges_pool = MEM_callocN(sizeof(BMEdge *) * totedge, "BM_mesh_remap edges pool");
+		BM_iter_as_array(bm, BM_EDGES_OF_MESH, NULL, (void **)edges_pool, totedge);
 		edges_copy = MEM_mallocN(sizeof(BMEdge) * totedge, "BM_mesh_remap edges copy");
 		for (i = totedge, ed = edges_copy + totedge - 1, edp = edges_pool + totedge - 1; i--; ed--, edp--) {
 			*ed = **edp;
@@ -667,7 +667,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		for (i = totedge; i--; new_idx--, ed--, edp--) {
 			BMEdge *new_edp = edges_pool[*new_idx];
 			*new_edp = *ed;
-			BLI_ghash_insert(eptr_map, (void*)*edp, (void*)new_edp);
+			BLI_ghash_insert(eptr_map, (void *)*edp, (void *)new_edp);
 		}
 
 		bm->elem_index_dirty |= BM_EDGE;
@@ -686,8 +686,8 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		fptr_map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "BM_mesh_remap face pointers mapping");
 
 		/* Make a copy of all vertices. */
-		faces_pool = MEM_callocN(sizeof(BMFace*) * totface, "BM_mesh_remap faces pool");
-		BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void**)faces_pool, totface);
+		faces_pool = MEM_callocN(sizeof(BMFace *) * totface, "BM_mesh_remap faces pool");
+		BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)faces_pool, totface);
 		faces_copy = MEM_mallocN(sizeof(BMFace) * totface, "BM_mesh_remap faces copy");
 		for (i = totface, fa = faces_copy + totface - 1, fap = faces_pool + totface - 1; i--; fa--, fap--) {
 			*fa = **fap;
@@ -700,7 +700,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		for (i = totface; i--; new_idx--, fa--, fap--) {
 			BMFace *new_fap = faces_pool[*new_idx];
 			*new_fap = *fa;
-			BLI_ghash_insert(fptr_map, (void*)*fap, (void*)new_fap);
+			BLI_ghash_insert(fptr_map, (void *)*fap, (void *)new_fap);
 		}
 
 		bm->elem_index_dirty |= BM_FACE;
@@ -712,36 +712,36 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 	/* And now, fix all vertices/edges/faces/loops pointers! */
 	/* Verts' pointers, only edge pointers... */
 	if (eptr_map) {
-		BM_ITER(ve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER (ve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 /*			printf("Vert e: %p -> %p\n", ve->e, BLI_ghash_lookup(eptr_map, (const void*)ve->e));*/
-			ve->e = BLI_ghash_lookup(eptr_map, (const void*)ve->e);
+			ve->e = BLI_ghash_lookup(eptr_map, (const void *)ve->e);
 		}
 	}
 
 	/* Edges' pointers, only vert pointers (as we don’t mess with loops!)... */
 	if (vptr_map) {
-		BM_ITER(ed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER (ed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 /*			printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, (const void*)ed->v1));*/
 /*			printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, (const void*)ed->v2));*/
-			ed->v1 = BLI_ghash_lookup(vptr_map, (const void*)ed->v1);
-			ed->v2 = BLI_ghash_lookup(vptr_map, (const void*)ed->v2);
+			ed->v1 = BLI_ghash_lookup(vptr_map, (const void *)ed->v1);
+			ed->v2 = BLI_ghash_lookup(vptr_map, (const void *)ed->v2);
 		}
 	}
 
 	/* Faces' pointers (loops, in fact), always needed... */
-	BM_ITER(fa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		BM_ITER(lo, &iterl, bm, BM_LOOPS_OF_FACE, fa) {
+	BM_ITER (fa, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER (lo, &iterl, bm, BM_LOOPS_OF_FACE, fa) {
 			if (vptr_map) {
 /*				printf("Loop v: %p -> %p\n", lo->v, BLI_ghash_lookup(vptr_map, (const void*)lo->v));*/
-				lo->v = BLI_ghash_lookup(vptr_map, (const void*)lo->v);
+				lo->v = BLI_ghash_lookup(vptr_map, (const void *)lo->v);
 			}
 			if (eptr_map) {
 /*				printf("Loop e: %p -> %p\n", lo->e, BLI_ghash_lookup(eptr_map, (const void*)lo->e));*/
-				lo->e = BLI_ghash_lookup(eptr_map, (const void*)lo->e);
+				lo->e = BLI_ghash_lookup(eptr_map, (const void *)lo->e);
 			}
 			if (fptr_map) {
 /*				printf("Loop f: %p -> %p\n", lo->f, BLI_ghash_lookup(fptr_map, (const void*)lo->f));*/
-				lo->f = BLI_ghash_lookup(fptr_map, (const void*)lo->f);
+				lo->f = BLI_ghash_lookup(fptr_map, (const void *)lo->f);
 			}
 		}
 	}

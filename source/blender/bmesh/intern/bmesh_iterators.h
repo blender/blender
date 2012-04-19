@@ -83,13 +83,24 @@ typedef enum BMIterType {
 extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 
 
-#define BM_ITER(ele, iter, bm, itype, data)                                   \
-	ele = BM_iter_new(iter, bm, itype, data);                                 \
-	for ( ; ele; ele = BM_iter_step(iter))
+#define BM_ITER(ele, iter, bm, itype, data) \
+	for (ele = BM_iter_new(iter, bm, itype, data); ele; ele = BM_iter_step(iter))
 
-#define BM_ITER_INDEX(ele, iter, bm, itype, data, indexvar)                   \
-	ele = BM_iter_new(iter, bm, itype, data);                                 \
-	for (indexvar = 0; ele; indexvar++, ele = BM_iter_step(iter))
+#define BM_ITER_MESH(ele, iter, bm, itype) \
+	for (ele = BM_iter_new(iter, bm, itype, NULL); ele; ele = BM_iter_step(iter))
+
+#define BM_ITER_MESH_INDEX(ele, iter, bm, itype, indexvar) \
+	for (ele = BM_iter_new(iter, bm, itype, NULL), indexvar = 0; ele; ele = BM_iter_step(iter), (indexvar)++)
+
+#define BM_ITER_ELEM(ele, iter, data, itype) \
+	for (ele = BM_iter_new(iter, NULL, itype, data); ele; ele = BM_iter_step(iter))
+
+#define BM_ITER_ELEM_INDEX(ele, iter, data, itype) \
+	for (ele = BM_iter_new(iter, NULL, itype, data), indexvar = 0; ele; ele = BM_iter_step(iter), (indexvar)++)
+
+#define BM_ITER_INDEX(ele, iter, bm, itype, data, indexvar) \
+	for (ele = BM_iter_new(iter, bm, itype, data), indexvar = 0; ele; ele = BM_iter_step(iter), (indexvar)++)
+
 
 /* Iterator Structure */
 typedef struct BMIter {

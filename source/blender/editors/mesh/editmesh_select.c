@@ -2044,7 +2044,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	/* Walker restrictions uses BMO flags, not header flags,
 	 * so transfer BM_ELEM_SELECT from HFlags onto a BMO flag layer. */
 	BMO_push(bm, NULL);
-	BM_ITER (ele, &iter, bm, itertype, NULL) {
+	BM_ITER_MESH (ele, &iter, bm, itertype) {
 		if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
 			/* BMESH_TODO, don't use 'BM_ELEM_SELECT' here, its a HFLAG only! */
 			BMO_elem_flag_enable(bm, (BMElemF *)ele, BM_ELEM_SELECT);

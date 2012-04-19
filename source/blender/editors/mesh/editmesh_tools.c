@@ -159,7 +159,7 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, Object *obedit, BMEditMes
 	BMIter iter;
 	BMVert *eve;
 
-	BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)	{
+	BM_ITER (eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 			float mval[2], vec[3], no_dummy[3];
 			int dist_dummy;
@@ -350,8 +350,7 @@ static short edbm_extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 	BMEdge *eed;
 		
 	/* ensure vert flags are consistent for edge selections */
-	eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-	for ( ; eed; eed = BM_iter_step(&iter)) {
+	BM_ITER_MESH(eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(eed, hflag)) {
 			if (hflag & BM_ELEM_SELECT) {
 				BM_elem_select_set(em->bm, eed->v1, TRUE);
@@ -2033,7 +2032,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Doubles";
-	ot->description= "Remove duplicate vertices";
+	ot->description = "Remove duplicate vertices";
 	ot->idname = "MESH_OT_remove_doubles";
 
 	/* api callbacks */
@@ -3662,7 +3661,7 @@ static void xsortvert_flag(bContext *C, int flag)
 	sortblock = MEM_callocN(sizeof(xvertsort) * totvert, "xsort sorted");
 	/* Stores unchanged verts, will be reused as final old2new vert mapping... */
 	unchangedblock = MEM_callocN(sizeof(int) * totvert, "xsort unchanged");
-	BM_ITER_INDEX(ve, &iter, em->bm, BM_VERTS_OF_MESH, NULL, i) {
+	BM_ITER_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, NULL, i) {
 		if (BM_elem_flag_test(ve, flag)) {
 			sortblock[i].org_idx = i;
 			sorted++;
@@ -3754,8 +3753,8 @@ static int float_sort(const void *v1, const void *v2)
 	x1 = face_sort_floats[((int *) v1)[0]];
 	x2 = face_sort_floats[((int *) v2)[0]];
 	
-	if (x1 > x2)       return  1;
-	else if (x1 < x2)  return -1;
+	if      (x1 > x2) return  1;
+	else if (x1 < x2) return -1;
 	return 0;
 }
 
