@@ -361,7 +361,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	float d;
 	const int totedge_orig = bm->totedge;
 
-	EdgeLoopPair *eloop_pairs;
+	EdgeLoopPair *eloop_pairs = NULL;
 
 	/* running in face mode hardly makes sense, so convert to region loop and rip */
 	if (em->bm->totfacesel) {
@@ -388,7 +388,10 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* handle case of one vert selected.  identify
 	 * closest edge around that vert to mouse cursor,
 	 * then rip two adjacent edges in the vert fan. */
+
 	if (bm->totvertsel == 1 && bm->totedgesel == 0 && bm->totfacesel == 0) {
+		/* --- Vert-Rip --- */
+
 		BMEditSelection ese;
 		int totboundary_edge = 0;
 		singlesel = TRUE;
@@ -540,8 +543,13 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		dist = FLT_MAX;
 	}
 	else {
+		/* --- Edge-Rip --- */
 		int totedge;
 		int all_minifold;
+
+		/* important this runs on the original selection, before tempering with tagging */
+		eloop_pairs = edbm_ripsel_looptag_helper(bm);
+
 		/* expand edge selection */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			e2 = NULL;
@@ -598,11 +606,9 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	eloop_pairs = edbm_ripsel_looptag_helper(bm);
-
 	if (!EDBM_op_init(em, &bmop, op, "edgesplit edges=%he verts=%hv use_verts=%b",
 	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
-		MEM_freeN(eloop_pairs);
+		if (eloop_pairs) MEM_freeN(eloop_pairs);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -612,25 +618,9 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		EDBM_op_finish(em, &bmop, op, TRUE);
 
 		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
-		MEM_freeN(eloop_pairs);
+		if (eloop_pairs) MEM_freeN(eloop_pairs);
 		return OPERATOR_CANCELLED;
 	}
-
-#if 1
-	edbm_ripsel_deselect_helper(bm, eloop_pairs,
-	                            ar, projectMat, fmval);
-	MEM_freeN(eloop_pairs);
-#else
-	{
-		/* simple per edge selection check, saves a lot of code and is almost good enough */
-		BMOIter siter;
-		BMO_ITER (e, &siter, bm, &bmop, "edgeout", BM_EDGE) {
-			if (edbm_rip_edge_side_measure(e, ar, projectMat, fmval) > 0.0f) {
-				BM_elem_select_set(bm, e, FALSE);
-			}
-		}
-	}
-#endif
 
 	if (singlesel) {
 		BMVert *v_best = NULL;
@@ -675,6 +665,11 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			BM_elem_select_set(bm, v_best, TRUE);
 		}
 #endif
+	}
+	else {
+		edbm_ripsel_deselect_helper(bm, eloop_pairs,
+		                            ar, projectMat, fmval);
+		MEM_freeN(eloop_pairs);
 	}
 
 	EDBM_selectmode_flush(em);

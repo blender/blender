@@ -350,7 +350,7 @@ static short edbm_extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 	BMEdge *eed;
 		
 	/* ensure vert flags are consistent for edge selections */
-	BM_ITER_MESH(eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(eed, hflag)) {
 			if (hflag & BM_ELEM_SELECT) {
 				BM_elem_select_set(em->bm, eed->v1, TRUE);
@@ -2663,7 +2663,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	}
 
 	/* get the cut curve */
-	RNA_BEGIN(op->ptr, itemptr, "path") {
+	RNA_BEGIN (op->ptr, itemptr, "path") {
 		RNA_float_get_array(&itemptr, "loc", (float *)&curve[len]);
 		len++;
 		if (len >= MAX_CUTS) {
@@ -3917,7 +3917,7 @@ static void hashvert_flag(BMEditMesh *em, int flag, unsigned int seed)
 {
 	BMVert *ve;
 	BMIter iter;
-	char *block/* Just to mark protected vertices */, *t_blk;
+	char *block /* Just to mark protected vertices */, *t_blk;
 	int *randblock, *vmap, *t_idx, *r_idx;
 	int totvert, randomized = 0, /*protected = 0, */ i;
 
@@ -3945,7 +3945,7 @@ static void hashvert_flag(BMEditMesh *em, int flag, unsigned int seed)
 	vmap = randblock;
 	randblock = MEM_mallocN(sizeof(int) * randomized, "randvert randblock");
 	memcpy(randblock, vmap, randomized * sizeof(int));
-	BLI_array_randomize	((void*)randblock, sizeof(int), randomized, seed);
+	BLI_array_randomize((void *)randblock, sizeof(int), randomized, seed);
 	t_blk = block + totvert - 1;
 	t_idx = vmap + totvert - 1;
 	r_idx = randblock + randomized - 1;
