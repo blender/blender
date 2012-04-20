@@ -170,9 +170,9 @@ typedef struct KnifeTool_OpData {
 	KnifeColors colors;
 
 	/* operatpr options */
-	char  cut_through; /* preference, can be modified at runtime (that feature may go) */
-	char  only_select; /* set on initialization */
-	char  select_result; /* set on initialization */
+	char cut_through;    /* preference, can be modified at runtime (that feature may go) */
+	char only_select;    /* set on initialization */
+	char select_result;  /* set on initialization */
 
 	short is_ortho;
 	float clipsta, clipend;
@@ -209,11 +209,11 @@ static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 	char header[HEADER_LENGTH];
 
 	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
-				 "Shift: ignore snap (%s), C: angle constrain (%s), Z: cut through (%s)",
-				 kcd->snap_midpoints? "On" : "Off",
-				 kcd->ignore_edge_snapping?  "On" : "Off",
-				 kcd->angle_snapping? "On" : "Off",
-				 kcd->cut_through? "On" : "Off");
+	             "Shift: ignore snap (%s), C: angle constrain (%s), Z: cut through (%s)",
+	             kcd->snap_midpoints ? "On" : "Off",
+	             kcd->ignore_edge_snapping ?  "On" : "Off",
+	             kcd->angle_snapping ? "On" : "Off",
+	             kcd->cut_through ? "On" : "Off");
 
 	ED_area_headerprint(CTX_wm_area(C), header);
 }
@@ -540,7 +540,7 @@ static int verge_linehit(const void *vlh1, const void *vlh2)
 	const BMEdgeHit *lh1 = vlh1, *lh2 = vlh2;
 
 	if      (lh1->l < lh2->l) return -1;
-	else if (lh1->l > lh2->l) return  1;
+	else if (lh1->l > lh2->l) return 1;
 	else return 0;
 }
 
@@ -907,7 +907,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	View3D *v3d = CTX_wm_view3d(C);
 	KnifeTool_OpData *kcd = arg;
 
-	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 
 	glPolygonOffset(1.0f, 1.0f);
 
@@ -1047,7 +1047,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	glPopMatrix();
 
-	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 }
 
 static float len_v3_tri_side_max(const float v1[3], const float v2[3], const float v3[3])
@@ -1074,7 +1074,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 
 	/* for comparing distances, error of intersection depends on triangle scale.
 	 * need to scale down before squaring for accurate comparison */
-	const float depsilon = 50 * FLT_EPSILON *len_v3_tri_side_max(v1, v2, v3);
+	const float depsilon = 50 * FLT_EPSILON * len_v3_tri_side_max(v1, v2, v3);
 	const float depsilon_squared = depsilon * depsilon;
 
 	copy_v3_v3(cos + 0, v1);
