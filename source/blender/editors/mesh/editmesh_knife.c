@@ -205,7 +205,7 @@ static void knife_input_ray_cast(KnifeTool_OpData *kcd, const int mval_i[2],
 
 static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 {
-	#define HEADER_LENGTH 170
+	#define HEADER_LENGTH 180
 	char header[HEADER_LENGTH];
 
 	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
