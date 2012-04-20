@@ -191,7 +191,7 @@ static short edbm_extrude_face_indiv(BMEditMesh *em, wmOperator *op, const char 
 	BMO_op_exec(em->bm, &bmop);
 	
 	BMO_ITER (f, &siter, em->bm, &bmop, "faceout", BM_FACE) {
-		BM_elem_select_set(em->bm, f, TRUE);
+		BM_face_select_set(em->bm, f, TRUE);
 
 		/* set face vertex normals to face normal */
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
@@ -353,8 +353,8 @@ static short edbm_extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(eed, hflag)) {
 			if (hflag & BM_ELEM_SELECT) {
-				BM_elem_select_set(em->bm, eed->v1, TRUE);
-				BM_elem_select_set(em->bm, eed->v2, TRUE);
+				BM_vert_select_set(em->bm, eed->v1, TRUE);
+				BM_vert_select_set(em->bm, eed->v2, TRUE);
 			}
 
 			BM_elem_flag_enable(eed->v1, hflag & ~BM_ELEM_SELECT);
@@ -363,7 +363,7 @@ static short edbm_extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 		else {
 			if (BM_elem_flag_test(eed->v1, hflag) && BM_elem_flag_test(eed->v2, hflag)) {
 				if (hflag & BM_ELEM_SELECT) {
-					BM_elem_select_set(em->bm, eed, TRUE);
+					BM_edge_select_set(em->bm, eed, TRUE);
 				}
 
 				BM_elem_flag_enable(eed, hflag & ~BM_ELEM_SELECT);
@@ -860,7 +860,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		BMO_op_exec(vc.em->bm, &bmop);
 
 		BMO_ITER (v1, &oiter, vc.em->bm, &bmop, "newvertout", BM_VERT) {
-			BM_elem_select_set(vc.em->bm, v1, TRUE);
+			BM_vert_select_set(vc.em->bm, v1, TRUE);
 		}
 
 		if (!EDBM_op_finish(vc.em, &bmop, op, TRUE)) {
@@ -2328,15 +2328,15 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 				switch (mode) {
 					case -1: /* aligned */
 						if (fabs(ev->co[axis] - value) < limit)
-							BM_elem_select_set(em->bm, ev, TRUE);
+							BM_vert_select_set(em->bm, ev, TRUE);
 						break;
 					case 0: /* neg */
 						if (ev->co[axis] > value)
-							BM_elem_select_set(em->bm, ev, TRUE);
+							BM_vert_select_set(em->bm, ev, TRUE);
 						break;
 					case 1: /* pos */
 						if (ev->co[axis] < value)
-							BM_elem_select_set(em->bm, ev, TRUE);
+							BM_vert_select_set(em->bm, ev, TRUE);
 						break;
 				}
 			}
@@ -2802,7 +2802,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 			continue;
 
 		if (!BM_edge_is_wire(e)) {
-			BM_elem_select_set(em->bm, e, FALSE);
+			BM_edge_select_set(em->bm, e, FALSE);
 		}
 	}
 	EDBM_op_callf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_EDGES);
@@ -2813,7 +2813,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 			continue;
 
 		if (BM_vert_edge_count(v) != 0) {
-			BM_elem_select_set(em->bm, v, FALSE);
+			BM_vert_select_set(em->bm, v, FALSE);
 		}
 	}
 
@@ -2899,7 +2899,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 		}
 
 		/* Select the seed explicitly, in case it has no edges */
-		BM_elem_select_set(bm, v_seed, TRUE);
+		BM_vert_select_set(bm, v_seed, TRUE);
 
 		/* Walk from the single vertex, selecting everything connected
 		 * to it */
@@ -2910,8 +2910,8 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 
 		e = BMW_begin(&walker, v_seed);
 		for (; e; e = BMW_step(&walker)) {
-			BM_elem_select_set(bm, e->v1, TRUE);
-			BM_elem_select_set(bm, e->v2, TRUE);
+			BM_vert_select_set(bm, e->v1, TRUE);
+			BM_vert_select_set(bm, e->v2, TRUE);
 		}
 		BMW_end(&walker);
 				
@@ -3487,7 +3487,7 @@ static int edbm_select_by_number_vertices_exec(bContext *C, wmOperator *op)
 		}
 
 		if (select) {
-			BM_elem_select_set(em->bm, efa, TRUE);
+			BM_face_select_set(em->bm, efa, TRUE);
 		}
 	}
 
@@ -3535,7 +3535,7 @@ static int edbm_select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 	     eve; eve = BM_iter_step(&iter)) {
 
 		if (!eve->e) {
-			BM_elem_select_set(em->bm, eve, TRUE);
+			BM_vert_select_set(em->bm, eve, TRUE);
 		}
 	}
 
@@ -3543,7 +3543,7 @@ static int edbm_select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 	     eed; eed = BM_iter_step(&iter)) {
 
 		if (!eed->l) {
-			BM_elem_select_set(em->bm, eed, TRUE);
+			BM_edge_select_set(em->bm, eed, TRUE);
 		}
 	}
 

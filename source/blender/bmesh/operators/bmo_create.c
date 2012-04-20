@@ -614,10 +614,10 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			BM_elem_index_set(v2, -1); /* set_dirty! */
 			//BM_edge_create(bm, cv, v2, NULL, FALSE);
 			
-			BM_elem_select_set(bm, v2, TRUE);
+			BM_vert_select_set(bm, v2, TRUE);
 			if (lastv) {
 				e2 = BM_edge_create(bm, lastv, v2, NULL, FALSE);
-				BM_elem_select_set(bm, e2, TRUE);
+				BM_edge_select_set(bm, e2, TRUE);
 			}
 			
 			lastv = v2;

@@ -245,8 +245,7 @@ void BM_mesh_select_flush(BMesh *bm)
  */
 void BM_vert_select_set(BMesh *bm, BMVert *v, int select)
 {
-	/* BMIter iter; */
-	/* BMEdge *e; */
+	BLI_assert(v->head.htype == BM_VERT);
 
 	if (BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
 		return;
@@ -273,6 +272,8 @@ void BM_vert_select_set(BMesh *bm, BMVert *v, int select)
  */
 void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 {
+	BLI_assert(e->head.htype == BM_EDGE);
+
 	if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 		return;
 	}
@@ -281,8 +282,8 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 		if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) bm->totedgesel += 1;
 
 		BM_elem_flag_enable(e, BM_ELEM_SELECT);
-		BM_elem_select_set(bm, e->v1, TRUE);
-		BM_elem_select_set(bm, e->v2, TRUE);
+		BM_vert_select_set(bm, e->v1, TRUE);
+		BM_vert_select_set(bm, e->v2, TRUE);
 	}
 	else {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) bm->totedgesel -= 1;
@@ -318,8 +319,8 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 			}
 		}
 		else {
-			BM_elem_select_set(bm, e->v1, FALSE);
-			BM_elem_select_set(bm, e->v2, FALSE);
+			BM_vert_select_set(bm, e->v1, FALSE);
+			BM_vert_select_set(bm, e->v2, FALSE);
 		}
 
 	}
@@ -335,6 +336,8 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
+
+	BLI_assert(f->head.htype == BM_FACE);
 
 	if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 		return;
@@ -369,7 +372,7 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
 			}
 
 			if (!f2) {
-				BM_elem_select_set(bm, l->e, FALSE);
+				BM_edge_select_set(bm, l->e, FALSE);
 			}
 		}
 
@@ -383,7 +386,7 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
 			}
 
 			if (!e) {
-				BM_elem_select_set(bm, l->v, FALSE);
+				BM_vert_select_set(bm, l->v, FALSE);
 			}
 		}
 	}

@@ -211,7 +211,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 		eed = BMW_begin(&walker, startedge);
 		for ( ; eed; eed = BMW_step(&walker)) {
-			BM_elem_select_set(em->bm, eed, TRUE);
+			BM_edge_select_set(em->bm, eed, TRUE);
 		}
 		BMW_end(&walker);
 

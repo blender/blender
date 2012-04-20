@@ -1069,13 +1069,13 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 					     BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
 					     BM_elem_flag_test(e->v2, BM_ELEM_SELECT))
 					{
-						BM_elem_select_set(bm, e, TRUE);
+						BM_edge_select_set(bm, e, TRUE);
 					}
 					else if (BM_elem_flag_test(e, BM_ELEM_SELECT) &&
 					         (!BM_elem_flag_test(e->v1, BM_ELEM_SELECT) ||
 					          !BM_elem_flag_test(e->v2, BM_ELEM_SELECT)))
 					{
-						BM_elem_select_set(bm, e, FALSE);
+						BM_edge_select_set(bm, e, FALSE);
 					}
 				}
 			}

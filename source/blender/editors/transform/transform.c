@@ -4653,12 +4653,12 @@ static int createSlideVerts(TransInfo *t)
 			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
 				BMFace *copyf = BM_face_copy(bm, f, TRUE, TRUE);
 				
-				BM_elem_select_set(bm, copyf, FALSE);
+				BM_face_select_set(bm, copyf, FALSE);
 				BM_elem_flag_enable(copyf, BM_ELEM_HIDDEN);
 				BM_ITER_ELEM (l, &liter, copyf, BM_LOOPS_OF_FACE) {
-					BM_elem_select_set(bm, l->v, FALSE);
+					BM_vert_select_set(bm, l->v, FALSE);
 					BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
-					BM_elem_select_set(bm, l->e, FALSE);
+					BM_edge_select_set(bm, l->e, FALSE);
 					BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
 				}
 
@@ -4775,7 +4775,7 @@ void projectSVData(TransInfo *t, int final)
 			BM_elem_attrs_copy(em->bm, em->bm, copyf2, f);
 			
 			/* restore selection and hidden flags */
-			BM_elem_select_set(em->bm, f, sel);
+			BM_face_select_set(em->bm, f, sel);
 			if (!hide) { /* this check is a workaround for bug, see note - [#30735], without this edge can be hidden and selected */
 				BM_elem_hide_set(em->bm, f, hide);
 			}

@@ -336,7 +336,7 @@ static void edbm_ripsel_deselect_helper(BMesh *bm, EdgeLoopPair *eloop_pairs,
 		e = (score_a > score_b) ? lp->l_a->e : lp->l_b->e;
 		v_prev = edbm_ripsel_edloop_pair_start_vert(e);
 		for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
-			BM_elem_select_set(bm, e, FALSE);
+			BM_edge_select_set(bm, e, FALSE);
 		}
 	}
 }
@@ -431,12 +431,12 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		BMVert **vout;
 		int vout_len;
 
-		BM_elem_select_set(bm, v, FALSE);
+		BM_vert_select_set(bm, v, FALSE);
 		bmesh_vert_separate(bm, v, &vout, &vout_len);
 
 		if (vout_len < 2) {
 			/* set selection back to avoid active-unselected vertex */
-			BM_elem_select_set(bm, v, TRUE);
+			BM_vert_select_set(bm, v, TRUE);
 			/* should never happen */
 			BKE_report(op->reports, RPT_ERROR, "Error ripping vertex from faces");
 			return OPERATOR_CANCELLED;
@@ -472,7 +472,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 
 			/* select the vert from the best region */
 			v = vout[vi_best];
-			BM_elem_select_set(bm, v, TRUE);
+			BM_vert_select_set(bm, v, TRUE);
 
 			if (ese.ele) {
 				EDBM_editselection_store(em, &v->head);
@@ -541,7 +541,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				/* disable by default, re-enable winner at end */
-				BM_elem_select_set(bm, v, FALSE);
+				BM_vert_select_set(bm, v, FALSE);
 
 				BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
 					/* calculate a point in the face, rather then calculate the middle,
@@ -566,7 +566,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		}
 
 		if (v_best) {
-			BM_elem_select_set(bm, v_best, TRUE);
+			BM_vert_select_set(bm, v_best, TRUE);
 			if (ese.ele) {
 				EDBM_editselection_store(em, &v_best->head);
 			}

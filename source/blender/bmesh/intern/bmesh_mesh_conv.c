@@ -263,7 +263,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		/* this is necessary for selection counts to work properly */
 		if (medge->flag & SELECT) {
-			BM_elem_select_set(bm, e, TRUE);
+			BM_edge_select_set(bm, e, TRUE);
 		}
 
 		/* Copy Custom Data */
@@ -329,7 +329,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		/* this is necessary for selection counts to work properly */
 		if (mpoly->flag & ME_FACE_SEL) {
-			BM_elem_select_set(bm, f, TRUE);
+			BM_face_select_set(bm, f, TRUE);
 		}
 
 		f->mat_nr = mpoly->mat_nr;
