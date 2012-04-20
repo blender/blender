@@ -131,7 +131,7 @@ def handle_args():
                         dest="sphinx_theme",
                         type=str,
                         default='default',
-                        help =
+                        help=
                         # see SPHINX_THEMES below
                         "Sphinx theme (default='default')\n"
                         "Available themes\n"

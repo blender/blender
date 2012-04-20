@@ -294,21 +294,22 @@ class AddPresetCloth(AddPresetBase, Operator):
 
     preset_subdir = "cloth"
 
+
 class AddPresetFluid(AddPresetBase, Operator):
     '''Add a Fluid Preset'''
     bl_idname = "fluid.preset_add"
     bl_label = "Add Fluid Preset"
     preset_menu = "FLUID_MT_presets"
-    
+
     preset_defines = [
     "fluid = bpy.context.fluid"
     ]
-    
+
     preset_values = [
     "fluid.settings.viscosity_base",
     "fluid.settings.viscosity_exponent",
     ]
-    
+
     preset_subdir = "fluid"
 
 

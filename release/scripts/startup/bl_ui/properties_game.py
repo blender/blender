@@ -166,7 +166,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             subsub.active = game.use_anisotropic_friction
             subsub.prop(game, "friction_coefficients", text="", slider=True)
 
-        elif physics_type =='SENSOR':
+        elif physics_type == 'SENSOR':
             col = layout.column()
             col.prop(game, "use_actor", text="Detect Actors")
             col.prop(ob, "hide_render", text="Invisible")
