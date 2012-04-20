@@ -71,8 +71,6 @@
 
 #define KMAXDIST    10  /* max mouse distance from edge before not detecting it */
 
-#define USE_SELECTED_ONLY
-
 /* knifetool operator */
 typedef struct KnifeVert {
 	BMVert *v; /* non-NULL if this is an original vert */
@@ -159,8 +157,13 @@ typedef struct knifetool_opdata {
 	BLI_mempool *refs;
 
 	float projmat[4][4];
-	int is_ortho;
-	int cut_through;
+
+	short is_ortho;
+
+	/* operatpr options */
+	char  cut_through; /* preference, can be modified at runtime (that feature may go) */
+	char  only_select; /* set on initialization */
+
 	float clipsta, clipend;
 
 	enum {
@@ -733,15 +736,6 @@ static void knife_add_cut(knifetool_opdata *kcd)
 			if (len_v3v3(kcd->cur.cage, lh->realhit) < FLT_EPSILON * 80)
 				continue;
 
-#if 0		/* not working perfect, ignore for now */
-#ifdef USE_SELECTED_ONLY
-			/* don't mess up logic by skipping too early */
-			if (lh->kfe->e && !BM_elem_flag_test(lh->kfe->e, BM_ELEM_SELECT)) {
-				continue;
-			}
-#endif
-#endif
-
 			if (kcd->prev.is_space) {
 				kcd->prev.is_space = 0;
 				copy_v3_v3(kcd->prev.co, lh->hit);
@@ -976,13 +970,6 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		lh = kcd->linehits;
 		for (i = 0; i < kcd->totlinehit; i++, lh++) {
 			float sv1[3], sv2[3];
-			int do_draw = TRUE;
-
-#ifdef USE_SELECTED_ONLY
-			if (!BM_elem_flag_test(lh->f, BM_ELEM_SELECT)) {
-				do_draw = FALSE;
-			}
-#endif
 
 			knife_project_v3(kcd, lh->kfe->v1->cageco, sv1);
 			knife_project_v3(kcd, lh->kfe->v2->cageco, sv2);
@@ -990,12 +977,12 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 			if (len_v2v2(lh->schit, sv1) < kcd->vthresh / 4.0f) {
 				copy_v3_v3(lh->cagehit, lh->kfe->v1->cageco);
-				if (do_draw) glVertex3fv(lh->cagehit);
+				glVertex3fv(lh->cagehit);
 				lh->v = lh->kfe->v1;
 			}
 			else if (len_v2v2(lh->schit, sv2) < kcd->vthresh / 4.0f) {
 				copy_v3_v3(lh->cagehit, lh->kfe->v2->cageco);
-				if (do_draw) glVertex3fv(lh->cagehit);
+				glVertex3fv(lh->cagehit);
 				lh->v = lh->kfe->v2;
 			}
 		}
@@ -1007,13 +994,6 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		glBegin(GL_POINTS);
 		lh = kcd->linehits;
 		for (i = 0; i < kcd->totlinehit; i++, lh++) {
-
-#ifdef USE_SELECTED_ONLY
-			if (!BM_elem_flag_test(lh->f, BM_ELEM_SELECT)) {
-				continue;
-			}
-#endif
-
 			glVertex3fv(lh->cagehit);
 		}
 		glEnd();
@@ -2655,11 +2635,11 @@ static void knife_make_cuts(knifetool_opdata *kcd)
 	for (lst = BLI_smallhash_iternew(ehash, &hiter, (uintptr_t *)&e); lst;
 	     lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&e))
 	{
-#ifdef USE_SELECTED_ONLY
-		if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			continue;
+		if (kcd->only_select) {
+			if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+				continue;
+			}
 		}
-#endif
 
 		sort_by_frac_along(lst, e);
 		for (ref = lst->first; ref; ref = ref->next) {
@@ -2673,11 +2653,12 @@ static void knife_make_cuts(knifetool_opdata *kcd)
 	for (lst = BLI_smallhash_iternew(fhash, &hiter, (uintptr_t *)&f); lst;
 	     lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&f))
 	{
-#ifdef USE_SELECTED_ONLY
-		if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-			continue;
+
+		if (kcd->only_select) {
+			if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+				continue;
+			}
 		}
-#endif
 
 		knife_make_face_cuts(kcd, f, lst);
 	}
@@ -2802,6 +2783,7 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	DerivedMesh *cage, *final;
 	SmallHash shash;
 	void *data[3];
+	const short only_select = RNA_boolean_get(op->ptr, "only_select");
 
 	/* alloc new customdata */
 	kcd = op->customdata = MEM_callocN(sizeof(knifetool_opdata), "knifetool Modal Op Data");
@@ -2827,7 +2809,11 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	cage->foreachMappedVert(cage, cage_mapped_verts_callback, data);
 	BLI_smallhash_release(&shash);
 
-	kcd->bmbvh = BMBVH_NewBVH(kcd->em, BMBVH_USE_CAGE | BMBVH_RETURN_ORIG | BMBVH_RESPECT_HIDDEN, scene, obedit);
+	kcd->bmbvh = BMBVH_NewBVH(kcd->em,
+	                          (BMBVH_USE_CAGE | BMBVH_RETURN_ORIG) |
+	                          (only_select ? BMBVH_RESPECT_SELECT : BMBVH_RESPECT_HIDDEN),
+	                          scene, obedit);
+
 	kcd->arena = BLI_memarena_new(1 << 15, "knife");
 	kcd->vthresh = KMAXDIST - 1;
 	kcd->ethresh = KMAXDIST;
@@ -2848,6 +2834,7 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 
 	/* cut all the way through the mesh if use_occlude_geometry button not pushed */
 	kcd->cut_through = !RNA_boolean_get(op->ptr, "use_occlude_geometry");
+	kcd->only_select = only_select;
 
 	knife_pos_data_clear(&kcd->cur);
 	knife_pos_data_clear(&kcd->prev);
@@ -2939,7 +2926,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, CKEY, KM_PRESS, 0, 0, KNF_MODAL_ANGLE_SNAP_TOGGLE);
 	WM_modalkeymap_add_item(keymap, ZKEY, KM_PRESS, 0, 0, KNF_MODAL_CUT_THROUGH_TOGGLE);
 
-	WM_modalkeymap_assign(keymap, "MESH_OT_knifetool");
+	WM_modalkeymap_assign(keymap, "MESH_OT_knife_tool");
 
 	return keymap;
 }
@@ -3074,11 +3061,11 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void MESH_OT_knifetool(wmOperatorType *ot)
+void MESH_OT_knife_tool(wmOperatorType *ot)
 {
 	/* description */
 	ot->name = "Knife Topology Tool";
-	ot->idname = "MESH_OT_knifetool";
+	ot->idname = "MESH_OT_knife_tool";
 	ot->description = "Cut new topology";
 
 	/* callbacks */
@@ -3090,5 +3077,6 @@ void MESH_OT_knifetool(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
-	RNA_def_boolean(ot->srna, "use_occlude_geometry", 0, "Occlude Geometry", "Only cut the front most geometry");
+	RNA_def_boolean(ot->srna, "use_occlude_geometry", TRUE, "Occlude Geometry", "Only cut the front most geometry");
+	RNA_def_boolean(ot->srna, "only_select", FALSE, "Only Selected", "Only cut selected geometry");
 }
