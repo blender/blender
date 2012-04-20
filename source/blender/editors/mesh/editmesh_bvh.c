@@ -104,8 +104,16 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	tree->bm = em->bm;
 	tree->epsilon = FLT_EPSILON * 2.0f;
 	tree->flag = flag;
-	
-	if (flag & BMBVH_RESPECT_HIDDEN) {
+
+	if (flag & (BMBVH_RESPECT_SELECT)) {
+		tottri = 0;
+		for (i = 0; i < em->tottri; i++) {
+			if (BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_SELECT)) {
+				tottri++;
+			}
+		}
+	}
+	else if (flag & (BMBVH_RESPECT_HIDDEN)) {
 		tottri = 0;
 		for (i = 0; i < em->tottri; i++) {
 			if (!BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_HIDDEN)) {
@@ -146,7 +154,14 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	
 	for (i = 0; i < em->tottri; i++) {
 
-		if (flag & BMBVH_RESPECT_HIDDEN) {
+
+		if (flag & BMBVH_RESPECT_SELECT) {
+			/* note, the arrays wont allign now! take care */
+			if (!BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_SELECT)) {
+				continue;
+			}
+		}
+		else if (flag & BMBVH_RESPECT_HIDDEN) {
 			/* note, the arrays wont allign now! take care */
 			if (BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_HIDDEN)) {
 				continue;

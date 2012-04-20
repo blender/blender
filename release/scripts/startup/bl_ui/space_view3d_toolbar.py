@@ -142,6 +142,14 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         col.operator("mesh.spin")
         col.operator("mesh.screw")
 
+        row = col.row(align=True)
+        props = row.operator("mesh.knife_tool", text="Knife")
+        props.use_occlude_geometry = True
+        props.only_select = False
+        props = row.operator("mesh.knife_tool", text="Select")
+        props.use_occlude_geometry = False
+        props.only_select = True
+
         col = layout.column(align=True)
         col.label(text="Remove:")
         col.menu("VIEW3D_MT_edit_mesh_delete")
