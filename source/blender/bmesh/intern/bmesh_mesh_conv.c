@@ -824,7 +824,10 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 					/* in most cases this runs */
 					copy_v3_v3(fp, CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j));
 				}
-				else if (oldkey) {
+				else if (oldkey &&
+				         (keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX)) &&
+				         (*keyi != ORIGINDEX_NONE && *keyi < currkey->totelem))
+				{
 					/* old method of reconstructing keys via vertice's original key indices,
 					 * currently used if the new method above fails (which is theoretically
 					 * possible in certain cases of undo) */
