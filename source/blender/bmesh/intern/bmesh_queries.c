@@ -550,7 +550,7 @@ int BM_vert_is_manifold(BMVert *v)
 			return FALSE;
 		}
 		len++;
-	} while((e = bmesh_disk_edge_next(e, v)) != oe);
+	} while ((e = bmesh_disk_edge_next(e, v)) != oe);
 
 	count = 1;
 	flag = 1;

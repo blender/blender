@@ -658,9 +658,9 @@ static int bm_loop_length(BMLoop *l)
  */
 static int bm_loop_reverse_loop(BMesh *bm, BMFace *f
 #ifdef USE_BMESH_HOLES
-                                   , BMLoopList *lst
+                                , BMLoopList *lst
 #endif
-                                   )
+                                )
 {
 
 #ifdef USE_BMESH_HOLES
@@ -775,7 +775,7 @@ static void bm_elements_systag_disable(void *veles, int tot, int flag)
 	}
 }
 
-#define FACE_MARK	(1 << 10)
+#define FACE_MARK  (1 << 10)
 
 static int count_flagged_radial(BMesh *bm, BMLoop *l, int flag)
 {
@@ -1173,17 +1173,17 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	l_iter = l_first = f1loop;
 	first_loop_f1 = 0;
 	do {
-		if(l_iter == f->l_first)
+		if (l_iter == f->l_first)
 			first_loop_f1 = 1;
 	} while ((l_iter = l_iter->next) != l_first);
 
-	if(first_loop_f1) {
+	if (first_loop_f1) {
 		/* original first loop was in f1, find a suitable first loop for f2
 		   which is as similar as possible to f1. the order matters for tools
 		   such as duplifaces. */
-		if(f->l_first->prev == f1loop)
+		if (f->l_first->prev == f1loop)
 			f2->l_first = f2loop->prev;
-		else if(f->l_first->next == f1loop)
+		else if (f->l_first->next == f1loop)
 			f2->l_first = f2loop->next;
 		else
 			f2->l_first = f2loop;
@@ -1192,9 +1192,9 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 		/* original first loop was in f2, further do same as above */
 		f2->l_first = f->l_first;
 
-		if(f->l_first->prev == f2loop)
+		if (f->l_first->prev == f2loop)
 			f->l_first = f1loop->prev;
-		else if(f->l_first->next == f2loop)
+		else if (f->l_first->next == f2loop)
 			f->l_first = f1loop->next;
 		else
 			f->l_first = f1loop;
