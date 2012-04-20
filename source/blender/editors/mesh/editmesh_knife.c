@@ -163,6 +163,7 @@ typedef struct knifetool_opdata {
 	/* operatpr options */
 	char  cut_through; /* preference, can be modified at runtime (that feature may go) */
 	char  only_select; /* set on initialization */
+	char  select_result; /* set on initialization */
 
 	float clipsta, clipend;
 
@@ -2452,7 +2453,8 @@ static void knife_make_chain_cut(knifetool_opdata *kcd, BMFace *f, ListBase *cha
 		/* Want to prevent creating two-sided polygons */
 		if (BM_edge_exists(v1, v2)) {
 			*newface = NULL;
-		} else {
+		}
+		else {
 			*newface = BM_face_split(bm, f, v1, v2, &lnew, NULL, TRUE);
 		}
 	}
@@ -2464,8 +2466,18 @@ static void knife_make_chain_cut(knifetool_opdata *kcd, BMFace *f, ListBase *cha
 			/* Now go through lnew chain matching up chain kv's and assign real v's to them */
 			for (l_iter = lnew->next, i = 0; i < nco; l_iter = l_iter->next, i++) {
 				BLI_assert(equals_v3v3(cos[i], l_iter->v->co));
+				if (kcd->select_result) {
+					BM_edge_select_set(bm, l_iter->e, TRUE);
+				}
 				kverts[i]->v = l_iter->v;
 			}
+		}
+	}
+
+	/* the select chain above doesnt account for the first loop */
+	if (kcd->select_result) {
+		if (lnew) {
+			BM_edge_select_set(bm, lnew->e, TRUE);
 		}
 	}
 
@@ -2635,12 +2647,6 @@ static void knife_make_cuts(knifetool_opdata *kcd)
 	for (lst = BLI_smallhash_iternew(ehash, &hiter, (uintptr_t *)&e); lst;
 	     lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&e))
 	{
-		if (kcd->only_select) {
-			if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-				continue;
-			}
-		}
-
 		sort_by_frac_along(lst, e);
 		for (ref = lst->first; ref; ref = ref->next) {
 			kfv = ref->ref;
@@ -2649,17 +2655,14 @@ static void knife_make_cuts(knifetool_opdata *kcd)
 		}
 	}
 
+	if (kcd->select_result) {
+		EDBM_flag_disable_all(kcd->em, BM_ELEM_SELECT);
+	}
+
 	/* do cuts for each face */
 	for (lst = BLI_smallhash_iternew(fhash, &hiter, (uintptr_t *)&f); lst;
 	     lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&f))
 	{
-
-		if (kcd->only_select) {
-			if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-				continue;
-			}
-		}
-
 		knife_make_face_cuts(kcd, f, lst);
 	}
 
@@ -2835,6 +2838,9 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	/* cut all the way through the mesh if use_occlude_geometry button not pushed */
 	kcd->cut_through = !RNA_boolean_get(op->ptr, "use_occlude_geometry");
 	kcd->only_select = only_select;
+
+	/* can't usefully select resulting edges in face mode */
+	kcd->select_result = (kcd->em->selectmode != SCE_SELECT_FACE);
 
 	knife_pos_data_clear(&kcd->cur);
 	knife_pos_data_clear(&kcd->prev);
