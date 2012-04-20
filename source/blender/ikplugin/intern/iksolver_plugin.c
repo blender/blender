@@ -347,11 +347,15 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 
 	/* first set the goal inverse transform, assuming the root of tree was done ok! */
 	pchan= tree->pchan[0];
-	if (pchan->parent)
+	if (pchan->parent) {
 		/* transform goal by parent mat, so this rotation is not part of the
 		 * segment's basis. otherwise rotation limits do not work on the
 		 * local transform of the segment itself. */
 		copy_m4_m4(rootmat, pchan->parent->pose_mat);
+		/* However, we do not want to get (i.e. reverse) parent's scale, as it generates [#31008]
+		 * kind of nasty bugs... */
+		normalize_m4(rootmat);
+	}
 	else
 		unit_m4(rootmat);
 	copy_v3_v3(rootmat[3], pchan->pose_head);
