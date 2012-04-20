@@ -567,6 +567,9 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (v_best) {
 			BM_elem_select_set(bm, v_best, TRUE);
+			if (ese.ele) {
+				EDBM_editselection_store(em, &v_best->head);
+			}
 		}
 	}
 

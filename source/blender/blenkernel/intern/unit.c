@@ -131,7 +131,7 @@ static struct bUnitDef buImperialLenDef[] = {
 	{"mile", "miles",		"mi", "m", "Miles",		UN_SC_MI, 0.0,	B_UNIT_DEF_NONE},
 	{"furlong", "furlongs",	"fur", NULL, "Furlongs",UN_SC_FUR, 0.0,	B_UNIT_DEF_SUPPRESS},
 	{"chain", "chains",		"ch", NULL, "Chains",	UN_SC_CH, 0.0,	B_UNIT_DEF_SUPPRESS},
-	{"yard", "yards",		"yd", NULL, "Yards",	UN_SC_YD, 0.0,	B_UNIT_DEF_NONE},
+	{"yard", "yards",		"yd", NULL, "Yards",	UN_SC_YD, 0.0,	B_UNIT_DEF_SUPPRESS},
 	{"foot", "feet",		"'", "ft", "Feet",		UN_SC_FT, 0.0,	B_UNIT_DEF_NONE}, /* base unit */
 	{"inch", "inches",		"\"", "in", "Inches",	UN_SC_IN, 0.0,	B_UNIT_DEF_NONE},
 	{"thou", "thou",		"thou", "mil", "Thou",	UN_SC_MIL, 0.0,	B_UNIT_DEF_NONE}, /* plural for thou has no 's' */
