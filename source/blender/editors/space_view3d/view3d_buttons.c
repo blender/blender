@@ -310,70 +310,83 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 	if (block) { /* buttons */
 		uiBut *but;
+		int yi = 200;
+		const int buth = 20 * UI_DPI_ICON_FAC;
+		const int but_margin = 2;
 
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
 
 		uiBlockBeginAlign(block);
 		if (tot == 1) {
-			uiDefBut(block, LABEL, 0, IFACE_("Vertex:"), 0, 170, 200, 20, NULL, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, IFACE_("Vertex:"), 0, yi -= buth, 200, buth, NULL, 0, 0, 0, 0, "");
 		}
 		else {
-			uiDefBut(block, LABEL, 0, IFACE_("Median:"), 0, 170, 200, 20, NULL, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, IFACE_("Median:"), 0, yi -= buth, 200, buth, NULL, 0, 0, 0, 0, "");
 		}
 
 		uiBlockBeginAlign(block);
 
 		/* Should be no need to translate these. */
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:", 0, 150, 200, 20,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:", 0, yi -= buth, 200, buth,
 		                &(tfp->ve_median[0]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:", 0, 130, 200, 20,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:", 0, yi -= buth, 200, buth,
 		                &(tfp->ve_median[1]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:", 0, 110, 200, 20,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",0, yi -= buth, 200, buth,
 		                &(tfp->ve_median[2]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
 
 		if (totw == tot) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:", 0, 90, 200, 20,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:", 0, yi -= buth, 200, buth,
 			          &(tfp->ve_median[3]), 0.01, 100.0, 1, 3, "");
 		}
 
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, IFACE_("Global"), 0, 65, 100, 20,
+		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, IFACE_("Global"),
+		             0, yi -= buth + but_margin, 100, buth,
 		             &v3d->flag, 0, 0, 0, 0, "Displays global values");
-		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, IFACE_("Local"), 100, 65, 100, 20,
+		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, IFACE_("Local"),
+		             100, yi, 100, buth,
 		             &v3d->flag, 0, 0, 0, 0, "Displays local values");
 		uiBlockEndAlign(block);
 
 		if (totweight == 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Weight:"), 0, 40, 200, 20,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Weight:"),
+			          0, yi -= buth + but_margin, 200, buth,
 			          &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, TIP_("Weight used for SoftBody Goal"));
 		}
 		else if (totweight > 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Weight:"), 0, 40, 200, 20,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Weight:"),
+			          0, yi -= buth, 200, buth,
 			          &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, TIP_("Weight used for SoftBody Goal"));
 		}
 
 		if (totradius == 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Radius:"), 0, 20, 200, 20,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Radius:"),
+			          0, yi -= buth + but_margin, 200, buth,
 			          &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, TIP_("Radius of curve control points"));
 		}
 		else if (totradius > 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Radius:"), 0, 20, 200, 20,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Radius:"),
+			          0, yi -= buth + but_margin, 200, buth,
 			          &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, TIP_("Radius of curve control points"));
 		}
 
 		if (totedge == 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Crease:"), 0, 40, 200, 20,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Crease:"),
+			          0, yi -= buth + but_margin, 200, buth,
 			          &(tfp->ve_median[3]), 0.0, 1.0, 1, 3, TIP_("Weight used by SubSurf modifier"));
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Bevel Weight:"), 0, 20, 200, 20,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Bevel Weight:"),
+			          0, yi -= buth + but_margin, 200, buth,
 			          &(tfp->ve_median[6]), 0.0, 1.0, 1, 3, TIP_("Weight used by Bevel modifier"));
 		}
 		else if (totedge > 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Crease:"), 0, 40, 200, 20,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Crease:"),
+			          0, yi -= buth + but_margin, 200, buth,
 			          &(tfp->ve_median[3]), 0.0, 1.0, 1, 3, TIP_("Weight used by SubSurf modifier"));
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Bevel Weight:"), 0, 20, 200, 20,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Bevel Weight:"),
+			          0, yi -= buth + but_margin, 200, buth,
 			          &(tfp->ve_median[6]), 0.0, 1.0, 1, 3, TIP_("Weight used by Bevel modifier"));
 		}
 
