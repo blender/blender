@@ -49,6 +49,7 @@ int     BM_vert_edge_count_nonwire(BMVert *v);
 int     BM_vert_edge_count(BMVert *v);
 int     BM_edge_face_count(BMEdge *e);
 int     BM_vert_face_count(BMVert *v);
+BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e);
 
 int     BM_vert_is_wire(BMVert *v);
 int     BM_edge_is_wire(BMEdge *e);
@@ -65,6 +66,7 @@ float   BM_edge_face_angle(BMEdge *e);
 void    BM_edge_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3]);
 
 float   BM_vert_edge_angle(BMVert *v);
+float   BM_vert_shell_factor(BMVert *v);
 
 BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2);
 

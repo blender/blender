@@ -80,6 +80,22 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
 	}
 }
 
+float bm_vert_avg_tag_dist(BMVert *v)
+{
+	BMIter iter;
+	BMEdge *e;
+	int tot;
+	float length = 0.0f;
+
+	BM_ITER_ELEM_INDEX (e, &iter, v, BM_EDGES_OF_VERT, tot) {
+		BMVert *v_other = BM_edge_other_vert(e, v);
+		if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
+			length += BM_edge_length_calc(e);
+		}
+	}
+
+	return length / (float)tot;
+}
 
 /**
  * implementation is as follows...
@@ -98,7 +114,8 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	const int use_even_offset     = BMO_slot_bool_get(op, "use_even_offset");
 	const int use_even_boundry    = use_even_offset; /* could make own option */
 	const int use_relative_offset = BMO_slot_bool_get(op, "use_relative_offset");
-	const float thickness = BMO_slot_float_get(op, "thickness");
+	const float thickness         = BMO_slot_float_get(op, "thickness");
+	const float depth             = BMO_slot_float_get(op, "depth");
 
 	int edge_info_len = 0;
 
@@ -482,4 +499,42 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 	/* we could flag new edges/verts too, is it useful? */
 	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, ELE_NEW);
+
+	/* cheap feature to add depth to the inset */
+	if (depth != 0.0f) {
+		float (*varr_co)[3];
+		BMOIter oiter;
+
+		/* untag verts */
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
+
+		/* tag face verts */
+		BMO_ITER (f, &oiter, bm, op, "faces", BM_FACE) {
+			BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
+				BM_elem_flag_enable(v, BM_ELEM_TAG);
+			}
+		}
+
+		/* do in 2 passes so moving the verts doesn't feed back into face angle checks
+		 * which BM_vert_shell_factor uses. */
+
+		/* over allocate */
+		varr_co = MEM_callocN(sizeof(*varr_co) * bm->totvert, __func__);
+
+		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				const float fac = (depth *
+								   (use_relative_offset ? bm_vert_avg_tag_dist(v) : 1.0f) *
+								   (use_even_boundry    ? BM_vert_shell_factor(v) : 1.0f));
+				madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
+			}
+		}
+
+		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				copy_v3_v3(v->co, varr_co[i]);
+			}
+		}
+		MEM_freeN(varr_co);
+	}
 }

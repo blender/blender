@@ -202,7 +202,7 @@ extern "C" {
 #include "DNA_customdata_types.h" /* BMesh struct in bmesh_class.h uses */
 
 #include <stdlib.h>
-// #include "BLI_utildefines.h"
+#include <stdio.h>
 
 #include "bmesh_class.h"
 

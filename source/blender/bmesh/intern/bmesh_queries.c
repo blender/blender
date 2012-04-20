@@ -309,6 +309,59 @@ BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
 }
 
 /**
+ * The function takes a vertex at the center of a fan and returns the opposite edge in the fan.
+ * All edges in the fan must be manifold, otherwise return NULL.
+ *
+ * \note This could (probably) be done more effieiently.
+ */
+BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e_first)
+{
+	BMLoop *l_a;
+	int tot = 0;
+	int i;
+
+	BLI_assert(BM_vert_in_edge(e_first, v));
+
+	l_a = e_first->l;
+	do {
+		l_a = BM_loop_other_vert_loop(l_a, v);
+		l_a = BM_vert_in_edge(l_a->e, v) ? l_a : l_a->prev;
+		if (BM_edge_is_manifold(l_a->e)) {
+			l_a = l_a->radial_next;
+		}
+		else {
+			return NULL;
+		}
+
+		tot++;
+	} while (l_a != e_first->l);
+
+	/* we know the total, now loop half way */
+	tot /= 2;
+	i = 0;
+
+	l_a = e_first->l;
+	do {
+		if (i == tot) {
+			l_a = BM_vert_in_edge(l_a->e, v) ? l_a : l_a->prev;
+			return l_a->e;
+		}
+
+		l_a = BM_loop_other_vert_loop(l_a, v);
+		l_a = BM_vert_in_edge(l_a->e, v) ? l_a : l_a->prev;
+		if (BM_edge_is_manifold(l_a->e)) {
+			l_a = l_a->radial_next;
+		}
+		/* this wont have changed from the previous loop */
+
+
+		i++;
+	} while (l_a != e_first->l);
+
+	return NULL;
+}
+
+/**
  * Returms edge length
  */
 float BM_edge_length_calc(BMEdge *e)
@@ -864,6 +917,26 @@ float BM_vert_edge_angle(BMVert *v)
 	else {
 		return DEG2RADF(90.0f);
 	}
+}
+
+/**
+ * \note this isn't optimal to run on an array of verts,
+ * see 'solidify_add_thickness' for a function which runs on an array.
+ */
+float BM_vert_shell_factor(BMVert *v)
+{
+	BMIter iter;
+	BMLoop *l;
+	float accum_shell = 0.0f;
+	float accum_angle = 0.0f;
+
+	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+		const float face_angle = BM_loop_face_angle(l);
+		accum_shell += shell_angle_to_dist(angle_normalized_v3v3(v->no, l->f->no)) * face_angle;
+		accum_angle += face_angle;
+	}
+
+	return accum_shell / accum_angle;
 }
 
 /**

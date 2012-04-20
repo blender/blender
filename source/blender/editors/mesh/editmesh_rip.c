@@ -66,7 +66,7 @@ static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4], float *co1, floa
 	return dist_to_line_segment_v2(mvalf, vec1, vec2);
 }
 
-static float edbm_rip_edge_side_measure(BMEdge *e,
+static float edbm_rip_edge_side_measure(BMEdge *e, BMLoop *e_l,
                                         ARegion *ar,
                                         float projectMat[4][4], const float fmval[2])
 {
@@ -80,6 +80,8 @@ static float edbm_rip_edge_side_measure(BMEdge *e,
 	BMVert *v1_other;
 	BMVert *v2_other;
 
+	BLI_assert(BM_vert_in_edge(e, e_l->v));
+
 	/* method for calculating distance:
 	 *
 	 * for each edge: calculate face center, then made a vector
@@ -88,8 +90,8 @@ static float edbm_rip_edge_side_measure(BMEdge *e,
 
 	/* rather then the face center, get the middle of
 	 * both edge verts connected to this one */
-	v1_other = BM_face_other_vert_loop(e->l->f, e->v2, e->v1)->v;
-	v2_other = BM_face_other_vert_loop(e->l->f, e->v1, e->v2)->v;
+	v1_other = BM_face_other_vert_loop(e_l->f, e->v2, e->v1)->v;
+	v2_other = BM_face_other_vert_loop(e_l->f, e->v1, e->v2)->v;
 	mid_v3_v3v3(cent, v1_other->co, v2_other->co);
 	mid_v3_v3v3(mid, e->v1->co, e->v2->co);
 
@@ -323,12 +325,12 @@ static void edbm_ripsel_deselect_helper(BMesh *bm, EdgeLoopPair *eloop_pairs,
 		e = lp->l_a->e;
 		v_prev = edbm_ripsel_edloop_pair_start_vert(e);
 		for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
-			score_a += edbm_rip_edge_side_measure(e, ar, projectMat, fmval);
+			score_a += edbm_rip_edge_side_measure(e, e->l, ar, projectMat, fmval);
 		}
 		e = lp->l_b->e;
 		v_prev = edbm_ripsel_edloop_pair_start_vert(e);
 		for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
-			score_b += edbm_rip_edge_side_measure(e, ar, projectMat, fmval);
+			score_b += edbm_rip_edge_side_measure(e, e->l, ar, projectMat, fmval);
 		}
 
 		e = (score_a > score_b) ? lp->l_a->e : lp->l_b->e;
@@ -359,7 +361,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	float d;
 	const int totedge_orig = bm->totedge;
 
-	EdgeLoopPair *eloop_pairs;
+	EdgeLoopPair *eloop_pairs = NULL;
 
 	/* running in face mode hardly makes sense, so convert to region loop and rip */
 	if (em->bm->totfacesel) {
@@ -386,7 +388,10 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* handle case of one vert selected.  identify
 	 * closest edge around that vert to mouse cursor,
 	 * then rip two adjacent edges in the vert fan. */
+
 	if (bm->totvertsel == 1 && bm->totedgesel == 0 && bm->totfacesel == 0) {
+		/* --- Vert-Rip --- */
+
 		BMEditSelection ese;
 		int totboundary_edge = 0;
 		singlesel = TRUE;
@@ -538,36 +543,72 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		dist = FLT_MAX;
 	}
 	else {
+		/* --- Edge-Rip --- */
+		int totedge;
+		int all_minifold;
+
+		/* important this runs on the original selection, before tempering with tagging */
+		eloop_pairs = edbm_ripsel_looptag_helper(bm);
+
 		/* expand edge selection */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			e2 = NULL;
 			i = 0;
+			totedge = 0;
+			all_minifold = TRUE;
 			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-				/* important to check selection rather then tag here
-				 * else we get feedback loop */
-				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-					e2 = e;
-					i++;
+
+				if (!BM_edge_is_wire(e) &&
+				    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+				{
+					/* important to check selection rather then tag here
+					 * else we get feedback loop */
+					if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+						e2 = e;
+						i++;
+					}
+					totedge++;
+				}
+
+				/** #BM_vert_other_disk_edge has no hidden checks so don't check hidden here */
+				if ((all_minifold == TRUE) && (BM_edge_is_manifold(e) == FALSE)) {
+					all_minifold = FALSE;
 				}
 			}
 			
+			/* single edge, extend */
 			if (i == 1 && e2->l) {
-				l = BM_face_other_edge_loop(e2->l->f, e2, v);
-				l = l->radial_next;
-				l = BM_face_other_edge_loop(l->f, l->e, v);
+				if ((totedge == 4) || (all_minifold == FALSE)) {
+					BMLoop *l_a = e2->l;
+					BMLoop *l_b = l_a->radial_next;
 
-				if (l) {
-					BM_elem_flag_enable(l->e, BM_ELEM_TAG);
+					/* find the best face to follow, this wat the edge won't point away from
+					 * the mouse when there are more then 4 (takes the shortest face fan around) */
+					l = (edbm_rip_edge_side_measure(e2, l_a, ar, projectMat, fmval) <
+					     edbm_rip_edge_side_measure(e2, l_b, ar, projectMat, fmval)) ? l_a : l_b;
+
+					l = BM_face_other_edge_loop(l->f, e2, v);
+					l = l->radial_next;
+					l = BM_face_other_edge_loop(l->f, l->e, v);
+
+					if (l) {
+						BM_elem_flag_enable(l->e, BM_ELEM_TAG);
+					}
+				}
+				else {
+					e = BM_vert_other_disk_edge(v, e2);
+
+					if (e) {
+						BM_elem_flag_enable(e, BM_ELEM_TAG);
+					}
 				}
 			}
 		}
 	}
 
-	eloop_pairs = edbm_ripsel_looptag_helper(bm);
-
 	if (!EDBM_op_init(em, &bmop, op, "edgesplit edges=%he verts=%hv use_verts=%b",
 	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
-		MEM_freeN(eloop_pairs);
+		if (eloop_pairs) MEM_freeN(eloop_pairs);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -577,25 +618,9 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		EDBM_op_finish(em, &bmop, op, TRUE);
 
 		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
-		MEM_freeN(eloop_pairs);
+		if (eloop_pairs) MEM_freeN(eloop_pairs);
 		return OPERATOR_CANCELLED;
 	}
-
-#if 1
-	edbm_ripsel_deselect_helper(bm, eloop_pairs,
-	                            ar, projectMat, fmval);
-	MEM_freeN(eloop_pairs);
-#else
-	{
-		/* simple per edge selection check, saves a lot of code and is almost good enough */
-		BMOIter siter;
-		BMO_ITER (e, &siter, bm, &bmop, "edgeout", BM_EDGE) {
-			if (edbm_rip_edge_side_measure(e, ar, projectMat, fmval) > 0.0f) {
-				BM_elem_select_set(bm, e, FALSE);
-			}
-		}
-	}
-#endif
 
 	if (singlesel) {
 		BMVert *v_best = NULL;
@@ -640,6 +665,11 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			BM_elem_select_set(bm, v_best, TRUE);
 		}
 #endif
+	}
+	else {
+		edbm_ripsel_deselect_helper(bm, eloop_pairs,
+		                            ar, projectMat, fmval);
+		MEM_freeN(eloop_pairs);
 	}
 
 	EDBM_selectmode_flush(em);
