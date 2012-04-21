@@ -90,6 +90,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	SmallHash shash;
 	float cos[3][3], (*cagecos)[3] = NULL;
 	int i;
+	int tottri;
 
 	/* when initializing cage verts, we only want the first cage coordinate for each vertex,
 	 * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
@@ -103,8 +104,28 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	tree->bm = em->bm;
 	tree->epsilon = FLT_EPSILON * 2.0f;
 	tree->flag = flag;
-	
-	tree->tree = BLI_bvhtree_new(em->tottri, tree->epsilon, 8, 8);
+
+	if (flag & (BMBVH_RESPECT_SELECT)) {
+		tottri = 0;
+		for (i = 0; i < em->tottri; i++) {
+			if (BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_SELECT)) {
+				tottri++;
+			}
+		}
+	}
+	else if (flag & (BMBVH_RESPECT_HIDDEN)) {
+		tottri = 0;
+		for (i = 0; i < em->tottri; i++) {
+			if (!BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_HIDDEN)) {
+				tottri++;
+			}
+		}
+	}
+	else {
+		tottri = em->tottri;
+	}
+
+	tree->tree = BLI_bvhtree_new(tottri, tree->epsilon, 8, 8);
 	
 	if (flag & BMBVH_USE_CAGE) {
 		BMIter iter;
@@ -112,7 +133,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 		void *data[3];
 		
 		tree->cos = MEM_callocN(sizeof(float) * 3 * em->bm->totvert, "bmbvh cos");
-		BM_ITER_INDEX(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL, i) {
+		BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 			BM_elem_index_set(v, i); /* set_inline */
 			copy_v3_v3(tree->cos[i], v->co);
 		}
@@ -132,6 +153,21 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	tree->cagecos = cagecos;
 	
 	for (i = 0; i < em->tottri; i++) {
+
+
+		if (flag & BMBVH_RESPECT_SELECT) {
+			/* note, the arrays wont allign now! take care */
+			if (!BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_SELECT)) {
+				continue;
+			}
+		}
+		else if (flag & BMBVH_RESPECT_HIDDEN) {
+			/* note, the arrays wont allign now! take care */
+			if (BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_HIDDEN)) {
+				continue;
+			}
+		}
+
 		if (flag & BMBVH_USE_CAGE) {
 			copy_v3_v3(cos[0], cagecos[BM_elem_index_get(em->looptris[i][0]->v)]);
 			copy_v3_v3(cos[1], cagecos[BM_elem_index_get(em->looptris[i][1]->v)]);
@@ -304,19 +340,6 @@ BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, float *co, float maxdist)
 
 	return NULL;
 }
-
-typedef struct walklist {
-	BMVert *v;
-	int valence;
-	int depth;
-	float w, r;
-	int totwalked;
-
-	/* state data */
-	BMVert *lastv;
-	BMLoop *curl, *firstl;
-	BMEdge *cure;
-} walklist;
 
 /* UNUSED */
 #if 0

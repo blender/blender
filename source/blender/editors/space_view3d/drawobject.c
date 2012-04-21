@@ -1288,7 +1288,6 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		if (la->mode & LA_SPHERE) {
 			drawcircball(GL_LINE_LOOP, vec, la->dist, imat);
 		}
-		/* yafray: for photonlight also draw lightcone as for spot */
 	}
 	
 	glPopMatrix();  /* back in object space */
@@ -2927,7 +2926,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 			BMIter liter;
 			BMLoop *loop;
 
-			BM_face_center_bounds_calc(em->bm, efa, vmid);
+			BM_face_center_bounds_calc(efa, vmid);
 
 			for (loop = BM_iter_new(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
 			     loop; loop = BM_iter_step(&liter))
@@ -2974,7 +2973,7 @@ static void draw_em_indices(BMEditMesh *em)
 	i = 0;
 	if (em->selectmode & SCE_SELECT_VERTEX) {
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
-		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				sprintf(numstr, "%d", i);
 				view3d_cached_text_draw_add(v->co, numstr, 0, txt_flag, col);
@@ -2986,7 +2985,7 @@ static void draw_em_indices(BMEditMesh *em)
 	if (em->selectmode & SCE_SELECT_EDGE) {
 		i = 0;
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 				sprintf(numstr, "%d", i);
 				mid_v3_v3v3(pos, e->v1->co, e->v2->co);
@@ -2999,9 +2998,9 @@ static void draw_em_indices(BMEditMesh *em)
 	if (em->selectmode & SCE_SELECT_FACE) {
 		i = 0;
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
-		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-				BM_face_center_mean_calc(bm, f, pos);
+				BM_face_center_mean_calc(f, pos);
 				sprintf(numstr, "%d", i);
 				view3d_cached_text_draw_add(pos, numstr, 0, txt_flag, col);
 			}

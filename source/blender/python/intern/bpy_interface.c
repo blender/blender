@@ -74,8 +74,10 @@
 /* inittab initialization functions */
 #include "../generic/bgl.h"
 #include "../generic/blf_py_api.h"
+#include "../generic/idprop_py_api.h"
 #include "../bmesh/bmesh_py_api.h"
 #include "../mathutils/mathutils.h"
+
 
 /* for internal use, when starting and ending python scripts */
 
@@ -211,6 +213,7 @@ static struct _inittab bpy_internal_modules[] = {
 	{(char *)"_cycles", CCL_initPython},
 #endif
 	{(char *)"gpu", GPU_initPython},
+	{(char *)"idprop", BPyInit_idprop},
 	{NULL, NULL}
 };
 

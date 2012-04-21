@@ -92,7 +92,7 @@ MINLINE float saasinf(float fac)
 MINLINE float sasqrtf(float fac)
 {
 	if (fac <= 0.0f) return 0.0f;
-	return (float)sqrtf(fac);
+	return sqrtf(fac);
 }
 
 MINLINE float interpf(float target, float origin, float fac)

@@ -1099,6 +1099,7 @@ static BMOpDefine bmo_inset_def = {
 	 {BMO_OP_SLOT_BOOL, "use_even_offset"},
 	 {BMO_OP_SLOT_BOOL, "use_relative_offset"},
 	 {BMO_OP_SLOT_FLT, "thickness"},
+	 {BMO_OP_SLOT_FLT, "depth"},
 	 {BMO_OP_SLOT_BOOL, "use_outset"},
 	 {0} /* null-terminating sentinel */},
 	bmo_inset_exec,
@@ -1110,14 +1111,14 @@ static BMOpDefine bmo_inset_def = {
  *
  * Translates vertes along an edge
  */
-static BMOpDefine bmo_vert_slide_def = {
-"vertslide",
+static BMOpDefine bmo_vertex_slide_def = {
+	"vertex_slide",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "vert"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edge"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"},
 	 {BMO_OP_SLOT_FLT, "distance_t"},
 	 {0} /* null-terminating sentinel */},
-	bmo_vert_slide_exec,
+	bmo_vertex_slide_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
@@ -1189,7 +1190,7 @@ BMOpDefine *opdefines[] = {
 	&bmo_bridge_loops_def,
 	&bmo_solidify_def,
 	&bmo_inset_def,
-	&bmo_vert_slide_def,
+	&bmo_vertex_slide_def,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void *));

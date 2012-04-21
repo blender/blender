@@ -39,7 +39,7 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 {
 	/* create ray form raster position */
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
-	float3 Pcamera = transform(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
+	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
 	ray->P = make_float3(0.0f, 0.0f, 0.0f);
 	ray->D = Pcamera;
@@ -63,7 +63,7 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
-	ray->P = transform(&cameratoworld, ray->P);
+	ray->P = transform_point(&cameratoworld, ray->P);
 	ray->D = transform_direction(&cameratoworld, ray->D);
 	ray->D = normalize(ray->D);
 
@@ -93,7 +93,7 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 {
 	/* create ray form raster position */
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
-	float3 Pcamera = transform(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
+	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
 	ray->P = Pcamera;
 	ray->D = make_float3(0.0f, 0.0f, 1.0f);
@@ -101,7 +101,7 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
-	ray->P = transform(&cameratoworld, ray->P);
+	ray->P = transform_point(&cameratoworld, ray->P);
 	ray->D = transform_direction(&cameratoworld, ray->D);
 	ray->D = normalize(ray->D);
 
@@ -127,7 +127,7 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 __device void camera_sample_environment(KernelGlobals *kg, float raster_x, float raster_y, Ray *ray)
 {
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
-	float3 Pcamera = transform(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
+	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
 	/* create ray form raster position */
 	ray->P = make_float3(0.0, 0.0f, 0.0f);
@@ -136,7 +136,7 @@ __device void camera_sample_environment(KernelGlobals *kg, float raster_x, float
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
-	ray->P = transform(&cameratoworld, ray->P);
+	ray->P = transform_point(&cameratoworld, ray->P);
 	ray->D = transform_direction(&cameratoworld, ray->D);
 	ray->D = normalize(ray->D);
 
@@ -145,10 +145,10 @@ __device void camera_sample_environment(KernelGlobals *kg, float raster_x, float
 	ray->dP.dx = make_float3(0.0f, 0.0f, 0.0f);
 	ray->dP.dy = make_float3(0.0f, 0.0f, 0.0f);
 
-	Pcamera = transform(&rastertocamera, make_float3(raster_x + 1.0f, raster_y, 0.0f));
+	Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x + 1.0f, raster_y, 0.0f));
 	ray->dD.dx = normalize(transform_direction(&cameratoworld, equirectangular_to_direction(Pcamera.x, Pcamera.y))) - ray->D;
 
-	Pcamera = transform(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
+	Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
 	ray->dD.dy = normalize(transform_direction(&cameratoworld, equirectangular_to_direction(Pcamera.x, Pcamera.y))) - ray->D;
 #endif
 

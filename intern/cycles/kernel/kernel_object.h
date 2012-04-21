@@ -42,7 +42,7 @@ __device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, 
 __device_inline void object_position_transform(KernelGlobals *kg, int object, float3 *P)
 {
 	Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-	*P = transform(&tfm, *P);
+	*P = transform_point(&tfm, *P);
 }
 
 __device_inline void object_normal_transform(KernelGlobals *kg, int object, float3 *N)

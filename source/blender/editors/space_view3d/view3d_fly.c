@@ -113,7 +113,7 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Fly Modal");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap)
+	if (keymap && keymap->modal_items)
 		return;
 
 	keymap = WM_modalkeymap_add(keyconf, "View3D Fly Modal", modal_items);

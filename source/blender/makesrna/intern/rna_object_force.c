@@ -1650,7 +1650,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "colball");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* code is not ready for that yet */
 	RNA_def_property_range(prop, -10.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Ball Size", "Absolute ball size or factor if not manual adjusted");
+	RNA_def_property_ui_text(prop, "Ball Size", "Absolute ball size or factor if not manually adjusted");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop = RNA_def_property(srna, "ball_stiff", PROP_FLOAT, PROP_NONE);

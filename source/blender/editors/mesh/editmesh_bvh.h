@@ -60,8 +60,12 @@ int BMBVH_EdgeVisible(struct BMBVHTree *tree, struct BMEdge *e,
 /*find a vert closest to co in a sphere of radius maxdist*/
 struct BMVert *BMBVH_FindClosestVert(struct BMBVHTree *tree, float *co, float maxdist);
                                          
-/*BMBVH_NewBVH flag parameter*/
-#define BMBVH_USE_CAGE		1 /*project geometry onto modifier cage */
-#define BMBVH_RETURN_ORIG	2 /*use with BMBVH_USE_CAGE, returns hits in relation to original geometry*/
+/* BMBVH_NewBVH flag parameter */
+enum {
+	BMBVH_USE_CAGE        = 1, /* project geometry onto modifier cage */
+	BMBVH_RETURN_ORIG     = 2, /* use with BMBVH_USE_CAGE, returns hits in relation to original geometry */
+	BMBVH_RESPECT_SELECT  = 4, /* restrict to hidden geometry (overrides BMBVH_RESPECT_HIDDEN) */
+	BMBVH_RESPECT_HIDDEN  = 8  /* omit hidden geometry */
+};
 
 #endif /* __EDITBMESH_BVH_H__ */

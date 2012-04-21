@@ -742,7 +742,7 @@ static PEdge *p_edge_lookup(PHandle *handle, PHashKey *vkeys)
 	return NULL;
 }
 
-int p_face_exists(ParamHandle *phandle, ParamKey *pvkeys, int i1, int i2, int i3)
+static int p_face_exists(ParamHandle *phandle, ParamKey *pvkeys, int i1, int i2, int i3)
 {
 	PHandle *handle = (PHandle *)phandle;
 	PHashKey *vkeys = (PHashKey *)pvkeys;
@@ -4131,7 +4131,7 @@ void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
 			p_face_add_construct(phandle, key, vkeys, co, uv, 1, 2, 3, pin, select);
 		}
 	}
-	else
+	else if(!p_face_exists(phandle, vkeys, 0, 1, 2))
 		p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select);
 }
 

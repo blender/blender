@@ -138,7 +138,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 		ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
 	
 	/* select new UV's */
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		uvedit_face_select(scene, em, efa);
 	}
 
@@ -156,7 +156,7 @@ static int uvedit_have_selection(Scene *scene, BMEditMesh *em, short implicit)
 	
 	/* verify if we have any selected uv's before unwrapping,
 	 * so we can cancel the operator early */
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
 			if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 				continue;
@@ -164,7 +164,7 @@ static int uvedit_have_selection(Scene *scene, BMEditMesh *em, short implicit)
 		else if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) || !BM_elem_flag_test(efa, BM_ELEM_SELECT))
 			continue;
 	
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			if (!luv)
 				return 1;
@@ -186,6 +186,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
                                            short implicit, short fill, short sel,
                                            short correct_aspect)
 {
+	ScanFillContext sf_ctx;
 	ParamHandle *handle;
 	BMFace *efa;
 	BMLoop *l;
@@ -211,25 +212,25 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	
 	/* we need the vert indices */
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+
+	BLI_srand(0);
 	
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		ScanFillVert *v, *lastv, *firstv;
 		ScanFillFace *sefa;
 		ParamKey key, vkeys[4];
 		ParamBool pin[4], select[4];
 		BMLoop *ls[3];
-		MLoopUV *luvs[3];
 		float *co[4];
 		float *uv[4];
-		int lsel;
+		int i, lsel;
 
 		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0))
 			continue;
 
-		/* tf= (MTexPoly *)CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 		lsel = 0;
 
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			if (uvedit_uv_selected(em, scene, l)) {
 				lsel = 1;
 				break;
@@ -241,73 +242,76 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 		key = (ParamKey)efa;
 
-		/*scanfill time!*/
-		BLI_begin_edgefill();
-		
-		firstv = lastv = NULL;
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-			int i;
-			
-			v = BLI_addfillvert(l->v->co);
-			
-			/*add small random offset*/
-			for (i = 0; i < 3; i++) {
-				v->co[i] += (BLI_drand() - 0.5f) * FLT_EPSILON * 50;
-			}
-			
-			v->tmp.p = l;
 
-			if (lastv) {
-				BLI_addfilledge(lastv, v);
+		if(efa->len == 3 || efa->len == 4) {
+			/* for quads let parametrize split, it can make better decisions
+			   about which split is best for unwrapping than scanfill */
+			i = 0;
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				vkeys[i] = (ParamKey)BM_elem_index_get(l->v);
+				co[i] = l->v->co;
+				uv[i] = luv->uv;
+				pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
+				select[i] = uvedit_uv_selected(em, scene, l) != 0;
+
+				i++;
 			}
 
-			lastv = v;
-			if (!firstv) 
-				firstv = v;
+			param_face_add(handle, key, i, vkeys, co, uv, pin, select);
 		}
-
-		BLI_addfilledge(firstv, v);
-		
-		/*mode 2 enables faster handling of tri/quads*/
-		BLI_edgefill(2);
-		for (sefa = fillfacebase.first; sefa; sefa = sefa->next) {
-			ls[0] = sefa->v1->tmp.p;
-			ls[1] = sefa->v2->tmp.p;
-			ls[2] = sefa->v3->tmp.p;
+		else {
+			/* ngon - scanfill time! */
+			BLI_begin_edgefill(&sf_ctx);
 			
-			luvs[0] = CustomData_bmesh_get(&em->bm->ldata, ls[0]->head.data, CD_MLOOPUV);
-			luvs[1] = CustomData_bmesh_get(&em->bm->ldata, ls[1]->head.data, CD_MLOOPUV);
-			luvs[2] = CustomData_bmesh_get(&em->bm->ldata, ls[2]->head.data, CD_MLOOPUV);
+			firstv = lastv = NULL;
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				int i;
+				
+				v = BLI_addfillvert(&sf_ctx, l->v->co);
+				
+				/* add small random offset */
+				for (i = 0; i < 3; i++) {
+					v->co[i] += (BLI_frand() - 0.5f) * FLT_EPSILON * 50;
+				}
+				
+				v->tmp.p = l;
 
-			vkeys[0] = (ParamKey)BM_elem_index_get(ls[0]->v);
-			vkeys[1] = (ParamKey)BM_elem_index_get(ls[1]->v);
-			vkeys[2] = (ParamKey)BM_elem_index_get(ls[2]->v);
+				if (lastv) {
+					BLI_addfilledge(&sf_ctx, lastv, v);
+				}
 
-			co[0] = ls[0]->v->co;
-			co[1] = ls[1]->v->co;
-			co[2] = ls[2]->v->co;
+				lastv = v;
+				if (!firstv) 
+					firstv = v;
+			}
 
-			uv[0] = luvs[0]->uv;
-			uv[1] = luvs[1]->uv;
-			uv[2] = luvs[2]->uv;
+			BLI_addfilledge(&sf_ctx, firstv, v);
 
-			pin[0] = (luvs[0]->flag & MLOOPUV_PINNED) != 0;
-			pin[1] = (luvs[1]->flag & MLOOPUV_PINNED) != 0;
-			pin[2] = (luvs[2]->flag & MLOOPUV_PINNED) != 0;
+			BLI_edgefill_ex(&sf_ctx, TRUE, efa->no);
+			for (sefa = sf_ctx.fillfacebase.first; sefa; sefa = sefa->next) {
+				ls[0] = sefa->v1->tmp.p;
+				ls[1] = sefa->v2->tmp.p;
+				ls[2] = sefa->v3->tmp.p;
 
-			select[0] = uvedit_uv_selected(em, scene, ls[0]) != 0;
-			select[1] = uvedit_uv_selected(em, scene, ls[1]) != 0;
-			select[2] = uvedit_uv_selected(em, scene, ls[2]) != 0;
+				for(i = 0; i < 3; i++) {
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, ls[i]->head.data, CD_MLOOPUV);
+					vkeys[i] = (ParamKey)BM_elem_index_get(ls[i]->v);
+					co[i] = ls[i]->v->co;
+					uv[i] = luv->uv;
+					pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
+					select[i] = uvedit_uv_selected(em, scene, ls[i]) != 0;
+				}
 
-			if (!p_face_exists(handle, vkeys, 0, 1, 2))
 				param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
-		}
+			}
 
-		BLI_end_edgefill();
+			BLI_end_edgefill(&sf_ctx);
+		}
 	}
 
 	if (!implicit) {
-		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(eed, BM_ELEM_SEAM)) {
 				ParamKey vkeys[2];
 				vkeys[0] = (ParamKey)BM_elem_index_get(eed->v1);
@@ -336,7 +340,7 @@ static void texface_from_original_index(BMFace *efa, int index, float **uv, Para
 	if (index == ORIGINDEX_NONE)
 		return;
 
-	BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+	BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 		if (BM_elem_index_get(l->v) == index) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			*uv = luv->uv;
@@ -829,6 +833,16 @@ void ED_uvedit_live_unwrap_end(short cancel)
 	}
 }
 
+void ED_uvedit_live_unwrap(Scene *scene, Object *obedit)
+{
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+
+    if (scene->toolsettings->edge_mode_live_unwrap &&
+        CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
+        ED_unwrap_lscm(scene, obedit, FALSE); /* unwrap all not just sel */
+    }
+}
+
 /*************** UV Map Common Transforms *****************/
 
 #define VIEW_ON_EQUATOR 0
@@ -854,9 +868,9 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 			min[0] = min[1] = min[2] = 1e20f;
 			max[0] = max[1] = max[2] = -1e20f;
 			
-			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-					BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 						DO_MINMAX(l->v->co, min, max);
 					}
 				}
@@ -1006,11 +1020,11 @@ static void correct_uv_aspect(BMEditMesh *em)
 	if (aspx > aspy) {
 		scale = aspy / aspx;
 
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT) || BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 				continue;
 			
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				luv->uv[0] = ((luv->uv[0] - 0.5) * scale) + 0.5;
 			}
@@ -1019,11 +1033,11 @@ static void correct_uv_aspect(BMEditMesh *em)
 	else {
 		scale = aspx / aspy;
 
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT) || BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 				continue;
 			
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				luv->uv[1] = ((luv->uv[1] - 0.5) * scale) + 0.5;
 			}
@@ -1061,11 +1075,11 @@ static void uv_map_clip_correct(BMEditMesh *em, wmOperator *op)
 	if (scale_to_bounds) {
 		INIT_MINMAX2(min, max);
 		
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 				continue;
 
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				DO_MINMAX2(luv->uv, min, max);
 			}
@@ -1080,11 +1094,11 @@ static void uv_map_clip_correct(BMEditMesh *em, wmOperator *op)
 		if (dy > 0.0f)
 			dy = 1.0f / dy;
 
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 				continue;
 
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				
 				luv->uv[0] = (luv->uv[0] - min[0]) * dx;
@@ -1094,11 +1108,11 @@ static void uv_map_clip_correct(BMEditMesh *em, wmOperator *op)
 	}
 	else if (clip_to_bounds) {
 		/* clipping and wrapping */
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 				continue;
 
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				CLAMP(luv->uv[0], 0.0f, 1.0f);
 				CLAMP(luv->uv[1], 0.0f, 1.0f);
@@ -1243,11 +1257,11 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 	if (RNA_boolean_get(op->ptr, "orthographic")) {
 		uv_map_rotation_matrix(rotmat, rv3d, obedit, 90.0f, 0.0f, 1.0f);
 		
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 				continue;
 
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				project_from_view_ortho(luv->uv, l->v->co, rotmat);
 			}
@@ -1257,11 +1271,11 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 		struct UvCameraInfo *uci = project_camera_info(v3d->camera, obedit->obmat, scene->r.xsch, scene->r.ysch);
 		
 		if (uci) {
-			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 					continue;
 
-				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					project_from_camera(luv->uv, l->v->co, uci);
 				}
@@ -1273,11 +1287,11 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 	else {
 		copy_m4_m4(rotmat, obedit->obmat);
 
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 				continue;
 
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				project_from_view(luv->uv, l->v->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
 			}
@@ -1380,7 +1394,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 	int i, mi;
 
 	i = 0;
-	BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+	BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 		luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 		uvs[i] = luv->uv;
 		i++;
@@ -1420,11 +1434,11 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_transform(C, op, center, rotmat);
 
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 			continue;
 
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 			uv_sphere_project(luv->uv, l->v->co, center, rotmat);
@@ -1493,12 +1507,12 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_transform(C, op, center, rotmat);
 
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 			continue;
 		
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 			uv_cylinder_project(luv->uv, l->v->co, center, rotmat);
@@ -1557,7 +1571,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 	/* choose x,y,z axis for projection depending on the largest normal
 	* component, but clusters all together around the center of map. */
 
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		int first = 1;
 
 		/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
@@ -1567,7 +1581,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 		axis_dominant_v3(&cox, &coy, efa->no);
 
 		dx = dy = 0;
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 			luv->uv[0] = 0.5f + 0.5f * cube_size * (loc[cox] + l->v->co[cox]);

@@ -1929,7 +1929,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 		mp->loopstart = j;
 		mp->mat_nr = efa->mat_nr;
 		
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			mloop->v = BM_elem_index_get(l->v);
 			mloop->e = BM_elem_index_get(l->e);
 			CustomData_from_bmesh_block(&bm->ldata, &dm->loopData, l->head.data, j);
@@ -1988,13 +1988,6 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
-
-	/* any callers that need tessface data can calculate it - campbell */
-#if 0
-	/* BMESH_TODO: Find out why this is necessary (or else find a way to remove
-	 * it). If it is necessary, add a comment explaining why. */
-	CDDM_recalc_tessellation((DerivedMesh *)cddm);
-#endif
 
 	return dm;
 }

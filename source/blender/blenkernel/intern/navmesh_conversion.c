@@ -166,7 +166,7 @@ int buildRawVertIndicesData(DerivedMesh* dm, int *nverts_r, float **verts_r,
 	}
 
 	//carefully, recast data is just reference to data in derived mesh
-	*recastData = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
+	*recastData = (int*)CustomData_get_layer(&dm->polyData, CD_RECAST);
 
 	*nverts_r = nverts;
 	*verts_r = verts;

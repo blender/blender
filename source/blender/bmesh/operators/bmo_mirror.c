@@ -43,7 +43,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMOperator dupeop, weldop;
 	BMOIter siter;
 	BMIter iter;
-	BMVert *v, *v2, **vmap = NULL;
+	BMVert *v /* , *v2 */ /* UNUSED */, **vmap = NULL;
 	BLI_array_declare(vmap);
 	BMEdge /*  *e, */ **emap = NULL;
 	BLI_array_declare(emap);
@@ -69,15 +69,11 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 
 	/* create old -> new mappin */
 	i = 0;
-	v2 = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	BMO_ITER(v, &siter, bm, &dupeop, "newout", BM_VERT) {
+	/* v2 = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); */ /* UNUSED */
+	BMO_ITER (v, &siter, bm, &dupeop, "newout", BM_VERT) {
 		BLI_array_growone(vmap);
 		vmap[i] = v;
-
-		/* BMESH_TODO, double check this is being used, calling following operators will overwrite anyway - campbell */
-		BM_elem_index_set(v2, i); /* set_dirty! */
-		v2 = BM_iter_step(&iter);
-
+		/* v2 = BM_iter_step(&iter); */ /* UNUSED */
 		i++;
 	}
 	bm->elem_index_dirty |= BM_VERT;
@@ -105,8 +101,8 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 		int totlayer;
 		BMIter liter;
 
-		BMO_ITER(f, &siter, bm, &dupeop, "newout", BM_FACE) {
-			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		BMO_ITER (f, &siter, bm, &dupeop, "newout", BM_FACE) {
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				totlayer = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
 				for (i = 0; i < totlayer; i++) {
 					luv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);

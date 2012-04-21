@@ -3,7 +3,7 @@ import bpy
 
 def write_some_data(context, filepath, use_some_setting):
     print("running write_some_data...")
-    f = open(filepath, 'w')
+    f = open(filepath, 'w', encoding='utf-8')
     f.write("Hello World %s" % use_some_setting)
     f.close()
 
@@ -14,11 +14,12 @@ def write_some_data(context, filepath, use_some_setting):
 # invoke() function which calls the file selector.
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.types import Operator
 
 
-class ExportSomeData(bpy.types.Operator, ExportHelper):
-    '''This appears in the tooltip of the operator and in the generated docs.'''
-    bl_idname = "export.some_data"  # this is important since its how bpy.ops.export.some_data is constructed
+class ExportSomeData(Operator, ExportHelper):
+    '''This appears in the tooltip of the operator and in the generated docs'''
+    bl_idname = "export_test.some_data"  # important since its how bpy.ops.import_test.some_data is constructed
     bl_label = "Export Some Data"
 
     # ExportHelper mixin class uses this
@@ -45,10 +46,6 @@ class ExportSomeData(bpy.types.Operator, ExportHelper):
             default='OPT_A',
             )
 
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
     def execute(self, context):
         return write_some_data(context, self.filepath, self.use_setting)
 
@@ -72,4 +69,4 @@ if __name__ == "__main__":
     register()
 
     # test call
-    bpy.ops.export.some_data('INVOKE_DEFAULT')
+    bpy.ops.export_test.some_data('INVOKE_DEFAULT')

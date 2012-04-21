@@ -153,7 +153,7 @@ if(UNIX AND NOT APPLE)
 else()
 	set(PLATFORM_DEFAULT OFF)
 endif()
-option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" PLATFORM_DEFAULT)
+option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ${PLATFORM_DEFAULT})
 unset(PLATFORM_DEFAULT)
 
 
@@ -194,7 +194,14 @@ option(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 option(WITH_IMAGE_FRAMESERVER   "Enable image FrameServer Support for rendering" ON)
 
 # Audio/Video format support
-option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
+if(MINGW)
+	set(PLATFORM_DEFAULT ON)
+else()
+	set(PLATFORM_DEFAULT OFF)
+endif()
+option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" ${PLATFORM_DEFAULT})
+unset(PLATFORM_DEFAULT)
+
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 if(APPLE OR (WIN32 AND NOT UNIX))
 	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
@@ -355,6 +362,19 @@ endif()
 
 if(WITH_GHOST_SDL OR WITH_HEADLESS)
 	set(WITH_GHOST_XDND OFF)
+endif()
+
+if(MINGW)
+	if(WITH_CODEC_QUICKTIME)
+		message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
+		                    "because it is currently unsupported, remove this "
+		                    "line if youre a developer who wants to add support.")
+	endif()
+
+	if((NOT WITH_CODEC_FFMPEG) AND (WITH_CYCLES OR WITH_IMAGE_OPENEXR OR WITH_IMAGE_TIFF))
+		message(FATAL_ERROR "MINGW has a problem with: WITH_CYCLES/WITH_IMAGE_OPENEXR/WITH_IMAGE_TIFF "
+		                    "when WITH_CODEC_FFMPEG is disabled, enable FFMPEG or disable CYCLES/EXR/TIFF.")
+	endif()
 endif()
 
 TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)

@@ -4532,7 +4532,7 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr, PointerRNA
 
 	PropertyRNA *prop;
 
-	DynStr *dynstr= BLI_dynstr_new();
+	DynStr *dynstr = BLI_dynstr_new();
 	char *cstring, *buf;
 	int first_iter = TRUE, ok = TRUE;
 	int flag;
@@ -4581,10 +4581,10 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr, PointerRNA
 			if (all_args == FALSE && ptr_default) {
 				/* not verbose, so only add in attributes that use non-default values
 				 * slow but good for tooltips */
-				prop_default= RNA_struct_find_property(ptr_default, arg_name);
+				prop_default = RNA_struct_find_property(ptr_default, arg_name);
 
 				if (prop_default) {
-					buf_default= RNA_property_as_string(C, ptr_default, prop_default);
+					buf_default = RNA_property_as_string(C, ptr_default, prop_default);
 
 					if (strcmp(buf, buf_default) == 0)
 						ok = FALSE; /* values match, don't bother printing */

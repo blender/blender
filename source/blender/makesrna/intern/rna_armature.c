@@ -952,7 +952,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_auto_ik", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_AUTO_IK);
-	RNA_def_property_ui_text(prop, "Auto IK", "Add temporaral IK constraints while grabbing bones in Pose Mode");
+	RNA_def_property_ui_text(prop, "Auto IK", "Add temporary IK constraints while grabbing bones in Pose Mode");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	

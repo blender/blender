@@ -37,8 +37,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+
 #ifdef WIN32
-#include "BLI_winstuff.h"
+#  include "BLI_winstuff.h"
 #endif
 
 #include "ED_screen.h"

@@ -69,14 +69,14 @@ void seq_array(struct Editing *ed, struct Sequence ***seqarray, int *tot, int us
 #define SEQP_BEGIN(ed, _seq)                                                  \
 {                                                                             \
 	SeqIterator iter;                                                         \
-		for(seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) {           \
-			_seq= iter.seq;
+		for (seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) {          \
+			_seq = iter.seq;
 			
 #define SEQ_BEGIN(ed, _seq)                                                   \
 	{                                                                         \
 		SeqIterator iter;                                                     \
-		for(seq_begin(ed, &iter, 0); iter.valid; seq_next(&iter)) {           \
-			_seq= iter.seq;
+		for (seq_begin(ed, &iter, 0); iter.valid; seq_next(&iter)) {          \
+			_seq = iter.seq;
 
 #define SEQ_END                                                               \
 		}                                                                     \
@@ -138,12 +138,10 @@ struct SeqEffectHandle {
 	int (*early_out)(struct Sequence *seq, float facf0, float facf1); 
 	
 	/* stores the y-range of the effect IPO */
-	void (*store_icu_yrange)(struct Sequence * seq,
-                                 short adrcode, float *ymin, float *ymax);
+	void (*store_icu_yrange)(struct Sequence * seq, short adrcode, float *ymin, float *ymax);
 	
 	/* stores the default facf0 and facf1 if no IPO is present */
-	void (*get_default_fac)(struct Sequence *seq, float cfra,
-                                float * facf0, float * facf1);
+	void (*get_default_fac)(struct Sequence *seq, float cfra, float * facf0, float * facf1);
 	
 	/* execute the effect
 	 * sequence effects are only required to either support

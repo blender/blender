@@ -30,7 +30,9 @@
  *  \ingroup bke
  */
 
-#include "BLI_winstuff.h"
+#ifdef WIN32
+#  include "BLI_winstuff.h"
+#endif
 
 #include <string.h>
 #include <stdio.h>

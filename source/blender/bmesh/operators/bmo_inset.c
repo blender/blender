@@ -42,17 +42,6 @@ typedef struct SplitEdgeInfo {
 	BMLoop *l;
 } SplitEdgeInfo;
 
-static void edge_loop_tangent(BMEdge *e, BMLoop *e_loop, float r_no[3])
-{
-	float tvec[3];
-	BMVert *v1, *v2;
-	BM_edge_ordered_verts_ex(e, &v1, &v2, e_loop);
-
-	sub_v3_v3v3(tvec, v1->co, v2->co); /* use for temp storage */
-	cross_v3_v3v3(r_no, tvec, e_loop->f->no);
-	normalize_v3(r_no);
-}
-
 /**
  * return the tag loop where there is...
  * - only 1 tagged face attached to this edge.
@@ -91,6 +80,22 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
 	}
 }
 
+float bm_vert_avg_tag_dist(BMVert *v)
+{
+	BMIter iter;
+	BMEdge *e;
+	int tot;
+	float length = 0.0f;
+
+	BM_ITER_ELEM_INDEX (e, &iter, v, BM_EDGES_OF_VERT, tot) {
+		BMVert *v_other = BM_edge_other_vert(e, v);
+		if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
+			length += BM_edge_length_calc(e);
+		}
+	}
+
+	return length / (float)tot;
+}
 
 /**
  * implementation is as follows...
@@ -109,7 +114,8 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	const int use_even_offset     = BMO_slot_bool_get(op, "use_even_offset");
 	const int use_even_boundry    = use_even_offset; /* could make own option */
 	const int use_relative_offset = BMO_slot_bool_get(op, "use_relative_offset");
-	const float thickness = BMO_slot_float_get(op, "thickness");
+	const float thickness         = BMO_slot_float_get(op, "thickness");
+	const float depth             = BMO_slot_float_get(op, "depth");
 
 	int edge_info_len = 0;
 
@@ -133,7 +139,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 	/* first count all inset edges we will split */
 	/* fill in array and initialize tagging */
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (
 		    /* tag if boundary is enabled */
 		    (use_boundary && BM_edge_is_boundary(e) && BM_elem_flag_test(e->l->f, BM_ELEM_TAG)) ||
@@ -163,7 +169,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 	/* fill in array and initialize tagging */
 	es = edge_info;
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		i = BM_elem_index_get(e);
 		if (i != -1) {
 			/* calc edge-split info */
@@ -188,7 +194,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 		/* calc edge-split info */
 		es->e_new = es->l->e;
-		edge_loop_tangent(es->e_new, es->l, es->no);
+		BM_edge_face_tangent(es->e_new, es->l, es->no);
 
 		if (es->e_new == es->e_old) { /* happens on boundary edges */
 			/* take care here, we're creating this double edge which _must_ have its verts replaced later on */
@@ -257,7 +263,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 					int vecpair[2];
 
 					/* find adjacent */
-					BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v_split) {
+					BM_ITER_ELEM (e, &iter, v_split, BM_EDGES_OF_VERT) {
 						if (BM_elem_flag_test(e, BM_ELEM_TAG) &&
 						    e->l && BM_elem_flag_test(e->l->f, BM_ELEM_TAG))
 						{
@@ -422,7 +428,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 					if (r_vout_len > 2) {
 						int ok = TRUE;
 						/* last step, NULL this vertex if has a tagged face */
-						BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, v_split) {
+						BM_ITER_ELEM (f, &iter, v_split, BM_FACES_OF_VERT) {
 							if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
 								ok = FALSE;
 								break;
@@ -493,4 +499,42 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 	/* we could flag new edges/verts too, is it useful? */
 	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, ELE_NEW);
+
+	/* cheap feature to add depth to the inset */
+	if (depth != 0.0f) {
+		float (*varr_co)[3];
+		BMOIter oiter;
+
+		/* untag verts */
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
+
+		/* tag face verts */
+		BMO_ITER (f, &oiter, bm, op, "faces", BM_FACE) {
+			BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
+				BM_elem_flag_enable(v, BM_ELEM_TAG);
+			}
+		}
+
+		/* do in 2 passes so moving the verts doesn't feed back into face angle checks
+		 * which BM_vert_shell_factor uses. */
+
+		/* over allocate */
+		varr_co = MEM_callocN(sizeof(*varr_co) * bm->totvert, __func__);
+
+		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				const float fac = (depth *
+								   (use_relative_offset ? bm_vert_avg_tag_dist(v) : 1.0f) *
+								   (use_even_boundry    ? BM_vert_shell_factor(v) : 1.0f));
+				madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
+			}
+		}
+
+		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				copy_v3_v3(v->co, varr_co[i]);
+			}
+		}
+		MEM_freeN(varr_co);
+	}
 }

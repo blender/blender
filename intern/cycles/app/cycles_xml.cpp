@@ -724,7 +724,7 @@ static void xml_read_patch(const XMLReadState& state, pugi::xml_node node)
 			LinearQuadPatch *bpatch = new LinearQuadPatch();
 
 			for(int i = 0; i < 4; i++)
-				P[i] = transform(&state.tfm, P[i]);
+				P[i] = transform_point(&state.tfm, P[i]);
 			memcpy(bpatch->hull, &P[0], sizeof(bpatch->hull));
 
 			patch = bpatch;
@@ -738,7 +738,7 @@ static void xml_read_patch(const XMLReadState& state, pugi::xml_node node)
 			BicubicPatch *bpatch = new BicubicPatch();
 
 			for(int i = 0; i < 16; i++)
-				P[i] = transform(&state.tfm, P[i]);
+				P[i] = transform_point(&state.tfm, P[i]);
 			memcpy(bpatch->hull, &P[0], sizeof(bpatch->hull));
 
 			patch = bpatch;
@@ -777,7 +777,7 @@ static void xml_read_light(const XMLReadState& state, pugi::xml_node node)
 	Light *light = new Light();
 	light->shader = state.shader;
 	xml_read_float3(&light->co, node, "P");
-	light->co = transform(&state.tfm, light->co);
+	light->co = transform_point(&state.tfm, light->co);
 
 	state.scene->lights.push_back(light);
 }

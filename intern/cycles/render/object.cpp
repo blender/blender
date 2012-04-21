@@ -54,7 +54,7 @@ void Object::apply_transform()
 		return;
 	
 	for(size_t i = 0; i < mesh->verts.size(); i++)
-		mesh->verts[i] = transform(&tfm, mesh->verts[i]);
+		mesh->verts[i] = transform_point(&tfm, mesh->verts[i]);
 
 	Attribute *attr_fN = mesh->attributes.find(Attribute::STD_FACE_NORMAL);
 	Attribute *attr_vN = mesh->attributes.find(Attribute::STD_VERTEX_NORMAL);
@@ -159,9 +159,9 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		}
 		else {
 			foreach(Mesh::Triangle& t, mesh->triangles) {
-				float3 p1 = transform(&tfm, mesh->verts[t.v[0]]);
-				float3 p2 = transform(&tfm, mesh->verts[t.v[1]]);
-				float3 p3 = transform(&tfm, mesh->verts[t.v[2]]);
+				float3 p1 = transform_point(&tfm, mesh->verts[t.v[0]]);
+				float3 p2 = transform_point(&tfm, mesh->verts[t.v[1]]);
+				float3 p3 = transform_point(&tfm, mesh->verts[t.v[2]]);
 
 				surface_area += triangle_area(p1, p2, p3);
 			}

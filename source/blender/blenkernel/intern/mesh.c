@@ -2354,7 +2354,6 @@ int mesh_recalcTessellation(CustomData *fdata,
                             * we can skip copying here */
                            const int do_face_nor_cpy)
 {
-
 	/* use this to avoid locking pthread for _every_ polygon
 	 * and calling the fill function */
 
@@ -2368,6 +2367,7 @@ int mesh_recalcTessellation(CustomData *fdata,
 	MLoop *ml, *mloop;
 	MFace *mface = NULL, *mf;
 	BLI_array_declare(mface);
+	ScanFillContext sf_ctx;
 	ScanFillVert *v, *lastv, *firstv;
 	ScanFillFace *f;
 	int *mface_orig_index = NULL;
@@ -2461,24 +2461,24 @@ int mesh_recalcTessellation(CustomData *fdata,
 
 			ml = mloop + mp->loopstart;
 			
-			BLI_begin_edgefill();
+			BLI_begin_edgefill(&sf_ctx);
 			firstv = NULL;
 			lastv = NULL;
 			for (j=0; j<mp->totloop; j++, ml++) {
-				v = BLI_addfillvert(mvert[ml->v].co);
+				v = BLI_addfillvert(&sf_ctx, mvert[ml->v].co);
 	
 				v->keyindex = mp->loopstart + j;
 	
 				if (lastv)
-					BLI_addfilledge(lastv, v);
+					BLI_addfilledge(&sf_ctx, lastv, v);
 	
 				if (!firstv)
 					firstv = v;
 				lastv = v;
 			}
-			BLI_addfilledge(lastv, firstv);
+			BLI_addfilledge(&sf_ctx, lastv, firstv);
 			
-			totfilltri = BLI_edgefill(2);
+			totfilltri = BLI_edgefill(&sf_ctx, FALSE);
 			if (totfilltri) {
 				BLI_array_growitems(mface_to_poly_map, totfilltri);
 				BLI_array_growitems(mface, totfilltri);
@@ -2486,7 +2486,7 @@ int mesh_recalcTessellation(CustomData *fdata,
 					BLI_array_growitems(mface_orig_index, totfilltri);
 				}
 
-				for (f = fillfacebase.first; f; f = f->next, mf++) {
+				for (f = sf_ctx.fillfacebase.first; f; f = f->next, mf++) {
 					mface_to_poly_map[mface_index] = poly_index;
 					mf= &mface[mface_index];
 
@@ -2511,7 +2511,7 @@ int mesh_recalcTessellation(CustomData *fdata,
 				}
 			}
 	
-			BLI_end_edgefill();
+			BLI_end_edgefill(&sf_ctx);
 		}
 	}
 

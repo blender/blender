@@ -85,7 +85,6 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fss->guiDisplayMode = 2; // preview
 		fss->renderDisplayMode = 3; // render
 
-		fss->viscosityMode = 2; // default to water
 		fss->viscosityValue = 1.0;
 		fss->viscosityExponent = 6;
 		

@@ -269,13 +269,6 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 		{OB_FSDOM_FINAL, "FINAL", 0, "Final", "Display final quality results"},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem viscosity_items[] = {
-		{1, "MANUAL", 0, "Manual", "Manual viscosity settings"},
-		{2, "WATER", 0, "Water", "Viscosity of 1.0 * 10^-6"},
-		{3, "OIL", 0, "Oil", "Viscosity of 5.0 * 10^-5"},
-		{4, "HONEY", 0, "Honey", "Viscosity of 2.0 * 10^-3"},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna = RNA_def_struct(brna, "DomainFluidSettings", "FluidSettings");
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
 	RNA_def_struct_ui_text(srna, "Domain Fluid Simulation Settings",
@@ -287,11 +280,13 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "resolutionxyz");
 	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_text(prop, "Resolution", "Domain resolution in X,Y and Z direction");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "preview_resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "previewresxyz");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Preview Resolution", "Preview resolution in X,Y and Z direction");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "viewport_display_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "guiDisplayMode");
@@ -358,12 +353,6 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "animRate");
 	RNA_def_property_range(prop, 0.0, 100.0);
 	RNA_def_property_ui_text(prop, "Simulation Speed", "Fluid motion rate (0 = stationary, 1 = normal speed)");
-	
-	prop = RNA_def_property(srna, "viscosity_preset", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "viscosityMode");
-	RNA_def_property_enum_items(prop, viscosity_items);
-	RNA_def_property_ui_text(prop, "Viscosity Preset",
-	                         "Set viscosity of the fluid to a preset value, or use manual input");
 
 	prop = RNA_def_property(srna, "viscosity_base", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "viscosityValue");
@@ -421,7 +410,9 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "surface_noobs", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSSG_NOOBS);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Hide fluid surface", "");
+	RNA_def_property_ui_text(prop, "Remove air bubbles",
+	                         "Removes the air gap between fluid surface and obstacles - WARNING: Can result "
+	                         "in a dissolving surface in other areas");
 
 	/* particles */
 
@@ -598,7 +589,7 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 2.0);
 	RNA_def_property_ui_text(prop, "Alpha Influence",
 	                         "Amount of particle alpha change, inverse of size influence: 0=off (all same alpha), "
-	                         "1=full (large particles get lower alphas, smaller ones higher values)");
+	                         "1=full (larger particles get lower alphas, smaller ones higher values)");
 
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_maxlength(prop, FILE_MAX);

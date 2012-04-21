@@ -1355,7 +1355,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_on_foreground", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_BGPIC_FOREGROUND);
-	RNA_def_property_ui_text(prop, "Show On Foreground", "Show this image in fround of objects in viewport");
+	RNA_def_property_ui_text(prop, "Show On Foreground", "Show this image in front of objects in viewport");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 

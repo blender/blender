@@ -37,13 +37,21 @@ typedef struct Transform {
 #endif
 } Transform;
 
-__device_inline float3 transform(const Transform *t, const float3 a)
+__device_inline float3 transform_perspective(const Transform *t, const float3 a)
 {
 	float4 b = make_float4(a.x, a.y, a.z, 1.0f);
 	float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
 	float w = dot(t->w, b);
 
 	return (w != 0.0f)? c/w: make_float3(0.0f, 0.0f, 0.0f);
+}
+
+__device_inline float3 transform_point(const Transform *t, const float3 a)
+{
+	float4 b = make_float4(a.x, a.y, a.z, 1.0f);
+	float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
+
+	return c;
 }
 
 __device_inline float3 transform_direction(const Transform *t, const float3 a)

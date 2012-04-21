@@ -1192,7 +1192,7 @@ PyDoc_STRVAR(quaternion_doc,
 );
 PyTypeObject quaternion_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"mathutils.Quaternion",             //tp_name
+	"Quaternion",             //tp_name
 	sizeof(QuaternionObject),           //tp_basicsize
 	0,                                  //tp_itemsize
 	(destructor)BaseMathObject_dealloc, //tp_dealloc

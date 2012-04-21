@@ -61,7 +61,7 @@ __device void mbvh_instance_push(KernelGlobals *kg, int object, MBVHRay *ray)
 {
 	Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 
-	ray->P = transform(&tfm, ray->origP);
+	ray->P = transform_point(&tfm, ray->origP);
 
 	float3 dir = ray->origD;
 

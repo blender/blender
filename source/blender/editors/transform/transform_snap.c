@@ -1874,10 +1874,9 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
 
 	for (base = scene->base.first; base != NULL; base = base->next) {
-		if ( BASE_SELECTABLE(v3d, base) ) {
+		if (BASE_SELECTABLE(v3d, base)) {
 			Object *ob = base->object;
-			
-#if 0 //BMESH_TODO
+
 			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
 				ListBase *lb = object_duplilist(scene, ob);
@@ -1887,7 +1886,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 					Object *dob = dupli_ob->ob;
 					
 					if (dob->type == OB_MESH) {
-						EditMesh *em;
+						BMEditMesh *em;
 						DerivedMesh *dm = NULL;
 						int val;
 
@@ -1897,8 +1896,8 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 							val = peelDerivedMesh(dob, dm, dob->obmat, ray_start, ray_normal, mval, depth_peels);
 						}
 						else {
-							em = ((Mesh *)dob->data)->edit_mesh;
-							dm = editmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
+							em = BMEdit_FromObject(dob);
+							dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
 							
 							val = peelDerivedMesh(dob, dm, dob->obmat, ray_start, ray_normal, mval, depth_peels);
 						}
@@ -1911,7 +1910,6 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 				
 				free_object_duplilist(lb);
 			}
-#endif
 			
 			if (ob->type == OB_MESH) {
 				int val = 0;

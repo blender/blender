@@ -1099,7 +1099,7 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_ORIGINDEX | CD_MASK_POLYINDEX;
 const CustomDataMask CD_MASK_BMESH = CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | 
-	CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS | CD_MASK_CREASE | CD_MASK_BWEIGHT;
+	CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS | CD_MASK_CREASE | CD_MASK_BWEIGHT | CD_MASK_RECAST;
 const CustomDataMask CD_MASK_FACECORNERS =
 	CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
 	CD_MASK_MLOOPCOL;
@@ -2191,7 +2191,7 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 
 	if (t != BM_LOOPS_OF_FACE) {
 		/*ensure all current elements follow new customdata layout*/
-		BM_ITER(h, &iter, bm, t, NULL) {
+		BM_ITER_MESH (h, &iter, bm, t) {
 			tmp = NULL;
 			CustomData_bmesh_copy_data(&destold, dest, h->data, &tmp);
 			CustomData_bmesh_free_block(&destold, &h->data);
@@ -2204,8 +2204,8 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 		BMIter liter;
 
 		/*ensure all current elements follow new customdata layout*/
-		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				tmp = NULL;
 				CustomData_bmesh_copy_data(&destold, dest, l->head.data, &tmp);
 				CustomData_bmesh_free_block(&destold, &l->head.data);

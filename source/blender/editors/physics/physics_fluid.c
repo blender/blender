@@ -98,19 +98,7 @@
 
 static float get_fluid_viscosity(FluidsimSettings *settings)
 {
-	switch (settings->viscosityMode) {
-		case 0:		/* unused */
-			return -1.0;
-		case 2:		/* water */
-			return 1.0e-6;
-		case 3:		/* some (thick) oil */
-			return 5.0e-5;
-		case 4:		/* ca. honey */
-			return 2.0e-3;
-		case 1:		/* manual */
-		default:
-			return (1.0f/powf(10.0f, settings->viscosityExponent)) * settings->viscosityValue;
-	}
+	return (1.0f/powf(10.0f, settings->viscosityExponent)) * settings->viscosityValue;
 }
 
 static float get_fluid_rate(FluidsimSettings *settings)

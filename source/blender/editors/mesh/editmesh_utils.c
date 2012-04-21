@@ -313,7 +313,6 @@ void EDBM_mesh_load(Object *ob)
 #ifdef USE_TESSFACE_DEFAULT
 	BKE_mesh_tessface_calc(me);
 #endif
-
 }
 
 void EDBM_mesh_free(BMEditMesh *tm)
@@ -517,7 +516,6 @@ static void *getEditMesh(bContext *C)
 typedef struct UndoMesh {
 	Mesh me;
 	int selectmode;
-	char obname[MAX_ID_NAME - 2];
 } UndoMesh;
 
 /* undo simply makes copies of a bmesh */
@@ -527,7 +525,6 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	Mesh *obme = obdata;
 	
 	UndoMesh *um = MEM_callocN(sizeof(UndoMesh), "undo Mesh");
-	BLI_strncpy(um->obname, em->ob->id.name + 2, sizeof(um->obname));
 	
 	/* make sure shape keys work */
 	um->me.key = obme->key ? copy_key_nolib(obme->key) : NULL;
@@ -544,12 +541,10 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 {
 	BMEditMesh *em = em_v, *em_tmp;
-	Object *ob;
+	Object *ob = em->ob;
 	UndoMesh *um = umv;
 	BMesh *bm;
 
-	/* BMESH_TODO - its possible the name wont be found right?, should fallback */
-	ob = (Object *)find_id("OB", um->obname);
 	ob->shapenr = em->bm->shapenr;
 
 	BMEdit_Free(em);
@@ -619,7 +614,7 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, int do_face_idx
 	totuv = 0;
 
 	/* generate UvMapVert array */
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT)))
 			totuv += efa->len;
 	}
@@ -647,10 +642,10 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, int do_face_idx
 	}
 	
 	a = 0;
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
 			i = 0;
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				buf->tfindex = i;
 				buf->f = a;
 				buf->separate = 0;
@@ -668,7 +663,7 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, int do_face_idx
 	
 	/* sort individual uvs for each vert */
 	a = 0;
-	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (ev, &iter, em->bm, BM_VERTS_OF_MESH) {
 		UvMapVert *newvlist = NULL, *vlist = vmap->vert[a];
 		UvMapVert *iterv, *v, *lastv, *next;
 		float *uv, *uv2, uvdiff[2];
@@ -767,7 +762,7 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 	}
 
 	/* generate UvElement array */
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT)))
 			totuv += efa->len;
 	}
@@ -792,10 +787,10 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 	}
 
 	j = 0;
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		island_number[j++] = INVALID_ISLAND;
 		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
-			BM_ITER_INDEX(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa, i) {
+			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 				buf->l = l;
 				buf->face = efa;
 				buf->separate = 0;
@@ -812,7 +807,7 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 
 	/* sort individual uvs for each vert */
 	i = 0;
-	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (ev, &iter, em->bm, BM_VERTS_OF_MESH) {
 		UvElement *newvlist = NULL, *vlist = element_map->vert[i];
 		UvElement *iterv, *v, *lastv, *next;
 		float *uv, *uv2, uvdiff[2];
@@ -876,7 +871,7 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 				while (stacksize > 0) {
 					efa = stack[--stacksize];
 
-					BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 						UvElement *element, *initelement = element_map->vert[BM_elem_index_get(l->v)];
 
 						for (element = initelement; element; element = element->next) {
@@ -1024,7 +1019,7 @@ static BMVert *cache_mirr_intptr_as_bmvert(intptr_t *index_lookup, int index)
  *  EDBM_verts_mirror_cache_begin(em);
  *  ...
  *  ...
- *  BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+ *  BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
  *     mirrorv = EDBM_verts_mirror_get(em, v);
  *  }
  *  ...
@@ -1076,7 +1071,7 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const short use_select)
 		tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	}
 
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 
 		/* temporary for testing, check for selection */
 		if (use_select && !BM_elem_flag_test(v, BM_ELEM_SELECT)) {
@@ -1164,7 +1159,7 @@ void EDBM_verts_mirror_apply(BMEditMesh *em, const int sel_from, const int sel_t
 
 	BLI_assert(em->vert_index != NULL);
 
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT) == sel_from) {
 			BMVert *mirr = EDBM_verts_mirror_get(em, v);
 			if (mirr) {
@@ -1194,7 +1189,7 @@ void EDBM_mesh_hide(BMEditMesh *em, int swap)
 	else
 		itermode = BM_FACES_OF_MESH;
 
-	BM_ITER(ele, &iter, em->bm, itermode, NULL) {
+	BM_ITER_MESH (ele, &iter, em->bm, itermode) {
 		if (BM_elem_flag_test(ele, BM_ELEM_SELECT) ^ swap)
 			BM_elem_hide_set(em->bm, ele, TRUE);
 	}
@@ -1228,7 +1223,7 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 	/* Use tag flag to remember what was hidden before all is revealed.
 	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
 	for (i = 0; i < 3; i++) {
-		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
+		BM_ITER_MESH (ele, &iter, em->bm, iter_types[i]) {
 			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
 		}
 	}
@@ -1242,7 +1237,7 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 			continue;
 		}
 
-		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
+		BM_ITER_MESH (ele, &iter, em->bm, iter_types[i]) {
 			if (BM_elem_flag_test(ele, BM_ELEM_TAG)) {
 				BM_elem_select_set(em->bm, ele, TRUE);
 			}
@@ -1275,9 +1270,9 @@ void EDBM_update_generic(bContext *C, BMEditMesh *em, const short do_tessface)
  * need (at the moment) to wrap them, but on the other hand having these
  * wrapped avoids a confusing mess of mixing BM_ and EDBM_ namespaces. */
 
-void EDBM_editselection_center(BMEditMesh *em, float *center, BMEditSelection *ese)
+void EDBM_editselection_center(float *center, BMEditSelection *ese)
 {
-	BM_editselection_center(em->bm, center, ese);
+	BM_editselection_center(center, ese);
 }
 
 void EDBM_editselection_normal(float *normal, BMEditSelection *ese)

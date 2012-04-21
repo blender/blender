@@ -100,7 +100,7 @@ class MeshMirrorUV(Operator):
             vidxs[i] = tuple(sorted(l.vertex_index
                                     for l in loops[lstart:lend]))
             # As we have no poly.center yet...
-            pcents[i] = tuple(map(lambda x : x / p.loop_total,
+            pcents[i] = tuple(map(lambda x: x / p.loop_total,
                                   map(sum, zip(*(verts[idx].co
                                                  for idx in vidxs[i])))))
             # Preparing next step finding matching polys.

@@ -59,7 +59,7 @@ __device_inline void bvh_instance_push(KernelGlobals *kg, int object, const Ray 
 {
 	Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 
-	*P = transform(&tfm, ray->P);
+	*P = transform_point(&tfm, ray->P);
 
 	float3 dir = transform_direction(&tfm, ray->D);
 
@@ -351,7 +351,7 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, const Intersection
 	if(isect->object != ~0) {
 		Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
 
-		P = transform(&tfm, P);
+		P = transform_point(&tfm, P);
 		D = transform_direction(&tfm, D*t);
 		D = normalize_len(D, &t);
 	}
@@ -367,7 +367,7 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, const Intersection
 
 	if(isect->object != ~0) {
 		Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
-		P = transform(&tfm, P);
+		P = transform_point(&tfm, P);
 	}
 
 	return P;
