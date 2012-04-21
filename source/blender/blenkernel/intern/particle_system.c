@@ -1479,7 +1479,7 @@ void psys_threads_free(ParticleThread *threads)
 	if (ctx->index) MEM_freeN(ctx->index);
 	if (ctx->skip) MEM_freeN(ctx->skip);
 	if (ctx->seams) MEM_freeN(ctx->seams);
-	//if(ctx->vertpart) MEM_freeN(ctx->vertpart);
+	//if (ctx->vertpart) MEM_freeN(ctx->vertpart);
 	BLI_kdtree_free(ctx->tree);
 
 	/* threads */
@@ -4125,7 +4125,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 					pa->dietime = sim->scene->r.efra + 1;
 					pa->lifetime = sim->scene->r.efra;
 					pa->alive = PARS_ALIVE;
-					//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f\n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
+					//if (a < 25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f\n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
 				}
 				else {
 					// skip...

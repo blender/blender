@@ -631,7 +631,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 
 	visifac= lamp_get_visibility(mat, lamp, &lv, &dist);
 
-	/*if(ma->mode & MA_TANGENT_V)
+	/*if (ma->mode & MA_TANGENT_V)
 		GPU_link(mat, "shade_tangent_v", lv, GPU_attribute(CD_TANGENT, ""), &vn);*/
 	
 	GPU_link(mat, "shade_inp", vn, lv, &inp);

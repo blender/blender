@@ -195,7 +195,7 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
 		return NULL;
 
 	/* stupid string compare */
-	if     (!strcmp(type, "USER"))     folder_id = BLENDER_RESOURCE_PATH_USER;
+	if      (!strcmp(type, "USER"))    folder_id = BLENDER_RESOURCE_PATH_USER;
 	else if (!strcmp(type, "LOCAL"))   folder_id = BLENDER_RESOURCE_PATH_LOCAL;
 	else if (!strcmp(type, "SYSTEM"))  folder_id = BLENDER_RESOURCE_PATH_SYSTEM;
 	else {

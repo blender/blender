@@ -735,8 +735,8 @@ typedef struct MirrTopoVert_t {
 
 static int mirrtopo_hash_sort(const void *l1, const void *l2)
 {
-	if       ((MirrTopoHash_t)(intptr_t)l1 > (MirrTopoHash_t)(intptr_t)l2) return 1;
-	else if  ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2) return -1;
+	if      ((MirrTopoHash_t)(intptr_t)l1 > (MirrTopoHash_t)(intptr_t)l2) return 1;
+	else if ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2) return -1;
 	return 0;
 }
 

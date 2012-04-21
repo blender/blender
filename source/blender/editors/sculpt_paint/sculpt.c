@@ -3082,9 +3082,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	{
 		copy_v2_v2(cache->tex_mouse, cache->mouse);
 
-		if  ( (brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) &&
-		      (brush->flag & BRUSH_RANDOM_ROTATION) &&
-		      !(brush->flag & BRUSH_RAKE))
+		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) &&
+		    (brush->flag & BRUSH_RANDOM_ROTATION) &&
+		    !(brush->flag & BRUSH_RAKE))
 		{
 			cache->special_rotation = 2.0f * (float)M_PI * BLI_frand();
 		}

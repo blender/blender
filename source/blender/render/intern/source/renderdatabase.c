@@ -1189,7 +1189,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				har->add = 255.0f*add;
 			}
 			/* now what on earth is this good for?? */
-			//if(mtex->texco & 16) {
+			//if (mtex->texco & 16) {
 			//	har->alfa= tin;
 			//}
 		}

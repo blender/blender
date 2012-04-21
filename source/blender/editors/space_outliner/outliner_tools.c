@@ -1200,7 +1200,7 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 		set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 		
 		if (scenelevel) {
-			//if(objectlevel || datalevel || idlevel) error("Mixed selection");
+			//if (objectlevel || datalevel || idlevel) error("Mixed selection");
 			//else pupmenu("Scene Operations%t|Delete");
 		}
 		else if (objectlevel) {

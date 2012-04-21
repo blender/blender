@@ -685,7 +685,10 @@ static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
 	start_vert = (BMVert *)ese->ele;
 
 	/* Prepare operator */
-	if (!EDBM_op_init(em, &bmop, op, "vertex_slide vert=%e edge=%hev distance_t=%f", start_vert, BM_ELEM_SELECT, distance_t))  {
+	if (!EDBM_op_init(em, &bmop, op,
+	                  "vertex_slide vert=%e edge=%hev distance_t=%f",
+	                  start_vert, BM_ELEM_SELECT, distance_t))
+	{
 		return OPERATOR_CANCELLED;
 	}
 	/* Execute operator */

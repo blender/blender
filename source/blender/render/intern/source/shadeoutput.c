@@ -1152,7 +1152,7 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 		/* area type has no quad or sphere option */
 		if (lar->type==LA_AREA) {
 			/* area is single sided */
-			//if(dot_v3v3(lv, lar->vec) > 0.0f)
+			//if (dot_v3v3(lv, lar->vec) > 0.0f)
 			//	visifac= 1.0f;
 			//else
 			//	visifac= 0.0f;

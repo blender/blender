@@ -1320,7 +1320,7 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 	ev = BM_vert_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
 
 	bmvert_to_mvert(bmdm->tc->bm, ev, vert_r);
-	if(bmdm->vertexCos)
+	if (bmdm->vertexCos)
 		copy_v3_v3(vert_r->co, bmdm->vertexCos[index]);
 }
 

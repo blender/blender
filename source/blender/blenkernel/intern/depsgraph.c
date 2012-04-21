@@ -1803,7 +1803,7 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 	while (base) {
 		BLI_remlink(&sce->base,base);
 		BLI_addhead(&tempbase,base);
-		//if(G.debug & G_DEBUG)
+		//if (G.debug & G_DEBUG)
 			printf("cyclic %s\n", base->object->id.name);
 		base = sce->base.first;
 	}

@@ -247,7 +247,8 @@ ImBuf *make_waveform_view_from_ibuf(ImBuf *ibuf)
 }
 
 
-static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf){
+static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
+{
 	ImBuf *rval = IMB_allocImBuf(
 	    ibuf->x + 3, 515, 32, IB_rect);
 	int x, y;

@@ -635,7 +635,7 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 	p3= pp + s3;
 
 	/* note, commented out for follow constraint */
-	//if(cu->flag & CU_FOLLOW) {
+	//if (cu->flag & CU_FOLLOW) {
 
 		key_curve_tangent_weights(1.0f-fac, data, KEY_BSPLINE);
 

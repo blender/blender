@@ -101,7 +101,7 @@ void bpy_context_update(bContext *C)
 	/* don't do this from a non-main (e.g. render) thread, it can cause a race
 	   condition on C->data.recursion. ideal solution would be to disable
 	   context entirely from non-main threads, but that's more complicated */
-	if(!BLI_thread_is_main())
+	if (!BLI_thread_is_main())
 		return;
 
 	BPy_SetContext(C);

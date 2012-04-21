@@ -2483,7 +2483,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 		ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
 		normalize_v3(ver->n);
-		//if(ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
+		//if (ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
 		
 		if (need_orco) {
 			ver->orco= orco;
@@ -5514,7 +5514,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		// set both to the same value
 		speed[0]= speed[2]= zco[0];
 		speed[1]= speed[3]= zco[1];
-		//if(a<20) fprintf(stderr,"speed %d %f,%f | camco %f,%f,%f | hoco %f,%f,%f,%f\n", a, speed[0], speed[1], camco[0],camco[1], camco[2], hoco[0],hoco[1], hoco[2],hoco[3]); // NT DEBUG
+		//if (a < 20) fprintf(stderr,"speed %d %f,%f | camco %f,%f,%f | hoco %f,%f,%f,%f\n", a, speed[0], speed[1], camco[0],camco[1], camco[2], hoco[0],hoco[1], hoco[2],hoco[3]); // NT DEBUG
 	}
 
 	return 1;

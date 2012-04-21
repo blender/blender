@@ -188,7 +188,7 @@ int IMB_ispic(const char *filename)
 		) {
 			return IMB_ispic_name(filename);
 		}
-		else  {
+		else {
 			return FALSE;
 		}
 	}
@@ -392,7 +392,7 @@ int IMB_isanim(const char *filename)
 				||	BLI_testextensie(filename, ".mv")) {
 				type = imb_get_anim_type(filename);
 			}
-			else  {
+			else {
 				return(FALSE);
 			}
 		}

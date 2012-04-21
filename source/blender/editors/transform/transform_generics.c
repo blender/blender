@@ -921,7 +921,7 @@ void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
 		
 		glPushMatrix();
 		
-		//if(t->obedit) glLoadMatrixf(t->obedit->obmat);	// sets opengl viewing
+		//if (t->obedit) glLoadMatrixf(t->obedit->obmat);	// sets opengl viewing
 		
 		
 		copy_v3_v3(v3, dir);

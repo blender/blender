@@ -706,7 +706,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	}
 	else {
 		/* validate owner */
-		//if(ri->rect==NULL)
+		//if (ri->rect==NULL)
 		//	ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
 		//RE_ResultGet32(re, ri->rect);
 	}

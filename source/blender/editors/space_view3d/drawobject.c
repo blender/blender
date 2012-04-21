@@ -182,11 +182,11 @@ static void draw_empty_cone(float size);
 static int check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
 {
 	/* texture and material draw modes */
-    if(ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID)
+	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID)
 		return TRUE;
 
 	/* textured solid */
-	if(v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !scene_use_new_shading_nodes(scene))
+	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !scene_use_new_shading_nodes(scene))
 		return TRUE;
 	
 	return FALSE;
@@ -6526,7 +6526,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					zbufoff = 1;
 					dt = OB_SOLID;
 				}
-				else if(ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))
+				else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))
 					dt = OB_PAINT;
 
 				glEnable(GL_DEPTH_TEST);

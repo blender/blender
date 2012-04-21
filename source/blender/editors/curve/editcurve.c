@@ -2892,7 +2892,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 
 				calchandlesNurb(nu);
 			}
-		} /* End of 'if(nu->type == CU_BEZIER)' */
+		} /* End of 'if (nu->type == CU_BEZIER)' */
 		else if (nu->pntsv==1) {
 		/* 
 		 * All flat lines (ie. co-planar), except flat Nurbs. Flat NURB curves 
@@ -3085,7 +3085,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				nu->pntsv= (number_cuts+1)*nu->pntsv-number_cuts;
 				nurbs_knot_calc_u(nu);
 				nurbs_knot_calc_v(nu);
-			} /* End of 'if(sel== nu->pntsu*nu->pntsv)' (subdivide entire NURB) */
+			} /* End of 'if (sel== nu->pntsu*nu->pntsv)' (subdivide entire NURB) */
 			else {
 				/* subdivide in v direction? */
 				sel= 0;
@@ -3177,7 +3177,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 			MEM_freeN(usel); 
 			MEM_freeN(vsel);
 
-		} /* End of 'if(nu->type == CU_NURBS)'  */
+		} /* End of 'if (nu->type == CU_NURBS)'  */
 	}
 }
 

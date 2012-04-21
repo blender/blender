@@ -95,7 +95,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 			out[GEOM_OUT_VCOL]->vec[3]= scol->col[3];
 			out[GEOM_OUT_VCOL_ALPHA]->vec[0]= scol->col[3];
 		}
-		else  {
+		else {
 			memcpy(out[GEOM_OUT_VCOL]->vec, defaultvcol, sizeof(defaultvcol));
 			out[GEOM_OUT_VCOL_ALPHA]->vec[0]= 1.0f;
 		}

@@ -672,7 +672,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	
 	BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
 	
-	//if(node->flag & NODE_MUTED)
+	//if (node->flag & NODE_MUTED)
 	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - don't print into self!
 	
 	uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(rct->ymax-NODE_DY), 
@@ -830,7 +830,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	if (node->miniwidth>0.0f) {
 		BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
 		
-		//if(node->flag & NODE_MUTED)
+		//if (node->flag & NODE_MUTED)
 		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - don't print into self!
 
 		uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(centy-10), 

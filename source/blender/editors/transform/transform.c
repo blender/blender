@@ -4706,12 +4706,12 @@ void projectSVData(TransInfo *t, int final)
 	if (!em)
 		return;
 	
-	if(!(t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
+	if (!(t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
 		return;
 
 	/* don't do this at all for non-basis shape keys, too easy to
 	   accidentally break uv maps or vertex colors then */
-	if(em->bm->shapenr > 1)
+	if (em->bm->shapenr > 1)
 		return;
 
 	BLI_smallhash_init(&visit);

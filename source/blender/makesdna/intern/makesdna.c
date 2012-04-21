@@ -1094,7 +1094,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 				sp += firststruct;
 				for (a=firststruct; a<nr_types; a++, sp++) { 
 					if (*sp) {
-						fprintf(fp, "\tif(sizeof(struct %s) - %d) printf(\"ALIGN ERROR:", types[a], *sp);
+						fprintf(fp, "\tif (sizeof(struct %s) - %d) printf(\"ALIGN ERROR:", types[a], *sp);
 						fprintf(fp, "%%d %s %d ", types[a], *sp);
 						fprintf(fp, "\\n\",  sizeof(struct %s) - %d);\n", types[a], *sp);
 					}

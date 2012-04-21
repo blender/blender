@@ -1352,7 +1352,8 @@ static void seq_proxy_build_frame(SeqRenderData context,
 	IMB_freeImBuf(ibuf);
 }
 
-struct SeqIndexBuildContext *seq_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq){
+struct SeqIndexBuildContext *seq_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq)
+{
 	SeqIndexBuildContext *context;
 	Sequence *nseq;
 
@@ -3778,7 +3779,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	sound = sound_new_file(CTX_data_main(C), seq_load->path); /* handles relative paths */
 
 	if (sound == NULL || sound->playback_handle == NULL) {
-		//if(op)
+		//if (op)
 		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return NULL;
 	}
@@ -3787,7 +3788,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(bmain, sound);
-		//if(op)
+		//if (op)
 		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return NULL;
 	}

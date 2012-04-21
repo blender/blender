@@ -285,12 +285,12 @@ static void build_Rd_table(ScatterSettings *ss)
 
 	for (i= 0; i < size; i++) {
 		r= i*(RD_TABLE_RANGE/RD_TABLE_SIZE);
-		/*if(r < ss->invsigma_t_*ss->invsigma_t_)
+		/*if (r < ss->invsigma_t_*ss->invsigma_t_)
 			r= ss->invsigma_t_*ss->invsigma_t_;*/
 		ss->tableRd[i]= Rd(ss, sqrt(r));
 
 		r= i*(RD_TABLE_RANGE_2/RD_TABLE_SIZE);
-		/*if(r < ss->invsigma_t_)
+		/*if (r < ss->invsigma_t_)
 			r= ss->invsigma_t_;*/
 		ss->tableRd2[i]= Rd(ss, r);
 	}

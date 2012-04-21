@@ -1695,7 +1695,7 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 
 			*mapindex = index;
 		}
-		else  { /* FROM_FACE/FROM_VOLUME */
+		else { /* FROM_FACE/FROM_VOLUME */
 			if (index >= dm->getNumTessFaces(dm))
 				return 0;
 
@@ -1713,7 +1713,7 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 
 			*mapindex = index_dmcache;
 		}
-		else  { /* FROM_FACE/FROM_VOLUME */
+		else { /* FROM_FACE/FROM_VOLUME */
 			/* find a face on the derived mesh that uses this face */
 			MFace *mface;
 			OrigSpaceFace *osface;

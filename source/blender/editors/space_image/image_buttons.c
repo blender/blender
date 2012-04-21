@@ -154,7 +154,8 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 }
 
 /* gets active viewer user */
-struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree){
+struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
+{
 	bNode *node;
 	
 	if (ntree)

@@ -1017,7 +1017,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			ui_apply_but_BLOCK(C, but, data);
 			break;
 		case COL:
-			if(data->cancel)
+			if (data->cancel)
 				ui_apply_but_VEC(C, but, data);
 			else
 				ui_apply_but_BLOCK(C, but, data);
@@ -2062,7 +2062,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	}
 
 	/* this makes adjacent blocks auto open from now on */
-	//if(but->block->auto_open==0) but->block->auto_open= 1;
+	//if (but->block->auto_open==0) but->block->auto_open= 1;
 }
 
 static void ui_blockopen_end(bContext *C, uiBut *but, uiHandleButtonData *data)

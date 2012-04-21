@@ -1358,7 +1358,7 @@ static void scan_for_ext_face_forces(Object *ob,float timenow)
 /*---edges intruding*/
 
 /*+++ close vertices*/
-			if  (( bf->flag & BFF_INTERSECT)==0) {
+			if (( bf->flag & BFF_INTERSECT)==0) {
 				bf->flag &= ~BFF_CLOSEVERT;
 				tune = -1.0f;
 				feedback[0]=feedback[1]=feedback[2]=0.0f;
@@ -2190,7 +2190,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 	}
 
 /* debugerin */
-	if  (sb->totpoint < ifirst) {
+	if (sb->totpoint < ifirst) {
 		printf("Aye 998");
 		return (998);
 	}
@@ -2960,7 +2960,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 
 			/* the freezer coming sooner or later */
 			/*
-			if  ((dot_v3v3(dx,dx)<freezeloc )&&(dot_v3v3(bp->force,bp->force)<freezeforce )) {
+			if ((dot_v3v3(dx,dx)<freezeloc )&&(dot_v3v3(bp->force,bp->force)<freezeforce )) {
 				bp->frozen /=2;
 			}
 			else {

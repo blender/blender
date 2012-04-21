@@ -114,7 +114,7 @@ static int sizeoflampbuf(ShadBuf *shb)
 	cp= shb->cbuf;
 	num= (shb->size*shb->size)/256;
 
-	while(num--) count+= *(cp++);
+	while (num--) count+= *(cp++);
 	
 	return 256*count;
 }
@@ -446,7 +446,7 @@ static void compress_deepshadowbuf(Render *re, ShadBuf *shb, APixstr *apixbuf, A
 
 		/* merge buffers */
 		dsb= shsample->deepbuf[a];
-		while(1) {
+		while (1) {
 			minz= 0;
 			found= 0;
 
@@ -829,7 +829,7 @@ static void *do_shadow_thread(void *re_v)
 			lar->thread_ready= 1;
 			BLI_unlock_thread(LOCK_CUSTOM1);
 		}
-	} while(lar && !re->test_break(re->tbh));
+	} while (lar && !re->test_break(re->tbh));
 
 	return NULL;
 }
@@ -894,7 +894,7 @@ void threaded_makeshadowbufs(Render *re)
 				if (lar->shb && !lar->thread_ready)
 					break;
 			BLI_unlock_thread(LOCK_CUSTOM1);
-		} while(lar);
+		} while (lar);
 	
 		BLI_end_threads(&threads);
 
@@ -1371,7 +1371,7 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 
 /* printf("start %x %x	\n", (int)(0x7FFFFFFF*zf1), (int)(0x7FFFFFFF*zf2)); */
 
-	while(1) {
+	while (1) {
 		labdao= labda;
 		
 		if (labdax==labday) {
@@ -1613,7 +1613,7 @@ static int isb_bsp_insert(ISBBranch *root, MemArena *memarena, ISBSample *sample
 	root->totsamp++;
 	
 	/* going over branches until last one found */
-	while(bspn->left) {
+	while (bspn->left) {
 		if (zco[bspn->index] <= bspn->divider[bspn->index])
 			bspn= bspn->left;
 		else
@@ -2244,7 +2244,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 						PixStr *ps= (PixStr *)(*rd);
 						int mask= (1<<sample);
 						
-						while(ps) {
+						while (ps) {
 							if (ps->mask & mask)
 								break;
 							ps= ps->next;
@@ -2315,7 +2315,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 					
 					if (*rd) {
 						PixStr *ps= (PixStr *)(*rd);
-						while(ps) {
+						while (ps) {
 							if (ps->shadfac)
 								isb_add_shadfac(isbsa, isbdata->memarena, ps->obi, ps->facenr, ps->shadfac, count_mask(ps->mask));
 							ps= ps->next;
@@ -2382,7 +2382,7 @@ static int isb_add_samples_transp(RenderPart *pa, ISBBranch *root, MemArena *mem
 				int x= xcos[xi];
 				
 				samp1= *(samp + y*pa->rectx + x);
-				while(samp1) {
+				while (samp1) {
 					bsp_err |= isb_bsp_insert(root, memarena, (ISBSample *)samp1);
 					samp1= samp1->next;
 				}
@@ -2572,7 +2572,7 @@ float ISB_getshadow(ShadeInput *shi, ShadBuf *shb)
 							int obi= shi->obi - R.objectinstance;
 							ISBShadfacA *isbsa= *(isbdata->shadfaca + sindex);
 							
-							while(isbsa) {
+							while (isbsa) {
 								if (isbsa->facenr==shi->facenr+1 && isbsa->obi==obi)
 									return isbsa->shadfac>=1.0f?0.0f:1.0f - isbsa->shadfac;
 								isbsa= isbsa->next;

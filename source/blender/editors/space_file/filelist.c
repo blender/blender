@@ -641,7 +641,7 @@ struct ImBuf * filelist_geticon(struct FileList* filelist, int index)
 		if ( strcmp(filelist->filelist[fidx].relname, "..") == 0) {
 			ibuf = gSpecialFileImages[SPECIAL_IMG_PARENT];
 		}
-		else if  ( strcmp(filelist->filelist[fidx].relname, ".") == 0) {
+		else if (strcmp(filelist->filelist[fidx].relname, ".") == 0) {
 			ibuf = gSpecialFileImages[SPECIAL_IMG_REFRESH];
 		}
 		else {

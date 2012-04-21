@@ -1126,10 +1126,10 @@ int isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3]
 	//return isect_line_tri_v3(p1,p2,v0,v1,v2,lambda);
 
 	///* first a simple bounding box test */
-	//if(MIN3(v0[a1],v1[a1],v2[a1]) > p1[a1]) return 0;
-	//if(MIN3(v0[a2],v1[a2],v2[a2]) > p1[a2]) return 0;
-	//if(MAX3(v0[a1],v1[a1],v2[a1]) < p1[a1]) return 0;
-	//if(MAX3(v0[a2],v1[a2],v2[a2]) < p1[a2]) return 0;
+	//if (MIN3(v0[a1],v1[a1],v2[a1]) > p1[a1]) return 0;
+	//if (MIN3(v0[a2],v1[a2],v2[a2]) > p1[a2]) return 0;
+	//if (MAX3(v0[a1],v1[a1],v2[a1]) < p1[a1]) return 0;
+	//if (MAX3(v0[a2],v1[a2],v2[a2]) < p1[a2]) return 0;
 
 	///* then a full intersection test */
 

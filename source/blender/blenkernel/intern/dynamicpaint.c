@@ -3337,7 +3337,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 								else if (brush->ray_dir == MOD_DPAINT_RAY_BRUSH_AVG) {
 									copy_v3_v3(proj_ray, avg_brushNor);
 								}
-								else  { /* MOD_DPAINT_RAY_ZPLUS */
+								else { /* MOD_DPAINT_RAY_ZPLUS */
 									proj_ray[2] = 1.0f;
 								}
 								hit.index = -1;

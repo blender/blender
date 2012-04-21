@@ -503,7 +503,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 
 		if (!(file->selflag & EDITING_FILE)) {
-			if  ((params->active_file == i) || (file->selflag & HILITED_FILE) || (file->selflag & SELECTED_FILE) ) {
+			if ((params->active_file == i) || (file->selflag & HILITED_FILE) || (file->selflag & SELECTED_FILE)) {
 				int colorid = (file->selflag & SELECTED_FILE) ? TH_HILITE : TH_BACK;
 				int shade = (params->active_file == i) || (file->selflag & HILITED_FILE) ? 20 : 0;
 				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid, shade);
