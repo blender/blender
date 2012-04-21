@@ -412,8 +412,9 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 		DEBUG_VBO( "Using legacy code. cdDM_drawEdges\n" );
 		glBegin(GL_LINES);
 		for (i = 0; i < dm->numEdgeData; i++, medge++) {
-			if ((drawAllEdges || (medge->flag&ME_EDGEDRAW))
-			   && (drawLooseEdges || !(medge->flag&ME_LOOSEEDGE))) {
+			if ((drawAllEdges || (medge->flag & ME_EDGEDRAW)) &&
+			    (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
+			{
 				glVertex3fv(mvert[medge->v1].co);
 				glVertex3fv(mvert[medge->v2].co);
 			}

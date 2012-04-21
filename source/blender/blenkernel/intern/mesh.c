@@ -1224,7 +1224,10 @@ int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
 	int *totloop, int *totpoly)
 {
 	return nurbs_to_mdata_customdb(ob, &ob->disp,
-		allvert, totvert, alledge, totedge, allloop, allpoly, totloop, totpoly);
+	                               allvert, totvert,
+	                               alledge, totedge,
+	                               allloop, allpoly,
+	                               totloop, totpoly);
 }
 
 /* BMESH: this doesn't calculate all edges from polygons,
@@ -1232,9 +1235,11 @@ int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
 
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* use specified dispbase  */
-int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int *_totvert,
-	MEdge **alledge, int *_totedge, MLoop **allloop, MPoly **allpoly,
-	int *_totloop, int *_totpoly)
+int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase,
+                            MVert **allvert, int *_totvert,
+                            MEdge **alledge, int *_totedge,
+                            MLoop **allloop, MPoly **allpoly,
+                            int *_totloop, int *_totpoly)
 {
 	DispList *dl;
 	Curve *cu;
@@ -1316,7 +1321,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 				for (b=1; b<dl->nr; b++) {
 					medge->v1= startvert+ofs+b-1;
 					medge->v2= startvert+ofs+b;
-					medge->flag = ME_LOOSEEDGE|ME_EDGERENDER;
+					medge->flag = ME_LOOSEEDGE | ME_EDGERENDER | ME_EDGEDRAW;
 
 					medge++;
 				}
@@ -1341,7 +1346,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 						medge->v1= startvert+ofs+b;
 						if (b==dl->nr-1) medge->v2= startvert+ofs;
 						else medge->v2= startvert+ofs+b+1;
-						medge->flag = ME_LOOSEEDGE|ME_EDGERENDER;
+						medge->flag = ME_LOOSEEDGE | ME_EDGERENDER | ME_EDGEDRAW;
 						medge++;
 					}
 				}
@@ -1466,7 +1471,7 @@ void nurbs_to_mesh(Object *ob)
 	cu= ob->data;
 
 	if (dm == NULL) {
-		if (nurbs_to_mdata (ob, &allvert, &totvert, &alledge, &totedge, &allloop, &allpoly, &totloop, &totpoly) != 0) {
+		if (nurbs_to_mdata(ob, &allvert, &totvert, &alledge, &totedge, &allloop, &allpoly, &totloop, &totpoly) != 0) {
 			/* Error initializing */
 			return;
 		}
