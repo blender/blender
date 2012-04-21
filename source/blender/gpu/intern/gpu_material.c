@@ -1830,8 +1830,8 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 			}
 		}
 
-		// now link fragement shader with library shader
-		// TBD: remove the function that are not used in the main function
+		/* now link fragment shader with library shader */
+		/* TBD: remove the function that are not used in the main function */
 		liblen = (pass->libcode) ? strlen(pass->libcode) : 0;
 		fraglen = strlen(pass->fragmentcode);
 		shader->fragment = (char *)MEM_mallocN(liblen+fraglen+1, "GPUFragShader");

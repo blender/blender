@@ -718,7 +718,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		}
 	}
 
-	/* Edges' pointers, only vert pointers (as we don’t mess with loops!)... */
+	/* Edges' pointers, only vert pointers (as we don't mess with loops!)... */
 	if (vptr_map) {
 		BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
 /*			printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, (const void*)ed->v1));*/

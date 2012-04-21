@@ -294,7 +294,7 @@ static int test_extra_verts(BMesh *bm, BMVert *v)
 	BMEdge *e;
 	int found;
 
-	/* test faces around verts for verts that would be wronly killed
+	/* test faces around verts for verts that would be wrongly killed
 	 * by dissolve faces. */
 	f = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v);
 	for ( ; f; f = BM_iter_step(&iter)) {

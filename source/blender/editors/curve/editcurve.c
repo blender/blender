@@ -4395,7 +4395,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 
 				newnu= (Nurb*)MEM_callocN(sizeof(Nurb), "addvert_Nurb newnu");
 				if (!nu) {
-					/* no selected sement -- create new one which is BEZIER tpye
+					/* no selected segment -- create new one which is BEZIER type
 					 * type couldn't be determined from Curve bt could be changed
 					 * in the future, so shouldn't make much headache */
 					newnu->type= CU_BEZIER;

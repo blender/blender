@@ -1510,7 +1510,7 @@ static void weld_align_uv(bContext *C, int tool)
 							/* Projection of point (x, y) over line (x1, y1, x2, y2) along X axis:
 							 * new_y = (y2 - y1) / (x2 - x1) * (x - x1) + y1
 							 * Maybe this should be a BLI func? Or is it already existing?
-							 * Could use interp_v2_v2v2, but not sure it’s worth it here...*/
+							 * Could use interp_v2_v2v2, but not sure it's worth it here...*/
 							if (tool == 't')
 								luv->uv[0] = a * (luv->uv[1] - uv_start[1]) + uv_start[0];
 							else if (tool == 'u')

@@ -3624,7 +3624,7 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 
 /* qsort routines.  not sure how to make these
  * work, since we aren't using linked lists for
- * geometry anymore.  might need a sortof "swap"
+ * geometry anymore.  might need a sort of "swap"
  * function for bmesh elements. */
 
 /* TODO All this section could probably use a refresh...

@@ -461,7 +461,7 @@ void bmo_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 /*
  * compute the fake surface of an ngon
  * This is done by decomposing the ngon into triangles who share the centroid of the ngon
- * while this method is far from being exact, it should garantee an invariance.
+ * while this method is far from being exact, it should guarantee an invariance.
  *
  * NOTE: This should probably go to bmesh_polygon.c
  */

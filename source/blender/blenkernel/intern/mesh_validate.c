@@ -309,7 +309,7 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 							prev_v = v;
 						}
 					}
-					if (v - prev_v > 1) { /* Don’t forget final verts! */
+					if (v - prev_v > 1) { /* Don't forget final verts! */
 						PRINT("    poly %u is invalid, it multi-uses vertex %u (%u times)\n",
 						      sp->index, *prev_v, (int)(v - prev_v));
 						sp->invalid = TRUE;
@@ -420,7 +420,7 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 					/* DO NOT REMOVE ITS LOOPS!!!
 					 * As already invalid polys are at the end of the SortPoly list, the loops they
 					 * were the only users have already been tagged as "to remove" during previous
-					 * iterations, and we don’t want to remove some loops that may be used by
+					 * iterations, and we don't want to remove some loops that may be used by
 					 * another valid poly! */
 				}
 			}

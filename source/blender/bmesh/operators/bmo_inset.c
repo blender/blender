@@ -362,7 +362,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 								 *   |                                         |
 								 *
 								 * note, the fact we are doing location comparisons on verts that are moved about
-								 * doesn’t matter because the direction will remain the same in this case.
+								 * doesn't matter because the direction will remain the same in this case.
 								 */
 
 								BMEdge *e_other;

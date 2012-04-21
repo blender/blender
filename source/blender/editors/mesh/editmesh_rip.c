@@ -635,7 +635,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 				BMLoop *l_a = e2->l;
 				BMLoop *l_b = l_a->radial_next;
 
-				/* find the best face to follow, this wat the edge won't point away from
+				/* find the best face to follow, this what the edge won't point away from
 				 * the mouse when there are more then 4 (takes the shortest face fan around) */
 				l = (edbm_rip_edge_side_measure(e2, l_a, ar, projectMat, fmval) <
 				     edbm_rip_edge_side_measure(e2, l_b, ar, projectMat, fmval)) ? l_a : l_b;

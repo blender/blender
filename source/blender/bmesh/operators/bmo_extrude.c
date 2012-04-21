@@ -134,7 +134,7 @@ static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e
 	BMLoop *l_dst_a = BM_face_edge_share_loop(f, e_a);
 	BMLoop *l_dst_b = BM_face_edge_share_loop(f, e_b);
 	/* we could only have a face on one-or the other edges,
-	 * chech if either side of the face has an adjacent face */
+	 * check if either side of the face has an adjacent face */
 	BMLoop *l_src_1;
 	BMLoop *l_src_2;
 
