@@ -4276,10 +4276,13 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 
 			state->time = psys_get_child_time(psys, cpa, cfra, NULL, NULL);
 
-			if (!always)
-				if ((state->time < 0.0f && !(part->flag & PART_UNBORN))
-					|| (state->time > 1.0f && !(part->flag & PART_DIED)))
+			if (!always) {
+				if ((state->time < 0.0f && !(part->flag & PART_UNBORN)) ||
+				    (state->time > 1.0f && !(part->flag & PART_DIED)))
+				{
 					return 0;
+				}
+			}
 
 			state->time= (cfra - (part->sta + (part->end - part->sta) * PSYS_FRAND(p + 23))) / (part->lifetime * PSYS_FRAND(p + 24));
 
@@ -4296,10 +4299,13 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	}
 
 	if (pa) {
-		if (!always)
-			if ((cfra < pa->time && (part->flag & PART_UNBORN)==0)
-				|| (cfra > pa->dietime && (part->flag & PART_DIED)==0))
+		if (!always) {
+			if ((cfra < pa->time    && (part->flag & PART_UNBORN) == 0) ||
+			    (cfra > pa->dietime && (part->flag & PART_DIED)   == 0))
+			{
 				return 0;
+			}
+		}
 
 		cfra = MIN2(cfra, pa->dietime);
 	}

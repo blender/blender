@@ -4341,8 +4341,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		normalize_v3(imat[1]);
 	}
 
-	if (ELEM3(draw_as, PART_DRAW_DOT, PART_DRAW_CROSS, PART_DRAW_LINE)
-	    && part->draw_col > PART_DRAW_COL_MAT)
+	if (ELEM3(draw_as, PART_DRAW_DOT, PART_DRAW_CROSS, PART_DRAW_LINE) &&
+	    (part->draw_col > PART_DRAW_COL_MAT))
 	{
 		create_cdata = 1;
 	}

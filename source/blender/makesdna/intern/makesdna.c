@@ -360,8 +360,9 @@ static int add_name(const char *str)
 		 * */
 		buf[i] = 0;
 		if (debugSDNA > 3) printf("Name before chomping: %s\n", buf); 
-		if ( (strncmp(buf,"(*headdraw", 10) == 0)
-			|| (strncmp(buf,"(*windraw", 9) == 0) ) {
+		if ((strncmp(buf,"(*headdraw", 10) == 0) ||
+		    (strncmp(buf,"(*windraw", 9) == 0) )
+		{
 			buf[i] = ')';
 			buf[i+1] = '(';
 			buf[i+2] = 'v'; 

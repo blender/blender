@@ -424,17 +424,18 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
 		int prevstart = 0;
 		int prevdraw = 1;
-		int draw = 1;
+		int draw = TRUE;
 
 		GPU_edge_setup(dm);
-		if ( !GPU_buffer_legacy(dm) ) {
+		if (!GPU_buffer_legacy(dm)) {
 			for (i = 0; i < dm->numEdgeData; i++, medge++) {
-				if ((drawAllEdges || (medge->flag&ME_EDGEDRAW))
-				   && (drawLooseEdges || !(medge->flag&ME_LOOSEEDGE))) {
-					draw = 1;
+				if ((drawAllEdges || (medge->flag & ME_EDGEDRAW)) &&
+				    (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
+				{
+					draw = TRUE;
 				} 
 				else {
-					draw = 0;
+					draw = FALSE;
 				}
 				if ( prevdraw != draw ) {
 					if ( prevdraw > 0 && (i-prevstart) > 0 ) {
@@ -539,8 +540,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 			new_matnr = mface->mat_nr + 1;
 			new_shademodel = (mface->flag & ME_SMOOTH)?GL_SMOOTH:GL_FLAT;
 			
-			if (new_glmode != glmode || new_matnr != matnr
-			   || new_shademodel != shademodel) {
+			if (new_glmode != glmode || new_matnr != matnr || new_shademodel != shademodel) {
 				glEnd();
 
 				drawCurrentMat = setMaterial(matnr = new_matnr, NULL);

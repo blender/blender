@@ -6005,8 +6005,7 @@ void createTransData(bContext *C, TransInfo *t)
 			
 		}
 	}
-	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) 
-		&& PE_start_edit(PE_get_current(scene, ob))) {
+	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_start_edit(PE_get_current(scene, ob))) {
 		createTransParticleVerts(C, t);
 		t->flag |= T_POINTS;
 

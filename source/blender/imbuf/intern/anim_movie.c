@@ -636,8 +636,9 @@ static void ffmpeg_postprocess(struct anim * anim)
 
 	/* This means the data wasnt read properly, 
 	 * this check stops crashing */
-	if (input->data[0]==0 && input->data[1]==0 
-	    && input->data[2]==0 && input->data[3]==0) {
+	if (input->data[0]==0 && input->data[1]==0 &&
+	    input->data[2]==0 && input->data[3]==0)
+	{
 		fprintf(stderr, "ffmpeg_fetchibuf: "
 			"data not read properly...\n");
 		return;
@@ -945,10 +946,11 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 		return anim->last_frame;
 	}
 	 
-	if (position > anim->curposition + 1 
-	    && anim->preseek 
-	    && !tc_index
-	    && position - (anim->curposition + 1) < anim->preseek) {
+	if (position > anim->curposition + 1 &&
+	    anim->preseek &&
+	    !tc_index &&
+	    position - (anim->curposition + 1) < anim->preseek)
+	{
 		av_log(anim->pFormatCtx, AV_LOG_DEBUG, 
 		       "FETCH: within preseek interval (no index)\n");
 

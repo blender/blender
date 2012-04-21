@@ -1260,8 +1260,8 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		/*
 		if (length>L)
 		{
-		if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) 
-		&& ((((length-L)*100.0f/L) > clmd->sim_parms->maxspringlen))) // cut spring!
+		if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
+		    ((((length-L)*100.0f/L) > clmd->sim_parms->maxspringlen))) // cut spring!
 		{
 		s->flags |= CSPRING_FLAG_DEACTIVATE;
 		return;

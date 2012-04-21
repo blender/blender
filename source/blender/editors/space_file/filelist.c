@@ -767,16 +767,18 @@ static int file_extension_type(const char *relname)
 	else if (BLI_testextensie(relname, ".py")) {
 		return PYSCRIPTFILE;
 	}
-	else if (BLI_testextensie(relname, ".txt")
-			  || BLI_testextensie(relname, ".glsl")
-			  || BLI_testextensie(relname, ".data")) {
+	else if (BLI_testextensie(relname, ".txt")  ||
+	         BLI_testextensie(relname, ".glsl") ||
+	         BLI_testextensie(relname, ".data"))
+	{
 		return TEXTFILE;
 	}
-	else if ( BLI_testextensie(relname, ".ttf")
-			  || BLI_testextensie(relname, ".ttc")
-			  || BLI_testextensie(relname, ".pfb")
-			  || BLI_testextensie(relname, ".otf")
-			  || BLI_testextensie(relname, ".otc")) {
+	else if (BLI_testextensie(relname, ".ttf") ||
+	         BLI_testextensie(relname, ".ttc") ||
+	         BLI_testextensie(relname, ".pfb") ||
+	         BLI_testextensie(relname, ".otf") ||
+	         BLI_testextensie(relname, ".otc"))
+	{
 		return FTFONTFILE;			
 	}
 	else if (BLI_testextensie(relname, ".btx")) {
@@ -785,8 +787,9 @@ static int file_extension_type(const char *relname)
 	else if (BLI_testextensie(relname, ".dae")) {
 		return COLLADAFILE;
 	}
-	else if (BLI_testextensie_array(relname, imb_ext_image)
-			  || (G.have_quicktime && BLI_testextensie_array(relname, imb_ext_image_qt))) {
+	else if (BLI_testextensie_array(relname, imb_ext_image) ||
+	         (G.have_quicktime && BLI_testextensie_array(relname, imb_ext_image_qt)))
+	{
 		return IMAGEFILE;			
 	}
 	else if (BLI_testextensie_array(relname, imb_ext_movie)) {
@@ -838,8 +841,9 @@ static void filelist_setfiletypes(struct FileList* filelist)
 		}
 		file->flags = file_extension_type(file->relname);
 		
-		if (filelist->filter_glob
-		   && BLI_testextensie_glob(file->relname, filelist->filter_glob)) {
+		if (filelist->filter_glob &&
+		    BLI_testextensie_glob(file->relname, filelist->filter_glob))
+		{
 			file->flags= OPERATORFILE;
 		}
 		

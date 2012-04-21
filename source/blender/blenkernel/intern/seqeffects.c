@@ -3076,8 +3076,9 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 	fallback_fac = 1.0;
 
 	if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
-		if (seq->seq1->enddisp != seq->seq1->start
-		    && seq->seq1->len != 0) {
+		if ((seq->seq1->enddisp != seq->seq1->start) &&
+		    (seq->seq1->len != 0))
+		{
 			fallback_fac = (float) seq->seq1->len / 
 				(float) (seq->seq1->enddisp - seq->seq1->start);
 			flags = SEQ_SPEED_INTEGRATE;

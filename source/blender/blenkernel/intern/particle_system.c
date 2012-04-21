@@ -126,10 +126,12 @@ static int psys_get_current_display_percentage(ParticleSystem *psys)
 {
 	ParticleSettings *part=psys->part;
 
-	if ((psys->renderdata && !particles_are_dynamic(psys)) /* non-dynamic particles can be rendered fully */
-		|| (part->child_nbr && part->childtype)	/* display percentage applies to children */
-		|| (psys->pointcache->flag & PTCACHE_BAKING)) /* baking is always done with full amount */
+	if ((psys->renderdata && !particles_are_dynamic(psys)) ||  /* non-dynamic particles can be rendered fully */
+	    (part->child_nbr && part->childtype)  ||    /* display percentage applies to children */
+	    (psys->pointcache->flag & PTCACHE_BAKING))  /* baking is always done with full amount */
+	{
 		return 100;
+	}
 
 	return psys->part->disp;
 }
@@ -1862,9 +1864,11 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		/* and gravity in r_ve */
 		bpa->gravity[0] = bpa->gravity[1] = 0.0f;
 		bpa->gravity[2] = -1.0f;
-		if ((sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY)
-			&& sim->scene->physics_settings.gravity[2]!=0.0f)
+		if ((sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) &&
+		    (sim->scene->physics_settings.gravity[2] != 0.0f))
+		{
 			bpa->gravity[2] = sim->scene->physics_settings.gravity[2];
+		}
 
 		bpa->data.health = part->boids->health;
 		bpa->data.mode = eBoidMode_InAir;
@@ -2683,9 +2687,10 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 	efdata.sim = sim;
 
 	/* add global acceleration (gravitation) */
-	if (psys_uses_gravity(sim)
+	if (psys_uses_gravity(sim) &&
 		/* normal gravity is too strong for hair so it's disabled by default */
-		&& (part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR)) {
+		(part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR))
+	{
 		zero_v3(gr);
 		madd_v3_v3fl(gr, sim->scene->physics_settings.gravity, part->effector_weights->global_gravity * efdata.ptex.gravity);
 		gravity = gr;
@@ -3892,11 +3897,12 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		}
 
 		/* only reset unborn particles if they're shown or if the particle is born soon*/
-		if (pa->alive==PARS_UNBORN
-			&& (part->flag & PART_UNBORN || cfra + psys->pointcache->step > pa->time))
+		if (pa->alive==PARS_UNBORN && (part->flag & PART_UNBORN || (cfra + psys->pointcache->step > pa->time))) {
 			reset_particle(sim, pa, dtime, cfra);
-		else if (part->phystype == PART_PHYS_NO)
+		}
+		else if (part->phystype == PART_PHYS_NO) {
 			reset_particle(sim, pa, dtime, cfra);
+		}
 
 		if (ELEM(pa->alive, PARS_ALIVE, PARS_DYING)==0 || (pa->flag & (PARS_UNEXIST|PARS_NO_DISP)))
 			pa->state.time = -1.f;

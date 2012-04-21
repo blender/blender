@@ -537,8 +537,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 
 		/* Count 'unique' uvs */
 		for (i = 0; i < data->elementMap->totalUVs; i++) {
-			if (data->elementMap->buf[i].separate
-			    && (!do_island_optimization || data->elementMap->buf[i].island == island_index)) {
+			if (data->elementMap->buf[i].separate &&
+			    (!do_island_optimization || data->elementMap->buf[i].island == island_index))
+			{
 				counter++;
 			}
 		}

@@ -155,8 +155,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 						  btn_margin + UI_GetStringWidth(params->title));
 	}
 	
-	if (available_w <= loadbutton + separator + input_minw 
-	 || params->title[0] == 0) {
+	if (available_w <= loadbutton + separator + input_minw || params->title[0] == 0) {
 		loadbutton = 0;
 	}
 	else {

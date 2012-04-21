@@ -3067,10 +3067,10 @@ void seq_tx_set_final_right(Sequence *seq, int val)
  * since they work a bit differently to normal image seq's (during transform) */
 int seq_single_check(Sequence *seq)
 {
-	return (seq->len == 1 && (
-	            seq->type == SEQ_IMAGE
-	            || ((seq->type & SEQ_EFFECT) &&
-	                get_sequence_effect_num_inputs(seq->type) == 0)));
+	return ((seq->len == 1) &&
+	        (seq->type == SEQ_IMAGE ||
+	         ((seq->type & SEQ_EFFECT) &&
+	          get_sequence_effect_num_inputs(seq->type) == 0)));
 }
 
 /* check if the selected seq's reference unselected seq's */

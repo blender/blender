@@ -2580,9 +2580,12 @@ static short nurb_has_selected_cps(ListBase *editnurb)
 			bezt= nu->bezt;
 			while (a--) {
 				if (bezt->hide==0) {
-					if ((bezt->f1 & SELECT)
-					|| (bezt->f2 & SELECT)
-					|| (bezt->f3 & SELECT)) return 1;
+					if ((bezt->f1 & SELECT) ||
+					    (bezt->f2 & SELECT) ||
+					    (bezt->f3 & SELECT))
+					{
+						return 1;
+					}
 				}
 				bezt++;
 			}

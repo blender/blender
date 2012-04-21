@@ -1629,7 +1629,8 @@ void calculatePropRatio(TransInfo *t)
 						(td->flag & TD_NOTCONNECTED || td->dist > t->prop_size))
 				||
 					(connected == 0 &&
-						td->rdist > t->prop_size)) {
+						td->rdist > t->prop_size))
+			{
 				/*
 				 * The elements are sorted according to their dist member in the array,
 				 * that means we can stop when it finds one element outside of the propsize.

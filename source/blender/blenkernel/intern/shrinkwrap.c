@@ -325,8 +325,8 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	}
 
 	//After sucessufuly build the trees, start projection vertexs
-	if ( bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 4, 6)
-	&&  (auxMesh == NULL || bvhtree_from_mesh_faces(&auxData, auxMesh, 0.0, 4, 6)))
+	if (bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 4, 6) &&
+	    (auxMesh == NULL || bvhtree_from_mesh_faces(&auxData, auxMesh, 0.0, 4, 6)))
 	{
 
 #ifndef __APPLE__
