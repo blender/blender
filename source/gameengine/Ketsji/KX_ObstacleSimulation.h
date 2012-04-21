@@ -90,7 +90,7 @@ public:
 	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
 								MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);
 
-}; 
+};
 class KX_ObstacleSimulationTOI: public KX_ObstacleSimulation
 {
 protected:

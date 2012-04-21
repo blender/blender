@@ -87,7 +87,7 @@ typedef struct IslandStitchData {
 	char stitchableCandidate;
 	/* if edge rotation is used, flag so that vertex rotation is not used */
 	char use_edge_rotation;
-}IslandStitchData;
+} IslandStitchData;
 
 /* just for averaging UVs */
 typedef struct UVVertAverage {
@@ -103,7 +103,7 @@ typedef struct UvEdge {
 	char flag;
 	/* element that guarantees element->face has the face on element->tfindex and element->tfindex+1 is the second uv */
 	UvElement *element;
-}UvEdge;
+} UvEdge;
 
 
 /* stitch state object */
@@ -146,7 +146,7 @@ typedef struct StitchState {
 typedef struct PreviewPosition {
 	int data_position;
 	int polycount_position;
-}PreviewPosition;
+} PreviewPosition;
 /*
  * defines for UvElement flags
  */

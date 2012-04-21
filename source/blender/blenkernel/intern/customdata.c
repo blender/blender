@@ -2056,7 +2056,7 @@ void CustomData_set(const CustomData *data, int index, int type, void *source)
 /*Bmesh functions*/
 /*needed to convert to/from different face reps*/
 void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata,
-			     int totloop, int totpoly)
+                             int totloop, int totpoly)
 {
 	int i;
 	for (i=0; i < fdata->totlayer; i++) {

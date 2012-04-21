@@ -84,7 +84,7 @@ typedef struct UvEdge {
 	unsigned int uv2;
 	/* general use flag (Used to check if edge is boundary here, and propagates to adjacency elements) */
 	char flag;
-}UvEdge;
+} UvEdge;
 
 typedef struct UVInitialStrokeElement {
 	/* index to unique uv */
@@ -95,7 +95,7 @@ typedef struct UVInitialStrokeElement {
 
 	/* initial uv position */
 	float initial_uv[2];
-}UVInitialStrokeElement;
+} UVInitialStrokeElement;
 
 typedef struct UVInitialStroke {
 	/* Initial Selection,for grab brushes for instance */
@@ -106,7 +106,7 @@ typedef struct UVInitialStroke {
 
 	/* initial mouse coordinates */
 	float init_coord[2];
-}UVInitialStroke;
+} UVInitialStroke;
 
 
 /* custom data for uv smoothing brush */
@@ -142,7 +142,7 @@ typedef struct UvSculptData {
 
 	/* store invert flag here */
 	char invert;
-}UvSculptData;
+} UvSculptData;
 
 /*********** Improved Laplacian Relaxation Operator ************************/
 /* original code by Raul Fernandez Hernandez "farsthary"                   *
@@ -152,7 +152,7 @@ typedef struct UvSculptData {
 typedef struct Temp_UvData {
 	float sum_co[2], p[2], b[2], sum_b[2];
 	int ncounter;
-}Temp_UVData;
+} Temp_UVData;
 
 
 

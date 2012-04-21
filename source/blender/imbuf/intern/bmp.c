@@ -44,7 +44,7 @@
  * http://www.microsoft.com/msj/defaultframe.asp?page=/msj/0197/mfcp1/mfcp1.htm&nav=/msj/0197/newnav.htm
  */
 
-typedef struct BMPINFOHEADER{
+typedef struct BMPINFOHEADER {
 	unsigned int	biSize;
 	unsigned int	biWidth;
 	unsigned int	biHeight;

@@ -43,7 +43,7 @@
 static char JP2_HEAD[]= {0x0, 0x0, 0x0, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A};
 
 /* We only need this because of how the presets are set */
-typedef struct img_folder{
+typedef struct img_folder {
 	/** The directory path of the folder containing input images*/
 	char *imgdirpath;
 	/** Output format*/
@@ -54,7 +54,7 @@ typedef struct img_folder{
 	char set_out_format;
 	/** User specified rate stored in case of cinema option*/
 	float *rates;
-}img_fol_t;
+} img_fol_t;
 
 static int check_jp2(unsigned char *mem) /* J2K_CFMT */
 {

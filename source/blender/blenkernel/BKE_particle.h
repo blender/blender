@@ -85,7 +85,7 @@ typedef struct ParticleSimulationData {
 	float courant_num;
 } ParticleSimulationData;
 
-typedef struct ParticleTexture{
+typedef struct ParticleTexture {
 	float ivel;							/* used in reset */
 	float time, life, exist, size;		/* used in init */
 	float damp, gravity, field;			/* used in physics */
@@ -93,13 +93,13 @@ typedef struct ParticleTexture{
 	float rough1, rough2, roughe;		/* used in path caching */
 } ParticleTexture;
 
-typedef struct ParticleSeam{
+typedef struct ParticleSeam {
 	float v0[3], v1[3];
 	float nor[3], dir[3], tan[3];
 	float length2;
 } ParticleSeam;
 
-typedef struct ParticleCacheKey{
+typedef struct ParticleCacheKey {
 	float co[3];
 	float vel[3];
 	float rot[4];

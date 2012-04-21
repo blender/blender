@@ -274,7 +274,7 @@ void DM_init_funcs(DerivedMesh *dm)
 }
 
 void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges,
-	     int numTessFaces, int numLoops, int numPolys)
+             int numTessFaces, int numLoops, int numPolys)
 {
 	dm->type = type;
 	dm->numVertData = numVerts;

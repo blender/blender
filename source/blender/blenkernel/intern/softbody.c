@@ -113,7 +113,7 @@ typedef struct ReferenceVert {
 typedef struct ReferenceState {
 	float com[3]; /* center of mass*/
 	ReferenceVert *ivert; /* list of intial values */
-}ReferenceState;
+} ReferenceState;
 
 
 /*private scratch pad for caching and other data only needed when alive*/
@@ -125,7 +125,7 @@ typedef struct SBScratch {
 	int totface;
 	float aabbmin[3],aabbmax[3];
 	ReferenceState Ref;
-}SBScratch;
+} SBScratch;
 
 typedef struct  SB_thread_context {
 		Scene *scene;
@@ -140,7 +140,7 @@ typedef struct  SB_thread_context {
 		float windfactor;
 		int nr;
 		int tot;
-}SB_thread_context;
+} SB_thread_context;
 
 #define NLF_BUILD  1
 #define NLF_SOLVE  2
@@ -267,9 +267,9 @@ float operations still
 */
 static const int CCD_SAVETY = 190561;
 
-typedef struct ccdf_minmax{
-float minx,miny,minz,maxx,maxy,maxz;
-}ccdf_minmax;
+typedef struct ccdf_minmax {
+	float minx, miny, minz, maxx, maxy, maxz;
+} ccdf_minmax;
 
 
 
@@ -283,7 +283,7 @@ typedef struct ccd_Mesh {
 	/* Axis Aligned Bounding Box AABB */
 	float bbmin[3];
 	float bbmax[3];
-}ccd_Mesh;
+} ccd_Mesh;
 
 
 

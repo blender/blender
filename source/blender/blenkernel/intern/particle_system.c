@@ -2375,6 +2375,7 @@ typedef struct SPHRangeData
 	float massfac;
 	int use_size;
 } SPHRangeData;
+
 typedef struct SPHData {
 	ParticleSystem *psys[10];
 	ParticleData *pa;
@@ -2390,7 +2391,7 @@ typedef struct SPHData {
 	/* Integrator callbacks. This allows different SPH implementations. */
 	void (*force_cb) (void *sphdata_v, ParticleKey *state, float *force, float *impulse);
 	void (*density_cb) (void *rangedata_v, int index, float squared_dist);
-}SPHData;
+} SPHData;
 
 static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 {
