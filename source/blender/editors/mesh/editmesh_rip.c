@@ -663,7 +663,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	/* note: the output of the bmesh operator is ignored, since we built
-	 * the contiguous loop pairs to split already, its possibe that some
+	 * the contiguous loop pairs to split already, its possible that some
 	 * edge did not split even though it was tagged which would not work
 	 * as expected (but not crash), however there are checks to ensure
 	 * tagged edges will split. So far its not been an issue. */
