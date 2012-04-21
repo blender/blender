@@ -1020,14 +1020,37 @@ void MESH_OT_edge_collapse_loop(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int edbm_add_edge_face__smooth_get(BMesh *bm)
+{
+	BMEdge *e;
+	BMIter iter;
+
+	unsigned int vote_on_smooth[2] = {0, 0};
+
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT) && e->l)
+		{
+			vote_on_smooth[BM_elem_flag_test_bool(e->l->f, BM_ELEM_SMOOTH)]++;
+		}
+	}
+
+	return (vote_on_smooth[0] < vote_on_smooth[1]);
+}
+
 static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 {
 	BMOperator bmop;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	
-	if (!EDBM_op_init(em, &bmop, op, "contextual_create geom=%hfev mat_nr=%i", BM_ELEM_SELECT, em->mat_nr))
+	const short use_smooth = edbm_add_edge_face__smooth_get(em->bm);
+	/* when this is used to dissolve we could avoid this, but checking isnt too slow */
+
+	if (!EDBM_op_init(em, &bmop, op,
+	                  "contextual_create geom=%hfev mat_nr=%i use_smooth=%b",
+	                  BM_ELEM_SELECT, em->mat_nr, use_smooth))
+	{
 		return OPERATOR_CANCELLED;
+	}
 	
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);

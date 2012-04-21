@@ -896,9 +896,10 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge **edges = NULL;
 	PathBase *pathbase;
 	BLI_array_declare(edges);
-	int use_restrict   = BMO_slot_bool_get(op, "use_restrict");
-	int use_fill_check = BMO_slot_bool_get(op, "use_fill_check");
-	const short mat_nr = BMO_slot_int_get(op, "mat_nr");
+	int use_restrict       = BMO_slot_bool_get(op, "use_restrict");
+	int use_fill_check     = BMO_slot_bool_get(op, "use_fill_check");
+	const short mat_nr     = BMO_slot_int_get(op,  "mat_nr");
+	const short use_smooth = BMO_slot_bool_get(op, "use_smooth");
 	int i, j, group = 0;
 	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
 
@@ -1049,6 +1050,9 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {
 					BMO_elem_flag_enable(bm, f, FACE_NEW);
 					f->mat_nr = mat_nr;
+					if (use_smooth) {
+						BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
+					}
 				}
 
 				if (use_restrict) {
@@ -1278,6 +1282,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 	int totv = 0, tote = 0, totf = 0, amount;
 	const short mat_nr = BMO_slot_int_get(op, "mat_nr");
+	const short use_smooth = BMO_slot_bool_get(op, "use_smooth");
 
 	/* count number of each element type we were passe */
 	BMO_ITER (h, &oiter, bm, op, "geom", BM_VERT|BM_EDGE|BM_FACE) {
@@ -1365,7 +1370,10 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, &op2, "edgeout", BM_EDGE, ELE_NEW);
 	BMO_op_finish(bm, &op2);
 
-	BMO_op_initf(bm, &op2, "edgenet_fill edges=%fe use_fill_check=%b mat_nr=%i", ELE_NEW, TRUE, mat_nr);
+	BMO_op_initf(bm, &op2,
+	             "edgenet_fill edges=%fe use_fill_check=%b mat_nr=%i use_smooth=%b",
+	             ELE_NEW, TRUE, mat_nr, use_smooth);
+
 	BMO_op_exec(bm, &op2);
 
 	/* return if edge net create did something */
@@ -1469,6 +1477,9 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		if (f) {
 			BMO_elem_flag_enable(bm, f, ELE_OUT);
 			f->mat_nr = mat_nr;
+			if (use_smooth) {
+				BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
+			}
 		}
 
 		MEM_freeN(vert_arr);
