@@ -658,13 +658,19 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
+	if (!edbm_rip_call_edgesplit(em, op)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/* note: the output of the bmesh operator is ignored, since we built
+	 * the contiguous loop pairs to split already, its possibe that some
+	 * edge did not split even though it was tagged which would not work
+	 * as expected (but not crash), however there are checks to ensure
+	 * tagged edges will split. So far its not been an issue. */
 	edbm_ripsel_deselect_helper(bm, eloop_pairs,
 	                            ar, projectMat, fmval);
 	MEM_freeN(eloop_pairs);
 
-	if (!edbm_rip_call_edgesplit(em, op)) {
-		return OPERATOR_CANCELLED;
-	}
 
 	return OPERATOR_FINISHED;
 }
