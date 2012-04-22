@@ -1137,7 +1137,7 @@ elseif(APPLE)
 		set(WITH_LIBS10.5 ON CACHE BOOL "Use 10.5 libs" FORCE) # valid also for 10.6/10.7
 	endif()
 
-	if(${XCODE_VERSION} LESS 4.3)
+	if(${XCODE_VERSION} VERSION_LESS 4.3)
 		SET(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk CACHE PATH "" FORCE ) # use guaranteed existing sdk
 	else()
 		# note: i don't use xcode-select path on purpose, cause also /Applications/Xcode.app would be allowed
