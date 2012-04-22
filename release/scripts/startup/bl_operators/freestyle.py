@@ -69,3 +69,65 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
             m.range_min = min_dist
             m.range_max = max_dist
         return {'FINISHED'}
+
+
+class SCENE_OT_freestyle_add_edge_marks_to_keying_set(bpy.types.Operator):
+    '''Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set'''
+    bl_idname = "scene.freestyle_add_edge_marks_to_keying_set"
+    bl_label = "Add Edge Marks to Keying Set"
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        return (ob and ob.type == 'MESH')
+
+    def execute(self, context):
+        # active keying set
+        scene = context.scene
+        ks = scene.keying_sets.active
+        if ks is None:
+            ks = scene.keying_sets.new(idname="FreestyleEdgeMarkKeyingSet", name="Freestyle Edge Mark Keying Set")
+            ks.bl_description = ""
+        # add data paths to the keying set
+        ob = context.active_object
+        ob_mode = ob.mode
+        mesh = ob.data
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        for i, edge in enumerate(mesh.edges):
+            if not edge.hide and edge.select:
+                path = 'edges[%d].use_freestyle_edge_mark' % i
+                ks.paths.add(mesh, path, index=0)
+        bpy.ops.object.mode_set(mode=ob_mode, toggle=False)
+        return {'FINISHED'}
+
+
+class SCENE_OT_freestyle_add_face_marks_to_keying_set(bpy.types.Operator):
+    '''Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set'''
+    bl_idname = "scene.freestyle_add_face_marks_to_keying_set"
+    bl_label = "Add Face Marks to Keying Set"
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        return (ob and ob.type == 'MESH')
+
+    def execute(self, context):
+        # active keying set
+        scene = context.scene
+        ks = scene.keying_sets.active
+        if ks is None:
+            ks = scene.keying_sets.new(idname="FreestyleFaceMarkKeyingSet", name="Freestyle Face Mark Keying Set")
+            ks.bl_description = ""
+        # add data paths to the keying set
+        ob = context.active_object
+        ob_mode = ob.mode
+        mesh = ob.data
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        for i, polygon in enumerate(mesh.polygons):
+            if not polygon.hide and polygon.select:
+                path = 'polygons[%d].use_freestyle_face_mark' % i
+                ks.paths.add(mesh, path, index=0)
+        bpy.ops.object.mode_set(mode=ob_mode, toggle=False)
+        return {'FINISHED'}

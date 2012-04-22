@@ -1596,6 +1596,11 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Smooth", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
+	prop = RNA_def_property(srna, "use_freestyle_face_mark", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FREESTYLE_FACE);
+	RNA_def_property_ui_text(prop, "Freestyle Face Mark", "Face mark for Freestyle feature edge detection");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
 	prop = RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -1.0f, 1.0f);
