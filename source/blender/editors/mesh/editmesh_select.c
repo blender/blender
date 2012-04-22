@@ -1339,7 +1339,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static void mouse_mesh_shortest_path(bContext *C, int mval[2])
+static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 {
 	ViewContext vc;
 	BMEditMesh *em;
@@ -1402,6 +1402,11 @@ static void mouse_mesh_shortest_path(bContext *C, int mval[2])
 		}
 		
 		EDBM_update_generic(C, em, FALSE);
+
+		return TRUE;
+	}
+	else {
+		return FALSE;
 	}
 }
 
@@ -1411,9 +1416,12 @@ static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op),
 	
 	view3d_operator_needs_opengl(C);
 
-	mouse_mesh_shortest_path(C, event->mval);
-	
-	return OPERATOR_FINISHED;
+	if (mouse_mesh_shortest_path(C, event->mval)) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_PASS_THROUGH;
+	}
 }
 
 static int edbm_shortest_path_select_poll(bContext *C)
