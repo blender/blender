@@ -889,7 +889,7 @@ def main(context,
         if not me.uv_textures: # Mesh has no UV Coords, don't bother.
             me.uv_textures.new()
 
-        uv_layer = me.uv_loop_layers.active.data
+        uv_layer = me.uv_layers.active.data
         me_verts = list(me.vertices)
 
         if USER_ONLY_SELECTED_FACES:

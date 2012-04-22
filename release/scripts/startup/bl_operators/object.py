@@ -489,7 +489,7 @@ class JoinUVs(Operator):
 
             # seems to be the fastest way to create an array
             uv_array = array.array('f', [0.0] * 2) * nbr_loops
-            mesh.uv_loop_layers.active.data.foreach_get("uv", uv_array)
+            mesh.uv_layers.active.data.foreach_get("uv", uv_array)
 
             objects = context.selected_editable_objects[:]
 
@@ -516,10 +516,10 @@ class JoinUVs(Operator):
                                                ),
                                            )
                             else:
-                                uv_other = mesh_other.uv_loop_layers.active
+                                uv_other = mesh_other.uv_layers.active
                                 if not uv_other:
                                     mesh_other.uv_textures.new()
-                                    uv_other = mesh_other.uv_loop_layers.active
+                                    uv_other = mesh_other.uv_layers.active
                                     if not uv_other:
                                         self.report({'ERROR'}, "Could not add "
                                                     "a new UV map tp object "
