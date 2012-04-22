@@ -282,7 +282,7 @@ static int VertDataEqual(const float *a, const float *b)
 #define VertDataCopy(av, bv) { float *_a = (float *)av, *_b = (float *) bv; _a[0]  = _b[0]; _a[1]  = _b[1]; _a[2]  = _b[2]; }
 #define VertDataAdd(av, bv)  { float *_a = (float *)av, *_b = (float *) bv; _a[0] += _b[0]; _a[1] += _b[1]; _a[2] += _b[2]; }
 #define VertDataSub(av, bv)  { float *_a = (float *)av, *_b = (float *) bv; _a[0] -= _b[0]; _a[1] -= _b[1]; _a[2] -= _b[2]; }
-#define VertDataMulN(av, n)  { float *_a = (float *)av; _a[0] *= n; _a[1] *= n; _a[2] *= n; }
+#define VertDataMulN(av, n)  { float *_a = (float *)av; float _n = n; _a[0] *= _n; _a[1] *= _n; _a[2] *= _n; }
 #define VertDataAvg4(tv, av, bv, cv, dv) \
 	{ \
 		float *_t = (float *) tv, *_a = (float *) av, *_b = (float *) bv, *_c = (float *) cv, *_d = (float *) dv; \
