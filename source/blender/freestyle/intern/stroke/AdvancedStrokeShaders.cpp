@@ -365,6 +365,8 @@ Smoother::copyVertices ()
 }
 
  
+#if 0 // FIXME
+
 /////////////////////////////////////////
 //
 //  OMISSION SHADER
@@ -429,3 +431,5 @@ Omitter::omit (real sizeWindow, real thrVari, real thrFlat, real lFlat)
 
     }
 }
+
+#endif
