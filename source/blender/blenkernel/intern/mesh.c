@@ -1058,7 +1058,7 @@ void mesh_strip_loose_polysloops(Mesh *me)
 	MLoop *l;
 	int a, b;
 	/* New loops idx! */
-	int *new_idx = MEM_mallocN(sizeof(int) * me->totloop, "strip_loose_polysloops old2new idx mapping for polys.");
+	int *new_idx = MEM_mallocN(sizeof(int) * me->totloop, __func__);
 
 	for (a = b = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
 		int invalid = FALSE;
@@ -1119,6 +1119,8 @@ void mesh_strip_loose_polysloops(Mesh *me)
 	for (a = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
 		p->loopstart = new_idx[p->loopstart];
 	}
+
+	MEM_freeN(new_idx);
 }
 
 void mesh_strip_loose_edges(Mesh *me)

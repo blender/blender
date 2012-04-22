@@ -896,7 +896,7 @@ void ED_mesh_transform(Mesh *me, float *mat)
 	for (i = 0; i < me->totvert; i++, mvert++)
 		mul_m4_v3((float (*)[4])mat, mvert->co);
 
-	mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+	/* don't update normals, caller can do this explicitly */
 }
 
 static void mesh_add_edges(Mesh *mesh, int len)
