@@ -186,6 +186,41 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 	}
 }
 
+/* parse an array of vectors */
+int mathutils_array_parse_alloc_v(float **array, int array_dim, PyObject *value, const char *error_prefix)
+{
+	PyObject *value_fast = NULL;
+	int i, size;
+
+	/* non list/tuple cases */
+	if (!(value_fast = PySequence_Fast(value, error_prefix))) {
+		/* PySequence_Fast sets the error */
+		return -1;
+	}
+
+	size = PySequence_Fast_GET_SIZE(value_fast);
+
+	if (size != 0) {
+		float *fp;
+
+		fp = *array = PyMem_Malloc(size * array_dim * sizeof(float));
+
+		for (i = 0; i < size; i++, fp += array_dim) {
+			PyObject *item = PySequence_Fast_GET_ITEM(value, i);
+
+			if (mathutils_array_parse(fp, array_dim, array_dim, item, error_prefix) == -1) {
+				PyMem_Free(*array);
+				*array = NULL;
+				size = -1;
+				break;
+			}
+		}
+	}
+
+	Py_DECREF(value_fast);
+	return size;
+}
+
 int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix)
 {
 	if (EulerObject_Check(value)) {
