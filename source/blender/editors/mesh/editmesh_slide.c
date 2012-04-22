@@ -307,7 +307,7 @@ static void vtx_slide_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 			}
 		}
 
-			/* Draw selected edge
+		/* Draw selected edge
 		 * Add color offset and reduce alpha */
 		UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 40, -50);
 

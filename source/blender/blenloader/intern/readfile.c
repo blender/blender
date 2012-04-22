@@ -612,7 +612,7 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, int do_endian_swap)
 		}
 
 		/* this patch is to avoid a long long being read from not-eight aligned positions
-		   is necessary on any modern 64bit architecture) */
+		 * is necessary on any modern 64bit architecture) */
 		memcpy(&old, &bhead8->old, 8);
 		bhead4->old = (int) (old >> 3);
 
@@ -1138,7 +1138,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 		if (!fd || !BLO_has_bfile_extension(fd+1)) return 0;
 
 		/* now we know that we are in a blend file and it is safe to 
-		   assume that gp actually points to a group */
+		 * assume that gp actually points to a group */
 		if (strcmp("Screen", gp)!=0)
 			BLI_strncpy(group, gp, GROUP_MAX);
 	}
@@ -1606,7 +1606,7 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
 			 * in the same field as int val; val2 in the
 			 * IDPropertyData struct, they have to deal with
 			 * endianness specifically
-
+			 *
 			 * in theory, val and val2 would've already been swapped
 			 * if switch_endian is true, so we have to first unswap
 			 * them then reswap them as a single 64-bit entity.
@@ -2290,17 +2290,19 @@ static void lib_nodetree_do_versions_update_cb(void *UNUSED(data), ID *UNUSED(id
 
 /* verify types for nodes and groups, all data has to be read */
 /* open = 0: appending/linking, open = 1: open new file (need to clean out dynamic
-* typedefs*/
+ * typedefs */
 static void lib_verify_nodetree(Main *main, int UNUSED(open))
 {
 	bNodeTree *ntree;
 	int i;
 	bNodeTreeType *ntreetype;
 
-	/* this crashes blender on undo/redo
+	/* this crashes blender on undo/redo */
+#if 0
 		if (open==1) {
 			reinit_nodesystem();
-		}*/
+		}
+#endif
 	
 	/* set node->typeinfo pointers */
 	for (i=0; i < NUM_NTREE_TYPES; ++i) {
@@ -2936,12 +2938,12 @@ static void direct_link_text(FileData *fd, Text *text)
 
 	text->compiled= NULL;
 
-/*
+#if 0
 	if (text->flags & TXT_ISEXT) {
 		reopen_text(text);
 		}
 		else {
-*/
+#endif
 
 	link_list(fd, &text->lines);
 	link_list(fd, &text->markers);
@@ -3242,8 +3244,8 @@ static void lib_link_material(FileData *fd, Main *main)
 		if (ma->id.flag & LIB_NEEDLINK) {
 			if (ma->adt) lib_link_animdata(fd, &ma->id, ma->adt);
 
-			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
-			of library blocks that implement this.*/
+			/* Link ID Properties -- and copy this comment EXACTLY for easy finding
+			 * of library blocks that implement this.*/
 			if (ma->id.properties) IDP_LibLinkProperty(ma->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 
 			ma->ipo= newlibadr_us(fd, ma->id.lib, ma->ipo);
@@ -3683,8 +3685,8 @@ static void lib_link_mesh(FileData *fd, Main *main)
 		if (me->id.flag & LIB_NEEDLINK) {
 			int i;
 
-			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
-			of library blocks that implement this.*/
+			/* Link ID Properties -- and copy this comment EXACTLY for easy finding
+			 * of library blocks that implement this.*/
 			if (me->id.properties) IDP_LibLinkProperty(me->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			if (me->adt) lib_link_animdata(fd, &me->id, me->adt);
 
@@ -3709,7 +3711,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			/*check if we need to convert mfaces to mpolys*/
 			if (me->totface && !me->totpoly) {
 				/* temporarily switch main so that reading from
-				   external CustomData works */
+				 * external CustomData works */
 				Main *gmain = G.main;
 				G.main = main;
 				
@@ -3779,9 +3781,9 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 
 			if (mdisps[i].totdisp && !mdisps[i].level) {
 				/* this calculation is only correct for loop mdisps;
-				   if loading pre-BMesh face mdisps this will be
-				   overwritten with the correct value in
-				   bm_corners_to_loops() */
+				 * if loading pre-BMesh face mdisps this will be
+				 * overwritten with the correct value in
+				 * bm_corners_to_loops() */
 				float gridsize = sqrtf(mdisps[i].totdisp);
 				mdisps[i].level = (int)(logf(gridsize - 1.0f) / M_LN2) + 1;
 			}
@@ -3852,7 +3854,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	direct_link_animdata(fd, mesh->adt);
 
 	/* normally direct_link_dverts should be called in direct_link_customdata,
-	   but for backwards compat in do_versions to work we do it here */
+	 * but for backwards compat in do_versions to work we do it here */
 	direct_link_dverts(fd, mesh->totvert, mesh->dvert);
 
 	direct_link_customdata(fd, &mesh->vdata, mesh->totvert);
@@ -3912,11 +3914,11 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		mesh->mr->verts = newdataadr(fd, mesh->mr->verts);
 		
 		/* If mesh has the same number of vertices as the
-		   highest multires level, load the current mesh verts
-		   into multires and discard the old data. Needed
-		   because some saved files either do not have a verts
-		   array, or the verts array contains out-of-date
-		   data. */
+		 * highest multires level, load the current mesh verts
+		 * into multires and discard the old data. Needed
+		 * because some saved files either do not have a verts
+		 * array, or the verts array contains out-of-date
+		 * data. */
 		if (mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert) {
 			if (mesh->mr->verts)
 				MEM_freeN(mesh->mr->verts);
@@ -4567,7 +4569,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->flag &= ~OB_FROMGROUP;
 
 	/* loading saved files with editmode enabled works, but for undo we like
-	   to stay in object mode during undo presses so keep editmode disabled */
+	 * to stay in object mode during undo presses so keep editmode disabled */
 	if (fd->memfile)
 		ob->mode &= ~(OB_MODE_EDIT|OB_MODE_PARTICLE_EDIT);
 	
@@ -4802,8 +4804,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 	sce= main->scene.first;
 	while (sce) {
 		if (sce->id.flag & LIB_NEEDLINK) {
-			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
-			of library blocks that implement this.*/
+			/* Link ID Properties -- and copy this comment EXACTLY for easy finding
+			 * of library blocks that implement this.*/
 			if (sce->id.properties) IDP_LibLinkProperty(sce->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			if (sce->adt) lib_link_animdata(fd, &sce->id, sce->adt);
 			
@@ -5222,7 +5224,7 @@ static void butspace_version_132(SpaceButs *buts)
 }
 
 /* note: file read without screens option G_FILE_NO_UI; 
-   check lib pointers in call below */
+ * check lib pointers in call below */
 static void lib_link_screen(FileData *fd, Main *main)
 {
 	bScreen *sc;
@@ -5744,7 +5746,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	sc->swap= 0;
 	
 	/* hacky patch... but people have been saving files with the verse-blender,
-	   causing the handler to keep running for ever, with no means to disable it */
+	 * causing the handler to keep running for ever, with no means to disable it */
 	for (a=0; a<SCREEN_MAXHANDLER; a+=2) {
 		if ( sc->handler[a]==SCREEN_HANDLER_VERSE) {
 			sc->handler[a]= 0;
@@ -5921,9 +5923,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				//for (cl= sconsole->scrollback.first; cl; cl= cl->next)
 				//	cl->line= newdataadr(fd, cl->line);
 				
-				/*comma expressions, (e.g. expr1, expr2, expr3) evalutate each expression,
-				  from left to right.  the right-most expression sets the result of the comma
-				  expression as a whole*/
+				/* comma expressions, (e.g. expr1, expr2, expr3) evalutate each expression,
+				 * from left to right.  the right-most expression sets the result of the comma
+				 * expression as a whole*/
 				for (cl= sconsole->history.first; cl; cl= cl_next) {
 					cl_next= cl->next;
 					cl->line= newdataadr(fd, cl->line);
@@ -6064,8 +6066,10 @@ static void direct_link_speaker(FileData *fd, Speaker *spk)
 	spk->adt= newdataadr(fd, spk->adt);
 	direct_link_animdata(fd, spk->adt);
 
-	/*spk->sound= newdataadr(fd, spk->sound);
-	direct_link_sound(fd, spk->sound);*/
+#if 0
+	spk->sound= newdataadr(fd, spk->sound);
+	direct_link_sound(fd, spk->sound);
+#endif
 }
 
 /* ************** READ SOUND ******************* */
@@ -7395,7 +7399,7 @@ static void do_version_mdef_250(Main *main)
 
 				if (mmd->bindcos) {
 					/* make bindcos NULL in order to trick older versions
-					   into thinking that the mesh was not bound yet */
+					 * into thinking that the mesh was not bound yet */
 					mmd->bindcagecos= mmd->bindcos;
 					mmd->bindcos= NULL;
 
@@ -8538,9 +8542,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bScreen *sc;
 		Object *ob;
 
-		/*  As of now, this insures that the transition from the old Track system
-			to the new full constraint Track is painless for everyone. - theeth
-		*/
+		/* As of now, this insures that the transition from the old Track system
+		 * to the new full constraint Track is painless for everyone. - theeth
+		 */
 		ob = main->object.first;
 
 		while (ob) {
@@ -8548,7 +8552,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			list = &ob->constraints;
 
 			/* check for already existing TrackTo constraint
-			   set their track and up flag correctly */
+			 * set their track and up flag correctly */
 
 			if (list) {
 				bConstraint *curcon;
@@ -8626,8 +8630,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 
 
-		/*  As of now, this insures that the transition from the old Track system
-			to the new full constraint Track is painless for everyone.*/
+		/* As of now, this insures that the transition from the old Track system
+		 * to the new full constraint Track is painless for everyone.*/
 		ob = main->object.first;
 
 		while (ob) {
@@ -8635,7 +8639,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			list = &ob->constraints;
 
 			/* check for already existing TrackTo constraint
-			   set their track and up flag correctly */
+			 * set their track and up flag correctly */
 
 			if (list) {
 				bConstraint *curcon;
@@ -8736,9 +8740,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	/* ton: made this 230 instead of 229,
-	   to be sure (tuho files) and this is a reliable check anyway
-	   nevertheless, we might need to think over a fitness (initialize)
-	   check apart from the do_versions() */
+	 * to be sure (tuho files) and this is a reliable check anyway
+	 * nevertheless, we might need to think over a fitness (initialize)
+	 * check apart from the do_versions() */
 
 	if (main->versionfile <= 230) {
 		bScreen *sc;
@@ -9518,7 +9522,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			list = &ob->constraints;
 
 			/* check for already existing MinMax (floor) constraint
-			   and update the sticky flagging */
+			 * and update the sticky flagging */
 
 			if (list) {
 				bConstraint *curcon;
@@ -9944,7 +9948,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		/* Copy over old per-level multires vertex data
-		   into a single vertex array in struct Multires */
+		 * into a single vertex array in struct Multires */
 		for (me = main->mesh.first; me; me=me->id.next) {
 			if (me->mr && !me->mr->verts) {
 				MultiresLevel *lvl = me->mr->levels.last;
@@ -10728,7 +10732,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ob->m_contactProcessingThreshold = 1.0f; //pad3 is used for m_contactProcessingThreshold
 			if (ob->parent) {
 				/* check if top parent has compound shape set and if yes, set this object
-				   to compound shaper as well (was the behavior before, now it's optional) */
+				 * to compound shaper as well (was the behavior before, now it's optional) */
 				Object *parent= newlibadr(fd, lib, ob->parent);
 				while (parent && parent != ob &&  parent->parent != NULL) {
 					parent = newlibadr(fd, lib, parent->parent);
@@ -10848,8 +10852,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						seq->sound = sound_new_file(main, str);
 					}
 					/* don't know, if anybody used that
-					   this way, but just in case, upgrade
-					   to new way... */
+					 * this way, but just in case, upgrade
+					 * to new way... */
 					if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) &&
 					   !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR))
 					{
@@ -11309,8 +11313,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		int a, tot;
 
 		/* shape keys are no longer applied to the mesh itself, but rather
-		   to the derivedmesh/displist, so here we ensure that the basis
-		   shape key is always set in the mesh coordinates. */
+		 * to the derivedmesh/displist, so here we ensure that the basis
+		 * shape key is always set in the mesh coordinates. */
 
 		for (me= main->mesh.first; me; me= me->id.next) {
 			if ((key = newlibadr(fd, lib, me->key)) && key->refkey) {
@@ -11427,9 +11431,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			int i, convert=0;
 			
 			/* convert to new color management system:
-			 while previously colors were stored as srgb, 
-			 now they are stored as linear internally, 
-			 with screen gamma correction in certain places in the UI. */
+			 * while previously colors were stored as srgb,
+			 * now they are stored as linear internally,
+			 * with screen gamma correction in certain places in the UI. */
 
 			/* don't know what scene is active, so we'll convert if any scene has it enabled... */
 			while (sce) {
@@ -11714,7 +11718,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 13)) {
 		/* NOTE: if you do more conversion, be sure to do it outside of this and
-		   increase subversion again, otherwise it will not be correct */
+		 * increase subversion again, otherwise it will not be correct */
 		Object *ob;
 		
 		/* convert degrees to radians for internal use */
@@ -12781,7 +12785,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			for (sce=main->scene.first; sce; sce=sce->id.next) {
 				/* there are files with invalid audio_channels value, the real cause
-				   is unknown, but we fix it here anyway to avoid crashes */
+				 * is unknown, but we fix it here anyway to avoid crashes */
 				if (sce->r.ffcodecdata.audio_channels == 0)
 					sce->r.ffcodecdata.audio_channels = 2;
 
@@ -13118,7 +13122,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		{
 			/* convert deprecated sculpt_paint_unified_* fields to
-			   UnifiedPaintSettings */
+			 * UnifiedPaintSettings */
 			Scene *scene;
 			for (scene= main->scene.first; scene; scene= scene->id.next) {
 				ToolSettings *ts= scene->toolsettings;
@@ -13193,7 +13197,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 263)
 	{
 		/* set fluidsim rate. the version patch for this in 2.62 was wrong, so
-		   try to correct it, if rate is 0.0 that's likely not intentional */
+		 * try to correct it, if rate is 0.0 that's likely not intentional */
 		Object *ob;
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -13452,10 +13456,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
 		case ID_LI:
 			/* skip library datablocks in undo, this works together with
-			   BLO_read_from_memfile, where the old main->library is restored
-			   overwriting  the libraries from the memory file. previously
-			   it did not save ID_LI/ID_ID blocks in this case, but they are
-			   needed to make quit.blend recover them correctly. */
+			 * BLO_read_from_memfile, where the old main->library is restored
+			 * overwriting  the libraries from the memory file. previously
+			 * it did not save ID_LI/ID_ID blocks in this case, but they are
+			 * needed to make quit.blend recover them correctly. */
 			if (fd->memfile)
 				bhead= blo_nextbhead(fd, bhead);
 			else
@@ -13625,7 +13629,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					/* This crashes files, must look further into it */
 					
 					/* Update: the issue is that in file reading, the oldnewmap is OK, but for existing data, it has to be
-					   inserted in the map to be found! */
+					 * inserted in the map to be found! */
 					if (id->flag & LIB_PRE_EXISTING)
 						oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 					
@@ -13644,7 +13648,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 			}
 			else {
 				/* this is actually only needed on UI call? when ID was already read before, and another append
-				   happens which invokes same ID... in that case the lookup table needs this entry */
+				 * happens which invokes same ID... in that case the lookup table needs this entry */
 				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 				// commented because this can print way too much
 				// if (G.debug & G_DEBUG) printf("expand: already read %s\n", id->name);
@@ -14430,11 +14434,11 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 		
 		if ( ob->id.flag & LIB_INDIRECT ) {
 			
-				/* IF below is quite confusing!
-				if we are appending, but this object wasnt just added along with a group,
-				then this is already used indirectly in the scene somewhere else and we didnt just append it.
-				
-				(ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */
+			/* IF below is quite confusing!
+			 * if we are appending, but this object wasnt just added along with a group,
+			 * then this is already used indirectly in the scene somewhere else and we didnt just append it.
+			 *
+			 * (ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */
 			if (is_group_append==0 || (ob->id.flag & LIB_PRE_EXISTING)==0) {
 				
 				int do_it= 0;
@@ -14512,7 +14516,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 }
 
 /* returns true if the item was found
-* but it may already have already been appended/linked */
+ * but it may already have already been appended/linked */
 static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, const short idcode)
 {
 	BHead *bhead;

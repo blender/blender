@@ -146,9 +146,9 @@ void ED_render_engine_changed(Main *bmain)
 }
 
 /***************************** Updates ***********************************
-* ED_render_id_flush_update gets called from DAG_id_tag_update, to do *
-* editor level updates when the ID changes. when these ID blocks are in *
-* the dependency graph, we can get rid of the manual dependency checks  */
+ * ED_render_id_flush_update gets called from DAG_id_tag_update, to do   *
+ * editor level updates when the ID changes. when these ID blocks are in *
+ * the dependency graph, we can get rid of the manual dependency checks  */
 
 static int mtex_use_tex(MTex **mtex, int tot, Tex *tex)
 {

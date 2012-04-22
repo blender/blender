@@ -91,9 +91,9 @@ typedef struct Strip {
 	struct Strip *next, *prev;
 	int us, done;
 	int startstill, endstill;
-	StripElem *stripdata; /* only used as an array in IMAGE sequences(!),
-				 and as a 1-element array in MOVIE sequences,
-				 NULL for all other strip-types */
+	StripElem *stripdata;  /* only used as an array in IMAGE sequences(!),
+	                        * and as a 1-element array in MOVIE sequences,
+	                        * NULL for all other strip-types */
 	char dir[768];
 	StripProxy *proxy;
 	StripCrop *crop;

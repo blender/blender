@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -20,9 +20,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/*note: the original vertex color stuff is now just used for
-  getting info on the layers themselves, accessing the data is
-  done through the (not yet written) mpoly interfaces.*/
+/* note: the original vertex color stuff is now just used for
+ * getting info on the layers themselves, accessing the data is
+ * done through the (not yet written) mpoly interfaces.*/
 
 /** \file blender/makesrna/intern/rna_mesh.c
  *  \ingroup RNA

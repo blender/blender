@@ -449,7 +449,8 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 						BM_edge_kill(bm, fe);
 					}
 				}
-				/* else if (f->len == 3) {
+#if 0
+				else if (f->len == 3) {
 					BMEdge *ed[3];
 					BMVert *vt[3];
 					BMLoop *lp[3];
@@ -465,7 +466,7 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 					if (vt[0] == vt[1] || vt[0] == vt[2]) {
 						i += 1;
 					}
-				 */
+#endif
 			}
 		}
 		if (oldlen == len) break;

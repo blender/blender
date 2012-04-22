@@ -4710,7 +4710,7 @@ void projectSVData(TransInfo *t, int final)
 		return;
 
 	/* don't do this at all for non-basis shape keys, too easy to
-	   accidentally break uv maps or vertex colors then */
+	 * accidentally break uv maps or vertex colors then */
 	if (em->bm->shapenr > 1)
 		return;
 

@@ -1424,9 +1424,9 @@ typedef struct HairGridVert {
 #define HAIR_GRID_INDEX(vec, min, max, axis) (int)((vec[axis] - min[axis]) / (max[axis] - min[axis]) * 9.99f)
 /* Smoothing of hair velocities:
  * adapted from
-		Volumetric Methods for Simulation and Rendering of Hair
-		by Lena Petrovic, Mark Henne and John Anderson
- *		Pixar Technical Memo #06-08, Pixar Animation Studios
+ *      Volumetric Methods for Simulation and Rendering of Hair
+ *      by Lena Petrovic, Mark Henne and John Anderson
+ *      Pixar Technical Memo #06-08, Pixar Animation Studios
  */
 static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, unsigned int numverts)
 {
@@ -1591,8 +1591,8 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 		hair_velocity_smoothing(clmd, lF, lX, lV, numverts);
 
 	/* multiply lF with mass matrix
-	// force = mass * acceleration (in this case: gravity)
-	*/
+	 * force = mass * acceleration (in this case: gravity)
+	 */
 	for (i = 0; i < numverts; i++)
 	{
 		float temp[3];
@@ -1745,10 +1745,10 @@ static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVect
 	del_lfvector(dFdXmV);
 }
 
-/*computes where the cloth would be if it were subject to perfectly stiff edges
-  (edge distance constraints) in a lagrangian solver.  then add forces to help
-  guide the implicit solver to that state.  this function is called after
-  collisions*/
+/* computes where the cloth would be if it were subject to perfectly stiff edges
+ * (edge distance constraints) in a lagrangian solver.  then add forces to help
+ * guide the implicit solver to that state.  this function is called after
+ * collisions*/
 int cloth_calc_helper_forces(Object *UNUSED(ob), ClothModifierData * clmd, float (*initial_cos)[3], float UNUSED(step), float dt)
 {
 	Cloth *cloth= clmd->clothObject;

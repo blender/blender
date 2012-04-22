@@ -645,7 +645,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		float jnk;
 
 		/* Get strength by feeding the vertex 
-		* location directly into a texture */
+		 * location directly into a texture */
 		externtex(mtex, point, &avg,
 		          &jnk, &jnk, &jnk, &jnk, 0);
 	}
@@ -2556,16 +2556,18 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 	flip_coord(cache->view_normal, cache->true_view_normal, symm);
 
 	/* XXX This reduces the length of the grab delta if it approaches the line of symmetry
-	   XXX However, a different approach appears to be needed
-	   if (sd->flags & SCULPT_SYMMETRY_FEATHER) {
-	    float frac = 1.0f/max_overlap_count(sd);
-	    float reduce = (feather-frac)/(1-frac);
+	 * XXX However, a different approach appears to be needed */
+#if 0
+	if (sd->flags & SCULPT_SYMMETRY_FEATHER) {
+		float frac = 1.0f/max_overlap_count(sd);
+		float reduce = (feather-frac)/(1-frac);
 
-	    printf("feather: %f frac: %f reduce: %f\n", feather, frac, reduce);
+		printf("feather: %f frac: %f reduce: %f\n", feather, frac, reduce);
 
-	    if (frac < 1)
-	        mul_v3_fl(cache->grab_delta_symmetry, reduce);
-	   } */
+		if (frac < 1)
+			mul_v3_fl(cache->grab_delta_symmetry, reduce);
+	}
+#endif
 
 	unit_m4(cache->symm_rot_mat);
 	unit_m4(cache->symm_rot_mat_inv);

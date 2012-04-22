@@ -975,7 +975,7 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 }
 
 /* Translate GridHidden into the ME_HIDE flag for MVerts. Assumes
-   vertices are in the order output by ccgDM_copyFinalVertArray. */
+ * vertices are in the order output by ccgDM_copyFinalVertArray. */
 void subsurf_copy_grid_hidden(DerivedMesh *dm, const MPoly *mpoly,
                               MVert *mvert, const MDisps *mdisps)
 {

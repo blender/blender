@@ -1781,7 +1781,7 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 	/* BOX WIPE IS NOT WORKING YET */
 	/* case DO_CROSS_WIPE: */
 	/* BOX WIPE IS NOT WORKING YET */
-	/* 
+#if 0
 		case DO_BOX_WIPE: 
 			if (invert)facf0 = 1-facf0;
 
@@ -1843,7 +1843,7 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 			}
 
 		break;
-*/
+#endif
 		case DO_IRIS_WIPE:
 			if (xo > yo) yo = xo;
 			else xo = yo;

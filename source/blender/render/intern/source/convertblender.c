@@ -4061,7 +4061,7 @@ static void set_phong_threshold(ObjectRen *obr)
 	
 	/* Added check for 'pointy' situations, only dotproducts of 0.9 and larger 
 	 * are taken into account. This threshold is meant to work on smooth geometry, not
-	 / for extreme cases (ton) */
+	 * for extreme cases (ton) */
 	
 	for (i=0; i<obr->totvlak; i++) {
 		vlr= RE_findOrAddVlak(obr, i);
@@ -4304,8 +4304,8 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (obr->totvert || obr->totvlak || obr->tothalo || obr->totstrand) {
 		/* the exception below is because displace code now is in init_render_mesh call, 
-		I will look at means to have autosmooth enabled for all object types 
-		and have it as general postprocess, like displace */
+		 * I will look at means to have autosmooth enabled for all object types
+		 * and have it as general postprocess, like displace */
 		if (ob->type!=OB_MESH && test_for_displace(re, ob))
 			do_displacement(re, obr, NULL, NULL);
 	
@@ -4790,8 +4790,8 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 
 		if (enable) {
 			/* this is to make sure we get render level duplis in groups:
-			* the derivedmesh must be created before init_render_mesh,
-			* since object_duplilist does dupliparticles before that */
+			 * the derivedmesh must be created before init_render_mesh,
+			 * since object_duplilist does dupliparticles before that */
 			dm = mesh_create_derived_render(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 			dm->release(dm);
 
@@ -4866,7 +4866,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	 * empty in a dupli group. We could scan all render material/lamp/world
 	 * mtex's for mapto objects but its easier just to set the
 	 * 'imat' / 'imat_ren' on all and unlikely to be a performance hit
-	* See bug: [#28744] - campbell */
+	 * See bug: [#28744] - campbell */
 	for (ob= re->main->object.first; ob; ob= ob->id.next) {
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
 		mult_m4_m4m4(mat, re->viewmat, ob->obmat);
@@ -5460,8 +5460,8 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	
 	/* (bad) HACK calculate average velocity */
 	/* better solution would be fixing getVelocityAt() in intern/elbeem/intern/solver_util.cpp
-	so that also small drops/little water volumes return a velocity != 0. 
-	But I had no luck in fixing that function - DG */
+	 * so that also small drops/little water volumes return a velocity != 0.
+	 * But I had no luck in fixing that function - DG */
 	for (a=0; a<obr->totvert; a++) {
 		for (j=0;j<3;j++) avgvel[j] += velarray[a].vel[j];
 		

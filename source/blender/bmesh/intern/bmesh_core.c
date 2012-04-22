@@ -1179,8 +1179,8 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 
 	if (first_loop_f1) {
 		/* original first loop was in f1, find a suitable first loop for f2
-		   which is as similar as possible to f1. the order matters for tools
-		   such as duplifaces. */
+		 * which is as similar as possible to f1. the order matters for tools
+		 * such as duplifaces. */
 		if (f->l_first->prev == f1loop)
 			f2->l_first = f2loop->prev;
 		else if (f->l_first->next == f1loop)

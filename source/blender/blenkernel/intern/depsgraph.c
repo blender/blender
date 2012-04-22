@@ -1309,11 +1309,11 @@ DagNodeQueue * graph_dfs(void)
 						/* is_cycle = 1; */ /* UNUSED */
 					}
 					else if (itA->node->color == DAG_BLACK) {
-						;
 						/* already processed node but we may want later to change distance either to shorter to longer.
 						 * DFS_dist is the first encounter  
 						 */
-						/*if (node->DFS_dist >= itA->node->DFS_dist)
+#if 0
+						if (node->DFS_dist >= itA->node->DFS_dist)
 							itA->node->DFS_dist = node->DFS_dist + 1;
 
 							fprintf(stderr,"dfs forward or cross edge :%15s %i-%i %15s %i-%i\n",
@@ -1323,7 +1323,7 @@ DagNodeQueue * graph_dfs(void)
 								((ID *) itA->node->ob)->name, 
 								itA->node->DFS_dvtm,
 								itA->node->DFS_fntm);
-					*/
+#endif
 					}
 					else
 						fprintf(stderr,"dfs unknown edge\n");

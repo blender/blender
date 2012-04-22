@@ -2137,7 +2137,7 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask,
 
 	if ((ob->mode & OB_MODE_SCULPT) && ob->sculpt) {
 		/* create PBVH immediately (would be created on the fly too,
-		   but this avoids waiting on first stroke) */
+		 * but this avoids waiting on first stroke) */
 		ob->sculpt->pbvh= ob->derivedFinal->getPBVH(ob, ob->derivedFinal);
 	}
 }

@@ -2192,7 +2192,7 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 	ibuf = seq_stripelem_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
 
 	/* currently, we cache preprocessed images in SEQ_STRIPELEM_IBUF,
-	* but not(!) on SEQ_STRIPELEM_IBUF_ENDSTILL and ..._STARTSTILL */
+	 * but not(!) on SEQ_STRIPELEM_IBUF_ENDSTILL and ..._STARTSTILL */
 	if (ibuf)
 		use_preprocess = FALSE;
 
@@ -2685,10 +2685,10 @@ static void seq_start_threads(Scene *scene)
 	seq_last_given_monoton_cfra = monoton_cfra = 0;
 
 	/* since global structures are modified during the processing
-	   of one frame, only one render thread is currently possible... 
-
-	   (but we code, in the hope, that we can remove this restriction
-	   soon...)
+	 * of one frame, only one render thread is currently possible...
+	 *
+	 * (but we code, in the hope, that we can remove this restriction
+	 * soon...)
 	 */
 
 	fprintf(stderr, "SEQ-THREAD: seq_start_threads\n");
@@ -2942,7 +2942,7 @@ void free_imbuf_seq(Scene *scene, ListBase *seqbase, int check_mem_usage,
 		}
 		if (seq->type == SEQ_SCENE) {
 			/* FIXME: recurs downwards, 
-			   but do recurs protection somehow! */
+			 * but do recurs protection somehow! */
 		}
 	}
 	
@@ -3394,7 +3394,7 @@ static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, i
 	int seqmute;
 
 	/* for sound we go over full meta tree to update muted state,
-	*  since sound is played outside of evaluating the imbufs, */
+	 * since sound is played outside of evaluating the imbufs, */
 	for (seq = seqbasep->first; seq; seq = seq->next) {
 		seqmute = (mute || (seq->flag & SEQ_MUTE));
 

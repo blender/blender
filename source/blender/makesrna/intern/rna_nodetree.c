@@ -1711,14 +1711,14 @@ static void def_cmp_image(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	/*
-	 static EnumPropertyItem type_items[] = {
+#if 0
+	static EnumPropertyItem type_items[] = {
 		{IMA_SRC_FILE,      "IMAGE",     0, "Image",     ""},
 		{IMA_SRC_MOVIE,     "MOVIE",     "Movie",     ""},
 		{IMA_SRC_SEQUENCE,  "SEQUENCE",  "Sequence",  ""},
 		{IMA_SRC_GENERATED, "GENERATED", "Generated", ""},
 		{0, NULL, 0, NULL, NULL}};
-	*/
+#endif
 	
 	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
@@ -2873,13 +2873,14 @@ static void def_tex_image(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
-	/* is this supposed to be exposed? not sure..
+	/* is this supposed to be exposed? not sure.. */
+#if 0
 	prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "storage");
 	RNA_def_property_struct_type(prop, "ImageUser");
 	RNA_def_property_ui_text(prop, "Settings", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	 */
+#endif
 }
 
 static void def_tex_bricks(StructRNA *srna)

@@ -701,14 +701,17 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		GPU_normal_setup( dm );
 		GPU_uv_setup( dm );
 		if ( col != NULL ) {
-			/*if ( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL ) {
+#if 0
+			if ( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL ) {
 				col = 0;
 			}
 			else if ( mcol && dm->drawObject->colType == CD_MCOL ) {
 				col = 0;
 			}
 			
-			if ( col != 0 ) {*/
+			if ( col != 0 )
+#endif
+			{
 				unsigned char *colors = MEM_mallocN(dm->getNumTessFaces(dm)*4*3*sizeof(unsigned char), "cdDM_drawFacesTex_common");
 				for ( i=0; i < dm->getNumTessFaces(dm); i++ ) {
 					for ( j=0; j < 4; j++ ) {
@@ -724,7 +727,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					dm->drawObject->colType = CD_TEXTURE_MCOL;
 				else if (mcol)
 					dm->drawObject->colType = CD_MCOL;
-			//}
+			}
 			GPU_color_setup( dm );
 		}
 

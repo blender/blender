@@ -425,7 +425,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			int first_geom_bytes = sizeof(BMVert*) * geom_slot->len;
 				
 			/* make a copy of the initial geometry ordering so the
-			   last duplicate can be merged into it */
+			 * last duplicate can be merged into it */
 			first_geom = MEM_mallocN(first_geom_bytes, "first_geom");
 			memcpy(first_geom, geom_slot->data.buf, first_geom_bytes);
 		}
@@ -464,7 +464,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		}
 
 		/* already copied earlier, but after executation more slot
-		   memory may be allocated */
+		 * memory may be allocated */
 		if (j == 0)
 			first_dupe_op = dupe_op;
 		
@@ -526,7 +526,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		/* Update normals in case offset object has rotation. */
 		
 		/* BMESH_TODO: check if normal recalc needed under any other
-		   conditions? */
+		 * conditions? */
 
 		CDDM_calc_normals(result);
 	}

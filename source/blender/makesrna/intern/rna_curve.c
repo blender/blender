@@ -1200,13 +1200,13 @@ static void rna_def_curve_spline_bezpoints(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_USE_REPORTS);
 	RNA_def_int(func, "count", 1, INT_MIN, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
-	/*
+#if 0
 	func= RNA_def_function(srna, "remove", "rna_Curve_spline_remove");
 	RNA_def_function_ui_description(func, "Remove a spline from a curve");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
-	*/
+#endif
 }
 
 /* curve.splines */
@@ -1449,13 +1449,14 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_Curve_texspace_size_get", "rna_Curve_texspace_size_set", NULL);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
-	/* not supported yet
+	/* not supported yet */
+#if 0
 	prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
 	RNA_def_property_editable_func(prop, texspace_editable);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	*/
+#endif
 	
 	prop = RNA_def_property(srna, "use_uv_as_generated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UV_ORCO);

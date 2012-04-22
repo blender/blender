@@ -472,9 +472,9 @@ int BLI_exists(const char *name)
 #else
 	struct _stati64 st;
 #endif
-	/*  in Windows stat doesn't recognize dir ending on a slash 
-		To not break code where the ending slash is expected we
-		don't mess with the argument name directly here - elubie */
+	/* in Windows stat doesn't recognize dir ending on a slash
+	 * To not break code where the ending slash is expected we
+	 * don't mess with the argument name directly here - elubie */
 	wchar_t * tmp_16 = alloc_utf16_from_8(name, 0);
 	int len, res;
 	len = wcslen(tmp_16);

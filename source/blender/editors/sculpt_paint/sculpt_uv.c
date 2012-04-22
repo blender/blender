@@ -146,8 +146,8 @@ typedef struct UvSculptData {
 
 /*********** Improved Laplacian Relaxation Operator ************************/
 /* original code by Raul Fernandez Hernandez "farsthary"                   *
-* adapted to uv smoothing by Antony Riakiatakis                           *
-***************************************************************************/
+ * adapted to uv smoothing by Antony Riakiatakis                           *
+ ***************************************************************************/
 
 typedef struct Temp_UvData {
 	float sum_co[2], p[2], b[2], sum_b[2];

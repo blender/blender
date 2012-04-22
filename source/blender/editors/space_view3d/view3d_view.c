@@ -1744,7 +1744,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* redraw to hide any menus/popups, we don't go back to
-	* the window manager until after this operator exits */
+	 * the window manager until after this operator exits */
 	WM_redraw_windows(C);
 
 	rv3d = CTX_wm_region_view3d(C);

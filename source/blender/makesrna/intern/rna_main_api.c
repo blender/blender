@@ -606,21 +606,18 @@ static int rna_Main_gpencil_is_updated_get(PointerRNA *ptr) { return DAG_id_type
 
 void RNA_api_main(StructRNA *srna)
 {
-	/*
+#if 0
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	*/
 	/* maybe we want to add functions in 'bpy.data' still?
 	 * for now they are all in collections bpy.data.images.new(...) */
-	/*
 	func= RNA_def_function(srna, "add_image", "rna_Main_add_image");
 	RNA_def_function_ui_description(func, "Add a new image");
 	parm= RNA_def_string_file_path(func, "filepath", "", 0, "", "File path to load image from");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image");
 	RNA_def_function_return(func, parm);
-	*/
-
+#endif
 }
 
 void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop)

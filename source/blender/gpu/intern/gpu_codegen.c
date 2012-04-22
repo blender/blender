@@ -388,7 +388,7 @@ static void codegen_set_unique_ids(ListBase *nodes)
 				((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL))) {
 				if (input->link) {
 					/* input is texture from buffer, assign only one texid per
-					   buffer to avoid sampling the same texture twice */
+					 * buffer to avoid sampling the same texture twice */
 					if (!BLI_ghash_haskey(bindhash, input->link)) {
 						input->texid = texid++;
 						input->bindtex = 1;
@@ -399,7 +399,7 @@ static void codegen_set_unique_ids(ListBase *nodes)
 				}
 				else if (input->ima) {
 					/* input is texture from image, assign only one texid per
-					   buffer to avoid sampling the same texture twice */
+					 * buffer to avoid sampling the same texture twice */
 					if (!BLI_ghash_haskey(bindhash, input->ima)) {
 						input->texid = texid++;
 						input->bindtex = 1;
@@ -968,8 +968,8 @@ static void GPU_node_output(GPUNode *node, int type, const char *UNUSED(name), G
 		output->link->output = output;
 
 		/* note: the caller owns the reference to the linkfer, GPUOutput
-		   merely points to it, and if the node is destroyed it will
-		   set that pointer to NULL */
+		 * merely points to it, and if the node is destroyed it will
+		 * set that pointer to NULL */
 	}
 
 	BLI_addtail(&node->outputs, output);

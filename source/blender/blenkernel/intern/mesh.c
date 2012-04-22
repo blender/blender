@@ -3038,7 +3038,7 @@ int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
 }
 
 /* update the hide flag for edges and faces from the corresponding
-   flag in verts */
+ * flag in verts */
 void mesh_flush_hidden_from_verts(const MVert *mvert,
 								  const MLoop *mloop,
 								  MEdge *medge, int totedge,
