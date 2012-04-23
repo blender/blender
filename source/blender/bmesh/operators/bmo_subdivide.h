@@ -31,7 +31,10 @@ typedef struct SubDParams {
 	int numcuts;
 	float smooth;
 	float fractal;
-	int beauty;
+	//int beauty;
+	short use_smooth;
+	short use_sphere;
+	short use_fractal;
 	int seed;
 	int origkey; /* shapekey holding displaced vertex coordinates for current geometry */
 	BMOperator *op;

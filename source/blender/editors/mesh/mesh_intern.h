@@ -49,7 +49,7 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 
-/* ******************** bmeshutils.c */
+/* ******************** editmesh_utils.c */
 
 /*
  * ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 

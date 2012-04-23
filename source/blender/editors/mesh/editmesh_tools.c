@@ -87,25 +87,19 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
 	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
 	float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
-	int flag = 0;
 
-	if (smooth != 0.0f)
-		flag |= B_SMOOTH;
-	if (fractal != 0.0f)
-		flag |= B_FRACTAL;
-	
 	if (RNA_boolean_get(op->ptr, "quadtri") && 
 	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_STRAIGHT_CUT)
 	{
 		RNA_enum_set(op->ptr, "quadcorner", SUBD_INNERVERT);
 	}
 	
-	BM_mesh_esubdivideflag(obedit, em->bm, BM_ELEM_SELECT,
-	                       smooth, fractal,
-	                       flag,
-	                       cuts, 0, RNA_enum_get(op->ptr, "quadcorner"),
-	                       RNA_boolean_get(op->ptr, "quadtri"),
-	                       TRUE, RNA_int_get(op->ptr, "seed"));
+	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
+	                   smooth, fractal,
+	                   cuts,
+	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
+	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE,
+	                   RNA_int_get(op->ptr, "seed"));
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -2741,10 +2735,9 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	if (mode == KNIFE_MIDPOINT) numcuts = 1;
 	BMO_slot_int_set(&bmop, "numcuts", numcuts);
 
-	BMO_slot_int_set(&bmop, "flag", 0);
 	BMO_slot_int_set(&bmop, "quadcornertype", SUBD_STRAIGHT_CUT);
-	BMO_slot_bool_set(&bmop, "singleedge", FALSE);
-	BMO_slot_bool_set(&bmop, "gridfill", FALSE);
+	BMO_slot_bool_set(&bmop, "use_singleedge", FALSE);
+	BMO_slot_bool_set(&bmop, "use_gridfill", FALSE);
 
 	BMO_slot_float_set(&bmop, "radius", 0);
 	

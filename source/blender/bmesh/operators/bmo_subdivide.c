@@ -111,7 +111,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 	copy_v3_v3(co, v->co);
 	copy_v3_v3(prev_co, co);
 
-	if (params->beauty & B_SMOOTH) {
+	if (params->use_smooth) {
 		/* we calculate an offset vector vec1[], to be added to *co */
 		float len, nor[3], nor1[3], nor2[3], smooth = params->smooth;
 
@@ -136,12 +136,12 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 
 		add_v3_v3(co, tvec);
 	}
-	else if (params->beauty & B_SPHERE) { /* subdivide sphere */
+	else if (params->use_sphere) { /* subdivide sphere */
 		normalize_v3(co);
 		mul_v3_fl(co, params->smooth);
 	}
 
-	if (params->beauty & B_FRACTAL) {
+	if (params->use_fractal) {
 		float len = len_v3v3(vsta->co, vend->co);
 		float vec2[3] = {0.0f, 0.0f, 0.0f}, co2[3];
 
@@ -690,7 +690,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(edges);
 	BLI_array_declare(verts);
 	float smooth, fractal;
-	int beauty, cornertype, singleedge, gridfill;
+	int use_sphere, cornertype, use_singleedge, use_gridfill;
 	int skey, seed, i, j, matched, a, b, numcuts, totesel;
 	
 	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, SUBD_SPLIT);
@@ -699,10 +699,11 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 	seed = BMO_slot_int_get(op, "seed");
 	smooth = BMO_slot_float_get(op, "smooth");
 	fractal = BMO_slot_float_get(op, "fractal");
-	beauty = BMO_slot_int_get(op, "beauty");
 	cornertype = BMO_slot_int_get(op, "quadcornertype");
-	singleedge = BMO_slot_bool_get(op, "singleedge");
-	gridfill = BMO_slot_bool_get(op, "gridfill");
+
+	use_singleedge = BMO_slot_bool_get(op, "use_singleedge");
+	use_gridfill   = BMO_slot_bool_get(op, "use_gridfill");
+	use_sphere     = BMO_slot_bool_get(op, "use_sphere");
 	
 	BLI_srandom(seed);
 	
@@ -720,7 +721,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 			break;
 	}
 	
-	if (singleedge) {
+	if (use_singleedge) {
 		patterns[0] = &quad_1edge;
 		patterns[2] = &tri_1edge;
 	}
@@ -729,7 +730,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 		patterns[2] = NULL;
 	}
 
-	if (gridfill) {
+	if (use_gridfill) {
 		patterns[3] = &quad_4edge;
 		patterns[5] = &tri_3edge;
 	}
@@ -755,7 +756,9 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 	params.smooth = smooth;
 	params.seed = seed;
 	params.fractal = fractal;
-	params.beauty = beauty;
+	params.use_smooth  = (smooth  != 0.0f);
+	params.use_fractal = (fractal != 0.0f);
+	params.use_sphere  = use_sphere;
 	params.origkey = skey;
 	params.off[0] = (float)BLI_drand() * 200.0f;
 	params.off[1] = (float)BLI_drand() * 200.0f;
@@ -1023,25 +1026,35 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 }
 
 /* editmesh-emulating function */
-void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth,
-                            float fractal, int beauty, int numcuts,
-                            int seltype, int cornertype, int singleedge,
-                            int gridfill, int seed)
+void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
+                        float smooth, float fractal,
+                        int numcuts,
+                        int seltype, int cornertype,
+                        const short use_singleedge, const short use_gridfill,
+                        int seed)
 {
 	BMOperator op;
 	
-	BMO_op_initf(bm, &op, "esubd edges=%he smooth=%f fractal=%f "
-	             "beauty=%i numcuts=%i quadcornertype=%i singleedge=%b "
-	             "gridfill=%b seed=%i",
-	             flag, smooth, fractal, beauty, numcuts,
-	             cornertype, singleedge, gridfill, seed);
+	/* use_sphere isnt exposed here since its only used for new primitives */
+	BMO_op_initf(bm, &op,
+	             "esubd edges=%he "
+	             "smooth=%f fractal=%f "
+	             "numcuts=%i "
+	             "quadcornertype=%i "
+	             "use_singleedge=%b use_gridfill=%b "
+	             "seed=%i",
+	             edge_hflag,
+	             smooth, fractal,
+	             numcuts,
+	             cornertype,
+	             use_singleedge, use_gridfill,
+	             seed);
 	
 	BMO_op_exec(bm, &op);
 	
 	if (seltype == SUBDIV_SELECT_INNER) {
 		BMOIter iter;
 		BMElem *ele;
-		// int i;
 
 		for (ele = BMO_iter_new(&iter, bm, &op, "outinner", BM_EDGE | BM_VERT); ele; ele = BMO_iter_step(&iter)) {
 			BM_elem_select_set(bm, ele, TRUE);
@@ -1050,7 +1063,6 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 	else if (seltype == SUBDIV_SELECT_LOOPCUT) {
 		BMOIter iter;
 		BMElem *ele;
-		// int i;
 		
 		/* deselect input */
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);

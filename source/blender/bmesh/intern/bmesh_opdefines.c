@@ -694,10 +694,9 @@ static BMOpDefine bmo_triangulate_def = {
 static BMOpDefine bmo_esubd_def = {
 	"esubd",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},
-	 {BMO_OP_SLOT_INT, "numcuts"},
 	 {BMO_OP_SLOT_FLT, "smooth"},
 	 {BMO_OP_SLOT_FLT, "fractal"},
-	 {BMO_OP_SLOT_INT, "beauty"},
+	 {BMO_OP_SLOT_INT, "numcuts"},
 	 {BMO_OP_SLOT_INT, "seed"},
 	 {BMO_OP_SLOT_MAPPING, "custompatterns"},
 	 {BMO_OP_SLOT_MAPPING, "edgepercents"},
@@ -707,9 +706,10 @@ static BMOpDefine bmo_esubd_def = {
 	 {BMO_OP_SLOT_ELEMENT_BUF, "outsplit"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"}, /* contains all output geometr */
 
-	 {BMO_OP_SLOT_INT,  "quadcornertype"}, //quad corner type, see bmesh_operators.h
-	 {BMO_OP_SLOT_BOOL, "gridfill"}, //fill in fully-selected faces with a grid
-	 {BMO_OP_SLOT_BOOL, "singleedge"}, //tessellate the case of one edge selected in a quad or triangle
+	 {BMO_OP_SLOT_INT,  "quadcornertype"}, /* quad corner type, see bmesh_operators.h */
+	 {BMO_OP_SLOT_BOOL, "use_gridfill"},   /* fill in fully-selected faces with a grid */
+	 {BMO_OP_SLOT_BOOL, "use_singleedge"}, /* tessellate the case of one edge selected in a quad or triangle */
+	 {BMO_OP_SLOT_BOOL, "use_sphere"},     /* for making new primitives only */
 
 	 {0} /* null-terminating sentinel */,
 	},

@@ -71,16 +71,10 @@ struct Material;
 struct Object;
 struct rcti;
 
-/* editbutflag */
-#define B_SMOOTH            8
-#define B_FRACTAL           0x2000
-#define B_SPHERE            0x4000
-
 intptr_t    mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode);
 int         mesh_mirrtopo_table(struct Object *ob, char mode);
 
-/* bmeshutils.c */
-
+/* editmesh_utils.c */
 
 /* retrieves mirrored cache vert, or NULL if there isn't one.
  * note: calling this without ensuring the mirror cache state
@@ -281,11 +275,6 @@ void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
 #define SUBDIV_SELECT_INNER     1
 #define SUBDIV_SELECT_INNER_SEL 2
 #define SUBDIV_SELECT_LOOPCUT   3
-
-/* edge subdivide corner cut types */
-#define SUBDIV_CORNER_PATH      0
-#define SUBDIV_CORNER_INNERVERT 1
-#define SUBDIV_CORNER_FAN       2
 
 #ifdef __cplusplus
 }

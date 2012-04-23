@@ -428,8 +428,13 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		BMOperator bmop;
 
 		BMO_op_initf(bm, &bmop,
-		             "esubd edges=%fe smooth=%f numcuts=%i gridfill=%b beauty=%i",
-		             EDGE_MARK, dia, (1 << (subdiv-1)) - 1, TRUE, B_SPHERE);
+		             "esubd edges=%fe "
+		             "smooth=%f "
+		             "numcuts=%i "
+		             "use_gridfill=%b use_sphere=%b",
+		             EDGE_MARK, dia, (1 << (subdiv-1)) - 1,
+		             TRUE, TRUE);
+
 		BMO_op_exec(bm, &bmop);
 		BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", BM_VERT, VERT_MARK);
 		BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", BM_EDGE, EDGE_MARK);
