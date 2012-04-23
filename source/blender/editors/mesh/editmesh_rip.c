@@ -372,6 +372,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 	BMLoop *l;
 	BMEdge *e, *e2;
 	BMVert *v, *ripvert = NULL;
+	const int totvert_orig = bm->totvert;
 	int i;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 	float dist = FLT_MAX;
@@ -573,6 +574,11 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
+	if (totvert_orig == bm->totvert) {
+		BKE_report(op->reports, RPT_ERROR, "No vertices could be ripped");
+		return OPERATOR_CANCELLED;
+	}
+
 	return OPERATOR_FINISHED;
 }
 
@@ -590,6 +596,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 	BMLoop *l;
 	BMEdge *e, *e2;
 	BMVert *v;
+	const int totedge_orig = bm->totedge;
 	int i;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 
@@ -671,6 +678,12 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 	                            ar, projectMat, fmval);
 	MEM_freeN(eloop_pairs);
 
+	if (totedge_orig == bm->totedge) {
+		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
+		return OPERATOR_CANCELLED;
+	}
+
+	EDBM_selectmode_flush(em);
 
 	return OPERATOR_FINISHED;
 }
@@ -684,7 +697,6 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMIter iter;
 	BMEdge *e;
 	int singlesel = (bm->totvertsel == 1 && bm->totedgesel == 0 && bm->totfacesel == 0);
-	const int totedge_orig = bm->totedge;
 	int ret;
 
 	/* running in face mode hardly makes sense, so convert to region loop and rip */
@@ -721,13 +733,6 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if (ret == OPERATOR_CANCELLED) {
-		return OPERATOR_CANCELLED;
-	}
-
-	EDBM_selectmode_flush(em);
-
-	if ((singlesel == FALSE) && (totedge_orig == bm->totedge)) {
-		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
 		return OPERATOR_CANCELLED;
 	}
 
