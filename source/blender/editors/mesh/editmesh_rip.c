@@ -726,7 +726,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	EDBM_selectmode_flush(em);
 
-	if (totedge_orig == bm->totedge) {
+	if ((singlesel == FALSE) && (totedge_orig == bm->totedge)) {
 		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
 		return OPERATOR_CANCELLED;
 	}
