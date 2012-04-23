@@ -9153,7 +9153,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->segments = 32;
 				sce->toolsettings->rings = 32;
 				sce->toolsettings->vertices = 32;
-				sce->toolsettings->editbutflag =1;
 			}
 			sce= sce->id.next;	
 		}

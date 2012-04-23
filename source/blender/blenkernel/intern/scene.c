@@ -418,7 +418,6 @@ Scene *add_scene(const char *name)
 	sce->toolsettings->segments = 32;
 	sce->toolsettings->rings = 32;
 	sce->toolsettings->vertices = 32;
-	sce->toolsettings->editbutflag = 1;
 	sce->toolsettings->uvcalc_radius = 1.0f;
 	sce->toolsettings->uvcalc_cubesize = 1.0f;
 	sce->toolsettings->uvcalc_mapdir = 1;

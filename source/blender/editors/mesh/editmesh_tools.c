@@ -82,7 +82,6 @@ static void add_normal_aligned(float nor[3], const float add[3])
 
 static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 {
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
@@ -103,7 +102,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	
 	BM_mesh_esubdivideflag(obedit, em->bm, BM_ELEM_SELECT,
 	                       smooth, fractal,
-	                       ts->editbutflag | flag,
+	                       flag,
 	                       cuts, 0, RNA_enum_get(op->ptr, "quadcorner"),
 	                       RNA_boolean_get(op->ptr, "quadtri"),
 	                       TRUE, RNA_int_get(op->ptr, "seed"));
@@ -2742,7 +2741,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	if (mode == KNIFE_MIDPOINT) numcuts = 1;
 	BMO_slot_int_set(&bmop, "numcuts", numcuts);
 
-	BMO_slot_int_set(&bmop, "flag", B_KNIFE);
+	BMO_slot_int_set(&bmop, "flag", 0);
 	BMO_slot_int_set(&bmop, "quadcornertype", SUBD_STRAIGHT_CUT);
 	BMO_slot_bool_set(&bmop, "singleedge", FALSE);
 	BMO_slot_bool_set(&bmop, "gridfill", FALSE);
@@ -3280,7 +3279,6 @@ void MESH_OT_split(wmOperatorType *ot)
 static int edbm_spin_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMOperator spinop;
@@ -3288,14 +3286,15 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	float d[3] = {0.0f, 0.0f, 0.0f};
 	int steps, dupli;
 	float degr;
-    
+
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
 	steps = RNA_int_get(op->ptr, "steps");
 	degr = RNA_float_get(op->ptr, "degrees");
-	if (ts->editbutflag & B_CLOCKWISE) degr = -degr;
+	//if (ts->editbutflag & B_CLOCKWISE)
+	degr = -degr;
 	dupli = RNA_boolean_get(op->ptr, "dupli");
-    
+
 	/* undo object transformation */
 	copy_m3_m4(imat, obedit->imat);
 	sub_v3_v3(cent, obedit->obmat[3]);

@@ -885,7 +885,7 @@ typedef struct ToolSettings {
 
 	/* Subdivide Settings */
 	short cornertype;
-	short editbutflag;
+	short pad3;
 	/*Triangle to Quad conversion threshold*/
 	float jointrilimit;
 	/* Editmode Tools */
@@ -943,11 +943,11 @@ typedef struct ToolSettings {
 
 	/* Auto-Keying Mode */
 	short autokey_mode, autokey_flag;	/* defines in DNA_userdef_types.h */
-	
+
 	/* Multires */
 	char multires_subdiv_type;
 	char pad2[5];
-	
+
 	/* Skeleton generation */
 	short skgen_resolution;
 	float skgen_threshold_internal;
@@ -965,7 +965,7 @@ typedef struct ToolSettings {
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
 	char  skgen_multi_level;
-	
+
 	/* Skeleton Sketching */
 	struct Object *skgen_template;
 	char bone_sketching;
