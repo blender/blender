@@ -90,11 +90,6 @@
 
 #include "ED_screen.h"
 
-Tex *rna_Main_add_texture(Main *UNUSED(bmain), const char *name)
-{
-	return add_texture(name);
-}
-
 Camera *rna_Main_cameras_new(Main *UNUSED(bmain), const char *name)
 {
 	ID *id = add_camera(name);
@@ -680,6 +675,10 @@ void RNA_def_main_scenes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a scene from the current blendfile");
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	func = RNA_def_function(srna, "tag", "rna_Main_scenes_tag");
+	parm = RNA_def_boolean(func, "value", 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
