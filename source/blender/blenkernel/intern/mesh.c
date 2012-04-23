@@ -2061,8 +2061,11 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 
 	/*build edge hash*/
 	me = mesh->medge;
-	for (i=0; i<mesh->totedge; i++, me++) {
+	for (i = 0; i < mesh->totedge; i++, me++) {
 		BLI_edgehash_insert(eh, me->v1, me->v2, SET_INT_IN_POINTER(i));
+
+		/* unrelated but avoid having the FGON flag enabled, so we can reuse it later for something else */
+		me->flag &= ~ME_FGON;
 	}
 
 	j = 0; /*current loop index*/
@@ -2077,7 +2080,7 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 		mp->mat_nr = mf->mat_nr;
 		mp->flag = mf->flag;
 		
-		#define ML(v1, v2) {ml->v = mf->v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); ml++; j++;}
+#		define ML(v1, v2) {ml->v = mf->v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); ml++; j++;}
 		
 		ML(v1, v2);
 		ML(v2, v3);
@@ -2089,7 +2092,7 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 			ML(v3, v1);
 		}
 		
-		#undef ML
+#		undef ML
 
 		bm_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
 	}
