@@ -205,10 +205,10 @@ static void knife_input_ray_cast(KnifeTool_OpData *kcd, const int mval_i[2],
 
 static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 {
-	#define HEADER_LENGTH 180
+	#define HEADER_LENGTH 190
 	char header[HEADER_LENGTH];
 
-	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
+	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return/Spacebar: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
 	             "Shift: ignore snap (%s), C: angle constrain (%s), Z: cut through (%s)",
 	             kcd->snap_midpoints ? "On" : "Off",
 	             kcd->ignore_edge_snapping ?  "On" : "Off",
