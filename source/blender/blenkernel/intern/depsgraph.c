@@ -1579,6 +1579,7 @@ struct DagNodeQueue *get_all_childs(struct DagForest	*dag, void *ob)
 }
 
 /* unused */
+#if 0
 short	are_obs_related(struct DagForest	*dag, void *ob1, void *ob2)
 {
 	DagNode * node;
@@ -1595,6 +1596,7 @@ short	are_obs_related(struct DagForest	*dag, void *ob1, void *ob2)
 	}
 	return DAG_NO_RELATION;
 }
+#endif
 
 int	is_acyclic( DagForest	*dag)
 {

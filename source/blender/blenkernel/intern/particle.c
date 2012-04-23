@@ -201,6 +201,8 @@ void psys_set_current_num(Object *ob, int index)
 			psys->flag &= ~PSYS_CURRENT;
 	}
 }
+
+#if 0 /* UNUSED */
 Object *psys_find_object(Scene *scene, ParticleSystem *psys)
 {
 	Base *base;
@@ -215,6 +217,8 @@ Object *psys_find_object(Scene *scene, ParticleSystem *psys)
 
 	return NULL;
 }
+#endif
+
 Object *psys_get_lattice(ParticleSimulationData *sim)
 {
 	Object *lattice=NULL;

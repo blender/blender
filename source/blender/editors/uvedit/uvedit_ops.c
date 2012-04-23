@@ -569,21 +569,6 @@ void poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy,
 	}
 }
 
-void uv_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy)
-{
-	uv[0][0] = uv_orig[0][0] * aspx;
-	uv[0][1] = uv_orig[0][1] * aspy;
-	
-	uv[1][0] = uv_orig[1][0] * aspx;
-	uv[1][1] = uv_orig[1][1] * aspy;
-	
-	uv[2][0] = uv_orig[2][0] * aspx;
-	uv[2][1] = uv_orig[2][1] * aspy;
-	
-	uv[3][0] = uv_orig[3][0] * aspx;
-	uv[3][1] = uv_orig[3][1] * aspy;
-}
-
 int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float *max)
 {
 	BMEditMesh *em = BMEdit_FromObject(obedit);

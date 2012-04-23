@@ -1003,11 +1003,13 @@ int sequencer_edit_poll(bContext *C)
 	return (seq_give_editing(CTX_data_scene(C), FALSE) != NULL);
 }
 
+#if 0 /* UNUSED */
 int sequencer_strip_poll(bContext *C)
 {
 	Editing *ed;
 	return (((ed = seq_give_editing(CTX_data_scene(C), FALSE)) != NULL) && (ed->act_seq != NULL));
 }
+#endif
 
 int sequencer_strip_has_path_poll(bContext *C)
 {

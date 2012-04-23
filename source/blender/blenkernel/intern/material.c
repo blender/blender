@@ -1052,7 +1052,7 @@ int material_in_material(Material *parmat, Material *mat)
 }
 	
 /* ****************** */
-
+#if 0 /* UNUSED */
 static char colname_array[125][20]= {
 "Black","DarkRed","HalfRed","Red","Red",
 "DarkGreen","DarkOlive","Brown","Chocolate","OrangeRed",
@@ -1098,7 +1098,7 @@ void automatname(Material *ma)
 	new_id(&G.main->mat, (ID *)ma, colname_array[nr]);
 	
 }
-
+#endif
 
 int object_remove_material_slot(Object *ob)
 {

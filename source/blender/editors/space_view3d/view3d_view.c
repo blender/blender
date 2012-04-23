@@ -1826,7 +1826,7 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 
 /* ************************************** */
 
-void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, float vec[3])
+static void UNUSED_FUNCTION(view3d_align_axis_to_vector)(View3D *v3d, RegionView3D *rv3d, int axisidx, float vec[3])
 {
 	float alignaxis[3] = {0.0, 0.0, 0.0};
 	float norm[3], axis[3], angle, new_quat[4];
