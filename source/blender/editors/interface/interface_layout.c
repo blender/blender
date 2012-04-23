@@ -2414,7 +2414,7 @@ float uiLayoutGetScaleX(uiLayout *layout)
 
 float uiLayoutGetScaleY(uiLayout *layout)
 {
-	return layout->scale[0];
+	return layout->scale[1];
 }
 
 /********************** Layout *******************/

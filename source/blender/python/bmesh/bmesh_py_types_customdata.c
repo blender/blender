@@ -511,8 +511,8 @@ static PyObject *bpy_bmlayercollection_subscript_slice(BPy_BMLayerCollection *se
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (start >= start) start = len - 1;
-	if (stop >= stop)   stop  = len - 1;
+	if (start >= len) start = len - 1;
+	if (stop  >= len) stop  = len - 1;
 
 	tuple = PyTuple_New(stop - start);
 
