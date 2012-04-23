@@ -184,8 +184,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 	BMO_op_initf(bm, &dupeop, "dupe geom=%fve", EXT_INPUT);
 	BMO_op_exec(bm, &dupeop);
 
-	e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0);
-	for ( ; e; e = BMO_iter_step(&siter)) {
+	for (e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0); e; e = BMO_iter_step(&siter)) {
 		e2 = BMO_iter_map_value(&siter);
 		e2 = *(BMEdge **)e2;
 
@@ -226,8 +225,7 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, *dupev;
 	BMEdge *e;
 
-	v = BMO_iter_new(&siter, bm, op, "verts", BM_VERT);
-	for ( ; v; v = BMO_iter_step(&siter)) {
+	for (v = BMO_iter_new(&siter, bm, op, "verts", BM_VERT); v; v = BMO_iter_step(&siter)) {
 		dupev = BM_vert_create(bm, v->co, v);
 
 		e = BM_edge_create(bm, v, dupev, NULL, FALSE);
@@ -343,8 +341,8 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	BMO_slot_copy(&dupeop, op, "newout", "geomout");
-	e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0);
-	for ( ; e; e = BMO_iter_step(&siter)) {
+
+	for (e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0); e; e = BMO_iter_step(&siter)) {
 
 		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
 		if (BM_edge_is_wire(e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
@@ -389,8 +387,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* link isolated vert */
-	v = BMO_iter_new(&siter, bm, &dupeop, "isovertmap", 0);
-	for ( ; v; v = BMO_iter_step(&siter)) {
+	for (v = BMO_iter_new(&siter, bm, &dupeop, "isovertmap", 0); v; v = BMO_iter_step(&siter)) {
 		v2 = *((void **)BMO_iter_map_value(&siter));
 		BM_edge_create(bm, v, v2, v->e, TRUE);
 	}

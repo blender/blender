@@ -413,8 +413,7 @@ void *BMO_iter_map_value_p(BMOIter *iter);
 float BMO_iter_map_value_f(BMOIter *iter);
 
 #define BMO_ITER(ele, iter, bm, op, slotname, restrict)   \
-	ele = BMO_iter_new(iter, bm, op, slotname, restrict); \
-	for ( ; ele; ele = BMO_iter_step(iter))
+	for (ele = BMO_iter_new(iter, bm, op, slotname, restrict); ele; ele = BMO_iter_step(iter))
 
 /******************* Inlined Functions********************/
 typedef void (*opexec)(BMesh *bm, BMOperator *op);

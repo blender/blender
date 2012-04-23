@@ -524,8 +524,8 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				const float fac = (depth *
-								   (use_relative_offset ? bm_vert_avg_tag_dist(v) : 1.0f) *
-								   (use_even_boundry    ? BM_vert_calc_shell_factor(v) : 1.0f));
+				                   (use_relative_offset ? bm_vert_avg_tag_dist(v) : 1.0f) *
+				                   (use_even_boundry    ? BM_vert_calc_shell_factor(v) : 1.0f));
 				madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
 			}
 		}

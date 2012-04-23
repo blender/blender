@@ -51,21 +51,16 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(newfaces);
 	float (*projectverts)[3] = NULL;
 	BLI_array_declare(projectverts);
-	int i, lastlen = 0 /* , count = 0 */;
+	int i;
 	const int use_beauty = BMO_slot_bool_get(op, "use_beauty");
 
-	face = BMO_iter_new(&siter, bm, op, "faces", BM_FACE);
-	for ( ; face; face = BMO_iter_step(&siter)) {
-		if (lastlen < face->len) {
-			BLI_array_empty(projectverts);
-			BLI_array_empty(newfaces);
-			for (lastlen = 0; lastlen < face->len; lastlen++) {
-				BLI_array_growone(projectverts);
-				BLI_array_growone(projectverts);
-				BLI_array_growone(projectverts);
-				BLI_array_growone(newfaces);
-			}
-		}
+	for (face = BMO_iter_new(&siter, bm, op, "faces", BM_FACE); face; face = BMO_iter_step(&siter)) {
+
+		BLI_array_empty(projectverts);
+		BLI_array_empty(newfaces);
+
+		BLI_array_growitems(projectverts, face->len * 3);
+		BLI_array_growitems(newfaces, face->len);
 
 		BM_face_triangulate(bm, face, projectverts, EDGE_NEW, FACE_NEW, newfaces, use_beauty);
 

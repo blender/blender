@@ -1042,9 +1042,8 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 		BMOIter iter;
 		BMElem *ele;
 		// int i;
-		
-		ele = BMO_iter_new(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
-		for ( ; ele; ele = BMO_iter_step(&iter)) {
+
+		for (ele = BMO_iter_new(&iter, bm, &op, "outinner", BM_EDGE | BM_VERT); ele; ele = BMO_iter_step(&iter)) {
 			BM_elem_select_set(bm, ele, TRUE);
 		}
 	}
@@ -1056,8 +1055,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 		/* deselect input */
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
 
-		ele = BMO_iter_new(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
-		for ( ; ele; ele = BMO_iter_step(&iter)) {
+		for (ele = BMO_iter_new(&iter, bm, &op, "outinner", BM_EDGE | BM_VERT); ele; ele = BMO_iter_step(&iter)) {
 			BM_elem_select_set(bm, ele, TRUE);
 
 			if (ele->head.htype == BM_VERT) {

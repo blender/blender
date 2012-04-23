@@ -758,7 +758,7 @@ BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
 /**
  * Checks if a face is valid in the data structure
  */
-int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
+int BM_face_validate(BMFace *face, FILE *err)
 {
 	BMIter iter;
 	BLI_array_declare(verts);
@@ -771,10 +771,9 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
 		fflush(err);
 	}
 
-	for (l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, face); l; l = BM_iter_step(&iter)) {
-		BLI_array_growone(verts);
-		verts[BLI_array_count(verts) - 1] = l->v;
-		
+	BLI_array_growitems(verts, face->len);
+	BM_ITER_ELEM_INDEX (l, &iter, face, BM_LOOPS_OF_FACE, i) {
+		verts[i] = l->v;
 		if (l->e->v1 == l->e->v2) {
 			fprintf(err, "Found bmesh edge with identical verts!\n");
 			fprintf(err, "  edge ptr: %p, vert: %p\n",  l->e, l->e->v1);
@@ -783,8 +782,8 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
 		}
 	}
 
-	for (i = 0; i < BLI_array_count(verts); i++) {
-		for (j = 0; j < BLI_array_count(verts); j++) {
+	for (i = 0; i < face->len; i++) {
+		for (j = 0; j < face->len; j++) {
 			if (j == i) {
 				continue;
 			}

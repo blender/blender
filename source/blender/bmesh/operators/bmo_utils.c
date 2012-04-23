@@ -1046,12 +1046,10 @@ void bmo_face_reverseuvs_exec(BMesh *bm, BMOperator *op)
 
 			/* now that we have the uvs in the array, reverse! */
 			i = 0;
-			BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
+			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
 				/* current loop uv is the previous loop uv */
 				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
-				luv->uv[0] = uvs[(fs->len - i - 1)][0];
-				luv->uv[1] = uvs[(fs->len - i - 1)][1];
-				i++;
+				copy_v2_v2(luv->uv, uvs[(fs->len - i - 1)]);
 			}
 		}
 	}
@@ -1140,25 +1138,20 @@ void bmo_face_reversecolors_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER (fs, &fs_iter, bm, op, "faces", BM_FACE) {
 		if (CustomData_has_layer(&(bm->ldata), CD_MLOOPCOL)) {
 			BMLoop *lf;	/* current face loops */
-			int i = 0;
+			int i;
 
 			BLI_array_empty(cols);
-			BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
-				MLoopCol *lcol = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
+			BLI_array_growitems(cols, fs->len);
 
-				/* current loop uv is the previous loop color */
-				BLI_array_growone(cols);
-				cols[i] = *lcol;
-				i++;
+			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
+				cols[i] = *((MLoopCol *)CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL));
 			}
 
 			/* now that we have the uvs in the array, reverse! */
-			i = 0;
-			BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
+			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
 				/* current loop uv is the previous loop color */
 				MLoopCol *lcol = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
 				*lcol = cols[(fs->len - i - 1)];
-				i++;
 			}
 		}
 	}
