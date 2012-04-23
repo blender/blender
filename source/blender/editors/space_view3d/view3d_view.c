@@ -1871,6 +1871,8 @@ float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3])
 
 /* view matrix properties utilities */
 
+/* unused */
+#if 0
 void ED_view3d_operator_properties_viewmat(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -1907,3 +1909,4 @@ void ED_view3d_operator_properties_viewmat_get(wmOperator *op, int *winx, int *w
 
 	RNA_float_get_array(op->ptr, "perspective_matrix", (float *)persmat);
 }
+#endif

@@ -836,40 +836,40 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 
 	if (action == FILE_SAVE) {
 		prop = RNA_def_boolean(ot->srna, "check_existing", 1, "Check Existing", "Check and warn on overwriting existing files");
-		RNA_def_property_flag(prop, PROP_HIDDEN);
+		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	}
 	
 	prop = RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE), "Filter movie files", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_python", (filter & PYSCRIPTFILE), "Filter python files", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_font", (filter & FTFONTFILE), "Filter font files", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_btx", (filter & BTXFILE), "Filter btx files", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_collada", (filter & COLLADAFILE), "Filter COLLADA files", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	prop = RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL,
 	                   "File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file",
 	                   FILE_LOADLIB, FILE_SPECIAL);
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	if (flag & WM_FILESEL_RELPATH)
 		RNA_def_boolean(ot->srna, "relative_path", TRUE, "Relative Path", "Select the file relative to the blend file");
 
 	prop = RNA_def_enum(ot->srna, "display_type", file_display_items, display, "Display Type", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 void WM_operator_properties_select_all(wmOperatorType *ot)
