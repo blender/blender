@@ -1569,7 +1569,7 @@ static void single_mat_users(Scene *scene, int flag, int do_textures)
 										tex->id.us--;
 										tex= copy_texture(tex);
 										BKE_copy_animdata_id_action(&tex->id);
-										ma->mtex[b]->tex= tex;
+										man->mtex[b]->tex= tex;
 									}
 								}
 							}
