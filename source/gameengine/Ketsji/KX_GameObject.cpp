@@ -31,7 +31,7 @@
  */
 
 
-#if defined(_WIN64)
+#if defined(_WIN64) && !defined(FREE_WINDOWS64)
 typedef unsigned __int64 uint_ptr;
 #else
 typedef unsigned long uint_ptr;

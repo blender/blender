@@ -448,7 +448,7 @@ elseif(WIN32)
 		DESTINATION ${TARGETDIR}
 	)
 
-	if(WITH_INTERNATIONAL)
+	if(WITH_INTERNATIONAL AND (NOT WITH_MINGW64))
 		install(
 			FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
 			DESTINATION ${TARGETDIR}
@@ -523,11 +523,14 @@ elseif(WIN32)
 			DESTINATION ${TARGETDIR}
 		)
 	else()
-		install(
-			FILES
-				${LIBDIR}/zlib/lib/zlib.dll
-			DESTINATION ${TARGETDIR}
-		)
+		#not needed since we link statically, maybe also unneeded for MinGW?
+		if(NOT WITH_MINGW64)
+			install(
+				FILES
+					${LIBDIR}/zlib/lib/zlib.dll
+				DESTINATION ${TARGETDIR}
+			)
+		endif()
 	endif()
 
 	if(MSVC)
@@ -536,10 +539,13 @@ elseif(WIN32)
 			DESTINATION ${TARGETDIR}
 		)
 	else()
-		install(
-			FILES ${LIBDIR}/pthreads/lib/pthreadGC2.dll
-			DESTINATION ${TARGETDIR}
-		)
+		#MinGW64 comes with own version. For portable builds it will probaly have to be copied to work
+		if(NOT WITH_MINGW64)
+			install(
+				FILES ${LIBDIR}/pthreads/lib/pthreadGC2.dll
+				DESTINATION ${TARGETDIR}
+			)
+		endif()
 	endif()
 
 	if(WITH_CODEC_FFMPEG)

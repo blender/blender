@@ -34,7 +34,7 @@
 
 unsigned int KX_Hash(void * inDWord)
 {
-#if defined(_WIN64)
+#if defined(_WIN64) && !defined(FREE_WINDOWS64)
 	unsigned __int64 key = (unsigned __int64)inDWord;
 #else
 	unsigned long key = (unsigned long)inDWord;
