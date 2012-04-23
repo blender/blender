@@ -735,14 +735,18 @@ elseif(WIN32)
 	# this file is included anyway when building under Windows with cl.exe
 	#  include(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
 
-	set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
+	if(CMAKE_COMPILER_IS_GNUCC)
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
+	else()
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
 
-	# Setup 64bit and 64bit windows systems
-	if(CMAKE_CL_64)
-		message("64 bit compiler detected.")
-		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
+		# Setup 64bit and 64bit windows systems
+		if(CMAKE_CL_64)
+			message("64 bit compiler detected.")
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
+		endif()
 	endif()
-
+		
 	add_definitions(-DWIN32)
 
 	if(WITH_INTERNATIONAL)
@@ -990,25 +994,26 @@ elseif(WIN32)
 
 		set(PLATFORM_LINKFLAGS_DEBUG "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
-	else()
-		# keep GCC specific stuff here
-		if(CMAKE_COMPILER_IS_GNUCC)
-			set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi")
-			set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
+	elseif(CMAKE_COMPILER_IS_GNUCC)
+	# keep GCC specific stuff here
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
+		
+		set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi")
+		set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
-			add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
-		endif()
+		add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
+
 
 		add_definitions(-DFREE_WINDOWS)
 
 		if(WITH_INTERNATIONAL)
-			set(GETTEXT ${LIBDIR}/gcc/gettext)
+			set(GETTEXT ${LIBDIR}/gettext)
 			set(GETTEXT_INCLUDE_DIRS ${GETTEXT}/include)
 			set(GETTEXT_LIBPATH ${GETTEXT}/lib)
 			set(GETTEXT_LIBRARIES intl)
 		endif()
 		
-		set(PNG "${LIBDIR}/gcc/png")
+		set(PNG "${LIBDIR}/png")
 		set(PNG_INCLUDE_DIR "${PNG}/include")
 		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 
@@ -1025,26 +1030,26 @@ elseif(WIN32)
 		set(PTHREADS_LIBPATH ${PTHREADS}/lib)
 		set(PTHREADS_LIBRARIES pthreadGC2)
 
-		set(FREETYPE ${LIBDIR}/gcc/freetype)
+		set(FREETYPE ${LIBDIR}/freetype)
 		set(FREETYPE_INCLUDE_DIRS ${FREETYPE}/include ${FREETYPE}/include/freetype2)
 		set(FREETYPE_LIBPATH ${FREETYPE}/lib)
 		set(FREETYPE_LIBRARY freetype)
 
 		if(WITH_FFTW3)
-			set(FFTW3 ${LIBDIR}/gcc/fftw3)
+			set(FFTW3 ${LIBDIR}/fftw3)
 			set(FFTW3_LIBRARIES fftw3)
 			set(FFTW3_INCLUDE_DIRS ${FFTW3}/include)
 			set(FFTW3_LIBPATH ${FFTW3}/lib)
 		endif()
 
 		if(WITH_OPENCOLLADA)
-			set(OPENCOLLADA ${LIBDIR}/gcc/opencollada)
+			set(OPENCOLLADA ${LIBDIR}/opencollada)
 			set(OPENCOLLADA_INCLUDE_DIRS
-				${LIBDIR}/gcc/opencollada/include/COLLADAStreamWriter/include
-				${LIBDIR}/gcc/opencollada/include/COLLADABaseUtils/include
-				${LIBDIR}/gcc/opencollada/include/COLLADAFramework/include
-				${LIBDIR}/gcc/opencollada/include/COLLADASaxFrameworkLoader/include
-				${LIBDIR}/gcc/opencollada/include/GeneratedSaxParser/include
+				${LIBDIR}/opencollada/include/COLLADAStreamWriter/include
+				${LIBDIR}/opencollada/include/COLLADABaseUtils/include
+				${LIBDIR}/opencollada/include/COLLADAFramework/include
+				${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader/include
+				${LIBDIR}/opencollada/include/GeneratedSaxParser/include
 			)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib ${OPENCOLLADA}/lib)
 			set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa)
@@ -1059,14 +1064,14 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
-			set(OPENEXR ${LIBDIR}/gcc/openexr)
+			set(OPENEXR ${LIBDIR}/openexr)
 			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 			set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread Iex)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		endif()
 
 		if(WITH_IMAGE_TIFF)
-			set(TIFF ${LIBDIR}/gcc/tiff)
+			set(TIFF ${LIBDIR}/tiff)
 			set(TIFF_LIBRARY tiff)
 			set(TIFF_INCLUDE_DIR ${TIFF}/include)
 			set(TIFF_LIBPATH ${TIFF}/lib)
@@ -1103,12 +1108,12 @@ elseif(WIN32)
 				boost_regex-${BOOST_POSTFIX} boost_system-${BOOST_POSTFIX} boost_thread-${BOOST_POSTFIX}
 				debug boost_date_time-${BOOST_DEBUG_POSTFIX} boost_filesystem-${BOOST_DEBUG_POSTFIX}
 				boost_regex-${BOOST_DEBUG_POSTFIX} boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX})
-			set(BOOST_LIBPATH ${BOOST}/lib/gcc)
+			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
 		endif()
 			
 		if(WITH_OPENIMAGEIO)
-			set(OPENIMAGEIO ${LIBDIR}/gcc/openimageio)
+			set(OPENIMAGEIO ${LIBDIR}/openimageio)
 			set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
 			set(OPENIMAGEIO_LIBRARIES OpenImageIO)
 			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
