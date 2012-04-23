@@ -1782,9 +1782,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			hasize = ma->hasize;
 
+			/* XXX 'tpsys' is alwyas NULL, this code won't run! */
 			/* get orco */
-			if (tpsys && part->phystype==PART_PHYS_NO) {
-				tpa=tpsys->particles+pa->num;
+			if (tpsys && part->phystype == PART_PHYS_NO) {
+				tpa = tpsys->particles + pa->num;
 				psys_particle_on_emitter(psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,sd.orco,0);
 			}
 			else

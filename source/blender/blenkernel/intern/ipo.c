@@ -1105,20 +1105,18 @@ static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, c
 		
 		/* get the group to use */
 		agrp= action_groups_find_named(&tmp_act, grpname);
+		/* no matching group, so add one */
 		if (agrp == NULL) {
-			/* no matching group, so add one */
-			if (agrp == NULL) {
-				/* Add a new group, and make it active */
-				agrp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
-				
-				agrp->flag = AGRP_SELECTED;
-				if (muteipo) agrp->flag |= AGRP_MUTED;
-				
-				BLI_strncpy(agrp->name, grpname, sizeof(agrp->name));
-				
-				BLI_addtail(&tmp_act.groups, agrp);
-				BLI_uniquename(&tmp_act.groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));
-			}
+			/* Add a new group, and make it active */
+			agrp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+
+			agrp->flag = AGRP_SELECTED;
+			if (muteipo) agrp->flag |= AGRP_MUTED;
+
+			BLI_strncpy(agrp->name, grpname, sizeof(agrp->name));
+
+			BLI_addtail(&tmp_act.groups, agrp);
+			BLI_uniquename(&tmp_act.groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));
 		}
 		
 		/* add F-Curve to group */
