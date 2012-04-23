@@ -652,11 +652,15 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 				     edbm_rip_edge_side_measure(e2, l_b, ar, projectMat, fmval)) ? l_a : l_b;
 
 				l = BM_face_other_edge_loop(l->f, e2, v);
-				l = l->radial_next;
-				l = BM_face_other_edge_loop(l->f, l->e, v);
+				/* important edge is manifold else we can be attempting to split off a fan that don't budge,
+				 * not crashing but adds duplicate edge. */
+				if (BM_edge_is_manifold(l->e)) {
+					l = l->radial_next;
+					l = BM_face_other_edge_loop(l->f, l->e, v);
 
-				if (l) {
-					BM_elem_flag_enable(l->e, BM_ELEM_TAG);
+					if (l) {
+						BM_elem_flag_enable(l->e, BM_ELEM_TAG);
+					}
 				}
 			}
 			else {
