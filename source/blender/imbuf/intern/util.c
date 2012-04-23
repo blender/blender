@@ -362,8 +362,11 @@ int imb_get_anim_type(const char * name)
 	if (isredcode(name)) return (ANIM_REDCODE);
 #endif
 	type = IMB_ispic(name);
-	if (type) return(ANIM_SEQUENCE);
-	return(0);
+	if (type) {
+		return ANIM_SEQUENCE;
+	}
+
+	return ANIM_NONE;
 }
  
 int IMB_isanim(const char *filename)

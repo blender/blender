@@ -640,10 +640,6 @@ typedef struct GameData {
 
 /* physicsEngine */
 #define WOPHY_NONE		0
-#define WOPHY_ENJI		1
-#define WOPHY_SUMO		2
-#define WOPHY_DYNAMO	3
-#define WOPHY_ODE		4
 #define WOPHY_BULLET	5
 
 /* obstacleSimulation */
