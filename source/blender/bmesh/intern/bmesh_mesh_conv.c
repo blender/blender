@@ -484,12 +484,14 @@ static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
 BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 {
 	/* this is a cheap way to set the edge draw, its not precise and will
-	 * pick the first 2 faces an edge uses */
+	 * pick the first 2 faces an edge uses.
+	 * The dot comparison is a little arbitrary, but set so that a 5 subd
+	 * IcoSphere won't vanish but subd 6 will (as with pre-bmesh blender) */
 
 
 	if ( /* (med->flag & ME_EDGEDRAW) && */ /* assume to be true */
 	     (e->l && (e->l != e->l->radial_next)) &&
-	     (dot_v3v3(e->l->f->no, e->l->radial_next->f->no) > 0.998f))
+	     (dot_v3v3(e->l->f->no, e->l->radial_next->f->no) > 0.9995f))
 	{
 		med->flag &= ~ME_EDGEDRAW;
 	}
