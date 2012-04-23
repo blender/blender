@@ -322,7 +322,7 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 		if (!startf) startf = f;
 
-		BM_face_center_bounds_calc(f, cent);
+		BM_face_calc_center_bounds(f, cent);
 
 		if ((maxx_test = dot_v3v3(cent, cent)) > maxx) {
 			maxx = maxx_test;
@@ -332,7 +332,7 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 	if (!startf) return;
 
-	BM_face_center_bounds_calc(startf, cent);
+	BM_face_calc_center_bounds(startf, cent);
 
 	/* make sure the starting face has the correct winding */
 	if (dot_v3v3(cent, startf->no) < 0.0f) {
@@ -473,7 +473,7 @@ static float ngon_fake_area(BMFace *f)
 	float   v[3], sv[3], c[3];
 	float   area = 0.0f;
 
-	BM_face_center_mean_calc(f, c);
+	BM_face_calc_center_mean(f, c);
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		if (num_verts == 0) {
@@ -563,12 +563,12 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 			switch (type) {
 				case SIMFACE_PERIMETER:
 					/* set the perimeter */
-					f_ext[i].perim = BM_face_perimeter_calc(f_ext[i].f);
+					f_ext[i].perim = BM_face_calc_perimeter(f_ext[i].f);
 					break;
 
 				case SIMFACE_COPLANAR:
 					/* compute the center of the polygon */
-					BM_face_center_mean_calc(f_ext[i].f, f_ext[i].c);
+					BM_face_calc_center_mean(f_ext[i].f, f_ext[i].c);
 
 					/* normalize the polygon normal */
 					copy_v3_v3(t_no, f_ext[i].f->no);
@@ -740,7 +740,7 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 				case SIMEDGE_FACE_ANGLE:
 					e_ext[i].faces = BM_edge_face_count(e_ext[i].e);
 					if (e_ext[i].faces == 2)
-						e_ext[i].angle = BM_edge_face_angle(e_ext[i].e);
+						e_ext[i].angle = BM_edge_calc_face_angle(e_ext[i].e);
 					break;
 			}
 		}

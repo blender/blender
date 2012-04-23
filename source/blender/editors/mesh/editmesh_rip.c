@@ -454,10 +454,10 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 				BM_ITER_ELEM (l, &iter, vout[i], BM_LOOPS_OF_VERT) {
 					if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
 						float l_mid_co[3];
-						BM_loop_face_tangent(l, l_mid_co);
+						BM_loop_calc_face_tangent(l, l_mid_co);
 
 						/* scale to average of surrounding edge size, only needs to be approx */
-						mul_v3_fl(l_mid_co, (BM_edge_length_calc(l->e) + BM_edge_length_calc(l->prev->e)) / 2.0f);
+						mul_v3_fl(l_mid_co, (BM_edge_calc_length(l->e) + BM_edge_calc_length(l->prev->e)) / 2.0f);
 						add_v3_v3(l_mid_co, v->co);
 
 						d = edbm_rip_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval);

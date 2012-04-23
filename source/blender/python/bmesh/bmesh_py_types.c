@@ -99,6 +99,7 @@ PyDoc_STRVAR(bpy_bm_elem_select_doc,  "Selected state of this element.\n\n:type:
 PyDoc_STRVAR(bpy_bm_elem_hide_doc,    "Hidden state of this element.\n\n:type: boolean");
 PyDoc_STRVAR(bpy_bm_elem_tag_doc,     "Generic attribute scripts can use for own logic\n\n:type: boolean");
 PyDoc_STRVAR(bpy_bm_elem_smooth_doc,  "Smooth state of this element.\n\n:type: boolean");
+PyDoc_STRVAR(bpy_bm_elem_seam_doc,    "Seam for UV unwrapping.\n\n:type: boolean");
 
 
 static PyObject *bpy_bm_elem_hflag_get(BPy_BMElem *self, void *flag)
@@ -601,7 +602,7 @@ static PyGetSetDef bpy_bmedge_getseters[] = {
     {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
     {(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
-    {(char *)"seam",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SEAM},
+    {(char *)"seam",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_seam_doc, (void *)BM_ELEM_SEAM},
 
     /* connectivity data */
     {(char *)"verts", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_verts_doc, (void *)BM_VERTS_OF_EDGE},
@@ -1197,7 +1198,7 @@ PyDoc_STRVAR(bpy_bmvert_calc_edge_angle_doc,
 static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_vert_edge_angle(self->v));
+	return PyFloat_FromDouble(BM_vert_calc_edge_angle(self->v));
 }
 
 PyDoc_STRVAR(bpy_bmvert_calc_shell_factor_doc,
@@ -1213,7 +1214,7 @@ PyDoc_STRVAR(bpy_bmvert_calc_shell_factor_doc,
 static PyObject *bpy_bmvert_calc_shell_factor(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_vert_shell_factor(self->v));
+	return PyFloat_FromDouble(BM_vert_calc_shell_factor(self->v));
 }
 
 PyDoc_STRVAR(bpy_bmvert_normal_update_doc,
@@ -1255,7 +1256,7 @@ PyDoc_STRVAR(bpy_bmedge_calc_face_angle_doc,
 static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_edge_face_angle(self->e));
+	return PyFloat_FromDouble(BM_edge_calc_face_angle(self->e));
 }
 
 PyDoc_STRVAR(bpy_bmedge_calc_tangent_doc,
@@ -1283,7 +1284,7 @@ static PyObject *bpy_bmedge_calc_tangent(BPy_BMEdge *self, PyObject *args)
 		float vec[3];
 		BPY_BM_CHECK_OBJ(py_loop);
 		/* no need to check if they are from the same mesh or even connected */
-		BM_edge_face_tangent(self->e, py_loop->l, vec);
+		BM_edge_calc_face_tangent(self->e, py_loop->l, vec);
 		return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
 	}
 }
@@ -1441,7 +1442,7 @@ PyDoc_STRVAR(bpy_bmface_calc_area_doc,
 static PyObject *bpy_bmface_calc_area(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_face_area_calc(self->f));
+	return PyFloat_FromDouble(BM_face_calc_area(self->f));
 }
 
 
@@ -1456,7 +1457,7 @@ PyDoc_STRVAR(bpy_bmface_calc_perimeter_doc,
 static PyObject *bpy_bmface_calc_perimeter(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_face_perimeter_calc(self->f));
+	return PyFloat_FromDouble(BM_face_calc_perimeter(self->f));
 }
 
 
@@ -1473,7 +1474,7 @@ static PyObject *bpy_bmface_calc_center_mean(BPy_BMFace *self)
 	float cent[3];
 
 	BPY_BM_CHECK_OBJ(self);
-	BM_face_center_mean_calc(self->f, cent);
+	BM_face_calc_center_mean(self->f, cent);
 	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
 }
 
@@ -1491,7 +1492,7 @@ static PyObject *bpy_bmface_calc_center_bounds(BPy_BMFace *self)
 	float cent[3];
 
 	BPY_BM_CHECK_OBJ(self);
-	BM_face_center_bounds_calc(self->f, cent);
+	BM_face_calc_center_bounds(self->f, cent);
 	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
 }
 
@@ -1570,7 +1571,7 @@ PyDoc_STRVAR(bpy_bmloop_calc_angle_doc,
 static PyObject *bpy_bmloop_calc_angle(BPy_BMLoop *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_loop_face_angle(self->l));
+	return PyFloat_FromDouble(BM_loop_calc_face_angle(self->l));
 }
 
 PyDoc_STRVAR(bpy_bmloop_calc_normal_doc,
@@ -1586,7 +1587,7 @@ static PyObject *bpy_bmloop_calc_normal(BPy_BMLoop *self)
 {
 	float vec[3];
 	BPY_BM_CHECK_OBJ(self);
-	BM_loop_face_normal(self->l, vec);
+	BM_loop_calc_face_normal(self->l, vec);
 	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
 }
 
@@ -1603,7 +1604,7 @@ static PyObject *bpy_bmloop_calc_tangent(BPy_BMLoop *self)
 {
 	float vec[3];
 	BPY_BM_CHECK_OBJ(self);
-	BM_loop_face_tangent(self->l, vec);
+	BM_loop_calc_face_tangent(self->l, vec);
 	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
 }
 

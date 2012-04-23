@@ -1961,7 +1961,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 
 	BM_ITER_ELEM (efa, &iter, eve, BM_FACES_OF_VERT) {
 		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-			BM_face_center_mean_calc(efa, cent_r);
+			BM_face_calc_center_mean(efa, cent_r);
 			break;
 		}
 	}

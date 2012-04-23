@@ -75,7 +75,7 @@ static short testedgesidef(const float v1[2], const float v2[2], const float v3[
  * polygon See Graphics Gems for
  * computing newell normal.
  */
-static void compute_poly_normal(float normal[3], float verts[][3], int nverts)
+static void calc_poly_normal(float normal[3], float verts[][3], int nverts)
 {
 	float const *v_prev = verts[nverts - 1];
 	float const *v_curr = verts[0];
@@ -95,9 +95,9 @@ static void compute_poly_normal(float normal[3], float verts[][3], int nverts)
 /**
  * \brief COMPUTE POLY NORMAL (BMFace)
  *
- * Same as #compute_poly_normal but operates directly on a bmesh face.
+ * Same as #calc_poly_normal but operates directly on a bmesh face.
  */
-static void bm_face_compute_poly_normal(BMFace *f)
+static void bm_face_calc_poly_normal(BMFace *f)
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter  = l_first;
@@ -123,11 +123,11 @@ static void bm_face_compute_poly_normal(BMFace *f)
 /**
  * \brief COMPUTE POLY NORMAL (BMFace)
  *
- * Same as #compute_poly_normal and #bm_face_compute_poly_normal
+ * Same as #calc_poly_normal and #bm_face_calc_poly_normal
  * but takes an array of vertex locations.
  */
-static void bm_face_compute_poly_normal_vertex_cos(BMFace *f, float n[3],
-                                                   float const (*vertexCos)[3])
+static void bm_face_calc_poly_normal_vertex_cos(BMFace *f, float n[3],
+                                                float const (*vertexCos)[3])
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter  = l_first;
@@ -153,7 +153,7 @@ static void bm_face_compute_poly_normal_vertex_cos(BMFace *f, float n[3],
 /**
  * get the area of the face
  */
-float BM_face_area_calc(BMFace *f)
+float BM_face_calc_area(BMFace *f)
 {
 	BMLoop *l;
 	BMIter iter;
@@ -175,7 +175,7 @@ float BM_face_area_calc(BMFace *f)
 		area = area_quad_v3(verts[0], verts[1], verts[2], verts[3]);
 	}
 	else {
-		compute_poly_normal(normal, verts, f->len);
+		calc_poly_normal(normal, verts, f->len);
 		area = area_poly_v3(f->len, verts, normal);
 	}
 
@@ -187,7 +187,7 @@ float BM_face_area_calc(BMFace *f)
 /**
  * compute the perimeter of an ngon
  */
-float BM_face_perimeter_calc(BMFace *f)
+float BM_face_calc_perimeter(BMFace *f)
 {
 	BMLoop *l_iter, *l_first;
 	float perimeter = 0.0f;
@@ -203,7 +203,7 @@ float BM_face_perimeter_calc(BMFace *f)
 /**
  * computes center of face in 3d.  uses center of bounding box.
  */
-void BM_face_center_bounds_calc(BMFace *f, float r_cent[3])
+void BM_face_calc_center_bounds(BMFace *f, float r_cent[3])
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -222,7 +222,7 @@ void BM_face_center_bounds_calc(BMFace *f, float r_cent[3])
 /**
  * computes the center of a face, using the mean average
  */
-void BM_face_center_mean_calc(BMFace *f, float r_cent[3])
+void BM_face_calc_center_mean(BMFace *f, float r_cent[3])
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -245,7 +245,7 @@ void BM_face_center_mean_calc(BMFace *f, float r_cent[3])
  * a plane defined by the average
  * of its edges cross products
  */
-void compute_poly_plane(float (*verts)[3], const int nverts)
+void calc_poly_plane(float (*verts)[3], const int nverts)
 {
 	
 	float avgc[3], norm[3], mag, avgn[3];
@@ -432,7 +432,7 @@ void BM_face_normal_update(BMFace *f)
 		}
 		default:
 		{
-			bm_face_compute_poly_normal(f);
+			bm_face_calc_poly_normal(f);
 			break;
 		}
 	}
@@ -474,7 +474,7 @@ void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
 		}
 		default:
 		{
-			bm_face_compute_poly_normal_vertex_cos(f, no, vertexCos);
+			bm_face_calc_poly_normal_vertex_cos(f, no, vertexCos);
 			break;
 		}
 	}
@@ -610,9 +610,9 @@ int BM_face_point_inside_test(BMFace *f, const float co[3])
 	return crosses % 2 != 0;
 }
 
-static int goodline(float const (*projectverts)[3], BMFace *f,
-                    int v1i, int v2i, int v3i,
-                    int UNUSED(nvert))
+static int bm_face_goodline(float const (*projectverts)[3], BMFace *f,
+                            int v1i, int v2i, int v3i,
+                            int UNUSED(nvert))
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -697,9 +697,9 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int nvert, const int
 			if (BM_edge_exists(v1, v3)) {
 				isear = FALSE;
 			}
-			else if (!goodline((float const (*)[3])verts, f,
-			                   BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3),
-			                   nvert))
+			else if (!bm_face_goodline((float const (*)[3])verts, f,
+			                           BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3),
+			                           nvert))
 			{
 				isear = FALSE;
 			}
@@ -765,12 +765,12 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 	///bmesh_face_normal_update(bm, f, f->no, projectverts);
 
-	compute_poly_normal(f->no, projectverts, f->len);
+	calc_poly_normal(f->no, projectverts, f->len);
 	poly_rotate_plane(f->no, projectverts, i);
 
 	nvert = f->len;
 
-	//compute_poly_plane(projectverts, i);
+	//calc_poly_plane(projectverts, i);
 	for (i = 0; i < nvert; i++) {
 		projectverts[i][2] = 0.0f;
 	}
@@ -879,7 +879,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		a++;
 	}
 	
-	compute_poly_normal(no, projverts, f->len);
+	calc_poly_normal(no, projverts, f->len);
 	poly_rotate_plane(no, projverts, f->len);
 	poly_rotate_plane(no, edgeverts, len * 2);
 

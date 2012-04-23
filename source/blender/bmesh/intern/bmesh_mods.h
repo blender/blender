@@ -59,7 +59,7 @@ BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts);
 
 int     BM_face_validate(BMesh *bm, BMFace *face, FILE *err);
 
-void    BM_edge_rotate_calc(BMEdge *e, int ccw,
+void    BM_edge_calc_rotate(BMEdge *e, int ccw,
                             BMLoop **r_l1, BMLoop **r_l2);
 int     BM_edge_rotate_check(BMEdge *e);
 int     BM_edge_rotate_check_degenerate(BMEdge *e,

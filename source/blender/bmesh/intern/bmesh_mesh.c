@@ -585,6 +585,18 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 }
 
 /**
+ * Return the amount of element of type 'type' in a given bmesh.
+ */
+int BM_mesh_elem_count(BMesh *bm, const char htype)
+{
+	if (htype == BM_VERT) return bm->totvert;
+	else if (htype == BM_EDGE) return bm->totedge;
+	else if (htype == BM_FACE) return bm->totface;
+
+	return 0;
+}
+
+/**
  * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
  * (xxx_idx[org_index] = new_index).
  *

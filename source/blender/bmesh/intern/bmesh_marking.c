@@ -579,7 +579,7 @@ void BM_editselection_center(float r_center[3], BMEditSelection *ese)
 	}
 	else if (ese->htype == BM_FACE) {
 		BMFace *efa = (BMFace *)ese->ele;
-		BM_face_center_bounds_calc(efa, r_center);
+		BM_face_calc_center_bounds(efa, r_center);
 	}
 }
 

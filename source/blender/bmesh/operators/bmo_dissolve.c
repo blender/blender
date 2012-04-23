@@ -486,10 +486,10 @@ void dummy_exec(BMesh *bm, BMOperator *op)
  * convert angles [0-PI/2] -> [0-1], multiply together, then convert back to radians. */
 float bm_vert_edge_face_angle(BMVert *v)
 {
-	const float angle = BM_vert_edge_angle(v);
+	const float angle = BM_vert_calc_edge_angle(v);
 	/* note: could be either edge, it doesn't matter */
 	if (v->e && BM_edge_is_manifold(v->e)) {
-		return ((angle * ANGLE_TO_UNIT) * (BM_edge_face_angle(v->e) * ANGLE_TO_UNIT)) * UNIT_TO_ANGLE;
+		return ((angle * ANGLE_TO_UNIT) * (BM_edge_calc_face_angle(v->e) * ANGLE_TO_UNIT)) * UNIT_TO_ANGLE;
 	}
 	else {
 		return angle;
@@ -528,7 +528,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	/* go through and split edge */
 	for (i = 0, tot_found = 0; i < einput->len; i++) {
 		BMEdge *e = ((BMEdge **)einput->data.p)[i];
-		const float angle = BM_edge_face_angle(e);
+		const float angle = BM_edge_calc_face_angle(e);
 
 		if (angle < angle_limit) {
 			tot_found++;
@@ -546,7 +546,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 			if (/* may have become non-manifold */
 			    BM_edge_is_manifold(e) &&
 			    /* check twice because cumulative effect could dissolve over angle limit */
-			    (BM_edge_face_angle(e) < angle_limit))
+			    (BM_edge_calc_face_angle(e) < angle_limit))
 			{
 				BMFace *nf = BM_faces_join_pair(bm, e->l->f,
 				                                e->l->radial_next->f,

@@ -90,7 +90,7 @@ float bm_vert_avg_tag_dist(BMVert *v)
 	BM_ITER_ELEM_INDEX (e, &iter, v, BM_EDGES_OF_VERT, tot) {
 		BMVert *v_other = BM_edge_other_vert(e, v);
 		if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
-			length += BM_edge_length_calc(e);
+			length += BM_edge_calc_length(e);
 		}
 	}
 
@@ -173,7 +173,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		i = BM_elem_index_get(e);
 		if (i != -1) {
 			/* calc edge-split info */
-			es->length = BM_edge_length_calc(e);
+			es->length = BM_edge_calc_length(e);
 			es->e_old = e;
 			es++;
 			/* initialize no and e_new after */
@@ -194,7 +194,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 		/* calc edge-split info */
 		es->e_new = es->l->e;
-		BM_edge_face_tangent(es->e_new, es->l, es->no);
+		BM_edge_calc_face_tangent(es->e_new, es->l, es->no);
 
 		if (es->e_new == es->e_old) { /* happens on boundary edges */
 			/* take care here, we're creating this double edge which _must_ have its verts replaced later on */
@@ -516,7 +516,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* do in 2 passes so moving the verts doesn't feed back into face angle checks
-		 * which BM_vert_shell_factor uses. */
+		 * which BM_vert_calc_shell_factor uses. */
 
 		/* over allocate */
 		varr_co = MEM_callocN(sizeof(*varr_co) * bm->totvert, __func__);
@@ -525,7 +525,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				const float fac = (depth *
 								   (use_relative_offset ? bm_vert_avg_tag_dist(v) : 1.0f) *
-								   (use_even_boundry    ? BM_vert_shell_factor(v) : 1.0f));
+								   (use_even_boundry    ? BM_vert_calc_shell_factor(v) : 1.0f));
 				madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
 			}
 		}
