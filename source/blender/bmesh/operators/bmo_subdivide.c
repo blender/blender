@@ -35,8 +35,6 @@
 
 #include "DNA_object_types.h"
 
-#include "ED_mesh.h"
-
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 

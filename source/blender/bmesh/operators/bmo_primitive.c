@@ -28,8 +28,6 @@
 
 #include "BLI_math.h"
 
-#include "ED_mesh.h"
-
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 

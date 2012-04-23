@@ -445,6 +445,7 @@ void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
 
 	/* must have valid index data */
 	BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
+	(void)bm;
 
 	/* common cases first */
 	switch (f->len) {

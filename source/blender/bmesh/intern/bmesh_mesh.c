@@ -39,8 +39,6 @@
 #include "BKE_tessmesh.h"
 #include "BKE_multires.h"
 
-#include "ED_mesh.h"
-
 #include "intern/bmesh_private.h"
 
 /* used as an extern, defined in bmesh.h */
@@ -141,12 +139,6 @@ void BM_mesh_data_free(BMesh *bm)
 #ifdef USE_BMESH_HOLES
 	BLI_mempool_destroy(bm->looplistpool);
 #endif
-
-	/* These tables aren't used yet, so it's not strictly necessary
-	 * to 'end' them (with 'e' param) but if someone tries to start
-	 * using them, having these in place will save a lot of pain */
-	mesh_octree_table(NULL, NULL, NULL, 'e');
-	mesh_mirrtopo_table(NULL, 'e');
 
 	BLI_freelistN(&bm->selected);
 

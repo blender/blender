@@ -39,6 +39,13 @@ enum {
 	SUBD_STRAIGHT_CUT
 };
 
+enum {
+	SUBDIV_SELECT_ORIG,
+	SUBDIV_SELECT_INNER,
+	SUBDIV_SELECT_INNER_SEL,
+	SUBDIV_SELECT_LOOPCUT
+};
+
 /* similar face selection slot values */
 enum {
 	SIMFACE_MATERIAL = 201,
