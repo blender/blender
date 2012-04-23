@@ -160,7 +160,7 @@ int BLI_pbvh_isDeformed(struct PBVH *pbvh);
  * - spend most of the time in the relatively simple inner loop */
 
 /* note: PBVH_ITER_ALL does not skip hidden vertices,
-   PBVH_ITER_UNIQUE does */
+ * PBVH_ITER_UNIQUE does */
 #define PBVH_ITER_ALL		0
 #define PBVH_ITER_UNIQUE	1
 

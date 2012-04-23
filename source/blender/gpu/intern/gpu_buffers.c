@@ -154,7 +154,7 @@ static void gpu_buffer_pool_delete_last(GPUBufferPool *pool)
 }
 
 /* free a GPUBufferPool; also frees the data in the pool's
-   GPUBuffers */
+ * GPUBuffers */
 static void gpu_buffer_pool_free(GPUBufferPool *pool)
 {
 	if (!pool)
@@ -184,7 +184,7 @@ void GPU_global_buffer_pool_free(void)
 }
 
 /* get a GPUBuffer of at least `size' bytes; uses one from the buffer
-   pool if possible, otherwise creates a new one */
+ * pool if possible, otherwise creates a new one */
 GPUBuffer *GPU_buffer_alloc(int size)
 {
 	GPUBufferPool *pool;
@@ -194,13 +194,13 @@ GPUBuffer *GPU_buffer_alloc(int size)
 	pool = gpu_get_global_buffer_pool();
 
 	/* not sure if this buffer pool code has been profiled much,
-	   seems to me that the graphics driver and system memory
-	   management might do this stuff anyway. --nicholas
-	*/
+	 * seems to me that the graphics driver and system memory
+	 * management might do this stuff anyway. --nicholas
+	 */
 
 	/* check the global buffer pool for a recently-deleted buffer
-	   that is at least as big as the request, but not more than
-	   twice as big */
+	 * that is at least as big as the request, but not more than
+	 * twice as big */
 	for (i = 0; i < pool->totbuf; i++) {
 		bufsize = pool->buffers[i]->size;
 
@@ -210,11 +210,11 @@ GPUBuffer *GPU_buffer_alloc(int size)
 			break;
 		}
 		/* smaller buffers won't fit data and buffers at least
-		   twice as big are a waste of memory */
+		 * twice as big are a waste of memory */
 		else if (bufsize > size && size > (bufsize / 2)) {
 			/* is it closer to the required size than the
-			   last appropriate buffer found. try to save
-			   memory */
+			 * last appropriate buffer found. try to save
+			 * memory */
 			if (bestfit == -1 || pool->buffers[bestfit]->size > bufsize) {
 				bestfit = i;
 			}
@@ -222,7 +222,7 @@ GPUBuffer *GPU_buffer_alloc(int size)
 	}
 
 	/* if an acceptable buffer was found in the pool, remove it
-	   from the pool and return it */
+	 * from the pool and return it */
 	if (bestfit != -1) {
 		buf = pool->buffers[bestfit];
 		gpu_buffer_pool_remove_index(pool, bestfit);
@@ -235,7 +235,7 @@ GPUBuffer *GPU_buffer_alloc(int size)
 
 	if (useVBOs == 1) {
 		/* create a new VBO and initialize it to the requested
-		   size */
+		 * size */
 		glGenBuffersARB(1, &buf->id);
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buf->id);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, size, NULL, GL_STATIC_DRAW_ARB);
@@ -245,9 +245,9 @@ GPUBuffer *GPU_buffer_alloc(int size)
 		buf->pointer = MEM_mallocN(size, "GPUBuffer.pointer");
 		
 		/* purpose of this seems to be dealing with
-		   out-of-memory errors? looks a bit iffy to me
-		   though, at least on Linux I expect malloc() would
-		   just overcommit. --nicholas */
+		 * out-of-memory errors? looks a bit iffy to me
+		 * though, at least on Linux I expect malloc() would
+		 * just overcommit. --nicholas */
 		while (!buf->pointer && pool->totbuf > 0) {
 			gpu_buffer_pool_delete_last(pool);
 			buf->pointer = MEM_mallocN(size, "GPUBuffer.pointer");
@@ -260,8 +260,8 @@ GPUBuffer *GPU_buffer_alloc(int size)
 }
 
 /* release a GPUBuffer; does not free the actual buffer or its data,
-   but rather moves it to the pool of recently-freed buffers for
-   possible re-use*/
+ * but rather moves it to the pool of recently-freed buffers for
+ * possible re-use*/
 void GPU_buffer_free(GPUBuffer *buffer)
 {
 	GPUBufferPool *pool;
@@ -273,18 +273,18 @@ void GPU_buffer_free(GPUBuffer *buffer)
 	pool = gpu_get_global_buffer_pool();
 
 	/* free the last used buffer in the queue if no more space, but only
-	   if we are in the main thread. for e.g. rendering or baking it can
-	   happen that we are in other thread and can't call OpenGL, in that
-	   case cleanup will be done GPU_buffer_pool_free_unused */
+	 * if we are in the main thread. for e.g. rendering or baking it can
+	 * happen that we are in other thread and can't call OpenGL, in that
+	 * case cleanup will be done GPU_buffer_pool_free_unused */
 	if (BLI_thread_is_main()) {
 		/* in main thread, safe to decrease size of pool back
-		   down to MAX_FREE_GPU_BUFFERS */
+		 * down to MAX_FREE_GPU_BUFFERS */
 		while (pool->totbuf >= MAX_FREE_GPU_BUFFERS)
 			gpu_buffer_pool_delete_last(pool);
 	}
 	else {
 		/* outside of main thread, can't safely delete the
-		   buffer, so increase pool size */
+		 * buffer, so increase pool size */
 		if (pool->maxsize == pool->totbuf) {
 			pool->maxsize += MAX_FREE_GPU_BUFFERS;
 			pool->buffers = MEM_reallocN(pool->buffers,
@@ -308,7 +308,7 @@ typedef struct GPUVertPointLink {
 } GPUVertPointLink;
 
 /* add a new point to the list of points related to a particular
-   vertex */
+ * vertex */
 static void gpu_drawobject_add_vert_point(GPUDrawObject *gdo, int vert_index, int point_index)
 {
 	GPUVertPointLink *lnk;
@@ -329,7 +329,7 @@ static void gpu_drawobject_add_vert_point(GPUDrawObject *gdo, int vert_index, in
 }
 
 /* update the vert_points and triangle_to_mface fields with a new
-   triangle */
+ * triangle */
 static void gpu_drawobject_add_triangle(GPUDrawObject *gdo,
 					int base_point_index,
 					int face_index,
@@ -342,7 +342,7 @@ static void gpu_drawobject_add_triangle(GPUDrawObject *gdo,
 }
 
 /* for each vertex, build a list of points related to it; these lists
-   are stored in an array sized to the number of vertices */
+ * are stored in an array sized to the number of vertices */
 static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, MFace *f, int totface)
 {
 	GPUBufferMaterial *mat;
@@ -356,7 +356,7 @@ static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, MFace *f, int to
 	gdo->vert_points_usage = 0;
 
 	/* build a map from the original material indices to the new
-	   GPUBufferMaterial indices */
+	 * GPUBufferMaterial indices */
 	for (i = 0; i < gdo->totmaterial; i++)
 		mat_orig_to_new[gdo->materials[i].mat_nr] = i;
 
@@ -390,7 +390,7 @@ static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, MFace *f, int to
 }
 
 /* see GPUDrawObject's structure definition for a description of the
-   data being initialized here */
+ * data being initialized here */
 GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 {
 	GPUDrawObject *gdo;
@@ -402,7 +402,7 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 	totface= dm->getNumTessFaces(dm);
 
 	/* get the number of points used by each material, treating
-	   each quad as two triangles */
+	 * each quad as two triangles */
 	memset(points_per_mat, 0, sizeof(int)*MAX_MATERIALS);
 	for (i = 0; i < totface; i++)
 		points_per_mat[mface[i].mat_nr] += mface[i].v4 ? 6 : 3;
@@ -500,7 +500,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 		cur_index_per_mat[i] = object->materials[i].start * vector_size;
 
 		/* map from original material index to new
-		   GPUBufferMaterial index */
+		 * GPUBufferMaterial index */
 		mat_orig_to_new[object->materials[i].mat_nr] = i;
 	}
 
@@ -509,7 +509,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 
 		while (!success) {
 			/* bind the buffer and discard previous data,
-			   avoids stalling gpu */
+			 * avoids stalling gpu */
 			glBindBufferARB(target, buffer->id);
 			glBufferDataARB(target, buffer->size, NULL, GL_STATIC_DRAW_ARB);
 
@@ -521,14 +521,14 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 				buffer= NULL;
 
 				/* try freeing an entry from the pool
-				   and reallocating the buffer */
+				 * and reallocating the buffer */
 				if (pool->totbuf > 0) {
 					gpu_buffer_pool_delete_last(pool);
 					buffer = GPU_buffer_alloc(size);
 				}
 
 				/* allocation still failed; fall back
-				   to legacy mode */
+				 * to legacy mode */
 				if (!buffer) {
 					dm->drawObject->legacy = 1;
 					success = 1;
@@ -813,7 +813,7 @@ static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(i
 }
 
 /* get the DerivedMesh's MCols; choose (in decreasing order of
-   preference) from CD_ID_MCOL, CD_PREVIEW_MCOL, or CD_MCOL */
+ * preference) from CD_ID_MCOL, CD_PREVIEW_MCOL, or CD_MCOL */
 static MCol *gpu_buffer_color_type(DerivedMesh *dm)
 {
 	MCol *c;
@@ -932,7 +932,7 @@ static GPUBuffer *gpu_buffer_setup_type(DerivedMesh *dm, GPUBufferType type)
 }
 
 /* get the buffer of `type', initializing the GPUDrawObject and
-   buffer if needed */
+ * buffer if needed */
 static GPUBuffer *gpu_buffer_setup_common(DerivedMesh *dm, GPUBufferType type)
 {
 	GPUBuffer **buf;
@@ -1189,7 +1189,7 @@ void GPU_color_switch(int mode)
 }
 
 /* return 1 if drawing should be done using old immediate-mode
-   code, 0 otherwise */
+ * code, 0 otherwise */
 int GPU_buffer_legacy(DerivedMesh *dm)
 {
 	int test= (U.gameflags & USER_DISABLE_VBO);
@@ -1242,7 +1242,7 @@ void GPU_buffer_unlock(GPUBuffer *buffer)
 	if (useVBOs) {
 		if (buffer) {
 			/* note: this operation can fail, could return
-			   an error code from this function? */
+			 * an error code from this function? */
 			glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
 		}
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
@@ -1260,7 +1260,7 @@ void GPU_buffer_draw_elements(GPUBuffer *elements, unsigned int mode, int start,
 
 
 /* XXX: the rest of the code in this file is used for optimized PBVH
-   drawing and doesn't interact at all with the buffer code above */
+ * drawing and doesn't interact at all with the buffer code above */
 
 /* Convenience struct for building the VBO. */
 typedef struct {
@@ -1426,8 +1426,8 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, DMGridData **grids,
 
 				if (!smooth) {
 					/* for flat shading, recalc normals and set the last vertex of
-					   each quad in the index buffer to have the flat normal as
-					   that is what opengl will use */
+					 * each quad in the index buffer to have the flat normal as
+					 * that is what opengl will use */
 					for (j = 0; j < gridsize-1; ++j) {
 						for (k = 0; k < gridsize-1; ++k) {
 							float fno[3];
@@ -1471,7 +1471,7 @@ static int gpu_count_grid_quads(BLI_bitmap *grid_hidden,
 	int i, x, y, totquad;
 
 	/* grid hidden layer is present, so have to check each grid for
-	   visiblity */
+	 * visiblity */
 
 	for (i = 0, totquad = 0; i < totgrid; i++) {
 		const BLI_bitmap gh = grid_hidden[grid_indices[i]];
@@ -1493,7 +1493,7 @@ static int gpu_count_grid_quads(BLI_bitmap *grid_hidden,
 }
 
 /* Build the element array buffer of grid indices using either
-   unsigned shorts or unsigned ints. */
+ * unsigned shorts or unsigned ints. */
 #define FILL_QUAD_BUFFER(type_, tot_quad_, buffer_)                     \
 	{                                                                   \
 		type_ *quad_data;                                               \
@@ -1552,7 +1552,7 @@ static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *to
 	int totgrid = 1;
 
 	/* VBO is disabled; delete the previous buffer (if it exists) and
-	   return an invalid handle */
+	 * return an invalid handle */
 	if (!GLEW_ARB_vertex_buffer_object || (U.gameflags & USER_DISABLE_VBO)) {
 		if (buffer)
 			glDeleteBuffersARB(1, &buffer);

@@ -187,7 +187,7 @@ typedef struct PTCacheBaker {
 #define PEK_HIDE		4
 #define PEK_USE_WCO		8
 
-typedef struct PTCacheEditKey{
+typedef struct PTCacheEditKey {
 	float *co;
 	float *vel;
 	float *rot;

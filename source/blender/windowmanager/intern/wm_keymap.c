@@ -61,7 +61,7 @@
 #include "wm_event_types.h"
 
 /******************************* Keymap Item **********************************
-* Item in a keymap, that maps from an event to an operator or modal map item */
+ * Item in a keymap, that maps from an event to an operator or modal map item */
 
 static wmKeyMapItem *wm_keymap_item_copy(wmKeyMapItem *kmi)
 {

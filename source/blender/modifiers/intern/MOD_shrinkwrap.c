@@ -86,10 +86,12 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	if (smd->vgroup_name[0])
 		dataMask |= CD_MASK_MDEFORMVERT;
 
-	if (smd->shrinkType == MOD_SHRINKWRAP_PROJECT
-	&& smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
+	if ((smd->shrinkType == MOD_SHRINKWRAP_PROJECT) &&
+	    (smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL))
+	{
 		dataMask |= CD_MASK_MVERT;
-		
+	}
+
 	return dataMask;
 }
 

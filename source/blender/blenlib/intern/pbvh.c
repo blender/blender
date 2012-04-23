@@ -1452,7 +1452,7 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 
 	// XXX jwilkins: tmax does not need to be updated since we don't use it
 	// keeping this here for future reference
-	//if(tzmax < tmax) tmax = tzmax; 
+	//if (tzmax < tmax) tmax = tzmax; 
 
 	node->tmin = tmin;
 

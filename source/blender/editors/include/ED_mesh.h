@@ -71,31 +71,10 @@ struct Material;
 struct Object;
 struct rcti;
 
-#define EM_FGON_DRAW    1 // face flag
-#define EM_FGON         2 // edge and face flag both
-
-/* editbutflag */
-#define B_CLOCKWISE         1
-#define B_KEEPORIG          2
-#define B_BEAUTY            4
-#define B_SMOOTH            8
-#define B_BEAUTY_SHORT      0x10
-#define B_AUTOFGON          0x20
-#define B_KNIFE             0x80
-#define B_PERCENTSUBD       0x40
-//#define B_MESH_X_MIRROR		0x100 // deprecated, use mesh
-#define B_JOINTRIA_UV       0x200
-#define B_JOINTRIA_VCOL     0X400
-#define B_JOINTRIA_SHARP    0X800
-#define B_JOINTRIA_MAT      0X1000
-#define B_FRACTAL           0x2000
-#define B_SPHERE            0x4000
-
 intptr_t    mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode);
 int         mesh_mirrtopo_table(struct Object *ob, char mode);
 
-/* bmeshutils.c */
-
+/* editmesh_utils.c */
 
 /* retrieves mirrored cache vert, or NULL if there isn't one.
  * note: calling this without ensuring the mirror cache state
@@ -291,16 +270,6 @@ int  ED_mesh_mirrtopo_recalc_check(struct Mesh *me, const int ob_mode, MirrTopoS
 void ED_mesh_mirrtopo_init(struct Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store,
                            const short skip_em_vert_array_init);
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
-
-#define SUBDIV_SELECT_ORIG      0
-#define SUBDIV_SELECT_INNER     1
-#define SUBDIV_SELECT_INNER_SEL 2
-#define SUBDIV_SELECT_LOOPCUT   3
-
-/* edge subdivide corner cut types */
-#define SUBDIV_CORNER_PATH      0
-#define SUBDIV_CORNER_INNERVERT 1
-#define SUBDIV_CORNER_FAN       2
 
 #ifdef __cplusplus
 }

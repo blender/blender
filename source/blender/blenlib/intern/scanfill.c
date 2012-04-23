@@ -897,7 +897,7 @@ int BLI_edgefill_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup, co
 		/* get first vertex with no poly number */
 		if (eve->poly_nr == 0) {
 			poly++;
-			/* now a sortof select connected */
+			/* now a sort of select connected */
 			ok = 1;
 			eve->poly_nr = poly;
 			

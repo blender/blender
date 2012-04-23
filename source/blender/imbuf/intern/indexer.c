@@ -300,7 +300,7 @@ int IMB_indexer_can_scan(struct anim_index * idx,
 			 int old_frame_index, int new_frame_index)
 {
 	/* makes only sense, if it is the same I-Frame and we are not
-	   trying to run backwards in time... */
+	 * trying to run backwards in time... */
 	return (IMB_indexer_get_seek_pos(idx, old_frame_index)
 		== IMB_indexer_get_seek_pos(idx, new_frame_index) && 
 		old_frame_index < new_frame_index);

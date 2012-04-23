@@ -104,7 +104,7 @@ static BLI_bitmap multires_mdisps_upsample_hidden(BLI_bitmap lo_hidden,
 												  int hi_level,
 									 
 												  /* assumed to be at hi_level (or
-													 null) */
+												   *  null) */
 												  BLI_bitmap prev_hidden)
 {
 	BLI_bitmap subd;
@@ -144,8 +144,8 @@ static BLI_bitmap multires_mdisps_upsample_hidden(BLI_bitmap lo_hidden,
 
 					if (prev_hidden) {
 						/* If prev_hidden is available, copy it to
-						   subd, except when the equivalent element in
-						   lo_hidden is different */
+						 * subd, except when the equivalent element in
+						 * lo_hidden is different */
 						if (lo_val != prev_hidden[hi_ndx])
 							BLI_BITMAP_MODIFY(subd, hi_ndx, lo_val);
 						else
@@ -215,7 +215,7 @@ static void multires_output_hidden_to_ccgdm(CCGDerivedMesh *ccgdm,
 }
 
 /* subdivide mdisps.hidden if needed (assumes that md.level reflects
-   the current level of md.hidden) */
+ * the current level of md.hidden) */
 static void multires_mdisps_subdivide_hidden(MDisps *md, int new_level)
 {
 	BLI_bitmap subd;

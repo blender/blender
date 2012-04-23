@@ -459,7 +459,7 @@ static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 		
 		if (name) {
 			item_tmp.identifier = name;
-			/* XXX This won’t work with non-default contexts (e.g. operators) :/ */
+			/* XXX This won't work with non-default contexts (e.g. operators) :/ */
 			item_tmp.name = IFACE_(name);
 			if (active)
 				item_tmp.icon = ICON_RESTRICT_VIEW_OFF;

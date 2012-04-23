@@ -1961,7 +1961,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 
 	BM_ITER_ELEM (efa, &iter, eve, BM_FACES_OF_VERT) {
 		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-			BM_face_center_mean_calc(efa, cent_r);
+			BM_face_calc_center_mean(efa, cent_r);
 			break;
 		}
 	}
@@ -1984,7 +1984,7 @@ static void get_edge_center(float cent_r[3], BMVert *eve)
 static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert *eve, float *bweight)
 {
 	td->flag = 0;
-	//if(key)
+	//if (key)
 	//	td->loc = key->co;
 	//else
 	td->loc = eve->co;
@@ -6008,8 +6008,7 @@ void createTransData(bContext *C, TransInfo *t)
 			
 		}
 	}
-	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) 
-		&& PE_start_edit(PE_get_current(scene, ob))) {
+	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_start_edit(PE_get_current(scene, ob))) {
 		createTransParticleVerts(C, t);
 		t->flag |= T_POINTS;
 

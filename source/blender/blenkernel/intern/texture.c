@@ -1052,7 +1052,7 @@ void make_local_texture(Tex *tex)
 }
 
 /* ------------------------------------------------------------------------- */
-
+#if 0 /* UNUSED */
 void autotexname(Tex *tex)
 {
 	Main *bmain= G.main;
@@ -1082,6 +1082,7 @@ void autotexname(Tex *tex)
 		else new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
 	}
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 

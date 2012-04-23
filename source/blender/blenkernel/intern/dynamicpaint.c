@@ -1844,8 +1844,7 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 				BKE_ptcache_id_time(&pid, scene, (float)scene->r.cfra, NULL, NULL, NULL);
 
 				/* reset non-baked cache at first frame */
-				if ((int)scene->r.cfra == surface->start_frame && !(cache->flag & PTCACHE_BAKED))
-				{
+				if ((int)scene->r.cfra == surface->start_frame && !(cache->flag & PTCACHE_BAKED)) {
 					cache->flag |= PTCACHE_REDO_NEEDED;
 					BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 					cache->flag &= ~PTCACHE_REDO_NEEDED;
@@ -1856,8 +1855,7 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 					BKE_ptcache_validate(cache, (int)scene->r.cfra);
 				}
 				/* if read failed and we're on surface range do recalculate */
-				else if ((int)scene->r.cfra == current_frame
-					&& !(cache->flag & PTCACHE_BAKED)) {
+				else if ((int)scene->r.cfra == current_frame && !(cache->flag & PTCACHE_BAKED)) {
 					/* calculate surface frame */
 					canvas->flags |= MOD_DPAINT_BAKING;
 					dynamicPaint_calculateFrame(surface, scene, ob, current_frame);
@@ -3337,7 +3335,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 								else if (brush->ray_dir == MOD_DPAINT_RAY_BRUSH_AVG) {
 									copy_v3_v3(proj_ray, avg_brushNor);
 								}
-								else  { /* MOD_DPAINT_RAY_ZPLUS */
+								else { /* MOD_DPAINT_RAY_ZPLUS */
 									proj_ray[2] = 1.0f;
 								}
 								hit.index = -1;

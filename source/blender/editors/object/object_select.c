@@ -233,7 +233,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	if (nr==1) {	
 			// XXX old animation system
 		//ipo= ob->ipo;
-		//if(ipo==0) return OPERATOR_CANCELLED;
+		//if (ipo==0) return OPERATOR_CANCELLED;
 		return OPERATOR_CANCELLED;
 	}
 	else if (nr==2) {
@@ -266,7 +266,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (nr==1) {
 				// XXX old animation system
-			//if(base->object->ipo==ipo) base->flag |= SELECT;
+			//if (base->object->ipo==ipo) base->flag |= SELECT;
 			//changed = 1;
 		}
 		else if (nr==2) {

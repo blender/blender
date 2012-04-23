@@ -1647,7 +1647,7 @@ static void texco_mapping(ShadeInput* shi, Tex* tex, MTex* mtex, float* co, floa
 			}
 		}
 		if (tex->extend == TEX_REPEAT && (tex->flag & TEX_REPEAT_YMIR)) {
-			if  (tex->texfilter == TXF_BOX)
+			if (tex->texfilter == TXF_BOX)
 				texvec[1] -= floorf(texvec[1]);
 			else if (texvec[1] < 0.f || texvec[1] > 1.f) {
 				const float ty = 0.5f*texvec[1];

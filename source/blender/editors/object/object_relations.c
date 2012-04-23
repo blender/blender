@@ -1479,7 +1479,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 				case OB_MESH:
 					ob->data= copy_mesh(ob->data);
 					//me= ob->data;
-					//if(me && me->key)
+					//if (me && me->key)
 					//	ipo_idnew(me->key->ipo);	/* drivers */
 					break;
 				case OB_MBALL:

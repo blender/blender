@@ -82,31 +82,24 @@ static void add_normal_aligned(float nor[3], const float add[3])
 
 static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 {
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
 	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
 	float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
-	int flag = 0;
 
-	if (smooth != 0.0f)
-		flag |= B_SMOOTH;
-	if (fractal != 0.0f)
-		flag |= B_FRACTAL;
-	
 	if (RNA_boolean_get(op->ptr, "quadtri") && 
 	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_STRAIGHT_CUT)
 	{
 		RNA_enum_set(op->ptr, "quadcorner", SUBD_INNERVERT);
 	}
 	
-	BM_mesh_esubdivideflag(obedit, em->bm, BM_ELEM_SELECT,
-	                       smooth, fractal,
-	                       ts->editbutflag | flag,
-	                       cuts, 0, RNA_enum_get(op->ptr, "quadcorner"),
-	                       RNA_boolean_get(op->ptr, "quadtri"),
-	                       TRUE, RNA_int_get(op->ptr, "seed"));
+	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
+	                   smooth, fractal,
+	                   cuts,
+	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
+	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE,
+	                   RNA_int_get(op->ptr, "seed"));
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -191,7 +184,7 @@ static short edbm_extrude_face_indiv(BMEditMesh *em, wmOperator *op, const char 
 	BMO_op_exec(em->bm, &bmop);
 	
 	BMO_ITER (f, &siter, em->bm, &bmop, "faceout", BM_FACE) {
-		BM_elem_select_set(em->bm, f, TRUE);
+		BM_face_select_set(em->bm, f, TRUE);
 
 		/* set face vertex normals to face normal */
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
@@ -353,8 +346,8 @@ static short edbm_extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(eed, hflag)) {
 			if (hflag & BM_ELEM_SELECT) {
-				BM_elem_select_set(em->bm, eed->v1, TRUE);
-				BM_elem_select_set(em->bm, eed->v2, TRUE);
+				BM_vert_select_set(em->bm, eed->v1, TRUE);
+				BM_vert_select_set(em->bm, eed->v2, TRUE);
 			}
 
 			BM_elem_flag_enable(eed->v1, hflag & ~BM_ELEM_SELECT);
@@ -363,7 +356,7 @@ static short edbm_extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 		else {
 			if (BM_elem_flag_test(eed->v1, hflag) && BM_elem_flag_test(eed->v2, hflag)) {
 				if (hflag & BM_ELEM_SELECT) {
-					BM_elem_select_set(em->bm, eed, TRUE);
+					BM_edge_select_set(em->bm, eed, TRUE);
 				}
 
 				BM_elem_flag_enable(eed, hflag & ~BM_ELEM_SELECT);
@@ -860,7 +853,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		BMO_op_exec(vc.em->bm, &bmop);
 
 		BMO_ITER (v1, &oiter, vc.em->bm, &bmop, "newvertout", BM_VERT) {
-			BM_elem_select_set(vc.em->bm, v1, TRUE);
+			BM_vert_select_set(vc.em->bm, v1, TRUE);
 		}
 
 		if (!EDBM_op_finish(vc.em, &bmop, op, TRUE)) {
@@ -1020,14 +1013,37 @@ void MESH_OT_edge_collapse_loop(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int edbm_add_edge_face__smooth_get(BMesh *bm)
+{
+	BMEdge *e;
+	BMIter iter;
+
+	unsigned int vote_on_smooth[2] = {0, 0};
+
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT) && e->l)
+		{
+			vote_on_smooth[BM_elem_flag_test_bool(e->l->f, BM_ELEM_SMOOTH)]++;
+		}
+	}
+
+	return (vote_on_smooth[0] < vote_on_smooth[1]);
+}
+
 static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 {
 	BMOperator bmop;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	
-	if (!EDBM_op_init(em, &bmop, op, "contextual_create geom=%hfev mat_nr=%i", BM_ELEM_SELECT, em->mat_nr))
+	const short use_smooth = edbm_add_edge_face__smooth_get(em->bm);
+	/* when this is used to dissolve we could avoid this, but checking isnt too slow */
+
+	if (!EDBM_op_init(em, &bmop, op,
+	                  "contextual_create geom=%hfev mat_nr=%i use_smooth=%b",
+	                  BM_ELEM_SELECT, em->mat_nr, use_smooth))
+	{
 		return OPERATOR_CANCELLED;
+	}
 	
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
@@ -2328,15 +2344,15 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 				switch (mode) {
 					case -1: /* aligned */
 						if (fabs(ev->co[axis] - value) < limit)
-							BM_elem_select_set(em->bm, ev, TRUE);
+							BM_vert_select_set(em->bm, ev, TRUE);
 						break;
 					case 0: /* neg */
 						if (ev->co[axis] > value)
-							BM_elem_select_set(em->bm, ev, TRUE);
+							BM_vert_select_set(em->bm, ev, TRUE);
 						break;
 					case 1: /* pos */
 						if (ev->co[axis] < value)
-							BM_elem_select_set(em->bm, ev, TRUE);
+							BM_vert_select_set(em->bm, ev, TRUE);
 						break;
 				}
 			}
@@ -2719,10 +2735,9 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	if (mode == KNIFE_MIDPOINT) numcuts = 1;
 	BMO_slot_int_set(&bmop, "numcuts", numcuts);
 
-	BMO_slot_int_set(&bmop, "flag", B_KNIFE);
 	BMO_slot_int_set(&bmop, "quadcornertype", SUBD_STRAIGHT_CUT);
-	BMO_slot_bool_set(&bmop, "singleedge", FALSE);
-	BMO_slot_bool_set(&bmop, "gridfill", FALSE);
+	BMO_slot_bool_set(&bmop, "use_singleedge", FALSE);
+	BMO_slot_bool_set(&bmop, "use_gridfill", FALSE);
 
 	BMO_slot_float_set(&bmop, "radius", 0);
 	
@@ -2802,7 +2817,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 			continue;
 
 		if (!BM_edge_is_wire(e)) {
-			BM_elem_select_set(em->bm, e, FALSE);
+			BM_edge_select_set(em->bm, e, FALSE);
 		}
 	}
 	EDBM_op_callf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_EDGES);
@@ -2813,7 +2828,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 			continue;
 
 		if (BM_vert_edge_count(v) != 0) {
-			BM_elem_select_set(em->bm, v, FALSE);
+			BM_vert_select_set(em->bm, v, FALSE);
 		}
 	}
 
@@ -2899,7 +2914,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 		}
 
 		/* Select the seed explicitly, in case it has no edges */
-		BM_elem_select_set(bm, v_seed, TRUE);
+		BM_vert_select_set(bm, v_seed, TRUE);
 
 		/* Walk from the single vertex, selecting everything connected
 		 * to it */
@@ -2910,8 +2925,8 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 
 		e = BMW_begin(&walker, v_seed);
 		for (; e; e = BMW_step(&walker)) {
-			BM_elem_select_set(bm, e->v1, TRUE);
-			BM_elem_select_set(bm, e->v2, TRUE);
+			BM_vert_select_set(bm, e->v1, TRUE);
+			BM_vert_select_set(bm, e->v2, TRUE);
 		}
 		BMW_end(&walker);
 				
@@ -3257,7 +3272,6 @@ void MESH_OT_split(wmOperatorType *ot)
 static int edbm_spin_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMOperator spinop;
@@ -3265,14 +3279,15 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	float d[3] = {0.0f, 0.0f, 0.0f};
 	int steps, dupli;
 	float degr;
-    
+
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
 	steps = RNA_int_get(op->ptr, "steps");
 	degr = RNA_float_get(op->ptr, "degrees");
-	if (ts->editbutflag & B_CLOCKWISE) degr = -degr;
+	//if (ts->editbutflag & B_CLOCKWISE)
+	degr = -degr;
 	dupli = RNA_boolean_get(op->ptr, "dupli");
-    
+
 	/* undo object transformation */
 	copy_m3_m4(imat, obedit->imat);
 	sub_v3_v3(cent, obedit->obmat[3]);
@@ -3487,7 +3502,7 @@ static int edbm_select_by_number_vertices_exec(bContext *C, wmOperator *op)
 		}
 
 		if (select) {
-			BM_elem_select_set(em->bm, efa, TRUE);
+			BM_face_select_set(em->bm, efa, TRUE);
 		}
 	}
 
@@ -3535,7 +3550,7 @@ static int edbm_select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 	     eve; eve = BM_iter_step(&iter)) {
 
 		if (!eve->e) {
-			BM_elem_select_set(em->bm, eve, TRUE);
+			BM_vert_select_set(em->bm, eve, TRUE);
 		}
 	}
 
@@ -3543,7 +3558,7 @@ static int edbm_select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 	     eed; eed = BM_iter_step(&iter)) {
 
 		if (!eed->l) {
-			BM_elem_select_set(em->bm, eed, TRUE);
+			BM_edge_select_set(em->bm, eed, TRUE);
 		}
 	}
 
@@ -3601,7 +3616,7 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 
 /* qsort routines.  not sure how to make these
  * work, since we aren't using linked lists for
- * geometry anymore.  might need a sortof "swap"
+ * geometry anymore.  might need a sort of "swap"
  * function for bmesh elements. */
 
 /* TODO All this section could probably use a refresh...

@@ -412,7 +412,7 @@ static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 	if (value > settings->end)
 		value = settings->end;
 
-	/*if(settings->type==PART_REACTOR && value < 1.0) */
+	/*if (settings->type==PART_REACTOR && value < 1.0) */
 	/*	value = 1.0; */
 	/*else  */
 	if (value < MINAFRAMEF)
@@ -723,7 +723,7 @@ static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
 static EnumPropertyItem *rna_Particle_from_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
                                                  PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
-	/*if(part->type==PART_REACTOR) */
+	/*if (part->type==PART_REACTOR) */
 	/*	return part_reactor_from_items; */
 	/*else */
 		return part_from_items;

@@ -345,7 +345,7 @@ static void bake_rasterize(const MBakeRast *bake_rast, const float st0_in[2], co
 	yhi_beg= (int) ceilf(tmi);
 	yhi= (int) ceilf(thi);
 
-	/*if(fTmi>ceilf(fTlo))*/
+	/*if (fTmi>ceilf(fTlo))*/
 	rasterize_half(bake_rast, slo, tlo, smi, tmi, slo, tlo, shi, thi, ylo, yhi_beg, is_mid_right);
 	rasterize_half(bake_rast, smi, tmi, shi, thi, slo, tlo, shi, thi, yhi_beg, yhi, is_mid_right);
 }

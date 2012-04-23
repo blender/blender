@@ -3228,8 +3228,8 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 	}
 
 	sub= uiLayoutRow(row, 0);
-	uiLayoutSetActive(sub, ((RNA_boolean_get(logic_ptr, "show_sensors_active_states")
-							&& RNA_boolean_get(ptr, "show_expanded")) || RNA_boolean_get(ptr, "pin")));
+	uiLayoutSetActive(sub, ((RNA_boolean_get(logic_ptr, "show_sensors_active_states") &&
+	                         RNA_boolean_get(ptr, "show_expanded")) || RNA_boolean_get(ptr, "pin")));
 	uiItemR(sub, ptr, "pin", UI_ITEM_R_NO_BG, "", ICON_NONE);
 
 	if (RNA_boolean_get(ptr, "show_expanded")==0) {
@@ -3253,8 +3253,8 @@ static void draw_sensor_internal_header(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "use_pulse_false_level", 0, "", ICON_DOTSDOWN);
 
 	sub=uiLayoutRow(row, 0);
-	uiLayoutSetActive(sub, (RNA_boolean_get(ptr, "use_pulse_true_level")
-							|| RNA_boolean_get(ptr, "use_pulse_false_level")));
+	uiLayoutSetActive(sub, (RNA_boolean_get(ptr, "use_pulse_true_level") ||
+	                        RNA_boolean_get(ptr, "use_pulse_false_level")));
 	uiItemR(sub, ptr, "frequency", 0, "Freq", ICON_NONE);
 	
 	row= uiLayoutRow(split, 1);
@@ -3677,8 +3677,8 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *
 	}
 
 	sub= uiLayoutRow(row, 0);
-	uiLayoutSetActive(sub, ((RNA_boolean_get(logic_ptr, "show_actuators_active_states")
-							&& RNA_boolean_get(ptr, "show_expanded")) || RNA_boolean_get(ptr, "pin")));
+	uiLayoutSetActive(sub, ((RNA_boolean_get(logic_ptr, "show_actuators_active_states") &&
+	                         RNA_boolean_get(ptr, "show_expanded")) || RNA_boolean_get(ptr, "pin")));
 	uiItemR(sub, ptr, "pin", UI_ITEM_R_NO_BG, "", ICON_NONE);
 
 	if (RNA_boolean_get(ptr, "show_expanded")==0) {

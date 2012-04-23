@@ -3001,7 +3001,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	
 	/* Note, use the original mesh for getting the clone and mask layer index
-	* this avoids re-generating the derived mesh just to get the new index */
+	 * this avoids re-generating the derived mesh just to get the new index */
 	if (ps->do_layer_clone) {
 		//int layer_num = CustomData_get_clone_layer(&ps->dm->faceData, CD_MTFACE);
 		int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->fdata, CD_MTFACE);
@@ -5217,8 +5217,8 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		float alpha = 0.5f;
 
 		ts = scene->toolsettings;
-		use_zoom = get_imapaint_zoom(C, &zoomx, &zoomy)
-		           && !(ts->use_uv_sculpt && (scene->basact->object->mode == OB_MODE_EDIT));
+		use_zoom = get_imapaint_zoom(C, &zoomx, &zoomy) &&
+		           !(ts->use_uv_sculpt && (scene->basact->object->mode == OB_MODE_EDIT));
 
 		if (use_zoom) {
 			pixel_size = MAX2(size * zoomx, size * zoomy);

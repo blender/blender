@@ -150,7 +150,7 @@ int EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const int r
 			BKE_report(op->reports, RPT_ERROR, errmsg);
 		}
 
-		BMEdit_Free(em);
+		EDBM_mesh_free(em);
 		*em = *emcopy;
 
 		MEM_freeN(emcopy);
@@ -284,7 +284,7 @@ void EDBM_mesh_make(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 
 	if (me->edit_btmesh) {
 		/* this happens when switching shape keys */
-		BMEdit_Free(me->edit_btmesh);
+		EDBM_mesh_free(me->edit_btmesh);
 		MEM_freeN(me->edit_btmesh);
 	}
 
@@ -315,9 +315,18 @@ void EDBM_mesh_load(Object *ob)
 #endif
 }
 
-void EDBM_mesh_free(BMEditMesh *tm)
+/**
+ * Should only be called on the active editmesh, otherwise call #BMEdit_Free
+ */
+void EDBM_mesh_free(BMEditMesh *em)
 {
-	BMEdit_Free(tm);
+	/* These tables aren't used yet, so it's not strictly necessary
+	 * to 'end' them (with 'e' param) but if someone tries to start
+	 * using them, having these in place will save a lot of pain */
+	mesh_octree_table(NULL, NULL, NULL, 'e');
+	mesh_mirrtopo_table(NULL, 'e');
+
+	BMEdit_Free(em);
 }
 
 void EDBM_index_arrays_init(BMEditMesh *tm, int forvert, int foredge, int forface)
@@ -547,7 +556,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 
 	ob->shapenr = em->bm->shapenr;
 
-	BMEdit_Free(em);
+	EDBM_mesh_free(em);
 
 	bm = BM_mesh_create(&bm_mesh_allocsize_default);
 

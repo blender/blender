@@ -243,9 +243,9 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		key = (ParamKey)efa;
 
 
-		if(efa->len == 3 || efa->len == 4) {
+		if (efa->len == 3 || efa->len == 4) {
 			/* for quads let parametrize split, it can make better decisions
-			   about which split is best for unwrapping than scanfill */
+			 * about which split is best for unwrapping than scanfill */
 			i = 0;
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -294,7 +294,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 				ls[1] = sefa->v2->tmp.p;
 				ls[2] = sefa->v3->tmp.p;
 
-				for(i = 0; i < 3; i++) {
+				for (i = 0; i < 3; i++) {
 					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, ls[i]->head.data, CD_MLOOPUV);
 					vkeys[i] = (ParamKey)BM_elem_index_get(ls[i]->v);
 					co[i] = ls[i]->v->co;
@@ -1569,7 +1569,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 	cube_size = RNA_float_get(op->ptr, "cube_size");
 
 	/* choose x,y,z axis for projection depending on the largest normal
-	* component, but clusters all together around the center of map. */
+	 * component, but clusters all together around the center of map. */
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		int first = 1;

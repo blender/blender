@@ -60,14 +60,14 @@ KX_PolygonMaterial::KX_PolygonMaterial()
 		: PyObjectPlus(),
 		  RAS_IPolyMaterial(),
 
-	m_tface(NULL),
-	m_mcol(NULL),
 	m_material(NULL),
 #ifdef WITH_PYTHON
 	m_pymaterial(NULL),
 #endif
 	m_pass(0)
 {
+	memset(&m_tface, 0, sizeof(m_tface));
+	memset(&m_mcol, 0, sizeof(m_mcol));
 }
 
 void KX_PolygonMaterial::Initialize(
@@ -98,8 +98,20 @@ void KX_PolygonMaterial::Initialize(
 							light,
 							(texname && texname != ""?true:false), /* if we have a texture we have image */
 							ma?&ma->game:NULL);
-	m_tface = tface;
-	m_mcol = mcol;
+
+	if (tface) {
+		m_tface = *tface;
+	}
+	else {
+		memset(&m_tface, 0, sizeof(m_tface));
+	}
+	if (mcol) {
+		m_mcol = *mcol;
+	}
+	else {
+		memset(&m_mcol, 0, sizeof(m_mcol));
+	}
+
 	m_material = ma;
 #ifdef WITH_PYTHON
 	m_pymaterial = 0;
@@ -119,7 +131,7 @@ KX_PolygonMaterial::~KX_PolygonMaterial()
 
 Image *KX_PolygonMaterial::GetBlenderImage() const
 {
-	return (m_tface) ? m_tface->tpage : NULL;
+	return m_tface.tpage;
 }
 
 bool KX_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const 
@@ -175,9 +187,9 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 
 		if ((m_drawingmode & RAS_IRasterizer::KX_TEX)&& (rasty->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED))
 		{
-			Image *ima = (Image*)m_tface->tpage;
+			Image *ima = m_tface.tpage;
 			GPU_update_image_time(ima, rasty->GetTime());
-			GPU_set_tpage(m_tface, 1, m_alphablend);
+			GPU_set_tpage(&m_tface, 1, m_alphablend);
 		}
 		else
 			GPU_set_tpage(NULL, 0, 0);
@@ -359,15 +371,15 @@ PyObject* KX_PolygonMaterial::pyattr_get_material(void *self_v, const KX_PYATTRI
 PyObject* KX_PolygonMaterial::pyattr_get_tface(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
-	return PyCapsule_New(self->m_tface, KX_POLYGONMATERIAL_CAPSULE_ID, NULL);
+	return PyCapsule_New(&self->m_tface, KX_POLYGONMATERIAL_CAPSULE_ID, NULL);
 }
 
 PyObject* KX_PolygonMaterial::pyattr_get_gl_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
 	int bindcode= 0;
-	if (self->m_tface && self->m_tface->tpage)
-		bindcode= self->m_tface->tpage->bindcode;
+	if (self->m_tface.tpage)
+		bindcode= self->m_tface.tpage->bindcode;
 	
 	return PyLong_FromSsize_t(bindcode);
 }

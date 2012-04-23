@@ -597,7 +597,7 @@ static void vgroup_select_verts(Object *ob, int select)
 				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 					dv= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 					if (defvert_find_index(dv, def_nr)) {
-						BM_elem_select_set(em->bm, eve, select);
+						BM_vert_select_set(em->bm, eve, select);
 					}
 				}
 			}

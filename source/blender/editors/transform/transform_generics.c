@@ -921,7 +921,7 @@ void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
 		
 		glPushMatrix();
 		
-		//if(t->obedit) glLoadMatrixf(t->obedit->obmat);	// sets opengl viewing
+		//if (t->obedit) glLoadMatrixf(t->obedit->obmat);	// sets opengl viewing
 		
 		
 		copy_v3_v3(v3, dir);
@@ -1629,7 +1629,8 @@ void calculatePropRatio(TransInfo *t)
 						(td->flag & TD_NOTCONNECTED || td->dist > t->prop_size))
 				||
 					(connected == 0 &&
-						td->rdist > t->prop_size)) {
+						td->rdist > t->prop_size))
+			{
 				/*
 				 * The elements are sorted according to their dist member in the array,
 				 * that means we can stop when it finds one element outside of the propsize.

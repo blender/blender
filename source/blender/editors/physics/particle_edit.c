@@ -3471,8 +3471,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		pset->flag &= ~PE_LOCK_FIRST;
 
 	if (((pset->brushtype == PE_BRUSH_ADD) ?
-		(sqrt(dx * dx + dy * dy) > pset->brush[PE_BRUSH_ADD].step) : (dx != 0 || dy != 0))
-		|| bedit->first) {
+		(sqrt(dx * dx + dy * dy) > pset->brush[PE_BRUSH_ADD].step) : (dx != 0 || dy != 0)) || bedit->first) {
 		PEData data= bedit->data;
 
 		view3d_operator_needs_opengl(C);

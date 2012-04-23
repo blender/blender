@@ -138,7 +138,7 @@ bNode *node_group_make_from_selected(bNodeTree *ntree)
 	if (totnode==0) return NULL;
 	
 	/* check if all connections are OK, no unselected node has both
-		inputs and outputs to a selection */
+	 * inputs and outputs to a selection */
 	for (link= ntree->links.first; link; link= link->next) {
 		if (link->fromnode && link->tonode && link->fromnode->flag & NODE_SELECT)
 			link->tonode->done |= 1;

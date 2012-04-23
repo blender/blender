@@ -28,7 +28,6 @@ set(INC
 	.
 	../blenkernel
 	../blenlib
-	../editors/include
 	../makesdna
 	../../../intern/guardedalloc
 )

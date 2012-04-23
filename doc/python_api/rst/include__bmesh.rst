@@ -32,12 +32,11 @@ For an overview of BMesh data types and how they reference each other see:
 
 .. warning::
 
-   TODO Items Are
+   TODO items are...
 
    * add access to BMesh **walkers**
-   * add a way to re-tessellate an editmode bmesh.
-   * add deform vert custom-data access.
-
+   * add api for calling BMesh operators (unrelated to bpy.ops)
+   * add custom-data manipulation functions add/remove/rename.
 
 Example Script
 --------------
@@ -110,8 +109,8 @@ Here are some examples ...
    shape_lay = bm.verts.layers.shape["Key.001"]
 
    for vert in bm.verts:
-		shape = vert[shape_lay]
-        print("Vert Shape: %f, %f, %f" % (shape.x, shape.y, shape.z))
+       shape = vert[shape_lay]
+       print("Vert Shape: %f, %f, %f" % (shape.x, shape.y, shape.z))
 
 
 .. code-block:: python
@@ -125,7 +124,7 @@ Here are some examples ...
 
    for vert in bm.verts:
        dvert = vert[dvert_lay]
-		
+
        if group_index in dvert:
            print("Weight %f" % dvert[group_index])
        else:

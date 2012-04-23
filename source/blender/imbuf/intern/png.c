@@ -49,7 +49,7 @@ typedef struct PNGReadStruct {
 	unsigned char *data;
 	unsigned int size;
 	unsigned int seek;
-}PNGReadStruct;
+} PNGReadStruct;
 
 static void ReadData( png_structp png_ptr, png_bytep data, png_size_t length);
 static void WriteData( png_structp png_ptr, png_bytep data, png_size_t length);

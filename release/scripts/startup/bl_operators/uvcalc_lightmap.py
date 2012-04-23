@@ -88,7 +88,7 @@ class prettyface(object):
             self.children = []
 
         else:  # blender face
-            uv_layer = data.id_data.uv_loop_layers.active.data
+            uv_layer = data.id_data.uv_layers.active.data
             self.uv = [uv_layer[i].uv for i in data.loop_indices]
 
             # cos = [v.co for v in data]
@@ -158,7 +158,7 @@ class prettyface(object):
                 I = [i for a, i in angles_co]
 
                 #~ fuv = f.uv
-                uv_layer = f.id_data.uv_loop_layers.active.data
+                uv_layer = f.id_data.uv_layers.active.data
                 fuv = [uv_layer[i].uv for i in f.loops]  # XXX25
 
                 if self.rot:

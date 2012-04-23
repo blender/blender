@@ -695,8 +695,10 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 
 static int inside_rctf(rctf *bounds, rctf *rect)
 {
-	return (bounds->xmin <= rect->xmin && bounds->xmax >= rect->xmax
-			&& bounds->ymin <= rect->ymin && bounds->ymax >= rect->ymax);
+	return (bounds->xmin <= rect->xmin &&
+	        bounds->xmax >= rect->xmax &&
+	        bounds->ymin <= rect->ymin &&
+	        bounds->ymax >= rect->ymax);
 }
 
 static void node_frame_attach_nodes(bNodeTree *UNUSED(ntree), bNode *frame)
@@ -1893,8 +1895,10 @@ static int outside_group_rect(SpaceNode *snode)
 {
 	bNode *gnode= node_tree_get_editgroup(snode->nodetree);
 	if (gnode) {
-		return (snode->mx < gnode->totr.xmin || snode->mx >= gnode->totr.xmax
-				|| snode->my < gnode->totr.ymin || snode->my >= gnode->totr.ymax);
+		return (snode->mx <  gnode->totr.xmin ||
+		        snode->mx >= gnode->totr.xmax ||
+		        snode->my <  gnode->totr.ymin ||
+		        snode->my >= gnode->totr.ymax);
 	}
 	return 0;
 }
@@ -2192,8 +2196,9 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 		/* This creates new links between copied nodes.
 		 * If keep_inputs is set, also copies input links from unselected (when fromnode==NULL)!
 		 */
-		if (link->tonode && (link->tonode->flag & NODE_SELECT)
-			&& (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT)))) {
+		if (link->tonode && (link->tonode->flag & NODE_SELECT) &&
+		    (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT))))
+		{
 			newlink = MEM_callocN(sizeof(bNodeLink), "bNodeLink");
 			newlink->flag = link->flag;
 			newlink->tonode = link->tonode->new_node;

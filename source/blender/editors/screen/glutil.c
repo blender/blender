@@ -690,6 +690,8 @@ void glaDefine2DArea(rcti *screen_rect)
 	glLoadIdentity();
 }
 
+#if 0 /* UNUSED */
+
 struct gla2DDrawInfo {
 	int orig_vp[4], orig_sc[4];
 	float orig_projmat[16], orig_viewmat[16];
@@ -720,7 +722,6 @@ void gla2DSetMap(gla2DDrawInfo *di, rctf *rect)
 	di->wo_to_sc[0]= sc_w/wo_w;
 	di->wo_to_sc[1]= sc_h/wo_h;
 }
-
 
 gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect) 
 {
@@ -779,6 +780,7 @@ void glaEnd2DDraw(gla2DDrawInfo *di)
 
 	MEM_freeN(di);
 }
+#endif
 
 /* **************** glPoint hack ************************ */
 
@@ -805,6 +807,7 @@ void bglBegin(int mode)
 	}
 }
 
+#if 0 /* UNUSED */
 int bglPointHack(void)
 {
 	float value[4];
@@ -818,6 +821,7 @@ int bglPointHack(void)
 	}
 	return 0;
 }
+#endif
 
 void bglVertex3fv(const float vec[3])
 {
@@ -927,6 +931,7 @@ void bglPolygonOffset(float viewdist, float dist)
 	}
 }
 
+#if 0 /* UNUSED */
 void bglFlush(void) 
 {
 	glFlush();
@@ -935,4 +940,4 @@ void bglFlush(void)
 // XXX		myswapbuffers(); //hack to get mac intel graphics to show frontbuffer
 #endif
 }
-
+#endif

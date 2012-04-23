@@ -1058,7 +1058,7 @@ void mesh_strip_loose_polysloops(Mesh *me)
 	MLoop *l;
 	int a, b;
 	/* New loops idx! */
-	int *new_idx = MEM_mallocN(sizeof(int) * me->totloop, "strip_loose_polysloops old2new idx mapping for polys.");
+	int *new_idx = MEM_mallocN(sizeof(int) * me->totloop, __func__);
 
 	for (a = b = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
 		int invalid = FALSE;
@@ -1119,6 +1119,8 @@ void mesh_strip_loose_polysloops(Mesh *me)
 	for (a = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
 		p->loopstart = new_idx[p->loopstart];
 	}
+
+	MEM_freeN(new_idx);
 }
 
 void mesh_strip_loose_edges(Mesh *me)
@@ -1224,7 +1226,10 @@ int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
 	int *totloop, int *totpoly)
 {
 	return nurbs_to_mdata_customdb(ob, &ob->disp,
-		allvert, totvert, alledge, totedge, allloop, allpoly, totloop, totpoly);
+	                               allvert, totvert,
+	                               alledge, totedge,
+	                               allloop, allpoly,
+	                               totloop, totpoly);
 }
 
 /* BMESH: this doesn't calculate all edges from polygons,
@@ -1232,9 +1237,11 @@ int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
 
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* use specified dispbase  */
-int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int *_totvert,
-	MEdge **alledge, int *_totedge, MLoop **allloop, MPoly **allpoly,
-	int *_totloop, int *_totpoly)
+int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase,
+                            MVert **allvert, int *_totvert,
+                            MEdge **alledge, int *_totedge,
+                            MLoop **allloop, MPoly **allpoly,
+                            int *_totloop, int *_totpoly)
 {
 	DispList *dl;
 	Curve *cu;
@@ -1316,7 +1323,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 				for (b=1; b<dl->nr; b++) {
 					medge->v1= startvert+ofs+b-1;
 					medge->v2= startvert+ofs+b;
-					medge->flag = ME_LOOSEEDGE|ME_EDGERENDER;
+					medge->flag = ME_LOOSEEDGE | ME_EDGERENDER | ME_EDGEDRAW;
 
 					medge++;
 				}
@@ -1341,7 +1348,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 						medge->v1= startvert+ofs+b;
 						if (b==dl->nr-1) medge->v2= startvert+ofs;
 						else medge->v2= startvert+ofs+b+1;
-						medge->flag = ME_LOOSEEDGE|ME_EDGERENDER;
+						medge->flag = ME_LOOSEEDGE | ME_EDGERENDER | ME_EDGEDRAW;
 						medge++;
 					}
 				}
@@ -1466,7 +1473,7 @@ void nurbs_to_mesh(Object *ob)
 	cu= ob->data;
 
 	if (dm == NULL) {
-		if (nurbs_to_mdata (ob, &allvert, &totvert, &alledge, &totedge, &allloop, &allpoly, &totloop, &totpoly) != 0) {
+		if (nurbs_to_mdata(ob, &allvert, &totvert, &alledge, &totedge, &allloop, &allpoly, &totloop, &totpoly) != 0) {
 			/* Error initializing */
 			return;
 		}
@@ -2054,8 +2061,11 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 
 	/*build edge hash*/
 	me = mesh->medge;
-	for (i=0; i<mesh->totedge; i++, me++) {
+	for (i = 0; i < mesh->totedge; i++, me++) {
 		BLI_edgehash_insert(eh, me->v1, me->v2, SET_INT_IN_POINTER(i));
+
+		/* unrelated but avoid having the FGON flag enabled, so we can reuse it later for something else */
+		me->flag &= ~ME_FGON;
 	}
 
 	j = 0; /*current loop index*/
@@ -2070,7 +2080,7 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 		mp->mat_nr = mf->mat_nr;
 		mp->flag = mf->flag;
 		
-		#define ML(v1, v2) {ml->v = mf->v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); ml++; j++;}
+#		define ML(v1, v2) {ml->v = mf->v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); ml++; j++;}
 		
 		ML(v1, v2);
 		ML(v2, v3);
@@ -2082,7 +2092,7 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 			ML(v3, v1);
 		}
 		
-		#undef ML
+#		undef ML
 
 		bm_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
 	}
@@ -3031,7 +3041,7 @@ int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
 }
 
 /* update the hide flag for edges and faces from the corresponding
-   flag in verts */
+ * flag in verts */
 void mesh_flush_hidden_from_verts(const MVert *mvert,
 								  const MLoop *mloop,
 								  MEdge *medge, int totedge,

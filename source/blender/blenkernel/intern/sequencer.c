@@ -1352,7 +1352,8 @@ static void seq_proxy_build_frame(SeqRenderData context,
 	IMB_freeImBuf(ibuf);
 }
 
-struct SeqIndexBuildContext *seq_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq){
+struct SeqIndexBuildContext *seq_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq)
+{
 	SeqIndexBuildContext *context;
 	Sequence *nseq;
 
@@ -2191,7 +2192,7 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 	ibuf = seq_stripelem_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
 
 	/* currently, we cache preprocessed images in SEQ_STRIPELEM_IBUF,
-	* but not(!) on SEQ_STRIPELEM_IBUF_ENDSTILL and ..._STARTSTILL */
+	 * but not(!) on SEQ_STRIPELEM_IBUF_ENDSTILL and ..._STARTSTILL */
 	if (ibuf)
 		use_preprocess = FALSE;
 
@@ -2684,10 +2685,10 @@ static void seq_start_threads(Scene *scene)
 	seq_last_given_monoton_cfra = monoton_cfra = 0;
 
 	/* since global structures are modified during the processing
-	   of one frame, only one render thread is currently possible... 
-
-	   (but we code, in the hope, that we can remove this restriction
-	   soon...)
+	 * of one frame, only one render thread is currently possible...
+	 *
+	 * (but we code, in the hope, that we can remove this restriction
+	 * soon...)
 	 */
 
 	fprintf(stderr, "SEQ-THREAD: seq_start_threads\n");
@@ -2941,7 +2942,7 @@ void free_imbuf_seq(Scene *scene, ListBase *seqbase, int check_mem_usage,
 		}
 		if (seq->type == SEQ_SCENE) {
 			/* FIXME: recurs downwards, 
-			   but do recurs protection somehow! */
+			 * but do recurs protection somehow! */
 		}
 	}
 	
@@ -3066,10 +3067,10 @@ void seq_tx_set_final_right(Sequence *seq, int val)
  * since they work a bit differently to normal image seq's (during transform) */
 int seq_single_check(Sequence *seq)
 {
-	return (seq->len == 1 && (
-	            seq->type == SEQ_IMAGE
-	            || ((seq->type & SEQ_EFFECT) &&
-	                get_sequence_effect_num_inputs(seq->type) == 0)));
+	return ((seq->len == 1) &&
+	        (seq->type == SEQ_IMAGE ||
+	         ((seq->type & SEQ_EFFECT) &&
+	          get_sequence_effect_num_inputs(seq->type) == 0)));
 }
 
 /* check if the selected seq's reference unselected seq's */
@@ -3393,7 +3394,7 @@ static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, i
 	int seqmute;
 
 	/* for sound we go over full meta tree to update muted state,
-	*  since sound is played outside of evaluating the imbufs, */
+	 * since sound is played outside of evaluating the imbufs, */
 	for (seq = seqbasep->first; seq; seq = seq->next) {
 		seqmute = (mute || (seq->flag & SEQ_MUTE));
 
@@ -3778,7 +3779,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	sound = sound_new_file(CTX_data_main(C), seq_load->path); /* handles relative paths */
 
 	if (sound == NULL || sound->playback_handle == NULL) {
-		//if(op)
+		//if (op)
 		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return NULL;
 	}
@@ -3787,7 +3788,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(bmain, sound);
-		//if(op)
+		//if (op)
 		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return NULL;
 	}

@@ -135,7 +135,7 @@ static void partialvis_update_mesh(Object *ob,
 }
 
 /* Hide or show elements in multires grids with a special GridFlags
-   customdata layer. */
+ * customdata layer. */
 static void partialvis_update_grids(Object *ob,
                                     PBVH *pbvh,
                                     PBVHNode *node,
@@ -176,7 +176,7 @@ static void partialvis_update_grids(Object *ob,
 		}
 		else if (action == PARTIALVIS_SHOW && area == PARTIALVIS_ALL) {
 			/* special case if we're showing all, just free the
-			   grid */
+			 * grid */
 			MEM_freeN(gh);
 			grid_hidden[g] = NULL;
 			any_changed = 1;
@@ -206,7 +206,7 @@ static void partialvis_update_grids(Object *ob,
 		}
 
 		/* if everything in the grid is now visible, free the grid
-		   flags */
+		 * flags */
 		if (!any_hidden) {
 			MEM_freeN(gh);
 			grid_hidden[g] = NULL;
@@ -245,9 +245,9 @@ static void clip_planes_from_rect(bContext *C,
 }
 
 /* If mode is inside, get all PBVH nodes that lie at least partially
-   inside the clip_planes volume. If mode is outside, get all nodes
-   that lie at least partially outside the volume. If showing all, get
-   all nodes. */
+ * inside the clip_planes volume. If mode is outside, get all nodes
+ * that lie at least partially outside the volume. If showing all, get
+ * all nodes. */
 static void get_pbvh_nodes(PBVH *pbvh,
                            PBVHNode ***nodes,
                            int *totnode,
@@ -328,7 +328,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 	sculpt_undo_push_end();
 
 	/* ensure that edges and faces get hidden as well (not used by
-	   sculpt but it looks wrong when entering editmode otherwise) */
+	 * sculpt but it looks wrong when entering editmode otherwise) */
 	if (pbvh_type == PBVH_FACES) {
 		mesh_flush_hidden_from_verts(me->mvert, me->mloop,
 		                             me->medge, me->totedge,

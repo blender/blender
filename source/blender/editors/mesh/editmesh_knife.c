@@ -205,7 +205,7 @@ static void knife_input_ray_cast(KnifeTool_OpData *kcd, const int mval_i[2],
 
 static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 {
-	#define HEADER_LENGTH 170
+	#define HEADER_LENGTH 180
 	char header[HEADER_LENGTH];
 
 	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
@@ -895,10 +895,10 @@ static void knife_init_colors(KnifeColors *colors)
 	UI_GetThemeColor3ubv(TH_NURB_ULINE, colors->edge);
 	UI_GetThemeColor3ubv(TH_HANDLE_SEL_VECT, colors->curpoint);
 	UI_GetThemeColor3ubv(TH_HANDLE_SEL_VECT, colors->curpoint_a);
-	colors->curpoint_a[3] = 0.4;
+	colors->curpoint_a[3] = 102;
 	UI_GetThemeColor3ubv(TH_ACTIVE_SPLINE, colors->point);
 	UI_GetThemeColor3ubv(TH_ACTIVE_SPLINE, colors->point_a);
-	colors->point_a[3] = 0.4;
+	colors->point_a[3] = 102;
 }
 
 /* modal loop selection drawing callback */

@@ -206,8 +206,7 @@ static int handle_request(RenderData *rd, char * req)
 
 	*p = 0;
 
-	if (strcmp(path, "/index.html") == 0
-		|| strcmp(path, "/") == 0) {
+	if (strcmp(path, "/index.html") == 0 || strcmp(path, "/") == 0) {
 		safe_puts(index_page);
 		return -1;
 	}

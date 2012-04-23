@@ -78,7 +78,7 @@ MINLINE void linearrgb_to_srgb_uchar4(unsigned char srgb[4], const float linear[
 	F4TOCHAR4(srgb_f, srgb);
 }
 
-/* predivide versions to work on associated/premultipled alpha. if this should
+/* predivide versions to work on associated/pre-multipled alpha. if this should
  * be done or not depends on the background the image will be composited over,
  * ideally you would never do color space conversion on an image with alpha
  * because it is ill defined */

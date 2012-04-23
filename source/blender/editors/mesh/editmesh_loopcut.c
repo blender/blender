@@ -211,7 +211,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 		eed = BMW_begin(&walker, startedge);
 		for ( ; eed; eed = BMW_step(&walker)) {
-			BM_elem_select_set(em->bm, eed, TRUE);
+			BM_edge_select_set(em->bm, eed, TRUE);
 		}
 		BMW_end(&walker);
 
@@ -313,10 +313,11 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		edgering_sel(lcd, cuts, 1);
 		
 		if (lcd->do_cut) {
-			BM_mesh_esubdivideflag(lcd->ob, em->bm, BM_ELEM_SELECT, 0.0f,
-			                       0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT,
-			                       SUBD_PATH, 0, FALSE, 0);
-			
+			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
+			                   0.0f, 0.0f,
+			                   cuts,
+			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, FALSE, 0);
+
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {
 				if (em->selectmode == SCE_SELECT_FACE)

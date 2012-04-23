@@ -789,15 +789,15 @@ static float UNUSED_FUNCTION(BME_bevel_get_angle_vert)(BMVert *v)
 
 
 	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-		BM_loop_face_normal(l, n_tmp);
-		madd_v3_v3fl(n, n_tmp, BM_loop_face_angle(l));
+		BM_loop_calc_face_normal(l, n_tmp);
+		madd_v3_v3fl(n, n_tmp, BM_loop_calc_face_angle(l));
 	}
 	normalize_v3(n);
 
 	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
 		/* could cache from before */
-		BM_loop_face_normal(l, n_tmp);
-		angle_diff += angle_normalized_v3v3(n, n_tmp) * (BM_loop_face_angle(l) * (float)(M_PI * 0.5));
+		BM_loop_calc_face_normal(l, n_tmp);
+		angle_diff += angle_normalized_v3v3(n, n_tmp) * (BM_loop_calc_face_angle(l) * (float)(M_PI * 0.5));
 	}
 
 	return angle_diff;

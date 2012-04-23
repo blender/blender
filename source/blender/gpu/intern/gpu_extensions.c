@@ -59,7 +59,7 @@
 
 /* extensions used:
  * - texture border clamp: 1.3 core
- * - fragement shader: 2.0 core
+ * - fragment shader: 2.0 core
  * - framebuffer object: ext specification
  * - multitexture 1.3 core
  * - arb non power of two: 2.0 core

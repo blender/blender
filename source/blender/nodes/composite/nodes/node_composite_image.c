@@ -461,6 +461,8 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 		else {
 			CompBuf *stackbuf = node_composit_get_image(rd, ima, iuser);
 			if (stackbuf) {
+				int num_outputs = BLI_countlist(&node->outputs);
+				
 				/*respect image premul option*/
 				if (stackbuf->type==CB_RGBA && ima->flag & IMA_DO_PREMUL) {
 					int i;
@@ -483,15 +485,16 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 					}
 				}
 			
-				/* put image on stack */	
-				out[0]->data= stackbuf;
+				/* put image on stack */
+				if (num_outputs > 0)
+					out[0]->data= stackbuf;
 				
 				/* alpha output */
-				if (out[1]->hasoutput)
+				if (num_outputs > 1 && out[1]->hasoutput)
 					out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
 				
 				/* Z output */
-				if (out[2]->hasoutput)
+				if (num_outputs > 2 && out[2]->hasoutput)
 					out[2]->data= node_composit_get_zimage(node, rd);
 				
 				/* preview */

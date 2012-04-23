@@ -1,4 +1,4 @@
-LCGDIR = '#../lib/windows'
+LCGDIR = '#../lib/mingw32'
 LIBDIR = "${LCGDIR}"
 
 BF_PYTHON = LIBDIR + '/python'
@@ -48,7 +48,7 @@ BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 
 WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
-BF_OPENEXR = LIBDIR + '/gcc/openexr'
+BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = 'Half IlmImf Imath IlmThread Iex'
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
@@ -64,13 +64,13 @@ BF_JPEG_LIB = 'liblibjpeg'
 BF_JPEG_LIBPATH = '${BF_JPEG}/lib'
 
 WITH_BF_PNG = True
-BF_PNG = LIBDIR + '/gcc/png'
+BF_PNG = LIBDIR + '/png'
 BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'png'
 BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
 WITH_BF_TIFF = True
-BF_TIFF = LIBDIR + '/gcc/tiff'
+BF_TIFF = LIBDIR + '/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
 BF_TIFF_LIB = 'tiff'
 BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
@@ -83,7 +83,7 @@ BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = True
 
-BF_GETTEXT = LIBDIR + '/gcc/gettext'
+BF_GETTEXT = LIBDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
@@ -95,7 +95,7 @@ BF_OPENJPEG_INC = '${BF_OPENJPEG}'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
 
 WITH_BF_FFTW3 = True
-BF_FFTW3 = LIBDIR + '/gcc/fftw3'
+BF_FFTW3 = LIBDIR + '/fftw3'
 BF_FFTW3_INC = '${BF_FFTW3}/include'
 BF_FFTW3_LIB = 'fftw3'
 BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
@@ -112,7 +112,7 @@ BF_BULLET_LIB = 'extern_bullet'
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
-BF_FREETYPE = LIBDIR + '/gcc/freetype'
+BF_FREETYPE = LIBDIR + '/freetype'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
@@ -145,7 +145,7 @@ BF_COLLADA = '#source/blender/collada'
 BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
 
-BF_OPENCOLLADA = LIBDIR + '/gcc/opencollada'
+BF_OPENCOLLADA = LIBDIR + '/opencollada'
 BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
 BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
@@ -154,7 +154,7 @@ BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 WITH_BF_CYCLES = True 
 
 WITH_BF_OIIO = True
-BF_OIIO = LIBDIR + '/gcc/openimageio'
+BF_OIIO = LIBDIR + '/openimageio'
 BF_OIIO_INC = BF_OIIO + '/include'
 BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIBPATH = BF_OIIO + '/lib'
@@ -163,7 +163,7 @@ WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
 BF_BOOST_INC = BF_BOOST + '/include'
 BF_BOOST_LIB = 'boost_date_time-mgw46-mt-s-1_47 boost_filesystem-mgw46-mt-s-1_47 boost_regex-mgw46-mt-s-1_47 boost_system-mgw46-mt-s-1_47 boost_thread-mgw46-mt-s-1_47'
-BF_BOOST_LIBPATH = BF_BOOST + '/lib/gcc'
+BF_BOOST_LIBPATH = BF_BOOST + '/lib'
 
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True

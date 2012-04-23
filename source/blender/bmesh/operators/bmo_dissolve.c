@@ -294,7 +294,7 @@ static int test_extra_verts(BMesh *bm, BMVert *v)
 	BMEdge *e;
 	int found;
 
-	/* test faces around verts for verts that would be wronly killed
+	/* test faces around verts for verts that would be wrongly killed
 	 * by dissolve faces. */
 	f = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v);
 	for ( ; f; f = BM_iter_step(&iter)) {
@@ -449,7 +449,8 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 						BM_edge_kill(bm, fe);
 					}
 				}
-				/* else if (f->len == 3) {
+#if 0
+				else if (f->len == 3) {
 					BMEdge *ed[3];
 					BMVert *vt[3];
 					BMLoop *lp[3];
@@ -465,7 +466,7 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 					if (vt[0] == vt[1] || vt[0] == vt[2]) {
 						i += 1;
 					}
-				 */
+#endif
 			}
 		}
 		if (oldlen == len) break;
@@ -485,10 +486,10 @@ void dummy_exec(BMesh *bm, BMOperator *op)
  * convert angles [0-PI/2] -> [0-1], multiply together, then convert back to radians. */
 float bm_vert_edge_face_angle(BMVert *v)
 {
-	const float angle = BM_vert_edge_angle(v);
+	const float angle = BM_vert_calc_edge_angle(v);
 	/* note: could be either edge, it doesn't matter */
 	if (v->e && BM_edge_is_manifold(v->e)) {
-		return ((angle * ANGLE_TO_UNIT) * (BM_edge_face_angle(v->e) * ANGLE_TO_UNIT)) * UNIT_TO_ANGLE;
+		return ((angle * ANGLE_TO_UNIT) * (BM_edge_calc_face_angle(v->e) * ANGLE_TO_UNIT)) * UNIT_TO_ANGLE;
 	}
 	else {
 		return angle;
@@ -527,7 +528,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	/* go through and split edge */
 	for (i = 0, tot_found = 0; i < einput->len; i++) {
 		BMEdge *e = ((BMEdge **)einput->data.p)[i];
-		const float angle = BM_edge_face_angle(e);
+		const float angle = BM_edge_calc_face_angle(e);
 
 		if (angle < angle_limit) {
 			tot_found++;
@@ -545,7 +546,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 			if (/* may have become non-manifold */
 			    BM_edge_is_manifold(e) &&
 			    /* check twice because cumulative effect could dissolve over angle limit */
-			    (BM_edge_face_angle(e) < angle_limit))
+			    (BM_edge_calc_face_angle(e) < angle_limit))
 			{
 				BMFace *nf = BM_faces_join_pair(bm, e->l->f,
 				                                e->l->radial_next->f,

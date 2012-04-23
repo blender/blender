@@ -52,7 +52,7 @@ typedef struct KeyBlock {
 	short relative;    /* relative == 0 means first key is reference, otherwise the index of Key->blocks */
 	short flag;
 
-	int totelem;       /* total number if items in the keyblock (compare with mesh/curve verts to chech we match) */
+	int totelem;       /* total number if items in the keyblock (compare with mesh/curve verts to check we match) */
 	int uid;           /* for meshes only, match the unique number with the customdata layer */
 	
 	void  *data;       /* array of shape key values, size is (Key->elemsize * KeyBlock->totelem) */

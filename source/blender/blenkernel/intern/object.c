@@ -2631,9 +2631,11 @@ void object_handle_update(Scene *scene, Object *ob)
 					if (psys_check_enabled(ob, psys)) {
 						/* check use of dupli objects here */
 						if (psys->part && (psys->part->draw_as == PART_DRAW_REND || G.rendering) &&
-							((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob)
-							|| (psys->part->ren_as == PART_DRAW_GR && psys->part->dup_group)))
+						    ((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob) ||
+						     (psys->part->ren_as == PART_DRAW_GR && psys->part->dup_group)))
+						{
 							ob->transflag |= OB_DUPLIPARTS;
+						}
 
 						particle_system_update(scene, ob, psys);
 						psys= psys->next;
@@ -2664,9 +2666,11 @@ void object_handle_update(Scene *scene, Object *ob)
 			BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
 
 			for (pid=pidlist.first; pid; pid=pid->next) {
-				if ((pid->cache->flag & PTCACHE_BAKED)
-					|| (pid->cache->flag & PTCACHE_QUICK_CACHE)==0)
+				if ((pid->cache->flag & PTCACHE_BAKED) ||
+				    (pid->cache->flag & PTCACHE_QUICK_CACHE) == 0)
+				{
 					continue;
+				}
 
 				if (pid->cache->flag & PTCACHE_OUTDATED || (pid->cache->flag & PTCACHE_SIMULATION_VALID)==0) {
 					scene->physics_settings.quick_cache_step =

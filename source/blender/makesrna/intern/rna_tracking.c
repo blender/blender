@@ -168,8 +168,8 @@ void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(track->name, value, sizeof(track->name));
 
 	/* TODO: it's a bit difficult to find list track came from knowing just
-	         movie clip ID and MovieTracking structure, so keep this naive
-			 search for a while */
+	 *       movie clip ID and MovieTracking structure, so keep this naive
+	 *       search for a while */
 	if (BLI_findindex(tracksbase, track) < 0) {
 		MovieTrackingObject *object = tracking->objects.first;
 

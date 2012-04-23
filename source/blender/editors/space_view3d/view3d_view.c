@@ -1744,7 +1744,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* redraw to hide any menus/popups, we don't go back to
-	* the window manager until after this operator exits */
+	 * the window manager until after this operator exits */
 	WM_redraw_windows(C);
 
 	rv3d = CTX_wm_region_view3d(C);
@@ -1826,7 +1826,7 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 
 /* ************************************** */
 
-void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, float vec[3])
+static void UNUSED_FUNCTION(view3d_align_axis_to_vector)(View3D *v3d, RegionView3D *rv3d, int axisidx, float vec[3])
 {
 	float alignaxis[3] = {0.0, 0.0, 0.0};
 	float norm[3], axis[3], angle, new_quat[4];
@@ -1871,6 +1871,8 @@ float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3])
 
 /* view matrix properties utilities */
 
+/* unused */
+#if 0
 void ED_view3d_operator_properties_viewmat(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -1907,3 +1909,4 @@ void ED_view3d_operator_properties_viewmat_get(wmOperator *op, int *winx, int *w
 
 	RNA_float_get_array(op->ptr, "perspective_matrix", (float *)persmat);
 }
+#endif

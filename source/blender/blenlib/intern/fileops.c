@@ -222,7 +222,7 @@ gzFile BLI_gzopen(const char *filename, const char *mode)
 		int i = 0;
 
 		/* xxx Creates file before transcribing the path */
-		if(mode[0] == 'w')
+		if (mode[0] == 'w')
 			fclose(ufopen(filename,"a"));
 
 		UTF16_ENCODE(filename);

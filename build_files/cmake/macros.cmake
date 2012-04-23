@@ -212,11 +212,9 @@ macro(setup_liblinks
 	target_link_libraries(${target}
 			${OPENGL_gl_LIBRARY}
 			${OPENGL_glu_LIBRARY}
-			${JPEG_LIBRARIES}
 			${PNG_LIBRARIES}
 			${ZLIB_LIBRARIES}
-			${FREETYPE_LIBRARY}
-			${PLATFORM_LINKLIBS})
+			${FREETYPE_LIBRARY})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
 	if(WITH_PYTHON)  # AND NOT WITH_PYTHON_MODULE  # WIN32 needs
@@ -271,6 +269,7 @@ macro(setup_liblinks
 	if(WITH_BOOST)
 		target_link_libraries(${target} ${BOOST_LIBRARIES})
 	endif()
+	target_link_libraries(${target} ${JPEG_LIBRARIES})
 	if(WITH_IMAGE_OPENEXR)
 		if(WIN32 AND NOT UNIX AND NOT CMAKE_COMPILER_IS_GNUCC)
 			file_list_suffix(OPENEXR_LIBRARIES_DEBUG "${OPENEXR_LIBRARIES}" "_d")
@@ -328,6 +327,8 @@ macro(setup_liblinks
 	if(WIN32 AND NOT UNIX)
 		target_link_libraries(${target} ${PTHREADS_LIBRARIES})
 	endif()
+
+	target_link_libraries(${target} ${PLATFORM_LINKLIBS})
 endmacro()
 
 macro(TEST_SSE_SUPPORT

@@ -142,7 +142,7 @@ static float squared_distance(const float v2[3], const float v1[3], float *UNUSE
 
 	dist = dot_v3v3(d, d);
 
-	//if(n1 && n2 && (dot_v3v3(n1, n2) < 0.0f))
+	//if (n1 && n2 && (dot_v3v3(n1, n2) < 0.0f))
 
 	/* can someone explain why this is done?*/
 	if (n2 && (dot_v3v3(d, n2) < 0.0f)) {

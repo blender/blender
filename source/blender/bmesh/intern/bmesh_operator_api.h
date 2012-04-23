@@ -242,7 +242,7 @@ int BMO_op_callf(BMesh *bm, const char *fmt, ...);
 int BMO_op_initf(BMesh *bm, BMOperator *op, const char *fmt, ...);
 
 /* va_list version, used to implement the above two functions,
- * plus EDBM_op_callf in bmeshutils.c. */
+ * plus EDBM_op_callf in editmesh_utils.c. */
 int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *fmt, va_list vlist);
 
 /* test whether a named slot exists */
@@ -413,8 +413,7 @@ void *BMO_iter_map_value_p(BMOIter *iter);
 float BMO_iter_map_value_f(BMOIter *iter);
 
 #define BMO_ITER(ele, iter, bm, op, slotname, restrict)   \
-	ele = BMO_iter_new(iter, bm, op, slotname, restrict); \
-	for ( ; ele; ele = BMO_iter_step(iter))
+	for (ele = BMO_iter_new(iter, bm, op, slotname, restrict); ele; ele = BMO_iter_step(iter))
 
 /******************* Inlined Functions********************/
 typedef void (*opexec)(BMesh *bm, BMOperator *op);

@@ -118,7 +118,7 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* check if any faces are getting their own corners merged
-	   together, split face if so */
+	 * together, split face if so */
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		remdoubles_splitface(f, bm, op);
 	}
@@ -157,7 +157,7 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 	bm->elem_index_dirty |= BM_FACE;
 
 	/* faces get "modified" by creating new faces here, then at the
-	   end the old faces are deleted */
+	 * end the old faces are deleted */
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		if (!BMO_elem_flag_test(bm, f, FACE_MARK))
 			continue;

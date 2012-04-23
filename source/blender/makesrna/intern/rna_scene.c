@@ -1780,7 +1780,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	                         "Instead of per-brush strength, the strength is shared across brushes");
 
 	/* unified paint settings that override the equivalent settings
-	   from the active brush */
+	 * from the active brush */
 	prop = RNA_def_property(srna, "size", PROP_INT, PROP_DISTANCE);
 	RNA_def_property_int_funcs(prop, NULL, "rna_UnifiedPaintSettings_size_set", NULL);
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS*10);

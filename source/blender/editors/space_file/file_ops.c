@@ -191,7 +191,7 @@ static FileSelect file_select_do(bContext* C, int selected_idx)
 				retval = FILE_SELECT_DIR;
 			}
 		}
-		else  {
+		else {
 			if (file->relname) {
 				BLI_strncpy(params->file, file->relname, FILE_MAXFILE);
 			}

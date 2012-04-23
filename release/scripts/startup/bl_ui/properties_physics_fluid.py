@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Panel, Menu
 
+
 class FLUID_MT_presets(Menu):
     bl_label = "Fluid Presets"
     preset_subdir = "fluid"
@@ -54,11 +55,11 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
             return
 
         col.prop(fluid, "type")
-        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID'}:
+        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID', 'OBSTACLE'}:
             col.prop(fluid, "use")
 
         layout = layout.column()
-        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID'}:
+        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID', 'OBSTACLE'}:
             layout.active = fluid.use
 
         if fluid.type == 'DOMAIN':
@@ -232,7 +233,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
         sub.menu("FLUID_MT_presets", text=bpy.types.FLUID_MT_presets.bl_label)
         sub.operator("fluid.preset_add", text="", icon='ZOOMIN')
         sub.operator("fluid.preset_add", text="", icon='ZOOMOUT').remove_active = True
-        
+
         subsub = col.column(align=True)
         subsub.prop(fluid, "viscosity_base", text="Base")
         subsub.prop(fluid, "viscosity_exponent", text="Exponent", slider=True)

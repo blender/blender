@@ -263,7 +263,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		/* this is necessary for selection counts to work properly */
 		if (medge->flag & SELECT) {
-			BM_elem_select_set(bm, e, TRUE);
+			BM_edge_select_set(bm, e, TRUE);
 		}
 
 		/* Copy Custom Data */
@@ -329,7 +329,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		/* this is necessary for selection counts to work properly */
 		if (mpoly->flag & ME_FACE_SEL) {
-			BM_elem_select_set(bm, f, TRUE);
+			BM_face_select_set(bm, f, TRUE);
 		}
 
 		f->mat_nr = mpoly->mat_nr;
@@ -824,7 +824,10 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 					/* in most cases this runs */
 					copy_v3_v3(fp, CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j));
 				}
-				else if (oldkey) {
+				else if (oldkey &&
+				         (keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX)) &&
+				         (*keyi != ORIGINDEX_NONE && *keyi < currkey->totelem))
+				{
 					/* old method of reconstructing keys via vertice's original key indices,
 					 * currently used if the new method above fails (which is theoretically
 					 * possible in certain cases of undo) */

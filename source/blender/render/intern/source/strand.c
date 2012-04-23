@@ -976,10 +976,16 @@ StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm,
 	totvert= dm->getNumVerts(dm);
 	totface= dm->getNumTessFaces(dm);
 
-	for (mesh=re->strandsurface.first; mesh; mesh=mesh->next)
-		if (mesh->obr.ob == obr->ob && mesh->obr.par == obr->par
-			&& mesh->obr.index == obr->index && mesh->totvert==totvert && mesh->totface==totface)
+	for (mesh = re->strandsurface.first; mesh; mesh = mesh->next) {
+		if ((mesh->obr.ob    == obr->ob) &&
+		    (mesh->obr.par   == obr->par) &&
+		    (mesh->obr.index == obr->index) &&
+		    (mesh->totvert   == totvert) &&
+		    (mesh->totface   == totface))
+		{
 			break;
+		}
+	}
 
 	if (!mesh) {
 		mesh= MEM_callocN(sizeof(StrandSurface), "StrandSurface");

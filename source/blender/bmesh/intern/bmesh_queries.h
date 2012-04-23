@@ -27,8 +27,6 @@
  *  \ingroup bmesh
  */
 
-int     BM_mesh_elem_count(BMesh *bm, const char htype);
-
 int     BM_vert_in_face(BMFace *f, BMVert *v);
 int     BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len);
 
@@ -37,7 +35,7 @@ int     BM_edge_in_face(BMFace *f, BMEdge *e);
 int     BM_vert_in_edge(BMEdge *e, BMVert *v);
 int     BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e);
 
-float   BM_edge_length_calc(BMEdge *e);
+float   BM_edge_calc_length(BMEdge *e);
 int     BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb);
 int     BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb);
 BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v);
@@ -58,15 +56,15 @@ int     BM_vert_is_manifold(BMVert *v);
 int     BM_edge_is_manifold(BMEdge *e);
 int     BM_edge_is_boundary(BMEdge *e);
 
-float   BM_loop_face_angle(BMLoop *l);
-void    BM_loop_face_normal(BMLoop *l, float r_normal[3]);
-void    BM_loop_face_tangent(BMLoop *l, float r_tangent[3]);
+float   BM_loop_calc_face_angle(BMLoop *l);
+void    BM_loop_calc_face_normal(BMLoop *l, float r_normal[3]);
+void    BM_loop_calc_face_tangent(BMLoop *l, float r_tangent[3]);
 
-float   BM_edge_face_angle(BMEdge *e);
-void    BM_edge_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3]);
+float   BM_edge_calc_face_angle(BMEdge *e);
+void    BM_edge_calc_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3]);
 
-float   BM_vert_edge_angle(BMVert *v);
-float   BM_vert_shell_factor(BMVert *v);
+float   BM_vert_calc_edge_angle(BMVert *v);
+float   BM_vert_calc_shell_factor(BMVert *v);
 
 BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2);
 
