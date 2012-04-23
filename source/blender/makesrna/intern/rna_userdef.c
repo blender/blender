@@ -2896,7 +2896,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr_RS@latin"},
 		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
 		{30, "TURKISH", 0, "Turkish (Türkçe)", "tr_TR"},
-/*		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},*/ /* XXX No po's yet. */
+		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
 		{ 0, NULL, 0, NULL, NULL}};
 
 #ifdef WITH_CYCLES
