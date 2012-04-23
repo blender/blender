@@ -433,9 +433,13 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		int vout_len;
 
 		BM_vert_select_set(bm, v, FALSE);
-		bmesh_vert_separate(bm, v, &vout, &vout_len);
 
-		if (vout_len < 2) {
+		if (bmesh_vert_separate(bm, v, &vout, &vout_len) == FALSE) {
+			BKE_report(op->reports, RPT_ERROR, "Error ripping vertex from faces");
+			return OPERATOR_CANCELLED;
+		}
+		else if (vout_len < 2) {
+			MEM_freeN(vout);
 			/* set selection back to avoid active-unselected vertex */
 			BM_vert_select_set(bm, v, TRUE);
 			/* should never happen */
