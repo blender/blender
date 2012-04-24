@@ -120,7 +120,9 @@ extern int safe_vsnprintf(char *str, size_t size,
 #define DEFAULT_TEMPLATE_ROOTDIR  ".."
 
 // ----------------------------------- SYSTEM/PROCESS
+#ifndef __MINGW64__
 typedef int pid_t;
+#endif
 #define getpid  _getpid
 
 // ----------------------------------- THREADS

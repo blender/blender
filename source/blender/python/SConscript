@@ -9,7 +9,7 @@ incs += ' ../imbuf ../blenloader ../bmesh ../gpu ../render/extern/include ../win
 incs += ' #intern/guardedalloc #intern/memutil #extern/glew/include #intern/cycles/blender'
 incs += ' #intern/audaspace/intern ' + env['BF_PYTHON_INC']
 
-is_debug = (env['OURPLATFORM'] in ('win32-mingw', 'win32-vc','win64-vc') and env['BF_DEBUG'])
+is_debug = (env['OURPLATFORM'] in ('win32-mingw', 'win32-vc','win64-vc', 'win64-mingw') and env['BF_DEBUG'])
 
 # bmesh
 defs = []
@@ -56,7 +56,7 @@ if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC']
     
-if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
 sources = env.Glob('intern/*.c')

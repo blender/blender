@@ -617,7 +617,7 @@ def buildslave(target=None, source=None, env=None):
     Builder for buildbot integration. Used by buildslaves of http://builder.blender.org only.
     """
 
-    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw', 'darwin'):
+    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw', 'darwin', 'win64-mingw'):
         extension = '.zip'
     else:
         extension = '.tar.bz2'
@@ -662,7 +662,7 @@ def NSIS_print(target, source, env):
 def NSIS_Installer(target=None, source=None, env=None):
     print "="*35
 
-    if env['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc'):
+    if env['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'win64-mingw'):
         print "NSIS installer is only available on Windows."
         Exit()
     if env['OURPLATFORM'] == 'win32-vc':

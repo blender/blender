@@ -11,7 +11,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
     defs += ' WIN32 NDEBUG _WINDOWS'
     #cflags += ['/MT', '/W3', '/GX', '/O2', '/Op']
     cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6', '/O3', '/EHcs']
-elif env['OURPLATFORM'] in ('win32-mingw', 'linuxcross'):
+elif env['OURPLATFORM'] in ('win32-mingw', 'linuxcross', 'win64-mingw'):
     defs += ' NDEBUG'
     cflags += ['-O2']
 elif env['OURPLATFORM'] in ('linux', 'freebsd4', 'freebsd5'):

@@ -194,12 +194,7 @@ option(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 option(WITH_IMAGE_FRAMESERVER   "Enable image FrameServer Support for rendering" ON)
 
 # Audio/Video format support
-if(MINGW)
-	set(PLATFORM_DEFAULT ON)
-else()
-	set(PLATFORM_DEFAULT OFF)
-endif()
-option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" ${PLATFORM_DEFAULT})
+option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
 unset(PLATFORM_DEFAULT)
 
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
@@ -373,8 +368,8 @@ if(MINGW)
 		                    "line if youre a developer who wants to add support.")
 	endif()
 	
-	if((WITH_MINGW64) AND (WITH_OPENCOLLADA OR WITH_LIBMV OR WITH_CODEC_FFMPEG))
-		message(FATAL_ERROR "MINGW64 still doesn't support: WITH_OPENCOLLADA/WITH_LIBMV/WITH_CODEC_FFMPEG")
+	if((WITH_MINGW64) AND (WITH_OPENCOLLADA OR WITH_CODEC_FFMPEG))
+		message(FATAL_ERROR "MINGW64 still doesn't support: WITH_OPENCOLLADA/WITH_CODEC_FFMPEG")
 	endif()
 endif()
 
@@ -1015,7 +1010,7 @@ elseif(WIN32)
 			#Yes, the point for MinGW64 is moar optimization by default :)
 			set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -mmmx -msse -msse2 -O3")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
-			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -lsetupapi -lpthread")
+			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -lpthread")
 			
 			add_definitions(-DFREE_WINDOWS64 -DMS_WIN64)
 		endif()

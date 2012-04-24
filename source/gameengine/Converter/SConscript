@@ -26,7 +26,7 @@ incs += ' #extern/Eigen3'
 incs += ' ' + env['BF_BULLET_INC']
 
 if env['BF_DEBUG']:
-    if env['OURPLATFORM'] in ('win32-mingw', 'win32-vc', 'win64-vc'):
+    if env['OURPLATFORM'] in ('win32-mingw', 'win32-vc', 'win64-vc', 'win64-mingw'):
         defs.append('_DEBUG')
         
 if env['WITH_BF_PYTHON']:

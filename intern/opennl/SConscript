@@ -5,7 +5,7 @@ sources = env.Glob('intern/*.c') + env.Glob('superlu/*.c')
 
 incs = 'extern superlu ../../extern/colamd/Include'
 
-if (env['OURPLATFORM'] == 'win32-mingw'):
+if (env['OURPLATFORM'] in ('win32-mingw', 'win64-mingw')):
     env.BlenderLib ('bf_intern_opennl', sources, Split(incs), [], libtype=['core','intern'], priority=[1,80] )
 else:
     env.BlenderLib ('bf_intern_opennl', sources, Split(incs), [], libtype=['core'], priority=[55] )

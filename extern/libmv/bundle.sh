@@ -248,7 +248,7 @@ incs = '. ../Eigen3'
 incs += ' ' + env['BF_PNG_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 
-if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog'
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
         incs += ' ./third_party/msinttypes'
