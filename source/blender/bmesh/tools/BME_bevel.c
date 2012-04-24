@@ -785,28 +785,32 @@ static float BME_bevel_get_angle(BMEdge *e, BMVert *v)
 	return dot_v3v3(vec3, vec4);
 }
 
-static float UNUSED_FUNCTION(BME_bevel_get_angle_vert)(BMVert *v)
+static float BME_bevel_get_angle_vert(BMVert *v)
 {
 	BMIter iter;
 	BMLoop *l;
 	float n[3];
 	float n_tmp[3];
 	float angle_diff = 0.0f;
+	float tot_angle = 0.0f;
 
 
 	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+		const float angle = BM_loop_calc_face_angle(l);
+		tot_angle += angle;
 		BM_loop_calc_face_normal(l, n_tmp);
-		madd_v3_v3fl(n, n_tmp, BM_loop_calc_face_angle(l));
+		madd_v3_v3fl(n, n_tmp, angle);
 	}
 	normalize_v3(n);
 
 	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
 		/* could cache from before */
 		BM_loop_calc_face_normal(l, n_tmp);
-		angle_diff += angle_normalized_v3v3(n, n_tmp) * (BM_loop_calc_face_angle(l) * (float)(M_PI * 0.5));
+		angle_diff += angle_normalized_v3v3(n, n_tmp) * BM_loop_calc_face_angle(l);
 	}
 
-	return angle_diff;
+	/* return cosf(angle_diff + 0.001f); */ /* compare with dot product */
+	return (angle_diff / tot_angle) * (M_PI / 2);
 }
 
 static void BME_bevel_add_vweight(BME_TransData_Head *td, BMesh *bm, BMVert *v, float weight, float factor, int options)
@@ -851,8 +855,7 @@ static void bevel_init_verts(BMesh *bm, int options, float angle, BME_TransData_
 	BMVert *v;
 	BMIter iter;
 	float weight;
-//	const float threshold = (options & BME_BEVEL_ANGLE) ? cosf(angle + 0.001) : 0.0f;
-	(void)angle;
+	/* const float threshold = (options & BME_BEVEL_ANGLE) ? cosf(angle + 0.001) : 0.0f; */ /* UNUSED */
 
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		weight = 0.0f;
@@ -867,14 +870,12 @@ static void bevel_init_verts(BMesh *bm, int options, float angle, BME_TransData_
 			else if (options & BME_BEVEL_WEIGHT) {
 				weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
 			}
-#if 0 // not working well
 			else if (options & BME_BEVEL_ANGLE) {
 				/* dont set weight_v1/weight_v2 here, add direct */
-				if (BME_bevel_get_angle_vert(bm, v) < threshold) {
+				if (BME_bevel_get_angle_vert(v) > angle) {
 					weight = 1.0f;
 				}
 			}
-#endif
 			else {
 				weight = 1.0f;
 			}
