@@ -360,8 +360,7 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 
 	is_edge = BME_bevel_get_vec(vec1, v, v1, td); /* get the vector we will be projecting onto */
 	BME_bevel_get_vec(vec2, v, v2, td); /* get the vector we will be projecting parallel to */
-	len = len_v3(vec1);
-	normalize_v3(vec1);
+	len = normalize_v3(vec1);
 
 	vtd = BME_get_transdata(td, sv);
 	vtd1 = BME_get_transdata(td, v);
@@ -399,8 +398,7 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 	}
 	madd_v3_v3v3fl(sv->co, v->co, vec1, dis);
 	sub_v3_v3v3(vec1, sv->co, vtd1->org);
-	dis = len_v3(vec1);
-	normalize_v3(vec1);
+	dis = normalize_v3(vec1);
 	BME_assign_transdata(td, bm, sv, vtd1->org, vtd1->org, vec1, sv->co, dis, scale, maxfactor, vtd->max);
 
 	return sv;
