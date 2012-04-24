@@ -578,51 +578,43 @@ __device_inline float average(const float4& a)
 
 __device_inline float4 operator-(const float4& a)
 {
-	float4 r = {-a.x, -a.y, -a.z, -a.w};
-	return r;
+	return make_float4(-a.x, -a.y, -a.z, -a.w);
 }
 
 __device_inline float4 operator*(const float4& a, const float4& b)
 {
-	float4 r = {a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w};
-	return r;
+	return make_float4(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w);
 }
 
 __device_inline float4 operator*(const float4& a, float f)
 {
-	float4 r = {a.x*f, a.y*f, a.z*f, a.w*f};
-	return r;
+	return make_float4(a.x*f, a.y*f, a.z*f, a.w*f);
 }
 
 __device_inline float4 operator*(float f, const float4& a)
 {
-	float4 r = {a.x*f, a.y*f, a.z*f, a.w*f};
-	return r;
+	return make_float4(a.x*f, a.y*f, a.z*f, a.w*f);
 }
 
 __device_inline float4 operator/(const float4& a, float f)
 {
 	float invf = 1.0f/f;
-	float4 r = {a.x*invf, a.y*invf, a.z*invf, a.w*invf};
-	return r;
+	return make_float4(a.x*invf, a.y*invf, a.z*invf, a.w*invf);
 }
 
 __device_inline float4 operator/(const float4& a, const float4& b)
 {
-	float4 r = {a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w};
-	return r;
+	return make_float4(a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w);
 }
 
 __device_inline float4 operator+(const float4& a, const float4& b)
 {
-	float4 r = {a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w};
-	return r;
+	return make_float4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);
 }
 
 __device_inline float4 operator-(const float4& a, const float4& b)
 {
-	float4 r = {a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w};
-	return r;
+	return make_float4(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w);
 }
 
 __device_inline float4 operator+=(float4& a, const float4& b)
@@ -653,6 +645,21 @@ __device_inline float4 operator/=(float4& a, float f)
 	return a;
 }
 
+__device_inline int4 operator<(const float4& a, const float4& b)
+{
+	return make_int4(a.x < b.x, a.y < b.y, a.z < b.z, a.w < b.w);
+}
+
+__device_inline int4 operator<=(const float4& a, const float4& b)
+{
+	return make_int4(a.x <= b.x, a.y <= b.y, a.z <= b.z, a.w <= b.w);
+}
+
+__device_inline bool operator==(const float4 a, const float4 b)
+{
+	return (a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w);
+}
+
 __device_inline float dot(const float4& a, const float4& b)
 {
 	return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
@@ -660,8 +667,7 @@ __device_inline float dot(const float4& a, const float4& b)
 
 __device_inline float4 cross(const float4& a, const float4& b)
 {
-	float4 r = {a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x, 0.0f};
-	return r;
+	return make_float4(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x, 0.0f);
 }
 
 __device_inline float4 min(float4 a, float4 b)
@@ -672,6 +678,31 @@ __device_inline float4 min(float4 a, float4 b)
 __device_inline float4 max(float4 a, float4 b)
 {
 	return make_float4(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z), max(a.w, b.w));
+}
+
+__device_inline float4 select(const int4& mask, const float4& a, const float4& b)
+{
+	return make_float4((mask.x)? a.x: b.x, (mask.y)? a.y: b.y, (mask.z)? a.z: b.z, (mask.w)? a.w: b.w);
+}
+
+__device_inline float4 reduce_min(const float4& a)
+{
+	return make_float4(min(min(a.x, a.y), min(a.z, a.w)));
+}
+
+__device_inline float4 reduce_max(const float4& a)
+{
+	return make_float4(max(max(a.x, a.y), max(a.z, a.w)));
+}
+
+__device_inline float4 reduce_add(const float4& a)
+{
+	return make_float4((a.x + a.y) + (a.z + a.w));
+}
+
+__device_inline float3 rcp(const float3& a)
+{
+	return make_float3(1.0f/a.x, 1.0f/a.y, 1.0f/a.z);
 }
 
 #endif
@@ -691,20 +722,17 @@ __device_inline void print_float4(const char *label, const float4& a)
 
 __device_inline int3 max(int3 a, int3 b)
 {
-	int3 r = {max(a.x, b.x), max(a.y, b.y), max(a.z, b.z)};
-	return r;
+	return make_int3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
 }
 
 __device_inline int3 clamp(const int3& a, int mn, int mx)
 {
-	int3 r = {clamp(a.x, mn, mx), clamp(a.y, mn, mx), clamp(a.z, mn, mx)};
-	return r;
+	return make_int3(clamp(a.x, mn, mx), clamp(a.y, mn, mx), clamp(a.z, mn, mx));
 }
 
 __device_inline int3 clamp(const int3& a, int3& mn, int mx)
 {
-	int3 r = {clamp(a.x, mn.x, mx), clamp(a.y, mn.y, mx), clamp(a.z, mn.z, mx)};
-	return r;
+	return make_int3(clamp(a.x, mn.x, mx), clamp(a.y, mn.y, mx), clamp(a.z, mn.z, mx));
 }
 
 #endif
@@ -730,6 +758,35 @@ __device_inline int4 operator>=(float4 a, float4 b)
 #endif
 
 #ifndef __KERNEL_GPU__
+
+__device_inline int4 operator+(const int4& a, const int4& b)
+{
+	return make_int4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);
+}
+
+__device_inline int4 operator+=(int4& a, const int4& b)
+{
+	a.x += b.x;
+	a.y += b.y;
+	a.z += b.z;
+	a.w += b.w;
+	return a;
+}
+
+__device_inline int4 operator>>(const int4& a, int i)
+{
+	return make_int4(a.x >> i, a.y >> i, a.z >> i, a.w >> i);
+}
+
+__device_inline int4 clamp(const int4& a, const int4& mn, const int4& mx)
+{
+	return make_int4(clamp(a.x, mn.x, mx.x), clamp(a.y, mn.y, mx.y), clamp(a.z, mn.z, mx.z), clamp(a.w, mn.w, mx.w));
+}
+
+__device_inline int4 select(const int4& mask, const int4& a, const int4& b)
+{
+	return make_int4((mask.x)? a.x: b.x, (mask.y)? a.y: b.y, (mask.z)? a.z: b.z, (mask.w)? a.w: b.w);
+}
 
 __device_inline void print_int4(const char *label, const int4& a)
 {
