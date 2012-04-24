@@ -1607,7 +1607,9 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator("mesh.select_all", text="Select Inverse").action = 'INVERT'
         layout.operator("mesh.flip_normals")
         layout.operator("mesh.vertices_smooth", text="Smooth")
+        layout.operator("mesh.inset")
         layout.operator("mesh.bevel", text="Bevel")
+        layout.operator("mesh.bridge_edge_loops")
         layout.operator("mesh.faces_shade_smooth")
         layout.operator("mesh.faces_shade_flat")
         layout.operator("mesh.blend_from_shape")
