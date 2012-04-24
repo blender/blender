@@ -996,7 +996,8 @@ static int uv_edge_tag_faces(BMEditMesh *em, UvMapVert *first1, UvMapVert *first
 	return 1;
 }
 
-static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit *hit, float limit[2], int extend)
+static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit *hit,
+                           float limit[2], const short extend)
 {
 	BMFace *efa;
 	BMIter iter, liter;
@@ -1914,7 +1915,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		}
 
 		/* de-selecting an edge may deselect a face too - validate */
-		if (ts->uv_flag & UV_SYNC_SELECTION) {
+		if (sync) {
 			if (select == FALSE) {
 				BM_select_history_validate(em->bm);
 			}
@@ -1997,19 +1998,32 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		}
 	}
 
-#if 0   /* BM_elem_select_set API handles all of this? */
-
 	if (sync) {
 		/* flush for mesh selection */
+
+		/* before bmesh */
+#if 0
 		if (ts->selectmode != SCE_SELECT_FACE) {
 			if (flush == 1) EDBM_select_flush(em);
 			else if (flush == -1) EDBM_deselect_flush(em);
 		}
-	}
 #else
-	(void)flush; /* flush is otherwise UNUSED */
-	(void)sync; /* sync is otherwise UNUSED */
+		if (flush != 0) {
+			if (loop) {
+				/* push vertex -> edge selection */
+				if (select) {
+					EDBM_select_flush(em);
+				}
+				else {
+					EDBM_deselect_flush(em);
+				}
+			}
+			else {
+				EDBM_selectmode_flush(em);
+			}
+		}
 #endif
+	}
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
