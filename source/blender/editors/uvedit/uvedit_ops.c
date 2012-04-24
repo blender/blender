@@ -3105,7 +3105,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	if (em->selectmode != SCE_SELECT_FACE)
 		EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX | SCE_SELECT_EDGE);
 	
-	EDBM_editselection_validate(em);
+	BM_select_history_validate(em->bm);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;

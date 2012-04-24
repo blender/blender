@@ -1049,10 +1049,10 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 				/* TODO: would be nice if the edge vertex chosen here
 				 * was the one closer to the selection pointer, instead
 				 * of arbitrarily selecting the first one */
-				EDBM_editselection_store(em, &eed->v1->head);
+				BM_select_history_store(em->bm, eed->v1);
 			}
 			else if (em->selectmode & SCE_SELECT_EDGE) {
-				EDBM_editselection_store(em, &eed->head);
+				BM_select_history_store(em->bm, eed);
 			}
 			/* TODO: would be nice if the nearest face that
 			 * belongs to the selected edge could be set to
@@ -1364,7 +1364,7 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 				e_act = (BMEdge *)ese->ele;
 				if (e_act != e) {
 					if (edgetag_shortest_path(vc.scene, em, e_act, e)) {
-						EDBM_editselection_remove(em, &e_act->head);
+						BM_select_history_remove(em->bm, e_act);
 						path = 1;
 					}
 				}
@@ -1379,9 +1379,9 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 
 		/* even if this is selected it may not be in the selection list */
 		if (edgetag_context_check(vc.scene, em, e) == 0)
-			EDBM_editselection_remove(em, &e->head);
+			BM_select_history_remove(em->bm, e);
 		else
-			EDBM_editselection_store(em, &e->head);
+			BM_select_history_store(em->bm, e);
 	
 		/* force drawmode for mesh */
 		switch (CTX_data_tool_settings(C)->edge_mode) {
@@ -1476,31 +1476,31 @@ int mouse_mesh(bContext *C, const int mval[2], short extend)
 			BM_active_face_set(vc.em->bm, efa);
 			
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-				EDBM_editselection_store(vc.em, &efa->head);
+				BM_select_history_store(vc.em->bm, efa);
 				BM_face_select_set(vc.em->bm, efa, TRUE);
 			}
 			else if (extend) {
-				EDBM_editselection_remove(vc.em, &efa->head);
+				BM_select_history_remove(vc.em->bm, efa);
 				BM_face_select_set(vc.em->bm, efa, FALSE);
 			}
 		}
 		else if (eed) {
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-				EDBM_editselection_store(vc.em, &eed->head);
+				BM_select_history_store(vc.em->bm, eed);
 				BM_edge_select_set(vc.em->bm, eed, TRUE);
 			}
 			else if (extend) {
-				EDBM_editselection_remove(vc.em, &eed->head);
+				BM_select_history_remove(vc.em->bm, eed);
 				BM_edge_select_set(vc.em->bm, eed, FALSE);
 			}
 		}
 		else if (eve) {
 			if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-				EDBM_editselection_store(vc.em, &eve->head);
+				BM_select_history_store(vc.em->bm, eve);
 				BM_vert_select_set(vc.em->bm, eve, TRUE);
 			}
 			else if (extend) {
-				EDBM_editselection_remove(vc.em, &eve->head);
+				BM_select_history_remove(vc.em->bm, eve);
 				BM_vert_select_set(vc.em->bm, eve, FALSE);
 			}
 		}

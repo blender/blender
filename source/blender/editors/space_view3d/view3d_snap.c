@@ -993,8 +993,8 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 			Mesh *me = obedit->data;
 			BMEditSelection ese;
 			
-			if (EDBM_editselection_active_get(me->edit_btmesh, &ese)) {
-				EDBM_editselection_center(curs, &ese);
+			if (BM_select_history_active_get(me->edit_btmesh->bm, &ese)) {
+				BM_editselection_center(&ese, curs);
 			}
 			
 			mul_m4_v3(obedit->obmat, curs);

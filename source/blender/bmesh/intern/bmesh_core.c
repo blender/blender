@@ -453,7 +453,7 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
 	bm->totvert--;
 	bm->elem_index_dirty |= BM_VERT;
 
-	BM_select_history_remove(bm, (BMElem *)v);
+	BM_select_history_remove(bm, v);
 	if (v->head.data)
 		CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
 

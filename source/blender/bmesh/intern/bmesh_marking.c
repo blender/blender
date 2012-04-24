@@ -566,7 +566,7 @@ BMFace *BM_active_face_get(BMesh *bm, int sloppy)
  * - #EM_editselection_normal
  * - #EM_editselection_plane
  */
-void BM_editselection_center(float r_center[3], BMEditSelection *ese)
+void BM_editselection_center(BMEditSelection *ese, float r_center[3])
 {
 	if (ese->htype == BM_VERT) {
 		BMVert *eve = (BMVert *)ese->ele;
@@ -583,7 +583,7 @@ void BM_editselection_center(float r_center[3], BMEditSelection *ese)
 	}
 }
 
-void BM_editselection_normal(float r_normal[3], BMEditSelection *ese)
+void BM_editselection_normal(BMEditSelection *ese, float r_normal[3])
 {
 	if (ese->htype == BM_VERT) {
 		BMVert *eve = (BMVert *)ese->ele;
@@ -617,14 +617,14 @@ void BM_editselection_normal(float r_normal[3], BMEditSelection *ese)
 /* Calculate a plane that is rightangles to the edge/vert/faces normal
  * also make the plane run along an axis that is related to the geometry,
  * because this is used for the manipulators Y axis. */
-void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese)
+void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 {
 	if (ese->htype == BM_VERT) {
 		BMVert *eve = (BMVert *)ese->ele;
 		float vec[3] = {0.0f, 0.0f, 0.0f};
 		
 		if (ese->prev) { /* use previously selected data to make a useful vertex plane */
-			BM_editselection_center(vec, ese->prev);
+			BM_editselection_center(ese->prev, vec);
 			sub_v3_v3v3(r_plane, vec, eve->co);
 		}
 		else {
@@ -674,7 +674,7 @@ void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese)
 		else {
 			BMVert *verts[4] = {NULL};
 
-			BM_iter_as_array(bm, BM_VERTS_OF_FACE, efa, (void **)verts, 4);
+			BM_iter_as_array(NULL, BM_VERTS_OF_FACE, efa, (void **)verts, 4);
 
 			if (efa->len == 4) {
 				float vecA[3], vecB[3];
@@ -713,12 +713,14 @@ void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese)
 	normalize_v3(r_plane);
 }
 
-int BM_select_history_check(BMesh *bm, const BMElem *ele)
+
+/* --- macro wrapped funcs --- */
+int _bm_select_history_check(BMesh *bm, const BMHeader *ele)
 {
 	BMEditSelection *ese;
 	
 	for (ese = bm->selected.first; ese; ese = ese->next) {
-		if (ese->ele == ele) {
+		if (ese->ele == (BMElem *)ele) {
 			return TRUE;
 		}
 	}
@@ -726,11 +728,11 @@ int BM_select_history_check(BMesh *bm, const BMElem *ele)
 	return FALSE;
 }
 
-int BM_select_history_remove(BMesh *bm, BMElem *ele)
+int _bm_select_history_remove(BMesh *bm, BMHeader *ele)
 {
 	BMEditSelection *ese;
 	for (ese = bm->selected.first; ese; ese = ese->next) {
-		if (ese->ele == ele) {
+		if (ese->ele == (BMElem *)ele) {
 			BLI_freelinkN(&(bm->selected), ese);
 			return TRUE;
 		}
@@ -739,26 +741,29 @@ int BM_select_history_remove(BMesh *bm, BMElem *ele)
 	return FALSE;
 }
 
+void _bm_select_history_store_notest(BMesh *bm, BMHeader *ele)
+{
+	BMEditSelection *ese = (BMEditSelection *) MEM_callocN(sizeof(BMEditSelection), "BMEdit Selection");
+	ese->htype = ele->htype;
+	ese->ele = (BMElem *)ele;
+	BLI_addtail(&(bm->selected), ese);
+}
+
+void _bm_select_history_store(BMesh *bm, BMHeader *ele)
+{
+	if (!BM_select_history_check(bm, (BMElem *)ele)) {
+		BM_select_history_store_notest(bm, (BMElem *)ele);
+	}
+}
+/* --- end macro wrapped funcs --- */
+
+
 void BM_select_history_clear(BMesh *bm)
 {
 	BLI_freelistN(&bm->selected);
 	bm->selected.first = bm->selected.last = NULL;
 }
 
-void BM_select_history_store_notest(BMesh *bm, BMElem *ele)
-{
-	BMEditSelection *ese = (BMEditSelection *) MEM_callocN(sizeof(BMEditSelection), "BMEdit Selection");
-	ese->htype = ((BMHeader *)ele)->htype;
-	ese->ele = ele;
-	BLI_addtail(&(bm->selected), ese);
-}
-
-void BM_select_history_store(BMesh *bm, BMElem *ele)
-{
-	if (!BM_select_history_check(bm, ele)) {
-		BM_select_history_store_notest(bm, ele);
-	}
-}
 
 void BM_select_history_validate(BMesh *bm)
 {
@@ -773,6 +778,41 @@ void BM_select_history_validate(BMesh *bm)
 		}
 		ese = nextese;
 	}
+}
+
+/* utility function */
+int BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
+{
+	BMEditSelection *ese_last = bm->selected.last;
+	BMFace *efa = BM_active_face_get(bm, FALSE);
+
+	ese->next = ese->prev = NULL;
+
+	if (ese_last) {
+		if (ese_last->htype == BM_FACE) { /* if there is an active face, use it over the last selected face */
+			if (efa) {
+				ese->ele = (BMElem *)efa;
+			}
+			else {
+				ese->ele = ese_last->ele;
+			}
+			ese->htype = BM_FACE;
+		}
+		else {
+			ese->ele =   ese_last->ele;
+			ese->htype = ese_last->htype;
+		}
+	}
+	else if (efa) { /* no */
+		ese->ele   = (BMElem *)efa;
+		ese->htype = BM_FACE;
+	}
+	else {
+		ese->ele = NULL;
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hflag,

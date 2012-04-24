@@ -1523,8 +1523,8 @@ void calculateCenter(TransInfo *t)
 				BMEditSelection ese;
 				BMEditMesh *em = BMEdit_FromObject(t->obedit);
 
-				if (EDBM_editselection_active_get(em, &ese)) {
-					EDBM_editselection_center(t->center, &ese);
+				if (BM_select_history_active_get(em->bm, &ese)) {
+					BM_editselection_center(&ese, t->center);
 					calculateCenter2D(t);
 					break;
 				}
