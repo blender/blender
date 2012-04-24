@@ -37,6 +37,7 @@ Object::Object()
 	tfm = transform_identity();
 	visibility = ~0;
 	pass_id = 0;
+	bounds = BoundBox::empty;
 }
 
 Object::~Object()
