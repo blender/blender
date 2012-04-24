@@ -1008,10 +1008,8 @@ elseif(WIN32)
 
 		if(WITH_MINGW64)
 			#Yes, the point for MinGW64 is moar optimization by default :)
-			set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -mmmx -msse -msse2")
-			set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
-			set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-			#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+			set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -mmmx -msse -msse2 -O3")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -lpthread")
 			
 			add_definitions(-DFREE_WINDOWS64 -DMS_WIN64)
