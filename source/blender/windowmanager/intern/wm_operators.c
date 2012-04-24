@@ -65,6 +65,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -806,6 +807,22 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		WM_event_add_fileselect(C, op);
 		return OPERATOR_RUNNING_MODAL;
 	}
+}
+
+int WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const char imtype)
+{
+	PropertyRNA *prop;
+	char filepath[FILE_MAX];
+	/* dont NULL check prop, this can only run on ops with a 'filepath' */
+	prop = RNA_struct_find_property(op->ptr, "filepath");
+	RNA_property_string_get(op->ptr, prop, filepath);
+	if (BKE_add_image_extension(filepath, imtype)) {
+		RNA_property_string_set(op->ptr, prop, filepath);
+		/* note, we could check for and update 'filename' here,
+		 * but so far nothing needs this. */
+		return TRUE;
+	}
+	return FALSE;
 }
 
 /* default properties for fileselect */

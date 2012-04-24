@@ -249,7 +249,7 @@ typedef struct ImageFormatData {
 	char depth;    /* bits per channel, R_IMF_CHAN_DEPTH_8 -> 32,
 	                * not a flag, only set 1 at a time */
 
-	char planes  ; /* - R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA */
+	char planes;   /* - R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA */
 	char flag;     /* generic options for all image types, alpha zbuffer */
 
 	char quality;  /* (0 - 100), eg: jpeg quality */
