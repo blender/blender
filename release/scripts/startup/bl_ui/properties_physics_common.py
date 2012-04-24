@@ -94,18 +94,25 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
     if cachetype in {'PSYS', 'HAIR', 'SMOKE'}:
         row.prop(cache, "use_external")
 
+        if cachetype == 'SMOKE':
+            row.prop(cache, "use_library_path", "Use Lib Path")
+
     if cache.use_external:
-        split = layout.split(percentage=0.80)
-        split.prop(cache, "name", text="File Name")
-        split.prop(cache, "index", text="")
+        split = layout.split(percentage=0.35)
+        col = split.column()
+        col.label(text="File Name:")
+        if cache.use_external:
+            col.label(text="File Path:")
 
-        row = layout.row()
-        row.label(text="File Path:")
-        row.prop(cache, "use_library_path", "Use Lib Path")
+        col = split.column()
+        sub = col.split(percentage=0.70, align=True)
+        sub.prop(cache, "name", text="")
+        sub.prop(cache, "index", text="")
+        col.prop(cache, "filepath", text="")
 
-        layout.prop(cache, "filepath", text="")
-
-        layout.label(text=cache.info)
+        cache_info = cache.info
+        if cache_info:
+            layout.label(text=cache_info)
     else:
         if cachetype in {'SMOKE', 'DYNAMIC_PAINT'}:
             if not bpy.data.is_saved:
@@ -117,6 +124,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         else:
             layout.prop(cache, "name", text="Cache Name")
 
+    if not cache.use_external or cachetype == 'SMOKE':
         row = layout.row(align=True)
 
         if cachetype not in {'PSYS', 'DYNAMIC_PAINT'}:
