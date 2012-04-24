@@ -33,7 +33,16 @@
 #include <cstring>
 #include <cstdlib>
 
-#define AUD_ALIGN(a) (a + 16 - ((long)a & 15))
+#if defined(_WIN64)
+#  ifdef __MINGW64__
+#    include <basetsd.h>
+#  endif
+typedef unsigned __int64 uint_ptr;
+#else
+typedef unsigned long uint_ptr;
+#endif
+
+#define AUD_ALIGN(a) (a + 16 - ((uint_ptr)a & 15))
 
 AUD_Buffer::AUD_Buffer(int size)
 {

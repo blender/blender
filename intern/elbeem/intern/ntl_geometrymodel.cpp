@@ -21,7 +21,14 @@
 #endif
 #endif // WIN32
 
-
+#if defined(_WIN64)
+#  ifdef __MINGW64__
+#    include <basetsd.h>
+#  endif
+typedef __int64 int_ptr;
+#else
+typedef long int_ptr;
+#endif
 /******************************************************************************
  * Default Constructor 
  *****************************************************************************/
@@ -164,7 +171,7 @@ int ntlGeometryObjModel::initModel(int numVertices, float *vertices, int numTria
 	}
 
 	//fprintf(stderr,"initModel DEBUG %d \n",channelSize);
-	debMsgStd("ntlGeometryObjModel::initModel",DM_MSG, "Csize:"<<channelSize<<", Cvert:"<<(long)(channelVertices) ,10);
+	debMsgStd("ntlGeometryObjModel::initModel",DM_MSG, "Csize:"<<channelSize<<", Cvert:"<<(int_ptr)(channelVertices) ,10);
 	if(channelVertices && (channelSize>0)) {
 		vector<ntlSetVec3f> aniverts;
 		vector<ntlSetVec3f> aninorms;

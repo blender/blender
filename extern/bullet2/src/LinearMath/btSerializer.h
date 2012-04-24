@@ -25,7 +25,14 @@ subject to the following restrictions:
 #endif
 #include <string.h>
 
-
+#if defined(_WIN64)
+#  ifdef __MINGW64__
+#    include <basetsd.h>
+#  endif
+typedef __int64 int_ptr;
+#else
+typedef long int_ptr;
+#endif
 
 ///only the 32bit versions for now
 extern unsigned char sBulletDNAstr[];
@@ -247,7 +254,7 @@ protected:
 				cp++;
 			}
 			{
-				nr= (long)cp;
+				nr= (int_ptr)cp;
 			//	long mask=3;
 				nr= ((nr+3)&~3)-nr;
 				while (nr--)
@@ -282,7 +289,7 @@ protected:
 			}
 
 		{
-				nr= (long)cp;
+				nr= (int_ptr)cp;
 			//	long mask=3;
 				nr= ((nr+3)&~3)-nr;
 				while (nr--)
