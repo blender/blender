@@ -763,8 +763,8 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		/* mode enabling buttons */
 		uiBlockBeginAlign(block);
 		/* Softbody not allowed in this situation, enforce! */
-		if ( ((md->type != eModifierType_Softbody && md->type != eModifierType_Collision) || !(ob->pd && ob->pd->deflect))
-		     && (md->type != eModifierType_Surface) )
+		if (((md->type != eModifierType_Softbody && md->type != eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) &&
+		     (md->type != eModifierType_Surface) )
 		{
 			uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);
 			uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NONE);

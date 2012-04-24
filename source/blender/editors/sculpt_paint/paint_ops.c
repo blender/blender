@@ -254,12 +254,18 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 	size_t tool_offset;
 
 	if (paint_mode == OB_MODE_ACTIVE) {
-		/* select current paint mode */
-		paint_mode = CTX_data_active_object(C)->mode &
-		             (OB_MODE_SCULPT |
-		              OB_MODE_VERTEX_PAINT |
-		              OB_MODE_WEIGHT_PAINT |
-		              OB_MODE_TEXTURE_PAINT);
+		Object *ob = CTX_data_active_object(C);
+		if (ob) {
+			/* select current paint mode */
+			paint_mode = ob->mode &
+			             (OB_MODE_SCULPT |
+			              OB_MODE_VERTEX_PAINT |
+			              OB_MODE_WEIGHT_PAINT |
+			              OB_MODE_TEXTURE_PAINT);
+		}
+		else {
+			return OPERATOR_CANCELLED;
+		}
 	}
 
 	switch (paint_mode) {

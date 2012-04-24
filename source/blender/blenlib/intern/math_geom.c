@@ -1126,10 +1126,10 @@ int isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3]
 	//return isect_line_tri_v3(p1,p2,v0,v1,v2,lambda);
 
 	///* first a simple bounding box test */
-	//if(MIN3(v0[a1],v1[a1],v2[a1]) > p1[a1]) return 0;
-	//if(MIN3(v0[a2],v1[a2],v2[a2]) > p1[a2]) return 0;
-	//if(MAX3(v0[a1],v1[a1],v2[a1]) < p1[a1]) return 0;
-	//if(MAX3(v0[a2],v1[a2],v2[a2]) < p1[a2]) return 0;
+	//if (MIN3(v0[a1],v1[a1],v2[a1]) > p1[a1]) return 0;
+	//if (MIN3(v0[a2],v1[a2],v2[a2]) > p1[a2]) return 0;
+	//if (MAX3(v0[a1],v1[a1],v2[a1]) < p1[a1]) return 0;
+	//if (MAX3(v0[a2],v1[a2],v2[a2]) < p1[a2]) return 0;
 
 	///* then a full intersection test */
 
@@ -2973,8 +2973,8 @@ static float ff_quad_form_factor(float *p, float *n, float *q0, float *q1, float
 static __m128 sse_approx_acos(__m128 x)
 {
 	/* needs a better approximation than taylor expansion of acos, since that
-	* gives big erros for near 1.0 values, sqrt(2 * x) * acos(1 - x) should work
-	* better, see http://www.tom.womack.net/projects/sse-fast-arctrig.html */
+	 * gives big erros for near 1.0 values, sqrt(2 * x) * acos(1 - x) should work
+	 * better, see http://www.tom.womack.net/projects/sse-fast-arctrig.html */
 
 	return _mm_set_ps1(1.0f);
 }

@@ -322,7 +322,7 @@ static void rna_ConstraintActuator_spring_set(struct PointerRNA *ptr, float valu
 	*fp = value;
 }
 /* ConstraintActuator uses the same property for Material and Property.
-   Therefore we need to clear the property when "use_material_detect" mode changes */
+ * Therefore we need to clear the property when "use_material_detect" mode changes */
 static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act = (bActuator*)ptr->data;
@@ -1453,19 +1453,19 @@ static void rna_def_scene_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* XXX no need for those tooltips. to remove soon
-	Originally we had different 'scene' tooltips for different values of 'type'.
-	They were:
-	ACT_SCENE_RESTART	""
-	ACT_SCENE_CAMERA	""
-	ACT_SCENE_SET		"Set this Scene"
-	ACT_SCENE_ADD_FRONT	"Add an Overlay Scene"
-	ACT_SCENE_ADD_BACK	"Add a Background Scene"
-	ACT_SCENE_REMOVE	"Remove a Scene"
-	ACT_SCENE_SUSPEND	"Pause a Scene"
-	ACT_SCENE_RESUME	"Unpause a Scene"
-
-	It can be done in the ui script if still needed.
-	*/
+	 * Originally we had different 'scene' tooltips for different values of 'type'.
+	 * They were:
+	 * ACT_SCENE_RESTART	""
+	 * ACT_SCENE_CAMERA	""
+	 * ACT_SCENE_SET		"Set this Scene"
+	 * ACT_SCENE_ADD_FRONT	"Add an Overlay Scene"
+	 * ACT_SCENE_ADD_BACK	"Add a Background Scene"
+	 * ACT_SCENE_REMOVE	"Remove a Scene"
+	 * ACT_SCENE_SUSPEND	"Pause a Scene"
+	 * ACT_SCENE_RESUME	"Unpause a Scene"
+	 *
+	 * It can be done in the ui script if still needed.
+	 */
 	
 }
 

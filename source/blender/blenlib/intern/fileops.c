@@ -43,16 +43,16 @@
 
 #ifdef WIN32
 #include <io.h>
-#include "BLI_winstuff.h"
-#include "BLI_callbacks.h"
-#include "utf_winfunc.h"
-#include "utfconv.h"
+#  include "BLI_winstuff.h"
+#  include "BLI_callbacks.h"
+#  include "utf_winfunc.h"
+#  include "utfconv.h"
 #else
-#include <unistd.h> // for read close
-#include <sys/param.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <sys/stat.h>
+#  include <unistd.h> // for read close
+#  include <sys/param.h>
+#  include <dirent.h>
+#  include <unistd.h>
+#  include <sys/stat.h>
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -209,7 +209,7 @@ FILE *BLI_fopen(const char *filename, const char *mode)
 	return ufopen(filename, mode);
 }
 
-gzFile BLI_gzopen(const char *filename, const char *mode)
+void *BLI_gzopen(const char *filename, const char *mode)
 {
 	gzFile gzfile;
 
@@ -222,7 +222,7 @@ gzFile BLI_gzopen(const char *filename, const char *mode)
 		int i = 0;
 
 		/* xxx Creates file before transcribing the path */
-		if(mode[0] == 'w')
+		if (mode[0] == 'w')
 			fclose(ufopen(filename,"a"));
 
 		UTF16_ENCODE(filename);

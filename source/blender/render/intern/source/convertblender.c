@@ -1782,9 +1782,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			hasize = ma->hasize;
 
+			/* XXX 'tpsys' is alwyas NULL, this code won't run! */
 			/* get orco */
-			if (tpsys && part->phystype==PART_PHYS_NO) {
-				tpa=tpsys->particles+pa->num;
+			if (tpsys && part->phystype == PART_PHYS_NO) {
+				tpa = tpsys->particles + pa->num;
 				psys_particle_on_emitter(psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,sd.orco,0);
 			}
 			else
@@ -2483,7 +2484,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 		ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
 		normalize_v3(ver->n);
-		//if(ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
+		//if (ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
 		
 		if (need_orco) {
 			ver->orco= orco;
@@ -4061,7 +4062,7 @@ static void set_phong_threshold(ObjectRen *obr)
 	
 	/* Added check for 'pointy' situations, only dotproducts of 0.9 and larger 
 	 * are taken into account. This threshold is meant to work on smooth geometry, not
-	 / for extreme cases (ton) */
+	 * for extreme cases (ton) */
 	
 	for (i=0; i<obr->totvlak; i++) {
 		vlr= RE_findOrAddVlak(obr, i);
@@ -4304,8 +4305,8 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (obr->totvert || obr->totvlak || obr->tothalo || obr->totstrand) {
 		/* the exception below is because displace code now is in init_render_mesh call, 
-		I will look at means to have autosmooth enabled for all object types 
-		and have it as general postprocess, like displace */
+		 * I will look at means to have autosmooth enabled for all object types
+		 * and have it as general postprocess, like displace */
 		if (ob->type!=OB_MESH && test_for_displace(re, ob))
 			do_displacement(re, obr, NULL, NULL);
 	
@@ -4675,9 +4676,7 @@ void RE_Database_Free(Render *re)
 
 	/* free orco */
 	free_mesh_orco_hash(re);
-#if 0	/* radio can be redone better */
-	end_radio_render();
-#endif
+
 	end_render_materials(re->main);
 	end_render_textures(re);
 	
@@ -4792,8 +4791,8 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 
 		if (enable) {
 			/* this is to make sure we get render level duplis in groups:
-			* the derivedmesh must be created before init_render_mesh,
-			* since object_duplilist does dupliparticles before that */
+			 * the derivedmesh must be created before init_render_mesh,
+			 * since object_duplilist does dupliparticles before that */
 			dm = mesh_create_derived_render(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 			dm->release(dm);
 
@@ -4868,7 +4867,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	 * empty in a dupli group. We could scan all render material/lamp/world
 	 * mtex's for mapto objects but its easier just to set the
 	 * 'imat' / 'imat_ren' on all and unlikely to be a performance hit
-	* See bug: [#28744] - campbell */
+	 * See bug: [#28744] - campbell */
 	for (ob= re->main->object.first; ob; ob= ob->id.next) {
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
 		mult_m4_m4m4(mat, re->viewmat, ob->obmat);
@@ -5462,8 +5461,8 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	
 	/* (bad) HACK calculate average velocity */
 	/* better solution would be fixing getVelocityAt() in intern/elbeem/intern/solver_util.cpp
-	so that also small drops/little water volumes return a velocity != 0. 
-	But I had no luck in fixing that function - DG */
+	 * so that also small drops/little water volumes return a velocity != 0.
+	 * But I had no luck in fixing that function - DG */
 	for (a=0; a<obr->totvert; a++) {
 		for (j=0;j<3;j++) avgvel[j] += velarray[a].vel[j];
 		
@@ -5516,7 +5515,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		// set both to the same value
 		speed[0]= speed[2]= zco[0];
 		speed[1]= speed[3]= zco[1];
-		//if(a<20) fprintf(stderr,"speed %d %f,%f | camco %f,%f,%f | hoco %f,%f,%f,%f\n", a, speed[0], speed[1], camco[0],camco[1], camco[2], hoco[0],hoco[1], hoco[2],hoco[3]); // NT DEBUG
+		//if (a < 20) fprintf(stderr,"speed %d %f,%f | camco %f,%f,%f | hoco %f,%f,%f,%f\n", a, speed[0], speed[1], camco[0],camco[1], camco[2], hoco[0],hoco[1], hoco[2],hoco[3]); // NT DEBUG
 	}
 
 	return 1;

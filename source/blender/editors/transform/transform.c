@@ -539,7 +539,7 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
 	
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap) return NULL;
+	if (keymap && keymap->modal_items) return NULL;
 	
 	keymap= WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
 	
@@ -2516,6 +2516,8 @@ int Shear(TransInfo *t, const int UNUSED(mval[2]))
 		sprintf(str, "Shear: %.3f %s", value, t->proptext);
 	}
 	
+	t->values[0] = value;
+
 	unit_m3(smat);
 	
 	// Custom data signals shear direction
@@ -3616,6 +3618,7 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		sprintf(str, "Shrink/Fatten: %.4f %s", distance, t->proptext);
 	}
 
+	t->values[0] = distance;
 
 	for (i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
@@ -3820,6 +3823,8 @@ int PushPull(TransInfo *t, const int UNUSED(mval[2]))
 		/* default header print */
 		sprintf(str, "Push/Pull: %.4f%s %s", distance, t->con.text, t->proptext);
 	}
+
+	t->values[0] = distance;
 
 	if (t->con.applyRot && t->con.mode & CON_APPLY) {
 		t->con.applyRot(t, NULL, axis, NULL);
@@ -4308,12 +4313,12 @@ int BoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 }
 
 /* ********************  Edge Slide   *************** */
-static BMEdge *get_other_edge(BMesh *bm, BMVert *v, BMEdge *e)
+static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
 {
 	BMIter iter;
 	BMEdge *e2;
 
-	BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, v) {
+	BM_ITER_ELEM (e2, &iter, v, BM_EDGES_OF_VERT) {
 		if (BM_elem_flag_test(e2, BM_ELEM_SELECT) && e2 != e)
 			return e2;
 	}
@@ -4321,7 +4326,7 @@ static BMEdge *get_other_edge(BMesh *bm, BMVert *v, BMEdge *e)
 	return NULL;
 }
 
-static BMLoop *get_next_loop(BMesh *UNUSED(bm), BMVert *v, BMLoop *l, 
+static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
                              BMEdge *olde, BMEdge *nexte, float vec[3])
 {
 	BMLoop *firstl;
@@ -4414,10 +4419,10 @@ static int createSlideVerts(TransInfo *t)
 	BLI_smallhash_init(&table);
 	
 	/*ensure valid selection*/
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 			numsel = 0;
-			BM_ITER(e, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER_ELEM (e, &iter2, v, BM_EDGES_OF_VERT) {
 				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 					/* BMESH_TODO: this is probably very evil,
 					 * set v->e to a selected edge*/
@@ -4435,9 +4440,9 @@ static int createSlideVerts(TransInfo *t)
 		}
 	}
 
-	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			if (BM_edge_face_count(e) != 2) {
+			if (!BM_edge_is_manifold(e)) {
 				MEM_freeN(sld);
 				BMBVH_FreeBVH(btree);
 				return 0; /* can only handle exactly 2 faces around each edge */
@@ -4446,7 +4451,7 @@ static int createSlideVerts(TransInfo *t)
 	}
 
 	j = 0;
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 			BM_elem_flag_enable(v, BM_ELEM_TAG);
 			BLI_smallhash_insert(&table, (uintptr_t)v, SET_INT_IN_POINTER(j));
@@ -4468,7 +4473,7 @@ static int createSlideVerts(TransInfo *t)
 	j = 0;
 	while (1) {
 		v = NULL;
-		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG))
 				break;
 
@@ -4488,7 +4493,7 @@ static int createSlideVerts(TransInfo *t)
 		/*first, rewind*/
 		numsel = 0;
 		do {
-			e = get_other_edge(bm, v, e);
+			e = get_other_edge(v, e);
 			if (!e) {
 				e = v->e;
 				break;
@@ -4541,7 +4546,7 @@ static int createSlideVerts(TransInfo *t)
 			v2=v, v = BM_edge_other_vert(e, v);
 
 			e1 = e;
-			e = get_other_edge(bm, v, e);
+			e = get_other_edge(v, e);
 			if (!e) {
 				//v2=v, v = BM_edge_other_vert(l1->e, v);
 
@@ -4566,8 +4571,8 @@ static int createSlideVerts(TransInfo *t)
 				break;
 			}
 
-			l1 = get_next_loop(bm, v, l1, e1, e, vec);
-			l2 = l2 ? get_next_loop(bm, v, l2, e1, e, vec2) : NULL;
+			l1 = get_next_loop(v, l1, e1, e, vec);
+			l2 = l2 ? get_next_loop(v, l2, e1, e, vec2) : NULL;
 
 			j += 1;
 
@@ -4586,7 +4591,7 @@ static int createSlideVerts(TransInfo *t)
 	/* size = 50.0; */ /* UNUSED */
 	zero_v3(lastvec); zero_v3(dir);
 	/* ee = le = NULL; */ /* UNUSED */
-	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			BMIter iter2;
 			BMEdge *e2;
@@ -4597,7 +4602,7 @@ static int createSlideVerts(TransInfo *t)
 			dis2 = -1.0f;
 			for (i=0; i<2; i++) {
 				v = i?e->v1:e->v2;
-				BM_ITER(e2, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
+				BM_ITER_ELEM (e2, &iter2, v, BM_EDGES_OF_VERT) {
 					if (BM_elem_flag_test(e2, BM_ELEM_SELECT))
 						continue;
 					
@@ -4634,7 +4639,7 @@ static int createSlideVerts(TransInfo *t)
 		}
 	}
 
-	bmesh_edit_begin(em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
+	bmesh_edit_begin(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/*create copies of faces for customdata projection*/
 	tempsv = sld->sv;
@@ -4643,17 +4648,17 @@ static int createSlideVerts(TransInfo *t)
 		BMFace *f;
 		BMLoop *l;
 		
-		BM_ITER(f, &fiter, em->bm, BM_FACES_OF_VERT, tempsv->v) {
+		BM_ITER_ELEM (f, &fiter, tempsv->v, BM_FACES_OF_VERT) {
 			
 			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
-				BMFace *copyf = BM_face_copy(em->bm, f, TRUE, TRUE);
+				BMFace *copyf = BM_face_copy(bm, f, TRUE, TRUE);
 				
-				BM_elem_select_set(em->bm, copyf, FALSE);
+				BM_face_select_set(bm, copyf, FALSE);
 				BM_elem_flag_enable(copyf, BM_ELEM_HIDDEN);
-				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, copyf) {
-					BM_elem_select_set(em->bm, l->v, FALSE);
+				BM_ITER_ELEM (l, &liter, copyf, BM_LOOPS_OF_FACE) {
+					BM_vert_select_set(bm, l->v, FALSE);
 					BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
-					BM_elem_select_set(em->bm, l->e, FALSE);
+					BM_edge_select_set(bm, l->e, FALSE);
 					BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
 				}
 
@@ -4697,15 +4702,17 @@ void projectSVData(TransInfo *t, int final)
 	BMEditMesh *em = sld->em;
 	SmallHash visit;
 	int i;
-	
+
 	if (!em)
 		return;
 	
-	/* BMESH_TODO, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)
-	 * currently all vertex data is interpolated which is nice mostly
-	 * except for shape keys where you don't want to modify UVs for eg.
-	 * current BMesh code doesnt make it easy to pick which data we interpolate
-	 * - campbell */
+	if (!(t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
+		return;
+
+	/* don't do this at all for non-basis shape keys, too easy to
+	 * accidentally break uv maps or vertex colors then */
+	if (em->bm->shapenr > 1)
+		return;
 
 	BLI_smallhash_init(&visit);
 	
@@ -4713,18 +4720,18 @@ void projectSVData(TransInfo *t, int final)
 		BMIter fiter;
 		BMFace *f;
 		
-		BM_ITER(f, &fiter, em->bm, BM_FACES_OF_VERT, tempsv->v) {
+		BM_ITER_ELEM (f, &fiter, tempsv->v, BM_FACES_OF_VERT) {
 			BMIter liter2;
 			BMFace *copyf, *copyf2;
 			BMLoop *l2;
-			int sel, hide /*, do_vdata */ /* UNUSED */;
+			int sel, hide;
 			
 			if (BLI_smallhash_haskey(&visit, (uintptr_t)f))
 				continue;
 			
 			BLI_smallhash_insert(&visit, (uintptr_t)f, NULL);
 			
-			/*the face attributes of the copied face will get
+			/* the face attributes of the copied face will get
 			 * copied over, so its necessary to save the selection
 			 * and hidden state*/
 			sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
@@ -4732,15 +4739,12 @@ void projectSVData(TransInfo *t, int final)
 			
 			copyf2 = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
 			
-			/*project onto copied projection face*/
-			BM_ITER(l2, &liter2, em->bm, BM_LOOPS_OF_FACE, f) {
+			/* project onto copied projection face */
+			BM_ITER_ELEM (l2, &liter2, f, BM_LOOPS_OF_FACE) {
 				copyf = copyf2;
-				/* do_vdata = l2->v==tempsv->v; */ /* UNUSED */
 				
 				if (BM_elem_flag_test(l2->e, BM_ELEM_SELECT) || BM_elem_flag_test(l2->prev->e, BM_ELEM_SELECT)) {
 					BMLoop *l3 = l2;
-					
-					/* do_vdata = 1; */ /* UNUSED */
 					
 					if (!BM_elem_flag_test(l2->e, BM_ELEM_SELECT))
 						l3 = l3->prev;
@@ -4755,10 +4759,9 @@ void projectSVData(TransInfo *t, int final)
 						continue;  /* shouldn't happen, but protection */
 				}
 				
-				/* do not run interpolation of all layers for now because it's not actually what you'll always expect
-				 * and layers like shapekeys shouldn't be interpolated from here because oherwise they'll
-				 * propagate to basis keys and will propagate twice to related keys (sergey) */
-				// BM_loop_interp_from_face(em->bm, l2, copyf, do_vdata, FALSE);
+				/* only loop data, no vertex data since that contains shape keys,
+				 * and we do not want to mess up other shape keys */
+				BM_loop_interp_from_face(em->bm, l2, copyf, FALSE, FALSE);
 
 				if (final) {
 					BM_loop_interp_multires(em->bm, l2, copyf);	
@@ -4772,7 +4775,7 @@ void projectSVData(TransInfo *t, int final)
 			BM_elem_attrs_copy(em->bm, em->bm, copyf2, f);
 			
 			/* restore selection and hidden flags */
-			BM_elem_select_set(em->bm, f, sel);
+			BM_face_select_set(em->bm, f, sel);
 			if (!hide) { /* this check is a workaround for bug, see note - [#30735], without this edge can be hidden and selected */
 				BM_elem_hide_set(em->bm, f, hide);
 			}
@@ -4893,10 +4896,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 		}
 	}
 	
-	/* BMESH_TODO: simply not all layers should be interpolated from there
-	 * but it's quite complicated to set this up with current API.
-	 * details are in comments in projectSVData function */
-	// projectSVData(t, 0);
+	projectSVData(t, 0);
 	
 	return 1;
 }
@@ -4927,6 +4927,8 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	CLAMP(final, -1.0f, 1.0f);
+
+	t->values[0] = final;
 
 	/*do stuff here*/
 	if (t->customData)

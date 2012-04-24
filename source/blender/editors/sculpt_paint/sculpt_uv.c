@@ -84,7 +84,7 @@ typedef struct UvEdge {
 	unsigned int uv2;
 	/* general use flag (Used to check if edge is boundary here, and propagates to adjacency elements) */
 	char flag;
-}UvEdge;
+} UvEdge;
 
 typedef struct UVInitialStrokeElement {
 	/* index to unique uv */
@@ -95,7 +95,7 @@ typedef struct UVInitialStrokeElement {
 
 	/* initial uv position */
 	float initial_uv[2];
-}UVInitialStrokeElement;
+} UVInitialStrokeElement;
 
 typedef struct UVInitialStroke {
 	/* Initial Selection,for grab brushes for instance */
@@ -106,7 +106,7 @@ typedef struct UVInitialStroke {
 
 	/* initial mouse coordinates */
 	float init_coord[2];
-}UVInitialStroke;
+} UVInitialStroke;
 
 
 /* custom data for uv smoothing brush */
@@ -142,17 +142,17 @@ typedef struct UvSculptData {
 
 	/* store invert flag here */
 	char invert;
-}UvSculptData;
+} UvSculptData;
 
 /*********** Improved Laplacian Relaxation Operator ************************/
 /* original code by Raul Fernandez Hernandez "farsthary"                   *
-* adapted to uv smoothing by Antony Riakiatakis                           *
-***************************************************************************/
+ * adapted to uv smoothing by Antony Riakiatakis                           *
+ ***************************************************************************/
 
 typedef struct Temp_UvData {
 	float sum_co[2], p[2], b[2], sum_b[2];
 	int ncounter;
-}Temp_UVData;
+} Temp_UVData;
 
 
 
@@ -537,8 +537,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 
 		/* Count 'unique' uvs */
 		for (i = 0; i < data->elementMap->totalUVs; i++) {
-			if (data->elementMap->buf[i].separate
-			    && (!do_island_optimization || data->elementMap->buf[i].island == island_index)) {
+			if (data->elementMap->buf[i].separate &&
+			    (!do_island_optimization || data->elementMap->buf[i].island == island_index))
+			{
 				counter++;
 			}
 		}
@@ -594,8 +595,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 
 		/* Now, on to generate our uv connectivity data */
 		counter = 0;
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				int offset1, itmp1 = uv_element_offset_from_face_get(data->elementMap, efa, l, island_index, do_island_optimization);
 				int offset2, itmp2 = uv_element_offset_from_face_get(data->elementMap, efa, l->next, island_index, do_island_optimization);
 

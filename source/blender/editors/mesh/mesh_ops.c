@@ -156,7 +156,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_nth);
 	WM_operatortype_append(MESH_OT_vert_connect);
 	WM_operatortype_append(MESH_OT_vert_slide);
-	WM_operatortype_append(MESH_OT_knifetool);
+	WM_operatortype_append(MESH_OT_knife_tool);
 
 	WM_operatortype_append(MESH_OT_bevel);
 
@@ -314,7 +314,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_fill", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_beautify_fill", FKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
 
-	WM_keymap_add_item(keymap, "MESH_OT_quads_convert_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_quads_convert_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "use_beauty", TRUE);
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_quads_convert_to_tris", TKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "use_beauty", FALSE);
 
@@ -347,8 +348,13 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_delete", DELKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_knifetool", KKEY, KM_PRESS, 0, 0);
-	//RNA_enum_set(WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_SHIFT, KKEY)->ptr, "type", 2/*KNIFE_MIDPOINT*/);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_knife_tool", KKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "use_occlude_geometry", TRUE);
+	RNA_boolean_set(kmi->ptr, "only_select",          FALSE);
+
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_knife_tool", KKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "use_occlude_geometry", FALSE);
+	RNA_boolean_set(kmi->ptr, "only_select",          TRUE);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 

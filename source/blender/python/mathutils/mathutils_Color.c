@@ -807,7 +807,7 @@ PyDoc_STRVAR(color_doc,
 );
 PyTypeObject color_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"mathutils.Color",              //tp_name
+	"Color",                        //tp_name
 	sizeof(ColorObject),            //tp_basicsize
 	0,                              //tp_itemsize
 	(destructor)BaseMathObject_dealloc,     //tp_dealloc

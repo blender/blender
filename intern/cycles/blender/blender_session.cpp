@@ -96,7 +96,7 @@ void BlenderSession::create_session()
 	if(b_rv3d)
 		sync->sync_view(b_v3d, b_rv3d, width, height);
 	else
-		sync->sync_camera(width, height);
+		sync->sync_camera(b_engine.camera_override(), width, height);
 
 	/* create session */
 	session = new Session(session_params);
@@ -314,7 +314,7 @@ void BlenderSession::synchronize()
 	if(b_rv3d)
 		sync->sync_view(b_v3d, b_rv3d, width, height);
 	else
-		sync->sync_camera(width, height);
+		sync->sync_camera(b_engine.camera_override(), width, height);
 
 	/* unlock */
 	session->scene->mutex.unlock();

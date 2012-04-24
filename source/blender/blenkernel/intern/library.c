@@ -1055,6 +1055,7 @@ void IDnames_to_pupstring(const char **str, const char *title, const char *extra
 }
 
 /* skips viewer images */
+#if 0 /* unused */
 void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops, ListBase *lb, ID *link, short *nr)
 {
 	DynStr *pupds= BLI_dynstr_new();
@@ -1075,6 +1076,7 @@ void IMAnames_to_pupstring(const char **str, const char *title, const char *extr
 	*str= BLI_dynstr_get_cstring(pupds);
 	BLI_dynstr_free(pupds);
 }
+#endif
 
 void id_sort_by_name(ListBase *lb, ID *id)
 {

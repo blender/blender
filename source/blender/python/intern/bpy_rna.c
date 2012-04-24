@@ -1152,10 +1152,6 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 		return -1;
 	}
 	else {
-		/* hack so that dynamic enums used for operator properties will be able to be built (i.e. context will be supplied to itemf)
-		 * and thus running defining operator buttons for such operators in UI will work */
-		RNA_def_property_clear_flag(prop, PROP_ENUM_NO_CONTEXT);
-
 		if (!RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, val)) {
 			const char *enum_str = pyrna_enum_as_string(ptr, prop);
 			PyErr_Format(PyExc_TypeError,

@@ -117,6 +117,12 @@ void KX_SteeringActuator::ProcessReplica()
 	SCA_IActuator::ProcessReplica();
 }
 
+void KX_SteeringActuator::ReParent(SCA_IObject* parent)
+{
+	SCA_IActuator::ReParent(parent);
+	if (m_simulation)
+		m_obstacle = m_simulation->GetObstacle((KX_GameObject*)m_gameobj);
+}
 
 bool KX_SteeringActuator::UnlinkObject(SCA_IObject* clientobj)
 {

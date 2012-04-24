@@ -37,13 +37,13 @@
  */
 
 /* returns positive nonzero on error */
-int bmesh_elem_check(BMesh *bm, void *element, const char htype);
+int bmesh_elem_check(void *element, const char htype);
 
-#define BM_CHECK_ELEMENT(bm, el)                                              \
-    if (bmesh_elem_check(bm, el, ((BMHeader *)el)->htype)) {                  \
+#define BM_CHECK_ELEMENT(el)                                                  \
+    if (bmesh_elem_check(el, ((BMHeader *)el)->htype)) {                      \
         printf("check_element failure, with code %i on line %i in file\n"     \
         "    \"%s\"\n\n",                                                     \
-        bmesh_elem_check(bm, el, ((BMHeader *)el)->htype),                    \
+        bmesh_elem_check(el, ((BMHeader *)el)->htype),                    \
         __LINE__, __FILE__);                                                  \
     }
 
@@ -65,7 +65,7 @@ int bmesh_disk_count(BMVert *v);
 #define BM_ELEM_API_FLAG_DISABLE(element, f) ((element)->oflags[0].pflag &= ~(f))
 #define BM_ELEM_API_FLAG_TEST(element, f)    ((element)->oflags[0].pflag &   (f))
 
-void compute_poly_plane(float (*verts)[3], const int nverts);
+void calc_poly_plane(float (*verts)[3], const int nverts);
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts);
 
 /* include the rest of our private declarations */

@@ -137,7 +137,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		 * so re-create it here */
 		makeDerivedMesh(scene, obedit, em, CD_MASK_BAREMESH, 0);
 
-		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				if (v1==0) v1= nr;
 				else if (v2==0) v2= nr;
@@ -1479,7 +1479,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 				case OB_MESH:
 					ob->data= copy_mesh(ob->data);
 					//me= ob->data;
-					//if(me && me->key)
+					//if (me && me->key)
 					//	ipo_idnew(me->key->ipo);	/* drivers */
 					break;
 				case OB_MBALL:
@@ -1569,7 +1569,7 @@ static void single_mat_users(Scene *scene, int flag, int do_textures)
 										tex->id.us--;
 										tex= copy_texture(tex);
 										BKE_copy_animdata_id_action(&tex->id);
-										ma->mtex[b]->tex= tex;
+										man->mtex[b]->tex= tex;
 									}
 								}
 							}

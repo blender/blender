@@ -294,10 +294,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 
 	if (!((ID *)ob->data)->lib) {
 		/* if active object is editable */
-		if ( ((ob->type == OB_MESH)
-		      || (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
-		      || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) {
-
+		if (ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 			str += modeselect_addmode(str, N_("Edit Mode"), OB_MODE_EDIT, ICON_EDITMODE_HLT);
 		}
 		else if (ob->type == OB_ARMATURE) {

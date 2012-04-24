@@ -1839,10 +1839,6 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			break;
 
 #endif
-		case UseDynamo:
-			//KX_ConvertDynamoObject(gameobj,meshobj,kxscene,shapeprops,	smmaterial,	&objprop);
-			break;
-			
 		case UseNone:
 		default:
 			break;
@@ -2757,7 +2753,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 					bRigidBodyJointConstraint *dat=(bRigidBodyJointConstraint *)curcon->data;
 
-					if (!dat->child) {
+					if (!dat->child && !(curcon->flag & CONSTRAINT_OFF)) {
 
 						PHY_IPhysicsController* physctr2 = 0;
 

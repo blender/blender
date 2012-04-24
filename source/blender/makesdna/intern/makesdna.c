@@ -360,8 +360,9 @@ static int add_name(const char *str)
 		 * */
 		buf[i] = 0;
 		if (debugSDNA > 3) printf("Name before chomping: %s\n", buf); 
-		if ( (strncmp(buf,"(*headdraw", 10) == 0)
-			|| (strncmp(buf,"(*windraw", 9) == 0) ) {
+		if ((strncmp(buf,"(*headdraw", 10) == 0) ||
+		    (strncmp(buf,"(*windraw", 9) == 0) )
+		{
 			buf[i] = ')';
 			buf[i+1] = '(';
 			buf[i+2] = 'v'; 
@@ -1094,7 +1095,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 				sp += firststruct;
 				for (a=firststruct; a<nr_types; a++, sp++) { 
 					if (*sp) {
-						fprintf(fp, "\tif(sizeof(struct %s) - %d) printf(\"ALIGN ERROR:", types[a], *sp);
+						fprintf(fp, "\tif (sizeof(struct %s) - %d) printf(\"ALIGN ERROR:", types[a], *sp);
 						fprintf(fp, "%%d %s %d ", types[a], *sp);
 						fprintf(fp, "\\n\",  sizeof(struct %s) - %d);\n", types[a], *sp);
 					}

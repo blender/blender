@@ -274,7 +274,7 @@ void DM_init_funcs(DerivedMesh *dm)
 }
 
 void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges,
-	     int numTessFaces, int numLoops, int numPolys)
+             int numTessFaces, int numLoops, int numPolys)
 {
 	dm->type = type;
 	dm->numVertData = numVerts;
@@ -1753,18 +1753,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			add_orco_dm(ob, NULL, *deform_r, NULL, CD_ORCO);
 	}
 
-#ifdef WITH_GAMEENGINE
-	/* NavMesh - this is a hack but saves having a NavMesh modifier */
-	if ((ob->gameflag & OB_NAVMESH) && (finaldm->type == DM_TYPE_CDDM)) {
-		DerivedMesh *tdm;
-		tdm= navmesh_dm_createNavMeshForVisualization(finaldm);
-		if (finaldm != tdm) {
-			finaldm->release(finaldm);
-			finaldm= tdm;
-		}
-	}
-#endif /* WITH_GAMEENGINE */
-
 	{
 		/* calculating normals can re-calculate tessfaces in some cases */
 #if 0
@@ -1819,6 +1807,18 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			CDDM_calc_normals_mapping_ex(finaldm, TRUE);
 		}
 	}
+
+#ifdef WITH_GAMEENGINE
+	/* NavMesh - this is a hack but saves having a NavMesh modifier */
+	if ((ob->gameflag & OB_NAVMESH) && (finaldm->type == DM_TYPE_CDDM)) {
+		DerivedMesh *tdm;
+		tdm= navmesh_dm_createNavMeshForVisualization(finaldm);
+		if (finaldm != tdm) {
+			finaldm->release(finaldm);
+			finaldm= tdm;
+		}
+	}
+#endif /* WITH_GAMEENGINE */
 
 	*final_r = finaldm;
 
@@ -2137,7 +2137,7 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask,
 
 	if ((ob->mode & OB_MODE_SCULPT) && ob->sculpt) {
 		/* create PBVH immediately (would be created on the fly too,
-		   but this avoids waiting on first stroke) */
+		 * but this avoids waiting on first stroke) */
 		ob->sculpt->pbvh= ob->derivedFinal->getPBVH(ob, ob->derivedFinal);
 	}
 }
@@ -2757,7 +2757,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 	fdata = tfdata = dm->getTessFaceDataLayout(dm);
 	
 	/* calc auto bump scale if necessary */
-	if (dm->auto_bump_scale<=0.0f)
+	if (dm->auto_bump_scale <= 0.0f)
 		DM_calc_auto_bump_scale(dm);
 
 	/* add a tangent layer if necessary */
@@ -2769,58 +2769,76 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 	for (b = 0; b < gattribs->totlayer; b++) {
 		if (gattribs->layer[b].type == CD_MTFACE) {
 			/* uv coordinates */
-			if (gattribs->layer[b].name[0])
-				layer = CustomData_get_named_layer_index(tfdata, CD_MTFACE,
-					gattribs->layer[b].name);
-			else
-				layer = CustomData_get_active_layer_index(tfdata, CD_MTFACE);
+			if (dm->type == DM_TYPE_EDITBMESH) {
+				/* exception .. */
+				CustomData *ldata = dm->getLoopDataLayout(dm);
 
-			if (layer != -1) {
-				a = attribs->tottface++;
-
-				attribs->tface[a].array = tfdata->layers[layer].data;
-				attribs->tface[a].emOffset = tfdata->layers[layer].offset;
-				attribs->tface[a].glIndex = gattribs->layer[b].glindex;
-				attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
-			}
-			/* BMESH_TODO - BMESH ONLY, may need to get this working?, otherwise remove */
-#if 0
-			else {
-				int player;
-				CustomData *pdata = dm->getPolyDataLayout(dm);
-				
 				if (gattribs->layer[b].name[0])
-					player = CustomData_get_named_layer_index(pdata, CD_MTEXPOLY,
+					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV,
 						gattribs->layer[b].name);
 				else
-					player = CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
-				
-				if (player != -1) {
+					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
+
+				if (layer != -1) {
 					a = attribs->tottface++;
-	
-					attribs->tface[a].array = NULL;
-					attribs->tface[a].emOffset = pdata->layers[layer].offset;
+
+					attribs->tface[a].array = tfdata->layers[layer].data;
+					attribs->tface[a].emOffset = tfdata->layers[layer].offset;
 					attribs->tface[a].glIndex = gattribs->layer[b].glindex;
 					attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
-					
 				}
 			}
-#endif
+			else {
+				if (gattribs->layer[b].name[0])
+					layer = CustomData_get_named_layer_index(tfdata, CD_MTFACE,
+						gattribs->layer[b].name);
+				else
+					layer = CustomData_get_active_layer_index(tfdata, CD_MTFACE);
+
+				if (layer != -1) {
+					a = attribs->tottface++;
+
+					attribs->tface[a].array = tfdata->layers[layer].data;
+					attribs->tface[a].emOffset = tfdata->layers[layer].offset;
+					attribs->tface[a].glIndex = gattribs->layer[b].glindex;
+					attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
+				}
+			}
 		}
 		else if (gattribs->layer[b].type == CD_MCOL) {
-			/* vertex colors */
-			if (gattribs->layer[b].name[0])
-				layer = CustomData_get_named_layer_index(tfdata, CD_MCOL,
-					gattribs->layer[b].name);
-			else
-				layer = CustomData_get_active_layer_index(tfdata, CD_MCOL);
+			if (dm->type == DM_TYPE_EDITBMESH) {
+				/* exception .. */
+				CustomData *ldata = dm->getLoopDataLayout(dm);
 
-			if (layer != -1) {
-				a = attribs->totmcol++;
+				if (gattribs->layer[b].name[0])
+					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPCOL,
+						gattribs->layer[b].name);
+				else
+					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
 
-				attribs->mcol[a].array = tfdata->layers[layer].data;
-				attribs->mcol[a].emOffset = tfdata->layers[layer].offset;
-				attribs->mcol[a].glIndex = gattribs->layer[b].glindex;
+				if (layer != -1) {
+					a = attribs->totmcol++;
+
+					attribs->mcol[a].array = tfdata->layers[layer].data;
+					attribs->mcol[a].emOffset = tfdata->layers[layer].offset;
+					attribs->mcol[a].glIndex = gattribs->layer[b].glindex;
+				}
+			}
+			else {
+				/* vertex colors */
+				if (gattribs->layer[b].name[0])
+					layer = CustomData_get_named_layer_index(tfdata, CD_MCOL,
+						gattribs->layer[b].name);
+				else
+					layer = CustomData_get_active_layer_index(tfdata, CD_MCOL);
+
+				if (layer != -1) {
+					a = attribs->totmcol++;
+
+					attribs->mcol[a].array = tfdata->layers[layer].data;
+					attribs->mcol[a].emOffset = tfdata->layers[layer].offset;
+					attribs->mcol[a].glIndex = gattribs->layer[b].glindex;
+				}
 			}
 		}
 		else if (gattribs->layer[b].type == CD_TANGENT) {
@@ -2898,7 +2916,7 @@ static void navmesh_drawColored(DerivedMesh *dm)
 	int a, glmode;
 	MVert *mvert = (MVert *)CustomData_get_layer(&dm->vertData, CD_MVERT);
 	MFace *mface = (MFace *)CustomData_get_layer(&dm->faceData, CD_MFACE);
-	int *polygonIdx = (int *)CustomData_get_layer(&dm->faceData, CD_RECAST);
+	int *polygonIdx = (int *)CustomData_get_layer(&dm->polyData, CD_RECAST);
 	float col[3];
 
 	if (!polygonIdx)
@@ -2980,14 +2998,14 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 	int res;
 
 	result = CDDM_copy(dm);
-	if (!CustomData_has_layer(&result->faceData, CD_RECAST)) {
-		int *sourceRecastData = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
+	if (!CustomData_has_layer(&result->polyData, CD_RECAST)) {
+		int *sourceRecastData = (int*)CustomData_get_layer(&dm->polyData, CD_RECAST);
 		if (sourceRecastData) {
-			CustomData_add_layer_named(&result->faceData, CD_RECAST, CD_DUPLICATE,
+			CustomData_add_layer_named(&result->polyData, CD_RECAST, CD_DUPLICATE,
 			                           sourceRecastData, maxFaces, "recastData");
 		}
 	}
-	recastData = (int*)CustomData_get_layer(&result->faceData, CD_RECAST);
+	recastData = (int*)CustomData_get_layer(&result->polyData, CD_RECAST);
 
 	/* note: This is not good design! - really should not be doing this */
 	result->drawFacesTex =  navmesh_DM_drawFacesTex;

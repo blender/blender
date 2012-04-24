@@ -480,6 +480,17 @@ MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3])
 	r[2] = a[0] * b[1] - a[1] * b[0];
 }
 
+/* Newell's Method */
+/* excuse this fairly spesific function,
+ * its used for polygon normals all over the place
+ * could use a better name */
+MINLINE void add_newell_cross_v3_v3v3(float n[3], const float v_prev[3], const float v_curr[3])
+{
+	n[0] += (v_prev[1] - v_curr[1]) * (v_prev[2] + v_curr[2]);
+	n[1] += (v_prev[2] - v_curr[2]) * (v_prev[0] + v_curr[0]);
+	n[2] += (v_prev[0] - v_curr[0]) * (v_prev[1] + v_curr[1]);
+}
+
 MINLINE void star_m3_v3(float rmat[][3], float a[3])
 {
 	rmat[0][0] = rmat[1][1] = rmat[2][2] = 0.0;
@@ -505,7 +516,7 @@ MINLINE float len_squared_v3(const float v[3])
 
 MINLINE float len_v2(const float v[2])
 {
-	return (float)sqrtf(v[0] * v[0] + v[1] * v[1]);
+	return sqrtf(v[0] * v[0] + v[1] * v[1]);
 }
 
 MINLINE float len_v2v2(const float v1[2], const float v2[2])
@@ -514,7 +525,7 @@ MINLINE float len_v2v2(const float v1[2], const float v2[2])
 
 	x = v1[0] - v2[0];
 	y = v1[1] - v2[1];
-	return (float)sqrtf(x * x + y * y);
+	return sqrtf(x * x + y * y);
 }
 
 MINLINE float len_v3(const float a[3])

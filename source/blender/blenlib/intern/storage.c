@@ -68,19 +68,16 @@
 #include <fcntl.h>
 #include <string.h>			/* strcpy etc.. */
 
-#ifndef WIN32
-#include <sys/ioctl.h>
-#include <unistd.h>			/*  */
-#include <pwd.h>
-#endif
-
 #ifdef WIN32
-#include <io.h>
-#include <direct.h>
-#include "BLI_winstuff.h"
-#include "utfconv.h"
+#  include <io.h>
+#  include <direct.h>
+#  include "BLI_winstuff.h"
+#  include "utfconv.h"
+#else
+#  include <sys/ioctl.h>
+#  include <unistd.h>
+#  include <pwd.h>
 #endif
-
 
 /* lib includes */
 #include "MEM_guardedalloc.h"
@@ -475,9 +472,9 @@ int BLI_exists(const char *name)
 #else
 	struct _stati64 st;
 #endif
-	/*  in Windows stat doesn't recognize dir ending on a slash 
-		To not break code where the ending slash is expected we
-		don't mess with the argument name directly here - elubie */
+	/* in Windows stat doesn't recognize dir ending on a slash
+	 * To not break code where the ending slash is expected we
+	 * don't mess with the argument name directly here - elubie */
 	wchar_t * tmp_16 = alloc_utf16_from_8(name, 0);
 	int len, res;
 	len = wcslen(tmp_16);
@@ -554,6 +551,7 @@ void BLI_file_free_lines(LinkNode *lines)
 	BLI_linklist_free(lines, (void(*)(void*)) MEM_freeN);
 }
 
+/** is file1 older then file2 */
 int BLI_file_older(const char *file1, const char *file2)
 {
 #ifdef WIN32

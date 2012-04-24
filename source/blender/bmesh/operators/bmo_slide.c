@@ -21,8 +21,8 @@
  */
 
 /** \file blender/bmesh/operators/bmo_slide.c
-*  \ingroup bmesh
-*/
+ *  \ingroup bmesh
+ */
 
 #include "MEM_guardedalloc.h"
 
@@ -40,7 +40,7 @@
  * Slides a vertex along a connected edge
  *
  */
-void bmo_vert_slide_exec(BMesh *bm, BMOperator *op)
+void bmo_vertex_slide_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter oiter;
 	BMIter iter;
@@ -60,13 +60,15 @@ void bmo_vert_slide_exec(BMesh *bm, BMOperator *op)
 
 
 	if (!vertex) {
-		if (G.debug & G_DEBUG)
-			fprintf(stderr, "vertslide: No vertex selected...");
+		if (G.debug & G_DEBUG) {
+			fprintf(stderr, "vertex_slide: No vertex selected...");
+		}
+		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Vertex Slide Error: Invalid selection.");
 		return;
 	}
 
 	/* Count selected edges */
-	BMO_ITER(h, &oiter, bm, op, "edge", BM_VERT | BM_EDGE) {
+	BMO_ITER (h, &oiter, bm, op, "edge", BM_VERT | BM_EDGE) {
 		switch (h->htype) {
 			case BM_EDGE:
 				selected_edges++;
@@ -78,13 +80,15 @@ void bmo_vert_slide_exec(BMesh *bm, BMOperator *op)
 
 	/* Only allow sliding if an edge is selected */
 	if (selected_edges == 0) {
-		if (G.debug & G_DEBUG)
-			fprintf(stderr, "vertslide: select a single edge\n");
+		if (G.debug & G_DEBUG) {
+			fprintf(stderr, "vertex_slide: select a single edge\n");
+		}
+		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Vertex Slide Error: Invalid selection.");
 		return;
 	}
 
 	/* Make sure we get the correct edge. */
-	BM_ITER(edge, &iter, bm, BM_EDGES_OF_VERT, vertex) {
+	BM_ITER_ELEM (edge, &iter, vertex, BM_EDGES_OF_VERT) {
 		if (BMO_elem_flag_test(bm, edge, EDGE_MARK) && BM_vert_in_edge(edge, vertex)) {
 			slide_edge = edge;
 			break;
@@ -101,9 +105,6 @@ void bmo_vert_slide_exec(BMesh *bm, BMOperator *op)
 		/* Interpolate */
 		interp_v3_v3v3(vertex->co, vertex->co, other->co, distance_t);
 	}
-
-	/* Deselect the edges */
-	BMO_slot_buffer_hflag_disable(bm, op, "edge", BM_ALL, BM_ELEM_SELECT, TRUE);
 
 	/* Return the new edge. The same previously marked with VERT_MARK */
 	BMO_slot_buffer_from_enabled_flag(bm, op, "vertout", BM_VERT, VERT_MARK);

@@ -390,7 +390,7 @@
 #define  DEFAULT_STREAM  \
 	m[dC] = RAC(ccel,dC); \
 	 \
-	if((!nbored & CFBnd)) { \
+	if(((!nbored) & CFBnd)) { \
 	 \
 	m[dN ] = CSRC_N ; m[dS ] = CSRC_S ; \
 	m[dE ] = CSRC_E ; m[dW ] = CSRC_W ; \

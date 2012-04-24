@@ -153,7 +153,7 @@ if(UNIX AND NOT APPLE)
 else()
 	set(PLATFORM_DEFAULT OFF)
 endif()
-option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" PLATFORM_DEFAULT)
+option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ${PLATFORM_DEFAULT})
 unset(PLATFORM_DEFAULT)
 
 
@@ -195,6 +195,8 @@ option(WITH_IMAGE_FRAMESERVER   "Enable image FrameServer Support for rendering"
 
 # Audio/Video format support
 option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
+unset(PLATFORM_DEFAULT)
+
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 if(APPLE OR (WIN32 AND NOT UNIX))
 	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
@@ -226,6 +228,8 @@ if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
+option(WITH_MINGW64                   "Use the 64-bit version of MinGW" OFF)
+mark_as_advanced(WITH_MINGW64)
 
 # Cycles
 option(WITH_CYCLES					"Enable cycles Render Engine" ON)
@@ -355,6 +359,18 @@ endif()
 
 if(WITH_GHOST_SDL OR WITH_HEADLESS)
 	set(WITH_GHOST_XDND OFF)
+endif()
+
+if(MINGW)
+	if(WITH_CODEC_QUICKTIME)
+		message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
+		                    "because it is currently unsupported, remove this "
+		                    "line if youre a developer who wants to add support.")
+	endif()
+	
+	if((WITH_MINGW64) AND (WITH_OPENCOLLADA OR WITH_CODEC_FFMPEG))
+		message(FATAL_ERROR "MINGW64 still doesn't support: WITH_OPENCOLLADA/WITH_CODEC_FFMPEG")
+	endif()
 endif()
 
 TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
@@ -720,14 +736,24 @@ elseif(WIN32)
 	# this file is included anyway when building under Windows with cl.exe
 	#  include(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
 
-	set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
+	if(CMAKE_COMPILER_IS_GNUCC)
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
 
-	# Setup 64bit and 64bit windows systems
-	if(CMAKE_CL_64)
-		message("64 bit compiler detected.")
-		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
+		# Setup 64bit and 64bit windows systems		
+		if(WITH_MINGW64)
+			message("Set 64 bit compiler for MinGW.")
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw64)
+		endif()
+	else()
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
+
+		# Setup 64bit and 64bit windows systems
+		if(CMAKE_CL_64)
+			message("64 bit compiler detected.")
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
+		endif()
 	endif()
-
+		
 	add_definitions(-DWIN32)
 
 	if(WITH_INTERNATIONAL)
@@ -975,29 +1001,43 @@ elseif(WIN32)
 
 		set(PLATFORM_LINKFLAGS_DEBUG "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
-	else()
-		# keep GCC specific stuff here
-		if(CMAKE_COMPILER_IS_GNUCC)
-			set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi")
-			set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
+	elseif(CMAKE_COMPILER_IS_GNUCC)
+	# keep GCC specific stuff here		
+		set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi")
+		set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
-			add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
+		if(WITH_MINGW64)
+			#Yes, the point for MinGW64 is moar optimization by default :)
+			set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -mmmx -msse -msse2")
+			set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
+			set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+			#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -lpthread")
+			
+			add_definitions(-DFREE_WINDOWS64 -DMS_WIN64)
 		endif()
+
+		add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
+
 
 		add_definitions(-DFREE_WINDOWS)
 
 		if(WITH_INTERNATIONAL)
-			set(GETTEXT ${LIBDIR}/gcc/gettext)
+			set(GETTEXT ${LIBDIR}/gettext)
 			set(GETTEXT_INCLUDE_DIRS ${GETTEXT}/include)
 			set(GETTEXT_LIBPATH ${GETTEXT}/lib)
 			set(GETTEXT_LIBRARIES intl)
 		endif()
 		
-		set(PNG "${LIBDIR}/gcc/png")
+		set(PNG "${LIBDIR}/png")
 		set(PNG_INCLUDE_DIR "${PNG}/include")
 		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 
-		set(JPEG_LIBRARIES libjpeg)
+		if(WITH_MINGW64)
+			set(JPEG_LIBRARIES jpeg)
+		else()
+			set(JPEG_LIBRARIES libjpeg)
+		endif()
 		set(PNG_LIBRARIES png)
 
 		set(ZLIB ${LIBDIR}/zlib)
@@ -1005,31 +1045,34 @@ elseif(WIN32)
 		set(ZLIB_LIBPATH ${ZLIB}/lib)
 		set(ZLIB_LIBRARIES z)
 
-		set(PTHREADS ${LIBDIR}/pthreads)
-		set(PTHREADS_INCLUDE_DIRS ${PTHREADS}/include)
-		set(PTHREADS_LIBPATH ${PTHREADS}/lib)
-		set(PTHREADS_LIBRARIES pthreadGC2)
-
-		set(FREETYPE ${LIBDIR}/gcc/freetype)
+		#comes with own pthread library
+		if(NOT WITH_MINGW64)
+			set(PTHREADS ${LIBDIR}/pthreads)
+			set(PTHREADS_INCLUDE_DIRS ${PTHREADS}/include)
+			set(PTHREADS_LIBPATH ${PTHREADS}/lib)
+			set(PTHREADS_LIBRARIES pthreadGC2)
+		endif()
+		
+		set(FREETYPE ${LIBDIR}/freetype)
 		set(FREETYPE_INCLUDE_DIRS ${FREETYPE}/include ${FREETYPE}/include/freetype2)
 		set(FREETYPE_LIBPATH ${FREETYPE}/lib)
 		set(FREETYPE_LIBRARY freetype)
 
 		if(WITH_FFTW3)
-			set(FFTW3 ${LIBDIR}/gcc/fftw3)
+			set(FFTW3 ${LIBDIR}/fftw3)
 			set(FFTW3_LIBRARIES fftw3)
 			set(FFTW3_INCLUDE_DIRS ${FFTW3}/include)
 			set(FFTW3_LIBPATH ${FFTW3}/lib)
 		endif()
 
 		if(WITH_OPENCOLLADA)
-			set(OPENCOLLADA ${LIBDIR}/gcc/opencollada)
+			set(OPENCOLLADA ${LIBDIR}/opencollada)
 			set(OPENCOLLADA_INCLUDE_DIRS
-				${LIBDIR}/gcc/opencollada/include/COLLADAStreamWriter/include
-				${LIBDIR}/gcc/opencollada/include/COLLADABaseUtils/include
-				${LIBDIR}/gcc/opencollada/include/COLLADAFramework/include
-				${LIBDIR}/gcc/opencollada/include/COLLADASaxFrameworkLoader/include
-				${LIBDIR}/gcc/opencollada/include/GeneratedSaxParser/include
+				${LIBDIR}/opencollada/include/COLLADAStreamWriter/include
+				${LIBDIR}/opencollada/include/COLLADABaseUtils/include
+				${LIBDIR}/opencollada/include/COLLADAFramework/include
+				${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader/include
+				${LIBDIR}/opencollada/include/GeneratedSaxParser/include
 			)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib ${OPENCOLLADA}/lib)
 			set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa)
@@ -1044,14 +1087,14 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
-			set(OPENEXR ${LIBDIR}/gcc/openexr)
+			set(OPENEXR ${LIBDIR}/openexr)
 			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 			set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread Iex)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		endif()
 
 		if(WITH_IMAGE_TIFF)
-			set(TIFF ${LIBDIR}/gcc/tiff)
+			set(TIFF ${LIBDIR}/tiff)
 			set(TIFF_LIBRARY tiff)
 			set(TIFF_INCLUDE_DIR ${TIFF}/include)
 			set(TIFF_LIBPATH ${TIFF}/lib)
@@ -1081,19 +1124,24 @@ elseif(WIN32)
 		if(WITH_BOOST)
 			set(BOOST ${LIBDIR}/boost)
 			set(BOOST_INCLUDE_DIR ${BOOST}/include)
-			set(BOOST_POSTFIX "mgw46-mt-s-1_47")
-			set(BOOST_DEBUG_POSTFIX "mgw46-mt-sd-1_47")
+			if(WITH_MINGW64)
+				set(BOOST_POSTFIX "mgw47-mt-s-1_49")
+				set(BOOST_DEBUG_POSTFIX "mgw47-mt-sd-1_49")
+			else()
+				set(BOOST_POSTFIX "mgw46-mt-s-1_47")
+				set(BOOST_DEBUG_POSTFIX "mgw46-mt-sd-1_47")
+			endif()		
 			set(BOOST_LIBRARIES
 				optimized boost_date_time-${BOOST_POSTFIX} boost_filesystem-${BOOST_POSTFIX}
 				boost_regex-${BOOST_POSTFIX} boost_system-${BOOST_POSTFIX} boost_thread-${BOOST_POSTFIX}
 				debug boost_date_time-${BOOST_DEBUG_POSTFIX} boost_filesystem-${BOOST_DEBUG_POSTFIX}
 				boost_regex-${BOOST_DEBUG_POSTFIX} boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX})
-			set(BOOST_LIBPATH ${BOOST}/lib/gcc)
+			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
 		endif()
 			
 		if(WITH_OPENIMAGEIO)
-			set(OPENIMAGEIO ${LIBDIR}/gcc/openimageio)
+			set(OPENIMAGEIO ${LIBDIR}/openimageio)
 			set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
 			set(OPENIMAGEIO_LIBRARIES OpenImageIO)
 			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
@@ -1117,7 +1165,7 @@ elseif(APPLE)
 		set(WITH_LIBS10.5 ON CACHE BOOL "Use 10.5 libs" FORCE) # valid also for 10.6/10.7
 	endif()
 
-	if(${XCODE_VERSION} LESS 4.3)
+	if(${XCODE_VERSION} VERSION_LESS 4.3)
 		SET(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk CACHE PATH "" FORCE ) # use guaranteed existing sdk
 	else()
 		# note: i don't use xcode-select path on purpose, cause also /Applications/Xcode.app would be allowed

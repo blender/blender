@@ -267,7 +267,8 @@ static void rna_ShapeKeyBezierPoint_handle_2_co_set(PointerRNA *ptr, const float
 	vec[6+2] = values[2];
 }
 
-/*static float rna_ShapeKeyBezierPoint_tilt_get(PointerRNA *ptr)
+#if 0
+static float rna_ShapeKeyBezierPoint_tilt_get(PointerRNA *ptr)
 {
 	float *vec= (float*)ptr->data;
 	return vec[10];
@@ -277,7 +278,8 @@ static void rna_ShapeKeyBezierPoint_tilt_set(PointerRNA *ptr, float value)
 {
 	float *vec= (float*)ptr->data;
 	vec[10]= value;
-}*/
+}
+#endif
 
 static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {

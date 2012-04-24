@@ -81,12 +81,12 @@ Any case: direct data is ALWAYS after the lib block
 #include "zlib.h"
 
 #ifndef WIN32
-#include <unistd.h>
+#  include <unistd.h>
 #else
-#include "winsock2.h"
-#include <io.h>
-#include <process.h> // for getpid
-#include "BLI_winstuff.h"
+#  include "winsock2.h"
+#  include <io.h>
+#  include <process.h> // for getpid
+#  include "BLI_winstuff.h"
 #endif
 
 /* allow writefile to use deprecated functionality (for forward compatibility code) */
@@ -204,7 +204,7 @@ static WriteData *writedata_new(int file)
 	return wd;
 }
 
-static void writedata_do_write(WriteData *wd, void *mem, int memlen)
+static void writedata_do_write(WriteData *wd, const void *mem, int memlen)
 {
 	if ((wd == NULL) || wd->error || (mem == NULL) || memlen < 1) return;
 	if (wd->error) return;
@@ -239,7 +239,7 @@ static void writedata_free(WriteData *wd)
  
 #define MYWRITE_FLUSH		NULL
 
-static void mywrite( WriteData *wd, void *adr, int len)
+static void mywrite( WriteData *wd, const void *adr, int len)
 {
 	if (wd->error) return;
 
@@ -265,7 +265,7 @@ static void mywrite( WriteData *wd, void *adr, int len)
 		do {
 			int writelen= MIN2(len, MYWRITE_MAX_CHUNK);
 			writedata_do_write(wd, adr, writelen);
-			adr = (char*)adr + writelen;
+			adr = (const char *)adr + writelen;
 			len -= writelen;
 		} while (len > 0);
 
@@ -354,22 +354,22 @@ static void writestruct(WriteData *wd, int filecode, const char *structname, int
 	mywrite(wd, adr, bh.len);
 }
 
-static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not use for structs */
+static void writedata(WriteData *wd, int filecode, int len, const void *adr)  /* do not use for structs */
 {
 	BHead bh;
 
 	if (adr==NULL) return;
 	if (len==0) return;
 
-	len+= 3;
-	len-= ( len % 4);
+	len += 3;
+	len -= (len % 4);
 
 	/* init BHead */
-	bh.code= filecode;
-	bh.old= adr;
-	bh.nr= 1;
-	bh.SDNAnr= 0;
-	bh.len= len;
+	bh.code   = filecode;
+	bh.old    = (void *)adr;  /* this is safe to cast from const */
+	bh.nr     = 1;
+	bh.SDNAnr = 0;
+	bh.len    = len;
 
 	mywrite(wd, &bh, sizeof(BHead));
 	if (len) mywrite(wd, adr, len);
@@ -488,7 +488,7 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 					FMod_Python *data = (FMod_Python *)fcm->data;
 					
 					/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-					 of library blocks that implement this.*/
+					 * of library blocks that implement this.*/
 					IDP_WriteProperty(data->prop, wd);
 				}
 					break;
@@ -1212,7 +1212,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 						writestruct(wd, DATA, "bConstraintTarget", 1, ct);
 					
 					/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-					 of library blocks that implement this.*/
+					 * of library blocks that implement this.*/
 					IDP_WriteProperty(data->prop, wd);
 				}
 					break;
@@ -1244,7 +1244,7 @@ static void write_pose(WriteData *wd, bPose *pose)
 	/* Write channels */
 	for (chan=pose->chanbase.first; chan; chan=chan->next) {
 		/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-		 of library blocks that implement this.*/
+		 * of library blocks that implement this.*/
 		if (chan->prop)
 			IDP_WriteProperty(chan->prop, wd);
 		
@@ -1417,8 +1417,8 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_OB, "Object", 1, ob);
 			
-			/*Write ID Properties -- and copy this comment EXACTLY for easy finding
-			  of library blocks that implement this.*/
+			/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+			 * of library blocks that implement this.*/
 			if (ob->id.properties) IDP_WriteProperty(ob->id.properties, wd);
 			
 			if (ob->adt) write_animdata(wd, ob->adt);
@@ -1678,8 +1678,8 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 			CustomData_file_write_info(layer->type, &structname, &structnum);
 			if (structnum) {
 				/* when using partial visibility, the MEdge and MFace layers
-				   are smaller than the original, so their type and count is
-				   passed to make this work */
+				 * are smaller than the original, so their type and count is
+				 * passed to make this work */
 				if (layer->type != partial_type) datasize= structnum*count;
 				else datasize= structnum*partial_count;
 
@@ -1800,10 +1800,10 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, -1, 0);
 				write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, -1, 0);
 				/* harmless for older blender versioins but _not_ writing these keeps file size down */
-				/*
+#if 0
 				write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, -1, 0);
 				write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
-				*/
+#endif
 
 				/* restore */
 				mesh->mpoly = backup_mesh.mpoly;
@@ -1961,10 +1961,10 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_MA, "Material", 1, ma);
 			
-			/*Write ID Properties -- and copy this comment EXACTLY for easy finding
-			  of library blocks that implement this.*/
-			/*manually set head group property to IDP_GROUP, just in case it hadn't been
-			  set yet :) */
+			/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+			 * of library blocks that implement this.*/
+			/* manually set head group property to IDP_GROUP, just in case it hadn't been
+			 * set yet :) */
 			if (ma->id.properties) IDP_WriteProperty(ma->id.properties, wd);
 			
 			if (ma->adt) write_animdata(wd, ma->adt);
@@ -2468,7 +2468,7 @@ static void write_bone(WriteData *wd, Bone* bone)
 	writestruct(wd, DATA, "Bone", 1, bone);
 
 	/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-	 of library blocks that implement this.*/
+	 * of library blocks that implement this.*/
 	if (bone->prop)
 		IDP_WriteProperty(bone->prop, wd);
 	
@@ -2764,7 +2764,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
  * second are an RGBA image (unsigned char)
  * note, this uses 'TEST' since new types will segfault on file load for older blender versions.
  */
-static void write_thumb(WriteData *wd, int *img)
+static void write_thumb(WriteData *wd, const int *img)
 {
 	if (img)
 		writedata(wd, TEST, (2 + img[0] * img[1]) * sizeof(int), img);
@@ -2772,7 +2772,7 @@ static void write_thumb(WriteData *wd, int *img)
 
 /* if MemFile * there's filesave to memory */
 static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFile *current, 
-							 int write_user_block, int write_flags, int *thumb)
+                             int write_user_block, int write_flags, const int *thumb)
 {
 	BHead bhead;
 	ListBase mainlist;
@@ -2880,7 +2880,7 @@ static int do_history(const char *name, ReportList *reports)
 }
 
 /* return: success (1) */
-int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportList *reports, int *thumb)
+int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportList *reports, const int *thumb)
 {
 	char userfilename[FILE_MAX];
 	char tempname[FILE_MAX+1];

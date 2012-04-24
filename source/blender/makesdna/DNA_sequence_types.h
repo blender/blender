@@ -91,9 +91,9 @@ typedef struct Strip {
 	struct Strip *next, *prev;
 	int us, done;
 	int startstill, endstill;
-	StripElem *stripdata; /* only used as an array in IMAGE sequences(!),
-				 and as a 1-element array in MOVIE sequences,
-				 NULL for all other strip-types */
+	StripElem *stripdata;  /* only used as an array in IMAGE sequences(!),
+	                        * and as a 1-element array in MOVIE sequences,
+	                        * NULL for all other strip-types */
 	char dir[768];
 	StripProxy *proxy;
 	StripCrop *crop;
@@ -133,7 +133,7 @@ typedef struct Sequence {
 	char name[64]; /* SEQ_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths */
 
 	int flag, type;	/*flags bitmap (see below) and the type of sequence*/
-	int len; /* the length of the contense of this strip - before handles are applied */
+	int len; /* the length of the contents of this strip - before handles are applied */
 	int start, startofs, endofs;
 	int startstill, endstill;
 	int machine, depth; /*machine - the strip channel, depth - the depth in the sequence when dealing with metastrips */

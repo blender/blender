@@ -735,8 +735,8 @@ typedef struct MirrTopoVert_t {
 
 static int mirrtopo_hash_sort(const void *l1, const void *l2)
 {
-	if       ((MirrTopoHash_t)(intptr_t)l1 > (MirrTopoHash_t)(intptr_t)l2) return 1;
-	else if  ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2) return -1;
+	if      ((MirrTopoHash_t)(intptr_t)l1 > (MirrTopoHash_t)(intptr_t)l2) return 1;
+	else if ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2) return -1;
 	return 0;
 }
 
@@ -814,7 +814,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 	if (em) {
 		totedge = me->edit_btmesh->bm->totedge;
 
-		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 			topo_hash[BM_elem_index_get(eed->v1)]++;
 			topo_hash[BM_elem_index_get(eed->v2)]++;
 		}
@@ -835,7 +835,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		/* use the number of edges per vert to give verts unique topology IDs */
 
 		if (em) {
-			BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 				topo_hash[BM_elem_index_get(eed->v1)] += topo_hash_prev[BM_elem_index_get(eed->v2)];
 				topo_hash[BM_elem_index_get(eed->v2)] += topo_hash_prev[BM_elem_index_get(eed->v1)];
 			}

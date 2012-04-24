@@ -1195,7 +1195,7 @@ class WM_OT_copy_prev_settings(Operator):
 class WM_OT_blenderplayer_start(Operator):
     '''Launch the blender-player with the current blend-file'''
     bl_idname = "wm.blenderplayer_start"
-    bl_label = "Start"
+    bl_label = "Start Game In Player"
 
     def execute(self, context):
         import os
@@ -1211,6 +1211,10 @@ class WM_OT_blenderplayer_start(Operator):
 
         if sys.platform == "darwin":
             player_path = os.path.join(blender_bin_dir, "../../../blenderplayer.app/Contents/MacOS/blenderplayer")
+
+        if not os.path.exists(player_path):
+            self.report({'ERROR'}, "Player path: %r not found" % player_path)
+            return {'CANCELLED'}
 
         filepath = os.path.join(bpy.app.tempdir, "game.blend")
         bpy.ops.wm.save_as_mainfile(filepath=filepath, check_existing=False, copy=True)

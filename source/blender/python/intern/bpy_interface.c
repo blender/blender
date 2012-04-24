@@ -57,6 +57,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
+#include "BLI_threads.h"
 
 #include "BKE_context.h"
 #include "BKE_text.h"
@@ -73,8 +74,10 @@
 /* inittab initialization functions */
 #include "../generic/bgl.h"
 #include "../generic/blf_py_api.h"
+#include "../generic/idprop_py_api.h"
 #include "../bmesh/bmesh_py_api.h"
 #include "../mathutils/mathutils.h"
+
 
 /* for internal use, when starting and ending python scripts */
 
@@ -95,6 +98,12 @@ static double  bpy_timer_run_tot;   /* accumulate python runs */
 /* use for updating while a python script runs - in case of file load */
 void bpy_context_update(bContext *C)
 {
+	/* don't do this from a non-main (e.g. render) thread, it can cause a race
+	 * condition on C->data.recursion. ideal solution would be to disable
+	 * context entirely from non-main threads, but that's more complicated */
+	if (!BLI_thread_is_main())
+		return;
+
 	BPy_SetContext(C);
 	bpy_import_main_set(CTX_data_main(C));
 	BPY_modules_update(C); /* can give really bad results if this isn't here */
@@ -204,6 +213,7 @@ static struct _inittab bpy_internal_modules[] = {
 	{(char *)"_cycles", CCL_initPython},
 #endif
 	{(char *)"gpu", GPU_initPython},
+	{(char *)"idprop", BPyInit_idprop},
 	{NULL, NULL}
 };
 

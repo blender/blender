@@ -182,11 +182,11 @@ static void draw_empty_cone(float size);
 static int check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
 {
 	/* texture and material draw modes */
-    if(ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID)
+	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID)
 		return TRUE;
 
 	/* textured solid */
-	if(v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !scene_use_new_shading_nodes(scene))
+	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !scene_use_new_shading_nodes(scene))
 		return TRUE;
 	
 	return FALSE;
@@ -1288,7 +1288,6 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		if (la->mode & LA_SPHERE) {
 			drawcircball(GL_LINE_LOOP, vec, la->dist, imat);
 		}
-		/* yafray: for photonlight also draw lightcone as for spot */
 	}
 	
 	glPopMatrix();  /* back in object space */
@@ -2846,7 +2845,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 	}
 
 	if (me->drawflag & ME_DRAWEXTRA_FACEAREA) {
-		/* would be nice to use BM_face_area_calc, but that is for 2d faces
+		/* would be nice to use BM_face_calc_area, but that is for 2d faces
 		 * so instead add up tessellation triangle areas */
 		BMFace *f;
 		int n;
@@ -2911,7 +2910,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 			BMIter liter;
 			BMLoop *loop;
 
-			BM_face_center_bounds_calc(em->bm, efa, vmid);
+			BM_face_calc_center_bounds(efa, vmid);
 
 			for (loop = BM_iter_new(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
 			     loop; loop = BM_iter_step(&liter))
@@ -2958,7 +2957,7 @@ static void draw_em_indices(BMEditMesh *em)
 	i = 0;
 	if (em->selectmode & SCE_SELECT_VERTEX) {
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
-		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				sprintf(numstr, "%d", i);
 				view3d_cached_text_draw_add(v->co, numstr, 0, txt_flag, col);
@@ -2970,7 +2969,7 @@ static void draw_em_indices(BMEditMesh *em)
 	if (em->selectmode & SCE_SELECT_EDGE) {
 		i = 0;
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 				sprintf(numstr, "%d", i);
 				mid_v3_v3v3(pos, e->v1->co, e->v2->co);
@@ -2983,9 +2982,9 @@ static void draw_em_indices(BMEditMesh *em)
 	if (em->selectmode & SCE_SELECT_FACE) {
 		i = 0;
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
-		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-				BM_face_center_mean_calc(bm, f, pos);
+				BM_face_calc_center_mean(f, pos);
 				sprintf(numstr, "%d", i);
 				view3d_cached_text_draw_add(pos, numstr, 0, txt_flag, col);
 			}
@@ -3447,7 +3446,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 				GPU_disable_material();
 			}
-			else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) {
+			else if (ob->mode & OB_MODE_VERTEX_PAINT) {
 				if (me->mloopcol)
 					dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, NULL,
 					                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
@@ -4342,8 +4341,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		normalize_v3(imat[1]);
 	}
 
-	if (ELEM3(draw_as, PART_DRAW_DOT, PART_DRAW_CROSS, PART_DRAW_LINE)
-	    && part->draw_col > PART_DRAW_COL_MAT)
+	if (ELEM3(draw_as, PART_DRAW_DOT, PART_DRAW_CROSS, PART_DRAW_LINE) &&
+	    (part->draw_col > PART_DRAW_COL_MAT))
 	{
 		create_cdata = 1;
 	}
@@ -6527,9 +6526,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					zbufoff = 1;
 					dt = OB_SOLID;
 				}
-				else {
+				else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))
 					dt = OB_PAINT;
-				}
 
 				glEnable(GL_DEPTH_TEST);
 			}

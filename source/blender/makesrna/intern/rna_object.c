@@ -603,7 +603,7 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *res
 static int rna_Object_active_material_index_get(PointerRNA *ptr)
 {
 	Object *ob = (Object*)ptr->id.data;
-	return MAX2(ob->actcol-1, 0);
+	return MAX2(ob->actcol - 1, 0);
 }
 
 static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
@@ -644,7 +644,8 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 	assign_material(ob, value.data, ob->actcol);
 }
 
-static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max,
+                                                          int *softmin, int *softmax)
 {
 	Object *ob = (Object*)ptr->id.data;
 	*min = 0;

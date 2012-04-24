@@ -39,10 +39,10 @@
 #include <errno.h>
 
 #ifdef WIN32
-#include <io.h>		// read, open
-#include "BLI_winstuff.h"
+#  include <io.h>		// read, open
+#  include "BLI_winstuff.h"
 #else // ! WIN32
-#include <unistd.h>		// read
+#  include <unistd.h>		// read
 #endif
 
 #include "BLO_readfile.h"

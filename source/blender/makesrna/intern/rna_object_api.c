@@ -39,11 +39,6 @@
 #include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
 
-/* #include "BLO_sys_types.h"  *//* needed for intptr_t used in ED_mesh.h */
-
-/* #include "ED_mesh.h" */
-
-
 #ifdef RNA_RUNTIME
 #include "BLI_math.h"
 

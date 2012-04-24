@@ -358,7 +358,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					if (OB_TYPE_SUPPORT_MATERIAL(base->object->type)) {
 						/* don't use assign_material, it changed mat->id.us, which shows in the UI */
 						Material ***matar = give_matarar(base->object);
-						int actcol = MAX2(base->object->actcol > 0, 1) - 1;
+						int actcol = MAX2(base->object->actcol - 1, 0);
 
 						if (matar && actcol < base->object->totcol)
 							(*matar)[actcol] = mat;
@@ -706,7 +706,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	}
 	else {
 		/* validate owner */
-		//if(ri->rect==NULL)
+		//if (ri->rect==NULL)
 		//	ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
 		//RE_ResultGet32(re, ri->rect);
 	}
@@ -987,20 +987,19 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 	IconPreviewSize *cur_size = ip->sizes.first;
 
 	while (cur_size) {
-		ShaderPreview sp;
-
-		memset(&sp, 0, sizeof(ShaderPreview));
+		ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
 
 		/* construct shader preview from image size and previewcustomdata */
-		sp.scene = ip->scene;
-		sp.owner = ip->owner;
-		sp.sizex = cur_size->sizex;
-		sp.sizey = cur_size->sizey;
-		sp.pr_method = PR_ICON_RENDER;
-		sp.pr_rect = cur_size->rect;
-		sp.id = ip->id;
+		sp->scene = ip->scene;
+		sp->owner = ip->owner;
+		sp->sizex = cur_size->sizex;
+		sp->sizey = cur_size->sizey;
+		sp->pr_method = PR_ICON_RENDER;
+		sp->pr_rect = cur_size->rect;
+		sp->id = ip->id;
 
-		common_preview_startjob(&sp, stop, do_update, progress);
+		common_preview_startjob(sp, stop, do_update, progress);
+		shader_preview_free(sp);
 
 		cur_size = cur_size->next;
 	}

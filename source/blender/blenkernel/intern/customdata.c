@@ -1099,7 +1099,7 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_ORIGINDEX | CD_MASK_POLYINDEX;
 const CustomDataMask CD_MASK_BMESH = CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | 
-	CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS | CD_MASK_CREASE | CD_MASK_BWEIGHT;
+	CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS | CD_MASK_CREASE | CD_MASK_BWEIGHT | CD_MASK_RECAST;
 const CustomDataMask CD_MASK_FACECORNERS =
 	CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
 	CD_MASK_MLOOPCOL;
@@ -1810,9 +1810,9 @@ void CustomData_copy_data(const CustomData *source, CustomData *dest,
 		/* find the first dest layer with type >= the source type
 		 * (this should work because layers are ordered by type)
 		 */
-		while (dest_i < dest->totlayer
-			  && dest->layers[dest_i].type < source->layers[src_i].type)
+		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
 			++dest_i;
+		}
 
 		/* if there are no more dest layers, we're done */
 		if (dest_i >= dest->totlayer) return;
@@ -1901,9 +1901,9 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 		/* find the first dest layer with type >= the source type
 		 * (this should work because layers are ordered by type)
 		 */
-		while (dest_i < dest->totlayer
-			  && dest->layers[dest_i].type < source->layers[src_i].type)
+		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
 			++dest_i;
+		}
 
 		/* if there are no more dest layers, we're done */
 		if (dest_i >= dest->totlayer) return;
@@ -2056,7 +2056,7 @@ void CustomData_set(const CustomData *data, int index, int type, void *source)
 /*Bmesh functions*/
 /*needed to convert to/from different face reps*/
 void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata,
-			     int totloop, int totpoly)
+                             int totloop, int totpoly)
 {
 	int i;
 	for (i=0; i < fdata->totlayer; i++) {
@@ -2167,7 +2167,7 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 	int t;
 
 	/* copy old layer description so that old data can be copied into
-	   the new allocation */
+	 * the new allocation */
 	destold = *dest;
 	if (destold.layers) destold.layers = MEM_dupallocN(destold.layers);
 	
@@ -2191,7 +2191,7 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 
 	if (t != BM_LOOPS_OF_FACE) {
 		/*ensure all current elements follow new customdata layout*/
-		BM_ITER(h, &iter, bm, t, NULL) {
+		BM_ITER_MESH (h, &iter, bm, t) {
 			tmp = NULL;
 			CustomData_bmesh_copy_data(&destold, dest, h->data, &tmp);
 			CustomData_bmesh_free_block(&destold, &h->data);
@@ -2204,8 +2204,8 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 		BMIter liter;
 
 		/*ensure all current elements follow new customdata layout*/
-		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				tmp = NULL;
 				CustomData_bmesh_copy_data(&destold, dest, l->head.data, &tmp);
 				CustomData_bmesh_free_block(&destold, &l->head.data);
@@ -2272,9 +2272,9 @@ void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
 		/* find the first dest layer with type >= the source type
 		 * (this should work because layers are ordered by type)
 		 */
-		while (dest_i < dest->totlayer
-			  && dest->layers[dest_i].type < source->layers[src_i].type)
+		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
 			++dest_i;
+		}
 
 		/* if there are no more dest layers, we're done */
 		if (dest_i >= dest->totlayer) return;
@@ -2504,9 +2504,9 @@ void CustomData_to_bmesh_block(const CustomData *source, CustomData *dest,
 		/* find the first dest layer with type >= the source type
 		 * (this should work because layers are ordered by type)
 		 */
-		while (dest_i < dest->totlayer
-			  && dest->layers[dest_i].type < source->layers[src_i].type)
+		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
 			++dest_i;
+		}
 
 		/* if there are no more dest layers, we're done */
 		if (dest_i >= dest->totlayer) return;
@@ -2547,9 +2547,9 @@ void CustomData_from_bmesh_block(const CustomData *source, CustomData *dest,
 		/* find the first dest layer with type >= the source type
 		 * (this should work because layers are ordered by type)
 		 */
-		while (dest_i < dest->totlayer
-			  && dest->layers[dest_i].type < source->layers[src_i].type)
+		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
 			++dest_i;
+		}
 
 		/* if there are no more dest layers, we're done */
 		if (dest_i >= dest->totlayer) return;

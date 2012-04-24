@@ -404,8 +404,9 @@ static BMOpDefine bmo_join_triangles_def = {
 static BMOpDefine bmo_contextual_create_def = {
 	"contextual_create",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, //input geometry.
-	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, //newly-made face(s)
-	 {BMO_OP_SLOT_INT,         "mat_nr"},  /* material to use */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"},     /* newly-made face(s) */
+	 {BMO_OP_SLOT_INT,         "mat_nr"},      /* material to use */
+	 {BMO_OP_SLOT_BOOL,        "use_smooth"},  /* material to use */
 	 {0, /* null-terminating sentinel */}},
 	bmo_contextual_create_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
@@ -431,8 +432,9 @@ static BMOpDefine bmo_edgenet_fill_def = {
 	 {BMO_OP_SLOT_BOOL,        "use_fill_check"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "excludefaces"}, /* list of faces to ignore for manifold check */
 	 {BMO_OP_SLOT_MAPPING,     "faceout_groupmap"}, /* maps new faces to the group numbers they came fro */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* new face */
-	 {BMO_OP_SLOT_INT,         "mat_nr"},  /* material to use */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"},     /* new face */
+	 {BMO_OP_SLOT_INT,         "mat_nr"},      /* material to use */
+	 {BMO_OP_SLOT_BOOL,        "use_smooth"},  /* material to use */
 	 {0, /* null-terminating sentinel */}},
 	bmo_edgenet_fill_exec,
 	0,
@@ -692,10 +694,9 @@ static BMOpDefine bmo_triangulate_def = {
 static BMOpDefine bmo_esubd_def = {
 	"esubd",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},
-	 {BMO_OP_SLOT_INT, "numcuts"},
 	 {BMO_OP_SLOT_FLT, "smooth"},
 	 {BMO_OP_SLOT_FLT, "fractal"},
-	 {BMO_OP_SLOT_INT, "beauty"},
+	 {BMO_OP_SLOT_INT, "numcuts"},
 	 {BMO_OP_SLOT_INT, "seed"},
 	 {BMO_OP_SLOT_MAPPING, "custompatterns"},
 	 {BMO_OP_SLOT_MAPPING, "edgepercents"},
@@ -705,9 +706,10 @@ static BMOpDefine bmo_esubd_def = {
 	 {BMO_OP_SLOT_ELEMENT_BUF, "outsplit"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"}, /* contains all output geometr */
 
-	 {BMO_OP_SLOT_INT,  "quadcornertype"}, //quad corner type, see bmesh_operators.h
-	 {BMO_OP_SLOT_BOOL, "gridfill"}, //fill in fully-selected faces with a grid
-	 {BMO_OP_SLOT_BOOL, "singleedge"}, //tessellate the case of one edge selected in a quad or triangle
+	 {BMO_OP_SLOT_INT,  "quadcornertype"}, /* quad corner type, see bmesh_operators.h */
+	 {BMO_OP_SLOT_BOOL, "use_gridfill"},   /* fill in fully-selected faces with a grid */
+	 {BMO_OP_SLOT_BOOL, "use_singleedge"}, /* tessellate the case of one edge selected in a quad or triangle */
+	 {BMO_OP_SLOT_BOOL, "use_sphere"},     /* for making new primitives only */
 
 	 {0} /* null-terminating sentinel */,
 	},
@@ -1099,6 +1101,7 @@ static BMOpDefine bmo_inset_def = {
 	 {BMO_OP_SLOT_BOOL, "use_even_offset"},
 	 {BMO_OP_SLOT_BOOL, "use_relative_offset"},
 	 {BMO_OP_SLOT_FLT, "thickness"},
+	 {BMO_OP_SLOT_FLT, "depth"},
 	 {BMO_OP_SLOT_BOOL, "use_outset"},
 	 {0} /* null-terminating sentinel */},
 	bmo_inset_exec,
@@ -1110,14 +1113,14 @@ static BMOpDefine bmo_inset_def = {
  *
  * Translates vertes along an edge
  */
-static BMOpDefine bmo_vert_slide_def = {
-"vertslide",
+static BMOpDefine bmo_vertex_slide_def = {
+	"vertex_slide",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "vert"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edge"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"},
 	 {BMO_OP_SLOT_FLT, "distance_t"},
 	 {0} /* null-terminating sentinel */},
-	bmo_vert_slide_exec,
+	bmo_vertex_slide_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
@@ -1189,7 +1192,7 @@ BMOpDefine *opdefines[] = {
 	&bmo_bridge_loops_def,
 	&bmo_solidify_def,
 	&bmo_inset_def,
-	&bmo_vert_slide_def,
+	&bmo_vertex_slide_def,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void *));

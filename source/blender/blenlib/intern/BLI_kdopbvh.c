@@ -1328,8 +1328,8 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 			else
 			{
 				//adjust heap size
-				if (heap_size >= max_heap_size
-				&& ADJUST_MEMORY(default_heap, (void**)&heap, heap_size+1, &max_heap_size, sizeof(heap[0])) == FALSE)
+				if ((heap_size >= max_heap_size) &&
+				    ADJUST_MEMORY(default_heap, (void**)&heap, heap_size+1, &max_heap_size, sizeof(heap[0])) == FALSE)
 				{
 					printf("WARNING: bvh_find_nearest got out of memory\n");
 
@@ -1429,9 +1429,11 @@ static float ray_nearest_hit(BVHRayCastData *data, float *bv)
 		if (data->ray_dot_axis[i] == 0.0f)
 		{
 			//axis aligned ray
-			if (data->ray.origin[i] < bv[0] - data->ray.radius
-			|| data->ray.origin[i] > bv[1] + data->ray.radius)
+			if (data->ray.origin[i] < bv[0] - data->ray.radius ||
+			    data->ray.origin[i] > bv[1] + data->ray.radius)
+			{
 				return FLT_MAX;
+			}
 		}
 		else
 		{

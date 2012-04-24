@@ -76,7 +76,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		types_init= 0;
 	}
 
-	/* type unsigned, no need to chech < 0 */
+	/* type unsigned, no need to check < 0 */
 	if (type < NUM_MODIFIER_TYPES && types[type]->name[0] != '\0') {
 		return types[type];
 	}

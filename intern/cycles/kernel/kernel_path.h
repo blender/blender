@@ -147,13 +147,13 @@ __device_inline float path_state_terminate_probability(KernelGlobals *kg, PathSt
 
 __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow)
 {
+	*shadow = make_float3(1.0f, 1.0f, 1.0f);
+
 	if(ray->t == 0.0f)
 		return false;
 	
 	Intersection isect;
 	bool result = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect);
-
-	*shadow = make_float3(1.0f, 1.0f, 1.0f);
 
 #ifdef __TRANSPARENT_SHADOWS__
 	if(result && kernel_data.integrator.transparent_shadows) {

@@ -201,6 +201,8 @@ void psys_set_current_num(Object *ob, int index)
 			psys->flag &= ~PSYS_CURRENT;
 	}
 }
+
+#if 0 /* UNUSED */
 Object *psys_find_object(Scene *scene, ParticleSystem *psys)
 {
 	Base *base;
@@ -215,6 +217,8 @@ Object *psys_find_object(Scene *scene, ParticleSystem *psys)
 
 	return NULL;
 }
+#endif
+
 Object *psys_get_lattice(ParticleSimulationData *sim)
 {
 	Object *lattice=NULL;
@@ -1695,7 +1699,7 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 
 			*mapindex = index;
 		}
-		else  { /* FROM_FACE/FROM_VOLUME */
+		else { /* FROM_FACE/FROM_VOLUME */
 			if (index >= dm->getNumTessFaces(dm))
 				return 0;
 
@@ -1713,7 +1717,7 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 
 			*mapindex = index_dmcache;
 		}
-		else  { /* FROM_FACE/FROM_VOLUME */
+		else { /* FROM_FACE/FROM_VOLUME */
 			/* find a face on the derived mesh that uses this face */
 			MFace *mface;
 			OrigSpaceFace *osface;
@@ -4276,10 +4280,13 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 
 			state->time = psys_get_child_time(psys, cpa, cfra, NULL, NULL);
 
-			if (!always)
-				if ((state->time < 0.0f && !(part->flag & PART_UNBORN))
-					|| (state->time > 1.0f && !(part->flag & PART_DIED)))
+			if (!always) {
+				if ((state->time < 0.0f && !(part->flag & PART_UNBORN)) ||
+				    (state->time > 1.0f && !(part->flag & PART_DIED)))
+				{
 					return 0;
+				}
+			}
 
 			state->time= (cfra - (part->sta + (part->end - part->sta) * PSYS_FRAND(p + 23))) / (part->lifetime * PSYS_FRAND(p + 24));
 
@@ -4296,10 +4303,13 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	}
 
 	if (pa) {
-		if (!always)
-			if ((cfra < pa->time && (part->flag & PART_UNBORN)==0)
-				|| (cfra > pa->dietime && (part->flag & PART_DIED)==0))
+		if (!always) {
+			if ((cfra < pa->time    && (part->flag & PART_UNBORN) == 0) ||
+			    (cfra > pa->dietime && (part->flag & PART_DIED)   == 0))
+			{
 				return 0;
+			}
+		}
 
 		cfra = MIN2(cfra, pa->dietime);
 	}

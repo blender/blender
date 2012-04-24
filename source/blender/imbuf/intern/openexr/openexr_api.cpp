@@ -1007,7 +1007,6 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 					if (handle) {
 						IMB_exr_read_channels(handle);
 						ibuf->userdata= handle;			/* potential danger, the caller has to check for this! */
-						return ibuf;
 					}
 				}
 				else {
@@ -1055,11 +1054,12 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 					//
 					// if (flag & IM_rect)
 					//     IMB_rect_from_float(ibuf);
+					
+					/* file is no longer needed */
+					delete file;
 				}
 			}
-			
 		}
-		delete file;
 		return(ibuf);
 	}
 	catch (const std::exception &exc)

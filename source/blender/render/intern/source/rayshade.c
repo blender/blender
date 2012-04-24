@@ -102,7 +102,7 @@ static RayObject*  RE_rayobject_create(Render *re, int type, int size)
 	if (type == R_RAYSTRUCTURE_AUTO)
 	{
 		//TODO
-		//if(detect_simd())
+		//if (detect_simd())
 #ifdef __SSE__
 		type = BLI_cpu_support_sse2()? R_RAYSTRUCTURE_SIMD_SVBVH: R_RAYSTRUCTURE_VBVH;
 #else

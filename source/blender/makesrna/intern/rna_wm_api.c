@@ -120,22 +120,19 @@ static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km, ReportList *reports
 		return NULL;
 	}
 
-	if (!km->modal_items) {
-		BKE_report(reports, RPT_ERROR, "No property values defined");
-		return NULL;
-	}
-
-
-	if (RNA_enum_value_from_id(km->modal_items, propvalue_str, &propvalue) == 0) {
-		BKE_report(reports, RPT_WARNING, "Property value not in enumeration");
-	}
-
 	if (shift) modifier |= KM_SHIFT;
 	if (ctrl) modifier |= KM_CTRL;
 	if (alt) modifier |= KM_ALT;
 	if (oskey) modifier |= KM_OSKEY;
 
 	if (any) modifier = KM_ANY;
+
+	/* not initialized yet, do delayed lookup */
+	if (!km->modal_items)
+		return WM_modalkeymap_add_item_str(km, type, value, modifier, keymodifier, propvalue_str);
+
+	if (RNA_enum_value_from_id(km->modal_items, propvalue_str, &propvalue) == 0)
+		BKE_report(reports, RPT_WARNING, "Property value not in enumeration");
 
 	return WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, propvalue);
 }

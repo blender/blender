@@ -168,8 +168,8 @@ void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(track->name, value, sizeof(track->name));
 
 	/* TODO: it's a bit difficult to find list track came from knowing just
-	         movie clip ID and MovieTracking structure, so keep this naive
-			 search for a while */
+	 *       movie clip ID and MovieTracking structure, so keep this naive
+	 *       search for a while */
 	if (BLI_findindex(tracksbase, track) < 0) {
 		MovieTrackingObject *object = tracking->objects.first;
 
@@ -1074,7 +1074,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Color",
-	                         "Color of the track in the Movie Track Editor and the 3D viewport after a solve");
+	                         "Color of the track in the Movie Clip Editor and the 3D viewport after a solve");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
 	/* average error */

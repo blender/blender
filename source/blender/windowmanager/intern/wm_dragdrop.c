@@ -36,6 +36,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLF_translation.h"
+
 #include "BLI_blenlib.h"
 
 #include "BIF_gl.h"
@@ -54,6 +56,8 @@
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
+
+#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -179,8 +183,10 @@ static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag,
 		if (handler->dropboxes) {
 			wmDropBox *drop = handler->dropboxes->first;
 			for (; drop; drop = drop->next) {
-				if (drop->poll(C, drag, event)) 
-					return drop->ot->name;
+				if (drop->poll(C, drag, event))
+					/* XXX Doing translation here might not be ideal, but later we have no more
+					 *     access to ot (and hence op context)... */
+					return RNA_struct_ui_name(drop->ot->srna);
 			}
 		}
 	}
@@ -220,7 +226,7 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, wmEvent *event)
 	
 	/* check buttons (XXX todo rna and value) */
 	if (UI_but_active_drop_name(C) ) {
-		strcpy(drag->opname, "Paste name");
+		strcpy(drag->opname, IFACE_("Paste name"));
 	}
 	else {
 		const char *opname = wm_dropbox_active(C, drag, event);

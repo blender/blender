@@ -186,6 +186,41 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 	}
 }
 
+/* parse an array of vectors */
+int mathutils_array_parse_alloc_v(float **array, int array_dim, PyObject *value, const char *error_prefix)
+{
+	PyObject *value_fast = NULL;
+	int i, size;
+
+	/* non list/tuple cases */
+	if (!(value_fast = PySequence_Fast(value, error_prefix))) {
+		/* PySequence_Fast sets the error */
+		return -1;
+	}
+
+	size = PySequence_Fast_GET_SIZE(value_fast);
+
+	if (size != 0) {
+		float *fp;
+
+		fp = *array = PyMem_Malloc(size * array_dim * sizeof(float));
+
+		for (i = 0; i < size; i++, fp += array_dim) {
+			PyObject *item = PySequence_Fast_GET_ITEM(value, i);
+
+			if (mathutils_array_parse(fp, array_dim, array_dim, item, error_prefix) == -1) {
+				PyMem_Free(*array);
+				*array = NULL;
+				size = -1;
+				break;
+			}
+		}
+	}
+
+	Py_DECREF(value_fast);
+	return size;
+}
+
 int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix)
 {
 	if (EulerObject_Check(value)) {
@@ -433,8 +468,8 @@ static struct PyModuleDef M_Mathutils_module_def = {
 
 PyMODINIT_FUNC PyInit_mathutils(void)
 {
+	PyObject *mod;
 	PyObject *submodule;
-	PyObject *item;
 	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
 
 	if (PyType_Ready(&vector_Type) < 0)
@@ -450,31 +485,31 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	if (PyType_Ready(&color_Type) < 0)
 		return NULL;
 
-	submodule = PyModule_Create(&M_Mathutils_module_def);
+	mod = PyModule_Create(&M_Mathutils_module_def);
 	
 	/* each type has its own new() function */
-	PyModule_AddObject(submodule, "Vector",     (PyObject *)&vector_Type);
-	PyModule_AddObject(submodule, "Matrix",     (PyObject *)&matrix_Type);
-	PyModule_AddObject(submodule, "Euler",      (PyObject *)&euler_Type);
-	PyModule_AddObject(submodule, "Quaternion", (PyObject *)&quaternion_Type);
-	PyModule_AddObject(submodule, "Color",      (PyObject *)&color_Type);
+	PyModule_AddObject(mod, vector_Type.tp_name,     (PyObject *)&vector_Type);
+	PyModule_AddObject(mod, matrix_Type.tp_name,     (PyObject *)&matrix_Type);
+	PyModule_AddObject(mod, euler_Type.tp_name,      (PyObject *)&euler_Type);
+	PyModule_AddObject(mod, quaternion_Type.tp_name, (PyObject *)&quaternion_Type);
+	PyModule_AddObject(mod, color_Type.tp_name,      (PyObject *)&color_Type);
 	
 	/* submodule */
-	PyModule_AddObject(submodule, "geometry",       (item = PyInit_mathutils_geometry()));
+	PyModule_AddObject(mod, "geometry",       (submodule = PyInit_mathutils_geometry()));
 	/* XXX, python doesnt do imports with this usefully yet
 	 * 'from mathutils.geometry import PolyFill'
 	 * ...fails without this. */
-	PyDict_SetItemString(sys_modules, "mathutils.geometry", item);
-	Py_INCREF(item);
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
 
 	/* Noise submodule */
-	PyModule_AddObject(submodule, "noise", (item = PyInit_mathutils_noise()));
-	PyDict_SetItemString(sys_modules, "mathutils.noise", item);
-	Py_INCREF(item);
+	PyModule_AddObject(mod, "noise", (submodule = PyInit_mathutils_noise()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
 
 	mathutils_matrix_row_cb_index = Mathutils_RegisterCallback(&mathutils_matrix_row_cb);
 	mathutils_matrix_col_cb_index = Mathutils_RegisterCallback(&mathutils_matrix_col_cb);
 	mathutils_matrix_translation_cb_index = Mathutils_RegisterCallback(&mathutils_matrix_translation_cb);
 
-	return submodule;
+	return mod;
 }

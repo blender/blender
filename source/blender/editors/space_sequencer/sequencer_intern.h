@@ -176,7 +176,6 @@ struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf);
 /* sequencer_buttons.c */
 
 void SEQUENCER_OT_properties(struct wmOperatorType *ot);
-void sequencer_buttons_register(struct ARegionType *art);
 
 #endif /* __SEQUENCER_INTERN_H__ */
 

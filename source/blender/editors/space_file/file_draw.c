@@ -35,8 +35,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
+
 #ifdef WIN32
-#include "BLI_winstuff.h"
+#  include "BLI_winstuff.h"
 #endif
 
 #include "BIF_gl.h"
@@ -154,8 +155,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 						  btn_margin + UI_GetStringWidth(params->title));
 	}
 	
-	if (available_w <= loadbutton + separator + input_minw 
-	 || params->title[0] == 0) {
+	if (available_w <= loadbutton + separator + input_minw || params->title[0] == 0) {
 		loadbutton = 0;
 	}
 	else {
@@ -223,11 +223,11 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	
 	/* Execute / cancel buttons. */
 	if (loadbutton) {
-		
-		uiDefButO(block, BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, IFACE_(params->title),
-			max_x - loadbutton, line1_y, loadbutton, btn_h, TIP_(params->title));
+		/* params->title is already translated! */
+		uiDefButO(block, BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, params->title,
+		          max_x - loadbutton, line1_y, loadbutton, btn_h, "");
 		uiDefButO(block, BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, IFACE_("Cancel"),
-			max_x - loadbutton, line2_y, loadbutton, btn_h, TIP_("Cancel"));
+		          max_x - loadbutton, line2_y, loadbutton, btn_h, "");
 	}
 	
 	uiEndBlock(C, block);
@@ -502,7 +502,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 
 		if (!(file->selflag & EDITING_FILE)) {
-			if  ((params->active_file == i) || (file->selflag & HILITED_FILE) || (file->selflag & SELECTED_FILE) ) {
+			if ((params->active_file == i) || (file->selflag & HILITED_FILE) || (file->selflag & SELECTED_FILE)) {
 				int colorid = (file->selflag & SELECTED_FILE) ? TH_HILITE : TH_BACK;
 				int shade = (params->active_file == i) || (file->selflag & HILITED_FILE) ? 20 : 0;
 				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid, shade);

@@ -2068,12 +2068,13 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	butwidth = width - UI_UNIT_X - 10;
 	
 	/* existence of profile means storage is in linear color space, with display correction */
+	/* XXX That tip message is not use anywhere! */
 	if (block->color_profile == BLI_PR_NONE) {
-		BLI_strncpy(tip, "Value in Display Color Space", sizeof(tip));
+		BLI_strncpy(tip, N_("Value in Display Color Space"), sizeof(tip));
 		copy_v3_v3(rgb_gamma, rgba);
 	}
 	else {
-		BLI_strncpy(tip, "Value in Linear RGB Color Space", sizeof(tip));
+		BLI_strncpy(tip, N_("Value in Linear RGB Color Space"), sizeof(tip));
 		/* make an sRGB version, for Hex code */
 		linearrgb_to_srgb_v3_v3(rgb_gamma, rgba);
 	}
@@ -2101,11 +2102,11 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	
 	/* mode */
 	uiBlockBeginAlign(block);
-	bt = uiDefButS(block, ROW, 0, "RGB", 0, -30, width / 3, UI_UNIT_Y, &colormode, 0.0, 0.0, 0, 0, "");
+	bt = uiDefButS(block, ROW, 0, IFACE_("RGB"), 0, -30, width / 3, UI_UNIT_Y, &colormode, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
-	bt = uiDefButS(block, ROW, 0, "HSV", width / 3, -30, width / 3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
+	bt = uiDefButS(block, ROW, 0, IFACE_("HSV"), width / 3, -30, width / 3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
-	bt = uiDefButS(block, ROW, 0, "Hex", 2 * width / 3, -30, width / 3, UI_UNIT_Y, &colormode, 0.0, 2.0, 0, 0, "");
+	bt = uiDefButS(block, ROW, 0, IFACE_("Hex"), 2 * width / 3, -30, width / 3, UI_UNIT_Y, &colormode, 0.0, 2.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
 	uiBlockEndAlign(block);
 
@@ -2114,11 +2115,11 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	
 	/* RGB values */
 	uiBlockBeginAlign(block);
-	bt = uiDefButR_prop(block, NUMSLI, 0, "R ",  0, -60, butwidth, UI_UNIT_Y, ptr, prop, 0, 0.0, 0.0, 0, 3, "Red");
+	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("R "),  0, -60, butwidth, UI_UNIT_Y, ptr, prop, 0, 0.0, 0.0, 0, 3, TIP_("Red"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt = uiDefButR_prop(block, NUMSLI, 0, "G ",  0, -80, butwidth, UI_UNIT_Y, ptr, prop, 1, 0.0, 0.0, 0, 3, "Green");
+	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("G "),  0, -80, butwidth, UI_UNIT_Y, ptr, prop, 1, 0.0, 0.0, 0, 3, TIP_("Green"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt = uiDefButR_prop(block, NUMSLI, 0, "B ",  0, -100, butwidth, UI_UNIT_Y, ptr, prop, 2, 0.0, 0.0, 0, 3, "Blue");
+	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("B "),  0, -100, butwidth, UI_UNIT_Y, ptr, prop, 2, 0.0, 0.0, 0, 3, TIP_("Blue"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 
 	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NONE);
@@ -2126,16 +2127,16 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	
 	/* HSV values */
 	uiBlockBeginAlign(block);
-	bt = uiDefButF(block, NUMSLI, 0, "H ",   0, -60, butwidth, UI_UNIT_Y, hsv, 0.0, 1.0, 10, 3, "Hue");
+	bt = uiDefButF(block, NUMSLI, 0, IFACE_("H "),   0, -60, butwidth, UI_UNIT_Y, hsv, 0.0, 1.0, 10, 3, TIP_("Hue"));
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
-	bt = uiDefButF(block, NUMSLI, 0, "S ",   0, -80, butwidth, UI_UNIT_Y, hsv + 1, 0.0, 1.0, 10, 3, "Saturation");
+	bt = uiDefButF(block, NUMSLI, 0, IFACE_("S "),   0, -80, butwidth, UI_UNIT_Y, hsv + 1, 0.0, 1.0, 10, 3, TIP_("Saturation"));
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
-	bt = uiDefButF(block, NUMSLI, 0, "V ",   0, -100, butwidth, UI_UNIT_Y, hsv + 2, 0.0, max, 10, 3, "Value");
+	bt = uiDefButF(block, NUMSLI, 0, IFACE_("V "),   0, -100, butwidth, UI_UNIT_Y, hsv + 2, 0.0, max, 10, 3, TIP_("Value"));
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
 
 	if (rgba[3] != FLT_MAX) {
-		bt = uiDefButR_prop(block, NUMSLI, 0, "A ",  0, -120, butwidth, UI_UNIT_Y, ptr, prop, 3, 0.0, 0.0, 0, 0, "Alpha");
+		bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("A "),  0, -120, butwidth, UI_UNIT_Y, ptr, prop, 3, 0.0, 0.0, 0, 0, TIP_("Alpha"));
 		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	}
 	else {
@@ -2144,9 +2145,9 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 
 	BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 
-	bt = uiDefBut(block, TEX, 0, "Hex: ", 0, -60, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
+	bt = uiDefBut(block, TEX, 0, IFACE_("Hex: "), 0, -60, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, TIP_("Hex triplet for color (#RRGGBB)"));
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
-	uiDefBut(block, LABEL, 0, "(Gamma Corrected)", 0, -80, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, IFACE_("(Gamma Corrected)"), 0, -80, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	rgb_to_hsv(rgba[0], rgba[1], rgba[2], hsv, hsv + 1, hsv + 2);
 
@@ -2651,7 +2652,7 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 	if (mt->poll && mt->poll(C, mt) == 0)
 		return;
 
-	pup = uiPupMenuBegin(C, mt->label, ICON_NONE);
+	pup = uiPupMenuBegin(C, IFACE_(mt->label), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 
 	menu.layout = layout;

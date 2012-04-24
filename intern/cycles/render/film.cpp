@@ -125,7 +125,6 @@ void Pass::add(PassType type, vector<Pass>& passes)
 			break;
 		case PASS_AO:
 			pass.components = 4;
-			pass.exposure = true;
 			break;
 		case PASS_SHADOW:
 			pass.components = 4;

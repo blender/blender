@@ -360,7 +360,7 @@ static void make_vertexcol(Object *ob)  /* single ob */
 		}
 	}
 
-	//if(shade)
+	//if (shade)
 	//	shadeMeshMCol(scene, ob, me);
 	//else
 	
@@ -822,7 +822,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	
 	/* brecht: disabled this because it obviously fails for
 	 * brushes with size > 64, why is this here? */
-	/*if(size > 64.0) size = 64.0;*/
+	/*if (size > 64.0) size = 64.0;*/
 	
 	ibuf = view3d_read_backbuf(vc, x - size, y - size, x + size, y + size);
 	if (ibuf) {
@@ -2770,9 +2770,7 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob,
 
 static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
                               const unsigned int index, const float mval[2],
-                              const float brush_size_pressure, const float brush_alpha_pressure,
-                              int UNUSED(flip)
-                              )
+                              const float brush_size_pressure, const float brush_alpha_pressure)
 {
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = paint_brush(&vp->paint);
@@ -2871,7 +2869,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	Mesh *me = ob->data;
 	float mat[4][4];
 	int *indexar = vpd->indexar;
-	int totindex, index, flip;
+	int totindex, index;
 	float mval[2];
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
@@ -2879,9 +2877,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	const float brush_alpha_pressure = brush_alpha(scene, brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
-	flip = RNA_boolean_get(itemptr, "pen_flip");
-
-	(void)flip; /* BMESH_TODO */
 
 	view3d_operator_needs_opengl(C);
 			
@@ -2932,7 +2927,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	for (index = 0; index < totindex; index++) {
 				
 		if (indexar[index] && indexar[index] <= me->totpoly) {
-			vpaint_paint_poly(vp, vpd, ob, indexar[index] - 1, mval, brush_size_pressure, brush_alpha_pressure, flip);
+			vpaint_paint_poly(vp, vpd, ob, indexar[index] - 1, mval, brush_size_pressure, brush_alpha_pressure);
 		}
 	}
 		

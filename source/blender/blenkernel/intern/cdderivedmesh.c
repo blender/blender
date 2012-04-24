@@ -412,8 +412,9 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 		DEBUG_VBO( "Using legacy code. cdDM_drawEdges\n" );
 		glBegin(GL_LINES);
 		for (i = 0; i < dm->numEdgeData; i++, medge++) {
-			if ((drawAllEdges || (medge->flag&ME_EDGEDRAW))
-			   && (drawLooseEdges || !(medge->flag&ME_LOOSEEDGE))) {
+			if ((drawAllEdges || (medge->flag & ME_EDGEDRAW)) &&
+			    (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
+			{
 				glVertex3fv(mvert[medge->v1].co);
 				glVertex3fv(mvert[medge->v2].co);
 			}
@@ -423,17 +424,18 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
 		int prevstart = 0;
 		int prevdraw = 1;
-		int draw = 1;
+		int draw = TRUE;
 
 		GPU_edge_setup(dm);
-		if ( !GPU_buffer_legacy(dm) ) {
+		if (!GPU_buffer_legacy(dm)) {
 			for (i = 0; i < dm->numEdgeData; i++, medge++) {
-				if ((drawAllEdges || (medge->flag&ME_EDGEDRAW))
-				   && (drawLooseEdges || !(medge->flag&ME_LOOSEEDGE))) {
-					draw = 1;
+				if ((drawAllEdges || (medge->flag & ME_EDGEDRAW)) &&
+				    (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
+				{
+					draw = TRUE;
 				} 
 				else {
-					draw = 0;
+					draw = FALSE;
 				}
 				if ( prevdraw != draw ) {
 					if ( prevdraw > 0 && (i-prevstart) > 0 ) {
@@ -538,8 +540,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 			new_matnr = mface->mat_nr + 1;
 			new_shademodel = (mface->flag & ME_SMOOTH)?GL_SMOOTH:GL_FLAT;
 			
-			if (new_glmode != glmode || new_matnr != matnr
-			   || new_shademodel != shademodel) {
+			if (new_glmode != glmode || new_matnr != matnr || new_shademodel != shademodel) {
 				glEnd();
 
 				drawCurrentMat = setMaterial(matnr = new_matnr, NULL);
@@ -700,14 +701,17 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		GPU_normal_setup( dm );
 		GPU_uv_setup( dm );
 		if ( col != NULL ) {
-			/*if( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL ) {
+#if 0
+			if ( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL ) {
 				col = 0;
 			}
 			else if ( mcol && dm->drawObject->colType == CD_MCOL ) {
 				col = 0;
 			}
 			
-			if ( col != 0 ) {*/
+			if ( col != 0 )
+#endif
+			{
 				unsigned char *colors = MEM_mallocN(dm->getNumTessFaces(dm)*4*3*sizeof(unsigned char), "cdDM_drawFacesTex_common");
 				for ( i=0; i < dm->getNumTessFaces(dm); i++ ) {
 					for ( j=0; j < 4; j++ ) {
@@ -723,7 +727,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					dm->drawObject->colType = CD_TEXTURE_MCOL;
 				else if (mcol)
 					dm->drawObject->colType = CD_MCOL;
-			//}
+			}
 			GPU_color_setup( dm );
 		}
 
@@ -1929,7 +1933,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 		mp->loopstart = j;
 		mp->mat_nr = efa->mat_nr;
 		
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			mloop->v = BM_elem_index_get(l->v);
 			mloop->e = BM_elem_index_get(l->e);
 			CustomData_from_bmesh_block(&bm->ldata, &dm->loopData, l->head.data, j);
@@ -1988,13 +1992,6 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
-
-	/* any callers that need tessface data can calculate it - campbell */
-#if 0
-	/* BMESH_TODO: Find out why this is necessary (or else find a way to remove
-	 * it). If it is necessary, add a comment explaining why. */
-	CDDM_recalc_tessellation((DerivedMesh *)cddm);
-#endif
 
 	return dm;
 }

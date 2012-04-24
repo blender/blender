@@ -634,6 +634,8 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				for (ma=bmain->mat.first; ma; ma=ma->id.next)
 					if (ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
 						GPU_material_free(ma);
+
+				WM_main_add_notifier(NC_IMAGE, NULL);
 			}
 
 			WM_main_add_notifier(NC_MATERIAL|ND_NODES, node->id);
@@ -693,8 +695,10 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 
 static int inside_rctf(rctf *bounds, rctf *rect)
 {
-	return (bounds->xmin <= rect->xmin && bounds->xmax >= rect->xmax
-			&& bounds->ymin <= rect->ymin && bounds->ymax >= rect->ymax);
+	return (bounds->xmin <= rect->xmin &&
+	        bounds->xmax >= rect->xmax &&
+	        bounds->ymin <= rect->ymin &&
+	        bounds->ymax >= rect->ymax);
 }
 
 static void node_frame_attach_nodes(bNodeTree *UNUSED(ntree), bNode *frame)
@@ -1603,38 +1607,38 @@ void NODE_OT_resize(wmOperatorType *ot)
 
 /* ********************** hidden sockets ******************** */
 
-int node_has_hidden_sockets(bNode *node, short flag)
+int node_has_hidden_sockets(bNode *node)
 {
 	bNodeSocket *sock;
 	
 	for (sock= node->inputs.first; sock; sock= sock->next)
-		if (sock->flag & flag)
+		if (sock->flag & SOCK_HIDDEN)
 			return 1;
 	for (sock= node->outputs.first; sock; sock= sock->next)
-		if (sock->flag & flag)
+		if (sock->flag & SOCK_HIDDEN)
 			return 1;
 	return 0;
 }
 
-void node_set_hidden_sockets(SpaceNode *snode, bNode *node, short flag, int set)
+void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
 {	
 	bNodeSocket *sock;
 
 	if (set==0) {
 		for (sock= node->inputs.first; sock; sock= sock->next)
-			sock->flag &= ~flag;
+			sock->flag &= ~SOCK_HIDDEN;
 		for (sock= node->outputs.first; sock; sock= sock->next)
-			sock->flag &= ~flag;
+			sock->flag &= ~SOCK_HIDDEN;
 	}
 	else {
 		/* hide unused sockets */
 		for (sock= node->inputs.first; sock; sock= sock->next) {
 			if (sock->link==NULL)
-				sock->flag |= flag;
+				sock->flag |= SOCK_HIDDEN;
 		}
 		for (sock= node->outputs.first; sock; sock= sock->next) {
 			if (nodeCountSocketLinks(snode->edittree, sock)==0)
-				sock->flag |= flag;
+				sock->flag |= SOCK_HIDDEN;
 		}
 	}
 }
@@ -1891,8 +1895,10 @@ static int outside_group_rect(SpaceNode *snode)
 {
 	bNode *gnode= node_tree_get_editgroup(snode->nodetree);
 	if (gnode) {
-		return (snode->mx < gnode->totr.xmin || snode->mx >= gnode->totr.xmax
-				|| snode->my < gnode->totr.ymin || snode->my >= gnode->totr.ymax);
+		return (snode->mx <  gnode->totr.xmin ||
+		        snode->mx >= gnode->totr.xmax ||
+		        snode->my <  gnode->totr.ymin ||
+		        snode->my >= gnode->totr.ymax);
 	}
 	return 0;
 }
@@ -2190,8 +2196,9 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 		/* This creates new links between copied nodes.
 		 * If keep_inputs is set, also copies input links from unselected (when fromnode==NULL)!
 		 */
-		if (link->tonode && (link->tonode->flag & NODE_SELECT)
-			&& (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT)))) {
+		if (link->tonode && (link->tonode->flag & NODE_SELECT) &&
+		    (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT))))
+		{
 			newlink = MEM_callocN(sizeof(bNodeLink), "bNodeLink");
 			newlink->flag = link->flag;
 			newlink->tonode = link->tonode->new_node;
@@ -2279,7 +2286,7 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeL
 				}
 				if (sock) {
 					tlink->tosock= sock;
-					sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
+					sock->flag &= ~SOCK_HIDDEN;
 				}
 				else {
 					nodeRemLink(snode->edittree, tlink);
@@ -2763,7 +2770,7 @@ static bNodeSocket *socket_best_match(ListBase *sockets)
 	for (type=maxtype; type >= 0; --type) {
 		for (sock= sockets->first; sock; sock= sock->next) {
 			if (type==sock->type) {
-				sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
+				sock->flag &= ~SOCK_HIDDEN;
 				return sock;
 			}
 		}
@@ -3107,20 +3114,10 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
 			if (toggle_flag== NODE_OPTIONS && (node->typeinfo->flag & NODE_OPTIONS)==0)
 				continue;
 			
-			if ( (tot_eq && tot_neq) || tot_eq==0) {
+			if ( (tot_eq && tot_neq) || tot_eq==0)
 				node->flag |= toggle_flag;
-				
-				/* hide/unhide node also toggles unlinked socket display */
-				if (toggle_flag== NODE_HIDDEN)
-					node_set_hidden_sockets(snode, node, SOCK_AUTO_HIDDEN, 1);
-			}
-			else {
+			else
 				node->flag &= ~toggle_flag;
-				
-				/* hide/unhide node also toggles unlinked socket display */
-				if (toggle_flag== NODE_HIDDEN)
-					node_set_hidden_sockets(snode, node, SOCK_AUTO_HIDDEN, 0);
-			}
 		}
 	}
 }
@@ -3233,7 +3230,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	hidden = 0;
 	for (node= snode->edittree->nodes.first; node; node= node->next) {
 		if (node->flag & SELECT) {
-			if (node_has_hidden_sockets(node, SOCK_HIDDEN)) {
+			if (node_has_hidden_sockets(node)) {
 				hidden= 1;
 				break;
 			}
@@ -3242,7 +3239,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	for (node= snode->edittree->nodes.first; node; node= node->next) {
 		if (node->flag & SELECT) {
-			node_set_hidden_sockets(snode, node, SOCK_HIDDEN, !hidden);
+			node_set_hidden_sockets(snode, node, !hidden);
 		}
 	}
 

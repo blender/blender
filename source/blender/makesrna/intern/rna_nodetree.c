@@ -357,7 +357,7 @@ static void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	node_update(bmain, scene, ntree, node);
 }
 
-static void rna_Node_image_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Node_tex_image_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree = (bNodeTree*)ptr->id.data;
 	bNode *node = (bNode*)ptr->data;
@@ -685,7 +685,8 @@ static void rna_NodeTree_node_clear(bNodeTree *ntree)
 	WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 }
 
-static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, bNodeSocket *fromsock, bNodeSocket *tosock)
+static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
+                                        bNodeSocket *fromsock, bNodeSocket *tosock)
 {
 	bNodeLink *ret;
 	bNode *fromnode = NULL, *tonode = NULL;
@@ -1298,7 +1299,7 @@ static void def_sh_tex_environment(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_image_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_tex_image_update");
 
 	RNA_def_struct_sdna_from(srna, "NodeTexEnvironment", "storage");
 	def_sh_tex(srna);
@@ -1332,7 +1333,7 @@ static void def_sh_tex_image(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_image_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_tex_image_update");
 
 	RNA_def_struct_sdna_from(srna, "NodeTexImage", "storage");
 	def_sh_tex(srna);
@@ -1710,14 +1711,14 @@ static void def_cmp_image(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	/*
-	 static EnumPropertyItem type_items[] = {
+#if 0
+	static EnumPropertyItem type_items[] = {
 		{IMA_SRC_FILE,      "IMAGE",     0, "Image",     ""},
 		{IMA_SRC_MOVIE,     "MOVIE",     "Movie",     ""},
 		{IMA_SRC_SEQUENCE,  "SEQUENCE",  "Sequence",  ""},
 		{IMA_SRC_GENERATED, "GENERATED", "Generated", ""},
 		{0, NULL, 0, NULL, NULL}};
-	*/
+#endif
 	
 	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
@@ -2872,13 +2873,14 @@ static void def_tex_image(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
-	/* is this supposed to be exposed? not sure..
+	/* is this supposed to be exposed? not sure.. */
+#if 0
 	prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "storage");
 	RNA_def_property_struct_type(prop, "ImageUser");
 	RNA_def_property_ui_text(prop, "Settings", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	 */
+#endif
 }
 
 static void def_tex_bricks(StructRNA *srna)

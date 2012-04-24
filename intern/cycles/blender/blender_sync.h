@@ -55,7 +55,7 @@ public:
 	/* sync */
 	bool sync_recalc();
 	void sync_data(BL::SpaceView3D b_v3d, const char *layer = 0);
-	void sync_camera(int width, int height);
+	void sync_camera(BL::Object b_override, int width, int height);
 	void sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height);
 
 	/* get parameters */
@@ -107,7 +107,8 @@ private:
 	struct RenderLayerInfo {
 		RenderLayerInfo()
 		: scene_layer(0), layer(0), holdout_layer(0),
-		  material_override(PointerRNA_NULL)
+		  material_override(PointerRNA_NULL),
+		  use_background(true)
 		{}
 
 		string name;
@@ -115,6 +116,7 @@ private:
 		uint layer;
 		uint holdout_layer;
 		BL::Material material_override;
+		bool use_background;
 	} render_layer;
 };
 

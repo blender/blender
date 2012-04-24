@@ -36,6 +36,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "../mathutils/mathutils.h"
+
 #include "bmesh.h"
 
 #include "bmesh_py_types.h"
@@ -366,7 +368,7 @@ static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args
 
 
 PyDoc_STRVAR(bpy_bm_utils_face_split_doc,
-".. method:: face_split(face, vert, vert_a, vert_b, edge_example)\n"
+".. method:: face_split(face, vert_a, vert_b, coords=(), use_exist=True, example=None)\n"
 "\n"
 "   Split an edge, return the newly created data.\n"
 "\n"
@@ -376,25 +378,43 @@ PyDoc_STRVAR(bpy_bm_utils_face_split_doc,
 "   :type vert_a: :class:`bmesh.types.BMVert`\n"
 "   :arg vert_b: Second vertex to cut in the face (face must contain the vert).\n"
 "   :type vert_b: :class:`bmesh.types.BMVert`\n"
-"   :arg edge_example: Optional edge argument, newly created edge will copy settings from this one.\n"
-"   :type edge_example: :class:`bmesh.types.BMEdge`\n"
+"   :arg coords: Optional argument to define points inbetween *vert_a* and *vert_b*.\n"
+"   :type coords: sequence of float triplets\n"
+"   :arg use_exist: .Use an existing edge if it exists (Only used when *coords* argument is empty or omitted)\n"
+"   :type use_exist: boolean\n"
+"   :arg example: Newly created edge will copy settings from this one.\n"
+"   :type example: :class:`bmesh.types.BMEdge`\n"
+"   :return: The newly created face or None on failure.\n"
+"   :rtype: (:class:`bmesh.types.BMFace`, :class:`bmesh.types.BMLoop`) pair\n"
 );
-static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
+static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
+	static const char *kwlist[] = {"face", "vert_a", "vert_b",
+	                               "coords", "use_exist", "example", NULL};
+
 	BPy_BMFace *py_face;
 	BPy_BMVert *py_vert_a;
 	BPy_BMVert *py_vert_b;
-	BPy_BMEdge *py_edge_example = NULL; /* optional */
+
+	/* optional */
+	PyObject *py_coords = NULL;
+	int edge_exists = TRUE;
+	BPy_BMEdge *py_edge_example = NULL;
+
+	float *coords;
+	int ncoords = 0;
 
 	BMesh *bm;
 	BMFace *f_new = NULL;
 	BMLoop *l_new = NULL;
 
-	if (!PyArg_ParseTuple(args, "O!O!O!|O!:face_split",
-	                      &BPy_BMFace_Type, &py_face,
-	                      &BPy_BMVert_Type, &py_vert_a,
-	                      &BPy_BMVert_Type, &py_vert_b,
-	                      &BPy_BMEdge_Type, &py_edge_example))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "O!O!O!|OiO!:face_split", (char **)kwlist,
+	                                 &BPy_BMFace_Type, &py_face,
+	                                 &BPy_BMVert_Type, &py_vert_a,
+	                                 &BPy_BMVert_Type, &py_vert_b,
+	                                 &py_coords,
+	                                 &edge_exists,
+	                                 &BPy_BMEdge_Type, &py_edge_example))
 	{
 		return NULL;
 	}
@@ -422,11 +442,27 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	}
 
+	if (py_coords) {
+		ncoords = mathutils_array_parse_alloc_v(&coords, 3, py_coords, "face_split(...): ");
+		if (ncoords == -1) {
+			return NULL;
+		}
+	}
+
+	/* --- main function body --- */
 	bm = py_face->bm;
 
-	f_new = BM_face_split(bm, py_face->f,
-	                      py_vert_a->v, py_vert_b->v,
-	                      &l_new, py_edge_example ? py_edge_example->e : NULL, FALSE); /* BMESH_TODO, make arg */
+	if (ncoords) {
+		f_new = BM_face_split_n(bm, py_face->f,
+		                        py_vert_a->v, py_vert_b->v,
+		                        (float (*)[3])coords, ncoords,
+		                        &l_new, py_edge_example ? py_edge_example->e : NULL);
+	}
+	else {
+		f_new = BM_face_split(bm, py_face->f,
+		                      py_vert_a->v, py_vert_b->v,
+		                      &l_new, py_edge_example ? py_edge_example->e : NULL, edge_exists);
+	}
 
 	if (f_new && l_new) {
 		PyObject *ret = PyTuple_New(2);
@@ -622,7 +658,7 @@ static struct PyMethodDef BPy_BM_utils_methods[] = {
     {"vert_separate",       (PyCFunction)bpy_bm_utils_vert_separate,       METH_VARARGS, bpy_bm_utils_vert_separate_doc},
     {"edge_split",          (PyCFunction)bpy_bm_utils_edge_split,          METH_VARARGS, bpy_bm_utils_edge_split_doc},
     {"edge_rotate",         (PyCFunction)bpy_bm_utils_edge_rotate,         METH_VARARGS, bpy_bm_utils_edge_rotate_doc},
-    {"face_split",          (PyCFunction)bpy_bm_utils_face_split,          METH_VARARGS, bpy_bm_utils_face_split_doc},
+    {"face_split",          (PyCFunction)bpy_bm_utils_face_split,          METH_VARARGS | METH_KEYWORDS, bpy_bm_utils_face_split_doc},
     {"face_join",           (PyCFunction)bpy_bm_utils_face_join,           METH_VARARGS, bpy_bm_utils_face_join_doc},
     {"face_vert_separate",  (PyCFunction)bpy_bm_utils_face_vert_separate,  METH_VARARGS, bpy_bm_utils_face_vert_separate_doc},
     {"face_flip",           (PyCFunction)bpy_bm_utils_face_flip,           METH_O,       bpy_bm_utils_face_flip_doc},

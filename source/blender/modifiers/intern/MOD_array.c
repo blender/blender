@@ -179,12 +179,12 @@ static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
 	BMO_op_exec(bm, &find_op);
 			
 	i = 0;
-	BMO_ITER(ele, &oiter, bm, dupe_op, "geom", BM_ALL) {
+	BMO_ITER (ele, &oiter, bm, dupe_op, "geom", BM_ALL) {
 		BM_elem_index_set(ele, i); /* set_dirty */
 		i++;
 	}
 
-	BMO_ITER(ele, &oiter, bm, dupe_op, "newout", BM_ALL) {
+	BMO_ITER (ele, &oiter, bm, dupe_op, "newout", BM_ALL) {
 		BM_elem_index_set(ele, i); /* set_dirty */
 		i++;
 	}
@@ -196,7 +196,7 @@ static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
 	index_map = MEM_callocN(sizeof(int) * (*index_map_length), "index_map");
 
 	/*element type argument doesn't do anything here*/
-	BMO_ITER(v, &oiter, bm, &find_op, "targetmapout", 0) {
+	BMO_ITER (v, &oiter, bm, &find_op, "targetmapout", 0) {
 		v2 = BMO_iter_map_value_p(&oiter);
 
 		index_map[BM_elem_index_get(v)] = BM_elem_index_get(v2) + 1;
@@ -240,7 +240,7 @@ static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4],
 		BMO_slot_buffer_append(&find_op, "verts", dupe_op, dupe_slot_name);
 
 		/* transform and tag verts */
-		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				mul_m4_v3(mat, v->co);
 				BM_elem_flag_enable(v, BM_ELEM_TAG);
@@ -250,7 +250,7 @@ static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4],
 		BMO_op_exec(bm, &find_op);
 
 		/* add new merge targets to weld operator */
-		BMO_ITER(v, &oiter, bm, &find_op, "targetmapout", 0) {
+		BMO_ITER (v, &oiter, bm, &find_op, "targetmapout", 0) {
 			v2 = BMO_iter_map_value_p(&oiter);
 			BMO_slot_map_ptr_insert(bm, weld_op, "targetmap", v, v2);
 		}
@@ -259,7 +259,7 @@ static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4],
 	}
 	else {
 		/* transform and tag verts */
-		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				mul_m4_v3(mat, v->co);
 				BM_elem_flag_enable(v, BM_ELEM_TAG);
@@ -289,7 +289,7 @@ static void merge_first_last(BMesh* bm,
 	BMO_op_exec(bm, &find_op);
 
 	/* add new merge targets to weld operator */
-	BMO_ITER(v, &oiter, bm, &find_op, "targetmapout", 0) {
+	BMO_ITER (v, &oiter, bm, &find_op, "targetmapout", 0) {
 		v2 = BMO_iter_map_value_p(&oiter);
 		BMO_slot_map_ptr_insert(bm, weld_op, "targetmap", v, v2);
 	}
@@ -370,8 +370,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	/* calculate the maximum number of copies which will fit within the
 	 * prescribed length */
-	if (amd->fit_type == MOD_ARR_FITLENGTH
-		  || amd->fit_type == MOD_ARR_FITCURVE) {
+	if (amd->fit_type == MOD_ARR_FITLENGTH || amd->fit_type == MOD_ARR_FITCURVE) {
 		float dist = sqrt(dot_v3v3(offset[3], offset[3]));
 
 		if (dist > 1e-6f)
@@ -426,13 +425,13 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			int first_geom_bytes = sizeof(BMVert*) * geom_slot->len;
 				
 			/* make a copy of the initial geometry ordering so the
-			   last duplicate can be merged into it */
+			 * last duplicate can be merged into it */
 			first_geom = MEM_mallocN(first_geom_bytes, "first_geom");
 			memcpy(first_geom, geom_slot->data.buf, first_geom_bytes);
 		}
 
 		/* apply transformation matrix */
-		BMO_ITER(v, &oiter, em->bm, &dupe_op, "newout", BM_VERT) {
+		BMO_ITER (v, &oiter, em->bm, &dupe_op, "newout", BM_VERT) {
 			mul_m4_v3(offset, v->co);
 		}
 
@@ -453,9 +452,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				v2 = _E(geom_slot, indexMap[i]-1);
 
 				/* check in case the target vertex (v2) is already marked
-				   for merging */
-				while((v3 = BMO_slot_map_ptr_get(em->bm, &weld_op, "targetmap", v2)))
+				 * for merging */
+				while ((v3 = BMO_slot_map_ptr_get(em->bm, &weld_op, "targetmap", v2))) {
 					v2 = v3;
+				}
 
 				BMO_slot_map_ptr_insert(em->bm, &weld_op, "targetmap", v, v2);
 			}
@@ -464,7 +464,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		}
 
 		/* already copied earlier, but after executation more slot
-		   memory may be allocated */
+		 * memory may be allocated */
 		if (j == 0)
 			first_dupe_op = dupe_op;
 		
@@ -487,7 +487,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	/* start capping */
 	if (start_cap || end_cap) {
-		BM_mesh_elem_flag_enable_all(em->bm, BM_VERT, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_enable_all(em->bm, BM_VERT, BM_ELEM_TAG, FALSE);
 
 		if (start_cap) {
 			float startoffset[4][4];
@@ -526,7 +526,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		/* Update normals in case offset object has rotation. */
 		
 		/* BMESH_TODO: check if normal recalc needed under any other
-		   conditions? */
+		 * conditions? */
 
 		CDDM_calc_normals(result);
 	}
@@ -551,7 +551,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	result = arrayModifier_doArray(amd, md->scene, ob, dm, 0);
 
-	//if(result != dm)
+	//if (result != dm)
 	//	CDDM_calc_normals_mapping(result);
 
 	return result;

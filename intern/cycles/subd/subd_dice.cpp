@@ -141,7 +141,7 @@ float3 QuadDice::eval_projected(SubPatch& sub, float u, float v)
 
 	sub.patch->eval(&P, NULL, NULL, uv.x, uv.y);
 	if(camera)
-		P = transform(&camera->worldtoraster, P);
+		P = transform_perspective(&camera->worldtoraster, P);
 
 	return P;
 }

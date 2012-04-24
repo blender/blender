@@ -242,7 +242,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		// transform now requires awareness for select mode, so we tag the f1 flags in verts
 		tottrans = 0;
 		if (em->selectmode & SCE_SELECT_VERTEX) {
-			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 					BM_elem_index_set(eve, 1); /* set_dirty! */
 					tottrans++;
@@ -253,41 +253,42 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		else if (em->selectmode & SCE_SELECT_EDGE) {
 			BMEdge *eed;
 
-			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				BM_elem_index_set(eve, 0);     /* set_dirty! */
 			}
 
-			BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 					BM_elem_index_set(eed->v1, 1); /* set_dirty! */
 					BM_elem_index_set(eed->v2, 1); /* set_dirty! */
 				}
 			}
 
-			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_index_get(eve)) tottrans++;
 			}
 		}
 		else {
 			BMFace *efa;
 
-			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				BM_elem_index_set(eve, 0); /* set_dirty! */
 			}
 
-			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 					BMIter liter;
 					BMLoop *l;
 					
-					BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
+					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 						BM_elem_index_set(l->v, 1); /* set_dirty! */
 					}
 				}
 			}
 
-			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_index_get(eve)) tottrans++;
+			}
 		}
 		/* for any of the 3 loops above which all dirty the indices */
 		bm->elem_index_dirty |= BM_VERT;
@@ -297,7 +298,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			tv = transvmain = MEM_callocN(tottrans * sizeof(TransVert), "maketransverts");
 		
 			a = 0;
-			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_index_get(eve)) {
 					BM_elem_index_set(eve, a); /* set_dirty! */
 					copy_v3_v3(tv->oldloc, eve->co);
@@ -993,7 +994,7 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 			BMEditSelection ese;
 			
 			if (EDBM_editselection_active_get(me->edit_btmesh, &ese)) {
-				EDBM_editselection_center(me->edit_btmesh, curs, &ese);
+				EDBM_editselection_center(curs, &ese);
 			}
 			
 			mul_m4_v3(obedit->obmat, curs);

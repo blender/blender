@@ -439,7 +439,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 				
 				if (bitspersample == 32) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
-						memset(fbuf, 1.0, sizeof(fbuf));
+						fill_vn_fl(fbuf, ibuf->x, 1.0f);
 					else
 						success |= TIFFReadScanline(image, fbuf, row, chan);
 					scanline_separate_32bit(tmpibuf->rect_float+ib_offset, fbuf, ibuf->x, chan);
@@ -447,7 +447,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 				}
 				else if (bitspersample == 16) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
-						memset(sbuf, 65535, sizeof(sbuf));
+						fill_vn_ushort(sbuf, ibuf->x, 65535);
 					else
 						success |= TIFFReadScanline(image, sbuf, row, chan);
 					scanline_separate_16bit(tmpibuf->rect_float+ib_offset, sbuf, ibuf->x, chan);

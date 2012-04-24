@@ -23,8 +23,11 @@ incs += ' ' + env['BF_ZLIB_INC']
 
 defs = [ 'GLEW_STATIC' ]
 
-defs.append('WITH_SMOKE')  # TODO, make optional
-defs.append('WITH_FRAMESERVER')  # TODO, make optional
+if env['WITH_BF_SMOKE']:
+    defs.append('WITH_SMOKE')
+
+if env['WITH_BF_FRAMESERVER']:
+    defs.append('WITH_FRAMESERVER')
 
 if env['WITH_BF_PYTHON']:
     incs += ' ../python'
@@ -111,7 +114,7 @@ if env['WITH_BF_FFTW3']:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
-if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):

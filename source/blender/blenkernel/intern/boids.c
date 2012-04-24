@@ -1254,7 +1254,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
 	madd_v3_v3fl(pa->state.vel, acc, dtime);
 
-	//if(bpa->data.mode != eBoidMode_InAir)
+	//if (bpa->data.mode != eBoidMode_InAir)
 	bpa->ground = boid_find_ground(bbd, pa, ground_co, ground_nor);
 
 	/* change modes, constrain movement & keep track of down vector */

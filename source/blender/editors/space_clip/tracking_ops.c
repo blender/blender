@@ -2433,7 +2433,7 @@ void CLIP_OT_set_plane(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "plane", plane_items, 0, "Plane", "Plane to be sued for orientation");
+	RNA_def_enum(ot->srna, "plane", plane_items, 0, "Plane", "Plane to be used for orientation");
 }
 
 /********************** set axis operator *********************/
@@ -3517,8 +3517,10 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Effect on tracks which are tracked less than specified amount of frames", 0, INT_MAX);
-	RNA_def_float(ot->srna, "error", 0.0f, 0.0f, FLT_MAX, "Reprojection Error", "Effect on tracks with have got larger re-projection error", 0.0f, 100.0f);
+	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames",
+	            "Effect on tracks which are tracked less than specified amount of frames", 0, INT_MAX);
+	RNA_def_float(ot->srna, "error", 0.0f, 0.0f, FLT_MAX, "Reprojection Error",
+	              "Effect on tracks which have got larger re-projection error", 0.0f, 100.0f);
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute");
 }
 

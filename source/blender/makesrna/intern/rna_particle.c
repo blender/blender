@@ -412,7 +412,7 @@ static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 	if (value > settings->end)
 		value = settings->end;
 
-	/*if(settings->type==PART_REACTOR && value < 1.0) */
+	/*if (settings->type==PART_REACTOR && value < 1.0) */
 	/*	value = 1.0; */
 	/*else  */
 	if (value < MINAFRAMEF)
@@ -525,7 +525,8 @@ static PointerRNA rna_ParticleSystem_active_particle_target_get(PointerRNA *ptr)
 	}
 	return rna_pointer_inherit_refine(ptr, &RNA_ParticleTarget, NULL);
 }
-static void rna_ParticleSystem_active_particle_target_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_ParticleSystem_active_particle_target_index_range(PointerRNA *ptr, int *min, int *max,
+                                                                  int *softmin, int *softmax)
 {
 	ParticleSystem *psys = (ParticleSystem*)ptr->data;
 	*min = 0;
@@ -722,7 +723,7 @@ static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
 static EnumPropertyItem *rna_Particle_from_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
                                                  PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
-	/*if(part->type==PART_REACTOR) */
+	/*if (part->type==PART_REACTOR) */
 	/*	return part_reactor_from_items; */
 	/*else */
 		return part_from_items;
@@ -1181,7 +1182,7 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "viscosity_beta");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 2.0f, 1, 3);
-	RNA_def_property_ui_text(prop, "Stiff viscosity", "Creates viscosity for expanding fluid)");
+	RNA_def_property_ui_text(prop, "Stiff viscosity", "Creates viscosity for expanding fluid");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* Double density relaxation */
@@ -1765,7 +1766,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, rot_mode_items);
-	RNA_def_property_ui_text(prop, "Orientation axis", "Particle orientation axis (does not affect Explode modifier's results)");
+	RNA_def_property_ui_text(prop, "Orientation axis",
+	                         "Particle orientation axis (does not affect Explode modifier's results)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "angular_velocity_mode", PROP_ENUM, PROP_NONE);

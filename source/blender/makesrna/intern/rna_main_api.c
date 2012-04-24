@@ -90,11 +90,6 @@
 
 #include "ED_screen.h"
 
-Tex *rna_Main_add_texture(Main *UNUSED(bmain), const char *name)
-{
-	return add_texture(name);
-}
-
 Camera *rna_Main_cameras_new(Main *UNUSED(bmain), const char *name)
 {
 	ID *id = add_camera(name);
@@ -606,21 +601,18 @@ static int rna_Main_gpencil_is_updated_get(PointerRNA *ptr) { return DAG_id_type
 
 void RNA_api_main(StructRNA *srna)
 {
-	/*
+#if 0
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	*/
 	/* maybe we want to add functions in 'bpy.data' still?
 	 * for now they are all in collections bpy.data.images.new(...) */
-	/*
 	func= RNA_def_function(srna, "add_image", "rna_Main_add_image");
 	RNA_def_function_ui_description(func, "Add a new image");
 	parm= RNA_def_string_file_path(func, "filepath", "", 0, "", "File path to load image from");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image");
 	RNA_def_function_return(func, parm);
-	*/
-
+#endif
 }
 
 void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop)
@@ -683,6 +675,10 @@ void RNA_def_main_scenes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a scene from the current blendfile");
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	func = RNA_def_function(srna, "tag", "rna_Main_scenes_tag");
+	parm = RNA_def_boolean(func, "value", 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

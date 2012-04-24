@@ -489,7 +489,7 @@ class JoinUVs(Operator):
 
             # seems to be the fastest way to create an array
             uv_array = array.array('f', [0.0] * 2) * nbr_loops
-            mesh.uv_loop_layers.active.data.foreach_get("uv", uv_array)
+            mesh.uv_layers.active.data.foreach_get("uv", uv_array)
 
             objects = context.selected_editable_objects[:]
 
@@ -516,10 +516,10 @@ class JoinUVs(Operator):
                                                ),
                                            )
                             else:
-                                uv_other = mesh_other.uv_loop_layers.active
+                                uv_other = mesh_other.uv_layers.active
                                 if not uv_other:
                                     mesh_other.uv_textures.new()
-                                    uv_other = mesh_other.uv_loop_layers.active
+                                    uv_other = mesh_other.uv_layers.active
                                     if not uv_other:
                                         self.report({'ERROR'}, "Could not add "
                                                     "a new UV map tp object "
@@ -689,5 +689,31 @@ class TransformsToDeltasAnim(Operator):
 
         # hack: force animsys flush by changing frame, so that deltas get run
         context.scene.frame_set(context.scene.frame_current)
+
+        return {'FINISHED'}
+
+
+class DupliOffsetFromCursor(Operator):
+    '''Set offset used for DupliGroup based on cursor position'''
+    bl_idname = "object.dupli_offset_from_cursor"
+    bl_label = "Set Offset From Cursor"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    group = IntProperty(
+            name="Group",
+            description="Group index to set offset for",
+            default=0,
+            )
+
+    @classmethod
+    def poll(cls, context):
+        return  context.active_object is not None
+
+    def execute(self, context):
+        scene = context.scene
+        ob = context.active_object
+        group = self.group
+
+        ob.users_group[group].dupli_offset = scene.cursor_location
 
         return {'FINISHED'}

@@ -1015,9 +1015,8 @@ static void calc_shapeKeys(Object *obedit)
 
 /* ********************* Amimation data *************** */
 
-static int curve_is_animated(Object *ob)
+static int curve_is_animated(Curve *cu)
 {
-	Curve *cu= (Curve*)ob->data;
 	AnimData *ad= BKE_animdata_from_id(&cu->id);
 
 	return ad && (ad->action || ad->drivers.first);
@@ -1063,10 +1062,9 @@ static void fcurve_remove(AnimData *ad, ListBase *orig_curves, FCurve *fcu)
 	free_fcurve(fcu);
 }
 
-static void curve_rename_fcurves(Object *obedit, ListBase *orig_curves)
+static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 {
 	int nu_index= 0, a, pt_index;
-	Curve *cu= (Curve*)obedit->data;
 	EditNurb *editnurb= cu->editnurb;
 	Nurb *nu= editnurb->nurbs.first;
 	CVKeyIndex *keyIndex;
@@ -1178,17 +1176,16 @@ static void curve_rename_fcurves(Object *obedit, ListBase *orig_curves)
 }
 
 /* return 0 if animation data wasn't changed, 1 otherwise */
-int ED_curve_updateAnimPaths(Object *obedit)
+int ED_curve_updateAnimPaths(Curve *cu)
 {
-	Curve *cu= (Curve*)obedit->data;
 	AnimData *ad= BKE_animdata_from_id(&cu->id);
 
-	if (!curve_is_animated(obedit)) return 0;
+	if (!curve_is_animated(cu)) return 0;
 
 	if (ad->action)
-		curve_rename_fcurves(obedit, &ad->action->curves);
+		curve_rename_fcurves(cu, &ad->action->curves);
 
-	curve_rename_fcurves(obedit, &ad->drivers);
+	curve_rename_fcurves(cu, &ad->drivers);
 
 	return 1;
 }
@@ -1221,7 +1218,7 @@ void load_editNurb(Object *obedit)
 		cu->nurb= newnurb;
 
 		calc_shapeKeys(obedit);
-		ED_curve_updateAnimPaths(obedit);
+		ED_curve_updateAnimPaths(obedit->data);
 
 		freeNurblist(&oldnurb);
 	}
@@ -1702,7 +1699,7 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 		nu= next;
 	}
 
-	if (ED_curve_updateAnimPaths(obedit))
+	if (ED_curve_updateAnimPaths(obedit->data))
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	return OPERATOR_FINISHED;
@@ -2017,7 +2014,7 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 			keyData_switchDirectionNurb(cu, nu);
 		}
 
-	if (ED_curve_updateAnimPaths(obedit))
+	if (ED_curve_updateAnimPaths(obedit->data))
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	DAG_id_tag_update(obedit->data, 0);
@@ -2583,9 +2580,12 @@ static short nurb_has_selected_cps(ListBase *editnurb)
 			bezt= nu->bezt;
 			while (a--) {
 				if (bezt->hide==0) {
-					if ((bezt->f1 & SELECT)
-					|| (bezt->f2 & SELECT)
-					|| (bezt->f3 & SELECT)) return 1;
+					if ((bezt->f1 & SELECT) ||
+					    (bezt->f2 & SELECT) ||
+					    (bezt->f3 & SELECT))
+					{
+						return 1;
+					}
 				}
 				bezt++;
 			}
@@ -2895,7 +2895,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 
 				calchandlesNurb(nu);
 			}
-		} /* End of 'if(nu->type == CU_BEZIER)' */
+		} /* End of 'if (nu->type == CU_BEZIER)' */
 		else if (nu->pntsv==1) {
 		/* 
 		 * All flat lines (ie. co-planar), except flat Nurbs. Flat NURB curves 
@@ -3088,7 +3088,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				nu->pntsv= (number_cuts+1)*nu->pntsv-number_cuts;
 				nurbs_knot_calc_u(nu);
 				nurbs_knot_calc_v(nu);
-			} /* End of 'if(sel== nu->pntsu*nu->pntsv)' (subdivide entire NURB) */
+			} /* End of 'if (sel== nu->pntsu*nu->pntsv)' (subdivide entire NURB) */
 			else {
 				/* subdivide in v direction? */
 				sel= 0;
@@ -3180,7 +3180,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 			MEM_freeN(usel); 
 			MEM_freeN(vsel);
 
-		} /* End of 'if(nu->type == CU_NURBS)'  */
+		} /* End of 'if (nu->type == CU_NURBS)'  */
 	}
 }
 
@@ -3191,7 +3191,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 
 	subdividenurb(obedit, number_cuts);
 
-	if (ED_curve_updateAnimPaths(obedit))
+	if (ED_curve_updateAnimPaths(obedit->data))
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -3512,7 +3512,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 	}
 
 	if (changed) {
-		if (ED_curve_updateAnimPaths(obedit))
+		if (ED_curve_updateAnimPaths(obedit->data))
 			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 		DAG_id_tag_update(obedit->data, 0);
@@ -4104,7 +4104,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (ED_curve_updateAnimPaths(obedit))
+	if (ED_curve_updateAnimPaths(obedit->data))
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -4323,7 +4323,7 @@ static int spin_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (ED_curve_updateAnimPaths(obedit))
+	if (ED_curve_updateAnimPaths(obedit->data))
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -4398,7 +4398,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 
 				newnu= (Nurb*)MEM_callocN(sizeof(Nurb), "addvert_Nurb newnu");
 				if (!nu) {
-					/* no selected sement -- create new one which is BEZIER tpye
+					/* no selected segment -- create new one which is BEZIER type
 					 * type couldn't be determined from Curve bt could be changed
 					 * in the future, so shouldn't make much headache */
 					newnu->type= CU_BEZIER;
@@ -4626,7 +4626,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	if (ok) {
 		test2DNurb(nu);
 
-		if (ED_curve_updateAnimPaths(obedit))
+		if (ED_curve_updateAnimPaths(obedit->data))
 			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -4719,7 +4719,7 @@ static int extrude_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	else {
 		if (extrudeflagNurb(editnurb, 1)) { /* '1'= flag */
-			if (ED_curve_updateAnimPaths(obedit))
+			if (ED_curve_updateAnimPaths(obedit->data))
 				WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -5640,7 +5640,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 			keyIndex_delNurbList(editnurb, nubase);
 			freeNurblist(nubase);
 
-			if (ED_curve_updateAnimPaths(obedit))
+			if (ED_curve_updateAnimPaths(obedit->data))
 				WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 		}
 
@@ -5941,7 +5941,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		freeNurblist(nubase);
 	}
 
-	if (ED_curve_updateAnimPaths(obedit))
+	if (ED_curve_updateAnimPaths(obedit->data))
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -6987,10 +6987,7 @@ static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
 
 	cu->lastsel= lastsel;
 	cu->actnu= undoCurve->actnu;
-	/* BMESH_TODO */
-#if 0
-	ED_curve_updateAnimPaths(obedit);
-#endif
+	ED_curve_updateAnimPaths(cu);
 }
 
 static void *editCurve_to_undoCurve(void *UNUSED(edata), void *cu_v)

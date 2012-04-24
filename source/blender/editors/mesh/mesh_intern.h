@@ -49,7 +49,7 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 
-/* ******************** bmeshutils.c */
+/* ******************** editmesh_utils.c */
 
 /*
  * ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
@@ -209,7 +209,7 @@ void MESH_OT_extrude_faces_indiv(struct wmOperatorType *ot);
 void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_loopcut(struct wmOperatorType *ot);
 
-void MESH_OT_knifetool(struct wmOperatorType *ot);
+void MESH_OT_knife_tool(struct wmOperatorType *ot);
 void MESH_OT_bevel(struct wmOperatorType *ot);
 
 void MESH_OT_bridge_edge_loops(struct wmOperatorType *ot);

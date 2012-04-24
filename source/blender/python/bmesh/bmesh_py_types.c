@@ -99,6 +99,7 @@ PyDoc_STRVAR(bpy_bm_elem_select_doc,  "Selected state of this element.\n\n:type:
 PyDoc_STRVAR(bpy_bm_elem_hide_doc,    "Hidden state of this element.\n\n:type: boolean");
 PyDoc_STRVAR(bpy_bm_elem_tag_doc,     "Generic attribute scripts can use for own logic\n\n:type: boolean");
 PyDoc_STRVAR(bpy_bm_elem_smooth_doc,  "Smooth state of this element.\n\n:type: boolean");
+PyDoc_STRVAR(bpy_bm_elem_seam_doc,    "Seam for UV unwrapping.\n\n:type: boolean");
 
 
 static PyObject *bpy_bm_elem_hflag_get(BPy_BMElem *self, void *flag)
@@ -601,7 +602,7 @@ static PyGetSetDef bpy_bmedge_getseters[] = {
     {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
     {(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
-    {(char *)"seam",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SEAM},
+    {(char *)"seam",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_seam_doc, (void *)BM_ELEM_SEAM},
 
     /* connectivity data */
     {(char *)"verts", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_verts_doc, (void *)BM_VERTS_OF_EDGE},
@@ -998,13 +999,13 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
 		mat_ptr = mat->matrix;
 
 		if (!filter_flags) {
-			BM_ITER(eve, &iter, self->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
 				mul_m4_v3((float (*)[4])mat_ptr, eve->co);
 			}
 		}
 		else {
 			char filter_flags_ch = (char)filter_flags;
-			BM_ITER(eve, &iter, self->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
 				if (eve->head.hflag & filter_flags_ch) {
 					mul_m4_v3((float (*)[4])mat_ptr, eve->co);
 				}
@@ -1189,17 +1190,32 @@ static PyObject *bpy_bmvert_copy_from_face_interp(BPy_BMVert *self, PyObject *ar
 PyDoc_STRVAR(bpy_bmvert_calc_edge_angle_doc,
 ".. method:: calc_edge_angle()\n"
 "\n"
-"   Return the angle between 2 connected edges.\n"
+"   Return the angle between this verts 2 connected edges.\n"
 "\n"
-"   :return: The angle between both edges in radians.\n"
+"   :return: Angle between edges in radians.\n"
 "   :rtype: float\n"
 );
 static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_vert_edge_angle(self->v));
+	return PyFloat_FromDouble(BM_vert_calc_edge_angle(self->v));
 }
 
+PyDoc_STRVAR(bpy_bmvert_calc_shell_factor_doc,
+".. method:: calc_shell_factor()\n"
+"\n"
+"   Return a multiplier calculated based on the sharpness of the vertex.\n"
+"   Where a flat surface gives 1.0, and higher values sharper edges.\n"
+"   This is used to maintain shell thickness when offsetting verts along their normals.\n"
+"\n"
+"   :return: offset multiplier\n"
+"   :rtype: float\n"
+);
+static PyObject *bpy_bmvert_calc_shell_factor(BPy_BMVert *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyFloat_FromDouble(BM_vert_calc_shell_factor(self->v));
+}
 
 PyDoc_STRVAR(bpy_bmvert_normal_update_doc,
 ".. method:: normal_update()\n"
@@ -1210,7 +1226,7 @@ static PyObject *bpy_bmvert_normal_update(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	BM_vert_normal_update(self->bm, self->v);
+	BM_vert_normal_update(self->v);
 
 	Py_RETURN_NONE;
 }
@@ -1240,7 +1256,37 @@ PyDoc_STRVAR(bpy_bmedge_calc_face_angle_doc,
 static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_edge_face_angle(self->e));
+	return PyFloat_FromDouble(BM_edge_calc_face_angle(self->e));
+}
+
+PyDoc_STRVAR(bpy_bmedge_calc_tangent_doc,
+".. method:: calc_tangent(loop)\n"
+"\n"
+"   Return the tangent at this edge relative to a face (pointing inward into the face).\n"
+"   This uses the face normal for calculation.\n"
+"\n"
+"   :arg loop: The loop used for tangent calculation.\n"
+"   :type loop: :class:`BMLoop`\n"
+"   :return: a normalized vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *bpy_bmedge_calc_tangent(BPy_BMEdge *self, PyObject *args)
+{
+	BPy_BMLoop *py_loop;
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTuple(args, "O!:BMEdge.calc_face_tangent",
+	                      &BPy_BMLoop_Type, &py_loop))
+	{
+		return NULL;
+	}
+	else {
+		float vec[3];
+		BPY_BM_CHECK_OBJ(py_loop);
+		/* no need to check if they are from the same mesh or even connected */
+		BM_edge_calc_face_tangent(self->e, py_loop->l, vec);
+		return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
+	}
 }
 
 
@@ -1295,7 +1341,7 @@ static PyObject *bpy_bmedge_normal_update(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	BM_edge_normals_update(self->bm, self->e);
+	BM_edge_normals_update(self->e);
 
 	Py_RETURN_NONE;
 }
@@ -1396,7 +1442,22 @@ PyDoc_STRVAR(bpy_bmface_calc_area_doc,
 static PyObject *bpy_bmface_calc_area(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_face_area_calc(self->bm, self->f));
+	return PyFloat_FromDouble(BM_face_calc_area(self->f));
+}
+
+
+PyDoc_STRVAR(bpy_bmface_calc_perimeter_doc,
+".. method:: calc_perimeter()\n"
+"\n"
+"   Return the perimeter of the face.\n"
+"\n"
+"   :return: Return the perimeter of the face.\n"
+"   :rtype: float\n"
+);
+static PyObject *bpy_bmface_calc_perimeter(BPy_BMFace *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyFloat_FromDouble(BM_face_calc_perimeter(self->f));
 }
 
 
@@ -1413,7 +1474,7 @@ static PyObject *bpy_bmface_calc_center_mean(BPy_BMFace *self)
 	float cent[3];
 
 	BPY_BM_CHECK_OBJ(self);
-	BM_face_center_mean_calc(self->bm, self->f, cent);
+	BM_face_calc_center_mean(self->f, cent);
 	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
 }
 
@@ -1431,7 +1492,7 @@ static PyObject *bpy_bmface_calc_center_bounds(BPy_BMFace *self)
 	float cent[3];
 
 	BPY_BM_CHECK_OBJ(self);
-	BM_face_center_bounds_calc(self->bm, self->f, cent);
+	BM_face_calc_center_bounds(self->f, cent);
 	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
 }
 
@@ -1445,7 +1506,7 @@ static PyObject *bpy_bmface_normal_update(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	BM_face_normal_update(self->bm, self->f);
+	BM_face_normal_update(self->f);
 
 	Py_RETURN_NONE;
 }
@@ -1510,7 +1571,7 @@ PyDoc_STRVAR(bpy_bmloop_calc_angle_doc,
 static PyObject *bpy_bmloop_calc_angle(BPy_BMLoop *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_loop_face_angle(self->l));
+	return PyFloat_FromDouble(BM_loop_calc_face_angle(self->l));
 }
 
 PyDoc_STRVAR(bpy_bmloop_calc_normal_doc,
@@ -1526,7 +1587,7 @@ static PyObject *bpy_bmloop_calc_normal(BPy_BMLoop *self)
 {
 	float vec[3];
 	BPY_BM_CHECK_OBJ(self);
-	BM_loop_face_normal(self->l, vec);
+	BM_loop_calc_face_normal(self->l, vec);
 	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
 }
 
@@ -1543,7 +1604,7 @@ static PyObject *bpy_bmloop_calc_tangent(BPy_BMLoop *self)
 {
 	float vec[3];
 	BPY_BM_CHECK_OBJ(self);
-	BM_loop_face_tangent(self->l, vec);
+	BM_loop_calc_face_tangent(self->l, vec);
 	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
 }
 
@@ -2049,7 +2110,8 @@ static struct PyMethodDef bpy_bmvert_methods[] = {
     {"copy_from_face_interp", (PyCFunction)bpy_bmvert_copy_from_face_interp, METH_VARARGS, bpy_bmvert_copy_from_face_interp_doc},
     {"copy_from_vert_interp", (PyCFunction)bpy_bmvert_copy_from_vert_interp, METH_VARARGS, bpy_bmvert_copy_from_vert_interp_doc},
 
-    {"calc_vert_angle", (PyCFunction)bpy_bmvert_calc_edge_angle, METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
+    {"calc_vert_angle",   (PyCFunction)bpy_bmvert_calc_edge_angle,   METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
+    {"calc_shell_factor", (PyCFunction)bpy_bmvert_calc_shell_factor, METH_NOARGS, bpy_bmvert_calc_shell_factor_doc},
 
     {"normal_update",  (PyCFunction)bpy_bmvert_normal_update,  METH_NOARGS,  bpy_bmvert_normal_update_doc},
 
@@ -2063,8 +2125,9 @@ static struct PyMethodDef bpy_bmedge_methods[] = {
 
     {"other_vert", (PyCFunction)bpy_bmedge_other_vert, METH_O, bpy_bmedge_other_vert_doc},
 
-    {"calc_length",     (PyCFunction)bpy_bmedge_calc_length,     METH_NOARGS, bpy_bmedge_calc_length_doc},
-    {"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS, bpy_bmedge_calc_face_angle_doc},
+    {"calc_length",     (PyCFunction)bpy_bmedge_calc_length,     METH_NOARGS,  bpy_bmedge_calc_length_doc},
+    {"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS,  bpy_bmedge_calc_face_angle_doc},
+    {"calc_tangent",    (PyCFunction)bpy_bmedge_calc_tangent,    METH_VARARGS, bpy_bmedge_calc_tangent_doc},
 
     {"normal_update",  (PyCFunction)bpy_bmedge_normal_update,  METH_NOARGS,  bpy_bmedge_normal_update_doc},
 
@@ -2081,6 +2144,7 @@ static struct PyMethodDef bpy_bmface_methods[] = {
     {"copy", (PyCFunction)bpy_bmface_copy, METH_VARARGS|METH_KEYWORDS, bpy_bmface_copy_doc},
 
     {"calc_area",          (PyCFunction)bpy_bmface_calc_area,          METH_NOARGS, bpy_bmface_calc_area_doc},
+    {"calc_perimeter",     (PyCFunction)bpy_bmface_calc_perimeter,     METH_NOARGS, bpy_bmface_calc_perimeter_doc},
     {"calc_center_median", (PyCFunction)bpy_bmface_calc_center_mean,   METH_NOARGS, bpy_bmface_calc_center_mean_doc},
     {"calc_center_bounds", (PyCFunction)bpy_bmface_calc_center_bounds, METH_NOARGS, bpy_bmface_calc_center_bounds_doc},
 
@@ -2138,7 +2202,7 @@ static struct PyMethodDef bpy_bmfaceseq_methods[] = {
 
 static struct PyMethodDef bpy_bmloopseq_methods[] = {
     /* odd function, initializes index values */
-    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+    /* no: index_update() function since we cant iterate over loops */
     {NULL, NULL, 0, NULL}
 };
 

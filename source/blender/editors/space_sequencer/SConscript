@@ -8,7 +8,7 @@ incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../makesrna ../../blenloader'
 incs += ' #/intern/audaspace/intern'
 
-if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
 env.BlenderLib ( 'bf_editors_space_sequencer', sources, Split(incs), [], libtype=['core'], priority=[100] )

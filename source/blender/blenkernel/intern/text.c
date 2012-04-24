@@ -2560,6 +2560,8 @@ void txt_delete_char(Text *text)
 			txt_combine_lines(text, text->curl, text->curl->next);
 			txt_pop_sel(text);
 		}
+		else
+			return;
 	}
 	else { /* Just deleting a char */
 		size_t c_len = 0;

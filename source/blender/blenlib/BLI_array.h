@@ -69,7 +69,7 @@
 
 /* this returns the entire size of the array, including any buffering. */
 #define BLI_array_totalsize_dyn(arr)  (                                       \
-	((arr)==NULL) ?                                                           \
+	((arr) == NULL) ?                                                         \
 	    0 :                                                                   \
 	    MEM_allocN_len(arr) / sizeof(*arr)                                    \
 )
@@ -151,9 +151,9 @@
 	}
 
 #define BLI_array_pop(arr)  (                                                 \
-	(arr&&_##arr##_count) ?                                                   \
+	(arr && _##arr##_count) ?                                                 \
 	    arr[--_##arr##_count] :                                               \
-	    0                                                                     \
+	    NULL                                                                  \
 )
 
 /* resets the logical size of an array to zero, but doesn't

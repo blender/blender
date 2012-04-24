@@ -1152,7 +1152,7 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 		/* area type has no quad or sphere option */
 		if (lar->type==LA_AREA) {
 			/* area is single sided */
-			//if(dot_v3v3(lv, lar->vec) > 0.0f)
+			//if (dot_v3v3(lv, lar->vec) > 0.0f)
 			//	visifac= 1.0f;
 			//else
 			//	visifac= 0.0f;
@@ -1731,8 +1731,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	/* AO pass */
 	if (R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) {
-		if (((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
-			|| (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) {
+		if (((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) ||
+		    (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
+		{
 			if (R.r.mode & R_SHADOW) {
 				/* AO was calculated for scanline already */
 				if (shi->depth || shi->volume_depth)
@@ -1854,7 +1855,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	}
 	shr->alpha= shi->alpha;
 	
-	/* from now stuff everything in shr->combined: ambient, AO, radio, ramps, exposure */
+	/* from now stuff everything in shr->combined: ambient, AO, ramps, exposure */
 	if (!(ma->sss_flag & MA_DIFF_SSS) || !sss_pass_done(&R, ma)) {
 		if (R.r.mode & R_SHADOW) {
 			/* add AO in combined? */

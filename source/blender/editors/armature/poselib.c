@@ -516,7 +516,7 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUS
 	int i= 0;
 
 	if (C == NULL) {
-		return DummyRNA_DEFAULT_items;
+		return DummyRNA_NULL_items;
 	}
 	
 	/* check that the action exists */
@@ -541,18 +541,28 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	Object *ob= get_poselib_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
+	int marker_index;
 	FCurve *fcu;
-	
+	PropertyRNA *prop;
+
 	/* check if valid poselib */
 	if (act == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Object doesn't have PoseLib data");
 		return OPERATOR_CANCELLED;
 	}
-	
+
+	prop = RNA_struct_find_property(op->ptr, "pose");
+	if (RNA_property_is_set(op->ptr, prop)) {
+		marker_index = RNA_property_enum_get(op->ptr, prop);
+	}
+	else {
+		marker_index = act->active_marker - 1;
+	}
+
 	/* get index (and pointer) of pose to remove */
-	marker= BLI_findlink(&act->markers, RNA_enum_get(op->ptr, "pose"));
+	marker = BLI_findlink(&act->markers, marker_index);
 	if (marker == NULL) {
-		BKE_reportf(op->reports, RPT_ERROR, "Invalid Pose specified %d", RNA_int_get(op->ptr, "pose"));
+		BKE_reportf(op->reports, RPT_ERROR, "Invalid Pose specified %d", marker_index);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -605,8 +615,8 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "pose", DummyRNA_DEFAULT_items, 0, "Pose", "The pose to remove");
-		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
+	prop = RNA_def_enum(ot->srna, "pose", DummyRNA_NULL_items, 0, "Pose", "The pose to remove");
+	RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 	ot->prop = prop;
 }
 

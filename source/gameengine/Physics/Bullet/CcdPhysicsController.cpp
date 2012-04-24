@@ -863,9 +863,9 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 			return;
 		}
 
-		btMatrix3x3 drotmat(	rotval[0],rotval[4],rotval[8],
-								rotval[1],rotval[5],rotval[9],
-								rotval[2],rotval[6],rotval[10]);
+		btMatrix3x3 drotmat(rotval[0], rotval[3], rotval[6],
+		                    rotval[1], rotval[4], rotval[7],
+		                    rotval[2], rotval[5], rotval[8]);
 
 
 		btMatrix3x3 currentOrn;
@@ -1917,6 +1917,10 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 				tot_bt_tris += (poly->VertexCount()==4 ? 2:1);
 			}
 		}
+
+		// This case happens when none of the polys are colliders
+		if (tot_bt_tris == 0 || tot_bt_verts == 0)
+			return false;
 
 		m_vertexArray.resize(tot_bt_verts*3);
 		btScalar *bt= &m_vertexArray[0];

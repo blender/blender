@@ -886,7 +886,7 @@ static PyMappingMethods BPy_IDGroup_Mapping = {
 PyTypeObject BPy_IDGroup_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	/*  For printing, in format "<module>.<name>" */
-	"Blender IDProperty",       /* char *tp_name; */
+	"IDPropertyGroup",       /* char *tp_name; */
 	sizeof(BPy_IDProperty),     /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
@@ -1236,7 +1236,7 @@ static PyMappingMethods BPy_IDArray_AsMapping = {
 PyTypeObject BPy_IDArray_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	/*  For printing, in format "<module>.<name>" */
-	"Blender IDArray",           /* char *tp_name; */
+	"IDPropertyArray",           /* char *tp_name; */
 	sizeof(BPy_IDArray),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
@@ -1350,7 +1350,7 @@ static PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
 PyTypeObject BPy_IDGroup_Iter_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	/*  For printing, in format "<module>.<name>" */
-	"Blender IDGroup_Iter",           /* char *tp_name; */
+	"IDPropertyGroupIter",           /* char *tp_name; */
 	sizeof(BPy_IDGroup_Iter),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
@@ -1409,4 +1409,77 @@ void IDProp_Init_Types(void)
 	PyType_Ready(&BPy_IDGroup_Type);
 	PyType_Ready(&BPy_IDGroup_Iter_Type);
 	PyType_Ready(&BPy_IDArray_Type);
+}
+
+/*----------------------------MODULE INIT-------------------------*/
+
+/* --- */
+
+static struct PyModuleDef IDProp_types_module_def = {
+    PyModuleDef_HEAD_INIT,
+    "idprop.types",  /* m_name */
+    NULL,  /* m_doc */
+    0,  /* m_size */
+    NULL,  /* m_methods */
+    NULL,  /* m_reload */
+    NULL,  /* m_traverse */
+    NULL,  /* m_clear */
+    NULL,  /* m_free */
+};
+
+static PyObject *BPyInit_idprop_types(void)
+{
+	PyObject *submodule;
+
+	submodule = PyModule_Create(&IDProp_types_module_def);
+
+#define MODULE_TYPE_ADD(s, t) \
+	PyModule_AddObject(s, t.tp_name, (PyObject *)&t); Py_INCREF((PyObject *)&t)
+
+	/* bmesh_py_types.c */
+	MODULE_TYPE_ADD(submodule, BPy_IDGroup_Type);
+	MODULE_TYPE_ADD(submodule, BPy_IDGroup_Iter_Type);
+	MODULE_TYPE_ADD(submodule, BPy_IDArray_Type);
+
+#undef MODULE_TYPE_ADD
+
+	return submodule;
+}
+
+/* --- */
+
+static PyMethodDef IDProp_methods[] = {
+	{NULL, NULL, 0, NULL}
+};
+
+
+PyDoc_STRVAR(IDProp_module_doc,
+"This module provides access id property types (currently mainly for docs)."
+);
+static struct PyModuleDef IDProp_module_def = {
+	PyModuleDef_HEAD_INIT,
+	"idprop",  /* m_name */
+	IDProp_module_doc,  /* m_doc */
+	0,  /* m_size */
+	IDProp_methods,  /* m_methods */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
+};
+
+PyObject *BPyInit_idprop(void)
+{
+	PyObject *mod;
+	PyObject *submodule;
+	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+
+	mod = PyModule_Create(&IDProp_module_def);
+
+	/* bmesh.types */
+	PyModule_AddObject(mod, "types", (submodule = BPyInit_idprop_types()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	return mod;
 }

@@ -474,7 +474,7 @@ static void do_lasso_select_mesh__doSelectVert(void *userData, BMVert *eve, int 
 	LassoSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
-		BM_elem_select_set(data->vc->em->bm, eve, data->select);
+		BM_vert_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
 static void do_lasso_select_mesh__doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index)
@@ -486,13 +486,13 @@ static void do_lasso_select_mesh__doSelectEdge(void *userData, BMEdge *eed, int 
 			if (edge_fully_inside_rect(data->rect, x0, y0, x1, y1)  &&
 			    lasso_inside(data->mcords, data->moves, x0, y0) &&
 			    lasso_inside(data->mcords, data->moves, x1, y1)) {
-				BM_elem_select_set(data->vc->em->bm, eed, data->select);
+				BM_edge_select_set(data->vc->em->bm, eed, data->select);
 				data->done = 1;
 			}
 		}
 		else {
 			if (lasso_inside_edge(data->mcords, data->moves, x0, y0, x1, y1)) {
-				BM_elem_select_set(data->vc->em->bm, eed, data->select);
+				BM_edge_select_set(data->vc->em->bm, eed, data->select);
 			}
 		}
 	}
@@ -502,7 +502,7 @@ static void do_lasso_select_mesh__doSelectFace(void *userData, BMFace *efa, int 
 	LassoSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
-		BM_elem_select_set(data->vc->em->bm, efa, data->select);
+		BM_face_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
 
@@ -1756,7 +1756,7 @@ static void do_mesh_box_select__doSelectVert(void *userData, BMVert *eve, int x,
 	BoxSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		BM_elem_select_set(data->vc->em->bm, eve, data->select);
+		BM_vert_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
 static void do_mesh_box_select__doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index)
@@ -1766,13 +1766,13 @@ static void do_mesh_box_select__doSelectEdge(void *userData, BMEdge *eed, int x0
 	if (EDBM_backbuf_check(bm_solidoffs + index)) {
 		if (data->pass == 0) {
 			if (edge_fully_inside_rect(data->rect, x0, y0, x1, y1)) {
-				BM_elem_select_set(data->vc->em->bm, eed, data->select);
+				BM_edge_select_set(data->vc->em->bm, eed, data->select);
 				data->done = 1;
 			}
 		}
 		else {
 			if (edge_inside_rect(data->rect, x0, y0, x1, y1)) {
-				BM_elem_select_set(data->vc->em->bm, eed, data->select);
+				BM_edge_select_set(data->vc->em->bm, eed, data->select);
 			}
 		}
 	}
@@ -1782,7 +1782,7 @@ static void do_mesh_box_select__doSelectFace(void *userData, BMFace *efa, int x,
 	BoxSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		BM_elem_select_set(data->vc->em->bm, efa, data->select);
+		BM_face_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
 static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int extend)
@@ -2304,7 +2304,7 @@ static void mesh_circle_doSelectVert(void *userData, BMVert *eve, int x, int y, 
 	float r = sqrt(mx * mx + my * my);
 
 	if (r <= data->radius) {
-		BM_elem_select_set(data->vc->em->bm, eve, data->select);
+		BM_vert_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
 static void mesh_circle_doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
@@ -2312,7 +2312,7 @@ static void mesh_circle_doSelectEdge(void *userData, BMEdge *eed, int x0, int y0
 	CircleSelectUserData *data = userData;
 
 	if (edge_inside_circle(data->mval[0], data->mval[1], (short) data->radius, x0, y0, x1, y1)) {
-		BM_elem_select_set(data->vc->em->bm, eed, data->select);
+		BM_edge_select_set(data->vc->em->bm, eed, data->select);
 	}
 }
 static void mesh_circle_doSelectFace(void *userData, BMFace *efa, int x, int y, int UNUSED(index))
@@ -2322,7 +2322,7 @@ static void mesh_circle_doSelectFace(void *userData, BMFace *efa, int x, int y, 
 	float r = sqrt(mx * mx + my * my);
 	
 	if (r <= data->radius) {
-		BM_elem_select_set(data->vc->em->bm, efa, data->select);
+		BM_face_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
 

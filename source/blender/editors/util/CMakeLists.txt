@@ -20,6 +20,7 @@
 
 set(INC
 	../include
+	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../blenloader
@@ -87,5 +88,9 @@ set(SRC
 	../include/UI_resources.h
 	../include/UI_view2d.h
 )
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
 
 blender_add_lib(bf_editor_util "${SRC}" "${INC}" "${INC_SYS}")

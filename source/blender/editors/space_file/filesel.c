@@ -36,22 +36,16 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifdef WIN32
-#include <io.h>
-#include <direct.h>
-#include "BLI_winstuff.h"
-#else
-#include <unistd.h>
-#include <sys/times.h>
-#endif   
-
 /* path/file handeling stuff */
-#ifndef WIN32
-  #include <dirent.h>
-  #include <unistd.h>
+#ifdef WIN32
+#  include <io.h>
+#  include <direct.h>
+#  include "BLI_winstuff.h"
 #else
-  #include <io.h>
-  #include "BLI_winstuff.h"
+#  include <unistd.h>
+#  include <sys/times.h>
+#  include <dirent.h>
+#  include <unistd.h>
 #endif
 
 #include "DNA_space_types.h"
@@ -123,7 +117,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		const short is_directory= (RNA_struct_find_property(op->ptr, "directory") != NULL);
 		const short is_relative_path= (RNA_struct_find_property(op->ptr, "relative_path") != NULL);
 
-		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
+		BLI_strncpy(params->title, RNA_struct_ui_name(op->type->srna), sizeof(params->title));
 
 		if (RNA_struct_find_property(op->ptr, "filemode"))
 			params->type = RNA_int_get(op->ptr, "filemode");
@@ -314,7 +308,7 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout* layout, const rcti* r
 		CLAMP(rowmax, 0, layout->rows-1);
 	} 
 	
-	if  ( (colmin > layout->columns-1) || (rowmin > layout->rows-1) ) {
+	if ((colmin > layout->columns-1) || (rowmin > layout->rows-1)) {
 		sel.first = -1;
 	}
 	else {
@@ -323,7 +317,7 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout* layout, const rcti* r
 		else
 			sel.first = colmin + layout->columns*rowmin;
 	}
-	if  ( (colmax > layout->columns-1) || (rowmax > layout->rows-1) ) {
+	if ((colmax > layout->columns-1) || (rowmax > layout->rows-1)) {
 		sel.last = -1;
 	}
 	else {

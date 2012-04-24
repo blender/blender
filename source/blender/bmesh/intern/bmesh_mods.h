@@ -43,9 +43,9 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f,
                       BMEdge *example, const short nodouble);
 
 BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
-                      BMVert *v1, BMVert *v2,
-                      float cos[][3], int n,
-                      BMLoop **r_l, BMEdge *example);
+                        BMVert *v1, BMVert *v2,
+                        float cos[][3], int n,
+                        BMLoop **r_l, BMEdge *example);
 
 BMEdge* BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
                                const short join_faces, const short kill_degenerate_faces);
@@ -57,14 +57,14 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 
 BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts);
 
-int     BM_face_validate(BMesh *bm, BMFace *face, FILE *err);
+int     BM_face_validate(BMFace *face, FILE *err);
 
-void    BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
-                                   BMLoop **r_l1, BMLoop **r_l2);
-int     BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e);
-int     BM_edge_rotate_check_degenerate(BMesh *bm, BMEdge *e,
+void    BM_edge_calc_rotate(BMEdge *e, int ccw,
+                            BMLoop **r_l1, BMLoop **r_l2);
+int     BM_edge_rotate_check(BMEdge *e);
+int     BM_edge_rotate_check_degenerate(BMEdge *e,
                                         BMLoop *l1, BMLoop *l2);
-int     BM_edge_rotate_check_beauty(BMesh *bm, BMEdge *e,
+int     BM_edge_rotate_check_beauty(BMEdge *e,
                                     BMLoop *l1, BMLoop *l2);
 BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_flag);
 

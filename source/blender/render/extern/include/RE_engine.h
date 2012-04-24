@@ -84,6 +84,7 @@ typedef struct RenderEngine {
 	void *py_instance;
 
 	int flag;
+	struct Object *camera_override;
 
 	struct Render *re;
 	ListBase fullresult;

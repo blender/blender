@@ -189,11 +189,11 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
 		ImBuf *ibuf;
 		int ftype = BKE_imtype_to_ftype(value);
 
-		/*
+#if 0
 		ibuf= BKE_image_get_ibuf(image, NULL);
 		if (ibuf)
 			ibuf->ftype= ftype;
-		*/
+#endif
 
 		/* to be safe change all buffer file types */
 		for (ibuf = image->ibufs.first; ibuf; ibuf = ibuf->next) {
@@ -603,9 +603,9 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	/*
-	   Image.has_data and Image.depth are temporary,
-	   Update import_obj.py when they are replaced (Arystan)
-	*/
+	 * Image.has_data and Image.depth are temporary,
+	 * Update import_obj.py when they are replaced (Arystan)
+	 */
 	prop = RNA_def_property(srna, "has_data", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Image_has_data_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -125,25 +125,35 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 	return f;
 }
 
-/* copies face data from shared adjacent faces */
+/**
+ * \brief copies face loop data from shared adjacent faces.
+ * \note when a matching edge is found, both loops of that edge are copied
+ * this is done since the face may not be completely surrounded by faces,
+ * this way: a quad with 2 connected quads on either side will still get all 4 loops updated */
 void BM_face_copy_shared(BMesh *bm, BMFace *f)
 {
-	BMIter iter;
-	BMLoop *l, *l_other;
+	BMLoop *l_first;
+	BMLoop *l_iter;
 
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-		l_other = l->radial_next;
-		
-		if (l_other && l_other != l) {
-			if (l_other->v == l->v) {
-				bm_loop_attrs_copy(bm, bm, l_other, l);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		BMLoop *l_other = l_iter->radial_next;
+
+		if (l_other && l_other != l_iter) {
+			if (l_other->v == l_iter->v) {
+				bm_loop_attrs_copy(bm, bm, l_other, l_iter);
+				bm_loop_attrs_copy(bm, bm, l_other->next, l_iter->next);
 			}
 			else {
-				l_other = l_other->next;
-				bm_loop_attrs_copy(bm, bm, l_other, l);
+				bm_loop_attrs_copy(bm, bm, l_other->next, l_iter);
+				bm_loop_attrs_copy(bm, bm, l_other, l_iter->next);
+			}
+			/* since we copy both loops of the shared edge, step over the next loop here */
+			if ((l_iter = l_iter->next) == l_first) {
+				break;
 			}
 		}
-	}
+	} while ((l_iter = l_iter->next) != l_first);
 }
 
 /**
@@ -485,7 +495,7 @@ void BMO_remove_tagged_faces(BMesh *bm, const short oflag)
 	BMFace *f;
 	BMIter iter;
 
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, f, oflag)) {
 			BM_face_kill(bm, f);
 		}
@@ -497,7 +507,7 @@ void BMO_remove_tagged_edges(BMesh *bm, const short oflag)
 	BMEdge *e;
 	BMIter iter;
 
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, e, oflag)) {
 			BM_edge_kill(bm, e);
 		}
@@ -509,7 +519,7 @@ void BMO_remove_tagged_verts(BMesh *bm, const short oflag)
 	BMVert *v;
 	BMIter iter;
 
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, oflag)) {
 			BM_vert_kill(bm, v);
 		}
@@ -535,14 +545,14 @@ static void bmo_remove_tagged_context_verts(BMesh *bm, const short oflag)
 	BMIter iter;
 	BMIter itersub;
 
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, oflag)) {
 			/* Visit edge */
-			BM_ITER(e, &itersub, bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER_ELEM (e, &itersub, v, BM_EDGES_OF_VERT) {
 				BMO_elem_flag_enable(bm, e, oflag);
 			}
 			/* Visit face */
-			BM_ITER(f, &itersub, bm, BM_FACES_OF_VERT, v) {
+			BM_ITER_ELEM (f, &itersub, v, BM_FACES_OF_VERT) {
 				BMO_elem_flag_enable(bm, f, oflag);
 			}
 		}
@@ -561,9 +571,9 @@ static void bmo_remove_tagged_context_edges(BMesh *bm, const short oflag)
 	BMIter iter;
 	BMIter itersub;
 
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, e, oflag)) {
-			BM_ITER(f, &itersub, bm, BM_FACES_OF_EDGE, e) {
+			BM_ITER_ELEM (f, &itersub, e, BM_FACES_OF_EDGE) {
 				BMO_elem_flag_enable(bm, f, oflag);
 			}
 		}
@@ -600,7 +610,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		case DEL_EDGES:
 		{
 			/* flush down to vert */
-			BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
 				if (BMO_elem_flag_test(bm, e, oflag)) {
 					BMO_elem_flag_enable(bm, e->v1, oflag);
 					BMO_elem_flag_enable(bm, e->v2, oflag);
@@ -608,7 +618,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 			}
 			bmo_remove_tagged_context_edges(bm, oflag);
 			/* remove loose vertice */
-			BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 				if (BMO_elem_flag_test(bm, v, oflag) && (!(v->e)))
 					BMO_elem_flag_enable(bm, v, DEL_WIREVERT);
 			}
@@ -639,7 +649,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		case DEL_FACES:
 		{
 			/* go through and mark all edges and all verts of all faces for delet */
-			BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 				if (BMO_elem_flag_test(bm, f, oflag)) {
 					for (e = BM_iter_new(&eiter, bm, BM_EDGES_OF_FACE, f); e; e = BM_iter_step(&eiter))
 						BMO_elem_flag_enable(bm, e, oflag);
@@ -648,7 +658,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 				}
 			}
 			/* now go through and mark all remaining faces all edges for keeping */
-			BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 				if (!BMO_elem_flag_test(bm, f, oflag)) {
 					for (e = BM_iter_new(&eiter, bm, BM_EDGES_OF_FACE, f); e; e = BM_iter_step(&eiter)) {
 						BMO_elem_flag_disable(bm, e, oflag);
@@ -659,7 +669,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 				}
 			}
 			/* also mark all the vertices of remaining edges for keeping */
-			BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
 				if (!BMO_elem_flag_test(bm, e, oflag)) {
 					BMO_elem_flag_disable(bm, e->v1, oflag);
 					BMO_elem_flag_disable(bm, e->v2, oflag);
@@ -677,13 +687,13 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		case DEL_ALL:
 		{
 			/* does this option even belong in here? */
-			BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 				BMO_elem_flag_enable(bm, f, oflag);
 			}
-			BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
 				BMO_elem_flag_enable(bm, e, oflag);
 			}
-			BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 				BMO_elem_flag_enable(bm, v, oflag);
 			}
 

@@ -44,20 +44,20 @@
 #include "BLI_dynstr.h"
 
 #ifdef WIN32
-#include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
-#endif
-#include <shlobj.h> /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff because 'near' is disabled through BLI_windstuff */
-#include "BLI_winstuff.h"
+#  include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
+#  ifndef _WIN32_IE
+#    define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
+#  endif
+#  include <shlobj.h>  /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff
+                        * because 'near' is disabled through BLI_windstuff */
+#  include "BLI_winstuff.h"
 #endif
 
 #ifdef __APPLE__
-/* XXX BIG WARNING: carbon.h can not be included in blender code, it conflicts with struct ID */
-#define ID ID_
-#include <CoreServices/CoreServices.h>
-
-#endif
+   /* XXX BIG WARNING: carbon.h can not be included in blender code, it conflicts with struct ID */
+#  define ID ID_
+#  include <CoreServices/CoreServices.h>
+#endif /* __APPLE__ */
 
 #ifdef __linux__
 #include <mntent.h>

@@ -43,6 +43,7 @@
 #include "WM_types.h"
 
 #include "BLI_utildefines.h"
+
 #include "BLF_translation.h"
 
 #include "BKE_sound.h"
@@ -481,14 +482,15 @@ static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeFontStyle");
 	RNA_def_property_ui_text(prop, "Panel Style", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-/*	(not used yet)
+	/*	(not used yet) */
+#if 0
 	prop= RNA_def_property(srna, "group_label", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "grouplabel");
 	RNA_def_property_struct_type(prop, "ThemeFontStyle");
 	RNA_def_property_ui_text(prop, "Group Label Font", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-*/
+#endif
 	prop = RNA_def_property(srna, "widget_label", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "widgetlabel");
@@ -2668,7 +2670,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "fcurve_unselected_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "fcu_inactive_alpha");
 	RNA_def_property_range(prop, 0.001f, 1.0f);
-	RNA_def_property_ui_text(prop, "Unselected F-Curve Visibility", 
+	RNA_def_property_ui_text(prop, "Unselected F-Curve Visibility",
 	                         "Amount that unselected F-Curves stand out from the background (Graph Editor)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
@@ -2860,7 +2862,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* Note: As this list is in alphabetical order, and not defined order,
 	 *       here is the highest define currently in use: 30 (turkish). */
 	static EnumPropertyItem language_items[] = {
-		{ 0, "", 0, "Nearly done", ""},
+		{ 0, "", 0, N_("Nearly done"), ""},
 		{ 0, "DEFAULT", 0, "Default (Default)", ""},
 		{ 1, "ENGLISH", 0, "English (English)", "en_US"},
 		{ 8, "FRENCH", 0, "French (Français)", "fr_FR"},
@@ -2869,7 +2871,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{13, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese (简体中文)", "zh_CN"},
 		{ 9, "SPANISH", 0, "Spanish (Español)", "es"},
 		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
-		{ 0, "", 0, "In progress", ""},
+		{ 0, "", 0, N_("In progress"), ""},
 		/* using the utf8 flipped form of Arabic (العربية) */
 		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
 		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
@@ -2894,7 +2896,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr_RS@latin"},
 		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
 		{30, "TURKISH", 0, "Turkish (Türkçe)", "tr_TR"},
-/*		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},*/ /* XXX No po's yet. */
+		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
 		{ 0, NULL, 0, NULL, NULL}};
 
 #ifdef WITH_CYCLES

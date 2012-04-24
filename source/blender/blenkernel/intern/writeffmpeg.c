@@ -172,7 +172,7 @@ static AVFrame* alloc_picture(int pix_fmt, int width, int height)
 }
 
 /* Get the correct file extensions for the requested format,
-   first is always desired guess_format parameter */
+ * first is always desired guess_format parameter */
 static const char** get_file_extensions(int format) 
 {
 	switch(format) {
@@ -308,7 +308,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels, ReportList *reports)
 	rendered_frame = pixels;
 
 	/* Do RGBA-conversion and flipping in one step depending
-	   on CPU-Endianess */
+	 * on CPU-Endianess */
 
 	if (ENDIAN_ORDER == L_ENDIAN) {
 		int y;
@@ -628,7 +628,7 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 	}
 
 	/* need to prevent floating point exception when using vorbis audio codec,
-	   initialize this value in the same way as it's done in FFmpeg iteslf (sergey) */
+	 * initialize this value in the same way as it's done in FFmpeg iteslf (sergey) */
 	st->codec->time_base.num= 1;
 	st->codec->time_base.den= st->codec->sample_rate;
 
@@ -876,8 +876,8 @@ void flush_ffmpeg(void)
 }
 
 /* **********************************************************************
-   * public interface
-   ********************************************************************** */
+ * * public interface
+ * ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
 void filepath_ffmpeg(char* string, RenderData* rd)

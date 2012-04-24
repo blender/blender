@@ -446,9 +446,9 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 	BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
 	clmd->sim_parms->timescale= timescale;
 
-	if (clmd->sim_parms->reset
-		|| (framenr == (startframe - clmd->sim_parms->preroll) && clmd->sim_parms->preroll != 0)
-		|| (clmd->clothObject && dm->getNumVerts(dm) != clmd->clothObject->numverts))
+	if (clmd->sim_parms->reset ||
+	    (framenr == (startframe - clmd->sim_parms->preroll) && clmd->sim_parms->preroll != 0) ||
+	    (clmd->clothObject && dm->getNumVerts(dm) != clmd->clothObject->numverts))
 	{
 		clmd->sim_parms->reset = 0;
 		cache->flag |= PTCACHE_OUTDATED;
@@ -1176,8 +1176,8 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				
 				// check for existing spring
 				// check also if startpoint is equal to endpoint
-				if ( !BLI_edgehash_haskey ( edgehash, MIN2(tspring2->ij, index2), MAX2(tspring2->ij, index2) )
-				&& ( index2!=tspring2->ij ) )
+				if (!BLI_edgehash_haskey(edgehash, MIN2(tspring2->ij, index2), MAX2(tspring2->ij, index2)) &&
+				    (index2 != tspring2->ij))
 				{
 					spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 					

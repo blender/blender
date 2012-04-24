@@ -1237,8 +1237,8 @@ static void rna_def_texture_image(BlenderRNA *brna)
 #if 0
 
 	/* XXX: did this as an array, but needs better descriptions than "1 2 3 4"
-	perhaps a new subtype could be added?
-	--I actually used single values for this, maybe change later with a RNA_Rect thing? */
+	 * perhaps a new subtype could be added?
+	 * --I actually used single values for this, maybe change later with a RNA_Rect thing? */
 	prop = RNA_def_property(srna, "crop_rectangle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cropxmin");
 	RNA_def_property_array(prop, 4);

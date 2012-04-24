@@ -2502,8 +2502,8 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 	
 						if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
 						{
-							if ( ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED )
-										&& ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED ) )
+							if ( ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED ) &&
+							     ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED ) )
 							{
 								continue;
 							}

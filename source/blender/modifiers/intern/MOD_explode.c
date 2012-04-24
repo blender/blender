@@ -1007,10 +1007,10 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		if (psmd->dm==NULL) return derivedData;
 
 		/* 1. find faces to be exploded if needed */
-		if (emd->facepa == NULL
-				 || psmd->flag&eParticleSystemFlag_Pars
-				 || emd->flag&eExplodeFlag_CalcFaces
-				 || MEM_allocN_len(emd->facepa)/sizeof(int) != dm->getNumTessFaces(dm))
+		if (emd->facepa == NULL ||
+		    psmd->flag&eParticleSystemFlag_Pars ||
+		    emd->flag&eExplodeFlag_CalcFaces ||
+		    MEM_allocN_len(emd->facepa) / sizeof(int) != dm->getNumTessFaces(dm))
 		{
 			if (psmd->flag & eParticleSystemFlag_Pars)
 				psmd->flag &= ~eParticleSystemFlag_Pars;

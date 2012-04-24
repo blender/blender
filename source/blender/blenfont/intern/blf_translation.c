@@ -93,7 +93,7 @@ void BLF_free_unifont(void)
 const char* BLF_gettext(const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
-	if (msgid[0])
+	if (msgid && msgid[0])
 		return gettext(msgid);
 	return "";
 #else
@@ -110,6 +110,9 @@ const char *BLF_pgettext(const char *context, const char *message)
 	const char *translation;
 
 	size_t overall_length = strlen(context) + strlen(message) + sizeof(GETTEXT_CONTEXT_GLUE) + 1;
+
+	if (!message || !context || !message[0])
+		return "";
 
 	if (overall_length > sizeof(static_msg_ctxt_id)) {
 		dynamic_msg_ctxt_id = malloc(overall_length);

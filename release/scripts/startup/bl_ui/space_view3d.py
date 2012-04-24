@@ -1607,7 +1607,9 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator("mesh.select_all", text="Select Inverse").action = 'INVERT'
         layout.operator("mesh.flip_normals")
         layout.operator("mesh.vertices_smooth", text="Smooth")
+        layout.operator("mesh.inset")
         layout.operator("mesh.bevel", text="Bevel")
+        layout.operator("mesh.bridge_edge_loops")
         layout.operator("mesh.faces_shade_smooth")
         layout.operator("mesh.faces_shade_flat")
         layout.operator("mesh.blend_from_shape")
@@ -1680,7 +1682,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator("mesh.merge")
         layout.operator("mesh.rip_move")
         layout.operator("mesh.split")
-        layout.operator("mesh.separate")
+        layout.operator_menu_enum("mesh.separate", "type")
         layout.operator("mesh.vert_connect")
         layout.operator("mesh.vert_slide")
 
@@ -2176,14 +2178,18 @@ class VIEW3D_PT_view3d_properties(Panel):
         view = context.space_data
 
         col = layout.column()
-        col.active = view.region_3d.view_perspective != 'CAMERA'
+        col.active = bool(view.region_3d.view_perspective != 'CAMERA' or
+                          view.region_quadview)
         col.prop(view, "lens")
         col.label(text="Lock to Object:")
         col.prop(view, "lock_object", text="")
         lock_object = view.lock_object
         if lock_object:
             if lock_object.type == 'ARMATURE':
-                col.prop_search(view, "lock_bone", lock_object.data, "edit_bones" if lock_object.mode == 'EDIT' else "bones", text="")
+                col.prop_search(view, "lock_bone", lock_object.data,
+                                "edit_bones" if lock_object.mode == 'EDIT'
+                                             else "bones",
+                                text="")
         else:
             col.prop(view, "lock_cursor", text="Lock to Cursor")
 

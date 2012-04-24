@@ -134,7 +134,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 /* given two opposite edges in a face, finds the ordering of their vertices so
  * that cut preview lines won't cross each other */
-static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed, 
+static void edgering_find_order(BMEdge *lasteed, BMEdge *eed,
                                 BMVert *lastv1, BMVert *v[2][2])
 {
 	BMIter liter;
@@ -145,7 +145,7 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 
 	/* find correct order for v[1] */
 	if (!(BM_edge_in_face(l->f, eed) && BM_edge_in_face(l->f, lasteed))) {
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_LOOP, l) {
+		BM_ITER_ELEM (l, &liter, l, BM_LOOPS_OF_LOOP) {
 			if (BM_edge_in_face(l->f, eed) && BM_edge_in_face(l->f, lasteed))
 				break;
 		}
@@ -211,7 +211,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 		eed = BMW_begin(&walker, startedge);
 		for ( ; eed; eed = BMW_step(&walker)) {
-			BM_elem_select_set(em->bm, eed, TRUE);
+			BM_edge_select_set(em->bm, eed, TRUE);
 		}
 		BMW_end(&walker);
 
@@ -237,7 +237,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 				lastv1 = lasteed->v1;
 			}
 
-			edgering_find_order(em, lasteed, eed, lastv1, v);
+			edgering_find_order(lasteed, eed, lastv1, v);
 			lastv1 = v[0][0];
 
 			BLI_array_growitems(edges, previewlines);
@@ -263,7 +263,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 		v[1][0] = v[0][0];
 		v[1][1] = v[0][1];
 
-		edgering_find_order(em, lasteed, startedge, lastv1, v);
+		edgering_find_order(lasteed, startedge, lastv1, v);
 		
 		BLI_array_growitems(edges, previewlines);
 
@@ -313,10 +313,11 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		edgering_sel(lcd, cuts, 1);
 		
 		if (lcd->do_cut) {
-			BM_mesh_esubdivideflag(lcd->ob, em->bm, BM_ELEM_SELECT, 0.0f,
-			                       0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT,
-			                       SUBD_PATH, 0, FALSE, 0);
-			
+			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
+			                   0.0f, 0.0f,
+			                   cuts,
+			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, FALSE, 0);
+
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {
 				if (em->selectmode == SCE_SELECT_FACE)
@@ -325,8 +326,6 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 					em->selectmode &= ~SCE_SELECT_FACE;
 				CTX_data_tool_settings(C)->selectmode = em->selectmode;
 				EDBM_selectmode_set(em);
-
-				WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, CTX_data_scene(C));
 
 				WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, CTX_data_scene(C));
 			}

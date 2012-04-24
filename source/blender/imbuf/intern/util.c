@@ -188,7 +188,7 @@ int IMB_ispic(const char *filename)
 		) {
 			return IMB_ispic_name(filename);
 		}
-		else  {
+		else {
 			return FALSE;
 		}
 	}
@@ -362,8 +362,11 @@ int imb_get_anim_type(const char * name)
 	if (isredcode(name)) return (ANIM_REDCODE);
 #endif
 	type = IMB_ispic(name);
-	if (type) return(ANIM_SEQUENCE);
-	return(0);
+	if (type) {
+		return ANIM_SEQUENCE;
+	}
+
+	return ANIM_NONE;
 }
  
 int IMB_isanim(const char *filename)
@@ -372,32 +375,34 @@ int IMB_isanim(const char *filename)
 	
 	if (U.uiflag & USER_FILTERFILEEXTS) {
 		if (G.have_quicktime) {
-			if (		BLI_testextensie(filename, ".avi")
-				||	BLI_testextensie(filename, ".flc")
-				||	BLI_testextensie(filename, ".dv")
-				||	BLI_testextensie(filename, ".r3d")
-				||	BLI_testextensie(filename, ".mov")
-				||	BLI_testextensie(filename, ".movie")
-				||	BLI_testextensie(filename, ".mv")) {
+			if (BLI_testextensie(filename, ".avi")   ||
+			    BLI_testextensie(filename, ".flc")   ||
+			    BLI_testextensie(filename, ".dv")    ||
+			    BLI_testextensie(filename, ".r3d")   ||
+			    BLI_testextensie(filename, ".mov")   ||
+			    BLI_testextensie(filename, ".movie") ||
+			    BLI_testextensie(filename, ".mv"))
+			{
 				type = imb_get_anim_type(filename);
 			}
 			else {
 				return(FALSE);			
 			}
 		}
-		else { // no quicktime
-			if (		BLI_testextensie(filename, ".avi")
-				||	BLI_testextensie(filename, ".dv")
-				||	BLI_testextensie(filename, ".r3d")
-				||	BLI_testextensie(filename, ".mv")) {
+		else { /* no quicktime */
+			if (BLI_testextensie(filename, ".avi") ||
+			    BLI_testextensie(filename, ".dv")  ||
+			    BLI_testextensie(filename, ".r3d") ||
+			    BLI_testextensie(filename, ".mv"))
+			{
 				type = imb_get_anim_type(filename);
 			}
-			else  {
+			else {
 				return(FALSE);
 			}
 		}
 	}
-	else { // no FILTERFILEEXTS
+	else { /* no FILTERFILEEXTS */
 		type = imb_get_anim_type(filename);
 	}
 	

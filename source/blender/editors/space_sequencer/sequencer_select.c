@@ -1096,10 +1096,12 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 		/* Ignore all seqs already selected! */
 		/* Ignore all seqs not sharing some time with active one. */
 		/* Ignore all seqs of incompatible types (audio vs video). */
-		if ((seq->flag & SELECT) || (seq->startdisp >= enddisp) || (seq->enddisp < startdisp)
-		    || (!is_audio && SEQ_IS_SOUND(seq))
-		    || (is_audio && !((seq->type == SEQ_META) || SEQ_IS_SOUND(seq))))
+		if ((seq->flag & SELECT) || (seq->startdisp >= enddisp) || (seq->enddisp < startdisp) ||
+		    (!is_audio && SEQ_IS_SOUND(seq)) ||
+		    (is_audio && !((seq->type == SEQ_META) || SEQ_IS_SOUND(seq))))
+		{
 			continue;
+		}
 
 		/* If the seq is an effect one, we need extra cheking! */
 		if (SEQ_IS_EFFECT(seq) && ((seq->seq1 && seq->seq1->tmp) ||

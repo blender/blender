@@ -39,10 +39,10 @@
 #include <sys/stat.h>
 
 #ifndef _WIN32
-#include <unistd.h>
+#  include <unistd.h>
 #else
-#include <io.h>
-#include "BLI_winstuff.h"
+#  include <io.h>
+#  include "BLI_winstuff.h"
 #endif
 
 #include "DNA_windowmanager_types.h"

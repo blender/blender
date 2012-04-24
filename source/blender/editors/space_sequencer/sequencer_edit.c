@@ -1003,11 +1003,13 @@ int sequencer_edit_poll(bContext *C)
 	return (seq_give_editing(CTX_data_scene(C), FALSE) != NULL);
 }
 
+#if 0 /* UNUSED */
 int sequencer_strip_poll(bContext *C)
 {
 	Editing *ed;
 	return (((ed = seq_give_editing(CTX_data_scene(C), FALSE)) != NULL) && (ed->act_seq != NULL));
 }
+#endif
 
 int sequencer_strip_has_path_poll(bContext *C)
 {
@@ -1319,7 +1321,8 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER; /* no undo, the data changed is stored outside 'main' */
 
-	prop = RNA_def_boolean(ot->srna, "adjust_length", 0, "Adjust Length", "Adjust lenght of strips to their data length");
+	prop = RNA_def_boolean(ot->srna, "adjust_length", 0, "Adjust Length",
+	                       "Adjust lenght of strips to their data lenght");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

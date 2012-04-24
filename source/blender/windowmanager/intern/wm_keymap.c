@@ -61,7 +61,7 @@
 #include "wm_event_types.h"
 
 /******************************* Keymap Item **********************************
-* Item in a keymap, that maps from an event to an operator or modal map item */
+ * Item in a keymap, that maps from an event to an operator or modal map item */
 
 static wmKeyMapItem *wm_keymap_item_copy(wmKeyMapItem *kmi)
 {
@@ -710,6 +710,22 @@ wmKeyMapItem *WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modif
 	return kmi;
 }
 
+wmKeyMapItem *WM_modalkeymap_add_item_str(wmKeyMap *km, int type, int val, int modifier, int keymodifier, const char *value)
+{
+	wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
+
+	BLI_addtail(&km->items, kmi);
+	BLI_strncpy(kmi->propvalue_str, value, sizeof(kmi->propvalue_str));
+
+	keymap_event_set(kmi, type, val, modifier, keymodifier);
+
+	keymap_item_set_id(km, kmi);
+
+	WM_keyconfig_update_tag(km, kmi);
+
+	return kmi;
+}
+
 void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0);
@@ -718,6 +734,33 @@ void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
 		ot->modalkeymap = km;
 	else
 		printf("error: modalkeymap_assign, unknown operator %s\n", opname);
+}
+
+static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
+{
+	/* here we convert propvalue string values delayed, due to python keymaps
+	 * being created before the actual modal keymaps, so no modal_items */
+	wmKeyMap *defaultkm;
+	wmKeyMapItem *kmi;
+	int propvalue;
+
+	if (km && (km->flag & KEYMAP_MODAL) && !km->modal_items) {
+		defaultkm = WM_keymap_list_find(&wm->defaultconf->keymaps, km->idname, 0, 0);
+
+		if (!defaultkm)
+			return;
+
+		km->modal_items = defaultkm->modal_items;
+		km->poll = defaultkm->poll;
+
+		for (kmi = km->items.first; kmi; kmi = kmi->next) {
+			if (kmi->propvalue_str[0]) {
+				if (RNA_enum_value_from_id(km->modal_items, kmi->propvalue_str, &propvalue))
+					kmi->propvalue = propvalue;
+				kmi->propvalue_str[0] = '\0';
+			}
+		}
+	}
 }
 
 /* ***************** get string from key events **************** */
@@ -1034,6 +1077,8 @@ void WM_keyconfig_update(wmWindowManager *wm)
 		addonmap = WM_keymap_list_find(&wm->addonconf->keymaps, km->idname, km->spaceid, km->regionid);
 		usermap = WM_keymap_list_find(&U.user_keymaps, km->idname, km->spaceid, km->regionid);
 
+		wm_user_modal_keymap_set_items(wm, defaultmap);
+
 		/* add */
 		kmn = wm_keymap_patch_update(&wm->userconf->keymaps, defaultmap, addonmap, usermap);
 
@@ -1189,6 +1234,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	/* Markers */
 	else if (strstr(opname, "MARKER_OT")) {
 		km = WM_keymap_find_all(C, "Markers", 0, 0);
+	}
+	/* Import/Export*/
+	else if (strstr(opname, "IMPORT_") || strstr(opname, "EXPORT_")) {
+		km = WM_keymap_find_all(C, "Window", 0, 0);
 	}
 	
 	
