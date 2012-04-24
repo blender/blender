@@ -47,6 +47,12 @@
 
 #endif
 
+/* Bitness */
+
+#if defined(__ppc64__) || defined(__PPC64__) || defined(__x86_64__) || defined(__ia64__) || defined(_M_X64)
+#define __KERNEL_64_BIT__
+#endif
+
 /* SIMD Types */
 
 /* not enabled yet, just testing */
@@ -102,6 +108,12 @@ typedef unsigned int uint32_t;
 
 typedef long long int64_t;
 typedef unsigned long long uint64_t;
+
+#ifdef __KERNEL_64_BIT__
+typedef int64_t ssize_t;
+#else
+typedef int32_t ssize_t;
+#endif
 
 #endif
 
