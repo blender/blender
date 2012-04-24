@@ -432,37 +432,31 @@ float comparable_distance_between_coordinates(const float co_1[3], const float c
 	return distance;
 }
 
-/*return the closest weight*/
-MDeformWeight *dweight_get_nearest(MVert *mv_dst, MDeformVert **dv_array_src, MVert *mv_src, int mv_tot_src, int index)
-{
-	MDeformWeight *dw;
-	float min_dist, dist;
-	int i;
-	/*initiate*/
-	dw= (*dv_array_src)->dw;
-	min_dist= comparable_distance_between_coordinates(mv_dst->co, mv_src->co);
-	/*get closest*/
-	for(i=0; i<mv_tot_src; i++, mv_src++, dv_array_src++){
-		dist= comparable_distance_between_coordinates(mv_dst->co, mv_src->co);
-		if(min_dist > dist){
-			min_dist= dist;
-			dw= defvert_verify_index((*dv_array_src), index);
-		}
-	}
-	return dw;
-}
-
 /*Copy a single vertex group from source to destination with weights, get the closest weight on source*/
 int ED_vgroup_copy_by_closest_single(Object *ob_dst, const Object *ob_src)
 {
-	MDeformVert **dv_array_src;
-	MDeformVert **dv_array_dst;
-	MDeformWeight *dw_dst, *dw_src;
-	int dv_tot_src, dv_tot_dst;
-	int i, index_dst, index_src;
 	bDeformGroup *dg_src, *dg_dst;
-	Mesh *me_src, *me_dst;
-	MVert *mv_src, *mv_dst;
+	MDeformVert **dv_array_src, **dv_array_dst;
+	MDeformWeight *dw_dst, *dw_src;
+	MVert *mv_dst;
+	Mesh *me_dst;
+	BVHTreeFromMesh tree_mesh_src;
+	BVHTreeNearest nearest;
+	DerivedMesh *dmesh_src;
+	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
+
+	/*TODO: Check if it should be used and return 0 if not*/
+	/*TODO: Bugfix, if position of object center is not similar, the copy will fail*/
+	/*suggested sollution: temporarily set object center to geometry center on both source and target*/
+	/*suggested sollution: temporarily manipulate destination  object center to align with source*/
+	/*suggested solution: user choise*/
+	/*TODO: take scale into account*/
+	/*memory safety TODO make this work.
+	if (tree_mesh_src.tree == NULL)
+	{
+		OUT_OF_MEMORY();
+		return;
+	}*/
 
 	/*get source deform group*/
 	dg_src = BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -476,7 +470,12 @@ int ED_vgroup_copy_by_closest_single(Object *ob_dst, const Object *ob_src)
 
 	/*get meshes*/
 	me_dst= ob_dst->data;
-	me_src= ob_src->data;
+
+	/*get derived mesh*/
+	dmesh_src= ob_src->derivedDeform;
+
+	/*make node tree*/
+	bvhtree_from_mesh_verts(&tree_mesh_src, dmesh_src, 0.0, 2, 6);
 
 	/*get vertex group arrays*/
 	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
@@ -488,16 +487,23 @@ int ED_vgroup_copy_by_closest_single(Object *ob_dst, const Object *ob_src)
 
 	/*get vertices*/
 	mv_dst= me_dst->mvert;
-	mv_src= me_src->mvert;
-
-	/*TODO: Check if it should be used and return 0 if not*/
 
 	/* Loop through the vertices and copy weight from closest to destination*/
 	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++) {
+		/*Reset nearest*/
+		nearest.index= -1;
+		nearest.dist= FLT_MAX;
+
+		/*Node tree accelerated search for closest vetex*/
+		BLI_bvhtree_find_nearest(tree_mesh_src.tree, mv_dst->co, &nearest, tree_mesh_src.nearest_callback, &tree_mesh_src);
+
+		/*copy weight*/
+		dw_src= defvert_verify_index(dv_array_src[nearest.index], index_src);
 		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
-		dw_src= dweight_get_nearest(mv_dst, dv_array_src, mv_src, me_src->totvert, index_src);
 		dw_dst->weight = dw_src->weight;
 	}
+
+	free_bvhtree_from_mesh(&tree_mesh_src);
 
 	return 1;
 }
@@ -2881,13 +2887,13 @@ static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op
 	CTX_DATA_BEGIN(C, Object*, obslc, selected_editable_objects)
 	{
 		if(obact != obslc) {
-			/*Trying function for matching number of vertices*/
+			/*Try function for matching number of vertices*/
 			if(ED_vgroup_copy_single(obslc, obact)) change++;
-			/*Trying function for get weight from closest vertex*/
+			/*Try function for get weight from closest vertex*/
 			else if(ED_vgroup_copy_by_closest_single(obslc, obact)) change++;
-			/*Triggers error message*/
+			/*Trigger error message*/
 			else fail++;
-			/*event notifiers for correct display of data*/
+			/*Event notifiers for correct display of data*/
 			DAG_id_tag_update(&obslc->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obslc);
 			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obslc->data);
@@ -2895,10 +2901,10 @@ static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op
 	}
 	CTX_DATA_END;
 
-	/*reports error when: 1: indices are not matching. 2: smart functions fails.*/
+	/*Report error when task could not be completed.*/
 	if((change == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
-		            "Copy to VGroups to Selected warning done %d, failed %d, Noob coder is noob!",
+		            "Copy to VGroups to Selected warning done %d, failed %d, All functions failed!",
 		            change, fail);
 	}
 
