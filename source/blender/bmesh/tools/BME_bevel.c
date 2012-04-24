@@ -62,6 +62,9 @@
  * so I need to decide what to do in these cases.
  */
 
+/* BMESH_TODO - resolve this */
+#define BMESH_263_VERT_BEVEL_WORKAROUND
+
 /* ------- Bevel code starts here -------- */
 
 BME_TransData_Head *BME_init_transdata(int bufsize)
@@ -660,10 +663,15 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 
 	/* find a good normal for this face (there's better ways, I'm sure) */
 	BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
+#ifdef BMESH_263_VERT_BEVEL_WORKAROUND
+		add_newell_cross_v3_v3v3(up_vec, l->prev->v->co, l->v->co);
+#else
 		BME_bevel_get_vec(vec1, l->v, l->next->v, td);
 		BME_bevel_get_vec(vec2, l->prev->v, l->v, td);
 		cross_v3_v3v3(vec3, vec2, vec1);
 		add_v3_v3(up_vec, vec3);
+
+#endif
 	}
 	normalize_v3(up_vec);
 
