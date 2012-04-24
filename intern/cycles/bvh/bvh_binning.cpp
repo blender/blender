@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include <stdlib.h>
+
 #include "bvh_binning.h"
 
 #include "util_algorithm.h"

@@ -23,6 +23,7 @@
 #include <float.h>
 
 #include "util_math.h"
+#include "util_string.h"
 #include "util_transform.h"
 #include "util_types.h"
 
