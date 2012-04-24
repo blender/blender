@@ -167,7 +167,7 @@ static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest,
 	int i, size = sizeof(void *);
 
 	for (i = 0; i < count; ++i) {
-		void **ptr = (void  **)((char *)dest + i * size);
+		void **ptr = (void **)((char *)dest + i * size);
 		*ptr = NULL;
 	}
 }

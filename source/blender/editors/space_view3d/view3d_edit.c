@@ -2985,10 +2985,10 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 	pandir = RNA_enum_get(op->ptr, "type");
 
 	initgrabz(rv3d, 0.0, 0.0, 0.0);
-	if (pandir == V3D_VIEW_PANRIGHT)        { mval_f[0] = -32.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
-	else if (pandir == V3D_VIEW_PANLEFT)    { mval_f[0] =  32.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
-	else if (pandir == V3D_VIEW_PANUP)      { mval_f[1] = -25.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
-	else if (pandir == V3D_VIEW_PANDOWN)    { mval_f[1] =  25.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	if      (pandir == V3D_VIEW_PANRIGHT)  { mval_f[0] = -32.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	else if (pandir == V3D_VIEW_PANLEFT)   { mval_f[0] =  32.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	else if (pandir == V3D_VIEW_PANUP)     { mval_f[1] = -25.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	else if (pandir == V3D_VIEW_PANDOWN)   { mval_f[1] =  25.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
 	add_v3_v3(rv3d->ofs, vec);
 
 	if (rv3d->viewlock & RV3D_BOXVIEW)

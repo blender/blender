@@ -558,7 +558,7 @@ static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, ReportList *reports
 
 static Nurb *rna_Curve_spline_new(Curve *cu, int type)
 {
-	Nurb *nu = ( Nurb * ) MEM_callocN( sizeof( Nurb ), "spline.new" );
+	Nurb *nu = (Nurb *) MEM_callocN( sizeof( Nurb ), "spline.new" );
 
 	if (type == CU_BEZIER) {
 		BezTriple *bezt = (BezTriple *)MEM_callocN(sizeof(BezTriple), "spline.new.bezt");

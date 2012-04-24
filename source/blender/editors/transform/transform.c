@@ -4785,7 +4785,8 @@ void projectSVData(TransInfo *t, int final)
 	BLI_smallhash_release(&visit);
 }
 
-void freeSlideTempFaces(SlideData *sld) {
+void freeSlideTempFaces(SlideData *sld)
+{
 	if (sld->origfaces_init) {
 		SmallHashIter hiter;
 		BMFace *copyf;

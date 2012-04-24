@@ -525,7 +525,7 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 void calc_mballco(MetaElem *ml, float vec[3])
 {
 	if (ml->mat) {
-		mul_m4_v3((float ( * )[4])ml->mat, vec);
+		mul_m4_v3((float (*)[4])ml->mat, vec);
 	}
 }
 
@@ -537,7 +537,7 @@ float densfunc(MetaElem *ball, float x, float y, float z)
 	vec[0]= x;
 	vec[1]= y;
 	vec[2]= z;
-	mul_m4_v3((float ( * )[4])ball->imat, vec);
+	mul_m4_v3((float (*)[4])ball->imat, vec);
 	dx= vec[0];
 	dy= vec[1];
 	dz= vec[2];
@@ -1738,7 +1738,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 
 					/* transformation of Metalem bb */
 					for (i=0; i<8; i++)
-						mul_m4_v3((float ( * )[4])mat, mainb[a]->bb->vec[i]);
+						mul_m4_v3((float (*)[4])mat, mainb[a]->bb->vec[i]);
 
 					/* find max and min of transformed bb */
 					for (i=0; i<8; i++) {

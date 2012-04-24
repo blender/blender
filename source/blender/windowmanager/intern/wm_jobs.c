@@ -240,8 +240,8 @@ void WM_jobs_timer(wmJob *steve, double timestep, unsigned int note, unsigned in
 void WM_jobs_callbacks(wmJob *steve, 
                        void (*startjob)(void *, short *, short *, float *),
                        void (*initjob)(void *),
-                       void (*update)(void  *),
-                       void (*endjob)(void  *))
+                       void (*update)(void *),
+                       void (*endjob)(void *))
 {
 	steve->startjob = startjob;
 	steve->initjob = initjob;
