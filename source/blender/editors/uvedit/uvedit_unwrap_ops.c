@@ -139,7 +139,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	
 	/* select new UV's */
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		uvedit_face_select(scene, em, efa);
+		uvedit_face_select(scene, em, efa, FALSE);
 	}
 
 	return 1;

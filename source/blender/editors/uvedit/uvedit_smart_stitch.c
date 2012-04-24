@@ -860,7 +860,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 				if (final) {
 					copy_v2_v2(luv->uv, final_position[i].uv);
 
-					uvedit_uv_select(state->em, scene, l);
+					uvedit_uv_select(state->em, scene, l, FALSE);
 				}
 				else {
 					int face_preview_pos = preview_position[BM_elem_index_get(element_iter->face)].data_position;

@@ -64,11 +64,11 @@ int uvedit_face_selected(struct Scene *scene, struct BMEditMesh *em, struct BMFa
 int uvedit_edge_selected(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
 int uvedit_uv_selected(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
 
-int uvedit_face_select(struct Scene *scene, struct BMEditMesh *em, struct BMFace *efa);
+int uvedit_face_select(struct Scene *scene, struct BMEditMesh *em, struct BMFace *efa, const short do_history);
 int uvedit_face_deselect(struct Scene *scene, struct BMEditMesh *em, struct BMFace *efa);
-void uvedit_edge_select(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
+void uvedit_edge_select(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l, const short do_history);
 void uvedit_edge_deselect(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
-void uvedit_uv_select(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
+void uvedit_uv_select(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l, const short do_history);
 void uvedit_uv_deselect(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
 
 int ED_uvedit_nearest_uv(struct Scene *scene, struct Object *obedit, struct Image *ima, float co[2], float uv[2]);
