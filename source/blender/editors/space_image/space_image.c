@@ -88,7 +88,7 @@ void ED_space_image_set(SpaceImage *sima, Scene *scene, Object *obedit, Image *i
 	/* context may be NULL, so use global */
 	ED_uvedit_assign_image(G.main, scene, obedit, ima, sima->image);
 	
-	/* change the space ima after because uvedit_face_visible uses the space ima
+	/* change the space ima after because uvedit_face_visible_test uses the space ima
 	 * to check if the face is displayed in UV-localview */
 	sima->image = ima;
 	

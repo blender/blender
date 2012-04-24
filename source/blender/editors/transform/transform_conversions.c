@@ -2455,14 +2455,14 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
-		if (!uvedit_face_visible(scene, ima, efa, tf)) {
+		if (!uvedit_face_visible_test(scene, ima, efa, tf)) {
 			BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			continue;
 		}
 		
 		BM_elem_flag_enable(efa, BM_ELEM_TAG);
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_uv_selected(em, scene, l)) 
+			if (uvedit_uv_select_test(em, scene, l)) 
 				countsel++;
 
 			if (propmode)
@@ -2490,11 +2490,11 @@ static void createTransUVs(bContext *C, TransInfo *t)
 			continue;
 
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (!propmode && !uvedit_uv_selected(em, scene, l))
+			if (!propmode && !uvedit_uv_select_test(em, scene, l))
 				continue;
 			
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			UVsToTransData(sima, td++, td2d++, luv->uv, uvedit_uv_selected(em, scene, l));
+			UVsToTransData(sima, td++, td2d++, luv->uv, uvedit_uv_select_test(em, scene, l));
 		}
 	}
 
