@@ -680,6 +680,10 @@ __device_inline float4 max(float4 a, float4 b)
 	return make_float4(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z), max(a.w, b.w));
 }
 
+#endif
+
+#ifndef __KERNEL_GPU__
+
 __device_inline float4 select(const int4& mask, const float4& a, const float4& b)
 {
 	return make_float4((mask.x)? a.x: b.x, (mask.y)? a.y: b.y, (mask.z)? a.z: b.z, (mask.w)? a.w: b.w);
@@ -704,10 +708,6 @@ __device_inline float3 rcp(const float3& a)
 {
 	return make_float3(1.0f/a.x, 1.0f/a.y, 1.0f/a.z);
 }
-
-#endif
-
-#ifndef __KERNEL_GPU__
 
 __device_inline void print_float4(const char *label, const float4& a)
 {
