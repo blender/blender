@@ -1,0 +1,58 @@
+Index: bundle.sh
+===================================================================
+--- bundle.sh	(revision 45912)
++++ bundle.sh	(working copy)
+@@ -248,7 +248,7 @@
+ incs += ' ' + env['BF_PNG_INC']
+ incs += ' ' + env['BF_ZLIB_INC']
+ 
+-if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
++if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
+     incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog'
+     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+         incs += ' ./third_party/msinttypes'
+Index: libmv/numeric/numeric.h
+===================================================================
+--- libmv/numeric/numeric.h	(revision 45912)
++++ libmv/numeric/numeric.h	(working copy)
+@@ -33,7 +33,7 @@
+ #include <Eigen/QR>
+ #include <Eigen/SVD>
+ 
+-#if _WIN32 || __APPLE__ || __FreeBSD__
++#if (defined(_WIN32) || defined(__APPLE__) || defined(__FreeBSD__)) && !defined(__MINGW64__)
+   void static sincos (double x, double *sinx, double *cosx) {
+     *sinx = sin(x);
+     *cosx = cos(x);
+Index: third_party/glog/src/windows/port.cc
+===================================================================
+--- third_party/glog/src/windows/port.cc	(revision 45912)
++++ third_party/glog/src/windows/port.cc	(working copy)
+@@ -55,6 +55,8 @@
+   return _vsnprintf(str, size-1, format, ap);
+ }
+ 
++// MinGW64 defines
++#ifndef __MINGW64__
+ int snprintf(char *str, size_t size, const char *format, ...) {
+   va_list ap;
+   va_start(ap, format);
+@@ -62,3 +64,4 @@
+   va_end(ap);
+   return r;
+ }
++#endif
+Index: third_party/glog/src/windows/port.h
+===================================================================
+--- third_party/glog/src/windows/port.h	(revision 45912)
++++ third_party/glog/src/windows/port.h	(working copy)
+@@ -120,7 +120,9 @@
+ #define DEFAULT_TEMPLATE_ROOTDIR  ".."
+ 
+ // ----------------------------------- SYSTEM/PROCESS
++#ifndef __MINGW64__
+ typedef int pid_t;
++#endif
+ #define getpid  _getpid
+ 
+ // ----------------------------------- THREADS

@@ -133,7 +133,7 @@ typedef struct Sequence {
 	char name[64]; /* SEQ_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths */
 
 	int flag, type;	/*flags bitmap (see below) and the type of sequence*/
-	int len; /* the length of the contense of this strip - before handles are applied */
+	int len; /* the length of the contents of this strip - before handles are applied */
 	int start, startofs, endofs;
 	int startstill, endstill;
 	int machine, depth; /*machine - the strip channel, depth - the depth in the sequence when dealing with metastrips */

@@ -9,5 +9,5 @@ if env['WITH_BF_GAMEENGINE']:
 if env['WITH_BF_PLAYER']:
     SConscript (['blenderplayer/bad_level_call_stubs/SConscript'])
 
-if env['OURPLATFORM'] in ('win64-vc', 'win32-vc', 'win32-mingw', 'linuxcross'):
+if env['OURPLATFORM'] in ('win64-vc', 'win32-vc', 'win32-mingw', 'linuxcross', 'win64-mingw'):
     SConscript (['icons/SConscript'])

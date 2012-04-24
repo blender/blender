@@ -1163,6 +1163,15 @@ int BKE_add_image_extension(char *string, const char imtype)
 	}
 }
 
+void BKE_imformat_defaults(ImageFormatData *im_format)
+{
+	memset(im_format, 0, sizeof(*im_format));
+	im_format->planes = R_IMF_PLANES_RGB;
+	im_format->imtype = R_IMF_IMTYPE_PNG;
+	im_format->quality = 90;
+	im_format->compress = 90;
+}
+
 /* could allow access externally - 512 is for long names, 64 is for id names */
 typedef struct StampData {
 	char 	file[512];

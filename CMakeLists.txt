@@ -194,12 +194,7 @@ option(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 option(WITH_IMAGE_FRAMESERVER   "Enable image FrameServer Support for rendering" ON)
 
 # Audio/Video format support
-if(MINGW)
-	set(PLATFORM_DEFAULT ON)
-else()
-	set(PLATFORM_DEFAULT OFF)
-endif()
-option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" ${PLATFORM_DEFAULT})
+option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
 unset(PLATFORM_DEFAULT)
 
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
@@ -233,6 +228,8 @@ if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
+option(WITH_MINGW64                   "Use the 64-bit version of MinGW" OFF)
+mark_as_advanced(WITH_MINGW64)
 
 # Cycles
 option(WITH_CYCLES					"Enable cycles Render Engine" ON)
@@ -369,6 +366,10 @@ if(MINGW)
 		message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
 		                    "because it is currently unsupported, remove this "
 		                    "line if youre a developer who wants to add support.")
+	endif()
+	
+	if((WITH_MINGW64) AND (WITH_OPENCOLLADA OR WITH_CODEC_FFMPEG))
+		message(FATAL_ERROR "MINGW64 still doesn't support: WITH_OPENCOLLADA/WITH_CODEC_FFMPEG")
 	endif()
 endif()
 
@@ -737,6 +738,12 @@ elseif(WIN32)
 
 	if(CMAKE_COMPILER_IS_GNUCC)
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
+
+		# Setup 64bit and 64bit windows systems		
+		if(WITH_MINGW64)
+			message("Set 64 bit compiler for MinGW.")
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw64)
+		endif()
 	else()
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
 
@@ -995,11 +1002,20 @@ elseif(WIN32)
 		set(PLATFORM_LINKFLAGS_DEBUG "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
 	elseif(CMAKE_COMPILER_IS_GNUCC)
-	# keep GCC specific stuff here
-		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
-		
+	# keep GCC specific stuff here		
 		set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi")
 		set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
+
+		if(WITH_MINGW64)
+			#Yes, the point for MinGW64 is moar optimization by default :)
+			set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -mmmx -msse -msse2")
+			set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
+			set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+			#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -lpthread")
+			
+			add_definitions(-DFREE_WINDOWS64 -DMS_WIN64)
+		endif()
 
 		add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
 
@@ -1017,7 +1033,11 @@ elseif(WIN32)
 		set(PNG_INCLUDE_DIR "${PNG}/include")
 		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 
-		set(JPEG_LIBRARIES libjpeg)
+		if(WITH_MINGW64)
+			set(JPEG_LIBRARIES jpeg)
+		else()
+			set(JPEG_LIBRARIES libjpeg)
+		endif()
 		set(PNG_LIBRARIES png)
 
 		set(ZLIB ${LIBDIR}/zlib)
@@ -1025,11 +1045,14 @@ elseif(WIN32)
 		set(ZLIB_LIBPATH ${ZLIB}/lib)
 		set(ZLIB_LIBRARIES z)
 
-		set(PTHREADS ${LIBDIR}/pthreads)
-		set(PTHREADS_INCLUDE_DIRS ${PTHREADS}/include)
-		set(PTHREADS_LIBPATH ${PTHREADS}/lib)
-		set(PTHREADS_LIBRARIES pthreadGC2)
-
+		#comes with own pthread library
+		if(NOT WITH_MINGW64)
+			set(PTHREADS ${LIBDIR}/pthreads)
+			set(PTHREADS_INCLUDE_DIRS ${PTHREADS}/include)
+			set(PTHREADS_LIBPATH ${PTHREADS}/lib)
+			set(PTHREADS_LIBRARIES pthreadGC2)
+		endif()
+		
 		set(FREETYPE ${LIBDIR}/freetype)
 		set(FREETYPE_INCLUDE_DIRS ${FREETYPE}/include ${FREETYPE}/include/freetype2)
 		set(FREETYPE_LIBPATH ${FREETYPE}/lib)
@@ -1101,8 +1124,13 @@ elseif(WIN32)
 		if(WITH_BOOST)
 			set(BOOST ${LIBDIR}/boost)
 			set(BOOST_INCLUDE_DIR ${BOOST}/include)
-			set(BOOST_POSTFIX "mgw46-mt-s-1_47")
-			set(BOOST_DEBUG_POSTFIX "mgw46-mt-sd-1_47")
+			if(WITH_MINGW64)
+				set(BOOST_POSTFIX "mgw47-mt-s-1_49")
+				set(BOOST_DEBUG_POSTFIX "mgw47-mt-sd-1_49")
+			else()
+				set(BOOST_POSTFIX "mgw46-mt-s-1_47")
+				set(BOOST_DEBUG_POSTFIX "mgw46-mt-sd-1_47")
+			endif()		
 			set(BOOST_LIBRARIES
 				optimized boost_date_time-${BOOST_POSTFIX} boost_filesystem-${BOOST_POSTFIX}
 				boost_regex-${BOOST_POSTFIX} boost_system-${BOOST_POSTFIX} boost_thread-${BOOST_POSTFIX}

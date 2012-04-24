@@ -3810,6 +3810,14 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 	int i = 0;
 
 	data->layers= newdataadr(fd, data->layers);
+
+	/* annoying workaround for bug [#31079] loading legacy files with
+	 * no polygons _but_ have stale customdata */
+	if (UNLIKELY(count == 0 && data->layers == NULL && data->totlayer != 0)) {
+		memset(data, 0, sizeof(*data));
+		return;
+	}
+
 	data->external= newdataadr(fd, data->external);
 
 	while (i < data->totlayer) {

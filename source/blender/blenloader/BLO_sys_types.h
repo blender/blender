@@ -100,8 +100,10 @@ typedef uint64_t  u_int64_t;
 #include <inttypes.h>
 
 #elif defined(FREE_WINDOWS)
+#ifndef FREE_WINDOWS64
 /* define htoln here, there must be a syntax error in winsock2.h in MinGW */
 unsigned long __attribute__((__stdcall__)) htonl(unsigned long);
+#endif
 #include <stdint.h>
 
 #else

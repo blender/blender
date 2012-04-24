@@ -32,6 +32,9 @@
 
 
 #if defined(_WIN64)
+#  ifdef __MINGW64__
+#    include <basetsd.h>
+#  endif
 typedef unsigned __int64 uint_ptr;
 #else
 typedef unsigned long uint_ptr;

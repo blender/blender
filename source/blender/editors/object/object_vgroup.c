@@ -1264,7 +1264,6 @@ static void vgroup_blend(Object *ob, const float fac)
 
 	if (BLI_findlink(&ob->defbase, def_nr)) {
 		const float ifac = 1.0f - fac;
-		int i1, i2;
 
 		BMEditMesh *em = BMEdit_FromObject(ob);
 		BMesh *bm = em ? em->bm : NULL;
@@ -1301,14 +1300,15 @@ static void vgroup_blend(Object *ob, const float fac)
 				sel2 = BM_elem_flag_test(eed->v2, BM_ELEM_SELECT);
 
 				if (sel1 != sel2) {
+					int i1 /* , i2 */;
 					/* i1 is always the selected one */
 					if (sel1) {
 						i1= BM_elem_index_get(eed->v1);
-						i2= BM_elem_index_get(eed->v2);
+						/* i2= BM_elem_index_get(eed->v2); */ /* UNUSED */
 						eve= eed->v2;
 					}
 					else {
-						i2= BM_elem_index_get(eed->v1);
+						/* i2= BM_elem_index_get(eed->v1); */ /* UNUSED */
 						i1= BM_elem_index_get(eed->v2);
 						eve= eed->v1;
 					}
@@ -1342,6 +1342,7 @@ static void vgroup_blend(Object *ob, const float fac)
 				sel2 = me->mvert[ed->v2].flag & SELECT;
 
 				if (sel1 != sel2) {
+					int i1, i2;
 					/* i1 is always the selected one */
 					if (sel1) {
 						i1 = ed->v1;

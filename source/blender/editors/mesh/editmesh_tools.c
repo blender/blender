@@ -4266,7 +4266,7 @@ void MESH_OT_inset(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "use_boundary",        TRUE, "Boundary",  "Inset face boundries");
+	RNA_def_boolean(ot->srna, "use_boundary",        TRUE, "Boundary",  "Inset face boundaries");
 	RNA_def_boolean(ot->srna, "use_even_offset",     TRUE, "Offset Even",      "Scale the offset to give more even thickness");
 	RNA_def_boolean(ot->srna, "use_relative_offset", FALSE, "Offset Relative", "Scale the offset by surrounding geometry");
 

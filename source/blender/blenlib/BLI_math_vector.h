@@ -228,6 +228,7 @@ void add_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_
 void sub_vn_vn(float *array_tar, const float *array_src, const int size);
 void sub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const int size);
 void fill_vn_i(int *array_tar, const int size, const int val);
+void fill_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val);
 void fill_vn_fl(float *array_tar, const int size, const float val);
 
 #ifdef __cplusplus

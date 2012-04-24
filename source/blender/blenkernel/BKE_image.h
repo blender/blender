@@ -68,6 +68,8 @@ char	BKE_imtype_valid_depths(const char imtype);
 
 char    BKE_imtype_from_arg(const char *arg);
 
+void    BKE_imformat_defaults(struct ImageFormatData *im_format);
+
 struct anim *openanim(const char *name, int flags, int streamindex);
 
 void	image_de_interlace(struct Image *ima, int odd);

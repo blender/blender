@@ -96,7 +96,7 @@ if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 
-if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
 if env['WITH_BF_INTERNATIONAL']:
@@ -160,7 +160,7 @@ rna.Depends (generated_files, makesrna)
 build_dir = root_build_dir + os.sep +'source' + os.sep + 'blender' + os.sep + 'makesrna' + os.sep + 'intern' + os.sep
     
 if env['OURPLATFORM'] != 'linuxcross':
-    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
+    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw', 'win64-mingw'):
         rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna.exe\" \""  + build_dir )
     else:
         rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna\" \""  + build_dir + '"' )

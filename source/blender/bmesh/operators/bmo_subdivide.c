@@ -109,7 +109,11 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 	copy_v3_v3(co, v->co);
 	copy_v3_v3(prev_co, co);
 
-	if (params->use_smooth) {
+	if (UNLIKELY(params->use_sphere)) { /* subdivide sphere */
+		normalize_v3(co);
+		mul_v3_fl(co, params->smooth);
+	}
+	else if (params->use_smooth) {
 		/* we calculate an offset vector vec1[], to be added to *co */
 		float len, nor[3], nor1[3], nor2[3], smooth = params->smooth;
 
@@ -133,10 +137,6 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 		mul_v3_fl(tvec, smooth * len);
 
 		add_v3_v3(co, tvec);
-	}
-	else if (params->use_sphere) { /* subdivide sphere */
-		normalize_v3(co);
-		mul_v3_fl(co, params->smooth);
 	}
 
 	if (params->use_fractal) {

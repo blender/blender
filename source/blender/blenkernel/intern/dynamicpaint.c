@@ -1577,14 +1577,14 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 
 	if (pmd->canvas && !(pmd->canvas->flags & MOD_DPAINT_BAKING)) {
 
-		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+		DynamicPaintSurface *surface;
 		int update_normals = 0;
 
 		/* loop through surfaces */
-		for (; surface; surface=surface->next) {
+		for (surface = pmd->canvas->surfaces.first; surface; surface=surface->next) {
 			PaintSurfaceData *sData = surface->data;
 
-			if (surface && surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && sData) {
+			if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && sData) {
 				if (!(surface->flags & (MOD_DPAINT_ACTIVE))) continue;
 
 				/* process vertex surface previews */

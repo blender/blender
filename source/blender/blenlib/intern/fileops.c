@@ -209,7 +209,7 @@ FILE *BLI_fopen(const char *filename, const char *mode)
 	return ufopen(filename, mode);
 }
 
-gzFile BLI_gzopen(const char *filename, const char *mode)
+void *BLI_gzopen(const char *filename, const char *mode)
 {
 	gzFile gzfile;
 

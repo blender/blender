@@ -205,10 +205,10 @@ static void knife_input_ray_cast(KnifeTool_OpData *kcd, const int mval_i[2],
 
 static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 {
-	#define HEADER_LENGTH 180
+	#define HEADER_LENGTH 190
 	char header[HEADER_LENGTH];
 
-	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
+	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return/Spacebar: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
 	             "Shift: ignore snap (%s), C: angle constrain (%s), Z: cut through (%s)",
 	             kcd->snap_midpoints ? "On" : "Off",
 	             kcd->ignore_edge_snapping ?  "On" : "Off",
@@ -2918,6 +2918,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, SPACEKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, EKEY, KM_PRESS, 0, 0, KNF_MODAL_NEW_CUT);
 
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_MIDPOINT_ON);

@@ -358,7 +358,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					if (OB_TYPE_SUPPORT_MATERIAL(base->object->type)) {
 						/* don't use assign_material, it changed mat->id.us, which shows in the UI */
 						Material ***matar = give_matarar(base->object);
-						int actcol = MAX2(base->object->actcol > 0, 1) - 1;
+						int actcol = MAX2(base->object->actcol - 1, 0);
 
 						if (matar && actcol < base->object->totcol)
 							(*matar)[actcol] = mat;
