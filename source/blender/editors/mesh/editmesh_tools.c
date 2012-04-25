@@ -4091,7 +4091,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 	BMEdge *eed;
 	BMOperator bmop;
 	float factor = RNA_float_get(op->ptr, "percent") /*, dfac */ /* UNUSED */, df, s;
-	int i, recursion = RNA_int_get(op->ptr, "recursion");
+	int i, recursion = 1; /* RNA_int_get(op->ptr, "recursion"); */ /* temp removed, see comment below */
 	const int use_even = RNA_boolean_get(op->ptr, "use_even");
 	const int use_dist = RNA_boolean_get(op->ptr, "use_dist");
 	float *w = NULL, ftot;
@@ -4168,7 +4168,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "percent", 0.5f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
-	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
+//  XXX, disabled for 2.63 release, needs to work much better without overlap before we can give to users.
+//	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
 
 	RNA_def_boolean(ot->srna, "use_even", FALSE, "Even",     "Calculate evenly spaced bevel");
 	RNA_def_boolean(ot->srna, "use_dist", FALSE, "Distance", "Interpret the percent in blender units");
