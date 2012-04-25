@@ -4394,7 +4394,7 @@ static int createSlideVerts(TransInfo *t)
 	BMEdge *e, *e1 /*, *ee, *le */ /* UNUSED */;
 	BMVert *v, *v2, *first;
 	BMLoop *l, *l1, *l2;
-	TransDataSlideVert *tempsv;
+	TransDataSlideVert *sv_array;
 	BMBVHTree *btree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	SmallHash table;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
@@ -4468,7 +4468,7 @@ static int createSlideVerts(TransInfo *t)
 		return 0;
 	}
 
-	tempsv = MEM_callocN(sizeof(TransDataSlideVert)*j, "tempsv");
+	sv_array = MEM_callocN(sizeof(TransDataSlideVert) * j, "sv_array");
 
 	j = 0;
 	while (1) {
@@ -4527,7 +4527,7 @@ static int createSlideVerts(TransInfo *t)
 		/*iterate over the loop*/
 		first = v;
 		do {
-			TransDataSlideVert *sv = tempsv + j;
+			TransDataSlideVert *sv = sv_array + j;
 
 			sv->v = v;
 			sv->origvert = *v;
@@ -4550,7 +4550,7 @@ static int createSlideVerts(TransInfo *t)
 			if (!e) {
 				//v2=v, v = BM_edge_other_vert(l1->e, v);
 
-				sv = tempsv + j + 1;
+				sv = sv_array + j + 1;
 				sv->v = v;
 				sv->origvert = *v;
 				
@@ -4583,7 +4583,7 @@ static int createSlideVerts(TransInfo *t)
 
 	//EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	sld->sv = tempsv;
+	sld->sv = sv_array;
 	sld->totsv = j;
 	
 	/*find mouse vector*/
@@ -4611,19 +4611,19 @@ static int createSlideVerts(TransInfo *t)
 					
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 
-					if (tempsv[j].down) {
-						ED_view3d_project_float_v3(ar, tempsv[j].down->co, vec1, projectMat);
+					if (sv_array[j].down) {
+						ED_view3d_project_float_v3(ar, sv_array[j].down->co, vec1, projectMat);
 					}
 					else {
-						add_v3_v3v3(vec1, v->co, tempsv[j].downvec);
+						add_v3_v3v3(vec1, v->co, sv_array[j].downvec);
 						ED_view3d_project_float_v3(ar, vec1, vec1, projectMat);
 					}
 					
-					if (tempsv[j].up) {
-						ED_view3d_project_float_v3(ar, tempsv[j].up->co, vec2, projectMat);
+					if (sv_array[j].up) {
+						ED_view3d_project_float_v3(ar, sv_array[j].up->co, vec2, projectMat);
 					}
 					else {
-						add_v3_v3v3(vec1, v->co, tempsv[j].upvec);
+						add_v3_v3v3(vec1, v->co, sv_array[j].upvec);
 						ED_view3d_project_float_v3(ar, vec2, vec2, projectMat);
 					}
 
@@ -4642,13 +4642,13 @@ static int createSlideVerts(TransInfo *t)
 	bmesh_edit_begin(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/*create copies of faces for customdata projection*/
-	tempsv = sld->sv;
-	for (i=0; i<sld->totsv; i++, tempsv++) {
+	sv_array = sld->sv;
+	for (i=0; i<sld->totsv; i++, sv_array++) {
 		BMIter fiter, liter;
 		BMFace *f;
 		BMLoop *l;
 		
-		BM_ITER_ELEM (f, &fiter, tempsv->v, BM_FACES_OF_VERT) {
+		BM_ITER_ELEM (f, &fiter, sv_array->v, BM_FACES_OF_VERT) {
 			
 			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
 				BMFace *copyf = BM_face_copy(bm, f, TRUE, TRUE);
@@ -4666,7 +4666,7 @@ static int createSlideVerts(TransInfo *t)
 			}
 		}
 
-		BLI_smallhash_insert(&sld->vhash, (uintptr_t)tempsv->v, tempsv);
+		BLI_smallhash_insert(&sld->vhash, (uintptr_t)sv_array->v, sv_array);
 	}
 	
 	sld->origfaces_init = TRUE;
@@ -4698,7 +4698,7 @@ static int createSlideVerts(TransInfo *t)
 void projectSVData(TransInfo *t, int final)
 {
 	SlideData *sld = t->customData;
-	TransDataSlideVert *tempsv;
+	TransDataSlideVert *sv;
 	BMEditMesh *em = sld->em;
 	SmallHash visit;
 	int i;
@@ -4716,15 +4716,19 @@ void projectSVData(TransInfo *t, int final)
 
 	BLI_smallhash_init(&visit);
 	
-		for (i=0, tempsv=sld->sv; i<sld->totsv; i++, tempsv++) {
+	for (i=0, sv = sld->sv; i < sld->totsv; sv++, i++) {
 		BMIter fiter;
 		BMFace *f;
 		
-		BM_ITER_ELEM (f, &fiter, tempsv->v, BM_FACES_OF_VERT) {
-			BMIter liter2;
-			BMFace *copyf, *copyf2;
-			BMLoop *l2;
-			int sel, hide;
+		BM_ITER_ELEM (f, &fiter, sv->v, BM_FACES_OF_VERT) {
+			BMIter liter;
+			BMLoop *l;
+
+			BMFace *f_copy;      /* the copy of 'f' */
+			BMFace *f_copy_flip; /* the copy of 'f' or detect if we need to flip to the shorter side. */
+
+			char is_sel, is_hide;
+
 			
 			if (BLI_smallhash_haskey(&visit, (uintptr_t)f))
 				continue;
@@ -4734,50 +4738,55 @@ void projectSVData(TransInfo *t, int final)
 			/* the face attributes of the copied face will get
 			 * copied over, so its necessary to save the selection
 			 * and hidden state*/
-			sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
-			hide = BM_elem_flag_test(f, BM_ELEM_HIDDEN);
+			is_sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
+			is_hide = BM_elem_flag_test(f, BM_ELEM_HIDDEN);
 			
-			copyf2 = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
+			f_copy = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
 			
 			/* project onto copied projection face */
-			BM_ITER_ELEM (l2, &liter2, f, BM_LOOPS_OF_FACE) {
-				copyf = copyf2;
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				f_copy_flip = f_copy;
 				
-				if (BM_elem_flag_test(l2->e, BM_ELEM_SELECT) || BM_elem_flag_test(l2->prev->e, BM_ELEM_SELECT)) {
-					BMLoop *l3 = l2;
+				if (BM_elem_flag_test(l->e, BM_ELEM_SELECT) || BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT)) {
+					BMLoop *l_ed_sel = l;
 					
-					if (!BM_elem_flag_test(l2->e, BM_ELEM_SELECT))
-						l3 = l3->prev;
+					if (!BM_elem_flag_test(l->e, BM_ELEM_SELECT))
+						l_ed_sel = l_ed_sel->prev;
 					
-					if (sld->perc < 0.0 && BM_vert_in_face(l3->radial_next->f, tempsv->down)) {
-						copyf = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l3->radial_next->f);
+					if (sld->perc < 0.0 && BM_vert_in_face(l_ed_sel->radial_next->f, sv->down)) {
+						f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
 					}
-					else if (sld->perc > 0.0 && BM_vert_in_face(l3->radial_next->f, tempsv->up)) {
-						copyf = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l3->radial_next->f);
+					else if (sld->perc > 0.0 && BM_vert_in_face(l_ed_sel->radial_next->f, sv->up)) {
+						f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
 					}
-					if (!copyf)
+
+					BLI_assert(f_copy_flip != NULL);
+					if (!f_copy_flip) {
 						continue;  /* shouldn't happen, but protection */
+					}
 				}
 				
 				/* only loop data, no vertex data since that contains shape keys,
 				 * and we do not want to mess up other shape keys */
-				BM_loop_interp_from_face(em->bm, l2, copyf, FALSE, FALSE);
+				BM_loop_interp_from_face(em->bm, l, f_copy_flip, FALSE, FALSE);
 
 				if (final) {
-					BM_loop_interp_multires(em->bm, l2, copyf);	
-					if (copyf2 != copyf) {
-						BM_loop_interp_multires(em->bm, l2, copyf2);
+					BM_loop_interp_multires(em->bm, l, f_copy_flip);
+					if (f_copy != f_copy_flip) {
+						BM_loop_interp_multires(em->bm, l, f_copy);
 					}
 				}
 			}
 			
 			/* make sure face-attributes are correct (e.g. MTexPoly) */
-			BM_elem_attrs_copy(em->bm, em->bm, copyf2, f);
+			BM_elem_attrs_copy(em->bm, em->bm, f_copy, f);
 			
 			/* restore selection and hidden flags */
-			BM_face_select_set(em->bm, f, sel);
-			if (!hide) { /* this check is a workaround for bug, see note - [#30735], without this edge can be hidden and selected */
-				BM_elem_hide_set(em->bm, f, hide);
+			BM_face_select_set(em->bm, f, is_sel);
+			if (!is_hide) {
+				/* this check is a workaround for bug, see note - [#30735],
+				 * without this edge can be hidden and selected */
+				BM_elem_hide_set(em->bm, f, is_hide);
 			}
 		}
 	}
@@ -4809,14 +4818,14 @@ void freeSlideVerts(TransInfo *t)
 	
 #if 0 /*BMESH_TODO*/
 	if (me->drawflag & ME_DRAWEXTRA_EDGELEN) {
-		TransDataSlideVert *tempsv;
+		TransDataSlideVert *sv;
 		LinkNode *look = sld->vertlist;
 		GHash *vertgh = sld->vhash;
 		while (look) {
-			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
-			if (tempsv != NULL) {
-				tempsv->up->f &= !SELECT;
-				tempsv->down->f &= !SELECT;
+			sv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+			if (sv != NULL) {
+				sv->up->f &= !SELECT;
+				sv->down->f &= !SELECT;
 			}
 			look = look->next;
 		}

@@ -496,17 +496,17 @@ int BM_mesh_elem_hflag_count_disabled(BMesh *bm, const char htype, const char hf
  * \note use BM_elem_flag_test(ele, BM_ELEM_SELECT) to test selection
  * \note by design, this will not touch the editselection history stuff
  */
-void _bm_elem_select_set(BMesh *bm, BMHeader *head, int select)
+void BM_elem_select_set(BMesh *bm, BMElem *ele, int select)
 {
-	switch (head->htype) {
+	switch (ele->head.htype) {
 		case BM_VERT:
-			BM_vert_select_set(bm, (BMVert *)head, select);
+			BM_vert_select_set(bm, (BMVert *)ele, select);
 			break;
 		case BM_EDGE:
-			BM_edge_select_set(bm, (BMEdge *)head, select);
+			BM_edge_select_set(bm, (BMEdge *)ele, select);
 			break;
 		case BM_FACE:
-			BM_face_select_set(bm, (BMFace *)head, select);
+			BM_face_select_set(bm, (BMFace *)ele, select);
 			break;
 		default:
 			BLI_assert(0);
