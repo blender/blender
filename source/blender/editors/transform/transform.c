@@ -4720,6 +4720,10 @@ void projectSVData(TransInfo *t, int final)
 		BMIter fiter;
 		BMFace *f;
 		
+
+		/* BMESH_TODO, this interpolates between vertex/loops which are not moved
+		 * (are only apart of a face attached to a slide vert), couldn't we iterate BM_LOOPS_OF_VERT
+		 * here and only iterpolate those? */
 		BM_ITER_ELEM (f, &fiter, sv->v, BM_FACES_OF_VERT) {
 			BMIter liter;
 			BMLoop *l;
@@ -4746,24 +4750,67 @@ void projectSVData(TransInfo *t, int final)
 			/* project onto copied projection face */
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				f_copy_flip = f_copy;
-				
+
 				if (BM_elem_flag_test(l->e, BM_ELEM_SELECT) || BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT)) {
+					/* the loop is attached of the selected edges that are sliding */
 					BMLoop *l_ed_sel = l;
 					
 					if (!BM_elem_flag_test(l->e, BM_ELEM_SELECT))
 						l_ed_sel = l_ed_sel->prev;
 					
-					if (sld->perc < 0.0 && BM_vert_in_face(l_ed_sel->radial_next->f, sv->down)) {
-						f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+					if (sld->perc < 0.0f) {
+						if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->down)) {
+							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+						}
 					}
-					else if (sld->perc > 0.0 && BM_vert_in_face(l_ed_sel->radial_next->f, sv->up)) {
-						f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+					else if (sld->perc > 0.0f) {
+						if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->up)) {
+							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+						}
 					}
 
 					BLI_assert(f_copy_flip != NULL);
 					if (!f_copy_flip) {
 						continue;  /* shouldn't happen, but protection */
 					}
+				}
+				else {
+					/* the loop is attached to only one vertex and not a selected edge,
+					 * this means we have to find a selected edges face going in the right direction
+					 * to copy from else we get bad distortion see: [#31080] */
+					BMIter eiter;
+					BMEdge *e_sel;
+
+					BM_ITER_ELEM (e_sel, &eiter, l->v, BM_EDGES_OF_VERT) {
+						if (BM_elem_flag_test(e_sel, BM_ELEM_SELECT)) {;
+							break;
+						}
+					}
+
+					if (e_sel) {
+						/* warning if the UV's are not contiguiys, this will copy from the _wrong_ UVs
+						 * in fact whenever the face being copied is not 'f_copy' this can happen,
+						 * we could be a lot smarter about this but would need to deal with every UV channel or
+						 * add a way to mask out lauers when calling #BM_loop_interp_from_face() */
+						if (sld->perc < 0.0f) {
+							if (BM_vert_in_face(e_sel->l->f, sv->down)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
+							}
+							else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->down)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->radial_next->f);
+							}
+
+						}
+						else if (sld->perc > 0.0f) {
+							if (BM_vert_in_face(e_sel->l->f, sv->up)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
+							}
+							else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->up)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->radial_next->f);
+							}
+						}
+					}
+
 				}
 				
 				/* only loop data, no vertex data since that contains shape keys,
