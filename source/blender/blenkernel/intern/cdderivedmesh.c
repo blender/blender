@@ -230,7 +230,7 @@ static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
 	int deformed= 0;
 
 	/* active modifiers means extra deformation, which can't be handled correct
-	 * on bith of PBVH and sculpt "layer" levels, so use PBVH only for internal brush
+	 * on birth of PBVH and sculpt "layer" levels, so use PBVH only for internal brush
 	 * stuff and show final DerivedMesh so user would see actual object shape */
 	deformed|= ob->sculpt->modifiers_active;
 

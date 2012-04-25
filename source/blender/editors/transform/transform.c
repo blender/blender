@@ -4788,7 +4788,7 @@ void projectSVData(TransInfo *t, int final)
 					}
 
 					if (e_sel) {
-						/* warning if the UV's are not contiguiys, this will copy from the _wrong_ UVs
+						/* warning if the UV's are not contiguous, this will copy from the _wrong_ UVs
 						 * in fact whenever the face being copied is not 'f_copy' this can happen,
 						 * we could be a lot smarter about this but would need to deal with every UV channel or
 						 * add a way to mask out lauers when calling #BM_loop_interp_from_face() */

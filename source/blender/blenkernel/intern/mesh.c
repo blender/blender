@@ -327,7 +327,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
 
 			/* TODO - add some --debug-mesh option */
 			if (G.debug & G_DEBUG) {
-				/* note: this warning may be un-called for if we are inirializing the mesh for the
+				/* note: this warning may be un-called for if we are initializing the mesh for the
 				 * first time from bmesh, rather then giving a warning about this we could be smarter
 				 * and check if there was any data to begin with, for now just print the warning with
 				 * some info to help troubleshoot whats going on - campbell */
@@ -1104,7 +1104,7 @@ void mesh_strip_loose_polysloops(Mesh *me)
 			b++;
 		}
 		else {
-			/* XXX Theorically, we should be able to not do this, as no remaining poly
+			/* XXX Theoretically, we should be able to not do this, as no remaining poly
 			 *     should use any stripped loop. But for security's sake... */
 			new_idx[a] = -a;
 		}

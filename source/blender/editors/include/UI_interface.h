@@ -322,10 +322,22 @@ uiPopupMenu *uiPupMenuBegin(struct bContext *C, const char *title, int icon);
 void uiPupMenuEnd(struct bContext *C, struct uiPopupMenu *head);
 struct uiLayout *uiPupMenuLayout(uiPopupMenu *head);
 
-void uiPupMenuOkee(struct bContext *C, const char *opname, const char *str, ...);
+void uiPupMenuOkee(struct bContext *C, const char *opname, const char *str, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 3, 4)))
+#endif
+;
 void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, const char *filename);
-void uiPupMenuNotice(struct bContext *C, const char *str, ...);
-void uiPupMenuError(struct bContext *C, const char *str, ...);
+void uiPupMenuNotice(struct bContext *C, const char *str, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 2, 3)))
+#endif
+;
+void uiPupMenuError(struct bContext *C, const char *str, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 2, 3)))
+#endif
+;
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports);
 void uiPupMenuInvoke(struct bContext *C, const char *idname); /* popup registered menu */
 

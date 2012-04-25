@@ -2171,7 +2171,7 @@ static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt)
  *
  * Current Status:
  *	- Currently (as of September 2009), overrides we haven't needed to (fully) implement overrides. 
- * 	  However, the code fo this is relatively harmless, so is left in the code for now.
+ * 	  However, the code for this is relatively harmless, so is left in the code for now.
  */
 
 /* Evaluation loop for evaluation animation data 
