@@ -2512,15 +2512,14 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	}
 
 	if (change) {
-		/* make sure newly selected vert selection is updated*/
-#if 0   /* BM_elem_select_set API handles all of this? */
+		/* bmesh API habdles flushing but not on de-select */
 		if (ts->uv_flag & UV_SYNC_SELECTION) {
 			if (ts->selectmode != SCE_SELECT_FACE) {
-				if (select) EDBM_select_flush(em);
-				else EDBM_deselect_flush(em);
+				if (select == FALSE) {
+					EDBM_deselect_flush(em);
+				}
 			}
 		}
-#endif
 
 		if (ts->uv_flag & UV_SYNC_SELECTION) {
 			if (select == FALSE) {
