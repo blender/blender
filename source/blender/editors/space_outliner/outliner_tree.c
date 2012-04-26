@@ -34,6 +34,15 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+#if defined WIN32 && !defined _LIBC  || defined __sun
+# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
+#else
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
+#  endif
+# include <fnmatch.h>
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
@@ -56,16 +65,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
-
-#if defined WIN32 && !defined _LIBC  || defined __sun
-# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
-#else
-#  ifndef _GNU_SOURCE
-#    define _GNU_SOURCE
-#  endif
-# include <fnmatch.h>
-#endif
-
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
