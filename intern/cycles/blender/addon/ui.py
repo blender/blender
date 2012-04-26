@@ -783,6 +783,31 @@ class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
             layout.template_color_ramp(mapping, "color_ramp", expand=True)
 
 
+class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
+    bl_label = "Simplify"
+    bl_context = "scene"
+    COMPAT_ENGINES = {'CYCLES'}
+
+    def draw_header(self, context):
+        rd = context.scene.render
+        self.layout.prop(rd, "use_simplify", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+
+        layout.active = rd.use_simplify
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(rd, "simplify_subdivision", text="Subdivision")
+
+        col = split.column()
+        col.prop(rd, "simplify_child_particles", text="Child Particles")
+
+
 def draw_device(self, context):
     scene = context.scene
     layout = self.layout
