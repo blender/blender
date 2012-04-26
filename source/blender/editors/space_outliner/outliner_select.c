@@ -29,6 +29,8 @@
  *  \ingroup spoutliner
  */
 
+#include <stdlib.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
