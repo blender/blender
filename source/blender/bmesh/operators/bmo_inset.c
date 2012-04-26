@@ -495,8 +495,6 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		BM_face_copy_shared(bm, f);
 	}
 
-	MEM_freeN(edge_info);
-
 	/* we could flag new edges/verts too, is it useful? */
 	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, ELE_NEW);
 
@@ -504,6 +502,28 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	if (depth != 0.0f) {
 		float (*varr_co)[3];
 		BMOIter oiter;
+
+		/* we need to re-calculate tagged normals, but for this purpose we can copy tagged verts from the
+		 * faces they inset from,  */
+		for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+			zero_v3(es->e_new->v1->no);
+			zero_v3(es->e_new->v2->no);
+		}
+		for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+			float *no = es->l->f->no;
+			add_v3_v3(es->e_new->v1->no, no);
+			add_v3_v3(es->e_new->v2->no, no);
+		}
+		for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+			/* annoying, avoid normalizing twice */
+			if (len_squared_v3(es->e_new->v1->no) != 1.0f) {
+				normalize_v3(es->e_new->v1->no);
+			}
+			if (len_squared_v3(es->e_new->v2->no) != 1.0f) {
+				normalize_v3(es->e_new->v2->no);
+			}
+		}
+		/* done correcting edge verts normals */
 
 		/* untag verts */
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
@@ -537,4 +557,6 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		}
 		MEM_freeN(varr_co);
 	}
+
+	MEM_freeN(edge_info);
 }
