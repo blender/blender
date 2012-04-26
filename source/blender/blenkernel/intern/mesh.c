@@ -1154,6 +1154,8 @@ void mesh_strip_loose_edges(Mesh *me)
 	for (a = 0, l = me->mloop; a < me->totloop; a++, l++) {
 		l->e = new_idx[l->e];
 	}
+
+	MEM_freeN(new_idx);
 }
 
 void mball_to_mesh(ListBase *lb, Mesh *me)
