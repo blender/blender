@@ -50,6 +50,9 @@
 
 #endif
 
+/**
+ * \brief Main function for creating a new vertex.
+ */
 BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
 {
 	BMVert *v = BLI_mempool_calloc(bm->vpool);
@@ -85,6 +88,12 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
 	return v;
 }
 
+/**
+ * \brief Main function for creating a new edge.
+ *
+ * \note Duplicate edges are supported by the API however users should _never_ see them.
+ * so unless you need a unique edge or know the edge won't exist, you should call wih \a nodouble=TRUE
+ */
 BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble)
 {
 	BMEdge *e;
@@ -181,10 +190,11 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	BMLoop *l2;
-	BMFace *f2;
+	BMLoop *l_copy;
+	BMFace *f_copy;
 	int i;
 
+	/* BMESH_TODO - grow verts array in one go! (right here) */
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		if (copyverts) {
@@ -196,6 +206,7 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 		}
 	} while ((l_iter = l_iter->next) != l_first);
 
+	/* BMESH_TODO - grow edges array in one go! (right here) */
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	i = 0;
 	do {
@@ -222,18 +233,18 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 	
-	f2 = BM_face_create(bm, verts, edges, f->len, FALSE);
+	f_copy = BM_face_create(bm, verts, edges, f->len, FALSE);
 	
-	BM_elem_attrs_copy(bm, bm, f, f2);
+	BM_elem_attrs_copy(bm, bm, f, f_copy);
 	
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-	l2 = BM_FACE_FIRST_LOOP(f2);
+	l_copy = BM_FACE_FIRST_LOOP(f_copy);
 	do {
-		BM_elem_attrs_copy(bm, bm, l_iter, l2);
-		l2 = l2->next;
+		BM_elem_attrs_copy(bm, bm, l_iter, l_copy);
+		l_copy = l_copy->next;
 	} while ((l_iter = l_iter->next) != l_first);
 	
-	return f2;
+	return f_copy;
 }
 
 /**
@@ -270,6 +281,9 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 	return f;
 }
 
+/**
+ * \brief Main face creation function
+ */
 BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len, int nodouble)
 {
 	BMFace *f = NULL;
@@ -319,6 +333,12 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	return f;
 }
 
+/**
+ * Check the element is valid.
+ *
+ * BMESH_TODO, when this raises an error the output is incredible confusing.
+ * need to have some nice way to print/debug what the hecks going on.
+ */
 int bmesh_elem_check(void *element, const char htype)
 {
 	BMHeader *head = element;
@@ -446,14 +466,16 @@ int bmesh_elem_check(void *element, const char htype)
 }
 
 /**
- * low level function, only free's,
- * does not change adjust surrounding geometry */
+ * low level function, only frees the vert,
+ * doesn't change or adjust surrounding geometry
+ */
 static void bm_kill_only_vert(BMesh *bm, BMVert *v)
 {
 	bm->totvert--;
 	bm->elem_index_dirty |= BM_VERT;
 
 	BM_select_history_remove(bm, v);
+
 	if (v->head.data)
 		CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
 
@@ -461,6 +483,10 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
 	BLI_mempool_free(bm->vpool, v);
 }
 
+/**
+ * low level function, only frees the edge,
+ * doesn't change or adjust surrounding geometry
+ */
 static void bm_kill_only_edge(BMesh *bm, BMEdge *e)
 {
 	bm->totedge--;
@@ -475,6 +501,10 @@ static void bm_kill_only_edge(BMesh *bm, BMEdge *e)
 	BLI_mempool_free(bm->epool, e);
 }
 
+/**
+ * low level function, only frees the face,
+ * doesn't change or adjust surrounding geometry
+ */
 static void bm_kill_only_face(BMesh *bm, BMFace *f)
 {
 	if (bm->act_face == f)
@@ -492,6 +522,10 @@ static void bm_kill_only_face(BMesh *bm, BMFace *f)
 	BLI_mempool_free(bm->fpool, f);
 }
 
+/**
+ * low level function, only frees the loop,
+ * doesn't change or adjust surrounding geometry
+ */
 static void bm_kill_only_loop(BMesh *bm, BMLoop *l)
 {
 	bm->totloop--;
@@ -502,7 +536,7 @@ static void bm_kill_only_loop(BMesh *bm, BMLoop *l)
 }
 
 /**
- * kills all edges associated with f, along with any other faces containing
+ * kills all edges associated with \a f, along with any other faces containing
  * those edges
  */
 void BM_face_edges_kill(BMesh *bm, BMFace *f)
@@ -526,7 +560,7 @@ void BM_face_edges_kill(BMesh *bm, BMFace *f)
 }
 
 /**
- * kills all verts associated with f, along with any other faces containing
+ * kills all verts associated with \a f, along with any other faces containing
  * those vertices
  */
 void BM_face_verts_kill(BMesh *bm, BMFace *f)
@@ -587,7 +621,9 @@ void BM_face_kill(BMesh *bm, BMFace *f)
 
 	bm_kill_only_face(bm, f);
 }
-
+/**
+ * kills \a e and all faces that use it.
+ */
 void BM_edge_kill(BMesh *bm, BMEdge *e)
 {
 
@@ -615,6 +651,9 @@ void BM_edge_kill(BMesh *bm, BMEdge *e)
 	bm_kill_only_edge(bm, e);
 }
 
+/**
+ * kills \a v and all edges that use it.
+ */
 void BM_vert_kill(BMesh *bm, BMVert *v)
 {
 	if (v->e) {
@@ -746,6 +785,9 @@ static int bm_loop_reverse_loop(BMesh *bm, BMFace *f
 	return 1;
 }
 
+/**
+ * \brief Flip the faces direction
+ */
 int bmesh_loop_reverse(BMesh *bm, BMFace *f)
 {
 #ifdef USE_BMESH_HOLES
