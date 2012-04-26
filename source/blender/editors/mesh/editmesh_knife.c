@@ -2746,6 +2746,9 @@ static void knifetool_exit(bContext *C, wmOperator *op)
 	if (kcd->cagecos)
 		MEM_freeN(kcd->cagecos);
 
+	if (kcd->linehits)
+		MEM_freeN(kcd->linehits);
+
 	/* destroy kcd itself */
 	MEM_freeN(kcd);
 	op->customdata = NULL;
