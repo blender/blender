@@ -472,7 +472,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), sizeof(marker->name));
 	
 	/* use Keying Set to determine what to store for the pose */
-	// FIXME: in the past, the Keying Set respected selections (LocRotScale), but the current one doesn't (Whole Character)
+	// FIXME: in the past, the Keying Set respected selections (LocRotScale), but the current one doesn't (WholeCharacter)
 	// so perhaps we need either a new Keying Set, or just to add overrides here...
 	ANIM_apply_keyingset(C, NULL, act, ks, MODIFYKEY_MODE_INSERT, (float)frame);
 	
