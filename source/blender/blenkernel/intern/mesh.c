@@ -1128,7 +1128,7 @@ void mesh_strip_loose_edges(Mesh *me)
 	MEdge *e;
 	MLoop *l;
 	int a, b;
-	unsigned int *new_idx = MEM_mallocN(sizeof(int) * me->totedge, "strip_loose_edges old2new idx mapping for loops.");
+	unsigned int *new_idx = MEM_mallocN(sizeof(int) * me->totedge, __func__);
 
 	for (a = b = 0, e = me->medge; a < me->totedge; a++, e++) {
 		if (e->v1 != e->v2) {
