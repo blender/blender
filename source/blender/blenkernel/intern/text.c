@@ -2652,7 +2652,10 @@ void txt_backspace_char (Text *text)
 			} while (mrk && mrk->lineno==lineno);
 		}
 		
-		memcpy(text->curl->line + text->curc - c_len, text->curl->line + text->curc, text->curl->len-text->curc+1);
+		/* source and destination overlap, don't use memcpy() */
+		memmove(text->curl->line + text->curc - c_len,
+		        text->curl->line + text->curc,
+		        text->curl->len  - text->curc + 1);
 
 		text->curl->len-= c_len;
 		text->curc-= c_len;
