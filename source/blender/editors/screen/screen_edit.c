@@ -1154,6 +1154,9 @@ void ED_area_exit(bContext *C, ScrArea *sa)
 			ED_fileselect_exit(C, (SpaceFile *)sl);
 		}
 	}
+	else if (sa->spacetype == SPACE_VIEW3D) {
+		ED_render_engine_area_exit(sa);
+	}
 
 	CTX_wm_area_set(C, sa);
 	for (ar= sa->regionbase.first; ar; ar= ar->next)
