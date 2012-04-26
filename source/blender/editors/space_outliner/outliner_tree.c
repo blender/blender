@@ -62,6 +62,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
