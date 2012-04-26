@@ -29,46 +29,21 @@
  *  \ingroup spoutliner
  */
 
-/* TODO - HEADER CLEANUP - many of these are copy-pasted */
-
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
-
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_group_types.h"
-#include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_world_types.h"
-#include "DNA_sequence_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_world_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_math_base.h"
 
-#include "BKE_animsys.h"
 #include "BKE_context.h"
-#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
-#include "BKE_global.h"
-#include "BKE_group.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
-#include "BKE_modifier.h"
-#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 
@@ -80,12 +55,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
