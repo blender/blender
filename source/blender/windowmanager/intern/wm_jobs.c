@@ -173,10 +173,12 @@ int WM_jobs_test(wmWindowManager *wm, void *owner)
 {
 	wmJob *steve;
 	
+	/* job can be running or about to run (suspended) */
 	for (steve = wm->jobs.first; steve; steve = steve->next)
 		if (steve->owner == owner)
-			if (steve->running)
+			if (steve->running || steve->suspended)
 				return 1;
+
 	return 0;
 }
 
