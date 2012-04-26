@@ -1154,9 +1154,6 @@ elseif(WIN32)
 
 	endif()
 
-	# used in many places so include globally, like OpenGL
-	blender_include_dirs("${PTHREADS_INCLUDE_DIRS}")
-
 elseif(APPLE)
 
 	if(${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.5" OR ${CMAKE_OSX_DEPLOYMENT_TARGET} STRGREATER "10.5")
