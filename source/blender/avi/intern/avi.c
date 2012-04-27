@@ -1002,7 +1002,7 @@ AviError AVI_write_frame (AviMovie *movie, int frame_num, ...)
 
 		movie->entries[frame_num * (movie->header->Streams+1) + stream + 1].ChunkId = chunk.fcc;
 		movie->entries[frame_num * (movie->header->Streams+1) + stream + 1].Flags = AVIIF_KEYFRAME;
-		movie->entries[frame_num * (movie->header->Streams+1) + stream + 1].Offset = ftell(movie->fp)-12L-movie->movi_offset;
+		movie->entries[frame_num * (movie->header->Streams+1) + stream + 1].Offset = (int)(ftell(movie->fp) - 12L - movie->movi_offset);
 		movie->entries[frame_num * (movie->header->Streams+1) + stream + 1].Size = chunk.size;
 
 		/* Write the chunk */
@@ -1024,8 +1024,8 @@ AviError AVI_write_frame (AviMovie *movie, int frame_num, ...)
 
 	movie->entries[frame_num * (movie->header->Streams+1)].ChunkId = FCC("rec ");
 	movie->entries[frame_num * (movie->header->Streams+1)].Flags = AVIIF_LIST;
-	movie->entries[frame_num * (movie->header->Streams+1)].Offset = rec_off-8L-movie->movi_offset;
-	movie->entries[frame_num * (movie->header->Streams+1)].Size = ftell(movie->fp)-(rec_off+4L);
+	movie->entries[frame_num * (movie->header->Streams+1)].Offset = (int)(rec_off - 8L - movie->movi_offset);
+	movie->entries[frame_num * (movie->header->Streams+1)].Size = (int)(ftell(movie->fp) - (rec_off + 4L));
 
 	/* Update the record size */
 	fseek (movie->fp, rec_off, SEEK_SET);
@@ -1044,7 +1044,7 @@ AviError AVI_close_compress (AviMovie *movie)
 	int temp, movi_size, i;
 
 	fseek (movie->fp, 0L, SEEK_END);
-	movi_size = ftell (movie->fp);
+	movi_size = (int)ftell(movie->fp);
 
 	PUT_FCC ("idx1", movie->fp);
 	PUT_FCCN ((movie->index_entries*(movie->header->Streams+1)*16), movie->fp);
@@ -1052,7 +1052,7 @@ AviError AVI_close_compress (AviMovie *movie)
 	for (temp=0; temp < movie->index_entries*(movie->header->Streams+1); temp++)
 		awrite (movie, &movie->entries[temp], 1, sizeof(AviIndexEntry), movie->fp, AVI_INDEXE);
 
-	temp = ftell (movie->fp);
+	temp = (int)ftell(movie->fp);
 
 	fseek (movie->fp, AVI_RIFF_SOFF, SEEK_SET);
 

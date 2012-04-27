@@ -230,7 +230,7 @@ void *BLI_gzopen(const char *filename, const char *mode)
 		GetShortPathNameW(filename_16,short_name_16, 256);
 
 		for (i = 0; i < 256; i++) {
-			short_name[i] = short_name_16[i];
+			short_name[i] = (char)short_name_16[i];
 		}
 
 		gzfile = gzopen(short_name,mode);

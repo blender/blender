@@ -827,7 +827,7 @@ elseif(WIN32)
 		set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /MT /Zi" CACHE STRING "MSVC MT flags " FORCE)
 
 		# most msvc warnings are C & C++
-		set(_WARNINGS "/W3 /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013")
+		set(_WARNINGS "/W3 /wd4018 /wd4244 /wd4305 /wd4800 /wd4181 /wd4065 /wd4267 /we4013")
 		set(C_WARNINGS "${_WARNINGS}")
 		set(CXX_WARNINGS "${_WARNINGS}")
 		unset(_WARNINGS)
