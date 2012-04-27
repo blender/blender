@@ -522,7 +522,7 @@ void uvedit_live_unwrap_update(SpaceImage *sima, Scene *scene, Object *obedit)
 }
 
 /*********************** geometric utilities ***********************/
-void poly_uv_center(BMEditMesh *em, BMFace *f, float cent[2])
+void uv_poly_center(BMEditMesh *em, BMFace *f, float cent[2])
 {
 	BMLoop *l;
 	MLoopUV *luv;
@@ -538,28 +538,7 @@ void poly_uv_center(BMEditMesh *em, BMFace *f, float cent[2])
 	mul_v2_fl(cent, 1.0f / (float)f->len);
 }
 
-
-void uv_center(float uv[][2], float cent[2], int quad)
-{
-	if (quad) {
-		cent[0] = (uv[0][0] + uv[1][0] + uv[2][0] + uv[3][0]) / 4.0f;
-		cent[1] = (uv[0][1] + uv[1][1] + uv[2][1] + uv[3][1]) / 4.0f;
-	}
-	else {
-		cent[0] = (uv[0][0] + uv[1][0] + uv[2][0]) / 3.0f;
-		cent[1] = (uv[0][1] + uv[1][1] + uv[2][1]) / 3.0f;
-	}
-}
-
-float uv_area(float uv[][2], int quad)
-{
-	if (quad)
-		return area_tri_v2(uv[0], uv[1], uv[2]) + area_tri_v2(uv[0], uv[2], uv[3]); 
-	else
-		return area_tri_v2(uv[0], uv[1], uv[2]); 
-}
-
-float poly_uv_area(float uv[][2], int len)
+float uv_poly_area(float uv[][2], int len)
 {
 	//BMESH_TODO: make this not suck
 	//maybe use scanfill? I dunno.
@@ -572,7 +551,7 @@ float poly_uv_area(float uv[][2], int len)
 	return 1.0;
 }
 
-void poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len)
+void uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len)
 {
 	int i;
 	for (i = 0; i < len; i++) {
@@ -2469,7 +2448,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
-				poly_uv_center(em, efa, cent);
+				uv_poly_center(em, efa, cent);
 				if (BLI_in_rctf(&rectf, cent[0], cent[1])) {
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 					change = 1;

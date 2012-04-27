@@ -48,9 +48,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_lasso.h"
+#include "BLI_rect.h"
 #include "BLI_rand.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 /* vertex box select */
@@ -319,79 +322,6 @@ static int edge_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
 #define MOVES_GESTURE 50
 #define MOVES_LASSO 500
 
-int lasso_inside(int mcords[][2], short moves, int sx, int sy)
-{
-	/* we do the angle rule, define that all added angles should be about zero or 2*PI */
-	float angletot = 0.0, len, dot, ang, cross, fp1[2], fp2[2];
-	int a;
-	int *p1, *p2;
-	
-	if (sx == IS_CLIPPED)
-		return 0;
-	
-	p1 = mcords[moves - 1];
-	p2 = mcords[0];
-	
-	/* first vector */
-	fp1[0] = (float)(p1[0] - sx);
-	fp1[1] = (float)(p1[1] - sy);
-	len = sqrt(fp1[0] * fp1[0] + fp1[1] * fp1[1]);
-	fp1[0] /= len;
-	fp1[1] /= len;
-	
-	for (a = 0; a < moves; a++) {
-		/* second vector */
-		fp2[0] = (float)(p2[0] - sx);
-		fp2[1] = (float)(p2[1] - sy);
-		len = sqrt(fp2[0] * fp2[0] + fp2[1] * fp2[1]);
-		fp2[0] /= len;
-		fp2[1] /= len;
-		
-		/* dot and angle and cross */
-		dot = fp1[0] * fp2[0] + fp1[1] * fp2[1];
-		ang = fabs(saacos(dot));
-
-		cross = (float)((p1[1] - p2[1]) * (p1[0] - sx) + (p2[0] - p1[0]) * (p1[1] - sy));
-		
-		if (cross < 0.0f) angletot -= ang;
-		else angletot += ang;
-		
-		/* circulate */
-		fp1[0] = fp2[0]; fp1[1] = fp2[1];
-		p1 = p2;
-		p2 = mcords[a + 1];
-	}
-	
-	if (fabs(angletot) > 4.0) return 1;
-	return 0;
-}
-
-/* edge version for lasso select. we assume boundbox check was done */
-int lasso_inside_edge(int mcords[][2], short moves, int x0, int y0, int x1, int y1)
-{
-	int v1[2], v2[2];
-	int a;
-
-	if (x0 == IS_CLIPPED || x1 == IS_CLIPPED)
-		return 0;
-	
-	v1[0] = x0, v1[1] = y0;
-	v2[0] = x1, v2[1] = y1;
-
-	/* check points in lasso */
-	if (lasso_inside(mcords, moves, v1[0], v1[1])) return 1;
-	if (lasso_inside(mcords, moves, v2[0], v2[1])) return 1;
-	
-	/* no points in lasso, so we have to intersect with lasso edge */
-	
-	if (isect_line_line_v2_int(mcords[0], mcords[moves - 1], v1, v2) > 0) return 1;
-	for (a = 0; a < moves - 1; a++) {
-		if (isect_line_line_v2_int(mcords[a], mcords[a + 1], v1, v2) > 0) return 1;
-	}
-	
-	return 0;
-}
-
 
 /* warning; lasso select with backbuffer-check draws in backbuf with persp(PERSP_WIN) 
  * and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
@@ -412,7 +342,7 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, int mcords[][2], s
 			mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
 			project_int(vc->ar, vec, sco2);
 			
-			if (lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
+			if (BLI_lasso_is_edge_inside(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1], IS_CLIPPED)) {
 				if (select) pchan->bone->flag |= BONE_SELECTED;
 				else pchan->bone->flag &= ~BONE_SELECTED;
 			}
@@ -441,7 +371,7 @@ static void do_lasso_select_objects(ViewContext *vc, int mcords[][2], short move
 	for (base = vc->scene->base.first; base; base = base->next) {
 		if (BASE_SELECTABLE(vc->v3d, base)) { /* use this to avoid un-needed lasso lookups */
 			project_short(vc->ar, base->object->obmat[3], &base->sx);
-			if (lasso_inside(mcords, moves, base->sx, base->sy)) {
+			if (BLI_lasso_is_point_inside(mcords, moves, base->sx, base->sy, IS_CLIPPED)) {
 				
 				if (select) ED_base_object_select(base, BA_SELECT);
 				else ED_base_object_select(base, BA_DESELECT);
@@ -454,26 +384,13 @@ static void do_lasso_select_objects(ViewContext *vc, int mcords[][2], short move
 	}
 }
 
-static void lasso_select_boundbox(rcti *rect, int mcords[][2], short moves)
-{
-	short a;
-	
-	rect->xmin = rect->xmax = mcords[0][0];
-	rect->ymin = rect->ymax = mcords[0][1];
-	
-	for (a = 1; a < moves; a++) {
-		if (mcords[a][0] < rect->xmin) rect->xmin = mcords[a][0];
-		else if (mcords[a][0] > rect->xmax) rect->xmax = mcords[a][0];
-		if (mcords[a][1] < rect->ymin) rect->ymin = mcords[a][1];
-		else if (mcords[a][1] > rect->ymax) rect->ymax = mcords[a][1];
-	}
-}
-
 static void do_lasso_select_mesh__doSelectVert(void *userData, BMVert *eve, int x, int y, int UNUSED(index))
 {
 	LassoSelectUserData *data = userData;
 
-	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
+	if (BLI_in_rcti(data->rect, x, y) &&
+	    BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED))
+	{
 		BM_vert_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
@@ -484,14 +401,15 @@ static void do_lasso_select_mesh__doSelectEdge(void *userData, BMEdge *eed, int 
 	if (EDBM_backbuf_check(bm_solidoffs + index)) {
 		if (data->pass == 0) {
 			if (edge_fully_inside_rect(data->rect, x0, y0, x1, y1)  &&
-			    lasso_inside(data->mcords, data->moves, x0, y0) &&
-			    lasso_inside(data->mcords, data->moves, x1, y1)) {
+			    BLI_lasso_is_point_inside(data->mcords, data->moves, x0, y0, IS_CLIPPED) &&
+			    BLI_lasso_is_point_inside(data->mcords, data->moves, x1, y1, IS_CLIPPED))
+			{
 				BM_edge_select_set(data->vc->em->bm, eed, data->select);
 				data->done = 1;
 			}
 		}
 		else {
-			if (lasso_inside_edge(data->mcords, data->moves, x0, y0, x1, y1)) {
+			if (BLI_lasso_is_edge_inside(data->mcords, data->moves, x0, y0, x1, y1, IS_CLIPPED)) {
 				BM_edge_select_set(data->vc->em->bm, eed, data->select);
 			}
 		}
@@ -501,7 +419,9 @@ static void do_lasso_select_mesh__doSelectFace(void *userData, BMFace *efa, int 
 {
 	LassoSelectUserData *data = userData;
 
-	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
+	if (BLI_in_rcti(data->rect, x, y) &&
+	    BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED))
+	{
 		BM_face_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
@@ -513,7 +433,7 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	rcti rect;
 	int bbsel;
 	
-	lasso_select_boundbox(&rect, mcords, moves);
+	BLI_lasso_boundbox(&rect, mcords, moves);
 	
 	/* set editmesh */
 	vc->em = BMEdit_FromObject(vc->obedit);
@@ -577,7 +497,7 @@ static void do_lasso_select_mesh_uv(int mcords[][2], short moves, short select)
 	int screenUV[2], nverts, i, ok = 1;
 	rcti rect;
 	
-	lasso_select_boundbox(&rect, mcords, moves);
+	BLI_lasso_boundbox(&rect, mcords, moves);
 	
 	if (draw_uvs_face_check()) { /* Face Center Sel */
 		float cent[2];
@@ -589,7 +509,7 @@ static void do_lasso_select_mesh_uv(int mcords[][2], short moves, short select)
 			if ((select) != (simaFaceSel_Check(efa, tf))) {
 				uv_center(tf->uv, cent, (void *)efa->v4);
 				uvco_to_areaco_noclip(cent, screenUV);
-				if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+				if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && BLI_lasso_is_point_inside(mcords, moves, screenUV[0], screenUV[1])) {
 					efa->tmp.l = ok = 1;
 				}
 			}
@@ -607,7 +527,7 @@ static void do_lasso_select_mesh_uv(int mcords[][2], short moves, short select)
 				for (i = 0; i < nverts; i++) {
 					if ((select) != (simaUVSel_Check(efa, tf, i))) {
 						uvco_to_areaco_noclip(tf->uv[i], screenUV);
-						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && BLI_lasso_is_point_inside(mcords, moves, screenUV[0], screenUV[1])) {
 							if (select) {
 								simaUVSel_Set(efa, tf, i);
 							}
@@ -633,7 +553,7 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *UNUSED(nu), BP
 	Object *obedit = data->vc->obedit;
 	Curve *cu = (Curve *)obedit->data;
 
-	if (lasso_inside(data->mcords, data->moves, x, y)) {
+	if (BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED)) {
 		if (bp) {
 			bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 			if (bp == cu->lastsel && !(bp->f1 & 1)) cu->lastsel = NULL;
@@ -681,7 +601,7 @@ static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x,
 {
 	LassoSelectUserData *data = userData;
 
-	if (lasso_inside(data->mcords, data->moves, x, y)) {
+	if (BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED)) {
 		bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 	}
 }
@@ -722,20 +642,22 @@ static void do_lasso_select_armature(ViewContext *vc, int mcords[][2], short mov
 			project_short(vc->ar, vec, sco2);
 			
 			didpoint = 0;
-			if (lasso_inside(mcords, moves, sco1[0], sco1[1])) {
+			if (BLI_lasso_is_point_inside(mcords, moves, sco1[0], sco1[1], IS_CLIPPED)) {
 				if (select) ebone->flag |= BONE_ROOTSEL;
 				else ebone->flag &= ~BONE_ROOTSEL;
 				didpoint = 1;
 				change = TRUE;
 			}
-			if (lasso_inside(mcords, moves, sco2[0], sco2[1])) {
+			if (BLI_lasso_is_point_inside(mcords, moves, sco2[0], sco2[1], IS_CLIPPED)) {
 				if (select) ebone->flag |= BONE_TIPSEL;
 				else ebone->flag &= ~BONE_TIPSEL;
 				didpoint = 1;
 				change = TRUE;
 			}
 			/* if one of points selected, we skip the bone itself */
-			if (didpoint == 0 && lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
+			if (didpoint == 0 &&
+			    BLI_lasso_is_edge_inside(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1], IS_CLIPPED))
+			{
 				if (select) ebone->flag |= BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED;
 				else ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 				change = TRUE;
@@ -771,7 +693,7 @@ static void do_lasso_select_meta(ViewContext *vc, int mcords[][2], short moves, 
 		mul_v3_m4v3(vec, vc->obedit->obmat, &ml->x);
 		project_short(vc->ar, vec, sco);
 
-		if (lasso_inside(mcords, moves, sco[0], sco[1])) {
+		if (BLI_lasso_is_point_inside(mcords, moves, sco[0], sco[1], IS_CLIPPED)) {
 			if (select) ml->flag |= SELECT;
 			else ml->flag &= ~SELECT;
 		}
@@ -850,7 +772,7 @@ static void do_lasso_select_paintvert(ViewContext *vc, int mcords[][2], short mo
 		paintvert_deselect_all_visible(ob, SEL_DESELECT, FALSE);  /* flush selection at the end */
 	bm_vertoffs = me->totvert + 1; /* max index array */
 
-	lasso_select_boundbox(&rect, mcords, moves);
+	BLI_lasso_boundbox(&rect, mcords, moves);
 	EDBM_backbuf_border_mask_init(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
 	edbm_backbuf_check_and_select_verts_obmode(me, select);
@@ -873,7 +795,7 @@ static void do_lasso_select_paintface(ViewContext *vc, int mcords[][2], short mo
 
 	bm_vertoffs = me->totpoly + 1; /* max index array */
 
-	lasso_select_boundbox(&rect, mcords, moves);
+	BLI_lasso_boundbox(&rect, mcords, moves);
 	EDBM_backbuf_border_mask_init(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	edbm_backbuf_check_and_select_tfaces(me, select);
@@ -893,7 +815,7 @@ static void do_lasso_select_node(int mcords[][2], short moves, short select)
 	short node_cent[2];
 	float node_centf[2];
 	
-	lasso_select_boundbox(&rect, mcords, moves);
+	BLI_lasso_boundbox(&rect, mcords, moves);
 	
 	/* store selection in temp test flag */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
@@ -902,7 +824,7 @@ static void do_lasso_select_node(int mcords[][2], short moves, short select)
 		node_centf[1] = (node->totr.ymin + node->totr.ymax) / 2;
 		
 		ipoco_to_areaco_noclip(G.v2d, node_centf, node_cent);
-		if (BLI_in_rcti(&rect, node_cent[0], node_cent[1]) && lasso_inside(mcords, moves, node_cent[0], node_cent[1])) {
+		if (BLI_in_rcti(&rect, node_cent[0], node_cent[1]) && BLI_lasso_is_point_inside(mcords, moves, node_cent[0], node_cent[1])) {
 			if (select) {
 				node->flag |= SELECT;
 			}

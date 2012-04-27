@@ -45,7 +45,9 @@
 #include "DNA_space_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_lasso.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_dynstr.h"
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
@@ -1633,7 +1635,9 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 				copy_v3_v3(co, key->co);
 				mul_m4_v3(mat, co);
 				project_int(ar, co, vertco);
-				if ((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1]) && key_test_depth(&data, co)) {
+				if (BLI_lasso_is_point_inside(mcords,moves,vertco[0],vertco[1], IS_CLIPPED) &&
+				    key_test_depth(&data, co))
+				{
 					if (select && !(key->flag & PEK_SELECT)) {
 						key->flag |= PEK_SELECT;
 						point->flag |= PEP_EDIT_RECALC;
@@ -1651,7 +1655,9 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
 			project_int(ar, co,vertco);
-			if ((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1]) && key_test_depth(&data, co)) {
+			if (BLI_lasso_is_point_inside(mcords,moves,vertco[0],vertco[1], IS_CLIPPED) &&
+			    key_test_depth(&data, co))
+			{
 				if (select && !(key->flag & PEK_SELECT)) {
 					key->flag |= PEK_SELECT;
 					point->flag |= PEP_EDIT_RECALC;

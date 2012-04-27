@@ -1016,7 +1016,7 @@ static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float 
 		BMFace *efa;
 		
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			poly_uv_center(em, efa, cent);
+			uv_poly_center(em, efa, cent);
 			
 			if ( (fabs(cent[0] - cent_vec[0]) < 0.001) && (fabs(cent[1] - cent_vec[1]) < 0.001) ) {
 				BMIter liter;

@@ -198,11 +198,11 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 					i++;
 				}
 
-				poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa->len);
+				uv_poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa->len);
 
 				totarea += BM_face_calc_area(efa);
 				//totuvarea += tf_area(tf, efa->v4!=0);
-				totuvarea += poly_uv_area(tf_uv, efa->len);
+				totuvarea += uv_poly_area(tf_uv, efa->len);
 				
 				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
@@ -248,10 +248,10 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 							i++;
 						}
 
-						poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa->len);
+						uv_poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa->len);
 
 						//uvarea = tf_area(tf, efa->v4!=0) / totuvarea;
-						uvarea = poly_uv_area(tf_uv, efa->len) / totuvarea;
+						uvarea = uv_poly_area(tf_uv, efa->len) / totuvarea;
 						
 						if (area < FLT_EPSILON || uvarea < FLT_EPSILON)
 							areadiff = 1.0f;
@@ -315,7 +315,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						copy_v2_v2(tf_uvorig[i], luv->uv);
 					}
 
-					poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, nverts);
+					uv_poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, nverts);
 
 					j = nverts - 1;
 					BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
@@ -742,7 +742,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				continue;
 
 			if (!uvedit_face_select_test(scene, em, efa)) {
-				poly_uv_center(em, efa, cent);
+				uv_poly_center(em, efa, cent);
 				bglVertex2fv(cent);
 			}
 		}
@@ -757,7 +757,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				continue;
 
 			if (uvedit_face_select_test(scene, em, efa)) {
-				poly_uv_center(em, efa, cent);
+				uv_poly_center(em, efa, cent);
 				bglVertex2fv(cent);
 			}
 		}
