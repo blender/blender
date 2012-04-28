@@ -184,34 +184,32 @@ static BMLoop *bm_face_boundary_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge
 
 BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short copyedges)
 {
-	BMEdge **edges = NULL;
 	BMVert **verts = NULL;
-	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
-	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
+	BMEdge **edges = NULL;
+	BLI_array_fixedstack_declare(verts, BM_NGON_STACK_SIZE, f->len, __func__);
+	BLI_array_fixedstack_declare(edges, BM_NGON_STACK_SIZE, f->len, __func__);
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	BMLoop *l_copy;
 	BMFace *f_copy;
 	int i;
 
-	/* BMESH_TODO - grow verts array in one go! (right here) */
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	i = 0;
 	do {
 		if (copyverts) {
-			BMVert *v = BM_vert_create(bm, l_iter->v->co, l_iter->v);
-			BLI_array_append(verts, v);
+			verts[i] = BM_vert_create(bm, l_iter->v->co, l_iter->v);
 		}
 		else {
-			BLI_array_append(verts, l_iter->v);
+			verts[i] = l_iter->v;
 		}
+		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 
-	/* BMESH_TODO - grow edges array in one go! (right here) */
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	i = 0;
 	do {
 		if (copyedges) {
-			BMEdge *e;
 			BMVert *v1, *v2;
 			
 			if (l_iter->e->v1 == verts[i]) {
@@ -223,13 +221,11 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 				v1 = verts[(i + 1) % f->len];
 			}
 			
-			e = BM_edge_create(bm,  v1, v2, l_iter->e, FALSE);
-			BLI_array_append(edges, e);
+			edges[i] = BM_edge_create(bm,  v1, v2, l_iter->e, FALSE);
 		}
 		else {
-			BLI_array_append(edges, l_iter->e);
+			edges[i] = l_iter->e;
 		}
-		
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 	
@@ -243,7 +239,10 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 		BM_elem_attrs_copy(bm, bm, l_iter, l_copy);
 		l_copy = l_copy->next;
 	} while ((l_iter = l_iter->next) != l_first);
-	
+
+	BLI_array_fixedstack_free(verts);
+	BLI_array_fixedstack_free(edges);
+
 	return f_copy;
 }
 
