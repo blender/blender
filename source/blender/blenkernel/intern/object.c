@@ -319,8 +319,8 @@ void free_object(Object *ob)
 		id->us--;
 		if (id->us==0) {
 			if (ob->type==OB_MESH) unlink_mesh(ob->data);
-			else if (ob->type==OB_CURVE) unlink_curve(ob->data);
-			else if (ob->type==OB_MBALL) unlink_mball(ob->data);
+			else if (ob->type==OB_CURVE) BKE_curve_unlink(ob->data);
+			else if (ob->type==OB_MBALL) BKE_metaball_unlink(ob->data);
 		}
 		ob->data= NULL;
 	}
@@ -459,7 +459,7 @@ void unlink_object(Object *ob)
 			}
 		} 
 		else if (ELEM(OB_MBALL, ob->type, obt->type)) {
-			if (is_mball_basis_for (obt, ob))
+			if (BKE_metaball_is_basis_for (obt, ob))
 				obt->recalc|= OB_RECALC_DATA;
 		}
 		
@@ -749,10 +749,10 @@ static void *add_obdata_from_type(int type)
 {
 	switch (type) {
 	case OB_MESH: return add_mesh("Mesh");
-	case OB_CURVE: return add_curve("Curve", OB_CURVE);
-	case OB_SURF: return add_curve("Surf", OB_SURF);
-	case OB_FONT: return add_curve("Text", OB_FONT);
-	case OB_MBALL: return add_mball("Meta");
+	case OB_CURVE: return BKE_curve_add("Curve", OB_CURVE);
+	case OB_SURF: return BKE_curve_add("Surf", OB_SURF);
+	case OB_FONT: return BKE_curve_add("Text", OB_FONT);
+	case OB_MBALL: return BKE_metaball_add("Meta");
 	case OB_CAMERA: return add_camera("Camera");
 	case OB_LAMP: return add_lamp("Lamp");
 	case OB_LATTICE: return add_lattice("Lattice");
@@ -1822,7 +1822,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		ListBase *nurbs;
 
 		cu= par->data;
-		nurbs= BKE_curve_nurbs(cu);
+		nurbs= BKE_curve_nurbs_get(cu);
 		nu= nurbs->first;
 
 		count= 0;
@@ -2268,7 +2268,7 @@ void minmax_object(Object *ob, float min[3], float max[3])
 		{
 			Curve *cu= ob->data;
 
-			if (cu->bb==NULL) tex_space_curve(cu);
+			if (cu->bb==NULL) BKE_curve_tex_space_calc(cu);
 			bb= *(cu->bb);
 
 			for (a=0; a<8; a++) {
@@ -2930,7 +2930,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 	Curve *cu= ob->data;
 	Key *key= cu->key;
 	KeyBlock *kb;
-	ListBase *lb= BKE_curve_nurbs(cu);
+	ListBase *lb= BKE_curve_nurbs_get(cu);
 	int newkey= 0;
 
 	if (key==NULL) {
@@ -2957,7 +2957,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 
 		/* create new block with prepared data */
 		kb = add_keyblock_ctime(key, name, FALSE);
-		kb->totelem= count_curveverts(lb);
+		kb->totelem= BKE_nurbList_verts_count(lb);
 		kb->data= data;
 	}
 

@@ -2499,8 +2499,8 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 	else {
 		
 		/* always do all three, to prevent data hanging around */
-		forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, sizeof(float)*2);
-		forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0]+1, resol, sizeof(float)*2);
+		BKE_curve_forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, sizeof(float)*2);
+		BKE_curve_forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0]+1, resol, sizeof(float)*2);
 		
 		return 1;
 	}

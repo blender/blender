@@ -106,7 +106,7 @@ static void special_transvert_update(Object *obedit)
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = obedit->data;
-			ListBase *nurbs = curve_editnurbs(cu);
+			ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 			Nurb *nu = nurbs->first;
 
 			while (nu) {
@@ -141,8 +141,8 @@ static void special_transvert_update(Object *obedit)
 					}
 				}
 
-				test2DNurb(nu);
-				testhandlesNurb(nu); /* test for bezier too */
+				BKE_nurb_test2D(nu);
+				BKE_nurb_handles_test(nu); /* test for bezier too */
 				nu = nu->next;
 			}
 		}
@@ -375,7 +375,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = obedit->data;
 		int totmalloc = 0;
-		ListBase *nurbs = curve_editnurbs(cu);
+		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
 		for (nu = nurbs->first; nu; nu = nu->next) {
 			if (nu->type == CU_BEZIER)

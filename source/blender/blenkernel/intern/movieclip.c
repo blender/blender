@@ -450,7 +450,7 @@ static MovieClip *movieclip_alloc(const char *name)
  * otherwise creates new.
  * does not load ibuf itself
  * pass on optional frame for #name images */
-MovieClip *BKE_add_movieclip_file(const char *name)
+MovieClip *BKE_movieclip_file_add(const char *name)
 {
 	MovieClip *clip;
 	MovieClipUser user;
@@ -1149,14 +1149,14 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct Movi
 	}
 }
 
-void free_movieclip(MovieClip *clip)
+void BKE_movieclip_free(MovieClip *clip)
 {
 	free_buffers(clip);
 
 	BKE_tracking_free(&clip->tracking);
 }
 
-void unlink_movieclip(Main *bmain, MovieClip *clip)
+void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
 {
 	bScreen *scr;
 	ScrArea *area;

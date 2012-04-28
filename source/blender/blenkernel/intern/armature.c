@@ -566,13 +566,13 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 	if (bone->segments > MAX_BBONE_SUBDIV)
 		bone->segments = MAX_BBONE_SUBDIV;
 
-	forward_diff_bezier(0.0,   h1[0],                           h2[0],                           0.0,    data[0],
+	BKE_curve_forward_diff_bezier(0.0,   h1[0],                           h2[0],                           0.0,    data[0],
 	                    MAX_BBONE_SUBDIV, 4*sizeof(float));
-	forward_diff_bezier(0.0,   h1[1],                           length + h2[1],                  length, data[0]+1,
+	BKE_curve_forward_diff_bezier(0.0,   h1[1],                           length + h2[1],                  length, data[0]+1,
 	                    MAX_BBONE_SUBDIV, 4*sizeof(float));
-	forward_diff_bezier(0.0,   h1[2],                           h2[2],                           0.0,    data[0]+2,
+	BKE_curve_forward_diff_bezier(0.0,   h1[2],                           h2[2],                           0.0,    data[0]+2,
 	                    MAX_BBONE_SUBDIV, 4*sizeof(float));
-	forward_diff_bezier(roll1, roll1 + 0.390464f*(roll2-roll1), roll2 - 0.390464f*(roll2-roll1), roll2,  data[0]+3,
+	BKE_curve_forward_diff_bezier(roll1, roll1 + 0.390464f*(roll2-roll1), roll2 - 0.390464f*(roll2-roll1), roll2,  data[0]+3,
 	                    MAX_BBONE_SUBDIV, 4*sizeof(float));
 
 	equalize_bezier(data[0], bone->segments); /* note: does stride 4! */

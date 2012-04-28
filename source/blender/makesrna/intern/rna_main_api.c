@@ -141,7 +141,7 @@ Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const cha
 				type = OB_MESH;
 				break;
 			case ID_CU:
-				type = curve_type((struct Curve *)data);
+				type = BKE_curve_type_get((struct Curve *)data);
 				break;
 			case ID_MB:
 				type = OB_MBALL;
@@ -314,7 +314,7 @@ void rna_Main_lattices_remove(Main *bmain, ReportList *reports, struct Lattice *
 
 Curve *rna_Main_curves_new(Main *UNUSED(bmain), const char *name, int type)
 {
-	Curve *cu = add_curve(name, type);
+	Curve *cu = BKE_curve_add(name, type);
 	id_us_min(&cu->id);
 	return cu;
 }
@@ -329,7 +329,7 @@ void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
 
 MetaBall *rna_Main_metaballs_new(Main *UNUSED(bmain), const char *name)
 {
-	MetaBall *mb = add_mball(name);
+	MetaBall *mb = BKE_metaball_add(name);
 	id_us_min(&mb->id);
 	return mb;
 }
@@ -523,7 +523,7 @@ MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *reports, con
 	MovieClip *clip;
 
 	errno = 0;
-	clip = BKE_add_movieclip_file(filepath);
+	clip = BKE_movieclip_file_add(filepath);
 
 	if (!clip)
 		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s.", filepath,
@@ -534,7 +534,7 @@ MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *reports, con
 
 void rna_Main_movieclips_remove(Main *bmain, MovieClip *clip)
 {
-	unlink_movieclip(bmain, clip);
+	BKE_movieclip_unlink(bmain, clip);
 	free_libblock(&bmain->movieclip, clip);
 	/* XXX python now has invalid pointer? */
 }

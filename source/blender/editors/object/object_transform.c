@@ -520,7 +520,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 						mul_m4_v3(mat, bezt->vec[2]);
 						bezt->radius *= scale;
 					}
-					calchandlesNurb(nu);
+					BKE_nurb_handles_calc(nu);
 				}
 				else {
 					a = nu->pntsu * nu->pntsv;
@@ -779,15 +779,15 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				Curve *cu = ob->data;
 
 				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
-				else if (around == V3D_CENTROID) { curve_center_median(cu, cent); }
-				else { curve_center_bounds(cu, cent);   }
+				else if (around == V3D_CENTROID) { BKE_curve_center_median(cu, cent); }
+				else { BKE_curve_center_bounds(cu, cent);   }
 
 				/* don't allow Z change if curve is 2D */
 				if ((ob->type == OB_CURVE) && !(cu->flag & CU_3D))
 					cent[2] = 0.0;
 
 				negate_v3_v3(cent_neg, cent);
-				curve_translate(cu, cent_neg, 1);
+				BKE_curve_translate(cu, cent_neg, 1);
 
 				tot_change++;
 				cu->id.flag |= LIB_DOIT;

@@ -389,7 +389,7 @@ int calc_manipulator_stats(const bContext *C)
 				Nurb *nu;
 				BezTriple *bezt;
 				BPoint *bp;
-				ListBase *nurbs= curve_editnurbs(cu);
+				ListBase *nurbs= BKE_curve_editNurbs_get(cu);
 
 				nu= nurbs->first;
 				while (nu) {

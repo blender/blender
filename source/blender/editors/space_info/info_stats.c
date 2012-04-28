@@ -183,7 +183,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		BezTriple *bezt;
 		BPoint *bp;
 		int a;
-		ListBase *nurbs = curve_editnurbs(cu);
+		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
 		for (nu = nurbs->first; nu; nu = nu->next) {
 			if (nu->type == CU_BEZIER) {

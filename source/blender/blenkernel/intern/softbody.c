@@ -3559,7 +3559,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 	int a, curindex=0;
 	int totvert, totspring = 0, setgoal=0;
 
-	totvert= count_curveverts(&cu->nurb);
+	totvert= BKE_nurbList_verts_count(&cu->nurb);
 
 	if (ob->softflag & OB_SB_EDGES) {
 		if (ob->type==OB_CURVE) {

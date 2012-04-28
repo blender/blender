@@ -482,7 +482,7 @@ void calc_curvepath(Object *ob)
 	if (ob==NULL || ob->type != OB_CURVE) return;
 	cu= ob->data;
 
-	nurbs= BKE_curve_nurbs(cu);
+	nurbs= BKE_curve_nurbs_get(cu);
 	nu= nurbs->first;
 
 	if (cu->path) free_path(cu->path);

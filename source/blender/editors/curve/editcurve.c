@@ -132,7 +132,7 @@ static void set_actNurb(Object *obedit, Nurb *nu)
 	if (nu==NULL)
 		cu->actnu = -1;
 	else {
-		ListBase *nurbs= curve_editnurbs(cu);
+		ListBase *nurbs= BKE_curve_editNurbs_get(cu);
 		cu->actnu = BLI_findindex(nurbs, nu);
 	}
 }
@@ -140,7 +140,7 @@ static void set_actNurb(Object *obedit, Nurb *nu)
 static Nurb *get_actNurb(Object *obedit)
 {
 	Curve *cu= obedit->data;
-	ListBase *nurbs= curve_editnurbs(cu);
+	ListBase *nurbs= BKE_curve_editNurbs_get(cu);
 
 	return BLI_findlink(nurbs, cu->actnu);
 }
@@ -736,7 +736,7 @@ static void calc_keyHandles(ListBase *nurb, float *key)
 				if (nextp) key_to_bezt(nextfp, nextp, &next);
 				if (prevp) key_to_bezt(prevfp, prevp, &prev);
 
-				calchandleNurb(&cur, prevp ? &prev : NULL, nextp ? &next : NULL, 0);
+				BKE_nurb_handle_calc(&cur, prevp ? &prev : NULL, nextp ? &next : NULL, 0);
 				bezt_to_key(&cur, fp);
 
 				prevp= bezt;
@@ -782,7 +782,7 @@ static void calc_shapeKeys(Object *obedit)
 		BezTriple *bezt, *oldbezt;
 		BPoint *bp, *oldbp;
 		Nurb *nu;
-		int totvert= count_curveverts(&editnurb->nurbs);
+		int totvert= BKE_nurbList_verts_count(&editnurb->nurbs);
 
 		float (*ofs)[3] = NULL;
 		float *oldkey, *newkey, *ofp;
@@ -1207,11 +1207,11 @@ void load_editNurb(Object *obedit)
 		ListBase newnurb= {NULL, NULL}, oldnurb= cu->nurb;
 
 		for (nu= editnurb->first; nu; nu= nu->next) {
-			newnu= duplicateNurb(nu);
+			newnu= BKE_nurb_duplicate(nu);
 			BLI_addtail(&newnurb, newnu);
 
 			if (nu->type == CU_NURBS) {
-				clamp_nurb_order_u(nu);
+				BKE_nurb_order_clamp_u(nu);
 			}
 		}
 
@@ -1220,7 +1220,7 @@ void load_editNurb(Object *obedit)
 		calc_shapeKeys(obedit);
 		ED_curve_updateAnimPaths(obedit->data);
 
-		freeNurblist(&oldnurb);
+		BKE_nurbList_free(&oldnurb);
 	}
 
 	set_actNurb(obedit, NULL);
@@ -1247,8 +1247,8 @@ void make_editNurb(Object *obedit)
 		}
 
 		if (editnurb) {
-			freeNurblist(&editnurb->nurbs);
-			free_curve_editNurb_keyIndex(editnurb);
+			BKE_nurbList_free(&editnurb->nurbs);
+			BKE_curve_editNurb_keyIndex_free(editnurb);
 			editnurb->keyindex= NULL;
 		}
 		else {
@@ -1260,8 +1260,8 @@ void make_editNurb(Object *obedit)
 		cu->lastsel= NULL;   /* for select row */
 
 		while (nu) {
-			newnu= duplicateNurb(nu);
-			test2DNurb(newnu);	// after join, or any other creation of curve
+			newnu= BKE_nurb_duplicate(nu);
+			BKE_nurb_test2D(newnu);	// after join, or any other creation of curve
 			BLI_addtail(&editnurb->nurbs, newnu);
 
 			if (nu_act == NULL && isNurbsel(nu)) {
@@ -1285,7 +1285,7 @@ void free_editNurb(Object *obedit)
 {
 	Curve *cu= obedit->data;
 
-	free_curve_editNurb(cu);
+	BKE_curve_editNurb_free(cu);
 }
 
 void CU_deselect_all(Object *obedit)
@@ -1377,15 +1377,15 @@ static int separate_exec(bContext *C, wmOperator *op)
 	ED_base_object_select(newbase, BA_DESELECT);
 	newob= newbase->object;
 
-	newcu= newob->data= copy_curve(oldcu);
+	newcu= newob->data= BKE_curve_copy(oldcu);
 	newcu->editnurb= NULL;
 	oldcu->id.us--; /* because new curve is a copy: reduce user count */
 
 	/* 2. put new object in editmode and clear it */
 	make_editNurb(newob);
 	newedit= newcu->editnurb;
-	freeNurblist(&newedit->nurbs);
-	free_curve_editNurb_keyIndex(newedit);
+	BKE_nurbList_free(&newedit->nurbs);
+	BKE_curve_editNurb_keyIndex_free(newedit);
 
 	/* 3. move over parts from old object */
 	for (nu= oldedit->nurbs.first; nu; nu=nu1) {
@@ -1547,7 +1547,7 @@ static void translateflagNurb(ListBase *editnurb, short flag, const float vec[3]
 			}
 		}
 
-		test2DNurb(nu);
+		BKE_nurb_test2D(nu);
 	}
 }
 
@@ -1602,7 +1602,7 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 		if (a==0) {
 			BLI_remlink(editnurb, nu);
 			keyIndex_delNurb(cu->editnurb, nu);
-			freeNurb(nu); nu=NULL;
+			BKE_nurb_free(nu); nu=NULL;
 		}
 		else {
 			/* is nurb in U direction selected */
@@ -1640,9 +1640,9 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 				nu->pntsv= newv;
 				MEM_freeN(nu->bp);
 				nu->bp= newbp;
-				clamp_nurb_order_v(nu);
+				BKE_nurb_order_clamp_v(nu);
 
-				nurbs_knot_calc_v(nu);
+				BKE_nurb_knot_calc_v(nu);
 			}
 			else {
 				/* is the nurb in V direction selected */
@@ -1684,15 +1684,15 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 						nu->pntsu= nu->pntsv;
 						nu->pntsv= 1;
 						SWAP(short, nu->orderu, nu->orderv);
-						clamp_nurb_order_u(nu);
+						BKE_nurb_order_clamp_u(nu);
 						if (nu->knotsv) MEM_freeN(nu->knotsv);
 						nu->knotsv= NULL;
 					}
 					else {
 						nu->pntsu= newu;
-						clamp_nurb_order_u(nu);
+						BKE_nurb_order_clamp_u(nu);
 					}
-					nurbs_knot_calc_u(nu);
+					BKE_nurb_knot_calc_u(nu);
 				}
 			}
 		}
@@ -1743,7 +1743,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 
 				nu->pntsv= 2;
 				nu->orderv= 2;
-				nurbs_knot_calc_v(nu);
+				BKE_nurb_knot_calc_v(nu);
 			}
 		}
 		else {
@@ -1786,7 +1786,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
 					nu->pntsv++;
-					nurbs_knot_calc_v(nu);
+					BKE_nurb_knot_calc_v(nu);
 				}
 				else if (v==0 || v== nu->pntsu-1) {	    /* column in v-direction selected */
 					ok= 1;
@@ -1813,7 +1813,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
 					nu->pntsu++;
-					nurbs_knot_calc_u(nu);
+					BKE_nurb_knot_calc_u(nu);
 				}
 			}
 		}
@@ -1911,7 +1911,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 
 					/* knots */
 					newnu->knotsu= NULL;
-					nurbs_knot_calc_u(newnu);
+					BKE_nurb_knot_calc_u(newnu);
 				}
 				bp++;
 			}
@@ -1956,8 +1956,8 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 					newnu->pntsv= newv;
 					newnu->bp =
 						(BPoint*)MEM_mallocN(newu * newv * sizeof(BPoint), "adduplicateN6");
-					clamp_nurb_order_u(newnu);
-					clamp_nurb_order_v(newnu);
+					BKE_nurb_order_clamp_u(newnu);
+					BKE_nurb_order_clamp_v(newnu);
 					
 					newnu->knotsu= newnu->knotsv= NULL;
 					
@@ -1972,20 +1972,20 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 							}
 						}
 					}
-					if (check_valid_nurb_u(newnu)) {
+					if (BKE_nurb_check_valid_u(newnu)) {
 						if (nu->pntsu==newnu->pntsu && nu->knotsu) {
 							newnu->knotsu= MEM_dupallocN( nu->knotsu );
 						}
 						else {
-							nurbs_knot_calc_u(newnu);
+							BKE_nurb_knot_calc_u(newnu);
 						}
 					}
-					if (check_valid_nurb_v(newnu)) {
+					if (BKE_nurb_check_valid_v(newnu)) {
 						if (nu->pntsv==newnu->pntsv && nu->knotsv) {
 							newnu->knotsv= MEM_dupallocN( nu->knotsv );
 						}
 						else {
-							nurbs_knot_calc_v(newnu);
+							BKE_nurb_knot_calc_v(newnu);
 						}
 					}
 				}
@@ -2010,7 +2010,7 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for (nu= editnurb->nurbs.first; nu; nu= nu->next)
 		if (isNurbsel(nu)) {
-			switchdirectionNurb(nu);
+			BKE_nurb_direction_switch(nu);
 			keyData_switchDirectionNurb(cu, nu);
 		}
 
@@ -2174,7 +2174,7 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 			MEM_freeN(beztOrig);
 			if (change)
-				calchandlesNurb(nu);
+				BKE_nurb_handles_calc(nu);
 		}
 		else if (nu->bp) {
 			bpOrig = MEM_dupallocN( nu->bp );
@@ -2893,7 +2893,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				nu->bezt= beztnew;
 				nu->pntsu+= amount;
 
-				calchandlesNurb(nu);
+				BKE_nurb_handles_calc(nu);
 			}
 		} /* End of 'if (nu->type == CU_BEZIER)' */
 		else if (nu->pntsv==1) {
@@ -2965,7 +2965,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				nu->pntsu+= amount;
 
 				if (nu->type & CU_NURBS) {
-					nurbs_knot_calc_u(nu);
+					BKE_nurb_knot_calc_u(nu);
 				}
 			}
 		} /* End of 'else if (nu->pntsv==1)' */
@@ -3086,8 +3086,8 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				nu->bp= bpnew;
 				nu->pntsu= (number_cuts+1)*nu->pntsu-number_cuts;
 				nu->pntsv= (number_cuts+1)*nu->pntsv-number_cuts;
-				nurbs_knot_calc_u(nu);
-				nurbs_knot_calc_v(nu);
+				BKE_nurb_knot_calc_u(nu);
+				BKE_nurb_knot_calc_v(nu);
 			} /* End of 'if (sel== nu->pntsu*nu->pntsv)' (subdivide entire NURB) */
 			else {
 				/* subdivide in v direction? */
@@ -3132,7 +3132,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					MEM_freeN(nu->bp);
 					nu->bp= bpnew;
 					nu->pntsv+= sel;
-					nurbs_knot_calc_v(nu);
+					BKE_nurb_knot_calc_v(nu);
 				}
 				else {
 					/* or in u direction? */
@@ -3173,7 +3173,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 						MEM_freeN(nu->bp);
 						nu->bp= bpnew;
 						nu->pntsu+= sel;
-						nurbs_knot_calc_u(nu); /* shift knots forward */
+						BKE_nurb_knot_calc_u(nu); /* shift knots forward */
 					}
 				}
 			}
@@ -3373,13 +3373,13 @@ static int convertspline(short type, Nurb *nu)
 			nu->bp= NULL;
 			nu->pntsu= nr;
 			nu->type = CU_BEZIER;
-			calchandlesNurb(nu);
+			BKE_nurb_handles_calc(nu);
 		}
 		else if (type==CU_NURBS) {
 			nu->type = CU_NURBS;
 			nu->orderu= 4;
 			nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
-			nurbs_knot_calc_u(nu);
+			BKE_nurb_knot_calc_u(nu);
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
 			while (a--) {
@@ -3436,7 +3436,7 @@ static int convertspline(short type, Nurb *nu)
 			if (type== CU_NURBS) {
 				nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
 				nu->flagu |= CU_NURB_BEZIER;
-				nurbs_knot_calc_u(nu);
+				BKE_nurb_knot_calc_u(nu);
 			}
 		}
 	}
@@ -3559,7 +3559,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= object_editcurve_get(obedit);
 
-	sethandlesNurb(editnurb, RNA_enum_get(op->ptr, "type"));
+	BKE_nurbList_handles_set(editnurb, RNA_enum_get(op->ptr, "type"));
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	DAG_id_tag_update(obedit->data, 0);
@@ -3865,15 +3865,15 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 
 	if (nu1->type == CU_NURBS) {
 		/* merge knots */
-		nurbs_knot_calc_u(nu1);
+		BKE_nurb_knot_calc_u(nu1);
 	
 		/* make knots, for merged curved for example */
-		nurbs_knot_calc_v(nu1);
+		BKE_nurb_knot_calc_v(nu1);
 	}
 	
 	MEM_freeN(temp);
 	BLI_remlink(editnurb, nu2);
-	freeNurb(nu2);
+	BKE_nurb_free(nu2);
 }
 
 static int merge_nurb(bContext *C, wmOperator *op)
@@ -3976,7 +3976,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 					else {
 						if ( BEZSELECTED_HIDDENHANDLES(cu, &(nu->bezt[nu->pntsu-1])) ) {
 							nu1= nu;
-							switchdirectionNurb(nu);
+							BKE_nurb_direction_switch(nu);
 							keyData_switchDirectionNurb(cu, nu);
 						}
 					}
@@ -3984,7 +3984,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				else if (nu2==NULL) {
 					if ( BEZSELECTED_HIDDENHANDLES(cu, nu->bezt) ) {
 						nu2= nu;
-						switchdirectionNurb(nu);
+						BKE_nurb_direction_switch(nu);
 						keyData_switchDirectionNurb(cu, nu);
 					}
 					else {
@@ -4003,7 +4003,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 						bp= bp+(nu->pntsu-1);
 						if ( bp->f1 & SELECT ) {
 							nu1= nu;
-							switchdirectionNurb(nu);
+							BKE_nurb_direction_switch(nu);
 							keyData_switchDirectionNurb(cu, nu);
 						}
 					}
@@ -4011,7 +4011,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				else if (nu2==NULL) {
 					if ( bp->f1 & SELECT ) {
 						nu2= nu;
-						switchdirectionNurb(nu);
+						BKE_nurb_direction_switch(nu);
 						keyData_switchDirectionNurb(cu, nu);
 					}
 					else {
@@ -4038,8 +4038,8 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				nu1->bezt= bezt;
 				nu1->pntsu+= nu2->pntsu;
 				BLI_remlink(nubase, nu2);
-				freeNurb(nu2); nu2= NULL;
-				calchandlesNurb(nu1);
+				BKE_nurb_free(nu2); nu2= NULL;
+				BKE_nurb_handles_calc(nu1);
 			}
 			else {
 				bp =
@@ -4057,7 +4057,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				/* now join the knots */
 				if (nu1->type == CU_NURBS) {
 					if (nu1->knotsu==NULL) {
-						nurbs_knot_calc_u(nu1);
+						BKE_nurb_knot_calc_u(nu1);
 					}
 					else {
 						fp= MEM_mallocN(sizeof(float)*KNOTSU(nu1), "addsegment3");
@@ -4076,7 +4076,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 						}
 					}
 				}
-				freeNurb(nu2); nu2= NULL;
+				BKE_nurb_free(nu2); nu2= NULL;
 			}
 
 			set_actNurb(obedit, nu1);	/* for selected */
@@ -4088,12 +4088,12 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 			if (nu1->type == CU_BEZIER && BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt) &&
 				BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt+(nu1->pntsu-1))) {
 				nu1->flagu|= CU_NURB_CYCLIC;
-				calchandlesNurb(nu1);
+				BKE_nurb_handles_calc(nu1);
 				ok= 1;
 			}
 			else if (nu1->type == CU_NURBS && nu1->bp->f1&SELECT && (nu1->bp+(nu1->pntsu-1))->f1&SELECT) {
 				nu1->flagu|= CU_NURB_CYCLIC;
-				nurbs_knot_calc_u(nu1);
+				BKE_nurb_knot_calc_u(nu1);
 				ok= 1;
 			}
 		}
@@ -4293,7 +4293,7 @@ static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cen
 			if (isNurbsel(nu)) {
 				nu->orderv= 4;
 				nu->flagv |= CU_NURB_CYCLIC;
-				nurbs_knot_calc_v(nu);
+				BKE_nurb_knot_calc_v(nu);
 			}
 		}
 	}
@@ -4446,7 +4446,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				newbp->vec[3]= 1.0;
 
 				newnu->knotsu= newnu->knotsv= NULL;
-				nurbs_knot_calc_u(newnu);
+				BKE_nurb_knot_calc_u(newnu);
 
 				ok= 1;
 				nu= newnu;
@@ -4538,7 +4538,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				if (bezt_recalc[1]) {
 					const char h1 = bezt_recalc[1]->h1, h2 = bezt_recalc[1]->h2;
 					bezt_recalc[1]->h1 = bezt_recalc[1]->h2 = HD_AUTO;
-					calchandleNurb(bezt_recalc[1], bezt_recalc[0], bezt_recalc[2], 0);
+					BKE_nurb_handle_calc(bezt_recalc[1], bezt_recalc[0], bezt_recalc[2], 0);
 					bezt_recalc[1]->h1 = h1;
 					bezt_recalc[1]->h2 = h2;
 				}
@@ -4548,8 +4548,8 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				}
 				
 
-				if (newnu) calchandlesNurb(newnu);
-				else calchandlesNurb(nu);
+				if (newnu) BKE_nurb_handles_calc(newnu);
+				else BKE_nurb_handles_calc(nu);
 			}
 		}
 	}
@@ -4617,14 +4617,14 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 
 			if (!newnu) {
 				nu->pntsu++;
-				nurbs_knot_calc_u(nu);
+				BKE_nurb_knot_calc_u(nu);
 			}
-			else nurbs_knot_calc_u(newnu);
+			else BKE_nurb_knot_calc_u(newnu);
 		}
 	}
 
 	if (ok) {
-		test2DNurb(nu);
+		BKE_nurb_test2D(nu);
 
 		if (ED_curve_updateAnimPaths(obedit->data))
 			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
@@ -4783,7 +4783,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 					}
 					bezt++;
 				}
-				calchandlesNurb(nu);
+				BKE_nurb_handles_calc(nu);
 			}
 			else if (nu->pntsv==1 && nu->type == CU_NURBS) {
 				if (nu->knotsu) { /* if check_valid_nurb_u fails the knotsu can be NULL */
@@ -4792,7 +4792,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 					while (a--) {
 						if ( bp->f1 & SELECT ) {
 							nu->flagu ^= CU_NURB_CYCLIC;
-							nurbs_knot_calc_u(nu);	/* 1==u  type is ignored for cyclic curves */
+							BKE_nurb_knot_calc_u(nu);	/* 1==u  type is ignored for cyclic curves */
 							break;
 						}
 						bp++;
@@ -4807,11 +4807,11 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 					if ( bp->f1 & SELECT) {
 						if (direction==0 && nu->pntsu>1) {
 							nu->flagu ^= CU_NURB_CYCLIC;
-							nurbs_knot_calc_u(nu);   /* 1==u  type is ignored for cyclic curves */
+							BKE_nurb_knot_calc_u(nu);   /* 1==u  type is ignored for cyclic curves */
 						}
 						if (direction==1 && nu->pntsv>1) {
 							nu->flagv ^= CU_NURB_CYCLIC;
-							nurbs_knot_calc_v(nu);   /* 2==v  type is ignored for cyclic curves */
+							BKE_nurb_knot_calc_v(nu);   /* 2==v  type is ignored for cyclic curves */
 						}
 						break;
 					}
@@ -5472,7 +5472,7 @@ static int point_on_nurb(Nurb *nu, void *point)
 
 static Nurb *get_lastsel_nurb(Curve *cu)
 {
-	ListBase *nubase= curve_editnurbs(cu);
+	ListBase *nubase= BKE_curve_editNurbs_get(cu);
 	Nurb *nu= nubase->first;
 
 	if (!cu->lastsel)
@@ -5638,7 +5638,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			keyIndex_delNurbList(editnurb, nubase);
-			freeNurblist(nubase);
+			BKE_nurbList_free(nubase);
 
 			if (ED_curve_updateAnimPaths(obedit->data))
 				WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
@@ -5672,7 +5672,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 
 						BLI_remlink(nubase, nu);
 						keyIndex_delNurb(editnurb, nu);
-						freeNurb(nu); nu= NULL;
+						BKE_nurb_free(nu); nu= NULL;
 					}
 				}
 			}
@@ -5692,7 +5692,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 
 						BLI_remlink(nubase, nu);
 						keyIndex_delNurb(editnurb, nu);
-						freeNurb(nu); nu= NULL;
+						BKE_nurb_free(nu); nu= NULL;
 					}
 				}
 			}
@@ -5734,7 +5734,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 					keyIndex_updateBezt(editnurb, nu->bezt, bezt1, nu->pntsu);
 					MEM_freeN(nu->bezt);
 					nu->bezt= bezt1;
-					calchandlesNurb(nu);
+					BKE_nurb_handles_calc(nu);
 				}
 			}
 			else if (nu->pntsv==1) {
@@ -5770,8 +5770,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 					}
 #endif
 				}
-				clamp_nurb_order_u(nu);
-				nurbs_knot_calc_u(nu);
+				BKE_nurb_order_clamp_u(nu);
+				BKE_nurb_knot_calc_u(nu);
 			}
 			nu= next;
 		}
@@ -5797,7 +5797,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 								bezt2= bezt+(nu->pntsu-1);
 								if ( (bezt2->f1 & SELECT) || (bezt2->f2 & SELECT) || (bezt2->f3 & SELECT) ) {
 									nu->flagu &= ~CU_NURB_CYCLIC;
-									calchandlesNurb(nu);
+									BKE_nurb_handles_calc(nu);
 									WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 									DAG_id_tag_update(obedit->data, 0);
 								}
@@ -5850,7 +5850,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 						cu->actnu= -1;
 
 					BLI_remlink(nubase, nu);
-					freeNurb(nu); nu = NULL;
+					BKE_nurb_free(nu); nu = NULL;
 				}
 				else if (nu1->flagu & CU_NURB_CYCLIC) {	/* cyclic */
 					bezt =
@@ -5862,7 +5862,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 
 					nu1->flagu &= ~CU_NURB_CYCLIC;
 					MEM_freeN(bezt);
-					calchandlesNurb(nu);
+					BKE_nurb_handles_calc(nu);
 				}
 				else {			/* add new curve */
 
@@ -5886,8 +5886,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 					nu->pntsu= cut+1;
 					
 					
-					calchandlesNurb(nu);
-					calchandlesNurb(nu1);
+					BKE_nurb_handles_calc(nu);
+					BKE_nurb_handles_calc(nu1);
 				}
 			}
 			else if (bp1) {
@@ -5896,7 +5896,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 						cu->actnu= -1;
 
 					BLI_remlink(nubase, nu);
-					freeNurb(nu); nu= NULL;
+					BKE_nurb_free(nu); nu= NULL;
 				}
 				else if (nu1->flagu & CU_NURB_CYCLIC) {	/* cyclic */
 					bp =
@@ -5926,11 +5926,11 @@ static int delete_exec(bContext *C, wmOperator *op)
 					nu1->knotsu= NULL;
 					nu->pntsu= cut+1;
 
-					clamp_nurb_order_u(nu);
-					nurbs_knot_calc_u(nu);
+					BKE_nurb_order_clamp_u(nu);
+					BKE_nurb_knot_calc_u(nu);
 
-					clamp_nurb_order_u(nu1);
-					nurbs_knot_calc_u(nu1);
+					BKE_nurb_order_clamp_u(nu1);
+					BKE_nurb_knot_calc_u(nu1);
 				}
 			}
 		}
@@ -5938,7 +5938,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 	else if (type==2) {
 		cu->actnu= -1;
 		keyIndex_delNurbList(editnurb, nubase);
-		freeNurblist(nubase);
+		BKE_nurbList_free(nubase);
 	}
 
 	if (ED_curve_updateAnimPaths(obedit->data))
@@ -6083,7 +6083,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 					
 					nu= cu->nurb.first;
 					while (nu) {
-						newnu= duplicateNurb(nu);
+						newnu= BKE_nurb_duplicate(nu);
 						if (ob->totcol) { /* TODO, merge material lists */
 							CLAMP(newnu->mat_nr, 0, ob->totcol-1);
 						}
@@ -6098,7 +6098,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 								mul_m4_v3(cmat, bezt->vec[2]);
 								bezt++;
 							}
-							calchandlesNurb(newnu);
+							BKE_nurb_handles_calc(newnu);
 						}
 						if ( (bp= newnu->bp) ) {
 							a= newnu->pntsu*nu->pntsv;
@@ -6240,7 +6240,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 			bezt->vec[2][1] = 0;
 			for (a=0;a<3;a++) mul_m4_v3(mat, bezt->vec[a]);
 
-			calchandlesNurb(nu);
+			BKE_nurb_handles_calc(nu);
 		}
 		else {
 			
@@ -6272,7 +6272,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 
 			if (cutype==CU_NURBS) {
 				nu->knotsu= NULL;	/* nurbs_knot_calc_u allocates */
-				nurbs_knot_calc_u(nu);
+				BKE_nurb_knot_calc_u(nu);
 			}
 
 		}
@@ -6306,7 +6306,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 
 		if (cutype==CU_NURBS) {
 			nu->knotsu= NULL;	/* nurbs_knot_calc_u allocates */
-			nurbs_knot_calc_u(nu);
+			BKE_nurb_knot_calc_u(nu);
 		}
 
 		break;
@@ -6347,7 +6347,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 			for (a=0;a<3;a++) mul_m4_v3(mat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
-			calchandlesNurb(nu);
+			BKE_nurb_handles_calc(nu);
 		}
 		else if ( cutype==CU_NURBS ) {  /* nurb */
 			nu->pntsu= 8;
@@ -6375,7 +6375,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 				bp++;
 			}
 
-			nurbs_knot_calc_u(nu);
+			BKE_nurb_knot_calc_u(nu);
 		}
 		break;
 	case CU_PRIM_PATCH:	/* 4x4 patch */
@@ -6407,8 +6407,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 				}
 			}
 
-			nurbs_knot_calc_u(nu);
-			nurbs_knot_calc_v(nu);
+			BKE_nurb_knot_calc_u(nu);
+			BKE_nurb_knot_calc_v(nu);
 		}
 		break;
 	case CU_PRIM_TUBE:	/* Cylinder */
@@ -6469,7 +6469,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 				bp++;
 			}
 			nu->flagu= CU_NURB_BEZIER;
-			nurbs_knot_calc_u(nu);
+			BKE_nurb_knot_calc_u(nu);
 
 			BLI_addtail(editnurb, nu); /* temporal for spin */
 
@@ -6477,7 +6477,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(viewmat, obedit, zvec, mat[3]);
 			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
 
-			nurbs_knot_calc_v(nu);
+			BKE_nurb_knot_calc_v(nu);
 
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
@@ -6529,7 +6529,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 	if (nu) { /* should always be set */
 		nu->flag |= CU_SMOOTH;
 
-		test2DNurb(nu);
+		BKE_nurb_test2D(nu);
 	}
 
 	return nu;
@@ -6947,13 +6947,13 @@ static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
 	Curve *cu= cu_v;
 	UndoCurve *undoCurve= ucu;
 	ListBase *undobase= &undoCurve->nubase;
-	ListBase *editbase= curve_editnurbs(cu);
+	ListBase *editbase= BKE_curve_editNurbs_get(cu);
 	Nurb *nu, *newnu;
 	EditNurb *editnurb= cu->editnurb;
 	void *lastsel= NULL;
 	AnimData *ad= BKE_animdata_from_id(&cu->id);
 
-	freeNurblist(editbase);
+	BKE_nurbList_free(editbase);
 
 	if (undoCurve->undoIndex) {
 		BLI_ghash_free(editnurb->keyindex, NULL, (GHashValFreeFP)MEM_freeN);
@@ -6972,7 +6972,7 @@ static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
 
 	/* copy  */
 	for (nu= undobase->first; nu; nu= nu->next) {
-		newnu= duplicateNurb(nu);
+		newnu= BKE_nurb_duplicate(nu);
 
 		if (lastsel == NULL) {
 			lastsel= undo_check_lastsel(undoCurve->lastsel, nu, newnu);
@@ -6993,7 +6993,7 @@ static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
 static void *editCurve_to_undoCurve(void *UNUSED(edata), void *cu_v)
 {
 	Curve *cu= cu_v;
-	ListBase *nubase= curve_editnurbs(cu);
+	ListBase *nubase= BKE_curve_editNurbs_get(cu);
 	UndoCurve *undoCurve;
 	EditNurb *editnurb= cu->editnurb, tmpEditnurb;
 	Nurb *nu, *newnu;
@@ -7016,7 +7016,7 @@ static void *editCurve_to_undoCurve(void *UNUSED(edata), void *cu_v)
 
 	/* copy  */
 	for (nu= nubase->first; nu; nu= nu->next) {
-		newnu= duplicateNurb(nu);
+		newnu= BKE_nurb_duplicate(nu);
 
 		if (lastsel == NULL) {
 			lastsel= undo_check_lastsel(cu->lastsel, nu, newnu);
@@ -7039,7 +7039,7 @@ static void free_undoCurve(void *ucv)
 {
 	UndoCurve *undoCurve= ucv;
 
-	freeNurblist(&undoCurve->nubase);
+	BKE_nurbList_free(&undoCurve->nubase);
 
 	if (undoCurve->undoIndex)
 		BLI_ghash_free(undoCurve->undoIndex, NULL, (GHashValFreeFP)MEM_freeN);

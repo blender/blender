@@ -40,10 +40,10 @@ struct MovieClipUser;
 struct MovieTrackingTrack;
 struct MovieDistortion;
 
-void free_movieclip(struct MovieClip *clip);
-void unlink_movieclip(struct Main *bmain, struct MovieClip *clip);
+void BKE_movieclip_free(struct MovieClip *clip);
+void BKE_movieclip_unlink(struct Main *bmain, struct MovieClip *clip);
 
-struct MovieClip *BKE_add_movieclip_file(const char *name);
+struct MovieClip *BKE_movieclip_file_add(const char *name);
 void BKE_movieclip_reload(struct MovieClip *clip);
 
 struct ImBuf *BKE_movieclip_get_ibuf(struct MovieClip *clip, struct MovieClipUser *user);

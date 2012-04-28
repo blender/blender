@@ -800,7 +800,7 @@ void calchandles_fcurve (FCurve *fcu)
 		if (bezt->vec[2][0] < bezt->vec[1][0]) bezt->vec[2][0]= bezt->vec[1][0];
 		
 		/* calculate auto-handles */
-		calchandleNurb(bezt, prev, next, 1);	/* 1==special autohandle */
+		BKE_nurb_handle_calc(bezt, prev, next, 1);	/* 1==special autohandle */
 		
 		/* for automatic ease in and out */
 		if (ELEM(bezt->h1,HD_AUTO,HD_AUTO_ANIM) && ELEM(bezt->h2,HD_AUTO,HD_AUTO_ANIM)) {

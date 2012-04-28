@@ -65,6 +65,106 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 
+/* Data types */
+
+typedef struct point {			/* a three-dimensional point */
+	float x, y, z;				/* its coordinates */
+} MB_POINT;
+
+typedef struct vertex {			/* surface vertex */
+	MB_POINT position, normal;		/* position and surface normal */
+} VERTEX;
+
+typedef struct vertices {		/* list of vertices in polygonization */
+	int count, max;				/* # vertices, max # allowed */
+	VERTEX *ptr;				/* dynamically allocated */
+} VERTICES;
+
+typedef struct corner {			/* corner of a cube */
+	int i, j, k;				/* (i, j, k) is index within lattice */
+	float x, y, z, value;		/* location and function value */
+	struct corner *next;
+} CORNER;
+
+typedef struct cube {			/* partitioning cell (cube) */
+	int i, j, k;				/* lattice location of cube */
+	CORNER *corners[8];			/* eight corners */
+} CUBE;
+
+typedef struct cubes {			/* linked list of cubes acting as stack */
+	CUBE cube;					/* a single cube */
+	struct cubes *next;			/* remaining elements */
+} CUBES;
+
+typedef struct centerlist {		/* list of cube locations */
+	int i, j, k;				/* cube location */
+	struct centerlist *next;	/* remaining elements */
+} CENTERLIST;
+
+typedef struct edgelist {		/* list of edges */
+	int i1, j1, k1, i2, j2, k2;	/* edge corner ids */
+	int vid;					/* vertex id */
+	struct edgelist *next;		/* remaining elements */
+} EDGELIST;
+
+typedef struct intlist {		/* list of integers */
+	int i;						/* an integer */
+	struct intlist *next;		/* remaining elements */
+} INTLIST;
+
+typedef struct intlists {		/* list of list of integers */
+	INTLIST *list;				/* a list of integers */
+	struct intlists *next;		/* remaining elements */
+} INTLISTS;
+
+typedef struct process {		/* parameters, function, storage */
+	/* what happens here? floats, I think. */
+	/*  float (*function)(void);	 */	/* implicit surface function */
+	float (*function)(float, float, float);
+	float size, delta;			/* cube size, normal delta */
+	int bounds;					/* cube range within lattice */
+	CUBES *cubes;				/* active cubes */
+	VERTICES vertices;			/* surface vertices */
+	CENTERLIST **centers;		/* cube center hash table */
+	CORNER **corners;			/* corner value hash table */
+	EDGELIST **edges;			/* edge and vertex id hash table */
+} PROCESS;
+
+/* dividing scene using octal tree makes polygonisation faster */
+typedef struct ml_pointer {
+	struct ml_pointer *next, *prev;
+	struct MetaElem *ml;
+} ml_pointer;
+
+typedef struct octal_node {
+	struct octal_node *nodes[8];	/* children of current node */
+	struct octal_node *parent;	/* parent of current node */
+	struct ListBase elems;		/* ListBase of MetaElem pointers (ml_pointer) */
+	float x_min, y_min, z_min;	/* 1st border point */
+	float x_max, y_max, z_max;	/* 7th border point */
+	float x,y,z;			/* center of node */
+	int pos, neg;			/* number of positive and negative MetaElements in the node */
+	int count;			/* number of MetaElems, which belongs to the node */
+} octal_node;
+
+typedef struct octal_tree {
+	struct octal_node *first;	/* first node */
+	int pos, neg;			/* number of positive and negative MetaElements in the scene */
+	short depth;			/* number of scene subdivision */
+} octal_tree;
+
+struct pgn_elements {
+	struct pgn_elements *next, *prev;
+	char *data;
+};
+
+/* Forward declarations */
+static int vertid(CORNER *c1, CORNER *c2, PROCESS *p, MetaBall *mb);
+static int setcenter(CENTERLIST *table[], int i, int j, int k);
+static CORNER *setcorner(PROCESS* p, int i, int j, int k);
+static void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
+			   float (*function)(float, float, float), MB_POINT *p, MetaBall *mb, int f);
+
 /* Global variables */
 
 static float thresh= 0.6f;
@@ -73,7 +173,7 @@ static MetaElem **mainb;
 static octal_tree *metaball_tree = NULL;
 /* Functions */
 
-void unlink_mball(MetaBall *mb)
+void BKE_metaball_unlink(MetaBall *mb)
 {
 	int a;
 	
@@ -85,9 +185,9 @@ void unlink_mball(MetaBall *mb)
 
 
 /* do not free mball itself */
-void free_mball(MetaBall *mb)
+void BKE_metaball_free(MetaBall *mb)
 {
-	unlink_mball(mb);	
+	BKE_metaball_unlink(mb);	
 	
 	if (mb->adt) {
 		BKE_free_animdata((ID *)mb);
@@ -99,7 +199,7 @@ void free_mball(MetaBall *mb)
 	if (mb->disp.first) freedisplist(&mb->disp);
 }
 
-MetaBall *add_mball(const char *name)
+MetaBall *BKE_metaball_add(const char *name)
 {
 	MetaBall *mb;
 	
@@ -115,7 +215,7 @@ MetaBall *add_mball(const char *name)
 	return mb;
 }
 
-MetaBall *copy_mball(MetaBall *mb)
+MetaBall *BKE_metaball_copy(MetaBall *mb)
 {
 	MetaBall *mbn;
 	int a;
@@ -143,7 +243,7 @@ static void extern_local_mball(MetaBall *mb)
 	}
 }
 
-void make_local_mball(MetaBall *mb)
+void BKE_metaball_make_local(MetaBall *mb)
 {
 	Main *bmain= G.main;
 	Object *ob;
@@ -174,7 +274,7 @@ void make_local_mball(MetaBall *mb)
 		extern_local_mball(mb);
 	}
 	else if (is_local && is_lib) {
-		MetaBall *mb_new= copy_mball(mb);
+		MetaBall *mb_new= BKE_metaball_copy(mb);
 		mb_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
@@ -194,7 +294,7 @@ void make_local_mball(MetaBall *mb)
 
 /* most simple meta-element adding function
  * don't do context manipulation here (rna uses) */
-MetaElem *add_metaball_element(MetaBall *mb, const int type)
+MetaElem *BKE_metaball_element_add(MetaBall *mb, const int type)
 {
 	MetaElem *ml= MEM_callocN(sizeof(MetaElem), "metaelem");
 
@@ -246,7 +346,7 @@ MetaElem *add_metaball_element(MetaBall *mb, const int type)
  * basic MetaBall (usually with name Meta). All other MetaBalls (with
  * names Meta.001, Meta.002, etc) are included in this Bounding Box.
  */
-void tex_space_mball(Object *ob)
+void BKE_metaball_tex_space_calc(Object *ob)
 {
 	DispList *dl;
 	BoundBox *bb;
@@ -290,7 +390,7 @@ void tex_space_mball(Object *ob)
 	boundbox_set_from_min_max(bb, min, max);
 }
 
-float *make_orco_mball(Object *ob, ListBase *dispbase)
+float *BKE_metaball_make_orco(Object *ob, ListBase *dispbase)
 {
 	BoundBox *bb;
 	DispList *dl;
@@ -342,7 +442,7 @@ float *make_orco_mball(Object *ob, ListBase *dispbase)
  * It test last character of Object ID name. If last character
  * is digit it return 0, else it return 1.
  */
-int is_basis_mball(Object *ob)
+int BKE_metaball_is_basis(Object *ob)
 {
 	int len;
 	
@@ -353,7 +453,7 @@ int is_basis_mball(Object *ob)
 }
 
 /* return nonzero if ob1 is a basis mball for ob */
-int is_mball_basis_for (Object *ob1, Object *ob2)
+int BKE_metaball_is_basis_for (Object *ob1, Object *ob2)
 {
 	int basis1nr, basis2nr;
 	char basis1name[MAX_ID_NAME], basis2name[MAX_ID_NAME];
@@ -361,7 +461,7 @@ int is_mball_basis_for (Object *ob1, Object *ob2)
 	BLI_split_name_num(basis1name, &basis1nr, ob1->id.name+2, '.');
 	BLI_split_name_num(basis2name, &basis2nr, ob2->id.name+2, '.');
 
-	if (!strcmp(basis1name, basis2name)) return is_basis_mball(ob1);
+	if (!strcmp(basis1name, basis2name)) return BKE_metaball_is_basis(ob1);
 	else return 0;
 }
 
@@ -371,7 +471,7 @@ int is_mball_basis_for (Object *ob1, Object *ob2)
  * are copied to all metaballs in same "group" (metaballs with same base name: MBall,
  * MBall.001, MBall.002, etc). The most important is to copy properties to the base metaball,
  * because this metaball influence polygonisation of metaballs. */
-void copy_mball_properties(Scene *scene, Object *active_object)
+void BKE_metaball_properties_copy(Scene *scene, Object *active_object)
 {
 	Scene *sce_iter= scene;
 	Base *base;
@@ -416,7 +516,7 @@ void copy_mball_properties(Scene *scene, Object *active_object)
  *
  * warning!, is_basis_mball() can fail on returned object, see long note above.
  */
-Object *find_basis_mball(Scene *scene, Object *basis)
+Object *BKE_metaball_basis_find(Scene *scene, Object *basis)
 {
 	Scene *sce_iter= scene;
 	Base *base;
@@ -522,14 +622,14 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 
 /* **************** POLYGONIZATION ************************ */
 
-void calc_mballco(MetaElem *ml, float vec[3])
+static void calc_mballco(MetaElem *ml, float vec[3])
 {
 	if (ml->mat) {
 		mul_m4_v3((float (*)[4])ml->mat, vec);
 	}
 }
 
-float densfunc(MetaElem *ball, float x, float y, float z)
+static float densfunc(MetaElem *ball, float x, float y, float z)
 {
 	float dist2 = 0.0, dx, dy, dz;
 	float vec[3];
@@ -605,7 +705,7 @@ float densfunc(MetaElem *ball, float x, float y, float z)
 	}
 }
 
-octal_node* find_metaball_octal_node(octal_node *node, float x, float y, float z, short depth)
+static octal_node* find_metaball_octal_node(octal_node *node, float x, float y, float z, short depth)
 {
 	if (!depth) return node;
 	
@@ -673,7 +773,7 @@ octal_node* find_metaball_octal_node(octal_node *node, float x, float y, float z
 	return node;
 }
 
-float metaball(float x, float y, float z)
+static float metaball(float x, float y, float z)
 /*  float x, y, z; */
 {
 	struct octal_node *node;
@@ -713,7 +813,7 @@ static int *indices=NULL;
 static int totindex, curindex;
 
 
-void accum_mballfaces(int i1, int i2, int i3, int i4)
+static void accum_mballfaces(int i1, int i2, int i3, int i4)
 {
 	int *newi, *cur;
 	/* static int i=0; I would like to delete altogether, but I don't dare to, yet */
@@ -746,7 +846,7 @@ void accum_mballfaces(int i1, int i2, int i3, int i4)
 }
 
 /* ******************* MEMORY MANAGEMENT *********************** */
-void *new_pgn_element(int size)
+static void *new_pgn_element(int size)
 {
 	/* during polygonize 1000s of elements are allocated
 	 * and never freed in between. Freeing only done at the end.
@@ -789,7 +889,7 @@ void *new_pgn_element(int size)
 	return cur->data;
 }
 
-void freepolygonize(PROCESS *p)
+static void freepolygonize(PROCESS *p)
 {
 	MEM_freeN(p->corners);
 	MEM_freeN(p->edges);
@@ -832,7 +932,7 @@ static int rightface[12]   = {
 
 /* docube: triangulate the cube directly, without decomposition */
 
-void docube(CUBE *cube, PROCESS *p, MetaBall *mb)
+static void docube(CUBE *cube, PROCESS *p, MetaBall *mb)
 {
 	INTLISTS *polys;
 	CORNER *c1, *c2;
@@ -900,7 +1000,7 @@ void docube(CUBE *cube, PROCESS *p, MetaBall *mb)
  * if surface crosses face, compute other four corners of adjacent cube
  * and add new cube to cube stack */
 
-void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, int c4, PROCESS *p)
+static void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, int c4, PROCESS *p)
 {
 	CUBE newc;
 	CUBES *oldcubes = p->cubes;
@@ -951,7 +1051,7 @@ void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, i
 /* setcorner: return corner with the given lattice location
  * set (and cache) its function value */
 
-CORNER *setcorner (PROCESS* p, int i, int j, int k)
+static CORNER *setcorner (PROCESS* p, int i, int j, int k)
 {
 	/* for speed, do corner value caching here */
 	CORNER *c;
@@ -986,7 +1086,7 @@ CORNER *setcorner (PROCESS* p, int i, int j, int k)
 
 /* nextcwedge: return next clockwise edge from given edge around given face */
 
-int nextcwedge (int edge, int face)
+static int nextcwedge (int edge, int face)
 {
 	switch (edge) {
 	case LB: 
@@ -1020,7 +1120,7 @@ int nextcwedge (int edge, int face)
 
 /* otherface: return face adjoining edge that is not the given face */
 
-int otherface (int edge, int face)
+static int otherface (int edge, int face)
 {
 	int other = leftface[edge];
 	return face == other? rightface[edge] : other;
@@ -1029,7 +1129,7 @@ int otherface (int edge, int face)
 
 /* makecubetable: create the 256 entry table for cubical polygonization */
 
-void makecubetable (void)
+static void makecubetable (void)
 {
 	static int isdone= 0;
 	int i, e, c, done[12], pos[8];
@@ -1070,7 +1170,7 @@ void makecubetable (void)
 	}
 }
 
-void BKE_freecubetable(void)
+void BKE_metaball_cubeTable_free(void)
 {
 	int i;
 	INTLISTS *lists, *nlists;
@@ -1100,7 +1200,7 @@ void BKE_freecubetable(void)
 /* setcenter: set (i,j,k) entry of table[]
  * return 1 if already set; otherwise, set and return 0 */
 
-int setcenter(CENTERLIST *table[], int i, int j, int k)
+static int setcenter(CENTERLIST *table[], int i, int j, int k)
 {
 	int index;
 	CENTERLIST *newc, *l, *q;
@@ -1125,7 +1225,7 @@ int setcenter(CENTERLIST *table[], int i, int j, int k)
 
 /* setedge: set vertex id for edge */
 
-void setedge (EDGELIST *table[],
+static void setedge (EDGELIST *table[],
 			  int i1, int j1,
 			  int k1, int i2,
 			  int j2, int k2,
@@ -1161,7 +1261,7 @@ void setedge (EDGELIST *table[],
 
 /* getedge: return vertex id for edge; return -1 if not set */
 
-int getedge (EDGELIST *table[],
+static int getedge (EDGELIST *table[],
 			 int i1, int j1, int k1,
 			 int i2, int j2, int k2)
 {
@@ -1202,7 +1302,7 @@ int getedge (EDGELIST *table[],
 
 /* addtovertices: add v to sequence of vertices */
 
-void addtovertices (VERTICES *vertices, VERTEX v)
+static void addtovertices (VERTICES *vertices, VERTEX v)
 {
 	if (vertices->count == vertices->max) {
 		int i;
@@ -1220,7 +1320,7 @@ void addtovertices (VERTICES *vertices, VERTEX v)
 
 /* vnormal: compute unit length surface normal at point */
 
-void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
+static void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 {
 	float delta= 0.2f*p->delta;
 	float f = p->function(point->x, point->y, point->z);
@@ -1270,7 +1370,7 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 }
 
 
-int vertid (CORNER *c1, CORNER *c2, PROCESS *p, MetaBall *mb)
+static int vertid (CORNER *c1, CORNER *c2, PROCESS *p, MetaBall *mb)
 {
 	VERTEX v;
 	MB_POINT a, b;
@@ -1299,7 +1399,7 @@ int vertid (CORNER *c1, CORNER *c2, PROCESS *p, MetaBall *mb)
 
 /* converge: from two points of differing sign, converge to zero crossing */
 /* watch it: p1 and p2 are used to calculate */
-void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
+static void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 			   float (*function)(float, float, float), MB_POINT *p, MetaBall *mb, int f)
 {
 	int i = 0;
@@ -1399,7 +1499,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 }
 
 /* ************************************** */
-void add_cube(PROCESS *mbproc, int i, int j, int k, int count)
+static void add_cube(PROCESS *mbproc, int i, int j, int k, int count)
 {
 	CUBES *ncube;
 	int n;
@@ -1429,7 +1529,7 @@ void add_cube(PROCESS *mbproc, int i, int j, int k, int count)
 }
 
 
-void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
+static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 {
 	MB_POINT IN, in, OUT, out; /*point;*/
 	MetaElem *ml;
@@ -1549,7 +1649,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 	}
 }
 
-void polygonize(PROCESS *mbproc, MetaBall *mb)
+static void polygonize(PROCESS *mbproc, MetaBall *mb)
 {
 	CUBE c;
 	int a;
@@ -1589,7 +1689,7 @@ void polygonize(PROCESS *mbproc, MetaBall *mb)
 	}
 }
 
-float init_meta(Scene *scene, Object *ob)	/* return totsize */
+static float init_meta(Scene *scene, Object *ob)	/* return totsize */
 {
 	Scene *sce_iter= scene;
 	Base *base;
@@ -1815,7 +1915,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 /* if MetaElem lies in node, then node includes MetaElem pointer (ml_p)
  * pointing at MetaElem (ml)
  */
-void fill_metaball_octal_node(octal_node *node, MetaElem *ml, short i)
+static void fill_metaball_octal_node(octal_node *node, MetaElem *ml, short i)
 {
 	ml_pointer *ml_p;
 
@@ -1847,7 +1947,7 @@ void fill_metaball_octal_node(octal_node *node, MetaElem *ml, short i)
  *  +------+------+
  *  
  */
-void subdivide_metaball_octal_node(octal_node *node, float size_x, float size_y, float size_z, short depth)
+static void subdivide_metaball_octal_node(octal_node *node, float size_x, float size_y, float size_z, short depth)
 {
 	MetaElem *ml;
 	ml_pointer *ml_p;
@@ -2104,7 +2204,7 @@ void subdivide_metaball_octal_node(octal_node *node, float size_x, float size_y,
 }
 
 /* free all octal nodes recursively */
-void free_metaball_octal_node(octal_node *node)
+static void free_metaball_octal_node(octal_node *node)
 {
 	int a;
 	for (a=0;a<8;a++) {
@@ -2115,7 +2215,7 @@ void free_metaball_octal_node(octal_node *node)
 }
 
 /* If scene include more then one MetaElem, then octree is used */
-void init_metaball_octal_tree(int depth)
+static void init_metaball_octal_tree(int depth)
 {
 	struct octal_node *node;
 	ml_pointer *ml_p;
@@ -2173,7 +2273,7 @@ void init_metaball_octal_tree(int depth)
 	subdivide_metaball_octal_node(node, size[0], size[1], size[2], metaball_tree->depth);
 }
 
-void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
+void BKE_metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 {
 	PROCESS mbproc;
 	MetaBall *mb;

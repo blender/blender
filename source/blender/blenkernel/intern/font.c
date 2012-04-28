@@ -1011,7 +1011,7 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 
 	if (mode == FO_EDIT) {
 		/* make nurbdata */
-		freeNurblist(&cu->nurb);
+		BKE_nurbList_free(&cu->nurb);
 		
 		ct= chartransdata;
 		if (cu->sepchar==0) {

@@ -530,7 +530,7 @@ static void data_delete_material_index_id(ID *id, short index)
 		mesh_delete_material_index((Mesh *)id, index);
 		break;
 	case ID_CU:
-		curve_delete_material_index((Curve *)id, index);
+		BKE_curve_delete_material_index((Curve *)id, index);
 		break;
 	case ID_MB:
 		/* meta-elems don't have materials atm */

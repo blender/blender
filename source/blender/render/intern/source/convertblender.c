@@ -908,10 +908,10 @@ static float *get_object_orco(Render *re, Object *ob)
 
 	if (!orco) {
 		if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-			orco = make_orco_curve(re->scene, ob);
+			orco = BKE_curve_make_orco(re->scene, ob);
 		}
 		else if (ob->type==OB_SURF) {
-			orco = make_orco_surf(ob);
+			orco = BKE_curve_surf_make_orco(ob);
 		}
 
 		if (orco)
@@ -2437,7 +2437,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	int a, need_orco, vlakindex, *index, negative_scale;
 	ListBase dispbase= {NULL, NULL};
 
-	if (ob!=find_basis_mball(re->scene, ob))
+	if (ob!=BKE_metaball_basis_find(re->scene, ob))
 		return;
 
 	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
@@ -2463,7 +2463,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 
 		if (!orco) {
 			/* orco hasn't been found in cache - create new one and add to cache */
-			orco= make_orco_mball(ob, &dispbase);
+			orco= BKE_metaball_make_orco(ob, &dispbase);
 			set_object_orco(re, ob, orco);
 		}
 	}
@@ -4725,7 +4725,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 		return 0;
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
-	if (ob->type == OB_MBALL && ob!=find_basis_mball(re->scene, ob))
+	if (ob->type == OB_MBALL && ob!=BKE_metaball_basis_find(re->scene, ob))
 		return 0;
 	
 	if (nolamps && (ob->type==OB_LAMP))

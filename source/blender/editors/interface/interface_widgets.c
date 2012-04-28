@@ -2231,8 +2231,8 @@ int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
 	vec[2][0] = vec[3][0] - dist;
 	vec[2][1] = vec[3][1];
 	
-	forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, sizeof(float) * 2);
-	forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0] + 1, resol, sizeof(float) * 2);
+	BKE_curve_forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, sizeof(float) * 2);
+	BKE_curve_forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0] + 1, resol, sizeof(float) * 2);
 	
 	return 1;
 }

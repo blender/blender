@@ -1438,7 +1438,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	if (cu->editnurb==NULL) return;
 
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
-	nurbs= curve_editnurbs(cu);
+	nurbs= BKE_curve_editNurbs_get(cu);
 	for (nu= nurbs->first; nu; nu= nu->next) {
 		if (nu->type == CU_BEZIER) {
 			for (a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
@@ -1588,7 +1588,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 			 * but for now just don't change handle types */
 			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT) == 0) {
 				/* sets the handles based on their selection, do this after the data is copied to the TransData */
-				testhandlesNurb(nu);
+				BKE_nurb_handles_test(nu);
 			}
 		}
 		else {

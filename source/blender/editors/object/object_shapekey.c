@@ -119,7 +119,7 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 						break;
 					case OB_CURVE:
 					case OB_SURF:
-						key_to_curve(key->refkey, ob->data, BKE_curve_nurbs(ob->data));
+						key_to_curve(key->refkey, ob->data, BKE_curve_nurbs_get(ob->data));
 						break;
 					case OB_LATTICE:
 						key_to_latt(key->refkey, ob->data);

@@ -1616,7 +1616,7 @@ void mesh_to_curve(Scene *scene, Object *ob)
 	BLI_edgehash_free(eh, NULL);
 
 	if (edges.first) {
-		Curve *cu = add_curve(ob->id.name+2, OB_CURVE);
+		Curve *cu = BKE_curve_add(ob->id.name+2, OB_CURVE);
 		cu->flag |= CU_3D;
 
 		while (edges.first) {

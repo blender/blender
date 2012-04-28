@@ -99,7 +99,7 @@ static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 	if (mb->id.us > 0) {
 		for (ob = bmain->object.first; ob; ob = ob->id.next)
 			if (ob->data == mb)
-				copy_mball_properties(scene, ob);
+				BKE_metaball_properties_copy(scene, ob);
 	
 		DAG_id_tag_update(&mb->id, 0);
 		WM_main_add_notifier(NC_GEOM|ND_DATA, mb);
@@ -115,7 +115,7 @@ static void rna_MetaBall_update_rotation(Main *bmain, Scene *scene, PointerRNA *
 
 static MetaElem *rna_MetaBall_elements_new(MetaBall *mb, int type)
 {
-	MetaElem *ml = add_metaball_element(mb, type);
+	MetaElem *ml = BKE_metaball_element_add(mb, type);
 
 	/* cheating way for importers to avoid slow updates */
 	if (mb->id.us > 0) {

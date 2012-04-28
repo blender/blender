@@ -673,7 +673,7 @@ static void recalcData_view3d(TransInfo *t)
 	if (t->obedit) {
 		if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= t->obedit->data;
-			ListBase *nurbs= curve_editnurbs(cu);
+			ListBase *nurbs= BKE_curve_editNurbs_get(cu);
 			Nurb *nu= nurbs->first;
 			
 			if (t->state != TRANS_CANCEL) {
@@ -685,15 +685,15 @@ static void recalcData_view3d(TransInfo *t)
 				
 			if (t->state == TRANS_CANCEL) {
 				while (nu) {
-					calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
+					BKE_nurb_handles_calc(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
 					nu= nu->next;
 				}
 			} 
 			else {
 				/* Normal updating */
 				while (nu) {
-					test2DNurb(nu);
-					calchandlesNurb(nu);
+					BKE_nurb_test2D(nu);
+					BKE_nurb_handles_calc(nu);
 					nu= nu->next;
 				}
 			}

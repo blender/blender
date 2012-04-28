@@ -1500,7 +1500,7 @@ void load_editText(Object *obedit)
 
 void free_editText(Object *obedit)
 {
-	BKE_free_editfont((Curve *)obedit->data);
+	BKE_curve_editfont_free((Curve *)obedit->data);
 }
 
 /********************** set case operator *********************/

@@ -715,7 +715,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			Nurb *nu;
 			BezTriple *bezt;
 			int a;
-			ListBase *nurbs= curve_editnurbs(cu);
+			ListBase *nurbs= BKE_curve_editNurbs_get(cu);
 
 			for (nu = nurbs->first; nu; nu = nu->next) {
 				/* only bezier has a normal */
