@@ -102,8 +102,7 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *UNUSED(ray
 	Isect *isec = data->isec;
 	RayObject *face = data->leafs[index];
 	
-	if (RE_rayobject_intersect(face,isec))
-	{
+	if (RE_rayobject_intersect(face, isec)) {
 		hit->index = index;
 
 		if (isec->mode == RE_RAY_SHADOW)

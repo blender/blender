@@ -361,7 +361,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 	ViewPanData *vpd = op->customdata;
 	float offset[2];
 
-	switch(event->type) {
+	switch (event->type) {
 		case MOUSEMOVE:
 			copy_v2_v2(vpd->vec, &vpd->xorig);
 			offset[0] = (vpd->x - event->x) / sc->zoom;
@@ -496,7 +496,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	ViewZoomData *vpd = op->customdata;
 	float factor;
 
-	switch(event->type) {
+	switch (event->type) {
 		case MOUSEMOVE:
 			factor = 1.0f + (vpd->x-event->x + vpd->y - event->y) / 300.0f;
 			RNA_float_set(op->ptr, "factor", factor);

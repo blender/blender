@@ -911,8 +911,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 	numfiles = filelist_numfiles(sfile->files);
 
 	/* check if we are editing a name */
-	for (i=0; i < numfiles; ++i)
-	{
+	for (i=0; i < numfiles; ++i) {
 		if (filelist_is_selected(sfile->files, i, CHECK_ALL) ) {
 			edit_idx=i;
 			break;

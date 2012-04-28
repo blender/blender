@@ -927,7 +927,9 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 		//"Erase Only Faces";
 		if (!EDBM_op_callf(em, op, "del geom=%hf context=%i",
 		                   BM_ELEM_SELECT, DEL_ONLYFACES))
+		{
 			return OPERATOR_CANCELLED;
+		}
 	}
 
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -1021,8 +1023,7 @@ static int edbm_add_edge_face__smooth_get(BMesh *bm)
 	unsigned int vote_on_smooth[2] = {0, 0};
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(e, BM_ELEM_SELECT) && e->l)
-		{
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT) && e->l) {
 			vote_on_smooth[BM_elem_flag_test_bool(e->l->f, BM_ELEM_SMOOTH)]++;
 		}
 	}

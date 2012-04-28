@@ -597,7 +597,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int deltax, deltay;
 	int mindelta= sad->az->type==AZONE_REGION?1:12;
 	
-	switch(event->type) {
+	switch (event->type) {
 		case MOUSEMOVE:
 			/* calculate gesture direction */
 			deltax= (event->x - sad->x);
@@ -735,7 +735,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	sActionzoneData *sad= op->customdata;
 	
-	switch(event->type) {
+	switch (event->type) {
 		case MOUSEMOVE:
 			/* second area, for join */
 			sad->sa2= screen_areahascursor(CTX_wm_screen(C), event->x, event->y);
@@ -1045,7 +1045,7 @@ static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int delta, x, y;
 	
 	/* execute the events */
-	switch(event->type) {
+	switch (event->type) {
 		case MOUSEMOVE:
 			
 			x= RNA_int_get(op->ptr, "x");
@@ -1438,7 +1438,7 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int dir;
 	
 	/* execute the events */
-	switch(event->type) {
+	switch (event->type) {
 		case MOUSEMOVE:
 			dir= RNA_enum_get(op->ptr, "direction");
 			
@@ -1711,7 +1711,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int delta;
 	
 	/* execute the events */
-	switch(event->type) {
+	switch (event->type) {
 		case MOUSEMOVE:
 			
 			if (rmd->edge==AE_LEFT_TO_TOPRIGHT || rmd->edge==AE_RIGHT_TO_TOPLEFT) {
@@ -2262,7 +2262,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 	
 	/* execute the events */
-	switch(event->type) {
+	switch (event->type) {
 			
 		case MOUSEMOVE: 
 		{

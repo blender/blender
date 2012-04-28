@@ -1655,8 +1655,7 @@ static float evaluate_driver (ChannelDriver *driver, const float evaltime)
 			{
 				driver->curval= 0.0f;
 			}
-			else
-			{
+			else {
 				/* this evaluates the expression using Python,and returns its result:
 				 * 	- on errors it reports, then returns 0.0f
 				 */

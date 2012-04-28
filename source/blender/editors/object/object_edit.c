@@ -1354,14 +1354,16 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(
 	ob = CTX_data_active_object(C);
 	while (ob && input->identifier) {
 		if ((input->value == OB_MODE_EDIT && ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE) ||
-							(ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
-							 (ob->type == OB_FONT) || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) ||
-		   (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
-		   (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
-		   ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
-			 input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
-		   (input->value == OB_MODE_OBJECT))
+		                                      (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
+		                                      (ob->type == OB_FONT) || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) ||
+		    (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
+		    (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
+		    ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
+		      input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
+		    (input->value == OB_MODE_OBJECT))
+		{
 			RNA_enum_item_add(&item, &totitem, input);
+		}
 		++input;
 	}
 
@@ -1401,7 +1403,7 @@ static int object_mode_set_compat(bContext *UNUSED(C), wmOperator *op, Object *o
 		if (mode == OB_MODE_OBJECT)
 			return 1;
 
-		switch(ob->type) {
+		switch (ob->type) {
 		case OB_MESH:
 			if (mode & (OB_MODE_EDIT|OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_PARTICLE_EDIT))
 				return 1;

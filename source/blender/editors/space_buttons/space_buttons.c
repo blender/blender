@@ -234,9 +234,9 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 	SpaceButs *sbuts= sa->spacedata.first;
 
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SCENE:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_RENDER_OPTIONS:
 					buttons_area_redraw(sa, BCONTEXT_RENDER);
 					break;
@@ -262,7 +262,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_OBJECT:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_TRANSFORM:
 					buttons_area_redraw(sa, BCONTEXT_OBJECT);
 					buttons_area_redraw(sa, BCONTEXT_DATA);	/* autotexpace flag */
@@ -307,7 +307,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_GEOM:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_SELECT:
 				case ND_DATA:
 					ED_area_tag_redraw(sa);
@@ -316,7 +316,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_MATERIAL:
 			ED_area_tag_redraw(sa);
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
 				case ND_NODES:
@@ -350,7 +350,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_ANIMATION:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_KEYFRAME:
 					if (wmn->action == NA_EDITED)
 						ED_area_tag_redraw(sa);

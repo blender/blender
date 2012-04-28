@@ -228,7 +228,7 @@ void count_displist(ListBase *lb, int *totvert, int *totface)
 	dl= lb->first;
 	while (dl) {
 		
-		switch(dl->type) {
+		switch (dl->type) {
 			case DL_SURF:
 				*totvert+= dl->nr*dl->parts;
 				*totface+= (dl->nr-1)*(dl->parts-1);

@@ -128,18 +128,22 @@ static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2
 	CustomDataLayer *l1, *l2;
 	int i, i1=0, i2=0, tot, j;
 	
-	for (i=0; i<c1->totlayer; i++) {
-		if (ELEM7(c1->layers[i].type, CD_MVERT, CD_MEDGE, CD_MPOLY, 
-				  CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT)) 		
+	for (i = 0; i < c1->totlayer; i++) {
+		if (ELEM7(c1->layers[i].type, CD_MVERT, CD_MEDGE, CD_MPOLY,
+		          CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT))
+		{
 			i1++;
+		}
 	}
-	
-	for (i=0; i<c2->totlayer; i++) {
-		if (ELEM7(c2->layers[i].type, CD_MVERT, CD_MEDGE, CD_MPOLY, 
-				  CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT)) 		
+
+	for (i = 0; i < c2->totlayer; i++) {
+		if (ELEM7(c2->layers[i].type, CD_MVERT, CD_MEDGE, CD_MPOLY,
+		          CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT))
+		{
 			i2++;
+		}
 	}
-	
+
 	if (i1 != i2)
 		return MESHCMP_CDLAYERS_MISMATCH;
 	
@@ -148,12 +152,16 @@ static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2
 	i1 = 0; i2 = 0; 
 	for (i=0; i < tot; i++) {
 		while (i1 < c1->totlayer && !ELEM7(l1->type, CD_MVERT, CD_MEDGE, CD_MPOLY, 
-				  CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT))
+		                                   CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT))
+		{
 			i1++, l1++;
+		}
 
-		while (i2 < c2->totlayer && !ELEM7(l2->type, CD_MVERT, CD_MEDGE, CD_MPOLY, 
-				  CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT))
+		while (i2 < c2->totlayer && !ELEM7(l2->type, CD_MVERT, CD_MEDGE, CD_MPOLY,
+		                                   CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT))
+		{
 			i2++, l2++;
+		}
 		
 		if (l1->type == CD_MVERT) {
 			MVert *v1 = l1->data;
@@ -3054,10 +3062,13 @@ void mesh_flush_hidden_from_verts(const MVert *mvert,
 	for (i = 0; i < totedge; i++) {
 		MEdge *e = &medge[i];
 		if (mvert[e->v1].flag & ME_HIDE ||
-		   mvert[e->v2].flag & ME_HIDE)
+		    mvert[e->v2].flag & ME_HIDE)
+		{
 			e->flag |= ME_HIDE;
-		else
+		}
+		else {
 			e->flag &= ~ME_HIDE;
+		}
 	}
 	for (i = 0; i < totpoly; i++) {
 		MPoly *p = &mpoly[i];

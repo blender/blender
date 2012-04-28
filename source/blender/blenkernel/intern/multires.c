@@ -1017,7 +1017,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 					column_vectors_to_mat3(mat, tx, ty, no);
 
-					switch(op) {
+					switch (op) {
 					case APPLY_DISPLACEMENTS:
 						/* Convert displacement to object space
 						 * and add to grid points */

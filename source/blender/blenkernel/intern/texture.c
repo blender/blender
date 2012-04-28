@@ -663,7 +663,7 @@ void default_tex(Tex *tex)
 
 void tex_set_type(Tex *tex, int type)
 {
-	switch(type) {
+	switch (type) {
 			
 		case TEX_VOXELDATA:
 			if (tex->vd == NULL)
@@ -1180,7 +1180,7 @@ Tex *give_current_material_texture(Material *ma)
 
 int give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 {
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 	case ID_MA:
 		*mtex_ar=		((Material *)id)->mtex;
 		if (act) *act=	(((Material *)id)->texact);
@@ -1211,7 +1211,7 @@ void set_active_mtex(ID *id, short act)
 	if (act<0)				act= 0;
 	else if (act>=MAX_MTEX)	act= MAX_MTEX-1;
 
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 	case ID_MA:
 		((Material *)id)->texact= act;
 		break;

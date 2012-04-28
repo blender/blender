@@ -871,8 +871,7 @@ void free_renderdata_tables(Render *re)
 	}
 
 	if (re->objectinstance) {
-		for (obi=re->instancetable.first; obi; obi=obi->next)
-		{
+		for (obi=re->instancetable.first; obi; obi=obi->next) {
 			if (obi->vectors)
 				MEM_freeN(obi->vectors);
 
@@ -1274,8 +1273,7 @@ void project_renderdata(Render *re, void (*projectfunc)(const float *, float mat
 			else if (hoco[3]<0.0f) {
 				har->miny= har->maxy= -10000;	/* render clips it */
 			}
-			else /* do the projection...*/
-			{
+			else { /* do the projection...*/
 				/* bring back hocos */
 				hoco[0]*= 2.0f;
 				hoco[1]*= 2.0f;

@@ -74,8 +74,7 @@ RTBuilder* rtbuild_create(int size)
 	builder->primitives.begin = builder->primitives.end = memblock;
 	builder->primitives.maxsize = size;
 	
-	for (int i=0; i<3; i++)
-	{
+	for (int i=0; i<3; i++) {
 		builder->sorted_begin[i] = (RTBuilder::Object**)MEM_mallocN( sizeof(RTBuilder::Object*)*size,"RTBuilder.sorted_objects");
 		builder->sorted_end[i]   = builder->sorted_begin[i];
 	} 
@@ -124,8 +123,7 @@ void rtbuild_add(RTBuilder *b, RayObject *o)
 	b->primitives.end->obj = o;
 	b->primitives.end->cost = RE_rayobject_cost(o);
 	
-	for (int i=0; i<3; i++)
-	{
+	for (int i=0; i<3; i++) {
 		*(b->sorted_end[i]) = b->primitives.end;
 		b->sorted_end[i]++;
 	}
@@ -158,8 +156,7 @@ static void object_sort(Item *begin, Item *end, int axis)
 void rtbuild_done(RTBuilder *b, RayObjectControl* ctrl)
 {
 	for (int i=0; i<3; i++)
-	if (b->sorted_begin[i])
-	{
+	if (b->sorted_begin[i]) {
 		if (RE_rayobjectcontrol_test_break(ctrl)) break;
 		object_sort( b->sorted_begin[i], b->sorted_end[i], i );
 	}
@@ -175,13 +172,11 @@ RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 	rtbuild_init( tmp );
 
 	for (int i=0; i<3; i++)
-		if (b->sorted_begin[i])
-		{
+		if (b->sorted_begin[i]) {
 			tmp->sorted_begin[i] = b->sorted_begin[i] +  b->child_offset[child  ];
 			tmp->sorted_end  [i] = b->sorted_begin[i] +  b->child_offset[child+1];
 		}
-		else
-		{
+		else {
 			tmp->sorted_begin[i] = 0;
 			tmp->sorted_end  [i] = 0;
 		}
@@ -191,8 +186,7 @@ RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 
 void rtbuild_calc_bb(RTBuilder *b)
 {
-	if (b->bb[0] == 1.0e30f)
-	{
+	if (b->bb[0] == 1.0e30f) {
 		for (RTBuilder::Object **index = b->sorted_begin[0]; index != b->sorted_end[0]; index++)
 			RE_rayobject_merge_bb( (*index)->obj , b->bb, b->bb+3);
 	}
@@ -337,30 +331,25 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 	assert(size > 1);
 	int baxis = -1, boffset = 0;
 
-	if (size > nchilds)
-	{
+	if (size > nchilds) {
 		float bcost = FLT_MAX;
 		baxis = -1, boffset = size/2;
 
 		SweepCost *sweep = (SweepCost*)MEM_mallocN( sizeof(SweepCost)*size, "RTBuilder.HeuristicSweep" );
 		
-		for (int axis=0; axis<3; axis++)
-		{
+		for (int axis=0; axis<3; axis++) {
 			SweepCost sweep_left;
 
 			RTBuilder::Object **obj = b->sorted_begin[axis];
 			
 //			float right_cost = 0;
-			for (int i=size-1; i>=0; i--)
-			{
-				if (i == size-1)
-				{
+			for (int i=size-1; i>=0; i--) {
+				if (i == size-1) {
 					copy_v3_v3(sweep[i].bb, obj[i]->bb);
 					copy_v3_v3(sweep[i].bb+3, obj[i]->bb+3);
 					sweep[i].cost = obj[i]->cost;
 				}
-				else
-				{
+				else {
 					sweep[i].bb[0] = MIN2(obj[i]->bb[0], sweep[i+1].bb[0]);
 					sweep[i].bb[1] = MIN2(obj[i]->bb[1], sweep[i+1].bb[1]);
 					sweep[i].bb[2] = MIN2(obj[i]->bb[2], sweep[i+1].bb[2]);					
@@ -382,8 +371,7 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 			
 //			right_cost -= obj[0]->cost;	if (right_cost < 0) right_cost = 0;
 
-			for (int i=1; i<size; i++)
-			{
+			for (int i=1; i<size; i++) {
 				//Worst case heuristic (cost of each child is linear)
 				float hcost, left_side, right_side;
 				
@@ -401,9 +389,8 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				if (left_side > bcost) break;	//No way we can find a better heuristic in this axis
 
 				assert(hcost >= 0);
-				if ( hcost < bcost
-				|| (hcost == bcost && axis < baxis)) //this makes sure the tree built is the same whatever is the order of the sorting axis
-				{
+				// this makes sure the tree built is the same whatever is the order of the sorting axis
+				if ( hcost < bcost || (hcost == bcost && axis < baxis)) {
 					bcost = hcost;
 					baxis = axis;
 					boffset = i;
@@ -423,13 +410,11 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 		
 		MEM_freeN(sweep);
 	}
-	else if (size == 2)
-	{
+	else if (size == 2) {
 		baxis = 0;
 		boffset = 1;
 	}
-	else if (size == 1)
-	{
+	else if (size == 1) {
 		b->child_offset[0] = 0;
 		b->child_offset[1] = 1;
 		return 1;
@@ -500,15 +485,13 @@ int bb_largest_axis(float *min, float *max)
 	sub[0] = max[0]-min[0];
 	sub[1] = max[1]-min[1];
 	sub[2] = max[2]-min[2];
-	if (sub[0] > sub[1])
-	{
+	if (sub[0] > sub[1]) {
 		if (sub[0] > sub[2])
 			return 0;
 		else
 			return 2;
 	}
-	else
-	{
+	else {
 		if (sub[1] > sub[2])
 			return 1;
 		else

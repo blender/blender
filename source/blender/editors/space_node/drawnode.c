@@ -963,7 +963,7 @@ static void node_update_frame(const bContext *UNUSED(C), bNodeTree *UNUSED(ntree
 
 static void node_common_set_butfunc(bNodeType *ntype)
 {
-	switch(ntype->type) {
+	switch (ntype->type) {
 		case NODE_GROUP:
 			ntype->uifunc= node_uifunc_group;
 			ntype->drawfunc= node_draw_group;
@@ -1176,7 +1176,7 @@ static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
 	ntype->uifuncbut = NULL;
-	switch(ntype->type) {
+	switch (ntype->type) {
 		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
 
 		case SH_NODE_MATERIAL:
@@ -1941,7 +1941,7 @@ static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, Po
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
 	ntype->uifuncbut = NULL;
-	switch(ntype->type) {
+	switch (ntype->type) {
 		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
 
 		case CMP_NODE_IMAGE:
@@ -2137,7 +2137,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 
 	col= uiLayoutColumn(layout, 0);
 
-	switch( tex->type ) {
+	switch ( tex->type ) {
 		case TEX_BLEND:
 			uiItemR(col, &tex_ptr, "progression", 0, "", ICON_NONE);
 			row= uiLayoutRow(col, 0);
@@ -2222,45 +2222,50 @@ static void node_texture_set_butfunc(bNodeType *ntype)
 	if ( ntype->type >= TEX_NODE_PROC && ntype->type < TEX_NODE_PROC_MAX ) {
 		ntype->uifunc = node_texture_buts_proc;
 	}
-	else switch(ntype->type) {
-		
+	else {
+		switch (ntype->type) {
+
 		case TEX_NODE_MATH:
 			ntype->uifunc = node_buts_math;
 			break;
-		
+
 		case TEX_NODE_MIX_RGB:
 			ntype->uifunc = node_buts_mix_rgb;
 			break;
-			
+
 		case TEX_NODE_VALTORGB:
 			ntype->uifunc = node_buts_colorramp;
 			break;
-			
+
 		case TEX_NODE_CURVE_RGB:
 			ntype->uifunc= node_buts_curvecol;
 			break;
-			
+
 		case TEX_NODE_CURVE_TIME:
 			ntype->uifunc = node_buts_time;
 			break;
-			
+
 		case TEX_NODE_TEXTURE:
 			ntype->uifunc = node_buts_texture;
 			break;
-			
+
 		case TEX_NODE_BRICKS:
 			ntype->uifunc = node_texture_buts_bricks;
 			break;
-			
+
 		case TEX_NODE_IMAGE:
 			ntype->uifunc = node_texture_buts_image;
 			break;
-			
+
 		case TEX_NODE_OUTPUT:
 			ntype->uifunc = node_texture_buts_output;
 			break;
+		}
 	}
-	if (ntype->uifuncbut == NULL) ntype->uifuncbut = ntype->uifunc;
+
+	if (ntype->uifuncbut == NULL) {
+		ntype->uifuncbut = ntype->uifunc;
+	}
 }
 
 /* ******* init draw callbacks for all tree types, only called in usiblender.c, once ************* */
@@ -2305,7 +2310,7 @@ void ED_init_node_butfuncs(void)
 	for (i=0; i < NUM_SOCKET_TYPES; ++i) {
 		stype = ntreeGetSocketType(i);
 		if (stype) {
-			switch(stype->type) {
+			switch (stype->type) {
 			case SOCK_FLOAT:
 			case SOCK_INT:
 			case SOCK_BOOLEAN:

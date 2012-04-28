@@ -125,7 +125,7 @@ size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 {
 	size_t len= 0;
 	while (len < maxlen) {
-		switch(*src) {
+		switch (*src) {
 			case '\0':
 				goto escape_finish;
 			case '\\':

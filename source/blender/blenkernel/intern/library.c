@@ -182,7 +182,7 @@ int id_make_local(ID *id, int test)
 	if (id->flag & LIB_INDIRECT)
 		return 0;
 
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 		case ID_SCE:
 			return 0; /* not implemented */
 		case ID_LI:
@@ -279,7 +279,7 @@ int id_copy(ID *id, ID **newid, int test)
 	/* conventions:
 	 * - make shallow copy, only this ID block
 	 * - id.us of the new ID is set to 1 */
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 		case ID_SCE:
 			return 0; /* can't be copied from here */
 		case ID_LI:
@@ -368,7 +368,7 @@ int id_unlink(ID *id, int test)
 	Main *mainlib= G.main;
 	ListBase *lb;
 
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 		case ID_TXT:
 			if (test) return 1;
 			unlink_text(mainlib, (Text*)id);
@@ -425,7 +425,7 @@ int id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 
 ListBase *which_libbase(Main *mainlib, short type)
 {
-	switch( type ) {
+	switch ( type ) {
 		case ID_SCE:
 			return &(mainlib->scene);
 		case ID_LI:
@@ -589,7 +589,7 @@ static ID *alloc_libblock_notest(short type)
 {
 	ID *id= NULL;
 	
-	switch( type ) {
+	switch ( type ) {
 		case ID_SCE:
 			id= MEM_callocN(sizeof(Scene), "scene");
 			break;
@@ -796,7 +796,7 @@ void free_libblock(ListBase *lb, void *idv)
 	BPY_id_release(id);
 #endif
 
-	switch( GS(id->name) ) {	/* GetShort from util.h */
+	switch ( GS(id->name) ) {	/* GetShort from util.h */
 		case ID_SCE:
 			free_scene((Scene *)id);
 			break;
@@ -1010,8 +1010,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			BLI_dynstr_append(pupds, numstr);
 			
 			/* icon */
-			switch(GS(id->name))
-			{
+			switch (GS(id->name)) {
 			case ID_MA: /* fall through */
 			case ID_TE: /* fall through */
 			case ID_IM: /* fall through */

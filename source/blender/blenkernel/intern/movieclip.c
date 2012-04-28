@@ -517,7 +517,7 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 	*height = ibuf->y;
 
 	if (clip->flag & MCLIP_USE_PROXY) {
-		switch(user->render_size) {
+		switch (user->render_size) {
 			case MCLIP_PROXY_RENDER_SIZE_25:
 				(*width) *= 4;
 				(*height) *= 4;

@@ -115,7 +115,7 @@ void ED_region_pixelspace(ARegion *ar)
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 {
 	/* generic notes first */
-	switch(note->category) {
+	switch (note->category) {
 		case NC_WM:
 			if (note->data==ND_FILEREAD)
 				ED_region_tag_redraw(ar);
@@ -247,7 +247,7 @@ static void region_draw_azone_tab_plus(AZone *az)
 	glEnable(GL_BLEND);
 	
 	/* add code to draw region hidden as 'too small' */
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 			break;
@@ -282,7 +282,7 @@ static void region_draw_azone_tab(AZone *az)
 	glColor4f(col[0], col[1], col[2], 0.5f);
 	
 	/* add code to draw region hidden as 'too small' */
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_RB_ALPHA);
 			
@@ -325,7 +325,7 @@ static void region_draw_azone_tria(AZone *az)
 	glColor4f(0.0f, 0.0f, 0.0f, 0.35f);
 	
 	/* add code to draw region hidden as 'too small' */
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			ui_draw_anti_tria((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y1, (float)(az->x1+az->x2)/2, (float)az->y2);
 			break;
@@ -623,7 +623,7 @@ static void area_azone_initialize(ScrArea *sa)
 #define AZONEPAD_ICON	9
 static void region_azone_edge(AZone *az, ARegion *ar)
 {
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			az->x1= ar->winrct.xmin;
 			az->y1= ar->winrct.ymax - AZONEPAD_EDGE;
@@ -665,7 +665,7 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 		if (azt->edge == az->edge) tot++;
 	}
 	
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			az->x1= ar->winrct.xmax - tot*2*AZONEPAD_ICON;
 			az->y1= ar->winrct.ymax + AZONEPAD_ICON;
@@ -725,7 +725,7 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 		if (azt->edge == az->edge) tot++;
 	}
 	
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			if (ar->winrct.ymax == sa->totrct.ymin) add= 1; else add= 0;
 			az->x1= ar->winrct.xmax - 2.5*AZONEPAD_TAB_PLUSW;
@@ -770,7 +770,7 @@ static void region_azone_tab(ScrArea *sa, AZone *az, ARegion *ar)
 		if (azt->edge == az->edge) tot++;
 	}
 	
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			if (ar->winrct.ymax == sa->totrct.ymin) add= 1; else add= 0;
 			az->x1= ar->winrct.xmax - 2*AZONEPAD_TABW;
@@ -815,7 +815,7 @@ static void region_azone_tria(ScrArea *sa, AZone *az, ARegion *ar)
 		if (azt->edge == az->edge) tot++;
 	}
 	
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			if (ar->winrct.ymax == sa->totrct.ymin) add= 1; else add= 0;
 			az->x1= ar->winrct.xmax - 2*AZONEPAD_TRIAW;

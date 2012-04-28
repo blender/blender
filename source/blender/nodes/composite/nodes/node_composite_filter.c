@@ -189,7 +189,7 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 		stackbuf->xof= cbuf->xof;
 		stackbuf->yof= cbuf->yof;
 		
-		switch(node->custom1) {
+		switch (node->custom1) {
 			case CMP_FILT_SOFT:
 				do_filter3(stackbuf, cbuf, soft, in[0]->vec[0]);
 				break;

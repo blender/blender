@@ -1193,9 +1193,11 @@ void txt_order_cursors(Text *text)
 	if (!text->sell) return;
 	
 		/* Flip so text->curl is before text->sell */
-	if (txt_get_span(text->curl, text->sell)<0 ||
-			(text->curl==text->sell && text->curc>text->selc))
+	if ((txt_get_span(text->curl, text->sell) < 0) ||
+	    (text->curl == text->sell && text->curc > text->selc))
+	{
 		txt_curs_swap(text);
+	}
 }
 
 int txt_has_sel(Text *text)
@@ -2018,7 +2020,7 @@ void txt_do_undo(Text *text)
 
 	undoing= 1;
 	
-	switch(op) {
+	switch (op) {
 		case UNDO_CLEFT:
 			txt_move_right(text, 0);
 			break;
@@ -2245,7 +2247,7 @@ void txt_do_redo(Text *text)
 	
 	undoing= 1;
 
-	switch(op) {
+	switch (op) {
 		case UNDO_CLEFT:
 			txt_move_left(text, 0);
 			break;
@@ -2832,8 +2834,7 @@ void txt_indent(Text *text)
 	}
 
 	num = 0;
-	while (TRUE)
-	{
+	while (TRUE) {
 		tmp= MEM_mallocN(text->curl->len+indentlen+1, "textline_string");
 		
 		text->curc = 0; 
@@ -2851,8 +2852,7 @@ void txt_indent(Text *text)
 		txt_make_dirty(text);
 		txt_clean_text(text);
 		
-		if (text->curl == text->sell) 
-		{
+		if (text->curl == text->sell) {
 			text->selc = text->sell->len;
 			break;
 		}
@@ -2862,14 +2862,12 @@ void txt_indent(Text *text)
 		}
 	}
 	text->curc = 0;
-	while ( num > 0 )
-	{
+	while ( num > 0 ) {
 		text->curl = text->curl->prev;
 		num--;
 	}
 	
-	if (!undoing) 
-	{
+	if (!undoing) {
 		txt_undo_add_toop(text, UNDO_INDENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
@@ -2893,12 +2891,10 @@ void txt_unindent(Text *text)
 		indent = spaceslen;
 	}
 
-	while (TRUE)
-	{
+	while (TRUE) {
 		int i = 0;
 		
-		if (BLI_strncasecmp(text->curl->line, remove, indent) == 0)
-		{
+		if (BLI_strncasecmp(text->curl->line, remove, indent) == 0) {
 			while (i< text->curl->len) {
 				text->curl->line[i]= text->curl->line[i+indent];
 				i++;
@@ -2909,8 +2905,7 @@ void txt_unindent(Text *text)
 		txt_make_dirty(text);
 		txt_clean_text(text);
 		
-		if (text->curl == text->sell) 
-		{
+		if (text->curl == text->sell) {
 			text->selc = text->sell->len;
 			break;
 		}
@@ -2921,14 +2916,12 @@ void txt_unindent(Text *text)
 		
 	}
 	text->curc = 0;
-	while ( num > 0 )
-	{
+	while ( num > 0 ) {
 		text->curl = text->curl->prev;
 		num--;
 	}
 	
-	if (!undoing) 
-	{
+	if (!undoing) {
 		txt_undo_add_toop(text, UNDO_UNINDENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
@@ -2944,8 +2937,7 @@ void txt_comment(Text *text)
 	if (!text->sell) return;// Need to change this need to check if only one line is selected to more then one
 
 	num = 0;
-	while (TRUE)
-	{
+	while (TRUE) {
 		tmp= MEM_mallocN(text->curl->len+2, "textline_string");
 		
 		text->curc = 0; 
@@ -2963,8 +2955,7 @@ void txt_comment(Text *text)
 		txt_make_dirty(text);
 		txt_clean_text(text);
 		
-		if (text->curl == text->sell) 
-		{
+		if (text->curl == text->sell) {
 			text->selc = text->sell->len;
 			break;
 		}
@@ -2974,14 +2965,12 @@ void txt_comment(Text *text)
 		}
 	}
 	text->curc = 0;
-	while ( num > 0 )
-	{
+	while ( num > 0 ) {
 		text->curl = text->curl->prev;
 		num--;
 	}
 	
-	if (!undoing) 
-	{
+	if (!undoing) {
 		txt_undo_add_toop(text, UNDO_COMMENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
@@ -2995,12 +2984,10 @@ void txt_uncomment(Text *text)
 	if (!text->curl) return;
 	if (!text->sell) return;
 
-	while (TRUE)
-	{
+	while (TRUE) {
 		int i = 0;
 		
-		if (text->curl->line[i] == remove)
-		{
+		if (text->curl->line[i] == remove) {
 			while (i< text->curl->len) {
 				text->curl->line[i]= text->curl->line[i+1];
 				i++;
@@ -3012,8 +2999,7 @@ void txt_uncomment(Text *text)
 		txt_make_dirty(text);
 		txt_clean_text(text);
 		
-		if (text->curl == text->sell) 
-		{
+		if (text->curl == text->sell) {
 			text->selc = text->sell->len;
 			break;
 		}
@@ -3024,14 +3010,12 @@ void txt_uncomment(Text *text)
 		
 	}
 	text->curc = 0;
-	while ( num > 0 )
-	{
+	while ( num > 0 ) {
 		text->curl = text->curl->prev;
 		num--;
 	}
 	
-	if (!undoing) 
-	{
+	if (!undoing) {
 		txt_undo_add_toop(text, UNDO_UNCOMMENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
@@ -3047,27 +3031,23 @@ int setcurr_tab_spaces (Text *text, int space)
 	if (!text) return 0;
 	if (!text->curl) return 0;
 
-	while (text->curl->line[i] == indent)
-	{
+	while (text->curl->line[i] == indent) {
 		//we only count those tabs/spaces that are before any text or before the curs;
-		if (i == text->curc)
-		{
+		if (i == text->curc) {
 			return i;
 		}
 		else {
 			i++;
 		}
 	}
-	if (strstr(text->curl->line, word))
-	{
+	if (strstr(text->curl->line, word)) {
 		/* if we find a ':' on this line, then add a tab but not if it is:
 		 * 	1) in a comment
 		 * 	2) within an identifier
 		 *	3) after the cursor (text->curc), i.e. when creating space before a function def [#25414] 
 		 */
 		int a, is_indent = 0;
-		for (a=0; (a < text->curc) && (text->curl->line[a] != '\0'); a++)
-		{
+		for (a=0; (a < text->curc) && (text->curl->line[a] != '\0'); a++) {
 			char ch= text->curl->line[a];
 			if (ch=='#') {
 				break;
@@ -3084,13 +3064,10 @@ int setcurr_tab_spaces (Text *text, int space)
 		}
 	}
 
-	for (test=0; back_words[test]; test++)
-	{
+	for (test=0; back_words[test]; test++) {
 		/* if there are these key words then remove a tab because we are done with the block */
-		if (strstr(text->curl->line, back_words[test]) && i > 0)
-		{
-			if (strcspn(text->curl->line, back_words[test]) < strcspn(text->curl->line, comm))
-			{
+		if (strstr(text->curl->line, back_words[test]) && i > 0) {
+			if (strcspn(text->curl->line, back_words[test]) < strcspn(text->curl->line, comm)) {
 				i -= space;
 			}
 		}
@@ -3139,14 +3116,16 @@ TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int en
 	for (marker=text->markers.first; marker; marker=next) {
 		next= marker->next;
 
-		if (group && marker->group != group) continue;
+		if      (group && marker->group != group)  continue;
 		else if ((marker->flags & flags) != flags) continue;
-		else if (marker->lineno < lineno) continue;
+		else if (marker->lineno < lineno)          continue;
 		else if (marker->lineno > lineno) break;
 
 		if ((marker->start==marker->end && start<=marker->start && marker->start<=end) ||
-				(marker->start<end && marker->end>start))
+		    (marker->start<end && marker->end>start))
+		{
 			return marker;
+		}
 	}
 	return NULL;
 }

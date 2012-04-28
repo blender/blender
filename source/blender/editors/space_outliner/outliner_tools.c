@@ -96,7 +96,7 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 			}
 			else {
 				int idcode= GS(tselem->id->name);
-				switch(idcode) {
+				switch (idcode) {
 					case ID_SCE:
 						*scenelevel= 1;
 						break;

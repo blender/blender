@@ -250,7 +250,7 @@ static int isffmpeg (const char *filename)
 
 	do_init_ffmpeg();
 
-	if ( BLI_testextensie(filename, ".swf") ||
+	if (BLI_testextensie(filename, ".swf") ||
 		BLI_testextensie(filename, ".jpg") ||
 		BLI_testextensie(filename, ".png") ||
 		BLI_testextensie(filename, ".dds") ||
@@ -258,7 +258,10 @@ static int isffmpeg (const char *filename)
 		BLI_testextensie(filename, ".bmp") ||
 		BLI_testextensie(filename, ".exr") ||
 		BLI_testextensie(filename, ".cin") ||
-		BLI_testextensie(filename, ".wav")) return 0;
+	    BLI_testextensie(filename, ".wav"))
+	{
+		return 0;
+	}
 
 	if (av_open_input_file(&pFormatCtx, filename, NULL, 0, NULL)!=0) {
 		if (UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_open_input_file failed\n");

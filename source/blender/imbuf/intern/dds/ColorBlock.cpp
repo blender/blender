@@ -93,12 +93,10 @@ void ColorBlock::init(uint w, uint h, const uint * data, uint x, uint y)
 	// @@ Thats only correct when block size is 1, 2 or 4, but not with 3. :(
 	// @@ Ideally we should zero the weights of the pixels out of range.
 
-	for (uint i = 0; i < 4; i++)
-	{
+	for (uint i = 0; i < 4; i++) {
 		const int by = i % bh;
 
-		for (uint e = 0; e < 4; e++)
-		{
+		for (uint e = 0; e < 4; e++) {
 			const int bx = e % bw;
 			const uint idx = (y + by) * w + x + bx;
 
@@ -118,12 +116,10 @@ void ColorBlock::init(uint w, uint h, const float * data, uint x, uint y)
 
 	uint srcPlane = w * h;
 
-	for (uint i = 0; i < 4; i++)
-	{
+	for (uint i = 0; i < 4; i++) {
 		const uint by = i % bh;
 		
-		for (uint e = 0; e < 4; e++)
-		{
+		for (uint e = 0; e < 4; e++) {
 			const uint bx = e % bw;
 			const uint idx = ((y + by) * w + x + bx);
 			
@@ -148,8 +144,7 @@ static inline uint8 component(Color32 c, uint i)
 
 void ColorBlock::swizzle(uint x, uint y, uint z, uint w)
 {
-	for (int i = 0; i < 16; i++)
-	{
+	for (int i = 0; i < 16; i++) {
 		Color32 c = m_color[i];
 		m_color[i].r = component(c, x);
 		m_color[i].g = component(c, y);
@@ -164,10 +159,8 @@ bool ColorBlock::isSingleColor(Color32 mask/*= Color32(0xFF, 0xFF, 0xFF, 0x00)*/
 {
 	uint u = m_color[0].u & mask.u;
 	
-	for (int i = 1; i < 16; i++)
-	{
-		if (u != (m_color[i].u & mask.u))
-		{
+	for (int i = 1; i < 16; i++) {
+		if (u != (m_color[i].u & mask.u)) {
 			return false;
 		}
 	}
@@ -243,8 +236,7 @@ Color32 ColorBlock::averageColor() const
 /// Return true if the block is not fully opaque.
 bool ColorBlock::hasAlpha() const
 {
-	for (uint i = 0; i < 16; i++)
-	{
+	for (uint i = 0; i < 16; i++) {
 		if (m_color[i].a != 255) return true;
 	}
 	return false;

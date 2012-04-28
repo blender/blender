@@ -298,8 +298,7 @@ void removeAspectRatio(TransInfo *t, float *vec)
 
 static void viewRedrawForce(const bContext *C, TransInfo *t)
 {
-	if (t->spacetype == SPACE_VIEW3D)
-	{
+	if (t->spacetype == SPACE_VIEW3D) {
 		/* Do we need more refined tags? */
 		if (t->flag & T_POSE)
 			WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
@@ -415,7 +414,7 @@ static void view_editmove(unsigned short UNUSED(event))
 	if (Trans.flag & T_2D_EDIT)
 		return;
 
-	switch(event) {
+	switch (event) {
 		case WHEELUPMOUSE:
 
 			if ( G.qual & LR_SHIFTKEY ) {
@@ -586,8 +585,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
-	if (event->type == MOUSEMOVE)
-	{
+	if (event->type == MOUSEMOVE) {
 		if (t->modifiers & MOD_CONSTRAINT_SELECT)
 			t->con.mode |= CON_SELECT;
 
@@ -802,7 +800,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->redraw |= handleNumInput(&(t->num), event);
 	}
 	/* else do non-mapped events */
-	else if (event->val==KM_PRESS) {
+	else if (event->val == KM_PRESS) {
 		switch (event->type) {
 		case RIGHTMOUSE:
 			t->state = TRANS_CANCEL;
@@ -1088,11 +1086,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		}
 
 		/* confirm transform if launch key is released after mouse move */
-		if (t->flag & T_RELEASE_CONFIRM)
-		{
+		if (t->flag & T_RELEASE_CONFIRM) {
 			/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
-			if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE))
-			{
+			if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE)) {
 				t->state = TRANS_CONFIRM;
 			}
 		}
@@ -1156,8 +1152,7 @@ typedef enum {
 } ArrowDirection;
 static void drawArrow(ArrowDirection d, short offset, short length, short size)
 {
-	switch(d)
-	{
+	switch (d) {
 		case LEFT:
 			offset = -offset;
 			length = -length;
@@ -1191,8 +1186,7 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 
 static void drawArrowHead(ArrowDirection d, short size)
 {
-	switch(d)
-	{
+	switch (d) {
 		case LEFT:
 			size = -size;
 		case RIGHT:
@@ -1223,8 +1217,7 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 
 	glBegin(GL_LINE_STRIP);
 
-	for ( angle = angle_start; angle < angle_end; angle += delta)
-	{
+	for ( angle = angle_start; angle < angle_end; angle += delta) {
 		glVertex2f( cosf(angle) * size, sinf(angle) * size);
 	}
 	glVertex2f( cosf(angle_end) * size, sinf(angle_end) * size);
@@ -1245,8 +1238,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 {
 	TransInfo *t = (TransInfo*)customdata;
 
-	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR))
-	{
+	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR)) {
 		float vecrot[3], cent[2];
 		int mval[2];
 
@@ -1267,8 +1259,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 		glPushMatrix();
 
-		switch(t->helpline)
-		{
+		switch (t->helpline) {
 			case HLP_SPRING:
 				UI_ThemeColor(TH_WIRE);
 
@@ -1417,23 +1408,23 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	/* convert flag to enum */
-	switch(t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
-	{
-	case (T_PROP_EDIT|T_PROP_CONNECTED):
-		proportional = PROP_EDIT_CONNECTED;
-		break;
-	case T_PROP_EDIT:
-		proportional = PROP_EDIT_ON;
-		break;
-	default:
-		proportional = PROP_EDIT_OFF;
+	switch (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED)) {
+		case (T_PROP_EDIT|T_PROP_CONNECTED):
+			proportional = PROP_EDIT_CONNECTED;
+			break;
+		case T_PROP_EDIT:
+			proportional = PROP_EDIT_ON;
+			break;
+		default:
+			proportional = PROP_EDIT_OFF;
 	}
 
 	// If modal, save settings back in scene if not set as operator argument
 	if (t->flag & T_MODAL) {
 
 		/* save settings if not set in operator */
-		if ( (prop = RNA_struct_find_property(op->ptr, "proportional")) && !RNA_property_is_set(op->ptr, prop))
+		if ((prop = RNA_struct_find_property(op->ptr, "proportional")) &&
+		    !RNA_property_is_set(op->ptr, prop))
 		{
 			if (t->obedit)
 				ts->proportional = proportional;
@@ -1441,12 +1432,14 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 				ts->proportional_objects = (proportional != PROP_EDIT_OFF);
 		}
 
-		if ( (prop = RNA_struct_find_property(op->ptr, "proportional_size")) && !RNA_property_is_set(op->ptr, prop))
+		if ((prop = RNA_struct_find_property(op->ptr, "proportional_size")) &&
+		    !RNA_property_is_set(op->ptr, prop))
 		{
 			ts->proportional_size = t->prop_size;
 		}
 
-		if ( (prop = RNA_struct_find_property(op->ptr, "proportional_edit_falloff")) && !RNA_property_is_set(op->ptr, prop))
+		if ((prop = RNA_struct_find_property(op->ptr, "proportional_edit_falloff")) &&
+		    !RNA_property_is_set(op->ptr, prop))
 		{
 			ts->prop_mode = t->prop_mode;
 		}
@@ -1460,34 +1453,31 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 
 		if (t->spacetype == SPACE_VIEW3D) {
-			if ( (prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) && !RNA_property_is_set(op->ptr, prop))
+			if ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
+			    !RNA_property_is_set(op->ptr, prop))
 			{
 				View3D *v3d = t->view;
-	
+
 				v3d->twmode = t->current_orientation;
 			}
 		}
 	}
 	
-	if (RNA_struct_find_property(op->ptr, "proportional"))
-	{
+	if (RNA_struct_find_property(op->ptr, "proportional")) {
 		RNA_enum_set(op->ptr, "proportional", proportional);
 		RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
 		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "axis")))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "axis"))) {
 		RNA_property_float_set_array(op->ptr, prop, t->axis);
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "mirror")))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "mirror"))) {
 		RNA_property_boolean_set(op->ptr, prop, t->flag & T_MIRROR);
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
 		/* constraint orientation can be global, event if user selects something else
 		 * so use the orientation in the constraint if set
 		 * */
@@ -1498,8 +1488,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			RNA_enum_set(op->ptr, "constraint_orientation", t->current_orientation);
 		}
 
-		if (t->con.mode & CON_APPLY)
-		{
+		if (t->con.mode & CON_APPLY) {
 			if (t->con.mode & CON_AXIS0) {
 				constraint_axis[0] = 1;
 			}
@@ -1527,8 +1516,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->state = TRANS_STARTING;
 
-	if ( (prop = RNA_struct_find_property(op->ptr, "texture_space")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ( (prop = RNA_struct_find_property(op->ptr, "texture_space")) && RNA_property_is_set(op->ptr, prop)) {
 		if (RNA_property_boolean_get(op->ptr, prop)) {
 			options |= CTX_TEXTURE;
 		}
@@ -1540,8 +1528,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->launch_event = event ? event->type : -1;
 
-	if (t->launch_event == EVT_TWEAK_R)
-	{
+	if (t->launch_event == EVT_TWEAK_R) {
 		t->launch_event = RIGHTMOUSE;
 	}
 	else if (t->launch_event == EVT_TWEAK_L) {
@@ -1550,18 +1537,15 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	// XXX Remove this when wm_operator_call_internal doesn't use window->eventstate (which can have type = 0)
 	// For manipulator only, so assume LEFTMOUSE
-	if (t->launch_event == 0)
-	{
+	if (t->launch_event == 0) {
 		t->launch_event = LEFTMOUSE;
 	}
 
-	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
-	{
+	if (!initTransInfo(C, t, op, event)) {  /* internal data, mouse, vectors */
 		return 0;
 	}
 
-	if (t->spacetype == SPACE_VIEW3D)
-	{
+	if (t->spacetype == SPACE_VIEW3D) {
 		//calc_manipulator_stats(curarea);
 		initTransformOrientation(C, t);
 
@@ -1592,15 +1576,12 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	}
 
 	/* Stupid code to have Ctrl-Click on manipulator work ok */
-	if (event)
-	{
+	if (event) {
 		wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
 
-		for (kmi = keymap->items.first; kmi; kmi = kmi->next)
-		{
-			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS)
-			{
+		for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
+			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS) {
 				if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) &&   event->ctrl)  ||
 				    (ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
 				    (ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) &&     event->alt)   ||
@@ -1731,16 +1712,14 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		break;
 	}
 
-	if (t->state == TRANS_CANCEL)
-	{
+	if (t->state == TRANS_CANCEL) {
 		postTrans(C, t);
 		return 0;
 	}
 
 
 	/* overwrite initial values if operator supplied a non-null vector */
-	if ( (prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop)) {
 		float values[4]= {0}; /* in case value isn't length 4, avoid uninitialized memory  */
 
 		if (RNA_property_array_check(prop)) {
@@ -1756,22 +1735,19 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	}
 
 	/* Transformation axis from operator */
-	if ((prop = RNA_struct_find_property(op->ptr, "axis")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "axis")) && RNA_property_is_set(op->ptr, prop)) {
 		RNA_property_float_get_array(op->ptr, prop, t->axis);
 		normalize_v3(t->axis);
 		copy_v3_v3(t->axis_orig, t->axis);
 	}
 
 	/* Constraint init from operator */
-	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) && RNA_property_is_set(op->ptr, prop)) {
 		int constraint_axis[3];
 
 		RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
 
-		if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2])
-		{
+		if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
 			t->con.mode |= CON_APPLY;
 
 			if (constraint_axis[0]) {
@@ -1797,8 +1773,7 @@ void transformApply(bContext *C, TransInfo *t)
 {
 	t->context = C;
 
-	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT)))
-	{
+	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT))) {
 		selectConstraint(t);
 		if (t->transform) {
 			t->transform(t, t->mval);  // calls recalcData()
@@ -1811,13 +1786,11 @@ void transformApply(bContext *C, TransInfo *t)
 	}
 
 	/* If auto confirm is on, break after one pass */
-	if (t->options & CTX_AUTOCONFIRM)
-	{
+	if (t->options & CTX_AUTOCONFIRM) {
 		t->state = TRANS_CONFIRM;
 	}
 
-	if (BKE_ptcache_get_continue_physics())
-	{
+	if (BKE_ptcache_get_continue_physics()) {
 		// TRANSFORM_FIX_ME
 		//do_screenhandlers(G.curscreen);
 		t->redraw |= TREDRAW_HARD;
@@ -1842,11 +1815,9 @@ int transformEnd(bContext *C, TransInfo *t)
 
 	t->context = C;
 
-	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING)
-	{
+	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING) {
 		/* handle restoring objects */
-		if (t->state == TRANS_CANCEL)
-		{
+		if (t->state == TRANS_CANCEL) {
 			/* exception, edge slide transformed UVs too */
 			if (t->mode==TFM_EDGE_SLIDE)
 				doEdgeSlide(t, 0.0f);
@@ -2097,8 +2068,7 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 	 *	- current space should be local
 	 */
 	memset(cob, 0, sizeof(bConstraintOb));
-	if (td->ext)
-	{
+	if (td->ext) {
 		if (td->ext->rotOrder == ROT_MODE_QUAT) {
 			/* quats */
 			/* objects and bones do normalization first too, otherwise
@@ -2271,8 +2241,7 @@ static void postInputWarp(TransInfo *t, float values[3])
 {
 	mul_v3_fl(values, (float)(M_PI * 2));
 
-	if (t->customData) /* non-null value indicates reversed input */
-	{
+	if (t->customData) { /* non-null value indicates reversed input */
 		negate_v3(values);
 	}
 }
@@ -2324,8 +2293,7 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 	
-	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
-	{
+	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal warp direction
 		if	(t->customData == NULL)
 			t->customData = (void*)1;
@@ -2465,11 +2433,9 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 	
-	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
-	{
+	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal Shear direction
-		if	(t->customData == NULL)
-		{
+		if	(t->customData == NULL) {
 			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 			t->customData = (void*)1;
 		}
@@ -2603,7 +2569,7 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 	}
 	
 	if (t->con.mode & CON_APPLY) {
-		switch(t->num.idx_max) {
+		switch (t->num.idx_max) {
 		case 0:
 			spos += sprintf(spos, "Scale: %s%s %s", &tvec[0], t->con.text, t->proptext);
 			break;
@@ -2755,8 +2721,7 @@ int Resize(TransInfo *t, const int mval[2])
 	char str[200];
 	
 	/* for manipulator, center handle, the scaling can't be done relative to center */
-	if ( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0)
-	{
+	if ( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
 		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
 	}
 	else {
@@ -2774,8 +2739,7 @@ int Resize(TransInfo *t, const int mval[2])
 	
 	applySnapping(t, size);
 	
-	if (t->flag & T_AUTOVALUES)
-	{
+	if (t->flag & T_AUTOVALUES) {
 		copy_v3_v3(size, t->auto_values);
 	}
 	
@@ -3008,8 +2972,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		copy_m3_m4(pmtx, t->poseobj->obmat);
 		invert_m3_m3(imtx, pmtx);
 		
-		if ((td->flag & TD_NO_LOC) == 0)
-		{
+		if ((td->flag & TD_NO_LOC) == 0) {
 			sub_v3_v3v3(vec, td->center, center);
 			
 			mul_m3_v3(pmtx, vec);	// To Global space
@@ -3093,8 +3056,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		}
 	}
 	else {
-		if ((td->flag & TD_NO_LOC) == 0)
-		{
+		if ((td->flag & TD_NO_LOC) == 0) {
 			/* translation */
 			sub_v3_v3v3(vec, td->center, center);
 			mul_m3_v3(mat, vec);
@@ -3440,7 +3402,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 		autoik[0]= '\0';
 
 	if (t->con.mode & CON_APPLY) {
-		switch(t->num.idx_max) {
+		switch (t->num.idx_max) {
 		case 0:
 			spos += sprintf(spos, "D: %s (%s)%s %s  %s", &tvec[0], distvec, t->con.text, t->proptext, &autoik[0]);
 			break;
@@ -3899,7 +3861,7 @@ void initBevel(TransInfo *t)
 
 int handleEventBevel(TransInfo *t, wmEvent *event)
 {
-	if (event->val==KM_PRESS) {
+	if (event->val == KM_PRESS) {
 		if (!G.editBMesh) return 0;
 
 		switch (event->type) {
@@ -5243,8 +5205,7 @@ int Align(TransInfo *t, const int UNUSED(mval[2]))
 	/* saving original center */
 	copy_v3_v3(center, t->center);
 
-	for (i = 0 ; i < t->total; i++, td++)
-	{
+	for (i = 0 ; i < t->total; i++, td++) {
 		float mat[3][3], invmat[3][3];
 
 		if (td->flag & TD_NOACTION)

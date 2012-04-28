@@ -113,7 +113,7 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 
 			if (key->refkey) {
 				/* apply new basis key on original data */
-				switch(ob->type) {
+				switch (ob->type) {
 					case OB_MESH:
 						key_to_mesh(key->refkey, ob->data);
 						break;

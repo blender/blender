@@ -72,7 +72,7 @@ int seekPackedFile(PackedFile *pf, int offset, int whence)
 
 	if (pf) {
 		oldseek = pf->seek;
-		switch(whence) {
+		switch (whence) {
 		case SEEK_CUR:
 			seek = oldseek + offset;
 			break;

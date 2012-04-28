@@ -1151,8 +1151,7 @@ void UI_ThemeClearColor(int colorid)
 
 void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3], const char axis)
 {
-	switch (axis)
-	{
+	switch (axis) {
 		case 'X':
 			dst_col[0] = src_col[0] > 219 ? 255 : src_col[0] + 36;
 			dst_col[1] = src_col[1] < 26 ? 0 : src_col[1] - 26;

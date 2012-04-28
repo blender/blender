@@ -387,7 +387,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 		return;
 	}
 
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 	case ID_IM:
 		ima= (Image *)id;
 		if (ima->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {

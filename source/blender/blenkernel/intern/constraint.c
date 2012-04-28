@@ -3439,8 +3439,7 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 {
 	bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
 	
-	if ( VALID_CONS_TARGET(ct) && (ct->tar->type == OB_MESH) )
-	{
+	if ( VALID_CONS_TARGET(ct) && (ct->tar->type == OB_MESH) ) {
 		int fail = FALSE;
 		float co[3] = {0.0f, 0.0f, 0.0f};
 		float no[3] = {0.0f, 0.0f, 0.0f};
@@ -3461,12 +3460,10 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		
 		unit_m4(ct->matrix);
 		
-		if (target != NULL)
-		{
+		if (target != NULL) {
 			space_transform_from_matrixs(&transform, cob->matrix, ct->tar->obmat);
 			
-			switch(scon->shrinkType)
-			{
+			switch (scon->shrinkType) {
 				case MOD_SHRINKWRAP_NEAREST_SURFACE:
 				case MOD_SHRINKWRAP_NEAREST_VERTEX:
 					
@@ -3475,8 +3472,7 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					else
 						bvhtree_from_mesh_faces(&treeData, target, 0.0, 2, 6);
 					
-					if (treeData.tree == NULL)
-					{
+					if (treeData.tree == NULL) {
 						fail = TRUE;
 						break;
 					}
@@ -3506,14 +3502,12 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					
 					
 					bvhtree_from_mesh_faces(&treeData, target, scon->dist, 4, 6);
-					if (treeData.tree == NULL)
-					{
+					if (treeData.tree == NULL) {
 						fail = TRUE;
 						break;
 					}
 					
-					if (normal_projection_project_vertex(0, co, no, &transform, treeData.tree, &hit, treeData.raycast_callback, &treeData) == FALSE)
-					{
+					if (normal_projection_project_vertex(0, co, no, &transform, treeData.tree, &hit, treeData.raycast_callback, &treeData) == FALSE) {
 						fail = TRUE;
 						break;
 					}
@@ -3542,8 +3536,7 @@ static void shrinkwrap_evaluate (bConstraint *UNUSED(con), bConstraintOb *cob, L
 	bConstraintTarget *ct= targets->first;
 	
 	/* only evaluate if there is a target */
-	if (VALID_CONS_TARGET(ct))
-	{
+	if (VALID_CONS_TARGET(ct)) {
 		copy_v3_v3(cob->matrix[3], ct->matrix[3]);
 	}
 }

@@ -46,8 +46,7 @@ static bNodeSocketTemplate cmp_node_math_out[]= {
 
 static void do_math(bNode *node, float *out, float *in, float *in2)
 {
-	switch(node->custom1)
-	{
+	switch (node->custom1) {
 	case 0: /* Add */
 		out[0]= in[0] + in2[0]; 
 		break; 

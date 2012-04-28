@@ -629,7 +629,7 @@ static int tree_element_active_keymap_item(bContext *UNUSED(C), TreeElement *te,
 int tree_element_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set)
 {
 
-	switch(te->idcode) {
+	switch (te->idcode) {
 		/* Note: no ID_OB: objects are handled specially to allow multiple
 		 * selection. See do_outliner_item_activate. */
 		case ID_MA:
@@ -652,7 +652,7 @@ int tree_element_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement
 /* Context can be NULL when set==0 */
 int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
 {
-	switch(tselem->type) {
+	switch (tselem->type) {
 		case TSE_DEFGROUP:
 			return tree_element_active_defgroup(C, scene, te, tselem, set);
 		case TSE_BONE:

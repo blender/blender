@@ -71,7 +71,7 @@ static void do_channel_matte(bNode *node, float *out, float *in)
 	NodeChroma *c=(NodeChroma *)node->storage;
 	float alpha=0.0;	
 
-	switch(c->algorithm) {
+	switch (c->algorithm) {
 	case 0: { /* Alpha=key_channel-limit channel */
 		int key_channel=node->custom2-1;
 		int limit_channel=c->channel-1;
@@ -79,7 +79,7 @@ static void do_channel_matte(bNode *node, float *out, float *in)
 		break;
 	}
 	case 1: { /* Alpha=G-MAX(R, B) */
-		switch(node->custom2) {
+		switch (node->custom2) {
 			case 1: {
 				alpha=in[0]-MAX2(in[1],in[2]);
 				break;
@@ -139,7 +139,7 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 	outbuf=dupalloc_compbuf(cbuf);
 	
 	/*convert to colorspace*/
-	switch(node->custom1) {
+	switch (node->custom1) {
 	case CMP_NODE_CHANNEL_MATTE_CS_RGB:
 		break;
 	case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/
@@ -159,7 +159,7 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 	composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_channel_matte, CB_RGBA);
 
 	/*convert back to RGB colorspace in place*/
-	switch(node->custom1) {
+	switch (node->custom1) {
 	case CMP_NODE_CHANNEL_MATTE_CS_RGB: /*RGB*/
 		break;
 	case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/

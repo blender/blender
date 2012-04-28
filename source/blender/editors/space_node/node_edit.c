@@ -284,7 +284,7 @@ void ED_node_shader_default(Scene *scene, ID *id)
 	
 	ntree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, 0);
 
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 		case ID_MA: {
 			Material *ma= (Material*)id;
 			ma->nodetree = ntree;
@@ -1458,7 +1458,7 @@ static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sample_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	switch(event->type) {
+	switch (event->type) {
 		case LEFTMOUSE:
 		case RIGHTMOUSE: // XXX hardcoded
 			sample_exit(C, op);

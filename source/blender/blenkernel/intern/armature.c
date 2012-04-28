@@ -1372,7 +1372,7 @@ void armature_mat_pose_to_bone_ex(Object *ob, bPoseChannel *pchan, float inmat[]
 /* same as object_mat3_to_rot() */
 void pchan_mat3_to_rot(bPoseChannel *pchan, float mat[][3], short use_compat)
 {
-	switch(pchan->rotmode) {
+	switch (pchan->rotmode) {
 		case ROT_MODE_QUAT:
 			mat3_to_quat(pchan->quat, mat);
 			break;

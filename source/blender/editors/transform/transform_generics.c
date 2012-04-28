@@ -111,8 +111,7 @@
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3])
 {
-	if (t->persp != RV3D_ORTHO)
-	{
+	if (t->persp != RV3D_ORTHO) {
 		float p1[4], p2[4];
 		
 		copy_v3_v3(p1, coord);
@@ -256,8 +255,7 @@ static void editbmesh_apply_to_mirror(TransInfo *t)
 			eve->co[2]= td->loc[2];
 		}
 		
-		if (td->flag & TD_MIRROR_EDGE)
-		{
+		if (td->flag & TD_MIRROR_EDGE) {
 			td->loc[0] = 0;
 		}
 	}
@@ -775,21 +773,17 @@ static void recalcData_view3d(TransInfo *t)
 			}
 			
 			
-			if (t->mode != TFM_BONE_ROLL)
-			{
+			if (t->mode != TFM_BONE_ROLL) {
 				/* fix roll */
-				for (i = 0; i < t->total; i++, td++)
-				{
-					if (td->extra)
-					{
+				for (i = 0; i < t->total; i++, td++) {
+					if (td->extra) {
 						float vec[3], up_axis[3];
 						float qrot[4];
 						
 						ebo = td->extra;
 						copy_v3_v3(up_axis, td->axismtx[2]);
 						
-						if (t->mode != TFM_ROTATION)
-						{
+						if (t->mode != TFM_ROTATION) {
 							sub_v3_v3v3(vec, ebo->tail, ebo->head);
 							normalize_v3(vec);
 							rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
@@ -915,8 +909,7 @@ void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
 	float v1[3], v2[3], v3[3];
 	unsigned char col[3], col2[3];
 
-	if (t->spacetype == SPACE_VIEW3D)
-	{
+	if (t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = t->view;
 		
 		glPushMatrix();
@@ -984,8 +977,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	t->redraw = 1; /* redraw first time */
 	
-	if (event)
-	{
+	if (event) {
 		copy_v2_v2_int(t->imval, event->mval);
 		t->event_type = event->type;
 	}
@@ -1043,8 +1035,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	}
 
 
-	if (t->spacetype == SPACE_VIEW3D)
-	{
+	if (t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = sa->spacedata.first;
 		
 		t->view = v3d;
@@ -1060,12 +1051,12 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		if (v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = v3d->around;
 		
-		if (op && RNA_struct_find_property(op->ptr, "constraint_orientation") && RNA_struct_property_is_set(op->ptr, "constraint_orientation"))
+		if (op && (RNA_struct_find_property(op->ptr, "constraint_orientation") &&
+		           RNA_struct_property_is_set(op->ptr, "constraint_orientation")))
 		{
 			t->current_orientation = RNA_enum_get(op->ptr, "constraint_orientation");
-			
-			if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C))
-			{
+
+			if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C)) {
 				t->current_orientation = V3D_MANIP_GLOBAL;
 			}
 		}
@@ -1124,10 +1115,8 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->around = V3D_CENTER;
 	}
 	
-	if (op && RNA_struct_property_is_set(op->ptr, "release_confirm"))
-	{
-		if (RNA_boolean_get(op->ptr, "release_confirm"))
-		{
+	if (op && RNA_struct_property_is_set(op->ptr, "release_confirm")) {
+		if (RNA_boolean_get(op->ptr, "release_confirm")) {
 			t->flag |= T_RELEASE_CONFIRM;
 		}
 	}
@@ -1137,35 +1126,31 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	if (op && RNA_struct_find_property(op->ptr, "mirror") && RNA_struct_property_is_set(op->ptr, "mirror"))
+	if (op && (RNA_struct_find_property(op->ptr, "mirror") &&
+	           RNA_struct_property_is_set(op->ptr, "mirror")))
 	{
-		if (RNA_boolean_get(op->ptr, "mirror"))
-		{
+		if (RNA_boolean_get(op->ptr, "mirror")) {
 			t->flag |= T_MIRROR;
 			t->mirror = 1;
 		}
 	}
 	// Need stuff to take it from edit mesh or whatnot here
 	else if (t->spacetype == SPACE_VIEW3D) {
-		if (t->obedit && t->obedit->type == OB_MESH && (((Mesh *)t->obedit->data)->editflag & ME_EDIT_MIRROR_X))
-		{
+		if (t->obedit && t->obedit->type == OB_MESH && (((Mesh *)t->obedit->data)->editflag & ME_EDIT_MIRROR_X)) {
 			t->flag |= T_MIRROR;
 			t->mirror = 1;
 		}
 	}
 	
 	/* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
-	if (op && RNA_struct_find_property(op->ptr, "proportional"))
-	{
-		if (RNA_struct_property_is_set(op->ptr, "proportional"))
-		{
-			switch(RNA_enum_get(op->ptr, "proportional"))
-			{
-			case PROP_EDIT_CONNECTED:
-				t->flag |= T_PROP_CONNECTED;
-			case PROP_EDIT_ON:
-				t->flag |= T_PROP_EDIT;
-				break;
+	if (op && RNA_struct_find_property(op->ptr, "proportional")) {
+		if (RNA_struct_property_is_set(op->ptr, "proportional")) {
+			switch (RNA_enum_get(op->ptr, "proportional")) {
+				case PROP_EDIT_CONNECTED:
+					t->flag |= T_PROP_CONNECTED;
+				case PROP_EDIT_ON:
+					t->flag |= T_PROP_EDIT;
+					break;
 			}
 		}
 		else {
@@ -1186,7 +1171,8 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			}
 		}
 		
-		if (op && RNA_struct_find_property(op->ptr, "proportional_size") && RNA_struct_property_is_set(op->ptr, "proportional_size"))
+		if (op && (RNA_struct_find_property(op->ptr, "proportional_size") &&
+		           RNA_struct_property_is_set(op->ptr, "proportional_size")))
 		{
 			t->prop_size = RNA_float_get(op->ptr, "proportional_size");
 		}
@@ -1196,13 +1182,13 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		
 		
 		/* TRANSFORM_FIX_ME rna restrictions */
-		if (t->prop_size <= 0.00001f)
-		{
+		if (t->prop_size <= 0.00001f) {
 			printf("Proportional size (%f) under 0.00001, reseting to 1!\n", t->prop_size);
 			t->prop_size = 1.0f;
 		}
 		
-		if (op && RNA_struct_find_property(op->ptr, "proportional_edit_falloff") && RNA_struct_property_is_set(op->ptr, "proportional_edit_falloff"))
+		if (op && (RNA_struct_find_property(op->ptr, "proportional_edit_falloff") &&
+		           RNA_struct_property_is_set(op->ptr, "proportional_edit_falloff")))
 		{
 			t->prop_mode = RNA_enum_get(op->ptr, "proportional_edit_falloff");
 		}
@@ -1210,14 +1196,12 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			t->prop_mode = ts->prop_mode;
 		}
 	}
-	else /* add not pet option to context when not available */
-	{
+	else { /* add not pet option to context when not available */
 		t->options |= CTX_NO_PET;
 	}
 	
 	// Mirror is not supported with PET, turn it off.
-	if (t->flag & T_PROP_EDIT)
-	{
+	if (t->flag & T_PROP_EDIT) {
 		t->flag &= ~T_MIRROR;
 	}
 
@@ -1282,8 +1266,7 @@ void postTrans (bContext *C, TransInfo *t)
 		}
 	}
 	
-	if (t->mouse.data)
-	{
+	if (t->mouse.data) {
 		MEM_freeN(t->mouse.data);
 	}
 }
@@ -1440,8 +1423,7 @@ void calculateCenterMedian(TransInfo *t)
 	
 	for (i = 0; i < t->total; i++) {
 		if (t->data[i].flag & TD_SELECTED) {
-			if (!(t->data[i].flag & TD_NOCENTER))
-			{
+			if (!(t->data[i].flag & TD_NOCENTER)) {
 				add_v3_v3(partial, t->data[i].center);
 				total++;
 			}
@@ -1493,7 +1475,7 @@ void calculateCenterBound(TransInfo *t)
 
 void calculateCenter(TransInfo *t)
 {
-	switch(t->around) {
+	switch (t->around) {
 	case V3D_CENTER:
 		calculateCenterBound(t);
 		break;
@@ -1542,8 +1524,7 @@ void calculateCenter(TransInfo *t)
 		} /* END EDIT MODE ACTIVE ELEMENT */
 
 		calculateCenterMedian(t);
-		if ((t->flag & (T_EDIT|T_POSE))==0)
-		{
+		if ((t->flag & (T_EDIT|T_POSE))==0) {
 			Scene *scene = t->scene;
 			Object *ob= OBACT;
 			if (ob) {
@@ -1583,8 +1564,7 @@ void calculateCenter(TransInfo *t)
 				projectIntView(t, axis, t->center2d);
 				
 				/* rotate only needs correct 2d center, grab needs initgrabz() value */
-				if (t->mode==TFM_TRANSLATION)
-				{
+				if (t->mode==TFM_TRANSLATION) {
 					copy_v3_v3(t->center, axis);
 					copy_v3_v3(t->con.center, t->center);
 				}
@@ -1625,11 +1605,8 @@ void calculatePropRatio(TransInfo *t)
 				td->factor = 0.0f;
 				restoreElement(td);
 			}
-			else if	((connected &&
-						(td->flag & TD_NOTCONNECTED || td->dist > t->prop_size))
-				||
-					(connected == 0 &&
-						td->rdist > t->prop_size))
+			else if	((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
+			         (connected == 0 && td->rdist > t->prop_size))
 			{
 				/*
 				 * The elements are sorted according to their dist member in the array,
@@ -1656,7 +1633,7 @@ void calculatePropRatio(TransInfo *t)
 				if (dist < 0.0f)
 					dist = 0.0f;
 				
-				switch(t->prop_mode) {
+				switch (t->prop_mode) {
 				case PROP_SHARP:
 					td->factor= dist*dist;
 					break;
@@ -1684,7 +1661,7 @@ void calculatePropRatio(TransInfo *t)
 				}
 			}
 		}
-		switch(t->prop_mode) {
+		switch (t->prop_mode) {
 		case PROP_SHARP:
 			strcpy(t->proptext, "(Sharp)");
 			break;

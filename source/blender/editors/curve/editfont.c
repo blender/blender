@@ -520,13 +520,17 @@ void ED_text_to_object(bContext *C, Text *text, int split_lines)
 }
 
 /********************** utilities ***************************/
-
 static short next_word(Curve *cu)
 {
 	short s;
-	for (s=cu->pos; (cu->str[s]) && (cu->str[s]!=' ') && (cu->str[s]!='\n') &&
-					(cu->str[s]!=1) && (cu->str[s]!='\r'); s++);
-	if (cu->str[s]) return(s+1); else return(s);
+	for (s=cu->pos; ((cu->str[s]) && (cu->str[s] != ' ') && (cu->str[s] != '\n') &&
+	                 (cu->str[s] != 1) && (cu->str[s] != '\r'));
+	     s++)
+	{
+		/* pass */
+	}
+
+	return cu->str[s] ? (s + 1) : s;
 }
 
 static short prev_word(Curve *cu)
@@ -534,9 +538,14 @@ static short prev_word(Curve *cu)
 	short s;
 	
 	if (cu->pos==0) return(0);
-	for (s=cu->pos-2; (cu->str[s]) && (cu->str[s]!=' ') && (cu->str[s]!='\n') &&
-					(cu->str[s]!=1) && (cu->str[s]!='\r'); s--);
-	if (cu->str[s]) return(s+1); else return(s);
+	for (s = cu->pos - 2; ((cu->str[s]) && (cu->str[s] != ' ') && (cu->str[s] != '\n') &&
+	                       (cu->str[s] != 1) && (cu->str[s] != '\r'));
+	     s--)
+	{
+		/* pass */
+	}
+
+	return cu->str[s] ? (s + 1) : s;
 }
 
 static int kill_selection(Object *obedit, int ins)	/* 1 == new character */
@@ -816,7 +825,7 @@ static int move_cursor(bContext *C, int type, int select)
 	EditFont *ef= cu->editfont;
 	int cursmove= -1;
 
-	switch(type) {
+	switch (type) {
 		case LINE_BEGIN:
 			if ((select) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;
 			while (cu->pos>0) {
@@ -1121,7 +1130,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		else if (type == DEL_PREV_SEL) type= DEL_PREV_CHAR;
 	}
 
-	switch(type) {
+	switch (type) {
 		case DEL_ALL:
 			cu->len = cu->pos = 0;
 			ef->textbuf[0]= 0;

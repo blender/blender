@@ -636,7 +636,7 @@ static void calcknots(float *knots, const short pnts, const short order, const s
 	float k;
 	int a;
 
-	switch(flag & (CU_NURB_ENDPOINT|CU_NURB_BEZIER)) {
+	switch (flag & (CU_NURB_ENDPOINT|CU_NURB_BEZIER)) {
 	case CU_NURB_ENDPOINT:
 		k= 0.0;
 		for (a=1; a <= pnts_order; a++) {
@@ -2038,7 +2038,7 @@ static void make_bevel_list_3D_tangent(BevList *bl)
 
 static void make_bevel_list_3D(BevList *bl, int smooth_iter, int twist_mode)
 {
-	switch(twist_mode) {
+	switch (twist_mode) {
 	case CU_TWIST_TANGENT:
 		make_bevel_list_3D_tangent(bl);
 		break;

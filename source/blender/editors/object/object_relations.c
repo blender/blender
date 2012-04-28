@@ -1232,7 +1232,7 @@ enum {
 /* Return 1 if make link data is allow, zero otherwise */
 static int allow_make_links_data(int ev, Object *ob, Object *obt)
 {
-	switch(ev) {
+	switch (ev) {
 		case MAKE_LINKS_OBDATA:
 			if (ob->type == obt->type && ob->type != OB_EMPTY)
 				return 1;
@@ -1268,7 +1268,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Object*, obt, selected_editable_objects) {
 		if (ob != obt) {
 			if (allow_make_links_data(event, ob, obt)) {
-				switch(event) {
+				switch (event) {
 				case MAKE_LINKS_OBDATA: /* obdata */
 					id= obt->data;
 					id->us--;
@@ -1464,7 +1464,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 				
 				BKE_copy_animdata_id_action(id);
 				
-				switch(ob->type) {
+				switch (ob->type) {
 				case OB_LAMP:
 					ob->data= la= copy_lamp(ob->data);
 					for (a=0; a<MAX_MTEX; a++) {

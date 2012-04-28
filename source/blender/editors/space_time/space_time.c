@@ -111,7 +111,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 		int i, sta = pid->cache->startframe, end = pid->cache->endframe;
 		int len = (end - sta + 1)*4;
 
-		switch(pid->type) {
+		switch (pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
 				if (!(stime->cache_display & TIME_CACHE_SOFTBODY)) continue;
 				break;
@@ -171,7 +171,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 		glTranslatef(0.0, (float)V2D_SCROLL_HEIGHT+yoffs, 0.0);
 		glScalef(1.0, CACHE_DRAW_HEIGHT, 0.0);
 		
-		switch(pid->type) {
+		switch (pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
 				col[0] = 1.0;	col[1] = 0.4;	col[2] = 0.02;
 				col[3] = 0.1;
@@ -509,7 +509,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SPACE:
 			if (wmn->data == ND_SPACE_TIME)
 				ED_region_tag_redraw(ar);
@@ -549,7 +549,7 @@ static void time_header_area_draw(const bContext *C, ARegion *ar)
 static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SCREEN:
 			if (wmn->data==ND_ANIMPLAY)
 				ED_region_tag_redraw(ar);

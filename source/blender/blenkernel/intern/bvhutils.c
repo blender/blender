@@ -649,8 +649,7 @@ BVHTree* bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_EDGES);
 
 	//Not in cache
-	if (tree == NULL)
-	{
+	if (tree == NULL) {
 		int i;
 		int numEdges= mesh->getNumEdges(mesh);
 		MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
@@ -675,8 +674,7 @@ BVHTree* bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			}
 		}
 	}
-	else
-	{
+	else {
 //		printf("BVHTree is already build, using cached tree\n");
 	}
 

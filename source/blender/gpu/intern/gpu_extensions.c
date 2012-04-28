@@ -171,14 +171,16 @@ void GPU_extensions_init(void)
 		 * New IDs from MESA's src/gallium/drivers/r300/r300_screen.c
 		 */
 		if (strstr(renderer, "R3") || strstr(renderer, "RV3") ||
-		   strstr(renderer, "R4") || strstr(renderer, "RV4") ||
-		   strstr(renderer, "RS4") || strstr(renderer, "RC4") ||
-		   strstr(renderer, "R5") || strstr(renderer, "RV5") ||
-		   strstr(renderer, "RS600") || strstr(renderer, "RS690") ||
-		   strstr(renderer, "RS740") || strstr(renderer, "X1") ||
-		   strstr(renderer, "X2") || strstr(renderer, "Radeon 9") ||
-		   strstr(renderer, "RADEON 9"))
+		    strstr(renderer, "R4") || strstr(renderer, "RV4") ||
+		    strstr(renderer, "RS4") || strstr(renderer, "RC4") ||
+		    strstr(renderer, "R5") || strstr(renderer, "RV5") ||
+		    strstr(renderer, "RS600") || strstr(renderer, "RS690") ||
+		    strstr(renderer, "RS740") || strstr(renderer, "X1") ||
+		    strstr(renderer, "X2") || strstr(renderer, "Radeon 9") ||
+		    strstr(renderer, "RADEON 9"))
+		{
 			GG.npotdisabled = 1;
+		}
 	}
 
 	/* make sure double side isn't used by default and only getting enabled in places where it's
@@ -236,7 +238,7 @@ static void GPU_print_framebuffer_error(GLenum status, char err_out[256])
 {
 	const char *err= "unknown";
 
-	switch(status) {
+	switch (status) {
 		case GL_FRAMEBUFFER_COMPLETE_EXT:
 			break;
 		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:

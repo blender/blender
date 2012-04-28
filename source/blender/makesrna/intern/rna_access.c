@@ -3122,9 +3122,10 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 
 		if (((itemtype == PROP_BOOLEAN || itemtype == PROP_INT) && in.type == PROP_RAW_INT) ||
 			(itemtype == PROP_FLOAT && in.type == PROP_RAW_FLOAT))
+		{
 			/* avoid creating temporary buffer if the data type match */
 			needconv = 0;
-
+		}
 		/* no item property pointer, can still be id property, or
 		 * property of a type derived from the collection pointer type */
 		RNA_PROP_BEGIN(ptr, itemptr, prop) {

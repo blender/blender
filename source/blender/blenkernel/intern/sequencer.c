@@ -3099,13 +3099,17 @@ int seqbase_isolated_sel_check(ListBase *seqbase)
 			if ( (seq->seq1 && (seq->seq1->flag & SELECT) == 0) ||
 			     (seq->seq2 && (seq->seq2->flag & SELECT) == 0) ||
 			     (seq->seq3 && (seq->seq3->flag & SELECT) == 0) )
+			{
 				return FALSE;
+			}
 		}
 		else {
 			if ( (seq->seq1 && (seq->seq1->flag & SELECT)) ||
 			     (seq->seq2 && (seq->seq2->flag & SELECT)) ||
 			     (seq->seq3 && (seq->seq3->flag & SELECT)) )
+			{
 				return FALSE;
+			}
 		}
 	}
 

@@ -581,8 +581,7 @@ void IDP_FreeIterBeforeEnd(void *vself)
 static void IDP_FreeGroup(IDProperty *prop)
 {
 	IDProperty *loop;
-	for (loop=prop->data.group.first; loop; loop=loop->next)
-	{
+	for (loop=prop->data.group.first; loop; loop=loop->next) {
 		IDP_FreeProperty(loop);
 	}
 	BLI_freelistN(&prop->data.group);

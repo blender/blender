@@ -1483,7 +1483,7 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 
 void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 {
-	switch(ob->rotmode) {
+	switch (ob->rotmode) {
 	case ROT_MODE_QUAT:
 		{
 			float dquat[4];
@@ -2025,7 +2025,7 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 	
 	if (ob->partype & PARSLOW) copy_m4_m4(slowmat, obmat);
 
-	switch(ob->partype & PARTYPE) {
+	switch (ob->partype & PARTYPE) {
 	case PAROBJECT:
 		ok= 0;
 		if (par->type==OB_CURVE) {
@@ -2260,7 +2260,7 @@ void minmax_object(Object *ob, float min[3], float max[3])
 	int a;
 	short change= FALSE;
 	
-	switch(ob->type) {
+	switch (ob->type) {
 	case OB_CURVE:
 	case OB_FONT:
 	case OB_SURF:
@@ -2568,7 +2568,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			}
 
 			/* includes all keys and modifiers */
-			switch(ob->type) {
+			switch (ob->type) {
 			case OB_MESH:
 				{
 #if 0				// XXX, comment for 2.56a release, background wont set 'scene->customdata_mask'
@@ -2784,8 +2784,7 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 	int result = 0;
 	int i;
 	
-	for (i = 0; i < 12 && result == 0; i++)
-	{
+	for (i = 0; i < 12 && result == 0; i++) {
 		float lambda;
 		int v1, v2, v3;
 		v1 = triangle_indexes[i][0];
@@ -2812,8 +2811,7 @@ int object_insert_ptcache(Object *ob)
 
 	BLI_sortlist(&ob->pc_ids, pc_cmp);
 
-	for (link=ob->pc_ids.first, i = 0; link; link=link->next, i++) 
-	{
+	for (link=ob->pc_ids.first, i = 0; link; link=link->next, i++) {
 		int index = GET_INT_FROM_POINTER(link->data);
 
 		if (i < index)

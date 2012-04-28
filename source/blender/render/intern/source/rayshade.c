@@ -87,8 +87,7 @@ static int test_break(void *data)
 
 static void RE_rayobject_config_control(RayObject *r, Render *re)
 {
-	if (RE_rayobject_isRayAPI(r))
-	{
+	if (RE_rayobject_isRayAPI(r)) {
 		r = RE_rayobject_align( r );
 		r->control.data = re;
 		r->control.test_break = test_break;
@@ -99,8 +98,7 @@ static RayObject*  RE_rayobject_create(Render *re, int type, int size)
 {
 	RayObject * res = NULL;
 
-	if (type == R_RAYSTRUCTURE_AUTO)
-	{
+	if (type == R_RAYSTRUCTURE_AUTO) {
 		//TODO
 		//if (detect_simd())
 #ifdef __SSE__
@@ -111,8 +109,7 @@ static RayObject*  RE_rayobject_create(Render *re, int type, int size)
 	}
 	
 #ifndef __SSE__
-	if (type == R_RAYSTRUCTURE_SIMD_SVBVH || type == R_RAYSTRUCTURE_SIMD_QBVH)
-	{
+	if (type == R_RAYSTRUCTURE_SIMD_SVBVH || type == R_RAYSTRUCTURE_SIMD_QBVH) {
 		puts("Warning: Using VBVH (SSE was disabled at compile time)");
 		type = R_RAYSTRUCTURE_VBVH;
 	}
@@ -148,37 +145,30 @@ void freeraytree(Render *re)
 {
 	ObjectInstanceRen *obi;
 	
-	if (re->raytree)
-	{
+	if (re->raytree) {
 		RE_rayobject_free(re->raytree);
 		re->raytree = NULL;
 	}
-	if (re->rayfaces)
-	{
+	if (re->rayfaces) {
 		MEM_freeN(re->rayfaces);
 		re->rayfaces = NULL;
 	}
-	if (re->rayprimitives)
-	{
+	if (re->rayprimitives) {
 		MEM_freeN(re->rayprimitives);
 		re->rayprimitives = NULL;
 	}
 
-	for (obi=re->instancetable.first; obi; obi=obi->next)
-	{
+	for (obi=re->instancetable.first; obi; obi=obi->next) {
 		ObjectRen *obr = obi->obr;
-		if (obr->raytree)
-		{
+		if (obr->raytree) {
 			RE_rayobject_free(obr->raytree);
 			obr->raytree = NULL;
 		}
-		if (obr->rayfaces)
-		{
+		if (obr->rayfaces) {
 			MEM_freeN(obr->rayfaces);
 			obr->rayfaces = NULL;
 		}
-		if (obi->raytree)
-		{
+		if (obi->raytree) {
 			RE_rayobject_free(obi->raytree);
 			obi->raytree = NULL;
 		}
@@ -232,8 +222,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 	// update render stats
 	ObjectRen *obr = obi->obr;
 	
-	if (obr->raytree == NULL)
-	{
+	if (obr->raytree == NULL) {
 		RayObject *raytree;
 		RayFace *face = NULL;
 		VlakPrimitive *vlakprimitive = NULL;
@@ -241,8 +230,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		
 		//Count faces
 		int faces = 0;
-		for (v=0;v<obr->totvlak;v++)
-		{
+		for (v=0;v<obr->totvlak;v++) {
 			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 			if (is_raytraceable_vlr(re, vlr))
 				faces++;
@@ -260,11 +248,9 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 
 		obr->rayobi = obi;
 		
-		for (v=0;v<obr->totvlak;v++)
-		{
+		for (v=0;v<obr->totvlak;v++) {
 			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
-			if (is_raytraceable_vlr(re, vlr))
-			{
+			if (is_raytraceable_vlr(re, vlr)) {
 				if ((re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS)) {
 					RE_rayobject_add( raytree, RE_vlakprimitive_from_vlak( vlakprimitive, obi, vlr ) );
 					vlakprimitive++;
@@ -286,8 +272,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 	}
 
 	if (obr->raytree) {
-		if ((obi->flag & R_TRANSFORMED) && obi->raytree == NULL)
-		{
+		if ((obi->flag & R_TRANSFORMED) && obi->raytree == NULL) {
 			obi->transform_primitives = 0;
 			obi->raytree = RE_rayobject_instance_create( obr->raytree, obi->mat, obi, obi->obr->rayobi );
 		}
@@ -299,16 +284,13 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 
 static int has_special_rayobject(Render *re, ObjectInstanceRen *obi)
 {
-	if ( (obi->flag & R_TRANSFORMED) && (re->r.raytrace_options & R_RAYTRACE_USE_INSTANCES) )
-	{
+	if ( (obi->flag & R_TRANSFORMED) && (re->r.raytrace_options & R_RAYTRACE_USE_INSTANCES) ) {
 		ObjectRen *obr = obi->obr;
 		int v, faces = 0;
 		
-		for (v=0;v<obr->totvlak;v++)
-		{
+		for (v=0;v<obr->totvlak;v++) {
 			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
-			if (is_raytraceable_vlr(re, vlr))
-			{
+			if (is_raytraceable_vlr(re, vlr)) {
 				faces++;
 				if (faces > 4)
 					return 1;
@@ -329,8 +311,7 @@ static void makeraytree_single(Render *re)
 	int faces = 0, obs = 0, special = 0;
 
 	for (obi=re->instancetable.first; obi; obi=obi->next)
-	if (is_raytraceable(re, obi))
-	{
+	if (is_raytraceable(re, obi)) {
 		ObjectRen *obr = obi->obr;
 		obs++;
 		
@@ -339,8 +320,7 @@ static void makeraytree_single(Render *re)
 		}
 		else {
 			int v;
-			for (v=0;v<obr->totvlak;v++)
-			{
+			for (v=0;v<obr->totvlak;v++) {
 				VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 				if (is_raytraceable_vlr(re, vlr))
 					faces++;
@@ -348,8 +328,7 @@ static void makeraytree_single(Render *re)
 		}
 	}
 	
-	if (faces + special == 0)
-	{
+	if (faces + special == 0) {
 		re->raytree = RE_rayobject_empty_create();
 		return;
 	}
@@ -357,8 +336,7 @@ static void makeraytree_single(Render *re)
 	//Create raytree
 	raytree = re->raytree = RE_rayobject_create( re, re->r.raytrace_structure, faces+special );
 
-	if ( (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
-	{
+	if ( (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) ) {
 		vlakprimitive = re->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "Raytrace vlak-primitives");
 	}
 	else {
@@ -366,8 +344,7 @@ static void makeraytree_single(Render *re)
 	}
 	
 	for (obi=re->instancetable.first; obi; obi=obi->next)
-	if (is_raytraceable(re, obi))
-	{
+	if (is_raytraceable(re, obi)) {
 		if (test_break(re))
 			break;
 
@@ -384,13 +361,11 @@ static void makeraytree_single(Render *re)
 			int v;
 			ObjectRen *obr = obi->obr;
 			
-			if (obi->flag & R_TRANSFORMED)
-			{
+			if (obi->flag & R_TRANSFORMED) {
 				obi->transform_primitives = 1;
 			}
 
-			for (v=0;v<obr->totvlak;v++)
-			{
+			for (v=0;v<obr->totvlak;v++) {
 				VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 				if (is_raytraceable_vlr(re, vlr)) {
 					if ((re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS)) {
@@ -400,8 +375,7 @@ static void makeraytree_single(Render *re)
 					}
 					else {
 						RE_rayface_from_vlak(face, obi, vlr);
-						if ((obi->flag & R_TRANSFORMED))
-						{
+						if ((obi->flag & R_TRANSFORMED)) {
 							mul_m4_v3(obi->mat, face->v1);
 							mul_m4_v3(obi->mat, face->v2);
 							mul_m4_v3(obi->mat, face->v3);
@@ -417,8 +391,7 @@ static void makeraytree_single(Render *re)
 		}
 	}
 	
-	if (!test_break(re))
-	{	
+	if (!test_break(re)) {
 		re->i.infostr= "Raytree.. building";
 		re->stats_draw(re->sdh, &re->i);
 
@@ -452,8 +425,7 @@ void makeraytree(Render *re)
 		//This is ONLY needed to kept a bogus behavior of SUN and HEMI lights
 		INIT_MINMAX(min, max);
 		RE_rayobject_merge_bb( re->raytree, min, max );
-		for (i=0; i<3; i++)
-		{
+		for (i=0; i<3; i++) {
 			min[i] += 0.01f;
 			max[i] += 0.01f;
 			sub[i] = max[i]-min[i];
@@ -1006,12 +978,10 @@ static void halton_sample(double *ht_invprimes, double *ht_nums, double *v)
 	// "Instant Radiosity", Keller A.
 	unsigned int i;
 	
-	for (i = 0; i < 2; i++)
-	{
+	for (i = 0; i < 2; i++) {
 		double r = fabs((1.0 - ht_nums[i]) - 1e-10);
 		
-		if (ht_invprimes[i] >= r)
-		{
+		if (ht_invprimes[i] >= r) {
 			double lasth;
 			double h = ht_invprimes[i];
 			
@@ -1065,8 +1035,7 @@ static struct QMCSampler *QMC_initSampler(int type, int tot)
 
 static void QMC_initPixel(QMCSampler *qsa, int thread)
 {
-	if (qsa->type==SAMP_TYPE_HAMMERSLEY)
-	{
+	if (qsa->type==SAMP_TYPE_HAMMERSLEY) {
 		/* hammersley sequence is fixed, already created in QMCSampler init.
 		 * per pixel, gets a random offset. We create separate offsets per thread, for write-safety */
 		qsa->offs[thread][0] = 0.5f * BLI_thread_frand(thread);
@@ -1377,8 +1346,7 @@ static void trace_refract(float col[4], ShadeInput *shi, ShadeResult *shr)
 		samples++;
 		
 		/* adaptive sampling */
-		if (adapt_thresh < 1.0f && samples > max_samples/2)
-		{
+		if (adapt_thresh < 1.0f && samples > max_samples/2) {
 			if (adaptive_sample_variance(samples, col, colsq, adapt_thresh))
 				break;
 			
@@ -1479,8 +1447,7 @@ static void trace_reflect(float col[3], ShadeInput *shi, ShadeResult *shr, float
 		samples++;
 
 		/* adaptive sampling */
-		if (adapt_thresh > 0.0f && samples > max_samples/3)
-		{
+		if (adapt_thresh > 0.0f && samples > max_samples/3) {
 			if (adaptive_sample_variance(samples, col, colsq, adapt_thresh))
 				break;
 			
@@ -2267,8 +2234,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, const float lampco[3],
 	QMC_initPixel(qsa, shi->thread);
 
 	INIT_MINMAX(min, max);
-	for (i=0; i<totjitco; i++)
-	{
+	for (i=0; i<totjitco; i++) {
 		DO_MINMAX(jitco[i], min, max);
 	}
 	RE_rayobject_hint_bb( R.raytree, &bb_hint, min, max);

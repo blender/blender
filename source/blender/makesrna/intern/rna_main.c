@@ -347,8 +347,7 @@ void RNA_def_main(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Main_is_saved_get", NULL);
 	RNA_def_property_ui_text(prop, "File is Saved", "Has the current session been saved to disk as a .blend file");
 
-	for (i = 0; lists[i].name; i++)
-	{
+	for (i = 0; lists[i].name; i++) {
 		prop = RNA_def_property(srna, lists[i].identifier, PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_struct_type(prop, lists[i].type);
 		RNA_def_property_collection_funcs(prop, lists[i].iter_begin, "rna_iterator_listbase_next",

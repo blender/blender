@@ -430,7 +430,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 		ob= ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE, layer);
 		rename_id(&ob->id, "Field");
 
-		switch(type) {
+		switch (type) {
 			case PFIELD_WIND:
 			case PFIELD_VORTEX:
 				ob->empty_drawtype = OB_SINGLE_ARROW;
@@ -1680,7 +1680,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 		id= obn->data;
 		didit= 0;
 		
-		switch(obn->type) {
+		switch (obn->type) {
 			case OB_MESH:
 				if (dupflag & USER_DUP_MESH) {
 					ID_NEW_US2( obn->data )

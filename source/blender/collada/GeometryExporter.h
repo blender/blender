@@ -108,12 +108,13 @@ struct GeometryFunctor {
 	{
 		
 		Base *base= (Base*) sce->base.first;
-		while(base) {
+		while (base) {
 			Object *ob = base->object;
 			
-			if (ob->type == OB_MESH && ob->data
-				&& !(export_selected && !(ob->flag && SELECT))
-				&& ((sce->lay & ob->lay)!=0)) {
+			if (ob->type == OB_MESH && ob->data &&
+			    !(export_selected && !(ob->flag && SELECT)) &&
+			    ((sce->lay & ob->lay)!=0))
+			{
 				f(ob);
 			}
 			base= base->next;

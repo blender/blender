@@ -68,8 +68,7 @@ void free_vfont(struct VFont *vf)
 	if (vf == NULL) return;
 
 	if (vf->data) {
-		while (vf->data->characters.first)
-		{
+		while (vf->data->characters.first) {
 			VChar *che = vf->data->characters.first;
 			
 			while (che->nurbsbase.first) {
@@ -136,8 +135,7 @@ struct TmpFont *vfont_find_tmpfont(VFont *vfont)
 	
 	// Try finding the font from font list
 	tmpfnt = ttfdata.first;
-	while (tmpfnt)
-	{
+	while (tmpfnt) {
 		if (tmpfnt->vfont == vfont)
 			break;
 		tmpfnt = tmpfnt->next;
@@ -280,7 +278,7 @@ VFont *load_vfont(Main *bmain, const char *name)
 
 static VFont *which_vfont(Curve *cu, CharInfo *info)
 {
-	switch(info->flag & (CU_CHINFO_BOLD|CU_CHINFO_ITALIC)) {
+	switch (info->flag & (CU_CHINFO_BOLD|CU_CHINFO_ITALIC)) {
 		case CU_CHINFO_BOLD:
 			if (cu->vfontb) return(cu->vfontb); else return(cu->vfont);
 		case CU_CHINFO_ITALIC:
@@ -397,8 +395,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 		nu1 = che->nurbsbase.first;
 
 	// Create the character
-	while (nu1)
-	{
+	while (nu1) {
 		bezt1 = nu1->bezt;
 		if (bezt1) {
 			nu2 =(Nurb*) MEM_mallocN(sizeof(Nurb),"duplichar_nurb");
@@ -822,10 +819,15 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 			}
 		} 
 		else if ((cu->spacemode==CU_JUSTIFY) && (cu->tb[0].w != 0.0f)) {
-			float curofs= 0.0f;
-			for (i=0; i<=slen; i++) {
-				for (j=i; (mem[j]) && (mem[j]!='\n') && 
-						  (mem[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
+			float curofs = 0.0f;
+			for (i = 0; i <= slen; i++) {
+				for (j=i; (mem[j]) && (mem[j]!='\n') &&
+				          (mem[j] != '\r') && (chartransdata[j].dobreak == 0) && (j < slen);
+				     j++)
+				{
+					/* pass */
+				}
+
 				if ((mem[j]!='\r') && (mem[j]!='\n') &&
 					((chartransdata[j].dobreak!=0))) {
 					if (mem[i]==' ') curofs += (linedata3[ct->linenr]-linedata[ct->linenr])/linedata4[ct->linenr];
@@ -833,7 +835,7 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 				}
 				if (mem[i]=='\n' || mem[i]=='\r' || chartransdata[i].dobreak) curofs= 0;
 				ct++;
-			}			
+			}
 		}
 	}
 	
@@ -950,7 +952,7 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 		if ((mode==FO_CURSUP || mode==FO_PAGEUP) && ct->linenr==0);
 		else if ((mode==FO_CURSDOWN || mode==FO_PAGEDOWN) && ct->linenr==lnr);
 		else {
-			switch(mode) {
+			switch (mode) {
 				case FO_CURSUP:		lnr= ct->linenr-1; break;
 				case FO_CURSDOWN:	lnr= ct->linenr+1; break;
 				case FO_PAGEUP:		lnr= ct->linenr-10; break;

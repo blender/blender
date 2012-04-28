@@ -127,8 +127,7 @@ static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail, Tra
 	TransData *itail = tail;
 	*temp = *head;
 
-	while (head < tail)
-	{
+	while (head < tail) {
 		if (t->flag & T_PROP_CONNECTED) {
 			while ((tail->dist >= temp->dist) && (head < tail))
 				tail--;
@@ -138,8 +137,7 @@ static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail, Tra
 				tail--;
 		}
 
-		if (head != tail)
-		{
+		if (head != tail) {
 			*head = *tail;
 			head++;
 		}
@@ -153,8 +151,7 @@ static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail, Tra
 				head++;
 		}
 
-		if (head != tail)
-		{
+		if (head != tail) {
 			*tail = *head;
 			tail--;
 		}
@@ -535,13 +532,11 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
 	td->ob = ob;
 	td->flag = TD_SELECTED;
-	if (bone->flag & BONE_HINGE_CHILD_TRANSFORM)
-	{
+	if (bone->flag & BONE_HINGE_CHILD_TRANSFORM) {
 		td->flag |= TD_NOCENTER;
 	}
 
-	if (bone->flag & BONE_TRANSFORM_CHILD)
-	{
+	if (bone->flag & BONE_TRANSFORM_CHILD) {
 		td->flag |= TD_NOCENTER;
 		td->flag |= TD_NO_LOC;
 	}
@@ -2707,8 +2702,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 						center[2]= 0.0f;
 						
 						/* set td's based on which handles are applicable */
-						if (FrameOnMouseSide(t->frame_side, strip->start, (float)CFRA))
-						{
+						if (FrameOnMouseSide(t->frame_side, strip->start, (float)CFRA)) {
 							/* just set tdn to assume that it only has one handle for now */
 							tdn->handle= -1;
 							
@@ -2739,8 +2733,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 							td->extra= tdn;
 							td++;
 						}
-						if (FrameOnMouseSide(t->frame_side, strip->end, (float)CFRA))
-						{
+						if (FrameOnMouseSide(t->frame_side, strip->end, (float)CFRA)) {
 							/* if tdn is already holding the start handle, then we're doing both, otherwise, only end */
 							tdn->handle= (tdn->handle) ? 2 : 1;
 							
@@ -3993,7 +3986,7 @@ static TransData *SeqToTransData(TransData *td, TransData2D *td2d, TransDataSeq 
 {
 	int start_left;
 
-	switch(sel_flag) {
+	switch (sel_flag) {
 	case SELECT:
 		/* Use seq_tx_get_final_left() and an offset here
 		 * so transform has the left hand location of the strip.
@@ -4447,8 +4440,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	}
 
 	/* set active flag */
-	if (ob == OBACT)
-	{
+	if (ob == OBACT) {
 		td->flag |= TD_ACTIVE;
 	}
 }
@@ -4500,8 +4492,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 				parsel= parsel->parent;
 			}
 
-			if (parsel)
-			{
+			if (parsel) {
 				/* rotation around local centers are allowed to propagate */
 				if ((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)  && t->around == V3D_LOCAL) {
 					base->flag |= BA_TRANSFORM_CHILD;
@@ -4534,10 +4525,8 @@ static int mark_children(Object *ob)
 	if (ob->flag & (SELECT|BA_TRANSFORM_CHILD))
 		return 1;
 
-	if (ob->parent)
-	{
-		if (mark_children(ob->parent))
-		{
+	if (ob->parent) {
+		if (mark_children(ob->parent)) {
 			ob->flag |= BA_TRANSFORM_CHILD;
 			return 1;
 		}
@@ -4554,8 +4543,7 @@ static int count_proportional_objects(TransInfo *t)
 	Base *base;
 
 	/* rotations around local centers are allowed to propagate, so we take all objects */
-	if (!((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)  && t->around == V3D_LOCAL))
-	{
+	if (!((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)  && t->around == V3D_LOCAL)) {
 		/* mark all parents */
 		for (base= scene->base.first; base; base= base->next) {
 			if (TESTBASELIB_BGMODE(v3d, scene, base)) {
@@ -4616,8 +4604,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
 	Scene *sce = t->scene;
 	Base *base;
 
-	for (base= sce->base.first; base; base = base->next)
-	{
+	for (base= sce->base.first; base; base = base->next) {
 		if (base->flag & BA_WAS_SEL)
 			base->flag |= SELECT;
 
@@ -5070,8 +5057,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
 		
-		if (ac.datatype)
-		{
+		if (ac.datatype) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
 			short filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
@@ -5120,8 +5106,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
 			
-		if (ac.datatype)
-		{
+		if (ac.datatype) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
 			short filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
@@ -5147,8 +5132,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		}
 	}
 	else if (t->obedit) {
-		if (t->obedit->type == OB_MESH)
-		{
+		if (t->obedit->type == OB_MESH) {
 			BMEditMesh *em = BMEdit_FromObject(t->obedit);
 			/* table needs to be created for each edit command, since vertices can move etc */
 			mesh_octree_table(t->obedit, em, NULL, 'e');
@@ -5298,8 +5282,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 		return;
 	}
 	
-	if (propmode)
-	{
+	if (propmode) {
 		t->total += count_proportional_objects(t);
 	}
 
@@ -5315,8 +5298,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 		td->ext = tx;
 		td->ext->rotOrder= ob->rotmode;
 		
-		if (base->flag & BA_TRANSFORM_CHILD)
-		{
+		if (base->flag & BA_TRANSFORM_CHILD) {
 			td->flag |= TD_NOCENTER;
 			td->flag |= TD_NO_LOC;
 		}
@@ -5333,8 +5315,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 	}
 	CTX_DATA_END;
 	
-	if (propmode)
-	{
+	if (propmode) {
 		Scene *scene = t->scene;
 		View3D *v3d = t->view;
 		Base *base;
@@ -5343,7 +5324,8 @@ static void createTransObject(bContext *C, TransInfo *t)
 			Object *ob= base->object;
 
 			/* if base is not selected, not a parent of selection or not a child of selection and it is editable */
-			if ((ob->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 && BASE_EDITABLE_BGMODE(v3d, scene, base))
+			if ((ob->flag & (SELECT | BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
+			    BASE_EDITABLE_BGMODE(v3d, scene, base))
 			{
 				td->protectflag= ob->protectflag;
 				td->ext = tx;
@@ -6032,12 +6014,10 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 
-		if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW))
-		{
+		if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) {
 			View3D *v3d = t->view;
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			if (rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB)
-			{
+			if (rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB) {
 				t->flag |= T_CAMERA;
 			}
 		}

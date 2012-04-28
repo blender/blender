@@ -928,9 +928,10 @@ static BMVert *editbmesh_get_x_mirror_vert_spacial(Object *ob, BMEditMesh *em, f
 	/* ignore nan verts */
 	if (!finite(co[0]) ||
 	    !finite(co[1]) ||
-	    !finite(co[2])
-	    )
+	    !finite(co[2]))
+	{
 		return NULL;
+	}
 	
 	vec[0] = -co[0];
 	vec[1] = co[1];

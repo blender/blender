@@ -119,8 +119,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		uiBlock *block;
 		uiLinkLine *line, *nline;
 		uiBut *but;
-		for (block= ar->uiblocks.first; block; block= block->next)
-		{
+		for (block= ar->uiblocks.first; block; block= block->next) {
 			but= block->buttons.first;
 			while (but) {
 				if (but->type==LINK && but->link) {

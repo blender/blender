@@ -442,11 +442,14 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 							/* preview policy: take first 'Combined' pass if available,
 							 * otherwise just use the first layer.
 							 */
-							if (!firstbuf)
+							if (!firstbuf) {
 								firstbuf = stackbuf;
+							}
 							if (!combinedbuf &&
-							    (strcmp(sock->name, "Combined")==0 || strcmp(sock->name, "Image")==0))
+							    (strcmp(sock->name, "Combined") == 0 || strcmp(sock->name, "Image") == 0))
+							{
 								combinedbuf = stackbuf;
+							}
 						}
 					}
 				}

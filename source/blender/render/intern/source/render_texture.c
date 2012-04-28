@@ -1185,7 +1185,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 			tex, which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0, NULL, NULL);
 	}
 	else
-	switch(tex->type) {
+	switch (tex->type) {
 	
 	case 0:
 		texres->tin= 0.0f;
@@ -1231,7 +1231,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		copy_v3_v3(tmpvec, texvec);
 		mul_v3_fl(tmpvec, 1.0f/tex->noisesize);
 		
-		switch(tex->stype) {
+		switch (tex->stype) {
 		case TEX_MFRACTAL:
 		case TEX_FBM:
 			retval= mg_mFractalOrfBmTex(tex, tmpvec, texres);
@@ -1389,7 +1389,7 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 {
 	float facm, col;
 	
-	switch(blendtype) {
+	switch (blendtype) {
 	case MTEX_BLEND:
 		fact*= facg;
 		facm= 1.0f-fact;
@@ -1530,7 +1530,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 	facm= 1.0f-fact;
 	if (flip) SWAP(float, fact, facm);
 
-	switch(blendtype) {
+	switch (blendtype) {
 	case MTEX_BLEND:
 		in= fact*tex + facm*out;
 		break;
@@ -3054,7 +3054,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 			}
 			
 			/* Grab the mapping settings for this texture */
-			switch(mtex->texco) {
+			switch (mtex->texco) {
 			case TEXCO_ANGMAP:
 				/* only works with texture being "real" */
 				/* use saacos(), fixes bug [#22398], float precision caused lo[2] to be slightly less then -1.0 */

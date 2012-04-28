@@ -89,7 +89,7 @@ CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, f
 
 				mul_v3_m4v3(vec, mat, vec);
 
-				switch(filter_type) {
+				switch (filter_type) {
 					case 0:
 						neareast_interpolation(ibuf, obuf, vec[0], vec[1], i, j);
 						break;

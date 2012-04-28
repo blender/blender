@@ -215,7 +215,7 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 	/* in the case of only one editable thing, set pset->edittype accordingly */
 	if (pidlist.first && pidlist.first == pidlist.last) {
 		pid = pidlist.first;
-		switch(pid->type) {
+		switch (pid->type) {
 			case PTCACHE_TYPE_PARTICLES:
 				pset->edittype = PE_TYPE_PARTICLES;
 				break;
@@ -477,10 +477,12 @@ static int key_inside_rect(PEData *data, const float co[3])
 
 	if (sco[0] == IS_CLIPPED)
 		return 0;
-	
+
 	if (sco[0] > data->rect->xmin && sco[0] < data->rect->xmax &&
-	   sco[1] > data->rect->ymin && sco[1] < data->rect->ymax)
+	    sco[1] > data->rect->ymin && sco[1] < data->rect->ymax)
+	{
 		return key_test_depth(data, co);
+	}
 
 	return 0;
 }
@@ -3493,7 +3495,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 			mval[0] = bedit->lastmouse[0] + step*dx;
 			mval[1] = bedit->lastmouse[1] + step*dy;
 
-			switch(pset->brushtype) {
+			switch (pset->brushtype) {
 				case PE_BRUSH_COMB:
 				{
 					float mval_f[2];
@@ -3710,7 +3712,7 @@ static int brush_edit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int brush_edit_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	switch(event->type) {
+	switch (event->type) {
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE: // XXX hardcoded

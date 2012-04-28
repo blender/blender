@@ -2423,7 +2423,9 @@ static void ccgDM_release(DerivedMesh *dm)
 			/* Check that mmd still exists */
 			if (!ccgdm->multires.local_mmd &&
 			    BLI_findindex(&ccgdm->multires.ob->modifiers, ccgdm->multires.mmd) < 0)
+			{
 				ccgdm->multires.mmd = NULL;
+			}
 			
 			if (ccgdm->multires.mmd) {
 				if (ccgdm->multires.modified_flags & MULTIRES_COORDS_MODIFIED)

@@ -2112,7 +2112,7 @@ static void transform_image(int x, int y, struct ImBuf *ibuf1, struct ImBuf *out
 			yt += (yo / 2.0f);
 
 			//interpolate
-			switch(interpolation) {
+			switch (interpolation) {
 			case 0:
 				neareast_interpolation(ibuf1,out, xt,yt,xi,yi);
 				break;

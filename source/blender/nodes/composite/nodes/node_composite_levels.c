@@ -64,7 +64,7 @@ static void fill_bins(bNode* node, CompBuf* in, int* bins)
 			qd_getPixel(in, x, y, value);
 
 			if (value[3] > 0.0f) { /* don't count transparent pixels */
-				switch(node->custom1) {
+				switch (node->custom1) {
 					case 1: { /* all colors */
 						rgb_tobw(value[0],value[1],value[2], &value[0]);
 						value[0]=value[0]*255; /* scale to 0-255 range */
@@ -122,8 +122,7 @@ static float brightness_mean(bNode* node, CompBuf* in)
 
 			if (value[3] > 0.0f) { /* don't count transparent pixels */
 				numPixels++;
-				switch(node->custom1)
-				{
+				switch (node->custom1) {
 				case 1:
 					{
 						rgb_tobw(value[0],value[1],value[2], &value[0]);
@@ -174,8 +173,7 @@ static float brightness_standard_deviation(bNode* node, CompBuf* in, float mean)
 
 			if (value[3] > 0.0f) { /* don't count transparent pixels */
 				numPixels++;
-				switch(node->custom1)
-				{
+				switch (node->custom1) {
 				case 1:
 					{
 						rgb_tobw(value[0],value[1],value[2], &value[0]);

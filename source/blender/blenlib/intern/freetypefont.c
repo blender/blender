@@ -127,17 +127,21 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 				npoints[j] = ftoutline.contours[j] - ftoutline.contours[j - 1];
 		}
 
-		// get number of on-curve points for beziertriples (including conic virtual on-points) 
+		// get number of on-curve points for beziertriples (including conic virtual on-points)
 		for (j = 0; j < ftoutline.n_contours; j++) {
 			for (k = 0; k < npoints[j]; k++) {
-				if (j > 0) l = k + ftoutline.contours[j - 1] + 1; else l = k;
-					if (ftoutline.tags[l] == FT_Curve_Tag_On)
-						onpoints[j]++;
+				l = (j > 0) ? (k + ftoutline.contours[j - 1] + 1) : k;
 
-				if (k < npoints[j] - 1 )
+				if (ftoutline.tags[l] == FT_Curve_Tag_On)
+					onpoints[j]++;
+
+				if (k < npoints[j] - 1 ) {
 					if ( ftoutline.tags[l]   == FT_Curve_Tag_Conic &&
-						ftoutline.tags[l+1] == FT_Curve_Tag_Conic)
+					     ftoutline.tags[l+1] == FT_Curve_Tag_Conic)
+					{
 						onpoints[j]++;
+					}
+				}
 			}
 		}
 
@@ -398,8 +402,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	}
 
 	// Load characters
-	while (charcode < 256)
-	{
+	while (charcode < 256) {
 		// Generate the font data
 		freetypechar_to_vchar(face, charcode, vfd);
 

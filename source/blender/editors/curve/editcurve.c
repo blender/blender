@@ -6207,7 +6207,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 		nu->resolv= cu->resolv;
 	}
 
-	switch(stype) {
+	switch (stype) {
 	case CU_PRIM_CURVE:	/* curve */
 		nu->resolu= cu->resolu;
 		if (cutype==CU_BEZIER) {

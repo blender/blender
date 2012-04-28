@@ -204,7 +204,7 @@ MetaElem *add_metaball_element(MetaBall *mb, const int type)
 	ml->s= 2.0;
 	ml->flag= MB_SCALE_RAD;
 
-	switch(type) {
+	switch (type) {
 	case MB_BALL:
 		ml->type = MB_BALL;
 		ml->expx= ml->expy= ml->expz= 1.0;
@@ -853,7 +853,7 @@ void docube(CUBE *cube, PROCESS *p, MetaBall *mb)
 			count++;
 		}
 		if (count>2) {
-			switch(count) {
+			switch (count) {
 			case 3:
 				accum_mballfaces(indexar[2], indexar[1], indexar[0], 0);
 				break;
@@ -1179,10 +1179,13 @@ int getedge (EDGELIST *table[],
 		k2=t;
 	}
 	q = table[HASH(i1, j1, k1)+HASH(i2, j2, k2)];
-	for (; q != NULL; q = q->next)
+	for (; q != NULL; q = q->next) {
 		if (q->i1 == i1 && q->j1 == j1 && q->k1 == k1 &&
 			q->i2 == i2 && q->j2 == j2 && q->k2 == k2)
+		{
 			return q->vid;
+		}
+	}
 	return -1;
 }
 

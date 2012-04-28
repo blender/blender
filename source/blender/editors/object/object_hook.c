@@ -301,7 +301,7 @@ static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int *
 	*tot= 0;
 	name[0]= 0;
 	
-	switch(obedit->type) {
+	switch (obedit->type) {
 		case OB_MESH:
 		{
 			Mesh *me= obedit->data;

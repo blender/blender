@@ -897,10 +897,12 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 				}
 				else if (pchan->bone) {
 					/* only ok if bone is visible and selected */
-					if ( (pchan->bone->flag & BONE_SELECTED) &&
-						 (pchan->bone->flag & BONE_HIDDEN_P)==0 &&
-						 (pchan->bone->layer & arm->layer) )
+					if ((pchan->bone->flag & BONE_SELECTED) &&
+					    (pchan->bone->flag & BONE_HIDDEN_P) == 0 &&
+					    (pchan->bone->layer & arm->layer))
+					{
 						ok = 1;
+					}
 				}
 				
 				if (ok) 

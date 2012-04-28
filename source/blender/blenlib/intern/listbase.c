@@ -184,8 +184,7 @@ void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
 			
 			BLI_remlink(listbase, current);
 			
-			while (previous && cmp(previous, current) == 1)
-			{
+			while (previous && cmp(previous, current) == 1) {
 				previous = previous->prev;
 			}
 			

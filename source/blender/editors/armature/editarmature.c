@@ -2458,8 +2458,7 @@ void preEditBoneDuplicate(ListBase *editbones)
 	EditBone *eBone;
 	
 	/* clear temp */
-	for (eBone = editbones->first; eBone; eBone = eBone->next)
-	{
+	for (eBone = editbones->first; eBone; eBone = eBone->next) {
 		eBone->temp = NULL;
 	}
 }
@@ -5800,7 +5799,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		
 		/* Loop over subdivision methods */	
 		for (i = 0; lastBone == NULL && i < SKGEN_SUB_TOTAL; i++) {
-			switch(scene->toolsettings->skgen_subdivisions[i]) {
+			switch (scene->toolsettings->skgen_subdivisions[i]) {
 				case SKGEN_SUB_LENGTH:
 					lastBone = test_subdivideByLength(scene, obedit, arc, head, tail);
 					break;

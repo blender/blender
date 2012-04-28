@@ -1472,7 +1472,7 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 	if (ren_as != PART_DRAW_BB)
 		mul_m4_v3(re->viewmat, loc);
 
-	switch(ren_as) {
+	switch (ren_as) {
 		case PART_DRAW_LINE:
 			sd->line = 1;
 			sd->time = 0.0f;
@@ -2630,8 +2630,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	sizeu--; sizev--;  /* dec size for face array */
 	if (dl->flag & DL_CYCL_V) {
 		
-		for (v = 0; v < sizev; v++)
-		{
+		for (v = 0; v < sizev; v++) {
 			/* optimize! :*/
 			vlr= RE_findOrAddVlak(obr, UVTOINDEX(sizeu - 1, v));
 			vlr1= RE_findOrAddVlak(obr, UVTOINDEX(0, v));
@@ -2643,8 +2642,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	}
 	if (dl->flag & DL_CYCL_U) {
 		
-		for (u = 0; u < sizeu; u++)
-		{
+		for (u = 0; u < sizeu; u++) {
 			/* optimize! :*/
 			vlr= RE_findOrAddVlak(obr, UVTOINDEX(u, 0));
 			vlr1= RE_findOrAddVlak(obr, UVTOINDEX(u, sizev-1));
@@ -3486,8 +3484,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 										if (need_nmap_tangent != 0) {
 											const float * tangent = (const float *) layer->data;
 											float * ftang = RE_vlakren_get_nmap_tangent(obr, vlr, 1);
-											for (vindex=0; vindex<nr_verts; vindex++)
-											{
+											for (vindex=0; vindex<nr_verts; vindex++) {
 												copy_v4_v4(ftang+vindex*4, tangent+a*16+rev_tab[vindex]*4);
 												mul_mat3_m4_v3(mat, ftang+vindex*4);
 												normalize_v3(ftang+vindex*4);
@@ -3763,7 +3760,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		lar->area_sizey= lar->area_size;
 	}
 	else if (lar->type==LA_AREA) {
-		switch(lar->area_shape) {
+		switch (lar->area_shape) {
 		case LA_AREA_SQUARE:
 			lar->ray_totsamp= lar->ray_samp*lar->ray_samp;
 			lar->ray_sampy= lar->ray_samp;

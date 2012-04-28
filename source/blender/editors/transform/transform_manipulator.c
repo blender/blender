@@ -549,7 +549,7 @@ int calc_manipulator_stats(const bContext *C)
 	/* global, local or normal orientation? */
 	if (ob && totsel) {
 
-		switch(v3d->twmode) {
+		switch (v3d->twmode) {
 		
 		case V3D_MANIP_GLOBAL:
 			break; /* nothing to do */
@@ -761,7 +761,7 @@ static void manipulator_setcolor(View3D *v3d, char axis, int colcode, unsigned c
 		UI_GetThemeColor3ubv(TH_TRANSFORM, col);
 	}
 	else {
-		switch(axis) {
+		switch (axis) {
 		case 'C':
 			UI_GetThemeColor3ubv(TH_TRANSFORM, col);
 			if (v3d->twmode == V3D_MANIP_LOCAL) {
@@ -1483,7 +1483,7 @@ void BIF_draw_manipulator(const bContext *C)
 		v3d->twflag |= V3D_DRAW_MANIPULATOR;
 
 		/* now we can define center */
-		switch(v3d->around) {
+		switch (v3d->around) {
 		case V3D_CENTER:
 		case V3D_ACTIVE:
 			rv3d->twmat[3][0]= (scene->twmin[0] + scene->twmax[0])/2.0f;
@@ -1639,7 +1639,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 		if (drawflags==0) drawflags= val;
 
 		if (drawflags & MAN_TRANS_C) {
-			switch(drawflags) {
+			switch (drawflags) {
 			case MAN_TRANS_C:
 				break;
 			case MAN_TRANS_X:
@@ -1672,7 +1672,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_translate", 0), event, op->ptr, NULL, FALSE);
 		}
 		else if (drawflags & MAN_SCALE_C) {
-			switch(drawflags) {
+			switch (drawflags) {
 			case MAN_SCALE_X:
 				if (shift) {
 					constraint_axis[1] = 1;
@@ -1707,7 +1707,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_trackball", 0), event, op->ptr, NULL, FALSE);
 		}
 		else if (drawflags & MAN_ROT_C) {
-			switch(drawflags) {
+			switch (drawflags) {
 			case MAN_ROT_X:
 				constraint_axis[0] = 1;
 				break;

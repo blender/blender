@@ -39,11 +39,10 @@ template<class Functor>
 void forEachLampObjectInScene(Scene *sce, Functor &f, bool export_selected)
 {
 	Base *base= (Base*) sce->base.first;
-	while(base) {
+	while (base) {
 		Object *ob = base->object;
-			
-		if (ob->type == OB_LAMP && ob->data
-			&& !(export_selected && !(ob->flag & SELECT))) {
+
+		if (ob->type == OB_LAMP && ob->data && !(export_selected && !(ob->flag & SELECT))) {
 			f(ob);
 		}
 		base= base->next;

@@ -2337,7 +2337,10 @@ int CustomData_layer_has_math(struct CustomData *data, int layer_n)
 	const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[layer_n].type);
 	
 	if (typeInfo->equal && typeInfo->add && typeInfo->multiply && 
-	    typeInfo->initminmax && typeInfo->dominmax) return 1;
+	    typeInfo->initminmax && typeInfo->dominmax)
+	{
+		return 1;
+	}
 	
 	return 0;
 }
@@ -2684,7 +2687,9 @@ int CustomData_verify_versions(struct CustomData *data, int index)
 
 		if (!typeInfo->defaultname && (index > 0) &&
 			data->layers[index-1].type == layer->type)
+		{
 			keeplayer = 0; /* multiple layers of which we only support one */
+		}
 	}
 
 	if (!keeplayer) {

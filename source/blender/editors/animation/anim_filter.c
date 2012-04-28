@@ -992,8 +992,7 @@ static size_t animfilter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *
 	 *		4) the fcu pointer is set to the F-Curve after the one we just added, so that we can keep going through 
 	 *		   the rest of the F-Curve list without an eternal loop. Back to step 2 :)
 	 */
-	for (fcu=first; ( (fcu = animfilter_fcurve_next(ads, fcu, grp, filter_mode, owner_id)) ); fcu=fcu->next)
-	{
+	for (fcu = first; ( (fcu = animfilter_fcurve_next(ads, fcu, grp, filter_mode, owner_id)) ); fcu = fcu->next) {
 		ANIMCHANNEL_NEW_CHANNEL(fcu, ANIMTYPE_FCURVE, owner_id);
 	}
 	

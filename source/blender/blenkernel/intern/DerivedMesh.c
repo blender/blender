@@ -2279,8 +2279,10 @@ DerivedMesh *editbmesh_get_derived_cage_and_final(Scene *scene, Object *obedit, 
 	 * the data we need, rebuild the derived mesh
 	 */
 	if (!em->derivedCage ||
-	   (em->lastDataMask & dataMask) != dataMask)
+	    (em->lastDataMask & dataMask) != dataMask)
+	{
 		editbmesh_build_data(scene, obedit, em, dataMask);
+	}
 
 	*final_r = em->derivedFinal;
 	return em->derivedCage;
@@ -2292,8 +2294,10 @@ DerivedMesh *editbmesh_get_derived_cage(Scene *scene, Object *obedit, BMEditMesh
 	 * the data we need, rebuild the derived mesh
 	 */
 	if (!em->derivedCage ||
-	   (em->lastDataMask & dataMask) != dataMask)
+	    (em->lastDataMask & dataMask) != dataMask)
+	{
 		editbmesh_build_data(scene, obedit, em, dataMask);
+	}
 
 	return em->derivedCage;
 }
@@ -2701,8 +2705,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 					if (nr_tris_to_pile==1 || nr_tris_to_pile==2) {
 						const int indices[] = {offs+0, offs+1, offs+2, offs+0, offs+2, (offs+3)&0x3 };
 						int t;
-						for ( t=0; t<nr_tris_to_pile; t++ )
-						{
+						for ( t=0; t<nr_tris_to_pile; t++ ) {
 							float f2x_area_uv;
 							float * p0 = verts[indices[t*3+0]];
 							float * p1 = verts[indices[t*3+1]];

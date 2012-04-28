@@ -195,8 +195,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		vertHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask vert gh");
 		
 		/* add vertices which exist in vertexgroups into vertHash for filtering */
-		for (i= 0, dv= dvert; i < maxVerts; i++, dv++)
-		{
+		for (i= 0, dv= dvert; i < maxVerts; i++, dv++) {
 			MDeformWeight *dw= dv->dw;
 			int j;
 
@@ -229,8 +228,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		BLI_ghash_free(vgroupHash, NULL, NULL);
 		MEM_freeN(bone_select_array);
 	}
-	else		/* --- Using Nominated VertexGroup only --- */ 
-	{
+	else {		/* --- Using Nominated VertexGroup only --- */
 		int defgrp_index = defgroup_name_index(ob, mmd->vgroup);
 		
 		/* get dverts */
@@ -245,8 +243,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		vertHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask vert2 bh");
 		
 		/* add vertices which exist in vertexgroup into ghash for filtering */
-		for (i= 0, dv= dvert; i < maxVerts; i++, dv++)
-		{
+		for (i= 0, dv= dvert; i < maxVerts; i++, dv++) {
 			const int weight_set= defvert_find_weight(dv, defgrp_index) != 0.0f;
 			
 			/* check if include vert in vertHash */
@@ -277,8 +274,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* loop over edges and faces, and do the same thing to 
 	 * ensure that they only reference existing verts 
 	 */
-	for (i = 0; i < maxEdges; i++) 
-	{
+	for (i = 0; i < maxEdges; i++)  {
 		MEdge me;
 		dm->getEdge(dm, i, &me);
 		
@@ -290,8 +286,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			numEdges++;
 		}
 	}
-	for (i = 0; i < maxPolys; i++)
-	{
+	for (i = 0; i < maxPolys; i++) {
 		MPoly *mp = &mpoly[i];
 		MLoop *ml = mloop + mp->loopstart;
 		int ok = TRUE;

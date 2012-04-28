@@ -87,11 +87,9 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 					   BLI_memarena_use_malloc(arena1);
 	
 	//Build and optimize the tree
-	if (1)
-	{
+	if (1) {
 		VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1,&obj->rayobj.control).transform(obj->builder);
-		if (RE_rayobjectcontrol_test_break(&obj->rayobj.control))
-		{
+		if (RE_rayobjectcontrol_test_break(&obj->rayobj.control)) {
 			BLI_memarena_free(arena1);
 			return;
 		}
@@ -108,8 +106,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 		else
 			obj->root = NULL;
 	}
-	else
-	{
+	else {
 /*
 	TODO
 		MemArena *arena2 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "vbvh arena2");
@@ -159,8 +156,7 @@ void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *UNUSED(min), float *UNUSED(m
 
 void bfree(VBVHTree *tree)
 {
-	if (tot_pushup + tot_pushdown + tot_hints + tot_moves)
-	{
+	if (tot_pushup + tot_pushdown + tot_hints + tot_moves) {
 		if (G.debug & G_DEBUG) {
 			printf("tot pushups: %d\n", tot_pushup);
 			printf("tot pushdowns: %d\n", tot_pushdown);

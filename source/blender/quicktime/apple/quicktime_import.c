@@ -195,16 +195,19 @@ int anim_is_quicktime (const char *name)
 			
 	// don't let quicktime movie import handle these
 	if ( BLI_testextensie(name, ".swf") ||
-		BLI_testextensie(name, ".txt") ||
-		BLI_testextensie(name, ".mpg") ||
-		BLI_testextensie(name, ".avi") ||	// wouldnt be appropriate ;)
-		BLI_testextensie(name, ".tga") ||
-		BLI_testextensie(name, ".png") ||
-		BLI_testextensie(name, ".bmp") ||
-		BLI_testextensie(name, ".jpg") ||
-		BLI_testextensie(name, ".wav") ||
-		BLI_testextensie(name, ".zip") ||
-		BLI_testextensie(name, ".mp3")) return 0;
+	     BLI_testextensie(name, ".txt") ||
+	     BLI_testextensie(name, ".mpg") ||
+	     BLI_testextensie(name, ".avi") ||	// wouldnt be appropriate ;)
+	     BLI_testextensie(name, ".tga") ||
+	     BLI_testextensie(name, ".png") ||
+	     BLI_testextensie(name, ".bmp") ||
+	     BLI_testextensie(name, ".jpg") ||
+	     BLI_testextensie(name, ".wav") ||
+	     BLI_testextensie(name, ".zip") ||
+	     BLI_testextensie(name, ".mp3"))
+	{
+		return 0;
+	}
 
 	if (QTIME_DEBUG) printf("qt: checking as movie: %s\n", name);
 
@@ -582,13 +585,16 @@ int imb_is_a_quicktime (char *name)
 	if (QTIME_DEBUG) printf("qt: checking as image %s\n", name);
 
 	// don't let quicktime image import handle these
-	if ( BLI_testextensie(name, ".swf") ||
-		BLI_testextensie(name, ".txt") ||
-		BLI_testextensie(name, ".mpg") ||
-		BLI_testextensie(name, ".wav") ||
-		BLI_testextensie(name, ".mov") ||	// not as image, doesn't work
-		BLI_testextensie(name, ".avi") ||
-		BLI_testextensie(name, ".mp3")) return 0;
+	if (BLI_testextensie(name, ".swf") ||
+	    BLI_testextensie(name, ".txt") ||
+	    BLI_testextensie(name, ".mpg") ||
+	    BLI_testextensie(name, ".wav") ||
+	    BLI_testextensie(name, ".mov") ||	// not as image, doesn't work
+	    BLI_testextensie(name, ".avi") ||
+	    BLI_testextensie(name, ".mp3"))
+	{
+		return 0;
+	}
 
 	sprintf(theFullPath, "%s", name);
 #ifdef __APPLE__

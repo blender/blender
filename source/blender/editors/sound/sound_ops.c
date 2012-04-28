@@ -437,8 +437,7 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 	RNA_def_property_flag(prop_codec, PROP_HIDDEN);
 	RNA_def_property_flag(prop_format, PROP_HIDDEN);
 
-	switch(container)
-	{
+	switch (container) {
 	case AUD_CONTAINER_AC3:
 		RNA_def_property_clear_flag(prop_format, PROP_HIDDEN);
 		RNA_def_property_enum_items(prop_format, ac3_format_items);
@@ -460,8 +459,7 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 		RNA_def_property_clear_flag(prop_codec, PROP_HIDDEN);
 		RNA_def_property_enum_items(prop_codec, all_codec_items);
 
-		switch(codec)
-		{
+		switch (codec) {
 		case AUD_CODEC_AAC:
 			RNA_enum_set(op->ptr, "format", AUD_FORMAT_S16);
 			break;

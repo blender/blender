@@ -594,8 +594,7 @@ static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDom
 	int channelObjCount = 0;
 	int fluidInputCount = 0;
 
-	for (base=scene->base.first; base; base= base->next)
-	{
+	for (base=scene->base.first; base; base= base->next) {
 		Object *ob = base->object;
 		FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);			
 

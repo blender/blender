@@ -357,7 +357,7 @@ NlaStrip *add_nla_soundstrip (Scene *scene, Speaker *speaker)
 		
 		strip->end = (float)ceil((double)info.length * FPS);
 	}
-	else 
+	else
 #endif
 	{
 		strip->end = 10.0f;
@@ -373,7 +373,7 @@ NlaStrip *add_nla_soundstrip (Scene *scene, Speaker *speaker)
 	strip->extendmode = NLASTRIP_EXTEND_NOTHING; /* nothing to extend... */
 	
 	/* strip should be referenced as-is */
-	strip->scale= 1.0f;
+	strip->scale = 1.0f;
 	strip->repeat = 1.0f;
 	
 	/* return this strip */

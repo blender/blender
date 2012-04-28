@@ -526,7 +526,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 	SlideMarkerData *data = (SlideMarkerData *)op->customdata;
 	float dx, dy, mdelta[2];
 
-	switch(event->type) {
+	switch (event->type) {
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
 		case LEFTSHIFTKEY:

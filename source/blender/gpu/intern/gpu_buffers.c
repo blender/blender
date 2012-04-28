@@ -861,7 +861,7 @@ const GPUBufferTypeSettings gpu_buffer_type_settings[] = {
 /* get the GPUDrawObject buffer associated with a type */
 static GPUBuffer **gpu_drawobject_buffer_from_type(GPUDrawObject *gdo, GPUBufferType type)
 {
-	switch(type) {
+	switch (type) {
 	case GPU_BUFFER_VERTEX:
 		return &gdo->points;
 	case GPU_BUFFER_NORMAL:
@@ -882,7 +882,7 @@ static GPUBuffer **gpu_drawobject_buffer_from_type(GPUDrawObject *gdo, GPUBuffer
 /* get the amount of space to allocate for a buffer of a particular type */
 static int gpu_buffer_size_from_type(DerivedMesh *dm, GPUBufferType type)
 {
-	switch(type) {
+	switch (type) {
 	case GPU_BUFFER_VERTEX:
 		return sizeof(float)*3 * (dm->drawObject->tot_triangle_point + dm->drawObject->tot_loose_point);
 	case GPU_BUFFER_NORMAL:
@@ -1059,7 +1059,7 @@ void GPU_uvedge_setup(DerivedMesh *dm)
 
 static int GPU_typesize(int type)
 {
-	switch(type) {
+	switch (type) {
 	case GL_FLOAT:
 		return sizeof(float);
 	case GL_INT:

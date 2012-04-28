@@ -862,7 +862,7 @@ static void bake_images(MultiresBakeRender *bkr)
 		if (ibuf->x>0 && ibuf->y>0) {
 			ibuf->userdata= MEM_callocN(ibuf->y*ibuf->x, "MultiresBake imbuf mask");
 
-			switch(bkr->mode) {
+			switch (bkr->mode) {
 				case RE_BAKE_NORMALS:
 					do_multires_bake(bkr, ima, apply_tangmat_callback, init_normal_data, NULL, free_normal_data);
 					break;

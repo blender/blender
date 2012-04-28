@@ -97,7 +97,7 @@ static DerivedMesh *get_quick_derivedMesh(DerivedMesh *derivedData, DerivedMesh 
 	DerivedMesh *result = NULL;
 
 	if (derivedData->getNumPolys(derivedData) == 0 || dm->getNumPolys(dm) == 0) {
-		switch(operation) {
+		switch (operation) {
 			case eBooleanModifierOp_Intersect:
 				result = CDDM_new(0, 0, 0, 0, 0);
 				break;

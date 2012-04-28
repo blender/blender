@@ -1061,8 +1061,7 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	
 	
 		/* after the leading text is gone, chop off the : and following space, with ofs */
-		while ((but->strwidth > okwidth) && (but->ofs < 2))
-		{
+		while ((but->strwidth > okwidth) && (but->ofs < 2)) {
 			ui_text_clip_give_next_off(but);
 			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
 			if (but->strwidth < 10) break;

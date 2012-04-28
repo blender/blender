@@ -884,8 +884,9 @@ static void FHT2D(fREAL *data, unsigned int Mx, unsigned int My,
 			#define PRED(k) (((k & Nym) << Mx) + (k >> My))
 			for (j=PRED(i); j>i; j=PRED(j));
 			if (j < i) continue;
-			for (k=i, j=PRED(i); j!=i; k=j, j=PRED(j), stm--)
-				{ t=data[j], data[j]=data[k], data[k]=t; }
+			for (k=i, j=PRED(i); j!=i; k=j, j=PRED(j), stm--) {
+				t=data[j], data[j]=data[k], data[k]=t;
+			}
 			#undef PRED
 			stm--;
 		}
@@ -1108,7 +1109,7 @@ void qd_getPixel(CompBuf* src, int x, int y, float* col)
 		float bc[4];
 		src->rect_procedural(src, bc, (float)x/(float)src->xrad, (float)y/(float)src->yrad);
 
-		switch(src->type) {
+		switch (src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: col[3]=bc[3]; 
 			case CB_VEC3: col[2]=bc[2];
@@ -1118,7 +1119,7 @@ void qd_getPixel(CompBuf* src, int x, int y, float* col)
 	}
 	else if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
 		float* bc = &src->rect[(x + y*src->x)*src->type];
-		switch(src->type) {
+		switch (src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: col[3]=bc[3]; 
 			case CB_VEC3: col[2]=bc[2];
@@ -1127,7 +1128,7 @@ void qd_getPixel(CompBuf* src, int x, int y, float* col)
 		}
 	}
 	else {
-		switch(src->type) {
+		switch (src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: col[3]=0.0; 
 			case CB_VEC3: col[2]=0.0; 
@@ -1142,7 +1143,7 @@ void qd_setPixel(CompBuf* src, int x, int y, float* col)
 {
 	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
 		float* bc = &src->rect[(x + y*src->x)*src->type];
-		switch(src->type) {
+		switch (src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: bc[3]=col[3]; 
 			case CB_VEC3: bc[2]=col[2];

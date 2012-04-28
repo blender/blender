@@ -3200,9 +3200,12 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 	else {
 		if (use_secondary_prop &&
 		    RNA_property_boolean_get(&use_secondary_ptr, use_secondary_prop))
+		{
 			data_path = "data_path_secondary";
-		else
+		}
+		else {
 			data_path = "data_path_primary";
+		}
 	}
 
 	if (!radial_control_get_path(&ctx_ptr, op, data_path, &rc->ptr, &rc->prop, 0, 0))
@@ -3225,7 +3228,9 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 	if (!radial_control_get_path(&ctx_ptr, op, "zoom_path",
 	                             &rc->zoom_ptr, &rc->zoom_prop, 2,
 	                             RC_PROP_REQUIRE_FLOAT | RC_PROP_ALLOW_MISSING))
+	{
 		return 0;
+	}
 	
 	if (!radial_control_get_path(&ctx_ptr, op, "image_id", &rc->image_id_ptr, NULL, 0, 0))
 		return 0;

@@ -442,7 +442,9 @@ AviError AVI_open_movie (const char *name, AviMovie *movie)
 
 	if (GET_FCC (movie->fp) != FCC("RIFF") ||
 		!(movie->size = GET_FCC (movie->fp)))
+	{
 		return AVI_ERROR_FORMAT;
+	}
 
 	movie->header = (AviMainHeader *) MEM_mallocN (sizeof (AviMainHeader), "movieheader");
 

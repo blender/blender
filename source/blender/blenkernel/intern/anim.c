@@ -1350,9 +1350,11 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 			/* some hair paths might be non-existent so they can't be used for duplication */
 			if (hair &&
-				((a < totpart && psys->pathcache[a]->steps < 0) ||
-				(a >= totpart && psys->childcache[a-totpart]->steps < 0)))
+			    ((a < totpart && psys->pathcache[a]->steps < 0) ||
+			     (a >= totpart && psys->childcache[a-totpart]->steps < 0)))
+			{
 				continue;
+			}
 
 			if (part->ren_as==PART_DRAW_GR) {
 				/* prevent divide by zero below [#28336] */

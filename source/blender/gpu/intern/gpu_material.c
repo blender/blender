@@ -397,8 +397,7 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 		if (lamp->type==LA_AREA)
 			return visifac;
 
-		switch(lamp->falloff_type)
-		{
+		switch (lamp->falloff_type) {
 			case LA_FALLOFF_CONSTANT:
 				break;
 			case LA_FALLOFF_INVLINEAR:
@@ -535,7 +534,7 @@ static void add_to_diffuse(GPUMaterial *mat, Material *ma, GPUShadeInput *shi, G
 		}
 		else {
 			/* input */
-			switch(ma->rampin_col) {
+			switch (ma->rampin_col) {
 			case MA_RAMP_IN_ENERGY:
 				GPU_link(mat, "ramp_rgbtobw", rgb, &fac);
 				break;
@@ -588,7 +587,7 @@ static void do_specular_ramp(GPUShadeInput *shi, GPUNodeLink *is, GPUNodeLink *t
 	if (ma->ramp_spec && (ma->rampin_spec!=MA_RAMP_IN_RESULT)) {
 		
 		/* input */
-		switch(ma->rampin_spec) {
+		switch (ma->rampin_spec) {
 		case MA_RAMP_IN_ENERGY:
 			fac = t;
 			break;
@@ -807,7 +806,7 @@ static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
 
 static void texture_rgb_blend(GPUMaterial *mat, GPUNodeLink *tex, GPUNodeLink *out, GPUNodeLink *fact, GPUNodeLink *facg, int blendtype, GPUNodeLink **in)
 {
-	switch(blendtype) {
+	switch (blendtype) {
 	case MTEX_BLEND:
 		GPU_link(mat, "mtex_rgb_blend", out, tex, fact, facg, in);
 		break;
@@ -858,7 +857,7 @@ static void texture_rgb_blend(GPUMaterial *mat, GPUNodeLink *tex, GPUNodeLink *o
 
 static void texture_value_blend(GPUMaterial *mat, GPUNodeLink *tex, GPUNodeLink *out, GPUNodeLink *fact, GPUNodeLink *facg, int blendtype, GPUNodeLink **in)
 {
-	switch(blendtype) {
+	switch (blendtype) {
 	case MTEX_BLEND:
 		GPU_link(mat, "mtex_value_blend", out, tex, fact, facg, in);
 		break;
@@ -1767,7 +1766,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 				uniform->datatype = GPU_DATA_1I;
 				BLI_strncpy(uniform->varname, input->shadername, sizeof(uniform->varname));
 
-				switch(input->textype) {
+				switch (input->textype) {
 				case GPU_SHADOW2D:
 					uniform->type = GPU_DYNAMIC_SAMPLER_2DSHADOW;
 					uniform->lamp = input->dynamicdata;
@@ -1788,7 +1787,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 			else {
 				uniform->type = input->dynamictype;
 				BLI_strncpy(uniform->varname, input->shadername, sizeof(uniform->varname));
-				switch(input->type) {
+				switch (input->type) {
 				case 1:
 					uniform->datatype = GPU_DATA_1F;
 					break;
@@ -1847,7 +1846,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 			attribute->number = mat->attribs.layer[i].glindex;
 			BLI_snprintf(attribute->varname, sizeof(attribute->varname), "att%d", mat->attribs.layer[i].attribid);
 
-			switch(attribute->type) {
+			switch (attribute->type) {
 			case CD_TANGENT:
 				attribute->datatype = GPU_DATA_4F;
 				break;

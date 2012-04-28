@@ -184,7 +184,7 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 	*dvert_arr = NULL;
 
 	if (id) {
-		switch(GS(id->name)) {
+		switch (GS(id->name)) {
 			case ID_ME:
 			{
 				Mesh *me = (Mesh *)id;
@@ -287,7 +287,7 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 int ED_vgroup_give_array(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
 {
 	if (id) {
-		switch(GS(id->name)) {
+		switch (GS(id->name)) {
 			case ID_ME:
 			{
 				Mesh *me = (Mesh *)id;
@@ -412,7 +412,7 @@ static void ED_vgroup_nr_vert_add(Object *ob,
 		dw= defvert_find_index(dv, def_nr);
 
 		if (dw) {
-			switch(assignmode) {
+			switch (assignmode) {
 			case WEIGHT_REPLACE:
 				dw->weight = weight;
 				break;
@@ -437,7 +437,7 @@ static void ED_vgroup_nr_vert_add(Object *ob,
 			 * we must take a different form of action ...
 			 */
 
-			switch(assignmode) {
+			switch (assignmode) {
 			case WEIGHT_SUBTRACT:
 				/* if we are subtracting then we don't
 				 * need to do anything
@@ -1043,8 +1043,9 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 				dm_deform_clear(dm, ob); dm = NULL;
 			}
 		}
-	} while (wasChange && (distToStart-distToBe)/fabsf(distToStart-distToBe) ==
-	                     (dists[bestIndex]-distToBe)/fabsf(dists[bestIndex]-distToBe));
+	} while (wasChange && ((distToStart - distToBe) / fabsf(distToStart - distToBe) ==
+	                       (dists[bestIndex] - distToBe) / fabsf(dists[bestIndex] - distToBe)));
+
 	MEM_freeN(upDown);
 	MEM_freeN(changes);
 	MEM_freeN(dists);
@@ -1193,7 +1194,7 @@ static void vgroup_lock_all(Object *ob, int action)
 	}
 
 	for (dg= ob->defbase.first; dg; dg= dg->next) {
-		switch(action) {
+		switch (action) {
 			case SEL_SELECT:
 				dg->flag |= DG_LOCK_WEIGHT;
 				break;

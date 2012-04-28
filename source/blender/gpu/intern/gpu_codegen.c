@@ -710,8 +710,10 @@ static void GPU_nodes_extract_dynamic_inputs(GPUPass *pass, ListBase *nodes)
 			/* attributes don't need to be bound, they already have
 			 * an id that the drawing functions will use */
 			if (input->source == GPU_SOURCE_ATTRIB ||
-			   input->source == GPU_SOURCE_BUILTIN)
+			    input->source == GPU_SOURCE_BUILTIN)
+			{
 				continue;
+			}
 
 			if (input->ima || input->tex)
 				BLI_snprintf(input->shadername, sizeof(input->shadername), "samp%d", input->texid);
@@ -1034,8 +1036,10 @@ static void gpu_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *a
 			if (input->source == GPU_SOURCE_ATTRIB) {
 				for (a=0; a<attribs->totlayer; a++) {
 					if (attribs->layer[a].type == input->attribtype &&
-						strcmp(attribs->layer[a].name, input->attribname) == 0)
+					    strcmp(attribs->layer[a].name, input->attribname) == 0)
+					{
 						break;
+					}
 				}
 
 				if (a == attribs->totlayer && a < GPU_MAX_ATTRIB) {
