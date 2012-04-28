@@ -88,7 +88,7 @@ typedef struct VertexSlideOp {
 	int disk_edges;
 
 	/* Edges */
-	BMEdge** edge_frame;
+	BMEdge **edge_frame;
 
 	/* Slide Frame Endpoints */
 	float (*vtx_frame)[3];
@@ -194,7 +194,7 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 {
 	VertexSlideOp *vso = op->customdata;
 	BMEditMesh *em = BMEdit_FromObject(vso->obj);
-	BMesh* bm = em->bm;
+	BMesh *bm = em->bm;
 
 	/* Select new edge */
 	BM_edge_select_set(bm, vso->sel_edge, TRUE);
@@ -204,7 +204,7 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 
 	if (vso->snap_n_merge) {
 		float other_d;
-		BMVert* other = BM_edge_other_vert(vso->sel_edge, vso->start_vtx);
+		BMVert *other = BM_edge_other_vert(vso->sel_edge, vso->start_vtx);
 		other_d = len_v3v3(vso->interp, other->co);
 
 		/* Only snap if within threshold */
@@ -339,12 +339,12 @@ static void vtx_slide_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	}
 }
 
-static BMEdge* vtx_slide_nrst_in_frame(VertexSlideOp *vso, const float mval[2])
+static BMEdge *vtx_slide_nrst_in_frame(VertexSlideOp *vso, const float mval[2])
 {
-	BMEdge* cl_edge = NULL;
+	BMEdge *cl_edge = NULL;
 	if (vso->disk_edges > 0) {
 		int i = 0;
-		BMEdge* edge = NULL;
+		BMEdge *edge = NULL;
 		
 		float v1_proj[3], v2_proj[3];
 		float dist = 0;
@@ -481,7 +481,7 @@ static int vtx_slide_set_frame(VertexSlideOp *vso)
 {
 	BMEdge *edge;
 	float (*vtx_frame)[3] = NULL;
-	BMEdge** edge_frame = NULL;
+	BMEdge **edge_frame = NULL;
 	BMVert *curr_vert = NULL;
 	BLI_array_declare(vtx_frame);
 	BLI_array_declare(edge_frame);

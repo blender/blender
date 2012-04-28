@@ -112,9 +112,9 @@ static float edbm_rip_edge_side_measure(BMEdge *e, BMLoop *e_l,
 	score = len_v2v2(e_v1_co, e_v2_co);
 
 	if (dist_to_line_segment_v2(fmval_tweak, e_v1_co, e_v2_co) >
-		dist_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
+	    dist_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
 	{
-		return  score;
+		return score;
 	}
 	else {
 		return -score;
@@ -348,7 +348,7 @@ static int edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
 	BMOperator bmop;
 
 	if (!EDBM_op_init(em, &bmop, op, "edgesplit edges=%he verts=%hv use_verts=%b",
-					  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
+	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
 		return FALSE;
 	}
 	BMO_op_exec(em->bm, &bmop);

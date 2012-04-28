@@ -106,7 +106,7 @@ void MESH_OT_duplicate(struct wmOperatorType *ot);
 
 extern int EM_view3d_poll(struct bContext *C);
 
-struct wmKeyMap* knifetool_modal_keymap(struct wmKeyConfig *keyconf);
+struct wmKeyMap *knifetool_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* ******************* knifetool.c */
 
