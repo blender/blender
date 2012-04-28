@@ -515,15 +515,6 @@ __device_inline void print_float3(const char *label, const float3& a)
 	printf("%s: %.8f %.8f %.8f\n", label, a.x, a.y, a.z);
 }
 
-__device_inline float reduce_add(const float3& a)
-{
-#ifdef __KERNEL_SSE__
-	return (a.x + a.y + a.z);
-#else
-	return (a.x + a.y + a.z);
-#endif
-}
-
 __device_inline float3 rcp(const float3& a)
 {
 #ifdef __KERNEL_SSE__
@@ -547,6 +538,15 @@ __device_inline bool is_zero(const float3 a)
 	return a == make_float3(0.0f);
 #else
 	return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f);
+#endif
+}
+
+__device_inline float reduce_add(const float3& a)
+{
+#ifdef __KERNEL_SSE__
+	return (a.x + a.y + a.z);
+#else
+	return (a.x + a.y + a.z);
 #endif
 }
 
@@ -783,16 +783,6 @@ __device_inline float4 reduce_add(const float4& a)
 }
 #endif
 
-__device_inline float reduce_add(const float4& a)
-{
-#ifdef __KERNEL_SSE__
-	float4 h = shuffle<1,0,3,2>(a) + a;
-	return _mm_cvtss_f32(shuffle<2,3,0,1>(h) + h); /* todo: efficiency? */
-#else
-	return ((a.x + a.y) + (a.z + a.w));
-#endif
-}
-
 __device_inline void print_float4(const char *label, const float4& a)
 {
 	printf("%s: %.8f %.8f %.8f %.8f\n", label, a.x, a.y, a.z, a.w);
@@ -808,6 +798,16 @@ __device_inline bool is_zero(const float4& a)
 	return a == make_float4(0.0f);
 #else
 	return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f && a.w == 0.0f);
+#endif
+}
+
+__device_inline float reduce_add(const float4& a)
+{
+#ifdef __KERNEL_SSE__
+	float4 h = shuffle<1,0,3,2>(a) + a;
+	return _mm_cvtss_f32(shuffle<2,3,0,1>(h) + h); /* todo: efficiency? */
+#else
+	return ((a.x + a.y) + (a.z + a.w));
 #endif
 }
 
