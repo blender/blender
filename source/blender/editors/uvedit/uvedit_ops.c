@@ -47,6 +47,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
+#include "BLI_lasso.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
 #include "BLI_utildefines.h"
@@ -1699,7 +1700,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
+	ToolSettings *ts = scene->toolsettings;
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2101,7 +2102,7 @@ static int select_linked_internal(bContext *C, wmOperator *op, wmEvent *event, i
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
+	ToolSettings *ts = scene->toolsettings;
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2203,7 +2204,7 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 static int unlink_selection_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
+	ToolSettings *ts = scene->toolsettings;
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2289,7 +2290,7 @@ static void uv_select_sync_flush(ToolSettings *ts, BMEditMesh *em, const short s
  * 
  * De-selects faces that have been tagged on efa->tmp.l.  */
 
-static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Object *obedit, short select)
+static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, short select)
 {
 	/* Selecting UV Faces with some modes requires us to change 
 	 * the selection in other faces (depending on the sticky mode).
@@ -2297,7 +2298,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 	 * This only needs to be done when the Mesh is not used for
 	 * selection (so for sticky modes, vertex or location based). */
 	
-	ToolSettings *ts = CTX_data_tool_settings(C);
+	ToolSettings *ts = scene->toolsettings;
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *efa;
 	BMLoop *l;
@@ -2418,7 +2419,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
+	ToolSettings *ts = scene->toolsettings;
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima = CTX_data_edit_image(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2477,7 +2478,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 		/* (de)selects all tagged faces and deals with sticky modes */
 		if (change)
-			uv_faces_do_sticky(C, sima, scene, obedit, select);
+			uv_faces_do_sticky(sima, scene, obedit, select);
 	}
 	else {
 		/* other selection modes */
@@ -2512,7 +2513,9 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	if (change) {
 		uv_select_sync_flush(ts, em, select);
 
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		if (ts->uv_flag & UV_SYNC_SELECTION) {
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		}
 		
 		return OPERATOR_FINISHED;
 	}
@@ -2571,6 +2574,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	ARegion *ar = CTX_wm_region(C);
@@ -2608,9 +2612,11 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	}
 
 	if (change) {
-		uv_select_sync_flush(scene->toolsettings, em, select);
+		uv_select_sync_flush(ts, em, select);
 
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		if (ts->uv_flag & UV_SYNC_SELECTION) {
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		}
 	}
 
 	return OPERATOR_FINISHED;
@@ -2639,6 +2645,126 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 }
+
+
+/* ******************** lasso select operator **************** */
+
+static void do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, short select)
+{
+	Image *ima = CTX_data_edit_image(C);
+	ARegion *ar = CTX_wm_region(C);
+	Object *obedit = CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+
+	BMIter iter, liter;
+
+	BMFace *efa;
+	BMLoop *l;
+	MTexPoly *tf;
+	int screen_uv[2], change = TRUE;
+	rcti rect;
+
+	BLI_lasso_boundbox(&rect, mcords, moves);
+
+	if (ts->uv_selectmode == UV_SELECT_FACE) { /* Face Center Sel */
+		change = FALSE;
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			/* assume not touched */
+			if ((select) != (uvedit_face_select_test(scene, em, efa))) {
+				float cent[2];
+				uv_poly_center(em, efa, cent);
+				UI_view2d_view_to_region(&ar->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]);
+				if (BLI_in_rcti(&rect, screen_uv[0], screen_uv[1]) &&
+				    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
+				{
+					uvedit_face_select_enable(scene, em, efa, FALSE);
+					change = TRUE;
+				}
+			}
+		}
+	}
+	else { /* Vert Sel */
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					if ((select) != (uvedit_uv_select_test(em, scene, l))) {
+						MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+						UI_view2d_view_to_region(&ar->v2d, luv->uv[0], luv->uv[1], &screen_uv[0], &screen_uv[1]);
+						if (BLI_in_rcti(&rect, screen_uv[0], screen_uv[1]) &&
+						    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
+						{
+							if (select) {
+								uvedit_uv_select_enable(em, scene, l, FALSE);
+							}
+							else {
+								uvedit_uv_select_disable(em, scene, l);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	if (change) {
+		uv_select_sync_flush(scene->toolsettings, em, select);
+
+		if (ts->uv_flag & UV_SYNC_SELECTION) {
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		}
+	}
+}
+
+static int uv_lasso_select_exec(bContext *C, wmOperator *op)
+{
+	int i = 0;
+	int mcords[1024][2];
+
+	RNA_BEGIN (op->ptr, itemptr, "path") {
+		float loc[2];
+
+		RNA_float_get_array(&itemptr, "loc", loc);
+		mcords[i][0] = (int)loc[0];
+		mcords[i][1] = (int)loc[1];
+		i++;
+		if (i >= 1024) break;
+	}
+	RNA_END;
+
+	if (i > 1) {
+		short select;
+
+		select = !RNA_boolean_get(op->ptr, "deselect");
+		do_lasso_select_mesh_uv(C, mcords, i, select);
+
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+void UV_OT_select_lasso(wmOperatorType *ot)
+{
+	ot->name = "Lasso Select UV";
+	ot->description = "Select UVs using lasso selection";
+	ot->idname = "UV_OT_select_lasso";
+
+	ot->invoke = WM_gesture_lasso_invoke;
+	ot->modal = WM_gesture_lasso_modal;
+	ot->exec = uv_lasso_select_exec;
+	ot->poll = ED_operator_image_active;
+	ot->cancel = WM_gesture_lasso_cancel;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
+	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
+	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+}
+
+
 
 /* ******************** snap cursor operator **************** */
 
@@ -3007,9 +3133,9 @@ static int bm_face_is_all_uv_sel(BMesh *bm, BMFace *f, int bool_test)
 static int hide_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *efa;
 	BMLoop *l;
@@ -3122,9 +3248,9 @@ static void UV_OT_hide(wmOperatorType *ot)
 static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obedit = CTX_data_edit_object(C);
-	/*Scene *scene = CTX_data_scene(C);*/ /*UNUSED*/
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *efa;
 	BMLoop *l;
@@ -3550,6 +3676,7 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_unlink_selected);
 	WM_operatortype_append(UV_OT_select_pinned);
 	WM_operatortype_append(UV_OT_select_border);
+	WM_operatortype_append(UV_OT_select_lasso);
 	WM_operatortype_append(UV_OT_circle_select);
 
 	WM_operatortype_append(UV_OT_snap_cursor);
@@ -3609,6 +3736,11 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "pinned", TRUE);
 
 	WM_keymap_add_item(keymap, "UV_OT_circle_select", CKEY, KM_PRESS, 0, 0);
+
+	kmi = WM_keymap_add_item(keymap, "UV_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	kmi = WM_keymap_add_item(keymap, "UV_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
 
 	/* selection manipulation */
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0)->ptr, "extend", FALSE);
