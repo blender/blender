@@ -596,7 +596,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "codec", codec_items, AUD_CODEC_FLAC, "Codec", "Audio Codec");
 	RNA_def_enum(ot->srna, "format", format_items, AUD_FORMAT_S16, "Format", "Sample format");
 	RNA_def_int(ot->srna, "bitrate", 192, 32, 512, "Bitrate", "Bitrate in kbit/s", 32, 512);
-	RNA_def_boolean(ot->srna, "split_channels", 0, "Split channels", "Each channel will be rendered into a mono file.");
+	RNA_def_boolean(ot->srna, "split_channels", 0, "Split channels", "Each channel will be rendered into a mono file");
 #endif // WITH_AUDASPACE
 }
 
