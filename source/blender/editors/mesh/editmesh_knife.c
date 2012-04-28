@@ -277,7 +277,7 @@ static void knife_add_to_vert_edges(KnifeTool_OpData *kcd, KnifeEdge *kfe)
 	knife_append_list(kcd, &kfe->v2->edges, kfe);
 }
 
-static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, float *co, float *cageco)
+static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, const float co[3], float *cageco)
 {
 	KnifeVert *kfv = BLI_mempool_calloc(kcd->kverts);
 

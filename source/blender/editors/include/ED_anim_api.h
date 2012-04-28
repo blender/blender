@@ -366,7 +366,7 @@ typedef struct bAnimChannelType {
 	
 	/* drawing */
 		/* get RGB color that is used to draw the majority of the backdrop */
-	void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float *color);
+	void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float r_color[3]);
 		/* draw backdrop strip for channel */
 	void (*draw_backdrop)(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
 		/* get depth of indention (relative to the depth channel is nested at) */

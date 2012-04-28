@@ -342,7 +342,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	}
 }
 
-void calc_latt_deform(Object *ob, float *co, float weight)
+void calc_latt_deform(Object *ob, float co[3], float weight)
 {
 	Lattice *lt= ob->data;
 	float u, v, w, tu[4], tv[4], tw[4];

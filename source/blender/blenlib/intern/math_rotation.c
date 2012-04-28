@@ -1615,7 +1615,7 @@ void normalize_dq(DualQuat *dq, float totweight)
 	}
 }
 
-void mul_v3m3_dq(float *co, float mat[][3], DualQuat *dq)
+void mul_v3m3_dq(float co[3], float mat[][3], DualQuat *dq)
 {
 	float M[3][3], t[3], scalemat[3][3], len2;
 	float w = dq->quat[0], x = dq->quat[1], y = dq->quat[2], z = dq->quat[3];

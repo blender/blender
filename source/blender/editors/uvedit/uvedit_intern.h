@@ -55,8 +55,8 @@ int uvedit_face_visible_nolocal(struct Scene *scene, struct BMFace *efa);
 
 /* geometric utilities */
 float uv_poly_area(float uv[][2], int len);
-void  uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len);
-void  uv_poly_center(struct BMEditMesh *em, struct BMFace *f, float cent[2]);
+void  uv_poly_copy_aspect(float uv_orig [][2], float uv[][2], float aspx, float aspy, int len);
+void  uv_poly_center(struct BMEditMesh *em, struct BMFace *f, float r_cent[2]);
 
 /* find nearest */
 
@@ -69,8 +69,10 @@ typedef struct NearestHit {
 	int vert1, vert2; //index in mesh of edge vertices
 } NearestHit;
 
-void uv_find_nearest_vert(struct Scene *scene, struct Image *ima, struct BMEditMesh *em, float co[2], float penalty[2], struct NearestHit *hit);
-void uv_find_nearest_edge(struct Scene *scene, struct Image *ima, struct BMEditMesh *em, float co[2], struct NearestHit *hit);
+void uv_find_nearest_vert(struct Scene *scene, struct Image *ima, struct BMEditMesh *em,
+                          const float co[2], const float penalty[2], struct NearestHit *hit);
+void uv_find_nearest_edge(struct Scene *scene, struct Image *ima, struct BMEditMesh *em,
+                          const float co[2], struct NearestHit *hit);
 
 /* utility tool functions */
 
@@ -115,4 +117,3 @@ void UV_OT_unwrap(struct wmOperatorType *ot);
 void UV_OT_stitch(struct wmOperatorType *ot);
 
 #endif /* __UVEDIT_INTERN_H__ */
-

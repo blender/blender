@@ -766,7 +766,7 @@ static int sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 }
 
 /* Handles clipping against a mirror modifier and SCULPT_LOCK axis flags */
-static void sculpt_clip(Sculpt *sd, SculptSession *ss, float *co, const float val[3])
+static void sculpt_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3])
 {
 	int i;
 

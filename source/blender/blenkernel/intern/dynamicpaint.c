@@ -2791,7 +2791,7 @@ static void mesh_faces_spherecast_dp(void *userdata, int index, const BVHTreeRay
 *	To optimize brush detection speed this doesn't calculate hit normal.
 *	If ray hit the second half of a quad, no[0] is set to 1.0f, else 0.0f
 */
-static void mesh_faces_nearest_point_dp(void *userdata, int index, const float *co, BVHTreeNearest *nearest)
+static void mesh_faces_nearest_point_dp(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh*) userdata;
 	MVert *vert	= data->vert;

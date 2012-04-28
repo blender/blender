@@ -523,20 +523,20 @@ void uvedit_live_unwrap_update(SpaceImage *sima, Scene *scene, Object *obedit)
 }
 
 /*********************** geometric utilities ***********************/
-void uv_poly_center(BMEditMesh *em, BMFace *f, float cent[2])
+void uv_poly_center(BMEditMesh *em, BMFace *f, float r_cent[2])
 {
 	BMLoop *l;
 	MLoopUV *luv;
 	BMIter liter;
 
-	zero_v2(cent);
+	zero_v2(r_cent);
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-		add_v2_v2(cent, luv->uv);
+		add_v2_v2(r_cent, luv->uv);
 	}
 
-	mul_v2_fl(cent, 1.0f / (float)f->len);
+	mul_v2_fl(r_cent, 1.0f / (float)f->len);
 }
 
 float uv_poly_area(float uv[][2], int len)
@@ -561,7 +561,7 @@ void uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float as
 	}
 }
 
-int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float *max)
+int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], float r_max[2])
 {
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *efa;
@@ -571,7 +571,7 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float
 	MLoopUV *luv;
 	int sel;
 
-	INIT_MINMAX2(min, max);
+	INIT_MINMAX2(r_min, r_max);
 
 	sel = 0;
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -582,7 +582,7 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			if (uvedit_uv_select_test(em, scene, l)) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				DO_MINMAX2(luv->uv, min, max); 
+				DO_MINMAX2(luv->uv, r_min, r_max);
 				sel = 1;
 			}
 		}
@@ -643,7 +643,7 @@ static int uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2]
 
 /************************** find nearest ****************************/
 
-void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, float co[2], NearestHit *hit)
+void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float co[2], NearestHit *hit)
 {
 	MTexPoly *tf;
 	BMFace *efa;
@@ -690,13 +690,11 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, float co[2],
 	}
 }
 
-static void find_nearest_uv_face(Scene *scene, Image *ima, BMEditMesh *em, float co[2], NearestHit *hit)
+static void find_nearest_uv_face(Scene *scene, Image *ima, BMEditMesh *em, const float co[2], NearestHit *hit)
 {
 	MTexPoly *tf;
 	BMFace *efa;
-	BMLoop *l;
-	BMIter iter, liter;
-	MLoopUV *luv;
+	BMIter iter;
 	float mindist, dist, cent[2];
 
 	mindist = 1e10f;
@@ -711,16 +709,9 @@ static void find_nearest_uv_face(Scene *scene, Image *ima, BMEditMesh *em, float
 		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		if (!uvedit_face_visible_test(scene, ima, efa, tf))
 			continue;
-		
-		cent[0] = cent[1] = 0.0f;
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-			add_v2_v2(cent, luv->uv);
-		}
+		uv_poly_center(em, efa, cent);
 
-		cent[0] /= efa->len;
-		cent[1] /= efa->len;
 		dist = fabs(co[0] - cent[0]) + fabs(co[1] - cent[1]);
 
 		if (dist < mindist) {
@@ -732,7 +723,7 @@ static void find_nearest_uv_face(Scene *scene, Image *ima, BMEditMesh *em, float
 }
 
 static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), int id,
-                              float co[2], float uv[2])
+                              const float co[2], const float uv[2])
 {
 	BMLoop *l;
 	MLoopUV *luv;
@@ -778,7 +769,7 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 }
 
 void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
-                          float co[2], float penalty[2], NearestHit *hit)
+                          float const co[2], const float penalty[2], NearestHit *hit)
 {
 	BMFace *efa;
 	BMLoop *l;
@@ -836,7 +827,7 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 	}
 }
 
-int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, float co[2], float uv[2])
+int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float co[2], float r_uv[2])
 {
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *efa;
@@ -845,11 +836,10 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, float co[2], 
 	MTexPoly *tf;
 	MLoopUV *luv;
 	float mindist, dist;
-	int found = 0;
+	int found = FALSE;
 
 	mindist = 1e10f;
-	uv[0] = co[0];
-	uv[1] = co[1];
+	copy_v2_v2(r_uv, co);
 	
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
@@ -863,9 +853,8 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, float co[2], 
 			if (dist <= mindist) {
 				mindist = dist;
 
-				uv[0] = luv->uv[0];
-				uv[1] = luv->uv[1];
-				found = 1;
+				copy_v2_v2(r_uv, luv->uv);
+				found = TRUE;
 			}
 		}
 	}
@@ -1085,7 +1074,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 
 /*********************** linked select ***********************/
 
-static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[2], NearestHit *hit, int extend)
+static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, const float limit[2], NearestHit *hit, int extend)
 {
 	BMFace *efa;
 	BMLoop *l;
@@ -1696,7 +1685,7 @@ static int sticky_select(float *limit, int hitv[4], int v, float *hituv[4], floa
 	return 0;
 }
 
-static int mouse_select(bContext *C, float co[2], int extend, int loop)
+static int mouse_select(bContext *C, const float co[2], int extend, int loop)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2768,7 +2757,7 @@ void UV_OT_select_lasso(wmOperatorType *ot)
 
 /* ******************** snap cursor operator **************** */
 
-static void snap_uv_to_pixel(float *uvco, float w, float h)
+static void snap_uv_to_pixel(float uvco[2], float w, float h)
 {
 	uvco[0] = ((float)((int)((uvco[0] * w) + 0.5f))) / w;
 	uvco[1] = ((float)((int)((uvco[1] * h) + 0.5f))) / h;

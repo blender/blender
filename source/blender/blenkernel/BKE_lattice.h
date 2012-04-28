@@ -49,7 +49,7 @@ void make_local_lattice(struct Lattice *lt);
 void calc_lat_fudu(int flag, int res, float *fu, float *du);
 
 void init_latt_deform(struct Object *oblatt, struct Object *ob);
-void calc_latt_deform(struct Object *, float *co, float weight);
+void calc_latt_deform(struct Object *, float co[3], float weight);
 void end_latt_deform(struct Object *);
 
 int object_deform_mball(struct Object *ob, struct ListBase *dispbase);
