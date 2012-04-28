@@ -1047,9 +1047,8 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		
 		/* chop off the leading text, starting from the right */
 		while (but->strwidth > okwidth && cp2 > but->drawstr) {
-			int bytes = BLI_str_utf8_size(cp2);
-			if (bytes < 0)
-				bytes = 1;
+			char *prev_utf8 = BLI_str_find_prev_char_utf8(but->drawstr, cp2);
+			int bytes = cp2 - prev_utf8;
 
 			/* shift the text after and including cp2 back by 1 char, +1 to include null terminator */
 			memmove(cp2 - bytes, cp2, strlen(cp2) + 1);
