@@ -1902,7 +1902,6 @@ void BKE_tracking_solve_reconstruction(MovieReconstructContext *context, short *
 
 	if (context->motion_flag & TRACKING_MOTION_MODAL) {
 		context->reconstruction = libmv_solveModal(context->tracks,
-			context->refine_flags,
 			context->focal_length,
 			context->principal_point[0], context->principal_point[1],
 			context->k1, context->k2, context->k3,

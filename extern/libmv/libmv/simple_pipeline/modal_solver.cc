@@ -91,19 +91,15 @@ void ModalSolver(Tracks &tracks,
 
           ProjectMarkerOnSphere(marker, X);
 
-          points.push_back(R * point->X);
+          points.push_back(point->X);
           reference_points.push_back(X);
         }
       }
     }
 
     if (points.size()) {
-      Mat3 dR = Mat3::Identity();
-
-      // Find rigid delta transformation from previous image to current image
-      RigidRegistration(reference_points, points, dR);
-
-      R *= dR;
+      // Find rigid delta transformation to current image
+      RigidRegistration(reference_points, points, R);
     }
 
     reconstruction->InsertCamera(image, R, Vec3::Zero());

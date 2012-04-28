@@ -460,7 +460,7 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 	return (libmv_Reconstruction *)libmv_reconstruction;
 }
 
-struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *tracks, int refine_intrinsics, double focal_length,
+struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *tracks, double focal_length,
 			double principal_x, double principal_y, double k1, double k2, double k3,
 			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata)
 {
@@ -487,11 +487,6 @@ struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *tracks, int r
 	libmv::Tracks normalized_tracks(markers);
 
 	libmv::ModalSolver(normalized_tracks, reconstruction, &update_callback);
-
-	if (refine_intrinsics) {
-		libmv_solveRefineIntrinsics((libmv::Tracks *)tracks, intrinsics, reconstruction,
-			refine_intrinsics, progress_update_callback, callback_customdata);
-	}
 
 	progress_update_callback(callback_customdata, 1.0, "Finishing solution");
 	libmv_reconstruction->tracks = *(libmv::Tracks *)tracks;
