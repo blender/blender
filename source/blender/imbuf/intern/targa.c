@@ -288,7 +288,7 @@ int imb_savetarga(struct ImBuf * ibuf, const char *name, int flags)
 		ok = dumptarga(ibuf, fildes);
 	}
 	else {
-		switch((ibuf->planes + 7) >> 3) {
+		switch ((ibuf->planes + 7) >> 3) {
 		case 1:
 			ok = makebody_tga(ibuf, fildes, tga_out1);
 			break;
@@ -617,7 +617,7 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
 		}
 	}
 
-	switch(tga.imgtyp) {
+	switch (tga.imgtyp) {
 	case 1:
 	case 2:
 	case 3:

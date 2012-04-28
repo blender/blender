@@ -835,7 +835,7 @@ static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl
 	MDisps *mdisps;
 	int lvl= mmd->totlvl;
 
-	if (totlvl > multires_max_levels)
+	if ((totlvl > multires_max_levels) || (me->totpoly == 0))
 		return;
 
 	multires_force_update(ob);
@@ -1017,7 +1017,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 					column_vectors_to_mat3(mat, tx, ty, no);
 
-					switch(op) {
+					switch (op) {
 					case APPLY_DISPLACEMENTS:
 						/* Convert displacement to object space
 						 * and add to grid points */

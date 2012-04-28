@@ -167,7 +167,7 @@ float RE_filter_value(int type, float x)
 	
 	x= ABS(x);
 	
-	switch(type) {
+	switch (type) {
 		case R_FILTER_BOX:
 			if (x>1.0f) return 0.0f;
 			return 1.0f;
@@ -208,7 +208,7 @@ static float calc_weight(Render *re, float *weight, int i, int j)
 		weight[a]= 0.0;
 
 		/* Weighting choices */
-		switch(re->r.filtertype) {
+		switch (re->r.filtertype) {
 		case R_FILTER_BOX:
 			if (i==0 && j==0) weight[a]= 1.0;
 			break;

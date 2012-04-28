@@ -139,7 +139,7 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr, int (*check_prop)(Pointe
 
 	assert(ELEM3(label_align, '\0', 'H', 'V'));
 
-	RNA_STRUCT_BEGIN(ptr, prop) {
+	RNA_STRUCT_BEGIN (ptr, prop) {
 		flag = RNA_property_flag(prop);
 		if (flag & PROP_HIDDEN || (check_prop && check_prop(ptr, prop) == FALSE))
 			continue;

@@ -963,7 +963,7 @@ void ED_screen_do_listen(bContext *C, wmNotifier *note)
 	wmWindow *win= CTX_wm_window(C);
 	
 	/* generic notes */
-	switch(note->category) {
+	switch (note->category) {
 		case NC_WM:
 			if (note->data==ND_FILEREAD)
 				win->screen->do_draw= 1;
@@ -1009,7 +1009,7 @@ void ED_screen_draw(wmWindow *win)
 	if (sa1 && sa2) {
 		dir = area_getorientation(sa1, sa2);
 		if (dir >= 0) {
-			switch(dir) {
+			switch (dir) {
 				case 0: /* W */
 					dir = 'r';
 					dira = 'l';
@@ -1153,6 +1153,9 @@ void ED_area_exit(bContext *C, ScrArea *sa)
 		if (sl && sl->spacetype == SPACE_FILE) {
 			ED_fileselect_exit(C, (SpaceFile *)sl);
 		}
+	}
+	else if (sa->spacetype == SPACE_VIEW3D) {
+		ED_render_engine_area_exit(sa);
 	}
 
 	CTX_wm_area_set(C, sa);

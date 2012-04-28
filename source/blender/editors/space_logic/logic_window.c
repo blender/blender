@@ -371,7 +371,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 	ob= CTX_data_active_object(C);
 	if (ob==NULL) return;
 	
-	switch(event) {
+	switch (event) {
 
 	case B_SETPROP:
 		/* check for inconsistent types */
@@ -551,13 +551,10 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 		didit= 0;
 		for (ob=bmain->object.first; ob; ob=ob->id.next) {
 			act= ob->actuators.first;
-			while (act)
-			{
-				if (act->type==ACT_SOUND)
-				{
+			while (act) {
+				if (act->type==ACT_SOUND) {
 					bSoundActuator *sa= act->data;
-					if (sa->sndnr)
-					{
+					if (sa->sndnr) {
 						ID *sound= bmain->sound.first;
 						int nr= 1;
 
@@ -567,8 +564,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 							break;
 						}
 
-						while (sound)
-						{
+						while (sound) {
 							if (nr==sa->sndnr)
 								break;
 							nr++;
@@ -727,8 +723,7 @@ static const char *actuator_name(int type)
 
 static const char *actuator_pup(Object *owner)
 {
-	switch (owner->type)
-	{
+	switch (owner->type) {
 	case OB_ARMATURE:
 		return "Actuators  %t|Action %x15|Armature %x23|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
@@ -945,7 +940,7 @@ static int get_col_sensor(int type)
 {
 	/* XXX themecolors not here */
 	
-	switch(type) {
+	switch (type) {
 	case SENS_ALWAYS:		return TH_PANEL;
 	case SENS_DELAY:		return TH_PANEL;
 	case SENS_TOUCH:		return TH_PANEL;
@@ -1161,8 +1156,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 	
 	set_col_sensor(sens->type, 0);
 	
-	switch (sens->type)
-	{
+	switch (sens->type) {
 	case SENS_ALWAYS:
 		{
 			ysize= 24;
@@ -1347,14 +1341,12 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 			uiDefButI(block, MENU, B_REDR, str,			xco+30,yco-44,width-60, 19,
 				&ps->type, 0, 31, 0, 0, "Type");
 			
-			if (ps->type != SENS_PROP_EXPRESSION)
-			{
+			if (ps->type != SENS_PROP_EXPRESSION) {
 				uiDefBut(block, TEX, 1, "Prop: ",			xco+30,yco-68,width-60, 19,
 					ps->name, 0, MAX_NAME, 0, 0,  "Property name");
 			}
 			
-			if (ps->type == SENS_PROP_INTERVAL)
-			{
+			if (ps->type == SENS_PROP_INTERVAL) {
 				uiDefBut(block, TEX, 1, "Min: ",		xco,yco-92,width/2, 19,
 					ps->value, 0, MAX_NAME, 0, 0, "check for min value");
 				uiDefBut(block, TEX, 1, "Max: ",		xco+width/2,yco-92,width/2, 19,
@@ -1401,8 +1393,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 				uiDefButI(block, MENU, B_REDR, str,			xco+10,yco-66,0.4*(width-20), 19,
 					&arm->type, 0, 31, 0, 0, "Type");
 			
-				if (arm->type != SENS_ARM_STATE_CHANGED)
-				{
+				if (arm->type != SENS_ARM_STATE_CHANGED) {
 					uiDefButF(block, NUM, 1, "Value: ",		xco+10+0.4*(width-20),yco-66,0.6*(width-20), 19,
 					&arm->value, -10000.0, 10000.0, 100, 0, "Test the error against this value");
 				}
@@ -1489,8 +1480,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 			draw_default_sensor_header(sens, block, xco, yco, width);
 			randomSensor = sens->data;
 			/* some files were wrongly written, avoid crash now */
-			if (randomSensor)
-			{
+			if (randomSensor) {
 				uiDefButI(block, NUM, 1, "Seed: ",		xco+10,yco-44,(width-20), 19,
 					&randomSensor->seed, 0, 1000, 0, 0,
 					"Initial seed of the generator. (Choose 0 for not random)");
@@ -1610,8 +1600,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 					&joy->flag, 0, 0, 0, 0,
 					"Triggered by all events on this joysticks current type (axis/button/hat)");
 			}
-			if (joy->type == SENS_JOY_BUTTON)
-			{
+			if (joy->type == SENS_JOY_BUTTON) {
 				if ((joy->flag & SENS_JOY_ANY_EVENT)==0) {
 					uiDefButI(block, NUM, 1, "Number:", xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
 					&joy->button, 0, 18, 100, 0,
@@ -1727,7 +1716,7 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 
 static int get_col_actuator(int type)
 {
-	switch(type) {
+	switch (type) {
 	case ACT_ACTION:		return TH_PANEL;
 	case ACT_SHAPEACTION:	return TH_PANEL;
 	case ACT_OBJECT:		return TH_PANEL;
@@ -1869,14 +1858,12 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 	/* yco is at the top of the rect, draw downwards */
 	set_col_actuator(act->type, 0);
 	
-	switch (act->type)
-	{
+	switch (act->type) {
 	case ACT_OBJECT:
 		{
 			oa = act->data;
 			wval = (width-100)/3;
-			if (oa->type == ACT_OBJECT_NORMAL)
-			{
+			if (oa->type == ACT_OBJECT_NORMAL) {
 				if (ob->gameflag & OB_DYNAMIC) {
 					ysize= 175;
 				}
@@ -1904,8 +1891,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 				uiDefButBitS(block, TOG, ACT_DLOC_LOCAL, 0, "L",		xco+45+3*wval, yco-45, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
 				uiDefButBitS(block, TOG, ACT_DROT_LOCAL, 0, "L",		xco+45+3*wval, yco-64, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
 	
-				if ( ob->gameflag & OB_DYNAMIC )
-				{
+				if (ob->gameflag & OB_DYNAMIC) {
 					uiDefBut(block, LABEL, 0, "Force",	xco, yco-87, 55, 19, NULL, 0, 0, 0, 0, "Sets the force");
 					uiBlockBeginAlign(block);
 					uiDefButF(block, NUM, 0, "",		xco+45, yco-87, wval, 19, oa->forceloc, -10000.0, 10000.0, 10, 0, "");
@@ -1921,8 +1907,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					uiBlockEndAlign(block);
 				}
 				
-				if ( ob->gameflag & OB_DYNAMIC )
-				{
+				if (ob->gameflag & OB_DYNAMIC) {
 					uiDefBut(block, LABEL, 0, "LinV",	xco, yco-129, 45, 19, NULL, 0, 0, 0, 0, "Sets the linear velocity");
 					uiBlockBeginAlign(block);
 					uiDefButF(block, NUM, 0, "",		xco+45, yco-129, wval, 19, oa->linearvelocity, -10000.0, 10000.0, 10, 0, "");
@@ -1948,8 +1933,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					uiDefButBitS(block, TOG, ACT_ADD_LIN_VEL, 0, "use_additive",xco+45+3*wval+15, yco-129, 35, 19, &oa->flag, 0.0, 0.0, 0, 0, "Toggles between ADD and SET linV");
 				}				
 			}
-			else if (oa->type == ACT_OBJECT_SERVO)
-			{
+			else if (oa->type == ACT_OBJECT_SERVO) {
 				ysize= 195;
 				
 				glRects(xco, yco-ysize, xco+width, yco);
@@ -2824,8 +2808,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		glRects( xco, yco-ysize, xco+width, yco ); 
 		uiEmboss( (float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1 );
 
-		switch(tdfa->type)
-		{
+		switch (tdfa->type) {
 			case ACT_2DFILTER_MOTIONBLUR:
 				if (!tdfa->flag) {
 					uiDefButS(block, TOG, B_REDR, "D",	xco+30,yco-44,19, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Disable Motion Blur");
@@ -3759,8 +3742,7 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 	
 	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
 	
-	switch (RNA_enum_get(ptr, "mode"))
-	{
+	switch (RNA_enum_get(ptr, "mode")) {
 		case ACT_ARM_RUN:
 			break;
 		case ACT_ARM_ENABLE:
@@ -3835,8 +3817,7 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr, bContext
 	RNA_main_pointer_create(CTX_data_main(C), &main_ptr);
 
 	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
-	switch (RNA_enum_get(ptr, "mode"))
-	{
+	switch (RNA_enum_get(ptr, "mode")) {
 		case ACT_CONST_TYPE_LOC:
 			uiItemR(layout, ptr, "limit", 0, NULL, ICON_NONE);
 
@@ -3934,8 +3915,7 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row, *split, *sub;
 	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
 
-	switch (RNA_enum_get(ptr, "mode"))
-	{
+	switch (RNA_enum_get(ptr, "mode")) {
 		case ACT_EDOB_ADD_OBJECT:
 			row = uiLayoutRow(layout, 0);
 			uiItemR(row, ptr, "object", 0, NULL, ICON_NONE);
@@ -3988,8 +3968,7 @@ static void draw_actuator_filter_2d(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row, *split;
 
 	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
-	switch (RNA_enum_get(ptr, "mode"))
-	{
+	switch (RNA_enum_get(ptr, "mode")) {
 		case ACT_2DFILTER_CUSTOMFILTER:
 			uiItemR(layout, ptr, "filter_pass", 0, NULL, ICON_NONE);
 			uiItemR(layout, ptr, "glsl_shader", 0, NULL, ICON_NONE);
@@ -4163,8 +4142,7 @@ static void draw_actuator_property(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
 	uiItemPointerR(layout, ptr, "property", &settings_ptr, "properties", NULL, ICON_NONE);
 
-	switch(RNA_enum_get(ptr, "mode"))
-	{
+	switch (RNA_enum_get(ptr, "mode")) {
 		case ACT_PROP_TOGGLE:
 			break;
 		case ACT_PROP_ADD:

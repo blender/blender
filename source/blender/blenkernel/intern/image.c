@@ -578,7 +578,7 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
 	ibuf->userflags |= IB_BITMAPDIRTY;
 	
-	switch(uvtestgrid) {
+	switch (uvtestgrid) {
 	case 1:
 		BKE_image_buf_fill_checker(rect, rect_float, width, height);
 		break;
@@ -929,7 +929,7 @@ char BKE_ftype_to_imtype(const int ftype)
 
 int BKE_imtype_is_movie(const char imtype)
 {
-	switch(imtype) {
+	switch (imtype) {
 	case R_IMF_IMTYPE_AVIRAW:
 	case R_IMF_IMTYPE_AVIJPEG:
 	case R_IMF_IMTYPE_AVICODEC:
@@ -946,7 +946,7 @@ int BKE_imtype_is_movie(const char imtype)
 
 int BKE_imtype_supports_zbuf(const char imtype)
 {
-	switch(imtype) {
+	switch (imtype) {
 	case R_IMF_IMTYPE_IRIZ:
 	case R_IMF_IMTYPE_OPENEXR: /* but not R_IMF_IMTYPE_MULTILAYER */
 			return 1;
@@ -956,7 +956,7 @@ int BKE_imtype_supports_zbuf(const char imtype)
 
 int BKE_imtype_supports_compress(const char imtype)
 {
-	switch(imtype) {
+	switch (imtype) {
 	case R_IMF_IMTYPE_PNG:
 			return 1;
 	}
@@ -965,7 +965,7 @@ int BKE_imtype_supports_compress(const char imtype)
 
 int BKE_imtype_supports_quality(const char imtype)
 {
-	switch(imtype) {
+	switch (imtype) {
 	case R_IMF_IMTYPE_JPEG90:
 	case R_IMF_IMTYPE_JP2:
 	case R_IMF_IMTYPE_AVIJPEG:
@@ -979,7 +979,7 @@ char BKE_imtype_valid_channels(const char imtype)
 	char chan_flag= IMA_CHAN_FLAG_RGB; /* assume all support rgb */
 
 	/* alpha */
-	switch(imtype) {
+	switch (imtype) {
 	case R_IMF_IMTYPE_TARGA:
 	case R_IMF_IMTYPE_IRIS:
 	case R_IMF_IMTYPE_PNG:
@@ -995,7 +995,7 @@ char BKE_imtype_valid_channels(const char imtype)
 	}
 
 	/* bw */
-	switch(imtype) {
+	switch (imtype) {
 	case R_IMF_IMTYPE_PNG:
 	case R_IMF_IMTYPE_JPEG90:
 	case R_IMF_IMTYPE_TARGA:
@@ -1110,8 +1110,11 @@ int BKE_add_image_extension(char *string, const char imtype)
 	}
 #ifdef WITH_TIFF
 	else if (imtype==R_IMF_IMTYPE_TIFF) {
-		if (!BLI_testextensie(string, ".tif") && 
-			!BLI_testextensie(string, ".tiff")) extension= ".tif";
+		if (!BLI_testextensie(string, ".tif") &&
+		    !BLI_testextensie(string, ".tiff"))
+		{
+			extension= ".tif";
+		}
 	}
 #endif
 #ifdef WITH_OPENEXR
@@ -1791,7 +1794,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 	if (ima==NULL)
 		return;
 	
-	switch(signal) {
+	switch (signal) {
 	case IMA_SIGNAL_FREE:
 		image_free_buffers(ima);
 		if (iuser)

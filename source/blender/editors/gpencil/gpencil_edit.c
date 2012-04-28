@@ -534,7 +534,7 @@ static void gp_stroke_to_bezier (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, C
 	}
 
 	/* must calculate handles or else we crash */
-	calchandlesNurb(nu);
+	BKE_nurb_handles_calc(nu);
 
 	/* add nurb to curve */
 	BLI_addtail(&cu->nurb, nu);

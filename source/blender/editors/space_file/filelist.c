@@ -520,7 +520,7 @@ static void filelist_read_dir(struct FileList* filelist);
 struct FileList*	filelist_new(short type)
 {
 	FileList* p = MEM_callocN( sizeof(FileList), "filelist" );
-	switch(type) {
+	switch (type) {
 		case FILE_MAIN:
 			p->readf = filelist_read_main;
 			p->filterf = is_filtered_main;
@@ -982,7 +982,7 @@ int	filelist_is_selected(struct FileList* filelist, int index, FileCheckType che
 
 void filelist_sort(struct FileList* filelist, short sort)
 {
-	switch(sort) {
+	switch (sort) {
 	case FILE_SORT_ALPHA:
 		qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_name);	
 		break;

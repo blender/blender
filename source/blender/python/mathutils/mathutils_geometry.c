@@ -1011,7 +1011,7 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject 
 
 	coord_array = MEM_callocN(dims * (resolu) * sizeof(float), "interpolate_bezier");
 	for (i = 0; i < dims; i++) {
-		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array + i, resolu - 1, sizeof(float) * dims);
+		BKE_curve_forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array + i, resolu - 1, sizeof(float) * dims);
 	}
 
 	list = PyList_New(resolu);

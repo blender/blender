@@ -679,7 +679,7 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	for (i=0,fs=facesplit; i<totface; i++,fs++) {
 		mf = dm->getTessFaceData(dm, i, CD_MFACE);
 
-		switch(*fs) {
+		switch (*fs) {
 		case 3:
 		case 10:
 		case 11:
@@ -711,7 +711,7 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 			break;
 		}
 
-		switch(*fs) {
+		switch (*fs) {
 		case 3:
 		case 6:
 		case 9:

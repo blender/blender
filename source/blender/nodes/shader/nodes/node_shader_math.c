@@ -48,7 +48,7 @@ static bNodeSocketTemplate sh_node_math_out[]= {
 static void node_shader_exec_math(void *UNUSED(data), bNode *node, bNodeStack **in, 
 bNodeStack **out) 
 {
-	switch(node->custom1) { 
+	switch (node->custom1) { 
 	
 	case 0: /* Add */
 		out[0]->vec[0]= in[0]->vec[0] + in[1]->vec[0]; 

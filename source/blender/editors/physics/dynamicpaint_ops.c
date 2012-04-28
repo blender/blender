@@ -291,8 +291,7 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 	if (!dynamicPaint_createUVSurface(surface)) return 0;
 
 	/* Loop through selected frames */
-	for (frame=surface->start_frame; frame<=surface->end_frame; frame++)
-	{
+	for (frame=surface->start_frame; frame<=surface->end_frame; frame++) {
 		float progress = (frame - surface->start_frame) / (float)frames * 100;
 		surface->current_frame = frame;
 

@@ -720,8 +720,8 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 				
 				correct_bezpart(v1, v2, v3, v4);
 				
-				forward_diff_bezier(v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float)*3);
-				forward_diff_bezier(v1[1], v2[1], v3[1], v4[1], data+1, resol, sizeof(float)*3);
+				BKE_curve_forward_diff_bezier(v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float)*3);
+				BKE_curve_forward_diff_bezier(v1[1], v2[1], v3[1], v4[1], data+1, resol, sizeof(float)*3);
 				
 				for (fp= data; resol; resol--, fp+= 3)
 					glVertex2fv(fp);

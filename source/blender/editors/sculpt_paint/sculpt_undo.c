@@ -237,7 +237,9 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		else if (unode->maxgrid && dm->getGridData) {
 			if ((dm->getNumGrids(dm) != unode->maxgrid) ||
 			    (dm->getGridSize(dm) != unode->gridsize))
+			{
 				continue;
+			}
 		}
 		else {
 			continue;

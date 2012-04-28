@@ -880,7 +880,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	}
 	/* only walk to manifold edge */
 	if ((l->f->len % 2 == 0) && EDGE_CHECK(l->e) &&
-	    !BLI_ghash_haskey(walker->visithash, l->e)) 
+	    !BLI_ghash_haskey(walker->visithash, l->e))
 
 #else
 

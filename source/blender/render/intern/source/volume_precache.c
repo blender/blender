@@ -334,14 +334,10 @@ static void ms_diffuse(Render *re, int do_test_break, float *x0, float *x, float
 	size_t size = n[0]*n[1]*n[2];
 	const float a = dt*diff*size;
 	
-	for (l=0; l<20; l++)
-	{
-		for (k=1; k<=n[2]; k++)
-		{
-			for (j=1; j<=n[1]; j++)
-			{
-				for (i=1; i<=n[0]; i++)
-				{
+	for (l=0; l<20; l++) {
+		for (k=1; k<=n[2]; k++) {
+			for (j=1; j<=n[1]; j++) {
+				for (i=1; i<=n[0]; i++) {
 				   x[v_I_pad(i,j,k,n)] = (x0[v_I_pad(i,j,k,n)]) + a*(	x0[v_I_pad(i-1,j,k,n)]+ x0[v_I_pad(i+1,j,k,n)]+ x0[v_I_pad(i,j-1,k,n)]+
 																		x0[v_I_pad(i,j+1,k,n)]+ x0[v_I_pad(i,j,k-1,n)]+x0[v_I_pad(i,j,k+1,n)]
 																		) / (1+6*a);
@@ -384,15 +380,11 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 	energy_ss = total_ss_energy(re, do_test_break, vp);
 	
 	/* Scattering as diffusion pass */
-	for (m=0; m<simframes; m++)
-	{
+	for (m=0; m<simframes; m++) {
 		/* add sources */
-		for (z=1; z<=n[2]; z++)
-		{
-			for (y=1; y<=n[1]; y++)
-			{
-				for (x=1; x<=n[0]; x++)
-				{
+		for (z=1; z<=n[2]; z++) {
+			for (y=1; y<=n[1]; y++) {
+				for (x=1; x<=n[0]; x++) {
 					const int i = lc_to_ms_I(x, y ,z, n);	//lc index					
 					const int j = ms_I(x, y, z, n);			//ms index
 					
@@ -448,12 +440,9 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 		origf = 0.0f;
 	}
 
-	for (z=1;z<=n[2];z++)
-	{
-		for (y=1;y<=n[1];y++)
-		{
-			for (x=1;x<=n[0];x++)
-			{
+	for (z=1;z<=n[2];z++) {
+		for (y=1;y<=n[1];y++) {
+			for (x=1;x<=n[0];x++) {
 				const int i = lc_to_ms_I(x, y ,z, n);	//lc index					
 				const int j = ms_I(x, y, z, n);			//ms index
 				

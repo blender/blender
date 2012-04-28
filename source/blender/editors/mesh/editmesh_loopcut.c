@@ -240,7 +240,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 			edgering_find_order(lasteed, eed, lastv1, v);
 			lastv1 = v[0][0];
 
-			BLI_array_growitems(edges, previewlines);
+			BLI_array_grow_items(edges, previewlines);
 
 			for (i = 1; i <= previewlines; i++) {
 				co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0]) * (i / ((float)previewlines + 1)) + v[0][0]->co[0];
@@ -265,7 +265,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 		edgering_find_order(lasteed, startedge, lastv1, v);
 		
-		BLI_array_growitems(edges, previewlines);
+		BLI_array_grow_items(edges, previewlines);
 
 		for (i = 1; i <= previewlines; i++) {
 			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1])
@@ -337,9 +337,9 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			
 			/* sets as active, useful for other tools */
 			if (em->selectmode & SCE_SELECT_VERTEX)
-				EDBM_editselection_store(em, &lcd->eed->v1->head);  /* low priority TODO, get vertrex close to mouse */
+				BM_select_history_store(em->bm, lcd->eed->v1);  /* low priority TODO, get vertrex close to mouse */
 			if (em->selectmode & SCE_SELECT_EDGE)
-				EDBM_editselection_store(em, &lcd->eed->head);
+				BM_select_history_store(em->bm, lcd->eed);
 			
 			EDBM_selectmode_flush(lcd->em);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, lcd->ob->data);

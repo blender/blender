@@ -69,7 +69,9 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
 	    !ELEM7(falloff_type, MOD_WVG_MAPPING_CURVE, MOD_WVG_MAPPING_SHARP, MOD_WVG_MAPPING_SMOOTH,
 	           MOD_WVG_MAPPING_ROOT, MOD_WVG_MAPPING_SPHERE, MOD_WVG_MAPPING_RANDOM,
 	           MOD_WVG_MAPPING_STEP))
+	{
 		return;
+	}
 
 	/* Map each weight (vertex) to its new value, accordingly to the chosen mode. */
 	for (i = 0; i < num; ++i) {
@@ -77,7 +79,7 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
 
 		/* Code borrowed from the warp modifier. */
 		/* Closely matches PROP_SMOOTH and similar. */
-		switch(falloff_type) {
+		switch (falloff_type) {
 		case MOD_WVG_MAPPING_CURVE:
 			fac = curvemapping_evaluateF(cmap, 0, fac);
 			break;
@@ -157,7 +159,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 			texres.nor = NULL;
 			get_texture_value(texture, tex_co[idx], &texres);
 			/* Get the good channel value... */
-			switch(tex_use_channel) {
+			switch (tex_use_channel) {
 			case MOD_WVG_MASK_TEX_USE_INT:
 				org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0f - (texres.tin*fact)));
 				break;

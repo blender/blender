@@ -472,7 +472,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), sizeof(marker->name));
 	
 	/* use Keying Set to determine what to store for the pose */
-	// FIXME: in the past, the Keying Set respected selections (LocRotScale), but the current one doesn't (Whole Character)
+	// FIXME: in the past, the Keying Set respected selections (LocRotScale), but the current one doesn't (WholeCharacter)
 	// so perhaps we need either a new Keying Set, or just to add overrides here...
 	ANIM_apply_keyingset(C, NULL, act, ks, MODIFYKEY_MODE_INSERT, (float)frame);
 	
@@ -897,10 +897,12 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 				}
 				else if (pchan->bone) {
 					/* only ok if bone is visible and selected */
-					if ( (pchan->bone->flag & BONE_SELECTED) &&
-						 (pchan->bone->flag & BONE_HIDDEN_P)==0 &&
-						 (pchan->bone->layer & arm->layer) )
+					if ((pchan->bone->flag & BONE_SELECTED) &&
+					    (pchan->bone->flag & BONE_HIDDEN_P) == 0 &&
+					    (pchan->bone->layer & arm->layer))
+					{
 						ok = 1;
+					}
 				}
 				
 				if (ok) 

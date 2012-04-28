@@ -502,8 +502,7 @@ static void GetEulerXYZ(const KDL::Rotation& R, double& X,double& Y,double& Z)
 
 static void GetJointRotation(KDL::Rotation& boneRot, int type, double* rot)
 {
-	switch (type & ~IK_TRANSY)
-	{
+	switch (type & ~IK_TRANSY) {
 	default:
 		// fixed bone, no joint
 		break;
@@ -825,8 +824,7 @@ static bool joint_callback(const iTaSC::Timestamp& timestamp, iTaSC::ConstraintV
 	}
 	// determine which part of jointValue is used for this joint
 	// closely related to the way the joints are defined
-	switch (ikchan->jointType & ~IK_TRANSY)
-	{
+	switch (ikchan->jointType & ~IK_TRANSY) {
 	case IK_XDOF:
 	case IK_YDOF:
 	case IK_ZDOF:
@@ -881,15 +879,21 @@ static int convert_channels(IK_Scene *ikscene, PoseTree *tree)
 		
 		/* set DoF flag */
 		flag = 0;
-		if (!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP) && 
-			(!(pchan->ikflag & BONE_IK_XLIMIT) || pchan->limitmin[0]<0.f || pchan->limitmax[0]>0.f))
+		if (!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP) &&
+		    (!(pchan->ikflag & BONE_IK_XLIMIT) || pchan->limitmin[0]<0.f || pchan->limitmax[0]>0.f))
+		{
 			flag |= IK_XDOF;
+		}
 		if (!(pchan->ikflag & BONE_IK_NO_YDOF) && !(pchan->ikflag & BONE_IK_NO_YDOF_TEMP) &&
-			(!(pchan->ikflag & BONE_IK_YLIMIT) || pchan->limitmin[1]<0.f || pchan->limitmax[1]>0.f))
+		    (!(pchan->ikflag & BONE_IK_YLIMIT) || pchan->limitmin[1]<0.f || pchan->limitmax[1]>0.f))
+		{
 			flag |= IK_YDOF;
+		}
 		if (!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP) &&
-			(!(pchan->ikflag & BONE_IK_ZLIMIT) || pchan->limitmin[2]<0.f || pchan->limitmax[2]>0.f))
+		    (!(pchan->ikflag & BONE_IK_ZLIMIT) || pchan->limitmin[2]<0.f || pchan->limitmax[2]>0.f))
+		{
 			flag |= IK_ZDOF;
+		}
 		
 		if (tree->stretch && (pchan->ikstretch > 0.0)) {
 			flag |= IK_TRANSY;
@@ -921,8 +925,7 @@ static int convert_channels(IK_Scene *ikscene, PoseTree *tree)
 		 * bone length is computed from bone->length multiplied by the scaling factor of
 		 * the armature. Non-uniform scaling will give bad result!
 		 */
-		switch (flag & (IK_XDOF|IK_YDOF|IK_ZDOF))
-		{
+		switch (flag & (IK_XDOF|IK_YDOF|IK_ZDOF)) {
 		default:
 			ikchan->jointType = 0;
 			ikchan->ndof = 0;
@@ -1165,8 +1168,7 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		weight[0] = (1.0-pchan->stiffness[0]);
 		weight[1] = (1.0-pchan->stiffness[1]);
 		weight[2] = (1.0-pchan->stiffness[2]);
-		switch (ikchan->jointType & ~IK_TRANSY)
-		{
+		switch (ikchan->jointType & ~IK_TRANSY) {
 		case 0:
 			// fixed bone
 			if (!(ikchan->jointType & IK_TRANSY)) {
@@ -1512,7 +1514,7 @@ static void create_scene(Scene *scene, Object *ob)
 				ikdata->first = ikscene;
 			}
 			// delete the trees once we are done
-			while(tree) {
+			while (tree) {
 				BLI_remlink(&pchan->iktree, tree);
 				BLI_freelistN(&tree->targets);
 				if (tree->pchan) MEM_freeN(tree->pchan);
@@ -1610,10 +1612,12 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 	ikscene->scene->update(timestamp, timestep, numstep, false, !reiterate, simulation);
 	if (reiterate) {
 		// how many times do we reiterate?
-		for (i=0; i<ikparam->numiter; i++) {
+		for (i = 0; i<ikparam->numiter; i++) {
 			if (ikscene->armature->getMaxJointChange() < ikparam->precision ||
-				ikscene->armature->getMaxEndEffectorChange() < ikparam->precision)
+			    ikscene->armature->getMaxEndEffectorChange() < ikparam->precision)
+			{
 				break;
+			}
 			ikscene->scene->update(timestamp, timestep, numstep, true, false, simulation);
 		}
 		if (simulation) {

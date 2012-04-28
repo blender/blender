@@ -318,8 +318,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 	/* get function pointer to the func to use:
 	 * WARNING: must perform special argument validation hereto guard against crashes  
 	 */
-	switch (data->type)
-	{
+	switch (data->type) {
 		/* simple ones */			
 		case FCM_GENERATOR_FN_SIN: /* sine wave */
 			fn= sin;

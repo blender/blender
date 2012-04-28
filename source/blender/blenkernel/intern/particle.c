@@ -1572,7 +1572,7 @@ static float psys_interpolate_value_from_verts(DerivedMesh *dm, short from, int 
 	if (values==0 || index==-1)
 		return 0.0;
 
-	switch(from) {
+	switch (from) {
 		case PART_FROM_VERT:
 			return values[index];
 		case PART_FROM_FACE:
@@ -1936,7 +1936,7 @@ static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float 
 	copy_v3_v3(result, state->co);
 	sub_v3_v3v3(par_vec, par->co, state->co);
 
-	switch(type) {
+	switch (type) {
 	case PART_KINK_CURL:
 	{
 		negate_v3(par_vec);
@@ -2846,7 +2846,7 @@ static void cache_key_incremental_rotation(ParticleCacheKey *key0, ParticleCache
 {
 	float cosangle, angle, tangent[3], normal[3], q[4];
 
-	switch(i) {
+	switch (i) {
 	case 0:
 		/* start from second key */
 		break;
@@ -3778,7 +3778,7 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 			if (ELEM(texco, TEXCO_UV, TEXCO_ORCO) && (ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME) == 0 || part->distr == PART_DISTR_GRID))
 				texco = TEXCO_GLOB;
 
-			switch(texco) {
+			switch (texco) {
 			case TEXCO_GLOB:
 				copy_v3_v3(texvec, par->state.co);
 				break;
@@ -3846,7 +3846,7 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 			if (texco == TEXCO_UV && (ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME) == 0 || part->distr == PART_DISTR_GRID))
 				texco = TEXCO_GLOB;
 
-			switch(texco) {
+			switch (texco) {
 			case TEXCO_GLOB:
 				copy_v3_v3(texvec, pa->state.co);
 				break;

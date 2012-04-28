@@ -778,8 +778,8 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 		BLI_array_empty(edges);
 		BLI_array_empty(verts);
 
-		BLI_array_growitems(edges, face->len);
-		BLI_array_growitems(verts, face->len);
+		BLI_array_grow_items(edges, face->len);
+		BLI_array_grow_items(verts, face->len);
 
 		matched = 0;
 
@@ -825,7 +825,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 					}
 				}
 				if (matched) {
-					BLI_array_growone(facedata);
+					BLI_array_grow_one(facedata);
 					b = BLI_array_count(facedata) - 1;
 					facedata[b].pat = pat;
 					facedata[b].start = verts[i];
@@ -861,7 +861,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 					}
 				}
 				if (matched) {
-					BLI_array_growone(facedata);
+					BLI_array_grow_one(facedata);
 					j = BLI_array_count(facedata) - 1;
 
 					BMO_elem_flag_enable(bm, face, SUBD_SPLIT);
@@ -877,7 +877,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 		}
 		
 		if (!matched && totesel) {
-			BLI_array_growone(facedata);
+			BLI_array_grow_one(facedata);
 			j = BLI_array_count(facedata) - 1;
 			
 			BMO_elem_flag_enable(bm, face, SUBD_SPLIT);
@@ -918,7 +918,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 
 			/* for case of two edges, connecting them shouldn't be too hard */
 			BM_ITER_ELEM (l, &liter, face, BM_LOOPS_OF_FACE) {
-				BLI_array_growone(loops);
+				BLI_array_grow_one(loops);
 				loops[BLI_array_count(loops) - 1] = l;
 			}
 			
@@ -951,10 +951,10 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 			b += numcuts - 1;
 
 			for (j = 0; j < numcuts; j++) {
-				BLI_array_growone(splits);
+				BLI_array_grow_one(splits);
 				splits[BLI_array_count(splits) - 1] = loops[a];
 				
-				BLI_array_growone(splits);
+				BLI_array_grow_one(splits);
 				splits[BLI_array_count(splits) - 1] = loops[b];
 
 				b = (b - 1) % vlen;
@@ -989,7 +989,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 		}
 
 		for (j = 0; j < face->len; j++) {
-			BLI_array_growone(verts);
+			BLI_array_grow_one(verts);
 		}
 		
 		j = 0;

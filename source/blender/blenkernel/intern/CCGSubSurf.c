@@ -1272,7 +1272,9 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 			if (f->numVerts != numVerts ||
 			    memcmp(FACE_getVerts(f), ss->tempVerts, sizeof(*ss->tempVerts) * numVerts) ||
 			    memcmp(FACE_getEdges(f), ss->tempEdges, sizeof(*ss->tempEdges) * numVerts))
+			{
 				topologyChanged = 1;
+			}
 		}
 
 		if (!f || topologyChanged) {

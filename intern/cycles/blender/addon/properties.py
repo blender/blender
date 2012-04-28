@@ -86,7 +86,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=False,
                 )
         cls.blur_glossy = FloatProperty(
-                name="Blur Glossy",
+                name="Filter Glossy",
                 description="Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy",
                 min=0.0, max=10.0,
                 default=0.0,

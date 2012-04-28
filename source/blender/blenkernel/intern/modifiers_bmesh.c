@@ -117,8 +117,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		BLI_array_empty(verts);
 		BLI_array_empty(edges);
 
-		BLI_array_growitems(verts, mp->totloop);
-		BLI_array_growitems(edges, mp->totloop);
+		BLI_array_grow_items(verts, mp->totloop);
+		BLI_array_grow_items(edges, mp->totloop);
 
 		ml = mloop + mp->loopstart;
 		for (j = 0; j < mp->totloop; j++, ml++) {

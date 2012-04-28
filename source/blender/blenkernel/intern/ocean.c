@@ -196,15 +196,13 @@ static float Ph(struct Ocean* o, float kx,float kz )
 	float tmp;
 	float k2 = kx*kx + kz*kz;
 
-	if (k2 == 0.0f)
-	{
+	if (k2 == 0.0f) {
 		return 0.0f; // no DC component
 	}
 
 	// damp out the waves going in the direction opposite the wind
 	tmp = (o->_wx * kx  + o->_wz * kz)/sqrtf(k2);
-	if (tmp < 0)
-	{
+	if (tmp < 0) {
 		tmp *= o->_damp_reflections;
 	}
 
@@ -421,18 +419,15 @@ void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u
 	frac_z)
 
 	{
-		if (oc->_do_disp_y)
-		{
+		if (oc->_do_disp_y) {
 			ocr->disp[1] = INTERP(oc->_disp_y);
 		}
-		if (oc->_do_normals)
-		{
+		if (oc->_do_normals) {
 			ocr->normal[0] = INTERP(oc->_N_x);
 			ocr->normal[1] = oc->_N_y/*INTERP(oc->_N_y) (MEM01)*/;
 			ocr->normal[2] = INTERP(oc->_N_z);
 		}
-		if (oc->_do_chop)
-		{
+		if (oc->_do_chop) {
 			ocr->disp[0] = INTERP(oc->_disp_x);
 			ocr->disp[2] = INTERP(oc->_disp_z);
 		}
@@ -441,8 +436,7 @@ void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u
 			ocr->disp[2] = 0.0;
 		}
 
-		if (oc->_do_jacobian)
-		{
+		if (oc->_do_jacobian) {
 			compute_eigenstuff(ocr, INTERP(oc->_Jxx),INTERP(oc->_Jzz),INTERP(oc->_Jxz));
 		}
 	}
@@ -474,8 +468,7 @@ void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i,int j)
 
 	ocr->disp[1] = oc->_do_disp_y ? oc->_disp_y[i*oc->_N+j] : 0.0f;
 
-	if (oc->_do_chop)
-	{
+	if (oc->_do_chop) {
 		ocr->disp[0] = oc->_disp_x[i*oc->_N+j];
 		ocr->disp[2] = oc->_disp_z[i*oc->_N+j];
 	}
@@ -484,8 +477,7 @@ void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i,int j)
 		ocr->disp[2] = 0.0f;
 	}
 
-	if (oc->_do_normals)
-	{
+	if (oc->_do_normals) {
 		ocr->normal[0] = oc->_N_x[i*oc->_N+j];
 		ocr->normal[1] = oc->_N_y/*oc->_N_y[i*oc->_N+j] (MEM01)*/;
 		ocr->normal[2] = oc->_N_z[i*oc->_N+j];
@@ -493,8 +485,7 @@ void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i,int j)
 		normalize_v3(ocr->normal);
 	}
 
-	if (oc->_do_jacobian)
-	{
+	if (oc->_do_jacobian) {
 		compute_eigenstuff(ocr, oc->_Jxx[i*oc->_N+j],oc->_Jzz[i*oc->_N+j],oc->_Jxz[i*oc->_N+j]);
 	}
 
@@ -511,12 +502,10 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 
 	// compute a new htilda
 #pragma omp parallel for private(i, j)
-	for (i = 0 ; i  < o->_M ; ++i)
-	{
+	for (i = 0 ; i  < o->_M ; ++i) {
 		// note the <= _N/2 here, see the fftw doco about
 		// the mechanics of the complex->real fft storage
-		for ( j  = 0 ; j  <= o->_N / 2 ; ++j)
-		{
+		for ( j  = 0 ; j  <= o->_N / 2 ; ++j) {
 			fftw_complex exp_param1;
 			fftw_complex exp_param2;
 			fftw_complex conj_param;
@@ -541,8 +530,7 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 
 #pragma omp section
 		{
-			if (o->_do_disp_y)
-			{
+			if (o->_do_disp_y) {
 				// y displacement
 				fftw_execute(o->_disp_y_plan);
 			}
@@ -550,13 +538,10 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 
 #pragma omp section
 		{
-			if (o->_do_chop)
-			{
+			if (o->_do_chop) {
 				// x displacement
-				for ( i = 0 ; i  < o->_M ; ++i)
-				{
-					for ( j  = 0 ; j  <= o->_N / 2 ; ++j)
-					{
+				for ( i = 0 ; i  < o->_M ; ++i) {
+					for ( j  = 0 ; j  <= o->_N / 2 ; ++j) {
 						fftw_complex mul_param;
 						fftw_complex minus_i;
 
@@ -575,13 +560,10 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 
 #pragma omp section
 		{
-			if (o->_do_chop)
-			{
+			if (o->_do_chop) {
 				// z displacement
-				for ( i = 0 ; i  < o->_M ; ++i)
-				{
-					for ( j  = 0 ; j  <= o->_N / 2 ; ++j)
-					{
+				for ( i = 0 ; i  < o->_M ; ++i) {
+					for ( j  = 0 ; j  <= o->_N / 2 ; ++j) {
 						fftw_complex mul_param;
 						fftw_complex minus_i;
 
@@ -600,13 +582,10 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 
 #pragma omp section
 		{
-			if (o->_do_jacobian)
-			{
+			if (o->_do_jacobian) {
 				// Jxx
-				for ( i = 0 ; i  < o->_M ; ++i)
-				{
-					for ( j  = 0 ; j  <= o->_N / 2 ; ++j)
-					{
+				for ( i = 0 ; i  < o->_M ; ++i) {
+					for ( j  = 0 ; j  <= o->_N / 2 ; ++j) {
 						fftw_complex mul_param;
 
 						//init_complex(mul_param, -scale, 0);
@@ -620,10 +599,8 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 				}
 				fftw_execute(o->_Jxx_plan);
 
-				for ( i = 0 ; i  < o->_M ; ++i)
-				{
-					for ( j  = 0 ; j  < o->_N ; ++j)
-					{
+				for ( i = 0 ; i  < o->_M ; ++i) {
+					for ( j  = 0 ; j  < o->_N ; ++j) {
 						o->_Jxx[i*o->_N+j] += 1.0;
 					}
 				}
@@ -632,13 +609,10 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 
 #pragma omp section
 		{
-			if (o->_do_jacobian)
-			{
+			if (o->_do_jacobian) {
 				// Jzz
-				for ( i = 0 ; i  < o->_M ; ++i)
-				{
-					for ( j  = 0 ; j  <= o->_N / 2 ; ++j)
-					{
+				for ( i = 0 ; i  < o->_M ; ++i) {
+					for ( j  = 0 ; j  <= o->_N / 2 ; ++j) {
 						fftw_complex mul_param;
 
 						//init_complex(mul_param, -scale, 0);
@@ -651,10 +625,8 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 					}
 				}
 				fftw_execute(o->_Jzz_plan);
-				for ( i = 0 ; i  < o->_M ; ++i)
-				{
-					for ( j  = 0 ; j  < o->_N ; ++j)
-					{
+				for ( i = 0 ; i  < o->_M ; ++i) {
+					for ( j  = 0 ; j  < o->_N ; ++j) {
 						o->_Jzz[i*o->_N+j] += 1.0;
 					}
 				}
@@ -663,13 +635,10 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 
 #pragma omp section
 		{
-			if (o->_do_jacobian)
-			{
+			if (o->_do_jacobian) {
 				// Jxz
-				for ( i = 0 ; i  < o->_M ; ++i)
-				{
-					for ( j  = 0 ; j  <= o->_N / 2 ; ++j)
-					{
+				for ( i = 0 ; i  < o->_M ; ++i) {
+					for ( j  = 0 ; j  <= o->_N / 2 ; ++j) {
 						fftw_complex mul_param;
 
 						//init_complex(mul_param, -scale, 0);
@@ -688,12 +657,9 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 #pragma omp section
 		{
 			// fft normals
-			if (o->_do_normals)
-			{
-				for ( i = 0 ; i  < o->_M ; ++i)
-				{
-					for ( j  = 0 ; j  <= o->_N / 2 ; ++j)
-					{
+			if (o->_do_normals) {
+				for ( i = 0 ; i  < o->_M ; ++i) {
+					for ( j  = 0 ; j  <= o->_N / 2 ; ++j) {
 						fftw_complex mul_param;
 
 						init_complex(mul_param, 0.0, -1.0);
@@ -709,12 +675,9 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 
 #pragma omp section
 		{
-			if (o->_do_normals)
-			{
-				for ( i = 0 ; i  < o->_M ; ++i)
-				{
-					for ( j  = 0 ; j  <= o->_N / 2 ; ++j)
-					{
+			if (o->_do_normals) {
+				for ( i = 0 ; i  < o->_M ; ++i) {
+					for ( j  = 0 ; j  <= o->_N / 2 ; ++j) {
 						fftw_complex mul_param;
 
 						init_complex(mul_param, 0.0, -1.0);
@@ -757,12 +720,9 @@ static void set_height_normalize_factor(struct Ocean *oc)
 
 	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
 
-	for (i = 0; i < oc->_M; ++i)
-	{
-		for (j = 0; j < oc->_N; ++j)
-		{
-			if ( max_h < fabsf(oc->_disp_y[i*oc->_N+j]))
-			{
+	for (i = 0; i < oc->_M; ++i) {
+		for (j = 0; j < oc->_N; ++j) {
+			if ( max_h < fabsf(oc->_disp_y[i*oc->_N+j])) {
 				max_h = fabsf(oc->_disp_y[i*oc->_N+j]);
 			}
 		}
@@ -851,10 +811,8 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 	/*srand(seed);*/
 	BLI_srand(seed);
 
-	for (i = 0 ; i  < o->_M ; ++i)
-	{
-		for (j = 0 ; j  < o->_N ; ++j)
-		{
+	for (i = 0 ; i  < o->_M ; ++i) {
+		for (j = 0 ; j  < o->_N ; ++j) {
 			float r1 = gaussRand();
 			float r2 = gaussRand();
 
@@ -921,14 +879,12 @@ void BKE_free_ocean_data(struct Ocean *oc)
 
 	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_WRITE);
 
-	if (oc->_do_disp_y)
-	{
+	if (oc->_do_disp_y) {
 		fftw_destroy_plan(oc->_disp_y_plan);
 		MEM_freeN(oc->_disp_y);
 	}
 
-	if (oc->_do_normals)
-	{
+	if (oc->_do_normals) {
 		MEM_freeN(oc->_fft_in_nx);
 		MEM_freeN(oc->_fft_in_nz);
 		fftw_destroy_plan(oc->_N_x_plan);
@@ -938,8 +894,7 @@ void BKE_free_ocean_data(struct Ocean *oc)
 		MEM_freeN(oc->_N_z);
 	}
 
-	if (oc->_do_chop)
-	{
+	if (oc->_do_chop) {
 		MEM_freeN(oc->_fft_in_x);
 		MEM_freeN(oc->_fft_in_z);
 		fftw_destroy_plan(oc->_disp_x_plan);
@@ -948,8 +903,7 @@ void BKE_free_ocean_data(struct Ocean *oc)
 		MEM_freeN(oc->_disp_z);
 	}
 
-	if (oc->_do_jacobian)
-	{
+	if (oc->_do_jacobian) {
 		MEM_freeN(oc->_fft_in_jxx);
 		MEM_freeN(oc->_fft_in_jzz);
 		MEM_freeN(oc->_fft_in_jxz);
@@ -1002,7 +956,7 @@ static void cache_filename(char *string, const char *path, const char *relbase, 
 	char cachepath[FILE_MAX];
 	const char *fname;
 
-	switch(type) {
+	switch (type) {
 	case CACHE_TYPE_FOAM:
 		fname= "foam_";
 		break;
@@ -1043,8 +997,7 @@ void BKE_free_ocean_cache(struct OceanCache *och)
 	if (!och) return;
 
 	if (och->ibufs_disp) {
-		for (i=och->start, f=0; i<=och->end; i++, f++)
-		{
+		for (i=och->start, f=0; i<=och->end; i++, f++) {
 			if (och->ibufs_disp[f]) {
 				IMB_freeImBuf(och->ibufs_disp[f]);
 			}
@@ -1053,8 +1006,7 @@ void BKE_free_ocean_cache(struct OceanCache *och)
 	}
 
 	if (och->ibufs_foam) {
-		for (i=och->start, f=0; i<=och->end; i++, f++)
-		{
+		for (i=och->start, f=0; i<=och->end; i++, f++) {
 			if (och->ibufs_foam[f]) {
 				IMB_freeImBuf(och->ibufs_foam[f]);
 			}
@@ -1063,8 +1015,7 @@ void BKE_free_ocean_cache(struct OceanCache *och)
 	}
 
 	if (och->ibufs_norm) {
-		for (i=och->start, f=0; i<=och->end; i++, f++)
-		{
+		for (i=och->start, f=0; i<=och->end; i++, f++) {
 			if (och->ibufs_norm[f]) {
 				IMB_freeImBuf(och->ibufs_norm[f]);
 			}

@@ -931,7 +931,7 @@ static void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, floa
 			float fac;
 
 			/* input */
-			switch(ma->rampin_col) {
+			switch (ma->rampin_col) {
 			case MA_RAMP_IN_ENERGY:
 				/* should use 'rgb_to_grayscale' but we only have a vector version */
 				fac= 0.3f*r + 0.58f*g + 0.12f*b;
@@ -1003,7 +1003,7 @@ static void do_specular_ramp(ShadeInput *shi, float is, float t, float spec[3])
 		float col[4];
 
 		/* input */
-		switch(ma->rampin_spec) {
+		switch (ma->rampin_spec) {
 		case MA_RAMP_IN_ENERGY:
 			fac= t;
 			break;
@@ -1158,8 +1158,7 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 			//	visifac= 0.0f;
 		}
 		else {
-			switch(lar->falloff_type)
-			{
+			switch (lar->falloff_type) {
 				case LA_FALLOFF_CONSTANT:
 					visifac = 1.0f;
 					break;

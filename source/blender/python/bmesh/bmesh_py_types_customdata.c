@@ -63,7 +63,15 @@ static CustomData *bpy_bm_customdata_get(BMesh *bm, char htype)
 static CustomDataLayer *bpy_bmlayeritem_get(BPy_BMLayerItem *self)
 {
 	CustomData *data = bpy_bm_customdata_get(self->bm, self->htype);
-	return &data->layers[CustomData_get_layer_index_n(data, self->type, self->index)];
+	const int index_absolute = CustomData_get_layer_index_n(data, self->type, self->index);
+	if (index_absolute != -1) {
+		return &data->layers[index_absolute];
+	}
+	else {
+		PyErr_SetString(PyExc_RuntimeError,
+		                "layer has become invalid");
+		return NULL;
+	}
 }
 
 /* py-type definitions
@@ -126,9 +134,10 @@ static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void *U
 	BPY_BM_CHECK_OBJ(self);
 
 	data = bpy_bm_customdata_get(self->bm, self->htype);
-	index = CustomData_get_active_layer_index(data, self->type);
+	index = CustomData_get_active_layer_index(data, self->type); /* absolute */
 
 	if (index != -1) {
+		index -= CustomData_get_layer_index(data, self->type); /* make relative */
 		return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
 	}
 	else {
@@ -146,7 +155,12 @@ static PyObject *bpy_bmlayeritem_name_get(BPy_BMLayerItem *self, void *UNUSED(fl
 	BPY_BM_CHECK_OBJ(self);
 
 	layer = bpy_bmlayeritem_get(self);
-	return PyUnicode_FromString(layer->name);
+	if (layer) {
+		return PyUnicode_FromString(layer->name);
+	}
+	else {
+		return NULL;
+	}
 }
 
 static PyGetSetDef bpy_bmlayeraccess_vert_getseters[] = {
@@ -311,7 +325,7 @@ static PyObject *bpy_bmlayercollection_keys(BPy_BMLayerCollection *self)
 	BPY_BM_CHECK_OBJ(self);
 
 	data = bpy_bm_customdata_get(self->bm, self->htype);
-	index = CustomData_get_layer_index(data, self->type);
+	index = CustomData_get_layer_index(data, self->type); /* absolute, but no need to make relative */
 
 	ret = PyList_New(0);
 
@@ -426,9 +440,10 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
 		int index;
 
 		data = bpy_bm_customdata_get(self->bm, self->htype);
-		index = CustomData_get_named_layer_index(data, self->type, key);
+		index = CustomData_get_named_layer_index(data, self->type, key); /* absolute index */
 
 		if (index != -1) {
+			index -= CustomData_get_layer_index(data, self->type); /* make relative */
 			return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
 		}
 	}
@@ -471,9 +486,10 @@ static PyObject *bpy_bmlayercollection_subscript_str(BPy_BMLayerCollection *self
 	BPY_BM_CHECK_OBJ(self);
 
 	data = bpy_bm_customdata_get(self->bm, self->htype);
-	index = CustomData_get_named_layer_index(data, self->type, keyname);
+	index = CustomData_get_named_layer_index(data, self->type, keyname); /* absolute */
 
 	if (index != -1) {
+		index -= CustomData_get_layer_index(data, self->type); /* make relative */
 		return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
 	}
 	else {

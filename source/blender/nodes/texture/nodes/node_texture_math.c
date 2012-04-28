@@ -51,7 +51,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	float in0 = tex_input_value(in[0], p, thread);
 	float in1 = tex_input_value(in[1], p, thread);
 	
-	switch(node->custom1) {
+	switch (node->custom1) {
 	
 	case 0: /* Add */
 		*out= in0 + in1; 

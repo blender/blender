@@ -1156,7 +1156,7 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check)
 {
 	static char path[FILE_MAX] = "";
 	int ok;
-	switch(id) {
+	switch (id) {
 	case BLENDER_RESOURCE_PATH_USER:
 		ok= get_path_user(path, NULL, NULL, NULL, ver);
 		break;

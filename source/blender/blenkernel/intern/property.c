@@ -99,7 +99,7 @@ void init_property(bProperty *prop)
 	
 	prop->data= 0;
 	
-	switch(prop->type) {
+	switch (prop->type) {
 	case GPROP_BOOL:
 	case GPROP_INT:
 	case GPROP_FLOAT:
@@ -206,7 +206,7 @@ int compare_property(bProperty *prop, const char *str)
 //	extern int Gdfra;		/* sector.c */
 	float fvalue, ftest;
 	
-	switch(prop->type) {
+	switch (prop->type) {
 	case GPROP_BOOL:
 		if (BLI_strcasecmp(str, "true")==0) {
 			if (prop->data==1) return 0;
@@ -242,7 +242,7 @@ void set_property(bProperty *prop, const char *str)
 {
 //	extern int Gdfra;		/* sector.c */
 
-	switch(prop->type) {
+	switch (prop->type) {
 	case GPROP_BOOL:
 		if (BLI_strcasecmp(str, "true")==0) prop->data= 1;
 		else if (BLI_strcasecmp(str, "false")==0) prop->data= 0;
@@ -266,7 +266,7 @@ void add_property(bProperty *prop, const char *str)
 {
 //	extern int Gdfra;		/* sector.c */
 
-	switch(prop->type) {
+	switch (prop->type) {
 	case GPROP_BOOL:
 	case GPROP_INT:
 		prop->data+= atoi(str);
@@ -288,7 +288,7 @@ void set_property_valstr(bProperty *prop, char *str)
 
 	if (str == NULL) return;
 
-	switch(prop->type) {
+	switch (prop->type) {
 	case GPROP_BOOL:
 	case GPROP_INT:
 		sprintf(str, "%d", prop->data);

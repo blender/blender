@@ -377,7 +377,9 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 	/* check for overlay mode */
 	if (!(brush->flag & BRUSH_TEXTURE_OVERLAY) ||
 	    !(ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_FIXED, MTEX_MAP_MODE_TILED)))
+	{
 		return;
+	}
 
 	/* save lots of GL state
 	 * TODO: check on whether all of these are needed? */
@@ -566,7 +568,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		    ELEM5(brush->sculpt_tool, SCULPT_TOOL_DRAW,
 		          SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
 		          SCULPT_TOOL_PINCH, SCULPT_TOOL_CREASE))
+		{
 			outline_col = brush->sub_col;
+		}
 
 		/* only do if brush is over the mesh */
 		if (hit)

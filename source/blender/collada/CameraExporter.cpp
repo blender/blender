@@ -42,15 +42,14 @@ CamerasExporter::CamerasExporter(COLLADASW::StreamWriter *sw, const ExportSettin
 template<class Functor>
 void forEachCameraObjectInScene(Scene *sce, Functor &f, bool export_selected)
 {
-	Base *base= (Base*) sce->base.first;
-	while(base) {
+	Base *base = (Base*) sce->base.first;
+	while (base) {
 		Object *ob = base->object;
-			
-		if (ob->type == OB_CAMERA && ob->data
-			&& !(export_selected && !(ob->flag & SELECT))) {
+
+		if (ob->type == OB_CAMERA && ob->data && !(export_selected && !(ob->flag & SELECT))) {
 			f(ob, sce);
 		}
-		base= base->next;
+		base = base->next;
 	}
 }
 

@@ -766,7 +766,7 @@ static int sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 }
 
 /* Handles clipping against a mirror modifier and SCULPT_LOCK axis flags */
-static void sculpt_clip(Sculpt *sd, SculptSession *ss, float *co, const float val[3])
+static void sculpt_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3])
 {
 	int i;
 
@@ -2817,8 +2817,10 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 						/* update the clip tolerance */
 						if (mmd->tolerance >
 						    ss->cache->clip_tolerance[i])
+						{
 							ss->cache->clip_tolerance[i] =
-							    mmd->tolerance;
+							        mmd->tolerance;
+						}
 					}
 				}
 			}
@@ -2928,8 +2930,11 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	          SCULPT_TOOL_DRAW, SCULPT_TOOL_CREASE, SCULPT_TOOL_BLOB,
 	          SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
 	          SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_ROTATE))
-		if (!(brush->flag & BRUSH_ACCUMULATE))
+	{
+		if (!(brush->flag & BRUSH_ACCUMULATE)) {
 			cache->original = 1;
+		}
+	}
 
 	cache->special_rotation = (brush->flag & BRUSH_RAKE) ? sd->last_angle : 0;
 

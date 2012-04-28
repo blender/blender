@@ -131,7 +131,7 @@ class ShowHideMenu():
         layout = self.layout
 
         layout.operator("%s.reveal" % self._operator_name, text="Show Hidden")
-        layout.operator("%s.hide" % self._operator_name, text="Hide Selected")
+        layout.operator("%s.hide" % self._operator_name, text="Hide Selected").unselected = False
         layout.operator("%s.hide" % self._operator_name, text="Hide Unselected").unselected = True
 
 
@@ -1602,7 +1602,7 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator("mesh.subdivide", text="Subdivide Smooth").smoothness = 1.0
         layout.operator("mesh.merge", text="Merge...")
         layout.operator("mesh.remove_doubles")
-        layout.operator("mesh.hide", text="Hide")
+        layout.operator("mesh.hide", text="Hide").unselected = False
         layout.operator("mesh.reveal", text="Reveal")
         layout.operator("mesh.select_all", text="Select Inverse").action = 'INVERT'
         layout.operator("mesh.flip_normals")
@@ -2036,7 +2036,7 @@ class VIEW3D_MT_edit_meta_showhide(Menu):
         layout = self.layout
 
         layout.operator("mball.reveal_metaelems", text="Show Hidden")
-        layout.operator("mball.hide_metaelems", text="Hide Selected")
+        layout.operator("mball.hide_metaelems", text="Hide Selected").unselected = False
         layout.operator("mball.hide_metaelems", text="Hide Unselected").unselected = True
 
 

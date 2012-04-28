@@ -82,7 +82,7 @@ enum {
 
 static void do_file_buttons(bContext *C, void *UNUSED(arg), int event)
 {
-	switch(event) {
+	switch (event) {
 		case B_FS_FILENAME:
 			file_filename_exec(C, NULL);
 			break;
@@ -417,8 +417,7 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 	int sy;
 
 	/* alternating flat shade background */
-	for (i=0; (i <= layout->rows); i+=2)
-	{
+	for (i=0; (i <= layout->rows); i+=2) {
 		sy = (int)v2d->cur.ymax - i*(layout->tile_h+2*layout->tile_border_y) - layout->tile_border_y;
 
 		UI_ThemeColorShade(TH_BACK, -7);
@@ -490,8 +489,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 	align = ( FILE_IMGDISPLAY == params->display) ? UI_STYLE_TEXT_CENTER : UI_STYLE_TEXT_LEFT;
 
-	for (i=offset; (i < numfiles) && (i<offset+numfiles_layout); ++i)
-	{
+	for (i = offset; (i < numfiles) && (i<offset+numfiles_layout); i++) {
 		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
 		sx += (int)(v2d->tot.xmin+2.0f);
 		sy = (int)(v2d->tot.ymax - sy);

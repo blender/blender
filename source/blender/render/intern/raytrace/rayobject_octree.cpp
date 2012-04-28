@@ -305,7 +305,7 @@ static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short
 	no= (Node *)br->b[oc5];
 	if (no==NULL) br->b[oc5]= (Branch *)(no= addnode(oc));
 
-	while(no->next) no= no->next;
+	while (no->next) no = no->next;
 
 	a= 0;
 	if (no->v[7]) {		/* node full */
@@ -313,7 +313,7 @@ static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short
 		no= no->next;
 	}
 	else {
-		while(no->v[a]!=NULL) a++;
+		while (no->v[a] != NULL) a++;
 	}
 	
 	no->v[a]= (RayFace*) RE_rayobject_align(face);
@@ -383,7 +383,7 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 	x=ocx1; y=ocy1;
 	labda= MIN2(labdax, labday);
 	
-	while(TRUE) {
+	while (TRUE) {
 		
 		if (x<0 || y<0 || x>=oc->ocres || y>=oc->ocres);
 		else ocface[oc->ocres*x+y]= 1;
@@ -421,7 +421,7 @@ static void filltriangle(Octree *oc, short c1, short c2, char *ocface, short *oc
 		for (y=ocmin[c2];y<=ocmax[c2];y++) {
 			if (ocface[a+y]) {
 				y++;
-				while(ocface[a+y] && y!=ocmax[c2]) y++;
+				while (ocface[a+y] && y!=ocmax[c2]) y++;
 				for (y1=ocmax[c2];y1>y;y1--) {
 					if (ocface[a+y1]) {
 						for (y2=y;y2<=y1;y2++) ocface[a+y2]=1;
@@ -449,7 +449,7 @@ static void RE_rayobject_octree_free(RayObject *tree)
 
 	if (oc->adrbranch) {
 		int a= 0;
-		while(oc->adrbranch[a]) {
+		while (oc->adrbranch[a]) {
 			MEM_freeN(oc->adrbranch[a]);
 			oc->adrbranch[a]= NULL;
 			a++;
@@ -461,7 +461,7 @@ static void RE_rayobject_octree_free(RayObject *tree)
 	
 	if (oc->adrnode) {
 		int a= 0;
-		while(oc->adrnode[a]) {
+		while (oc->adrnode[a]) {
 			MEM_freeN(oc->adrnode[a]);
 			oc->adrnode[a]= NULL;
 			a++;
@@ -658,8 +658,7 @@ static void RE_rayobject_octree_done(RayObject *tree)
 	
 	oc->ocsize= sqrt(t00*t00+t01*t01+t02*t02);	/* global, max size octree */
 
-	for (c=0; c<oc->ro_nodes_used; c++)
-	{
+	for (c=0; c<oc->ro_nodes_used; c++) {
 		octree_fill_rayface(oc, oc->ro_nodes[c]);
 	}
 
@@ -683,42 +682,41 @@ static void RE_rayobject_octree_bb(RayObject *tree, float *min, float *max)
 /* check all faces in this node */
 static int testnode(Octree *UNUSED(oc), Isect *is, Node *no, OcVal ocval)
 {
-	short nr=0;
+	short nr = 0;
 
 	/* return on any first hit */
-	if (is->mode==RE_RAY_SHADOW) {
+	if (is->mode == RE_RAY_SHADOW) {
 	
-		for (; no; no = no->next)
-		for (nr=0; nr<8; nr++)
-		{
-			RayFace *face = no->v[nr];
-			OcVal 		*ov = no->ov+nr;
-			
-			if (!face) break;
-			
-			if ( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
-			{
-				if ( RE_rayobject_intersect( RE_rayobject_unalignRayFace(face),is) )
-					return 1;
+		for ( ; no; no = no->next) {
+			for (nr = 0; nr < 8; nr++) {
+				RayFace *face = no->v[nr];
+				OcVal     *ov = no->ov + nr;
+
+				if (!face) break;
+
+				if ( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) {
+					if ( RE_rayobject_intersect( RE_rayobject_unalignRayFace(face),is) )
+						return 1;
+				}
 			}
 		}
 	}
-	else
-	{			/* else mirror or glass or shadowtra, return closest face  */
+	else {
+		/* else mirror or glass or shadowtra, return closest face  */
 		int found= 0;
 		
-		for (; no; no = no->next)
-		for (nr=0; nr<8; nr++)
-		{
-			RayFace *face = no->v[nr];
-			OcVal 		*ov = no->ov+nr;
-			
-			if (!face) break;
-			
-			if ( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
-			{ 
-				if ( RE_rayobject_intersect( RE_rayobject_unalignRayFace(face),is) )
-					found= 1;
+		for ( ; no; no = no->next) {
+			for (nr = 0; nr < 8; nr++) {
+				RayFace *face = no->v[nr];
+				OcVal     *ov = no->ov + nr;
+
+				if (!face) break;
+
+				if ( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) {
+					if ( RE_rayobject_intersect( RE_rayobject_unalignRayFace(face),is) ) {
+						found = 1;
+					}
+				}
 			}
 		}
 		
@@ -1003,7 +1001,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 		/* this loop has been constructed to make sure the first and last node of ray
 		 * are always included, even when ddalabda==1.0f or larger */
 
-		while(TRUE) {
+		while (TRUE) {
 
 			no= ocread(oc, xo, yo, zo);
 			if (no) {

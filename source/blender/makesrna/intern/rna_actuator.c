@@ -1451,22 +1451,6 @@ static void rna_def_scene_actuator(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Scene", "Scene to be added/removed/paused/resumed");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	/* XXX no need for those tooltips. to remove soon
-	 * Originally we had different 'scene' tooltips for different values of 'type'.
-	 * They were:
-	 * ACT_SCENE_RESTART	""
-	 * ACT_SCENE_CAMERA	""
-	 * ACT_SCENE_SET		"Set this Scene"
-	 * ACT_SCENE_ADD_FRONT	"Add an Overlay Scene"
-	 * ACT_SCENE_ADD_BACK	"Add a Background Scene"
-	 * ACT_SCENE_REMOVE	"Remove a Scene"
-	 * ACT_SCENE_SUSPEND	"Pause a Scene"
-	 * ACT_SCENE_RESUME	"Unpause a Scene"
-	 *
-	 * It can be done in the ui script if still needed.
-	 */
-	
 }
 
 static void rna_def_random_actuator(BlenderRNA *brna)

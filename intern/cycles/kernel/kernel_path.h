@@ -266,8 +266,8 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 		/* blurring of bsdf after bounces, for rays that have a small likelihood
 		   of following this particular path (diffuse, rough glossy) */
-		if(kernel_data.integrator.blur_glossy != FLT_MAX) {
-			float blur_pdf = kernel_data.integrator.blur_glossy*min_ray_pdf;
+		if(kernel_data.integrator.filter_glossy != FLT_MAX) {
+			float blur_pdf = kernel_data.integrator.filter_glossy*min_ray_pdf;
 
 			if(blur_pdf < 1.0f) {
 				float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;

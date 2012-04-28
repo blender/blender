@@ -146,8 +146,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 
 	BENCH(bvhtree_from_mesh_verts(&treeData, calc->target, 0.0, 2, 6));
-	if (treeData.tree == NULL)
-	{
+	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;
 	}
@@ -158,8 +157,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 #ifndef __APPLE__
 #pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(treeData,calc) schedule(static)
 #endif
-	for (i = 0; i<calc->numVerts; ++i)
-	{
+	for (i = 0; i<calc->numVerts; ++i) {
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
 		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
@@ -189,8 +187,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 
 		//Found the nearest vertex
-		if (nearest.index != -1)
-		{
+		if (nearest.index != -1) {
 			//Adjusting the vertex weight, so that after interpolating it keeps a certain distance from the nearest position
 			float dist = sasqrt(nearest.dist);
 			if (dist > FLT_EPSILON) weight *= (dist - calc->keepDist)/dist;
@@ -224,8 +221,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 	memcpy( &hit_tmp, hit, sizeof(hit_tmp) );
 
 	//Apply space transform (TODO readjust dist)
-	if (transf)
-	{
+	if (transf) {
 		copy_v3_v3( tmp_co, vert );
 		space_transform_apply( transf, tmp_co );
 		co = tmp_co;
@@ -298,8 +294,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 
 	//Prepare data to retrieve the direction in which we should project each vertex
-	if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
-	{
+	if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
 		if (calc->vert == NULL) return;
 	}
 	else {
@@ -316,8 +311,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 			return; 
 	}
 
-	if (calc->smd->auxTarget)
-	{
+	if (calc->smd->auxTarget) {
 		auxMesh = object_get_derived_final(calc->smd->auxTarget);
 		if (!auxMesh)
 			return;
@@ -332,16 +326,14 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 #ifndef __APPLE__
 #pragma omp parallel for private(i,hit) schedule(static)
 #endif
-		for (i = 0; i<calc->numVerts; ++i)
-		{
+		for (i = 0; i<calc->numVerts; ++i) {
 			float *co = calc->vertexCos[i];
 			float tmp_co[3], tmp_no[3];
 			float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 
 			if (weight == 0.0f) continue;
 
-			if (calc->vert)
-			{
+			if (calc->vert) {
 				/* calc->vert contains verts from derivedMesh  */
 				/* this coordinated are deformed by vertexCos only for normal projection (to get correct normals) */
 				/* for other cases calc->varts contains undeformed coordinates and vertexCos should be used */
@@ -364,8 +356,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 			hit.dist = 10000.0f; //TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that
 
 			//Project over positive direction of axis
-			if (use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR)
-			{
+			if (use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
 
 				if (auxData.tree)
 					normal_projection_project_vertex(0, tmp_co, tmp_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
@@ -374,8 +365,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 			}
 
 			//Project over negative direction of axis
-			if (use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR && hit.index == -1)
-			{
+			if (use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR && hit.index == -1) {
 				float inv_no[3];
 				negate_v3_v3(inv_no, tmp_no);
 
@@ -386,8 +376,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 			}
 
 
-			if (hit.index != -1)
-			{
+			if (hit.index != -1) {
 				madd_v3_v3v3fl(hit.co, hit.co, tmp_no, calc->keepDist);
 				interp_v3_v3v3(co, co, hit.co, weight);
 			}
@@ -414,8 +403,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 	//Create a bvh-tree of the given target
 	BENCH(bvhtree_from_mesh_faces( &treeData, calc->target, 0.0, 2, 6));
-	if (treeData.tree == NULL)
-	{
+	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;
 	}
@@ -429,8 +417,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 #ifndef __APPLE__
 #pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(calc,treeData) schedule(static)
 #endif
-	for (i = 0; i<calc->numVerts; ++i)
-	{
+	for (i = 0; i<calc->numVerts; ++i) {
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
 		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
@@ -458,10 +445,8 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
 
 		//Found the nearest vertex
-		if (nearest.index != -1)
-		{
-			if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE)
-			{
+		if (nearest.index != -1) {
+			if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE) {
 				//Make the vertex stay on the front side of the face
 				madd_v3_v3v3fl(tmp_co, nearest.co, nearest.no, calc->keepDist);
 			}
@@ -511,8 +496,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	}
 
 
-	if (smd->target)
-	{
+	if (smd->target) {
 		calc.target = object_get_derived_final(smd->target);
 
 		//TODO there might be several "bugs" on non-uniform scales matrixs
@@ -528,28 +512,24 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 
 	calc.vgroup = defgroup_name_index(calc.ob, smd->vgroup_name);
 
-	if (dm != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
-	{
+	if (dm != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
 		//Setup arrays to get vertexs positions, normals and deform weights
 		calc.vert   = dm->getVertDataArray(dm, CD_MVERT);
 		calc.dvert  = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 
 		//Using vertexs positions/normals as if a subsurface was applied 
-		if (smd->subsurfLevels)
-		{
+		if (smd->subsurfLevels) {
 			SubsurfModifierData ssmd= {{NULL}};
 			ssmd.subdivType	= ME_CC_SUBSURF;		//catmull clark
 			ssmd.levels		= smd->subsurfLevels;	//levels
 
 			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, FALSE, NULL, 0, 0, (ob->mode & OB_MODE_EDIT));
 
-			if (ss_mesh)
-			{
+			if (ss_mesh) {
 				calc.vert = ss_mesh->getVertDataArray(ss_mesh, CD_MVERT);
-				if (calc.vert)
-				{
-					//TRICKY: this code assumes subsurface will have the transformed original vertices
-					//in their original order at the end of the vert array.
+				if (calc.vert) {
+					/* TRICKY: this code assumes subsurface will have the transformed original vertices
+					 * in their original order at the end of the vert array. */
 					calc.vert = calc.vert + ss_mesh->getNumVerts(ss_mesh) - dm->getNumVerts(dm);
 				}
 			}
@@ -562,8 +542,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 
 	//Projecting target defined - lets work!
 	if (calc.target) {
-		switch(smd->shrinkType)
-		{
+		switch (smd->shrinkType) {
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
 				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
 			break;

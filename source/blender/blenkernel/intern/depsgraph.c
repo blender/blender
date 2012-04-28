@@ -462,7 +462,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 	if (ob->parent) {
 		node2 = dag_get_node(dag,ob->parent);
 		
-		switch(ob->partype) {
+		switch (ob->partype) {
 			case PARSKEL:
 				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_OB, "Parent");
 				break;
@@ -539,7 +539,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			break;
 		case OB_MBALL: 
 		{
-			Object *mom= find_basis_mball(scene, ob);
+			Object *mom= BKE_metaball_basis_find(scene, ob);
 			
 			if (mom!=ob) {
 				node2 = dag_get_node(dag, mom);
@@ -2245,7 +2245,7 @@ static void dag_object_time_update_flags(Object *ob)
 		Curve *cu;
 		Lattice *lt;
 		
-		switch(ob->type) {
+		switch (ob->type) {
 			case OB_MESH:
 				me= ob->data;
 				if (me->key) {

@@ -757,24 +757,30 @@ static void current_screen_compat(Main *mainvar, bScreen **screen)
 	*screen= (window)? window->screen: NULL;
 }
 
+typedef struct RenderInfo {
+	int sfra;
+	int efra;
+	char scene_name[MAX_ID_NAME - 2];
+} RenderInfo;
+
 static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon */
 {
 	bScreen *curscreen;
 	Scene *sce;
-	int data[8];
+	RenderInfo data;
 
 	/* XXX in future, handle multiple windows with multiple screnes? */
 	current_screen_compat(mainvar, &curscreen);
 
 	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {
 		if (sce->id.lib==NULL  && ( sce==curscreen->scene || (sce->r.scemode & R_BG_RENDER)) ) {
-			data[0]= sce->r.sfra;
-			data[1]= sce->r.efra;
+			data.sfra = sce->r.sfra;
+			data.efra = sce->r.efra;
+			memset(data.scene_name, 0, sizeof(data.scene_name));
 
-			memset(data+2, 0, sizeof(int)*6);
-			BLI_strncpy((char *)(data+2), sce->id.name+2, sizeof(sce->id.name)-2);
+			BLI_strncpy(data.scene_name, sce->id.name + 2, sizeof(data.scene_name));
 
-			writedata(wd, REND, 32, data);
+			writedata(wd, REND, sizeof(data), &data);
 		}
 	}
 }
@@ -831,7 +837,7 @@ static void write_boid_state(WriteData *wd, BoidState *state)
 	writestruct(wd, DATA, "BoidState", 1, state);
 
 	for (; rule; rule=rule->next) {
-		switch(rule->type) {
+		switch (rule->type) {
 			case eBoidRuleType_Goal:
 			case eBoidRuleType_Avoid:
 				writestruct(wd, DATA, "BoidRuleGoalAvoid", 1, rule);
@@ -1024,7 +1030,7 @@ static void write_sensors(WriteData *wd, ListBase *lb)
 
 		writedata(wd, DATA, sizeof(void *)*sens->totlinks, sens->links);
 
-		switch(sens->type) {
+		switch (sens->type) {
 		case SENS_NEAR:
 			writestruct(wd, DATA, "bNearSensor", 1, sens->data);
 			break;
@@ -1085,7 +1091,7 @@ static void write_controllers(WriteData *wd, ListBase *lb)
 
 		writedata(wd, DATA, sizeof(void *)*cont->totlinks, cont->links);
 
-		switch(cont->type) {
+		switch (cont->type) {
 		case CONT_EXPRESSION:
 			writestruct(wd, DATA, "bExpressionCont", 1, cont->data);
 			break;
@@ -1108,7 +1114,7 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 	while (act) {
 		writestruct(wd, DATA, "bActuator", 1, act);
 
-		switch(act->type) {
+		switch (act->type) {
 		case ACT_ACTION:
 		case ACT_SHAPEACTION:
 			writestruct(wd, DATA, "bActionActuator", 1, act->data);
@@ -1310,10 +1316,8 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 			
-			if (smd->type & MOD_SMOKE_TYPE_DOMAIN)
-			{
-				if (smd->domain)
-				{
+			if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+				if (smd->domain) {
 					write_pointcaches(wd, &(smd->domain->ptcaches[0]));
 
 					/* create fake pointcache so that old blender versions can read it */
@@ -1347,8 +1351,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		else if (md->type==eModifierType_DynamicPaint) {
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 			
-			if (pmd->canvas)
-			{
+			if (pmd->canvas) {
 				DynamicPaintSurface *surface;
 				writestruct(wd, DATA, "DynamicPaintCanvasSettings", 1, pmd->canvas);
 				
@@ -1362,8 +1365,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 					writestruct(wd, DATA, "EffectorWeights", 1, surface->effector_weights);
 				}
 			}
-			if (pmd->brush)
-			{
+			if (pmd->brush) {
 				writestruct(wd, DATA, "DynamicPaintBrushSettings", 1, pmd->brush);
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->paint_ramp);
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->vel_ramp);
@@ -1865,7 +1867,7 @@ static void write_previews(WriteData *wd, PreviewImage *prv)
 		short h = prv->h[1];
 		unsigned int *rect = prv->rect[1];
 		/* don't write out large previews if not requested */
-		if (!(U.flag & USER_SAVE_PREVIEWS)) {
+		if (!(U.flag & USER_SAVE_PREVIEWS) || TRUE) {
 			prv->w[1] = 0;
 			prv->h[1] = 0;
 			prv->rect[1] = NULL;
@@ -1875,7 +1877,7 @@ static void write_previews(WriteData *wd, PreviewImage *prv)
 		if (prv->rect[1]) writedata(wd, DATA, prv->w[1]*prv->h[1]*sizeof(unsigned int), prv->rect[1]);
 
 		/* restore preview, we still want to keep it in memory even if not saved to file */
-		if (!(U.flag & USER_SAVE_PREVIEWS) ) {
+		if (!(U.flag & USER_SAVE_PREVIEWS) || TRUE) {
 			prv->w[1] = w;
 			prv->h[1] = h;
 			prv->rect[1] = rect;
@@ -2106,19 +2108,19 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			
 			/* reset write flags too */
 			
-			SEQ_BEGIN(ed, seq) {
+			SEQ_BEGIN (ed, seq) {
 				if (seq->strip) seq->strip->done= 0;
 				writestruct(wd, DATA, "Sequence", 1, seq);
 			}
 			SEQ_END
 			
-			SEQ_BEGIN(ed, seq) {
+			SEQ_BEGIN (ed, seq) {
 				if (seq->strip && seq->strip->done==0) {
 					/* write strip with 'done' at 0 because readfile */
 					
 					if (seq->plugin) writestruct(wd, DATA, "PluginSeq", 1, seq->plugin);
 					if (seq->effectdata) {
-						switch(seq->type) {
+						switch (seq->type) {
 						case SEQ_COLOR:
 							writestruct(wd, DATA, "SolidColorVars", 1, seq->effectdata);
 							break;
@@ -2252,7 +2254,7 @@ static void write_region(WriteData *wd, ARegion *ar, int spacetype)
 	writestruct(wd, DATA, "ARegion", 1, ar);
 	
 	if (ar->regiondata) {
-		switch(spacetype) {
+		switch (spacetype) {
 			case SPACE_VIEW3D:
 				if (ar->regiontype==RGN_TYPE_WINDOW) {
 					RegionView3D *rv3d= ar->regiondata;

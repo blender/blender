@@ -179,9 +179,9 @@ CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 CXXFLAGS = [ '-fpermissive' ]
 
 CPPFLAGS = ['-DWIN32', '-DMS_WIN64', '-DFREE_WINDOWS', '-DFREE_WINDOWS64', '-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64', '-D_LARGEFILE64_SOURCE', '-DBOOST_ALL_NO_LIB', '-DBOOST_THREAD_USE_LIB', '-DGLEW_STATIC', '-D_SSIZE_T_']
-REL_CFLAGS = ['-O3', '-mmmx', '-msse', '-msse2']
-REL_CXXFLAGS = ['-O3', '-mmmx', '-msse', '-msse2']
-REL_CCFLAGS = ['-DNDEBUG',  '-O3', '-mmmx', '-msse', '-msse2']
+REL_CFLAGS = []
+REL_CXXFLAGS = []
+REL_CCFLAGS = ['-DNDEBUG', '-O2', '-ftree-vectorize', '-mmmx', '-msse', '-msse2']
 
 C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wstrict-prototypes']
 

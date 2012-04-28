@@ -45,7 +45,9 @@
 #include "DNA_space_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_lasso.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_dynstr.h"
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
@@ -213,7 +215,7 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 	/* in the case of only one editable thing, set pset->edittype accordingly */
 	if (pidlist.first && pidlist.first == pidlist.last) {
 		pid = pidlist.first;
-		switch(pid->type) {
+		switch (pid->type) {
 			case PTCACHE_TYPE_PARTICLES:
 				pset->edittype = PE_TYPE_PARTICLES;
 				break;
@@ -475,10 +477,12 @@ static int key_inside_rect(PEData *data, const float co[3])
 
 	if (sco[0] == IS_CLIPPED)
 		return 0;
-	
+
 	if (sco[0] > data->rect->xmin && sco[0] < data->rect->xmax &&
-	   sco[1] > data->rect->ymin && sco[1] < data->rect->ymax)
+	    sco[1] > data->rect->ymin && sco[1] < data->rect->ymax)
+	{
 		return key_test_depth(data, co);
+	}
 
 	return 0;
 }
@@ -1633,7 +1637,9 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 				copy_v3_v3(co, key->co);
 				mul_m4_v3(mat, co);
 				project_int(ar, co, vertco);
-				if ((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1]) && key_test_depth(&data, co)) {
+				if (BLI_lasso_is_point_inside(mcords,moves,vertco[0],vertco[1], IS_CLIPPED) &&
+				    key_test_depth(&data, co))
+				{
 					if (select && !(key->flag & PEK_SELECT)) {
 						key->flag |= PEK_SELECT;
 						point->flag |= PEP_EDIT_RECALC;
@@ -1651,7 +1657,9 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
 			project_int(ar, co,vertco);
-			if ((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1]) && key_test_depth(&data, co)) {
+			if (BLI_lasso_is_point_inside(mcords,moves,vertco[0],vertco[1], IS_CLIPPED) &&
+			    key_test_depth(&data, co))
+			{
 				if (select && !(key->flag & PEK_SELECT)) {
 					key->flag |= PEK_SELECT;
 					point->flag |= PEP_EDIT_RECALC;
@@ -3487,7 +3495,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 			mval[0] = bedit->lastmouse[0] + step*dx;
 			mval[1] = bedit->lastmouse[1] + step*dy;
 
-			switch(pset->brushtype) {
+			switch (pset->brushtype) {
 				case PE_BRUSH_COMB:
 				{
 					float mval_f[2];
@@ -3663,7 +3671,7 @@ static int brush_edit_exec(bContext *C, wmOperator *op)
 	if (!brush_edit_init(C, op))
 		return OPERATOR_CANCELLED;
 
-	RNA_BEGIN(op->ptr, itemptr, "stroke") {
+	RNA_BEGIN (op->ptr, itemptr, "stroke") {
 		brush_edit_apply(C, op, &itemptr);
 	}
 	RNA_END;
@@ -3704,7 +3712,7 @@ static int brush_edit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int brush_edit_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	switch(event->type) {
+	switch (event->type) {
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE: // XXX hardcoded

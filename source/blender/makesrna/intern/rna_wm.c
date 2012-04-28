@@ -665,13 +665,15 @@ static int rna_KeyMapItem_any_getf(PointerRNA *ptr)
 	wmKeyMapItem *kmi = (wmKeyMapItem*)ptr->data;
 
 	if (kmi->shift == KM_ANY &&
-		kmi->ctrl == KM_ANY &&
-		kmi->alt == KM_ANY &&
-		kmi->oskey == KM_ANY)
-
+	    kmi->ctrl == KM_ANY &&
+	    kmi->alt == KM_ANY &&
+	    kmi->oskey == KM_ANY)
+	{
 		return 1;
-	else
+	}
+	else {
 		return 0;
+	}
 }
 
 static void rna_KeyMapItem_any_setf(PointerRNA *ptr, int value)

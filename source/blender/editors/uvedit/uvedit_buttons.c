@@ -74,12 +74,12 @@ static int uvedit_center(Scene *scene, BMEditMesh *em, Image *ima, float center[
 	zero_v2(center);
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
 		tf = CustomData_bmesh_get(&em->bm->pdata, f->head.data, CD_MTEXPOLY);
-		if (!uvedit_face_visible(scene, ima, f, tf))
+		if (!uvedit_face_visible_test(scene, ima, f, tf))
 			continue;
 
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			if (uvedit_uv_selected(em, scene, l)) {
+			if (uvedit_uv_select_test(em, scene, l)) {
 				add_v2_v2(center, luv->uv);
 				tot++;
 			}
@@ -104,7 +104,7 @@ static void uvedit_translate(Scene *scene, BMEditMesh *em, Image *UNUSED(ima), f
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			if (uvedit_uv_selected(em, scene, l)) {
+			if (uvedit_uv_select_test(em, scene, l)) {
 				add_v2_v2(luv->uv, delta);
 			}
 		}

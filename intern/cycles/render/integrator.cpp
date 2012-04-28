@@ -41,7 +41,7 @@ Integrator::Integrator()
 	transparent_shadows = false;
 
 	no_caustics = false;
-	blur_glossy = 0.0f;
+	filter_glossy = 0.0f;
 	seed = 0;
 	layer_flag = ~0;
 	sample_clamp = 0.0f;
@@ -82,7 +82,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene)
 	kintegrator->transparent_shadows = transparent_shadows;
 
 	kintegrator->no_caustics = no_caustics;
-	kintegrator->blur_glossy = (blur_glossy == 0.0f)? FLT_MAX: 1.0f/blur_glossy;
+	kintegrator->filter_glossy = (filter_glossy == 0.0f)? FLT_MAX: 1.0f/filter_glossy;
 
 	kintegrator->seed = hash_int(seed);
 	kintegrator->layer_flag = layer_flag << PATH_RAY_LAYER_SHIFT;
@@ -122,7 +122,7 @@ bool Integrator::modified(const Integrator& integrator)
 		transparent_probalistic == integrator.transparent_probalistic &&
 		transparent_shadows == integrator.transparent_shadows &&
 		no_caustics == integrator.no_caustics &&
-		blur_glossy == integrator.blur_glossy &&
+		filter_glossy == integrator.filter_glossy &&
 		layer_flag == integrator.layer_flag &&
 		seed == integrator.seed &&
 		sample_clamp == integrator.sample_clamp);

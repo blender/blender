@@ -162,7 +162,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 		/* no need to ensure the loop order, we know its ok */
 
 		else if (f->len == 3) {
-			BLI_array_growone(looptris);
+			BLI_array_grow_one(looptris);
 			l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 			for (j=0; l; l=BM_iter_step(&liter), j++) {
 				looptris[i][j] = l;
@@ -171,7 +171,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 		}
 		else if (f->len == 4) {
 			BMLoop *ltmp[4];
-			BLI_array_growitems(looptris, 2);
+			BLI_array_grow_items(looptris, 2);
 
 			l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 			for (j=0; l; l=BM_iter_step(&liter), j++) {
@@ -219,7 +219,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 			BLI_addfilledge(&sf_ctx, firstv, v);
 
 			totfilltri = BLI_edgefill_ex(&sf_ctx, FALSE, f->no);
-			BLI_array_growitems(looptris, totfilltri);
+			BLI_array_grow_items(looptris, totfilltri);
 
 			for (efa = sf_ctx.fillfacebase.first; efa; efa=efa->next) {
 				BMLoop *l1= efa->v1->tmp.p;

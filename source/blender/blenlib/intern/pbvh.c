@@ -1151,7 +1151,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 		}
 
 		if (node->flag & PBVH_UpdateDrawBuffers) {
-			switch(bvh->type) {
+			switch (bvh->type) {
 			case PBVH_GRIDS:
 				GPU_update_grid_buffers(node->draw_buffers,
 						   bvh->grids,
@@ -1290,7 +1290,9 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	for (hiter = BLI_ghashIterator_new(map), i = 0;
 		!BLI_ghashIterator_isDone(hiter);
 		BLI_ghashIterator_step(hiter), ++i)
+	{
 		faces[i]= BLI_ghashIterator_getKey(hiter);
+	}
 
 	BLI_ghashIterator_free(hiter);
 
@@ -1345,7 +1347,7 @@ void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *to
 {
 	int tot;
 	
-	switch(bvh->type) {
+	switch (bvh->type) {
 	case PBVH_GRIDS:
 		tot= node->totprim*bvh->gridsize*bvh->gridsize;
 		if (totvert) *totvert= tot;
@@ -1360,7 +1362,7 @@ void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *to
 
 void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int *totgrid, int *maxgrid, int *gridsize, DMGridData ***griddata, DMGridAdjacency **gridadj)
 {
-	switch(bvh->type) {
+	switch (bvh->type) {
 	case PBVH_GRIDS:
 		if (grid_indices) *grid_indices= node->prim_indices;
 		if (totgrid) *totgrid= node->totprim;
@@ -1504,7 +1506,7 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	if (node->flag & PBVH_FullyHidden)
 		return 0;
 
-	switch(bvh->type) {
+	switch (bvh->type) {
 	case PBVH_FACES:
 		vert = bvh->verts;
 		faces= node->prim_indices;

@@ -3529,7 +3529,7 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 		float *col= NULL;
 		int pixsize= 3;
 		
-		switch(rpass->passtype) {
+		switch (rpass->passtype) {
 			case SCE_PASS_RGBA:
 				col= shr->col;
 				pixsize= 4;
@@ -3629,7 +3629,7 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 		float *fp, *col= NULL;
 		int pixsize= 3;
 		
-		switch(rpass->passtype) {
+		switch (rpass->passtype) {
 			case SCE_PASS_Z:
 				fp= rpass->rect + offset;
 				if (shr->z < *fp)

@@ -479,7 +479,7 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 
 	/* first case; separator . - _ with extensions r R l L  */
 	if (is_char_sep(name[len - 2]) ) {
-		switch(name[len - 1]) {
+		switch (name[len - 1]) {
 			case 'l':
 				prefix[len - 1] = 0;
 				strcpy(replace, "r");
@@ -500,7 +500,7 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 	}
 	/* case; beginning with r R l L , with separator after it */
 	else if (is_char_sep(name[1]) ) {
-		switch(name[0]) {
+		switch (name[0]) {
 			case 'l':
 				strcpy(replace, "r");
 				BLI_strncpy(suffix, name + 1, sizeof(suffix));

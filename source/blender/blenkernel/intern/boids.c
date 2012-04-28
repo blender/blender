@@ -962,7 +962,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 	set_boid_values(&val, bbd->part->boids, pa);
 
 	/* go through rules */
-	switch(state->ruleset_type) {
+	switch (state->ruleset_type) {
 		case eBoidRulesetType_Fuzzy:
 		{
 			for (rule = state->rules.first; rule; rule = rule->next) {
@@ -1258,7 +1258,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	bpa->ground = boid_find_ground(bbd, pa, ground_co, ground_nor);
 
 	/* change modes, constrain movement & keep track of down vector */
-	switch(bpa->data.mode) {
+	switch (bpa->data.mode) {
 		case eBoidMode_InAir:
 		{
 			float grav[3];
@@ -1437,7 +1437,7 @@ BoidRule *boid_new_rule(int type)
 	if (type <= 0)
 		return NULL;
 
-	switch(type) {
+	switch (type) {
 		case eBoidRuleType_Goal:
 		case eBoidRuleType_Avoid:
 			rule = MEM_callocN(sizeof(BoidRuleGoalAvoid), "BoidRuleGoalAvoid");

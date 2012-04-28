@@ -192,6 +192,41 @@
  * - bmo_xxx() -    Low level / internal operator API functions.
  * - _bm_xxx() -    Functions which are called via macros only.
  *
+ * \section bm_todo BMesh TODO's
+ *
+ * There may be a better place for this section, but adding here for now.
+ *
+ *
+ * \subsection bm_todo_tools Tools
+ *
+ * Probably most of these will be bmesh operators.
+ *
+ * - make ngons flat.
+ * - make ngons into tris/quads (ngon poke?), many methods could be used here (triangulate/fan/quad-fan).
+ * - solidify (precise mode), keeps even wall thickness, re-creates outlines of offset faces with plane-plane
+ *   intersections.
+ * - split vert (we already have in our API, just no tool)
+ * - bridge (add option to bridge between different edge loop counts, option to remove selected face regions)
+ * - flip selected region (invert all faces about the plane defined by the selected region outline)
+ * - interactive dissolve (like the knife tool but draw over edges to dissolve)
+ *
+ *
+ * \subsection bm_todo_optimize Optimizations
+ *
+ * - skip normal calc when its not needed (when calling chain of operators & for modifiers, flag as dirty)
+ * - skip BMO flag allocation, its not needed in many cases, this is fairly redundant to calc by default.
+ * - ability to call BMO's with option not to create return data (will save some time)
+ * - binary diff UNDO, currently this uses huge amount of ram when all shapes are stored for each undo step for eg.
+ * - use two differnt iterator types for BMO map/buffer types.
+ * - avoid string lookups for BMO slot lookups _especially_ when used in loops, this is very crappy.
+ *
+ *
+ * \subsection bm_todo_tools_enhance Tool Enhancements
+ *
+ * - face inset interpolate loop data from face (currently copies - but this stretches UV's in an ugly way)
+ * - vert slide UV correction (like we have for edge slide)
+ * - fill-face edge net - produce consistant normals, currently it won't, fix should be to fill in edge-net node
+ *   connected with previous one - since they already check for normals of adjacent edge-faces before creating.
  */
 
 #ifdef __cplusplus

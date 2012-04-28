@@ -46,10 +46,12 @@ void *avi_format_convert (AviMovie *movie, int stream, void *buffer, AviFormat f
 		return buffer;
 
 	if (from != AVI_FORMAT_RGB24 &&
-	to != AVI_FORMAT_RGB24)
+	    to != AVI_FORMAT_RGB24)
+	{
 		return avi_format_convert(movie, stream,
-		avi_format_convert (movie, stream, buffer, from, AVI_FORMAT_RGB24, size),
-		AVI_FORMAT_RGB24, to, size);
+		                          avi_format_convert(movie, stream, buffer, from, AVI_FORMAT_RGB24, size),
+		                          AVI_FORMAT_RGB24, to, size);
+	}
 
 	switch (to) {
 	case AVI_FORMAT_RGB24:

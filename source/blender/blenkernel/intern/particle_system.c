@@ -787,7 +787,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 		pa->num = i = ctx->index[p];
 		mface = dm->getTessFaceData(dm,i,CD_MFACE);
 		
-		switch(distr) {
+		switch (distr) {
 		case PART_DISTR_JIT:
 			if (ctx->jitlevel == 1) {
 				if (mface->v4)
@@ -855,13 +855,15 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			}
 			if (intersect==0)
 				pa->foffset=0.0;
-			else switch(distr) {
-				case PART_DISTR_JIT:
-					pa->foffset*= ctx->jit[p%(2*ctx->jitlevel)];
-					break;
-				case PART_DISTR_RAND:
-					pa->foffset*=BLI_frand();
-					break;
+			else {
+				switch (distr) {
+					case PART_DISTR_JIT:
+						pa->foffset *= ctx->jit[p % (2 * ctx->jitlevel)];
+						break;
+					case PART_DISTR_RAND:
+						pa->foffset *= BLI_frand();
+						break;
+				}
 			}
 		}
 	}
@@ -1575,7 +1577,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 
 static void get_angular_velocity_vector(short avemode, ParticleKey *state, float *vec)
 {
-	switch(avemode) {
+	switch (avemode) {
 		case PART_AVE_VELOCITY:
 			copy_v3_v3(vec, state->vel);
 			break;	
@@ -1779,7 +1781,7 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 
 		if (part->rotmode) {
 			/* create vector into which rotation is aligned */
-			switch(part->rotmode) {
+			switch (part->rotmode) {
 				case PART_ROT_NOR:
 					copy_v3_v3(rot_vec, nor);
 					break;
@@ -2141,7 +2143,7 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 	if (pa->prev_state.time < 0.f && integrator == PART_INT_VERLET)
 		integrator = PART_INT_EULER;
 
-	switch(integrator) {
+	switch (integrator) {
 		case PART_INT_EULER:
 			steps=1;
 			break;
@@ -2175,7 +2177,7 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 		/* calculate next state */
 		add_v3_v3(states[i].vel, impulse);
 
-		switch(integrator) {
+		switch (integrator) {
 			case PART_INT_EULER:
 				madd_v3_v3v3fl(pa->state.co, states->co, states->vel, dtime);
 				madd_v3_v3v3fl(pa->state.vel, states->vel, acceleration, dtime);
@@ -2193,7 +2195,7 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 				}
 				break;
 			case PART_INT_RK4:
-				switch(i) {
+				switch (i) {
 					case 0:
 						copy_v3_v3(dx[0], states->vel);
 						mul_v3_fl(dx[0], dtime);
@@ -2859,7 +2861,7 @@ static float collision_point_distance_with_normal(float p[3], ParticleCollisionE
 	if (fac >= 0.f)
 		collision_interpolate_element(pce, 0.f, fac, col);
 
-	switch(pce->tot) {
+	switch (pce->tot) {
 		case 1:
 		{
 			sub_v3_v3v3(nor, p, pce->x0);
@@ -2884,7 +2886,7 @@ static void collision_point_on_surface(float p[3], ParticleCollisionElement *pce
 {
 	collision_interpolate_element(pce, 0.f, fac, col);
 
-	switch(pce->tot) {
+	switch (pce->tot) {
 		case 1:
 		{
 			sub_v3_v3v3(co, p, pce->x0);
@@ -3833,7 +3835,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		sim->colliders = get_collider_cache(sim->scene, sim->ob, NULL);
 
 	/* initialize physics type specific stuff */
-	switch(part->phystype) {
+	switch (part->phystype) {
 		case PART_PHYS_BOIDS:
 		{
 			ParticleTarget *pt = psys->targets.first;
@@ -3908,7 +3910,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			pa->state.time = -1.f;
 	}
 
-	switch(part->phystype) {
+	switch (part->phystype) {
 		case PART_PHYS_NEWTON:
 		{
 			LOOP_DYNAMIC_PARTICLES {
@@ -4499,7 +4501,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	/* setup necessary physics type dependent additional data if it doesn't yet exist */
 	psys_prepare_physics(&sim);
 
-	switch(part->type) {
+	switch (part->type) {
 		case PART_HAIR:
 		{
 			/* nothing to do so bail out early */
@@ -4551,7 +4553,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 		}
 		default:
 		{
-			switch(part->phystype) {
+			switch (part->phystype) {
 				case PART_PHYS_NO:
 				case PART_PHYS_KEYED:
 				{

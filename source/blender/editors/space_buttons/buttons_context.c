@@ -535,7 +535,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 
 	/* now for each buttons context type, we try to construct a path,
 	 * tracing back recursively */
-	switch(mainb) {
+	switch (mainb) {
 		case BCONTEXT_SCENE:
 		case BCONTEXT_RENDER:
 			found= buttons_context_path_scene(path);

@@ -120,19 +120,17 @@ static int write_audio_frame(void)
 	audio_time += (double) audio_input_samples / (double) c->sample_rate;
 
 	pkt.size = avcodec_encode_audio(c, audio_output_buffer,
-					audio_outbuf_size,
-					(short*) audio_input_buffer);
+	                                audio_outbuf_size,
+	                                (short *)audio_input_buffer);
 
-	if (pkt.size < 0)
-	{
+	if (pkt.size < 0) {
 		// XXX error("Error writing audio packet");
 		return -1;
 	}
 
 	pkt.data = audio_output_buffer;
 
-	if (c->coded_frame && c->coded_frame->pts != AV_NOPTS_VALUE)
-	{
+	if (c->coded_frame && c->coded_frame->pts != AV_NOPTS_VALUE) {
 		pkt.pts = av_rescale_q(c->coded_frame->pts,
 				       c->time_base, audio_stream->time_base);
 		fprintf(stderr, "Audio Frame PTS: %d\n", (int)pkt.pts);
@@ -175,7 +173,7 @@ static AVFrame* alloc_picture(int pix_fmt, int width, int height)
  * first is always desired guess_format parameter */
 static const char** get_file_extensions(int format) 
 {
-	switch(format) {
+	switch (format) {
 	case FFMPEG_DV: {
 		static const char * rv[] = { ".dv", NULL };
 		return rv;
@@ -372,7 +370,7 @@ static void set_ffmpeg_property_option(AVCodecContext* c, IDProperty * prop)
 		*param++ = 0;
 	}
 
-	switch(prop->type) {
+	switch (prop->type) {
 	case IDP_STRING:
 		fprintf(stderr, "%s.\n", IDP_String(prop));
 		av_set_string3(c, prop->name, IDP_String(prop), 1, &rv);
@@ -717,7 +715,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 
 	BLI_snprintf(of->filename, sizeof(of->filename), "%s", name);
 	/* set the codec to the user's selection */
-	switch(ffmpeg_type) {
+	switch (ffmpeg_type) {
 	case FFMPEG_AVI:
 	case FFMPEG_MOV:
 	case FFMPEG_MKV:
@@ -929,8 +927,7 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 
 	success = start_ffmpeg_impl(rd, rectx, recty, reports);
 #ifdef WITH_AUDASPACE
-	if (audio_stream)
-	{
+	if (audio_stream) {
 		AVCodecContext* c = audio_stream->codec;
 		AUD_DeviceSpecs specs;
 		specs.channels = c->channels;
@@ -974,8 +971,7 @@ int append_ffmpeg(RenderData *rd, int start_frame, int frame, int *pixels, int r
 // why is this done before writing the video frame and again at end_ffmpeg?
 //	write_audio_frames(frame / (((double)rd->frs_sec) / rd->frs_sec_base));
 
-	if (video_stream)
-	{
+	if (video_stream) {
 		avframe= generate_video_frame((unsigned char*) pixels, reports);
 		success= (avframe && write_video_frame(rd, frame - start_frame, avframe, reports));
 
@@ -1172,10 +1168,12 @@ static const AVOption *my_av_find_opt(void *v, const char *name,
 	const AVOption *o= c->option;
 
 	for (;o && o->name; o++) {
-		if (!strcmp(o->name, name) && 
-		   (!unit || (o->unit && !strcmp(o->unit, unit))) && 
-		   (o->flags & mask) == flags )
+		if (!strcmp(o->name, name) &&
+		    (!unit || (o->unit && !strcmp(o->unit, unit))) &&
+		    (o->flags & mask) == flags)
+		{
 			return o;
+		}
 	}
 	return NULL;
 }

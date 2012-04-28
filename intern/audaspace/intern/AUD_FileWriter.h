@@ -31,6 +31,7 @@
 #define __AUD_FILEWRITER_H__
 
 #include <string>
+#include <vector>
 
 #include "AUD_Reference.h"
 
@@ -68,6 +69,15 @@ public:
 	 * \param buffersize How many samples should be transfered at once.
 	 */
 	static void writeReader(AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_IWriter> writer, unsigned int length, unsigned int buffersize);
+
+	/**
+	 * Writes a reader to several writers.
+	 * \param reader The reader to read from.
+	 * \param writers The writers to write to.
+	 * \param length How many samples should be transfered.
+	 * \param buffersize How many samples should be transfered at once.
+	 */
+	static void writeReader(AUD_Reference<AUD_IReader> reader, std::vector<AUD_Reference<AUD_IWriter> >& writers, unsigned int length, unsigned int buffersize);
 };
 
 #endif //__AUD_FILEWRITER_H__

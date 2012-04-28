@@ -771,7 +771,7 @@ int BM_face_validate(BMFace *face, FILE *err)
 		fflush(err);
 	}
 
-	BLI_array_growitems(verts, face->len);
+	BLI_array_grow_items(verts, face->len);
 	BM_ITER_ELEM_INDEX (l, &iter, face, BM_LOOPS_OF_FACE, i) {
 		verts[i] = l->v;
 		if (l->e->v1 == l->e->v2) {

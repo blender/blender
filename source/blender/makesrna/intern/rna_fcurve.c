@@ -482,12 +482,10 @@ static void rna_FModifier_active_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 	FModifier *fm, *fmo = (FModifier*)ptr->data;
 
 	/* clear active state of other FModifiers in this list */
-	for (fm = fmo->prev; fm; fm = fm->prev)
-	{
+	for (fm = fmo->prev; fm; fm = fm->prev) {
 		fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
 	}
-	for (fm = fmo->next; fm; fm = fm->next)
-	{
+	for (fm = fmo->next; fm; fm = fm->next) {
 		fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
 	}
 	

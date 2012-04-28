@@ -71,7 +71,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	i = 0;
 	/* v2 = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); */ /* UNUSED */
 	BMO_ITER (v, &siter, bm, &dupeop, "newout", BM_VERT) {
-		BLI_array_growone(vmap);
+		BLI_array_grow_one(vmap);
 		vmap[i] = v;
 		/* v2 = BM_iter_step(&iter); */ /* UNUSED */
 		i++;

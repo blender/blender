@@ -110,7 +110,7 @@ void init_sensor(bSensor *sens)
 	sens->data= NULL;
 	sens->pulse = 0;
 	
-	switch(sens->type) {
+	switch (sens->type) {
 	case SENS_ALWAYS:
 		sens->pulse = 0;
 		break;
@@ -272,7 +272,7 @@ void init_controller(bController *cont)
 	if (cont->data) MEM_freeN(cont->data);
 	cont->data= NULL;
 	
-	switch(cont->type) {
+	switch (cont->type) {
 	case CONT_EXPRESSION:
 		cont->data= MEM_callocN(sizeof(bExpressionCont), "expcont");
 		break;
@@ -400,7 +400,7 @@ void init_actuator(bActuator *act)
 	if (act->data) MEM_freeN(act->data);
 	act->data= NULL;
 	
-	switch(act->type) {
+	switch (act->type) {
 	case ACT_ACTION:
 	case ACT_SHAPEACTION:
 		act->data= MEM_callocN(sizeof(bActionActuator), "actionact");
@@ -647,7 +647,7 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 
 	sens= obt->sensors.first;
 	while (sens) {
-		switch(sens->type) {
+		switch (sens->type) {
 		case SENS_MESSAGE:
 			ms= sens->data;
 			if (ms->fromObject==ob) ms->fromObject= NULL;
@@ -657,7 +657,7 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 
 	act= obt->actuators.first;
 	while (act) {
-		switch(act->type) {
+		switch (act->type) {
 		case ACT_CAMERA:
 			ca= act->data;
 			if (ca->ob==ob) ca->ob= NULL;

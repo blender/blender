@@ -243,7 +243,7 @@ void *MEM_dupallocN(void *vmemh)
 		MemHead *memh= vmemh;
 		memh--;
 		
-		if(memh->mmap)
+		if (memh->mmap)
 			newp= MEM_mapallocN(memh->len, "dupli_mapalloc");
 		else
 			newp= MEM_mallocN(memh->len, "dupli_alloc");
@@ -265,8 +265,8 @@ void *MEM_reallocN(void *vmemh, size_t len)
 		memh--;
 
 		newp= MEM_mallocN(len, memh->name);
-		if(newp) {
-			if(len < memh->len)
+		if (newp) {
+			if (len < memh->len)
 				memcpy(newp, vmemh, len);
 			else
 				memcpy(newp, vmemh, memh->len);
@@ -311,14 +311,14 @@ void *MEM_mallocN(size_t len, const char *str)
 	
 	memh= (MemHead *)malloc(len+sizeof(MemHead)+sizeof(MemTail));
 
-	if(memh) {
+	if (memh) {
 		make_memhead_header(memh, len, str);
 		mem_unlock_thread();
-		if(malloc_debug_memset && len)
+		if (malloc_debug_memset && len)
 			memset(memh+1, 255, len);
 
 #ifdef DEBUG_MEMCOUNTER
-		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
+		if (_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
 			memcount_raise(__func__);
 		memh->_count= _mallocn_count++;
 #endif
@@ -339,11 +339,11 @@ void *MEM_callocN(size_t len, const char *str)
 
 	memh= (MemHead *)calloc(len+sizeof(MemHead)+sizeof(MemTail),1);
 
-	if(memh) {
+	if (memh) {
 		make_memhead_header(memh, len, str);
 		mem_unlock_thread();
 #ifdef DEBUG_MEMCOUNTER
-		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
+		if (_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
 			memcount_raise(__func__);
 		memh->_count= _mallocn_count++;
 #endif
@@ -366,14 +366,14 @@ void *MEM_mapallocN(size_t len, const char *str)
 	memh= mmap(NULL, len+sizeof(MemHead)+sizeof(MemTail),
 			PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
 
-	if(memh!=(MemHead *)-1) {
+	if (memh!=(MemHead *)-1) {
 		make_memhead_header(memh, len, str);
 		memh->mmap= 1;
 		mmap_in_use += len;
 		peak_mem = mmap_in_use > peak_mem ? mmap_in_use : peak_mem;
 		mem_unlock_thread();
 #ifdef DEBUG_MEMCOUNTER
-		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
+		if (_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
 			memcount_raise(__func__);
 		memh->_count= _mallocn_count++;
 #endif
@@ -406,9 +406,9 @@ static int compare_len(const void *p1, const void *p2)
 	const MemPrintBlock *pb1= (const MemPrintBlock*)p1;
 	const MemPrintBlock *pb2= (const MemPrintBlock*)p2;
 
-	if(pb1->len < pb2->len)
+	if (pb1->len < pb2->len)
 		return 1;
-	else if(pb1->len == pb2->len)
+	else if (pb1->len == pb2->len)
 		return 0;
 	else
 		return -1;
@@ -431,7 +431,7 @@ void MEM_printmemlist_stats(void)
 	membl = membase->first;
 	if (membl) membl = MEMNEXT(membl);
 
-	while(membl) {
+	while (membl) {
 		pb->name= membl->name;
 		pb->len= membl->len;
 		pb->items= 1;
@@ -439,18 +439,18 @@ void MEM_printmemlist_stats(void)
 		totpb++;
 		pb++;
 
-		if(membl->next)
+		if (membl->next)
 			membl= MEMNEXT(membl->next);
 		else break;
 	}
 
 	/* sort by name and add together blocks with the same name */
 	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_name);
-	for(a=0, b=0; a<totpb; a++) {
-		if(a == b) {
+	for (a = 0, b=0; a<totpb; a++) {
+		if (a == b) {
 			continue;
 		}
-		else if(strcmp(printblock[a].name, printblock[b].name) == 0) {
+		else if (strcmp(printblock[a].name, printblock[b].name) == 0) {
 			printblock[b].len += printblock[a].len;
 			printblock[b].items++;
 		}
@@ -465,7 +465,7 @@ void MEM_printmemlist_stats(void)
 	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
 	printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use/(double)(1024*1024));
 	printf(" ITEMS TOTAL-MiB AVERAGE-KiB TYPE\n");
-	for(a=0, pb=printblock; a<totpb; a++, pb++)
+	for (a = 0, pb=printblock; a<totpb; a++, pb++)
 		printf("%6d (%8.3f  %8.3f) %s\n", pb->items, (double)pb->len/(double)(1024*1024), (double)pb->len/1024.0/(double)pb->items, pb->name);
 
 	free(printblock);
@@ -491,7 +491,7 @@ static void MEM_printmemlist_internal( int pydict )
 		print_error("# membase_debug.py\n");
 		print_error("membase = [\\\n");
 	}
-	while(membl) {
+	while (membl) {
 		if (pydict) {
 			fprintf(stderr, "{'len':" SIZET_FORMAT ", 'name':'''%s''', 'pointer':'%p'},\\\n", SIZET_ARG(membl->len), membl->name, (void *)(membl+1));
 		} else {
@@ -501,7 +501,7 @@ static void MEM_printmemlist_internal( int pydict )
 			print_error("%s len: " SIZET_FORMAT " %p\n", membl->name, SIZET_ARG(membl->len), membl+1);
 #endif
 		}
-		if(membl->next)
+		if (membl->next)
 			membl= MEMNEXT(membl->next);
 		else break;
 	}
@@ -536,9 +536,9 @@ void MEM_callbackmemlist(void (*func)(void*)) {
 	membl = membase->first;
 	if (membl) membl = MEMNEXT(membl);
 
-	while(membl) {
+	while (membl) {
 		func(membl+1);
-		if(membl->next)
+		if (membl->next)
 			membl= MEMNEXT(membl->next);
 		else break;
 	}
@@ -554,13 +554,13 @@ short MEM_testN(void *vmemh) {
 	membl = membase->first;
 	if (membl) membl = MEMNEXT(membl);
 
-	while(membl) {
+	while (membl) {
 		if (vmemh == membl+1) {
 			mem_unlock_thread();
 			return 1;
 		}
 
-		if(membl->next)
+		if (membl->next)
 			membl= MEMNEXT(membl->next);
 		else break;
 	}
@@ -585,13 +585,13 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 	MemHead *memh= vmemh;
 	const char *name;
 
-	if (memh == NULL){
+	if (memh == NULL) {
 		MemorY_ErroR("free","attempt to free NULL pointer");
 		/* print_error(err_stream, "%d\n", (memh+4000)->tag1); */
 		return(-1);
 	}
 
-	if(sizeof(intptr_t)==8) {
+	if (sizeof(intptr_t)==8) {
 		if (((intptr_t) memh) & 0x7) {
 			MemorY_ErroR("free","attempt to free illegal pointer");
 			return(-1);
@@ -605,7 +605,7 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 	}
 	
 	memh--;
-	if(memh->tag1 == MEMFREE && memh->tag2 == MEMFREE) {
+	if (memh->tag1 == MEMFREE && memh->tag2 == MEMFREE) {
 		MemorY_ErroR(memh->name,"double free");
 		return(-1);
 	}
@@ -613,7 +613,7 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 	mem_lock_thread();
 	if ((memh->tag1 == MEMTAG1) && (memh->tag2 == MEMTAG2) && ((memh->len & 0x3) == 0)) {
 		memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + memh->len);
-		if (memt->tag3 == MEMTAG3){
+		if (memt->tag3 == MEMTAG3) {
 			
 			memh->tag1 = MEMFREE;
 			memh->tag2 = MEMFREE;
@@ -628,7 +628,7 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 		error = 2;
 		MemorY_ErroR(memh->name,"end corrupt");
 		name = check_memlist(memh);
-		if (name != NULL){
+		if (name != NULL) {
 			if (name != memh->name) MemorY_ErroR(name,"is also corrupt");
 		}
 	} else{
@@ -694,13 +694,13 @@ static void rem_memblock(MemHead *memh)
 	totblock--;
 	mem_in_use -= memh->len;
 
-	if(memh->mmap) {
+	if (memh->mmap) {
 		mmap_in_use -= memh->len;
 		if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
 			printf("Couldn't unmap memory %s\n", memh->name);
 	}
 	else {
-		if(malloc_debug_memset && memh->len)
+		if (malloc_debug_memset && memh->len)
 			memset(memh+1, 255, memh->len);
 		free(memh);
 	}
@@ -723,7 +723,7 @@ static const char *check_memlist(MemHead *memh)
 	forw = membase->first;
 	if (forw) forw = MEMNEXT(forw);
 	forwok = NULL;
-	while(forw){
+	while (forw) {
 		if (forw->tag1 != MEMTAG1 || forw->tag2 != MEMTAG2) break;
 		forwok = forw;
 		if (forw->next) forw = MEMNEXT(forw->next);
@@ -733,7 +733,7 @@ static const char *check_memlist(MemHead *memh)
 	back = (MemHead *) membase->last;
 	if (back) back = MEMNEXT(back);
 	backok = NULL;
-	while(back){
+	while (back) {
 		if (back->tag1 != MEMTAG1 || back->tag2 != MEMTAG2) break;
 		backok = back;
 		if (back->prev) back = MEMNEXT(back->prev);
@@ -742,13 +742,13 @@ static const char *check_memlist(MemHead *memh)
 
 	if (forw != back) return ("MORE THAN 1 MEMORYBLOCK CORRUPT");
 
-	if (forw == NULL && back == NULL){
+	if (forw == NULL && back == NULL) {
 		/* geen foute headers gevonden dan maar op zoek naar memblock*/
 
 		forw = membase->first;
 		if (forw) forw = MEMNEXT(forw);
 		forwok = NULL;
-		while(forw){
+		while (forw) {
 			if (forw == memh) break;
 			if (forw->tag1 != MEMTAG1 || forw->tag2 != MEMTAG2) break;
 			forwok = forw;
@@ -760,7 +760,7 @@ static const char *check_memlist(MemHead *memh)
 		back = (MemHead *) membase->last;
 		if (back) back = MEMNEXT(back);
 		backok = NULL;
-		while(back){
+		while (back) {
 			if (back == memh) break;
 			if (back->tag1 != MEMTAG1 || back->tag2 != MEMTAG2) break;
 			backok = back;
@@ -772,10 +772,10 @@ static const char *check_memlist(MemHead *memh)
 	if (forwok) name = forwok->nextname;
 	else name = "No name found";
 
-	if (forw == memh){
+	if (forw == memh) {
 		/* voor alle zekerheid wordt dit block maar uit de lijst gehaald */
-		if (forwok){
-			if (backok){
+		if (forwok) {
+			if (backok) {
 				forwok->next = (MemHead *)&backok->next;
 				backok->prev = (MemHead *)&forwok->next;
 				forwok->nextname = backok->name;
@@ -785,7 +785,7 @@ static const char *check_memlist(MemHead *memh)
 /*  				membase->last = (struct Link *) &forwok->next; */
 			}
 		} else{
-			if (backok){
+			if (backok) {
 				backok->prev = NULL;
 				membase->first = &backok->next;
 			} else{

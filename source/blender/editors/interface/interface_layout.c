@@ -1265,7 +1265,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 	const int skip_filter = !but->changed;
 
 	/* build a temporary list of relevant items first */
-	RNA_PROP_BEGIN(&but->rnasearchpoin, itemptr, but->rnasearchprop) {
+	RNA_PROP_BEGIN (&but->rnasearchpoin, itemptr, but->rnasearchprop) {
 		if (flag & PROP_ID_SELF_CHECK)
 			if (itemptr.data == but->rnapoin.id.data)
 				continue;
@@ -1333,7 +1333,7 @@ static void search_id_collection(StructRNA *ptype, PointerRNA *ptr, PropertyRNA 
 
 	*prop = NULL;
 
-	RNA_STRUCT_BEGIN(ptr, iprop) {
+	RNA_STRUCT_BEGIN (ptr, iprop) {
 		/* if it's a collection and has same pointer type, we've got it */
 		if (RNA_property_type(iprop) == PROP_COLLECTION) {
 			srna = RNA_property_pointer_type(ptr, iprop);

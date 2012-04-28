@@ -29,54 +29,23 @@
  *  \ingroup spoutliner
  */
 
-#include <math.h>
-#include <string.h>
 #include <stdlib.h>
-#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_group_types.h"
-#include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_world_types.h"
-#include "DNA_sequence_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_world_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_math_base.h"
 
-#if defined WIN32 && !defined _LIBC
-# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
-#else
-#  ifndef _GNU_SOURCE
-#    define _GNU_SOURCE
-#  endif
-# include <fnmatch.h>
-#endif
-
-
-#include "BKE_animsys.h"
 #include "BKE_context.h"
-#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
-#include "BKE_global.h"
-#include "BKE_group.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
-#include "BKE_modifier.h"
-#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 
@@ -88,12 +57,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
@@ -664,7 +629,7 @@ static int tree_element_active_keymap_item(bContext *UNUSED(C), TreeElement *te,
 int tree_element_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set)
 {
 
-	switch(te->idcode) {
+	switch (te->idcode) {
 		/* Note: no ID_OB: objects are handled specially to allow multiple
 		 * selection. See do_outliner_item_activate. */
 		case ID_MA:
@@ -687,7 +652,7 @@ int tree_element_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement
 /* Context can be NULL when set==0 */
 int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
 {
-	switch(tselem->type) {
+	switch (tselem->type) {
 		case TSE_DEFGROUP:
 			return tree_element_active_defgroup(C, scene, te, tselem, set);
 		case TSE_BONE:

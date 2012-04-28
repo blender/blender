@@ -2621,7 +2621,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 										//fac = line_point_factor_v2(uv, uv_seam_quad[0], uv_seam_quad[1]);
 										
 										fac = line_point_factor_v2(uv, seam_subsection[0], seam_subsection[1]);
-										if (fac < 0.0f)      { copy_v3_v3(pixelScreenCo, edge_verts_inset_clip[0]); }
+										if      (fac < 0.0f) { copy_v3_v3(pixelScreenCo, edge_verts_inset_clip[0]); }
 										else if (fac > 1.0f) { copy_v3_v3(pixelScreenCo, edge_verts_inset_clip[1]); }
 										else                 { interp_v3_v3v3(pixelScreenCo, edge_verts_inset_clip[0], edge_verts_inset_clip[1], fac); }
 										
@@ -5038,7 +5038,7 @@ static int paint_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	RNA_BEGIN(op->ptr, itemptr, "stroke") {
+	RNA_BEGIN (op->ptr, itemptr, "stroke") {
 		paint_apply(C, op, &itemptr);
 	}
 	RNA_END;

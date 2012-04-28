@@ -1359,8 +1359,10 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
 			 * array get/next function, we can be sure it is an actual array */
 			if (cprop->next && cprop->get)
 				if (strcmp((const char*)cprop->next, "rna_iterator_array_next") == 0 &&
-				   strcmp((const char*)cprop->get, "rna_iterator_array_get") == 0)
+				    strcmp((const char*)cprop->get, "rna_iterator_array_get") == 0)
+				{
 					prop->flag |= PROP_RAW_ARRAY;
+				}
 
 			cprop->get = (void*)rna_def_property_get_func(f, srna, prop, dp, (const char*)cprop->get);
 			cprop->begin = (void*)rna_def_property_begin_func(f, srna, prop, dp, (const char*)cprop->begin);

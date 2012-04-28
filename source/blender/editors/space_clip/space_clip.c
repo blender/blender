@@ -324,9 +324,9 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SCENE:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_FRAME:
 					clip_scopes_tag_refresh(sa);
 					/* no break! */
@@ -337,14 +337,14 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_MOVIECLIP:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_DISPLAY:
 				case ND_SELECT:
 					clip_scopes_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 			}
-			switch(wmn->action) {
+			switch (wmn->action) {
 				case NA_REMOVED:
 				case NA_EDITED:
 				case NA_EVALUATED:
@@ -358,7 +358,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_GEOM:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_SELECT:
 					clip_scopes_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
@@ -1045,7 +1045,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 static void clip_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SCREEN:
 			if (wmn->data == ND_GPENCIL)
 				ED_region_tag_redraw(ar);
@@ -1217,7 +1217,7 @@ static void clip_tools_area_draw(const bContext *C, ARegion *ar)
 static void clip_props_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_WM:
 			if (wmn->data == ND_HISTORY)
 				ED_region_tag_redraw(ar);
@@ -1262,7 +1262,7 @@ static void clip_properties_area_draw(const bContext *C, ARegion *ar)
 static void clip_properties_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SCREEN:
 			if (wmn->data ==ND_GPENCIL)
 				ED_region_tag_redraw(ar);

@@ -423,8 +423,11 @@ static void cuboid_do(
 
 			if (has_radius) {
 				if (fabsf(tmp_co[0]) > cmd->radius ||
-								fabsf(tmp_co[1]) > cmd->radius ||
-								fabsf(tmp_co[2]) > cmd->radius) continue;
+				    fabsf(tmp_co[1]) > cmd->radius ||
+				    fabsf(tmp_co[2]) > cmd->radius)
+				{
+					continue;
+				}
 			}
 
 			for (j = 0; j < dvert[i].totweight; ++j) {
@@ -521,8 +524,11 @@ static void cuboid_do(
 
 		if (has_radius) {
 			if (fabsf(tmp_co[0]) > cmd->radius ||
-						 fabsf(tmp_co[1]) > cmd->radius ||
-						 fabsf(tmp_co[2]) > cmd->radius) continue;
+			    fabsf(tmp_co[1]) > cmd->radius ||
+			    fabsf(tmp_co[2]) > cmd->radius)
+			{
+				continue;
+			}
 		}
 
 		octant = 0;

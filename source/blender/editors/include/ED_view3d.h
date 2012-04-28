@@ -269,8 +269,6 @@ void view3d_get_transformation(const struct ARegion *ar, struct RegionView3D *rv
 
 /* XXX should move to BLI_math */
 int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);
-int lasso_inside(int mcords[][2], short moves, int sx, int sy);
-int lasso_inside_edge(int mcords[][2], short moves, int x0, int y0, int x1, int y1);
 
 /* get 3d region from context, also if mouse is in header or toolbar */
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);

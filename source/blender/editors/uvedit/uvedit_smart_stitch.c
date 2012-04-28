@@ -860,7 +860,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 				if (final) {
 					copy_v2_v2(luv->uv, final_position[i].uv);
 
-					uvedit_uv_select(state->em, scene, l);
+					uvedit_uv_select_enable(state->em, scene, l, FALSE);
 				}
 				else {
 					int face_preview_pos = preview_position[BM_elem_index_get(element_iter->face)].data_position;
@@ -1162,7 +1162,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 
 		EDBM_index_arrays_init(em, 0, 0, 1);
 
-		RNA_BEGIN(op->ptr, itemptr, "selection") {
+		RNA_BEGIN (op->ptr, itemptr, "selection") {
 			faceIndex = RNA_int_get(&itemptr, "face_index");
 			elementIndex = RNA_int_get(&itemptr, "element_index");
 			efa = EDBM_face_at_index(em, faceIndex);
@@ -1180,7 +1180,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			i = 0;
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				if (uvedit_uv_selected(em, scene, l)) {
+				if (uvedit_uv_select_test(em, scene, l)) {
 					UvElement *element = ED_uv_element_get(state->element_map, efa, l);
 					stitch_select_uv(element, state, 1);
 				}

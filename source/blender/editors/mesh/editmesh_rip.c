@@ -56,7 +56,8 @@
 #include "mesh_intern.h"
 
 /* helper to find edge for edge_rip */
-static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const float mvalf[2])
+static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4],
+                                   const float co1[3], const float co2[2], const float mvalf[2])
 {
 	float vec1[3], vec2[3];
 
@@ -111,9 +112,9 @@ static float edbm_rip_edge_side_measure(BMEdge *e, BMLoop *e_l,
 	score = len_v2v2(e_v1_co, e_v2_co);
 
 	if (dist_to_line_segment_v2(fmval_tweak, e_v1_co, e_v2_co) >
-		dist_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
+	    dist_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
 	{
-		return  score;
+		return score;
 	}
 	else {
 		return -score;
@@ -262,7 +263,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 		uid_start = uid;
 		uid = uid_end + bm->totedge;
 
-		BLI_array_growone(eloop_pairs);
+		BLI_array_grow_one(eloop_pairs);
 		lp = &eloop_pairs[BLI_array_count(eloop_pairs) - 1];
 		BM_edge_loop_pair(e_last, &lp->l_a, &lp->l_b); /* no need to check, we know this will be true */
 
@@ -276,7 +277,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 	}
 
 	/* null terminate */
-	BLI_array_growone(eloop_pairs);
+	BLI_array_grow_one(eloop_pairs);
 	lp = &eloop_pairs[BLI_array_count(eloop_pairs) - 1];
 	lp->l_a = lp->l_b = NULL;
 
@@ -347,7 +348,7 @@ static int edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
 	BMOperator bmop;
 
 	if (!EDBM_op_init(em, &bmop, op, "edgesplit edges=%he verts=%hv use_verts=%b",
-					  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
+	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
 		return FALSE;
 	}
 	BMO_op_exec(em->bm, &bmop);
@@ -384,7 +385,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
 	/* find selected vert - same some time and check history first */
-	if (EDBM_editselection_active_get(em, &ese) && ese.htype == BM_VERT) {
+	if (BM_select_history_active_get(em->bm, &ese) && ese.htype == BM_VERT) {
 		v = (BMVert *)ese.ele;
 	}
 	else {
@@ -450,7 +451,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 			int vi_best = 0;
 
 			if (ese.ele) {
-				EDBM_editselection_remove(em, &ese.ele->head);
+				BM_select_history_remove(em->bm, ese.ele);
 			}
 
 			dist = FLT_MAX;
@@ -480,7 +481,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 			BM_vert_select_set(bm, v, TRUE);
 
 			if (ese.ele) {
-				EDBM_editselection_store(em, &v->head);
+				BM_select_history_store(em->bm, v);
 			}
 
 			/* splice all others back together */
@@ -573,7 +574,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		if (v_best) {
 			BM_vert_select_set(bm, v_best, TRUE);
 			if (ese.ele) {
-				EDBM_editselection_store(em, &v_best->head);
+				BM_select_history_store(em->bm, v_best);
 			}
 		}
 	}

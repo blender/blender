@@ -293,7 +293,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
 		measure = measure_facepair(v1, v2, v3, v4, limit);
 		if (measure < limit) {
-			BLI_array_growone(jedges);
+			BLI_array_grow_one(jedges);
 
 			jedges[i].e = e;
 			jedges[i].weight = measure;

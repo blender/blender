@@ -57,17 +57,14 @@ inline static void bvh_node_push_childs(Node *node, Isect *UNUSED(isec), Node **
 {
 	Node *child = node->child;
 
-	if(is_leaf(child))
-	{
+	if (is_leaf(child)) {
 		stack[stack_pos++] = child;
 	}
-	else
-	{
-		while(child)
-		{
+	else {
+		while (child) {
 			/* Skips BB tests on primitives */
 #if 0
-			if(is_leaf(child->child)) {
+			if (is_leaf(child->child)) {
 				stack[stack_pos++] = child->child;
 			}
 			else
@@ -86,10 +83,9 @@ template<class Node>
 int count_childs(Node *parent)
 {
 	int n = 0;
-	for(Node *i = parent->child; i; i = i->sibling)
-	{
+	for (Node *i = parent->child; i; i = i->sibling) {
 		n++;
-		if(is_leaf(i))
+		if (is_leaf(i))
 			break;
 	}
 		
@@ -100,7 +96,7 @@ int count_childs(Node *parent)
 template<class Node>
 void append_sibling(Node *node, Node *sibling)
 {
-	while(node->sibling)
+	while (node->sibling)
 		node = node->sibling;
 		
 	node->sibling = sibling;
@@ -118,7 +114,7 @@ struct BuildBinaryVBVH
 
 	void test_break()
 	{
-		if(RE_rayobjectcontrol_test_break(control))
+		if (RE_rayobjectcontrol_test_break(control))
 			throw "Stop";
 	}
 
@@ -160,19 +156,17 @@ struct BuildBinaryVBVH
 	{
 		int size = rtbuild_size(builder);
 
-		if(size == 0) {
+		if (size == 0) {
 			return NULL;
 		}
-		else if(size == 1)
-		{
+		else if (size == 1) {
 			Node *node = create_node();
 			INIT_MINMAX(node->bb, node->bb+3);
 			rtbuild_merge_bb(builder, node->bb, node->bb+3);
 			node->child = (Node *) rtbuild_get_primitive(builder, 0);
 			return node;
 		}
-		else
-		{
+		else {
 			test_break();
 			
 			Node *node = create_node();
@@ -183,8 +177,7 @@ struct BuildBinaryVBVH
 			INIT_MINMAX(node->bb, node->bb+3);
 
 			assert(nc == 2);
-			for(int i=0; i<nc; i++)
-			{
+			for (int i = 0; i < nc; i++) {
 				RTBuilder tmp;
 				rtbuild_get_child(builder, i, &tmp);
 				
@@ -224,7 +217,7 @@ struct Reorganize_VBVH
 	
 	VBVHNode *transform(OldNode *old)
 	{
-		if(is_leaf(old))
+		if (is_leaf(old))
 			return (VBVHNode*)old;
 
 		VBVHNode *node = create_node();
@@ -237,7 +230,7 @@ struct Reorganize_VBVH
 		{
 			VBVHNode *n_child = transform(o_child);
 			*child_ptr = n_child;
-			if(is_leaf(n_child)) return node;
+			if (is_leaf(n_child)) return node;
 			child_ptr = &n_child->sibling;
 		}
 		*child_ptr = 0;

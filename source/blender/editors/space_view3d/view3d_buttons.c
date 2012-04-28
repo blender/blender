@@ -211,7 +211,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		BPoint *bp;
 		BezTriple *bezt;
 		int a;
-		ListBase *nurbs = curve_editnurbs(cu);
+		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 		StructRNA *seltype = NULL;
 		void *selp = NULL;
 
@@ -509,7 +509,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			BPoint *bp;
 			BezTriple *bezt;
 			int a;
-			ListBase *nurbs = curve_editnurbs(cu);
+			ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 			const float scale_w = compute_scale_factor(ve_median[4], median[4]);
 
 			nu = nurbs->first;
@@ -571,8 +571,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						bp++;
 					}
 				}
-				test2DNurb(nu);
-				testhandlesNurb(nu); /* test for bezier too */
+				BKE_nurb_test2D(nu);
+				BKE_nurb_handles_test(nu); /* test for bezier too */
 
 				nu = nu->next;
 			}

@@ -493,7 +493,7 @@ short *give_totcolp(Object *ob)
 /* same as above but for ID's */
 Material ***give_matarar_id(ID *id)
 {
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 	case ID_ME:
 		return &(((Mesh *)id)->mat);
 		break;
@@ -509,7 +509,7 @@ Material ***give_matarar_id(ID *id)
 
 short *give_totcolp_id(ID *id)
 {
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 	case ID_ME:
 		return &(((Mesh *)id)->totcol);
 		break;
@@ -525,12 +525,12 @@ short *give_totcolp_id(ID *id)
 
 static void data_delete_material_index_id(ID *id, short index)
 {
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 	case ID_ME:
 		mesh_delete_material_index((Mesh *)id, index);
 		break;
 	case ID_CU:
-		curve_delete_material_index((Curve *)id, index);
+		BKE_curve_delete_material_index((Curve *)id, index);
 		break;
 	case ID_MB:
 		/* meta-elems don't have materials atm */

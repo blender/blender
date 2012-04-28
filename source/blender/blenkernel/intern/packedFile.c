@@ -72,7 +72,7 @@ int seekPackedFile(PackedFile *pf, int offset, int whence)
 
 	if (pf) {
 		oldseek = pf->seek;
-		switch(whence) {
+		switch (whence) {
 		case SEEK_CUR:
 			seek = oldseek + offset;
 			break;
@@ -392,7 +392,7 @@ int checkPackedFile(const char *filename, PackedFile *pf)
 /* unpackFile() looks at the existing files (abs_name, local_name) and a packed file.
  *
  * It returns a char *to the existing file name / new file name or NULL when
- * there was an error or when the user desides to cancel the operation.
+ * there was an error or when the user decides to cancel the operation.
  */
 
 char *unpackFile(ReportList *reports, const char *abs_name, const char *local_name, PackedFile *pf, int how)

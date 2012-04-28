@@ -131,8 +131,7 @@ void poseAnim_mapping_get (bContext *C, ListBase *pfLinks, Object *ob, bAction *
 	/* for each Pose-Channel which gets affected, get the F-Curves for that channel 
 	 * and set the relevant transform flags...
 	 */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones) {
 		fcurves_to_pchan_links_get(pfLinks, ob, act, pchan);
 	}
 	CTX_DATA_END;
@@ -141,8 +140,7 @@ void poseAnim_mapping_get (bContext *C, ListBase *pfLinks, Object *ob, bAction *
 	 * i.e. if nothing selected, do whole pose
 	 */
 	if (pfLinks->first == NULL) {
-		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, visible_pose_bones)
-		{
+		CTX_DATA_BEGIN (C, bPoseChannel*, pchan, visible_pose_bones) {
 			fcurves_to_pchan_links_get(pfLinks, ob, act, pchan);
 		}
 		CTX_DATA_END;

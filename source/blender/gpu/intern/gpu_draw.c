@@ -441,9 +441,11 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 
 	/* if same image & tile, we're done */
 	if (compare && ima == GTS.curima && GTS.curtile == GTS.tile &&
-	   GTS.tilemode == GTS.curtilemode && GTS.curtileXRep == GTS.tileXRep &&
-	   GTS.curtileYRep == GTS.tileYRep)
+	    GTS.tilemode == GTS.curtilemode && GTS.curtileXRep == GTS.tileXRep &&
+	    GTS.curtileYRep == GTS.tileYRep)
+	{
 		return (ima != NULL);
+	}
 
 	/* if tiling mode or repeat changed, change texture matrix to fit */
 	if (GTS.tilemode!=GTS.curtilemode || GTS.curtileXRep!=GTS.tileXRep ||

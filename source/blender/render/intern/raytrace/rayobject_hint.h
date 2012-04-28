@@ -44,7 +44,7 @@ struct HintBB
 
 inline int hint_test_bb(HintBB *obj, float *Nmin, float *Nmax)
 {
-	if(bb_fits_inside( Nmin, Nmax, obj->bb, obj->bb+3 ) )
+	if (bb_fits_inside( Nmin, Nmax, obj->bb, obj->bb+3 ) )
 		return HINT_RECURSE;
 	else
 		return HINT_ACCEPT;

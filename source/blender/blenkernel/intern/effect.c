@@ -129,7 +129,7 @@ PartDeflect *object_add_collision_fields(int type)
 	pd->f_damp = 1.0f;
 
 	/* set sensible defaults based on type */
-	switch(type) {
+	switch (type) {
 		case PFIELD_VORTEX:
 			pd->shape = PFIELD_SHAPE_PLANE;
 			break;
@@ -419,8 +419,7 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 	len = normalize_v3(norm);
 	
 	// check all collision objects
-	for (col = colls->first; col; col = col->next)
-	{
+	for (col = colls->first; col; col = col->next) {
 		CollisionModifierData *collmd = col->collmd;
 
 		if (col->ob == eff->ob)
@@ -506,7 +505,8 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNU
 		falloff=0.0f;
 	else if (eff->pd->zdir == PFIELD_Z_NEG && fac > 0.0f)
 		falloff=0.0f;
-	else switch(eff->pd->falloff) {
+	else {
+		switch (eff->pd->falloff) {
 		case PFIELD_FALL_SPHERE:
 			falloff*= falloff_func_dist(eff->pd, efd->distance);
 			break;
@@ -529,6 +529,7 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNU
 			falloff*= falloff_func_rad(eff->pd, r_fac);
 
 			break;
+		}
 	}
 
 	return falloff;
@@ -835,7 +836,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 
 	copy_v3_v3(force, efd->vec_to_point);
 
-	switch(pd->forcefield) {
+	switch (pd->forcefield) {
 		case PFIELD_WIND:
 			copy_v3_v3(force, efd->nor);
 			mul_v3_fl(force, strength * efd->falloff);

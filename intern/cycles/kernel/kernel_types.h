@@ -516,7 +516,7 @@ typedef struct KernelIntegrator {
 
 	/* caustics */
 	int no_caustics;
-	float blur_glossy;
+	float filter_glossy;
 
 	/* seed */
 	int seed;

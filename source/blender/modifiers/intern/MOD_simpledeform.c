@@ -185,8 +185,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		float lower =  FLT_MAX;
 		float upper = -FLT_MAX;
 
-		for (i=0; i<numVerts; i++)
-		{
+		for (i=0; i<numVerts; i++) {
 			float tmp[3];
 			copy_v3_v3(tmp, vertexCos[i]);
 
@@ -206,8 +205,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 
 	modifier_get_vgroup(ob, dm, smd->vgroup_name, &dvert, &vgroup);
 
-	switch(smd->mode)
-	{
+	switch (smd->mode) {
 		case MOD_SIMPLEDEFORM_MODE_TWIST: 	simpleDeform_callback = simpleDeform_twist;		break;
 		case MOD_SIMPLEDEFORM_MODE_BEND:	simpleDeform_callback = simpleDeform_bend;		break;
 		case MOD_SIMPLEDEFORM_MODE_TAPER:	simpleDeform_callback = simpleDeform_taper;		break;
@@ -216,8 +214,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 			return;	//No simpledeform mode?
 	}
 
-	for (i=0; i<numVerts; i++)
-	{
+	for (i=0; i<numVerts; i++) {
 		float weight = defvert_array_find_weight_safe(dvert, i, vgroup);
 
 		if (weight != 0.0f) {

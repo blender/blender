@@ -58,7 +58,7 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 
 	BMO_ITER (f, &siter, bm, op, "faces", BM_FACE) {
 		BLI_array_empty(edges);
-		BLI_array_growitems(edges, f->len);
+		BLI_array_grow_items(edges, f->len);
 
 		i = 0;
 		firstv = lastv = NULL;
@@ -573,12 +573,12 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
 			continue;
 		}
 
-		BLI_array_growitems(verts, f->len);
+		BLI_array_grow_items(verts, f->len);
 		BM_ITER_ELEM_INDEX (l, &loopIter, f, BM_LOOPS_OF_FACE, i) {
 			verts[i] = l->v->co;
 		}
 
-		BLI_array_growitems(face_angles, f->len);
+		BLI_array_grow_items(face_angles, f->len);
 		angle_poly_v3(face_angles, (const float **)verts, f->len);
 
 		i = 0;

@@ -908,10 +908,10 @@ static float *get_object_orco(Render *re, Object *ob)
 
 	if (!orco) {
 		if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-			orco = make_orco_curve(re->scene, ob);
+			orco = BKE_curve_make_orco(re->scene, ob);
 		}
 		else if (ob->type==OB_SURF) {
-			orco = make_orco_surf(ob);
+			orco = BKE_curve_surf_make_orco(ob);
 		}
 
 		if (orco)
@@ -1472,7 +1472,7 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 	if (ren_as != PART_DRAW_BB)
 		mul_m4_v3(re->viewmat, loc);
 
-	switch(ren_as) {
+	switch (ren_as) {
 		case PART_DRAW_LINE:
 			sd->line = 1;
 			sd->time = 0.0f;
@@ -2437,7 +2437,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	int a, need_orco, vlakindex, *index, negative_scale;
 	ListBase dispbase= {NULL, NULL};
 
-	if (ob!=find_basis_mball(re->scene, ob))
+	if (ob!=BKE_metaball_basis_find(re->scene, ob))
 		return;
 
 	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
@@ -2463,7 +2463,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 
 		if (!orco) {
 			/* orco hasn't been found in cache - create new one and add to cache */
-			orco= make_orco_mball(ob, &dispbase);
+			orco= BKE_metaball_make_orco(ob, &dispbase);
 			set_object_orco(re, ob, orco);
 		}
 	}
@@ -2630,8 +2630,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	sizeu--; sizev--;  /* dec size for face array */
 	if (dl->flag & DL_CYCL_V) {
 		
-		for (v = 0; v < sizev; v++)
-		{
+		for (v = 0; v < sizev; v++) {
 			/* optimize! :*/
 			vlr= RE_findOrAddVlak(obr, UVTOINDEX(sizeu - 1, v));
 			vlr1= RE_findOrAddVlak(obr, UVTOINDEX(0, v));
@@ -2643,8 +2642,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	}
 	if (dl->flag & DL_CYCL_U) {
 		
-		for (u = 0; u < sizeu; u++)
-		{
+		for (u = 0; u < sizeu; u++) {
 			/* optimize! :*/
 			vlr= RE_findOrAddVlak(obr, UVTOINDEX(u, 0));
 			vlr1= RE_findOrAddVlak(obr, UVTOINDEX(u, sizev-1));
@@ -3486,8 +3484,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 										if (need_nmap_tangent != 0) {
 											const float * tangent = (const float *) layer->data;
 											float * ftang = RE_vlakren_get_nmap_tangent(obr, vlr, 1);
-											for (vindex=0; vindex<nr_verts; vindex++)
-											{
+											for (vindex=0; vindex<nr_verts; vindex++) {
 												copy_v4_v4(ftang+vindex*4, tangent+a*16+rev_tab[vindex]*4);
 												mul_mat3_m4_v3(mat, ftang+vindex*4);
 												normalize_v3(ftang+vindex*4);
@@ -3763,7 +3760,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		lar->area_sizey= lar->area_size;
 	}
 	else if (lar->type==LA_AREA) {
-		switch(lar->area_shape) {
+		switch (lar->area_shape) {
 		case LA_AREA_SQUARE:
 			lar->ray_totsamp= lar->ray_samp*lar->ray_samp;
 			lar->ray_sampy= lar->ray_samp;
@@ -4728,7 +4725,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 		return 0;
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
-	if (ob->type == OB_MBALL && ob!=find_basis_mball(re->scene, ob))
+	if (ob->type == OB_MBALL && ob!=BKE_metaball_basis_find(re->scene, ob))
 		return 0;
 	
 	if (nolamps && (ob->type==OB_LAMP))

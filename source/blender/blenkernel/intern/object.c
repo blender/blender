@@ -319,8 +319,8 @@ void free_object(Object *ob)
 		id->us--;
 		if (id->us==0) {
 			if (ob->type==OB_MESH) unlink_mesh(ob->data);
-			else if (ob->type==OB_CURVE) unlink_curve(ob->data);
-			else if (ob->type==OB_MBALL) unlink_mball(ob->data);
+			else if (ob->type==OB_CURVE) BKE_curve_unlink(ob->data);
+			else if (ob->type==OB_MBALL) BKE_metaball_unlink(ob->data);
 		}
 		ob->data= NULL;
 	}
@@ -459,7 +459,7 @@ void unlink_object(Object *ob)
 			}
 		} 
 		else if (ELEM(OB_MBALL, ob->type, obt->type)) {
-			if (is_mball_basis_for (obt, ob))
+			if (BKE_metaball_is_basis_for (obt, ob))
 				obt->recalc|= OB_RECALC_DATA;
 		}
 		
@@ -625,10 +625,11 @@ void unlink_object(Object *ob)
 #endif
 			if (sce->ed) {
 				Sequence *seq;
-				SEQ_BEGIN(sce->ed, seq)
-					if (seq->scene_camera==ob) {
-						seq->scene_camera= NULL;
+				SEQ_BEGIN (sce->ed, seq) {
+					if (seq->scene_camera == ob) {
+						seq->scene_camera = NULL;
 					}
+				}
 				SEQ_END
 			}
 		}
@@ -748,10 +749,10 @@ static void *add_obdata_from_type(int type)
 {
 	switch (type) {
 	case OB_MESH: return add_mesh("Mesh");
-	case OB_CURVE: return add_curve("Curve", OB_CURVE);
-	case OB_SURF: return add_curve("Surf", OB_SURF);
-	case OB_FONT: return add_curve("Text", OB_FONT);
-	case OB_MBALL: return add_mball("Meta");
+	case OB_CURVE: return BKE_curve_add("Curve", OB_CURVE);
+	case OB_SURF: return BKE_curve_add("Surf", OB_SURF);
+	case OB_FONT: return BKE_curve_add("Text", OB_FONT);
+	case OB_MBALL: return BKE_metaball_add("Meta");
 	case OB_CAMERA: return add_camera("Camera");
 	case OB_LAMP: return add_lamp("Lamp");
 	case OB_LATTICE: return add_lattice("Lattice");
@@ -1483,7 +1484,7 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 
 void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 {
-	switch(ob->rotmode) {
+	switch (ob->rotmode) {
 	case ROT_MODE_QUAT:
 		{
 			float dquat[4];
@@ -1821,7 +1822,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		ListBase *nurbs;
 
 		cu= par->data;
-		nurbs= BKE_curve_nurbs(cu);
+		nurbs= BKE_curve_nurbs_get(cu);
 		nu= nurbs->first;
 
 		count= 0;
@@ -2025,7 +2026,7 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 	
 	if (ob->partype & PARSLOW) copy_m4_m4(slowmat, obmat);
 
-	switch(ob->partype & PARTYPE) {
+	switch (ob->partype & PARTYPE) {
 	case PAROBJECT:
 		ok= 0;
 		if (par->type==OB_CURVE) {
@@ -2260,14 +2261,14 @@ void minmax_object(Object *ob, float min[3], float max[3])
 	int a;
 	short change= FALSE;
 	
-	switch(ob->type) {
+	switch (ob->type) {
 	case OB_CURVE:
 	case OB_FONT:
 	case OB_SURF:
 		{
 			Curve *cu= ob->data;
 
-			if (cu->bb==NULL) tex_space_curve(cu);
+			if (cu->bb==NULL) BKE_curve_tex_space_calc(cu);
 			bb= *(cu->bb);
 
 			for (a=0; a<8; a++) {
@@ -2568,7 +2569,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			}
 
 			/* includes all keys and modifiers */
-			switch(ob->type) {
+			switch (ob->type) {
 			case OB_MESH:
 				{
 #if 0				// XXX, comment for 2.56a release, background wont set 'scene->customdata_mask'
@@ -2784,8 +2785,7 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 	int result = 0;
 	int i;
 	
-	for (i = 0; i < 12 && result == 0; i++)
-	{
+	for (i = 0; i < 12 && result == 0; i++) {
 		float lambda;
 		int v1, v2, v3;
 		v1 = triangle_indexes[i][0];
@@ -2812,8 +2812,7 @@ int object_insert_ptcache(Object *ob)
 
 	BLI_sortlist(&ob->pc_ids, pc_cmp);
 
-	for (link=ob->pc_ids.first, i = 0; link; link=link->next, i++) 
-	{
+	for (link=ob->pc_ids.first, i = 0; link; link=link->next, i++) {
 		int index = GET_INT_FROM_POINTER(link->data);
 
 		if (i < index)
@@ -2931,7 +2930,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 	Curve *cu= ob->data;
 	Key *key= cu->key;
 	KeyBlock *kb;
-	ListBase *lb= BKE_curve_nurbs(cu);
+	ListBase *lb= BKE_curve_nurbs_get(cu);
 	int newkey= 0;
 
 	if (key==NULL) {
@@ -2958,7 +2957,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 
 		/* create new block with prepared data */
 		kb = add_keyblock_ctime(key, name, FALSE);
-		kb->totelem= count_curveverts(lb);
+		kb->totelem= BKE_nurbList_verts_count(lb);
 		kb->data= data;
 	}
 

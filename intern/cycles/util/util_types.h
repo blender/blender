@@ -55,15 +55,17 @@
 
 /* SIMD Types */
 
-/* not enabled yet, just testing */
-#if 0
-#define __KERNEL_SSE__
+/* not enabled, globally applying it just gives slowdown,
+ * but useful for testing. */
+//#define __KERNEL_SSE__
 #ifdef __KERNEL_SSE__
 
-#include <emmintrin.h>
-#include <xmmintrin.h>
+#include <xmmintrin.h> /* SSE 1 */
+#include <emmintrin.h> /* SSE 2 */
+#include <pmmintrin.h> /* SSE 3 */
+#include <tmmintrin.h> /* SSE 3 */
+#include <smmintrin.h> /* SSE 4 */
 
-#endif
 #endif
 
 #ifndef _WIN32
@@ -126,29 +128,29 @@ typedef uint64_t device_ptr;
 struct uchar2 {
 	uchar x, y;
 
-	uchar operator[](int i) const { return *(&x + i); }
-	uchar& operator[](int i) { return *(&x + i); }
+	__forceinline uchar operator[](int i) const { return *(&x + i); }
+	__forceinline uchar& operator[](int i) { return *(&x + i); }
 };
 
 struct uchar3 {
 	uchar x, y, z;
 
-	uchar operator[](int i) const { return *(&x + i); }
-	uchar& operator[](int i) { return *(&x + i); }
+	__forceinline uchar operator[](int i) const { return *(&x + i); }
+	__forceinline uchar& operator[](int i) { return *(&x + i); }
 };
 
 struct uchar4 {
 	uchar x, y, z, w;
 
-	uchar operator[](int i) const { return *(&x + i); }
-	uchar& operator[](int i) { return *(&x + i); }
+	__forceinline uchar operator[](int i) const { return *(&x + i); }
+	__forceinline uchar& operator[](int i) { return *(&x + i); }
 };
 
 struct int2 {
 	int x, y;
 
-	int operator[](int i) const { return *(&x + i); }
-	int& operator[](int i) { return *(&x + i); }
+	__forceinline int operator[](int i) const { return *(&x + i); }
+	__forceinline int& operator[](int i) { return *(&x + i); }
 };
 
 #ifdef __KERNEL_SSE__
@@ -157,13 +159,18 @@ struct __align(16) int3 {
 		__m128i m128;
 		struct { int x, y, z, w; };
 	};
+
+	__forceinline int3() {}
+	__forceinline int3(const __m128i a) : m128(a) {}
+	__forceinline operator const __m128i&(void) const { return m128; }
+	__forceinline operator __m128i&(void) { return m128; }
 #else
 struct int3 {
 	int x, y, z, w;
 #endif
 
-	int operator[](int i) const { return *(&x + i); }
-	int& operator[](int i) { return *(&x + i); }
+	__forceinline int operator[](int i) const { return *(&x + i); }
+	__forceinline int& operator[](int i) { return *(&x + i); }
 };
 
 #ifdef __KERNEL_SSE__
@@ -172,41 +179,46 @@ struct __align(16) int4 {
 		__m128i m128;
 		struct { int x, y, z, w; };
 	};
+
+	__forceinline int4() {}
+	__forceinline int4(const __m128i a) : m128(a) {}
+	__forceinline operator const __m128i&(void) const { return m128; }
+	__forceinline operator __m128i&(void) { return m128; }
 #else
 struct int4 {
 	int x, y, z, w;
 #endif
 
-	int operator[](int i) const { return *(&x + i); }
-	int& operator[](int i) { return *(&x + i); }
+	__forceinline int operator[](int i) const { return *(&x + i); }
+	__forceinline int& operator[](int i) { return *(&x + i); }
 };
 
 struct uint2 {
 	uint x, y;
 
-	uint operator[](int i) const { return *(&x + i); }
-	uint& operator[](int i) { return *(&x + i); }
+	__forceinline uint operator[](uint i) const { return *(&x + i); }
+	__forceinline uint& operator[](uint i) { return *(&x + i); }
 };
 
 struct uint3 {
 	uint x, y, z;
 
-	uint operator[](int i) const { return *(&x + i); }
-	uint& operator[](int i) { return *(&x + i); }
+	__forceinline uint operator[](uint i) const { return *(&x + i); }
+	__forceinline uint& operator[](uint i) { return *(&x + i); }
 };
 
 struct uint4 {
 	uint x, y, z, w;
 
-	uint operator[](int i) const { return *(&x + i); }
-	uint& operator[](int i) { return *(&x + i); }
+	__forceinline uint operator[](uint i) const { return *(&x + i); }
+	__forceinline uint& operator[](uint i) { return *(&x + i); }
 };
 
 struct float2 {
 	float x, y;
 
-	float operator[](int i) const { return *(&x + i); }
-	float& operator[](int i) { return *(&x + i); }
+	__forceinline float operator[](int i) const { return *(&x + i); }
+	__forceinline float& operator[](int i) { return *(&x + i); }
 };
 
 #ifdef __KERNEL_SSE__
@@ -215,13 +227,18 @@ struct __align(16) float3 {
 		__m128 m128;
 		struct { float x, y, z, w; };
 	};
+
+	__forceinline float3() {}
+	__forceinline float3(const __m128 a) : m128(a) {}
+	__forceinline operator const __m128&(void) const { return m128; }
+	__forceinline operator __m128&(void) { return m128; }
 #else
 struct float3 {
 	float x, y, z, w;
 #endif
 
-	float operator[](int i) const { return *(&x + i); }
-	float& operator[](int i) { return *(&x + i); }
+	__forceinline float operator[](int i) const { return *(&x + i); }
+	__forceinline float& operator[](int i) { return *(&x + i); }
 };
 
 #ifdef __KERNEL_SSE__
@@ -230,13 +247,18 @@ struct __align(16) float4 {
 		__m128 m128;
 		struct { float x, y, z, w; };
 	};
+
+	__forceinline float4() {}
+	__forceinline float4(const __m128 a) : m128(a) {}
+	__forceinline operator const __m128&(void) const { return m128; }
+	__forceinline operator __m128&(void) { return m128; }
 #else
 struct float4 {
 	float x, y, z, w;
 #endif
 
-	float operator[](int i) const { return *(&x + i); }
-	float& operator[](int i) { return *(&x + i); }
+	__forceinline float operator[](int i) const { return *(&x + i); }
+	__forceinline float& operator[](int i) { return *(&x + i); }
 };
 
 #endif
@@ -346,6 +368,18 @@ __device_inline float4 make_float4(float x, float y, float z, float w)
 __device_inline int align_up(int offset, int alignment)
 {
 	return (offset + alignment - 1) & ~(alignment - 1);
+}
+
+__device_inline int3 make_int3(int i)
+{
+#ifdef __KERNEL_SSE__
+	int3 a;
+	a.m128 = _mm_set1_epi32(i);
+#else
+	int3 a = {i, i, i, i};
+#endif
+
+	return a;
 }
 
 __device_inline int4 make_int4(int i)

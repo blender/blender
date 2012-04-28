@@ -247,7 +247,7 @@ static void waveModifier_do(WaveModifierData *md,
 				}
 			}
 
-			switch(wmd_axis) {
+			switch (wmd_axis) {
 			case MOD_WAVE_X|MOD_WAVE_Y:
 				amplit = sqrtf(x*x + y*y);
 				break;
@@ -270,7 +270,7 @@ static void waveModifier_do(WaveModifierData *md,
 			if (falloff != 0.0f) {
 				float dist = 0.0f;
 
-				switch(wmd_axis) {
+				switch (wmd_axis) {
 				case MOD_WAVE_X|MOD_WAVE_Y:
 					dist = sqrtf(x*x + y*y);
 					break;

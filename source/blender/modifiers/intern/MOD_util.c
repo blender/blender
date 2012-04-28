@@ -144,7 +144,7 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 	}
 
 	for (i = 0; i < numVerts; ++i, ++co, ++texco) {
-		switch(texmapping) {
+		switch (texmapping) {
 		case MOD_DISP_MAP_LOCAL:
 			copy_v3_v3(*texco, *co);
 			break;

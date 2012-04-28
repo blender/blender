@@ -889,8 +889,7 @@ void dna_write(FILE *file, void *pntr, int size)
 
 	data = (char *) pntr;
 	
-	for (i = 0 ; i < size ; i++)
-	{
+	for (i = 0 ; i < size ; i++) {
 		fprintf(file, "%d,", data[i]);
 		linelength++;
 		if (linelength >= MAX_DNA_LINE_LENGTH) {

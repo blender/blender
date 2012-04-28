@@ -117,6 +117,8 @@ else:
             scons_options.append('BF_BITNESS=' + bitness)
             scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=True')
             scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
+            if builder.find('mingw') != -1:
+                scons_options.append('BF_TOOLSET=mingw')
 
         retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
         sys.exit(retcode)

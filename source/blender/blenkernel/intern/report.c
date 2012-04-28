@@ -43,7 +43,7 @@
 
 static const char *report_type_str(int type)
 {
-	switch(type) {
+	switch (type) {
 		case RPT_DEBUG: return "Debug";
 		case RPT_INFO: return "Info";
 		case RPT_OPERATOR: return "Operator";

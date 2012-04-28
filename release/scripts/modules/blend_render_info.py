@@ -75,7 +75,7 @@ def read_blend_rend_chunk(path):
         # Now we want the scene name, start and end frame. this is 32bites long
         start_frame, end_frame = struct.unpack('>2i' if is_big_endian else '<2i', blendfile.read(8))
 
-        scene_name = blendfile.read(24)
+        scene_name = blendfile.read(64)
 
         scene_name = scene_name[:scene_name.index(b'\0')]
 

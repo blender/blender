@@ -168,7 +168,7 @@ static const size_t utf8_skip_data[256] = {
 		size_t utf8_size;                                                     \
 		while (*src != '\0' && (utf8_size= utf8_skip_data[*src]) < maxncpy) {  \
 			maxncpy -= utf8_size;                                             \
-			switch(utf8_size) {                                               \
+			switch (utf8_size) {                                               \
 				case 6: *dst ++ = *src ++;                                    \
 				case 5: *dst ++ = *src ++;                                    \
 				case 4: *dst ++ = *src ++;                                    \

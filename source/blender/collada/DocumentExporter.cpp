@@ -175,7 +175,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	std::string unitname = "meter";
 	float linearmeasure = RNA_float_get(&unit_settings, "scale_length");
 
-	switch(RNA_property_enum_get(&unit_settings, system)) {
+	switch (RNA_property_enum_get(&unit_settings, system)) {
 		case USER_UNIT_NONE:
 		case USER_UNIT_METRIC:
 			if (linearmeasure == 0.001f) {

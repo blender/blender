@@ -1271,7 +1271,7 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position,
 		}
 	}
 
-	switch(anim->curtype) {
+	switch (anim->curtype) {
 	case ANIM_SEQUENCE:
 		pic = an_stringdec(anim->first, head, tail, &digits);
 		pic += position;
