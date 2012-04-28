@@ -318,6 +318,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	char filename[FILE_MAX];
 	Scene *scene;
 	Main *bmain;
+	int split;
 
 	int bitrate, accuracy;
 	AUD_DeviceSpecs specs;
@@ -333,6 +334,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	specs.format = RNA_enum_get(op->ptr, "format");
 	container = RNA_enum_get(op->ptr, "container");
 	codec = RNA_enum_get(op->ptr, "codec");
+	split = RNA_boolean_get(op->ptr, "split_channels");
 	scene = CTX_data_scene(C);
 	bmain = CTX_data_main(C);
 	specs.channels = scene->r.ffcodecdata.audio_channels;
@@ -341,8 +343,12 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	BLI_strncpy(filename, path, sizeof(filename));
 	BLI_path_abs(filename, bmain->name);
 
-	result = AUD_mixdown(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA) * specs.rate / FPS,
-						 accuracy, filename, specs, container, codec, bitrate);
+	if(split)
+		result = AUD_mixdown_per_channel(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA) * specs.rate / FPS,
+										 accuracy, filename, specs, container, codec, bitrate);
+	else
+		result = AUD_mixdown(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA) * specs.rate / FPS,
+							 accuracy, filename, specs, container, codec, bitrate);
 
 	if (result) {
 		BKE_report(op->reports, RPT_ERROR, result);
@@ -590,6 +596,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "codec", codec_items, AUD_CODEC_FLAC, "Codec", "Audio Codec");
 	RNA_def_enum(ot->srna, "format", format_items, AUD_FORMAT_S16, "Format", "Sample format");
 	RNA_def_int(ot->srna, "bitrate", 192, 32, 512, "Bitrate", "Bitrate in kbit/s", 32, 512);
+	RNA_def_boolean(ot->srna, "split_channels", 0, "Split channels", "Each channel will be rendered into a mono file.");
 #endif // WITH_AUDASPACE
 }
 
