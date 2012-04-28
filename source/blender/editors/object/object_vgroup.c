@@ -2713,8 +2713,7 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 	int change= 0;
 	int fail= 0;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)
-	{
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if (obact != ob) {
 			if (ED_vgroup_copy_array(ob, obact)) change++;
 			else                                fail++;

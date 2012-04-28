@@ -314,7 +314,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		MLoop *ml = mloop + mp->loopstart;
 
 		BLI_array_empty(fverts);
-		BLI_array_growitems(fverts, nverts);
+		BLI_array_grow_items(fverts, nverts);
 
 		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 
@@ -350,7 +350,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		CCGFace *f;
 
 		BLI_array_empty(fverts);
-		BLI_array_growitems(fverts, nverts);
+		BLI_array_grow_items(fverts, nverts);
 
 		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 		ccgSubSurf_syncFace(ss, SET_INT_IN_POINTER(i), nverts, fverts, &f);
@@ -583,7 +583,7 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 		CCGFace *f;
 
 		BLI_array_empty(fVerts);
-		BLI_array_growitems(fVerts, mp->totloop);
+		BLI_array_grow_items(fVerts, mp->totloop);
 
 		ml = mloop + mp->loopstart;
 		for (j = 0; j < mp->totloop; j++, ml++) {
@@ -3150,13 +3150,13 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		*((int *)ccgSubSurf_getFaceUserData(ss, f)) = vertNum;
 
 		BLI_array_empty(loopidx);
-		BLI_array_growitems(loopidx, numVerts);
+		BLI_array_grow_items(loopidx, numVerts);
 		for (s = 0; s < numVerts; s++) {
 			loopidx[s] = loopindex++;
 		}
 		
 		BLI_array_empty(vertidx);
-		BLI_array_growitems(vertidx, numVerts);
+		BLI_array_grow_items(vertidx, numVerts);
 		for (s = 0; s < numVerts; s++) {
 			CCGVert *v = ccgSubSurf_getFaceVert(f, s);
 			vertidx[s] = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(v));

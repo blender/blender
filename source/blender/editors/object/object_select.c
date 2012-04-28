@@ -144,13 +144,13 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 	extend= RNA_boolean_get(op->ptr, "extend");
 		
 	if (extend == 0) {
-		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 			ED_base_object_select(base, BA_DESELECT);
 		}
 		CTX_DATA_END;
 	}
 	
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 		if (base->object->type==obtype) {
 			ED_base_object_select(base, BA_SELECT);
 		}
@@ -218,7 +218,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	extend= RNA_boolean_get(op->ptr, "extend");
 	
 	if (extend == 0) {
-		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 			ED_base_object_select(base, BA_DESELECT);
 		}
 		CTX_DATA_END;
@@ -263,7 +263,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	else
 		return OPERATOR_CANCELLED;
 	
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 		if (nr==1) {
 				// XXX old animation system
 			//if (base->object->ipo==ipo) base->flag |= SELECT;
@@ -386,7 +386,7 @@ static short select_grouped_children(bContext *C, Object *ob, int recursive)
 {
 	short changed = 0;
 
-	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selectable_bases) {
 		if (ob == base->object->parent) {
 			if (!(base->flag & SELECT)) {
 				ED_base_object_select(base, BA_SELECT);
@@ -444,7 +444,7 @@ static short select_grouped_group(bContext *C, Object *ob)	/* Select objects in 
 		return 0;
 	else if (group_count == 1) {
 		group = ob_groups[0];
-		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 			if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
 				ED_base_object_select(base, BA_SELECT);
 				changed = 1;
@@ -498,7 +498,7 @@ static short select_grouped_siblings(bContext *C, Object *ob)
 {
 	short changed = 0;
 
-	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selectable_bases) {
 		if ((base->object->parent==ob->parent)  && !(base->flag & SELECT)) {
 			ED_base_object_select(base, BA_SELECT);
 			changed = 1;
@@ -512,7 +512,7 @@ static short select_grouped_type(bContext *C, Object *ob)
 {
 	short changed = 0;
 
-	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selectable_bases) {
 		if ((base->object->type == ob->type) && !(base->flag & SELECT)) {
 			ED_base_object_select(base, BA_SELECT);
 			changed = 1;
@@ -526,7 +526,7 @@ static short select_grouped_layer(bContext *C, Object *ob)
 {
 	char changed = 0;
 
-	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selectable_bases) {
 		if ((base->lay & ob->lay) && !(base->flag & SELECT)) {
 			ED_base_object_select(base, BA_SELECT);
 			changed = 1;
@@ -540,7 +540,7 @@ static short select_grouped_index_object(bContext *C, Object *ob)
 {
 	char changed = 0;
 
-	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selectable_bases) {
 		if ((base->object->index == ob->index) && !(base->flag & SELECT)) {
 			ED_base_object_select(base, BA_SELECT);
 			changed = 1;
@@ -554,7 +554,7 @@ static short select_grouped_color(bContext *C, Object *ob)
 {
 	char changed = 0;
 
-	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selectable_bases) {
 		if (!(base->flag & SELECT) && (compare_v3v3(base->object->col, ob->col, 0.005f))) {
 			ED_base_object_select(base, BA_SELECT);
 			changed = 1;
@@ -580,7 +580,7 @@ static short select_grouped_gameprops(bContext *C, Object *ob)
 {
 	char changed = 0;
 
-	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selectable_bases) {
 		if (!(base->flag & SELECT) && (objects_share_gameprop(base->object, ob))) {
 			ED_base_object_select(base, BA_SELECT);
 			changed = 1;
@@ -602,8 +602,7 @@ static short select_grouped_keyingset(bContext *C, Object *UNUSED(ob))
 	/* select each object that Keying Set refers to */
 	// TODO: perhaps to be more in line with the rest of these, we should only take objects 
 	// if the passed in object is included in this too
-	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) 
-	{
+	CTX_DATA_BEGIN (C, Base*, base, selectable_bases) {
 		/* only check for this object if it isn't selected already, to limit time wasted */
 		if ((base->flag & SELECT) == 0) {
 			KS_Path *ksp;
@@ -636,7 +635,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	extend= RNA_boolean_get(op->ptr, "extend");
 	
 	if (extend == 0) {
-		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 			ED_base_object_select(base, BA_DESELECT);
 			changed = 1;
 		}
@@ -701,13 +700,13 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 	layernum = RNA_int_get(op->ptr, "layers");
 	
 	if (extend == 0) {
-		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 			ED_base_object_select(base, BA_DESELECT);
 		}
 		CTX_DATA_END;
 	}
 		
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 		if (base->lay == (1<< (layernum -1)))
 			ED_base_object_select(base, BA_SELECT);
 	}
@@ -750,7 +749,7 @@ static int object_select_all_exec(bContext *C, wmOperator *op)
 
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
-		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 			if (base->flag & SELECT) {
 				action = SEL_DESELECT;
 				break;
@@ -759,7 +758,7 @@ static int object_select_all_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 		switch (action) {
 		case SEL_SELECT:
 			ED_base_object_select(base, BA_SELECT);
@@ -822,7 +821,7 @@ static int object_select_same_group_exec(bContext *C, wmOperator *op)
 	if (!group)
 		return OPERATOR_PASS_THROUGH;
 
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 		if (!(base->flag & SELECT) && object_in_group(base->object, group))
 			ED_base_object_select(base, BA_SELECT);
 	}
@@ -859,7 +858,7 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 	
 	extend= RNA_boolean_get(op->ptr, "extend");
 	
-	CTX_DATA_BEGIN(C, Base*, primbase, selected_bases) {
+	CTX_DATA_BEGIN (C, Base*, primbase, selected_bases) {
 		char tmpname[MAXBONENAME];
 
 		flip_side_name(tmpname, primbase->object->id.name+2, TRUE);
@@ -915,14 +914,14 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 	extend= RNA_boolean_get(op->ptr, "extend");
 	
 	if (extend == 0) {
-		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 			ED_base_object_select(base, BA_DESELECT);
 		}
 		CTX_DATA_END;
 	}
 	percent = RNA_float_get(op->ptr, "percent")/100.0f;
 		
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 		if (BLI_frand() < percent) {
 			ED_base_object_select(base, BA_SELECT);
 		}

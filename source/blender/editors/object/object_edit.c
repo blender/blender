@@ -180,7 +180,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	short changed = 0;
 	const int unselected= RNA_boolean_get(op->ptr, "unselected");
 	
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 		if (!unselected) {
 			if (base->flag & SELECT) {
 				base->flag &= ~SELECT;
@@ -236,7 +236,7 @@ static int object_hide_render_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	short changed= 0;
 
 	/* XXX need a context loop to handle such cases */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if (ob->restrictflag & OB_RESTRICT_RENDER) {
 			ob->restrictflag &= ~OB_RESTRICT_RENDER;
 			changed= 1;
@@ -270,7 +270,7 @@ static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 {
 	const int unselected= RNA_boolean_get(op->ptr, "unselected");
 
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, visible_bases) {
 		if (!unselected) {
 			if (base->flag & SELECT) {
 				base->object->restrictflag |= OB_RESTRICT_RENDER;
@@ -1108,8 +1108,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	ListBase targets = {NULL, NULL};
 	
 	/* loop over objects in scene */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
-	{
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		/* set flag to force recalc, then grab the relevant bones to target */
 		ob->avs.recalc |= ANIMVIZ_RECALC_PATHS;
 		animviz_get_object_motionpaths(ob, &targets);
@@ -1129,7 +1128,7 @@ static int object_calculate_paths_exec (bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	
 	/* set up path data for bones being calculated */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)  
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects)  
 	{
 		/* verify makes sure that the selected bone has a bone with the appropriate settings */
 		animviz_verify_motionpaths(op->reports, scene, ob, NULL);
@@ -1167,7 +1166,7 @@ void OBJECT_OT_paths_calculate (wmOperatorType *ot)
 void ED_objects_clear_paths(bContext *C)
 {
 	/* loop over objects in scene */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) 
 	{
 		if (ob->mpath) {
 			animviz_free_motionpath(ob->mpath);
@@ -1215,7 +1214,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	int clear= (strcmp(op->idname, "OBJECT_OT_shade_flat") == 0);
 	int done= 0;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 
 		if (ob->type==OB_MESH) {
 			mesh_set_smooth_flag(ob, !clear);
@@ -1632,7 +1631,7 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 		prop = BLI_findlink(&ob->prop, propid-1);
 		
 		if (prop) {
-			CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+			CTX_DATA_BEGIN (C, Object*, ob_iter, selected_editable_objects) {
 				if (ob != ob_iter)
 					set_ob_property(ob_iter, prop);
 			} CTX_DATA_END;
@@ -1640,7 +1639,7 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 	}
 
 	else {
-		CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+		CTX_DATA_BEGIN (C, Object*, ob_iter, selected_editable_objects) {
 			if (ob != ob_iter) {
 				if (type == COPY_PROPERTIES_REPLACE)
 					copy_properties(&ob_iter->prop, &ob->prop);
@@ -1679,7 +1678,7 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 
 static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob_iter, selected_editable_objects) {
 		free_properties(&ob_iter->prop);
 	}
 	CTX_DATA_END;
@@ -1707,7 +1706,7 @@ static int logicbricks_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob=ED_object_active_context(C);
 
-	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob_iter, selected_editable_objects) {
 		if (ob != ob_iter) {
 			/* first: free all logic */
 			free_sensors(&ob_iter->sensors);				
@@ -1763,7 +1762,7 @@ static int game_physics_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob=ED_object_active_context(C);
 	
-	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob_iter, selected_editable_objects) {
 		if (ob != ob_iter) {
 			ob_iter->gameflag = ob->gameflag;
 			ob_iter->gameflag2 = ob->gameflag2;

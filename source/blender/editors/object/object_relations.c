@@ -211,7 +211,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if (ob != obedit) {
 			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 			par= obedit->parent;
@@ -428,8 +428,7 @@ void ED_object_parent_clear(bContext *C, int type)
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
-	{
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if (ob->parent == NULL)
 			continue;
 		
@@ -674,8 +673,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	int partype= RNA_enum_get(op->ptr, "type");
 	int ok = 1;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)
-	{
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype)) {
 			ok = 0;
 			break;
@@ -756,7 +754,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 	par->recalc |= OB_RECALC_OB;
 	
 	/* context iterator */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if (ob != par) {
 			if (BKE_object_parent_loop_check(par, ob)) {
 				BKE_report(op->reports, RPT_ERROR, "Loop in parents");
@@ -807,7 +805,7 @@ static int object_slow_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if (ob->parent) {
 			if (ob->partype & PARSLOW) {
 				ob->partype -= PARSLOW;
@@ -849,7 +847,7 @@ static int object_slow_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if (ob->parent)
 			ob->partype |= PARSLOW;
 
@@ -900,7 +898,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
 		return OPERATOR_CANCELLED;
 	}
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		bConstraint *con, *pcon;
 		
 		/* remove track-object for old track */
@@ -966,7 +964,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		bConstraint *con;
 		bDampTrackConstraint *data;
 
-		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 			if (ob!=obact) {
 				con = add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_DAMPTRACK);
 
@@ -985,7 +983,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		bConstraint *con;
 		bTrackToConstraint *data;
 
-		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 			if (ob!=obact) {
 				con = add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_TRACKTO);
 
@@ -1006,7 +1004,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		bConstraint *con;
 		bLockTrackConstraint *data;
 
-		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 			if (ob!=obact) {
 				con = add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_LOCKTRACK);
 
@@ -1060,7 +1058,7 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 
 	if (!RNA_struct_property_is_set(op->ptr, "layers")) {
 		/* note: layers are set in bases, library objects work for this */
-		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
+		CTX_DATA_BEGIN (C, Base*, base, selected_bases) {
 			lay |= base->lay;
 		}
 		CTX_DATA_END;
@@ -1109,7 +1107,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	if (v3d && v3d->localvd) {
 		/* now we can move out of localview. */
 		/* note: layers are set in bases, library objects work for this */
-		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
+		CTX_DATA_BEGIN (C, Base*, base, selected_bases) {
 			lay= base->lay & ~v3d->lay;
 			base->lay= lay;
 			base->object->lay= lay;
@@ -1122,7 +1120,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	else {
 		/* normal non localview operation */
 		/* note: layers are set in bases, library objects work for this */
-		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
+		CTX_DATA_BEGIN (C, Base*, base, selected_bases) {
 			/* upper byte is used for local view */
 			local= base->lay & 0xFF000000;  
 			base->lay= lay + local;
@@ -1204,8 +1202,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	CTX_DATA_BEGIN(C, Base*, base, selected_bases)
-	{
+	CTX_DATA_BEGIN (C, Base*, base, selected_bases) {
 		if (!object_in_scene(base->object, scene_to)) {
 			Base *nbase= MEM_mallocN( sizeof(Base), "newbase");
 			*nbase= *base;
@@ -1265,7 +1262,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 
 	ob= ED_object_active_context(C);
 
-	CTX_DATA_BEGIN(C, Object*, obt, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, obt, selected_editable_objects) {
 		if (ob != obt) {
 			if (allow_make_links_data(event, ob, obt)) {
 				switch (event) {
@@ -1728,21 +1725,21 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
 	clear_id_newpoins();
 	
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_objects) {
 		if (ob->id.lib)
 			id_make_local(&ob->id, 0);
 	}
 	CTX_DATA_END;
 	
 	/* maybe object pointers */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_objects) {
 		if (ob->id.lib==NULL) {
 			ID_NEW(ob->parent);
 		}
 	}
 	CTX_DATA_END;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_objects) {
 		id= ob->data;
 			
 		if (id && mode>1) {
@@ -1770,7 +1767,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (mode>1) {
-		CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+		CTX_DATA_BEGIN (C, Object*, ob, selected_objects) {
 			if (ob->type==OB_LAMP) {
 				la= ob->data;
 

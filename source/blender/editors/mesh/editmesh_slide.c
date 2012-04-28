@@ -505,7 +505,7 @@ static int vtx_slide_set_frame(VertexSlideOp *vso)
 	BM_ITER_ELEM_INDEX (edge, &iter, sel_vtx, BM_EDGES_OF_VERT, idx) {
 		curr_vert = BM_edge_other_vert(edge, sel_vtx);
 		if (curr_vert) {
-			BLI_array_growone(vtx_frame);
+			BLI_array_grow_one(vtx_frame);
 
 			copy_v3_v3(vtx_frame[idx], curr_vert->co);
 

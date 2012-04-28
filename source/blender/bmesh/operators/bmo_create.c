@@ -766,7 +766,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 			i = 0;
 			BLI_array_empty(verts);
 			for (i = 0, node = path->nodes.first; node; node = node->next, i++) {
-				BLI_array_growone(verts);
+				BLI_array_grow_one(verts);
 				verts[i] = node->v;
 			}
 
@@ -999,7 +999,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			}
 
 			edata[BM_elem_index_get(e)].ftag++;
-			BLI_array_growone(edges);
+			BLI_array_grow_one(edges);
 			edges[i++] = e;
 
 			BLI_array_append(verts, node->v);
@@ -1009,7 +1009,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			vote_on_winding(edge, path->nodes.last, winding);
 		}
 
-		BLI_array_growone(edges);
+		BLI_array_grow_one(edges);
 		edges[i++] = edge;
 		edata[BM_elem_index_get(edge)].ftag++;
 		
@@ -1157,7 +1157,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 		i = 0;
 		while (e) {
 			BMO_elem_flag_enable(bm, e, EDGE_VIS);
-			BLI_array_growone(edges);
+			BLI_array_grow_one(edges);
 			edges[i] = e;
 
 			e = edge_next(bm, e);
@@ -1166,11 +1166,11 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 
 		if (!count) {
 			edges1 = edges;
-			BLI_array_set_length(edges1, BLI_array_count(edges));
+			BLI_array_length_set(edges1, BLI_array_count(edges));
 		}
 		else {
 			edges2 = edges;
-			BLI_array_set_length(edges2, BLI_array_count(edges));
+			BLI_array_length_set(edges2, BLI_array_count(edges));
 		}
 
 		BLI_array_empty(edges);

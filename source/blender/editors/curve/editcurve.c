@@ -6071,7 +6071,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	/* trasnform all selected curves inverse in obact */
 	invert_m4_m4(imat, ob->obmat);
 	
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selected_editable_bases) {
 		if (base->object->type==ob->type) {
 			if (base->object != ob) {
 			

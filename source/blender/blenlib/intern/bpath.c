@@ -510,7 +510,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 			if (scene->ed) {
 				Sequence *seq;
 
-				SEQ_BEGIN(scene->ed, seq) {
+				SEQ_BEGIN (scene->ed, seq) {
 					if (SEQ_HAS_PATH(seq)) {
 						if (ELEM(seq->type, SEQ_MOVIE, SEQ_SOUND)) {
 							rewrite_path_fixed_dirfile(seq->strip->dir, seq->strip->stripdata->name,

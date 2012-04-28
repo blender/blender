@@ -5289,8 +5289,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransOb");
 	tx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransObExtension");
 
-	CTX_DATA_BEGIN(C, Base*, base, selected_bases)
-	{
+	CTX_DATA_BEGIN (C, Base*, base, selected_bases) {
 		Object *ob= base->object;
 		
 		td->flag = TD_SELECTED;
@@ -5396,7 +5395,7 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransNode TransData");
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransNode TransData2D");
 
-	CTX_DATA_BEGIN(C, bNode *, selnode, selected_nodes)
+	CTX_DATA_BEGIN (C, bNode *, selnode, selected_nodes)
 		NodeToTransData(td++, td2d++, selnode);
 	CTX_DATA_END
 }

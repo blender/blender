@@ -557,7 +557,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
-		CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects) {
+		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
 			if (ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm = ob->data;
@@ -691,7 +691,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
-		CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects) {
+		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
 			if (ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm = ob->data;
@@ -928,7 +928,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 		else {
-			CTX_DATA_BEGIN(C, Object *, ob, selected_objects) {
+			CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
 				copy_v3_v3(vec, ob->obmat[3]);
 
 				/* special case for camera -- snap to bundles */

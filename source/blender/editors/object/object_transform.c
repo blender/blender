@@ -227,8 +227,7 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	/* operate on selected objects only if they aren't in weight-paint mode 
 	 * (so that object-transform clearing won't be applied at same time as bone-clearing)
 	 */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
-	{
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if (!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			/* run provided clearing function */
 			clear_func(ob);
@@ -320,8 +319,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	float *v1, *v3;
 	float mat[3][3];
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
-	{
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if (ob->parent) {
 			/* vectors pointed to by v1 and v3 will get modified */
 			v1= ob->loc;
@@ -385,7 +383,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	int a, change = 0;
 	
 	/* first check if we can execute */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 
 		if (ob->type==OB_MESH) {
 			if (ID_REAL_USERS(ob->data) > 1) {
@@ -428,7 +426,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	CTX_DATA_END;
 	
 	/* now execute */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 
 		/* calculate rotation/scale matrix */
 		if (apply_scale && apply_rot)
@@ -569,7 +567,7 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene= CTX_data_scene(C);
 	int change = 0;
 	
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		where_is_object(scene, ob);
 		object_apply_mat4(ob, ob->obmat, TRUE, TRUE);
 		where_is_object(scene, ob);
@@ -711,7 +709,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	}
 
 	/* reset flags */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 			ob->flag &= ~OB_DONE;
 	}
 	CTX_DATA_END;
@@ -723,7 +721,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			((ID *)tob->dup_group)->flag &= ~LIB_DOIT;
 	}
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_editable_objects) {
 		if ((ob->flag & OB_DONE)==0) {
 			int do_inverse_offset = FALSE;
 			ob->flag |= OB_DONE;
@@ -896,11 +894,12 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				ignore_parent_tx(bmain, scene, ob);
 				
 				/* other users? */
-				CTX_DATA_BEGIN(C, Object*, ob_other, selected_editable_objects) {
-					if (		(ob_other->flag & OB_DONE)==0 &&
-							(	(ob->data && (ob->data == ob_other->data)) ||
-								(ob->dup_group==ob_other->dup_group && (ob->transflag|ob_other->transflag) & OB_DUPLIGROUP) )
-					) {
+				CTX_DATA_BEGIN (C, Object*, ob_other, selected_editable_objects) {
+					if ((ob_other->flag & OB_DONE) == 0 &&
+					    ((ob->data && (ob->data == ob_other->data)) ||
+					     (ob->dup_group == ob_other->dup_group &&
+					      (ob->transflag | ob_other->transflag) & OB_DUPLIGROUP)))
+					{
 						ob_other->flag |= OB_DONE;
 						DAG_id_tag_update(&ob_other->id, OB_RECALC_OB|OB_RECALC_DATA);
 

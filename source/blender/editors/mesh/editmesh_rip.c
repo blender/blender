@@ -263,7 +263,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 		uid_start = uid;
 		uid = uid_end + bm->totedge;
 
-		BLI_array_growone(eloop_pairs);
+		BLI_array_grow_one(eloop_pairs);
 		lp = &eloop_pairs[BLI_array_count(eloop_pairs) - 1];
 		BM_edge_loop_pair(e_last, &lp->l_a, &lp->l_b); /* no need to check, we know this will be true */
 
@@ -277,7 +277,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 	}
 
 	/* null terminate */
-	BLI_array_growone(eloop_pairs);
+	BLI_array_grow_one(eloop_pairs);
 	lp = &eloop_pairs[BLI_array_count(eloop_pairs) - 1];
 	lp->l_a = lp->l_b = NULL;
 

@@ -1875,8 +1875,8 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 
 		BLI_array_empty(vertcos);
 		BLI_array_empty(vertnos);
-		BLI_array_growitems(vertcos, mp->totloop);
-		BLI_array_growitems(vertnos, mp->totloop);
+		BLI_array_grow_items(vertcos, mp->totloop);
+		BLI_array_grow_items(vertnos, mp->totloop);
 
 		for (j=0; j < mp->totloop; j++) {
 			int vindex = ml[j].v;
@@ -1885,7 +1885,7 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 		}
 
 		BLI_array_empty(edgevecbuf);
-		BLI_array_growitems(edgevecbuf, mp->totloop);
+		BLI_array_grow_items(edgevecbuf, mp->totloop);
 
 		accumulate_vertex_normals_poly(vertnos, pnors[i], vertcos, edgevecbuf, mp->totloop);
 	}
@@ -2422,8 +2422,8 @@ int mesh_recalcTessellation(CustomData *fdata,
 #ifdef USE_TESSFACE_SPEEDUP
 
 #define ML_TO_MF(i1, i2, i3)                                                  \
-		BLI_array_growone(mface_to_poly_map);                                 \
-		BLI_array_growone(mface);                                             \
+		BLI_array_grow_one(mface_to_poly_map);                                \
+		BLI_array_grow_one(mface);                                            \
 		mface_to_poly_map[mface_index] = poly_index;                          \
 		mf= &mface[mface_index];                                              \
 		/* set loop indices, transformed to vert indices later */             \
@@ -2441,8 +2441,8 @@ int mesh_recalcTessellation(CustomData *fdata,
 
 /* ALMOST IDENTICAL TO DEFINE ABOVE (see EXCEPTION) */
 #define ML_TO_MF_QUAD()                                                       \
-		BLI_array_growone(mface_to_poly_map);                                 \
-		BLI_array_growone(mface);                                             \
+		BLI_array_grow_one(mface_to_poly_map);                                \
+		BLI_array_grow_one(mface);                                            \
 		mface_to_poly_map[mface_index] = poly_index;                          \
 		mf= &mface[mface_index];                                              \
 		/* set loop indices, transformed to vert indices later */             \
@@ -2500,10 +2500,10 @@ int mesh_recalcTessellation(CustomData *fdata,
 			
 			totfilltri = BLI_edgefill(&sf_ctx, FALSE);
 			if (totfilltri) {
-				BLI_array_growitems(mface_to_poly_map, totfilltri);
-				BLI_array_growitems(mface, totfilltri);
+				BLI_array_grow_items(mface_to_poly_map, totfilltri);
+				BLI_array_grow_items(mface, totfilltri);
 				if (poly_orig_index) {
-					BLI_array_growitems(mface_orig_index, totfilltri);
+					BLI_array_grow_items(mface_orig_index, totfilltri);
 				}
 
 				for (f = sf_ctx.fillfacebase.first; f; f = f->next, mf++) {
@@ -2672,7 +2672,7 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 	k = 0;
 	for (i = 0; i<totpoly; i++, mp++) {
 		if (ELEM(mp->totloop, 3, 4)) {
-			BLI_array_growone(mface);
+			BLI_array_grow_one(mface);
 			mf = &mface[k];
 
 			mf->mat_nr = mp->mat_nr;

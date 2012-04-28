@@ -2307,7 +2307,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 		BLI_array_empty(stack);
 		i = 1;
 
-		BLI_array_growone(stack);
+		BLI_array_grow_one(stack);
 		stack[i - 1] = f;
 
 		while (i) {
@@ -2330,7 +2330,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 
 					/* invalidate: edge too sharp */
 					if (angle < sharp) {
-						BLI_array_growone(stack);
+						BLI_array_grow_one(stack);
 						stack[i] = l2->f;
 						i++;
 					}

@@ -2555,7 +2555,7 @@ void BIF_retargetArmature(bContext *C)
 	
 	printf("Reeb Graph created\n");
 
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selected_editable_bases) {
 		Object *ob = base->object;
 
 		if (ob->type==OB_ARMATURE) {

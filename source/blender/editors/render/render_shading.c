@@ -329,7 +329,7 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!ob || !(matar = give_matarar(ob)))
 		return OPERATOR_CANCELLED;
 
-	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
 		if (ob != ob_iter && give_matarar(ob_iter)) {
 			if (ob->data != ob_iter->data)
 				assign_matarar(ob_iter, matar, ob->totcol);

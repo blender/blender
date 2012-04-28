@@ -625,10 +625,11 @@ void unlink_object(Object *ob)
 #endif
 			if (sce->ed) {
 				Sequence *seq;
-				SEQ_BEGIN(sce->ed, seq)
-					if (seq->scene_camera==ob) {
-						seq->scene_camera= NULL;
+				SEQ_BEGIN (sce->ed, seq) {
+					if (seq->scene_camera == ob) {
+						seq->scene_camera = NULL;
 					}
+				}
 				SEQ_END
 			}
 		}

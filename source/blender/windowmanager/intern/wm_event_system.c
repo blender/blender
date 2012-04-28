@@ -691,8 +691,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 		if (properties) {
 			otmacro = ot->macro.first;
 
-			RNA_STRUCT_BEGIN(properties, prop)
-			{
+			RNA_STRUCT_BEGIN (properties, prop) {
 
 				if (otmacro == NULL)
 					break;
@@ -761,7 +760,7 @@ int WM_operator_last_properties_init(wmOperator *op)
 
 		iterprop = RNA_struct_iterator_property(op->type->srna);
 
-		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop) {
+		RNA_PROP_BEGIN (op->ptr, itemptr, iterprop) {
 			PropertyRNA *prop = itemptr.data;
 			if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
 				if (!RNA_property_is_set(op->ptr, prop)) { /* don't override a setting already set */

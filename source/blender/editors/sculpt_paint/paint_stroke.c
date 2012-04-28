@@ -377,7 +377,7 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 		stroke->stroke_started = 1;
 	}
 
-	RNA_BEGIN(op->ptr, itemptr, "stroke") {
+	RNA_BEGIN (op->ptr, itemptr, "stroke") {
 		stroke->update_step(C, stroke, &itemptr);
 	}
 	RNA_END;

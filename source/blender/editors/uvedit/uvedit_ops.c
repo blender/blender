@@ -1756,8 +1756,8 @@ static int mouse_select(bContext *C, const float co[2], int extend, int loop)
 		}
 
 		/* mark 1 vertex as being hit */
-		BLI_array_growitems(hitv, hit.efa->len);
-		BLI_array_growitems(hituv, hit.efa->len);
+		BLI_array_grow_items(hitv, hit.efa->len);
+		BLI_array_grow_items(hituv, hit.efa->len);
 		for (i = 0; i < hit.efa->len; i++) {
 			hitv[i] = 0xFFFFFFFF;
 		}
@@ -1777,8 +1777,8 @@ static int mouse_select(bContext *C, const float co[2], int extend, int loop)
 		}
 
 		/* mark 2 edge vertices as being hit */
-		BLI_array_growitems(hitv,  hit.efa->len);
-		BLI_array_growitems(hituv, hit.efa->len);
+		BLI_array_grow_items(hitv,  hit.efa->len);
+		BLI_array_grow_items(hituv, hit.efa->len);
 		fill_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
 
 		hitv[hit.lindex] = hit.vert1;
@@ -1802,8 +1802,8 @@ static int mouse_select(bContext *C, const float co[2], int extend, int loop)
 
 		/* mark all face vertices as being hit */
 
-		BLI_array_growitems(hitv,  hit.efa->len);
-		BLI_array_growitems(hituv, hit.efa->len);
+		BLI_array_grow_items(hitv,  hit.efa->len);
+		BLI_array_grow_items(hituv, hit.efa->len);
 		i = 0;
 		BM_ITER_ELEM (l, &liter, hit.efa, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);

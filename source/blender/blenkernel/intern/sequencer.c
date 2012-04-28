@@ -259,8 +259,7 @@ void seq_free_editing(Scene *scene)
 	if (ed == NULL)
 		return;
 
-	SEQ_BEGIN(ed, seq)
-	{
+	SEQ_BEGIN (ed, seq) {
 		seq_free_sequence(scene, seq);
 	}
 	SEQ_END
@@ -363,7 +362,7 @@ unsigned int seq_hash_render_data(const SeqRenderData *a)
 
 /* ************************* iterator ************************** */
 /* *************** (replaces old WHILE_SEQ) ********************* */
-/* **************** use now SEQ_BEGIN() SEQ_END ***************** */
+/* **************** use now SEQ_BEGIN () SEQ_END ***************** */
 
 /* sequence strip iterator:
  * - builds a full array, recursively into meta strips */

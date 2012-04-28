@@ -75,7 +75,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	for (group= bmain->group.first; group; group=group->id.next) {
 		if (object_in_group(ob, group)) {
 			/* Assign groups to selected objects */
-			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+			CTX_DATA_BEGIN (C, Base*, base, selected_editable_bases) {
 				if (base->object->dup_group != group)
 					add_to_group(group, base->object, scene, base);
 				else
@@ -127,7 +127,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	for (group= bmain->group.first; group; group=group->id.next) {
 		if (object_in_group(ob, group)) {
 			/* Assign groups to selected objects */
-			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+			CTX_DATA_BEGIN (C, Base*, base, selected_editable_bases) {
 				rem_from_group(group, base->object, scene, base);
 				ok = 1;
 			}
@@ -164,7 +164,7 @@ static int group_objects_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene= CTX_data_scene(C);
 	Group *group= NULL;
 
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selected_editable_bases) {
 		group = NULL;
 		while ((group = find_group(base->object, group)))
 			rem_from_group(group, base->object, scene, base);
@@ -203,7 +203,7 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	
 	group= add_group(name);
 		
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selected_editable_bases) {
 		add_to_group(group, base->object, scene, base);
 	}
 	CTX_DATA_END;
