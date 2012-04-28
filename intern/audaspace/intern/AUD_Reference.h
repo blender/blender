@@ -31,6 +31,7 @@
 
 #include <map>
 #include <cstddef>
+#include <pthread.h>
 
 // #define MEM_DEBUG
 
@@ -49,8 +50,13 @@ private:
 	 * Saves the reference counts.
 	 */
 	static std::map<void*, unsigned int> m_references;
+	static pthread_mutex_t m_mutex;
+	static bool m_mutex_initialised;
 
 public:
+
+	static pthread_mutex_t* getMutex();
+
 	/**
 	 * Reference increment.
 	 * \param reference The reference.
@@ -108,6 +114,7 @@ public:
 	template <class U>
 	AUD_Reference(U* reference)
 	{
+		pthread_mutex_lock(AUD_ReferenceHandler::getMutex());
 		m_original = reference;
 		m_reference = dynamic_cast<T*>(reference);
 		AUD_ReferenceHandler::incref(m_original);
@@ -115,6 +122,7 @@ public:
 		if(m_reference != NULL)
 			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
 #endif
+		pthread_mutex_unlock(AUD_ReferenceHandler::getMutex());
 	}
 
 	AUD_Reference()
@@ -129,6 +137,7 @@ public:
 	 */
 	AUD_Reference(const AUD_Reference& ref)
 	{
+		pthread_mutex_lock(AUD_ReferenceHandler::getMutex());
 		m_original = ref.m_original;
 		m_reference = ref.m_reference;
 		AUD_ReferenceHandler::incref(m_original);
@@ -136,11 +145,13 @@ public:
 		if(m_reference != NULL)
 			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
 #endif
+		pthread_mutex_unlock(AUD_ReferenceHandler::getMutex());
 	}
 
 	template <class U>
 	explicit AUD_Reference(const AUD_Reference<U>& ref)
 	{
+		pthread_mutex_lock(AUD_ReferenceHandler::getMutex());
 		m_original = ref.get();
 		m_reference = dynamic_cast<T*>(ref.get());
 		AUD_ReferenceHandler::incref(m_original);
@@ -148,6 +159,7 @@ public:
 		if(m_reference != NULL)
 			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
 #endif
+		pthread_mutex_unlock(AUD_ReferenceHandler::getMutex());
 	}
 
 	/**
@@ -156,12 +168,14 @@ public:
 	 */
 	~AUD_Reference()
 	{
+		pthread_mutex_lock(AUD_ReferenceHandler::getMutex());
 #ifdef MEM_DEBUG
 		if(m_reference != NULL)
 			std::cerr << "-" << typeid(*m_reference).name() << std::endl;
 #endif
 		if(AUD_ReferenceHandler::decref(m_original))
 			delete m_reference;
+		pthread_mutex_unlock(AUD_ReferenceHandler::getMutex());
 	}
 
 	/**
@@ -173,6 +187,8 @@ public:
 		if(&ref == this)
 			return *this;
 
+		pthread_mutex_lock(AUD_ReferenceHandler::getMutex());
+
 #ifdef MEM_DEBUG
 		if(m_reference != NULL)
 			std::cerr << "-" << typeid(*m_reference).name() << std::endl;
@@ -187,6 +203,8 @@ public:
 		if(m_reference != NULL)
 			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
 #endif
+
+		pthread_mutex_unlock(AUD_ReferenceHandler::getMutex());
 
 		return *this;
 	}
