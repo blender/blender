@@ -92,6 +92,25 @@ static int space_clip_frame_poll(bContext *C)
 	return FALSE;
 }
 
+static int space_clip_size_poll(bContext *C)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	if (sc) {
+		MovieClip *clip = ED_space_clip(sc);
+
+		if (clip) {
+			int width, height;
+
+			BKE_movieclip_get_size(clip, &sc->user, &width, &height);
+
+			return width > 0 && height > 0;
+		}
+	}
+
+	return FALSE;
+}
+
 /********************** add marker operator *********************/
 
 static void add_marker(SpaceClip *sc, float x, float y)
@@ -156,7 +175,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = add_marker_invoke;
 	ot->exec = add_marker_exec;
-	ot->poll = space_clip_frame_poll;
+	ot->poll = space_clip_size_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -643,7 +662,7 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 	ot->idname = "CLIP_OT_slide_marker";
 
 	/* api callbacks */
-	ot->poll = space_clip_frame_poll;
+	ot->poll = space_clip_size_poll;
 	ot->invoke = slide_marker_invoke;
 	ot->modal = slide_marker_modal;
 
@@ -1200,7 +1219,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = select_groped_exec;
-	ot->poll = space_clip_frame_poll;
+	ot->poll = space_clip_size_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2016,7 +2035,7 @@ static Object *get_orientation_object(bContext *C)
 
 static int set_orientation_poll(bContext *C)
 {
-	if (space_clip_frame_poll(C)) {
+	if (space_clip_size_poll(C)) {
 		Scene *scene = CTX_data_scene(C);
 		SpaceClip *sc = CTX_wm_space_clip(C);
 		MovieClip *clip = ED_space_clip(sc);
@@ -2626,7 +2645,7 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 
 static int set_solution_scale_poll(bContext *C)
 {
-	if (space_clip_frame_poll(C)) {
+	if (space_clip_size_poll(C)) {
 		SpaceClip *sc = CTX_wm_space_clip(C);
 		MovieClip *clip = ED_space_clip(sc);
 		MovieTracking *tracking = &clip->tracking;
@@ -2974,7 +2993,7 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = frame_jump_exec;
-	ot->poll = space_clip_frame_poll;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3031,7 +3050,7 @@ void CLIP_OT_join_tracks(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = join_tracks_exec;
-	ot->poll = space_clip_frame_poll;
+	ot->poll = space_clip_size_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;

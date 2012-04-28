@@ -5731,10 +5731,13 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	ARegion *ar = CTX_wm_region(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
+	int width, height;
 
 	t->total = 0;
 
-	if (!clip || !BKE_movieclip_has_frame(clip, &sc->user))
+	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
+
+	if (!clip || width == 0 || height == 0)
 		return;
 
 	if (!ELEM(t->mode, TFM_RESIZE, TFM_TRANSLATION))
