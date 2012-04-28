@@ -622,7 +622,13 @@ def buildslave(target=None, source=None, env=None):
     else:
         extension = '.tar.bz2'
 
-    platform = env['OURPLATFORM'].split('-')[0]
+    if env['OURPLATFORM'] == 'win32-mingw':
+        platform = 'mingw32'
+    elif env['OURPLATFORM'] == 'win32-mingw':
+        platform = 'mingw64'
+    else:
+        platform = env['OURPLATFORM'].split('-')[0]
+
     if platform == 'linux':
         import platform
 
