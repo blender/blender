@@ -1769,12 +1769,6 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Effect Strip", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "plugin_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "plugin");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Plugin Strip", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
 	prop = RNA_def_property(srna, "transition_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "transition");
 	RNA_def_property_array(prop, 3);
@@ -3372,15 +3366,6 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "texture_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "textudir");
 	RNA_def_property_ui_text(prop, "Textures Directory", "The default directory to search for textures");
-
-	prop = RNA_def_property(srna, "texture_plugin_directory", PROP_STRING, PROP_DIRPATH);
-	RNA_def_property_string_sdna(prop, NULL, "plugtexdir");
-	RNA_def_property_ui_text(prop, "Texture Plugin Directory", "The default directory to search for texture plugins");
-
-	prop = RNA_def_property(srna, "sequence_plugin_directory", PROP_STRING, PROP_DIRPATH);
-	RNA_def_property_string_sdna(prop, NULL, "plugseqdir");
-	RNA_def_property_ui_text(prop, "Sequence Plugin Directory",
-	                         "The default directory to search for sequence plugins");
 
 	prop = RNA_def_property(srna, "render_output_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "renderdir");

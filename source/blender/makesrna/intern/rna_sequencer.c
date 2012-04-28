@@ -414,8 +414,6 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 			return &RNA_MulticamSequence;
 		case SEQ_ADJUSTMENT:
 			return &RNA_AdjustmentSequence;
-		case SEQ_PLUGIN:
-			return &RNA_PluginSequence;
 		case SEQ_WIPE:
 			return &RNA_WipeSequence;
 		case SEQ_GLOW:
@@ -1588,25 +1586,6 @@ static void rna_def_adjustment(BlenderRNA *brna)
 	rna_def_input(srna);
 }
 
-static void rna_def_plugin(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-	
-	srna = RNA_def_struct(brna, "PluginSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Plugin Sequence",
-	                       "Sequence strip applying an effect, loaded from an external plugin");
-	RNA_def_struct_sdna_from(srna, "PluginSeq", "plugin");
-
-	prop = RNA_def_property(srna, "filename", PROP_STRING, PROP_FILENAME);
-	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Filename", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
-	
-	/* plugin properties need custom wrapping code like ID properties */
-}
-
 static void rna_def_wipe(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1848,7 +1827,6 @@ void RNA_def_sequencer(BlenderRNA *brna)
 	rna_def_effect(brna);
 	rna_def_multicam(brna);
 	rna_def_adjustment(brna);
-	rna_def_plugin(brna);
 	rna_def_wipe(brna);
 	rna_def_glow(brna);
 	rna_def_transform(brna);

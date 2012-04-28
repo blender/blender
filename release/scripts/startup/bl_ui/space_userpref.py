@@ -797,8 +797,6 @@ class USERPREF_PT_file(Panel):
         sub = col1.column()
         sub.prop(paths, "font_directory", text="")
         sub.prop(paths, "texture_directory", text="")
-        sub.prop(paths, "texture_plugin_directory", text="")
-        sub.prop(paths, "sequence_plugin_directory", text="")
         sub.prop(paths, "render_output_directory", text="")
         sub.prop(paths, "script_directory", text="")
         sub.prop(paths, "sound_directory", text="")

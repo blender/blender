@@ -220,7 +220,6 @@ class SEQUENCER_MT_add_effect(Menu):
         layout.operator("sequencer.effect_strip_add", text="Gamma Cross").type = 'GAMMA_CROSS'
         layout.operator("sequencer.effect_strip_add", text="Multiply").type = 'MULTIPLY'
         layout.operator("sequencer.effect_strip_add", text="Over Drop").type = 'OVER_DROP'
-        layout.operator("sequencer.effect_strip_add", text="Plugin").type = 'PLUGIN'
         layout.operator("sequencer.effect_strip_add", text="Wipe").type = 'WIPE'
         layout.operator("sequencer.effect_strip_add", text="Glow").type = 'GLOW'
         layout.operator("sequencer.effect_strip_add", text="Transform").type = 'TRANSFORM'
@@ -488,7 +487,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         col = layout.column(align=True)
         if strip.type == 'SPEED':
             col.prop(strip, "multiply_speed")
-        elif strip.type in {'CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE'}:
+        elif strip.type in {'CROSS', 'GAMMA_CROSS', 'WIPE'}:
             col.prop(strip, "use_default_fade", "Default fade")
             if not strip.use_default_fade:
                 col.prop(strip, "effect_fader", text="Effect fader")
@@ -553,7 +552,6 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
         return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'META',
                               'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
-                              'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM',
                               'MULTICAM', 'SPEED', 'ADJUSTMENT'}
 
@@ -716,7 +714,6 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'META',
                               'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
-                              'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
                               'MULTICAM', 'SPEED', 'ADJUSTMENT'}
 
