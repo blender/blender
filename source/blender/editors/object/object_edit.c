@@ -1351,11 +1351,11 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(
 	if (!C) /* needed for docs */
 		return object_mode_items;
 
+
+
 	ob = CTX_data_active_object(C);
 	while (ob && input->identifier) {
-		if ((input->value == OB_MODE_EDIT && ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE) ||
-		                                      (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
-		                                      (ob->type == OB_FONT) || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) ||
+		if ((input->value == OB_MODE_EDIT && OB_TYPE_SUPPORT_EDITMODE(ob->type)) ||
 		    (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
 		    (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
 		    ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
