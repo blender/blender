@@ -41,7 +41,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
 #include "BLI_heap.h"
@@ -81,15 +80,23 @@ static ReebGraph *FILTERED_RG = NULL;
 #define DEBUG_REEB
 #define DEBUG_REEB_NODE
 
-typedef struct VertexData
-{
+/* place-holders! */
+typedef struct EditEdge {
+	void *fake;
+} EditEdge;
+
+typedef struct EditFace {
+	void *fake;
+} EditFace;
+/* end place-holders! */
+
+typedef struct VertexData {
 	float w; /* weight */
 	int i; /* index */
 	ReebNode *n;
 } VertexData;
 
-typedef struct EdgeIndex
-{
+typedef struct EdgeIndex {
 	EditEdge **edges;
 	int		 *offset;
 } EdgeIndex;

@@ -487,66 +487,6 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	EDBM_selectmode_flush(vc->em);
 }
 
-/* BMESH_TODO */
-#if 0
-/* this is an exception in that its the only lasso that dosnt use the 3d view (uses space image view) */
-static void do_lasso_select_mesh_uv(int mcords[][2], short moves, short select)
-{
-	EditFace *efa;
-	MTFace *tf;
-	int screenUV[2], nverts, i, ok = 1;
-	rcti rect;
-	
-	BLI_lasso_boundbox(&rect, mcords, moves);
-	
-	if (draw_uvs_face_check()) { /* Face Center Sel */
-		float cent[2];
-		ok = 0;
-		for (efa = em->faces.first; efa; efa = efa->next) {
-			/* assume not touched */
-			efa->tmp.l = 0;
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if ((select) != (simaFaceSel_Check(efa, tf))) {
-				uv_center(tf->uv, cent, (void *)efa->v4);
-				uvco_to_areaco_noclip(cent, screenUV);
-				if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && BLI_lasso_is_point_inside(mcords, moves, screenUV[0], screenUV[1])) {
-					efa->tmp.l = ok = 1;
-				}
-			}
-		}
-		/* (de)selects all tagged faces and deals with sticky modes */
-		if (ok)
-			uvface_setsel__internal(select);
-		
-	}
-	else { /* Vert Sel*/
-		for (efa = em->faces.first; efa; efa = efa->next) {
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (uvedit_face_visible_test(scene, ima, efa, tf)) {		
-				nverts = efa->v4 ? 4 : 3;
-				for (i = 0; i < nverts; i++) {
-					if ((select) != (simaUVSel_Check(efa, tf, i))) {
-						uvco_to_areaco_noclip(tf->uv[i], screenUV);
-						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && BLI_lasso_is_point_inside(mcords, moves, screenUV[0], screenUV[1])) {
-							if (select) {
-								simaUVSel_Set(efa, tf, i);
-							}
-							else {
-								simaUVSel_UnSet(efa, tf, i);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	if (ok && G.sima->flag & SI_SYNC_UVSEL) {
-		if (select) EM_select_flush(vc->em);
-		else EM_deselect_flush(vc->em);
-	}
-}
-#endif
-
 static void do_lasso_select_curve__doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
 	LassoSelectUserData *data = userData;

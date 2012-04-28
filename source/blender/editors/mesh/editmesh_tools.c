@@ -3640,22 +3640,6 @@ static int vergxco(const void *v1, const void *v2)
 	return (x2->org_idx < 0) - (x1->org_idx < 0);
 }
 
-#if 0 /* Unused */
-struct facesort {
-	uintptr_t x;
-	struct EditFace *efa;
-};
-
-static int vergface(const void *v1, const void *v2)
-{
-	const struct facesort *x1 = v1, *x2 = v2;
-
-	if (x1->x > x2->x) return 1;
-	else if (x1->x < x2->x) return -1;
-	return 0;
-}
-#endif
-
 static void xsortvert_flag__doSetX(void *userData, BMVert *UNUSED(eve), int x, int UNUSED(y), int index)
 {
 	xvertsort *sortblock = userData;
