@@ -624,7 +624,7 @@ def buildslave(target=None, source=None, env=None):
 
     if env['OURPLATFORM'] == 'win32-mingw':
         platform = 'mingw32'
-    elif env['OURPLATFORM'] == 'win32-mingw':
+    elif env['OURPLATFORM'] == 'win64-mingw':
         platform = 'mingw64'
     else:
         platform = env['OURPLATFORM'].split('-')[0]
