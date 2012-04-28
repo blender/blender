@@ -835,7 +835,7 @@ static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl
 	MDisps *mdisps;
 	int lvl= mmd->totlvl;
 
-	if (totlvl > multires_max_levels)
+	if ((totlvl > multires_max_levels) || (me->totpoly == 0))
 		return;
 
 	multires_force_update(ob);
