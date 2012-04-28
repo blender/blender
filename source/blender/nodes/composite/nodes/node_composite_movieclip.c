@@ -33,7 +33,7 @@
 
 #include "node_composite_util.h"
 
-static bNodeSocketTemplate cmp_node_movieclip_out[]= {
+static bNodeSocketTemplate cmp_node_movieclip_out[] = {
 	{	SOCK_RGBA,		0,	"Image"},
 	{	SOCK_FLOAT,		1,	"Offset X"},
 	{	SOCK_FLOAT,		1,	"Offset Y"},
@@ -49,50 +49,50 @@ static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, Mov
 	int type;
 
 	float *rect;
-	int alloc= FALSE;
+	int alloc = FALSE;
 
-	orig_ibuf= BKE_movieclip_get_ibuf(clip, user);
+	orig_ibuf = BKE_movieclip_get_ibuf(clip, user);
 
-	if (orig_ibuf==NULL || (orig_ibuf->rect==NULL && orig_ibuf->rect_float==NULL)) {
+	if (orig_ibuf == NULL || (orig_ibuf->rect == NULL && orig_ibuf->rect_float == NULL)) {
 		IMB_freeImBuf(orig_ibuf);
 		return NULL;
 	}
 
-	ibuf= IMB_dupImBuf(orig_ibuf);
+	ibuf = IMB_dupImBuf(orig_ibuf);
 	IMB_freeImBuf(orig_ibuf);
 
-	if (ibuf->rect_float == NULL || ibuf->userflags&IB_RECT_INVALID) {
+	if (ibuf->rect_float == NULL || (ibuf->userflags & IB_RECT_INVALID)) {
 		IMB_float_from_rect(ibuf);
-		ibuf->userflags&= ~IB_RECT_INVALID;
+		ibuf->userflags &= ~IB_RECT_INVALID;
 	}
 
 	/* now we need a float buffer from the image with matching color management */
 	if (ibuf->channels == 4) {
-		rect= node_composit_get_float_buffer(rd, ibuf, &alloc);
+		rect = node_composit_get_float_buffer(rd, ibuf, &alloc);
 	}
 	else {
 		/* non-rgba passes can't use color profiles */
-		rect= ibuf->rect_float;
+		rect = ibuf->rect_float;
 	}
 	/* done coercing into the correct color management */
 
 	if (!alloc) {
-		rect= MEM_dupallocN(rect);
-		alloc= 1;
+		rect = MEM_dupallocN(rect);
+		alloc = TRUE;
 	}
 
-	type= ibuf->channels;
+	type = ibuf->channels;
 
 	if (rd->scemode & R_COMP_CROP) {
-		stackbuf= get_cropped_compbuf(&rd->disprect, rect, ibuf->x, ibuf->y, type);
+		stackbuf = get_cropped_compbuf(&rd->disprect, rect, ibuf->x, ibuf->y, type);
 		if (alloc)
 			MEM_freeN(rect);
 	}
 	else {
 		/* we put imbuf copy on stack, cbuf knows rect is from other ibuf when freed! */
-		stackbuf= alloc_compbuf(ibuf->x, ibuf->y, type, FALSE);
-		stackbuf->rect= rect;
-		stackbuf->malloc= alloc;
+		stackbuf = alloc_compbuf(ibuf->x, ibuf->y, type, FALSE);
+		stackbuf->rect = rect;
+		stackbuf->malloc = alloc;
 	}
 
 	IMB_freeImBuf(ibuf);
@@ -103,32 +103,32 @@ static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, Mov
 static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	if (node->id) {
-		RenderData *rd= data;
-		MovieClip *clip= (MovieClip *)node->id;
-		MovieClipUser *user= (MovieClipUser *)node->storage;
-		CompBuf *stackbuf= NULL;
+		RenderData *rd = data;
+		MovieClip *clip = (MovieClip *)node->id;
+		MovieClipUser *user = (MovieClipUser *)node->storage;
+		CompBuf *stackbuf = NULL;
 
 		BKE_movieclip_user_set_frame(user, rd->cfra);
 
-		stackbuf= node_composit_get_movieclip(rd, clip, user);
+		stackbuf = node_composit_get_movieclip(rd, clip, user);
 
 		if (stackbuf) {
-			MovieTrackingStabilization *stab= &clip->tracking.stabilization;
+			MovieTrackingStabilization *stab = &clip->tracking.stabilization;
 
 			/* put image on stack */
-			out[0]->data= stackbuf;
+			out[0]->data = stackbuf;
 
-			if (stab->flag&TRACKING_2D_STABILIZATION) {
+			if (stab->flag & TRACKING_2D_STABILIZATION) {
 				float loc[2], scale, angle;
 
 				BKE_tracking_stabilization_data(&clip->tracking, rd->cfra, stackbuf->x, stackbuf->y,
 							loc, &scale, &angle);
 
-				out[1]->vec[0]= loc[0];
-				out[2]->vec[0]= loc[1];
+				out[1]->vec[0] = loc[0];
+				out[2]->vec[0] = loc[1];
 
-				out[3]->vec[0]= scale;
-				out[4]->vec[0]= angle;
+				out[3]->vec[0] = scale;
+				out[4]->vec[0] = angle;
 			}
 
 			/* generate preview */
@@ -139,10 +139,10 @@ static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **U
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
-	MovieClipUser *user= MEM_callocN(sizeof(MovieClipUser), "node movie clip user");
+	MovieClipUser *user = MEM_callocN(sizeof(MovieClipUser), "node movie clip user");
 
-	node->storage= user;
-	user->framenr= 1;
+	node->storage = user;
+	user->framenr = 1;
 }
 
 void register_node_type_cmp_movieclip(bNodeTreeType *ttype)

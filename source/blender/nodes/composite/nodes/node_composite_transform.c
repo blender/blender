@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -34,7 +34,7 @@
 
 /* **************** Transform  ******************** */
 
-static bNodeSocketTemplate cmp_node_transform_in[]= {
+static bNodeSocketTemplate cmp_node_transform_in[] = {
 	{	SOCK_RGBA,		1,	"Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT,		1,	"X",				0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
 	{	SOCK_FLOAT,		1,	"Y",				0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
@@ -43,17 +43,17 @@ static bNodeSocketTemplate cmp_node_transform_in[]= {
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate cmp_node_transform_out[]= {
+static bNodeSocketTemplate cmp_node_transform_out[] = {
 	{	SOCK_RGBA, 0, "Image"},
 	{	-1, 0, ""	}
 };
 
 CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, float scale, int filter_type)
 {
-	CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1);
+	CompBuf *stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, TRUE);
 	ImBuf *ibuf, *obuf;
 	float mat[4][4], lmat[4][4], rmat[4][4], smat[4][4], cmat[4][4], icmat[4][4];
-	float svec[3]= {scale, scale, scale}, loc[2]= {x, y};
+	float svec[3] = {scale, scale, scale}, loc[2] = {x, y};
 
 	unit_m4(rmat);
 	unit_m4(lmat);
@@ -61,8 +61,8 @@ CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, f
 	unit_m4(cmat);
 
 	/* image center as rotation center */
-	cmat[3][0]= (float)cbuf->x/2.0f;
-	cmat[3][1]= (float)cbuf->y/2.0f;
+	cmat[3][0] = (float)cbuf->x/2.0f;
+	cmat[3][1] = (float)cbuf->y/2.0f;
 	invert_m4_m4(icmat, cmat);
 
 	size_to_mat4(smat, svec);		/* scale matrix */
@@ -74,18 +74,18 @@ CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, f
 
 	invert_m4(mat);
 
-	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
-	obuf= IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0);
+	ibuf = IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
+	obuf = IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0);
 
 	if (ibuf && obuf) {
 		int i, j;
 
-		ibuf->rect_float= cbuf->rect;
-		obuf->rect_float= stackbuf->rect;
+		ibuf->rect_float = cbuf->rect;
+		obuf->rect_float = stackbuf->rect;
 
-		for (j=0; j<cbuf->y; j++) {
-			for (i=0; i<cbuf->x;i++) {
-				float vec[3]= {i, j, 0};
+		for (j = 0; j < cbuf->y; j++) {
+			for (i = 0; i < cbuf->x; i++) {
+				float vec[3] = {i, j, 0};
 
 				mul_v3_m4v3(vec, mat, vec);
 
@@ -114,15 +114,15 @@ CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, f
 static void node_composit_exec_transform(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if (in[0]->data) {
-		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
+		CompBuf *cbuf = typecheck_compbuf(in[0]->data, CB_RGBA);
 		CompBuf *stackbuf;
 
-		stackbuf= node_composit_transform(cbuf, in[1]->vec[0], in[2]->vec[0], in[3]->vec[0], in[4]->vec[0], node->custom1);
+		stackbuf = node_composit_transform(cbuf, in[1]->vec[0], in[2]->vec[0], in[3]->vec[0], in[4]->vec[0], node->custom1);
 
 		/* pass on output and free */
-		out[0]->data= stackbuf;
+		out[0]->data = stackbuf;
 
-		if (cbuf!=in[0]->data)
+		if (cbuf != in[0]->data)
 			free_compbuf(cbuf);
 	}
 }
