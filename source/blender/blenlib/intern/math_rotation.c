@@ -78,7 +78,23 @@ void mul_qt_qtqt(float q[4], const float q1[4], const float q2[4])
 	q[2] = t2;
 }
 
-/* Assumes a unit quaternion */
+/**
+ * \note:
+ * Assumes a unit quaternion?
+ *
+ * infact not, but you may wan't to use a unit quat, read on...
+ *
+ * Shortcut for 'q v q*' when \a v is actually a quaternion.
+ * This removes the need for converting a vector to a quaternion,
+ * calculating q's conjugate and converting back to a vector.
+ * It also happens to be faster (17+,24* vs * 24+,32*).
+ * If \a q is not a unit quaternion, then \a v will be both rotated by
+ * the same amount as if q was a unit quaternion, and scaled by the square of
+ * the length of q.
+ *
+ * For people used to python mathutils, its like:
+ * def mul_qt_v3(q, v): (q * Quaternion((0.0, v[0], v[1], v[2])) * q.conjugated())[1:]
+ */
 void mul_qt_v3(const float q[4], float v[3])
 {
 	float t0, t1, t2;
