@@ -119,6 +119,7 @@ typedef enum NodeLightPath {
 } NodeLightPath;
 
 typedef enum NodeTexCoord {
+	NODE_TEXCO_NORMAL,
 	NODE_TEXCO_OBJECT,
 	NODE_TEXCO_CAMERA,
 	NODE_TEXCO_WINDOW,

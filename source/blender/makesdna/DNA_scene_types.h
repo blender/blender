@@ -176,14 +176,16 @@ typedef struct SceneRenderLayer {
 	struct Material *mat_override;
 	struct Group *light_override;
 	
-	unsigned int lay;		/* scene->lay itself has priority over this */
-	unsigned int lay_zmask;	/* has to be after lay, this is for Z-masking */
+	unsigned int lay;		  /* scene->lay itself has priority over this */
+	unsigned int lay_zmask;	  /* has to be after lay, this is for Z-masking */
+	unsigned int lay_exclude; /* not used by internal, exclude */
 	int layflag;
-	
-	int pad;
 	
 	int passflag;			/* pass_xor has to be after passflag */
 	int pass_xor;
+
+	int samples;
+	int pad;
 } SceneRenderLayer;
 
 /* srl->layflag */

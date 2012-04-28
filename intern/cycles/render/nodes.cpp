@@ -1503,6 +1503,7 @@ TextureCoordinateNode::TextureCoordinateNode()
 {
 	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
 	add_output("Generated", SHADER_SOCKET_POINT);
+	add_output("Normal", SHADER_SOCKET_NORMAL);
 	add_output("UV", SHADER_SOCKET_POINT);
 	add_output("Object", SHADER_SOCKET_POINT);
 	add_output("Camera", SHADER_SOCKET_POINT);
@@ -1549,6 +1550,12 @@ void TextureCoordinateNode::compile(SVMCompiler& compiler)
 			compiler.stack_assign(out);
 			compiler.add_node(attr_node, attr, out->stack_offset, NODE_ATTR_FLOAT3);
 		}
+	}
+
+	out = output("Normal");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(texco_node, NODE_TEXCO_NORMAL, out->stack_offset);
 	}
 
 	out = output("UV");

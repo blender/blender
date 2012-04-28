@@ -182,93 +182,74 @@ __device_inline float average(const float2 a)
 
 __device_inline float2 operator-(const float2 a)
 {
-	float2 r = {-a.x, -a.y};
-	return r;
+	return make_float2(-a.x, -a.y);
 }
 
 __device_inline float2 operator*(const float2 a, const float2 b)
 {
-	float2 r = {a.x*b.x, a.y*b.y};
-	return r;
+	return make_float2(a.x*b.x, a.y*b.y);
 }
 
 __device_inline float2 operator*(const float2 a, float f)
 {
-	float2 r = {a.x*f, a.y*f};
-	return r;
+	return make_float2(a.x*f, a.y*f);
 }
 
 __device_inline float2 operator*(float f, const float2 a)
 {
-	float2 r = {a.x*f, a.y*f};
-	return r;
+	return make_float2(a.x*f, a.y*f);
 }
 
 __device_inline float2 operator/(float f, const float2 a)
 {
-	float2 r = {f/a.x, f/a.y};
-	return r;
+	return make_float2(f/a.x, f/a.y);
 }
 
 __device_inline float2 operator/(const float2 a, float f)
 {
 	float invf = 1.0f/f;
-	float2 r = {a.x*invf, a.y*invf};
-	return r;
+	return make_float2(a.x*invf, a.y*invf);
 }
 
 __device_inline float2 operator/(const float2 a, const float2 b)
 {
-	float2 r = {a.x/b.x, a.y/b.y};
-	return r;
+	return make_float2(a.x/b.x, a.y/b.y);
 }
 
 __device_inline float2 operator+(const float2 a, const float2 b)
 {
-	float2 r = {a.x+b.x, a.y+b.y};
-	return r;
+	return make_float2(a.x+b.x, a.y+b.y);
 }
 
 __device_inline float2 operator-(const float2 a, const float2 b)
 {
-	float2 r = {a.x-b.x, a.y-b.y};
-	return r;
+	return make_float2(a.x-b.x, a.y-b.y);
 }
 
 __device_inline float2 operator+=(float2& a, const float2 b)
 {
-	a.x += b.x;
-	a.y += b.y;
-	return a;
+	return a = a + b;
 }
 
 __device_inline float2 operator*=(float2& a, const float2 b)
 {
-	a.x *= b.x;
-	a.y *= b.y;
-	return a;
+	return a = a * b;
 }
 
 __device_inline float2 operator*=(float2& a, float f)
 {
-	a.x *= f;
-	a.y *= f;
-	return a;
+	return a = a * f;
 }
 
 __device_inline float2 operator/=(float2& a, const float2 b)
 {
-	a.x /= b.x;
-	a.y /= b.y;
-	return a;
+	return a = a / b;
 }
 
 __device_inline float2 operator/=(float2& a, float f)
 {
 	float invf = 1.0f/f;
-	a.x *= invf;
-	a.y *= invf;
-	return a;
+	return a = a * invf;
 }
 
 
@@ -314,14 +295,12 @@ __device_inline bool operator!=(const float2 a, const float2 b)
 
 __device_inline float2 min(float2 a, float2 b)
 {
-	float2 r = {min(a.x, b.x), min(a.y, b.y)};
-	return r;
+	return make_float2(min(a.x, b.x), min(a.y, b.y));
 }
 
 __device_inline float2 max(float2 a, float2 b)
 {
-	float2 r = {max(a.x, b.x), max(a.y, b.y)};
-	return r;
+	return make_float2(max(a.x, b.x), max(a.y, b.y));
 }
 
 __device_inline float2 clamp(float2 a, float2 mn, float2 mx)
@@ -361,112 +340,78 @@ __device_inline float2 interp(float2 a, float2 b, float t)
 
 /* Float3 Vector */
 
-__device_inline bool is_zero(const float3 a)
-{
-	return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f);
-}
-
-__device_inline float average(const float3 a)
-{
-	return (a.x + a.y + a.z)*(1.0f/3.0f);
-}
-
 #ifndef __KERNEL_OPENCL__
 
 __device_inline float3 operator-(const float3 a)
 {
-	float3 r = make_float3(-a.x, -a.y, -a.z);
-	return r;
+	return make_float3(-a.x, -a.y, -a.z);
 }
 
 __device_inline float3 operator*(const float3 a, const float3 b)
 {
-	float3 r = make_float3(a.x*b.x, a.y*b.y, a.z*b.z);
-	return r;
+	return make_float3(a.x*b.x, a.y*b.y, a.z*b.z);
 }
 
 __device_inline float3 operator*(const float3 a, float f)
 {
-	float3 r = make_float3(a.x*f, a.y*f, a.z*f);
-	return r;
+	return make_float3(a.x*f, a.y*f, a.z*f);
 }
 
 __device_inline float3 operator*(float f, const float3 a)
 {
-	float3 r = make_float3(a.x*f, a.y*f, a.z*f);
-	return r;
+	return make_float3(a.x*f, a.y*f, a.z*f);
 }
 
 __device_inline float3 operator/(float f, const float3 a)
 {
-	float3 r = make_float3(f/a.x, f/a.y, f/a.z);
-	return r;
+	return make_float3(f/a.x, f/a.y, f/a.z);
 }
 
 __device_inline float3 operator/(const float3 a, float f)
 {
 	float invf = 1.0f/f;
-	float3 r = make_float3(a.x*invf, a.y*invf, a.z*invf);
-	return r;
+	return make_float3(a.x*invf, a.y*invf, a.z*invf);
 }
 
 __device_inline float3 operator/(const float3 a, const float3 b)
 {
-	float3 r = make_float3(a.x/b.x, a.y/b.y, a.z/b.z);
-	return r;
+	return make_float3(a.x/b.x, a.y/b.y, a.z/b.z);
 }
 
 __device_inline float3 operator+(const float3 a, const float3 b)
 {
-	float3 r = make_float3(a.x+b.x, a.y+b.y, a.z+b.z);
-	return r;
+	return make_float3(a.x+b.x, a.y+b.y, a.z+b.z);
 }
 
 __device_inline float3 operator-(const float3 a, const float3 b)
 {
-	float3 r = make_float3(a.x-b.x, a.y-b.y, a.z-b.z);
-	return r;
+	return make_float3(a.x-b.x, a.y-b.y, a.z-b.z);
 }
 
 __device_inline float3 operator+=(float3& a, const float3 b)
 {
-	a.x += b.x;
-	a.y += b.y;
-	a.z += b.z;
-	return a;
+	return a = a + b;
 }
 
 __device_inline float3 operator*=(float3& a, const float3 b)
 {
-	a.x *= b.x;
-	a.y *= b.y;
-	a.z *= b.z;
-	return a;
+	return a = a * b;
 }
 
 __device_inline float3 operator*=(float3& a, float f)
 {
-	a.x *= f;
-	a.y *= f;
-	a.z *= f;
-	return a;
+	return a = a * f;
 }
 
 __device_inline float3 operator/=(float3& a, const float3 b)
 {
-	a.x /= b.x;
-	a.y /= b.y;
-	a.z /= b.z;
-	return a;
+	return a = a / b;
 }
 
 __device_inline float3 operator/=(float3& a, float f)
 {
 	float invf = 1.0f/f;
-	a.x *= invf;
-	a.y *= invf;
-	a.z *= invf;
-	return a;
+	return a = a * invf;
 }
 
 __device_inline float dot(const float3 a, const float3 b)
@@ -506,7 +451,11 @@ __device_inline float3 normalize_len(const float3 a, float *t)
 
 __device_inline bool operator==(const float3 a, const float3 b)
 {
+#ifdef __KERNEL_SSE__
+	return (_mm_movemask_ps(_mm_cmpeq_ps(a.m128, b.m128)) & 7) == 7;
+#else
 	return (a.x == b.x && a.y == b.y && a.z == b.z);
+#endif
 }
 
 __device_inline bool operator!=(const float3 a, const float3 b)
@@ -516,14 +465,20 @@ __device_inline bool operator!=(const float3 a, const float3 b)
 
 __device_inline float3 min(float3 a, float3 b)
 {
-	float3 r = make_float3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
-	return r;
+#ifdef __KERNEL_SSE__
+	return _mm_min_ps(a.m128, b.m128);
+#else
+	return make_float3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
+#endif
 }
 
 __device_inline float3 max(float3 a, float3 b)
 {
-	float3 r = make_float3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
-	return r;
+#ifdef __KERNEL_SSE__
+	return _mm_max_ps(a.m128, b.m128);
+#else
+	return make_float3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
+#endif
 }
 
 __device_inline float3 clamp(float3 a, float3 mn, float3 mx)
@@ -533,7 +488,12 @@ __device_inline float3 clamp(float3 a, float3 mn, float3 mx)
 
 __device_inline float3 fabs(float3 a)
 {
+#ifdef __KERNEL_SSE__
+	__m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff));
+	return _mm_and_ps(a.m128, mask);
+#else
 	return make_float3(fabsf(a.x), fabsf(a.y), fabsf(a.z));
+#endif
 }
 
 #endif
@@ -555,6 +515,25 @@ __device_inline void print_float3(const char *label, const float3& a)
 	printf("%s: %.8f %.8f %.8f\n", label, a.x, a.y, a.z);
 }
 
+__device_inline float reduce_add(const float3& a)
+{
+#ifdef __KERNEL_SSE__
+	return (a.x + a.y + a.z);
+#else
+	return (a.x + a.y + a.z);
+#endif
+}
+
+__device_inline float3 rcp(const float3& a)
+{
+#ifdef __KERNEL_SSE__
+	float4 r = _mm_rcp_ps(a.m128);
+	return _mm_sub_ps(_mm_add_ps(r, r), _mm_mul_ps(_mm_mul_ps(r, r), a));
+#else
+	return make_float3(1.0f/a.x, 1.0f/a.y, 1.0f/a.z);
+#endif
+}
+
 #endif
 
 __device_inline float3 interp(float3 a, float3 b, float t)
@@ -562,121 +541,257 @@ __device_inline float3 interp(float3 a, float3 b, float t)
 	return a + t*(b - a);
 }
 
+__device_inline bool is_zero(const float3 a)
+{
+#ifdef __KERNEL_SSE__
+	return a == make_float3(0.0f);
+#else
+	return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f);
+#endif
+}
+
+__device_inline float average(const float3 a)
+{
+	return reduce_add(a)*(1.0f/3.0f);
+}
+
 /* Float4 Vector */
+
+#ifdef __KERNEL_SSE__
+
+template<size_t index_0, size_t index_1, size_t index_2, size_t index_3> __forceinline const float4 shuffle(const float4& b)
+{
+	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(index_3, index_2, index_1, index_0)));
+}
+
+template<> __forceinline const float4 shuffle<0, 0, 2, 2>(const float4& b)
+{
+	return _mm_moveldup_ps(b);
+}
+
+template<> __forceinline const float4 shuffle<1, 1, 3, 3>(const float4& b)
+{
+	return _mm_movehdup_ps(b);
+}
+
+template<> __forceinline const float4 shuffle<0, 1, 0, 1>(const float4& b)
+{
+	return _mm_castpd_ps(_mm_movedup_pd(_mm_castps_pd(b)));
+}
+
+#endif
 
 #ifndef __KERNEL_OPENCL__
 
-__device_inline bool is_zero(const float4& a)
-{
-	return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f && a.w == 0.0f);
-}
-
-__device_inline float average(const float4& a)
-{
-	return (a.x + a.y + a.z + a.w)*(1.0f/4.0f);
-}
-
 __device_inline float4 operator-(const float4& a)
 {
-	float4 r = {-a.x, -a.y, -a.z, -a.w};
-	return r;
+#ifdef __KERNEL_SSE__
+	__m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+	return _mm_xor_ps(a.m128, mask);
+#else
+	return make_float4(-a.x, -a.y, -a.z, -a.w);
+#endif
 }
 
 __device_inline float4 operator*(const float4& a, const float4& b)
 {
-	float4 r = {a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w};
-	return r;
+#ifdef __KERNEL_SSE__
+	return _mm_mul_ps(a.m128, b.m128);
+#else
+	return make_float4(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w);
+#endif
 }
 
 __device_inline float4 operator*(const float4& a, float f)
 {
-	float4 r = {a.x*f, a.y*f, a.z*f, a.w*f};
-	return r;
+#ifdef __KERNEL_SSE__
+	return a * make_float4(f);
+#else
+	return make_float4(a.x*f, a.y*f, a.z*f, a.w*f);
+#endif
 }
 
 __device_inline float4 operator*(float f, const float4& a)
 {
-	float4 r = {a.x*f, a.y*f, a.z*f, a.w*f};
-	return r;
+	return a * f;
+}
+
+__device_inline float4 rcp(const float4& a)
+{
+#ifdef __KERNEL_SSE__
+	float4 r = _mm_rcp_ps(a.m128);
+	return _mm_sub_ps(_mm_add_ps(r, r), _mm_mul_ps(_mm_mul_ps(r, r), a));
+#else
+	return make_float4(1.0f/a.x, 1.0f/a.y, 1.0f/a.z, 1.0f/a.w);
+#endif
 }
 
 __device_inline float4 operator/(const float4& a, float f)
 {
-	float invf = 1.0f/f;
-	float4 r = {a.x*invf, a.y*invf, a.z*invf, a.w*invf};
-	return r;
+	return a * (1.0f/f);
 }
 
 __device_inline float4 operator/(const float4& a, const float4& b)
 {
-	float4 r = {a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w};
-	return r;
+#ifdef __KERNEL_SSE__
+	return a * rcp(b);
+#else
+	return make_float4(a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w);
+#endif
+
 }
 
 __device_inline float4 operator+(const float4& a, const float4& b)
 {
-	float4 r = {a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w};
-	return r;
+#ifdef __KERNEL_SSE__
+	return _mm_add_ps(a.m128, b.m128);
+#else
+	return make_float4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);
+#endif
 }
 
 __device_inline float4 operator-(const float4& a, const float4& b)
 {
-	float4 r = {a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w};
-	return r;
+#ifdef __KERNEL_SSE__
+	return _mm_sub_ps(a.m128, b.m128);
+#else
+	return make_float4(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w);
+#endif
 }
 
 __device_inline float4 operator+=(float4& a, const float4& b)
 {
-	a.x += b.x;
-	a.y += b.y;
-	a.z += b.z;
-	a.w += b.w;
-	return a;
+	return a = a + b;
 }
 
 __device_inline float4 operator*=(float4& a, const float4& b)
 {
-	a.x *= b.x;
-	a.y *= b.y;
-	a.z *= b.z;
-	a.w *= b.w;
-	return a;
+	return a = a * b;
 }
 
 __device_inline float4 operator/=(float4& a, float f)
 {
-	float invf = 1.0f/f;
-	a.x *= invf;
-	a.y *= invf;
-	a.z *= invf;
-	a.w *= invf;
-	return a;
+	return a = a / f;
 }
 
-__device_inline float dot(const float4& a, const float4& b)
+__device_inline int4 operator<(const float4& a, const float4& b)
 {
-	return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
+#ifdef __KERNEL_SSE__
+	return _mm_cvtps_epi32(_mm_cmplt_ps(a.m128, b.m128)); /* todo: avoid cvt */
+#else
+	return make_int4(a.x < b.x, a.y < b.y, a.z < b.z, a.w < b.w);
+#endif
+}
+
+__device_inline int4 operator>=(float4 a, float4 b)
+{
+#ifdef __KERNEL_SSE__
+	return _mm_cvtps_epi32(_mm_cmpge_ps(a.m128, b.m128)); /* todo: avoid cvt */
+#else
+	return make_int4(a.x >= b.x, a.y >= b.y, a.z >= b.z, a.w >= b.w);
+#endif
+}
+
+__device_inline int4 operator<=(const float4& a, const float4& b)
+{
+#ifdef __KERNEL_SSE__
+	return _mm_cvtps_epi32(_mm_cmple_ps(a.m128, b.m128)); /* todo: avoid cvt */
+#else
+	return make_int4(a.x <= b.x, a.y <= b.y, a.z <= b.z, a.w <= b.w);
+#endif
+}
+
+__device_inline bool operator==(const float4 a, const float4 b)
+{
+#ifdef __KERNEL_SSE__
+	return (_mm_movemask_ps(_mm_cmpeq_ps(a.m128, b.m128)) & 15) == 15;
+#else
+	return (a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w);
+#endif
 }
 
 __device_inline float4 cross(const float4& a, const float4& b)
 {
-	float4 r = {a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x, 0.0f};
-	return r;
+#ifdef __KERNEL_SSE__
+	return (shuffle<1,2,0,0>(a)*shuffle<2,0,1,0>(b)) - (shuffle<2,0,1,0>(a)*shuffle<1,2,0,0>(b));
+#else
+	return make_float4(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x, 0.0f);
+#endif
 }
 
 __device_inline float4 min(float4 a, float4 b)
 {
+#ifdef __KERNEL_SSE__
+	return _mm_min_ps(a.m128, b.m128);
+#else
 	return make_float4(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z), min(a.w, b.w));
+#endif
 }
 
 __device_inline float4 max(float4 a, float4 b)
 {
+#ifdef __KERNEL_SSE__
+	return _mm_max_ps(a.m128, b.m128);
+#else
 	return make_float4(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z), max(a.w, b.w));
+#endif
 }
 
 #endif
 
 #ifndef __KERNEL_GPU__
+
+__device_inline float4 select(const int4& mask, const float4& a, const float4& b)
+{
+#ifdef __KERNEL_SSE__
+	/* blendv is sse4, and apparently broken on vs2008 */
+	return _mm_or_ps(_mm_and_ps(_mm_cvtepi32_ps(mask), a), _mm_andnot_ps(_mm_cvtepi32_ps(mask), b)); /* todo: avoid cvt */
+#else
+	return make_float4((mask.x)? a.x: b.x, (mask.y)? a.y: b.y, (mask.z)? a.z: b.z, (mask.w)? a.w: b.w);
+#endif
+}
+
+__device_inline float4 reduce_min(const float4& a)
+{
+#ifdef __KERNEL_SSE__
+	float4 h = min(shuffle<1,0,3,2>(a), a);
+	return min(shuffle<2,3,0,1>(h), h);
+#else
+	return make_float4(min(min(a.x, a.y), min(a.z, a.w)));
+#endif
+}
+
+__device_inline float4 reduce_max(const float4& a)
+{
+#ifdef __KERNEL_SSE__
+	float4 h = max(shuffle<1,0,3,2>(a), a);
+	return max(shuffle<2,3,0,1>(h), h);
+#else
+	return make_float4(max(max(a.x, a.y), max(a.z, a.w)));
+#endif
+}
+
+#if 0
+__device_inline float4 reduce_add(const float4& a)
+{
+#ifdef __KERNEL_SSE__
+	float4 h = shuffle<1,0,3,2>(a) + a;
+	return shuffle<2,3,0,1>(h) + h;
+#else
+	return make_float4((a.x + a.y) + (a.z + a.w));
+#endif
+}
+#endif
+
+__device_inline float reduce_add(const float4& a)
+{
+#ifdef __KERNEL_SSE__
+	float4 h = shuffle<1,0,3,2>(a) + a;
+	return _mm_cvtss_f32(shuffle<2,3,0,1>(h) + h); /* todo: efficiency? */
+#else
+	return ((a.x + a.y) + (a.z + a.w));
+#endif
+}
 
 __device_inline void print_float4(const char *label, const float4& a)
 {
@@ -685,26 +800,67 @@ __device_inline void print_float4(const char *label, const float4& a)
 
 #endif
 
+#ifndef __KERNEL_OPENCL__
+
+__device_inline bool is_zero(const float4& a)
+{
+#ifdef __KERNEL_SSE__
+	return a == make_float4(0.0f);
+#else
+	return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f && a.w == 0.0f);
+#endif
+}
+
+__device_inline float average(const float4& a)
+{
+	return reduce_add(a) * 0.25f;
+}
+
+__device_inline float dot(const float4& a, const float4& b)
+{
+	return reduce_add(a * b);
+}
+
+#endif
+
 /* Int3 */
 
 #ifndef __KERNEL_OPENCL__
 
+__device_inline int3 min(int3 a, int3 b)
+{
+#ifdef __KERNEL_SSE__
+	return _mm_min_epi32(a.m128, b.m128);
+#else
+	return make_int3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
+#endif
+}
+
 __device_inline int3 max(int3 a, int3 b)
 {
-	int3 r = {max(a.x, b.x), max(a.y, b.y), max(a.z, b.z)};
-	return r;
+#ifdef __KERNEL_SSE__
+	return _mm_max_epi32(a.m128, b.m128);
+#else
+	return make_int3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
+#endif
 }
 
 __device_inline int3 clamp(const int3& a, int mn, int mx)
 {
-	int3 r = {clamp(a.x, mn, mx), clamp(a.y, mn, mx), clamp(a.z, mn, mx)};
-	return r;
+#ifdef __KERNEL_SSE__
+	return min(max(a, make_int3(mn)), make_int3(mx));
+#else
+	return make_int3(clamp(a.x, mn, mx), clamp(a.y, mn, mx), clamp(a.z, mn, mx));
+#endif
 }
 
 __device_inline int3 clamp(const int3& a, int3& mn, int mx)
 {
-	int3 r = {clamp(a.x, mn.x, mx), clamp(a.y, mn.y, mx), clamp(a.z, mn.z, mx)};
-	return r;
+#ifdef __KERNEL_SSE__
+	return min(max(a, mn), make_int3(mx));
+#else
+	return make_int3(clamp(a.x, mn.x, mx), clamp(a.y, mn.y, mx), clamp(a.z, mn.z, mx));
+#endif
 }
 
 #endif
@@ -720,16 +876,63 @@ __device_inline void print_int3(const char *label, const int3& a)
 
 /* Int4 */
 
-#ifndef __KERNEL_OPENCL__
+#ifndef __KERNEL_GPU__
 
-__device_inline int4 operator>=(float4 a, float4 b)
+__device_inline int4 operator+(const int4& a, const int4& b)
 {
-	return make_int4(a.x >= b.x, a.y >= b.y, a.z >= b.z, a.w >= b.w);
+#ifdef __KERNEL_SSE__
+	return _mm_add_epi32(a.m128, b.m128);
+#else
+	return make_int4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);
+#endif
 }
 
-#endif
+__device_inline int4 operator+=(int4& a, const int4& b)
+{
+	return a = a + b;
+}
 
-#ifndef __KERNEL_GPU__
+__device_inline int4 operator>>(const int4& a, int i)
+{
+#ifdef __KERNEL_SSE__
+	return _mm_srai_epi32(a.m128, i);
+#else
+	return make_int4(a.x >> i, a.y >> i, a.z >> i, a.w >> i);
+#endif
+}
+
+__device_inline int4 min(int4 a, int4 b)
+{
+#ifdef __KERNEL_SSE__
+	return _mm_min_epi32(a.m128, b.m128);
+#else
+	return make_int4(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z), min(a.w, b.w));
+#endif
+}
+
+__device_inline int4 max(int4 a, int4 b)
+{
+#ifdef __KERNEL_SSE__
+	return _mm_max_epi32(a.m128, b.m128);
+#else
+	return make_int4(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z), max(a.w, b.w));
+#endif
+}
+
+__device_inline int4 clamp(const int4& a, const int4& mn, const int4& mx)
+{
+	return min(max(a, mn), mx);
+}
+
+__device_inline int4 select(const int4& mask, const int4& a, const int4& b)
+{
+#ifdef __KERNEL_SSE__
+	__m128 m = _mm_cvtepi32_ps(mask);
+	return _mm_castps_si128(_mm_or_ps(_mm_and_ps(m, _mm_castsi128_ps(a)), _mm_andnot_ps(m, _mm_castsi128_ps(b)))); /* todo: avoid cvt */
+#else
+	return make_int4((mask.x)? a.x: b.x, (mask.y)? a.y: b.y, (mask.z)? a.z: b.z, (mask.w)? a.w: b.w);
+#endif
+}
 
 __device_inline void print_int4(const char *label, const int4& a)
 {
