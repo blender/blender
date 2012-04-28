@@ -112,7 +112,7 @@ struct GeometryFunctor {
 			Object *ob = base->object;
 			
 			if (ob->type == OB_MESH && ob->data &&
-			    !(export_selected && !(ob->flag && SELECT)) &&
+			    !(export_selected && !(ob->flag & SELECT)) &&
 			    ((sce->lay & ob->lay)!=0))
 			{
 				f(ob);
