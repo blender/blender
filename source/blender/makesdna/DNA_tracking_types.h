@@ -123,7 +123,7 @@ typedef struct MovieTrackingSettings {
 	short default_pattern_match;		/* re-adjust every N frames */
 	short default_flag;					/* default flags like color channels used by default */
 
-	short pod;
+	short motion_flag;		/* flags describes motion type */
 
 	/* ** common tracker settings ** */
 	short speed;			/* speed of tracking */
@@ -131,8 +131,8 @@ typedef struct MovieTrackingSettings {
 	/* ** reconstruction settings ** */
 	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */
 
-	/* ** which camera intrinsics to refine. uses on the REFINE_* flags */
-	short refine_camera_intrinsics, pad23;
+	/* which camera intrinsics to refine. uses on the REFINE_* flags */
+	short refine_camera_intrinsics, pad2;
 
 	/* ** tool settings ** */
 
@@ -242,6 +242,11 @@ enum {
 
 /* MovieTrackingSettings->flag */
 #define TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED	(1<<0)
+
+/* MovieTrackingSettings->motion_flag */
+#define TRACKING_MOTION_TRIPOD		(1<<0)
+
+#define TRACKING_MOTION_MODAL		(TRACKING_MOTION_TRIPOD)
 
 /* MovieTrackingSettings->speed */
 #define TRACKING_SPEED_FASTEST		0

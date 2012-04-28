@@ -1,3 +1,16 @@
+commit a44312a7beb2963b8e3bf8015c516d2eff40cc3d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Apr 12 13:56:02 2012 +0600
+
+    Added solver for modal camera motion, currently supports only tripod solving
+    
+    This solver is intended to deal with such camera motions as tripod and panning,
+    where it's impossible to reconstruct exact position of markers in 3d view.
+    
+    It projects markers onto sphere and uses rigid registration of rotation to
+    find rotation angles which makes bundles from previous and current frame be
+    as closest as it's possible.
+
 commit fa3842e472e3b9c789e47bf6d8f592aa40a84f16
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Apr 12 12:32:48 2012 +0600
@@ -520,9 +533,3 @@ Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Fri Aug 19 16:04:37 2011 +0200
 
     MSVC compatibility: heap allocate pattern, explicit float cast.
-
-commit 702658d2f8616964a6eeb3743fd85e97ac7ff09d
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Aug 19 14:59:24 2011 +0200
-
-    Expose regularization parameters (areaPenalty and conditionPenalty) in API.
