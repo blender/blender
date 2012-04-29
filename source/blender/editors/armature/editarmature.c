@@ -4027,6 +4027,163 @@ void ARMATURE_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
+enum {
+	SIMEDBONE_LENGTH = 1,
+	SIMEDBONE_PREFIX,
+	SIMEDBONE_SUFFIX,
+	SIMEDBONE_LAYER
+};
+
+static EnumPropertyItem prop_similar_types[] = {
+	{SIMEDBONE_LENGTH, "LENGTH", 0, "Length", ""},
+	{SIMEDBONE_PREFIX, "PREFIX", 0, "Prefix", ""},
+	{SIMEDBONE_SUFFIX, "SUFFIX", 0, "Suffix", ""},
+	{SIMEDBONE_LAYER, "LAYER", 0, "Layer", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* could be used in more places */
+static void ED_armature_edit_bone_select(EditBone *ebone)
+{
+	BLI_assert((ebone->flag & BONE_UNSELECTABLE) == 0);
+	ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+
+	if ((ebone->flag & BONE_CONNECTED) && (ebone->parent != NULL)) {
+		ebone->parent->flag |= BONE_TIPSEL;
+	}
+}
+
+static void select_similar_length(bArmature *arm, EditBone *actBone, const float thresh)
+{
+	EditBone *ebone;
+
+	/* thresh is always relative to current length */
+	const float len_min = actBone->length / (1.0f + thresh);
+	const float len_max = actBone->length * (1.0f + thresh);
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+			if ((ebone->length >= len_min) &&
+				(ebone->length <= len_max))
+			{
+				ED_armature_edit_bone_select(ebone);
+			}
+		}
+	}
+}
+
+static void select_similar_layer(bArmature *arm, EditBone *actBone)
+{
+	EditBone *ebone;
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+			if (ebone->layer & actBone->layer) {
+				ED_armature_edit_bone_select(ebone);
+			}
+		}
+	}
+}
+
+static void find_pre_or_suffix(char *outCompare, const char *name, int mode)
+{
+	int len = BLI_strnlen(name, MAX_VGROUP_NAME);
+
+	if (len < 3)
+		return;
+
+	if (mode == SIMEDBONE_SUFFIX) {
+		if (BKE_deform_is_char_sep(name[len - 2])) {
+			BLI_strncpy(outCompare, &name[len - 1], sizeof(outCompare));
+		}
+	}
+	else if (mode == SIMEDBONE_PREFIX) {
+		if (BKE_deform_is_char_sep(name[1])) {
+			BLI_strncpy(outCompare, &name[0], sizeof(outCompare));
+		}
+	}
+}
+
+static void select_similar_name(bArmature *arm, EditBone *actBone, int mode)
+{
+	EditBone *ebone;
+
+	char *name = actBone->name;
+	char compare[MAX_VGROUP_NAME] = "";
+	find_pre_or_suffix(compare, name, mode);
+
+	if (compare[0] == '\0')
+		return;
+
+	/* Find matches */
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+			char tCompare[MAX_VGROUP_NAME] = "";
+			find_pre_or_suffix(tCompare, ebone->name, mode);
+			if (!strcmp(tCompare, compare)) {
+				ED_armature_edit_bone_select(ebone);
+			}
+		}
+	}
+
+}
+
+static int armature_select_similar_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm = obedit->data;
+	EditBone *actBone = CTX_data_active_bone(C);
+
+	/* Get props */
+	int type = RNA_enum_get(op->ptr, "type");
+	float thresh = RNA_float_get(op->ptr, "threshold");
+
+	/* Check for active bone */
+	if (actBone == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		return OPERATOR_CANCELLED;
+	}
+
+	switch (type) {
+		case SIMEDBONE_LENGTH:
+			select_similar_length(arm, actBone, thresh);
+			break;
+		case SIMEDBONE_PREFIX:
+			select_similar_name(arm, actBone, SIMEDBONE_PREFIX);
+			break;
+		case SIMEDBONE_SUFFIX:
+			select_similar_name(arm, actBone, SIMEDBONE_SUFFIX);
+			break;
+		case SIMEDBONE_LAYER:
+			select_similar_layer(arm, actBone);
+			break;
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_select_similar(wmOperatorType *ot) {
+
+	/* identifiers */
+	ot->name = "Select Similar";
+	ot->idname = "ARMATURE_OT_select_similar";
+
+	/* callback functions */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = armature_select_similar_exec;
+	ot->poll = ED_operator_editarmature;
+	ot->description = "Select similar bones by property types";
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_similar_types, 0, "Type", "");
+	RNA_def_float(ot->srna, "threshold", 0.1f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);
+}
+
 /* ********************* select hierarchy operator ************** */
 
 static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
