@@ -851,13 +851,18 @@ typedef struct UnifiedPaintSettings {
 	/* unified strength of brush */
 	float alpha;
 
+	/* unified brush weight, [0, 1] */
+	float weight;
+
 	/* user preferences for sculpt and paint */
 	int flag;
+	int pad;
 } UnifiedPaintSettings;
 
 typedef enum {
 	UNIFIED_PAINT_SIZE  = (1<<0),
 	UNIFIED_PAINT_ALPHA = (1<<1),
+	UNIFIED_PAINT_WEIGHT = (1<<5),
 
 	/* only used if unified size is enabled, mirros the brush flags
 	 * BRUSH_LOCK_SIZE and BRUSH_SIZE_PRESSURE */
@@ -878,7 +883,8 @@ typedef struct ToolSettings {
 	Sculpt *sculpt;
 	UvSculpt *uvsculpt;	/* uv smooth */
 	
-	/* Vertex groups */
+	/* Vertex group weight - used only for editmode, not weight
+	   paint */
 	float vgroup_weight;
 
 	/* Subdivide Settings */

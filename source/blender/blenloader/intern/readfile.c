@@ -13261,6 +13261,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			part->flag |= PART_ROTATIONS;
 	}
 
+	if (main->versionfile <= 263 && main->subversionfile == 0) {
+		Scene *scene;
+		Brush *brush;
+
+		/* For weight paint, each brush now gets its own weight;
+		   unified paint settings also have weight. Update unified
+		   paint settings and brushes with a default weight value. */
+		
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			ToolSettings *ts = scene->toolsettings;
+			if (ts) {
+				ts->unified_paint_settings.weight = ts->vgroup_weight;
+				ts->unified_paint_settings.flag |= UNIFIED_PAINT_WEIGHT;
+			}
+		}
+
+		for (brush = main->brush.first; brush; brush = brush->id.next) {
+			brush->weight = 0.5;
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

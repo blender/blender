@@ -1779,6 +1779,11 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Use Unified Strength",
 	                         "Instead of per-brush strength, the strength is shared across brushes");
 
+	prop = RNA_def_property(srna, "use_unified_weight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_WEIGHT);
+	RNA_def_property_ui_text(prop, "Use Unified Weight",
+	                         "Instead of per-brush weight, the weight is shared across brushes");
+
 	/* unified paint settings that override the equivalent settings
 	 * from the active brush */
 	prop = RNA_def_property(srna, "size", PROP_INT, PROP_DISTANCE);
@@ -1799,6 +1804,13 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Strength", "How powerful the effect of the brush is when applied");
+
+	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "weight");
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+	RNA_def_property_ui_text(prop, "Weight", "Weight to assign in vertex groups");
 
 	prop = RNA_def_property(srna, "use_pressure_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_BRUSH_SIZE_PRESSURE);

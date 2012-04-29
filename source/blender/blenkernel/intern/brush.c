@@ -75,6 +75,7 @@ static void brush_set_defaults(Brush *brush)
 	brush->ob_mode = OB_MODE_ALL_PAINT;
 
 	/* BRUSH SCULPT TOOL SETTINGS */
+	brush->weight= 1.0f; /* weight of brush 0 - 1.0 */
 	brush->size= 35; /* radius of the brush in pixels */
 	brush->alpha= 0.5f; /* brush strength/intensity probably variable should be renamed? */
 	brush->autosmooth_factor= 0.0f;
@@ -708,6 +709,13 @@ float brush_alpha(const Scene *scene, Brush *brush)
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 
 	return (ups->flag & UNIFIED_PAINT_ALPHA) ? ups->alpha : brush->alpha;
+}
+
+float brush_weight(const Scene *scene, Brush *brush)
+{
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+	return (ups->flag & UNIFIED_PAINT_WEIGHT) ? ups->weight : brush->weight;
 }
 
 /* scale unprojected radius to reflect a change in the brush's 2D size */
