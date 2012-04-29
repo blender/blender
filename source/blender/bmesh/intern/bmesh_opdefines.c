@@ -1119,6 +1119,7 @@ static BMOpDefine bmo_wireframe_def = {
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* output faces */
 	 {BMO_OP_SLOT_BOOL, "use_boundary"},
 	 {BMO_OP_SLOT_BOOL, "use_even_offset"},
+	 {BMO_OP_SLOT_BOOL, "use_crease"},
 	 {BMO_OP_SLOT_FLT, "thickness"},
 	 {BMO_OP_SLOT_BOOL, "use_relative_offset"},
 	 {BMO_OP_SLOT_FLT, "depth"},

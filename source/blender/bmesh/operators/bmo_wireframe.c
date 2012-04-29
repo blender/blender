@@ -28,6 +28,8 @@
 
 #include "BLI_math.h"
 
+#include "BKE_customdata.h"
+
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
@@ -132,9 +134,11 @@ extern float BM_vert_calc_mean_tagged_edge_length(BMVert *v);
 
 void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 {
-	const int use_boundary        = BMO_slot_bool_get(op, "use_boundary");
-	const int use_even_offset     = BMO_slot_bool_get(op, "use_even_offset");
-	const int use_relative_offset = BMO_slot_bool_get(op, "use_relative_offset");
+	const int use_boundary        = BMO_slot_bool_get(op,  "use_boundary");
+	const int use_even_offset     = BMO_slot_bool_get(op,  "use_even_offset");
+	const int use_relative_offset = BMO_slot_bool_get(op,  "use_relative_offset");
+	const int use_crease          = (BMO_slot_bool_get(op,  "use_crease") &&
+	                                 CustomData_has_layer(&bm->edata, CD_CREASE));
 	const float depth             = BMO_slot_float_get(op, "thickness");
 	const float inset             = depth;
 
@@ -323,8 +327,6 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 			BM_elem_attrs_copy(bm, bm, l,      l_new->next);
 			BM_elem_attrs_copy(bm, bm, l,      l_new->next->next);
 
-
-
 			if (use_boundary) {
 				if (BM_elem_flag_test(l->e, BM_ELEM_TAG)) {
 					/* we know its a boundary and this is the only face user (which is being wire'd) */
@@ -349,8 +351,39 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 					BM_elem_attrs_copy(bm, bm, l,      l_new->prev);
 					BM_elem_attrs_copy(bm, bm, l_next, l_new->next);
 					BM_elem_attrs_copy(bm, bm, l_next, l_new->next->next);
+
+					if (use_crease) {
+						BMEdge *e_new;
+						e_new = BM_edge_exists(v_pos1, v_b1);
+						BM_elem_float_data_set(&bm->edata, e_new, CD_CREASE, 1.0f);
+
+						e_new = BM_edge_exists(v_pos2, v_b2);
+						BM_elem_float_data_set(&bm->edata, e_new, CD_CREASE, 1.0f);
+
+						e_new = BM_edge_exists(v_neg1, v_b1);
+						BM_elem_float_data_set(&bm->edata, e_new, CD_CREASE, 1.0f);
+
+						e_new = BM_edge_exists(v_neg2, v_b2);
+						BM_elem_float_data_set(&bm->edata, e_new, CD_CREASE, 1.0f);
+					}
 				}
 			}
+
+			if (use_crease) {
+				BMEdge *e_new;
+				e_new = BM_edge_exists(v_pos1, v_l1);
+				BM_elem_float_data_set(&bm->edata, e_new, CD_CREASE, 1.0f);
+
+				e_new = BM_edge_exists(v_pos2, v_l2);
+				BM_elem_float_data_set(&bm->edata, e_new, CD_CREASE, 1.0f);
+
+				e_new = BM_edge_exists(v_neg1, v_l1);
+				BM_elem_float_data_set(&bm->edata, e_new, CD_CREASE, 1.0f);
+
+				e_new = BM_edge_exists(v_neg2, v_l2);
+				BM_elem_float_data_set(&bm->edata, e_new, CD_CREASE, 1.0f);
+			}
+
 		}
 	}
 

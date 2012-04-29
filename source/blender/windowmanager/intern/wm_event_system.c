@@ -746,7 +746,7 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
-#if 0 /* disabling for 2.63 release, since we keep getting reports some menu items are leaving props undefined */
+#if 1 /* disabling for 2.63 release, since we keep getting reports some menu items are leaving props undefined */
 int WM_operator_last_properties_init(wmOperator *op)
 {
 	int change = FALSE;
