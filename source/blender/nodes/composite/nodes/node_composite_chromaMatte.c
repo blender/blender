@@ -1,33 +1,33 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 Blender Foundation.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
- * ***** END GPL LICENSE BLOCK *****
- */
+* ***** BEGIN GPL LICENSE BLOCK *****
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version. 
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software Foundation,
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*
+* The Original Code is Copyright (C) 2006 Blender Foundation.
+* All rights reserved.
+*
+* The Original Code is: all of this file.
+*
+* Contributor(s): none yet.
+*
+* ***** END GPL LICENSE BLOCK *****
+*/
 
 /** \file blender/nodes/composite/nodes/node_composite_chromaMatte.c
- *  \ingroup cmpnodes
- */
+*  \ingroup cmpnodes
+*/
 
 
 #include "node_composite_util.h"
@@ -59,9 +59,9 @@ static void do_rgba_to_ycca_normalized(bNode *UNUSED(node), float *out, float *i
 	out[1]=(out[1]*2.0f)-1.0f;
 	out[2]=(out[2]*2.0f)-1.0f;
 
-//	out[0]=((out[0])-16)/255.0;
-//	out[1]=((out[1])-128)/255.0;
-//	out[2]=((out[2])-128)/255.0;
+	//	out[0]=((out[0])-16)/255.0;
+	//	out[1]=((out[1])-128)/255.0;
+	//	out[2]=((out[2])-128)/255.0;
 	out[3]=in[3];
 }
 
@@ -77,8 +77,8 @@ static void do_ycca_to_rgba_normalized(bNode *UNUSED(node), float *out, float *i
 	in[2]=(in[2]*255.0f);
 
 	//	in[0]=(in[0]*255.0)+16;
-//	in[1]=(in[1]*255.0)+128;
-//	in[2]=(in[2]*255.0)+128;
+	//	in[1]=(in[1]*255.0)+128;
+	//	in[2]=(in[2]*255.0)+128;
 	ycc_to_rgb(in[0], in[1], in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 	out[3]=in[3];
 }
@@ -94,7 +94,7 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 
 	/* Algorithm from book "Video Demistified," does not include the spill reduction part */
 
-	/* find theta, the angle that the color space should be rotated based on key*/
+	/* find theta, the angle that the color space should be rotated based on key chroma values*/
 	theta=atan2(c->key[2], c->key[1]);
 
 	/*rotate the cb and cr into x/z space */
@@ -107,19 +107,18 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 	/* if kfg is <0 then the pixel is outside of the key color */
 	kfg= x-(fabsf(z)/tanf(angle/2.0f));
 
-	out[0]=in[0];
-	out[1]=in[1];
-	out[2]=in[2];
+	copy_v3_v3(out, in);
 
 	if (kfg>0.0f) {  /* found a pixel that is within key color */
-		alpha=(1.0f-kfg)*(c->fstrength);
-
 		beta=atan2(z, x);
 		angle2=c->t2; /* t2 is radians. */
 
 		/* if beta is within the cutoff angle */
 		if (fabsf(beta) < (angle2/2.0f)) {
 			alpha=0.0;
+		}
+		else {
+			alpha=1.0f-(kfg/c->fstrength);
 		}
 
 		/* don't make something that was more transparent less transparent */
@@ -130,11 +129,8 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 			out[3]=in[3];
 		}
 	}
-	else { /*pixel is outside key color */
-		out[0]=in[0];
-		out[1]=in[1];
-		out[2]=in[2];
-		out[3]=in[3]; /* make pixel just as transparent as it was before */
+	else { /* make pixel just as transparent as it was before */
+		out[3]=in[3];
 	}
 }
 
@@ -143,32 +139,32 @@ static void node_composit_exec_chroma_matte(void *data, bNode *node, bNodeStack 
 	CompBuf *cbuf;
 	CompBuf *chromabuf;
 	NodeChroma *c;
-	
+
 	if (in[0]->hasinput==0) return;
 	if (in[0]->data==NULL) return;
 	if (out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
-	
+
 	cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
-	
+
 	chromabuf= dupalloc_compbuf(cbuf);
-	
+
 	c=node->storage;
-	
+
 	/*convert rgbbuf to normalized chroma space*/
 	composit1_pixel_processor(node, chromabuf, cbuf, in[0]->vec, do_rgba_to_ycca_normalized, CB_RGBA);
 	/*convert key to normalized chroma color space */
 	do_rgba_to_ycca_normalized(node, c->key, in[1]->vec);
-	
+
 	/*per pixel chroma key*/
 	composit1_pixel_processor(node, chromabuf, chromabuf, in[0]->vec, do_chroma_key, CB_RGBA);
-	
+
 	/*convert back*/
 	composit1_pixel_processor(node, chromabuf, chromabuf, in[0]->vec, do_ycca_to_rgba_normalized, CB_RGBA);
-	
+
 	out[0]->data= chromabuf;
 	if (out[1]->hasoutput)
 		out[1]->data= valbuf_from_rgbabuf(chromabuf, CHAN_A);
-	
+
 	generate_preview(data, node, chromabuf);
 
 	if (cbuf!=in[0]->data)

@@ -1635,9 +1635,14 @@ static void node_composit_buts_diff_matte(uiLayout *layout, bContext *UNUSED(C),
 
 static void node_composit_buts_distance_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	uiLayout *col;
+	uiLayout *col, *row;
 	
 	col = uiLayoutColumn(layout, 1);
+   
+   uiItemL(layout, "Color Space:", ICON_NONE);
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
 	uiItemR(col, ptr, "tolerance", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "falloff", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }

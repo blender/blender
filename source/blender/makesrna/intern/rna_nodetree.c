@@ -328,6 +328,39 @@ static void rna_Matte_t2_set(PointerRNA *ptr, float value)
 	chroma->t2 = value;
 }
 
+static void rna_distance_matte_t1_set(PointerRNA *ptr, float value)
+{
+    bNode *node = (bNode*)ptr->data;
+    NodeChroma *chroma = node->storage;
+
+    chroma->t1 = value;
+}
+
+static void rna_distance_matte_t2_set(PointerRNA *ptr, float value)
+{
+    bNode *node = (bNode*)ptr->data;
+    NodeChroma *chroma = node->storage;
+
+    chroma->t2 = value;
+}
+
+static void rna_difference_matte_t1_set(PointerRNA *ptr, float value)
+{
+    bNode *node = (bNode*)ptr->data;
+    NodeChroma *chroma = node->storage;
+
+    chroma->t1 = value;
+}
+
+static void rna_difference_matte_t2_set(PointerRNA *ptr, float value)
+{
+    bNode *node = (bNode*)ptr->data;
+    NodeChroma *chroma = node->storage;
+
+    chroma->t2 = value;
+}
+
+
 static void rna_Node_scene_set(PointerRNA *ptr, PointerRNA value)
 {
 	bNode *node = (bNode*)ptr->data;
@@ -1891,14 +1924,14 @@ static void def_cmp_diff_matte(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");
-	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t1_set", NULL);
+	RNA_def_property_float_funcs(prop, NULL, "rna_difference_matte_t1_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
-	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t2_set", NULL);
+	RNA_def_property_float_funcs(prop, NULL, "rna_difference_matte_t2_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Falloff", "Color distances below this additional threshold are partially keyed");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
@@ -1933,18 +1966,30 @@ static void def_cmp_distance_matte(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
+   static EnumPropertyItem color_space_items[] = {
+		{1, "RGB", 0, "RGB", "RGB color space"},
+		{2, "YCC", 0, "YCC", "YCbCr Suppression"},
+		{0, NULL, 0, NULL, NULL}};
+
+   RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
+
+   prop = RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);  
+	RNA_def_property_enum_sdna(prop, NULL, "channel");
+	RNA_def_property_enum_items(prop, color_space_items);
+	RNA_def_property_ui_text(prop, "Channel", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
 	
 	prop = RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");
-	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t1_set", NULL);
+	RNA_def_property_float_funcs(prop, NULL, "rna_distance_matte_t1_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
-	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t2_set", NULL);
+	RNA_def_property_float_funcs(prop, NULL, "rna_distance_matte_t2_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Falloff", "Color distances below this additional threshold are partially keyed");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
@@ -2071,7 +2116,7 @@ static void def_cmp_chroma_matte(StructRNA *srna)
 	prop = RNA_def_property(srna, "gain", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fstrength");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Gain", "Alpha gain");
+	RNA_def_property_ui_text(prop, "Falloff", "Alpha falloff");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "shadow_adjust", PROP_FLOAT, PROP_NONE);
