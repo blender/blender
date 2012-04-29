@@ -80,23 +80,6 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
 	}
 }
 
-float bm_vert_avg_tag_dist(BMVert *v)
-{
-	BMIter iter;
-	BMEdge *e;
-	int tot;
-	float length = 0.0f;
-
-	BM_ITER_ELEM_INDEX (e, &iter, v, BM_EDGES_OF_VERT, tot) {
-		BMVert *v_other = BM_edge_other_vert(e, v);
-		if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
-			length += BM_edge_calc_length(e);
-		}
-	}
-
-	return length / (float)tot;
-}
-
 /**
  * implementation is as follows...
  *
@@ -544,7 +527,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				const float fac = (depth *
-				                   (use_relative_offset ? bm_vert_avg_tag_dist(v) : 1.0f) *
+				                   (use_relative_offset ? BM_vert_calc_mean_tagged_edge_length(v) : 1.0f) *
 				                   (use_even_boundry    ? BM_vert_calc_shell_factor(v) : 1.0f));
 				madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
 			}

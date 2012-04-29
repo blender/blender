@@ -51,6 +51,7 @@ set(SRC
 	operators/bmo_subdivide.h
 	operators/bmo_triangulate.c
 	operators/bmo_utils.c
+	operators/bmo_wireframe.c
 
 	intern/bmesh_construct.c
 	intern/bmesh_construct.h

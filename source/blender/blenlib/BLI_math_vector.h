@@ -186,6 +186,7 @@ float angle_normalized_v2v2(const float a[2], const float b[2]);
 float angle_v3v3(const float a[3], const float b[3]);
 float angle_v3v3v3(const float a[3], const float b[3], const float c[3]);
 float angle_normalized_v3v3(const float v1[3], const float v2[3]);
+float angle_on_axis_v3v3v3_v3(const float v1[3], const float v2[3], const float v3[3], const float axis[3]);
 void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3]);
 void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 void angle_poly_v3(float* angles, const float* verts[3], int len);

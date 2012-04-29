@@ -4266,3 +4266,70 @@ void MESH_OT_inset(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_select_inset", TRUE, "Select Outer", "Select the new inset faces");
 }
 
+static int edbm_wireframe_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMOperator bmop;
+	const int use_boundary          = RNA_boolean_get(op->ptr, "use_boundary");
+	const int use_even_offset       = RNA_boolean_get(op->ptr, "use_even_offset");
+	const int use_replace         = RNA_boolean_get(op->ptr, "use_replace");
+	const int use_relative_offset   = RNA_boolean_get(op->ptr, "use_relative_offset");
+	const float thickness           = RNA_float_get(op->ptr,   "thickness");
+
+	EDBM_op_init(em, &bmop, op,
+	             "wireframe faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b "
+	             "thickness=%f",
+	             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset,
+	             thickness);
+
+	BMO_op_exec(em->bm, &bmop);
+
+	if (use_replace) {
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, FALSE);
+		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+
+		BMO_op_callf(em->bm, "del geom=%hvef context=%i", BM_ELEM_TAG, DEL_FACES);
+	}
+
+	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
+
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		EDBM_update_generic(C, em, TRUE);
+		return OPERATOR_FINISHED;
+	}
+}
+
+void MESH_OT_wireframe(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Wire Frame";
+	ot->idname = "MESH_OT_wireframe";
+	ot->description = "Inset new faces into selected faces";
+
+	/* api callbacks */
+	ot->exec = edbm_wireframe_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "use_boundary",        TRUE,  "Boundary",        "Inset face boundaries");
+	RNA_def_boolean(ot->srna, "use_even_offset",     TRUE,  "Offset Even",     "Scale the offset to give more even thickness");
+	RNA_def_boolean(ot->srna, "use_relative_offset", FALSE, "Offset Relative", "Scale the offset by surrounding geometry");
+
+	prop = RNA_def_float(ot->srna, "thickness", 0.01f, 0.0f, FLT_MAX, "Thickness", "", 0.0f, 10.0f);
+	/* use 1 rather then 10 for max else dragging the button moves too far */
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
+
+
+	RNA_def_boolean(ot->srna, "use_replace",         TRUE, "Replace", "Remove original faces");
+}
+

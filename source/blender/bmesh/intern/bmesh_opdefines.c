@@ -1109,6 +1109,25 @@ static BMOpDefine bmo_inset_def = {
 };
 
 /*
+ * Wire Frame
+ *
+ * Makes a wire copy of faces.
+ */
+static BMOpDefine bmo_wireframe_def = {
+	"wireframe",
+	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},   /* input faces */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* output faces */
+	 {BMO_OP_SLOT_BOOL, "use_boundary"},
+	 {BMO_OP_SLOT_BOOL, "use_even_offset"},
+	 {BMO_OP_SLOT_FLT, "thickness"},
+	 {BMO_OP_SLOT_BOOL, "use_relative_offset"},
+	 {BMO_OP_SLOT_FLT, "depth"},
+	 {0} /* null-terminating sentinel */},
+	bmo_wireframe_exec,
+	0
+};
+
+/*
  * Vertex Slide
  *
  * Translates vertes along an edge
@@ -1192,6 +1211,7 @@ BMOpDefine *opdefines[] = {
 	&bmo_bridge_loops_def,
 	&bmo_solidify_def,
 	&bmo_inset_def,
+	&bmo_wireframe_def,
 	&bmo_vertex_slide_def,
 };
 
