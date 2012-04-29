@@ -108,7 +108,7 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, sh
 	if (displist2 == 0) {
 		displist2 = glGenLists(1);
 			glNewList(displist2, GL_COMPILE);
-			
+
 			glBegin(GL_QUADS);
 				glVertex2fv(_unit_diamond_shape[0]);
 				glVertex2fv(_unit_diamond_shape[1]);
@@ -180,8 +180,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 				continue;
 
 			/* check if visible */
-			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) )
+			if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+			    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
 			{
 				float alpha;
 				int i, sel = track->flag & TRACK_DOPE_SEL;
@@ -228,11 +228,15 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 						else
 							glColor4fv(strip);
 
-						glRectf(start_marker->framenr, (float) y - STRIP_HEIGHT_HALF,
-						        start_marker->framenr + len, (float) y + STRIP_HEIGHT_HALF);
-
-						draw_keyframe_shape(start_marker->framenr, y, xscale, yscale, sel, alpha);
-						draw_keyframe_shape(start_marker->framenr + len, y, xscale, yscale, sel, alpha);
+						if (len) {
+							glRectf(start_marker->framenr, (float) y - STRIP_HEIGHT_HALF,
+							        start_marker->framenr + len, (float) y + STRIP_HEIGHT_HALF);
+							draw_keyframe_shape(start_marker->framenr, y, xscale, yscale, sel, alpha);
+							draw_keyframe_shape(start_marker->framenr + len, y, xscale, yscale, sel, alpha);
+						}
+						else {
+							draw_keyframe_shape(start_marker->framenr, y, xscale, yscale, sel, alpha);
+						}
 					}
 
 					i++;
@@ -309,8 +313,8 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 			continue;
 
 		/* check if visible */
-		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) )
+		if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+		    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
 		{
 			float font_height, color[3];
 			int sel = track->flag & TRACK_DOPE_SEL;
@@ -349,8 +353,8 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 			continue;
 
 		/* check if visible */
-		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+		if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+		    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
 		{
 			uiBut *but;
 			PointerRNA ptr;
