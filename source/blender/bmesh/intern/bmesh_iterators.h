@@ -117,6 +117,8 @@ typedef struct BMIter {
 
 void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index);
 int   BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, const int len);
+int   BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const short value);
+int   BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const short value);
 
 /* private for bmesh_iterators_inline.c */
 void  bmiter__vert_of_mesh_begin(struct BMIter *iter);
