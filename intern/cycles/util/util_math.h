@@ -541,7 +541,7 @@ __device_inline bool is_zero(const float3 a)
 #endif
 }
 
-__device_inline float reduce_add(const float3& a)
+__device_inline float reduce_add(const float3 a)
 {
 #ifdef __KERNEL_SSE__
 	return (a.x + a.y + a.z);
