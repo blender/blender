@@ -824,11 +824,14 @@ static bAnimListElem *make_new_animlistelem (void *data, short datatype, ID *own
  
 /* ----------------------------------------- */
 
-/* 'Only Selected' selected data filtering
+/* 'Only Selected' selected data and/or 'Include Hidden' filtering
  * NOTE: when this function returns true, the F-Curve is to be skipped 
  */
-static size_t skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
+static short skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
 {
+	/* hidden items should be skipped if we only care about visible data, but we aren't interested in hidden stuff */
+	short skip_hidden = (filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN);
+	
 	if (GS(owner_id->name) == ID_OB) {
 		Object *ob= (Object *)owner_id;
 		
@@ -845,17 +848,22 @@ static size_t skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner
 			/* check whether to continue or skip */
 			if ((pchan) && (pchan->bone)) {
 				/* if only visible channels, skip if bone not visible unless user wants channels from hidden data too */
-				if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
+				if (skip_hidden) {
 					bArmature *arm= (bArmature *)ob->data;
 					
+					/* skipping - not visible on currently visible layers */
 					if ((arm->layer & pchan->bone->layer) == 0)
 						return 1;
-					// TODO: manually hidden using flags
+					/* skipping - is currently hidden */
+					if (pchan->bone->flag & BONE_HIDDEN_P)
+						return 1;
 				}
 				
 				/* can only add this F-Curve if it is selected */
-				if ((pchan->bone->flag & BONE_SELECTED) == 0)
-					return 1;
+				if (ads->filterflag & ADS_FILTER_ONLYSEL) {
+					if ((pchan->bone->flag & BONE_SELECTED) == 0)
+						return 1;
+				}
 			}
 		}
 	}
@@ -874,14 +882,16 @@ static size_t skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner
 			if (seq_name) MEM_freeN(seq_name);
 			
 			/* can only add this F-Curve if it is selected */
-			if (seq==NULL || (seq->flag & SELECT)==0)
-				return 1;
+			if (ads->filterflag & ADS_FILTER_ONLYSEL) {
+				if ((seq == NULL) || (seq->flag & SELECT)==0)
+					return 1;
+			}
 		}
 	}
 	else if (GS(owner_id->name) == ID_NT) {
 		bNodeTree *ntree = (bNodeTree *)owner_id;
 		
-		/* check for selected  nodes */
+		/* check for selected nodes */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "nodes")) {
 			bNode *node;
 			char *node_name;
@@ -892,8 +902,10 @@ static size_t skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner
 			if (node_name) MEM_freeN(node_name);
 			
 			/* can only add this F-Curve if it is selected */
-			if ((node) && (node->flag & NODE_SELECT)==0)
-				return 1;
+			if (ads->filterflag & ADS_FILTER_ONLYSEL) {
+				if ((node) && (node->flag & NODE_SELECT)==0)
+					return 1;
+			}
 		}
 	}
 	return 0;
@@ -940,17 +952,19 @@ static FCurve *animfilter_fcurve_next (bDopeSheet *ads, FCurve *first, bActionGr
 	 */
 	for (fcu= first; ((fcu) && (fcu->grp==grp)); fcu= fcu->next) {
 		/* special exception for Pose-Channel/Sequence-Strip/Node Based F-Curves:
-		 *	- the 'Only Selected' data filter should be applied to Pose-Channel data too, but those are
-		 *	  represented as F-Curves. The way the filter for objects worked was to be the first check
-		 *	  after 'normal' visibility, so this is done first here too...
+		 *	- the 'Only Selected' and 'Include Hidden' data filters should be applied to sub-ID data which
+		 *	  can be independently selected/hidden, such as Pose-Channels, Sequence Strips, and Nodes.
+		 *	  Since these checks were traditionally done as first check for objects, we do the same here
 		 *	- we currently use an 'approximate' method for getting these F-Curves that doesn't require
 		 *	  carefully checking the entire path
 		 *	- this will also affect things like Drivers, and also works for Bone Constraints
 		 */
-		if ( ((ads) && (ads->filterflag & ADS_FILTER_ONLYSEL)) && (owner_id) ) {
-			if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode))
-				continue;
-		}
+		if (ads && owner_id) {
+			if ((ads->filterflag & ADS_FILTER_ONLYSEL) || (ads->filterflag & ADS_FILTER_INCL_HIDDEN)==0) {
+				if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode))
+					continue;
+			}
+		}	
 		
 		/* only include if visible (Graph Editor check, not channels check) */
 		if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
