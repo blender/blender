@@ -977,7 +977,7 @@ static void graph_area_draw(const bContext *C, ARegion *ar)
 
 static void clip_preview_area_draw(const bContext *C, ARegion *ar)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
+	/* SpaceClip *sc = CTX_wm_space_clip(C); */ /* UNUSED */
 
 	graph_area_draw(C, ar);
 }
