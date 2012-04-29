@@ -88,9 +88,9 @@ static int rayobject_bb_intersect_test(const Isect *isec, const float *_bb)
 
 	RE_RC_COUNT(isec->raycounter->bb.test);
 	
-	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
-	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
-	if(t1x > isec->dist || t1y > isec->dist || t1z > isec->dist) return 0;
+	if (t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
+	if (t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
+	if (t1x > isec->dist || t1y > isec->dist || t1z > isec->dist) return 0;
 	RE_RC_COUNT(isec->raycounter->bb.hit);	
 
 	return 1;
@@ -113,10 +113,10 @@ template<class Tree> static void bvh_done(Tree *obj);
 template<class Tree>
 static void bvh_free(Tree *obj)
 {
-	if(obj->builder)
+	if (obj->builder)
 		rtbuild_free(obj->builder);
 
-	if(obj->node_arena)
+	if (obj->node_arena)
 		BLI_memarena_free(obj->node_arena);
 
 	MEM_freeN(obj);
@@ -125,7 +125,7 @@ static void bvh_free(Tree *obj)
 template<class Tree>
 static void bvh_bb(Tree *obj, float *min, float *max)
 {
-	if(obj->root)
+	if (obj->root)
 		bvh_node_merge_bb(obj->root, min, max);
 }
 
@@ -149,12 +149,10 @@ template<class Node> static inline int bvh_node_hit_test(Node *node, Isect *isec
 template<class Node>
 static inline void bvh_node_merge_bb(Node *node, float *min, float *max)
 {
-	if(is_leaf(node))
-	{
+	if (is_leaf(node)) {
 		RE_rayobject_merge_bb( (RayObject*)node, min, max);
 	}
-	else
-	{
+	else {
 		DO_MIN(node->bb  , min);
 		DO_MAX(node->bb+3, max);
 	}
@@ -173,26 +171,22 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 	Node *stack[MAX_STACK_SIZE];
 	int hit = 0, stack_pos = 0;
 		
-	if(!TEST_ROOT && !is_leaf(root))
+	if (!TEST_ROOT && !is_leaf(root))
 		bvh_node_push_childs(root, isec, stack, stack_pos);
 	else
 		stack[stack_pos++] = root;
 
-	while(stack_pos)
-	{
+	while (stack_pos) {
 		Node *node = stack[--stack_pos];
-		if(!is_leaf(node))
-		{
-			if(bvh_node_hit_test(node,isec))
-			{
+		if (!is_leaf(node)) {
+			if (bvh_node_hit_test(node,isec)) {
 				bvh_node_push_childs(node, isec, stack, stack_pos);
 				assert(stack_pos <= MAX_STACK_SIZE);
 			}
 		}
-		else
-		{
+		else {
 			hit |= RE_rayobject_intersect( (RayObject*)node, isec);
-			if(SHADOW && hit) return hit;
+			if (SHADOW && hit) return hit;
 		}
 	}
 	return hit;
@@ -212,11 +206,9 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 
 	int hit = 0, stack_pos = 0;
 		
-	if(!TEST_ROOT)
-	{
-		if(!is_leaf(root))
-		{
-			if(!is_leaf(root->child))
+	if (!TEST_ROOT) {
+		if (!is_leaf(root)) {
+			if (!is_leaf(root->child))
 				bvh_node_push_childs(root, isec, stack, stack_pos);
 			else
 				return RE_rayobject_intersect( (RayObject*)root->child, isec);
@@ -224,19 +216,16 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 		else
 			return RE_rayobject_intersect( (RayObject*)root, isec);
 	}
-	else
-	{
-		if(!is_leaf(root))
+	else {
+		if (!is_leaf(root))
 			stack[stack_pos++] = root;
 		else
 			return RE_rayobject_intersect( (RayObject*)root, isec);
 	}
 
-	while(true)
-	{
+	while (true) {
 		//Use SIMD 4
-		if(stack_pos >= 4)
-		{
+		if (stack_pos >= 4) {
 			__m128 t_bb[6];
 			Node * t_node[4];
 			
@@ -286,41 +275,33 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 			RE_RC_COUNT(isec->raycounter->simd_bb.test);
 			int res = test_bb_group4( t_bb, isec );
 
-			for(int i=0; i<4; i++)
-			if(res & (1<<i))
-			{
+			for (int i = 0; i < 4; i++)
+			if (res & (1 << i)) {
 				RE_RC_COUNT(isec->raycounter->simd_bb.hit);
-				if(!is_leaf(t_node[i]))
-				{
-					for(Node *t=t_node[i]; t; t=t->sibling)
-					{
+				if (!is_leaf(t_node[i])) {
+					for (Node *t = t_node[i]; t; t = t->sibling) {
 						assert(stack_pos < MAX_STACK_SIZE);
 						stack[stack_pos++] = t;
 					}
 				}
-				else
-				{
+				else {
 					hit |= RE_rayobject_intersect( (RayObject*)t_node[i], isec);
-					if(hit && isec->mode == RE_RAY_SHADOW) return hit;				
+					if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}	
 			}
 		}
-		else if(stack_pos > 0)
-		{	
+		else if (stack_pos > 0) {
 			Node *node = stack[--stack_pos];
 			assert(!is_leaf(node));
 			
-			if(bvh_node_hit_test(node,isec))
-			{
-				if(!is_leaf(node->child))
-				{
+			if (bvh_node_hit_test(node,isec)) {
+				if (!is_leaf(node->child)) {
 					bvh_node_push_childs(node, isec, stack, stack_pos);
 					assert(stack_pos <= MAX_STACK_SIZE);
 				}
-				else
-				{
+				else {
 					hit |= RE_rayobject_intersect( (RayObject*)node->child, isec);
-					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+					if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}
 			}
 		}
@@ -338,41 +319,41 @@ template<class Node>
 static int bvh_node_raycast(Node *node, Isect *isec)
 {
 	int hit = 0;
-	if(bvh_test_node(node, isec))
+	if (bvh_test_node(node, isec))
 	{
-		if(isec->idot_axis[node->split_axis] > 0.0f)
+		if (isec->idot_axis[node->split_axis] > 0.0f)
 		{
 			int i;
 			for(i=0; i<BVH_NCHILDS; i++)
-				if(!is_leaf(node->child[i]))
+				if (!is_leaf(node->child[i]))
 				{
-					if(node->child[i] == 0) break;
+					if (node->child[i] == 0) break;
 					
 					hit |= bvh_node_raycast(node->child[i], isec);
-					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+					if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}
 				else
 				{
 					hit |= RE_rayobject_intersect( (RayObject*)node->child[i], isec);
-					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+					if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}
 		}
 		else
 		{
 			int i;
 			for(i=BVH_NCHILDS-1; i>=0; i--)
-				if(!is_leaf(node->child[i]))
+				if (!is_leaf(node->child[i]))
 				{
-					if(node->child[i])
+					if (node->child[i])
 					{
 						hit |= dfs_raycast(node->child[i], isec);
-						if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+						if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 					}
 				}
 				else
 				{
 					hit |= RE_rayobject_intersect( (RayObject*)node->child[i], isec);
-					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+					if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}
 		}
 	}
@@ -385,28 +366,22 @@ void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject
 {
 	assert( hint->size + reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE );
 	
-	if(is_leaf(node))
-	{
+	if (is_leaf(node)) {
 		hint->stack[hint->size++] = (RayObject*)node;
 	}
-	else
-	{
+	else {
 		int childs = count_childs(node);
-		if(hint->size + reserve_space + childs <= RE_RAY_LCTS_MAX_SIZE)
-		{
+		if (hint->size + reserve_space + childs <= RE_RAY_LCTS_MAX_SIZE) {
 			int result = hint_test_bb(hintObject, node->bb, node->bb+3);
-			if(result == HINT_RECURSE)
-			{
+			if (result == HINT_RECURSE) {
 				/* We are 100% sure the ray will be pass inside this node */
 				bvh_dfs_make_hint_push_siblings(node->child, hint, reserve_space, hintObject);
 			}
-			else if(result == HINT_ACCEPT)
-			{
+			else if (result == HINT_ACCEPT) {
 				hint->stack[hint->size++] = (RayObject*)node;
 			}
 		}
-		else
-		{
+		else {
 			hint->stack[hint->size++] = (RayObject*)node;
 		}
 	}

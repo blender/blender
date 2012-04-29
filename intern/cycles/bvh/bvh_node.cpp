@@ -24,6 +24,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* BVH Node */
+
 int BVHNode::getSubtreeSize(BVH_STAT stat) const
 {
 	int cnt = 0;
@@ -59,7 +61,8 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 void BVHNode::deleteSubtree()
 {
 	for(int i=0;i<num_children();i++)
-		get_child(i)->deleteSubtree();
+		if(get_child(i))
+			get_child(i)->deleteSubtree();
 
 	delete this;
 }
@@ -70,11 +73,26 @@ float BVHNode::computeSubtreeSAHCost(const BVHParams& p, float probability) cons
 
 	for(int i=0;i<num_children();i++) {
 		BVHNode *child = get_child(i);
-		SAH += child->computeSubtreeSAHCost(p, probability * child->m_bounds.area()/m_bounds.area());
+		SAH += child->computeSubtreeSAHCost(p, probability * child->m_bounds.safe_area()/m_bounds.safe_area());
 	}
 
 	return SAH;
 }
+
+uint BVHNode::update_visibility()
+{
+	if(!is_leaf() && m_visibility == 0) {
+		InnerNode *inner = (InnerNode*)this;
+		BVHNode *child0 = inner->children[0];
+		BVHNode *child1 = inner->children[1];
+
+		m_visibility = child0->update_visibility()|child1->update_visibility();
+	}
+
+	return m_visibility;
+}
+
+/* Inner Node */
 
 void InnerNode::print(int depth) const
 {

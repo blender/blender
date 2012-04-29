@@ -31,9 +31,6 @@
 #include <string.h>
 
 #include "RNA_define.h"
-
-#include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 

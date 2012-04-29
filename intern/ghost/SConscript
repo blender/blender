@@ -49,7 +49,7 @@ elif window_system in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'f
     else:
         sources.remove('intern' + os.sep + 'GHOST_DropTargetX11.cpp')
 
-elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
+elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc', 'win64-mingw'):
     for f in pf:
         try:
             sources.remove('intern' + os.sep + f + 'X11.cpp')
@@ -98,7 +98,7 @@ if env['WITH_BF_3DMOUSE']:
 else:
     sources.remove('intern' + os.sep + 'GHOST_NDOFManager.cpp')
     try:
-        if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
+        if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc', 'win64-mingw'):
             sources.remove('intern' + os.sep + 'GHOST_NDOFManagerWin32.cpp')
         elif window_system=='darwin':
             sources.remove('intern' + os.sep + 'GHOST_NDOFManagerCocoa.mm')
@@ -108,7 +108,7 @@ else:
         pass
 
 
-if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
+if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs = env['BF_WINTAB_INC'] + ' ' + incs
     incs += ' ../utfconv'
 

@@ -130,8 +130,7 @@ static void flatten_string_append(FlattenString *fs, const char *c, int accum, i
 		fs->accum = naccum;
 	}
 	
-	for (i = 0; i < len; i++)
-	{
+	for (i = 0; i < len; i++) {
 		fs->buf[fs->pos + i] = c[i];
 		fs->accum[fs->pos + i] = accum;
 	}

@@ -308,7 +308,7 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout* layout, const rcti* r
 		CLAMP(rowmax, 0, layout->rows-1);
 	} 
 	
-	if  ( (colmin > layout->columns-1) || (rowmin > layout->rows-1) ) {
+	if ((colmin > layout->columns-1) || (rowmin > layout->rows-1)) {
 		sel.first = -1;
 	}
 	else {
@@ -317,7 +317,7 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout* layout, const rcti* r
 		else
 			sel.first = colmin + layout->columns*rowmin;
 	}
-	if  ( (colmax > layout->columns-1) || (rowmax > layout->rows-1) ) {
+	if ((colmax > layout->columns-1) || (rowmax > layout->rows-1)) {
 		sel.last = -1;
 	}
 	else {
@@ -447,8 +447,7 @@ static void column_widths(struct FileList* files, struct FileLayout* layout)
 		layout->column_widths[i] = 0;
 	}
 
-	for (i=0; (i < numfiles); ++i)
-	{
+	for (i=0; (i < numfiles); ++i) {
 		struct direntry* file = filelist_file(files, i);	
 		if (file) {
 			float len;

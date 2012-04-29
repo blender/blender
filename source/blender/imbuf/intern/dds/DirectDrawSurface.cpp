@@ -308,7 +308,7 @@ static const uint DDPF_SRGB = 0x40000000U;
 	const char * getDxgiFormatString(DXGI_FORMAT dxgiFormat)
 	{
 #define CASE(format) case DXGI_FORMAT_##format: return #format
-		switch(dxgiFormat)
+		switch (dxgiFormat)
 		{
 			CASE(UNKNOWN);
 			
@@ -431,7 +431,7 @@ static const uint DDPF_SRGB = 0x40000000U;
 	
 	const char * getD3d10ResourceDimensionString(D3D10_RESOURCE_DIMENSION resourceDimension)
 	{
-		switch(resourceDimension)
+		switch (resourceDimension)
 		{
 			default:
 			case D3D10_RESOURCE_DIMENSION_UNKNOWN: return "UNKNOWN";
@@ -1305,7 +1305,7 @@ void DirectDrawSurface::readBlock(ColorBlock * rgba)
 
 uint DirectDrawSurface::blockSize() const
 {
-	switch(header.pf.fourcc)
+	switch (header.pf.fourcc)
 	{
 		case FOURCC_DXT1:
 		case FOURCC_ATI1:
@@ -1318,7 +1318,7 @@ uint DirectDrawSurface::blockSize() const
 		case FOURCC_ATI2:
 			return 16;
 		case FOURCC_DX10:
-			switch(header.header10.dxgiFormat)
+			switch (header.header10.dxgiFormat)
 			{
 				case DXGI_FORMAT_BC1_TYPELESS:
 				case DXGI_FORMAT_BC1_UNORM:

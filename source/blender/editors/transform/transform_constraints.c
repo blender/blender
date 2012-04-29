@@ -76,8 +76,7 @@ static void drawObjectConstraint(TransInfo *t);
 static void constraintAutoValues(TransInfo *t, float vec[3])
 {
 	int mode = t->con.mode;
-	if (mode & CON_APPLY)
-	{
+	if (mode & CON_APPLY) {
 		float nval = (t->flag & T_NULL_ONE)?1.0f:0.0f;
 
 		if ((mode & CON_AXIS0) == 0) {
@@ -478,7 +477,7 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3], fl
 	if (!td && t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
 
-		switch(mode) {
+		switch (mode) {
 		case CON_AXIS0:
 		case (CON_AXIS1|CON_AXIS2):
 			copy_v3_v3(vec, t->con.mtx[0]);
@@ -525,7 +524,7 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], 
 			td= t->data;
 		}
 
-		switch(mode) {
+		switch (mode) {
 		case CON_AXIS0:
 		case (CON_AXIS1|CON_AXIS2):
 			copy_v3_v3(vec, td->axismtx[0]);
@@ -604,7 +603,7 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 {
 	char text[40];
 
-	switch(orientation) {
+	switch (orientation) {
 	case V3D_MANIP_GLOBAL:
 		{
 			float mtx[3][3]= MAT3_UNITY;

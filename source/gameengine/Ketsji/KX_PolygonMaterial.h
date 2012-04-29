@@ -37,6 +37,7 @@
 #include "RAS_MaterialBucket.h"
 #include "RAS_IRasterizer.h"
 #include "DNA_ID.h"
+#include "DNA_meshdata_types.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -58,9 +59,9 @@ class KX_PolygonMaterial : public PyObjectPlus, public RAS_IPolyMaterial
 	Py_Header
 private:
 	/** Blender texture face structure. */
-	MTFace*			m_tface;
-	unsigned int*	m_mcol;
-	Material*		m_material;
+	mutable MTFace       m_tface;
+	mutable unsigned int m_mcol;
+	Material*            m_material;
 
 #ifdef WITH_PYTHON
 	PyObject*		m_pymaterial;
@@ -119,12 +120,12 @@ public:
 	 */
 	MTFace* GetMTFace(void) const
 	{
-		return m_tface;
+		return &m_tface;
 	}
 
 	unsigned int* GetMCol(void) const
 	{
-		return m_mcol;
+		return &m_mcol;
 	}
 	virtual void GetMaterialRGBAColor(unsigned char *rgba) const;
 

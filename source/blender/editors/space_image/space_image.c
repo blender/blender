@@ -88,7 +88,7 @@ void ED_space_image_set(SpaceImage *sima, Scene *scene, Object *obedit, Image *i
 	/* context may be NULL, so use global */
 	ED_uvedit_assign_image(G.main, scene, obedit, ima, sima->image);
 	
-	/* change the space ima after because uvedit_face_visible uses the space ima
+	/* change the space ima after because uvedit_face_visible_test uses the space ima
 	 * to check if the face is displayed in UV-localview */
 	sima->image = ima;
 	
@@ -205,7 +205,9 @@ void ED_image_aspect(Image *ima, float *aspx, float *aspy)
 	
 	if ((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
 	    (ima->aspx == 0.0f || ima->aspy == 0.0f))
+	{
 		return;
+	}
 	
 	/* x is always 1 */
 	*aspy = ima->aspy / ima->aspx;
@@ -546,7 +548,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 
 	/* fast switch to render slots */
-	for(i = 0; i < MAX2(IMA_MAX_RENDER_SLOT, 9); i++) {
+	for (i = 0; i < MAX2(IMA_MAX_RENDER_SLOT, 9); i++) {
 		kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_int", ONEKEY+i, KM_PRESS, 0, 0);
 		RNA_string_set(kmi->ptr, "data_path", "space_data.image.render_slot");
 		RNA_int_set(kmi->ptr, "value", i);

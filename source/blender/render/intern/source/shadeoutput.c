@@ -931,7 +931,7 @@ static void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, floa
 			float fac;
 
 			/* input */
-			switch(ma->rampin_col) {
+			switch (ma->rampin_col) {
 			case MA_RAMP_IN_ENERGY:
 				/* should use 'rgb_to_grayscale' but we only have a vector version */
 				fac= 0.3f*r + 0.58f*g + 0.12f*b;
@@ -1003,7 +1003,7 @@ static void do_specular_ramp(ShadeInput *shi, float is, float t, float spec[3])
 		float col[4];
 
 		/* input */
-		switch(ma->rampin_spec) {
+		switch (ma->rampin_spec) {
 		case MA_RAMP_IN_ENERGY:
 			fac= t;
 			break;
@@ -1152,14 +1152,13 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 		/* area type has no quad or sphere option */
 		if (lar->type==LA_AREA) {
 			/* area is single sided */
-			//if(dot_v3v3(lv, lar->vec) > 0.0f)
+			//if (dot_v3v3(lv, lar->vec) > 0.0f)
 			//	visifac= 1.0f;
 			//else
 			//	visifac= 0.0f;
 		}
 		else {
-			switch(lar->falloff_type)
-			{
+			switch (lar->falloff_type) {
 				case LA_FALLOFF_CONSTANT:
 					visifac = 1.0f;
 					break;
@@ -1737,8 +1736,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	/* AO pass */
 	if (R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) {
-		if (((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
-			|| (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) {
+		if (((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) ||
+		    (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
+		{
 			if (R.r.mode & R_SHADOW) {
 				/* AO was calculated for scanline already */
 				if (shi->depth || shi->volume_depth)

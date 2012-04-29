@@ -182,9 +182,9 @@ static void outliner_main_area_free(ARegion *UNUSED(ar))
 static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SCENE:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_OB_VISIBLE:
@@ -200,7 +200,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_OBJECT:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_TRANSFORM:
 					/* transform doesn't change outliner data */
 					break;
@@ -212,7 +212,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_CONSTRAINT:
-					switch(wmn->action) {
+					switch (wmn->action) {
 						case NA_ADDED:
 						case NA_REMOVED:
 						case NA_RENAME:
@@ -244,7 +244,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_MATERIAL:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
 					ED_region_tag_redraw(ar);
@@ -255,7 +255,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_GEOM:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_DATA:
 					/* needed for vertex groups only, no special notifier atm so use NC_GEOM|ND_DATA */
 					ED_region_tag_redraw(ar);
@@ -263,7 +263,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ANIMATION:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_NLA_ACTCHANGE:
 				case ND_KEYFRAME:
 					ED_region_tag_redraw(ar);
@@ -299,7 +299,7 @@ static void outliner_header_area_free(ARegion *UNUSED(ar))
 static void outliner_header_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SCENE:
 			if (wmn->data == ND_KEYINGSET)
 				ED_region_tag_redraw(ar);

@@ -221,7 +221,7 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 		
 		copy_v3_v3(co, mvert->co);
 
-		switch(pd->ob_cache_space) {
+		switch (pd->ob_cache_space) {
 			case TEX_PD_OBJECTSPACE:
 				break;
 			case TEX_PD_OBJECTLOC:

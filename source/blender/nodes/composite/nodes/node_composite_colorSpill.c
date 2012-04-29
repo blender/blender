@@ -206,12 +206,10 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 	spillmap=alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
 	rgbbuf=dupalloc_compbuf(cbuf);
 
-	switch(node->custom1)
-	{
+	switch (node->custom1) {
 		case 1:  /*red spill*/
 		{
-			switch(node->custom2)
-			{
+			switch (node->custom2) {
 				case 0: /* simple limit */
 				{
 					if ((in[1]->data==NULL) && (in[1]->vec[0] >= 1.f)) {
@@ -243,8 +241,7 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 		}
 		case 2: /*green spill*/
 		{
-			switch(node->custom2)
-			{
+			switch (node->custom2) {
 				case 0: /* simple limit */
 				{
 					if ((in[1]->data==NULL) && (in[1]->vec[0] >= 1.f)) {
@@ -276,8 +273,7 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 		}
 		case 3: /*blue spill*/
 		{
-			switch(node->custom2)
-			{
+			switch (node->custom2) {
 				case 0: /* simple limit */
 				{
 					if ((in[1]->data==NULL) && (in[1]->vec[0] >= 1.f)) {

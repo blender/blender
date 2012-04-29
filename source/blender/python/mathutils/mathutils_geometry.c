@@ -444,7 +444,8 @@ static PyObject *M_Geometry_intersect_line_line_2d(PyObject *UNUSED(self), PyObj
 PyDoc_STRVAR(M_Geometry_intersect_line_plane_doc,
 ".. function:: intersect_line_plane(line_a, line_b, plane_co, plane_no, no_flip=False)\n"
 "\n"
-"   Takes 2 lines (as 4 vectors) and returns a vector for their point of intersection or None.\n"
+"   Calculate the intersection between a line (as 2 vectors) and a plane.\n"
+"   Returns a vector for the intersection or None.\n"
 "\n"
 "   :arg line_a: First point of the first line\n"
 "   :type line_a: :class:`mathutils.Vector`\n"
@@ -1010,7 +1011,7 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject 
 
 	coord_array = MEM_callocN(dims * (resolu) * sizeof(float), "interpolate_bezier");
 	for (i = 0; i < dims; i++) {
-		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array + i, resolu - 1, sizeof(float) * dims);
+		BKE_curve_forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array + i, resolu - 1, sizeof(float) * dims);
 	}
 
 	list = PyList_New(resolu);

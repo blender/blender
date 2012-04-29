@@ -337,7 +337,7 @@ void brush_reset_sculpt(Brush *br)
 	brush_set_defaults(br);
 	brush_curve_preset(br, CURVE_PRESET_SMOOTH);
 
-	switch(br->sculpt_tool) {
+	switch (br->sculpt_tool) {
 	case SCULPT_TOOL_CLAY:
 		br->flag |= BRUSH_FRONTFACE;
 		break;

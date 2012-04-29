@@ -98,7 +98,7 @@
 
 static void star_stuff_init_func(void)
 {
-	cpack(-1);
+	cpack(0xFFFFFF);
 	glPointSize(1.0);
 	glBegin(GL_POINTS);
 }

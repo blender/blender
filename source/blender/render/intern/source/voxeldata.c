@@ -171,8 +171,7 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 	vd->resol[2] = iuser.frames;
 	vd->dataset = MEM_mapallocN(sizeof(float)*vd_resol_size(vd), "voxel dataset");
 	
-	for (z=0; z < iuser.frames; z++)
-	{	
+	for (z=0; z < iuser.frames; z++) {
 		/* get a new ibuf for each frame */
 		if (z > 0) {
 			iuser.framenr++;
@@ -182,10 +181,8 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 		}
 		rf = ibuf->rect_float;
 		
-		for (y=0; y < ibuf->y; y++)
-		{
-			for (x=0; x < ibuf->x; x++)
-			{
+		for (y=0; y < ibuf->y; y++) {
+			for (x=0; x < ibuf->x; x++) {
 				/* currently averaged to monchrome */
 				vd->dataset[ V_I(x, y, z, vd->resol) ] = (rf[0] + rf[1] + rf[2])*0.333f;
 				rf +=4;
@@ -249,8 +246,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 
 				heat = smoke_get_heat(smd->domain->fluid);
 
-				for (i=0; i<totRes; i++)
-				{
+				for (i=0; i<totRes; i++) {
 					vd->dataset[i] = (heat[i]+2.0f)/4.0f;
 				}
 
@@ -271,8 +267,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 				yvel = smoke_get_velocity_y(smd->domain->fluid);
 				zvel = smoke_get_velocity_z(smd->domain->fluid);
 
-				for (i=0; i<totRes; i++)
-				{
+				for (i=0; i<totRes; i++) {
 					vd->dataset[i] = sqrt(xvel[i]*xvel[i] + yvel[i]*yvel[i] + zvel[i]*zvel[i])*3.0f;
 				}
 
@@ -333,7 +328,7 @@ void cache_voxeldata(Tex *tex, int scene_frame)
 	
 	BLI_strncpy(path, vd->source_path, sizeof(path));
 	
-	switch(vd->file_format) {
+	switch (vd->file_format) {
 		case TEX_VD_IMAGE_SEQUENCE:
 			load_frame_image_sequence(vd, tex);
 			return;

@@ -55,11 +55,11 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
             return
 
         col.prop(fluid, "type")
-        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID'}:
+        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID', 'OBSTACLE'}:
             col.prop(fluid, "use")
 
         layout = layout.column()
-        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID'}:
+        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID', 'OBSTACLE'}:
             layout.active = fluid.use
 
         if fluid.type == 'DOMAIN':

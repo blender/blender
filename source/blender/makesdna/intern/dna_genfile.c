@@ -692,7 +692,7 @@ static void cast_elem(const char *ctype, const char *otype, const char *name, ch
 	curlen= DNA_elem_type_size(ctypenr);
 
 	while (arrlen>0) {
-		switch(otypenr) {
+		switch (otypenr) {
 		case SDNA_TYPE_CHAR:
 			val= *olddata; break;
 		case SDNA_TYPE_UCHAR:
@@ -717,7 +717,7 @@ static void cast_elem(const char *ctype, const char *otype, const char *name, ch
 			val= *( (uint64_t *)olddata); break;
 		}
 		
-		switch(ctypenr) {
+		switch (ctypenr) {
 		case SDNA_TYPE_CHAR:
 			*curdata= val; break;
 		case SDNA_TYPE_UCHAR:

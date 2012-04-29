@@ -90,7 +90,6 @@ Function .onInit
 
   ${If} ${RunningX64}
     ${If} "[BITNESS]" == "32"
-    ${OrIf} "[BITNESS]" == "-mingw"
       StrCpy $INSTDIR "$PROGRAMFILES32\Blender Foundation\Blender" ; Can't use InstallDir inside Section
     ${ElseIf} "[BITNESS]" == "64"
       StrCpy $INSTDIR "$PROGRAMFILES64\Blender Foundation\Blender"

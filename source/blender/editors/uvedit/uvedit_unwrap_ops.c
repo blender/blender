@@ -139,7 +139,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	
 	/* select new UV's */
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		uvedit_face_select(scene, em, efa);
+		uvedit_face_select_enable(scene, em, efa, FALSE);
 	}
 
 	return 1;
@@ -169,7 +169,7 @@ static int uvedit_have_selection(Scene *scene, BMEditMesh *em, short implicit)
 			if (!luv)
 				return 1;
 			
-			if (uvedit_uv_selected(em, scene, l))
+			if (uvedit_uv_select_test(em, scene, l))
 				break;
 		}
 		
@@ -231,7 +231,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		lsel = 0;
 
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_uv_selected(em, scene, l)) {
+			if (uvedit_uv_select_test(em, scene, l)) {
 				lsel = 1;
 				break;
 			}
@@ -243,9 +243,9 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		key = (ParamKey)efa;
 
 
-		if(efa->len == 3 || efa->len == 4) {
+		if (efa->len == 3 || efa->len == 4) {
 			/* for quads let parametrize split, it can make better decisions
-			   about which split is best for unwrapping than scanfill */
+			 * about which split is best for unwrapping than scanfill */
 			i = 0;
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -253,7 +253,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 				co[i] = l->v->co;
 				uv[i] = luv->uv;
 				pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
-				select[i] = uvedit_uv_selected(em, scene, l) != 0;
+				select[i] = uvedit_uv_select_test(em, scene, l) != 0;
 
 				i++;
 			}
@@ -294,13 +294,13 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 				ls[1] = sefa->v2->tmp.p;
 				ls[2] = sefa->v3->tmp.p;
 
-				for(i = 0; i < 3; i++) {
+				for (i = 0; i < 3; i++) {
 					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, ls[i]->head.data, CD_MLOOPUV);
 					vkeys[i] = (ParamKey)BM_elem_index_get(ls[i]->v);
 					co[i] = ls[i]->v->co;
 					uv[i] = luv->uv;
 					pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
-					select[i] = uvedit_uv_selected(em, scene, ls[i]) != 0;
+					select[i] = uvedit_uv_select_test(em, scene, ls[i]) != 0;
 				}
 
 				param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
@@ -345,7 +345,7 @@ static void texface_from_original_index(BMFace *efa, int index, float **uv, Para
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			*uv = luv->uv;
 			*pin = (luv->flag & MLOOPUV_PINNED) ? 1 : 0;
-			*select = (uvedit_uv_selected(em, scene, l) != 0);
+			*select = (uvedit_uv_select_test(em, scene, l) != 0);
 		}
 	}
 }
@@ -1569,7 +1569,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 	cube_size = RNA_float_get(op->ptr, "cube_size");
 
 	/* choose x,y,z axis for projection depending on the largest normal
-	* component, but clusters all together around the center of map. */
+	 * component, but clusters all together around the center of map. */
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		int first = 1;

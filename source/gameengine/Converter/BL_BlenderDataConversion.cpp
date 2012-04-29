@@ -1839,10 +1839,6 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			break;
 
 #endif
-		case UseDynamo:
-			//KX_ConvertDynamoObject(gameobj,meshobj,kxscene,shapeprops,	smmaterial,	&objprop);
-			break;
-			
 		case UseNone:
 		default:
 			break;

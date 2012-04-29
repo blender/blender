@@ -63,7 +63,7 @@ public:
 		for (int i = 0; i < m_num_buckets; ++i) {
 			m_buckets[i] = 0;
 
-			for(Entry *entry = map.m_buckets[i]; entry; entry=entry->m_next)
+			for (Entry *entry = map.m_buckets[i]; entry; entry=entry->m_next)
 				insert(entry->m_key, entry->m_value);
 		}
 	}

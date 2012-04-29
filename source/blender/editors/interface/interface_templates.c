@@ -764,8 +764,8 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		/* mode enabling buttons */
 		uiBlockBeginAlign(block);
 		/* Softbody not allowed in this situation, enforce! */
-		if ( ((md->type != eModifierType_Softbody && md->type != eModifierType_Collision) || !(ob->pd && ob->pd->deflect))
-		     && (md->type != eModifierType_Surface) )
+		if (((md->type != eModifierType_Softbody && md->type != eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) &&
+		     (md->type != eModifierType_Surface) )
 		{
 			uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);
 			uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NONE);
@@ -2363,7 +2363,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 
 		if (ptr->data && prop) {
 			/* create list items */
-			RNA_PROP_BEGIN(ptr, itemptr, prop) {
+			RNA_PROP_BEGIN (ptr, itemptr, prop) {
 				/* create button */
 				if (!(i % 9))
 					row = uiLayoutRow(col, 0);
@@ -2385,7 +2385,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 
 		if (ptr->data && prop) {
 			/* create list items */
-			RNA_PROP_BEGIN(ptr, itemptr, prop) {
+			RNA_PROP_BEGIN (ptr, itemptr, prop) {
 				found = (activei == i);
 
 				if (found) {
@@ -2447,7 +2447,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 
 		if (ptr->data && prop) {
 			/* create list items */
-			RNA_PROP_BEGIN(ptr, itemptr, prop) {
+			RNA_PROP_BEGIN (ptr, itemptr, prop) {
 				if (i >= pa->list_scroll && i < pa->list_scroll + items)
 					list_item_row(C, col, ptr, &itemptr, i, rnaicon, activeptr, activeprop, prop_list);
 
@@ -2704,7 +2704,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
 	
 	flow = uiLayoutColumnFlow(layout, 2, 0);
 
-	RNA_STRUCT_BEGIN(ptr, prop) {
+	RNA_STRUCT_BEGIN (ptr, prop) {
 		int flag = RNA_property_flag(prop);
 
 		if (flag & PROP_HIDDEN)

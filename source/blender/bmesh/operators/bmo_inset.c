@@ -90,7 +90,7 @@ float bm_vert_avg_tag_dist(BMVert *v)
 	BM_ITER_ELEM_INDEX (e, &iter, v, BM_EDGES_OF_VERT, tot) {
 		BMVert *v_other = BM_edge_other_vert(e, v);
 		if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
-			length += BM_edge_length_calc(e);
+			length += BM_edge_calc_length(e);
 		}
 	}
 
@@ -173,7 +173,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		i = BM_elem_index_get(e);
 		if (i != -1) {
 			/* calc edge-split info */
-			es->length = BM_edge_length_calc(e);
+			es->length = BM_edge_calc_length(e);
 			es->e_old = e;
 			es++;
 			/* initialize no and e_new after */
@@ -194,7 +194,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 		/* calc edge-split info */
 		es->e_new = es->l->e;
-		BM_edge_face_tangent(es->e_new, es->l, es->no);
+		BM_edge_calc_face_tangent(es->e_new, es->l, es->no);
 
 		if (es->e_new == es->e_old) { /* happens on boundary edges */
 			/* take care here, we're creating this double edge which _must_ have its verts replaced later on */
@@ -362,7 +362,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 								 *   |                                         |
 								 *
 								 * note, the fact we are doing location comparisons on verts that are moved about
-								 * doesn’t matter because the direction will remain the same in this case.
+								 * doesn't matter because the direction will remain the same in this case.
 								 */
 
 								BMEdge *e_other;
@@ -495,8 +495,6 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		BM_face_copy_shared(bm, f);
 	}
 
-	MEM_freeN(edge_info);
-
 	/* we could flag new edges/verts too, is it useful? */
 	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, ELE_NEW);
 
@@ -504,6 +502,28 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	if (depth != 0.0f) {
 		float (*varr_co)[3];
 		BMOIter oiter;
+
+		/* we need to re-calculate tagged normals, but for this purpose we can copy tagged verts from the
+		 * faces they inset from,  */
+		for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+			zero_v3(es->e_new->v1->no);
+			zero_v3(es->e_new->v2->no);
+		}
+		for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+			float *no = es->l->f->no;
+			add_v3_v3(es->e_new->v1->no, no);
+			add_v3_v3(es->e_new->v2->no, no);
+		}
+		for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+			/* annoying, avoid normalizing twice */
+			if (len_squared_v3(es->e_new->v1->no) != 1.0f) {
+				normalize_v3(es->e_new->v1->no);
+			}
+			if (len_squared_v3(es->e_new->v2->no) != 1.0f) {
+				normalize_v3(es->e_new->v2->no);
+			}
+		}
+		/* done correcting edge verts normals */
 
 		/* untag verts */
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
@@ -516,7 +536,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* do in 2 passes so moving the verts doesn't feed back into face angle checks
-		 * which BM_vert_shell_factor uses. */
+		 * which BM_vert_calc_shell_factor uses. */
 
 		/* over allocate */
 		varr_co = MEM_callocN(sizeof(*varr_co) * bm->totvert, __func__);
@@ -524,8 +544,8 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				const float fac = (depth *
-								   (use_relative_offset ? bm_vert_avg_tag_dist(v) : 1.0f) *
-								   (use_even_boundry    ? BM_vert_shell_factor(v) : 1.0f));
+				                   (use_relative_offset ? bm_vert_avg_tag_dist(v) : 1.0f) *
+				                   (use_even_boundry    ? BM_vert_calc_shell_factor(v) : 1.0f));
 				madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
 			}
 		}
@@ -537,4 +557,6 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		}
 		MEM_freeN(varr_co);
 	}
+
+	MEM_freeN(edge_info);
 }

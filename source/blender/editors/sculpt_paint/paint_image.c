@@ -2621,7 +2621,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 										//fac = line_point_factor_v2(uv, uv_seam_quad[0], uv_seam_quad[1]);
 										
 										fac = line_point_factor_v2(uv, seam_subsection[0], seam_subsection[1]);
-										if (fac < 0.0f)      { copy_v3_v3(pixelScreenCo, edge_verts_inset_clip[0]); }
+										if      (fac < 0.0f) { copy_v3_v3(pixelScreenCo, edge_verts_inset_clip[0]); }
 										else if (fac > 1.0f) { copy_v3_v3(pixelScreenCo, edge_verts_inset_clip[1]); }
 										else                 { interp_v3_v3v3(pixelScreenCo, edge_verts_inset_clip[0], edge_verts_inset_clip[1], fac); }
 										
@@ -3001,7 +3001,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	
 	/* Note, use the original mesh for getting the clone and mask layer index
-	* this avoids re-generating the derived mesh just to get the new index */
+	 * this avoids re-generating the derived mesh just to get the new index */
 	if (ps->do_layer_clone) {
 		//int layer_num = CustomData_get_clone_layer(&ps->dm->faceData, CD_MTFACE);
 		int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->fdata, CD_MTFACE);
@@ -5038,7 +5038,7 @@ static int paint_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	RNA_BEGIN(op->ptr, itemptr, "stroke") {
+	RNA_BEGIN (op->ptr, itemptr, "stroke") {
 		paint_apply(C, op, &itemptr);
 	}
 	RNA_END;
@@ -5217,8 +5217,8 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		float alpha = 0.5f;
 
 		ts = scene->toolsettings;
-		use_zoom = get_imapaint_zoom(C, &zoomx, &zoomy)
-		           && !(ts->use_uv_sculpt && (scene->basact->object->mode == OB_MODE_EDIT));
+		use_zoom = get_imapaint_zoom(C, &zoomx, &zoomy) &&
+		           !(ts->use_uv_sculpt && (scene->basact->object->mode == OB_MODE_EDIT));
 
 		if (use_zoom) {
 			pixel_size = MAX2(size * zoomx, size * zoomy);

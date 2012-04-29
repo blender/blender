@@ -205,10 +205,10 @@ static void knife_input_ray_cast(KnifeTool_OpData *kcd, const int mval_i[2],
 
 static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 {
-	#define HEADER_LENGTH 180
+	#define HEADER_LENGTH 190
 	char header[HEADER_LENGTH];
 
-	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
+	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return/Spacebar: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
 	             "Shift: ignore snap (%s), C: angle constrain (%s), Z: cut through (%s)",
 	             kcd->snap_midpoints ? "On" : "Off",
 	             kcd->ignore_edge_snapping ?  "On" : "Off",
@@ -277,7 +277,7 @@ static void knife_add_to_vert_edges(KnifeTool_OpData *kcd, KnifeEdge *kfe)
 	knife_append_list(kcd, &kfe->v2->edges, kfe);
 }
 
-static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, float *co, float *cageco)
+static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, const float co[3], float *cageco)
 {
 	KnifeVert *kfv = BLI_mempool_calloc(kcd->kverts);
 
@@ -2721,10 +2721,6 @@ static void knifetool_exit(bContext *C, wmOperator *op)
 
 	WM_cursor_restore(CTX_wm_window(C));
 
-	/* remember setting for later */
-	RNA_boolean_set(op->ptr, "use_occlude_geometry", !kcd->cut_through);
-	WM_operator_last_properties_store(op); /* XXX - this is clunky but modal ops wont do this automatic */
-
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(kcd->ar->type, kcd->draw_handle);
 
@@ -2745,6 +2741,9 @@ static void knifetool_exit(bContext *C, wmOperator *op)
 
 	if (kcd->cagecos)
 		MEM_freeN(kcd->cagecos);
+
+	if (kcd->linehits)
+		MEM_freeN(kcd->linehits);
 
 	/* destroy kcd itself */
 	MEM_freeN(kcd);
@@ -2918,6 +2917,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, SPACEKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, EKEY, KM_PRESS, 0, 0, KNF_MODAL_NEW_CUT);
 
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_MIDPOINT_ON);

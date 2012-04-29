@@ -42,18 +42,6 @@
 #define BM_OVERLAP (1 << 13)
 
 /**
- * Return the amount of element of type 'type' in a given bmesh.
- */
-int BM_mesh_elem_count(BMesh *bm, const char htype)
-{
-	if (htype == BM_VERT) return bm->totvert;
-	else if (htype == BM_EDGE) return bm->totedge;
-	else if (htype == BM_FACE) return bm->totface;
-
-	return 0;
-}
-
-/**
  * Returns whether or not a given vertex is
  * is part of a given edge.
  */
@@ -364,7 +352,7 @@ BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e_first)
 /**
  * Returms edge length
  */
-float BM_edge_length_calc(BMEdge *e)
+float BM_edge_calc_length(BMEdge *e)
 {
 	return len_v3v3(e->v1->co, e->v2->co);
 }
@@ -779,7 +767,7 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
  *
  * \return angle in radians
  */
-float BM_loop_face_angle(BMLoop *l)
+float BM_loop_calc_face_angle(BMLoop *l)
 {
 	return angle_v3v3v3(l->prev->v->co,
 	                    l->v->co,
@@ -787,7 +775,7 @@ float BM_loop_face_angle(BMLoop *l)
 }
 
 /**
- * \brief BM_loop_face_normal
+ * \brief BM_loop_calc_face_normal
  *
  * Calculate the normal at this loop corner or fallback to the face normal on straignt lines.
  *
@@ -795,7 +783,7 @@ float BM_loop_face_angle(BMLoop *l)
  * \param l The loop to calculate the normal at
  * \param r_normal Resulting normal
  */
-void BM_loop_face_normal(BMLoop *l, float r_normal[3])
+void BM_loop_calc_face_normal(BMLoop *l, float r_normal[3])
 {
 	if (normal_tri_v3(r_normal,
 	                  l->prev->v->co,
@@ -810,7 +798,7 @@ void BM_loop_face_normal(BMLoop *l, float r_normal[3])
 }
 
 /**
- * \brief BM_loop_face_tangent
+ * \brief BM_loop_calc_face_tangent
  *
  * Calculate the tangent at this loop corner or fallback to the face normal on straignt lines.
  * This vector always points inward into the face.
@@ -819,7 +807,7 @@ void BM_loop_face_normal(BMLoop *l, float r_normal[3])
  * \param l The loop to calculate the tangent at
  * \param r_tangent Resulting tangent
  */
-void BM_loop_face_tangent(BMLoop *l, float r_tangent[3])
+void BM_loop_calc_face_tangent(BMLoop *l, float r_tangent[3])
 {
 	float v_prev[3];
 	float v_next[3];
@@ -853,7 +841,7 @@ void BM_loop_face_tangent(BMLoop *l, float r_tangent[3])
  *
  * \return angle in radians
  */
-float BM_edge_face_angle(BMEdge *e)
+float BM_edge_calc_face_angle(BMEdge *e)
 {
 	if (BM_edge_is_manifold(e)) {
 		BMLoop *l1 = e->l;
@@ -871,13 +859,13 @@ float BM_edge_face_angle(BMEdge *e)
  * Calculate the tangent at this loop corner or fallback to the face normal on straignt lines.
  * This vector always points inward into the face.
  *
- * \brief BM_edge_face_tangent
+ * \brief BM_edge_calc_face_tangent
  * \param e
  * \param e_loop The loop to calculate the tangent at,
  * used to get the face and winding direction.
  */
 
-void BM_edge_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3])
+void BM_edge_calc_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3])
 {
 	float tvec[3];
 	BMVert *v1, *v2;
@@ -897,7 +885,7 @@ void BM_edge_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3])
  *
  * \returns the angle in radians
  */
-float BM_vert_edge_angle(BMVert *v)
+float BM_vert_calc_edge_angle(BMVert *v)
 {
 	BMEdge *e1, *e2;
 
@@ -905,9 +893,9 @@ float BM_vert_edge_angle(BMVert *v)
 	 * get the edges and count them both at once */
 
 	if ((e1 = v->e) &&
-		(e2 =  bmesh_disk_edge_next(e1, v)) &&
+	    (e2 =  bmesh_disk_edge_next(e1, v)) &&
 	    /* make sure we come full circle and only have 2 connected edges */
-		(e1 == bmesh_disk_edge_next(e2, v)))
+	    (e1 == bmesh_disk_edge_next(e2, v)))
 	{
 		BMVert *v1 = BM_edge_other_vert(e1, v);
 		BMVert *v2 = BM_edge_other_vert(e2, v);
@@ -923,7 +911,7 @@ float BM_vert_edge_angle(BMVert *v)
  * \note this isn't optimal to run on an array of verts,
  * see 'solidify_add_thickness' for a function which runs on an array.
  */
-float BM_vert_shell_factor(BMVert *v)
+float BM_vert_calc_shell_factor(BMVert *v)
 {
 	BMIter iter;
 	BMLoop *l;
@@ -931,7 +919,7 @@ float BM_vert_shell_factor(BMVert *v)
 	float accum_angle = 0.0f;
 
 	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-		const float face_angle = BM_loop_face_angle(l);
+		const float face_angle = BM_loop_calc_face_angle(l);
 		accum_shell += shell_angle_to_dist(angle_normalized_v3v3(v->no, l->f->no)) * face_angle;
 		accum_angle += face_angle;
 	}

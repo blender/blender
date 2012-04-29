@@ -40,7 +40,7 @@ void UnitConverter::read_asset(const COLLADAFW::FileInfo* asset)
 
 UnitConverter::UnitSystem UnitConverter::isMetricSystem()
 {
-	switch(unit.getLinearUnitUnit()) {
+	switch (unit.getLinearUnitUnit()) {
 		case COLLADAFW::FileInfo::Unit::MILLIMETER:
 		case COLLADAFW::FileInfo::Unit::CENTIMETER:
 		case COLLADAFW::FileInfo::Unit::DECIMETER:
@@ -198,44 +198,39 @@ void clear_global_id_map()
 /** Look at documentation of translate_map */
 std::string translate_id(const std::string &id)
 {
-	if (id.size() == 0)
-	{ return id; }
+	if (id.size() == 0) {
+		return id;
+	}
+
 	std::string id_translated = id;
 	id_translated[0] = translate_start_name_map[(unsigned int)id_translated[0]];
-	for (unsigned int i=1; i < id_translated.size(); i++)
-	{
+	for (unsigned int i=1; i < id_translated.size(); i++) {
 		id_translated[i] = translate_name_map[(unsigned int)id_translated[i]];
 	}
 	// It's so much workload now, the if () should speed up things.
-	if (id_translated != id)
-	{
+	if (id_translated != id) {
 		// Search duplicates
 		map_string_list::iterator iter = global_id_map.find(id_translated);
-		if (iter != global_id_map.end())
-		{
+		if (iter != global_id_map.end()) {
 			unsigned int i = 0;
 			bool found = false;
-			for (i=0; i < iter->second.size(); i++)
-			{
-				if (id == iter->second[i])
-				{ 
+			for (i=0; i < iter->second.size(); i++) {
+				if (id == iter->second[i]) {
 					found = true;
 					break;
 				}
 			}
 			bool convert = false;
-			if (found)
-			{
-			  if (i > 0)
-			  { convert = true; }
+			if (found) {
+			  if (i > 0) {
+				  convert = true;
+			  }
 			}
-			else
-			{ 
+			else {
 				convert = true;
 				global_id_map[id_translated].push_back(id);
 			}
-			if (convert)
-			{
+			if (convert) {
 				std::stringstream out;
 				out << ++i;
 				id_translated += out.str();
@@ -279,7 +274,7 @@ std::string get_material_id(Material *mat)
 bool has_object_type(Scene *sce, short obtype)
 {
 	Base *base= (Base*) sce->base.first;
-	while(base) {
+	while (base) {
 		Object *ob = base->object;
 			
 		if (ob->type == obtype && ob->data) {

@@ -83,7 +83,7 @@ static int get_thumb_dir( char* dir , ThumbSize size)
 	if (!home) return 0;
 	BLI_strncpy(dir, home, FILE_MAX);
 #endif
-	switch(size) {
+	switch (size) {
 		case THB_NORMAL:
 			strcat(dir, "/.thumbnails/normal/");
 			break;
@@ -269,7 +269,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 	float scaledx, scaledy;	
 	struct stat info;
 
-	switch(size) {
+	switch (size) {
 		case THB_NORMAL:
 			tsize = 128;
 			break;

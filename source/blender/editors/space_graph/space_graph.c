@@ -374,12 +374,12 @@ static void graph_buttons_area_draw(const bContext *C, ARegion *ar)
 static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_ANIMATION:
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_SCENE:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_RENDER_OPTIONS:
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
@@ -393,7 +393,7 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_OBJECT:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_KEYS:
@@ -406,7 +406,7 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_NODE:
-			switch(wmn->action) {
+			switch (wmn->action) {
 				case NA_EDITED:
 				case NA_SELECTED:
 					ED_region_tag_redraw(ar);
@@ -552,7 +552,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 					 */
 					float *col= fcu->color;
 
-					switch(fcu->array_index) {
+					switch (fcu->array_index) {
 					case 0:
 						col[0]= 1.0f; col[1]= 0.0f; col[2]= 0.0f;
 						break;

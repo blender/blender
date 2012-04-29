@@ -516,6 +516,7 @@ typedef struct KernelIntegrator {
 
 	/* caustics */
 	int no_caustics;
+	float filter_glossy;
 
 	/* seed */
 	int seed;
@@ -525,9 +526,6 @@ typedef struct KernelIntegrator {
 
 	/* clamp */
 	float sample_clamp;
-
-	/* padding */
-	int pad;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

@@ -963,7 +963,7 @@ void ED_screen_do_listen(bContext *C, wmNotifier *note)
 	wmWindow *win= CTX_wm_window(C);
 	
 	/* generic notes */
-	switch(note->category) {
+	switch (note->category) {
 		case NC_WM:
 			if (note->data==ND_FILEREAD)
 				win->screen->do_draw= 1;
@@ -1009,7 +1009,7 @@ void ED_screen_draw(wmWindow *win)
 	if (sa1 && sa2) {
 		dir = area_getorientation(sa1, sa2);
 		if (dir >= 0) {
-			switch(dir) {
+			switch (dir) {
 				case 0: /* W */
 					dir = 'r';
 					dira = 'l';
@@ -1153,6 +1153,9 @@ void ED_area_exit(bContext *C, ScrArea *sa)
 		if (sl && sl->spacetype == SPACE_FILE) {
 			ED_fileselect_exit(C, (SpaceFile *)sl);
 		}
+	}
+	else if (sa->spacetype == SPACE_VIEW3D) {
+		ED_render_engine_area_exit(sa);
 	}
 
 	CTX_wm_area_set(C, sa);
@@ -1827,7 +1830,7 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUS
 	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
 	/* update animated image textures for gpu, etc,
-	 * call before scene_update_for_newframe so modifiers with textuers don't lag 1 frame */
+	 * call before scene_update_for_newframe so modifiers with textures don't lag 1 frame */
 	ED_image_update_frame(bmain, scene->r.cfra);
 
 	ED_clip_update_frame(bmain, scene->r.cfra);

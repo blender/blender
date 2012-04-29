@@ -781,9 +781,8 @@ static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
 	act_to = (bActuator *)(to->poin);
 
 	/* (1) get the object */
-	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects) {
-		for (sens_iter = ob_iter->sensors.first; sens_iter; sens_iter = sens_iter->next)
-		{
+	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
+		for (sens_iter = ob_iter->sensors.first; sens_iter; sens_iter = sens_iter->next) {
 			if (&(sens_iter->links) == sens_from_links) {
 				ob = ob_iter;
 				break;
@@ -1017,7 +1016,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			ui_apply_but_BLOCK(C, but, data);
 			break;
 		case COL:
-			if(data->cancel)
+			if (data->cancel)
 				ui_apply_but_VEC(C, but, data);
 			else
 				ui_apply_but_BLOCK(C, but, data);
@@ -1564,8 +1563,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 				len = strlen(str);
 			}
 			
-			for (y = 0; y < strlen(buf); y++)
-			{
+			for (y = 0; y < strlen(buf); y++) {
 				/* add contents of buffer */
 				if (len + 1 < data->maxlen) {
 					for (x = data->maxlen; x > but->pos; x--)
@@ -2062,7 +2060,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	}
 
 	/* this makes adjacent blocks auto open from now on */
-	//if(but->block->auto_open==0) but->block->auto_open= 1;
+	//if (but->block->auto_open==0) but->block->auto_open= 1;
 }
 
 static void ui_blockopen_end(bContext *C, uiBut *but, uiHandleButtonData *data)

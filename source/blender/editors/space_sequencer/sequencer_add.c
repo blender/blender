@@ -188,7 +188,7 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	else if (RNA_struct_find_property(op->ptr, "files")) {
 		/* used for image strip */
 		/* best guess, first images name */
-		RNA_BEGIN(op->ptr, itemptr, "files") {
+		RNA_BEGIN (op->ptr, itemptr, "files") {
 			char *name = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
 			BLI_strncpy(seq_load->name, name, sizeof(seq_load->name));
 			MEM_freeN(name);
@@ -420,8 +420,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 
 		BLI_split_dir_part(seq_load.path, dir_only, sizeof(dir_only));
 
-		RNA_BEGIN(op->ptr, itemptr, "files")
-		{
+		RNA_BEGIN (op->ptr, itemptr, "files") {
 			RNA_string_get(&itemptr, "name", file_only);
 			BLI_join_dirfile(seq_load.path, sizeof(seq_load.path), dir_only, file_only);
 
@@ -595,7 +594,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	strip = seq->strip;
 	se = strip->stripdata;
 
-	RNA_BEGIN(op->ptr, itemptr, "files") {
+	RNA_BEGIN (op->ptr, itemptr, "files") {
 		char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
 		BLI_strncpy(se->name, filename, sizeof(se->name));
 		MEM_freeN(filename);

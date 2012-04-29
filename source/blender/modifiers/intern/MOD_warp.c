@@ -245,7 +245,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 
 
 			/* closely match PROP_SMOOTH and similar */
-			switch(wmd->falloff_type) {
+			switch (wmd->falloff_type) {
 			case eWarp_Falloff_None:
 				fac = 1.0f;
 				break;

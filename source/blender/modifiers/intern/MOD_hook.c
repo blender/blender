@@ -128,7 +128,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
-static float hook_falloff(float *co_1, float *co_2, const float falloff_squared, float fac)
+static float hook_falloff(const float co_1[3], const float co_2[3], const float falloff_squared, float fac)
 {
 	if (falloff_squared) {
 		float len_squared = len_squared_v3v3(co_1, co_2);

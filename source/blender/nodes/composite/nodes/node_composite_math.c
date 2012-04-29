@@ -46,8 +46,7 @@ static bNodeSocketTemplate cmp_node_math_out[]= {
 
 static void do_math(bNode *node, float *out, float *in, float *in2)
 {
-	switch(node->custom1)
-	{
+	switch (node->custom1) {
 	case 0: /* Add */
 		out[0]= in[0] + in2[0]; 
 		break; 
@@ -187,7 +186,7 @@ static void node_composit_exec_math(void *UNUSED(data), bNode *node, bNodeStack 
 	}
 	/* and if it doesn't exist use the second input since we 
 	 know that one of them must exist at this point*/
-	else  {
+	else {
 		stackbuf=alloc_compbuf(cbuf2->x, cbuf2->y, CB_VAL, 1);
 	}
 

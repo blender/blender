@@ -58,15 +58,6 @@ void DeviceTask::split_max_size(list<DeviceTask>& tasks, int max_size)
 	split(tasks, num);
 }
 
-void DeviceTask::split(ThreadQueue<DeviceTask>& queue, int num)
-{
-	list<DeviceTask> tasks;
-	split(tasks, num);
-
-	foreach(DeviceTask& task, tasks)
-		queue.push(task);
-}
-
 void DeviceTask::split(list<DeviceTask>& tasks, int num)
 {
 	if(type == SHADER) {

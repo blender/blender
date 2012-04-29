@@ -191,7 +191,7 @@ static FileSelect file_select_do(bContext* C, int selected_idx)
 				retval = FILE_SELECT_DIR;
 			}
 		}
-		else  {
+		else {
 			if (file->relname) {
 				BLI_strncpy(params->file, file->relname, FILE_MAXFILE);
 			}
@@ -911,8 +911,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 	numfiles = filelist_numfiles(sfile->files);
 
 	/* check if we are editing a name */
-	for (i=0; i < numfiles; ++i)
-	{
+	for (i=0; i < numfiles; ++i) {
 		if (filelist_is_selected(sfile->files, i, CHECK_ALL) ) {
 			edit_idx=i;
 			break;

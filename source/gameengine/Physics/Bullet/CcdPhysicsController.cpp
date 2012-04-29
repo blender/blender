@@ -863,9 +863,9 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 			return;
 		}
 
-		btMatrix3x3 drotmat(	rotval[0],rotval[4],rotval[8],
-								rotval[1],rotval[5],rotval[9],
-								rotval[2],rotval[6],rotval[10]);
+		btMatrix3x3 drotmat(rotval[0], rotval[3], rotval[6],
+		                    rotval[1], rotval[4], rotval[7],
+		                    rotval[2], rotval[5], rotval[8]);
 
 
 		btMatrix3x3 currentOrn;

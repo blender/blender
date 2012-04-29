@@ -561,6 +561,15 @@ void fill_vn_i(int *array_tar, const int size, const int val)
 	}
 }
 
+void fill_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val)
+{
+	unsigned short *tar = array_tar + (size - 1);
+	int i = size;
+	while (i--) {
+		*(tar--) = val;
+	}
+}
+
 void fill_vn_fl(float *array_tar, const int size, const float val)
 {
 	float *tar = array_tar + (size - 1);

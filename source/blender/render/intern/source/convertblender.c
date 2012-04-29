@@ -909,10 +909,10 @@ static float *get_object_orco(Render *re, Object *ob)
 
 	if (!orco) {
 		if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-			orco = make_orco_curve(re->scene, ob);
+			orco = BKE_curve_make_orco(re->scene, ob);
 		}
 		else if (ob->type==OB_SURF) {
-			orco = make_orco_surf(ob);
+			orco = BKE_curve_surf_make_orco(ob);
 		}
 
 		if (orco)
@@ -1473,7 +1473,7 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 	if (ren_as != PART_DRAW_BB)
 		mul_m4_v3(re->viewmat, loc);
 
-	switch(ren_as) {
+	switch (ren_as) {
 		case PART_DRAW_LINE:
 			sd->line = 1;
 			sd->time = 0.0f;
@@ -1783,9 +1783,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			hasize = ma->hasize;
 
+			/* XXX 'tpsys' is alwyas NULL, this code won't run! */
 			/* get orco */
-			if (tpsys && part->phystype==PART_PHYS_NO) {
-				tpa=tpsys->particles+pa->num;
+			if (tpsys && part->phystype == PART_PHYS_NO) {
+				tpa = tpsys->particles + pa->num;
 				psys_particle_on_emitter(psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,sd.orco,0);
 			}
 			else
@@ -2437,7 +2438,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	int a, need_orco, vlakindex, *index, negative_scale;
 	ListBase dispbase= {NULL, NULL};
 
-	if (ob!=find_basis_mball(re->scene, ob))
+	if (ob!=BKE_metaball_basis_find(re->scene, ob))
 		return;
 
 	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
@@ -2463,7 +2464,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 
 		if (!orco) {
 			/* orco hasn't been found in cache - create new one and add to cache */
-			orco= make_orco_mball(ob, &dispbase);
+			orco= BKE_metaball_make_orco(ob, &dispbase);
 			set_object_orco(re, ob, orco);
 		}
 	}
@@ -2484,7 +2485,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 		ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
 		normalize_v3(ver->n);
-		//if(ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
+		//if (ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
 		
 		if (need_orco) {
 			ver->orco= orco;
@@ -2630,8 +2631,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	sizeu--; sizev--;  /* dec size for face array */
 	if (dl->flag & DL_CYCL_V) {
 		
-		for (v = 0; v < sizev; v++)
-		{
+		for (v = 0; v < sizev; v++) {
 			/* optimize! :*/
 			vlr= RE_findOrAddVlak(obr, UVTOINDEX(sizeu - 1, v));
 			vlr1= RE_findOrAddVlak(obr, UVTOINDEX(0, v));
@@ -2643,8 +2643,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	}
 	if (dl->flag & DL_CYCL_U) {
 		
-		for (u = 0; u < sizeu; u++)
-		{
+		for (u = 0; u < sizeu; u++) {
 			/* optimize! :*/
 			vlr= RE_findOrAddVlak(obr, UVTOINDEX(u, 0));
 			vlr1= RE_findOrAddVlak(obr, UVTOINDEX(u, sizev-1));
@@ -3526,8 +3525,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 										if (need_nmap_tangent != 0) {
 											const float * tangent = (const float *) layer->data;
 											float * ftang = RE_vlakren_get_nmap_tangent(obr, vlr, 1);
-											for (vindex=0; vindex<nr_verts; vindex++)
-											{
+											for (vindex=0; vindex<nr_verts; vindex++) {
 												copy_v4_v4(ftang+vindex*4, tangent+a*16+rev_tab[vindex]*4);
 												mul_mat3_m4_v3(mat, ftang+vindex*4);
 												normalize_v3(ftang+vindex*4);
@@ -3806,7 +3804,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		lar->area_sizey= lar->area_size;
 	}
 	else if (lar->type==LA_AREA) {
-		switch(lar->area_shape) {
+		switch (lar->area_shape) {
 		case LA_AREA_SQUARE:
 			lar->ray_totsamp= lar->ray_samp*lar->ray_samp;
 			lar->ray_sampy= lar->ray_samp;
@@ -4105,7 +4103,7 @@ static void set_phong_threshold(ObjectRen *obr)
 	
 	/* Added check for 'pointy' situations, only dotproducts of 0.9 and larger 
 	 * are taken into account. This threshold is meant to work on smooth geometry, not
-	 / for extreme cases (ton) */
+	 * for extreme cases (ton) */
 	
 	for (i=0; i<obr->totvlak; i++) {
 		vlr= RE_findOrAddVlak(obr, i);
@@ -4365,8 +4363,8 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (obr->totvert || obr->totvlak || obr->tothalo || obr->totstrand) {
 		/* the exception below is because displace code now is in init_render_mesh call, 
-		I will look at means to have autosmooth enabled for all object types 
-		and have it as general postprocess, like displace */
+		 * I will look at means to have autosmooth enabled for all object types
+		 * and have it as general postprocess, like displace */
 		if (ob->type!=OB_MESH && test_for_displace(re, ob))
 			do_displacement(re, obr, NULL, NULL);
 	
@@ -4788,7 +4786,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 		return 0;
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
-	if (ob->type == OB_MBALL && ob!=find_basis_mball(re->scene, ob))
+	if (ob->type == OB_MBALL && ob!=BKE_metaball_basis_find(re->scene, ob))
 		return 0;
 	
 	if (nolamps && (ob->type==OB_LAMP))
@@ -4851,8 +4849,8 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 
 		if (enable) {
 			/* this is to make sure we get render level duplis in groups:
-			* the derivedmesh must be created before init_render_mesh,
-			* since object_duplilist does dupliparticles before that */
+			 * the derivedmesh must be created before init_render_mesh,
+			 * since object_duplilist does dupliparticles before that */
 			dm = mesh_create_derived_render(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 			dm->release(dm);
 
@@ -4927,7 +4925,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	 * empty in a dupli group. We could scan all render material/lamp/world
 	 * mtex's for mapto objects but its easier just to set the
 	 * 'imat' / 'imat_ren' on all and unlikely to be a performance hit
-	* See bug: [#28744] - campbell */
+	 * See bug: [#28744] - campbell */
 	for (ob= re->main->object.first; ob; ob= ob->id.next) {
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
 		mult_m4_m4m4(mat, re->viewmat, ob->obmat);
@@ -5521,8 +5519,8 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	
 	/* (bad) HACK calculate average velocity */
 	/* better solution would be fixing getVelocityAt() in intern/elbeem/intern/solver_util.cpp
-	so that also small drops/little water volumes return a velocity != 0. 
-	But I had no luck in fixing that function - DG */
+	 * so that also small drops/little water volumes return a velocity != 0.
+	 * But I had no luck in fixing that function - DG */
 	for (a=0; a<obr->totvert; a++) {
 		for (j=0;j<3;j++) avgvel[j] += velarray[a].vel[j];
 		
@@ -5575,7 +5573,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		// set both to the same value
 		speed[0]= speed[2]= zco[0];
 		speed[1]= speed[3]= zco[1];
-		//if(a<20) fprintf(stderr,"speed %d %f,%f | camco %f,%f,%f | hoco %f,%f,%f,%f\n", a, speed[0], speed[1], camco[0],camco[1], camco[2], hoco[0],hoco[1], hoco[2],hoco[3]); // NT DEBUG
+		//if (a < 20) fprintf(stderr,"speed %d %f,%f | camco %f,%f,%f | hoco %f,%f,%f,%f\n", a, speed[0], speed[1], camco[0],camco[1], camco[2], hoco[0],hoco[1], hoco[2],hoco[3]); // NT DEBUG
 	}
 
 	return 1;

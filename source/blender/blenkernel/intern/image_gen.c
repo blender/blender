@@ -169,12 +169,10 @@ static void checker_board_color_fill(unsigned char *rect, float *rect_float, int
 	hue_step= power_of_2_max_i(width / 8);
 	if (hue_step < 8) hue_step= 8;
 
-	for (y= 0; y < height; y++)
-	{
+	for (y= 0; y < height; y++) {
 
 		val= 0.1 + (y * (0.4 / height)); /* use a number lower then 1.0 else its too bright */
-		for (x= 0; x < width; x++)
-		{
+		for (x= 0; x < width; x++) {
 			hue= (float)((double)(x/hue_step) * 1.0 / width * hue_step);
 			hsv_to_rgb(hue, sat, val, &r, &g, &b);
 
@@ -291,12 +289,10 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 
 	BLF_buffer(mono, rect_float, rect, width, height, 4);
 
-	for (y= 0; y < height; y+=step)
-	{
+	for (y= 0; y < height; y+=step) {
 		text[1]= '1';
 
-		for (x= 0; x < width; x+=step)
-		{
+		for (x= 0; x < width; x+=step) {
 			/* hard coded offset */
 			pen_x = x + 33;
 			pen_y = y + 44;

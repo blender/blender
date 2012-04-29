@@ -71,10 +71,10 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 				}
 
 				if (lastl != l->prev && lastl != l->next) {
-					BLI_array_growone(loops);
+					BLI_array_grow_one(loops);
 					loops[BLI_array_count(loops) - 1] = lastl;
 
-					BLI_array_growone(loops);
+					BLI_array_grow_one(loops);
 					loops[BLI_array_count(loops) - 1] = l;
 
 				}
@@ -87,10 +87,10 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 		}
 		
 		if (BLI_array_count(loops) > 2) {
-			BLI_array_growone(loops);
+			BLI_array_grow_one(loops);
 			loops[BLI_array_count(loops) - 1] = loops[BLI_array_count(loops) - 2];
 
-			BLI_array_growone(loops);
+			BLI_array_grow_one(loops);
 			loops[BLI_array_count(loops) - 1] = loops[0];
 		}
 
@@ -101,10 +101,10 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 				continue;
 			}
 
-			BLI_array_growone(verts);
+			BLI_array_grow_one(verts);
 			verts[BLI_array_count(verts) - 1] = loops[i * 2]->v;
 
-			BLI_array_growone(verts);
+			BLI_array_grow_one(verts);
 			verts[BLI_array_count(verts) - 1] = loops[i * 2 + 1]->v;
 		}
 

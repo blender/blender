@@ -79,12 +79,10 @@ void bvh_done<SVBVHTree>(SVBVHTree *obj)
 					   BLI_memarena_use_align(arena2, 16);
 
 	//Build and optimize the tree
-	if (0)
-	{
+	if (0) {
 		VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1, &obj->rayobj.control).transform(obj->builder);
 
-		if (RE_rayobjectcontrol_test_break(&obj->rayobj.control))
-		{
+		if (RE_rayobjectcontrol_test_break(&obj->rayobj.control)) {
 			BLI_memarena_free(arena1);
 			BLI_memarena_free(arena2);
 			return;
@@ -100,14 +98,12 @@ void bvh_done<SVBVHTree>(SVBVHTree *obj)
 
 		obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
 	}
-	else
-	{
+	else {
 		//Finds the optimal packing of this tree using a given cost model
 		//TODO this uses quite a lot of memory, find ways to reduce memory usage during building
 		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena1,&obj->rayobj.control).transform(obj->builder);			
 
-		if (RE_rayobjectcontrol_test_break(&obj->rayobj.control))
-		{
+		if (RE_rayobjectcontrol_test_break(&obj->rayobj.control)) {
 			BLI_memarena_free(arena1);
 			BLI_memarena_free(arena2);
 			return;

@@ -370,8 +370,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	/* calculate the maximum number of copies which will fit within the
 	 * prescribed length */
-	if (amd->fit_type == MOD_ARR_FITLENGTH
-		  || amd->fit_type == MOD_ARR_FITCURVE) {
+	if (amd->fit_type == MOD_ARR_FITLENGTH || amd->fit_type == MOD_ARR_FITCURVE) {
 		float dist = sqrt(dot_v3v3(offset[3], offset[3]));
 
 		if (dist > 1e-6f)
@@ -426,7 +425,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			int first_geom_bytes = sizeof(BMVert*) * geom_slot->len;
 				
 			/* make a copy of the initial geometry ordering so the
-			   last duplicate can be merged into it */
+			 * last duplicate can be merged into it */
 			first_geom = MEM_mallocN(first_geom_bytes, "first_geom");
 			memcpy(first_geom, geom_slot->data.buf, first_geom_bytes);
 		}
@@ -453,9 +452,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				v2 = _E(geom_slot, indexMap[i]-1);
 
 				/* check in case the target vertex (v2) is already marked
-				   for merging */
-				while((v3 = BMO_slot_map_ptr_get(em->bm, &weld_op, "targetmap", v2)))
+				 * for merging */
+				while ((v3 = BMO_slot_map_ptr_get(em->bm, &weld_op, "targetmap", v2))) {
 					v2 = v3;
+				}
 
 				BMO_slot_map_ptr_insert(em->bm, &weld_op, "targetmap", v, v2);
 			}
@@ -464,7 +464,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		}
 
 		/* already copied earlier, but after executation more slot
-		   memory may be allocated */
+		 * memory may be allocated */
 		if (j == 0)
 			first_dupe_op = dupe_op;
 		
@@ -526,7 +526,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		/* Update normals in case offset object has rotation. */
 		
 		/* BMESH_TODO: check if normal recalc needed under any other
-		   conditions? */
+		 * conditions? */
 
 		CDDM_calc_normals(result);
 	}
@@ -551,7 +551,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	result = arrayModifier_doArray(amd, md->scene, ob, dm, 0);
 
-	//if(result != dm)
+	//if (result != dm)
 	//	CDDM_calc_normals_mapping(result);
 
 	return result;

@@ -450,7 +450,7 @@ static MovieClip *movieclip_alloc(const char *name)
  * otherwise creates new.
  * does not load ibuf itself
  * pass on optional frame for #name images */
-MovieClip *BKE_add_movieclip_file(const char *name)
+MovieClip *BKE_movieclip_file_add(const char *name)
 {
 	MovieClip *clip;
 	MovieClipUser user;
@@ -517,7 +517,7 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 	*height = ibuf->y;
 
 	if (clip->flag & MCLIP_USE_PROXY) {
-		switch(user->render_size) {
+		switch (user->render_size) {
 			case MCLIP_PROXY_RENDER_SIZE_25:
 				(*width) *= 4;
 				(*height) *= 4;
@@ -925,8 +925,8 @@ void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, in
 			real_ibuf_size(clip, user, ibuf, width, height);
 		}
 		else {
-			*width = 0;
-			*height = 0;
+			*width = clip->lastsize[0];
+			*height = clip->lastsize[1];
 		}
 
 		if (ibuf)
@@ -1149,14 +1149,14 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct Movi
 	}
 }
 
-void free_movieclip(MovieClip *clip)
+void BKE_movieclip_free(MovieClip *clip)
 {
 	free_buffers(clip);
 
 	BKE_tracking_free(&clip->tracking);
 }
 
-void unlink_movieclip(Main *bmain, MovieClip *clip)
+void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
 {
 	bScreen *scr;
 	ScrArea *area;

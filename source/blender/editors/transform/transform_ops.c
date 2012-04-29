@@ -317,23 +317,19 @@ static void transformops_exit(bContext *C, wmOperator *op)
 static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int retval = 1;
-	if (op->customdata == NULL)
-	{
+	if (op->customdata == NULL) {
 		TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data2");
 		TransformModeItem *tmode;
 		int mode = -1;
 
-		for (tmode = transform_modes; tmode->idname; tmode++)
-		{
-			if (op->type->idname == tmode->idname)
-			{
+		for (tmode = transform_modes; tmode->idname; tmode++) {
+			if (op->type->idname == tmode->idname) {
 				mode = tmode->mode;
 				break;
 			}
 		}
 
-		if (mode == -1)
-		{
+		if (mode == -1) {
 			mode = RNA_enum_get(op->ptr, "mode");
 		}
 
@@ -376,8 +372,7 @@ static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	exit_code |= transformEnd(C, t);
 
-	if ((exit_code & OPERATOR_RUNNING_MODAL) == 0)
-	{
+	if ((exit_code & OPERATOR_RUNNING_MODAL) == 0) {
 		transformops_exit(C, op);
 		exit_code &= ~OPERATOR_PASS_THROUGH; /* preventively remove passthrough */
 	}
@@ -400,8 +395,7 @@ static int transform_exec(bContext *C, wmOperator *op)
 {
 	TransInfo *t;
 
-	if (!transformops_data(C, op, NULL))
-	{
+	if (!transformops_data(C, op, NULL)) {
 		G.moving = 0;
 		return OPERATOR_CANCELLED;
 	}
@@ -423,8 +417,7 @@ static int transform_exec(bContext *C, wmOperator *op)
 
 static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (!transformops_data(C, op, event))
-	{
+	if (!transformops_data(C, op, event)) {
 		G.moving = 0;
 		return OPERATOR_CANCELLED;
 	}
@@ -445,8 +438,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 {
 	PropertyRNA *prop;
 
-	if (flags & P_AXIS)
-	{
+	if (flags & P_AXIS) {
 		prop= RNA_def_property(ot->srna, "axis", PROP_FLOAT, PROP_DIRECTION);
 		RNA_def_property_array(prop, 3);
 		/* Make this not hidden when there's a nice axis selection widget */
@@ -455,8 +447,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 
 	}
 
-	if (flags & P_CONSTRAINT)
-	{
+	if (flags & P_CONSTRAINT) {
 		RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
 		prop= RNA_def_property(ot->srna, "constraint_orientation", PROP_ENUM, PROP_NONE);
 		RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation");
@@ -465,21 +456,18 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		
 	}
 
-	if (flags & P_MIRROR)
-	{
+	if (flags & P_MIRROR) {
 		RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 	}
 
 
-	if (flags & P_PROPORTIONAL)
-	{
+	if (flags & P_PROPORTIONAL) {
 		RNA_def_enum(ot->srna, "proportional", proportional_editing_items, 0, "Proportional Editing", "");
 		RNA_def_enum(ot->srna, "proportional_edit_falloff", proportional_falloff_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode");
 		RNA_def_float(ot->srna, "proportional_size", 1, 0.00001f, FLT_MAX, "Proportional Size", "", 0.001, 100);
 	}
 
-	if (flags & P_SNAP)
-	{
+	if (flags & P_SNAP) {
 		prop= RNA_def_boolean(ot->srna, "snap", 0, "Use Snapping Options", "");
 		RNA_def_property_flag(prop, PROP_HIDDEN);
 
@@ -497,14 +485,12 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 			}
 		}
 	}
-	
-	if (flags & P_OPTIONS)
-	{
+
+	if (flags & P_OPTIONS) {
 		RNA_def_boolean(ot->srna, "texture_space", 0, "Edit Texture Space", "Edit Object data texture space");
 	}
 
-	if (flags & P_CORRECT_UV)
-	{
+	if (flags & P_CORRECT_UV) {
 		RNA_def_boolean(ot->srna, "correct_uv", 0, "Correct UVs", "Correct UV coordinates when transforming");
 	}
 
@@ -827,8 +813,7 @@ void transform_operatortypes(void)
 {
 	TransformModeItem *tmode;
 
-	for (tmode = transform_modes; tmode->idname; tmode++)
-	{
+	for (tmode = transform_modes; tmode->idname; tmode++) {
 		WM_operatortype_append(tmode->opfunc);
 	}
 
@@ -853,15 +838,13 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 	if (modalmap) {
 		TransformModeItem *tmode;
 
-		for (tmode = transform_modes; tmode->idname; tmode++)
-		{
+		for (tmode = transform_modes; tmode->idname; tmode++) {
 			WM_modalkeymap_assign(modalmap, tmode->idname);
 		}
 		WM_modalkeymap_assign(modalmap, "TRANSFORM_OT_transform");
 	}
 	
-	switch(spaceid)
-	{
+	switch (spaceid) {
 		case SPACE_VIEW3D:
 			WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);
 

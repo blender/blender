@@ -364,7 +364,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 
 	free_openrecent();
 	
-	BKE_freecubetable();
+	BKE_metaball_cubeTable_free();
 	
 	ED_preview_free_dbase();  /* frees a Main dbase, before free_blender! */
 

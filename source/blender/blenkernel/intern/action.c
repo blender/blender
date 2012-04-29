@@ -1561,7 +1561,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 						}
 					}
 					/* To handle repeat, we add 0.1 frame extra to make sure the last frame is included */
-					else  {
+					else {
 						
 						/* Mod to repeat */
 						if (strip->repeat!=1.0f) {

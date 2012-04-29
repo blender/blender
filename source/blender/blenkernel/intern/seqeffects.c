@@ -1781,7 +1781,7 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 	/* BOX WIPE IS NOT WORKING YET */
 	/* case DO_CROSS_WIPE: */
 	/* BOX WIPE IS NOT WORKING YET */
-	/* 
+#if 0
 		case DO_BOX_WIPE: 
 			if (invert)facf0 = 1-facf0;
 
@@ -1843,7 +1843,7 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 			}
 
 		break;
-*/
+#endif
 		case DO_IRIS_WIPE:
 			if (xo > yo) yo = xo;
 			else xo = yo;
@@ -2112,7 +2112,7 @@ static void transform_image(int x, int y, struct ImBuf *ibuf1, struct ImBuf *out
 			yt += (yo / 2.0f);
 
 			//interpolate
-			switch(interpolation) {
+			switch (interpolation) {
 			case 0:
 				neareast_interpolation(ibuf1,out, xt,yt,xi,yi);
 				break;
@@ -3076,8 +3076,9 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 	fallback_fac = 1.0;
 
 	if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
-		if (seq->seq1->enddisp != seq->seq1->start
-		    && seq->seq1->len != 0) {
+		if ((seq->seq1->enddisp != seq->seq1->start) &&
+		    (seq->seq1->len != 0))
+		{
 			fallback_fac = (float) seq->seq1->len / 
 				(float) (seq->seq1->enddisp - seq->seq1->start);
 			flags = SEQ_SPEED_INTEGRATE;

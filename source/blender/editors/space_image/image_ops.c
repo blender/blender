@@ -190,13 +190,14 @@ int space_image_main_area_poll(bContext *C)
 	return 0;
 }
 
-/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode */
+/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or editmode */
 int space_image_main_area_not_uv_brush_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *toolsettings = scene->toolsettings;
 
-	ToolSettings *toolsettings = CTX_data_scene(C)->toolsettings;
-	if (sima && !toolsettings->uvsculpt)
+	if (sima && !toolsettings->uvsculpt && !scene->obedit)
 		return 1;
 
 	return 0;
@@ -1001,11 +1002,7 @@ typedef struct {
 
 static void save_image_options_defaults(SaveImageOptions *simopts)
 {
-	memset(&simopts->im_format, 0, sizeof(simopts->im_format));
-	simopts->im_format.planes = R_IMF_PLANES_RGB;
-	simopts->im_format.imtype = R_IMF_IMTYPE_PNG;
-	simopts->im_format.quality = 90;
-	simopts->im_format.compress = 90;
+	BKE_imformat_defaults(&simopts->im_format);
 	simopts->filepath[0] = '\0';
 }
 
@@ -1246,13 +1243,7 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 static int image_save_as_check(bContext *UNUSED(C), wmOperator *op)
 {
 	ImageFormatData *imf = op->customdata;
-	char filepath[FILE_MAX];
-	RNA_string_get(op->ptr, "filepath", filepath);
-	if (BKE_add_image_extension(filepath, imf->imtype)) {
-		RNA_string_set(op->ptr, "filepath", filepath);
-		return TRUE;
-	}
-	return FALSE;
+	return WM_operator_filesel_ensure_ext_imtype(op, imf->imtype);
 }
 
 static int image_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))

@@ -87,7 +87,6 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 	{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", "Gamma Cross effect strip type"},
 	{SEQ_MUL, "MULTIPLY", 0, "Multiply", "Multiply effect strip type"},
 	{SEQ_OVERDROP, "OVER_DROP", 0, "Alpha Over Drop", "Alpha Over Drop effect strip type"},
-	{SEQ_PLUGIN, "PLUGIN", 0, "Plugin", "Plugin effect strip type"},
 	{SEQ_WIPE, "WIPE", 0, "Wipe", "Wipe effect strip type"},
 	{SEQ_GLOW, "GLOW", 0, "Glow", "Glow effect strip type"},
 	{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
@@ -202,7 +201,7 @@ static void seq_proxy_build_job(const bContext *C)
 		WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, proxy_endjob);
 	}
 
-	SEQP_BEGIN(ed, seq) {
+	SEQP_BEGIN (ed, seq) {
 		if ((seq->flag & SELECT)) {
 			context = seq_proxy_rebuild_context(pj->main, pj->scene, seq);
 			link = BLI_genericNodeN(context);
@@ -462,8 +461,7 @@ void deselect_all_seq(Scene *scene)
 	
 	if (ed == NULL) return;
 
-	SEQP_BEGIN(ed, seq)
-	{
+	SEQP_BEGIN (ed, seq) {
 		seq->flag &= ~SEQ_ALLSEL;
 	}
 	SEQ_END
@@ -846,7 +844,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 	
 	if (ed == NULL) return 0;
 
-	SEQP_BEGIN(ed, seq) {
+	SEQP_BEGIN (ed, seq) {
 		if (seq->startdisp >= cfra) {
 			seq->start += gap;
 			calc_sequence(scene, seq);
@@ -872,8 +870,7 @@ static void UNUSED_FUNCTION(touch_seq_files) (Scene * scene)
 
 	WM_cursor_wait(1);
 
-	SEQP_BEGIN(ed, seq)
-	{
+	SEQP_BEGIN (ed, seq) {
 		if (seq->flag & SELECT) {
 			if (seq->type == SEQ_MOVIE) {
 				if (seq->strip && seq->strip->stripdata) {
@@ -900,8 +897,7 @@ static void set_filter_seq(Scene *scene)
 
 	if (okee("Set Deinterlace") == 0) return;
 
-	SEQP_BEGIN(ed, seq)
-	{
+	SEQP_BEGIN (ed, seq) {
 		if (seq->flag & SELECT) {
 			if (seq->type == SEQ_MOVIE) {
 				seq->flag |= SEQ_FILTERY;
@@ -936,8 +932,7 @@ static void UNUSED_FUNCTION(seq_remap_paths) (Scene * scene)
 	if (strcmp(to, from) == 0)
 		return;
 	
-	SEQP_BEGIN(ed, seq)
-	{
+	SEQP_BEGIN (ed, seq) {
 		if (seq->flag & SELECT) {
 			if (strncmp(seq->strip->dir, from, strlen(from)) == 0) {
 				printf("found %s\n", seq->strip->dir);
@@ -1003,11 +998,13 @@ int sequencer_edit_poll(bContext *C)
 	return (seq_give_editing(CTX_data_scene(C), FALSE) != NULL);
 }
 
+#if 0 /* UNUSED */
 int sequencer_strip_poll(bContext *C)
 {
 	Editing *ed;
 	return (((ed = seq_give_editing(CTX_data_scene(C), FALSE)) != NULL) && (ed->act_seq != NULL));
 }
+#endif
 
 int sequencer_strip_has_path_poll(bContext *C)
 {
@@ -1480,7 +1477,7 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 		BLI_movelisttolist(ed->seqbasep, &newlist);
 
 		if (cut_side != SEQ_SIDE_BOTH) {
-			SEQP_BEGIN(ed, seq) {
+			SEQP_BEGIN (ed, seq) {
 				if (cut_side == SEQ_SIDE_LEFT) {
 					if (seq->startdisp >= cut_frame) {
 						seq->flag &= ~SEQ_ALLSEL;
@@ -3013,7 +3010,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 		}
 		seq->strip->stripdata = se = MEM_callocN(len * sizeof(StripElem), "stripelem");
 
-		RNA_BEGIN(op->ptr, itemptr, "files") {
+		RNA_BEGIN (op->ptr, itemptr, "files") {
 			char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
 			BLI_strncpy(se->name, filename, sizeof(se->name));
 			MEM_freeN(filename);

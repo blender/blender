@@ -758,7 +758,7 @@ BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
 /**
  * Checks if a face is valid in the data structure
  */
-int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
+int BM_face_validate(BMFace *face, FILE *err)
 {
 	BMIter iter;
 	BLI_array_declare(verts);
@@ -771,10 +771,9 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
 		fflush(err);
 	}
 
-	for (l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, face); l; l = BM_iter_step(&iter)) {
-		BLI_array_growone(verts);
-		verts[BLI_array_count(verts) - 1] = l->v;
-		
+	BLI_array_grow_items(verts, face->len);
+	BM_ITER_ELEM_INDEX (l, &iter, face, BM_LOOPS_OF_FACE, i) {
+		verts[i] = l->v;
 		if (l->e->v1 == l->e->v2) {
 			fprintf(err, "Found bmesh edge with identical verts!\n");
 			fprintf(err, "  edge ptr: %p, vert: %p\n",  l->e, l->e->v1);
@@ -783,8 +782,8 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
 		}
 	}
 
-	for (i = 0; i < BLI_array_count(verts); i++) {
-		for (j = 0; j < BLI_array_count(verts); j++) {
+	for (i = 0; i < face->len; i++) {
+		for (j = 0; j < face->len; j++) {
 			if (j == i) {
 				continue;
 			}
@@ -817,7 +816,7 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
  *
  * \note #BM_edge_rotate_check must have already run.
  */
-void BM_edge_rotate_calc(BMEdge *e, int ccw,
+void BM_edge_calc_rotate(BMEdge *e, int ccw,
                          BMLoop **r_l1, BMLoop **r_l2)
 {
 	BMVert *v1, *v2;
@@ -889,7 +888,7 @@ int BM_edge_rotate_check(BMEdge *e)
  * 2) does the newly formed edge cause a zero area corner (or close enough to be almost zero)
  *
  * \param l1,l2 are the loops of the proposed verts to rotate too and should
- * be the result of calling #BM_edge_rotate_calc
+ * be the result of calling #BM_edge_calc_rotate
  */
 int BM_edge_rotate_check_degenerate(BMEdge *e, BMLoop *l1, BMLoop *l2)
 {
@@ -1016,7 +1015,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 		return NULL;
 	}
 
-	BM_edge_rotate_calc(e, ccw, &l1, &l2);
+	BM_edge_calc_rotate(e, ccw, &l1, &l2);
 
 	/* the loops will be freed so assign verts */
 	v1 = l1->v;

@@ -21,8 +21,10 @@
 #include <float.h>
 
 #include "bvh.h"
+#include "bvh_binning.h"
 
 #include "util_boundbox.h"
+#include "util_task.h"
 #include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -37,28 +39,7 @@ class Progress;
 class BVHBuild
 {
 public:
-	struct Reference
-	{
-		int prim_index;
-		int prim_object;
-		BoundBox bounds;
-
-		Reference()
-		{
-		}
-	};
-
-	struct NodeSpec
-	{
-		int num;
-		BoundBox bounds;
-
-		NodeSpec()
-		{
-			num = 0;
-		}
-	};
-
+	/* Constructor/Destructor */
 	BVHBuild(
 		const vector<Object*>& objects,
 		vector<int>& prim_index,
@@ -70,63 +51,37 @@ public:
 	BVHNode *run();
 
 protected:
+	friend class BVHMixedSplit;
+	friend class BVHObjectSplit;
+	friend class BVHSpatialSplit;
+
 	/* adding references */
-	void add_reference_mesh(NodeSpec& root, Mesh *mesh, int i);
-	void add_reference_object(NodeSpec& root, Object *ob, int i);
-	void add_references(NodeSpec& root);
+	void add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, int i);
+	void add_reference_object(BoundBox& root, BoundBox& center, Object *ob, int i);
+	void add_references(BVHRange& root);
 
 	/* building */
-	BVHNode *build_node(const NodeSpec& spec, int level, float progress_start, float progress_end);
-	BVHNode *create_leaf_node(const NodeSpec& spec);
-	BVHNode *create_object_leaf_nodes(const Reference *ref, int num);
+	BVHNode *build_node(const BVHRange& range, int level);
+	BVHNode *build_node(const BVHObjectBinning& range, int level);
+	BVHNode *create_leaf_node(const BVHRange& range);
+	BVHNode *create_object_leaf_nodes(const BVHReference *ref, int start, int num);
 
-	void progress_update(float progress_start, float progress_end);
+	/* threads */
+	enum { THREAD_TASK_SIZE = 4096 };
+	void thread_build_node(Task *task_, int thread_id);
+	thread_mutex build_mutex;
 
-	/* object splits */
-	struct ObjectSplit
-	{
-		float sah;
-		int dim;
-		int num_left;
-		BoundBox left_bounds;
-		BoundBox right_bounds;
+	/* progress */
+	void progress_update();
 
-		ObjectSplit()
-		: sah(FLT_MAX), dim(0), num_left(0)
-		{
-		}
-	};
-
-	ObjectSplit find_object_split(const NodeSpec& spec, float nodeSAH);
-	void do_object_split(NodeSpec& left, NodeSpec& right, const NodeSpec& spec, const ObjectSplit& split);
-
-	/* spatial splits */
-	struct SpatialSplit
-	{
-		float sah;
-		int dim;
-		float pos;
-
-		SpatialSplit()
-		: sah(FLT_MAX), dim(0), pos(0.0f)
-		{
-		}
-	};
-
-	struct SpatialBin
-	{
-		BoundBox bounds;
-		int enter;
-		int exit;
-	};
-
-	SpatialSplit find_spatial_split(const NodeSpec& spec, float nodeSAH);
-	void do_spatial_split(NodeSpec& left, NodeSpec& right, const NodeSpec& spec, const SpatialSplit& split);
-	void split_reference(Reference& left, Reference& right, const Reference& ref, int dim, float pos);
+	/* tree rotations */
+	void rotate(BVHNode *node, int max_depth);
+	void rotate(BVHNode *node, int max_depth, int iterations);
 
 	/* objects and primitive references */
 	vector<Object*> objects;
-	vector<Reference> references;
+	vector<BVHReference> references;
+	int num_original_references;
 
 	/* output primitive indexes and objects */
 	vector<int>& prim_index;
@@ -138,12 +93,17 @@ protected:
 	/* progress reporting */
 	Progress& progress;
 	double progress_start_time;
-	int progress_num_duplicates;
+	size_t progress_count;
+	size_t progress_total;
+	size_t progress_original_total;
 
 	/* spatial splitting */
 	float spatial_min_overlap;
 	vector<BoundBox> spatial_right_bounds;
-	SpatialBin spatial_bins[3][BVHParams::NUM_SPATIAL_BINS];
+	BVHSpatialBin spatial_bins[3][BVHParams::NUM_SPATIAL_BINS];
+
+	/* threads */
+	TaskPool task_pool;
 };
 
 CCL_NAMESPACE_END

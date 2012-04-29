@@ -260,7 +260,7 @@ def mesh_uv_add(obj):
     if IS_BMESH:
         # XXX, odd that we need to do this. until uvs and texface
         # are separated we will need to keep it
-        uv_loops = obj.data.uv_loop_layers[-1]
+        uv_loops = obj.data.uv_layers[-1]
         uv_list = uv_loops.data[:]
         for poly in obj.data.polygons:
             poly_uvs = mesh_bmesh_poly_elems(poly, uv_list)

@@ -338,8 +338,7 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 	
 	m =  1.0f/(cosf(theta) + 0.15f*powf(93.885f-theta/(float)M_PI*180.0f,-1.253f));
 
-	for (i = 0; i < 3; i++)
-	{
+	for (i = 0; i < 3; i++) {
 		// Rayleigh Scattering
 		fTauR = expf( -m * 0.008735f * powf(fLambda[i], (float)(-4.08f)));
 
@@ -393,8 +392,7 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
 	fLambda[0]  = 1/650e-9f; 
 	fLambda[1]  = 1/570e-9f;
 	fLambda[2]  = 1/475e-9f;
-	for (i=0; i < 3; i++)
-	{
+	for (i=0; i < 3; i++) {
 		fLambda2[i] = fLambda[i]*fLambda[i];
 		fLambda4[i] = fLambda2[i]*fLambda2[i];
 	}

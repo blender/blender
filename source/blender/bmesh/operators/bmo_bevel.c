@@ -242,7 +242,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			
 			if (!BMO_elem_flag_test(bm, e, EDGE_OLD)) {
 				BM_elem_index_set(e, BLI_array_count(etags)); /* set_dirty! */
-				BLI_array_growone(etags);
+				BLI_array_grow_one(etags);
 				
 				BMO_elem_flag_enable(bm, e, EDGE_OLD);
 			}
@@ -256,11 +256,11 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 
 				BM_ITER_ELEM (l2, &liter2, l->f, BM_LOOPS_OF_FACE) {
 					BM_elem_index_set(l2, BLI_array_count(tags)); /* set_loop */
-					BLI_array_growone(tags);
+					BLI_array_grow_one(tags);
 
 					if (!BMO_elem_flag_test(bm, l2->e, EDGE_OLD)) {
 						BM_elem_index_set(l2->e, BLI_array_count(etags)); /* set_dirty! */
-						BLI_array_growone(etags);
+						BLI_array_grow_one(etags);
 						
 						BMO_elem_flag_enable(bm, l2->e, EDGE_OLD);
 					}
@@ -291,7 +291,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 		}
 		
 		if (!BLI_smallhash_haskey(&hash, (intptr_t)e)) {
-			BLI_array_growone(etags);
+			BLI_array_grow_one(etags);
 			BM_elem_index_set(e, BLI_array_count(etags) - 1); /* set_dirty! */
 			BLI_smallhash_insert(&hash, (intptr_t)e, NULL);
 			BMO_elem_flag_enable(bm, e, EDGE_OLD);
@@ -309,11 +309,11 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 				
 				/* create tags for all loops in l-> */
 				BM_ITER_ELEM (l2, &liter2, l->f, BM_LOOPS_OF_FACE) {
-					BLI_array_growone(tags);
+					BLI_array_grow_one(tags);
 					BM_elem_index_set(l2, BLI_array_count(tags) - 1); /* set_loop */
 					
 					if (!BLI_smallhash_haskey(&hash, (intptr_t)l2->e)) {
-						BLI_array_growone(etags);
+						BLI_array_grow_one(etags);
 						BM_elem_index_set(l2->e, BLI_array_count(etags) - 1); /* set_dirty! */
 						BLI_smallhash_insert(&hash, (intptr_t)l2->e, NULL);
 						BMO_elem_flag_enable(bm, l2->e, EDGE_OLD);

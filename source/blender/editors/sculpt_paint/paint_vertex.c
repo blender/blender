@@ -360,7 +360,7 @@ static void make_vertexcol(Object *ob)  /* single ob */
 		}
 	}
 
-	//if(shade)
+	//if (shade)
 	//	shadeMeshMCol(scene, ob, me);
 	//else
 	
@@ -822,7 +822,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	
 	/* brecht: disabled this because it obviously fails for
 	 * brushes with size > 64, why is this here? */
-	/*if(size > 64.0) size = 64.0;*/
+	/*if (size > 64.0) size = 64.0;*/
 	
 	ibuf = view3d_read_backbuf(vc, x - size, y - size, x + size, y + size);
 	if (ibuf) {

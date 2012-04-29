@@ -227,6 +227,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool holdout, bool object_updated)
 	/* test if we can instance or if the object is modified */
 	BL::ID b_ob_data = b_ob.data();
 	BL::ID key = (object_is_modified(b_ob) || holdout)? b_ob: b_ob_data;
+	BL::Material material_override = render_layer.material_override;
 
 	/* find shader indices */
 	vector<uint> used_shaders;
@@ -246,6 +247,8 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool holdout, bool object_updated)
 	if(used_shaders.size() == 0) {
 		if(holdout)
 			used_shaders.push_back(scene->default_holdout);
+		else if(material_override)
+			find_shader(material_override, used_shaders, scene->default_surface);
 		else
 			used_shaders.push_back(scene->default_surface);
 	}

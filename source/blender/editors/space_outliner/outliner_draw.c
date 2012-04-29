@@ -29,49 +29,30 @@
  *  \ingroup spoutliner
  */
 
-#include <string.h>
-#include <stdlib.h>
-
-#include "MEM_guardedalloc.h"
-
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_group_types.h"
-#include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_world_types.h"
-#include "DNA_sequence_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
-#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
-
-#include "BLI_ghash.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -85,7 +66,6 @@
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "outliner_intern.h"
 
@@ -298,7 +278,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 		if (tselem->type==0) {
 			test_idbutton(tselem->id->name+2);	// library.c, unique name and alpha sort
 			
-			switch(GS(tselem->id->name)) {
+			switch (GS(tselem->id->name)) {
 				case ID_MA:
 					WM_event_add_notifier(C, NC_MATERIAL, NULL); break;
 				case ID_TE:
@@ -325,7 +305,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 			}
 		}
 		else {
-			switch(tselem->type) {
+			switch (tselem->type) {
 			case TSE_DEFGROUP:
 				defgroup_unique_name(te->directdata, (Object *)tselem->id); //	id = object
 				break;
@@ -739,7 +719,7 @@ static void keymap_type_cb(bContext *C, void *kmi_v, void *UNUSED(arg_v))
 	short maptype= keymap_menu_type(kmi->type);
 	
 	if (maptype!=kmi->maptype) {
-		switch(kmi->maptype) {
+		switch (kmi->maptype) {
 			case OL_KM_KEYBOARD:
 				kmi->type= AKEY;
 				kmi->val= KM_PRESS;
@@ -796,7 +776,7 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 				xstart+= butw2+5;
 				
 				/* edit actual event */
-				switch(kmi->maptype) {
+				switch (kmi->maptype) {
 					case OL_KM_KEYBOARD:
 						uiDefKeyevtButS(block, 0, "", xstart, (int)te->ys+1, butw2, UI_UNIT_Y-1, &kmi->type, "Key code");
 						xstart+= butw2+5;
@@ -924,7 +904,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 	arg.alpha= alpha;
 	
 	if (tselem->type) {
-		switch( tselem->type) {
+		switch ( tselem->type) {
 			case TSE_ANIM_DATA:
 				UI_icon_draw(x, y, ICON_ANIM_DATA); break; // xxx
 			case TSE_NLA:
@@ -952,7 +932,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			{
 				Object *ob= (Object *)tselem->id;
 				ModifierData *md= BLI_findlink(&ob->modifiers, tselem->nr);
-				switch(md->type) {
+				switch (md->type) {
 					case eModifierType_Subsurf: 
 						UI_icon_draw(x, y, ICON_MOD_SUBSURF); break;
 					case eModifierType_Armature: 
@@ -1113,7 +1093,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 		}
 	}
 	else {
-		switch( GS(tselem->id->name)) {
+		switch ( GS(tselem->id->name)) {
 			case ID_SCE:
 				tselem_draw_icon_uibut(&arg, ICON_SCENE_DATA); break;
 			case ID_ME:
@@ -1128,7 +1108,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			{
 				Lamp *la= (Lamp *)tselem->id;
 				
-				switch(la->type) {
+				switch (la->type) {
 					case LA_LOCAL:
 						tselem_draw_icon_uibut(&arg, ICON_LAMP_POINT); break;
 					case LA_SUN:

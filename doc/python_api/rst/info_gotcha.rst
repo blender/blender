@@ -132,6 +132,8 @@ write useful tools in python which are also fast to execute while in edit-mode.
 For the time being this limitation just has to be worked around but we're aware its frustrating needs to be addressed.
 
 
+.. _info_gotcha_mesh_faces:
+
 NGons and Tessellation Faces
 ============================
 

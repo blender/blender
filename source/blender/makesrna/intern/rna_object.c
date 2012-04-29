@@ -353,7 +353,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		test_object_materials(id);
 
 		if (GS(id->name) == ID_CU)
-			test_curve_type(ob);
+			BKE_curve_type_test(ob);
 		else if (ob->type == OB_ARMATURE)
 			armature_rebuild_pose(ob, ob->data);
 	}
@@ -603,7 +603,7 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *res
 static int rna_Object_active_material_index_get(PointerRNA *ptr)
 {
 	Object *ob = (Object*)ptr->id.data;
-	return MAX2(ob->actcol-1, 0);
+	return MAX2(ob->actcol - 1, 0);
 }
 
 static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)

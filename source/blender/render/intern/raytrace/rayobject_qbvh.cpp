@@ -71,8 +71,7 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 	//TODO do this in 1 pass (half memory usage during building)
 	VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1, &obj->rayobj.control).transform(obj->builder);	
 
-	if (RE_rayobjectcontrol_test_break(&obj->rayobj.control))
-	{
+	if (RE_rayobjectcontrol_test_break(&obj->rayobj.control)) {
 		BLI_memarena_free(arena1);
 		BLI_memarena_free(arena2);
 		return;

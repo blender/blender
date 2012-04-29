@@ -145,7 +145,7 @@ static void userpref_header_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn
 {
 	/* context changes */
 #if 0
-	switch(wmn->category) {
+	switch (wmn->category) {
 		default:
 			break;
 	}

@@ -49,7 +49,7 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 
-/* ******************** bmeshutils.c */
+/* ******************** editmesh_utils.c */
 
 /*
  * ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
@@ -78,9 +78,6 @@ int EDBM_op_finish(struct BMEditMesh *em, struct BMOperator *bmop,
                    struct wmOperator *op, const int report);
 
 void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
-void EDBM_editselection_store(struct BMEditMesh *em, struct BMHeader *ele);
-void EDBM_editselection_validate(struct BMEditMesh *em);
-void EDBM_editselection_remove(struct BMEditMesh *em, struct BMHeader *ele);
 void EDBM_stats_update(struct BMEditMesh *em);
 
 /* TODO, move to math_geometry.c */
@@ -109,7 +106,7 @@ void MESH_OT_duplicate(struct wmOperatorType *ot);
 
 extern int EM_view3d_poll(struct bContext *C);
 
-struct wmKeyMap* knifetool_modal_keymap(struct wmKeyConfig *keyconf);
+struct wmKeyMap *knifetool_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* ******************* knifetool.c */
 

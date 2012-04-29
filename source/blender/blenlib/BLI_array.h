@@ -44,7 +44,7 @@
  * int i;
  *
  * for (i=0; i<10; i++) {
- *     BLI_array_growone(arr);
+ *     BLI_array_grow_one(arr);
  * 	    arr[i] = something;
  * }
  * BLI_array_free(arr);
@@ -64,12 +64,12 @@
 #define BLI_array_staticdeclare(arr, maxstatic)                               \
 	int   _##arr##_count = 0;                                                 \
 	void *_##arr##_tmp;                                                       \
-	char _##arr##_static[maxstatic * sizeof(arr)]
+	char  _##arr##_static[maxstatic * sizeof(arr)]
 
 
 /* this returns the entire size of the array, including any buffering. */
 #define BLI_array_totalsize_dyn(arr)  (                                       \
-	((arr)==NULL) ?                                                           \
+	((arr) == NULL) ?                                                         \
 	    0 :                                                                   \
 	    MEM_allocN_len(arr) / sizeof(*arr)                                    \
 )
@@ -116,32 +116,32 @@
 )
 
 /* grow an array by a specified number of items */
-#define BLI_array_growitems(arr, num)  (                                      \
+#define BLI_array_grow_items(arr, num)  (                                     \
 	((void *)(arr) == NULL && (void *)(_##arr##_static) != NULL) ?            \
 	    ((arr = (void*)_##arr##_static), (_##arr##_count += num)) :           \
 	    _bli_array_grow_items(arr, num)                                       \
 )
 
 /* returns length of array */
-#define BLI_array_growone(arr)  BLI_array_growitems(arr, 1)
+#define BLI_array_grow_one(arr)  BLI_array_grow_items(arr, 1)
 
 
 /* appends an item to the array. */
 #define BLI_array_append(arr, item)  (                                        \
-	(void) BLI_array_growone(arr),                                            \
+	(void) BLI_array_grow_one(arr),                                           \
 	(void) (arr[_##arr##_count - 1] = item)                                   \
 )
 
 /* appends an item to the array and returns a pointer to the item in the array.
  * item is not a pointer, but actual data value.*/
 #define BLI_array_append_r(arr, item)  (                                      \
-	(void) BLI_array_growone(arr),                                            \
+	(void) BLI_array_grow_one(arr),                                           \
 	(void) (arr[_##arr##_count - 1] = item),                                  \
 	(&arr[_##arr##_count - 1])                                                \
 )
 
 #define BLI_array_reserve(arr, num)                                           \
-	BLI_array_growitems(arr, num), (void)(_##arr##_count -= (num))
+	BLI_array_grow_items(arr, num), (void)(_##arr##_count -= (num))
 
 
 #define BLI_array_free(arr)                                                   \
@@ -151,9 +151,9 @@
 	}
 
 #define BLI_array_pop(arr)  (                                                 \
-	(arr&&_##arr##_count) ?                                                   \
+	(arr && _##arr##_count) ?                                                 \
 	    arr[--_##arr##_count] :                                               \
-	    0                                                                     \
+	    NULL                                                                  \
 )
 
 /* resets the logical size of an array to zero, but doesn't
@@ -163,7 +163,7 @@
 
 /* set the count of the array, doesn't actually increase the allocated array
  * size.  don't use this unless you know what you're doing. */
-#define BLI_array_set_length(arr, count)                                      \
+#define BLI_array_length_set(arr, count)                                      \
 	_##arr##_count = (count)
 
 /* only to prevent unused warnings */

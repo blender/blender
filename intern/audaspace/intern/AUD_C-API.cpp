@@ -41,6 +41,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include <sstream>
 
 #include "AUD_NULLDevice.h"
 #include "AUD_I3DDevice.h"
@@ -1227,6 +1228,47 @@ const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int lengt
 		reader->seek(start);
 		AUD_Reference<AUD_IWriter> writer = AUD_FileWriter::createWriter(filename, specs, format, codec, bitrate);
 		AUD_FileWriter::writeReader(reader, writer, length, buffersize);
+
+		return NULL;
+	}
+	catch(AUD_Exception& e)
+	{
+		return e.str;
+	}
+}
+
+const char* AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate)
+{
+	try
+	{
+		AUD_SequencerFactory* f = dynamic_cast<AUD_SequencerFactory*>(sound->get());
+
+		f->setSpecs(specs.specs);
+
+		std::vector<AUD_Reference<AUD_IWriter> > writers;
+
+		int channels = specs.channels;
+		specs.channels = AUD_CHANNELS_MONO;
+
+		for(int i = 0; i < channels; i++)
+		{
+			std::stringstream stream;
+			std::string fn = filename;
+			size_t index = fn.find_last_of('.');
+			size_t index_slash = fn.find_last_of('/');
+			size_t index_backslash = fn.find_last_of('\\');
+			if((index == std::string::npos) ||
+					((index < index_slash) && (index_slash != std::string::npos)) ||
+					((index < index_backslash) && (index_backslash != std::string::npos)))
+				stream << filename << "_" << (i + 1);
+			else
+				stream << fn.substr(0, index) << "_" << (i + 1) << fn.substr(index);
+			writers.push_back(AUD_FileWriter::createWriter(stream.str(), specs, format, codec, bitrate));
+		}
+
+		AUD_Reference<AUD_IReader> reader = f->createQualityReader();
+		reader->seek(start);
+		AUD_FileWriter::writeReader(reader, writers, length, buffersize);
 
 		return NULL;
 	}

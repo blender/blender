@@ -177,14 +177,16 @@ typedef struct SceneRenderLayer {
 	struct Material *mat_override;
 	struct Group *light_override;
 	
-	unsigned int lay;		/* scene->lay itself has priority over this */
-	unsigned int lay_zmask;	/* has to be after lay, this is for Z-masking */
+	unsigned int lay;		  /* scene->lay itself has priority over this */
+	unsigned int lay_zmask;	  /* has to be after lay, this is for Z-masking */
+	unsigned int lay_exclude; /* not used by internal, exclude */
 	int layflag;
-	
-	int pad;
 	
 	int passflag;			/* pass_xor has to be after passflag */
 	int pass_xor;
+
+	int samples;
+	int pad;
 	
 	struct FreestyleConfig freestyleConfig;
 	
@@ -254,7 +256,7 @@ typedef struct ImageFormatData {
 	char depth;    /* bits per channel, R_IMF_CHAN_DEPTH_8 -> 32,
 	                * not a flag, only set 1 at a time */
 
-	char planes  ; /* - R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA */
+	char planes;   /* - R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA */
 	char flag;     /* generic options for all image types, alpha zbuffer */
 
 	char quality;  /* (0 - 100), eg: jpeg quality */
@@ -649,10 +651,6 @@ typedef struct GameData {
 
 /* physicsEngine */
 #define WOPHY_NONE		0
-#define WOPHY_ENJI		1
-#define WOPHY_SUMO		2
-#define WOPHY_DYNAMO	3
-#define WOPHY_ODE		4
 #define WOPHY_BULLET	5
 
 /* obstacleSimulation */
@@ -894,7 +892,7 @@ typedef struct ToolSettings {
 
 	/* Subdivide Settings */
 	short cornertype;
-	short editbutflag;
+	short pad3;
 	/*Triangle to Quad conversion threshold*/
 	float jointrilimit;
 	/* Editmode Tools */
@@ -952,11 +950,11 @@ typedef struct ToolSettings {
 
 	/* Auto-Keying Mode */
 	short autokey_mode, autokey_flag;	/* defines in DNA_userdef_types.h */
-	
+
 	/* Multires */
 	char multires_subdiv_type;
 	char pad2[5];
-	
+
 	/* Skeleton generation */
 	short skgen_resolution;
 	float skgen_threshold_internal;
@@ -974,7 +972,7 @@ typedef struct ToolSettings {
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
 	char  skgen_multi_level;
-	
+
 	/* Skeleton Sketching */
 	struct Object *skgen_template;
 	char bone_sketching;

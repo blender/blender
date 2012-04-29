@@ -116,7 +116,7 @@ UVDataWrapper::UVDataWrapper(COLLADAFW::MeshVertexData& vdata) : mVData(&vdata)
 void WVDataWrapper::print()
 {
 	fprintf(stderr, "UVs:\n");
-	switch(mVData->getType()) {
+	switch (mVData->getType()) {
 	case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 		{
 			COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();
@@ -147,7 +147,7 @@ void UVDataWrapper::getUV(int uv_index, float *uv)
 	int stride = mVData->getStride(0);
 	if (stride==0) stride = 2;
 
-	switch(mVData->getType()) {
+	switch (mVData->getType()) {
 	case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 		{
 			COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();
@@ -676,7 +676,7 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i,
 {
 	i *= stride;
 	
-	switch(arr.getType()) {
+	switch (arr.getType()) {
 	case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 		{
 			COLLADAFW::ArrayPrimitiveType<float>* values = arr.getFloatValues();
@@ -797,7 +797,7 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	// what we already have handled.
 	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId>::iterator it;
 	it=materials_mapped_to_geom.find(*geom_uid);
-	while(it!=materials_mapped_to_geom.end()) {
+	while (it!=materials_mapped_to_geom.end()) {
 		if (it->second == ma_uid && it->first == *geom_uid) return NULL; // do nothing if already found
 		it++;
 	}

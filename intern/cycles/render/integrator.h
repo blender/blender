@@ -41,6 +41,7 @@ public:
 	bool transparent_shadows;
 
 	bool no_caustics;
+	float filter_glossy;
 
 	int seed;
 	int layer_flag;

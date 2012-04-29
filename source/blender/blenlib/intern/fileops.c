@@ -209,7 +209,7 @@ FILE *BLI_fopen(const char *filename, const char *mode)
 	return ufopen(filename, mode);
 }
 
-gzFile BLI_gzopen(const char *filename, const char *mode)
+void *BLI_gzopen(const char *filename, const char *mode)
 {
 	gzFile gzfile;
 
@@ -222,7 +222,7 @@ gzFile BLI_gzopen(const char *filename, const char *mode)
 		int i = 0;
 
 		/* xxx Creates file before transcribing the path */
-		if(mode[0] == 'w')
+		if (mode[0] == 'w')
 			fclose(ufopen(filename,"a"));
 
 		UTF16_ENCODE(filename);
@@ -230,7 +230,7 @@ gzFile BLI_gzopen(const char *filename, const char *mode)
 		GetShortPathNameW(filename_16,short_name_16, 256);
 
 		for (i = 0; i < 256; i++) {
-			short_name[i] = short_name_16[i];
+			short_name[i] = (char)short_name_16[i];
 		}
 
 		gzfile = gzopen(short_name,mode);

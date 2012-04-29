@@ -679,7 +679,7 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	for (i=0,fs=facesplit; i<totface; i++,fs++) {
 		mf = dm->getTessFaceData(dm, i, CD_MFACE);
 
-		switch(*fs) {
+		switch (*fs) {
 		case 3:
 		case 10:
 		case 11:
@@ -711,7 +711,7 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 			break;
 		}
 
-		switch(*fs) {
+		switch (*fs) {
 		case 3:
 		case 6:
 		case 9:
@@ -1007,10 +1007,10 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		if (psmd->dm==NULL) return derivedData;
 
 		/* 1. find faces to be exploded if needed */
-		if (emd->facepa == NULL
-				 || psmd->flag&eParticleSystemFlag_Pars
-				 || emd->flag&eExplodeFlag_CalcFaces
-				 || MEM_allocN_len(emd->facepa)/sizeof(int) != dm->getNumTessFaces(dm))
+		if (emd->facepa == NULL ||
+		    psmd->flag&eParticleSystemFlag_Pars ||
+		    emd->flag&eExplodeFlag_CalcFaces ||
+		    MEM_allocN_len(emd->facepa) / sizeof(int) != dm->getNumTessFaces(dm))
 		{
 			if (psmd->flag & eParticleSystemFlag_Pars)
 				psmd->flag &= ~eParticleSystemFlag_Pars;

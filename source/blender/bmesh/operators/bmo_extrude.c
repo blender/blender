@@ -58,7 +58,7 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 
 	BMO_ITER (f, &siter, bm, op, "faces", BM_FACE) {
 		BLI_array_empty(edges);
-		BLI_array_growitems(edges, f->len);
+		BLI_array_grow_items(edges, f->len);
 
 		i = 0;
 		firstv = lastv = NULL;
@@ -134,7 +134,7 @@ static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e
 	BMLoop *l_dst_a = BM_face_edge_share_loop(f, e_a);
 	BMLoop *l_dst_b = BM_face_edge_share_loop(f, e_b);
 	/* we could only have a face on one-or the other edges,
-	 * chech if either side of the face has an adjacent face */
+	 * check if either side of the face has an adjacent face */
 	BMLoop *l_src_1;
 	BMLoop *l_src_2;
 
@@ -184,8 +184,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 	BMO_op_initf(bm, &dupeop, "dupe geom=%fve", EXT_INPUT);
 	BMO_op_exec(bm, &dupeop);
 
-	e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0);
-	for ( ; e; e = BMO_iter_step(&siter)) {
+	for (e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0); e; e = BMO_iter_step(&siter)) {
 		e2 = BMO_iter_map_value(&siter);
 		e2 = *(BMEdge **)e2;
 
@@ -226,8 +225,7 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, *dupev;
 	BMEdge *e;
 
-	v = BMO_iter_new(&siter, bm, op, "verts", BM_VERT);
-	for ( ; v; v = BMO_iter_step(&siter)) {
+	for (v = BMO_iter_new(&siter, bm, op, "verts", BM_VERT); v; v = BMO_iter_step(&siter)) {
 		dupev = BM_vert_create(bm, v->co, v);
 
 		e = BM_edge_create(bm, v, dupev, NULL, FALSE);
@@ -343,8 +341,8 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	BMO_slot_copy(&dupeop, op, "newout", "geomout");
-	e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0);
-	for ( ; e; e = BMO_iter_step(&siter)) {
+
+	for (e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0); e; e = BMO_iter_step(&siter)) {
 
 		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
 		if (BM_edge_is_wire(e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
@@ -389,8 +387,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* link isolated vert */
-	v = BMO_iter_new(&siter, bm, &dupeop, "isovertmap", 0);
-	for ( ; v; v = BMO_iter_step(&siter)) {
+	for (v = BMO_iter_new(&siter, bm, &dupeop, "isovertmap", 0); v; v = BMO_iter_step(&siter)) {
 		v2 = *((void **)BMO_iter_map_value(&siter));
 		BM_edge_create(bm, v, v2, v->e, TRUE);
 	}
@@ -576,12 +573,12 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
 			continue;
 		}
 
-		BLI_array_growitems(verts, f->len);
+		BLI_array_grow_items(verts, f->len);
 		BM_ITER_ELEM_INDEX (l, &loopIter, f, BM_LOOPS_OF_FACE, i) {
 			verts[i] = l->v->co;
 		}
 
-		BLI_array_growitems(face_angles, f->len);
+		BLI_array_grow_items(face_angles, f->len);
 		angle_poly_v3(face_angles, (const float **)verts, f->len);
 
 		i = 0;

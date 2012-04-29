@@ -59,7 +59,7 @@ Paint *paint_get_active(Scene *sce)
 		ToolSettings *ts = sce->toolsettings;
 		
 		if (sce->basact && sce->basact->object) {
-			switch(sce->basact->object->mode) {
+			switch (sce->basact->object->mode) {
 			case OB_MODE_SCULPT:
 				return &ts->sculpt->paint;
 			case OB_MODE_VERTEX_PAINT:
@@ -151,7 +151,7 @@ void copy_paint(Paint *src, Paint *tar)
 }
 
 /* returns non-zero if any of the face's vertices
-   are hidden, zero otherwise */
+ * are hidden, zero otherwise */
 int paint_is_face_hidden(const MFace *f, const MVert *mvert)
 {
 	return ((mvert[f->v1].flag & ME_HIDE) ||
@@ -161,8 +161,8 @@ int paint_is_face_hidden(const MFace *f, const MVert *mvert)
 }
 
 /* returns non-zero if any of the corners of the grid
-   face whose inner corner is at (x,y) are hidden,
-   zero otherwise */
+ * face whose inner corner is at (x,y) are hidden,
+ * zero otherwise */
 int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
 							  int gridsize, int x, int y)
 {

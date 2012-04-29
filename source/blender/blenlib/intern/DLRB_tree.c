@@ -141,8 +141,7 @@ DLRBT_Node *BLI_dlrbTree_search (DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, v
 		return NULL;
 	
 	/* iteratively perform this search */
-	while (node && found==0) 
-	{
+	while (node && found == 0) {
 		/* check if traverse further or not 
 		 * NOTE: it is assumed that the values will be unit values only
 		 */
@@ -183,8 +182,7 @@ DLRBT_Node *BLI_dlrbTree_search_exact (DLRBT_Tree *tree, DLRBT_Comparator_FP cmp
 		return NULL;
 	
 	/* iteratively perform this search */
-	while (node && found==0) 
-	{
+	while (node && found==0) {
 		/* check if traverse further or not 
 		 * NOTE: it is assumed that the values will be unit values only
 		 */

@@ -159,7 +159,7 @@ static void view2d_masks(View2D *v2d)
 
 /* Initialize all relevant View2D data (including view rects if first time) and/or refresh mask sizes after view resize
  *	- for some of these presets, it is expected that the region will have defined some
- *    additional settings necessary for the customisation of the 2D viewport to its requirements
+ *    additional settings necessary for the customization of the 2D viewport to its requirements
  *	- this function should only be called from region init() callbacks, where it is expected that
  *	  this is called before UI_view2d_size_update(), as this one checks that the rects are properly initialized. 
  */

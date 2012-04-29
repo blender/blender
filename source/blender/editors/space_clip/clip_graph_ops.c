@@ -82,7 +82,7 @@ static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 {
 	SelectUserData *data = (SelectUserData *)userdata;
 
-	switch(data->action) {
+	switch (data->action) {
 		case SEL_SELECT:
 			marker->flag |= MARKER_GRAPH_SEL;
 			break;

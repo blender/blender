@@ -15,21 +15,35 @@
  * limitations under the License.
  */
 
+#include "bvh_binning.h"
 #include "bvh_build.h"
 #include "bvh_node.h"
 #include "bvh_params.h"
-#include "bvh_sort.h"
+#include "bvh_split.h"
 
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
 
-#include "util_algorithm.h"
+#include "util_debug.h"
 #include "util_foreach.h"
 #include "util_progress.h"
 #include "util_time.h"
 
 CCL_NAMESPACE_BEGIN
+
+/* BVH Build Task */
+
+class BVHBuildTask : public Task {
+public:
+	BVHBuildTask(InnerNode *node_, int child_, BVHObjectBinning& range_, int level_)
+	: node(node_), child(child_), level(level_), range(range_) {}
+
+	InnerNode *node;
+	int child;
+	int level;
+	BVHObjectBinning range;
+};
 
 /* Constructor / Destructor */
 
@@ -41,10 +55,10 @@ BVHBuild::BVHBuild(const vector<Object*>& objects_,
   prim_object(prim_object_),
   params(params_),
   progress(progress_),
-  progress_start_time(0.0)
+  progress_start_time(0.0),
+  task_pool(function_bind(&BVHBuild::thread_build_node, this, _1, _2))
 {
 	spatial_min_overlap = 0.0f;
-	progress_num_duplicates = 0;
 }
 
 BVHBuild::~BVHBuild()
@@ -53,57 +67,63 @@ BVHBuild::~BVHBuild()
 
 /* Adding References */
 
-void BVHBuild::add_reference_mesh(NodeSpec& root, Mesh *mesh, int i)
+void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, int i)
 {
 	for(uint j = 0; j < mesh->triangles.size(); j++) {
 		Mesh::Triangle t = mesh->triangles[j];
-		Reference ref;
+		BoundBox bounds = BoundBox::empty;
 
 		for(int k = 0; k < 3; k++) {
 			float3 pt = mesh->verts[t.v[k]];
-			ref.bounds.grow(pt);
+			bounds.grow(pt);
 		}
 
-		if(ref.bounds.valid()) {
-			ref.prim_index = j;
-			ref.prim_object = i;
-
-			references.push_back(ref);
-			root.bounds.grow(ref.bounds);
+		if(bounds.valid()) {
+			references.push_back(BVHReference(bounds, j, i));
+			root.grow(bounds);
+			center.grow(bounds.center2());
 		}
 	}
 }
 
-void BVHBuild::add_reference_object(NodeSpec& root, Object *ob, int i)
+void BVHBuild::add_reference_object(BoundBox& root, BoundBox& center, Object *ob, int i)
 {
-	Reference ref;
-
-	ref.prim_index = -1;
-	ref.prim_object = i;
-	ref.bounds = ob->bounds;
-
-	references.push_back(ref);
-	root.bounds.grow(ref.bounds);
+	references.push_back(BVHReference(ob->bounds, -1, i));
+	root.grow(ob->bounds);
+	center.grow(ob->bounds.center2());
 }
 
-void BVHBuild::add_references(NodeSpec& root)
+void BVHBuild::add_references(BVHRange& root)
 {
-	/* init root spec */
-	root.num = 0;
-	root.bounds = BoundBox();
+	/* reserve space for references */
+	size_t num_alloc_references = 0;
 
-	/* add objects */
+	foreach(Object *ob, objects) {
+		if(params.top_level) {
+			if(ob->mesh->transform_applied)
+				num_alloc_references += ob->mesh->triangles.size();
+			else
+				num_alloc_references++;
+		}
+		else
+			num_alloc_references += ob->mesh->triangles.size();
+	}
+
+	references.reserve(num_alloc_references);
+
+	/* add references from objects */
+	BoundBox bounds = BoundBox::empty, center = BoundBox::empty;
 	int i = 0;
 
 	foreach(Object *ob, objects) {
 		if(params.top_level) {
 			if(ob->mesh->transform_applied)
-				add_reference_mesh(root, ob->mesh, i);
+				add_reference_mesh(bounds, center, ob->mesh, i);
 			else
-				add_reference_object(root, ob, i);
+				add_reference_object(bounds, center, ob, i);
 		}
 		else
-			add_reference_mesh(root, ob->mesh, i);
+			add_reference_mesh(bounds, center, ob->mesh, i);
 
 		i++;
 
@@ -111,129 +131,213 @@ void BVHBuild::add_references(NodeSpec& root)
 	}
 
 	/* happens mostly on empty meshes */
-	if(!root.bounds.valid())
-		root.bounds.grow(make_float3(0.0f, 0.0f, 0.0f));
+	if(!bounds.valid())
+		bounds.grow(make_float3(0.0f, 0.0f, 0.0f));
 
-	root.num = references.size();
+	root = BVHRange(bounds, center, 0, references.size());
 }
 
 /* Build */
 
 BVHNode* BVHBuild::run()
 {
-	NodeSpec root;
+	BVHRange root;
 
 	/* add references */
 	add_references(root);
 
-	if(progress.get_cancel()) return NULL;
+	if(progress.get_cancel())
+		return NULL;
 
 	/* init spatial splits */
 	if(params.top_level) /* todo: get rid of this */
 		params.use_spatial_split = false;
 
-	spatial_min_overlap = root.bounds.area() * params.spatial_split_alpha;
+	spatial_min_overlap = root.bounds().safe_area() * params.spatial_split_alpha;
 	spatial_right_bounds.clear();
-	spatial_right_bounds.resize(max(root.num, (int)BVHParams::NUM_SPATIAL_BINS) - 1);
+	spatial_right_bounds.resize(max(root.size(), (int)BVHParams::NUM_SPATIAL_BINS) - 1);
 
 	/* init progress updates */
-	progress_num_duplicates = 0;
 	progress_start_time = time_dt();
+	progress_count = 0;
+	progress_total = references.size();
+	progress_original_total = progress_total;
+
+	prim_index.resize(references.size());
+	prim_object.resize(references.size());
 
 	/* build recursively */
-	return build_node(root, 0, 0.0f, 1.0f);
+	BVHNode *rootnode;
+
+	if(params.use_spatial_split) {
+		/* singlethreaded spatial split build */
+		rootnode = build_node(root, 0);
+	}
+	else {
+		/* multithreaded binning build */
+		BVHObjectBinning rootbin(root, &references[0]);
+		rootnode = build_node(rootbin, 0);
+		task_pool.wait();
+	}
+
+	/* delete if we cancelled */
+	if(rootnode) {
+		if(progress.get_cancel()) {
+			rootnode->deleteSubtree();
+			rootnode = NULL;
+		}
+		else if(!params.use_spatial_split) {
+			/*rotate(rootnode, 4, 5);*/
+			rootnode->update_visibility();
+		}
+	}
+
+	return rootnode;
 }
 
-void BVHBuild::progress_update(float progress_start, float progress_end)
+void BVHBuild::progress_update()
 {
 	if(time_dt() - progress_start_time < 0.25f)
 		return;
+	
+	double progress_start = (double)progress_count/(double)progress_total;
+	double duplicates = (double)(progress_total - progress_original_total)/(double)progress_total;
 
-	float duplicates = (float)progress_num_duplicates/(float)references.size();
 	string msg = string_printf("Building BVH %.0f%%, duplicates %.0f%%",
 		progress_start*100.0f, duplicates*100.0f);
 
 	progress.set_substatus(msg);
-	progress_start_time = time_dt();
+	progress_start_time = time_dt(); 
 }
 
-BVHNode* BVHBuild::build_node(const NodeSpec& spec, int level, float progress_start, float progress_end)
+void BVHBuild::thread_build_node(Task *task_, int thread_id)
 {
-	/* progress update */
-	progress_update(progress_start, progress_end);
-	if(progress.get_cancel()) return NULL;
+	if(progress.get_cancel())
+		return;
 
-	/* small enough or too deep => create leaf. */
-	if(spec.num <= params.min_leaf_size || level >= BVHParams::MAX_DEPTH)
-		return create_leaf_node(spec);
+	/* build nodes */
+	BVHBuildTask *task = (BVHBuildTask*)task_;
+	BVHNode *node = build_node(task->range, task->level);
 
-	/* find split candidates. */
-	float area = spec.bounds.area();
-	float leafSAH = area * params.triangle_cost(spec.num);
-	float nodeSAH = area * params.node_cost(2);
-	ObjectSplit object = find_object_split(spec, nodeSAH);
-	SpatialSplit spatial;
+	/* set child in inner node */
+	task->node->children[task->child] = node;
 
-	if(params.use_spatial_split && level < BVHParams::MAX_SPATIAL_DEPTH) {
-		BoundBox overlap = object.left_bounds;
-		overlap.intersect(object.right_bounds);
+	/* update progress */
+	if(task->range.size() < THREAD_TASK_SIZE) {
+		/*rotate(node, INT_MAX, 5);*/
 
-		if(overlap.area() >= spatial_min_overlap)
-			spatial = find_spatial_split(spec, nodeSAH);
+		thread_scoped_lock lock(build_mutex);
+
+		progress_count += task->range.size();
+		progress_update();
 	}
+}
 
-	/* leaf SAH is the lowest => create leaf. */
-	float minSAH = min(min(leafSAH, object.sah), spatial.sah);
+/* multithreaded binning builder */
+BVHNode* BVHBuild::build_node(const BVHObjectBinning& range, int level)
+{
+	size_t size = range.size();
+	float leafSAH = params.sah_triangle_cost * range.leafSAH;
+	float splitSAH = params.sah_node_cost * range.bounds().half_area() + params.sah_triangle_cost * range.splitSAH;
 
-	if(minSAH == leafSAH && spec.num <= params.max_leaf_size)
-		return create_leaf_node(spec);
+	/* make leaf node when threshold reached or SAH tells us */
+	if(params.small_enough_for_leaf(size, level) || (size <= params.max_leaf_size && leafSAH < splitSAH))
+		return create_leaf_node(range);
 
-	/* perform split. */
-	NodeSpec left, right;
-
-	if(params.use_spatial_split && minSAH == spatial.sah)
-		do_spatial_split(left, right, spec, spatial);
-	if(!left.num || !right.num)
-		do_object_split(left, right, spec, object);
+	/* perform split */
+	BVHObjectBinning left, right;
+	range.split(&references[0], left, right);
 
 	/* create inner node. */
-	progress_num_duplicates += left.num + right.num - spec.num;
+	InnerNode *inner;
 
-	float progress_mid = lerp(progress_start, progress_end, (float)right.num / (float)(left.num + right.num));
+	if(range.size() < THREAD_TASK_SIZE) {
+		/* local build */
+		BVHNode *leftnode = build_node(left, level + 1);
+		BVHNode *rightnode = build_node(right, level + 1);
 
-	BVHNode* rightNode = build_node(right, level + 1, progress_start, progress_mid);
-	if(progress.get_cancel()) {
-		if(rightNode) rightNode->deleteSubtree();
-		return NULL;
+		inner = new InnerNode(range.bounds(), leftnode, rightnode);
+	}
+	else {
+		/* threaded build */
+		inner = new InnerNode(range.bounds());
+
+		task_pool.push(new BVHBuildTask(inner, 0, left, level + 1), true);
+		task_pool.push(new BVHBuildTask(inner, 1, right, level + 1), true);
 	}
 
-	BVHNode* leftNode = build_node(left, level + 1, progress_mid, progress_end);
-	if(progress.get_cancel()) {
-		if(leftNode) leftNode->deleteSubtree();
-		return NULL;
-	}
-
-	return new InnerNode(spec.bounds, leftNode, rightNode);
+	return inner;
 }
 
-BVHNode *BVHBuild::create_object_leaf_nodes(const Reference *ref, int num)
+/* single threaded spatial split builder */
+BVHNode* BVHBuild::build_node(const BVHRange& range, int level)
+{
+	/* progress update */
+	progress_update();
+	if(progress.get_cancel())
+		return NULL;
+
+	/* small enough or too deep => create leaf. */
+	if(params.small_enough_for_leaf(range.size(), level)) {
+		progress_count += range.size();
+		return create_leaf_node(range);
+	}
+
+	/* splitting test */
+	BVHMixedSplit split(this, range, level);
+
+	if(split.no_split) {
+		progress_count += range.size();
+		return create_leaf_node(range);
+	}
+	
+	/* do split */
+	BVHRange left, right;
+	split.split(this, left, right, range);
+
+	progress_total += left.size() + right.size() - range.size();
+	size_t total = progress_total;
+
+	/* leaft node */
+	BVHNode *leftnode = build_node(left, level + 1);
+
+	/* right node (modify start for splits) */
+	right.set_start(right.start() + progress_total - total);
+	BVHNode *rightnode = build_node(right, level + 1);
+
+	/* inner node */
+	return new InnerNode(range.bounds(), leftnode, rightnode);
+}
+
+/* Create Nodes */
+
+BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, int num)
 {
 	if(num == 0) {
-		BoundBox bounds;
+		BoundBox bounds = BoundBox::empty;
 		return new LeafNode(bounds, 0, 0, 0);
 	}
 	else if(num == 1) {
-		prim_index.push_back(ref[0].prim_index);
-		prim_object.push_back(ref[0].prim_object);
-		uint visibility = objects[ref[0].prim_object]->visibility;
-		return new LeafNode(ref[0].bounds, visibility, prim_index.size()-1, prim_index.size());
+		if(start == prim_index.size()) {
+			assert(params.use_spatial_split);
+
+			prim_index.push_back(ref->prim_index());
+			prim_object.push_back(ref->prim_object());
+		}
+		else {
+			prim_index[start] = ref->prim_index();
+			prim_object[start] = ref->prim_object();
+		}
+
+		uint visibility = objects[ref->prim_object()]->visibility;
+		return new LeafNode(ref->bounds(), visibility, start, start+1);
 	}
 	else {
 		int mid = num/2;
-		BVHNode *leaf0 = create_object_leaf_nodes(ref, mid); 
-		BVHNode *leaf1 = create_object_leaf_nodes(ref+mid, num-mid); 
+		BVHNode *leaf0 = create_object_leaf_nodes(ref, start, mid); 
+		BVHNode *leaf1 = create_object_leaf_nodes(ref+mid, start+mid, num-mid); 
 
-		BoundBox bounds;
+		BoundBox bounds = BoundBox::empty;
 		bounds.grow(leaf0->m_bounds);
 		bounds.grow(leaf1->m_bounds);
 
@@ -241,310 +345,136 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const Reference *ref, int num)
 	}
 }
 
-BVHNode* BVHBuild::create_leaf_node(const NodeSpec& spec)
+BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 {
 	vector<int>& p_index = prim_index;
 	vector<int>& p_object = prim_object;
-	BoundBox bounds;
-	int num = 0;
+	BoundBox bounds = BoundBox::empty;
+	int num = 0, ob_num = 0;
 	uint visibility = 0;
 
-	for(int i = 0; i < spec.num; i++) {
-		if(references.back().prim_index != -1) {
-			p_index.push_back(references.back().prim_index);
-			p_object.push_back(references.back().prim_object);
-			bounds.grow(references.back().bounds);
-			visibility |= objects[references.back().prim_object]->visibility;
-			references.pop_back();
+	for(int i = 0; i < range.size(); i++) {
+		BVHReference& ref = references[range.start() + i];
+
+		if(ref.prim_index() != -1) {
+			if(range.start() + num == prim_index.size()) {
+				assert(params.use_spatial_split);
+
+				p_index.push_back(ref.prim_index());
+				p_object.push_back(ref.prim_object());
+			}
+			else {
+				p_index[range.start() + num] = ref.prim_index();
+				p_object[range.start() + num] = ref.prim_object();
+			}
+
+			bounds.grow(ref.bounds());
+			visibility |= objects[ref.prim_object()]->visibility;
 			num++;
+		}
+		else {
+			if(ob_num < i)
+				references[range.start() + ob_num] = ref;
+			ob_num++;
 		}
 	}
 
 	BVHNode *leaf = NULL;
 	
 	if(num > 0) {
-		leaf = new LeafNode(bounds, visibility, p_index.size() - num, p_index.size());
+		leaf = new LeafNode(bounds, visibility, range.start(), range.start() + num);
 
-		if(num == spec.num)
+		if(num == range.size())
 			return leaf;
 	}
 
 	/* while there may be multiple triangles in a leaf, for object primitives
-	 * we want them to be the only one, so we  */
-	int ob_num = spec.num - num;
-	const Reference *ref = (ob_num)? &references.back() - (ob_num - 1): NULL;
-	BVHNode *oleaf = create_object_leaf_nodes(ref, ob_num);
-	for(int i = 0; i < ob_num; i++)
-		references.pop_back();
+	 * we want there to be the only one, so we keep splitting */
+	const BVHReference *ref = (ob_num)? &references[range.start()]: NULL;
+	BVHNode *oleaf = create_object_leaf_nodes(ref, range.start() + num, ob_num);
 	
 	if(leaf)
-		return new InnerNode(spec.bounds, leaf, oleaf);
+		return new InnerNode(range.bounds(), leaf, oleaf);
 	else
 		return oleaf;
 }
 
-/* Object Split */
+/* Tree Rotations */
 
-BVHBuild::ObjectSplit BVHBuild::find_object_split(const NodeSpec& spec, float nodeSAH)
+void BVHBuild::rotate(BVHNode *node, int max_depth, int iterations)
 {
-	ObjectSplit split;
-	const Reference *ref_ptr = &references[references.size() - spec.num];
+	/* in tested scenes, this resulted in slightly slower raytracing, so disabled
+	 * it for now. could be implementation bug, or depend on the scene */
+	if(node)
+		for(int i = 0; i < iterations; i++)
+			rotate(node, max_depth);
+}
 
-	for(int dim = 0; dim < 3; dim++) {
-		/* sort references */
-		bvh_reference_sort(references.size() - spec.num, references.size(), &references[0], dim);
+void BVHBuild::rotate(BVHNode *node, int max_depth)
+{
+	/* nothing to rotate if we reached a leaf node. */
+	if(node->is_leaf() || max_depth < 0)
+		return;
+	
+	InnerNode *parent = (InnerNode*)node;
 
-		/* sweep right to left and determine bounds. */
-		BoundBox right_bounds;
+	/* rotate all children first */
+	for(size_t c = 0; c < 2; c++)
+		rotate(parent->children[c], max_depth-1);
 
-		for(int i = spec.num - 1; i > 0; i--) {
-			right_bounds.grow(ref_ptr[i].bounds);
-			spatial_right_bounds[i - 1] = right_bounds;
-		}
+	/* compute current area of all children */
+	BoundBox bounds0 = parent->children[0]->m_bounds;
+	BoundBox bounds1 = parent->children[1]->m_bounds;
 
-		/* sweep left to right and select lowest SAH. */
-		BoundBox left_bounds;
+	float area0 = bounds0.half_area();
+	float area1 = bounds1.half_area();
+	float4 child_area = make_float4(area0, area1, 0.0f, 0.0f);
 
-		for(int i = 1; i < spec.num; i++) {
-			left_bounds.grow(ref_ptr[i - 1].bounds);
-			right_bounds = spatial_right_bounds[i - 1];
+	/* find best rotation. we pick a target child of a first child, and swap
+	 * this with an other child. we perform the best such swap. */
+	float best_cost = FLT_MAX;
+	int best_child = -1, bets_target = -1, best_other = -1;
 
-			float sah = nodeSAH +
-				left_bounds.area() * params.triangle_cost(i) +
-				right_bounds.area() * params.triangle_cost(spec.num - i);
+	for(size_t c = 0; c < 2; c++) {
+		/* ignore leaf nodes as we cannot descent into */
+		if(parent->children[c]->is_leaf())
+			continue;
 
-			if(sah < split.sah) {
-				split.sah = sah;
-				split.dim = dim;
-				split.num_left = i;
-				split.left_bounds = left_bounds;
-				split.right_bounds = right_bounds;
+		InnerNode *child = (InnerNode*)parent->children[c];
+		BoundBox& other = (c == 0)? bounds1: bounds0;
+
+		/* transpose child bounds */
+		BoundBox target0 = child->children[0]->m_bounds;
+		BoundBox target1 = child->children[1]->m_bounds;
+
+		/* compute cost for both possible swaps */
+		float cost0 = merge(other, target1).half_area() - child_area[c];
+		float cost1 = merge(target0, other).half_area() - child_area[c];
+
+		if(min(cost0,cost1) < best_cost) {
+			best_child = (int)c;
+			best_other = (int)(1-c);
+
+			if(cost0 < cost1) {
+				best_cost = cost0;
+				bets_target = 0;
+			}
+			else {
+				best_cost = cost0;
+				bets_target = 1;
 			}
 		}
 	}
 
-	return split;
-}
+	/* if we did not find a swap that improves the SAH then do nothing */
+	if(best_cost >= 0)
+		return;
 
-void BVHBuild::do_object_split(NodeSpec& left, NodeSpec& right, const NodeSpec& spec, const ObjectSplit& split)
-{
-	/* sort references according to split */
-	int start = references.size() - spec.num;
-	int end = references.size(); /* todo: is this right? */
+	/* perform the best found tree rotation */
+	InnerNode *child = (InnerNode*)parent->children[best_child];
 
-	bvh_reference_sort(start, end, &references[0], split.dim);
-
-	/* split node specs */
-	left.num = split.num_left;
-	left.bounds = split.left_bounds;
-	right.num = spec.num - split.num_left;
-	right.bounds = split.right_bounds;
-}
-
-/* Spatial Split */
-
-BVHBuild::SpatialSplit BVHBuild::find_spatial_split(const NodeSpec& spec, float nodeSAH)
-{
-	/* initialize bins. */
-	float3 origin = spec.bounds.min;
-	float3 binSize = (spec.bounds.max - origin) * (1.0f / (float)BVHParams::NUM_SPATIAL_BINS);
-	float3 invBinSize = 1.0f / binSize;
-
-	for(int dim = 0; dim < 3; dim++) {
-		for(int i = 0; i < BVHParams::NUM_SPATIAL_BINS; i++) {
-			SpatialBin& bin = spatial_bins[dim][i];
-
-			bin.bounds = BoundBox();
-			bin.enter = 0;
-			bin.exit = 0;
-		}
-	}
-
-	/* chop references into bins. */
-	for(unsigned int refIdx = references.size() - spec.num; refIdx < references.size(); refIdx++) {
-		const Reference& ref = references[refIdx];
-		float3 firstBinf = (ref.bounds.min - origin) * invBinSize;
-		float3 lastBinf = (ref.bounds.max - origin) * invBinSize;
-		int3 firstBin = make_int3((int)firstBinf.x, (int)firstBinf.y, (int)firstBinf.z);
-		int3 lastBin = make_int3((int)lastBinf.x, (int)lastBinf.y, (int)lastBinf.z);
-
-		firstBin = clamp(firstBin, 0, BVHParams::NUM_SPATIAL_BINS - 1);
-		lastBin = clamp(lastBin, firstBin, BVHParams::NUM_SPATIAL_BINS - 1);
-
-		for(int dim = 0; dim < 3; dim++) {
-			Reference currRef = ref;
-
-			for(int i = firstBin[dim]; i < lastBin[dim]; i++) {
-				Reference leftRef, rightRef;
-
-				split_reference(leftRef, rightRef, currRef, dim, origin[dim] + binSize[dim] * (float)(i + 1));
-				spatial_bins[dim][i].bounds.grow(leftRef.bounds);
-				currRef = rightRef;
-			}
-
-			spatial_bins[dim][lastBin[dim]].bounds.grow(currRef.bounds);
-			spatial_bins[dim][firstBin[dim]].enter++;
-			spatial_bins[dim][lastBin[dim]].exit++;
-		}
-	}
-
-	/* select best split plane. */
-	SpatialSplit split;
-
-	for(int dim = 0; dim < 3; dim++) {
-		/* sweep right to left and determine bounds. */
-		BoundBox right_bounds;
-
-		for(int i = BVHParams::NUM_SPATIAL_BINS - 1; i > 0; i--) {
-			right_bounds.grow(spatial_bins[dim][i].bounds);
-			spatial_right_bounds[i - 1] = right_bounds;
-		}
-
-		/* sweep left to right and select lowest SAH. */
-		BoundBox left_bounds;
-		int leftNum = 0;
-		int rightNum = spec.num;
-
-		for(int i = 1; i < BVHParams::NUM_SPATIAL_BINS; i++) {
-			left_bounds.grow(spatial_bins[dim][i - 1].bounds);
-			leftNum += spatial_bins[dim][i - 1].enter;
-			rightNum -= spatial_bins[dim][i - 1].exit;
-
-			float sah = nodeSAH +
-				left_bounds.area() * params.triangle_cost(leftNum) +
-				spatial_right_bounds[i - 1].area() * params.triangle_cost(rightNum);
-
-			if(sah < split.sah) {
-				split.sah = sah;
-				split.dim = dim;
-				split.pos = origin[dim] + binSize[dim] * (float)i;
-			}
-		}
-	}
-
-	return split;
-}
-
-void BVHBuild::do_spatial_split(NodeSpec& left, NodeSpec& right, const NodeSpec& spec, const SpatialSplit& split)
-{
-	/* Categorize references and compute bounds.
-	 *
-	 * Left-hand side:			[left_start, left_end[
-	 * Uncategorized/split:		[left_end, right_start[
-	 * Right-hand side:			[right_start, refs.size()[ */
-
-	vector<Reference>& refs = references;
-	int left_start = refs.size() - spec.num;
-	int left_end = left_start;
-	int right_start = refs.size();
-
-	left.bounds = right.bounds = BoundBox();
-
-	for(int i = left_end; i < right_start; i++) {
-		if(refs[i].bounds.max[split.dim] <= split.pos) {
-			/* entirely on the left-hand side */
-			left.bounds.grow(refs[i].bounds);
-			swap(refs[i], refs[left_end++]);
-		}
-		else if(refs[i].bounds.min[split.dim] >= split.pos) {
-			/* entirely on the right-hand side */
-			right.bounds.grow(refs[i].bounds);
-			swap(refs[i--], refs[--right_start]);
-		}
-	}
-
-	/* duplicate or unsplit references intersecting both sides. */
-	while(left_end < right_start) {
-		/* split reference. */
-		Reference lref, rref;
-
-		split_reference(lref, rref, refs[left_end], split.dim, split.pos);
-
-		/* compute SAH for duplicate/unsplit candidates. */
-		BoundBox lub = left.bounds;		// Unsplit to left:		new left-hand bounds.
-		BoundBox rub = right.bounds;	// Unsplit to right:	new right-hand bounds.
-		BoundBox ldb = left.bounds;		// Duplicate:			new left-hand bounds.
-		BoundBox rdb = right.bounds;	// Duplicate:			new right-hand bounds.
-
-		lub.grow(refs[left_end].bounds);
-		rub.grow(refs[left_end].bounds);
-		ldb.grow(lref.bounds);
-		rdb.grow(rref.bounds);
-
-		float lac = params.triangle_cost(left_end - left_start);
-		float rac = params.triangle_cost(refs.size() - right_start);
-		float lbc = params.triangle_cost(left_end - left_start + 1);
-		float rbc = params.triangle_cost(refs.size() - right_start + 1);
-
-		float unsplitLeftSAH = lub.area() * lbc + right.bounds.area() * rac;
-		float unsplitRightSAH = left.bounds.area() * lac + rub.area() * rbc;
-		float duplicateSAH = ldb.area() * lbc + rdb.area() * rbc;
-		float minSAH = min(min(unsplitLeftSAH, unsplitRightSAH), duplicateSAH);
-
-		if(minSAH == unsplitLeftSAH) {
-			/* unsplit to left */
-			left.bounds = lub;
-			left_end++;
-		}
-		else if(minSAH == unsplitRightSAH) {
-			/* unsplit to right */
-			right.bounds = rub;
-			swap(refs[left_end], refs[--right_start]);
-		}
-		else {
-			/* duplicate */
-			left.bounds = ldb;
-			right.bounds = rdb;
-			refs[left_end++] = lref;
-			refs.push_back(rref);
-		}
-	}
-
-	left.num = left_end - left_start;
-	right.num = refs.size() - right_start;
-}
-
-void BVHBuild::split_reference(Reference& left, Reference& right, const Reference& ref, int dim, float pos)
-{
-	/* initialize references. */
-	left.prim_index = right.prim_index = ref.prim_index;
-	left.prim_object = right.prim_object = ref.prim_object;
-	left.bounds = right.bounds = BoundBox();
-
-	/* loop over vertices/edges. */
-	Object *ob = objects[ref.prim_object];
-	const Mesh *mesh = ob->mesh;
-	const int *inds = mesh->triangles[ref.prim_index].v;
-	const float3 *verts = &mesh->verts[0];
-	const float3* v1 = &verts[inds[2]];
-
-	for(int i = 0; i < 3; i++) {
-		const float3* v0 = v1;
-		int vindex = inds[i];
-		v1 = &verts[vindex];
-		float v0p = (*v0)[dim];
-		float v1p = (*v1)[dim];
-
-		/* insert vertex to the boxes it belongs to. */
-		if(v0p <= pos)
-			left.bounds.grow(*v0);
-
-		if(v0p >= pos)
-			right.bounds.grow(*v0);
-
-		/* edge intersects the plane => insert intersection to both boxes. */
-		if((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
-			float3 t = lerp(*v0, *v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
-			left.bounds.grow(t);
-			right.bounds.grow(t);
-		}
-	}
-
-	/* intersect with original bounds. */
-	left.bounds.max[dim] = pos;
-	right.bounds.min[dim] = pos;
-	left.bounds.intersect(ref.bounds);
-	right.bounds.intersect(ref.bounds);
+	swap(parent->children[best_other], child->children[bets_target]);
+	child->m_bounds = merge(child->children[0]->m_bounds, child->children[1]->m_bounds);
 }
 
 CCL_NAMESPACE_END

@@ -56,6 +56,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "UI_interface.h"
+
 #include "WM_types.h"
 #include "WM_api.h"
 
@@ -69,6 +71,8 @@ typedef struct ScreenshotData {
 	unsigned int *dumprect;
 	int dumpsx, dumpsy;
 	rcti crop;
+
+	ImageFormatData im_format;
 } ScreenshotData;
 
 /* get shot from frontbuffer */
@@ -113,9 +117,13 @@ static int screenshot_data_create(bContext *C, wmOperator *op)
 		scd->dumpsx= dumpsx;
 		scd->dumpsy= dumpsy;
 		scd->dumprect= dumprect;
-		if (sa)
+		if (sa) {
 			scd->crop= sa->totrct;
-		op->customdata= scd;
+		}
+
+		BKE_imformat_defaults(&scd->im_format);
+
+		op->customdata = scd;
 
 		return TRUE;
 	}
@@ -164,20 +172,13 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 
 	if (scd) {
 		if (scd->dumprect) {
-			Scene *scene= CTX_data_scene(C);
 			ImBuf *ibuf;
 			char path[FILE_MAX];
 
 			RNA_string_get(op->ptr, "filepath", path);
-
-			BLI_strncpy(G.ima, path, sizeof(G.ima));
 			BLI_path_abs(path, G.main->name);
 
-			/* BKE_add_image_extension() checks for if extension was already set */
-			if (scene->r.scemode & R_EXTENSION)
-				if (strlen(path)<FILE_MAX-5)
-					BKE_add_image_extension(path, scene->r.im_format.imtype);
-
+			/* operator ensures the extension */
 			ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0);
 			ibuf->rect= scd->dumprect;
 
@@ -185,7 +186,11 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 			if (!RNA_boolean_get(op->ptr, "full"))
 				screenshot_crop(ibuf, scd->crop);
 
-			BKE_write_ibuf(ibuf, path, &scene->r.im_format);
+			if (scd->im_format.planes == R_IMF_PLANES_BW) {
+				/* bw screenshot? - users will notice if it fails! */
+				IMB_color_to_bw(ibuf);
+			}
+			BKE_write_ibuf(ibuf, path, &scd->im_format);
 
 			IMB_freeImBuf(ibuf);
 		}
@@ -200,8 +205,9 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	if (screenshot_data_create(C, op)) {
 		if (RNA_struct_property_is_set(op->ptr, "filepath"))
 			return screenshot_exec(C, op);
-		
-		RNA_string_set(op->ptr, "filepath", G.ima);
+
+		/* extension is added by 'screenshot_check' after */
+		RNA_string_set(op->ptr, "filepath", G.relbase_valid ? G.main->name : "//screen");
 		
 		WM_event_add_fileselect(C, op);
 	
@@ -210,11 +216,40 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	return OPERATOR_CANCELLED;
 }
 
+static int screenshot_check(bContext *UNUSED(C), wmOperator *op)
+{
+	ScreenshotData *scd = op->customdata;
+	return WM_operator_filesel_ensure_ext_imtype(op, scd->im_format.imtype);
+}
+
 static int screenshot_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	screenshot_data_free(op);
 	return OPERATOR_CANCELLED;
 }
+
+static int screenshot_draw_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+{
+	const char *prop_id = RNA_property_identifier(prop);
+
+	return !(strcmp(prop_id, "filepath") == 0);
+}
+
+static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
+{
+	uiLayout *layout = op->layout;
+	ScreenshotData *scd = op->customdata;
+	PointerRNA ptr;
+
+	/* image template */
+	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &scd->im_format, &ptr);
+	uiTemplateImageSettings(layout, &ptr);
+
+	/* main draw call */
+	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+	uiDefAutoButsRNA(layout, &ptr, screenshot_draw_check_prop, '\0');
+}
+
 
 void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
@@ -222,9 +257,11 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	ot->idname = "SCREEN_OT_screenshot";
 	
 	ot->invoke = screenshot_invoke;
+	ot->check = screenshot_check;
 	ot->exec = screenshot_exec;
-	ot->poll = WM_operator_winactive;
 	ot->cancel = screenshot_cancel;
+	ot->ui = screenshot_draw;
+	ot->poll = WM_operator_winactive;
 	
 	ot->flag = 0;
 	

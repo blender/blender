@@ -400,8 +400,8 @@ int ntlWorld::advanceSims(int framenum)
 	bool done = false;
 	bool allPanic = true;
 
-	// stop/quit, dont display/render
-	if(getElbeemState()==SIMWORLD_STOP) { 
+	// stop/quit (abort), dont display/render
+	if(!isSimworldOk()) { 
 		return 1;
 	}
 
@@ -411,6 +411,9 @@ int ntlWorld::advanceSims(int framenum)
 	// time stopped? nothing else to do...
 	if( (*mpSims)[mFirstSim]->getFrameTime(framenum) <= 0.0 ){ 
 		done=true; allPanic=false; 
+
+		/* DG: Need to check for user cancel here (fix for [#30298]) */
+		(*mpSims)[mFirstSim]->checkCallerStatus(FLUIDSIM_CBSTATUS_STEP, 0);
 	}
 
 	int gstate = 0;

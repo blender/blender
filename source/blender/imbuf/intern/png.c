@@ -49,7 +49,7 @@ typedef struct PNGReadStruct {
 	unsigned char *data;
 	unsigned int size;
 	unsigned int seek;
-}PNGReadStruct;
+} PNGReadStruct;
 
 static void ReadData( png_structp png_ptr, png_bytep data, png_size_t length);
 static void WriteData( png_structp png_ptr, png_bytep data, png_size_t length);
@@ -358,7 +358,7 @@ struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 
 	bytesperpixel = png_get_channels(png_ptr, info_ptr);
 
-	switch(color_type) {
+	switch (color_type) {
 	case PNG_COLOR_TYPE_RGB:
 	case PNG_COLOR_TYPE_RGB_ALPHA:
 		break;

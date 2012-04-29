@@ -78,6 +78,7 @@ variables on the UI for now
 #include "BKE_DerivedMesh.h"
 #include "BKE_pointcache.h"
 #include "BKE_deform.h"
+#include "BKE_mesh.h" 
 //XXX #include  "BIF_editdeform.h"
 //XXX #include  "BIF_graphics.h"
 #include  "PIL_time.h"
@@ -113,7 +114,7 @@ typedef struct ReferenceVert {
 typedef struct ReferenceState {
 	float com[3]; /* center of mass*/
 	ReferenceVert *ivert; /* list of intial values */
-}ReferenceState;
+} ReferenceState;
 
 
 /*private scratch pad for caching and other data only needed when alive*/
@@ -125,7 +126,7 @@ typedef struct SBScratch {
 	int totface;
 	float aabbmin[3],aabbmax[3];
 	ReferenceState Ref;
-}SBScratch;
+} SBScratch;
 
 typedef struct  SB_thread_context {
 		Scene *scene;
@@ -140,7 +141,7 @@ typedef struct  SB_thread_context {
 		float windfactor;
 		int nr;
 		int tot;
-}SB_thread_context;
+} SB_thread_context;
 
 #define NLF_BUILD  1
 #define NLF_SOLVE  2
@@ -267,9 +268,9 @@ float operations still
 */
 static const int CCD_SAVETY = 190561;
 
-typedef struct ccdf_minmax{
-float minx,miny,minz,maxx,maxy,maxz;
-}ccdf_minmax;
+typedef struct ccdf_minmax {
+	float minx, miny, minz, maxx, maxy, maxz;
+} ccdf_minmax;
 
 
 
@@ -283,7 +284,7 @@ typedef struct ccd_Mesh {
 	/* Axis Aligned Bounding Box AABB */
 	float bbmin[3];
 	float bbmax[3];
-}ccd_Mesh;
+} ccd_Mesh;
 
 
 
@@ -401,7 +402,10 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 	if (!cmd->numverts || !cmd->numfaces) return;
 
 	if ((pccd_M->totvert != cmd->numverts) ||
-		(pccd_M->totface != cmd->numfaces)) return;
+	    (pccd_M->totface != cmd->numfaces))
+	{
+		return;
+	}
 
 	pccd_M->bbmin[0]=pccd_M->bbmin[1]=pccd_M->bbmin[2]=1e30f;
 	pccd_M->bbmax[0]=pccd_M->bbmax[1]=pccd_M->bbmax[2]=-1e30f;
@@ -1358,7 +1362,7 @@ static void scan_for_ext_face_forces(Object *ob,float timenow)
 /*---edges intruding*/
 
 /*+++ close vertices*/
-			if  (( bf->flag & BFF_INTERSECT)==0) {
+			if (( bf->flag & BFF_INTERSECT)==0) {
 				bf->flag &= ~BFF_CLOSEVERT;
 				tune = -1.0f;
 				feedback[0]=feedback[1]=feedback[2]=0.0f;
@@ -1387,8 +1391,7 @@ static void scan_for_ext_face_forces(Object *ob,float timenow)
 		}
 		bf = sb->scratch->bodyface;
 		for (a=0; a<sb->scratch->totface; a++, bf++) {
-			if (( bf->flag & BFF_INTERSECT) || ( bf->flag & BFF_CLOSEVERT))
-			{
+			if (( bf->flag & BFF_INTERSECT) || ( bf->flag & BFF_CLOSEVERT)) {
 				sb->bpoint[bf->v1].choke2=MAX2(sb->bpoint[bf->v1].choke2,choke);
 				sb->bpoint[bf->v2].choke2=MAX2(sb->bpoint[bf->v2].choke2,choke);
 				sb->bpoint[bf->v3].choke2=MAX2(sb->bpoint[bf->v3].choke2,choke);
@@ -1934,8 +1937,8 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							}
 
 						}
-						if ((deflected < 2)&& (G.rt != 444)) // we did not hit a face until now
-						{ // see if 'outer' hits an edge
+						if ((deflected < 2)&& (G.rt != 444)) { /* we did not hit a face until now */
+							/* see if 'outer' hits an edge */
 							float dist;
 
 							closest_to_line_segment_v3(ve, opco, nv1, nv2);
@@ -2190,7 +2193,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 	}
 
 /* debugerin */
-	if  (sb->totpoint < ifirst) {
+	if (sb->totpoint < ifirst) {
 		printf("Aye 998");
 		return (998);
 	}
@@ -2830,8 +2833,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 			nlEnd(NL_MATRIX);
 			nlEnd(NL_SYSTEM);
 
-			if ((G.rt == 32) && (nl_flags & NLF_BUILD))
-			{
+			if ((G.rt == 32) && (nl_flags & NLF_BUILD)) {
 				printf("####MEE#####\n");
 				nlPrintMatrix();
 			}
@@ -2960,7 +2962,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 
 			/* the freezer coming sooner or later */
 			/*
-			if  ((dot_v3v3(dx,dx)<freezeloc )&&(dot_v3v3(bp->force,bp->force)<freezeforce )) {
+			if ((dot_v3v3(dx,dx)<freezeloc )&&(dot_v3v3(bp->force,bp->force)<freezeforce )) {
 				bp->frozen /=2;
 			}
 			else {
@@ -3229,8 +3231,7 @@ static void springs_from_mesh(Object *ob)
 	float scale =1.0f;
 
 	sb= ob->soft;
-	if (me && sb)
-	{
+	if (me && sb) {
 	/* using bp->origS as a container for spring calcualtions here
 	** will be overwritten sbObjectStep() to receive
 	** actual modifier stack positions
@@ -3267,6 +3268,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 	BodyPoint *bp;
 	BodySpring *bs;
 	int a, totedge;
+  BKE_mesh_tessface_ensure(me); 
 	if (ob->softflag & OB_SB_EDGES) totedge= me->totedge;
 	else totedge= 0;
 
@@ -3305,8 +3307,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		this enables per vertex *mass painting*
 		*/
 
-		if (sb->namedVG_Mass[0])
-		{
+		if (sb->namedVG_Mass[0]) {
 			int grp= defgroup_name_index (ob,sb->namedVG_Mass);
 			/* printf("VGN  %s %d\n",sb->namedVG_Mass,grp); */
 			if (grp > -1) {
@@ -3319,8 +3320,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		/* first set the default */
 		bp->springweight = 1.0f;
 
-		if (sb->namedVG_Spring_K[0])
-		{
+		if (sb->namedVG_Spring_K[0]) {
 			int grp= defgroup_name_index (ob,sb->namedVG_Spring_K);
 			//printf("VGN  %s %d\n",sb->namedVG_Spring_K,grp);
 			if (grp > -1) {
@@ -3559,7 +3559,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 	int a, curindex=0;
 	int totvert, totspring = 0, setgoal=0;
 
-	totvert= count_curveverts(&cu->nurb);
+	totvert= BKE_nurbList_verts_count(&cu->nurb);
 
 	if (ob->softflag & OB_SB_EDGES) {
 		if (ob->type==OB_CURVE) {
@@ -3637,8 +3637,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 		}
 	}
 
-	if (totspring)
-	{
+	if (totspring) {
 		build_bps_springlist(ob); /* link bps to springs */
 		if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
 	}
@@ -3894,7 +3893,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 		SB_estimate_transform(ob,NULL,NULL,NULL);
 		SB_estimate_transform(ob,NULL,NULL,NULL);
 	}
-	switch(ob->type) {
+	switch (ob->type) {
 	case OB_MESH:
 		if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
 		break;
@@ -3950,8 +3949,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		if (sb->solver_ID>0) mid_flags |= MID_PRESERVE;
 
 		forcetime = forcetimemax; /* hope for integrating in one step */
-		while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
-		{
+		while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) ) {
 			/* set goals in time */
 			interpolate_exciter(ob,200,(int)(200.0f*(timedone/dtime)));
 
@@ -4019,12 +4017,11 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		}
 
 	}
-	else if (sb->solver_ID == 2)
-	{/* do semi "fake" implicit euler */
+	else if (sb->solver_ID == 2) {
+		/* do semi "fake" implicit euler */
 		//removed
 	}/*SOLVER SELECT*/
-	else if (sb->solver_ID == 4)
-	{
+	else if (sb->solver_ID == 4) {
 		/* do semi "fake" implicit euler */
 	}/*SOLVER SELECT*/
 	else if (sb->solver_ID == 3) {
@@ -4081,7 +4078,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	if (sb->bpoint == NULL ||
 	   ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) {
 
-		switch(ob->type) {
+		switch (ob->type) {
 			case OB_MESH:
 				mesh_to_softbody(scene, ob);
 				break;

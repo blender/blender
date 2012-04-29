@@ -82,31 +82,24 @@ static void add_normal_aligned(float nor[3], const float add[3])
 
 static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 {
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
 	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
 	float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
-	int flag = 0;
 
-	if (smooth != 0.0f)
-		flag |= B_SMOOTH;
-	if (fractal != 0.0f)
-		flag |= B_FRACTAL;
-	
 	if (RNA_boolean_get(op->ptr, "quadtri") && 
 	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_STRAIGHT_CUT)
 	{
 		RNA_enum_set(op->ptr, "quadcorner", SUBD_INNERVERT);
 	}
 	
-	BM_mesh_esubdivideflag(obedit, em->bm, BM_ELEM_SELECT,
-	                       smooth, fractal,
-	                       ts->editbutflag | flag,
-	                       cuts, 0, RNA_enum_get(op->ptr, "quadcorner"),
-	                       RNA_boolean_get(op->ptr, "quadtri"),
-	                       TRUE, RNA_int_get(op->ptr, "seed"));
+	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
+	                   smooth, fractal,
+	                   cuts,
+	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
+	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE,
+	                   RNA_int_get(op->ptr, "seed"));
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -934,7 +927,9 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 		//"Erase Only Faces";
 		if (!EDBM_op_callf(em, op, "del geom=%hf context=%i",
 		                   BM_ELEM_SELECT, DEL_ONLYFACES))
+		{
 			return OPERATOR_CANCELLED;
+		}
 	}
 
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -1020,14 +1015,36 @@ void MESH_OT_edge_collapse_loop(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int edbm_add_edge_face__smooth_get(BMesh *bm)
+{
+	BMEdge *e;
+	BMIter iter;
+
+	unsigned int vote_on_smooth[2] = {0, 0};
+
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT) && e->l) {
+			vote_on_smooth[BM_elem_flag_test_bool(e->l->f, BM_ELEM_SMOOTH)]++;
+		}
+	}
+
+	return (vote_on_smooth[0] < vote_on_smooth[1]);
+}
+
 static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 {
 	BMOperator bmop;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	
-	if (!EDBM_op_init(em, &bmop, op, "contextual_create geom=%hfev mat_nr=%i", BM_ELEM_SELECT, em->mat_nr))
+	const short use_smooth = edbm_add_edge_face__smooth_get(em->bm);
+	/* when this is used to dissolve we could avoid this, but checking isnt too slow */
+
+	if (!EDBM_op_init(em, &bmop, op,
+	                  "contextual_create geom=%hfev mat_nr=%i use_smooth=%b",
+	                  BM_ELEM_SELECT, em->mat_nr, use_smooth))
+	{
 		return OPERATOR_CANCELLED;
+	}
 	
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
@@ -2719,10 +2736,9 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	if (mode == KNIFE_MIDPOINT) numcuts = 1;
 	BMO_slot_int_set(&bmop, "numcuts", numcuts);
 
-	BMO_slot_int_set(&bmop, "flag", B_KNIFE);
 	BMO_slot_int_set(&bmop, "quadcornertype", SUBD_STRAIGHT_CUT);
-	BMO_slot_bool_set(&bmop, "singleedge", FALSE);
-	BMO_slot_bool_set(&bmop, "gridfill", FALSE);
+	BMO_slot_bool_set(&bmop, "use_singleedge", FALSE);
+	BMO_slot_bool_set(&bmop, "use_gridfill", FALSE);
 
 	BMO_slot_float_set(&bmop, "radius", 0);
 	
@@ -3257,7 +3273,6 @@ void MESH_OT_split(wmOperatorType *ot)
 static int edbm_spin_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMOperator spinop;
@@ -3265,14 +3280,15 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	float d[3] = {0.0f, 0.0f, 0.0f};
 	int steps, dupli;
 	float degr;
-    
+
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
 	steps = RNA_int_get(op->ptr, "steps");
 	degr = RNA_float_get(op->ptr, "degrees");
-	if (ts->editbutflag & B_CLOCKWISE) degr = -degr;
+	//if (ts->editbutflag & B_CLOCKWISE)
+	degr = -degr;
 	dupli = RNA_boolean_get(op->ptr, "dupli");
-    
+
 	/* undo object transformation */
 	copy_m3_m4(imat, obedit->imat);
 	sub_v3_v3(cent, obedit->obmat[3]);
@@ -3601,7 +3617,7 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 
 /* qsort routines.  not sure how to make these
  * work, since we aren't using linked lists for
- * geometry anymore.  might need a sortof "swap"
+ * geometry anymore.  might need a sort of "swap"
  * function for bmesh elements. */
 
 /* TODO All this section could probably use a refresh...
@@ -3623,22 +3639,6 @@ static int vergxco(const void *v1, const void *v2)
 		return (x1->x > x2->x) - (x1->x < x2->x);
 	return (x2->org_idx < 0) - (x1->org_idx < 0);
 }
-
-#if 0 /* Unused */
-struct facesort {
-	uintptr_t x;
-	struct EditFace *efa;
-};
-
-static int vergface(const void *v1, const void *v2)
-{
-	const struct facesort *x1 = v1, *x2 = v2;
-
-	if (x1->x > x2->x) return 1;
-	else if (x1->x < x2->x) return -1;
-	return 0;
-}
-#endif
 
 static void xsortvert_flag__doSetX(void *userData, BMVert *UNUSED(eve), int x, int UNUSED(y), int index)
 {
@@ -4076,7 +4076,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 	BMEdge *eed;
 	BMOperator bmop;
 	float factor = RNA_float_get(op->ptr, "percent") /*, dfac */ /* UNUSED */, df, s;
-	int i, recursion = RNA_int_get(op->ptr, "recursion");
+	int i, recursion = 1; /* RNA_int_get(op->ptr, "recursion"); */ /* temp removed, see comment below */
 	const int use_even = RNA_boolean_get(op->ptr, "use_even");
 	const int use_dist = RNA_boolean_get(op->ptr, "use_dist");
 	float *w = NULL, ftot;
@@ -4153,7 +4153,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "percent", 0.5f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
-	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
+//  XXX, disabled for 2.63 release, needs to work much better without overlap before we can give to users.
+//	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
 
 	RNA_def_boolean(ot->srna, "use_even", FALSE, "Even",     "Calculate evenly spaced bevel");
 	RNA_def_boolean(ot->srna, "use_dist", FALSE, "Distance", "Interpret the percent in blender units");
@@ -4251,7 +4252,7 @@ void MESH_OT_inset(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "use_boundary",        TRUE, "Boundary",  "Inset face boundries");
+	RNA_def_boolean(ot->srna, "use_boundary",        TRUE, "Boundary",  "Inset face boundaries");
 	RNA_def_boolean(ot->srna, "use_even_offset",     TRUE, "Offset Even",      "Scale the offset to give more even thickness");
 	RNA_def_boolean(ot->srna, "use_relative_offset", FALSE, "Offset Relative", "Scale the offset by surrounding geometry");
 

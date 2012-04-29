@@ -99,7 +99,7 @@ static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 	if (mb->id.us > 0) {
 		for (ob = bmain->object.first; ob; ob = ob->id.next)
 			if (ob->data == mb)
-				copy_mball_properties(scene, ob);
+				BKE_metaball_properties_copy(scene, ob);
 	
 		DAG_id_tag_update(&mb->id, 0);
 		WM_main_add_notifier(NC_GEOM|ND_DATA, mb);
@@ -115,7 +115,7 @@ static void rna_MetaBall_update_rotation(Main *bmain, Scene *scene, PointerRNA *
 
 static MetaElem *rna_MetaBall_elements_new(MetaBall *mb, int type)
 {
-	MetaElem *ml = add_metaball_element(mb, type);
+	MetaElem *ml = BKE_metaball_element_add(mb, type);
 
 	/* cheating way for importers to avoid slow updates */
 	if (mb->id.us > 0) {
@@ -331,13 +331,14 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_Meta_texspace_size_get", "rna_Meta_texspace_size_set", NULL);
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
-	/* not supported yet
+	/* not supported yet */
+#if 0
 	prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
 	RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
-	*/
+#endif
 	
 	/* materials */
 	prop = RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);

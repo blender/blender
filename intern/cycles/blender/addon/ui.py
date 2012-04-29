@@ -87,11 +87,11 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "diffuse_bounces", text="Diffuse")
         sub.prop(cscene, "glossy_bounces", text="Glossy")
         sub.prop(cscene, "transmission_bounces", text="Transmission")
-        sub.prop(cscene, "no_caustics")
 
-        #row = col.row()
-        #row.prop(cscene, "blur_caustics")
-        #row.active = not cscene.no_caustics
+        col.separator()
+
+        col.prop(cscene, "no_caustics")
+        col.prop(cscene, "blur_glossy")
 
 
 class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
@@ -178,15 +178,22 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(scene, "layers", text="Scene")
-        col.label(text="Material:")
-        col.prop(rl, "material_override", text="")
-
-        col.prop(rl, "use_sky", "Use Environment")
+        col.prop(rl, "layers_exclude", text="Exclude")
 
         col = split.column()
         col.prop(rl, "layers", text="Layer")
         col.label(text="Mask Layers:")
         col.prop(rl, "layers_zmask", text="")
+
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Material:")
+        col.prop(rl, "material_override", text="")
+
+        col = split.column()
+        col.prop(rl, "samples")
+        col.prop(rl, "use_sky", "Use Environment")
 
         split = layout.split()
 
@@ -781,6 +788,31 @@ class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
         layout.prop(mapping, "use_color_ramp", text="Ramp")
         if mapping.use_color_ramp:
             layout.template_color_ramp(mapping, "color_ramp", expand=True)
+
+
+class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
+    bl_label = "Simplify"
+    bl_context = "scene"
+    COMPAT_ENGINES = {'CYCLES'}
+
+    def draw_header(self, context):
+        rd = context.scene.render
+        self.layout.prop(rd, "use_simplify", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+
+        layout.active = rd.use_simplify
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(rd, "simplify_subdivision", text="Subdivision")
+
+        col = split.column()
+        col.prop(rd, "simplify_child_particles", text="Child Particles")
 
 
 def draw_device(self, context):

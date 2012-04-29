@@ -240,7 +240,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 			edgering_find_order(lasteed, eed, lastv1, v);
 			lastv1 = v[0][0];
 
-			BLI_array_growitems(edges, previewlines);
+			BLI_array_grow_items(edges, previewlines);
 
 			for (i = 1; i <= previewlines; i++) {
 				co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0]) * (i / ((float)previewlines + 1)) + v[0][0]->co[0];
@@ -265,7 +265,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 		edgering_find_order(lasteed, startedge, lastv1, v);
 		
-		BLI_array_growitems(edges, previewlines);
+		BLI_array_grow_items(edges, previewlines);
 
 		for (i = 1; i <= previewlines; i++) {
 			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1])
@@ -313,10 +313,11 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		edgering_sel(lcd, cuts, 1);
 		
 		if (lcd->do_cut) {
-			BM_mesh_esubdivideflag(lcd->ob, em->bm, BM_ELEM_SELECT, 0.0f,
-			                       0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT,
-			                       SUBD_PATH, 0, FALSE, 0);
-			
+			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
+			                   0.0f, 0.0f,
+			                   cuts,
+			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, FALSE, 0);
+
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {
 				if (em->selectmode == SCE_SELECT_FACE)
@@ -336,9 +337,9 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			
 			/* sets as active, useful for other tools */
 			if (em->selectmode & SCE_SELECT_VERTEX)
-				EDBM_editselection_store(em, &lcd->eed->v1->head);  /* low priority TODO, get vertrex close to mouse */
+				BM_select_history_store(em->bm, lcd->eed->v1);  /* low priority TODO, get vertrex close to mouse */
 			if (em->selectmode & SCE_SELECT_EDGE)
-				EDBM_editselection_store(em, &lcd->eed->head);
+				BM_select_history_store(em->bm, lcd->eed);
 			
 			EDBM_selectmode_flush(lcd->em);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, lcd->ob->data);

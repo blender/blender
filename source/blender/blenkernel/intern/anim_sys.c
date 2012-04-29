@@ -1257,8 +1257,7 @@ static void animsys_evaluate_fcurves (PointerRNA *ptr, ListBase *list, AnimMappe
 	FCurve *fcu;
 	
 	/* calculate then execute each curve */
-	for (fcu= list->first; fcu; fcu= fcu->next) 
-	{
+	for (fcu= list->first; fcu; fcu= fcu->next) {
 		/* check if this F-Curve doesn't belong to a muted group */
 		if ((fcu->grp == NULL) || (fcu->grp->flag & AGRP_MUTED)==0) {
 			/* check if this curve should be skipped */
@@ -1281,8 +1280,7 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 	/* drivers are stored as F-Curves, but we cannot use the standard code, as we need to check if
 	 * the depsgraph requested that this driver be evaluated...
 	 */
-	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) 
-	{
+	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
 		ChannelDriver *driver= fcu->driver;
 		short ok= 0;
 		
@@ -1358,8 +1356,7 @@ void animsys_evaluate_action_group (PointerRNA *ptr, bAction *act, bActionGroup 
 		return;
 	
 	/* calculate then execute each curve */
-	for (fcu= agrp->channels.first; (fcu) && (fcu->grp == agrp); fcu= fcu->next) 
-	{
+	for (fcu= agrp->channels.first; (fcu) && (fcu->grp == agrp); fcu= fcu->next) {
 		/* check if this curve should be skipped */
 		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) {
 			calculate_fcurve(fcu, ctime);
@@ -1975,8 +1972,7 @@ void nladata_flush_channels (ListBase *channels)
 		float value= nec->value;
 		
 		/* write values - see animsys_write_rna_setting() to sync the code */
-		switch (RNA_property_type(prop)) 
-		{
+		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_length(ptr, prop))
 					RNA_property_boolean_set_index(ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
@@ -2178,7 +2174,7 @@ static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt)
  *
  * Current Status:
  *	- Currently (as of September 2009), overrides we haven't needed to (fully) implement overrides. 
- * 	  However, the code fo this is relatively harmless, so is left in the code for now.
+ * 	  However, the code for this is relatively harmless, so is left in the code for now.
  */
 
 /* Evaluation loop for evaluation animation data 
@@ -2224,7 +2220,9 @@ void BKE_animsys_evaluate_animdata (Scene *scene, ID *id, AnimData *adt, float c
 	 *	  or be layered on top of existing animation data.
 	 *	- Drivers should be in the appropriate order to be evaluated without problems...
 	 */
-	if ((recalc & ADT_RECALC_DRIVERS) /*&& (adt->recalc & ADT_RECALC_DRIVERS)*/) // XXX for now, don't check yet, as depsgraph hasn't been updated
+	if ((recalc & ADT_RECALC_DRIVERS)
+	    /* XXX for now, don't check yet, as depsgraph hasn't been updated */
+	    /* && (adt->recalc & ADT_RECALC_DRIVERS)*/)
 	{
 		animsys_evaluate_drivers(&id_ptr, adt, ctime);
 	}

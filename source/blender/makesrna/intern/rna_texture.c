@@ -134,8 +134,6 @@ static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 			return &RNA_MusgraveTexture;
 		case TEX_NOISE:
 			return &RNA_NoiseTexture;
-		case TEX_PLUGIN:
-			return &RNA_PluginTexture;
 		case TEX_POINTDENSITY:
 			return &RNA_PointDensityTexture;
 		case TEX_STUCCI:
@@ -1237,8 +1235,8 @@ static void rna_def_texture_image(BlenderRNA *brna)
 #if 0
 
 	/* XXX: did this as an array, but needs better descriptions than "1 2 3 4"
-	perhaps a new subtype could be added?
-	--I actually used single values for this, maybe change later with a RNA_Rect thing? */
+	 * perhaps a new subtype could be added?
+	 * --I actually used single values for this, maybe change later with a RNA_Rect thing? */
 	prop = RNA_def_property(srna, "crop_rectangle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cropxmin");
 	RNA_def_property_array(prop, 4);
@@ -1300,17 +1298,6 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_DERIVATIVEMAP);
 	RNA_def_property_ui_text(prop, "Derivative Map", "Use red and green as derivative values");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
-}
-
-static void rna_def_texture_plugin(BlenderRNA *brna)
-{
-	StructRNA *srna;
-
-	srna = RNA_def_struct(brna, "PluginTexture", "Texture");
-	RNA_def_struct_ui_text(srna, "Plugin", "External plugin texture");
-	RNA_def_struct_sdna(srna, "Tex");
-
-	/* XXX: todo */
 }
 
 static void rna_def_texture_environment_map(BlenderRNA *brna)
@@ -2013,7 +2000,6 @@ static void rna_def_texture(BlenderRNA *brna)
 	rna_def_texture_stucci(brna);
 	rna_def_texture_noise(brna);
 	rna_def_texture_image(brna);
-	rna_def_texture_plugin(brna);
 	rna_def_texture_environment_map(brna);
 	rna_def_texture_musgrave(brna);
 	rna_def_texture_voronoi(brna);

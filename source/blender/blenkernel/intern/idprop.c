@@ -484,7 +484,7 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 }
 /*
  * replaces a property with the same name in a group, or adds 
- * it if the propery doesn't exist.
+ * it if the properly doesn't exist.
  */
 void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 {
@@ -581,8 +581,7 @@ void IDP_FreeIterBeforeEnd(void *vself)
 static void IDP_FreeGroup(IDProperty *prop)
 {
 	IDProperty *loop;
-	for (loop=prop->data.group.first; loop; loop=loop->next)
-	{
+	for (loop=prop->data.group.first; loop; loop=loop->next) {
 		IDP_FreeProperty(loop);
 	}
 	BLI_freelistN(&prop->data.group);

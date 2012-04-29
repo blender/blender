@@ -174,7 +174,7 @@ int ntlGeometryObjModel::initModel(int numVertices, float *vertices, int numTria
 		anitimes.clear();
 		for(int frame=0; frame<channelSize; frame++) {
 			ntlSetVec3f averts; averts.mVerts.clear();
-			ntlSetVec3f anorms; averts.mVerts.clear();
+			ntlSetVec3f anorms; anorms.mVerts.clear();
 			int setsize = (3*numVertices+1);
 
 			ntlVec3Gfx p(0.),n(1.);

@@ -1047,9 +1047,8 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		
 		/* chop off the leading text, starting from the right */
 		while (but->strwidth > okwidth && cp2 > but->drawstr) {
-			int bytes = BLI_str_utf8_size(cp2);
-			if (bytes < 0)
-				bytes = 1;
+			char *prev_utf8 = BLI_str_find_prev_char_utf8(but->drawstr, cp2);
+			int bytes = cp2 - prev_utf8;
 
 			/* shift the text after and including cp2 back by 1 char, +1 to include null terminator */
 			memmove(cp2 - bytes, cp2, strlen(cp2) + 1);
@@ -1061,8 +1060,7 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	
 	
 		/* after the leading text is gone, chop off the : and following space, with ofs */
-		while ((but->strwidth > okwidth) && (but->ofs < 2))
-		{
+		while ((but->strwidth > okwidth) && (but->ofs < 2)) {
 			ui_text_clip_give_next_off(but);
 			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
 			if (but->strwidth < 10) break;
@@ -2233,8 +2231,8 @@ int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
 	vec[2][0] = vec[3][0] - dist;
 	vec[2][1] = vec[3][1];
 	
-	forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, sizeof(float) * 2);
-	forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0] + 1, resol, sizeof(float) * 2);
+	BKE_curve_forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, sizeof(float) * 2);
+	BKE_curve_forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0] + 1, resol, sizeof(float) * 2);
 	
 	return 1;
 }
@@ -3264,7 +3262,8 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 	}	
 }
 
-uiWidgetColors *ui_tooltip_get_theme(void) {
+uiWidgetColors *ui_tooltip_get_theme(void)
+{
 	uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
 	return wt->wcol_theme;
 }

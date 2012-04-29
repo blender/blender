@@ -27,6 +27,7 @@
 
 #include "util_foreach.h"
 #include "util_function.h"
+#include "util_task.h"
 #include "util_time.h"
 
 CCL_NAMESPACE_BEGIN
@@ -36,6 +37,8 @@ Session::Session(const SessionParams& params_)
   tile_manager(params.progressive, params.samples, params.tile_size, params.min_size)
 {
 	device_use_gl = ((params.device.type != DEVICE_CPU) && !params.background);
+
+	TaskScheduler::init(params.threads);
 
 	device = Device::create(params.device, params.background, params.threads);
 	buffers = new RenderBuffers(device);
@@ -88,6 +91,8 @@ Session::~Session()
 	delete display;
 	delete scene;
 	delete device;
+
+	TaskScheduler::exit();
 }
 
 void Session::start()

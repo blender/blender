@@ -745,7 +745,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 	float dx, fac;
 	char str[256];
 		
-	switch(evt->type) {
+	switch (evt->type) {
 		case ESCKEY:
 			ed_marker_move_cancel(C, op);
 			return OPERATOR_CANCELLED;

@@ -61,7 +61,7 @@
 #include "wm_event_types.h"
 
 /******************************* Keymap Item **********************************
-* Item in a keymap, that maps from an event to an operator or modal map item */
+ * Item in a keymap, that maps from an event to an operator or modal map item */
 
 static wmKeyMapItem *wm_keymap_item_copy(wmKeyMapItem *kmi)
 {
@@ -103,7 +103,9 @@ static int wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
 	
 	if (!((a->ptr == NULL && b->ptr == NULL) ||
 	      (a->ptr && b->ptr && IDP_EqualsProperties(a->ptr->data, b->ptr->data))))
+	{
 		return 0;
+	}
 	
 	if ((a->flag & KMI_INACTIVE) != (b->flag & KMI_INACTIVE))
 		return 0;

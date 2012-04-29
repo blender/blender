@@ -43,6 +43,8 @@ void bmesh_edit_end(BMesh *bm, int flag);
 void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag);
 void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *func,
                                  const char *msg_a, const char *msg_b);
+int  BM_mesh_elem_count(BMesh *bm, const char htype);
+
 void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx);
 
 BMVert *BM_vert_at_index(BMesh *bm, const int index);

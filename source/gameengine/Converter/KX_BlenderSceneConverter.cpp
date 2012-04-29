@@ -308,25 +308,11 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 				useDbvtCulling = (blenderscene->gm.mode & WO_DBVT_CULLING) != 0;
 				break;
 			}
-							
-			case WOPHY_ODE:
-			{
-				physics_engine = UseODE;
-				break;
-			}
-			case WOPHY_DYNAMO:
-			{
-				physics_engine = UseDynamo;
-				break;
-			}
-			case WOPHY_SUMO:
-			{
-				physics_engine = UseSumo; 
-				break;
-			}
+			default:
 			case WOPHY_NONE:
 			{
 				physics_engine = UseNone;
+				break;
 			}
 		}
 	}
@@ -352,11 +338,7 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 				destinationscene->SetPhysicsEnvironment(ccdPhysEnv);
 				break;
 			}
-#endif	
-		case UseDynamo:
-		{
-		}
-		
+#endif
 		default:
 		case UseNone:
 			physics_engine = UseNone;

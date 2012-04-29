@@ -239,7 +239,8 @@ static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTre
 	}
 }
 
-BMFace *BMBVH_RayCast(BMBVHTree *tree, float *co, float *dir, float *hitout, float *cagehit)
+BMFace *BMBVH_RayCast(BMBVHTree *tree, const float co[3], const float dir[3],
+                      float r_hitout[3], float r_cagehit[3])
 {
 	BVHTreeRayHit hit;
 
@@ -250,10 +251,9 @@ BMFace *BMBVH_RayCast(BMBVHTree *tree, float *co, float *dir, float *hitout, flo
 	
 	BLI_bvhtree_ray_cast(tree->tree, co, dir, 0.0f, &hit, raycallback, tree);
 	if (hit.dist != FLT_MAX && hit.index != -1) {
-		if (hitout) {
+		if (r_hitout) {
 			if (tree->flag & BMBVH_RETURN_ORIG) {
 				BMVert *v1, *v2, *v3;
-				float co[3];
 				int i;
 				
 				v1 = tree->em->looptris[hit.index][0]->v;
@@ -261,17 +261,17 @@ BMFace *BMBVH_RayCast(BMBVHTree *tree, float *co, float *dir, float *hitout, flo
 				v3 = tree->em->looptris[hit.index][2]->v;
 				
 				for (i = 0; i < 3; i++) {
-					co[i] = v1->co[i] + ((v2->co[i] - v1->co[i]) * tree->uv[0]) +
-					                    ((v3->co[i] - v1->co[i]) * tree->uv[1]);
+					r_hitout[i] = v1->co[i] + ((v2->co[i] - v1->co[i]) * tree->uv[0]) +
+					                          ((v3->co[i] - v1->co[i]) * tree->uv[1]);
 				}
-				copy_v3_v3(hitout, co);
 			}
 			else {
-				copy_v3_v3(hitout, hit.co);
+				copy_v3_v3(r_hitout, hit.co);
 			}
 
-			if (cagehit)
-				copy_v3_v3(cagehit, hit.co);
+			if (r_cagehit) {
+				copy_v3_v3(r_cagehit, hit.co);
+			}
 		}
 
 		return tree->em->looptris[hit.index][0]->f;

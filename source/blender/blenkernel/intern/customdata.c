@@ -167,7 +167,7 @@ static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest,
 	int i, size = sizeof(void *);
 
 	for (i = 0; i < count; ++i) {
-		void **ptr = (void  **)((char *)dest + i * size);
+		void **ptr = (void **)((char *)dest + i * size);
 		*ptr = NULL;
 	}
 }
@@ -1810,9 +1810,9 @@ void CustomData_copy_data(const CustomData *source, CustomData *dest,
 		/* find the first dest layer with type >= the source type
 		 * (this should work because layers are ordered by type)
 		 */
-		while (dest_i < dest->totlayer
-			  && dest->layers[dest_i].type < source->layers[src_i].type)
+		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
 			++dest_i;
+		}
 
 		/* if there are no more dest layers, we're done */
 		if (dest_i >= dest->totlayer) return;
@@ -1901,9 +1901,9 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 		/* find the first dest layer with type >= the source type
 		 * (this should work because layers are ordered by type)
 		 */
-		while (dest_i < dest->totlayer
-			  && dest->layers[dest_i].type < source->layers[src_i].type)
+		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
 			++dest_i;
+		}
 
 		/* if there are no more dest layers, we're done */
 		if (dest_i >= dest->totlayer) return;
@@ -2056,7 +2056,7 @@ void CustomData_set(const CustomData *data, int index, int type, void *source)
 /*Bmesh functions*/
 /*needed to convert to/from different face reps*/
 void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata,
-			     int totloop, int totpoly)
+                             int totloop, int totpoly)
 {
 	int i;
 	for (i=0; i < fdata->totlayer; i++) {
@@ -2167,7 +2167,7 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 	int t;
 
 	/* copy old layer description so that old data can be copied into
-	   the new allocation */
+	 * the new allocation */
 	destold = *dest;
 	if (destold.layers) destold.layers = MEM_dupallocN(destold.layers);
 	
@@ -2272,9 +2272,9 @@ void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
 		/* find the first dest layer with type >= the source type
 		 * (this should work because layers are ordered by type)
 		 */
-		while (dest_i < dest->totlayer
-			  && dest->layers[dest_i].type < source->layers[src_i].type)
+		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
 			++dest_i;
+		}
 
 		/* if there are no more dest layers, we're done */
 		if (dest_i >= dest->totlayer) return;
@@ -2337,7 +2337,10 @@ int CustomData_layer_has_math(struct CustomData *data, int layer_n)
 	const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[layer_n].type);
 	
 	if (typeInfo->equal && typeInfo->add && typeInfo->multiply && 
-	    typeInfo->initminmax && typeInfo->dominmax) return 1;
+	    typeInfo->initminmax && typeInfo->dominmax)
+	{
+		return 1;
+	}
 	
 	return 0;
 }
@@ -2504,9 +2507,9 @@ void CustomData_to_bmesh_block(const CustomData *source, CustomData *dest,
 		/* find the first dest layer with type >= the source type
 		 * (this should work because layers are ordered by type)
 		 */
-		while (dest_i < dest->totlayer
-			  && dest->layers[dest_i].type < source->layers[src_i].type)
+		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
 			++dest_i;
+		}
 
 		/* if there are no more dest layers, we're done */
 		if (dest_i >= dest->totlayer) return;
@@ -2547,9 +2550,9 @@ void CustomData_from_bmesh_block(const CustomData *source, CustomData *dest,
 		/* find the first dest layer with type >= the source type
 		 * (this should work because layers are ordered by type)
 		 */
-		while (dest_i < dest->totlayer
-			  && dest->layers[dest_i].type < source->layers[src_i].type)
+		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
 			++dest_i;
+		}
 
 		/* if there are no more dest layers, we're done */
 		if (dest_i >= dest->totlayer) return;
@@ -2684,7 +2687,9 @@ int CustomData_verify_versions(struct CustomData *data, int index)
 
 		if (!typeInfo->defaultname && (index > 0) &&
 			data->layers[index-1].type == layer->type)
+		{
 			keeplayer = 0; /* multiple layers of which we only support one */
+		}
 	}
 
 	if (!keeplayer) {

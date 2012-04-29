@@ -4131,8 +4131,9 @@ void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
 			p_face_add_construct(phandle, key, vkeys, co, uv, 1, 2, 3, pin, select);
 		}
 	}
-	else if(!p_face_exists(phandle, vkeys, 0, 1, 2))
+	else if (!p_face_exists(phandle, vkeys, 0, 1, 2)) {
 		p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select);
+	}
 }
 
 void param_edge_set_seam(ParamHandle *handle, ParamKey *vkeys)

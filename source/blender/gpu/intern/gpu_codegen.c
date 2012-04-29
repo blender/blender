@@ -263,11 +263,11 @@ void GPU_codegen_exit(void)
 		glsl_material_library = NULL;
 	}
 
-	/*if(FUNCTION_PROTOTYPES) {
+	/*if (FUNCTION_PROTOTYPES) {
 		MEM_freeN(FUNCTION_PROTOTYPES);
 		FUNCTION_PROTOTYPES = NULL;
 	}*/
-	/*if(FUNCTION_LIB) {
+	/*if (FUNCTION_LIB) {
 		GPU_shader_free(FUNCTION_LIB);
 		FUNCTION_LIB = NULL;
 	}*/
@@ -388,7 +388,7 @@ static void codegen_set_unique_ids(ListBase *nodes)
 				((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL))) {
 				if (input->link) {
 					/* input is texture from buffer, assign only one texid per
-					   buffer to avoid sampling the same texture twice */
+					 * buffer to avoid sampling the same texture twice */
 					if (!BLI_ghash_haskey(bindhash, input->link)) {
 						input->texid = texid++;
 						input->bindtex = 1;
@@ -399,7 +399,7 @@ static void codegen_set_unique_ids(ListBase *nodes)
 				}
 				else if (input->ima) {
 					/* input is texture from image, assign only one texid per
-					   buffer to avoid sampling the same texture twice */
+					 * buffer to avoid sampling the same texture twice */
 					if (!BLI_ghash_haskey(bindhash, input->ima)) {
 						input->texid = texid++;
 						input->bindtex = 1;
@@ -587,7 +587,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 	codegen_set_unique_ids(nodes);
 	codegen_print_uniforms_functions(ds, nodes);
 
-	//if(G.debug & G_DEBUG)
+	//if (G.debug & G_DEBUG)
 	//	BLI_dynstr_appendf(ds, "/* %s */\n", name);
 
 	BLI_dynstr_append(ds, "void main(void)\n");
@@ -602,7 +602,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 	code = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 
-	//if(G.debug & G_DEBUG) printf("%s\n", code);
+	//if (G.debug & G_DEBUG) printf("%s\n", code);
 
 	return code;
 }
@@ -645,7 +645,7 @@ static char *code_generate_vertex(ListBase *nodes)
 
 	BLI_dynstr_free(ds);
 
-	//if(G.debug & G_DEBUG) printf("%s\n", code);
+	//if (G.debug & G_DEBUG) printf("%s\n", code);
 
 	return code;
 }
@@ -710,8 +710,10 @@ static void GPU_nodes_extract_dynamic_inputs(GPUPass *pass, ListBase *nodes)
 			/* attributes don't need to be bound, they already have
 			 * an id that the drawing functions will use */
 			if (input->source == GPU_SOURCE_ATTRIB ||
-			   input->source == GPU_SOURCE_BUILTIN)
+			    input->source == GPU_SOURCE_BUILTIN)
+			{
 				continue;
+			}
 
 			if (input->ima || input->tex)
 				BLI_snprintf(input->shadername, sizeof(input->shadername), "samp%d", input->texid);
@@ -968,8 +970,8 @@ static void GPU_node_output(GPUNode *node, int type, const char *UNUSED(name), G
 		output->link->output = output;
 
 		/* note: the caller owns the reference to the linkfer, GPUOutput
-		   merely points to it, and if the node is destroyed it will
-		   set that pointer to NULL */
+		 * merely points to it, and if the node is destroyed it will
+		 * set that pointer to NULL */
 	}
 
 	BLI_addtail(&node->outputs, output);
@@ -1034,8 +1036,10 @@ static void gpu_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *a
 			if (input->source == GPU_SOURCE_ATTRIB) {
 				for (a=0; a<attribs->totlayer; a++) {
 					if (attribs->layer[a].type == input->attribtype &&
-						strcmp(attribs->layer[a].name, input->attribname) == 0)
+					    strcmp(attribs->layer[a].name, input->attribname) == 0)
+					{
 						break;
+					}
 				}
 
 				if (a == attribs->totlayer && a < GPU_MAX_ATTRIB) {
@@ -1319,7 +1323,7 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink, GPUVertexAttri
 	GPUPass *pass;
 	char *vertexcode, *fragmentcode;
 
-	/*if(!FUNCTION_LIB) {
+	/*if (!FUNCTION_LIB) {
 		GPU_nodes_free(nodes);
 		return NULL;
 	}*/

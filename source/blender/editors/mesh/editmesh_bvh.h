@@ -50,12 +50,11 @@ struct BMBVHTree *BMBVH_NewBVH(struct BMEditMesh *em, int flag, struct Scene *sc
 void BMBVH_FreeBVH(struct BMBVHTree *tree);
 struct BVHTree *BMBVH_BVHTree(struct BMBVHTree *tree);
 
-struct BMFace *BMBVH_RayCast(struct BMBVHTree *tree, float *co, float *dir, float *hitout, float *cagehit);
+struct BMFace *BMBVH_RayCast(struct BMBVHTree *tree, const float co[3], const float dir[3],
+                             float r_hitout[3], float r_cagehit[3]);
 
 int BMBVH_EdgeVisible(struct BMBVHTree *tree, struct BMEdge *e, 
                       struct ARegion *ar, struct View3D *v3d, struct Object *obedit);
-
-#define BM_SEARCH_MAXDIST	0.4f
 
 /*find a vert closest to co in a sphere of radius maxdist*/
 struct BMVert *BMBVH_FindClosestVert(struct BMBVHTree *tree, float *co, float maxdist);

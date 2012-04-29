@@ -482,7 +482,7 @@ void calc_curvepath(Object *ob)
 	if (ob==NULL || ob->type != OB_CURVE) return;
 	cu= ob->data;
 
-	nurbs= BKE_curve_nurbs(cu);
+	nurbs= BKE_curve_nurbs_get(cu);
 	nu= nurbs->first;
 
 	if (cu->path) free_path(cu->path);
@@ -635,7 +635,7 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 	p3= pp + s3;
 
 	/* note, commented out for follow constraint */
-	//if(cu->flag & CU_FOLLOW) {
+	//if (cu->flag & CU_FOLLOW) {
 
 		key_curve_tangent_weights(1.0f-fac, data, KEY_BSPLINE);
 
@@ -1350,9 +1350,11 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 			/* some hair paths might be non-existent so they can't be used for duplication */
 			if (hair &&
-				((a < totpart && psys->pathcache[a]->steps < 0) ||
-				(a >= totpart && psys->childcache[a-totpart]->steps < 0)))
+			    ((a < totpart && psys->pathcache[a]->steps < 0) ||
+			     (a >= totpart && psys->childcache[a-totpart]->steps < 0)))
+			{
 				continue;
+			}
 
 			if (part->ren_as==PART_DRAW_GR) {
 				/* prevent divide by zero below [#28336] */

@@ -24,7 +24,7 @@ CCL_NAMESPACE_BEGIN
 /* Stack */
 
 /* SVM stack has a fixed size */
-#define SVM_STACK_SIZE 64
+#define SVM_STACK_SIZE 255
 /* SVM stack offsets with this value indicate that it's not on the stack */
 #define SVM_STACK_INVALID 255 
 
@@ -119,6 +119,7 @@ typedef enum NodeLightPath {
 } NodeLightPath;
 
 typedef enum NodeTexCoord {
+	NODE_TEXCO_NORMAL,
 	NODE_TEXCO_OBJECT,
 	NODE_TEXCO_CAMERA,
 	NODE_TEXCO_WINDOW,

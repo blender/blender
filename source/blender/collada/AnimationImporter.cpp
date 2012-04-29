@@ -138,8 +138,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 							bez.ipo = BEZT_IPO_CONST;
 						//bez.h1 = bez.h2 = HD_AUTO; 	
 					}
-					else 
-					{
+					else {
 						bez.h1 = bez.h2 = HD_AUTO; 
 						bez.ipo = BEZT_IPO_LIN;
 					}
@@ -789,17 +788,15 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
 	Object *ob = is_joint ? armature_importer->get_armature_for_joint(root) : object_map[node->getUniqueId()];
-	if (!ob)
-	{
+	if (!ob) {
 		fprintf(stderr, "cannot find Object for Node with id=\"%s\"\n", node->getOriginalId().c_str());
 		return;
 	}
 
 	bAction * act;
 
-	if ( (animType->transform) != 0 )
-	{
-		const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
+	if ( (animType->transform) != 0 ) {
+		/* const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL; */ /* UNUSED */
 		char joint_path[200];
 
 		if ( is_joint ) 
@@ -867,8 +864,7 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 		}
 	}
 
-	if ((animType->light) != 0)
-	{
+	if ((animType->light) != 0) {
 		Lamp * lamp  = (Lamp*) ob->data;
 
 		if (!lamp->adt || !lamp->adt->action) act = verify_adt_action((ID*)&lamp->id, 1);
@@ -880,22 +876,19 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 		for (unsigned int i = 0; i < nodeLights.getCount(); i++) {
 			const COLLADAFW::Light *light = (COLLADAFW::Light *) FW_object_map[nodeLights[i]->getInstanciatedObjectId()];
 
-			if ((animType->light & LIGHT_COLOR) != 0)
-			{
+			if ((animType->light & LIGHT_COLOR) != 0) {
 				const COLLADAFW::Color *col =  &(light->getColor());
 				const COLLADAFW::UniqueId& listid = col->getAnimationList();
 
 				Assign_color_animations(listid, AnimCurves, "color"); 
 			}
-			if ((animType->light & LIGHT_FOA) != 0 )
-			{
+			if ((animType->light & LIGHT_FOA) != 0 ) {
 				const COLLADAFW::AnimatableFloat *foa =  &(light->getFallOffAngle());
 				const COLLADAFW::UniqueId& listid = foa->getAnimationList();
 
 				Assign_float_animations( listid ,AnimCurves, "spot_size"); 
 			}
-			if ( (animType->light & LIGHT_FOE) != 0 )
-			{
+			if ( (animType->light & LIGHT_FOE) != 0 ) {
 				const COLLADAFW::AnimatableFloat *foe =  &(light->getFallOffExponent());
 				const COLLADAFW::UniqueId& listid = foe->getAnimationList();
 
@@ -905,8 +898,7 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 		}
 	}
 
-	if ( (animType->camera) != 0) 
-	{
+	if ( (animType->camera) != 0)  {
 		Camera * camera  = (Camera*) ob->data;
 
 		if (!camera->adt || !camera->adt->action) act = verify_adt_action((ID*)&camera->id, 1);
@@ -918,29 +910,25 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 		for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
 			const COLLADAFW::Camera *camera = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
 
-			if ((animType->camera & CAMERA_XFOV) != 0 )
-			{
+			if ((animType->camera & CAMERA_XFOV) != 0 ) {
 				const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
 				const COLLADAFW::UniqueId& listid = xfov->getAnimationList();
 				Assign_float_animations( listid ,AnimCurves, "lens"); 
 			}
 
-			else if ((animType->camera & CAMERA_XMAG) != 0 )
-			{
+			else if ((animType->camera & CAMERA_XMAG) != 0 ) {
 				const COLLADAFW::AnimatableFloat *xmag =  &(camera->getXMag());
 				const COLLADAFW::UniqueId& listid = xmag->getAnimationList();
 				Assign_float_animations( listid ,AnimCurves, "ortho_scale"); 
 			}
 
-			if ((animType->camera & CAMERA_ZFAR) != 0 )
-			{
+			if ((animType->camera & CAMERA_ZFAR) != 0 ) {
 				const COLLADAFW::AnimatableFloat *zfar =  &(camera->getFarClippingPlane());
 				const COLLADAFW::UniqueId& listid = zfar->getAnimationList();
 				Assign_float_animations( listid ,AnimCurves, "clip_end"); 
 			}
 
-			if ((animType->camera & CAMERA_ZNEAR) != 0 )
-			{
+			if ((animType->camera & CAMERA_ZNEAR) != 0 ) {
 				const COLLADAFW::AnimatableFloat *znear =  &(camera->getNearClippingPlane());
 				const COLLADAFW::UniqueId& listid = znear->getAnimationList();
 				Assign_float_animations( listid ,AnimCurves, "clip_start"); 
@@ -1162,12 +1150,10 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 	for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
 		const COLLADAFW::Camera *camera = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
 
-		if ( camera->getCameraType() == COLLADAFW::Camera::PERSPECTIVE )
-		{
+		if ( camera->getCameraType() == COLLADAFW::Camera::PERSPECTIVE ) {
 			types->camera = setAnimType(&(camera->getXMag()),(types->camera), CAMERA_XFOV);
 		}
-		else
-		{
+		else {
 			types->camera = setAnimType(&(camera->getXMag()),(types->camera), CAMERA_XMAG);
 		}
 		types->camera = setAnimType(&(camera->getFarClippingPlane()),(types->camera), CAMERA_ZFAR);
@@ -1641,7 +1627,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 
 				COLLADABU::Math::Vector3& axis = ((COLLADAFW::Rotate*)tm)->getRotationAxis();
 
-				float ax[3] = {axis[0], axis[1], axis[2]};
+				float ax[3] = {(float)axis[0], (float)axis[1], (float)axis[2]};
 				float angle = evaluate_fcurve(curves[0], fra);
 				axis_angle_to_mat4(mat, ax, angle);
 

@@ -322,7 +322,7 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 		if (!startf) startf = f;
 
-		BM_face_center_bounds_calc(f, cent);
+		BM_face_calc_center_bounds(f, cent);
 
 		if ((maxx_test = dot_v3v3(cent, cent)) > maxx) {
 			maxx = maxx_test;
@@ -332,7 +332,7 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 	if (!startf) return;
 
-	BM_face_center_bounds_calc(startf, cent);
+	BM_face_calc_center_bounds(startf, cent);
 
 	/* make sure the starting face has the correct winding */
 	if (dot_v3v3(cent, startf->no) < 0.0f) {
@@ -348,7 +348,7 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	 * stack (if we use simple function recursion, we'd end up overloading
 	 * the stack on large meshes). */
 
-	BLI_array_growone(fstack);
+	BLI_array_grow_one(fstack);
 	fstack[0] = startf;
 	BMO_elem_flag_enable(bm, startf, FACE_VIS);
 
@@ -382,7 +382,7 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 					}
 					
 					if (i == maxi) {
-						BLI_array_growone(fstack);
+						BLI_array_grow_one(fstack);
 						maxi++;
 					}
 
@@ -420,7 +420,7 @@ void bmo_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 
 	i = 0;
 	BMO_ITER (v, &siter, bm, op, "verts", BM_VERT) {
-		BLI_array_growone(cos);
+		BLI_array_grow_one(cos);
 		co = cos[i];
 		
 		j  = 0;
@@ -461,7 +461,7 @@ void bmo_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 /*
  * compute the fake surface of an ngon
  * This is done by decomposing the ngon into triangles who share the centroid of the ngon
- * while this method is far from being exact, it should garantee an invariance.
+ * while this method is far from being exact, it should guarantee an invariance.
  *
  * NOTE: This should probably go to bmesh_polygon.c
  */
@@ -473,7 +473,7 @@ static float ngon_fake_area(BMFace *f)
 	float   v[3], sv[3], c[3];
 	float   area = 0.0f;
 
-	BM_face_center_mean_calc(f, c);
+	BM_face_calc_center_mean(f, c);
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		if (num_verts == 0) {
@@ -563,12 +563,12 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 			switch (type) {
 				case SIMFACE_PERIMETER:
 					/* set the perimeter */
-					f_ext[i].perim = BM_face_perimeter_calc(f_ext[i].f);
+					f_ext[i].perim = BM_face_calc_perimeter(f_ext[i].f);
 					break;
 
 				case SIMFACE_COPLANAR:
 					/* compute the center of the polygon */
-					BM_face_center_mean_calc(f_ext[i].f, f_ext[i].c);
+					BM_face_calc_center_mean(f_ext[i].f, f_ext[i].c);
 
 					/* normalize the polygon normal */
 					copy_v3_v3(t_no, f_ext[i].f->no);
@@ -747,7 +747,7 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 				case SIMEDGE_FACE_ANGLE:
 					e_ext[i].faces = BM_edge_face_count(e_ext[i].e);
 					if (e_ext[i].faces == 2)
-						e_ext[i].angle = BM_edge_face_angle(e_ext[i].e);
+						e_ext[i].angle = BM_edge_calc_face_angle(e_ext[i].e);
 					break;
 			}
 		}
@@ -1049,7 +1049,7 @@ void bmo_face_reverseuvs_exec(BMesh *bm, BMOperator *op)
 			int i;
 
 			BLI_array_empty(uvs);
-			BLI_array_growitems(uvs, fs->len);
+			BLI_array_grow_items(uvs, fs->len);
 
 			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
 				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
@@ -1060,12 +1060,10 @@ void bmo_face_reverseuvs_exec(BMesh *bm, BMOperator *op)
 
 			/* now that we have the uvs in the array, reverse! */
 			i = 0;
-			BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
+			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
 				/* current loop uv is the previous loop uv */
 				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
-				luv->uv[0] = uvs[(fs->len - i - 1)][0];
-				luv->uv[1] = uvs[(fs->len - i - 1)][1];
-				i++;
+				copy_v2_v2(luv->uv, uvs[(fs->len - i - 1)]);
 			}
 		}
 	}
@@ -1154,25 +1152,20 @@ void bmo_face_reversecolors_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER (fs, &fs_iter, bm, op, "faces", BM_FACE) {
 		if (CustomData_has_layer(&(bm->ldata), CD_MLOOPCOL)) {
 			BMLoop *lf;	/* current face loops */
-			int i = 0;
+			int i;
 
 			BLI_array_empty(cols);
-			BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
-				MLoopCol *lcol = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
+			BLI_array_grow_items(cols, fs->len);
 
-				/* current loop uv is the previous loop color */
-				BLI_array_growone(cols);
-				cols[i] = *lcol;
-				i++;
+			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
+				cols[i] = *((MLoopCol *)CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL));
 			}
 
 			/* now that we have the uvs in the array, reverse! */
-			i = 0;
-			BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
+			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
 				/* current loop uv is the previous loop color */
 				MLoopCol *lcol = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
 				*lcol = cols[(fs->len - i - 1)];
-				i++;
 			}
 		}
 	}

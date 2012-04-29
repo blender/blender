@@ -126,10 +126,12 @@ static int psys_get_current_display_percentage(ParticleSystem *psys)
 {
 	ParticleSettings *part=psys->part;
 
-	if ((psys->renderdata && !particles_are_dynamic(psys)) /* non-dynamic particles can be rendered fully */
-		|| (part->child_nbr && part->childtype)	/* display percentage applies to children */
-		|| (psys->pointcache->flag & PTCACHE_BAKING)) /* baking is always done with full amount */
+	if ((psys->renderdata && !particles_are_dynamic(psys)) ||  /* non-dynamic particles can be rendered fully */
+	    (part->child_nbr && part->childtype)  ||    /* display percentage applies to children */
+	    (psys->pointcache->flag & PTCACHE_BAKING))  /* baking is always done with full amount */
+	{
 		return 100;
+	}
 
 	return psys->part->disp;
 }
@@ -785,7 +787,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 		pa->num = i = ctx->index[p];
 		mface = dm->getTessFaceData(dm,i,CD_MFACE);
 		
-		switch(distr) {
+		switch (distr) {
 		case PART_DISTR_JIT:
 			if (ctx->jitlevel == 1) {
 				if (mface->v4)
@@ -853,13 +855,15 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			}
 			if (intersect==0)
 				pa->foffset=0.0;
-			else switch(distr) {
-				case PART_DISTR_JIT:
-					pa->foffset*= ctx->jit[p%(2*ctx->jitlevel)];
-					break;
-				case PART_DISTR_RAND:
-					pa->foffset*=BLI_frand();
-					break;
+			else {
+				switch (distr) {
+					case PART_DISTR_JIT:
+						pa->foffset *= ctx->jit[p % (2 * ctx->jitlevel)];
+						break;
+					case PART_DISTR_RAND:
+						pa->foffset *= BLI_frand();
+						break;
+				}
 			}
 		}
 	}
@@ -1479,7 +1483,7 @@ void psys_threads_free(ParticleThread *threads)
 	if (ctx->index) MEM_freeN(ctx->index);
 	if (ctx->skip) MEM_freeN(ctx->skip);
 	if (ctx->seams) MEM_freeN(ctx->seams);
-	//if(ctx->vertpart) MEM_freeN(ctx->vertpart);
+	//if (ctx->vertpart) MEM_freeN(ctx->vertpart);
 	BLI_kdtree_free(ctx->tree);
 
 	/* threads */
@@ -1573,7 +1577,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 
 static void get_angular_velocity_vector(short avemode, ParticleKey *state, float *vec)
 {
-	switch(avemode) {
+	switch (avemode) {
 		case PART_AVE_VELOCITY:
 			copy_v3_v3(vec, state->vel);
 			break;	
@@ -1777,7 +1781,7 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 
 		if (part->rotmode) {
 			/* create vector into which rotation is aligned */
-			switch(part->rotmode) {
+			switch (part->rotmode) {
 				case PART_ROT_NOR:
 					copy_v3_v3(rot_vec, nor);
 					break;
@@ -1862,9 +1866,11 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		/* and gravity in r_ve */
 		bpa->gravity[0] = bpa->gravity[1] = 0.0f;
 		bpa->gravity[2] = -1.0f;
-		if ((sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY)
-			&& sim->scene->physics_settings.gravity[2]!=0.0f)
+		if ((sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) &&
+		    (sim->scene->physics_settings.gravity[2] != 0.0f))
+		{
 			bpa->gravity[2] = sim->scene->physics_settings.gravity[2];
+		}
 
 		bpa->data.health = part->boids->health;
 		bpa->data.mode = eBoidMode_InAir;
@@ -2137,7 +2143,7 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 	if (pa->prev_state.time < 0.f && integrator == PART_INT_VERLET)
 		integrator = PART_INT_EULER;
 
-	switch(integrator) {
+	switch (integrator) {
 		case PART_INT_EULER:
 			steps=1;
 			break;
@@ -2171,7 +2177,7 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 		/* calculate next state */
 		add_v3_v3(states[i].vel, impulse);
 
-		switch(integrator) {
+		switch (integrator) {
 			case PART_INT_EULER:
 				madd_v3_v3v3fl(pa->state.co, states->co, states->vel, dtime);
 				madd_v3_v3v3fl(pa->state.vel, states->vel, acceleration, dtime);
@@ -2189,7 +2195,7 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 				}
 				break;
 			case PART_INT_RK4:
-				switch(i) {
+				switch (i) {
 					case 0:
 						copy_v3_v3(dx[0], states->vel);
 						mul_v3_fl(dx[0], dtime);
@@ -2375,6 +2381,7 @@ typedef struct SPHRangeData
 	float massfac;
 	int use_size;
 } SPHRangeData;
+
 typedef struct SPHData {
 	ParticleSystem *psys[10];
 	ParticleData *pa;
@@ -2390,7 +2397,7 @@ typedef struct SPHData {
 	/* Integrator callbacks. This allows different SPH implementations. */
 	void (*force_cb) (void *sphdata_v, ParticleKey *state, float *force, float *impulse);
 	void (*density_cb) (void *rangedata_v, int index, float squared_dist);
-}SPHData;
+} SPHData;
 
 static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 {
@@ -2682,9 +2689,10 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 	efdata.sim = sim;
 
 	/* add global acceleration (gravitation) */
-	if (psys_uses_gravity(sim)
+	if (psys_uses_gravity(sim) &&
 		/* normal gravity is too strong for hair so it's disabled by default */
-		&& (part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR)) {
+		(part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR))
+	{
 		zero_v3(gr);
 		madd_v3_v3fl(gr, sim->scene->physics_settings.gravity, part->effector_weights->global_gravity * efdata.ptex.gravity);
 		gravity = gr;
@@ -2853,7 +2861,7 @@ static float collision_point_distance_with_normal(float p[3], ParticleCollisionE
 	if (fac >= 0.f)
 		collision_interpolate_element(pce, 0.f, fac, col);
 
-	switch(pce->tot) {
+	switch (pce->tot) {
 		case 1:
 		{
 			sub_v3_v3v3(nor, p, pce->x0);
@@ -2878,7 +2886,7 @@ static void collision_point_on_surface(float p[3], ParticleCollisionElement *pce
 {
 	collision_interpolate_element(pce, 0.f, fac, col);
 
-	switch(pce->tot) {
+	switch (pce->tot) {
 		case 1:
 		{
 			sub_v3_v3v3(co, p, pce->x0);
@@ -3827,7 +3835,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		sim->colliders = get_collider_cache(sim->scene, sim->ob, NULL);
 
 	/* initialize physics type specific stuff */
-	switch(part->phystype) {
+	switch (part->phystype) {
 		case PART_PHYS_BOIDS:
 		{
 			ParticleTarget *pt = psys->targets.first;
@@ -3891,17 +3899,18 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		}
 
 		/* only reset unborn particles if they're shown or if the particle is born soon*/
-		if (pa->alive==PARS_UNBORN
-			&& (part->flag & PART_UNBORN || cfra + psys->pointcache->step > pa->time))
+		if (pa->alive==PARS_UNBORN && (part->flag & PART_UNBORN || (cfra + psys->pointcache->step > pa->time))) {
 			reset_particle(sim, pa, dtime, cfra);
-		else if (part->phystype == PART_PHYS_NO)
+		}
+		else if (part->phystype == PART_PHYS_NO) {
 			reset_particle(sim, pa, dtime, cfra);
+		}
 
 		if (ELEM(pa->alive, PARS_ALIVE, PARS_DYING)==0 || (pa->flag & (PARS_UNEXIST|PARS_NO_DISP)))
 			pa->state.time = -1.f;
 	}
 
-	switch(part->phystype) {
+	switch (part->phystype) {
 		case PART_PHYS_NEWTON:
 		{
 			LOOP_DYNAMIC_PARTICLES {
@@ -4125,7 +4134,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 					pa->dietime = sim->scene->r.efra + 1;
 					pa->lifetime = sim->scene->r.efra;
 					pa->alive = PARS_ALIVE;
-					//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f\n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
+					//if (a < 25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f\n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
 				}
 				else {
 					// skip...
@@ -4492,7 +4501,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	/* setup necessary physics type dependent additional data if it doesn't yet exist */
 	psys_prepare_physics(&sim);
 
-	switch(part->type) {
+	switch (part->type) {
 		case PART_HAIR:
 		{
 			/* nothing to do so bail out early */
@@ -4544,7 +4553,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 		}
 		default:
 		{
-			switch(part->phystype) {
+			switch (part->phystype) {
 				case PART_PHYS_NO:
 				case PART_PHYS_KEYED:
 				{

@@ -60,13 +60,11 @@ MALWAYS_INLINE RayObject* rayface_from_coords(RayFace *rayface, void *ob, void *
 	copy_v3_v3(rayface->v2, v2);
 	copy_v3_v3(rayface->v3, v3);
 
-	if (v4)
-	{
+	if (v4) {
 		copy_v3_v3(rayface->v4, v4);
 		rayface->quad = 1;
 	}
-	else
-	{
+	else {
 		rayface->quad = 0;
 	}
 
@@ -77,8 +75,7 @@ MALWAYS_INLINE void rayface_from_vlak(RayFace *rayface, ObjectInstanceRen *obi, 
 {
 	rayface_from_coords(rayface, obi, vlr, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4 ? vlr->v4->co : NULL);
 
-	if (obi->transform_primitives)
-	{
+	if (obi->transform_primitives) {
 		mul_m4_v3(obi->mat, rayface->v1);
 		mul_m4_v3(obi->mat, rayface->v2);
 		mul_m4_v3(obi->mat, rayface->v3);
@@ -295,13 +292,11 @@ MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *i
 		return 0;
 		
 	/* check if we should intersect this face */
-	if (is->check == RE_CHECK_VLR_RENDER)
-	{
+	if (is->check == RE_CHECK_VLR_RENDER) {
 		if (vlr_check_intersect(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face) == 0)
 			return 0;
 	}
-	else if (is->check == RE_CHECK_VLR_NON_SOLID_MATERIAL)
-	{
+	else if (is->check == RE_CHECK_VLR_NON_SOLID_MATERIAL) {
 		if (vlr_check_intersect(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face) == 0)
 			return 0;
 		if (vlr_check_intersect_solid(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face) == 0)
@@ -322,27 +317,25 @@ MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *i
 	
 		/* when a shadow ray leaves a face, it can be little outside the edges
 		 * of it, causing intersection to be detected in its neighbor face */
-		if (is->skip & RE_SKIP_VLR_NEIGHBOUR)
-		{
-			if (dist < 0.1f && is->orig.ob == face->ob)
-			{
+		if (is->skip & RE_SKIP_VLR_NEIGHBOUR) {
+			if (dist < 0.1f && is->orig.ob == face->ob) {
 				VlakRen * a = (VlakRen*)is->orig.face;
 				VlakRen * b = (VlakRen*)face->face;
 
 				/* so there's a shared edge or vertex, let's intersect ray with
 				 * face itself, if that's true we can safely return 1, otherwise
 				 * we assume the intersection is invalid, 0 */
-				if (a->v1==b->v1 || a->v2==b->v1 || a->v3==b->v1 || a->v4==b->v1
-				|| a->v1==b->v2 || a->v2==b->v2 || a->v3==b->v2 || a->v4==b->v2
-				|| a->v1==b->v3 || a->v2==b->v3 || a->v3==b->v3 || a->v4==b->v3
-				|| (b->v4 && (a->v1==b->v4 || a->v2==b->v4 || a->v3==b->v4 || a->v4==b->v4))) {
+				if (a->v1==b->v1 || a->v2==b->v1 || a->v3==b->v1 || a->v4==b->v1 ||
+				    a->v1==b->v2 || a->v2==b->v2 || a->v3==b->v2 || a->v4==b->v2 ||
+				    a->v1==b->v3 || a->v2==b->v3 || a->v3==b->v3 || a->v4==b->v3 ||
+				    (b->v4 && (a->v1==b->v4 || a->v2==b->v4 || a->v3==b->v4 || a->v4==b->v4)))
+				{
 					/* create RayFace from original face, transformed if necessary */
 					RayFace origface;
 					ObjectInstanceRen *ob= (ObjectInstanceRen*)is->orig.ob;
 					rayface_from_vlak(&origface, ob, (VlakRen*)is->orig.face);
 
-					if (!isec_tri_quad_neighbour(is->start, is->dir, &origface))
-					{
+					if (!isec_tri_quad_neighbour(is->start, is->dir, &origface)) {
 						return 0;
 					}
 				}
@@ -375,8 +368,7 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 	RE_RC_COUNT(isec->raycounter->raycast.test);
 
 	/* setup vars used on raycast */
-	for (i=0; i<3; i++)
-	{
+	for (i=0; i<3; i++) {
 		isec->idot_axis[i]		= 1.0f / isec->dir[i];
 		
 		isec->bv_index[2*i]		= isec->idot_axis[i] < 0.0 ? 1 : 0;
@@ -388,12 +380,10 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 
 #ifdef RT_USE_LAST_HIT	
 	/* last hit heuristic */
-	if (isec->mode==RE_RAY_SHADOW && isec->last_hit)
-	{
+	if (isec->mode==RE_RAY_SHADOW && isec->last_hit) {
 		RE_RC_COUNT(isec->raycounter->rayshadow_last_hit.test);
 		
-		if (RE_rayobject_intersect(isec->last_hit, isec))
-		{
+		if (RE_rayobject_intersect(isec->last_hit, isec)) {
 			RE_RC_COUNT(isec->raycounter->raycast.hit);
 			RE_RC_COUNT(isec->raycounter->rayshadow_last_hit.hit);
 			return 1;
@@ -405,8 +395,7 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 	isec->hit_hint = 0;
 #endif
 
-	if (RE_rayobject_intersect(r, isec))
-	{
+	if (RE_rayobject_intersect(r, isec)) {
 		RE_RC_COUNT(isec->raycounter->raycast.hit);
 
 #ifdef RT_USE_HINT
@@ -420,12 +409,10 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 
 int RE_rayobject_intersect(RayObject *r, Isect *i)
 {
-	if (RE_rayobject_isRayFace(r))
-	{
+	if (RE_rayobject_isRayFace(r)) {
 		return intersect_rayface(r, (RayFace*) RE_rayobject_align(r), i);
 	}
-	else if (RE_rayobject_isVlakPrimitive(r))
-	{
+	else if (RE_rayobject_isVlakPrimitive(r)) {
 		//TODO optimize (useless copy to RayFace to avoid duplicate code)
 		VlakPrimitive *face = (VlakPrimitive*) RE_rayobject_align(r);
 		RayFace nface;
@@ -433,8 +420,7 @@ int RE_rayobject_intersect(RayObject *r, Isect *i)
 
 		return intersect_rayface(r, &nface, i);
 	}
-	else if (RE_rayobject_isRayAPI(r))
-	{
+	else if (RE_rayobject_isRayAPI(r)) {
 		r = RE_rayobject_align(r);
 		return r->api->raycast(r, i);
 	}
@@ -466,12 +452,10 @@ void RE_rayobject_free(RayObject *r)
 
 float RE_rayobject_cost(RayObject *r)
 {
-	if (RE_rayobject_isRayFace(r) || RE_rayobject_isVlakPrimitive(r))
-	{
+	if (RE_rayobject_isRayFace(r) || RE_rayobject_isVlakPrimitive(r)) {
 		return 1.0f;
 	}
-	else if (RE_rayobject_isRayAPI(r))
-	{
+	else if (RE_rayobject_isRayAPI(r)) {
 		r = RE_rayobject_align(r);
 		return r->api->cost(r);
 	}
@@ -485,8 +469,7 @@ float RE_rayobject_cost(RayObject *r)
 
 void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 {
-	if (RE_rayobject_isRayFace(r))
-	{
+	if (RE_rayobject_isRayFace(r)) {
 		RayFace *face = (RayFace*) RE_rayobject_align(r);
 		
 		DO_MINMAX(face->v1, min, max);
@@ -494,8 +477,7 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 		DO_MINMAX(face->v3, min, max);
 		if (RE_rayface_isQuad(face)) DO_MINMAX(face->v4, min, max);
 	}
-	else if (RE_rayobject_isVlakPrimitive(r))
-	{
+	else if (RE_rayobject_isVlakPrimitive(r)) {
 		VlakPrimitive *face = (VlakPrimitive*) RE_rayobject_align(r);
 		RayFace nface;
 		rayface_from_vlak(&nface, face->ob, face->face);
@@ -505,8 +487,7 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 		DO_MINMAX(nface.v3, min, max);
 		if (RE_rayface_isQuad(&nface)) DO_MINMAX(nface.v4, min, max);
 	}
-	else if (RE_rayobject_isRayAPI(r))
-	{
+	else if (RE_rayobject_isRayAPI(r)) {
 		r = RE_rayobject_align(r);
 		r->api->bb(r, min, max);
 	}
@@ -518,12 +499,10 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 
 void RE_rayobject_hint_bb(RayObject *r, RayHint *hint, float *min, float *max)
 {
-	if (RE_rayobject_isRayFace(r) || RE_rayobject_isVlakPrimitive(r))
-	{
+	if (RE_rayobject_isRayFace(r) || RE_rayobject_isVlakPrimitive(r)) {
 		return;
 	}
-	else if (RE_rayobject_isRayAPI(r))
-	{
+	else if (RE_rayobject_isRayAPI(r)) {
 		r = RE_rayobject_align(r);
 		return r->api->hint_bb(r, hint, min, max);
 	}
@@ -543,8 +522,7 @@ int RE_rayobjectcontrol_test_break(RayObjectControl *control)
 
 void RE_rayobject_set_control(RayObject *r, void *data, RE_rayobjectcontrol_test_break_callback test_break)
 {
-	if (RE_rayobject_isRayAPI(r))
-	{
+	if (RE_rayobject_isRayAPI(r)) {
 		r = RE_rayobject_align(r);
 		r->control.data = data;
 		r->control.test_break = test_break;

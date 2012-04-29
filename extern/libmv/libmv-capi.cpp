@@ -54,6 +54,7 @@
 #include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 #include "libmv/simple_pipeline/rigid_registration.h"
+#include "libmv/simple_pipeline/modal_solver.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -384,6 +385,31 @@ int libmv_refineParametersAreValid(int parameters) {
 	                       LIBMV_REFINE_RADIAL_DISTORTION_K1));
 }
 
+void libmv_solveRefineIntrinsics(libmv::Tracks *tracks, libmv::CameraIntrinsics *intrinsics,
+			libmv::EuclideanReconstruction *reconstruction, int refine_intrinsics,
+			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata)
+{
+	/* only a few combinations are supported but trust the caller */
+	int libmv_refine_flags = 0;
+
+	if (refine_intrinsics & LIBMV_REFINE_FOCAL_LENGTH) {
+		libmv_refine_flags |= libmv::BUNDLE_FOCAL_LENGTH;
+	}
+	if (refine_intrinsics & LIBMV_REFINE_PRINCIPAL_POINT) {
+		libmv_refine_flags |= libmv::BUNDLE_PRINCIPAL_POINT;
+	}
+	if (refine_intrinsics & LIBMV_REFINE_RADIAL_DISTORTION_K1) {
+		libmv_refine_flags |= libmv::BUNDLE_RADIAL_K1;
+	}
+	if (refine_intrinsics & LIBMV_REFINE_RADIAL_DISTORTION_K2) {
+		libmv_refine_flags |= libmv::BUNDLE_RADIAL_K2;
+	}
+
+	progress_update_callback(callback_customdata, 1.0, "Refining solution");
+
+	libmv::EuclideanBundleCommonIntrinsics(*(libmv::Tracks *)tracks, libmv_refine_flags,
+		reconstruction, intrinsics);
+}
 
 libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyframe1, int keyframe2,
 			int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
@@ -423,25 +449,44 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 	libmv::EuclideanCompleteReconstruction(normalized_tracks, reconstruction, &update_callback);
 
 	if (refine_intrinsics) {
-		/* only a few combinations are supported but trust the caller */
-		int libmv_refine_flags = 0;
-		if (refine_intrinsics & LIBMV_REFINE_FOCAL_LENGTH) {
-			libmv_refine_flags |= libmv::BUNDLE_FOCAL_LENGTH;
-		}
-		if (refine_intrinsics & LIBMV_REFINE_PRINCIPAL_POINT) {
-			libmv_refine_flags |= libmv::BUNDLE_PRINCIPAL_POINT;
-		}
-		if (refine_intrinsics & LIBMV_REFINE_RADIAL_DISTORTION_K1) {
-			libmv_refine_flags |= libmv::BUNDLE_RADIAL_K1;
-		}
-		if (refine_intrinsics & LIBMV_REFINE_RADIAL_DISTORTION_K2) {
-			libmv_refine_flags |= libmv::BUNDLE_RADIAL_K2;
-		}
-
-		progress_update_callback(callback_customdata, 1.0, "Refining solution");
-		libmv::EuclideanBundleCommonIntrinsics(*(libmv::Tracks *)tracks, libmv_refine_flags,
-			reconstruction, intrinsics);
+		libmv_solveRefineIntrinsics((libmv::Tracks *)tracks, intrinsics, reconstruction,
+			refine_intrinsics, progress_update_callback, callback_customdata);
 	}
+
+	progress_update_callback(callback_customdata, 1.0, "Finishing solution");
+	libmv_reconstruction->tracks = *(libmv::Tracks *)tracks;
+	libmv_reconstruction->error = libmv::EuclideanReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, *intrinsics);
+
+	return (libmv_Reconstruction *)libmv_reconstruction;
+}
+
+struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *tracks, double focal_length,
+			double principal_x, double principal_y, double k1, double k2, double k3,
+			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata)
+{
+	/* Invert the camera intrinsics. */
+	libmv::vector<libmv::Marker> markers = ((libmv::Tracks*)tracks)->AllMarkers();
+	libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
+	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction->intrinsics;
+
+	ReconstructUpdateCallback update_callback =
+		ReconstructUpdateCallback(progress_update_callback, callback_customdata);
+
+	intrinsics->SetFocalLength(focal_length, focal_length);
+	intrinsics->SetPrincipalPoint(principal_x, principal_y);
+	intrinsics->SetRadialDistortion(k1, k2, k3);
+
+	for (int i = 0; i < markers.size(); ++i) {
+		intrinsics->InvertIntrinsics(markers[i].x,
+			markers[i].y,
+			&(markers[i].x),
+			&(markers[i].y));
+	}
+
+	libmv::Tracks normalized_tracks(markers);
+
+	libmv::ModalSolver(normalized_tracks, reconstruction, &update_callback);
 
 	progress_update_callback(callback_customdata, 1.0, "Finishing solution");
 	libmv_reconstruction->tracks = *(libmv::Tracks *)tracks;

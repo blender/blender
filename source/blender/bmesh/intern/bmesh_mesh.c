@@ -39,8 +39,6 @@
 #include "BKE_tessmesh.h"
 #include "BKE_multires.h"
 
-#include "ED_mesh.h"
-
 #include "intern/bmesh_private.h"
 
 /* used as an extern, defined in bmesh.h */
@@ -141,12 +139,6 @@ void BM_mesh_data_free(BMesh *bm)
 #ifdef USE_BMESH_HOLES
 	BLI_mempool_destroy(bm->looplistpool);
 #endif
-
-	/* These tables aren't used yet, so it's not strictly necessary
-	 * to 'end' them (with 'e' param) but if someone tries to start
-	 * using them, having these in place will save a lot of pain */
-	mesh_octree_table(NULL, NULL, NULL, 'e');
-	mesh_mirrtopo_table(NULL, 'e');
 
 	BLI_freelistN(&bm->selected);
 
@@ -585,6 +577,18 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 }
 
 /**
+ * Return the amount of element of type 'type' in a given bmesh.
+ */
+int BM_mesh_elem_count(BMesh *bm, const char htype)
+{
+	if (htype == BM_VERT) return bm->totvert;
+	else if (htype == BM_EDGE) return bm->totedge;
+	else if (htype == BM_FACE) return bm->totface;
+
+	return 0;
+}
+
+/**
  * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
  * (xxx_idx[org_index] = new_index).
  *
@@ -718,7 +722,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		}
 	}
 
-	/* Edges' pointers, only vert pointers (as we don’t mess with loops!)... */
+	/* Edges' pointers, only vert pointers (as we don't mess with loops!)... */
 	if (vptr_map) {
 		BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
 /*			printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, (const void*)ed->v1));*/

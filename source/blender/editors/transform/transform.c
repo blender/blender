@@ -298,8 +298,7 @@ void removeAspectRatio(TransInfo *t, float *vec)
 
 static void viewRedrawForce(const bContext *C, TransInfo *t)
 {
-	if (t->spacetype == SPACE_VIEW3D)
-	{
+	if (t->spacetype == SPACE_VIEW3D) {
 		/* Do we need more refined tags? */
 		if (t->flag & T_POSE)
 			WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
@@ -415,7 +414,7 @@ static void view_editmove(unsigned short UNUSED(event))
 	if (Trans.flag & T_2D_EDIT)
 		return;
 
-	switch(event) {
+	switch (event) {
 		case WHEELUPMOUSE:
 
 			if ( G.qual & LR_SHIFTKEY ) {
@@ -586,8 +585,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
-	if (event->type == MOUSEMOVE)
-	{
+	if (event->type == MOUSEMOVE) {
 		copy_v2_v2_int(t->mval, event->mval);
 
 		// t->redraw |= TREDRAW_SOFT; /* Use this for soft redraw. Might cause flicker in object mode */
@@ -799,7 +797,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->redraw |= handleNumInput(&(t->num), event);
 	}
 	/* else do non-mapped events */
-	else if (event->val==KM_PRESS) {
+	else if (event->val == KM_PRESS) {
 		switch (event->type) {
 		case RIGHTMOUSE:
 			t->state = TRANS_CANCEL;
@@ -1085,11 +1083,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		}
 
 		/* confirm transform if launch key is released after mouse move */
-		if (t->flag & T_RELEASE_CONFIRM)
-		{
+		if (t->flag & T_RELEASE_CONFIRM) {
 			/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
-			if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE))
-			{
+			if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE)) {
 				t->state = TRANS_CONFIRM;
 			}
 		}
@@ -1153,8 +1149,7 @@ typedef enum {
 } ArrowDirection;
 static void drawArrow(ArrowDirection d, short offset, short length, short size)
 {
-	switch(d)
-	{
+	switch (d) {
 		case LEFT:
 			offset = -offset;
 			length = -length;
@@ -1188,8 +1183,7 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 
 static void drawArrowHead(ArrowDirection d, short size)
 {
-	switch(d)
-	{
+	switch (d) {
 		case LEFT:
 			size = -size;
 		case RIGHT:
@@ -1220,8 +1214,7 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 
 	glBegin(GL_LINE_STRIP);
 
-	for ( angle = angle_start; angle < angle_end; angle += delta)
-	{
+	for ( angle = angle_start; angle < angle_end; angle += delta) {
 		glVertex2f( cosf(angle) * size, sinf(angle) * size);
 	}
 	glVertex2f( cosf(angle_end) * size, sinf(angle_end) * size);
@@ -1242,8 +1235,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 {
 	TransInfo *t = (TransInfo*)customdata;
 
-	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR))
-	{
+	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR)) {
 		float vecrot[3], cent[2];
 		int mval[2];
 
@@ -1264,8 +1256,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 		glPushMatrix();
 
-		switch(t->helpline)
-		{
+		switch (t->helpline) {
 			case HLP_SPRING:
 				UI_ThemeColor(TH_WIRE);
 
@@ -1414,23 +1405,23 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	/* convert flag to enum */
-	switch(t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
-	{
-	case (T_PROP_EDIT|T_PROP_CONNECTED):
-		proportional = PROP_EDIT_CONNECTED;
-		break;
-	case T_PROP_EDIT:
-		proportional = PROP_EDIT_ON;
-		break;
-	default:
-		proportional = PROP_EDIT_OFF;
+	switch (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED)) {
+		case (T_PROP_EDIT|T_PROP_CONNECTED):
+			proportional = PROP_EDIT_CONNECTED;
+			break;
+		case T_PROP_EDIT:
+			proportional = PROP_EDIT_ON;
+			break;
+		default:
+			proportional = PROP_EDIT_OFF;
 	}
 
 	// If modal, save settings back in scene if not set as operator argument
 	if (t->flag & T_MODAL) {
 
 		/* save settings if not set in operator */
-		if ( (prop = RNA_struct_find_property(op->ptr, "proportional")) && !RNA_property_is_set(op->ptr, prop))
+		if ((prop = RNA_struct_find_property(op->ptr, "proportional")) &&
+		    !RNA_property_is_set(op->ptr, prop))
 		{
 			if (t->obedit)
 				ts->proportional = proportional;
@@ -1438,12 +1429,14 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 				ts->proportional_objects = (proportional != PROP_EDIT_OFF);
 		}
 
-		if ( (prop = RNA_struct_find_property(op->ptr, "proportional_size")) && !RNA_property_is_set(op->ptr, prop))
+		if ((prop = RNA_struct_find_property(op->ptr, "proportional_size")) &&
+		    !RNA_property_is_set(op->ptr, prop))
 		{
 			ts->proportional_size = t->prop_size;
 		}
 
-		if ( (prop = RNA_struct_find_property(op->ptr, "proportional_edit_falloff")) && !RNA_property_is_set(op->ptr, prop))
+		if ((prop = RNA_struct_find_property(op->ptr, "proportional_edit_falloff")) &&
+		    !RNA_property_is_set(op->ptr, prop))
 		{
 			ts->prop_mode = t->prop_mode;
 		}
@@ -1457,34 +1450,31 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 
 		if (t->spacetype == SPACE_VIEW3D) {
-			if ( (prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) && !RNA_property_is_set(op->ptr, prop))
+			if ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
+			    !RNA_property_is_set(op->ptr, prop))
 			{
 				View3D *v3d = t->view;
-	
+
 				v3d->twmode = t->current_orientation;
 			}
 		}
 	}
 	
-	if (RNA_struct_find_property(op->ptr, "proportional"))
-	{
+	if (RNA_struct_find_property(op->ptr, "proportional")) {
 		RNA_enum_set(op->ptr, "proportional", proportional);
 		RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
 		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "axis")))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "axis"))) {
 		RNA_property_float_set_array(op->ptr, prop, t->axis);
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "mirror")))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "mirror"))) {
 		RNA_property_boolean_set(op->ptr, prop, t->flag & T_MIRROR);
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
 		/* constraint orientation can be global, event if user selects something else
 		 * so use the orientation in the constraint if set
 		 * */
@@ -1495,8 +1485,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			RNA_enum_set(op->ptr, "constraint_orientation", t->current_orientation);
 		}
 
-		if (t->con.mode & CON_APPLY)
-		{
+		if (t->con.mode & CON_APPLY) {
 			if (t->con.mode & CON_AXIS0) {
 				constraint_axis[0] = 1;
 			}
@@ -1524,8 +1513,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->state = TRANS_STARTING;
 
-	if ( (prop = RNA_struct_find_property(op->ptr, "texture_space")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ( (prop = RNA_struct_find_property(op->ptr, "texture_space")) && RNA_property_is_set(op->ptr, prop)) {
 		if (RNA_property_boolean_get(op->ptr, prop)) {
 			options |= CTX_TEXTURE;
 		}
@@ -1537,8 +1525,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->launch_event = event ? event->type : -1;
 
-	if (t->launch_event == EVT_TWEAK_R)
-	{
+	if (t->launch_event == EVT_TWEAK_R) {
 		t->launch_event = RIGHTMOUSE;
 	}
 	else if (t->launch_event == EVT_TWEAK_L) {
@@ -1547,18 +1534,15 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	// XXX Remove this when wm_operator_call_internal doesn't use window->eventstate (which can have type = 0)
 	// For manipulator only, so assume LEFTMOUSE
-	if (t->launch_event == 0)
-	{
+	if (t->launch_event == 0) {
 		t->launch_event = LEFTMOUSE;
 	}
 
-	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
-	{
+	if (!initTransInfo(C, t, op, event)) {  /* internal data, mouse, vectors */
 		return 0;
 	}
 
-	if (t->spacetype == SPACE_VIEW3D)
-	{
+	if (t->spacetype == SPACE_VIEW3D) {
 		//calc_manipulator_stats(curarea);
 		initTransformOrientation(C, t);
 
@@ -1589,15 +1573,12 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	}
 
 	/* Stupid code to have Ctrl-Click on manipulator work ok */
-	if (event)
-	{
+	if (event) {
 		wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
 
-		for (kmi = keymap->items.first; kmi; kmi = kmi->next)
-		{
-			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS)
-			{
+		for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
+			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS) {
 				if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) &&   event->ctrl)  ||
 				    (ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
 				    (ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) &&     event->alt)   ||
@@ -1728,16 +1709,14 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		break;
 	}
 
-	if (t->state == TRANS_CANCEL)
-	{
+	if (t->state == TRANS_CANCEL) {
 		postTrans(C, t);
 		return 0;
 	}
 
 
 	/* overwrite initial values if operator supplied a non-null vector */
-	if ( (prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop)) {
 		float values[4]= {0}; /* in case value isn't length 4, avoid uninitialized memory  */
 
 		if (RNA_property_array_check(prop)) {
@@ -1753,22 +1732,19 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	}
 
 	/* Transformation axis from operator */
-	if ((prop = RNA_struct_find_property(op->ptr, "axis")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "axis")) && RNA_property_is_set(op->ptr, prop)) {
 		RNA_property_float_get_array(op->ptr, prop, t->axis);
 		normalize_v3(t->axis);
 		copy_v3_v3(t->axis_orig, t->axis);
 	}
 
 	/* Constraint init from operator */
-	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) && RNA_property_is_set(op->ptr, prop)) {
 		int constraint_axis[3];
 
 		RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
 
-		if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2])
-		{
+		if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
 			t->con.mode |= CON_APPLY;
 
 			if (constraint_axis[0]) {
@@ -1794,8 +1770,7 @@ void transformApply(bContext *C, TransInfo *t)
 {
 	t->context = C;
 
-	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT)))
-	{
+	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT))) {
 		if (t->modifiers & MOD_CONSTRAINT_SELECT)
 			t->con.mode |= CON_SELECT;
 
@@ -1811,13 +1786,11 @@ void transformApply(bContext *C, TransInfo *t)
 	}
 
 	/* If auto confirm is on, break after one pass */
-	if (t->options & CTX_AUTOCONFIRM)
-	{
+	if (t->options & CTX_AUTOCONFIRM) {
 		t->state = TRANS_CONFIRM;
 	}
 
-	if (BKE_ptcache_get_continue_physics())
-	{
+	if (BKE_ptcache_get_continue_physics()) {
 		// TRANSFORM_FIX_ME
 		//do_screenhandlers(G.curscreen);
 		t->redraw |= TREDRAW_HARD;
@@ -1842,11 +1815,9 @@ int transformEnd(bContext *C, TransInfo *t)
 
 	t->context = C;
 
-	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING)
-	{
+	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING) {
 		/* handle restoring objects */
-		if (t->state == TRANS_CANCEL)
-		{
+		if (t->state == TRANS_CANCEL) {
 			/* exception, edge slide transformed UVs too */
 			if (t->mode==TFM_EDGE_SLIDE)
 				doEdgeSlide(t, 0.0f);
@@ -2097,8 +2068,7 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 	 *	- current space should be local
 	 */
 	memset(cob, 0, sizeof(bConstraintOb));
-	if (td->ext)
-	{
+	if (td->ext) {
 		if (td->ext->rotOrder == ROT_MODE_QUAT) {
 			/* quats */
 			/* objects and bones do normalization first too, otherwise
@@ -2271,8 +2241,7 @@ static void postInputWarp(TransInfo *t, float values[3])
 {
 	mul_v3_fl(values, (float)(M_PI * 2));
 
-	if (t->customData) /* non-null value indicates reversed input */
-	{
+	if (t->customData) { /* non-null value indicates reversed input */
 		negate_v3(values);
 	}
 }
@@ -2324,8 +2293,7 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 	
-	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
-	{
+	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal warp direction
 		if	(t->customData == NULL)
 			t->customData = (void*)1;
@@ -2465,11 +2433,9 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 	
-	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
-	{
+	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal Shear direction
-		if	(t->customData == NULL)
-		{
+		if	(t->customData == NULL) {
 			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 			t->customData = (void*)1;
 		}
@@ -2603,7 +2569,7 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 	}
 	
 	if (t->con.mode & CON_APPLY) {
-		switch(t->num.idx_max) {
+		switch (t->num.idx_max) {
 		case 0:
 			spos += sprintf(spos, "Scale: %s%s %s", &tvec[0], t->con.text, t->proptext);
 			break;
@@ -2755,8 +2721,7 @@ int Resize(TransInfo *t, const int mval[2])
 	char str[200];
 	
 	/* for manipulator, center handle, the scaling can't be done relative to center */
-	if ( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0)
-	{
+	if ( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
 		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
 	}
 	else {
@@ -2774,8 +2739,7 @@ int Resize(TransInfo *t, const int mval[2])
 	
 	applySnapping(t, size);
 	
-	if (t->flag & T_AUTOVALUES)
-	{
+	if (t->flag & T_AUTOVALUES) {
 		copy_v3_v3(size, t->auto_values);
 	}
 	
@@ -3008,8 +2972,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		copy_m3_m4(pmtx, t->poseobj->obmat);
 		invert_m3_m3(imtx, pmtx);
 		
-		if ((td->flag & TD_NO_LOC) == 0)
-		{
+		if ((td->flag & TD_NO_LOC) == 0) {
 			sub_v3_v3v3(vec, td->center, center);
 			
 			mul_m3_v3(pmtx, vec);	// To Global space
@@ -3093,8 +3056,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		}
 	}
 	else {
-		if ((td->flag & TD_NO_LOC) == 0)
-		{
+		if ((td->flag & TD_NO_LOC) == 0) {
 			/* translation */
 			sub_v3_v3v3(vec, td->center, center);
 			mul_m3_v3(mat, vec);
@@ -3440,7 +3402,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 		autoik[0]= '\0';
 
 	if (t->con.mode & CON_APPLY) {
-		switch(t->num.idx_max) {
+		switch (t->num.idx_max) {
 		case 0:
 			spos += sprintf(spos, "D: %s (%s)%s %s  %s", &tvec[0], distvec, t->con.text, t->proptext, &autoik[0]);
 			break;
@@ -3899,7 +3861,7 @@ void initBevel(TransInfo *t)
 
 int handleEventBevel(TransInfo *t, wmEvent *event)
 {
-	if (event->val==KM_PRESS) {
+	if (event->val == KM_PRESS) {
 		if (!G.editBMesh) return 0;
 
 		switch (event->type) {
@@ -4394,7 +4356,7 @@ static int createSlideVerts(TransInfo *t)
 	BMEdge *e, *e1 /*, *ee, *le */ /* UNUSED */;
 	BMVert *v, *v2, *first;
 	BMLoop *l, *l1, *l2;
-	TransDataSlideVert *tempsv;
+	TransDataSlideVert *sv_array;
 	BMBVHTree *btree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	SmallHash table;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
@@ -4468,7 +4430,7 @@ static int createSlideVerts(TransInfo *t)
 		return 0;
 	}
 
-	tempsv = MEM_callocN(sizeof(TransDataSlideVert)*j, "tempsv");
+	sv_array = MEM_callocN(sizeof(TransDataSlideVert) * j, "sv_array");
 
 	j = 0;
 	while (1) {
@@ -4527,7 +4489,7 @@ static int createSlideVerts(TransInfo *t)
 		/*iterate over the loop*/
 		first = v;
 		do {
-			TransDataSlideVert *sv = tempsv + j;
+			TransDataSlideVert *sv = sv_array + j;
 
 			sv->v = v;
 			sv->origvert = *v;
@@ -4550,7 +4512,7 @@ static int createSlideVerts(TransInfo *t)
 			if (!e) {
 				//v2=v, v = BM_edge_other_vert(l1->e, v);
 
-				sv = tempsv + j + 1;
+				sv = sv_array + j + 1;
 				sv->v = v;
 				sv->origvert = *v;
 				
@@ -4583,7 +4545,7 @@ static int createSlideVerts(TransInfo *t)
 
 	//EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	sld->sv = tempsv;
+	sld->sv = sv_array;
 	sld->totsv = j;
 	
 	/*find mouse vector*/
@@ -4611,19 +4573,19 @@ static int createSlideVerts(TransInfo *t)
 					
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 
-					if (tempsv[j].down) {
-						ED_view3d_project_float_v3(ar, tempsv[j].down->co, vec1, projectMat);
+					if (sv_array[j].down) {
+						ED_view3d_project_float_v3(ar, sv_array[j].down->co, vec1, projectMat);
 					}
 					else {
-						add_v3_v3v3(vec1, v->co, tempsv[j].downvec);
+						add_v3_v3v3(vec1, v->co, sv_array[j].downvec);
 						ED_view3d_project_float_v3(ar, vec1, vec1, projectMat);
 					}
 					
-					if (tempsv[j].up) {
-						ED_view3d_project_float_v3(ar, tempsv[j].up->co, vec2, projectMat);
+					if (sv_array[j].up) {
+						ED_view3d_project_float_v3(ar, sv_array[j].up->co, vec2, projectMat);
 					}
 					else {
-						add_v3_v3v3(vec1, v->co, tempsv[j].upvec);
+						add_v3_v3v3(vec1, v->co, sv_array[j].upvec);
 						ED_view3d_project_float_v3(ar, vec2, vec2, projectMat);
 					}
 
@@ -4642,13 +4604,13 @@ static int createSlideVerts(TransInfo *t)
 	bmesh_edit_begin(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/*create copies of faces for customdata projection*/
-	tempsv = sld->sv;
-	for (i=0; i<sld->totsv; i++, tempsv++) {
+	sv_array = sld->sv;
+	for (i=0; i<sld->totsv; i++, sv_array++) {
 		BMIter fiter, liter;
 		BMFace *f;
 		BMLoop *l;
 		
-		BM_ITER_ELEM (f, &fiter, tempsv->v, BM_FACES_OF_VERT) {
+		BM_ITER_ELEM (f, &fiter, sv_array->v, BM_FACES_OF_VERT) {
 			
 			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
 				BMFace *copyf = BM_face_copy(bm, f, TRUE, TRUE);
@@ -4666,7 +4628,7 @@ static int createSlideVerts(TransInfo *t)
 			}
 		}
 
-		BLI_smallhash_insert(&sld->vhash, (uintptr_t)tempsv->v, tempsv);
+		BLI_smallhash_insert(&sld->vhash, (uintptr_t)sv_array->v, sv_array);
 	}
 	
 	sld->origfaces_init = TRUE;
@@ -4698,7 +4660,7 @@ static int createSlideVerts(TransInfo *t)
 void projectSVData(TransInfo *t, int final)
 {
 	SlideData *sld = t->customData;
-	TransDataSlideVert *tempsv;
+	TransDataSlideVert *sv;
 	BMEditMesh *em = sld->em;
 	SmallHash visit;
 	int i;
@@ -4706,25 +4668,33 @@ void projectSVData(TransInfo *t, int final)
 	if (!em)
 		return;
 	
-	if(!(t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
+	if (!(t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
 		return;
 
 	/* don't do this at all for non-basis shape keys, too easy to
-	   accidentally break uv maps or vertex colors then */
-	if(em->bm->shapenr > 1)
+	 * accidentally break uv maps or vertex colors then */
+	if (em->bm->shapenr > 1)
 		return;
 
 	BLI_smallhash_init(&visit);
 	
-		for (i=0, tempsv=sld->sv; i<sld->totsv; i++, tempsv++) {
+	for (i=0, sv = sld->sv; i < sld->totsv; sv++, i++) {
 		BMIter fiter;
 		BMFace *f;
 		
-		BM_ITER_ELEM (f, &fiter, tempsv->v, BM_FACES_OF_VERT) {
-			BMIter liter2;
-			BMFace *copyf, *copyf2;
-			BMLoop *l2;
-			int sel, hide;
+
+		/* BMESH_TODO, this interpolates between vertex/loops which are not moved
+		 * (are only apart of a face attached to a slide vert), couldn't we iterate BM_LOOPS_OF_VERT
+		 * here and only iterpolate those? */
+		BM_ITER_ELEM (f, &fiter, sv->v, BM_FACES_OF_VERT) {
+			BMIter liter;
+			BMLoop *l;
+
+			BMFace *f_copy;      /* the copy of 'f' */
+			BMFace *f_copy_flip; /* the copy of 'f' or detect if we need to flip to the shorter side. */
+
+			char is_sel, is_hide;
+
 			
 			if (BLI_smallhash_haskey(&visit, (uintptr_t)f))
 				continue;
@@ -4734,50 +4704,98 @@ void projectSVData(TransInfo *t, int final)
 			/* the face attributes of the copied face will get
 			 * copied over, so its necessary to save the selection
 			 * and hidden state*/
-			sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
-			hide = BM_elem_flag_test(f, BM_ELEM_HIDDEN);
+			is_sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
+			is_hide = BM_elem_flag_test(f, BM_ELEM_HIDDEN);
 			
-			copyf2 = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
+			f_copy = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
 			
 			/* project onto copied projection face */
-			BM_ITER_ELEM (l2, &liter2, f, BM_LOOPS_OF_FACE) {
-				copyf = copyf2;
-				
-				if (BM_elem_flag_test(l2->e, BM_ELEM_SELECT) || BM_elem_flag_test(l2->prev->e, BM_ELEM_SELECT)) {
-					BMLoop *l3 = l2;
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				f_copy_flip = f_copy;
+
+				if (BM_elem_flag_test(l->e, BM_ELEM_SELECT) || BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT)) {
+					/* the loop is attached of the selected edges that are sliding */
+					BMLoop *l_ed_sel = l;
 					
-					if (!BM_elem_flag_test(l2->e, BM_ELEM_SELECT))
-						l3 = l3->prev;
+					if (!BM_elem_flag_test(l->e, BM_ELEM_SELECT))
+						l_ed_sel = l_ed_sel->prev;
 					
-					if (sld->perc < 0.0 && BM_vert_in_face(l3->radial_next->f, tempsv->down)) {
-						copyf = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l3->radial_next->f);
+					if (sld->perc < 0.0f) {
+						if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->down)) {
+							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+						}
 					}
-					else if (sld->perc > 0.0 && BM_vert_in_face(l3->radial_next->f, tempsv->up)) {
-						copyf = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l3->radial_next->f);
+					else if (sld->perc > 0.0f) {
+						if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->up)) {
+							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+						}
 					}
-					if (!copyf)
+
+					BLI_assert(f_copy_flip != NULL);
+					if (!f_copy_flip) {
 						continue;  /* shouldn't happen, but protection */
+					}
+				}
+				else {
+					/* the loop is attached to only one vertex and not a selected edge,
+					 * this means we have to find a selected edges face going in the right direction
+					 * to copy from else we get bad distortion see: [#31080] */
+					BMIter eiter;
+					BMEdge *e_sel;
+
+					BM_ITER_ELEM (e_sel, &eiter, l->v, BM_EDGES_OF_VERT) {
+						if (BM_elem_flag_test(e_sel, BM_ELEM_SELECT)) {;
+							break;
+						}
+					}
+
+					if (e_sel) {
+						/* warning if the UV's are not contiguous, this will copy from the _wrong_ UVs
+						 * in fact whenever the face being copied is not 'f_copy' this can happen,
+						 * we could be a lot smarter about this but would need to deal with every UV channel or
+						 * add a way to mask out lauers when calling #BM_loop_interp_from_face() */
+						if (sld->perc < 0.0f) {
+							if (BM_vert_in_face(e_sel->l->f, sv->down)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
+							}
+							else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->down)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->radial_next->f);
+							}
+
+						}
+						else if (sld->perc > 0.0f) {
+							if (BM_vert_in_face(e_sel->l->f, sv->up)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
+							}
+							else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->up)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->radial_next->f);
+							}
+						}
+					}
+
 				}
 				
 				/* only loop data, no vertex data since that contains shape keys,
 				 * and we do not want to mess up other shape keys */
-				BM_loop_interp_from_face(em->bm, l2, copyf, FALSE, FALSE);
+				BM_loop_interp_from_face(em->bm, l, f_copy_flip, FALSE, FALSE);
 
 				if (final) {
-					BM_loop_interp_multires(em->bm, l2, copyf);	
-					if (copyf2 != copyf) {
-						BM_loop_interp_multires(em->bm, l2, copyf2);
+					BM_loop_interp_multires(em->bm, l, f_copy_flip);
+					if (f_copy != f_copy_flip) {
+						BM_loop_interp_multires(em->bm, l, f_copy);
 					}
 				}
 			}
 			
 			/* make sure face-attributes are correct (e.g. MTexPoly) */
-			BM_elem_attrs_copy(em->bm, em->bm, copyf2, f);
+			BM_elem_attrs_copy(em->bm, em->bm, f_copy, f);
 			
 			/* restore selection and hidden flags */
-			BM_face_select_set(em->bm, f, sel);
-			if (!hide) { /* this check is a workaround for bug, see note - [#30735], without this edge can be hidden and selected */
-				BM_elem_hide_set(em->bm, f, hide);
+			BM_face_select_set(em->bm, f, is_sel);
+			if (!is_hide) {
+				/* this check is a workaround for bug, see note - [#30735],
+				 * without this edge can be hidden and selected */
+				BM_elem_hide_set(em->bm, f, is_hide);
 			}
 		}
 	}
@@ -4785,7 +4803,8 @@ void projectSVData(TransInfo *t, int final)
 	BLI_smallhash_release(&visit);
 }
 
-void freeSlideTempFaces(SlideData *sld) {
+void freeSlideTempFaces(SlideData *sld)
+{
 	if (sld->origfaces_init) {
 		SmallHashIter hiter;
 		BMFace *copyf;
@@ -4808,14 +4827,14 @@ void freeSlideVerts(TransInfo *t)
 	
 #if 0 /*BMESH_TODO*/
 	if (me->drawflag & ME_DRAWEXTRA_EDGELEN) {
-		TransDataSlideVert *tempsv;
+		TransDataSlideVert *sv;
 		LinkNode *look = sld->vertlist;
 		GHash *vertgh = sld->vhash;
 		while (look) {
-			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
-			if (tempsv != NULL) {
-				tempsv->up->f &= !SELECT;
-				tempsv->down->f &= !SELECT;
+			sv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+			if (sv != NULL) {
+				sv->up->f &= !SELECT;
+				sv->down->f &= !SELECT;
 			}
 			look = look->next;
 		}
@@ -5186,8 +5205,7 @@ int Align(TransInfo *t, const int UNUSED(mval[2]))
 	/* saving original center */
 	copy_v3_v3(center, t->center);
 
-	for (i = 0 ; i < t->total; i++, td++)
-	{
+	for (i = 0 ; i < t->total; i++, td++) {
 		float mat[3][3], invmat[3][3];
 
 		if (td->flag & TD_NOACTION)

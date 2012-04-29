@@ -49,8 +49,6 @@ public:
 	virtual int num_triangles() const { return 0; }
 	virtual void print(int depth = 0) const = 0;
 
-	float getArea() const { return m_bounds.area(); }
-
 	BoundBox m_bounds;
 	uint m_visibility;
 
@@ -58,6 +56,8 @@ public:
 	int getSubtreeSize(BVH_STAT stat=BVH_STAT_NODE_COUNT) const;
 	float computeSubtreeSAHCost(const BVHParams& p, float probability = 1.0f) const;	
 	void deleteSubtree();
+
+	uint update_visibility();
 };
 
 class InnerNode : public BVHNode
@@ -66,9 +66,21 @@ public:
 	InnerNode(const BoundBox& bounds, BVHNode* child0, BVHNode* child1)
 	{
 		m_bounds = bounds;
-		m_visibility = child0->m_visibility|child1->m_visibility;
 		children[0] = child0;
 		children[1] = child1;
+
+		if(child0 && child1)
+			m_visibility = child0->m_visibility|child1->m_visibility;
+		else
+			m_visibility = 0; /* happens on build cancel */
+	}
+
+	InnerNode(const BoundBox& bounds)
+	{
+		m_bounds = bounds;
+		m_visibility = 0;
+		children[0] = NULL;
+		children[1] = NULL;
 	}
 
 	bool is_leaf() const { return false; }

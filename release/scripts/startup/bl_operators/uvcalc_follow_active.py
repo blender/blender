@@ -59,7 +59,7 @@ def extend(obj, operator, EXTEND_MODE):
         vidx_source = face_source.vertices
         vidx_target = face_target.vertices
 
-        uv_layer = me.uv_loop_layers.active.data
+        uv_layer = me.uv_layers.active.data
         uvs_source = [uv_layer[i].uv for i in face_source.loop_indices]
         uvs_target = [uv_layer[i].uv for i in face_target.loop_indices]
 

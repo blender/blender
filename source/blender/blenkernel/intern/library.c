@@ -183,7 +183,7 @@ int id_make_local(ID *id, int test)
 	if (id->flag & LIB_INDIRECT)
 		return 0;
 
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 		case ID_SCE:
 			return 0; /* not implemented */
 		case ID_LI:
@@ -199,12 +199,12 @@ int id_make_local(ID *id, int test)
 			return 1;
 		case ID_CU:
 			if (!test) {
-				make_local_curve((Curve*)id);
+				BKE_curve_make_local((Curve*)id);
 				make_local_key(((Curve*)id)->key);
 			}
 			return 1;
 		case ID_MB:
-			if (!test) make_local_mball((MetaBall*)id);
+			if (!test) BKE_metaball_make_local((MetaBall*)id);
 			return 1;
 		case ID_MA:
 			if (!test) make_local_material((Material*)id);
@@ -282,7 +282,7 @@ int id_copy(ID *id, ID **newid, int test)
 	/* conventions:
 	 * - make shallow copy, only this ID block
 	 * - id.us of the new ID is set to 1 */
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 		case ID_SCE:
 			return 0; /* can't be copied from here */
 		case ID_LI:
@@ -294,10 +294,10 @@ int id_copy(ID *id, ID **newid, int test)
 			if (!test) *newid= (ID*)copy_mesh((Mesh*)id);
 			return 1;
 		case ID_CU:
-			if (!test) *newid= (ID*)copy_curve((Curve*)id);
+			if (!test) *newid= (ID*)BKE_curve_copy((Curve*)id);
 			return 1;
 		case ID_MB:
-			if (!test) *newid= (ID*)copy_mball((MetaBall*)id);
+			if (!test) *newid= (ID*)BKE_metaball_copy((MetaBall*)id);
 			return 1;
 		case ID_MA:
 			if (!test) *newid= (ID*)copy_material((Material*)id);
@@ -374,7 +374,7 @@ int id_unlink(ID *id, int test)
 	Main *mainlib= G.main;
 	ListBase *lb;
 
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 		case ID_TXT:
 			if (test) return 1;
 			unlink_text(mainlib, (Text*)id);
@@ -431,7 +431,7 @@ int id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 
 ListBase *which_libbase(Main *mainlib, short type)
 {
-	switch( type ) {
+	switch ( type ) {
 		case ID_SCE:
 			return &(mainlib->scene);
 		case ID_LI:
@@ -598,7 +598,7 @@ static ID *alloc_libblock_notest(short type)
 {
 	ID *id= NULL;
 	
-	switch( type ) {
+	switch ( type ) {
 		case ID_SCE:
 			id= MEM_callocN(sizeof(Scene), "scene");
 			break;
@@ -808,7 +808,7 @@ void free_libblock(ListBase *lb, void *idv)
 	BPY_id_release(id);
 #endif
 
-	switch( GS(id->name) ) {	/* GetShort from util.h */
+	switch ( GS(id->name) ) {	/* GetShort from util.h */
 		case ID_SCE:
 			free_scene((Scene *)id);
 			break;
@@ -822,10 +822,10 @@ void free_libblock(ListBase *lb, void *idv)
 			free_mesh((Mesh *)id, 1);
 			break;
 		case ID_CU:
-			free_curve((Curve *)id);
+			BKE_curve_free((Curve *)id);
 			break;
 		case ID_MB:
-			free_mball((MetaBall *)id);
+			BKE_metaball_free((MetaBall *)id);
 			break;
 		case ID_MA:
 			free_material((Material *)id);
@@ -898,7 +898,7 @@ void free_libblock(ListBase *lb, void *idv)
 			free_gpencil_data((bGPdata *)id);
 			break;
 		case ID_MC:
-			free_movieclip((MovieClip *)id);
+			BKE_movieclip_free((MovieClip *)id);
 			break;
 		case ID_LS:
 			FRS_free_linestyle((FreestyleLineStyle *)id);
@@ -1025,8 +1025,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			BLI_dynstr_append(pupds, numstr);
 			
 			/* icon */
-			switch(GS(id->name))
-			{
+			switch (GS(id->name)) {
 			case ID_MA: /* fall through */
 			case ID_TE: /* fall through */
 			case ID_IM: /* fall through */
@@ -1070,6 +1069,7 @@ void IDnames_to_pupstring(const char **str, const char *title, const char *extra
 }
 
 /* skips viewer images */
+#if 0 /* unused */
 void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops, ListBase *lb, ID *link, short *nr)
 {
 	DynStr *pupds= BLI_dynstr_new();
@@ -1090,6 +1090,7 @@ void IMAnames_to_pupstring(const char **str, const char *title, const char *extr
 	*str= BLI_dynstr_get_cstring(pupds);
 	BLI_dynstr_free(pupds);
 }
+#endif
 
 void id_sort_by_name(ListBase *lb, ID *id)
 {

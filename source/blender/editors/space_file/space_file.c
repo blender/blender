@@ -251,7 +251,7 @@ static void file_listener(ScrArea *sa, wmNotifier *wmn)
 	/* SpaceFile* sfile = (SpaceFile*)sa->spacedata.first; */
 
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SPACE:
 			switch (wmn->data) {
 				case ND_SPACE_FILE_LIST:
@@ -287,7 +287,7 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SPACE:
 			switch (wmn->data) {
 				case ND_SPACE_FILE_LIST:
@@ -476,7 +476,7 @@ static void file_channel_area_draw(const bContext *C, ARegion *ar)
 static void file_channel_area_listener(ARegion *UNUSED(ar), wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		
 	}
 }
@@ -536,7 +536,7 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 static void file_ui_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SPACE:
 			switch (wmn->data) {
 				case ND_SPACE_FILE_LIST:

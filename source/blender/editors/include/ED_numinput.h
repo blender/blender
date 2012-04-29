@@ -29,13 +29,13 @@
 
 
 /*
-	The ctrl value has different meaning:
-		0			: No value has been typed
-
-		otherwise, |value| - 1 is where the cursor is located after the period
-		Positive	: number is positive
-		Negative	: number is negative
-*/
+ *  The ctrl value has different meaning:
+ *      0           : No value has been typed
+ *
+ *      otherwise, |value| - 1 is where the cursor is located after the period
+ *      Positive    : number is positive
+ *      Negative    : number is negative
+ */
 
 typedef struct NumInput {
 	short  idx;

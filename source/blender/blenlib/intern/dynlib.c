@@ -85,7 +85,9 @@ char *BLI_dynlib_get_error_as_string(DynamicLibrary *lib)
 		if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS, 
 			NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 			buf, sizeof(buf), NULL))
+		{
 			return buf;
+		}
 	}
 	
 	return NULL;

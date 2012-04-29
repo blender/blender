@@ -21,8 +21,8 @@
  */
 
 /** \file blender/bmesh/operators/bmo_slide.c
-*  \ingroup bmesh
-*/
+ *  \ingroup bmesh
+ */
 
 #include "MEM_guardedalloc.h"
 

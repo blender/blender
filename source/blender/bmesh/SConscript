@@ -8,13 +8,11 @@ sources += env.Glob('operators/*.c')
 sources += env.Glob('tools/*.c')
 
 incs = [
-	'#/intern/guardedalloc',
+	'./',
 	'../blenlib',
-	'../blenloader',
 	'../makesdna',
 	'../blenkernel',
-	'./',
-	'../editors/include',
+	'#/intern/guardedalloc',
 	]
 
 defs = []

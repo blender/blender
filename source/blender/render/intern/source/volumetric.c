@@ -559,8 +559,7 @@ void vol_get_scattering(ShadeInput *shi, float scatter_col[3], const float co[3]
 	zero_v3(scatter_col);
 
 	lights= get_lights(shi);
-	for (go=lights->first; go; go= go->next)
-	{
+	for (go=lights->first; go; go= go->next) {
 		float lacol[3] = {0.f, 0.f, 0.f};
 		lar= go->lampren;
 		

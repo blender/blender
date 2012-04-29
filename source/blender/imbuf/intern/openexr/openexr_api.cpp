@@ -117,8 +117,7 @@ private:
 
 bool Mem_IStream::read (char c[], int n)
 {
-	if (n + _exrpos <= _exrsize)
-	{
+	if (n + _exrpos <= _exrsize) {
 		memcpy(c, (void *)(&_exrbuf[_exrpos]), n);
 		_exrpos += n;
 		return true;
@@ -162,8 +161,7 @@ int imb_is_a_openexr(unsigned char *mem)
 
 static void openexr_header_compression(Header *header, int compression)
 {
-	switch(compression)
-	{
+	switch (compression) {
 		case 0:
 			header->compression() = NO_COMPRESSION;
 			break;
@@ -236,12 +234,10 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		if (ibuf->rect_float) {
 			float *from;
 
-			for (int i = ibuf->y-1; i >= 0; i--)
-			{
+			for (int i = ibuf->y-1; i >= 0; i--) {
 				from= ibuf->rect_float + channels*i*width;
 
-				for (int j = ibuf->x; j > 0; j--)
-				{
+				for (int j = ibuf->x; j > 0; j--) {
 					to->r = from[0];
 					to->g = from[1];
 					to->b = from[2];
@@ -254,12 +250,10 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 			unsigned char *from;
 
 			if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
-				for (int i = ibuf->y-1; i >= 0; i--)
-				{
+				for (int i = ibuf->y-1; i >= 0; i--) {
 					from= (unsigned char *)ibuf->rect + channels*i*width;
 
-					for (int j = ibuf->x; j > 0; j--)
-					{
+					for (int j = ibuf->x; j > 0; j--) {
 						to->r = (float)(from[0])/255.0;
 						to->g = (float)(from[1])/255.0;
 						to->b = (float)(from[2])/255.0;
@@ -269,12 +263,10 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 				}
 			}
 			else {
-				for (int i = ibuf->y-1; i >= 0; i--)
-				{
+				for (int i = ibuf->y-1; i >= 0; i--) {
 					from= (unsigned char *)ibuf->rect + channels*i*width;
 
-					for (int j = ibuf->x; j > 0; j--)
-					{
+					for (int j = ibuf->x; j > 0; j--) {
 						to->r = srgb_to_linearrgb((float)from[0] / 255.0);
 						to->g = srgb_to_linearrgb((float)from[1] / 255.0);
 						to->b = srgb_to_linearrgb((float)from[2] / 255.0);
@@ -364,8 +356,7 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 
 int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 {
-	if (flags & IB_mem) 
-	{
+	if (flags & IB_mem) {
 		printf("OpenEXR-save: Create EXR in memory CURRENTLY NOT SUPPORTED !\n");
 		imb_addencodedbufferImBuf(ibuf);
 		ibuf->encodedsize = 0;	  
@@ -743,7 +734,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 	echan->chan_id= echan->name[len-1];
 	
 	len-= 3;
-	while(len>=0) {
+	while (len>=0) {
 		if (echan->name[len]=='.')
 			break;
 		len--;
@@ -913,8 +904,7 @@ static void exr_print_filecontents(InputFile *file)
 {
 	const ChannelList &channels = file->header().channels();
 	
-	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
-	{
+	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i) {
 		const Channel &channel = i.channel();
 		printf("OpenEXR-load: Found channel %s of type %d\n", i.name(), channel.type);
 	}
@@ -925,8 +915,7 @@ static const char *exr_rgba_channelname(InputFile *file, const char *chan)
 {
 	const ChannelList &channels = file->header().channels();
 	
-	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
-	{
+	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i) {
 		/* const Channel &channel = i.channel(); */ /* Not used yet */
 		const char *str= i.name();
 		int len= strlen(str);
@@ -986,8 +975,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 		is_multi= exr_is_multilayer(file);
 		
 		/* do not make an ibuf when */
-		if (is_multi && !(flags & IB_test) && !(flags & IB_multilayer)) 
-		{
+		if (is_multi && !(flags & IB_test) && !(flags & IB_multilayer)) {
 			printf("Error: can't process EXR multilayer file\n");
 		}
 		else {
@@ -998,10 +986,8 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 			/* openEXR is linear as per EXR spec */
 			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 			
-			if (!(flags & IB_test))
-			{
-				if (is_multi) /* only enters with IB_multilayer flag set */
-				{
+			if (!(flags & IB_test)) {
+				if (is_multi) { /* only enters with IB_multilayer flag set */
 					/* constructs channels for reading, allocates memory in channels */
 					ExrHandle *handle= imb_exr_begin_read_mem(file, width, height);
 					if (handle) {
@@ -1032,8 +1018,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 					frameBuffer.insert ( exr_rgba_channelname(file, "A"), 
 										Slice (Imf::FLOAT,  (char *) (first+3), xstride, ystride, 1, 1, 1.0f)); /* 1.0 is fill value */
 
-					if (exr_has_zbuffer(file)) 
-					{
+					if (exr_has_zbuffer(file)) {
 						float *firstz;
 						
 						addzbuffloatImBuf(ibuf);

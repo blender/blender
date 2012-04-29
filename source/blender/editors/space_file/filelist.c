@@ -520,7 +520,7 @@ static void filelist_read_dir(struct FileList* filelist);
 struct FileList*	filelist_new(short type)
 {
 	FileList* p = MEM_callocN( sizeof(FileList), "filelist" );
-	switch(type) {
+	switch (type) {
 		case FILE_MAIN:
 			p->readf = filelist_read_main;
 			p->filterf = is_filtered_main;
@@ -641,7 +641,7 @@ struct ImBuf * filelist_geticon(struct FileList* filelist, int index)
 		if ( strcmp(filelist->filelist[fidx].relname, "..") == 0) {
 			ibuf = gSpecialFileImages[SPECIAL_IMG_PARENT];
 		}
-		else if  ( strcmp(filelist->filelist[fidx].relname, ".") == 0) {
+		else if (strcmp(filelist->filelist[fidx].relname, ".") == 0) {
 			ibuf = gSpecialFileImages[SPECIAL_IMG_REFRESH];
 		}
 		else {
@@ -767,16 +767,18 @@ static int file_extension_type(const char *relname)
 	else if (BLI_testextensie(relname, ".py")) {
 		return PYSCRIPTFILE;
 	}
-	else if (BLI_testextensie(relname, ".txt")
-			  || BLI_testextensie(relname, ".glsl")
-			  || BLI_testextensie(relname, ".data")) {
+	else if (BLI_testextensie(relname, ".txt")  ||
+	         BLI_testextensie(relname, ".glsl") ||
+	         BLI_testextensie(relname, ".data"))
+	{
 		return TEXTFILE;
 	}
-	else if ( BLI_testextensie(relname, ".ttf")
-			  || BLI_testextensie(relname, ".ttc")
-			  || BLI_testextensie(relname, ".pfb")
-			  || BLI_testextensie(relname, ".otf")
-			  || BLI_testextensie(relname, ".otc")) {
+	else if (BLI_testextensie(relname, ".ttf") ||
+	         BLI_testextensie(relname, ".ttc") ||
+	         BLI_testextensie(relname, ".pfb") ||
+	         BLI_testextensie(relname, ".otf") ||
+	         BLI_testextensie(relname, ".otc"))
+	{
 		return FTFONTFILE;			
 	}
 	else if (BLI_testextensie(relname, ".btx")) {
@@ -785,8 +787,9 @@ static int file_extension_type(const char *relname)
 	else if (BLI_testextensie(relname, ".dae")) {
 		return COLLADAFILE;
 	}
-	else if (BLI_testextensie_array(relname, imb_ext_image)
-			  || (G.have_quicktime && BLI_testextensie_array(relname, imb_ext_image_qt))) {
+	else if (BLI_testextensie_array(relname, imb_ext_image) ||
+	         (G.have_quicktime && BLI_testextensie_array(relname, imb_ext_image_qt)))
+	{
 		return IMAGEFILE;			
 	}
 	else if (BLI_testextensie_array(relname, imb_ext_movie)) {
@@ -838,8 +841,9 @@ static void filelist_setfiletypes(struct FileList* filelist)
 		}
 		file->flags = file_extension_type(file->relname);
 		
-		if (filelist->filter_glob
-		   && BLI_testextensie_glob(file->relname, filelist->filter_glob)) {
+		if (filelist->filter_glob &&
+		    BLI_testextensie_glob(file->relname, filelist->filter_glob))
+		{
 			file->flags= OPERATORFILE;
 		}
 		
@@ -978,7 +982,7 @@ int	filelist_is_selected(struct FileList* filelist, int index, FileCheckType che
 
 void filelist_sort(struct FileList* filelist, short sort)
 {
-	switch(sort) {
+	switch (sort) {
 	case FILE_SORT_ALPHA:
 		qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_name);	
 		break;

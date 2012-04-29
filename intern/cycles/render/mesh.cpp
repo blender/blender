@@ -43,6 +43,7 @@ Mesh::Mesh()
 	transform_applied = false;
 	transform_negative_scaled = false;
 	displacement_method = DISPLACE_BUMP;
+	bounds = BoundBox::empty;
 
 	bvh = NULL;
 
@@ -96,7 +97,7 @@ void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
 
 void Mesh::compute_bounds()
 {
-	BoundBox bnds;
+	BoundBox bnds = BoundBox::empty;
 	size_t verts_size = verts.size();
 
 	for(size_t i = 0; i < verts_size; i++)
@@ -697,6 +698,8 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 				progress.set_status(msg, "Building BVH");
 
 				mesh->compute_bvh(&scene->params, progress);
+
+				i++;
 			}
 
 			if(progress.get_cancel()) return;
@@ -704,8 +707,6 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 			mesh->need_update = false;
 			mesh->need_update_rebuild = false;
 		}
-
-		i++;
 	}
 	
 	foreach(Shader *shader, scene->shaders)
