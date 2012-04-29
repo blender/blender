@@ -1144,6 +1144,35 @@ static BMOpDefine bmo_vertex_slide_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+/*
+ * Convex Hull
+ *
+ * Builds a convex hull from the vertices in 'input'.
+ *
+ * If 'use_existing_faces' is true, the hull will not output triangles
+ * that are covered by a pre-existing face.
+ *
+ * All hull vertices, faces, and edges are added to 'geomout'. Any
+ * input elements that end up inside the hull (i.e. are not used by an
+ * output face) are added to the 'interior_geom' slot. The
+ * 'unused_geom' slot will contain all interior geometry that is
+ * completely unused. Lastly, 'holes_geom' contains edges and faces
+ * that were in the input and are part of the hull.
+*/
+static BMOpDefine bmo_convex_hull_def = {
+	"convex_hull",
+	{{BMO_OP_SLOT_ELEMENT_BUF, "input"},
+	 {BMO_OP_SLOT_BOOL, "use_existing_faces"},
+
+	 /* Outputs */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"},
+	 {BMO_OP_SLOT_ELEMENT_BUF, "interior_geom"},
+	 {BMO_OP_SLOT_ELEMENT_BUF, "unused_geom"},
+	 {BMO_OP_SLOT_ELEMENT_BUF, "holes_geom"},
+	 {0} /* null-terminating sentinel */},
+	bmo_convex_hull_exec,
+	0
+};
 
 BMOpDefine *opdefines[] = {
 	&bmo_split_def,
@@ -1214,6 +1243,7 @@ BMOpDefine *opdefines[] = {
 	&bmo_inset_def,
 	&bmo_wireframe_def,
 	&bmo_vertex_slide_def,
+	&bmo_convex_hull_def,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void *));

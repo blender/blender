@@ -214,6 +214,8 @@ void MESH_OT_inset(struct wmOperatorType *ot);
 void MESH_OT_wireframe(struct wmOperatorType *ot);
 void MESH_OT_vert_slide(struct wmOperatorType *ot);
 
+void MESH_OT_convex_hull(struct wmOperatorType *ot);
+
 /* ******************* mesh_navmesh.c */
 void MESH_OT_navmesh_make(struct wmOperatorType *ot);
 void MESH_OT_navmesh_face_copy(struct wmOperatorType *ot);

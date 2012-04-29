@@ -3123,10 +3123,22 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
+static void join_triangle_props(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
+	prop = RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
+	                              "Max Angle", "Angle Limit", 0.0f, DEG2RADF(180.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
+
+	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
+	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
+	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
+	RNA_def_boolean(ot->srna, "materials", 0, "Compare Materials", "");
+}
+
+void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
+{
 	/* identifiers */
 	ot->name = "Tris to Quads";
 	ot->idname = "MESH_OT_tris_convert_to_quads";
@@ -3139,14 +3151,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	prop = RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
-	                              "Max Angle", "Angle Limit", 0.0f, DEG2RADF(180.0f));
-	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
-
-	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
-	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
-	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
-	RNA_def_boolean(ot->srna, "materials", 0, "Compare Materials", "");
+	join_triangle_props(ot);
 }
 
 static int edbm_dissolve_exec(bContext *C, wmOperator *op)
@@ -4335,3 +4340,93 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_replace",         TRUE, "Replace", "Remove original faces");
 }
 
+static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMOperator bmop;
+		
+	EDBM_op_init(em, &bmop, op, "convex_hull input=%hvef "
+				 "use_existing_faces=%b",
+				 BM_ELEM_SELECT,
+				 RNA_boolean_get(op->ptr, "use_existing_faces"));
+	BMO_op_exec(em->bm, &bmop);
+
+	/* Hull fails if input is coplanar */
+	if (BMO_error_occurred(em->bm)) {
+		EDBM_op_finish(em, &bmop, op, TRUE);
+		return OPERATOR_CANCELLED;
+	}
+
+	
+	/* Delete unused vertices, edges, and faces */
+	if (RNA_boolean_get(op->ptr, "delete_unused")) {
+		if(!EDBM_op_callf(em, op, "del geom=%s context=%i",
+						  &bmop, "unused_geom", DEL_ONLYTAGGED)) {
+			EDBM_op_finish(em, &bmop, op, TRUE);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* Delete hole edges/faces */
+	if (RNA_boolean_get(op->ptr, "make_holes")) {
+		if(!EDBM_op_callf(em, op, "del geom=%s context=%i",
+						  &bmop, "holes_geom", DEL_ONLYTAGGED)) {
+			EDBM_op_finish(em, &bmop, op, TRUE);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* Merge adjacent triangles */
+	if (RNA_boolean_get(op->ptr, "join_triangles")) {
+		if(!EDBM_op_callf(em, op, "join_triangles faces=%s limit=%f",
+						  &bmop, "geomout",
+						  RNA_float_get(op->ptr, "limit"))) {
+			EDBM_op_finish(em, &bmop, op, TRUE);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		EDBM_update_generic(C, em, TRUE);
+		EDBM_selectmode_flush(em);
+		return OPERATOR_FINISHED;
+	}
+}
+
+void MESH_OT_convex_hull(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Convex Hull";
+	ot->description = "Enclose selected vertices in a convex polyhedron";
+	ot->idname = "MESH_OT_convex_hull";
+
+	/* api callbacks */
+	ot->exec = edbm_convex_hull_exec;
+	ot->poll = EM_view3d_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "delete_unused", TRUE,
+					"Delete Unused",
+					"Delete selected elements that are not used by the hull");
+
+	RNA_def_boolean(ot->srna, "use_existing_faces", TRUE,
+					"Use Existing Faces",
+					"Skip hull triangles that are covered by a pre-existing face");
+
+	RNA_def_boolean(ot->srna, "make_holes", FALSE,
+					"Make Holes",
+					"Delete selected faces that are used by the hull");
+
+	RNA_def_boolean(ot->srna, "join_triangles", TRUE,
+					"Join Triangles",
+					"Merge adjacent triangles into quads");
+
+	join_triangle_props(ot);
+}
