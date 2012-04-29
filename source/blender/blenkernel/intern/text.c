@@ -2207,6 +2207,9 @@ void txt_do_undo(Text *text)
 
 			text->undo_pos--;
 			break;
+		case UNDO_DUPLICATE:
+			txt_delete_line(text, text->curl->next);
+			break;
 		default:
 			//XXX error("Undo buffer error - resetting");
 			text->undo_pos= -1;
@@ -2404,6 +2407,9 @@ void txt_do_redo(Text *text)
 				txt_uncomment(text);
 			}
 			break;
+		case UNDO_DUPLICATE:
+			txt_duplicate_line(text);
+			break;
 		default:
 			//XXX error("Undo buffer error - resetting");
 			text->undo_pos= -1;
@@ -2543,6 +2549,23 @@ static void txt_combine_lines (Text *text, TextLine *linea, TextLine *lineb)
 	
 	txt_make_dirty(text);
 	txt_clean_text(text);
+}
+
+void txt_duplicate_line(Text *text)
+{
+	TextLine *textline;
+	
+	if (!text || !text->curl) return;
+	
+	if (text->curl == text->sell) {
+		textline = txt_new_line(text->curl->line);
+		BLI_insertlinkafter(&text->lines, text->curl, textline);
+		
+		txt_make_dirty(text);
+		txt_clean_text(text);
+		
+		if (!undoing) txt_undo_add_op(text, UNDO_DUPLICATE);
+	}
 }
 
 void txt_delete_char(Text *text) 
