@@ -1867,7 +1867,7 @@ static void write_previews(WriteData *wd, PreviewImage *prv)
 		short h = prv->h[1];
 		unsigned int *rect = prv->rect[1];
 		/* don't write out large previews if not requested */
-		if (!(U.flag & USER_SAVE_PREVIEWS) || TRUE) {
+		if (!(U.flag & USER_SAVE_PREVIEWS)) {
 			prv->w[1] = 0;
 			prv->h[1] = 0;
 			prv->rect[1] = NULL;
@@ -1877,7 +1877,7 @@ static void write_previews(WriteData *wd, PreviewImage *prv)
 		if (prv->rect[1]) writedata(wd, DATA, prv->w[1]*prv->h[1]*sizeof(unsigned int), prv->rect[1]);
 
 		/* restore preview, we still want to keep it in memory even if not saved to file */
-		if (!(U.flag & USER_SAVE_PREVIEWS) || TRUE) {
+		if (!(U.flag & USER_SAVE_PREVIEWS) ) {
 			prv->w[1] = w;
 			prv->h[1] = h;
 			prv->rect[1] = rect;

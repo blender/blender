@@ -787,7 +787,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 
 	/* blend file thumbnail */
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
-	if ((U.flag & USER_SAVE_PREVIEWS) && 0) {
+	if (U.flag & USER_SAVE_PREVIEWS) {
 		ibuf_thumb = blend_file_thumb(CTX_data_scene(C), CTX_wm_screen(C), &thumb);
 	}
 

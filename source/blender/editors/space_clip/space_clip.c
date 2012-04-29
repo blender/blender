@@ -315,7 +315,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 
 	/* clear or remove stuff from old */
 	scn->scopes.track_preview = NULL;
-	scn->scopes.ok = 0;
+	scn->scopes.ok = FALSE;
 	scn->draw_context = NULL;
 
 	return (SpaceLink *)scn;
