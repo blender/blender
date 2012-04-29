@@ -1196,7 +1196,6 @@ public:
     Vec3r B = ioB->point3D();
     Vec3r a = ioA->point2D();
     Vec3r b = ioB->point2D();
-    SVertex *svA, *svB;
 
     Vec3r newpoint3d,newpoint2d;
     vector<SVertex*> intersections;
@@ -1231,8 +1230,8 @@ public:
     sv!=svend;
     sv++)
     {
-      svA = fe->vertexA();
-      svB = fe->vertexB();
+      //SVertex *svA = fe->vertexA();
+      SVertex *svB = fe->vertexB();
         
       // We split edge AB into AA' and A'B. A' and A'B are created.
       // AB becomes (address speaking) AA'. B is updated.
