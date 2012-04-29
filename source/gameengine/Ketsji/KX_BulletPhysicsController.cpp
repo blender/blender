@@ -121,8 +121,8 @@ void	KX_BulletPhysicsController::RelativeTranslate(const MT_Vector3& dloc,bool l
 
 void	KX_BulletPhysicsController::RelativeRotate(const MT_Matrix3x3& drot,bool local)
 {
-	float	rotval[12];
-	drot.getValue(rotval);
+	float	rotval[9];
+	drot.getValue3x3(rotval);
 	CcdPhysicsController::RelativeRotate(rotval,local);
 }
 
