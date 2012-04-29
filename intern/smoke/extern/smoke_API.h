@@ -41,17 +41,20 @@ struct FLUID_3D;
 void smoke_export(struct FLUID_3D *fluid, float *dt, float *dx, float **dens, float **densold, float **heat, float **heatold, float **vx, float **vy, float **vz, float **vxold, float **vyold, float **vzold, unsigned char **obstacles);
 
 // low res
-struct FLUID_3D *smoke_init(int *res, float *p0);
+struct FLUID_3D *smoke_init(int *res, float *p0, float dtdef);
 void smoke_free(struct FLUID_3D *fluid);
 
 void smoke_initBlenderRNA(struct FLUID_3D *fluid, float *alpha, float *beta, float *dt_factor, float *vorticity, int *border_colli);
-void smoke_step(struct FLUID_3D *fluid, size_t framenr, float fps);
+void smoke_step(struct FLUID_3D *fluid, float dtSubdiv);
 
 float *smoke_get_density(struct FLUID_3D *fluid);
 float *smoke_get_heat(struct FLUID_3D *fluid);
 float *smoke_get_velocity_x(struct FLUID_3D *fluid);
 float *smoke_get_velocity_y(struct FLUID_3D *fluid);
 float *smoke_get_velocity_z(struct FLUID_3D *fluid);
+
+/* Moving obstacle velocity provided by blender */
+void smoke_get_ob_velocity(struct FLUID_3D *fluid, float **x, float **y, float **z);
 
 float *smoke_get_force_x(struct FLUID_3D *fluid);
 float *smoke_get_force_y(struct FLUID_3D *fluid);

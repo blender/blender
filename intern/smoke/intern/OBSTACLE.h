@@ -27,9 +27,11 @@
 #define OBSTACLE_H
 
 enum OBSTACLE_FLAGS {
-	EMPTY = 0, 
+	EMPTY = 0,
+	/* 1 is used to flag an object cell */
 	MARCHED = 2, 
-	RETIRED = 4 
+	RETIRED = 4,
+	ANIMATED = 8,
 };  
 
 class OBSTACLE  

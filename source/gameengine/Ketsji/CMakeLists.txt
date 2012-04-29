@@ -55,6 +55,7 @@ set(INC
 )
 
 set(INC_SYS
+	${PTHREADS_INCLUDE_DIRS}
 	${GLEW_INCLUDE_PATH}
 	../../../extern/recastnavigation/Recast/Include
 	../../../extern/recastnavigation/Detour/Include

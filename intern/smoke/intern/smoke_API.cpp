@@ -19,6 +19,7 @@
  * All rights reserved.
  *
  * Contributor(s): Daniel Genrich
+ *                 Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -36,10 +37,10 @@
 #include <math.h>
 
 // y in smoke is z in blender
-extern "C" FLUID_3D *smoke_init(int *res, float *p0)
+extern "C" FLUID_3D *smoke_init(int *res, float *p0, float dtdef)
 {
 	// smoke lib uses y as top-bottom/vertical axis where blender uses z
-	FLUID_3D *fluid = new FLUID_3D(res, p0);
+	FLUID_3D *fluid = new FLUID_3D(res, p0, dtdef);
 
 	// printf("xres: %d, yres: %d, zres: %d\n", res[0], res[1], res[2]);
 
@@ -78,41 +79,9 @@ extern "C" size_t smoke_get_index2d(int x, int max_x, int y /*, int max_y, int z
 	return x + y * max_x;
 }
 
-extern "C" void smoke_step(FLUID_3D *fluid, size_t framenr, float fps)
+extern "C" void smoke_step(FLUID_3D *fluid, float dtSubdiv)
 {
-	/* stability values copied from wturbulence.cpp */
-	const int maxSubSteps = 25;
-	const float maxVel = 0.5f; /* TODO: maybe 0.5 is still too high, please confirm! -dg */
-
-	float dt = DT_DEFAULT;
-	float maxVelMag = 0.0f;
-	int totalSubsteps;
-	int substep = 0;
-	float dtSubdiv;
-
-	/* get max velocity and lower the dt value if it is too high */
-	size_t size= fluid->_xRes * fluid->_yRes * fluid->_zRes;
-
-	for(size_t i = 0; i < size; i++)
-	{
-		float vtemp = (fluid->_xVelocity[i]*fluid->_xVelocity[i]+fluid->_yVelocity[i]*fluid->_yVelocity[i]+fluid->_zVelocity[i]*fluid->_zVelocity[i]);
-		if(vtemp > maxVelMag)
-			maxVelMag = vtemp;
-	}
-
-	/* adapt timestep for different framerates, dt = 0.1 is at 25fps */
-	dt *= (25.0f / fps);
-
-	maxVelMag = sqrt(maxVelMag) * dt * (*(fluid->_dtFactor));
-	totalSubsteps = (int)((maxVelMag / maxVel) + 1.0f); /* always round up */
-	totalSubsteps = (totalSubsteps < 1) ? 1 : totalSubsteps;
-	totalSubsteps = (totalSubsteps > maxSubSteps) ? maxSubSteps : totalSubsteps;
-	dtSubdiv = (float)dt / (float)totalSubsteps;
-
-	// printf("totalSubsteps: %d, maxVelMag: %f, dt: %f\n", totalSubsteps, maxVelMag, dt);
-
-	for(substep = 0; substep < totalSubsteps; substep++)
-		fluid->step(dtSubdiv);
+	fluid->step(dtSubdiv);
 }
 
 extern "C" void smoke_turbulence_step(WTURBULENCE *wt, FLUID_3D *fluid)
@@ -305,6 +274,18 @@ extern "C" void smoke_turbulence_get_res(WTURBULENCE *wt, int *res)
 extern "C" unsigned char *smoke_get_obstacle(FLUID_3D *fluid)
 {
 	return fluid->_obstacles;
+}
+
+extern "C" void smoke_get_ob_velocity(struct FLUID_3D *fluid, float **x, float **y, float **z)
+{
+	*x = fluid->_xVelocityOb;
+	*y = fluid->_yVelocityOb;
+	*z = fluid->_zVelocityOb;
+}
+
+extern "C" unsigned char *smoke_get_obstacle_anim(FLUID_3D *fluid)
+{
+	return fluid->_obstaclesAnim;
 }
 
 extern "C" void smoke_turbulence_set_noise(WTURBULENCE *wt, int type)
