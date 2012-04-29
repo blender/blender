@@ -1778,7 +1778,7 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (bmain->versionfile < 262 || (bmain->versionfile == 262 && bmain->subversionfile < 5)) {
+	{
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			if (btheme->tclip.strip[0] == 0) {

@@ -194,7 +194,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 					track_channel_color(track, default_color, color);
 					glColor4fv(color);
 
-					glRectf(v2d->cur.xmin, (float)y - CHANNEL_HEIGHT_HALF,
+					glRectf(v2d->cur.xmin, (float) y - CHANNEL_HEIGHT_HALF,
 					        v2d->cur.xmax + EXTRA_SCROLL_PAD, (float) y + CHANNEL_HEIGHT_HALF);
 				}
 
@@ -228,7 +228,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 						else
 							glColor4fv(strip);
 
-						glRectf(start_marker->framenr, (float)y - STRIP_HEIGHT_HALF,
+						glRectf(start_marker->framenr, (float) y - STRIP_HEIGHT_HALF,
 						        start_marker->framenr + len, (float) y + STRIP_HEIGHT_HALF);
 
 						draw_keyframe_shape(start_marker->framenr, y, xscale, yscale, sel, alpha);
@@ -318,7 +318,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 			track_channel_color(track, NULL, color);
 			glColor3fv(color);
 
-			glRectf(v2d->cur.xmin, (float)y - CHANNEL_HEIGHT_HALF,
+			glRectf(v2d->cur.xmin, (float) y - CHANNEL_HEIGHT_HALF,
 			        v2d->cur.xmax + EXTRA_SCROLL_PAD, (float) y + CHANNEL_HEIGHT_HALF);
 
 			if (sel)
