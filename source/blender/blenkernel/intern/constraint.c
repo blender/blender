@@ -1333,7 +1333,7 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 		if ((data->followflag & FOLLOWPATH_RADIUS)==0) { /* XXX - assume that scale correction means that radius will have some scale error in it - Campbell */
 			float obsize[3];
 			
-			mat4_to_size( obsize,cob->matrix);
+			mat4_to_size(obsize, cob->matrix);
 			if (obsize[0])
 				mul_v3_fl(cob->matrix[0], size[0] / obsize[0]);
 			if (obsize[1])
@@ -1475,8 +1475,8 @@ static void sizelimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 	bSizeLimitConstraint *data = con->data;
 	float obsize[3], size[3];
 	
-	mat4_to_size( size,cob->matrix);
-	mat4_to_size( obsize,cob->matrix);
+	mat4_to_size(size, cob->matrix);
+	mat4_to_size(obsize, cob->matrix);
 	
 	if (data->flag & LIMIT_XMIN) {
 		if (size[0] < data->xmin) 
@@ -2308,7 +2308,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 	bConstraintTarget *ct= targets->first;
 	
 	if (VALID_CONS_TARGET(ct)) {
-		float vec[3],vec2[3];
+		float vec[3], vec2[3];
 		float totmat[3][3];
 		float tmpmat[3][3];
 		float invmat[3][3];
@@ -2542,9 +2542,9 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 		copy_m4_m4(tmat, cob->matrix);
 		
-		mdet = determinant_m3(	totmat[0][0],totmat[0][1],totmat[0][2],
-						totmat[1][0],totmat[1][1],totmat[1][2],
-						totmat[2][0],totmat[2][1],totmat[2][2]);
+		mdet = determinant_m3(totmat[0][0], totmat[0][1], totmat[0][2],
+		                      totmat[1][0], totmat[1][1], totmat[1][2],
+		                      totmat[2][0], totmat[2][1], totmat[2][2]);
 		if (mdet==0) {
 			unit_m3(totmat);
 		}
@@ -3311,7 +3311,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		/* obtain target effect */
 		switch (data->from) {
 			case 2: /* scale */
-				mat4_to_size( dvec,ct->matrix);
+				mat4_to_size(dvec, ct->matrix);
 				break;
 			case 1: /* rotation (convert to degrees first) */
 				mat4_to_eulO(dvec, cob->rotOrder, ct->matrix);
@@ -3602,8 +3602,8 @@ static void damptrack_flush_tars (bConstraint *con, ListBase *list, short nocopy
 
 /* array of direction vectors for the tracking flags */
 static const float track_dir_vecs[6][3] = {
-	{+1,0,0}, {0,+1,0}, {0,0,+1},		/* TRACK_X,  TRACK_Y,  TRACK_Z */
-	{-1,0,0}, {0,-1,0}, {0,0,-1}		/* TRACK_NX, TRACK_NY, TRACK_NZ */
+	{+1, 0, 0}, {0, +1, 0}, {0, 0, +1},		/* TRACK_X,  TRACK_Y,  TRACK_Z */
+	{-1, 0, 0}, {0, -1, 0}, {0, 0, -1}		/* TRACK_NX, TRACK_NY, TRACK_NZ */
 };
 
 static void damptrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)

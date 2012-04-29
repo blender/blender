@@ -175,7 +175,7 @@ static bNodeSocketTemplate cmp_node_combycca_out[]= {
 
 static void do_comb_ycca_601(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
-	float r,g,b;
+	float r, g, b;
 	float y, cb, cr;
 
 	/*need to un-normalize the data*/
@@ -183,7 +183,7 @@ static void do_comb_ycca_601(bNode *UNUSED(node), float *out, float *in1, float 
 	cb=in2[0]*255;
 	cr=in3[0]*255;
 
-	ycc_to_rgb(y,cb,cr, &r, &g, &b, BLI_YCC_ITU_BT601);
+	ycc_to_rgb(y, cb, cr, &r, &g, &b, BLI_YCC_ITU_BT601);
 	
 	out[0] = r;
 	out[1] = g;
@@ -193,7 +193,7 @@ static void do_comb_ycca_601(bNode *UNUSED(node), float *out, float *in1, float 
 
 static void do_comb_ycca_709(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
-	float r,g,b;
+	float r, g, b;
 	float y, cb, cr;
 
 	/*need to un-normalize the data*/
@@ -201,7 +201,7 @@ static void do_comb_ycca_709(bNode *UNUSED(node), float *out, float *in1, float 
 	cb=in2[0]*255;
 	cr=in3[0]*255;
 
-	ycc_to_rgb(y,cb,cr, &r, &g, &b, BLI_YCC_ITU_BT709);
+	ycc_to_rgb(y, cb, cr, &r, &g, &b, BLI_YCC_ITU_BT709);
 	
 	out[0] = r;
 	out[1] = g;
@@ -211,7 +211,7 @@ static void do_comb_ycca_709(bNode *UNUSED(node), float *out, float *in1, float 
 
 static void do_comb_ycca_jfif(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
-	float r,g,b;
+	float r, g, b;
 	float y, cb, cr;
 
 	/*need to un-normalize the data*/
@@ -219,7 +219,7 @@ static void do_comb_ycca_jfif(bNode *UNUSED(node), float *out, float *in1, float
 	cb=in2[0]*255;
 	cr=in3[0]*255;
 
-	ycc_to_rgb(y,cb,cr, &r, &g, &b, BLI_YCC_JFIF_0_255);
+	ycc_to_rgb(y, cb, cr, &r, &g, &b, BLI_YCC_JFIF_0_255);
 	
 	out[0] = r;
 	out[1] = g;

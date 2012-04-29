@@ -1189,12 +1189,12 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			size = -size;
 		case RIGHT:
 			glBegin(GL_LINES);
-			glVertex2s( offset, 0);
-			glVertex2s( offset + length, 0);
-			glVertex2s( offset + length, 0);
-			glVertex2s( offset + length - size, -size);
-			glVertex2s( offset + length, 0);
-			glVertex2s( offset + length - size,  size);
+			glVertex2s(offset, 0);
+			glVertex2s(offset + length, 0);
+			glVertex2s(offset + length, 0);
+			glVertex2s(offset + length - size, -size);
+			glVertex2s(offset + length, 0);
+			glVertex2s(offset + length - size,  size);
 			glEnd();
 			break;
 		case DOWN:
@@ -1203,12 +1203,12 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			size = -size;
 		case UP:
 			glBegin(GL_LINES);
-			glVertex2s( 0, offset);
-			glVertex2s( 0, offset + length);
-			glVertex2s( 0, offset + length);
+			glVertex2s(0, offset);
+			glVertex2s(0, offset + length);
+			glVertex2s(0, offset + length);
 			glVertex2s(-size, offset + length - size);
-			glVertex2s( 0, offset + length);
-			glVertex2s( size, offset + length - size);
+			glVertex2s(0, offset + length);
+			glVertex2s(size, offset + length - size);
 			glEnd();
 			break;
 	}
@@ -1221,20 +1221,20 @@ static void drawArrowHead(ArrowDirection d, short size)
 			size = -size;
 		case RIGHT:
 			glBegin(GL_LINES);
-			glVertex2s( 0, 0);
-			glVertex2s( -size, -size);
-			glVertex2s( 0, 0);
-			glVertex2s( -size,  size);
+			glVertex2s(0, 0);
+			glVertex2s(-size, -size);
+			glVertex2s(0, 0);
+			glVertex2s(-size,  size);
 			glEnd();
 			break;
 		case DOWN:
 			size = -size;
 		case UP:
 			glBegin(GL_LINES);
-			glVertex2s( 0, 0);
+			glVertex2s(0, 0);
 			glVertex2s(-size, -size);
-			glVertex2s( 0, 0);
-			glVertex2s( size, -size);
+			glVertex2s(0, 0);
+			glVertex2s(size, -size);
 			glEnd();
 			break;
 	}
@@ -1248,9 +1248,9 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 	glBegin(GL_LINE_STRIP);
 
 	for ( angle = angle_start; angle < angle_end; angle += delta) {
-		glVertex2f( cosf(angle) * size, sinf(angle) * size);
+		glVertex2f(cosf(angle) * size, sinf(angle) * size);
 	}
-	glVertex2f( cosf(angle_end) * size, sinf(angle_end) * size);
+	glVertex2f(cosf(angle_end) * size, sinf(angle_end) * size);
 
 	glEnd();
 }
@@ -1943,8 +1943,8 @@ static void protectedAxisAngleBits(short protectflag, float axis[3], float *angl
 		/* axis-angle get limited with euler... */
 		float eul[3], oldeul[3];
 		
-		axis_angle_to_eulO( eul, EULER_ORDER_DEFAULT,axis, *angle);
-		axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,oldAxis, oldAngle);
+		axis_angle_to_eulO(eul, EULER_ORDER_DEFAULT, axis, *angle);
+		axis_angle_to_eulO(oldeul, EULER_ORDER_DEFAULT, oldAxis, oldAngle);
 		
 		if (protectflag & OB_LOCK_ROTX)
 			eul[0]= oldeul[0];
@@ -1953,7 +1953,7 @@ static void protectedAxisAngleBits(short protectflag, float axis[3], float *angl
 		if (protectflag & OB_LOCK_ROTZ)
 			eul[2]= oldeul[2];
 		
-		eulO_to_axis_angle( axis, angle,eul, EULER_ORDER_DEFAULT);
+		eulO_to_axis_angle(axis, angle, eul, EULER_ORDER_DEFAULT);
 		
 		/* when converting to axis-angle, we need a special exception for the case when there is no axis */
 		if (IS_EQF(axis[0], axis[1]) && IS_EQF(axis[1], axis[2])) {
@@ -1999,7 +1999,7 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 		if (protectflag & OB_LOCK_ROTZ)
 			eul[2]= oldeul[2];
 
-		eul_to_quat( quat,eul);
+		eul_to_quat(quat, eul);
 
 		/* restore original quat size */
 		mul_qt_fl(quat, qlen);
@@ -2175,15 +2175,15 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 			/* copy results from cob->matrix */
 			if (td->ext->rotOrder == ROT_MODE_QUAT) {
 				/* quats */
-				mat4_to_quat( td->ext->quat,cob.matrix);
+				mat4_to_quat(td->ext->quat, cob.matrix);
 			}
 			else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
 				/* axis angle */
-				mat4_to_axis_angle( &td->ext->quat[1], &td->ext->quat[0],cob.matrix);
+				mat4_to_axis_angle(&td->ext->quat[1], &td->ext->quat[0], cob.matrix);
 			}
 			else {
 				/* eulers */
-				mat4_to_eulO( td->ext->rot, td->ext->rotOrder,cob.matrix);
+				mat4_to_eulO(td->ext->rot, td->ext->rotOrder, cob.matrix);
 			}
 		}
 	}
@@ -2209,7 +2209,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			if (td->flag & TD_SINGLESIZE)
 				return;
 			
-			size_to_mat4( cob.matrix,td->ext->size);
+			size_to_mat4(cob.matrix, td->ext->size);
 		}
 		
 		/* Evaluate valid constraints */
@@ -2260,7 +2260,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			if (td->flag & TD_SINGLESIZE)
 				return;
 			
-			mat4_to_size( td->ext->size,cob.matrix);
+			mat4_to_size(td->ext->size, cob.matrix);
 		}
 	}
 }
@@ -2628,7 +2628,7 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 #define VECSIGNFLIP(a, b) ((SIGN(a[0]) & SIGN(b[0]))==0 || (SIGN(a[1]) & SIGN(b[1]))==0 || (SIGN(a[2]) & SIGN(b[2]))==0)
 
 /* smat is reference matrix, only scaled */
-static void TransMat3ToSize( float mat[][3], float smat[][3], float *size)
+static void TransMat3ToSize(float mat[][3], float smat[][3], float *size)
 {
 	float vec[3];
 	
@@ -2688,7 +2688,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 			//print_v3("fsize", fsize);
 		}
 		else {
-			mat3_to_size( fsize,tmat);
+			mat3_to_size(fsize, tmat);
 		}
 		
 		protectedSizeBits(td->protectflag, fsize);
@@ -2775,7 +2775,7 @@ int Resize(TransInfo *t, const int mval[2])
 	
 	copy_v3_v3(t->values, size);
 	
-	size_to_mat3( mat,size);
+	size_to_mat3(mat, size);
 	
 	if (t->con.applySize) {
 		t->con.applySize(t, NULL, mat);
@@ -2797,7 +2797,7 @@ int Resize(TransInfo *t, const int mval[2])
 	
 	/* evil hack - redo resize if cliping needed */
 	if (t->flag & T_CLIP_UV && clipUVTransform(t, size, 1)) {
-		size_to_mat3( mat,size);
+		size_to_mat3(mat, size);
 		
 		if (t->con.applySize)
 			t->con.applySize(t, NULL, mat);
@@ -2966,14 +2966,14 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		
 		add_v3_v3v3(td->loc, vec, center);
 		
-		sub_v3_v3v3(vec,td->loc,td->iloc);
+		sub_v3_v3v3(vec, td->loc, td->iloc);
 		protectedTransBits(td->protectflag, vec);
 		add_v3_v3v3(td->loc, td->iloc, vec);
 		
 		
 		if (td->flag & TD_USEQUAT) {
 			mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-			mat3_to_quat( quat,fmat);	// Actual transform
+			mat3_to_quat(quat, fmat);	// Actual transform
 			
 			if (td->ext->quat) {
 				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
@@ -3040,7 +3040,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			if (td->ext->rotOrder == ROT_MODE_QUAT) {
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
 				
-				mat3_to_quat( quat,fmat);	// Actual transform
+				mat3_to_quat(quat, fmat);	// Actual transform
 				
 				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 				/* this function works on end result */
@@ -3054,10 +3054,10 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-				mat3_to_quat( quat,fmat);	// Actual transform
+				mat3_to_quat(quat, fmat);	// Actual transform
 				mul_qt_qtqt(tquat, quat, iquat);
 				
-				quat_to_axis_angle( td->ext->rotAxis, td->ext->rotAngle,tquat); 
+				quat_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, tquat);
 				
 				/* this function works on end result */
 				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
@@ -3070,12 +3070,12 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				/* calculate the total rotatation in eulers */
 				copy_v3_v3(eul, td->ext->irot);
-				eulO_to_mat3( eulmat,eul, td->ext->rotOrder);
+				eulO_to_mat3(eulmat, eul, td->ext->rotOrder);
 				
 				/* mat = transform, obmat = bone rotation */
 				mul_m3_m3m3(fmat, smat, eulmat);
 				
-				mat3_to_compatible_eulO( eul, td->ext->rot, td->ext->rotOrder,fmat);
+				mat3_to_compatible_eulO(eul, td->ext->rot, td->ext->rotOrder, fmat);
 				
 				/* and apply (to end result only) */
 				protectedRotateBits(td->protectflag, eul, td->ext->irot);
@@ -3108,7 +3108,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			/* euler or quaternion? */
 			   if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-				mat3_to_quat( quat,fmat);	// Actual transform
+				mat3_to_quat(quat, fmat);	// Actual transform
 				
 				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 				/* this function works on end result */
@@ -3121,10 +3121,10 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-				mat3_to_quat( quat,fmat);	// Actual transform
+				mat3_to_quat(quat, fmat);	// Actual transform
 				mul_qt_qtqt(tquat, quat, iquat);
 				
-				quat_to_axis_angle( td->ext->rotAxis, td->ext->rotAngle,tquat); 
+				quat_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, tquat);
 				
 				/* this function works on end result */
 				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
@@ -3137,11 +3137,11 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				/* calculate the total rotatation in eulers */
 				add_v3_v3v3(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
-				eulO_to_mat3( obmat,eul, td->ext->rotOrder);
+				eulO_to_mat3(obmat, eul, td->ext->rotOrder);
 				/* mat = transform, obmat = object rotation */
 				mul_m3_m3m3(fmat, smat, obmat);
 				
-				mat3_to_compatible_eulO( eul, td->ext->rot, td->ext->rotOrder,fmat);
+				mat3_to_compatible_eulO(eul, td->ext->rot, td->ext->rotOrder, fmat);
 				
 				/* correct back for delta rot */
 				sub_v3_v3v3(eul, eul, td->ext->drot);
@@ -3162,7 +3162,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	float mat[3][3];
 	int i;
 	
-	vec_rot_to_mat3( mat,axis, angle);
+	vec_rot_to_mat3(mat, axis, angle);
 	
 	for (i = 0 ; i < t->total; i++, td++) {
 		
@@ -3174,10 +3174,10 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		
 		if (t->con.applyRot) {
 			t->con.applyRot(t, td, axis, NULL);
-			vec_rot_to_mat3( mat,axis, angle * td->factor);
+			vec_rot_to_mat3(mat, axis, angle * td->factor);
 		}
 		else if (t->flag & T_PROP_EDIT) {
-			vec_rot_to_mat3( mat,axis, angle * td->factor);
+			vec_rot_to_mat3(mat, axis, angle * td->factor);
 		}
 		
 		ElementRotation(t, td, mat, t->around);
@@ -3263,8 +3263,8 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 	float mat[3][3], smat[3][3], totmat[3][3];
 	int i;
 
-	vec_rot_to_mat3( smat,axis1, angles[0]);
-	vec_rot_to_mat3( totmat,axis2, angles[1]);
+	vec_rot_to_mat3(smat, axis1, angles[0]);
+	vec_rot_to_mat3(totmat, axis2, angles[1]);
 
 	mul_m3_m3m3(mat, smat, totmat);
 
@@ -3276,8 +3276,8 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			continue;
 
 		if (t->flag & T_PROP_EDIT) {
-			vec_rot_to_mat3( smat,axis1, td->factor * angles[0]);
-			vec_rot_to_mat3( totmat,axis2, td->factor * angles[1]);
+			vec_rot_to_mat3(smat, axis1, td->factor * angles[0]);
+			vec_rot_to_mat3(totmat, axis2, td->factor * angles[1]);
 
 			mul_m3_m3m3(mat, smat, totmat);
 		}
@@ -3324,8 +3324,8 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 	}
 	(void)spos;
 
-	vec_rot_to_mat3( smat,axis1, phi[0]);
-	vec_rot_to_mat3( totmat,axis2, phi[1]);
+	vec_rot_to_mat3(smat, axis1, phi[0]);
+	vec_rot_to_mat3(totmat, axis2, phi[1]);
 
 	mul_m3_m3m3(mat, smat, totmat);
 
@@ -3483,7 +3483,7 @@ static void applyTranslation(TransInfo *t, float vec[3])
 				
 				axis_angle_to_quat(quat, axis, angle);
 				
-				quat_to_mat3( mat,quat);
+				quat_to_mat3(mat, quat);
 				
 				ElementRotation(t, td, mat, V3D_LOCAL);
 			}
@@ -3924,7 +3924,7 @@ int handleEventBevel(TransInfo *t, wmEvent *event)
 
 int Bevel(TransInfo *t, const int UNUSED(mval[2]))
 {
-	float distance,d;
+	float distance, d;
 	int i;
 	char str[128];
 	const char *mode;
@@ -4177,9 +4177,9 @@ static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3])
 
 	/* we've tucked the scale in loc */
 	oldy= td->iloc[1];
-	size_to_mat3( sizemat,td->iloc);
+	size_to_mat3(sizemat, td->iloc);
 	mul_m3_m3m3(tmat, tmat, sizemat);
-	mat3_to_size( td->loc,tmat);
+	mat3_to_size(td->loc, tmat);
 	td->loc[1]= oldy;
 }
 
@@ -4209,7 +4209,7 @@ int BoneSize(TransInfo *t, const int mval[2])
 		constraintNumInput(t, size);
 	}
 	
-	size_to_mat3( mat,size);
+	size_to_mat3(mat, size);
 	
 	if (t->con.applySize) {
 		t->con.applySize(t, NULL, mat);
@@ -4861,7 +4861,7 @@ void freeSlideVerts(TransInfo *t)
 		LinkNode *look = sld->vertlist;
 		GHash *vertgh = sld->vhash;
 		while (look) {
-			sv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+			sv  = BLI_ghash_lookup(vertgh, (EditVert*)look->link);
 			if (sv != NULL) {
 				sv->up->f &= !SELECT;
 				sv->down->f &= !SELECT;
@@ -5167,7 +5167,7 @@ int Mirror(TransInfo *t, const int UNUSED(mval[2]))
 	if (t->con.mode & CON_APPLY) {
 		size[0] = size[1] = size[2] = -1;
 
-		size_to_mat3( mat,size);
+		size_to_mat3(mat, size);
 
 		if (t->con.applySize) {
 			t->con.applySize(t, NULL, mat);
@@ -5192,7 +5192,7 @@ int Mirror(TransInfo *t, const int UNUSED(mval[2]))
 	else {
 		size[0] = size[1] = size[2] = 1;
 
-		size_to_mat3( mat,size);
+		size_to_mat3(mat, size);
 
 		for (i = 0, td=t->data; i < t->total; i++, td++) {
 			if (td->flag & TD_NOACTION)
@@ -5460,7 +5460,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 
 		/* do the snapping to nearest frame/second */
 		if (doTime) {
-			val= (float)( floor((val/secf) + 0.5f) * secf );
+			val= (float)(floor((val/secf) + 0.5f) * secf);
 		}
 		else
 #endif
@@ -5599,9 +5599,9 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 
 			if (autosnap == SACTSNAP_STEP) {
 				if (doTime)
-					deltax= (float)( floor((deltax/secf) + 0.5f) * secf );
+					deltax= (float)(floor((deltax/secf) + 0.5f) * secf);
 				else
-					deltax= (float)( floor(deltax + 0.5f) );
+					deltax= (float)(floor(deltax + 0.5f));
 			}
 
 			val = BKE_nla_tweakedit_remap(adt, td->ival, NLATIME_CONVERT_MAP);
@@ -5613,9 +5613,9 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 
 			if (autosnap == SACTSNAP_STEP) {
 				if (doTime)
-					val= (float)( floor((deltax/secf) + 0.5f) * secf );
+					val= (float)(floor((deltax/secf) + 0.5f) * secf);
 				else
-					val= (float)( floor(val + 0.5f) );
+					val= (float)(floor(val + 0.5f));
 			}
 
 			*(td->val) = td->ival + val;
@@ -5865,9 +5865,9 @@ static void applyTimeScale(TransInfo *t)
 
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
-				fac= (float)( floor(fac/secf + 0.5f) * secf );
+				fac= (float)(floor(fac/secf + 0.5f) * secf);
 			else
-				fac= (float)( floor(fac + 0.5f) );
+				fac= (float)(floor(fac + 0.5f));
 		}
 
 		/* check if any need to apply nla-mapping */

@@ -509,7 +509,7 @@ static int ed_markers_poll_markers_exist(bContext *C)
  *			exec() callback will be called instead in the appropriate places.
  */
 static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, wmEvent *evt, 
-		int (*invoke_func)(bContext*,wmOperator*,wmEvent*))
+                                           int (*invoke_func)(bContext *, wmOperator *, wmEvent *))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	int retval = OPERATOR_PASS_THROUGH;

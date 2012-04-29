@@ -58,12 +58,12 @@ int BLI_getInstallationDir(char * str)
 	char dir[FILE_MAXDIR];
 	int a;
 	/*change to utf support*/
-	GetModuleFileName(NULL,str,FILE_MAX);
+	GetModuleFileName(NULL, str, FILE_MAX);
 	BLI_split_dir_part(str, dir, sizeof(dir)); /* shouldn't be relative */
 	a = strlen(dir);
 	if (dir[a-1] == '\\') dir[a-1]=0;
 	
-	strcpy(str,dir);
+	strcpy(str, dir);
 	
 	return 1;
 }
@@ -74,8 +74,8 @@ void RegisterBlendExtension_Fail(HKEY root)
 	if (root)
 		RegCloseKey(root);
 	if (!G.background)
-		MessageBox(0,"Could not register file extension.","Blender error",MB_OK|MB_ICONERROR);
-	TerminateProcess(GetCurrentProcess(),1);
+		MessageBox(0, "Could not register file extension.", "Blender error", MB_OK|MB_ICONERROR);
+	TerminateProcess(GetCurrentProcess(), 1);
 }
 
 void RegisterBlendExtension(void)
@@ -96,7 +96,7 @@ void RegisterBlendExtension(void)
 	BOOL IsWOW64;
 
 	printf("Registering file extension...");
-	GetModuleFileName(0,BlPath,MAX_PATH);
+	GetModuleFileName(0, BlPath, MAX_PATH);
 
 	// root is HKLM by default
 	lresult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
@@ -111,7 +111,7 @@ void RegisterBlendExtension(void)
 	lresult = RegCreateKeyEx(root, "blendfile", 0,
 		NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 	if (lresult == ERROR_SUCCESS) {
-		strcpy(buffer,"Blender File");
+		strcpy(buffer, "Blender File");
 		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE*)buffer, strlen(buffer) + 1);
 		RegCloseKey(hkey);
 	}
@@ -131,7 +131,7 @@ void RegisterBlendExtension(void)
 	lresult = RegCreateKeyEx(root, "blendfile\\DefaultIcon", 0,
 		NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 	if (lresult == ERROR_SUCCESS) {
-		sprintf(buffer, "\"%s\",1", BlPath);
+		sprintf(buffer, "\"%s\", 1", BlPath);
 		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE*)buffer, strlen(buffer) + 1);
 		RegCloseKey(hkey);
 	}
@@ -149,26 +149,26 @@ void RegisterBlendExtension(void)
 		RegisterBlendExtension_Fail(root);
 	
 	BLI_getInstallationDir(InstallDir);
-	GetSystemDirectory(SysDir,FILE_MAXDIR);
+	GetSystemDirectory(SysDir, FILE_MAXDIR);
 #ifdef WIN64
 	ThumbHandlerDLL = "BlendThumb64.dll";
 #else
-	IsWow64Process(GetCurrentProcess(),&IsWOW64);
+	IsWow64Process(GetCurrentProcess(), &IsWOW64);
 	if (IsWOW64 == TRUE)
 		ThumbHandlerDLL = "BlendThumb64.dll";
 	else
 		ThumbHandlerDLL = "BlendThumb.dll";
 #endif	
-	snprintf(RegCmd,MAX_PATH*2,"%s\\regsvr32 /s \"%s\\%s\"",SysDir,InstallDir,ThumbHandlerDLL);
+	snprintf(RegCmd, MAX_PATH*2, "%s\\regsvr32 /s \"%s\\%s\"", SysDir, InstallDir, ThumbHandlerDLL);
 	system(RegCmd);
 
 	RegCloseKey(root);
-	printf("success (%s)\n",usr_mode ? "user" : "system");
+	printf("success (%s)\n", usr_mode ? "user" : "system");
 	if (!G.background) {
-		sprintf(MBox,"File extension registered for %s.",usr_mode ? "the current user. To register for all users, run as an administrator" : "all users");
-		MessageBox(0,MBox,"Blender",MB_OK|MB_ICONINFORMATION);
+		sprintf(MBox, "File extension registered for %s.", usr_mode ? "the current user. To register for all users, run as an administrator" : "all users");
+		MessageBox(0, MBox, "Blender", MB_OK|MB_ICONINFORMATION);
 	}
-	TerminateProcess(GetCurrentProcess(),0);
+	TerminateProcess(GetCurrentProcess(), 0);
 }
 
 DIR *opendir (const char *path)
@@ -179,7 +179,7 @@ DIR *opendir (const char *path)
 		DIR *newd= MEM_mallocN(sizeof(DIR), "opendir");
 
 		newd->handle = INVALID_HANDLE_VALUE;
-		sprintf(newd->path, "%s\\*",path);
+		sprintf(newd->path, "%s\\*", path);
 		
 		newd->direntry.d_ino= 0;
 		newd->direntry.d_off= 0;
@@ -200,8 +200,8 @@ static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
 	size_t bsize = count_utf_8_from_16(in16);
     char *out8 = NULL;
 	if (!bsize) return NULL;
-	out8 = (char*)MEM_mallocN(sizeof(char) * (bsize + add),"UTF-8 String");
-	conv_utf_16_to_8(in16,out8, bsize);
+	out8 = (char*)MEM_mallocN(sizeof(char) * (bsize + add), "UTF-8 String");
+	conv_utf_16_to_8(in16, out8, bsize);
 	return out8;
 }
 
@@ -211,7 +211,7 @@ static wchar_t *UNUSED_FUNCTION(BLI_alloc_utf16_from_8)(char *in8, size_t add)
     wchar_t *out16 = NULL;
 	if (!bsize) return NULL;
 	out16 =(wchar_t*) MEM_mallocN(sizeof(wchar_t) * (bsize + add), "UTF-16 String");
-	conv_utf_8_to_16(in8,out16, bsize);
+	conv_utf_8_to_16(in8, out16, bsize);
 	return out16;
 }
 
@@ -236,7 +236,7 @@ struct dirent *readdir(DIR *dp)
 		return &dp->direntry;
 	}
 	else if (FindNextFileW (dp->handle, &(dp->data))) {
-		dp->direntry.d_name= BLI_alloc_utf_8_from_16(dp->data.cFileName,0);
+		dp->direntry.d_name= BLI_alloc_utf_8_from_16(dp->data.cFileName, 0);
 
 		return &dp->direntry;
 	}
@@ -262,7 +262,7 @@ void get_default_root(char *root)
 	/* the default drive to resolve a directory without a specified drive 
 	 * should be the Windows installation drive, since this was what the OS
 	 * assumes. */
-	if (GetWindowsDirectory(str,MAX_PATH+1)) {
+	if (GetWindowsDirectory(str, MAX_PATH+1)) {
 		root[0] = str[0];
 		root[1] = ':';
 		root[2] = '\\';
@@ -271,7 +271,7 @@ void get_default_root(char *root)
 	else {
 		/* if GetWindowsDirectory fails, something has probably gone wrong, 
 		 * we are trying the blender install dir though */
-		if (GetModuleFileName(NULL,str,MAX_PATH+1)) {
+		if (GetModuleFileName(NULL, str, MAX_PATH+1)) {
 			printf("Error! Could not get the Windows Directory - Defaulting to Blender installation Dir!");
 			root[0] = str[0];
 			root[1] = ':';

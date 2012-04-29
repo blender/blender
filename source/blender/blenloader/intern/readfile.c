@@ -3540,7 +3540,7 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 		}
 		else {
 			/* particle modifier must be removed before particle system */
-			ParticleSystemModifierData *psmd= psys_get_modifier(ob,psys);
+			ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
 			BLI_remlink(&ob->modifiers, psmd);
 			modifier_free((ModifierData *)psmd);
 
@@ -3556,15 +3556,15 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 	int a;
 
 	for (psys=particles->first; psys; psys=psys->next) {
-		psys->particles=newdataadr(fd,psys->particles);
+		psys->particles=newdataadr(fd, psys->particles);
 		
 		if (psys->particles && psys->particles->hair) {
-			for (a=0,pa=psys->particles; a<psys->totpart; a++, pa++)
-				pa->hair=newdataadr(fd,pa->hair);
+			for (a=0, pa=psys->particles; a<psys->totpart; a++, pa++)
+				pa->hair=newdataadr(fd, pa->hair);
 		}
 		
 		if (psys->particles && psys->particles->keys) {
-			for (a=0,pa=psys->particles; a<psys->totpart; a++, pa++) {
+			for (a=0, pa=psys->particles; a<psys->totpart; a++, pa++) {
 				pa->keys= NULL;
 				pa->totkey= 0;
 			}
@@ -3575,17 +3575,17 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		if (psys->particles && psys->particles->boid) {
 			pa = psys->particles;
 			pa->boid = newdataadr(fd, pa->boid);
-			for (a=1,pa++; a<psys->totpart; a++, pa++)
+			for (a=1, pa++; a<psys->totpart; a++, pa++)
 				pa->boid = (pa-1)->boid + 1;
 		}
 		else if (psys->particles) {
-			for (a=0,pa=psys->particles; a<psys->totpart; a++, pa++)
+			for (a=0, pa=psys->particles; a<psys->totpart; a++, pa++)
 				pa->boid = NULL;
 		}
 
 		psys->fluid_springs = newdataadr(fd, psys->fluid_springs);
 
-		psys->child = newdataadr(fd,psys->child);
+		psys->child = newdataadr(fd, psys->child);
 		psys->effectors = NULL;
 
 		link_list(fd, &psys->targets);
@@ -4453,9 +4453,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->xnew = newdataadr(fd, collmd->xnew);
 			collmd->mfaces = newdataadr(fd, collmd->mfaces);
 			
-			collmd->current_x = MEM_callocN(sizeof(MVert)*collmd->numverts,"current_x");
-			collmd->current_xnew = MEM_callocN(sizeof(MVert)*collmd->numverts,"current_xnew");
-			collmd->current_v = MEM_callocN(sizeof(MVert)*collmd->numverts,"current_v");
+			collmd->current_x = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_x");
+			collmd->current_xnew = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_xnew");
+			collmd->current_v = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_v");
 			*/
 			
 			collmd->x = NULL;
@@ -4681,7 +4681,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
 
 	link_list(fd, &ob->particlesystem);
-	direct_link_particlesystems(fd,&ob->particlesystem);
+	direct_link_particlesystems(fd, &ob->particlesystem);
 	
 	link_list(fd, &ob->prop);
 	prop= ob->prop.first;
@@ -8389,7 +8389,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* in future, distinguish between different
 			 * object bounding shapes */
 			ob->formfactor = 0.4f;
-			/* patch form factor , note that inertia equiv radius
+			/* patch form factor, note that inertia equiv radius
 			 * of a rotation symmetrical obj */
 			if (ob->inertia != 1.0f) {
 				ob->formfactor /= ob->inertia * ob->inertia;
@@ -9141,7 +9141,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		while (sce) {
 			if (sce->toolsettings == NULL) {
-				sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");	
+				sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
 				sce->toolsettings->cornertype=0;
 				sce->toolsettings->degr = 90; 
 				sce->toolsettings->step = 9;
@@ -14318,7 +14318,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 						expand_lattice(fd, mainvar, (Lattice *)id);
 						break;
 					case ID_LA:
-						expand_lamp(fd, mainvar,(Lamp *)id);
+						expand_lamp(fd, mainvar, (Lamp *)id);
 						break;
 					case ID_KE:
 						expand_key(fd, mainvar, (Key *)id);
@@ -14327,7 +14327,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 						expand_camera(fd, mainvar, (Camera *)id);
 						break;
 					case ID_SPK:
-						expand_speaker(fd, mainvar,(Speaker *)id);
+						expand_speaker(fd, mainvar, (Speaker *)id);
 						break;
 					case ID_SO:
 						expand_sound(fd, mainvar, (bSound *)id);

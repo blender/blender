@@ -86,8 +86,8 @@ float distPointToSegmentSq(const float* point, const float* a, const float* b)
 	float abx[3], dx[3];
 	float d, t;
 
-	sub_v3_v3v3(abx, b,a);
-	sub_v3_v3v3(dx, point,a);
+	sub_v3_v3v3(abx, b, a);
+	sub_v3_v3v3(dx, point, a);
 
 	d = abx[0]*abx[0]+abx[2]*abx[2];
 	t = abx[0]*dx[0]+abx[2]*dx[2];
@@ -447,7 +447,7 @@ int buildNavMeshDataByDerivedMesh(DerivedMesh *dm, int *vertsPerPoly,
 	}
 
 	res = buildNavMeshData(*nverts, *verts, ntris, tris, recastData, *trisToFacesMap,
-		ndtris, dtris, npolys, dmeshes,polys, vertsPerPoly, 
+		ndtris, dtris, npolys, dmeshes, polys, vertsPerPoly,
 		dtrisToPolysMap, dtrisToTrisMap);
 	if (!res) {
 		printf("Converting navmesh: Error! Can't get vertices and indices from mesh\n");

@@ -281,7 +281,7 @@ static void rna_sortlist(ListBase *listbase, int(*cmp)(const void*, const void*)
 
 static void rna_print_c_string(FILE *f, const char *str)
 {
-	static const char *escape[] = {"\''", "\"\"", "\??", "\\\\","\aa", "\bb", "\ff", "\nn", "\rr", "\tt", "\vv", NULL};
+	static const char *escape[] = {"\''", "\"\"", "\??", "\\\\", "\aa", "\bb", "\ff", "\nn", "\rr", "\tt", "\vv", NULL};
 	int i, j;
 
 	if (!str) {
@@ -3126,7 +3126,7 @@ int main(int argc, char **argv)
 
 	totblock = MEM_get_memory_blocks_in_use();
 	if (totblock != 0) {
-		fprintf(stderr, "Error Totblock: %d\n",totblock);
+		fprintf(stderr, "Error Totblock: %d\n", totblock);
 		MEM_set_error_callback(mem_error_cb);
 		MEM_printmemlist();
 	}

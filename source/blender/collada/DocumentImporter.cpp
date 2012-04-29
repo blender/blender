@@ -208,7 +208,7 @@ void DocumentImporter::finish()
 		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 
 		for (unsigned int i = 0; i < roots.getCount(); i++)
-			translate_anim_recursive(roots[i],NULL,NULL);
+			translate_anim_recursive(roots[i], NULL, NULL);
 	}
 
 	if (libnode_ob.size()) {
@@ -396,7 +396,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		if ( par ) {
 		Object * empty = par;
 		par = add_object(sce, OB_ARMATURE);
-		bc_set_parent(par,empty->parent, mContext);
+		bc_set_parent(par, empty->parent, mContext);
 		//remove empty : todo
 		object_map[parent_node->getUniqueId()] = par;
 		}

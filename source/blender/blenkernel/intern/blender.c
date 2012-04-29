@@ -722,7 +722,7 @@ void BKE_undo_save_quit(void)
 		
 	BLI_make_file_string("/", str, BLI_temporary_dir(), "quit.blend");
 
-	file = BLI_open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
+	file = BLI_open(str, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 	if (file == -1) {
 		//XXX error("Unable to save %s, check you have permissions", str);
 		return;

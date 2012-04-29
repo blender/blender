@@ -297,7 +297,7 @@ int calc_manipulator_stats(const bContext *C)
 		if (obedit->type==OB_MESH) {
 			BMEditMesh *em = BMEdit_FromObject(obedit);
 			BMEditSelection ese;
-			float vec[3]= {0,0,0};
+			float vec[3]= {0, 0, 0};
 
 			/* USE LAST SELECTE WITH ACTIVE */
 			if ((v3d->around == V3D_ACTIVE) && BM_select_history_active_get(em->bm, &ese)) {
@@ -508,7 +508,7 @@ int calc_manipulator_stats(const bContext *C)
 
 		if (edit) {
 			point = edit->points;
-			for (a=0; a<edit->totpoint; a++,point++) {
+			for (a=0; a<edit->totpoint; a++, point++) {
 				if (point->flag & PEP_HIDE) continue;
 
 				for (k=0, ek=point->keys; k<point->totkey; k++, ek++) {
@@ -1512,7 +1512,7 @@ void BIF_draw_manipulator(const bContext *C)
 
 	if (v3d->twflag & V3D_DRAW_MANIPULATOR) {
 
-		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		if (v3d->twtype & V3D_MANIP_ROTATE) {
 

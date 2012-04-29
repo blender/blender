@@ -532,7 +532,7 @@ void PARTICLE_OT_dupliob_move_down(wmOperatorType *ot)
 
 static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 {
-	ParticleSystemModifierData *psmd = psys_get_modifier(ob,psys);
+	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	ParticleEditSettings *pset= PE_settings(scene);
 	ParticleData *pa;
 	PTCacheEdit *edit;
@@ -551,7 +551,7 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	edit = psys->edit;
 	point= edit ? edit->points : NULL;
 
-	for (i=0, pa=psys->particles; i<psys->totpart; i++,pa++) {
+	for (i=0, pa=psys->particles; i<psys->totpart; i++, pa++) {
 		if (point) {
 			ekey = point->keys;
 			point++;
@@ -559,8 +559,8 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
 
-		for (k=0,key=pa->hair; k<pa->totkey; k++,key++) {
-			mul_m4_v3(hairmat,key->co);
+		for (k=0, key=pa->hair; k<pa->totkey; k++, key++) {
+			mul_m4_v3(hairmat, key->co);
 			
 			if (ekey) {
 				ekey->flag &= ~PEK_USE_WCO;
@@ -622,7 +622,7 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 
 static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 {
-	ParticleSystemModifierData *psmd = psys_get_modifier(ob,psys);
+	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	ParticleData *pa;
 	PTCacheEdit *edit;
 	PTCacheEditPoint *point;
@@ -661,7 +661,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	bvhtree_from_mesh_faces(&bvhtree, dm, 0.0, 2, 6);
 
-	for (i=0, pa= psys->particles; i<psys->totpart; i++,pa++) {
+	for (i=0, pa= psys->particles; i<psys->totpart; i++, pa++) {
 		key = pa->hair;
 
 		nearest.index = -1;
@@ -675,23 +675,23 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 			continue;
 		}
 
-		mface = CDDM_get_tessface(dm,nearest.index);
+		mface = CDDM_get_tessface(dm, nearest.index);
 
-		copy_v3_v3(v[0], CDDM_get_vert(dm,mface->v1)->co);
-		copy_v3_v3(v[1], CDDM_get_vert(dm,mface->v2)->co);
-		copy_v3_v3(v[2], CDDM_get_vert(dm,mface->v3)->co);
+		copy_v3_v3(v[0], CDDM_get_vert(dm, mface->v1)->co);
+		copy_v3_v3(v[1], CDDM_get_vert(dm, mface->v2)->co);
+		copy_v3_v3(v[2], CDDM_get_vert(dm, mface->v3)->co);
 		if (mface->v4) {
-			copy_v3_v3(v[3], CDDM_get_vert(dm,mface->v4)->co);
-			interp_weights_poly_v3( pa->fuv,v, 4, nearest.co);
+			copy_v3_v3(v[3], CDDM_get_vert(dm, mface->v4)->co);
+			interp_weights_poly_v3( pa->fuv, v, 4, nearest.co);
 		}
 		else
-			interp_weights_poly_v3( pa->fuv,v, 3, nearest.co);
+			interp_weights_poly_v3( pa->fuv, v, 3, nearest.co);
 
 		pa->num = nearest.index;
-		pa->num_dmcache = psys_particle_dm_face_lookup(ob,psmd->dm,pa->num,pa->fuv,NULL);
+		pa->num_dmcache = psys_particle_dm_face_lookup(ob, psmd->dm, pa->num, pa->fuv, NULL);
 		
 		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
-		invert_m4_m4(imat,hairmat);
+		invert_m4_m4(imat, hairmat);
 
 		sub_v3_v3v3(vec, nearest.co, key->co);
 
@@ -700,9 +700,9 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 			point++;
 		}
 
-		for (k=0,key=pa->hair; k<pa->totkey; k++,key++) {
+		for (k=0, key=pa->hair; k<pa->totkey; k++, key++) {
 			add_v3_v3(key->co, vec);
-			mul_m4_v3(imat,key->co);
+			mul_m4_v3(imat, key->co);
 
 			if (ekey) {
 				ekey->flag |= PEK_USE_WCO;

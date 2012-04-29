@@ -87,7 +87,7 @@ void itstart(void)
 }
 static void itend(void)
 {
-	gettimeofday(&_itend,&itz);
+	gettimeofday(&_itend, &itz);
 }
 double itval(void)
 {
@@ -98,8 +98,8 @@ double itval(void)
 }
 #endif
 
-static float I[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
-static float ZERO[3][3] = {{0,0,0}, {0,0,0}, {0,0,0}};
+static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
 /*
 #define C99
@@ -119,9 +119,9 @@ struct Cloth;
 typedef float lfVector[3];
 typedef struct fmatrix3x3 {
 	float m[3][3]; /* 3x3 matrix */
-	unsigned int c,r; /* column and row number */
+	unsigned int c, r; /* column and row number */
 	int pinned; /* is this vertex allowed to move? */
-	float n1,n2,n3; /* three normal vectors for collision constrains */
+	float n1, n2, n3; /* three normal vectors for collision constrains */
 	unsigned int vcount; /* vertex count */
 	unsigned int scount; /* spring count */ 
 } fmatrix3x3;
@@ -168,7 +168,7 @@ DO_INLINE void mul_fvectorT_fvectorS(float to[3][3], float vectorA[3], float vec
 /* printf vector[3] on console: for debug output */
 static void print_fvector(float m3[3])
 {
-	printf("%f\n%f\n%f\n\n",m3[0],m3[1],m3[2]);
+	printf("%f\n%f\n%f\n\n", m3[0], m3[1], m3[2]);
 }
 
 ///////////////////////////
@@ -303,9 +303,9 @@ DO_INLINE void sub_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], f
 /* printf 3x3 matrix on console: for debug output */
 static void print_fmatrix(float m3[3][3])
 {
-	printf("%f\t%f\t%f\n",m3[0][0],m3[0][1],m3[0][2]);
-	printf("%f\t%f\t%f\n",m3[1][0],m3[1][1],m3[1][2]);
-	printf("%f\t%f\t%f\n\n",m3[2][0],m3[2][1],m3[2][2]);
+	printf("%f\t%f\t%f\n", m3[0][0], m3[0][1], m3[0][2]);
+	printf("%f\t%f\t%f\n", m3[1][0], m3[1][1], m3[1][2]);
+	printf("%f\t%f\t%f\n\n", m3[2][0], m3[2][1], m3[2][2]);
 }
 #endif
 
@@ -367,9 +367,9 @@ DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
 /* STATUS: verified */
 DO_INLINE void mul_fmatrix_S(float matrix[3][3], float scalar)
 {
-	mul_fvector_S(matrix[0], matrix[0],scalar);
-	mul_fvector_S(matrix[1], matrix[1],scalar);
-	mul_fvector_S(matrix[2], matrix[2],scalar);
+	mul_fvector_S(matrix[0], matrix[0], scalar);
+	mul_fvector_S(matrix[1], matrix[1], scalar);
+	mul_fvector_S(matrix[2], matrix[2], scalar);
 }
 
 /* a vector multiplied by a 3x3 matrix */
@@ -385,17 +385,17 @@ DO_INLINE void mul_fvector_fmatrix(float *to, float *from, float matrix[3][3])
 /* STATUS: verified */
 DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][3], float from[3])
 {
-	to[0] = dot_v3v3(matrix[0],from);
-	to[1] = dot_v3v3(matrix[1],from);
-	to[2] = dot_v3v3(matrix[2],from);
+	to[0] = dot_v3v3(matrix[0], from);
+	to[1] = dot_v3v3(matrix[1], from);
+	to[2] = dot_v3v3(matrix[2], from);
 }
 /* 3x3 matrix multiplied by a 3x3 matrix */
 /* STATUS: verified */
 DO_INLINE void mul_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
-	mul_fvector_fmatrix(to[0], matrixA[0],matrixB);
-	mul_fvector_fmatrix(to[1], matrixA[1],matrixB);
-	mul_fvector_fmatrix(to[2], matrixA[2],matrixB);
+	mul_fvector_fmatrix(to[0], matrixA[0], matrixB);
+	mul_fvector_fmatrix(to[1], matrixA[1], matrixB);
+	mul_fvector_fmatrix(to[2], matrixA[2], matrixB);
 }
 /* 3x3 matrix addition with 3x3 matrix */
 DO_INLINE void add_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
@@ -459,9 +459,9 @@ DO_INLINE void muladd_fvector_fmatrix(float to[3], float from[3], float matrix[3
 /* 3x3 matrix multiplied and added  to/by a 3x3 matrix  and added to another 3x3 matrix */
 DO_INLINE void muladd_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
-	muladd_fvector_fmatrix(to[0], matrixA[0],matrixB);
-	muladd_fvector_fmatrix(to[1], matrixA[1],matrixB);
-	muladd_fvector_fmatrix(to[2], matrixA[2],matrixB);
+	muladd_fvector_fmatrix(to[0], matrixA[0], matrixB);
+	muladd_fvector_fmatrix(to[1], matrixA[1], matrixB);
+	muladd_fvector_fmatrix(to[2], matrixA[2], matrixB);
 }
 /* a vector multiplied and sub'd to/by a 3x3 matrix */
 DO_INLINE void mulsub_fvector_fmatrix(float to[3], float from[3], float matrix[3][3])
@@ -473,9 +473,9 @@ DO_INLINE void mulsub_fvector_fmatrix(float to[3], float from[3], float matrix[3
 /* 3x3 matrix multiplied and sub'd  to/by a 3x3 matrix  and added to another 3x3 matrix */
 DO_INLINE void mulsub_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
-	mulsub_fvector_fmatrix(to[0], matrixA[0],matrixB);
-	mulsub_fvector_fmatrix(to[1], matrixA[1],matrixB);
-	mulsub_fvector_fmatrix(to[2], matrixA[2],matrixB);
+	mulsub_fvector_fmatrix(to[0], matrixA[0], matrixB);
+	mulsub_fvector_fmatrix(to[1], matrixA[1], matrixB);
+	mulsub_fvector_fmatrix(to[2], matrixA[2], matrixB);
 }
 /* 3x3 matrix multiplied+added by a vector */
 /* STATUS: verified */
@@ -549,8 +549,8 @@ DO_INLINE void init_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 // slow in parallel
 DO_INLINE void initdiag_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 {
-	unsigned int i,j;
-	float tmatrix[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
+	unsigned int i, j;
+	float tmatrix[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
 	for (i = 0; i < matrix[0].vcount; i++) {
 		cp_fmatrix(matrix[i].m, m3); 
@@ -824,14 +824,14 @@ int	implicit_free (ClothModifierData *clmd)
 DO_INLINE float fb(float length, float L)
 {
 	float x = length/L;
-	return (-11.541f*pow(x,4)+34.193f*pow(x,3)-39.083f*pow(x,2)+23.116f*x-9.713f);
+	return (-11.541f*pow(x, 4)+34.193f*pow(x, 3)-39.083f*pow(x, 2)+23.116f*x-9.713f);
 }
 
 DO_INLINE float fbderiv(float length, float L)
 {
 	float x = length/L;
 
-	return (-46.164f*pow(x,3)+102.579f*pow(x,2)-78.166f*x+23.116f);
+	return (-46.164f*pow(x, 3)+102.579f*pow(x, 2)-78.166f*x+23.116f);
 }
 
 DO_INLINE float fbstar(float length, float L, float kb, float cb)
@@ -887,12 +887,12 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 
 	add_lfvector_lfvector(ldV, ldV, z, numverts);
 
-	// r = B - Mul(tmp,A,X);    // just use B if X known to be zero
+	// r = B - Mul(tmp, A, X);    // just use B if X known to be zero
 	cp_lfvector(r, lB, numverts);
 	mul_bfmatrix_lfvector(tmp, lA, ldV);
 	sub_lfvector_lfvector(r, r, tmp, numverts);
 
-	filter(r,S);
+	filter(r, S);
 
 	cp_lfvector(d, r, numverts);
 
@@ -900,10 +900,10 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 	starget = s * sqrt(conjgrad_epsilon);
 
 	while (s>starget && conjgrad_loopcount < conjgrad_looplimit) {
-		// Mul(q,A,d); // q = A*d;
+		// Mul(q, A, d); // q = A*d;
 		mul_bfmatrix_lfvector(q, lA, d);
 
-		filter(q,S);
+		filter(q, S);
 
 		a = s/dot_lfvector(d, q, numverts);
 
@@ -919,7 +919,7 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 		//d = r+d*(s/s_prev);
 		add_lfvector_lfvectorS(d, r, d, (s/s_prev), numverts);
 
-		filter(d,S);
+		filter(d, S);
 
 		conjgrad_loopcount++;
 	}
@@ -1126,7 +1126,7 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 DO_INLINE void dfdx_spring_type1(float to[3][3], float extent[3], float length, float L, float dot, float k)
 {
 	// dir is unit length direction, rest is spring's restlength, k is spring constant.
-	// return  (outerprod(dir,dir)*k + (I - outerprod(dir,dir))*(k - ((k*L)/length)));
+	// return  (outerprod(dir, dir)*k + (I - outerprod(dir, dir))*(k - ((k*L)/length)));
 	float temp[3][3];
 	float temp1 = k*(1.0 - (L/length));	
 	
@@ -1148,7 +1148,7 @@ DO_INLINE void dfdx_spring_type1(float to[3][3], float extent[3], float length, 
 
 DO_INLINE void dfdx_spring_type2(float to[3][3], float dir[3], float length, float L, float k, float cb)
 {
-	// return  outerprod(dir,dir)*fbstar_jacobi(length, L, k, cb);
+	// return  outerprod(dir, dir)*fbstar_jacobi(length, L, k, cb);
 	mul_fvectorT_fvectorS(to, dir, dir, fbstar_jacobi(length, L, k, cb));
 }
 
@@ -1159,10 +1159,10 @@ DO_INLINE void dfdv_damp(float to[3][3], float dir[3], float damping)
 	
 }
 
-DO_INLINE void dfdx_spring(float to[3][3],  float dir[3],float length,float L,float k)
+DO_INLINE void dfdx_spring(float to[3][3],  float dir[3], float length, float L, float k)
 {
 	// dir is unit length direction, rest is spring's restlength, k is spring constant.
-	//return  ( (I-outerprod(dir,dir))*Min(1.0f,rest/length) - I) * -k;
+	//return  ( (I-outerprod(dir, dir))*Min(1.0f, rest/length) - I) * -k;
 	mul_fvectorT_fvector(to, dir, dir);
 	sub_fmatrix_fmatrix(to, I, to);
 
@@ -1172,13 +1172,13 @@ DO_INLINE void dfdx_spring(float to[3][3],  float dir[3],float length,float L,fl
 }
 
 // unused atm
-DO_INLINE void dfdx_damp(float to[3][3],  float dir[3],float length,const float vel[3],float rest,float damping)
+DO_INLINE void dfdx_damp(float to[3][3],  float dir[3], float length, const float vel[3], float rest, float damping)
 {
 	// inner spring damping   vel is the relative velocity  of the endpoints.  
-	// 	return (I-outerprod(dir,dir)) * (-damping * -(dot(dir,vel)/Max(length,rest)));
+	// 	return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
 	mul_fvectorT_fvector(to, dir, dir);
 	sub_fmatrix_fmatrix(to, I, to);
-	mul_fmatrix_S(to,  (-damping * -(dot_v3v3(dir,vel)/MAX2(length,rest))));
+	mul_fmatrix_S(to,  (-damping * -(dot_v3v3(dir, vel)/MAX2(length, rest))));
 
 }
 
@@ -1188,17 +1188,17 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	ClothVertex *verts = cloth->verts;
 	float extent[3];
 	float length = 0, dot = 0;
-	float dir[3] = {0,0,0};
+	float dir[3] = {0, 0, 0};
 	float vel[3];
 	float k = 0.0f;
 	float L = s->restlen;
 	float cb; /* = clmd->sim_parms->structural; */ /*UNUSED*/
 
-	float nullf[3] = {0,0,0};
-	float stretch_force[3] = {0,0,0};
-	float bending_force[3] = {0,0,0};
-	float damping_force[3] = {0,0,0};
-	float nulldfdx[3][3]={ {0,0,0}, {0,0,0}, {0,0,0}};
+	float nullf[3] = {0, 0, 0};
+	float stretch_force[3] = {0, 0, 0};
+	float bending_force[3] = {0, 0, 0};
+	float damping_force[3] = {0, 0, 0};
+	float nulldfdx[3][3]={ {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 	
 	float scaling = 0.0;
 
@@ -1306,7 +1306,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
 			VECADD(s->f, s->f, bending_force);
 
-			dfdx_spring_type2(s->dfdx, dir, length,L, k, cb);
+			dfdx_spring_type2(s->dfdx, dir, length, L, k, cb);
 		}
 	}
 }
@@ -1334,7 +1334,7 @@ DO_INLINE void cloth_apply_spring_force(ClothModifierData *UNUSED(clmd), ClothSp
 
 static void CalcFloat( float *v1, float *v2, float *v3, float *n)
 {
-	float n1[3],n2[3];
+	float n1[3], n2[3];
 
 	n1[0]= v1[0]-v2[0];
 	n2[0]= v2[0]-v3[0];
@@ -1350,7 +1350,7 @@ static void CalcFloat( float *v1, float *v2, float *v3, float *n)
 static void CalcFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
 {
 	/* real cross! */
-	float n1[3],n2[3];
+	float n1[3], n2[3];
 
 	n1[0]= v1[0]-v3[0];
 	n1[1]= v1[1]-v3[1];
@@ -1512,7 +1512,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 
 static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
-	/* Collect forces and derivatives:  F,dFdX,dFdV */
+	/* Collect forces and derivatives:  F, dFdX, dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
 	unsigned int i	= 0;
 	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
@@ -1568,17 +1568,17 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 		}
 		
 		for (i = 0; i < cloth->numfaces; i++) {
-			float trinormal[3]={0,0,0}; // normalized triangle normal
-			float triunnormal[3]={0,0,0}; // not-normalized-triangle normal
-			float tmp[3]={0,0,0};
+			float trinormal[3]={0, 0, 0}; // normalized triangle normal
+			float triunnormal[3]={0, 0, 0}; // not-normalized-triangle normal
+			float tmp[3]={0, 0, 0};
 			float factor = (mfaces[i].v4) ? 0.25 : 1.0 / 3.0;
 			factor *= 0.02;
 			
 			// calculate face normal
 			if (mfaces[i].v4)
-				CalcFloat4(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],lX[mfaces[i].v4],triunnormal);
+				CalcFloat4(lX[mfaces[i].v1], lX[mfaces[i].v2], lX[mfaces[i].v3], lX[mfaces[i].v4], triunnormal);
 			else
-				CalcFloat(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],triunnormal);
+				CalcFloat(lX[mfaces[i].v1], lX[mfaces[i].v2], lX[mfaces[i].v3], triunnormal);
 
 			normalize_v3_v3(trinormal, triunnormal);
 			
@@ -1608,9 +1608,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 		/* Hair has only edges */
 		if (cloth->numfaces == 0) {
 			ClothSpring *spring;
-			float edgevec[3]={0,0,0}; //edge vector
-			float edgeunnormal[3]={0,0,0}; // not-normalized-edge normal
-			float tmp[3]={0,0,0};
+			float edgevec[3]={0, 0, 0}; //edge vector
+			float edgeunnormal[3]={0, 0, 0}; // not-normalized-edge normal
+			float tmp[3]={0, 0, 0};
 			float factor = 0.01;
 
 			search = cloth->springs;

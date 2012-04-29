@@ -68,7 +68,7 @@ struct ReportList;
 struct SmallHash;
 
 typedef struct TransSnapPoint {
-	struct TransSnapPoint *next,*prev;
+	struct TransSnapPoint *next, *prev;
 	float co[3];
 } TransSnapPoint;
 

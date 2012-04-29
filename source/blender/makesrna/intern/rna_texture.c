@@ -92,7 +92,7 @@ EnumPropertyItem blend_type_items[] = {
 	{MTEX_BLEND_VAL, "VALUE", 0, "Value", ""},
 	{MTEX_BLEND_COLOR, "COLOR", 0, "Color", ""},
 	{MTEX_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
-	{MTEX_LIN_LIGHT    , "LINEAR_LIGHT", 0, "Linear Light", ""},
+	{MTEX_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -1558,19 +1558,19 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	static EnumPropertyItem point_source_items[] = {
 		{TEX_PD_PSYS, "PARTICLE_SYSTEM", 0, "Particle System", "Generate point density from a particle system"},
 		{TEX_PD_OBJECT, "OBJECT", 0, "Object Vertices", "Generate point density from an object's vertices"},
-		/*{TEX_PD_FILE, "FILE", 0 , "File", ""}, */
+		/*{TEX_PD_FILE, "FILE", 0, "File", ""}, */
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem particle_cache_items[] = {
 		{TEX_PD_OBJECTLOC, "OBJECT_LOCATION", 0, "Emit Object Location", ""},
 		{TEX_PD_OBJECTSPACE, "OBJECT_SPACE", 0, "Emit Object Space", ""},
-		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0 , "Global Space", ""},
+		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0, "Global Space", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem vertice_cache_items[] = {
 		{TEX_PD_OBJECTLOC, "OBJECT_LOCATION", 0, "Object Location", ""},
 		{TEX_PD_OBJECTSPACE, "OBJECT_SPACE", 0, "Object Space", ""},
-		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0 , "Global Space", ""},
+		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0, "Global Space", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem falloff_items[] = {

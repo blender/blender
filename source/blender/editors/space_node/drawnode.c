@@ -266,7 +266,7 @@ static void node_draw_socket_new(bNodeSocket *sock, float size)
 	
 	/* 16 values of sin function */
 	static float si[16] = {
-		0.00000000f, 0.39435585f,0.72479278f,0.93775213f,
+		0.00000000f, 0.39435585f, 0.72479278f,0.93775213f,
 		0.99871650f,0.89780453f,0.65137248f,0.29936312f,
 		-0.10116832f,-0.48530196f,-0.79077573f,-0.96807711f,
 		-0.98846832f,-0.84864425f,-0.57126821f,-0.20129852f
@@ -1647,7 +1647,7 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
 	uiLayout *row, *col;
 	
 	uiItemL(layout, "Despill Channel:", ICON_NONE);
-	row = uiLayoutRow(layout,0);
+	row = uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
 	col= uiLayoutColumn(layout, 0);
@@ -1655,7 +1655,7 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
 
 	if (RNA_enum_get(ptr, "limit_method")==0) {
 		uiItemL(col, "Limiting Channel:", ICON_NONE);
-		row=uiLayoutRow(col,0);
+		row=uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 
@@ -1710,7 +1710,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext *UNUSED(
 	uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
 	if (RNA_enum_get(ptr, "limit_method")==0) {
 		uiItemL(col, "Limiting Channel:", ICON_NONE);
-		row=uiLayoutRow(col,0);
+		row=uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 

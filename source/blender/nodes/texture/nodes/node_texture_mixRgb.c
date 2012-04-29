@@ -37,7 +37,7 @@
 static bNodeSocketTemplate inputs[]= {
 	{ SOCK_FLOAT, 1, "Factor", 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR },
 	{ SOCK_RGBA,  1, "Color1", 0.5f, 0.5f, 0.5f, 1.0f },
-	{ SOCK_RGBA , 1, "Color2", 0.5f, 0.5f, 0.5f, 1.0f },
+	{ SOCK_RGBA, 1, "Color2", 0.5f, 0.5f, 0.5f, 1.0f },
 	{ -1, 0, "" }
 };
 static bNodeSocketTemplate outputs[]= {

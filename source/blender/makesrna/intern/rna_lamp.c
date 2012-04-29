@@ -600,7 +600,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_shadbuftype_items[] = {
-		{LA_SHADBUF_REGULAR	, "REGULAR", 0, "Classical", "Classic shadow buffer"},
+		{LA_SHADBUF_REGULAR, "REGULAR", 0, "Classical", "Classic shadow buffer"},
 		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway",
 		                     "Regular buffer, averaging the closest and 2nd closest Z value to reducing "
 		                     "bias artifacts"},
@@ -612,7 +612,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_shadbuffiltertype_items[] = {
-		{LA_SHADBUF_BOX	, "BOX", 0, "Box", "Apply the Box filter to shadow buffer samples"},
+		{LA_SHADBUF_BOX,  "BOX", 0, "Box", "Apply the Box filter to shadow buffer samples"},
 		{LA_SHADBUF_TENT, "TENT", 0, "Tent", "Apply the Tent Filter to shadow buffer samples"},
 		{LA_SHADBUF_GAUSS, "GAUSS", 0, "Gauss", "Apply the Gauss filter to shadow buffer samples"},
 		{0, NULL, 0, NULL, NULL}};
@@ -677,7 +677,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "spot_blend", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spotblend");
-	RNA_def_property_range(prop, 0.0f ,1.0f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Spot Blend", "The softness of the spotlight edge");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 

@@ -266,7 +266,7 @@ static void createTransTexspace(TransInfo *t)
 	}
 
 	id = ob->data;
-	if (id == NULL || !ELEM3( GS(id->name), ID_ME, ID_CU, ID_MB )) {
+	if (id == NULL || !ELEM3(GS(id->name), ID_ME, ID_CU, ID_MB )) {
 		t->total = 0;
 		return;
 	}
@@ -418,7 +418,7 @@ static short apply_targetless_ik(Object *ob)
 				/* pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK  */
 				/* we put in channel the entire result of rmat= (channel * constraint * IK) */
 				/* pose_mat(b) = pose_mat(b-1) * offs_bone * rmat  */
-				/* rmat = pose_mat(b) * inv( pose_mat(b-1) * offs_bone ) */
+				/* rmat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone ) */
 
 				parchan= chanlist[segcount-1];
 				bone= parchan->bone;
@@ -439,25 +439,25 @@ static short apply_targetless_ik(Object *ob)
 						 * and applied poses.
 						 */
 					if (parchan->rotmode > 0)
-						mat3_to_eulO(parchan->eul, parchan->rotmode,rmat3);
+						mat3_to_eulO(parchan->eul, parchan->rotmode, rmat3);
 					else if (parchan->rotmode == ROT_MODE_AXISANGLE)
-						mat3_to_axis_angle(parchan->rotAxis, &parchan->rotAngle,rmat3);
+						mat3_to_axis_angle(parchan->rotAxis, &parchan->rotAngle, rmat3);
 					else
-						mat3_to_quat(parchan->quat,rmat3);
+						mat3_to_quat(parchan->quat, rmat3);
 					
 					/* for size, remove rotation */
 					/* causes problems with some constraints (so apply only if needed) */
 					if (data->flag & CONSTRAINT_IK_STRETCH) {
 						if (parchan->rotmode > 0)
-							eulO_to_mat3( qrmat,parchan->eul, parchan->rotmode);
+							eulO_to_mat3(qrmat, parchan->eul, parchan->rotmode);
 						else if (parchan->rotmode == ROT_MODE_AXISANGLE)
-							axis_angle_to_mat3( qrmat,parchan->rotAxis, parchan->rotAngle);
+							axis_angle_to_mat3(qrmat, parchan->rotAxis, parchan->rotAngle);
 						else
-							quat_to_mat3( qrmat,parchan->quat);
+							quat_to_mat3(qrmat, parchan->quat);
 						
 						invert_m3_m3(imat3, qrmat);
 						mul_m3_m3m3(smat, rmat3, imat3);
-						mat3_to_size( parchan->size,smat);
+						mat3_to_size(parchan->size, smat);
 					}
 					
 					/* causes problems with some constraints (e.g. childof), so disable this */
@@ -548,10 +548,10 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, pmat, omat, cmat, NULL,NULL,NULL,NULL,NULL);
+			mul_serie_m3(td->mtx, pmat, omat, cmat, NULL, NULL, NULL, NULL, NULL);
 		}
 		else
-			mul_serie_m3(td->mtx, pmat, omat, NULL, NULL,NULL,NULL,NULL,NULL);
+			mul_serie_m3(td->mtx, pmat, omat, NULL, NULL, NULL, NULL, NULL, NULL);
 	}
 
 	invert_m3_m3(td->smtx, td->mtx);
@@ -681,7 +681,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 			total++;
 			
 			if (mode == TFM_TRANSLATION) {
-				if ( has_targetless_ik(pchan)==NULL ) {
+				if (has_targetless_ik(pchan) == NULL) {
 					if (pchan->parent && (pchan->bone->flag & BONE_CONNECTED)) {
 						if (pchan->bone->flag & BONE_HINGE_CHILD_TRANSFORM)
 							hastranslation = 1;
@@ -1616,7 +1616,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 	PTCacheEditPoint *point;
 	PTCacheEditKey *key;
 	float mat[4][4];
-	int i,k, transformparticle;
+	int i, k, transformparticle;
 	int count = 0, hasselected = 0;
 	int propmode = t->flag & T_PROP_EDIT;
 
@@ -1625,7 +1625,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 	psys = edit->psys;
 
 	if (psys)
-		psmd = psys_get_modifier(ob,psys);
+		psmd = psys_get_modifier(ob, psys);
 
 	base->flag |= BA_HAS_RECALC_DATA;
 
@@ -1665,7 +1665,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
 	unit_m4(mat);
 
-	invert_m4_m4(ob->imat,ob->obmat);
+	invert_m4_m4(ob->imat, ob->obmat);
 
 	for (i=0, point=edit->points; i<edit->totpoint; i++, point++) {
 		TransData *head, *tail;
@@ -1748,7 +1748,7 @@ void flushTransParticles(TransInfo *t)
 
 		if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + i, mat);
-			invert_m4_m4(imat,mat);
+			invert_m4_m4(imat, mat);
 
 			for (k=0, key=point->keys; k<point->totkey; k++, key++) {
 				copy_v3_v3(co, key->world_co);
@@ -2055,7 +2055,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			 * the modifiers that support deform matrices (defcos) */
 			if (totleft > 0) {
 				mappedcos= crazyspace_get_mapped_editverts(t->scene, t->obedit);
-				quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
+				quats= MEM_mallocN((t->total)*sizeof(float)*4, "crazy quats");
 				crazyspace_set_quats_editmesh(em, (float*)defcos, mappedcos, quats); /* BMESH_TODO, abuses vertex index, should use an int array */
 				if (mappedcos)
 					MEM_freeN(mappedcos);
@@ -2133,7 +2133,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				}
 
 				/* Mirror? */
-				if ( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
+				if ((mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
 					BMVert *vmir= EDBM_verts_mirror_get(em, eve); //t->obedit, em, eve, tob->iloc, a);
 					if (vmir && vmir != eve) {
 						tob->extra = vmir;
@@ -2147,7 +2147,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if (mirror != 0)
 	{
 		tob = t->data;
-		for ( a = 0; a < t->total; a++, tob++ )
+		for (a = 0; a < t->total; a++, tob++ )
 		{
 			if (ABS(tob->loc[0]) <= 0.00001f)
 			{
@@ -2294,7 +2294,7 @@ void flushTransSeq(TransInfo *t)
 			if (seq->depth==0) {
 				/* test overlap, displayes red outline */
 				seq->flag &= ~SEQ_OVERLAP;
-				if ( seq_test_overlap(seqbasep, seq) ) {
+				if (seq_test_overlap(seqbasep, seq)) {
 					seq->flag |= SEQ_OVERLAP;
 				}
 			}
@@ -2994,7 +2994,7 @@ void flushTransGPactionData (TransInfo *t)
 
 	/* find the first one to start from */
 	if (t->mode == TFM_TIME_SLIDE)
-		tfd= (tGPFtransdata *)( (float *)(t->customData) + 2 );
+		tfd= (tGPFtransdata *)((float *)(t->customData) + 2);
 	else
 		tfd= (tGPFtransdata *)(t->customData);
 
@@ -3113,7 +3113,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	if (ac.datatype == ANIMCONT_GPENCIL) {
 		if (t->mode == TFM_TIME_SLIDE) {
 			t->customData= MEM_callocN((sizeof(float)*2)+(sizeof(tGPFtransdata)*count), "TimeSlide + tGPFtransdata");
-			tfd= (tGPFtransdata *)( (float *)(t->customData) + 2 );
+			tfd= (tGPFtransdata *)((float *)(t->customData) + 2);
 		}
 		else {
 			t->customData= MEM_callocN(sizeof(tGPFtransdata)*count, "tGPFtransdata");
@@ -3468,9 +3468,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				 *	  then check if we're using auto-handles.
 				 *	- If so, change them auto-handles to aligned handles so that handles get affected too
 				 */
-				if ( ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) &&
-				     ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
-				     ELEM(t->mode, TFM_ROTATION, TFM_RESIZE))
+				if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) &&
+				    ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
+				    ELEM(t->mode, TFM_ROTATION, TFM_RESIZE))
 				{
 					if (hdata && (sel1) && (sel3)) {
 						bezt->h1= HD_ALIGN;
@@ -3559,8 +3559,8 @@ static void sort_time_beztmaps (BeztMap *bezms, int totvert, const short UNUSED(
 			 * optimization: this only needs to be performed in the first loop
 			 */
 			if (bezm->swapHs == 0) {
-				if ( (bezm->bezt->vec[0][0] > bezm->bezt->vec[1][0]) &&
-					 (bezm->bezt->vec[2][0] < bezm->bezt->vec[1][0]) )
+				if ((bezm->bezt->vec[0][0] > bezm->bezt->vec[1][0]) &&
+				    (bezm->bezt->vec[2][0] < bezm->bezt->vec[1][0]) )
 				{
 					/* handles need to be swapped */
 					bezm->swapHs = 1;
@@ -3714,9 +3714,9 @@ void flushTransGraphData(TransInfo *t)
 			switch (sipo->autosnap) {
 				case SACTSNAP_FRAME: /* snap to nearest frame (or second if drawing seconds) */
 					if (sipo->flag & SIPO_DRAWTIME)
-						td2d->loc[0]= (float)( floor((td2d->loc[0]/secf) + 0.5f) * secf );
+						td2d->loc[0]= (float)(floor((td2d->loc[0]/secf) + 0.5f) * secf);
 					else
-						td2d->loc[0]= (float)( floor(td2d->loc[0]+0.5f) );
+						td2d->loc[0]= (float)(floor(td2d->loc[0]+0.5f));
 					break;
 				
 				case SACTSNAP_MARKER: /* snap to nearest marker */
@@ -3879,7 +3879,7 @@ static int SeqTransCount(TransInfo *t, Sequence *parent, ListBase *seqbase, int 
 	for (seq= seqbase->first; seq; seq= seq->next) {
 		seq->depth= depth;
 
-		/* seq->tmp is used by seq_tx_get_final_{left,right} to check sequence's range and clamp to it if needed.
+		/* seq->tmp is used by seq_tx_get_final_{left, right} to check sequence's range and clamp to it if needed.
 		 * it's first place where digging into sequences tree, so store link to parent here */
 		seq->tmp = parent;
 
@@ -4173,9 +4173,9 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 				int i;
 				for (i=0; i<3; i++) {
 					seq_user= *((&seq->seq1) + i);
-					if ( seq_user && (seq_user->flag & SELECT) &&
-					     !(seq_user->flag & SEQ_LOCK) &&
-					     !(seq_user->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)))
+					if (seq_user && (seq_user->flag & SELECT) &&
+					    !(seq_user->flag & SEQ_LOCK) &&
+					    !(seq_user->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)))
 					{
 						seq->flag |= SELECT;
 					}
@@ -4473,8 +4473,8 @@ static int count_proportional_objects(TransInfo *t)
 		/* mark all children */
 		for (base= scene->base.first; base; base= base->next) {
 			/* all base not already selected or marked that is editable */
-			if ( (base->object->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 &&
-			     (BASE_EDITABLE_BGMODE(v3d, scene, base)))
+			if ((base->object->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 &&
+			    (BASE_EDITABLE_BGMODE(v3d, scene, base)))
 			{
 				mark_children(base->object);
 			}
@@ -4485,8 +4485,8 @@ static int count_proportional_objects(TransInfo *t)
 		Object *ob= base->object;
 
 		/* if base is not selected, not a parent of selection or not a child of selection and it is editable */
-		if ( (ob->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 &&
-		     (BASE_EDITABLE_BGMODE(v3d, scene, base)))
+		if ((ob->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 &&
+		    (BASE_EDITABLE_BGMODE(v3d, scene, base)))
 		{
 
 			/* used for flush, depgraph will change recalcs if needed :) */
@@ -4877,8 +4877,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				 * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
 				 * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
 				 */
-				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
-					 ((canceled == 0) || (duplicate)) )
+				if ((saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
+				    ((canceled == 0) || (duplicate)) )
 				{
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
@@ -4908,8 +4908,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			 * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
 			 * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
 			 */
-			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
-				 ((canceled == 0) || (duplicate)) )
+			if ((saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
+			    ((canceled == 0) || (duplicate)))
 			{
 				posttrans_action_clean(&ac, (bAction *)ac.data);
 			}
@@ -4921,8 +4921,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				 * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
 				 * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
 				 */
-			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
-				 ((canceled == 0) || (duplicate)) )
+			if ((saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
+				((canceled == 0) || (duplicate)))
 			{
 				bGPdata *gpd;
 				
@@ -4989,8 +4989,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				 * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
 				 * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
 				 */
-				if ( (sipo->flag & SIPO_NOTRANSKEYCULL)==0 &&
-					 ((canceled == 0) || (duplicate)) )
+				if ((sipo->flag & SIPO_NOTRANSKEYCULL)==0 &&
+				    ((canceled == 0) || (duplicate)))
 				{
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
@@ -5101,10 +5101,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	}
-	else if ( (t->scene->basact) &&
-	          (ob = t->scene->basact->object) &&
-	          (ob->mode & OB_MODE_PARTICLE_EDIT) &&
-	          PE_get_current(t->scene, ob))
+	else if ((t->scene->basact) &&
+	         (ob = t->scene->basact->object) &&
+	         (ob->mode & OB_MODE_PARTICLE_EDIT) &&
+	         PE_get_current(t->scene, ob))
 	{
 		/* do nothing */
 	}

@@ -74,7 +74,7 @@ typedef struct Octree {
 	struct Branch **adrbranch;
 	struct Node **adrnode;
 	float ocsize;	/* ocsize: mult factor,  max size octree */
-	float ocfacx,ocfacy,ocfacz;
+	float ocfacx, ocfacy, ocfacz;
 	float min[3], max[3];
 	int ocres;
 	int branchcount, nodecount;
@@ -216,7 +216,7 @@ static Node *addnode(Octree *oc)
 	index= oc->nodecount>>12;
 	
 	if (oc->adrnode[index]==NULL)
-		oc->adrnode[index]= (Node*)MEM_callocN(4096*sizeof(Node),"addnode");
+		oc->adrnode[index]= (Node*)MEM_callocN(4096*sizeof(Node), "addnode");
 
 	if (oc->nodecount> NODE_ARRAY*NODE_ARRAY) {
 		printf("error; octree nodes full\n");
@@ -233,7 +233,7 @@ static int face_in_node(RayFace *face, short x, short y, short z, float rtf[][3]
 	
 	// init static vars 
 	if (face) {
-		normal_tri_v3( nor,rtf[0], rtf[1], rtf[2]);
+		normal_tri_v3(nor, rtf[0], rtf[1], rtf[2]);
 		d= -nor[0]*rtf[0][0] - nor[1]*rtf[0][1] - nor[2]*rtf[0][2];
 		return 0;
 	}
@@ -297,11 +297,11 @@ static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short
 	oc4= ((x & 8)+(y & 4)+(z & 2))>>1;
 	oc5= ((x & 4)+(y & 2)+(z & 1));
 
-	br= addbranch(oc, br,oc0);
-	br= addbranch(oc, br,oc1);
-	br= addbranch(oc, br,oc2);
-	br= addbranch(oc, br,oc3);
-	br= addbranch(oc, br,oc4);
+	br= addbranch(oc, br, oc0);
+	br= addbranch(oc, br, oc1);
+	br= addbranch(oc, br, oc2);
+	br= addbranch(oc, br, oc3);
+	br= addbranch(oc, br, oc4);
 	no= (Node *)br->b[oc5];
 	if (no==NULL) br->b[oc5]= (Branch *)(no= addnode(oc));
 
@@ -326,10 +326,10 @@ static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short
 
 static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocface, short rts[][3], float rtf[][3])
 {
-	int ocx1,ocx2,ocy1,ocy2;
-	int x,y,dx=0,dy=0;
-	float ox1,ox2,oy1,oy2;
-	float labda,labdao,labdax,labday,ldx,ldy;
+	int ocx1, ocx2, ocy1, ocy2;
+	int x, y, dx=0, dy=0;
+	float ox1, ox2, oy1, oy2;
+	float labda, labdao, labdax, labday, ldx, ldy;
 
 	ocx1= rts[b1][c1];
 	ocy1= rts[b1][c2];
@@ -405,7 +405,7 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 				y+=dy;
 			}
 		}
-		labda=MIN2(labdax,labday);
+		labda=MIN2(labdax, labday);
 		if (labda==labdao) break;
 		if (labda>=1.0f) break;
 	}
@@ -541,13 +541,13 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 		oc2= rts[1][c];
 		oc3= rts[2][c];
 		if (!RE_rayface_isQuad(face)) {
-			ocmin[c]= MIN3(oc1,oc2,oc3);
-			ocmax[c]= MAX3(oc1,oc2,oc3);
+			ocmin[c]= MIN3(oc1, oc2, oc3);
+			ocmax[c]= MAX3(oc1, oc2, oc3);
 		}
 		else {
 			oc4= rts[3][c];
-			ocmin[c]= MIN4(oc1,oc2,oc3,oc4);
-			ocmax[c]= MAX4(oc1,oc2,oc3,oc4);
+			ocmin[c]= MIN4(oc1, oc2, oc3, oc4);
+			ocmax[c]= MAX4(oc1, oc2, oc3, oc4);
 		}
 		if (ocmax[c]>oc->ocres-1) ocmax[c]=oc->ocres-1;
 		if (ocmin[c]<0) ocmin[c]=0;
@@ -558,32 +558,32 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 	}
 	else {
 		
-		d2dda(oc, 0,1,0,1,ocface+ocres2,rts,rtf);
-		d2dda(oc, 0,1,0,2,ocface,rts,rtf);
-		d2dda(oc, 0,1,1,2,ocface+2*ocres2,rts,rtf);
-		d2dda(oc, 1,2,0,1,ocface+ocres2,rts,rtf);
-		d2dda(oc, 1,2,0,2,ocface,rts,rtf);
-		d2dda(oc, 1,2,1,2,ocface+2*ocres2,rts,rtf);
+		d2dda(oc, 0, 1, 0, 1, ocface+ocres2, rts, rtf);
+		d2dda(oc, 0, 1, 0, 2, ocface, rts, rtf);
+		d2dda(oc, 0, 1, 1, 2, ocface+2*ocres2, rts, rtf);
+		d2dda(oc, 1, 2, 0, 1, ocface+ocres2, rts, rtf);
+		d2dda(oc, 1, 2, 0, 2, ocface, rts, rtf);
+		d2dda(oc, 1, 2, 1, 2, ocface+2*ocres2, rts, rtf);
 		if (!RE_rayface_isQuad(face)) {
-			d2dda(oc, 2,0,0,1,ocface+ocres2,rts,rtf);
-			d2dda(oc, 2,0,0,2,ocface,rts,rtf);
-			d2dda(oc, 2,0,1,2,ocface+2*ocres2,rts,rtf);
+			d2dda(oc, 2, 0, 0, 1, ocface+ocres2, rts, rtf);
+			d2dda(oc, 2, 0, 0, 2, ocface, rts, rtf);
+			d2dda(oc, 2, 0, 1, 2, ocface+2*ocres2, rts, rtf);
 		}
 		else {
-			d2dda(oc, 2,3,0,1,ocface+ocres2,rts,rtf);
-			d2dda(oc, 2,3,0,2,ocface,rts,rtf);
-			d2dda(oc, 2,3,1,2,ocface+2*ocres2,rts,rtf);
-			d2dda(oc, 3,0,0,1,ocface+ocres2,rts,rtf);
-			d2dda(oc, 3,0,0,2,ocface,rts,rtf);
-			d2dda(oc, 3,0,1,2,ocface+2*ocres2,rts,rtf);
+			d2dda(oc, 2, 3, 0, 1, ocface+ocres2, rts, rtf);
+			d2dda(oc, 2, 3, 0, 2, ocface, rts, rtf);
+			d2dda(oc, 2, 3, 1, 2, ocface+2*ocres2, rts, rtf);
+			d2dda(oc, 3, 0, 0, 1, ocface+ocres2, rts, rtf);
+			d2dda(oc, 3, 0, 0, 2, ocface, rts, rtf);
+			d2dda(oc, 3, 0, 1, 2, ocface+2*ocres2, rts, rtf);
 		}
 		/* nothing todo with triangle..., just fills :) */
-		filltriangle(oc, 0,1,ocface+ocres2,ocmin,ocmax);
-		filltriangle(oc, 0,2,ocface,ocmin,ocmax);
-		filltriangle(oc, 1,2,ocface+2*ocres2,ocmin,ocmax);
+		filltriangle(oc, 0, 1, ocface+ocres2, ocmin, ocmax);
+		filltriangle(oc, 0, 2, ocface, ocmin, ocmax);
+		filltriangle(oc, 1, 2, ocface+2*ocres2, ocmin, ocmax);
 		
 		/* init static vars here */
-		face_in_node(face, 0,0,0, rtf);
+		face_in_node(face, 0, 0, 0, rtf);
 		
 		for (x=ocmin[0];x<=ocmax[0];x++) {
 			a= oc->ocres*x;
@@ -593,7 +593,7 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 					for (z=ocmin[2];z<=ocmax[2];z++) {
 						if (ocface[b+z] && ocface[a+z]) {
 							if (face_in_node(NULL, x, y, z, rtf))
-								ocwrite(oc, face, RE_rayface_isQuad(face), x,y,z, rtf);
+								ocwrite(oc, face, RE_rayface_isQuad(face), x, y, z, rtf);
 						}
 					}
 				}
@@ -695,7 +695,7 @@ static int testnode(Octree *UNUSED(oc), Isect *is, Node *no, OcVal ocval)
 				if (!face) break;
 
 				if ( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) {
-					if ( RE_rayobject_intersect( RE_rayobject_unalignRayFace(face),is) )
+					if ( RE_rayobject_intersect( RE_rayobject_unalignRayFace(face), is) )
 						return 1;
 				}
 			}
@@ -713,7 +713,7 @@ static int testnode(Octree *UNUSED(oc), Isect *is, Node *no, OcVal ocval)
 				if (!face) break;
 
 				if ( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) {
-					if ( RE_rayobject_intersect( RE_rayobject_unalignRayFace(face),is) ) {
+					if ( RE_rayobject_intersect( RE_rayobject_unalignRayFace(face), is) ) {
 						found = 1;
 					}
 				}
@@ -849,12 +849,12 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 	Node *no;
 	OcVal ocval;
 	float vec1[3], vec2[3], start[3], end[3];
-	float u1,u2,ox1,ox2,oy1,oy2,oz1,oz2;
-	float labdao,labdax,ldx,labday,ldy,labdaz,ldz, ddalabda;
+	float u1, u2, ox1, ox2, oy1, oy2, oz1, oz2;
+	float labdao, labdax, ldx, labday, ldy, labdaz, ldz, ddalabda;
 	float olabda = 0;
-	int dx,dy,dz;	
-	int xo,yo,zo,c1=0;
-	int ocx1,ocx2,ocy1, ocy2,ocz1,ocz2;
+	int dx, dy, dz;
+	int xo, yo, zo, c1=0;
+	int ocx1, ocx2, ocy1, ocy2, ocz1, ocz2;
 	
 	/* clip with octree */
 	if (oc->branchcount==0) return 0;
@@ -875,14 +875,14 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 	u2= 1.0f;
 	
 	/* clip with octree cube */
-	if (cliptest(-ldx, start[0]-oc->min[0], &u1,&u2)) {
-		if (cliptest(ldx, oc->max[0]-start[0], &u1,&u2)) {
+	if (cliptest(-ldx, start[0]-oc->min[0], &u1, &u2)) {
+		if (cliptest(ldx, oc->max[0]-start[0], &u1, &u2)) {
 			ldy= is->dir[1]*is->dist;
-			if (cliptest(-ldy, start[1]-oc->min[1], &u1,&u2)) {
-				if (cliptest(ldy, oc->max[1]-start[1], &u1,&u2)) {
+			if (cliptest(-ldy, start[1]-oc->min[1], &u1, &u2)) {
+				if (cliptest(ldy, oc->max[1]-start[1], &u1, &u2)) {
 					ldz = is->dir[2]*is->dist;
-					if (cliptest(-ldz, start[2]-oc->min[2], &u1,&u2)) {
-						if (cliptest(ldz, oc->max[2]-start[2], &u1,&u2)) {
+					if (cliptest(-ldz, start[2]-oc->min[2], &u1, &u2)) {
+						if (cliptest(ldz, oc->max[2]-start[2], &u1, &u2)) {
 							c1=1;
 							if (u2<1.0f) {
 								end[0] = start[0]+u2*ldx;
@@ -934,7 +934,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 	}
 	else {
 		int found = 0;
-		//static int coh_ocx1,coh_ocx2,coh_ocy1, coh_ocy2,coh_ocz1,coh_ocz2;
+		//static int coh_ocx1, coh_ocx2, coh_ocy1, coh_ocy2, coh_ocz1, coh_ocz2;
 		float dox, doy, doz;
 		int eqval;
 		
@@ -992,7 +992,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 		}
 		
 		xo=ocx1; yo=ocy1; zo=ocz1;
-		ddalabda= MIN3(labdax,labday,labdaz);
+		ddalabda= MIN3(labdax, labday, labdaz);
 		
 		vec2[0]= ox1;
 		vec2[1]= oy1;
@@ -1008,7 +1008,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 				
 				/* calculate ray intersection with octree node */
 				copy_v3_v3(vec1, vec2);
-				// dox,y,z is negative
+				// dox, y, z is negative
 				vec2[0]= ox1-ddalabda*dox;
 				vec2[1]= oy1-ddalabda*doy;
 				vec2[2]= oz1-ddalabda*doz;
@@ -1082,7 +1082,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 				
 			}
 
-			ddalabda=MIN3(labdax,labday,labdaz);
+			ddalabda=MIN3(labdax, labday, labdaz);
 			if (ddalabda==labdao) break;
 			/* to make sure the last node is always checked */
 			if (labdao>=1.0f) break;

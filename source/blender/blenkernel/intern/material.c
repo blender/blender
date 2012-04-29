@@ -1054,31 +1054,31 @@ int material_in_material(Material *parmat, Material *mat)
 /* ****************** */
 #if 0 /* UNUSED */
 static char colname_array[125][20]= {
-"Black","DarkRed","HalfRed","Red","Red",
-"DarkGreen","DarkOlive","Brown","Chocolate","OrangeRed",
-"HalfGreen","GreenOlive","DryOlive","Goldenrod","DarkOrange",
-"LightGreen","Chartreuse","YellowGreen","Yellow","Gold",
-"Green","LawnGreen","GreenYellow","LightOlive","Yellow",
-"DarkBlue","DarkPurple","HotPink","VioletPink","RedPink",
-"SlateGray","DarkGrey","PalePurple","IndianRed","Tomato",
-"SeaGreen","PaleGreen","GreenKhaki","LightBrown","LightSalmon",
-"SpringGreen","PaleGreen","MediumOlive","YellowBrown","LightGold",
-"LightGreen","LightGreen","LightGreen","GreenYellow","PaleYellow",
-"HalfBlue","DarkSky","HalfMagenta","VioletRed","DeepPink",
-"SteelBlue","SkyBlue","Orchid","LightHotPink","HotPink",
-"SeaGreen","SlateGray","MediumGrey","Burlywood","LightPink",
-"SpringGreen","Aquamarine","PaleGreen","Khaki","PaleOrange",
-"SpringGreen","SeaGreen","PaleGreen","PaleWhite","YellowWhite",
-"LightBlue","Purple","MediumOrchid","Magenta","Magenta",
-"RoyalBlue","SlateBlue","MediumOrchid","Orchid","Magenta",
-"DeepSkyBlue","LightSteelBlue","LightSkyBlue","Violet","LightPink",
-"Cyan","DarkTurquoise","SkyBlue","Grey","Snow",
-"Mint","Mint","Aquamarine","MintCream","Ivory",
-"Blue","Blue","DarkMagenta","DarkOrchid","Magenta",
-"SkyBlue","RoyalBlue","LightSlateBlue","MediumOrchid","Magenta",
-"DodgerBlue","SteelBlue","MediumPurple","PalePurple","Plum",
-"DeepSkyBlue","PaleBlue","LightSkyBlue","PalePurple","Thistle",
-"Cyan","ColdBlue","PaleTurquoise","GhostWhite","White"
+"Black", "DarkRed", "HalfRed", "Red", "Red",
+"DarkGreen", "DarkOlive", "Brown", "Chocolate", "OrangeRed",
+"HalfGreen", "GreenOlive", "DryOlive", "Goldenrod", "DarkOrange",
+"LightGreen", "Chartreuse", "YellowGreen", "Yellow", "Gold",
+"Green", "LawnGreen", "GreenYellow", "LightOlive", "Yellow",
+"DarkBlue", "DarkPurple", "HotPink", "VioletPink", "RedPink",
+"SlateGray", "DarkGrey", "PalePurple", "IndianRed", "Tomato",
+"SeaGreen", "PaleGreen", "GreenKhaki", "LightBrown", "LightSalmon",
+"SpringGreen", "PaleGreen", "MediumOlive", "YellowBrown", "LightGold",
+"LightGreen", "LightGreen", "LightGreen", "GreenYellow", "PaleYellow",
+"HalfBlue", "DarkSky", "HalfMagenta", "VioletRed", "DeepPink",
+"SteelBlue", "SkyBlue", "Orchid", "LightHotPink", "HotPink",
+"SeaGreen", "SlateGray", "MediumGrey", "Burlywood", "LightPink",
+"SpringGreen", "Aquamarine", "PaleGreen", "Khaki", "PaleOrange",
+"SpringGreen", "SeaGreen", "PaleGreen", "PaleWhite", "YellowWhite",
+"LightBlue", "Purple", "MediumOrchid", "Magenta", "Magenta",
+"RoyalBlue", "SlateBlue", "MediumOrchid", "Orchid", "Magenta",
+"DeepSkyBlue", "LightSteelBlue", "LightSkyBlue", "Violet", "LightPink",
+"Cyan", "DarkTurquoise", "SkyBlue", "Grey", "Snow",
+"Mint", "Mint", "Aquamarine", "MintCream", "Ivory",
+"Blue", "Blue", "DarkMagenta", "DarkOrchid", "Magenta",
+"SkyBlue", "RoyalBlue", "LightSlateBlue", "MediumOrchid", "Magenta",
+"DodgerBlue", "SteelBlue", "MediumPurple", "PalePurple", "Plum",
+"DeepSkyBlue", "PaleBlue", "LightSkyBlue", "PalePurple", "Thistle",
+"Cyan", "ColdBlue", "PaleTurquoise", "GhostWhite", "White"
 };
 
 void automatname(Material *ma)
@@ -1316,13 +1316,13 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 			break;
 		case MA_RAMP_HUE:
 			{
-				float rH,rS,rV;
-				float colH,colS,colV;
-				float tmpr,tmpg,tmpb;
-				rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
+				float rH, rS, rV;
+				float colH, colS, colV;
+				float tmpr, tmpg, tmpb;
+				rgb_to_hsv(col[0], col[1], col[2], &colH, &colS, &colV);
 				if (colS != 0) {
-					rgb_to_hsv(r_col[0],r_col[1],r_col[2],&rH,&rS,&rV);
-					hsv_to_rgb( colH , rS, rV, &tmpr, &tmpg, &tmpb);
+					rgb_to_hsv(r_col[0], r_col[1], r_col[2], &rH, &rS, &rV);
+					hsv_to_rgb(colH, rS, rV, &tmpr, &tmpg, &tmpb);
 					r_col[0] = facm*(r_col[0]) + fac*tmpr;
 					r_col[1] = facm*(r_col[1]) + fac*tmpg;
 					r_col[2] = facm*(r_col[2]) + fac*tmpb;
@@ -1331,33 +1331,33 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 			break;
 		case MA_RAMP_SAT:
 			{
-				float rH,rS,rV;
-				float colH,colS,colV;
-				rgb_to_hsv(r_col[0],r_col[1],r_col[2],&rH,&rS,&rV);
+				float rH, rS, rV;
+				float colH, colS, colV;
+				rgb_to_hsv(r_col[0], r_col[1], r_col[2], &rH, &rS, &rV);
 				if (rS != 0) {
-					rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
-					hsv_to_rgb( rH, (facm*rS +fac*colS), rV, r_col+0, r_col+1, r_col+2);
+					rgb_to_hsv(col[0], col[1], col[2], &colH, &colS, &colV);
+					hsv_to_rgb(rH, (facm*rS +fac*colS), rV, r_col+0, r_col+1, r_col+2);
 				}
 			}
 			break;
 		case MA_RAMP_VAL:
 			{
-				float rH,rS,rV;
-				float colH,colS,colV;
-				rgb_to_hsv(r_col[0],r_col[1],r_col[2],&rH,&rS,&rV);
-				rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
-				hsv_to_rgb( rH, rS, (facm*rV +fac*colV), r_col+0, r_col+1, r_col+2);
+				float rH, rS, rV;
+				float colH, colS, colV;
+				rgb_to_hsv(r_col[0], r_col[1], r_col[2], &rH, &rS, &rV);
+				rgb_to_hsv(col[0], col[1], col[2], &colH, &colS, &colV);
+				hsv_to_rgb(rH, rS, (facm*rV +fac*colV), r_col+0, r_col+1, r_col+2);
 			}
 			break;
 		case MA_RAMP_COLOR:
 			{
-				float rH,rS,rV;
-				float colH,colS,colV;
-				float tmpr,tmpg,tmpb;
-				rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
+				float rH, rS, rV;
+				float colH, colS, colV;
+				float tmpr, tmpg, tmpb;
+				rgb_to_hsv(col[0], col[1], col[2], &colH, &colS, &colV);
 				if (colS != 0) {
-					rgb_to_hsv(r_col[0],r_col[1],r_col[2],&rH,&rS,&rV);
-					hsv_to_rgb( colH, colS, rV, &tmpr, &tmpg, &tmpb);
+					rgb_to_hsv(r_col[0], r_col[1], r_col[2], &rH, &rS, &rV);
+					hsv_to_rgb(colH, colS, rV, &tmpr, &tmpg, &tmpb);
 					r_col[0] = facm*(r_col[0]) + fac*tmpr;
 					r_col[1] = facm*(r_col[1]) + fac*tmpg;
 					r_col[2] = facm*(r_col[2]) + fac*tmpb;

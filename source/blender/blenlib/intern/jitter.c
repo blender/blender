@@ -43,7 +43,7 @@
 
 void BLI_jitterate1(float *jit1, float *jit2, int num, float rad1)
 {
-	int i , j , k;
+	int i, j, k;
 	float vecx, vecy, dvecx, dvecy, x, y, len;
 
 	for (i = 2*num-2; i>=0 ; i-=2) {
@@ -96,7 +96,7 @@ void BLI_jitterate1(float *jit1, float *jit2, int num, float rad1)
 		jit2[i] = x;
 		jit2[i+1] = y;
 	}
-	memcpy(jit1,jit2,2 * num * sizeof(float));
+	memcpy(jit1, jit2, 2 * num * sizeof(float));
 }
 
 void BLI_jitterate2(float *jit1, float *jit2, int num, float rad2)
@@ -135,7 +135,7 @@ void BLI_jitterate2(float *jit1, float *jit2, int num, float rad2)
 		jit2[i] = x;
 		jit2[i+1] = y;
 	}
-	memcpy(jit1,jit2,2 * num * sizeof(float));
+	memcpy(jit1, jit2, 2 * num * sizeof(float));
 }
 
 

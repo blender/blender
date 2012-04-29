@@ -94,14 +94,14 @@ void bvh_done<SVBVHTree>(SVBVHTree *obj)
 
 		pushup(root);
 		pushdown(root);
-		pushup_simd<VBVHNode,4>(root);
+		pushup_simd<VBVHNode, 4>(root);
 
 		obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
 	}
 	else {
 		//Finds the optimal packing of this tree using a given cost model
 		//TODO this uses quite a lot of memory, find ways to reduce memory usage during building
-		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena1,&obj->rayobj.control).transform(obj->builder);			
+		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena1, &obj->rayobj.control).transform(obj->builder);
 
 		if (RE_rayobjectcontrol_test_break(&obj->rayobj.control)) {
 			BLI_memarena_free(arena1);
@@ -110,7 +110,7 @@ void bvh_done<SVBVHTree>(SVBVHTree *obj)
 		}
 
 		if (root) {
-			VBVH_optimalPackSIMD<OVBVHNode,PackCost>(PackCost()).transform(root);
+			VBVH_optimalPackSIMD<OVBVHNode, PackCost>(PackCost()).transform(root);
 			obj->root = Reorganize_SVBVH<OVBVHNode>(arena2).transform(root);
 		}
 		else
@@ -133,9 +133,9 @@ int intersect(SVBVHTree *obj, Isect* isec)
 	//TODO renable hint support
 	if (RE_rayobject_isAligned(obj->root)) {
 		if (isec->mode == RE_RAY_SHADOW)
-			return svbvh_node_stack_raycast<StackSize,true>(obj->root, isec);
+			return svbvh_node_stack_raycast<StackSize, true>(obj->root, isec);
 		else
-			return svbvh_node_stack_raycast<StackSize,false>(obj->root, isec);
+			return svbvh_node_stack_raycast<StackSize, false>(obj->root, isec);
 	}
 	else
 		return RE_rayobject_intersect( (RayObject*) obj->root, isec );
@@ -156,13 +156,13 @@ RayObjectAPI make_api()
 {
 	static RayObjectAPI api = 
 	{
-		(RE_rayobject_raycast_callback) ((int(*)(Tree*,Isect*)) &intersect<STACK_SIZE>),
-		(RE_rayobject_add_callback)     ((void(*)(Tree*,RayObject*)) &bvh_add<Tree>),
+		(RE_rayobject_raycast_callback) ((int(*)(Tree*, Isect*)) &intersect<STACK_SIZE>),
+		(RE_rayobject_add_callback)     ((void(*)(Tree*, RayObject*)) &bvh_add<Tree>),
 		(RE_rayobject_done_callback)    ((void(*)(Tree*))       &bvh_done<Tree>),
 		(RE_rayobject_free_callback)    ((void(*)(Tree*))       &bvh_free<Tree>),
-		(RE_rayobject_merge_bb_callback)((void(*)(Tree*,float*,float*)) &bvh_bb<Tree>),
+		(RE_rayobject_merge_bb_callback)((void(*)(Tree*, float*, float*)) &bvh_bb<Tree>),
 		(RE_rayobject_cost_callback)	((float(*)(Tree*))      &bvh_cost<Tree>),
-		(RE_rayobject_hint_bb_callback)	((void(*)(Tree*,LCTSHint*,float*,float*)) &bvh_hint_bb<Tree>)
+		(RE_rayobject_hint_bb_callback)	((void(*)(Tree*, LCTSHint*, float*, float*)) &bvh_hint_bb<Tree>)
 	};
 	
 	return api;
@@ -171,7 +171,7 @@ RayObjectAPI make_api()
 template<class Tree>
 RayObjectAPI* bvh_get_api(int maxstacksize)
 {
-	static RayObjectAPI bvh_api256 = make_api<Tree,1024>();
+	static RayObjectAPI bvh_api256 = make_api<Tree, 1024>();
 	
 	if (maxstacksize <= 1024) return &bvh_api256;
 	assert(maxstacksize <= 256);
@@ -180,7 +180,7 @@ RayObjectAPI* bvh_get_api(int maxstacksize)
 
 RayObject *RE_rayobject_svbvh_create(int size)
 {
-	return bvh_create_tree<SVBVHTree,DFS_STACK_SIZE>(size);
+	return bvh_create_tree<SVBVHTree, DFS_STACK_SIZE>(size);
 }
 
 #else

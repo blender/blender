@@ -52,7 +52,7 @@ EnumPropertyItem brush_sculpt_tool_items[] = {
 	{SCULPT_TOOL_BLOB, "BLOB", ICON_BRUSH_BLOB, "Blob", ""},
 	{SCULPT_TOOL_CLAY, "CLAY", ICON_BRUSH_CLAY, "Clay", ""},
 	{SCULPT_TOOL_CLAY_STRIPS, "CLAY_STRIPS", ICON_BRUSH_CLAY_STRIPS, "Clay Strips", ""},
-	{SCULPT_TOOL_CREASE, "CREASE",ICON_BRUSH_CREASE, "Crease", ""},
+	{SCULPT_TOOL_CREASE, "CREASE", ICON_BRUSH_CREASE, "Crease", ""},
 	{SCULPT_TOOL_DRAW, "DRAW", ICON_BRUSH_SCULPT_DRAW, "Draw", ""},
 	{SCULPT_TOOL_FILL, "FILL", ICON_BRUSH_FILL, "Fill", ""},
 	{SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
@@ -572,7 +572,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "rate", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rate");
-	RNA_def_property_range(prop, 0.0001f , 10000.0f);
+	RNA_def_property_range(prop, 0.0001f, 10000.0f);
 	RNA_def_property_ui_range(prop, 0.01f, 1.0f, 1, 3);
 	RNA_def_property_ui_text(prop, "Rate", "Interval between paints for Airbrush");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -867,7 +867,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "clone_offset", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "clone.offset");
 	RNA_def_property_ui_text(prop, "Clone Offset", "");
-	RNA_def_property_ui_range(prop, -1.0f , 1.0f, 10.0f, 3);
+	RNA_def_property_ui_range(prop, -1.0f, 1.0f, 10.0f, 3);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_Brush_update");
 
 	/* brush capabilities (mode-dependent) */

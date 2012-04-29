@@ -34,15 +34,15 @@
 
 /* ******************* Color Key ********************************************************** */
 static bNodeSocketTemplate cmp_node_color_in[]={
-	{SOCK_RGBA,1,"Image", 1.0f, 1.0f, 1.0f, 1.0f},
-	{SOCK_RGBA,1,"Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
-	{-1,0,""}
+	{SOCK_RGBA, 1, "Image", 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA, 1, "Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
+	{-1, 0, ""}
 };
 
 static bNodeSocketTemplate cmp_node_color_out[]={
-	{SOCK_RGBA,0,"Image"},
-	{SOCK_FLOAT,0,"Matte"},
-	{-1,0,""}
+	{SOCK_RGBA, 0, "Image"},
+	{SOCK_FLOAT, 0, "Matte"},
+	{-1, 0, ""}
 };
 
 static void do_color_key(bNode *node, float *out, float *in)

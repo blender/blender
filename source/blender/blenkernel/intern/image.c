@@ -1036,38 +1036,38 @@ char BKE_imtype_valid_depths(const char imtype)
  * creator.c help info */
 char BKE_imtype_from_arg(const char *imtype_arg)
 {
-	if      (!strcmp(imtype_arg,"TGA")) return R_IMF_IMTYPE_TARGA;
-	else if (!strcmp(imtype_arg,"IRIS")) return R_IMF_IMTYPE_IRIS;
+	if      (!strcmp(imtype_arg, "TGA")) return R_IMF_IMTYPE_TARGA;
+	else if (!strcmp(imtype_arg, "IRIS")) return R_IMF_IMTYPE_IRIS;
 #ifdef WITH_DDS
-	else if (!strcmp(imtype_arg,"DDS")) return R_IMF_IMTYPE_DDS;
+	else if (!strcmp(imtype_arg, "DDS")) return R_IMF_IMTYPE_DDS;
 #endif
-	else if (!strcmp(imtype_arg,"JPEG")) return R_IMF_IMTYPE_JPEG90;
-	else if (!strcmp(imtype_arg,"IRIZ")) return R_IMF_IMTYPE_IRIZ;
-	else if (!strcmp(imtype_arg,"RAWTGA")) return R_IMF_IMTYPE_RAWTGA;
-	else if (!strcmp(imtype_arg,"AVIRAW")) return R_IMF_IMTYPE_AVIRAW;
-	else if (!strcmp(imtype_arg,"AVIJPEG")) return R_IMF_IMTYPE_AVIJPEG;
-	else if (!strcmp(imtype_arg,"PNG")) return R_IMF_IMTYPE_PNG;
-	else if (!strcmp(imtype_arg,"AVICODEC")) return R_IMF_IMTYPE_AVICODEC;
-	else if (!strcmp(imtype_arg,"QUICKTIME")) return R_IMF_IMTYPE_QUICKTIME;
-	else if (!strcmp(imtype_arg,"BMP")) return R_IMF_IMTYPE_BMP;
+	else if (!strcmp(imtype_arg, "JPEG")) return R_IMF_IMTYPE_JPEG90;
+	else if (!strcmp(imtype_arg, "IRIZ")) return R_IMF_IMTYPE_IRIZ;
+	else if (!strcmp(imtype_arg, "RAWTGA")) return R_IMF_IMTYPE_RAWTGA;
+	else if (!strcmp(imtype_arg, "AVIRAW")) return R_IMF_IMTYPE_AVIRAW;
+	else if (!strcmp(imtype_arg, "AVIJPEG")) return R_IMF_IMTYPE_AVIJPEG;
+	else if (!strcmp(imtype_arg, "PNG")) return R_IMF_IMTYPE_PNG;
+	else if (!strcmp(imtype_arg, "AVICODEC")) return R_IMF_IMTYPE_AVICODEC;
+	else if (!strcmp(imtype_arg, "QUICKTIME")) return R_IMF_IMTYPE_QUICKTIME;
+	else if (!strcmp(imtype_arg, "BMP")) return R_IMF_IMTYPE_BMP;
 #ifdef WITH_HDR
-	else if (!strcmp(imtype_arg,"HDR")) return R_IMF_IMTYPE_RADHDR;
+	else if (!strcmp(imtype_arg, "HDR")) return R_IMF_IMTYPE_RADHDR;
 #endif
 #ifdef WITH_TIFF
-	else if (!strcmp(imtype_arg,"TIFF")) return R_IMF_IMTYPE_TIFF;
+	else if (!strcmp(imtype_arg, "TIFF")) return R_IMF_IMTYPE_TIFF;
 #endif
 #ifdef WITH_OPENEXR
-	else if (!strcmp(imtype_arg,"EXR")) return R_IMF_IMTYPE_OPENEXR;
-	else if (!strcmp(imtype_arg,"MULTILAYER")) return R_IMF_IMTYPE_MULTILAYER;
+	else if (!strcmp(imtype_arg, "EXR")) return R_IMF_IMTYPE_OPENEXR;
+	else if (!strcmp(imtype_arg, "MULTILAYER")) return R_IMF_IMTYPE_MULTILAYER;
 #endif
-	else if (!strcmp(imtype_arg,"MPEG")) return R_IMF_IMTYPE_FFMPEG;
-	else if (!strcmp(imtype_arg,"FRAMESERVER")) return R_IMF_IMTYPE_FRAMESERVER;
+	else if (!strcmp(imtype_arg, "MPEG")) return R_IMF_IMTYPE_FFMPEG;
+	else if (!strcmp(imtype_arg, "FRAMESERVER")) return R_IMF_IMTYPE_FRAMESERVER;
 #ifdef WITH_CINEON
-	else if (!strcmp(imtype_arg,"CINEON")) return R_IMF_IMTYPE_CINEON;
-	else if (!strcmp(imtype_arg,"DPX")) return R_IMF_IMTYPE_DPX;
+	else if (!strcmp(imtype_arg, "CINEON")) return R_IMF_IMTYPE_CINEON;
+	else if (!strcmp(imtype_arg, "DPX")) return R_IMF_IMTYPE_DPX;
 #endif
 #ifdef WITH_OPENJPEG
-	else if (!strcmp(imtype_arg,"JP2")) return R_IMF_IMTYPE_JP2;
+	else if (!strcmp(imtype_arg, "JP2")) return R_IMF_IMTYPE_JP2;
 #endif
 	else return R_IMF_IMTYPE_INVALID;
 }
@@ -1118,7 +1118,7 @@ int BKE_add_image_extension(char *string, const char imtype)
 	}
 #endif
 #ifdef WITH_OPENEXR
-	else if ( ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
+	else if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
 		if (!BLI_testextensie(string, ".exr"))
 			extension= ".exr";
 	}
@@ -1144,7 +1144,7 @@ int BKE_add_image_extension(char *string, const char imtype)
 	}
 #endif
 	else { //   R_IMF_IMTYPE_AVICODEC, R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90, R_IMF_IMTYPE_QUICKTIME etc
-		if (!( BLI_testextensie(string, ".jpg") || BLI_testextensie(string, ".jpeg")))
+		if (!(BLI_testextensie(string, ".jpg") || BLI_testextensie(string, ".jpeg")))
 			extension= ".jpg";
 	}
 
@@ -2603,7 +2603,7 @@ int BKE_image_user_get_frame(const ImageUser *iuser, int cfra, int fieldnr)
 
 		/* cyclic */
 		if (iuser->cycl) {
-			cfra= ( (cfra) % len );
+			cfra= ((cfra) % len);
 			if (cfra < 0) cfra+= len;
 			if (cfra==0) cfra= len;
 		}
@@ -2621,7 +2621,7 @@ int BKE_image_user_get_frame(const ImageUser *iuser, int cfra, int fieldnr)
 		framenr+= iuser->offset;
 
 		if (iuser->cycl) {
-			framenr= ( (framenr) % len );
+			framenr= ((framenr) % len);
 			while (framenr < 0) framenr+= len;
 			if (framenr==0) framenr= len;
 		}

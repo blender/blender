@@ -408,7 +408,7 @@ Scene *add_scene(const char *name)
 	sce->r.border.xmax = 1.0f;
 	sce->r.border.ymax = 1.0f;
 	
-	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
+	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
 	sce->toolsettings->step = 9;

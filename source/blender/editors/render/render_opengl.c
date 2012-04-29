@@ -348,7 +348,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 
 	oglrender->is_sequencer = is_sequencer;
 	if (is_sequencer) {
-		oglrender->sseq = CTX_wm_space_seq(C);;
+		oglrender->sseq = CTX_wm_space_seq(C);
 	}
 
 

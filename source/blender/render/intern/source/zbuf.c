@@ -149,7 +149,7 @@ static void zbuf_add_to_span(ZSpan *zspan, float *v1, float *v2)
 	}
 	else {
 		dx0= 0.0f;
-		xs0= MIN2(minv[0],maxv[0]);
+		xs0= MIN2(minv[0], maxv[0]);
 	}
 	
 	/* empty span */
@@ -270,7 +270,7 @@ static APixstr *addpsmainA(ListBase *lb)
 
 	psm= MEM_mallocN(sizeof(APixstrMain), "addpsmainA");
 	BLI_addtail(lb, psm);
-	psm->ps= MEM_callocN(4096*sizeof(APixstr),"pixstr");
+	psm->ps= MEM_callocN(4096*sizeof(APixstr), "pixstr");
 
 	return psm->ps;
 }
@@ -305,8 +305,8 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 {
 	APixstr *ap, *apofs, *apn;
 	double zxd, zyd, zy0, zverg;
-	float x0,y0,z0;
-	float x1,y1,z1,x2,y2,z2,xx1;
+	float x0, y0, z0;
+	float x1, y1, z1, x2, y2, z2, xx1;
 	float *span1, *span2;
 	int *rz, *rm, x, y;
 	int sn1, sn2, rectx, *rectzofs, *rectmaskofs, my0, my2, mask;
@@ -844,7 +844,7 @@ static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), flo
 
 static int clipline(float v1[4], float v2[4])	/* return 0: do not draw */
 {
-	float dz,dw, u1=0.0, u2=1.0;
+	float dz, dw, u1=0.0, u2=1.0;
 	float dx, dy, v13;
 	
 	dz= v2[2]-v1[2];
@@ -854,20 +854,20 @@ static int clipline(float v1[4], float v2[4])	/* return 0: do not draw */
 	 * filled in with zbufwire correctly when rendering in parts. otherwise
 	 * you see line endings at edges... */
 	
-	if (cliptestf(-dz, -dw, v1[3], v1[2], &u1,&u2)) {
-		if (cliptestf(dz, -dw, v1[3], -v1[2], &u1,&u2)) {
+	if (cliptestf(-dz, -dw, v1[3], v1[2], &u1, &u2)) {
+		if (cliptestf(dz, -dw, v1[3], -v1[2], &u1, &u2)) {
 			
 			dx= v2[0]-v1[0];
 			dz= 1.01f*(v2[3]-v1[3]);
 			v13= 1.01f*v1[3];
 			
-			if (cliptestf(-dx, -dz, v1[0], v13, &u1,&u2)) {
-				if (cliptestf(dx, -dz, v13, -v1[0], &u1,&u2)) {
+			if (cliptestf(-dx, -dz, v1[0], v13, &u1, &u2)) {
+				if (cliptestf(dx, -dz, v13, -v1[0], &u1, &u2)) {
 					
 					dy= v2[1]-v1[1];
 					
-					if (cliptestf(-dy, -dz, v1[1], v13, &u1,&u2)) {
-						if (cliptestf(dy, -dz, v13, -v1[1], &u1,&u2)) {
+					if (cliptestf(-dy, -dz, v1[1], v13, &u1, &u2)) {
+						if (cliptestf(dy, -dz, v13, -v1[1], &u1, &u2)) {
 							
 							if (u2<1.0f) {
 								v2[0]= v1[0]+u2*dx;
@@ -1042,8 +1042,8 @@ void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const 
 static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
 {
 	double zxd, zyd, zy0, zverg;
-	float x0,y0,z0;
-	float x1,y1,z1,x2,y2,z2,xx1;
+	float x0, y0, z0;
+	float x1, y1, z1, x2, y2, z2, xx1;
 	float *span1, *span2;
 	int *rectoofs, *ro;
 	int *rectpofs, *rp;
@@ -1164,8 +1164,8 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4)
 {
 	double zxd, zyd, zy0, zverg;
-	float x0,y0,z0;
-	float x1,y1,z1,x2,y2,z2,xx1;
+	float x0, y0, z0;
+	float x1, y1, z1, x2, y2, z2, xx1;
 	float *span1, *span2;
 	int *rectoofs, *ro;
 	int *rectpofs, *rp;
@@ -1294,8 +1294,8 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 static void zbuffillGL_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), float *v1, float *v2, float *v3, float *v4)
 {
 	double zxd, zyd, zy0, zverg;
-	float x0,y0,z0;
-	float x1,y1,z1,x2,y2,z2,xx1;
+	float x0, y0, z0;
+	float x1, y1, z1, x2, y2, z2, xx1;
 	float *span1, *span2;
 	int *rz, *rz1, x, y;
 	int sn1, sn2, rectx, *rectzofs, *rectzofs1= NULL, my0, my2;
@@ -1399,7 +1399,7 @@ static void zbuffillGL_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), f
 	}
 }
 
-/* 2d scanconvert for tria, calls func for each x,y coordinate and gives UV barycentrics */
+/* 2d scanconvert for tria, calls func for each x, y coordinate and gives UV barycentrics */
 void zspan_scanconvert_strand(ZSpan *zspan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float, float) )
 {
 	float x0, y0, x1, y1, x2, y2, z0, z1, z2, z;
@@ -1498,7 +1498,7 @@ void zspan_scanconvert_strand(ZSpan *zspan, void *handle, float *v1, float *v2, 
 	}
 }
 
-/* scanconvert for strand triangles, calls func for each x,y coordinate and gives UV barycentrics and z */
+/* scanconvert for strand triangles, calls func for each x, y coordinate and gives UV barycentrics and z */
 
 void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float) )
 {
@@ -1603,7 +1603,7 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
 
 static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a, float clipcrop)
 {
-	float da,dw,u1=0.0,u2=1.0;
+	float da, dw, u1=0.0, u2=1.0;
 	float v13;
 	
 	labda[0]= -1.0;
@@ -1627,8 +1627,8 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 	 * who would have thought that of L&B!
 	 */
 
-	if (cliptestf(-da, -dw, v13, v1[a], &u1,&u2)) {
-		if (cliptestf(da, -dw, v13, -v1[a], &u1,&u2)) {
+	if (cliptestf(-da, -dw, v13, v1[a], &u1, &u2)) {
+		if (cliptestf(da, -dw, v13, -v1[a], &u1, &u2)) {
 			*b3=1;
 			if (u2<1.0f) {
 				labda[1]= u2;
@@ -1701,7 +1701,7 @@ static void makevertpyra(float *vez, float *labda, float **trias, float *v1, flo
 void projectverto(const float v1[3], float winmat[][4], float adr[4])
 {
 	/* calcs homogenic coord of vertex v1 */
-	float x,y,z;
+	float x, y, z;
 
 	x= v1[0]; 
 	y= v1[1]; 
@@ -1719,7 +1719,7 @@ void projectverto(const float v1[3], float winmat[][4], float adr[4])
 void projectvert(const float v1[3], float winmat[][4], float adr[4])
 {
 	/* calcs homogenic coord of vertex v1 */
-	float x,y,z;
+	float x, y, z;
 
 	x= v1[0]; 
 	y= v1[1]; 
@@ -1877,9 +1877,9 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 							else if (b==1) arg= 0;
 							else arg= 1;
 							
-							clippyra(labda[0], vlzp[v][0],vlzp[v][1], &b2,&b3, arg, zspan->clipcrop);
-							clippyra(labda[1], vlzp[v][1],vlzp[v][2], &b2,&b3, arg, zspan->clipcrop);
-							clippyra(labda[2], vlzp[v][2],vlzp[v][0], &b2,&b3, arg, zspan->clipcrop);
+							clippyra(labda[0], vlzp[v][0], vlzp[v][1], &b2, &b3, arg, zspan->clipcrop);
+							clippyra(labda[1], vlzp[v][1], vlzp[v][2], &b2, &b3, arg, zspan->clipcrop);
+							clippyra(labda[2], vlzp[v][2], vlzp[v][0], &b2, &b3, arg, zspan->clipcrop);
 
 							if (b2==0 && b3==1) {
 								/* completely 'in', but we copy because of last for () loop in this section */;
@@ -1895,9 +1895,9 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 							}
 							else {
 								b1=0;
-								makevertpyra(vez, labda[0], trias, vlzp[v][0],vlzp[v][1], &b1,&clve);
-								makevertpyra(vez, labda[1], trias, vlzp[v][1],vlzp[v][2], &b1,&clve);
-								makevertpyra(vez, labda[2], trias, vlzp[v][2],vlzp[v][0], &b1,&clve);
+								makevertpyra(vez, labda[0], trias, vlzp[v][0], vlzp[v][1], &b1, &clve);
+								makevertpyra(vez, labda[1], trias, vlzp[v][1], vlzp[v][2], &b1, &clve);
+								makevertpyra(vez, labda[2], trias, vlzp[v][2], vlzp[v][0], &b1, &clve);
 
 								/* after front clip done: now set clip flags */
 								if (b==0) {
@@ -1927,7 +1927,7 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 			}
 
 			/* warning, this should never happen! */
-			if (clve>38 || clvl>31) printf("clip overflow: clve clvl %d %d\n",clve,clvl);
+			if (clve>38 || clvl>31) printf("clip overflow: clve clvl %d %d\n", clve, clvl);
 
 			/* perspective division */
 			f1=vez;
@@ -1937,7 +1937,7 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 			}
 			for (b=1;b<clvl;b++) {
 				if (vlzp[b][0]) {
-					zspan->zbuffunc(zspan, obi, zvlnr, vlzp[b][0],vlzp[b][1],vlzp[b][2], NULL);
+					zspan->zbuffunc(zspan, obi, zvlnr, vlzp[b][0], vlzp[b][1], vlzp[b][2], NULL);
 				}
 			}
 			return;
@@ -1948,7 +1948,7 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 	hoco_to_zco(zspan, vez, f1);
 	hoco_to_zco(zspan, vez+4, f2);
 	hoco_to_zco(zspan, vez+8, f3);
-	zspan->zbuffunc(zspan, obi, zvlnr, vez,vez+4,vez+8, NULL);
+	zspan->zbuffunc(zspan, obi, zvlnr, vez, vez+4, vez+8, NULL);
 }
 
 void zbufclip4(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, float *f4, int c1, int c2, int c3, int c4)
@@ -2648,8 +2648,8 @@ static void zbuf_fill_in_rgba(ZSpan *zspan, DrawBufPixel *col, float *v1, float 
 {
 	DrawBufPixel *rectpofs, *rp;
 	double zxd, zyd, zy0, zverg;
-	float x0,y0,z0;
-	float x1,y1,z1,x2,y2,z2,xx1;
+	float x0, y0, z0;
+	float x1, y1, z1, x2, y2, z2, xx1;
 	float *span1, *span2;
 	float *rectzofs, *rz;
 	int x, y;
@@ -2839,7 +2839,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 }
 
 /* in: two vectors, first vector points from origin back in time, 2nd vector points to future */
-/* we make this into 3 points, center point is (0,0) */
+/* we make this into 3 points, center point is (0, 0) */
 /* and offset the center point just enough to make curve go through midpoint */
 
 static void quad_bezier_2d(float *result, float *v1, float *v2, float *ipodata)
@@ -3772,7 +3772,7 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 			
 			for (samp=0; samp<R.osa; samp++) {
 				if (curmask & (1<<samp)) {
-					xs= (float)x + R.jit[samp][0] + 0.5f;	/* zbuffer has this inverse corrected, ensures xs,ys are inside pixel */
+					xs= (float)x + R.jit[samp][0] + 0.5f;	/* zbuffer has this inverse corrected, ensures (xs, ys) are inside pixel */
 					ys= (float)y + R.jit[samp][1] + 0.5f;
 					
 					if (shi_inc) {

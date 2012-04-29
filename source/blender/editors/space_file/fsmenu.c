@@ -315,7 +315,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 
 		/* Adding Desktop and My Documents */
 		SHGetSpecialFolderPath(0, line, CSIDL_PERSONAL, 0);
-		fsmenu_insert_entry(fsmenu,FS_CATEGORY_BOOKMARKS, line, 1, 0);
+		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 		SHGetSpecialFolderPath(0, line, CSIDL_DESKTOPDIRECTORY, 0);
 		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 	}
@@ -399,7 +399,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 			
 			pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 			
-			if (!CFStringGetCString(pathString,line,256,kCFStringEncodingASCII))
+			if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
 				continue;
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, 1, 0);
 			
@@ -448,7 +448,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 			
 			pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 			
-			if (!CFStringGetCString(pathString,line,256,kCFStringEncodingASCII))
+			if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
 				continue;
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 			

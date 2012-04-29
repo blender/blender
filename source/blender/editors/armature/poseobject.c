@@ -792,7 +792,7 @@ static void pose_copy_menu(Scene *scene)
 	
 	if (nr != 5) {
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ( (arm->layer & pchan->bone->layer) &&
+			if ((arm->layer & pchan->bone->layer) &&
 				 (pchan->bone->flag & BONE_SELECTED) &&
 				 (pchan != pchanact) ) 
 			{
@@ -861,13 +861,13 @@ static void pose_copy_menu(Scene *scene)
 							float tmp_quat[4];
 							
 							/* need to convert to quat first (in temp var)... */
-							mat4_to_quat( tmp_quat,delta_mat);
-							quat_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,tmp_quat);
+							mat4_to_quat(tmp_quat, delta_mat);
+							quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, tmp_quat);
 						}
 						else if (pchan->rotmode == ROT_MODE_QUAT)
-							mat4_to_quat( pchan->quat,delta_mat);
+							mat4_to_quat(pchan->quat, delta_mat);
 						else
-							mat4_to_eulO( pchan->eul, pchan->rotmode,delta_mat);
+							mat4_to_eulO(pchan->eul, pchan->rotmode, delta_mat);
 					}
 						break;
 					case 11: /* Visual Size */
@@ -875,7 +875,7 @@ static void pose_copy_menu(Scene *scene)
 						float delta_mat[4][4], size[4];
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
-						mat4_to_size( size,delta_mat);
+						mat4_to_size(size, delta_mat);
 						copy_v3_v3(pchan->size, size);
 					}
 				}
@@ -914,7 +914,7 @@ static void pose_copy_menu(Scene *scene)
 		
 		/* Copy the temo listbase to the selected posebones */
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ( (arm->layer & pchan->bone->layer) &&
+			if ((arm->layer & pchan->bone->layer) &&
 				 (pchan->bone->flag & BONE_SELECTED) &&
 				 (pchan!=pchanact) ) 
 			{
@@ -1050,9 +1050,9 @@ static bPoseChannel *pose_bone_do_paste (Object *ob, bPoseChannel *chan, short s
 		else if (pchan->rotmode > 0) {
 			/* quat/axis-angle to euler */
 			if (chan->rotmode == ROT_MODE_AXISANGLE)
-				axis_angle_to_eulO( pchan->eul, pchan->rotmode,chan->rotAxis, chan->rotAngle);
+				axis_angle_to_eulO(pchan->eul, pchan->rotmode, chan->rotAxis, chan->rotAngle);
 			else
-				quat_to_eulO( pchan->eul, pchan->rotmode,chan->quat);
+				quat_to_eulO(pchan->eul, pchan->rotmode, chan->quat);
 		}
 		else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 			/* quat/euler to axis angle */

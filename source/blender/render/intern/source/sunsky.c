@@ -71,7 +71,7 @@
 
 /**
  * ClipColor:
- * clip a color to range [0,1];
+ * clip a color to range [0, 1];
  * */
 void ClipColor(float c[3])
 {
@@ -146,7 +146,7 @@ static float PerezFunction(struct SunSky *sunsky, const float *lam, float theta,
  * back_scatter, controls back scatter light
  * */
 void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_brightness, 
-				float spread,float sun_brightness, float sun_size, float back_scatter,
+				float spread, float sun_brightness, float sun_size, float back_scatter,
 				float skyblendfac, short skyblendtype, float sky_exposure, float sky_colorspace)
 {
 	float theta2;
@@ -251,7 +251,7 @@ void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_b
 void GetSkyXYZRadiance(struct SunSky* sunsky, float theta, float phi, float color_out[3])
 {
 	float gamma;
-	float x,y,Y,X,Z;
+	float x, y, Y, X, Z;
 	float hfade=1, nfade=1;
 
 
@@ -336,7 +336,7 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 	fAlpha = 1.3f;
 	fBeta = 0.04608365822050f * turbidity - 0.04586025928522f;
 	
-	m =  1.0f/(cosf(theta) + 0.15f*powf(93.885f-theta/(float)M_PI*180.0f,-1.253f));
+	m =  1.0f/(cosf(theta) + 0.15f*powf(93.885f-theta/(float)M_PI*180.0f, -1.253f));
 
 	for (i = 0; i < 3; i++) {
 		// Rayleigh Scattering
@@ -374,7 +374,7 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
 	float K[3] = {0.685f, 0.679f, 0.670f};
 	float vBetaMieTemp[3];
 	
-	float fLambda[3],fLambda2[3], fLambda4[3];
+	float fLambda[3], fLambda2[3], fLambda4[3];
 	float vLambda2[3];
 	float vLambda4[3];
 	
@@ -411,7 +411,7 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
 		
 	VEC3OPF(sunSky->atm_BetaRay, vLambda4, *, fBeta);
 	fBetaDash = fTemp/2;
-	VEC3OPF(sunSky->atm_BetaDashRay, vLambda4,*, fBetaDash);
+	VEC3OPF(sunSky->atm_BetaDashRay, vLambda4, *, fBetaDash);
 	
 
 	// Mie scattering constants.
@@ -421,7 +421,7 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
 	fTemp3 = 0.434f*c*pi*(2*pi)*(2*pi);
 	
 	VEC3OPV(vBetaMieTemp, K, *, fLambda);
-	VEC3OPF(sunSky->atm_BetaMie, vBetaMieTemp,*, fTemp3);
+	VEC3OPF(sunSky->atm_BetaMie, vBetaMieTemp, *, fTemp3);
 	
 }
 

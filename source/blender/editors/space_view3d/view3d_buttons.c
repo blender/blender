@@ -333,7 +333,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:", 0, yi -= buth, 200, buth,
 		                &(tfp->ve_median[1]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",0, yi -= buth, 200, buth,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:", 0, yi -= buth, 200, buth,
 		                &(tfp->ve_median[2]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
 

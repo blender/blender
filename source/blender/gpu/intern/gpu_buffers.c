@@ -408,7 +408,7 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 		points_per_mat[mface[i].mat_nr] += mface[i].v4 ? 6 : 3;
 
 	/* create the GPUDrawObject */
-	gdo = MEM_callocN(sizeof(GPUDrawObject),"GPUDrawObject");
+	gdo = MEM_callocN(sizeof(GPUDrawObject), "GPUDrawObject");
 	gdo->totvert = dm->getNumVerts(dm);
 	gdo->totedge = dm->getNumEdges(dm);
 
@@ -601,7 +601,7 @@ static void GPU_buffer_copy_vertex(DerivedMesh *dm, float *varray, int *index, i
 	j = dm->drawObject->tot_triangle_point*3;
 	for (i = 0; i < dm->drawObject->totvert; i++) {
 		if (dm->drawObject->vert_points[i].point_index >= dm->drawObject->tot_triangle_point) {
-			copy_v3_v3(&varray[j],mvert[i].co);
+			copy_v3_v3(&varray[j], mvert[i].co);
 			j+=3;
 		}
 	}
@@ -685,16 +685,16 @@ static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *
 		start = index[mat_orig_to_new[f->mat_nr]];
 
 		/* v1 v2 v3 */
-		copy_v2_v2(&varray[start],mtface[i].uv[0]);
-		copy_v2_v2(&varray[start+2],mtface[i].uv[1]);
-		copy_v2_v2(&varray[start+4],mtface[i].uv[2]);
+		copy_v2_v2(&varray[start], mtface[i].uv[0]);
+		copy_v2_v2(&varray[start+2], mtface[i].uv[1]);
+		copy_v2_v2(&varray[start+4], mtface[i].uv[2]);
 		index[mat_orig_to_new[f->mat_nr]] += 6;
 
 		if (f->v4) {
 			/* v3 v4 v1 */
-			copy_v2_v2(&varray[start+6],mtface[i].uv[2]);
-			copy_v2_v2(&varray[start+8],mtface[i].uv[3]);
-			copy_v2_v2(&varray[start+10],mtface[i].uv[0]);
+			copy_v2_v2(&varray[start+6], mtface[i].uv[2]);
+			copy_v2_v2(&varray[start+8], mtface[i].uv[3]);
+			copy_v2_v2(&varray[start+10], mtface[i].uv[0]);
 			index[mat_orig_to_new[f->mat_nr]] += 6;
 		}
 	}
@@ -788,25 +788,25 @@ static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(i
 
 	for (i = 0; i < dm->numTessFaceData; i++, tf++) {
 		MFace mf;
-		dm->getTessFace(dm,i,&mf);
+		dm->getTessFace(dm, i, &mf);
 
-		copy_v2_v2(&varray[j],tf->uv[0]);
-		copy_v2_v2(&varray[j+2],tf->uv[1]);
+		copy_v2_v2(&varray[j], tf->uv[0]);
+		copy_v2_v2(&varray[j+2], tf->uv[1]);
 
-		copy_v2_v2(&varray[j+4],tf->uv[1]);
-		copy_v2_v2(&varray[j+6],tf->uv[2]);
+		copy_v2_v2(&varray[j+4], tf->uv[1]);
+		copy_v2_v2(&varray[j+6], tf->uv[2]);
 
 		if (!mf.v4) {
-			copy_v2_v2(&varray[j+8],tf->uv[2]);
-			copy_v2_v2(&varray[j+10],tf->uv[0]);
+			copy_v2_v2(&varray[j+8], tf->uv[2]);
+			copy_v2_v2(&varray[j+10], tf->uv[0]);
 			j+=12;
 		}
 		else {
-			copy_v2_v2(&varray[j+8],tf->uv[2]);
-			copy_v2_v2(&varray[j+10],tf->uv[3]);
+			copy_v2_v2(&varray[j+8], tf->uv[2]);
+			copy_v2_v2(&varray[j+10], tf->uv[3]);
 
-			copy_v2_v2(&varray[j+12],tf->uv[3]);
-			copy_v2_v2(&varray[j+14],tf->uv[0]);
+			copy_v2_v2(&varray[j+12], tf->uv[3]);
+			copy_v2_v2(&varray[j+14], tf->uv[0]);
 			j+=16;
 		}
 	}

@@ -230,8 +230,8 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 
 			/* avoid head-on collision */
 			if (dot_v3v3(col.pce.nor, pa->prev_state.ave) < -0.99f) {
-				/* don't know why, but uneven range [0.0,1.0] */
-				/* works much better than even [-1.0,1.0] */
+				/* don't know why, but uneven range [0.0, 1.0] */
+				/* works much better than even [-1.0, 1.0] */
 				bbd->wanted_co[0] = BLI_frand();
 				bbd->wanted_co[1] = BLI_frand();
 				bbd->wanted_co[2] = BLI_frand();
@@ -262,7 +262,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 
 			sub_v3_v3v3(vec, vel1, vel2);
 			
-			inp = dot_v3v3(vec,vec);
+			inp = dot_v3v3(vec, vec);
 
 			/* velocities not parallel */
 			if (inp != 0.0f) {
@@ -308,7 +308,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 
 				sub_v3_v3v3(vec, vel1, vel2);
 				
-				inp = dot_v3v3(vec,vec);
+				inp = dot_v3v3(vec, vec);
 
 				/* velocities not parallel */
 				if (inp != 0.0f) {
@@ -583,7 +583,7 @@ static int rule_average_speed(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 		copy_v3_v3(bbd->wanted_co, pa->prev_state.ave);
 
 		/* may happen at birth */
-		if (dot_v2v2(bbd->wanted_co,bbd->wanted_co)==0.0f) {
+		if (dot_v2v2(bbd->wanted_co, bbd->wanted_co)==0.0f) {
 			bbd->wanted_co[0] = 2.0f*(0.5f - BLI_frand());
 			bbd->wanted_co[1] = 2.0f*(0.5f - BLI_frand());
 			bbd->wanted_co[2] = 2.0f*(0.5f - BLI_frand());
@@ -610,7 +610,7 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 	ParticleData *enemy_pa = NULL;
 	BoidParticle *bpa;
 	/* friends & enemies */
-	float closest_enemy[3] = {0.0f,0.0f,0.0f};
+	float closest_enemy[3] = {0.0f, 0.0f, 0.0f};
 	float closest_dist = fbr->distance + 1.0f;
 	float f_strength = 0.0f, e_strength = 0.0f;
 	float health = 0.0f;
@@ -748,7 +748,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float grou
 		SurfaceModifierData *surmd = NULL;
 		float x[3], v[3];
 		
-		surmd = (SurfaceModifierData *)modifiers_findByType ( bpa->ground, eModifierType_Surface );
+		surmd = (SurfaceModifierData *)modifiers_findByType(bpa->ground, eModifierType_Surface );
 
 		/* take surface velocity into account */
 		closest_point_on_surface(surmd, pa->state.co, x, NULL, v);
@@ -1096,7 +1096,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	set_boid_values(&val, boids, pa);
 
 	/* make sure there's something in new velocity, location & rotation */
-	copy_particle_key(&pa->state,&pa->prev_state,0);
+	copy_particle_key(&pa->state, &pa->prev_state, 0);
 
 	if (bbd->part->flag & PART_SIZEMASS)
 		pa_mass*=pa->size;
@@ -1170,13 +1170,13 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 			angle = MIN2(angle, val.max_ave);
 
 			cross_v3_v3v3(nor, old_dir, wanted_dir);
-			axis_angle_to_quat( q,nor, angle);
+			axis_angle_to_quat(q, nor, angle);
 			copy_v3_v3(new_dir, old_dir);
 			mul_qt_v3(q, new_dir);
 			normalize_v3(new_dir);
 
 			/* save direction in case resulting velocity too small */
-			axis_angle_to_quat( q,nor, angle*dtime);
+			axis_angle_to_quat(q, nor, angle*dtime);
 			copy_v3_v3(pa->state.ave, old_dir);
 			mul_qt_v3(q, pa->state.ave);
 			normalize_v3(pa->state.ave);
@@ -1196,7 +1196,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
 		/* maintain minimum flying velocity if not landing */
 		if (level >= landing_level) {
-			float len2 = dot_v2v2(new_vel,new_vel);
+			float len2 = dot_v2v2(new_vel, new_vel);
 			float root;
 
 			len2 = MAX2(len2, val.min_speed*val.min_speed);
@@ -1427,7 +1427,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	cross_v3_v3v3(mat[1], mat[2], mat[0]);
 	
 	/* apply rotation */
-	mat3_to_quat_is_ok( q,mat);
+	mat3_to_quat_is_ok(q, mat);
 	copy_qt_qt(pa->state.rot, q);
 }
 

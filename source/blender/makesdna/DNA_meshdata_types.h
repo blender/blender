@@ -95,7 +95,7 @@ typedef struct MLoop {
 typedef struct MTexPoly {
 	struct Image *tpage;
 	char flag, transp;
-	short mode,tile,unwrap;
+	short mode, tile, unwrap;
 } MTexPoly;
 
 /* can copy from/to MTexPoly/MTFace */

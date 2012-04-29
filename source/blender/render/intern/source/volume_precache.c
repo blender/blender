@@ -95,7 +95,7 @@ static int intersect_outside_volume(RayObject *tree, Isect *isect, float *offset
 static int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), float *co)
 {
 	Isect isect= {{0}};
-	float dir[3] = {0.0f,0.0f,1.0f};
+	float dir[3] = {0.0f, 0.0f, 1.0f};
 	int final_depth=0, depth=0, limit=20;
 	
 	/* set up the isect */
@@ -313,7 +313,7 @@ static float total_ms_energy(Render *re, int do_test_break, float *sr, float *sg
 	for (z=1;z<=res[2];z++) {
 		for (y=1;y<=res[1];y++) {
 			for (x=1;x<=res[0];x++) {
-				const int i = ms_I(x,y,z,res);
+				const int i = ms_I(x, y, z, res);
 				
 				if (sr[i] > 0.f) energy += sr[i];
 				if (sg[i] > 0.f) energy += sg[i];
@@ -338,8 +338,8 @@ static void ms_diffuse(Render *re, int do_test_break, float *x0, float *x, float
 		for (k=1; k<=n[2]; k++) {
 			for (j=1; j<=n[1]; j++) {
 				for (i=1; i<=n[0]; i++) {
-				   x[v_I_pad(i,j,k,n)] = (x0[v_I_pad(i,j,k,n)]) + a*(	x0[v_I_pad(i-1,j,k,n)]+ x0[v_I_pad(i+1,j,k,n)]+ x0[v_I_pad(i,j-1,k,n)]+
-																		x0[v_I_pad(i,j+1,k,n)]+ x0[v_I_pad(i,j,k-1,n)]+x0[v_I_pad(i,j,k+1,n)]
+				   x[v_I_pad(i, j, k, n)] = (x0[v_I_pad(i, j, k, n)]) + a*(	x0[v_I_pad(i-1, j, k, n)]+ x0[v_I_pad(i+1, j, k, n)]+ x0[v_I_pad(i, j-1, k, n)]+
+																		x0[v_I_pad(i, j+1, k, n)]+ x0[v_I_pad(i, j, k-1, n)]+x0[v_I_pad(i, j, k+1, n)]
 																		) / (1+6*a);
 				}
 			}
@@ -385,7 +385,7 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 		for (z=1; z<=n[2]; z++) {
 			for (y=1; y<=n[1]; y++) {
 				for (x=1; x<=n[0]; x++) {
-					const int i = lc_to_ms_I(x, y ,z, n);	//lc index					
+					const int i = lc_to_ms_I(x, y, z, n);	//lc index
 					const int j = ms_I(x, y, z, n);			//ms index
 					
 					time= PIL_check_seconds_timer();
@@ -414,9 +414,9 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 
 		if (re->test_break(re->tbh)) break;
 
-		SWAP(float *,sr,sr0);
-		SWAP(float *,sg,sg0);
-		SWAP(float *,sb,sb0);
+		SWAP(float *, sr, sr0);
+		SWAP(float *, sg, sg0);
+		SWAP(float *, sb, sb0);
 
 		/* main diffusion simulation */
 		ms_diffuse(re, do_test_break, sr0, sr, diff, n);
@@ -443,7 +443,7 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 	for (z=1;z<=n[2];z++) {
 		for (y=1;y<=n[1];y++) {
 			for (x=1;x<=n[0];x++) {
-				const int i = lc_to_ms_I(x, y ,z, n);	//lc index					
+				const int i = lc_to_ms_I(x, y, z, n);	//lc index
 				const int j = ms_I(x, y, z, n);			//ms index
 				
 				vp->data_r[i] = origf * vp->data_r[i] + fac * sr[j];

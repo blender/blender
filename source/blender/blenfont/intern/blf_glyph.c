@@ -341,7 +341,7 @@ static void blf_texture5_draw(const float shadow_col[4], float uv[2][2], float x
 static void blf_texture3_draw(const float shadow_col[4], float uv[2][2], float x1, float y1, float x2, float y2)
 {
 	float soft[9] = {1/16.0f, 2/16.0f, 1/16.0f,
-	                 2/16.0f,4/16.0f, 2/16.0f,
+	                 2/16.0f, 4/16.0f, 2/16.0f,
 	                 1/16.0f, 2/16.0f, 1/16.0f};
 
 	float color[4], *fp = soft;

@@ -43,7 +43,7 @@ extern "C" {
 /* generic - all structs which are used in linked-lists used this */
 typedef struct Link
 {
-	struct Link *next,*prev;
+	struct Link *next, *prev;
 } Link;
 
 

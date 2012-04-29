@@ -40,9 +40,9 @@ static bNodeSocketTemplate cmp_node_view_levels_in[]= {
 };
 
 static bNodeSocketTemplate cmp_node_view_levels_out[]={
-	{SOCK_FLOAT, 0,"Mean"},
-	{SOCK_FLOAT, 0,"Std Dev"},
-	{-1,0,""}
+	{SOCK_FLOAT, 0, "Mean"},
+	{SOCK_FLOAT, 0, "Std Dev"},
+	{-1, 0, ""}
 };
 
 static void rgb_tobw(float r, float g, float b, float* out)
@@ -54,7 +54,7 @@ static void fill_bins(bNode* node, CompBuf* in, int* bins)
 {
 	float value[4];
 	int ivalue=0;
-	int x,y;
+	int x, y;
 
 	/*fill bins */
 	for (y=0; y<in->y; y++) {
@@ -66,7 +66,7 @@ static void fill_bins(bNode* node, CompBuf* in, int* bins)
 			if (value[3] > 0.0f) { /* don't count transparent pixels */
 				switch (node->custom1) {
 					case 1: { /* all colors */
-						rgb_tobw(value[0],value[1],value[2], &value[0]);
+						rgb_tobw(value[0], value[1], value[2], &value[0]);
 						value[0]=value[0]*255; /* scale to 0-255 range */
 						ivalue=(int)value[0];
 						break;
@@ -89,7 +89,7 @@ static void fill_bins(bNode* node, CompBuf* in, int* bins)
 					}
 					case 5: /* luminence */
 					{
-						rgb_to_yuv(value[0],value[1],value[2], &value[0], &value[1], &value[2]);
+						rgb_to_yuv(value[0], value[1], value[2], &value[0], &value[1], &value[2]);
 						value[0]=value[0]*255; /* scale to 0-255 range */
 						ivalue=(int)value[0];
 						break;
@@ -111,7 +111,7 @@ static float brightness_mean(bNode* node, CompBuf* in)
 {
 	float sum=0.0;
 	int numPixels=0.0;
-	int x,y;
+	int x, y;
 	float value[4];
 
 	for (x=0; x< in->x; x++) {
@@ -125,7 +125,7 @@ static float brightness_mean(bNode* node, CompBuf* in)
 				switch (node->custom1) {
 				case 1:
 					{
-						rgb_tobw(value[0],value[1],value[2], &value[0]);
+						rgb_tobw(value[0], value[1], value[2], &value[0]);
 						sum+=value[0];
 						break;
 					}
@@ -146,7 +146,7 @@ static float brightness_mean(bNode* node, CompBuf* in)
 					}
 				case 5:
 					{
-						rgb_to_yuv(value[0],value[1],value[2], &value[0], &value[1], &value[2]);
+						rgb_to_yuv(value[0], value[1], value[2], &value[0], &value[1], &value[2]);
 						sum+=value[0];
 						break;
 					}
@@ -162,7 +162,7 @@ static float brightness_standard_deviation(bNode* node, CompBuf* in, float mean)
 {
 	float sum=0.0;
 	int numPixels=0.0;
-	int x,y;
+	int x, y;
 	float value[4];
 
 	for (x=0; x< in->x; x++) {
@@ -176,7 +176,7 @@ static float brightness_standard_deviation(bNode* node, CompBuf* in, float mean)
 				switch (node->custom1) {
 				case 1:
 					{
-						rgb_tobw(value[0],value[1],value[2], &value[0]);
+						rgb_tobw(value[0], value[1], value[2], &value[0]);
 						sum+=(value[0]-mean)*(value[0]-mean);
 						break;
 					}
@@ -200,7 +200,7 @@ static float brightness_standard_deviation(bNode* node, CompBuf* in, float mean)
 					}
 				case 5:
 					{
-						rgb_to_yuv(value[0],value[1],value[2], &value[0], &value[1], &value[2]);
+						rgb_to_yuv(value[0], value[1], value[2], &value[0], &value[1], &value[2]);
 						sum+=(value[0]-mean)*(value[0]-mean);
 						break;
 					}
@@ -215,7 +215,7 @@ static float brightness_standard_deviation(bNode* node, CompBuf* in, float mean)
 
 static void draw_histogram(bNode *node, CompBuf *out, int* bins)
 {
-	int x,y;
+	int x, y;
 	float color[4]; 
 	float value;
 	int max;

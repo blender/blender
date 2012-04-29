@@ -179,7 +179,7 @@ static int compare_name(const void *a1, const void *a2)
 	if ( strcmp(entry1->relname, "..")==0 ) return (-1);
 	if ( strcmp(entry2->relname, "..")==0 ) return (1);
 	
-	return (BLI_natstrcmp(entry1->relname,entry2->relname));
+	return (BLI_natstrcmp(entry1->relname, entry2->relname));
 }
 
 static int compare_date(const void *a1, const void *a2)	
@@ -212,7 +212,7 @@ static int compare_date(const void *a1, const void *a2)
 	if ( entry1->s.st_mtime < entry2->s.st_mtime) return 1;
 	if ( entry1->s.st_mtime > entry2->s.st_mtime) return -1;
 	
-	else return BLI_natstrcmp(entry1->relname,entry2->relname);
+	else return BLI_natstrcmp(entry1->relname, entry2->relname);
 }
 
 static int compare_size(const void *a1, const void *a2)	
@@ -244,7 +244,7 @@ static int compare_size(const void *a1, const void *a2)
 	
 	if ( entry1->s.st_size < entry2->s.st_size) return 1;
 	if ( entry1->s.st_size > entry2->s.st_size) return -1;
-	else return BLI_natstrcmp(entry1->relname,entry2->relname);
+	else return BLI_natstrcmp(entry1->relname, entry2->relname);
 }
 
 static int compare_extension(const void *a1, const void *a2)
@@ -456,7 +456,7 @@ void folderlist_pushdir(ListBase* folderlist, const char *dir)
 	}
 
 	// create next folder element
-	folder = (FolderList*)MEM_mallocN(sizeof(FolderList),"FolderList");
+	folder = (FolderList*)MEM_mallocN(sizeof(FolderList), "FolderList");
 	folder->foldername = (char*)MEM_mallocN(sizeof(char)*(strlen(dir)+1), "foldername");
 	folder->foldername[0] = '\0';
 
@@ -1144,7 +1144,7 @@ void filelist_from_main(struct FileList *filelist)
 		filelist->filelist= (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry));
 		
 		for (a=0; a<filelist->numfiles; a++) {
-			memset( &(filelist->filelist[a]), 0 , sizeof(struct direntry));
+			memset( &(filelist->filelist[a]), 0, sizeof(struct direntry));
 			filelist->filelist[a].type |= S_IFDIR;
 		}
 		
@@ -1198,7 +1198,7 @@ void filelist_from_main(struct FileList *filelist)
 		files = filelist->filelist;
 		
 		if (!filelist->hide_parent) {
-			memset( &(filelist->filelist[0]), 0 , sizeof(struct direntry));
+			memset( &(filelist->filelist[0]), 0, sizeof(struct direntry));
 			filelist->filelist[0].relname= BLI_strdup("..");
 			filelist->filelist[0].type |= S_IFDIR;
 		
@@ -1212,7 +1212,7 @@ void filelist_from_main(struct FileList *filelist)
 			ok = 1;
 			if (ok) {
 				if (!filelist->hide_dot || id->name[2] != '.') {
-					memset( files, 0 , sizeof(struct direntry));
+					memset(files, 0, sizeof(struct direntry));
 					if (id->lib==NULL)
 						files->relname= BLI_strdup(id->name+2);
 					else {

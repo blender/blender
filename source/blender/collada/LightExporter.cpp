@@ -84,7 +84,7 @@ void LightsExporter::operator()(Object *ob)
 	// sun
 	if (la->type == LA_SUN) {
 		COLLADASW::DirectionalLight cla(mSW, la_id, la_name);
-		cla.setColor(col,false,"color");
+		cla.setColor(col, false, "color");
 		cla.setConstantAttenuation(constatt);
 		exportBlenderProfile(cla, la);
 		addLight(cla);
@@ -92,7 +92,7 @@ void LightsExporter::operator()(Object *ob)
 	// hemi
 	else if (la->type == LA_HEMI) {
 		COLLADASW::AmbientLight cla(mSW, la_id, la_name);
-		cla.setColor(col,false,"color");
+		cla.setColor(col, false, "color");
 		cla.setConstantAttenuation(constatt);
 		exportBlenderProfile(cla, la);
 		addLight(cla);
@@ -100,9 +100,9 @@ void LightsExporter::operator()(Object *ob)
 	// spot
 	else if (la->type == LA_SPOT) {
 		COLLADASW::SpotLight cla(mSW, la_id, la_name);
-		cla.setColor(col,false,"color");
-		cla.setFallOffAngle(la->spotsize,false,"fall_off_angle");
-		cla.setFallOffExponent(la->spotblend,false,"fall_off_exponent");
+		cla.setColor(col, false, "color");
+		cla.setFallOffAngle(la->spotsize, false, "fall_off_angle");
+		cla.setFallOffExponent(la->spotblend, false, "fall_off_exponent");
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
 		cla.setQuadraticAttenuation(quadatt);
@@ -112,7 +112,7 @@ void LightsExporter::operator()(Object *ob)
 	// lamp
 	else if (la->type == LA_LOCAL) {
 		COLLADASW::PointLight cla(mSW, la_id, la_name);
-		cla.setColor(col,false,"color");
+		cla.setColor(col, false, "color");
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
 		cla.setQuadraticAttenuation(quadatt);
@@ -123,7 +123,7 @@ void LightsExporter::operator()(Object *ob)
 	// it will be exported as a local lamp
 	else {
 		COLLADASW::PointLight cla(mSW, la_id, la_name);
-		cla.setColor(col,false,"color");
+		cla.setColor(col, false, "color");
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
 		cla.setQuadraticAttenuation(quadatt);

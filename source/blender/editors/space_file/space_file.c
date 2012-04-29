@@ -218,7 +218,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		}
 		else {
 			if (params->display == FILE_IMGDISPLAY) {
-				if (!thumbnails_running(sfile->files,C)) {
+				if (!thumbnails_running(sfile->files, C)) {
 					thumbnails_start(sfile->files, C);
 				}
 			}
@@ -432,12 +432,12 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 	RNA_int_set(kmi->ptr, "increment", 10);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_int_set(kmi->ptr, "increment", 100);
-	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, 0,0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "increment", -1);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_SHIFT, 0);
 	RNA_int_set(kmi->ptr, "increment", -10);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	RNA_int_set(kmi->ptr, "increment",-100);
+	RNA_int_set(kmi->ptr, "increment", -100);
 	
 	
 	/* keys for button area (top) */
@@ -450,10 +450,10 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 	RNA_int_set(kmi->ptr, "increment", 100);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "increment", -1);
-	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_SHIFT,0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_SHIFT, 0);
 	RNA_int_set(kmi->ptr, "increment", -10);
-	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_CTRL,0);
-	RNA_int_set(kmi->ptr, "increment",-100);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "increment", -100);
 }
 
 

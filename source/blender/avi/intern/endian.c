@@ -49,7 +49,7 @@
 #ifdef __BIG_ENDIAN__
 static void invert (int *num)
 {
-	int new=0,i,j;
+	int new=0, i, j;
 
 	for (j=0; j < 4; j++) {
 		for (i=0; i<8; i++) {
@@ -63,7 +63,7 @@ static void invert (int *num)
 static void sinvert (short int *num)
 {
 	short int new=0;
-	int i,j;
+	int i, j;
 
 	for (j=0; j < 2; j++) {
 		for (i=0; i<8; i++) {

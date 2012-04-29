@@ -383,7 +383,7 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float co[3
 			nearest->index = index;
 			nearest->dist = dist;
 			copy_v3_v3(nearest->co, nearest_tmp);
-			normal_tri_v3( nearest->no,t0, t1, t2);
+			normal_tri_v3(nearest->no, t0, t1, t2);
 		}
 
 		t1 = t2;
@@ -402,10 +402,10 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 	MFace *face = data->face + index;
 
 	float *t0, *t1, *t2, *t3;
-	t0 = vert[ face->v1 ].co;
-	t1 = vert[ face->v2 ].co;
-	t2 = vert[ face->v3 ].co;
-	t3 = face->v4 ? vert[ face->v4].co : NULL;
+	t0 = vert[face->v1].co;
+	t1 = vert[face->v2].co;
+	t2 = vert[face->v3].co;
+	t3 = face->v4 ? vert[face->v4].co : NULL;
 
 	
 	do
@@ -421,7 +421,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 			hit->dist = dist;
 			madd_v3_v3v3fl(hit->co, ray->origin, ray->direction, dist);
 
-			normal_tri_v3( hit->no,t0, t1, t2);
+			normal_tri_v3(hit->no, t0, t1, t2);
 		}
 
 		t1 = t2;
@@ -706,7 +706,7 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 		if (!data->cached)
 			BLI_bvhtree_free(data->tree);
 
-		memset( data, 0, sizeof(*data) );
+		memset(data, 0, sizeof(*data));
 	}
 }
 
@@ -743,11 +743,11 @@ void bvhcache_insert(BVHCache *cache, BVHTree *tree, int type)
 {
 	BVHCacheItem *item = NULL;
 
-	assert( tree != NULL );
-	assert( bvhcache_find(cache, type) == NULL );
+	assert(tree != NULL);
+	assert(bvhcache_find(cache, type) == NULL);
 
 	item = MEM_mallocN(sizeof(BVHCacheItem), "BVHCacheItem");
-	assert( item != NULL );
+	assert(item != NULL);
 
 	item->type = type;
 	item->tree = tree;

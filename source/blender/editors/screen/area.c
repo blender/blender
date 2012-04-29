@@ -84,19 +84,19 @@ static void region_draw_emboss(ARegion *ar, rcti *scirct)
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
 	/* right  */
-	glColor4ub(0,0,0, 30);
+	glColor4ub(0, 0, 0, 30);
 	sdrawline(rect.xmax, rect.ymin, rect.xmax, rect.ymax);
 	
 	/* bottom  */
-	glColor4ub(0,0,0, 30);
+	glColor4ub(0, 0, 0, 30);
 	sdrawline(rect.xmin, rect.ymin, rect.xmax, rect.ymin);
 	
 	/* top  */
-	glColor4ub(255,255,255, 30);
+	glColor4ub(255, 255, 255, 30);
 	sdrawline(rect.xmin, rect.ymax, rect.xmax, rect.ymax);
 
 	/* left  */
-	glColor4ub(255,255,255, 30);
+	glColor4ub(255, 255, 255, 30);
 	sdrawline(rect.xmin, rect.ymin, rect.xmin, rect.ymax);
 	
 	glDisable( GL_BLEND );
@@ -1530,17 +1530,17 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 
 	if (sa->flag & HEADER_NO_PULLDOWN) {
 		but = uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
-						 ICON_DISCLOSURE_TRI_RIGHT,
-						 xco,yco,UI_UNIT_X,UI_UNIT_Y-2,
-						 &(sa->flag), 0, 0, 0, 0, 
-						 "Show pulldown menus");
+		                       ICON_DISCLOSURE_TRI_RIGHT,
+		                       xco, yco, UI_UNIT_X, UI_UNIT_Y - 2,
+		                       &(sa->flag), 0, 0, 0, 0,
+		                       "Show pulldown menus");
 	}
 	else {
 		but = uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
-						 ICON_DISCLOSURE_TRI_DOWN,
-						 xco,yco,UI_UNIT_X,UI_UNIT_Y-2,
-						 &(sa->flag), 0, 0, 0, 0, 
-						 "Hide pulldown menus");
+		                       ICON_DISCLOSURE_TRI_DOWN,
+		                       xco, yco, UI_UNIT_X, UI_UNIT_Y - 2,
+		                       &(sa->flag), 0, 0, 0, 0,
+		                       "Hide pulldown menus");
 	}
 
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
@@ -1803,7 +1803,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 	rect.ymax = ar->winrct.ymax - ar->winrct.ymin;
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glColor4f(0.0f, 0.0f, 0.0f, alpha);
 	glRecti(rect.xmin, rect.ymin, rect.xmax+1, rect.ymax+1);
 	glDisable(GL_BLEND);
@@ -1820,7 +1820,7 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 	float fac, blendfac;
 	int x1, y1, x2, y2;
 
-	/* the image is located inside (0,0),(1, 1) as set by view2d */
+	/* the image is located inside (0, 0), (1, 1) as set by view2d */
 	UI_ThemeColorShade(TH_BACK, 20);
 
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x1, &y1);

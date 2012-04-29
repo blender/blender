@@ -291,7 +291,7 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
 			offset += 21;
 		}
 		/* materials and particles animdata */
-		else if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) 
+		else if (ELEM(GS(ale->id->name), ID_MA, ID_PA))
 			offset += 14;
 			
 		/* if not in Action Editor mode, action-groups (and their children) must carry some offset too... */

@@ -66,11 +66,11 @@ static struct timeval _tstart, _tend;
 static struct timezone tz;
 void tstart ( void )
 {
-	gettimeofday ( &_tstart, &tz );
+	gettimeofday(&_tstart, &tz);
 }
-void tend ( void )
+void tend (void)
 {
-	gettimeofday ( &_tend,&tz );
+	gettimeofday(&_tend, &tz);
 }
 double tval(void)
 {
@@ -746,7 +746,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						// ABS ( clmd->sim_parms->maxgoal - clmd->sim_parms->mingoal );
 						*/
 						
-						verts->goal  = ( float ) pow ( verts->goal , 4.0f );
+						verts->goal  = powf(verts->goal, 4.0f);
 						if ( verts->goal >=SOFTGOALSNAP ) {
 							 verts->flags |= CLOTH_VERT_FLAG_PINNED;
 						}
@@ -781,7 +781,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	MVert *mvert = NULL;
 	ClothVertex *verts = NULL;
 	float (*shapekey_rest)[3]= NULL;
-	float tnull[3] = {0,0,0};
+	float tnull[3] = {0, 0, 0};
 	Cloth *cloth = NULL;
 	float maxdist = 0;
 
@@ -984,7 +984,7 @@ static void cloth_free_errorsprings(Cloth *cloth, EdgeHash *UNUSED(edgehash), Li
 	
 	if (edgelist) {
 		for ( i = 0; i < cloth->numverts; i++ ) {
-			BLI_linklist_free ( edgelist[i],NULL );
+			BLI_linklist_free ( edgelist[i], NULL );
 		}
 
 		MEM_freeN ( edgelist );
@@ -1141,7 +1141,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 					spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 					spring->type = CLOTH_SPRING_TYPE_BENDING;
 					spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
-					BLI_edgehash_insert ( edgehash, spring->ij, spring->kl, NULL );
+					BLI_edgehash_insert(edgehash, spring->ij, spring->kl, NULL);
 					bend_springs++;
 
 					BLI_linklist_prepend ( &cloth->springs, spring );
@@ -1190,14 +1190,14 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	/* insert other near springs in edgehash AFTER bending springs are calculated (for selfcolls) */
 	for (i = 0; i < numedges; i++) { /* struct springs */
-		BLI_edgehash_insert ( edgehash, MIN2(medge[i].v1, medge[i].v2), MAX2(medge[i].v2, medge[i].v1), NULL );
+		BLI_edgehash_insert(edgehash, MIN2(medge[i].v1, medge[i].v2), MAX2(medge[i].v2, medge[i].v1), NULL);
 	}
 
 	for (i = 0; i < numfaces; i++) { /* edge springs */
 		if (mface[i].v4) {
-			BLI_edgehash_insert ( edgehash, MIN2(mface[i].v1, mface[i].v3), MAX2(mface[i].v3, mface[i].v1), NULL );
+			BLI_edgehash_insert(edgehash, MIN2(mface[i].v1, mface[i].v3), MAX2(mface[i].v3, mface[i].v1), NULL);
 			
-			BLI_edgehash_insert ( edgehash, MIN2(mface[i].v2, mface[i].v4), MAX2(mface[i].v2, mface[i].v4), NULL );
+			BLI_edgehash_insert(edgehash, MIN2(mface[i].v2, mface[i].v4), MAX2(mface[i].v2, mface[i].v4), NULL);
 		}
 	}
 	
@@ -1206,7 +1206,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	if ( edgelist ) {
 		for ( i = 0; i < numverts; i++ ) {
-			BLI_linklist_free ( edgelist[i],NULL );
+			BLI_linklist_free ( edgelist[i], NULL );
 		}
 	
 		MEM_freeN ( edgelist );
@@ -1214,8 +1214,8 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	cloth->edgehash = edgehash;
 	
-	if (G.rt>0)
-		printf("avg_len: %f\n",clmd->sim_parms->avg_spring_len);
+	if (G.rt > 0)
+		printf("avg_len: %f\n", clmd->sim_parms->avg_spring_len);
 
 	return 1;
 

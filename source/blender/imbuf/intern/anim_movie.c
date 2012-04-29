@@ -133,8 +133,8 @@ static void free_anim_movie(struct anim *UNUSED(anim)) { ; }
 
 static int an_stringdec(const char *string, char* head, char *tail, unsigned short *numlen)
 {
-	unsigned short len,nume,nums=0;
-	short i,found=FALSE;
+	unsigned short len, nume, nums=0;
+	short i, found=FALSE;
 
 	len=strlen(string);
 	nume = len;
@@ -156,7 +156,7 @@ static int an_stringdec(const char *string, char* head, char *tail, unsigned sho
 		}
 	}
 	if (found) {
-		strcpy(tail ,&string[nume+1]);
+		strcpy(tail, &string[nume+1]);
 		strcpy(head, string);
 		head[nums]= '\0';
 		*numlen=nume-nums+1;
@@ -285,7 +285,7 @@ static int startavi (struct anim *anim)
 	streamcount = anim->streamindex;
 #endif
 
-	anim->avi = MEM_callocN (sizeof(AviMovie),"animavi");
+	anim->avi = MEM_callocN (sizeof(AviMovie), "animavi");
 
 	if (anim->avi == NULL) {
 		printf("Can't open avi: %s\n", anim->name);
@@ -676,7 +676,7 @@ static void ffmpeg_postprocess(struct anim * anim)
 		uint8_t** dst     = anim->pFrameRGB->data;
 		int dstStride2[4] = { dstStride[0], 0, 0, 0 };
 		uint8_t* dst2[4]  = { dst[0], 0, 0, 0 };
-		int x,y,h,w;
+		int x, y, h, w;
 		unsigned char* bottom;
 		unsigned char* top;
 		
@@ -933,7 +933,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 	av_log(anim->pFormatCtx, AV_LOG_DEBUG, 
 	       "FETCH: looking for PTS=%lld "
 	       "(pts_timebase=%g, frame_rate=%g, st_time=%lld)\n", 
-	       (long long int)pts_to_search,pts_time_base, frame_rate, st_time);
+	       (long long int)pts_to_search, pts_time_base, frame_rate, st_time);
 
 	if (anim->last_frame && 
 	    anim->last_pts <= pts_to_search && anim->next_pts > pts_to_search) {
@@ -1040,7 +1040,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 			anim->next_packet.stream_index = -1;
 		}
 
-		/* memset(anim->pFrame,...) ?? */
+		/* memset(anim->pFrame, ...) ?? */
 
 		if (ret >= 0) {
 			ffmpeg_decode_video_frame_scan(anim, pts_to_search);

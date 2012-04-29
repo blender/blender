@@ -680,7 +680,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 		 *	2. remove this from the 'visual' y-rotation
 		 */
 		{
-			float premat[3][3], imat[3][3],pmat[3][3], tmat[3][3];
+			float premat[3][3], imat[3][3], pmat[3][3], tmat[3][3];
 			float delta[3], eul[3];
 			
 			/* obtain new auto y-rotation */
@@ -693,7 +693,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 			
 			/* remove auto from visual and get euler rotation */
 			mul_m3_m3m3(tmat, imat, pmat);
-			mat3_to_eul( eul,tmat);
+			mat3_to_eul( eul, tmat);
 			
 			/* just use this euler-y as new roll value */
 			curbone->roll= eul[1];
@@ -2285,7 +2285,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 	View3D *v3d;
 	bArmature *arm;
 	EditBone *ebone, *newbone, *flipbone;
-	float *curs, mat[3][3],imat[3][3];
+	float *curs, mat[3][3], imat[3][3];
 	int a, to_root= 0;
 	Object *obedit;
 	Scene *scene;
@@ -3457,7 +3457,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "name", name);
 	
-	copy_v3_v3(curs, give_cursor(CTX_data_scene(C),CTX_wm_view3d(C)));	
+	copy_v3_v3(curs, give_cursor(CTX_data_scene(C), CTX_wm_view3d(C)));
 
 	/* Get inverse point for head and orientation for tail */
 	invert_m4_m4(obedit->imat, obedit->obmat);
@@ -4440,7 +4440,7 @@ static int vgroup_add_unique_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr))
 	 * If such a vertex group aleady exist the routine exits.
 	 */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
-		if (!defgroup_find_name(ob,bone->name)) {
+		if (!defgroup_find_name(ob, bone->name)) {
 			ED_vgroup_add_name(ob, bone->name);
 			return 1;
 		}
@@ -4828,7 +4828,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 				quat_to_eul(oldeul, quat1);
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-				axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,pchan->rotAxis, pchan->rotAngle);
+				axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
 			}
 			else {
 				copy_v3_v3(oldeul, pchan->eul);
@@ -4855,7 +4855,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 				}
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-				eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,eul, EULER_ORDER_DEFAULT);
+				eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
 			}
 			else {
 				copy_v3_v3(pchan->eul, eul);
@@ -5094,7 +5094,7 @@ void POSE_OT_select_all(wmOperatorType *ot)
 static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
-	bPoseChannel *pchan,*parent;
+	bPoseChannel *pchan, *parent;
 
 	/*	Determine if there is an active bone */
 	pchan=CTX_data_active_pose_bone(C);
@@ -5737,8 +5737,8 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	
 	/* Copy orientation from source */
 	copy_v3_v3(dst->loc, src->obmat[3]);
-	mat4_to_eul( dst->rot,src->obmat);
-	mat4_to_size( dst->size,src->obmat);
+	mat4_to_eul(dst->rot, src->obmat);
+	mat4_to_size(dst->size, src->obmat);
 	
 	where_is_object(scene, obedit);
 	

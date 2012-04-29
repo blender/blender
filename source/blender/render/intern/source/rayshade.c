@@ -1314,7 +1314,7 @@ static void trace_refract(float col[4], ShadeInput *shi, ShadeResult *shr)
 			/* get a quasi-random vector from a phong-weighted disc */
 			QMC_samplePhong(samp3d, qsa, shi->thread, samples, blur);
 						
-			ortho_basis_v3v3_v3( orthx, orthy,v_refract);
+			ortho_basis_v3v3_v3(orthx, orthy, v_refract);
 			mul_v3_fl(orthx, samp3d[0]);
 			mul_v3_fl(orthy, samp3d[1]);
 				
@@ -1410,7 +1410,7 @@ static void trace_reflect(float col[3], ShadeInput *shi, ShadeResult *shr, float
 				mul_v3_fl(orthy, samp3d[1]*aniso);
 			}
 			else {
-				ortho_basis_v3v3_v3( orthx, orthy,shi->vn);
+				ortho_basis_v3v3_v3(orthx, orthy, shi->vn);
 				mul_v3_fl(orthx, samp3d[0]);
 				mul_v3_fl(orthy, samp3d[1]);
 			}
@@ -1913,7 +1913,7 @@ static void ray_ao_qmc(ShadeInput *shi, float ao[3], float env[3])
 		copy_v3_v3(nrm, shi->facenor);
 	}
 
-	ortho_basis_v3v3_v3( up, side,nrm);
+	ortho_basis_v3v3_v3(up, side, nrm);
 	
 	/* sampling init */
 	if (R.wrld.ao_samp_method==WO_AOSAMP_HALTON) {
@@ -2262,10 +2262,10 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, const float lampco[3],
 				/* calc tangent plane vectors */
 				sub_v3_v3v3(v, co, lampco);
 				normalize_v3(v);
-				ortho_basis_v3v3_v3( ru, rv,v);
+				ortho_basis_v3v3_v3(ru, rv, v);
 				
 				/* sampling, returns quasi-random vector in area_size disc */
-				QMC_sampleDisc(samp3d, qsa, shi->thread, samples,lar->area_size);
+				QMC_sampleDisc(samp3d, qsa, shi->thread, samples, lar->area_size);
 
 				/* distribute disc samples across the tangent plane */
 				s[0] = samp3d[0]*ru[0] + samp3d[1]*rv[0];

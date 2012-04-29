@@ -1217,7 +1217,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 			continue;
 		}
 		/* this format specifier is from hell... */
-		BLI_snprintf(name, sizeof(id->name) - 2,"%s.%.3d", left, nr);
+		BLI_snprintf(name, sizeof(id->name) - 2, "%s.%.3d", left, nr);
 
 		return 1;
 	}

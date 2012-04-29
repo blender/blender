@@ -289,7 +289,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 		}
 	}
 
-	TransformWriter::add_node_transform(node, mat,NULL );
+	TransformWriter::add_node_transform(node, mat, NULL);
 }
 
 std::string ArmatureExporter::get_controller_id(Object *ob_arm, Object *ob)

@@ -417,7 +417,7 @@ static int GetFirstVideoMedia(struct anim *anim)
 			anim->qtime->theMedia = GetTrackMedia(anim->qtime->theTrack);
 
 		if (anim->qtime->theMedia)
-			GetMediaHandlerDescription(anim->qtime->theMedia,&mediaType, nil, nil);
+			GetMediaHandlerDescription(anim->qtime->theMedia, &mediaType, nil, nil);
 		if (mediaType == VideoMediaType) return 1;
 	}
 
@@ -454,7 +454,7 @@ int startquicktime (struct anim *anim)
 #endif
 	short depth = 0;
 
-	anim->qtime = MEM_callocN (sizeof(QuicktimeMovie),"animqt");
+	anim->qtime = MEM_callocN (sizeof(QuicktimeMovie), "animqt");
 	anim->qtime->have_gw = FALSE;
 
 	if (anim->qtime == NULL) {

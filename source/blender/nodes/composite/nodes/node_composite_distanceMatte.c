@@ -34,15 +34,15 @@
 
 /* ******************* channel Distance Matte ********************************* */
 static bNodeSocketTemplate cmp_node_distance_matte_in[]={
-	{SOCK_RGBA,1,"Image", 1.0f, 1.0f, 1.0f, 1.0f},
-	{SOCK_RGBA,1,"Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
-	{-1,0,""}
+	{SOCK_RGBA, 1, "Image", 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA, 1, "Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
+	{-1, 0, ""}
 };
 
 static bNodeSocketTemplate cmp_node_distance_matte_out[]={
-	{SOCK_RGBA,0,"Image"},
-	{SOCK_FLOAT,0,"Matte"},
-	{-1,0,""}
+	{SOCK_RGBA, 0, "Image"},
+	{SOCK_FLOAT, 0, "Matte"},
+	{-1, 0, ""}
 };
 
 /* note, keyvals is passed on from caller as stack array */

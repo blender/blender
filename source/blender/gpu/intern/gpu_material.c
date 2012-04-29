@@ -1567,7 +1567,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	pixsize= (lamp->d)/temp;
 	wsize= pixsize*0.5f*lamp->size;
 		
-	perspective_m4( lamp->winmat,-wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
+	perspective_m4( lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
 }
 
 static void gpu_lamp_shadow_free(GPULamp *lamp)

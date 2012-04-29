@@ -69,13 +69,13 @@
 
 #define URI_MAX FILE_MAX*3 + 8
 
-static int get_thumb_dir( char* dir , ThumbSize size)
+static int get_thumb_dir(char *dir, ThumbSize size)
 {
 #ifdef WIN32
 	wchar_t dir_16 [MAX_PATH];
 	/* yes, applications shouldn't store data there, but so does GIMP :)*/
 	SHGetSpecialFolderPathW(0, dir_16, CSIDL_PROFILE, 0);
-	conv_utf_16_to_8(dir_16,dir,FILE_MAX);
+	conv_utf_16_to_8(dir_16, dir, FILE_MAX);
 
 
 #else
@@ -132,7 +132,7 @@ static const char hex[17] = "0123456789abcdef";
 
 /* Note: This escape function works on file: URIs, but if you want to
  * escape something else, please read RFC-2396 */
-static void escape_uri_string (const char *string, char* escaped_string, int len,UnsafeCharacterSet mask)
+static void escape_uri_string (const char *string, char* escaped_string, int len, UnsafeCharacterSet mask)
 {
 #define ACCEPTABLE(a) ((a)>=32 && (a)<128 && (acceptable[(a)-32] & use_mask))
 
@@ -302,7 +302,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 			return NULL;
 		}
 		if (size == THB_FAIL) {
-			img = IMB_allocImBuf(1,1,32, IB_rect | IB_metadata);
+			img = IMB_allocImBuf(1, 1, 32, IB_rect | IB_metadata);
 			if (!img) return NULL;
 		}
 		else {
@@ -398,7 +398,7 @@ ImBuf* IMB_thumb_read(const char* path, ThumbSize size)
 	char uri[FILE_MAX*3+8];
 	ImBuf *img = NULL;
 
-	if (!uri_from_filename(path,uri)) {
+	if (!uri_from_filename(path, uri)) {
 		return NULL;
 	}
 	if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {		
@@ -414,7 +414,7 @@ void IMB_thumb_delete(const char* path, ThumbSize size)
 	char thumb[FILE_MAX];
 	char uri[FILE_MAX*3+8];
 
-	if (!uri_from_filename(path ,uri)) {
+	if (!uri_from_filename(path, uri)) {
 		return;
 	}
 	if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
@@ -439,7 +439,7 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 	if (stat(path, &st)) {
 		return NULL;
 	}	
-	if (!uri_from_filename(path,uri)) {
+	if (!uri_from_filename(path, uri)) {
 		return NULL;
 	}
 	if (thumbpath_from_uri(uri, thumb, sizeof(thumb), THB_FAIL)) {

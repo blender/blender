@@ -34,20 +34,20 @@
 
 /* ******************* Chroma Key ********************************************************** */
 static bNodeSocketTemplate cmp_node_chroma_in[]={
-	{SOCK_RGBA,1,"Image", 1.0f, 1.0f, 1.0f, 1.0f},
-	{SOCK_RGBA,1,"Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
-	{-1,0,""}
+	{SOCK_RGBA, 1, "Image", 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA, 1, "Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
+	{-1, 0, ""}
 };
 
 static bNodeSocketTemplate cmp_node_chroma_out[]={
-	{SOCK_RGBA,0,"Image"},
-	{SOCK_FLOAT,0,"Matte"},
-	{-1,0,""}
+	{SOCK_RGBA, 0, "Image"},
+	{SOCK_FLOAT, 0, "Matte"},
+	{-1, 0, ""}
 };
 
 static void do_rgba_to_ycca_normalized(bNode *UNUSED(node), float *out, float *in)
 {
-	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
+	rgb_to_ycc(in[0], in[1], in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 
 	//normalize to 0..1.0
 	out[0]=out[0]/255.0f;
@@ -79,7 +79,7 @@ static void do_ycca_to_rgba_normalized(bNode *UNUSED(node), float *out, float *i
 	//	in[0]=(in[0]*255.0)+16;
 //	in[1]=(in[1]*255.0)+128;
 //	in[2]=(in[2]*255.0)+128;
-	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
+	ycc_to_rgb(in[0], in[1], in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 	out[3]=in[3];
 }
 
@@ -114,7 +114,7 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 	if (kfg>0.0f) {  /* found a pixel that is within key color */
 		alpha=(1.0f-kfg)*(c->fstrength);
 
-		beta=atan2(z,x);
+		beta=atan2(z, x);
 		angle2=c->t2; /* t2 is radians. */
 
 		/* if beta is within the cutoff angle */

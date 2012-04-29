@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory , Sukhitha Jayathilake.
+ * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory, Sukhitha Jayathilake.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -143,38 +143,38 @@ public:
 	virtual void change_eul_to_quat(Object *ob, bAction *act);
 #endif
 
-	void translate_Animations( COLLADAFW::Node * Node , 
-												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
-												   std::map<COLLADAFW::UniqueId, Object*>& object_map ,
-												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
+	void translate_Animations(COLLADAFW::Node * Node,
+	                          std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
+	                          std::map<COLLADAFW::UniqueId, Object*>& object_map,
+	                          std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
 
-	AnimMix* get_animation_type( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map );
+	AnimMix* get_animation_type( const COLLADAFW::Node * node, std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map );
 
-	void apply_matrix_curves( Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node,
-									COLLADAFW::Transformation * tm );
+	void apply_matrix_curves(Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node,
+	                         COLLADAFW::Transformation * tm );
+	
+	void add_bone_animation_sampled(Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node, COLLADAFW::Transformation * tm);
 
-	void add_bone_animation_sampled(Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node, COLLADAFW::Transformation * tm);
-
-	void Assign_transform_animations(COLLADAFW::Transformation* transform , 
-									 const COLLADAFW::AnimationList::AnimationBinding * binding,
-									 std::vector<FCurve*>* curves, bool is_joint, char * joint_path);
+	void Assign_transform_animations(COLLADAFW::Transformation* transform,
+	                                 const COLLADAFW::AnimationList::AnimationBinding * binding,
+	                                 std::vector<FCurve*>* curves, bool is_joint, char * joint_path);
 
 	void Assign_color_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type);
 	void Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type);
 
-	int setAnimType ( const COLLADAFW::Animatable * prop , int type, int addition);
+	int setAnimType ( const COLLADAFW::Animatable * prop, int type, int addition);
 	
-	void modify_fcurve(std::vector<FCurve*>* curves , const char* rna_path , int array_index );
+	void modify_fcurve(std::vector<FCurve*>* curves, const char* rna_path, int array_index );
 	// prerequisites:
 	// animlist_map - map animlist id -> animlist
 	// curve_map - map anim id -> curve(s)
 	Object * translate_animation_OLD(COLLADAFW::Node *node,
-								std::map<COLLADAFW::UniqueId, Object*>& object_map,
-								std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
-								COLLADAFW::Transformation::TransformationType tm_type,
-								Object *par_job = NULL);
+	                                 std::map<COLLADAFW::UniqueId, Object*>& object_map,
+	                                 std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
+	                                 COLLADAFW::Transformation::TransformationType tm_type,
+	                                 Object *par_job = NULL);
 	
-	void find_frames( std::vector<float>* frames , std::vector<FCurve*>* curves );
+	void find_frames( std::vector<float>* frames, std::vector<FCurve*>* curves );
 	void find_frames_old( std::vector<float>* frames, COLLADAFW::Node * node, COLLADAFW::Transformation::TransformationType tm_type );
 	// internal, better make it private
 	// warning: evaluates only rotation

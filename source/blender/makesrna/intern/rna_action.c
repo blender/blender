@@ -191,7 +191,7 @@ static void rna_Action_active_pose_marker_index_range(PointerRNA *ptr, int *min,
 
 
 
-static void rna_Action_frame_range_get(PointerRNA *ptr,float *values)
+static void rna_Action_frame_range_get(PointerRNA *ptr, float *values)
 {	/* don't include modifiers because they too easily can have very large
 	 * ranges: MINAFRAMEF to MAXFRAMEF. */
 	calc_action_range(ptr->id.data, values, values+1, FALSE);
@@ -617,9 +617,9 @@ static void rna_def_action(BlenderRNA *brna)
 	rna_def_action_pose_markers(brna, prop);
 	
 	/* properties */
-	prop = RNA_def_float_vector(srna, "frame_range" , 2 , NULL , 0, 0, "Frame Range" ,
-	                            "The final frame range of all F-Curves within this action" , 0 , 0);
-	RNA_def_property_float_funcs(prop, "rna_Action_frame_range_get" , NULL, NULL);
+	prop = RNA_def_float_vector(srna, "frame_range", 2, NULL, 0, 0, "Frame Range",
+	                            "The final frame range of all F-Curves within this action", 0, 0);
+	RNA_def_property_float_funcs(prop, "rna_Action_frame_range_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	
 	/* special "type" limiter - should not really be edited in general,

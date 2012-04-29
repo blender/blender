@@ -216,7 +216,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			cpack(0xFFFFFF);
 			glTranslatef(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], 0.0f);
 			
-			//glRectf(0,0,1,1);
+			//glRectf(0, 0, 1, 1);
 			
 			setlinestyle(0);
 			cpack(0x0);
@@ -700,7 +700,7 @@ static float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 		mul_m3_v3(mtx, end);
 		mul_m3_v3(mtx, start);
 		
-		angle = atan2(start[1],start[0]) - atan2(end[1],end[0]);
+		angle = atan2(start[1], start[0]) - atan2(end[1], end[0]);
 	}
 	
 	if (angle > (float)M_PI) {
@@ -1055,9 +1055,9 @@ static int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], fl
 		copy_v3_v3(location, intersect);
 		
 		if (v4co)
-			normal_quad_v3( normal,v1co, v2co, v3co, v4co);
+			normal_quad_v3(normal, v1co, v2co, v3co, v4co);
 		else
-			normal_tri_v3( normal,v1co, v2co, v3co);
+			normal_tri_v3(normal, v1co, v2co, v3co);
 
 		mul_m4_v3(obmat, location);
 		
@@ -1738,9 +1738,9 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
 					copy_v3_v3(location, intersect);
 					
 					if (f->v4)
-						normal_quad_v3( normal,verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co);
+						normal_quad_v3(normal, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co);
 					else
-						normal_tri_v3( normal,verts[f->v1].co, verts[f->v2].co, verts[f->v3].co);
+						normal_tri_v3(normal, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co);
 
 					mul_m4_v3(obmat, location);
 					
@@ -1767,13 +1767,13 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
 						copy_v3_v3(location, intersect);
 						
 						if (f->v4)
-							normal_quad_v3( normal,verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co);
+							normal_quad_v3(normal, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co);
 						else
-							normal_tri_v3( normal,verts[f->v1].co, verts[f->v2].co, verts[f->v3].co);
+							normal_tri_v3(normal, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co);
 
 						mul_m4_v3(obmat, location);
 						
-						new_depth = len_v3v3(location, ray_start);					
+						new_depth = len_v3v3(location, ray_start);
 						
 						mul_m3_v3(timat, normal);
 						normalize_v3(normal);

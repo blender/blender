@@ -227,7 +227,7 @@ static int blend(Tex *tex, float *texvec, TexResult *texres)
 		texres->tin= (2.0f+x+y)/4.0f;
 	}
 	else if (tex->stype==TEX_RAD) { /* radial */
-		texres->tin= (atan2(y,x) / (2*M_PI) + 0.5);
+		texres->tin= (atan2(y, x) / (2*M_PI) + 0.5);
 	}
 	else {  /* sphere TEX_SPHERE */
 		texres->tin= 1.0-sqrt(x*x+	y*y+texvec[2]*texvec[2]);
@@ -870,7 +870,7 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float *n, float x, float y, float z
 			/* test for v1, vlr can be faked for baking */
 			if (vlr->v1 && vlr->v1->orco) {
 				float nor[3];
-				normal_tri_v3( nor,vlr->v1->orco, vlr->v2->orco, vlr->v3->orco);
+				normal_tri_v3(nor, vlr->v1->orco, vlr->v2->orco, vlr->v3->orco);
 				
 				if ( fabs(nor[0])<fabs(nor[2]) && fabs(nor[1])<fabs(nor[2]) ) vlr->puno |= ME_PROJXY;
 				else if ( fabs(nor[0])<fabs(nor[1]) && fabs(nor[2])<fabs(nor[1]) ) vlr->puno |= ME_PROJXZ;
@@ -969,8 +969,8 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 			fx = (t[0] + 1.0f) / 2.0f;
 			fy = (t[1] + 1.0f) / 2.0f;
 		}
-		else if (wrap==MTEX_TUBE) map_to_tube( &fx, &fy,t[0], t[1], t[2]);
-		else if (wrap==MTEX_SPHERE) map_to_sphere( &fx, &fy,t[0], t[1], t[2]);
+		else if (wrap==MTEX_TUBE) map_to_tube( &fx, &fy, t[0], t[1], t[2]);
+		else if (wrap==MTEX_SPHERE) map_to_sphere( &fx, &fy, t[0], t[1], t[2]);
 		else {
 			if (texco==TEXCO_OBJECT) cubemap_ob(ob, n, t[0], t[1], t[2], &fx, &fy);
 			else if (texco==TEXCO_GLOB) cubemap_glob(n, t[0], t[1], t[2], &fx, &fy);
@@ -1041,20 +1041,20 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 			}
 			if (ok) {
 				if (wrap==MTEX_TUBE) {
-					map_to_tube( area, area+1,t[0], t[1], t[2]);
-					map_to_tube( area+2, area+3,t[0]+dxt[0], t[1]+dxt[1], t[2]+dxt[2]);
-					map_to_tube( area+4, area+5,t[0]+dyt[0], t[1]+dyt[1], t[2]+dyt[2]);
+					map_to_tube( area, area+1, t[0], t[1], t[2]);
+					map_to_tube( area+2, area+3, t[0]+dxt[0], t[1]+dxt[1], t[2]+dxt[2]);
+					map_to_tube( area+4, area+5, t[0]+dyt[0], t[1]+dyt[1], t[2]+dyt[2]);
 				}
 				else { 
-					map_to_sphere(area,area+1,t[0], t[1], t[2]);
-					map_to_sphere( area+2, area+3,t[0]+dxt[0], t[1]+dxt[1], t[2]+dxt[2]);
-					map_to_sphere( area+4, area+5,t[0]+dyt[0], t[1]+dyt[1], t[2]+dyt[2]);
+					map_to_sphere(area, area+1, t[0], t[1], t[2]);
+					map_to_sphere( area+2, area+3, t[0]+dxt[0], t[1]+dxt[1], t[2]+dxt[2]);
+					map_to_sphere( area+4, area+5, t[0]+dyt[0], t[1]+dyt[1], t[2]+dyt[2]);
 				}
 				areaflag= 1;
 			}
 			else {
-				if (wrap==MTEX_TUBE) map_to_tube( &fx, &fy,t[0], t[1], t[2]);
-				else map_to_sphere( &fx, &fy,t[0], t[1], t[2]);
+				if (wrap==MTEX_TUBE) map_to_tube( &fx, &fy, t[0], t[1], t[2]);
+				else map_to_sphere( &fx, &fy, t[0], t[1], t[2]);
 				dxt[0]/= 2.0f;
 				dxt[1]/= 2.0f;
 				dyt[0]/= 2.0f;
@@ -3077,8 +3077,8 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 			case TEXCO_H_SPHEREMAP:
 			case TEXCO_H_TUBEMAP:
 				if (skyflag & WO_ZENUP) {
-					if (mtex->texco==TEXCO_H_TUBEMAP) map_to_tube( tempvec, tempvec+1,lo[0], lo[2], lo[1]);
-					else map_to_sphere( tempvec, tempvec+1,lo[0], lo[2], lo[1]);
+					if (mtex->texco==TEXCO_H_TUBEMAP) map_to_tube( tempvec, tempvec+1, lo[0], lo[2], lo[1]);
+					else map_to_sphere( tempvec, tempvec+1, lo[0], lo[2], lo[1]);
 					/* tube/spheremap maps for outside view, not inside */
 					tempvec[0]= 1.0f-tempvec[0];
 					/* only top half */
@@ -3683,7 +3683,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 	if (!mvert || !mface || !mat) return;
 	v1=mface[face_index].v1, v2=mface[face_index].v2, v3=mface[face_index].v3;
 	if (hit_quad) {v2=mface[face_index].v3; v3=mface[face_index].v4;}
-	normal_tri_v3( normal, mvert[v1].co, mvert[v2].co, mvert[v3].co);
+	normal_tri_v3(normal, mvert[v1].co, mvert[v2].co, mvert[v3].co);
 
 	/* generate shadeinput with data required */
 	shi.mat = mat;
@@ -3737,7 +3737,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 				}
 			}
 			/* active uv map */
-			shi.actuv = CustomData_get_active_layer_index(&orcoDm->faceData,CD_MTFACE) - layer_index;
+			shi.actuv = CustomData_get_active_layer_index(&orcoDm->faceData, CD_MTFACE) - layer_index;
 			shi.totuv = layers;
 		}
 

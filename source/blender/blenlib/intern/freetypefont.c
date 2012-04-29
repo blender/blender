@@ -82,7 +82,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 	FT_Outline ftoutline;
 	float scale, height;
 	float dx, dy;
-	int j,k,l,m=0;
+	int j, k, l, m=0;
 	
 	// adjust font size
 	height= ((double) face->bbox.yMax - (double) face->bbox.yMin);
@@ -116,8 +116,8 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 		che->width= glyph->advance.x * scale;
 		
 		// Start converting the FT data
-		npoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int),"endpoints");
-		onpoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int),"onpoints");
+		npoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int), "endpoints");
+		onpoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int), "onpoints");
 
 		// calculate total points of each contour
 		for (j = 0; j < ftoutline.n_contours; j++) {
@@ -271,7 +271,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 					// len_squared_v2v2, see if there's a distance between the three points
 					// len_squared_v2v2 again, to check the angle between the handles 
 					// finally, check if one of them is a vector handle 
-					if ((dist_to_line_v2(bezt->vec[0],bezt->vec[1],bezt->vec[2]) < 0.001f) &&
+					if ((dist_to_line_v2(bezt->vec[0], bezt->vec[1], bezt->vec[2]) < 0.001f) &&
 						(len_squared_v2v2(bezt->vec[0], bezt->vec[1]) > 0.0001f*0.0001f) &&
 						(len_squared_v2v2(bezt->vec[1], bezt->vec[2]) > 0.0001f*0.0001f) &&
 						(len_squared_v2v2(bezt->vec[0], bezt->vec[2]) > 0.0002f*0.0001f) &&
@@ -620,7 +620,7 @@ font driver produces such outlines.
 
 
 Each glyph's original outline points are located on a grid of indivisible units. The points are stored
-in the font file as 16-bit integer grid coordinates, with the grid origin's being at (0,0); they thus
+in the font file as 16-bit integer grid coordinates, with the grid origin's being at (0, 0); they thus
 range from -16384 to 16383.
 
 Convert conic to bezier arcs:

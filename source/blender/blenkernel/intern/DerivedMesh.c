@@ -322,7 +322,7 @@ int DM_release(DerivedMesh *dm)
 {
 	if (dm->needsFree) {
 		bvhcache_free(&dm->bvhCache);
-		GPU_drawobject_free( dm );
+		GPU_drawobject_free(dm);
 		CustomData_free(&dm->vertData, dm->numVertData);
 		CustomData_free(&dm->edgeData, dm->numEdgeData);
 		CustomData_free(&dm->faceData, dm->numTessFaceData);
@@ -2536,11 +2536,11 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 
 			if (mf->v4) {
 				v4= &mvert[mf->v4];
-				normal_quad_v3( fno,v4->co, v3->co, v2->co, v1->co);
+				normal_quad_v3(fno, v4->co, v3->co, v2->co, v1->co);
 			}
 			else {
 				v4= NULL;
-				normal_tri_v3( fno,v3->co, v2->co, v1->co);
+				normal_tri_v3(fno, v3->co, v2->co, v1->co);
 			}
 		
 			if (mtface) {
@@ -2551,11 +2551,11 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 			}
 			else {
 				uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
-				map_to_sphere( &uv[0][0], &uv[0][1],orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
-				map_to_sphere( &uv[1][0], &uv[1][1],orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
-				map_to_sphere( &uv[2][0], &uv[2][1],orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
+				map_to_sphere( &uv[0][0], &uv[0][1], orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
+				map_to_sphere( &uv[1][0], &uv[1][1], orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
+				map_to_sphere( &uv[2][0], &uv[2][1], orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
 				if (v4)
-					map_to_sphere( &uv[3][0], &uv[3][1],orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2]);
+					map_to_sphere( &uv[3][0], &uv[3][1], orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2]);
 			}
 		
 			tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, fno, tang);
@@ -2578,11 +2578,11 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 			len= (mf->v4)? 4 : 3; 
 
 			if (mtface == NULL) {
-				map_to_sphere( &uv[0][0], &uv[0][1],orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
-				map_to_sphere( &uv[1][0], &uv[1][1],orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
-				map_to_sphere( &uv[2][0], &uv[2][1],orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
+				map_to_sphere( &uv[0][0], &uv[0][1], orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
+				map_to_sphere( &uv[1][0], &uv[1][1], orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
+				map_to_sphere( &uv[2][0], &uv[2][1], orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
 				if (len==4)
-					map_to_sphere( &uv[3][0], &uv[3][1],orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2]);
+					map_to_sphere( &uv[3][0], &uv[3][1], orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2]);
 			}
 		
 			mf_vi[0]= mf->v1;
@@ -3117,7 +3117,7 @@ static void dm_debug_info_layers(DynStr *dynstr, DerivedMesh *dm, void *(*getEle
 			CustomData_file_write_info(type, &structname, &structnum);
 			BLI_dynstr_appendf(dynstr,
 			                   "        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
-							   name, structname, type, (void *)pt, size, (int)(MEM_allocN_len(pt) / size));
+			                   name, structname, type, (void *)pt, size, (int)(MEM_allocN_len(pt) / size));
 		}
 	}
 }

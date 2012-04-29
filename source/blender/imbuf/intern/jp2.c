@@ -158,7 +158,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 
 
 	if ((image->numcomps * image->x1 * image->y1) == 0) {
-		fprintf(stderr,"\nError: invalid raw image parameters\n");
+		fprintf(stderr, "\nError: invalid raw image parameters\n");
 		return NULL;
 	}
 	
@@ -339,7 +339,7 @@ static void cinema_parameters(opj_cparameters_t *parameters)
 	parameters->tp_flag = 'C';
 	parameters->tp_on = 1;
 
-	/*Tile and Image shall be at (0,0)*/
+	/*Tile and Image shall be at (0, 0)*/
 	parameters->cp_tx0 = 0;
 	parameters->cp_ty0 = 0;
 	parameters->image_offset_x0 = 0;
@@ -363,7 +363,7 @@ static void cinema_parameters(opj_cparameters_t *parameters)
 
 }
 
-static void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *image, img_fol_t *img_fol)
+static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *image, img_fol_t *img_fol)
 {
 	int i;
 	float temp_rate;
@@ -375,9 +375,9 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *imag
 			parameters->numresolution = 6;
 		}
 		if (!((image->comps[0].w == 2048) || (image->comps[0].h == 1080))) {
-			fprintf(stdout,"Image coordinates %d x %d is not 2K compliant.\nJPEG Digital Cinema Profile-3 "
+			fprintf(stdout, "Image coordinates %d x %d is not 2K compliant.\nJPEG Digital Cinema Profile-3 "
 				"(2K profile) compliance requires that at least one of coordinates match 2048 x 1080\n",
-				image->comps[0].w,image->comps[0].h);
+				image->comps[0].w, image->comps[0].h);
 			parameters->cp_rsiz = STD_RSIZ;
 		}
 	break;
@@ -390,12 +390,12 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *imag
 			parameters->numresolution = 7;
 		}
 		if (!((image->comps[0].w == 4096) || (image->comps[0].h == 2160))) {
-			fprintf(stdout,"Image coordinates %d x %d is not 4K compliant.\nJPEG Digital Cinema Profile-4"
+			fprintf(stdout, "Image coordinates %d x %d is not 4K compliant.\nJPEG Digital Cinema Profile-4"
 					"(4K profile) compliance requires that at least one of coordinates match 4096 x 2160\n",
-					image->comps[0].w,image->comps[0].h);
+					image->comps[0].w, image->comps[0].h);
 			parameters->cp_rsiz = STD_RSIZ;
 		}
-		parameters->numpocs = initialise_4K_poc(parameters->POC,parameters->numresolution);
+		parameters->numpocs = initialise_4K_poc(parameters->POC, parameters->numresolution);
 		break;
 	case OFF:
 		/* do nothing */
@@ -465,13 +465,13 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	
 
 	int i, numcomps, w, h, prec;
-	int x,y, y_row;
+	int x, y, y_row;
 	OPJ_COLOR_SPACE color_space;
 	opj_image_cmptparm_t cmptparm[4];	/* maximum of 4 components */
 	opj_image_t * image = NULL;
 	
 	img_fol_t img_fol; /* only needed for cinema presets */
-	memset(&img_fol,0,sizeof(img_fol_t));
+	memset(&img_fol, 0, sizeof(img_fol_t));
 	
 	if (ibuf->ftype & JP2_CINE) {
 		
@@ -552,7 +552,7 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 		float rgb[3];
 		
 		switch (prec) {
-		case 8: /* Convert blenders float color channels to 8,12 or 16bit ints */
+		case 8: /* Convert blenders float color channels to 8, 12 or 16bit ints */
 			for (y=h-1; y>=0; y--) {
 				y_row = y*w;
 				for (x=0; x<w; x++, rect_float+=4) {
@@ -665,7 +665,7 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	parameters->tcp_mct = image->numcomps == 3 ? 1 : 0;
 	
 	if (parameters->cp_cinema) {
-		cinema_setup_encoder(parameters,image,&img_fol);
+		cinema_setup_encoder(parameters, image, &img_fol);
 	}
 	
 	if (img_fol.rates)
@@ -748,7 +748,7 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 		}
 		fwrite(cio->buffer, 1, codestream_length, f);
 		fclose(f);
-		fprintf(stderr,"Generated outfile %s\n",name);
+		fprintf(stderr, "Generated outfile %s\n", name);
 		/* close and free the byte stream */
 		opj_cio_close(cio);
 		

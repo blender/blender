@@ -168,7 +168,7 @@ Collision modifier code end
 * copied from SOLVE_CUBIC.C --> GSL
 */
 
-#define mySWAP(a,b) do { double tmp = b ; b = a ; a = tmp ; } while (0)
+#define mySWAP(a, b) do { double tmp = b ; b = a ; a = tmp ; } while (0)
 #if 0 /* UNUSED */
 static int 
 gsl_poly_solve_cubic (double a, double b, double c, 
@@ -445,7 +445,7 @@ static int cloth_get_collision_time ( double a[3], double b[3], double c[3], dou
 static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 )
 {
 	double	tempV1[3], tempV2[3], tempV4[3];
-	double	a,b,c,d,e,f;
+	double	a, b, c, d, e, f;
 
 	VECSUB ( tempV1, p1, p3 );
 	VECSUB ( tempV2, p2, p3 );
@@ -546,7 +546,7 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 
 			// Decrease in magnitude of relative tangential velocity due to coulomb friction
 			// in original formula "magrelVel" should be the "change of relative velocity in normal direction"
-			magtangent = MIN2 ( clmd->coll_parms->friction * 0.01f * magrelVel, sqrtf( dot_v3v3( vrel_t_pre,vrel_t_pre ) ) );
+			magtangent = MIN2 ( clmd->coll_parms->friction * 0.01f * magrelVel, sqrtf( dot_v3v3( vrel_t_pre, vrel_t_pre ) ) );
 
 			// Apply friction impulse.
 			if ( magtangent > ALMOST_ZERO ) {
@@ -573,7 +573,7 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 			cloth1->verts[collpair->ap3].impulse_count++;
 
 			// Apply repulse impulse if distance too short
-			// I_r = -min(dt*kd, m(0,1d/dt - v_n))
+			// I_r = -min(dt*kd, m(0, 1d/dt - v_n))
 			spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 
 			d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - collpair->distance;
@@ -861,7 +861,7 @@ static int cloth_edge_collision_response_moving ( ClothModifierData *clmd, Colli
 
 			// Decrease in magnitude of relative tangential velocity due to coulomb friction
 			// in original formula "magrelVel" should be the "change of relative velocity in normal direction"
-			magtangent = MIN2 ( clmd->coll_parms->friction * 0.01 * magrelVel,sqrt ( dot_v3v3 ( vrel_t_pre,vrel_t_pre ) ) );
+			magtangent = MIN2 ( clmd->coll_parms->friction * 0.01 * magrelVel, sqrt ( dot_v3v3 ( vrel_t_pre, vrel_t_pre ) ) );
 
 			// Apply friction impulse.
 			if ( magtangent > ALMOST_ZERO ) {
@@ -880,7 +880,7 @@ static int cloth_edge_collision_response_moving ( ClothModifierData *clmd, Colli
 			VECADDMUL ( pimpulse, collpair->normal, impulse);
 
 			// Apply repulse impulse if distance too short
-			// I_r = -min(dt*kd, m(0,1d/dt - v_n))
+			// I_r = -min(dt*kd, m(0, 1d/dt - v_n))
 			spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 
 			d = collpair->distance;
@@ -957,7 +957,7 @@ static int cloth_collision_response_moving ( ClothModifierData *clmd, CollisionM
 	
 				// Decrease in magnitude of relative tangential velocity due to coulomb friction
 				// in original formula "magrelVel" should be the "change of relative velocity in normal direction"
-				magtangent = MIN2 ( clmd->coll_parms->friction * 0.01 * magrelVel,sqrt ( dot_v3v3 ( vrel_t_pre,vrel_t_pre ) ) );
+				magtangent = MIN2 ( clmd->coll_parms->friction * 0.01 * magrelVel, sqrt ( dot_v3v3 ( vrel_t_pre, vrel_t_pre ) ) );
 	
 				// Apply friction impulse.
 				if ( magtangent > ALMOST_ZERO ) {
@@ -976,7 +976,7 @@ static int cloth_collision_response_moving ( ClothModifierData *clmd, CollisionM
 				cloth1->verts[collpair->collp].impulse_count++;
 	
 				// Apply repulse impulse if distance too short
-				// I_r = -min(dt*kd, m(0,1d/dt - v_n))
+				// I_r = -min(dt*kd, m(0, 1d/dt - v_n))
 				spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 	
 				d = -collpair->distance;
@@ -1021,7 +1021,7 @@ static int cloth_collision_response_moving ( ClothModifierData *clmd, CollisionM
 	
 				// Decrease in magnitude of relative tangential velocity due to coulomb friction
 				// in original formula "magrelVel" should be the "change of relative velocity in normal direction"
-				magtangent = MIN2 ( clmd->coll_parms->friction * 0.01 * magrelVel,sqrt ( dot_v3v3 ( vrel_t_pre,vrel_t_pre ) ) );
+				magtangent = MIN2 ( clmd->coll_parms->friction * 0.01 * magrelVel, sqrt ( dot_v3v3 ( vrel_t_pre, vrel_t_pre ) ) );
 	
 				// Apply friction impulse.
 				if ( magtangent > ALMOST_ZERO ) {
@@ -1039,7 +1039,7 @@ static int cloth_collision_response_moving ( ClothModifierData *clmd, CollisionM
 				VECADDMUL ( pimpulse, collpair->normal, impulse);
 	
 				// Apply repulse impulse if distance too short
-				// I_r = -min(dt*kd, m(0,1d/dt - v_n))
+				// I_r = -min(dt*kd, m(0, 1d/dt - v_n))
 				spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 	
 				d = -collpair->distance;
@@ -1461,7 +1461,7 @@ static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2,
 #ifdef USE_BULLET
 		// calc distance + normal
 		distance = plNearestPoints (
-			verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa,collpair->pb,collpair->vector );
+			verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa, collpair->pb, collpair->vector );
 #else
 		// just be sure that we don't add anything
 		distance = 2.0 * (double)( epsilon1 + epsilon2 + ALMOST_ZERO );
@@ -1573,7 +1573,7 @@ static int cloth_collision_response_moving( ClothModifierData *clmd, CollisionMo
 
 			// Decrease in magnitude of relative tangential velocity due to coulomb friction
 			// in original formula "magrelVel" should be the "change of relative velocity in normal direction"
-			magtangent = MIN2 ( clmd->coll_parms->friction * 0.01 * magrelVel,sqrt ( dot_v3v3 ( vrel_t_pre,vrel_t_pre ) ) );
+			magtangent = MIN2 ( clmd->coll_parms->friction * 0.01 * magrelVel, sqrt ( dot_v3v3 ( vrel_t_pre, vrel_t_pre ) ) );
 
 			// Apply friction impulse.
 			if ( magtangent > ALMOST_ZERO )
@@ -1601,7 +1601,7 @@ static int cloth_collision_response_moving( ClothModifierData *clmd, CollisionMo
 			cloth1->verts[collpair->ap3].impulse_count++;
 
 			// Apply repulse impulse if distance too short
-			// I_r = -min(dt*kd, m(0,1d/dt - v_n))
+			// I_r = -min(dt*kd, m(0, 1d/dt - v_n))
 			/*
 			d = clmd->coll_parms->epsilon*8.0/9.0 + epsilon2*8.0/9.0 - collpair->distance;
 			if ( ( magrelVel < 0.1*d*clmd->sim_parms->stepsPerFrame ) && ( d > ALMOST_ZERO ) )
@@ -1635,7 +1635,7 @@ static float projectPointOntoLine(float *p, float *a, float *b)
 	return dot_v3v3(pa, ba) / dot_v3v3(ba, ba);
 }
 
-static void calculateEENormal(float *np1, float *np2, float *np3, float *np4,float *out_normal) 
+static void calculateEENormal(float *np1, float *np2, float *np3, float *np4, float *out_normal)
 {
 	float line1[3], line2[3];
 	float length;
@@ -1987,7 +1987,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 				// printf("sol %d: %lf\n", k, solution[k]);
 				if ( ( solution[k] >= ALMOST_ZERO ) && ( solution[k] <= 1.0 ) && ( solution[k] >  ALMOST_ZERO))
 				{
-					float a,b;
+					float a, b;
 					float out_normal[3];
 					float distance;
 					float impulse = 0;
@@ -2260,11 +2260,11 @@ static void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, Collis
 static int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, CollisionModifierData *collmd, CollPair *collisions, CollPair *collisions_index)
 {
 	Cloth *cloth = clmd->clothObject;
-	int i=0, j = 0, /*numfaces = 0,*/ numverts = 0;
+	int i=0, j = 0, /*numfaces = 0, */ numverts = 0;
 	ClothVertex *verts = NULL;
 	int ret = 0;
 	int result = 0;
-	float tnull[3] = {0,0,0};
+	float tnull[3] = {0, 0, 0};
 	
 	/*numfaces = clmd->clothObject->numfaces;*/ /*UNUSED*/
 	numverts = clmd->clothObject->numverts;
@@ -2343,8 +2343,8 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 		
 		ret2 = 0;
 
-		collisions = MEM_callocN(sizeof(CollPair *) *numcollobj , "CollPair");
-		collisions_index = MEM_callocN(sizeof(CollPair *) *numcollobj , "CollPair");
+		collisions = MEM_callocN(sizeof(CollPair *) *numcollobj, "CollPair");
+		collisions_index = MEM_callocN(sizeof(CollPair *) *numcollobj, "CollPair");
 		
 		// check all collision objects
 		for (i = 0; i < numcollobj; i++) {

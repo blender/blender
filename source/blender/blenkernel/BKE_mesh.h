@@ -146,7 +146,7 @@ void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert);
 void mesh_delete_material_index(struct Mesh *me, short index);
 void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
 void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);
-void mesh_calc_normals_tessface(struct MVert *mverts, int numVerts,struct  MFace *mfaces, int numFaces, float (*faceNors_r)[3]);
+void mesh_calc_normals_tessface(struct MVert *mverts, int numVerts, struct MFace *mfaces, int numFaces, float (*faceNors_r)[3]);
 
 /* used for unit testing; compares two meshes, checking only
  * differences we care about.  should be usable with leaf's

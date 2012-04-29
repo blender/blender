@@ -541,7 +541,7 @@ void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
 	re->clipend= clipend;
 	re->r.mode &= ~R_ORTHO;
 
-	perspective_m4( re->winmat,re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
+	perspective_m4( re->winmat, re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 	
 }
 
@@ -554,7 +554,7 @@ void RE_SetOrtho(Render *re, rctf *viewplane, float clipsta, float clipend)
 	re->clipend= clipend;
 	re->r.mode |= R_ORTHO;
 
-	orthographic_m4( re->winmat,re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
+	orthographic_m4( re->winmat, re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 }
 
 void RE_SetView(Render *re, float mat[][4])
@@ -2375,7 +2375,7 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char
 
 				ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_rectfloat);
 				if (ibuf_clip) {
-					IMB_rectcpy(ibuf_clip, ibuf, 0,0, x,y, layer->rectx, layer->recty);
+					IMB_rectcpy(ibuf_clip, ibuf, 0, 0, x, y, layer->rectx, layer->recty);
 
 					memcpy(layer->rectf, ibuf_clip->rect_float, sizeof(float)*4*layer->rectx*layer->recty);
 					IMB_freeImBuf(ibuf_clip);
@@ -2404,7 +2404,7 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
 	}
 }
 
-const float default_envmap_layout[] = { 0,0, 1,0, 2,0, 0,1, 1,1, 2,1 };
+const float default_envmap_layout[] = { 0, 0, 1, 0, 2, 0, 0, 1, 1, 1, 2, 1 };
 
 int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, const char *relpath, const char imtype, float layout[12])
 {
@@ -2412,7 +2412,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 	ImBuf *ibuf=NULL;
 	int ok;
 	int dx;
-	int maxX=0,maxY=0,i=0;
+	int maxX=0, maxY=0, i=0;
 	char filepath[FILE_MAX];
 
 	if (env->cube[1]==NULL) {
@@ -2427,8 +2427,8 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 
 	if (env->type == ENV_CUBE) {
 		for (i=0; i < 12; i+=2) {
-			maxX = MAX2(maxX,layout[i] + 1);
-			maxY = MAX2(maxY,layout[i+1] + 1);
+			maxX = MAX2(maxX, layout[i] + 1);
+			maxY = MAX2(maxY, layout[i+1] + 1);
 		}
 
 		ibuf = IMB_allocImBuf(maxX*dx, maxY*dx, 24, IB_rectfloat);

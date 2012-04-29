@@ -141,7 +141,7 @@ static void rna_ConstraintActuator_type_set(struct PointerRNA *ptr, int value)
 		switch (ca->type) {
 		case ACT_CONST_TYPE_ORI:
 			/* negative axis not supported in the orientation mode */
-			if (ELEM3(ca->mode, ACT_CONST_DIRNX,ACT_CONST_DIRNY, ACT_CONST_DIRNZ))
+			if (ELEM3(ca->mode, ACT_CONST_DIRNX, ACT_CONST_DIRNY, ACT_CONST_DIRNZ))
 				ca->mode = ACT_CONST_NONE;
 			break;
 

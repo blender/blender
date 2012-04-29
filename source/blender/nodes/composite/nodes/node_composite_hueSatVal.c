@@ -81,7 +81,7 @@ static void node_composit_exec_hue_sat(void *UNUSED(data), bNode *node, bNodeSta
 	else {
 		/* make output size of input image */
 		CompBuf *cbuf= dupalloc_compbuf(in[1]->data);
-		CompBuf *stackbuf=typecheck_compbuf(cbuf,CB_RGBA);
+		CompBuf *stackbuf=typecheck_compbuf(cbuf, CB_RGBA);
 		
 		composit2_pixel_processor(node, stackbuf, stackbuf, in[1]->vec, in[0]->data, in[0]->vec, do_hue_sat_fac, CB_RGBA, CB_VAL);
 

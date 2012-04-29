@@ -294,7 +294,7 @@ static struct ImBuf * do_plugin_effect(
 	                        * old plugins) do very bad stuff
 	                        * with imbuf-internals */
 
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 	int x = context.rectx;
 	int y = context.recty;
 
@@ -548,7 +548,7 @@ static struct ImBuf * do_alphaover_effect(
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 	struct ImBuf *ibuf3)
 {
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
 	if (out->rect_float) {
 		do_alphaover_effect_float(
@@ -937,7 +937,7 @@ static float gammaCorrect(float c)
 	float res = 0.0;
 	
 	i = floor(c * inv_color_step);
-	/* Clip to range [0,1]: outside, just do the complete calculation.       */
+	/* Clip to range [0, 1]: outside, just do the complete calculation.       */
 	/* We may have some performance problems here. Stretching up the LUT     */
 	/* may help solve that, by exchanging LUT size for the interpolation.    */
 	/* Negative colors are explicitly handled.                              */
@@ -1121,7 +1121,7 @@ static struct ImBuf * do_gammacross_effect(
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 	struct ImBuf *ibuf3)
 {
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
 	build_gammatabs();
 
@@ -1240,7 +1240,7 @@ static struct ImBuf * do_add_effect(SeqRenderData context,
 				    struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 				    struct ImBuf *ibuf3)
 {
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
 	if (out->rect_float) {
 		do_add_effect_float(
@@ -1357,7 +1357,7 @@ static struct ImBuf * do_sub_effect(
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 	struct ImBuf *ibuf3)
 {
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
 	if (out->rect_float) {
 		do_sub_effect_float(
@@ -1571,7 +1571,7 @@ static struct ImBuf * do_mul_effect(
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 	struct ImBuf *ibuf3)
 {
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
 	if (out->rect_float) {
 		do_mul_effect_float(
@@ -1612,7 +1612,7 @@ static void precalc_wipe_zone(WipeZone *wipezone, WipeVars *wipe, int xo, int yo
 }
 
 // This function calculates the blur band for the wipe effects
-static float in_band(float width,float dist,int side,int dir)
+static float in_band(float width, float dist, int side, int dir)
 {
 	float alpha;
 
@@ -1636,15 +1636,15 @@ static float in_band(float width,float dist,int side,int dir)
 static float check_zone(WipeZone *wipezone, int x, int y,
 	Sequence *seq, float facf0) 
 {
-	float posx, posy,hyp,hyp2,angle,hwidth,b1,b2,b3,pointdist;
+	float posx, posy, hyp, hyp2, angle, hwidth, b1, b2, b3, pointdist;
 	/* some future stuff */
-	// float hyp3,hyp4,b4,b5
-	float temp1,temp2,temp3,temp4; //some placeholder variables
+	// float hyp3, hyp4, b4, b5
+	float temp1, temp2, temp3, temp4; //some placeholder variables
 	int xo = wipezone->xo;
 	int yo = wipezone->yo;
 	float halfx = xo*0.5f;
 	float halfy = yo*0.5f;
-	float widthf,output=0;
+	float widthf, output=0;
 	WipeVars *wipe = (WipeVars *)seq->effectdata;
 	int width;
 
@@ -1683,15 +1683,15 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 
 			if (wipe->forward) {
 				if (b1 < b2)
-					output = in_band(width,hyp,1,1);
+					output = in_band(width, hyp, 1, 1);
 				else
-					output = in_band(width,hyp,0,1);
+					output = in_band(width, hyp, 0, 1);
 			}
 			else {
 				if (b1 < b2)
-					output = in_band(width,hyp,0,1);
+					output = in_band(width, hyp, 0, 1);
 				else
-					output = in_band(width,hyp,1,1);
+					output = in_band(width, hyp, 1, 1);
 			}
 		break;
 
@@ -1721,25 +1721,25 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 			hwidth = minf(hwidth, fabsf(b3-b1)/2.0f);
 
 			if (b2 < b1 && b2 < b3 ) {
-				output = in_band(hwidth,hyp,0,1);
+				output = in_band(hwidth, hyp, 0, 1);
 			}
 			else if (b2 > b1 && b2 > b3 ) {
-				output = in_band(hwidth,hyp2,0,1);
+				output = in_band(hwidth, hyp2, 0, 1);
 			}
 			else {
 				if (  hyp < hwidth && hyp2 > hwidth )
-					output = in_band(hwidth,hyp,1,1);
+					output = in_band(hwidth, hyp, 1, 1);
 				else if ( hyp > hwidth && hyp2 < hwidth )
-					  output = in_band(hwidth,hyp2,1,1);
+					  output = in_band(hwidth, hyp2, 1, 1);
 				else
-					  output = in_band(hwidth,hyp2,1,1) * in_band(hwidth,hyp,1,1);
+					  output = in_band(hwidth, hyp2, 1, 1) * in_band(hwidth, hyp, 1, 1);
 			}
 			if (!wipe->forward)output = 1-output;
 		break;
 		case DO_CLOCK_WIPE:
 			/*
 			 *  temp1: angle of effect center in rads
-			 *  temp2: angle of line through (halfx,halfy) and (x,y) in rads
+			 *  temp2: angle of line through (halfx, halfy) and (x, y) in rads
 			 *  temp3: angle of low side of blur
 			 *  temp4: angle of high side of blur
 			 */
@@ -1801,19 +1801,19 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 
 			if (b2 < b1 && b2 < b3 ) {
 				if (hwidth < pointdist)
-					output = in_band(wipezone,hwidth,hyp,facf0,0,1);
+					output = in_band(wipezone, hwidth, hyp, facf0, 0, 1);
 		}
 		else if (b2 > b1 && b2 > b3 ) {
 				if (hwidth < pointdist)
-					output = in_band(wipezone,hwidth,hyp2,facf0,0,1);	
+					output = in_band(wipezone, hwidth, hyp2, facf0, 0, 1);
 		}
 		else {
 				if ( hyp < hwidth && hyp2 > hwidth )
-					output = in_band(wipezone,hwidth,hyp,facf0,1,1);
+					output = in_band(wipezone, hwidth, hyp, facf0, 1, 1);
 				else if ( hyp > hwidth && hyp2 < hwidth )
-					 output = in_band(wipezone,hwidth,hyp2,facf0,1,1);
+					 output = in_band(wipezone, hwidth, hyp2, facf0, 1, 1);
 				else
-					 output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
+					 output = in_band(wipezone, hwidth, hyp2, facf0, 1, 1) * in_band(wipezone, hwidth, hyp, facf0, 1, 1);
 			}
 
 			if (invert)facf0 = 1-facf0;
@@ -1827,19 +1827,19 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 
 			if (b2 < b1 && b2 < b3 ) {
 				if (hwidth < pointdist)
-					output *= in_band(wipezone,hwidth,hyp,facf0,0,1);
+					output *= in_band(wipezone, hwidth, hyp, facf0, 0, 1);
 		}
 		else if (b2 > b1 && b2 > b3 ) {
 				if (hwidth < pointdist)
-					output *= in_band(wipezone,hwidth,hyp2,facf0,0,1);	
+					output *= in_band(wipezone, hwidth, hyp2, facf0, 0, 1);
 		}
 		else {
 				if ( hyp < hwidth && hyp2 > hwidth )
-					output *= in_band(wipezone,hwidth,hyp,facf0,1,1);
+					output *= in_band(wipezone, hwidth, hyp, facf0, 1, 1);
 				else if ( hyp > hwidth && hyp2 < hwidth )
-					output *= in_band(wipezone,hwidth,hyp2,facf0,1,1);
+					output *= in_band(wipezone, hwidth, hyp2, facf0, 1, 1);
 				else
-					output *= in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
+					output *= in_band(wipezone, hwidth, hyp2, facf0, 1, 1) * in_band(wipezone, hwidth, hyp, facf0, 1, 1);
 			}
 
 		break;
@@ -1857,8 +1857,8 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 			pointdist = sqrt(temp1*temp1 + temp1*temp1);
 
 			temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
-			if (temp2 > pointdist) output = in_band(hwidth,fabs(temp2-pointdist),0,1);
-			else output = in_band(hwidth,fabs(temp2-pointdist),1,1);
+			if (temp2 > pointdist) output = in_band(hwidth, fabs(temp2-pointdist), 0, 1);
+			else output = in_band(hwidth, fabs(temp2-pointdist), 1, 1);
 
 			if (!wipe->forward) output = 1-output;
 			
@@ -1911,7 +1911,7 @@ static void do_wipe_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1),
 	yo = y;
 	for (y=0;y<yo;y++) {
 		for (x=0;x<xo;x++) {
-			float check = check_zone(&wipezone,x,y,seq,facf0);
+			float check = check_zone(&wipezone, x, y, seq, facf0);
 			if (check) {
 				if (rt1) {
 					rt[0] = (int)(rt1[0]*check)+ (int)(rt2[0]*(1-check));
@@ -1972,7 +1972,7 @@ static void do_wipe_effect_float(Sequence *seq, float facf0, float UNUSED(facf1)
 	yo = y;
 	for (y=0;y<yo;y++) {
 		for (x=0;x<xo;x++) {
-			float check = check_zone(&wipezone,x,y,seq,facf0);
+			float check = check_zone(&wipezone, x, y, seq, facf0);
 			if (check) {
 				if (rt1) {
 					rt[0] = rt1[0]*check+ rt2[0]*(1-check);
@@ -2019,7 +2019,7 @@ static struct ImBuf * do_wipe_effect(
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 	struct ImBuf *ibuf3)
 {
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
 	if (out->rect_float) {
 		do_wipe_effect_float(seq,
@@ -2083,7 +2083,7 @@ static void transform_image(int x, int y, struct ImBuf *ibuf1, struct ImBuf *out
 {
 	int xo, yo, xi, yi;
 	float xt, yt, xr, yr;
-	float s,c;
+	float s, c;
 
 	xo = x;
 	yo = y;
@@ -2114,13 +2114,13 @@ static void transform_image(int x, int y, struct ImBuf *ibuf1, struct ImBuf *out
 			//interpolate
 			switch (interpolation) {
 			case 0:
-				neareast_interpolation(ibuf1,out, xt,yt,xi,yi);
+				neareast_interpolation(ibuf1, out, xt, yt, xi, yi);
 				break;
 			case 1:
-				bilinear_interpolation(ibuf1,out, xt,yt,xi,yi);
+				bilinear_interpolation(ibuf1, out, xt, yt, xi, yi);
 				break;
 			case 2:
-				bicubic_interpolation(ibuf1,out, xt,yt,xi,yi);
+				bicubic_interpolation(ibuf1, out, xt, yt, xi, yi);
 				break;
 			}
 		}
@@ -2128,7 +2128,7 @@ static void transform_image(int x, int y, struct ImBuf *ibuf1, struct ImBuf *out
 }
 
 static void do_transform(Scene *scene, Sequence *seq, float UNUSED(facf0), int x, int y, 
-			  struct ImBuf *ibuf1,struct ImBuf *out)
+			  struct ImBuf *ibuf1, struct ImBuf *out)
 {
 	TransformVars *transform = (TransformVars *)seq->effectdata;
 	float scale_x, scale_y, translate_x, translate_y, rotate_radians;
@@ -2157,17 +2157,17 @@ static void do_transform(Scene *scene, Sequence *seq, float UNUSED(facf0), int x
 	// Rotate
 	rotate_radians = DEG2RADF(transform->rotIni);
 
-	transform_image(x,y, ibuf1, out, scale_x, scale_y, translate_x, translate_y, rotate_radians, transform->interpolation);
+	transform_image(x, y, ibuf1, out, scale_x, scale_y, translate_x, translate_y, rotate_radians, transform->interpolation);
 }
 
 
 static struct ImBuf * do_transform_effect(
-	SeqRenderData context, Sequence *seq,float UNUSED(cfra),
+	SeqRenderData context, Sequence *seq, float UNUSED(cfra),
 	float facf0, float UNUSED(facf1), 
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 	struct ImBuf *ibuf3)
 {
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
 	do_transform(context.scene, seq, facf0, 
 	             context.rectx, context.recty, ibuf1, out);
@@ -2180,7 +2180,7 @@ static struct ImBuf * do_transform_effect(
  * GLOW
  * ********************************************************************** */
 
-static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
+static void RVBlurBitmap2_byte ( unsigned char* map, int width, int height,
 				 float blur,
 				 int quality)
 /*	MUUUCCH better than the previous blur. */
@@ -2192,9 +2192,9 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 /*	a small bitmap.  Avoid avoid avoid. */
 /*=============================== */
 {
-	unsigned char*	temp=NULL,*swap;
+	unsigned char*	temp=NULL, *swap;
 	float	*filter=NULL;
-	int	x,y,i,fx,fy;
+	int	x, y, i, fx, fy;
 	int	index, ix, halfWidth;
 	float	fval, k, curColor[3], curColor2[3], weight=0;
 
@@ -2349,7 +2349,7 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 	MEM_freeN (temp);
 }
 
-static void RVBlurBitmap2_float ( float* map, int width,int height,
+static void RVBlurBitmap2_float ( float* map, int width, int height,
 				  float blur,
 				  int quality)
 /*	MUUUCCH better than the previous blur. */
@@ -2361,9 +2361,9 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 /*	a small bitmap.  Avoid avoid avoid. */
 /*=============================== */
 {
-	float*	temp=NULL,*swap;
+	float*	temp=NULL, *swap;
 	float	*filter=NULL;
-	int	x,y,i,fx,fy;
+	int	x, y, i, fx, fy;
 	int	index, ix, halfWidth;
 	float	fval, k, curColor[3], curColor2[3], weight=0;
 
@@ -2526,15 +2526,15 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 /*=============================== */
 static void RVAddBitmaps_byte (unsigned char* a, unsigned char* b, unsigned char* c, int width, int height)
 {
-	int	x,y,index;
+	int	x, y, index;
 
 	for (y=0;y<height;y++) {
 		for (x=0;x<width;x++) {
 			index=(x+y*width)*4;
-			c[index+GlowR]=MIN2(255,a[index+GlowR]+b[index+GlowR]);
-			c[index+GlowG]=MIN2(255,a[index+GlowG]+b[index+GlowG]);
-			c[index+GlowB]=MIN2(255,a[index+GlowB]+b[index+GlowB]);
-			c[index+GlowA]=MIN2(255,a[index+GlowA]+b[index+GlowA]);
+			c[index+GlowR]=MIN2(255, a[index+GlowR]+b[index+GlowR]);
+			c[index+GlowG]=MIN2(255, a[index+GlowG]+b[index+GlowG]);
+			c[index+GlowB]=MIN2(255, a[index+GlowB]+b[index+GlowB]);
+			c[index+GlowA]=MIN2(255, a[index+GlowA]+b[index+GlowA]);
 		}
 	}
 }
@@ -2542,7 +2542,7 @@ static void RVAddBitmaps_byte (unsigned char* a, unsigned char* b, unsigned char
 static void RVAddBitmaps_float (float* a, float* b, float* c, 
 				int width, int height)
 {
-	int	x,y,index;
+	int	x, y, index;
 
 	for (y=0;y<height;y++) {
 		for (x=0;x<width;x++) {
@@ -2561,7 +2561,7 @@ static void RVIsolateHighlights_byte (unsigned char* in, unsigned char* out,
 					  int width, int height, int threshold, 
 					  float boost, float clamp)
 {
-	int x,y,index;
+	int x, y, index;
 	int	intensity;
 
 
@@ -2591,7 +2591,7 @@ static void RVIsolateHighlights_float (float* in, float* out,
 					  int width, int height, float threshold, 
 					  float boost, float clamp)
 {
-	int x,y,index;
+	int x, y, index;
 	float	intensity;
 
 
@@ -2658,10 +2658,10 @@ static void do_glow_effect_byte(Sequence *seq, int render_size, float facf0, flo
 	unsigned char *inbuf=(unsigned char *)rect1;
 	GlowVars *glow = (GlowVars *)seq->effectdata;
 	
-	RVIsolateHighlights_byte(inbuf, outbuf , x, y, glow->fMini*765, glow->fBoost * facf0, glow->fClamp);
-	RVBlurBitmap2_byte (outbuf, x, y, glow->dDist * (render_size / 100.0f),glow->dQuality);
+	RVIsolateHighlights_byte(inbuf, outbuf, x, y, glow->fMini*765, glow->fBoost * facf0, glow->fClamp);
+	RVBlurBitmap2_byte (outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
 	if (!glow->bNoComp)
-		RVAddBitmaps_byte (inbuf , outbuf, outbuf, x, y);
+		RVAddBitmaps_byte (inbuf, outbuf, outbuf, x, y);
 }
 
 static void do_glow_effect_float(Sequence *seq, int render_size, float facf0, float UNUSED(facf1), 
@@ -2672,10 +2672,10 @@ static void do_glow_effect_float(Sequence *seq, int render_size, float facf0, fl
 	float *inbuf = rect1;
 	GlowVars *glow = (GlowVars *)seq->effectdata;
 
-	RVIsolateHighlights_float(inbuf, outbuf , x, y, glow->fMini*3.0f, glow->fBoost * facf0, glow->fClamp);
-	RVBlurBitmap2_float (outbuf, x, y, glow->dDist * (render_size / 100.0f),glow->dQuality);
+	RVIsolateHighlights_float(inbuf, outbuf, x, y, glow->fMini*3.0f, glow->fBoost * facf0, glow->fClamp);
+	RVBlurBitmap2_float (outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
 	if (!glow->bNoComp)
-		RVAddBitmaps_float (inbuf , outbuf, outbuf, x, y);
+		RVAddBitmaps_float (inbuf, outbuf, outbuf, x, y);
 }
 
 static struct ImBuf * do_glow_effect(
@@ -2684,7 +2684,7 @@ static struct ImBuf * do_glow_effect(
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 	struct ImBuf *ibuf3)
 {
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
 	int render_size = 100*context.rectx/context.scene->r.xsch;
 
@@ -2749,7 +2749,7 @@ static struct ImBuf * do_solid_color(
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 	struct ImBuf *ibuf3)
 {
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
 	SolidColorVars *cv = (SolidColorVars *)seq->effectdata;
 
@@ -3234,7 +3234,7 @@ static struct ImBuf * do_overdrop_effect(SeqRenderData context,
 					 struct ImBuf * ibuf2, 
 					 struct ImBuf * ibuf3)
 {
-	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
+	struct ImBuf * out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 	int x = context.rectx;
 	int y = context.recty;
 

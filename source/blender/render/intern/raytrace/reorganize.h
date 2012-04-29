@@ -61,7 +61,7 @@ bool node_fits_inside(Node *a, Node *b)
 }
 
 template<class Node>
-void reorganize_find_fittest_parent(Node *tree, Node *node, std::pair<float,Node*> &cost)
+void reorganize_find_fittest_parent(Node *tree, Node *node, std::pair<float, Node*> &cost)
 {
 	std::queue<Node*> q;
 	q.push(tree);
@@ -73,7 +73,7 @@ void reorganize_find_fittest_parent(Node *tree, Node *node, std::pair<float,Node
 		if (parent == node) continue;
 		if (node_fits_inside(node, parent) && RE_rayobject_isAligned(parent->child) ) {
 			float pcost = bb_area(parent->bb, parent->bb+3);
-			cost = std::min( cost, std::make_pair(pcost,parent) );
+			cost = std::min( cost, std::make_pair(pcost, parent) );
 			for (Node *child = parent->child; child; child = child->sibling)
 				q.push(child);			
 		}
@@ -96,7 +96,7 @@ void reorganize(Node *root)
 				assert( RE_rayobject_isAligned(*prev) ); 
 				q.push(*prev);
 
-				std::pair<float,Node*> best(FLT_MAX, root);
+				std::pair<float, Node*> best(FLT_MAX, root);
 				reorganize_find_fittest_parent( root, *prev, best );
 
 				if (best.second == node) {
@@ -215,7 +215,7 @@ void pushup_simd(Node *parent)
 	}
 		
 	for (Node *child = parent->child; RE_rayobject_isAligned(child) && child; child = child->sibling)
-		pushup_simd<Node,SSize>(child);
+		pushup_simd<Node, SSize>(child);
 }
 
 

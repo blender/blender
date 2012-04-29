@@ -197,7 +197,7 @@ void addnormalsDispList(ListBase *lb)
 					
 					for (; b<dl->nr; b++) {
 	
-						normal_quad_v3( nor,v1, v3, v4, v2);
+						normal_quad_v3(nor, v1, v3, v4, v2);
 	
 						add_v3_v3(n1, nor);
 						add_v3_v3(n2, nor);
@@ -1197,7 +1197,7 @@ static void rotateBevelPiece(Curve *cu, BevPoint *bevp, DispList *dlb, float wid
 	int b;
 
 	fp = dlb->verts;
-	for (b = 0; b<dlb->nr; b++,fp += 3,data += 3) {
+	for (b = 0; b<dlb->nr; b++, fp += 3, data += 3) {
 		if (cu->flag & CU_3D) {
 			float vec[3];
 
@@ -1288,7 +1288,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			BevList *bl= cu->bev.first;
 			Nurb *nu= nubase->first;
 
-			for (; bl && nu; bl=bl->next,nu=nu->next) {
+			for (; bl && nu; bl=bl->next, nu=nu->next) {
 				DispList *dl;
 				float *data;
 				BevPoint *bevp;
@@ -1357,7 +1357,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 	
 							/* for each point of poly make a bevel piece */
 							bevp= (BevPoint *)(bl+1);
-							for (a=0; a<bl->nr; a++,bevp++) {
+							for (a=0; a<bl->nr; a++, bevp++) {
 								float fac=1.0;
 								if (cu->taperobj==NULL) {
 									if ( (cu->bevobj!=NULL) || !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )

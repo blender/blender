@@ -974,7 +974,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 		writestruct(wd, DATA, "ParticleSystem", 1, psys);
 
 		if (psys->particles) {
-			writestruct(wd, DATA, "ParticleData", psys->totpart ,psys->particles);
+			writestruct(wd, DATA, "ParticleData", psys->totpart, psys->particles);
 
 			if (psys->particles->hair) {
 				ParticleData *pa = psys->particles;
@@ -993,7 +993,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 		for (; pt; pt=pt->next)
 			writestruct(wd, DATA, "ParticleTarget", 1, pt);
 
-		if (psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
+		if (psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild, psys->child);
 
 		if (psys->clmd) {
 			writestruct(wd, DATA, "ClothModifierData", 1, psys->clmd);
@@ -2891,7 +2891,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	/* open temporary file, so we preserve the original in case we crash */
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
-	file = BLI_open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
+	file = BLI_open(tempname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if (file == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s.", tempname, strerror(errno));
 		return 0;
@@ -2929,7 +2929,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		makeFilesRelative(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
 
 	/* actual file writing */
-	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags, thumb);
+	err= write_file_handle(mainvar, file, NULL, NULL, write_user_block, write_flags, thumb);
 	close(file);
 
 	if (err) {

@@ -102,7 +102,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	ins_y = y - row_height*rownum;
 	
 	tint = noise((rownum << 16) + (bricknum & 0xFFFF)) + bias;
-	CLAMP(tint,0.0f,1.0f);
+	CLAMP(tint, 0.0f, 1.0f);
 	
 	if ( ins_x < mortar_thickness || ins_y < mortar_thickness ||
 		ins_x > (brick_width - mortar_thickness) ||

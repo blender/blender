@@ -49,8 +49,8 @@ static bNodeSocketTemplate outputs[]= {
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	Tex *nodetex = (Tex *)node->id;
-	static float red[] = {1,0,0,1};
-	static float white[] = {1,1,1,1};
+	static float red[] = {1, 0, 0, 1};
+	static float white[] = {1, 1, 1, 1};
 	float co[3], dxt[3], dyt[3];
 	
 	copy_v3_v3(co, p->co);
@@ -70,7 +70,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	else if (nodetex) {
 		TexResult texres;
 		int textype;
-		float nor[] = {0,0,0};
+		float nor[] = {0, 0, 0};
 		float col1[4], col2[4];
 		
 		tex_input_rgba(col1, in[0], p, thread);

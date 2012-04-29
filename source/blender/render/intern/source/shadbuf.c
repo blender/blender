@@ -108,7 +108,7 @@ static void copy_to_ztile(int *rectz, int size, int x1, int y1, int tile, char *
 #if 0
 static int sizeoflampbuf(ShadBuf *shb)
 {
-	int num,count=0;
+	int num, count=0;
 	char *cp;
 	
 	cp= shb->cbuf;
@@ -193,7 +193,7 @@ static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 #if 0
 	if (print) {
 		for (a=0, ds=dsample; a<tot; a++, ds++)
-			printf("%lf,%f ", ds->z/(double)0x7FFFFFFF, ds->v);
+			printf("%lf, %f ", ds->z/(double)0x7FFFFFFF, ds->v);
 		printf("\n");
 	}
 #endif
@@ -278,7 +278,7 @@ static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 #if 0
 	if (print) {
 		for (a=0, ds=dsample; a<newtot; a++, ds++)
-			printf("%lf,%f ", ds->z/(double)0x7FFFFFFF, ds->v);
+			printf("%lf, %f ", ds->z/(double)0x7FFFFFFF, ds->v);
 		printf("\n");
 	}
 #endif
@@ -546,7 +546,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 				
 				verg= (*rz1 & 0xFFFFFF00);
 				
-				for (a=0;a<256;a++,rz1++) {
+				for (a=0;a<256;a++, rz1++) {
 					if ( (*rz1 & 0xFFFFFF00) !=verg) break;
 				}
 			}
@@ -564,7 +564,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 				verg1= rc[BCOMP];
 				rc+= 4;
 				byt1= 1; byt2= 1;
-				for (a=1;a<256;a++,rc+=4) {
+				for (a=1;a<256;a++, rc+=4) {
 					byt1 &= (verg==rc[ACOMP]);
 					byt2 &= (verg1==rc[BCOMP]);
 					
@@ -582,7 +582,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 				}
 				else if (byt1) {		/* only store short */
 					*ctile= 2;
-					*ztile= (uintptr_t)MEM_mallocN(2*256+4,"Tile2");
+					*ztile= (uintptr_t)MEM_mallocN(2*256+4, "Tile2");
 					rz= (int *)*ztile;
 					*rz= *rz1;
 					
@@ -595,7 +595,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 				}
 				else {			/* store triple */
 					*ctile= 3;
-					*ztile= (uintptr_t)MEM_mallocN(3*256,"Tile3");
+					*ztile= (uintptr_t)MEM_mallocN(3*256, "Tile3");
 
 					zt= (char *)*ztile;
 					rc= rcline;
@@ -779,7 +779,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	shb->pixsize= (shb->d)/temp;
 	wsize= shb->pixsize*(shb->size/2.0f);
 	
-	perspective_m4( shb->winmat,-wsize, wsize, -wsize, wsize, shb->d, shb->clipend);
+	perspective_m4( shb->winmat, -wsize, wsize, -wsize, wsize, shb->d, shb->clipend);
 	mult_m4_m4m4(shb->persmat, shb->winmat, shb->viewmat);
 
 	if (ELEM3(lar->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP)) {
@@ -1192,7 +1192,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, const float co[3], const float dxc
 			if (firstreadshadbuf(shb, shsample, &rz, (int)(xs1+xres), (int)ys1, 1)) {
 				if (firstreadshadbuf(shb, shsample, &rz, (int)xs1, (int)(ys1+yres), 1)) {
 					if (firstreadshadbuf(shb, shsample, &rz, (int)(xs1+xres), (int)(ys1+yres), 1)) {
-						return readshadowbuf(shb, shsample, bias,(int)xs1, (int)ys1, zs);
+						return readshadowbuf(shb, shsample, bias, (int)xs1, (int)ys1, zs);
 					}
 				}
 			}
@@ -2074,7 +2074,7 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, ObjectInstanceRen *obi, VlakRen *v
 	dface = dot_v3v3(v1, nor);
 	hoco[3]= 1.0f;
 	
-	/* ortho viewplane cannot intersect using view vector originating in (0,0,0) */
+	/* ortho viewplane cannot intersect using view vector originating in (0, 0, 0) */
 	if (R.r.mode & R_ORTHO) {
 		/* x and y 3d coordinate can be derived from pixel coord and winmat */
 		float fx= 2.0f/(R.winx*R.winmat[0][0]);

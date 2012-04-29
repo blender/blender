@@ -359,13 +359,13 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 		/* copy */
 		for (;height > 0; height--) {
 			if (do_char) {
-				memcpy(drect,srect, width * sizeof(int));
+				memcpy(drect, srect, width * sizeof(int));
 				drect += destskip;
 				srect += srcskip;
 			}
 
 			if (do_float) {
-				memcpy(drectf,srectf, width * sizeof(float) * 4);
+				memcpy(drectf, srectf, width * sizeof(float) * 4);
 				drectf += destskip*4;
 				srectf += srcskip*4;
 			}
@@ -496,8 +496,8 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 	CLAMP(y1, 0, height);
 	CLAMP(y2, 0, height);
 
-	if (x1>x2) SWAP(int,x1,x2);
-	if (y1>y2) SWAP(int,y1,y2);
+	if (x1>x2) SWAP(int, x1, x2);
+	if (y1>y2) SWAP(int, y1, y2);
 	if (x1==x2 || y1==y2) return;
 	
 	a = col[3];

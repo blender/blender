@@ -1056,8 +1056,8 @@ void make_local_texture(Tex *tex)
 void autotexname(Tex *tex)
 {
 	Main *bmain= G.main;
-	char texstr[20][15]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
-		"Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "Musgrave",
+	char texstr[20][15]= {"None", "Clouds", "Wood", "Marble", "Magic", "Blend",
+		"Stucci", "Noise", "Image", "Plugin", "EnvMap", "Musgrave",
 		"Voronoi", "DistNoise", "Point Density", "Voxel Data", "Ocean", "", "", ""};
 	Image *ima;
 	char di[FILE_MAXDIR], fi[FILE_MAXFILE];

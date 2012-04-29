@@ -573,7 +573,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			BMEditMesh *em = me->edit_btmesh;
 			BMVert *eve;
 			BMEditSelection ese;
-			float vec[3]= {0,0,0};
+			float vec[3]= {0, 0, 0};
 			
 			/* USE LAST SELECTED WITH ACTIVE */
 			if (activeOnly && BM_select_history_active_get(em->bm, &ese)) {
@@ -769,7 +769,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				float mat[4][4];
 
 				/* Rotation of MetaElem is stored in quat */
-				quat_to_mat4( mat,ml_sel->quat);
+				quat_to_mat4( mat, ml_sel->quat);
 
 				copy_v3_v3(normal, mat[2]);
 

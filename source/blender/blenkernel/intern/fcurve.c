@@ -803,7 +803,7 @@ void calchandles_fcurve (FCurve *fcu)
 		BKE_nurb_handle_calc(bezt, prev, next, 1);	/* 1==special autohandle */
 		
 		/* for automatic ease in and out */
-		if (ELEM(bezt->h1,HD_AUTO,HD_AUTO_ANIM) && ELEM(bezt->h2,HD_AUTO,HD_AUTO_ANIM)) {
+		if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) && ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {
 			/* only do this on first or last beztriple */
 			if ((a == 0) || (a == fcu->totvert-1)) {
 				/* set both handles to have same horizontal value as keyframe */
@@ -1144,8 +1144,8 @@ static float dvar_eval_rotDiff (ChannelDriver *driver, DriverVar *dvar)
 // TODO: this needs to take into account space conversions...
 static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 {
-	float loc1[3] = {0.0f,0.0f,0.0f};
-	float loc2[3] = {0.0f,0.0f,0.0f};
+	float loc1[3] = {0.0f, 0.0f, 0.0f};
+	float loc2[3] = {0.0f, 0.0f, 0.0f};
 	
 	/* get two location values */
 	// NOTE: for now, these are all just worldspace
@@ -1240,7 +1240,7 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	Object *ob= (Object *)dtar_id_ensure_proxy_from(dtar->id);
 	bPoseChannel *pchan;
 	float mat[4][4];
-	float oldEul[3] = {0.0f,0.0f,0.0f};
+	float oldEul[3] = {0.0f, 0.0f, 0.0f};
 	short useEulers=0, rotOrder=ROT_MODE_EUL;
 	
 	/* check if this target has valid data */
@@ -1656,7 +1656,7 @@ static float evaluate_driver (ChannelDriver *driver, const float evaltime)
 				driver->curval= 0.0f;
 			}
 			else {
-				/* this evaluates the expression using Python,and returns its result:
+				/* this evaluates the expression using Python, and returns its result:
 				 * 	- on errors it reports, then returns 0.0f
 				 */
 				driver->curval= BPY_driver_exec(driver, evaltime);

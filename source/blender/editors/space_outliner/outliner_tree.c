@@ -538,7 +538,7 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 		int index;
 		
 		temod->name = "Modifiers";
-		for (index=0,md=ob->modifiers.first; md; index++,md=md->next) {
+		for (index=0, md=ob->modifiers.first; md; index++, md=md->next) {
 			TreeElement *te = outliner_add_element(soops, &temod->subtree, ob, temod, TSE_MODIFIER, index);
 			te->name= md->name;
 			te->directdata = md;
@@ -956,7 +956,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				te->name= RNA_struct_ui_name(ptr->type);
 
 			/* If searching don't expand RNA entries */
-			if (SEARCHING_OUTLINER(soops) && BLI_strcasecmp("RNA",te->name)==0) tselem->flag &= ~TSE_CHILDSEARCH;
+			if (SEARCHING_OUTLINER(soops) && BLI_strcasecmp("RNA", te->name)==0) tselem->flag &= ~TSE_CHILDSEARCH;
 
 			iterprop= RNA_struct_iterator_property(ptr->type);
 			tot= RNA_property_collection_length(ptr, iterprop);
@@ -966,7 +966,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				if (!tselem->used)
 					tselem->flag &= ~TSE_CLOSED;
 
-			if (TSELEM_OPEN(tselem,soops)) {
+			if (TSELEM_OPEN(tselem, soops)) {
 				for (a=0; a<tot; a++)
 					outliner_add_element(soops, &te->subtree, (void*)ptr, te, TSE_RNA_PROPERTY, a);
 			}
@@ -988,13 +988,13 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			te->rnaptr= *ptr;
 
 			/* If searching don't expand RNA entries */
-			if (SEARCHING_OUTLINER(soops) && BLI_strcasecmp("RNA",te->name)==0) tselem->flag &= ~TSE_CHILDSEARCH;
+			if (SEARCHING_OUTLINER(soops) && BLI_strcasecmp("RNA", te->name)==0) tselem->flag &= ~TSE_CHILDSEARCH;
 
 			if (proptype == PROP_POINTER) {
 				pptr= RNA_property_pointer_get(ptr, prop);
 
 				if (pptr.data) {
-					if (TSELEM_OPEN(tselem,soops))
+					if (TSELEM_OPEN(tselem, soops))
 						outliner_add_element(soops, &te->subtree, (void*)&pptr, te, TSE_RNA_STRUCT, -1);
 					else
 						te->flag |= TE_LAZY_CLOSED;
@@ -1003,7 +1003,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			else if (proptype == PROP_COLLECTION) {
 				tot= RNA_property_collection_length(ptr, prop);
 
-				if (TSELEM_OPEN(tselem,soops)) {
+				if (TSELEM_OPEN(tselem, soops)) {
 					for (a=0; a<tot; a++) {
 						RNA_property_collection_lookup_int(ptr, prop, a, &pptr);
 						outliner_add_element(soops, &te->subtree, (void*)&pptr, te, TSE_RNA_STRUCT, a);
@@ -1015,7 +1015,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			else if (ELEM3(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
 				tot= RNA_property_array_length(ptr, prop);
 
-				if (TSELEM_OPEN(tselem,soops)) {
+				if (TSELEM_OPEN(tselem, soops)) {
 					for (a=0; a<tot; a++)
 						outliner_add_element(soops, &te->subtree, (void*)ptr, te, TSE_RNA_ARRAY_ELEM, a);
 				}
@@ -1048,7 +1048,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		te->directdata= idv;
 		te->name= km->idname;
 		
-		if (TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem, soops)) {
 			a= 0;
 			
 			for (kmi = km->items.first; kmi; kmi = kmi->next, a++) {
@@ -1351,7 +1351,7 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 			/* flag as not a found item */
 			tselem->flag &= ~TSE_SEARCHMATCH;
 			
-			if ((!TSELEM_OPEN(tselem,soops)) || outliner_filter_tree(soops, &te->subtree)==0) { 
+			if ((!TSELEM_OPEN(tselem, soops)) || outliner_filter_tree(soops, &te->subtree)==0) {
 				outliner_free_tree(&te->subtree);
 				BLI_remlink(lb, te);
 				

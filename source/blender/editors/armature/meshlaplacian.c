@@ -584,7 +584,7 @@ static void heat_calc_vnormals(LaplacianSystem *sys)
 		v2= (*face)[1];
 		v3= (*face)[2];
 
-		normal_tri_v3( fnor,sys->verts[v1], sys->verts[v2], sys->verts[v3]);
+		normal_tri_v3(fnor, sys->verts[v1], sys->verts[v2], sys->verts[v3]);
 		
 		add_v3_v3(sys->heat.vnors[v1], fnor);
 		add_v3_v3(sys->heat.vnors[v2], fnor);
@@ -945,7 +945,7 @@ void rigid_deform_iteration()
 		}
 	}
 
-	/* solve for positions, for X,Y and Z separately */
+	/* solve for positions, for X, Y and Z separately */
 	for (i=0; i<3; i++) {
 		laplacian_begin_solve(sys, i);
 
@@ -1069,7 +1069,7 @@ void rigid_deform_end(int cancel)
 #define MESHDEFORM_MIN_INFLUENCE 0.0005f
 
 static int MESHDEFORM_OFFSET[7][3] =
-		{{0,0,0}, {1,0,0}, {-1,0,0}, {0,1,0}, {0,-1,0}, {0,0,1}, {0,0,-1}};
+		{{0, 0, 0}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
 typedef struct MDefBoundIsect {
 	float co[3], uvw[4];
@@ -1128,10 +1128,10 @@ typedef struct MeshDeformIsect {
 /* our own triangle intersection, so we can fully control the epsilons and
  * prevent corner case from going wrong*/
 static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
-	float vert1[3], float vert2[3], float *isectco, float *uvw)
+                                    float vert1[3], float vert2[3], float *isectco, float *uvw)
 {
 	float edge1[3], edge2[3], tvec[3], pvec[3], qvec[3];
-	float det,inv_det, u, v, dir[3], isectdir[3];
+	float det, inv_det, u, v, dir[3], isectdir[3];
 
 	sub_v3_v3v3(dir, end, orig);
 
@@ -1208,16 +1208,16 @@ static int meshdeform_intersect(MeshDeformBind *mdb, MeshDeformIsect *isec)
 			hit = meshdeform_tri_intersect(isec->start, end, face[0], face[1], face[2], co, uvw);
 
 			if (hit) {
-				normal_tri_v3( nor,face[0], face[1], face[2]);
+				normal_tri_v3(nor, face[0], face[1], face[2]);
 			}
 			else {
 				hit= meshdeform_tri_intersect(isec->start, end, face[0], face[2], face[3], co, uvw);
-				normal_tri_v3( nor,face[0], face[2], face[3]);
+				normal_tri_v3(nor, face[0], face[2], face[3]);
 			}
 		}
 		else {
 			hit= meshdeform_tri_intersect(isec->start, end, face[0], face[1], face[2], co, uvw);
-			normal_tri_v3( nor,face[0], face[1], face[2]);
+			normal_tri_v3(nor, face[0], face[1], face[2]);
 		}
 
 		if (hit) {
@@ -1281,7 +1281,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 		copy_v3_v3(vert[1], cagecos[mface->v2]);
 		copy_v3_v3(vert[2], cagecos[mface->v3]);
 		if (mface->v4) copy_v3_v3(vert[3], cagecos[mface->v4]);
-		interp_weights_poly_v3( isect->uvw,vert, isect->nvert, isect->co);
+		interp_weights_poly_v3( isect->uvw, vert, isect->nvert, isect->co);
 
 		return isect;
 	}

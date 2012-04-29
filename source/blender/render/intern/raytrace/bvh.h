@@ -153,7 +153,7 @@ static inline void bvh_node_merge_bb(Node *node, float *min, float *max)
 		RE_rayobject_merge_bb( (RayObject*)node, min, max);
 	}
 	else {
-		DO_MIN(node->bb  , min);
+		DO_MIN(node->bb,   min);
 		DO_MAX(node->bb+3, max);
 	}
 }
@@ -165,7 +165,7 @@ static inline void bvh_node_merge_bb(Node *node, float *min, float *max)
  */
 template<class Node> static inline void bvh_node_push_childs(Node *node, Isect *isec, Node **stack, int &stack_pos);
 
-template<class Node,int MAX_STACK_SIZE,bool TEST_ROOT,bool SHADOW>
+template<class Node, int MAX_STACK_SIZE, bool TEST_ROOT, bool SHADOW>
 static int bvh_node_stack_raycast(Node *root, Isect *isec)
 {
 	Node *stack[MAX_STACK_SIZE];
@@ -179,7 +179,7 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 	while (stack_pos) {
 		Node *node = stack[--stack_pos];
 		if (!is_leaf(node)) {
-			if (bvh_node_hit_test(node,isec)) {
+			if (bvh_node_hit_test(node, isec)) {
 				bvh_node_push_childs(node, isec, stack, stack_pos);
 				assert(stack_pos <= MAX_STACK_SIZE);
 			}
@@ -199,7 +199,7 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
  * this was created to be able to use any simd (with the cost of some memmoves)
  * it can take advantage of any SIMD width and doens't needs any special tree care
  */
-template<class Node,int MAX_STACK_SIZE,bool TEST_ROOT>
+template<class Node, int MAX_STACK_SIZE, bool TEST_ROOT>
 static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 {
 	Node *stack[MAX_STACK_SIZE];
@@ -242,20 +242,20 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 			const float *bb2 = stack[stack_pos+2]->bb;
 			const float *bb3 = stack[stack_pos+3]->bb;
 			
-			const __m128 x0y0x1y1 = _mm_shuffle_ps( _mm_load_ps(bb0), _mm_load_ps(bb1), _MM_SHUFFLE(1,0,1,0) );
-			const __m128 x2y2x3y3 = _mm_shuffle_ps( _mm_load_ps(bb2), _mm_load_ps(bb3), _MM_SHUFFLE(1,0,1,0) );
-			t_bb[0] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(2,0,2,0) );
-			t_bb[1] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(3,1,3,1) );
+			const __m128 x0y0x1y1 = _mm_shuffle_ps( _mm_load_ps(bb0), _mm_load_ps(bb1), _MM_SHUFFLE(1, 0, 1, 0) );
+			const __m128 x2y2x3y3 = _mm_shuffle_ps( _mm_load_ps(bb2), _mm_load_ps(bb3), _MM_SHUFFLE(1, 0, 1, 0) );
+			t_bb[0] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(2, 0, 2, 0) );
+			t_bb[1] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(3, 1, 3, 1) );
 
-			const __m128 z0X0z1X1 = _mm_shuffle_ps( _mm_load_ps(bb0), _mm_load_ps(bb1), _MM_SHUFFLE(3,2,3,2) );
-			const __m128 z2X2z3X3 = _mm_shuffle_ps( _mm_load_ps(bb2), _mm_load_ps(bb3), _MM_SHUFFLE(3,2,3,2) );
-			t_bb[2] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(2,0,2,0) );
-			t_bb[3] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(3,1,3,1) );
+			const __m128 z0X0z1X1 = _mm_shuffle_ps( _mm_load_ps(bb0), _mm_load_ps(bb1), _MM_SHUFFLE(3, 2, 3, 2) );
+			const __m128 z2X2z3X3 = _mm_shuffle_ps( _mm_load_ps(bb2), _mm_load_ps(bb3), _MM_SHUFFLE(3, 2, 3, 2) );
+			t_bb[2] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(2, 0, 2, 0) );
+			t_bb[3] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(3, 1, 3, 1) );
 
-			const __m128 Y0Z0Y1Z1 = _mm_shuffle_ps( _mm_load_ps(bb0+4), _mm_load_ps(bb1+4), _MM_SHUFFLE(1,0,1,0) );
-			const __m128 Y2Z2Y3Z3 = _mm_shuffle_ps( _mm_load_ps(bb2+4), _mm_load_ps(bb3+4), _MM_SHUFFLE(1,0,1,0) );
-			t_bb[4] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(2,0,2,0) );
-			t_bb[5] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(3,1,3,1) );
+			const __m128 Y0Z0Y1Z1 = _mm_shuffle_ps( _mm_load_ps(bb0+4), _mm_load_ps(bb1+4), _MM_SHUFFLE(1, 0, 1, 0) );
+			const __m128 Y2Z2Y3Z3 = _mm_shuffle_ps( _mm_load_ps(bb2+4), _mm_load_ps(bb3+4), _MM_SHUFFLE(1, 0, 1, 0) );
+			t_bb[4] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(2, 0, 2, 0) );
+			t_bb[5] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(3, 1, 3, 1) );
 #if 0
 			for(int i=0; i<4; i++)
 			{
@@ -294,7 +294,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 			Node *node = stack[--stack_pos];
 			assert(!is_leaf(node));
 			
-			if (bvh_node_hit_test(node,isec)) {
+			if (bvh_node_hit_test(node, isec)) {
 				if (!is_leaf(node->child)) {
 					bvh_node_push_childs(node, isec, stack, stack_pos);
 					assert(stack_pos <= MAX_STACK_SIZE);
@@ -361,7 +361,7 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 }
 #endif
 
-template<class Node,class HintObject>
+template<class Node, class HintObject>
 void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject *hintObject)
 {
 	assert( hint->size + reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE );

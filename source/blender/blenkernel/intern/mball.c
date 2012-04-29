@@ -142,7 +142,7 @@ typedef struct octal_node {
 	struct ListBase elems;		/* ListBase of MetaElem pointers (ml_pointer) */
 	float x_min, y_min, z_min;	/* 1st border point */
 	float x_max, y_max, z_max;	/* 7th border point */
-	float x,y,z;			/* center of node */
+	float x, y, z;			/* center of node */
 	int pos, neg;			/* number of positive and negative MetaElements in the node */
 	int count;			/* number of MetaElems, which belongs to the node */
 } octal_node;
@@ -520,7 +520,7 @@ Object *BKE_metaball_basis_find(Scene *scene, Object *basis)
 {
 	Scene *sce_iter= scene;
 	Base *base;
-	Object *ob,*bob= basis;
+	Object *ob, *bob= basis;
 	MetaElem *ml=NULL;
 	int basisnr, obnr;
 	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
@@ -614,10 +614,10 @@ Object *BKE_metaball_basis_find(Scene *scene, Object *basis)
 #define HASHBIT	    (5)
 #define HASHSIZE    (size_t)(1<<(3*HASHBIT))   /*! < hash table size (32768) */
 
-#define HASH(i,j,k) ((((( (i) & 31)<<5) | ( (j) & 31))<<5 ) | ( (k) & 31) )
+#define HASH(i, j, k) ((((( (i) & 31)<<5) | ( (j) & 31))<<5 ) | ( (k) & 31) )
 
 #define MB_BIT(i, bit) (((i)>>(bit))&1)
-#define FLIP(i,bit) ((i)^1<<(bit)) /* flip the given bit of i */
+#define FLIP(i, bit) ((i)^1<<(bit)) /* flip the given bit of i */
 
 
 /* **************** POLYGONIZATION ************************ */
@@ -713,13 +713,13 @@ static octal_node* find_metaball_octal_node(octal_node *node, float x, float y, 
 		if (y < node->y) {
 			if (x < node->x) {
 				if (node->nodes[0])
-					return find_metaball_octal_node(node->nodes[0],x,y,z,depth--);
+					return find_metaball_octal_node(node->nodes[0], x, y, z, depth--);
 				else
 					return node;
 			}
 			else {
 				if (node->nodes[1])
-					return find_metaball_octal_node(node->nodes[1],x,y,z,depth--);
+					return find_metaball_octal_node(node->nodes[1], x, y, z, depth--);
 				else
 					return node;
 			}
@@ -727,13 +727,13 @@ static octal_node* find_metaball_octal_node(octal_node *node, float x, float y, 
 		else {
 			if (x < node->x) {
 				if (node->nodes[3])
-					return find_metaball_octal_node(node->nodes[3],x,y,z,depth--);
+					return find_metaball_octal_node(node->nodes[3], x, y, z, depth--);
 				else
 					return node;
 			}
 			else {
 				if (node->nodes[2])
-					return find_metaball_octal_node(node->nodes[2],x,y,z,depth--);
+					return find_metaball_octal_node(node->nodes[2], x, y, z, depth--);
 				else
 					return node;
 			}		
@@ -743,13 +743,13 @@ static octal_node* find_metaball_octal_node(octal_node *node, float x, float y, 
 		if (y < node->y) {
 			if (x < node->x) {
 				if (node->nodes[4])
-					return find_metaball_octal_node(node->nodes[4],x,y,z,depth--);
+					return find_metaball_octal_node(node->nodes[4], x, y, z, depth--);
 				else
 					return node;
 			}
 			else {
 				if (node->nodes[5])
-					return find_metaball_octal_node(node->nodes[5],x,y,z,depth--);
+					return find_metaball_octal_node(node->nodes[5], x, y, z, depth--);
 				else
 					return node;
 			}
@@ -757,13 +757,13 @@ static octal_node* find_metaball_octal_node(octal_node *node, float x, float y, 
 		else {
 			if (x < node->x) {
 				if (node->nodes[7])
-					return find_metaball_octal_node(node->nodes[7],x,y,z,depth--);
+					return find_metaball_octal_node(node->nodes[7], x, y, z, depth--);
 				else
 					return node;
 			}
 			else {
 				if (node->nodes[6])
-					return find_metaball_octal_node(node->nodes[6],x,y,z,depth--);
+					return find_metaball_octal_node(node->nodes[6], x, y, z, depth--);
 				else
 					return node;
 			}		
@@ -919,9 +919,9 @@ static INTLISTS *cubetable[256];
 
 /* edge: LB, LT, LN, LF, RB, RT, RN, RF, BN, BF, TN, TF */
 static int corner1[12]	   = {
-	LBN,LTN,LBN,LBF,RBN,RTN,RBN,RBF,LBN,LBF,LTN,LTF};
+	LBN, LTN, LBN, LBF, RBN, RTN, RBN, RBF, LBN, LBF, LTN, LTF};
 static int corner2[12]	   = {
-	LBF,LTF,LTN,LTF,RBF,RTF,RTN,RTF,RBN,RBF,RTN,RTF};
+	LBF, LTF, LTN, LTF, RBF, RTF, RTN, RTF, RBN, RBF, RTN, RTF};
 static int leftface[12]	   = {
 	B,  L,  L,  F,  R,  T,  N,  R,  N,  B,  T,  F};
 /* face on left when going corner1 to corner2 */
@@ -1197,7 +1197,7 @@ void BKE_metaball_cubeTable_free(void)
 
 /**** Storage ****/
 
-/* setcenter: set (i,j,k) entry of table[]
+/* setcenter: set (i, j, k) entry of table[]
  * return 1 if already set; otherwise, set and return 0 */
 
 static int setcenter(CENTERLIST *table[], int i, int j, int k)
@@ -1405,7 +1405,7 @@ static void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 	int i = 0;
 	MB_POINT pos, neg;
 	float positive = 0.0f, negative = 0.0f;
-	float dx = 0.0f ,dy = 0.0f ,dz = 0.0f;
+	float dx = 0.0f, dy = 0.0f, dz = 0.0f;
 	
 	if (v1 < 0) {
 		pos= *p2;
@@ -1453,7 +1453,7 @@ static void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p->x = 0.5f*(pos.x + neg.x);
-			if ((function(p->x,p->y,p->z)) > 0.0f)	pos.x = p->x; else neg.x = p->x;
+			if ((function(p->x, p->y, p->z)) > 0.0f)	pos.x = p->x; else neg.x = p->x;
 		}
 	}
 
@@ -1463,7 +1463,7 @@ static void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p->y = 0.5f*(pos.y + neg.y);
-			if ((function(p->x,p->y,p->z)) > 0.0f)	pos.y = p->y; else neg.y = p->y;
+			if ((function(p->x, p->y, p->z)) > 0.0f)	pos.y = p->y; else neg.y = p->y;
 		}
 	  }
    
@@ -1473,7 +1473,7 @@ static void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p->z = 0.5f*(pos.z + neg.z);
-			if ((function(p->x,p->y,p->z)) > 0.0f)	pos.z = p->z; else neg.z = p->z;
+			if ((function(p->x, p->y, p->z)) > 0.0f)	pos.z = p->z; else neg.z = p->z;
 		}
 	}
 
@@ -1523,7 +1523,7 @@ static void add_cube(PROCESS *mbproc, int i, int j, int k, int count)
 
 					/* set corners of initial cube: */
 					for (n = 0; n < 8; n++)
-					ncube->cube.corners[n] = setcorner(mbproc, a+MB_BIT(n,2), b+MB_BIT(n,1), c+MB_BIT(n,0));
+					ncube->cube.corners[n] = setcorner(mbproc, a+MB_BIT(n, 2), b+MB_BIT(n, 1), c+MB_BIT(n, 0));
 				}
 			}
 }
@@ -1534,7 +1534,7 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 	MB_POINT IN, in, OUT, out; /*point;*/
 	MetaElem *ml;
 	int i, j, k, c_i, c_j, c_k;
-	int index[3]={1,0,-1};
+	int index[3]={1, 0, -1};
 	float f =0.0f;
 	float in_v /*, out_v*/;
 	MB_POINT workp;
@@ -1610,7 +1610,7 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 					ny = abs((out.y - in.y)/mbproc->size);
 					nz = abs((out.z - in.z)/mbproc->size);
 					
-					MAXN = MAX3(nx,ny,nz);
+					MAXN = MAX3(nx, ny, nz);
 					if (MAXN!=0.0f) {
 						dx = (out.x - in.x)/MAXN;
 						dy = (out.y - in.y)/MAXN;
@@ -1774,7 +1774,7 @@ static float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					if (ml->s > 10.0f) ml->s = 10.0f;
 					
 					/* Rotation of MetaElem is stored in quat */
-					 quat_to_mat4( temp3,ml->quat);
+					 quat_to_mat4( temp3, ml->quat);
 
 					/* Translation of MetaElem */
 					unit_m4(temp2);
@@ -1798,7 +1798,7 @@ static float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					/* MetaBall transformation */
 					mult_m4_m4m4(mat, temp2, temp1);
 
-					invert_m4_m4(imat,mat);				
+					invert_m4_m4(imat, mat);				
 
 					mainb[a]->rad2= ml->rad*ml->rad;
 
@@ -1951,12 +1951,12 @@ static void subdivide_metaball_octal_node(octal_node *node, float size_x, float 
 {
 	MetaElem *ml;
 	ml_pointer *ml_p;
-	float x,y,z;
-	int a,i;
+	float x, y, z;
+	int a, i;
 
 	/* create new nodes */
 	for (a=0;a<8;a++) {
-		node->nodes[a]= MEM_mallocN(sizeof(octal_node),"octal_node");
+		node->nodes[a]= MEM_mallocN(sizeof(octal_node), "octal_node");
 		for (i=0;i<8;i++)
 			node->nodes[a]->nodes[i]= NULL;
 		node->nodes[a]->parent= node;
