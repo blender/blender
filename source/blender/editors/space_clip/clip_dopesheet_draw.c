@@ -154,8 +154,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 	if (clip) {
 		MovieTracking *tracking = &clip->tracking;
-		MovieTrackingTrack *track;
-		ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+		MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
+		MovieTrackingDopesheetChannel *channel;
 		float y, xscale, yscale;
 		float strip[4], selected_strip[4];
 
@@ -172,17 +172,15 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 		glEnable(GL_BLEND);
 
-		for (track = tracksbase->first; track; track = track->next) {
+		for (channel = dopesheet->channels.first; channel; channel = channel->next) {
 			float yminc = (float) (y - CHANNEL_HEIGHT_HALF);
 			float ymaxc = (float) (y + CHANNEL_HEIGHT_HALF);
-
-			if (!TRACK_VIEW_SELECTED(sc, track))
-				continue;
 
 			/* check if visible */
 			if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
 			    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
 			{
+				MovieTrackingTrack *track = channel->track;
 				float alpha;
 				int i, sel = track->flag & TRACK_DOPE_SEL;
 
@@ -272,21 +270,20 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTracking *tracking;
-	MovieTrackingTrack *track;
-	ListBase *tracksbase;
+	MovieTrackingDopesheet *dopesheet;
+	MovieTrackingDopesheetChannel *channel;
 	uiStyle *style = UI_GetStyle();
 	uiBlock *block;
 	int fontid = style->widget.uifont_id;
-	int items, height;
+	int height;
 	float y;
 
 	if (!clip)
 		return;
 
 	tracking = &clip->tracking;
-	tracksbase = BKE_tracking_get_tracks(tracking);
-	items = BLI_countlist(tracksbase);
-	height = (items * CHANNEL_STEP) + (CHANNEL_HEIGHT * 2);
+	dopesheet = &tracking->dopesheet;
+	height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT * 2);
 
 	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
 		/* don't use totrect set, as the width stays the same 
@@ -305,17 +302,15 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 
 	BLF_size(fontid, 11.0f, U.dpi);
 
-	for (track = tracksbase->first; track; track = track->next) {
+	for (channel = dopesheet->channels.first; channel; channel = channel->next) {
 		float yminc = (float) (y - CHANNEL_HEIGHT_HALF);
 		float ymaxc = (float) (y + CHANNEL_HEIGHT_HALF);
-
-		if (!TRACK_VIEW_SELECTED(sc, track))
-			continue;
 
 		/* check if visible */
 		if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
 		    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
 		{
+			MovieTrackingTrack *track = channel->track;
 			float font_height, color[3];
 			int sel = track->flag & TRACK_DOPE_SEL;
 
@@ -345,17 +340,15 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	y = (float) CHANNEL_FIRST;
 
 	glEnable(GL_BLEND);
-	for (track = tracksbase->first; track; track = track->next) {
+	for (channel = dopesheet->channels.first; channel; channel = channel->next) {
 		float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
 		float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
-
-		if (!TRACK_VIEW_SELECTED(sc, track))
-			continue;
 
 		/* check if visible */
 		if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
 		    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
 		{
+			MovieTrackingTrack *track = channel->track;
 			uiBut *but;
 			PointerRNA ptr;
 			int icon;

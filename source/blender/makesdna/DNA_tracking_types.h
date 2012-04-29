@@ -193,6 +193,17 @@ typedef struct MovieTrackingStats {
 	char message[256];
 } MovieTrackingStats;
 
+typedef struct MovieTrackingDopesheetChannel {
+	struct MovieTrackingDopesheetChannel *next, *prev;
+	MovieTrackingTrack *track;
+	int flag, pad;
+} MovieTrackingDopesheetChannel;
+
+typedef struct MovieTrackingDopesheet {
+	ListBase channels;
+	int tot_channel, pad;
+} MovieTrackingDopesheet;
+
 typedef struct MovieTracking {
 	MovieTrackingSettings settings;	/* different tracking-related settings */
 	MovieTrackingCamera camera;		/* camera intrinsics */
@@ -205,6 +216,8 @@ typedef struct MovieTracking {
 	int objectnr, tot_object;		/* index of active object and total number of objects */
 
 	MovieTrackingStats *stats;		/* statistics displaying in clip editor */
+
+	MovieTrackingDopesheet dopesheet;	/* dopesheet data */
 } MovieTracking;
 
 /* MovieTrackingCamera->units */

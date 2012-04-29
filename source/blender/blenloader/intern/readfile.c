@@ -6167,6 +6167,20 @@ static void direct_link_movieTracks(FileData *fd, ListBase *tracksbase)
 	}
 }
 
+static void direct_link_movieDopesheet(FileData *fd, MovieTrackingDopesheet *dopesheet)
+{
+	MovieTrackingDopesheetChannel *channel;
+
+	link_list(fd, &dopesheet->channels);
+
+	channel = dopesheet->channels.first;
+	while (channel) {
+		channel->track = newdataadr(fd, channel->track);
+
+		channel = channel->next;
+	}
+}
+
 static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 {
 	MovieTracking *tracking= &clip->tracking;
@@ -6202,6 +6216,8 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 
 		object= object->next;
 	}
+
+	direct_link_movieDopesheet(fd, &clip->tracking.dopesheet);
 }
 
 static void lib_link_movieclip(FileData *fd, Main *main)

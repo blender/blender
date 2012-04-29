@@ -91,40 +91,28 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
-	MovieTrackingTrack *track;
+	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
+	MovieTrackingDopesheetChannel *channel;
 	float location[2];
-	int extend = RNA_boolean_get(op->ptr, "extend"), channel, channel_index;
+	int extend = RNA_boolean_get(op->ptr, "extend");
+	int current_channel_index = 0, channel_index;
 
 	RNA_float_get_array(op->ptr, "location", location);
-	channel = -(location[1] - (CHANNEL_FIRST + CHANNEL_HEIGHT_HALF)) / CHANNEL_STEP;
+	channel_index = -(location[1] - (CHANNEL_FIRST + CHANNEL_HEIGHT_HALF)) / CHANNEL_STEP;
 
-	for (track = tracksbase->first, channel_index = 0; track; track = track->next) {
-		if (!TRACK_VIEW_SELECTED(sc, track))
-			continue;
+	for (channel = dopesheet->channels.first; channel; channel = channel->next) {
+		MovieTrackingTrack *track = channel->track;
 
-		if (channel_index == channel) {
+		if (current_channel_index == channel_index) {
 			if (extend)
 				track->flag ^= TRACK_DOPE_SEL;
 			else
 				track->flag |= TRACK_DOPE_SEL;
-
-			if (track->flag & TRACK_DOPE_SEL) {
-				MovieTrackingMarker *marker;
-
-				/* make last selected in dopesheet track active in clip editor */
-				tracking->act_track = track;
-
-				/* make active track be centered to screen */
-				/* XXX: doesn't work in other opened spaces */
-				marker = BKE_tracking_get_marker(track, sc->user.framenr);
-				clip_view_center_to_point(sc, marker->pos[0], marker->pos[1]);
-			}
 		}
 		else if (!extend)
 			track->flag &= ~TRACK_DOPE_SEL;
 
-		channel_index++;
+		current_channel_index++;
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);

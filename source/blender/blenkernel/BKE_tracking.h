@@ -164,6 +164,9 @@ struct MovieTrackingObject *BKE_tracking_named_object(struct MovieTracking *trac
 void BKE_tracking_select_track(struct ListBase *tracksbase, struct MovieTrackingTrack *track, int area, int extend);
 void BKE_tracking_deselect_track(struct MovieTrackingTrack *track, int area);
 
+/* Dopesheet */
+void BKE_tracking_update_dopesheet(struct MovieTracking *tracking);
+
 #define TRACK_SELECTED(track)				((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 
 #define TRACK_AREA_SELECTED(track, area)	((area)==TRACK_AREA_POINT ? (track)->flag&SELECT : \

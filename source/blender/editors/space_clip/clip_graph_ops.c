@@ -234,11 +234,6 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 
 			tracking->act_track = userdata.track;
 
-			/* make active track be centered to screen */
-			/* XXX: doesn't work in other opened spaces */
-			marker = BKE_tracking_get_marker(userdata.track, sc->user.framenr);
-			clip_view_center_to_point(sc, marker->pos[0], marker->pos[1]);
-
 			/* deselect all knots on newly selected curve */
 			clip_graph_tracking_iterate(sc, &selectdata, toggle_selection_cb);
 		}
