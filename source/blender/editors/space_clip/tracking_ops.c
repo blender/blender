@@ -78,39 +78,6 @@
 
 #include "clip_intern.h"	// own include
 
-static int space_clip_frame_poll(bContext *C)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		MovieClip *clip = ED_space_clip(sc);
-
-		if (clip)
-			return BKE_movieclip_has_frame(clip, &sc->user);
-	}
-
-	return FALSE;
-}
-
-static int space_clip_size_poll(bContext *C)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		MovieClip *clip = ED_space_clip(sc);
-
-		if (clip) {
-			int width, height;
-
-			BKE_movieclip_get_size(clip, &sc->user, &width, &height);
-
-			return width > 0 && height > 0;
-		}
-	}
-
-	return FALSE;
-}
-
 /********************** add marker operator *********************/
 
 static void add_marker(SpaceClip *sc, float x, float y)
@@ -175,7 +142,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = add_marker_invoke;
 	ot->exec = add_marker_exec;
-	ot->poll = space_clip_size_poll;
+	ot->poll = ED_space_clip_tracking_size_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -220,7 +187,7 @@ void CLIP_OT_delete_track(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_track_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -271,7 +238,7 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_marker_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -662,7 +629,7 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 	ot->idname = "CLIP_OT_slide_marker";
 
 	/* api callbacks */
-	ot->poll = space_clip_size_poll;
+	ot->poll = ED_space_clip_tracking_size_poll;
 	ot->invoke = slide_marker_invoke;
 	ot->modal = slide_marker_modal;
 
@@ -876,7 +843,7 @@ void CLIP_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = select_exec;
 	ot->invoke = select_invoke;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
@@ -953,7 +920,7 @@ void CLIP_OT_select_border(wmOperatorType *ot)
 	ot->invoke = WM_border_select_invoke;
 	ot->exec = border_select_exec;
 	ot->modal = WM_border_select_modal;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
@@ -1037,7 +1004,7 @@ void CLIP_OT_select_circle(wmOperatorType *ot)
 	ot->invoke = WM_gesture_circle_invoke;
 	ot->modal = WM_gesture_circle_modal;
 	ot->exec = circle_select_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1128,7 +1095,7 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = select_all_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1219,7 +1186,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = select_groped_exec;
-	ot->poll = space_clip_size_poll;
+	ot->poll = ED_space_clip_tracking_size_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1596,7 +1563,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = track_markers_exec;
 	ot->invoke = track_markers_invoke;
-	ot->poll = space_clip_frame_poll;
+	ot->poll = ED_space_clip_tracking_frame_poll;
 	ot->modal = track_markers_modal;
 
 	/* flags */
@@ -1819,7 +1786,7 @@ void CLIP_OT_solve_camera(wmOperatorType *ot)
 	ot->exec = solve_camera_exec;
 	ot->invoke = solve_camera_invoke;
 	ot->modal = solve_camera_modal;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1867,7 +1834,7 @@ void CLIP_OT_clear_solution(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = clear_solution_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1919,7 +1886,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = clear_track_path_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1977,7 +1944,7 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = disable_markers_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2035,7 +2002,7 @@ static Object *get_orientation_object(bContext *C)
 
 static int set_orientation_poll(bContext *C)
 {
-	if (space_clip_size_poll(C)) {
+	if (ED_space_clip_tracking_size_poll(C)) {
 		Scene *scene = CTX_data_scene(C);
 		SpaceClip *sc = CTX_wm_space_clip(C);
 		MovieClip *clip = ED_space_clip(sc);
@@ -2645,7 +2612,7 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 
 static int set_solution_scale_poll(bContext *C)
 {
-	if (space_clip_size_poll(C)) {
+	if (ED_space_clip_tracking_size_poll(C)) {
 		SpaceClip *sc = CTX_wm_space_clip(C);
 		MovieClip *clip = ED_space_clip(sc);
 		MovieTracking *tracking = &clip->tracking;
@@ -2723,7 +2690,7 @@ void CLIP_OT_set_center_principal(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = set_center_principal_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2777,7 +2744,7 @@ void CLIP_OT_hide_tracks(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = hide_tracks_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2816,7 +2783,7 @@ void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = hide_tracks_clear_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2898,7 +2865,7 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = detect_features_exec;
-	ot->poll = space_clip_frame_poll;
+	ot->poll = ED_space_clip_tracking_frame_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2993,7 +2960,7 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = frame_jump_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3050,7 +3017,7 @@ void CLIP_OT_join_tracks(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = join_tracks_exec;
-	ot->poll = space_clip_size_poll;
+	ot->poll = ED_space_clip_tracking_size_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3100,7 +3067,7 @@ void CLIP_OT_lock_tracks(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = lock_tracks_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3150,7 +3117,7 @@ void CLIP_OT_track_copy_color(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = track_copy_color_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3199,7 +3166,7 @@ void CLIP_OT_stabilize_2d_add(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = stabilize_2d_add_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3259,7 +3226,7 @@ void CLIP_OT_stabilize_2d_remove(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = stabilize_2d_remove_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3302,7 +3269,7 @@ void CLIP_OT_stabilize_2d_select(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = stabilize_2d_select_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3339,7 +3306,7 @@ void CLIP_OT_stabilize_2d_set_rotation(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = stabilize_2d_set_rotation_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3530,7 +3497,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = clean_tracks_exec;
 	ot->invoke = clean_tracks_invoke;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3567,7 +3534,7 @@ void CLIP_OT_tracking_object_new(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = tracking_object_new_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3605,7 +3572,7 @@ void CLIP_OT_tracking_object_remove(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = tracking_object_remove_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3636,7 +3603,7 @@ void CLIP_OT_copy_tracks(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = copy_tracks_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER;
@@ -3646,7 +3613,7 @@ void CLIP_OT_copy_tracks(wmOperatorType *ot)
 
 static int paste_tracks_poll(bContext *C)
 {
-	if (ED_space_clip_poll(C)) {
+	if (ED_space_clip_tracking_poll(C)) {
 		return BKE_tracking_clipboard_has_tracks();
 	}
 

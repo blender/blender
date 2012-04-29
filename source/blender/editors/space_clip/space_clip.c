@@ -96,7 +96,7 @@ static void init_preview_region(const bContext *C, ARegion *ar)
 	ar->v2d.keeptot = 0;
 }
 
-static ARegion *clip_has_preview_region(const bContext *C, ScrArea *sa)
+static ARegion *ED_clip_has_preview_region(const bContext *C, ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 
@@ -619,10 +619,13 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 
 	if (CTX_data_dir(member)) {
 		CTX_data_dir_set(result, clip_context_dir);
+
 		return TRUE;
 	}
 	else if (CTX_data_equals(member, "edit_movieclip")) {
-		CTX_data_id_pointer_set(result, &sc->clip->id);
+		if (sc->clip)
+			CTX_data_id_pointer_set(result, &sc->clip->id);
+
 		return TRUE;
 	}
 
@@ -636,52 +639,161 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 	Scene *scene = CTX_data_scene(C);
 	SpaceClip *sc = (SpaceClip *)sa->spacedata.first;
 	ARegion *ar_main = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-	ARegion *ar_preview = clip_has_preview_region(C, sa);
+	ARegion *ar_tools = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+	ARegion *ar_tool_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
+	ARegion *ar_preview = ED_clip_has_preview_region(C, sa);
+	ARegion *ar_properties = ED_clip_has_properties_region(sa);
+	int main_visible = FALSE, preview_visible = FALSE, tools_visible = FALSE;
+	int tool_props_visible = FALSE, properties_visible = FALSE;
 	int view_changed = FALSE;
 
 	switch (sc->view) {
 		case SC_VIEW_CLIP:
-			if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
-				ar_preview->flag |= RGN_FLAG_HIDDEN;
-				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-				WM_event_remove_handlers((bContext*)C, &ar_preview->handlers);
-				view_changed = TRUE;
-			}
-			if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
-				ar_main->alignment = RGN_ALIGN_NONE;
-				view_changed = TRUE;
-			}
-			if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
-				/* store graph region align */
-				if (ar_preview->alignment == RGN_ALIGN_TOP)
-					sc->runtime_flag &= ~SC_GRAPH_BOTTOM;
-				else
-					sc->runtime_flag |= SC_GRAPH_BOTTOM;
-
-				ar_preview->alignment = RGN_ALIGN_NONE;
-				view_changed = TRUE;
-			}
+			main_visible = TRUE;
+			preview_visible = FALSE;
+			tools_visible = TRUE;
+			tool_props_visible = TRUE;
+			properties_visible = TRUE;
 			break;
 		case SC_VIEW_GRAPH:
-			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
-				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
-				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-				ar_preview->v2d.cur = ar_preview->v2d.tot;
-				view_changed = TRUE;
-			}
-			if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
-				ar_main->alignment = RGN_ALIGN_NONE;
-				view_changed = TRUE;
-			}
-			if (ar_preview && !ELEM(ar_preview->alignment, RGN_ALIGN_TOP,  RGN_ALIGN_BOTTOM)) {
-				if (sc->runtime_flag & SC_GRAPH_BOTTOM)
-					ar_preview->alignment = RGN_ALIGN_BOTTOM;
-				else
-					ar_preview->alignment = RGN_ALIGN_TOP;
-
-				view_changed = TRUE;
-			}
+			main_visible = TRUE;
+			preview_visible = TRUE;
+			tools_visible = TRUE;
+			tool_props_visible = TRUE;
+			properties_visible = TRUE;
 			break;
+	}
+
+	if (main_visible) {
+		if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
+			ar_main->flag &= ~RGN_FLAG_HIDDEN;
+			ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
+			view_changed = TRUE;
+		}
+
+		if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
+			ar_main->alignment = RGN_ALIGN_NONE;
+			view_changed = TRUE;
+		}
+	}
+	else {
+		if (ar_main && !(ar_main->flag & RGN_FLAG_HIDDEN)) {
+			ar_main->flag |= RGN_FLAG_HIDDEN;
+			ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
+			WM_event_remove_handlers((bContext *)C, &ar_main->handlers);
+			view_changed = TRUE;
+		}
+		if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
+			ar_main->alignment = RGN_ALIGN_NONE;
+			view_changed = TRUE;
+		}
+	}
+
+	if (properties_visible) {
+		if (ar_properties && (ar_properties->flag & RGN_FLAG_HIDDEN)) {
+			ar_properties->flag &= ~RGN_FLAG_HIDDEN;
+			ar_properties->v2d.flag &= ~V2D_IS_INITIALISED;
+			view_changed = TRUE;
+		}
+		if (ar_properties && ar_properties->alignment != RGN_ALIGN_RIGHT) {
+			ar_properties->alignment = RGN_ALIGN_RIGHT;
+			view_changed = TRUE;
+		}
+	}
+	else {
+		if (ar_properties && !(ar_properties->flag & RGN_FLAG_HIDDEN)) {
+			ar_properties->flag |= RGN_FLAG_HIDDEN;
+			ar_properties->v2d.flag &= ~V2D_IS_INITIALISED;
+			WM_event_remove_handlers((bContext *)C, &ar_properties->handlers);
+			view_changed = TRUE;
+		}
+		if (ar_properties && ar_properties->alignment != RGN_ALIGN_NONE) {
+			ar_properties->alignment = RGN_ALIGN_NONE;
+			view_changed = TRUE;
+		}
+	}
+
+	if (tools_visible) {
+		if (ar_tools && (ar_tools->flag & RGN_FLAG_HIDDEN)) {
+			ar_tools->flag &= ~RGN_FLAG_HIDDEN;
+			ar_tools->v2d.flag &= ~V2D_IS_INITIALISED;
+			view_changed = TRUE;
+		}
+		if (ar_tools && ar_tools->alignment != RGN_ALIGN_LEFT) {
+			ar_tools->alignment = RGN_ALIGN_LEFT;
+			view_changed = TRUE;
+		}
+	}
+	else {
+		if (ar_tools && !(ar_tools->flag & RGN_FLAG_HIDDEN)) {
+			ar_tools->flag |= RGN_FLAG_HIDDEN;
+			ar_tools->v2d.flag &= ~V2D_IS_INITIALISED;
+			WM_event_remove_handlers((bContext *)C, &ar_tools->handlers);
+			view_changed = TRUE;
+		}
+		if (ar_tools && ar_tools->alignment != RGN_ALIGN_NONE) {
+			ar_tools->alignment = RGN_ALIGN_NONE;
+			view_changed = TRUE;
+		}
+	}
+
+	if (tool_props_visible) {
+		if (ar_tool_props && (ar_tool_props->flag & RGN_FLAG_HIDDEN)) {
+			ar_tool_props->flag &= ~RGN_FLAG_HIDDEN;
+			ar_tool_props->v2d.flag &= ~V2D_IS_INITIALISED;
+			view_changed = TRUE;
+		}
+		if (ar_tool_props && (ar_tool_props->alignment != (RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV))) {
+			ar_tool_props->alignment = RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+			view_changed = TRUE;
+		}
+	}
+	else {
+		if (ar_tool_props && !(ar_tool_props->flag & RGN_FLAG_HIDDEN)) {
+			ar_tool_props->flag |= RGN_FLAG_HIDDEN;
+			ar_tool_props->v2d.flag &= ~V2D_IS_INITIALISED;
+			WM_event_remove_handlers((bContext *)C, &ar_tool_props->handlers);
+			view_changed = TRUE;
+		}
+		if (ar_tool_props && ar_tool_props->alignment != RGN_ALIGN_NONE) {
+			ar_tool_props->alignment = RGN_ALIGN_NONE;
+			view_changed = TRUE;
+		}
+	}
+
+	if (preview_visible) {
+		if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
+			ar_preview->flag &= ~RGN_FLAG_HIDDEN;
+			ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+			ar_preview->v2d.cur = ar_preview->v2d.tot;
+			view_changed = TRUE;
+		}
+		if (ar_preview && !ELEM(ar_preview->alignment, RGN_ALIGN_TOP,  RGN_ALIGN_BOTTOM)) {
+			if (sc->runtime_flag & SC_GRAPH_BOTTOM)
+				ar_preview->alignment = RGN_ALIGN_BOTTOM;
+			else
+				ar_preview->alignment = RGN_ALIGN_TOP;
+
+			view_changed = TRUE;
+		}
+	}
+	else {
+		/* store graph region align */
+		if (ar_preview->alignment == RGN_ALIGN_TOP)
+			sc->runtime_flag &= ~SC_GRAPH_BOTTOM;
+		else if (ar_preview->alignment == RGN_ALIGN_BOTTOM)
+			sc->runtime_flag |= SC_GRAPH_BOTTOM;
+
+		if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
+			ar_preview->flag |= RGN_FLAG_HIDDEN;
+			ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+			WM_event_remove_handlers((bContext *)C, &ar_preview->handlers);
+			view_changed = TRUE;
+		}
+		if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
+			ar_preview->alignment = RGN_ALIGN_NONE;
+			view_changed = TRUE;
+		}
 	}
 
 	if (view_changed) {
@@ -832,13 +944,13 @@ static void clip_preview_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
-static void clip_preview_area_draw(const bContext *C, ARegion *ar)
+static void graph_area_draw(const bContext *C, ARegion *ar)
 {
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	Scene *scene = CTX_data_scene(C);
-	short unitx = V2D_UNIT_FRAMESCALE, unity = V2D_UNIT_VALUES;
+	short unitx, unity;
 
 	if (sc->flag & SC_LOCK_TIMECURSOR)
 		ED_clip_graph_center_current_frame(scene, ar);
@@ -856,9 +968,18 @@ static void clip_preview_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 
 	/* scrollers */
+	unitx = (sc->flag & SC_SHOW_SECONDS)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
+	unity = V2D_UNIT_VALUES;
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
+}
+
+static void clip_preview_area_draw(const bContext *C, ARegion *ar)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	graph_area_draw(C, ar);
 }
 
 static void clip_preview_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))

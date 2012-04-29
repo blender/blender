@@ -904,6 +904,7 @@ enum {
 #define SC_SHOW_GRAPH_TRACKS	(1<<15)
 /*#define SC_SHOW_PYRAMID_LEVELS	(1<<16) */	/* UNUSED */
 #define SC_LOCK_TIMECURSOR		(1<<17)
+#define SC_SHOW_SECONDS			(1<<18)
 
 /* SpaceClip->mode */
 #define SC_MODE_TRACKING		0

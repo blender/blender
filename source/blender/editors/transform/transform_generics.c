@@ -633,15 +633,16 @@ static void recalcData_image(TransInfo *t)
 }
 
 /* helper for recalcData() - for Movie Clip transforms */
-static void recalcData_clip(TransInfo *t)
+static void recalcData_spaceclip(TransInfo *t)
 {
 	SpaceClip *sc = t->sa->spacedata.first;
+
 	MovieClip *clip = ED_space_clip(sc);
 	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
-	
+
 	flushTransTracking(t);
-	
+
 	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED)==0) {
@@ -658,10 +659,10 @@ static void recalcData_clip(TransInfo *t)
 					BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
 			}
 		}
-		
+
 		track = track->next;
 	}
-	
+
 	DAG_id_tag_update(&clip->id, 0);
 }
 
@@ -900,7 +901,7 @@ void recalcData(TransInfo *t)
 		recalcData_view3d(t);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		recalcData_clip(t);
+		recalcData_spaceclip(t);
 	}
 }
 

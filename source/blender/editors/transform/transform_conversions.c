@@ -4924,14 +4924,16 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		ED_node_link_intersect_test(t->sa, 0);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		SpaceClip *sc = t->sa->spacedata.first;
-		MovieClip *clip = ED_space_clip(sc);
+		if (t->options & CTX_MOVIECLIP) {
+			SpaceClip *sc = t->sa->spacedata.first;
+			MovieClip *clip = ED_space_clip(sc);
 
-		if (t->scene->nodetree) {
-			/* tracks can be used for stabilization nodes,
-			 * flush update for such nodes */
-			nodeUpdateID(t->scene->nodetree, &clip->id);
-			WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+			if (t->scene->nodetree) {
+				/* tracks can be used for stabilization nodes,
+				 * flush update for such nodes */
+				nodeUpdateID(t->scene->nodetree, &clip->id);
+				WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+			}
 		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
@@ -5401,6 +5403,8 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 }
 
 /* *** CLIP EDITOR *** */
+
+/* * motion tracking * */
 
 enum {
 	transDataTracking_ModeTracks = 0,
@@ -5923,7 +5927,8 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_CLIP) {
 		t->flag |= T_POINTS|T_2D_EDIT;
-		createTransTrackingData(C, t);
+		if (t->options & CTX_MOVIECLIP)
+			createTransTrackingData(C, t);
 	}
 	else if (t->obedit) {
 		t->ext = NULL;

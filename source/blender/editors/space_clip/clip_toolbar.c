@@ -56,7 +56,7 @@
 
 /************************** properties ******************************/
 
-static ARegion *clip_has_properties_region(ScrArea *sa)
+ARegion *ED_clip_has_properties_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 
@@ -90,9 +90,9 @@ static int properties_poll(bContext *C)
 static int properties_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
-	ARegion *ar = clip_has_properties_region(sa);
+	ARegion *ar = ED_clip_has_properties_region(sa);
 
-	if (ar)
+	if (ar && ar->alignment != RGN_ALIGN_NONE)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
@@ -167,7 +167,7 @@ static int tools_exec(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = clip_has_tools_region(sa);
 
-	if (ar)
+	if (ar && ar->alignment != RGN_ALIGN_NONE)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;

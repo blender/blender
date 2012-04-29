@@ -225,7 +225,11 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 		adr[1]= out[1];
 	}
 	else if (t->spacetype==SPACE_CLIP) {
-		UI_view2d_to_region_no_clip(t->view, vec[0], vec[1], adr, adr+1);
+		float v[2];
+
+		copy_v2_v2(v, vec);
+
+		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
 }
 
@@ -274,6 +278,19 @@ void applyAspectRatio(TransInfo *t, float *vec)
 		vec[0] /= aspx;
 		vec[1] /= aspy;
 	}
+	else if ((t->spacetype==SPACE_CLIP) && (t->mode==TFM_TRANSLATION)) {
+		if (t->options & CTX_MOVIECLIP) {
+			SpaceClip *sc = t->sa->spacedata.first;
+			float aspx, aspy;
+			int width, height;
+
+			ED_space_clip_size(sc, &width, &height);
+			ED_space_clip_aspect(sc, &aspx, &aspy);
+
+			vec[0] *= width / aspx;
+			vec[1] *= height / aspy;
+		}
+	}
 }
 
 void removeAspectRatio(TransInfo *t, float *vec)
@@ -293,6 +310,19 @@ void removeAspectRatio(TransInfo *t, float *vec)
 		ED_space_image_uv_aspect(sima, &aspx, &aspy);
 		vec[0] *= aspx;
 		vec[1] *= aspy;
+	}
+	else if ((t->spacetype==SPACE_CLIP) && (t->mode==TFM_TRANSLATION)) {
+		if (t->options & CTX_MOVIECLIP) {
+			SpaceClip *sc = t->sa->spacedata.first;
+			float aspx, aspy;
+			int width, height;
+
+			ED_space_clip_size(sc, &width, &height);
+			ED_space_clip_aspect(sc, &aspx, &aspy);
+
+			vec[0] *= aspx / width;
+			vec[1] *= aspy / height;
+		}
 	}
 }
 
@@ -624,10 +654,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					t->redraw |= TREDRAW_HARD;
 				}
 				else if (t->mode == TFM_TRANSLATION) {
-					if (t->options&CTX_MOVIECLIP) {
+					if(t->options & CTX_MOVIECLIP) {
 						restoreTransObjects(t);
 
-						t->flag^= T_ALT_TRANSFORM;
+						t->flag ^= T_ALT_TRANSFORM;
 						t->redraw |= TREDRAW_HARD;
 					}
 				}
@@ -1561,6 +1591,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), helpline_poll, drawHelpline, t);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
+		SpaceClip *sc = CTX_wm_space_clip(C);
 		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
 		t->options |= CTX_MOVIECLIP;

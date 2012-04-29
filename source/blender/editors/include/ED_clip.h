@@ -41,6 +41,9 @@ struct wmEvent;
 
 /* clip_editor.c */
 int ED_space_clip_poll(struct bContext *C);
+int ED_space_clip_tracking_poll(struct bContext *C);
+int ED_space_clip_tracking_size_poll(struct bContext *C);
+int ED_space_clip_tracking_frame_poll(struct bContext *C);
 
 void ED_space_clip_set(struct bContext *C, struct SpaceClip *sc, struct MovieClip *clip);
 struct MovieClip *ED_space_clip(struct SpaceClip *sc);
@@ -57,6 +60,8 @@ int ED_clip_view_selection(struct SpaceClip *sc, struct ARegion *ar, int fit);
 void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2]);
 void ED_clip_point_stable_pos(struct bContext *C, float x, float y, float *xr, float *yr);
 void ED_clip_mouse_pos(struct bContext *C, struct wmEvent *event, float co[2]);
+
+int ED_space_clip_show_trackedit(struct SpaceClip *sc);
 
 /* clip_ops.c */
 void ED_operatormacros_clip(void);

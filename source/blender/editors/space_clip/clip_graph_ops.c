@@ -63,15 +63,13 @@
 
 static int ED_space_clip_graph_poll(bContext *C)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc && sc->clip) {
+	if (ED_space_clip_tracking_poll(C)) {
 		ARegion *ar = CTX_wm_region(C);
 
 		return ar->regiontype == RGN_TYPE_PREVIEW;
 	}
 
-	return 0;
+	return FALSE;
 }
 
 typedef struct {
@@ -486,7 +484,7 @@ void CLIP_OT_graph_delete_curve(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_curve_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;

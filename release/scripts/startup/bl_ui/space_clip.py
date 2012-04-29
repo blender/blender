@@ -829,6 +829,10 @@ class CLIP_MT_view(Menu):
 
     def draw(self, context):
         layout = self.layout
+        sc = context.space_data
+
+        layout.prop(sc, "show_seconds")
+        layout.separator()
 
         layout.operator("clip.properties", icon='MENU_PANEL')
         layout.operator("clip.tools", icon='MENU_PANEL')
