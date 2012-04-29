@@ -718,10 +718,13 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 
 	if (CTX_data_dir(member)) {
 		CTX_data_dir_set(result, clip_context_dir);
+
 		return TRUE;
 	}
 	else if (CTX_data_equals(member, "edit_movieclip")) {
-		CTX_data_id_pointer_set(result, &sc->clip->id);
+		if (sc->clip)
+			CTX_data_id_pointer_set(result, &sc->clip->id);
+
 		return TRUE;
 	}
 

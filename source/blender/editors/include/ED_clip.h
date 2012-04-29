@@ -42,6 +42,9 @@ struct wmEvent;
 
 /* clip_editor.c */
 int ED_space_clip_poll(struct bContext *C);
+int ED_space_clip_tracking_poll(struct bContext *C);
+int ED_space_clip_tracking_size_poll(struct bContext *C);
+int ED_space_clip_tracking_frame_poll(struct bContext *C);
 
 void ED_space_clip_set(struct bContext *C, struct bScreen *screen, struct SpaceClip *sc, struct MovieClip *clip);
 struct MovieClip *ED_space_clip(struct SpaceClip *sc);
@@ -63,6 +66,8 @@ int ED_space_clip_texture_buffer_supported(struct SpaceClip *sc);
 int ED_space_clip_load_movieclip_buffer(struct SpaceClip *sc, struct ImBuf *ibuf);
 void ED_space_clip_unload_movieclip_buffer(struct SpaceClip *sc);
 void ED_space_clip_free_texture_buffer(struct SpaceClip *sc);
+
+int ED_space_clip_show_trackedit(struct SpaceClip *sc);
 
 /* clip_ops.c */
 void ED_operatormacros_clip(void);

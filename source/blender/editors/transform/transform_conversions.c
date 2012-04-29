@@ -424,51 +424,6 @@ static short apply_targetless_ik(Object *ob)
 				bone= parchan->bone;
 				bone->flag |= BONE_TRANSFORM;	/* ensures it gets an auto key inserted */
 
-	/* XXX Old code. Will remove it later. */
-#if 0
-				if (parchan->parent) {
-					Bone *parbone= parchan->parent->bone;
-					float offs_bone[4][4];
-
-					/* offs_bone =  yoffs(b-1) + root(b) + bonemat(b) */
-					copy_m4_m3(offs_bone, bone->bone_mat);
-
-					/* The bone's root offset (is in the parent's coordinate system) */
-					copy_v3_v3(offs_bone[3], bone->head);
-
-					/* Get the length translation of parent (length along y axis) */
-					offs_bone[3][1]+= parbone->length;
-
-					/* pose_mat(b-1) * offs_bone */
-					if (parchan->bone->flag & BONE_HINGE) {
-						/* the rotation of the parent restposition */
-						copy_m4_m4(rmat, parbone->arm_mat);	/* rmat used as temp */
-
-						/* the location of actual parent transform */
-						copy_v3_v3(rmat[3], offs_bone[3]);
-						offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
-						mul_m4_v3(parchan->parent->pose_mat, rmat[3]);
-
-						mult_m4_m4m4(tmat, rmat, offs_bone);
-					}
-					else if (parchan->bone->flag & BONE_NO_SCALE) {
-						mult_m4_m4m4(tmat, parchan->parent->pose_mat, offs_bone);
-						normalize_m4(tmat);
-					}
-					else
-						mult_m4_m4m4(tmat, parchan->parent->pose_mat, offs_bone);
-
-					invert_m4_m4(imat, tmat);
-				}
-				else {
-					copy_m4_m3(tmat, bone->bone_mat);
-
-					copy_v3_v3(tmat[3], bone->head);
-					invert_m4_m4(imat, tmat);
-				}
-				/* result matrix */
-				mult_m4_m4m4(rmat, imat, parchan->pose_mat);
-#endif
 				armature_mat_pose_to_bone(parchan, parchan->pose_mat, rmat);
 
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
@@ -598,48 +553,6 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		else
 			mul_serie_m3(td->mtx, pmat, omat, NULL, NULL,NULL,NULL,NULL,NULL);
 	}
-
-	/* XXX Old code. Will remove it later. */
-#if 0
-	if (ELEM(t->mode, TFM_TRANSLATION, TFM_RESIZE) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION))
-		unit_m3(bmat);
-	else
-		copy_m3_m3(bmat, pchan->bone->bone_mat);
-
-	if (pchan->parent) {
-		if (pchan->bone->flag & BONE_HINGE) {
-			copy_m3_m4(pmat, pchan->parent->bone->arm_mat);
-			if (!(pchan->bone->flag & BONE_NO_SCALE)) {
-				float tsize[3], tsmat[3][3];
-				mat4_to_size(tsize, pchan->parent->pose_mat);
-				size_to_mat3(tsmat, tsize);
-				mul_m3_m3m3(pmat, tsmat, pmat);
-			}
-		}
-		else {
-			copy_m3_m4(pmat, pchan->parent->pose_mat);
-			if (pchan->bone->flag & BONE_NO_SCALE)
-				normalize_m3(pmat);
-		}
-
-		if (constraints_list_needinv(t, &pchan->constraints)) {
-			copy_m3_m4(tmat, pchan->constinv);
-			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, bmat, pmat, omat, cmat, NULL,NULL,NULL,NULL);
-		}
-		else
-			mul_serie_m3(td->mtx, bmat, pmat, omat, NULL,NULL,NULL,NULL,NULL);
-	}
-	else {
-		if (constraints_list_needinv(t, &pchan->constraints)) {
-			copy_m3_m4(tmat, pchan->constinv);
-			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, bmat, omat, cmat, NULL,NULL,NULL,NULL,NULL);
-		}
-		else
-			mul_m3_m3m3(td->mtx, omat, bmat);
-	}
-# endif
 
 	invert_m3_m3(td->smtx, td->mtx);
 
@@ -4924,14 +4837,16 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		ED_node_link_intersect_test(t->sa, 0);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		SpaceClip *sc = t->sa->spacedata.first;
-		MovieClip *clip = ED_space_clip(sc);
+		if (t->options & CTX_MOVIECLIP) {
+			SpaceClip *sc = t->sa->spacedata.first;
+			MovieClip *clip = ED_space_clip(sc);
 
-		if (t->scene->nodetree) {
-			/* tracks can be used for stabilization nodes,
-			 * flush update for such nodes */
-			nodeUpdateID(t->scene->nodetree, &clip->id);
-			WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+			if (t->scene->nodetree) {
+				/* tracks can be used for stabilization nodes,
+				 * flush update for such nodes */
+				nodeUpdateID(t->scene->nodetree, &clip->id);
+				WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+			}
 		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
@@ -5401,6 +5316,8 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 }
 
 /* *** CLIP EDITOR *** */
+
+/* * motion tracking * */
 
 enum {
 	transDataTracking_ModeTracks = 0,
@@ -5923,7 +5840,8 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_CLIP) {
 		t->flag |= T_POINTS|T_2D_EDIT;
-		createTransTrackingData(C, t);
+		if (t->options & CTX_MOVIECLIP)
+			createTransTrackingData(C, t);
 	}
 	else if (t->obedit) {
 		t->ext = NULL;
