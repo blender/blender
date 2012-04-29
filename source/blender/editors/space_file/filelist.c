@@ -419,7 +419,7 @@ void filelist_free_icons(void)
 //-----------------FOLDERLIST (previous/next) --------------//
 struct ListBase* folderlist_new(void)
 {
-	ListBase* p = MEM_callocN( sizeof(ListBase), "folderlist" );
+	ListBase* p = MEM_callocN(sizeof(ListBase), "folderlist" );
 	return p;
 }
 
@@ -519,7 +519,7 @@ static void filelist_read_dir(struct FileList* filelist);
 //------------------FILELIST------------------------//
 struct FileList*	filelist_new(short type)
 {
-	FileList* p = MEM_callocN( sizeof(FileList), "filelist" );
+	FileList* p = MEM_callocN(sizeof(FileList), "filelist" );
 	switch (type) {
 		case FILE_MAIN:
 			p->readf = filelist_read_main;
@@ -1144,7 +1144,7 @@ void filelist_from_main(struct FileList *filelist)
 		filelist->filelist= (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry));
 		
 		for (a=0; a<filelist->numfiles; a++) {
-			memset( &(filelist->filelist[a]), 0, sizeof(struct direntry));
+			memset(&(filelist->filelist[a]), 0, sizeof(struct direntry));
 			filelist->filelist[a].type |= S_IFDIR;
 		}
 		
@@ -1198,7 +1198,7 @@ void filelist_from_main(struct FileList *filelist)
 		files = filelist->filelist;
 		
 		if (!filelist->hide_parent) {
-			memset( &(filelist->filelist[0]), 0, sizeof(struct direntry));
+			memset(&(filelist->filelist[0]), 0, sizeof(struct direntry));
 			filelist->filelist[0].relname= BLI_strdup("..");
 			filelist->filelist[0].type |= S_IFDIR;
 		

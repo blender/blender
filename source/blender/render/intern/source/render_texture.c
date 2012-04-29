@@ -970,7 +970,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 			fy = (t[1] + 1.0f) / 2.0f;
 		}
 		else if (wrap==MTEX_TUBE) map_to_tube( &fx, &fy, t[0], t[1], t[2]);
-		else if (wrap==MTEX_SPHERE) map_to_sphere( &fx, &fy, t[0], t[1], t[2]);
+		else if (wrap==MTEX_SPHERE) map_to_sphere(&fx, &fy, t[0], t[1], t[2]);
 		else {
 			if (texco==TEXCO_OBJECT) cubemap_ob(ob, n, t[0], t[1], t[2], &fx, &fy);
 			else if (texco==TEXCO_GLOB) cubemap_glob(n, t[0], t[1], t[2], &fx, &fy);
@@ -1041,20 +1041,20 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 			}
 			if (ok) {
 				if (wrap==MTEX_TUBE) {
-					map_to_tube( area, area+1, t[0], t[1], t[2]);
-					map_to_tube( area+2, area+3, t[0]+dxt[0], t[1]+dxt[1], t[2]+dxt[2]);
-					map_to_tube( area+4, area+5, t[0]+dyt[0], t[1]+dyt[1], t[2]+dyt[2]);
+					map_to_tube(area, area+1, t[0], t[1], t[2]);
+					map_to_tube(area + 2, area + 3, t[0] + dxt[0], t[1] + dxt[1], t[2] + dxt[2]);
+					map_to_tube(area + 4, area + 5, t[0] + dyt[0], t[1] + dyt[1], t[2] + dyt[2]);
 				}
 				else { 
 					map_to_sphere(area, area+1, t[0], t[1], t[2]);
-					map_to_sphere( area+2, area+3, t[0]+dxt[0], t[1]+dxt[1], t[2]+dxt[2]);
-					map_to_sphere( area+4, area+5, t[0]+dyt[0], t[1]+dyt[1], t[2]+dyt[2]);
+					map_to_sphere(area + 2, area + 3, t[0] + dxt[0], t[1] + dxt[1], t[2] + dxt[2]);
+					map_to_sphere(area + 4, area + 5, t[0] + dyt[0], t[1] + dyt[1], t[2] + dyt[2]);
 				}
 				areaflag= 1;
 			}
 			else {
 				if (wrap==MTEX_TUBE) map_to_tube( &fx, &fy, t[0], t[1], t[2]);
-				else map_to_sphere( &fx, &fy, t[0], t[1], t[2]);
+				else map_to_sphere(&fx, &fy, t[0], t[1], t[2]);
 				dxt[0]/= 2.0f;
 				dxt[1]/= 2.0f;
 				dyt[0]/= 2.0f;
@@ -2102,9 +2102,9 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		
 			// generate the surface derivatives in object space
 			mul_m3_v3(view2obj, dPdx);
-			mul_m3_v3( view2obj, dPdy );
+			mul_m3_v3(view2obj, dPdy);
 			// generate the unit normal in object space
-			mul_transposed_m3_v3( obj2view, vN );
+			mul_transposed_m3_v3(obj2view, vN);
 			normalize_v3(vN);
 		}
 		
@@ -2126,9 +2126,9 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		fMagnitude = abs_fDet;
 		if ( mtex->texflag & MTEX_BUMP_OBJECTSPACE ) {
 			// pre do transform of texres->nor by the inverse transposed of obj2view
-			mul_transposed_m3_v3( view2obj, vN );
-			mul_transposed_m3_v3( view2obj, ntap_bump->vR1 );
-			mul_transposed_m3_v3( view2obj, ntap_bump->vR2 );
+			mul_transposed_m3_v3(view2obj, vN);
+			mul_transposed_m3_v3(view2obj, ntap_bump->vR1);
+			mul_transposed_m3_v3(view2obj, ntap_bump->vR2);
 			
 			fMagnitude *= len_v3(vN);
 		}
@@ -3078,7 +3078,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 			case TEXCO_H_TUBEMAP:
 				if (skyflag & WO_ZENUP) {
 					if (mtex->texco==TEXCO_H_TUBEMAP) map_to_tube( tempvec, tempvec+1, lo[0], lo[2], lo[1]);
-					else map_to_sphere( tempvec, tempvec+1, lo[0], lo[2], lo[1]);
+					else map_to_sphere(tempvec, tempvec+1, lo[0], lo[2], lo[1]);
 					/* tube/spheremap maps for outside view, not inside */
 					tempvec[0]= 1.0f-tempvec[0];
 					/* only top half */

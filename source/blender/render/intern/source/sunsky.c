@@ -340,7 +340,7 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 
 	for (i = 0; i < 3; i++) {
 		// Rayleigh Scattering
-		fTauR = expf( -m * 0.008735f * powf(fLambda[i], (float)(-4.08f)));
+		fTauR = expf(-m * 0.008735f * powf(fLambda[i], (float)(-4.08f)));
 
 		// Aerosal (water + dust) attenuation
 		fTauA = exp(-m * fBeta * powf(fLambda[i], -fAlpha));
@@ -434,7 +434,7 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
  * s, is distance 
  * rgb, contains rendered color value for a pixle
  * */
-void AtmospherePixleShader( struct SunSky* sunSky, float view[3], float s, float rgb[3])
+void AtmospherePixleShader(struct SunSky* sunSky, float view[3], float s, float rgb[3])
 {
 	float costheta;
 	float Phase_1;

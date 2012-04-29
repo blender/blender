@@ -106,7 +106,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 	B0 = dot_v3v3(diff, e0 );
 	B1 = dot_v3v3(diff, e1 );
 	C = dot_v3v3(diff, diff );
-	Det = fabs( A00 * A11 - A01 * A01 );
+	Det = fabs(A00 * A11 - A01 * A01);
 	S = A01 * B1 - A11 * B0;
 	T = A01 * B0 - A00 * B1;
 

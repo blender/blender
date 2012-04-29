@@ -183,7 +183,7 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void NLA_OT_select_all_toggle (wmOperatorType *ot)
+void NLA_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "(De)select All";
@@ -254,8 +254,8 @@ static void borderselect_nla_strips (bAnimContext *ac, rcti rect, short mode, sh
 				
 				/* only select strips if they fall within the required ranges (if applicable) */
 				for (strip= nlt->strips.first; strip; strip= strip->next) {
-					if ( (mode == NLA_BORDERSEL_CHANNELS) || 
-						  BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax) ) 
+					if ( (mode == NLA_BORDERSEL_CHANNELS) ||
+					     BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax))
 					{
 						/* set selection */
 						ACHANNEL_SET_FLAG(strip, selectmode, NLASTRIP_FLAG_SELECT);
@@ -481,7 +481,7 @@ static int nlaedit_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 	return nlaedit_select_leftright_exec(C, op);
 }
 
-void NLA_OT_select_leftright (wmOperatorType *ot)
+void NLA_OT_select_leftright(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Left/Right";
@@ -643,7 +643,7 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
  
-void NLA_OT_click_select (wmOperatorType *ot)
+void NLA_OT_click_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Mouse Select";

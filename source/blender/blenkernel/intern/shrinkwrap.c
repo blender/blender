@@ -121,7 +121,7 @@ void space_transform_invert(const SpaceTransform *data, float *co)
 
 static void space_transform_apply_normal(const SpaceTransform *data, float *no)
 {
-	mul_mat3_m4_v3( ((SpaceTransform*)data)->local2target, no);
+	mul_mat3_m4_v3(((SpaceTransform *)data)->local2target, no);
 	normalize_v3(no); // TODO: could we just determine de scale value from the matrix?
 }
 
@@ -218,19 +218,19 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 	BVHTreeRayHit hit_tmp;
 
 	//Copy from hit (we need to convert hit rays from one space coordinates to the other
-	memcpy( &hit_tmp, hit, sizeof(hit_tmp) );
+	memcpy(&hit_tmp, hit, sizeof(hit_tmp));
 
 	//Apply space transform (TODO readjust dist)
 	if (transf) {
-		copy_v3_v3( tmp_co, vert );
-		space_transform_apply( transf, tmp_co );
+		copy_v3_v3(tmp_co, vert);
+		space_transform_apply(transf, tmp_co);
 		co = tmp_co;
 
-		copy_v3_v3( tmp_no, dir );
-		space_transform_apply_normal( transf, tmp_no );
+		copy_v3_v3(tmp_no, dir);
+		space_transform_apply_normal(transf, tmp_no);
 		no = tmp_no;
 
-		hit_tmp.dist *= mat4_to_scale( ((SpaceTransform*)transf)->local2target );
+		hit_tmp.dist *= mat4_to_scale(((SpaceTransform*)transf)->local2target);
 	}
 	else {
 		co = vert;
@@ -315,7 +315,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		auxMesh = object_get_derived_final(calc->smd->auxTarget);
 		if (!auxMesh)
 			return;
-		space_transform_setup( &local2aux, calc->ob, calc->smd->auxTarget);
+		space_transform_setup(&local2aux, calc->ob, calc->smd->auxTarget);
 	}
 
 	//After sucessufuly build the trees, start projection vertexs
@@ -456,7 +456,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 				if (dist > FLT_EPSILON)
 					interp_v3_v3v3(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist)/dist);	//linear interpolation
 				else
-					copy_v3_v3( tmp_co, nearest.co );
+					copy_v3_v3(tmp_co, nearest.co);
 			}
 
 			//Convert the coordinates back to mesh coordinates

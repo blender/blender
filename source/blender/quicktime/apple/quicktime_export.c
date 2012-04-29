@@ -263,7 +263,7 @@ static OSErr QT_GetCodecSettingsFromScene(RenderData *rd, ReportList *reports)
 	// if there is codecdata in the blendfile, convert it to a Quicktime handle 
 	if (qcd) {
 		myHandle = NewHandle(qcd->cdSize);
-		PtrToHand( qcd->cdParms, &myHandle, qcd->cdSize);
+		PtrToHand(qcd->cdParms, &myHandle, qcd->cdSize);
 	}
 		
 	// restore codecsettings to the quicktime component
@@ -350,7 +350,7 @@ static void QT_CreateMyVideoTrack(int rectx, int recty, ReportList *reports)
 	                                    FixRatio(trackFrame.right, 1),
 	                                    FixRatio(trackFrame.bottom, 1),
 	                                    0);
-	CheckError( GetMoviesError(), "NewMovieTrack error", reports );
+	CheckError(GetMoviesError(), "NewMovieTrack error", reports);
 
 	//	SetIdentityMatrix(&myMatrix);
 	//	ScaleMatrix(&myMatrix, fixed1, Long2Fix(-1), 0, 0);
@@ -362,10 +362,10 @@ static void QT_CreateMyVideoTrack(int rectx, int recty, ReportList *reports)
 	                                    qtdata->kVideoTimeScale,
 	                                    nil,
 	                                    0);
-	CheckError( GetMoviesError(), "NewTrackMedia error", reports );
+	CheckError(GetMoviesError(), "NewTrackMedia error", reports);
 
 	err = BeginMediaEdits (qtexport->theMedia);
-	CheckError( err, "BeginMediaEdits error", reports );
+	CheckError(err, "BeginMediaEdits error", reports);
 
 	QT_StartAddVideoSamplesToMedia (&trackFrame, rectx, recty, reports);
 } 
@@ -378,14 +378,14 @@ static void QT_EndCreateMyVideoTrack(ReportList *reports)
 	QT_EndAddVideoSamplesToMedia ();
 
 	err = EndMediaEdits (qtexport->theMedia);
-	CheckError( err, "EndMediaEdits error", reports );
+	CheckError(err, "EndMediaEdits error", reports);
 
 	err = InsertMediaIntoTrack (qtexport->theTrack,
 	                            kTrackStart, /* track start time */
 	                            kMediaStart, /* media start time */
 	                            GetMediaDuration (qtexport->theMedia),
 	                            fixed1);
-	CheckError( err, "InsertMediaIntoTrack error", reports );
+	CheckError(err, "InsertMediaIntoTrack error", reports);
 } 
 
 
@@ -515,7 +515,7 @@ void filepath_qt(char *string, RenderData *rd)
 	BLI_make_existing_file(string);
 
 	if (BLI_strcasecmp(string + strlen(string) - 4, ".mov")) {
-		sprintf(txt, "%04d-%04d.mov", (rd->sfra), (rd->efra) );
+		sprintf(txt, "%04d-%04d.mov", (rd->sfra), (rd->efra));
 		strcat(string, txt);
 	}
 }
@@ -684,7 +684,7 @@ static void check_renderbutton_framerate(RenderData *rd, ReportList *reports)
 	}
 	
 	err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
-	CheckError( err, "SCSetInfo error", reports );
+	CheckError(err, "SCSetInfo error", reports);
 
 	if (qtdata->gTemporalSettings.frameRate == 1571553) {			// 23.98 fps
 		qtdata->kVideoTimeScale = 24000;

@@ -534,7 +534,7 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 
 /* exported for use in editors/object/ */
 /* 0 == do center, 1 == center new, 2 == center cursor */
-void docenter_armature (Scene *scene, Object *ob, float cursor[3], int centermode, int around)
+void docenter_armature(Scene *scene, Object *ob, float cursor[3], int centermode, int around)
 {
 	Object *obedit= scene->obedit; // XXX get from context
 	EditBone *ebone;
@@ -610,7 +610,7 @@ static int editbone_unique_check(void *arg, const char *name)
 	return dupli && dupli != data->bone;
 }
 
-void unique_editbone_name (ListBase *edbo, char *name, EditBone *bone)
+void unique_editbone_name(ListBase *edbo, char *name, EditBone *bone)
 {
 	struct {ListBase *lb; void *bone;} data;
 	data.lb= edbo;
@@ -693,7 +693,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 			
 			/* remove auto from visual and get euler rotation */
 			mul_m3_m3m3(tmat, imat, pmat);
-			mat3_to_eul( eul, tmat);
+			mat3_to_eul(eul, tmat);
 			
 			/* just use this euler-y as new roll value */
 			curbone->roll= eul[1];
@@ -726,7 +726,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_armature_apply (wmOperatorType *ot)
+void POSE_OT_armature_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Apply Pose as Rest Pose";
@@ -776,7 +776,7 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_visual_transform_apply (wmOperatorType *ot)
+void POSE_OT_visual_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Apply Visual Transform to Pose";
@@ -1239,7 +1239,7 @@ static int separate_armature_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_separate (wmOperatorType *ot)
+void ARMATURE_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Separate Bones";
@@ -2944,7 +2944,7 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_fill (wmOperatorType *ot)
+void ARMATURE_OT_fill(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Fill Between Joints";
@@ -3123,7 +3123,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_merge (wmOperatorType *ot)
+void ARMATURE_OT_merge(wmOperatorType *ot)
 {
 	static EnumPropertyItem merge_types[] = {
 		{1, "WITHIN_CHAIN", 0, "Within Chains", ""},
@@ -4345,7 +4345,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
  * test==2: only clear active tag
  * test==3: swap select (no test / inverse selection status of all independently)
  */
-void ED_pose_deselectall (Object *ob, int test)
+void ED_pose_deselectall(Object *ob, int test)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
@@ -4828,7 +4828,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 				quat_to_eul(oldeul, quat1);
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-				axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
+				axis_angle_to_eulO(oldeul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
 			}
 			else {
 				copy_v3_v3(oldeul, pchan->eul);
@@ -4855,7 +4855,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 				}
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-				eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
+				eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
 			}
 			else {
 				copy_v3_v3(pchan->eul, eul);
@@ -5446,7 +5446,7 @@ static int armature_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_flip_names (wmOperatorType *ot)
+void ARMATURE_OT_flip_names(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Flip Names";
@@ -5491,7 +5491,7 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_autoside_names (wmOperatorType *ot)
+void ARMATURE_OT_autoside_names(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[]= {
 		 {0, "XAXIS", 0, "X-Axis", "Left/Right"},
@@ -5679,7 +5679,7 @@ float arcLengthRatio(ReebArc *arc)
 	
 	if (arc->bcount > 0) {
 		/* Add the embedding */
-		for ( i = 1; i < arc->bcount; i++) {
+		for (i = 1; i < arc->bcount; i++) {
 			embedLength += len_v3v3(arc->buckets[i - 1].p, arc->buckets[i].p);
 		}
 		/* Add head and tail -> embedding vectors */

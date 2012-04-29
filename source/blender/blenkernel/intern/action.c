@@ -157,7 +157,7 @@ void make_local_action(bAction *act)
 
 /* .................................. */
 
-void free_action (bAction *act)
+void free_action(bAction *act)
 {
 	/* sanity check */
 	if (act == NULL)
@@ -235,7 +235,7 @@ bActionGroup *get_active_actiongroup (bAction *act)
 }
 
 /* Make the given Action-Group the active one */
-void set_active_action_group (bAction *act, bActionGroup *agrp, short select)
+void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 {
 	bActionGroup *grp;
 	
@@ -280,7 +280,7 @@ bActionGroup *action_groups_add_new (bAction *act, const char name[])
  *	- assumes that channel is not linked to anything anymore
  *	- always adds at the end of the group 
  */
-void action_groups_add_channel (bAction *act, bActionGroup *agrp, FCurve *fcurve)
+void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 {	
 	/* sanity checks */
 	if (ELEM3(NULL, act, agrp, fcurve))
@@ -346,7 +346,7 @@ void action_groups_add_channel (bAction *act, bActionGroup *agrp, FCurve *fcurve
 }	
 
 /* Remove the given channel from all groups */
-void action_groups_remove_channel (bAction *act, FCurve *fcu)
+void action_groups_remove_channel(bAction *act, FCurve *fcu)
 {
 	/* sanity checks */
 	if (ELEM(NULL, act, fcu))	
@@ -394,7 +394,7 @@ bActionGroup *action_groups_find_named (bAction *act, const char name[])
 }
 
 /* Clear all 'temp' flags on all groups */
-void action_groups_clear_tempflags (bAction *act)
+void action_groups_clear_tempflags(bAction *act)
 {
 	bActionGroup *agrp;
 	
@@ -491,7 +491,7 @@ const char *get_ikparam_name(bPose *pose)
 	return NULL;
 }
 /* dst should be freed already, makes entire duplicate */
-void copy_pose (bPose **dst, bPose *src, int copycon)
+void copy_pose(bPose **dst, bPose *src, int copycon)
 {
 	bPose *outPose;
 	bPoseChannel *pchan;
@@ -792,7 +792,7 @@ void framechange_poses_clear_unkeyed(void)
 /* ************************** Bone Groups ************************** */
 
 /* Adds a new bone-group */
-void pose_add_group (Object *ob)
+void pose_add_group(Object *ob)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
 	bActionGroup *grp;
@@ -809,7 +809,7 @@ void pose_add_group (Object *ob)
 }
 
 /* Remove the active bone-group */
-void pose_remove_group (Object *ob)
+void pose_remove_group(Object *ob)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
 	bActionGroup *grp = NULL;
@@ -946,7 +946,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 /* Return flags indicating which transforms the given object/posechannel has 
  *	- if 'curves' is provided, a list of links to these curves are also returned
  */
-short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan, ListBase *curves)
+short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, ListBase *curves)
 {
 	PointerRNA ptr;
 	FCurve *fcu;
@@ -1134,7 +1134,7 @@ void copy_pose_result(bPose *to, bPose *from)
 /* For the calculation of the effects of an Action at the given frame on an object 
  * This is currently only used for the Action Constraint 
  */
-void what_does_obaction (Object *ob, Object *workob, bPose *pose, bAction *act, char groupname[], float cframe)
+void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, char groupname[], float cframe)
 {
 	bActionGroup *agrp= action_groups_find_named(act, groupname);
 	

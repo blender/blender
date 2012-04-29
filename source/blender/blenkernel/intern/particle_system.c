@@ -708,10 +708,10 @@ static void psys_uv_to_w(float u, float v, int quad, float *w)
 
 	if (quad) {
 		vert[3][0]= 0.0f; vert[3][1]= 1.0f; vert[3][2]= 0.0f;
-		interp_weights_poly_v3( w, vert, 4, co);
+		interp_weights_poly_v3(w, vert, 4, co);
 	}
 	else {
-		interp_weights_poly_v3( w, vert, 3, co);
+		interp_weights_poly_v3(w, vert, 3, co);
 		w[3]= 0.0f;
 	}
 }
@@ -1720,7 +1720,7 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 		cross_v3_v3v3(mat[1], mat[2], mat[0]);
 		
 		/* apply rotation */
-		mat3_to_quat_is_ok( q, mat);
+		mat3_to_quat_is_ok(q, mat);
 		copy_qt_qt(state->rot, q);
 	}
 	else {
@@ -1814,7 +1814,7 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 			phasefac = part->phasefac;
 			if (part->randphasefac != 0.0f)
 				phasefac += part->randphasefac * PSYS_FRAND(p + 20);
-			axis_angle_to_quat( q_phase, x_vec, phasefac*(float)M_PI);
+			axis_angle_to_quat(q_phase, x_vec, phasefac*(float)M_PI);
 
 			/* combine base rotation & phase */
 			mul_qt_qtqt(state->rot, rot, q_phase);
@@ -2537,10 +2537,10 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 			u = dot_v3v3(vec, dv);
 
 			if (u < 0.f && visc > 0.f)
-				madd_v3_v3fl(force, vec, 0.5f * q * visc * u );
+				madd_v3_v3fl(force, vec, 0.5f * q * visc * u);
 
 			if (u > 0.f && stiff_visc > 0.f)
-				madd_v3_v3fl(force, vec, 0.5f * q * stiff_visc * u );
+				madd_v3_v3fl(force, vec, 0.5f * q * stiff_visc * u);
 		}
 
 		if (spring_constant > 0.f) {
@@ -4106,23 +4106,23 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			for (p=0, pa=psys->particles; p<totpart; p++, pa++) {
 				int ptype=0;
 	
-				gzread(gzf, &ptype, sizeof( ptype )); 
+				gzread(gzf, &ptype, sizeof(ptype));
 				if (ptype&readMask) {
 					activeParts++;
 	
-					gzread(gzf, &(pa->size), sizeof( float )); 
+					gzread(gzf, &(pa->size), sizeof(float));
 	
 					pa->size /= 10.0f;
 	
 					for (j=0; j<3; j++) {
 						float wrf;
-						gzread(gzf, &wrf, sizeof( wrf )); 
+						gzread(gzf, &wrf, sizeof(wrf));
 						pa->state.co[j] = wrf;
 						//fprintf(stderr, "Rj%d ", j);
 					}
 					for (j=0; j<3; j++) {
 						float wrf;
-						gzread(gzf, &wrf, sizeof( wrf )); 
+						gzread(gzf, &wrf, sizeof(wrf));
 						pa->state.vel[j] = wrf;
 					}
 	

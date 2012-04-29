@@ -191,7 +191,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
 /* used to determine the color of F-Curves with FCURVE_COLOR_AUTO_RAINBOW set */
 //void fcurve_rainbow (unsigned int cur, unsigned int tot, float *out)
-void getcolor_fcurve_rainbow (int cur, int tot, float *out)
+void getcolor_fcurve_rainbow(int cur, int tot, float *out)
 {
 	float hue, val, sat, fac;
 	int grouping;

@@ -260,7 +260,7 @@ static short nlaedit_get_context (bAnimContext *ac, SpaceNla *snla)
  *	- AnimContext to write to is provided as pointer to var on stack so that we don't have
  *	  allocation/freeing costs (which are not that avoidable with channels).
  */
-short ANIM_animdata_context_getdata (bAnimContext *ac)
+short ANIM_animdata_context_getdata(bAnimContext *ac)
 {
 	SpaceLink *sl = ac->sl;
 	short ok= 0;
@@ -303,7 +303,7 @@ short ANIM_animdata_context_getdata (bAnimContext *ac)
  *	  allocation/freeing costs (which are not that avoidable with channels).
  *	- Clears data and sets the information from Blender Context which is useful
  */
-short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
+short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -2218,7 +2218,7 @@ static size_t animdata_filter_remove_duplis (ListBase *anim_data)
  *		will be placed for use.
  *	filter_mode: how should the data be filtered - bitmapping accessed flags
  */
-size_t ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype)
+size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype)
 {
 	size_t items = 0;
 	

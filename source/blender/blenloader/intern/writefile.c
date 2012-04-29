@@ -239,7 +239,7 @@ static void writedata_free(WriteData *wd)
  
 #define MYWRITE_FLUSH		NULL
 
-static void mywrite( WriteData *wd, const void *adr, int len)
+static void mywrite(WriteData *wd, const void *adr, int len)
 {
 	if (wd->error) return;
 

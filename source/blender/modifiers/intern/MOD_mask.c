@@ -279,8 +279,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		dm->getEdge(dm, i, &me);
 		
 		/* only add if both verts will be in new mesh */
-		if ( BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v1)) &&
-			 BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v2)) )
+		if (BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v1)) &&
+		    BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v2)))
 		{
 			BLI_ghash_insert(edgeHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numEdges));
 			numEdges++;
@@ -320,10 +320,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	mvert_new = CDDM_get_verts(result);
 	
 	/* using ghash-iterators, map data into new mesh */
-		/* vertices */
-	for ( hashIter = BLI_ghashIterator_new(vertHash);
-		  !BLI_ghashIterator_isDone(hashIter);
-		  BLI_ghashIterator_step(hashIter) ) 
+	/* vertices */
+	for (hashIter = BLI_ghashIterator_new(vertHash);
+	     !BLI_ghashIterator_isDone(hashIter);
+	     BLI_ghashIterator_step(hashIter) )
 	{
 		MVert source;
 		MVert *dest;
@@ -338,10 +338,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 	BLI_ghashIterator_free(hashIter);
 		
-		/* edges */
-	for ( hashIter = BLI_ghashIterator_new(edgeHash);
-		  !BLI_ghashIterator_isDone(hashIter);
-		  BLI_ghashIterator_step(hashIter) ) 
+	/* edges */
+	for (hashIter = BLI_ghashIterator_new(edgeHash);
+	     !BLI_ghashIterator_isDone(hashIter);
+	     BLI_ghashIterator_step(hashIter))
 	{
 		MEdge source;
 		MEdge *dest;
@@ -359,10 +359,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 	BLI_ghashIterator_free(hashIter);
 	
-		/* faces */
-	for ( hashIter = BLI_ghashIterator_new(polyHash);
-		  !BLI_ghashIterator_isDone(hashIter);
-		  BLI_ghashIterator_step(hashIter) ) 
+	/* faces */
+	for (hashIter = BLI_ghashIterator_new(polyHash);
+	     !BLI_ghashIterator_isDone(hashIter);
+	     BLI_ghashIterator_step(hashIter) )
 	{
 		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
 		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));

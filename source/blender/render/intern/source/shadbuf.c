@@ -319,7 +319,7 @@ static void compress_deepshadowbuf(Render *re, ShadBuf *shb, APixstr *apixbuf, A
 	int a, b, c, tot, minz, found, prevtot, newtot;
 	int sampletot[RE_MAX_OSA], totsample = 0, totsamplec = 0;
 	
-	shsample= MEM_callocN( sizeof(ShadSampleBuf), "shad sample buf");
+	shsample= MEM_callocN(sizeof(ShadSampleBuf), "shad sample buf");
 	BLI_addtail(&shb->buffers, shsample);
 
 	shsample->totbuf= MEM_callocN(sizeof(int)*size*size, "deeptotbuf");
@@ -511,11 +511,11 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 	int a, x, y, minx, miny, byt1, byt2;
 	char *rc, *rcline, *ctile, *zt;
 	
-	shsample= MEM_callocN( sizeof(ShadSampleBuf), "shad sample buf");
+	shsample= MEM_callocN(sizeof(ShadSampleBuf), "shad sample buf");
 	BLI_addtail(&shb->buffers, shsample);
 	
-	shsample->zbuf= MEM_mallocN( sizeof(uintptr_t)*(size*size)/256, "initshadbuf2");
-	shsample->cbuf= MEM_callocN( (size*size)/256, "initshadbuf3");
+	shsample->zbuf= MEM_mallocN(sizeof(uintptr_t)*(size*size)/256, "initshadbuf2");
+	shsample->cbuf= MEM_callocN((size*size)/256, "initshadbuf3");
 	
 	ztile= (uintptr_t *)shsample->zbuf;
 	ctile= shsample->cbuf;
@@ -779,7 +779,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	shb->pixsize= (shb->d)/temp;
 	wsize= shb->pixsize*(shb->size/2.0f);
 	
-	perspective_m4( shb->winmat, -wsize, wsize, -wsize, wsize, shb->d, shb->clipend);
+	perspective_m4(shb->winmat, -wsize, wsize, -wsize, wsize, shb->d, shb->clipend);
 	mult_m4_m4m4(shb->persmat, shb->winmat, shb->viewmat);
 
 	if (ELEM3(lar->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP)) {
@@ -2160,8 +2160,8 @@ static int isb_add_samples(RenderPart *pa, ISBBranch *root, MemArena *memarena, 
 	int sample, bsp_err= 0;
 	
 	/* bsp split doesn't like to handle regular sequences */
-	xcos= MEM_mallocN( pa->rectx*sizeof(int), "xcos");
-	ycos= MEM_mallocN( pa->recty*sizeof(int), "ycos");
+	xcos= MEM_mallocN(pa->rectx*sizeof(int), "xcos");
+	ycos= MEM_mallocN(pa->recty*sizeof(int), "ycos");
 	for (xi=0; xi<pa->rectx; xi++)
 		xcos[xi]= xi;
 	for (yi=0; yi<pa->recty; yi++)
@@ -2364,8 +2364,8 @@ static int isb_add_samples_transp(RenderPart *pa, ISBBranch *root, MemArena *mem
 	int sample, bsp_err= 0;
 	
 	/* bsp split doesn't like to handle regular sequences */
-	xcos= MEM_mallocN( pa->rectx*sizeof(int), "xcos");
-	ycos= MEM_mallocN( pa->recty*sizeof(int), "ycos");
+	xcos= MEM_mallocN(pa->rectx*sizeof(int), "xcos");
+	ycos= MEM_mallocN(pa->recty*sizeof(int), "ycos");
 	for (xi=0; xi<pa->rectx; xi++)
 		xcos[xi]= xi;
 	for (yi=0; yi<pa->recty; yi++)

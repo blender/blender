@@ -255,7 +255,7 @@ void IMB_close_anim_proxies(struct anim *anim)
 	IMB_free_indices(anim);
 }
 
-struct anim * IMB_open_anim( const char * name, int ib_flags, int streamindex)
+struct anim * IMB_open_anim(const char * name, int ib_flags, int streamindex)
 {
 	struct anim * anim;
 

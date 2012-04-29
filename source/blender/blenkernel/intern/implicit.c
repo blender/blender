@@ -701,7 +701,7 @@ typedef struct Implicit_Data
 	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI, *M; 
 } Implicit_Data;
 
-int implicit_init (Object *UNUSED(ob), ClothModifierData *clmd)
+int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 {
 	unsigned int i = 0;
 	unsigned int pinned = 0;
@@ -785,7 +785,7 @@ int implicit_init (Object *UNUSED(ob), ClothModifierData *clmd)
 
 	return 1;
 }
-int	implicit_free (ClothModifierData *clmd)
+int	implicit_free(ClothModifierData *clmd)
 {
 	Implicit_Data *id;
 	Cloth *cloth;
@@ -1768,7 +1768,7 @@ int cloth_calc_helper_forces(Object *UNUSED(ob), ClothModifierData * clmd, float
 	
 	return 1;
 }
-int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
+int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 {
 	unsigned int i=0;
 	float step=0.0f, tf=clmd->sim_parms->timescale;
@@ -1908,7 +1908,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	return 1;
 }
 
-void implicit_set_positions (ClothModifierData *clmd)
+void implicit_set_positions(ClothModifierData *clmd)
 {
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;

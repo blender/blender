@@ -51,9 +51,9 @@
 #include "BKE_pointcache.h"
 
 #ifdef _WIN32
-void tstart ( void )
+void tstart( void )
 {}
-void tend ( void )
+void tend( void )
 {
 }
 double tval( void )
@@ -64,11 +64,11 @@ double tval( void )
 #include <sys/time.h>
 static struct timeval _tstart, _tend;
 static struct timezone tz;
-void tstart ( void )
+void tstart( void )
 {
 	gettimeofday(&_tstart, &tz);
 }
-void tend (void)
+void tend(void)
 {
 	gettimeofday(&_tend, &tz);
 }
@@ -111,7 +111,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
  * 1. create object
  * 2. fill object with standard values or with the GUI settings if given
  */
-void cloth_init ( ClothModifierData *clmd )
+void cloth_init(ClothModifierData *clmd )
 {	
 	/* Initialize our new data structure to reasonable values. */
 	clmd->sim_parms->gravity[0] = 0.0;
@@ -605,7 +605,7 @@ void cloth_free_modifier(ClothModifierData *clmd )
 }
 
 /* frees all */
-void cloth_free_modifier_extern ( ClothModifierData *clmd )
+void cloth_free_modifier_extern(ClothModifierData *clmd )
 {
 	Cloth	*cloth = NULL;
 	if (G.rt > 0)
@@ -728,7 +728,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 
 	clothObj = clmd->clothObject;
 
-	numverts = dm->getNumVerts ( dm );
+	numverts = dm->getNumVerts (dm);
 
 	verts = clothObj->verts;
 	
@@ -818,20 +818,20 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	if ( clmd->sim_parms->shapekey_rest )
 		shapekey_rest = dm->getVertDataArray ( dm, CD_CLOTH_ORCO );
 
-	mvert = dm->getVertArray ( dm );
+	mvert = dm->getVertArray (dm);
 
 	verts = clmd->clothObject->verts;
 
 	// set initial values
 	for ( i = 0; i < dm->getNumVerts(dm); i++, verts++ ) {
 		if (first) {
-			copy_v3_v3( verts->x, mvert[i].co );
+			copy_v3_v3(verts->x, mvert[i].co);
 
-			mul_m4_v3( ob->obmat, verts->x );
+			mul_m4_v3(ob->obmat, verts->x);
 
 			if ( shapekey_rest ) {
 				verts->xrest= shapekey_rest[i];
-				mul_m4_v3( ob->obmat, verts->xrest );
+				mul_m4_v3(ob->obmat, verts->xrest);
 			}
 			else
 				verts->xrest = verts->x;
@@ -851,7 +851,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		copy_v3_v3 ( verts->xconst, verts->x );
 		copy_v3_v3 ( verts->txold, verts->x );
 		copy_v3_v3 ( verts->tx, verts->x );
-		mul_v3_fl( verts->v, 0.0f );
+		mul_v3_fl(verts->v, 0.0f);
 
 		verts->impulse_count = 0;
 		copy_v3_v3 ( verts->impulse, tnull );
@@ -895,9 +895,9 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 {
-	unsigned int numverts = dm->getNumVerts ( dm );
-	unsigned int numfaces = dm->getNumTessFaces ( dm );
-	MFace *mface = dm->getTessFaceArray( dm );
+	unsigned int numverts = dm->getNumVerts (dm);
+	unsigned int numfaces = dm->getNumTessFaces (dm);
+	MFace *mface = dm->getTessFaceArray(dm);
 	unsigned int i = 0;
 
 	/* Allocate our vertices. */
@@ -936,7 +936,7 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 
 // be careful: implicit solver has to be resettet when using this one!
 // --> only for implicit handling of this spring!
-int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type)
+int cloth_add_spring(ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type)
 {
 	Cloth *cloth = clmd->clothObject;
 	ClothSpring *spring = NULL;
@@ -1000,11 +1000,11 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
 	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0;
 	unsigned int i = 0;
-	unsigned int numverts = (unsigned int)dm->getNumVerts ( dm );
-	unsigned int numedges = (unsigned int)dm->getNumEdges ( dm );
-	unsigned int numfaces = (unsigned int)dm->getNumTessFaces ( dm );
-	MEdge *medge = dm->getEdgeArray ( dm );
-	MFace *mface = dm->getTessFaceArray ( dm );
+	unsigned int numverts = (unsigned int)dm->getNumVerts (dm);
+	unsigned int numedges = (unsigned int)dm->getNumEdges (dm);
+	unsigned int numfaces = (unsigned int)dm->getNumTessFaces (dm);
+	MEdge *medge = dm->getEdgeArray (dm);
+	MFace *mface = dm->getTessFaceArray (dm);
 	int index2 = 0; // our second vertex index
 	LinkNode **edgelist = NULL;
 	EdgeHash *edgehash = NULL;

@@ -321,7 +321,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListbez");
 				/* len+1 because of 'forward_diff_bezier' function */
-				dl->verts= MEM_callocN( (len+1)*3*sizeof(float), "dlverts");
+				dl->verts= MEM_callocN((len+1)*3*sizeof(float), "dlverts");
 				BLI_addtail(dispbase, dl);
 				dl->parts= 1;
 				dl->nr= len;
@@ -352,11 +352,11 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 					else {
 						int j;
 						for (j=0; j<3; j++) {
-							BKE_curve_forward_diff_bezier(	prevbezt->vec[1][j],
-													prevbezt->vec[2][j],
-													bezt->vec[0][j],
-													bezt->vec[1][j],
-													data+j, resolu, 3*sizeof(float));
+							BKE_curve_forward_diff_bezier(prevbezt->vec[1][j],
+							                              prevbezt->vec[2][j],
+							                              bezt->vec[0][j],
+							                              bezt->vec[1][j],
+							                              data + j, resolu, 3 * sizeof(float));
 						}
 						
 						data+= 3*resolu;
@@ -970,7 +970,7 @@ static void displist_surf_indices(DispList *dl)
 	
 	dl->totindex= 0;
 	
-	index=dl->index= MEM_mallocN( 4*sizeof(int)*(dl->parts+1)*(dl->nr+1), "index array nurbs");
+	index=dl->index= MEM_mallocN(4*sizeof(int)*(dl->parts+1)*(dl->nr+1), "index array nurbs");
 	
 	for (a=0; a<dl->parts; a++) {
 		

@@ -800,7 +800,7 @@ void assign_material(Object *ob, Material *ma, short act)
 		matar= MEM_callocN(sizeof(void *)*act, "matarray2");
 		matbits= MEM_callocN(sizeof(char)*act, "matbits1");
 		if ( ob->totcol) {
-			memcpy(matar, ob->mat, sizeof(void *)*( ob->totcol ));
+			memcpy(matar, ob->mat, sizeof(void *) * ob->totcol);
 			memcpy(matbits, ob->matbits, sizeof(char)*(*totcolp));
 			MEM_freeN(ob->mat);
 			MEM_freeN(ob->matbits);

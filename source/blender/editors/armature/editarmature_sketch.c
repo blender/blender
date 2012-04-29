@@ -1569,12 +1569,12 @@ static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, S
 					mval[1] = vi[1];
 					ED_view3d_win_to_segment_clip(ar, v3d, mval, ray_start, ray_end);
 
-					isect_line_line_v3(	stk->points[s_i].p,
-										stk->points[s_i + 1].p,
-										ray_start,
-										ray_end,
-										isect->p,
-										vi);
+					isect_line_line_v3(stk->points[s_i].p,
+					                   stk->points[s_i + 1].p,
+					                   ray_start,
+					                   ray_end,
+					                   isect->p,
+					                   vi);
 
 					BLI_addtail(list, isect);
 

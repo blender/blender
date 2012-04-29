@@ -909,7 +909,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	if (*count==0) return NULL;
 	if (*count>24) *count= 24;		/* temporal */
 	
-	idar= MEM_callocN( (*count)*sizeof(void *), "idar");
+	idar= MEM_callocN((*count)*sizeof(void *), "idar");
 	
 	ob= bmain->object.first;
 	nr= 0;
@@ -2805,8 +2805,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		if (tdfa->type == ACT_2DFILTER_CUSTOMFILTER) {
 			ysize +=20;
 		}
-		glRects( xco, yco-ysize, xco+width, yco ); 
-		uiEmboss( (float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1 );
+		glRects(xco, yco-ysize, xco+width, yco);
+		uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 
 		switch (tdfa->type) {
 			case ACT_2DFILTER_MOTIONBLUR:

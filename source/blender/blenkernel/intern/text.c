@@ -598,8 +598,8 @@ void clear_text(Text *text) /* called directly from rna */
 	int oldstate;
 
 	oldstate = txt_get_undostate(  );
-	txt_set_undostate( 1 );
-	txt_sel_all( text );
+	txt_set_undostate(1);
+	txt_sel_all(text);
 	txt_delete_sel(text);
 	txt_set_undostate(oldstate);
 
@@ -666,7 +666,7 @@ static TextLine *txt_new_linen(const char *str, int n)
 	return tmp;
 }
 
-void txt_clean_text (Text *text) 
+void txt_clean_text(Text *text)
 {	
 	TextLine **top, **bot;
 	
@@ -697,7 +697,7 @@ void txt_clean_text (Text *text)
 	}
 }
 
-int txt_get_span (TextLine *from, TextLine *to)
+int txt_get_span(TextLine *from, TextLine *to)
 {
 	int ret=0;
 	TextLine *tmp= from;
@@ -1022,7 +1022,7 @@ void txt_jump_right(Text *text, short sel)
 	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
-void txt_move_bol (Text *text, short sel) 
+void txt_move_bol(Text *text, short sel)
 {
 	TextLine **linep;
 	int *charp, old;
@@ -1039,7 +1039,7 @@ void txt_move_bol (Text *text, short sel)
 	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, *linep), old, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
-void txt_move_eol (Text *text, short sel) 
+void txt_move_eol(Text *text, short sel)
 {
 	TextLine **linep;
 	int *charp, old;
@@ -1056,7 +1056,7 @@ void txt_move_eol (Text *text, short sel)
 	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, *linep), old, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
-void txt_move_bof (Text *text, short sel)
+void txt_move_bof(Text *text, short sel)
 {
 	TextLine **linep;
 	int *charp, old;
@@ -1074,7 +1074,7 @@ void txt_move_bof (Text *text, short sel)
 	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, *linep), old, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
-void txt_move_eof (Text *text, short sel)
+void txt_move_eof(Text *text, short sel)
 {
 	TextLine **linep;
 	int *charp, old;
@@ -1092,13 +1092,13 @@ void txt_move_eof (Text *text, short sel)
 	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, *linep), old, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);	
 }
 
-void txt_move_toline (Text *text, unsigned int line, short sel)
+void txt_move_toline(Text *text, unsigned int line, short sel)
 {
 	txt_move_to(text, line, 0, sel);
 }
 
 /* Moves to a certain byte in a line, not a certain utf8-character! */
-void txt_move_to (Text *text, unsigned int line, unsigned int ch, short sel)
+void txt_move_to(Text *text, unsigned int line, unsigned int ch, short sel)
 {
 	TextLine **linep, *oldl;
 	int *charp, oldc;
@@ -1180,7 +1180,7 @@ static void txt_pop_last (Text *text)
 /* never used: CVS 1.19 */
 /*  static void txt_pop_selr (Text *text) */
 
-void txt_pop_sel (Text *text)
+void txt_pop_sel(Text *text)
 {
 	text->sell= text->curl;
 	text->selc= text->curc;	
@@ -1268,7 +1268,7 @@ static void txt_delete_sel (Text *text)
 	text->selc= text->curc;
 }
 
-void txt_sel_all (Text *text)
+void txt_sel_all(Text *text)
 {
 	if (!text) return;
 
@@ -1279,7 +1279,7 @@ void txt_sel_all (Text *text)
 	text->selc= text->sell->len;
 }
 
-void txt_sel_line (Text *text)
+void txt_sel_line(Text *text)
 {
 	if (!text) return;
 	if (!text->curl) return;
@@ -2418,7 +2418,7 @@ void txt_do_redo(Text *text)
 /* Line editing functions */ 
 /**************************/
 
-void txt_split_curline (Text *text) 
+void txt_split_curline(Text *text)
 {
 	TextLine *ins;
 	TextMarker *mrk;
@@ -2602,13 +2602,13 @@ void txt_delete_char(Text *text)
 	if (!undoing) txt_undo_add_charop(text, UNDO_DEL_1, c);
 }
 
-void txt_delete_word (Text *text) 
+void txt_delete_word(Text *text)
 {
 	txt_jump_right(text, 1);
 	txt_delete_sel(text);
 }
 
-void txt_backspace_char (Text *text) 
+void txt_backspace_char(Text *text)
 {
 	unsigned int c='\n';
 	
@@ -2671,7 +2671,7 @@ void txt_backspace_char (Text *text)
 	if (!undoing) txt_undo_add_charop(text, UNDO_BS_1, c);
 }
 
-void txt_backspace_word (Text *text) 
+void txt_backspace_word(Text *text)
 {
 	txt_jump_left(text, 1);
 	txt_delete_sel(text);
@@ -2745,12 +2745,12 @@ static int txt_add_char_intern (Text *text, unsigned int add, int replace_tabs)
 	return 1;
 }
 
-int txt_add_char (Text *text, unsigned int add)
+int txt_add_char(Text *text, unsigned int add)
 {
 	return txt_add_char_intern(text, add, text->flags & TXT_TABSTOSPACES);
 }
 
-int txt_add_raw_char (Text *text, unsigned int add)
+int txt_add_raw_char(Text *text, unsigned int add)
 {
 	return txt_add_char_intern(text, add, 0);
 }
@@ -2761,7 +2761,7 @@ void txt_delete_selected(Text *text)
 	txt_make_dirty(text);
 }
 
-int txt_replace_char (Text *text, unsigned int add)
+int txt_replace_char(Text *text, unsigned int add)
 {
 	unsigned int del;
 	size_t del_size = 0, add_size;
@@ -3020,7 +3020,7 @@ void txt_uncomment(Text *text)
 	}
 }
 
-int setcurr_tab_spaces (Text *text, int space)
+int setcurr_tab_spaces(Text *text, int space)
 {
 	int i = 0;
 	int test = 0;

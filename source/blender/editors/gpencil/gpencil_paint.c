@@ -1915,7 +1915,7 @@ static EnumPropertyItem prop_gpencil_drawmodes[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-void GPENCIL_OT_draw (wmOperatorType *ot)
+void GPENCIL_OT_draw(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Grease Pencil Draw";

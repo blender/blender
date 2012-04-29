@@ -304,7 +304,7 @@ static int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 	
 	// Load the font to memory
 	if (tf->pf) {
-		err= FT_New_Memory_Face( library,
+		err= FT_New_Memory_Face(library,
 			tf->pf->data,
 			tf->pf->size,
 			0,
@@ -342,7 +342,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 #endif
 
 	// load the freetype font
-	err = FT_New_Memory_Face( library,
+	err = FT_New_Memory_Face(library,
 						pf->data,
 						pf->size,
 						0,
@@ -351,10 +351,10 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	if (err) return NULL;
 
 #if 0
-	for ( n = 0; n < face->num_charmaps; n++ )
+	for (n = 0; n < face->num_charmaps; n++)
 	{
 		charmap = face->charmaps[n];
-		if ( charmap->platform_id == my_platform_id &&
+		if (charmap->platform_id == my_platform_id &&
 			charmap->encoding_id == my_encoding_id )
 		{
 			found = charmap;
@@ -362,11 +362,11 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 		}
 	}
 
-	if ( !found ) { return NULL; }
+	if (!found ) { return NULL; }
 
 	// now, select the charmap for the face object
-	err = FT_Set_Charmap( face, found );
-	if ( err ) { return NULL; }
+	err = FT_Set_Charmap(face, found);
+	if (err) { return NULL; }
 #endif
 
 	// allocate blender font
@@ -393,7 +393,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 			}
 		}
 
-		err = FT_Set_Charmap( face, found );
+		err = FT_Set_Charmap(face, found);
 
 		if ( err ) 
 			return NULL;
@@ -498,7 +498,7 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	}
 
 	//free Freetype
-	FT_Done_FreeType( library);
+	FT_Done_FreeType(library);
 	
 	return vfd;
 }

@@ -1598,7 +1598,7 @@ short	are_obs_related(struct DagForest	*dag, void *ob1, void *ob2)
 }
 #endif
 
-int	is_acyclic( DagForest	*dag)
+int	is_acyclic(DagForest *dag)
 {
 	return dag->is_acyclic;
 }
@@ -1722,8 +1722,8 @@ static void scene_sort_groups(Main *bmain, Scene *sce)
 				if (base->object->id.newid) {
 					go= (GroupObject *)base->object->id.newid;
 					base->object->id.newid= NULL;
-					BLI_remlink( &group->gobject, go);
-					BLI_addtail( &listb, go);
+					BLI_remlink(&group->gobject, go);
+					BLI_addtail(&listb, go);
 				}
 			}
 			/* copy the newly sorted listbase */

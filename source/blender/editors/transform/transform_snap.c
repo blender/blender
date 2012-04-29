@@ -188,10 +188,10 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
 				glBegin(GL_LINES);
 					glVertex3f(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], t->tsnap.snapPoint[2]);
-					glVertex3f(	t->tsnap.snapPoint[0] + t->tsnap.snapNormal[0],
-								t->tsnap.snapPoint[1] + t->tsnap.snapNormal[1],
-								t->tsnap.snapPoint[2] + t->tsnap.snapNormal[2]);
-				glEnd();
+					glVertex3f(t->tsnap.snapPoint[0] + t->tsnap.snapNormal[0],
+					           t->tsnap.snapPoint[1] + t->tsnap.snapNormal[1],
+					           t->tsnap.snapPoint[2] + t->tsnap.snapNormal[2]);
+					glEnd();
 			}
 			
 			if (v3d->zbuf)

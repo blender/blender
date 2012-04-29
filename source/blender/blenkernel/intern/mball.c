@@ -453,7 +453,7 @@ int BKE_metaball_is_basis(Object *ob)
 }
 
 /* return nonzero if ob1 is a basis mball for ob */
-int BKE_metaball_is_basis_for (Object *ob1, Object *ob2)
+int BKE_metaball_is_basis_for(Object *ob1, Object *ob2)
 {
 	int basis1nr, basis2nr;
 	char basis1name[MAX_ID_NAME], basis2name[MAX_ID_NAME];
@@ -881,7 +881,7 @@ static void *new_pgn_element(int size)
 		}
 	}
 	
-	cur= MEM_callocN( sizeof(struct pgn_elements), "newpgn");
+	cur= MEM_callocN(sizeof(struct pgn_elements), "newpgn");
 	cur->data= MEM_callocN(blocksize, "newpgn");
 	BLI_addtail(&lb, cur);
 	
@@ -1774,7 +1774,7 @@ static float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					if (ml->s > 10.0f) ml->s = 10.0f;
 					
 					/* Rotation of MetaElem is stored in quat */
-					 quat_to_mat4( temp3, ml->quat);
+					 quat_to_mat4(temp3, ml->quat);
 
 					/* Translation of MetaElem */
 					unit_m4(temp2);
@@ -1884,11 +1884,11 @@ static float init_meta(Scene *scene, Object *ob)	/* return totsize */
 
 		calc_mballco(mainb[a], vec);
 	
-		size= fabsf( vec[0] );
+		size= fabsf(vec[0]);
 		if ( size > totsize ) totsize= size;
-		size= fabsf( vec[1] );
+		size= fabsf(vec[1]);
 		if ( size > totsize ) totsize= size;
-		size= fabsf( vec[2] );
+		size= fabsf(vec[2]);
 		if ( size > totsize ) totsize= size;
 
 		vec[0]= mainb[a]->x - mainb[a]->rad;
@@ -1897,11 +1897,11 @@ static float init_meta(Scene *scene, Object *ob)	/* return totsize */
 				
 		calc_mballco(mainb[a], vec);
 	
-		size= fabsf( vec[0] );
+		size= fabsf(vec[0]);
 		if ( size > totsize ) totsize= size;
-		size= fabsf( vec[1] );
+		size= fabsf(vec[1]);
 		if ( size > totsize ) totsize= size;
-		size= fabsf( vec[2] );
+		size= fabsf(vec[2]);
 		if ( size > totsize ) totsize= size;
 	}
 

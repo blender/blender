@@ -1360,13 +1360,13 @@ void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float
 /* Called from RNA when rotation mode changes
  * - the result should be that the rotations given in the provided pointers have had conversions
  *   applied (as appropriate), such that the rotation of the element hasn't 'visually' changed  */
-void BKE_rotMode_change_values (float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode)
+void BKE_rotMode_change_values(float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode)
 {
 	/* check if any change - if so, need to convert data */
 	if (newMode > 0) { /* to euler */
 		if (oldMode == ROT_MODE_AXISANGLE) {
 			/* axis-angle to euler */
-			axis_angle_to_eulO( eul, newMode, axis, *angle);
+			axis_angle_to_eulO(eul, newMode, axis, *angle);
 		}
 		else if (oldMode == ROT_MODE_QUAT) {
 			/* quat to euler */
@@ -2435,7 +2435,7 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 
 /* This only reads anim data from channels, and writes to channels */
 /* This is the only function adding poses */
-void where_is_pose (Scene *scene, Object *ob)
+void where_is_pose(Scene *scene, Object *ob)
 {
 	bArmature *arm;
 	Bone *bone;

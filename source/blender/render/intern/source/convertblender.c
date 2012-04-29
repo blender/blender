@@ -469,11 +469,11 @@ static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemAr
 	}
 	else if (v1->orco) {
 		uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
-		map_to_sphere( &uv[0][0], &uv[0][1], v1->orco[0], v1->orco[1], v1->orco[2]);
-		map_to_sphere( &uv[1][0], &uv[1][1], v2->orco[0], v2->orco[1], v2->orco[2]);
-		map_to_sphere( &uv[2][0], &uv[2][1], v3->orco[0], v3->orco[1], v3->orco[2]);
+		map_to_sphere(&uv[0][0], &uv[0][1], v1->orco[0], v1->orco[1], v1->orco[2]);
+		map_to_sphere(&uv[1][0], &uv[1][1], v2->orco[0], v2->orco[1], v2->orco[2]);
+		map_to_sphere(&uv[2][0], &uv[2][1], v3->orco[0], v3->orco[1], v3->orco[2]);
 		if (v4)
-			map_to_sphere( &uv[3][0], &uv[3][1], v4->orco[0], v4->orco[1], v4->orco[2]);
+			map_to_sphere(&uv[3][0], &uv[3][1], v4->orco[0], v4->orco[1], v4->orco[2]);
 	}
 	else return;
 
@@ -3584,7 +3584,7 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	/* if (la->spsi<16) return; */
 	
 	/* memory alloc */
-	shb= (struct ShadBuf *)MEM_callocN( sizeof(struct ShadBuf), "initshadbuf");
+	shb= (struct ShadBuf *)MEM_callocN(sizeof(struct ShadBuf), "initshadbuf");
 	lar->shb= shb;
 	
 	if (shb==NULL) return;

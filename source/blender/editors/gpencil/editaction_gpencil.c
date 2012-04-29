@@ -62,7 +62,7 @@
 /* Generics - Loopers */
 
 /* Loops over the gp-frames for a gp-layer, and applies the given callback */
-short gplayer_frames_looper (bGPDlayer *gpl, Scene *scene, short (*gpf_cb)(bGPDframe *, Scene *))
+short gplayer_frames_looper(bGPDlayer *gpl, Scene *scene, short (*gpf_cb)(bGPDframe *, Scene *))
 {
 	bGPDframe *gpf;
 	
@@ -85,7 +85,7 @@ short gplayer_frames_looper (bGPDlayer *gpl, Scene *scene, short (*gpf_cb)(bGPDf
 /* Data Conversion Tools */
 
 /* make a listing all the gp-frames in a layer as cfraelems */
-void gplayer_make_cfra_list (bGPDlayer *gpl, ListBase *elems, short onlysel)
+void gplayer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, short onlysel)
 {
 	bGPDframe *gpf;
 	CfraElem *ce;
@@ -111,7 +111,7 @@ void gplayer_make_cfra_list (bGPDlayer *gpl, ListBase *elems, short onlysel)
 /* Selection Tools */
 
 /* check if one of the frames in this layer is selected */
-short is_gplayer_frame_selected (bGPDlayer *gpl)
+short is_gplayer_frame_selected(bGPDlayer *gpl)
 {
 	bGPDframe *gpf;
 	
@@ -149,7 +149,7 @@ static void gpframe_select (bGPDframe *gpf, short select_mode)
 }
 
 /* set all/none/invert select (like above, but with SELECT_* modes) */
-void select_gpencil_frames (bGPDlayer *gpl, short select_mode)
+void select_gpencil_frames(bGPDlayer *gpl, short select_mode)
 {
 	bGPDframe *gpf;
 	
@@ -164,7 +164,7 @@ void select_gpencil_frames (bGPDlayer *gpl, short select_mode)
 }
 
 /* set all/none/invert select */
-void set_gplayer_frame_selection (bGPDlayer *gpl, short mode)
+void set_gplayer_frame_selection(bGPDlayer *gpl, short mode)
 {
 	/* error checking */
 	if (gpl == NULL) 
@@ -175,7 +175,7 @@ void set_gplayer_frame_selection (bGPDlayer *gpl, short mode)
 }
 
 /* select the frame in this layer that occurs on this frame (there should only be one at most) */
-void select_gpencil_frame (bGPDlayer *gpl, int selx, short select_mode)
+void select_gpencil_frame(bGPDlayer *gpl, int selx, short select_mode)
 {
 	bGPDframe *gpf;
 	
@@ -193,7 +193,7 @@ void select_gpencil_frame (bGPDlayer *gpl, int selx, short select_mode)
 }
 
 /* select the frames in this layer that occur within the bounds specified */
-void borderselect_gplayer_frames (bGPDlayer *gpl, float min, float max, short select_mode)
+void borderselect_gplayer_frames(bGPDlayer *gpl, float min, float max, short select_mode)
 {
 	bGPDframe *gpf;
 	
@@ -211,7 +211,7 @@ void borderselect_gplayer_frames (bGPDlayer *gpl, float min, float max, short se
 /* Frame Editing Tools */
 
 /* Delete selected frames */
-void delete_gplayer_frames (bGPDlayer *gpl)
+void delete_gplayer_frames(bGPDlayer *gpl)
 {
 	bGPDframe *gpf, *gpfn;
 	
@@ -229,7 +229,7 @@ void delete_gplayer_frames (bGPDlayer *gpl)
 }
 
 /* Duplicate selected frames from given gp-layer */
-void duplicate_gplayer_frames (bGPDlayer *gpl)
+void duplicate_gplayer_frames(bGPDlayer *gpl)
 {
 	bGPDframe *gpf, *gpfn;
 	
@@ -270,7 +270,7 @@ ListBase gpcopybuf = {NULL, NULL};
 static int gpcopy_firstframe= 999999999;
 
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
-void free_gpcopybuf ()
+void free_gpcopybuf()
 {
 	free_gpencil_layers(&gpcopybuf); 
 	
@@ -281,7 +281,7 @@ void free_gpcopybuf ()
 /* This function adds data to the copy/paste buffer, freeing existing data first
  * Only the selected GP-layers get their selected keyframes copied.
  */
-void copy_gpdata ()
+void copy_gpdata()
 {
 	ListBase act_data = {NULL, NULL};
 	bActListElem *ale;
@@ -338,7 +338,7 @@ void copy_gpdata ()
 	BLI_freelistN(&act_data);
 }
 
-void paste_gpdata (Scene *scene)
+void paste_gpdata(Scene *scene)
 {
 	ListBase act_data = {NULL, NULL};
 	bActListElem *ale;
@@ -498,7 +498,7 @@ static short snap_gpf_nearmarker (bGPDframe *gpf, Scene *scene)
 
 
 /* snap selected frames to ... */
-void snap_gplayer_frames (bGPDlayer *gpl, Scene *scene, short mode)
+void snap_gplayer_frames(bGPDlayer *gpl, Scene *scene, short mode)
 {
 	switch (mode) {
 		case 1: /* snap to nearest frame */
@@ -600,7 +600,7 @@ static short mirror_gpf_marker (bGPDframe *gpf, Scene *scene)
 
 
 /* mirror selected gp-frames on... */
-void mirror_gplayer_frames (bGPDlayer *gpl, Scene *scene, short mode)
+void mirror_gplayer_frames(bGPDlayer *gpl, Scene *scene, short mode)
 {
 	switch (mode) {
 		case 1: /* mirror over current frame */

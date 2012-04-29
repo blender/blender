@@ -166,7 +166,7 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
+void GRAPH_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select All";
@@ -535,7 +535,7 @@ static int graphkeys_columnselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_select_column (wmOperatorType *ot)
+void GRAPH_OT_select_column(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select All";
@@ -593,7 +593,7 @@ static int graphkeys_select_linked_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void GRAPH_OT_select_linked (wmOperatorType *ot)
+void GRAPH_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Linked";
@@ -671,7 +671,7 @@ static int graphkeys_select_more_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void GRAPH_OT_select_more (wmOperatorType *ot)
+void GRAPH_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select More";
@@ -705,7 +705,7 @@ static int graphkeys_select_less_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void GRAPH_OT_select_less (wmOperatorType *ot)
+void GRAPH_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Less";
@@ -846,7 +846,7 @@ static int graphkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEve
 	return graphkeys_select_leftright_exec(C, op);
 }
 
-void GRAPH_OT_select_leftright (wmOperatorType *ot)
+void GRAPH_OT_select_leftright(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Left/Right";
@@ -1331,7 +1331,7 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
  
-void GRAPH_OT_clickselect (wmOperatorType *ot)
+void GRAPH_OT_clickselect(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Mouse Select Keys";

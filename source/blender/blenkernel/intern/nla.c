@@ -73,7 +73,7 @@
 /* Remove the given NLA strip from the NLA track it occupies, free the strip's data,
  * and the strip itself. 
  */
-void free_nlastrip (ListBase *strips, NlaStrip *strip)
+void free_nlastrip(ListBase *strips, NlaStrip *strip)
 {
 	NlaStrip *cs, *csn;
 	
@@ -111,7 +111,7 @@ void free_nlastrip (ListBase *strips, NlaStrip *strip)
 /* Remove the given NLA track from the set of NLA tracks, free the track's data,
  * and the track itself.
  */
-void free_nlatrack (ListBase *tracks, NlaTrack *nlt)
+void free_nlatrack(ListBase *tracks, NlaTrack *nlt)
 {
 	NlaStrip *strip, *stripn;
 	
@@ -135,7 +135,7 @@ void free_nlatrack (ListBase *tracks, NlaTrack *nlt)
 /* Free the elements of type NLA Tracks provided in the given list, but do not free
  * the list itself since that is not free-standing
  */
-void free_nladata (ListBase *tracks)
+void free_nladata(ListBase *tracks)
 {
 	NlaTrack *nlt, *nltn;
 	
@@ -216,7 +216,7 @@ NlaTrack *copy_nlatrack (NlaTrack *nlt)
 }
 
 /* Copy all NLA data */
-void copy_nladata (ListBase *dst, ListBase *src)
+void copy_nladata(ListBase *dst, ListBase *src)
 {
 	NlaTrack *nlt, *nlt_d;
 	
@@ -486,7 +486,7 @@ static float nlastrip_get_frame_transition (NlaStrip *strip, float cframe, short
  * only secure for 'internal' (i.e. within AnimSys evaluation) operations,
  * but should not be directly relied on for stuff which interacts with editors
  */
-float nlastrip_get_frame (NlaStrip *strip, float cframe, short mode)
+float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode)
 {
 	switch (strip->type) {
 		case NLASTRIP_TYPE_META: /* meta - for now, does the same as transition (is really just an empty container) */
@@ -506,7 +506,7 @@ float nlastrip_get_frame (NlaStrip *strip, float cframe, short mode)
  * Public API method - perform this mapping using the given AnimData block
  * and perform any necessary sanity checks on the value
  */
-float BKE_nla_tweakedit_remap (AnimData *adt, float cframe, short mode)
+float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, short mode)
 {
 	NlaStrip *strip;
 	
@@ -546,7 +546,7 @@ float BKE_nla_tweakedit_remap (AnimData *adt, float cframe, short mode)
 /* (these functions are used for NLA-Tracks and also for nested/meta-strips) */
 
 /* Check if there is any space in the given list to add the given strip */
-short BKE_nlastrips_has_space (ListBase *strips, float start, float end)
+short BKE_nlastrips_has_space(ListBase *strips, float start, float end)
 {
 	NlaStrip *strip;
 	
@@ -580,7 +580,7 @@ short BKE_nlastrips_has_space (ListBase *strips, float start, float end)
 /* Rearrange the strips in the track so that they are always in order 
  * (usually only needed after a strip has been moved) 
  */
-void BKE_nlastrips_sort_strips (ListBase *strips)
+void BKE_nlastrips_sort_strips(ListBase *strips)
 {
 	ListBase tmp = {NULL, NULL};
 	NlaStrip *strip, *sstrip, *stripn;
@@ -624,7 +624,7 @@ void BKE_nlastrips_sort_strips (ListBase *strips)
 /* Add the given NLA-Strip to the given list of strips, assuming that it 
  * isn't currently a member of another list
  */
-short BKE_nlastrips_add_strip (ListBase *strips, NlaStrip *strip)
+short BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
 {
 	NlaStrip *ns;
 	short not_added = 1;
@@ -662,7 +662,7 @@ short BKE_nlastrips_add_strip (ListBase *strips, NlaStrip *strip)
  * contained within 'Meta-Strips' which act as strips which contain strips.
  *	temp: are the meta-strips to be created 'temporary' ones used for transforms?
  */
-void BKE_nlastrips_make_metas (ListBase *strips, short temp)
+void BKE_nlastrips_make_metas(ListBase *strips, short temp)
 {
 	NlaStrip *mstrip = NULL;
 	NlaStrip *strip, *stripn;
@@ -714,7 +714,7 @@ void BKE_nlastrips_make_metas (ListBase *strips, short temp)
 }
 
 /* Split a meta-strip into a set of normal strips */
-void BKE_nlastrips_clear_metastrip (ListBase *strips, NlaStrip *strip)
+void BKE_nlastrips_clear_metastrip(ListBase *strips, NlaStrip *strip)
 {
 	NlaStrip *cs, *csn;
 	
@@ -739,7 +739,7 @@ void BKE_nlastrips_clear_metastrip (ListBase *strips, NlaStrip *strip)
  *	sel: only consider selected meta-strips, otherwise all meta-strips are removed
  *	onlyTemp: only remove the 'temporary' meta-strips used for transforms
  */
-void BKE_nlastrips_clear_metas (ListBase *strips, short onlySel, short onlyTemp)
+void BKE_nlastrips_clear_metas(ListBase *strips, short onlySel, short onlyTemp)
 {
 	NlaStrip *strip, *stripn;
 	
@@ -766,7 +766,7 @@ void BKE_nlastrips_clear_metas (ListBase *strips, short onlySel, short onlyTemp)
 /* Add the given NLA-Strip to the given Meta-Strip, assuming that the
  * strip isn't attached to anyy list of strips 
  */
-short BKE_nlameta_add_strip (NlaStrip *mstrip, NlaStrip *strip)
+short BKE_nlameta_add_strip(NlaStrip *mstrip, NlaStrip *strip)
 {
 	/* sanity checks */
 	if (ELEM(NULL, mstrip, strip))
@@ -816,7 +816,7 @@ short BKE_nlameta_add_strip (NlaStrip *mstrip, NlaStrip *strip)
 /* Adjust the settings of NLA-Strips contained within a Meta-Strip (recursively), 
  * until the Meta-Strips children all fit within the Meta-Strip's new dimensions
  */
-void BKE_nlameta_flush_transforms (NlaStrip *mstrip) 
+void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
 {
 	NlaStrip *strip;
 	float oStart, oEnd, offset;
@@ -915,7 +915,7 @@ NlaTrack *BKE_nlatrack_find_active (ListBase *tracks)
 /* Toggle the 'solo' setting for the given NLA-track, making sure that it is the only one
  * that has this status in its AnimData block.
  */
-void BKE_nlatrack_solo_toggle (AnimData *adt, NlaTrack *nlt)
+void BKE_nlatrack_solo_toggle(AnimData *adt, NlaTrack *nlt)
 {
 	NlaTrack *nt;
 	
@@ -947,7 +947,7 @@ void BKE_nlatrack_solo_toggle (AnimData *adt, NlaTrack *nlt)
 /* Make the given NLA-track the active one for the given stack. If no track is provided, 
  * this function can be used to simply deactivate all the NLA tracks in the given stack too.
  */
-void BKE_nlatrack_set_active (ListBase *tracks, NlaTrack *nlt_a)
+void BKE_nlatrack_set_active(ListBase *tracks, NlaTrack *nlt_a)
 {
 	NlaTrack *nlt;
 	
@@ -965,7 +965,7 @@ void BKE_nlatrack_set_active (ListBase *tracks, NlaTrack *nlt_a)
 }
 
 /* Check if there is any space in the given track to add a strip of the given length */
-short BKE_nlatrack_has_space (NlaTrack *nlt, float start, float end)
+short BKE_nlatrack_has_space(NlaTrack *nlt, float start, float end)
 {
 	/* sanity checks 
 	 * 	- track must exist
@@ -987,7 +987,7 @@ short BKE_nlatrack_has_space (NlaTrack *nlt, float start, float end)
 /* Rearrange the strips in the track so that they are always in order 
  * (usually only needed after a strip has been moved) 
  */
-void BKE_nlatrack_sort_strips (NlaTrack *nlt)
+void BKE_nlatrack_sort_strips(NlaTrack *nlt)
 {
 	/* sanity checks */
 	if (ELEM(NULL, nlt, nlt->strips.first))
@@ -1000,7 +1000,7 @@ void BKE_nlatrack_sort_strips (NlaTrack *nlt)
 /* Add the given NLA-Strip to the given NLA-Track, assuming that it 
  * isn't currently attached to another one 
  */
-short BKE_nlatrack_add_strip (NlaTrack *nlt, NlaStrip *strip)
+short BKE_nlatrack_add_strip(NlaTrack *nlt, NlaStrip *strip)
 {
 	/* sanity checks */
 	if (ELEM(NULL, nlt, strip))
@@ -1013,7 +1013,7 @@ short BKE_nlatrack_add_strip (NlaTrack *nlt, NlaStrip *strip)
 /* Get the extents of the given NLA-Track including gaps between strips,
  * returning whether this succeeded or not
  */
-short BKE_nlatrack_get_bounds (NlaTrack *nlt, float bounds[2])
+short BKE_nlatrack_get_bounds(NlaTrack *nlt, float bounds[2])
 {
 	NlaStrip *strip;
 	
@@ -1061,7 +1061,7 @@ NlaStrip *BKE_nlastrip_find_active (NlaTrack *nlt)
 }
 
 /* Make the given NLA-Strip the active one within the given block */
-void BKE_nlastrip_set_active (AnimData *adt, NlaStrip *strip)
+void BKE_nlastrip_set_active(AnimData *adt, NlaStrip *strip)
 {
 	NlaTrack *nlt;
 	NlaStrip *nls;
@@ -1083,7 +1083,7 @@ void BKE_nlastrip_set_active (AnimData *adt, NlaStrip *strip)
 
 
 /* Does the given NLA-strip fall within the given bounds (times)? */
-short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
+short BKE_nlastrip_within_bounds(NlaStrip *strip, float min, float max)
 {
 	const float stripLen= (strip) ? strip->end - strip->start : 0.0f;
 	const float boundsLen= fabsf(max - min);
@@ -1096,15 +1096,15 @@ short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 	 *	- first 2 cases cover when the strip length is less than the bounding area
 	 *	- second 2 cases cover when the strip length is greater than the bounding area
 	 */
-	if ( (stripLen < boundsLen) && 
-		 !(IN_RANGE(strip->start, min, max) ||
-		   IN_RANGE(strip->end, min, max)) )
+	if ((stripLen < boundsLen) &&
+	    !(IN_RANGE(strip->start, min, max) ||
+	      IN_RANGE(strip->end, min, max)))
 	{
 		return 0;
 	}
-	if ( (stripLen > boundsLen) && 
-		 !(IN_RANGE(min, strip->start, strip->end) ||
-		   IN_RANGE(max, strip->start, strip->end)) )
+	if ((stripLen > boundsLen) &&
+	    !(IN_RANGE(min, strip->start, strip->end) ||
+	      IN_RANGE(max, strip->start, strip->end)) )
 	{
 		return 0;
 	}
@@ -1116,7 +1116,7 @@ short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 /* Recalculate the start and end frames for the current strip, after changing
  * the extents of the action or the mapping (repeats or scale factor) info
  */
-void BKE_nlastrip_recalculate_bounds (NlaStrip *strip)
+void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
 {
 	float actlen, mapping;
 	
@@ -1171,7 +1171,7 @@ static short nlastrip_is_first (AnimData *adt, NlaStrip *strip)
 /* Animated Strips ------------------------------------------- */
 
 /* Check if the given NLA-Track has any strips with own F-Curves */
-short BKE_nlatrack_has_animated_strips (NlaTrack *nlt)
+short BKE_nlatrack_has_animated_strips(NlaTrack *nlt)
 {
 	NlaStrip *strip;
 	
@@ -1190,7 +1190,7 @@ short BKE_nlatrack_has_animated_strips (NlaTrack *nlt)
 }
 
 /* Check if given NLA-Tracks have any strips with own F-Curves */
-short BKE_nlatracks_have_animated_strips (ListBase *tracks)
+short BKE_nlatracks_have_animated_strips(ListBase *tracks)
 {
 	NlaTrack *nlt;
 	
@@ -1209,7 +1209,7 @@ short BKE_nlatracks_have_animated_strips (ListBase *tracks)
 }
 
 /* Validate the NLA-Strips 'control' F-Curves based on the flags set*/
-void BKE_nlastrip_validate_fcurves (NlaStrip *strip) 
+void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 {
 	FCurve *fcu;
 	
@@ -1272,7 +1272,7 @@ static int nla_editbone_name_check(void *arg, const char *name)
  * as we need to ensure that the name is unique over several lists of tracks,
  * not just a single track.
  */
-void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
+void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
 {
 	GHash *gh;
 	NlaStrip *tstrip;
@@ -1416,7 +1416,7 @@ static void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
 }
 
 /* Ensure that auto-blending and other settings are set correctly */
-void BKE_nla_validate_state (AnimData *adt)
+void BKE_nla_validate_state(AnimData *adt)
 {
 	NlaStrip *strip, *fstrip=NULL;
 	NlaTrack *nlt;
@@ -1470,7 +1470,7 @@ void BKE_nla_validate_state (AnimData *adt)
  * so no checks for this are performed.
  */
 // TODO: maybe we should have checks for this too...
-void BKE_nla_action_pushdown (AnimData *adt)
+void BKE_nla_action_pushdown(AnimData *adt)
 {
 	NlaStrip *strip;
 	
@@ -1518,7 +1518,7 @@ void BKE_nla_action_pushdown (AnimData *adt)
 /* Find the active strip + track combo, and set them up as the tweaking track,
  * and return if successful or not.
  */
-short BKE_nla_tweakmode_enter (AnimData *adt)
+short BKE_nla_tweakmode_enter(AnimData *adt)
 {
 	NlaTrack *nlt, *activeTrack=NULL;
 	NlaStrip *strip, *activeStrip=NULL;
@@ -1619,7 +1619,7 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 }
 
 /* Exit tweakmode for this AnimData block */
-void BKE_nla_tweakmode_exit (AnimData *adt)
+void BKE_nla_tweakmode_exit(AnimData *adt)
 {
 	NlaStrip *strip;
 	NlaTrack *nlt;

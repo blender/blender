@@ -1185,7 +1185,7 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 
 				uiSetRoundBox(UI_CNR_ALL);
 				glColor4ub(255, 255, 255, 100);
-				uiRoundBox( (float)*offsx-0.5f*ufac, (float)ys-1.0f*ufac, (float)*offsx+UI_UNIT_Y-3.0f*ufac, (float)ys+UI_UNIT_Y-3.0f*ufac, UI_UNIT_Y/2.0f-2.0f*ufac);
+				uiRoundBox((float) * offsx-0.5f*ufac, (float)ys-1.0f*ufac, (float)*offsx+UI_UNIT_Y-3.0f*ufac, (float)ys+UI_UNIT_Y-3.0f*ufac, UI_UNIT_Y/2.0f-2.0f*ufac);
 				glEnable(GL_BLEND); /* roundbox disables */
 			}
 			
@@ -1317,7 +1317,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		/* active circle */
 		if (active) {
 			uiSetRoundBox(UI_CNR_ALL);
-			uiRoundBox( (float)startx+UI_UNIT_Y-1.5f*ufac, (float)*starty+2.0f*ufac, (float)startx+2.0f*UI_UNIT_Y-4.0f*ufac, (float)*starty+UI_UNIT_Y-1.0f*ufac, UI_UNIT_Y/2.0f-2.0f*ufac);
+			uiRoundBox((float)startx+UI_UNIT_Y-1.5f*ufac, (float)*starty+2.0f*ufac, (float)startx+2.0f*UI_UNIT_Y-4.0f*ufac, (float)*starty+UI_UNIT_Y-1.0f*ufac, UI_UNIT_Y/2.0f-2.0f*ufac);
 			glEnable(GL_BLEND);	/* roundbox disables it */
 			
 			te->flag |= TE_ACTIVE; // for lookup in display hierarchies

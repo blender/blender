@@ -104,7 +104,7 @@
 /* -------------- Naming -------------- */
 
 /* Find the first available, non-duplicate name for a given constraint */
-void unique_constraint_name (bConstraint *con, ListBase *list)
+void unique_constraint_name(bConstraint *con, ListBase *list)
 {
 	BLI_uniquename(list, con, "Const", '.', offsetof(bConstraint, name), sizeof(con->name));
 }
@@ -177,7 +177,7 @@ bConstraintOb *constraints_make_evalob (Scene *scene, Object *ob, void *subdata,
 }
 
 /* cleanup after constraint evaluation */
-void constraints_clear_evalob (bConstraintOb *cob)
+void constraints_clear_evalob(bConstraintOb *cob)
 {
 	float delta[4][4], imat[4][4];
 	
@@ -272,7 +272,7 @@ static void constraint_pchan_diff_mat(bPoseChannel *pchan, float diff_mat[4][4])
  * of a matrix from one space to another for constraint evaluation.
  * For now, this is only implemented for Objects and PoseChannels.
  */
-void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4], short from, short to)
+void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4], short from, short to)
 {
 	float diff_mat[4][4];
 	float imat[4][4];
@@ -4321,7 +4321,7 @@ bConstraintTypeInfo *constraint_get_typeinfo (bConstraint *con)
 /* Free data of a specific constraint if it has any info.
  * be sure to run BIK_clear_data() when freeing an IK constraint,
  * unless DAG_scene_sort is called. */
-void free_constraint_data (bConstraint *con)
+void free_constraint_data(bConstraint *con)
 {
 	if (con->data) {
 		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
@@ -4336,7 +4336,7 @@ void free_constraint_data (bConstraint *con)
 }
 
 /* Free all constraints from a constraint-stack */
-void free_constraints (ListBase *list)
+void free_constraints(ListBase *list)
 {
 	bConstraint *con;
 	
@@ -4350,7 +4350,7 @@ void free_constraints (ListBase *list)
 
 
 /* Remove the specified constraint from the given constraint stack */
-int remove_constraint (ListBase *list, bConstraint *con)
+int remove_constraint(ListBase *list, bConstraint *con)
 {
 	if (con) {
 		free_constraint_data(con);
@@ -4362,7 +4362,7 @@ int remove_constraint (ListBase *list, bConstraint *con)
 }
 
 /* Remove all the constraints of the specified type from the given constraint stack */
-void remove_constraints_type (ListBase *list, short type, short last_only)
+void remove_constraints_type(ListBase *list, short type, short last_only)
 {
 	bConstraint *con, *conp;
 	
@@ -4488,7 +4488,7 @@ bConstraint *add_ob_constraint(Object *ob, const char *name, short type)
 /* ......... */
 
 /* Reassign links that constraints have to other data (called during file loading?) */
-void relink_constraints (ListBase *conlist)
+void relink_constraints(ListBase *conlist)
 {
 	bConstraint *con;
 	bConstraintTarget *ct;
@@ -4518,7 +4518,7 @@ void relink_constraints (ListBase *conlist)
 }
 
 /* Run the given callback on all ID-blocks in list of constraints */
-void id_loop_constraints (ListBase *conlist, ConstraintIDFunc func, void *userdata)
+void id_loop_constraints(ListBase *conlist, ConstraintIDFunc func, void *userdata)
 {
 	bConstraint *con;
 	
@@ -4542,7 +4542,7 @@ static void con_extern_cb(bConstraint *UNUSED(con), ID **idpoin, void *UNUSED(us
 }
 
 /* duplicate all of the constraints in a constraint stack */
-void copy_constraints (ListBase *dst, const ListBase *src, int do_extern)
+void copy_constraints(ListBase *dst, const ListBase *src, int do_extern)
 {
 	bConstraint *con, *srccon;
 	
@@ -4596,7 +4596,7 @@ bConstraint *constraints_get_active (ListBase *list)
 }
 
 /* Set the given constraint as the active one (clearing all the others) */
-void constraints_set_active (ListBase *list, bConstraint *con)
+void constraints_set_active(ListBase *list, bConstraint *con)
 {
 	bConstraint *c;
 	
@@ -4613,7 +4613,7 @@ void constraints_set_active (ListBase *list, bConstraint *con)
 /* -------- Constraints and Proxies ------- */
 
 /* Rescue all constraints tagged as being CONSTRAINT_PROXY_LOCAL (i.e. added to bone that's proxy-synced in this file) */
-void extract_proxylocal_constraints (ListBase *dst, ListBase *src)
+void extract_proxylocal_constraints(ListBase *dst, ListBase *src)
 {
 	bConstraint *con, *next;
 	
@@ -4630,7 +4630,7 @@ void extract_proxylocal_constraints (ListBase *dst, ListBase *src)
 }
 
 /* Returns if the owner of the constraint is proxy-protected */
-short proxylocked_constraints_owner (Object *ob, bPoseChannel *pchan)
+short proxylocked_constraints_owner(Object *ob, bPoseChannel *pchan)
 {
 	/* Currently, constraints can only be on object or bone level */
 	if (ob && ob->proxy) {
@@ -4659,7 +4659,7 @@ short proxylocked_constraints_owner (Object *ob, bPoseChannel *pchan)
  * None of the actual calculations of the matrices should be done here! Also, this function is
  * not to be used by any new constraints, particularly any that have multiple targets.
  */
-void get_constraint_target_matrix (struct Scene *scene, bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime)
+void get_constraint_target_matrix(struct Scene *scene, bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime)
 {
 	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 	ListBase targets = {NULL, NULL};
@@ -4728,7 +4728,7 @@ void get_constraint_target_matrix (struct Scene *scene, bConstraint *con, int n,
 }
 
 /* Get the list of targets required for solving a constraint */
-void get_constraint_targets_for_solving (bConstraint *con, bConstraintOb *cob, ListBase *targets, float ctime)
+void get_constraint_targets_for_solving(bConstraint *con, bConstraintOb *cob, ListBase *targets, float ctime)
 {
 	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 	
@@ -4763,7 +4763,7 @@ void get_constraint_targets_for_solving (bConstraint *con, bConstraintOb *cob, L
  * constraints_make_evalob and constraints_clear_evalob should be called before and 
  * after running this function, to sort out cob
  */
-void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
+void solve_constraints(ListBase *conlist, bConstraintOb *cob, float ctime)
 {
 	bConstraint *con;
 	float oldmat[4][4];

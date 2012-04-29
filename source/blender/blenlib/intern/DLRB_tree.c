@@ -44,7 +44,7 @@ DLRBT_Tree *BLI_dlrbTree_new (void)
 }
 
 /* Just zero out the pointers used */
-void BLI_dlrbTree_init (DLRBT_Tree *tree) 
+void BLI_dlrbTree_init(DLRBT_Tree *tree)
 {
 	if (tree == NULL)
 		return;
@@ -68,7 +68,7 @@ static void recursive_tree_free_nodes (DLRBT_Node *node)
 }
 
 /* Free the given tree's data but not the tree itself */
-void BLI_dlrbTree_free (DLRBT_Tree *tree)
+void BLI_dlrbTree_free(DLRBT_Tree *tree)
 {
 	if (tree == NULL)
 		return;
@@ -113,7 +113,7 @@ static void linkedlist_sync_add_node (DLRBT_Tree *tree, DLRBT_Node *node)
 }
 
 /* Make sure the tree's Double-Linked list representation is valid */
-void BLI_dlrbTree_linkedlist_sync (DLRBT_Tree *tree)
+void BLI_dlrbTree_linkedlist_sync(DLRBT_Tree *tree)
 {
 	/* sanity checks */
 	if (tree == NULL)
@@ -486,7 +486,7 @@ static void insert_check_3 (DLRBT_Tree *tree, DLRBT_Node *node)
 /* Balance the tree after the given element has been added to it 
  * (using custom code, in the Binary Tree way).
  */
-void BLI_dlrbTree_insert (DLRBT_Tree *tree, DLRBT_Node *node)
+void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node)
 {
 	/* sanity checks */
 	if ((tree == NULL) || (node == NULL))

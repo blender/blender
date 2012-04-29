@@ -289,12 +289,12 @@ static void node_draw_socket_new(bNodeSocket *sock, float size)
 	
 	glColor4ub(0, 0, 0, 150);
 	glEnable(GL_BLEND);
-	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINE_LOOP);
 	for (a=0; a<16; a++)
 		glVertex2f(x+size*si[a], y+size*co[a]);
 	glEnd();
-	glDisable( GL_LINE_SMOOTH );
+	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 }
 #endif
@@ -442,7 +442,7 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 	nodeSetActive(ntree, node);
 	
 	if ( ntree->type == NTREE_TEXTURE )
-		ntreeTexCheckCyclics( ntree );
+		ntreeTexCheckCyclics(ntree);
 	
 	// allqueue(REDRAWBUTSSHADING, 0);
 	// allqueue(REDRAWNODE, 0);
@@ -870,16 +870,16 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		/* group node outline */
 		uiSetRoundBox(UI_CNR_ALL);
 		glColor4ub(200, 200, 200, 140);
-		glEnable( GL_LINE_SMOOTH );
+		glEnable(GL_LINE_SMOOTH);
 		uiDrawBox(GL_LINE_LOOP, rect.xmin-node_group_frame, rect.ymin, rect.xmax+node_group_frame, rect.ymax+group_header, BASIS_RAD);
-		glDisable( GL_LINE_SMOOTH );
+		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 		
 		/* backdrop title */
 		UI_ThemeColor(TH_TEXT_HI);
 	
 		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, (short)(rect.xmin+15), (short)(rect.ymax+group_header),
-							   MIN2((int)(rect.xmax - rect.xmin-18.0f), node_group_frame+20), group_header, UI_GetStyle());
+		                       MIN2((int)(rect.xmax - rect.xmin-18.0f), node_group_frame+20), group_header, UI_GetStyle());
 		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
 		uiTemplateIDBrowse(layout, (bContext*)C, &ptr, "node_tree", NULL, NULL, NULL);
 		uiBlockLayoutResolve(gnode->block, NULL, NULL);

@@ -1151,70 +1151,70 @@ static void do_material_tex(GPUShadeInput *shi)
 						if ( iBumpSpacePrev != iBumpSpace ) {
 							
 							if ( mtex->texflag & MTEX_BUMP_OBJECTSPACE )
-								GPU_link( mat, "mtex_bump_init_objspace",
-										  surf_pos, vNorg, 
-								          GPU_builtin(GPU_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_OBJECT_MATRIX),  GPU_builtin(GPU_INVERSE_OBJECT_MATRIX), 
-								          fPrevMagnitude, vNacc,
-										  &fPrevMagnitude, &vNacc, 
-								          &vR1, &vR2, &fDet );
+								GPU_link(mat, "mtex_bump_init_objspace",
+								         surf_pos, vNorg,
+								         GPU_builtin(GPU_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_OBJECT_MATRIX),  GPU_builtin(GPU_INVERSE_OBJECT_MATRIX),
+								         fPrevMagnitude, vNacc,
+								         &fPrevMagnitude, &vNacc,
+								         &vR1, &vR2, &fDet);
 								
 							else if ( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
-								GPU_link( mat, "mtex_bump_init_texturespace",
-										  surf_pos, vNorg, 
-								          fPrevMagnitude, vNacc,
-										  &fPrevMagnitude, &vNacc, 
-								          &vR1, &vR2, &fDet );
+								GPU_link(mat, "mtex_bump_init_texturespace",
+								         surf_pos, vNorg,
+								         fPrevMagnitude, vNacc,
+								         &fPrevMagnitude, &vNacc,
+								         &vR1, &vR2, &fDet);
 								
 							else
-								GPU_link( mat, "mtex_bump_init_viewspace",
-										  surf_pos, vNorg, 
-								          fPrevMagnitude, vNacc,
-										  &fPrevMagnitude, &vNacc, 
-								          &vR1, &vR2, &fDet );
+								GPU_link(mat, "mtex_bump_init_viewspace",
+								         surf_pos, vNorg,
+								         fPrevMagnitude, vNacc,
+								         &fPrevMagnitude, &vNacc,
+								         &vR1, &vR2, &fDet);
 							
 							iBumpSpacePrev = iBumpSpace;
 						}
 						
 						
 						if (found_deriv_map) {
-							GPU_link( mat, "mtex_bump_deriv", 
-							          texco, GPU_image(tex->ima, &tex->iuser), GPU_uniform(&ima_x), GPU_uniform(&ima_y), tnorfac,
-							          &dBs, &dBt );
+							GPU_link(mat, "mtex_bump_deriv",
+							         texco, GPU_image(tex->ima, &tex->iuser), GPU_uniform(&ima_x), GPU_uniform(&ima_y), tnorfac,
+							         &dBs, &dBt );
 						}
-						else if ( mtex->texflag & MTEX_3TAP_BUMP )
-							GPU_link( mat, "mtex_bump_tap3", 
-							          texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
-							          &dBs, &dBt );
-						else if ( mtex->texflag & MTEX_5TAP_BUMP )
-							GPU_link( mat, "mtex_bump_tap5",
-							          texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
-							          &dBs, &dBt );
+						else if ( mtex->texflag & MTEX_3TAP_BUMP)
+							GPU_link(mat, "mtex_bump_tap3",
+							         texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
+							         &dBs, &dBt );
+						else if ( mtex->texflag & MTEX_5TAP_BUMP)
+							GPU_link(mat, "mtex_bump_tap5",
+							         texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
+							         &dBs, &dBt );
 						else if ( mtex->texflag & MTEX_BICUBIC_BUMP ) {
 							if (GPU_bicubic_bump_support()) {
-								GPU_link( mat, "mtex_bump_bicubic",
-										texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
-										&dBs, &dBt );
+								GPU_link(mat, "mtex_bump_bicubic",
+								         texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
+								         &dBs, &dBt);
 							}
 							else {
-								GPU_link( mat, "mtex_bump_tap5",
-										texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
-										&dBs, &dBt );
+								GPU_link(mat, "mtex_bump_tap5",
+								         texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
+								         &dBs, &dBt);
 							}
 						}
 						
 						
 						if ( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
 							float imag_tspace_dimension_y = aspect*imag_tspace_dimension_x;
-							GPU_link( mat, "mtex_bump_apply_texspace",
-							          fDet, dBs, dBt, vR1, vR2, 
-							          GPU_image(tex->ima, &tex->iuser), texco,
-									  GPU_uniform(&imag_tspace_dimension_x), GPU_uniform(&imag_tspace_dimension_y), vNacc,
-							          &vNacc, &shi->vn );
+							GPU_link(mat, "mtex_bump_apply_texspace",
+							         fDet, dBs, dBt, vR1, vR2,
+							         GPU_image(tex->ima, &tex->iuser), texco,
+							         GPU_uniform(&imag_tspace_dimension_x), GPU_uniform(&imag_tspace_dimension_y), vNacc,
+							         &vNacc, &shi->vn );
 						}
 						else
-							GPU_link( mat, "mtex_bump_apply",
-							          fDet, dBs, dBt, vR1, vR2, vNacc,
-							          &vNacc, &shi->vn );
+							GPU_link(mat, "mtex_bump_apply",
+							         fDet, dBs, dBt, vR1, vR2, vNacc,
+							         &vNacc, &shi->vn );
 						
 					}
 				}
@@ -1567,7 +1567,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	pixsize= (lamp->d)/temp;
 	wsize= pixsize*0.5f*lamp->size;
 		
-	perspective_m4( lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
+	perspective_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
 }
 
 static void gpu_lamp_shadow_free(GPULamp *lamp)

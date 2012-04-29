@@ -121,7 +121,7 @@ void BKE_curve_editNurb_keyIndex_free(EditNurb *editnurb)
 	editnurb->keyindex= NULL;
 }
 
-void BKE_curve_editNurb_free (Curve *cu)
+void BKE_curve_editNurb_free(Curve *cu)
 {
 	if (cu->editnurb) {
 		BKE_nurbList_free(&cu->editnurb->nurbs);
@@ -194,7 +194,7 @@ Curve *BKE_curve_copy(Curve *cu)
 	
 	cun= copy_libblock(&cu->id);
 	cun->nurb.first= cun->nurb.last= NULL;
-	BKE_nurbList_duplicate( &(cun->nurb), &(cu->nurb));
+	BKE_nurbList_duplicate(&(cun->nurb), &(cu->nurb));
 
 	cun->mat= MEM_dupallocN(cu->mat);
 	for (a=0; a<cun->totcol; a++) {
@@ -2201,24 +2201,23 @@ void BKE_curve_bevelList_make(Object *ob)
 						
 						/* BevPoint must stay aligned to 4 so sizeof(BevPoint)/sizeof(float) works */
 						for (j=0; j<3; j++) {
-							BKE_curve_forward_diff_bezier(	prevbezt->vec[1][j],	prevbezt->vec[2][j],
-													bezt->vec[0][j],		bezt->vec[1][j],
-													&(bevp->vec[j]), resolu, sizeof(BevPoint));
+							BKE_curve_forward_diff_bezier(prevbezt->vec[1][j],  prevbezt->vec[2][j],
+							                              bezt->vec[0][j],      bezt->vec[1][j],
+							                              &(bevp->vec[j]), resolu, sizeof(BevPoint));
 						}
 						
 						/* if both arrays are NULL do nothiong */
-						alfa_bezpart(	prevbezt, bezt, nu,
-										 do_tilt	? &bevp->alfa : NULL,
-										 do_radius	? &bevp->radius : NULL,
-										 do_weight	? &bevp->weight : NULL,
-										 resolu, sizeof(BevPoint));
+						alfa_bezpart(prevbezt, bezt, nu,
+						             do_tilt	? &bevp->alfa : NULL,
+						             do_radius	? &bevp->radius : NULL,
+						             do_weight	? &bevp->weight : NULL,
+						             resolu, sizeof(BevPoint));
 
 						
 						if (cu->twist_mode==CU_TWIST_TANGENT) {
-							forward_diff_bezier_cotangent(
-													prevbezt->vec[1],	prevbezt->vec[2],
-													bezt->vec[0],		bezt->vec[1],
-													bevp->tan, resolu, sizeof(BevPoint));
+							forward_diff_bezier_cotangent(prevbezt->vec[1], prevbezt->vec[2],
+							                              bezt->vec[0],     bezt->vec[1],
+							                              bevp->tan, resolu, sizeof(BevPoint));
 						}
 
 						/* indicate with handlecodes double points */
@@ -2256,11 +2255,11 @@ void BKE_curve_bevelList_make(Object *ob)
 					else bl->poly= -1;
 					bevp= (BevPoint *)(bl+1);
 					
-					BKE_nurb_makeCurve(	nu, &bevp->vec[0],
-									do_tilt		? &bevp->alfa : NULL,
-									do_radius	? &bevp->radius : NULL,
-									do_weight	? &bevp->weight : NULL,
-									resolu, sizeof(BevPoint));
+					BKE_nurb_makeCurve(nu, &bevp->vec[0],
+					                   do_tilt      ? &bevp->alfa : NULL,
+					                   do_radius    ? &bevp->radius : NULL,
+					                   do_weight    ? &bevp->weight : NULL,
+					                   resolu, sizeof(BevPoint));
 				}
 			}
 		}
@@ -2795,7 +2794,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 		if (flag==0 || (bezt1->f1 & flag) ) {
 			bezt1->h1= 0;
 			/* distance too short: vectorhandle */
-			if ( len_v3v3( bezt1->vec[1], bezt0->vec[1] ) < 0.0001f) {
+			if (len_v3v3(bezt1->vec[1], bezt0->vec[1]) < 0.0001f) {
 				bezt1->h1= HD_VECT;
 				leftsmall= 1;
 			}
@@ -2815,7 +2814,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 		if (flag==0 || (bezt1->f3 & flag) ) {
 			bezt1->h2= 0;
 			/* distance too short: vectorhandle */
-			if ( len_v3v3( bezt1->vec[1], bezt2->vec[1] ) < 0.0001f) {
+			if (len_v3v3(bezt1->vec[1], bezt2->vec[1]) < 0.0001f) {
 				bezt1->h2= HD_VECT;
 				rightsmall= 1;
 			}

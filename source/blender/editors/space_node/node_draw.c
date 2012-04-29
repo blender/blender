@@ -488,12 +488,12 @@ static void node_circle_draw(float x, float y, float size, char *col, int highli
 		glColor4ub(0, 0, 0, 150);
 	}
 	glEnable(GL_BLEND);
-	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINE_LOOP);
 	for (a=0; a<16; a++)
 		glVertex2f(x+size*si[a], y+size*co[a]);
 	glEnd();
-	glDisable( GL_LINE_SMOOTH );
+	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 	glLineWidth(1.0f);
 }
@@ -547,7 +547,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	glPixelZoom(xscale, yscale);
 
 	glEnable(GL_BLEND);
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );	/* premul graphics */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  /* premul graphics */
 	
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 	glaDrawPixelsTex(prv->xmin, prv->ymin, preview->xsize, preview->ysize, GL_UNSIGNED_BYTE, preview->rect);
@@ -691,7 +691,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* outline active and selected emphasis */
 	if ( node->flag & (NODE_ACTIVE|SELECT) ) {
 		glEnable(GL_BLEND);
-		glEnable( GL_LINE_SMOOTH );
+		glEnable(GL_LINE_SMOOTH);
 			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
 			if ( node->flag & NODE_ACTIVE ) 
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
@@ -700,7 +700,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_LEFT); // round all corners except lower right
 			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
 			
-		glDisable( GL_LINE_SMOOTH );
+		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
 	
@@ -786,14 +786,14 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	/* outline active and selected emphasis */
 	if ( node->flag & (NODE_ACTIVE|SELECT) ) {
 		glEnable(GL_BLEND);
-		glEnable( GL_LINE_SMOOTH );
+		glEnable(GL_LINE_SMOOTH);
 			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
 			if ( node->flag & NODE_ACTIVE ) 
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
 			else
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
 			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
-		glDisable( GL_LINE_SMOOTH );
+		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
 	
@@ -939,7 +939,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	//uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
 	/* only set once */
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MAP1_VERTEX_3);
 
 	/* aspect+font, set each time */

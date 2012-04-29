@@ -122,11 +122,11 @@ void EDBM_mesh_normals_update(struct BMEditMesh *em) {}
 void *g_system;
 
 struct Heap* BLI_heap_new (void){return NULL;}
-void BLI_heap_free (struct Heap *heap, void *ptrfreefp) {}
+void BLI_heap_free(struct Heap *heap, void *ptrfreefp) {}
 struct HeapNode* BLI_heap_insert (struct Heap *heap, float value, void *ptr){return NULL;}
-void BLI_heap_remove (struct Heap *heap, struct HeapNode *node) {}
-int BLI_heap_empty (struct Heap *heap) {return 0;}
-int BLI_heap_size (struct Heap *heap){return 0;}
+void BLI_heap_remove(struct Heap *heap, struct HeapNode *node) {}
+int BLI_heap_empty(struct Heap *heap) {return 0;}
+int BLI_heap_size(struct Heap *heap){return 0;}
 struct HeapNode* BLI_heap_top (struct Heap *heap){return NULL;}
 void* BLI_heap_popmin (struct Heap *heap){return NULL;}
 
@@ -191,7 +191,7 @@ float *give_cursor(struct Scene *scene, struct View3D *v3d){return (float *) NUL
 void WM_menutype_free(void){}
 void WM_menutype_freelink(struct MenuType* mt){}
 int WM_menutype_add(struct MenuType *mt) {return 0;}
-int WM_operator_props_dialog_popup (struct bContext *C, struct wmOperator *op, int width, int height){return 0;}
+int WM_operator_props_dialog_popup(struct bContext *C, struct wmOperator *op, int width, int height){return 0;}
 int WM_operator_confirm(struct bContext *C, struct wmOperator *op, struct wmEvent *event){return 0;}
 struct MenuType *WM_menutype_find(const char *idname, int quiet){return (struct MenuType *) NULL;}
 void WM_operator_stack_clear(struct bContext *C) {}
@@ -211,7 +211,7 @@ struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmO
 struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep){return (struct wmTimer *)NULL;}
 void WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer){}
 void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone){}
-void object_test_constraints (struct Object *owner){}
+void object_test_constraints(struct Object *owner){}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr){}
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con){}
 void ED_node_composit_default(struct Scene *sce){}
@@ -271,11 +271,11 @@ struct KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[]){return 
 struct KeyingSet *ANIM_scene_get_active_keyingset (struct Scene *scene){return (struct KeyingSet *) NULL;}
 int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks){return 0;}
 struct ListBase builtin_keyingsets;
-void ANIM_keyingset_info_register (struct KeyingSetInfo *ksi){}
-void ANIM_keyingset_info_unregister (const struct bContext *C, struct KeyingSetInfo *ksi){}
-short ANIM_validate_keyingset (struct bContext *C, struct ListBase *dsources, struct KeyingSet *ks){return 0;}
+void ANIM_keyingset_info_register(struct KeyingSetInfo *ksi){}
+void ANIM_keyingset_info_unregister(const struct bContext *C, struct KeyingSetInfo *ksi){}
+short ANIM_validate_keyingset(struct bContext *C, struct ListBase *dsources, struct KeyingSet *ks){return 0;}
 short ANIM_add_driver(struct ID *id, const char rna_path[], int array_index, short flag, int type){return 0;}
-short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag){return 0;}
+short ANIM_remove_driver(struct ID *id, const char rna_path[], int array_index, short flag){return 0;}
 void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock){}
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r){return (struct ImBuf *) NULL;}
 void ED_space_image_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy) {}
@@ -285,7 +285,7 @@ void ED_area_tag_refresh(struct ScrArea *sa){}
 void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type){} 
 void ED_region_tag_redraw(struct ARegion *ar){}
 void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op){}
-void WM_cursor_wait (int val) {}
+void WM_cursor_wait(int val) {}
 void ED_node_texture_default(struct Tex *tx){}
 void ED_node_changed_update(struct bContext *C, struct bNode *node){}
 void ED_node_generic_update(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node){}
@@ -358,8 +358,8 @@ void ED_nurb_set_spline_type(struct Nurb *nu, int type){}
 void make_editLatt(struct Object *obedit){}
 void load_editLatt(struct Object *obedit){}
 
-void load_editNurb	(struct Object *obedit){}
-void make_editNurb	(struct Object *obedit){}
+void load_editNurb(struct Object *obedit){}
+void make_editNurb(struct Object *obedit){}
 
 
 void uiItemR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, char *name, int icon){}
@@ -469,7 +469,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType*, voi
 void WM_operator_bl_idname(char *to, const char *from){}
 void WM_operator_py_idname(char *to, const char *from){}
 void WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width, int height){}
-short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
+short insert_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
 short delete_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;};
 char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args){return (char *)NULL;}
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return (struct wmKeyMapItem *)NULL;}

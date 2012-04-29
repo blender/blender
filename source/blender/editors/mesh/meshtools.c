@@ -642,9 +642,9 @@ static int mesh_octree_get_base_offs(const float co[3], const float offs[3], con
 {
 	int vx, vy, vz;
 	
-	vx = floor( (co[0] - offs[0]) / div[0]);
-	vy = floor( (co[1] - offs[1]) / div[1]);
-	vz = floor( (co[2] - offs[2]) / div[2]);
+	vx = floor((co[0] - offs[0]) / div[0]);
+	vy = floor((co[1] - offs[1]) / div[1]);
+	vz = floor((co[2] - offs[2]) / div[2]);
 
 	CLAMP(vx, 0, MOC_RES - 1);
 	CLAMP(vy, 0, MOC_RES - 1);

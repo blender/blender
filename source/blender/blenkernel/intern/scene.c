@@ -234,7 +234,7 @@ Scene *copy_scene(Scene *sce, int type)
 		}
 
 		if (sce->ed) {
-			scen->ed= MEM_callocN( sizeof(Editing), "addseq");
+			scen->ed= MEM_callocN(sizeof(Editing), "addseq");
 			scen->ed->seqbasep= &scen->ed->seqbase;
 			seqbase_dupli_recursive(sce, scen, &scen->ed->seqbase, &sce->ed->seqbase, SEQ_DUPE_ALL);
 		}

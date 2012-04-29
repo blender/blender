@@ -734,7 +734,7 @@ static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
 }
 
 /* change the chain-length of auto-ik */
-void transform_autoik_update (TransInfo *t, short mode)
+void transform_autoik_update(TransInfo *t, short mode)
 {
 	short *chainlen= &t->settings->autoik_chainlen;
 	bPoseChannel *pchan;
@@ -2987,7 +2987,7 @@ typedef struct tGPFtransdata {
 } tGPFtransdata;
 
 /* This function helps flush transdata written to tempdata into the gp-frames  */
-void flushTransGPactionData (TransInfo *t)
+void flushTransGPactionData(TransInfo *t)
 {
 	tGPFtransdata *tfd;
 	int i;
@@ -3659,7 +3659,7 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
  * anim_data is the list of channels (F-Curves) retrieved already containing the
  * channels to work on. It should not be freed here as it may still need to be used.
  */
-void remake_graph_transdata (TransInfo *t, ListBase *anim_data)
+void remake_graph_transdata(TransInfo *t, ListBase *anim_data)
 {
 	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
 	bAnimListElem *ale;

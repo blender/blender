@@ -80,8 +80,8 @@ static void region_draw_emboss(ARegion *ar, rcti *scirct)
 	rect.ymax = scirct->ymax - ar->winrct.ymin;
 	
 	/* set transp line */
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable(GL_BLEND );
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	/* right  */
 	glColor4ub(0, 0, 0, 30);
@@ -99,7 +99,7 @@ static void region_draw_emboss(ARegion *ar, rcti *scirct)
 	glColor4ub(255, 255, 255, 30);
 	sdrawline(rect.xmin, rect.ymin, rect.xmin, rect.ymax);
 	
-	glDisable( GL_BLEND );
+	glDisable(GL_BLEND);
 }
 
 void ED_region_pixelspace(ARegion *ar)
@@ -213,12 +213,12 @@ static void region_draw_azone_icon(AZone *az)
 	glColor4f(1.f, 1.f, 1.f, 0.8f);
 
 	gluQuadricDrawStyle(qobj, GLU_FILL); 
-	gluDisk( qobj, 0.0,  4.25f, 16, 1); 
+	gluDisk(qobj, 0.0,  4.25f, 16, 1);
 
 	glColor4f(0.2f, 0.2f, 0.2f, 0.9f);
 	
 	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-	gluDisk( qobj, 0.0,  4.25f, 16, 1); 
+	gluDisk(qobj, 0.0,  4.25f, 16, 1);
 	
 	glDisable(GL_LINE_SMOOTH);
 	
@@ -357,8 +357,8 @@ void ED_area_overdraw(bContext *C)
 	/* Draw AZones, in screenspace */
 	wmSubWindowSet(win, screen->mainwin);
 
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	for (sa= screen->areabase.first; sa; sa= sa->next) {
 		AZone *az;
@@ -388,7 +388,7 @@ void ED_area_overdraw(bContext *C)
 			}
 		}
 	}	
-	glDisable( GL_BLEND );
+	glDisable(GL_BLEND);
 	
 }
 

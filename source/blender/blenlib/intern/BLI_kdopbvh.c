@@ -177,7 +177,7 @@ static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, in
 	if (*memblock == local_memblock)
 	{
 		new_memblock = malloc( size_per_item * new_max_size );
-		memcpy( new_memblock, *memblock, size_per_item * *max_size );
+		memcpy(new_memblock, *memblock, size_per_item * *max_size);
 	}
 	else
 		new_memblock = realloc(*memblock, size_per_item * new_max_size );
@@ -1329,7 +1329,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
 	}
 
 	if (nearest) {
-		memcpy( &data.nearest, nearest, sizeof(*nearest) );
+		memcpy(&data.nearest, nearest, sizeof(*nearest));
 	}
 	else {
 		data.nearest.index = -1;
@@ -1518,7 +1518,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 
 
 	if (hit)
-		memcpy( &data.hit, hit, sizeof(*hit) );
+		memcpy(&data.hit, hit, sizeof(*hit));
 	else {
 		data.hit.index = -1;
 		data.hit.dist = FLT_MAX;
@@ -1531,7 +1531,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 
 
 	if (hit)
-		memcpy( hit, &data.hit, sizeof(*hit) );
+		memcpy(hit, &data.hit, sizeof(*hit));
 
 	return data.hit.index;
 }
@@ -1610,7 +1610,7 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 					data->callback(data->userdata, node->children[i]->index, dist);
 				}
 				else
-					dfs_range_query( data, node->children[i] );
+					dfs_range_query(data, node->children[i]);
 			}
 		}
 	}
@@ -1639,7 +1639,7 @@ int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHT
 				data.callback(data.userdata, root->index, dist);
 			}
 			else
-				dfs_range_query( &data, root );
+				dfs_range_query(&data, root);
 		}
 	}
 

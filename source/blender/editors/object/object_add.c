@@ -1826,7 +1826,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					for (a = 0; a < obn->totcol; a++) {
 						id = (ID *)(*matarar)[a];
 						if (id) {
-							ID_NEW_US( (*matarar)[a])
+							ID_NEW_US((*matarar)[a])
 							else (*matarar)[a] = copy_material((*matarar)[a]);
 							
 							id->us--;

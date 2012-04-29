@@ -232,7 +232,7 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED; 
 }
 
-void POSE_OT_paths_calculate (wmOperatorType *ot)
+void POSE_OT_paths_calculate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Calculate Bone Paths";
@@ -300,7 +300,7 @@ static int pose_clear_paths_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED; 
 }
 
-void POSE_OT_paths_clear (wmOperatorType *ot)
+void POSE_OT_paths_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clear Bone Paths";
@@ -665,7 +665,7 @@ static int pose_select_grouped_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 }
 
-void POSE_OT_select_grouped (wmOperatorType *ot)
+void POSE_OT_select_grouped(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_select_grouped_types[] = {
 		{0, "LAYER", 0, "Layer", "Shared layers"},
@@ -1140,7 +1140,7 @@ static int pose_copy_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_copy (wmOperatorType *ot) 
+void POSE_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Copy Pose";
@@ -1207,7 +1207,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_paste (wmOperatorType *ot)
+void POSE_OT_paste(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
@@ -1257,7 +1257,7 @@ static int pose_group_add_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_group_add (wmOperatorType *ot)
+void POSE_OT_group_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Bone Group";
@@ -1297,7 +1297,7 @@ static int pose_group_remove_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_group_remove (wmOperatorType *ot)
+void POSE_OT_group_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Bone Group";
@@ -1411,7 +1411,7 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 }
 
-void POSE_OT_group_assign (wmOperatorType *ot)
+void POSE_OT_group_assign(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Selected to Bone Group";
@@ -1466,7 +1466,7 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 }
 
-void POSE_OT_group_unassign (wmOperatorType *ot)
+void POSE_OT_group_unassign(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Selected from Bone Groups";
@@ -1688,7 +1688,7 @@ static int pose_group_select_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_group_select (wmOperatorType *ot)
+void POSE_OT_group_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Bones of Bone Group";
@@ -1726,7 +1726,7 @@ static int pose_group_deselect_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_group_deselect (wmOperatorType *ot)
+void POSE_OT_group_deselect(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Deselect Bone Group";
@@ -1770,7 +1770,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_flip_names (wmOperatorType *ot)
+void POSE_OT_flip_names(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Flip Names";
@@ -1816,7 +1816,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_autoside_names (wmOperatorType *ot)
+void POSE_OT_autoside_names(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[]= {
 		{0, "XAXIS", 0, "X-Axis", "Left/Right"},
@@ -1861,7 +1861,7 @@ static int pose_bone_rotmode_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_rotation_mode_set (wmOperatorType *ot)
+void POSE_OT_rotation_mode_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Rotation Mode";
@@ -1920,7 +1920,7 @@ static int pose_armature_layers_showall_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_layers_show_all (wmOperatorType *ot)
+void ARMATURE_OT_layers_show_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Show All Layers";
@@ -1986,7 +1986,7 @@ static int pose_armature_layers_exec (bContext *C, wmOperator *op)
 }
 
 
-void POSE_OT_armature_layers (wmOperatorType *ot)
+void POSE_OT_armature_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Change Armature Layers";
@@ -2005,7 +2005,7 @@ void POSE_OT_armature_layers (wmOperatorType *ot)
 	RNA_def_boolean_layer_member(ot->srna, "layers", 32, NULL, "Layer", "Armature layers to make visible");
 }
 
-void ARMATURE_OT_armature_layers (wmOperatorType *ot)
+void ARMATURE_OT_armature_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Change Armature Layers";
@@ -2078,7 +2078,7 @@ static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_bone_layers (wmOperatorType *ot)
+void POSE_OT_bone_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Change Bone Layers";
@@ -2148,7 +2148,7 @@ static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_bone_layers (wmOperatorType *ot)
+void ARMATURE_OT_bone_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Change Bone Layers";
@@ -2195,7 +2195,7 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_quaternions_flip (wmOperatorType *ot)
+void POSE_OT_quaternions_flip(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Flip Quats";
@@ -2271,7 +2271,7 @@ static int pose_clear_user_transforms_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_user_transforms_clear (wmOperatorType *ot)
+void POSE_OT_user_transforms_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clear User Transforms";

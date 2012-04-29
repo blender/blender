@@ -195,7 +195,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	ml= mb->editelems->first;
-	BLI_srand( BLI_rand() );	/* Random seed */
+	BLI_srand(BLI_rand());	/* Random seed */
 	
 	/* Stupid version of random selection. Should be improved. */
 	while (ml) {

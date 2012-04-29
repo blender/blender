@@ -93,11 +93,11 @@ void reorganize(Node *root)
 		
 		if (RE_rayobject_isAligned(node->child)) {
 			for (Node **prev = &node->child; *prev; ) {
-				assert( RE_rayobject_isAligned(*prev) ); 
+				assert(RE_rayobject_isAligned(*prev));
 				q.push(*prev);
 
 				std::pair<float, Node*> best(FLT_MAX, root);
-				reorganize_find_fittest_parent( root, *prev, best );
+				reorganize_find_fittest_parent(root, *prev, best);
 
 				if (best.second == node) {
 					//Already inside the fitnest BB
@@ -349,7 +349,7 @@ struct OVBVHNode
 			//Calc new childs
 			{
 				OVBVHNode **cut = &(this->child);
-				set_cut( best_cutsize, &cut );
+				set_cut(best_cutsize, &cut);
 				*cut = NULL;
 			}
 

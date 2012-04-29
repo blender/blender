@@ -1974,7 +1974,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 					}
 					if (BKE_nurb_check_valid_u(newnu)) {
 						if (nu->pntsu==newnu->pntsu && nu->knotsu) {
-							newnu->knotsu= MEM_dupallocN( nu->knotsu );
+							newnu->knotsu= MEM_dupallocN(nu->knotsu);
 						}
 						else {
 							BKE_nurb_knot_calc_u(newnu);
@@ -1982,7 +1982,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 					}
 					if (BKE_nurb_check_valid_v(newnu)) {
 						if (nu->pntsv==newnu->pntsv && nu->knotsv) {
-							newnu->knotsv= MEM_dupallocN( nu->knotsv );
+							newnu->knotsv= MEM_dupallocN(nu->knotsv);
 						}
 						else {
 							BKE_nurb_knot_calc_v(newnu);
@@ -2157,7 +2157,7 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 	for (nu= editnurb->first; nu; nu= nu->next) {
 		if (nu->bezt) {
 			change = 0;
-			beztOrig = MEM_dupallocN( nu->bezt );
+			beztOrig = MEM_dupallocN(nu->bezt);
 			for (bezt=nu->bezt+1, a=1; a<nu->pntsu-1; a++, bezt++) {
 				if (bezt->f2 & SELECT) {
 					for (i=0; i<3; i++) {
@@ -2177,7 +2177,7 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 				BKE_nurb_handles_calc(nu);
 		}
 		else if (nu->bp) {
-			bpOrig = MEM_dupallocN( nu->bp );
+			bpOrig = MEM_dupallocN(nu->bp);
 			/* Same as above, keep these the same! */
 			for (bp=nu->bp+1, a=1; a<nu->pntsu-1; a++, bp++) {
 				if (bp->f1 & SELECT) {
@@ -3039,7 +3039,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				/* total count of nodes after subdivision */
 				int tot= ((number_cuts+1)*nu->pntsu-number_cuts)*((number_cuts+1)*nu->pntsv-number_cuts);
 
-				bpn=bpnew= MEM_mallocN( tot*sizeof(BPoint), "subdivideNurb4");
+				bpn=bpnew= MEM_mallocN(tot*sizeof(BPoint), "subdivideNurb4");
 				bp= nu->bp;
 				/* first subdivide rows */
 				for (a=0; a<nu->pntsv; a++) {
@@ -3097,7 +3097,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 
 				if (sel) {   /* V ! */
-					bpn=bpnew= MEM_mallocN( (sel+nu->pntsv)*nu->pntsu*sizeof(BPoint), "subdivideNurb4");
+					bpn=bpnew= MEM_mallocN((sel+nu->pntsv)*nu->pntsu*sizeof(BPoint), "subdivideNurb4");
 					bp= nu->bp;
 					for (a=0; a<nu->pntsv; a++) {
 						for (b=0; b<nu->pntsu; b++) {
@@ -3144,7 +3144,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					if (sel) {	/* U ! */
 				 /* Inserting U points is sort of 'default' Flat curves only get */
 				 /* U points inserted in them.                                   */
-						bpn=bpnew= MEM_mallocN( (sel+nu->pntsu)*nu->pntsv*sizeof(BPoint), "subdivideNurb4");
+						bpn=bpnew= MEM_mallocN((sel+nu->pntsu)*nu->pntsv*sizeof(BPoint), "subdivideNurb4");
 						bp= nu->bp;
 						for (a=0; a<nu->pntsv; a++) {
 							for (b=0; b<nu->pntsu; b++) {
@@ -3719,7 +3719,7 @@ static void make_selection_list_nurb(ListBase *editnurb)
 	/* just add the first one */
 	nus= nbase.first;
 	BLI_remlink(&nbase, nus);
-	BLI_addtail( &nsortbase, nus);
+	BLI_addtail(&nsortbase, nus);
 	
 	/* now add, either at head or tail, the closest one */
 	while (nbase.first) {
@@ -5398,7 +5398,7 @@ static void selectrandom_curve(ListBase *editnurb, float randfac)
 	BPoint *bp;
 	int a;
 	
-	BLI_srand( BLI_rand() ); /* random seed */
+	BLI_srand(BLI_rand()); /* random seed */
 	
 	for (nu= editnurb->first; nu; nu= nu->next) {	
 		if (nu->type == CU_BEZIER) {

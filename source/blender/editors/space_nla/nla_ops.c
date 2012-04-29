@@ -58,7 +58,7 @@
 /* ************************** poll callbacks for operators **********************************/
 
 /* tweakmode is NOT enabled */
-int nlaop_poll_tweakmode_off (bContext *C)
+int nlaop_poll_tweakmode_off(bContext *C)
 {
 	Scene *scene;
 	
@@ -80,7 +80,7 @@ int nlaop_poll_tweakmode_off (bContext *C)
 }
 
 /* tweakmode IS enabled */
-int nlaop_poll_tweakmode_on (bContext *C)
+int nlaop_poll_tweakmode_on(bContext *C)
 {
 	Scene *scene;
 	
@@ -102,7 +102,7 @@ int nlaop_poll_tweakmode_on (bContext *C)
 }
 
 /* is tweakmode enabled - for use in NLA operator code */
-short nlaedit_is_tweakmode_on (bAnimContext *ac)
+short nlaedit_is_tweakmode_on(bAnimContext *ac)
 {
 	if (ac && ac->scene)
 		return (ac->scene->flag & SCE_NLA_EDIT_ON);

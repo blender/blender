@@ -643,7 +643,7 @@ static float screen_aligned(RegionView3D *rv3d, float mat[][4])
 	glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
 
 	/* sets view screen aligned */
-	glRotatef( -360.0f*saacos(rv3d->viewquat[0])/(float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
+	glRotatef(-360.0f*saacos(rv3d->viewquat[0])/(float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
 
 	return len_v3(mat[0]); /* draw scale */
 }
@@ -884,7 +884,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 		glClipPlane(GL_CLIP_PLANE0, plane);
 	}
 	/* sets view screen aligned */
-	glRotatef( -360.0f*saacos(rv3d->viewquat[0])/(float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
+	glRotatef(-360.0f*saacos(rv3d->viewquat[0])/(float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
 
 	/* Screen aligned help circle */
 	if (arcs) {
@@ -1553,7 +1553,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	setwinmatrixview3d(ar, v3d, &rect);
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 
-	glSelectBuffer( 64, buffer);
+	glSelectBuffer(64, buffer);
 	glRenderMode(GL_SELECT);
 	glInitNames();	/* these two calls whatfor? It doesnt work otherwise */
 	glPushName(-2);

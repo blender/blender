@@ -245,7 +245,7 @@ struct dirent *readdir(DIR *dp)
 	}
 }
 
-int closedir (DIR *dp)
+int closedir(DIR *dp)
 {
 	if (dp->direntry.d_name) MEM_freeN(dp->direntry.d_name);
 	if (dp->handle!=INVALID_HANDLE_VALUE) FindClose(dp->handle);

@@ -97,7 +97,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 		}
 		else {
 			sub_v3_v3v3(is.dir, lar->co, is.start);
-			is.dist = normalize_v3( is.dir );
+			is.dist = normalize_v3(is.dir );
 		}
 
 		is.mode = RE_RAY_MIRROR;

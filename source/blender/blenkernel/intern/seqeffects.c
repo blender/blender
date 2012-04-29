@@ -2180,9 +2180,9 @@ static struct ImBuf * do_transform_effect(
  * GLOW
  * ********************************************************************** */
 
-static void RVBlurBitmap2_byte ( unsigned char* map, int width, int height,
-				 float blur,
-				 int quality)
+static void RVBlurBitmap2_byte(unsigned char* map, int width, int height,
+                               float blur,
+                               int quality)
 /*	MUUUCCH better than the previous blur. */
 /*	We do the blurring in two passes which is a whole lot faster. */
 /*	I changed the math arount to implement an actual Gaussian */
@@ -2203,7 +2203,7 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width, int height,
 		return;
 
 	/*	Allocate memory for the tempmap and the blur filter matrix */
-	temp= MEM_mallocN( (width*height*4), "blurbitmaptemp");
+	temp= MEM_mallocN((width*height*4), "blurbitmaptemp");
 	if (!temp)
 		return;
 
@@ -2372,7 +2372,7 @@ static void RVBlurBitmap2_float ( float* map, int width, int height,
 		return;
 
 	/*	Allocate memory for the tempmap and the blur filter matrix */
-	temp= MEM_mallocN( (width*height*4*sizeof(float)), "blurbitmaptemp");
+	temp= MEM_mallocN((width*height*4*sizeof(float)), "blurbitmaptemp");
 	if (!temp)
 		return;
 

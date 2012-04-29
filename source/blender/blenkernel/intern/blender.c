@@ -431,7 +431,7 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *report
 
 /* *****************  testing for break ************* */
 
-static void (*blender_test_break_cb)(void)= NULL;
+static void (*blender_test_break_cb)(void) = NULL;
 
 void set_blender_test_break_cb(void (*func)(void) )
 {

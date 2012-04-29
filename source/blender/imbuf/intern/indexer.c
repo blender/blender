@@ -69,7 +69,7 @@ anim_index_builder * IMB_index_builder_create(const char * name)
 {
 
 	anim_index_builder * rv
-	        = MEM_callocN( sizeof(struct anim_index_builder),
+	        = MEM_callocN(sizeof(struct anim_index_builder),
 	                       "index builder");
 
 	fprintf(stderr, "Starting work on index: %s\n", name);
@@ -176,7 +176,7 @@ struct anim_index * IMB_indexer_open(const char * name)
 		return NULL;
 	}
 
-	idx = MEM_callocN( sizeof(struct anim_index), "anim_index");
+	idx = MEM_callocN(sizeof(struct anim_index), "anim_index");
 
 	BLI_strncpy(idx->name, name, sizeof(idx->name));
 	
@@ -191,7 +191,7 @@ struct anim_index * IMB_indexer_open(const char * name)
 	
 	fseek(fp, 12, SEEK_SET);
 
-	idx->entries = MEM_callocN( sizeof(struct anim_index_entry) 
+	idx->entries = MEM_callocN(sizeof(struct anim_index_entry) 
 				    * idx->num_entries, "anim_index_entries");
 
 	for (i = 0; i < idx->num_entries; i++) {

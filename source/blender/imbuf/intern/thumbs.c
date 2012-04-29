@@ -218,7 +218,7 @@ static void thumbname_from_uri(const char* uri, char* thumb, const int thumb_len
 	char hexdigest[33];
 	unsigned char digest[16];
 
-	md5_buffer( uri, strlen(uri), digest);
+	md5_buffer(uri, strlen(uri), digest);
 	hexdigest[0] = '\0';
 	to_hex_char(hexdigest, digest, 16);
 	hexdigest[32] = '\0';

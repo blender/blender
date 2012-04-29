@@ -949,7 +949,7 @@ void resetTransRestrictions(TransInfo *t)
 }
 
 /* the *op can be NULL */
-int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
+int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1213,7 +1213,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
-void postTrans (bContext *C, TransInfo *t)
+void postTrans(bContext *C, TransInfo *t)
 {
 	TransData *td;
 	
@@ -1654,7 +1654,7 @@ void calculatePropRatio(TransInfo *t)
 					td->factor = (float)sqrt(2*dist - dist * dist);
 					break;
 				case PROP_RANDOM:
-					BLI_srand( BLI_rand() ); /* random seed */
+					BLI_srand(BLI_rand()); /* random seed */
 					td->factor = BLI_frand()*dist;
 					break;
 				default:

@@ -1281,7 +1281,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 		copy_v3_v3(vert[1], cagecos[mface->v2]);
 		copy_v3_v3(vert[2], cagecos[mface->v3]);
 		if (mface->v4) copy_v3_v3(vert[3], cagecos[mface->v4]);
-		interp_weights_poly_v3( isect->uvw, vert, isect->nvert, isect->co);
+		interp_weights_poly_v3(isect->uvw, vert, isect->nvert, isect->co);
 
 		return isect;
 	}

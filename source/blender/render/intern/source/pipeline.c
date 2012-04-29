@@ -541,7 +541,9 @@ void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
 	re->clipend= clipend;
 	re->r.mode &= ~R_ORTHO;
 
-	perspective_m4( re->winmat, re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
+	perspective_m4(re->winmat,
+	               re->viewplane.xmin, re->viewplane.xmax,
+	               re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 	
 }
 
@@ -554,7 +556,9 @@ void RE_SetOrtho(Render *re, rctf *viewplane, float clipsta, float clipend)
 	re->clipend= clipend;
 	re->r.mode |= R_ORTHO;
 
-	orthographic_m4( re->winmat, re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
+	orthographic_m4(re->winmat,
+	                re->viewplane.xmin, re->viewplane.xmax,
+	                re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 }
 
 void RE_SetView(Render *re, float mat[][4])

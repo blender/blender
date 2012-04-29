@@ -631,7 +631,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
 		nofquads = count_mesh_quads(me);
 		if (nofquads) {
 			/* resize spring-array to hold additional quad springs */
-			bs_new= MEM_callocN( (ob->soft->totspring + nofquads *2 )*sizeof(BodySpring), "bodyspring");
+			bs_new= MEM_callocN((ob->soft->totspring + nofquads *2 )*sizeof(BodySpring), "bodyspring");
 			memcpy(bs_new, ob->soft->bspring, (ob->soft->totspring )*sizeof(BodySpring));
 
 			if (ob->soft->bspring)
@@ -735,7 +735,7 @@ static void add_2nd_order_springs(Object *ob, float stiffness)
 	add_2nd_order_roller(ob, stiffness, &counter, 0); /* counting */
 	if (counter) {
 		/* resize spring-array to hold additional springs */
-		bs_new= MEM_callocN( (ob->soft->totspring + counter )*sizeof(BodySpring), "bodyspring");
+		bs_new= MEM_callocN((ob->soft->totspring + counter )*sizeof(BodySpring), "bodyspring");
 		memcpy(bs_new, ob->soft->bspring, (ob->soft->totspring )*sizeof(BodySpring));
 
 		if (ob->soft->bspring)
@@ -752,7 +752,7 @@ static void add_bp_springlist(BodyPoint *bp, int springID)
 	int *newlist;
 
 	if (bp->springs == NULL) {
-		bp->springs = MEM_callocN( sizeof(int), "bpsprings");
+		bp->springs = MEM_callocN(sizeof(int), "bpsprings");
 		bp->springs[0] = springID;
 		bp->nofsprings = 1;
 	}
@@ -860,9 +860,9 @@ static void renew_softbody(Scene *scene, Object *ob, int totpoint, int totspring
 		sb->totpoint= totpoint;
 		sb->totspring= totspring;
 
-		sb->bpoint= MEM_mallocN( totpoint*sizeof(BodyPoint), "bodypoint");
+		sb->bpoint= MEM_mallocN(totpoint*sizeof(BodyPoint), "bodypoint");
 		if (totspring)
-			sb->bspring= MEM_mallocN( totspring*sizeof(BodySpring), "bodyspring");
+			sb->bspring= MEM_mallocN(totspring*sizeof(BodySpring), "bodyspring");
 
 			/* initialize BodyPoint array */
 		for (i=0; i<totpoint; i++) {
@@ -1015,7 +1015,7 @@ static int query_external_colliders(Scene *scene, Object *me)
 
 
 /* +++ the aabb "force" section*/
-static int sb_detect_aabb_collisionCached(	float UNUSED(force[3]), unsigned int UNUSED(par_layer), struct Object *vertexowner, float UNUSED(time))
+static int sb_detect_aabb_collisionCached(float UNUSED(force[3]), unsigned int UNUSED(par_layer), struct Object *vertexowner, float UNUSED(time))
 {
 	Object *ob;
 	SoftBody *sb=vertexowner->soft;
@@ -3604,19 +3604,19 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 						bs->v1= curindex-3;
 						bs->v2= curindex;
 						bs->springtype=SB_HANDLE;
-						bs->len= globallen( (bezt-1)->vec[0], bezt->vec[0], ob );
+						bs->len = globallen((bezt-1)->vec[0], bezt->vec[0], ob);
 						bs++;
 					}
 					bs->v1= curindex;
 					bs->v2= curindex+1;
 					bs->springtype=SB_HANDLE;
-					bs->len= globallen(bezt->vec[0], bezt->vec[1], ob);
+					bs->len = globallen(bezt->vec[0], bezt->vec[1], ob);
 					bs++;
 
 					bs->v1= curindex+1;
 					bs->v2= curindex+2;
 					bs->springtype=SB_HANDLE;
-					bs->len= globallen(bezt->vec[1], bezt->vec[2], ob);
+					bs->len = globallen(bezt->vec[1], bezt->vec[2], ob);
 					bs++;
 				}
 			}
@@ -3825,8 +3825,8 @@ void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float ls
 	if (!ob ||!ob->soft) return; /* why did we get here ? */
 	sb= ob->soft;
 	if (!sb || !sb->bpoint) return;
-	opos= MEM_callocN( (sb->totpoint)*3*sizeof(float), "SB_OPOS");
-	rpos= MEM_callocN( (sb->totpoint)*3*sizeof(float), "SB_RPOS");
+	opos= MEM_callocN((sb->totpoint)*3*sizeof(float), "SB_OPOS");
+	rpos= MEM_callocN((sb->totpoint)*3*sizeof(float), "SB_RPOS");
 	/* might filter vertex selection with a vertex group */
 	for (a=0, bp=sb->bpoint, rp=sb->scratch->Ref.ivert; a<sb->totpoint; a++, bp++, rp++) {
 		copy_v3_v3(rpos[a], rp->pos);

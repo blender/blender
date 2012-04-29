@@ -282,7 +282,7 @@ typedef struct tSmooth_Bezt {
 
 /* Use a weighted moving-means method to reduce intensity of fluctuations */
 // TODO: introduce scaling factor for weighting falloff
-void smooth_fcurve (FCurve *fcu)
+void smooth_fcurve(FCurve *fcu)
 {
 	BezTriple *bezt;
 	int i, x, totSel = 0;
@@ -380,7 +380,7 @@ typedef struct tempFrameValCache {
 
 
 /* Evaluates the curves between each selected keyframe on each frame, and keys the value  */
-void sample_fcurve (FCurve *fcu)
+void sample_fcurve(FCurve *fcu)
 {
 	BezTriple *bezt, *start=NULL, *end=NULL;
 	tempFrameValCache *value_cache, *fp;
@@ -477,7 +477,7 @@ typedef struct tAnimCopybufItem {
 
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
 // XXX find some header to put this in!
-void free_anim_copybuf (void)
+void free_anim_copybuf(void)
 {
 	tAnimCopybufItem *aci, *acn;
 	
@@ -506,7 +506,7 @@ void free_anim_copybuf (void)
 /* ------------------- */
 
 /* This function adds data to the keyframes copy/paste buffer, freeing existing data first */
-short copy_animedit_keys (bAnimContext *ac, ListBase *anim_data)
+short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 {	
 	bAnimListElem *ale;
 	Scene *scene= ac->scene;
@@ -760,8 +760,8 @@ EnumPropertyItem keyframe_paste_merge_items[] = {
 /* This function pastes data from the keyframes copy/paste buffer 
  * > return status code is whether the method FAILED to do anything
  */
-short paste_animedit_keys (bAnimContext *ac, ListBase *anim_data,
-			const eKeyPasteOffset offset_mode, const eKeyMergeMode merge_mode)
+short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
+                          const eKeyPasteOffset offset_mode, const eKeyMergeMode merge_mode)
 {
 	bAnimListElem *ale;
 	

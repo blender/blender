@@ -759,7 +759,7 @@ static int pose_slide_push_exec (bContext *C, wmOperator *op)
 	return pose_slide_exec_common(C, op, pso);
 }
 
-void POSE_OT_push (wmOperatorType *ot)
+void POSE_OT_push(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Push Pose";
@@ -816,7 +816,7 @@ static int pose_slide_relax_exec (bContext *C, wmOperator *op)
 	return pose_slide_exec_common(C, op, pso);
 }
 
-void POSE_OT_relax (wmOperatorType *ot)
+void POSE_OT_relax(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Relax Pose";
@@ -873,7 +873,7 @@ static int pose_slide_breakdown_exec (bContext *C, wmOperator *op)
 	return pose_slide_exec_common(C, op, pso);
 }
 
-void POSE_OT_breakdown (wmOperatorType *ot)
+void POSE_OT_breakdown(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Pose Breakdowner";
@@ -1228,7 +1228,7 @@ static int pose_propagate_exec (bContext *C, wmOperator *op)
 
 /* --------------------------------- */
 
-void POSE_OT_propagate (wmOperatorType *ot)
+void POSE_OT_propagate(wmOperatorType *ot)
 {
 	static EnumPropertyItem terminate_items[]= {
 		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, "While Held", "Propagate pose to all keyframes after current frame that don't change (Default behavior)"},

@@ -71,7 +71,7 @@
 /* ---------------------- Freeing --------------------------- */
 
 /* Frees the F-Curve itself too, so make sure BLI_remlink is called before calling this... */
-void free_fcurve (FCurve *fcu) 
+void free_fcurve(FCurve *fcu)
 {
 	if (fcu == NULL) 
 		return;
@@ -95,7 +95,7 @@ void free_fcurve (FCurve *fcu)
 }
 
 /* Frees a list of F-Curves */
-void free_fcurves (ListBase *list)
+void free_fcurves(ListBase *list)
 {
 	FCurve *fcu, *fcn;
 	
@@ -151,7 +151,7 @@ FCurve *copy_fcurve (FCurve *fcu)
 }
 
 /* duplicate a list of F-Curves */
-void copy_fcurves (ListBase *dst, ListBase *src)
+void copy_fcurves(ListBase *dst, ListBase *src)
 {
 	FCurve *dfcu, *sfcu;
 	
@@ -270,7 +270,7 @@ FCurve *iter_step_fcurve (FCurve *fcu_iter, const char rna_path[])
  * 	- dataPrefix: i.e. 'pose.bones[' or 'nodes['
  *	- dataName: name of entity within "" immediately following the prefix
  */
-int list_find_data_fcurves (ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName)
+int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName)
 {
 	FCurve *fcu;
 	int matches = 0;
@@ -357,7 +357,7 @@ FCurve *rna_get_fcurve (PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bActio
 /* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_fcurve)
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
  */
-int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short *replace)
+int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, short *replace)
 {
 	int start=0, end=arraylen;
 	int loopbreaker= 0, maxloop= arraylen * 2;
@@ -476,8 +476,8 @@ static void get_fcurve_end_keyframes (FCurve *fcu, BezTriple **first, BezTriple 
 
 
 /* Calculate the extents of F-Curve's data */
-void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
-                         const short do_sel_only)
+void calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
+                        const short do_sel_only)
 {
 	float xminv=999999999.0f, xmaxv=-999999999.0f;
 	float yminv=999999999.0f, ymaxv=-999999999.0f;
@@ -558,8 +558,8 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 }
 
 /* Calculate the extents of F-Curve's keyframes */
-void calc_fcurve_range (FCurve *fcu, float *start, float *end,
-                        const short do_sel_only, const short do_min_length)
+void calc_fcurve_range(FCurve *fcu, float *start, float *end,
+                       const short do_sel_only, const short do_min_length)
 {
 	float min=999999999.0f, max=-999999999.0f;
 	short foundvert= FALSE;
@@ -610,7 +610,7 @@ void calc_fcurve_range (FCurve *fcu, float *start, float *end,
  * Usability of keyframes refers to whether they should be displayed,
  * and also whether they will have any influence on the final result.
  */
-short fcurve_are_keyframes_usable (FCurve *fcu)
+short fcurve_are_keyframes_usable(FCurve *fcu)
 {
 	/* F-Curve must exist */
 	if (fcu == NULL)
@@ -671,7 +671,7 @@ short fcurve_are_keyframes_usable (FCurve *fcu)
 /* Can keyframes be added to F-Curve? 
  * Keyframes can only be added if they are already visible
  */
-short fcurve_is_keyframable (FCurve *fcu)
+short fcurve_is_keyframable(FCurve *fcu)
 {
 	/* F-Curve's keyframes must be "usable" (i.e. visible + have an effect on final result) */
 	if (fcurve_are_keyframes_usable(fcu) == 0)
@@ -688,7 +688,7 @@ short fcurve_is_keyframable (FCurve *fcu)
 /* ***************************** Keyframe Column Tools ********************************* */
 
 /* add a BezTriple to a column */
-void bezt_add_to_cfra_elem (ListBase *lb, BezTriple *bezt)
+void bezt_add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
 {
 	CfraElem *ce, *cen;
 	
@@ -721,7 +721,7 @@ void bezt_add_to_cfra_elem (ListBase *lb, BezTriple *bezt)
 /* Basic sampling callback which acts as a wrapper for evaluate_fcurve() 
  *	'data' arg here is unneeded here...
  */
-float fcurve_samplingcb_evalcurve (FCurve *fcu, void *UNUSED(data), float evaltime)
+float fcurve_samplingcb_evalcurve(FCurve *fcu, void *UNUSED(data), float evaltime)
 {
 	/* assume any interference from drivers on the curve is intended... */
 	return evaluate_fcurve(fcu, evaltime);
@@ -731,7 +731,7 @@ float fcurve_samplingcb_evalcurve (FCurve *fcu, void *UNUSED(data), float evalti
 /* Main API function for creating a set of sampled curve data, given some callback function 
  * used to retrieve the values to store.
  */
-void fcurve_store_samples (FCurve *fcu, void *data, int start, int end, FcuSampleFunc sample_cb)
+void fcurve_store_samples(FCurve *fcu, void *data, int start, int end, FcuSampleFunc sample_cb)
 {
 	FPoint *fpt, *new_fpt;
 	int cfra;
@@ -775,7 +775,7 @@ void fcurve_store_samples (FCurve *fcu, void *data, int start, int end, FcuSampl
 /* This function recalculates the handles of an F-Curve 
  * If the BezTriples have been rearranged, sort them first before using this.
  */
-void calchandles_fcurve (FCurve *fcu)
+void calchandles_fcurve(FCurve *fcu)
 {
 	BezTriple *bezt, *prev, *next;
 	int a= fcu->totvert;
@@ -828,7 +828,7 @@ void calchandles_fcurve (FCurve *fcu)
  * 		-> Vector handles: become 'nothing' when (one half selected AND other not)
  *  - PHASE 2: recalculate handles
  */
-void testhandles_fcurve (FCurve *fcu, const short use_handle)
+void testhandles_fcurve(FCurve *fcu, const short use_handle)
 {
 	BezTriple *bezt;
 	unsigned int a;
@@ -884,7 +884,7 @@ void testhandles_fcurve (FCurve *fcu, const short use_handle)
 /* This function sorts BezTriples so that they are arranged in chronological order,
  * as tools working on F-Curves expect that the BezTriples are in order.
  */
-void sort_time_fcurve (FCurve *fcu)
+void sort_time_fcurve(FCurve *fcu)
 {
 	short ok= 1;
 	
@@ -927,7 +927,7 @@ void sort_time_fcurve (FCurve *fcu)
 }
 
 /* This function tests if any BezTriples are out of order, thus requiring a sort */
-short test_time_fcurve (FCurve *fcu)
+short test_time_fcurve(FCurve *fcu)
 {
 	unsigned int a;
 	
@@ -1394,7 +1394,7 @@ static DriverVarTypeInfo *get_dvar_typeinfo (int type)
 /* Driver API --------------------------------- */
 
 /* This frees the driver variable itself */
-void driver_free_variable (ChannelDriver *driver, DriverVar *dvar)
+void driver_free_variable(ChannelDriver *driver, DriverVar *dvar)
 {
 	/* sanity checks */
 	if (dvar == NULL)
@@ -1424,7 +1424,7 @@ void driver_free_variable (ChannelDriver *driver, DriverVar *dvar)
 }
 
 /* Change the type of driver variable */
-void driver_change_variable_type (DriverVar *dvar, int type)
+void driver_change_variable_type(DriverVar *dvar, int type)
 {
 	DriverVarTypeInfo *dvti= get_dvar_typeinfo(type);
 	
@@ -1547,7 +1547,7 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 /* Driver Evaluation -------------------------- */
 
 /* Evaluate a Driver Variable to get a value that contributes to the final */
-float driver_get_variable_value (ChannelDriver *driver, DriverVar *dvar)
+float driver_get_variable_value(ChannelDriver *driver, DriverVar *dvar)
 {
 	DriverVarTypeInfo *dvti;
 
@@ -2076,7 +2076,7 @@ static float fcurve_eval_samples (FCurve *fcu, FPoint *fpts, float evaltime)
 /* Evaluate and return the value of the given F-Curve at the specified frame ("evaltime") 
  * Note: this is also used for drivers
  */
-float evaluate_fcurve (FCurve *fcu, float evaltime)
+float evaluate_fcurve(FCurve *fcu, float evaltime)
 {
 	float cvalue= 0.0f;
 	float devaltime;
@@ -2116,13 +2116,13 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 }
 
 /* Calculate the value of the given F-Curve at the given frame, and set its curval */
-void calculate_fcurve (FCurve *fcu, float ctime)
+void calculate_fcurve(FCurve *fcu, float ctime)
 {
 	/* only calculate + set curval (overriding the existing value) if curve has 
 	 * any data which warrants this...
 	 */
-	if ( (fcu->totvert) || (fcu->driver && !(fcu->driver->flag & DRIVER_FLAG_INVALID)) ||
-		 list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) )
+	if ((fcu->totvert) || (fcu->driver && !(fcu->driver->flag & DRIVER_FLAG_INVALID)) ||
+	    list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE))
 	{
 		/* calculate and set curval (evaluates driver too if necessary) */
 		fcu->curval= evaluate_fcurve(fcu, ctime);

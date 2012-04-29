@@ -758,7 +758,7 @@ int BLI_path_cwd(char *path)
 		BLI_current_working_dir(cwd, sizeof(cwd)); /* in case the full path to the blend isn't used */
 		
 		if (cwd[0] == '\0') {
-			printf( "Could not get the current working directory - $PWD for an unknown reason.");
+			printf("Could not get the current working directory - $PWD for an unknown reason.\n");
 		}
 		else {
 			/* uses the blend path relative to cwd important for loading relative linked files.
@@ -1787,7 +1787,7 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 	
 #ifdef WITH_BINRELOC
 	/* linux uses binreloc since argv[0] is not reliable, call br_init( NULL ) first */
-	path = br_find_exe( NULL );
+	path = br_find_exe(NULL);
 	if (path) {
 		BLI_strncpy(fullname, path, maxlen);
 		free((void *)path);

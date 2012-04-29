@@ -54,7 +54,7 @@
 /* --------- Memory Management ------------ */
 
 /* Free strokes belonging to a gp-frame */
-void free_gpencil_strokes (bGPDframe *gpf)
+void free_gpencil_strokes(bGPDframe *gpf)
 {
 	bGPDstroke *gps, *gpsn;
 	
@@ -72,7 +72,7 @@ void free_gpencil_strokes (bGPDframe *gpf)
 }
 
 /* Free all of a gp-layer's frames */
-void free_gpencil_frames (bGPDlayer *gpl)
+void free_gpencil_frames(bGPDlayer *gpl)
 {
 	bGPDframe *gpf, *gpfn;
 	
@@ -90,7 +90,7 @@ void free_gpencil_frames (bGPDlayer *gpl)
 }
 
 /* Free all of the gp-layers for a viewport (list should be &gpd->layers or so) */
-void free_gpencil_layers (ListBase *list) 
+void free_gpencil_layers(ListBase *list)
 {
 	bGPDlayer *gpl, *gpln;
 	
@@ -108,7 +108,7 @@ void free_gpencil_layers (ListBase *list)
 }
 
 /* Free all of GPencil datablock's related data, but not the block itself */
-void free_gpencil_data (bGPdata *gpd)
+void free_gpencil_data(bGPdata *gpd)
 {
 	/* free layers */
 	free_gpencil_layers(&gpd->layers);
@@ -299,7 +299,7 @@ bGPdata *gpencil_data_duplicate (bGPdata *src)
 /* -------- GP-Frame API ---------- */
 
 /* delete the last stroke of the given frame */
-void gpencil_frame_delete_laststroke (bGPDlayer *gpl, bGPDframe *gpf)
+void gpencil_frame_delete_laststroke(bGPDlayer *gpl, bGPDframe *gpf)
 {
 	bGPDstroke *gps= (gpf) ? gpf->strokes.last : NULL;
 	int cfra = (gpf) ? gpf->framenum : 0; /* assume that the current frame was not locked */
@@ -447,7 +447,7 @@ bGPDframe *gpencil_layer_getframe (bGPDlayer *gpl, int cframe, short addnew)
 }
 
 /* delete the given frame from a layer */
-void gpencil_layer_delframe (bGPDlayer *gpl, bGPDframe *gpf)
+void gpencil_layer_delframe(bGPDlayer *gpl, bGPDframe *gpf)
 {
 	/* error checking */
 	if (ELEM(NULL, gpl, gpf))
@@ -479,7 +479,7 @@ bGPDlayer *gpencil_layer_getactive (bGPdata *gpd)
 }
 
 /* set the active gp-layer */
-void gpencil_layer_setactive (bGPdata *gpd, bGPDlayer *active)
+void gpencil_layer_setactive(bGPdata *gpd, bGPDlayer *active)
 {
 	bGPDlayer *gpl;
 	
@@ -496,7 +496,7 @@ void gpencil_layer_setactive (bGPdata *gpd, bGPDlayer *active)
 }
 
 /* delete the active gp-layer */
-void gpencil_layer_delactive (bGPdata *gpd)
+void gpencil_layer_delactive(bGPdata *gpd)
 {
 	bGPDlayer *gpl= gpencil_layer_getactive(gpd);
 	

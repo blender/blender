@@ -682,10 +682,10 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 		copy_v3_v3(v[2], CDDM_get_vert(dm, mface->v3)->co);
 		if (mface->v4) {
 			copy_v3_v3(v[3], CDDM_get_vert(dm, mface->v4)->co);
-			interp_weights_poly_v3( pa->fuv, v, 4, nearest.co);
+			interp_weights_poly_v3(pa->fuv, v, 4, nearest.co);
 		}
 		else
-			interp_weights_poly_v3( pa->fuv, v, 3, nearest.co);
+			interp_weights_poly_v3(pa->fuv, v, 3, nearest.co);
 
 		pa->num = nearest.index;
 		pa->num_dmcache = psys_particle_dm_face_lookup(ob, psmd->dm, pa->num, pa->fuv, NULL);

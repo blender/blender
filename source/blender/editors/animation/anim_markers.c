@@ -121,7 +121,7 @@ ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
  * < value: from the transform code, this is t->vec[0] (which is delta transform for grab/extend, and scale factor for scale)
  * < side: (B/L/R) for 'extend' functionality, which side of current frame to use
  */
-int ED_markers_post_apply_transform (ListBase *markers, Scene *scene, int mode, float value, char side)
+int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, float value, char side)
 {
 	TimeMarker *marker;
 	float cfra = (float)CFRA;
@@ -187,14 +187,14 @@ TimeMarker *ED_markers_find_nearest_marker (ListBase *markers, float x)
 }
 
 /* Return the time of the marker that occurs on a frame closest to the given time */
-int ED_markers_find_nearest_marker_time (ListBase *markers, float x)
+int ED_markers_find_nearest_marker_time(ListBase *markers, float x)
 {
 	TimeMarker *nearest= ED_markers_find_nearest_marker(markers, x);
 	return (nearest) ? (nearest->frame) : (int)floor(x + 0.5f);
 }
 
 
-void ED_markers_get_minmax (ListBase *markers, short sel, float *first, float *last)
+void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *last)
 {
 	TimeMarker *marker;
 	float min, max;

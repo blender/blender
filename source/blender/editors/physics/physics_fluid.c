@@ -203,10 +203,10 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 	int channelSize = paramsize; 
 
 	if (entries==3) {
-		elbeemSimplifyChannelVec3( channel, &channelSize); 
+		elbeemSimplifyChannelVec3(channel, &channelSize);
 	}
 	else if (entries==1) {
-		elbeemSimplifyChannelFloat( channel, &channelSize); 
+		elbeemSimplifyChannelFloat(channel, &channelSize);
 	}
 	else {
 		// invalid, cant happen?
@@ -243,7 +243,7 @@ static void init_time(FluidsimSettings *domainSettings, FluidAnimChannels *chann
 {
 	int i;
 	
-	channels->timeAtFrame = MEM_callocN( (channels->length+1)*sizeof(float), "timeAtFrame channel");
+	channels->timeAtFrame = MEM_callocN((channels->length+1)*sizeof(float), "timeAtFrame channel");
 	
 	channels->timeAtFrame[0] = channels->timeAtFrame[1] = domainSettings->animStart; // start at index 1
 	
@@ -361,9 +361,9 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 	init_time(domainSettings, channels);
 	
 	/* allocate domain animation channels */
-	channels->DomainGravity = MEM_callocN( length * (CHANNEL_VEC+1) * sizeof(float), "channel DomainGravity");
-	channels->DomainViscosity = MEM_callocN( length * (CHANNEL_FLOAT+1) * sizeof(float), "channel DomainViscosity");
-	channels->DomainTime = MEM_callocN( length * (CHANNEL_FLOAT+1) * sizeof(float), "channel DomainTime");
+	channels->DomainGravity = MEM_callocN(length * (CHANNEL_VEC+1) * sizeof(float), "channel DomainGravity");
+	channels->DomainViscosity = MEM_callocN(length * (CHANNEL_FLOAT+1) * sizeof(float), "channel DomainViscosity");
+	channels->DomainTime = MEM_callocN(length * (CHANNEL_FLOAT+1) * sizeof(float), "channel DomainTime");
 	
 	/* allocate fluid objects */
 	for (base=scene->base.first; base; base= base->next) {
@@ -379,17 +379,17 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 				continue;
 			}
 			
-			fobj->Translation = MEM_callocN( length * (CHANNEL_VEC+1) * sizeof(float), "fluidobject Translation");
-			fobj->Rotation = MEM_callocN( length * (CHANNEL_VEC+1) * sizeof(float), "fluidobject Rotation");
-			fobj->Scale = MEM_callocN( length * (CHANNEL_VEC+1) * sizeof(float), "fluidobject Scale");
-			fobj->Active = MEM_callocN( length * (CHANNEL_FLOAT+1) * sizeof(float), "fluidobject Active");
-			fobj->InitialVelocity = MEM_callocN( length * (CHANNEL_VEC+1) * sizeof(float), "fluidobject InitialVelocity");
+			fobj->Translation = MEM_callocN(length * (CHANNEL_VEC+1) * sizeof(float), "fluidobject Translation");
+			fobj->Rotation = MEM_callocN(length * (CHANNEL_VEC+1) * sizeof(float), "fluidobject Rotation");
+			fobj->Scale = MEM_callocN(length * (CHANNEL_VEC+1) * sizeof(float), "fluidobject Scale");
+			fobj->Active = MEM_callocN(length * (CHANNEL_FLOAT+1) * sizeof(float), "fluidobject Active");
+			fobj->InitialVelocity = MEM_callocN(length * (CHANNEL_VEC+1) * sizeof(float), "fluidobject InitialVelocity");
 			
 			if (fluidmd->fss->type == OB_FLUIDSIM_CONTROL) {
-				fobj->AttractforceStrength = MEM_callocN( length * (CHANNEL_FLOAT+1) * sizeof(float), "fluidobject AttractforceStrength");
-				fobj->AttractforceRadius = MEM_callocN( length * (CHANNEL_FLOAT+1) * sizeof(float), "fluidobject AttractforceRadius");
-				fobj->VelocityforceStrength = MEM_callocN( length * (CHANNEL_FLOAT+1) * sizeof(float), "fluidobject VelocityforceStrength");
-				fobj->VelocityforceRadius = MEM_callocN( length * (CHANNEL_FLOAT+1) * sizeof(float), "fluidobject VelocityforceRadius");
+				fobj->AttractforceStrength = MEM_callocN(length * (CHANNEL_FLOAT+1) * sizeof(float), "fluidobject AttractforceStrength");
+				fobj->AttractforceRadius = MEM_callocN(length * (CHANNEL_FLOAT+1) * sizeof(float), "fluidobject AttractforceRadius");
+				fobj->VelocityforceStrength = MEM_callocN(length * (CHANNEL_FLOAT+1) * sizeof(float), "fluidobject VelocityforceStrength");
+				fobj->VelocityforceRadius = MEM_callocN(length * (CHANNEL_FLOAT+1) * sizeof(float), "fluidobject VelocityforceRadius");
 			}
 			
 			if (fluid_is_animated_mesh(fluidmd->fss)) {
@@ -397,7 +397,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 				int *tris=NULL, modifierIndex = modifiers_indexInObject(ob, (ModifierData *)fluidmd);
 
 				initElbeemMesh(scene, ob, &fobj->numVerts, &verts, &fobj->numTris, &tris, 0, modifierIndex);
-				fobj->VertexCache = MEM_callocN( length *((fobj->numVerts*CHANNEL_VEC)+1) * sizeof(float), "fluidobject VertexCache");
+				fobj->VertexCache = MEM_callocN(length *((fobj->numVerts*CHANNEL_VEC)+1) * sizeof(float), "fluidobject VertexCache");
 				
 				MEM_freeN(verts);
 				MEM_freeN(tris);
@@ -507,7 +507,7 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 		if (ELEM(fluidmd->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE))
 			continue;
 		
-		elbeemResetMesh( &fsmesh );
+		elbeemResetMesh(&fsmesh);
 		
 		fsmesh.type = fluidmd->fss->type;
 		fsmesh.name = ob->id.name;

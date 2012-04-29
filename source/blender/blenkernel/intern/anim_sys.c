@@ -71,7 +71,7 @@
 /* Getter/Setter -------------------------------------------- */
 
 /* Check if ID can have AnimData */
-short id_type_can_have_animdata (ID *id)
+short id_type_can_have_animdata(ID *id)
 {
 	/* sanity check */
 	if (id == NULL)
@@ -152,7 +152,7 @@ AnimData *BKE_id_add_animdata (ID *id)
 /* Action Setter --------------------------------------- */
 
 /* Called when user tries to change the active action of an AnimData block (via RNA, Outliner, etc.) */
-short BKE_animdata_set_action (ReportList *reports, ID *id, bAction *act)
+short BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	short ok = 0;
@@ -205,7 +205,7 @@ short BKE_animdata_set_action (ReportList *reports, ID *id, bAction *act)
 /* Freeing -------------------------------------------- */
 
 /* Free AnimData used by the nominated ID-block, and clear ID-block's AnimData pointer */
-void BKE_free_animdata (ID *id)
+void BKE_free_animdata(ID *id)
 {
 	/* Only some ID-blocks have this info for now, so we cast the 
 	 * types that do to be of type IdAdtTemplate
@@ -274,7 +274,7 @@ AnimData *BKE_copy_animdata (AnimData *adt, const short do_action)
 	return dadt;
 }
 
-int BKE_copy_animdata_id (ID *id_to, ID *id_from, const short do_action)
+int BKE_copy_animdata_id(ID *id_to, ID *id_from, const short do_action)
 {
 	AnimData *adt;
 
@@ -344,7 +344,7 @@ void BKE_animdata_make_local(AnimData *adt)
 /* When duplicating data (i.e. objects), drivers referring to the original data will 
  * get updated to point to the duplicated data (if drivers belong to the new data)
  */
-void BKE_relink_animdata (AnimData *adt)
+void BKE_relink_animdata(AnimData *adt)
 {
 	/* sanity check */
 	if (adt == NULL)
@@ -393,7 +393,7 @@ static short animpath_matches_basepath (const char path[], const char basepath[]
  *	- This is used when data moves from one datablock to another, causing the
  *	  F-Curves to need to be moved over too
  */
-void action_move_fcurves_by_basepath (bAction *srcAct, bAction *dstAct, const char basepath[])
+void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const char basepath[])
 {
 	FCurve *fcu, *fcn=NULL;
 	
@@ -473,7 +473,7 @@ void action_move_fcurves_by_basepath (bAction *srcAct, bAction *dstAct, const ch
  * animation data is based off "basepath", creating new AnimData and
  * associated data as necessary
  */
-void BKE_animdata_separate_by_basepath (ID *srcID, ID *dstID, ListBase *basepaths)
+void BKE_animdata_separate_by_basepath(ID *srcID, ID *dstID, ListBase *basepaths)
 {
 	AnimData *srcAdt=NULL, *dstAdt=NULL;
 	LinkData *ld;
@@ -735,7 +735,7 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 /* Whole Database Ops -------------------------------------------- */
 
 /* apply the given callback function on all data in main database */
-void BKE_animdata_main_cb (Main *mainptr, ID_AnimData_Edit_Callback func, void *user_data)
+void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *user_data)
 {
 	ID *id;
 
@@ -1028,7 +1028,7 @@ KS_Path *BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[],
 }	
 
 /* Free the given Keying Set path */
-void BKE_keyingset_free_path (KeyingSet *ks, KS_Path *ksp)
+void BKE_keyingset_free_path(KeyingSet *ks, KS_Path *ksp)
 {
 	/* sanity check */
 	if (ELEM(NULL, ks, ksp))
@@ -1043,7 +1043,7 @@ void BKE_keyingset_free_path (KeyingSet *ks, KS_Path *ksp)
 }
 
 /* Copy all KeyingSets in the given list */
-void BKE_keyingsets_copy (ListBase *newlist, ListBase *list)
+void BKE_keyingsets_copy(ListBase *newlist, ListBase *list)
 {
 	KeyingSet *ksn;
 	KS_Path *kspn;
@@ -1061,7 +1061,7 @@ void BKE_keyingsets_copy (ListBase *newlist, ListBase *list)
 /* Freeing Tools --------------------------- */
 
 /* Free data for KeyingSet but not set itself */
-void BKE_keyingset_free (KeyingSet *ks)
+void BKE_keyingset_free(KeyingSet *ks)
 {
 	KS_Path *ksp, *kspn;
 	
@@ -1077,7 +1077,7 @@ void BKE_keyingset_free (KeyingSet *ks)
 }
 
 /* Free all the KeyingSets in the given list */
-void BKE_keyingsets_free (ListBase *list)
+void BKE_keyingsets_free(ListBase *list)
 {
 	KeyingSet *ks, *ksn;
 	
@@ -1334,7 +1334,7 @@ static void action_idcode_patch_check (ID *id, bAction *act)
 /* ----------------------------------------- */
 
 /* Evaluate Action Group */
-void animsys_evaluate_action_group (PointerRNA *ptr, bAction *act, bActionGroup *agrp, AnimMapper *remap, float ctime)
+void animsys_evaluate_action_group(PointerRNA *ptr, bAction *act, bActionGroup *agrp, AnimMapper *remap, float ctime)
 {
 	FCurve *fcu;
 	
@@ -1359,7 +1359,7 @@ void animsys_evaluate_action_group (PointerRNA *ptr, bAction *act, bActionGroup 
 }
 
 /* Evaluate Action (F-Curve Bag) */
-void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
+void animsys_evaluate_action(PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
 {
 	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
 	if (act == NULL) return;
@@ -1916,7 +1916,7 @@ static void nlastrip_evaluate_meta (PointerRNA *ptr, ListBase *channels, ListBas
 }
 
 /* evaluates the given evaluation strip */
-void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
+void nlastrip_evaluate(PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
 {
 	NlaStrip *strip= nes->strip;
 	
@@ -1949,7 +1949,7 @@ void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, ListBase *modifiers
 }
 
 /* write the accumulated settings to */
-void nladata_flush_channels (ListBase *channels)
+void nladata_flush_channels(ListBase *channels)
 {
 	NlaEvalChannel *nec;
 	
@@ -2176,7 +2176,7 @@ static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt)
  * and that the flags for which parts of the anim-data settings need to be recalculated 
  * have been set already by the depsgraph. Now, we use the recalc 
  */
-void BKE_animsys_evaluate_animdata (Scene *scene, ID *id, AnimData *adt, float ctime, short recalc)
+void BKE_animsys_evaluate_animdata(Scene *scene, ID *id, AnimData *adt, float ctime, short recalc)
 {
 	PointerRNA id_ptr;
 	
@@ -2246,7 +2246,7 @@ void BKE_animsys_evaluate_animdata (Scene *scene, ID *id, AnimData *adt, float c
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
+void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 {
 	ID *id;
 

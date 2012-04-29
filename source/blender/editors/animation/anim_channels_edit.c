@@ -69,7 +69,7 @@
 
 /* Set the given animation-channel as the active one for the active context */
 // TODO: extend for animdata types...
-void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type)
+void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -188,7 +188,7 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
  *	- test: check if deselecting instead of selecting
  *	- sel: eAnimChannels_SetFlag;
  */
-void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, short test, short sel)
+void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, short test, short sel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -372,7 +372,7 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
  *	- setting: type of setting to set
  *	- on: whether the visibility setting has been enabled or disabled 
  */
-void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short on)
+void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short on)
 {
 	bAnimListElem *ale, *match=NULL;
 	int prevLevel=0, matchLevel=0;
@@ -504,7 +504,7 @@ void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bA
 /* -------------------------- F-Curves ------------------------------------- */
 
 /* Delete the given F-Curve from its AnimData block */
-void ANIM_fcurve_delete_from_animdata (bAnimContext *ac, AnimData *adt, FCurve *fcu)
+void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *fcu)
 {
 	/* - if no AnimData, we've got nowhere to remove the F-Curve from 
 	 *	(this doesn't guarantee that the F-Curve is in there, but at least we tried

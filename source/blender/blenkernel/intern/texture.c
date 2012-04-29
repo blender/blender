@@ -342,7 +342,7 @@ ColorBand *add_colorband(int rangetype)
 {
 	ColorBand *coba;
 	
-	coba= MEM_callocN( sizeof(ColorBand), "colorband");
+	coba= MEM_callocN(sizeof(ColorBand), "colorband");
 	init_colorband(coba, rangetype);
 	
 	return coba;

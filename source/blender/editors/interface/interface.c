@@ -694,7 +694,7 @@ int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
 		}
 	}
 	if (activate || found == 0) {
-		ui_button_activate_do( (bContext *)C, CTX_wm_region(C), but);
+		ui_button_activate_do((bContext *)C, CTX_wm_region(C), but);
 	}
 	else if (found && isactive == 0) {
 		

@@ -406,7 +406,7 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 		return;
 	}
 
-	gzread(gzf, &wri, sizeof( wri ));
+	gzread(gzf, &wri, sizeof(wri));
 	if (wri != totvert) {
 		MEM_freeN(fss->meshVelocities);
 		fss->meshVelocities = NULL;
@@ -415,7 +415,7 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 
 	for (i=0; i<totvert;i++) {
 		for (j=0; j<3; j++) {
-			gzread(gzf, &wrf, sizeof( wrf ));
+			gzread(gzf, &wrf, sizeof(wrf));
 			velarray[i].vel[j] = wrf;
 		}
 	}

@@ -409,7 +409,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 	int i;
 	
 	if ( GPU_buffer_legacy(dm) ) {
-		DEBUG_VBO( "Using legacy code. cdDM_drawEdges\n" );
+		DEBUG_VBO("Using legacy code. cdDM_drawEdges\n");
 		glBegin(GL_LINES);
 		for (i = 0; i < dm->numEdgeData; i++, medge++) {
 			if ((drawAllEdges || (medge->flag & ME_EDGEDRAW)) &&
@@ -461,7 +461,7 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 	int i;
 
 	if ( GPU_buffer_legacy(dm) ) {
-		DEBUG_VBO( "Using legacy code. cdDM_drawLooseEdges\n" );
+		DEBUG_VBO("Using legacy code. cdDM_drawLooseEdges\n");
 		glBegin(GL_LINES);
 		for (i = 0; i < dm->numEdgeData; i++, medge++) {
 			if (medge->flag&ME_LOOSEEDGE) {
@@ -531,7 +531,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 	}
 
 	if ( GPU_buffer_legacy(dm) ) {
-		DEBUG_VBO( "Using legacy code. cdDM_drawFacesSolid\n" );
+		DEBUG_VBO("Using legacy code. cdDM_drawFacesSolid\n");
 		glBegin(glmode = GL_QUADS);
 		for (a = 0; a < dm->numTessFaceData; a++, mface++) {
 			int new_glmode, new_matnr, new_shademodel;
@@ -580,8 +580,8 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 		glEnd();
 	}
 	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		GPU_vertex_setup( dm );
-		GPU_normal_setup( dm );
+		GPU_vertex_setup(dm);
+		GPU_normal_setup(dm);
 		if ( !GPU_buffer_legacy(dm) ) {
 			glShadeModel(GL_SMOOTH);
 			for (a = 0; a < dm->drawObject->totmaterial; a++) {
@@ -591,7 +591,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 				}
 			}
 		}
-		GPU_buffer_unbind( );
+		GPU_buffer_unbind();
 	}
 
 #undef PASSVERT
@@ -619,7 +619,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	cdDM_update_normals_from_pbvh(dm);
 
 	if ( GPU_buffer_legacy(dm) ) {
-		DEBUG_VBO( "Using legacy code. cdDM_drawFacesTex_common\n" );
+		DEBUG_VBO("Using legacy code. cdDM_drawFacesTex_common\n");
 		for (i = 0; i < dm->numTessFaceData; i++, mf++) {
 			MVert *mvert;
 			DMDrawOption draw_option;
@@ -697,9 +697,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		if (!col)
 			col = mcol;
 
-		GPU_vertex_setup( dm );
-		GPU_normal_setup( dm );
-		GPU_uv_setup( dm );
+		GPU_vertex_setup(dm);
+		GPU_normal_setup(dm);
+		GPU_uv_setup(dm);
 		if ( col != NULL ) {
 #if 0
 			if ( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL ) {
@@ -728,14 +728,14 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				else if (mcol)
 					dm->drawObject->colType = CD_MCOL;
 			}
-			GPU_color_setup( dm );
+			GPU_color_setup(dm);
 		}
 
 		if ( !GPU_buffer_legacy(dm) ) {
 			int tottri = dm->drawObject->tot_triangle_point/3;
 			int next_actualFace= dm->drawObject->triangle_to_mface[0];
 
-			glShadeModel( GL_SMOOTH );
+			glShadeModel(GL_SMOOTH);
 			/* lastFlag = 0; */ /* UNUSED */
 			for (i = 0; i < tottri; i++) {
 				int actualFace = next_actualFace;
@@ -789,7 +789,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		}
 
 		GPU_buffer_unbind();
-		glShadeModel( GL_FLAT );
+		glShadeModel(GL_FLAT);
 	}
 }
 
@@ -826,7 +826,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 	/* back-buffer always uses legacy since VBO's would need the
 	 * color array temporarily overwritten for drawing, then reset. */
 	if ( GPU_buffer_legacy(dm) || G.f & G_BACKBUFSEL) {
-		DEBUG_VBO( "Using legacy code. cdDM_drawMappedFaces\n" );
+		DEBUG_VBO("Using legacy code. cdDM_drawMappedFaces\n");
 		for (i = 0; i < dm->numTessFaceData; i++, mf++) {
 			int drawSmooth = (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : (mf->flag & ME_SMOOTH);
 			DMDrawOption draw_option= DM_DRAW_OPTION_NORMAL;
@@ -1045,7 +1045,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	glShadeModel(GL_SMOOTH);
 
 	if ( GPU_buffer_legacy(dm) || setDrawOptions != NULL ) {
-		DEBUG_VBO( "Using legacy code. cdDM_drawMappedFacesGLSL\n" );
+		DEBUG_VBO("Using legacy code. cdDM_drawMappedFacesGLSL\n");
 		memset(&attribs, 0, sizeof(attribs));
 
 		glBegin(GL_QUADS);
@@ -1186,8 +1186,8 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 							numdata++;
 						}
 						if ( numdata != 0 ) {
-							elementsize = GPU_attrib_element_size( datatypes, numdata );
-							buffer = GPU_buffer_alloc( elementsize*dm->drawObject->tot_triangle_point);
+							elementsize = GPU_attrib_element_size(datatypes, numdata);
+							buffer = GPU_buffer_alloc(elementsize * dm->drawObject->tot_triangle_point);
 							if ( buffer == NULL ) {
 								GPU_buffer_unbind();
 								dm->drawObject->legacy = 1;

@@ -1428,8 +1428,8 @@ void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 				}
 
 				/* interpolate final uv pos */
-				interp_v3_v3v3v3(	uv_final, &uv[0], &uv[3], &uv[6],
-					f_data->barycentricWeights[i*samples].v);
+				interp_v3_v3v3v3(uv_final, &uv[0], &uv[3], &uv[6],
+				                 f_data->barycentricWeights[i*samples].v);
 				/* remap to -1.0 to 1.0 */
 				uv_final[0] = uv_final[0]*2.0f - 1.0f;
 				uv_final[1] = uv_final[1]*2.0f - 1.0f;
@@ -1482,8 +1482,8 @@ void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 				}
 				
 				/* interpolate final color */
-				interp_v4_v4v4v4(	final_color, colors[0], colors[1], colors[2],
-						f_data->barycentricWeights[i*samples].v);
+				interp_v4_v4v4v4(final_color, colors[0], colors[1], colors[2],
+				                 f_data->barycentricWeights[i*samples].v);
 
 				copy_v3_v3(pPoint[i].color, final_color);
 				pPoint[i].alpha = final_color[3];
@@ -3424,10 +3424,10 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							*  todo: perhaps implement something that handles volume movement as well */
 							
 							/* interpolate vertex speed vectors to get hit point velocity */	
-							interp_v3_v3v3v3(	brushPointVelocity,
-												brushVelocity[v1].v,
-												brushVelocity[v2].v,
-												brushVelocity[v3].v, weights);
+							interp_v3_v3v3v3(brushPointVelocity,
+							                 brushVelocity[v1].v,
+							                 brushVelocity[v2].v,
+							                 brushVelocity[v3].v, weights);
 
 							/* substract canvas point velocity */
 							if (bData->velocity) {
@@ -4662,10 +4662,11 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, Scene *sc
 
 			/* per sample coordinates */
 			for (ss=0; ss<bData->s_num[index]; ss++) {
-				interp_v3_v3v3v3(	bData->realCoord[bData->s_pos[index]+ss].v,
-					canvas_verts[tPoint->v1].v,
-					canvas_verts[tPoint->v2].v,
-					canvas_verts[tPoint->v3].v, f_data->barycentricWeights[index*bData->s_num[index]+ss].v);
+				interp_v3_v3v3v3(bData->realCoord[bData->s_pos[index]+ss].v,
+				                 canvas_verts[tPoint->v1].v,
+				                 canvas_verts[tPoint->v2].v,
+				                 canvas_verts[tPoint->v3].v,
+				                 f_data->barycentricWeights[index * bData->s_num[index] + ss].v);
 			}
 
 			/* Calculate current pixel surface normal	*/
@@ -4673,8 +4674,8 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, Scene *sc
 			normal_short_to_float_v3(n2, mvert[tPoint->v2].no);
 			normal_short_to_float_v3(n3, mvert[tPoint->v3].no);
 
-			interp_v3_v3v3v3(	bData->bNormal[index].invNorm,
-				n1, n2, n3, f_data->barycentricWeights[index*bData->s_num[index]].v);
+			interp_v3_v3v3v3(bData->bNormal[index].invNorm,
+			                 n1, n2, n3, f_data->barycentricWeights[index*bData->s_num[index]].v);
 			mul_mat3_m4_v3(ob->obmat, bData->bNormal[index].invNorm);
 			normalize_v3(bData->bNormal[index].invNorm);
 			negate_v3(bData->bNormal[index].invNorm);

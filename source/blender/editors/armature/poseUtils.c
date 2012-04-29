@@ -126,7 +126,7 @@ static void fcurves_to_pchan_links_get (ListBase *pfLinks, Object *ob, bAction *
 
 
 /* get sets of F-Curves providing transforms for the bones in the Pose  */
-void poseAnim_mapping_get (bContext *C, ListBase *pfLinks, Object *ob, bAction *act)
+void poseAnim_mapping_get(bContext *C, ListBase *pfLinks, Object *ob, bAction *act)
 {	
 	/* for each Pose-Channel which gets affected, get the F-Curves for that channel 
 	 * and set the relevant transform flags...
@@ -148,7 +148,7 @@ void poseAnim_mapping_get (bContext *C, ListBase *pfLinks, Object *ob, bAction *
 }
 
 /* free F-Curve <-> PoseChannel links  */
-void poseAnim_mapping_free (ListBase *pfLinks)
+void poseAnim_mapping_free(ListBase *pfLinks)
 {
 	tPChanFCurveLink *pfl, *pfln=NULL;
 		
@@ -176,7 +176,7 @@ void poseAnim_mapping_free (ListBase *pfLinks)
 /* ------------------------- */
 
 /* helper for apply() / reset() - refresh the data */
-void poseAnim_mapping_refresh (bContext *C, Scene *scene, Object *ob)
+void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 {
 	bArmature *arm= (bArmature *)ob->data;
 	
@@ -194,7 +194,7 @@ void poseAnim_mapping_refresh (bContext *C, Scene *scene, Object *ob)
 }
 
 /* reset changes made to current pose */
-void poseAnim_mapping_reset (ListBase *pfLinks)
+void poseAnim_mapping_reset(ListBase *pfLinks)
 {
 	tPChanFCurveLink *pfl;
 	
@@ -217,7 +217,7 @@ void poseAnim_mapping_reset (ListBase *pfLinks)
 }
 
 /* perform autokeyframing after changes were made + confirmed */
-void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListBase *pfLinks, float cframe)
+void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, Object *ob, ListBase *pfLinks, float cframe)
 {
 	/* insert keyframes as necessary if autokeyframing */
 	if (autokeyframe_cfra_can_key(scene, &ob->id)) {

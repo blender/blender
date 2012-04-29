@@ -899,7 +899,7 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 	}
 }
 
-void smokeModifier_free (SmokeModifierData *smd)
+void smokeModifier_free(SmokeModifierData *smd)
 {
 	if(smd)
 	{

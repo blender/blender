@@ -1476,7 +1476,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 		len= MEM_allocN_len(*mat)/fd->filesdna->pointerlen;
 
 		if (fd->filesdna->pointerlen==8 && fd->memsdna->pointerlen==4) {
-			ipoin=imat= MEM_mallocN( len*4, "newmatar");
+			ipoin=imat= MEM_mallocN(len*4, "newmatar");
 			lpoin= *mat;
 
 			while (len-- > 0) {
@@ -1491,7 +1491,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 		}
 
 		if (fd->filesdna->pointerlen==4 && fd->memsdna->pointerlen==8) {
-			lpoin=lmat= MEM_mallocN( len*8, "newmatar");
+			lpoin=lmat= MEM_mallocN(len*8, "newmatar");
 			ipoin= *mat;
 
 			while (len-- > 0) {
@@ -14425,7 +14425,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 				}
 
 				if (do_it) {
-					base= MEM_callocN( sizeof(Base), "add_ext_base");
+					base= MEM_callocN(sizeof(Base), "add_ext_base");
 					BLI_addtail(&(sce->base), base);
 					base->lay= ob->lay;
 					base->object= ob;
@@ -14529,7 +14529,7 @@ static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, co
 			Base *base;
 			Object *ob;
 
-			base= MEM_callocN( sizeof(Base), "app_nam_part");
+			base= MEM_callocN(sizeof(Base), "app_nam_part");
 			BLI_addtail(&scene->base, base);
 
 			ob= (Object *)id;
@@ -14674,7 +14674,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	
 	/* patch to prevent switch_endian happens twice */
 	if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
-		blo_freefiledata( *fd );
+		blo_freefiledata(*fd);
 		*fd = NULL;
 	}	
 }

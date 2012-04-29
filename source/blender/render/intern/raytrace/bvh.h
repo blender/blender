@@ -99,7 +99,7 @@ static int rayobject_bb_intersect_test(const Isect *isec, const float *_bb)
 /* bvh tree generics */
 template<class Tree> static void bvh_add(Tree *obj, RayObject *ob)
 {
-	rtbuild_add( obj->builder, ob );
+	rtbuild_add(obj->builder, ob);
 }
 
 template<class Node>
@@ -150,7 +150,7 @@ template<class Node>
 static inline void bvh_node_merge_bb(Node *node, float *min, float *max)
 {
 	if (is_leaf(node)) {
-		RE_rayobject_merge_bb( (RayObject*)node, min, max);
+		RE_rayobject_merge_bb((RayObject *)node, min, max);
 	}
 	else {
 		DO_MIN(node->bb,   min);
@@ -364,7 +364,7 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 template<class Node, class HintObject>
 void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject *hintObject)
 {
-	assert( hint->size + reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE );
+	assert(hint->size + reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE);
 	
 	if (is_leaf(node)) {
 		hint->stack[hint->size++] = (RayObject*)node;
@@ -396,7 +396,7 @@ template<class Tree, int DFS_STACK_SIZE>
 static inline RayObject *bvh_create_tree(int size)
 {
 	Tree *obj= (Tree*)MEM_callocN(sizeof(Tree), "BVHTree" );
-	assert( RE_rayobject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
+	assert(RE_rayobject_isAligned(obj)); /* RayObject API assumes real data to be 4-byte aligned */
 	
 	obj->rayobj.api = bvh_get_api<Tree>(DFS_STACK_SIZE);
 	obj->root = NULL;

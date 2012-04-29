@@ -169,7 +169,7 @@ static void Iindexe (AviIndexEntry *indexe)
 }
 #endif /* __BIG_ENDIAN__ */
 
-void awrite (AviMovie *movie, void *datain, int block, int size, FILE *fp, int type)
+void awrite(AviMovie *movie, void *datain, int block, int size, FILE *fp, int type)
 {
 #ifdef __BIG_ENDIAN__
 	void *data;

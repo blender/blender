@@ -1024,7 +1024,7 @@ void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, Partic
 	float t[4];
 
 	if (type<0) {
-		interp_cubic_v3( result->co, result->vel, keys[1].co, keys[1].vel, keys[2].co, keys[2].vel, dt);
+		interp_cubic_v3(result->co, result->vel, keys[1].co, keys[1].vel, keys[2].co, keys[2].vel, dt);
 	}
 	else {
 		key_curve_position_weights(dt, t, type);
@@ -1454,11 +1454,11 @@ void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float (*or
 		}
 		else {
 			uv1= tuv[0]; uv2= tuv[1]; uv3= tuv[2]; uv4= tuv[3];
-			map_to_sphere( uv1, uv1+1, v1[0], v1[1], v1[2]);
-			map_to_sphere( uv2, uv2+1, v2[0], v2[1], v2[2]);
-			map_to_sphere( uv3, uv3+1, v3[0], v3[1], v3[2]);
+			map_to_sphere(uv1, uv1+1, v1[0], v1[1], v1[2]);
+			map_to_sphere(uv2, uv2+1, v2[0], v2[1], v2[2]);
+			map_to_sphere(uv3, uv3+1, v3[0], v3[1], v3[2]);
 			if (v4)
-				map_to_sphere( uv4, uv4+1, v4[0], v4[1], v4[2]);
+				map_to_sphere(uv4, uv4+1, v4[0], v4[1], v4[2]);
 		}
 
 		if (v4) {
@@ -2178,11 +2178,11 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 			cross_v3_v3v3(temp, eff->guide_dir, guidedir);
 			angle = dot_v3v3(eff->guide_dir, guidedir)/(len_v3(eff->guide_dir));
 			angle = saacos(angle);
-			axis_angle_to_quat( rot2, temp, angle);
+			axis_angle_to_quat(rot2, temp, angle);
 			mul_qt_v3(rot2, vec_to_point);
 
 			/* curve tilt */
-			axis_angle_to_quat( rot2, guidedir, guidevec[3] - eff->guide_loc[3]);
+			axis_angle_to_quat(rot2, guidedir, guidevec[3] - eff->guide_loc[3]);
 			mul_qt_v3(rot2, vec_to_point);
 		}
 
@@ -2871,7 +2871,7 @@ static void cache_key_incremental_rotation(ParticleCacheKey *key0, ParticleCache
 		else {
 			angle= saacos(cosangle);
 			cross_v3_v3v3(normal, prev_tangent, tangent);
-			axis_angle_to_quat( q, normal, angle);
+			axis_angle_to_quat(q, normal, angle);
 			mul_qt_qtqt(key1->rot, q, key2->rot);
 		}
 
@@ -4496,7 +4496,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 			float phasefac = psys->part->phasefac;
 			if (psys->part->randphasefac != 0.0f)
 				phasefac += psys->part->randphasefac * PSYS_FRAND((pa-psys->particles) + 20);
-			axis_angle_to_quat( q_phase, vec, phasefac*(float)M_PI);
+			axis_angle_to_quat(q_phase, vec, phasefac*(float)M_PI);
 
 			mul_qt_v3(q_phase, side);
 		}
