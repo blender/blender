@@ -213,16 +213,16 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 	}
 
 	fprintf(file, "      CHANNEL %s =\n", str);
-	for (i=0; i<channelSize;i++) { 
+	for (i=0; i < channelSize; i++) {
 		fprintf(file, "        ");
-		for (j=0;j<=entries;j++) {  // also print time value
-			fprintf(file, " %f ", channel[i*(entries+1)+j] );
+		for (j=0;j <= entries;j++) {  // also print time value
+			fprintf(file, " %f ", channel[i*(entries + 1) + j]);
 			if (j==entries-1) { fprintf(file, "  "); }
 		} 
 		fprintf(file, "\n");
 	} 
 
-	fprintf(file,  "      ;\n" );
+	fprintf(file,  "      ;\n");
 }
 #endif
 
@@ -958,7 +958,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	else {
 		gridlevels = domainSettings->maxRefine;
 	}
-	BLI_snprintf(debugStrBuffer, sizeof(debugStrBuffer), "fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name, gridlevels );
+	BLI_snprintf(debugStrBuffer, sizeof(debugStrBuffer), "fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name, gridlevels);
 	elbeemDebugOut(debugStrBuffer);
 	
 	

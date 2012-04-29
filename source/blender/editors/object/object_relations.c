@@ -1611,7 +1611,7 @@ static void single_tex_users_expand(Main *bmain)
 		if (ma->id.flag & LIB_NEW) {
 			for (b = 0; b < MAX_MTEX; b++) {
 				if (ma->mtex[b] && ma->mtex[b]->tex) {
-					do_single_tex_user(&(ma->mtex[b]->tex) );
+					do_single_tex_user(&(ma->mtex[b]->tex));
 				}
 			}
 		}
@@ -1621,7 +1621,7 @@ static void single_tex_users_expand(Main *bmain)
 		if (la->id.flag & LIB_NEW) {
 			for (b = 0; b < MAX_MTEX; b++) {
 				if (la->mtex[b] && la->mtex[b]->tex) {
-					do_single_tex_user(&(la->mtex[b]->tex) );
+					do_single_tex_user(&(la->mtex[b]->tex));
 				}
 			}
 		}
@@ -1631,7 +1631,7 @@ static void single_tex_users_expand(Main *bmain)
 		if (wo->id.flag & LIB_NEW) {
 			for (b = 0; b < MAX_MTEX; b++) {
 				if (wo->mtex[b] && wo->mtex[b]->tex) {
-					do_single_tex_user(&(wo->mtex[b]->tex) );
+					do_single_tex_user(&(wo->mtex[b]->tex));
 				}
 			}
 		}

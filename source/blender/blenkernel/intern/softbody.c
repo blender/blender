@@ -237,7 +237,7 @@ static float _final_goal(Object *ob, BodyPoint *bp)/*jow_go_for2_5 */
 			return (f);
 		}
 	}
-	printf("_final_goal failed! sb or bp ==NULL\n" );
+	printf("_final_goal failed! sb or bp ==NULL\n");
 	return f; /*using crude but spot able values some times helps debuggin */
 }
 
@@ -249,7 +249,7 @@ static float _final_mass(Object *ob, BodyPoint *bp)
 			return(bp->mass*sb->nodemass);
 		}
 	}
-	printf("_final_mass failed! sb or bp ==NULL\n" );
+	printf("_final_mass failed! sb or bp ==NULL\n");
 	return 1.0f;
 }
 /* helper functions for everything is animateble jow_go_for2_5 ------*/

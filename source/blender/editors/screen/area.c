@@ -80,7 +80,7 @@ static void region_draw_emboss(ARegion *ar, rcti *scirct)
 	rect.ymax = scirct->ymax - ar->winrct.ymin;
 	
 	/* set transp line */
-	glEnable(GL_BLEND );
+	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	/* right  */

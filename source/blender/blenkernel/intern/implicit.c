@@ -531,7 +531,7 @@ DO_INLINE void del_bfmatrix(fmatrix3x3 *matrix)
 DO_INLINE void cp_bfmatrix(fmatrix3x3 *to, fmatrix3x3 *from)
 {	
 	// TODO bounds checking	
-	memcpy(to, from, sizeof(fmatrix3x3) * (from[0].vcount+from[0].scount) );
+	memcpy(to, from, sizeof(fmatrix3x3) * (from[0].vcount+from[0].scount));
 }
 
 /* init big matrix */

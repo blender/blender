@@ -3651,7 +3651,7 @@ static void rotate_direction_nurb(Nurb *nu)
 	SWAP(short, nu->flagu, nu->flagv);
 	
 	SWAP(float *, nu->knotsu, nu->knotsv);
-	switchdirection_knots(nu->knotsv, KNOTSV(nu) );
+	switchdirection_knots(nu->knotsv, KNOTSV(nu));
 	
 	temp= MEM_dupallocN(nu->bp);
 	bp1= nu->bp;
@@ -5730,7 +5730,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 				if (type) {
 					bezt1 =
 						(BezTriple*)MEM_mallocN((nu->pntsu) * sizeof(BezTriple), "delNurb");
-					memcpy(bezt1, nu->bezt, (nu->pntsu)*sizeof(BezTriple) );
+					memcpy(bezt1, nu->bezt, (nu->pntsu)*sizeof(BezTriple));
 					keyIndex_updateBezt(editnurb, nu->bezt, bezt1, nu->pntsu);
 					MEM_freeN(nu->bezt);
 					nu->bezt= bezt1;
@@ -5757,7 +5757,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 				}
 				if (type) {
 					bp1 = (BPoint*)MEM_mallocN(nu->pntsu * sizeof(BPoint), "delNurb2");
-					memcpy(bp1, nu->bp, (nu->pntsu)*sizeof(BPoint) );
+					memcpy(bp1, nu->bp, (nu->pntsu)*sizeof(BPoint));
 					keyIndex_updateBP(editnurb, nu->bp, bp1, nu->pntsu);
 					MEM_freeN(nu->bp);
 					nu->bp= bp1;

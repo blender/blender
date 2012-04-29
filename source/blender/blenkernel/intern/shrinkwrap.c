@@ -263,7 +263,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 			hit_tmp.dist = len_v3v3((float *)vert, hit_tmp.co);
 		}
 
-		memcpy(hit, &hit_tmp, sizeof(hit_tmp) );
+		memcpy(hit, &hit_tmp, sizeof(hit_tmp));
 		return TRUE;
 	}
 	return FALSE;

@@ -369,9 +369,9 @@ static void build_skip_links(BVHTree *tree, BVHNode *node, BVHNode *left, BVHNod
 	
 	for (i = 0; i < node->totnode; i++) {
 		if (i+1 < node->totnode)
-			build_skip_links(tree, node->children[i], left, node->children[i+1] );
+			build_skip_links(tree, node->children[i], left, node->children[i + 1]);
 		else
-			build_skip_links(tree, node->children[i], left, right );
+			build_skip_links(tree, node->children[i], left, right);
 
 		left = node->children[i];
 	}

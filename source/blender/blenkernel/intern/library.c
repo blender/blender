@@ -1016,7 +1016,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			case ID_IM: /* fall through */
 			case ID_WO: /* fall through */
 			case ID_LA: /* fall through */
-				BLI_snprintf(numstr, sizeof(numstr), "%%i%d", BKE_icon_getid(id) );
+				BLI_snprintf(numstr, sizeof(numstr), "%%i%d", BKE_icon_getid(id));
 				BLI_dynstr_append(pupds, numstr);
 				break;
 			default:

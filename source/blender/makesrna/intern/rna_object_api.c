@@ -114,7 +114,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 
 		/* nurbs_to_mesh changes the type to a mesh, check it worked */
 		if (tmpobj->type != OB_MESH) {
-			free_libblock_us(&(G.main->object), tmpobj );
+			free_libblock_us(&(G.main->object), tmpobj);
 			BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
 			return NULL;
 		}
@@ -364,7 +364,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 	}
 
 	if (assignmode != WEIGHT_REPLACE && assignmode != WEIGHT_ADD && assignmode != WEIGHT_SUBTRACT) {
-		BKE_report(reports, RPT_ERROR, "Bad assignment mode" );
+		BKE_report(reports, RPT_ERROR, "Bad assignment mode");
 		return;
 	}
 
