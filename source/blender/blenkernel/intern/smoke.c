@@ -120,7 +120,7 @@ static void tend ( void )
 	gettimeofday ( &_tend,&tz );
 }
 
-static double tval()
+static double tval( void )
 {
 	double t1, t2;
 	t1 = ( double ) _tstart.tv_sec*1000 + ( double ) _tstart.tv_usec/ ( 1000 );
@@ -481,7 +481,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 }
 
 
-static void fill_scs_points_anim(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
+static void fill_scs_points_anim(Object *UNUSED(ob), DerivedMesh *dm, SmokeCollSettings *scs)
 {
 	MVert *mvert = dm->getVertArray(dm);
 	MFace *mface = dm->getTessFaceArray(dm);
@@ -1066,7 +1066,7 @@ static int get_lamp(Scene *scene, float *light)
 	return found_lamp;
 }
 
-static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
+static void smoke_calc_domain(Scene *UNUSED(scene), Object *UNUSED(ob), SmokeModifierData *UNUSED(smd))
 {
 #if 0
 	SmokeDomainSettings *sds = smd->domain;
@@ -1546,7 +1546,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 		MEM_freeN(flowobjs);
 }
 
-static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds, float dt)
+static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds, float UNUSED(dt))
 {
 	ListBase *effectors = pdInitEffectors(scene, ob, NULL, sds->effector_weights);
 
