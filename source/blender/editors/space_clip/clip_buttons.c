@@ -65,8 +65,6 @@
 
 static int clip_grease_pencil_panel_poll(const bContext *UNUSED(C), PanelType *UNUSED(pt))
 {
-	/* SpaceClip *sc = CTX_wm_space_clip(C); */ /* UNUSED */
-
 	return TRUE;
 }
 
