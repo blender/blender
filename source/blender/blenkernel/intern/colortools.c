@@ -318,8 +318,8 @@ void curvemap_sethandle(CurveMap *cuma, int type)
 /* reduced copy of garbled calchandleNurb() code in curve.c */
 static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *next, int UNUSED(mode))
 {
-	float *p1,*p2,*p3,pt[3];
-	float len,len_a, len_b;
+	float *p1, *p2, *p3, pt[3];
+	float len, len_a, len_b;
 	float dvec_a[2], dvec_b[2];
 
 	if (bezt->h1==0 && bezt->h2==0) {
@@ -1014,7 +1014,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 				}
 			}
 			else {
-				rgb_to_ycc(rgb[0],rgb[1],rgb[2],&ycc[0],&ycc[1],&ycc[2], ycc_mode);
+				rgb_to_ycc(rgb[0], rgb[1], rgb[2], &ycc[0], &ycc[1], &ycc[2], ycc_mode);
 				for (c=0; c<3; c++) {
 					ycc[c] *=INV_255;
 					if (ycc[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = ycc[c];

@@ -171,7 +171,7 @@ static void parse_header_block(indexer_dv_context * This, unsigned char* target)
 static void parse_subcode_blocks(
         indexer_dv_context * This, unsigned char* target)
 {
-	int i,j;
+	int i, j;
 
 	for (j = 0; j < 2; j++) {
 		for (i = 3; i < 80; i += 5) {
@@ -185,7 +185,7 @@ static void parse_subcode_blocks(
 static void parse_vaux_blocks(
         indexer_dv_context * This, unsigned char* target)
 {
-	int i,j;
+	int i, j;
 
 	for (j = 0; j < 3; j++) {
 		for (i = 3; i < 80; i += 5) {

@@ -472,7 +472,7 @@ int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *cam
 	float shift[2];
 	float plane_tx[4][3];
 	float rot_obmat[3][3];
-	const float zero[3]= {0,0,0};
+	const float zero[3]= {0, 0, 0};
 	CameraViewFrameData data_cb;
 
 	unsigned int i;

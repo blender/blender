@@ -620,7 +620,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 
 	/* create image */
 	glGenTextures(1, (GLuint *)bind);
-	glBindTexture( GL_TEXTURE_2D, *bind);
+	glBindTexture(GL_TEXTURE_2D, *bind);
 
 	if (!(gpu_get_mipmap() && mipmap)) {
 		if (use_high_bit_depth)

@@ -170,7 +170,7 @@ static int add_to_group_internal(Group *group, Object *ob)
 	}
 	
 	go= MEM_callocN(sizeof(GroupObject), "groupobject");
-	BLI_addtail( &group->gobject, go);
+	BLI_addtail(&group->gobject, go);
 	
 	go->ob= ob;
 	

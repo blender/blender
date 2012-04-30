@@ -70,7 +70,7 @@ void ED_keymap_gpencil(wmKeyConfig *keyconf)
 
 /* ****************************************** */
 
-void ED_operatortypes_gpencil (void)
+void ED_operatortypes_gpencil(void)
 {
 	/* Drawing ----------------------- */
 	

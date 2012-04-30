@@ -81,7 +81,7 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 				 float parent_mat[][4], Object * ob_arm)
 {
 	std::vector<COLLADAFW::Node*>::iterator it;
-	it = std::find(finished_joints.begin(),finished_joints.end(),node);
+	it = std::find(finished_joints.begin(), finished_joints.end(), node);
 	if ( it != finished_joints.end()) return; 
 
 	float mat[4][4];
@@ -159,7 +159,7 @@ void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBo
 {
 	//Checking if bone is already made.
 	std::vector<COLLADAFW::Node*>::iterator it;
-	it = std::find(finished_joints.begin(),finished_joints.end(),node);
+	it = std::find(finished_joints.begin(), finished_joints.end(), node);
 	if ( it != finished_joints.end()) return; 
 
 	float joint_inv_bind_mat[4][4];
@@ -189,7 +189,7 @@ void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBo
 		else
 			copy_m4_m4(mat, obmat);
 
-		float loc[3], size[3], rot[3][3] , angle;
+		float loc[3], size[3], rot[3][3], angle;
 		mat4_to_loc_rot_size( loc, rot, size, obmat);
 		mat3_to_vec_roll(rot, NULL, &angle );
 		bone->roll=angle;
@@ -261,7 +261,7 @@ void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBo
 
 	// in second case it's not a leaf bone, but we handle it the same way
 	if (!children.getCount() || children.getCount() > 1) {
-		add_leaf_bone(mat, bone , node);
+		add_leaf_bone(mat, bone, node);
 	}
 
 	finished_joints.push_back(node);
@@ -282,11 +282,11 @@ void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW:
 		et = etit->second;
 		//else return;
 
-		float x,y,z;
-		et->setData("tip_x",&x);
-		et->setData("tip_y",&y);
-		et->setData("tip_z",&z);
-		float vec[3] = {x,y,z};
+		float x, y, z;
+		et->setData("tip_x", &x);
+		et->setData("tip_y", &y);
+		et->setData("tip_z", &z);
+		float vec[3] = {x, y, z};
 		copy_v3_v3(leaf.bone->tail, leaf.bone->head);
 		add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
 	}else
@@ -440,7 +440,7 @@ void ArmatureImporter::create_armature_bones( )
 
 		ED_armature_from_edit(ob_arm);
 
-		set_pose(ob_arm , *ri, NULL, NULL ); 
+		set_pose(ob_arm, *ri, NULL, NULL );
 
 		ED_armature_edit_free(ob_arm);
 		DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB|OB_RECALC_DATA);
@@ -569,7 +569,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 // is a child of a node (not joint), root should be true since
 // this is where we build armature bones from
 
-void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node , const char *parentname, float parent_mat[][4])
+void ArmatureImporter::set_pose(Object * ob_arm,  COLLADAFW::Node * root_node, const char *parentname, float parent_mat[][4])
 { 
 	char * bone_name = (char *) bc_get_joint_name ( root_node);
 	float mat[4][4];
@@ -582,7 +582,7 @@ void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node
 	get_node_mat(obmat, root_node, NULL, NULL);
 
 	//if (*edbone)
-	bPoseChannel * pchan  = get_pose_channel(ob_arm -> pose ,  bone_name); 
+	bPoseChannel * pchan  = get_pose_channel(ob_arm -> pose, bone_name);
 	//else fprintf ( "",
 
 	// get world-space
@@ -600,7 +600,7 @@ void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node
 		mult_m4_m4m4(pchan->pose_mat, invObmat, mat);
 	}
 
-	mat4_to_axis_angle(ax,&angle,mat);
+	mat4_to_axis_angle(ax, &angle, mat);
 	pchan->bone->roll = angle;
 
 

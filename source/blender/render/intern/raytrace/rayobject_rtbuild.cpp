@@ -66,7 +66,7 @@ static void rtbuild_init(RTBuilder *b)
 RTBuilder* rtbuild_create(int size)
 {
 	RTBuilder *builder  = (RTBuilder*) MEM_mallocN( sizeof(RTBuilder), "RTBuilder" );
-	RTBuilder::Object *memblock= (RTBuilder::Object*)MEM_mallocN( sizeof(RTBuilder::Object)*size,"RTBuilder.objects");
+	RTBuilder::Object *memblock= (RTBuilder::Object*)MEM_mallocN( sizeof(RTBuilder::Object)*size, "RTBuilder.objects");
 
 
 	rtbuild_init(builder);
@@ -75,7 +75,7 @@ RTBuilder* rtbuild_create(int size)
 	builder->primitives.maxsize = size;
 	
 	for (int i=0; i<3; i++) {
-		builder->sorted_begin[i] = (RTBuilder::Object**)MEM_mallocN( sizeof(RTBuilder::Object*)*size,"RTBuilder.sorted_objects");
+		builder->sorted_begin[i] = (RTBuilder::Object**)MEM_mallocN( sizeof(RTBuilder::Object*)*size, "RTBuilder.sorted_objects");
 		builder->sorted_end[i]   = builder->sorted_begin[i];
 	} 
 	
@@ -136,7 +136,7 @@ int rtbuild_size(RTBuilder *b)
 }
 
 
-template<class Obj,int Axis>
+template<class Obj, int Axis>
 static bool obj_bb_compare(const Obj &a, const Obj &b)
 {
 	if (a->bb[Axis] != b->bb[Axis])
@@ -147,9 +147,9 @@ static bool obj_bb_compare(const Obj &a, const Obj &b)
 template<class Item>
 static void object_sort(Item *begin, Item *end, int axis)
 {
-	if (axis == 0) return std::sort(begin, end, obj_bb_compare<Item,0> );
-	if (axis == 1) return std::sort(begin, end, obj_bb_compare<Item,1> );
-	if (axis == 2) return std::sort(begin, end, obj_bb_compare<Item,2> );
+	if (axis == 0) return std::sort(begin, end, obj_bb_compare<Item, 0> );
+	if (axis == 1) return std::sort(begin, end, obj_bb_compare<Item, 1> );
+	if (axis == 2) return std::sort(begin, end, obj_bb_compare<Item, 2> );
 	assert(false);
 }
 
@@ -188,7 +188,7 @@ void rtbuild_calc_bb(RTBuilder *b)
 {
 	if (b->bb[0] == 1.0e30f) {
 		for (RTBuilder::Object **index = b->sorted_begin[0]; index != b->sorted_end[0]; index++)
-			RE_rayobject_merge_bb( (*index)->obj , b->bb, b->bb+3);
+			RE_rayobject_merge_bb( (*index)->obj, b->bb, b->bb+3);
 	}
 }
 
@@ -306,7 +306,7 @@ int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds)
 	
 	rtbuild_calc_bb(b);
 
-	la = bb_largest_axis(b->bb,b->bb+3);
+	la = bb_largest_axis(b->bb, b->bb+3);
 	for (i=1; i<nchilds; i++)
 		separators[i-1] = (b->bb[la+3]-b->bb[la])*i / nchilds;
 		
@@ -449,9 +449,9 @@ static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis)
 	{
 		assert(nth[i] < nth[i+1] && nth[i+1] < nth[partitions]);
 
-		if (split_axis == 0)	std::nth_element(b, nth[i],  nth[i+1], nth[partitions], obj_bb_compare<RTBuilder::Object,0>);
-		if (split_axis == 1)	std::nth_element(b, nth[i],  nth[i+1], nth[partitions], obj_bb_compare<RTBuilder::Object,1>);
-		if (split_axis == 2)	std::nth_element(b, nth[i],  nth[i+1], nth[partitions], obj_bb_compare<RTBuilder::Object,2>);
+		if (split_axis == 0)	std::nth_element(b, nth[i],  nth[i+1], nth[partitions], obj_bb_compare<RTBuilder::Object, 0>);
+		if (split_axis == 1)	std::nth_element(b, nth[i],  nth[i+1], nth[partitions], obj_bb_compare<RTBuilder::Object, 1>);
+		if (split_axis == 2)	std::nth_element(b, nth[i],  nth[i+1], nth[partitions], obj_bb_compare<RTBuilder::Object, 2>);
 	}
 }
 #endif

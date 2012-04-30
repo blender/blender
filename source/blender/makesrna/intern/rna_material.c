@@ -766,7 +766,7 @@ static void rna_def_material_gamesettings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_face_orientation_items[] = {
-		{GEMAT_NORMAL,"NORMAL",0,"Normal","No tranformation"},
+		{GEMAT_NORMAL, "NORMAL", 0, "Normal", "No tranformation"},
 		{GEMAT_HALO, "HALO", 0, "Halo", "Screen aligned billboard"},
 		{GEMAT_BILLBOARD, "BILLBOARD", 0, "Billboard", "Billboard with Z-axis constraint"},
 		{GEMAT_SHADOW, "SHADOW", 0, "Shadow", "Faces are used for shadow"},
@@ -1244,7 +1244,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "scattering", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scattering");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1 ,3);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
 	RNA_def_property_ui_text(prop, "Scattering",
 	                         "Amount of light that gets scattered out by the volume - "
 	                         "the more out-scattering, the shallower the light will penetrate");
@@ -1267,7 +1267,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "reflection", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "reflection");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1 ,3);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
 	RNA_def_property_ui_text(prop, "Reflection",
 	                         "Multiplier to make out-scattered light brighter or darker (non-physically correct)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");

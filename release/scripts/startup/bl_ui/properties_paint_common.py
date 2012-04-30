@@ -47,6 +47,8 @@ class UnifiedPaintPanel():
         parent.label(text="Unified Settings:")
         parent.prop(ups, "use_unified_size", text="Size")
         parent.prop(ups, "use_unified_strength", text="Strength")
+        if context.weight_paint_object:
+            parent.prop(ups, "use_unified_weight", text="Weight")
 
     @staticmethod
     def prop_unified_size(parent, context, brush, prop_name, icon='NONE', text="", slider=False):
@@ -58,4 +60,10 @@ class UnifiedPaintPanel():
     def prop_unified_strength(parent, context, brush, prop_name, icon='NONE', text="", slider=False):
         ups = context.tool_settings.unified_paint_settings
         ptr = ups if ups.use_unified_strength else brush
+        parent.prop(ptr, prop_name, icon=icon, text=text, slider=slider)
+
+    @staticmethod
+    def prop_unified_weight(parent, context, brush, prop_name, icon='NONE', text="", slider=False):
+        ups = context.tool_settings.unified_paint_settings
+        ptr = ups if ups.use_unified_weight else brush
         parent.prop(ptr, prop_name, icon=icon, text=text, slider=slider)

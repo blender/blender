@@ -2348,7 +2348,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR)
 		paintweight = 0.0f;
 	else
-		paintweight = ts->vgroup_weight;
+		paintweight = brush_weight(scene, brush);
 			
 	for (index = 0; index < totindex; index++) {
 		if (indexar[index] && indexar[index] <= me->totpoly) {

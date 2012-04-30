@@ -266,7 +266,7 @@ static void node_draw_socket_new(bNodeSocket *sock, float size)
 	
 	/* 16 values of sin function */
 	static float si[16] = {
-		0.00000000f, 0.39435585f,0.72479278f,0.93775213f,
+		0.00000000f, 0.39435585f, 0.72479278f,0.93775213f,
 		0.99871650f,0.89780453f,0.65137248f,0.29936312f,
 		-0.10116832f,-0.48530196f,-0.79077573f,-0.96807711f,
 		-0.98846832f,-0.84864425f,-0.57126821f,-0.20129852f
@@ -289,12 +289,12 @@ static void node_draw_socket_new(bNodeSocket *sock, float size)
 	
 	glColor4ub(0, 0, 0, 150);
 	glEnable(GL_BLEND);
-	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINE_LOOP);
 	for (a=0; a<16; a++)
 		glVertex2f(x+size*si[a], y+size*co[a]);
 	glEnd();
-	glDisable( GL_LINE_SMOOTH );
+	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 }
 #endif
@@ -442,7 +442,7 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 	nodeSetActive(ntree, node);
 	
 	if ( ntree->type == NTREE_TEXTURE )
-		ntreeTexCheckCyclics( ntree );
+		ntreeTexCheckCyclics(ntree);
 	
 	// allqueue(REDRAWBUTSSHADING, 0);
 	// allqueue(REDRAWNODE, 0);
@@ -870,16 +870,16 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		/* group node outline */
 		uiSetRoundBox(UI_CNR_ALL);
 		glColor4ub(200, 200, 200, 140);
-		glEnable( GL_LINE_SMOOTH );
+		glEnable(GL_LINE_SMOOTH);
 		uiDrawBox(GL_LINE_LOOP, rect.xmin-node_group_frame, rect.ymin, rect.xmax+node_group_frame, rect.ymax+group_header, BASIS_RAD);
-		glDisable( GL_LINE_SMOOTH );
+		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 		
 		/* backdrop title */
 		UI_ThemeColor(TH_TEXT_HI);
 	
 		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, (short)(rect.xmin+15), (short)(rect.ymax+group_header),
-							   MIN2((int)(rect.xmax - rect.xmin-18.0f), node_group_frame+20), group_header, UI_GetStyle());
+		                       MIN2((int)(rect.xmax - rect.xmin-18.0f), node_group_frame+20), group_header, UI_GetStyle());
 		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
 		uiTemplateIDBrowse(layout, (bContext*)C, &ptr, "node_tree", NULL, NULL, NULL);
 		uiBlockLayoutResolve(gnode->block, NULL, NULL);
@@ -1635,9 +1635,14 @@ static void node_composit_buts_diff_matte(uiLayout *layout, bContext *UNUSED(C),
 
 static void node_composit_buts_distance_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	uiLayout *col;
+	uiLayout *col, *row;
 	
 	col = uiLayoutColumn(layout, 1);
+   
+   uiItemL(layout, "Color Space:", ICON_NONE);
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
 	uiItemR(col, ptr, "tolerance", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "falloff", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
@@ -1647,7 +1652,7 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
 	uiLayout *row, *col;
 	
 	uiItemL(layout, "Despill Channel:", ICON_NONE);
-	row = uiLayoutRow(layout,0);
+	row = uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
 	col= uiLayoutColumn(layout, 0);
@@ -1655,7 +1660,7 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
 
 	if (RNA_enum_get(ptr, "limit_method")==0) {
 		uiItemL(col, "Limiting Channel:", ICON_NONE);
-		row=uiLayoutRow(col,0);
+		row=uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 
@@ -1710,7 +1715,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext *UNUSED(
 	uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
 	if (RNA_enum_get(ptr, "limit_method")==0) {
 		uiItemL(col, "Limiting Channel:", ICON_NONE);
-		row=uiLayoutRow(col,0);
+		row=uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 

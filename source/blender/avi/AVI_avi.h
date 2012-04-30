@@ -235,28 +235,28 @@ typedef enum {
 /**
  * Test whether this is an avi-format.
  */
-int AVI_is_avi (const char *name);
+int AVI_is_avi(const char *name);
 
 
 /**
  * Open a compressed file, decompress it into memory.
  */
-AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...);
+AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...);
 
 /**
  * Finalize a compressed output stream.
  */
-AviError AVI_close_compress (AviMovie *movie);
+AviError AVI_close_compress(AviMovie *movie);
 
 /**
  * Choose a compression option for \<movie\>. Possible options are
  * AVI_OPTION_TYPE_MAIN, AVI_OPTION_TYPE_STRH, AVI_OPTION_TYPE_STRF
  */
-AviError AVI_set_compress_option (AviMovie *movie,
-								  int option_type,
-								  int stream,
-								  AviOption option,
-								  void *opt_data);
+AviError AVI_set_compress_option(AviMovie *movie,
+                                 int option_type,
+                                 int stream,
+                                 AviOption option,
+                                 void *opt_data);
 /* Hmmm... there should be some explanantion about what these mean */
 /**
  * Compression option, for use in avi_set_compress_option
@@ -275,35 +275,35 @@ AviError AVI_set_compress_option (AviMovie *movie,
  * Direct the streams \<avist_type\> to \<movie\>. Redirect \<stream_num\>
  * streams.
  */
-int AVI_get_stream (AviMovie *movie, int avist_type, int stream_num);
+int AVI_get_stream(AviMovie *movie, int avist_type, int stream_num);
 
 /**
  * Open a movie stream from file.
  */
-AviError AVI_open_movie (const char *name, AviMovie *movie);
+AviError AVI_open_movie(const char *name, AviMovie *movie);
 
 /**
  * Read a frame from a movie stream.
  */
-void *AVI_read_frame (AviMovie *movie,
-					  AviFormat format,
-					  int frame,
-					  int stream);
+void *AVI_read_frame(AviMovie *movie,
+                     AviFormat format,
+                     int frame,
+                     int stream);
 /**
  * Close an open movie stream.
  */
-AviError AVI_close (AviMovie *movie);
+AviError AVI_close(AviMovie *movie);
 
 /**
  * Write frames to a movie stream.
  */
-AviError AVI_write_frame (AviMovie *movie, int frame_num, ...);
+AviError AVI_write_frame(AviMovie *movie, int frame_num, ...);
 
 /**
  * Unused but still external
  */
-AviError AVI_print_error (AviError error);
-void AVI_set_debug (int mode);
+AviError AVI_print_error(AviError error);
+void AVI_set_debug(int mode);
 
 #endif /* __AVI_AVI_H__ */
 

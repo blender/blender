@@ -212,13 +212,13 @@ static int rna_Image_has_data_get(PointerRNA *ptr)
 	return 0;
 }
 
-static void rna_Image_size_get(PointerRNA *ptr,int *values)
+static void rna_Image_size_get(PointerRNA *ptr, int *values)
 {
 	Image *im = (Image*)ptr->data;
 	ImBuf *ibuf;
 	void *lock;
 
-	ibuf = BKE_image_acquire_ibuf(im, NULL , &lock);
+	ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
 	if (ibuf) {
 		values[0] = ibuf->x;
 		values[1] = ibuf->y;
@@ -237,7 +237,7 @@ static void rna_Image_resolution_get(PointerRNA *ptr, float *values)
 	ImBuf *ibuf;
 	void *lock;
 
-	ibuf = BKE_image_acquire_ibuf(im, NULL , &lock);
+	ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
 	if (ibuf) {
 		values[0] = ibuf->ppm[0];
 		values[1] = ibuf->ppm[1];
@@ -256,7 +256,7 @@ static void rna_Image_resolution_set(PointerRNA *ptr, const float *values)
 	ImBuf *ibuf;
 	void *lock;
 
-	ibuf = BKE_image_acquire_ibuf(im, NULL , &lock);
+	ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
 	if (ibuf) {
 		ibuf->ppm[0] = values[0];
 		ibuf->ppm[1] = values[1];
@@ -616,13 +616,13 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Depth", "Image bit depth");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop = RNA_def_int_vector(srna, "size" , 2 , NULL , 0, 0, "Size" ,
-	                          "Width and height in pixels, zero when image data cant be loaded" , 0 , 0);
-	RNA_def_property_int_funcs(prop, "rna_Image_size_get" , NULL, NULL);
+	prop = RNA_def_int_vector(srna, "size", 2, NULL, 0, 0, "Size",
+	                          "Width and height in pixels, zero when image data cant be loaded", 0, 0);
+	RNA_def_property_int_funcs(prop, "rna_Image_size_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop = RNA_def_float_vector(srna, "resolution" , 2 , NULL , 0, 0, "Resolution" , "X/Y pixels per meter" , 0 , 0);
-	RNA_def_property_float_funcs(prop, "rna_Image_resolution_get" , "rna_Image_resolution_set", NULL);
+	prop = RNA_def_float_vector(srna, "resolution", 2, NULL, 0, 0, "Resolution", "X/Y pixels per meter", 0, 0);
+	RNA_def_property_float_funcs(prop, "rna_Image_resolution_get", "rna_Image_resolution_set", NULL);
 
 	prop = RNA_def_property(srna, "pixels", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);

@@ -117,7 +117,7 @@ static int load_frame_raw8(VoxelData *vd, FILE *fp, int frame)
 		return 0;
 	}
 
-	if (fseek(fp,(frame-1)*size*sizeof(char),0) == -1) {
+	if (fseek(fp, (frame-1)*size*sizeof(char), 0) == -1) {
 		MEM_freeN(data_c);
 		MEM_freeN(vd->dataset);
 		vd->dataset= NULL;
@@ -201,7 +201,7 @@ static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 	VoxelDataHeader *h=(VoxelDataHeader *)MEM_mallocN(sizeof(VoxelDataHeader), "voxel data header");
 	
 	rewind(fp);
-	if (fread(h,sizeof(VoxelDataHeader),1,fp) != 1) {
+	if (fread(h, sizeof(VoxelDataHeader), 1, fp) != 1) {
 		MEM_freeN(h);
 		return 0;
 	}
@@ -338,7 +338,7 @@ void cache_voxeldata(Tex *tex, int scene_frame)
 		case TEX_VD_BLENDERVOXEL:
 			BLI_path_abs(path, G.main->name);
 			if (!BLI_exists(path)) return;
-			fp = BLI_fopen(path,"rb");
+			fp = BLI_fopen(path, "rb");
 			if (!fp) return;
 			
 			if (read_voxeldata_header(fp, vd))
@@ -349,7 +349,7 @@ void cache_voxeldata(Tex *tex, int scene_frame)
 		case TEX_VD_RAW_8BIT:
 			BLI_path_abs(path, G.main->name);
 			if (!BLI_exists(path)) return;
-			fp = BLI_fopen(path,"rb");
+			fp = BLI_fopen(path, "rb");
 			if (!fp) return;
 			
 			load_frame_raw8(vd, fp, curframe);

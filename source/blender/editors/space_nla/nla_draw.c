@@ -534,7 +534,7 @@ static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, V
 
 /* ---------------------- */
 
-void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
+void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -920,7 +920,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 	}
 }
 
-void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
+void draw_nla_channel_list(bContext *C, bAnimContext *ac, ARegion *ar)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;

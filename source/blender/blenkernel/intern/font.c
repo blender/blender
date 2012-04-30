@@ -317,7 +317,7 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	Nurb *nu2;
 	BPoint *bp;
 	
-	nu2 =(Nurb*) MEM_callocN(sizeof(Nurb),"underline_nurb");
+	nu2 =(Nurb*) MEM_callocN(sizeof(Nurb), "underline_nurb");
 	if (nu2 == NULL) return;
 	nu2->resolu= cu->resolu;
 	nu2->bezt = NULL;
@@ -331,7 +331,7 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	nu2->orderv = 1;
 	nu2->flagu = CU_NURB_CYCLIC;
 
-	bp = (BPoint*)MEM_callocN(4 * sizeof(BPoint),"underline_bp"); 
+	bp = (BPoint*)MEM_callocN(4 * sizeof(BPoint), "underline_bp");
 	if (bp == NULL) {
 		MEM_freeN(nu2);
 		return;
@@ -382,7 +382,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 	}
 #endif
 
-	/* make a copy at distance ofsx,ofsy with shear*/
+	/* make a copy at distance ofsx, ofsy with shear*/
 	fsize= cu->fsize;
 	shear= cu->shear;
 	si= (float)sin(rot);
@@ -398,7 +398,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 	while (nu1) {
 		bezt1 = nu1->bezt;
 		if (bezt1) {
-			nu2 =(Nurb*) MEM_mallocN(sizeof(Nurb),"duplichar_nurb");
+			nu2 =(Nurb*) MEM_mallocN(sizeof(Nurb), "duplichar_nurb");
 			if (nu2 == NULL) break;
 			memcpy(nu2, nu1, sizeof(struct Nurb));
 			nu2->resolu= cu->resolu;
@@ -416,7 +416,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 			/* nu2->trim.last = 0; */
 			i = nu2->pntsu;
 
-			bezt2 = (BezTriple*)MEM_mallocN(i * sizeof(BezTriple),"duplichar_bezt2"); 
+			bezt2 = (BezTriple*)MEM_mallocN(i * sizeof(BezTriple), "duplichar_bezt2");
 			if (bezt2 == NULL) {
 				MEM_freeN(nu2);
 				break;
@@ -583,14 +583,14 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 
 	/* calc offset and rotation of each char */
 	ct = chartransdata =
-		(struct chartrans*)MEM_callocN((slen+1)* sizeof(struct chartrans),"buildtext");
+		(struct chartrans*)MEM_callocN((slen+1)* sizeof(struct chartrans), "buildtext");
 
 	/* We assume the worst case: 1 character per line (is freed at end anyway) */
 
-	linedata= MEM_mallocN(sizeof(float)*(slen*2 + 1),"buildtext2");
-	linedata2= MEM_mallocN(sizeof(float)*(slen*2 + 1),"buildtext3");
-	linedata3= MEM_callocN(sizeof(float)*(slen*2 + 1),"buildtext4");	
-	linedata4= MEM_callocN(sizeof(float)*(slen*2 + 1),"buildtext5");		
+	linedata  = MEM_mallocN(sizeof(float) * (slen * 2 + 1), "buildtext2");
+	linedata2 = MEM_mallocN(sizeof(float) * (slen * 2 + 1), "buildtext3");
+	linedata3 = MEM_callocN(sizeof(float) * (slen * 2 + 1), "buildtext4");
+	linedata4 = MEM_callocN(sizeof(float) * (slen * 2 + 1), "buildtext5");
 	
 	linedist= cu->linedist;
 	

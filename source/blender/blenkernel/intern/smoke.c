@@ -899,7 +899,7 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 	}
 }
 
-void smokeModifier_free (SmokeModifierData *smd)
+void smokeModifier_free(SmokeModifierData *smd)
 {
 	if(smd)
 	{
@@ -1568,7 +1568,7 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 				for(z = 0; z < sds->res[2]; z++)
 		{	
 			EffectedPoint epoint;
-			float voxelCenter[3] = {0,0,0} , vel[3] = {0,0,0} , retvel[3] = {0,0,0};
+			float voxelCenter[3] = {0,0,0}, vel[3] = {0,0,0}, retvel[3] = {0,0,0};
 			unsigned int index = smoke_get_index(x, sds->res[0], y, sds->res[1], z);
 
 			if((density[index] < FLT_EPSILON) || obstacle[index])					

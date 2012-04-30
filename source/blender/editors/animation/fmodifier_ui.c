@@ -625,7 +625,7 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 
 /* --------------- */
 
-void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
+void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
 	uiLayout *box, *row, *sub, *col;
@@ -769,7 +769,7 @@ static ListBase fmodifier_copypaste_buf = {NULL, NULL};
 /* ---------- */
 
 /* free the copy/paste buffer */
-void free_fmodifiers_copybuf (void)
+void free_fmodifiers_copybuf(void)
 {
 	/* just free the whole buffer */
 	free_fmodifiers(&fmodifier_copypaste_buf);
@@ -779,7 +779,7 @@ void free_fmodifiers_copybuf (void)
  * assuming that the buffer has been cleared already with free_fmodifiers_copybuf()
  *	- active: only copy the active modifier
  */
-short ANIM_fmodifiers_copy_to_buf (ListBase *modifiers, short active)
+short ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, short active)
 {
 	short ok = 1;
 	
@@ -808,7 +808,7 @@ short ANIM_fmodifiers_copy_to_buf (ListBase *modifiers, short active)
 /* 'Paste' the F-Modifier(s) from the buffer to the specified list 
  *	- replace: free all the existing modifiers to leave only the pasted ones 
  */
-short ANIM_fmodifiers_paste_from_buf (ListBase *modifiers, short replace)
+short ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, short replace)
 {
 	FModifier *fcm;
 	short ok = 0;

@@ -425,10 +425,10 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			goalpos[2]= fac*goalpos[2] + mfac*world_pose[3][2];
 			
 			/* blend rotation */
-			mat3_to_quat( q1,goalrot);
-			mat4_to_quat( q2,world_pose);
+			mat3_to_quat(q1, goalrot);
+			mat4_to_quat(q2, world_pose);
 			interp_qt_qtqt(q, q1, q2, mfac);
-			quat_to_mat3( goalrot,q);
+			quat_to_mat3(goalrot, q);
 		}
 		
 		iktarget= iktree[target->tip];

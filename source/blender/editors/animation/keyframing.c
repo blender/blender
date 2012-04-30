@@ -86,7 +86,7 @@
 /* Keyframing Setting Wrangling */
 
 /* Get the active settings for keyframing settings from context (specifically the given scene) */
-short ANIM_get_keyframing_flags (Scene *scene, short incl_mode)
+short ANIM_get_keyframing_flags(Scene *scene, short incl_mode)
 {
 	short flag = 0;
 	
@@ -214,7 +214,7 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
  * NOTE: any recalculate of the F-Curve that needs to be done will need to 
  * 		be done by the caller.
  */
-int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
+int insert_bezt_fcurve(FCurve *fcu, BezTriple *bezt, short flag)
 {
 	int i= 0;
 	
@@ -295,7 +295,7 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
  * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet. 
  * It returns the index at which the keyframe was added.
  */
-int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
+int insert_vert_fcurve(FCurve *fcu, float x, float y, short flag)
 {
 	BezTriple beztr= {{{0}}};
 	unsigned int oldTot = fcu->totvert;
@@ -759,7 +759,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
-short insert_keyframe_direct (ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float cfra, short flag)
+short insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float cfra, short flag)
 {
 	float curval= 0.0f;
 	
@@ -880,7 +880,7 @@ short insert_keyframe_direct (ReportList *reports, PointerRNA ptr, PropertyRNA *
  *
  *	index of -1 keys all array indices
  */
-short insert_keyframe (ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
+short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop = NULL;
@@ -971,7 +971,7 @@ short insert_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
  *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe deletion. These include the quick refresh options.
  */
-short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short UNUSED(flag))
+short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short UNUSED(flag))
 {
 	AnimData *adt= BKE_animdata_from_id(id);
 	PointerRNA id_ptr, ptr;
@@ -1153,7 +1153,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_keyframe_insert (wmOperatorType *ot)
+void ANIM_OT_keyframe_insert(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
@@ -1214,7 +1214,7 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(
 	}
 }
  
-void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
+void ANIM_OT_keyframe_insert_menu(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
@@ -1309,7 +1309,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_keyframe_delete (wmOperatorType *ot)
+void ANIM_OT_keyframe_delete(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
@@ -1383,7 +1383,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_keyframe_delete_v3d (wmOperatorType *ot)
+void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Keyframe";
@@ -1473,7 +1473,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_keyframe_insert_button (wmOperatorType *ot)
+void ANIM_OT_keyframe_insert_button(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Insert Keyframe (Buttons)";
@@ -1545,7 +1545,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_keyframe_delete_button (wmOperatorType *ot)
+void ANIM_OT_keyframe_delete_button(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Keyframe (Buttons)";
@@ -1591,7 +1591,7 @@ int autokeyframe_cfra_can_key(Scene *scene, ID *id)
 /* --------------- API/Per-Datablock Handling ------------------- */
 
 /* Checks if some F-Curve has a keyframe for a given frame */
-short fcurve_frame_has_keyframe (FCurve *fcu, float frame, short filter)
+short fcurve_frame_has_keyframe(FCurve *fcu, float frame, short filter)
 {
 	/* quick sanity check */
 	if (ELEM(NULL, fcu, fcu->bezt))
@@ -1704,7 +1704,7 @@ static short object_frame_has_keyframe (Object *ob, float frame, short filter)
 /* --------------- API ------------------- */
 
 /* Checks whether a keyframe exists for the given ID-block one the given frame */
-short id_frame_has_keyframe (ID *id, float frame, short filter)
+short id_frame_has_keyframe(ID *id, float frame, short filter)
 {
 	/* sanity checks */
 	if (id == NULL)

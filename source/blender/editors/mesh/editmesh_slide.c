@@ -577,6 +577,7 @@ static int edbm_vertex_slide_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		}
 		case RIGHTMOUSE:
+		case ESCKEY:
 		{
 			/* Enforce redraw */
 			ED_region_tag_redraw(vso->active_region);

@@ -127,7 +127,7 @@ struct BuildBinaryVBVH
 	Node *create_node()
 	{
 		Node *node = (Node*)BLI_memarena_alloc( arena, sizeof(Node) );
-		assert( RE_rayobject_isAligned(node) );
+		assert(RE_rayobject_isAligned(node));
 
 		node->sibling = NULL;
 		node->child   = NULL;

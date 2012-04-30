@@ -136,8 +136,8 @@ static void RE_rayobject_blibvh_add(RayObject *o, RayObject *ob)
 	INIT_MINMAX(min_max, min_max+3);
 	RE_rayobject_merge_bb(ob, min_max, min_max+3);
 
-	DO_MIN(min_max  , obj->bb[0]);
-	DO_MAX(min_max+3, obj->bb[1]);
+	DO_MIN(min_max,     obj->bb[0]);
+	DO_MAX(min_max + 3, obj->bb[1]);
 	
 	BLI_bvhtree_insert(obj->bvh, obj->next_leaf - obj->leafs, min_max, 2);	
 	*(obj->next_leaf++) = ob;

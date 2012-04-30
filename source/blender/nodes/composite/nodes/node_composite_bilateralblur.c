@@ -96,7 +96,7 @@ The main change is an optional image input */
 static void node_composit_exec_bilateralblur(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	NodeBilateralBlurData *nbbd= node->storage;
-	CompBuf *new, *source, *img= in[0]->data , *refimg= in[1]->data;
+	CompBuf *new, *source, *img= in[0]->data, *refimg= in[1]->data;
 	double mean0, w, i2sigma_color, i2sigma_space;
 	double mean1[4];
 	double weight_tab[8];

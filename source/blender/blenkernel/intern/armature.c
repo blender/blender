@@ -471,7 +471,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 	next = pchan->child;
 
 	/* find the handle points, since this is inside bone space, the
-	 * first point = (0,0,0)
+	 * first point = (0, 0, 0)
 	 * last point =  (0, length, 0) */
 	if (rest) {
 		invert_m4_m4(imat, pchan->bone->arm_mat);
@@ -1028,13 +1028,13 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 
 				if (armature_weight != 1.0f) {
 					copy_v3_v3(dco, co);
-					mul_v3m3_dq( dco, (defMats) ? summat : NULL,dq);
+					mul_v3m3_dq(dco, (defMats) ? summat : NULL, dq);
 					sub_v3_v3(dco, co);
 					mul_v3_fl(dco, armature_weight);
 					add_v3_v3(co, dco);
 				}
 				else
-					mul_v3m3_dq( co, (defMats) ? summat : NULL,dq);
+					mul_v3m3_dq(co, (defMats) ? summat : NULL, dq);
 
 				smat = summat;
 			}
@@ -1360,18 +1360,18 @@ void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float
 /* Called from RNA when rotation mode changes
  * - the result should be that the rotations given in the provided pointers have had conversions
  *   applied (as appropriate), such that the rotation of the element hasn't 'visually' changed  */
-void BKE_rotMode_change_values (float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode)
+void BKE_rotMode_change_values(float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode)
 {
 	/* check if any change - if so, need to convert data */
 	if (newMode > 0) { /* to euler */
 		if (oldMode == ROT_MODE_AXISANGLE) {
 			/* axis-angle to euler */
-			axis_angle_to_eulO( eul, newMode,axis, *angle);
+			axis_angle_to_eulO(eul, newMode, axis, *angle);
 		}
 		else if (oldMode == ROT_MODE_QUAT) {
 			/* quat to euler */
 			normalize_qt(quat);
-			quat_to_eulO(eul, newMode,quat);
+			quat_to_eulO(eul, newMode, quat);
 		}
 		/* else { no conversion needed } */
 	}
@@ -1464,7 +1464,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3])
 	 * was 0.000001, causes bug [#30438] (which is same as [#27675, imho).
 	 * Reseting it to org value seems to cause no more [#23954]...
 	 */
-	if (dot_v3v3(axis,axis) > 1.0e-13f) {
+	if (dot_v3v3(axis, axis) > 1.0e-13f) {
 		/* if nor is *not* a multiple of target ... */
 		normalize_v3(axis);
 
@@ -1478,7 +1478,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3])
 		float updown;
 
 		/* point same direction, or opposite? */
-		updown = (dot_v3v3(target,nor) > 0) ? 1.0f : -1.0f;
+		updown = (dot_v3v3(target, nor) > 0) ? 1.0f : -1.0f;
 
 		/* I think this should work... */
 		bMatrix[0][0] = updown; bMatrix[0][1] = 0.0;    bMatrix[0][2] = 0.0;
@@ -2309,8 +2309,8 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 
 						/* make a copy of starting conditions */
 						copy_v3_v3(loc, pchan->pose_mat[3]);
-						mat4_to_eul( eul,pchan->pose_mat);
-						mat4_to_size( size,pchan->pose_mat);
+						mat4_to_eul(eul, pchan->pose_mat);
+						mat4_to_size(size, pchan->pose_mat);
 						copy_v3_v3(eulo, eul);
 						copy_v3_v3(sizeo, size);
 
@@ -2435,7 +2435,7 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 
 /* This only reads anim data from channels, and writes to channels */
 /* This is the only function adding poses */
-void where_is_pose (Scene *scene, Object *ob)
+void where_is_pose(Scene *scene, Object *ob)
 {
 	bArmature *arm;
 	Bone *bone;

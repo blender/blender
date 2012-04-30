@@ -1024,7 +1024,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 						addzbuffloatImBuf(ibuf);
 						firstz= ibuf->zbuf_float - (dw.min.x - dw.min.y*width);
 						firstz+= (height-1)*width;
-						frameBuffer.insert ("Z", Slice (Imf::FLOAT,  (char *)firstz , sizeof(float), -width*sizeof(float)));
+						frameBuffer.insert("Z", Slice (Imf::FLOAT,  (char *)firstz, sizeof(float), -width * sizeof(float)));
 					}
 					
 					file->setFrameBuffer (frameBuffer);

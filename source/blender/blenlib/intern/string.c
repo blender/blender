@@ -391,10 +391,10 @@ void BLI_timestr(double _time, char *str)
 	int hun= ( (int) (_time   * 100.0)) % 100;
 	
 	if (hr) {
-		sprintf(str, "%.2d:%.2d:%.2d.%.2d",hr,min,sec,hun);
+		sprintf(str, "%.2d:%.2d:%.2d.%.2d", hr, min, sec, hun);
 	}
 	else {
-		sprintf(str, "%.2d:%.2d.%.2d",min,sec,hun);
+		sprintf(str, "%.2d:%.2d.%.2d", min, sec, hun);
 	}
 	
 	str[11]=0;

@@ -37,14 +37,14 @@
 
 /* ******************* Color Spill Supression ********************************* */
 static bNodeSocketTemplate cmp_node_color_spill_in[]={
-	{SOCK_RGBA,1,"Image", 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA, 1, "Image", 1.0f, 1.0f, 1.0f, 1.0f},
 	{SOCK_FLOAT, 1, "Fac",	1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{-1,0,""}
+	{-1, 0, ""}
 };
 
 static bNodeSocketTemplate cmp_node_color_spill_out[]={
-	{SOCK_RGBA,0,"Image"},
-	{-1,0,""}
+	{SOCK_RGBA, 0, "Image"},
+	{-1, 0, ""}
 };
 
 static void do_simple_spillmap_red(bNode *node, float* out, float *in)

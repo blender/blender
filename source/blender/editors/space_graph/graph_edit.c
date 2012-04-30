@@ -83,7 +83,7 @@
 
 /* Get the min/max keyframes*/
 /* note: it should return total boundbox, filter for selection only can be argument... */
-void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, const short selOnly)
+void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, const short selOnly)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -181,7 +181,7 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_previewrange_set (wmOperatorType *ot)
+void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Auto-Set Preview Range";
@@ -243,7 +243,7 @@ static int graphkeys_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	return graphkeys_viewall(C, TRUE);
 }
 
-void GRAPH_OT_view_all (wmOperatorType *ot)
+void GRAPH_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "View All";
@@ -258,7 +258,7 @@ void GRAPH_OT_view_all (wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void GRAPH_OT_view_selected (wmOperatorType *ot)
+void GRAPH_OT_view_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "View Selected";
@@ -373,7 +373,7 @@ static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_ghost_curves_create (wmOperatorType *ot)
+void GRAPH_OT_ghost_curves_create(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Create Ghost Curves";
@@ -416,7 +416,7 @@ static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_ghost_curves_clear (wmOperatorType *ot)
+void GRAPH_OT_ghost_curves_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clear Ghost Curves";
@@ -511,7 +511,7 @@ static int graphkeys_insertkey_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GRAPH_OT_keyframe_insert (wmOperatorType *ot)
+void GRAPH_OT_keyframe_insert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Insert Keyframes";
@@ -618,7 +618,7 @@ static int graphkeys_click_insert_invoke (bContext *C, wmOperator *op, wmEvent *
 	return graphkeys_click_insert_exec(C, op);
 }
 
-void GRAPH_OT_click_insert (wmOperatorType *ot)
+void GRAPH_OT_click_insert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Click-Insert Keyframes";
@@ -701,7 +701,7 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_copy (wmOperatorType *ot)
+void GRAPH_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Copy Keyframes";
@@ -746,7 +746,7 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_paste (wmOperatorType *ot)
+void GRAPH_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Paste Keyframes";
@@ -815,7 +815,7 @@ static int graphkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_duplicate (wmOperatorType *ot)
+void GRAPH_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Duplicate Keyframes";
@@ -885,7 +885,7 @@ static int graphkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_delete (wmOperatorType *ot)
+void GRAPH_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Keyframes";
@@ -947,7 +947,7 @@ static int graphkeys_clean_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_clean (wmOperatorType *ot)
+void GRAPH_OT_clean(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clean Keyframes";
@@ -1030,7 +1030,7 @@ static int graphkeys_bake_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_bake (wmOperatorType *ot)
+void GRAPH_OT_bake(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Bake Curve";
@@ -1174,7 +1174,7 @@ static int graphkeys_sound_bake_invoke (bContext *C, wmOperator *op, wmEvent *ev
 	return WM_operator_filesel(C, op, event);
 }
 
-void GRAPH_OT_sound_bake (wmOperatorType *ot)
+void GRAPH_OT_sound_bake(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Bake Sound to F-Curves";
@@ -1248,7 +1248,7 @@ static int graphkeys_sample_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_sample (wmOperatorType *ot)
+void GRAPH_OT_sample(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Sample Keyframes";
@@ -1357,7 +1357,7 @@ static int graphkeys_expo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_extrapolation_type (wmOperatorType *ot)
+void GRAPH_OT_extrapolation_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Keyframe Extrapolation";
@@ -1426,7 +1426,7 @@ static int graphkeys_ipo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_interpolation_type (wmOperatorType *ot)
+void GRAPH_OT_interpolation_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Keyframe Interpolation";
@@ -1697,7 +1697,7 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 	}
 }
  
-void GRAPH_OT_euler_filter (wmOperatorType *ot)
+void GRAPH_OT_euler_filter(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Euler Discontinuity Filter";
@@ -1771,7 +1771,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void GRAPH_OT_frame_jump (wmOperatorType *ot)
+void GRAPH_OT_frame_jump(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Jump to Frame";
@@ -1875,7 +1875,7 @@ static int graphkeys_snap_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_snap (wmOperatorType *ot)
+void GRAPH_OT_snap(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Keys";
@@ -1993,7 +1993,7 @@ static int graphkeys_mirror_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_mirror (wmOperatorType *ot)
+void GRAPH_OT_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Mirror Keys";
@@ -2048,7 +2048,7 @@ static int graphkeys_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_smooth (wmOperatorType *ot)
+void GRAPH_OT_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Smooth Keys";
@@ -2152,7 +2152,7 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
+void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add F-Curve Modifier";
@@ -2210,7 +2210,7 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_fmodifier_copy (wmOperatorType *ot)
+void GRAPH_OT_fmodifier_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Copy F-Modifiers";
@@ -2272,7 +2272,7 @@ static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 	}
 }
  
-void GRAPH_OT_fmodifier_paste (wmOperatorType *ot)
+void GRAPH_OT_fmodifier_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Paste F-Modifiers";

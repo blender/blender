@@ -141,8 +141,8 @@ void ntreeInitTypes(bNodeTree *ntree)
 			/* needed info if the pynode script fails now: */
 			node->storage= ntree;
 			if (node->id!=NULL) { /* not an empty script node */
-				node->custom1= 0;
-				node->custom1= BSET(node->custom1,NODE_DYNAMIC_ADDEXIST);
+				node->custom1 = 0;
+				node->custom1 = BSET(node->custom1, NODE_DYNAMIC_ADDEXIST);
 			}
 //			if (node->typeinfo)
 //				node->typeinfo->initfunc(node);

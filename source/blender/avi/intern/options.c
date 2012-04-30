@@ -44,7 +44,7 @@
 
 /* avi_set_compress_options gets its own file... now don't WE feel important? */
 
-AviError AVI_set_compress_option (AviMovie *movie, int option_type, int stream, AviOption option, void *opt_data)
+AviError AVI_set_compress_option(AviMovie *movie, int option_type, int stream, AviOption option, void *opt_data)
 {
 	int i;
 	int useconds;

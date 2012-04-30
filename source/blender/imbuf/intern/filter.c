@@ -52,7 +52,7 @@
 
 static void filtrow(unsigned char *point, int x)
 {
-	unsigned int c1,c2,c3,error;
+	unsigned int c1, c2, c3, error;
 
 	if (x>1) {
 		c1 = c2 = *point;
@@ -72,7 +72,7 @@ static void filtrow(unsigned char *point, int x)
 
 static void filtrowf(float *point, int x)
 {
-	float c1,c2,c3;
+	float c1, c2, c3;
 	
 	if (x>1) {
 		c1 = c2 = *point;
@@ -92,7 +92,7 @@ static void filtrowf(float *point, int x)
 
 static void filtcolum(unsigned char *point, int y, int skip)
 {
-	unsigned int c1,c2,c3,error;
+	unsigned int c1, c2, c3, error;
 	unsigned char *point2;
 
 	if (y>1) {
@@ -115,7 +115,7 @@ static void filtcolum(unsigned char *point, int y, int skip)
 
 static void filtcolumf(float *point, int y, int skip)
 {
-	float c1,c2,c3, *point2;
+	float c1, c2, c3, *point2;
 	
 	if (y>1) {
 		c1 = c2 = *point;
@@ -148,23 +148,23 @@ void IMB_filtery(struct ImBuf *ibuf)
 
 	for (;x>0;x--) {
 		if (point) {
-			if (ibuf->planes > 24) filtcolum(point,y,skip);
+			if (ibuf->planes > 24) filtcolum(point, y, skip);
 			point++;
-			filtcolum(point,y,skip);
+			filtcolum(point, y, skip);
 			point++;
-			filtcolum(point,y,skip);
+			filtcolum(point, y, skip);
 			point++;
-			filtcolum(point,y,skip);
+			filtcolum(point, y, skip);
 			point++;
 		}
 		if (pointf) {
-			if (ibuf->planes > 24) filtcolumf(pointf,y,skip);
+			if (ibuf->planes > 24) filtcolumf(pointf, y, skip);
 			pointf++;
-			filtcolumf(pointf,y,skip);
+			filtcolumf(pointf, y, skip);
 			pointf++;
-			filtcolumf(pointf,y,skip);
+			filtcolumf(pointf, y, skip);
 			pointf++;
-			filtcolumf(pointf,y,skip);
+			filtcolumf(pointf, y, skip);
 			pointf++;
 		}
 	}
@@ -186,23 +186,23 @@ void imb_filterx(struct ImBuf *ibuf)
 
 	for (;y>0;y--) {
 		if (point) {
-			if (ibuf->planes > 24) filtrow(point,x);
+			if (ibuf->planes > 24) filtrow(point, x);
 			point++;
-			filtrow(point,x);
+			filtrow(point, x);
 			point++;
-			filtrow(point,x);
+			filtrow(point, x);
 			point++;
-			filtrow(point,x);
+			filtrow(point, x);
 			point+=skip;
 		}
 		if (pointf) {
-			if (ibuf->planes > 24) filtrowf(pointf,x);
+			if (ibuf->planes > 24) filtrowf(pointf, x);
 			pointf++;
-			filtrowf(pointf,x);
+			filtrowf(pointf, x);
 			pointf++;
-			filtrowf(pointf,x);
+			filtrowf(pointf, x);
 			pointf++;
-			filtrowf(pointf,x);
+			filtrowf(pointf, x);
 			pointf+=skip;
 		}
 	}
@@ -304,7 +304,7 @@ void IMB_mask_filter_extend(char *mask, int width, int height)
 
 void IMB_mask_clear(ImBuf *ibuf, char *mask, int val)
 {
-	int x,y;
+	int x, y;
 	if (ibuf->rect_float) {
 		for (x=0; x<ibuf->x; x++) {
 			for (y=0; y<ibuf->y; y++) {
@@ -399,7 +399,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 				if (!check_pixel_assigned(srcbuf, srcmask, index, depth, is_float)) {
 					float tmp[4];
 					float wsum=0;
-					float acc[4]={0,0,0,0};
+					float acc[4]={0, 0, 0, 0};
 					k = 0;
 
 					if (check_pixel_assigned(srcbuf, srcmask, filter_make_index(x-1, y, width, height), depth, is_float) ||

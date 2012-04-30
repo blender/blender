@@ -2102,7 +2102,7 @@ static int vertex_group_poll_edit_or_wpaint_vert_select(bContext *C)
 		return 0;
 
 	return (vgroup_object_in_edit_mode(ob) ||
-	        vgroup_object_in_wpaint_vert_select(ob) );
+	        vgroup_object_in_wpaint_vert_select(ob));
 }
 
 static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))

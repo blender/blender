@@ -145,7 +145,7 @@ static int snap_type_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
 
-	ts->snap_mode = RNA_enum_get(op->ptr,"type");
+	ts->snap_mode = RNA_enum_get(op->ptr, "type");
 
 	WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 

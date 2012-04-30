@@ -50,16 +50,16 @@ typedef struct FluidVertexVelocity {
 	
 typedef struct FluidsimSettings {
 	struct FluidsimModifierData *fmd; /* for fast RNA access */
-	/* domain,fluid or obstacle */
+	/* domain, fluid or obstacle */
 	short type;
-	/* display advanced options in fluid sim tab (on=1,off=0)*/
+	/* display advanced options in fluid sim tab (on=1, off=0)*/
 	short show_advancedoptions;
 
 	/* domain object settings */
 	/* resolutions */
 	short resolutionxyz;
 	short previewresxyz;
-	/* size of the domain in real units (meters along largest resolution x,y,z extent) */
+	/* size of the domain in real units (meters along largest resolution x, y, z extent) */
 	float realsize;
 	/* show original meshes, preview or final sim */
 	short guiDisplayMode;
@@ -85,7 +85,7 @@ typedef struct FluidsimSettings {
 	
 	/* fluid object type settings */
 	/* gravity strength */
-	float iniVelx,iniVely,iniVelz;
+	float iniVelx, iniVely, iniVelz;
 
 	/* store pointer to original mesh (for replacing the current one) */
 	struct Mesh *orgMesh;
@@ -106,8 +106,8 @@ typedef struct FluidsimSettings {
 	/* additional flags depending on the type, lower short contains flags
 	 * to check validity, higher short additional flags */
 	short typeFlags;
-	/* switch off velocity genration, volume init type for fluid/obstacles (volume=1,shell=2,both=3) */
-	char  domainNovecgen,volumeInitType;
+	/* switch off velocity genration, volume init type for fluid/obstacles (volume=1, shell=2, both=3) */
+	char  domainNovecgen, volumeInitType;
 
 	/* boundary "stickiness" for part slip values */
 	float partSlipValue;

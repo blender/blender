@@ -407,7 +407,7 @@ static void rna_def_boidrule(BlenderRNA *brna)
 	
 	/* data */
 	srna = RNA_def_struct(brna, "BoidRule", NULL);
-	RNA_def_struct_ui_text(srna , "Boid Rule", "");
+	RNA_def_struct_ui_text(srna, "Boid Rule", "");
 	RNA_def_struct_refine_func(srna, "rna_BoidRule_refine");
 	RNA_def_struct_path_func(srna, "rna_BoidRule_path");
 	

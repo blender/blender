@@ -129,7 +129,7 @@ static void VertexIt_Construct(CSG_VertexIteratorDescriptor *output, DerivedMesh
 	if (output == 0) return;
 
 	// allocate some memory for blender iterator
-	it = (VertexIt *)(MEM_mallocN(sizeof(VertexIt),"Boolean_VIt"));
+	it = (VertexIt *)(MEM_mallocN(sizeof(VertexIt), "Boolean_VIt"));
 	if (it == 0) {
 		return;
 	}
@@ -223,7 +223,7 @@ static void FaceIt_Construct(
 	if (output == 0) return;
 
 	// allocate some memory for blender iterator
-	it = (FaceIt *)(MEM_mallocN(sizeof(FaceIt),"Boolean_FIt"));
+	it = (FaceIt *)(MEM_mallocN(sizeof(FaceIt), "Boolean_FIt"));
 	if (it == 0) {
 		return;
 	}
@@ -333,7 +333,7 @@ static void InterpCSGFace(
 		else
 			copy_v3_v3(obco, co[j]);
 
-		interp_weights_face_v3( w[j],orig_co[0], orig_co[1], orig_co[2], orig_co[3], obco);
+		interp_weights_face_v3(w[j], orig_co[0], orig_co[1], orig_co[2], orig_co[3], obco);
 	}
 
 	CustomData_interp(&orig_dm->faceData, &dm->faceData, &orig_index, NULL, (float*)w, 1, index);
@@ -496,8 +496,8 @@ static void BuildMeshDescriptors(
 	struct CSG_FaceIteratorDescriptor * face_it,
 	struct CSG_VertexIteratorDescriptor * vertex_it)
 {
-	VertexIt_Construct(vertex_it,dm, ob);
-	FaceIt_Construct(face_it,dm,face_offset,ob);
+	VertexIt_Construct(vertex_it, dm, ob);
+	FaceIt_Construct(face_it, dm, face_offset, ob);
 }
 	
 static void FreeMeshDescriptors(
@@ -551,7 +551,7 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 		}
 		
 		BuildMeshDescriptors(dm_select, ob_select, 0, &fd_1, &vd_1);
-		BuildMeshDescriptors(dm, ob, dm_select->getNumTessFaces(dm_select) , &fd_2, &vd_2);
+		BuildMeshDescriptors(dm, ob, dm_select->getNumTessFaces(dm_select), &fd_2, &vd_2);
 
 		bool_op = CSG_NewBooleanFunction();
 

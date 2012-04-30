@@ -652,11 +652,13 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
         # Weight Paint Mode #
         elif context.weight_paint_object and brush:
-            layout.prop(toolsettings, "vertex_group_weight", text="Weight", slider=True)
             layout.prop(toolsettings, "use_auto_normalize", text="Auto Normalize")
             layout.prop(toolsettings, "use_multipaint", text="Multi-Paint")
 
             col = layout.column()
+
+            row = col.row(align=True)
+            self.prop_unified_weight(row, context, brush, "weight", slider=True, text="Weight")
 
             row = col.row(align=True)
             self.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")

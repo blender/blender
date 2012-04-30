@@ -241,7 +241,7 @@ static void animchan_sync_fcurve (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 /* ---------------- */
  
 /* Main call to be exported to animation editors */
-void ANIM_sync_animchannels_to_data (const bContext *C)
+void ANIM_sync_animchannels_to_data(const bContext *C)
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};

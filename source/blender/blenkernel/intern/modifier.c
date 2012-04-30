@@ -296,7 +296,7 @@ int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *lastPossibleCag
 	}
 
 	/* Find the last modifier acting on the cage. */
-	for (i=0; md; i++,md=md->next) {
+	for (i=0; md; i++, md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		md->scene= scene;

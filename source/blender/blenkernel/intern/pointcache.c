@@ -222,7 +222,7 @@ void BKE_ptcache_make_particle_key(ParticleKey *key, int index, void **data, flo
 	
 	/* no rotation info, so make something nice up */
 	if (data[BPHYS_DATA_ROTATION]==NULL) {
-		vec_to_quat( key->rot, key->vel, OB_NEGX, OB_POSZ);
+		vec_to_quat(key->rot, key->vel, OB_NEGX, OB_POSZ);
 	}
 	else {
 		PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, index, key->rot);
@@ -366,7 +366,7 @@ static void ptcache_particle_interpolate(int index, void *psys_v, void **data, f
 
 	/* determine rotation from velocity */
 	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		vec_to_quat( keys[2].rot,keys[2].vel, OB_NEGX, OB_POSZ);
+		vec_to_quat(keys[2].rot, keys[2].vel, OB_NEGX, OB_POSZ);
 	}
 
 	if (cfra > pa->time)
@@ -400,7 +400,7 @@ static int  ptcache_particle_totwrite(void *psys_v, int cfra)
 	if (cfra == 0)
 		return psys->totpart;
 
-	for (p=0; p<psys->totpart; p++,pa++)
+	for (p=0; p<psys->totpart; p++, pa++)
 		totwrite += (cfra >= pa->time - step && cfra <= pa->dietime + step);
 
 	return totwrite;
@@ -720,7 +720,7 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 	
 	/* version header */
 	ptcache_file_read(pf, version, 1, sizeof(char)*4);
-	if (strncmp(version, DPAINT_CACHE_VERSION,4)) {printf("Dynamic Paint: Invalid cache version: %s!\n",version); return 0;}
+	if (strncmp(version, DPAINT_CACHE_VERSION, 4)) {printf("Dynamic Paint: Invalid cache version: %s!\n", version); return 0;}
 
 	if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
 		unsigned int data_len;
@@ -1260,7 +1260,7 @@ static int ptcache_file_compressed_write(PTCacheFile *pf, unsigned char *in, uns
 #ifdef WITH_LZMA
 	if (mode == 2) {
 		
-		r = LzmaCompress(out, &out_len, in, in_len,//assume sizeof(char)==1....
+		r = LzmaCompress(out, &out_len, in, in_len, //assume sizeof(char)==1....
 						props, &sizeOfIt, 5, 1 << 24, 3, 0, 2, 32, 2);
 
 		if (!(r == SZ_OK) || (out_len >= in_len))

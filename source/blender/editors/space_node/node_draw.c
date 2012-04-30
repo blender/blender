@@ -459,17 +459,17 @@ static void node_circle_draw(float x, float y, float size, char *col, int highli
 {
 	/* 16 values of sin function */
 	static float si[16] = {
-		0.00000000f, 0.39435585f,0.72479278f,0.93775213f,
-		0.99871650f,0.89780453f,0.65137248f,0.29936312f,
-		-0.10116832f,-0.48530196f,-0.79077573f,-0.96807711f,
-		-0.98846832f,-0.84864425f,-0.57126821f,-0.20129852f
+		0.00000000f, 0.39435585f, 0.72479278f, 0.93775213f,
+		0.99871650f, 0.89780453f, 0.65137248f, 0.29936312f,
+		-0.10116832f, -0.48530196f, -0.79077573f, -0.96807711f,
+		-0.98846832f, -0.84864425f, -0.57126821f, -0.20129852f
 	};
 	/* 16 values of cos function */
 	static float co[16] ={
-		1.00000000f,0.91895781f,0.68896691f,0.34730525f,
-		-0.05064916f,-0.44039415f,-0.75875812f,-0.95413925f,
-		-0.99486932f,-0.87434661f,-0.61210598f,-0.25065253f,
-		0.15142777f,0.52896401f,0.82076344f,0.97952994f,
+		1.00000000f, 0.91895781f, 0.68896691f, 0.34730525f,
+		-0.05064916f, -0.44039415f, -0.75875812f, -0.95413925f,
+		-0.99486932f, -0.87434661f, -0.61210598f, -0.25065253f,
+		0.15142777f, 0.52896401f, 0.82076344f, 0.97952994f,
 	};
 	int a;
 	
@@ -488,12 +488,12 @@ static void node_circle_draw(float x, float y, float size, char *col, int highli
 		glColor4ub(0, 0, 0, 150);
 	}
 	glEnable(GL_BLEND);
-	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINE_LOOP);
 	for (a=0; a<16; a++)
 		glVertex2f(x+size*si[a], y+size*co[a]);
 	glEnd();
-	glDisable( GL_LINE_SMOOTH );
+	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 	glLineWidth(1.0f);
 }
@@ -547,7 +547,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	glPixelZoom(xscale, yscale);
 
 	glEnable(GL_BLEND);
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );	/* premul graphics */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  /* premul graphics */
 	
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 	glaDrawPixelsTex(prv->xmin, prv->ymin, preview->xsize, preview->ysize, GL_UNSIGNED_BYTE, preview->rect);
@@ -691,7 +691,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* outline active and selected emphasis */
 	if ( node->flag & (NODE_ACTIVE|SELECT) ) {
 		glEnable(GL_BLEND);
-		glEnable( GL_LINE_SMOOTH );
+		glEnable(GL_LINE_SMOOTH);
 			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
 			if ( node->flag & NODE_ACTIVE ) 
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
@@ -700,7 +700,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_LEFT); // round all corners except lower right
 			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
 			
-		glDisable( GL_LINE_SMOOTH );
+		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
 	
@@ -786,14 +786,14 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	/* outline active and selected emphasis */
 	if ( node->flag & (NODE_ACTIVE|SELECT) ) {
 		glEnable(GL_BLEND);
-		glEnable( GL_LINE_SMOOTH );
+		glEnable(GL_LINE_SMOOTH);
 			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
 			if ( node->flag & NODE_ACTIVE ) 
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
 			else
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
 			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
-		glDisable( GL_LINE_SMOOTH );
+		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
 	
@@ -939,7 +939,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	//uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
 	/* only set once */
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MAP1_VERTEX_3);
 
 	/* aspect+font, set each time */

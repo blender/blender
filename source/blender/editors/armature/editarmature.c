@@ -534,7 +534,7 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 
 /* exported for use in editors/object/ */
 /* 0 == do center, 1 == center new, 2 == center cursor */
-void docenter_armature (Scene *scene, Object *ob, float cursor[3], int centermode, int around)
+void docenter_armature(Scene *scene, Object *ob, float cursor[3], int centermode, int around)
 {
 	Object *obedit= scene->obedit; // XXX get from context
 	EditBone *ebone;
@@ -610,7 +610,7 @@ static int editbone_unique_check(void *arg, const char *name)
 	return dupli && dupli != data->bone;
 }
 
-void unique_editbone_name (ListBase *edbo, char *name, EditBone *bone)
+void unique_editbone_name(ListBase *edbo, char *name, EditBone *bone)
 {
 	struct {ListBase *lb; void *bone;} data;
 	data.lb= edbo;
@@ -680,7 +680,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 		 *	2. remove this from the 'visual' y-rotation
 		 */
 		{
-			float premat[3][3], imat[3][3],pmat[3][3], tmat[3][3];
+			float premat[3][3], imat[3][3], pmat[3][3], tmat[3][3];
 			float delta[3], eul[3];
 			
 			/* obtain new auto y-rotation */
@@ -693,7 +693,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 			
 			/* remove auto from visual and get euler rotation */
 			mul_m3_m3m3(tmat, imat, pmat);
-			mat3_to_eul( eul,tmat);
+			mat3_to_eul(eul, tmat);
 			
 			/* just use this euler-y as new roll value */
 			curbone->roll= eul[1];
@@ -726,7 +726,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_armature_apply (wmOperatorType *ot)
+void POSE_OT_armature_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Apply Pose as Rest Pose";
@@ -776,7 +776,7 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_visual_transform_apply (wmOperatorType *ot)
+void POSE_OT_visual_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Apply Visual Transform to Pose";
@@ -1239,7 +1239,7 @@ static int separate_armature_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_separate (wmOperatorType *ot)
+void ARMATURE_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Separate Bones";
@@ -2285,7 +2285,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 	View3D *v3d;
 	bArmature *arm;
 	EditBone *ebone, *newbone, *flipbone;
-	float *curs, mat[3][3],imat[3][3];
+	float *curs, mat[3][3], imat[3][3];
 	int a, to_root= 0;
 	Object *obedit;
 	Scene *scene;
@@ -2944,7 +2944,7 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_fill (wmOperatorType *ot)
+void ARMATURE_OT_fill(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Fill Between Joints";
@@ -3123,7 +3123,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_merge (wmOperatorType *ot)
+void ARMATURE_OT_merge(wmOperatorType *ot)
 {
 	static EnumPropertyItem merge_types[] = {
 		{1, "WITHIN_CHAIN", 0, "Within Chains", ""},
@@ -3457,7 +3457,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "name", name);
 	
-	copy_v3_v3(curs, give_cursor(CTX_data_scene(C),CTX_wm_view3d(C)));	
+	copy_v3_v3(curs, give_cursor(CTX_data_scene(C), CTX_wm_view3d(C)));
 
 	/* Get inverse point for head and orientation for tail */
 	invert_m4_m4(obedit->imat, obedit->obmat);
@@ -4027,6 +4027,163 @@ void ARMATURE_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
+enum {
+	SIMEDBONE_LENGTH = 1,
+	SIMEDBONE_PREFIX,
+	SIMEDBONE_SUFFIX,
+	SIMEDBONE_LAYER
+};
+
+static EnumPropertyItem prop_similar_types[] = {
+	{SIMEDBONE_LENGTH, "LENGTH", 0, "Length", ""},
+	{SIMEDBONE_PREFIX, "PREFIX", 0, "Prefix", ""},
+	{SIMEDBONE_SUFFIX, "SUFFIX", 0, "Suffix", ""},
+	{SIMEDBONE_LAYER, "LAYER", 0, "Layer", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* could be used in more places */
+static void ED_armature_edit_bone_select(EditBone *ebone)
+{
+	BLI_assert((ebone->flag & BONE_UNSELECTABLE) == 0);
+	ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+
+	if ((ebone->flag & BONE_CONNECTED) && (ebone->parent != NULL)) {
+		ebone->parent->flag |= BONE_TIPSEL;
+	}
+}
+
+static void select_similar_length(bArmature *arm, EditBone *actBone, const float thresh)
+{
+	EditBone *ebone;
+
+	/* thresh is always relative to current length */
+	const float len_min = actBone->length / (1.0f + thresh);
+	const float len_max = actBone->length * (1.0f + thresh);
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+			if ((ebone->length >= len_min) &&
+				(ebone->length <= len_max))
+			{
+				ED_armature_edit_bone_select(ebone);
+			}
+		}
+	}
+}
+
+static void select_similar_layer(bArmature *arm, EditBone *actBone)
+{
+	EditBone *ebone;
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+			if (ebone->layer & actBone->layer) {
+				ED_armature_edit_bone_select(ebone);
+			}
+		}
+	}
+}
+
+static void find_pre_or_suffix(char *outCompare, const char *name, int mode)
+{
+	int len = BLI_strnlen(name, MAX_VGROUP_NAME);
+
+	if (len < 3)
+		return;
+
+	if (mode == SIMEDBONE_SUFFIX) {
+		if (BKE_deform_is_char_sep(name[len - 2])) {
+			BLI_strncpy(outCompare, &name[len - 1], sizeof(outCompare));
+		}
+	}
+	else if (mode == SIMEDBONE_PREFIX) {
+		if (BKE_deform_is_char_sep(name[1])) {
+			BLI_strncpy(outCompare, &name[0], sizeof(outCompare));
+		}
+	}
+}
+
+static void select_similar_name(bArmature *arm, EditBone *actBone, int mode)
+{
+	EditBone *ebone;
+
+	char *name = actBone->name;
+	char compare[MAX_VGROUP_NAME] = "";
+	find_pre_or_suffix(compare, name, mode);
+
+	if (compare[0] == '\0')
+		return;
+
+	/* Find matches */
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+			char tCompare[MAX_VGROUP_NAME] = "";
+			find_pre_or_suffix(tCompare, ebone->name, mode);
+			if (!strcmp(tCompare, compare)) {
+				ED_armature_edit_bone_select(ebone);
+			}
+		}
+	}
+
+}
+
+static int armature_select_similar_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm = obedit->data;
+	EditBone *actBone = CTX_data_active_bone(C);
+
+	/* Get props */
+	int type = RNA_enum_get(op->ptr, "type");
+	float thresh = RNA_float_get(op->ptr, "threshold");
+
+	/* Check for active bone */
+	if (actBone == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		return OPERATOR_CANCELLED;
+	}
+
+	switch (type) {
+		case SIMEDBONE_LENGTH:
+			select_similar_length(arm, actBone, thresh);
+			break;
+		case SIMEDBONE_PREFIX:
+			select_similar_name(arm, actBone, SIMEDBONE_PREFIX);
+			break;
+		case SIMEDBONE_SUFFIX:
+			select_similar_name(arm, actBone, SIMEDBONE_SUFFIX);
+			break;
+		case SIMEDBONE_LAYER:
+			select_similar_layer(arm, actBone);
+			break;
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_select_similar(wmOperatorType *ot) {
+
+	/* identifiers */
+	ot->name = "Select Similar";
+	ot->idname = "ARMATURE_OT_select_similar";
+
+	/* callback functions */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = armature_select_similar_exec;
+	ot->poll = ED_operator_editarmature;
+	ot->description = "Select similar bones by property types";
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_similar_types, 0, "Type", "");
+	RNA_def_float(ot->srna, "threshold", 0.1f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);
+}
+
 /* ********************* select hierarchy operator ************** */
 
 static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
@@ -4345,7 +4502,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
  * test==2: only clear active tag
  * test==3: swap select (no test / inverse selection status of all independently)
  */
-void ED_pose_deselectall (Object *ob, int test)
+void ED_pose_deselectall(Object *ob, int test)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
@@ -4440,7 +4597,7 @@ static int vgroup_add_unique_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr))
 	 * If such a vertex group aleady exist the routine exits.
 	 */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
-		if (!defgroup_find_name(ob,bone->name)) {
+		if (!defgroup_find_name(ob, bone->name)) {
 			ED_vgroup_add_name(ob, bone->name);
 			return 1;
 		}
@@ -4828,7 +4985,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 				quat_to_eul(oldeul, quat1);
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-				axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,pchan->rotAxis, pchan->rotAngle);
+				axis_angle_to_eulO(oldeul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
 			}
 			else {
 				copy_v3_v3(oldeul, pchan->eul);
@@ -4855,7 +5012,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 				}
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-				eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,eul, EULER_ORDER_DEFAULT);
+				eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
 			}
 			else {
 				copy_v3_v3(pchan->eul, eul);
@@ -5094,7 +5251,7 @@ void POSE_OT_select_all(wmOperatorType *ot)
 static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
-	bPoseChannel *pchan,*parent;
+	bPoseChannel *pchan, *parent;
 
 	/*	Determine if there is an active bone */
 	pchan=CTX_data_active_pose_bone(C);
@@ -5446,7 +5603,7 @@ static int armature_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_flip_names (wmOperatorType *ot)
+void ARMATURE_OT_flip_names(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Flip Names";
@@ -5491,7 +5648,7 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_autoside_names (wmOperatorType *ot)
+void ARMATURE_OT_autoside_names(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[]= {
 		 {0, "XAXIS", 0, "X-Axis", "Left/Right"},
@@ -5679,7 +5836,7 @@ float arcLengthRatio(ReebArc *arc)
 	
 	if (arc->bcount > 0) {
 		/* Add the embedding */
-		for ( i = 1; i < arc->bcount; i++) {
+		for (i = 1; i < arc->bcount; i++) {
 			embedLength += len_v3v3(arc->buckets[i - 1].p, arc->buckets[i].p);
 		}
 		/* Add head and tail -> embedding vectors */
@@ -5737,8 +5894,8 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	
 	/* Copy orientation from source */
 	copy_v3_v3(dst->loc, src->obmat[3]);
-	mat4_to_eul( dst->rot,src->obmat);
-	mat4_to_size( dst->size,src->obmat);
+	mat4_to_eul(dst->rot, src->obmat);
+	mat4_to_size(dst->size, src->obmat);
 	
 	where_is_object(scene, obedit);
 	

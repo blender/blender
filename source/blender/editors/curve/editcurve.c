@@ -108,7 +108,7 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short selstatus);
 
 /* still need to eradicate a few :( */
-#define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
+#define callocstructN(x, y, name) (x*)MEM_callocN((y)* sizeof(x), name)
 
 static float nurbcircle[8][2]= {
 	{0.0, -1.0}, {-1.0, -1.0}, {-1.0, 0.0}, {-1.0,  1.0},
@@ -1974,7 +1974,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 					}
 					if (BKE_nurb_check_valid_u(newnu)) {
 						if (nu->pntsu==newnu->pntsu && nu->knotsu) {
-							newnu->knotsu= MEM_dupallocN( nu->knotsu );
+							newnu->knotsu= MEM_dupallocN(nu->knotsu);
 						}
 						else {
 							BKE_nurb_knot_calc_u(newnu);
@@ -1982,7 +1982,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 					}
 					if (BKE_nurb_check_valid_v(newnu)) {
 						if (nu->pntsv==newnu->pntsv && nu->knotsv) {
-							newnu->knotsv= MEM_dupallocN( nu->knotsv );
+							newnu->knotsv= MEM_dupallocN(nu->knotsv);
 						}
 						else {
 							BKE_nurb_knot_calc_v(newnu);
@@ -2157,7 +2157,7 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 	for (nu= editnurb->first; nu; nu= nu->next) {
 		if (nu->bezt) {
 			change = 0;
-			beztOrig = MEM_dupallocN( nu->bezt );
+			beztOrig = MEM_dupallocN(nu->bezt);
 			for (bezt=nu->bezt+1, a=1; a<nu->pntsu-1; a++, bezt++) {
 				if (bezt->f2 & SELECT) {
 					for (i=0; i<3; i++) {
@@ -2177,7 +2177,7 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 				BKE_nurb_handles_calc(nu);
 		}
 		else if (nu->bp) {
-			bpOrig = MEM_dupallocN( nu->bp );
+			bpOrig = MEM_dupallocN(nu->bp);
 			/* Same as above, keep these the same! */
 			for (bp=nu->bp+1, a=1; a<nu->pntsu-1; a++, bp++) {
 				if (bp->f1 & SELECT) {
@@ -3039,7 +3039,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				/* total count of nodes after subdivision */
 				int tot= ((number_cuts+1)*nu->pntsu-number_cuts)*((number_cuts+1)*nu->pntsv-number_cuts);
 
-				bpn=bpnew= MEM_mallocN( tot*sizeof(BPoint), "subdivideNurb4");
+				bpn=bpnew= MEM_mallocN(tot*sizeof(BPoint), "subdivideNurb4");
 				bp= nu->bp;
 				/* first subdivide rows */
 				for (a=0; a<nu->pntsv; a++) {
@@ -3097,7 +3097,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 
 				if (sel) {   /* V ! */
-					bpn=bpnew= MEM_mallocN( (sel+nu->pntsv)*nu->pntsu*sizeof(BPoint), "subdivideNurb4");
+					bpn=bpnew= MEM_mallocN((sel+nu->pntsv)*nu->pntsu*sizeof(BPoint), "subdivideNurb4");
 					bp= nu->bp;
 					for (a=0; a<nu->pntsv; a++) {
 						for (b=0; b<nu->pntsu; b++) {
@@ -3144,7 +3144,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					if (sel) {	/* U ! */
 				 /* Inserting U points is sort of 'default' Flat curves only get */
 				 /* U points inserted in them.                                   */
-						bpn=bpnew= MEM_mallocN( (sel+nu->pntsu)*nu->pntsv*sizeof(BPoint), "subdivideNurb4");
+						bpn=bpnew= MEM_mallocN((sel+nu->pntsu)*nu->pntsv*sizeof(BPoint), "subdivideNurb4");
 						bp= nu->bp;
 						for (a=0; a<nu->pntsv; a++) {
 							for (b=0; b<nu->pntsu; b++) {
@@ -3651,7 +3651,7 @@ static void rotate_direction_nurb(Nurb *nu)
 	SWAP(short, nu->flagu, nu->flagv);
 	
 	SWAP(float *, nu->knotsu, nu->knotsv);
-	switchdirection_knots(nu->knotsv, KNOTSV(nu) );
+	switchdirection_knots(nu->knotsv, KNOTSV(nu));
 	
 	temp= MEM_dupallocN(nu->bp);
 	bp1= nu->bp;
@@ -3719,7 +3719,7 @@ static void make_selection_list_nurb(ListBase *editnurb)
 	/* just add the first one */
 	nus= nbase.first;
 	BLI_remlink(&nbase, nus);
-	BLI_addtail( &nsortbase, nus);
+	BLI_addtail(&nsortbase, nus);
 	
 	/* now add, either at head or tail, the closest one */
 	while (nbase.first) {
@@ -4224,10 +4224,10 @@ static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cen
 	Curve *cu= (Curve*)obedit->data;
 	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
-	float si,phi,n[3],q[4],cmat[3][3],tmat[3][3],imat[3][3];
+	float si, phi, n[3], q[4], cmat[3][3], tmat[3][3], imat[3][3];
 	float bmat[3][3], rotmat[3][3], scalemat1[3][3], scalemat2[3][3];
 	float persmat[3][3], persinv[3][3];
-	short a,ok, changed= 0;
+	short a, ok, changed= 0;
 
 	copy_m3_m4(persmat, viewmat);
 	invert_m3_m3(persinv, persmat);
@@ -4244,7 +4244,7 @@ static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cen
 	q[1]= n[0]*si;
 	q[2]= n[1]*si;
 	q[3]= n[2]*si;
-	quat_to_mat3( cmat,q);
+	quat_to_mat3(cmat, q);
 	mul_m3_m3m3(tmat, cmat, bmat);
 	mul_m3_m3m3(rotmat, imat, tmat);
 
@@ -4252,19 +4252,19 @@ static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cen
 	scalemat1[0][0]= M_SQRT2;
 	scalemat1[1][1]= M_SQRT2;
 
-	mul_m3_m3m3(tmat,persmat,bmat);
-	mul_m3_m3m3(cmat,scalemat1,tmat);
-	mul_m3_m3m3(tmat,persinv,cmat);
-	mul_m3_m3m3(scalemat1,imat,tmat);
+	mul_m3_m3m3(tmat, persmat, bmat);
+	mul_m3_m3m3(cmat, scalemat1, tmat);
+	mul_m3_m3m3(tmat, persinv, cmat);
+	mul_m3_m3m3(scalemat1, imat, tmat);
 
 	unit_m3(scalemat2);
-	scalemat2[0][0]/= (float)M_SQRT2;
-	scalemat2[1][1]/= (float)M_SQRT2;
+	scalemat2[0][0] /= (float)M_SQRT2;
+	scalemat2[1][1] /= (float)M_SQRT2;
 
-	mul_m3_m3m3(tmat,persmat,bmat);
-	mul_m3_m3m3(cmat,scalemat2,tmat);
-	mul_m3_m3m3(tmat,persinv,cmat);
-	mul_m3_m3m3(scalemat2,imat,tmat);
+	mul_m3_m3m3(tmat, persmat, bmat);
+	mul_m3_m3m3(cmat, scalemat2, tmat);
+	mul_m3_m3m3(tmat, persinv, cmat);
+	mul_m3_m3m3(scalemat2, imat, tmat);
 
 	ok= 1;
 
@@ -4533,7 +4533,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			}
 			else {
 				mul_v3_m4v3(newbezt->vec[1], imat, location);
-				sub_v3_v3v3(temp, newbezt->vec[1],temp);
+				sub_v3_v3v3(temp, newbezt->vec[1], temp);
 
 				if (bezt_recalc[1]) {
 					const char h1 = bezt_recalc[1]->h1, h2 = bezt_recalc[1]->h2;
@@ -4543,8 +4543,8 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 					bezt_recalc[1]->h2 = h2;
 				}
 				else {
-					add_v3_v3v3(newbezt->vec[0], bezt->vec[0],temp);
-					add_v3_v3v3(newbezt->vec[2], bezt->vec[2],temp);
+					add_v3_v3v3(newbezt->vec[0], bezt->vec[0], temp);
+					add_v3_v3v3(newbezt->vec[2], bezt->vec[2], temp);
 				}
 				
 
@@ -5398,7 +5398,7 @@ static void selectrandom_curve(ListBase *editnurb, float randfac)
 	BPoint *bp;
 	int a;
 	
-	BLI_srand( BLI_rand() ); /* random seed */
+	BLI_srand(BLI_rand()); /* random seed */
 	
 	for (nu= editnurb->first; nu; nu= nu->next) {	
 		if (nu->type == CU_BEZIER) {
@@ -5730,7 +5730,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 				if (type) {
 					bezt1 =
 						(BezTriple*)MEM_mallocN((nu->pntsu) * sizeof(BezTriple), "delNurb");
-					memcpy(bezt1, nu->bezt, (nu->pntsu)*sizeof(BezTriple) );
+					memcpy(bezt1, nu->bezt, (nu->pntsu)*sizeof(BezTriple));
 					keyIndex_updateBezt(editnurb, nu->bezt, bezt1, nu->pntsu);
 					MEM_freeN(nu->bezt);
 					nu->bezt= bezt1;
@@ -5757,7 +5757,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 				}
 				if (type) {
 					bp1 = (BPoint*)MEM_mallocN(nu->pntsu * sizeof(BPoint), "delNurb2");
-					memcpy(bp1, nu->bp, (nu->pntsu)*sizeof(BPoint) );
+					memcpy(bp1, nu->bp, (nu->pntsu)*sizeof(BPoint));
 					keyIndex_updateBP(editnurb, nu->bp, bp1, nu->pntsu);
 					MEM_freeN(nu->bp);
 					nu->bp= bp1;
@@ -6268,7 +6268,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 			bp->vec[0]+= 1.5f*grid;
 
 			bp= nu->bp;
-			for (a=0;a<4;a++, bp++) mul_m4_v3(mat,bp->vec);
+			for (a=0;a<4;a++, bp++) mul_m4_v3(mat, bp->vec);
 
 			if (cutype==CU_NURBS) {
 				nu->knotsu= NULL;	/* nurbs_knot_calc_u allocates */
@@ -6302,7 +6302,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 		bp->vec[0]+= 2.0f*grid;
 
 		bp= nu->bp;
-		for (a=0;a<5;a++, bp++) mul_m4_v3(mat,bp->vec);
+		for (a=0;a<5;a++, bp++) mul_m4_v3(mat, bp->vec);
 
 		if (cutype==CU_NURBS) {
 			nu->knotsu= NULL;	/* nurbs_knot_calc_u allocates */
@@ -6323,28 +6323,28 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][0]+= -grid;
-			for (a=0;a<3;a++) mul_m4_v3(mat,bezt->vec[a]);
+			for (a=0;a<3;a++) mul_m4_v3(mat, bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 			
 			bezt++;
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][1]+= grid;
-			for (a=0;a<3;a++) mul_m4_v3(mat,bezt->vec[a]);
+			for (a=0;a<3;a++) mul_m4_v3(mat, bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
 			bezt++;
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][0]+= grid;
-			for (a=0;a<3;a++) mul_m4_v3(mat,bezt->vec[a]);
+			for (a=0;a<3;a++) mul_m4_v3(mat, bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
 			bezt++;
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][1]+= -grid;
-			for (a=0;a<3;a++) mul_m4_v3(mat,bezt->vec[a]);
+			for (a=0;a<3;a++) mul_m4_v3(mat, bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
 			BKE_nurb_handles_calc(nu);
@@ -6369,7 +6369,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 				}
 				if (a & 1) bp->vec[3]= 0.25*M_SQRT2;
 				else bp->vec[3]= 1.0;
-				mul_m4_v3(mat,bp->vec);
+				mul_m4_v3(mat, bp->vec);
 				bp->radius = bp->weight = 1.0;
 				
 				bp++;
@@ -6401,7 +6401,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 					if (a==1 || a==2) if (b==1 || b==2) {
 						bp->vec[2]+= grid;
 					}
-					mul_m4_v3(mat,bp->vec);
+					mul_m4_v3(mat, bp->vec);
 					bp->vec[3]= 1.0;
 					bp++;
 				}
@@ -6465,7 +6465,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 				bp->vec[2]+= nurbcircle[a][1]*grid;
 				if (a & 1) bp->vec[3]= 0.5*M_SQRT2;
 				else bp->vec[3]= 1.0;
-				mul_m4_v3(mat,bp->vec);
+				mul_m4_v3(mat, bp->vec);
 				bp++;
 			}
 			nu->flagu= CU_NURB_BEZIER;

@@ -71,18 +71,18 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 	if (cam->type == CAM_PERSP) {
 		COLLADASW::PerspectiveOptic persp(mSW);
 		persp.setXFov(RAD2DEGF(focallength_to_fov(cam->lens, cam->sensor_x)), "xfov");
-		persp.setAspectRatio((float)(sce->r.xsch)/(float)(sce->r.ysch),false,"aspect_ratio");
-		persp.setZFar(cam->clipend, false , "zfar");
-		persp.setZNear(cam->clipsta,false , "znear");
+		persp.setAspectRatio((float)(sce->r.xsch)/(float)(sce->r.ysch), false, "aspect_ratio");
+		persp.setZFar(cam->clipend, false, "zfar");
+		persp.setZNear(cam->clipsta, false, "znear");
 		COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_name);
 		addCamera(ccam);
 	}
 	else {
 		COLLADASW::OrthographicOptic ortho(mSW);
-		ortho.setXMag(cam->ortho_scale,"xmag");
-		ortho.setAspectRatio((float)(sce->r.xsch)/(float)(sce->r.ysch),false,"aspect_ratio");
-		ortho.setZFar(cam->clipend , false , "zfar");
-		ortho.setZNear(cam->clipsta, false , "znear");
+		ortho.setXMag(cam->ortho_scale, "xmag");
+		ortho.setAspectRatio((float)(sce->r.xsch)/(float)(sce->r.ysch), false, "aspect_ratio");
+		ortho.setZFar(cam->clipend, false, "zfar");
+		ortho.setZNear(cam->clipsta, false, "znear");
 		COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_name);
 		addCamera(ccam);
 	}

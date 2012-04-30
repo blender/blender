@@ -131,9 +131,9 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 	}
 
 	co = vertexCos[0];
-	for (w=0,wc=fw; w<wNew; w++,wc+=dw) {
-		for (v=0,vc=fv; v<vNew; v++,vc+=dv) {
-			for (u=0,uc=fu; u<uNew; u++,co+=3,uc+=du) {
+	for (w=0, wc=fw; w<wNew; w++, wc+=dw) {
+		for (v=0, vc=fv; v<vNew; v++, vc+=dv) {
+			for (u=0, uc=fu; u<uNew; u++, co+=3, uc+=du) {
 				co[0] = uc;
 				co[1] = vc;
 				co[2] = wc;
@@ -177,7 +177,7 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 	
 	bp= lt->def;
 	
-	for (i=0; i<lt->pntsu*lt->pntsv*lt->pntsw; i++,bp++) {
+	for (i=0; i<lt->pntsu*lt->pntsv*lt->pntsw; i++, bp++) {
 		copy_v3_v3(bp->vec, vertexCos[i]);
 	}
 
@@ -322,9 +322,9 @@ void init_latt_deform(Object *oblatt, Object *ob)
 		invert_m4_m4(imat, lt->latmat);
 	}
 	
-	for (w=0,fw=lt->fw; w<lt->pntsw; w++,fw+=lt->dw) {
-		for (v=0,fv=lt->fv; v<lt->pntsv; v++, fv+=lt->dv) {
-			for (u=0,fu=lt->fu; u<lt->pntsu; u++, bp++, co+=3, fp+=3, fu+=lt->du) {
+	for (w=0, fw=lt->fw; w<lt->pntsw; w++, fw+=lt->dw) {
+		for (v=0, fv=lt->fv; v<lt->pntsv; v++, fv+=lt->dv) {
+			for (u=0, fu=lt->fu; u<lt->pntsu; u++, bp++, co+=3, fp+=3, fu+=lt->du) {
 				if (dl) {
 					fp[0] = co[0] - fu;
 					fp[1] = co[1] - fv;
@@ -568,7 +568,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 
 			/* this is not exactly the same as 2.4x, since the axis is having rotation removed rather than
 			 * changing the axis before calculating the tilt but serves much the same purpose */
-			float dir_flat[3]={0,0,0}, q[4];
+			float dir_flat[3]={0, 0, 0}, q[4];
 			copy_v3_v3(dir_flat, dir);
 			dir_flat[cd->no_rot_axis-1]= 0.0f;
 
@@ -774,7 +774,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
 	if (calc_curve_deform(scene, cuOb, vec, target->trackflag, &cd, quat)) {
 		float qmat[3][3];
 		
-		quat_to_mat3( qmat,quat);
+		quat_to_mat3(qmat, quat);
 		mul_m3_m3m3(mat, qmat, cd.objectspace3);
 	}
 	else
@@ -937,7 +937,7 @@ float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3]
 	if (lt->editlatt) lt= lt->editlatt->latt;
 	numVerts = *numVerts_r = lt->pntsu*lt->pntsv*lt->pntsw;
 	
-	vertexCos = MEM_mallocN(sizeof(*vertexCos)*numVerts,"lt_vcos");
+	vertexCos = MEM_mallocN(sizeof(*vertexCos)*numVerts, "lt_vcos");
 	
 	for (i=0; i<numVerts; i++) {
 		copy_v3_v3(vertexCos[i], lt->def[i].vec);

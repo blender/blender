@@ -1206,7 +1206,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				but->poin = MEM_callocN(sizeof(ColorBand), "colorband");
 
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-			memcpy(data->coba, &but_copypaste_coba, sizeof(ColorBand) );
+			memcpy(data->coba, &but_copypaste_coba, sizeof(ColorBand));
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 	}

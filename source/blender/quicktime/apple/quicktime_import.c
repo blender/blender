@@ -176,7 +176,7 @@ char *get_valid_qtname(char *name)
 #endif /* _WIN32 */
 
 
-int anim_is_quicktime (const char *name)
+int anim_is_quicktime(const char *name)
 {
 	FSSpec	theFSSpec;
 	char	theFullPath[255];
@@ -255,7 +255,7 @@ int anim_is_quicktime (const char *name)
 }
 
 
-void free_anim_quicktime (struct anim *anim)
+void free_anim_quicktime(struct anim *anim)
 {
 	if (anim == NULL) return;
 	if (anim->qtime == NULL) return;
@@ -263,12 +263,12 @@ void free_anim_quicktime (struct anim *anim)
 	UnlockPixels(anim->qtime->offscreenPixMap);
 
 	if (anim->qtime->have_gw)
-		DisposeGWorld( anim->qtime->offscreenGWorld );
+		DisposeGWorld(anim->qtime->offscreenGWorld);
 	if (anim->qtime->ibuf)
 		IMB_freeImBuf(anim->qtime->ibuf);
 
-	DisposeMovie( anim->qtime->movie );
-	CloseMovieFile( anim->qtime->movieRefNum );
+	DisposeMovie(anim->qtime->movie);
+	CloseMovieFile(anim->qtime->movieRefNum);
 
 	if (anim->qtime->frameIndex) MEM_freeN (anim->qtime->frameIndex);
 	if (anim->qtime) MEM_freeN (anim->qtime);
@@ -417,7 +417,7 @@ static int GetFirstVideoMedia(struct anim *anim)
 			anim->qtime->theMedia = GetTrackMedia(anim->qtime->theTrack);
 
 		if (anim->qtime->theMedia)
-			GetMediaHandlerDescription(anim->qtime->theMedia,&mediaType, nil, nil);
+			GetMediaHandlerDescription(anim->qtime->theMedia, &mediaType, nil, nil);
 		if (mediaType == VideoMediaType) return 1;
 	}
 
@@ -440,7 +440,7 @@ static short GetFirstVideoTrackPixelDepth(struct anim *anim)
 }
 
 
-int startquicktime (struct anim *anim)
+int startquicktime(struct anim *anim)
 {
 	FSSpec		theFSSpec;
 
@@ -454,7 +454,7 @@ int startquicktime (struct anim *anim)
 #endif
 	short depth = 0;
 
-	anim->qtime = MEM_callocN (sizeof(QuicktimeMovie),"animqt");
+	anim->qtime = MEM_callocN (sizeof(QuicktimeMovie), "animqt");
 	anim->qtime->have_gw = FALSE;
 
 	if (anim->qtime == NULL) {

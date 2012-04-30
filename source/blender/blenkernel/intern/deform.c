@@ -437,7 +437,7 @@ void defgroup_unique_name(bDeformGroup *dg, Object *ob)
 	BLI_uniquename_cb(defgroup_unique_check, &data, "Group", '.', dg->name, sizeof(dg->name));
 }
 
-BLI_INLINE int is_char_sep(const char c)
+int BKE_deform_is_char_sep(const char c)
 {
 	return ELEM4(c, '.', ' ', '-', '_');
 }
@@ -466,7 +466,7 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 	/* We first check the case with a .### extension, let's find the last period */
 	if (isdigit(name[len - 1])) {
 		index = strrchr(name, '.'); // last occurrence
-		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
+		if (index && isdigit(index[1])) { // doesnt handle case bone.1abc2 correct..., whatever!
 			if (strip_number == 0) {
 				BLI_strncpy(number, index, sizeof(number));
 			}
@@ -478,7 +478,7 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 	BLI_strncpy(prefix, name, sizeof(prefix));
 
 	/* first case; separator . - _ with extensions r R l L  */
-	if (is_char_sep(name[len - 2]) ) {
+	if (BKE_deform_is_char_sep(name[len - 2])) {
 		switch (name[len - 1]) {
 			case 'l':
 				prefix[len - 1] = 0;
@@ -499,7 +499,7 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 		}
 	}
 	/* case; beginning with r R l L , with separator after it */
-	else if (is_char_sep(name[1]) ) {
+	else if (BKE_deform_is_char_sep(name[1])) {
 		switch (name[0]) {
 			case 'l':
 				strcpy(replace, "r");

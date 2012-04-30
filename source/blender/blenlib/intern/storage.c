@@ -95,7 +95,7 @@
 #include "BKE_utildefines.h"
 
 /* vars: */
-static int totnum,actnum;
+static int totnum, actnum;
 static struct direntry *files;
 
 static struct ListBase dirbase_={NULL, NULL};
@@ -139,7 +139,7 @@ static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 	if ( strcmp(entry1->relname, "..")==0 ) return (-1);
 	if ( strcmp(entry2->relname, "..")==0 ) return (1);
 
-	return (BLI_natstrcmp(entry1->relname,entry2->relname));
+	return (BLI_natstrcmp(entry1->relname, entry2->relname));
 }
 
 
@@ -161,7 +161,7 @@ double BLI_dir_free_space(const char *dir)
 		tmp[3]=0;
 	}
 
-	GetDiskFreeSpace(tmp,&sectorspc, &bytesps, &freec, &clusters);
+	GetDiskFreeSpace(tmp, &sectorspc, &bytesps, &freec, &clusters);
 
 	return (double) (freec*bytesps*sectorspc);
 #else
@@ -171,19 +171,19 @@ double BLI_dir_free_space(const char *dir)
 #else
 	struct statfs disk;
 #endif
-	char name[FILE_MAXDIR],*slash;
+	char name[FILE_MAXDIR], *slash;
 	int len = strlen(dir);
 	
 	if (len >= FILE_MAXDIR) /* path too long */
 		return -1;
 	
-	strcpy(name,dir);
+	strcpy(name, dir);
 
 	if (len) {
-		slash = strrchr(name,'/');
+		slash = strrchr(name, '/');
 		if (slash) slash[1] = 0;
 	}
-	else strcpy(name,"/");
+	else strcpy(name, "/");
 
 #if defined (__FreeBSD__) || defined (linux) || defined (__OpenBSD__) || defined (__APPLE__) || defined(__GNU__) || defined(__GLIBC__)
 	if (statfs(name, &disk)) return(-1);
@@ -234,9 +234,9 @@ static void bli_builddir(const char *dirname, const char *relname)
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
 			dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
 			if (dlink) {
-				BLI_strncpy(buf + rellen ,fname->d_name, sizeof(buf) - rellen);
+				BLI_strncpy(buf + rellen, fname->d_name, sizeof(buf) - rellen);
 				dlink->name = BLI_strdup(buf);
-				BLI_addhead(dirbase,dlink);
+				BLI_addhead(dirbase, dlink);
 				newnum++;
 			}
 		}
@@ -260,22 +260,22 @@ static void bli_builddir(const char *dirname, const char *relname)
 			if (files) {
 				dlink = (struct dirlink *) dirbase->first;
 				while (dlink) {
-					memset(&files[actnum], 0 , sizeof(struct direntry));
+					memset(&files[actnum], 0, sizeof(struct direntry));
 					files[actnum].relname = dlink->name;
 					files[actnum].path = BLI_strdupcat(dirname, dlink->name);
 // use 64 bit file size, only needed for WIN32 and WIN64. 
 // Excluding other than current MSVC compiler until able to test
 #ifdef WIN32
-					{wchar_t * name_16 = alloc_utf16_from_8(dlink->name,0);
+					{wchar_t * name_16 = alloc_utf16_from_8(dlink->name, 0);
 #if (defined(WIN32) || defined(WIN64)) && (_MSC_VER>=1500)
-					_wstat64(name_16,&files[actnum].s);
+					_wstat64(name_16, &files[actnum].s);
 #elif defined(__MINGW32__)
-					_stati64(dlink->name,&files[actnum].s);
+					_stati64(dlink->name, &files[actnum].s);
 #endif
 					free(name_16);};
 
 #else
-					stat(dlink->name,&files[actnum].s);
+					stat(dlink->name, &files[actnum].s);
 #endif
 					files[actnum].type=files[actnum].s.st_mode;
 					files[actnum].flags = 0;
@@ -290,16 +290,16 @@ static void bli_builddir(const char *dirname, const char *relname)
 			}
 
 			BLI_freelist(dirbase);
-			if (files) qsort(files, actnum, sizeof(struct direntry), (int (*)(const void *,const void*))bli_compare);
+			if (files) qsort(files, actnum, sizeof(struct direntry), (int (*)(const void *, const void*))bli_compare);
 		}
 		else {
-			printf("%s empty directory\n",dirname);
+			printf("%s empty directory\n", dirname);
 		}
 
 		closedir(dir);
 	}
 	else {
-		printf("%s non-existant directory\n",dirname);
+		printf("%s non-existant directory\n", dirname);
 	}
 }
 
@@ -349,7 +349,7 @@ static void bli_adddirstrings(void)
 #endif
 
 #ifdef WIN32
-		strcpy(file->owner,"user");
+		strcpy(file->owner, "user");
 #else
 		{
 			struct passwd *pwuser;
@@ -426,7 +426,7 @@ unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 	actnum = totnum = 0;
 	files = NULL;
 
-	bli_builddir(dirname,"");
+	bli_builddir(dirname, "");
 	bli_adddirstrings();
 
 	if (files) {
@@ -488,7 +488,7 @@ int BLI_exists(const char *name)
 	if (res == -1) return(0);
 #else
 	struct stat st;
-	if (stat(name,&st)) return(0);	
+	if (stat(name, &st)) return(0);
 #endif
 	return(st.st_mode);
 }

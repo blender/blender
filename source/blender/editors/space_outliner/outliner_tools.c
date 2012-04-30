@@ -115,9 +115,9 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 				}
 			}
 		}
-		if (TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem, soops)) {
 			set_operation_types(soops, &te->subtree,
-								scenelevel, objectlevel, idlevel, datalevel);
+			                    scenelevel, objectlevel, idlevel, datalevel);
 		}
 	}
 }
@@ -230,7 +230,7 @@ static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *
 				operation_cb(C, scene, te, tsep, tselem);
 			}
 		}
-		if (TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_do_libdata_operation(C, scene, soops, &te->subtree, operation_cb);
 		}
 	}
@@ -356,7 +356,7 @@ static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 		}
 		else {
 			/* link to scene */
-			base= MEM_callocN( sizeof(Base), "add_base");
+			base= MEM_callocN(sizeof(Base), "add_base");
 			BLI_addhead(&scene->base, base);
 			base->lay= (1<<20)-1; /*v3d->lay;*/ /* would be nice to use the 3d layer but the include's not here */
 			gob->ob->flag |= SELECT;
@@ -388,7 +388,7 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 				operation_cb(C, scene_owner ? scene_owner : scene_act, te, NULL, tselem);
 			}
 		}
-		if (TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_do_object_operation(C, scene_act, soops, &te->subtree, operation_cb);
 		}
 	}
@@ -495,7 +495,7 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 				operation_cb(event, te, tselem);
 			}
 		}
-		if (TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb);
 		}
 	}
@@ -870,7 +870,7 @@ static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *l
 				operation_cb(te, tselem, tsep, newid);
 			}
 		}
-		if (TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_do_id_set_operation(soops, type, &te->subtree, newid, operation_cb);
 		}
 	}

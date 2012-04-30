@@ -116,7 +116,7 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 			BLI_strncpy(dir, entry, FILE_MAX);
 
 		/* create list item */
-		but = uiDefIconTextButS(block, LISTROW, 0, icon, dir, 0,0,UI_UNIT_X*10,UI_UNIT_Y, nr, 0, i, 0, 0, entry);
+		but = uiDefIconTextButS(block, LISTROW, 0, icon, dir, 0, 0, UI_UNIT_X * 10, UI_UNIT_Y, nr, 0, i, 0, 0, entry);
 		uiButSetFunc(but, file_panel_cb, entry, NULL);
 		uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
 

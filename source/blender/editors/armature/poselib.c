@@ -232,7 +232,7 @@ static int poselib_new_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSELIB_OT_new (wmOperatorType *ot)
+void POSELIB_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "New Pose Library";
@@ -267,7 +267,7 @@ static int poselib_unlink_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSELIB_OT_unlink (wmOperatorType *ot)
+void POSELIB_OT_unlink(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Unlink Pose Library";
@@ -353,7 +353,7 @@ static int poselib_sanitise_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSELIB_OT_action_sanitise (wmOperatorType *ot)
+void POSELIB_OT_action_sanitise(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Sanitise Pose Library Action";
@@ -483,7 +483,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSELIB_OT_pose_add (wmOperatorType *ot)
+void POSELIB_OT_pose_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "PoseLib Add Pose";
@@ -597,7 +597,7 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSELIB_OT_pose_remove (wmOperatorType *ot)
+void POSELIB_OT_pose_remove(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
@@ -684,7 +684,7 @@ static int poselib_rename_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSELIB_OT_pose_rename (wmOperatorType *ot)
+void POSELIB_OT_pose_rename(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_poses_dummy_types[] = {
@@ -1622,7 +1622,7 @@ static int poselib_preview_exec (bContext *C, wmOperator *op)
 	return poselib_preview_exit(C, op);
 }
 
-void POSELIB_OT_browse_interactive (wmOperatorType *ot)
+void POSELIB_OT_browse_interactive(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "PoseLib Browse Poses";
@@ -1648,7 +1648,7 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	/* RNA_def_float_factor(ot->srna, "blend_factor", 1.0f, 0.0f, 1.0f, "Blend Factor", "Amount that the pose is applied on top of the existing poses", 0.0f, 1.0f); */
 }
 
-void POSELIB_OT_apply_pose (wmOperatorType *ot)
+void POSELIB_OT_apply_pose(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Apply Pose Library Pose";
