@@ -13389,6 +13389,40 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	{
+		bScreen *sc;
+
+		for (sc = main->screen.first; sc; sc = sc->id.next) {
+			ScrArea *sa;
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				SpaceLink *sl;
+
+				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_CLIP) {
+						SpaceClip *sclip = (SpaceClip *)sl;
+						ARegion *ar;
+						int hide = FALSE;
+
+						for (ar = sa->regionbase.first; ar; ar = ar->next) {
+							if (ar->regiontype == RGN_TYPE_PREVIEW) {
+								if (ar->alignment != RGN_ALIGN_NONE) {
+									ar->flag |= RGN_FLAG_HIDDEN;
+									ar->v2d.flag &= ~V2D_IS_INITIALISED;
+									ar->alignment = RGN_ALIGN_NONE;
+
+									hide = TRUE;
+								}
+							}
+						}
+
+						if (hide) {
+							sclip->view = SC_VIEW_CLIP;
+						}
+					}
+				}
+			}
+		}
+	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
