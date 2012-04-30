@@ -486,7 +486,12 @@ int ED_space_clip_texture_buffer_supported(SpaceClip *sc)
 
 	if (!context->support_checked) {
 		context->support_checked = TRUE;
-		context->buffers_supported = GPU_non_power_of_two_support();
+		if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+			context->buffers_supported = FALSE;
+		}
+		else {
+			context->buffers_supported = GPU_non_power_of_two_support();
+		}
 	}
 
 	return context->buffers_supported;
@@ -525,35 +530,6 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 			glDeleteTextures(1, &context->texture);
 			context->texture_allocated = 0;
 		}
-
-#if 0
-		/* disabled for now because current tracking users have got NPOT textures
-		 * working smoothly on their computers and forcing re-scaling during playback
-		 * slows down playback a lot */
-
-		/* if videocard doesn't support NPOT textures, need to do rescaling */
-		if (!GPU_non_power_of_two_support()) {
-			if (!is_power_of_2_i(width) || !is_power_of_2_i(height)) {
-				width = power_of_2_max_i(width);
-				height = power_of_2_max_i(height);
-
-				if (ibuf->x != width || ibuf->y != height) {
-					if (frect) {
-						fscalerect= MEM_mallocN(width*width*sizeof(*fscalerect)*4, "fscalerect");
-						gluScaleImage(GL_RGBA, ibuf->x, ibuf->y, GL_FLOAT, ibuf->rect_float, width, height, GL_FLOAT, fscalerect);
-
-						frect = fscalerect;
-					}
-					else {
-						scalerect= MEM_mallocN(width*height*sizeof(*scalerect), "scalerect");
-						gluScaleImage(GL_RGBA, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect, width, height, GL_UNSIGNED_BYTE, scalerect);
-
-						rect = scalerect;
-					}
-				}
-			}
-		}
-#endif
 
 		if (need_recreate || !context->texture_allocated) {
 			/* texture doesn't exist yet or need to be re-allocated because of changed dimensions */
