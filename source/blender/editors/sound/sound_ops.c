@@ -221,7 +221,8 @@ static int sound_update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op)
 	struct FCurve* fcu;
 	char driven;
 
-	SEQ_BEGIN (scene->ed, seq) {
+	SEQ_BEGIN (scene->ed, seq)
+	{
 		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, &driven);
 		if (fcu || driven)
 			seq->flag |= SEQ_AUDIO_VOLUME_ANIMATED;

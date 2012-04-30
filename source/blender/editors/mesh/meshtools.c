@@ -122,7 +122,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* count & check */
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		if (base->object->type == OB_MESH) {
 			me = base->object->data;
 
@@ -198,7 +199,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* first pass over objects - copying materials and vertexgroups across */
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		/* only act if a mesh, and not the one we're joining to */
 		if ((ob != base->object) && (base->object->type == OB_MESH)) {
 			me = base->object->data;
@@ -298,7 +300,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	/* inverse transform for all selected meshes in this object */
 	invert_m4_m4(imat, ob->obmat);
 	
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		/* only join if this is a mesh */
 		if (base->object->type == OB_MESH) {
 			me = base->object->data;
@@ -567,7 +570,8 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	KeyBlock *kb;
 	int ok = 0, nonequal_verts = 0;
 	
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		if (base->object == ob) continue;
 		
 		if (base->object->type == OB_MESH) {
@@ -599,7 +603,8 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* now ready to add new keys from selected meshes */
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		if (base->object == ob) continue;
 		
 		if (base->object->type == OB_MESH) {

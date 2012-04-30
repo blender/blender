@@ -2709,7 +2709,8 @@ static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 	int i = 0;
 	int mcords[1024][2];
 
-	RNA_BEGIN (op->ptr, itemptr, "path") {
+	RNA_BEGIN (op->ptr, itemptr, "path")
+	{
 		float loc[2];
 
 		RNA_float_get_array(&itemptr, "loc", loc);

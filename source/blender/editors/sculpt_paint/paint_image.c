@@ -5034,7 +5034,8 @@ static int paint_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	RNA_BEGIN (op->ptr, itemptr, "stroke") {
+	RNA_BEGIN (op->ptr, itemptr, "stroke")
+	{
 		paint_apply(C, op, &itemptr);
 	}
 	RNA_END;
