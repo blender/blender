@@ -124,7 +124,7 @@ static PyObject *bpy_bmlayeraccess_collection_get(BPy_BMLayerAccess *self, void 
 
 
 PyDoc_STRVAR(bpy_bmlayercollection_active_doc,
-"This meshes vert sequence (read-only).\n\n:type: :class:`BMVertSeq`"
+"The active layer of this type (read-only).\n\n:type: :class:`BMLayerItem`"
 );
 static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void *UNUSED(flag))
 {
@@ -143,6 +143,17 @@ static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void *U
 	else {
 		Py_RETURN_NONE;
 	}
+}
+
+
+PyDoc_STRVAR(bpy_bmlayercollection_is_singleton_doc,
+"This meshes vert sequence (read-only).\n\n:type: :class:`BMVertSeq`"
+);
+static PyObject *bpy_bmlayercollection_is_singleton_get(BPy_BMLayerItem *self, void *UNUSED(flag))
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	return PyBool_FromLong(CustomData_layertype_is_singleton(self->type));
 }
 
 PyDoc_STRVAR(bpy_bmlayercollection_name_doc,
@@ -211,7 +222,8 @@ static PyGetSetDef bpy_bmlayeraccess_loop_getseters[] = {
 
 static PyGetSetDef bpy_bmlayercollection_getseters[] = {
     /* BMESH_TODO, make writeable */
-    {(char *)"active", (getter)bpy_bmlayercollection_active_get, (setter)NULL, (char *)bpy_bmlayercollection_active_doc, NULL},
+    {(char *)"active",       (getter)bpy_bmlayercollection_active_get,       (setter)NULL, (char *)bpy_bmlayercollection_active_doc, NULL},
+    {(char *)"is_singleton", (getter)bpy_bmlayercollection_is_singleton_get, (setter)NULL, (char *)bpy_bmlayercollection_is_singleton_doc, NULL},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -230,6 +242,87 @@ static PyGetSetDef bpy_bmlayeritem_getseters[] = {
 /* BMLayerCollection
  * ----------------- */
 
+PyDoc_STRVAR(bpy_bmlayeritem_copy_from_doc,
+".. method:: copy_from(other)\n"
+"\n"
+"   Return a copy of the layer\n"
+"\n"
+"   :arg other: Another layer to copy from.\n"
+"   :arg other: :class:`BMLayerItem`\n"
+);
+static PyObject *bpy_bmlayeritem_copy_from(BPy_BMLayerItem *self, BPy_BMLayerItem *value)
+{
+	CustomData *data;
+
+	if (!BPy_BMLayerItem_Check(value)) {
+		PyErr_Format(PyExc_TypeError,
+		             "layer.copy_from(x): expected BMLayerItem, not '%.200s'",
+		             Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(self);
+	BPY_BM_CHECK_OBJ(value);
+
+	if (self->bm != value->bm) {
+		PyErr_SetString(PyExc_ValueError,
+		                "layer.copy_from(): layer is from another mesh");
+		return NULL;
+	}
+
+	else if ((self->htype != value->htype) ||
+	         (self->type  != value->type) ||
+	         (self->index != value->index))
+	{
+		PyErr_SetString(PyExc_ValueError,
+		                "layer.copy_from(other): layer type mismatch");
+	}
+
+	data = bpy_bm_customdata_get(self->bm, self->htype);
+
+	if ((bpy_bmlayeritem_get(self) == NULL) ||
+	    (bpy_bmlayeritem_get(value) == NULL))
+	{
+		return NULL;
+	}
+
+	BM_data_layer_copy(self->bm, data, self->type, value->index, self->index);
+
+	Py_RETURN_NONE;
+}
+
+/* similar to new(), but no name arg. */
+PyDoc_STRVAR(bpy_bmlayercollection_verify_doc,
+".. method:: verify()\n"
+"\n"
+"   Create a new layer or return an existing active layer\n"
+"\n"
+"   :return: The newly verified layer.\n"
+"   :rtype: :class:`BMLayerItem`\n"
+);
+static PyObject *bpy_bmlayercollection_verify(BPy_BMLayerCollection *self)
+{
+	int index;
+	CustomData *data;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	data = bpy_bm_customdata_get(self->bm, self->htype);
+
+	index = CustomData_get_layer_index(data, self->type);
+
+	if (index == -1) {
+		BM_data_layer_add(self->bm, data, self->type);
+		index = 0;
+	}
+	else {
+		index = CustomData_get_active_layer_index(data, self->type) - index; /* make relative */
+	}
+
+	BLI_assert(index >= 0);
+
+	return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
+}
 
 PyDoc_STRVAR(bpy_bmlayercollection_new_doc,
 ".. method:: new(name)\n"
@@ -254,6 +347,14 @@ static PyObject *bpy_bmlayercollection_new(BPy_BMLayerCollection *self, PyObject
 	}
 
 	data = bpy_bm_customdata_get(self->bm, self->htype);
+
+	if (CustomData_layertype_is_singleton(self->type) &&
+	    CustomData_has_layer(data, self->type))
+	{
+		PyErr_SetString(PyExc_ValueError,
+		                "layers.new(): is a singleton, use verify() instead");
+		return NULL;
+	}
 
 	if (name) {
 		BM_data_layer_add_named(self->bm, data, self->type, name);
@@ -451,7 +552,13 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
 	return Py_INCREF(def), def;
 }
 
+static struct PyMethodDef bpy_bmlayeritem_methods[] = {
+    {"copy_from", (PyCFunction)bpy_bmlayeritem_copy_from,    METH_O,       bpy_bmlayeritem_copy_from_doc},
+    {NULL, NULL, 0, NULL}
+};
+
 static struct PyMethodDef bpy_bmelemseq_methods[] = {
+    {"verify",  (PyCFunction)bpy_bmlayercollection_verify,   METH_NOARGS,  bpy_bmlayercollection_verify_doc},
     {"new",     (PyCFunction)bpy_bmlayercollection_new,      METH_VARARGS, bpy_bmlayercollection_new_doc},
     {"remove",  (PyCFunction)bpy_bmlayercollection_remove,   METH_O,       bpy_bmlayercollection_remove_doc},
 
@@ -461,8 +568,6 @@ static struct PyMethodDef bpy_bmelemseq_methods[] = {
     {"get",     (PyCFunction)bpy_bmlayercollection_get,      METH_VARARGS, bpy_bmlayercollection_get_doc},
     {NULL, NULL, 0, NULL}
 };
-
-
 
 /* Sequences
  * ========= */
@@ -763,6 +868,7 @@ void BPy_BM_init_types_customdata(void)
 
 //	BPy_BMLayerAccess_Type.tp_methods     = bpy_bmeditselseq_methods;
 	BPy_BMLayerCollection_Type.tp_methods = bpy_bmelemseq_methods;
+	BPy_BMLayerItem_Type.tp_methods       = bpy_bmlayeritem_methods;
 
 	BPy_BMLayerCollection_Type.tp_as_sequence = &bpy_bmlayercollection_as_sequence;
 

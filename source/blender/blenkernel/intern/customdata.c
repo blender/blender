@@ -71,7 +71,11 @@ typedef struct LayerTypeInfo {
 	int size;          /* the memory size of one element of this layer's data */
 	const char *structname;  /* name of the struct used, for file writing */
 	int structnum;     /* number of structs per element, for file writing */
-	const char *defaultname; /* default layer name */
+
+	/* default layer name.
+	 * note! when NULL this is a way to ensure there is only ever one item
+	 * see: CustomData_layertype_is_singleton() */
+	const char *defaultname;
 
 	/* a function to copy count elements of this layer's data
 	 * (deep copy if appropriate)
@@ -2599,6 +2603,16 @@ int CustomData_sizeof(int type)
 const char *CustomData_layertype_name(int type)
 {
 	return layerType_getName(type);
+}
+
+
+/**
+ * Can only ever be one of these.
+ */
+int CustomData_layertype_is_singleton(int type)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+	return typeInfo->defaultname != NULL;
 }
 
 static int  CustomData_is_property_layer(int type)
