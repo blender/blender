@@ -61,6 +61,11 @@ void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2]);
 void ED_clip_point_stable_pos(struct bContext *C, float x, float y, float *xr, float *yr);
 void ED_clip_mouse_pos(struct bContext *C, struct wmEvent *event, float co[2]);
 
+int ED_space_clip_texture_buffer_supported(struct SpaceClip *sc);
+int ED_space_clip_load_movieclip_buffer(struct SpaceClip *sc, struct ImBuf *ibuf);
+void ED_space_clip_unload_movieclip_buffer(struct SpaceClip *sc);
+void ED_space_clip_free_texture_buffer(struct SpaceClip *sc);
+
 int ED_space_clip_show_trackedit(struct SpaceClip *sc);
 
 /* clip_ops.c */

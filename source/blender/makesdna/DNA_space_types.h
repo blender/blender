@@ -523,6 +523,8 @@ typedef struct SpaceClip {
 	int postproc_flag;
 
 	int runtime_flag;			/* different runtime flags */
+
+	void *draw_context;
 } SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */

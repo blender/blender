@@ -31,6 +31,8 @@
 
 #include <stddef.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_context.h"
@@ -41,6 +43,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "GPU_extensions.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -48,6 +52,7 @@
 #include "ED_clip.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -361,6 +366,146 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 void ED_clip_mouse_pos(bContext *C, wmEvent *event, float co[2])
 {
 	ED_clip_point_stable_pos(C, event->mval[0], event->mval[1], &co[0], &co[1]);
+}
+
+/* OpenGL draw context */
+
+typedef struct SpaceClipDrawContext {
+	int support_checked, buffers_supported;
+
+	GLuint texture;			/* OGL texture ID */
+	short texture_allocated;	/* flag if texture was allocated by glGenTextures */
+	struct ImBuf *texture_ibuf;	/* image buffer for which texture was created */
+	int image_width, image_height;	/* image width and height for which texture was created */
+	unsigned last_texture;		/* ID of previously used texture, so it'll be restored after clip drawing */
+	int framenr;
+} SpaceClipDrawContext;
+
+int ED_space_clip_texture_buffer_supported(SpaceClip *sc)
+{
+	SpaceClipDrawContext *context = sc->draw_context;
+
+	if (!context) {
+		context = MEM_callocN(sizeof(SpaceClipDrawContext), "SpaceClipDrawContext");
+		sc->draw_context = context;
+	}
+
+	if (!context->support_checked) {
+		context->support_checked = TRUE;
+		if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+			context->buffers_supported = FALSE;
+		}
+		else {
+			context->buffers_supported = GPU_non_power_of_two_support();
+		}
+	}
+
+	return context->buffers_supported;
+}
+
+int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
+{
+	SpaceClipDrawContext *context = sc->draw_context;
+	MovieClip *clip = ED_space_clip(sc);
+	int need_rebind = 0;
+
+	context->last_texture = glaGetOneInteger(GL_TEXTURE_2D);
+
+	/* image texture need to be rebinded if displaying another image buffer
+	 * assuming displaying happens of footage frames only on which painting doesn't heppen.
+	 * so not changed image buffer pointer means unchanged image content */
+	need_rebind |= context->texture_ibuf != ibuf;
+	need_rebind |= context->framenr != sc->user.framenr;
+
+	if (need_rebind) {
+		int width = ibuf->x, height = ibuf->y;
+		float *frect = NULL, *fscalerect = NULL;
+		unsigned int *rect = NULL, *scalerect = NULL;
+		int need_recreate = 0;
+
+		if (width > GL_MAX_TEXTURE_SIZE || height > GL_MAX_TEXTURE_SIZE)
+			return 0;
+
+		rect = ibuf->rect;
+		frect = ibuf->rect_float;
+
+		/* if image resolution changed (e.g. switched to proxy display) texture need to be recreated */
+		need_recreate = context->image_width != ibuf->x || context->image_height != ibuf->y;
+
+		if (context->texture_ibuf && need_recreate) {
+			glDeleteTextures(1, &context->texture);
+			context->texture_allocated = 0;
+		}
+
+		if (need_recreate || !context->texture_allocated) {
+			/* texture doesn't exist yet or need to be re-allocated because of changed dimensions */
+			int filter = GL_LINEAR;
+
+			/* non-scaled proxy shouldn;t use diltering */
+			if ((clip->flag & MCLIP_USE_PROXY) == 0 ||
+			    ELEM(sc->user.render_size, MCLIP_PROXY_RENDER_SIZE_FULL, MCLIP_PROXY_RENDER_SIZE_100))
+			{
+				filter = GL_NEAREST;
+			}
+
+			glGenTextures(1, &context->texture);
+			glBindTexture(GL_TEXTURE_2D, context->texture);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		}
+		else {
+			/* if texture doesn't need to be reallocated itself, just bind it so
+			 * loading of image will happen to a proper texture */
+			glBindTexture(GL_TEXTURE_2D, context->texture);
+		}
+
+		if (frect)
+			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  width, height, 0, GL_RGBA, GL_FLOAT, frect);
+		else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+
+		/* store settings */
+		context->texture_allocated = 1;
+		context->texture_ibuf = ibuf;
+		context->image_width = ibuf->x;
+		context->image_height = ibuf->y;
+		context->framenr = sc->user.framenr;
+
+		if (fscalerect)
+			MEM_freeN(fscalerect);
+		if (scalerect)
+			MEM_freeN(scalerect);
+	}
+	else {
+		/* displaying exactly the same image which was loaded t oa texture,
+		 * just bint texture in this case */
+		glBindTexture(GL_TEXTURE_2D, context->texture);
+	}
+
+	glEnable(GL_TEXTURE_2D);
+
+	return TRUE;
+}
+
+void ED_space_clip_unload_movieclip_buffer(SpaceClip *sc)
+{
+	SpaceClipDrawContext *context = sc->draw_context;
+
+	glBindTexture(GL_TEXTURE_2D, context->last_texture);
+	glDisable(GL_TEXTURE_2D);
+}
+
+void ED_space_clip_free_texture_buffer(SpaceClip *sc)
+{
+	SpaceClipDrawContext *context = sc->draw_context;
+
+	if (context) {
+		glDeleteTextures(1, &context->texture);
+
+		MEM_freeN(context);
+	}
 }
 
 int ED_space_clip_show_trackedit(SpaceClip *sc)
