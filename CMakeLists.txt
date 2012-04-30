@@ -1618,6 +1618,7 @@ if(WITH_PYTHON)
 		if(NOT EXISTS "${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/numpy")
 			message(WARNING "Numpy path '${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/numpy' is missing, "
 							"WITH_PYTHON_INSTALL_NUMPY option will be ignored when installing python")
+			set(WITH_PYTHON_INSTALL_NUMPY OFF)
 		endif()
 	endif()
 endif()
