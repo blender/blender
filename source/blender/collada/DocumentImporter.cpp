@@ -371,10 +371,11 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 			Object *new_child = NULL;
 			if (inodes.getCount()) { // \todo loop through instance nodes
 				const COLLADAFW::UniqueId& id = inodes[0]->getInstanciatedObjectId();
-				new_child = create_instance_node(object_map[id], node_map[id], child_node, sce, is_library_node);
+				fprintf(stderr,"Doing %d child nodes\n" ,node_map.count(id));
+				new_child = create_instance_node(object_map.find(id)->second, node_map[id], child_node, sce, is_library_node);
 			}
 			else {
-				new_child = create_instance_node(object_map[child_id], child_node, NULL, sce, is_library_node);
+				new_child = create_instance_node(object_map.find(child_id)->second, child_node, NULL, sce, is_library_node);
 			}
 			bc_set_parent(new_child, obn, mContext, true);
 
@@ -392,13 +393,15 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	bool read_transform = true;
 
+	std::vector<Object*> * objects_done = new std::vector<Object *>();
+
 	if (is_joint) {
 		if ( par ) {
 		Object * empty = par;
 		par = add_object(sce, OB_ARMATURE);
 		bc_set_parent(par, empty->parent, mContext);
 		//remove empty : todo
-		object_map[parent_node->getUniqueId()] = par;
+		object_map.insert( std::make_pair<COLLADAFW::UniqueId, Object *>(parent_node->getUniqueId(),par) );
 		}
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
 	}
@@ -420,19 +423,23 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		while (geom_done < geom.getCount()) {
 			ob = mesh_importer.create_mesh_object(node, geom[geom_done], false, uid_material_map,
 												  material_texture_mapping_map);
+			objects_done->push_back(ob);
 			++geom_done;
 		}
 		while (camera_done < camera.getCount()) {
 			ob = create_camera_object(camera[camera_done], sce);
+			objects_done->push_back(ob);
 			++camera_done;
 		}
 		while (lamp_done < lamp.getCount()) {
 			ob = create_lamp_object(lamp[lamp_done], sce);
+			objects_done->push_back(ob);
 			++lamp_done;
 		}
 		while (controller_done < controller.getCount()) {
 			COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry*)controller[controller_done];
 			ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map, material_texture_mapping_map);
+			objects_done->push_back(ob);
 			++controller_done;
 		}
 		// XXX instance_node is not supported yet
@@ -443,11 +450,14 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 				ob = NULL;
 			}
 			else {
-				Object *source_ob = object_map[node_id];
-				COLLADAFW::Node *source_node = node_map[node_id];
-
-				ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);
+				std::pair<std::multimap<COLLADAFW::UniqueId,Object *>::iterator, std::multimap<COLLADAFW::UniqueId,Object *>::iterator> pair_iter = object_map.equal_range(node_id);
+				for(std::multimap<COLLADAFW::UniqueId,Object *>::iterator it2 = pair_iter.first; it2 != pair_iter.second; it2++){
+					Object *source_ob = (Object *)it2->second;
+					COLLADAFW::Node *source_node = node_map[node_id];
+					ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);
+				}
 			}
+			if(ob != NULL) objects_done->push_back(ob);
 			++inst_done;
 
 			read_transform = false;
@@ -456,31 +466,37 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		// XXX empty node may not mean it is empty object, not sure about this
 		if ( (geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
 			ob = add_object(sce, OB_EMPTY);
+			objects_done->push_back(ob);
 		}
 		
 		// XXX: if there're multiple instances, only one is stored
 
 		if (!ob) return;
-		
-		std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
-		rename_id(&ob->id, (char*)nodename.c_str());
+		for(std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
+			ob = *it;
+			std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
+			rename_id(&ob->id, (char*)nodename.c_str());
+			object_map.insert( std::make_pair<COLLADAFW::UniqueId,Object *>(node->getUniqueId(),ob) );
+			node_map[node->getUniqueId()] = node;
 
-		object_map[node->getUniqueId()] = ob;
-		node_map[node->getUniqueId()] = node;
+			if (is_library_node)
+				libnode_ob.push_back(ob);
+		}
 
-		if (is_library_node)
-			libnode_ob.push_back(ob);
 	}
 
-	if (read_transform)
-		anim_importer.read_node_transform(node, ob); // overwrites location set earlier
+	for(std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
+		ob =*it;
 
-	if (!is_joint) {
-		// if par was given make this object child of the previous 
-		if (par && ob)
-			bc_set_parent(ob, par, mContext);
+		if (read_transform)
+			anim_importer.read_node_transform(node, ob); // overwrites location set earlier
+
+		if (!is_joint) {
+			// if par was given make this object child of the previous
+			if (par && ob)
+				bc_set_parent(ob, par, mContext);
+		}
 	}
-
 	// if node has child nodes write them
 	COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
 	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {	
