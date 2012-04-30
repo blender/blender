@@ -438,7 +438,28 @@ if(UNIX AND NOT APPLE)
 
 			# # doesnt work, todo
 			# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
+			
+			if(WITH_PYTHON_INSTALL_NUMPY)
+				install(
+					DIRECTORY ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/numpy
+					DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/site-packages
+					PATTERN ".svn" EXCLUDE
+					PATTERN "__pycache__" EXCLUDE           # * any cache *
+					PATTERN "*.pyc" EXCLUDE                 # * any cache *
+					PATTERN "*.pyo" EXCLUDE                 # * any cache *
+					PATTERN "distutils" EXCLUDE             # ./distutils
+					PATTERN "oldnumeric" EXCLUDE            # ./oldnumeric
+					PATTERN "doc" EXCLUDE                   # ./doc
+					PATTERN "tests" EXCLUDE                 # ./tests
+					PATTERN "f2py" EXCLUDE                  # ./f2py - fortran/python interface code, not fun for blender devs.
+					PATTERN "include" EXCLUDE               # include dirs all over, we wont use NumPy/CAPI
+					PATTERN "*.h" EXCLUDE                   # some includes are not in include dirs
+					PATTERN "*.a" EXCLUDE                   # ./core/lib/libnpymath.a - for linking, we dont need.
+				)
+			endif()
+			
 			unset(_target_LIB)
+			
 		endif()
 	endif()
 elseif(WIN32)
