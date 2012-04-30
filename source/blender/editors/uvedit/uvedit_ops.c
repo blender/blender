@@ -728,7 +728,7 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 	BMLoop *l;
 	MLoopUV *luv;
 	BMIter iter;
-	float m[3], v1[3], v2[3], c1, c2, *uv1, /* *uv2, */ /* UNUSED */ *uv3;
+	float m[3], v1[3], v2[3], c1, c2, *uv1 = NULL, /* *uv2, */ /* UNUSED */ *uv3 = NULL;
 	int id1, id2, i;
 
 	id1 = (id + efa->len - 1) % efa->len;
@@ -2603,9 +2603,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	if (change) {
 		uv_select_sync_flush(ts, em, select);
 
-		if (ts->uv_flag & UV_SYNC_SELECTION) {
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-		}
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
 	return OPERATOR_FINISHED;
