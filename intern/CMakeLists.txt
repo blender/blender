@@ -31,6 +31,7 @@ add_subdirectory(memutil)
 add_subdirectory(iksolver)
 add_subdirectory(opennl)
 add_subdirectory(mikktspace)
+add_subdirectory(raskter)
 
 if(WITH_AUDASPACE)
 	add_subdirectory(audaspace)

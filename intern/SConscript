@@ -14,7 +14,8 @@ SConscript(['audaspace/SConscript',
             'boolop/SConscript',
             'opennl/SConscript',
             'mikktspace/SConscript',
-            'smoke/SConscript'])
+            'smoke/SConscript',
+            'raskter/SConscript'])
 
 # NEW_CSG was intended for intern/csg, but
 # getting it to compile is difficult

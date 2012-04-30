@@ -69,6 +69,7 @@
 #include "ED_screen_types.h"
 #include "ED_keyframes_draw.h"
 #include "ED_view3d.h"
+#include "ED_clip.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -447,6 +448,13 @@ int ED_operator_editmball(bContext *C)
 	if (obedit && obedit->type==OB_MBALL)
 		return NULL != ((MetaBall *)obedit->data)->editelems;
 	return 0;
+}
+
+int ED_operator_mask(bContext *C)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+
+	return ED_space_clip_show_maskedit(sc);
 }
 
 /* *************************** action zone operator ************************** */

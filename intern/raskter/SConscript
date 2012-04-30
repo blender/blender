@@ -1,0 +1,10 @@
+#!/usr/bin/python
+
+Import ('env')
+
+sources = ['raskter.c']
+
+incs = ''
+defs = ''
+
+env.BlenderLib ('bf_intern_raskter', sources, Split(incs), Split(defs), libtype=['intern'], priority=[100] )

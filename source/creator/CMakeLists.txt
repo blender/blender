@@ -807,6 +807,7 @@ endif()
 		bf_editor_sound
 		bf_editor_animation
 		bf_editor_datafiles
+		bf_editor_mask
 
 		bf_render
 		bf_intern_opennl
@@ -877,6 +878,7 @@ endif()
 		cycles_kernel
 		cycles_util
 		cycles_subd
+		bf_intern_raskter
 	)
 
 	if(WITH_LIBMV)

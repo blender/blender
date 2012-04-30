@@ -115,6 +115,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
@@ -1027,6 +1028,13 @@ static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
 	bScreen *screen = (bScreen*)ptr->id.data;
 
 	ED_space_clip_set(NULL, screen, sc, (MovieClip*)value.data);
+}
+
+static void rna_SpaceClipEditor_mask_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceClip *sc= (SpaceClip*)(ptr->data);
+
+	ED_space_clip_set_mask(NULL, sc, (Mask*)value.data);
 }
 
 static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -2926,6 +2934,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction",
 		                         "Show tracking/reconstruction tools"},
 		{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
+		{SC_MODE_MASKEDITING, "MASKEDITING", ICON_MOD_MASK, "Mask editing", "Show mask editing tools"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem view_items[] = {
@@ -2952,6 +2961,13 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "user");
 	RNA_def_property_ui_text(prop, "Movie Clip User",
 	                         "Parameters defining which frame of the movie clip is displayed");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* mask */
+	prop= RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mask", "Mask displayed and edited in this space");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_mask_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
 	/* mode */

@@ -576,8 +576,10 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
 	row = uiLayoutRow(layout, 1);
 	
 	/* Label - either use the provided text, or will become "ID-Block:" */
-	if (text)
-		uiItemL(row, text, ICON_NONE);
+	if (text) {
+		if (text[0])
+			uiItemL(row, text, ICON_NONE);
+	}
 	else
 		uiItemL(row, "ID-Block:", ICON_NONE);
 	

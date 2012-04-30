@@ -44,11 +44,12 @@ class CLIP_HT_header(Header):
 
                 sub.menu("CLIP_MT_clip")
 
-                if clip:
+                if clip and sc.mode != 'MASKEDITING':
                     sub.menu("CLIP_MT_track")
                     sub.menu("CLIP_MT_reconstruction")
 
-        layout.prop(sc, "view", text="", expand=True)
+        if sc.mode != 'MASKEDITING':
+            layout.prop(sc, "view", text="", expand=True)
 
         if clip:
             if sc.view == 'CLIP':
@@ -71,6 +72,10 @@ class CLIP_HT_header(Header):
 
         row = layout.row()
         row.template_ID(sc, "clip", open='clip.open')
+
+        if sc.mode == 'MASKEDITING':
+            row = layout.row()
+            row.template_ID(sc, "mask", new="mask.new")
 
         if clip:
             tracking = clip.tracking
@@ -545,6 +550,112 @@ class CLIP_PT_tracking_camera(Panel):
         col.prop(clip.tracking.camera, "k3")
 
 
+class CLIP_PT_shapes(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Shapes"
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        return sc.mask and sc.mode == 'MASKEDITING'
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+        mask = sc.mask
+
+        row = layout.row()
+        row.template_list(mask, "shapes",
+                          mask, "active_shape_index", rows=3)
+
+        sub = row.column(align=True)
+
+        sub.operator("mask.shape_new", icon='ZOOMIN', text="")
+        sub.operator("mask.shape_remove", icon='ZOOMOUT', text="")
+
+        active = mask.shapes.active
+        if active:
+            layout.prop(active, "name")
+
+
+class CLIP_PT_active_mask_spline(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Active Spline"
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        mask = sc.mask
+
+        if mask and sc.mode == 'MASKEDITING':
+            return mask.shapes.active and mask.shapes.active.splines.active
+
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+        mask = sc.mask
+        spline = mask.shapes.active.splines.active
+
+        col = layout.column()
+        col.prop(spline, "weight_interpolation")
+        col.prop(spline, "use_cyclic")
+
+
+class CLIP_PT_active_mask_point(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Active Point"
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        mask = sc.mask
+
+        if mask and sc.mode == 'MASKEDITING':
+            return mask.shapes.active and mask.shapes.active.splines.active_point
+
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+        mask = sc.mask
+        point = mask.shapes.active.splines.active_point
+        parent = point.parent
+
+        col = layout.column()
+        col.prop(point, "handle_type")
+
+        col = layout.column()
+        col.prop(parent, "use_parent", text="Parent")
+        if parent.use_parent:
+            # Currently only parenting yo movie clip is allowed, so do not
+            # ver-oplicate things for now and use single template_ID
+            #col.template_any_ID(parent, "id", "id_type", text="")
+
+            col.template_ID(parent, "id")
+
+            if parent.id_type == 'MOVIECLIP' and parent.id:
+                clip = parent.id
+                tracking = clip.tracking
+
+                col.prop_search(parent, "parent", tracking, "objects", icon='OBJECT_DATA', text="Object:")
+
+                if parent.parent and parent.parent in tracking.objects:
+                    object = clip.tracking.objects[parent.parent]
+                    col.prop_search(parent, "sub_parent", object, "tracks", icon='ANIM_DATA', text="Track:")
+                else:
+                    col.prop_search(parent, "sub_parent", clip.tracking, "tracks", icon='ANIM_DATA', text="Track:")
+
+
 class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
@@ -594,6 +705,12 @@ class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Marker Display"
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        return sc.mode != 'MASKEDITING'
 
     def draw(self, context):
         layout = self.layout

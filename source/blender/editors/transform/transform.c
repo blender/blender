@@ -49,6 +49,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"		/* PET modes			*/
 
@@ -169,6 +170,13 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		r_vec[0] = (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
 		r_vec[1] = (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
 		r_vec[2] = 0.0f;
+
+		if (t->options & CTX_MASK) {
+			float aspx, aspy;
+			ED_space_clip_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			r_vec[0] *= aspx;
+			r_vec[1] *= aspy;
+		}
 	}
 	else {
 		printf("%s: called in an invalid context\n", __func__);
@@ -229,6 +237,19 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 
 		copy_v2_v2(v, vec);
 
+		if (t->options & CTX_MASK) {
+			float aspx, aspy;
+			ED_space_clip_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			v[0] /= aspx;
+			v[1] /= aspy;
+		}
+		else if (t->options & CTX_MASK) {
+			float aspx, aspy;
+			ED_space_clip_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			v[0] /= aspx;
+			v[1] /= aspy;
+		}
+
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
 }
@@ -279,13 +300,15 @@ void applyAspectRatio(TransInfo *t, float *vec)
 		vec[1] /= aspy;
 	}
 	else if ((t->spacetype==SPACE_CLIP) && (t->mode==TFM_TRANSLATION)) {
-		if (t->options & CTX_MOVIECLIP) {
+		if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
 			SpaceClip *sc = t->sa->spacedata.first;
 			float aspx, aspy;
 			int width, height;
 
-			ED_space_clip_size(sc, &width, &height);
-			ED_space_clip_aspect(sc, &aspx, &aspy);
+			if (t->options & CTX_MOVIECLIP)
+				ED_space_clip_size(sc, &width, &height);
+			else if (t->options & CTX_MASK)
+				ED_space_clip_aspect(sc, &aspx, &aspy);
 
 			vec[0] *= width / aspx;
 			vec[1] *= height / aspy;
@@ -312,13 +335,15 @@ void removeAspectRatio(TransInfo *t, float *vec)
 		vec[1] *= aspy;
 	}
 	else if ((t->spacetype==SPACE_CLIP) && (t->mode==TFM_TRANSLATION)) {
-		if (t->options & CTX_MOVIECLIP) {
+		if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
 			SpaceClip *sc = t->sa->spacedata.first;
 			float aspx, aspy;
 			int width, height;
 
-			ED_space_clip_size(sc, &width, &height);
-			ED_space_clip_aspect(sc, &aspx, &aspy);
+			if (t->options & CTX_MOVIECLIP)
+				ED_space_clip_size(sc, &width, &height);
+			else if (t->options & CTX_MASK)
+				ED_space_clip_aspect(sc, &aspx, &aspy);
 
 			vec[0] *= aspx / width;
 			vec[1] *= aspy / height;
@@ -367,12 +392,20 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype==SPACE_CLIP) {
 		SpaceClip *sc = (SpaceClip*)t->sa->spacedata.first;
-		MovieClip *clip = ED_space_clip(sc);
 
-		/* objects could be parented to tracking data, so send this for viewport refresh */
-		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+		if (ED_space_clip_show_trackedit(sc)) {
+			MovieClip *clip = ED_space_clip(sc);
 
-		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+			/* objects could be parented to tracking data, so send this for viewport refresh */
+			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+
+			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+		}
+		else if (ED_space_clip_show_maskedit(sc)) {
+			Mask *mask = ED_space_clip_mask(sc);
+
+			WM_event_add_notifier(C, NC_MASK|NA_EDITED, mask);
+		}
 	}
 }
 
@@ -654,7 +687,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					t->redraw |= TREDRAW_HARD;
 				}
 				else if (t->mode == TFM_TRANSLATION) {
-					if(t->options & CTX_MOVIECLIP) {
+					if(t->options & (CTX_MOVIECLIP | CTX_MASK)) {
 						restoreTransObjects(t);
 
 						t->flag ^= T_ALT_TRANSFORM;
@@ -1591,9 +1624,13 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), helpline_poll, drawHelpline, t);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
+		SpaceClip *sc = CTX_wm_space_clip(C);
 		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-		t->options |= CTX_MOVIECLIP;
+		if (ED_space_clip_show_trackedit(sc))
+			t->options |= CTX_MOVIECLIP;
+		else if (ED_space_clip_show_maskedit(sc))
+			t->options |= CTX_MASK;
 	}
 	else
 		unit_m3(t->spacemtx);

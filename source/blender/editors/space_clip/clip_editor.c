@@ -34,10 +34,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_main.h"
+#include "BKE_mask.h"
 #include "BKE_movieclip.h"
 #include "BKE_context.h"
 #include "BKE_tracking.h"
 
+#include "DNA_mask_types.h"
 #include "DNA_object_types.h"	/* SELECT */
 
 #include "BLI_utildefines.h"
@@ -116,6 +118,32 @@ int ED_space_clip_tracking_frame_poll(bContext *C)
 	return FALSE;
 }
 
+int ED_space_clip_maskediting_poll(bContext *C)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	if (sc && sc->clip) {
+		return ED_space_clip_show_maskedit(sc);
+	}
+
+	return FALSE;
+}
+
+int ED_space_clip_maskediting_mask_poll(bContext *C)
+{
+	if (ED_space_clip_maskediting_poll(C)) {
+		MovieClip *clip = CTX_data_edit_movieclip(C);
+
+		if (clip) {
+			SpaceClip *sc= CTX_wm_space_clip(C);
+
+			return sc->mask != NULL;
+		}
+	}
+
+	return FALSE;
+}
+
 /* ******** editing functions ******** */
 
 void ED_space_clip_set(bContext *C, bScreen *screen, SpaceClip *sc, MovieClip *clip)
@@ -159,6 +187,11 @@ MovieClip *ED_space_clip(SpaceClip *sc)
 	return sc->clip;
 }
 
+Mask *ED_space_clip_mask(SpaceClip *sc)
+{
+	return sc->mask;
+}
+
 ImBuf *ED_space_clip_get_buffer(SpaceClip *sc)
 {
 	if (sc->clip) {
@@ -200,6 +233,42 @@ void ED_space_clip_size(SpaceClip *sc, int *width, int *height)
 	}
 	else {
 		BKE_movieclip_get_size(sc->clip, &sc->user, width, height);
+	}
+}
+
+void ED_space_clip_mask_size(SpaceClip *sc, int *width, int *height)
+{
+	if(!sc->mask) {
+		*width= 0;
+		*height= 0;
+	} else {
+		float aspx, aspy;
+
+		ED_space_clip_size(sc, width, height);
+		ED_space_clip_aspect(sc, &aspx, &aspy);
+
+		*width *= aspx;
+		*height *= aspy;
+	}
+}
+
+void ED_space_clip_mask_aspect(SpaceClip *sc, float *aspx, float *aspy)
+{
+	int w, h;
+
+	ED_space_clip_aspect(sc, aspx, aspy);
+        ED_space_clip_size(sc, &w, &h);
+
+	*aspx *= (float)w;
+	*aspy *= (float)h;
+
+	if(*aspx < *aspy) {
+		*aspy= *aspy / *aspx;
+		*aspx= 1.0f;
+	}
+	else {
+		*aspx= *aspx / *aspy;
+		*aspy= 1.0f;
 	}
 }
 
@@ -557,6 +626,8 @@ void ED_space_clip_free_texture_buffer(SpaceClip *sc)
 	}
 }
 
+/* ******** masking editing related functions ******** */
+
 int ED_space_clip_show_trackedit(SpaceClip *sc)
 {
 	if (sc) {
@@ -572,4 +643,24 @@ void ED_space_clip_update_dopesheet(SpaceClip *sc)
 	MovieTracking *tracking = &clip->tracking;
 
 	BKE_tracking_update_dopesheet(tracking);
+}
+
+int ED_space_clip_show_maskedit(SpaceClip *sc)
+{
+	if (sc) {
+		return sc->mode == SC_MODE_MASKEDITING;
+	}
+
+	return FALSE;
+}
+
+void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
+{
+	sc->mask = mask;
+
+	if(sc->mask && sc->mask->id.us==0)
+		sc->clip->id.us = 1;
+
+	if(C)
+		WM_event_add_notifier(C, NC_MASK|NA_SELECTED, mask);
 }

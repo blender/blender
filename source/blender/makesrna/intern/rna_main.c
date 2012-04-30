@@ -253,6 +253,12 @@ static void rna_Main_movieclips_begin(CollectionPropertyIterator *iter, PointerR
 	rna_iterator_listbase_begin(iter, &bmain->movieclip, NULL);
 }
 
+static void rna_Main_masks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Main *bmain= (Main*)ptr->data;
+	rna_iterator_listbase_begin(iter, &bmain->mask, NULL);
+}
+
 #ifdef UNIT_TEST
 
 static PointerRNA rna_Test_test_get(PointerRNA *ptr)
@@ -322,6 +328,7 @@ void RNA_def_main(BlenderRNA *brna)
 		                  RNA_def_main_gpencil},
 		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip datablocks",
 		               RNA_def_main_movieclips},
+		{"masks", "Mask", "rna_Main_masks_begin", "Masks", "Masks datablocks", RNA_def_main_masks},
 		{NULL, NULL, NULL, NULL, NULL, NULL}};
 
 	int i;

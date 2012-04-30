@@ -94,6 +94,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -5387,6 +5388,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceClip *sclip= (SpaceClip *)sl;
 
 						sclip->clip= newlibadr_us(fd, sc->id.lib, sclip->clip);
+						sclip->mask= newlibadr_us(fd, sc->id.lib, sclip->mask);
 
 						sclip->scopes.track_preview = NULL;
 						sclip->draw_context = NULL;
@@ -5654,6 +5656,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceClip *sclip= (SpaceClip *)sl;
 
 					sclip->clip= restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
+					sclip->mask= restore_pointer_by_name(newmain, (ID *)sclip->mask, 1);
 
 					sclip->scopes.ok = 0;
 				}
@@ -6238,6 +6241,90 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 	}
 }
 
+/* ***************** READ MOVIECLIP *************** */
+
+static void direct_link_mask(FileData *fd, Mask *mask)
+{
+	MaskShape *shape;
+
+	mask->adt = newdataadr(fd, mask->adt);
+
+	link_list(fd, &mask->shapes);
+
+	shape = mask->shapes.first;
+	while (shape) {
+		MaskSpline *spline;
+
+		link_list(fd, &shape->splines);
+
+		spline = shape->splines.first;
+		while (spline) {
+			int i;
+
+			spline->points = newdataadr(fd, spline->points);
+
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (point->tot_uw)
+					point->uw = newdataadr(fd, point->uw);
+			}
+
+			spline = spline->next;
+		}
+
+		shape->act_spline = newdataadr(fd, shape->act_spline);
+		shape->act_point = newdataadr(fd, shape->act_point);
+
+		shape = shape->next;
+	}
+}
+
+static void lib_link_mask_parent(FileData *fd, Mask *mask, MaskParent *parent)
+{
+	parent->id = newlibadr_us(fd, mask->id.lib, parent->id);
+}
+
+static void lib_link_mask(FileData *fd, Main *main)
+{
+	Mask *mask;
+
+	mask = main->mask.first;
+	while (mask) {
+		if(mask->id.flag & LIB_NEEDLINK) {
+			MaskShape *shape;
+
+			if (mask->adt)
+				lib_link_animdata(fd, &mask->id, mask->adt);
+
+			shape = mask->shapes.first;
+			while (shape) {
+				MaskSpline *spline;
+
+				spline = shape->splines.first;
+				while (spline) {
+					int i;
+
+					for (i = 0; i < spline->tot_point; i++) {
+						MaskSplinePoint *point = &spline->points[i];
+
+						lib_link_mask_parent(fd, mask, &point->parent);
+					}
+
+					lib_link_mask_parent(fd, mask, &spline->parent);
+
+					spline = spline->next;
+				}
+
+				shape = shape->next;
+			}
+
+			mask->id.flag -= LIB_NEEDLINK;
+		}
+		mask = mask->id.next;
+	}
+}
+
 /* ************** GENERAL & MAIN ******************** */
 
 
@@ -6443,6 +6530,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_MC:
 			direct_link_movieclip(fd, (MovieClip *)id);
+			break;
+		case ID_MSK:
+			direct_link_mask(fd, (Mask *)id);
 			break;
 	}
 	
@@ -13344,6 +13434,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_brush(fd, main);
 	lib_link_particlesettings(fd, main);
 	lib_link_movieclip(fd, main);
+	lib_link_mask(fd, main);
 
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 

@@ -62,6 +62,7 @@
 #include "ED_mball.h"
 #include "ED_logic.h"
 #include "ED_clip.h"
+#include "ED_mask.h"
 
 /* only call once on startup, storage is global in BKE kernel listbase */
 void ED_spacetypes_init(void)
@@ -111,6 +112,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_sound();
 	ED_operatortypes_render();
 	ED_operatortypes_logic();
+	ED_operatortypes_mask();
 	
 	UI_view2d_operatortypes();
 	UI_buttons_operatortypes();
@@ -133,6 +135,7 @@ void ED_spacetypes_init(void)
 	ED_operatormacros_action();
 	ED_operatormacros_clip();
 	ED_operatormacros_curve();
+	ED_operatormacros_mask();
 	
 	/* register dropboxes (can use macros) */
 	spacetypes = BKE_spacetypes_list();
@@ -164,6 +167,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 	ED_keymap_physics(keyconf);
 	ED_keymap_metaball(keyconf);
 	ED_keymap_paint(keyconf);
+	ED_keymap_mask(keyconf);
 	ED_marker_keymap(keyconf);
 
 	UI_view2d_keymap(keyconf);

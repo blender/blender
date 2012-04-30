@@ -1930,6 +1930,7 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_transform(ttype);
 	register_node_type_cmp_stabilize2d(ttype);
 	register_node_type_cmp_moviedistortion(ttype);
+	register_node_type_cmp_mask(ttype);
 }
 
 static void registerShaderNodes(bNodeTreeType *ttype) 

@@ -33,6 +33,7 @@
 #include <stdio.h>
 
 #include "DNA_scene_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -49,6 +50,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "ED_mask.h"
 #include "ED_screen.h"
 #include "ED_clip.h"
 #include "ED_transform.h"
@@ -353,6 +355,23 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 
 				case NA_SELECTED:
 					clip_scopes_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
+					break;
+			}
+			break;
+		case NC_MASK:
+			switch(wmn->data) {
+				case ND_SELECT:
+				case ND_DATA:
+					ED_area_tag_redraw(sa);
+					break;
+			}
+			switch(wmn->action) {
+				case NA_SELECTED:
+					clip_scopes_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
+					break;
+				case NA_EDITED:
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -710,7 +729,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);	/* toggle */
 }
 
-const char *clip_context_dir[]= {"edit_movieclip", NULL};
+const char *clip_context_dir[]= {"edit_movieclip", "edit_mask", NULL};
 
 static int clip_context(const bContext *C, const char *member, bContextDataResult *result)
 {
@@ -724,7 +743,11 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 	else if (CTX_data_equals(member, "edit_movieclip")) {
 		if (sc->clip)
 			CTX_data_id_pointer_set(result, &sc->clip->id);
-
+		return TRUE;
+	}
+	else if (CTX_data_equals(member, "edit_mask")) {
+		if (sc->mask)
+			CTX_data_id_pointer_set(result, &sc->mask->id);
 		return TRUE;
 	}
 
@@ -996,6 +1019,9 @@ static void clip_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	keymap = WM_keymap_find(wm->defaultconf, "Clip Editor", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Mask Editor", 0, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 static void clip_main_area_draw(const bContext *C, ARegion *ar)
@@ -1037,6 +1063,29 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* Grease Pencil */
 	clip_draw_grease_pencil((bContext *)C, 1);
+
+	if(sc->mode == SC_MODE_MASKEDITING) {
+		int x, y;
+		int width, height;
+		float zoomx, zoomy, aspx, aspy;
+
+		/* find window pixel coordinates of origin */
+		UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+		ED_space_clip_size(sc, &width, &height);
+		ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
+		ED_space_clip_aspect(sc, &aspx, &aspy);
+
+		/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
+		glPushMatrix();
+		glTranslatef(x, y, 0);
+		glScalef(width*zoomx, height*zoomy, 0);
+		glMultMatrixf(sc->stabmat);
+
+		ED_mask_draw((bContext *)C, width*aspx, height*aspy, zoomx, zoomy);
+
+		glPopMatrix();
+	}
 
 	/* reset view matrix */
 	UI_view2d_view_restore(C);

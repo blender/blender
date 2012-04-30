@@ -53,6 +53,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -87,6 +88,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_tessmesh.h"
 #include "BKE_tracking.h"
+#include "BKE_mask.h"
 
 
 #include "ED_anim_api.h"
@@ -102,6 +104,7 @@
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_clip.h"
+#include "ED_mask.h"
 #include "ED_util.h"  /* for crazyspace correction */
 
 #include "WM_api.h"		/* for WM_event_add_notifier to deal with stabilization nodes */
@@ -4848,6 +4851,17 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
 			}
 		}
+		else if (t->options & CTX_MASK) {
+			SpaceClip *sc = t->sa->spacedata.first;
+			Mask *mask = ED_space_clip_mask(sc);
+
+			if (t->scene->nodetree) {
+				/* tracks can be used for stabilization nodes,
+				 * flush update for such nodes */
+				nodeUpdateID(t->scene->nodetree, &mask->id);
+				WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+			}
+		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -5773,6 +5787,197 @@ void flushTransTracking(TransInfo *t)
 	}
 }
 
+/* * masking * */
+
+typedef struct TransDataMasking{
+	float is_handle;
+
+	float handle[2], orig_handle[2];
+	float vec[3][3];
+	MaskSplinePoint *point;
+} TransDataMasking;
+
+static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point, TransData *td, TransData2D *td2d, TransDataMasking *tdm)
+{
+	BezTriple *bezt = &point->bezt;
+	float aspx, aspy;
+
+	tdm->point = point;
+	copy_m3_m3(tdm->vec, bezt->vec);
+
+	ED_space_clip_mask_aspect(sc, &aspx, &aspy);
+
+	if (MASKPOINT_CV_ISSEL(point)) {
+		int i;
+		for (i = 0; i < 3; i++) {
+			/* CV coords are scaled by aspects. this is needed for rotations and
+			 * proportional editing to be consistent with the stretched CV coords
+			 * that are displayed. this also means that for display and numinput,
+			 * and when the the CV coords are flushed, these are converted each time */
+			td2d->loc[0] = bezt->vec[i][0]*aspx;
+			td2d->loc[1] = bezt->vec[i][1]*aspy;
+			td2d->loc[2] = 0.0f;
+			td2d->loc2d = bezt->vec[i];
+
+			td->flag = 0;
+			td->loc = td2d->loc;
+			copy_v3_v3(td->center, td->loc);
+			copy_v3_v3(td->iloc, td->loc);
+
+			memset(td->axismtx, 0, sizeof(td->axismtx));
+			td->axismtx[2][2] = 1.0f;
+
+			td->ext= NULL;
+			td->val= NULL;
+
+			td->flag |= TD_SELECTED;
+			td->dist= 0.0;
+
+			unit_m3(td->mtx);
+			unit_m3(td->smtx);
+
+			td++;
+			td2d++;
+		}
+	}
+	else {
+		int width, height;
+
+		tdm->is_handle = TRUE;
+
+		ED_space_clip_mask_size(sc, &width, &height);
+		BKE_mask_point_handle(point, width, height, tdm->handle);
+
+		copy_v2_v2(tdm->orig_handle, tdm->handle);
+
+		td2d->loc[0] = tdm->handle[0]*aspx;
+		td2d->loc[1] = tdm->handle[1]*aspy;
+		td2d->loc[2] = 0.0f;
+		td2d->loc2d = tdm->handle;
+
+		td->flag = 0;
+		td->loc = td2d->loc;
+		copy_v3_v3(td->center, td->loc);
+		copy_v3_v3(td->iloc, td->loc);
+
+		memset(td->axismtx, 0, sizeof(td->axismtx));
+		td->axismtx[2][2] = 1.0f;
+
+		td->ext= NULL;
+		td->val= NULL;
+
+		td->flag |= TD_SELECTED;
+		td->dist= 0.0;
+
+		unit_m3(td->mtx);
+		unit_m3(td->smtx);
+
+		td++;
+		td2d++;
+	}
+}
+
+static void createTransMaskingData(bContext *C, TransInfo *t)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskShape *shape;
+	TransData *td = NULL;
+	TransData2D *td2d = NULL;
+	TransDataMasking *tdm = NULL;
+
+	/* count */
+	shape = mask->shapes.first;
+	while (shape) {
+		MaskSpline *spline = shape->splines.first;
+
+		while (spline) {
+			int i;
+
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (MASKPOINT_ISSEL(point)) {
+					if (MASKPOINT_CV_ISSEL(point))
+						t->total += 3;
+					else
+						t->total += 1;
+				}
+			}
+
+			spline = spline->next;
+		}
+
+		shape = shape->next;
+	}
+
+	if (t->total == 0)
+		return;
+
+	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransObData(Mask Editing)");
+	/* for each 2d uv coord a 3d vector is allocated, so that they can be
+	 * treated just as if they were 3d verts */
+	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransObData2D(Mask Editing)");
+	tdm = t->customData = MEM_callocN(t->total*sizeof(TransDataMasking), "TransDataMasking(Mask Editing)");
+
+	t->flag |= T_FREE_CUSTOMDATA;
+
+	/* create data */
+	shape = mask->shapes.first;
+	while (shape) {
+		MaskSpline *spline = shape->splines.first;
+
+		while (spline) {
+			int i;
+
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (MASKPOINT_ISSEL(point)) {
+					MaskPointToTransData(sc, point, td, td2d, tdm);
+
+					if (MASKPOINT_CV_ISSEL(point)) {
+						td += 3;
+						td2d += 3;
+						tdm += 3;
+					}
+					else {
+						td++;
+						td2d++;
+						tdm++;
+					}
+				}
+			}
+
+			spline = spline->next;
+		}
+
+		shape = shape->next;
+	}
+}
+
+void flushTransMasking(TransInfo *t)
+{
+	SpaceClip *sc = t->sa->spacedata.first;
+	TransData2D *td;
+	TransDataMasking *tdm;
+	int a;
+	float aspx, aspy, invx, invy;
+
+	ED_space_clip_mask_aspect(sc, &aspx, &aspy);
+	invx = 1.0f/aspx;
+	invy = 1.0f/aspy;
+
+	/* flush to 2d vector from internally used 3d vector */
+	for(a=0, td = t->data2d, tdm = t->customData; a<t->total; a++, td++, tdm++) {
+		td->loc2d[0]= td->loc[0]*invx;
+		td->loc2d[1]= td->loc[1]*invy;
+
+		if (tdm->is_handle)
+			BKE_mask_point_set_handle(tdm->point, td->loc2d, t->flag & T_ALT_TRANSFORM, aspx, aspy, tdm->orig_handle, tdm->vec);
+	}
+}
+
 void createTransData(bContext *C, TransInfo *t)
 {
 	Scene *scene = t->scene;
@@ -5842,6 +6047,8 @@ void createTransData(bContext *C, TransInfo *t)
 		t->flag |= T_POINTS|T_2D_EDIT;
 		if (t->options & CTX_MOVIECLIP)
 			createTransTrackingData(C, t);
+		else if (t->options & CTX_MASK)
+			createTransMaskingData(C, t);
 	}
 	else if (t->obedit) {
 		t->ext = NULL;

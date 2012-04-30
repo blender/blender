@@ -67,6 +67,7 @@ struct wmOperator;
 struct wmTimer;
 struct MovieClip;
 struct MovieClipScopes;
+struct Mask;
 
 	/**
 	 * The base structure all the other spaces
@@ -523,6 +524,9 @@ typedef struct SpaceClip {
 	int postproc_flag, pad2;
 
 	void *draw_context;
+
+	/* **** mask editing **** */
+	struct Mask *mask;
 } SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */
@@ -910,6 +914,7 @@ enum {
 #define SC_MODE_TRACKING		0
 #define SC_MODE_RECONSTRUCTION	1
 #define SC_MODE_DISTORTION		2
+#define SC_MODE_MASKEDITING		3
 
 /* SpaceClip->view */
 #define SC_VIEW_CLIP		0

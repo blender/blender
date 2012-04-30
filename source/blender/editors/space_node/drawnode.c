@@ -1942,6 +1942,11 @@ static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, Po
 	uiItemR(layout, ptr, "distortion_type", 0, "", 0);
 }
 
+static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2107,6 +2112,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_MOVIEDISTORTION:
 			ntype->uifunc= node_composit_buts_moviedistortion;
+			break;
+		case CMP_NODE_MASK:
+			ntype->uifunc= node_composit_buts_mask;
 			break;
 		default:
 			ntype->uifunc= NULL;
