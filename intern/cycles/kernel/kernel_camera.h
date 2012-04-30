@@ -130,7 +130,7 @@ __device void camera_sample_environment(KernelGlobals *kg, float raster_x, float
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
 	/* create ray form raster position */
-	ray->P = make_float3(0.0, 0.0f, 0.0f);
+	ray->P = make_float3(0.0f, 0.0f, 0.0f);
 	ray->D = equirectangular_to_direction(Pcamera.x, Pcamera.y);
 
 	/* transform ray from camera to world */
