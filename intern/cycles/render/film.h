@@ -40,6 +40,7 @@ public:
 
 	static void add(PassType type, vector<Pass>& passes);
 	static bool equals(const vector<Pass>& A, const vector<Pass>& B);
+	static bool contains(const vector<Pass>& passes, PassType);
 };
 
 class Film {

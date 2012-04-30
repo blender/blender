@@ -2982,8 +2982,7 @@ KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, const char *name, in
 }
 
 /* most important if this is modified it should _always_ return True, in certain
- * cases false positives are hard to avoid (shape keys for eg)
- */
+ * cases false positives are hard to avoid (shape keys for example) */
 int object_is_modified(Scene *scene, Object *ob)
 {
 	int flag= 0;
@@ -2998,13 +2997,38 @@ int object_is_modified(Scene *scene, Object *ob)
 		     md && (flag != (eModifierMode_Render | eModifierMode_Realtime));
 		     md=md->next)
 		{
-			if ((flag & eModifierMode_Render) == 0	&& modifier_isEnabled(scene, md, eModifierMode_Render)) {
+			if ((flag & eModifierMode_Render) == 0 && modifier_isEnabled(scene, md, eModifierMode_Render))
 				flag |= eModifierMode_Render;
-			}
 
-			if ((flag & eModifierMode_Realtime) == 0	&& modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
+			if ((flag & eModifierMode_Realtime) == 0 && modifier_isEnabled(scene, md, eModifierMode_Realtime))
 				flag |= eModifierMode_Realtime;
-			}
+		}
+	}
+
+	return flag;
+}
+
+/* test if object is affected by deforming modifiers (for motion blur). again
+ * most important is to avoid false positives, this is to skip computations
+ * and we can still if there was actual deformation afterwards */
+int object_is_deform_modified(Scene *scene, Object *ob)
+{
+	ModifierData *md;
+	int flag= 0;
+
+	/* cloth */
+	for (md=modifiers_getVirtualModifierList(ob);
+		 md && (flag != (eModifierMode_Render | eModifierMode_Realtime));
+		 md=md->next)
+	{
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if (mti->type == eModifierTypeType_OnlyDeform) {
+			if (!(flag & eModifierMode_Render) && modifier_isEnabled(scene, md, eModifierMode_Render))
+				flag |= eModifierMode_Render;
+
+			if (!(flag & eModifierMode_Realtime) && modifier_isEnabled(scene, md, eModifierMode_Realtime))
+				flag |= eModifierMode_Realtime;
 		}
 	}
 

@@ -91,7 +91,7 @@ void BlenderSession::create_session()
 
 	/* create sync */
 	sync = new BlenderSync(b_data, b_scene, scene, !background);
-	sync->sync_data(b_v3d);
+	sync->sync_data(b_v3d, b_engine.camera_override());
 
 	if(b_rv3d)
 		sync->sync_view(b_v3d, b_rv3d, width, height);
@@ -130,6 +130,8 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 			return PASS_OBJECT_ID;
 		case BL::RenderPass::type_UV:
 			return PASS_UV;
+		case BL::RenderPass::type_VECTOR:
+			return PASS_MOTION;
 		case BL::RenderPass::type_MATERIAL_INDEX:
 			return PASS_MATERIAL_ID;
 
@@ -168,7 +170,6 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 		case BL::RenderPass::type_REFRACTION:
 		case BL::RenderPass::type_SPECULAR:
 		case BL::RenderPass::type_REFLECTION:
-		case BL::RenderPass::type_VECTOR:
 		case BL::RenderPass::type_MIST:
 			return PASS_NONE;
 	}
@@ -209,6 +210,8 @@ void BlenderSession::render()
 				BL::RenderPass b_pass(*b_pass_iter);
 				PassType pass_type = get_pass_type(b_pass);
 
+				if(pass_type == PASS_MOTION && scene->integrator->motion_blur)
+					continue;
 				if(pass_type != PASS_NONE)
 					Pass::add(pass_type, passes);
 			}
@@ -219,7 +222,7 @@ void BlenderSession::render()
 		scene->film->tag_update(scene);
 
 		/* update scene */
-		sync->sync_data(b_v3d, b_iter->name().c_str());
+		sync->sync_data(b_v3d, b_engine.camera_override(), b_iter->name().c_str());
 
 		/* update session */
 		int samples = sync->get_layer_samples();
@@ -310,7 +313,7 @@ void BlenderSession::synchronize()
 	}
 
 	/* data and camera synchronize */
-	sync->sync_data(b_v3d);
+	sync->sync_data(b_v3d, b_engine.camera_override());
 
 	if(b_rv3d)
 		sync->sync_view(b_v3d, b_rv3d, width, height);

@@ -33,6 +33,7 @@
 
 CCL_NAMESPACE_BEGIN
 
+class AttributeRequestSet;
 class Background;
 class Camera;
 class Device;
@@ -174,6 +175,12 @@ public:
 	~Scene();
 
 	void device_update(Device *device, Progress& progress);
+
+	bool need_global_attribute(AttributeStandard std);
+	void need_global_attributes(AttributeRequestSet& attributes);
+
+	enum MotionType { MOTION_NONE = 0, MOTION_PASS, MOTION_BLUR };
+	MotionType need_motion();
 
 	bool need_update();
 	bool need_reset();

@@ -94,6 +94,29 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         col.prop(cscene, "blur_glossy")
 
 
+class CyclesRender_PT_motion_blur(CyclesButtonsPanel, Panel):
+    bl_label = "Motion Blur"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return False
+
+    def draw_header(self, context):
+        rd = context.scene.render
+
+        self.layout.prop(rd, "use_motion_blur", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+        layout.active = rd.use_motion_blur
+
+        row = layout.row()
+        row.prop(rd, "motion_blur_shutter")
+
+
 class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
     bl_label = "Film"
 
@@ -202,10 +225,10 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_combined")
         col.prop(rl, "use_pass_z")
         col.prop(rl, "use_pass_normal")
+        col.prop(rl, "use_pass_vector")
+        col.prop(rl, "use_pass_uv")
         col.prop(rl, "use_pass_object_index")
         col.prop(rl, "use_pass_material_index")
-        col.prop(rl, "use_pass_emit")
-        col.prop(rl, "use_pass_environment")
         col.prop(rl, "use_pass_ambient_occlusion")
         col.prop(rl, "use_pass_shadow")
 
@@ -226,6 +249,9 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         row.prop(rl, "use_pass_transmission_direct", text="Direct", toggle=True)
         row.prop(rl, "use_pass_transmission_indirect", text="Indirect", toggle=True)
         row.prop(rl, "use_pass_transmission_color", text="Color", toggle=True)
+
+        col.prop(rl, "use_pass_emit", text="Emission")
+        col.prop(rl, "use_pass_environment")
 
 
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):

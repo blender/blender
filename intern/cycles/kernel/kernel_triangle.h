@@ -179,5 +179,68 @@ __device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData *s
 	}
 }
 
+/* motion */
+
+__device int triangle_find_attribute(KernelGlobals *kg, ShaderData *sd, uint id)
+{
+	/* find attribute by unique id */
+	uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
+	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+
+	while(attr_map.x != id)
+		attr_map = kernel_tex_fetch(__attributes_map, ++attr_offset);
+
+	/* return result */
+	return (attr_map.y == ATTR_ELEMENT_NONE)? ATTR_STD_NOT_FOUND: attr_map.z;
+}
+
+__device float4 triangle_motion_vector(KernelGlobals *kg, ShaderData *sd)
+{
+	float3 motion_pre = sd->P, motion_post = sd->P;
+
+	/* deformation motion */
+	int offset_pre = triangle_find_attribute(kg, sd, ATTR_STD_MOTION_PRE);
+	int offset_post = triangle_find_attribute(kg, sd, ATTR_STD_MOTION_POST);
+
+	if(offset_pre != ATTR_STD_NOT_FOUND)
+		motion_pre = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, offset_pre, NULL, NULL);
+	if(offset_post != ATTR_STD_NOT_FOUND)
+		motion_post = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, offset_post, NULL, NULL);
+
+	/* object motion. note that depending on the mesh having motion vectors, this
+	   transformation was set match the world/object space of motion_pre/post */
+	Transform tfm;
+	
+	tfm = object_fetch_transform(kg, sd->object, TIME_INVALID, OBJECT_TRANSFORM_MOTION_PRE);
+	motion_pre = transform_point(&tfm, motion_pre);
+
+	tfm = object_fetch_transform(kg, sd->object, TIME_INVALID, OBJECT_TRANSFORM_MOTION_POST);
+	motion_post = transform_point(&tfm, motion_post);
+
+	/* camera motion */
+	tfm = kernel_data.cam.worldtoraster;
+	float3 P = transform_perspective(&tfm, sd->P);
+
+	tfm = kernel_data.cam.motion.pre;
+	motion_pre = transform_perspective(&tfm, motion_pre) - P;
+
+	tfm = kernel_data.cam.motion.post;
+	motion_post = P - transform_perspective(&tfm, motion_post);
+
+	return make_float4(motion_pre.x, motion_pre.y, motion_post.x, motion_post.y);
+}
+
+__device float3 triangle_uv(KernelGlobals *kg, ShaderData *sd)
+{
+	int offset_uv = triangle_find_attribute(kg, sd, ATTR_STD_UV);
+
+	if(offset_uv == ATTR_STD_NOT_FOUND)
+		return make_float3(0.0f, 0.0f, 0.0f);
+
+	float3 uv = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_CORNER, offset_uv, NULL, NULL);
+	uv.z = 1.0f;
+	return uv;
+}
+
 CCL_NAMESPACE_END
 

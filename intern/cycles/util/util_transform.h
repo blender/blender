@@ -28,6 +28,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Data Types */
+
 typedef struct Transform {
 	float4 x, y, z, w; /* rows */
 
@@ -36,6 +38,17 @@ typedef struct Transform {
 	float4& operator[](int i) { return *(&x + i); }
 #endif
 } Transform;
+
+typedef struct MotionTransform {
+	Transform pre;
+	Transform post;
+} MotionTransform;
+
+/* transform decomposed in rotation/translation/scale. we use the same data
+ * structure as Transform, and tightly pack decomposition into it. first the
+ * rotation (4), then translation (3), then 3x3 scale matrix (9) */
+
+/* Functions */
 
 __device_inline float3 transform_perspective(const Transform *t, const float3 a)
 {
@@ -60,6 +73,15 @@ __device_inline float3 transform_direction(const Transform *t, const float3 a)
 	float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
 
 	return c;
+}
+
+__device_inline float3 transform_direction_transposed(const Transform *t, const float3 a)
+{
+	float3 x = make_float3(t->x.x, t->y.x, t->z.x);
+	float3 y = make_float3(t->x.y, t->y.y, t->z.y);
+	float3 z = make_float3(t->x.z, t->y.z, t->z.z);
+
+	return make_float3(dot(x, a), dot(y, a), dot(z, a));
 }
 
 #ifndef __KERNEL_GPU__
@@ -269,6 +291,102 @@ __device_inline Transform transform_clear_scale(const Transform& tfm)
 
 	return ntfm;
 }
+
+#endif
+
+/* Motion Transform */
+
+__device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
+{
+	float costheta = dot(q1, q2);
+
+	if(costheta > 0.9995f) {
+		return normalize((1.0f - t)*q1 + t*q2);
+	}
+	else  {
+		float theta = acosf(clamp(costheta, -1.0f, 1.0f));
+		float thetap = theta * t;
+		float4 qperp = normalize(q2 - q1 * costheta);
+		return q1 * cosf(thetap) + qperp * sinf(thetap);
+	}
+}
+
+__device_inline Transform transform_quick_inverse(Transform M)
+{
+	Transform R;
+	float det = M.x.x*(M.z.z*M.y.y - M.z.y*M.y.z) - M.y.x*(M.z.z*M.x.y - M.z.y*M.x.z) + M.z.x*(M.y.z*M.x.y - M.y.y*M.x.z);
+
+	det = (det != 0.0f)? 1.0f/det: 0.0f;
+
+	float3 Rx = det*make_float3(M.z.z*M.y.y - M.z.y*M.y.z, M.z.y*M.x.z - M.z.z*M.x.y, M.y.z*M.x.y - M.y.y*M.x.z);
+	float3 Ry = det*make_float3(M.z.x*M.y.z - M.z.z*M.y.x, M.z.z*M.x.x - M.z.x*M.x.z, M.y.x*M.x.z - M.y.z*M.x.x);
+	float3 Rz = det*make_float3(M.z.y*M.y.x - M.z.x*M.y.y, M.z.x*M.x.y - M.z.y*M.x.x, M.y.y*M.x.x - M.y.x*M.x.y);
+	float3 T = -make_float3(M.x.w, M.y.w, M.z.w);
+
+	R.x = make_float4(Rx.x, Rx.y, Rx.z, dot(Rx, T));
+	R.y = make_float4(Ry.x, Ry.y, Ry.z, dot(Ry, T));
+	R.z = make_float4(Rz.x, Rz.y, Rz.z, dot(Rz, T));
+	R.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+	return R;
+}
+
+__device_inline void transform_compose(Transform *tfm, const Transform *decomp)
+{
+	/* rotation */
+	float q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
+
+	q0 = M_SQRT2_F * decomp->x.w;
+	q1 = M_SQRT2_F * decomp->x.x;
+	q2 = M_SQRT2_F * decomp->x.y;
+	q3 = M_SQRT2_F * decomp->x.z;
+
+	qda = q0*q1;
+	qdb = q0*q2;
+	qdc = q0*q3;
+	qaa = q1*q1;
+	qab = q1*q2;
+	qac = q1*q3;
+	qbb = q2*q2;
+	qbc = q2*q3;
+	qcc = q3*q3;
+
+	float3 rotation_x = make_float3(1.0f-qbb-qcc, -qdc+qab, qdb+qac);
+	float3 rotation_y = make_float3(qdc+qab, 1.0f-qaa-qcc, -qda+qbc);
+	float3 rotation_z = make_float3(-qdb+qac, qda+qbc, 1.0f-qaa-qbb);
+
+	/* scale */
+	float3 scale_x = make_float3(decomp->y.w, decomp->z.z, decomp->w.y);
+	float3 scale_y = make_float3(decomp->z.x, decomp->z.w, decomp->w.z);
+	float3 scale_z = make_float3(decomp->z.y, decomp->w.x, decomp->w.w);
+
+	/* compose with translation */
+	tfm->x = make_float4(dot(rotation_x, scale_x), dot(rotation_x, scale_y), dot(rotation_x, scale_z), decomp->y.x);
+	tfm->y = make_float4(dot(rotation_y, scale_x), dot(rotation_y, scale_y), dot(rotation_y, scale_z), decomp->y.y);
+	tfm->z = make_float4(dot(rotation_z, scale_x), dot(rotation_z, scale_y), dot(rotation_z, scale_z), decomp->y.z);
+	tfm->w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+__device void transform_motion_interpolate(Transform *tfm, const MotionTransform *motion, float t)
+{
+	Transform decomp;
+
+	decomp.x = quat_interpolate(motion->pre.x, motion->post.x, t);
+	decomp.y = (1.0f - t)*motion->pre.y + t*motion->post.y;
+	decomp.z = (1.0f - t)*motion->pre.z + t*motion->post.z;
+	decomp.w = (1.0f - t)*motion->pre.w + t*motion->post.w;
+
+	transform_compose(tfm, &decomp);
+}
+
+#ifndef __KERNEL_GPU__
+
+__device_inline bool operator==(const MotionTransform& A, const MotionTransform& B)
+{
+	return (A.pre == B.pre && A.post == B.post);
+}
+
+void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion);
 
 #endif
 

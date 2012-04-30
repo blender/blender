@@ -33,30 +33,6 @@ CCL_NAMESPACE_BEGIN
 
 /* Find/Add */
 
-static bool mesh_need_attribute(Scene *scene, Mesh *mesh, Attribute::Standard std)
-{
-	if(std == Attribute::STD_NONE)
-		return false;
-
-	foreach(uint shader, mesh->used_shaders)
-		if(scene->shaders[shader]->attributes.find(std))
-			return true;
-	
-	return false;
-}
-
-static bool mesh_need_attribute(Scene *scene, Mesh *mesh, ustring name)
-{
-	if(name == ustring())
-		return false;
-
-	foreach(uint shader, mesh->used_shaders)
-		if(scene->shaders[shader]->attributes.find(name))
-			return true;
-	
-	return false;
-}
-
 static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<uint>& used_shaders)
 {
 	/* create vertices */
@@ -66,7 +42,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		mesh->verts.push_back(get_float3(v->co()));
 
 	/* create vertex normals */
-	Attribute *attr_N = mesh->attributes.add(Attribute::STD_VERTEX_NORMAL);
+	Attribute *attr_N = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 	float3 *N = attr_N->data_float3();
 
 	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++N)
@@ -94,8 +70,8 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	/* create generated coordinates. todo: we should actually get the orco
 	   coordinates from modifiers, for now we use texspace loc/size which
 	   is available in the api. */
-	if(mesh_need_attribute(scene, mesh, Attribute::STD_GENERATED)) {
-		Attribute *attr = mesh->attributes.add(Attribute::STD_GENERATED);
+	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
+		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
 		float3 loc = get_float3(b_mesh.texspace_location());
 		float3 size = get_float3(b_mesh.texspace_size());
 
@@ -118,7 +94,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		BL::Mesh::tessface_vertex_colors_iterator l;
 
 		for(b_mesh.tessface_vertex_colors.begin(l); l != b_mesh.tessface_vertex_colors.end(); ++l) {
-			if(!mesh_need_attribute(scene, mesh, ustring(l->name().c_str())))
+			if(!mesh->need_attribute(scene, ustring(l->name().c_str())))
 				continue;
 
 			Attribute *attr = mesh->attributes.add(
@@ -150,10 +126,10 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		BL::Mesh::tessface_uv_textures_iterator l;
 
 		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
-			Attribute::Standard std = (l->active_render())? Attribute::STD_UV: Attribute::STD_NONE;
+			AttributeStandard std = (l->active_render())? ATTR_STD_UV: ATTR_STD_NONE;
 			ustring name = ustring(l->name().c_str());
 
-			if(!(mesh_need_attribute(scene, mesh, name) || mesh_need_attribute(scene, mesh, std)))
+			if(!(mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std)))
 				continue;
 
 			Attribute *attr;
@@ -327,6 +303,39 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool holdout, bool object_updated)
 	mesh->tag_update(scene, rebuild);
 
 	return mesh;
+}
+
+void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
+{
+	/* todo: displacement, subdivision */
+	BL::ID b_ob_data = b_ob.data();
+	size_t size = mesh->verts.size();
+
+	/* skip objects without deforming modifiers. this is not a totally reliable,
+	 * would need a more extensive check to see which objects are animated */
+	if(!size || !ccl::object_is_deform_modified(b_ob, b_scene, preview))
+		return;
+
+	/* get derived mesh */
+	BL::Mesh b_mesh = object_to_mesh(b_ob, b_scene, true, !preview);
+
+	if(b_mesh) {
+		BL::Mesh::vertices_iterator v;
+		AttributeStandard std = (motion == -1)? ATTR_STD_MOTION_PRE: ATTR_STD_MOTION_POST;
+		Attribute *attr_M = mesh->attributes.add(std);
+		float3 *M = attr_M->data_float3();
+		size_t i = 0, size = mesh->verts.size();
+
+		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end() && i < size; ++v, M++, i++)
+			*M = get_float3(v->co());
+
+		/* if number of vertices changed, or if coordinates stayed the same, drop it */
+		if(i != size || memcmp(M, &mesh->verts[0], sizeof(float3)*size) == 0)
+			mesh->attributes.remove(std);
+
+		/* free derived mesh */
+		object_remove_mesh(b_data, b_mesh);
+	}
 }
 
 CCL_NAMESPACE_END

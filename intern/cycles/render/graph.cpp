@@ -120,9 +120,9 @@ void ShaderNode::attributes(AttributeRequestSet *attributes)
 	foreach(ShaderInput *input, inputs) {
 		if(!input->link) {
 			if(input->default_value == ShaderInput::TEXTURE_GENERATED)
-				attributes->add(Attribute::STD_GENERATED);
+				attributes->add(ATTR_STD_GENERATED);
 			else if(input->default_value == ShaderInput::TEXTURE_UV)
-				attributes->add(Attribute::STD_UV);
+				attributes->add(ATTR_STD_UV);
 		}
 	}
 }

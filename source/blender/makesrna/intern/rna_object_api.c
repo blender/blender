@@ -476,6 +476,11 @@ int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
 	return object_is_modified(scene, ob) & settings;
 }
 
+int rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
+{
+	return object_is_deform_modified(scene, ob) & settings;
+}
+
 #ifndef NDEBUG
 void rna_Object_dm_info(struct Object *ob, int type, char *result)
 {
@@ -644,6 +649,14 @@ void RNA_api_object(StructRNA *srna)
 	parm = RNA_def_boolean(func, "result", 0, "", "Object visibility");
 	RNA_def_function_return(func, parm);
 
+	func = RNA_def_function(srna, "is_deform_modified", "rna_Object_is_deform_modified");
+	RNA_def_function_ui_description(func, "Determine if this object is modified by a deformation from the base mesh data");
+	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_boolean(func, "result", 0, "", "Object visibility");
+	RNA_def_function_return(func, parm);
 
 #ifndef NDEBUG
 	/* mesh */
