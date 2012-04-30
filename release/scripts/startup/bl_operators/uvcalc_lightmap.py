@@ -157,18 +157,17 @@ class prettyface(object):
                 angles_co.sort()
                 I = [i for a, i in angles_co]
 
-                #~ fuv = f.uv
                 uv_layer = f.id_data.uv_layers.active.data
-                fuv = [uv_layer[i].uv for i in f.loops]  # XXX25
+                fuv = [uv_layer[i].uv for i in f.loop_indices]
 
                 if self.rot:
-                    fuv[I[2]] = p1
-                    fuv[I[1]] = p2
-                    fuv[I[0]] = p3
+                    fuv[I[2]][:] = p1
+                    fuv[I[1]][:] = p2
+                    fuv[I[0]][:] = p3
                 else:
-                    fuv[I[2]] = p1
-                    fuv[I[0]] = p2
-                    fuv[I[1]] = p3
+                    fuv[I[2]][:] = p1
+                    fuv[I[0]][:] = p2
+                    fuv[I[1]][:] = p3
 
             f, lens, lensord = uv[0]
 
@@ -179,10 +178,10 @@ class prettyface(object):
                 set_uv(f, (x2, y2), (x2, y1 + margin_h), (x1 + margin_w, y2))
 
         else:  # 1 QUAD
-            uv[1][0], uv[1][1] = x1, y1
-            uv[2][0], uv[2][1] = x1, y2
-            uv[3][0], uv[3][1] = x2, y2
-            uv[0][0], uv[0][1] = x2, y1
+            uv[1][:] = x1, y1
+            uv[2][:] = x1, y2
+            uv[3][:] = x2, y2
+            uv[0][:] = x2, y1
 
     def __hash__(self):
         # None unique hash
