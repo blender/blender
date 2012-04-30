@@ -424,7 +424,8 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 	}
 
 	/* Find widest axis */
-	widest_axis_len = 0;
+	widest_axis_len = 0.0f;
+	widest_axis = 0; /* set here in the unlikey case this isn't set below */
 	for (i = 0; i < 3; i++) {
 		float len = (max[i]->co[i] - min[i]->co[i]);
 		if (len >= widest_axis_len) {
@@ -441,6 +442,7 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 
 	/* Choose third vertex farthest from existing line segment */
 	largest_dist = 0;
+	tetra[2] = NULL;
 	for (i = 0; i < 3; i++) {
 		BMVert *v;
 		float dist;
@@ -460,7 +462,13 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 		}
 	}
 
-	BMO_elem_flag_enable(bm, tetra[2], HULL_FLAG_TETRA_VERT);
+	if (tetra[2]) {
+		BMO_elem_flag_enable(bm, tetra[2], HULL_FLAG_TETRA_VERT);
+	}
+	else {
+		return TRUE;
+	}
+
 	/* Check for colinear vertices */
 	if (largest_dist < 0.0001)
 		return TRUE;
@@ -478,7 +486,13 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 		}
 	}
 
-	BMO_elem_flag_enable(bm, tetra[3], HULL_FLAG_TETRA_VERT);
+	if (tetra[3]) {
+		BMO_elem_flag_enable(bm, tetra[3], HULL_FLAG_TETRA_VERT);
+	}
+	else {
+		return TRUE;
+	}
+
 	if (largest_dist < 0.0001)
 		return TRUE;
 
