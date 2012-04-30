@@ -779,11 +779,12 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 	}
 	else {
 		/* store graph region align */
-		if (ar_preview->alignment == RGN_ALIGN_TOP)
-			sc->runtime_flag &= ~SC_GRAPH_BOTTOM;
-		else if (ar_preview->alignment == RGN_ALIGN_BOTTOM)
-			sc->runtime_flag |= SC_GRAPH_BOTTOM;
-
+		if (ar_preview) {
+			if (ar_preview->alignment == RGN_ALIGN_TOP)
+				sc->runtime_flag &= ~SC_GRAPH_BOTTOM;
+			else if (ar_preview->alignment == RGN_ALIGN_BOTTOM)
+				sc->runtime_flag |= SC_GRAPH_BOTTOM;
+		}
 		if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
 			ar_preview->flag |= RGN_FLAG_HIDDEN;
 			ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
