@@ -1,6 +1,3 @@
-/** \file blender/blenpluginapi/externdef.h
- *  \ingroup blpluginapi
- */
 /* Copyright (c) 1999, Not a Number / NeoGeo b.v. 
  * 
  * All rights reserved.
@@ -32,6 +29,10 @@
 
 #ifndef __EXTERNDEF_H__
 #define __EXTERNDEF_H__
+
+/** \file blender/blenpluginapi/externdef.h
+ *  \ingroup blpluginapi
+ */
 
 #ifdef WIN32
  #ifdef PLUGIN_INTERN

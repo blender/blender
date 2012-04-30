@@ -1,8 +1,4 @@
 /*
- *
- * This is external code. Sets some compression related options
- * (width, height quality, framerate).
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +28,9 @@
 
 /** \file blender/avi/intern/options.c
  *  \ingroup avi
+ *
+ * This is external code. Sets some compression related options
+ * (width, height quality, framerate).
  */
 
 #include "AVI_avi.h"

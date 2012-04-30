@@ -1,6 +1,4 @@
 /*
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,9 +26,6 @@
 /** \file blender/render/intern/source/imagetexture.c
  *  \ingroup render
  */
-
-
-
 
 #include <stdio.h>
 #include <string.h>

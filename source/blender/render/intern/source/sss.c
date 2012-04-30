@@ -1,5 +1,4 @@
 /*
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +28,6 @@
 /** \file blender/render/intern/source/sss.c
  *  \ingroup render
  */
-
 
 /* Possible Improvements:
  * - add fresnel terms

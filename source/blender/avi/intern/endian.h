@@ -1,7 +1,4 @@
 /*
- *
- * This is external code.
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -26,13 +23,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- *
  */
 
 /** \file blender/avi/intern/endian.h
  *  \ingroup avi
+ *
+ * This is external code.
  */
-
 
 #ifndef __ENDIAN_H__
 #define __ENDIAN_H__
@@ -49,7 +46,7 @@
 #define AVI_INDEXE   6
 #define AVI_MJPEGU   7
 
-void awrite (AviMovie *movie, void *datain, int block, int size, FILE *fp, int type);
+void awrite(AviMovie *movie, void *datain, int block, int size, FILE *fp, int type);
 
 #endif
 

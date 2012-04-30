@@ -1,8 +1,4 @@
 /*
- * imagepaint.c
- *
- * Functions to paint images in 2D and 3D.
- * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -30,8 +26,8 @@
 
 /** \file blender/editors/sculpt_paint/paint_image.c
  *  \ingroup edsculpt
+ *  \brief Functions to paint images in 2D and 3D.
  */
-
 
 #include <float.h>
 #include <string.h>

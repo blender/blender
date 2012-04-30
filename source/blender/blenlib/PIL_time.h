@@ -1,6 +1,4 @@
-/* 
- * Platform independent time functions.
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +27,7 @@
 
 /** \file blender/blenlib/PIL_time.h
  *  \ingroup bli
+ *  \brief Platform independent time functions.
  */
 
  

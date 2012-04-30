@@ -1,9 +1,4 @@
 /*
- *
- * quicktime_export.c
- *
- * Code to create QuickTime Movies with Blender
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +24,8 @@
 
 /** \file blender/quicktime/apple/quicktime_export.c
  *  \ingroup quicktime
+ *
+ * Code to create QuickTime Movies with Blender
  */
 
 
