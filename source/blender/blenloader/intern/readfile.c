@@ -12849,14 +12849,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								v3d->bundle_size= 0.2f;
 								v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
 							}
-							else if (sl->spacetype==SPACE_CLIP) {
-								SpaceClip *sc= (SpaceClip *)sl;
-								if (sc->scopes.track_preview_height==0)
-									sc->scopes.track_preview_height= 120;
-							}
 
 							if (v3d->bundle_drawtype==0)
 								v3d->bundle_drawtype= OB_PLAINAXES;
+						}
+						else if (sl->spacetype==SPACE_CLIP) {
+							SpaceClip *sc= (SpaceClip *)sl;
+							if (sc->scopes.track_preview_height==0)
+								sc->scopes.track_preview_height= 120;
 						}
 					}
 				}
