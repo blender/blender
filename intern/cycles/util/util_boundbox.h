@@ -50,7 +50,7 @@ public:
 	{
 	}
 
-	static struct empty_t {} empty;
+	enum empty_t { empty = 0};
 
 	__forceinline BoundBox(empty_t)
 	: min(make_float3(FLT_MAX, FLT_MAX, FLT_MAX)), max(make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX))
