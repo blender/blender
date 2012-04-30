@@ -42,6 +42,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -4029,6 +4030,7 @@ void ARMATURE_OT_select_all(wmOperatorType *ot)
 
 enum {
 	SIMEDBONE_LENGTH = 1,
+	SIMEDBONE_DIRECTION,
 	SIMEDBONE_PREFIX,
 	SIMEDBONE_SUFFIX,
 	SIMEDBONE_LAYER
@@ -4036,6 +4038,7 @@ enum {
 
 static EnumPropertyItem prop_similar_types[] = {
 	{SIMEDBONE_LENGTH, "LENGTH", 0, "Length", ""},
+	{SIMEDBONE_DIRECTION, "DIRECTION", 0, "Direction (Y axis)", ""},
 	{SIMEDBONE_PREFIX, "PREFIX", 0, "Prefix", ""},
 	{SIMEDBONE_SUFFIX, "SUFFIX", 0, "Suffix", ""},
 	{SIMEDBONE_LAYER, "LAYER", 0, "Layer", ""},
@@ -4053,13 +4056,13 @@ static void ED_armature_edit_bone_select(EditBone *ebone)
 	}
 }
 
-static void select_similar_length(bArmature *arm, EditBone *actBone, const float thresh)
+static void select_similar_length(bArmature *arm, EditBone *ebone_act, const float thresh)
 {
 	EditBone *ebone;
 
 	/* thresh is always relative to current length */
-	const float len_min = actBone->length / (1.0f + thresh);
-	const float len_max = actBone->length * (1.0f + thresh);
+	const float len_min = ebone_act->length / (1.0f + thresh);
+	const float len_max = ebone_act->length * (1.0f + thresh);
 
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
@@ -4072,90 +4075,116 @@ static void select_similar_length(bArmature *arm, EditBone *actBone, const float
 	}
 }
 
-static void select_similar_layer(bArmature *arm, EditBone *actBone)
+static void select_similar_direction(bArmature *arm, EditBone *ebone_act, const float thresh)
 {
 	EditBone *ebone;
+	float dir_act[3];
+	sub_v3_v3v3(dir_act, ebone_act->head, ebone_act->tail);
 
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
-			if (ebone->layer & actBone->layer) {
+			float dir[3];
+			sub_v3_v3v3(dir, ebone->head, ebone->tail);
+
+			if (angle_v3v3(dir_act, dir) / M_PI < thresh) {
 				ED_armature_edit_bone_select(ebone);
 			}
 		}
 	}
 }
 
-static void find_pre_or_suffix(char *outCompare, const char *name, int mode)
+static void select_similar_layer(bArmature *arm, EditBone *ebone_act)
 {
-	int len = BLI_strnlen(name, MAX_VGROUP_NAME);
+	EditBone *ebone;
 
-	if (len < 3)
-		return;
-
-	if (mode == SIMEDBONE_SUFFIX) {
-		if (BKE_deform_is_char_sep(name[len - 2])) {
-			BLI_strncpy(outCompare, &name[len - 1], sizeof(outCompare));
-		}
-	}
-	else if (mode == SIMEDBONE_PREFIX) {
-		if (BKE_deform_is_char_sep(name[1])) {
-			BLI_strncpy(outCompare, &name[0], sizeof(outCompare));
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+			if (ebone->layer & ebone_act->layer) {
+				ED_armature_edit_bone_select(ebone);
+			}
 		}
 	}
 }
 
-static void select_similar_name(bArmature *arm, EditBone *actBone, int mode)
+static void select_similar_prefix(bArmature *arm, EditBone *ebone_act)
 {
 	EditBone *ebone;
 
-	char *name = actBone->name;
-	char compare[MAX_VGROUP_NAME] = "";
-	find_pre_or_suffix(compare, name, mode);
+	char body_tmp[MAX_VGROUP_NAME];
+	char prefix_act[MAX_VGROUP_NAME];
 
-	if (compare[0] == '\0')
+	BKE_deform_split_prefix(ebone_act->name, prefix_act, body_tmp);
+
+	if (prefix_act[0] == '\0')
 		return;
 
 	/* Find matches */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
-			char tCompare[MAX_VGROUP_NAME] = "";
-			find_pre_or_suffix(tCompare, ebone->name, mode);
-			if (!strcmp(tCompare, compare)) {
+			char prefix_other[MAX_VGROUP_NAME];
+			BKE_deform_split_prefix(ebone->name, prefix_other, body_tmp);
+			if (!strcmp(prefix_act, prefix_other)) {
 				ED_armature_edit_bone_select(ebone);
 			}
 		}
 	}
+}
 
+static void select_similar_suffix(bArmature *arm, EditBone *ebone_act)
+{
+	EditBone *ebone;
+
+	char body_tmp[MAX_VGROUP_NAME];
+	char suffix_act[MAX_VGROUP_NAME];
+
+	BKE_deform_split_suffix(ebone_act->name, body_tmp, suffix_act);
+
+	if (suffix_act[0] == '\0')
+		return;
+
+	/* Find matches */
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+			char suffix_other[MAX_VGROUP_NAME];
+			BKE_deform_split_suffix(ebone->name, body_tmp, suffix_other);
+			if (!strcmp(suffix_act, suffix_other)) {
+				ED_armature_edit_bone_select(ebone);
+			}
+		}
+	}
 }
 
 static int armature_select_similar_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	bArmature *arm = obedit->data;
-	EditBone *actBone = CTX_data_active_bone(C);
+	EditBone *ebone_act = CTX_data_active_bone(C);
 
 	/* Get props */
 	int type = RNA_enum_get(op->ptr, "type");
 	float thresh = RNA_float_get(op->ptr, "threshold");
 
 	/* Check for active bone */
-	if (actBone == NULL) {
+	if (ebone_act == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
 		return OPERATOR_CANCELLED;
 	}
 
 	switch (type) {
 		case SIMEDBONE_LENGTH:
-			select_similar_length(arm, actBone, thresh);
+			select_similar_length(arm, ebone_act, thresh);
+			break;
+		case SIMEDBONE_DIRECTION:
+			select_similar_direction(arm, ebone_act, thresh);
 			break;
 		case SIMEDBONE_PREFIX:
-			select_similar_name(arm, actBone, SIMEDBONE_PREFIX);
+			select_similar_prefix(arm, ebone_act);
 			break;
 		case SIMEDBONE_SUFFIX:
-			select_similar_name(arm, actBone, SIMEDBONE_SUFFIX);
+			select_similar_suffix(arm, ebone_act);
 			break;
 		case SIMEDBONE_LAYER:
-			select_similar_layer(arm, actBone);
+			select_similar_layer(arm, ebone_act);
 			break;
 	}
 

@@ -78,7 +78,7 @@ __device float kernel_tex_interp_(__global float *data, int width, float x)
 
 #define make_float2(x, y) ((float2)(x, y))
 #ifdef __CL_NO_FLOAT3__
-#define make_float3(x, y, z) ((float4)(x, y, z, 0.0))
+#define make_float3(x, y, z) ((float4)(x, y, z, 0.0f))
 #else
 #define make_float3(x, y, z) ((float3)(x, y, z))
 #endif
