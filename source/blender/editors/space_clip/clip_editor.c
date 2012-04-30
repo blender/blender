@@ -118,12 +118,37 @@ int ED_space_clip_tracking_frame_poll(bContext *C)
 
 /* ******** editing functions ******** */
 
-void ED_space_clip_set(bContext *C, SpaceClip *sc, MovieClip *clip)
+void ED_space_clip_set(bContext *C, bScreen *screen, SpaceClip *sc, MovieClip *clip)
 {
+	MovieClip *old_clip;
+
+	if (!screen && C)
+		screen = CTX_wm_screen(C);
+
+	old_clip = sc->clip;
 	sc->clip = clip;
 
 	if (sc->clip && sc->clip->id.us==0)
 		sc->clip->id.us = 1;
+
+	if (screen) {
+		ScrArea *area;
+		SpaceLink *sl;
+
+		for (area = screen->areabase.first; area; area = area->next) {
+			for (sl = area->spacedata.first; sl; sl = sl->next) {
+				if (sl->spacetype == SPACE_CLIP) {
+					SpaceClip *cur_sc = (SpaceClip *) sl;
+
+					if (cur_sc != sc) {
+						if (cur_sc->clip == old_clip || cur_sc->clip == NULL) {
+							cur_sc->clip = clip;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	if (C)
 		WM_event_add_notifier(C, NC_MOVIECLIP|NA_SELECTED, sc->clip);
@@ -515,4 +540,12 @@ int ED_space_clip_show_trackedit(SpaceClip *sc)
 	}
 
 	return FALSE;
+}
+
+void ED_space_clip_update_dopesheet(SpaceClip *sc)
+{
+	MovieClip *clip = sc->clip;
+	MovieTracking *tracking = &clip->tracking;
+
+	BKE_tracking_update_dopesheet(tracking);
 }

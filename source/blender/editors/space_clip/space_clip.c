@@ -72,28 +72,76 @@
 static void init_preview_region(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
+	ScrArea *sa = CTX_wm_area(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	ar->regiontype = RGN_TYPE_PREVIEW;
 	ar->alignment = RGN_ALIGN_TOP;
 	ar->flag |= RGN_FLAG_HIDDEN;
 
-	ar->v2d.tot.xmin = 0.0f;
-	ar->v2d.tot.ymin = -10.0f;
-	ar->v2d.tot.xmax = (float)scene->r.efra;
-	ar->v2d.tot.ymax = 10.0f;
+	if (sc->view == SC_VIEW_DOPESHEET) {
+		ar->v2d.tot.xmin = -10.0f;
+		ar->v2d.tot.ymin = (float)(-sa->winy)/3.0f;
+		ar->v2d.tot.xmax = (float)(sa->winx);
+		ar->v2d.tot.ymax = 0.0f;
 
-	ar->v2d.cur = ar->v2d.tot;
+		ar->v2d.cur = ar->v2d.tot;
 
-	ar->v2d.min[0] = FLT_MIN;
-	ar->v2d.min[1] = FLT_MIN;
+		ar->v2d.min[0] = 0.0f;
+		ar->v2d.min[1] = 0.0f;
 
-	ar->v2d.max[0] = MAXFRAMEF;
-	ar->v2d.max[1] = FLT_MAX;
+		ar->v2d.max[0] = MAXFRAMEF;
+		ar->v2d.max[1] = FLT_MAX;
 
-	ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
-	ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
+		ar->v2d.minzoom = 0.01f;
+		ar->v2d.maxzoom = 50;
+		ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+		ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
+		ar->v2d.keepzoom = V2D_LOCKZOOM_Y;
+		ar->v2d.keepofs = V2D_KEEPOFS_Y;
+		ar->v2d.align = V2D_ALIGN_NO_POS_Y;
+		ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+	}
+	else {
+		ar->v2d.tot.xmin = 0.0f;
+		ar->v2d.tot.ymin = -10.0f;
+		ar->v2d.tot.xmax = (float)scene->r.efra;
+		ar->v2d.tot.ymax = 10.0f;
 
-	ar->v2d.keeptot = 0;
+		ar->v2d.cur = ar->v2d.tot;
+
+		ar->v2d.min[0] = FLT_MIN;
+		ar->v2d.min[1] = FLT_MIN;
+
+		ar->v2d.max[0] = MAXFRAMEF;
+		ar->v2d.max[1] = FLT_MAX;
+
+		ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+		ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
+
+		ar->v2d.minzoom = 0.0f;
+		ar->v2d.maxzoom = 0.0f;
+		ar->v2d.keepzoom = 0;
+		ar->v2d.keepofs = 0;
+		ar->v2d.align = 0;
+		ar->v2d.flag = 0;
+
+		ar->v2d.keeptot = 0;
+	}
+}
+
+static void reinit_preview_region(const bContext *C, ARegion *ar)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	if (sc->view == SC_VIEW_DOPESHEET) {
+		if ((ar->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) == 0)
+			init_preview_region(C, ar);
+	}
+	else {
+		if (ar->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL)
+			init_preview_region(C, ar);
+	}
 }
 
 static ARegion *ED_clip_has_preview_region(const bContext *C, ScrArea *sa)
@@ -115,6 +163,33 @@ static ARegion *ED_clip_has_preview_region(const bContext *C, ScrArea *sa)
 
 	BLI_insertlinkbefore(&sa->regionbase, ar, arnew);
 	init_preview_region(C, arnew);
+
+	return arnew;
+}
+
+static ARegion *ED_clip_has_channels_region(ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_CHANNELS);
+	if (ar)
+		return ar;
+
+	/* add subdiv level; after header */
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
+
+	/* is error! */
+	if (ar == NULL)
+		return NULL;
+
+	arnew = MEM_callocN(sizeof(ARegion), "clip channels region");
+
+	BLI_insertlinkbefore(&sa->regionbase, ar, arnew);
+	arnew->regiontype = RGN_TYPE_CHANNELS;
+	arnew->alignment = RGN_ALIGN_LEFT;
+
+	arnew->v2d.scroll = V2D_SCROLL_BOTTOM;
+	arnew->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
 	return arnew;
 }
@@ -190,6 +265,16 @@ static SpaceLink *clip_new(const bContext *C)
 	ar->regiontype = RGN_TYPE_UI;
 	ar->alignment = RGN_ALIGN_RIGHT;
 
+	/* channels view */
+	ar = MEM_callocN(sizeof(ARegion), "channels for clip");
+
+	BLI_addtail(&sc->regionbase, ar);
+	ar->regiontype = RGN_TYPE_CHANNELS;
+	ar->alignment = RGN_ALIGN_LEFT;
+
+	ar->v2d.scroll = V2D_SCROLL_BOTTOM;
+	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+
 	/* preview view */
 	ar = MEM_callocN(sizeof(ARegion), "preview for clip");
 
@@ -214,6 +299,8 @@ static void clip_free(SpaceLink *sl)
 
 	if (sc->scopes.track_preview)
 		IMB_freeImBuf(sc->scopes.track_preview);
+
+	ED_space_clip_free_texture_buffer(sc);
 }
 
 /* spacetype; init callback */
@@ -229,6 +316,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	scn->scopes.track_preview = NULL;
 	scn->scopes.ok = FALSE;
+	scn->draw_context = NULL;
 
 	return (SpaceLink *)scn;
 }
@@ -391,6 +479,10 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_graph_center_current_frame);
 
 	WM_operatortype_append(CLIP_OT_graph_disable_markers);
+
+	/* ** clip_dopesheet_ops.c  ** */
+
+	WM_operatortype_append(CLIP_OT_dopesheet_select_channel);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)
@@ -609,6 +701,13 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "action", 2);	/* toggle */
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
+
+	/* ******** Hotkeys avalaible for channels region only ******** */
+
+	keymap = WM_keymap_find(keyconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);
+
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_dopesheet_select_channel", ACTIONMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);	/* toggle */
 }
 
 const char *clip_context_dir[]= {"edit_movieclip", NULL};
@@ -643,8 +742,9 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 	ARegion *ar_tool_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
 	ARegion *ar_preview = ED_clip_has_preview_region(C, sa);
 	ARegion *ar_properties = ED_clip_has_properties_region(sa);
+	ARegion *ar_channels = ED_clip_has_channels_region(sa);
 	int main_visible = FALSE, preview_visible = FALSE, tools_visible = FALSE;
-	int tool_props_visible = FALSE, properties_visible = FALSE;
+	int tool_props_visible = FALSE, properties_visible = FALSE, channels_visible = FALSE;
 	int view_changed = FALSE;
 
 	switch (sc->view) {
@@ -654,13 +754,27 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			tools_visible = TRUE;
 			tool_props_visible = TRUE;
 			properties_visible = TRUE;
+			channels_visible = FALSE;
 			break;
 		case SC_VIEW_GRAPH:
-			main_visible = TRUE;
+			main_visible = FALSE;
 			preview_visible = TRUE;
-			tools_visible = TRUE;
-			tool_props_visible = TRUE;
-			properties_visible = TRUE;
+			tools_visible = FALSE;
+			tool_props_visible = FALSE;
+			properties_visible = FALSE;
+			channels_visible = FALSE;
+
+			reinit_preview_region(C, ar_preview);
+			break;
+		case SC_VIEW_DOPESHEET:
+			main_visible = FALSE;
+			preview_visible = TRUE;
+			tools_visible = FALSE;
+			tool_props_visible = FALSE;
+			properties_visible = FALSE;
+			channels_visible = TRUE;
+
+			reinit_preview_region(C, ar_preview);
 			break;
 	}
 
@@ -768,23 +882,12 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			ar_preview->v2d.cur = ar_preview->v2d.tot;
 			view_changed = TRUE;
 		}
-		if (ar_preview && !ELEM(ar_preview->alignment, RGN_ALIGN_TOP,  RGN_ALIGN_BOTTOM)) {
-			if (sc->runtime_flag & SC_GRAPH_BOTTOM)
-				ar_preview->alignment = RGN_ALIGN_BOTTOM;
-			else
-				ar_preview->alignment = RGN_ALIGN_TOP;
-
+		if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
+			ar_preview->alignment = RGN_ALIGN_NONE;
 			view_changed = TRUE;
 		}
 	}
 	else {
-		/* store graph region align */
-		if (ar_preview) {
-			if (ar_preview->alignment == RGN_ALIGN_TOP)
-				sc->runtime_flag &= ~SC_GRAPH_BOTTOM;
-			else if (ar_preview->alignment == RGN_ALIGN_BOTTOM)
-				sc->runtime_flag |= SC_GRAPH_BOTTOM;
-		}
 		if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
 			ar_preview->flag |= RGN_FLAG_HIDDEN;
 			ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
@@ -793,6 +896,30 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 		}
 		if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
 			ar_preview->alignment = RGN_ALIGN_NONE;
+			view_changed = TRUE;
+		}
+	}
+
+	if (channels_visible) {
+		if (ar_channels && (ar_channels->flag & RGN_FLAG_HIDDEN)) {
+			ar_channels->flag &= ~RGN_FLAG_HIDDEN;
+			ar_channels->v2d.flag &= ~V2D_IS_INITIALISED;
+			view_changed = TRUE;
+		}
+		if (ar_channels && ar_channels->alignment != RGN_ALIGN_LEFT) {
+			ar_channels->alignment = RGN_ALIGN_LEFT;
+			view_changed = TRUE;
+		}
+	}
+	else {
+		if (ar_channels && !(ar_channels->flag & RGN_FLAG_HIDDEN)) {
+			ar_channels->flag |= RGN_FLAG_HIDDEN;
+			ar_channels->v2d.flag &= ~V2D_IS_INITIALISED;
+			WM_event_remove_handlers((bContext *)C, &ar_tools->handlers);
+			view_changed = TRUE;
+		}
+		if (ar_channels && ar_channels->alignment != RGN_ALIGN_NONE) {
+			ar_channels->alignment = RGN_ALIGN_NONE;
 			view_changed = TRUE;
 		}
 	}
@@ -976,12 +1103,89 @@ static void graph_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_free(scrollers);
 }
 
+static void dopesheet_area_draw(const bContext *C, ARegion *ar)
+{
+	Scene *scene = CTX_data_scene(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	View2D *v2d = &ar->v2d;
+	View2DGrid *grid;
+	View2DScrollers *scrollers;
+	short unit = 0;
+
+	/* clear and setup matrix */
+	UI_ThemeClearColor(TH_BACK);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	UI_view2d_view_ortho(v2d);
+
+	/* time grid */
+	unit = (sc->flag & SC_SHOW_SECONDS)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
+	grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
+	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
+	UI_view2d_grid_free(grid);
+
+	/* data... */
+	clip_draw_dopesheet_main(sc, ar, scene);
+
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
+}
+
 static void clip_preview_area_draw(const bContext *C, ARegion *ar)
 {
-	graph_area_draw(C, ar);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	if (sc->view == SC_VIEW_GRAPH)
+		graph_area_draw(C, ar);
+	else if (sc->view == SC_VIEW_DOPESHEET)
+		dopesheet_area_draw(C, ar);
 }
 
 static void clip_preview_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
+{
+}
+
+/****************** channels region ******************/
+
+static void clip_channels_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	wmKeyMap *keymap;
+
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+
+	keymap = WM_keymap_find(wm->defaultconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+}
+
+static void clip_channels_area_draw(const bContext *C, ARegion *ar)
+{
+	View2D *v2d = &ar->v2d;
+	View2DScrollers *scrollers;
+
+	/* clear and setup matrix */
+	UI_ThemeClearColor(TH_BACK);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	UI_view2d_view_ortho(v2d);
+
+	/* data... */
+	clip_draw_dopesheet_channels(C, ar);
+
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+
+	/* scrollers */
+	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
+}
+
+static void clip_channels_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 }
 
@@ -1162,4 +1366,15 @@ void ED_spacetype_clip(void)
 	BLI_addhead(&st->regiontypes, art);
 
 	BKE_spacetype_register(st);
+
+	/* channels */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype clip channels region");
+	art->regionid = RGN_TYPE_CHANNELS;
+	art->prefsizex = UI_COMPACT_PANEL_WIDTH;
+	art->keymapflag = ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
+	art->listener = clip_channels_area_listener;
+	art->init = clip_channels_area_init;
+	art->draw = clip_channels_area_draw;
+
+	BLI_addhead(&st->regiontypes, art);
 }

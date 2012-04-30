@@ -632,6 +632,12 @@ static void tracking_objects_free(ListBase *objects)
 	BLI_freelistN(objects);
 }
 
+static void tracking_dopesheet_free(MovieTrackingDopesheet *dopesheet)
+{
+	BLI_freelistN(&dopesheet->channels);
+	dopesheet->tot_channel = 0;
+}
+
 void BKE_tracking_free(MovieTracking *tracking)
 {
 	tracking_tracks_free(&tracking->tracks);
@@ -643,6 +649,8 @@ void BKE_tracking_free(MovieTracking *tracking)
 
 	if (tracking->camera.intrinsics)
 		BKE_tracking_distortion_destroy(tracking->camera.intrinsics);
+
+	tracking_dopesheet_free(&tracking->dopesheet);
 }
 
 static MovieTrackingTrack *duplicate_track(MovieTrackingTrack *track)
@@ -1352,6 +1360,8 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 		newframe = context->user.framenr - 1;
 
 	context->sync_frame = newframe;
+
+	BKE_tracking_update_dopesheet(tracking);
 }
 
 void BKE_tracking_sync_user(MovieClipUser *user, MovieTrackingContext *context)
@@ -3032,4 +3042,54 @@ MovieTrackingObject *BKE_tracking_named_object(MovieTracking *tracking, const ch
 	}
 
 	return NULL;
+}
+
+/*********************** dopesheet functions *************************/
+
+static int channels_alpha_sort(void *a, void *b)
+{
+	MovieTrackingDopesheetChannel *channel_a = a;
+	MovieTrackingDopesheetChannel *channel_b = b;
+
+	if (BLI_strcasecmp(channel_a->track->name, channel_b->track->name) > 0)
+		return 1;
+	else
+		return 0;
+}
+
+void BKE_tracking_update_dopesheet(MovieTracking *tracking)
+{
+	MovieTrackingObject *object = BKE_tracking_active_object(tracking);
+	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
+	MovieTrackingTrack *track;
+	ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
+	ListBase old_channels;
+
+	old_channels = dopesheet->channels;
+	dopesheet->channels.first = dopesheet->channels.last = NULL;
+	dopesheet->tot_channel = 0;
+
+	for (track = tracksbase->first; track; track = track->next) {
+		if (TRACK_SELECTED(track) && (track->flag & TRACK_HIDDEN) == 0) {
+			MovieTrackingDopesheetChannel *channel, *old_channel;
+
+			channel = MEM_callocN(sizeof(MovieTrackingDopesheetChannel), "tracking dopesheet channel");
+			channel->track = track;
+
+			/* copy flags from current dopsheet information to new one */
+			for (old_channel = old_channels.first; old_channel; old_channel = old_channel->next) {
+				if (old_channel->track == track) {
+					channel->flag = old_channel->flag;
+					break;
+				}
+			}
+
+			BLI_addtail(&dopesheet->channels, channel);
+			dopesheet->tot_channel++;
+		}
+	}
+
+	BLI_sortlist(&dopesheet->channels, channels_alpha_sort);
+
+	BLI_freelistN(&old_channels);
 }

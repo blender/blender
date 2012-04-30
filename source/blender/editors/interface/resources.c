@@ -864,6 +864,9 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tclip.cframe, 0x60, 0xc0, 0x40, 255);
 	rgba_char_args_set(btheme->tclip.handle_vertex, 0x00, 0x00, 0x00, 0xff);
 	rgba_char_args_set(btheme->tclip.handle_vertex_select, 0xff, 0xff, 0, 0xff);
+	rgba_char_args_set(btheme->tclip.list, 0x66, 0x66, 0x66, 0xff);
+	rgba_char_args_set(btheme->tclip.strip, 0x0c, 0x0a, 0x0a, 0x80);
+	rgba_char_args_set(btheme->tclip.strip_select, 0xff, 0x8c, 0x00, 0xff);
 	btheme->tclip.handle_vertex_size = 4;
 }
 
@@ -1771,6 +1774,17 @@ void init_userdef_do_versions(void)
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			if (btheme->tseq.movieclip[0] == 0) {
 				rgba_char_args_set(btheme->tseq.movieclip,  32, 32, 143, 255);
+			}
+		}
+	}
+
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 2)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (btheme->tclip.strip[0] == 0) {
+				rgba_char_args_set(btheme->tclip.list, 0x66, 0x66, 0x66, 0xff);
+				rgba_char_args_set(btheme->tclip.strip, 0x0c, 0x0a, 0x0a, 0x80);
+				rgba_char_args_set(btheme->tclip.strip_select, 0xff, 0x8c, 0x00, 0xff);
 			}
 		}
 	}

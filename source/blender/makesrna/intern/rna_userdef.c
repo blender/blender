@@ -1997,6 +1997,7 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Theme Clip Editor", "Theme settings for the Movie Clip Editor");
 
 	rna_def_userdef_theme_spaces_main(srna);
+	rna_def_userdef_theme_spaces_list_main(srna);
 
 	prop = RNA_def_property(srna, "marker_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "marker_outline");
@@ -2070,6 +2071,18 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "handle_vertex_size", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 255);
 	RNA_def_property_ui_text(prop, "Handle Vertex Size", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "strips", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "strip");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Strips", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "strips_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "strip_select");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Strips Selected", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
