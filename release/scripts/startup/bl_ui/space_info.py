@@ -42,6 +42,7 @@ class INFO_HT_header(Header):
                 sub.menu("INFO_MT_game")
             else:
                 sub.menu("INFO_MT_render")
+            sub.menu("INFO_MT_window")
             sub.menu("INFO_MT_help")
 
         if window.screen.show_fullscreen:
@@ -65,9 +66,6 @@ class INFO_HT_header(Header):
         row = layout.row(align=True)
         row.operator("wm.splash", text="", icon='BLENDER', emboss=False)
         row.label(text=scene.statistics())
-
-        # XXX: this should be right-aligned to the RHS of the region
-        layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER', text="")
 
         # XXX: BEFORE RELEASE, MOVE FILE MENU OUT OF INFO!!!
         """
@@ -350,19 +348,30 @@ class INFO_MT_render(Menu):
 
         layout.operator("render.view_show")
         layout.operator("render.play_rendered_anim")
-
+        
+class INFO_MT_window(bpy.types.Menu):
+    bl_label = "Window"
+    
+    def draw(self, context):
+        import sys
+        
+        layout = self.layout
+        
+        layout.operator("wm.window_duplicate")
+        layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER')
+        if sys.platform[:3] == "win":
+            layout.separator()
+            layout.operator("wm.console_toggle", icon='CONSOLE')
+        
 
 class INFO_MT_help(Menu):
     bl_label = "Help"
 
     def draw(self, context):
-        import sys
-
         layout = self.layout
 
         layout.operator("wm.url_open", text="Manual", icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:2.6/Manual'
         layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-263/'
-
         layout.separator()
 
         layout.operator("wm.url_open", text="Blender Website", icon='URL').url = 'http://www.blender.org/'
@@ -377,12 +386,10 @@ class INFO_MT_help(Menu):
         layout.operator("wm.operator_cheat_sheet", icon='TEXT')
         layout.operator("wm.sysinfo", icon='TEXT')
         layout.separator()
-        if sys.platform[:3] == "win":
-            layout.operator("wm.console_toggle", icon='CONSOLE')
-            layout.separator()
         layout.operator("anim.update_data_paths", text="FCurve/Driver Version fix", icon='HELP')
         layout.operator("logic.texface_convert", text="TexFace to Material Convert", icon='GAME')
         layout.separator()
+        
         layout.operator("wm.splash", icon='BLENDER')
 
 if __name__ == "__main__":  # only for live edit.
