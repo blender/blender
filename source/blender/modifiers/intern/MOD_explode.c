@@ -35,6 +35,7 @@
 
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
