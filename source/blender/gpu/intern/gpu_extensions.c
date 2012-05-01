@@ -67,6 +67,17 @@
  * - arb draw buffers? 2.0 core
  */
 
+/* Non-generated shaders */
+extern char datatoc_gpu_shader_vsm_store_vert_glsl[];
+extern char datatoc_gpu_shader_vsm_store_frag_glsl[];
+extern char datatoc_gpu_shader_sep_gaussian_blur_vert_glsl[];
+extern char datatoc_gpu_shader_sep_gaussian_blur_frag_glsl[];
+
+typedef struct GPUShaders {
+	GPUShader *vsm_store;
+	GPUShader *sep_gaussian_blur;
+} GPUShaders;
+
 static struct GPUGlobal {
 	GLint maxtextures;
 	GLuint currentfb;
@@ -77,7 +88,8 @@ static struct GPUGlobal {
 	GPUDeviceType device;
 	GPUOSType os;
 	GPUDriverType driver;
-} GG = {1, 0, 0, 0, 0};
+	GPUShaders shaders;
+} GG = {1, 0};
 
 /* GPU Types */
 
@@ -588,6 +600,25 @@ GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256])
 	return tex;
 }
 
+/**
+ * A shadow map for VSM needs two components (depth and depth^2)
+ */
+GPUTexture *GPU_texture_create_vsm_shadow_map(int size, char err_out[256])
+{
+	GPUTexture *tex = GPU_texture_create_nD(size, size, 2, NULL, 0, err_out);
+
+	if (tex) {
+		/* Now we tweak some of the settings */
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, size, size, 0, GL_RG, GL_FLOAT, 0);
+
+		GPU_texture_unbind(tex);
+	}
+
+	return tex;
+}
+
 void GPU_texture_bind(GPUTexture *tex, int number)
 {
 	GLenum arbnumber;
@@ -844,6 +875,65 @@ void GPU_framebuffer_restore(void)
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 		GG.currentfb = 0;
 	}
+}
+
+void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *blurfb, GPUTexture *blurtex)
+{
+	float scaleh[2] = {1.0f/GPU_texture_opengl_width(blurtex), 0.0f};
+	float scalev[2] = {0.0f, 1.0f/GPU_texture_opengl_height(tex)};
+
+	GPUShader *blur_shader = GPU_shader_get_builtin_shader(GPU_SHADER_SEP_GAUSSIAN_BLUR);
+	int scale_uniform, texture_source_uniform;
+
+	if (!blur_shader)
+		return;
+
+	scale_uniform = GPU_shader_get_uniform(blur_shader, "ScaleU");
+	texture_source_uniform = GPU_shader_get_uniform(blur_shader, "textureSource");
+		
+	/* Blurring horizontally */
+
+	/* We do the bind ourselves rather than using GPU_framebuffer_texture_bind() to avoid
+	   pushing unnecessary matrices onto the OpenGL stack. */
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, blurfb->object);
+
+	GPU_shader_bind(blur_shader);
+	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, (float*)scaleh);
+	GPU_shader_uniform_texture(blur_shader, texture_source_uniform, tex);
+	glViewport(0, 0, GPU_texture_opengl_width(blurtex), GPU_texture_opengl_height(blurtex));
+
+	/* Peparing to draw quad */
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	GPU_texture_bind(tex, 0);
+
+	/* Drawing quad */
+	glBegin(GL_QUADS);
+		glTexCoord2d(0,0);glVertex2f(1,1);
+		glTexCoord2d(1,0);glVertex2f(-1,1);
+		glTexCoord2d(1,1);glVertex2f(-1,-1);
+		glTexCoord2d(0,1);glVertex2f(1,-1);
+	glEnd();
+		
+	/* Blurring vertically */
+
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+	glViewport(0, 0, GPU_texture_opengl_width(tex), GPU_texture_opengl_height(tex));
+	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, (float*)scalev);
+	GPU_shader_uniform_texture(blur_shader, texture_source_uniform, blurtex);
+	GPU_texture_bind(blurtex, 0);
+	glBegin(GL_QUADS);
+		glTexCoord2d(0,0);glVertex2f(1,1);
+		glTexCoord2d(1,0);glVertex2f(-1,1);
+		glTexCoord2d(1,1);glVertex2f(-1,-1);
+		glTexCoord2d(0,1);glVertex2f(1,-1);
+	glEnd();
+	GPU_shader_unbind(blur_shader);
 }
 
 /* GPUOffScreen */
@@ -1171,6 +1261,45 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 	GPU_print_error("Post Get Attribute");
 
 	return index;
+}
+
+GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
+{
+	GPUShader *retval = NULL;
+
+	switch (shader)
+	{
+	case GPU_SHADER_VSM_STORE:
+		if (!GG.shaders.vsm_store)
+			GG.shaders.vsm_store = GPU_shader_create(datatoc_gpu_shader_vsm_store_vert_glsl, datatoc_gpu_shader_vsm_store_frag_glsl, NULL);
+		retval = GG.shaders.vsm_store;
+		break;
+	case GPU_SHADER_SEP_GAUSSIAN_BLUR:
+		if (!GG.shaders.sep_gaussian_blur)
+			GG.shaders.sep_gaussian_blur = GPU_shader_create(datatoc_gpu_shader_sep_gaussian_blur_vert_glsl, datatoc_gpu_shader_sep_gaussian_blur_frag_glsl, NULL);
+		retval = GG.shaders.sep_gaussian_blur;
+		break;
+	}
+
+	if (retval == NULL)
+		printf("Unable to create a GPUShader for builtin shader: %d\n", shader);
+
+	return retval;
+}
+
+void GPU_shader_free_builtin_shaders()
+{
+	if (GG.shaders.vsm_store)
+	{
+		MEM_freeN(GG.shaders.vsm_store);
+		GG.shaders.vsm_store = NULL;
+	}
+
+	if (GG.shaders.sep_gaussian_blur)
+	{
+		MEM_freeN(GG.shaders.sep_gaussian_blur);
+		GG.shaders.sep_gaussian_blur = NULL;
+	}
 }
 
 #if 0

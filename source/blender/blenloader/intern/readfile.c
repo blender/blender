@@ -13343,6 +13343,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	
+	{
+		Lamp *la;
+		for (la= main->lamp.first; la; la= la->id.next) {
+			if (la->shadow_frustum_size == 0.0)
+				la->shadow_frustum_size= 10.0f;
+		}
+	}
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

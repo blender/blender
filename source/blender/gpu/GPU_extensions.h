@@ -109,6 +109,7 @@ GPUTexture *GPU_texture_create_1D(int w, float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_2D(int w, int h, float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels);
 GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256]);
+GPUTexture *GPU_texture_create_vsm_shadow_map(int size, char err_out[256]);
 GPUTexture *GPU_texture_from_blender(struct Image *ima,
 	struct ImageUser *iuser, double time, int mipmap);
 void GPU_texture_free(GPUTexture *tex);
@@ -140,6 +141,7 @@ void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, GPUTexture *tex);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 
 void GPU_framebuffer_restore(void);
+void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *blurfb, GPUTexture *blurtex);
 
 /* GPU OffScreen
  * - wrapper around framebuffer and texture for simple offscreen drawing
@@ -168,6 +170,15 @@ void GPU_shader_uniform_vector(GPUShader *shader, int location, int length,
 void GPU_shader_uniform_texture(GPUShader *shader, int location, GPUTexture *tex);
 
 int GPU_shader_get_attribute(GPUShader *shader, const char *name);
+
+/* Builtin/Non-generated shaders */
+typedef enum GPUBuiltinShader {
+	GPU_SHADER_VSM_STORE =			(1<<0),
+	GPU_SHADER_SEP_GAUSSIAN_BLUR =	(1<<1),
+} GPUBuiltinShader;
+
+GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
+void GPU_shader_free_builtin_shaders();
 
 /* Vertex attributes for shaders */
 

@@ -258,6 +258,8 @@ void GPU_codegen_exit(void)
 		FUNCTION_HASH = NULL;
 	}
 
+	GPU_shader_free_builtin_shaders();
+
 	if (glsl_material_library) {
 		MEM_freeN(glsl_material_library);
 		glsl_material_library = NULL;
