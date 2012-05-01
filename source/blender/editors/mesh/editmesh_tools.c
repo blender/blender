@@ -3683,8 +3683,11 @@ static void xsortvert_flag(bContext *C, int flag)
 		}
 	}
 /*	printf("%d verts: %d to be sorted, %d unchanged…\n", totvert, sorted, unchanged);*/
-	if (sorted == 0)
+	if (sorted == 0) {
+		MEM_freeN(sortblock);
+		MEM_freeN(unchangedblock);
 		return;
+	}
 
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, V3D_CLIP_TEST_OFF);
@@ -3942,8 +3945,11 @@ static void hashvert_flag(BMEditMesh *em, int flag, unsigned int seed)
 	}
 /*	protected = totvert - randomized;*/
 /*	printf("%d verts: %d to be randomized, %d protected…\n", totvert, randomized, protected);*/
-	if (randomized == 0)
+	if (randomized == 0) {
+		MEM_freeN(block);
+		MEM_freeN(randblock);
 		return;
+	}
 
 	
 	/* Randomize non-protected vertices indices, and create an array mapping old idx to new
