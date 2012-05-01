@@ -1125,14 +1125,43 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	BLI_freelistN(&targets);
 }
 
+/* show popup to determine settings */
+static int object_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+{
+	Object *ob = CTX_data_active_object(C);
+	
+	if (ob == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* set default settings from existing/stored settings */
+	{
+		bAnimVizSettings *avs = &ob->avs;
+		
+		RNA_int_set(op->ptr, "start_frame", avs->path_sf);
+		RNA_int_set(op->ptr, "end_frame", avs->path_ef);
+	}
+	
+	/* show popup dialog to allow editing of range... */
+	// FIXME: hardcoded dimensions here are just arbitrary
+	return WM_operator_props_dialog_popup(C, op, 200, 200);
+}
+
 /* Calculate/recalculate whole paths (avs.path_sf to avs.path_ef) */
 static int object_calculate_paths_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
+	int start = RNA_int_get(op->ptr, "start_frame");
+	int end = RNA_int_get(op->ptr, "end_frame");
 	
 	/* set up path data for bones being calculated */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
+		bAnimVizSettings *avs = &ob->avs;
+		
+		/* grab baking settings from operator settings */
+		avs->path_sf = start;
+		avs->path_ef = end;
+		
 		/* verify that the selected object has the appropriate settings */
 		animviz_verify_motionpaths(op->reports, scene, ob, NULL);
 	}
@@ -1155,11 +1184,18 @@ void OBJECT_OT_paths_calculate(wmOperatorType *ot)
 	ot->description = "Calculate motion paths for the selected objects";
 	
 	/* api callbacks */
+	ot->invoke = object_calculate_paths_invoke;
 	ot->exec = object_calculate_paths_exec;
 	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_int(ot->srna, "start_frame", 1, MINAFRAME, MAXFRAME, "Start", 
+	            "First frame to calculate object paths on", MINFRAME, MAXFRAME/2.0);
+	RNA_def_int(ot->srna, "end_frame", 250, MINAFRAME, MAXFRAME, "End", 
+	            "Last frame to calculate object paths on", MINFRAME, MAXFRAME/2.0);
 }
 
 /* --------- */

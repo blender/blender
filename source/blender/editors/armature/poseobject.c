@@ -197,23 +197,53 @@ void ED_pose_recalculate_paths(Scene *scene, Object *ob)
 	BLI_freelistN(&targets);
 }
 
+/* show popup to determine settings */
+static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+{	
+	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
+	
+	if (ELEM(NULL, ob, ob->pose))
+		return OPERATOR_CANCELLED;
+	
+	/* set default settings from existing/stored settings */
+	{
+		bAnimVizSettings *avs = &ob->pose->avs;
+		PointerRNA avs_ptr;
+		
+		RNA_int_set(op->ptr, "start_frame", avs->path_sf);
+		RNA_int_set(op->ptr, "end_frame", avs->path_ef);
+		
+		RNA_pointer_create(NULL, &RNA_AnimVizMotionPaths, avs, &avs_ptr);
+		RNA_enum_set(op->ptr, "bake_location", RNA_enum_get(&avs_ptr, "bake_location"));
+	}
+	
+	/* show popup dialog to allow editing of range... */
+	// FIXME: hardcoded dimensions here are just arbitrary
+	return WM_operator_props_dialog_popup(C, op, 200, 200);
+}
+
 /* For the object with pose/action: create path curves for selected bones 
  * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
  */
-static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
+static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa= CTX_wm_area(C);
+	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
 	Scene *scene= CTX_data_scene(C);
-	Object *ob;
 	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob= ED_object_context(C);
-	else
-		ob= object_pose_armature_get(CTX_data_active_object(C));
-		
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
+	
+	/* grab baking settings from operator settings */
+	{
+		bAnimVizSettings *avs = &ob->pose->avs;
+		PointerRNA avs_ptr;
+		
+		avs->path_sf = RNA_int_get(op->ptr, "start_frame");
+		avs->path_ef = RNA_int_get(op->ptr, "end_frame");
+		
+		RNA_pointer_create(NULL, &RNA_AnimVizMotionPaths, avs, &avs_ptr);
+		RNA_enum_set(&avs_ptr, "bake_location", RNA_enum_get(op->ptr, "bake_location"));
+	}
 	
 	/* set up path data for bones being calculated */
 	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones)
@@ -228,7 +258,7 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 	ED_pose_recalculate_paths(scene, ob);
 	
 	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 	
 	return OPERATOR_FINISHED; 
 }
@@ -241,11 +271,22 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
 	ot->description = "Calculate paths for the selected bones";
 	
 	/* api callbacks */
+	ot->invoke = pose_calculate_paths_invoke;
 	ot->exec = pose_calculate_paths_exec;
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_int(ot->srna, "start_frame", 1, MINAFRAME, MAXFRAME, "Start", 
+	            "First frame to calculate bone paths on", MINFRAME, MAXFRAME/2.0);
+	RNA_def_int(ot->srna, "end_frame", 250, MINAFRAME, MAXFRAME, "End", 
+	            "Last frame to calculate bone paths on", MINFRAME, MAXFRAME/2.0);
+	
+	RNA_def_enum(ot->srna, "bake_location", motionpath_bake_location_items, 0, 
+	             "Bake Location", 
+				 "Which point on the bones is used when calculating paths");
 }
 
 /* --------- */
@@ -279,14 +320,7 @@ static void ED_pose_clear_paths(Object *ob)
 /* operator callback for this */
 static int pose_clear_paths_exec (bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa= CTX_wm_area(C);
-	Object *ob;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob= ED_object_context(C);
-	else
-		ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
 		
 	/* only continue if there's an object */
 	if (ELEM(NULL, ob, ob->pose))
@@ -296,7 +330,7 @@ static int pose_clear_paths_exec (bContext *C, wmOperator *UNUSED(op))
 	ED_pose_clear_paths(ob);
 	
 	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 	
 	return OPERATOR_FINISHED; 
 }

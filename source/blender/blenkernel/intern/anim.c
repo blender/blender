@@ -198,9 +198,7 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 			}
 			else {
 				/* clear the existing path (as the range has changed), and reallocate below */
-				if (mpath->points)
-					MEM_freeN(mpath->points);
-				mpath->points = NULL;
+				animviz_free_motionpath_cache(mpath);
 			}
 		}
 	}
