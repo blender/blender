@@ -1142,6 +1142,7 @@ void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
 
+	param_average(handle);
 	param_pack(handle, scene->toolsettings->uvcalc_margin);
 
 	param_flush(handle);
