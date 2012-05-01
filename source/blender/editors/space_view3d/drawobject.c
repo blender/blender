@@ -164,7 +164,10 @@ typedef struct drawDMFacesSel_userData {
 
 typedef struct drawDMNormal_userData {
 	BMEditMesh *em;
+	int uniform_scale;
 	float normalsize;
+	float tmat[3][3];
+	float imat[3][3];
 } drawDMNormal_userData;
 
 typedef struct bbsObmodeMeshVerts_userData {
@@ -2269,24 +2272,55 @@ void nurbs_foreachScreenVert(
  * logic!!!
  */
 
+static void calcDrawDMNormalScale(Object *ob, drawDMNormal_userData *data)
+{
+	float obmat[3][3];
+
+	copy_m3_m4(obmat, ob->obmat);
+
+	data->uniform_scale = is_uniform_scaled_m3(obmat);
+
+	if (!data->uniform_scale) {
+		/* inverted matrix */
+		invert_m3_m3(data->imat, obmat);
+
+		/* transposed inverted matrix */
+		copy_m3_m3(data->tmat, data->imat);
+		transpose_m3(data->tmat);
+	}
+}
+
 static void draw_dm_face_normals__mapFunc(void *userData, int index, const float cent[3], const float no[3])
 {
 	drawDMNormal_userData *data = userData;
 	BMFace *efa = EDBM_face_at_index(data->em, index);
+	float n[3];
 
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+		if (!data->uniform_scale) {
+			mul_v3_m3v3(n, data->tmat, (float *) no);
+			normalize_v3(n);
+			mul_m3_v3(data->imat, n);
+		}
+		else {
+			copy_v3_v3(n, no);
+		}
+
 		glVertex3fv(cent);
-		glVertex3f(cent[0] + no[0] * data->normalsize,
-		           cent[1] + no[1] * data->normalsize,
-		           cent[2] + no[2] * data->normalsize);
+		glVertex3f(cent[0] + n[0] * data->normalsize,
+		           cent[1] + n[1] * data->normalsize,
+		           cent[2] + n[2] * data->normalsize);
 	}
 }
-static void draw_dm_face_normals(BMEditMesh *em, Scene *scene, DerivedMesh *dm) 
+
+static void draw_dm_face_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm)
 {
 	drawDMNormal_userData data;
 
 	data.em = em;
 	data.normalsize = scene->toolsettings->normalsize;
+
+	calcDrawDMNormalScale(ob, &data);
 
 	glBegin(GL_LINES);
 	dm->foreachMappedFaceCenter(dm, draw_dm_face_normals__mapFunc, &data);
@@ -2317,26 +2351,41 @@ static void draw_dm_vert_normals__mapFunc(void *userData, int index, const float
 	BMVert *eve = EDBM_vert_at_index(data->em, index);
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-		glVertex3fv(co);
+		float no[3], n[3];
 
 		if (no_f) {
-			glVertex3f(co[0] + no_f[0] * data->normalsize,
-			           co[1] + no_f[1] * data->normalsize,
-			           co[2] + no_f[2] * data->normalsize);
+			copy_v3_v3(no, no_f);
 		}
 		else {
-			glVertex3f(co[0] + no_s[0] * (data->normalsize / 32767.0f),
-			           co[1] + no_s[1] * (data->normalsize / 32767.0f),
-			           co[2] + no_s[2] * (data->normalsize / 32767.0f));
+			no[0] = no_s[0] / 32767.0f;
+			no[1] = no_s[1] / 32767.0f;
+			no[2] = no_s[2] / 32767.0f;
 		}
+
+		if (!data->uniform_scale) {
+			mul_v3_m3v3(n, data->tmat, (float *) no);
+			normalize_v3(n);
+			mul_m3_v3(data->imat, n);
+		}
+		else {
+			copy_v3_v3(n, no);
+		}
+
+		glVertex3fv(co);
+		glVertex3f(co[0] + n[0] * data->normalsize,
+		           co[1] + n[1] * data->normalsize,
+		           co[2] + n[2] * data->normalsize);
 	}
 }
-static void draw_dm_vert_normals(BMEditMesh *em, Scene *scene, DerivedMesh *dm) 
+
+static void draw_dm_vert_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm)
 {
 	drawDMNormal_userData data;
 
 	data.em = em;
 	data.normalsize = scene->toolsettings->normalsize;
+
+	calcDrawDMNormalScale(ob, &data);
 
 	glBegin(GL_LINES);
 	dm->foreachMappedVert(dm, draw_dm_vert_normals__mapFunc, &data);
@@ -3167,11 +3216,11 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 		if (me->drawflag & ME_DRAWNORMALS) {
 			UI_ThemeColor(TH_NORMAL);
-			draw_dm_face_normals(em, scene, cageDM);
+			draw_dm_face_normals(em, scene, ob, cageDM);
 		}
 		if (me->drawflag & ME_DRAW_VNORMALS) {
 			UI_ThemeColor(TH_VNORMAL);
-			draw_dm_vert_normals(em, scene, cageDM);
+			draw_dm_vert_normals(em, scene, ob, cageDM);
 		}
 
 		if ( (me->drawflag & (ME_DRAWEXTRA_EDGELEN | ME_DRAWEXTRA_FACEAREA | ME_DRAWEXTRA_FACEANG)) &&
