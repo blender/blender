@@ -144,9 +144,11 @@ void animviz_free_motionpath(bMotionPath *mpath)
 /* ------------------- */
 
 /* Setup motion paths for the given data
- *	- scene: current scene (for frame ranges, etc.)
- *	- ob: object to add paths for (must be provided)
- *	- pchan: posechannel to add paths for (optional; if not provided, object-paths are assumed)
+ * - Only used when explicitly calculating paths on bones which may/may not be consider already
+ *
+ * < scene: current scene (for frame ranges, etc.)
+ * < ob: object to add paths for (must be provided)
+ * < pchan: posechannel to add paths for (optional; if not provided, object-paths are assumed)
  */
 bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Object *ob, bPoseChannel *pchan)
 {
@@ -180,14 +182,27 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 	}
 
 	/* if there is already a motionpath, just return that,
-	 * but provided it's settings are ok 
+	 * provided it's settings are ok (saves extra free+alloc)
 	 */
 	if (*dst != NULL) {
+		int expected_length = avs->path_ef - avs->path_sf;
+		
 		mpath= *dst;
 		
-		/* if range is not invalid, and/or length is set ok, just return */
-		if ((mpath->start_frame != mpath->end_frame) && (mpath->length > 0))
-			return mpath;
+		/* path is "valid" if length is valid, but must also be of the same length as is being requested */
+		if ((mpath->start_frame != mpath->end_frame) && (mpath->length > 0)) {
+			/* outer check ensures that we have some curve data for this path */
+			if (mpath->length == expected_length) {
+				/* return/use this as it is already valid length */
+				return mpath;
+			}
+			else {
+				/* clear the existing path (as the range has changed), and reallocate below */
+				if (mpath->points)
+					MEM_freeN(mpath->points);
+				mpath->points = NULL;
+			}
+		}
 	}
 	else {
 		/* create a new motionpath, and assign it */
