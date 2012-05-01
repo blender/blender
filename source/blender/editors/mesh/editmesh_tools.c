@@ -896,7 +896,7 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 	{0, "VERT",      0, "Vertices", ""},
 	{1,  "EDGE",      0, "Edges", ""},
 	{2,  "FACE",      0, "Faces", ""},
-	{3,  "EDGE_FACE", 0, "Edges & Faces", ""},
+	{3,  "EDGE_FACE", 0, "Only Edges & Faces", ""},
 	{4,  "ONLY_FACE", 0, "Only Faces", ""},
 	{0, NULL, 0, NULL, NULL}
 };
