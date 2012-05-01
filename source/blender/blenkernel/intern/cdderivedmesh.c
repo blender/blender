@@ -267,6 +267,8 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	if (!cddm->pbvh && ob->type == OB_MESH) {
 		SculptSession *ss= ob->sculpt;
 		Mesh *me= ob->data;
+		int deformed = 0;
+
 		cddm->pbvh = BLI_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 
@@ -275,7 +277,9 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 		                    me->totface, me->totvert);
 
-		if (ss->modifiers_active && ob->derivedDeform) {
+		deformed = ss->modifiers_active || me->key;
+
+		if (deformed && ob->derivedDeform) {
 			DerivedMesh *deformdm= ob->derivedDeform;
 			float (*vertCos)[3];
 			int totvert;
