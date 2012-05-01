@@ -652,14 +652,15 @@ class WORLD_PT_game_physics_obstacles(WorldButtonsPanel, Panel):
         if gs.obstacle_simulation != 'NONE':
             layout.prop(gs, "level_height")
             layout.prop(gs, "show_obstacle_simulation")
-            
+
+
 class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
-            
-            
-class DATA_PT_shadow_game(DataButtonsPanel, bpy.types.Panel):
+
+
+class DATA_PT_shadow_game(DataButtonsPanel, Panel):
     bl_label = "Shadow"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -669,19 +670,19 @@ class DATA_PT_shadow_game(DataButtonsPanel, bpy.types.Panel):
         lamp = context.lamp
         engine = context.scene.render.engine
         return (lamp and lamp.type in COMPAT_LIGHTS) and (engine in cls.COMPAT_ENGINES)
-        
+
     def draw_header(self, context):
         lamp = context.lamp
-        
+
         self.layout.prop(lamp, "use_shadow", text="")
 
     def draw(self, context):
         layout = self.layout
 
         lamp = context.lamp
-        
+
         layout.active = lamp.use_shadow
-        
+
         split = layout.split()
 
         col = split.column()
@@ -690,7 +691,7 @@ class DATA_PT_shadow_game(DataButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(lamp, "use_shadow_layer", text="This Layer Only")
         col.prop(lamp, "use_only_shadow")
-    
+
         col = layout.column()
         col.label("Buffer Type:")
         col.prop(lamp, "ge_shadow_buffer_type", text="", toggle=True)

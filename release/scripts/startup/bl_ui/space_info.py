@@ -348,21 +348,22 @@ class INFO_MT_render(Menu):
 
         layout.operator("render.view_show")
         layout.operator("render.play_rendered_anim")
-        
-class INFO_MT_window(bpy.types.Menu):
+
+
+class INFO_MT_window(Menu):
     bl_label = "Window"
-    
+
     def draw(self, context):
         import sys
-        
+
         layout = self.layout
-        
+
         layout.operator("wm.window_duplicate")
         layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER')
         if sys.platform[:3] == "win":
             layout.separator()
             layout.operator("wm.console_toggle", icon='CONSOLE')
-        
+
 
 class INFO_MT_help(Menu):
     bl_label = "Help"
@@ -389,7 +390,7 @@ class INFO_MT_help(Menu):
         layout.operator("anim.update_data_paths", text="FCurve/Driver Version fix", icon='HELP')
         layout.operator("logic.texface_convert", text="TexFace to Material Convert", icon='GAME')
         layout.separator()
-        
+
         layout.operator("wm.splash", icon='BLENDER')
 
 if __name__ == "__main__":  # only for live edit.
