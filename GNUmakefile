@@ -202,31 +202,31 @@ test:
 
 # run pep8 check check on scripts we distribute.
 test_pep8:
-	python3 source/tests/pep8.py > test_pep8.log 2>&1
+	python3.2 source/tests/pep8.py > test_pep8.log 2>&1
 	@echo "written: test_pep8.log"
 
 # run some checks on our cmakefiles.
 test_cmake:
-	python3 build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
+	python3.2 build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
 	@echo "written: test_cmake_consistency.log"
 
 # run deprecation tests, see if we have anything to remove.
 test_deprecated:
-	python3 source/tests/check_deprecated.py
+	python3.2 source/tests/check_deprecated.py
 
 test_style:
 	# run our own checks on C/C++ style
-	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/source/blender $(BLENDER_DIR)/source/creator
+	PYTHONIOENCODING=utf_8 python3.2 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/source/blender $(BLENDER_DIR)/source/creator
 
 # -----------------------------------------------------------------------------
 # Project Files
 #
 
 project_qtcreator:
-	python3 build_files/cmake/cmake_qtcreator_project.py $(BUILD_DIR)
+	python3.2 build_files/cmake/cmake_qtcreator_project.py $(BUILD_DIR)
 
 project_netbeans:
-	python3 build_files/cmake/cmake_netbeans_project.py $(BUILD_DIR)
+	python3.2 build_files/cmake/cmake_netbeans_project.py $(BUILD_DIR)
 
 project_eclipse:
 	cmake -G"Eclipse CDT4 - Unix Makefiles" -H$(BLENDER_DIR) -B$(BUILD_DIR)
@@ -238,21 +238,21 @@ project_eclipse:
 
 check_cppcheck:
 	$(CMAKE_CONFIG)
-	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py
+	cd $(BUILD_DIR) ; python3.2 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py
 
 check_splint:
 	$(CMAKE_CONFIG)
-	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py
+	cd $(BUILD_DIR) ; python3.2 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py
 
 check_sparse:
 	$(CMAKE_CONFIG)
-	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py
+	cd $(BUILD_DIR) ; python3.2 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py
 
 check_spelling_py:
-	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/release/scripts
+	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3.2 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/release/scripts
 
 check_spelling_c:
-	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/source
+	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3.2 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/source
 
 # -----------------------------------------------------------------------------
 # Documentation
@@ -273,7 +273,7 @@ doc_dna:
 	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
 
 doc_man:
-	python3 doc/manpage/blender.1.py $(BUILD_DIR)/bin/blender
+	python3.2 doc/manpage/blender.1.py $(BUILD_DIR)/bin/blender
 
 
 clean:
