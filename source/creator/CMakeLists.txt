@@ -566,6 +566,11 @@ elseif(WIN32)
 				FILES ${LIBDIR}/pthreads/lib/pthreadGC2.dll
 				DESTINATION ${TARGETDIR}
 			)
+		elseif(WITH_MINGW64)
+			install(
+				FILES ${LIBDIR}/binaries/pthreadGC2-w64.dll
+				DESTINATION ${TARGETDIR}
+			)
 		endif()
 	endif()
 
