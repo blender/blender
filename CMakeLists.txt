@@ -229,6 +229,9 @@ if(UNIX AND NOT APPLE)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install folder"  ON)
+set(PYTHON_NUMPY_PATH            "" CACHE PATH "Python to python site-packages or dist-packages containing 'numpy' module")
+mark_as_advanced(PYTHON_NUMPY_PATH)
+
 option(WITH_MINGW64                   "Use the 64-bit version of MinGW" OFF)
 mark_as_advanced(WITH_MINGW64)
 
@@ -1614,11 +1617,46 @@ if(WITH_PYTHON)
 							"Python.h for python version \"${PYTHON_VERSION}\"")
 	endif()
 
-	if(WITH_PYTHON_INSTALL_NUMPY)
-		if(NOT EXISTS "${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/numpy")
-			message(WARNING "Numpy path '${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/numpy' is missing, "
-							"WITH_PYTHON_INSTALL_NUMPY option will be ignored when installing python")
-			set(WITH_PYTHON_INSTALL_NUMPY OFF)
+	if(WITH_PYTHON_INSTALL AND WITH_PYTHON_INSTALL_NUMPY)
+		# set but invalid
+		if(NOT ${PYTHON_NUMPY_PATH} STREQUAL "")
+			if(NOT EXISTS "${PYTHON_NUMPY_PATH}/numpy")
+				message(WARNING "PYTHON_NUMPY_PATH is invalid, numpy not found in '${PYTHON_NUMPY_PATH}' "
+				                "WITH_PYTHON_INSTALL_NUMPY option will be ignored when installing python")
+				set(WITH_PYTHON_INSTALL_NUMPY OFF)
+			endif()
+		# not set, so initialize
+		else()
+			string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
+			list(GET _PY_VER_SPLIT 0 _PY_VER_MAJOR)
+
+			# re-cache
+			unset(PYTHON_NUMPY_PATH CACHE)
+			find_path(PYTHON_NUMPY_PATH
+			  NAMES
+			    numpy
+			  HINTS
+			    "${PYTHON_LIBPATH}/python${PYTHON_VERSION}/"
+			    "${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/"
+			  PATH_SUFFIXES
+			    site-packages
+			    dist-packages
+			)
+
+			if(NOT EXISTS "${PYTHON_NUMPY_PATH}")
+				message(WARNING "'numpy' path could not be found in:\n"
+				                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/numpy', "
+				                "'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/site-packages/numpy', "
+				                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/dist-packages/numpy', "
+				                "'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/dist-packages/numpy', "
+				                "WITH_PYTHON_INSTALL_NUMPY option will be ignored when installing python")
+				set(WITH_PYTHON_INSTALL_NUMPY OFF)
+			else()
+				message(STATUS "numpy found at '${PYTHON_NUMPY_PATH}'")
+			endif()
+
+			unset(_PY_VER_SPLIT)
+			unset(_PY_VER_MAJOR)
 		endif()
 	endif()
 endif()
