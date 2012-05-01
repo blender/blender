@@ -837,10 +837,11 @@ void ED_uvedit_live_unwrap(Scene *scene, Object *obedit)
 {
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 
-    if (scene->toolsettings->edge_mode_live_unwrap &&
-        CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
-        ED_unwrap_lscm(scene, obedit, FALSE); /* unwrap all not just sel */
-    }
+	if (scene->toolsettings->edge_mode_live_unwrap &&
+	    CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV))
+	{
+		ED_unwrap_lscm(scene, obedit, FALSE); /* unwrap all not just sel */
+	}
 }
 
 /*************** UV Map Common Transforms *****************/

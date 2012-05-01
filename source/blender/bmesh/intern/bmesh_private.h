@@ -40,18 +40,18 @@
 int bmesh_elem_check(void *element, const char htype);
 
 #define BM_CHECK_ELEMENT(el)                                                  \
-    if (bmesh_elem_check(el, ((BMHeader *)el)->htype)) {                      \
-        printf("check_element failure, with code %i on line %i in file\n"     \
-        "    \"%s\"\n\n",                                                     \
-        bmesh_elem_check(el, ((BMHeader *)el)->htype),                    \
-        __LINE__, __FILE__);                                                  \
-    }
+	if (bmesh_elem_check(el, ((BMHeader *)el)->htype)) {                      \
+	    printf("check_element failure, with code %i on line %i in file\n"     \
+	    "    \"%s\"\n\n",                                                     \
+	    bmesh_elem_check(el, ((BMHeader *)el)->htype),                    \
+	    __LINE__, __FILE__);                                                  \
+	}
 
 #define BM_DISK_EDGE_LINK_GET(e, v)  (                                        \
 	((v) == ((BMEdge *)(e))->v1) ?                                            \
 		&((e)->v1_disk_link) :                                                \
 		&((e)->v2_disk_link)                                                  \
-    )
+	)
 
 int bmesh_radial_length(BMLoop *l);
 int bmesh_disk_count(BMVert *v);

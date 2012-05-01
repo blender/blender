@@ -5691,14 +5691,14 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 
 /* setup for shaded view or bake, so only lamps and materials are initialized */
 /* type:
-   RE_BAKE_LIGHT:  for shaded view, only add lamps
-   RE_BAKE_ALL:    for baking, all lamps and objects
-   RE_BAKE_NORMALS:for baking, no lamps and only selected objects
-   RE_BAKE_AO:     for baking, no lamps, but all objects
-   RE_BAKE_TEXTURE:for baking, no lamps, only selected objects
-   RE_BAKE_DISPLACEMENT:for baking, no lamps, only selected objects
-   RE_BAKE_SHADOW: for baking, only shadows, but all objects
-*/
+ * RE_BAKE_LIGHT:  for shaded view, only add lamps
+ * RE_BAKE_ALL:    for baking, all lamps and objects
+ * RE_BAKE_NORMALS:for baking, no lamps and only selected objects
+ * RE_BAKE_AO:     for baking, no lamps, but all objects
+ * RE_BAKE_TEXTURE:for baking, no lamps, only selected objects
+ * RE_BAKE_DISPLACEMENT:for baking, no lamps, only selected objects
+ * RE_BAKE_SHADOW: for baking, only shadows, but all objects
+ */
 void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, const int type, Object *actob)
 {
 	Object *camera;

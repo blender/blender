@@ -52,7 +52,7 @@ enum KX_PYGENSEQ_TYPE {
 extern PyTypeObject KX_PythonSeq_Type;
 
 #define BPy_KX_PythonSeq_Check(obj)  \
-    (Py_TYPE(obj) == &KX_PythonSeq_Type)
+	(Py_TYPE(obj) == &KX_PythonSeq_Type)
 
 typedef struct {
 	PyObject_VAR_HEAD

@@ -313,7 +313,7 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 }
 
 /* note: this function is used for multilayer too, to ensure uniform 
-   handling with BKE_image_get_ibuf() */
+ * handling with BKE_image_get_ibuf() */
 static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *iuser)
 {
 	ImBuf *ibuf;

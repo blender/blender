@@ -330,34 +330,34 @@ static void rna_Matte_t2_set(PointerRNA *ptr, float value)
 
 static void rna_distance_matte_t1_set(PointerRNA *ptr, float value)
 {
-    bNode *node = (bNode*)ptr->data;
-    NodeChroma *chroma = node->storage;
+	bNode *node = (bNode*)ptr->data;
+	NodeChroma *chroma = node->storage;
 
-    chroma->t1 = value;
+	chroma->t1 = value;
 }
 
 static void rna_distance_matte_t2_set(PointerRNA *ptr, float value)
 {
-    bNode *node = (bNode*)ptr->data;
-    NodeChroma *chroma = node->storage;
+	bNode *node = (bNode*)ptr->data;
+	NodeChroma *chroma = node->storage;
 
-    chroma->t2 = value;
+	chroma->t2 = value;
 }
 
 static void rna_difference_matte_t1_set(PointerRNA *ptr, float value)
 {
-    bNode *node = (bNode*)ptr->data;
-    NodeChroma *chroma = node->storage;
+	bNode *node = (bNode*)ptr->data;
+	NodeChroma *chroma = node->storage;
 
-    chroma->t1 = value;
+	chroma->t1 = value;
 }
 
 static void rna_difference_matte_t2_set(PointerRNA *ptr, float value)
 {
-    bNode *node = (bNode*)ptr->data;
-    NodeChroma *chroma = node->storage;
+	bNode *node = (bNode*)ptr->data;
+	NodeChroma *chroma = node->storage;
 
-    chroma->t2 = value;
+	chroma->t2 = value;
 }
 
 
@@ -1966,14 +1966,14 @@ static void def_cmp_distance_matte(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-   static EnumPropertyItem color_space_items[] = {
+	static EnumPropertyItem color_space_items[] = {
 		{1, "RGB", 0, "RGB", "RGB color space"},
 		{2, "YCC", 0, "YCC", "YCbCr Suppression"},
 		{0, NULL, 0, NULL, NULL}};
 
-   RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
+	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
 
-   prop = RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);  
+	prop = RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "channel");
 	RNA_def_property_enum_items(prop, color_space_items);
 	RNA_def_property_ui_text(prop, "Channel", "");

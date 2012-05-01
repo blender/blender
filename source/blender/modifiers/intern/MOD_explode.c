@@ -782,8 +782,8 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	return splitdm;
 }
 static DerivedMesh * explodeMesh(ExplodeModifierData *emd, 
-		ParticleSystemModifierData *psmd, Scene *scene, Object *ob, 
-  DerivedMesh *to_explode)
+                                 ParticleSystemModifierData *psmd, Scene *scene, Object *ob, 
+                                 DerivedMesh *to_explode)
 {
 	DerivedMesh *explode, *dm=to_explode;
 	MFace *mf= NULL, *mface;

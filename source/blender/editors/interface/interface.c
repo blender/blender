@@ -2644,9 +2644,9 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
  */
 
 #define UI_DEF_BUT_RNA_DISABLE(but) \
-    but->flag |= UI_BUT_DISABLED; \
-    but->lock = 1; \
-    but->lockstr = ""
+	but->flag |= UI_BUT_DISABLED; \
+	but->lock = 1; \
+	but->lockstr = ""
 
 
 static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)

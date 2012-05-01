@@ -1639,7 +1639,7 @@ static void node_composit_buts_distance_matte(uiLayout *layout, bContext *UNUSED
 	
 	col = uiLayoutColumn(layout, 1);
    
-   uiItemL(layout, "Color Space:", ICON_NONE);
+	uiItemL(layout, "Color Space:", ICON_NONE);
 	row= uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 

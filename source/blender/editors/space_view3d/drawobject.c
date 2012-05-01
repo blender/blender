@@ -2054,9 +2054,9 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const flo
 }
 
 void mesh_foreachScreenVert(
-    ViewContext *vc,
-    void (*func)(void *userData, BMVert *eve, int x, int y, int index),
-    void *userData, eV3DClipTest clipVerts)
+        ViewContext *vc,
+        void (*func)(void *userData, BMVert *eve, int x, int y, int index),
+        void *userData, eV3DClipTest clipVerts)
 {
 	foreachScreenVert_userData data;
 	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
@@ -2140,9 +2140,9 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 }
 
 void mesh_foreachScreenEdge(
-    ViewContext *vc,
-    void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index),
-    void *userData, eV3DClipTest clipVerts)
+        ViewContext *vc,
+        void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index),
+        void *userData, eV3DClipTest clipVerts)
 {
 	foreachScreenEdge_userData data;
 	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
@@ -2187,9 +2187,9 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const flo
 }
 
 void mesh_foreachScreenFace(
-    ViewContext *vc,
-    void (*func)(void *userData, BMFace *efa, int x, int y, int index),
-    void *userData)
+        ViewContext *vc,
+        void (*func)(void *userData, BMFace *efa, int x, int y, int index),
+        void *userData)
 {
 	foreachScreenFace_userData data;
 	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
@@ -2209,9 +2209,9 @@ void mesh_foreachScreenFace(
 }
 
 void nurbs_foreachScreenVert(
-    ViewContext *vc,
-    void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y),
-    void *userData)
+        ViewContext *vc,
+        void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y),
+        void *userData)
 {
 	Curve *cu = vc->obedit->data;
 	short s[2] = {IS_CLIPPED, 0};

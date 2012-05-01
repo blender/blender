@@ -1046,7 +1046,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(float), "", 0, "BevelWeight", NULL, NULL, layerInterp_bweight},
 	/* 30: CD_CREASE */
 	{sizeof(float), "", 0, "SubSurfCrease", NULL, NULL, layerInterp_bweight},
-    /* 31: CD_ORIGSPACE_MLOOP */
+	/* 31: CD_ORIGSPACE_MLOOP */
 	{sizeof(OrigSpaceLoop), "OrigSpaceLoop", 1, "OS Loop", NULL, NULL, layerInterp_mloop_origspace, NULL, NULL,
 	 layerEqual_mloop_origspace, layerMultiply_mloop_origspace, layerInitMinMax_mloop_origspace,
 	 layerAdd_mloop_origspace, layerDoMinMax_mloop_origspace, layerCopyValue_mloop_origspace},

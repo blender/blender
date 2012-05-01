@@ -90,7 +90,7 @@ void RegisterBlendExtension(void)
 	char BlPath[MAX_PATH];
 	char InstallDir[FILE_MAXDIR];
 	char SysDir[FILE_MAXDIR];
-    const char *ThumbHandlerDLL;
+	const char *ThumbHandlerDLL;
 	char RegCmd[MAX_PATH*2];
 	char MBox[256];
 	BOOL IsWOW64;
@@ -173,7 +173,7 @@ void RegisterBlendExtension(void)
 
 DIR *opendir (const char *path)
 {
-    wchar_t *path_16 = alloc_utf16_from_8(path, 0);
+	wchar_t *path_16 = alloc_utf16_from_8(path, 0);
 
 	if (GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) {
 		DIR *newd= MEM_mallocN(sizeof(DIR), "opendir");
@@ -198,7 +198,7 @@ DIR *opendir (const char *path)
 static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
 {
 	size_t bsize = count_utf_8_from_16(in16);
-    char *out8 = NULL;
+	char *out8 = NULL;
 	if (!bsize) return NULL;
 	out8 = (char*)MEM_mallocN(sizeof(char) * (bsize + add), "UTF-8 String");
 	conv_utf_16_to_8(in16, out8, bsize);
@@ -208,7 +208,7 @@ static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
 static wchar_t *UNUSED_FUNCTION(BLI_alloc_utf16_from_8)(char *in8, size_t add)
 {
 	size_t bsize = count_utf_16_from_8(in8);
-    wchar_t *out16 = NULL;
+	wchar_t *out16 = NULL;
 	if (!bsize) return NULL;
 	out16 =(wchar_t*) MEM_mallocN(sizeof(wchar_t) * (bsize + add), "UTF-16 String");
 	conv_utf_8_to_16(in8, out16, bsize);

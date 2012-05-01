@@ -57,124 +57,124 @@
 #include <stdio.h> /* for FILE */
 
 typedef struct _AviChunk {
-  int fcc;
-  int size;
+	int fcc;
+	int size;
 } AviChunk;
 
 typedef struct _AviList {
-  int fcc;
-  int size;
-  int ids;
+	int fcc;
+	int size;
+	int ids;
 } AviList;
 
 typedef struct _AviMainHeader {
-  int fcc;
-  int size;  
-  int MicroSecPerFrame;       /* MicroSecPerFrame - timing between frames */
-  int MaxBytesPerSec;        /* MaxBytesPerSec - approx bps system must handle */
-  int PaddingGranularity;
-  int Flags;
+	int fcc;
+	int size;  
+	int MicroSecPerFrame;       /* MicroSecPerFrame - timing between frames */
+	int MaxBytesPerSec;        /* MaxBytesPerSec - approx bps system must handle */
+	int PaddingGranularity;
+	int Flags;
 #define AVIF_HASINDEX           0x00000010        /* had idx1 chunk */
 #define AVIF_MUSTUSEINDEX       0x00000020        /* must use idx1 chunk to determine order */
 #define AVIF_ISINTERLEAVED      0x00000100        /* AVI file is interleaved */
 #define AVIF_TRUSTCKTYPE        0x00000800
 #define AVIF_WASCAPTUREFILE     0x00010000        /* specially allocated used for capturing real time video */
 #define AVIF_COPYRIGHTED        0x00020000        /* contains copyrighted data */
-
-  int TotalFrames;
-  int InitialFrames;    /* InitialFrames - initial frame before interleaving */
-  int Streams;
-  int SuggestedBufferSize;
-  int Width;
-  int Height;
-  int Reserved[4];
+	
+	int TotalFrames;
+	int InitialFrames;    /* InitialFrames - initial frame before interleaving */
+	int Streams;
+	int SuggestedBufferSize;
+	int Width;
+	int Height;
+	int Reserved[4];
 } AviMainHeader;
 
 typedef struct _AviStreamHeader {
-  int fcc;
-  int size;  
-  int Type;
+	int fcc;
+	int size;  
+	int Type;
 #define AVIST_VIDEO FCC("vids")
 #define AVIST_AUDIO FCC("auds")
 #define AVIST_MIDI  FCC("mids")
 #define AVIST_TEXT  FCC("txts")
-  
-  int Handler;
-  int Flags;
+	
+	int Handler;
+	int Flags;
 #define AVISF_DISABLED 0x00000001
 #define AVISF_VIDEO_PALCHANGES 0x00010000
-
-  short Priority;
-  short Language;
-  int InitialFrames;
-  int Scale;
-  int Rate;
-  int Start;
-  int Length;
-  int SuggestedBufferSize;
-  int Quality;
-  int SampleSize;
-  short left;
-  short top;
-  short right;
-  short bottom;
+	
+	short Priority;
+	short Language;
+	int InitialFrames;
+	int Scale;
+	int Rate;
+	int Start;
+	int Length;
+	int SuggestedBufferSize;
+	int Quality;
+	int SampleSize;
+	short left;
+	short top;
+	short right;
+	short bottom;
 } AviStreamHeader;
 
 typedef struct _AviBitmapInfoHeader {
-  int fcc;
-  int size;  
-  int Size;
-  int Width;
-  int Height;
-  short Planes;
-  short BitCount;
-  int Compression;
-  int SizeImage;
-  int XPelsPerMeter;
-  int YPelsPerMeter;
-  int ClrUsed;
-  int ClrImportant;
+	int fcc;
+	int size;  
+	int Size;
+	int Width;
+	int Height;
+	short Planes;
+	short BitCount;
+	int Compression;
+	int SizeImage;
+	int XPelsPerMeter;
+	int YPelsPerMeter;
+	int ClrUsed;
+	int ClrImportant;
 } AviBitmapInfoHeader;
 
 typedef struct _AviMJPEGUnknown {
-  int a;
-  int b;
-  int c;
-  int d;
-  int e;
-  int f;
-  int g;
+	int a;
+	int b;
+	int c;
+	int d;
+	int e;
+	int f;
+	int g;
 } AviMJPEGUnknown;
 
 typedef struct _AviIndexEntry {
-  int ChunkId;
-  int Flags;
+	int ChunkId;
+	int Flags;
 #define AVIIF_LIST       0x00000001
 #define AVIIF_KEYFRAME   0x00000010 
 #define AVIIF_NO_TIME    0x00000100
 #define AVIIF_COMPRESSOR 0x0FFF0000
-  int Offset;
-  int Size;
+	int Offset;
+	int Size;
 } AviIndexEntry;
 
 typedef struct _AviIndex {
-  int fcc;
-  int size;
-  AviIndexEntry *entrys;
+	int fcc;
+	int size;
+	AviIndexEntry *entrys;
 } AviIndex;
 
 typedef enum {
-  AVI_FORMAT_RGB24,  /* The most basic of forms, 3 bytes per pixel, 1 per r, g, b */
-  AVI_FORMAT_RGB32,  /* The second most basic of forms, 4 bytes per pixel, 1 per r, g, b, alpha */
-  AVI_FORMAT_AVI_RGB, /* Same as above, but is in the weird AVI order (bottom to top, left to right) */
-  AVI_FORMAT_MJPEG /* Motion-JPEG */
+	AVI_FORMAT_RGB24,  /* The most basic of forms, 3 bytes per pixel, 1 per r, g, b */
+	AVI_FORMAT_RGB32,  /* The second most basic of forms, 4 bytes per pixel, 1 per r, g, b, alpha */
+	AVI_FORMAT_AVI_RGB, /* Same as above, but is in the weird AVI order (bottom to top, left to right) */
+	AVI_FORMAT_MJPEG /* Motion-JPEG */
 } AviFormat;
 
 typedef struct _AviStreamRec {
-  AviStreamHeader sh;
-  void *sf;
-  int sf_size;
-  AviFormat format;
+	AviStreamHeader sh;
+	void *sf;
+	int sf_size;
+	AviFormat format;
 } AviStreamRec;
 
 typedef struct _AviMovie {
@@ -201,23 +201,23 @@ typedef struct _AviMovie {
 } AviMovie;
 
 typedef enum {
-  AVI_ERROR_NONE=0,
-  AVI_ERROR_COMPRESSION,
-  AVI_ERROR_OPEN,
-  AVI_ERROR_READING,
-  AVI_ERROR_WRITING,
-  AVI_ERROR_FORMAT,
-  AVI_ERROR_ALLOC,
-  AVI_ERROR_FOUND,
-  AVI_ERROR_OPTION
+	AVI_ERROR_NONE=0,
+	AVI_ERROR_COMPRESSION,
+	AVI_ERROR_OPEN,
+	AVI_ERROR_READING,
+	AVI_ERROR_WRITING,
+	AVI_ERROR_FORMAT,
+	AVI_ERROR_ALLOC,
+	AVI_ERROR_FOUND,
+	AVI_ERROR_OPTION
 } AviError;
 
 /* belongs to the option-setting function. */
 typedef enum {
-  AVI_OPTION_WIDTH=0,
-  AVI_OPTION_HEIGHT, 
-  AVI_OPTION_QUALITY,
-  AVI_OPTION_FRAMERATE
+	AVI_OPTION_WIDTH=0,
+	AVI_OPTION_HEIGHT, 
+	AVI_OPTION_QUALITY,
+	AVI_OPTION_FRAMERATE
 } AviOption;
 
 /* The offsets that will always stay the same in AVI files we
@@ -306,4 +306,3 @@ AviError AVI_print_error(AviError error);
 void AVI_set_debug(int mode);
 
 #endif /* __AVI_AVI_H__ */
-
