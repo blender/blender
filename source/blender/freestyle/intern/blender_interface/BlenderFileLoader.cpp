@@ -564,7 +564,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		Vec3r v1(cleanVertices[vi1], cleanVertices[vi1+1], cleanVertices[vi1+2]);
 		Vec3r v2(cleanVertices[vi2], cleanVertices[vi2+1], cleanVertices[vi2+2]);
 		if (v0 == v1 || v0 == v2 || v1 == v2) {
-			// do nothing for now
+			continue; // do nothing for now
 		}
 		else if (GeomUtils::distPointSegment<Vec3r>(v0, v1, v2) < 1e-6) {
 			detri.viP = vi0; detri.viA = vi1; detri.viB = vi2;
