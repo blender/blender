@@ -540,7 +540,6 @@ static void ui_draw_links(uiBlock *block)
 					foundselectline = 1;
 			}
 		}
-		but = but->next;
 	}	
 
 	// Draw any active lines (lines with either button being hovered over).
