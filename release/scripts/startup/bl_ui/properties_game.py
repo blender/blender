@@ -652,6 +652,64 @@ class WORLD_PT_game_physics_obstacles(WorldButtonsPanel, Panel):
         if gs.obstacle_simulation != 'NONE':
             layout.prop(gs, "level_height")
             layout.prop(gs, "show_obstacle_simulation")
+            
+class DataButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "data"
+            
+            
+class DATA_PT_shadow_game(DataButtonsPanel, bpy.types.Panel):
+    bl_label = "Shadow"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @classmethod
+    def poll(cls, context):
+        COMPAT_LIGHTS = {'SPOT', 'SUN'}
+        lamp = context.lamp
+        engine = context.scene.render.engine
+        return (lamp and lamp.type in COMPAT_LIGHTS) and (engine in cls.COMPAT_ENGINES)
+        
+    def draw_header(self, context):
+        lamp = context.lamp
+        
+        self.layout.prop(lamp, "use_shadow", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        lamp = context.lamp
+        
+        layout.active = lamp.use_shadow
+        
+        split = layout.split()
+
+        col = split.column()
+        col.prop(lamp, "shadow_color", text="")
+
+        col = split.column()
+        col.prop(lamp, "use_shadow_layer", text="This Layer Only")
+        col.prop(lamp, "use_only_shadow")
+    
+        col = layout.column()
+        col.label("Buffer Type:")
+        col.prop(lamp, "ge_shadow_buffer_type", text="", toggle=True)
+        col.label("Quality:")
+        col = layout.column(align=True)
+        col.prop(lamp, "shadow_buffer_size", text="Size")
+        col.prop(lamp, "shadow_buffer_bias", text="Bias")
+        col.prop(lamp, "shadow_buffer_bleed_bias", text="Bleed Bias")
+
+        row = layout.row()
+        row.label("Clipping:")
+        row = layout.row(align=True)
+        row.prop(lamp, "shadow_buffer_clip_start", text="Clip Start")
+        row.prop(lamp, "shadow_buffer_clip_end", text="Clip End")
+
+        if lamp.type == 'SUN':
+            row = layout.row()
+            row.prop(lamp, "shadow_frustum_size", text="Frustum Size")
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
