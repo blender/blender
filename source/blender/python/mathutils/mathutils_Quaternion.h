@@ -1,5 +1,4 @@
-/* 
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,16 +23,14 @@
  * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL LICENSE BLOCK *****
- *
  */
+
+#ifndef __MATHUTILS_QUATERNION_H__
+#define __MATHUTILS_QUATERNION_H__
 
 /** \file blender/python/mathutils/mathutils_Quaternion.h
  *  \ingroup pymathutils
  */
-
-
-#ifndef __MATHUTILS_QUATERNION_H__
-#define __MATHUTILS_QUATERNION_H__
 
 extern PyTypeObject quaternion_Type;
 #define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)

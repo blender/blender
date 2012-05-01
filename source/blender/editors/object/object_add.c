@@ -906,7 +906,8 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	if (CTX_data_edit_object(C)) 
 		return OPERATOR_CANCELLED;
 	
-	CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
+	{
 
 		/* if (base->object->type==OB_LAMP) islamp= 1; */
 
@@ -972,7 +973,8 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 	int a;
 	
 	/* XXX check object pointers */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	{
 		object_relink(ob);
 	}
 	CTX_DATA_END;
@@ -1189,7 +1191,8 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	
 	clear_id_newpoins();
 		
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		make_object_duplilist_real(C, scene, base, use_base_parent, use_hierarchy);
 
 		/* dependencies were changed */
@@ -1295,7 +1298,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 	/* don't forget multiple users! */
 
 	/* reset flags */
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		ob = base->object;
 		ob->flag &= ~OB_DONE;
 
@@ -1306,7 +1310,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		ob = base->object;
 
 		if (ob->flag & OB_DONE || !IS_TAGGED(ob->data)) {
@@ -1880,7 +1885,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	clear_id_newpoins();
 	clear_sca_new_poins();  /* sensor/contr/act */
 	
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		Base *basen = object_add_duplicate_internal(bmain, scene, base, dupflag);
 		
 		/* note that this is safe to do with this context iterator,

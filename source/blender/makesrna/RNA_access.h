@@ -339,6 +339,7 @@ extern StructRNA RNA_MotionPathVert;
 extern StructRNA RNA_MouseSensor;
 extern StructRNA RNA_MovieSequence;
 extern StructRNA RNA_MovieClipSequence;
+extern StructRNA RNA_MovieTrackingTrack;
 extern StructRNA RNA_MovieTrackingObject;
 extern StructRNA RNA_MovieTrackingTrack;
 extern StructRNA RNA_MulticamSequence;

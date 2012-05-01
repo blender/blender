@@ -33,8 +33,8 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack
 	switch(type) {
 		case NODE_TEXCO_OBJECT: {
 			if(sd->object != ~0) {
-				Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
-				data = transform_point(&tfm, sd->P);
+				data = sd->P;
+				object_position_transform(kg, sd, &data);
 			}
 			else
 				data = sd->P;
@@ -42,8 +42,8 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack
 		}
 		case NODE_TEXCO_NORMAL: {
 			if(sd->object != ~0) {
-				Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
-				data = transform_direction(&tfm, sd->N);
+				data = sd->N;
+				object_normal_transform(kg, sd, &data);
 			}
 			else
 				data = sd->N;
@@ -87,8 +87,8 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, floa
 	switch(type) {
 		case NODE_TEXCO_OBJECT: {
 			if(sd->object != ~0) {
-				Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
-				data = transform_point(&tfm, sd->P + sd->dP.dx);
+				data = sd->P + sd->dP.dx;
+				object_position_transform(kg, sd, &data);
 			}
 			else
 				data = sd->P + sd->dP.dx;
@@ -96,8 +96,8 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, floa
 		}
 		case NODE_TEXCO_NORMAL: {
 			if(sd->object != ~0) {
-				Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
-				data = transform_direction(&tfm, sd->N);
+				data = sd->N;
+				object_normal_transform(kg, sd, &data);
 			}
 			else
 				data = sd->N;
@@ -144,8 +144,8 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 	switch(type) {
 		case NODE_TEXCO_OBJECT: {
 			if(sd->object != ~0) {
-				Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
-				data = transform_point(&tfm, sd->P + sd->dP.dy);
+				data = sd->P + sd->dP.dy;
+				object_position_transform(kg, sd, &data);
 			}
 			else
 				data = sd->P + sd->dP.dy;
@@ -153,8 +153,8 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 		}
 		case NODE_TEXCO_NORMAL: {
 			if(sd->object != ~0) {
-				Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
-				data = normalize(transform_direction(&tfm, sd->N));
+				data = sd->N;
+				object_normal_transform(kg, sd, &data);
 			}
 			else
 				data = sd->N;

@@ -1,6 +1,3 @@
-/** \file blender/blenpluginapi/util.h
- *  \ingroup blpluginapi
- */
 /* Copyright (c) 1999, Not a Number / NeoGeo b.v. 
  * 
  * All rights reserved.
@@ -28,6 +25,10 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ */
+
+/** \file blender/blenpluginapi/util.h
+ *  \ingroup blpluginapi
  */
 
 #ifndef __UTIL_H__

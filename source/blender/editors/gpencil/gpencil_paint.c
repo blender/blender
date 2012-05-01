@@ -1611,7 +1611,8 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 	/* loop over the stroke RNA elements recorded (i.e. progress of mouse movement),
 	 * setting the relevant values in context at each step, then applying
 	 */
-	RNA_BEGIN (op->ptr, itemptr, "stroke") {
+	RNA_BEGIN (op->ptr, itemptr, "stroke")
+	{
 		float mousef[2];
 		
 		//printf("\t\tGP - stroke elem\n");

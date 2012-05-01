@@ -1,8 +1,4 @@
-/* dna_genfile.c
- *
- * Functions for struct-dna, the genetic file dot c!
- *
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +28,8 @@
 
 /** \file blender/makesdna/intern/dna_genfile.c
  *  \ingroup DNA
+ *
+ * Functions for struct-dna, the genetic file dot c!
  */
 
 

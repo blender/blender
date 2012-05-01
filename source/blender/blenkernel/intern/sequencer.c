@@ -259,7 +259,8 @@ void seq_free_editing(Scene *scene)
 	if (ed == NULL)
 		return;
 
-	SEQ_BEGIN (ed, seq) {
+	SEQ_BEGIN (ed, seq)
+	{
 		seq_free_sequence(scene, seq);
 	}
 	SEQ_END

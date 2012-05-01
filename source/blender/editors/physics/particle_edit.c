@@ -3671,7 +3671,8 @@ static int brush_edit_exec(bContext *C, wmOperator *op)
 	if (!brush_edit_init(C, op))
 		return OPERATOR_CANCELLED;
 
-	RNA_BEGIN (op->ptr, itemptr, "stroke") {
+	RNA_BEGIN (op->ptr, itemptr, "stroke")
+	{
 		brush_edit_apply(C, op, &itemptr);
 	}
 	RNA_END;

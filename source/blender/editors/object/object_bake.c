@@ -922,7 +922,8 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 	MultiresModifierData *mmd;
 	int ok = 1, a;
 
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		ob = base->object;
 
 		if (ob->type != OB_MESH) {
@@ -1079,7 +1080,8 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if (scene->r.bake_flag & R_BAKE_CLEAR) {  /* clear images */
-		CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+		CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+		{
 			Mesh *me;
 
 			ob = base->object;
@@ -1090,7 +1092,8 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		MultiresBakeRender bkr = {0};
 
 		ob = base->object;
@@ -1139,7 +1142,8 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 	bkj->use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
 	bkj->bake_clear = scene->r.bake_flag & R_BAKE_CLEAR;
 
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		MultiresBakerJobData *data;
 		DerivedMesh *lores_dm;
 		int lvl;

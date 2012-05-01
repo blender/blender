@@ -128,7 +128,7 @@ void Scene::device_update(Device *device_, Progress& progress)
 	if(progress.get_cancel()) return;
 
 	progress.set_status("Updating Camera");
-	camera->device_update(device, &dscene);
+	camera->device_update(device, &dscene, this);
 
 	if(progress.get_cancel()) return;
 
@@ -164,6 +164,33 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	progress.set_status("Updating Device", "Writing constant memory");
 	device->const_copy_to("__data", &dscene.data, sizeof(dscene.data));
+}
+
+Scene::MotionType Scene::need_motion()
+{
+	if(integrator->motion_blur)
+		return MOTION_BLUR;
+	else if(Pass::contains(film->passes, PASS_MOTION))
+		return MOTION_PASS;
+	else
+		return MOTION_NONE;
+}
+
+bool Scene::need_global_attribute(AttributeStandard std)
+{
+	if(std == ATTR_STD_UV)
+		return Pass::contains(film->passes, PASS_UV);
+	if(std == ATTR_STD_MOTION_PRE || ATTR_STD_MOTION_POST)
+		return need_motion() == MOTION_PASS;
+	
+	return false;
+}
+
+void Scene::need_global_attributes(AttributeRequestSet& attributes)
+{
+	for(int std = ATTR_STD_NONE; std < ATTR_STD_NUM; std++)
+		if(need_global_attribute((AttributeStandard)std))
+			attributes.add((AttributeStandard)std);
 }
 
 bool Scene::need_update()

@@ -580,7 +580,7 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 
 	glEnable(GL_TEXTURE_2D);
 
-	return 1;
+	return TRUE;
 }
 
 void ED_space_clip_unload_movieclip_buffer(SpaceClip *sc)

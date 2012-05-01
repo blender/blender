@@ -1,7 +1,4 @@
 /*
- *
- * This is external code. Converts rgb-type avi-s.
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +28,8 @@
 
 /** \file blender/avi/intern/avirgb.c
  *  \ingroup avi
+ *
+ * This is external code. Converts rgb-type avi-s.
  */
 
 

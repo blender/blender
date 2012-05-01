@@ -63,6 +63,11 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
+#ifdef __MOTION__
+	if(ray->time != TIME_INVALID)
+		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
+#endif
+
 	ray->P = transform_point(&cameratoworld, ray->P);
 	ray->D = transform_direction(&cameratoworld, ray->D);
 	ray->D = normalize(ray->D);
@@ -101,6 +106,11 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
+#ifdef __MOTION__
+	if(ray->time != TIME_INVALID)
+		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
+#endif
+
 	ray->P = transform_point(&cameratoworld, ray->P);
 	ray->D = transform_direction(&cameratoworld, ray->D);
 	ray->D = normalize(ray->D);
@@ -136,6 +146,11 @@ __device void camera_sample_environment(KernelGlobals *kg, float raster_x, float
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
+#ifdef __MOTION__
+	if(ray->time != TIME_INVALID)
+		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
+#endif
+
 	ray->P = transform_point(&cameratoworld, ray->P);
 	ray->D = transform_direction(&cameratoworld, ray->D);
 	ray->D = normalize(ray->D);
@@ -162,14 +177,20 @@ __device void camera_sample_environment(KernelGlobals *kg, float raster_x, float
 
 /* Common */
 
-__device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, float filter_v, float lens_u, float lens_v, Ray *ray)
+__device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, float filter_v,
+	float lens_u, float lens_v, float time, Ray *ray)
 {
 	/* pixel filter */
 	float raster_x = x + kernel_tex_interp(__filter_table, filter_u, FILTER_TABLE_SIZE);
 	float raster_y = y + kernel_tex_interp(__filter_table, filter_v, FILTER_TABLE_SIZE);
 
+#ifdef __MOTION__
 	/* motion blur */
-	//ray->time = lerp(time_t, kernel_data.cam.shutter_open, kernel_data.cam.shutter_close);
+	if(kernel_data.cam.shuttertime == 0.0f)
+		ray->time = TIME_INVALID;
+	else
+		ray->time = 0.5f + (time - 0.5f)*kernel_data.cam.shuttertime;
+#endif
 
 	/* sample */
 	if(kernel_data.cam.type == CAMERA_PERSPECTIVE)

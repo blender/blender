@@ -1,5 +1,4 @@
 /* 
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,8 +23,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
-
-*/
+ */
 
 #ifndef __BKE_DISPLIST_H__
 #define __BKE_DISPLIST_H__

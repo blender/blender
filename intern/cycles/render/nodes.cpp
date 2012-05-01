@@ -1514,9 +1514,9 @@ TextureCoordinateNode::TextureCoordinateNode()
 void TextureCoordinateNode::attributes(AttributeRequestSet *attributes)
 {
 	if(!output("Generated")->links.empty())
-		attributes->add(Attribute::STD_GENERATED);
+		attributes->add(ATTR_STD_GENERATED);
 	if(!output("UV")->links.empty())
-		attributes->add(Attribute::STD_UV);
+		attributes->add(ATTR_STD_UV);
 
 	ShaderNode::attributes(attributes);
 }
@@ -1546,7 +1546,7 @@ void TextureCoordinateNode::compile(SVMCompiler& compiler)
 			compiler.add_node(geom_node, NODE_GEOM_P, out->stack_offset);
 		}
 		else {
-			int attr = compiler.attribute(Attribute::STD_GENERATED);
+			int attr = compiler.attribute(ATTR_STD_GENERATED);
 			compiler.stack_assign(out);
 			compiler.add_node(attr_node, attr, out->stack_offset, NODE_ATTR_FLOAT3);
 		}
@@ -1560,7 +1560,7 @@ void TextureCoordinateNode::compile(SVMCompiler& compiler)
 
 	out = output("UV");
 	if(!out->links.empty()) {
-		int attr = compiler.attribute(Attribute::STD_UV);
+		int attr = compiler.attribute(ATTR_STD_UV);
 		compiler.stack_assign(out);
 		compiler.add_node(attr_node, attr, out->stack_offset, NODE_ATTR_FLOAT3);
 	}

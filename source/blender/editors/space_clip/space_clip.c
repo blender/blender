@@ -1204,7 +1204,7 @@ static void clip_preview_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(w
 static void clip_channels_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
-	
+
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 
 	keymap = WM_keymap_find(wm->defaultconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);

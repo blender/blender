@@ -4843,7 +4843,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				}
 			}
 
-			SEQ_BEGIN (sce->ed, seq) {
+			SEQ_BEGIN (sce->ed, seq)
+			{
 				if (seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				seq->scene_sound = NULL;
 				if (seq->scene) {
@@ -4974,7 +4975,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		/* recursive link sequences, lb will be correctly initialized */
 		link_recurs_seq(fd, &ed->seqbase);
 
-		SEQ_BEGIN (ed, seq) {
+		SEQ_BEGIN (ed, seq)
+		{
 			seq->seq1= newdataadr(fd, seq->seq1);
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
@@ -9102,7 +9104,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while (sce) {
 			ed= sce->ed;
 			if (ed) {
-				SEQ_BEGIN (sce->ed, seq) {
+				SEQ_BEGIN (sce->ed, seq)
+				{
 					if (seq->type==SEQ_IMAGE || seq->type==SEQ_MOVIE)
 						seq->flag |= SEQ_MAKE_PREMUL;
 				}
@@ -10517,7 +10520,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Sequence *seq;
 		
 		for (sce=main->scene.first; sce; sce=sce->id.next) {
-			SEQ_BEGIN (sce->ed, seq) {
+			SEQ_BEGIN (sce->ed, seq)
+			{
 				if (seq->blend_mode == 0)
 					seq->blend_opacity = 100.0f;
 			}
@@ -10870,7 +10874,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while (sce) {
 			ed= sce->ed;
 			if (ed) {
-				SEQP_BEGIN (ed, seq) {
+				SEQP_BEGIN (ed, seq)
+				{
 					if (seq->strip && seq->strip->proxy) {
 						seq->strip->proxy->quality =90;
 					}
@@ -10939,7 +10944,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			if (scene->ed && scene->ed->seqbasep) {
-				SEQ_BEGIN (scene->ed, seq) {
+				SEQ_BEGIN (scene->ed, seq)
+				{
 					if (seq->type == SEQ_HD_SOUND) {
 						char str[FILE_MAX];
 						BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
@@ -11909,7 +11915,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if ((sce->r.ffcodecdata.flags & FFMPEG_MULTIPLEX_AUDIO) == 0)
 				sce->r.ffcodecdata.audio_codec = 0x0; // CODEC_ID_NONE
 
-			SEQ_BEGIN (sce->ed, seq) {
+			SEQ_BEGIN (sce->ed, seq)
+			{
 				seq->volume = 1.0f;
 			}
 			SEQ_END
@@ -12178,7 +12185,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (scene= main->scene.first; scene; scene=scene->id.next) {
 			if (scene) {
 				Sequence *seq;
-				SEQ_BEGIN (scene->ed, seq) {
+				SEQ_BEGIN (scene->ed, seq)
+				{
 					if (seq->sat==0.0f) {
 						seq->sat= 1.0f;
 					}
@@ -12653,7 +12661,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (scene=main->scene.first; scene; scene=scene->id.next) {
 				scene->r.ffcodecdata.audio_channels = 2;
 				scene->audio.volume = 1.0f;
-				SEQ_BEGIN (scene->ed, seq) {
+				SEQ_BEGIN (scene->ed, seq)
+				{
 					seq->pitch = 1.0f;
 				}
 				SEQ_END
@@ -12956,14 +12965,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								v3d->bundle_size= 0.2f;
 								v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
 							}
-							else if (sl->spacetype==SPACE_CLIP) {
-								SpaceClip *sc= (SpaceClip *)sl;
-								if (sc->scopes.track_preview_height==0)
-									sc->scopes.track_preview_height= 120;
-							}
 
 							if (v3d->bundle_drawtype==0)
 								v3d->bundle_drawtype= OB_PLAINAXES;
+						}
+						else if (sl->spacetype==SPACE_CLIP) {
+							SpaceClip *sc= (SpaceClip *)sl;
+							if (sc->scopes.track_preview_height==0)
+								sc->scopes.track_preview_height= 120;
 						}
 					}
 				}
@@ -13390,7 +13399,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	{
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 2)) {
 		bScreen *sc;
 
 		for (sc = main->screen.first; sc; sc = sc->id.next) {
@@ -13424,6 +13433,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	
+	{
+		Lamp *la;
+		for (la= main->lamp.first; la; la= la->id.next) {
+			if (la->shadow_frustum_size == 0.0)
+				la->shadow_frustum_size= 10.0f;
+		}
+	}
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
@@ -14384,7 +14402,8 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	if (sce->ed) {
 		Sequence *seq;
 
-		SEQ_BEGIN (sce->ed, seq) {
+		SEQ_BEGIN (sce->ed, seq)
+		{
 			if (seq->scene) expand_doit(fd, mainvar, seq->scene);
 			if (seq->scene_camera) expand_doit(fd, mainvar, seq->scene_camera);
 			if (seq->sound) expand_doit(fd, mainvar, seq->sound);

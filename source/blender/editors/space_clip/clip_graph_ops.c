@@ -229,7 +229,6 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 			}
 		}
 		else if (act_track != userdata.track) {
-			MovieTrackingMarker *marker;
 			SelectUserData selectdata = {SEL_DESELECT};
 
 			tracking->act_track = userdata.track;

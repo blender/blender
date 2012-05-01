@@ -57,7 +57,7 @@ __device_inline float3 bvh_inverse_direction(float3 dir)
 
 __device_inline void bvh_instance_push(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, const float tmax)
 {
-	Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+	Transform tfm = object_fetch_transform(kg, object, ray->time, OBJECT_INVERSE_TRANSFORM);
 
 	*P = transform_point(&tfm, ray->P);
 
@@ -74,7 +74,7 @@ __device_inline void bvh_instance_push(KernelGlobals *kg, int object, const Ray 
 
 __device_inline void bvh_instance_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, const float tmax)
 {
-	Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+	Transform tfm = object_fetch_transform(kg, object, ray->time, OBJECT_TRANSFORM);
 
 	if(*t != FLT_MAX)
 		*t *= len(transform_direction(&tfm, 1.0f/(*idir)));
@@ -341,7 +341,7 @@ __device_inline float3 ray_offset(float3 P, float3 Ng)
 #endif
 }
 
-__device_inline float3 bvh_triangle_refine(KernelGlobals *kg, const Intersection *isect, const Ray *ray)
+__device_inline float3 bvh_triangle_refine(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray)
 {
 	float3 P = ray->P;
 	float3 D = ray->D;
@@ -349,7 +349,11 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, const Intersection
 
 #ifdef __INTERSECTION_REFINE__
 	if(isect->object != ~0) {
-		Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
+#ifdef __MOTION__
+		Transform tfm = sd->ob_itfm;
+#else
+		Transform tfm = object_fetch_transform(kg, isect->object, ray->time, OBJECT_INVERSE_TRANSFORM);
+#endif
 
 		P = transform_point(&tfm, P);
 		D = transform_direction(&tfm, D*t);
@@ -366,7 +370,12 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, const Intersection
 	P = P + D*rt;
 
 	if(isect->object != ~0) {
-		Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
+#ifdef __MOTION__
+		Transform tfm = sd->ob_tfm;
+#else
+		Transform tfm = object_fetch_transform(kg, isect->object, ray->time, OBJECT_TRANSFORM);
+#endif
+
 		P = transform_point(&tfm, P);
 	}
 

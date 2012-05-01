@@ -1,17 +1,4 @@
 /*
- * IMB_imbuf_types.h (mar-2001 nzc)
- *
- * Types needed for using the image buffer.
- *
- * Imbuf is external code, slightly adapted to live in the Blender
- * context. It requires an external jpeg module, and the avi-module
- * (also external code) in order to function correctly.
- *
- * This file contains types and some constants that go with them. Most
- * are self-explanatory (e.g. IS_amiga tests whether the buffer
- * contains an Amiga-format file).
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -37,15 +24,26 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+#ifndef __IMB_IMBUF_TYPES_H__
+#define __IMB_IMBUF_TYPES_H__
+
 /**
  * \file IMB_imbuf_types.h
  * \ingroup imbuf
  * \brief Contains defines and structs used throughout the imbuf module.
  * \todo Clean up includes.
+ *
+ * Types needed for using the image buffer.
+ *
+ * Imbuf is external code, slightly adapted to live in the Blender
+ * context. It requires an external jpeg module, and the avi-module
+ * (also external code) in order to function correctly.
+ *
+ * This file contains types and some constants that go with them. Most
+ * are self-explanatory (e.g. IS_amiga tests whether the buffer
+ * contains an Amiga-format file).
  */
-
-#ifndef __IMB_IMBUF_TYPES_H__
-#define __IMB_IMBUF_TYPES_H__
 
 struct ImMetaData;
 

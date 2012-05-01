@@ -1,8 +1,4 @@
 /*
- * imagepaint.c
- *
- * Functions to paint images in 2D and 3D.
- * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -30,8 +26,8 @@
 
 /** \file blender/editors/sculpt_paint/paint_image.c
  *  \ingroup edsculpt
+ *  \brief Functions to paint images in 2D and 3D.
  */
-
 
 #include <float.h>
 #include <string.h>
@@ -5038,7 +5034,8 @@ static int paint_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	RNA_BEGIN (op->ptr, itemptr, "stroke") {
+	RNA_BEGIN (op->ptr, itemptr, "stroke")
+	{
 		paint_apply(C, op, &itemptr);
 	}
 	RNA_END;

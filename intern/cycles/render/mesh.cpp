@@ -113,11 +113,11 @@ void Mesh::compute_bounds()
 void Mesh::add_face_normals()
 {
 	/* don't compute if already there */
-	if(attributes.find(Attribute::STD_FACE_NORMAL))
+	if(attributes.find(ATTR_STD_FACE_NORMAL))
 		return;
 
 	/* get attributes */
-	Attribute *attr_fN = attributes.add(Attribute::STD_FACE_NORMAL);
+	Attribute *attr_fN = attributes.add(ATTR_STD_FACE_NORMAL);
 	float3 *fN = attr_fN->data_float3();
 
 	/* compute face normals */
@@ -145,12 +145,12 @@ void Mesh::add_face_normals()
 void Mesh::add_vertex_normals()
 {
 	/* don't compute if already there */
-	if(attributes.find(Attribute::STD_VERTEX_NORMAL))
+	if(attributes.find(ATTR_STD_VERTEX_NORMAL))
 		return;
 
 	/* get attributes */
-	Attribute *attr_fN = attributes.find(Attribute::STD_FACE_NORMAL);
-	Attribute *attr_vN = attributes.add(Attribute::STD_VERTEX_NORMAL);
+	Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
+	Attribute *attr_vN = attributes.add(ATTR_STD_VERTEX_NORMAL);
 
 	float3 *fN = attr_fN->data_float3();
 	float3 *vN = attr_vN->data_float3();
@@ -179,8 +179,8 @@ void Mesh::add_vertex_normals()
 
 void Mesh::pack_normals(Scene *scene, float4 *normal, float4 *vnormal)
 {
-	Attribute *attr_fN = attributes.find(Attribute::STD_FACE_NORMAL);
-	Attribute *attr_vN = attributes.find(Attribute::STD_VERTEX_NORMAL);
+	Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
+	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
 
 	float3 *fN = attr_fN->data_float3();
 	float3 *vN = attr_vN->data_float3();
@@ -348,7 +348,7 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 			else
 				osl_attr.type = TypeDesc::TypeColor;
 
-			if(req.std != Attribute::STD_NONE) {
+			if(req.std != ATTR_STD_NONE) {
 				/* if standard attribute, add lookup by std:: name convention */
 				ustring stdname = ustring(string("std::") + Attribute::standard_name(req.std).c_str());
 				og->attribute_map[i][stdname] = osl_attr;
@@ -371,7 +371,7 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 	int attr_map_stride = 0;
 
 	for(size_t i = 0; i < scene->meshes.size(); i++)
-		attr_map_stride = max(attr_map_stride, mesh_attributes[i].size());
+		attr_map_stride = max(attr_map_stride, mesh_attributes[i].size()+1);
 
 	if(attr_map_stride == 0)
 		return;
@@ -393,13 +393,12 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 		AttributeRequestSet& attributes = mesh_attributes[j];
 
 		/* set object attributes */
-		j = 0;
+		int index = i*attr_map_stride;
 
 		foreach(AttributeRequest& req, attributes.requests) {
-			int index = i*attr_map_stride + j;
 			uint id;
 
-			if(req.std == Attribute::STD_NONE)
+			if(req.std == ATTR_STD_NONE)
 				id = scene->shader_manager->get_attribute_id(req.name);
 			else
 				id = scene->shader_manager->get_attribute_id(req.std);
@@ -413,8 +412,14 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 			else
 				attr_map[index].w = NODE_ATTR_FLOAT3;
 
-			j++;
+			index++;
 		}
+
+		/* terminator */
+		attr_map[index].x = ATTR_STD_NONE;
+		attr_map[index].y = 0;
+		attr_map[index].z = 0;
+		attr_map[index].w = 0;
 	}
 
 	/* copy to device */
@@ -433,6 +438,8 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 
 	for(size_t i = 0; i < scene->meshes.size(); i++) {
 		Mesh *mesh = scene->meshes[i];
+
+		scene->need_global_attributes(mesh_attributes[i]);
 
 		foreach(uint sindex, mesh->used_shaders) {
 			Shader *shader = scene->shaders[sindex];
@@ -456,8 +463,8 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 			Attribute *mattr = mesh->attributes.find(req);
 
 			/* todo: get rid of this exception */
-			if(!mattr && req.std == Attribute::STD_GENERATED) {
-				mattr = mesh->attributes.add(Attribute::STD_GENERATED);
+			if(!mattr && req.std == ATTR_STD_GENERATED) {
+				mattr = mesh->attributes.add(ATTR_STD_GENERATED);
 				if(mesh->verts.size())
 					memcpy(mattr->data_float3(), &mesh->verts[0], sizeof(float3)*mesh->verts.size());
 			}
@@ -489,19 +496,19 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 				float *data = mattr->data_float();
 				req.offset = attr_float.size();
 
+				attr_float.resize(attr_float.size() + size);
+
 				for(size_t k = 0; k < size; k++)
-					attr_float.push_back(data[k]);
+					attr_float[req.offset+k] = data[k];
 			}
 			else {
 				float3 *data = mattr->data_float3();
 				req.offset = attr_float3.size();
 
-				for(size_t k = 0; k < size; k++) {
-					float3 f3 = data[k];
-					float4 f4 = make_float4(f3.x, f3.y, f3.z, 0.0f);
+				attr_float3.resize(attr_float3.size() + size);
 
-					attr_float3.push_back(f4);
-				}
+				for(size_t k = 0; k < size; k++)
+					attr_float3[req.offset+k] = float3_to_float4(data[k]);
 			}
 
 			/* mesh vertex/triangle index is global, not per object, so we sneak
@@ -712,8 +719,10 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	foreach(Shader *shader, scene->shaders)
 		shader->need_update_attributes = false;
 
+	bool motion_blur = scene->need_motion() == Scene::MOTION_BLUR;
+
 	foreach(Object *object, scene->objects)
-		object->compute_bounds();
+		object->compute_bounds(motion_blur);
 
 	if(progress.get_cancel()) return;
 
@@ -757,6 +766,33 @@ void MeshManager::tag_update(Scene *scene)
 {
 	need_update = true;
 	scene->object_manager->need_update = true;
+}
+
+bool Mesh::need_attribute(Scene *scene, AttributeStandard std)
+{
+	if(std == ATTR_STD_NONE)
+		return false;
+	
+	if(scene->need_global_attribute(std))
+		return true;
+
+	foreach(uint shader, used_shaders)
+		if(scene->shaders[shader]->attributes.find(std))
+			return true;
+	
+	return false;
+}
+
+bool Mesh::need_attribute(Scene *scene, ustring name)
+{
+	if(name == ustring())
+		return false;
+
+	foreach(uint shader, used_shaders)
+		if(scene->shaders[shader]->attributes.find(name))
+			return true;
+	
+	return false;
 }
 
 CCL_NAMESPACE_END

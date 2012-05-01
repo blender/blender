@@ -96,6 +96,7 @@ void *add_lamp(const char *name)
 	la->skyblendfac= 1.0f;
 	la->sky_colorspace= BLI_XYZ_CIE;
 	la->sky_exposure= 1.0f;
+	la->shadow_frustum_size= 10.0f;
 	
 	curvemapping_initialize(la->curfalloff);
 	return la;

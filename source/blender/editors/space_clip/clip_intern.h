@@ -44,9 +44,9 @@ struct wmOperatorType;
 
 /* channel heights */
 #define CHANNEL_FIRST			-UI_UNIT_Y
-#define	CHANNEL_HEIGHT			UI_UNIT_Y
+#define CHANNEL_HEIGHT			UI_UNIT_Y
 #define CHANNEL_HEIGHT_HALF		(UI_UNIT_Y / 2.0f)
-#define	CHANNEL_SKIP			2
+#define CHANNEL_SKIP			2
 #define CHANNEL_STEP			(CHANNEL_HEIGHT + CHANNEL_SKIP)
 
 #define CHANNEL_PAD				4

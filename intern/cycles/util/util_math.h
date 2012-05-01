@@ -55,6 +55,10 @@ CCL_NAMESPACE_BEGIN
 #ifndef M_2_PI_F
 #define M_2_PI_F	((float)0.636619772367581343075535053490057448)
 #endif
+#ifndef M_SQRT2_F
+#define M_SQRT2_F	((float)1.41421356237309504880)
+#endif
+
 
 /* Scalar */
 
@@ -719,6 +723,45 @@ __device_inline float4 cross(const float4& a, const float4& b)
 #endif
 }
 
+__device_inline bool is_zero(const float4& a)
+{
+#ifdef __KERNEL_SSE__
+	return a == make_float4(0.0f);
+#else
+	return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f && a.w == 0.0f);
+#endif
+}
+
+__device_inline float reduce_add(const float4& a)
+{
+#ifdef __KERNEL_SSE__
+	float4 h = shuffle<1,0,3,2>(a) + a;
+	return _mm_cvtss_f32(shuffle<2,3,0,1>(h) + h); /* todo: efficiency? */
+#else
+	return ((a.x + a.y) + (a.z + a.w));
+#endif
+}
+
+__device_inline float average(const float4& a)
+{
+	return reduce_add(a) * 0.25f;
+}
+
+__device_inline float dot(const float4& a, const float4& b)
+{
+	return reduce_add(a * b);
+}
+
+__device_inline float len(const float4 a)
+{
+	return sqrtf(dot(a, a));
+}
+
+__device_inline float4 normalize(const float4 a)
+{
+	return a/len(a);
+}
+
 __device_inline float4 min(float4 a, float4 b)
 {
 #ifdef __KERNEL_SSE__
@@ -786,39 +829,6 @@ __device_inline float4 reduce_add(const float4& a)
 __device_inline void print_float4(const char *label, const float4& a)
 {
 	printf("%s: %.8f %.8f %.8f %.8f\n", label, a.x, a.y, a.z, a.w);
-}
-
-#endif
-
-#ifndef __KERNEL_OPENCL__
-
-__device_inline bool is_zero(const float4& a)
-{
-#ifdef __KERNEL_SSE__
-	return a == make_float4(0.0f);
-#else
-	return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f && a.w == 0.0f);
-#endif
-}
-
-__device_inline float reduce_add(const float4& a)
-{
-#ifdef __KERNEL_SSE__
-	float4 h = shuffle<1,0,3,2>(a) + a;
-	return _mm_cvtss_f32(shuffle<2,3,0,1>(h) + h); /* todo: efficiency? */
-#else
-	return ((a.x + a.y) + (a.z + a.w));
-#endif
-}
-
-__device_inline float average(const float4& a)
-{
-	return reduce_add(a) * 0.25f;
-}
-
-__device_inline float dot(const float4& a, const float4& b)
-{
-	return reduce_add(a * b);
 }
 
 #endif

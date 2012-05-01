@@ -54,7 +54,7 @@ public:
 
 	/* sync */
 	bool sync_recalc();
-	void sync_data(BL::SpaceView3D b_v3d, const char *layer = 0);
+	void sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const char *layer = 0);
 	void sync_camera(BL::Object b_override, int width, int height);
 	void sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height);
 	int get_layer_samples() { return render_layer.samples; }
@@ -69,7 +69,8 @@ private:
 	/* sync */
 	void sync_lamps();
 	void sync_materials();
-	void sync_objects(BL::SpaceView3D b_v3d);
+	void sync_objects(BL::SpaceView3D b_v3d, int motion = 0);
+	void sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override);
 	void sync_film();
 	void sync_integrator();
 	void sync_view();
@@ -79,9 +80,11 @@ private:
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool holdout, bool object_updated);
-	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag);
+	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag, int motion);
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 	void sync_background_light();
+	void sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion);
+	void sync_camera_motion(BL::Object b_ob, int motion);
 
 	/* util */
 	void find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader);

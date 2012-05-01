@@ -67,6 +67,13 @@ void Pass::add(PassType type, vector<Pass>& passes)
 		case PASS_UV:
 			pass.components = 4;
 			break;
+		case PASS_MOTION:
+			pass.components = 4;
+			pass.divide_type = PASS_MOTION_WEIGHT;
+			break;
+		case PASS_MOTION_WEIGHT:
+			pass.components = 1;
+			break;
 		case PASS_OBJECT_ID:
 			pass.components = 1;
 			pass.filter = false;
@@ -154,6 +161,15 @@ bool Pass::equals(const vector<Pass>& A, const vector<Pass>& B)
 	return true;
 }
 
+bool Pass::contains(const vector<Pass>& passes, PassType type)
+{
+	foreach(const Pass& pass, passes)
+		if(pass.type == type)
+			return true;
+	
+	return false;
+}
+
 /* Film */
 
 Film::Film()
@@ -195,6 +211,12 @@ void Film::device_update(Device *device, DeviceScene *dscene)
 				break;
 			case PASS_UV:
 				kfilm->pass_uv = kfilm->pass_stride;
+				break;
+			case PASS_MOTION:
+				kfilm->pass_motion = kfilm->pass_stride;
+				break;
+			case PASS_MOTION_WEIGHT:
+				kfilm->pass_motion_weight = kfilm->pass_stride;
 				break;
 			case PASS_OBJECT_ID:
 				kfilm->pass_object_id = kfilm->pass_stride;

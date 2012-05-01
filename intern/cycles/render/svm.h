@@ -69,7 +69,7 @@ public:
 	void add_node(const float4& f);
 	void add_array(float4 *f, int num);
 	uint attribute(ustring name);
-	uint attribute(Attribute::Standard std);
+	uint attribute(AttributeStandard std);
 	uint encode_uchar4(uint x, uint y = 0, uint z = 0, uint w = 0);
 	uint closure_mix_weight_offset() { return mix_weight_offset; }
 

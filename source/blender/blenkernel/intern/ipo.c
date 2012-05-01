@@ -1906,7 +1906,8 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			AnimData *adt= BKE_id_add_animdata(id);
 			
-			SEQ_BEGIN (ed, seq) {
+			SEQ_BEGIN (ed, seq)
+			{
 				IpoCurve *icu = (seq->ipo) ? seq->ipo->curve.first : NULL;
 				short adrcode = SEQ_FAC1;
 				
