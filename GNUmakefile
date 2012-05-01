@@ -164,6 +164,7 @@ help:
 	@echo "  * test_cmake      - runs our own cmake file checker which detects errors in the cmake file list definitions"
 	@echo "  * test_pep8       - checks all python script are pep8 which are tagged to use the stricter formatting"
 	@echo "  * test_deprecated - checks for deprecation tags in our code which may need to be removed"
+	@echo "  * test_style      - checks C/C++ conforms with blenders style guide: http://wiki.blender.org/index.php/Dev:Doc/CodeStyle"
 	@echo ""
 	@echo "Static Source Code Checking (not assosiated with building blender)"
 	@echo "  * check_cppcheck    - run blender source through cppcheck (C & C++)"
@@ -213,6 +214,9 @@ test_cmake:
 test_deprecated:
 	python3 source/tests/check_deprecated.py
 
+test_style:
+	# run our own checks on C/C++ style
+	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/source/blender $(BLENDER_DIR)/source/creator
 
 # -----------------------------------------------------------------------------
 # Project Files
@@ -249,7 +253,6 @@ check_spelling_py:
 
 check_spelling_c:
 	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/source
-
 
 # -----------------------------------------------------------------------------
 # Documentation
