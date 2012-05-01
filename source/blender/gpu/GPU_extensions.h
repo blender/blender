@@ -178,7 +178,7 @@ typedef enum GPUBuiltinShader {
 } GPUBuiltinShader;
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
-void GPU_shader_free_builtin_shaders();
+void GPU_shader_free_builtin_shaders(void);
 
 /* Vertex attributes for shaders */
 

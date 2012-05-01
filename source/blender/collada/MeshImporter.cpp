@@ -845,7 +845,6 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 				prim.mface++;
 				// bind texture images to faces
 				if (texture_face && (*color_texture)) {
-					texture_face->mode = TF_TEX;
 					texture_face->tpage = (Image*)(*color_texture)->tex->ima;
 					texture_face++;
 				}

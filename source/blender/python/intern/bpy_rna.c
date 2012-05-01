@@ -6254,6 +6254,31 @@ PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
 	return (PyObject *)pyrna;
 }
 
+/* utility func to be used by external modules, *sneaky!* */
+PyObject *pyrna_id_CreatePyObject(ID *id)
+{
+	if (id) {
+		PointerRNA ptr;
+		RNA_id_pointer_create(id, &ptr);
+		return pyrna_struct_CreatePyObject(&ptr);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
+int pyrna_id_FromPyObject(PyObject *obj, ID **id)
+{
+	if (BPy_StructRNA_Check(obj) && (RNA_struct_is_ID(((BPy_StructRNA *)obj)->ptr.type))) {
+		*id = ((BPy_StructRNA *)obj)->ptr.id.data;
+		return TRUE;
+	}
+	else {
+		*id = NULL;
+		return FALSE;
+	}
+}
+
 void BPY_rna_init(void)
 {
 #ifdef USE_MATHUTILS // register mathutils callbacks, ok to run more then once.

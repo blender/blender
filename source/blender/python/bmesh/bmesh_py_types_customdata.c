@@ -989,8 +989,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 		}
 		case CD_MTEXPOLY:
 		{
-			ret = Py_NotImplemented; /* TODO */
-			Py_INCREF(ret);
+			ret = BPy_BMTexPoly_CreatePyObject(value);
 			break;
 		}
 		case CD_MLOOPUV:
@@ -1083,8 +1082,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 		}
 		case CD_MTEXPOLY:
 		{
-			PyErr_SetString(PyExc_AttributeError, "readonly"); /* could make this writeable later */
-			ret = -1;
+			ret = BPy_BMTexPoly_AssignPyObject(value, py_value);
 			break;
 		}
 		case CD_MLOOPUV:
