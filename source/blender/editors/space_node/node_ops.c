@@ -130,6 +130,11 @@ void ED_operatormacros_node(void)
 	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links", "Detach", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Move a node to detach links";
 	WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
+	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+
+	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links_release", "Detach", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Move a node to detach links";
+	WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
 	mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_boolean_set(mot->ptr, "release_confirm", TRUE);
 }
