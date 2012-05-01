@@ -4368,8 +4368,9 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 	
 	/* Delete unused vertices, edges, and faces */
 	if (RNA_boolean_get(op->ptr, "delete_unused")) {
-		if(!EDBM_op_callf(em, op, "del geom=%s context=%i",
-						  &bmop, "unused_geom", DEL_ONLYTAGGED)) {
+		if (!EDBM_op_callf(em, op, "del geom=%s context=%i",
+		                   &bmop, "unused_geom", DEL_ONLYTAGGED))
+		{
 			EDBM_op_finish(em, &bmop, op, TRUE);
 			return OPERATOR_CANCELLED;
 		}
@@ -4377,8 +4378,9 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 
 	/* Delete hole edges/faces */
 	if (RNA_boolean_get(op->ptr, "make_holes")) {
-		if(!EDBM_op_callf(em, op, "del geom=%s context=%i",
-						  &bmop, "holes_geom", DEL_ONLYTAGGED)) {
+		if (!EDBM_op_callf(em, op, "del geom=%s context=%i",
+		                   &bmop, "holes_geom", DEL_ONLYTAGGED))
+		{
 			EDBM_op_finish(em, &bmop, op, TRUE);
 			return OPERATOR_CANCELLED;
 		}
@@ -4386,9 +4388,10 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 
 	/* Merge adjacent triangles */
 	if (RNA_boolean_get(op->ptr, "join_triangles")) {
-		if(!EDBM_op_callf(em, op, "join_triangles faces=%s limit=%f",
-						  &bmop, "geomout",
-						  RNA_float_get(op->ptr, "limit"))) {
+		if (!EDBM_op_callf(em, op, "join_triangles faces=%s limit=%f",
+		                   &bmop, "geomout",
+		                   RNA_float_get(op->ptr, "limit")))
+		{
 			EDBM_op_finish(em, &bmop, op, TRUE);
 			return OPERATOR_CANCELLED;
 		}

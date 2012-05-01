@@ -1322,8 +1322,7 @@ int main(int argc, const char **argv)
 	BLI_argsFree(ba);
 
 #ifdef WIN32
-	while (argci)
-	{
+	while (argci) {
 		free(argv[--argci]);
 	}
 	MEM_freeN(argv);

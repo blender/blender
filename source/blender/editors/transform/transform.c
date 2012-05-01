@@ -654,7 +654,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					t->redraw |= TREDRAW_HARD;
 				}
 				else if (t->mode == TFM_TRANSLATION) {
-					if(t->options & CTX_MOVIECLIP) {
+					if (t->options & CTX_MOVIECLIP) {
 						restoreTransObjects(t);
 
 						t->flag ^= T_ALT_TRANSFORM;

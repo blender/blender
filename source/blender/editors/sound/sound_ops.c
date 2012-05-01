@@ -344,12 +344,12 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	BLI_strncpy(filename, path, sizeof(filename));
 	BLI_path_abs(filename, bmain->name);
 
-	if(split)
+	if (split)
 		result = AUD_mixdown_per_channel(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA) * specs.rate / FPS,
-										 accuracy, filename, specs, container, codec, bitrate);
+		                                 accuracy, filename, specs, container, codec, bitrate);
 	else
 		result = AUD_mixdown(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA) * specs.rate / FPS,
-							 accuracy, filename, specs, container, codec, bitrate);
+		                     accuracy, filename, specs, container, codec, bitrate);
 
 	if (result) {
 		BKE_report(op->reports, RPT_ERROR, result);

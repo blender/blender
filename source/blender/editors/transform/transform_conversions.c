@@ -618,9 +618,8 @@ static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
 {
 	Bone *bone= lb->first;
 
-	for (;bone;bone= bone->next) {
-		if ((bone->flag & BONE_HINGE) && (bone->flag & BONE_CONNECTED))
-		{
+	for ( ; bone;bone= bone->next) {
+		if ((bone->flag & BONE_HINGE) && (bone->flag & BONE_CONNECTED)) {
 			bone->flag |= BONE_HINGE_CHILD_TRANSFORM;
 		}
 		else if ((bone->flag & BONE_TRANSFORM) &&
@@ -696,8 +695,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	}
 
 	/* if there are no translatable bones, do rotation */
-	if (mode == TFM_TRANSLATION && !hastranslation)
-	{
+	if (mode == TFM_TRANSLATION && !hastranslation) {
 		*out_mode = TFM_ROTATION;
 	}
 
@@ -1025,16 +1023,13 @@ static void createTransArmatureVerts(TransInfo *t)
 		t->mode= TFM_BONE_ENVELOPE;
 	
 	t->total = 0;
-	for (ebo = edbo->first; ebo; ebo = ebo->next)
-	{
-		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) 
-		{
-			if (t->mode==TFM_BONESIZE)
-			{
+	for (ebo = edbo->first; ebo; ebo = ebo->next) {
+		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
+			if (t->mode == TFM_BONESIZE) {
 				if (ebo->flag & BONE_SELECTED)
 					t->total++;
 			}
-			else if (t->mode==TFM_BONE_ROLL) {
+			else if (t->mode == TFM_BONE_ROLL) {
 				if (ebo->flag & BONE_SELECTED)
 					t->total++;
 			}
@@ -1054,16 +1049,12 @@ static void createTransArmatureVerts(TransInfo *t)
 
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransEditBone");
 
-	for (ebo = edbo->first; ebo; ebo = ebo->next)
-	{
+	for (ebo = edbo->first; ebo; ebo = ebo->next) {
 		ebo->oldlength = ebo->length;	// length==0.0 on extrude, used for scaling radius of bone points
 
-		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) 
-		{
-			if (t->mode==TFM_BONE_ENVELOPE)
-			{
-				if (ebo->flag & BONE_ROOTSEL)
-				{
+		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
+			if (t->mode==TFM_BONE_ENVELOPE) {
+				if (ebo->flag & BONE_ROOTSEL) {
 					td->val= &ebo->rad_head;
 					td->ival= *td->val;
 
@@ -1079,8 +1070,7 @@ static void createTransArmatureVerts(TransInfo *t)
 
 					td++;
 				}
-				if (ebo->flag & BONE_TIPSEL)
-				{
+				if (ebo->flag & BONE_TIPSEL) {
 					td->val= &ebo->rad_tail;
 					td->ival= *td->val;
 					copy_v3_v3(td->center, ebo->tail);
@@ -1099,8 +1089,7 @@ static void createTransArmatureVerts(TransInfo *t)
 			}
 			else if (t->mode==TFM_BONESIZE) {
 				if (ebo->flag & BONE_SELECTED) {
-					if (arm->drawtype==ARM_ENVELOPE)
-					{
+					if (arm->drawtype==ARM_ENVELOPE) {
 						td->loc= NULL;
 						td->val= &ebo->dist;
 						td->ival= ebo->dist;
@@ -1130,8 +1119,7 @@ static void createTransArmatureVerts(TransInfo *t)
 				}
 			}
 			else if (t->mode==TFM_BONE_ROLL) {
-				if (ebo->flag & BONE_SELECTED)
-				{
+				if (ebo->flag & BONE_SELECTED) {
 					td->loc= NULL;
 					td->val= &(ebo->roll);
 					td->ival= ebo->roll;
@@ -1146,8 +1134,7 @@ static void createTransArmatureVerts(TransInfo *t)
 				}
 			}
 			else {
-				if (ebo->flag & BONE_TIPSEL)
-				{
+				if (ebo->flag & BONE_TIPSEL) {
 					copy_v3_v3(td->iloc, ebo->tail);
 					copy_v3_v3(td->center, (t->around==V3D_LOCAL) ? ebo->head : td->iloc);
 					td->loc= ebo->tail;
@@ -1161,8 +1148,7 @@ static void createTransArmatureVerts(TransInfo *t)
 					sub_v3_v3v3(delta, ebo->tail, ebo->head);
 					vec_roll_to_mat3(delta, ebo->roll, td->axismtx);
 
-					if ((ebo->flag & BONE_ROOTSEL) == 0)
-					{
+					if ((ebo->flag & BONE_ROOTSEL) == 0) {
 						td->extra = ebo;
 					}
 
@@ -1172,8 +1158,7 @@ static void createTransArmatureVerts(TransInfo *t)
 
 					td++;
 				}
-				if (ebo->flag & BONE_ROOTSEL)
-				{
+				if (ebo->flag & BONE_ROOTSEL) {
 					copy_v3_v3(td->iloc, ebo->head);
 					copy_v3_v3(td->center, td->iloc);
 					td->loc= ebo->head;
@@ -1943,8 +1928,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	char *selstate = NULL;
 	short selectmode = ts->selectmode;
 
-	if (t->flag & T_MIRROR)
-	{
+	if (t->flag & T_MIRROR) {
 		EDBM_verts_mirror_cache_begin(em, TRUE);
 		mirror = 1;
 	}
@@ -2071,8 +2055,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
 		for (a=0; eve; eve=BM_iter_step(&iter), a++) {
 			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && selstate[a] && eve->co[0]!=0.0f) {
-				if (eve->co[0]<0.0f)
-				{
+				if (eve->co[0] < 0.0f) {
 					t->mirror = -1;
 					mirror = -1;
 				}
@@ -2144,13 +2127,10 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		}
 	}
 	
-	if (mirror != 0)
-	{
+	if (mirror != 0) {
 		tob = t->data;
-		for (a = 0; a < t->total; a++, tob++ )
-		{
-			if (ABS(tob->loc[0]) <= 0.00001f)
-			{
+		for (a = 0; a < t->total; a++, tob++ ) {
+			if (ABS(tob->loc[0]) <= 0.00001f) {
 				tob->flag |= TD_MIRROR_EDGE;
 			}
 		}

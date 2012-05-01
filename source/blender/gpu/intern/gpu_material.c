@@ -327,10 +327,11 @@ void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float v
 				mul_m4_v3(viewmat, lamp->dynco);
 			}
 
-			if (material->dynproperty & DYN_LAMP_IMAT)
+			if (material->dynproperty & DYN_LAMP_IMAT) {
 				mult_m4_m4m4(lamp->dynimat, lamp->imat, viewinv);
-			if (material->dynproperty & DYN_LAMP_PERSMAT)
-			{
+			}
+
+			if (material->dynproperty & DYN_LAMP_PERSMAT) {
 				if (!GPU_lamp_has_shadow_buffer(lamp)) /* The lamp matrices are already updated if we're using shadow buffers */
 					GPU_lamp_update_buffer_mats(lamp);
 				mult_m4_m4m4(lamp->dynpersmat, lamp->persmat, viewinv);
@@ -1611,7 +1612,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	/* makeshadowbuf */
 	if (lamp->type == LA_SUN) {
 		wsize = la->shadow_frustum_size;
-		orthographic_m4( lamp->winmat,-wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
+		orthographic_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
 	}
 	else {
 		angle= saacos(lamp->spotsi);
@@ -1636,11 +1637,11 @@ static void gpu_lamp_shadow_free(GPULamp *lamp)
 		GPU_framebuffer_free(lamp->fb);
 		lamp->fb= NULL;
 	}
-	if(lamp->blurtex) {
+	if (lamp->blurtex) {
 		GPU_texture_free(lamp->blurtex);
 		lamp->blurtex= NULL;
 	}
-	if(lamp->blurfb) {
+	if (lamp->blurfb) {
 		GPU_framebuffer_free(lamp->blurfb);
 		lamp->blurfb= NULL;
 	}
@@ -1721,7 +1722,7 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 		}
 		else {
 			lamp->tex = GPU_texture_create_depth(lamp->size, lamp->size, NULL);
-			if(!lamp->tex) {
+			if (!lamp->tex) {
 				gpu_lamp_shadow_free(lamp);
 				return lamp;
 			}
@@ -1814,7 +1815,7 @@ void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[][4], int *winsize
 	glDisable(GL_SCISSOR_TEST);
 	GPU_framebuffer_texture_bind(lamp->fb, lamp->tex,
 		GPU_texture_opengl_width(lamp->tex), GPU_texture_opengl_height(lamp->tex));
-	if(lamp->la->shadowmap_type == LA_SHADMAP_VARIANCE)
+	if (lamp->la->shadowmap_type == LA_SHADMAP_VARIANCE)
 		GPU_shader_bind(GPU_shader_get_builtin_shader(GPU_SHADER_VSM_STORE));
 
 	/* set matrices */
@@ -1825,7 +1826,7 @@ void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[][4], int *winsize
 
 void GPU_lamp_shadow_buffer_unbind(GPULamp *lamp)
 {
-	if(lamp->la->shadowmap_type == LA_SHADMAP_VARIANCE) {
+	if (lamp->la->shadowmap_type == LA_SHADMAP_VARIANCE) {
 		GPU_shader_unbind(GPU_shader_get_builtin_shader(GPU_SHADER_VSM_STORE));
 		GPU_framebuffer_blur(lamp->fb, lamp->tex, lamp->blurfb, lamp->blurtex);
 	}

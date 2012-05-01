@@ -371,7 +371,7 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 			Object *new_child = NULL;
 			if (inodes.getCount()) { // \todo loop through instance nodes
 				const COLLADAFW::UniqueId& id = inodes[0]->getInstanciatedObjectId();
-				fprintf(stderr,"Doing %d child nodes\n" ,node_map.count(id));
+				fprintf(stderr, "Doing %d child nodes\n", node_map.count(id));
 				new_child = create_instance_node(object_map.find(id)->second, node_map[id], child_node, sce, is_library_node);
 			}
 			else {
@@ -401,7 +401,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		par = add_object(sce, OB_ARMATURE);
 		bc_set_parent(par, empty->parent, mContext);
 		//remove empty : todo
-		object_map.insert( std::make_pair<COLLADAFW::UniqueId, Object *>(parent_node->getUniqueId(),par) );
+		object_map.insert(std::make_pair<COLLADAFW::UniqueId, Object *>(parent_node->getUniqueId(), par));
 		}
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
 	}
@@ -450,14 +450,14 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 				ob = NULL;
 			}
 			else {
-				std::pair<std::multimap<COLLADAFW::UniqueId,Object *>::iterator, std::multimap<COLLADAFW::UniqueId,Object *>::iterator> pair_iter = object_map.equal_range(node_id);
-				for(std::multimap<COLLADAFW::UniqueId,Object *>::iterator it2 = pair_iter.first; it2 != pair_iter.second; it2++){
+				std::pair<std::multimap<COLLADAFW::UniqueId, Object *>::iterator, std::multimap<COLLADAFW::UniqueId, Object *>::iterator> pair_iter = object_map.equal_range(node_id);
+				for (std::multimap<COLLADAFW::UniqueId, Object *>::iterator it2 = pair_iter.first; it2 != pair_iter.second; it2++) {
 					Object *source_ob = (Object *)it2->second;
 					COLLADAFW::Node *source_node = node_map[node_id];
 					ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);
 				}
 			}
-			if(ob != NULL) objects_done->push_back(ob);
+			if (ob != NULL) objects_done->push_back(ob);
 			++inst_done;
 
 			read_transform = false;
@@ -472,11 +472,11 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		// XXX: if there're multiple instances, only one is stored
 
 		if (!ob) return;
-		for(std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
+		for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
 			ob = *it;
 			std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
 			rename_id(&ob->id, (char*)nodename.c_str());
-			object_map.insert( std::make_pair<COLLADAFW::UniqueId,Object *>(node->getUniqueId(),ob) );
+			object_map.insert(std::make_pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), ob));
 			node_map[node->getUniqueId()] = node;
 
 			if (is_library_node)
@@ -485,7 +485,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 
 	}
 
-	for(std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
+	for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
 		ob =*it;
 
 		if (read_transform)
