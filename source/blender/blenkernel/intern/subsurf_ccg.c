@@ -2102,7 +2102,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 				}
 			}
 			else {
-				glShadeModel(GL_FLAT);
+				glShadeModel((cp)? GL_SMOOTH: GL_FLAT);
 				glBegin(GL_QUADS);
 				for (y = 0; y < gridFaces; y++) {
 					for (x = 0; x < gridFaces; x++) {
