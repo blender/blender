@@ -198,7 +198,7 @@ void ED_pose_recalculate_paths(Scene *scene, Object *ob)
 }
 
 /* show popup to determine settings */
-static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {	
 	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
 	

@@ -1126,7 +1126,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 }
 
 /* show popup to determine settings */
-static int object_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int object_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Object *ob = CTX_data_active_object(C);
 	
