@@ -3319,7 +3319,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if (dt == OB_WIRE || totface == 0) {
 		draw_wire = OBDRAW_WIRE_ON; /* draw wire only, no depth buffer stuff  */
 	}
-	else if ( (draw_flags & DRAW_FACE_SELECT || (is_obact && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
+	else if ( ((is_obact && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
 	          check_object_draw_texture(scene, v3d, dt))
 	{
 		if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
@@ -3474,39 +3474,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if (dt == OB_PAINT) {
-		if (is_obact) {
-			if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
-				/* enforce default material settings */
-				GPU_enable_material(0, NULL);
-				
-				/* but set default spec */
-				glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
-				glEnable(GL_COLOR_MATERIAL);    /* according manpages needed */
-				glColor3ub(120, 120, 120);
-				glDisable(GL_COLOR_MATERIAL);
-				/* diffuse */
-				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-				glEnable(GL_LIGHTING);
-				glEnable(GL_COLOR_MATERIAL);
-
-				dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, me->mpoly,
-				                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
-				glDisable(GL_COLOR_MATERIAL);
-				glDisable(GL_LIGHTING);
-
-				GPU_disable_material();
-			}
-			else if (ob->mode & OB_MODE_VERTEX_PAINT) {
-				if (me->mloopcol)
-					dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, NULL,
-					                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
-				else {
-					glColor3f(1.0f, 1.0f, 1.0f);
-					dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, NULL,
-					                    DM_DRAW_ALWAYS_SMOOTH);
-				}
-			}
-		}
+		draw_mesh_paint(scene, v3d, rv3d, ob, dm, draw_flags);
 	}
 	
 	/* set default draw color back for wire or for draw-extra later on */

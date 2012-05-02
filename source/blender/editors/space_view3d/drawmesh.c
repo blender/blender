@@ -179,7 +179,7 @@ static DMDrawOption draw_mesh_face_select__drawFaceOptsInv(void *userData, int i
 		return DM_DRAW_OPTION_SKIP;
 }
 
-static void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
+void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 {
 	drawMeshFaceSelect_userData data;
 
@@ -593,20 +593,6 @@ static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int index)
 	}
 }
 
-static DMDrawOption wpaint__setSolidDrawOptions_material(void *userData, int index)
-{
-	Mesh *me = (Mesh *)userData;
-
-	if (me->mat && me->mpoly) {
-		Material *ma = me->mat[me->mpoly[index].mat_nr];
-		if (ma && (ma->game.flag & GEMAT_INVISIBLE)) {
-			return DM_DRAW_OPTION_SKIP;
-		}
-	}
-
-	return DM_DRAW_OPTION_NORMAL;
-}
-
 /* when face select is on, use face hidden flag */
 static DMDrawOption wpaint__setSolidDrawOptions_facemask(void *userData, int index)
 {
@@ -946,6 +932,10 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 		draw_mesh_textured_old(scene, v3d, rv3d, ob, dm, draw_flags);
 		return;
 	}
+	else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
+		draw_mesh_paint(scene, v3d, rv3d, ob, dm, draw_flags);
+		return;
+	}
 
 	/* set opengl state for negative scale & color */
 	if (ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
@@ -953,12 +943,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 
 	glEnable(GL_LIGHTING);
 
-	if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
-		/* weight paint mode exception */
-		dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions_material,
-		                    GPU_enable_material, NULL, ob->data, DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
-	}
-	else {
+	{
 		Mesh *me = ob->data;
 		TexMatCallback data = {scene, ob, me, dm};
 		int (*set_face_cb)(void *, int);
@@ -1013,5 +998,55 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	/* faceselect mode drawing over textured mesh */
 	if (!(ob == scene->obedit) && (draw_flags & DRAW_FACE_SELECT))
 		draw_mesh_face_select(rv3d, ob->data, dm);
+}
+
+/* Vertex Paint and Weight Paint */
+
+void draw_mesh_paint(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_flags)
+{
+	DMSetDrawOptions facemask = NULL;
+	Mesh *me = ob->data;
+
+	/* hide faces in face select mode */
+	if (draw_flags & DRAW_FACE_SELECT)
+		facemask = wpaint__setSolidDrawOptions_facemask;
+
+	if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
+		/* enforce default material settings */
+		GPU_enable_material(0, NULL);
+		
+		/* but set default spec */
+		glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
+		glEnable(GL_COLOR_MATERIAL);    /* according manpages needed */
+		glColor3ub(120, 120, 120);
+		glDisable(GL_COLOR_MATERIAL);
+
+		/* diffuse */
+		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_COLOR_MATERIAL);
+
+		dm->drawMappedFaces(dm, facemask, GPU_enable_material, NULL, me,
+							DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
+
+		glDisable(GL_COLOR_MATERIAL);
+		glDisable(GL_LIGHTING);
+
+		GPU_disable_material();
+	}
+	else if (ob->mode & OB_MODE_VERTEX_PAINT) {
+		if (me->mloopcol)
+			dm->drawMappedFaces(dm, facemask, GPU_enable_material, NULL, me,
+								DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
+		else {
+			glColor3f(1.0f, 1.0f, 1.0f);
+			dm->drawMappedFaces(dm, facemask, GPU_enable_material, NULL, me,
+								DM_DRAW_ALWAYS_SMOOTH);
+		}
+	}
+
+	/* draw face selection on top */
+	if (draw_flags & DRAW_FACE_SELECT)
+		draw_mesh_face_select(rv3d, me, dm);
 }
 
