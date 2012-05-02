@@ -248,6 +248,9 @@ static void *ctx_wm_python_context_get(const bContext *C, const char *member, vo
 
 static int ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
 {
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
 	int done= 0, recursion= C->data.recursion;
 	int ret= 0;
 
@@ -279,23 +282,23 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 			done= 1;
 		}
 	}
-	if (done!=1 && recursion < 2 && C->wm.region) {
+	if (done!=1 && recursion < 2 && (ar=CTX_wm_region(C))) {
 		C->data.recursion= 2;
-		if (C->wm.region->type && C->wm.region->type->context) {
-			ret = C->wm.region->type->context(C, member, result);
+		if (ar->type && ar->type->context) {
+			ret = ar->type->context(C, member, result);
 			if (ret) done= -(-ret | -done);
 
 		}
 	}
-	if (done!=1 && recursion < 3 && C->wm.area) {
+	if (done!=1 && recursion < 3 && (sa=CTX_wm_area(C))) {
 		C->data.recursion= 3;
-		if (C->wm.area->type && C->wm.area->type->context) {
-			ret = C->wm.area->type->context(C, member, result);
+		if (sa->type && sa->type->context) {
+			ret = sa->type->context(C, member, result);
 			if (ret) done= -(-ret | -done);
 		}
 	}
-	if (done!=1 && recursion < 4 && C->wm.screen) {
-		bContextDataCallback cb= C->wm.screen->context;
+	if (done!=1 && recursion < 4 && (sc=CTX_wm_screen(C))) {
+		bContextDataCallback cb= sc->context;
 		C->data.recursion= 4;
 		if (cb) {
 			ret = cb(C, member, result);
