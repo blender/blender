@@ -438,6 +438,16 @@ void AnimationImporter::modify_fcurve(std::vector<FCurve*>* curves, const char* 
 	}
 }
 
+void AnimationImporter::unused_fcurve(std::vector<FCurve*>* curves)
+{
+	// when an error happens and we can't actually use curve remove it from unused_curves
+	std::vector<FCurve*>::iterator it;
+	for (it = curves->begin(); it != curves->end(); it++) {
+		FCurve *fcu = *it;
+		unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), fcu), unused_curves.end());
+	}
+}
+
 void AnimationImporter::find_frames( std::vector<float>* frames, std::vector<FCurve*>* curves)
 {
 	std::vector<FCurve*>::iterator iter;
@@ -499,6 +509,7 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 			modify_fcurve(curves, rna_path, -1 );
 			break;
 		default:
+			unused_fcurve(curves);
 			fprintf(stderr, "AnimationClass %d is not supported for %s.\n",
 				binding->animationClass, loc ? "TRANSLATE" : "SCALE");
 				}
@@ -534,10 +545,13 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 			else if (COLLADABU::Math::Vector3::UNIT_Z == axis) {
 				modify_fcurve(curves, rna_path, 2 );
 			}
+			else
+				unused_fcurve(curves);
 			break;
 		case COLLADAFW::AnimationList::AXISANGLE:
 			// TODO convert axis-angle to quat? or XYZ?
 		default:
+			unused_fcurve(curves);
 			fprintf(stderr, "AnimationClass %d is not supported for ROTATE transformation.\n",
 				binding->animationClass);
 				}
@@ -553,9 +567,11 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 
 			}
 			}*/
+			unused_fcurve(curves);
 			break;
 		case COLLADAFW::Transformation::SKEW:
 		case COLLADAFW::Transformation::LOOKAT:
+			unused_fcurve(curves);
 			fprintf(stderr, "Animation of SKEW and LOOKAT transformations is not supported yet.\n");
 			break;
 	}
@@ -591,6 +607,7 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 			break;
 
 		default:
+			unused_fcurve(&animcurves);
 			fprintf(stderr, "AnimationClass %d is not supported for %s.\n",
 				bindings[j].animationClass, "COLOR" );
 		}
