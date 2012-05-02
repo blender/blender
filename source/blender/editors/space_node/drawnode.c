@@ -1756,7 +1756,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 {
 	PointerRNA imfptr = RNA_pointer_get(ptr, "format");
 	PointerRNA active_input_ptr, op_ptr;
-	uiLayout *col, *row;
+	uiLayout *row;
 	int active_index;
 	int multilayer = (RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER);
 	

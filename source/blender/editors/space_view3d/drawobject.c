@@ -3474,7 +3474,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if (dt == OB_PAINT) {
-		draw_mesh_paint(scene, v3d, rv3d, ob, dm, draw_flags);
+		draw_mesh_paint(rv3d, ob, dm, draw_flags);
 	}
 	
 	/* set default draw color back for wire or for draw-extra later on */

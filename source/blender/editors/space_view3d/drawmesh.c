@@ -933,7 +933,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 		return;
 	}
 	else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
-		draw_mesh_paint(scene, v3d, rv3d, ob, dm, draw_flags);
+		draw_mesh_paint(rv3d, ob, dm, draw_flags);
 		return;
 	}
 
@@ -1002,7 +1002,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 
 /* Vertex Paint and Weight Paint */
 
-void draw_mesh_paint(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_flags)
+void draw_mesh_paint(RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_flags)
 {
 	DMSetDrawOptions facemask = NULL;
 	Mesh *me = ob->data;
