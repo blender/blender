@@ -776,27 +776,28 @@ class CLIP_MT_view(Menu):
         layout = self.layout
         sc = context.space_data
 
-        layout.prop(sc, "show_seconds")
-        layout.separator()
+        if sc.view == 'CLIP':
+            layout.operator("clip.properties", icon='MENU_PANEL')
+            layout.operator("clip.tools", icon='MENU_PANEL')
+            layout.separator()
 
-        layout.operator("clip.properties", icon='MENU_PANEL')
-        layout.operator("clip.tools", icon='MENU_PANEL')
-        layout.separator()
+            layout.operator("clip.view_selected")
+            layout.operator("clip.view_all")
 
-        layout.operator("clip.view_selected")
-        layout.operator("clip.view_all")
+            layout.separator()
+            layout.operator("clip.view_zoom_in")
+            layout.operator("clip.view_zoom_out")
 
-        layout.separator()
-        layout.operator("clip.view_zoom_in")
-        layout.operator("clip.view_zoom_out")
+            layout.separator()
 
-        layout.separator()
+            ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
-        ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
-
-        for a, b in ratios:
-            text = "Zoom %d:%d" % (a, b)
-            layout.operator("clip.view_zoom_ratio", text=text).ratio = a / b
+            for a, b in ratios:
+                text = "Zoom %d:%d" % (a, b)
+                layout.operator("clip.view_zoom_ratio", text=text).ratio = a / b
+        else:
+            layout.prop(sc, "show_seconds")
+            layout.separator()
 
         layout.separator()
         layout.operator("screen.area_dupli")

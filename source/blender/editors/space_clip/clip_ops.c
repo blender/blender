@@ -408,7 +408,7 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
 	ot->invoke = view_pan_invoke;
 	ot->modal = view_pan_modal;
 	ot->cancel = view_pan_cancel;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING;
@@ -534,7 +534,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 	ot->invoke = view_zoom_invoke;
 	ot->modal = view_zoom_modal;
 	ot->cancel = view_zoom_cancel;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -580,7 +580,7 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = view_zoom_in_exec;
 	ot->invoke = view_zoom_in_invoke;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
@@ -620,7 +620,7 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = view_zoom_out_exec;
 	ot->invoke = view_zoom_out_invoke;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in normalised (0.0-1.0) coordinates", -10.0f, 10.0f);
@@ -652,7 +652,7 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = view_zoom_ratio_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
@@ -719,7 +719,7 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = view_all_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
@@ -749,7 +749,7 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = view_selected_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 }
 
 /********************** change frame operator *********************/

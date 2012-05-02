@@ -73,6 +73,17 @@ int ED_space_clip_poll(bContext *C)
 	return FALSE;
 }
 
+int ED_space_clip_view_clip_poll(bContext *C)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	if (sc && sc->clip) {
+		return sc->view == SC_VIEW_CLIP;
+	}
+
+	return FALSE;
+}
+
 int ED_space_clip_tracking_poll(bContext *C)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
