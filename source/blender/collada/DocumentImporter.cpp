@@ -144,8 +144,6 @@ bool DocumentImporter::import()
 	
 	delete ehandler;
 
-	mesh_importer.bmeshConversion();
-
 	return true;
 }
 

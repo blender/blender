@@ -727,16 +727,6 @@ bool MeshImporter::flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor,
 
 MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce) : unitconverter(unitconv), scene(sce), armature_importer(arm) {}
 
-void MeshImporter::bmeshConversion()
-{
-	for (std::map<COLLADAFW::UniqueId, Mesh*>::iterator m = uid_mesh_map.begin();
-			m != uid_mesh_map.end(); ++m)
-	{
-		if ((*m).second) BKE_mesh_convert_mfaces_to_mpolys((*m).second);
-	}
-}
-
-
 Object *MeshImporter::get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid)
 {
 	if (uid_object_map.find(geom_uid) != uid_object_map.end())
@@ -958,6 +948,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 	
 	const std::string& str_geom_id = mesh->getName().size() ? mesh->getName() : mesh->getOriginalId();
 	Mesh *me = add_mesh((char*)str_geom_id.c_str());
+	me->id.us--; // is already 1 here, but will be set later in set_mesh
 
 	// store the Mesh pointer to link it later with an Object
 	this->uid_mesh_map[mesh->getUniqueId()] = me;
@@ -971,6 +962,9 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 	read_faces(mesh, me, new_tris);
 
 	make_edges(me, 0);
+
+	BKE_mesh_convert_mfaces_to_mpolys(me);
+	BKE_mesh_tessface_clear(me);
 
 	mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 

@@ -1783,7 +1783,7 @@ void mesh_calc_normals_mapping(MVert *mverts, int numVerts,
 {
 	mesh_calc_normals_mapping_ex(mverts, numVerts, mloop, mpolys,
 	                              numLoops, numPolys, polyNors_r, mfaces, numFaces,
-	                              origIndexFace, faceNors_r, TRUE);
+	                              origIndexFace, faceNors_r, FALSE);
 }
 
 void mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
