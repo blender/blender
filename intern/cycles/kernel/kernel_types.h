@@ -38,7 +38,7 @@ CCL_NAMESPACE_BEGIN
 /* device capabilities */
 #ifdef __KERNEL_CPU__
 #define __KERNEL_SHADING__
-//#define __KERNEL_ADV_SHADING__
+#define __KERNEL_ADV_SHADING__
 #endif
 
 #ifdef __KERNEL_CUDA__

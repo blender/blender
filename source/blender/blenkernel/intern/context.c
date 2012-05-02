@@ -427,6 +427,9 @@ ListBase CTX_data_dir_get(const bContext *C)
 {
 	bContextDataResult result;
 	ListBase lb;
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
 	int a;
 
 	memset(&lb, 0, sizeof(lb));
@@ -437,24 +440,24 @@ ListBase CTX_data_dir_get(const bContext *C)
 		for (entry=C->wm.store->entries.first; entry; entry=entry->next)
 			data_dir_add(&lb, entry->name);
 	}
-	if (C->wm.region && C->wm.region->type && C->wm.region->type->context) {
+	if ((ar=CTX_wm_region(C)) && ar->type && ar->type->context) {
 		memset(&result, 0, sizeof(result));
-		C->wm.region->type->context(C, "", &result);
+		ar->type->context(C, "", &result);
 
 		if (result.dir)
 			for (a=0; result.dir[a]; a++)
 				data_dir_add(&lb, result.dir[a]);
 	}
-	if (C->wm.area && C->wm.area->type && C->wm.area->type->context) {
+	if ((sa=CTX_wm_area(C)) && sa->type && sa->type->context) {
 		memset(&result, 0, sizeof(result));
-		C->wm.area->type->context(C, "", &result);
+		sa->type->context(C, "", &result);
 
 		if (result.dir)
 			for (a=0; result.dir[a]; a++)
 				data_dir_add(&lb, result.dir[a]);
 	}
-	if (C->wm.screen && C->wm.screen->context) {
-		bContextDataCallback cb= C->wm.screen->context;
+	if ((sc=CTX_wm_screen(C)) && sc->context) {
+		bContextDataCallback cb= sc->context;
 		memset(&result, 0, sizeof(result));
 		cb(C, "", &result);
 
@@ -599,9 +602,11 @@ View3D *CTX_wm_view3d(const bContext *C)
 RegionView3D *CTX_wm_region_view3d(const bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	if (sa && sa->spacetype==SPACE_VIEW3D)
-		if (C->wm.region)
-			return C->wm.region->regiondata;
+		if (ar)
+			return ar->regiondata;
 	return NULL;
 }
 
