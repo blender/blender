@@ -13318,7 +13318,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile <= 263 && main->subversionfile == 0) {
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 3)) {
 		Scene *scene;
 		Brush *brush;
 
