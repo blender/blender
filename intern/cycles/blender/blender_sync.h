@@ -79,7 +79,7 @@ private:
 	void sync_shaders();
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
-	Mesh *sync_mesh(BL::Object b_ob, bool holdout, bool object_updated);
+	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
 	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag, int motion);
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 	void sync_background_light();

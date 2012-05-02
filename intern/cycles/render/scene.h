@@ -85,6 +85,7 @@ public:
 	/* shaders */
 	device_vector<uint4> svm_nodes;
 	device_vector<uint> shader_flag;
+	device_vector<uint> object_flag;
 
 	/* filter */
 	device_vector<float> filter_table;

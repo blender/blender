@@ -83,6 +83,7 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 		sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
 
 	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
+	sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */
@@ -177,6 +178,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	}
 
 	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
+	sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */

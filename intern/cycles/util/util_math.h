@@ -436,6 +436,11 @@ __device_inline float len(const float3 a)
 	return sqrtf(dot(a, a));
 }
 
+__device_inline float len_squared(const float3 a)
+{
+	return dot(a, a);
+}
+
 #ifndef __KERNEL_OPENCL__
 
 __device_inline float3 normalize(const float3 a)

@@ -41,6 +41,7 @@ Object::Object()
 	motion.pre = transform_identity();
 	motion.post = transform_identity();
 	use_motion = false;
+	use_holdout = false;
 }
 
 Object::~Object()
@@ -143,12 +144,14 @@ ObjectManager::~ObjectManager()
 void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	float4 *objects = dscene->objects.resize(OBJECT_SIZE*scene->objects.size());
+	uint *object_flag = dscene->object_flag.resize(OBJECT_SIZE*scene->objects.size());
 	int i = 0;
 	map<Mesh*, float> surface_area_map;
 	Scene::MotionType need_motion = scene->need_motion();
 
 	foreach(Object *ob, scene->objects) {
 		Mesh *mesh = ob->mesh;
+		uint flag = 0;
 
 		/* compute transformations */
 		Transform tfm = ob->tfm;
@@ -219,6 +222,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 
 				transform_motion_decompose(&decomp, &ob->motion);
 				memcpy(&objects[offset+8], &decomp, sizeof(float4)*8);
+				flag |= SD_OBJECT_MOTION;
 			}
 			else {
 				float4 no_motion = make_float4(FLT_MAX);
@@ -226,12 +230,18 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 			}
 		}
 
+		/* object flag */
+		if(ob->use_holdout)
+			flag |= SD_HOLDOUT_MASK;
+		object_flag[i] = flag;
+
 		i++;
 
 		if(progress.get_cancel()) return;
 	}
 
 	device->tex_alloc("__objects", dscene->objects);
+	device->tex_alloc("__object_flag", dscene->object_flag);
 }
 
 void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -266,6 +276,9 @@ void ObjectManager::device_free(Device *device, DeviceScene *dscene)
 {
 	device->tex_free(dscene->objects);
 	dscene->objects.clear();
+
+	device->tex_free(dscene->object_flag);
+	dscene->object_flag.clear();
 }
 
 void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
