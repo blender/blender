@@ -89,18 +89,24 @@ static void rna_Lamp_active_texture_set(PointerRNA *ptr, PointerRNA value)
 static int rna_use_shadow_get(PointerRNA *ptr)
 {
 	Lamp *la = (Lamp*)ptr->data;
-	return la->mode & LA_SHAD_BUF;
+
+	if(la->type == LA_SPOT)
+		return la->mode & LA_SHAD_BUF;
+	else
+		return la->mode & LA_SHAD_RAY;
 }
 
 static void rna_use_shadow_set(PointerRNA *ptr, int value)
 {
 	Lamp *la = (Lamp*)ptr->data;
 	if (value) {
-		la->mode |= LA_SHAD_BUF;
-		la->mode &= ~LA_SHAD_RAY;
+		if(la->type == LA_SPOT)
+			la->mode |= LA_SHAD_BUF;
+		else
+			la->mode |= LA_SHAD_RAY;
 	}
 	else
-		la->mode &= ~(LA_SHAD_BUF + LA_SHAD_RAY);
+		la->mode &= ~(LA_SHAD_BUF|LA_SHAD_RAY);
 }
 
 static StructRNA* rna_Lamp_refine(struct PointerRNA *ptr)
