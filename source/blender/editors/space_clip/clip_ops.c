@@ -287,14 +287,14 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->y = event->y;
 
 	if (sc->flag & SC_LOCK_SELECTION)
-		vpd->vec= &sc->xlockof;
+		vpd->vec = &sc->xlockof;
 	else
-		vpd->vec= &sc->xof;
+		vpd->vec = &sc->xof;
 
 	copy_v2_v2(&vpd->xof, vpd->vec);
 	copy_v2_v2(&vpd->xorig, &vpd->xof);
 
-	vpd->event_type= event->type;
+	vpd->event_type = event->type;
 
 	WM_event_add_modal_handler(C, op);
 }
@@ -636,8 +636,8 @@ static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
 	sclip_zoom_set(sc, ar, RNA_float_get(op->ptr, "ratio"), NULL);
 
 	/* ensure pixel exact locations for draw */
-	sc->xof= (int) sc->xof;
-	sc->yof= (int) sc->yof;
+	sc->xof = (int) sc->xof;
+	sc->yof = (int) sc->yof;
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -687,18 +687,18 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	if (fit_view) {
 		const int margin = 5; /* margin from border */
 
-		zoomx= (float) width / (w + 2 * margin);
-		zoomy= (float) height / (h + 2 * margin);
+		zoomx = (float) width / (w + 2 * margin);
+		zoomy = (float) height / (h + 2 * margin);
 
 		sclip_zoom_set(sc, ar, MIN2(zoomx, zoomy), NULL);
 	}
 	else {
 		if ((w >= width || h >= height) && (width > 0 && height > 0)) {
-			zoomx= (float) width / w;
-			zoomy= (float) height / h;
+			zoomx = (float) width / w;
+			zoomy = (float) height / h;
 
 			/* find the zoom value that will fit the image in the image space */
-			sclip_zoom_set(sc, ar, 1.0f/power_of_2(1/MIN2(zoomx, zoomy)), NULL);
+			sclip_zoom_set(sc, ar, 1.0f / power_of_2(1.0f / MIN2(zoomx, zoomy)), NULL);
 		}
 		else
 			sclip_zoom_set(sc, ar, 1.0f, NULL);
@@ -800,7 +800,7 @@ static int frame_from_event(bContext *C, wmEvent *event)
 
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 
-		framenr= (int) floor(viewx + 0.5f);
+		framenr = (int) floor(viewx + 0.5f);
 	}
 
 	return framenr;
