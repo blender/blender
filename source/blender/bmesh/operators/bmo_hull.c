@@ -414,6 +414,7 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 	float widest_axis_len, largest_dist, plane_normal[3];
 	int i, j, widest_axis;
 	
+	tetra[0] = tetra[1] = tetra[2] = tetra[3] = NULL;
 	hull_get_min_max(bm, op, min, max);
 
 	/* Check for flat axis */
@@ -442,7 +443,6 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 
 	/* Choose third vertex farthest from existing line segment */
 	largest_dist = 0;
-	tetra[2] = NULL;
 	for (i = 0; i < 3; i++) {
 		BMVert *v;
 		float dist;
