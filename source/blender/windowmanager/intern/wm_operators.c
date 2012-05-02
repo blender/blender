@@ -2161,6 +2161,10 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", filename);
 	selected = RNA_boolean_get(op->ptr, "selected");
 	second_life = RNA_boolean_get(op->ptr, "second_life");
+
+	/* get editmode results */
+	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
+
 	if (collada_export(CTX_data_scene(C), filename, selected, second_life)) {
 		return OPERATOR_FINISHED;
 	}
