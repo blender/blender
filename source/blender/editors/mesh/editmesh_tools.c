@@ -896,7 +896,7 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 	{0, "VERT",      0, "Vertices", ""},
 	{1,  "EDGE",      0, "Edges", ""},
 	{2,  "FACE",      0, "Faces", ""},
-	{3,  "EDGE_FACE", 0, "Edges & Faces", ""},
+	{3,  "EDGE_FACE", 0, "Only Edges & Faces", ""},
 	{4,  "ONLY_FACE", 0, "Only Faces", ""},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -3683,8 +3683,11 @@ static void xsortvert_flag(bContext *C, int flag)
 		}
 	}
 /*	printf("%d verts: %d to be sorted, %d unchanged…\n", totvert, sorted, unchanged);*/
-	if (sorted == 0)
+	if (sorted == 0) {
+		MEM_freeN(sortblock);
+		MEM_freeN(unchangedblock);
 		return;
+	}
 
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, V3D_CLIP_TEST_OFF);
@@ -3942,8 +3945,11 @@ static void hashvert_flag(BMEditMesh *em, int flag, unsigned int seed)
 	}
 /*	protected = totvert - randomized;*/
 /*	printf("%d verts: %d to be randomized, %d protected…\n", totvert, randomized, protected);*/
-	if (randomized == 0)
+	if (randomized == 0) {
+		MEM_freeN(block);
+		MEM_freeN(randblock);
 		return;
+	}
 
 	
 	/* Randomize non-protected vertices indices, and create an array mapping old idx to new
@@ -4362,8 +4368,9 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 	
 	/* Delete unused vertices, edges, and faces */
 	if (RNA_boolean_get(op->ptr, "delete_unused")) {
-		if(!EDBM_op_callf(em, op, "del geom=%s context=%i",
-						  &bmop, "unused_geom", DEL_ONLYTAGGED)) {
+		if (!EDBM_op_callf(em, op, "del geom=%s context=%i",
+		                   &bmop, "unused_geom", DEL_ONLYTAGGED))
+		{
 			EDBM_op_finish(em, &bmop, op, TRUE);
 			return OPERATOR_CANCELLED;
 		}
@@ -4371,8 +4378,9 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 
 	/* Delete hole edges/faces */
 	if (RNA_boolean_get(op->ptr, "make_holes")) {
-		if(!EDBM_op_callf(em, op, "del geom=%s context=%i",
-						  &bmop, "holes_geom", DEL_ONLYTAGGED)) {
+		if (!EDBM_op_callf(em, op, "del geom=%s context=%i",
+		                   &bmop, "holes_geom", DEL_ONLYTAGGED))
+		{
 			EDBM_op_finish(em, &bmop, op, TRUE);
 			return OPERATOR_CANCELLED;
 		}
@@ -4380,9 +4388,10 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 
 	/* Merge adjacent triangles */
 	if (RNA_boolean_get(op->ptr, "join_triangles")) {
-		if(!EDBM_op_callf(em, op, "join_triangles faces=%s limit=%f",
-						  &bmop, "geomout",
-						  RNA_float_get(op->ptr, "limit"))) {
+		if (!EDBM_op_callf(em, op, "join_triangles faces=%s limit=%f",
+		                   &bmop, "geomout",
+		                   RNA_float_get(op->ptr, "limit")))
+		{
 			EDBM_op_finish(em, &bmop, op, TRUE);
 			return OPERATOR_CANCELLED;
 		}

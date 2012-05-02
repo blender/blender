@@ -64,7 +64,7 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
 #ifdef __MOTION__
-	if(ray->time != TIME_INVALID)
+	if(kernel_data.cam.have_motion)
 		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
 #endif
 
@@ -107,7 +107,7 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
 #ifdef __MOTION__
-	if(ray->time != TIME_INVALID)
+	if(kernel_data.cam.have_motion)
 		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
 #endif
 
@@ -147,7 +147,7 @@ __device void camera_sample_environment(KernelGlobals *kg, float raster_x, float
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
 #ifdef __MOTION__
-	if(ray->time != TIME_INVALID)
+	if(kernel_data.cam.have_motion)
 		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
 #endif
 

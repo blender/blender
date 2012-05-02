@@ -92,7 +92,7 @@ static void node_composit_exec_color_matte(void *data, bNode *node, bNodeStack *
 	/*convert rgbbuf to hsv*/
 	composit1_pixel_processor(node, colorbuf, cbuf, in[0]->vec, do_rgba_to_hsva, CB_RGBA);
 	
-   /*convert key to hsv*/
+	/*convert key to hsv*/
 	do_rgba_to_hsva(node, c->key, in[1]->vec);
 	
 

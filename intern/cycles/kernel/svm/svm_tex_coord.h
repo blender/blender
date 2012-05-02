@@ -43,7 +43,7 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack
 		case NODE_TEXCO_NORMAL: {
 			if(sd->object != ~0) {
 				data = sd->N;
-				object_normal_transform(kg, sd, &data);
+				object_inverse_normal_transform(kg, sd, &data);
 			}
 			else
 				data = sd->N;
@@ -97,7 +97,7 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, floa
 		case NODE_TEXCO_NORMAL: {
 			if(sd->object != ~0) {
 				data = sd->N;
-				object_normal_transform(kg, sd, &data);
+				object_inverse_normal_transform(kg, sd, &data);
 			}
 			else
 				data = sd->N;
@@ -154,7 +154,7 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 		case NODE_TEXCO_NORMAL: {
 			if(sd->object != ~0) {
 				data = sd->N;
-				object_normal_transform(kg, sd, &data);
+				object_inverse_normal_transform(kg, sd, &data);
 			}
 			else
 				data = sd->N;

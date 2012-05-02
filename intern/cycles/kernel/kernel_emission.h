@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 /* Direction Emission */
 
 __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
-	LightSample *ls, float u, float v, float3 I, float time)
+	LightSample *ls, float u, float v, float3 I, float t, float time)
 {
 	/* setup shading at emitter */
 	ShaderData sd;
@@ -40,7 +40,7 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 	else
 #endif
 	{
-		shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v, time);
+		shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v, t, time);
 		ls->Ng = sd.Ng;
 
 		/* no path flag, we're evaluating this for all closures. that's weak but
@@ -87,7 +87,7 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 		return false;
 
 	/* evaluate closure */
-	float3 light_eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -ls.D, sd->time);
+	float3 light_eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -ls.D, ls.t, sd->time);
 
 	if(is_zero(light_eval))
 		return false;

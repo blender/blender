@@ -115,7 +115,8 @@ typedef enum NodeLightPath {
 	NODE_LP_singular,
 	NODE_LP_reflection,
 	NODE_LP_transmission,
-	NODE_LP_backfacing
+	NODE_LP_backfacing,
+	NODE_LP_ray_length
 } NodeLightPath;
 
 typedef enum NodeTexCoord {

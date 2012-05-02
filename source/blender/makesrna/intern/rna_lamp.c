@@ -89,19 +89,24 @@ static void rna_Lamp_active_texture_set(PointerRNA *ptr, PointerRNA value)
 static int rna_use_shadow_get(PointerRNA *ptr)
 {
 	Lamp *la = (Lamp*)ptr->data;
-	return la->mode & LA_SHAD_BUF;
+
+	if(la->type == LA_SPOT)
+		return la->mode & LA_SHAD_BUF;
+	else
+		return la->mode & LA_SHAD_RAY;
 }
 
 static void rna_use_shadow_set(PointerRNA *ptr, int value)
 {
 	Lamp *la = (Lamp*)ptr->data;
-	if (value)
-	{
-		la->mode |= LA_SHAD_BUF;
-		la->mode &= ~LA_SHAD_RAY;
+	if (value) {
+		if(la->type == LA_SPOT)
+			la->mode |= LA_SHAD_BUF;
+		else
+			la->mode |= LA_SHAD_RAY;
 	}
 	else
-		la->mode &= ~(LA_SHAD_BUF + LA_SHAD_RAY);
+		la->mode &= ~(LA_SHAD_BUF|LA_SHAD_RAY);
 }
 
 static StructRNA* rna_Lamp_refine(struct PointerRNA *ptr)
@@ -495,7 +500,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_shadbuffiltertype_items[] = {
-		{LA_SHADBUF_BOX	, "BOX", 0, "Box", "Apply the Box filter to shadow buffer samples"},
+		{LA_SHADBUF_BOX, "BOX", 0, "Box", "Apply the Box filter to shadow buffer samples"},
 		{LA_SHADBUF_TENT, "TENT", 0, "Tent", "Apply the Tent Filter to shadow buffer samples"},
 		{LA_SHADBUF_GAUSS, "GAUSS", 0, "Gauss", "Apply the Gauss filter to shadow buffer samples"},
 		{0, NULL, 0, NULL, NULL}};

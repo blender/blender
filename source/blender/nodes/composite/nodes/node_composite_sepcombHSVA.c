@@ -113,16 +113,16 @@ void register_node_type_cmp_sephsva(bNodeTreeType *ttype)
 
 
 /* **************** COMBINE HSVA ******************** */
-static bNodeSocketTemplate cmp_node_combhsva_in[]= {
-   {	SOCK_FLOAT, 1, "H",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-   {	SOCK_FLOAT, 1, "S",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-   {	SOCK_FLOAT, 1, "V",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-   {	SOCK_FLOAT, 1, "A",			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-   {	-1, 0, ""	}
+static bNodeSocketTemplate cmp_node_combhsva_in[] = {
+	{	SOCK_FLOAT, 1, "H",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+	{	SOCK_FLOAT, 1, "S",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+	{	SOCK_FLOAT, 1, "V",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+	{	SOCK_FLOAT, 1, "A",			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate cmp_node_combhsva_out[]= {
-   {	SOCK_RGBA, 0, "Image"},
-   {	-1, 0, ""	}
+	{	SOCK_RGBA, 0, "Image"},
+	{	-1, 0, ""	}
 };
 
 static void do_comb_hsva(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)

@@ -34,15 +34,15 @@
 
 /* ******************* channel Distance Matte ********************************* */
 static bNodeSocketTemplate cmp_node_distance_matte_in[]={
-	{SOCK_RGBA,1,"Image", 1.0f, 1.0f, 1.0f, 1.0f},
-	{SOCK_RGBA,1,"Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
-	{-1,0,""}
+	{SOCK_RGBA, 1, "Image", 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA, 1, "Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
+	{-1, 0, ""}
 };
 
 static bNodeSocketTemplate cmp_node_distance_matte_out[]={
-	{SOCK_RGBA,0,"Image"},
-	{SOCK_FLOAT,0,"Matte"},
-	{-1,0,""}
+	{SOCK_RGBA, 0, "Image"},
+	{SOCK_FLOAT, 0, "Matte"},
+	{-1, 0, ""}
 };
 
 /* note, keyvals is passed on from caller as stack array */
@@ -64,10 +64,10 @@ static void do_distance_matte(bNode *node, float *out, float *in)
 	copy_v3_v3(out, in);
 
 	if (distance <= tolerence) {
-		if(distance<=falloff) {
-			alpha=0.0f;
+		if (distance <= falloff) {
+			alpha = 0.0f;
 		}
-		else{
+		else {
 			/* alpha as percent (distance / tolerance), each modified by falloff amount (in pixels)*/
 			alpha=(distance-falloff)/(tolerence-falloff);
 		}
@@ -75,8 +75,8 @@ static void do_distance_matte(bNode *node, float *out, float *in)
 		/*only change if more transparent than before */
 		if (alpha < in[3]) {
 			/*clamp*/
-			if(alpha<0.0f) alpha=0.0f;
-			if(alpha>1.0f) alpha=1.0f;
+			if (alpha < 0.0f) alpha = 0.0f;
+			if (alpha > 1.0f) alpha = 1.0f;
 			out[3]=alpha;
 		}
 		else { /* leave as before */
@@ -115,10 +115,10 @@ static void do_chroma_distance_matte(bNode *node, float *out, float *in)
 	copy_v3_v3(out, in);
 
 	if (distance <= tolerence) {
-		if(distance<=falloff) {
-			alpha=0.0f;
+		if (distance <= falloff) {
+			alpha = 0.0f;
 		}
-		else{
+		else {
 			/* alpha as percent (distance / tolerance), each modified by falloff amount (in pixels)*/
 			alpha=(distance-falloff)/(tolerence-falloff);
 		}
@@ -126,8 +126,8 @@ static void do_chroma_distance_matte(bNode *node, float *out, float *in)
 		/*only change if more transparent than before */
 		if (alpha < in[3]) {
 			/*clamp*/
-			if(alpha<0.0f) alpha=0.0f;
-			if(alpha>1.0f) alpha=1.0f;
+			if (alpha < 0.0f) alpha = 0.0f;
+			if (alpha > 1.0f) alpha = 1.0f;
 			out[3]=alpha;
 		}
 		else { /* leave as before */
@@ -162,7 +162,7 @@ static void node_composit_exec_distance_matte(void *data, bNode *node, bNodeStac
 	c->key[2]= in[1]->vec[2];
 
 	/* work in RGB color space */
-	if(c->channel==1) {
+	if (c->channel == 1) {
 		/* note, processor gets a keyvals array passed on as buffer constant */
 		composit1_pixel_processor(node, workbuf, workbuf, in[0]->vec, do_distance_matte, CB_RGBA);
 	}

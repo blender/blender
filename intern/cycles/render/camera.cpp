@@ -149,6 +149,7 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 	/* camera motion */
 	Scene::MotionType need_motion = scene->need_motion();
+	kcam->have_motion = 0;
 
 	if(need_motion == Scene::MOTION_PASS) {
 		if(use_motion) {
@@ -162,7 +163,10 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	}
 	else if(need_motion == Scene::MOTION_BLUR) {
 		/* todo: exact camera position will not be hit this way */
-		transform_motion_decompose(&kcam->motion, &motion);
+		if(use_motion) {
+			transform_motion_decompose(&kcam->motion, &motion);
+			kcam->have_motion = 1;
+		}
 	}
 
 	/* depth of field */

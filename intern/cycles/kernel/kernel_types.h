@@ -370,7 +370,11 @@ enum ShaderDataFlag {
 	SD_SAMPLE_AS_LIGHT = 128,			/* direct light sample */
 	SD_HAS_SURFACE_TRANSPARENT = 256,	/* has surface transparency */
 	SD_HAS_VOLUME = 512,				/* has volume shader */
-	SD_HOMOGENEOUS_VOLUME = 1024		/* has homogeneous volume */
+	SD_HOMOGENEOUS_VOLUME = 1024,		/* has homogeneous volume */
+
+	/* object flags */
+	SD_HOLDOUT_MASK = 2048,				/* holdout for camera rays */
+	SD_OBJECT_MOTION = 4096				/* has object motion blur */
 };
 
 typedef struct ShaderData {
@@ -397,6 +401,9 @@ typedef struct ShaderData {
 
 	/* motion blur sample time */
 	float time;
+	
+	/* length of the ray being shaded */
+	float ray_length;
 
 #ifdef __MOTION__
 	/* object <-> world space transformations, cached to avoid
@@ -463,7 +470,7 @@ typedef struct KernelCamera {
 
 	/* motion blur */
 	float shuttertime;
-	float pad;
+	int have_motion;
 
 	/* clipping */
 	float nearclip;

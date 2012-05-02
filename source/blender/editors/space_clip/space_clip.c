@@ -306,9 +306,12 @@ static void clip_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void clip_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void clip_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
+	ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, 0);
 
+	/* add drop boxes */
+	WM_event_add_dropbox_handler(&sa->handlers, lb);
 }
 
 static SpaceLink *clip_duplicate(SpaceLink *sl)
@@ -541,11 +544,6 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "mode", SC_MODE_DISTORTION);
 	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.view");
-	RNA_string_set(kmi->ptr, "value_1", "CLIP");
-	RNA_string_set(kmi->ptr, "value_2", "GRAPH");
-
 	WM_keymap_add_item(keymap, "CLIP_OT_solve_camera", SKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* ******** Hotkeys avalaible for main region only ******** */
@@ -752,6 +750,30 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 	}
 
 	return FALSE;
+}
+
+/* dropboxes */
+static int clip_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
+{
+	if (drag->type == WM_DRAG_PATH)
+		if (ELEM3(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_BLANK)) /* rule might not work? */
+			return TRUE;
+
+	return FALSE;
+}
+
+static void clip_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	/* copy drag path to properties */
+	RNA_string_set(drop->ptr, "filepath", drag->path);
+}
+
+/* area+region dropbox definition */
+static void clip_dropboxes(void)
+{
+	ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, 0);
+
+	WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy);
 }
 
 static void clip_refresh(const bContext *C, ScrArea *sa)
@@ -1345,6 +1367,7 @@ void ED_spacetype_clip(void)
 	st->keymap = clip_keymap;
 	st->listener = clip_listener;
 	st->context = clip_context;
+	st->dropboxes = clip_dropboxes;
 	st->refresh = clip_refresh;
 
 	/* regions: main window */

@@ -32,34 +32,28 @@ __device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, 
 
 #ifdef __MOTION__
 	/* if we do motion blur */
-	if(time != TIME_INVALID) {
-		int offset = object*OBJECT_SIZE + (int)OBJECT_TRANSFORM_MOTION_PRE;
-		float4 have_motion = kernel_tex_fetch(__objects, offset + 0);
+	if(sd->flag & SD_OBJECT_MOTION) {
+		/* fetch motion transforms */
+		MotionTransform motion;
 
-		/* if this object have motion */
-		if(have_motion.x != FLT_MAX) {
-			/* fetch motion transforms */
-			MotionTransform motion;
+		motion.pre.x = have_motion;
+		motion.pre.y = kernel_tex_fetch(__objects, offset + 1);
+		motion.pre.z = kernel_tex_fetch(__objects, offset + 2);
+		motion.pre.w = kernel_tex_fetch(__objects, offset + 3);
 
-			motion.pre.x = have_motion;
-			motion.pre.y = kernel_tex_fetch(__objects, offset + 1);
-			motion.pre.z = kernel_tex_fetch(__objects, offset + 2);
-			motion.pre.w = kernel_tex_fetch(__objects, offset + 3);
+		motion.post.x = kernel_tex_fetch(__objects, offset + 4);
+		motion.post.y = kernel_tex_fetch(__objects, offset + 5);
+		motion.post.z = kernel_tex_fetch(__objects, offset + 6);
+		motion.post.w = kernel_tex_fetch(__objects, offset + 7);
 
-			motion.post.x = kernel_tex_fetch(__objects, offset + 4);
-			motion.post.y = kernel_tex_fetch(__objects, offset + 5);
-			motion.post.z = kernel_tex_fetch(__objects, offset + 6);
-			motion.post.w = kernel_tex_fetch(__objects, offset + 7);
+		/* interpolate (todo: do only once per object) */
+		transform_motion_interpolate(&tfm, &motion, time);
 
-			/* interpolate (todo: do only once per object) */
-			transform_motion_interpolate(&tfm, &motion, time);
+		/* invert */
+		if(type == OBJECT_INVERSE_TRANSFORM)
+			tfm = transform_quick_inverse(tfm);
 
-			/* invert */
-			if(type == OBJECT_INVERSE_TRANSFORM)
-				tfm = transform_quick_inverse(tfm);
-
-			return tfm;
-		}
+		return tfm;
 	}
 #endif
 
@@ -80,6 +74,16 @@ __device_inline void object_position_transform(KernelGlobals *kg, ShaderData *sd
 #else
 	Transform tfm = object_fetch_transform(kg, sd->object, TIME_INVALID, OBJECT_TRANSFORM);
 	*P = transform_point(&tfm, *P);
+#endif
+}
+
+__device_inline void object_inverse_normal_transform(KernelGlobals *kg, ShaderData *sd, float3 *N)
+{
+#ifdef __MOTION__
+	*N = normalize(transform_direction_transposed(&sd->ob_tfm, *N));
+#else
+	Transform tfm = object_fetch_transform(kg, sd->object, TIME_INVALID, OBJECT_TRANSFORM);
+	*N = normalize(transform_direction_transposed(&tfm, *N));
 #endif
 }
 

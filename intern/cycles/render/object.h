@@ -46,6 +46,7 @@ public:
 	uint visibility;
 	MotionTransform motion;
 	bool use_motion;
+	bool use_holdout;
 
 	Object();
 	~Object();

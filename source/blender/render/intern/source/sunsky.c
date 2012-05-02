@@ -484,7 +484,7 @@ void AtmospherePixleShader(struct SunSky* sunSky, float view[3], float s, float 
 	FOPVEC3(vTemp2, 1.0f, -, E1);
 	VEC3OPV(vTemp1, vTemp1, *, vTemp2);
 
-	FOPVEC3(vTemp2, 1.0f, / , sunSky->atm_BetaRM);
+	FOPVEC3(vTemp2, 1.0f, /, sunSky->atm_BetaRM);
 
 	VEC3OPV(I, vTemp1, *, vTemp2);
 		

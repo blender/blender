@@ -87,7 +87,7 @@ static void wform_put_line(int w,
 }
 
 static void wform_put_line_single(
-    int w, unsigned char *last_pos, unsigned char *new_pos, int col)
+        int w, unsigned char *last_pos, unsigned char *new_pos, int col)
 {
 	if (last_pos > new_pos) {
 		unsigned char *temp = new_pos;

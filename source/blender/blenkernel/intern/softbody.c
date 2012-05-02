@@ -150,8 +150,8 @@ typedef struct  SB_thread_context {
 
 #define SOFTGOALSNAP  0.999f
 /* if bp-> goal is above make it a *forced follow original* and skip all ODE stuff for this bp
-   removes *unnecessary* stiffnes from ODE system
-*/
+ * removes *unnecessary* stiffnes from ODE system
+ */
 #define HEUNWARNLIMIT 1 /* 500 would be fine i think for detecting severe *stiff* stuff */
 
 
@@ -179,16 +179,16 @@ static void Vec3PlusStVec(float *v, float s, float *v1);
 
 static float sb_grav_force_scale(Object *UNUSED(ob))
 /* since unit of g is [m/sec^2] and F = mass * g we rescale unit mass of node to 1 gramm
-  put it to a function here, so we can add user options later without touching simulation code
-*/
+ * put it to a function here, so we can add user options later without touching simulation code
+ */
 {
 	return (0.001f);
 }
 
 static float sb_fric_force_scale(Object *UNUSED(ob))
 /* rescaling unit of drag [1 / sec] to somehow reasonable
-  put it to a function here, so we can add user options later without touching simulation code
-*/
+ * put it to a function here, so we can add user options later without touching simulation code
+ */
 {
 	return (0.01f);
 }
@@ -216,12 +216,12 @@ static float sb_time_scale(Object *ob)
 
 /* helper functions for everything is animatable jow_go_for2_5 +++++++*/
 /* introducing them here, because i know: steps in properties  ( at frame timing )
-   will cause unwanted responses of the softbody system (which does inter frame calculations )
-   so first 'cure' would be: interpolate linear in time ..
-   Q: why do i write this?
-   A: because it happend once, that some eger coder 'streamlined' code to fail.
-   We DO linear interpolation for goals .. and i think we should do on animated properties as well
-*/
+ * will cause unwanted responses of the softbody system (which does inter frame calculations )
+ * so first 'cure' would be: interpolate linear in time ..
+ * Q: why do i write this?
+ * A: because it happend once, that some eger coder 'streamlined' code to fail.
+ * We DO linear interpolation for goals .. and i think we should do on animated properties as well
+ */
 
 /* animate sb->maxgoal, sb->mingoal */
 static float _final_goal(Object *ob, BodyPoint *bp)/*jow_go_for2_5 */
@@ -2984,10 +2984,10 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				maxerrpos = MAX2(maxerrpos, ABS(dx[1] - bp->prevdx[1]));
 				maxerrpos = MAX2(maxerrpos, ABS(dx[2] - bp->prevdx[2]));
 
-/* bp->choke is set when we need to pull a vertex or edge out of the collider.
-   the collider object signals to get out by pushing hard. on the other hand
-   we don't want to end up in deep space so we add some <viscosity>
-   to balance that out */
+				/* bp->choke is set when we need to pull a vertex or edge out of the collider.
+				 * the collider object signals to get out by pushing hard. on the other hand
+				 * we don't want to end up in deep space so we add some <viscosity>
+				 * to balance that out */
 				if (bp->choke2 > 0.0f) {
 					mul_v3_fl(bp->vec, (1.0f - bp->choke2));
 				}
@@ -3268,7 +3268,9 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 	BodyPoint *bp;
 	BodySpring *bs;
 	int a, totedge;
-  BKE_mesh_tessface_ensure(me); 
+	
+	BKE_mesh_tessface_ensure(me);
+	
 	if (ob->softflag & OB_SB_EDGES) totedge= me->totedge;
 	else totedge= 0;
 

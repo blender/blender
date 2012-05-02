@@ -226,7 +226,7 @@ ModifierTypeInfo modifierType_ParticleSystem = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
-	/* deformVertsEM */     NULL /* deformVertsEM */ ,
+	/* deformVertsEM */     NULL,
 	/* deformMatrices */    NULL,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,

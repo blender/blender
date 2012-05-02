@@ -66,11 +66,7 @@ static int ED_space_clip_graph_poll(bContext *C)
 	if (ED_space_clip_tracking_poll(C)) {
 		SpaceClip *sc = CTX_wm_space_clip(C);
 
-		if (sc->view == SC_VIEW_GRAPH) {
-			ARegion *ar = CTX_wm_region(C);
-
-			return ar->regiontype == RGN_TYPE_PREVIEW;
-		}
+		return sc->view == SC_VIEW_GRAPH;
 	}
 
 	return FALSE;

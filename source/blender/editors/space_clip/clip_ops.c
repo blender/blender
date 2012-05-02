@@ -287,14 +287,14 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->y = event->y;
 
 	if (sc->flag & SC_LOCK_SELECTION)
-		vpd->vec= &sc->xlockof;
+		vpd->vec = &sc->xlockof;
 	else
-		vpd->vec= &sc->xof;
+		vpd->vec = &sc->xof;
 
 	copy_v2_v2(&vpd->xof, vpd->vec);
 	copy_v2_v2(&vpd->xorig, &vpd->xof);
 
-	vpd->event_type= event->type;
+	vpd->event_type = event->type;
 
 	WM_event_add_modal_handler(C, op);
 }
@@ -408,7 +408,7 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
 	ot->invoke = view_pan_invoke;
 	ot->modal = view_pan_modal;
 	ot->cancel = view_pan_cancel;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING;
@@ -534,7 +534,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 	ot->invoke = view_zoom_invoke;
 	ot->modal = view_zoom_modal;
 	ot->cancel = view_zoom_cancel;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -580,7 +580,7 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = view_zoom_in_exec;
 	ot->invoke = view_zoom_in_invoke;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
@@ -620,7 +620,7 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = view_zoom_out_exec;
 	ot->invoke = view_zoom_out_invoke;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in normalised (0.0-1.0) coordinates", -10.0f, 10.0f);
@@ -636,8 +636,8 @@ static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
 	sclip_zoom_set(sc, ar, RNA_float_get(op->ptr, "ratio"), NULL);
 
 	/* ensure pixel exact locations for draw */
-	sc->xof= (int) sc->xof;
-	sc->yof= (int) sc->yof;
+	sc->xof = (int) sc->xof;
+	sc->yof = (int) sc->yof;
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -652,7 +652,7 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = view_zoom_ratio_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
@@ -687,18 +687,18 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	if (fit_view) {
 		const int margin = 5; /* margin from border */
 
-		zoomx= (float) width / (w + 2 * margin);
-		zoomy= (float) height / (h + 2 * margin);
+		zoomx = (float) width / (w + 2 * margin);
+		zoomy = (float) height / (h + 2 * margin);
 
 		sclip_zoom_set(sc, ar, MIN2(zoomx, zoomy), NULL);
 	}
 	else {
 		if ((w >= width || h >= height) && (width > 0 && height > 0)) {
-			zoomx= (float) width / w;
-			zoomy= (float) height / h;
+			zoomx = (float) width / w;
+			zoomy = (float) height / h;
 
 			/* find the zoom value that will fit the image in the image space */
-			sclip_zoom_set(sc, ar, 1.0f/power_of_2(1/MIN2(zoomx, zoomy)), NULL);
+			sclip_zoom_set(sc, ar, 1.0f / power_of_2(1.0f / MIN2(zoomx, zoomy)), NULL);
 		}
 		else
 			sclip_zoom_set(sc, ar, 1.0f, NULL);
@@ -719,7 +719,7 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = view_all_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
@@ -749,7 +749,7 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = view_selected_exec;
-	ot->poll = ED_space_clip_poll;
+	ot->poll = ED_space_clip_view_clip_poll;
 }
 
 /********************** change frame operator *********************/
@@ -800,7 +800,7 @@ static int frame_from_event(bContext *C, wmEvent *event)
 
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 
-		framenr= (int) floor(viewx + 0.5f);
+		framenr = (int) floor(viewx + 0.5f);
 	}
 
 	return framenr;

@@ -39,6 +39,7 @@ KERNEL_TEX(float2, texture_float2, __light_background_conditional_cdf)
 /* shaders */
 KERNEL_TEX(uint4, texture_uint4, __svm_nodes)
 KERNEL_TEX(uint, texture_uint, __shader_flag)
+KERNEL_TEX(uint, texture_uint, __object_flag)
 
 /* camera/film */
 KERNEL_TEX(float, texture_float, __filter_table)

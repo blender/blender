@@ -175,7 +175,7 @@ BVHNode* BVHBuild::run()
 	}
 	else {
 		/* multithreaded binning build */
-		BVHObjectBinning rootbin(root, &references[0]);
+		BVHObjectBinning rootbin(root, (references.size())? &references[0]: NULL);
 		rootnode = build_node(rootbin, 0);
 		task_pool.wait();
 	}

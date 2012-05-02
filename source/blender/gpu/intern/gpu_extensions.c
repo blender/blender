@@ -914,10 +914,10 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
 
 	/* Drawing quad */
 	glBegin(GL_QUADS);
-		glTexCoord2d(0,0);glVertex2f(1,1);
-		glTexCoord2d(1,0);glVertex2f(-1,1);
-		glTexCoord2d(1,1);glVertex2f(-1,-1);
-		glTexCoord2d(0,1);glVertex2f(1,-1);
+	glTexCoord2d(0, 0); glVertex2f(1, 1);
+	glTexCoord2d(1, 0); glVertex2f(-1, 1);
+	glTexCoord2d(1, 1); glVertex2f(-1, -1);
+	glTexCoord2d(0, 1); glVertex2f(1, -1);
 	glEnd();
 		
 	/* Blurring vertically */
@@ -927,12 +927,14 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
 	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, (float*)scalev);
 	GPU_shader_uniform_texture(blur_shader, texture_source_uniform, blurtex);
 	GPU_texture_bind(blurtex, 0);
+
 	glBegin(GL_QUADS);
-		glTexCoord2d(0,0);glVertex2f(1,1);
-		glTexCoord2d(1,0);glVertex2f(-1,1);
-		glTexCoord2d(1,1);glVertex2f(-1,-1);
-		glTexCoord2d(0,1);glVertex2f(1,-1);
+	glTexCoord2d(0, 0); glVertex2f(1, 1);
+	glTexCoord2d(1, 0); glVertex2f(-1, 1);
+	glTexCoord2d(1, 1); glVertex2f(-1, -1);
+	glTexCoord2d(0, 1); glVertex2f(1, -1);
 	glEnd();
+
 	GPU_shader_unbind(blur_shader);
 }
 
@@ -1267,18 +1269,17 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 {
 	GPUShader *retval = NULL;
 
-	switch (shader)
-	{
-	case GPU_SHADER_VSM_STORE:
-		if (!GG.shaders.vsm_store)
-			GG.shaders.vsm_store = GPU_shader_create(datatoc_gpu_shader_vsm_store_vert_glsl, datatoc_gpu_shader_vsm_store_frag_glsl, NULL);
-		retval = GG.shaders.vsm_store;
-		break;
-	case GPU_SHADER_SEP_GAUSSIAN_BLUR:
-		if (!GG.shaders.sep_gaussian_blur)
-			GG.shaders.sep_gaussian_blur = GPU_shader_create(datatoc_gpu_shader_sep_gaussian_blur_vert_glsl, datatoc_gpu_shader_sep_gaussian_blur_frag_glsl, NULL);
-		retval = GG.shaders.sep_gaussian_blur;
-		break;
+	switch (shader) {
+		case GPU_SHADER_VSM_STORE:
+			if (!GG.shaders.vsm_store)
+				GG.shaders.vsm_store = GPU_shader_create(datatoc_gpu_shader_vsm_store_vert_glsl, datatoc_gpu_shader_vsm_store_frag_glsl, NULL);
+			retval = GG.shaders.vsm_store;
+			break;
+		case GPU_SHADER_SEP_GAUSSIAN_BLUR:
+			if (!GG.shaders.sep_gaussian_blur)
+				GG.shaders.sep_gaussian_blur = GPU_shader_create(datatoc_gpu_shader_sep_gaussian_blur_vert_glsl, datatoc_gpu_shader_sep_gaussian_blur_frag_glsl, NULL);
+			retval = GG.shaders.sep_gaussian_blur;
+			break;
 	}
 
 	if (retval == NULL)
@@ -1289,14 +1290,12 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 
 void GPU_shader_free_builtin_shaders()
 {
-	if (GG.shaders.vsm_store)
-	{
+	if (GG.shaders.vsm_store) {
 		MEM_freeN(GG.shaders.vsm_store);
 		GG.shaders.vsm_store = NULL;
 	}
 
-	if (GG.shaders.sep_gaussian_blur)
-	{
+	if (GG.shaders.sep_gaussian_blur) {
 		MEM_freeN(GG.shaders.sep_gaussian_blur);
 		GG.shaders.sep_gaussian_blur = NULL;
 	}

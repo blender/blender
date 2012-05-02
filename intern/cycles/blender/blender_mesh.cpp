@@ -198,11 +198,11 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 
 /* Sync */
 
-Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool holdout, bool object_updated)
+Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 {
 	/* test if we can instance or if the object is modified */
 	BL::ID b_ob_data = b_ob.data();
-	BL::ID key = (object_is_modified(b_ob) || holdout)? b_ob: b_ob_data;
+	BL::ID key = (object_is_modified(b_ob))? b_ob: b_ob_data;
 	BL::Material material_override = render_layer.material_override;
 
 	/* find shader indices */
@@ -212,18 +212,14 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool holdout, bool object_updated)
 	for(b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot) {
 		BL::Material material_override = render_layer.material_override;
 
-		if(holdout)
-			find_shader(PointerRNA_NULL, used_shaders, scene->default_holdout);
-		else if(material_override)
+		if(material_override)
 			find_shader(material_override, used_shaders, scene->default_surface);
 		else
 			find_shader(slot->material(), used_shaders, scene->default_surface);
 	}
 
 	if(used_shaders.size() == 0) {
-		if(holdout)
-			used_shaders.push_back(scene->default_holdout);
-		else if(material_override)
+		if(material_override)
 			find_shader(material_override, used_shaders, scene->default_surface);
 		else
 			used_shaders.push_back(scene->default_surface);

@@ -727,6 +727,16 @@ bool MeshImporter::flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor,
 
 MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce) : unitconverter(unitconv), scene(sce), armature_importer(arm) {}
 
+void MeshImporter::bmeshConversion()
+{
+	for (std::map<COLLADAFW::UniqueId, Mesh*>::iterator m = uid_mesh_map.begin();
+			m != uid_mesh_map.end(); ++m)
+	{
+		if ((*m).second) BKE_mesh_convert_mfaces_to_mpolys((*m).second);
+	}
+}
+
+
 Object *MeshImporter::get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid)
 {
 	if (uid_object_map.find(geom_uid) != uid_object_map.end())
@@ -921,7 +931,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 			fprintf(stderr, "invalid referenced material for %s\n", mat_array[i].getName().c_str());
 		}
 	}
-		
+
 	return ob;
 }
 
@@ -964,6 +974,5 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 
 	mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 
-	BKE_mesh_convert_mfaces_to_mpolys(me);
 	return true;
 }

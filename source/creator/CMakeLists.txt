@@ -441,7 +441,7 @@ if(UNIX AND NOT APPLE)
 			
 			if(WITH_PYTHON_INSTALL_NUMPY)
 				install(
-					DIRECTORY ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/numpy
+					DIRECTORY ${PYTHON_NUMPY_PATH}/numpy
 					DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/site-packages
 					PATTERN ".svn" EXCLUDE
 					PATTERN "__pycache__" EXCLUDE           # * any cache *
@@ -564,6 +564,11 @@ elseif(WIN32)
 		if(NOT WITH_MINGW64)
 			install(
 				FILES ${LIBDIR}/pthreads/lib/pthreadGC2.dll
+				DESTINATION ${TARGETDIR}
+			)
+		elseif(WITH_MINGW64)
+			install(
+				FILES ${LIBDIR}/binaries/pthreadGC2-w64.dll
 				DESTINATION ${TARGETDIR}
 			)
 		endif()

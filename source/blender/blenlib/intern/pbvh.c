@@ -1012,15 +1012,15 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 	 * we have to store for each vertex which node it is in */
 	vnor= MEM_callocN(sizeof(float)*3*bvh->totvert, "bvh temp vnors");
 
-    /* subtle assumptions:
-     * - We know that for all edited vertices, the nodes with faces
-     *   adjacent to these vertices have been marked with PBVH_UpdateNormals.
-     *   This is true because if the vertex is inside the brush radius, the
-     *   bounding box of it's adjacent faces will be as well.
-     * - However this is only true for the vertices that have actually been
-     *   edited, not for all vertices in the nodes marked for update, so we
-     *   can only update vertices marked with ME_VERT_PBVH_UPDATE.
-     */
+	/* subtle assumptions:
+	 * - We know that for all edited vertices, the nodes with faces
+	 *   adjacent to these vertices have been marked with PBVH_UpdateNormals.
+	 *   This is true because if the vertex is inside the brush radius, the
+	 *   bounding box of it's adjacent faces will be as well.
+	 * - However this is only true for the vertices that have actually been
+	 *   edited, not for all vertices in the nodes marked for update, so we
+	 *   can only update vertices marked with ME_VERT_PBVH_UPDATE.
+	 */
 
 	#pragma omp parallel for private(n) schedule(static)
 	for (n = 0; n < totnode; n++) {
