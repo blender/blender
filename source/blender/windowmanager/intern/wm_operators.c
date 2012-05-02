@@ -2132,7 +2132,12 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 {	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
-		BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+
+		if (G.main->name[0] == 0)
+			BLI_strncpy(filepath, "untitled", sizeof(filepath));
+		else
+			BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+
 		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
 		RNA_string_set(op->ptr, "filepath", filepath);
 	}
