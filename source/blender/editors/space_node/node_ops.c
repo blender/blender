@@ -103,6 +103,7 @@ void node_operatortypes(void)
 	
 	WM_operatortype_append(NODE_OT_output_file_add_socket);
 	WM_operatortype_append(NODE_OT_output_file_remove_active_socket);
+	WM_operatortype_append(NODE_OT_output_file_move_active_socket);
 }
 
 void ED_operatormacros_node(void)

@@ -3591,12 +3591,16 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
-	bNodeTree *ntree = snode->edittree;
-	bNode *node = nodeGetActive(ntree);
+	PointerRNA ptr;
+	bNodeTree *ntree;
+	bNode *node;
 	char file_path[MAX_NAME];
 	
-	if (!node)
+	ptr = CTX_data_pointer_get(C, "node");
+	if (!ptr.data)
 		return OPERATOR_CANCELLED;
+	node = ptr.data;
+	ntree = ptr.id.data;
 	
 	RNA_string_get(op->ptr, "file_path", file_path);
 	ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
@@ -3628,11 +3632,14 @@ void NODE_OT_output_file_add_socket(wmOperatorType *ot)
 static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
-	bNodeTree *ntree = snode->edittree;
-	bNode *node = nodeGetActive(ntree);
+	PointerRNA ptr = CTX_data_pointer_get(C, "node");
+	bNodeTree *ntree;
+	bNode *node;
 	
-	if (!node)
+	if (!ptr.data)
 		return OPERATOR_CANCELLED;
+	node = ptr.data;
+	ntree = ptr.id.data;
 	
 	if (!ntreeCompositOutputFileRemoveActiveSocket(ntree, node))
 		return OPERATOR_CANCELLED;
@@ -3655,4 +3662,69 @@ void NODE_OT_output_file_remove_active_socket(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****************** Multi File Output Move Socket  ******************* */
+
+static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	PointerRNA ptr = CTX_data_pointer_get(C, "node");
+	bNode *node;
+	NodeImageMultiFile *nimf;
+	bNodeSocket *sock;
+	int direction;
+	
+	if (!ptr.data)
+		return OPERATOR_CANCELLED;
+	node = ptr.data;
+	nimf = node->storage;
+	
+	sock = BLI_findlink(&node->inputs, nimf->active_input);
+	if (!sock)
+		return OPERATOR_CANCELLED;
+	
+	direction = RNA_enum_get(op->ptr, "direction");
+	
+	if (direction==1) {
+		bNodeSocket *before = sock->prev;
+		if (!before)
+			return OPERATOR_CANCELLED;
+		BLI_remlink(&node->inputs, sock);
+		BLI_insertlinkbefore(&node->inputs, before, sock);
+		--nimf->active_input;
+	}
+	else {
+		bNodeSocket *after = sock->next;
+		if (!after)
+			return OPERATOR_CANCELLED;
+		BLI_remlink(&node->inputs, sock);
+		BLI_insertlinkafter(&node->inputs, after, sock);
+		++nimf->active_input;
+	}
+	
+	snode_notify(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_output_file_move_active_socket(wmOperatorType *ot)
+{
+	static EnumPropertyItem direction_items[] = {
+		{1, "UP", 0, "Up", ""},
+		{2, "DOWN", 0, "Down", ""}};
+	
+	/* identifiers */
+	ot->name = "Move File Node Socket";
+	ot->description = "Move the active input of a file output node up or down the list";
+	ot->idname = "NODE_OT_output_file_move_active_socket";
+	
+	/* callbacks */
+	ot->exec = node_output_file_move_active_socket_exec;
+	ot->poll = composite_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "direction", direction_items, 2, "Direction", "");
 }

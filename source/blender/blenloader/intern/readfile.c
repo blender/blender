@@ -7786,6 +7786,23 @@ static void do_versions_mesh_mloopcol_swap_2_62_1(Mesh *me)
 	}
 }
 
+static void do_versions_nodetree_multi_file_output_path_2_64_0(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->type==CMP_NODE_OUTPUT_FILE) {
+			bNodeSocket *sock;
+			for (sock=node->inputs.first; sock; sock=sock->next) {
+				NodeImageMultiFileSocket *input = sock->storage;
+				/* input file path is stored in dedicated struct now instead socket name */
+				BLI_strncpy(input->path, sock->name, sizeof(input->path));
+				sock->name[0] = '\0';	/* unused */
+			}
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -13282,10 +13299,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 
 	if (main->versionfile < 263) {
-		/* Default for old files is to save particle rotations to pointcache */
-		ParticleSettings *part;
-		for (part = main->particle.first; part; part = part->id.next)
-			part->flag |= PART_ROTATIONS;
+		{
+			/* Default for old files is to save particle rotations to pointcache */
+			ParticleSettings *part;
+			for (part = main->particle.first; part; part = part->id.next)
+				part->flag |= PART_ROTATIONS;
+		}
+		{
+			/* file output node paths are now stored in the file info struct instead socket name */
+			Scene *sce;
+			bNodeTree *ntree;
+			
+			for (sce = main->scene.first; sce; sce=sce->id.next)
+				if (sce->nodetree)
+					do_versions_nodetree_multi_file_output_path_2_64_0(sce->nodetree);
+			for (ntree = main->nodetree.first; ntree; ntree=ntree->id.next)
+				do_versions_nodetree_multi_file_output_path_2_64_0(ntree);
+		}
 	}
 
 	if (main->versionfile <= 263 && main->subversionfile == 0) {

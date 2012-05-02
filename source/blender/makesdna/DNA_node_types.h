@@ -77,7 +77,7 @@ typedef struct bNodeSocket {
 	
 	short type, flag;
 	short limit;				/* max. number of links */
-	short struct_type;			/* optional identifier for RNA struct subtype */
+	short pad1;
 	
 	float locx, locy;
 	
@@ -87,7 +87,7 @@ typedef struct bNodeSocket {
 	short stack_index;			/* local stack index */
 	/* XXX deprecated, kept for forward compatibility */
 	short stack_type  DNA_DEPRECATED;
-	int pad3;
+	int pad2;
 	void *cache;				/* cached data from execution */
 	
 	/* internal data to retrieve relations and groups */
@@ -111,10 +111,6 @@ typedef struct bNodeSocket {
 #define SOCK_MESH			5
 #define SOCK_INT			6
 #define NUM_SOCKET_TYPES	7	/* must be last! */
-
-/* sock->struct_type */
-#define SOCK_STRUCT_NONE				0	/* default, type is defined by sock->type only */
-#define SOCK_STRUCT_OUTPUT_FILE			1	/* file output node socket */
 
 /* socket side (input/output) */
 #define SOCK_IN		1
@@ -371,6 +367,7 @@ typedef struct NodeImageMultiFileSocket {
 	short use_render_format  DNA_DEPRECATED;
 	short use_node_format;	/* use overall node image format */
 	int pad2;
+	char path[1024];	/* 1024 = FILE_MAX */
 	ImageFormatData format;
 } NodeImageMultiFileSocket;
 
