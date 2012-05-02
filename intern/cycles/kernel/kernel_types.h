@@ -401,6 +401,9 @@ typedef struct ShaderData {
 
 	/* motion blur sample time */
 	float time;
+	
+	/* length of the ray being shaded */
+	float ray_length;
 
 #ifdef __MOTION__
 	/* object <-> world space transformations, cached to avoid

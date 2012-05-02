@@ -1623,6 +1623,7 @@ LightPathNode::LightPathNode()
 	add_output("Is Singular Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Reflection Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Transmission Ray", SHADER_SOCKET_FLOAT);
+	add_output("Ray Length", SHADER_SOCKET_FLOAT);
 }
 
 void LightPathNode::compile(SVMCompiler& compiler)
@@ -1671,6 +1672,13 @@ void LightPathNode::compile(SVMCompiler& compiler)
 		compiler.stack_assign(out);
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_transmission, out->stack_offset);
 	}
+	
+	out = output("Ray Length");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_length, out->stack_offset);
+	}
+
 }
 
 void LightPathNode::compile(OSLCompiler& compiler)
