@@ -1077,8 +1077,11 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSE
 	bNode *node;
 	
 	if (ntree && scene->use_nodes) {
-		/* XXX images are freed here, stop render and preview threads, until Image is threadsafe */
-		WM_jobs_stop_all(bmain->wm.first);
+		/* images are freed here, stop render and preview threads, until
+		 * Image is threadsafe. when we are changing this propery from a
+		 * python script in the render thread, don't stop own thread */
+		if(BLI_thread_is_main())
+			WM_jobs_stop_all(bmain->wm.first);
 		
 		for (node = ntree->nodes.first; node; node = node->next) {
 			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_IMAGE)) {
