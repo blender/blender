@@ -84,6 +84,11 @@ class CLIP_HT_header(Header):
                 layout.label(text="Average solve error: %.4f" %
                     (r.average_error))
 
+            if sc.view == 'DOPESHEET':
+                layout.label(text="Sort by:")
+                layout.prop(sc, "dopesheet_sort_order", text="")
+                layout.prop(sc, "invert_dopesheet_sort", text="Invert")
+
         layout.template_running_jobs()
 
 

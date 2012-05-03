@@ -166,6 +166,7 @@ void BKE_tracking_deselect_track(struct MovieTrackingTrack *track, int area);
 
 /* Dopesheet */
 void BKE_tracking_update_dopesheet(struct MovieTracking *tracking);
+void BKE_tracking_dopesheet_sort(struct MovieTracking *tracking, int sort_order, int inverse);
 
 #define TRACK_SELECTED(track)				((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 
@@ -196,5 +197,10 @@ void BKE_tracking_update_dopesheet(struct MovieTracking *tracking);
 #define TRACK_AREA_SEARCH	4
 
 #define TRACK_AREA_ALL		(TRACK_AREA_POINT|TRACK_AREA_PAT|TRACK_AREA_SEARCH)
+
+#define TRACK_SORT_NONE		-1
+#define TRACK_SORT_NAME		0
+#define TRACK_SORT_LONGEST	1
+#define TRACK_SORT_TOTAL	2
 
 #endif

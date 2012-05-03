@@ -3072,6 +3072,52 @@ static int channels_alpha_sort(void *a, void *b)
 		return 0;
 }
 
+static int channels_total_track_sort(void *a, void *b)
+{
+	MovieTrackingDopesheetChannel *channel_a = a;
+	MovieTrackingDopesheetChannel *channel_b = b;
+
+	if (channel_a->total_frames > channel_b->total_frames)
+		return 1;
+	else
+		return 0;
+}
+
+static int channels_longest_segment_sort(void *a, void *b)
+{
+	MovieTrackingDopesheetChannel *channel_a = a;
+	MovieTrackingDopesheetChannel *channel_b = b;
+
+	if (channel_a->max_segment > channel_b->max_segment)
+		return 1;
+	else
+		return 0;
+}
+
+static int channels_alpha_inverse_sort(void *a, void *b)
+{
+	if (channels_alpha_sort(a, b))
+		return 0;
+	else
+		return 1;
+}
+
+static int channels_total_track_inverse_sort(void *a, void *b)
+{
+	if (channels_total_track_sort(a, b))
+		return 0;
+	else
+		return 1;
+}
+
+static int channels_longest_segment_inverse_sort(void *a, void *b)
+{
+	if (channels_longest_segment_sort(a, b))
+		return 0;
+	else
+		return 1;
+}
+
 static void channels_segments_calc(MovieTrackingDopesheetChannel *channel)
 {
 	MovieTrackingTrack *track = channel->track;
@@ -3173,5 +3219,40 @@ void BKE_tracking_update_dopesheet(MovieTracking *tracking)
 		}
 	}
 
-	BLI_sortlist(&dopesheet->channels, channels_alpha_sort);
+	dopesheet->sort_order = TRACK_SORT_NONE;
+	dopesheet->sort_inverse = -1;
+}
+
+void BKE_tracking_dopesheet_sort(MovieTracking *tracking, int sort_order, int inverse)
+{
+	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
+
+	if (dopesheet->sort_order == sort_order && dopesheet->sort_inverse == inverse)
+		return;
+
+	if (inverse) {
+		if (sort_order == TRACK_SORT_NAME) {
+			BLI_sortlist(&dopesheet->channels, channels_alpha_inverse_sort);
+		}
+		else if (sort_order == TRACK_SORT_LONGEST) {
+			BLI_sortlist(&dopesheet->channels, channels_longest_segment_inverse_sort);
+		}
+		else if (sort_order == TRACK_SORT_TOTAL) {
+			BLI_sortlist(&dopesheet->channels, channels_total_track_inverse_sort);
+		}
+	}
+	else {
+		if (sort_order == TRACK_SORT_NAME) {
+			BLI_sortlist(&dopesheet->channels, channels_alpha_sort);
+		}
+		else if (sort_order == TRACK_SORT_LONGEST) {
+			BLI_sortlist(&dopesheet->channels, channels_longest_segment_sort);
+		}
+		else if (sort_order == TRACK_SORT_TOTAL) {
+			BLI_sortlist(&dopesheet->channels, channels_total_track_sort);
+		}
+	}
+
+	dopesheet->sort_order = sort_order;
+	dopesheet->sort_inverse = inverse;
 }

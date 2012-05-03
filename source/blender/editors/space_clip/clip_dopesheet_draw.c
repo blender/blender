@@ -203,6 +203,11 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 					int start_frame = channel->segments[2 * i];
 					int end_frame = channel->segments[2 * i + 1];
 
+					if (sel)
+						glColor4fv(selected_strip);
+					else
+						glColor4fv(strip);
+
 					if (start_frame != end_frame) {
 						glRectf(start_frame, (float) y - STRIP_HEIGHT_HALF,
 								end_frame, (float) y + STRIP_HEIGHT_HALF);

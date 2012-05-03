@@ -523,6 +523,12 @@ typedef struct SpaceClip {
 	int postproc_flag, pad2;
 
 	void *draw_context;
+
+	/* dopesheet */
+	short dope_sort;		/* sort order in dopesheet view */
+	short dope_flag;		/* dopsheet view flags */
+
+	int pad3;
 } SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */
@@ -916,8 +922,13 @@ enum {
 #define SC_VIEW_GRAPH		1
 #define SC_VIEW_DOPESHEET	2
 
-/* SpaceClip->runtime_flag */
-#define SC_GRAPH_BOTTOM		(1<<0)
+/* SpaceClip->dope_sort */
+#define SC_DOPE_SORT_NAME		0
+#define SC_DOPE_SORT_LONGEST		1
+#define SC_DOPE_SORT_TOTAL		2
+
+/* SpaceClip->dope_flag */
+#define SC_DOPE_SORT_INVERSE		1
 
 /* space types, moved from DNA_screen_types.h */
 /* Do NOT change order, append on end. types are hardcoded needed */

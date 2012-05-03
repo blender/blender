@@ -2686,7 +2686,7 @@ static void write_movieDopesheet(WriteData *wd, MovieTrackingDopesheet *dopeshee
 	channel = dopesheet->channels.first;
 	while (channel) {
 		writestruct(wd, DATA, "MovieTrackingDopesheetChannel", 1, channel);
-		writedata(wd, DATA, 2 * channel->tot_segment, channel->segments);
+		writedata(wd, DATA, 2 * channel->tot_segment * sizeof(int), channel->segments);
 
 		channel = channel->next;
 	}

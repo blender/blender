@@ -1129,10 +1129,13 @@ static void dopesheet_area_draw(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	View2D *v2d = &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
 	short unit = 0;
+
+	BKE_tracking_dopesheet_sort(&clip->tracking, sc->dope_sort, sc->dope_flag & SC_DOPE_SORT_INVERSE);
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
@@ -1186,8 +1189,12 @@ static void clip_channels_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void clip_channels_area_draw(const bContext *C, ARegion *ar)
 {
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
+
+	BKE_tracking_dopesheet_sort(&clip->tracking, sc->dope_sort, sc->dope_flag & SC_DOPE_SORT_INVERSE);
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
