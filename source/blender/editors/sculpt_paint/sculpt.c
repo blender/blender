@@ -101,6 +101,26 @@ void ED_sculpt_force_update(bContext *C)
 		multires_force_update(ob);
 }
 
+float *ED_sculpt_get_last_stroke(struct Object *ob)
+{
+	return (ob && ob->sculpt && ob->sculpt->last_stroke_valid) ? ob->sculpt->last_stroke : NULL;
+}
+
+int ED_sculpt_minmax(bContext *C, float *min, float *max)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	if (ob && ob->sculpt && ob->sculpt->last_stroke_valid) {
+		copy_v3_v3(min, ob->sculpt->last_stroke);
+		copy_v3_v3(max, ob->sculpt->last_stroke);
+
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
 /* Sculpt mode handles multires differently from regular meshes, but only if
  * it's the last modifier on the stack and it is not on the first level */
 struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
@@ -3481,6 +3501,11 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *UNUSED(stroke))
 				paint_brush_set(p, brush);
 			}
 		}
+
+		/* update last stroke position */
+		ob->sculpt->last_stroke_valid= 1;
+		copy_v3_v3(ob->sculpt->last_stroke, ss->cache->true_location);
+		mul_m4_v3(ob->obmat, ob->sculpt->last_stroke);
 
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;

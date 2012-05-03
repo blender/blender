@@ -73,6 +73,7 @@
 #include "ED_transform.h"
 #include "ED_mesh.h"
 #include "ED_view3d.h"
+#include "ED_sculpt.h"
 
 
 #include "PIL_time.h" /* smoothview */
@@ -2199,6 +2200,10 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ok = PE_minmax(scene, min, max);
 	}
+	else if (ob && (ob->mode & OB_MODE_SCULPT)) {
+		ok = ED_sculpt_minmax(C, min, max);
+		ok_dist = 0; /* don't zoom */
+	}
 	else {
 		Base *base;
 		for (base = FIRSTBASE; base; base = base->next) {
@@ -2222,18 +2227,24 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 	sub_v3_v3v3(afm, max, min);
 	size = MAX3(afm[0], afm[1], afm[2]);
 
-	if (!rv3d->is_persp) {
-		if (size < 0.0001f) { /* if its a sinble point. don't even re-scale */
-			ok_dist = 0;
+	if (ok_dist) {
+		/* fix up zoom distance if needed */
+
+		if (rv3d->is_persp) {
+			if (size <= v3d->near * 1.5f) {
+				/* do not zoom closer than the near clipping plane */
+				size = v3d->near * 1.5f;
+			}
 		}
-		else {
-			/* perspective should be a bit farther away to look nice */
-			size *= 0.7f;
-		}
-	}
-	else {
-		if (size <= v3d->near * 1.5f) {
-			size = v3d->near * 1.5f;
+		else /* ortho */ {
+			if (size < 0.0001f) {
+				/* bounding box was a single point so do not zoom */
+				ok_dist = 0;
+			}
+			else {
+				/* adjust zoom so it looks nicer */
+				size *= 0.7f;
+			}
 		}
 	}
 
@@ -2251,7 +2262,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (rv3d->persp == RV3D_CAMOB && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 		rv3d->persp = RV3D_PERSP;
-		smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
+		smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
 	}
 	else {
 		smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
