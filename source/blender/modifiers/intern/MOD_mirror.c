@@ -231,10 +231,10 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 		ml2 = ml + mp->loopstart + maxLoops;
 		e = ml2[0].e;
-		for (j = 0; j < mp->totloop-1; j++) {
-			ml2[j].e = ml2[j+1].e;
+		for (j = 0; j < mp->totloop - 1; j++) {
+			ml2[j].e = ml2[j + 1].e;
 		}
-		ml2[mp->totloop-1].e = e;
+		ml2[mp->totloop - 1].e = e;
 		
 		mp->loopstart += maxLoops;
 	}

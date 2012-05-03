@@ -189,7 +189,7 @@ static void displaceModifier_do(
 
 	modifier_init_texture(dmd->modifier.scene, dmd->texture);
 
-	for (i = 0; i < numVerts; ++i) {
+	for (i = 0; i < numVerts; i++) {
 		TexResult texres;
 		float delta = 0, strength = dmd->strength;
 

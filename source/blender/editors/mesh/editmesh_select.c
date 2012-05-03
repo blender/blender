@@ -1129,7 +1129,7 @@ static float edgetag_cut_cost(BMEditMesh *UNUSED(em), BMEdge *e1, BMEdge *e2, BM
 	/* but is biased to give higher values to sharp turns, so that it will take
 	 * paths with fewer "turns" when selecting between equal-weighted paths between
 	 * the two edges */
-	cost = cost + 0.5f * cost * (2.0f - sqrt(fabs(dot_v3v3(d1, d2))));
+	cost = cost + 0.5f * cost * (2.0f - sqrtf(fabsf(dot_v3v3(d1, d2))));
 
 	return cost;
 }
@@ -2294,7 +2294,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	float sharp = RNA_float_get(op->ptr, "sharpness");
 	int i;
 
-	sharp = (sharp * M_PI) / 180.0;
+	sharp = (sharp * (float)M_PI) / 180.0f;
 
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
 		BM_elem_flag_disable(f, BM_ELEM_TAG);

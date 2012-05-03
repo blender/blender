@@ -275,11 +275,11 @@ int ED_mesh_uv_loop_reset_ex(struct bContext *C, struct Mesh *me, const int laye
 		else if (len > 2) {
 			float fac = 0.0f, dfac = 1.0f / (float)len;
 
-			dfac *= M_PI * 2;
+			dfac *= (float)M_PI * 2.0f;
 
 			for (i = 0; i < len; i++) {
-				fuvs[i][0] = 0.5f * sin(fac) + 0.5f;
-				fuvs[i][1] = 0.5f * cos(fac) + 0.5f;
+				fuvs[i][0] = 0.5f * sinf(fac) + 0.5f;
+				fuvs[i][1] = 0.5f * cosf(fac) + 0.5f;
 
 				fac += dfac;
 			}

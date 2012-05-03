@@ -313,15 +313,15 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				double scalar = bUnit_GetScaler(usys, i);
 
 				dx_scalar = dx * scalar / unit->scale_length;
-				if (dx_scalar < (GRID_MIN_PX * 2))
+				if (dx_scalar < (GRID_MIN_PX * 2.0))
 					continue;
 
 				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
 				if (*grid_unit == NULL) {
 					*grid_unit = bUnit_GetNameDisplay(usys, i);
-					rv3d->gridview = (scalar * v3d->grid) / unit->scale_length;
+					rv3d->gridview = (float)((scalar * v3d->grid) / (double)unit->scale_length);
 				}
-				blend_fac = 1 - ((GRID_MIN_PX * 2) / dx_scalar);
+				blend_fac = 1.0f - ((GRID_MIN_PX * 2.0f) / (float)dx_scalar);
 
 				/* tweak to have the fade a bit nicer */
 				blend_fac = (blend_fac * blend_fac) * 2.0f;
@@ -355,7 +355,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					}
 				}
 				else {  // start blending out
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6));
+					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6.0f));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 
 					UI_ThemeColor(TH_GRID);
@@ -363,7 +363,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				}
 			}
 			else {  // start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX*10))
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6));
+				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6.0f));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 
 				UI_ThemeColor(TH_GRID);

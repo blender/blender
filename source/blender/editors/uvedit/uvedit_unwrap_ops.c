@@ -1027,7 +1027,7 @@ static void correct_uv_aspect(BMEditMesh *em)
 			
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				luv->uv[0] = ((luv->uv[0] - 0.5) * scale) + 0.5;
+				luv->uv[0] = ((luv->uv[0] - 0.5f) * scale) + 0.5f;
 			}
 		}
 	}
@@ -1040,7 +1040,7 @@ static void correct_uv_aspect(BMEditMesh *em)
 			
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				luv->uv[1] = ((luv->uv[1] - 0.5) * scale) + 0.5;
+				luv->uv[1] = ((luv->uv[1] - 0.5f) * scale) + 0.5f;
 			}
 		}
 	}

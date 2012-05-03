@@ -113,7 +113,7 @@ static void VertexIt_Fill(CSG_IteratorPtr it, CSG_IVertex *vert)
 static void VertexIt_Step(CSG_IteratorPtr it)
 {
 	VertexIt * iterator = (VertexIt *)it;
-	iterator->pos ++;
+	iterator->pos++;
 } 
  
 static void VertexIt_Reset(CSG_IteratorPtr it)
@@ -207,7 +207,7 @@ static void FaceIt_Fill(CSG_IteratorPtr it, CSG_IFace *face)
 static void FaceIt_Step(CSG_IteratorPtr it)
 {
 	FaceIt * face_it = (FaceIt *)it;		
-	face_it->pos ++;
+	face_it->pos++;
 }
 
 static void FaceIt_Reset(CSG_IteratorPtr it)
@@ -441,7 +441,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 
 					mat_nr = 0;
 					for (a = 0; a < ob1->totcol; a++) {
-						if (give_current_material(ob1, a+1) == orig_mat) {
+						if (give_current_material(ob1, a + 1) == orig_mat) {
 							mat_nr = a;
 							break;
 						}
@@ -601,7 +601,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 	dm_select = mesh_create_derived_view(scene, ob_select, 0); // no modifiers in editmode ??
 
 	maxmat= ob->totcol + ob_select->totcol;
-	mat= (Material**)MEM_mallocN(sizeof(Material*)*maxmat, "NewBooleanMeshMat");
+	mat = (Material **)MEM_mallocN(sizeof(Material *) * maxmat, "NewBooleanMeshMat");
 	
 	/* put some checks in for nice user feedback */
 	if (dm == NULL || dm_select == NULL) {
@@ -632,7 +632,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 
 	/* add materials to object */
 	for (a = 0; a < totmat; a++)
-		assign_material(ob_new, mat[a], a+1);
+		assign_material(ob_new, mat[a], a + 1);
 
 	MEM_freeN(mat);
 

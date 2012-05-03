@@ -407,7 +407,9 @@ ModifierTypeInfo modifierType_Mask = {
 	/* structName */        "MaskModifierData",
 	/* structSize */        sizeof(MaskModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_SupportsMapping|eModifierTypeFlag_SupportsEditmode,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

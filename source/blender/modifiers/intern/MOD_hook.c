@@ -122,7 +122,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *curNode = dag_get_node(forest, hmd->object);
 		
 		if (hmd->subtarget[0])
-			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA|DAG_RL_DATA_DATA, "Hook Modifier");
+			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Hook Modifier");
 		else
 			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA, "Hook Modifier");
 	}
@@ -195,9 +195,9 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 					for (j = 0; j < numVerts; j++) {
 						if (origindex_ar[j] == *index_pt) {
 							float *co = vertexCos[j];
-							if ((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
+							if ((fac = hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
 								if (dvert)
-									fac *= defvert_find_weight(dvert+j, defgrp_index);
+									fac *= defvert_find_weight(dvert + j, defgrp_index);
 								
 								if (fac) {
 									mul_v3_m4v3(vec, mat, co);
@@ -210,12 +210,12 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 			}
 		}
 		else { /* missing dm or ORIGINDEX */
-			for (i= 0, index_pt= hmd->indexar; i < hmd->totindex; i++, index_pt++) {
+			for (i = 0, index_pt = hmd->indexar; i < hmd->totindex; i++, index_pt++) {
 				if (*index_pt < numVerts) {
 					float *co = vertexCos[*index_pt];
-					if ((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
+					if ((fac = hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
 						if (dvert)
-							fac *= defvert_find_weight(dvert+(*index_pt), defgrp_index);
+							fac *= defvert_find_weight(dvert + (*index_pt), defgrp_index);
 						
 						if (fac) {
 							mul_v3_m4v3(vec, mat, co);
@@ -227,13 +227,13 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 		}
 	}
 	else if (dvert) {	/* vertex group hook */
-		const float fac_orig= hmd->force;
+		const float fac_orig = hmd->force;
 		
 		for (i = 0; i < max_dvert; i++, dvert++) {
 			float fac;
 			float *co = vertexCos[i];
 			
-			if ((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
+			if ((fac = hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
 				fac *= defvert_find_weight(dvert, defgrp_index);
 				if (fac) {
 					mul_v3_m4v3(vec, mat, co);

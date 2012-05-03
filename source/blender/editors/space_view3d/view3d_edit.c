@@ -696,7 +696,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 			if (dot_v3v3(xaxis, m_inv[0]) < 0) {
 				negate_v3(xaxis);
 			}
-			fac = angle_normalized_v3v3(zvec_global, m_inv[2]) / M_PI;
+			fac = angle_normalized_v3v3(zvec_global, m_inv[2]) / (float)M_PI;
 			fac = fabsf(fac - 0.5f) * 2;
 			fac = fac * fac;
 			interp_v3_v3v3(xaxis, xaxis, m_inv[0], fac);

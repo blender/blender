@@ -671,7 +671,7 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, int do_face_idx
 				
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
-				if (fabs(uvdiff[0]) < limit[0] && fabs(uvdiff[1]) < limit[1]) {
+				if (fabsf(uvdiff[0]) < limit[0] && fabsf(uvdiff[1]) < limit[1]) {
 					if (lastv) lastv->next = next;
 					else vlist = next;
 					iterv->next = newvlist;

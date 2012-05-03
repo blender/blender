@@ -586,7 +586,7 @@ static int layerEqual_mloopcol(void *data1, void *data2)
 	b = m1->b - m2->b;
 	a = m1->a - m2->a;
 
-	return r*r + g*g + b*b + a*a < 0.001;
+	return r * r + g * g + b * b + a * a < 0.001f;
 }
 
 static void layerMultiply_mloopcol(void *data, float fac)

@@ -4096,7 +4096,7 @@ static void select_similar_direction(bArmature *arm, EditBone *ebone_act, const 
 			float dir[3];
 			sub_v3_v3v3(dir, ebone->head, ebone->tail);
 
-			if (angle_v3v3(dir_act, dir) / M_PI < thresh) {
+			if (angle_v3v3(dir_act, dir) / (float)M_PI < thresh) {
 				ED_armature_edit_bone_select(ebone);
 			}
 		}

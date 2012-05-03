@@ -204,16 +204,16 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						}
 						
 						if (axis & 2) {
-							if (fabs(iloc[1])<=tolerance[1] ||
-							   loc[1]*iloc[1]<0.0f)
+							if (fabsf(iloc[1]) <= tolerance[1] ||
+							   loc[1] * iloc[1]<0.0f)
 							{
 								loc[1]= 0.0f;
 								clip = 1;
 							}
 						}
 						if (axis & 4) {
-							if (fabs(iloc[2])<=tolerance[2] ||
-							   loc[2]*iloc[2]<0.0f)
+							if (fabsf(iloc[2]) <= tolerance[2] ||
+							   loc[2] * iloc[2] < 0.0f)
 							{
 								loc[2]= 0.0f;
 								clip = 1;
@@ -541,12 +541,12 @@ static void recalcData_nla(TransInfo *t)
 		switch (snla->autosnap) {
 			case SACTSNAP_FRAME: /* snap to nearest frame/time  */
 				if (snla->flag & SNLA_DRAWTIME) {
-					tdn->h1[0]= (float)( floor((tdn->h1[0]/secf) + 0.5f) * secf );
-					tdn->h2[0]= (float)( floor((tdn->h2[0]/secf) + 0.5f) * secf );
+					tdn->h1[0] = (float)(floor(((double)tdn->h1[0] / secf) + 0.5) * secf);
+					tdn->h2[0] = (float)(floor(((double)tdn->h2[0] / secf) + 0.5) * secf);
 				}
 				else {
-					tdn->h1[0]= (float)( floor(tdn->h1[0]+0.5f) );
-					tdn->h2[0]= (float)( floor(tdn->h2[0]+0.5f) );
+					tdn->h1[0] = floorf(tdn->h1[0] + 0.5f);
+					tdn->h2[0] = floorf(tdn->h2[0] + 0.5f);
 				}
 				break;
 			

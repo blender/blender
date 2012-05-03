@@ -1412,7 +1412,7 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 	float co[3], cageco[3], sco[3], maxdist = knife_snap_size(kcd, kcd->ethresh);
 
 	if (kcd->ignore_vert_snapping)
-		maxdist *= 0.5;
+		maxdist *= 0.5f;
 
 	f = knife_find_closest_face(kcd, co, cageco, NULL);
 	*is_space = !f;
@@ -1502,7 +1502,7 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 	float co[3], cageco[3], sco[3], maxdist = knife_snap_size(kcd, kcd->vthresh);
 
 	if (kcd->ignore_vert_snapping)
-		maxdist *= 0.5;
+		maxdist *= 0.5f;
 
 	f = knife_find_closest_face(kcd, co, cageco, is_space);
 

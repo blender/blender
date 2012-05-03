@@ -192,7 +192,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 
 	modifier_get_vgroup(ob, dm, wmd->defgrp_name, &dvert, &defgrp_index);
 
-	if (wmd->curfalloff==NULL) /* should never happen, but bad lib linking could cause it */
+	if (wmd->curfalloff == NULL) /* should never happen, but bad lib linking could cause it */
 		wmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 
 	invert_m4_m4(obinv, ob->obmat);
@@ -229,9 +229,10 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 	for (i = 0; i < numVerts; i++) {
 		float *co = vertexCos[i];
 
-		if (wmd->falloff_type==eWarp_Falloff_None ||
-		        ((fac=len_v3v3(co, mat_from[3])) < wmd->falloff_radius && (fac=(wmd->falloff_radius-fac)/wmd->falloff_radius)) ) {
-
+		if (wmd->falloff_type == eWarp_Falloff_None ||
+		    ((fac = len_v3v3(co, mat_from[3])) < wmd->falloff_radius &&
+		     (fac = (wmd->falloff_radius-fac) / wmd->falloff_radius)))
+		{
 			/* skip if no vert group found */
 			if (dvert && defgrp_index >= 0) {
 				dv = &dvert[i];

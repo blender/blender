@@ -257,8 +257,8 @@ static void stitch_uv_rotate(float rotation, float medianPoint[2], float uv[2])
 	uv[0] -= medianPoint[0];
 	uv[1] -= medianPoint[1];
 
-	uv_rotation_result[0] = cos(rotation) * uv[0] - sin(rotation) * uv[1];
-	uv_rotation_result[1] = sin(rotation) * uv[0] + cos(rotation) * uv[1];
+	uv_rotation_result[0] = cosf(rotation) * uv[0] - sinf(rotation) * uv[1];
+	uv_rotation_result[1] = sinf(rotation) * uv[0] + cosf(rotation) * uv[1];
 
 	uv[0] = uv_rotation_result[0] + medianPoint[0];
 	uv[1] = uv_rotation_result[1] + medianPoint[1];
@@ -286,8 +286,8 @@ static int stitch_check_uvs_stitchable(UvElement *element, UvElement *element_it
 		l_iter = element_iter->l;
 		luv_iter = CustomData_bmesh_get(&state->em->bm->ldata, l_iter->head.data, CD_MLOOPUV);
 
-		if (fabs(luv_orig->uv[0] - luv_iter->uv[0]) < limit &&
-		    fabs(luv_orig->uv[1] - luv_iter->uv[1]) < limit)
+		if (fabsf(luv_orig->uv[0] - luv_iter->uv[0]) < limit &&
+		    fabsf(luv_orig->uv[1] - luv_iter->uv[1]) < limit)
 		{
 			return 1;
 		}
@@ -403,7 +403,7 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge, StitchState *sta
 	edgecos = uv1[0] * uv2[0] + uv1[1] * uv2[1];
 	edgesin = uv1[0] * uv2[1] - uv2[0] * uv1[1];
 
-	rotation = (edgesin > 0) ? acos(MAX2(-1.0, MIN2(1.0, edgecos))) : -acos(MAX2(-1.0, MIN2(1.0, edgecos)));
+	rotation = (edgesin > 0.0f) ? acosf(MAX2(-1.0f, MIN2(1.0f, edgecos))) : -acosf(MAX2(-1.0f, MIN2(1.0f, edgecos)));
 
 	island_stitch_data[element1->island].num_rot_elements++;
 	island_stitch_data[element1->island].rotation += rotation;
@@ -412,7 +412,7 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge, StitchState *sta
 
 static void stitch_island_calculate_vert_rotation(UvElement *element, StitchState *state, IslandStitchData *island_stitch_data)
 {
-	float edgecos = 1, edgesin = 0;
+	float edgecos = 1.0f, edgesin = 0.0f;
 	int index;
 	UvElement *element_iter;
 	float rotation = 0;
@@ -441,12 +441,12 @@ static void stitch_island_calculate_vert_rotation(UvElement *element, StitchStat
 			negate_v2_v2(normal, state->normals + index_tmp2 * 2);
 			edgecos = dot_v2v2(normal, state->normals + index_tmp1 * 2);
 			edgesin = cross_v2v2(normal, state->normals + index_tmp1 * 2);
-			rotation += (edgesin > 0) ? acos(edgecos) : -acos(edgecos);
+			rotation += (edgesin > 0.0f) ? acosf(edgecos) : -acosf(edgecos);
 		}
 	}
 
 	if (state->midpoints)
-		rotation /= 2.0;
+		rotation /= 2.0f;
 	island_stitch_data[element->island].num_rot_elements++;
 	island_stitch_data[element->island].rotation += rotation;
 }
@@ -1364,7 +1364,7 @@ static int stitch_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case PADPLUSKEY:
 		case WHEELUPMOUSE:
 			if (event->alt) {
-				stitch_state->limit_dist += 0.01;
+				stitch_state->limit_dist += 0.01f;
 				if (!stitch_process_data(stitch_state, scene, 0)) {
 					return stitch_cancel(C, op);
 				}
@@ -1377,8 +1377,8 @@ static int stitch_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case PADMINUS:
 		case WHEELDOWNMOUSE:
 			if (event->alt) {
-				stitch_state->limit_dist -= 0.01;
-				stitch_state->limit_dist = MAX2(0.01, stitch_state->limit_dist);
+				stitch_state->limit_dist -= 0.01f;
+				stitch_state->limit_dist = MAX2(0.01f, stitch_state->limit_dist);
 				if (!stitch_process_data(stitch_state, scene, 0)) {
 					return stitch_cancel(C, op);
 				}

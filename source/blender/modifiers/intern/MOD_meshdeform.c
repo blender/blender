@@ -142,24 +142,24 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 	size= mmd->dyngridsize;
 
 	for (i=0; i<3; i++) {
-		gridvec[i]= (vec[i] - mmd->dyncellmin[i] - mmd->dyncellwidth*0.5f)/mmd->dyncellwidth;
-		ivec[i]= (int)gridvec[i];
-		dvec[i]= gridvec[i] - ivec[i];
+		gridvec[i] = (vec[i] - mmd->dyncellmin[i] - mmd->dyncellwidth*0.5f)/mmd->dyncellwidth;
+		ivec[i] = (int)gridvec[i];
+		dvec[i] = gridvec[i] - ivec[i];
 	}
 
 	for (i=0; i<8; i++) {
-		if (i & 1) { x= ivec[0]+1; wx= dvec[0]; }
-		else { x= ivec[0]; wx= 1.0f-dvec[0]; } 
+		if (i & 1) { x = ivec[0] + 1; wx = dvec[0]; }
+		else       { x = ivec[0]; wx = 1.0f - dvec[0]; } 
 
-		if (i & 2) { y= ivec[1]+1; wy= dvec[1]; }
-		else { y= ivec[1]; wy= 1.0f-dvec[1]; } 
+		if (i & 2) { y = ivec[1] + 1; wy = dvec[1]; }
+		else       { y = ivec[1];     wy = 1.0f - dvec[1]; } 
 
-		if (i & 4) { z= ivec[2]+1; wz= dvec[2]; }
-		else { z= ivec[2]; wz= 1.0f-dvec[2]; } 
+		if (i & 4) { z = ivec[2] + 1; wz = dvec[2]; }
+		else       { z = ivec[2];     wz = 1.0f - dvec[2]; } 
 
-		CLAMP(x, 0, size-1);
-		CLAMP(y, 0, size-1);
-		CLAMP(z, 0, size-1);
+		CLAMP(x, 0, size - 1);
+		CLAMP(y, 0, size - 1);
+		CLAMP(z, 0, size - 1);
 
 		a= x + y*size + z*size*size;
 		weight= wx*wy*wz;
@@ -314,7 +314,7 @@ static void meshdeformModifier_do(
 			totweight= 0.0f;
 			zero_v3(co);
 
-			for (a=offsets[b]; a<offsets[b+1]; a++) {
+			for (a = offsets[b]; a < offsets[b + 1]; a++) {
 				weight= influences[a].weight;
 				madd_v3_v3fl(co, dco[influences[a].vertex], weight);
 				totweight += weight;
@@ -322,7 +322,7 @@ static void meshdeformModifier_do(
 		}
 
 		if (totweight > 0.0f) {
-			mul_v3_fl(co, fac/totweight);
+			mul_v3_fl(co, fac / totweight);
 			mul_m3_v3(icagemat, co);
 			if (G.rt != 527)
 				add_v3_v3(vertexCos[b], co);
@@ -394,8 +394,8 @@ void modifier_mdef_compact_influences(ModifierData *md)
 	}
 
 	/* allocate bind influences */
-	mmd->bindinfluences= MEM_callocN(sizeof(MDefInfluence)*mmd->totinfluence, "MDefBindInfluence");
-	mmd->bindoffsets= MEM_callocN(sizeof(int)*(totvert+1), "MDefBindOffset");
+	mmd->bindinfluences = MEM_callocN(sizeof(MDefInfluence) * mmd->totinfluence, "MDefBindInfluence");
+	mmd->bindoffsets = MEM_callocN(sizeof(int) * (totvert + 1), "MDefBindOffset");
 
 	/* write influences */
 	totinfluence= 0;
@@ -417,8 +417,8 @@ void modifier_mdef_compact_influences(ModifierData *md)
 			weight= weights[a + b*totcagevert];
 
 			if (weight > MESHDEFORM_MIN_INFLUENCE) {
-				mmd->bindinfluences[totinfluence].weight= weight/totweight;
-				mmd->bindinfluences[totinfluence].vertex= a;
+				mmd->bindinfluences[totinfluence].weight = weight / totweight;
+				mmd->bindinfluences[totinfluence].vertex = a;
 				totinfluence++;
 			}
 		}

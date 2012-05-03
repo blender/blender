@@ -113,7 +113,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene, Ob
 				CollisionModifierData *coll_clmd = (CollisionModifierData *)modifiers_findByType(ob1, eModifierType_Collision);
 				if (coll_clmd) {
 					DagNode *curNode = dag_get_node(forest, ob1);
-					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Cloth Collision");
+					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Cloth Collision");
 				}
 			}
 		}

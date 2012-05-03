@@ -1257,7 +1257,7 @@ static void vgroup_blend(Object *ob, const float fac)
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
 
-	BLI_assert(fac >= 0.0 && fac <= 1.0f);
+	BLI_assert(fac >= 0.0f && fac <= 1.0f);
 
 	if (ob->type != OB_MESH) {
 		return;

@@ -207,8 +207,8 @@ void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float 
 			float strength;
 			strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
 
-			sculptdata->uv[i].uv[0] = (1.0 - strength) * sculptdata->uv[i].uv[0] + strength * (tmp_uvdata[i].p[0] - 0.5f * (tmp_uvdata[i].b[0] + tmp_uvdata[i].sum_b[0] / tmp_uvdata[i].ncounter));
-			sculptdata->uv[i].uv[1] = (1.0 - strength) * sculptdata->uv[i].uv[1] + strength * (tmp_uvdata[i].p[1] - 0.5f * (tmp_uvdata[i].b[1] + tmp_uvdata[i].sum_b[1] / tmp_uvdata[i].ncounter));
+			sculptdata->uv[i].uv[0] = (1.0f - strength) * sculptdata->uv[i].uv[0] + strength * (tmp_uvdata[i].p[0] - 0.5f * (tmp_uvdata[i].b[0] + tmp_uvdata[i].sum_b[0] / tmp_uvdata[i].ncounter));
+			sculptdata->uv[i].uv[1] = (1.0f - strength) * sculptdata->uv[i].uv[1] + strength * (tmp_uvdata[i].p[1] - 0.5f * (tmp_uvdata[i].b[1] + tmp_uvdata[i].sum_b[1] / tmp_uvdata[i].ncounter));
 
 			for (element = sculptdata->uv[i].element; element; element = element->next) {
 				MLoopUV *luv;
@@ -271,8 +271,8 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 			float strength;
 			strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
 
-			sculptdata->uv[i].uv[0] = (1.0 - strength) * sculptdata->uv[i].uv[0] + strength * tmp_uvdata[i].p[0];
-			sculptdata->uv[i].uv[1] = (1.0 - strength) * sculptdata->uv[i].uv[1] + strength * tmp_uvdata[i].p[1];
+			sculptdata->uv[i].uv[0] = (1.0f - strength) * sculptdata->uv[i].uv[0] + strength * tmp_uvdata[i].p[0];
+			sculptdata->uv[i].uv[1] = (1.0f - strength) * sculptdata->uv[i].uv[1] + strength * tmp_uvdata[i].p[1];
 
 			for (element = sculptdata->uv[i].element; element; element = element->next) {
 				MLoopUV *luv;
@@ -347,8 +347,8 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 				strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
 				normalize_v2(diff);
 
-				sculptdata->uv[i].uv[0] -= strength * diff[0] * 0.001;
-				sculptdata->uv[i].uv[1] -= strength * diff[1] * 0.001;
+				sculptdata->uv[i].uv[0] -= strength * diff[0] * 0.001f;
+				sculptdata->uv[i].uv[1] -= strength * diff[1] * 0.001f;
 
 				for (element = sculptdata->uv[i].element; element; element = element->next) {
 					MLoopUV *luv;

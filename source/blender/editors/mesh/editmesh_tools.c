@@ -2346,7 +2346,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 			if (!BM_elem_flag_test(ev, BM_ELEM_HIDDEN)) {
 				switch (mode) {
 					case -1: /* aligned */
-						if (fabs(ev->co[axis] - value) < limit)
+						if (fabsf(ev->co[axis] - value) < limit)
 							BM_vert_select_set(em->bm, ev, TRUE);
 						break;
 					case 0: /* neg */
@@ -2593,21 +2593,21 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 				m1 = MAXSLOPE;
 				b1 = x12;
 			}
-			x2max = MAX2(x21, x22) + 0.001; /* prevent missed edges   */
-			x2min = MIN2(x21, x22) - 0.001; /* due to round off error */
-			y2max = MAX2(y21, y22) + 0.001;
-			y2min = MIN2(y21, y22) - 0.001;
+			x2max = MAX2(x21, x22) + 0.001f; /* prevent missed edges   */
+			x2min = MIN2(x21, x22) - 0.001f; /* due to round off error */
+			y2max = MAX2(y21, y22) + 0.001f;
+			y2min = MIN2(y21, y22) - 0.001f;
 			
 			/* Found an intersect,  calc intersect point */
 			if (m1 == m2) { /* co-incident lines */
 				/* cut at 50% of overlap area */
 				x1max = MAX2(x11, x12);
 				x1min = MIN2(x11, x12);
-				xi = (MIN2(x2max, x1max) + MAX2(x2min, x1min)) / 2.0;
+				xi = (MIN2(x2max, x1max) + MAX2(x2min, x1min)) / 2.0f;
 				
 				y1max = MAX2(y11, y12);
 				y1min = MIN2(y11, y12);
-				yi = (MIN2(y2max, y1max) + MAX2(y2min, y1min)) / 2.0;
+				yi = (MIN2(y2max, y1max) + MAX2(y2min, y1min)) / 2.0f;
 			}
 			else if (m2 == MAXSLOPE) {
 				xi = x22;
@@ -4034,7 +4034,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 
 	if (tex->type == TEX_STUCCI) {
 		float b2, vec[3];
-		float ofs = tex->turbul / 200.0;
+		float ofs = tex->turbul / 200.0f;
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				b2 = BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]);
@@ -4121,7 +4121,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 		w[i] = s;
 		ftot += s;
 
-		df *= 2.0;
+		df *= 2.0f;
 	}
 
 	mul_vn_fl(w, recursion, 1.0f / (float)ftot);
