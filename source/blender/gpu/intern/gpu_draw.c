@@ -1087,7 +1087,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.gob = ob;
 	GMS.gscene = scene;
 	GMS.totmat= ob->totcol+1; /* materials start from 1, default material is 0 */
-	GMS.glay= v3d->lay;
+	GMS.glay= (v3d->localvd)? v3d->localvd->lay: v3d->lay; /* keep lamps visible in local view */
 	GMS.gviewmat= rv3d->viewmat;
 	GMS.gviewinv= rv3d->viewinv;
 
