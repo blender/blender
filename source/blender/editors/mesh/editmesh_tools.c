@@ -87,6 +87,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
 	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
 	float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
+	float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
 	if (RNA_boolean_get(op->ptr, "quadtri") && 
 	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_STRAIGHT_CUT)
@@ -95,7 +96,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
-	                   smooth, fractal,
+	                   smooth, fractal, along_normal,
 	                   cuts,
 	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
 	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE,
@@ -143,6 +144,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	             "Quad Corner Type", "How to subdivide quad corners (anything other than Straight Cut will prevent ngons)");
 
 	RNA_def_float(ot->srna, "fractal", 0.0f, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "fractal_along_normal", 0.0f, 0.0f, 1.0f, "Along Normal", "Apply fractal displacement along normal only", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
 }
 

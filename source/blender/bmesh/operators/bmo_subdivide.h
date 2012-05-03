@@ -31,6 +31,7 @@ typedef struct SubDParams {
 	int numcuts;
 	float smooth;
 	float fractal;
+	float along_normal;
 	//int beauty;
 	short use_smooth;
 	short use_sphere;

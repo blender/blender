@@ -696,6 +696,7 @@ static BMOpDefine bmo_esubd_def = {
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},
 	 {BMO_OP_SLOT_FLT, "smooth"},
 	 {BMO_OP_SLOT_FLT, "fractal"},
+	 {BMO_OP_SLOT_FLT, "along_normal"},
 	 {BMO_OP_SLOT_INT, "numcuts"},
 	 {BMO_OP_SLOT_INT, "seed"},
 	 {BMO_OP_SLOT_MAPPING, "custompatterns"},
