@@ -1179,13 +1179,13 @@ static int stitch_init(bContext *C, wmOperator *op)
 	}
 	else {
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			i = 0;
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 				if (uvedit_uv_select_test(em, scene, l)) {
 					UvElement *element = ED_uv_element_get(state->element_map, efa, l);
-					stitch_select_uv(element, state, 1);
+					if (element) {
+						stitch_select_uv(element, state, 1);
+					}
 				}
-				i++;
 			}
 		}
 	}
