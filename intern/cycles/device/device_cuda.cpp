@@ -172,10 +172,15 @@ public:
 
 		CUresult result;
 
-		if(background)
+		if(background) {
 			result = cuCtxCreate(&cuContext, 0, cuDevice);
-		else
-			result = cuGLCtxCreate(&cuContext, 0, cuDevice);
+		}
+		else {
+			if(cuGLCtxCreate(&cuContext, 0, cuDevice) != CUDA_SUCCESS) {
+				result = cuCtxCreate(&cuContext, 0, cuDevice);
+				background = true;
+			}
+		}
 
 		if(cuda_error(result))
 			return;
