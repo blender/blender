@@ -317,8 +317,8 @@ static void scanline_contig_16bit(float *rectf, unsigned short *sbuf, int scanli
 	int i;
 	for (i=0; i < scanline_w; i++) {
 		rectf[i*4 + 0] = sbuf[i*spp + 0] / 65535.0;
-		rectf[i*4 + 1] = sbuf[i*spp + 1] / 65535.0;
-		rectf[i*4 + 2] = sbuf[i*spp + 2] / 65535.0;
+		rectf[i*4 + 1] = (spp>=3)? sbuf[i*spp + 1] / 65535.0: sbuf[i*spp + 0] / 65535.0;
+		rectf[i*4 + 2] = (spp>=3)? sbuf[i*spp + 2] / 65535.0: sbuf[i*spp + 0] / 65535.0;
 		rectf[i*4 + 3] = (spp==4)?(sbuf[i*spp + 3] / 65535.0):1.0;
 	}
 }
@@ -328,8 +328,8 @@ static void scanline_contig_32bit(float *rectf, float *fbuf, int scanline_w, int
 	int i;
 	for (i=0; i < scanline_w; i++) {
 		rectf[i*4 + 0] = fbuf[i*spp + 0];
-		rectf[i*4 + 1] = fbuf[i*spp + 1];
-		rectf[i*4 + 2] = fbuf[i*spp + 2];
+		rectf[i*4 + 1] = (spp>=3)? fbuf[i*spp + 1]: fbuf[i*spp + 0];
+		rectf[i*4 + 2] = (spp>=3)? fbuf[i*spp + 2]: fbuf[i*spp + 0];
 		rectf[i*4 + 3] = (spp==4)?fbuf[i*spp + 3]:1.0f;
 	}
 }
@@ -437,6 +437,8 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 				if (bitspersample == 32) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
 						fill_vn_fl(fbuf, ibuf->x, 1.0f);
+					else if (chan >= spp) /* for grayscale, duplicate first channel into G and B */
+						success |= TIFFReadScanline(image, fbuf, row, 0);
 					else
 						success |= TIFFReadScanline(image, fbuf, row, chan);
 					scanline_separate_32bit(tmpibuf->rect_float+ib_offset, fbuf, ibuf->x, chan);
@@ -445,6 +447,8 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 				else if (bitspersample == 16) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
 						fill_vn_ushort(sbuf, ibuf->x, 65535);
+					else if (chan >= spp) /* for grayscale, duplicate first channel into G and B */
+						success |= TIFFReadScanline(image, fbuf, row, 0);
 					else
 						success |= TIFFReadScanline(image, sbuf, row, chan);
 					scanline_separate_16bit(tmpibuf->rect_float+ib_offset, sbuf, ibuf->x, chan);
