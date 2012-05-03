@@ -1064,6 +1064,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		if (part->distr==PART_DISTR_GRID && from != PART_FROM_VERT) {
 			BLI_srandom(31415926 + psys->seed);
 			dm= CDDM_from_mesh((Mesh*)ob->data, ob);
+			DM_ensure_tessface(dm);
 			distribute_grid(dm, psys);
 			dm->release(dm);
 			return 0;
