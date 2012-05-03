@@ -1469,8 +1469,11 @@ static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float track_pos[2], int width
 	ImBuf *scaleibuf;
 	const float scalex = ((float)ibuf->x - 2 * margin) / width;
 	const float scaley = ((float)ibuf->y - 2 * margin) / height;
-	float off_x = (int)track_pos[0] - track_pos[0] + 0.5f;
-	float off_y = (int)track_pos[1] - track_pos[1] + 0.5f;
+	/* NOTE: 1.0f = 0.5f for integer coordinate coorrection (center of pixel vs. left bottom corner of bixel)
+	 *       and 0.5f for centering image in preview (cross is draving at exact center of widget so image
+	 *       should be shifted by half of pixel for correct centering) - sergey */
+	float off_x = (int)track_pos[0] - track_pos[0] + 1.0f;
+	float off_y = (int)track_pos[1] - track_pos[1] + 1.0f;
 	int x, y;
 
 	scaleibuf = IMB_allocImBuf(width, height, 32, IB_rect);
