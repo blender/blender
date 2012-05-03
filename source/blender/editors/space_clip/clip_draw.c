@@ -974,7 +974,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 			if ((track->flag & TRACK_HIDDEN)==0) {
 				marker = BKE_tracking_get_marker(track, framenr);
 
-				if (MARKER_VISIBLE(sc, marker))
+				if (MARKER_VISIBLE(sc, track, marker))
 					count++;
 			}
 
@@ -991,7 +991,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 				if ((track->flag & TRACK_HIDDEN)==0) {
 					marker = BKE_tracking_get_marker(track, framenr);
 
-					if (MARKER_VISIBLE(sc, marker)) {
+					if (MARKER_VISIBLE(sc, track, marker)) {
 						ED_clip_point_undistorted_pos(sc, marker->pos, fp);
 
 						if (track == act_track)
@@ -1023,7 +1023,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		if ((track->flag & TRACK_HIDDEN)==0) {
 			marker = BKE_tracking_get_marker(track, framenr);
 
-			if (MARKER_VISIBLE(sc, marker)) {
+			if (MARKER_VISIBLE(sc, track, marker)) {
 				copy_v2_v2(cur_pos, fp ? fp : marker->pos);
 
 				draw_marker_outline(sc, track, marker, cur_pos, width, height);
@@ -1048,7 +1048,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 			int act = track == act_track;
 			marker = BKE_tracking_get_marker(track, framenr);
 
-			if (MARKER_VISIBLE(sc, marker)) {
+			if (MARKER_VISIBLE(sc, track, marker)) {
 				if (!act) {
 					copy_v2_v2(cur_pos, fp ? fp : marker->pos);
 
@@ -1069,7 +1069,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		if ((act_track->flag & TRACK_HIDDEN)==0) {
 			marker = BKE_tracking_get_marker(act_track, framenr);
 
-			if (MARKER_VISIBLE(sc, marker)) {
+			if (MARKER_VISIBLE(sc, act_track, marker)) {
 				copy_v2_v2(cur_pos, active_pos ? active_pos : marker->pos);
 
 				draw_marker_areas(sc, act_track, marker, cur_pos, width, height, 1, 1);
@@ -1093,7 +1093,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 			if ((track->flag & TRACK_HIDDEN) == 0 && track->flag & TRACK_HAS_BUNDLE) {
 				marker= BKE_tracking_get_marker(track, framenr);
 
-				if (MARKER_VISIBLE(sc, marker)) {
+				if (MARKER_VISIBLE(sc, track, marker)) {
 					float npos[2];
 					copy_v4_v4(vec, track->bundle_pos);
 					vec[3]=1;
@@ -1143,7 +1143,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 			if ((track->flag & TRACK_HIDDEN) == 0) {
 				marker = BKE_tracking_get_marker(track, framenr);
 
-				if (MARKER_VISIBLE(sc, marker)) {
+				if (MARKER_VISIBLE(sc, track, marker)) {
 					int act = track == act_track;
 
 					copy_v2_v2(cur_pos, fp ? fp : marker->pos);

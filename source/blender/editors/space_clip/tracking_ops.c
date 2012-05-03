@@ -723,7 +723,7 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbas
 	while (cur) {
 		MovieTrackingMarker *marker = BKE_tracking_get_marker(cur, sc->user.framenr);
 
-		if (((cur->flag & TRACK_HIDDEN) == 0) && MARKER_VISIBLE(sc, marker)) {
+		if (((cur->flag & TRACK_HIDDEN) == 0) && MARKER_VISIBLE(sc, cur, marker)) {
 			float dist, d1, d2 = FLT_MAX, d3 = FLT_MAX;
 
 			d1= sqrtf((co[0]-marker->pos[0]-cur->offset[0])*(co[0]-marker->pos[0]-cur->offset[0])+
@@ -888,7 +888,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 		if ((track->flag & TRACK_HIDDEN) == 0) {
 			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
 
-			if (MARKER_VISIBLE(sc, marker)) {
+			if (MARKER_VISIBLE(sc, track, marker)) {
 				if (BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
 					BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
 				}
@@ -980,7 +980,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 		if ((track->flag & TRACK_HIDDEN) == 0) {
 			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
 
-			if (MARKER_VISIBLE(sc, marker) && marker_inside_ellipse(marker, offset, ellipse)) {
+			if (MARKER_VISIBLE(sc, track, marker) && marker_inside_ellipse(marker, offset, ellipse)) {
 				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
 
 				change = TRUE;
@@ -1045,7 +1045,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 			if (TRACK_VIEW_SELECTED(sc, track)) {
 				marker = BKE_tracking_get_marker(track, framenr);
 
-				if (MARKER_VISIBLE(sc, marker)) {
+				if (MARKER_VISIBLE(sc, track, marker)) {
 					action = SEL_DESELECT;
 					break;
 				}
@@ -1060,7 +1060,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		if ((track->flag & TRACK_HIDDEN)==0) {
 			marker = BKE_tracking_get_marker(track, framenr);
 
-			if (MARKER_VISIBLE(sc, marker)) {
+			if (MARKER_VISIBLE(sc, track, marker)) {
 				switch (action) {
 					case SEL_SELECT:
 						track->flag |= SELECT;

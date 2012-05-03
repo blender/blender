@@ -179,7 +179,7 @@ void BKE_tracking_dopesheet_update(struct MovieTracking *tracking, int sort_meth
                                                 (((sc)->flag & SC_SHOW_MARKER_PATTERN) && TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) || \
                                                 (((sc)->flag & SC_SHOW_MARKER_SEARCH) && TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))))
 
-#define MARKER_VISIBLE(sc, marker)			(((marker)->flag & MARKER_DISABLED)==0 || ((sc)->flag & SC_HIDE_DISABLED)==0)
+#define MARKER_VISIBLE(sc, track, marker)		(((marker)->flag & MARKER_DISABLED)==0 || ((sc)->flag & SC_HIDE_DISABLED)==0 || (sc->clip->tracking.act_track == track))
 
 #define TRACK_CLEAR_UPTO		0
 #define TRACK_CLEAR_REMAINED	1
