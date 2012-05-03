@@ -58,6 +58,9 @@ static void *group_initexec(bNode *node)
 	bNodeTree *ngroup= (bNodeTree*)node->id;
 	void *exec;
 	
+	if (!ngroup)
+		return NULL;
+	
 	/* initialize the internal node tree execution */
 	exec = ntreeTexBeginExecTree(ngroup, 0);
 	

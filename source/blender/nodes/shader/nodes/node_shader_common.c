@@ -73,6 +73,9 @@ static void *group_initexec(bNode *node)
 	bNodeTree *ngroup= (bNodeTree*)node->id;
 	bNodeTreeExec *exec;
 	
+	if (!ngroup)
+		return NULL;
+	
 	/* initialize the internal node tree execution */
 	exec = ntreeShaderBeginExecTree(ngroup, 0);
 	
