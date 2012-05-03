@@ -688,6 +688,8 @@ void BKE_tracking_clipboard_copy_tracks(MovieTracking *tracking, MovieTrackingOb
 	ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
 	MovieTrackingTrack *track = tracksbase->first;
 
+	BKE_tracking_free_clipboard();
+
 	while (track) {
 		if (TRACK_SELECTED(track) && (track->flag & TRACK_HIDDEN) == 0) {
 			MovieTrackingTrack *new_track = duplicate_track(track);
