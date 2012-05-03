@@ -101,7 +101,7 @@ void free_strand_surface(struct Render *re);
 struct StrandShadeCache *strand_shade_cache_create(void);
 void strand_shade_cache_free(struct StrandShadeCache *cache);
 void strand_shade_segment(struct Render *re, struct StrandShadeCache *cache, struct StrandSegment *sseg, struct ShadeSample *ssamp, float t, float s, int addpassflag);
-void strand_shade_unref(struct StrandShadeCache *cache, struct StrandVert *svert);
+void strand_shade_unref(struct StrandShadeCache *cache, struct ObjectInstanceRen *obi, struct StrandRen *strand, struct StrandVert *svert);
 
 #endif
 
