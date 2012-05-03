@@ -267,13 +267,17 @@ typedef struct StrokeCache {
 
 /*** paint mesh ***/
 
-static void paint_mesh_restore_co(SculptSession *ss)
+static void paint_mesh_restore_co(Sculpt *sd, SculptSession *ss)
 {
 	StrokeCache *cache = ss->cache;
 	int i;
 
 	PBVHNode **nodes;
 	int n, totnode;
+
+#ifndef _OPENMP
+	(void)sd; /* quied unused warning */
+#endif
 
 	BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
@@ -421,11 +425,11 @@ static int sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float loca
 	local_co[2] = fabs(local_co[2]);
 
 	if (local_co[0] <= side && local_co[1] <= side && local_co[2] <= side) {
-		float p = 4;
+		float p = 4.0f;
 		
 		test->dist = ((powf(local_co[0], p) +
 		               powf(local_co[1], p) +
-		               powf(local_co[2], p)) / pow(side, p));
+		               powf(local_co[2], p)) / powf(side, p));
 
 		return 1;
 	}
@@ -3373,7 +3377,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 	     brush_use_size_pressure(ss->cache->vc->scene, brush)) ||
 	    (brush->flag & BRUSH_RESTORE_MESH))
 	{
-		paint_mesh_restore_co(ss);
+		paint_mesh_restore_co(sd, ss);
 	}
 }
 
@@ -3592,7 +3596,7 @@ static int sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
 	if (ss->cache) {
-		paint_mesh_restore_co(ss);
+		paint_mesh_restore_co(sd, ss);
 	}
 
 	paint_stroke_cancel(C, op);
