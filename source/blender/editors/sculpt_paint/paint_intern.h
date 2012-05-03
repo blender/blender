@@ -53,7 +53,7 @@ struct wmOperatorType;
 typedef int (*StrokeGetLocation)(struct bContext *C, float location[3], float mouse[2]);
 typedef int (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 typedef void (*StrokeUpdateStep)(struct bContext *C, struct PaintStroke *stroke, struct PointerRNA *itemptr);
-typedef void (*StrokeDone)(struct bContext *C, struct PaintStroke *stroke);
+typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);
 
 struct PaintStroke *paint_stroke_new(struct bContext *C,
 					 StrokeGetLocation get_location, StrokeTestStart test_start,

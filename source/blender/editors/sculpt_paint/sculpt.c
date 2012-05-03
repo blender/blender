@@ -267,7 +267,7 @@ typedef struct StrokeCache {
 
 /*** paint mesh ***/
 
-static void paint_mesh_restore_co(Sculpt *sd, SculptSession *ss)
+static void paint_mesh_restore_co(SculptSession *ss)
 {
 	StrokeCache *cache = ss->cache;
 	int i;
@@ -3373,7 +3373,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 	     brush_use_size_pressure(ss->cache->vc->scene, brush)) ||
 	    (brush->flag & BRUSH_RESTORE_MESH))
 	{
-		paint_mesh_restore_co(sd, ss);
+		paint_mesh_restore_co(ss);
 	}
 }
 
@@ -3483,7 +3483,7 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
 		ntreeTexEndExecTree(mtex->tex->nodetree->execdata, 1);
 }
 
-static void sculpt_stroke_done(bContext *C, struct PaintStroke *UNUSED(stroke))
+static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(stroke))
 {
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
@@ -3592,7 +3592,7 @@ static int sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
 	if (ss->cache) {
-		paint_mesh_restore_co(sd, ss);
+		paint_mesh_restore_co(ss);
 	}
 
 	paint_stroke_cancel(C, op);
