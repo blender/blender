@@ -276,9 +276,30 @@ PaintStroke *paint_stroke_new(bContext *C,
 	return stroke;
 }
 
-void paint_stroke_free(PaintStroke *stroke)
+void paint_stroke_data_free(struct wmOperator *op)
 {
-	MEM_freeN(stroke);
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+}
+
+static void stroke_done(struct bContext *C, struct wmOperator *op)
+{
+	struct PaintStroke *stroke = op->customdata;
+
+	if (stroke->stroke_started && stroke->done)
+		stroke->done(C, stroke);
+
+	if (stroke->timer) {
+		WM_event_remove_timer(
+			CTX_wm_manager(C),
+			CTX_wm_window(C),
+			stroke->timer);
+	}
+
+	if (stroke->smooth_stroke_cursor)
+		WM_paint_cursor_end(CTX_wm_manager(C), stroke->smooth_stroke_cursor);
+
+	paint_stroke_data_free(op);
 }
 
 /* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
@@ -287,6 +308,35 @@ int paint_space_stroke_enabled(Brush *br)
 	return (br->flag & BRUSH_SPACE) &&
 	       !(br->flag & BRUSH_ANCHORED) &&
 	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
+}
+
+#define PAINT_STROKE_MODAL_CANCEL 1
+
+/* called in paint_ops.c, on each regeneration of keymaps  */
+struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
+{
+	static struct EnumPropertyItem modal_items[] = {
+		{PAINT_STROKE_MODAL_CANCEL, "CANCEL", 0,
+		"Cancel",
+		"Cancel and undo a stroke in progress"},
+
+		{ 0 }
+	};
+
+	static const char *name= "Paint Stroke Modal";
+
+	struct wmKeyMap *keymap= WM_modalkeymap_get(keyconf, name);
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if (!keymap) {
+		keymap= WM_modalkeymap_add(keyconf, name, modal_items);
+
+		/* items for modal map */
+		WM_modalkeymap_add_item(
+			keymap, ESCKEY, KM_PRESS, KM_ANY, 0, PAINT_STROKE_MODAL_CANCEL);
+	}
+
+	return keymap;
 }
 
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -319,16 +369,16 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		//ED_region_tag_redraw(ar);
 	}
 
+	/* Cancel */
+	if (event->type == EVT_MODAL_MAP && event->val == PAINT_STROKE_MODAL_CANCEL) {
+		if (op->type->cancel)
+			return op->type->cancel(C, op);
+		else
+			return paint_stroke_cancel(C, op);
+	}
+
 	if (event->type == stroke->event_type && event->val == KM_RELEASE) {
-		/* exit stroke, free data */
-		if (stroke->smooth_stroke_cursor)
-			WM_paint_cursor_end(CTX_wm_manager(C), stroke->smooth_stroke_cursor);
-
-		if (stroke->timer)
-			WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
-
-		stroke->done(C, stroke);
-		MEM_freeN(stroke);
+		stroke_done(C, op);
 		return OPERATOR_FINISHED;
 	}
 	else if ((first) ||
@@ -383,24 +433,14 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 	}
 	RNA_END;
 
-	stroke->done(C, stroke);
-
-	MEM_freeN(stroke);
-	op->customdata = NULL;
+	stroke_done(C, op);
 
 	return OPERATOR_FINISHED;
 }
 
 int paint_stroke_cancel(bContext *C, wmOperator *op)
 {
-	PaintStroke *stroke = op->customdata;
-
-	if (stroke->done)
-		stroke->done(C, stroke);
-
-	MEM_freeN(stroke);
-	op->customdata = NULL;
-
+	stroke_done(C, op);
 	return OPERATOR_CANCELLED;
 }
 

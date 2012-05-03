@@ -2421,7 +2421,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	ED_region_tag_redraw(vc->ar);
 }
 
-static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
+static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
@@ -2945,7 +2945,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	}
 }
 
-static void vpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
+static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	struct VPaintData *vpd = paint_stroke_mode_data(stroke);

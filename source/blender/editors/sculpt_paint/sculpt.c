@@ -264,6 +264,50 @@ typedef struct StrokeCache {
 	rcti previous_r; /* previous redraw rectangle */
 } StrokeCache;
 
+
+/*** paint mesh ***/
+
+static void paint_mesh_restore_co(Sculpt *sd, SculptSession *ss)
+{
+	StrokeCache *cache = ss->cache;
+	int i;
+
+	PBVHNode **nodes;
+	int n, totnode;
+
+	BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+
+	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+	for (n = 0; n < totnode; n++) {
+		SculptUndoNode *unode;
+		
+		unode = sculpt_undo_get_node(nodes[n]);
+		if (unode) {
+			PBVHVertexIter vd;
+
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+				copy_v3_v3(vd.co, unode->co[vd.i]);
+				if (vd.no) copy_v3_v3_short(vd.no, unode->no[vd.i]);
+				else normal_short_to_float_v3(vd.fno, unode->no[vd.i]);
+
+				if (vd.mvert) vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+			}
+			BLI_pbvh_vertex_iter_end;
+
+			BLI_pbvh_node_mark_update(nodes[n]);
+		}
+	}
+
+	if (ss->face_normals) {
+		float *fn = ss->face_normals;
+		for (i = 0; i < ss->totpoly; ++i, fn += 3)
+			copy_v3_v3(fn, cache->face_norms[i]);
+	}
+
+	if (nodes)
+		MEM_freeN(nodes);
+}
+
 /*** BVH Tree ***/
 
 /* Get a screen-space rectangle of the modified area */
@@ -3193,7 +3237,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	sd->special_rotation = cache->special_rotation;
 }
 
-static void sculpt_stroke_modifiers_check(bContext *C, Object *ob)
+static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
 
@@ -3329,43 +3373,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 	     brush_use_size_pressure(ss->cache->vc->scene, brush)) ||
 	    (brush->flag & BRUSH_RESTORE_MESH))
 	{
-		StrokeCache *cache = ss->cache;
-		int i;
-
-		PBVHNode **nodes;
-		int n, totnode;
-
-		BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
-
-		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
-		for (n = 0; n < totnode; n++) {
-			SculptUndoNode *unode;
-			
-			unode = sculpt_undo_get_node(nodes[n]);
-			if (unode) {
-				PBVHVertexIter vd;
-
-				BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
-					copy_v3_v3(vd.co, unode->co[vd.i]);
-					if (vd.no) copy_v3_v3_short(vd.no, unode->no[vd.i]);
-					else normal_short_to_float_v3(vd.fno, unode->no[vd.i]);
-
-					if (vd.mvert) vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-				}
-				BLI_pbvh_vertex_iter_end;
-
-				BLI_pbvh_node_mark_update(nodes[n]);
-			}
-		}
-
-		if (ss->face_normals) {
-			float *fn = ss->face_normals;
-			for (i = 0; i < ss->totpoly; ++i, fn += 3)
-				copy_v3_v3(fn, cache->face_norms[i]);
-		}
-
-		if (nodes)
-			MEM_freeN(nodes);
+		paint_mesh_restore_co(sd, ss);
 	}
 }
 
@@ -3551,7 +3559,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	                                          "ignore_background_click");
 
 	if (ignore_background_click && !over_mesh(C, op, event->x, event->y)) {
-		paint_stroke_free(stroke);
+		paint_stroke_data_free(op);
 		return OPERATOR_PASS_THROUGH;
 	}
 	
@@ -3582,6 +3590,10 @@ static int sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+	if (ss->cache) {
+		paint_mesh_restore_co(sd, ss);
+	}
 
 	paint_stroke_cancel(C, op);
 

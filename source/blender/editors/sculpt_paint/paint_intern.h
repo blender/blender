@@ -58,10 +58,11 @@ typedef void (*StrokeDone)(struct bContext *C, struct PaintStroke *stroke);
 struct PaintStroke *paint_stroke_new(struct bContext *C,
 					 StrokeGetLocation get_location, StrokeTestStart test_start,
 					 StrokeUpdateStep update_step, StrokeDone done, int event_type);
-void paint_stroke_free(struct PaintStroke *stroke);
+void paint_stroke_data_free(struct wmOperator *op);
 
 int paint_space_stroke_enabled(struct Brush *br);
 
+struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int paint_stroke_exec(struct bContext *C, struct wmOperator *op);
 int paint_stroke_cancel(struct bContext *C, struct wmOperator *op);
