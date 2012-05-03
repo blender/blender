@@ -72,6 +72,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_tracking.h"
 #include "BKE_utildefines.h"
 
 #include "depsgraph_private.h"
@@ -2580,6 +2581,10 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 		}
 
 		if (idtype == ID_MC) {
+			MovieClip *clip = (MovieClip *) id;
+
+			BKE_tracking_dopesheet_tag_update(&clip->tracking);
+
 			for (obt=bmain->object.first; obt; obt= obt->id.next) {
 				bConstraint *con;
 				for (con = obt->constraints.first; con; con=con->next) {

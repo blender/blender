@@ -72,8 +72,6 @@ void ED_space_clip_free_texture_buffer(struct SpaceClip *sc);
 
 int ED_space_clip_show_trackedit(struct SpaceClip *sc);
 
-void ED_space_clip_update_dopesheet(struct SpaceClip *sc);
-
 /* clip_ops.c */
 void ED_operatormacros_clip(void);
 

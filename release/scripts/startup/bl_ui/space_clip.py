@@ -86,7 +86,7 @@ class CLIP_HT_header(Header):
 
             if sc.view == 'DOPESHEET':
                 layout.label(text="Sort by:")
-                layout.prop(sc, "dopesheet_sort_order", text="")
+                layout.prop(sc, "dopesheet_sort_method", text="")
                 layout.prop(sc, "invert_dopesheet_sort", text="Invert")
 
         layout.template_running_jobs()

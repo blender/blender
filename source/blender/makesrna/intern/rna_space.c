@@ -3122,10 +3122,10 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	/* ** dopesheet ** */
 
 	/* dopesheet sort */
-	prop = RNA_def_property(srna, "dopesheet_sort_order", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "dopesheet_sort_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "dope_sort");
 	RNA_def_property_enum_items(prop, dope_sort_items);
-	RNA_def_property_ui_text(prop, "Dopesheet Sort Field", "Field used to sort channels in dopesheet view");
+	RNA_def_property_ui_text(prop, "Dopesheet Sort Field", "Method to be used to sort channels in dopesheet view");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
 	/* invert_dopesheet_sort */

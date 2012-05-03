@@ -552,11 +552,3 @@ int ED_space_clip_show_trackedit(SpaceClip *sc)
 
 	return FALSE;
 }
-
-void ED_space_clip_update_dopesheet(SpaceClip *sc)
-{
-	MovieClip *clip = sc->clip;
-	MovieTracking *tracking = &clip->tracking;
-
-	BKE_tracking_update_dopesheet(tracking);
-}

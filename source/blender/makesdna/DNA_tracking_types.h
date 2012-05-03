@@ -205,10 +205,12 @@ typedef struct MovieTrackingDopesheetChannel {
 } MovieTrackingDopesheetChannel;
 
 typedef struct MovieTrackingDopesheet {
+	int ok, pad;				/* flag if dopesheet information is still relevant */
+
 	ListBase channels;
 	int tot_channel;
 
-	short sort_order;			/* order in which tracks are stored */
+	short sort_method;			/* method to be used to sort tracks */
 	short sort_inverse;			/* order of tracks is inverted */
 } MovieTrackingDopesheet;
 

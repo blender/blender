@@ -165,8 +165,8 @@ void BKE_tracking_select_track(struct ListBase *tracksbase, struct MovieTracking
 void BKE_tracking_deselect_track(struct MovieTrackingTrack *track, int area);
 
 /* Dopesheet */
-void BKE_tracking_update_dopesheet(struct MovieTracking *tracking);
-void BKE_tracking_dopesheet_sort(struct MovieTracking *tracking, int sort_order, int inverse);
+void BKE_tracking_dopesheet_tag_update(struct MovieTracking *tracking);
+void BKE_tracking_dopesheet_update(struct MovieTracking *tracking, int sort_method, int inverse);
 
 #define TRACK_SELECTED(track)				((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 
