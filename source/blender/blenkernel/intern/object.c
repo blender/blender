@@ -747,7 +747,7 @@ int exist_object(Object *obtest)
 
 /* *************************************************** */
 
-static void *add_obdata_from_type(int type)
+void *add_obdata_from_type(int type)
 {
 	switch (type) {
 	case OB_MESH: return add_mesh("Mesh");
@@ -791,6 +791,9 @@ static const char *get_obdata_defname(int type)
 Object *add_only_object(int type, const char *name)
 {
 	Object *ob;
+
+	if(!name)
+		name = get_obdata_defname(type);
 
 	ob= alloc_libblock(&G.main->object, ID_OB, name);
 
@@ -880,6 +883,7 @@ Object *add_object(struct Scene *scene, int type)
 	ob->lay= scene->lay;
 	
 	base= scene_add_base(scene, ob);
+	scene_deselect_all(scene);
 	scene_select_base(scene, base);
 	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 

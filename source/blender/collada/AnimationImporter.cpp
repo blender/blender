@@ -1770,9 +1770,7 @@ bool AnimationImporter::calc_joint_parent_mat_rest(float mat[4][4], float par[4]
 Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::Node *node, Object *par_job)
 {
 	if (joint_objects.find(node->getUniqueId()) == joint_objects.end()) {
-		Object *job = add_object(scene, OB_EMPTY);
-
-		rename_id((ID*)&job->id, (char*)get_joint_name(node));
+		Object *job = bc_add_object(scene, OB_EMPTY, (char*)get_joint_name(node));
 
 		job->lay = object_in_scene(job, scene)->lay = 2;
 

@@ -367,7 +367,7 @@ Object *ArmatureImporter::get_empty_for_leaves()
 {
 	if (empty) return empty;
 	
-	empty = add_object(scene, OB_EMPTY);
+	empty = bc_add_object(scene, OB_EMPTY, NULL);
 	empty->empty_drawtype = OB_EMPTY_SPHERE;
 
 	return empty;
@@ -412,7 +412,7 @@ void ArmatureImporter::create_armature_bones( )
 		if ( get_armature_for_joint(*ri) != NULL ) continue;
 		
 		//add armature object for current joint
-		//Object *ob_arm = add_object(scene, OB_ARMATURE);
+		//Object *ob_arm = bc_add_object(scene, OB_ARMATURE, NULL);
 
 		Object *ob_arm = joint_parent_map[(*ri)->getUniqueId()];
 

@@ -316,6 +316,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	}
 	else {
 		obedit = base->object;
+		scene_deselect_all(scene);
 		scene_select_base(scene, base);
 		copy_v3_v3(obedit->loc, co);
 		copy_v3_v3(obedit->rot, rot);

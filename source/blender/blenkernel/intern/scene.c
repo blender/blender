@@ -888,8 +888,6 @@ void scene_deselect_all(Scene *sce)
 
 void scene_select_base(Scene *sce, Base *selbase)
 {
-	scene_deselect_all(sce);
-
 	selbase->flag |= SELECT;
 	selbase->object->flag= selbase->flag;
 

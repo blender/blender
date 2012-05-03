@@ -121,6 +121,9 @@ bool DocumentImporter::import()
 	
 	loader.registerExtraDataCallbackHandler(ehandler);
 
+	// deselect all to select new objects
+	scene_deselect_all(CTX_data_scene(mContext));
+
 	if (!root.loadDocument(mFilename)) {
 		fprintf(stderr, "COLLADAFW::Root::loadDocument() returned false on 1st pass\n");
 		return false;
@@ -144,6 +147,8 @@ bool DocumentImporter::import()
 	
 	delete ehandler;
 
+	mesh_importer.bmeshConversion();
+
 	return true;
 }
 
@@ -157,7 +162,9 @@ void DocumentImporter::cancel(const COLLADAFW::String& errorMessage)
 	// The latter sounds better.
 }
 
-void DocumentImporter::start() {}
+void DocumentImporter::start()
+{
+}
 
 void DocumentImporter::finish()
 {
@@ -298,7 +305,8 @@ Object* DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 		fprintf(stderr, "Couldn't find camera by UID.\n");
 		return NULL;
 	}
-	Object *ob = add_object(sce, OB_CAMERA);
+
+	Object *ob = bc_add_object(sce, OB_CAMERA, NULL);
 	Camera *cam = uid_camera_map[cam_uid];
 	Camera *old_cam = (Camera*)ob->data;
 	ob->data = cam;
@@ -315,7 +323,8 @@ Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 		fprintf(stderr, "Couldn't find lamp by UID.\n");
 		return NULL;
 	}
-	Object *ob = add_object(sce, OB_LAMP);
+
+	Object *ob = bc_add_object(sce, OB_LAMP, NULL);
 	Lamp *la = uid_lamp_map[lamp_uid];
 	Lamp *old_lamp = (Lamp*)ob->data;
 	ob->data = la;
@@ -398,7 +407,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 	if (is_joint) {
 		if ( par ) {
 		Object * empty = par;
-		par = add_object(sce, OB_ARMATURE);
+		par = bc_add_object(sce, OB_ARMATURE, NULL);
 		bc_set_parent(par, empty->parent, mContext);
 		//remove empty : todo
 		object_map.insert(std::make_pair<COLLADAFW::UniqueId, Object *>(parent_node->getUniqueId(), par));
@@ -465,7 +474,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		// if node is empty - create empty object
 		// XXX empty node may not mean it is empty object, not sure about this
 		if ( (geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
-			ob = add_object(sce, OB_EMPTY);
+			ob = bc_add_object(sce, OB_EMPTY, NULL);
 			objects_done->push_back(ob);
 		}
 		
