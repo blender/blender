@@ -371,9 +371,9 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		block = uiLayoutGetBlock(layout);
 
 		if (cb->marker_flag & MARKER_DISABLED)
-			tip= "Marker is disabled at current frame";
+			tip = "Marker is disabled at current frame";
 		else
-			tip= "Marker is enabled at current frame";
+			tip = "Marker is enabled at current frame";
 
 		bt = uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_RESTRICT_VIEW_OFF, 0, 0, 20, 20, &cb->marker_flag, 0, 0, 1, 0, tip);
 		uiButSetNFunc(bt, marker_update_cb, cb, NULL);
@@ -393,7 +393,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 			return;
 		}
 
-		step= 100;
+		step = 100;
 		digits = 2;
 
 		sub_v2_v2v2(pat_dim, track->pat_max, track->pat_min);
@@ -413,20 +413,20 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 
 		cb->marker_flag = marker->flag;
 
-		block= uiLayoutAbsoluteBlock(layout);
+		block = uiLayoutAbsoluteBlock(layout);
 		uiBlockSetHandleFunc(block, marker_block_handler, cb);
 		uiBlockSetNFunc(block, marker_update_cb, cb, NULL);
 
 		if (cb->marker_flag & MARKER_DISABLED)
-			tip= "Marker is disabled at current frame";
+			tip = "Marker is disabled at current frame";
 		else
-			tip= "Marker is enabled at current frame";
+			tip = "Marker is enabled at current frame";
 
 		uiDefButBitI(block, OPTIONN, MARKER_DISABLED, B_MARKER_FLAG,  "Enabled", 10, 190, 145, 19, &cb->marker_flag,
 			0, 0, 0, 0, tip);
 
 		col = uiLayoutColumn(layout, 1);
-		uiLayoutSetActive(col, (cb->marker_flag&MARKER_DISABLED)==0);
+		uiLayoutSetActive(col, (cb->marker_flag & MARKER_DISABLED) == 0);
 
 		block = uiLayoutAbsoluteBlock(col);
 		uiBlockBeginAlign(block);

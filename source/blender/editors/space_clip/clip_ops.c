@@ -432,7 +432,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ViewZoomData *vpd;
 
-	op->customdata= vpd= MEM_callocN(sizeof(ViewZoomData), "ClipViewZoomData");
+	op->customdata = vpd = MEM_callocN(sizeof(ViewZoomData), "ClipViewZoomData");
 	WM_cursor_modal(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
 
 	vpd->x = event->x;
@@ -667,7 +667,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	ARegion *ar;
 	int w, h, width, height;
 	float aspx, aspy;
-	int fit_view= RNA_boolean_get(op->ptr, "fit_view");
+	int fit_view = RNA_boolean_get(op->ptr, "fit_view");
 	float zoomx, zoomy;
 
 	/* retrieve state */
@@ -680,7 +680,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	w = w * aspx;
 	h = h * aspy;
 
-	/* check if the image will fit in the image with zoom==1 */
+	/* check if the image will fit in the image with zoom == 1 */
 	width = ar->winrct.xmax - ar->winrct.xmin + 1;
 	height = ar->winrct.ymax - ar->winrct.ymin + 1;
 
@@ -878,7 +878,7 @@ typedef struct ProxyBuildJob {
 
 static void proxy_freejob(void *pjv)
 {
-	ProxyJob *pj= pjv;
+	ProxyJob *pj = pjv;
 
 	MEM_freeN(pj);
 }
@@ -957,7 +957,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 			break;
 
 		*do_update = TRUE;
-		*progress= ((float) cfra) / (efra - sfra);
+		*progress = ((float) cfra) / (efra - sfra);
 	}
 
 	if (distortion)

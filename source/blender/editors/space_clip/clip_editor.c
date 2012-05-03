@@ -86,7 +86,7 @@ int ED_space_clip_view_clip_poll(bContext *C)
 
 int ED_space_clip_tracking_poll(bContext *C)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc && sc->clip)
 		return ED_space_clip_show_trackedit(sc);
@@ -139,7 +139,7 @@ void ED_space_clip_set(bContext *C, bScreen *screen, SpaceClip *sc, MovieClip *c
 	old_clip = sc->clip;
 	sc->clip = clip;
 
-	if (sc->clip && sc->clip->id.us==0)
+	if (sc->clip && sc->clip->id.us == 0)
 		sc->clip->id.us = 1;
 
 	if (screen) {
@@ -262,7 +262,7 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
 	int width, height, ok = FALSE;
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 
 	INIT_MINMAX2(min, max);
 

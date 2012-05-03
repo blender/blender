@@ -61,7 +61,7 @@
 
 static void draw_curve_knot(float x, float y, float xscale, float yscale, float hsize)
 {
-	static GLuint displist=0;
+	static GLuint displist = 0;
 
 	/* initialize round circle shape */
 	if (displist == 0) {
@@ -101,7 +101,7 @@ void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track, int co
 
 	copy_v3_v3(col, colors[coord]);
 
-	if (track==userdata) {
+	if (track == userdata) {
 		col[3] = 1.0f;
 		glLineWidth(2.0f);
 	}
@@ -126,7 +126,7 @@ static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
 			MovieTrackingMarker *marker, int coord, float val)
 {
 	struct { MovieTrackingTrack *act_track; int sel; float xscale, yscale, hsize; } *data = userdata;
-	int sel= 0, sel_flag;
+	int sel = 0, sel_flag;
 
 	if (track != data->act_track)
 		return;
@@ -170,7 +170,7 @@ static void draw_tracks_curves(View2D *v2d, SpaceClip *sc)
 	glDisable(GL_BLEND);
 
 	/* selected knot handles on top of curves */
-	userdata.sel= TRUE;
+	userdata.sel = TRUE;
 	clip_graph_tracking_values_iterate(sc, &userdata, tracking_segment_knot_cb, NULL, NULL);
 }
 

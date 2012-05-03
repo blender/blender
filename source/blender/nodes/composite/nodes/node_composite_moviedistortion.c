@@ -76,9 +76,9 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 					node->storage = BKE_tracking_distortion_create();
 
 				if (node->custom1 == 0)
-					obuf= BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 1);
+					obuf = BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 1);
 				else
-					obuf= BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 0);
+					obuf = BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 0);
 
 				stackbuf->rect = obuf->rect_float;
 				stackbuf->malloc = TRUE;
@@ -118,7 +118,7 @@ static void storage_free(bNode *node)
 	if (node->storage)
 		BKE_tracking_distortion_destroy(node->storage);
 
-	node->storage= NULL;
+	node->storage = NULL;
 }
 
 static void storage_copy(bNode *orig_node, bNode *new_node)

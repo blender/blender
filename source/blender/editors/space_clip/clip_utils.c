@@ -174,7 +174,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, ListBase *tracksbase, Movie
 
 	int has_bundle = FALSE, update_stab = FALSE;
 
-	if (track==act_track)
+	if (track == act_track)
 		tracking->act_track = NULL;
 
 	if (track == stab->rot_track) {

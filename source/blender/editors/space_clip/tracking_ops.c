@@ -726,16 +726,16 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbas
 		if (((cur->flag & TRACK_HIDDEN) == 0) && MARKER_VISIBLE(sc, cur, marker)) {
 			float dist, d1, d2 = FLT_MAX, d3 = FLT_MAX;
 
-			d1= sqrtf((co[0]-marker->pos[0]-cur->offset[0])*(co[0]-marker->pos[0]-cur->offset[0])+
+			d1 = sqrtf((co[0]-marker->pos[0]-cur->offset[0])*(co[0]-marker->pos[0]-cur->offset[0])+
 					  (co[1]-marker->pos[1]-cur->offset[1])*(co[1]-marker->pos[1]-cur->offset[1])); /* distance to marker point */
 
 			/* distance to pattern boundbox */
 			if (sc->flag & SC_SHOW_MARKER_PATTERN)
-				d2= dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max);
+				d2 = dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max);
 
 			/* distance to search boundbox */
 			if (sc->flag & SC_SHOW_MARKER_SEARCH && TRACK_VIEW_SELECTED(sc, cur))
-				d3= dist_to_rect(co, marker->pos, cur->search_min, cur->search_max);
+				d3 = dist_to_rect(co, marker->pos, cur->search_min, cur->search_max);
 
 			/* choose minimal distance. useful for cases of overlapped markers. */
 			dist = MIN3(d1, d2, d3);
@@ -1553,7 +1553,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running tracking, remove handler and pass through */
-	if (0==WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C)))
+	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C)))
 		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 
 	/* running tracking */
