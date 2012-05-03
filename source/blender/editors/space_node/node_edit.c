@@ -3713,7 +3713,8 @@ void NODE_OT_output_file_move_active_socket(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[] = {
 		{1, "UP", 0, "Up", ""},
-		{2, "DOWN", 0, "Down", ""}};
+		{2, "DOWN", 0, "Down", ""},
+		{ 0, NULL, 0, NULL, NULL }};
 	
 	/* identifiers */
 	ot->name = "Move File Node Socket";
