@@ -634,7 +634,20 @@ static void tracking_objects_free(ListBase *objects)
 
 static void tracking_dopesheet_free(MovieTrackingDopesheet *dopesheet)
 {
+	MovieTrackingDopesheetChannel *channel;
+
+	channel = dopesheet->channels.first;
+	while (channel) {
+		if (channel->segments) {
+			MEM_freeN(channel->segments);
+		}
+
+		channel = channel->next;
+	}
+
 	BLI_freelistN(&dopesheet->channels);
+
+	dopesheet->channels.first = dopesheet->channels.last = NULL;
 	dopesheet->tot_channel = 0;
 }
 
@@ -3059,32 +3072,101 @@ static int channels_alpha_sort(void *a, void *b)
 		return 0;
 }
 
+static void channels_segments_calc(MovieTrackingDopesheetChannel *channel)
+{
+	MovieTrackingTrack *track = channel->track;
+	int i, segment;
+
+	channel->tot_segment = 0;
+	channel->max_segment = 0;
+	channel->total_frames = 0;
+
+	/* count */
+	i = 0;
+	while (i < track->markersnr) {
+		MovieTrackingMarker *marker = &track->markers[i];
+
+		if ((marker->flag & MARKER_DISABLED) == 0) {
+			int prev_fra = marker->framenr, len = 0;
+
+			i++;
+			while (i < track->markersnr) {
+				marker = &track->markers[i];
+
+				if (marker->framenr != prev_fra + 1)
+					break;
+				if (marker->flag & MARKER_DISABLED)
+					break;
+
+				prev_fra = marker->framenr;
+				len++;
+				i++;
+			}
+
+			channel->tot_segment++;
+		}
+
+		i++;
+	}
+
+	if (!channel->tot_segment)
+		return;
+
+	channel->segments = MEM_callocN(2 * sizeof(int) * channel->tot_segment, "tracking channel segments");
+
+	/* create segments */
+	i = 0;
+	segment = 0;
+	while (i < track->markersnr) {
+		MovieTrackingMarker *marker = &track->markers[i];
+
+		if ((marker->flag & MARKER_DISABLED) == 0) {
+			MovieTrackingMarker *start_marker = marker;
+			int prev_fra = marker->framenr, len = 0;
+
+			i++;
+			while (i < track->markersnr) {
+				marker = &track->markers[i];
+
+				if (marker->framenr != prev_fra + 1)
+					break;
+				if (marker->flag & MARKER_DISABLED)
+					break;
+
+				prev_fra = marker->framenr;
+				channel->total_frames++;
+				len++;
+				i++;
+			}
+
+			channel->segments[2 * segment] = start_marker->framenr;
+			channel->segments[2 * segment + 1] = start_marker->framenr + len;
+
+			channel->max_segment =  MAX2(channel->max_segment, len);
+			segment++;
+		}
+
+		i++;
+	}
+}
+
 void BKE_tracking_update_dopesheet(MovieTracking *tracking)
 {
 	MovieTrackingObject *object = BKE_tracking_active_object(tracking);
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 	MovieTrackingTrack *track;
 	ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
-	ListBase old_channels;
 
-	old_channels = dopesheet->channels;
-	dopesheet->channels.first = dopesheet->channels.last = NULL;
-	dopesheet->tot_channel = 0;
+	tracking_dopesheet_free(dopesheet);
 
 	for (track = tracksbase->first; track; track = track->next) {
 		if (TRACK_SELECTED(track) && (track->flag & TRACK_HIDDEN) == 0) {
-			MovieTrackingDopesheetChannel *channel, *old_channel;
+			MovieTrackingDopesheetChannel *channel;
 
 			channel = MEM_callocN(sizeof(MovieTrackingDopesheetChannel), "tracking dopesheet channel");
 			channel->track = track;
 
-			/* copy flags from current dopsheet information to new one */
-			for (old_channel = old_channels.first; old_channel; old_channel = old_channel->next) {
-				if (old_channel->track == track) {
-					channel->flag = old_channel->flag;
-					break;
-				}
-			}
+			channels_segments_calc(channel);
 
 			BLI_addtail(&dopesheet->channels, channel);
 			dopesheet->tot_channel++;
@@ -3092,6 +3174,4 @@ void BKE_tracking_update_dopesheet(MovieTracking *tracking)
 	}
 
 	BLI_sortlist(&dopesheet->channels, channels_alpha_sort);
-
-	BLI_freelistN(&old_channels);
 }

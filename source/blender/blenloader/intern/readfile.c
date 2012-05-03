@@ -6179,6 +6179,7 @@ static void direct_link_movieDopesheet(FileData *fd, MovieTrackingDopesheet *dop
 	channel = dopesheet->channels.first;
 	while (channel) {
 		channel->track = newdataadr(fd, channel->track);
+		channel->segments = newdataadr(fd, channel->segments);
 
 		channel = channel->next;
 	}

@@ -87,7 +87,7 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, sh
 		{1.0f, 0.0f},	/* mid-right */
 		{0.0f, -1.0f},	/* bottom vert */
 		{-1.0f, 0.0f}	/* mid-left */
-	}; 
+	};
 	static GLuint displist1 = 0;
 	static GLuint displist2 = 0;
 	int hsize = STRIP_HEIGHT_HALF;
@@ -199,45 +199,19 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 				alpha = (track->flag & TRACK_LOCKED) ? 0.5f : 1.0f;
 
 				/* tracked segments */
-				i = 0;
-				while (i < track->markersnr) {
-					MovieTrackingMarker *marker = &track->markers[i];
+				for (i = 0; i < channel->tot_segment; i++) {
+					int start_frame = channel->segments[2 * i];
+					int end_frame = channel->segments[2 * i + 1];
 
-					if ((marker->flag & MARKER_DISABLED) == 0) {
-						MovieTrackingMarker *start_marker = marker;
-						int prev_fra = marker->framenr, len = 0;
-
-						i++;
-						while (i < track->markersnr) {
-							marker = &track->markers[i];
-
-							if (marker->framenr != prev_fra + 1)
-								break;
-							if (marker->flag & MARKER_DISABLED)
-								break;
-
-							prev_fra = marker->framenr;
-							len++;
-							i++;
-						}
-
-						if (sel)
-							glColor4fv(selected_strip);
-						else
-							glColor4fv(strip);
-
-						if (len) {
-							glRectf(start_marker->framenr, (float) y - STRIP_HEIGHT_HALF,
-							        start_marker->framenr + len, (float) y + STRIP_HEIGHT_HALF);
-							draw_keyframe_shape(start_marker->framenr, y, xscale, yscale, sel, alpha);
-							draw_keyframe_shape(start_marker->framenr + len, y, xscale, yscale, sel, alpha);
-						}
-						else {
-							draw_keyframe_shape(start_marker->framenr, y, xscale, yscale, sel, alpha);
-						}
+					if (start_frame != end_frame) {
+						glRectf(start_frame, (float) y - STRIP_HEIGHT_HALF,
+								end_frame, (float) y + STRIP_HEIGHT_HALF);
+						draw_keyframe_shape(start_frame, y, xscale, yscale, sel, alpha);
+						draw_keyframe_shape(end_frame, y, xscale, yscale, sel, alpha);
 					}
-
-					i++;
+					else {
+						draw_keyframe_shape(start_frame, y, xscale, yscale, sel, alpha);
+					}
 				}
 
 				/* keyframes */
@@ -286,8 +260,8 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT * 2);
 
 	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
-		/* don't use totrect set, as the width stays the same 
-		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
+		/* don't use totrect set, as the width stays the same
+		 * (NOTE: this is ok here, the configuration is pretty straightforward)
 		 */
 		v2d->tot.ymin = (float)(-height);
 	}
