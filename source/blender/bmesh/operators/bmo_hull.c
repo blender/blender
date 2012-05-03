@@ -470,7 +470,7 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 	}
 
 	/* Check for colinear vertices */
-	if (largest_dist < 0.0001)
+	if (largest_dist < 0.0001f)
 		return TRUE;
 
 	/* Choose fourth point farthest from existing plane */
@@ -493,7 +493,7 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 		return TRUE;
 	}
 
-	if (largest_dist < 0.0001)
+	if (largest_dist < 0.0001f)
 		return TRUE;
 
 	return FALSE;

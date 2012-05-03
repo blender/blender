@@ -103,7 +103,7 @@ static void bm_vert_boundary_tangent(BMVert *v, float r_no[3], float r_no_face[3
 	BM_edge_calc_face_tangent(e_b, l_b, tvec_b);
 	add_v3_v3(tvec_a, tvec_b);
 
-	if (dot_v3v3(r_no, tvec_a) > 0.0) {
+	if (dot_v3v3(r_no, tvec_a) > 0.0f) {
 		negate_v3(r_no);
 	}
 
@@ -239,7 +239,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 			/* create offset vert */
 			fac = inset;
 			if (use_even_offset) {
-				fac *= shell_angle_to_dist((M_PI - BM_loop_calc_face_angle(l)) * 0.5f);
+				fac *= shell_angle_to_dist(((float)M_PI - BM_loop_calc_face_angle(l)) * 0.5f);
 			}
 			if (use_relative_offset) {
 				fac *= verts_relfac[BM_elem_index_get(l->v)];
@@ -269,10 +269,10 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 							/* similar to code above but different angle calc */
 							fac = inset;
 							if (use_even_offset) {
-								fac *= shell_angle_to_dist((M_PI - angle_on_axis_v3v3v3_v3(va_other->co,
-								                                                           l_pair[i]->v->co,
-								                                                           vb_other->co,
-								                                                           no_face)) * 0.5f);
+								fac *= shell_angle_to_dist(((float)M_PI - angle_on_axis_v3v3v3_v3(va_other->co,
+								                                                                  l_pair[i]->v->co,
+								                                                                  vb_other->co,
+								                                                                  no_face)) * 0.5f);
 							}
 							if (use_relative_offset) {
 								fac *= verts_relfac[BM_elem_index_get(l_pair[i]->v)];

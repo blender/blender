@@ -384,7 +384,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 
 		/* more of a weight then a distance */
 		far_cross_dist = (/* first we want to have a value close to zero mapped to 1 */
-						  1.0 - fabsf(dot_v3v3(far_vec, far_cross_vec)) *
+						  1.0f - fabsf(dot_v3v3(far_vec, far_cross_vec)) *
 
 						  /* second  we multiply by the distance
 						   * so points close to the center are not preferred */

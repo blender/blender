@@ -132,7 +132,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 		madd_v3_v3fl(tvec, nor2, fac);
 
 		/* falloff for multi subdivide */
-		smooth *= sqrtf(fabsf(1.0f - 2.0f * fabsf(0.5f-perc)));
+		smooth *= sqrtf(fabsf(1.0f - 2.0f * fabsf(0.5f - perc)));
 
 		mul_v3_fl(tvec, smooth * len);
 
@@ -225,7 +225,7 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	if (BMO_elem_flag_test(bm, edge, EDGE_PERCENT) && totpoint == 1)
 		percent = BMO_slot_map_float_get(bm, params->op, "edgepercents", edge);
 	else {
-		percent = 1.0f / (float)(totpoint + 1-curpoint);
+		percent = 1.0f / (float)(totpoint + 1 - curpoint);
 		percent2 = (float)(curpoint + 1) / (float)(totpoint + 1);
 
 	}
@@ -1023,7 +1023,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_enabled_flag(bm, op, "outinner", BM_ALL, ELE_INNER);
 	BMO_slot_buffer_from_enabled_flag(bm, op, "outsplit", BM_ALL, ELE_SPLIT);
 	
-	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_ALL, ELE_INNER|ELE_SPLIT|SUBD_SPLIT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_ALL, ELE_INNER | ELE_SPLIT | SUBD_SPLIT);
 }
 
 /* editmesh-emulating function */

@@ -107,10 +107,12 @@ int BM_mesh_validate(BMesh *bm)
 					ERRMSG("edge %d: has invalid loop, loop is of face %d", i, BM_elem_index_get(l_iter->f));
 				}
 				else if (BM_vert_in_edge(e, l_iter->v) == FALSE) {
-					ERRMSG("edge %d: has invalid loop with vert not in edge, loop is of face %d", i, BM_elem_index_get(l_iter->f));
+					ERRMSG("edge %d: has invalid loop with vert not in edge, loop is of face %d",
+					       i, BM_elem_index_get(l_iter->f));
 				}
 				else if (BM_vert_in_edge(e, l_iter->next->v) == FALSE) {
-					ERRMSG("edge %d: has invalid loop with next vert not in edge, loop is of face %d", i, BM_elem_index_get(l_iter->f));
+					ERRMSG("edge %d: has invalid loop with next vert not in edge, loop is of face %d",
+					       i, BM_elem_index_get(l_iter->f));
 				}
 			} while ((l_iter = l_iter->radial_next) != l_first);
 		}

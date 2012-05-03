@@ -1285,7 +1285,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	const short use_smooth = BMO_slot_bool_get(op, "use_smooth");
 
 	/* count number of each element type we were passe */
-	BMO_ITER (h, &oiter, bm, op, "geom", BM_VERT|BM_EDGE|BM_FACE) {
+	BMO_ITER (h, &oiter, bm, op, "geom", BM_VERT | BM_EDGE | BM_FACE) {
 		switch (h->htype) {
 			case BM_VERT: totv++; break;
 			case BM_EDGE: tote++; break;
