@@ -874,6 +874,8 @@ static int calculate_structlens(int firststruct)
 				printf("  %s\n", types[structtype]);
 			}
 		}
+
+		dna_error = 1;
 	}
 
 	return(dna_error);
