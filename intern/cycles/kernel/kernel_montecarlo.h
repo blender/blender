@@ -255,7 +255,7 @@ __device float3 fisheye_equisolid_to_direction(float u, float v, float lens, flo
 	u = (u - 0.5f) * width;
 	v = (v - 0.5f) * height;
 
-	float rmax = 2.f * lens * sinf(fov * 0.5f);
+	float rmax = 2.f * lens * sinf(fov * 0.25f);
 	float r = sqrt(u*u + v*v);
 
 	if (r > rmax) {
