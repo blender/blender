@@ -1304,7 +1304,7 @@ void GPU_end_object_materials(void)
 	GMS.gmatbuf= NULL;
 	GMS.alphablend= NULL;
 
-	/* resetting the texture matrix after the glScale needed for tiled textures */
+	/* resetting the texture matrix after the scaling needed for tiled textures */
 	if (GTS.tilemode) {
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();

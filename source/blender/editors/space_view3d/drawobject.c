@@ -6990,7 +6990,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				drawtexspace(ob);
 			}
 			if (dtx & OB_DRAWNAME) {
-				/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
+				/* patch for several 3d cards (IBM mostly) that crash on GL_SELECT with text drawing */
 				/* but, we also don't draw names for sets or duplicators */
 				if (flag == 0) {
 					float zero[3] = {0, 0, 0};

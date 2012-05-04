@@ -664,22 +664,22 @@ void DM_update_weight_mcol(struct Object *ob, struct DerivedMesh *dm, int const 
 typedef struct DMVertexAttribs {
 	struct {
 		struct MTFace *array;
-		int emOffset, glIndex, glTexco;
+		int em_offset, gl_index, gl_texco;
 	} tface[MAX_MTFACE];
 
 	struct {
 		struct MCol *array;
-		int emOffset, glIndex;
+		int em_offset, gl_index;
 	} mcol[MAX_MCOL];
 
 	struct {
 		float (*array)[4];
-		int emOffset, glIndex;
+		int em_offset, gl_index;
 	} tang;
 
 	struct {
 		float (*array)[3];
-		int emOffset, glIndex, glTexco;
+		int em_offset, gl_index, gl_texco;
 	} orco;
 
 	int tottface, totmcol, tottang, totorco;

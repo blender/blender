@@ -55,7 +55,7 @@
 #endif
 
 // Some more multisample defines
-#define WGL_SAMPLE_BUFERS_ARB	0x2041
+#define WGL_SAMPLE_BUFFERS_ARB	0x2041
 #define	WGL_SAMPLES_ARB			0x2042
 
 // win64 doesn't define GWL_USERDATA

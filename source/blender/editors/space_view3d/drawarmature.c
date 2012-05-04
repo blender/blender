@@ -1297,7 +1297,7 @@ static void draw_bone(int dt, int armflag, int boneflag, short constflag, unsign
 {
 	
 	/* Draw a 3d octahedral bone, we use normalized space based on length,
-	 * for glDisplayLists */
+	 * for display-lists */
 	
 	glScalef(length, length, length);
 
@@ -1996,7 +1996,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 
 	/* finally names and axes */
 	if ((arm->flag & (ARM_DRAWNAMES | ARM_DRAWAXES)) && (is_outline == 0)) {
-		/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
+		/* patch for several 3d cards (IBM mostly) that crash on GL_SELECT with text drawing */
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
 			
@@ -2208,7 +2208,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	
 	/* finally names and axes */
 	if (arm->flag & (ARM_DRAWNAMES | ARM_DRAWAXES)) {
-		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
+		// patch for several 3d cards (IBM mostly) that crash on GL_SELECT with text drawing
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
 			unsigned char col[4];

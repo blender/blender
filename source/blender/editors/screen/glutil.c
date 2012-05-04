@@ -297,13 +297,13 @@ void setlinestyle(int nr)
 
 	/* Invert line handling */
 	
-#define glToggle(mode, onoff)	(((onoff)?glEnable:glDisable)(mode))
+#define gl_toggle(mode, onoff)	(((onoff)?glEnable:glDisable)(mode))
 
 void set_inverted_drawing(int enable) 
 {
 	glLogicOp(enable?GL_INVERT:GL_COPY);
-	glToggle(GL_COLOR_LOGIC_OP, enable);
-	glToggle(GL_DITHER, !enable);
+	gl_toggle(GL_COLOR_LOGIC_OP, enable);
+	gl_toggle(GL_DITHER, !enable);
 }
 
 void sdrawXORline(int x0, int y0, int x1, int y1)
@@ -781,7 +781,7 @@ void glaEnd2DDraw(gla2DDrawInfo *di)
 }
 #endif
 
-/* **************** glPoint hack ************************ */
+/* **************** GL_POINT hack ************************ */
 
 static int curmode=0;
 static int pointhack=0;

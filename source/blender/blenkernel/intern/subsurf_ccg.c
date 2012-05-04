@@ -1718,21 +1718,21 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 #define PASSATTRIB(dx, dy, vert) {                                              \
 	if (attribs.totorco) {                                                      \
 		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize);     \
-		glVertexAttrib3fvARB(attribs.orco.glIndex, attribs.orco.array[index]);  \
+		glVertexAttrib3fvARB(attribs.orco.gl_index, attribs.orco.array[index]);  \
 	}                                                                           \
 	for (b = 0; b < attribs.tottface; b++) {                                    \
 		MTFace *tf = &attribs.tface[b].array[a];                                \
-		glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);           \
+		glVertexAttrib2fvARB(attribs.tface[b].gl_index, tf->uv[vert]);           \
 	}                                                                           \
 	for (b = 0; b < attribs.totmcol; b++) {                                     \
 		MCol *cp = &attribs.mcol[b].array[a * 4 + vert];                        \
 		GLubyte col[4];                                                         \
 		col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;         \
-		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);                    \
+		glVertexAttrib4ubvARB(attribs.mcol[b].gl_index, col);                    \
 	}                                                                           \
 	if (attribs.tottang) {                                                      \
 		float *tang = attribs.tang.array[a * 4 + vert];                         \
-		glVertexAttrib4fvARB(attribs.tang.glIndex, tang);                       \
+		glVertexAttrib4fvARB(attribs.tang.gl_index, tang);                       \
 	}                                                                           \
 }
 
@@ -1863,27 +1863,27 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm, void (*setMaterial)(void *
 #define PASSATTRIB(dx, dy, vert) {                                              \
 	if (attribs.totorco) {                                                      \
 		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize);     \
-		if (attribs.orco.glTexco)                                               \
+		if (attribs.orco.gl_texco)                                               \
 			glTexCoord3fv(attribs.orco.array[index]);                           \
 		else                                                                    \
-			glVertexAttrib3fvARB(attribs.orco.glIndex, attribs.orco.array[index]);  \
+			glVertexAttrib3fvARB(attribs.orco.gl_index, attribs.orco.array[index]);  \
 	}                                                                           \
 	for (b = 0; b < attribs.tottface; b++) {                                    \
 		MTFace *tf = &attribs.tface[b].array[a];                                \
-		if (attribs.tface[b].glTexco)                                           \
+		if (attribs.tface[b].gl_texco)                                           \
 			glTexCoord2fv(tf->uv[vert]);                                        \
 		else                                                                    \
-			glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);       \
+			glVertexAttrib2fvARB(attribs.tface[b].gl_index, tf->uv[vert]);       \
 	}                                                                           \
 	for (b = 0; b < attribs.totmcol; b++) {                                     \
 		MCol *cp = &attribs.mcol[b].array[a * 4 + vert];                        \
 		GLubyte col[4];                                                         \
 		col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;         \
-		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);                    \
+		glVertexAttrib4ubvARB(attribs.mcol[b].gl_index, col);                    \
 	}                                                                           \
 	if (attribs.tottang) {                                                      \
 		float *tang = attribs.tang.array[a * 4 + vert];                         \
-		glVertexAttrib4fvARB(attribs.tang.glIndex, tang);                       \
+		glVertexAttrib4fvARB(attribs.tang.gl_index, tang);                       \
 	}                                                                           \
 }
 

@@ -2786,9 +2786,9 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->tottface++;
 
 					attribs->tface[a].array = tfdata->layers[layer].data;
-					attribs->tface[a].emOffset = tfdata->layers[layer].offset;
-					attribs->tface[a].glIndex = gattribs->layer[b].glindex;
-					attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
+					attribs->tface[a].em_offset = tfdata->layers[layer].offset;
+					attribs->tface[a].gl_index = gattribs->layer[b].glindex;
+					attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 				}
 			}
 			else {
@@ -2802,9 +2802,9 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->tottface++;
 
 					attribs->tface[a].array = tfdata->layers[layer].data;
-					attribs->tface[a].emOffset = tfdata->layers[layer].offset;
-					attribs->tface[a].glIndex = gattribs->layer[b].glindex;
-					attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
+					attribs->tface[a].em_offset = tfdata->layers[layer].offset;
+					attribs->tface[a].gl_index = gattribs->layer[b].glindex;
+					attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 				}
 			}
 		}
@@ -2823,8 +2823,8 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->totmcol++;
 
 					attribs->mcol[a].array = tfdata->layers[layer].data;
-					attribs->mcol[a].emOffset = tfdata->layers[layer].offset;
-					attribs->mcol[a].glIndex = gattribs->layer[b].glindex;
+					attribs->mcol[a].em_offset = tfdata->layers[layer].offset;
+					attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 				}
 			}
 			else {
@@ -2839,8 +2839,8 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->totmcol++;
 
 					attribs->mcol[a].array = tfdata->layers[layer].data;
-					attribs->mcol[a].emOffset = tfdata->layers[layer].offset;
-					attribs->mcol[a].glIndex = gattribs->layer[b].glindex;
+					attribs->mcol[a].em_offset = tfdata->layers[layer].offset;
+					attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 				}
 			}
 		}
@@ -2852,8 +2852,8 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->tottang = 1;
 
 				attribs->tang.array = fdata->layers[layer].data;
-				attribs->tang.emOffset = fdata->layers[layer].offset;
-				attribs->tang.glIndex = gattribs->layer[b].glindex;
+				attribs->tang.em_offset = fdata->layers[layer].offset;
+				attribs->tang.gl_index = gattribs->layer[b].glindex;
 			}
 		}
 		else if (gattribs->layer[b].type == CD_ORCO) {
@@ -2864,9 +2864,9 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->totorco = 1;
 
 				attribs->orco.array = vdata->layers[layer].data;
-				attribs->orco.emOffset = vdata->layers[layer].offset;
-				attribs->orco.glIndex = gattribs->layer[b].glindex;
-				attribs->orco.glTexco = gattribs->layer[b].gltexco;
+				attribs->orco.em_offset = vdata->layers[layer].offset;
+				attribs->orco.gl_index = gattribs->layer[b].glindex;
+				attribs->orco.gl_texco = gattribs->layer[b].gltexco;
 			}
 		}
 	}

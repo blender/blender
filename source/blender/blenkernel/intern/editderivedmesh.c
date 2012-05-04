@@ -1013,21 +1013,21 @@ static void emDM_drawMappedFacesGLSL(
 #define PASSATTRIB(loop, eve, vert) {											\
 	if (attribs.totorco) {														\
 		float *orco = attribs.orco.array[BM_elem_index_get(eve)];						\
-		glVertexAttrib3fvARB(attribs.orco.glIndex, orco);						\
+		glVertexAttrib3fvARB(attribs.orco.gl_index, orco);						\
 	}																			\
 	for (b = 0; b < attribs.tottface; b++) {									\
 		MLoopUV *_luv = CustomData_bmesh_get_n(&bm->ldata, loop->head.data, CD_MLOOPUV, b);\
-		glVertexAttrib2fvARB(attribs.tface[b].glIndex, _luv->uv);				\
+		glVertexAttrib2fvARB(attribs.tface[b].gl_index, _luv->uv);				\
 	}																			\
 	for (b = 0; b < attribs.totmcol; b++) {										\
 		MLoopCol *_cp = CustomData_bmesh_get_n(&bm->ldata, loop->head.data, CD_MLOOPCOL, b);\
 		GLubyte _col[4];														\
 		_col[0]= _cp->b; _col[1]= _cp->g; _col[2]= _cp->r; _col[3]= _cp->a;		\
-		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, _col);					\
+		glVertexAttrib4ubvARB(attribs.mcol[b].gl_index, _col);					\
 	}																			\
 	if (attribs.tottang) {														\
 		float *tang = attribs.tang.array[i*4 + vert];							\
-		glVertexAttrib3fvARB(attribs.tang.glIndex, tang);						\
+		glVertexAttrib3fvARB(attribs.tang.gl_index, tang);						\
 	}																			\
 	}
 
@@ -1136,27 +1136,27 @@ static void emDM_drawMappedFacesMat(
 #define PASSATTRIB(loop, eve, vert) {											\
 	if (attribs.totorco) {														\
 		float *orco = attribs.orco.array[BM_elem_index_get(eve)];				\
-		if (attribs.orco.glTexco)												\
+		if (attribs.orco.gl_texco)												\
 			glTexCoord3fv(orco);												\
 		else																	\
-			glVertexAttrib3fvARB(attribs.orco.glIndex, orco);					\
+			glVertexAttrib3fvARB(attribs.orco.gl_index, orco);					\
 	}																			\
 	for (b = 0; b < attribs.tottface; b++) {									\
 		MLoopUV *_luv = CustomData_bmesh_get_n(&bm->ldata, loop->head.data, CD_MLOOPUV, b);\
-		if (attribs.tface[b].glTexco)											\
+		if (attribs.tface[b].gl_texco)											\
 			glTexCoord2fv(_luv->uv);											\
 		else																	\
-			glVertexAttrib2fvARB(attribs.tface[b].glIndex, _luv->uv);			\
+			glVertexAttrib2fvARB(attribs.tface[b].gl_index, _luv->uv);			\
 	}																			\
 	for (b = 0; b < attribs.totmcol; b++) {										\
 		MLoopCol *_cp = CustomData_bmesh_get_n(&bm->ldata, loop->head.data, CD_MLOOPCOL, b);\
 		GLubyte _col[4];														\
 		_col[0]= _cp->b; _col[1]= _cp->g; _col[2]= _cp->r; _col[3]= _cp->a;		\
-		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, _col);					\
+		glVertexAttrib4ubvARB(attribs.mcol[b].gl_index, _col);					\
 	}																			\
 	if (attribs.tottang) {														\
 		float *tang = attribs.tang.array[i*4 + vert];							\
-		glVertexAttrib4fvARB(attribs.tang.glIndex, tang);						\
+		glVertexAttrib4fvARB(attribs.tang.gl_index, tang);						\
 	}																			\
 }
 

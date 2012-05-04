@@ -237,7 +237,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 	}
 }
 
-/* ---------------- WM versions of OpenGL calls, using glBlah() syntax ------------------------ */
+/* ---------------- WM versions of OpenGL style API calls ------------------------ */
 /* ----------------- exported in WM_api.h ------------------------------------------------------ */
 
 /* internal state, no threaded opengl! XXX */
