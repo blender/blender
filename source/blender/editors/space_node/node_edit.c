@@ -2324,9 +2324,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 			
 			if (in_out==SOCK_OUT) {
-				/* only target socket becomes hilighted */
-				node_deselect_all_input_sockets(snode, 0);
-				
 				if (node_find_indicated_socket(snode, &tnode, &tsock, SOCK_IN)) {
 					if (nodeFindLink(snode->edittree, sock, tsock)==NULL) {
 						if ( link->tosock!= tsock && (!tnode || (tnode!=node && link->tonode!=tnode)) ) {
@@ -2340,9 +2337,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 							ntreeUpdateTree(snode->edittree);
 						}
 					}
-					
-					/* hilight target socket */
-					node_socket_select(tnode, tsock);
 				}
 				else {
 					if (link->tonode || link->tosock) {
@@ -2357,9 +2351,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			else {
-				/* only target socket becomes hilighted */
-				node_deselect_all_output_sockets(snode, 0);
-				
 				if (node_find_indicated_socket(snode, &tnode, &tsock, SOCK_OUT)) {
 					if (nodeFindLink(snode->edittree, sock, tsock)==NULL) {
 						if (nodeCountSocketLinks(snode->edittree, tsock) < tsock->limit) {
@@ -2375,9 +2366,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 							}
 						}
 					}
-					
-					/* hilight target socket */
-					node_socket_select(tnode, tsock);
 				}
 				else {
 					if (link->tonode || link->tosock) {
@@ -2405,10 +2393,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if (in_out==SOCK_OUT)
 					node_remove_extra_links(snode, link->tosock, link);
 				
-				/* deselect sockets after successful linking */
-				node_deselect_all_input_sockets(snode, 0);
-				node_deselect_all_output_sockets(snode, 0);
-				
 				/* when linking to group outputs, update the socket type */
 				/* XXX this should all be part of a generic update system */
 				if (!link->tonode) {
@@ -2434,10 +2418,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 					snode->edittree->update |= NTREE_UPDATE_GROUP_OUT | NTREE_UPDATE_LINKS;
 				}
-				
-				/* deselect sockets after successful linking */
-				node_deselect_all_input_sockets(snode, 0);
-				node_deselect_all_output_sockets(snode, 0);
 			}
 			else
 				nodeRemLink(snode->edittree, link);
@@ -2478,10 +2458,6 @@ static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 				in_out = SOCK_IN;
 			}
 		}
-		
-		/* hilight source socket only */
-		node_deselect_all_output_sockets(snode, 0);
-		node_socket_select(nldrag->node, nldrag->sock);
 	}
 	/* or an input? */
 	else if (node_find_indicated_socket(snode, &nldrag->node, &nldrag->sock, SOCK_IN)) {
@@ -2504,10 +2480,6 @@ static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 				in_out = SOCK_OUT;
 			}
 		}
-		
-		/* hilight source socket only */
-		node_deselect_all_input_sockets(snode, 0);
-		node_socket_select(nldrag->node, nldrag->sock);
 	}
 	
 	return in_out;
