@@ -1331,6 +1331,64 @@ void TEXT_OT_select_word(wmOperatorType *ot)
 	ot->poll = text_edit_poll;
 }
 
+/********************* move lines operators ***********************/
+
+static int move_lines_up_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Text *text = CTX_data_edit_text(C);
+	
+	txt_move_lines_up(text);
+	
+	text_update_cursor_moved(C);
+	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+
+	/* run the script while editing, evil but useful */
+	if (CTX_wm_space_text(C)->live_edit)
+		text_run_script(C, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void TEXT_OT_move_lines_up(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Move Lines Up";
+	ot->idname = "TEXT_OT_move_lines_up";
+	ot->description = "Moves the currently selected line(s) up.";
+	
+	/* api callbacks */
+	ot->exec = move_lines_up_exec;
+	ot->poll = text_edit_poll;
+}
+
+static int move_lines_down_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Text *text = CTX_data_edit_text(C);
+	
+	txt_move_lines_down(text);
+	
+	text_update_cursor_moved(C);
+	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+
+	/* run the script while editing, evil but useful */
+	if (CTX_wm_space_text(C)->live_edit)
+		text_run_script(C, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void TEXT_OT_move_lines_down(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Move Lines Down";
+	ot->idname = "TEXT_OT_move_lines_down";
+	ot->description = "Moves the currently selected line(s) down.";
+	
+	/* api callbacks */
+	ot->exec = move_lines_down_exec;
+	ot->poll = text_edit_poll;
+}
+
 /******************* previous marker operator *********************/
 
 static int text_previous_marker_exec(bContext *C, wmOperator *UNUSED(op))

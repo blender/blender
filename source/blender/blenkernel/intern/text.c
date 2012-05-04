@@ -2129,7 +2129,7 @@ void txt_do_undo(Text *text)
 		case UNDO_IBLOCK:
 			linep= txt_undo_read_uint32(text->undo_buf, &text->undo_pos);
 			txt_delete_sel(text);
-
+			
 			/* txt_backspace_char removes utf8-characters, not bytes */
 			buf= MEM_mallocN(linep+1, "iblock buffer");
 			for (i=0; i < linep; i++) {
@@ -2139,19 +2139,19 @@ void txt_do_undo(Text *text)
 			buf[i]= 0;
 			linep= txt_utf8_len(buf);
 			MEM_freeN(buf);
-
+			
 			while (linep>0) {
 				txt_backspace_char(text);
 				linep--;
 			}
-
+			
 			text->undo_pos--;
 			text->undo_pos--;
 			text->undo_pos--; 
 			text->undo_pos--;
 			
 			text->undo_pos--;
-
+			
 			break;
 		case UNDO_INDENT:
 		case UNDO_UNINDENT:
@@ -2169,7 +2169,7 @@ void txt_do_undo(Text *text)
 			for (i= 0; i < linep; i++) {
 				text->sell = text->sell->next;
 			}
-
+			
 			linep= txt_undo_read_uint32(text->undo_buf, &text->undo_pos);
 			//first line to be selected
 			
@@ -2180,7 +2180,7 @@ void txt_do_undo(Text *text)
 			for (i = 0; i < linep; i++) {
 				text->curl = text->curl->next;
 			}
-
+			
 			
 			if (op==UNDO_INDENT) {
 				txt_unindent(text);
@@ -2194,11 +2194,17 @@ void txt_do_undo(Text *text)
 			else if (op == UNDO_UNCOMMENT) {
 				txt_comment(text);
 			}
-
+			
 			text->undo_pos--;
 			break;
 		case UNDO_DUPLICATE:
 			txt_delete_line(text, text->curl->next);
+			break;
+		case UNDO_MOVE_LINES_UP:
+			txt_move_lines_down(text);
+			break;
+		case UNDO_MOVE_LINES_DOWN:
+			txt_move_lines_up(text);
 			break;
 		default:
 			//XXX error("Undo buffer error - resetting");
@@ -2400,10 +2406,16 @@ void txt_do_redo(Text *text)
 		case UNDO_DUPLICATE:
 			txt_duplicate_line(text);
 			break;
+		case UNDO_MOVE_LINES_UP:
+			txt_move_lines_up(text);
+			break;
+		case UNDO_MOVE_LINES_DOWN:
+			txt_move_lines_down(text);
+			break;
 		default:
 			//XXX error("Undo buffer error - resetting");
 			text->undo_pos= -1;
-
+			
 			break;
 	}
 	
@@ -3030,6 +3042,53 @@ void txt_uncomment(Text *text)
 	
 	if (!undoing) {
 		txt_undo_add_toop(text, UNDO_UNCOMMENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
+	}
+}
+
+
+void txt_move_lines_up(struct Text *text)
+{
+	TextLine *prev_line;
+	
+	if (!text || !text->curl || !text->sell) return;
+	
+	txt_order_cursors(text);
+	
+	prev_line= text->curl->prev;
+	
+	if (!prev_line) return;
+	
+	BLI_remlink(&text->lines, prev_line);
+	BLI_insertlinkafter(&text->lines, text->sell, prev_line);
+	
+	txt_make_dirty(text);
+	txt_clean_text(text);
+	
+	if (!undoing) {
+		txt_undo_add_op(text, UNDO_MOVE_LINES_UP);
+	}
+}
+
+void txt_move_lines_down(struct Text *text)
+{
+	TextLine *next_line;
+	
+	if (!text || !text->curl || !text->sell) return;
+	
+	txt_order_cursors(text);
+	
+	next_line= text->sell->next;
+	
+	if (!next_line) return;
+		
+	BLI_remlink(&text->lines, next_line);
+	BLI_insertlinkbefore(&text->lines, text->curl, next_line);
+	
+	txt_make_dirty(text);
+	txt_clean_text(text);
+	
+	if (!undoing) {	
+		txt_undo_add_op(text, UNDO_MOVE_LINES_DOWN);
 	}
 }
 

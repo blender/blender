@@ -137,6 +137,9 @@ void TEXT_OT_select_line(struct wmOperatorType *ot);
 void TEXT_OT_select_all(struct wmOperatorType *ot);
 void TEXT_OT_select_word(struct wmOperatorType *ot);
 
+void TEXT_OT_move_lines_up(struct wmOperatorType *ot);
+void TEXT_OT_move_lines_down(struct wmOperatorType *ot);
+
 void TEXT_OT_jump(struct wmOperatorType *ot);
 void TEXT_OT_move(struct wmOperatorType *ot);
 void TEXT_OT_move_select(struct wmOperatorType *ot);

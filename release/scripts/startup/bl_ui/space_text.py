@@ -277,6 +277,11 @@ class TEXT_MT_edit(Menu):
 
         layout.separator()
 
+        layout.operator("text.move_lines_up")
+        layout.operator("text.move_lines_down")
+
+        layout.separator()
+
         layout.menu("TEXT_MT_edit_select")
         layout.menu("TEXT_MT_edit_markers")
 
