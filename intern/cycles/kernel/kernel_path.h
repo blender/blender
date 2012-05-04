@@ -474,7 +474,12 @@ __device void kernel_path_trace(KernelGlobals *kg,
 	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, &ray);
 
 	/* integrate */
-	float4 L = kernel_path_integrate(kg, &rng, sample, ray, buffer);
+	float4 L;
+
+	if (ray.t != 0.f)
+		L = kernel_path_integrate(kg, &rng, sample, ray, buffer);
+	else
+		L = make_float4(0.f, 0.f, 0.f, 0.f);
 
 	/* accumulate result in output buffer */
 	kernel_write_pass_float4(buffer, sample, L);

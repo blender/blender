@@ -224,6 +224,57 @@ __device float3 equirectangular_to_direction(float u, float v)
 		cos(theta));
 }
 
+/* Fisheye <- Cartesian direction */
+
+__device float3 fisheye_to_direction(float u, float v, float fov, Ray *ray)
+{
+	u = (u - 0.5f) * 2.f;
+	v = (v - 0.5f) * 2.f;
+
+	float r = sqrt(u*u + v*v);
+
+	if (r > 1.0) {
+		ray->t = 0.f;
+		return make_float3(0.f,0.f,0.f);
+	}
+
+	float phi = acosf((r!=0.f)?u/r:0.f);
+	float theta = asinf(r) * (fov / M_PI_F);
+
+	if (v < 0.f) phi = -phi;
+
+	return make_float3(
+		 cosf(theta),
+		 -cosf(phi)*sinf(theta),
+		 sinf(phi)*sinf(theta)
+	);
+}
+
+__device float3 fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float width, float height, Ray *ray)
+{
+	u = (u - 0.5f) * width;
+	v = (v - 0.5f) * height;
+
+	float rmax = 2.f * lens * sinf(fov * 0.5f);
+	float r = sqrt(u*u + v*v);
+
+	if (r > rmax) {
+		ray->t = 0.f;
+		return make_float3(0.f,0.f,0.f);
+	}
+
+	float phi = acosf((r!=0.f)?u/r:0.f);
+	float theta = 2.f * asinf(r/(2.f * lens));
+
+	if (v < 0.f) phi = -phi;
+
+	return make_float3(
+		 cosf(theta),
+		 -cosf(phi)*sinf(theta),
+		 sinf(phi)*sinf(theta)
+	);
+}
+
 /* Mirror Ball <-> Cartesion direction */
 
 __device float3 mirrorball_to_direction(float u, float v)

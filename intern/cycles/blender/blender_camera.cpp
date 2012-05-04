@@ -48,6 +48,10 @@ struct BlenderCamera {
 
 	float2 pixelaspect;
 
+	PanoramaType panorama_type;
+	float fisheye_fov;
+	float fisheye_lens;
+
 	enum { AUTO, HORIZONTAL, VERTICAL } sensor_fit;
 	float sensor_width;
 	float sensor_height;
@@ -94,9 +98,37 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob)
 		bcam->nearclip = b_camera.clip_start();
 		bcam->farclip = b_camera.clip_end();
 
-		bcam->type = (b_camera.type() == BL::Camera::type_ORTHO)? CAMERA_ORTHOGRAPHIC: CAMERA_PERSPECTIVE;
-		if(bcam->type == CAMERA_PERSPECTIVE && b_camera.use_panorama())
-			bcam->type = CAMERA_ENVIRONMENT;
+		switch(b_camera.type())
+		{
+			case BL::Camera::type_ORTHO:
+				bcam->type = CAMERA_ORTHOGRAPHIC;
+				break;
+			case BL::Camera::type_PANO:
+				bcam->type = CAMERA_PANORAMA;
+				break;
+			case BL::Camera::type_PERSP:
+			default:
+				bcam->type = CAMERA_PERSPECTIVE;
+				break;
+		}	
+
+		switch(RNA_enum_get(&ccamera, "panorama_type"))
+		{
+			case 1:
+				bcam->panorama_type = PANORAMA_FISHEYE_EQUIDISTANT;
+				break;
+			case 2:
+				bcam->panorama_type = PANORAMA_FISHEYE_EQUISOLID;
+				break;
+			case 0:
+			default:
+				bcam->panorama_type = PANORAMA_EQUIRECTANGULAR;
+				break;
+		}	
+
+		bcam->fisheye_fov = RNA_float_get(&ccamera, "fisheye_fov");
+		bcam->fisheye_lens = RNA_float_get(&ccamera, "fisheye_lens");
+
 		bcam->ortho_scale = b_camera.ortho_scale();
 
 		bcam->lens = b_camera.lens();
@@ -138,7 +170,7 @@ static Transform blender_camera_matrix(const Transform& tfm, CameraType type)
 {
 	Transform result;
 
-	if(type == CAMERA_ENVIRONMENT) {
+	if(type == CAMERA_PANORAMA) {
 		/* make it so environment camera needs to be pointed in the direction
 		   of the positive x-axis to match an environment texture, this way
 		   it is looking at the center of the texture */
@@ -172,6 +204,9 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	bool horizontal_fit;
 	float sensor_size;
 
+	cam->sensorwidth = bcam->sensor_width;
+	cam->sensorheight = bcam->sensor_height;
+
 	if(bcam->sensor_fit == BlenderCamera::AUTO) {
 		horizontal_fit = (xratio > yratio);
 		sensor_size = bcam->sensor_width;
@@ -203,7 +238,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 		aspectratio = bcam->ortho_scale/2.0f;
 	}
 
-	if(bcam->type == CAMERA_ENVIRONMENT) {
+	if(bcam->type == CAMERA_PANORAMA) {
 		/* set viewplane */
 		cam->left = 0.0f;
 		cam->right = 1.0f;
@@ -239,6 +274,11 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 
 	/* type */
 	cam->type = bcam->type;
+
+	/* panorama */
+	cam->panorama_type = bcam->panorama_type;
+	cam->fisheye_fov = bcam->fisheye_fov;
+	cam->fisheye_lens = bcam->fisheye_lens;
 
 	/* perspective */
 	cam->fov = 2.0f*atan((0.5f*sensor_size)/bcam->lens/aspectratio);

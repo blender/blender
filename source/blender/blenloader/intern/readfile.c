@@ -7398,6 +7398,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 4))
+	{
+		Camera *cam;
+
+		for (cam = main->camera.first; cam; cam = cam->id.next) {
+			if (cam->flag & CAM_PANORAMA) {
+				cam->type = CAM_PANO;
+				cam->flag &= ~CAM_PANORAMA;
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

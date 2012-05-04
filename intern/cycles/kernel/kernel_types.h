@@ -268,7 +268,15 @@ typedef enum LightType {
 enum CameraType {
 	CAMERA_PERSPECTIVE,
 	CAMERA_ORTHOGRAPHIC,
-	CAMERA_ENVIRONMENT
+	CAMERA_PANORAMA
+};
+
+/* Panorama Type */
+
+enum PanoramaType {
+	PANORAMA_EQUIRECTANGULAR,
+	PANORAMA_FISHEYE_EQUIDISTANT,
+	PANORAMA_FISHEYE_EQUISOLID
 };
 
 /* Differential */
@@ -452,7 +460,11 @@ typedef struct ShaderData {
 typedef struct KernelCamera {
 	/* type */
 	int type;
-	int pad1, pad2, pad3;
+
+	/* panorama */
+	int panorama_type;
+	float fisheye_fov;
+	float fisheye_lens;
 
 	/* matrices */
 	Transform cameratoworld;
@@ -475,6 +487,11 @@ typedef struct KernelCamera {
 	/* clipping */
 	float nearclip;
 	float cliplength;
+
+	/* sensor size */
+	float sensorwidth;
+	float sensorheight;
+	int pad1, pad2;
 
 	/* more matrices */
 	Transform screentoworld;

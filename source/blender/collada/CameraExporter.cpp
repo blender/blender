@@ -67,8 +67,10 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 	Camera *cam = (Camera*)ob->data;
 	std::string cam_id(get_camera_id(ob));
 	std::string cam_name(id_name(cam));
-	
-	if (cam->type == CAM_PERSP) {
+
+	switch (cam->type) {
+	case CAM_PANO:	
+	case CAM_PERSP: {
 		COLLADASW::PerspectiveOptic persp(mSW);
 		persp.setXFov(RAD2DEGF(focallength_to_fov(cam->lens, cam->sensor_x)), "xfov");
 		persp.setAspectRatio((float)(sce->r.xsch)/(float)(sce->r.ysch), false, "aspect_ratio");
@@ -76,8 +78,11 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 		persp.setZNear(cam->clipsta, false, "znear");
 		COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_name);
 		addCamera(ccam);
+		break;
 	}
-	else {
+	case CAM_ORTHO:
+	default:
+	{
 		COLLADASW::OrthographicOptic ortho(mSW);
 		ortho.setXMag(cam->ortho_scale, "xmag");
 		ortho.setAspectRatio((float)(sce->r.xsch)/(float)(sce->r.ysch), false, "aspect_ratio");
@@ -85,5 +90,6 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 		ortho.setZNear(cam->clipsta, false, "znear");
 		COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_name);
 		addCamera(ccam);
-	}
-}	
+		break;
+	}}
+}

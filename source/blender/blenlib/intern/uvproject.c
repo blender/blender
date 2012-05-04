@@ -138,7 +138,7 @@ UvCameraInfo *project_camera_info(Object *ob, float(*rotmat)[4], float winx, flo
 	UvCameraInfo uci;
 	Camera *camera = ob->data;
 
-	uci.do_pano = (camera->flag & CAM_PANORAMA);
+	uci.do_pano = (camera->type == CAM_PANO);
 	uci.do_persp = (camera->type == CAM_PERSP);
 
 	uci.camangle = focallength_to_fov(camera->lens, camera->sensor_x) / 2.0f;

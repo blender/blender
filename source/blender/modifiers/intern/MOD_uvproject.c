@@ -193,7 +193,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		if (projectors[i].ob->type == OB_CAMERA) {
 			
 			cam = (Camera *)projectors[i].ob->data;
-			if (cam->flag & CAM_PANORAMA) {
+			if (cam->type == CAM_PANO) {
 				projectors[i].uci= project_camera_info(projectors[i].ob, NULL, aspx, aspy);
 				project_camera_info_scale(projectors[i].uci, scax, scay);
 				free_uci= 1;

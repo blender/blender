@@ -141,7 +141,7 @@ void object_camera_mode(RenderData *rd, Object *cam_ob)
 	if (cam_ob && cam_ob->type==OB_CAMERA) {
 		Camera *cam= cam_ob->data;
 		if (cam->type == CAM_ORTHO) rd->mode |= R_ORTHO;
-		if (cam->flag & CAM_PANORAMA) rd->mode |= R_PANORAMA;
+		if (cam->type == CAM_PANO) rd->mode |= R_PANORAMA;
 	}
 }
 
