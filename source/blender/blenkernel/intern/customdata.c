@@ -2610,7 +2610,7 @@ const char *CustomData_layertype_name(int type)
 int CustomData_layertype_is_singleton(int type)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
-	return typeInfo->defaultname != NULL;
+	return typeInfo->defaultname == NULL;
 }
 
 static int  CustomData_is_property_layer(int type)
