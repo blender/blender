@@ -3205,11 +3205,45 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMesh *bm = em->bm;
 	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+
+	char dissolve_flag;
+
+	if (em->selectmode == SCE_SELECT_FACE) {
+		/* flush selection to tags and untag edges/verts with partially selected faces */
+		BMIter iter;
+		BMIter liter;
+
+		BMElem *ele;
+		BMFace *f;
+		BMLoop *l;
+
+		BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+		}
+		BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+		}
+
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+				BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+					BM_elem_flag_disable(l->v, BM_ELEM_TAG);
+					BM_elem_flag_disable(l->e, BM_ELEM_TAG);
+				}
+			}
+		}
+
+		dissolve_flag = BM_ELEM_TAG;
+	}
+	else {
+		dissolve_flag = BM_ELEM_SELECT;
+	}
 
 	if (!EDBM_op_callf(em, op,
 	                   "dissolve_limit edges=%he verts=%hv angle_limit=%f",
-	                   BM_ELEM_SELECT, BM_ELEM_SELECT, angle_limit))
+	                   dissolve_flag, dissolve_flag, angle_limit))
 	{
 		return OPERATOR_CANCELLED;
 	}
