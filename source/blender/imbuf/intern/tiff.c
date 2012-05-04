@@ -778,22 +778,17 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 
 			if (pixels16) {
 				/* convert from float source */
-				float rgb[3];
+				float rgb[4];
 				
 				if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
 					linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
 				else
 					copy_v3_v3(rgb, &fromf[from_i]);
 
-				to16[to_i+0] = FTOUSHORT(rgb[0]);
-				to16[to_i+1] = FTOUSHORT(rgb[1]);
-				to16[to_i+2] = FTOUSHORT(rgb[2]);
-				to_i += 3; from_i+=3;
-				
-				if (samplesperpixel == 4) {
-					to16[to_i+3] = FTOUSHORT(fromf[from_i+3]);
-					/*to_i++; from_i++;*/ /*unused, set on each loop */
-				}
+				rgb[3] = fromf[from_i+3];
+
+				for (i = 0; i < samplesperpixel; i++, to_i++)
+					to16[to_i] = FTOUSHORT(rgb[i]);
 			}
 			else {
 				for (i = 0; i < samplesperpixel; i++, to_i++, from_i++)
