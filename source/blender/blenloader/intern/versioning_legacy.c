@@ -30,7 +30,7 @@
  */
 
 
-//#include "zlib.h"
+#include "zlib.h"
 
 #include <limits.h>
 //#include <stdio.h> // for printf fopen fwrite fclose sprintf FILE

@@ -28,6 +28,8 @@
 /** \file blender/blenloader/intern/readfile_250.c
  *  \ingroup blenloader
  */
+ 
+#include "zlib.h"
 
 #ifndef WIN32
 #  include <unistd.h> // for read close
