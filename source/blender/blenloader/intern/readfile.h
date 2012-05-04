@@ -39,6 +39,10 @@ struct OldNewMap;
 struct MemFile;
 struct bheadsort;
 struct ReportList;
+struct Object;
+struct PartEff;
+struct View3D;
+struct bNodeTree;
 
 typedef struct FileData {
 	// linked list of BHeadN's
@@ -132,6 +136,20 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock);
 BHead *blo_prevbhead(FileData *fd, BHead *thisblock);
 
 char *bhead_id_name(FileData *fd, BHead *bhead);
+
+/* do versions stuff */
+
+void blo_do_versions_oldnewmap_insert(struct OldNewMap *onm, void *oldaddr, void *newaddr, int nr);
+void *blo_do_versions_newlibadr(struct FileData *fd, void *lib, void *adr);
+void *blo_do_versions_newlibadr_us(struct FileData *fd, void *lib, void *adr);
+
+struct PartEff *blo_do_version_give_parteff_245(struct Object *ob);
+void blo_do_version_old_trackto_to_constraints(struct Object *ob);
+void blo_do_versions_view3d_split_250(struct View3D *v3d, struct ListBase *regions);
+void blo_do_versions_nodetree_default_value(struct bNodeTree *ntree);
+
+void blo_do_versions_pre250(struct FileData *fd, struct Library *lib, struct Main *main);
+void blo_do_versions_250(struct FileData *fd, struct Library *lib, struct Main *main);
 
 #endif
 
