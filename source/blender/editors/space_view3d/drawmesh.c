@@ -387,7 +387,7 @@ static void draw_textured_end(void)
 	glDisable(GL_CULL_FACE);
 
 	/* XXX, bad patch - GPU_default_lights() calls
-	 * glLightfv(GL_LIGHT_POSITION, ...) which
+	 * glLightfv(GL_POSITION, ...) which
 	 * is transformed by the current matrix... we
 	 * need to make sure that matrix is identity.
 	 * 
