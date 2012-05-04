@@ -176,7 +176,9 @@ public:
 			result = cuCtxCreate(&cuContext, 0, cuDevice);
 		}
 		else {
-			if(cuGLCtxCreate(&cuContext, 0, cuDevice) != CUDA_SUCCESS) {
+			result = cuGLCtxCreate(&cuContext, 0, cuDevice);
+
+			if(result != CUDA_SUCCESS) {
 				result = cuCtxCreate(&cuContext, 0, cuDevice);
 				background = true;
 			}
@@ -691,14 +693,25 @@ public:
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glBindTexture(GL_TEXTURE_2D, 0);
 			
-			cuda_assert(cuGraphicsGLRegisterBuffer(&pmem.cuPBOresource, pmem.cuPBO, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE))
+			CUresult result = cuGraphicsGLRegisterBuffer(&pmem.cuPBOresource, pmem.cuPBO, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
 
-			cuda_pop_context();
+			if(!cuda_error(result)) {
+				cuda_pop_context();
 
-			mem.device_pointer = pmem.cuTexId;
-			pixel_mem_map[mem.device_pointer] = pmem;
+				mem.device_pointer = pmem.cuTexId;
+				pixel_mem_map[mem.device_pointer] = pmem;
 
-			return;
+				return;
+			}
+			else {
+				/* failed to register buffer, fallback to no interop */
+				glDeleteBuffers(1, &pmem.cuPBO);
+				glDeleteTextures(1, &pmem.cuTexId);
+
+				cuda_pop_context();
+
+				background = true;
+			}
 		}
 
 		Device::pixels_alloc(mem);
