@@ -44,6 +44,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_text.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -203,8 +204,7 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_select_all);
 	WM_operatortype_append(TEXT_OT_select_word);
 	
-	WM_operatortype_append(TEXT_OT_move_lines_up);
-	WM_operatortype_append(TEXT_OT_move_lines_down);
+	WM_operatortype_append(TEXT_OT_move_lines);
 
 	WM_operatortype_append(TEXT_OT_jump);
 	WM_operatortype_append(TEXT_OT_move);
@@ -323,9 +323,9 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_select_all", AKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_line", AKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_word", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
-	
-	WM_keymap_add_item(keymap, "TEXT_OT_move_lines_up", UPARROWKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_move_lines_down", DOWNARROWKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_lines", UPARROWKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0)->ptr, "direction", TXT_MOVE_LINE_UP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_lines", DOWNARROWKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0)->ptr, "direction", TXT_MOVE_LINE_DOWN);
 	
 	WM_keymap_add_item(keymap, "TEXT_OT_indent", TABKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_unindent", TABKEY, KM_PRESS, KM_SHIFT, 0);

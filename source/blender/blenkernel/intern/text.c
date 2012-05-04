@@ -2201,10 +2201,10 @@ void txt_do_undo(Text *text)
 			txt_delete_line(text, text->curl->next);
 			break;
 		case UNDO_MOVE_LINES_UP:
-			txt_move_lines_down(text);
+			txt_move_lines(text, TXT_MOVE_LINE_DOWN);
 			break;
 		case UNDO_MOVE_LINES_DOWN:
-			txt_move_lines_up(text);
+			txt_move_lines(text, TXT_MOVE_LINE_UP);
 			break;
 		default:
 			//XXX error("Undo buffer error - resetting");
@@ -2407,10 +2407,10 @@ void txt_do_redo(Text *text)
 			txt_duplicate_line(text);
 			break;
 		case UNDO_MOVE_LINES_UP:
-			txt_move_lines_up(text);
+			txt_move_lines(text, TXT_MOVE_LINE_UP);
 			break;
 		case UNDO_MOVE_LINES_DOWN:
-			txt_move_lines_down(text);
+			txt_move_lines(text, TXT_MOVE_LINE_DOWN);
 			break;
 		default:
 			//XXX error("Undo buffer error - resetting");
@@ -3069,26 +3069,34 @@ void txt_move_lines_up(struct Text *text)
 	}
 }
 
-void txt_move_lines_down(struct Text *text)
+void txt_move_lines(struct Text *text, const int direction)
 {
-	TextLine *next_line;
-	
+	TextLine *line_other;
+
+	BLI_assert(ELEM(direction, TXT_MOVE_LINE_UP, TXT_MOVE_LINE_DOWN));
+
 	if (!text || !text->curl || !text->sell) return;
 	
 	txt_order_cursors(text);
+
+	line_other =  (direction == TXT_MOVE_LINE_DOWN) ? text->sell->next : text->curl->prev;
 	
-	next_line= text->sell->next;
-	
-	if (!next_line) return;
+	if (!line_other) return;
 		
-	BLI_remlink(&text->lines, next_line);
-	BLI_insertlinkbefore(&text->lines, text->curl, next_line);
-	
+	BLI_remlink(&text->lines, line_other);
+
+	if (direction == TXT_MOVE_LINE_DOWN) {
+		BLI_insertlinkbefore(&text->lines, text->curl, line_other);
+	}
+	else {
+		BLI_insertlinkafter(&text->lines, text->sell, line_other);
+	}
+
 	txt_make_dirty(text);
 	txt_clean_text(text);
 	
-	if (!undoing) {	
-		txt_undo_add_op(text, UNDO_MOVE_LINES_DOWN);
+	if (!undoing) {
+		txt_undo_add_op(text, (direction == TXT_MOVE_LINE_DOWN) ? UNDO_MOVE_LINES_DOWN : UNDO_MOVE_LINES_UP);
 	}
 }
 

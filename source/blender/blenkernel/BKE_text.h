@@ -96,8 +96,7 @@ void	txt_unindent		(struct Text *text);
 void 	txt_comment			(struct Text *text);
 void 	txt_indent			(struct Text *text);
 void	txt_uncomment		(struct Text *text);
-void	txt_move_lines_up	(struct Text *text);
-void	txt_move_lines_down	(struct Text *text);
+void	txt_move_lines		(struct Text *text, const int direction);
 void	txt_duplicate_line	(struct Text *text);
 int	setcurr_tab_spaces	(struct Text *text, int space);
 
@@ -115,6 +114,11 @@ int text_check_delim(const char ch);
 int text_check_digit(const char ch);
 int text_check_identifier(const char ch);
 int text_check_whitespace(const char ch);
+
+enum {
+	TXT_MOVE_LINE_UP   = -1,
+	TXT_MOVE_LINE_DOWN =  1
+};
 
 
 /* Undo opcodes */
