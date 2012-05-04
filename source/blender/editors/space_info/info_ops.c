@@ -107,6 +107,7 @@ void FILE_OT_pack_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Pack All";
 	ot->idname = "FILE_OT_pack_all";
+	ot->description = "Pack all used external files into the .blend";
 	
 	/* api callbacks */
 	ot->exec = pack_all_exec;
@@ -175,6 +176,7 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Unpack All";
 	ot->idname = "FILE_OT_unpack_all";
+	ot->description = "Unpack all files packed into this .blend to external ones";
 	
 	/* api callbacks */
 	ot->exec = unpack_all_exec;
@@ -211,6 +213,7 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Make All Paths Relative";
 	ot->idname = "FILE_OT_make_paths_relative";
+	ot->description = "Make all paths to external files relative to current .blend";
 	
 	/* api callbacks */
 	ot->exec = make_paths_relative_exec;
@@ -243,6 +246,7 @@ void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Make All Paths Absolute";
 	ot->idname = "FILE_OT_make_paths_absolute";
+	ot->description = "Make all paths to external files absolute";
 	
 	/* api callbacks */
 	ot->exec = make_paths_absolute_exec;
@@ -268,6 +272,7 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Report Missing Files";
 	ot->idname = "FILE_OT_report_missing_files";
+	ot->description = "Report all missing external files";
 	
 	/* api callbacks */
 	ot->exec = report_missing_files_exec;
@@ -300,6 +305,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Find Missing Files";
 	ot->idname = "FILE_OT_find_missing_files";
+	ot->description = "Try to find missing external files";
 	
 	/* api callbacks */
 	ot->exec = find_missing_files_exec;
@@ -414,6 +420,7 @@ void INFO_OT_reports_display_update(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Update Reports Display";
 	ot->idname = "INFO_OT_reports_display_update";
+	ot->description = "Update the display of reports in Blender UI (internal use)";
 	
 	/* api callbacks */
 	ot->invoke = update_reports_display_invoke;

@@ -373,6 +373,7 @@ void ANIM_OT_keyingset_button_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add to Keying Set";
 	ot->idname = "ANIM_OT_keyingset_button_add";
+	ot->description = "Add current UI-active property to current keying set";
 	
 	/* callbacks */
 	ot->exec = add_keyingset_button_exec; 
@@ -452,6 +453,7 @@ void ANIM_OT_keyingset_button_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove from Keying Set";
 	ot->idname = "ANIM_OT_keyingset_button_remove";
+	ot->description = "Remove current UI-active property from current keying set";
 	
 	/* callbacks */
 	ot->exec = remove_keyingset_button_exec; 
@@ -501,6 +503,7 @@ void ANIM_OT_keying_set_active_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Active Keying Set";
 	ot->idname = "ANIM_OT_keying_set_active_set";
+	ot->description = "Select a new keying set as the active one";
 	
 	/* callbacks */
 	ot->invoke = keyingset_active_menu_invoke;

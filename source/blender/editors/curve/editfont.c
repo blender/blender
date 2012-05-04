@@ -1696,6 +1696,7 @@ void FONT_OT_open(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Open Font";
 	ot->idname = "FONT_OT_open";
+	ot->description = "Load a new font from a file";
 	
 	/* api callbacks */
 	ot->exec = font_open_exec;

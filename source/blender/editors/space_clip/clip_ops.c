@@ -402,6 +402,7 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Pan";
 	ot->idname = "CLIP_OT_view_pan";
+	ot->description = "Pan the view";
 
 	/* api callbacks */
 	ot->exec = view_pan_exec;
@@ -528,6 +529,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom";
 	ot->idname = "CLIP_OT_view_zoom";
+	ot->description = "Zoom on/out the view";
 
 	/* api callbacks */
 	ot->exec = view_zoom_exec;
@@ -576,6 +578,7 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom In";
 	ot->idname = "CLIP_OT_view_zoom_in";
+	ot->description = "Zoom in the view";
 
 	/* api callbacks */
 	ot->exec = view_zoom_in_exec;
@@ -616,6 +619,7 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom Out";
 	ot->idname = "CLIP_OT_view_zoom_out";
+	ot->description = "Zoom out the view";
 
 	/* api callbacks */
 	ot->exec = view_zoom_out_exec;
@@ -649,6 +653,7 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom Ratio";
 	ot->idname = "CLIP_OT_view_zoom_ratio";
+	ot->description = "Set the zoom ratio (based on clip size)";
 
 	/* api callbacks */
 	ot->exec = view_zoom_ratio_exec;
@@ -716,6 +721,7 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View All";
 	ot->idname = "CLIP_OT_view_all";
+	ot->description = "View whole image with markers";
 
 	/* api callbacks */
 	ot->exec = view_all_exec;
@@ -746,6 +752,7 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Selected";
 	ot->idname = "CLIP_OT_view_selected";
+	ot->description = "View all selected elements";
 
 	/* api callbacks */
 	ot->exec = view_selected_exec;

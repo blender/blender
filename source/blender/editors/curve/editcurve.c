@@ -1416,6 +1416,7 @@ void CURVE_OT_separate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Separate";
 	ot->idname = "CURVE_OT_separate";
+	ot->description = "Separate (partly) selected curves or surfaces into a new object";
 	
 	/* api callbacks */
 	ot->exec = separate_exec;
@@ -2532,6 +2533,7 @@ void CURVE_OT_de_select_first(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "(De)select First";
 	ot->idname = "CURVE_OT_de_select_first";
+	ot->description = "(De)select first of visible part of each Nurb";
 	
 	/* api cfirstbacks */
 	ot->exec = de_select_first_exec;
@@ -2556,6 +2558,7 @@ void CURVE_OT_de_select_last(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "(De)select Last";
 	ot->idname = "CURVE_OT_de_select_last";
+	ot->description = "(De)select last of visible part of each Nurb";
 	
 	/* api clastbacks */
 	ot->exec = de_select_last_exec;
@@ -2637,6 +2640,7 @@ void CURVE_OT_select_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "(De)select All";
 	ot->idname = "CURVE_OT_select_all";
+	ot->description = "(De)select all control points";
 	
 	/* api callbacks */
 	ot->exec = de_select_all_exec;
@@ -2711,6 +2715,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Hide Selected";
 	ot->idname = "CURVE_OT_hide";
+	ot->description = "Hide (un)selected control points";
 	
 	/* api callbacks */
 	ot->exec = hide_exec;
@@ -2771,6 +2776,7 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Reveal Hidden";
 	ot->idname = "CURVE_OT_reveal";
+	ot->description = "Show again hidden control points";
 	
 	/* api callbacks */
 	ot->exec = reveal_exec;
@@ -4118,6 +4124,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Make Segment";
 	ot->idname = "CURVE_OT_make_segment";
+	ot->description = "Join two curves by their selected ends";
 	
 	/* api callbacks */
 	ot->exec = make_segment_exec;
@@ -4353,6 +4360,7 @@ void CURVE_OT_spin(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Spin";
 	ot->idname = "CURVE_OT_spin";
+	ot->description = "Extrude selected boundary row around pivot point and current view axis";
 	
 	/* api callbacks */
 	ot->exec = spin_exec;
@@ -4687,6 +4695,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add Vertex";
 	ot->idname = "CURVE_OT_vertex_add";
+	ot->description = "Add a new control point (linked to only selected end-curve one, if any)";
 	
 	/* api callbacks */
 	ot->exec = add_vertex_exec;
@@ -4940,6 +4949,7 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked All";
 	ot->idname = "CURVE_OT_select_linked";
+	ot->description = "Select all control points linked to active one";
 
 	/* api callbacks */
 	ot->exec = select_linked_exec;
@@ -5000,6 +5010,7 @@ void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked";
 	ot->idname = "CURVE_OT_select_linked_pick";
+	ot->description = "Select all control points linked to already selected ones";
 
 	/* api callbacks */
 	ot->invoke = select_linked_pick_invoke;
@@ -5078,6 +5089,7 @@ void CURVE_OT_select_row(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Control Point Row";
 	ot->idname = "CURVE_OT_select_row";
+	ot->description = "Select a row of control points including active one";
 	
 	/* api callbacks */
 	ot->exec = select_row_exec;
@@ -5105,6 +5117,7 @@ void CURVE_OT_select_next(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Next";
 	ot->idname = "CURVE_OT_select_next";
+	ot->description = "Select control points following already selected ones along the curves";
 	
 	/* api callbacks */
 	ot->exec = select_next_exec;
@@ -5132,6 +5145,7 @@ void CURVE_OT_select_previous(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Previous";
 	ot->idname = "CURVE_OT_select_previous";
+	ot->description = "Select control points preceding already selected ones along the curves";
 	
 	/* api callbacks */
 	ot->exec = select_previous_exec;
@@ -5219,6 +5233,7 @@ void CURVE_OT_select_more(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select More";
 	ot->idname = "CURVE_OT_select_more";
+	ot->description = "Select control points linked to already selected ones";
 	
 	/* api callbacks */
 	ot->exec = select_more_exec;
@@ -5380,6 +5395,7 @@ void CURVE_OT_select_less(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Less";
 	ot->idname = "CURVE_OT_select_less";
+	ot->description = "Reduce current selection by deselecting boundary elements";
 	
 	/* api callbacks */
 	ot->exec = select_less_exec;
@@ -5443,6 +5459,7 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Random";
 	ot->idname = "CURVE_OT_select_random";
+	ot->description = "Randomly select some control points";
 	
 	/* api callbacks */
 	ot->exec = select_random_exec;
@@ -6028,6 +6045,7 @@ void CURVE_OT_shade_smooth(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Shade Smooth";
 	ot->idname = "CURVE_OT_shade_smooth";
+	ot->description = "Set shading to smooth";
 	
 	/* api callbacks */
 	ot->exec = shade_smooth_exec;
@@ -6042,6 +6060,7 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Shade Flat";
 	ot->idname = "CURVE_OT_shade_flat";
+	ot->description = "Set shading to flat";
 	
 	/* api callbacks */
 	ot->exec = shade_smooth_exec;
@@ -6914,6 +6933,7 @@ void CURVE_OT_tilt_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clear Tilt";
 	ot->idname = "CURVE_OT_tilt_clear";
+	ot->description = "Clear the tilt of selected control points";
 	
 	/* api callbacks */
 	ot->exec = clear_tilt_exec;
