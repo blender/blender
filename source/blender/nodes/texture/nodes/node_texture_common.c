@@ -110,6 +110,9 @@ static void group_execute(void *data, int thread, struct bNode *node, void *node
 	bNodeTreeExec *exec= (bNodeTreeExec*)nodedata;
 	bNodeThreadStack *nts;
 	
+	if (!exec)
+		return;
+	
 	/* XXX same behavior as trunk: all nodes inside group are executed.
 	 * it's stupid, but just makes it work. compo redesign will do this better.
 	 */
