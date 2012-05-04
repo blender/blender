@@ -2657,19 +2657,6 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 	/* properties */
 }
 
-static void seq_paste_add_sound(Scene *scene, Sequence *seq)
-{
-	if (seq->type == SEQ_META) {
-		Sequence *iseq;
-		for (iseq = seq->seqbase.first; iseq; iseq = iseq->next) {
-			seq_paste_add_sound(scene, iseq);
-		}
-	}
-	else if (seq->type == SEQ_SOUND) {
-		seq->scene_sound = sound_add_scene_sound_defaults(scene, seq);
-	}
-}
-
 static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -2698,9 +2685,6 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	/* make sure the pasted strips have unique names between them */
 	for (; iseq; iseq = iseq->next) {
 		seq_recursive_apply(iseq, apply_unique_name_cb, scene);
-
-		/* restore valid sound_scene for newly added strips */
-		seq_paste_add_sound(scene, iseq);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
