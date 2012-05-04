@@ -478,7 +478,7 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 	normal_tri_v3(plane_normal, tetra[0]->co, tetra[1]->co, tetra[2]->co);
 	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
 		if (!BMO_elem_flag_test(bm, v, HULL_FLAG_TETRA_VERT)) {
-			float dist = dist_to_plane_v3(v->co, tetra[0]->co, plane_normal);
+			float dist = fabsf(dist_to_plane_v3(v->co, tetra[0]->co, plane_normal));
 			if (dist > largest_dist) {
 				largest_dist = dist;
 				tetra[3] = v;
