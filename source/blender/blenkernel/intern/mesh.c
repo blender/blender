@@ -2766,64 +2766,20 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart, 
                                   MVert *mvert, float normal[3])
 {
-
-	MVert *v1, *v2, *v3;
-	double u[3], v[3], w[3];
-	double n[3] = {0.0, 0.0, 0.0}, l;
+	const int nverts = mpoly->totloop;
+	float const *v_prev = mvert[loopstart[nverts - 1].v].co;
+	float const *v_curr = mvert[loopstart->v].co;
+	float n[3] = {0.0f};
 	int i;
 
-	for (i = 0; i < mpoly->totloop; i++) {
-		v1 = mvert + loopstart[i].v;
-		v2 = mvert + loopstart[(i+1)%mpoly->totloop].v;
-		v3 = mvert + loopstart[(i+2)%mpoly->totloop].v;
-		
-		copy_v3db_v3fl(u, v1->co);
-		copy_v3db_v3fl(v, v2->co);
-		copy_v3db_v3fl(w, v3->co);
-
-		/*this fixes some weird numerical error*/
-		if (i==0) {
-			u[0] += 0.0001f;
-			u[1] += 0.0001f;
-			u[2] += 0.0001f;
-		}
-		
-		/* newell's method
-		 * 
-		 * so thats?:
-		 * (a[1] - b[1]) * (a[2] + b[2]);
-		 * a[1]*b[2] - b[1]*a[2] - b[1]*b[2] + a[1]*a[2]
-		 * 
-		 * odd.  half of that is the cross product. . .what's the
-		 * other half?
-		 * 
-		 * also could be like a[1]*(b[2] + a[2]) - b[1]*(a[2] - b[2])
-		 */
-
-		n[0] += (u[1] - v[1]) * (u[2] + v[2]);
-		n[1] += (u[2] - v[2]) * (u[0] + v[0]);
-		n[2] += (u[0] - v[0]) * (u[1] + v[1]);
+	/* Newell's Method */
+	for (i = 0; i < nverts; v_prev = v_curr, v_curr = mvert[loopstart[++i].v].co) {
+		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
 	}
-	
-	l = n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
-	l = sqrt(l);
 
-	if (l == 0.0) {
-		normal[0] = 0.0f;
-		normal[1] = 0.0f;
-		normal[2] = 1.0f;
-
-		return;
+	if (UNLIKELY(normalize_v3_v3(normal, n) == 0.0f)) {
+		normal[2] = 1.0f; /* other axis set to 0.0 */
 	}
-	else l = 1.0f / l;
-
-	n[0] *= l;
-	n[1] *= l;
-	n[2] *= l;
-	
-	normal[0] = (float) n[0];
-	normal[1] = (float) n[1];
-	normal[2] = (float) n[2];
 }
 
 void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart, 
@@ -2857,54 +2813,20 @@ void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart,
 static void mesh_calc_ngon_normal_coords(MPoly *mpoly, MLoop *loopstart,
                                          const float (*vertex_coords)[3], float normal[3])
 {
-
-	const float *v1, *v2, *v3;
-	double u[3], v[3], w[3];
-	double n[3] = {0.0, 0.0, 0.0}, l;
+	const int nverts = mpoly->totloop;
+	float const *v_prev = vertex_coords[loopstart[nverts - 1].v];
+	float const *v_curr = vertex_coords[loopstart->v];
+	float n[3] = {0.0f};
 	int i;
 
-	for (i = 0; i < mpoly->totloop; i++) {
-		v1 = (const float *)(vertex_coords + loopstart[i].v);
-		v2 = (const float *)(vertex_coords + loopstart[(i+1)%mpoly->totloop].v);
-		v3 = (const float *)(vertex_coords + loopstart[(i+2)%mpoly->totloop].v);
-
-		copy_v3db_v3fl(u, v1);
-		copy_v3db_v3fl(v, v2);
-		copy_v3db_v3fl(w, v3);
-
-		/*this fixes some weird numerical error*/
-		if (i==0) {
-			u[0] += 0.0001f;
-			u[1] += 0.0001f;
-			u[2] += 0.0001f;
-		}
-
-		n[0] += (u[1] - v[1]) * (u[2] + v[2]);
-		n[1] += (u[2] - v[2]) * (u[0] + v[0]);
-		n[2] += (u[0] - v[0]) * (u[1] + v[1]);
+	/* Newell's Method */
+	for (i = 0; i < nverts; v_prev = v_curr, v_curr = vertex_coords[loopstart[++i].v]) {
+		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
 	}
 
-	l = n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
-	l = sqrt(l);
-
-	if (l == 0.0) {
-		normal[0] = 0.0f;
-		normal[1] = 0.0f;
-		normal[2] = 1.0f;
-
-		return;
+	if (UNLIKELY(normalize_v3_v3(normal, n) == 0.0f)) {
+		normal[2] = 1.0f; /* other axis set to 0.0 */
 	}
-	else {
-		l = 1.0f / l;
-	}
-
-	n[0] *= l;
-	n[1] *= l;
-	n[2] *= l;
-
-	normal[0] = (float) n[0];
-	normal[1] = (float) n[1];
-	normal[2] = (float) n[2];
 }
 
 void mesh_calc_poly_normal_coords(MPoly *mpoly, MLoop *loopstart,

@@ -401,7 +401,7 @@ void strand_shade_segment(Render *re, StrandShadeCache *cache, StrandSegment *ss
 
 	/* apply alpha along width */
 	if (sseg->buffer->widthfade != 0.0f) {
-		s = 1.0f - pow(fabs(s), sseg->buffer->widthfade);
+		s = 1.0f - powf(fabsf(s), sseg->buffer->widthfade);
 
 		strand_apply_shaderesult_alpha(ssamp->shr, s);
 	}
