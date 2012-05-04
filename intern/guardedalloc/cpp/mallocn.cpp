@@ -41,5 +41,7 @@ void* operator new (size_t size, const char *str)
 
 void operator delete (void *p)
 {
-	MEM_freeN(p);
+	/* delete NULL is valid in c++ */
+	if(p)
+		MEM_freeN(p);
 }

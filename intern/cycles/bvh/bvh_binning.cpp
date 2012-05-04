@@ -122,6 +122,7 @@ BVHObjectBinning::BVHObjectBinning(const BVHRange& job, BVHReference *prims)
 		bx = merge(bx,bin_bounds[i][0]); r_area[i][0] = bx.half_area();
 		by = merge(by,bin_bounds[i][1]); r_area[i][1] = by.half_area();
 		bz = merge(bz,bin_bounds[i][2]); r_area[i][2] = bz.half_area();
+		r_area[i][3] = r_area[i][2];
 	}
 
 	/* sweep from left to right and compute SAH */
