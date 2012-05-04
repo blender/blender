@@ -1102,7 +1102,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		if (dupli_gh)
 			BLI_ghash_insert(dupli_gh, dob, ob);
 		if (parent_gh)
-			BLI_ghash_insert(parent_gh, BLI_ghashutil_pairalloc(dob->ob, dob->index), ob);
+			BLI_ghash_insert(parent_gh, BLI_ghashutil_pairalloc(dob->ob, SET_INT_IN_POINTER(dob->index)), ob);
 	}
 	
 	if (use_hierarchy) {
@@ -1116,7 +1116,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 			/* find parent that was also made real */
 			if (ob_src_par) {
-				GHashPair *pair = BLI_ghashutil_pairalloc(ob_src_par, dob->index);
+				GHashPair *pair = BLI_ghashutil_pairalloc(ob_src_par, SET_INT_IN_POINTER(dob->index));
 				ob_dst_par = BLI_ghash_lookup(parent_gh, pair);
 				BLI_ghashutil_pairfree(pair);
 			}
