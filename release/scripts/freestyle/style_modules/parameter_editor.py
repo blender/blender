@@ -1092,7 +1092,7 @@ def process(layer_name, lineset_name):
         selection_criteria.append(upred)
     # prepare selection criteria by group of objects
     if lineset.select_by_group:
-        if lineset.group is not None and len(lineset.group.objects) > 0:
+        if lineset.group is not None:
             names = dict((ob.name, True) for ob in lineset.group.objects)
             upred = ObjectNamesUP1D(names, lineset.group_negation == 'EXCLUSIVE')
             selection_criteria.append(upred)
