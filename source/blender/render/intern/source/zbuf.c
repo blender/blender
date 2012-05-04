@@ -3748,8 +3748,8 @@ static void unref_strand_samples(StrandShadeCache *cache, ZTranspRow *row, int t
 			strand= RE_findOrAddStrand(obr, row[totface].p-1);
 			svert= strand->vert + row[totface].segment;
 
-			strand_shade_unref(cache, obi, strand, svert);
-			strand_shade_unref(cache, obi, strand, svert+1);
+			strand_shade_unref(cache, obi, svert);
+			strand_shade_unref(cache, obi, svert+1);
 		}
 	}
 }
