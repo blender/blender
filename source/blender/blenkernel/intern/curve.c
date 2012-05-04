@@ -169,6 +169,8 @@ Curve *BKE_curve_add(const char *name, int type)
 	cu->smallcaps_scale= 0.75f;
 	cu->twist_mode= CU_TWIST_MINIMUM;	// XXX: this one seems to be the best one in most cases, at least for curve deform...
 	cu->type= type;
+	cu->bevfac1= 0.0f;
+	cu->bevfac2= 1.0f;
 	
 	cu->bb= unit_boundbox();
 	

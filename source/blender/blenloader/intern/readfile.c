@@ -7390,22 +7390,28 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 4))
 	{
 		Lamp *la;
+		Camera *cam;
+		Curve *cu;
+
 		for (la= main->lamp.first; la; la= la->id.next) {
 			if (la->shadow_frustum_size == 0.0)
 				la->shadow_frustum_size= 10.0f;
 		}
-	}
-	
-	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 4))
-	{
-		Camera *cam;
 
 		for (cam = main->camera.first; cam; cam = cam->id.next) {
 			if (cam->flag & CAM_PANORAMA) {
 				cam->type = CAM_PANO;
 				cam->flag &= ~CAM_PANORAMA;
+			}
+		}
+
+		for(cu= main->curve.first; cu; cu= cu->id.next) {
+			if(cu->bevfac2 == 0.0f) {
+				cu->bevfac1 = 0.0f;
+				cu->bevfac2 = 1.0f;
 			}
 		}
 	}
