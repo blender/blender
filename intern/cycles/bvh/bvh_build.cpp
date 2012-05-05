@@ -36,12 +36,12 @@ CCL_NAMESPACE_BEGIN
 
 class BVHBuildTask : public Task {
 public:
-	BVHBuildTask(InnerNode *node_, int child_, BVHObjectBinning& range_, int level_)
-	: node(node_), child(child_), level(level_), range(range_) {}
+	BVHBuildTask(BVHBuild *build, InnerNode *node, int child, BVHObjectBinning& range_, int level)
+	: range(range_)
+	{
+		run = function_bind(&BVHBuild::thread_build_node, build, node, child, &range, level);
+	}
 
-	InnerNode *node;
-	int child;
-	int level;
 	BVHObjectBinning range;
 };
 
@@ -55,8 +55,7 @@ BVHBuild::BVHBuild(const vector<Object*>& objects_,
   prim_object(prim_object_),
   params(params_),
   progress(progress_),
-  progress_start_time(0.0),
-  task_pool(function_bind(&BVHBuild::thread_build_node, this, _1, _2))
+  progress_start_time(0.0)
 {
 	spatial_min_overlap = 0.0f;
 }
@@ -177,7 +176,7 @@ BVHNode* BVHBuild::run()
 		/* multithreaded binning build */
 		BVHObjectBinning rootbin(root, (references.size())? &references[0]: NULL);
 		rootnode = build_node(rootbin, 0);
-		task_pool.wait();
+		task_pool.wait_work();
 	}
 
 	/* delete if we cancelled */
@@ -210,25 +209,24 @@ void BVHBuild::progress_update()
 	progress_start_time = time_dt(); 
 }
 
-void BVHBuild::thread_build_node(Task *task_, int thread_id)
+void BVHBuild::thread_build_node(InnerNode *inner, int child, BVHObjectBinning *range, int level)
 {
 	if(progress.get_cancel())
 		return;
 
 	/* build nodes */
-	BVHBuildTask *task = (BVHBuildTask*)task_;
-	BVHNode *node = build_node(task->range, task->level);
+	BVHNode *node = build_node(*range, level);
 
 	/* set child in inner node */
-	task->node->children[task->child] = node;
+	inner->children[child] = node;
 
 	/* update progress */
-	if(task->range.size() < THREAD_TASK_SIZE) {
+	if(range->size() < THREAD_TASK_SIZE) {
 		/*rotate(node, INT_MAX, 5);*/
 
 		thread_scoped_lock lock(build_mutex);
 
-		progress_count += task->range.size();
+		progress_count += range->size();
 		progress_update();
 	}
 }
@@ -262,8 +260,8 @@ BVHNode* BVHBuild::build_node(const BVHObjectBinning& range, int level)
 		/* threaded build */
 		inner = new InnerNode(range.bounds());
 
-		task_pool.push(new BVHBuildTask(inner, 0, left, level + 1), true);
-		task_pool.push(new BVHBuildTask(inner, 1, right, level + 1), true);
+		task_pool.push(new BVHBuildTask(this, inner, 0, left, level + 1), true);
+		task_pool.push(new BVHBuildTask(this, inner, 1, right, level + 1), true);
 	}
 
 	return inner;
