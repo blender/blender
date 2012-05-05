@@ -901,7 +901,7 @@ static void extern_local_texture(Tex *tex)
 	id_lib_extern((ID *)tex->ima);
 }
 
-void make_local_texture(Tex *tex)
+void BKE_texture_make_local(Tex *tex)
 {
 	Main *bmain= G.main;
 	Material *ma;

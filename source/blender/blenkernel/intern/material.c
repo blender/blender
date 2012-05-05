@@ -199,7 +199,7 @@ void init_material(Material *ma)
 	ma->preview = NULL;
 }
 
-Material *add_material(const char *name)
+Material *BKE_material_add(const char *name)
 {
 	Material *ma;
 
@@ -280,7 +280,7 @@ static void extern_local_material(Material *ma)
 	}
 }
 
-void make_local_material(Material *ma)
+void BKE_material_make_local(Material *ma)
 {
 	Main *bmain= G.main;
 	Object *ob;
@@ -1674,7 +1674,7 @@ static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 	}
 	/* create a new material */
 	else {
-		ma= add_material(idname+2);
+		ma= BKE_material_add(idname+2);
 
 		if (ma) {
 			printf("TexFace Convert: Material \"%s\" created.\n", idname+2);

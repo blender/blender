@@ -4858,7 +4858,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 
 	if (pop->mode != PAINT_MODE_2D) {
 		Object *ob = OBACT;
-		Mesh *me = get_mesh(ob);
+		Mesh *me = BKE_mesh_from_object(ob);
 
 		if (!me) {
 			return 0;
@@ -5451,7 +5451,7 @@ static int image_paint_sample_color_poll(bContext *C)
 		if (CTX_wm_view3d(C)) {
 			Object *obact = CTX_data_active_object(C);
 			if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
-				Mesh *me = get_mesh(obact);
+				Mesh *me = BKE_mesh_from_object(obact);
 				if (me) {
 					return !(me->editflag & ME_EDIT_PAINT_MASK);
 				}
@@ -5559,7 +5559,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 
 	if (!(ob->mode & OB_MODE_TEXTURE_PAINT) && !me) {
 		BKE_report(op->reports, RPT_ERROR, "Can only enter texture paint mode for mesh objects");
@@ -5794,7 +5794,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	image = BKE_add_image_imbuf(ibuf);
+	image = BKE_image_add_from_imbuf(ibuf);
 
 	if (image) {
 		/* now for the trickyness. store the view projection here!

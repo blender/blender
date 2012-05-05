@@ -122,7 +122,7 @@ void action_groups_add_channel(struct bAction *act, struct bActionGroup *agrp, s
 void action_groups_remove_channel(struct bAction *act, struct FCurve *fcu);
 
 /* Find a group with the given name */
-struct bActionGroup *action_groups_find_named(struct bAction *act, const char name[]);
+struct bActionGroup *BKE_action_group_find_name(struct bAction *act, const char name[]);
 
 /* Clear all 'temp' flags on all groups */
 void action_groups_clear_tempflags(struct bAction *act);
@@ -133,71 +133,71 @@ void action_groups_clear_tempflags(struct bAction *act);
  * Deallocates a pose channel.
  * Does not free the pose channel itself.
  */
-void free_pose_channel(struct bPoseChannel *pchan);
+void BKE_pose_channel_free(struct bPoseChannel *pchan);
 
 /**
  * Removes and deallocates all channels from a pose.
  * Does not free the pose itself.
  */
-void free_pose_channels(struct bPose *pose);
+void BKE_pose_channels_free(struct bPose *pose);
 
 /**
  * Removes the hash for quick lookup of channels, must
  * be done when adding/removing channels.
  */
-void make_pose_channels_hash(struct bPose *pose);
-void free_pose_channels_hash(struct bPose *pose);
+void BKE_pose_channels_hash_make(struct bPose *pose);
+void BKE_pose_channels_hash_free(struct bPose *pose);
 
 /** 
  * Removes and deallocates all data from a pose, and also frees the pose.
  */
-void free_pose(struct bPose *pose);
+void BKE_pose_free(struct bPose *pose);
 
 /**
  * Allocate a new pose on the heap, and copy the src pose and it's channels
  * into the new pose. *dst is set to the newly allocated structure, and assumed to be NULL.
  */ 
-void copy_pose(struct bPose **dst, struct bPose *src, int copyconstraints);
+void BKE_pose_copy_data(struct bPose **dst, struct bPose *src, int copyconstraints);
 
 /**
  * Copy the internal members of each pose channel including constraints
  * and ID-Props, used when duplicating bones in editmode.
  */
-void duplicate_pose_channel_data(struct bPoseChannel *pchan, const struct bPoseChannel *pchan_from);
+void BKE_pose_channel_copy_data(struct bPoseChannel *pchan, const struct bPoseChannel *pchan_from);
 
 /**
  * Return a pointer to the pose channel of the given name
  * from this pose.
  */
-struct bPoseChannel *get_pose_channel(const struct bPose *pose, const char *name);
+struct bPoseChannel *BKE_pose_channel_find_name(const struct bPose *pose, const char *name);
 
 /**
  * Return a pointer to the active pose channel from this Object.
  * (Note: Object, not bPose is used here, as we need layer info from Armature)
  */
-struct bPoseChannel *get_active_posechannel(struct Object *ob);
+struct bPoseChannel *BKE_pose_channel_active(struct Object *ob);
 
 /** 
  * Looks to see if the channel with the given name
  * already exists in this pose - if not a new one is
  * allocated and initialized.
  */
-struct bPoseChannel *verify_pose_channel(struct bPose* pose, const char* name);
+struct bPoseChannel *BKE_pose_channel_verify(struct bPose* pose, const char* name);
 
 /* Copy the data from the action-pose (src) into the pose */
 void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
 /* sets constraint flags */
-void update_pose_constraint_flags(struct bPose *pose);
+void BKE_pose_update_constraint_flags(struct bPose *pose);
 
 /* return the name of structure pointed by pose->ikparam */
-const char *get_ikparam_name(struct bPose *pose);
+const char *BKE_pose_ikparam_get_name(struct bPose *pose);
 
 /* allocate and initialize pose->ikparam according to pose->iksolver */
-void init_pose_ikparam(struct bPose *pose);
+void BKE_pose_ikparam_init(struct bPose *pose);
 
 /* initialize a bItasc structure with default value */
-void init_pose_itasc(struct bItasc *itasc);
+void BKE_pose_itasc_init(struct bItasc *itasc);
 
 /* clears BONE_UNKEYED flags for frame changing */
 // XXX to be depreceated for a more general solution in animsys...
@@ -206,10 +206,10 @@ void framechange_poses_clear_unkeyed(void);
 /* Bone Groups API --------------------- */	
 
 /* Adds a new bone-group */
-void pose_add_group(struct Object *ob);
+void BKE_pose_add_group(struct Object *ob);
 
 /* Remove the active bone-group */
-void pose_remove_group(struct Object *ob);
+void BKE_pose_remove_group(struct Object *ob);
 
 /* Assorted Evaluation ----------------- */	
 
@@ -217,9 +217,9 @@ void pose_remove_group(struct Object *ob);
 void what_does_obaction(struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, char groupname[], float cframe);
 
 /* for proxy */
-void copy_pose_result(struct bPose *to, struct bPose *from);
+void BKE_pose_copy_result(struct bPose *to, struct bPose *from);
 /* clear all transforms */
-void rest_pose(struct bPose *pose);
+void BKE_pose_rest(struct bPose *pose);
 
 #ifdef __cplusplus
 };

@@ -1854,7 +1854,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		
 		// armature recode checks 
 		for (arm= main->armature.first; arm; arm= arm->id.next) {
-			where_is_armature(arm);
+			BKE_armature_where_is(arm);
 
 			for (bone= arm->bonebase.first; bone; bone= bone->next)
 				do_version_bone_head_tail_237(bone);
@@ -1866,7 +1866,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 					ob->partype = PARSKEL;
 			}
 
-			// btw. armature_rebuild_pose is further only called on leave editmode
+			// btw. BKE_pose_rebuild is further only called on leave editmode
 			if (ob->type==OB_ARMATURE) {
 				if (ob->pose)
 					ob->pose->flag |= POSE_RECALC;

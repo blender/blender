@@ -375,7 +375,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 		ma = BKE_material_copy(ma);
 	}
 	else {
-		ma = add_material("Material");
+		ma = BKE_material_add("Material");
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(scene, &ma->id);

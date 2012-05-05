@@ -424,7 +424,7 @@ static short apply_targetless_ik(Object *ob)
 				bone= parchan->bone;
 				bone->flag |= BONE_TRANSFORM;	/* ensures it gets an auto key inserted */
 
-				armature_mat_pose_to_bone(parchan, parchan->pose_mat, rmat);
+				BKE_armature_mat_pose_to_bone(parchan, parchan->pose_mat, rmat);
 
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
 				{
@@ -535,11 +535,11 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	/* proper way to get parent transform + own transform + constraints transform */
 	copy_m3_m4(omat, ob->obmat);
 
-	/* New code, using "generic" pchan_to_pose_mat(). */
+	/* New code, using "generic" BKE_pchan_to_pose_mat(). */
 	{
 		float rotscale_mat[4][4], loc_mat[4][4];
 
-		pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
+		BKE_pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
 		if (t->mode == TFM_TRANSLATION)
 			copy_m3_m4(pmat, loc_mat);
 		else
@@ -884,7 +884,7 @@ static short pose_grab_with_ik_children(bPose *pose, Bone *bone)
 		}
 	}
 	if (wentdeeper==0) {
-		bPoseChannel *pchan= get_pose_channel(pose, bone->name);
+		bPoseChannel *pchan= BKE_pose_channel_find_name(pose, bone->name);
 		if (pchan)
 			added+= pose_grab_with_ik_add(pchan);
 	}
@@ -953,7 +953,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 	t->total= 0;
 
 	/* check validity of state */
-	arm= get_armature(ob);
+	arm= BKE_armature_from_object(ob);
 	if ((arm==NULL) || (ob->pose==NULL)) return;
 
 	if (arm->flag & ARM_RESTPOS) {
@@ -5046,7 +5046,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			 * we need to update the pose otherwise no updates get called during
 			 * transform and the auto-ik is not applied. see [#26164] */
 			struct Object *pose_ob=t->poseobj;
-			where_is_pose(t->scene, pose_ob);
+			BKE_pose_where_is(t->scene, pose_ob);
 		}
 
 		/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */

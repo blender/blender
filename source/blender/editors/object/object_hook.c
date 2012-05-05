@@ -648,7 +648,7 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 	
 	/* reset functionality */
 	if (hmd->object) {
-		bPoseChannel *pchan = get_pose_channel(hmd->object->pose, hmd->subtarget);
+		bPoseChannel *pchan = BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
 		
 		if (hmd->subtarget[0] && pchan) {
 			float imat[4][4], mat[4][4];

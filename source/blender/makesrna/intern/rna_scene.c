@@ -1184,7 +1184,7 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value
 		ts->selectmode = flag;
 
 		if (scene->basact) {
-			Mesh *me = get_mesh(scene->basact->object);
+			Mesh *me = BKE_mesh_from_object(scene->basact->object);
 			if (me && me->edit_btmesh && me->edit_btmesh->selectmode != flag) {
 				me->edit_btmesh->selectmode = flag;
 				EDBM_selectmode_set(me->edit_btmesh);
@@ -1198,7 +1198,7 @@ static void rna_Scene_editmesh_select_mode_update(Main *UNUSED(bmain), Scene *sc
 	Mesh *me = NULL;
 
 	if (scene->basact) {
-		me = get_mesh(scene->basact->object);
+		me = BKE_mesh_from_object(scene->basact->object);
 		if (me && me->edit_btmesh == NULL)
 			me = NULL;
 	}

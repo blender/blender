@@ -50,11 +50,11 @@ void BKE_material_free(struct Material *sc);
 void test_object_materials(struct ID *id);
 void resize_object_material(struct Object *ob, const short totcol);
 void init_material(struct Material *ma);
-struct Material *add_material(const char *name);
+struct Material *BKE_material_add(const char *name);
 struct Material *BKE_material_copy(struct Material *ma);
 struct Material *localize_material(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */
-void make_local_material(struct Material *ma);
+void BKE_material_make_local(struct Material *ma);
 void extern_local_matarar(struct Material **matar, short totcol);
 
 void automatname(struct Material *);

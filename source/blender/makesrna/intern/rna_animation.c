@@ -201,7 +201,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, v
 	}
 	
 	/* check if we have registered this info before, and remove it */
-	ksi = ANIM_keyingset_info_find_named(dummyksi.idname);
+	ksi = ANIM_keyingset_info_find_name(dummyksi.idname);
 	if (ksi && ksi->ext.srna)
 		rna_KeyingSetInfo_unregister(bmain, ksi->ext.srna);
 	
@@ -337,7 +337,7 @@ static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)
 	
 	/* keying set info is only for builtin Keying Sets */
 	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0)
-		ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
+		ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
 	return rna_pointer_inherit_refine(ptr, &RNA_KeyingSetInfo, ksi);
 }
 

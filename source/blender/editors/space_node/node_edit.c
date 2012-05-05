@@ -3418,7 +3418,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	else if (RNA_struct_property_is_set(op->ptr, "name")) {
 		char name[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "name", name);
-		ima= (Image *)find_id("IM", name);
+		ima= (Image *)BKE_libblock_find_name("IM", name);
 
 		if (!ima) {
 			BKE_reportf(op->reports, RPT_ERROR, "Image named \"%s\", not found", name);

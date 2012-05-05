@@ -484,7 +484,7 @@ static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 	memset(&mesh->fdata, 0, sizeof(mesh->fdata));
 }
 
-Mesh *add_mesh(const char *name)
+Mesh *BKE_mesh_add(const char *name)
 {
 	Mesh *me;
 	
@@ -846,7 +846,7 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 	return nr;
 }
 
-Mesh *get_mesh(Object *ob)
+Mesh *BKE_mesh_from_object(Object *ob)
 {
 	
 	if (ob==NULL) return NULL;
@@ -1489,7 +1489,7 @@ void nurbs_to_mesh(Object *ob)
 		}
 
 		/* make mesh */
-		me= add_mesh("Mesh");
+		me= BKE_mesh_add("Mesh");
 		me->totvert= totvert;
 		me->totedge= totedge;
 		me->totloop = totloop;
@@ -1505,7 +1505,7 @@ void nurbs_to_mesh(Object *ob)
 		BKE_mesh_calc_edges(me, TRUE);
 	}
 	else {
-		me= add_mesh("Mesh");
+		me= BKE_mesh_add("Mesh");
 		DM_to_mesh(dm, me, ob);
 	}
 

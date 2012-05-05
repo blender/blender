@@ -198,7 +198,7 @@ void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *ob
 
 struct Material *rna_Main_materials_new(Main *UNUSED(bmain), const char *name)
 {
-	ID *id = (ID *)add_material(name);
+	ID *id = (ID *)BKE_material_add(name);
 	id_us_min(id);
 	return (Material *)id;
 }
@@ -233,7 +233,7 @@ void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bNodeTree
 
 Mesh *rna_Main_meshes_new(Main *UNUSED(bmain), const char *name)
 {
-	Mesh *me = add_mesh(name);
+	Mesh *me = BKE_mesh_add(name);
 	id_us_min(&me->id);
 	return me;
 }
@@ -250,7 +250,7 @@ void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 
 Lamp *rna_Main_lamps_new(Main *UNUSED(bmain), const char *name, int type)
 {
-	Lamp *lamp = add_lamp(name);
+	Lamp *lamp = BKE_lamp_add(name);
 	lamp->type = type;
 	id_us_min(&lamp->id);
 	return lamp;
@@ -269,7 +269,7 @@ void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 Image *rna_Main_images_new(Main *UNUSED(bmain), const char *name, int width, int height, int alpha, int float_buffer)
 {
 	float color[4] = {0.0, 0.0, 0.0, 1.0};
-	Image *image = BKE_add_image_size(width, height, name, alpha ? 32:24, float_buffer, 0, color);
+	Image *image = BKE_image_add_generated(width, height, name, alpha ? 32:24, float_buffer, 0, color);
 	id_us_min(&image->id);
 	return image;
 }
@@ -299,7 +299,7 @@ void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
 
 Lattice *rna_Main_lattices_new(Main *UNUSED(bmain), const char *name)
 {
-	Lattice *lt = add_lattice(name);
+	Lattice *lt = BKE_lattice_add(name);
 	id_us_min(&lt->id);
 	return lt;
 }
@@ -426,7 +426,7 @@ void rna_Main_groups_remove(Main *bmain, Group *group)
 
 Speaker *rna_Main_speakers_new(Main *UNUSED(bmain), const char *name)
 {
-	Speaker *speaker = add_speaker(name);
+	Speaker *speaker = BKE_speaker_add(name);
 	id_us_min(&speaker->id);
 	return speaker;
 }
@@ -468,7 +468,7 @@ Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath
 
 bArmature *rna_Main_armatures_new(Main *UNUSED(bmain), const char *name)
 {
-	bArmature *arm = add_armature(name);
+	bArmature *arm = BKE_armature_add(name);
 	id_us_min(&arm->id);
 	return arm;
 }

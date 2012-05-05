@@ -953,7 +953,7 @@ static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 	// if there are problems because of this, then rna needs changed update functions.
 	// 
 	// object_test_constraints(ob);
-	// if (ob->pose) update_pose_constraint_flags(ob->pose);
+	// if (ob->pose) BKE_pose_update_constraint_flags(ob->pose);
 	
 	if (ob->type == OB_ARMATURE) DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);
@@ -969,7 +969,7 @@ static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
 /* draw panel showing settings for a constraint */
 static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 {
-	bPoseChannel *pchan = get_active_posechannel(ob);
+	bPoseChannel *pchan = BKE_pose_channel_active(ob);
 	bConstraintTypeInfo *cti;
 	uiBlock *block;
 	uiLayout *result = NULL, *col, *box, *row;

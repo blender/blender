@@ -45,7 +45,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_action.h" /* get_pose_channel */
+#include "BKE_action.h" /* BKE_pose_channel_find_name */
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -154,7 +154,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		bone_select_array= MEM_mallocN(defbase_tot * sizeof(char), "mask array");
 		
 		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			pchan = get_pose_channel(oba->pose, def->name);
+			pchan = BKE_pose_channel_find_name(oba->pose, def->name);
 			if (pchan && pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
 				bone_select_array[i]= TRUE;
 				bone_select_tot++;

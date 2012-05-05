@@ -49,7 +49,7 @@
 
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_image.h"   // BKE_write_ibuf 
+#include "BKE_image.h"   // BKE_imbuf_write 
 #include "BKE_texture.h"
 
 

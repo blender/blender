@@ -1104,7 +1104,7 @@ static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, c
 		/* ... xxx, the other vars don't need to be filled in */
 		
 		/* get the group to use */
-		agrp= action_groups_find_named(&tmp_act, grpname);
+		agrp= BKE_action_group_find_name(&tmp_act, grpname);
 		/* no matching group, so add one */
 		if (agrp == NULL) {
 			/* Add a new group, and make it active */

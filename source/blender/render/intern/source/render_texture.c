@@ -100,7 +100,7 @@ static void init_render_texture(Render *re, Tex *tex)
 	
 	/* imap test */
 	if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-		BKE_image_user_calc_frame(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
+		BKE_image_user_frame_calc(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
 	}
 	
 	if (tex->type==TEX_PLUGIN) {
@@ -1214,7 +1214,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	case TEX_IMAGE:
 		if (osatex) retval= imagewraposa(tex, tex->ima, NULL, texvec, dxt, dyt, texres);
 		else retval= imagewrap(tex, tex->ima, NULL, texvec, texres); 
-		tag_image_time(tex->ima); /* tag image as having being used */
+		BKE_image_tag_time(tex->ima); /* tag image as having being used */
 		break;
 	case TEX_PLUGIN:
 		retval= plugintex(tex, texvec, dxt, dyt, osatex, texres);
@@ -3625,7 +3625,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 			/* update image sequences and movies */
 			if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				if (tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_frame(&tex->iuser, (int)scene->r.cfra, 0);
+					BKE_image_user_frame_calc(&tex->iuser, (int)scene->r.cfra, 0);
 			}
 		}
 	}

@@ -1176,7 +1176,7 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 			
 			copy_v3_v3(vec, ob->obmat[3]);
 			if (ob->type == OB_ARMATURE && v3d->ob_centre_bone[0]) {
-				bPoseChannel *pchan = get_pose_channel(ob->pose, v3d->ob_centre_bone);
+				bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, v3d->ob_centre_bone);
 				if (pchan) {
 					copy_v3_v3(vec, pchan->pose_mat[3]);
 					mul_m4_v3(ob->obmat, vec);

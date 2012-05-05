@@ -381,7 +381,7 @@ void multires_force_update(Object *ob)
 
 void multires_force_external_reload(Object *ob)
 {
-	Mesh *me = get_mesh(ob);
+	Mesh *me = BKE_mesh_from_object(ob);
 
 	CustomData_external_reload(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
 	multires_force_update(ob);
@@ -650,7 +650,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 /* direction=1 for delete higher, direction=0 for lower (not implemented yet) */
 void multiresModifier_del_levels(MultiresModifierData *mmd, Object *ob, int direction)
 {
-	Mesh *me = get_mesh(ob);
+	Mesh *me = BKE_mesh_from_object(ob);
 	int lvl = multires_get_level(ob, mmd, 0);
 	int levels = mmd->totlvl - lvl;
 	MDisps *mdisps;
@@ -717,7 +717,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 
 	multires_force_update(ob);
 
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	totlvl = mmd->totlvl;
 
 	/* nothing to do */

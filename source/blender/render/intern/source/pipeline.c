@@ -2090,7 +2090,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		else {
 			ImBuf *ibuf= render_result_rect_to_ibuf(&rres, &scene->r);
 
-			ok= BKE_write_ibuf_stamp(scene, camera, ibuf, name, &scene->r.im_format);
+			ok= BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
 			
 			if (ok==0) {
 				printf("Render error: cannot save %s\n", name);
@@ -2106,7 +2106,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 					name[strlen(name)-4]= 0;
 				BKE_add_image_extension(name, R_IMF_IMTYPE_JPEG90);
 				ibuf->planes= 24;
-				BKE_write_ibuf_stamp(scene, camera, ibuf, name, &imf);
+				BKE_imbuf_write_stamp(scene, camera, ibuf, name, &imf);
 				printf("\nSaved: %s", name);
 			}
 			
@@ -2455,7 +2455,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 	BLI_strncpy(filepath, relpath, sizeof(filepath));
 	BLI_path_abs(filepath, G.main->name);
 
-	ok= BKE_write_ibuf(ibuf, filepath, &imf);
+	ok= BKE_imbuf_write(ibuf, filepath, &imf);
 
 	IMB_freeImBuf(ibuf);
 

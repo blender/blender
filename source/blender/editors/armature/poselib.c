@@ -786,7 +786,7 @@ static void poselib_backup_posecopy (tPoseLib_PreviewData *pld)
 	/* for each posechannel that has an actionchannel in */
 	for (agrp= pld->act->groups.first; agrp; agrp= agrp->next) {
 		/* try to find posechannel */
-		pchan= get_pose_channel(pld->pose, agrp->name);
+		pchan= BKE_pose_channel_find_name(pld->pose, agrp->name);
 		
 		/* backup data if available */
 		if (pchan) {
@@ -885,7 +885,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 		/* check if group has any keyframes */
 		if (ANIM_animchanneldata_keyframes_loop(&ked, NULL, agrp, ALE_GROUP, NULL, group_ok_cb, NULL)) {
 			/* has keyframe on this frame, so try to get a PoseChannel with this name */
-			pchan= get_pose_channel(pose, agrp->name);
+			pchan= BKE_pose_channel_find_name(pose, agrp->name);
 			
 			if (pchan) {	
 				short ok= 0;
@@ -927,7 +927,7 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 	/* start tagging/keying */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* only for selected bones unless there aren't any selected, in which case all are included  */
-		pchan= get_pose_channel(pose, agrp->name);
+		pchan= BKE_pose_channel_find_name(pose, agrp->name);
 		
 		if (pchan) {
 			if ( (pld->selcount == 0) || ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) ) {
@@ -987,7 +987,7 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 		if ((pld->arm->flag & ARM_DELAYDEFORM)==0)
 			DAG_id_tag_update(&pld->ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		else
-			where_is_pose(pld->scene, pld->ob);
+			BKE_pose_where_is(pld->scene, pld->ob);
 	}
 	
 	/* do header print - if interactively previewing */
@@ -1495,7 +1495,7 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 		if ((arm->flag & ARM_DELAYDEFORM)==0)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		else
-			where_is_pose(scene, ob);
+			BKE_pose_where_is(scene, ob);
 		
 	}
 	else if (pld->state == PL_PREVIEW_CONFIRM) {
@@ -1514,7 +1514,7 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 			//remake_action_ipos(ob->action);
 		}
 		else
-			where_is_pose(scene, ob);
+			BKE_pose_where_is(scene, ob);
 	}
 	
 	/* free memory used for backups and searching */

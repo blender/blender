@@ -548,7 +548,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 		BKE_object_where_is_calc(scene, ob);
 		if (ob->type == OB_ARMATURE) {
-			where_is_pose(scene, ob); /* needed for bone parents */
+			BKE_pose_where_is(scene, ob); /* needed for bone parents */
 		}
 
 		ignore_parent_tx(bmain, scene, ob);
@@ -855,7 +855,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					/* do_inverse_offset= TRUE; */ /* docenter_armature() handles this */
 
 					BKE_object_where_is_calc(scene, ob);
-					where_is_pose(scene, ob); /* needed for bone parents */
+					BKE_pose_where_is(scene, ob); /* needed for bone parents */
 
 					ignore_parent_tx(bmain, scene, ob);
 
@@ -895,7 +895,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				BKE_object_where_is_calc(scene, ob);
 				if (ob->type == OB_ARMATURE) {
-					where_is_pose(scene, ob); /* needed for bone parents */
+					BKE_pose_where_is(scene, ob); /* needed for bone parents */
 				}
 
 				ignore_parent_tx(bmain, scene, ob);
@@ -917,7 +917,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 						BKE_object_where_is_calc(scene, ob_other);
 						if (ob_other->type == OB_ARMATURE) {
-							where_is_pose(scene, ob_other); /* needed for bone parents */
+							BKE_pose_where_is(scene, ob_other); /* needed for bone parents */
 						}
 						ignore_parent_tx(bmain, scene, ob_other);
 					}

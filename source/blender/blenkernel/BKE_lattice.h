@@ -41,8 +41,8 @@ struct DerivedMesh;
 struct BPoint;
 struct MDeformVert;
 
-void resizelattice(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
-struct Lattice *add_lattice(const char *name);
+void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
+struct Lattice *BKE_lattice_add(const char *name);
 struct Lattice *BKE_lattice_copy(struct Lattice *lt);
 void BKE_lattice_free(struct Lattice *lt);
 void BKE_lattice_make_local(struct Lattice *lt);
@@ -69,11 +69,11 @@ void armature_deform_verts(struct Object *armOb, struct Object *target,
                            float (*defMats)[3][3], int numVerts, int deformflag,
                            float (*prevCos)[3], const char *defgrp_name);
 
-float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3];
-void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3]);
-void lattice_calc_modifiers(struct Scene *scene, struct Object *ob);
+float (*BKE_lattice_vertexcos_get(struct Object *ob, int *numVerts_r))[3];
+void    BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);
+void    BKE_lattice_modifiers_calc(struct Scene *scene, struct Object *ob);
 
-struct MDeformVert* lattice_get_deform_verts(struct Object *lattice);
+struct MDeformVert* BKE_lattice_deform_verts_get(struct Object *lattice);
 
 #endif
 

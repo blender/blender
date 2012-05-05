@@ -371,7 +371,7 @@ void AnimationExporter::sample_and_write_bone_animation_matrix(Object *ob_arm, B
 	}
 
 	if (!(fcu)) return; 
-	bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
+	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name);
 	if (!pchan)
 		return;
 
@@ -379,7 +379,7 @@ void AnimationExporter::sample_and_write_bone_animation_matrix(Object *ob_arm, B
 
 	if (flag & ARM_RESTPOS) {
 		arm->flag &= ~ARM_RESTPOS;
-		where_is_pose(scene, ob_arm);
+		BKE_pose_where_is(scene, ob_arm);
 	}
 
 	if (fra.size()) {
@@ -388,7 +388,7 @@ void AnimationExporter::sample_and_write_bone_animation_matrix(Object *ob_arm, B
 
 	if (flag & ARM_RESTPOS) 
 		arm->flag = flag;
-	where_is_pose(scene, ob_arm);
+	BKE_pose_where_is(scene, ob_arm);
 }
 
 void AnimationExporter::dae_baked_animation(std::vector<float> &fra, Object *ob_arm, Bone *bone)
@@ -739,7 +739,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 	bPoseChannel *pchan = NULL;
 	bPose *pose = ob_arm->pose;
 
-	pchan = get_pose_channel(pose, bone->name);
+	pchan = BKE_pose_channel_find_name(pose, bone->name);
 
 	if (!pchan)
 		return "";
@@ -756,7 +756,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 		float ctime = BKE_scene_frame_get_from_ctime(scene, *it);
 
 		BKE_animsys_evaluate_animdata(scene, &ob_arm->id, ob_arm->adt, ctime, ADT_RECALC_ANIM);
-		where_is_pose_bone(scene, ob_arm, pchan, ctime, 1);
+		BKE_pose_where_is_bone(scene, ob_arm, pchan, ctime, 1);
 
 		// compute bone local mat
 		if (bone->parent) {
@@ -1206,7 +1206,7 @@ void AnimationExporter::sample_and_write_bone_animation(Object *ob_arm, Bone *bo
 
 	BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone->name);
 
-	bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
+	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name);
 	if (!pchan)
 		return;
 	//Fill frame array with key frame values framed at \param:transform_type
@@ -1227,7 +1227,7 @@ void AnimationExporter::sample_and_write_bone_animation(Object *ob_arm, Bone *bo
 	// exit rest position
 	if (flag & ARM_RESTPOS) {
 		arm->flag &= ~ARM_RESTPOS;
-		where_is_pose(scene, ob_arm);
+		BKE_pose_where_is(scene, ob_arm);
 	}
 	//v array will hold all values which will be exported. 
 	if (fra.size()) {
@@ -1257,7 +1257,7 @@ void AnimationExporter::sample_and_write_bone_animation(Object *ob_arm, Bone *bo
 	// restore restpos
 	if (flag & ARM_RESTPOS) 
 		arm->flag = flag;
-	where_is_pose(scene, ob_arm);
+	BKE_pose_where_is(scene, ob_arm);
 }
 
 void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pchan)
@@ -1265,7 +1265,7 @@ void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, i
 	bPoseChannel *parchan = NULL;
 	bPose *pose = ob_arm->pose;
 
-	pchan = get_pose_channel(pose, bone->name);
+	pchan = BKE_pose_channel_find_name(pose, bone->name);
 
 	if (!pchan)
 		return;
@@ -1282,7 +1282,7 @@ void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, i
 
 
 		BKE_animsys_evaluate_animdata(scene, &ob_arm->id, ob_arm->adt, ctime, ADT_RECALC_ANIM);
-		where_is_pose_bone(scene, ob_arm, pchan, ctime, 1);
+		BKE_pose_where_is_bone(scene, ob_arm, pchan, ctime, 1);
 
 		// compute bone local mat
 		if (bone->parent) {

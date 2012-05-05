@@ -1544,7 +1544,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 				ima = bgpic->ima;
 				if (ima == NULL)
 					continue;
-				BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
+				BKE_image_user_frame_calc(&bgpic->iuser, CFRA, 0);
 				ibuf = BKE_image_get_ibuf(ima, &bgpic->iuser);
 			}
 			else {

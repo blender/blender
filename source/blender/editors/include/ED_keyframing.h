@@ -190,7 +190,7 @@ int ANIM_apply_keyingset(struct bContext *C, ListBase *dsources, struct bAction 
 struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, const char name[]);
 
 /* Find KeyingSet type info given a name */
-KeyingSetInfo *ANIM_keyingset_info_find_named(const char name[]);
+KeyingSetInfo *ANIM_keyingset_info_find_name(const char name[]);
 
 /* for RNA type registrations... */
 void ANIM_keyingset_info_register(KeyingSetInfo *ksi);

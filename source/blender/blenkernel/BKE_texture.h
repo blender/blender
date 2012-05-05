@@ -81,7 +81,7 @@ struct MTex *add_mtex(void);
 struct MTex *add_mtex_id(struct ID *id, int slot);
 struct Tex *BKE_texture_copy(struct Tex *tex);
 struct Tex *localize_texture(struct Tex *tex);
-void make_local_texture(struct Tex *tex);
+void BKE_texture_make_local(struct Tex *tex);
 void autotexname(struct Tex *tex);
 
 struct Tex *give_current_object_texture(struct Object *ob);

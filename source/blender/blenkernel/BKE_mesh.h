@@ -120,7 +120,7 @@ void mesh_flush_hidden_from_verts(const struct MVert *mvert,
 
 void unlink_mesh(struct Mesh *me);
 void BKE_mesh_free(struct Mesh *me, int unlink);
-struct Mesh *add_mesh(const char *name);
+struct Mesh *BKE_mesh_add(const char *name);
 struct Mesh *BKE_mesh_copy(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me, const short do_ensure_tess_cd);
 
@@ -130,7 +130,7 @@ void tex_space_mesh(struct Mesh *me);
 float *get_mesh_orco_verts(struct Object *ob);
 void transform_mesh_orco_verts(struct Mesh *me, float (*orco)[3], int totvert, int invert);
 int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
-struct Mesh *get_mesh(struct Object *ob);
+struct Mesh *BKE_mesh_from_object(struct Object *ob);
 void set_mesh(struct Object *ob, struct Mesh *me);
 void mball_to_mesh(struct ListBase *lb, struct Mesh *me);
 int nurbs_to_mdata(struct Object *ob, struct MVert **allvert, int *totvert,

@@ -1499,7 +1499,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				mb = newob->data;
 				mb->id.us--;
 
-				newob->data = add_mesh("Mesh");
+				newob->data = BKE_mesh_add("Mesh");
 				newob->type = OB_MESH;
 
 				me = newob->data;
@@ -1761,7 +1761,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					ID_NEW_US2(obn->data)
 					else {
 						obn->data = BKE_armature_copy(obn->data);
-						armature_rebuild_pose(obn, obn->data);
+						BKE_pose_rebuild(obn, obn->data);
 						didit = 1;
 					}
 					id->us--;
@@ -1954,7 +1954,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 
 	/* find object, create fake base */
 	RNA_string_get(op->ptr, "name", name);
-	ob = (Object *)find_id("OB", name);
+	ob = (Object *)BKE_libblock_find_name("OB", name);
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 

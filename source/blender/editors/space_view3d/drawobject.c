@@ -1971,7 +1971,7 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 
 	/* now we default make displist, this will modifiers work for non animated case */
 	if (ob->disp.first == NULL)
-		lattice_calc_modifiers(scene, ob);
+		BKE_lattice_modifiers_calc(scene, ob);
 	dl = find_displist(&ob->disp, DL_VERTS);
 	
 	if (is_edit) {
@@ -6168,7 +6168,7 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 		}
 	}
 	else if (ob->type == OB_ARMATURE) {
-		bb = BKE_armature_get_bb(ob);
+		bb = BKE_armature_boundbox_get(ob);
 	}
 	else {
 		drawcube();

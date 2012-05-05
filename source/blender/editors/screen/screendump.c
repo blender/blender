@@ -190,7 +190,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 				/* bw screenshot? - users will notice if it fails! */
 				IMB_color_to_bw(ibuf);
 			}
-			BKE_write_ibuf(ibuf, path, &scd->im_format);
+			BKE_imbuf_write(ibuf, path, &scd->im_format);
 
 			IMB_freeImBuf(ibuf);
 		}
@@ -357,7 +357,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				BKE_makepicstring(name, rd.pic, sj->bmain->name, rd.cfra, rd.im_format.imtype, rd.scemode & R_EXTENSION, TRUE);
 				
 				ibuf->rect= sj->dumprect;
-				ok= BKE_write_ibuf(ibuf, name, &rd.im_format);
+				ok= BKE_imbuf_write(ibuf, name, &rd.im_format);
 				
 				if (ok==0) {
 					printf("Write error: cannot save %s\n", name);

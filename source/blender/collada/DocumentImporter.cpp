@@ -572,7 +572,7 @@ bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat )
 		return true;
 		
 	const std::string& str_mat_id = cmat->getName().size() ? cmat->getName() : cmat->getOriginalId();
-	Material *ma = add_material((char*)str_mat_id.c_str());
+	Material *ma = BKE_material_add((char*)str_mat_id.c_str());
 	
 	this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
 	this->uid_material_map[cmat->getUniqueId()] = ma;
@@ -949,8 +949,8 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 
 	la_id = light->getOriginalId();
 	la_name = light->getName();
-	if (la_name.size()) lamp = (Lamp*)add_lamp((char*)la_name.c_str());
-	else lamp = (Lamp*)add_lamp((char*)la_id.c_str());
+	if (la_name.size()) lamp = (Lamp*)BKE_lamp_add((char*)la_name.c_str());
+	else lamp = (Lamp*)BKE_lamp_add((char*)la_id.c_str());
 
 	if (!lamp) {
 		fprintf(stderr, "Cannot create lamp.\n");

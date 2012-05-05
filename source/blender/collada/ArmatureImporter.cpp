@@ -321,7 +321,7 @@ void ArmatureImporter::set_leaf_bone_shapes(Object *ob_arm)
 	for (it = leaf_bones.begin(); it != leaf_bones.end(); it++) {
 		LeafBone& leaf = *it;
 
-		bPoseChannel *pchan = get_pose_channel(pose, leaf.name);
+		bPoseChannel *pchan = BKE_pose_channel_find_name(pose, leaf.name);
 		if (pchan) {
 			pchan->custom = get_empty_for_leaves();
 		}
@@ -499,7 +499,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
 	for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
 		SkinInfo *b = &it->second;
-		if (b == a || b->get_armature() == NULL)
+		if (b == a || b->BKE_armature_from_object() == NULL)
 			continue;
 
 		skin_root_joints.clear();
@@ -509,7 +509,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 		std::vector<COLLADAFW::Node*>::iterator ri;
 		for (ri = skin_root_joints.begin(); ri != skin_root_joints.end(); ri++) {
 			if (a->uses_joint_or_descendant(*ri)) {
-				shared = b->get_armature();
+				shared = b->BKE_armature_from_object();
 				break;
 			}
 		}
@@ -582,13 +582,13 @@ void ArmatureImporter::set_pose(Object * ob_arm,  COLLADAFW::Node * root_node, c
 	get_node_mat(obmat, root_node, NULL, NULL);
 
 	//if (*edbone)
-	bPoseChannel * pchan  = get_pose_channel(ob_arm -> pose, bone_name);
+	bPoseChannel * pchan  = BKE_pose_channel_find_name(ob_arm -> pose, bone_name);
 	//else fprintf ( "",
 
 	// get world-space
 	if (parentname) {
 		mult_m4_m4m4(mat, parent_mat, obmat);
-		bPoseChannel *parchan = get_pose_channel(ob_arm->pose, parentname);
+		bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, parentname);
 
 		mult_m4_m4m4(pchan->pose_mat, parchan->pose_mat, mat );
 
@@ -660,7 +660,7 @@ void ArmatureImporter::make_armatures(bContext *C)
 		// set armature parent if any
 		Object *par = skin.get_parent();
 		if (par)
-			bc_set_parent(skin.get_armature(), par, C, false);
+			bc_set_parent(skin.BKE_armature_from_object(), par, C, false);
 
 		// free memory stolen from SkinControllerData
 		skin.free();
@@ -761,7 +761,7 @@ Object *ArmatureImporter::get_armature_for_joint(COLLADAFW::Node *node)
 		SkinInfo& skin = it->second;
 
 		if (skin.uses_joint_or_descendant(node))
-			return skin.get_armature();
+			return skin.BKE_armature_from_object();
 	}
 
 	std::map<COLLADAFW::UniqueId, Object*>::iterator arm;

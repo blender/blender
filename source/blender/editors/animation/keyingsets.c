@@ -531,7 +531,7 @@ ListBase builtin_keyingsets = {NULL, NULL};
 /* --------------- */
 
 /* Find KeyingSet type info given a name */
-KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[])
+KeyingSetInfo *ANIM_keyingset_info_find_name (const char name[])
 {
 	/* sanity checks */
 	if ((name == NULL) || (name[0] == 0))
@@ -786,7 +786,7 @@ EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(p
 short ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
 {
 	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
-		KeyingSetInfo *ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
+		KeyingSetInfo *ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
 		
 		/* get the associated 'type info' for this KeyingSet */
 		if (ksi == NULL)
@@ -868,7 +868,7 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 	
 	/* if relative Keying Sets, poll and build up the paths */
 	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
-		KeyingSetInfo *ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
+		KeyingSetInfo *ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
 		
 		/* clear all existing paths 
 		 * NOTE: BKE_keyingset_free() frees all of the paths for the KeyingSet, but not the set itself

@@ -1369,7 +1369,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 			dm->release(dm);
 		}
 		else if (ob->type == OB_LATTICE) {
-			lattice_calc_modifiers(scene, ob);
+			BKE_lattice_modifiers_calc(scene, ob);
 		}
 		else if (ob->type == OB_MBALL) {
 			makeDispListMBall(scene, ob);

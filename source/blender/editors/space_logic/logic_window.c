@@ -1084,7 +1084,7 @@ static void get_armature_bone_constraint(Object *ob, const char *posechannel, co
 {
 	/* check that bone exist in the active object */
 	if (ob->type == OB_ARMATURE && ob->pose) {
-		bPoseChannel *pchan= get_pose_channel(ob->pose, posechannel);
+		bPoseChannel *pchan= BKE_pose_channel_find_name(ob->pose, posechannel);
 		if (pchan) {
 			bConstraint *con= BLI_findstring(&pchan->constraints, constraint_name, offsetof(bConstraint, name));
 			if (con) {

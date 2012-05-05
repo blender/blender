@@ -355,7 +355,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		if (GS(id->name) == ID_CU)
 			BKE_curve_type_test(ob);
 		else if (ob->type == OB_ARMATURE)
-			armature_rebuild_pose(ob, ob->data);
+			BKE_pose_rebuild(ob, ob->data);
 	}
 }
 

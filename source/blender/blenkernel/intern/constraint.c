@@ -308,7 +308,7 @@ void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4]
 				/* pose to local */
 				else if (to == CONSTRAINT_SPACE_LOCAL) {
 					if (pchan->bone) {
-						armature_mat_pose_to_bone(pchan, mat, mat);
+						BKE_armature_mat_pose_to_bone(pchan, mat, mat);
 #if 0  /* XXX Old code, will remove it later. */
 						constraint_pchan_diff_mat(pchan, diff_mat);
 
@@ -317,7 +317,7 @@ void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4]
 
 						/* override with local location */
 						if ((pchan->parent) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION)) {
-							armature_mat_pose_to_bone_ex(ob, pchan, pchan->pose_mat, tempmat);
+							BKE_armature_mat_pose_to_bone_ex(ob, pchan, pchan->pose_mat, tempmat);
 							copy_v3_v3(mat[3], tempmat[3]);
 						}
 #endif
@@ -337,7 +337,7 @@ void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4]
 				/* local to pose - do inverse procedure that was done for pose to local */
 				if (pchan->bone) {
 					/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
-					armature_mat_bone_to_pose(pchan, mat, mat);
+					BKE_armature_mat_bone_to_pose(pchan, mat, mat);
 #if 0
 					constraint_pchan_diff_mat(pchan, diff_mat);
 
@@ -593,7 +593,7 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 	else {
 		bPoseChannel *pchan;
 		
-		pchan = get_pose_channel(ob->pose, substring);
+		pchan = BKE_pose_channel_find_name(ob->pose, substring);
 		if (pchan) {
 			/* Multiply the PoseSpace accumulation/final matrix for this
 			 * PoseChannel by the Armature Object's Matrix to get a worldspace
@@ -687,7 +687,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bC
 		 \
 		if (ct->tar) { \
 			if ((ct->tar->type==OB_ARMATURE) && (ct->subtarget[0])) { \
-				bPoseChannel *pchan= get_pose_channel(ct->tar->pose, ct->subtarget); \
+				bPoseChannel *pchan= BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget); \
 				ct->type = CONSTRAINT_OBTYPE_BONE; \
 				ct->rotOrder= (pchan) ? (pchan->rotmode) : EULER_ORDER_DEFAULT; \
 			}\
@@ -2199,18 +2199,18 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			 */
 			pchan = cob->pchan;
 			
-			tchan= verify_pose_channel(pose, pchan->name);
+			tchan= BKE_pose_channel_verify(pose, pchan->name);
 			tchan->rotmode= pchan->rotmode;
 			
 			/* evaluate action using workob (it will only set the PoseChannel in question) */
 			what_does_obaction(cob->ob, &workob, pose, data->act, pchan->name, t);
 			
 			/* convert animation to matrices for use here */
-			pchan_calc_mat(tchan);
+			BKE_pchan_calc_mat(tchan);
 			copy_m4_m4(ct->matrix, tchan->chan_mat);
 			
 			/* Clean up */
-			free_pose(pose);
+			BKE_pose_free(pose);
 		}
 		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
 			Object workob;
@@ -4542,7 +4542,7 @@ static void con_extern_cb(bConstraint *UNUSED(con), ID **idpoin, short UNUSED(is
 }
 
 /* helper for copy_constraints(), to be used for making sure that usercounts of copied ID's are fixed up */
-static void con_fix_copied_refs_cb(bConstraint *con, ID **idpoin, short isReference, void *UNUSED(userData))
+static void con_fix_copied_refs_cb(bConstraint *UNUSED(con), ID **idpoin, short isReference, void *UNUSED(userData))
 {
 	/* increment usercount if this is a reference type */
 	if ((*idpoin) && (isReference))

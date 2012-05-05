@@ -33,9 +33,9 @@
  *  \brief General operations for speakers.
  */
 
-void *add_speaker(const char *name);
+void *BKE_speaker_add(const char *name);
 struct Speaker *BKE_speaker_copy(struct Speaker *spk);
-void make_local_speaker(struct Speaker *spk);
+void BKE_speaker_make_local(struct Speaker *spk);
 void BKE_speaker_free(struct Speaker *spk);
 
 #endif

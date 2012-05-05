@@ -321,7 +321,7 @@ void BKE_object_free(Object *ob)
 	if (ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if (ob->pose)
-		free_pose(ob->pose);
+		BKE_pose_free(ob->pose);
 	if (ob->mpath)
 		animviz_free_motionpath(ob->mpath);
 	free_properties(&ob->prop);
@@ -730,17 +730,17 @@ int BKE_object_exists_check(Object *obtest)
 void *BKE_object_obdata_add_from_type(int type)
 {
 	switch (type) {
-	case OB_MESH: return add_mesh("Mesh");
-	case OB_CURVE: return BKE_curve_add("Curve", OB_CURVE);
-	case OB_SURF: return BKE_curve_add("Surf", OB_SURF);
-	case OB_FONT: return BKE_curve_add("Text", OB_FONT);
-	case OB_MBALL: return BKE_metaball_add("Meta");
-	case OB_CAMERA: return BKE_camera_add("Camera");
-	case OB_LAMP: return add_lamp("Lamp");
-	case OB_LATTICE: return add_lattice("Lattice");
-	case OB_ARMATURE: return add_armature("Armature");
-	case OB_SPEAKER: return add_speaker("Speaker");
-	case OB_EMPTY: return NULL;
+	case OB_MESH:      return BKE_mesh_add("Mesh");
+	case OB_CURVE:     return BKE_curve_add("Curve", OB_CURVE);
+	case OB_SURF:      return BKE_curve_add("Surf", OB_SURF);
+	case OB_FONT:      return BKE_curve_add("Text", OB_FONT);
+	case OB_MBALL:     return BKE_metaball_add("Meta");
+	case OB_CAMERA:    return BKE_camera_add("Camera");
+	case OB_LAMP:      return BKE_lamp_add("Lamp");
+	case OB_LATTICE:   return BKE_lattice_add("Lattice");
+	case OB_ARMATURE:  return BKE_armature_add("Armature");
+	case OB_SPEAKER:   return BKE_speaker_add("Speaker");
+	case OB_EMPTY:     return NULL;
 	default:
 		printf("BKE_object_obdata_add_from_type: Internal error, bad type: %d\n", type);
 		return NULL;
@@ -1027,9 +1027,9 @@ static void copy_object_pose(Object *obn, Object *ob)
 {
 	bPoseChannel *chan;
 	
-	/* note: need to clear obn->pose pointer first, so that copy_pose works (otherwise there's a crash) */
+	/* note: need to clear obn->pose pointer first, so that BKE_pose_copy_data works (otherwise there's a crash) */
 	obn->pose= NULL;
-	copy_pose(&obn->pose, ob->pose, 1);	/* 1 = copy constraints */
+	BKE_pose_copy_data(&obn->pose, ob->pose, 1);	/* 1 = copy constraints */
 
 	for (chan = obn->pose->chanbase.first; chan; chan=chan->next) {
 		bConstraint *con;
@@ -1134,7 +1134,7 @@ Object *BKE_object_copy(Object *ob)
 		copy_object_pose(obn, ob);
 		/* backwards compat... non-armatures can get poses in older files? */
 		if (ob->type==OB_ARMATURE)
-			armature_rebuild_pose(obn, obn->data);
+			BKE_pose_rebuild(obn, obn->data);
 	}
 	defgroup_copy_list(&obn->defbase, &ob->defbase);
 	copy_constraints(&obn->constraints, &ob->constraints, TRUE);
@@ -1400,8 +1400,8 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 	/* type conversions */
 	if (target->type == OB_ARMATURE) {
 		copy_object_pose(ob, target);	/* data copy, object pointers in constraints */
-		rest_pose(ob->pose);			/* clear all transforms in channels */
-		armature_rebuild_pose(ob, ob->data);	/* set all internal links */
+		BKE_pose_rest(ob->pose);			/* clear all transforms in channels */
+		BKE_pose_rebuild(ob, ob->data);	/* set all internal links */
 		
 		armature_set_id_extern(ob);
 	}
@@ -1570,7 +1570,7 @@ void BKE_object_tfm_protected_restore(Object *ob,
 	}
 }
 
-/* see pchan_apply_mat4() for the equivalent 'pchan' function */
+/* see BKE_pchan_apply_mat4() for the equivalent 'pchan' function */
 void BKE_object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const short use_parent)
 {
 	float rot[3][3];
@@ -1723,7 +1723,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 	}
 	
 	/* Make sure the bone is still valid */
-	pchan= get_pose_channel(par->pose, ob->parsubstr);
+	pchan= BKE_pose_channel_find_name(par->pose, ob->parsubstr);
 	if (!pchan) {
 		printf ("Object %s with Bone parent: bone %s doesn't exist\n", ob->id.name+2, ob->parsubstr);
 		unit_m4(mat);
@@ -2295,7 +2295,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 		break;
 	case OB_MESH:
 		{
-			Mesh *me= get_mesh(ob);
+			Mesh *me= BKE_mesh_from_object(ob);
 
 			if (me) {
 				bb = *mesh_get_bb(ob);
@@ -2499,7 +2499,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 	if (ob->recalc & OB_RECALC_ALL) {
 		/* speed optimization for animation lookups */
 		if (ob->pose)
-			make_pose_channels_hash(ob->pose);
+			BKE_pose_channels_hash_make(ob->pose);
 
 		if (ob->recalc & OB_RECALC_DATA) {
 			if (ob->type==OB_ARMATURE) {
@@ -2508,7 +2508,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 				 * is evaluated on the rebuilt pose, otherwise we get incorrect poses
 				 * on file load */
 				if (ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
-					armature_rebuild_pose(ob, ob->data);
+					BKE_pose_rebuild(ob, ob->data);
 			}
 		}
 
@@ -2585,10 +2585,10 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 			case OB_ARMATURE:
 				if (ob->id.lib && ob->proxy_from) {
 					// printf("pose proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
-					copy_pose_result(ob->pose, ob->proxy_from->pose);
+					BKE_pose_copy_result(ob->pose, ob->proxy_from->pose);
 				}
 				else {
-					where_is_pose(scene, ob);
+					BKE_pose_where_is(scene, ob);
 				}
 				break;
 
@@ -2603,7 +2603,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 				break;
 				
 			case OB_LATTICE:
-				lattice_calc_modifiers(scene, ob);
+				BKE_lattice_modifiers_calc(scene, ob);
 				break;
 			}
 

@@ -714,7 +714,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap, int alphablend)
 	gpu_verify_repeat(ima);
 	
 	/* Did this get lost in the image recode? */
-	/* tag_image_time(ima);*/
+	/* BKE_image_tag_time(ima);*/
 
 	return 1;
 }

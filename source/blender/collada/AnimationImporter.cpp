@@ -206,7 +206,7 @@ void AnimationImporter::add_fcurves_to_object(Object *ob, std::vector<FCurve*>& 
 			
 			if (bone_name) {
 				/* try to find group */
-				grp = action_groups_find_named(act, bone_name);
+				grp = BKE_action_group_find_name(act, bone_name);
 				
 				/* no matching groups, so add one */
 				if (grp == NULL) {
@@ -361,7 +361,7 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 			create_fcurve(3, rna_path)
 		};
 
-		bPoseChannel *chan = get_pose_channel(ob->pose, grp->name);
+		bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, grp->name);
 
 		float m4[4][4], irest[3][3];
 		invert_m4_m4(m4, chan->bone->arm_mat);
@@ -670,7 +670,7 @@ void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& 
 		get_joint_rest_mat(irest_dae, root, node);
 		invert_m4(irest_dae);
 
-		Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
+		Bone *bone = BKE_armature_find_bone_name((bArmature*)ob->data, bone_name);
 		if (!bone) {
 			fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
 			return;
@@ -784,7 +784,7 @@ void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& 
 	}
 
 	if (is_joint) {
-		bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+		bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, bone_name);
 		chan->rotmode = ROT_MODE_QUAT;
 	}
 	else {
@@ -1025,7 +1025,7 @@ void AnimationImporter::add_bone_animation_sampled(Object * ob, std::vector<FCur
 	get_joint_rest_mat(irest_dae, root, node);
 	invert_m4(irest_dae);
 
-	Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
+	Bone *bone = BKE_armature_find_bone_name((bArmature*)ob->data, bone_name);
 	if (!bone) {
 		fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
 		return;
@@ -1123,7 +1123,7 @@ void AnimationImporter::add_bone_animation_sampled(Object * ob, std::vector<FCur
 		add_bone_fcurve(ob, node, newcu[i]);
 	}
 
-	bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+	bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, bone_name);
 	chan->rotmode = ROT_MODE_QUAT;
 
 }
@@ -1307,7 +1307,7 @@ Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
 		get_joint_rest_mat(irest_dae, root, node);
 		invert_m4(irest_dae);
 
-		Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
+		Bone *bone = BKE_armature_find_bone_name((bArmature*)ob->data, bone_name);
 		if (!bone) {
 			fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
 			return NULL;
@@ -1515,7 +1515,7 @@ Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
 
 	if (is_rotation || is_matrix) {
 		if (is_joint) {
-			bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+			bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, bone_name);
 			chan->rotmode = ROT_MODE_QUAT;
 		}
 		else {
@@ -1849,7 +1849,7 @@ void AnimationImporter::add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurv
 	bAction *act = ob->adt->action;
 			
 	/* try to find group */
-	bActionGroup *grp = action_groups_find_named(act, bone_name);
+	bActionGroup *grp = BKE_action_group_find_name(act, bone_name);
 
 	/* no matching groups, so add one */
 	if (grp == NULL) {

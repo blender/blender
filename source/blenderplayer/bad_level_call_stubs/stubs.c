@@ -267,7 +267,7 @@ struct EditMesh;
 struct FCurve *verify_fcurve (struct bAction *act, const char group[], const char rna_path[], const int array_index, short add){return (struct FCurve *) NULL;}
 int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag){return 0;}
 void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc){}
-struct KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[]){return (struct KeyingSetInfo *) NULL;}
+struct KeyingSetInfo *ANIM_keyingset_info_find_name (const char name[]){return (struct KeyingSetInfo *) NULL;}
 struct KeyingSet *ANIM_scene_get_active_keyingset (struct Scene *scene){return (struct KeyingSet *) NULL;}
 int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks){return 0;}
 struct ListBase builtin_keyingsets;

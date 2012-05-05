@@ -83,7 +83,7 @@ void calc_lat_fudu(int flag, int res, float *fu, float *du)
 	}
 }
 
-void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
+void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 {
 	BPoint *bp;
 	int i, u, v, w;
@@ -184,7 +184,7 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 	MEM_freeN(vertexCos);
 }
 
-Lattice *add_lattice(const char *name)
+Lattice *BKE_lattice_add(const char *name)
 {
 	Lattice *lt;
 	
@@ -195,7 +195,7 @@ Lattice *add_lattice(const char *name)
 	lt->typeu= lt->typev= lt->typew= KEY_BSPLINE;
 	
 	lt->def= MEM_callocN(sizeof(BPoint), "lattvert"); /* temporary */
-	resizelattice(lt, 2, 2, 2, NULL);	/* creates a uniform lattice */
+	BKE_lattice_resize(lt, 2, 2, 2, NULL);	/* creates a uniform lattice */
 		
 	return lt;
 }
@@ -353,7 +353,7 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 	/* vgroup influence */
 	int defgroup_nr= -1;
 	float co_prev[3], weight_blend= 0.0f;
-	MDeformVert *dvert= lattice_get_deform_verts(ob);
+	MDeformVert *dvert= BKE_lattice_deform_verts_get(ob);
 
 
 	if (lt->editlatt) lt= lt->editlatt->latt;
@@ -928,7 +928,7 @@ void outside_lattice(Lattice *lt)
 	}
 }
 
-float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3]
+float (*BKE_lattice_vertexcos_get(struct Object *ob, int *numVerts_r))[3]
 {
 	Lattice *lt = ob->data;
 	int i, numVerts;
@@ -946,7 +946,7 @@ float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3]
 	return vertexCos;
 }
 
-void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3])
+void BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3])
 {
 	Lattice *lt = ob->data;
 	int i, numVerts = lt->pntsu*lt->pntsv*lt->pntsw;
@@ -956,7 +956,7 @@ void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3])
 	}
 }
 
-void lattice_calc_modifiers(Scene *scene, Object *ob)
+void BKE_lattice_modifiers_calc(Scene *scene, Object *ob)
 {
 	Lattice *lt= ob->data;
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
@@ -975,12 +975,12 @@ void lattice_calc_modifiers(Scene *scene, Object *ob)
 		if (mti->isDisabled && mti->isDisabled(md, 0)) continue;
 		if (mti->type!=eModifierTypeType_OnlyDeform) continue;
 
-		if (!vertexCos) vertexCos = lattice_getVertexCos(ob, &numVerts);
+		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob, &numVerts);
 		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
 	}
 
 	/* always displist to make this work like derivedmesh */
-	if (!vertexCos) vertexCos = lattice_getVertexCos(ob, &numVerts);
+	if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob, &numVerts);
 	
 	{
 		DispList *dl = MEM_callocN(sizeof(*dl), "lt_dl");
@@ -993,7 +993,7 @@ void lattice_calc_modifiers(Scene *scene, Object *ob)
 	}
 }
 
-struct MDeformVert* lattice_get_deform_verts(struct Object *oblatt)
+struct MDeformVert* BKE_lattice_deform_verts_get(struct Object *oblatt)
 {
 	Lattice *lt = (Lattice*)oblatt->data;
 	BLI_assert(oblatt->type == OB_LATTICE);

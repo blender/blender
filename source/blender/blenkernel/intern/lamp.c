@@ -51,7 +51,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
-void *add_lamp(const char *name)
+void *BKE_lamp_add(const char *name)
 {
 	Lamp *la;
 	
@@ -155,7 +155,7 @@ Lamp *localize_lamp(Lamp *la)
 	return lan;
 }
 
-void make_local_lamp(Lamp *la)
+void BKE_lamp_make_local(Lamp *la)
 {
 	Main *bmain= G.main;
 	Object *ob;

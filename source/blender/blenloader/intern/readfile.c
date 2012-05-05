@@ -2574,7 +2574,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 		
 		/* sync proxy active bone */
 		if (pose->proxy_act_bone[0]) {
-			Bone *bone = get_named_bone(arm, pose->proxy_act_bone);
+			Bone *bone = BKE_armature_find_bone_name(arm, pose->proxy_act_bone);
 			if (bone)
 				arm->act_bone = bone;
 		}
@@ -2584,7 +2584,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 		lib_link_constraints(fd, (ID *)ob, &pchan->constraints);
 		
 		/* hurms... loop in a loop, but yah... later... (ton) */
-		pchan->bone= get_named_bone(arm, pchan->name);
+		pchan->bone= BKE_armature_find_bone_name(arm, pchan->name);
 		
 		pchan->custom= newlibadr_us(fd, arm->id.lib, pchan->custom);
 		if (pchan->bone==NULL)
@@ -4096,7 +4096,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				warn= 1;
 
 				if (ob->pose) {
-					free_pose(ob->pose);
+					BKE_pose_free(ob->pose);
 					ob->pose= NULL;
 					ob->mode &= ~OB_MODE_POSE;
 				}

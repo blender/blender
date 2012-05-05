@@ -560,7 +560,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		RNA_string_get(op->ptr, "name", name);
-		ima = (Image *)find_id("IM", name);
+		ima = (Image *)BKE_libblock_find_name("IM", name);
 	}
 	
 	if (!ima) {

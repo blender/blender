@@ -178,7 +178,7 @@ bool SkinInfo::get_joint_inv_bind_matrix(float inv_bind_mat[][4], COLLADAFW::Nod
 	return false;
 }
 
-Object *SkinInfo::get_armature()
+Object *SkinInfo::BKE_armature_from_object()
 {
 	return ob_arm;
 }
@@ -288,7 +288,7 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 
 bPoseChannel *SkinInfo::get_pose_channel_from_node(COLLADAFW::Node *node)
 {
-	return get_pose_channel(ob_arm->pose, bc_get_joint_name(node));
+	return BKE_pose_channel_find_name(ob_arm->pose, bc_get_joint_name(node));
 }
 
 void SkinInfo::set_parent(Object *_parent)

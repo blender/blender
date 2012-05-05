@@ -2756,7 +2756,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 		ss->face_normals = NULL;
 	}
 	else {
-		Mesh *me = get_mesh(ob);
+		Mesh *me = BKE_mesh_from_object(ob);
 		ss->totvert = me->totvert;
 		ss->totpoly = me->totpoly;
 		ss->mvert = me->mvert;
@@ -2945,7 +2945,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 		
 		BLI_strncpy(cache->saved_active_brush_name, brush->id.name + 2, sizeof(cache->saved_active_brush_name));
 
-		br = (Brush *)find_id("BR", "Smooth");
+		br = (Brush *)BKE_libblock_find_name("BR", "Smooth");
 		if (br) {
 			paint_brush_set(p, br);
 			brush = br;
@@ -3508,7 +3508,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 		/* Alt-Smooth */
 		if (ss->cache->alt_smooth) {
 			Paint *p = &sd->paint;
-			brush = (Brush *)find_id("BR", ss->cache->saved_active_brush_name);
+			brush = (Brush *)BKE_libblock_find_name("BR", ss->cache->saved_active_brush_name);
 			if (brush) {
 				paint_brush_set(p, brush);
 			}

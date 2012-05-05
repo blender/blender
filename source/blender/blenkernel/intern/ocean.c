@@ -1251,18 +1251,18 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 
 		/* write the images */
 		cache_filename(string, och->bakepath, och->relbase, f, CACHE_TYPE_DISPLACE);
-		if (0 == BKE_write_ibuf(ibuf_disp, string, &imf))
+		if (0 == BKE_imbuf_write(ibuf_disp, string, &imf))
 			printf("Cannot save Displacement File Output to %s\n", string);
 
 		if (o->_do_jacobian) {
 			cache_filename(string, och->bakepath, och->relbase,  f, CACHE_TYPE_FOAM);
-			if (0 == BKE_write_ibuf(ibuf_foam, string, &imf))
+			if (0 == BKE_imbuf_write(ibuf_foam, string, &imf))
 				printf("Cannot save Foam File Output to %s\n", string);
 		}
 
 		if (o->_do_normals) {
 			cache_filename(string, och->bakepath,  och->relbase, f, CACHE_TYPE_NORMAL);
-			if (0 == BKE_write_ibuf(ibuf_normal, string, &imf))
+			if (0 == BKE_imbuf_write(ibuf_normal, string, &imf))
 				printf("Cannot save Normal File Output to %s\n", string);
 		}
 

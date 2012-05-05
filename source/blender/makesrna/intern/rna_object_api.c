@@ -131,7 +131,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		if (ob != basis_ob)
 			return NULL; /* only do basis metaball */
 
-		tmpmesh = add_mesh("Mesh");
+		tmpmesh = BKE_mesh_add("Mesh");
 			
 		if (render) {
 			ListBase disp = {NULL, NULL};
@@ -164,7 +164,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			else
 				dm = mesh_create_derived_view(sce, ob, mask);
 			
-			tmpmesh = add_mesh("Mesh");
+			tmpmesh = BKE_mesh_add("Mesh");
 			DM_to_mesh(dm, tmpmesh, ob);
 			dm->release(dm);
 		}

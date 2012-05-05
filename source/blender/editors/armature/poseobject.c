@@ -164,7 +164,7 @@ static int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan, int level)
 		}
 	}
 	for (bone= pchan->bone->childbase.first; bone; bone= bone->next) {
-		pchan= get_pose_channel(ob->pose, bone->name);
+		pchan= BKE_pose_channel_find_name(ob->pose, bone->name);
 		if (pchan && pose_channel_in_IK_chain(ob, pchan, level + 1))
 			return 1;
 	}
@@ -371,7 +371,7 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 					
 					for (ct= targets.first; ct; ct= ct->next) {
 						if ((ct->tar == ob) && (ct->subtarget[0])) {
-							bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
+							bPoseChannel *pchanc= BKE_pose_channel_find_name(ob->pose, ct->subtarget);
 							if ((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
 								pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 								found= 1;
@@ -650,7 +650,7 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
 				char *boneName = BLI_getQuotedStr(ksp->rna_path, "bones[");
 				
 				if (boneName) {
-					bPoseChannel *pchan = get_pose_channel(pose, boneName);
+					bPoseChannel *pchan = BKE_pose_channel_find_name(pose, boneName);
 					
 					if (pchan) {
 						/* select if bone is visible and can be affected */
@@ -751,7 +751,7 @@ static int pose_bone_flip_active_exec (bContext *C, wmOperator *UNUSED(op))
 			char name[MAXBONENAME];
 			flip_side_name(name, arm->act_bone->name, TRUE);
 
-			pchanf= get_pose_channel(ob->pose, name);
+			pchanf= BKE_pose_channel_find_name(ob->pose, name);
 			if (pchanf && pchanf->bone != arm->act_bone) {
 				arm->act_bone->flag &= ~BONE_SELECTED;
 				pchanf->bone->flag |= BONE_SELECTED;
@@ -805,7 +805,7 @@ static void pose_copy_menu(Scene *scene)
 	if (ELEM(NULL, ob, ob->pose)) return;
 	if ((ob==obedit) || (ob->mode & OB_MODE_POSE)==0) return;
 	
-	pchan= get_active_posechannel(ob);
+	pchan= BKE_pose_channel_active(ob);
 	
 	if (pchan==NULL) return;
 	pchanact= pchan;
@@ -891,13 +891,13 @@ static void pose_copy_menu(Scene *scene)
 						pchan->custom = pchanact->custom;
 						break;
 					case 9: /* Visual Location */
-						armature_loc_pose_to_bone(pchan, pchanact->pose_mat[3], pchan->loc);
+						BKE_armature_loc_pose_to_bone(pchan, pchanact->pose_mat[3], pchan->loc);
 						break;
 					case 10: /* Visual Rotation */
 					{
 						float delta_mat[4][4];
 						
-						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
+						BKE_armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
 						
 						if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 							float tmp_quat[4];
@@ -916,7 +916,7 @@ static void pose_copy_menu(Scene *scene)
 					{
 						float delta_mat[4][4], size[4];
 						
-						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
+						BKE_armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
 						mat4_to_size(size, delta_mat);
 						copy_v3_v3(pchan->size, size);
 					}
@@ -978,7 +978,7 @@ static void pose_copy_menu(Scene *scene)
 			}
 		}
 		BLI_freelistN(&const_copy);
-		update_pose_constraint_flags(ob->pose); /* we could work out the flags but its simpler to do this */
+		BKE_pose_update_constraint_flags(ob->pose); /* we could work out the flags but its simpler to do this */
 		
 		if (ob->pose)
 			ob->pose->flag |= POSE_RECALC;
@@ -1059,7 +1059,7 @@ static bPoseChannel *pose_bone_do_paste (Object *ob, bPoseChannel *chan, short s
 	 * 	1) channel exists - poses are not meant to add random channels to anymore
 	 * 	2) if selection-masking is on, channel is selected - only selected bones get pasted on, allowing making both sides symmetrical
 	 */
-	pchan= get_pose_channel(ob->pose, name);
+	pchan= BKE_pose_channel_find_name(ob->pose, name);
 	
 	if (selOnly)
 		paste_ok= ((pchan) && (pchan->bone->flag & BONE_SELECTED));
@@ -1176,7 +1176,7 @@ static int pose_copy_exec (bContext *C, wmOperator *op)
 	
 	/* sets chan->flag to POSE_KEY if bone selected, then copy those bones to the buffer */
 	set_pose_keys(ob);  
-	copy_pose(&g_posebuf, ob->pose, 0);
+	BKE_pose_copy_data(&g_posebuf, ob->pose, 0);
 	
 	
 	return OPERATOR_FINISHED;
@@ -1291,7 +1291,7 @@ static int pose_group_add_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* for now, just call the API function for this */
-	pose_add_group(ob);
+	BKE_pose_add_group(ob);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1331,7 +1331,7 @@ static int pose_group_remove_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* for now, just call the API function for this */
-	pose_remove_group(ob);
+	BKE_pose_remove_group(ob);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1434,7 +1434,7 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	 */
 	pose->active_group= RNA_int_get(op->ptr, "type");
 	if (pose->active_group == 0)
-		pose_add_group(ob);
+		BKE_pose_add_group(ob);
 	
 	/* add selected bones to group then */
 	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones)
@@ -2281,7 +2281,7 @@ static int pose_clear_user_transforms_exec (bContext *C, wmOperator *UNUSED(op))
 		bPoseChannel *pchan;
 		
 		/* execute animation step for current frame using a dummy copy of the pose */		
-		copy_pose(&dummyPose, ob->pose, 0);
+		BKE_pose_copy_data(&dummyPose, ob->pose, 0);
 		
 		BLI_strncpy(workob.id.name, "OB<ClearTfmWorkOb>", sizeof(workob.id.name));
 		workob.type = OB_ARMATURE;
@@ -2314,7 +2314,7 @@ static int pose_clear_user_transforms_exec (bContext *C, wmOperator *UNUSED(op))
 		/* no animation, so just reset whole pose to rest pose 
 		 * (cannot just restore for selected though)
 		 */
-		rest_pose(ob->pose);
+		BKE_pose_rest(ob->pose);
 	}
 	
 	/* notifiers and updates */

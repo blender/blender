@@ -1085,7 +1085,7 @@ static bPoseChannel *dtar_get_pchan_ptr (ChannelDriver *driver, DriverTarget *dt
 		Object *ob= (Object *)id;
 		
 		/* get pose, and subsequently, posechannel */
-		return get_pose_channel(ob->pose, dtar->pchan_name);
+		return BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
 	}
 	else {
 		/* cannot find a posechannel this way */
@@ -1164,7 +1164,7 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 		}
 		
 		/* try to get posechannel */
-		pchan= get_pose_channel(ob->pose, dtar->pchan_name);
+		pchan= BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
 		
 		/* check if object or bone */
 		if (pchan) {
@@ -1251,7 +1251,7 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	}
 	
 	/* try to get posechannel */
-	pchan= get_pose_channel(ob->pose, dtar->pchan_name);
+	pchan= BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
 	
 	/* check if object or bone, and get transform matrix accordingly 
 	 *	- "useEulers" code is used to prevent the problems associated with non-uniqueness
@@ -1278,7 +1278,7 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 				 * since it stores delta transform of pose_mat so that deforms work
 				 * so it cannot be used here for "transform" space
 				 */
-				pchan_to_mat4(pchan, mat);
+				BKE_pchan_to_mat4(pchan, mat);
 			}
 		}
 		else {

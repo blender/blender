@@ -206,10 +206,10 @@ int id_make_local(ID *id, int test)
 			if (!test) BKE_metaball_make_local((MetaBall *)id);
 			return 1;
 		case ID_MA:
-			if (!test) make_local_material((Material *)id);
+			if (!test) BKE_material_make_local((Material *)id);
 			return 1;
 		case ID_TE:
-			if (!test) make_local_texture((Tex *)id);
+			if (!test) BKE_texture_make_local((Tex *)id);
 			return 1;
 		case ID_IM:
 			if (!test) BKE_image_make_local((Image *)id);
@@ -221,13 +221,13 @@ int id_make_local(ID *id, int test)
 			}
 			return 1;
 		case ID_LA:
-			if (!test) make_local_lamp((Lamp *)id);
+			if (!test) BKE_lamp_make_local((Lamp *)id);
 			return 1;
 		case ID_CA:
 			if (!test) BKE_camera_make_local((Camera *)id);
 			return 1;
 		case ID_SPK:
-			if (!test) make_local_speaker((Speaker *)id);
+			if (!test) BKE_speaker_make_local((Speaker *)id);
 			return 1;
 		case ID_IP:
 			return 0; /* deprecated */
@@ -943,7 +943,7 @@ void free_main(Main *mainvar)
 /* ***************** ID ************************ */
 
 
-ID *find_id(const char *type, const char *name)		/* type: "OB" or "MA" etc */
+ID *BKE_libblock_find_name(const char *type, const char *name)		/* type: "OB" or "MA" etc */
 {
 	ListBase *lb= which_libbase(G.main, GS(type));
 	return BLI_findstring(lb, name, offsetof(ID, name) + 2);

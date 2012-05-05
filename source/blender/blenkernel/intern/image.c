@@ -157,7 +157,7 @@ static void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 	ibuf->y /= 2;
 }
 
-void image_de_interlace(Image *ima, int odd)
+void BKE_image_de_interlace(Image *ima, int odd)
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	if (ibuf) {
@@ -602,7 +602,7 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_add_image_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
+Image *BKE_image_add_generated(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima= image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
@@ -626,7 +626,7 @@ Image *BKE_add_image_size(unsigned int width, unsigned int height, const char *n
 }
 
 /* creates an image image owns the imbuf passed */
-Image *BKE_add_image_imbuf(ImBuf *ibuf)
+Image *BKE_image_add_from_imbuf(ImBuf *ibuf)
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima;
@@ -678,7 +678,7 @@ void BKE_image_memorypack(Image *ima)
 	}
 }
 
-void tag_image_time(Image *ima)
+void BKE_image_tag_time(Image *ima)
 {
 	if (ima)
 		ima->lastused = (int)PIL_check_seconds_timer();
@@ -1531,7 +1531,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 #undef BUFF_MARGIN_Y
 }
 
-void BKE_stamp_info(Scene *scene, Object *camera, struct ImBuf *ibuf)
+void BKE_imbuf_stamp_info(Scene *scene, Object *camera, struct ImBuf *ibuf)
 {
 	struct StampData stamp_data;
 
@@ -1553,7 +1553,7 @@ void BKE_stamp_info(Scene *scene, Object *camera, struct ImBuf *ibuf)
 	if (stamp_data.rendertime[0]) IMB_metadata_change_field (ibuf, "RenderTime", stamp_data.rendertime);
 }
 
-int BKE_alphatest_ibuf(ImBuf *ibuf)
+int BKE_imbuf_alpha_test(ImBuf *ibuf)
 {
 	int tot;
 	if (ibuf->rect_float) {
@@ -1578,7 +1578,7 @@ int BKE_alphatest_ibuf(ImBuf *ibuf)
 
 /* note: imf->planes is ignored here, its assumed the image channels
  * are already set */
-int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
+int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 {
 	char imtype= imf->imtype;
 	char compress= imf->compress;
@@ -1682,9 +1682,9 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 	return(ok);
 }
 
-/* same as BKE_write_ibuf() but crappy workaround not to perminantly modify
+/* same as BKE_imbuf_write() but crappy workaround not to perminantly modify
  * _some_, values in the imbuf */
-int BKE_write_ibuf_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
+int BKE_imbuf_write_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
                       const short save_copy)
 {
 	ImBuf ibuf_back= *ibuf;
@@ -1694,7 +1694,7 @@ int BKE_write_ibuf_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
 	 * this just controls how to save for some formats */
 	ibuf->planes= imf->planes;
 
-	ok= BKE_write_ibuf(ibuf, name, imf);
+	ok= BKE_imbuf_write(ibuf, name, imf);
 
 	if (save_copy) {
 		/* note that we are not restoring _all_ settings */
@@ -1705,12 +1705,12 @@ int BKE_write_ibuf_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
 	return ok;
 }
 
-int BKE_write_ibuf_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const char *name, struct ImageFormatData *imf)
+int BKE_imbuf_write_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const char *name, struct ImageFormatData *imf)
 {
 	if (scene && scene->r.stamp & R_STAMP_ALL)
-		BKE_stamp_info(scene, camera, ibuf);
+		BKE_imbuf_stamp_info(scene, camera, ibuf);
 
-	return BKE_write_ibuf(ibuf, name, imf);
+	return BKE_imbuf_write(ibuf, name, imf);
 }
 
 
@@ -2575,7 +2575,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 		BLI_unlock_thread(LOCK_IMAGE);
 	}
 
-	tag_image_time(ima);
+	BKE_image_tag_time(ima);
 
 	return ibuf;
 }
@@ -2599,7 +2599,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	return BKE_image_acquire_ibuf(ima, iuser, NULL);
 }
 
-int BKE_image_user_get_frame(const ImageUser *iuser, int cfra, int fieldnr)
+int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr)
 {
 	const int len= (iuser->fie_ima*iuser->frames)/2;
 
@@ -2639,9 +2639,9 @@ int BKE_image_user_get_frame(const ImageUser *iuser, int cfra, int fieldnr)
 	}
 }
 
-void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
+void BKE_image_user_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 {
-	const int framenr= BKE_image_user_get_frame(iuser, cfra, fieldnr);
+	const int framenr= BKE_image_user_frame_get(iuser, cfra, fieldnr);
 
 	/* allows image users to handle redraws */
 	if (iuser->flag & IMA_ANIM_ALWAYS)

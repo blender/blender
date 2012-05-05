@@ -425,7 +425,7 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
 			/* if grouped... */
 			if (fcu->grp) {
 				/* make sure there will be a matching group on the other side for the migrants */
-				agrp = action_groups_find_named(dstAct, fcu->grp->name);
+				agrp = BKE_action_group_find_name(dstAct, fcu->grp->name);
 				
 				if (agrp == NULL) {
 					/* add a new one with a similar name (usually will be the same though) */

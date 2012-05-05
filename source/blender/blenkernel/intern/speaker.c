@@ -43,7 +43,7 @@
 #include "BKE_main.h"
 #include "BKE_speaker.h"
 
-void *add_speaker(const char *name)
+void *BKE_speaker_add(const char *name)
 {
 	Speaker *spk;
 
@@ -76,7 +76,7 @@ Speaker *BKE_speaker_copy(Speaker *spk)
 	return spkn;
 }
 
-void make_local_speaker(Speaker *spk)
+void BKE_speaker_make_local(Speaker *spk)
 {
 	Main *bmain= G.main;
 	Object *ob;

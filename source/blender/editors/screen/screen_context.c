@@ -295,7 +295,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		bPoseChannel *pchan;
 		Object *obpose= BKE_object_pose_armature_get(obact);
 		
-		pchan= get_active_posechannel(obpose);
+		pchan= BKE_pose_channel_active(obpose);
 		if (pchan) {
 			CTX_data_pointer_set(result, &obpose->id, &RNA_PoseBone, pchan);
 			return 1;

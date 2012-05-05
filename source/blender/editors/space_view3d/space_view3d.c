@@ -1016,7 +1016,7 @@ static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
 			break;
 	}
 
-	// removed since BKE_image_user_calc_frame is now called in draw_bgpic because screen_ops doesnt call the notifier.
+	// removed since BKE_image_user_frame_calc is now called in draw_bgpic because screen_ops doesnt call the notifier.
 #if 0
 	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
 		View3D *v3d = area->spacedata.first;
@@ -1025,7 +1025,7 @@ static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
 		for (; bgpic; bgpic = bgpic->next) {
 			if (bgpic->ima) {
 				Scene *scene = wmn->reference;
-				BKE_image_user_calc_frame(&bgpic->iuser, scene->r.cfra, 0);
+				BKE_image_user_frame_calc(&bgpic->iuser, scene->r.cfra, 0);
 			}
 		}
 	}

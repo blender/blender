@@ -554,7 +554,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 		}		
 	}
 	else if (partype == PAR_BONE) {
-		pchan = get_active_posechannel(par);
+		pchan = BKE_pose_channel_active(par);
 		
 		if (pchan == NULL) {
 			BKE_report(reports, RPT_ERROR, "No active Bone");
@@ -1510,7 +1510,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 					case OB_ARMATURE:
 						ob->recalc |= OB_RECALC_DATA;
 						ob->data = BKE_armature_copy(ob->data);
-						armature_rebuild_pose(ob, ob->data);
+						BKE_pose_rebuild(ob, ob->data);
 						break;
 					case OB_SPEAKER:
 						ob->data = BKE_speaker_copy(ob->data);
@@ -1911,7 +1911,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	char name[MAX_ID_NAME - 2];
 	
 	RNA_string_get(op->ptr, "name", name);
-	ma = (Material *)find_id("MA", name);
+	ma = (Material *)BKE_libblock_find_name("MA", name);
 	if (base == NULL || ma == NULL)
 		return OPERATOR_CANCELLED;
 	

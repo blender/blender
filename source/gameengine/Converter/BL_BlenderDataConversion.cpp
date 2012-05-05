@@ -2613,7 +2613,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			case PARBONE:
 			{
 				// parent this to a bone
-				Bone *parent_bone = get_named_bone( (bArmature *)(blenderchild->parent)->data, blenderchild->parsubstr);
+				Bone *parent_bone = BKE_armature_find_bone_name( (bArmature *)(blenderchild->parent)->data, blenderchild->parsubstr);
 
 				if (parent_bone) {
 					KX_BoneParentRelation *bone_parent_relation = KX_BoneParentRelation::New(parent_bone);

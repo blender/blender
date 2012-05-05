@@ -2840,7 +2840,7 @@ void DAG_pose_sort(Object *ob)
 				
 				for (ct= targets.first; ct; ct= ct->next) {
 					if (ct->tar==ob && ct->subtarget[0]) {
-						bPoseChannel *target= get_pose_channel(ob->pose, ct->subtarget);
+						bPoseChannel *target= BKE_pose_channel_find_name(ob->pose, ct->subtarget);
 						if (target) {
 							node2= dag_get_node(dag, target);
 							dag_add_relation(dag, node2, node, 0, "Pose Constraint");
