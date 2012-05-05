@@ -113,6 +113,7 @@ private:
 		: scene_layer(0), layer(0), holdout_layer(0),
 		  material_override(PointerRNA_NULL),
 		  use_background(true),
+		  use_viewport_visibility(false),
 		  samples(0)
 		{}
 
@@ -122,6 +123,7 @@ private:
 		uint holdout_layer;
 		BL::Material material_override;
 		bool use_background;
+		bool use_viewport_visibility;
 		int samples;
 	} render_layer;
 };
