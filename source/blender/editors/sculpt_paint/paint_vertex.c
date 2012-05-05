@@ -1075,6 +1075,7 @@ void PAINT_OT_weight_sample(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight Paint Sample Weight";
 	ot->idname = "PAINT_OT_weight_sample";
+	ot->description = "Use the mouse to sample a weight in the 3D view";
 
 	/* api callbacks */
 	ot->invoke = weight_sample_invoke;
@@ -1176,6 +1177,7 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight Paint Sample Group";
 	ot->idname = "PAINT_OT_weight_sample_group";
+	ot->description = "Select one of the vertex groups available under current mouse position";
 
 	/* api callbacks */
 	ot->exec = weight_sample_group_exec;
@@ -2038,6 +2040,7 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight Paint Mode";
 	ot->idname = "PAINT_OT_weight_paint_toggle";
+	ot->description = "Toggle weight paint mode in 3D view";
 	
 	/* api callbacks */
 	ot->exec = set_wpaint;
@@ -2490,6 +2493,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight Paint";
 	ot->idname = "PAINT_OT_weight_paint";
+	ot->description = "Paint a stroke in the current vertex group's weights";
 	
 	/* api callbacks */
 	ot->invoke = wpaint_invoke;
@@ -2522,6 +2526,7 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Weight";
 	ot->idname = "PAINT_OT_weight_set";
+	ot->description = "Fill the active vertex group with the current paint weight";
 
 	/* api callbacks */
 	ot->exec = weight_paint_set_exec;
@@ -2586,6 +2591,7 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Vertex Paint Mode";
 	ot->idname = "PAINT_OT_vertex_paint_toggle";
+	ot->description = "Toggle the vertex paint mode in 3D view";
 	
 	/* api callbacks */
 	ot->exec = set_vpaint;
@@ -2991,6 +2997,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Vertex Paint";
 	ot->idname = "PAINT_OT_vertex_paint";
+	ot->description = "Paint a stroke in the active vertex color layer";
 	
 	/* api callbacks */
 	ot->invoke = vpaint_invoke;

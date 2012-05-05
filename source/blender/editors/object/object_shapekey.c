@@ -403,6 +403,7 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Mirror Shape Key";
 	ot->idname = "OBJECT_OT_shape_key_mirror";
+	ot->description = "Mirror the current shape key along the local X axis";
 
 	/* api callbacks */
 	ot->poll = shape_key_mode_poll;
@@ -474,6 +475,7 @@ void OBJECT_OT_shape_key_move(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Move Shape Key";
 	ot->idname = "OBJECT_OT_shape_key_move";
+	ot->description = "Move the active shape key up/down in the list";
 
 	/* api callbacks */
 	ot->poll = shape_key_mode_poll;

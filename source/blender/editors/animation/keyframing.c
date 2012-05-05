@@ -1479,7 +1479,7 @@ void ANIM_OT_keyframe_insert_button(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Insert Keyframe (Buttons)";
 	ot->idname = "ANIM_OT_keyframe_insert_button";
-	ot->description = "Insert a keyframe keyframe for current UI-active property";
+	ot->description = "Insert a keyframe for current UI-active property";
 	
 	/* callbacks */
 	ot->exec = insert_key_button_exec; 

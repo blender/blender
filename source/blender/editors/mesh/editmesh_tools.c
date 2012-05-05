@@ -1251,6 +1251,7 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Edge Split";
 	ot->idname = "MESH_OT_edge_split";
+	ot->description = "Split selected edges so that each neighbor face gets its own copy";
 	
 	/* api callbacks */
 	ot->exec = edbm_edge_split_exec;
@@ -3060,6 +3061,7 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Beautify Fill";
 	ot->idname = "MESH_OT_beautify_fill";
+	ot->description = "Rearrange some faces to try to get less degenerated geometry";
 
 	/* api callbacks */
 	ot->exec = edbm_beautify_fill_exec;

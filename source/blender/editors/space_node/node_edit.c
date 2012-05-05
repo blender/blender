@@ -1316,6 +1316,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Background Image Zoom";
 	ot->idname = "NODE_OT_backimage_zoom";
+	ot->description = "Zoom in/out the brackground image";
 	
 	/* api callbacks */
 	ot->exec = backimage_zoom;
@@ -1482,6 +1483,7 @@ void NODE_OT_backimage_sample(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Backimage Sample";
 	ot->idname = "NODE_OT_backimage_sample";
+	ot->description = "Use mouse to sample background image";
 	
 	/* api callbacks */
 	ot->invoke = sample_invoke;
@@ -1593,6 +1595,7 @@ void NODE_OT_resize(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Resize Node";
 	ot->idname = "NODE_OT_resize";
+	ot->description = "Resize a node";
 	
 	/* api callbacks */
 	ot->invoke = node_resize_invoke;
@@ -2547,6 +2550,7 @@ void NODE_OT_link(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Link Nodes";
 	ot->idname = "NODE_OT_link";
+	ot->description = "Use the mouse to create a link between two nodes";
 	
 	/* api callbacks */
 	ot->invoke = node_link_invoke;
@@ -2666,6 +2670,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 	
 	ot->name = "Cut links";
 	ot->idname = "NODE_OT_links_cut";
+	ot->description = "Use the mouse to cut (remove) some links";
 	
 	ot->invoke = WM_gesture_lines_invoke;
 	ot->modal = WM_gesture_lines_modal;
@@ -2711,6 +2716,7 @@ void NODE_OT_links_detach(wmOperatorType *ot)
 {
 	ot->name = "Detach Links";
 	ot->idname = "NODE_OT_links_detach";
+	ot->description = "Remove all links to selected nodes, and try to connect neighbor nodes together";
 	
 	ot->exec = detach_links_exec;
 	ot->poll = ED_operator_node_active;
@@ -2905,6 +2911,7 @@ void NODE_OT_read_renderlayers(wmOperatorType *ot)
 	
 	ot->name = "Read Render Layers";
 	ot->idname = "NODE_OT_read_renderlayers";
+	ot->description = "Read all render layers of all used scenes";
 	
 	ot->exec = node_read_renderlayers_exec;
 	
@@ -2938,6 +2945,7 @@ void NODE_OT_read_fullsamplelayers(wmOperatorType *ot)
 	
 	ot->name = "Read Full Sample Layers";
 	ot->idname = "NODE_OT_read_fullsamplelayers";
+	ot->description = "Read all render layers of current scene, in full sample";
 	
 	ot->exec = node_read_fullsamplelayers_exec;
 	
@@ -2986,6 +2994,7 @@ void NODE_OT_render_changed(wmOperatorType *ot)
 	
 	ot->name = "Render Changed Layer";
 	ot->idname = "NODE_OT_render_changed";
+	ot->description = "Render current scene, when input node's layer has been changed";
 	
 	ot->exec = node_render_changed_exec;
 	
@@ -3544,8 +3553,9 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 void NODE_OT_new_node_tree(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "New node tree";
+	ot->name = "New Node Tree";
 	ot->idname = "NODE_OT_new_node_tree";
+	ot->description = "Create a new node tree";
 	
 	/* api callbacks */
 	ot->exec = new_node_tree_exec;

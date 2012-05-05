@@ -1703,6 +1703,7 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Copy Game Property";
 	ot->idname = "OBJECT_OT_game_property_copy";
+	ot->description = "Copy/merge/replace a game property from active object to all selected objects";
 
 	/* api callbacks */
 	ot->exec = game_property_copy_exec;
@@ -1733,6 +1734,7 @@ void OBJECT_OT_game_property_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clear Game Property";
 	ot->idname = "OBJECT_OT_game_property_clear";
+	ot->description = "Remove all game properties from all selected objects";
 
 	/* api callbacks */
 	ot->exec = game_property_clear_exec;

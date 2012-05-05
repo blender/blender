@@ -5160,6 +5160,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Image Paint";
 	ot->idname = "PAINT_OT_image_paint";
+	ot->description = "Paint a stroke into the image";
 	
 	/* api callbacks */
 	ot->exec = paint_exec;
@@ -5387,6 +5388,7 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Grab Clone";
 	ot->idname = "PAINT_OT_grab_clone";
+	ot->description = "Move the clone source image";
 	
 	/* api callbacks */
 	ot->exec = grab_clone_exec;
@@ -5469,6 +5471,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Sample Color";
 	ot->idname = "PAINT_OT_sample_color";
+	ot->description = "Use the mouse to sample a color in the image";
 	
 	/* api callbacks */
 	ot->exec = sample_color_exec;
@@ -5520,6 +5523,7 @@ void PAINT_OT_clone_cursor_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Clone Cursor";
 	ot->idname = "PAINT_OT_clone_cursor_set";
+	ot->description = "Set the location of the clone cursor";
 	
 	/* api callbacks */
 	ot->exec = set_clone_cursor_exec;
@@ -5602,6 +5606,7 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Texture Paint Toggle";
 	ot->idname = "PAINT_OT_texture_paint_toggle";
+	ot->description = "Toggle texture paint mode in 3D view";
 	
 	/* api callbacks */
 	ot->exec = texture_paint_toggle_exec;

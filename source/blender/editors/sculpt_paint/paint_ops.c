@@ -160,6 +160,7 @@ static void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Vertex Colors";
 	ot->idname = "PAINT_OT_vertex_color_set";
+	ot->description = "Fill the active vertex color layer with the current paint color";
 	
 	/* api callbacks */
 	ot->exec = vertex_color_set_exec;

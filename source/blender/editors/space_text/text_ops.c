@@ -1361,7 +1361,7 @@ void TEXT_OT_move_lines(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Move Lines";
 	ot->idname = "TEXT_OT_move_lines";
-	ot->description = "Moves the currently selected line(s) up/down";
+	ot->description = "Move the currently selected line(s) up/down";
 	
 	/* api callbacks */
 	ot->exec = move_lines_exec;
