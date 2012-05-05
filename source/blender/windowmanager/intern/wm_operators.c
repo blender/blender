@@ -346,7 +346,7 @@ static int wm_macro_cancel(bContext *C, wmOperator *op)
 }
 
 /* Names have to be static for now */
-wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, int flag)
+wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, const char *description, int flag)
 {
 	wmOperatorType *ot;
 	
@@ -360,6 +360,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	
 	ot->idname = idname;
 	ot->name = name;
+	ot->description = description;
 	ot->flag = OPTYPE_MACRO | flag;
 	
 	ot->exec = wm_macro_exec;

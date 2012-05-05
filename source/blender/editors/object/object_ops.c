@@ -222,18 +222,18 @@ void ED_operatormacros_object(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot = WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate Objects", OPTYPE_UNDO | OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate Objects",
+	                                  "Duplicate selected objects and move them", OPTYPE_UNDO | OPTYPE_REGISTER);
 	if (ot) {
-		ot->description = "Duplicate selected objects and move them";
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 	}
 
 	/* grr, should be able to pass options on... */
-	ot = WM_operatortype_append_macro("OBJECT_OT_duplicate_move_linked", "Duplicate Linked", OPTYPE_UNDO | OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("OBJECT_OT_duplicate_move_linked", "Duplicate Linked",
+	                                  "Duplicate selected objects and move them", OPTYPE_UNDO | OPTYPE_REGISTER);
 	if (ot) {
-		ot->description = "Duplicate selected objects and move them";
 		otmacro = WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		RNA_boolean_set(otmacro->ptr, "linked", TRUE);
 		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
@@ -241,9 +241,9 @@ void ED_operatormacros_object(void)
 	}
 	
 	/* XXX */
-	ot = WM_operatortype_append_macro("OBJECT_OT_add_named_cursor", "Add named object at cursor", OPTYPE_UNDO | OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("OBJECT_OT_add_named_cursor", "Add Named At Cursor",
+	                                  "Add named object at cursor", OPTYPE_UNDO | OPTYPE_REGISTER);
 	if (ot) {
-		ot->description = "Add named object at cursor";
 		RNA_def_string(ot->srna, "name", "Cube", MAX_ID_NAME - 2, "Name", "Object name to add");
 
 		WM_operatortype_macro_define(ot, "VIEW3D_OT_cursor3d");
