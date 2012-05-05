@@ -56,6 +56,8 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_depsgraph.h" /* for ED_view3d_camera_lock_sync */
 
 
@@ -68,6 +70,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "ED_armature.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -2291,6 +2294,89 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
 	ot->flag = 0;
 }
 
+static int view_lock_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	View3D *v3d = CTX_wm_view3d(C);
+
+	if (v3d) {
+		ED_view3D_lock_clear(v3d);
+
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void VIEW3D_OT_view_lock_clear(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name = "View Lock Clear";
+	ot->description = "Clears all view locking";
+	ot->idname = "VIEW3D_OT_view_lock_clear";
+
+	/* api callbacks */
+	ot->exec = view_lock_clear_exec;
+	ot->poll = ED_operator_region_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+}
+
+static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	Object *obact = CTX_data_active_object(C);
+
+	if (v3d) {
+
+		ED_view3D_lock_clear(v3d);
+
+		v3d->ob_centre = obact; /* can be NULL */
+
+		if (obact && obact->type == OB_ARMATURE) {
+			if (obact->mode & OB_MODE_POSE) {
+				bPoseChannel *pcham_act = BKE_pose_channel_active(obact);
+				if (pcham_act) {
+					BLI_strncpy(v3d->ob_centre_bone, pcham_act->name, sizeof(v3d->ob_centre_bone));
+				}
+			}
+			else {
+				EditBone *ebone_act = ((bArmature *)obact->data)->act_edbone;
+				if (ebone_act) {
+					BLI_strncpy(v3d->ob_centre_bone, ebone_act->name, sizeof(v3d->ob_centre_bone));
+				}
+			}
+		}
+
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void VIEW3D_OT_view_lock_to_active(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name = "View Lock to Active";
+	ot->description = "Lock the view to the active object/bone";
+	ot->idname = "VIEW3D_OT_view_lock_to_active";
+
+	/* api callbacks */
+	ot->exec = view_lock_to_active_exec;
+	ot->poll = ED_operator_region_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+}
+
 static int viewcenter_cursor_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
@@ -3708,4 +3794,12 @@ void ED_view3D_background_image_clear(View3D *v3d)
 
 		bgpic = next_bgpic;
 	}
+}
+
+void ED_view3D_lock_clear(View3D *v3d)
+{
+	v3d->ob_centre = NULL;
+	v3d->ob_centre_bone[0] = '\0';
+	v3d->ob_centre_cursor = FALSE;
+	v3d->flag2 &= ~V3D_LOCK_CAMERA;
 }

@@ -377,6 +377,11 @@ class VIEW3D_MT_view_align(Menu):
         layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
 
+        layout.separator()
+
+        layout.operator("view3d.view_lock_to_active")
+        layout.operator("view3d.view_lock_clear")
+
 
 class VIEW3D_MT_view_align_selected(Menu):
     bl_label = "Align View to Selected"
