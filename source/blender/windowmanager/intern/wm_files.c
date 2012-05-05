@@ -361,7 +361,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 
 	WM_cursor_wait(1);
 
-	BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
+	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
 
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesn't exist and returns -1 */
@@ -421,7 +421,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 #endif
 
 		/* important to do before NULL'ing the context */
-		BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
+		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 
 		if (!G.background) {
 			/* in background mode this makes it hard to load
@@ -791,7 +791,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 		ibuf_thumb = blend_file_thumb(CTX_data_scene(C), CTX_wm_screen(C), &thumb);
 	}
 
-	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
+	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
 
 	/* operator now handles overwrite checks */
 
@@ -826,7 +826,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 			write_history();
 		}
 
-		BLI_exec_cb(G.main, NULL, BLI_CB_EVT_SAVE_POST);
+		BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_POST);
 
 		/* run this function after because the file cant be written before the blend is */
 		if (ibuf_thumb) {

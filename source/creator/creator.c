@@ -1248,7 +1248,7 @@ int main(int argc, const char **argv)
 
 	IMB_init();
 
-	BLI_cb_init();
+	BLI_callback_global_init();
 
 #ifdef WITH_GAMEENGINE
 	syshandle = SYS_GetSystem();

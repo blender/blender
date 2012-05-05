@@ -184,7 +184,7 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 		for (y=0; y < ibuf->y; y++) {
 			for (x=0; x < ibuf->x; x++) {
 				/* currently averaged to monchrome */
-				vd->dataset[ V_I(x, y, z, vd->resol) ] = (rf[0] + rf[1] + rf[2])*0.333f;
+				vd->dataset[ BLI_VEXEL_INDEX(x, y, z, vd->resol) ] = (rf[0] + rf[1] + rf[2]) * 0.333f;
 				rf +=4;
 			}
 		}
@@ -423,17 +423,17 @@ int voxeldatatex(struct Tex *tex, const float texvec[3], struct TexResult *texre
 	
 	switch (vd->interp_type) {
 		case TEX_VD_NEARESTNEIGHBOR:
-			texres->tin = voxel_sample_nearest(vd->dataset, vd->resol, co);
+			texres->tin = BLI_voxel_sample_nearest(vd->dataset, vd->resol, co);
 			break;  
 		case TEX_VD_LINEAR:
-			texres->tin = voxel_sample_trilinear(vd->dataset, vd->resol, co);
+			texres->tin = BLI_voxel_sample_trilinear(vd->dataset, vd->resol, co);
 			break;					
 		case TEX_VD_QUADRATIC:
-			texres->tin = voxel_sample_triquadratic(vd->dataset, vd->resol, co);
+			texres->tin = BLI_voxel_sample_triquadratic(vd->dataset, vd->resol, co);
 			break;
 		case TEX_VD_TRICUBIC_CATROM:
 		case TEX_VD_TRICUBIC_BSPLINE:
-			texres->tin = voxel_sample_tricubic(vd->dataset, vd->resol, co, (vd->interp_type == TEX_VD_TRICUBIC_BSPLINE));
+			texres->tin = BLI_voxel_sample_tricubic(vd->dataset, vd->resol, co, (vd->interp_type == TEX_VD_TRICUBIC_BSPLINE));
 			break;
 	}
 	

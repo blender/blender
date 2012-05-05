@@ -136,7 +136,7 @@ void BLI_jitterate2(float *jit1, float *jit2, int num, float rad2)
 }
 
 
-void BLI_initjit(float *jitarr, int num)
+void BLI_jitter_init(float *jitarr, int num)
 {
 	float *jit2, x, rad1, rad2, rad3;
 	int i;

@@ -192,7 +192,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			float *accum_tmp = MEM_mallocN(sizex * sizey * sizeof(float) * 4, "accum2");
 			int j;
 
-			BLI_initjit(jit_ofs[0], scene->r.osa);
+			BLI_jitter_init(jit_ofs[0], scene->r.osa);
 
 			/* first sample buffer, also initializes 'rv3d->persmat' */
 			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE);

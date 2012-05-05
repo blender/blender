@@ -194,8 +194,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			
 			cam = (Camera *)projectors[i].ob->data;
 			if (cam->type == CAM_PANO) {
-				projectors[i].uci= project_camera_info(projectors[i].ob, NULL, aspx, aspy);
-				project_camera_info_scale(projectors[i].uci, scax, scay);
+				projectors[i].uci= BLI_uvproject_camera_info(projectors[i].ob, NULL, aspx, aspy);
+				BLI_uvproject_camera_info_scale(projectors[i].uci, scax, scay);
 				free_uci= 1;
 			}
 			else {
@@ -304,7 +304,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					do {
 						unsigned int lidx= mp->loopstart + fidx;
 						unsigned int vidx= mloop[lidx].v;
-						project_from_camera(mloop_uv[lidx].uv, coords[vidx], projectors[0].uci);
+						BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], projectors[0].uci);
 					} while (fidx--);
 				}
 				else {
@@ -347,7 +347,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					do {
 						unsigned int lidx= mp->loopstart + fidx;
 						unsigned int vidx= mloop[lidx].v;
-						project_from_camera(mloop_uv[lidx].uv, coords[vidx], best_projector->uci);
+						BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], best_projector->uci);
 					} while (fidx--);
 				}
 				else {

@@ -196,18 +196,18 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 			ScanFillFace *efa;
 			int totfilltri;
 
-			BLI_begin_edgefill(&sf_ctx);
+			BLI_scanfill_begin(&sf_ctx);
 			/*scanfill time*/
 			l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 			for (j=0; l; l=BM_iter_step(&liter), j++) {
 				/*mark order*/
 				BM_elem_index_set(l, j); /* set_loop */
 
-				v = BLI_addfillvert(&sf_ctx, l->v->co);
+				v = BLI_scanfill_vert_add(&sf_ctx, l->v->co);
 				v->tmp.p = l;
 
 				if (lastv) {
-					/* e = */ BLI_addfilledge(&sf_ctx, lastv, v);
+					/* e = */ BLI_scanfill_edge_add(&sf_ctx, lastv, v);
 				}
 
 				lastv = v;
@@ -215,9 +215,9 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 			}
 
 			/*complete the loop*/
-			BLI_addfilledge(&sf_ctx, firstv, v);
+			BLI_scanfill_edge_add(&sf_ctx, firstv, v);
 
-			totfilltri = BLI_edgefill_ex(&sf_ctx, FALSE, f->no);
+			totfilltri = BLI_scanfill_calc_ex(&sf_ctx, FALSE, f->no);
 			BLI_array_grow_items(looptris, totfilltri);
 
 			for (efa = sf_ctx.fillfacebase.first; efa; efa=efa->next) {
@@ -235,7 +235,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 				i += 1;
 			}
 
-			BLI_end_edgefill(&sf_ctx);
+			BLI_scanfill_end(&sf_ctx);
 		}
 	}
 

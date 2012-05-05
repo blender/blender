@@ -262,13 +262,13 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		}
 		else {
 			/* ngon - scanfill time! */
-			BLI_begin_edgefill(&sf_ctx);
+			BLI_scanfill_begin(&sf_ctx);
 			
 			firstv = lastv = NULL;
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				int i;
 				
-				v = BLI_addfillvert(&sf_ctx, l->v->co);
+				v = BLI_scanfill_vert_add(&sf_ctx, l->v->co);
 				
 				/* add small random offset */
 				for (i = 0; i < 3; i++) {
@@ -278,7 +278,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 				v->tmp.p = l;
 
 				if (lastv) {
-					BLI_addfilledge(&sf_ctx, lastv, v);
+					BLI_scanfill_edge_add(&sf_ctx, lastv, v);
 				}
 
 				lastv = v;
@@ -286,9 +286,9 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 					firstv = v;
 			}
 
-			BLI_addfilledge(&sf_ctx, firstv, v);
+			BLI_scanfill_edge_add(&sf_ctx, firstv, v);
 
-			BLI_edgefill_ex(&sf_ctx, TRUE, efa->no);
+			BLI_scanfill_calc_ex(&sf_ctx, TRUE, efa->no);
 			for (sefa = sf_ctx.fillfacebase.first; sefa; sefa = sefa->next) {
 				ls[0] = sefa->v1->tmp.p;
 				ls[1] = sefa->v2->tmp.p;
@@ -306,7 +306,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 				param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
 			}
 
-			BLI_end_edgefill(&sf_ctx);
+			BLI_scanfill_end(&sf_ctx);
 		}
 	}
 
@@ -1265,12 +1265,12 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				project_from_view_ortho(luv->uv, l->v->co, rotmat);
+				BLI_uvproject_from_view_ortho(luv->uv, l->v->co, rotmat);
 			}
 		}
 	}
 	else if (camera) {
-		struct UvCameraInfo *uci = project_camera_info(v3d->camera, obedit->obmat, scene->r.xsch, scene->r.ysch);
+		struct ProjCameraInfo *uci = BLI_uvproject_camera_info(v3d->camera, obedit->obmat, scene->r.xsch, scene->r.ysch);
 		
 		if (uci) {
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -1279,7 +1279,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					project_from_camera(luv->uv, l->v->co, uci);
+					BLI_uvproject_from_camera(luv->uv, l->v->co, uci);
 				}
 			}
 			
@@ -1295,7 +1295,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				project_from_view(luv->uv, l->v->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
+				BLI_uvproject_from_view(luv->uv, l->v->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
 			}
 		}
 	}

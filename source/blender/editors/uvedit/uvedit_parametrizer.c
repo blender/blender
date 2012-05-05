@@ -4356,7 +4356,7 @@ void param_smooth_area(ParamHandle *handle)
 void param_pack(ParamHandle *handle, float margin)
 {	
 	/* box packing variables */
-	boxPack *boxarray, *box;
+	BoxPack *boxarray, *box;
 	float tot_width, tot_height, scale;
 	 
 	PChart *chart;
@@ -4373,7 +4373,7 @@ void param_pack(ParamHandle *handle, float margin)
 		param_scale(handle, 1.0f / phandle->aspx, 1.0f / phandle->aspy);
 	
 	/* we may not use all these boxes */
-	boxarray = MEM_mallocN(phandle->ncharts * sizeof(boxPack), "boxPack box");
+	boxarray = MEM_mallocN(phandle->ncharts * sizeof(BoxPack), "BoxPack box");
 	
 	
 	for (i = 0; i < phandle->ncharts; i++) {
@@ -4424,7 +4424,7 @@ void param_pack(ParamHandle *handle, float margin)
 		}
 	}
 	
-	boxPack2D(boxarray, phandle->ncharts - unpacked, &tot_width, &tot_height);
+	BLI_box_pack_2D(boxarray, phandle->ncharts - unpacked, &tot_width, &tot_height);
 	
 	if (tot_height > tot_width)
 		scale = 1.0f / tot_height;

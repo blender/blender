@@ -1007,7 +1007,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 void scene_update_tagged(Main *bmain, Scene *scene)
 {
 	/* keep this first */
-	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	/* flush recalc flags to dependencies */
 	DAG_ids_flush_tagged(bmain);
@@ -1035,7 +1035,7 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 		BKE_ptcache_quick_cache_all(bmain, scene);
 
 	/* notify editors and python about recalc */
-	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 	DAG_ids_check_recalc(bmain, scene, FALSE);
 
 	/* clear recalc flags */
@@ -1049,8 +1049,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	Scene *sce_iter;
 
 	/* keep this first */
-	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
-	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
+	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	sound_set_cfra(sce->r.cfra);
 	
@@ -1084,8 +1084,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	scene_update_tagged_recursive(bmain, sce, sce);
 
 	/* notify editors and python about recalc */
-	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
-	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
+	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
 
 	DAG_ids_check_recalc(bmain, sce, TRUE);
 

@@ -432,7 +432,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 		totvert= 0;
 		nextcol= 0;
 		
-		BLI_begin_edgefill(&sf_ctx);
+		BLI_scanfill_begin(&sf_ctx);
 		
 		dl= dispbase->first;
 		while (dl) {
@@ -449,18 +449,18 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 						while (a--) {
 							vlast= eve;
 
-							eve = BLI_addfillvert(&sf_ctx, f1);
+							eve = BLI_scanfill_vert_add(&sf_ctx, f1);
 							totvert++;
 
 							if (vlast==NULL) v1= eve;
 							else {
-								BLI_addfilledge(&sf_ctx, vlast, eve);
+								BLI_scanfill_edge_add(&sf_ctx, vlast, eve);
 							}
 							f1+=3;
 						}
 
 						if (eve!=NULL && v1!=NULL) {
-							BLI_addfilledge(&sf_ctx, eve, v1);
+							BLI_scanfill_edge_add(&sf_ctx, eve, v1);
 						}
 					}
 					else if (colnr<dl->col) {
@@ -473,7 +473,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 			dl= dl->next;
 		}
 		
-		if (totvert && (tot= BLI_edgefill(&sf_ctx, FALSE))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
+		if (totvert && (tot= BLI_scanfill_calc(&sf_ctx, FALSE))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
 			if (tot) {
 				dlnew= MEM_callocN(sizeof(DispList), "filldisplist");
 				dlnew->type= DL_INDEX3;
@@ -518,7 +518,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 			BLI_addhead(to, dlnew);
 			
 		}
-		BLI_end_edgefill(&sf_ctx);
+		BLI_scanfill_end(&sf_ctx);
 
 		if (nextcol) {
 			/* stay at current char but fill polys with next material */

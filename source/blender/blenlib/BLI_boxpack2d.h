@@ -34,7 +34,7 @@
 
 /* Box Packer */
 
-typedef struct boxPack {
+typedef struct BoxPack {
 	float x;
 	float y;
 	float w;
@@ -44,9 +44,9 @@ typedef struct boxPack {
 	/* Verts this box uses
 	 * (BL,TR,TL,BR) / 0,1,2,3 */
 	struct boxVert *v[4];
-} boxPack;
+} BoxPack;
 
-void boxPack2D(boxPack *boxarray, const int len, float *tot_width, float *tot_height);
+void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *tot_height);
 
 #endif
 

@@ -236,7 +236,7 @@ static void draw_filled_lasso(wmGesture *gt)
 	short *lasso = (short *)gt->customdata;
 	int i;
 	
-	BLI_begin_edgefill(&sf_ctx);
+	BLI_scanfill_begin(&sf_ctx);
 	for (i = 0; i < gt->points; i++, lasso += 2) {
 		float co[3];
 
@@ -244,9 +244,9 @@ static void draw_filled_lasso(wmGesture *gt)
 		co[1] = (float)lasso[1];
 		co[2] = 0.0f;
 
-		v = BLI_addfillvert(&sf_ctx, co);
+		v = BLI_scanfill_vert_add(&sf_ctx, co);
 		if (lastv)
-			/* e = */ /* UNUSED */ BLI_addfilledge(&sf_ctx, lastv, v);
+			/* e = */ /* UNUSED */ BLI_scanfill_edge_add(&sf_ctx, lastv, v);
 		lastv = v;
 		if (firstv == NULL) firstv = v;
 	}
@@ -254,8 +254,8 @@ static void draw_filled_lasso(wmGesture *gt)
 	/* highly unlikely this will fail, but could crash if (gt->points == 0) */
 	if (firstv) {
 		float zvec[3] = {0.0f, 0.0f, 1.0f};
-		BLI_addfilledge(&sf_ctx, firstv, v);
-		BLI_edgefill_ex(&sf_ctx, FALSE, zvec);
+		BLI_scanfill_edge_add(&sf_ctx, firstv, v);
+		BLI_scanfill_calc_ex(&sf_ctx, FALSE, zvec);
 	
 		glEnable(GL_BLEND);
 		glColor4f(1.0, 1.0, 1.0, 0.05);
@@ -268,7 +268,7 @@ static void draw_filled_lasso(wmGesture *gt)
 		glEnd();
 		glDisable(GL_BLEND);
 	
-		BLI_end_edgefill(&sf_ctx);
+		BLI_scanfill_end(&sf_ctx);
 	}
 }
 

@@ -135,9 +135,9 @@ void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 {
 	char *bpath_user_data[2]= {bmain->name, lib->filepath};
 
-	bpath_traverse_id(bmain, id,
-					  bpath_relocate_visitor,
-					  BPATH_TRAVERSE_SKIP_MULTIFILE,
+	BLI_bpath_traverse_id(bmain, id,
+					  BLI_bpath_relocate_visitor,
+					  BLI_BPATH_TRAVERSE_SKIP_MULTIFILE,
 					  bpath_user_data);
 }
 

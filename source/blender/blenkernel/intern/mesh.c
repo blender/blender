@@ -2481,24 +2481,24 @@ int mesh_recalcTessellation(CustomData *fdata,
 
 			ml = mloop + mp->loopstart;
 			
-			BLI_begin_edgefill(&sf_ctx);
+			BLI_scanfill_begin(&sf_ctx);
 			firstv = NULL;
 			lastv = NULL;
 			for (j=0; j<mp->totloop; j++, ml++) {
-				v = BLI_addfillvert(&sf_ctx, mvert[ml->v].co);
+				v = BLI_scanfill_vert_add(&sf_ctx, mvert[ml->v].co);
 	
 				v->keyindex = mp->loopstart + j;
 	
 				if (lastv)
-					BLI_addfilledge(&sf_ctx, lastv, v);
+					BLI_scanfill_edge_add(&sf_ctx, lastv, v);
 	
 				if (!firstv)
 					firstv = v;
 				lastv = v;
 			}
-			BLI_addfilledge(&sf_ctx, lastv, firstv);
+			BLI_scanfill_edge_add(&sf_ctx, lastv, firstv);
 			
-			totfilltri = BLI_edgefill(&sf_ctx, FALSE);
+			totfilltri = BLI_scanfill_calc(&sf_ctx, FALSE);
 			if (totfilltri) {
 				BLI_array_grow_items(mface_to_poly_map, totfilltri);
 				BLI_array_grow_items(mface, totfilltri);
@@ -2531,7 +2531,7 @@ int mesh_recalcTessellation(CustomData *fdata,
 				}
 			}
 	
-			BLI_end_edgefill(&sf_ctx);
+			BLI_scanfill_end(&sf_ctx);
 		}
 	}
 
