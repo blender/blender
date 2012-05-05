@@ -2035,8 +2035,10 @@ static void animsys_evaluate_nla (ListBase *echannels, PointerRNA *ptr, AnimData
 	
 	/* add 'active' Action (may be tweaking track) as last strip to evaluate in NLA stack
 	 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
+	 *	- however, if the 'solo' track houses the current 'tweaking' strip, 
+	 *	  then we should allow this to play, otherwise nothing happens
 	 */
-	if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK)) {
+	if ((adt->action) && ((adt->flag & ADT_NLA_SOLO_TRACK)==0 || (adt->flag & ADT_NLA_EDIT_ON))) {
 		/* if there are strips, evaluate action as per NLA rules */
 		if ((has_strips) || (adt->actstrip)) {
 			/* make dummy NLA strip, and add that to the stack */
