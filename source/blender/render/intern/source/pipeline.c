@@ -1872,7 +1872,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	}
 	
 	/* get panorama & ortho, only after camera is set */
-	object_camera_mode(&scene->r, camera_override ? camera_override : scene->camera);
+	BKE_camera_object_mode(&scene->r, camera_override ? camera_override : scene->camera);
 
 	/* forbidden combinations */
 	if (scene->r.mode & R_PANORAMA) {

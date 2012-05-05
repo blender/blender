@@ -4012,8 +4012,8 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 			add_v2_v2v2(pos, marker->pos, track->offset);
 
-			camera_params_init(&params);
-			camera_params_from_object(&params, camob);
+			BKE_camera_params_init(&params);
+			BKE_camera_params_from_object(&params, camob);
 
 			if (params.is_ortho) {
 				vec[0] = params.ortho_scale * (pos[0] - 0.5f + params.shiftx);

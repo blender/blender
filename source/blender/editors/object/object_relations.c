@@ -1486,7 +1486,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						}
 						break;
 					case OB_CAMERA:
-						ob->data = copy_camera(ob->data);
+						ob->data = BKE_camera_copy(ob->data);
 						break;
 					case OB_MESH:
 						ob->data = copy_mesh(ob->data);

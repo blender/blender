@@ -126,7 +126,7 @@ void paint_init(Paint *p, const char col[3])
 	/* If there's no brush, create one */
 	brush = paint_brush(p);
 	if (brush == NULL)
-		brush= add_brush("Brush");
+		brush= BKE_brush_add("Brush");
 	paint_brush_set(p, brush);
 
 	memcpy(p->paint_cursor_col, col, 3);

@@ -288,7 +288,7 @@ static void rna_Brush_set_size(PointerRNA *ptr, int value)
 	Brush* brush = ptr->data;
 
 	/* scale unprojected radius so it stays consistent with brush size */
-	brush_scale_unprojected_radius(&brush->unprojected_radius,
+	BKE_brush_scale_unprojected_radius(&brush->unprojected_radius,
 								   value, brush->size);
 	brush->size = value;
 }
@@ -298,7 +298,7 @@ static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)
 	Brush* brush = ptr->data;
 
 	/* scale brush size so it stays consistent with unprojected_radius */
-	brush_scale_size(&brush->size, value, brush->unprojected_radius);
+	BKE_brush_scale_size(&brush->size, value, brush->unprojected_radius);
 	brush->unprojected_radius = value;
 }
 

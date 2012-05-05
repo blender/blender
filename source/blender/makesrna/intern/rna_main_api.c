@@ -92,7 +92,7 @@
 
 Camera *rna_Main_cameras_new(Main *UNUSED(bmain), const char *name)
 {
-	ID *id = add_camera(name);
+	ID *id = BKE_camera_add(name);
 	id_us_min(id);
 	return (Camera *)id;
 }
@@ -385,7 +385,7 @@ void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Tex *tex)
 
 Brush *rna_Main_brushes_new(Main *UNUSED(bmain), const char *name)
 {
-	Brush *brush = add_brush(name);
+	Brush *brush = BKE_brush_add(name);
 	id_us_min(&brush->id);
 	return brush;
 }

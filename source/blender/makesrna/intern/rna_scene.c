@@ -1370,7 +1370,7 @@ static void rna_UnifiedPaintSettings_size_set(PointerRNA *ptr, int value)
 	UnifiedPaintSettings* ups = ptr->data;
 
 	/* scale unprojected radius so it stays consistent with brush size */
-	brush_scale_unprojected_radius(&ups->unprojected_radius,
+	BKE_brush_scale_unprojected_radius(&ups->unprojected_radius,
 								   value, ups->size);
 	ups->size = value;
 }
@@ -1380,7 +1380,7 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	UnifiedPaintSettings* ups = ptr->data;
 
 	/* scale brush size so it stays consistent with unprojected_radius */
-	brush_scale_size(&ups->size, value, ups->unprojected_radius);
+	BKE_brush_scale_size(&ups->size, value, ups->unprojected_radius);
 	ups->unprojected_radius = value;
 }
 

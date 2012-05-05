@@ -1457,7 +1457,7 @@ static float project_paint_uvpixel_mask(
 	
 	// This only works when the opacity dosnt change while painting, stylus pressure messes with this
 	// so don't use it.
-	// if (ps->is_airbrush==0) mask *= brush_alpha(ps->brush);
+	// if (ps->is_airbrush==0) mask *= BKE_brush_alpha_get(ps->brush);
 	
 	return mask;
 }
@@ -2953,7 +2953,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	MemArena *arena; /* at the moment this is just ps->arena_mt[0], but use this to show were not multithreading */
 
-	const int diameter = 2 * brush_size(ps->scene, ps->brush);
+	const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush);
 	
 	/* ---- end defines ---- */
 	
@@ -3091,10 +3091,10 @@ static void project_paint_begin(ProjPaintState *ps)
 				invert_m4_m4(viewmat, viewinv);
 
 				/* window matrix, clipping and ortho */
-				camera_params_init(&params);
-				camera_params_from_object(&params, cam_ob);
-				camera_params_compute_viewplane(&params, ps->winx, ps->winy, 1.0f, 1.0f);
-				camera_params_compute_matrix(&params);
+				BKE_camera_params_init(&params);
+				BKE_camera_params_from_object(&params, cam_ob);
+				BKE_camera_params_compute_viewplane(&params, ps->winx, ps->winy, 1.0f, 1.0f);
+				BKE_camera_params_compute_matrix(&params);
 
 				copy_m4_m4(winmat, params.winmat);
 				ps->clipsta = params.clipsta;
@@ -3597,7 +3597,7 @@ static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 {
 	if (ps->source == PROJ_SRC_VIEW) {
 		float min_brush[2], max_brush[2];
-		const float radius = (float)brush_size(ps->scene, ps->brush);
+		const float radius = (float)BKE_brush_size_get(ps->scene, ps->brush);
 
 		/* so we don't have a bucket bounds that is way too small to paint into */
 		// if (radius < 1.0f) radius = 1.0f; // this doesn't work yet :/
@@ -3635,7 +3635,7 @@ static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 
 static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf *bucket_bounds, const float mval[2])
 {
-	const int diameter = 2 * brush_size(ps->scene, ps->brush);
+	const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush);
 
 	if (ps->thread_tot > 1)
 		BLI_lock_thread(LOCK_CUSTOM1);
@@ -3859,7 +3859,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	float co[2];
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
-	const float radius = (float)brush_size(ps->scene, ps->brush);
+	const float radius = (float)BKE_brush_size_get(ps->scene, ps->brush);
 	const float radius_squared = radius * radius; /* avoid a square root with every dist comparison */
 	
 	short lock_alpha = ELEM(ps->brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : ps->brush->flag & BRUSH_LOCK_ALPHA;
@@ -3913,12 +3913,12 @@ static void *do_projectpaint_thread(void *ph_v)
 				if (dist_nosqrt <= radius_squared) {
 					dist = sqrtf(dist_nosqrt);
 
-					falloff = brush_curve_strength_clamp(ps->brush, dist, radius);
+					falloff = BKE_brush_curve_strength_clamp(ps->brush, dist, radius);
 
 					if (falloff > 0.0f) {
 						if (ps->is_texbrush) {
 							/* note, for clone and smear, we only use the alpha, could be a special function */
-							brush_sample_tex(ps->scene, ps->brush, projPixel->projCoSS, rgba, thread_index);
+							BKE_brush_sample_tex(ps->scene, ps->brush, projPixel->projCoSS, rgba, thread_index);
 							alpha = rgba[3];
 						}
 						else {
@@ -3927,7 +3927,7 @@ static void *do_projectpaint_thread(void *ph_v)
 						
 						if (ps->is_airbrush) {
 							/* for an aurbrush there is no real mask, so just multiply the alpha by it */
-							alpha *= falloff * brush_alpha(ps->scene, ps->brush);
+							alpha *= falloff * BKE_brush_alpha_get(ps->scene, ps->brush);
 							mask = ((float)projPixel->mask) / 65535.0f;
 						}
 						else {
@@ -3935,7 +3935,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							falloff = 1.0f - falloff;
 							falloff = 1.0f - (falloff * falloff);
 							
-							mask_short = (unsigned short)(projPixel->mask * (brush_alpha(ps->scene, ps->brush) * falloff));
+							mask_short = (unsigned short)(projPixel->mask * (BKE_brush_alpha_get(ps->scene, ps->brush) * falloff));
 							if (mask_short > projPixel->mask_max) {
 								mask = ((float)mask_short) / 65535.0f;
 								projPixel->mask_max = mask_short;
@@ -4101,9 +4101,9 @@ static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, c
 	pos[1] = (float)(mval_i[1]);
 	
 	// we may want to use this later 
-	// brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
+	// BKE_brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
 	
-	if (brush_painter_paint(painter, project_paint_op, pos, time, pressure, ps, 0)) {
+	if (BKE_brush_painter_paint(painter, project_paint_op, pos, time, pressure, ps, 0)) {
 		return 1;
 	}
 	else return 0;
@@ -4525,9 +4525,9 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	pos[0] = uv[0] * ibuf->x;
 	pos[1] = uv[1] * ibuf->y;
 
-	brush_painter_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
+	BKE_brush_painter_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
 
-	if (brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, ibuf->profile == IB_PROFILE_LINEAR_RGB)) {
+	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, ibuf->profile == IB_PROFILE_LINEAR_RGB)) {
 		if (update)
 			imapaint_image_update(s->sima, image, ibuf, texpaint);
 		return 1;
@@ -4580,7 +4580,7 @@ static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPaint
 			redraw |= imapaint_paint_sub_stroke(s, painter, s->image, texpaint,
 			                                    fwuv, time, 1, pressure);
 			imapaint_clear_partial_redraw();
-			brush_painter_break_stroke(painter);
+			BKE_brush_painter_break_stroke(painter);
 		}
 
 		/* set new canvas */
@@ -4854,7 +4854,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	if (pop->mode == PAINT_MODE_3D && (pop->s.tool == PAINT_TOOL_CLONE))
 		pop->s.tool = PAINT_TOOL_DRAW;
 	pop->s.blend = brush->blend;
-	pop->orig_brush_size = brush_size(scene, brush);
+	pop->orig_brush_size = BKE_brush_size_get(scene, brush);
 
 	if (pop->mode != PAINT_MODE_2D) {
 		Object *ob = OBACT;
@@ -4920,8 +4920,8 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 			return 0;
 
 		/* Don't allow brush size below 2 */
-		if (brush_size(scene, brush) < 2)
-			brush_set_size(scene, brush, 2);
+		if (BKE_brush_size_get(scene, brush) < 2)
+			BKE_brush_size_set(scene, brush, 2);
 
 		/* allocate and initialize spacial data structures */
 		project_paint_begin(&pop->ps);
@@ -4935,7 +4935,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	                      image_undo_restore, image_undo_free);
 
 	/* create painter */
-	pop->painter = brush_painter_new(scene, pop->s.brush);
+	pop->painter = BKE_brush_painter_new(scene, pop->s.brush);
 
 	return 1;
 }
@@ -5002,10 +5002,10 @@ static void paint_exit(bContext *C, wmOperator *op)
 	
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 	imapaint_canvas_free(&pop->s);
-	brush_painter_free(pop->painter);
+	BKE_brush_painter_free(pop->painter);
 
 	if (pop->mode == PAINT_MODE_3D_PROJECT) {
-		brush_set_size(scene, pop->ps.brush, pop->orig_brush_size);
+		BKE_brush_size_set(scene, pop->ps.brush, pop->orig_brush_size);
 		paint_brush_exit_tex(pop->ps.brush);
 		
 		project_paint_end(&pop->ps);
@@ -5079,13 +5079,13 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* special exception here for too high pressure values on first touch in
 		 * windows for some tablets, then we just skip first touch ..  */
-		if (tablet && (pressure >= 0.99f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(scene, pop->s.brush) || brush_use_size_pressure(scene, pop->s.brush)))
+		if (tablet && (pressure >= 0.99f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || BKE_brush_use_alpha_pressure(scene, pop->s.brush) || BKE_brush_use_size_pressure(scene, pop->s.brush)))
 			return;
 
 		/* This can be removed once fixed properly in
-		 * brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user) 
+		 * BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user) 
 		 * at zero pressure we should do nothing 1/2^12 is .0002 which is the sensitivity of the most sensitive pen tablet available */
-		if (tablet && (pressure < .0002f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(scene, pop->s.brush) || brush_use_size_pressure(scene, pop->s.brush)))
+		if (tablet && (pressure < .0002f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || BKE_brush_use_alpha_pressure(scene, pop->s.brush) || BKE_brush_use_size_pressure(scene, pop->s.brush)))
 			return;
 	
 	}
@@ -5208,7 +5208,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 	if (paint && brush && paint->flags & PAINT_SHOW_BRUSH) {
 		ToolSettings *ts;
 		float zoomx, zoomy;
-		const float size = (float)brush_size(scene, brush);
+		const float size = (float)BKE_brush_size_get(scene, brush);
 		short use_zoom;
 		float pixel_size;
 		float alpha = 0.5f;
@@ -5702,8 +5702,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	/* override */
 	ps.is_texbrush = 0;
 	ps.is_airbrush = 1;
-	orig_brush_size = brush_size(scene, ps.brush);
-	brush_set_size(scene, ps.brush, 32); /* cover the whole image */
+	orig_brush_size = BKE_brush_size_get(scene, ps.brush);
+	BKE_brush_size_set(scene, ps.brush, 32); /* cover the whole image */
 
 	ps.tool = PAINT_TOOL_DRAW; /* so pixels are initialized with minimal info */
 
@@ -5716,7 +5716,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	project_paint_begin(&ps);
 
 	if (ps.dm == NULL) {
-		brush_set_size(scene, ps.brush, orig_brush_size);
+		BKE_brush_size_set(scene, ps.brush, orig_brush_size);
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -5740,7 +5740,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	project_paint_end(&ps);
 
 	scene->toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
-	brush_set_size(scene, ps.brush, orig_brush_size);
+	BKE_brush_size_set(scene, ps.brush, orig_brush_size);
 
 	return OPERATOR_FINISHED;
 }

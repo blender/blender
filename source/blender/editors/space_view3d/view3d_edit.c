@@ -3660,8 +3660,8 @@ void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist,
 	if (lens) {
 		CameraParams params;
 
-		camera_params_init(&params);
-		camera_params_from_object(&params, ob);
+		BKE_camera_params_init(&params);
+		BKE_camera_params_from_object(&params, ob);
 		*lens = params.lens;
 	}
 }

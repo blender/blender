@@ -463,7 +463,7 @@ static void re_camera_params_get(Render *re, CameraParams *params, Object *cam_o
 	re->viewdy= params->viewdy;
 	re->viewplane= params->viewplane;
 
-	object_camera_mode(&re->r, cam_ob);
+	BKE_camera_object_mode(&re->r, cam_ob);
 }
 
 void RE_SetEnvmapCamera(Render *re, Object *cam_ob, float viewscale, float clipsta, float clipend)
@@ -471,8 +471,8 @@ void RE_SetEnvmapCamera(Render *re, Object *cam_ob, float viewscale, float clips
 	CameraParams params;
 
 	/* setup parameters */
-	camera_params_init(&params);
-	camera_params_from_object(&params, cam_ob);
+	BKE_camera_params_init(&params);
+	BKE_camera_params_from_object(&params, cam_ob);
 
 	params.lens= 16.0f*viewscale;
 	params.sensor_x= 32.0f;
@@ -482,8 +482,8 @@ void RE_SetEnvmapCamera(Render *re, Object *cam_ob, float viewscale, float clips
 	params.clipend= clipend;
 	
 	/* compute matrix, viewplane, .. */
-	camera_params_compute_viewplane(&params, re->winx, re->winy, 1.0f, 1.0f);
-	camera_params_compute_matrix(&params);
+	BKE_camera_params_compute_viewplane(&params, re->winx, re->winy, 1.0f, 1.0f);
+	BKE_camera_params_compute_matrix(&params);
 
 	/* extract results */
 	re_camera_params_get(re, &params, cam_ob);
@@ -496,16 +496,16 @@ void RE_SetCamera(Render *re, Object *cam_ob)
 	CameraParams params;
 
 	/* setup parameters */
-	camera_params_init(&params);
-	camera_params_from_object(&params, cam_ob);
+	BKE_camera_params_init(&params);
+	BKE_camera_params_from_object(&params, cam_ob);
 
 	params.use_fields= (re->r.mode & R_FIELDS);
 	params.field_second= (re->flag & R_SEC_FIELD);
 	params.field_odd= (re->r.mode & R_ODDFIELD);
 
 	/* compute matrix, viewplane, .. */
-	camera_params_compute_viewplane(&params, re->winx, re->winy, re->r.xasp, re->r.yasp);
-	camera_params_compute_matrix(&params);
+	BKE_camera_params_compute_viewplane(&params, re->winx, re->winy, re->r.xasp, re->r.yasp);
+	BKE_camera_params_compute_matrix(&params);
 
 	/* extract results */
 	re_camera_params_get(re, &params, cam_ob);

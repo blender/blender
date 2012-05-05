@@ -859,7 +859,7 @@ static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float *vert_
 	}
 	else {
 		const float dist = sqrtf(dist_squared);
-		return brush_curve_strength_clamp(brush, dist, brush_size_pressure);
+		return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 	}
 }
 
@@ -1051,7 +1051,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 				if (v_idx_best != -1) { /* should always be valid */
 					float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
-					brush_set_weight(scene, brush, vgroup_weight);
+					BKE_brush_weight_set(scene, brush, vgroup_weight);
 					change = TRUE;
 				}
 			}
@@ -1641,7 +1641,7 @@ typedef struct WeightPaintInfo {
 	char do_multipaint;
 	char do_auto_normalize;
 
-	float brush_alpha_value;  /* result of brush_alpha() */
+	float brush_alpha_value;  /* result of BKE_brush_alpha_get() */
 } WeightPaintInfo;
 
 /* fresh start to make multi-paint and locking modular */
@@ -2244,9 +2244,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	char *defbase_sel;
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
-	const float brush_size_pressure = brush_size(scene, brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
-	const float brush_alpha_value = brush_alpha(scene, brush);
-	const float brush_alpha_pressure = brush_alpha_value * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_alpha_value = BKE_brush_alpha_get(scene, brush);
+	const float brush_alpha_pressure = brush_alpha_value * (BKE_brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
 	/* intentionally don't initialize as NULL, make sure we initialize all members below */
 	WeightPaintInfo wpi;
@@ -2342,7 +2342,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR)
 		paintweight = 0.0f;
 	else
-		paintweight = brush_weight(scene, brush);
+		paintweight = BKE_brush_weight_get(scene, brush);
 			
 	for (index = 0; index < totindex; index++) {
 		if (indexar[index] && indexar[index] <= me->totpoly) {
@@ -2510,7 +2510,7 @@ static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obact = CTX_data_active_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Brush *brush = paint_brush(&ts->wpaint->paint);
-	float vgroup_weight = brush_weight(scene, brush);
+	float vgroup_weight = BKE_brush_weight_get(scene, brush);
 
 	wpaint_fill(scene->toolsettings->wpaint, obact, vgroup_weight);
 	ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
@@ -2870,8 +2870,8 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mval[2];
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
-	const float brush_size_pressure = brush_size(scene, brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
-	const float brush_alpha_pressure = brush_alpha(scene, brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_alpha_pressure = BKE_brush_alpha_get(scene, brush) * (BKE_brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
 

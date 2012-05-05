@@ -184,7 +184,7 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 		for (y=0; y < ibuf->y; y++) {
 			for (x=0; x < ibuf->x; x++) {
 				/* currently averaged to monchrome */
-				vd->dataset[ BLI_VEXEL_INDEX(x, y, z, vd->resol) ] = (rf[0] + rf[1] + rf[2]) * 0.333f;
+				vd->dataset[ BLI_VOXEL_INDEX(x, y, z, vd->resol) ] = (rf[0] + rf[1] + rf[2]) * 0.333f;
 				rf +=4;
 			}
 		}

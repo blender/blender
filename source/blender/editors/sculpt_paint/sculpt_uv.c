@@ -205,7 +205,7 @@ void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float 
 		if ((dist = dot_v2v2(diff, diff)) <= radius) {
 			UvElement *element;
 			float strength;
-			strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
+			strength = alpha * BKE_brush_curve_strength(brush, sqrt(dist), radius_root);
 
 			sculptdata->uv[i].uv[0] = (1.0f - strength) * sculptdata->uv[i].uv[0] + strength * (tmp_uvdata[i].p[0] - 0.5f * (tmp_uvdata[i].b[0] + tmp_uvdata[i].sum_b[0] / tmp_uvdata[i].ncounter));
 			sculptdata->uv[i].uv[1] = (1.0f - strength) * sculptdata->uv[i].uv[1] + strength * (tmp_uvdata[i].p[1] - 0.5f * (tmp_uvdata[i].b[1] + tmp_uvdata[i].sum_b[1] / tmp_uvdata[i].ncounter));
@@ -269,7 +269,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 		if ((dist = dot_v2v2(diff, diff)) <= radius) {
 			UvElement *element;
 			float strength;
-			strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
+			strength = alpha * BKE_brush_curve_strength(brush, sqrt(dist), radius_root);
 
 			sculptdata->uv[i].uv[0] = (1.0f - strength) * sculptdata->uv[i].uv[0] + strength * tmp_uvdata[i].p[0];
 			sculptdata->uv[i].uv[1] = (1.0f - strength) * sculptdata->uv[i].uv[1] + strength * tmp_uvdata[i].p[1];
@@ -311,14 +311,14 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 	ToolSettings *toolsettings = CTX_data_tool_settings(C);
 	tool = sculptdata->tool;
 	invert = sculptdata->invert ? -1 : 1;
-	alpha = brush_alpha(scene, brush);
+	alpha = BKE_brush_alpha_get(scene, brush);
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
 	sima = CTX_wm_space_image(C);
 	ED_space_image_size(sima, &width, &height);
 	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
 
-	radius = brush_size(scene, brush) / (width * zoomx);
+	radius = BKE_brush_size_get(scene, brush) / (width * zoomx);
 	aspectRatio = width / (float)height;
 
 	/* We will compare squares to save some computation */
@@ -344,7 +344,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 			if ((dist = dot_v2v2(diff, diff)) <= radius) {
 				UvElement *element;
 				float strength;
-				strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
+				strength = alpha * BKE_brush_curve_strength(brush, sqrt(dist), radius_root);
 				normalize_v2(diff);
 
 				sculptdata->uv[i].uv[0] -= strength * diff[0] * 0.001f;
@@ -679,9 +679,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 			float alpha, zoomx, zoomy;
 			Brush *brush = paint_brush(sculptdata->uvsculpt);
 
-			alpha = brush_alpha(scene, brush);
+			alpha = BKE_brush_alpha_get(scene, brush);
 
-			radius = brush_size(scene, brush);
+			radius = BKE_brush_size_get(scene, brush);
 			sima = CTX_wm_space_image(C);
 			ED_space_image_size(sima, &width, &height);
 			ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
@@ -715,7 +715,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 				diff[1] /= aspectRatio;
 				if ((dist = dot_v2v2(diff, diff)) <= radius) {
 					float strength;
-					strength = alpha * brush_curve_strength(brush, sqrt(dist), radius_root);
+					strength = alpha * BKE_brush_curve_strength(brush, sqrt(dist), radius_root);
 
 					data->initial_stroke->initialSelection[counter].uv = i;
 					data->initial_stroke->initialSelection[counter].strength = strength;

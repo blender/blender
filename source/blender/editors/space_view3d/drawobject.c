@@ -1762,7 +1762,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	scale[1] = 1.0f / len_v3(ob->obmat[1]);
 	scale[2] = 1.0f / len_v3(ob->obmat[2]);
 
-	camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
+	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
 	                     asp, shift, &drawsize, vec);
 
 	glDisable(GL_LIGHTING);
@@ -1834,7 +1834,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 			if (cam->flag & CAM_SHOWLIMITS) {
 				draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
 				/* qdn: was yafray only, now also enabled for Blender to be used with defocus composite node */
-				draw_focus_cross(object_camera_dof_distance(ob), cam->drawsize);
+				draw_focus_cross(BKE_camera_object_dof_distance(ob), cam->drawsize);
 			}
 
 			wrld = scene->world;

@@ -33,7 +33,7 @@
  */
 
 /** find the index number of a voxel, given x/y/z integer coords and resolution vector */
-#define BLI_VEXEL_INDEX(x, y, z, res) ((z) * (res)[1] * (res)[0] + (y) * (res)[0] + (x))
+#define BLI_VOXEL_INDEX(x, y, z, res) ((z) * (res)[1] * (res)[0] + (y) * (res)[0] + (x))
 
 /* all input coordinates must be in bounding box 0.0 - 1.0 */
 float BLI_voxel_sample_nearest(float *data, const int res[3], const float co[3]);

@@ -46,14 +46,14 @@
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
 	Camera *cam = ptr->id.data;
-	float sensor = camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
+	float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
 	return focallength_to_fov(cam->lens, sensor);
 }
 
 static void rna_Camera_angle_set(PointerRNA *ptr, float value)
 {
 	Camera *cam = ptr->id.data;
-	float sensor = camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
+	float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
 	cam->lens = fov_to_focallength(value, sensor);
 }
 

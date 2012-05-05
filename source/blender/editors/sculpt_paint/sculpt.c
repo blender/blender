@@ -505,7 +505,7 @@ static float overlapped_curve(Brush *br, float x)
 		xx = fabs(x0 + i * h);
 
 		if (xx < 1.0f)
-			sum += brush_curve_strength(br, xx, 1);
+			sum += BKE_brush_curve_strength(br, xx, 1);
 	}
 
 	return sum;
@@ -618,10 +618,10 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 	Brush *brush = paint_brush(&sd->paint);
 
 	/* Primary strength input; square it to make lower values more sensitive */
-	const float root_alpha = brush_alpha(scene, brush);
+	const float root_alpha = BKE_brush_alpha_get(scene, brush);
 	float alpha        = root_alpha * root_alpha;
 	float dir          = brush->flag & BRUSH_DIR_IN ? -1 : 1;
-	float pressure     = brush_use_alpha_pressure(scene, brush) ? cache->pressure : 1;
+	float pressure     = BKE_brush_use_alpha_pressure(scene, brush) ? cache->pressure : 1;
 	float pen_flip     = cache->pen_flip ? -1 : 1;
 	float invert       = cache->invert ? -1 : 1;
 	float accum        = integrate_overlap(brush);
@@ -752,7 +752,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 			   /* leave the coordinates relative to the screen */
 
 			/* use unadjusted size for tiled mode */
-			radius = brush_size(ss->cache->vc->scene, br);
+			radius = BKE_brush_size_get(ss->cache->vc->scene, br);
 		
 			x = point_2d[0];
 			y = point_2d[1];
@@ -792,7 +792,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 	avg += br->texture_sample_bias;
 
 	/* Falloff curve */
-	avg *= brush_curve_strength(br, len, ss->cache->radius);
+	avg *= BKE_brush_curve_strength(br, len, ss->cache->radius);
 
 	avg *= frontface(br, sculpt_normal, vno, fno);
 
@@ -1250,8 +1250,8 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	
 	/* we divide out the squared alpha and multiply by the squared crease to give us the pinch strength */
 	
-	if (brush_alpha(scene, brush) > 0.0f)
-		crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor / (brush_alpha(scene, brush) * brush_alpha(scene, brush));
+	if (BKE_brush_alpha_get(scene, brush) > 0.0f)
+		crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor / (BKE_brush_alpha_get(scene, brush) * BKE_brush_alpha_get(scene, brush));
 	else
 		crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor;
 
@@ -2720,7 +2720,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd, Object *ob)
 static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 {
 	Brush *brush = paint_brush(&sd->paint);
-	const int radius = brush_size(scene, brush);
+	const int radius = BKE_brush_size_get(scene, brush);
 
 	if (ss->texcache) {
 		MEM_freeN(ss->texcache);
@@ -2730,7 +2730,7 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 	/* Need to allocate a bigger buffer for bigger brush size */
 	ss->texcache_side = 2 * radius;
 	if (!ss->texcache || ss->texcache_side > ss->texcache_actual) {
-		ss->texcache = brush_gen_texture_cache(brush, radius);
+		ss->texcache = BKE_brush_gen_texture_cache(brush, radius);
 		ss->texcache_actual = ss->texcache_side;
 	}
 }
@@ -3130,19 +3130,19 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	sd->pressure_value = cache->pressure;
 
 	cache->previous_pixel_radius = cache->pixel_radius;
-	cache->pixel_radius = brush_size(scene, brush);
+	cache->pixel_radius = BKE_brush_size_get(scene, brush);
 
 	if (cache->first_time) {
-		if (!brush_use_locked_size(scene, brush)) {
-			cache->initial_radius = paint_calc_object_space_radius(cache->vc, cache->true_location, brush_size(scene, brush));
-			brush_set_unprojected_radius(scene, brush, cache->initial_radius);
+		if (!BKE_brush_use_locked_size(scene, brush)) {
+			cache->initial_radius = paint_calc_object_space_radius(cache->vc, cache->true_location, BKE_brush_size_get(scene, brush));
+			BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
 		}
 		else {
-			cache->initial_radius = brush_unprojected_radius(scene, brush);
+			cache->initial_radius = BKE_brush_unprojected_radius_get(scene, brush);
 		}
 	}
 
-	if (brush_use_size_pressure(scene, brush)) {
+	if (BKE_brush_use_size_pressure(scene, brush)) {
 		cache->pixel_radius *= cache->pressure;
 		cache->radius = cache->initial_radius * cache->pressure;
 	}
@@ -3374,7 +3374,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 	/* Restore the mesh before continuing with anchored stroke */
 	if ((brush->flag & BRUSH_ANCHORED) ||
 	    (brush->sculpt_tool == SCULPT_TOOL_GRAB &&
-	     brush_use_size_pressure(ss->cache->vc->scene, brush)) ||
+	     BKE_brush_use_size_pressure(ss->cache->vc->scene, brush)) ||
 	    (brush->flag & BRUSH_RESTORE_MESH))
 	{
 		paint_mesh_restore_co(sd, ss);

@@ -755,7 +755,7 @@ void *add_obdata_from_type(int type)
 	case OB_SURF: return BKE_curve_add("Surf", OB_SURF);
 	case OB_FONT: return BKE_curve_add("Text", OB_FONT);
 	case OB_MBALL: return BKE_metaball_add("Meta");
-	case OB_CAMERA: return add_camera("Camera");
+	case OB_CAMERA: return BKE_camera_add("Camera");
 	case OB_LAMP: return add_lamp("Lamp");
 	case OB_LATTICE: return add_lattice("Lattice");
 	case OB_ARMATURE: return add_armature("Armature");

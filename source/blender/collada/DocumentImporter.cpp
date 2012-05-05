@@ -802,8 +802,8 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	
 	cam_id = camera->getOriginalId();
 	cam_name = camera->getName();
-	if (cam_name.size()) cam = (Camera*)add_camera((char*)cam_name.c_str());
-	else cam = (Camera*)add_camera((char*)cam_id.c_str());
+	if (cam_name.size()) cam = (Camera *)BKE_camera_add((char*)cam_name.c_str());
+	else cam = (Camera *)BKE_camera_add((char*)cam_id.c_str());
 	
 	if (!cam) {
 		fprintf(stderr, "Cannot create camera.\n");

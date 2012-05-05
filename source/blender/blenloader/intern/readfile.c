@@ -1685,7 +1685,7 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 	if (brush->curve)
 		direct_link_curvemapping(fd, brush->curve);
 	else
-		brush_curve_preset(brush, CURVE_PRESET_SHARP);
+		BKE_brush_curve_preset(brush, CURVE_PRESET_SHARP);
 
 	brush->preview= NULL;
 	brush->icon_imbuf= NULL;

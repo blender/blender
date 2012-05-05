@@ -177,7 +177,7 @@ static float get_avg_surrounds(float *cache, int *res, int xx, int yy, int zz)
 					for (x=-1; x <= 1; x++) {
 						x_ = xx+x;
 						if (x_ >= 0 && x_ <= res[0]-1) {
-							const int i= BLI_VEXEL_INDEX(x_, y_, z_, res);
+							const int i = BLI_VOXEL_INDEX(x_, y_, z_, res);
 							
 							if (cache[i] > 0.0f) {
 								tot += cache[i];
@@ -208,7 +208,7 @@ static void lightcache_filter(VolumePrecache *vp)
 		for (y=0; y < vp->res[1]; y++) {
 			for (x=0; x < vp->res[0]; x++) {
 				/* trigger for outside mesh */
-				const int i= BLI_VEXEL_INDEX(x, y, z, vp->res);
+				const int i = BLI_VOXEL_INDEX(x, y, z, vp->res);
 				
 				if (vp->data_r[i] < -0.f)
 					vp->data_r[i] = get_avg_surrounds(vp->data_r, vp->res, x, y, z);
@@ -240,7 +240,7 @@ static void lightcache_filter2(VolumePrecache *vp)
 		for (y=0; y < vp->res[1]; y++) {
 			for (x=0; x < vp->res[0]; x++) {
 				/* trigger for outside mesh */
-				const int i= BLI_VEXEL_INDEX(x, y, z, vp->res);
+				const int i = BLI_VOXEL_INDEX(x, y, z, vp->res);
 				if (vp->data_r[i] < -0.f)
 					new_r[i] = get_avg_surrounds(vp->data_r, vp->res, x, y, z);
 				if (vp->data_g[i] < -0.f)
@@ -291,7 +291,7 @@ static float total_ss_energy(Render *re, int do_test_break, VolumePrecache *vp)
 	for (z=0; z < res[2]; z++) {
 		for (y=0; y < res[1]; y++) {
 			for (x=0; x < res[0]; x++) {
-				const int i=BLI_VEXEL_INDEX(x, y, z, res);
+				const int i = BLI_VOXEL_INDEX(x, y, z, res);
 			
 				if (vp->data_r[i] > 0.f) energy += vp->data_r[i];
 				if (vp->data_g[i] > 0.f) energy += vp->data_g[i];
@@ -527,7 +527,7 @@ static void *vol_precache_part(void *data)
 					/* convert from world->camera space for shading */
 					mul_v3_m4v3(cco, pa->viewmat, co);
 					
-					i= BLI_VEXEL_INDEX(x, y, z, res);
+					i = BLI_VOXEL_INDEX(x, y, z, res);
 					
 					// don't bother if the point is not inside the volume mesh
 					if (!point_inside_obi(tree, obi, cco)) {

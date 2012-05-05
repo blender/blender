@@ -2987,7 +2987,7 @@ static void radial_control_set_tex(RadialControl *rc)
 
 	switch (RNA_type_to_ID_code(rc->image_id_ptr.type)) {
 		case ID_BR:
-			if ((ibuf = brush_gen_radial_control_imbuf(rc->image_id_ptr.data))) {
+			if ((ibuf = BKE_brush_gen_radial_control_imbuf(rc->image_id_ptr.data))) {
 				glGenTextures(1, &rc->gltex);
 				glBindTexture(GL_TEXTURE_2D, rc->gltex);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, ibuf->x, ibuf->y, 0,

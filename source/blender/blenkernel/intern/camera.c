@@ -50,7 +50,7 @@
 
 /****************************** Camera Datablock *****************************/
 
-void *add_camera(const char *name)
+void *BKE_camera_add(const char *name)
 {
 	Camera *cam;
 	
@@ -69,7 +69,7 @@ void *add_camera(const char *name)
 	return cam;
 }
 
-Camera *copy_camera(Camera *cam)
+Camera *BKE_camera_copy(Camera *cam)
 {
 	Camera *camn;
 	
@@ -80,7 +80,7 @@ Camera *copy_camera(Camera *cam)
 	return camn;
 }
 
-void make_local_camera(Camera *cam)
+void BKE_camera_make_local(Camera *cam)
 {
 	Main *bmain= G.main;
 	Object *ob;
@@ -108,7 +108,7 @@ void make_local_camera(Camera *cam)
 		id_clear_lib_data(bmain, &cam->id);
 	}
 	else if (is_local && is_lib) {
-		Camera *cam_new= copy_camera(cam);
+		Camera *cam_new= BKE_camera_copy(cam);
 
 		cam_new->id.us= 0;
 
@@ -127,14 +127,14 @@ void make_local_camera(Camera *cam)
 	}
 }
 
-void free_camera(Camera *ca)
+void BKE_camera_free(Camera *ca)
 {
 	BKE_free_animdata((ID *)ca);
 }
 
 /******************************** Camera Usage *******************************/
 
-void object_camera_mode(RenderData *rd, Object *cam_ob)
+void BKE_camera_object_mode(RenderData *rd, Object *cam_ob)
 {
 	rd->mode &= ~(R_ORTHO|R_PANORAMA);
 
@@ -146,7 +146,7 @@ void object_camera_mode(RenderData *rd, Object *cam_ob)
 }
 
 /* get the camera's dof value, takes the dof object into account */
-float object_camera_dof_distance(Object *ob)
+float BKE_camera_object_dof_distance(Object *ob)
 {
 	Camera *cam = (Camera *)ob->data; 
 	if (ob->type != OB_CAMERA)
@@ -165,7 +165,7 @@ float object_camera_dof_distance(Object *ob)
 	return cam->YF_dofdist;
 }
 
-float camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y)
+float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y)
 {
 	/* sensor size used to fit to. for auto, sensor_x is both x and y. */
 	if (sensor_fit == CAMERA_SENSOR_FIT_VERT)
@@ -174,7 +174,7 @@ float camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y)
 	return sensor_x;
 }
 
-int camera_sensor_fit(int sensor_fit, float sizex, float sizey)
+int BKE_camera_sensor_fit(int sensor_fit, float sizex, float sizey)
 {
 	if (sensor_fit == CAMERA_SENSOR_FIT_AUTO) {
 		if (sizex >= sizey)
@@ -188,7 +188,7 @@ int camera_sensor_fit(int sensor_fit, float sizex, float sizey)
 
 /******************************** Camera Params *******************************/
 
-void camera_params_init(CameraParams *params)
+void BKE_camera_params_init(CameraParams *params)
 {
 	memset(params, 0, sizeof(CameraParams));
 
@@ -200,7 +200,7 @@ void camera_params_init(CameraParams *params)
 	params->zoom= 1.0f;
 }
 
-void camera_params_from_object(CameraParams *params, Object *ob)
+void BKE_camera_params_from_object(CameraParams *params, Object *ob)
 {
 	if (!ob)
 		return;
@@ -239,7 +239,7 @@ void camera_params_from_object(CameraParams *params, Object *ob)
 	}
 }
 
-void camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView3D *rv3d)
+void BKE_camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView3D *rv3d)
 {
 	/* common */
 	params->lens= v3d->lens;
@@ -248,7 +248,7 @@ void camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView3D *
 
 	if (rv3d->persp==RV3D_CAMOB) {
 		/* camera view */
-		camera_params_from_object(params, v3d->camera);
+		BKE_camera_params_from_object(params, v3d->camera);
 
 		params->zoom= BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom);
 
@@ -275,7 +275,7 @@ void camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView3D *
 	}
 }
 
-void camera_params_compute_viewplane(CameraParams *params, int winx, int winy, float xasp, float yasp)
+void BKE_camera_params_compute_viewplane(CameraParams *params, int winx, int winy, float xasp, float yasp)
 {
 	rctf viewplane;
 	float pixsize, viewfac, sensor_size, dx, dy;
@@ -293,12 +293,12 @@ void camera_params_compute_viewplane(CameraParams *params, int winx, int winy, f
 	}
 	else {
 		/* perspective camera */
-		sensor_size= camera_sensor_size(params->sensor_fit, params->sensor_x, params->sensor_y);
+		sensor_size= BKE_camera_sensor_size(params->sensor_fit, params->sensor_x, params->sensor_y);
 		pixsize= (sensor_size * params->clipsta)/params->lens;
 	}
 
 	/* determine sensor fit */
-	sensor_fit = camera_sensor_fit(params->sensor_fit, xasp*winx, yasp*winy);
+	sensor_fit = BKE_camera_sensor_fit(params->sensor_fit, xasp*winx, yasp*winy);
 
 	if (sensor_fit==CAMERA_SENSOR_FIT_HOR)
 		viewfac= winx;
@@ -351,23 +351,23 @@ void camera_params_compute_viewplane(CameraParams *params, int winx, int winy, f
 }
 
 /* viewplane is assumed to be already computed */
-void camera_params_compute_matrix(CameraParams *params)
+void BKE_camera_params_compute_matrix(CameraParams *params)
 {
-	rctf viewplane= params->viewplane;
+	rctf viewplane = params->viewplane;
 
 	/* compute projection matrix */
 	if (params->is_ortho)
 		orthographic_m4(params->winmat, viewplane.xmin, viewplane.xmax,
-			viewplane.ymin, viewplane.ymax, params->clipsta, params->clipend);
+		                viewplane.ymin, viewplane.ymax, params->clipsta, params->clipend);
 	else
 		perspective_m4(params->winmat, viewplane.xmin, viewplane.xmax,
-			viewplane.ymin, viewplane.ymax, params->clipsta, params->clipend);
+		               viewplane.ymin, viewplane.ymax, params->clipsta, params->clipend);
 }
 
 /***************************** Camera View Frame *****************************/
 
-void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const short do_clip, const float scale[3],
-                          float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3])
+void BKE_camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const short do_clip, const float scale[3],
+                              float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3])
 {
 	float facx, facy;
 	float depth;
@@ -376,7 +376,7 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 	if (scene) {
 		float aspx= (float) scene->r.xsch*scene->r.xasp;
 		float aspy= (float) scene->r.ysch*scene->r.yasp;
-		int sensor_fit= camera_sensor_fit(camera->sensor_fit, aspx, aspy);
+		int sensor_fit= BKE_camera_sensor_fit(camera->sensor_fit, aspx, aspy);
 
 		if (sensor_fit==CAMERA_SENSOR_FIT_HOR) {
 			r_asp[0]= 1.0;
@@ -431,14 +431,14 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 	r_vec[3][0]= r_shift[0] - facx; r_vec[3][1]= r_shift[1] + facy; r_vec[3][2]= depth;
 }
 
-void camera_view_frame(Scene *scene, Camera *camera, float r_vec[4][3])
+void BKE_camera_view_frame(Scene *scene, Camera *camera, float r_vec[4][3])
 {
 	float dummy_asp[2];
 	float dummy_shift[2];
 	float dummy_drawsize;
 	const float dummy_scale[3]= {1.0f, 1.0f, 1.0f};
 
-	camera_view_frame_ex(scene, camera, FALSE, 1.0, dummy_scale,
+	BKE_camera_view_frame_ex(scene, camera, FALSE, 1.0, dummy_scale,
 	                     dummy_asp, dummy_shift, &dummy_drawsize, r_vec);
 }
 
@@ -450,7 +450,7 @@ typedef struct CameraViewFrameData {
 	unsigned int tot;
 } CameraViewFrameData;
 
-static void camera_to_frame_view_cb(const float co[3], void *user_data)
+static void BKE_camera_to_frame_view_cb(const float co[3], void *user_data)
 {
 	CameraViewFrameData *data= (CameraViewFrameData *)user_data;
 	unsigned int i;
@@ -467,7 +467,7 @@ static void camera_to_frame_view_cb(const float co[3], void *user_data)
 
 /* don't move the camera, just yield the fit location */
 /* only valid for perspective cameras */
-int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *camera_ob, float r_co[3])
+int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *camera_ob, float r_co[3])
 {
 	float shift[2];
 	float plane_tx[4][3];
@@ -477,7 +477,7 @@ int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *cam
 
 	unsigned int i;
 
-	camera_view_frame(scene, camera_ob->data, data_cb.frame_tx);
+	BKE_camera_view_frame(scene, camera_ob->data, data_cb.frame_tx);
 
 	copy_m3_m4(rot_obmat, camera_ob->obmat);
 	normalize_m3(rot_obmat);
@@ -514,7 +514,7 @@ int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *cam
 	data_cb.tot= 0;
 	/* run callback on all visible points */
 	BKE_scene_foreach_display_point(scene, v3d, BA_SELECT,
-	                                camera_to_frame_view_cb, &data_cb);
+	                                BKE_camera_to_frame_view_cb, &data_cb);
 
 	if (data_cb.tot <= 1) {
 		return FALSE;

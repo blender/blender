@@ -2990,7 +2990,7 @@ static void brush_puff(PEData *data, int point_index)
 }
 
 
-static void brush_weight(PEData *data, float UNUSED(mat[][4]), float UNUSED(imat[][4]), int point_index, int key_index, PTCacheEditKey *UNUSED(key))
+static void BKE_brush_weight_get(PEData *data, float UNUSED(mat[][4]), float UNUSED(imat[][4]), int point_index, int key_index, PTCacheEditKey *UNUSED(key))
 {
 	/* roots have full weight allways */
 	if (key_index) {
@@ -3622,7 +3622,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 						data.weightfac = brush->strength; /* note that this will never be zero */
 
-						foreach_mouse_hit_key(&data, brush_weight, selected);
+						foreach_mouse_hit_key(&data, BKE_brush_weight_get, selected);
 					}
 
 					break;

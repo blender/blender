@@ -1783,7 +1783,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag != 0) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = copy_camera(obn->data);
+						obn->data = BKE_camera_copy(obn->data);
 						didit = 1;
 					}
 					id->us--;

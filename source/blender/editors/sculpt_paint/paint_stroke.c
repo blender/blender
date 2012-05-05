@@ -146,10 +146,10 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	if (stroke->vc.obact->sculpt) {
 		float delta[2];
 
-		brush_jitter_pos(scene, brush, mouse_in, mouse);
+		BKE_brush_jitter_pos(scene, brush, mouse_in, mouse);
 
 		/* XXX: meh, this is round about because
-		 * brush_jitter_pos isn't written in the best way to
+		 * BKE_brush_jitter_pos isn't written in the best way to
 		 * be reused here */
 		if (brush->flag & BRUSH_JITTER_PRESSURE) {
 			sub_v2_v2v2(delta, mouse, mouse_in);
@@ -231,11 +231,11 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 			float pressure = 1.0f;
 
 			/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
-			if (brush_use_size_pressure(scene, stroke->brush))
+			if (BKE_brush_use_size_pressure(scene, stroke->brush))
 				pressure = event_tablet_data(event, NULL);
 			
 			if (pressure > FLT_EPSILON) {
-				scale = (brush_size(scene, stroke->brush) * pressure * stroke->brush->spacing / 50.0f) / length;
+				scale = (BKE_brush_size_get(scene, stroke->brush) * pressure * stroke->brush->spacing / 50.0f) / length;
 				if (scale > FLT_EPSILON) {
 					mul_v2_fl(vec, scale);
 
