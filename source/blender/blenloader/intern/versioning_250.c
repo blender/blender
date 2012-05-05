@@ -690,9 +690,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
 
-	if (G.debug & G_DEBUG)
-		printf("read file %s\n  Version %d sub %d svn r%d\n", fd->relabase, main->versionfile, main->subversionfile, main->revision);
-
 	if (main->versionfile < 250) {
 		bScreen *screen;
 		Scene *scene;

@@ -33,13 +33,6 @@
 #include "zlib.h"
 
 #include <limits.h>
-//#include <stdio.h> // for printf fopen fwrite fclose sprintf FILE
-//#include <stdlib.h> // for getenv atoi
-//#include <stddef.h> // for offsetof
-//#include <fcntl.h> // for open
-//#include <string.h> // for strrchr strncmp strstr
-//#include <math.h> // for fabs
-//#include <stdarg.h> /* for va_start/end */
 
 #ifndef WIN32
 #  include <unistd.h> // for read close
@@ -554,9 +547,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
 
-	if (G.debug & G_DEBUG)
-		printf("read file %s\n  Version %d sub %d svn r%d\n", fd->relabase, main->versionfile, main->subversionfile, main->revision);
-	
 	if (main->versionfile == 100) {
 		/* tex->extend and tex->imageflag have changed: */
 		Tex *tex = main->tex.first;
