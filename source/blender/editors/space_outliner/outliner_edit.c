@@ -1402,9 +1402,9 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 
 	partype= RNA_enum_get(op->ptr, "type");
 	RNA_string_get(op->ptr, "parent", parname);
-	par= (Object *)BKE_libblock_find_name("OB", parname);
+	par= (Object *)BKE_libblock_find_name(ID_OB, parname);
 	RNA_string_get(op->ptr, "child", childname);
-	ob= (Object *)BKE_libblock_find_name("OB", childname);
+	ob= (Object *)BKE_libblock_find_name(ID_OB, childname);
 
 	ED_object_parent_set(op->reports, bmain, scene, ob, par, partype);
 
@@ -1473,9 +1473,9 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_string_set(op->ptr, "parent", te_found->name);
 		/* Identify parent and child */
 		RNA_string_get(op->ptr, "child", childname);
-		ob= (Object *)BKE_libblock_find_name("OB", childname);
+		ob= (Object *)BKE_libblock_find_name(ID_OB, childname);
 		RNA_string_get(op->ptr, "parent", parname);
-		par= (Object *)BKE_libblock_find_name("OB", parname);
+		par= (Object *)BKE_libblock_find_name(ID_OB, parname);
 		
 		if (ELEM(NULL, ob, par)) {
 			if (par == NULL) printf("par==NULL\n");
@@ -1659,7 +1659,7 @@ static int parent_clear_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	char obname[MAX_ID_NAME];
 
 	RNA_string_get(op->ptr, "dragged_obj", obname);
-	ob= (Object *)BKE_libblock_find_name("OB", obname);
+	ob= (Object *)BKE_libblock_find_name(ID_OB, obname);
 
 	/* check dragged object (child) is active */
 	if (ob != CTX_data_active_object(C))

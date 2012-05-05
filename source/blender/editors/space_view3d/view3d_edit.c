@@ -3184,7 +3184,7 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 	}
 	else if (RNA_struct_property_is_set(op->ptr, "name")) {
 		RNA_string_get(op->ptr, "name", name);
-		ima = (Image *)BKE_libblock_find_name("IM", name);
+		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
 	}
 	
 	bgpic = background_image_add(C);

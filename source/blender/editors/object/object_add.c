@@ -1954,7 +1954,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 
 	/* find object, create fake base */
 	RNA_string_get(op->ptr, "name", name);
-	ob = (Object *)BKE_libblock_find_name("OB", name);
+	ob = (Object *)BKE_libblock_find_name(ID_OB, name);
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 

@@ -615,7 +615,7 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 /* called from creator.c */
 Scene *BKE_scene_set_name(Main *bmain, const char *name)
 {
-	Scene *sce= (Scene *)BKE_libblock_find_name("SC", name);
+	Scene *sce = (Scene *)BKE_libblock_find_name(ID_SCE, name);
 	if (sce) {
 		BKE_scene_set_background(bmain, sce);
 		printf("Scene switch: '%s' in file: '%s'\n", name, G.main->name);

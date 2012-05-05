@@ -943,9 +943,9 @@ void free_main(Main *mainvar)
 /* ***************** ID ************************ */
 
 
-ID *BKE_libblock_find_name(const char *type, const char *name)		/* type: "OB" or "MA" etc */
+ID *BKE_libblock_find_name(const short type, const char *name)		/* type: "OB" or "MA" etc */
 {
-	ListBase *lb= which_libbase(G.main, GS(type));
+	ListBase *lb= which_libbase(G.main, type);
 	return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
 

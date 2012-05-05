@@ -2945,7 +2945,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 		
 		BLI_strncpy(cache->saved_active_brush_name, brush->id.name + 2, sizeof(cache->saved_active_brush_name));
 
-		br = (Brush *)BKE_libblock_find_name("BR", "Smooth");
+		br = (Brush *)BKE_libblock_find_name(ID_BR, "Smooth");
 		if (br) {
 			paint_brush_set(p, br);
 			brush = br;
@@ -3508,7 +3508,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 		/* Alt-Smooth */
 		if (ss->cache->alt_smooth) {
 			Paint *p = &sd->paint;
-			brush = (Brush *)BKE_libblock_find_name("BR", ss->cache->saved_active_brush_name);
+			brush = (Brush *)BKE_libblock_find_name(ID_BR, ss->cache->saved_active_brush_name);
 			if (brush) {
 				paint_brush_set(p, brush);
 			}

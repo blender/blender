@@ -884,7 +884,7 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 		flip_side_name(tmpname, primbase->object->id.name + 2, TRUE);
 		
 		if (strcmp(tmpname, primbase->object->id.name + 2) != 0) { /* names differ */
-			Object *ob = (Object *)BKE_libblock_find_name("OB", tmpname);
+			Object *ob = (Object *)BKE_libblock_find_name(ID_OB, tmpname);
 			if (ob) {
 				Base *secbase = BKE_scene_base_find(scene, ob);
 

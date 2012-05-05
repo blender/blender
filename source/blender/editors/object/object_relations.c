@@ -1911,7 +1911,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	char name[MAX_ID_NAME - 2];
 	
 	RNA_string_get(op->ptr, "name", name);
-	ma = (Material *)BKE_libblock_find_name("MA", name);
+	ma = (Material *)BKE_libblock_find_name(ID_MA, name);
 	if (base == NULL || ma == NULL)
 		return OPERATOR_CANCELLED;
 	
