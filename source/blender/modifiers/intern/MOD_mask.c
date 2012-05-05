@@ -146,13 +146,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		char *bone_select_array;
 		int bone_select_tot= 0;
 		const int defbase_tot= BLI_countlist(&ob->defbase);
-
+		
 		/* check that there is armature object with bones to use, otherwise return original mesh */
 		if (ELEM3(NULL, mmd->ob_arm, mmd->ob_arm->pose, ob->defbase.first))
 			return derivedData;
-
+		
 		bone_select_array= MEM_mallocN(defbase_tot * sizeof(char), "mask array");
-
+		
 		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
 			pchan = get_pose_channel(oba->pose, def->name);
 			if (pchan && pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
@@ -198,7 +198,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		for (i= 0, dv= dvert; i < maxVerts; i++, dv++) {
 			MDeformWeight *dw= dv->dw;
 			int j;
-
+			
 			for (j= dv->totweight; j > 0; j--, dw++) {
 				if (dw->def_nr < defbase_tot) {
 					if (bone_select_array[dw->def_nr]) {
@@ -291,7 +291,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		MLoop *ml = mloop + mp->loopstart;
 		int ok = TRUE;
 		int j;
-
+		
 		for (j = 0; j < mp->totloop; j++, ml++) {
 			if (!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(ml->v))) {
 				ok = FALSE;
