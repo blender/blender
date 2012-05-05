@@ -181,7 +181,8 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	short changed = 0;
 	const int unselected = RNA_boolean_get(op->ptr, "unselected");
 	
-	CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
 		if (!unselected) {
 			if (base->flag & SELECT) {
 				base->flag &= ~SELECT;
@@ -237,7 +238,8 @@ static int object_hide_render_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	short changed = 0;
 
 	/* XXX need a context loop to handle such cases */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	{
 		if (ob->restrictflag & OB_RESTRICT_RENDER) {
 			ob->restrictflag &= ~OB_RESTRICT_RENDER;
 			changed = 1;
@@ -271,7 +273,8 @@ static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 {
 	const int unselected = RNA_boolean_get(op->ptr, "unselected");
 
-	CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
 		if (!unselected) {
 			if (base->flag & SELECT) {
 				base->object->restrictflag |= OB_RESTRICT_RENDER;
@@ -1099,7 +1102,7 @@ void OBJECT_OT_forcefield_toggle(wmOperatorType *ot)
 /* ********************************************** */
 /* Motion Paths */
 
-/* For the object with pose/action: update paths for those that have got them
+/* For the objects with animation: update paths for those that have got them
  * This should selectively update paths that exist...
  *
  * To be called from various tools that do incremental updates 
@@ -1109,8 +1112,9 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	ListBase targets = {NULL, NULL};
 	
 	/* loop over objects in scene */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-		/* set flag to force recalc, then grab the relevant bones to target */
+	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	{
+		/* set flag to force recalc, then grab path(s) from object */
 		ob->avs.recalc |= ANIMVIZ_RECALC_PATHS;
 		animviz_get_object_motionpaths(ob, &targets);
 	}
@@ -1121,27 +1125,53 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	BLI_freelistN(&targets);
 }
 
-/* For the object with pose/action: create path curves for selected bones 
- * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
- */
+/* show popup to determine settings */
+static int object_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	Object *ob = CTX_data_active_object(C);
+	
+	if (ob == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* set default settings from existing/stored settings */
+	{
+		bAnimVizSettings *avs = &ob->avs;
+		
+		RNA_int_set(op->ptr, "start_frame", avs->path_sf);
+		RNA_int_set(op->ptr, "end_frame", avs->path_ef);
+	}
+	
+	/* show popup dialog to allow editing of range... */
+	// FIXME: hardcoded dimensions here are just arbitrary
+	return WM_operator_props_dialog_popup(C, op, 200, 200);
+}
+
+/* Calculate/recalculate whole paths (avs.path_sf to avs.path_ef) */
 static int object_calculate_paths_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
+	int start = RNA_int_get(op->ptr, "start_frame");
+	int end = RNA_int_get(op->ptr, "end_frame");
 	
 	/* set up path data for bones being calculated */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		/* verify makes sure that the selected bone has a bone with the appropriate settings */
+		bAnimVizSettings *avs = &ob->avs;
+		
+		/* grab baking settings from operator settings */
+		avs->path_sf = start;
+		avs->path_ef = end;
+		
+		/* verify that the selected object has the appropriate settings */
 		animviz_verify_motionpaths(op->reports, scene, ob, NULL);
 	}
 	CTX_DATA_END;
 	
-	/* calculate the bones that now have motionpaths... */
-	// TODO: only make for the selected bones?
+	/* calculate the paths for objects that have them (and are tagged to get refreshed) */
 	ED_objects_recalculate_paths(C, scene);
 	
 	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED; 
 }
@@ -1151,19 +1181,26 @@ void OBJECT_OT_paths_calculate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Calculate Object Paths";
 	ot->idname = "OBJECT_OT_paths_calculate";
-	ot->description = "Calculate paths for the selected bones";
+	ot->description = "Calculate motion paths for the selected objects";
 	
 	/* api callbacks */
+	ot->invoke = object_calculate_paths_invoke;
 	ot->exec = object_calculate_paths_exec;
 	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_int(ot->srna, "start_frame", 1, MINAFRAME, MAXFRAME, "Start", 
+	            "First frame to calculate object paths on", MINFRAME, MAXFRAME/2.0);
+	RNA_def_int(ot->srna, "end_frame", 250, MINAFRAME, MAXFRAME, "End", 
+	            "Last frame to calculate object paths on", MINFRAME, MAXFRAME/2.0);
 }
 
 /* --------- */
 
-/* for the object with pose/action: clear path curves for selected bones only */
+/* Clear motion paths for selected objects only */
 void ED_objects_clear_paths(bContext *C)
 {
 	/* loop over objects in scene */
@@ -1185,7 +1222,7 @@ static int object_clear_paths_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_objects_clear_paths(C);
 	
 	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED; 
 }
@@ -1195,7 +1232,7 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clear Object Paths";
 	ot->idname = "OBJECT_OT_paths_clear";
-	ot->description = "Clear path caches for selected bones";
+	ot->description = "Clear path caches for selected objects";
 	
 	/* api callbacks */
 	ot->exec = object_clear_paths_exec;
@@ -1215,7 +1252,8 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	int clear = (strcmp(op->idname, "OBJECT_OT_shade_flat") == 0);
 	int done = 0;
 
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	{
 
 		if (ob->type == OB_MESH) {
 			mesh_set_smooth_flag(ob, !clear);
@@ -1632,7 +1670,8 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 		prop = BLI_findlink(&ob->prop, propid - 1);
 		
 		if (prop) {
-			CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
+			CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects)
+			{
 				if (ob != ob_iter)
 					set_ob_property(ob_iter, prop);
 			} CTX_DATA_END;
@@ -1640,7 +1679,8 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 	}
 
 	else {
-		CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
+		CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects)
+		{
 			if (ob != ob_iter) {
 				if (type == COPY_PROPERTIES_REPLACE)
 					copy_properties(&ob_iter->prop, &ob->prop);
@@ -1679,7 +1719,8 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 
 static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects)
+	{
 		free_properties(&ob_iter->prop);
 	}
 	CTX_DATA_END;
@@ -1707,7 +1748,8 @@ static int logicbricks_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_active_context(C);
 
-	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects)
+	{
 		if (ob != ob_iter) {
 			/* first: free all logic */
 			free_sensors(&ob_iter->sensors);				
@@ -1763,7 +1805,8 @@ static int game_physics_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_active_context(C);
 	
-	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects)
+	{
 		if (ob != ob_iter) {
 			ob_iter->gameflag = ob->gameflag;
 			ob_iter->gameflag2 = ob->gameflag2;

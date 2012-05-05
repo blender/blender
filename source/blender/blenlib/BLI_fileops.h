@@ -55,6 +55,7 @@ int    BLI_rename(const char *from, const char *to);
 int    BLI_delete(const char *path, int dir, int recursive);
 int    BLI_move(const char *path, const char *to);
 int    BLI_create_symlink(const char *path, const char *to);
+int    BLI_stat(const char *path, struct stat *buffer);
 
 /* Directories */
 

@@ -107,6 +107,7 @@ void FILE_OT_pack_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Pack All";
 	ot->idname = "FILE_OT_pack_all";
+	ot->description = "Pack all used external files into the .blend";
 	
 	/* api callbacks */
 	ot->exec = pack_all_exec;
@@ -175,6 +176,7 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Unpack All";
 	ot->idname = "FILE_OT_unpack_all";
+	ot->description = "Unpack all files packed into this .blend to external ones";
 	
 	/* api callbacks */
 	ot->exec = unpack_all_exec;
@@ -198,7 +200,7 @@ static int make_paths_relative_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	makeFilesRelative(bmain, bmain->name, op->reports);
+	BLI_bpath_relative_convert(bmain, bmain->name, op->reports);
 
 	/* redraw everything so any changed paths register */
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -211,6 +213,7 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Make All Paths Relative";
 	ot->idname = "FILE_OT_make_paths_relative";
+	ot->description = "Make all paths to external files relative to current .blend";
 	
 	/* api callbacks */
 	ot->exec = make_paths_relative_exec;
@@ -230,7 +233,7 @@ static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	makeFilesAbsolute(bmain, bmain->name, op->reports);
+	BLI_bpath_absolute_convert(bmain, bmain->name, op->reports);
 
 	/* redraw everything so any changed paths register */
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -243,6 +246,7 @@ void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Make All Paths Absolute";
 	ot->idname = "FILE_OT_make_paths_absolute";
+	ot->description = "Make all paths to external files absolute";
 	
 	/* api callbacks */
 	ot->exec = make_paths_absolute_exec;
@@ -258,7 +262,7 @@ static int report_missing_files_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 
 	/* run the missing file check */
-	checkMissingFiles(bmain, op->reports);
+	BLI_bpath_missing_files_check(bmain, op->reports);
 	
 	return OPERATOR_FINISHED;
 }
@@ -268,6 +272,7 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Report Missing Files";
 	ot->idname = "FILE_OT_report_missing_files";
+	ot->description = "Report all missing external files";
 	
 	/* api callbacks */
 	ot->exec = report_missing_files_exec;
@@ -282,7 +287,7 @@ static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	const char *searchpath = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
-	findMissingFiles(bmain, searchpath, op->reports);
+	BLI_bpath_missing_files_find(bmain, searchpath, op->reports);
 	MEM_freeN((void *)searchpath);
 
 	return OPERATOR_FINISHED;
@@ -300,6 +305,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Find Missing Files";
 	ot->idname = "FILE_OT_find_missing_files";
+	ot->description = "Try to find missing external files";
 	
 	/* api callbacks */
 	ot->exec = find_missing_files_exec;
@@ -414,6 +420,7 @@ void INFO_OT_reports_display_update(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Update Reports Display";
 	ot->idname = "INFO_OT_reports_display_update";
+	ot->description = "Update the display of reports in Blender UI (internal use)";
 	
 	/* api callbacks */
 	ot->invoke = update_reports_display_invoke;

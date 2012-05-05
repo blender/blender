@@ -40,6 +40,7 @@
 #endif
 
 #include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 
 #include "DNA_userdef_types.h"
 #include "BKE_global.h"
@@ -154,12 +155,12 @@ static int IMB_ispic_name(const char *name)
 
 	if (UTIL_DEBUG) printf("IMB_ispic_name: loading %s\n", name);
 	
-	if (stat(name,&st) == -1)
+	if (stat(name, &st) == -1)
 		return FALSE;
 	if (((st.st_mode) & S_IFMT) != S_IFREG)
 		return FALSE;
 
-	if ((fp = BLI_open(name,O_BINARY|O_RDONLY, 0)) < 0)
+	if ((fp = BLI_open(name, O_BINARY|O_RDONLY, 0)) < 0)
 		return FALSE;
 
 	if (read(fp, buf, 32) != 32) {
@@ -342,14 +343,14 @@ int imb_get_anim_type(const char * name)
 	/* stat test below fails on large files > 4GB */
 	if (isffmpeg(name)) return (ANIM_FFMPEG);
 #	endif
-	if (stat(name,&st) == -1) return(0);
+	if (BLI_stat(name, &st) == -1) return(0);
 	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
 
 	if (isavi(name)) return (ANIM_AVI);
 
 	if (ismovie(name)) return (ANIM_MOVIE);
 #else
-	if (stat(name,&st) == -1) return(0);
+	if (BLI_stat(name, &st) == -1) return(0);
 	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
 
 	if (ismovie(name)) return (ANIM_MOVIE);
@@ -359,6 +360,8 @@ int imb_get_anim_type(const char * name)
 #	ifdef WITH_FFMPEG
 	if (isffmpeg(name)) return (ANIM_FFMPEG);
 #	endif
+
+
 	if (isavi(name)) return (ANIM_AVI);
 #endif
 #ifdef WITH_REDCODE

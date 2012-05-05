@@ -1,7 +1,4 @@
 /*
- * tiff.c
- *
- * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -242,7 +239,7 @@ static int imb_tiff_CloseProc(thandle_t handle)
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
 	if (!mfile || !mfile->mem) {
-		fprintf(stderr,"imb_tiff_CloseProc: !mfile || !mfile->mem!\n");
+		fprintf(stderr, "imb_tiff_CloseProc: !mfile || !mfile->mem!\n");
 		return (0);
 	}
 	
@@ -268,7 +265,7 @@ static toff_t imb_tiff_SizeProc(thandle_t handle)
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
 	if (!mfile || !mfile->mem) {
-		fprintf(stderr,"imb_tiff_SizeProc: !mfile || !mfile->mem!\n");
+		fprintf(stderr, "imb_tiff_SizeProc: !mfile || !mfile->mem!\n");
 		return (0);
 	}
 
@@ -320,8 +317,8 @@ static void scanline_contig_16bit(float *rectf, unsigned short *sbuf, int scanli
 	int i;
 	for (i=0; i < scanline_w; i++) {
 		rectf[i*4 + 0] = sbuf[i*spp + 0] / 65535.0;
-		rectf[i*4 + 1] = sbuf[i*spp + 1] / 65535.0;
-		rectf[i*4 + 2] = sbuf[i*spp + 2] / 65535.0;
+		rectf[i*4 + 1] = (spp>=3)? sbuf[i*spp + 1] / 65535.0: sbuf[i*spp + 0] / 65535.0;
+		rectf[i*4 + 2] = (spp>=3)? sbuf[i*spp + 2] / 65535.0: sbuf[i*spp + 0] / 65535.0;
 		rectf[i*4 + 3] = (spp==4)?(sbuf[i*spp + 3] / 65535.0):1.0;
 	}
 }
@@ -331,8 +328,8 @@ static void scanline_contig_32bit(float *rectf, float *fbuf, int scanline_w, int
 	int i;
 	for (i=0; i < scanline_w; i++) {
 		rectf[i*4 + 0] = fbuf[i*spp + 0];
-		rectf[i*4 + 1] = fbuf[i*spp + 1];
-		rectf[i*4 + 2] = fbuf[i*spp + 2];
+		rectf[i*4 + 1] = (spp>=3)? fbuf[i*spp + 1]: fbuf[i*spp + 0];
+		rectf[i*4 + 2] = (spp>=3)? fbuf[i*spp + 2]: fbuf[i*spp + 0];
 		rectf[i*4 + 3] = (spp==4)?fbuf[i*spp + 3]:1.0f;
 	}
 }
@@ -440,6 +437,8 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 				if (bitspersample == 32) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
 						fill_vn_fl(fbuf, ibuf->x, 1.0f);
+					else if (chan >= spp) /* for grayscale, duplicate first channel into G and B */
+						success |= TIFFReadScanline(image, fbuf, row, 0);
 					else
 						success |= TIFFReadScanline(image, fbuf, row, chan);
 					scanline_separate_32bit(tmpibuf->rect_float+ib_offset, fbuf, ibuf->x, chan);
@@ -448,6 +447,8 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 				else if (bitspersample == 16) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
 						fill_vn_ushort(sbuf, ibuf->x, 65535);
+					else if (chan >= spp) /* for grayscale, duplicate first channel into G and B */
+						success |= TIFFReadScanline(image, fbuf, row, 0);
 					else
 						success |= TIFFReadScanline(image, sbuf, row, chan);
 					scanline_separate_16bit(tmpibuf->rect_float+ib_offset, sbuf, ibuf->x, chan);
@@ -777,22 +778,17 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 
 			if (pixels16) {
 				/* convert from float source */
-				float rgb[3];
+				float rgb[4];
 				
 				if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
 					linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
 				else
 					copy_v3_v3(rgb, &fromf[from_i]);
 
-				to16[to_i+0] = FTOUSHORT(rgb[0]);
-				to16[to_i+1] = FTOUSHORT(rgb[1]);
-				to16[to_i+2] = FTOUSHORT(rgb[2]);
-				to_i += 3; from_i+=3;
-				
-				if (samplesperpixel == 4) {
-					to16[to_i+3] = FTOUSHORT(fromf[from_i+3]);
-					/*to_i++; from_i++;*/ /*unused, set on each loop */
-				}
+				rgb[3] = fromf[from_i+3];
+
+				for (i = 0; i < samplesperpixel; i++, to_i++)
+					to16[to_i] = FTOUSHORT(rgb[i]);
 			}
 			else {
 				for (i = 0; i < samplesperpixel; i++, to_i++, from_i++)

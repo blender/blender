@@ -140,7 +140,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 			/* we assume the decim_faces tells how much to reduce */
 
 			while (lod.face_num > numTris*dmd->percent) {
-				if ( LOD_CollapseEdge(&lod)==0) break;
+				if ( LOD_CollapseEdge(&lod) == 0) break;
 			}
 
 			if (lod.vertex_num>2) {
@@ -160,7 +160,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 
 			if (lod.vertex_num>2) {
 				mface = CDDM_get_tessfaces(result);
-				for (a=0; a<lod.face_num; a++) {
+				for (a = 0; a < lod.face_num; a++) {
 					MFace *mf = &mface[a];
 					int *tri = &lod.triangle_index_buffer[a*3];
 					mf->v1 = tri[0];

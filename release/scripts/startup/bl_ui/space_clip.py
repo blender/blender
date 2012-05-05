@@ -38,19 +38,20 @@ class CLIP_HT_header(Header):
             sub = row.row(align=True)
             sub.menu("CLIP_MT_view")
 
-            if clip:
-                sub.menu("CLIP_MT_select")
+            if sc.view == 'CLIP':
+                if clip:
+                    sub.menu("CLIP_MT_select")
 
-            sub.menu("CLIP_MT_clip")
+                sub.menu("CLIP_MT_clip")
 
-            if clip:
                 sub.menu("CLIP_MT_track")
                 sub.menu("CLIP_MT_reconstruction")
 
-        if clip:
-            layout.prop(sc, "mode", text="")
-            layout.prop(sc, "view", text="", expand=True)
+        layout.prop(sc, "view", text="", expand=True)
 
+        if clip:
+            if sc.view == 'CLIP':
+                layout.prop(sc, "mode", text="")
             if sc.view == 'GRAPH':
                 row = layout.row(align=True)
 
@@ -79,24 +80,61 @@ class CLIP_HT_header(Header):
             else:
                 r = tracking.reconstruction
 
-            if r.is_valid:
+            if r.is_valid and sc.view == 'CLIP':
                 layout.label(text="Average solve error: %.4f" %
                     (r.average_error))
+
+            if sc.view == 'DOPESHEET':
+                layout.label(text="Sort by:")
+                layout.prop(sc, "dopesheet_sort_method", text="")
+                layout.prop(sc, "invert_dopesheet_sort", text="Invert")
 
         layout.template_running_jobs()
 
 
-class CLIP_PT_tools_marker(Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
-    bl_label = "Marker"
+class CLIP_PT_clip_view_panel:
 
     @classmethod
     def poll(cls, context):
         sc = context.space_data
         clip = sc.clip
 
-        return clip and sc.mode == 'TRACKING'
+        return clip and sc.view == 'CLIP'
+
+class CLIP_PT_tracking_panel:
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        return clip and sc.mode == 'TRACKING' and sc.view == 'CLIP'
+
+
+class CLIP_PT_reconstruction_panel:
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        return clip and sc.mode == 'RECONSTRUCTION' and sc.view == 'CLIP'
+
+
+class CLIP_PT_distortion_panel:
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        return clip and sc.mode == 'DISTORTION' and sc.view == 'CLIP'
+
+
+class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = "Marker"
 
     def draw(self, context):
         sc = context.space_data
@@ -162,17 +200,10 @@ class CLIP_PT_tools_marker(Panel):
                          text="Copy From Active Track")
 
 
-class CLIP_PT_tools_tracking(Panel):
+class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Track"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return clip and sc.mode == 'TRACKING'
 
     def draw(self, context):
         layout = self.layout
@@ -201,17 +232,10 @@ class CLIP_PT_tools_tracking(Panel):
         layout.operator("clip.join_tracks", text="Join")
 
 
-class CLIP_PT_tools_solve(Panel):
+class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Solve"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return clip and sc.mode == 'TRACKING'
 
     def draw(self, context):
         layout = self.layout
@@ -241,17 +265,10 @@ class CLIP_PT_tools_solve(Panel):
         col.prop(settings, "refine_intrinsics", text="")
 
 
-class CLIP_PT_tools_cleanup(Panel):
+class CLIP_PT_tools_cleanup(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Clean up"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return clip and sc.mode == 'TRACKING'
 
     def draw(self, context):
         layout = self.layout
@@ -265,17 +282,10 @@ class CLIP_PT_tools_cleanup(Panel):
         layout.prop(settings, 'clean_action', text="")
 
 
-class CLIP_PT_tools_geometry(Panel):
+class CLIP_PT_tools_geometry(CLIP_PT_reconstruction_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Geometry"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return clip and sc.mode == 'RECONSTRUCTION'
 
     def draw(self, context):
         layout = self.layout
@@ -284,17 +294,10 @@ class CLIP_PT_tools_geometry(Panel):
         layout.operator("clip.track_to_empty")
 
 
-class CLIP_PT_tools_orientation(Panel):
+class CLIP_PT_tools_orientation(CLIP_PT_reconstruction_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Orientation"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return clip and sc.mode == 'RECONSTRUCTION'
 
     def draw(self, context):
         sc = context.space_data
@@ -320,18 +323,19 @@ class CLIP_PT_tools_orientation(Panel):
         col.prop(settings, "distance")
 
 
-class CLIP_PT_tools_object(Panel):
+class CLIP_PT_tools_object(CLIP_PT_reconstruction_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Object"
 
     @classmethod
     def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
+        if CLIP_PT_reconstruction_panel.poll(context):
+            sc = context.space_data
+            clip = sc.clip
 
-        if clip and sc.mode == 'RECONSTRUCTION':
             tracking_object = clip.tracking.objects.active
+
             return not tracking_object.is_camera
 
         return False
@@ -354,17 +358,10 @@ class CLIP_PT_tools_object(Panel):
         col.prop(settings, "object_distance")
 
 
-class CLIP_PT_tools_grease_pencil(Panel):
+class CLIP_PT_tools_grease_pencil(CLIP_PT_distortion_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Grease Pencil"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return clip and sc.mode == 'DISTORTION'
 
     def draw(self, context):
         layout = self.layout
@@ -383,17 +380,11 @@ class CLIP_PT_tools_grease_pencil(Panel):
         row.prop(context.tool_settings, "use_grease_pencil_sessions")
 
 
-class CLIP_PT_objects(Panel):
+class CLIP_PT_objects(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Objects"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-
-        return sc.clip
 
     def draw(self, context):
         layout = self.layout
@@ -415,17 +406,10 @@ class CLIP_PT_objects(Panel):
             layout.prop(active, "name")
 
 
-class CLIP_PT_track(Panel):
+class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Track"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return sc.mode == 'TRACKING' and clip
 
     def draw(self, context):
         layout = self.layout
@@ -482,17 +466,11 @@ class CLIP_PT_track(Panel):
             layout.label(text=label_text)
 
 
-class CLIP_PT_track_settings(Panel):
+class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Tracking Settings"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-
-        return sc.mode == 'TRACKING' and sc.clip
 
     def draw(self, context):
         layout = self.layout
@@ -525,9 +503,12 @@ class CLIP_PT_tracking_camera(Panel):
 
     @classmethod
     def poll(cls, context):
-        sc = context.space_data
+        if CLIP_PT_clip_view_panel.poll(context):
+            sc = context.space_data
 
-        return sc.mode in {'TRACKING', 'DISTORTION'} and sc.clip
+            return sc.mode in {'TRACKING', 'DISTORTION'} and sc.clip
+
+        return False
 
     def draw(self, context):
         layout = self.layout
@@ -568,7 +549,7 @@ class CLIP_PT_tracking_camera(Panel):
         col.prop(clip.tracking.camera, "k3")
 
 
-class CLIP_PT_display(Panel):
+class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Display"
@@ -613,7 +594,7 @@ class CLIP_PT_display(Panel):
             row.prop(clip, "display_aspect", text="")
 
 
-class CLIP_PT_marker_display(Panel):
+class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Marker Display"
@@ -636,17 +617,11 @@ class CLIP_PT_marker_display(Panel):
         row.prop(sc, "path_length", text="Length")
 
 
-class CLIP_PT_stabilization(Panel):
+class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "2D Stabilization"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-
-        return sc.mode == 'RECONSTRUCTION' and sc.clip
 
     def draw_header(self, context):
         stab = context.space_data.clip.tracking.stabilization
@@ -695,18 +670,11 @@ class CLIP_PT_stabilization(Panel):
         layout.prop(stab, "filter_type")
 
 
-class CLIP_PT_marker(Panel):
+class CLIP_PT_marker(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Marker"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return sc.mode == 'TRACKING' and clip
 
     def draw(self, context):
         layout = self.layout
@@ -721,17 +689,11 @@ class CLIP_PT_marker(Panel):
             layout.label(text="No active track")
 
 
-class CLIP_PT_proxy(Panel):
+class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Proxy / Timecode"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-
-        return sc.clip
 
     def draw_header(self, context):
         sc = context.space_data
@@ -782,17 +744,11 @@ class CLIP_PT_proxy(Panel):
         col.prop(sc.clip_user, "use_render_undistorted")
 
 
-class CLIP_PT_footage(Panel):
+class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Footage Settings"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-
-        return sc.clip
 
     def draw(self, context):
         layout = self.layout
@@ -806,16 +762,10 @@ class CLIP_PT_footage(Panel):
             layout.operator("clip.open", icon='FILESEL')
 
 
-class CLIP_PT_tools_clip(Panel):
+class CLIP_PT_tools_clip(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Clip"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-
-        return sc.clip
 
     def draw(self, context):
         layout = self.layout
@@ -829,25 +779,30 @@ class CLIP_MT_view(Menu):
 
     def draw(self, context):
         layout = self.layout
+        sc = context.space_data
 
-        layout.operator("clip.properties", icon='MENU_PANEL')
-        layout.operator("clip.tools", icon='MENU_PANEL')
-        layout.separator()
+        if sc.view == 'CLIP':
+            layout.operator("clip.properties", icon='MENU_PANEL')
+            layout.operator("clip.tools", icon='MENU_PANEL')
+            layout.separator()
 
-        layout.operator("clip.view_selected")
-        layout.operator("clip.view_all")
+            layout.operator("clip.view_selected")
+            layout.operator("clip.view_all")
 
-        layout.separator()
-        layout.operator("clip.view_zoom_in")
-        layout.operator("clip.view_zoom_out")
+            layout.separator()
+            layout.operator("clip.view_zoom_in")
+            layout.operator("clip.view_zoom_out")
 
-        layout.separator()
+            layout.separator()
 
-        ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
+            ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
-        for a, b in ratios:
-            text = "Zoom %d:%d" % (a, b)
-            layout.operator("clip.view_zoom_ratio", text=text).ratio = a / b
+            for a, b in ratios:
+                text = "Zoom %d:%d" % (a, b)
+                layout.operator("clip.view_zoom_ratio", text=text).ratio = a / b
+        else:
+            layout.prop(sc, "show_seconds")
+            layout.separator()
 
         layout.separator()
         layout.operator("screen.area_dupli")

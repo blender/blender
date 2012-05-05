@@ -2324,9 +2324,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 			
 			if (in_out==SOCK_OUT) {
-				/* only target socket becomes hilighted */
-				node_deselect_all_input_sockets(snode, 0);
-				
 				if (node_find_indicated_socket(snode, &tnode, &tsock, SOCK_IN)) {
 					if (nodeFindLink(snode->edittree, sock, tsock)==NULL) {
 						if ( link->tosock!= tsock && (!tnode || (tnode!=node && link->tonode!=tnode)) ) {
@@ -2340,9 +2337,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 							ntreeUpdateTree(snode->edittree);
 						}
 					}
-					
-					/* hilight target socket */
-					node_socket_select(tnode, tsock);
 				}
 				else {
 					if (link->tonode || link->tosock) {
@@ -2357,9 +2351,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			else {
-				/* only target socket becomes hilighted */
-				node_deselect_all_output_sockets(snode, 0);
-				
 				if (node_find_indicated_socket(snode, &tnode, &tsock, SOCK_OUT)) {
 					if (nodeFindLink(snode->edittree, sock, tsock)==NULL) {
 						if (nodeCountSocketLinks(snode->edittree, tsock) < tsock->limit) {
@@ -2375,9 +2366,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 							}
 						}
 					}
-					
-					/* hilight target socket */
-					node_socket_select(tnode, tsock);
 				}
 				else {
 					if (link->tonode || link->tosock) {
@@ -2405,14 +2393,11 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if (in_out==SOCK_OUT)
 					node_remove_extra_links(snode, link->tosock, link);
 				
-				/* deselect sockets after successful linking */
-				node_deselect_all_input_sockets(snode, 0);
-				node_deselect_all_output_sockets(snode, 0);
-				
 				/* when linking to group outputs, update the socket type */
 				/* XXX this should all be part of a generic update system */
 				if (!link->tonode) {
-					link->tosock->type = link->fromsock->type;
+					if(link->tosock->type != link->fromsock->type)
+						nodeSocketSetType(link->tosock, link->fromsock->type);
 				}
 			}
 			else if (outside_group_rect(snode) && (link->tonode || link->fromnode)) {
@@ -2433,10 +2418,6 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 					snode->edittree->update |= NTREE_UPDATE_GROUP_OUT | NTREE_UPDATE_LINKS;
 				}
-				
-				/* deselect sockets after successful linking */
-				node_deselect_all_input_sockets(snode, 0);
-				node_deselect_all_output_sockets(snode, 0);
 			}
 			else
 				nodeRemLink(snode->edittree, link);
@@ -2477,10 +2458,6 @@ static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 				in_out = SOCK_IN;
 			}
 		}
-		
-		/* hilight source socket only */
-		node_deselect_all_output_sockets(snode, 0);
-		node_socket_select(nldrag->node, nldrag->sock);
 	}
 	/* or an input? */
 	else if (node_find_indicated_socket(snode, &nldrag->node, &nldrag->sock, SOCK_IN)) {
@@ -2503,10 +2480,6 @@ static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 				in_out = SOCK_OUT;
 			}
 		}
-		
-		/* hilight source socket only */
-		node_deselect_all_input_sockets(snode, 0);
-		node_socket_select(nldrag->node, nldrag->sock);
 	}
 	
 	return in_out;
@@ -2651,7 +2624,8 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	float mcoords[256][2];
 	int i= 0;
 	
-	RNA_BEGIN (op->ptr, itemptr, "path") {
+	RNA_BEGIN (op->ptr, itemptr, "path")
+	{
 		float loc[2];
 		
 		RNA_float_get_array(&itemptr, "loc", loc);
@@ -3590,12 +3564,16 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
-	bNodeTree *ntree = snode->edittree;
-	bNode *node = nodeGetActive(ntree);
+	PointerRNA ptr;
+	bNodeTree *ntree;
+	bNode *node;
 	char file_path[MAX_NAME];
 	
-	if (!node)
+	ptr = CTX_data_pointer_get(C, "node");
+	if (!ptr.data)
 		return OPERATOR_CANCELLED;
+	node = ptr.data;
+	ntree = ptr.id.data;
 	
 	RNA_string_get(op->ptr, "file_path", file_path);
 	ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
@@ -3627,11 +3605,14 @@ void NODE_OT_output_file_add_socket(wmOperatorType *ot)
 static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
-	bNodeTree *ntree = snode->edittree;
-	bNode *node = nodeGetActive(ntree);
+	PointerRNA ptr = CTX_data_pointer_get(C, "node");
+	bNodeTree *ntree;
+	bNode *node;
 	
-	if (!node)
+	if (!ptr.data)
 		return OPERATOR_CANCELLED;
+	node = ptr.data;
+	ntree = ptr.id.data;
 	
 	if (!ntreeCompositOutputFileRemoveActiveSocket(ntree, node))
 		return OPERATOR_CANCELLED;
@@ -3654,4 +3635,70 @@ void NODE_OT_output_file_remove_active_socket(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****************** Multi File Output Move Socket  ******************* */
+
+static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	PointerRNA ptr = CTX_data_pointer_get(C, "node");
+	bNode *node;
+	NodeImageMultiFile *nimf;
+	bNodeSocket *sock;
+	int direction;
+	
+	if (!ptr.data)
+		return OPERATOR_CANCELLED;
+	node = ptr.data;
+	nimf = node->storage;
+	
+	sock = BLI_findlink(&node->inputs, nimf->active_input);
+	if (!sock)
+		return OPERATOR_CANCELLED;
+	
+	direction = RNA_enum_get(op->ptr, "direction");
+	
+	if (direction==1) {
+		bNodeSocket *before = sock->prev;
+		if (!before)
+			return OPERATOR_CANCELLED;
+		BLI_remlink(&node->inputs, sock);
+		BLI_insertlinkbefore(&node->inputs, before, sock);
+		--nimf->active_input;
+	}
+	else {
+		bNodeSocket *after = sock->next;
+		if (!after)
+			return OPERATOR_CANCELLED;
+		BLI_remlink(&node->inputs, sock);
+		BLI_insertlinkafter(&node->inputs, after, sock);
+		++nimf->active_input;
+	}
+	
+	snode_notify(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_output_file_move_active_socket(wmOperatorType *ot)
+{
+	static EnumPropertyItem direction_items[] = {
+		{1, "UP", 0, "Up", ""},
+		{2, "DOWN", 0, "Down", ""},
+		{ 0, NULL, 0, NULL, NULL }};
+	
+	/* identifiers */
+	ot->name = "Move File Node Socket";
+	ot->description = "Move the active input of a file output node up or down the list";
+	ot->idname = "NODE_OT_output_file_move_active_socket";
+	
+	/* callbacks */
+	ot->exec = node_output_file_move_active_socket_exec;
+	ot->poll = composite_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "direction", direction_items, 2, "Direction", "");
 }

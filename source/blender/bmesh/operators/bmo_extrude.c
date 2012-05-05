@@ -251,7 +251,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	/* initialize our sub-operators */
 	BMO_op_init(bm, &dupeop, "dupe");
 	
-	BMO_slot_buffer_flag_enable(bm, op, "edgefacein", BM_EDGE|BM_FACE, EXT_INPUT);
+	BMO_slot_buffer_flag_enable(bm, op, "edgefacein", BM_EDGE | BM_FACE, EXT_INPUT);
 	
 	/* if one flagged face is bordered by an un-flagged face, then we delete
 	 * original geometry unless caller explicitly asked to keep it. */

@@ -104,7 +104,7 @@
 /* -------------- Naming -------------- */
 
 /* Find the first available, non-duplicate name for a given constraint */
-void unique_constraint_name (bConstraint *con, ListBase *list)
+void unique_constraint_name(bConstraint *con, ListBase *list)
 {
 	BLI_uniquename(list, con, "Const", '.', offsetof(bConstraint, name), sizeof(con->name));
 }
@@ -177,7 +177,7 @@ bConstraintOb *constraints_make_evalob (Scene *scene, Object *ob, void *subdata,
 }
 
 /* cleanup after constraint evaluation */
-void constraints_clear_evalob (bConstraintOb *cob)
+void constraints_clear_evalob(bConstraintOb *cob)
 {
 	float delta[4][4], imat[4][4];
 	
@@ -272,7 +272,7 @@ static void constraint_pchan_diff_mat(bPoseChannel *pchan, float diff_mat[4][4])
  * of a matrix from one space to another for constraint evaluation.
  * For now, this is only implemented for Objects and PoseChannels.
  */
-void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4], short from, short to)
+void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4], short from, short to)
 {
 	float diff_mat[4][4];
 	float imat[4][4];
@@ -1333,7 +1333,7 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 		if ((data->followflag & FOLLOWPATH_RADIUS)==0) { /* XXX - assume that scale correction means that radius will have some scale error in it - Campbell */
 			float obsize[3];
 			
-			mat4_to_size( obsize,cob->matrix);
+			mat4_to_size(obsize, cob->matrix);
 			if (obsize[0])
 				mul_v3_fl(cob->matrix[0], size[0] / obsize[0]);
 			if (obsize[1])
@@ -1475,8 +1475,8 @@ static void sizelimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 	bSizeLimitConstraint *data = con->data;
 	float obsize[3], size[3];
 	
-	mat4_to_size( size,cob->matrix);
-	mat4_to_size( obsize,cob->matrix);
+	mat4_to_size(size, cob->matrix);
+	mat4_to_size(obsize, cob->matrix);
 	
 	if (data->flag & LIMIT_XMIN) {
 		if (size[0] < data->xmin) 
@@ -2308,7 +2308,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 	bConstraintTarget *ct= targets->first;
 	
 	if (VALID_CONS_TARGET(ct)) {
-		float vec[3],vec2[3];
+		float vec[3], vec2[3];
 		float totmat[3][3];
 		float tmpmat[3][3];
 		float invmat[3][3];
@@ -2542,9 +2542,9 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 		copy_m4_m4(tmat, cob->matrix);
 		
-		mdet = determinant_m3(	totmat[0][0],totmat[0][1],totmat[0][2],
-						totmat[1][0],totmat[1][1],totmat[1][2],
-						totmat[2][0],totmat[2][1],totmat[2][2]);
+		mdet = determinant_m3(totmat[0][0], totmat[0][1], totmat[0][2],
+		                      totmat[1][0], totmat[1][1], totmat[1][2],
+		                      totmat[2][0], totmat[2][1], totmat[2][2]);
 		if (mdet==0) {
 			unit_m3(totmat);
 		}
@@ -3311,7 +3311,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		/* obtain target effect */
 		switch (data->from) {
 			case 2: /* scale */
-				mat4_to_size( dvec,ct->matrix);
+				mat4_to_size(dvec, ct->matrix);
 				break;
 			case 1: /* rotation (convert to degrees first) */
 				mat4_to_eulO(dvec, cob->rotOrder, ct->matrix);
@@ -3602,8 +3602,8 @@ static void damptrack_flush_tars (bConstraint *con, ListBase *list, short nocopy
 
 /* array of direction vectors for the tracking flags */
 static const float track_dir_vecs[6][3] = {
-	{+1,0,0}, {0,+1,0}, {0,0,+1},		/* TRACK_X,  TRACK_Y,  TRACK_Z */
-	{-1,0,0}, {0,-1,0}, {0,0,-1}		/* TRACK_NX, TRACK_NY, TRACK_NZ */
+	{+1, 0, 0}, {0, +1, 0}, {0, 0, +1},		/* TRACK_X,  TRACK_Y,  TRACK_Z */
+	{-1, 0, 0}, {0, -1, 0}, {0, 0, -1}		/* TRACK_NX, TRACK_NY, TRACK_NZ */
 };
 
 static void damptrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
@@ -4012,8 +4012,8 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 			add_v2_v2v2(pos, marker->pos, track->offset);
 
-			camera_params_init(&params);
-			camera_params_from_object(&params, camob);
+			BKE_camera_params_init(&params);
+			BKE_camera_params_from_object(&params, camob);
 
 			if (params.is_ortho) {
 				vec[0] = params.ortho_scale * (pos[0] - 0.5f + params.shiftx);
@@ -4321,7 +4321,7 @@ bConstraintTypeInfo *constraint_get_typeinfo (bConstraint *con)
 /* Free data of a specific constraint if it has any info.
  * be sure to run BIK_clear_data() when freeing an IK constraint,
  * unless DAG_scene_sort is called. */
-void free_constraint_data (bConstraint *con)
+void free_constraint_data(bConstraint *con)
 {
 	if (con->data) {
 		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
@@ -4336,7 +4336,7 @@ void free_constraint_data (bConstraint *con)
 }
 
 /* Free all constraints from a constraint-stack */
-void free_constraints (ListBase *list)
+void free_constraints(ListBase *list)
 {
 	bConstraint *con;
 	
@@ -4350,7 +4350,7 @@ void free_constraints (ListBase *list)
 
 
 /* Remove the specified constraint from the given constraint stack */
-int remove_constraint (ListBase *list, bConstraint *con)
+int remove_constraint(ListBase *list, bConstraint *con)
 {
 	if (con) {
 		free_constraint_data(con);
@@ -4362,7 +4362,7 @@ int remove_constraint (ListBase *list, bConstraint *con)
 }
 
 /* Remove all the constraints of the specified type from the given constraint stack */
-void remove_constraints_type (ListBase *list, short type, short last_only)
+void remove_constraints_type(ListBase *list, short type, short last_only)
 {
 	bConstraint *con, *conp;
 	
@@ -4488,7 +4488,7 @@ bConstraint *add_ob_constraint(Object *ob, const char *name, short type)
 /* ......... */
 
 /* Reassign links that constraints have to other data (called during file loading?) */
-void relink_constraints (ListBase *conlist)
+void relink_constraints(ListBase *conlist)
 {
 	bConstraint *con;
 	bConstraintTarget *ct;
@@ -4518,7 +4518,7 @@ void relink_constraints (ListBase *conlist)
 }
 
 /* Run the given callback on all ID-blocks in list of constraints */
-void id_loop_constraints (ListBase *conlist, ConstraintIDFunc func, void *userdata)
+void id_loop_constraints(ListBase *conlist, ConstraintIDFunc func, void *userdata)
 {
 	bConstraint *con;
 	
@@ -4542,7 +4542,7 @@ static void con_extern_cb(bConstraint *UNUSED(con), ID **idpoin, void *UNUSED(us
 }
 
 /* duplicate all of the constraints in a constraint stack */
-void copy_constraints (ListBase *dst, const ListBase *src, int do_extern)
+void copy_constraints(ListBase *dst, const ListBase *src, int do_extern)
 {
 	bConstraint *con, *srccon;
 	
@@ -4596,7 +4596,7 @@ bConstraint *constraints_get_active (ListBase *list)
 }
 
 /* Set the given constraint as the active one (clearing all the others) */
-void constraints_set_active (ListBase *list, bConstraint *con)
+void constraints_set_active(ListBase *list, bConstraint *con)
 {
 	bConstraint *c;
 	
@@ -4613,7 +4613,7 @@ void constraints_set_active (ListBase *list, bConstraint *con)
 /* -------- Constraints and Proxies ------- */
 
 /* Rescue all constraints tagged as being CONSTRAINT_PROXY_LOCAL (i.e. added to bone that's proxy-synced in this file) */
-void extract_proxylocal_constraints (ListBase *dst, ListBase *src)
+void extract_proxylocal_constraints(ListBase *dst, ListBase *src)
 {
 	bConstraint *con, *next;
 	
@@ -4630,7 +4630,7 @@ void extract_proxylocal_constraints (ListBase *dst, ListBase *src)
 }
 
 /* Returns if the owner of the constraint is proxy-protected */
-short proxylocked_constraints_owner (Object *ob, bPoseChannel *pchan)
+short proxylocked_constraints_owner(Object *ob, bPoseChannel *pchan)
 {
 	/* Currently, constraints can only be on object or bone level */
 	if (ob && ob->proxy) {
@@ -4659,7 +4659,7 @@ short proxylocked_constraints_owner (Object *ob, bPoseChannel *pchan)
  * None of the actual calculations of the matrices should be done here! Also, this function is
  * not to be used by any new constraints, particularly any that have multiple targets.
  */
-void get_constraint_target_matrix (struct Scene *scene, bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime)
+void get_constraint_target_matrix(struct Scene *scene, bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime)
 {
 	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 	ListBase targets = {NULL, NULL};
@@ -4728,7 +4728,7 @@ void get_constraint_target_matrix (struct Scene *scene, bConstraint *con, int n,
 }
 
 /* Get the list of targets required for solving a constraint */
-void get_constraint_targets_for_solving (bConstraint *con, bConstraintOb *cob, ListBase *targets, float ctime)
+void get_constraint_targets_for_solving(bConstraint *con, bConstraintOb *cob, ListBase *targets, float ctime)
 {
 	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 	
@@ -4763,7 +4763,7 @@ void get_constraint_targets_for_solving (bConstraint *con, bConstraintOb *cob, L
  * constraints_make_evalob and constraints_clear_evalob should be called before and 
  * after running this function, to sort out cob
  */
-void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
+void solve_constraints(ListBase *conlist, bConstraintOb *cob, float ctime)
 {
 	bConstraint *con;
 	float oldmat[4][4];

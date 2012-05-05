@@ -38,15 +38,38 @@ Object::Object()
 	visibility = ~0;
 	pass_id = 0;
 	bounds = BoundBox::empty;
+	motion.pre = transform_identity();
+	motion.post = transform_identity();
+	use_motion = false;
+	use_holdout = false;
 }
 
 Object::~Object()
 {
 }
 
-void Object::compute_bounds()
+void Object::compute_bounds(bool motion_blur)
 {
-	bounds = mesh->bounds.transformed(&tfm);
+	BoundBox mbounds = mesh->bounds;
+
+	if(motion_blur && use_motion) {
+		MotionTransform decomp;
+		transform_motion_decompose(&decomp, &motion);
+
+		bounds = BoundBox::empty;
+
+		/* todo: this is really terrible. according to pbrt there is a better
+		 * way to find this iteratively, but did not find implementation yet
+		 * or try to implement myself */
+		for(float t = 0.0f; t < 1.0f; t += 1.0f/128.0f) {
+			Transform ttfm;
+
+			transform_motion_interpolate(&ttfm, &decomp, t);
+			bounds.grow(mbounds.transformed(&ttfm));
+		}
+	}
+	else
+		bounds = mbounds.transformed(&tfm);
 }
 
 void Object::apply_transform()
@@ -57,8 +80,8 @@ void Object::apply_transform()
 	for(size_t i = 0; i < mesh->verts.size(); i++)
 		mesh->verts[i] = transform_point(&tfm, mesh->verts[i]);
 
-	Attribute *attr_fN = mesh->attributes.find(Attribute::STD_FACE_NORMAL);
-	Attribute *attr_vN = mesh->attributes.find(Attribute::STD_VERTEX_NORMAL);
+	Attribute *attr_fN = mesh->attributes.find(ATTR_STD_FACE_NORMAL);
+	Attribute *attr_vN = mesh->attributes.find(ATTR_STD_VERTEX_NORMAL);
 
 	Transform ntfm = transform_transpose(transform_inverse(tfm));
 
@@ -83,7 +106,7 @@ void Object::apply_transform()
 
 	if(bounds.valid()) {
 		mesh->compute_bounds();
-		compute_bounds();
+		compute_bounds(false);
 	}
 	
 	tfm = transform_identity();
@@ -121,16 +144,18 @@ ObjectManager::~ObjectManager()
 void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	float4 *objects = dscene->objects.resize(OBJECT_SIZE*scene->objects.size());
+	uint *object_flag = dscene->object_flag.resize(OBJECT_SIZE*scene->objects.size());
 	int i = 0;
 	map<Mesh*, float> surface_area_map;
+	Scene::MotionType need_motion = scene->need_motion();
 
 	foreach(Object *ob, scene->objects) {
 		Mesh *mesh = ob->mesh;
+		uint flag = 0;
 
 		/* compute transformations */
 		Transform tfm = ob->tfm;
 		Transform itfm = transform_inverse(tfm);
-		Transform ntfm = transform_transpose(itfm);
 
 		/* compute surface area. for uniform scale we can do avoid the many
 		   transform calls and share computation for instances */
@@ -171,10 +196,44 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		/* pack in texture */
 		int offset = i*OBJECT_SIZE;
 
-		memcpy(&objects[offset], &tfm, sizeof(float4)*4);
-		memcpy(&objects[offset+4], &itfm, sizeof(float4)*4);
-		memcpy(&objects[offset+8], &ntfm, sizeof(float4)*4);
-		objects[offset+12] = make_float4(surface_area, pass_id, 0.0f, 0.0f);
+		memcpy(&objects[offset], &tfm, sizeof(float4)*3);
+		memcpy(&objects[offset+3], &itfm, sizeof(float4)*3);
+		objects[offset+6] = make_float4(surface_area, pass_id, 0.0f, 0.0f);
+
+		if(need_motion == Scene::MOTION_PASS) {
+			/* motion transformations, is world/object space depending if mesh
+			   comes with deformed position in object space, or if we transform
+			   the shading point in world space */
+			Transform mtfm_pre = ob->motion.pre;
+			Transform mtfm_post = ob->motion.post;
+
+			if(!mesh->attributes.find(ATTR_STD_MOTION_PRE))
+				mtfm_pre = mtfm_pre * itfm;
+			if(!mesh->attributes.find(ATTR_STD_MOTION_POST))
+				mtfm_post = mtfm_post * itfm;
+
+			memcpy(&objects[offset+8], &mtfm_pre, sizeof(float4)*4);
+			memcpy(&objects[offset+12], &mtfm_post, sizeof(float4)*4);
+		}
+		else if(need_motion == Scene::MOTION_BLUR) {
+			if(ob->use_motion) {
+				/* decompose transformations for interpolation */
+				MotionTransform decomp;
+
+				transform_motion_decompose(&decomp, &ob->motion);
+				memcpy(&objects[offset+8], &decomp, sizeof(float4)*8);
+				flag |= SD_OBJECT_MOTION;
+			}
+			else {
+				float4 no_motion = make_float4(FLT_MAX);
+				memcpy(&objects[offset+8], &no_motion, sizeof(float4));
+			}
+		}
+
+		/* object flag */
+		if(ob->use_holdout)
+			flag |= SD_HOLDOUT_MASK;
+		object_flag[i] = flag;
 
 		i++;
 
@@ -182,6 +241,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 	}
 
 	device->tex_alloc("__objects", dscene->objects);
+	device->tex_alloc("__object_flag", dscene->object_flag);
 }
 
 void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -216,6 +276,9 @@ void ObjectManager::device_free(Device *device, DeviceScene *dscene)
 {
 	device->tex_free(dscene->objects);
 	dscene->objects.clear();
+
+	device->tex_free(dscene->object_flag);
+	dscene->object_flag.clear();
 }
 
 void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
@@ -225,6 +288,7 @@ void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
 
 	/* counter mesh users */
 	map<Mesh*, int> mesh_users;
+	bool motion_blur = scene->need_motion() == Scene::MOTION_BLUR;
 
 	foreach(Object *object, scene->objects) {
 		map<Mesh*, int>::iterator it = mesh_users.find(object->mesh);
@@ -240,12 +304,14 @@ void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
 	/* apply transforms for objects with single user meshes */
 	foreach(Object *object, scene->objects) {
 		if(mesh_users[object->mesh] == 1) {
-			if(!object->mesh->transform_applied) {
-				object->apply_transform();
-				object->mesh->transform_applied = true;
-			}
+			if(!(motion_blur && object->use_motion)) {
+				if(!object->mesh->transform_applied) {
+					object->apply_transform();
+					object->mesh->transform_applied = true;
 
-			if(progress.get_cancel()) return;
+					if(progress.get_cancel()) return;
+				}
+			}
 		}
 	}
 }

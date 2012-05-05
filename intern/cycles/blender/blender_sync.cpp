@@ -121,19 +121,21 @@ bool BlenderSync::sync_recalc()
 	return recalc;
 }
 
-void BlenderSync::sync_data(BL::SpaceView3D b_v3d, const char *layer)
+void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const char *layer)
 {
 	sync_render_layers(b_v3d, layer);
 	sync_integrator();
 	sync_film();
 	sync_shaders();
 	sync_objects(b_v3d);
+	sync_motion(b_v3d, b_override);
 }
 
 /* Integrator */
 
 void BlenderSync::sync_integrator()
 {
+	BL::RenderSettings r = b_scene.render();
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
 	experimental = (RNA_enum_get(&cscene, "feature_set") != 0);
@@ -160,6 +162,9 @@ void BlenderSync::sync_integrator()
 	integrator->layer_flag = render_layer.layer;
 
 	integrator->sample_clamp = get_float(cscene, "sample_clamp");
+#ifdef __MOTION__
+	integrator->motion_blur = (!preview && r.use_motion_blur());
+#endif
 
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);

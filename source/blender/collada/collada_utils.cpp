@@ -34,6 +34,7 @@
 
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 
@@ -41,6 +42,7 @@
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
 #include "WM_types.h"
@@ -108,5 +110,18 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return true;
+}
+
+Object *bc_add_object(Scene *scene, int type, const char *name)
+{
+	Object *ob = add_only_object(type, name);
+
+	ob->data= add_obdata_from_type(type);
+	ob->lay= scene->lay;
+	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
+
+	scene_select_base(scene, scene_add_base(scene, ob));
+
+	return ob;
 }
 

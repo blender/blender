@@ -906,7 +906,8 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	if (CTX_data_edit_object(C)) 
 		return OPERATOR_CANCELLED;
 	
-	CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
+	{
 
 		/* if (base->object->type==OB_LAMP) islamp= 1; */
 
@@ -972,7 +973,8 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 	int a;
 	
 	/* XXX check object pointers */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	{
 		object_relink(ob);
 	}
 	CTX_DATA_END;
@@ -1100,7 +1102,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		if (dupli_gh)
 			BLI_ghash_insert(dupli_gh, dob, ob);
 		if (parent_gh)
-			BLI_ghash_insert(parent_gh, BLI_ghashutil_pairalloc(dob->ob, dob->index), ob);
+			BLI_ghash_insert(parent_gh, BLI_ghashutil_pairalloc(dob->ob, SET_INT_IN_POINTER(dob->index)), ob);
 	}
 	
 	if (use_hierarchy) {
@@ -1114,7 +1116,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 			/* find parent that was also made real */
 			if (ob_src_par) {
-				GHashPair *pair = BLI_ghashutil_pairalloc(ob_src_par, dob->index);
+				GHashPair *pair = BLI_ghashutil_pairalloc(ob_src_par, SET_INT_IN_POINTER(dob->index));
 				ob_dst_par = BLI_ghash_lookup(parent_gh, pair);
 				BLI_ghashutil_pairfree(pair);
 			}
@@ -1189,7 +1191,8 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	
 	clear_id_newpoins();
 		
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		make_object_duplilist_real(C, scene, base, use_base_parent, use_hierarchy);
 
 		/* dependencies were changed */
@@ -1295,7 +1298,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 	/* don't forget multiple users! */
 
 	/* reset flags */
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		ob = base->object;
 		ob->flag &= ~OB_DONE;
 
@@ -1306,7 +1310,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		ob = base->object;
 
 		if (ob->flag & OB_DONE || !IS_TAGGED(ob->data)) {
@@ -1778,7 +1783,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag != 0) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = copy_camera(obn->data);
+						obn->data = BKE_camera_copy(obn->data);
 						didit = 1;
 					}
 					id->us--;
@@ -1826,7 +1831,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					for (a = 0; a < obn->totcol; a++) {
 						id = (ID *)(*matarar)[a];
 						if (id) {
-							ID_NEW_US( (*matarar)[a])
+							ID_NEW_US((*matarar)[a])
 							else (*matarar)[a] = copy_material((*matarar)[a]);
 							
 							id->us--;
@@ -1880,7 +1885,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	clear_id_newpoins();
 	clear_sca_new_poins();  /* sensor/contr/act */
 	
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		Base *basen = object_add_duplicate_internal(bmain, scene, base, dupflag);
 		
 		/* note that this is safe to do with this context iterator,

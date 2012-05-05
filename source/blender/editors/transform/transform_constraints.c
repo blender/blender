@@ -664,7 +664,7 @@ void drawConstraint(TransInfo *t)
 	else {
 		if (tc->mode & CON_SELECT) {
 			float vec[3];
-			char col2[3] = {255,255,255};
+			char col2[3] = {255, 255, 255};
 			int depth_test_enabled;
 
 			convertViewVec(t, vec, (t->mval[0] - t->con.imval[0]), (t->mval[1] - t->con.imval[1]));
@@ -767,7 +767,7 @@ static void drawObjectConstraint(TransInfo *t)
 
 	td++;
 
-	for (i=1;i<t->total;i++,td++) {
+	for (i=1; i < t->total; i++, td++) {
 		if (t->con.mode & CON_AXIS0) {
 			drawLine(t, td->ob->obmat[3], td->axismtx[0], 'X', 0);
 		}

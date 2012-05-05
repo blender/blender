@@ -68,7 +68,7 @@ EnumPropertyItem constraint_type_items[] = {
 	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", ICON_CONSTRAINT_DATA, "Locked Track",
 	                            "Tracking along a single axis"},
 	{CONSTRAINT_TYPE_SPLINEIK, "SPLINE_IK", ICON_CONSTRAINT_DATA, "Spline IK", ""},
-	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO",ICON_CONSTRAINT_DATA, "Stretch To", ""},
+	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO", ICON_CONSTRAINT_DATA, "Stretch To", ""},
 	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", ICON_CONSTRAINT_DATA, "Track To",
 	                          "Legacy tracking constraint prone to twisting artifacts"},
 	{0, "", 0, N_("Relationship"), ""},
@@ -1020,7 +1020,7 @@ static void rna_def_constraint_minmax(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "FloorConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Floor Constraint", "Use the target object for location limitation");
-	RNA_def_struct_sdna_from(srna, "bMinMaxConstraint","data");
+	RNA_def_struct_sdna_from(srna, "bMinMaxConstraint", "data");
 
 	prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tar");

@@ -111,10 +111,31 @@ static void rna_Area_type_set(PointerRNA *ptr, int value)
 
 static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win;
+	bScreen *sc = (bScreen*)ptr->id.data;
 	ScrArea *sa = (ScrArea*)ptr->data;
 
-	ED_area_newspace(C, sa, sa->butspacetype); /* XXX - this uses the window */
-	ED_area_tag_redraw(sa);
+	/* XXX this call still use context, so we trick it to work in the right context */
+	for(win=wm->windows.first; win; win=win->next) {
+		if(sc == win->screen) {
+			wmWindow *prevwin = CTX_wm_window(C);
+			ScrArea *prevsa = CTX_wm_area(C);
+			ARegion *prevar = CTX_wm_region(C);
+
+			CTX_wm_window_set(C, win);
+			CTX_wm_area_set(C, sa);
+			CTX_wm_region_set(C, NULL);
+
+			ED_area_newspace(C, sa, sa->butspacetype);
+			ED_area_tag_redraw(sa);
+
+			CTX_wm_window_set(C, prevwin);
+			CTX_wm_area_set(C, prevsa);
+			CTX_wm_region_set(C, prevar);
+			break;
+		}
+	}
 }
 
 #else

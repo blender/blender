@@ -212,7 +212,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			/* offset for start of channel (on LHS of channel-list) */
 			if (ale->id) {
 				/* special exception for materials and particles */
-				if (ELEM(GS(ale->id->name),ID_MA,ID_PA))
+				if (ELEM(GS(ale->id->name), ID_MA, ID_PA))
 					offset= 21 + NLACHANNEL_BUTTON_WIDTH;
 				else
 					offset= 14;
@@ -342,7 +342,7 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 	return OPERATOR_FINISHED;
 }
  
-void NLA_OT_channels_click (wmOperatorType *ot)
+void NLA_OT_channels_click(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Mouse Click on NLA Channels";
@@ -416,7 +416,7 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_tracks_add (wmOperatorType *ot)
+void NLA_OT_tracks_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Track(s)";
@@ -480,7 +480,7 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_delete_tracks (wmOperatorType *ot)
+void NLA_OT_delete_tracks(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Tracks";

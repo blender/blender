@@ -620,7 +620,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 
 	/* create image */
 	glGenTextures(1, (GLuint *)bind);
-	glBindTexture( GL_TEXTURE_2D, *bind);
+	glBindTexture(GL_TEXTURE_2D, *bind);
 
 	if (!(gpu_get_mipmap() && mipmap)) {
 		if (use_high_bit_depth)
@@ -1087,7 +1087,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.gob = ob;
 	GMS.gscene = scene;
 	GMS.totmat= ob->totcol+1; /* materials start from 1, default material is 0 */
-	GMS.glay= v3d->lay;
+	GMS.glay= (v3d->localvd)? v3d->localvd->lay: v3d->lay; /* keep lamps visible in local view */
 	GMS.gviewmat= rv3d->viewmat;
 	GMS.gviewinv= rv3d->viewinv;
 
@@ -1304,7 +1304,7 @@ void GPU_end_object_materials(void)
 	GMS.gmatbuf= NULL;
 	GMS.alphablend= NULL;
 
-	/* resetting the texture matrix after the glScale needed for tiled textures */
+	/* resetting the texture matrix after the scaling needed for tiled textures */
 	if (GTS.tilemode) {
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();

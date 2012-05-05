@@ -146,6 +146,13 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			BLI_assert((oglrender->sizex == ibuf->x) && (oglrender->sizey == ibuf->y));
 
 			if (ibuf->rect_float == NULL) {
+				/* internally sequencer working in sRGB space and stores both bytes and float
+				 * buffers in sRGB space, but if byte->float onversion doesn't happen in sequencer
+				 * (e.g. when adding image sequence/movie into sequencer) there'll be only
+				 * byte buffer and profile will still indicate sRGB->linear space conversion is needed
+				 * here we're ensure there'll be no conversion happen and float buffer would store
+				 * linear frame (sergey) */
+				ibuf->profile = IB_PROFILE_NONE;
 				IMB_float_from_rect(ibuf);
 			}
 
@@ -185,7 +192,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			float *accum_tmp = MEM_mallocN(sizex * sizey * sizeof(float) * 4, "accum2");
 			int j;
 
-			BLI_initjit(jit_ofs[0], scene->r.osa);
+			BLI_jitter_init(jit_ofs[0], scene->r.osa);
 
 			/* first sample buffer, also initializes 'rv3d->persmat' */
 			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE);
@@ -348,7 +355,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 
 	oglrender->is_sequencer = is_sequencer;
 	if (is_sequencer) {
-		oglrender->sseq = CTX_wm_space_seq(C);;
+		oglrender->sseq = CTX_wm_space_seq(C);
 	}
 
 
@@ -364,7 +371,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 
 		/* MUST be cleared on exit */
 		oglrender->scene->customdata_mask_modal = (ED_view3d_datamask(oglrender->scene, oglrender->v3d) |
-		                                           ED_view3d_object_datamask(oglrender->scene) );
+		                                           ED_view3d_object_datamask(oglrender->scene));
 
 		/* apply immediately in case we're rendering from a script,
 		 * running notifiers again will overwrite */

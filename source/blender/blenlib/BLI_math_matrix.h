@@ -126,6 +126,8 @@ int is_orthogonal_m4(float mat[4][4]);
 int is_orthonormal_m3(float mat[3][3]);
 int is_orthonormal_m4(float mat[4][4]);
 
+int is_uniform_scaled_m3(float mat[3][3]);
+
 void adjoint_m3_m3(float R[3][3], float A[3][3]);
 void adjoint_m4_m4(float R[4][4], float A[4][4]);
 

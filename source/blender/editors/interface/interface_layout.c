@@ -857,7 +857,7 @@ void uiItemEnumO_value(uiLayout *layout, const char *name, int icon, const char 
 	PointerRNA ptr;
 	PropertyRNA *prop;
 
-	UI_OPERATOR_ERROR_RET(ot, opname, return );
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 
@@ -888,7 +888,7 @@ void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char
 	EnumPropertyItem *item;
 	int value, free;
 
-	UI_OPERATOR_ERROR_RET(ot, opname, return );
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 	
@@ -926,7 +926,7 @@ void uiItemBooleanO(uiLayout *layout, const char *name, int icon, const char *op
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	PointerRNA ptr;
 
-	UI_OPERATOR_ERROR_RET(ot, opname, return );
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_boolean_set(&ptr, propname, value);
@@ -939,7 +939,7 @@ void uiItemIntO(uiLayout *layout, const char *name, int icon, const char *opname
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	PointerRNA ptr;
 
-	UI_OPERATOR_ERROR_RET(ot, opname, return );
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_int_set(&ptr, propname, value);
@@ -952,7 +952,7 @@ void uiItemFloatO(uiLayout *layout, const char *name, int icon, const char *opna
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	PointerRNA ptr;
 
-	UI_OPERATOR_ERROR_RET(ot, opname, return );
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_float_set(&ptr, propname, value);
@@ -965,7 +965,7 @@ void uiItemStringO(uiLayout *layout, const char *name, int icon, const char *opn
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	PointerRNA ptr;
 
-	UI_OPERATOR_ERROR_RET(ot, opname, return );
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_string_set(&ptr, propname, value);
@@ -1265,7 +1265,8 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 	const int skip_filter = !but->changed;
 
 	/* build a temporary list of relevant items first */
-	RNA_PROP_BEGIN (&but->rnasearchpoin, itemptr, but->rnasearchprop) {
+	RNA_PROP_BEGIN (&but->rnasearchpoin, itemptr, but->rnasearchprop)
+	{
 		if (flag & PROP_ID_SELF_CHECK)
 			if (itemptr.data == but->rnapoin.id.data)
 				continue;
@@ -1333,7 +1334,8 @@ static void search_id_collection(StructRNA *ptype, PointerRNA *ptr, PropertyRNA 
 
 	*prop = NULL;
 
-	RNA_STRUCT_BEGIN (ptr, iprop) {
+	RNA_STRUCT_BEGIN (ptr, iprop)
+	{
 		/* if it's a collection and has same pointer type, we've got it */
 		if (RNA_property_type(iprop) == PROP_COLLECTION) {
 			srna = RNA_property_pointer_type(ptr, iprop);
@@ -1609,7 +1611,7 @@ void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname,
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	MenuItemLevel *lvl;
 
-	UI_OPERATOR_ERROR_RET(ot, opname, return );
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	if (!ot->srna) {
 		ui_item_disabled(layout, opname);

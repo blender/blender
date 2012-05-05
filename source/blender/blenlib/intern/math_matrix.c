@@ -866,6 +866,35 @@ int is_orthonormal_m4(float m[][4])
 	return 0;
 }
 
+int is_uniform_scaled_m3(float m[][3])
+{
+	const float eps = 1e-7;
+	float t[3][3];
+	float l1, l2, l3, l4, l5, l6;
+
+	copy_m3_m3(t, m);
+	transpose_m3(t);
+
+	l1 = len_squared_v3(m[0]);
+	l2 = len_squared_v3(m[1]);
+	l3 = len_squared_v3(m[2]);
+
+	l4 = len_squared_v3(t[0]);
+	l5 = len_squared_v3(t[1]);
+	l6 = len_squared_v3(t[2]);
+
+	if (fabsf(l2 - l1) <= eps &&
+	    fabsf(l3 - l1) <= eps &&
+	    fabsf(l4 - l1) <= eps &&
+	    fabsf(l5 - l1) <= eps &&
+	    fabsf(l6 - l1) <= eps)
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 void normalize_m3(float mat[][3])
 {
 	normalize_v3(mat[0]);
@@ -1674,8 +1703,8 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				// Calculate the shift.
 
 				float scale = maxf(maxf(maxf(maxf(
-				                   fabsf(s[p - 1]),fabsf(s[p - 2])),fabsf(e[p - 2])),
-				                   fabsf(s[k])),fabsf(e[k]));
+				                   fabsf(s[p - 1]), fabsf(s[p - 2])), fabsf(e[p - 2])),
+				                   fabsf(s[k])), fabsf(e[k]));
 				float invscale = 1.0f / scale;
 				float sp = s[p - 1] * invscale;
 				float spm1 = s[p - 2] * invscale;

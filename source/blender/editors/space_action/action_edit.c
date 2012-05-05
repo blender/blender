@@ -121,7 +121,7 @@ static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_new (wmOperatorType *ot)
+void ACTION_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "New Action";
@@ -204,7 +204,7 @@ static int act_markers_make_local_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ACTION_OT_markers_make_local (wmOperatorType *ot)
+void ACTION_OT_markers_make_local(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Make Markers Local";
@@ -319,7 +319,7 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_previewrange_set (wmOperatorType *ot)
+void ACTION_OT_previewrange_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Auto-Set Preview Range";
@@ -381,7 +381,7 @@ static int actkeys_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
 	return actkeys_viewall(C, TRUE);
 }
  
-void ACTION_OT_view_all (wmOperatorType *ot)
+void ACTION_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "View All";
@@ -396,7 +396,7 @@ void ACTION_OT_view_all (wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void ACTION_OT_view_selected (wmOperatorType *ot)
+void ACTION_OT_view_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "View Selected";
@@ -484,7 +484,7 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_copy (wmOperatorType *ot)
+void ACTION_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Copy Keyframes";
@@ -535,7 +535,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_paste (wmOperatorType *ot)
+void ACTION_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Paste Keyframes";
@@ -636,7 +636,7 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ACTION_OT_keyframe_insert (wmOperatorType *ot)
+void ACTION_OT_keyframe_insert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Insert Keyframes";
@@ -712,7 +712,7 @@ static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_duplicate (wmOperatorType *ot)
+void ACTION_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Duplicate Keyframes";
@@ -787,7 +787,7 @@ static int actkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_delete (wmOperatorType *ot)
+void ACTION_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Keyframes";
@@ -851,7 +851,7 @@ static int actkeys_clean_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_clean (wmOperatorType *ot)
+void ACTION_OT_clean(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clean Keyframes";
@@ -915,7 +915,7 @@ static int actkeys_sample_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_sample (wmOperatorType *ot)
+void ACTION_OT_sample(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Sample Keyframes";
@@ -1025,7 +1025,7 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_extrapolation_type (wmOperatorType *ot)
+void ACTION_OT_extrapolation_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Keyframe Extrapolation";
@@ -1096,7 +1096,7 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_interpolation_type (wmOperatorType *ot)
+void ACTION_OT_interpolation_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Keyframe Interpolation";
@@ -1176,7 +1176,7 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_handle_type (wmOperatorType *ot)
+void ACTION_OT_handle_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Keyframe Handle Type";
@@ -1247,7 +1247,7 @@ static int actkeys_keytype_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_keyframe_type (wmOperatorType *ot)
+void ACTION_OT_keyframe_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Keyframe Type";
@@ -1315,7 +1315,7 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ACTION_OT_frame_jump (wmOperatorType *ot)
+void ACTION_OT_frame_jump(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Jump to Frame";
@@ -1415,7 +1415,7 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_snap (wmOperatorType *ot)
+void ACTION_OT_snap(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Keys";
@@ -1529,7 +1529,7 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_mirror (wmOperatorType *ot)
+void ACTION_OT_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Mirror Keys";

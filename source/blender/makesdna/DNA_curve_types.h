@@ -234,6 +234,8 @@ typedef struct Curve {
 	
 	struct CharInfo *strinfo;	
 	struct CharInfo curinfo;
+
+	float bevfac1, bevfac2;
 } Curve;
 
 /* **************** CURVE ********************* */

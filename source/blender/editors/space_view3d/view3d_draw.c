@@ -313,15 +313,15 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				double scalar = bUnit_GetScaler(usys, i);
 
 				dx_scalar = dx * scalar / unit->scale_length;
-				if (dx_scalar < (GRID_MIN_PX * 2))
+				if (dx_scalar < (GRID_MIN_PX * 2.0))
 					continue;
 
 				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
 				if (*grid_unit == NULL) {
 					*grid_unit = bUnit_GetNameDisplay(usys, i);
-					rv3d->gridview = (scalar * v3d->grid) / unit->scale_length;
+					rv3d->gridview = (float)((scalar * v3d->grid) / (double)unit->scale_length);
 				}
-				blend_fac = 1 - ((GRID_MIN_PX * 2) / dx_scalar);
+				blend_fac = 1.0f - ((GRID_MIN_PX * 2.0f) / (float)dx_scalar);
 
 				/* tweak to have the fade a bit nicer */
 				blend_fac = (blend_fac * blend_fac) * 2.0f;
@@ -355,7 +355,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					}
 				}
 				else {  // start blending out
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6));
+					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6.0f));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 
 					UI_ThemeColor(TH_GRID);
@@ -363,7 +363,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				}
 			}
 			else {  // start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX*10))
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6));
+				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6.0f));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 
 				UI_ThemeColor(TH_GRID);
@@ -939,21 +939,21 @@ static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 	rctf rect_view, rect_camera;
 
 	/* get viewport viewplane */
-	camera_params_init(&params);
-	camera_params_from_view3d(&params, v3d, rv3d);
+	BKE_camera_params_init(&params);
+	BKE_camera_params_from_view3d(&params, v3d, rv3d);
 	if (no_zoom)
 		params.zoom = 1.0f;
-	camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
+	BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
 	rect_view = params.viewplane;
 
 	/* get camera viewplane */
-	camera_params_init(&params);
-	camera_params_from_object(&params, v3d->camera);
+	BKE_camera_params_init(&params);
+	BKE_camera_params_from_object(&params, v3d->camera);
 	if (no_shift) {
 		params.shiftx = 0.0f;
 		params.shifty = 0.0f;
 	}
-	camera_params_compute_viewplane(&params, scene->r.xsch, scene->r.ysch, scene->r.xasp, scene->r.yasp);
+	BKE_camera_params_compute_viewplane(&params, scene->r.xsch, scene->r.ysch, scene->r.xasp, scene->r.yasp);
 	rect_camera = params.viewplane;
 
 	/* get camera border within viewport */
@@ -1226,7 +1226,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			 * assume and square sensor and only use sensor_x */
 			float sizex = scene->r.xsch * scene->r.xasp;
 			float sizey = scene->r.ysch * scene->r.yasp;
-			int sensor_fit = camera_sensor_fit(ca->sensor_fit, sizex, sizey);
+			int sensor_fit = BKE_camera_sensor_fit(ca->sensor_fit, sizex, sizey);
 			float sensor_x = ca->sensor_x;
 			float sensor_y = (ca->sensor_fit == CAMERA_SENSOR_FIT_AUTO) ? ca->sensor_x : ca->sensor_y;
 
@@ -2612,10 +2612,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 		CameraParams params;
 
-		camera_params_init(&params);
-		camera_params_from_object(&params, v3d->camera);
-		camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
-		camera_params_compute_matrix(&params);
+		BKE_camera_params_init(&params);
+		BKE_camera_params_from_object(&params, v3d->camera);
+		BKE_camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
+		BKE_camera_params_compute_matrix(&params);
 
 		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background);
 	}
@@ -2673,10 +2673,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	{
 		CameraParams params;
 
-		camera_params_init(&params);
-		camera_params_from_object(&params, v3d.camera);
-		camera_params_compute_viewplane(&params, width, height, scene->r.xasp, scene->r.yasp);
-		camera_params_compute_matrix(&params);
+		BKE_camera_params_init(&params);
+		BKE_camera_params_from_object(&params, v3d.camera);
+		BKE_camera_params_compute_viewplane(&params, width, height, scene->r.xasp, scene->r.yasp);
+		BKE_camera_params_compute_matrix(&params);
 
 		copy_m4_m4(rv3d.winmat, params.winmat);
 		v3d.near = params.clipsta;

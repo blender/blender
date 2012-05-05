@@ -147,7 +147,7 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 		BM_elem_index_set(f, 0); /* set_dirty! */
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			if (BMO_elem_flag_test(bm, l->v, ELE_DEL)) {
-				BMO_elem_flag_enable(bm, f, FACE_MARK|ELE_DEL);
+				BMO_elem_flag_enable(bm, f, FACE_MARK | ELE_DEL);
 			}
 			if (BMO_elem_flag_test(bm, l->e, EDGE_COL)) {
 				BM_elem_index_set(f, BM_elem_index_get(f) + 1); /* set_dirty! */

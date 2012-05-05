@@ -1,8 +1,4 @@
 /*
- *
- * This is external code. Streams bytes to output depending on the
- * endianness of the system.
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +28,9 @@
 
 /** \file blender/avi/intern/endian.c
  *  \ingroup avi
+ *
+ * This is external code. Streams bytes to output depending on the
+ * endianness of the system.
  */
 
 
@@ -49,7 +48,7 @@
 #ifdef __BIG_ENDIAN__
 static void invert (int *num)
 {
-	int new=0,i,j;
+	int new=0, i, j;
 
 	for (j=0; j < 4; j++) {
 		for (i=0; i<8; i++) {
@@ -63,7 +62,7 @@ static void invert (int *num)
 static void sinvert (short int *num)
 {
 	short int new=0;
-	int i,j;
+	int i, j;
 
 	for (j=0; j < 2; j++) {
 		for (i=0; i<8; i++) {
@@ -169,7 +168,7 @@ static void Iindexe (AviIndexEntry *indexe)
 }
 #endif /* __BIG_ENDIAN__ */
 
-void awrite (AviMovie *movie, void *datain, int block, int size, FILE *fp, int type)
+void awrite(AviMovie *movie, void *datain, int block, int size, FILE *fp, int type)
 {
 #ifdef __BIG_ENDIAN__
 	void *data;

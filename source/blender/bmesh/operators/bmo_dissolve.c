@@ -478,8 +478,8 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 
 /* Limited Dissolve */
 
-#define UNIT_TO_ANGLE DEG2RADF(90.0)
-#define ANGLE_TO_UNIT (1.0 / UNIT_TO_ANGLE)
+#define UNIT_TO_ANGLE DEG2RADF(90.0f)
+#define ANGLE_TO_UNIT (1.0f / UNIT_TO_ANGLE)
 
 /* multiply vertex edge angle by face angle
  * this means we are not left with sharp corners between _almost_ planer faces
@@ -523,7 +523,16 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	                                                 sizeof(DissolveElemWeight), __func__);
 	int i, tot_found;
 
+	BMIter iter;
+	BMEdge *e_iter;
+	BMEdge **earray;
+
 	/* --- first edges --- */
+
+	/* wire -> tag */
+	BM_ITER_MESH(e_iter, &iter, bm, BM_EDGES_OF_MESH) {
+		BM_elem_flag_set(e_iter, BM_ELEM_TAG, BM_edge_is_wire(e_iter));
+	}
 
 	/* go through and split edge */
 	for (i = 0, tot_found = 0; i < einput->len; i++) {
@@ -560,18 +569,6 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 				else {
 					BMO_error_clear(bm);
 				}
-			}
-		}
-
-		/* remove all edges/verts left behind from dissolving */
-		for (i = 0; i < einput->len; i++) {
-			BMEdge *e = (BMEdge *)weight_elems[i].ele;
-			if (BM_edge_is_wire(e)) {
-				BMVert *v1 = e->v1;
-				BMVert *v2 = e->v2;
-				BM_edge_kill(bm, e);
-				if (v1->e == NULL) BM_vert_kill(bm, v1);
-				if (v2->e == NULL) BM_vert_kill(bm, v2);
 			}
 		}
 	}
@@ -612,4 +609,25 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	}
 
 	MEM_freeN(weight_elems);
+
+	/* --- cleanup --- */
+	earray = MEM_mallocN(sizeof(BMEdge *) * bm->totedge, __func__);
+	BM_ITER_MESH_INDEX(e_iter, &iter, bm, BM_EDGES_OF_MESH, i) {
+		earray[i] = e_iter;
+	}
+	/* remove all edges/verts left behind from dissolving */
+	for (i = bm->totedge - 1; i != -1; i--) {
+		e_iter = earray[i];
+
+		if (BM_edge_is_wire(e_iter) && (BM_elem_flag_test(e_iter, BM_ELEM_TAG) == FALSE)) {
+			/* edge has become wire */
+			BMVert *v1 = e_iter->v1;
+			BMVert *v2 = e_iter->v2;
+			BM_edge_kill(bm, e_iter);
+			if (v1->e == NULL) BM_vert_kill(bm, v1);
+			if (v2->e == NULL) BM_vert_kill(bm, v2);
+		}
+	}
+
+	MEM_freeN(earray);
 }

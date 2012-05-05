@@ -47,6 +47,7 @@ public:
 	int layer_flag;
 
 	float sample_clamp;
+	bool motion_blur;
 
 	bool need_update;
 

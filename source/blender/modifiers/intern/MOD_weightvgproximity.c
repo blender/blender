@@ -112,7 +112,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
                                 dist_f,loc2trgt) \
                          schedule(static)
 #endif
-	for (i = 0; i < numVerts; ++i) {
+	for (i = 0; i < numVerts; i++) {
 		float tmp_co[3];
 
 		/* Convert the vertex to tree coordinates. */
@@ -319,12 +319,12 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UN
 	if (wmd->mask_tex_map_obj && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
 		curNode = dag_get_node(forest, wmd->mask_tex_map_obj);
 
-		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA,
+		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA,
 		                 "WeightVGProximity Modifier");
 	}
 
 	if (wmd->mask_tex_mapping == MOD_DISP_MAP_GLOBAL)
-		dag_add_relation(forest, obNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA,
+		dag_add_relation(forest, obNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA,
 		                 "WeightVGProximity Modifier");
 }
 
@@ -546,10 +546,10 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
 	/* structName */        "WeightVGProximityModifierData",
 	/* structSize */        sizeof(WeightVGProximityModifierData),
 	/* type */              eModifierTypeType_NonGeometrical,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-	                       |eModifierTypeFlag_SupportsMapping
-	                       |eModifierTypeFlag_SupportsEditmode
-	                       |eModifierTypeFlag_UsesPreview,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_UsesPreview,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

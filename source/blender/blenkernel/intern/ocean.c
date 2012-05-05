@@ -172,12 +172,12 @@ static float gaussRand (void)
 /**
  * Some useful functions
  * */
-MINLINE float lerp(float a,float b,float f)
+MINLINE float lerp(float a, float b, float f)
 {
 	return a + (b-a)*f;
 }
 
-MINLINE float catrom(float p0,float p1,float p2,float p3,float f)
+MINLINE float catrom(float p0, float p1, float p2, float p3, float f)
 {
 	return 0.5f *((2.0f * p1) +
 	              (-p0 + p2) * f +
@@ -191,7 +191,7 @@ MINLINE float omega(float k, float depth)
 }
 
 // modified Phillips spectrum
-static float Ph(struct Ocean* o, float kx,float kz )
+static float Ph(struct Ocean* o, float kx, float kz )
 {
 	float tmp;
 	float k2 = kx*kx + kz*kz;
@@ -206,12 +206,12 @@ static float Ph(struct Ocean* o, float kx,float kz )
 		tmp *= o->_damp_reflections;
 	}
 
-	return o->_A * expf( -1.0f / (k2*(o->_L*o->_L))) * expf(-k2 * (o->_l*o->_l)) * powf(fabsf(tmp),o->_wind_alignment) / (k2*k2);
+	return o->_A * expf( -1.0f / (k2*(o->_L*o->_L))) * expf(-k2 * (o->_l*o->_l)) * powf(fabsf(tmp), o->_wind_alignment) / (k2*k2);
 }
 
-static void compute_eigenstuff(struct OceanResult *ocr, float jxx,float jzz,float jxz)
+static void compute_eigenstuff(struct OceanResult *ocr, float jxx, float jzz, float jxz)
 {
-	float a,b,qplus,qminus;
+	float a, b, qplus, qminus;
 	a = jxx + jzz;
 	b = sqrt((jxx - jzz)*(jxx - jzz) + 4 * jxz * jxz);
 
@@ -304,15 +304,15 @@ float BKE_ocean_jminus_to_foam(float jminus, float coverage)
 	return foam*foam;
 }
 
-void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u,float v)
+void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u, float v)
 {
-	int i0,i1,j0,j1;
-	float frac_x,frac_z;
-	float uu,vv;
+	int i0, i1, j0, j1;
+	float frac_x, frac_z;
+	float uu, vv;
 
-	// first wrap the texture so 0 <= (u,v) < 1
-	u = fmodf(u,1.0f);
-	v = fmodf(v,1.0f);
+	// first wrap the texture so 0 <= (u, v) < 1
+	u = fmodf(u, 1.0f);
+	v = fmodf(v, 1.0f);
 
 	if (u < 0) u += 1.0f;
 	if (v < 0) v += 1.0f;
@@ -338,7 +338,7 @@ void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u,float 
 	j1 = j1 % oc->_N;
 
 
-#define BILERP(m) (lerp(lerp(m[i0*oc->_N+j0],m[i1*oc->_N+j0],frac_x),lerp(m[i0*oc->_N+j1],m[i1*oc->_N+j1],frac_x),frac_z))
+#define BILERP(m) (lerp(lerp(m[i0*oc->_N+j0], m[i1*oc->_N+j0], frac_x), lerp(m[i0*oc->_N+j1], m[i1*oc->_N+j1], frac_x), frac_z))
 	{
 		if (oc->_do_disp_y) {
 			ocr->disp[1] = BILERP(oc->_disp_y);
@@ -360,7 +360,7 @@ void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u,float 
 		}
 
 		if (oc->_do_jacobian) {
-			compute_eigenstuff(ocr, BILERP(oc->_Jxx),BILERP(oc->_Jzz),BILERP(oc->_Jxz));
+			compute_eigenstuff(ocr, BILERP(oc->_Jxx), BILERP(oc->_Jzz), BILERP(oc->_Jxz));
 		}
 	}
 #undef BILERP
@@ -369,15 +369,15 @@ void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u,float 
 }
 
 // use catmullrom interpolation rather than linear
-void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u,float v)
+void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u, float v)
 {
-	int i0,i1,i2,i3,j0,j1,j2,j3;
-	float frac_x,frac_z;
-	float uu,vv;
+	int i0, i1, i2, i3, j0, j1, j2, j3;
+	float frac_x, frac_z;
+	float uu, vv;
 
-	// first wrap the texture so 0 <= (u,v) < 1
-	u = fmod(u,1.0f);
-	v = fmod(v,1.0f);
+	// first wrap the texture so 0 <= (u, v) < 1
+	u = fmod(u, 1.0f);
+	v = fmod(v, 1.0f);
 
 	if (u < 0) u += 1.0f;
 	if (v < 0) v += 1.0f;
@@ -412,10 +412,10 @@ void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u
 	j0 = j0 <   0 ? j0 + oc->_N : j0;
 	j3 = j3 >= oc->_N ? j3 - oc->_N : j3;
 
-#define INTERP(m) catrom(catrom(m[i0*oc->_N+j0],m[i1*oc->_N+j0],m[i2*oc->_N+j0],m[i3*oc->_N+j0],frac_x),\
-	catrom(m[i0*oc->_N+j1],m[i1*oc->_N+j1],m[i2*oc->_N+j1],m[i3*oc->_N+j1],frac_x),\
-	catrom(m[i0*oc->_N+j2],m[i1*oc->_N+j2],m[i2*oc->_N+j2],m[i3*oc->_N+j2],frac_x),\
-	catrom(m[i0*oc->_N+j3],m[i1*oc->_N+j3],m[i2*oc->_N+j3],m[i3*oc->_N+j3],frac_x),\
+#define INTERP(m) catrom(catrom(m[i0*oc->_N+j0], m[i1*oc->_N+j0], m[i2*oc->_N+j0], m[i3*oc->_N+j0], frac_x), \
+	catrom(m[i0*oc->_N+j1], m[i1*oc->_N+j1], m[i2*oc->_N+j1], m[i3*oc->_N+j1], frac_x), \
+	catrom(m[i0*oc->_N+j2], m[i1*oc->_N+j2], m[i2*oc->_N+j2], m[i3*oc->_N+j2], frac_x), \
+	catrom(m[i0*oc->_N+j3], m[i1*oc->_N+j3], m[i2*oc->_N+j3], m[i3*oc->_N+j3], frac_x), \
 	frac_z)
 
 	{
@@ -437,7 +437,7 @@ void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u
 		}
 
 		if (oc->_do_jacobian) {
-			compute_eigenstuff(ocr, INTERP(oc->_Jxx),INTERP(oc->_Jzz),INTERP(oc->_Jxz));
+			compute_eigenstuff(ocr, INTERP(oc->_Jxx), INTERP(oc->_Jzz), INTERP(oc->_Jxz));
 		}
 	}
 #undef INTERP
@@ -446,20 +446,20 @@ void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u
 
 }
 
-void BKE_ocean_eval_xz(struct Ocean *oc, struct OceanResult *ocr, float x,float z)
+void BKE_ocean_eval_xz(struct Ocean *oc, struct OceanResult *ocr, float x, float z)
 {
-	BKE_ocean_eval_uv(oc, ocr, x/oc->_Lx,z/oc->_Lz);
+	BKE_ocean_eval_uv(oc, ocr, x/oc->_Lx, z/oc->_Lz);
 }
 
-void BKE_ocean_eval_xz_catrom(struct Ocean *oc, struct OceanResult *ocr, float x,float z)
+void BKE_ocean_eval_xz_catrom(struct Ocean *oc, struct OceanResult *ocr, float x, float z)
 {
-	BKE_ocean_eval_uv_catrom(oc, ocr, x/oc->_Lx,z/oc->_Lz);
+	BKE_ocean_eval_uv_catrom(oc, ocr, x/oc->_Lx, z/oc->_Lz);
 }
 
-// note that this doesn't wrap properly for i,j < 0, but its
+// note that this doesn't wrap properly for i, j < 0, but its
 // not really meant for that being just a way to get the raw data out
 // to save in some image format.
-void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i,int j)
+void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j)
 {
 	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
 
@@ -486,7 +486,7 @@ void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i,int j)
 	}
 
 	if (oc->_do_jacobian) {
-		compute_eigenstuff(ocr, oc->_Jxx[i*oc->_N+j],oc->_Jzz[i*oc->_N+j],oc->_Jxz[i*oc->_N+j]);
+		compute_eigenstuff(ocr, oc->_Jxx[i*oc->_N+j], oc->_Jzz[i*oc->_N+j], oc->_Jxz[i*oc->_N+j]);
 	}
 
 	BLI_rw_mutex_unlock(&oc->oceanmutex);
@@ -511,8 +511,8 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 			fftw_complex conj_param;
 
 
-			init_complex(exp_param1, 0.0, omega(o->_k[i*(1+o->_N/2)+j],o->_depth)*t);
-			init_complex(exp_param2, 0.0, -omega(o->_k[i*(1+o->_N/2)+j],o->_depth)*t);
+			init_complex(exp_param1, 0.0, omega(o->_k[i*(1+o->_N/2)+j], o->_depth)*t);
+			init_complex(exp_param2, 0.0, -omega(o->_k[i*(1+o->_N/2)+j], o->_depth)*t);
 			exp_complex(exp_param1, exp_param1);
 			exp_complex(exp_param2, exp_param2);
 			conj_complex(conj_param, o->_h0_minus[i*o->_N+j]);
@@ -710,7 +710,7 @@ static void set_height_normalize_factor(struct Ocean *oc)
 	float res = 1.0;
 	float max_h = 0.0;
 
-	int i,j;
+	int i, j;
 
 	if (!oc->_do_disp_y) return;
 
@@ -746,10 +746,10 @@ struct Ocean *BKE_add_ocean(void)
 	return oc;
 }
 
-void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
+void BKE_init_ocean(struct Ocean* o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
 					float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals, short do_jacobian, int seed)
 {
-	int i,j,ii;
+	int i, j, ii;
 
 	BLI_rw_mutex_lock(&o->oceanmutex, THREAD_LOCK_WRITE);
 
@@ -792,7 +792,7 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 		o->_kx[i] = 2.0f * (float)M_PI * i / o->_Lx;
 
 	// the -ve components
-	for (i = o->_M-1,ii=0 ; i > o->_M/2 ; --i,++ii)
+	for (i = o->_M-1, ii=0 ; i > o->_M/2 ; --i, ++ii)
 		o->_kx[i] = -2.0f * (float)M_PI * ii / o->_Lx;
 
 	// the +ve components and DC
@@ -800,7 +800,7 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 		o->_kz[i] = 2.0f * (float)M_PI * i / o->_Lz;
 
 	// the -ve components
-	for (i = o->_N-1,ii=0 ; i > o->_N/2 ; --i,++ii)
+	for (i = o->_N-1, ii=0 ; i > o->_N/2 ; --i, ++ii)
 		o->_kz[i] = -2.0f * (float)M_PI * ii / o->_Lz;
 
 	// pre-calculate the k matrix
@@ -819,7 +819,7 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 			fftw_complex r1r2;
 			init_complex(r1r2, r1, r2);
 			mul_complex_f(o->_h0[i*o->_N+j], r1r2, (float)(sqrt(Ph(o,  o->_kx[i], o->_kz[j]) / 2.0f)));
-			mul_complex_f(o->_h0_minus[i*o->_N+j], r1r2, (float)(sqrt(Ph(o, -o->_kx[i],-o->_kz[j]) / 2.0f)));
+			mul_complex_f(o->_h0_minus[i*o->_N+j], r1r2, (float)(sqrt(Ph(o, -o->_kx[i], -o->_kz[j]) / 2.0f)));
 		}
 	}
 
@@ -828,7 +828,7 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 
 	if (o->_do_disp_y) {
 		o->_disp_y = (double*) MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_disp_y");
-		o->_disp_y_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in, o->_disp_y, FFTW_ESTIMATE);
+		o->_disp_y_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in, o->_disp_y, FFTW_ESTIMATE);
 	}
 
 	if (o->_do_normals) {
@@ -839,8 +839,8 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 		/*o->_N_y = (float*) fftwf_malloc(o->_M * o->_N * sizeof(float)); (MEM01)*/
 		o->_N_z = (double*) MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_N_z");
 
-		o->_N_x_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in_nx, o->_N_x, FFTW_ESTIMATE);
-		o->_N_z_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in_nz, o->_N_z, FFTW_ESTIMATE);
+		o->_N_x_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_nx, o->_N_x, FFTW_ESTIMATE);
+		o->_N_z_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_nz, o->_N_z, FFTW_ESTIMATE);
 	}
 
 	if (o->_do_chop) {
@@ -850,8 +850,8 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 		o->_disp_x = (double*) MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_disp_x");
 		o->_disp_z = (double*) MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_disp_z");
 
-		o->_disp_x_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in_x, o->_disp_x, FFTW_ESTIMATE);
-		o->_disp_z_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in_z, o->_disp_z, FFTW_ESTIMATE);
+		o->_disp_x_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_x, o->_disp_x, FFTW_ESTIMATE);
+		o->_disp_z_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_z, o->_disp_z, FFTW_ESTIMATE);
 	}
 	if (o->_do_jacobian) {
 		o->_fft_in_jxx = (fftw_complex*) MEM_mallocN(o->_M * (1+o->_N/2) * sizeof(fftw_complex), "ocean_fft_in_jxx");
@@ -862,9 +862,9 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 		o->_Jzz = (double*) MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_Jzz");
 		o->_Jxz = (double*) MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_Jxz");
 
-		o->_Jxx_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in_jxx, o->_Jxx, FFTW_ESTIMATE);
-		o->_Jzz_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in_jzz, o->_Jzz, FFTW_ESTIMATE);
-		o->_Jxz_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in_jxz, o->_Jxz, FFTW_ESTIMATE);
+		o->_Jxx_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_jxx, o->_Jxx, FFTW_ESTIMATE);
+		o->_Jzz_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_jzz, o->_Jzz, FFTW_ESTIMATE);
+		o->_Jxz_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_jxz, o->_Jxz, FFTW_ESTIMATE);
 	}
 
 	BLI_rw_mutex_unlock(&o->oceanmutex);
@@ -1192,7 +1192,7 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 				if (o->_do_jacobian) {
 					/* TODO, cleanup unused code - campbell */
 
-					float /*r,*/ /* UNUSED */ pr=0.0f, foam_result;
+					float /*r, */ /* UNUSED */ pr=0.0f, foam_result;
 					float neg_disp, neg_eplus;
 
 					ocr.foam = BKE_ocean_jminus_to_foam(ocr.Jminus, och->foam_coverage);
@@ -1298,24 +1298,24 @@ float BKE_ocean_jminus_to_foam(float UNUSED(jminus), float UNUSED(coverage))
 	return 0.0f;
 }
 
-void BKE_ocean_eval_uv(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr), float UNUSED(u),float UNUSED(v))
+void BKE_ocean_eval_uv(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr), float UNUSED(u), float UNUSED(v))
 {
 }
 
 // use catmullrom interpolation rather than linear
-void BKE_ocean_eval_uv_catrom(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr), float UNUSED(u),float UNUSED(v))
+void BKE_ocean_eval_uv_catrom(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr), float UNUSED(u), float UNUSED(v))
 {
 }
 
-void BKE_ocean_eval_xz(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr), float UNUSED(x),float UNUSED(z))
+void BKE_ocean_eval_xz(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr), float UNUSED(x), float UNUSED(z))
 {
 }
 
-void BKE_ocean_eval_xz_catrom(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr), float UNUSED(x),float UNUSED(z))
+void BKE_ocean_eval_xz_catrom(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr), float UNUSED(x), float UNUSED(z))
 {
 }
 
-void BKE_ocean_eval_ij(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr), int UNUSED(i),int UNUSED(j))
+void BKE_ocean_eval_ij(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr), int UNUSED(i), int UNUSED(j))
 {
 }
 
@@ -1330,7 +1330,7 @@ struct Ocean *BKE_add_ocean(void)
 	return oc;
 }
 
-void BKE_init_ocean(struct Ocean* UNUSED(o), int UNUSED(M),int UNUSED(N), float UNUSED(Lx), float UNUSED(Lz), float UNUSED(V), float UNUSED(l), float UNUSED(A), float UNUSED(w), float UNUSED(damp),
+void BKE_init_ocean(struct Ocean* UNUSED(o), int UNUSED(M), int UNUSED(N), float UNUSED(Lx), float UNUSED(Lz), float UNUSED(V), float UNUSED(l), float UNUSED(A), float UNUSED(w), float UNUSED(damp),
 					   float UNUSED(alignment), float UNUSED(depth), float UNUSED(time), short UNUSED(do_height_field), short UNUSED(do_chop), short UNUSED(do_normals), short UNUSED(do_jacobian), int UNUSED(seed))
 {
 }

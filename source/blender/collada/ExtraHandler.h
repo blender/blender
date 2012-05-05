@@ -63,7 +63,7 @@ public:
 		const COLLADAFW::UniqueId& uniqueId );
 private:
 	/** Disable default copy constructor. */
-	ExtraHandler( const ExtraHandler& pre );
+	ExtraHandler(const ExtraHandler& pre);
 	/** Disable default assignment operator. */
 	const ExtraHandler& operator= ( const ExtraHandler& pre );
 	

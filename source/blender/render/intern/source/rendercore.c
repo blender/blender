@@ -889,10 +889,10 @@ static PixStrMain *addpsmain(ListBase *lb)
 {
 	PixStrMain *psm;
 	
-	psm= (PixStrMain *)MEM_mallocN(sizeof(PixStrMain),"pixstrMain");
+	psm= (PixStrMain *)MEM_mallocN(sizeof(PixStrMain), "pixstrMain");
 	BLI_addtail(lb, psm);
 	
-	psm->ps= (PixStr *)MEM_mallocN(4096*sizeof(PixStr),"pixstr");
+	psm->ps= (PixStr *)MEM_mallocN(4096*sizeof(PixStr), "pixstr");
 	psm->counter= 0;
 	
 	return psm;

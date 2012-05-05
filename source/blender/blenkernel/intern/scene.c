@@ -236,7 +236,7 @@ Scene *copy_scene(Scene *sce, int type)
 		}
 
 		if (sce->ed) {
-			scen->ed= MEM_callocN( sizeof(Editing), "addseq");
+			scen->ed= MEM_callocN(sizeof(Editing), "addseq");
 			scen->ed->seqbasep= &scen->ed->seqbase;
 			seqbase_dupli_recursive(sce, scen, &scen->ed->seqbase, &sce->ed->seqbase, SEQ_DUPE_ALL);
 		}
@@ -415,7 +415,7 @@ Scene *add_scene(const char *name)
 	sce->r.border.xmax = 1.0f;
 	sce->r.border.ymax = 1.0f;
 	
-	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
+	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
 	sce->toolsettings->step = 9;
@@ -895,8 +895,6 @@ void scene_deselect_all(Scene *sce)
 
 void scene_select_base(Scene *sce, Base *selbase)
 {
-	scene_deselect_all(sce);
-
 	selbase->flag |= SELECT;
 	selbase->object->flag= selbase->flag;
 
@@ -1016,7 +1014,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 void scene_update_tagged(Main *bmain, Scene *scene)
 {
 	/* keep this first */
-	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	/* flush recalc flags to dependencies */
 	DAG_ids_flush_tagged(bmain);
@@ -1044,7 +1042,7 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 		BKE_ptcache_quick_cache_all(bmain, scene);
 
 	/* notify editors and python about recalc */
-	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 	DAG_ids_check_recalc(bmain, scene, FALSE);
 
 	/* clear recalc flags */
@@ -1058,8 +1056,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	Scene *sce_iter;
 
 	/* keep this first */
-	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
-	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
+	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	sound_set_cfra(sce->r.cfra);
 	
@@ -1093,8 +1091,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	scene_update_tagged_recursive(bmain, sce, sce);
 
 	/* notify editors and python about recalc */
-	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
-	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
+	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
 
 	DAG_ids_check_recalc(bmain, sce, TRUE);
 

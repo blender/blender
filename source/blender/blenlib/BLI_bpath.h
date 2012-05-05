@@ -43,25 +43,25 @@ struct ReportList;
  * path has changed, and in that case, should write the result to pathOut. */
 typedef int (*BPathVisitor)(void *userdata, char *path_dst, const char *path_src);
 /* Executes 'visit' for each path associated with 'id'. */
-void bpath_traverse_id(struct Main *bmain, struct ID *id, BPathVisitor visit_cb, const int flag, void *userdata);
-void bpath_traverse_id_list(struct Main *bmain, struct ListBase *lb, BPathVisitor visit_cb, const int flag, void *userdata);
-void bpath_traverse_main(struct Main *bmain, BPathVisitor visit_cb, const int flag, void *userdata);
-int bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
+void BLI_bpath_traverse_id(struct Main *bmain, struct ID *id, BPathVisitor visit_cb, const int flag, void *userdata);
+void BLI_bpath_traverse_id_list(struct Main *bmain, struct ListBase *lb, BPathVisitor visit_cb, const int flag, void *userdata);
+void BLI_bpath_traverse_main(struct Main *bmain, BPathVisitor visit_cb, const int flag, void *userdata);
+int  BLI_bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
 
-#define BPATH_TRAVERSE_ABS             (1<<0) /* convert paths to absolute */
-#define BPATH_TRAVERSE_SKIP_LIBRARY    (1<<2) /* skip library paths */
-#define BPATH_TRAVERSE_SKIP_PACKED     (1<<3) /* skip packed data */
-#define BPATH_TRAVERSE_SKIP_MULTIFILE  (1<<4) /* skip paths where a single dir is used with an array of files, eg.
-                                               * sequence strip images and pointcache. in this case only use the first
-                                               * file, this is needed for directory manipulation functions which might
-                                               * otherwise modify the same directory multiple times */
+#define BLI_BPATH_TRAVERSE_ABS             (1<<0) /* convert paths to absolute */
+#define BLI_BPATH_TRAVERSE_SKIP_LIBRARY    (1<<2) /* skip library paths */
+#define BLI_BPATH_TRAVERSE_SKIP_PACKED     (1<<3) /* skip packed data */
+#define BLI_BPATH_TRAVERSE_SKIP_MULTIFILE  (1<<4) /* skip paths where a single dir is used with an array of files, eg.
+                                                   * sequence strip images and pointcache. in this case only use the first
+                                                   * file, this is needed for directory manipulation functions which might
+                                                   * otherwise modify the same directory multiple times */
 
 /* high level funcs */
 
 /* creates a text file with missing files if there are any */
-void checkMissingFiles(struct Main *bmain, struct ReportList *reports);
-void makeFilesRelative(struct Main *bmain, const char *basedir, struct ReportList *reports);
-void makeFilesAbsolute(struct Main *bmain, const char *basedir, struct ReportList *reports);
-void findMissingFiles(struct Main *bmain, const char *searchpath, struct ReportList *reports);
+void BLI_bpath_missing_files_check(struct Main *bmain, struct ReportList *reports);
+void BLI_bpath_missing_files_find(struct Main *bmain, const char *searchpath, struct ReportList *reports);
+void BLI_bpath_relative_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
+void BLI_bpath_absolute_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
 
 #endif // __BLI_BPATH_H__

@@ -133,25 +133,25 @@ public:
 
 	virtual
 		int
-	GetMouseX( int x
+	GetMouseX(int x
 	)=0;
 
 	virtual
 		int
-	GetMouseY( int y
+	GetMouseY(int y
 	)= 0;
 
 	virtual
 		float
-	GetMouseNormalizedX( int x
+	GetMouseNormalizedX(int x
 	)=0;
 
 	virtual
 		float
-	GetMouseNormalizedY( int y
+	GetMouseNormalizedY(int y
 	)= 0;
 
-	virtual 
+	virtual
 		const RAS_Rect &
 	GetDisplayArea(
 	) const = 0;

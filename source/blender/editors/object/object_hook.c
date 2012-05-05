@@ -313,6 +313,9 @@ static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int *
 
 			em = me->edit_btmesh;
 
+			EDBM_mesh_normals_update(em);
+			BMEdit_RecalcTessellation(em);
+
 			/* check selected vertices first */
 			if (return_editmesh_indexar(em, tot, indexar, cent_r)) {
 				return 1;
@@ -483,7 +486,8 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obsel = NULL;
 	
-	CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+	{
 		if (ob != obedit) {
 			obsel = ob;
 			break;

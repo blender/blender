@@ -88,7 +88,7 @@ int file_previous_exec(bContext *C, struct wmOperator *unused);
 int file_next_exec(bContext *C, struct wmOperator *unused);
 int file_filename_exec(bContext *C, struct wmOperator *unused);
 int file_directory_exec(bContext *C, struct wmOperator *unused);
-int file_directory_new_exec(bContext *C,struct wmOperator *unused);
+int file_directory_new_exec(bContext *C, struct wmOperator *unused);
 int file_delete_exec(bContext *C, struct wmOperator *unused);
 
 int file_hilight_set(struct SpaceFile *sfile, struct ARegion *ar, int mx, int my);

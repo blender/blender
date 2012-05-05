@@ -129,7 +129,7 @@ static float KDOP_AXES[13][3] =
 /*
  * Generic push and pop heap
  */
-#define PUSH_HEAP_BODY(HEAP_TYPE,PRIORITY,heap,heap_size)	\
+#define PUSH_HEAP_BODY(HEAP_TYPE, PRIORITY, heap, heap_size)	\
 {													\
 	HEAP_TYPE element = heap[heap_size-1];			\
 	int child = heap_size-1;						\
@@ -146,7 +146,7 @@ static float KDOP_AXES[13][3] =
 	heap[child] = element;							\
 }
 
-#define POP_HEAP_BODY(HEAP_TYPE, PRIORITY,heap,heap_size)	\
+#define POP_HEAP_BODY(HEAP_TYPE, PRIORITY, heap, heap_size)	\
 {													\
 	HEAP_TYPE element = heap[heap_size-1];			\
 	int parent = 0;									\
@@ -177,7 +177,7 @@ static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, in
 	if (*memblock == local_memblock)
 	{
 		new_memblock = malloc( size_per_item * new_max_size );
-		memcpy( new_memblock, *memblock, size_per_item * *max_size );
+		memcpy(new_memblock, *memblock, size_per_item * *max_size);
 	}
 	else
 		new_memblock = realloc(*memblock, size_per_item * new_max_size );
@@ -215,7 +215,7 @@ static int floor_lg(int a)
  */
 static void bvh_insertionsort(BVHNode **a, int lo, int hi, int axis)
 {
-	int i,j;
+	int i, j;
 	BVHNode *t;
 	for (i=lo; i < hi; i++) {
 		j=i;
@@ -237,7 +237,7 @@ static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode * x, int axis)
 		while (x->bv[axis] < (a[j])->bv[axis]) j--;
 		if (!(i < j))
 			return i;
-		SWAP( BVHNode* , a[i], a[j]);
+		SWAP(BVHNode *, a[i], a[j]);
 		i++;
 	}
 }
@@ -269,12 +269,12 @@ static void bvh_heapsort(BVHNode **a, int lo, int hi, int axis)
 	int n = hi-lo, i;
 	for (i=n/2; i>=1; i=i-1)
 	{
-		bvh_downheap(a, i,n,lo, axis);
+		bvh_downheap(a, i, n, lo, axis);
 	}
 	for (i=n; i>1; i=i-1)
 	{
-		SWAP(BVHNode*, a[lo],a[lo+i-1]);
-		bvh_downheap(a, 1,i-1,lo, axis);
+		SWAP(BVHNode*, a[lo], a[lo+i-1]);
+		bvh_downheap(a, 1, i-1, lo, axis);
 	}
 }
 #endif
@@ -369,9 +369,9 @@ static void build_skip_links(BVHTree *tree, BVHNode *node, BVHNode *left, BVHNod
 	
 	for (i = 0; i < node->totnode; i++) {
 		if (i+1 < node->totnode)
-			build_skip_links(tree, node->children[i], left, node->children[i+1] );
+			build_skip_links(tree, node->children[i], left, node->children[i + 1]);
 		else
-			build_skip_links(tree, node->children[i], left, right );
+			build_skip_links(tree, node->children[i], left, right);
 
 		left = node->children[i];
 	}
@@ -409,7 +409,7 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, const float *co, int 
 // depends on the fact that the BVH's for each face is already build
 static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 {
-	float newmin,newmax;
+	float newmin, newmax;
 	int i, j;
 	float *bv = node->bv;
 
@@ -671,7 +671,7 @@ static int implicit_needed_branches(int tree_type, int leafs)
  *  - if all elements are different all partition will get the same subset of elements
  *    as if the array was sorted.
  *
- * partition P is described as the elements in the range ( nth[P] , nth[P+1] ]
+ * partition P is described as the elements in the range ( nth[P], nth[P+1] ]
  *
  * TODO: This can be optimized a bit by doing a specialized nth_element instead of K nth_elements
  */
@@ -1180,14 +1180,14 @@ typedef struct NodeDistance
 
 } NodeDistance;
 
-#define NodeDistance_priority(a,b)	( (a).dist < (b).dist )
+#define NodeDistance_priority(a, b)	( (a).dist < (b).dist )
 
 // TODO: use a priority queue to reduce the number of nodes looked on
 static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 {
 	if (node->totnode == 0) {
 		if (data->callback)
-			data->callback(data->userdata , node->index, data->co, &data->nearest);
+			data->callback(data->userdata, node->index, data->co, &data->nearest);
 		else {
 			data->nearest.index	= node->index;
 			data->nearest.dist	= calc_nearest_point(data->proj, node, data->nearest.co);
@@ -1329,7 +1329,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
 	}
 
 	if (nearest) {
-		memcpy( &data.nearest , nearest, sizeof(*nearest) );
+		memcpy(&data.nearest, nearest, sizeof(*nearest));
 	}
 	else {
 		data.nearest.index = -1;
@@ -1518,7 +1518,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 
 
 	if (hit)
-		memcpy( &data.hit, hit, sizeof(*hit) );
+		memcpy(&data.hit, hit, sizeof(*hit));
 	else {
 		data.hit.index = -1;
 		data.hit.dist = FLT_MAX;
@@ -1531,7 +1531,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 
 
 	if (hit)
-		memcpy( hit, &data.hit, sizeof(*hit) );
+		memcpy(hit, &data.hit, sizeof(*hit));
 
 	return data.hit.index;
 }
@@ -1610,7 +1610,7 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 					data->callback(data->userdata, node->children[i]->index, dist);
 				}
 				else
-					dfs_range_query( data, node->children[i] );
+					dfs_range_query(data, node->children[i]);
 			}
 		}
 	}
@@ -1639,7 +1639,7 @@ int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHT
 				data.callback(data.userdata, root->index, dist);
 			}
 			else
-				dfs_range_query( &data, root );
+				dfs_range_query(&data, root);
 		}
 	}
 

@@ -1,5 +1,4 @@
-/*  
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +28,6 @@
 /** \file blender/render/intern/source/pipeline.c
  *  \ingroup render
  */
-
 
 #include <math.h>
 #include <limits.h>
@@ -176,7 +174,7 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 			fprintf(stdout, "Sce: %s Ve:%d Fa:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->totlamp);
 	}
 
-	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
+	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
 
 	fputc('\n', stdout);
 	fflush(stdout);
@@ -544,7 +542,9 @@ void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
 	re->clipend= clipend;
 	re->r.mode &= ~R_ORTHO;
 
-	perspective_m4( re->winmat,re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
+	perspective_m4(re->winmat,
+	               re->viewplane.xmin, re->viewplane.xmax,
+	               re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 	
 }
 
@@ -557,7 +557,9 @@ void RE_SetOrtho(Render *re, rctf *viewplane, float clipsta, float clipend)
 	re->clipend= clipend;
 	re->r.mode |= R_ORTHO;
 
-	orthographic_m4( re->winmat,re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
+	orthographic_m4(re->winmat,
+	                re->viewplane.xmin, re->viewplane.xmax,
+	                re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 }
 
 void RE_SetView(Render *re, float mat[][4])
@@ -1951,7 +1953,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	}
 	
 	/* get panorama & ortho, only after camera is set */
-	object_camera_mode(&scene->r, camera_override ? camera_override : scene->camera);
+	BKE_camera_object_mode(&scene->r, camera_override ? camera_override : scene->camera);
 
 	/* forbidden combinations */
 	if (scene->r.mode & R_PANORAMA) {
@@ -2100,7 +2102,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	if (render_initialize_from_main(re, bmain, scene, srl, camera_override, lay, 0, 0)) {
 		MEM_reset_peak_memory();
 
-		BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
+		BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
 
 		do_render_all_options(re);
 		
@@ -2118,10 +2120,10 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 			}
 		}
 
-		BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
+		BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 	}
 
-	BLI_exec_cb(re->main, (ID *)scene, G.afbreek ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
+	BLI_callback_exec(re->main, (ID *)scene, G.afbreek ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
 
 	/* UGLY WARNING */
 	G.rendering= 0;
@@ -2208,7 +2210,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	BLI_timestr(re->i.lastframetime, name);
 	printf(" Time: %s", name);
 
-	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
+	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
 
 	fputc('\n', stdout);
 	fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
@@ -2243,7 +2245,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			if (nf >= 0 && nf >= scene->r.sfra && nf <= scene->r.efra) {
 				scene->r.cfra = re->r.cfra = nf;
 
-				BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
+				BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
 
 				do_render_all_options(re);
 				totrendered++;
@@ -2254,7 +2256,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				}
 
 				if (G.afbreek == 0) {
-					BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
+					BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 				}
 			}
 			else {
@@ -2308,7 +2310,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			re->r.cfra= scene->r.cfra;	   /* weak.... */
 
 			/* run callbacs before rendering, before the scene is updated */
-			BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
+			BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
 
 			
 			do_render_all_options(re);
@@ -2334,7 +2336,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			}
 
 			if (G.afbreek==0) {
-				BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
+				BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 			}
 		}
 	}
@@ -2350,7 +2352,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 	re->flag &= ~R_ANIMATION;
 
-	BLI_exec_cb(re->main, (ID *)scene, G.afbreek ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
+	BLI_callback_exec(re->main, (ID *)scene, G.afbreek ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
 
 	/* UGLY WARNING */
 	G.rendering= 0;
@@ -2465,7 +2467,7 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char
 
 				ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_rectfloat);
 				if (ibuf_clip) {
-					IMB_rectcpy(ibuf_clip, ibuf, 0,0, x,y, layer->rectx, layer->recty);
+					IMB_rectcpy(ibuf_clip, ibuf, 0, 0, x, y, layer->rectx, layer->recty);
 
 					memcpy(layer->rectf, ibuf_clip->rect_float, sizeof(float)*4*layer->rectx*layer->recty);
 					IMB_freeImBuf(ibuf_clip);
@@ -2494,7 +2496,7 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
 	}
 }
 
-const float default_envmap_layout[] = { 0,0, 1,0, 2,0, 0,1, 1,1, 2,1 };
+const float default_envmap_layout[] = { 0, 0, 1, 0, 2, 0, 0, 1, 1, 1, 2, 1 };
 
 int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, const char *relpath, const char imtype, float layout[12])
 {
@@ -2502,7 +2504,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 	ImBuf *ibuf=NULL;
 	int ok;
 	int dx;
-	int maxX=0,maxY=0,i=0;
+	int maxX=0, maxY=0, i=0;
 	char filepath[FILE_MAX];
 
 	if (env->cube[1]==NULL) {
@@ -2517,8 +2519,8 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 
 	if (env->type == ENV_CUBE) {
 		for (i=0; i < 12; i+=2) {
-			maxX = MAX2(maxX,layout[i] + 1);
-			maxY = MAX2(maxY,layout[i+1] + 1);
+			maxX = MAX2(maxX, layout[i] + 1);
+			maxY = MAX2(maxY, layout[i+1] + 1);
 		}
 
 		ibuf = IMB_allocImBuf(maxX*dx, maxY*dx, 24, IB_rectfloat);

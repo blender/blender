@@ -82,7 +82,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 	FT_Outline ftoutline;
 	float scale, height;
 	float dx, dy;
-	int j,k,l,m=0;
+	int j, k, l, m=0;
 	
 	// adjust font size
 	height= ((double) face->bbox.yMax - (double) face->bbox.yMin);
@@ -116,8 +116,8 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 		che->width= glyph->advance.x * scale;
 		
 		// Start converting the FT data
-		npoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int),"endpoints");
-		onpoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int),"onpoints");
+		npoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int), "endpoints");
+		onpoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int), "onpoints");
 
 		// calculate total points of each contour
 		for (j = 0; j < ftoutline.n_contours; j++) {
@@ -271,7 +271,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 					// len_squared_v2v2, see if there's a distance between the three points
 					// len_squared_v2v2 again, to check the angle between the handles 
 					// finally, check if one of them is a vector handle 
-					if ((dist_to_line_v2(bezt->vec[0],bezt->vec[1],bezt->vec[2]) < 0.001f) &&
+					if ((dist_to_line_v2(bezt->vec[0], bezt->vec[1], bezt->vec[2]) < 0.001f) &&
 						(len_squared_v2v2(bezt->vec[0], bezt->vec[1]) > 0.0001f*0.0001f) &&
 						(len_squared_v2v2(bezt->vec[1], bezt->vec[2]) > 0.0001f*0.0001f) &&
 						(len_squared_v2v2(bezt->vec[0], bezt->vec[2]) > 0.0002f*0.0001f) &&
@@ -304,7 +304,7 @@ static int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 	
 	// Load the font to memory
 	if (tf->pf) {
-		err= FT_New_Memory_Face( library,
+		err= FT_New_Memory_Face(library,
 			tf->pf->data,
 			tf->pf->size,
 			0,
@@ -342,7 +342,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 #endif
 
 	// load the freetype font
-	err = FT_New_Memory_Face( library,
+	err = FT_New_Memory_Face(library,
 						pf->data,
 						pf->size,
 						0,
@@ -351,10 +351,10 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	if (err) return NULL;
 
 #if 0
-	for ( n = 0; n < face->num_charmaps; n++ )
+	for (n = 0; n < face->num_charmaps; n++)
 	{
 		charmap = face->charmaps[n];
-		if ( charmap->platform_id == my_platform_id &&
+		if (charmap->platform_id == my_platform_id &&
 			charmap->encoding_id == my_encoding_id )
 		{
 			found = charmap;
@@ -362,11 +362,11 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 		}
 	}
 
-	if ( !found ) { return NULL; }
+	if (!found ) { return NULL; }
 
 	// now, select the charmap for the face object
-	err = FT_Set_Charmap( face, found );
-	if ( err ) { return NULL; }
+	err = FT_Set_Charmap(face, found);
+	if (err) { return NULL; }
 #endif
 
 	// allocate blender font
@@ -393,7 +393,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 			}
 		}
 
-		err = FT_Set_Charmap( face, found );
+		err = FT_Set_Charmap(face, found);
 
 		if ( err ) 
 			return NULL;
@@ -498,7 +498,7 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	}
 
 	//free Freetype
-	FT_Done_FreeType( library);
+	FT_Done_FreeType(library);
 	
 	return vfd;
 }
@@ -620,7 +620,7 @@ font driver produces such outlines.
 
 
 Each glyph's original outline points are located on a grid of indivisible units. The points are stored
-in the font file as 16-bit integer grid coordinates, with the grid origin's being at (0,0); they thus
+in the font file as 16-bit integer grid coordinates, with the grid origin's being at (0, 0); they thus
 range from -16384 to 16383.
 
 Convert conic to bezier arcs:

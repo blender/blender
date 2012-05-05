@@ -1,7 +1,4 @@
 /*
- *
- * This is external code. Converts between avi and mpeg/jpeg.
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +28,8 @@
 
 /** \file blender/avi/intern/mjpeg.c
  *  \ingroup avi
+ *
+ * This is external code. Converts between avi and mpeg/jpeg.
  */
 
 

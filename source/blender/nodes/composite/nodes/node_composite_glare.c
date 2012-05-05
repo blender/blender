@@ -124,7 +124,7 @@ static CompBuf* BTP(CompBuf* src, float threshold, int scaledown)
 static void star4(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 {
 	int x, y, i, xm, xp, ym, yp;
-	float c[4] = {0,0,0,0}, tc[4] = {0,0,0,0};
+	float c[4] = {0, 0, 0, 0}, tc[4] = {0, 0, 0, 0};
 	CompBuf *tbuf1, *tbuf2, *tsrc;
 	const float f1 = 1.f - ndg->fade, f2 = (1.f - f1)*0.5f;
 	//const float t3 = ndg->threshold*3.f;

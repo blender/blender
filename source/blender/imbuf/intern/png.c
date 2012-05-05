@@ -51,9 +51,9 @@ typedef struct PNGReadStruct {
 	unsigned int seek;
 } PNGReadStruct;
 
-static void ReadData( png_structp png_ptr, png_bytep data, png_size_t length);
-static void WriteData( png_structp png_ptr, png_bytep data, png_size_t length);
-static void Flush( png_structp png_ptr);
+static void ReadData(png_structp png_ptr, png_bytep data, png_size_t length);
+static void WriteData(png_structp png_ptr, png_bytep data, png_size_t length);
+static void Flush(png_structp png_ptr);
 
 int imb_is_a_png(unsigned char *mem)
 {
@@ -68,7 +68,7 @@ static void Flush(png_structp png_ptr)
 	(void)png_ptr;
 }
 
-static void WriteData( png_structp png_ptr, png_bytep data, png_size_t length)
+static void WriteData(png_structp png_ptr, png_bytep data, png_size_t length)
 {
 	ImBuf *ibuf = (ImBuf *) png_get_io_ptr(png_ptr);
 
@@ -81,7 +81,7 @@ static void WriteData( png_structp png_ptr, png_bytep data, png_size_t length)
 	ibuf->encodedsize += length;
 }
 
-static void ReadData( png_structp png_ptr, png_bytep data, png_size_t length)
+static void ReadData(png_structp png_ptr, png_bytep data, png_size_t length)
 {
 	PNGReadStruct *rs= (PNGReadStruct *) png_get_io_ptr(png_ptr);
 

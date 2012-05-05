@@ -126,7 +126,7 @@ void BLI_freelinkN(ListBase *listbase, void *vlink)
 	if (link == NULL) return;
 	if (listbase == NULL) return;
 
-	BLI_remlink(listbase,link);
+	BLI_remlink(listbase, link);
 	MEM_freeN(link);
 }
 

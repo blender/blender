@@ -357,7 +357,8 @@ static void time_draw_keyframes(const bContext *C, SpaceTime *stime, ARegion *ar
 		short active_done = 0;
 		
 		/* draw keyframes from all selected objects */
-		CTX_DATA_BEGIN (C, Object*, obsel, selected_objects) {
+		CTX_DATA_BEGIN (C, Object*, obsel, selected_objects)
+		{
 			/* last arg is 0, since onlysel doesn't apply here... */
 			time_draw_idblock_keyframes(v2d, (ID *)obsel, 0);
 			

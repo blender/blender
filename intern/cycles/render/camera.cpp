@@ -25,8 +25,7 @@ CCL_NAMESPACE_BEGIN
 
 Camera::Camera()
 {
-	shutteropen = 0.0f;
-	shutterclose = 1.0f;
+	shuttertime = 1.0f;
 
 	aperturesize = 0.0f;
 	focaldistance = 10.0f;
@@ -35,8 +34,18 @@ Camera::Camera()
 
 	matrix = transform_identity();
 
+	motion.pre = transform_identity();
+	motion.post = transform_identity();
+	use_motion = false;
+
 	type = CAMERA_PERSPECTIVE;
+	panorama_type = PANORAMA_EQUIRECTANGULAR;
+	fisheye_fov = M_PI_F;
+	fisheye_lens = 10.5f;
 	fov = M_PI_F/4.0f;
+
+	sensorwidth = 0.036;
+	sensorheight = 0.024;
 
 	nearclip = 1e-5f;
 	farclip = 1e5f;
@@ -124,7 +133,7 @@ void Camera::update()
 	need_device_update = true;
 }
 
-void Camera::device_update(Device *device, DeviceScene *dscene)
+void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
 	update();
 
@@ -140,9 +149,31 @@ void Camera::device_update(Device *device, DeviceScene *dscene)
 	kcam->rastertocamera = rastertocamera;
 	kcam->cameratoworld = cameratoworld;
 	kcam->worldtoscreen = transform_inverse(screentoworld);
-	kcam->worldtoraster = transform_inverse(rastertoworld);
+	kcam->worldtoraster = worldtoraster;
 	kcam->worldtondc = transform_inverse(ndctoworld);
 	kcam->worldtocamera = transform_inverse(cameratoworld);
+
+	/* camera motion */
+	Scene::MotionType need_motion = scene->need_motion();
+	kcam->have_motion = 0;
+
+	if(need_motion == Scene::MOTION_PASS) {
+		if(use_motion) {
+			kcam->motion.pre = transform_inverse(motion.pre * rastertocamera);
+			kcam->motion.post = transform_inverse(motion.post * rastertocamera);
+		}
+		else {
+			kcam->motion.pre = worldtoraster;
+			kcam->motion.post = worldtoraster;
+		}
+	}
+	else if(need_motion == Scene::MOTION_BLUR) {
+		/* todo: exact camera position will not be hit this way */
+		if(use_motion) {
+			transform_motion_decompose(&kcam->motion, &motion);
+			kcam->have_motion = 1;
+		}
+	}
 
 	/* depth of field */
 	kcam->aperturesize = aperturesize;
@@ -151,11 +182,19 @@ void Camera::device_update(Device *device, DeviceScene *dscene)
 	kcam->bladesrotation = bladesrotation;
 
 	/* motion blur */
-	kcam->shutteropen = shutteropen;
-	kcam->shutterclose = shutterclose;
+	kcam->shuttertime= (need_motion == Scene::MOTION_BLUR)? shuttertime: 0.0f;
 
 	/* type */
 	kcam->type = type;
+
+	/* panorama */
+	kcam->panorama_type = panorama_type;
+	kcam->fisheye_fov = fisheye_fov;
+	kcam->fisheye_lens = fisheye_lens;
+
+	/* sensor size */
+	kcam->sensorwidth = sensorwidth;
+	kcam->sensorheight = sensorheight;
 
 	/* store differentials */
 	kcam->dx = float3_to_float4(dx);
@@ -175,8 +214,7 @@ void Camera::device_free(Device *device, DeviceScene *dscene)
 
 bool Camera::modified(const Camera& cam)
 {
-	return !((shutteropen == cam.shutteropen) &&
-		(shutterclose == cam.shutterclose) &&
+	return !((shuttertime== cam.shuttertime) &&
 		(aperturesize == cam.aperturesize) &&
 		(blades == cam.blades) &&
 		(bladesrotation == cam.bladesrotation) &&
@@ -185,6 +223,8 @@ bool Camera::modified(const Camera& cam)
 		(fov == cam.fov) &&
 		(nearclip == cam.nearclip) &&
 		(farclip == cam.farclip) &&
+		(sensorwidth == cam.sensorwidth) &&
+		(sensorheight == cam.sensorheight) &&
 		// modified for progressive render
 		// (width == cam.width) &&
 		// (height == cam.height) &&
@@ -192,7 +232,12 @@ bool Camera::modified(const Camera& cam)
 		(right == cam.right) &&
 		(bottom == cam.bottom) &&
 		(top == cam.top) &&
-		(matrix == cam.matrix));
+		(matrix == cam.matrix) &&
+		(motion == cam.motion) &&
+		(use_motion == cam.use_motion) &&
+		(panorama_type == cam.panorama_type) &&
+		(fisheye_fov == cam.fisheye_fov) &&
+		(fisheye_lens == cam.fisheye_lens));
 }
 
 void Camera::tag_update()

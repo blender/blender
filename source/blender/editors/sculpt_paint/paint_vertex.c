@@ -198,8 +198,8 @@ static void do_shared_vertex_tesscol(Mesh *me)
 {
 	/* if no mcol: do not do */
 	/* if tface: only the involved faces, otherwise all */
+	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_MASK);
 	MFace *mface;
-	MTFace *tface;
 	int a;
 	short *scolmain, *scol;
 	char *mcol;
@@ -208,11 +208,10 @@ static void do_shared_vertex_tesscol(Mesh *me)
 	
 	scolmain = MEM_callocN(4 * sizeof(short) * me->totvert, "colmain");
 	
-	tface = me->mtface;
 	mface = me->mface;
 	mcol = (char *)me->mcol;
 	for (a = me->totface; a > 0; a--, mface++, mcol += 16) {
-		if ((tface && tface->mode & TF_SHAREDCOL) || (me->editflag & ME_EDIT_PAINT_MASK) == 0) {
+		if ((use_face_sel == FALSE) || (mface->flag & ME_FACE_SEL)) {
 			scol = scolmain + 4 * mface->v1;
 			scol[0]++; scol[1] += mcol[1]; scol[2] += mcol[2]; scol[3] += mcol[3];
 			scol = scolmain + 4 * mface->v2;
@@ -224,7 +223,6 @@ static void do_shared_vertex_tesscol(Mesh *me)
 				scol[0]++; scol[1] += mcol[13]; scol[2] += mcol[14]; scol[3] += mcol[15];
 			}
 		}
-		if (tface) tface++;
 	}
 	
 	a = me->totvert;
@@ -237,12 +235,11 @@ static void do_shared_vertex_tesscol(Mesh *me)
 		}
 		scol += 4;
 	}
-	
-	tface = me->mtface;
+
 	mface = me->mface;
 	mcol = (char *)me->mcol;
 	for (a = me->totface; a > 0; a--, mface++, mcol += 16) {
-		if ((tface && tface->mode & TF_SHAREDCOL) || (me->editflag & ME_EDIT_PAINT_MASK) == 0) {
+		if ((use_face_sel == FALSE)|| (mface->flag & ME_FACE_SEL)) {
 			scol = scolmain + 4 * mface->v1;
 			mcol[1] = scol[1]; mcol[2] = scol[2]; mcol[3] = scol[3];
 			scol = scolmain + 4 * mface->v2;
@@ -254,7 +251,6 @@ static void do_shared_vertex_tesscol(Mesh *me)
 				mcol[13] = scol[1]; mcol[14] = scol[2]; mcol[15] = scol[3];
 			}
 		}
-		if (tface) tface++;
 	}
 
 	MEM_freeN(scolmain);
@@ -262,12 +258,12 @@ static void do_shared_vertex_tesscol(Mesh *me)
 
 void do_shared_vertexcol(Mesh *me, int do_tessface)
 {
+	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_MASK);
 	MLoop *ml = me->mloop;
 	MLoopCol *lcol = me->mloopcol;
-	MTexPoly *mtp = me->mtpoly;
-	MPoly *mp = me->mpoly;
-	float (*scol)[5];
-	int i, has_shared = 0;
+	MPoly *mp;
+	float (*scol)[4];
+	int i, j, has_shared = 0;
 
 	/* if no mloopcol: do not do */
 	/* if mtexpoly: only the involved faces, otherwise all */
@@ -276,42 +272,37 @@ void do_shared_vertexcol(Mesh *me, int do_tessface)
 
 	scol = MEM_callocN(sizeof(float) * me->totvert * 5, "scol");
 
-	for (i = 0; i < me->totloop; i++, ml++, lcol++) {
-		if (i >= mp->loopstart + mp->totloop) {
-			mp++;
-			if (mtp) mtp++;
+	for (i = 0, mp = me->mpoly; i < me->totpoly; i++, mp++) {
+		if ((use_face_sel == FALSE) || (mp->flag & ME_FACE_SEL)) {
+			ml = me->mloop + mp->loopstart;
+			lcol = me->mloopcol + mp->loopstart;
+			for (j = 0; j < mp->totloop; j++, ml++, lcol++) {
+				scol[ml->v][0] += lcol->r;
+				scol[ml->v][1] += lcol->g;
+				scol[ml->v][2] += lcol->b;
+				scol[ml->v][3] += 1.0f;
+				has_shared = 1;
+			}
 		}
-
-		if (!(mtp && (mtp->mode & TF_SHAREDCOL)) && (me->editflag & ME_EDIT_PAINT_MASK) != 0)
-			continue;
-
-		scol[ml->v][0] += lcol->r;
-		scol[ml->v][1] += lcol->g;
-		scol[ml->v][2] += lcol->b;
-		scol[ml->v][3] += lcol->a;
-		scol[ml->v][4] += 1.0;
-		has_shared = 1;
 	}
-	
+
 	if (has_shared) {
 		for (i = 0; i < me->totvert; i++) {
-			if (!scol[i][4]) continue;
-
-			scol[i][0] /= scol[i][4];
-			scol[i][1] /= scol[i][4];
-			scol[i][2] /= scol[i][4];
-			scol[i][3] /= scol[i][4];
+			if (scol[i][3] != 0.0f) {
+				mul_v3_fl(scol[i], 1.0f / scol[i][3]);
+			}
 		}
-	
-		ml = me->mloop;
-		lcol = me->mloopcol;
-		for (i = 0; i < me->totloop; i++, ml++, lcol++) {
-			if (!scol[ml->v][4]) continue;
 
-			lcol->r = scol[ml->v][0];
-			lcol->g = scol[ml->v][1];
-			lcol->b = scol[ml->v][2];
-			lcol->a = scol[ml->v][3];
+		for (i = 0, mp = me->mpoly; i < me->totpoly; i++, mp++) {
+			if ((use_face_sel == FALSE) || (mp->flag & ME_FACE_SEL)) {
+				ml = me->mloop + mp->loopstart;
+				lcol = me->mloopcol + mp->loopstart;
+				for (j = 0; j < mp->totloop; j++, ml++, lcol++) {
+					lcol->r = scol[ml->v][0];
+					lcol->g = scol[ml->v][1];
+					lcol->b = scol[ml->v][2];
+				}
+			}
 		}
 	}
 
@@ -868,7 +859,7 @@ static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float *vert_
 	}
 	else {
 		const float dist = sqrtf(dist_squared);
-		return brush_curve_strength_clamp(brush, dist, brush_size_pressure);
+		return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 	}
 }
 
@@ -1034,7 +1025,9 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			else {
 				MPoly *mp = ((MPoly *)me->mpoly) + (index - 1);
 				const int vgroup_active = vc.obact->actdef - 1;
+				Scene *scene = vc.scene;
 				ToolSettings *ts = vc.scene->toolsettings;
+				Brush *brush = paint_brush(&ts->wpaint->paint);
 				float mval_f[2];
 				int v_idx_best = -1;
 				int fidx;
@@ -1057,7 +1050,8 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				} while (fidx--);
 
 				if (v_idx_best != -1) { /* should always be valid */
-					ts->vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
+					float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
+					BKE_brush_weight_set(scene, brush, vgroup_weight);
 					change = TRUE;
 				}
 			}
@@ -1647,7 +1641,7 @@ typedef struct WeightPaintInfo {
 	char do_multipaint;
 	char do_auto_normalize;
 
-	float brush_alpha_value;  /* result of brush_alpha() */
+	float brush_alpha_value;  /* result of BKE_brush_alpha_get() */
 } WeightPaintInfo;
 
 /* fresh start to make multi-paint and locking modular */
@@ -2250,9 +2244,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	char *defbase_sel;
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
-	const float brush_size_pressure = brush_size(scene, brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
-	const float brush_alpha_value = brush_alpha(scene, brush);
-	const float brush_alpha_pressure = brush_alpha_value * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_alpha_value = BKE_brush_alpha_get(scene, brush);
+	const float brush_alpha_pressure = brush_alpha_value * (BKE_brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
 	/* intentionally don't initialize as NULL, make sure we initialize all members below */
 	WeightPaintInfo wpi;
@@ -2348,7 +2342,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR)
 		paintweight = 0.0f;
 	else
-		paintweight = ts->vgroup_weight;
+		paintweight = BKE_brush_weight_get(scene, brush);
 			
 	for (index = 0; index < totindex; index++) {
 		if (indexar[index] && indexar[index] <= me->totpoly) {
@@ -2427,7 +2421,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	ED_region_tag_redraw(vc->ar);
 }
 
-static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
+static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
@@ -2514,8 +2508,11 @@ static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	struct Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	Brush *brush = paint_brush(&ts->wpaint->paint);
+	float vgroup_weight = BKE_brush_weight_get(scene, brush);
 
-	wpaint_fill(scene->toolsettings->wpaint, obact, scene->toolsettings->vgroup_weight);
+	wpaint_fill(scene->toolsettings->wpaint, obact, vgroup_weight);
 	ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
 	return OPERATOR_FINISHED;
 }
@@ -2873,8 +2870,8 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mval[2];
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
-	const float brush_size_pressure = brush_size(scene, brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
-	const float brush_alpha_pressure = brush_alpha(scene, brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_alpha_pressure = BKE_brush_alpha_get(scene, brush) * (BKE_brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
 
@@ -2948,7 +2945,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	}
 }
 
-static void vpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
+static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	struct VPaintData *vpd = paint_stroke_mode_data(stroke);

@@ -80,7 +80,7 @@
 
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */
 /* NOTE: this is exported to other modules that use the ActKeyColumns for finding keyframes */
-short compare_ak_cfraPtr (void *node, void *data)
+short compare_ak_cfraPtr(void *node, void *data)
 {
 	ActKeyColumn *ak= (ActKeyColumn *)node;
 	float *cframe= data;
@@ -312,7 +312,7 @@ static BezTriple *abk_get_bezt_with_value (ActBeztColumn *abk, float value)
 
 /* Comparator callback used for ActKeyBlock and cframe float-value pointer */
 /* NOTE: this is exported to other modules that use the ActKeyBlocks for finding long-keyframes */
-short compare_ab_cfraPtr (void *node, void *data)
+short compare_ab_cfraPtr(void *node, void *data)
 {
 	ActKeyBlock *ab= (ActKeyBlock *)node;
 	float *cframe= data;
@@ -459,7 +459,7 @@ static void set_touched_actkeyblock (ActKeyBlock *ab)
 /* --------- */
 
 /* Checks if ActKeyBlock should exist... */
-short actkeyblock_is_valid (ActKeyBlock *ab, DLRBT_Tree *keys)
+short actkeyblock_is_valid(ActKeyBlock *ab, DLRBT_Tree *keys)
 {
 	ActKeyColumn *ak;
 	short startCurves, endCurves, totCurves;
@@ -494,7 +494,7 @@ static const float _unit_diamond_shape[4][2] = {
 }; 
 
 /* draw a simple diamond shape with OpenGL */
-void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel, short key_type, short mode, float alpha)
+void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel, short key_type, short mode, float alpha)
 {
 	static GLuint displist1=0;
 	static GLuint displist2=0;

@@ -229,9 +229,6 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 	int x, y;
 	MovieClip *clip = ED_space_clip(sc);
 
-	/* set zoom */
-	glPixelZoom(zoomx*width/ibuf->x, zoomy*height/ibuf->y);
-
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
@@ -242,8 +239,42 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 	else {
 		verify_buffer_float(ibuf);
 
-		if (ibuf->rect)
-			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+		if (ibuf->rect) {
+			int need_fallback = 1;
+
+			if (ED_space_clip_texture_buffer_supported(sc)) {
+				if (ED_space_clip_load_movieclip_buffer(sc, ibuf)) {
+					glPushMatrix();
+					glTranslatef(x, y, 0.0f);
+					glScalef(zoomx, zoomy, 1.0f);
+
+					glBegin(GL_QUADS);
+						glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f,  0.0f);
+						glTexCoord2f(1.0f, 0.0f); glVertex2f(width, 0.0f);
+						glTexCoord2f(1.0f, 1.0f); glVertex2f(width, height);
+						glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f,  height);
+					glEnd();
+
+					glPopMatrix();
+
+					ED_space_clip_unload_movieclip_buffer(sc);
+
+					need_fallback = 0;
+				}
+			}
+
+			/* if texture buffers aren't efifciently supported or texture is too large to
+			 * be binder fallback to simple draw pixels solution */
+			if (need_fallback) {
+				/* set zoom */
+				glPixelZoom(zoomx*width/ibuf->x, zoomy*height/ibuf->y);
+
+				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+
+				/* reset zoom */
+				glPixelZoom(1.0f, 1.0f);
+			}
+		}
 	}
 
 	/* draw boundary border for frame if stabilization is enabled */
@@ -255,9 +286,9 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 		glLogicOp(GL_NOR);
 
 		glPushMatrix();
-		glTranslatef(x, y, 0);
+		glTranslatef(x, y, 0.0f);
 
-		glScalef(zoomx, zoomy, 0);
+		glScalef(zoomx, zoomy, 1.0f);
 		glMultMatrixf(sc->stabmat);
 
 		glBegin(GL_LINE_LOOP);
@@ -272,10 +303,6 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 		glDisable(GL_COLOR_LOGIC_OP);
 		glDisable(GL_LINE_STIPPLE);
 	}
-
-
-	/* reset zoom */
-	glPixelZoom(1.0f, 1.0f);
 }
 
 static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackingTrack *track)
@@ -283,7 +310,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 	int count = sc->path_length;
 	int i, a, b, curindex = -1;
 	float path[102][2];
-	int tiny = sc->flag&SC_SHOW_TINY_MARKER, framenr;
+	int tiny = sc->flag & SC_SHOW_TINY_MARKER, framenr;
 	MovieTrackingMarker *marker;
 
 	if (count == 0)
@@ -327,7 +354,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 
 		if (marker->framenr == i) {
 			if (marker->framenr == sc->user.framenr)
-				curindex= b;
+				curindex = b;
 
 			add_v2_v2v2(path[b++], marker->pos, track->offset);
 			ED_clip_point_undistorted_pos(sc, path[b-1], path[b-1]);
@@ -389,7 +416,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 
 static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker, float marker_pos[2], int width, int height)
 {
-	int tiny = sc->flag&SC_SHOW_TINY_MARKER;
+	int tiny = sc->flag & SC_SHOW_TINY_MARKER;
 	int show_search = FALSE;
 	float px[2];
 
@@ -488,8 +515,8 @@ static void track_colors(MovieTrackingTrack *track, int act, float col[3], float
 
 static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker, float marker_pos[2], int width, int height, int act, int sel)
 {
-	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
-	int show_search= 0;
+	int tiny = sc->flag & SC_SHOW_TINY_MARKER;
+	int show_search = 0;
 	float col[3], scol[3], px[2];
 
 	track_colors(track, act, col, scol);
@@ -498,7 +525,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	px[1]= 1.0f / height / sc->zoom;
 
 	/* marker position and offset position */
-	if ((track->flag&SELECT) == sel && (marker->flag & MARKER_DISABLED) == 0) {
+	if ((track->flag & SELECT) == sel && (marker->flag & MARKER_DISABLED) == 0) {
 		float pos[2];
 		rctf r;
 
@@ -689,7 +716,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
                                     float marker_pos[2], int outline, int sel, int act, int width, int height)
 {
 	float x, y, dx, dy, patdx, patdy, searchdx, searchdy, tdx, tdy;
-	int tiny = sc->flag&SC_SHOW_TINY_MARKER;
+	int tiny = sc->flag & SC_SHOW_TINY_MARKER;
 	float col[3], scol[3], px[2];
 
 	if ((tiny && outline) || (marker->flag & MARKER_DISABLED))
@@ -822,7 +849,7 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
                               int width, int height, float zoomx, float zoomy)
 {
 	char str[128] = {0}, state[64] = {0};
-	float dx= 0.0f, dy = 0.0f, fontsize, pos[3];
+	float dx = 0.0f, dy = 0.0f, fontsize, pos[3];
 	uiStyle *style = U.uistyles.first;
 	int fontid = style->widget.uifont_id;
 
@@ -947,7 +974,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 			if ((track->flag & TRACK_HIDDEN)==0) {
 				marker = BKE_tracking_get_marker(track, framenr);
 
-				if (MARKER_VISIBLE(sc, marker))
+				if (MARKER_VISIBLE(sc, track, marker))
 					count++;
 			}
 
@@ -964,7 +991,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 				if ((track->flag & TRACK_HIDDEN)==0) {
 					marker = BKE_tracking_get_marker(track, framenr);
 
-					if (MARKER_VISIBLE(sc, marker)) {
+					if (MARKER_VISIBLE(sc, track, marker)) {
 						ED_clip_point_undistorted_pos(sc, marker->pos, fp);
 
 						if (track == act_track)
@@ -996,7 +1023,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		if ((track->flag & TRACK_HIDDEN)==0) {
 			marker = BKE_tracking_get_marker(track, framenr);
 
-			if (MARKER_VISIBLE(sc, marker)) {
+			if (MARKER_VISIBLE(sc, track, marker)) {
 				copy_v2_v2(cur_pos, fp ? fp : marker->pos);
 
 				draw_marker_outline(sc, track, marker, cur_pos, width, height);
@@ -1021,7 +1048,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 			int act = track == act_track;
 			marker = BKE_tracking_get_marker(track, framenr);
 
-			if (MARKER_VISIBLE(sc, marker)) {
+			if (MARKER_VISIBLE(sc, track, marker)) {
 				if (!act) {
 					copy_v2_v2(cur_pos, fp ? fp : marker->pos);
 
@@ -1042,7 +1069,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		if ((act_track->flag & TRACK_HIDDEN)==0) {
 			marker = BKE_tracking_get_marker(act_track, framenr);
 
-			if (MARKER_VISIBLE(sc, marker)) {
+			if (MARKER_VISIBLE(sc, act_track, marker)) {
 				copy_v2_v2(cur_pos, active_pos ? active_pos : marker->pos);
 
 				draw_marker_areas(sc, act_track, marker, cur_pos, width, height, 1, 1);
@@ -1064,9 +1091,9 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		track = tracksbase->first;
 		while (track) {
 			if ((track->flag & TRACK_HIDDEN) == 0 && track->flag & TRACK_HAS_BUNDLE) {
-				marker= BKE_tracking_get_marker(track, framenr);
+				marker = BKE_tracking_get_marker(track, framenr);
 
-				if (MARKER_VISIBLE(sc, marker)) {
+				if (MARKER_VISIBLE(sc, track, marker)) {
 					float npos[2];
 					copy_v4_v4(vec, track->bundle_pos);
 					vec[3]=1;
@@ -1116,7 +1143,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 			if ((track->flag & TRACK_HIDDEN) == 0) {
 				marker = BKE_tracking_get_marker(track, framenr);
 
-				if (MARKER_VISIBLE(sc, marker)) {
+				if (MARKER_VISIBLE(sc, track, marker)) {
 					int act = track == act_track;
 
 					copy_v2_v2(cur_pos, fp ? fp : marker->pos);
@@ -1189,7 +1216,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 						if (a<2)
 							ok = tpos[a%2] < val[a][a%2];
 						else
-							ok= tpos[a%2] > val[a][a%2];
+							ok = tpos[a%2] > val[a][a%2];
 
 						if (ok) {
 							copy_v2_v2(val[a], tpos);
@@ -1255,7 +1282,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 	}
 
 	if (sc->flag & SC_MANUAL_CALIBRATION && clip->gpd) {
-		bGPDlayer *layer= clip->gpd->layers.first;
+		bGPDlayer *layer = clip->gpd->layers.first;
 
 		while (layer) {
 			bGPDframe *frame = layer->frames.first;
@@ -1287,7 +1314,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 									npos[1] = stroke->points[i+1].y * height * aspy;
 
 									len = len_v2v2(pos, npos);
-									steps= ceil(len/5.0f);
+									steps = ceil(len/5.0f);
 
 									/* we want to distort only long straight lines */
 									if (stroke->totpoints == 2) {
@@ -1332,7 +1359,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 
 void clip_draw_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
-	MovieClip *clip= ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip(sc);
 	ImBuf *ibuf;
 	int width, height;
 	float zoomx, zoomy;

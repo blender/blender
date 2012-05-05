@@ -351,7 +351,7 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 			
 			rc= hashvectf + (ofs % 768);
 			
-			fac= fabsf( rc[1]*(har->rad*fabsf(rc[0]) - radist) );
+			fac = fabsf(rc[1] * (har->rad * fabsf(rc[0]) - radist));
 			
 			if (fac< 1.0f) {
 				ringf+= (1.0f-fac);
@@ -360,7 +360,7 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	}
 
 	if (har->type & HA_VECT) {
-		dist= fabsf( har->cos*(yn) - har->sin*(xn) )/har->rad;
+		dist= fabsf(har->cos * (yn) - har->sin * (xn)) / har->rad;
 		if (dist>1.0f) dist= 1.0f;
 		if (har->tex) {
 			zn= har->sin*xn - har->cos*yn;

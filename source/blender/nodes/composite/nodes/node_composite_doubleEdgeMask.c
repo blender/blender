@@ -786,7 +786,7 @@ static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *l
 	int pix_prevCol;					// pix_prevCol = pixel one column behind the one we are testing in a loop
 	int pix_nextCol;					// pix_nextCol = pixel one column in front of the one we are testing in a loop
 	/* Test all rows between the FIRST and LAST rows, excluding left and right edges */
-	for (x= (t-rw)+1, dx=x-(rw-2); dx>rw; x-=rw,dx-=rw) {
+	for (x= (t-rw)+1, dx=x-(rw-2); dx>rw; x-=rw, dx-=rw) {
 		a=x-2;
 		pix_prevRow=a+rw;
 		pix_nextRow=a-rw;
@@ -848,7 +848,7 @@ static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned i
 	int pix_prevCol;				// pix_prevCol = pixel one column behind the one we are testing in a loop
 	int pix_nextCol;				// pix_nextCol = pixel one column in front of the one we are testing in a loop
 	/* Test all rows between the FIRST and LAST rows, excluding left and right edges */
-	for (x= (t-rw)+1, dx=x-(rw-2); dx>rw; x-=rw,dx-=rw) {
+	for (x= (t-rw)+1, dx=x-(rw-2); dx>rw; x-=rw, dx-=rw) {
 		a=x-2;
 		pix_prevRow=a+rw;
 		pix_nextRow=a-rw;
@@ -917,13 +917,13 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 	unsigned int outerAccum=0;		// for looping outer edge pixel indexes, represents current position from offset
 	unsigned int gradientAccum=0;	// for looping gradient pixel indexes, represents current position from offset
 	/*
-	 * Here we compute the size of buffer needed to hold (row,col) coordinates
+	 * Here we compute the size of buffer needed to hold (row, col) coordinates
 	 * for each pixel previously determined to be either gradient, inner edge,
 	 * or outer edge.
 	 *
 	 * Allocation is done by requesting 4 bytes "sizeof(int)" per pixel, even
 	 * though gbuf[] is declared as unsigned short* (2 bytes) because we don't
-	 * store the pixel indexes, we only store x,y location of pixel in buffer.
+	 * store the pixel indexes, we only store x, y location of pixel in buffer.
 	 *
 	 * This does make the assumption that x and y can fit in 16 unsigned bits
 	 * so if Blender starts doing renders greater than 65536 in either direction
@@ -961,7 +961,7 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 	 *  gradientFillOffset (0 pixels)                   innerEdgeOffset (18 pixels)    outerEdgeOffset (22 pixels)
 	 * /                                               /                              /
 	 * /                                               /                              /
-	 * |X   Y   X   Y   X   Y   X   Y   >     <X   Y   X   Y   >     <X   Y   X   Y   X   Y   >     <X   Y   X   Y   | <- (x,y)
+	 * |X   Y   X   Y   X   Y   X   Y   >     <X   Y   X   Y   >     <X   Y   X   Y   X   Y   >     <X   Y   X   Y   | <- (x, y)
 	 * +-------------------------------->     <---------------->     <------------------------>     <----------------+
 	 * |0   2   4   6   8   10  12  14  > ... <68  70  72  74  > ... <80  82  84  86  88  90  > ... <152 154 156 158 | <- bytes
 	 * +-------------------------------->     <---------------->     <------------------------>     <----------------+
@@ -975,7 +975,7 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 	 * Ultimately we do need the pixel's memory buffer index to set the output
 	 * pixel color, but it's faster to reconstruct the memory buffer location
 	 * each iteration of the final gradient calculation than it is to deconstruct
-	 * a memory location into x,y pairs each round.
+	 * a memory location into x, y pairs each round.
 	 */
 
 
@@ -987,7 +987,7 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 	innerAccum = *innerEdgeOffset;						// section's offset so when we start filling, each
 	outerAccum = *outerEdgeOffset;						// section fills up it's allocated space in gbuf
 	//uses dmin=row, rsl=col
-	for (x=0,dmin=0; x<t; x+=rw,dmin++) {
+	for (x=0, dmin=0; x<t; x+=rw, dmin++) {
 		for (rsl=0; rsl<rw; rsl++) {
 			a=x+rsl;
 			if (lres[a]==2) {			// it is a gradient pixel flagged by 2
@@ -1222,29 +1222,29 @@ static void node_composit_exec_doubleedgemask(void *UNUSED(data), bNode *node, b
 		 */
 		if (node->custom2) {		// if "adjacent only" inner edge mode is turned on
 			if (node->custom1) {	// if "keep inside" buffer edge mode is turned on
-				do_adjacentKeepBorders(t,rw,limask,lomask,lres,res,rsize);
+				do_adjacentKeepBorders(t, rw, limask, lomask, lres, res, rsize);
 			}
 			else {					// "bleed out" buffer edge mode is turned on
-				do_adjacentBleedBorders(t,rw,limask,lomask,lres,res,rsize);
+				do_adjacentBleedBorders(t, rw, limask, lomask, lres, res, rsize);
 			}
 			isz=rsize[0];			// set up inner edge, outer edge, and gradient buffer sizes after border pass
 			osz=rsize[1];
 			gsz=rsize[2];
 			// detect edges in all non-border pixels in the buffer
-			do_adjacentEdgeDetection(t,rw,limask,lomask,lres,res,rsize,isz,osz,gsz);
+			do_adjacentEdgeDetection(t, rw, limask, lomask, lres, res, rsize, isz, osz, gsz);
 		}
 		else {						// "all" inner edge mode is turned on
 			if (node->custom1) {	// if "keep inside" buffer edge mode is turned on
-				do_allKeepBorders(t,rw,limask,lomask,lres,res,rsize);
+				do_allKeepBorders(t, rw, limask, lomask, lres, res, rsize);
 			}
 			else {					// "bleed out" buffer edge mode is turned on
-				do_allBleedBorders(t,rw,limask,lomask,lres,res,rsize);
+				do_allBleedBorders(t, rw, limask, lomask, lres, res, rsize);
 			}
 			isz=rsize[0];			// set up inner edge, outer edge, and gradient buffer sizes after border pass
 			osz=rsize[1];
 			gsz=rsize[2];
 			// detect edges in all non-border pixels in the buffer
-			do_allEdgeDetection(t,rw,limask,lomask,lres,res,rsize,isz,osz,gsz);
+			do_allEdgeDetection(t, rw, limask, lomask, lres, res, rsize, isz, osz, gsz);
 		}
 
 		isz=rsize[0];				// set edge and gradient buffer sizes once again...
@@ -1263,8 +1263,8 @@ static void node_composit_exec_doubleedgemask(void *UNUSED(data), bNode *node, b
 		fsz=gsz+isz+osz;									// calculate size of pixel index buffer needed
 		gbuf= MEM_mallocN(fsz*sizeof(int), "grd buf");		// allocate edge/gradient pixel index buffer
 
-		do_createEdgeLocationBuffer(t,rw,lres,res,gbuf,&innerEdgeOffset,&outerEdgeOffset,isz,gsz);
-		do_fillGradientBuffer(rw,res,gbuf,isz,osz,gsz,innerEdgeOffset,outerEdgeOffset);
+		do_createEdgeLocationBuffer(t, rw, lres, res, gbuf, &innerEdgeOffset, &outerEdgeOffset, isz, gsz);
+		do_fillGradientBuffer(rw, res, gbuf, isz, osz, gsz, innerEdgeOffset, outerEdgeOffset);
 
 		MEM_freeN(gbuf);		// free the gradient index buffer
 		out[0]->data= stackbuf;	// point the node output buffer to our filled buffer

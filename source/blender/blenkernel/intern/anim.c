@@ -144,9 +144,11 @@ void animviz_free_motionpath(bMotionPath *mpath)
 /* ------------------- */
 
 /* Setup motion paths for the given data
- *	- scene: current scene (for frame ranges, etc.)
- *	- ob: object to add paths for (must be provided)
- *	- pchan: posechannel to add paths for (optional; if not provided, object-paths are assumed)
+ * - Only used when explicitly calculating paths on bones which may/may not be consider already
+ *
+ * < scene: current scene (for frame ranges, etc.)
+ * < ob: object to add paths for (must be provided)
+ * < pchan: posechannel to add paths for (optional; if not provided, object-paths are assumed)
  */
 bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Object *ob, bPoseChannel *pchan)
 {
@@ -180,14 +182,25 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 	}
 
 	/* if there is already a motionpath, just return that,
-	 * but provided it's settings are ok 
+	 * provided it's settings are ok (saves extra free+alloc)
 	 */
 	if (*dst != NULL) {
+		int expected_length = avs->path_ef - avs->path_sf;
+		
 		mpath= *dst;
 		
-		/* if range is not invalid, and/or length is set ok, just return */
-		if ((mpath->start_frame != mpath->end_frame) && (mpath->length > 0))
-			return mpath;
+		/* path is "valid" if length is valid, but must also be of the same length as is being requested */
+		if ((mpath->start_frame != mpath->end_frame) && (mpath->length > 0)) {
+			/* outer check ensures that we have some curve data for this path */
+			if (mpath->length == expected_length) {
+				/* return/use this as it is already valid length */
+				return mpath;
+			}
+			else {
+				/* clear the existing path (as the range has changed), and reallocate below */
+				animviz_free_motionpath_cache(mpath);
+			}
+		}
 	}
 	else {
 		/* create a new motionpath, and assign it */
@@ -863,9 +876,9 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 			vec[0]= -no_s[0]; vec[1]= -no_s[1]; vec[2]= -no_s[2];
 		}
 		
-		vec_to_quat( q2,vec, vdd->ob->trackflag, vdd->ob->upflag);
+		vec_to_quat(q2, vec, vdd->ob->trackflag, vdd->ob->upflag);
 		
-		quat_to_mat3( mat,q2);
+		quat_to_mat3(mat, q2);
 		copy_m4_m4(tmat, obmat);
 		mul_m4_m4m3(obmat, tmat, mat);
 	}
@@ -1142,8 +1155,8 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						copy_v3_v3(obmat[3], cent);
 						
 						/* rotation */
-						tri_to_quat( quat,v1, v2, v3);
-						quat_to_mat3( mat,quat);
+						tri_to_quat(quat, v1, v2, v3);
+						quat_to_mat3(mat, quat);
 						
 						/* scale */
 						if (par->transflag & OB_DUPLIFACES_SCALE) {
@@ -1329,7 +1342,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		else
 			a = totpart;
 
-		for (pa=psys->particles,counter=0; a<totpart+totchild; a++,pa++,counter++) {
+		for (pa=psys->particles, counter=0; a<totpart+totchild; a++, pa++, counter++) {
 			if (a<totpart) {
 				/* handle parent particle */
 				if (pa->flag & no_draw_flag)
@@ -1505,7 +1518,7 @@ static Object *find_family_object(Object **obar, char *family, char ch)
 	
 	ob= G.main->object.first;
 	while (ob) {
-		if ( ob->id.name[flen+2]==ch ) {
+		if (ob->id.name[flen + 2] == ch) {
 			if ( strncmp(ob->id.name+2, family, flen)==0 ) break;
 		}
 		ob= ob->id.next;

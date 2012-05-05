@@ -1024,8 +1024,9 @@ static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, 
 static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceClip *sc = (SpaceClip*)(ptr->data);
+	bScreen *screen = (bScreen*)ptr->id.data;
 
-	ED_space_clip_set(NULL, sc, (MovieClip*)value.data);
+	ED_space_clip_set(NULL, screen, sc, (MovieClip*)value.data);
 }
 
 static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -2612,7 +2613,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_hidden", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FILE_HIDE_DOT);
 	RNA_def_property_ui_text(prop, "Show Hidden", "Show hidden dot files");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS , NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop = RNA_def_property(srna, "sort_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "sort");
@@ -2930,6 +2931,13 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	static EnumPropertyItem view_items[] = {
 		{SC_VIEW_CLIP, "CLIP", ICON_SEQUENCE, "Clip", "Show editing clip preview"},
 		{SC_VIEW_GRAPH, "GRAPH", ICON_IPO, "Graph", "Show graph view for active element"},
+		{SC_VIEW_DOPESHEET, "DOPESHEET", ICON_ACTION, "Dopesheet", "Dopesheet view for tracking data"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem dope_sort_items[] = {
+		{SC_DOPE_SORT_NAME, "NAME", 0, "Name", "Sort channels by their names"},
+		{SC_DOPE_SORT_LONGEST, "LONGEST", 0, "Longest", "Sort channels by longest tracked segment"},
+		{SC_DOPE_SORT_TOTAL, "TOTAL", 0, "Total", "Sort channels by overall amount of tracked segments"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "SpaceClipEditor", "Space");
@@ -3104,6 +3112,27 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "postproc_flag", MOVIECLIP_PREVIEW_GRAYSCALE);
 	RNA_def_property_ui_text(prop, "Grayscale", "Display frame in grayscale mode");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* timeline */
+	prop = RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_SECONDS);
+	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* ** dopesheet ** */
+
+	/* dopesheet sort */
+	prop = RNA_def_property(srna, "dopesheet_sort_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "dope_sort");
+	RNA_def_property_enum_items(prop, dope_sort_items);
+	RNA_def_property_ui_text(prop, "Dopesheet Sort Field", "Method to be used to sort channels in dopesheet view");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* invert_dopesheet_sort */
+	prop = RNA_def_property(srna, "invert_dopesheet_sort", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dope_flag", SC_DOPE_SORT_INVERSE);
+	RNA_def_property_ui_text(prop, "Invert Dopesheet Sort", "Invert sort order of dopesheet channels");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 
 

@@ -169,10 +169,10 @@ typedef enum
 /* Spring types as defined in the paper.*/
 typedef enum
 {
-	CLOTH_SPRING_TYPE_STRUCTURAL  = ( 1 << 1 ),
-	CLOTH_SPRING_TYPE_SHEAR  = ( 1 << 2 ) ,
-	CLOTH_SPRING_TYPE_BENDING  = ( 1 << 3 ),
-	CLOTH_SPRING_TYPE_GOAL  = ( 1 << 4 ),
+	CLOTH_SPRING_TYPE_STRUCTURAL  = (1 << 1),
+	CLOTH_SPRING_TYPE_SHEAR       = (1 << 2),
+	CLOTH_SPRING_TYPE_BENDING     = (1 << 3),
+	CLOTH_SPRING_TYPE_GOAL        = (1 << 4)
 } CLOTH_SPRING_TYPES;
 
 /* SPRING FLAGS */

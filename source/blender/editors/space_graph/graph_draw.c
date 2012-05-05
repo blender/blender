@@ -532,7 +532,7 @@ static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2
 	glBegin(GL_LINE_STRIP);
 	
 	for (ctime= stime; ctime <= etime; ctime += samplefreq)
-		glVertex2f( ctime, evaluate_fcurve(fcu, ctime)*unitFac );
+		glVertex2f(ctime, evaluate_fcurve(fcu, ctime) * unitFac);
 	
 	glEnd();
 	
@@ -777,7 +777,7 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 /* Draw the 'ghost' F-Curves (i.e. snapshots of the curve) 
  * NOTE: unit mapping has already been applied to the values, so do not try and apply again
  */
-void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
+void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 {
 	FCurve *fcu;
 	
@@ -812,7 +812,7 @@ void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 /* This is called twice from space_graph.c -> graph_main_area_draw()
  * Unselected then selected F-Curves are drawn so that they do not occlude each other.
  */
-void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid, short sel)
+void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid, short sel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;

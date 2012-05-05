@@ -412,7 +412,7 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *UNUSED(o
 	float r_co[3]; /* the new location to apply */
 
 	/* this function does all the important stuff */
-	if (camera_view_frame_fit_to_scene(scene, v3d, camera_ob, r_co)) {
+	if (BKE_camera_view_frame_fit_to_scene(scene, v3d, camera_ob, r_co)) {
 
 		ObjectTfmProtectedChannels obtfm;
 		float obmat_new[4][4];
@@ -1000,8 +1000,8 @@ int ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *clipsta, fl
 {
 	CameraParams params;
 
-	camera_params_init(&params);
-	camera_params_from_view3d(&params, v3d, rv3d);
+	BKE_camera_params_init(&params);
+	BKE_camera_params_from_view3d(&params, v3d, rv3d);
 
 	if (clipsta) *clipsta = params.clipsta;
 	if (clipend) *clipend = params.clipend;
@@ -1015,9 +1015,9 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
 {
 	CameraParams params;
 
-	camera_params_init(&params);
-	camera_params_from_view3d(&params, v3d, rv3d);
-	camera_params_compute_viewplane(&params, winx, winy, 1.0f, 1.0f);
+	BKE_camera_params_init(&params);
+	BKE_camera_params_from_view3d(&params, v3d, rv3d);
+	BKE_camera_params_compute_viewplane(&params, winx, winy, 1.0f, 1.0f);
 
 	if (viewplane) *viewplane = params.viewplane;
 	if (clipsta) *clipsta = params.clipsta;

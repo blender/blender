@@ -1505,13 +1505,13 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 							RNA_enum_set(op->ptr, "direction", 'h');
 							sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_H;
 							
-							WM_cursor_set(CTX_wm_window(C),CURSOR_X_MOVE);
+							WM_cursor_set(CTX_wm_window(C), CURSOR_X_MOVE);
 						}
 						else {
 							RNA_enum_set(op->ptr, "direction", 'v');
 							sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_V;
 							
-							WM_cursor_set(CTX_wm_window(C),CURSOR_Y_MOVE);
+							WM_cursor_set(CTX_wm_window(C), CURSOR_Y_MOVE);
 						}
 					}
 				}

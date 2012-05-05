@@ -64,7 +64,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	BMEditMesh *em;
 	BMIter iter;
 	BMEdge *e;
-	float threshold = cos((emd->split_angle + 0.00001) * M_PI / 180.0);
+	float threshold = cosf((emd->split_angle + 0.00001f) * (float)M_PI / 180.0f);
 
 	em = DM_to_editbmesh(dm, NULL, FALSE);
 	bm = em->bm;

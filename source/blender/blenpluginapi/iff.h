@@ -1,6 +1,3 @@
-/** \file blender/blenpluginapi/iff.h
- *  \ingroup blpluginapi
- */
 /* Copyright (c) 1999, Not a Number / NeoGeo b.v. 
  * 
  * All rights reserved.
@@ -32,6 +29,10 @@
 
 #ifndef __IFF_H__
 #define __IFF_H__
+
+/** \file blender/blenpluginapi/iff.h
+ *  \ingroup blpluginapi
+ */
 
 #include <sys/types.h>
 #include "util.h"
@@ -83,15 +84,15 @@ typedef struct ImBuf {
 	int refcounter; /* reference counter for multiple users */
 } ImBuf;
 
-LIBIMPORT struct ImBuf *allocImBuf(short,short,uchar,uint);
+LIBIMPORT struct ImBuf *allocImBuf(short, short, uchar, uint);
 LIBIMPORT struct ImBuf *dupImBuf(struct ImBuf *);
 LIBIMPORT void freeImBuf(struct ImBuf*);
 
-LIBIMPORT short saveiff(struct ImBuf *,char *,int);
+LIBIMPORT short saveiff(struct ImBuf *, char *, int);
 
-LIBIMPORT struct ImBuf *loadifffile(int,int);
-LIBIMPORT struct ImBuf *loadiffname(char *,int);
-LIBIMPORT struct ImBuf *testiffname(char *,int);
+LIBIMPORT struct ImBuf *loadifffile(int, int);
+LIBIMPORT struct ImBuf *loadiffname(char *, int);
+LIBIMPORT struct ImBuf *testiffname(char *, int);
 
 LIBIMPORT struct ImBuf *onehalf(struct ImBuf *);
 LIBIMPORT struct ImBuf *half_x(struct ImBuf *);

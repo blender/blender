@@ -305,7 +305,7 @@ int BLI_ghashutil_strcmp(const void *a, const void *b)
 	return strcmp(a, b);
 }
 
-GHashPair *BLI_ghashutil_pairalloc(const void *first, int second)
+GHashPair *BLI_ghashutil_pairalloc(const void *first, const void *second)
 {
 	GHashPair *pair = MEM_mallocN(sizeof(GHashPair), "GHashPair");
 	pair->first = first;
@@ -317,7 +317,7 @@ unsigned int BLI_ghashutil_pairhash(const void *ptr)
 {
 	const GHashPair *pair = ptr;
 	unsigned int hash = BLI_ghashutil_ptrhash(pair->first);
-	return hash ^ BLI_ghashutil_inthash(SET_INT_IN_POINTER(pair->second));
+	return hash ^ BLI_ghashutil_ptrhash(pair->second);
 }
 
 int BLI_ghashutil_paircmp(const void *a, const void *b)
@@ -327,7 +327,7 @@ int BLI_ghashutil_paircmp(const void *a, const void *b)
 
 	int cmp = BLI_ghashutil_ptrcmp(A->first, B->first);
 	if (cmp == 0)
-		return BLI_ghashutil_intcmp(SET_INT_IN_POINTER(A->second), SET_INT_IN_POINTER(B->second));
+		return BLI_ghashutil_ptrcmp(A->second, B->second);
 	return cmp;
 }
 

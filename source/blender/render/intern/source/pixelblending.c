@@ -1,10 +1,4 @@
 /*
- * pixelblending.c
- *
- * Functions to blend pixels with or without alpha, in various formats
- * nzc - June 2000
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +25,9 @@
 
 /** \file blender/render/intern/source/pixelblending.c
  *  \ingroup render
+ *
+ * Functions to blend pixels with or without alpha, in various formats
+ * nzc - June 2000
  */
 
 

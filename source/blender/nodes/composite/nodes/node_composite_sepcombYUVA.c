@@ -128,7 +128,7 @@ static bNodeSocketTemplate cmp_node_combyuva_out[]= {
 
 static void do_comb_yuva(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
-	float r,g,b;
+	float r, g, b;
 	yuv_to_rgb(in1[0], in2[0], in3[0], &r, &g, &b);
 	
 	out[0] = r;

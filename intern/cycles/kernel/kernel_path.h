@@ -18,8 +18,8 @@
 
 #include "kernel_differential.h"
 #include "kernel_montecarlo.h"
-#include "kernel_triangle.h"
 #include "kernel_object.h"
+#include "kernel_triangle.h"
 #ifdef __QBVH__
 #include "kernel_qbvh.h"
 #else
@@ -277,12 +277,21 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 		/* holdout */
 #ifdef __HOLDOUT__
-		if((sd.flag & SD_HOLDOUT) && (state.flag & PATH_RAY_CAMERA)) {
-			float3 holdout_weight = shader_holdout_eval(kg, &sd);
+		if((sd.flag & (SD_HOLDOUT|SD_HOLDOUT_MASK)) && (state.flag & PATH_RAY_CAMERA)) {
+			if(kernel_data.background.transparent) {
+				float3 holdout_weight;
+				
+				if(sd.flag & SD_HOLDOUT_MASK)
+					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
+				else
+					shader_holdout_eval(kg, &sd);
 
-			if(kernel_data.background.transparent)
 				/* any throughput is ok, should all be identical here */
 				L_transparent += average(holdout_weight*throughput);
+			}
+
+			if(sd.flag & SD_HOLDOUT_MASK)
+				break;
 		}
 #endif
 
@@ -324,6 +333,9 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 				light_ray.P = ray_offset(sd.P, sd.Ng);
 				light_ray.D = ao_D;
 				light_ray.t = kernel_data.background.ao_distance;
+#ifdef __MOTION__
+				light_ray.time = sd.time;
+#endif
 
 				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow)) {
 					float3 ao_bsdf = shader_bsdf_diffuse(kg, &sd)*kernel_data.background.ao_factor;
@@ -345,6 +357,10 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 				Ray light_ray;
 				BsdfEval L_light;
 				bool is_lamp;
+
+#ifdef __MOTION__
+				light_ray.time = sd.time;
+#endif
 
 #ifdef __MULTI_LIGHT__
 				/* index -1 means randomly sample from distribution */
@@ -449,10 +465,21 @@ __device void kernel_path_trace(KernelGlobals *kg,
 	float lens_u = path_rng(kg, &rng, sample, PRNG_LENS_U);
 	float lens_v = path_rng(kg, &rng, sample, PRNG_LENS_V);
 
-	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, &ray);
+#ifdef __MOTION__
+	float time = path_rng(kg, &rng, sample, PRNG_TIME);
+#else
+	float time = 0.0f;
+#endif
+
+	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, &ray);
 
 	/* integrate */
-	float4 L = kernel_path_integrate(kg, &rng, sample, ray, buffer);
+	float4 L;
+
+	if (ray.t != 0.f)
+		L = kernel_path_integrate(kg, &rng, sample, ray, buffer);
+	else
+		L = make_float4(0.f, 0.f, 0.f, 0.f);
 
 	/* accumulate result in output buffer */
 	kernel_write_pass_float4(buffer, sample, L);

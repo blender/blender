@@ -358,7 +358,7 @@ void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)    /* frontbuf 
 static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 {
 	Brush *br = paint_brush(paint_get_active(CTX_data_scene(C)));
-	brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
+	BKE_brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
 
 	return OPERATOR_FINISHED;
 }

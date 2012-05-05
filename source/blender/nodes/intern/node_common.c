@@ -130,7 +130,7 @@ bNode *node_group_make_from_selected(bNodeTree *ntree)
 			/* no groups in groups */
 			if (node->type==NODE_GROUP)
 				return NULL;
-			DO_MINMAX2( (&node->locx), min, max);
+			DO_MINMAX2((&node->locx), min, max);
 			totnode++;
 		}
 		node->done= 0;
@@ -551,7 +551,8 @@ static bNodeSocket *group_verify_socket(bNodeTree *ntree, ListBase *lb, int in_o
 		sock->groupsock = gsock;
 		
 		BLI_strncpy(sock->name, gsock->name, sizeof(sock->name));
-		sock->type= gsock->type;
+		if(gsock->type != sock->type)
+			nodeSocketSetType(sock, gsock->type);
 		
 		/* XXX hack: group socket input/output roles are inverted internally,
 		 * need to change the limit value when making actual node sockets from them.

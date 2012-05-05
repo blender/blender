@@ -900,7 +900,7 @@ float BM_vert_calc_edge_angle(BMVert *v)
 		BMVert *v1 = BM_edge_other_vert(e1, v);
 		BMVert *v2 = BM_edge_other_vert(e2, v);
 
-		return M_PI - angle_v3v3v3(v1->co, v->co, v2->co);
+		return (float)M_PI - angle_v3v3v3(v1->co, v->co, v2->co);
 	}
 	else {
 		return DEG2RADF(90.0f);
@@ -926,6 +926,28 @@ float BM_vert_calc_shell_factor(BMVert *v)
 
 	return accum_shell / accum_angle;
 }
+
+/**
+ * \note quite an obscure function.
+ * used in bmesh operators that have a relative scale options,
+ */
+float BM_vert_calc_mean_tagged_edge_length(BMVert *v)
+{
+	BMIter iter;
+	BMEdge *e;
+	int tot;
+	float length = 0.0f;
+
+	BM_ITER_ELEM_INDEX (e, &iter, v, BM_EDGES_OF_VERT, tot) {
+		BMVert *v_other = BM_edge_other_vert(e, v);
+		if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
+			length += BM_edge_calc_length(e);
+		}
+	}
+
+	return length / (float)tot;
+}
+
 
 /**
  * Returns the edge existing between v1 and v2, or NULL if there isn't one.

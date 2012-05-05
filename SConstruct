@@ -805,6 +805,7 @@ if env['OURPLATFORM'] == 'win64-mingw':
         dllsources.append('${LCGDIR}/sdl/lib/SDL.dll')
 	
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
+    dllsources.append('${LCGDIR}/binaries/pthreadGC2-w64.dll')
     dllsources.append('#source/icons/blender.exe.manifest')
 
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)

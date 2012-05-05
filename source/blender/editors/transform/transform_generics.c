@@ -204,16 +204,16 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						}
 						
 						if (axis & 2) {
-							if (fabs(iloc[1])<=tolerance[1] ||
-							   loc[1]*iloc[1]<0.0f)
+							if (fabsf(iloc[1]) <= tolerance[1] ||
+							   loc[1] * iloc[1]<0.0f)
 							{
 								loc[1]= 0.0f;
 								clip = 1;
 							}
 						}
 						if (axis & 4) {
-							if (fabs(iloc[2])<=tolerance[2] ||
-							   loc[2]*iloc[2]<0.0f)
+							if (fabsf(iloc[2]) <= tolerance[2] ||
+							   loc[2] * iloc[2] < 0.0f)
 							{
 								loc[2]= 0.0f;
 								clip = 1;
@@ -541,12 +541,12 @@ static void recalcData_nla(TransInfo *t)
 		switch (snla->autosnap) {
 			case SACTSNAP_FRAME: /* snap to nearest frame/time  */
 				if (snla->flag & SNLA_DRAWTIME) {
-					tdn->h1[0]= (float)( floor((tdn->h1[0]/secf) + 0.5f) * secf );
-					tdn->h2[0]= (float)( floor((tdn->h2[0]/secf) + 0.5f) * secf );
+					tdn->h1[0] = (float)(floor(((double)tdn->h1[0] / secf) + 0.5) * secf);
+					tdn->h2[0] = (float)(floor(((double)tdn->h2[0] / secf) + 0.5) * secf);
 				}
 				else {
-					tdn->h1[0]= (float)( floor(tdn->h1[0]+0.5f) );
-					tdn->h2[0]= (float)( floor(tdn->h2[0]+0.5f) );
+					tdn->h1[0] = floorf(tdn->h1[0] + 0.5f);
+					tdn->h2[0] = floorf(tdn->h2[0] + 0.5f);
 				}
 				break;
 			
@@ -633,15 +633,16 @@ static void recalcData_image(TransInfo *t)
 }
 
 /* helper for recalcData() - for Movie Clip transforms */
-static void recalcData_clip(TransInfo *t)
+static void recalcData_spaceclip(TransInfo *t)
 {
 	SpaceClip *sc = t->sa->spacedata.first;
+
 	MovieClip *clip = ED_space_clip(sc);
 	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
-	
+
 	flushTransTracking(t);
-	
+
 	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED)==0) {
@@ -658,10 +659,10 @@ static void recalcData_clip(TransInfo *t)
 					BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
 			}
 		}
-		
+
 		track = track->next;
 	}
-	
+
 	DAG_id_tag_update(&clip->id, 0);
 }
 
@@ -900,7 +901,7 @@ void recalcData(TransInfo *t)
 		recalcData_view3d(t);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		recalcData_clip(t);
+		recalcData_spaceclip(t);
 	}
 }
 
@@ -948,7 +949,7 @@ void resetTransRestrictions(TransInfo *t)
 }
 
 /* the *op can be NULL */
-int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
+int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1212,7 +1213,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
-void postTrans (bContext *C, TransInfo *t)
+void postTrans(bContext *C, TransInfo *t)
 {
 	TransData *td;
 	
@@ -1653,7 +1654,7 @@ void calculatePropRatio(TransInfo *t)
 					td->factor = (float)sqrt(2*dist - dist * dist);
 					break;
 				case PROP_RANDOM:
-					BLI_srand( BLI_rand() ); /* random seed */
+					BLI_srand(BLI_rand()); /* random seed */
 					td->factor = BLI_frand()*dist;
 					break;
 				default:

@@ -70,6 +70,8 @@ extern EnumPropertyItem fmodifier_type_items[];
 extern EnumPropertyItem nla_mode_extend_items[];
 extern EnumPropertyItem nla_mode_blend_items[];
 
+extern EnumPropertyItem motionpath_bake_location_items[];
+
 extern EnumPropertyItem event_value_items[];
 extern EnumPropertyItem event_type_items[];
 extern EnumPropertyItem operator_return_items[];

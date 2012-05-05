@@ -62,14 +62,14 @@ static int tc_types[] = { IMB_TC_RECORD_RUN,
 #define INDEX_FILE_VERSION 1
 
 /* ----------------------------------------------------------------------
-   - time code index functions
-   ---------------------------------------------------------------------- */
+ * - time code index functions
+ * ---------------------------------------------------------------------- */
 
 anim_index_builder * IMB_index_builder_create(const char * name)
 {
 
 	anim_index_builder * rv
-	        = MEM_callocN( sizeof(struct anim_index_builder),
+	        = MEM_callocN(sizeof(struct anim_index_builder),
 	                       "index builder");
 
 	fprintf(stderr, "Starting work on index: %s\n", name);
@@ -176,7 +176,7 @@ struct anim_index * IMB_indexer_open(const char * name)
 		return NULL;
 	}
 
-	idx = MEM_callocN( sizeof(struct anim_index), "anim_index");
+	idx = MEM_callocN(sizeof(struct anim_index), "anim_index");
 
 	BLI_strncpy(idx->name, name, sizeof(idx->name));
 	
@@ -191,7 +191,7 @@ struct anim_index * IMB_indexer_open(const char * name)
 	
 	fseek(fp, 12, SEEK_SET);
 
-	idx->entries = MEM_callocN( sizeof(struct anim_index_entry) 
+	idx->entries = MEM_callocN(sizeof(struct anim_index_entry) 
 				    * idx->num_entries, "anim_index_entries");
 
 	for (i = 0; i < idx->num_entries; i++) {
@@ -354,8 +354,8 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
 
 
 /* ----------------------------------------------------------------------
-   - rebuild helper functions
-   ---------------------------------------------------------------------- */
+ * - rebuild helper functions
+ * ---------------------------------------------------------------------- */
 
 static void get_index_dir(struct anim * anim, char * index_dir)
 {
@@ -427,8 +427,8 @@ static void get_tc_filename(struct anim * anim, IMB_Timecode_Type tc,
 }
 
 /* ----------------------------------------------------------------------
-   - common rebuilder structures
-   ---------------------------------------------------------------------- */
+ * - common rebuilder structures
+ * ---------------------------------------------------------------------- */
 
 typedef struct IndexBuildContext {
 	int anim_type;
@@ -436,8 +436,8 @@ typedef struct IndexBuildContext {
 
 
 /* ----------------------------------------------------------------------
-   - ffmpeg rebuilder
-   ---------------------------------------------------------------------- */
+ * - ffmpeg rebuilder
+ * ---------------------------------------------------------------------- */
 
 #ifdef WITH_FFMPEG
 
@@ -952,8 +952,8 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 #endif
 
 /* ----------------------------------------------------------------------
-   - internal AVI (fallback) rebuilder
-   ---------------------------------------------------------------------- */
+ * - internal AVI (fallback) rebuilder
+ * ---------------------------------------------------------------------- */
 
 typedef struct FallbackIndexBuilderContext {
 	int anim_type;
@@ -1116,8 +1116,8 @@ static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
 }
 
 /* ----------------------------------------------------------------------
-   - public API
-   ---------------------------------------------------------------------- */
+ * - public API
+ * ---------------------------------------------------------------------- */
 
 IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecode_Type tcs_in_use,
                                                          IMB_Proxy_Size proxy_sizes_in_use, int quality)

@@ -165,7 +165,7 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
 static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_example)
 {
-	int wri = 0,i;
+	int wri = 0, i;
 	int gotBytes;
 	gzFile gzf;
 	int numverts = 0, numfaces = 0;
@@ -361,7 +361,7 @@ void fluid_estimate_memory(Object *ob, FluidsimSettings *fss, char *value)
 		mesh= ob->data;
 
 		fluid_get_bb(mesh->mvert, mesh->totvert, ob->obmat, fss->bbStart, fss->bbSize);
-		elbeemEstimateMemreq(fss->resolutionxyz, fss->bbSize[0],fss->bbSize[1],fss->bbSize[2], fss->maxRefine, value);
+		elbeemEstimateMemreq(fss->resolutionxyz, fss->bbSize[0], fss->bbSize[1], fss->bbSize[2], fss->maxRefine, value);
 	}
 }
 
@@ -393,7 +393,7 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 
 	velarray = fss->meshVelocities;
 
-	// .bobj.gz , correct filename
+	// .bobj.gz, correct filename
 	// 87654321
 	filename[len-6] = 'v';
 	filename[len-5] = 'e';
@@ -406,7 +406,7 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 		return;
 	}
 
-	gzread(gzf, &wri, sizeof( wri ));
+	gzread(gzf, &wri, sizeof(wri));
 	if (wri != totvert) {
 		MEM_freeN(fss->meshVelocities);
 		fss->meshVelocities = NULL;
@@ -415,7 +415,7 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 
 	for (i=0; i<totvert;i++) {
 		for (j=0; j<3; j++) {
-			gzread(gzf, &wrf, sizeof( wrf ));
+			gzread(gzf, &wrf, sizeof(wrf));
 			velarray[i].vel[j] = wrf;
 		}
 	}
@@ -478,7 +478,7 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 			if (getenv(strEnvName2)) {
 				int elevel = atoi(getenv(strEnvName2));
 				if (elevel>0) {
-					printf("Env. var %s set, fluid sim mesh '%s' not found, aborting render...\n",strEnvName2, targetFile);
+					printf("Env. var %s set, fluid sim mesh '%s' not found, aborting render...\n", strEnvName2, targetFile);
 					exit(1);
 				}
 			}

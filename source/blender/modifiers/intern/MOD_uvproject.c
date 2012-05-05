@@ -193,14 +193,14 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		if (projectors[i].ob->type == OB_CAMERA) {
 			
 			cam = (Camera *)projectors[i].ob->data;
-			if (cam->flag & CAM_PANORAMA) {
-				projectors[i].uci= project_camera_info(projectors[i].ob, NULL, aspx, aspy);
-				project_camera_info_scale(projectors[i].uci, scax, scay);
+			if (cam->type == CAM_PANO) {
+				projectors[i].uci= BLI_uvproject_camera_info(projectors[i].ob, NULL, aspx, aspy);
+				BLI_uvproject_camera_info_scale(projectors[i].uci, scax, scay);
 				free_uci= 1;
 			}
 			else {
-				float sensor= camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
-				int sensor_fit= camera_sensor_fit(cam->sensor_fit, aspx, aspy);
+				float sensor= BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
+				int sensor_fit= BKE_camera_sensor_fit(cam->sensor_fit, aspx, aspy);
 				float scale= (cam->type == CAM_PERSP) ? cam->clipsta * sensor / cam->lens : cam->ortho_scale;
 				float xmax, xmin, ymax, ymin;
 
@@ -224,12 +224,12 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
 				if (cam->type == CAM_PERSP) {
 					float perspmat[4][4];
-					perspective_m4( perspmat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
+					perspective_m4(perspmat, xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
 					mult_m4_m4m4(tmpmat, perspmat, projectors[i].projmat);
 				}
 				else { /* if (cam->type == CAM_ORTHO) */
 					float orthomat[4][4];
-					orthographic_m4( orthomat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
+					orthographic_m4(orthomat, xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
 					mult_m4_m4m4(tmpmat, orthomat, projectors[i].projmat);
 				}
 			}
@@ -304,7 +304,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					do {
 						unsigned int lidx= mp->loopstart + fidx;
 						unsigned int vidx= mloop[lidx].v;
-						project_from_camera(mloop_uv[lidx].uv, coords[vidx], projectors[0].uci);
+						BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], projectors[0].uci);
 					} while (fidx--);
 				}
 				else {
@@ -347,7 +347,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					do {
 						unsigned int lidx= mp->loopstart + fidx;
 						unsigned int vidx= mloop[lidx].v;
-						project_from_camera(mloop_uv[lidx].uv, coords[vidx], best_projector->uci);
+						BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], best_projector->uci);
 					} while (fidx--);
 				}
 				else {

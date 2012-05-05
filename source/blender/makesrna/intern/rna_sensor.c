@@ -369,7 +369,7 @@ static void rna_def_near_sensor(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "NearSensor", "Sensor");
-	RNA_def_struct_ui_text(srna , "Near Sensor", "Sensor to detect nearby objects");
+	RNA_def_struct_ui_text(srna, "Near Sensor", "Sensor to detect nearby objects");
 	RNA_def_struct_sdna_from(srna, "bNearSensor", "data");
 
 	prop = RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);

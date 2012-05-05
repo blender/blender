@@ -99,7 +99,7 @@ static int outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *se
 				change |= 1;
 			}
 		}
-		else if (TSELEM_OPEN(tselem,soops)) {
+		else if (TSELEM_OPEN(tselem, soops)) {
 			/* Only try selecting sub-elements if we haven't hit the right element yet
 			 *
 			 * Hack warning:

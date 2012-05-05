@@ -1150,7 +1150,8 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* free constraints for all selected bones */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones) {
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	{
 		free_constraints(&pchan->constraints);
 		pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK | PCHAN_HAS_CONST);
 	}
@@ -1187,7 +1188,8 @@ static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	
 	/* do freeing */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	{
 		free_constraints(&ob->constraints);
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 	}
@@ -1229,7 +1231,8 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* copy all constraints from active posebone to all selected posebones */
-	CTX_DATA_BEGIN (C, bPoseChannel *, chan, selected_pose_bones) {
+	CTX_DATA_BEGIN (C, bPoseChannel *, chan, selected_pose_bones)
+	{
 		/* if we're not handling the object we're copying from, copy all constraints over */
 		if (pchan != chan) {
 			copy_constraints(&chan->constraints, &pchan->constraints, TRUE);
@@ -1269,7 +1272,8 @@ static int object_constraint_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obact = ED_object_active_context(C);
 	
 	/* copy all constraints from active object to all selected objects */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	{
 		/* if we're not handling the object we're copying from, copy all constraints over */
 		if (obact != ob) {
 			copy_constraints(&ob->constraints, &obact->constraints, TRUE);
@@ -1359,7 +1363,8 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 	/* if the active Object is Armature, and we can search for bones, do so... */
 	if ((obact->type == OB_ARMATURE) && (only_ob == 0)) {
 		/* search in list of selected Pose-Channels for target */
-		CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones) {
+		CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+		{
 			/* just use the first one that we encounter, as long as it is not the active one */
 			if (pchan != pchanact) {
 				*tar_ob = obact;
@@ -1375,7 +1380,8 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 	/* if not yet found, try selected Objects... */
 	if (found == 0) {
 		/* search in selected objects context */
-		CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+		{
 			/* just use the first object we encounter (that isn't the active object) 
 			 * and which fulfills the criteria for the object-target that we've got 
 			 */
@@ -1770,7 +1776,8 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only remove IK Constraints */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones) {
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	{
 		bConstraint *con, *next;
 		
 		// TODO: should we be checking if these contraints were local before we try and remove them?

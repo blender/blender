@@ -50,7 +50,7 @@
 
 
 
-static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
+void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 {
 	scene->r.cfra = frame;
 	scene->r.subframe = subframe;

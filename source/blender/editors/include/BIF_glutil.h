@@ -49,7 +49,8 @@ void fdrawXORcirc(float xofs, float yofs, float rad);
 
 void fdrawcheckerboard(float x1, float y1, float x2, float y2);
 
-/* glStipple defines */
+/* OpenGL stipple defines */
+/* OpenGL stipple defines */
 extern unsigned char stipple_halftone[128];
 extern unsigned char stipple_quarttone[128];
 extern unsigned char stipple_diag_stripes_pos[128];
@@ -147,13 +148,14 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	/* 2D Drawing Assistance */
 
 	/** Define a 2D area (viewport, scissor, matrices) for OpenGL rendering.
-	 * This routine sets up an OpenGL state appropriate for drawing using
-	 * both vertice (glVertex, etc) and raster (glRasterPos, glRect) commands.
-	 * All coordinates should be at integer positions. There is little to
-	 * no reason to use glVertex2f etc. functions during 2D rendering, and
+     *
+     * glwDefine2DArea and glaBegin2DDraw set up an OpenGL state appropriate
+     * for drawing using both vertice (Vertex, etc) and raster (RasterPos, Rect)
+     * commands. All coordinates should be at integer positions. There is little
+     * to no reason to use glVertex2f etc. functions during 2D rendering, and
 	 * thus no reason to +-0.5 the coordinates or perform other silly
 	 * tricks.
-	 *
+     *
 	 * \param screen_rect The screen rectangle to be defined for 2D drawing.
 	 */
 void glaDefine2DArea		(struct rcti *screen_rect);
@@ -165,13 +167,8 @@ typedef struct gla2DDrawInfo gla2DDrawInfo;
 	 * to free it and to return OpenGL to its previous state. The
 	 * scissor rectangle is set to match the viewport.
 	 *
-	 * This routine sets up an OpenGL state appropriate for drawing using
-	 * both vertice (glVertex, etc) and raster (glRasterPos, glRect) commands.
-	 * All coordinates should be at integer positions. There is little to
-	 * no reason to use glVertex2f etc. functions during 2D rendering, and
-	 * thus no reason to +-0.5 the coordinates or perform other silly
-	 * tricks.
-	 *
+     * See glaDefine2DArea for an explanation of why this function uses integers.
+     *
 	 * \param screen_rect The screen rectangle to be used for 2D drawing.
 	 * \param world_rect The world rectangle that the 2D area represented
 	 * by \a screen_rect is supposed to represent. If NULL it is assumed the

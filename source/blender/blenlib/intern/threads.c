@@ -1,6 +1,4 @@
 /*
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -304,7 +302,7 @@ void BLI_end_threads(ListBase *threadbase)
 /* System Information */
 
 /* how many threads are native on this system? */
-int BLI_system_thread_count( void )
+int BLI_system_thread_count(void)
 {
 	int t;
 #ifdef WIN32

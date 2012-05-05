@@ -97,7 +97,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 		}
 		else {
 			sub_v3_v3v3(is.dir, lar->co, is.start);
-			is.dist = normalize_v3( is.dir );
+			is.dist = normalize_v3(is.dir );
 		}
 
 		is.mode = RE_RAY_MIRROR;
@@ -113,7 +113,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 		is.orig.face = NULL;
 		is.last_hit = lar->last_hit[shi->thread];
 		
-		if (RE_rayobject_raycast(R.raytree,&is)) {
+		if (RE_rayobject_raycast(R.raytree, &is)) {
 			visibility = 0.f;
 		}
 		
@@ -234,9 +234,9 @@ static void vol_get_precached_scattering(Render *re, ShadeInput *shi, float scat
 	sample_co[1] = (world_co[1] - bbmin[1]) / dim[1];
 	sample_co[2] = (world_co[2] - bbmin[2]) / dim[2];
 
-	scatter_col[0] = voxel_sample_triquadratic(vp->data_r, vp->res, sample_co);
-	scatter_col[1] = voxel_sample_triquadratic(vp->data_g, vp->res, sample_co);
-	scatter_col[2] = voxel_sample_triquadratic(vp->data_b, vp->res, sample_co);
+	scatter_col[0] = BLI_voxel_sample_triquadratic(vp->data_r, vp->res, sample_co);
+	scatter_col[1] = BLI_voxel_sample_triquadratic(vp->data_g, vp->res, sample_co);
+	scatter_col[2] = BLI_voxel_sample_triquadratic(vp->data_b, vp->res, sample_co);
 }
 
 /* Meta object density, brute force for now 
@@ -258,7 +258,7 @@ static float metadensity(Object* ob, const float co[3])
 		
 		/* element rotation transform */
 		float tp[3] = {ml->x - tco[0], ml->y - tco[1], ml->z - tco[2]};
-		quat_to_mat3( bmat,ml->quat);
+		quat_to_mat3(bmat, ml->quat);
 		transpose_m3(bmat);	// rot.only, so inverse == transpose
 		mul_m3_v3(bmat, tp);
 		
@@ -471,7 +471,7 @@ static void vol_get_transmittance(ShadeInput *shi, float tr[3], const float co[3
 static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const float view[3], LampRen *lar, float lacol[3])
 {
 	float visifac, lv[3], lampdist;
-	float tr[3]={1.0,1.0,1.0};
+	float tr[3]={1.0, 1.0, 1.0};
 	float hitco[3], *atten_co;
 	float p, ref_col[3];
 	
@@ -653,7 +653,7 @@ static void volumeintegrate(struct ShadeInput *shi, float col[4], const float co
 /* the main entry point for volume shading */
 static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int inside_volume)
 {
-	float hitco[3], col[4] = {0.f,0.f,0.f,0.f};
+	float hitco[3], col[4] = {0.f, 0.f, 0.f, 0.f};
 	float *startco, *endco;
 	int trace_behind = 1;
 	const int ztransp= ((shi->depth==0) && (shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_ZTRANSP));
@@ -748,7 +748,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct Isect *last_is)
 {
 	float hitco[3];
-	float tr[3] = {1.0,1.0,1.0};
+	float tr[3] = {1.0, 1.0, 1.0};
 	Isect is= {{0}};
 	float *startco, *endco;
 

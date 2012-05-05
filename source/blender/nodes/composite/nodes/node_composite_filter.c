@@ -168,12 +168,12 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	static float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f};
-	float sharp[9]= {-1,-1,-1,-1,9,-1,-1,-1,-1};
+	float sharp[9]= {-1, -1, -1, -1, 9, -1, -1, -1, -1};
 	float laplace[9]= {-1/8.0f, -1/8.0f, -1/8.0f, -1/8.0f, 1.0f, -1/8.0f, -1/8.0f, -1/8.0f, -1/8.0f};
-	float sobel[9]= {1,2,1,0,0,0,-1,-2,-1};
-	float prewitt[9]= {1,1,1,0,0,0,-1,-1,-1};
-	float kirsch[9]= {5,5,5,-3,-3,-3,-2,-2,-2};
-	float shadow[9]= {1,2,1,0,1,0,-1,-2,-1};
+	float sobel[9]= {1, 2, 1, 0, 0, 0, -1, -2, -1};
+	float prewitt[9]= {1, 1, 1, 0, 0, 0, -1, -1, -1};
+	float kirsch[9]= {5, 5, 5, -3, -3, -3, -2, -2, -2};
+	float shadow[9]= {1, 2, 1, 0, 1, 0, -1, -2, -1};
 	
 	if (out[0]->hasoutput==0) return;
 	

@@ -273,6 +273,12 @@ class TEXT_MT_edit(Menu):
         layout.operator("text.cut")
         layout.operator("text.copy")
         layout.operator("text.paste")
+        layout.operator("text.duplicate_line")
+
+        layout.separator()
+
+        layout.operator("text.move_lines_up")
+        layout.operator("text.move_lines_down")
 
         layout.separator()
 

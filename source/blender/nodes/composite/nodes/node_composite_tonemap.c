@@ -94,7 +94,7 @@ static void tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
 				I_l = sp[x][1] + ic*(L - sp[x][1]);
 				I_g = Cav[1] + ic*(Lav - Cav[1]);
 				I_a = I_l + ia*(I_g - I_l);
-				dp[x][1] /= (dp[x][1] + pow((double)f*I_a,(double)m));
+				dp[x][1] /= (dp[x][1] + pow((double)f*I_a, (double)m));
 				I_l = sp[x][2] + ic*(L - sp[x][2]);
 				I_g = Cav[2] + ic*(Lav - Cav[2]);
 				I_a = I_l + ia*(I_g - I_l);

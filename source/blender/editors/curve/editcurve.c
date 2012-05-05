@@ -108,7 +108,7 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short selstatus);
 
 /* still need to eradicate a few :( */
-#define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
+#define callocstructN(x, y, name) (x*)MEM_callocN((y)* sizeof(x), name)
 
 static float nurbcircle[8][2]= {
 	{0.0, -1.0}, {-1.0, -1.0}, {-1.0, 0.0}, {-1.0,  1.0},
@@ -1416,6 +1416,7 @@ void CURVE_OT_separate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Separate";
 	ot->idname = "CURVE_OT_separate";
+	ot->description = "Separate (partly) selected curves or surfaces into a new object";
 	
 	/* api callbacks */
 	ot->exec = separate_exec;
@@ -1974,7 +1975,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 					}
 					if (BKE_nurb_check_valid_u(newnu)) {
 						if (nu->pntsu==newnu->pntsu && nu->knotsu) {
-							newnu->knotsu= MEM_dupallocN( nu->knotsu );
+							newnu->knotsu= MEM_dupallocN(nu->knotsu);
 						}
 						else {
 							BKE_nurb_knot_calc_u(newnu);
@@ -1982,7 +1983,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 					}
 					if (BKE_nurb_check_valid_v(newnu)) {
 						if (nu->pntsv==newnu->pntsv && nu->knotsv) {
-							newnu->knotsv= MEM_dupallocN( nu->knotsv );
+							newnu->knotsv= MEM_dupallocN(nu->knotsv);
 						}
 						else {
 							BKE_nurb_knot_calc_v(newnu);
@@ -2157,7 +2158,7 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 	for (nu= editnurb->first; nu; nu= nu->next) {
 		if (nu->bezt) {
 			change = 0;
-			beztOrig = MEM_dupallocN( nu->bezt );
+			beztOrig = MEM_dupallocN(nu->bezt);
 			for (bezt=nu->bezt+1, a=1; a<nu->pntsu-1; a++, bezt++) {
 				if (bezt->f2 & SELECT) {
 					for (i=0; i<3; i++) {
@@ -2177,7 +2178,7 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 				BKE_nurb_handles_calc(nu);
 		}
 		else if (nu->bp) {
-			bpOrig = MEM_dupallocN( nu->bp );
+			bpOrig = MEM_dupallocN(nu->bp);
 			/* Same as above, keep these the same! */
 			for (bp=nu->bp+1, a=1; a<nu->pntsu-1; a++, bp++) {
 				if (bp->f1 & SELECT) {
@@ -2532,6 +2533,7 @@ void CURVE_OT_de_select_first(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "(De)select First";
 	ot->idname = "CURVE_OT_de_select_first";
+	ot->description = "(De)select first of visible part of each Nurb";
 	
 	/* api cfirstbacks */
 	ot->exec = de_select_first_exec;
@@ -2556,6 +2558,7 @@ void CURVE_OT_de_select_last(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "(De)select Last";
 	ot->idname = "CURVE_OT_de_select_last";
+	ot->description = "(De)select last of visible part of each Nurb";
 	
 	/* api clastbacks */
 	ot->exec = de_select_last_exec;
@@ -2637,6 +2640,7 @@ void CURVE_OT_select_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "(De)select All";
 	ot->idname = "CURVE_OT_select_all";
+	ot->description = "(De)select all control points";
 	
 	/* api callbacks */
 	ot->exec = de_select_all_exec;
@@ -2711,6 +2715,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Hide Selected";
 	ot->idname = "CURVE_OT_hide";
+	ot->description = "Hide (un)selected control points";
 	
 	/* api callbacks */
 	ot->exec = hide_exec;
@@ -2771,6 +2776,7 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Reveal Hidden";
 	ot->idname = "CURVE_OT_reveal";
+	ot->description = "Show again hidden control points";
 	
 	/* api callbacks */
 	ot->exec = reveal_exec;
@@ -3039,7 +3045,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				/* total count of nodes after subdivision */
 				int tot= ((number_cuts+1)*nu->pntsu-number_cuts)*((number_cuts+1)*nu->pntsv-number_cuts);
 
-				bpn=bpnew= MEM_mallocN( tot*sizeof(BPoint), "subdivideNurb4");
+				bpn=bpnew= MEM_mallocN(tot*sizeof(BPoint), "subdivideNurb4");
 				bp= nu->bp;
 				/* first subdivide rows */
 				for (a=0; a<nu->pntsv; a++) {
@@ -3097,7 +3103,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 
 				if (sel) {   /* V ! */
-					bpn=bpnew= MEM_mallocN( (sel+nu->pntsv)*nu->pntsu*sizeof(BPoint), "subdivideNurb4");
+					bpn=bpnew= MEM_mallocN((sel+nu->pntsv)*nu->pntsu*sizeof(BPoint), "subdivideNurb4");
 					bp= nu->bp;
 					for (a=0; a<nu->pntsv; a++) {
 						for (b=0; b<nu->pntsu; b++) {
@@ -3144,7 +3150,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					if (sel) {	/* U ! */
 				 /* Inserting U points is sort of 'default' Flat curves only get */
 				 /* U points inserted in them.                                   */
-						bpn=bpnew= MEM_mallocN( (sel+nu->pntsu)*nu->pntsv*sizeof(BPoint), "subdivideNurb4");
+						bpn=bpnew= MEM_mallocN((sel+nu->pntsu)*nu->pntsv*sizeof(BPoint), "subdivideNurb4");
 						bp= nu->bp;
 						for (a=0; a<nu->pntsv; a++) {
 							for (b=0; b<nu->pntsu; b++) {
@@ -3651,7 +3657,7 @@ static void rotate_direction_nurb(Nurb *nu)
 	SWAP(short, nu->flagu, nu->flagv);
 	
 	SWAP(float *, nu->knotsu, nu->knotsv);
-	switchdirection_knots(nu->knotsv, KNOTSV(nu) );
+	switchdirection_knots(nu->knotsv, KNOTSV(nu));
 	
 	temp= MEM_dupallocN(nu->bp);
 	bp1= nu->bp;
@@ -3719,7 +3725,7 @@ static void make_selection_list_nurb(ListBase *editnurb)
 	/* just add the first one */
 	nus= nbase.first;
 	BLI_remlink(&nbase, nus);
-	BLI_addtail( &nsortbase, nus);
+	BLI_addtail(&nsortbase, nus);
 	
 	/* now add, either at head or tail, the closest one */
 	while (nbase.first) {
@@ -4118,6 +4124,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Make Segment";
 	ot->idname = "CURVE_OT_make_segment";
+	ot->description = "Join two curves by their selected ends";
 	
 	/* api callbacks */
 	ot->exec = make_segment_exec;
@@ -4224,10 +4231,10 @@ static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cen
 	Curve *cu= (Curve*)obedit->data;
 	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
-	float si,phi,n[3],q[4],cmat[3][3],tmat[3][3],imat[3][3];
+	float si, phi, n[3], q[4], cmat[3][3], tmat[3][3], imat[3][3];
 	float bmat[3][3], rotmat[3][3], scalemat1[3][3], scalemat2[3][3];
 	float persmat[3][3], persinv[3][3];
-	short a,ok, changed= 0;
+	short a, ok, changed= 0;
 
 	copy_m3_m4(persmat, viewmat);
 	invert_m3_m3(persinv, persmat);
@@ -4244,7 +4251,7 @@ static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cen
 	q[1]= n[0]*si;
 	q[2]= n[1]*si;
 	q[3]= n[2]*si;
-	quat_to_mat3( cmat,q);
+	quat_to_mat3(cmat, q);
 	mul_m3_m3m3(tmat, cmat, bmat);
 	mul_m3_m3m3(rotmat, imat, tmat);
 
@@ -4252,19 +4259,19 @@ static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cen
 	scalemat1[0][0]= M_SQRT2;
 	scalemat1[1][1]= M_SQRT2;
 
-	mul_m3_m3m3(tmat,persmat,bmat);
-	mul_m3_m3m3(cmat,scalemat1,tmat);
-	mul_m3_m3m3(tmat,persinv,cmat);
-	mul_m3_m3m3(scalemat1,imat,tmat);
+	mul_m3_m3m3(tmat, persmat, bmat);
+	mul_m3_m3m3(cmat, scalemat1, tmat);
+	mul_m3_m3m3(tmat, persinv, cmat);
+	mul_m3_m3m3(scalemat1, imat, tmat);
 
 	unit_m3(scalemat2);
-	scalemat2[0][0]/= (float)M_SQRT2;
-	scalemat2[1][1]/= (float)M_SQRT2;
+	scalemat2[0][0] /= (float)M_SQRT2;
+	scalemat2[1][1] /= (float)M_SQRT2;
 
-	mul_m3_m3m3(tmat,persmat,bmat);
-	mul_m3_m3m3(cmat,scalemat2,tmat);
-	mul_m3_m3m3(tmat,persinv,cmat);
-	mul_m3_m3m3(scalemat2,imat,tmat);
+	mul_m3_m3m3(tmat, persmat, bmat);
+	mul_m3_m3m3(cmat, scalemat2, tmat);
+	mul_m3_m3m3(tmat, persinv, cmat);
+	mul_m3_m3m3(scalemat2, imat, tmat);
 
 	ok= 1;
 
@@ -4353,6 +4360,7 @@ void CURVE_OT_spin(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Spin";
 	ot->idname = "CURVE_OT_spin";
+	ot->description = "Extrude selected boundary row around pivot point and current view axis";
 	
 	/* api callbacks */
 	ot->exec = spin_exec;
@@ -4533,7 +4541,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			}
 			else {
 				mul_v3_m4v3(newbezt->vec[1], imat, location);
-				sub_v3_v3v3(temp, newbezt->vec[1],temp);
+				sub_v3_v3v3(temp, newbezt->vec[1], temp);
 
 				if (bezt_recalc[1]) {
 					const char h1 = bezt_recalc[1]->h1, h2 = bezt_recalc[1]->h2;
@@ -4543,8 +4551,8 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 					bezt_recalc[1]->h2 = h2;
 				}
 				else {
-					add_v3_v3v3(newbezt->vec[0], bezt->vec[0],temp);
-					add_v3_v3v3(newbezt->vec[2], bezt->vec[2],temp);
+					add_v3_v3v3(newbezt->vec[0], bezt->vec[0], temp);
+					add_v3_v3v3(newbezt->vec[2], bezt->vec[2], temp);
 				}
 				
 
@@ -4687,6 +4695,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add Vertex";
 	ot->idname = "CURVE_OT_vertex_add";
+	ot->description = "Add a new control point (linked to only selected end-curve one, if any)";
 	
 	/* api callbacks */
 	ot->exec = add_vertex_exec;
@@ -4940,6 +4949,7 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked All";
 	ot->idname = "CURVE_OT_select_linked";
+	ot->description = "Select all control points linked to active one";
 
 	/* api callbacks */
 	ot->exec = select_linked_exec;
@@ -5000,6 +5010,7 @@ void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked";
 	ot->idname = "CURVE_OT_select_linked_pick";
+	ot->description = "Select all control points linked to already selected ones";
 
 	/* api callbacks */
 	ot->invoke = select_linked_pick_invoke;
@@ -5078,6 +5089,7 @@ void CURVE_OT_select_row(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Control Point Row";
 	ot->idname = "CURVE_OT_select_row";
+	ot->description = "Select a row of control points including active one";
 	
 	/* api callbacks */
 	ot->exec = select_row_exec;
@@ -5105,6 +5117,7 @@ void CURVE_OT_select_next(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Next";
 	ot->idname = "CURVE_OT_select_next";
+	ot->description = "Select control points following already selected ones along the curves";
 	
 	/* api callbacks */
 	ot->exec = select_next_exec;
@@ -5132,6 +5145,7 @@ void CURVE_OT_select_previous(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Previous";
 	ot->idname = "CURVE_OT_select_previous";
+	ot->description = "Select control points preceding already selected ones along the curves";
 	
 	/* api callbacks */
 	ot->exec = select_previous_exec;
@@ -5219,6 +5233,7 @@ void CURVE_OT_select_more(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select More";
 	ot->idname = "CURVE_OT_select_more";
+	ot->description = "Select control points linked to already selected ones";
 	
 	/* api callbacks */
 	ot->exec = select_more_exec;
@@ -5380,6 +5395,7 @@ void CURVE_OT_select_less(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Less";
 	ot->idname = "CURVE_OT_select_less";
+	ot->description = "Reduce current selection by deselecting boundary elements";
 	
 	/* api callbacks */
 	ot->exec = select_less_exec;
@@ -5398,7 +5414,7 @@ static void selectrandom_curve(ListBase *editnurb, float randfac)
 	BPoint *bp;
 	int a;
 	
-	BLI_srand( BLI_rand() ); /* random seed */
+	BLI_srand(BLI_rand()); /* random seed */
 	
 	for (nu= editnurb->first; nu; nu= nu->next) {	
 		if (nu->type == CU_BEZIER) {
@@ -5443,6 +5459,7 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Random";
 	ot->idname = "CURVE_OT_select_random";
+	ot->description = "Randomly select some control points";
 	
 	/* api callbacks */
 	ot->exec = select_random_exec;
@@ -5730,7 +5747,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 				if (type) {
 					bezt1 =
 						(BezTriple*)MEM_mallocN((nu->pntsu) * sizeof(BezTriple), "delNurb");
-					memcpy(bezt1, nu->bezt, (nu->pntsu)*sizeof(BezTriple) );
+					memcpy(bezt1, nu->bezt, (nu->pntsu)*sizeof(BezTriple));
 					keyIndex_updateBezt(editnurb, nu->bezt, bezt1, nu->pntsu);
 					MEM_freeN(nu->bezt);
 					nu->bezt= bezt1;
@@ -5757,7 +5774,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 				}
 				if (type) {
 					bp1 = (BPoint*)MEM_mallocN(nu->pntsu * sizeof(BPoint), "delNurb2");
-					memcpy(bp1, nu->bp, (nu->pntsu)*sizeof(BPoint) );
+					memcpy(bp1, nu->bp, (nu->pntsu)*sizeof(BPoint));
 					keyIndex_updateBP(editnurb, nu->bp, bp1, nu->pntsu);
 					MEM_freeN(nu->bp);
 					nu->bp= bp1;
@@ -6028,6 +6045,7 @@ void CURVE_OT_shade_smooth(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Shade Smooth";
 	ot->idname = "CURVE_OT_shade_smooth";
+	ot->description = "Set shading to smooth";
 	
 	/* api callbacks */
 	ot->exec = shade_smooth_exec;
@@ -6042,6 +6060,7 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Shade Flat";
 	ot->idname = "CURVE_OT_shade_flat";
+	ot->description = "Set shading to flat";
 	
 	/* api callbacks */
 	ot->exec = shade_smooth_exec;
@@ -6071,7 +6090,8 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	/* trasnform all selected curves inverse in obact */
 	invert_m4_m4(imat, ob->obmat);
 	
-	CTX_DATA_BEGIN (C, Base*, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selected_editable_bases)
+	{
 		if (base->object->type==ob->type) {
 			if (base->object != ob) {
 			
@@ -6268,7 +6288,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 			bp->vec[0]+= 1.5f*grid;
 
 			bp= nu->bp;
-			for (a=0;a<4;a++, bp++) mul_m4_v3(mat,bp->vec);
+			for (a=0;a<4;a++, bp++) mul_m4_v3(mat, bp->vec);
 
 			if (cutype==CU_NURBS) {
 				nu->knotsu= NULL;	/* nurbs_knot_calc_u allocates */
@@ -6302,7 +6322,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 		bp->vec[0]+= 2.0f*grid;
 
 		bp= nu->bp;
-		for (a=0;a<5;a++, bp++) mul_m4_v3(mat,bp->vec);
+		for (a=0;a<5;a++, bp++) mul_m4_v3(mat, bp->vec);
 
 		if (cutype==CU_NURBS) {
 			nu->knotsu= NULL;	/* nurbs_knot_calc_u allocates */
@@ -6323,28 +6343,28 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][0]+= -grid;
-			for (a=0;a<3;a++) mul_m4_v3(mat,bezt->vec[a]);
+			for (a=0;a<3;a++) mul_m4_v3(mat, bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 			
 			bezt++;
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][1]+= grid;
-			for (a=0;a<3;a++) mul_m4_v3(mat,bezt->vec[a]);
+			for (a=0;a<3;a++) mul_m4_v3(mat, bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
 			bezt++;
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][0]+= grid;
-			for (a=0;a<3;a++) mul_m4_v3(mat,bezt->vec[a]);
+			for (a=0;a<3;a++) mul_m4_v3(mat, bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
 			bezt++;
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][1]+= -grid;
-			for (a=0;a<3;a++) mul_m4_v3(mat,bezt->vec[a]);
+			for (a=0;a<3;a++) mul_m4_v3(mat, bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
 			BKE_nurb_handles_calc(nu);
@@ -6369,7 +6389,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 				}
 				if (a & 1) bp->vec[3]= 0.25*M_SQRT2;
 				else bp->vec[3]= 1.0;
-				mul_m4_v3(mat,bp->vec);
+				mul_m4_v3(mat, bp->vec);
 				bp->radius = bp->weight = 1.0;
 				
 				bp++;
@@ -6401,7 +6421,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 					if (a==1 || a==2) if (b==1 || b==2) {
 						bp->vec[2]+= grid;
 					}
-					mul_m4_v3(mat,bp->vec);
+					mul_m4_v3(mat, bp->vec);
 					bp->vec[3]= 1.0;
 					bp++;
 				}
@@ -6465,7 +6485,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 				bp->vec[2]+= nurbcircle[a][1]*grid;
 				if (a & 1) bp->vec[3]= 0.5*M_SQRT2;
 				else bp->vec[3]= 1.0;
-				mul_m4_v3(mat,bp->vec);
+				mul_m4_v3(mat, bp->vec);
 				bp++;
 			}
 			nu->flagu= CU_NURB_BEZIER;
@@ -6913,6 +6933,7 @@ void CURVE_OT_tilt_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clear Tilt";
 	ot->idname = "CURVE_OT_tilt_clear";
+	ot->description = "Clear the tilt of selected control points";
 	
 	/* api callbacks */
 	ot->exec = clear_tilt_exec;

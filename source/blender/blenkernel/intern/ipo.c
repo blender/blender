@@ -81,7 +81,7 @@
 
 /* Free data from old IPO-Blocks (those which haven't been converted), but not IPO block itself */
 // XXX this shouldn't be necessary anymore, but may occur while not all data is converted yet
-void free_ipo (Ipo *ipo)
+void free_ipo(Ipo *ipo)
 {
 	IpoCurve *icu, *icn;
 	int n= 0;
@@ -1906,7 +1906,8 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			AnimData *adt= BKE_id_add_animdata(id);
 			
-			SEQ_BEGIN (ed, seq) {
+			SEQ_BEGIN (ed, seq)
+			{
 				IpoCurve *icu = (seq->ipo) ? seq->ipo->curve.first : NULL;
 				short adrcode = SEQ_FAC1;
 				

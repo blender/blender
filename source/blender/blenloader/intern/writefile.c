@@ -240,7 +240,7 @@ static void writedata_free(WriteData *wd)
  
 #define MYWRITE_FLUSH		NULL
 
-static void mywrite( WriteData *wd, const void *adr, int len)
+static void mywrite(WriteData *wd, const void *adr, int len)
 {
 	if (wd->error) return;
 
@@ -975,7 +975,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 		writestruct(wd, DATA, "ParticleSystem", 1, psys);
 
 		if (psys->particles) {
-			writestruct(wd, DATA, "ParticleData", psys->totpart ,psys->particles);
+			writestruct(wd, DATA, "ParticleData", psys->totpart, psys->particles);
 
 			if (psys->particles->hair) {
 				ParticleData *pa = psys->particles;
@@ -994,7 +994,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 		for (; pt; pt=pt->next)
 			writestruct(wd, DATA, "ParticleTarget", 1, pt);
 
-		if (psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
+		if (psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild, psys->child);
 
 		if (psys->clmd) {
 			writestruct(wd, DATA, "ClothModifierData", 1, psys->clmd);
@@ -2111,13 +2111,15 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			
 			/* reset write flags too */
 			
-			SEQ_BEGIN (ed, seq) {
+			SEQ_BEGIN (ed, seq)
+			{
 				if (seq->strip) seq->strip->done= 0;
 				writestruct(wd, DATA, "Sequence", 1, seq);
 			}
 			SEQ_END
 			
-			SEQ_BEGIN (ed, seq) {
+			SEQ_BEGIN (ed, seq)
+			{
 				if (seq->strip && seq->strip->done==0) {
 					/* write strip with 'done' at 0 because readfile */
 					
@@ -3104,7 +3106,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	/* open temporary file, so we preserve the original in case we crash */
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
-	file = BLI_open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
+	file = BLI_open(tempname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if (file == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s.", tempname, strerror(errno));
 		return 0;
@@ -3130,7 +3132,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 				 * we should not have any relative paths, but if there
 				 * is somehow, an invalid or empty G.main->name it will
 				 * print an error, don't try make the absolute in this case. */
-				makeFilesAbsolute(mainvar, G.main->name, NULL);
+				BLI_bpath_absolute_convert(mainvar, G.main->name, NULL);
 			}
 		}
 	}
@@ -3139,10 +3141,10 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	write_user_block= (BLI_path_cmp(filepath, userfilename) == 0);
 
 	if (write_flags & G_FILE_RELATIVE_REMAP)
-		makeFilesRelative(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
+		BLI_bpath_relative_convert(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
 
 	/* actual file writing */
-	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags, thumb);
+	err= write_file_handle(mainvar, file, NULL, NULL, write_user_block, write_flags, thumb);
 	close(file);
 
 	if (err) {

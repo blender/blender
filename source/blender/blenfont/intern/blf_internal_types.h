@@ -180,7 +180,7 @@ typedef struct FontBLF {
 	/* max texture size. */
 	int max_tex_size;
 
-	/* current opengl texture  bind, avoids calling glGet */
+	/* cache current OpenGL texture to save calls into the API */
 	int tex_bind_state;
 
 	/* font options. */

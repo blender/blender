@@ -34,15 +34,15 @@
 
 /* ******************* Color Key ********************************************************** */
 static bNodeSocketTemplate cmp_node_color_in[]={
-	{SOCK_RGBA,1,"Image", 1.0f, 1.0f, 1.0f, 1.0f},
-	{SOCK_RGBA,1,"Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
-	{-1,0,""}
+	{SOCK_RGBA, 1, "Image", 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA, 1, "Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
+	{-1, 0, ""}
 };
 
 static bNodeSocketTemplate cmp_node_color_out[]={
-	{SOCK_RGBA,0,"Image"},
-	{SOCK_FLOAT,0,"Matte"},
-	{-1,0,""}
+	{SOCK_RGBA, 0, "Image"},
+	{SOCK_FLOAT, 0, "Matte"},
+	{-1, 0, ""}
 };
 
 static void do_color_key(bNode *node, float *out, float *in)
@@ -92,7 +92,7 @@ static void node_composit_exec_color_matte(void *data, bNode *node, bNodeStack *
 	/*convert rgbbuf to hsv*/
 	composit1_pixel_processor(node, colorbuf, cbuf, in[0]->vec, do_rgba_to_hsva, CB_RGBA);
 	
-   /*convert key to hsv*/
+	/*convert key to hsv*/
 	do_rgba_to_hsva(node, c->key, in[1]->vec);
 	
 

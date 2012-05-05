@@ -110,7 +110,7 @@ void free_blender(void)
 	
 	IMB_exit();
 
-	BLI_cb_finalize();
+	BLI_callback_global_finalize();
 
 	seq_stripelem_cache_destruct();
 	IMB_moviecache_destruct();
@@ -129,9 +129,9 @@ void initglobals(void)
 	strcpy(G.ima, "//");
 
 	if (BLENDER_SUBVERSION)
-		BLI_snprintf(versionstr, sizeof(versionstr), "blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "v%d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 	else
-		BLI_snprintf(versionstr, sizeof(versionstr), "blender.org %d", BLENDER_VERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "v%d.%02d", BLENDER_VERSION/100, BLENDER_VERSION%100);
 
 #ifdef _WIN32	// FULLSCREEN
 	G.windowstate = G_WINDOWSTATE_USERDEF;
@@ -173,7 +173,7 @@ static void clean_paths(Main *main)
 {
 	Scene *scene;
 
-	bpath_traverse_main(main, clean_paths_visit_cb, BPATH_TRAVERSE_SKIP_MULTIFILE, NULL);
+	BLI_bpath_traverse_main(main, clean_paths_visit_cb, BLI_BPATH_TRAVERSE_SKIP_MULTIFILE, NULL);
 
 	for (scene= main->scene.first; scene; scene= scene->id.next) {
 		BLI_clean(scene->r.pic);
@@ -431,7 +431,7 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *report
 
 /* *****************  testing for break ************* */
 
-static void (*blender_test_break_cb)(void)= NULL;
+static void (*blender_test_break_cb)(void) = NULL;
 
 void set_blender_test_break_cb(void (*func)(void) )
 {
@@ -722,7 +722,7 @@ void BKE_undo_save_quit(void)
 		
 	BLI_make_file_string("/", str, BLI_temporary_dir(), "quit.blend");
 
-	file = BLI_open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
+	file = BLI_open(str, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 	if (file == -1) {
 		//XXX error("Unable to save %s, check you have permissions", str);
 		return;

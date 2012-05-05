@@ -209,7 +209,7 @@ DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*
 		if (orco)
 			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
 	}
-	else if (ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)) {
+	else if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		dm= CDDM_from_curve(ob);
 	}
 

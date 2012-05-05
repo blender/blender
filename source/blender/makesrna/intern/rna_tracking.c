@@ -265,7 +265,7 @@ static void rna_trackingCamera_focal_mm_set(PointerRNA *ptr, float value)
 	if (clip->lastsize[0])
 		value = clip->lastsize[0]*value/camera->sensor_width;
 
-	if (value >= 0.0001)
+	if (value >= 0.0001f)
 		camera->focal = value;
 }
 

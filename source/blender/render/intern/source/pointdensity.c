@@ -121,7 +121,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	/* Just to create a valid rendering context for particles */
 	psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, 0);
 	
-	dm = mesh_create_derived_render(re->scene, ob,CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+	dm = mesh_create_derived_render(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 	
 	if ( !psys_check_enabled(ob, psys)) {
 		psys_render_restore(ob, psys);

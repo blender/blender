@@ -1119,7 +1119,8 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	CTX_DATA_BEGIN (C, Object *, selob, selected_editable_objects) {
+	CTX_DATA_BEGIN (C, Object *, selob, selected_editable_objects)
+	{
 		if (selob->type == OB_MESH && selob != ob) {
 			secondob = selob;
 			break;

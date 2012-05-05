@@ -96,7 +96,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			object_free_modifiers(tmpobj);
 
 		/* copies the data */
-		copycu = tmpobj->data = BKE_curve_copy( (Curve *) ob->data );
+		copycu = tmpobj->data = BKE_curve_copy((Curve *) ob->data );
 
 		/* temporarily set edit so we get updates from edit mode, but
 		 * also because for text datablocks copying it while in edit
@@ -105,21 +105,21 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		copycu->editnurb = tmpcu->editnurb;
 
 		/* get updated display list, and convert to a mesh */
-		makeDispListCurveTypes( sce, tmpobj, 0 );
+		makeDispListCurveTypes(sce, tmpobj, 0);
 
 		copycu->editfont = NULL;
 		copycu->editnurb = NULL;
 
-		nurbs_to_mesh( tmpobj );
+		nurbs_to_mesh(tmpobj);
 
 		/* nurbs_to_mesh changes the type to a mesh, check it worked */
 		if (tmpobj->type != OB_MESH) {
-			free_libblock_us( &(G.main->object), tmpobj );
+			free_libblock_us(&(G.main->object), tmpobj);
 			BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
 			return NULL;
 		}
 		tmpmesh = tmpobj->data;
-		free_libblock_us( &G.main->object, tmpobj );
+		free_libblock_us(&G.main->object, tmpobj);
 		break;
 
 	case OB_MBALL: {
@@ -364,7 +364,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 	}
 
 	if (assignmode != WEIGHT_REPLACE && assignmode != WEIGHT_ADD && assignmode != WEIGHT_SUBTRACT) {
-		BKE_report(reports, RPT_ERROR, "Bad assignment mode" );
+		BKE_report(reports, RPT_ERROR, "Bad assignment mode");
 		return;
 	}
 
@@ -474,6 +474,11 @@ void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
 int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
 {
 	return object_is_modified(scene, ob) & settings;
+}
+
+int rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
+{
+	return object_is_deform_modified(scene, ob) & settings;
 }
 
 #ifndef NDEBUG
@@ -644,6 +649,14 @@ void RNA_api_object(StructRNA *srna)
 	parm = RNA_def_boolean(func, "result", 0, "", "Object visibility");
 	RNA_def_function_return(func, parm);
 
+	func = RNA_def_function(srna, "is_deform_modified", "rna_Object_is_deform_modified");
+	RNA_def_function_ui_description(func, "Determine if this object is modified by a deformation from the base mesh data");
+	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_boolean(func, "result", 0, "", "Object visibility");
+	RNA_def_function_return(func, parm);
 
 #ifndef NDEBUG
 	/* mesh */

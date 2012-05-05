@@ -1,6 +1,3 @@
-/** \file blender/imbuf/intern/cineon/logImageCore.h
- *  \ingroup imbcineon
- */
 /*
  *	 Cineon image file format library definitions.
  *	 Cineon and DPX common structures.
@@ -29,6 +26,10 @@
 
 #ifndef __LOGIMAGECORE_H__
 #define __LOGIMAGECORE_H__
+
+/** \file blender/imbuf/intern/cineon/logImageCore.h
+ *  \ingroup imbcineon
+ */
 
 #include <stdio.h>
 #include "logImageLib.h"

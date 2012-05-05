@@ -47,7 +47,7 @@ public:
 	bool hasError() { return mError; }
 private:
 	/** Disable default copy ctor. */
-	ErrorHandler( const ErrorHandler& pre );
+	ErrorHandler(const ErrorHandler& pre);
 	/** Disable default assignment operator. */
 	const ErrorHandler& operator= ( const ErrorHandler& pre );
 	/** Hold error status. */

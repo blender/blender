@@ -123,7 +123,7 @@ typedef struct bNodeTemplate {
  * implementing the node behavior.
  */
 typedef struct bNodeType {
-	void *next,*prev;
+	void *next, *prev;
 	short needs_free;		/* set for allocated types that need to be freed */
 	
 	int type;
@@ -145,6 +145,9 @@ typedef struct bNodeType {
 	void (*uifunc)(struct uiLayout *, struct bContext *C, struct PointerRNA *ptr);
 	/// Additional parameters in the side panel.
 	void (*uifuncbut)(struct uiLayout *, struct bContext *C, struct PointerRNA *ptr);
+	/// Draw a node socket. Default draws the input value button.
+	NodeSocketButtonFunction drawinputfunc;
+	NodeSocketButtonFunction drawoutputfunc;
 	/// Optional custom label function for the node header.
 	const char *(*labelfunc)(struct bNode *);
 	/// Optional custom resize handle polling.

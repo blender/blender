@@ -62,11 +62,11 @@ typedef struct {
 } bCallbackFuncStore;
 
 
-void BLI_exec_cb(struct Main *main, struct ID *self, eCbEvent evt);
-void BLI_add_cb(bCallbackFuncStore *funcstore, eCbEvent evt);
+void BLI_callback_exec(struct Main *main, struct ID *self, eCbEvent evt);
+void BLI_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 
-void BLI_cb_init(void);
-void BLI_cb_finalize(void);
+void BLI_callback_global_init(void);
+void BLI_callback_global_finalize(void);
 
 
 /* This is blenlib internal only, unrelated to above */

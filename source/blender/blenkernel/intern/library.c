@@ -136,9 +136,9 @@ void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 {
 	char *bpath_user_data[2]= {bmain->name, lib->filepath};
 
-	bpath_traverse_id(bmain, id,
-					  bpath_relocate_visitor,
-					  BPATH_TRAVERSE_SKIP_MULTIFILE,
+	BLI_bpath_traverse_id(bmain, id,
+					  BLI_bpath_relocate_visitor,
+					  BLI_BPATH_TRAVERSE_SKIP_MULTIFILE,
 					  bpath_user_data);
 }
 
@@ -225,7 +225,7 @@ int id_make_local(ID *id, int test)
 			if (!test) make_local_lamp((Lamp*)id);
 			return 1;
 		case ID_CA:
-			if (!test) make_local_camera((Camera*)id);
+			if (!test) BKE_camera_make_local((Camera*)id);
 			return 1;
 		case ID_SPK:
 			if (!test) make_local_speaker((Speaker*)id);
@@ -259,7 +259,7 @@ int id_make_local(ID *id, int test)
 		case ID_NT:
 			return 0; /* not implemented */
 		case ID_BR:
-			if (!test) make_local_brush((Brush*)id);
+			if (!test) BKE_brush_make_local((Brush*)id);
 			return 1;
 		case ID_PA:
 			if (!test) make_local_particlesettings((ParticleSettings*)id);
@@ -318,7 +318,7 @@ int id_copy(ID *id, ID **newid, int test)
 			if (!test) *newid= (ID*)copy_speaker((Speaker*)id);
 			return 1;
 		case ID_CA:
-			if (!test) *newid= (ID*)copy_camera((Camera*)id);
+			if (!test) *newid= (ID*)BKE_camera_copy((Camera*)id);
 			return 1;
 		case ID_IP:
 			return 0; /* deprecated */
@@ -352,7 +352,7 @@ int id_copy(ID *id, ID **newid, int test)
 			if (!test) *newid= (ID*)ntreeCopyTree((bNodeTree*)id);
 			return 1;
 		case ID_BR:
-			if (!test) *newid= (ID*)copy_brush((Brush*)id);
+			if (!test) *newid= (ID*)BKE_brush_copy((Brush*)id);
 			return 1;
 		case ID_PA:
 			if (!test) *newid= (ID*)psys_copy_settings((ParticleSettings*)id);
@@ -843,7 +843,7 @@ void free_libblock(ListBase *lb, void *idv)
 			free_lamp((Lamp *)id);
 			break;
 		case ID_CA:
-			free_camera((Camera*) id);
+			BKE_camera_free((Camera*) id);
 			break;
 		case ID_IP:
 			free_ipo((Ipo *)id);
@@ -885,7 +885,7 @@ void free_libblock(ListBase *lb, void *idv)
 			ntreeFreeTree((bNodeTree *)id);
 			break;
 		case ID_BR:
-			free_brush((Brush *)id);
+			BKE_brush_free((Brush *)id);
 			break;
 		case ID_PA:
 			psys_free_settings((ParticleSettings *)id);
@@ -1031,7 +1031,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			case ID_IM: /* fall through */
 			case ID_WO: /* fall through */
 			case ID_LA: /* fall through */
-				BLI_snprintf(numstr, sizeof(numstr), "%%i%d", BKE_icon_getid(id) );
+				BLI_snprintf(numstr, sizeof(numstr), "%%i%d", BKE_icon_getid(id));
 				BLI_dynstr_append(pupds, numstr);
 				break;
 			default:
@@ -1232,7 +1232,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 			continue;
 		}
 		/* this format specifier is from hell... */
-		BLI_snprintf(name, sizeof(id->name) - 2,"%s.%.3d", left, nr);
+		BLI_snprintf(name, sizeof(id->name) - 2, "%s.%.3d", left, nr);
 
 		return 1;
 	}

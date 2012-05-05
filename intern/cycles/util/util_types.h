@@ -36,7 +36,7 @@
 #define __shared
 #define __constant
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(FREE_WINDOWS)
 #define __device_inline static __forceinline
 #define __align(...) __declspec(align(__VA_ARGS__))
 #else

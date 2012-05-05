@@ -174,8 +174,14 @@ public:
 			std::cerr << "-" << typeid(*m_reference).name() << std::endl;
 #endif
 		if(AUD_ReferenceHandler::decref(m_original))
+		{
+			pthread_mutex_unlock(AUD_ReferenceHandler::getMutex());
 			delete m_reference;
-		pthread_mutex_unlock(AUD_ReferenceHandler::getMutex());
+		}
+		else
+		{
+			pthread_mutex_unlock(AUD_ReferenceHandler::getMutex());
+		}
 	}
 
 	/**
@@ -194,7 +200,11 @@ public:
 			std::cerr << "-" << typeid(*m_reference).name() << std::endl;
 #endif
 		if(AUD_ReferenceHandler::decref(m_original))
+		{
+			pthread_mutex_unlock(AUD_ReferenceHandler::getMutex());
 			delete m_reference;
+			pthread_mutex_lock(AUD_ReferenceHandler::getMutex());
+		}
 
 		m_original = ref.m_original;
 		m_reference = ref.m_reference;

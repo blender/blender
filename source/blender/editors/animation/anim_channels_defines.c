@@ -292,7 +292,7 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
 			offset += 21;
 		}
 		/* materials and particles animdata */
-		else if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) 
+		else if (ELEM(GS(ale->id->name), ID_MA, ID_PA))
 			offset += 14;
 			
 		/* if not in Action Editor mode, action-groups (and their children) must carry some offset too... */
@@ -2639,7 +2639,7 @@ bAnimChannelType *ANIM_channel_get_typeinfo (bAnimListElem *ale)
 /* --------------------------- */
 
 /* Print debug info string for the given channel */
-void ANIM_channel_debug_print_info (bAnimListElem *ale, short indent_level)
+void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
@@ -2671,7 +2671,7 @@ void ANIM_channel_debug_print_info (bAnimListElem *ale, short indent_level)
 /* Check if some setting for a channel is enabled 
  * Returns: 1 = On, 0 = Off, -1 = Invalid
  */
-short ANIM_channel_setting_get (bAnimContext *ac, bAnimListElem *ale, int setting)
+short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
@@ -2748,7 +2748,7 @@ short ANIM_channel_setting_get (bAnimContext *ac, bAnimListElem *ale, int settin
  *	- setting: eAnimChannel_Settings
  *	- mode: eAnimChannels_SetFlag
  */
-void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting, short mode)
+void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting, short mode)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
@@ -2801,7 +2801,7 @@ void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting
 
 /* Draw the given channel */
 // TODO: make this use UI controls for the buttons
-void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
+void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	View2D *v2d= &ac->ar->v2d;
@@ -3230,7 +3230,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 }
 
 /* Draw UI widgets the given channel */
-void ANIM_channel_draw_widgets (bContext *C, bAnimContext *ac, bAnimListElem *ale, uiBlock *block, float yminc, float ymaxc, size_t channel_index)
+void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale, uiBlock *block, float yminc, float ymaxc, size_t channel_index)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	View2D *v2d= &ac->ar->v2d;

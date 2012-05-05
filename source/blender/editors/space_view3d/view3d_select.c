@@ -830,7 +830,8 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 	int i = 0;
 	int mcords[1024][2];
 
-	RNA_BEGIN (op->ptr, itemptr, "path") {
+	RNA_BEGIN (op->ptr, itemptr, "path")
+	{
 		float loc[2];
 		
 		RNA_float_get_array(&itemptr, "loc", loc);
@@ -975,7 +976,8 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
 	const char *name = object_mouse_select_menu_data[name_index].idname;
 
 	if (!extend) {
-		CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
+		CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
+		{
 			if (base->flag & SELECT) {
 				ED_base_object_select(base, BA_DESELECT);
 				changed = 1;
@@ -984,7 +986,8 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
+	{
 		/* this is a bit dodjy, there should only be ONE object with this name, but library objects can mess this up */
 		if (strcmp(name, base->object->id.name + 2) == 0) {
 			ED_base_object_activate(C, base);
@@ -1051,7 +1054,8 @@ static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int
 	short ok;
 	LinkNode *linklist = NULL;
 	
-	CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
+	{
 		ok = FALSE;
 
 		/* two selection methods, the CTRL select uses max dist of 15 */
@@ -1829,7 +1833,8 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 	
 	if (extend == 0 && select) {
 		if (bone_only) {
-			CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
+			CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
+			{
 				if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 					pchan->bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 				}
@@ -2194,7 +2199,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 	int bbsel;
 	CircleSelectUserData data;
 	
-	bbsel = EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0));
+	bbsel = EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 
 	vc->em = BMEdit_FromObject(vc->obedit);
@@ -2245,7 +2250,7 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, const int m
 	if (me) {
 		bm_vertoffs = me->totpoly + 1; /* max index array */
 
-		/* bbsel= */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0));
+		/* bbsel= */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
 		edbm_backbuf_check_and_select_tfaces(me, select == LEFTMOUSE);
 		EDBM_backbuf_free();
 	}

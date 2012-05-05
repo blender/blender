@@ -109,7 +109,7 @@ void BLI_newname(char * name, int add);
 int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic);
 int BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
-void BLI_splitdirstring(char *di,char *fi);
+void BLI_splitdirstring(char *di, char *fi);
 
 /* make sure path separators conform to system one */
 void BLI_clean(char *path);

@@ -54,3 +54,9 @@ aperture_types = (
     ('RADIUS', "Radius", "Directly change the size of the aperture"),
     ('FSTOP', "F/stop", "Change the size of the aperture by f/stops"),
     )
+
+panorama_types = (
+    ('EQUIRECTANGULAR', "Equirectangular", "Render the scene with a spherical camera, also known as Lat Long panorama"),
+    ('FISHEYE_EQUIDISTANT', "Fisheye Equidistant", "Ideal for fulldomes, ignore the sensor dimensions"),
+    ('FISHEYE_EQUISOLID', "Fisheye Equisolid", "Similar to most fisheye modern lens, take sensor dimensions into consideration"),
+    )

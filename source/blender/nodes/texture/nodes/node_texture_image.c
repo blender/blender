@@ -76,7 +76,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(i
 			while ( py >= ibuf->y ) py -= ibuf->y;
 			
 			result = ibuf->rect_float + py*ibuf->x*4 + px*4;
-			copy_v4_v4( out, result );
+			copy_v4_v4(out, result);
 		}
 	}
 }

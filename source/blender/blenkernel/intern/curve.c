@@ -121,7 +121,7 @@ void BKE_curve_editNurb_keyIndex_free(EditNurb *editnurb)
 	editnurb->keyindex= NULL;
 }
 
-void BKE_curve_editNurb_free (Curve *cu)
+void BKE_curve_editNurb_free(Curve *cu)
 {
 	if (cu->editnurb) {
 		BKE_nurbList_free(&cu->editnurb->nurbs);
@@ -169,6 +169,8 @@ Curve *BKE_curve_add(const char *name, int type)
 	cu->smallcaps_scale= 0.75f;
 	cu->twist_mode= CU_TWIST_MINIMUM;	// XXX: this one seems to be the best one in most cases, at least for curve deform...
 	cu->type= type;
+	cu->bevfac1= 0.0f;
+	cu->bevfac2= 1.0f;
 	
 	cu->bb= unit_boundbox();
 	
@@ -194,7 +196,7 @@ Curve *BKE_curve_copy(Curve *cu)
 	
 	cun= copy_libblock(&cu->id);
 	cun->nurb.first= cun->nurb.last= NULL;
-	BKE_nurbList_duplicate( &(cun->nurb), &(cu->nurb));
+	BKE_nurbList_duplicate(&(cun->nurb), &(cu->nurb));
 
 	cun->mat= MEM_dupallocN(cu->mat);
 	for (a=0; a<cun->totcol; a++) {
@@ -480,19 +482,19 @@ Nurb *BKE_nurb_duplicate(Nurb *nu)
 	Nurb *newnu;
 	int len;
 
-	newnu= (Nurb*)MEM_mallocN(sizeof(Nurb),"duplicateNurb");
+	newnu= (Nurb*)MEM_mallocN(sizeof(Nurb), "duplicateNurb");
 	if (newnu==NULL) return NULL;
 	memcpy(newnu, nu, sizeof(Nurb));
 
 	if (nu->bezt) {
 		newnu->bezt=
-			(BezTriple*)MEM_mallocN((nu->pntsu)* sizeof(BezTriple),"duplicateNurb2");
+			(BezTriple*)MEM_mallocN((nu->pntsu)* sizeof(BezTriple), "duplicateNurb2");
 		memcpy(newnu->bezt, nu->bezt, nu->pntsu*sizeof(BezTriple));
 	}
 	else {
 		len= nu->pntsu*nu->pntsv;
 		newnu->bp=
-			(BPoint*)MEM_mallocN((len)* sizeof(BPoint),"duplicateNurb3");
+			(BPoint*)MEM_mallocN((len)* sizeof(BPoint), "duplicateNurb3");
 		memcpy(newnu->bp, nu->bp, len*sizeof(BPoint));
 		
 		newnu->knotsu= newnu->knotsv= NULL;
@@ -749,7 +751,7 @@ void BKE_nurb_knot_calc_v(Nurb *nu)
 static void basisNurb(float t, short order, short pnts, float *knots, float *basis, int *start, int *end)
 {
 	float d, e;
-	int i, i1 = 0, i2 = 0 ,j, orderpluspnts, opp2, o2;
+	int i, i1 = 0, i2 = 0, j, orderpluspnts, opp2, o2;
 
 	orderpluspnts= order+pnts;
 		opp2 = orderpluspnts-1;
@@ -777,7 +779,7 @@ static void basisNurb(float t, short order, short pnts, float *knots, float *bas
 	}
 	basis[i]= 0.0;
 	
-	/* this is order 2,3,... */
+	/* this is order 2, 3, ... */
 	for (j=2; j<=order; j++) {
 
 		if (i2+j>= orderpluspnts) i2= opp2-j;
@@ -870,7 +872,7 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 	jstart= (int *)MEM_mallocN(sizeof(float)*totv, "makeNurbfaces4");
 	jend= (int *)MEM_mallocN(sizeof(float)*totv, "makeNurbfaces5");
 
-	/* precalculation of basisv and jstart,jend */
+	/* precalculation of basisv and jstart, jend */
 	if (nu->flagv & CU_NURB_CYCLIC) cycl= nu->orderv-1; 
 	else cycl= 0;
 	v= vstart;
@@ -1076,7 +1078,7 @@ void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *
 /* forward differencing method for bezier curve */
 void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride)
 {
-	float rt0,rt1,rt2,rt3,f;
+	float rt0, rt1, rt2, rt3, f;
 	int a;
 
 	f= (float)it;
@@ -1281,7 +1283,7 @@ float *BKE_curve_make_orco(Scene *scene, Object *ob)
 			}
 			
 			for (u=0; u<sizev; u++) {
-				for (v=0; v<sizeu; v++,fp+=3) {
+				for (v=0; v<sizeu; v++, fp+=3) {
 					if (cu->flag & CU_UV_ORCO) {
 						fp[0]= 2.0f*u/(sizev - 1) - 1.0f;
 						fp[1]= 2.0f*v/(sizeu - 1) - 1.0f;
@@ -1544,13 +1546,13 @@ static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], c
 }
 
 
-static short bevelinside(BevList *bl1,BevList *bl2)
+static short bevelinside(BevList *bl1, BevList *bl2)
 {
 	/* is bl2 INSIDE bl1 ? with left-right method and "labda's" */
 	/* returns '1' if correct hole  */
 	BevPoint *bevp, *prevbevp;
-	float min,max,vec[3],hvec1[3],hvec2[3],lab,mu;
-	int nr, links=0,rechts=0,mode;
+	float min, max, vec[3], hvec1[3], hvec2[3], lab, mu;
+	int nr, links=0, rechts=0, mode;
 
 	/* take first vertex of possible hole */
 
@@ -1558,7 +1560,7 @@ static short bevelinside(BevList *bl1,BevList *bl2)
 	hvec1[0]= bevp->vec[0]; 
 	hvec1[1]= bevp->vec[1]; 
 	hvec1[2]= 0.0;
-	copy_v3_v3(hvec2,hvec1);
+	copy_v3_v3(hvec2, hvec1);
 	hvec2[0]+=1000;
 
 	/* test it with all edges of potential surounding poly */
@@ -1605,7 +1607,7 @@ struct bevelsort {
 
 static int vergxcobev(const void *a1, const void *a2)
 {
-	const struct bevelsort *x1=a1,*x2=a2;
+	const struct bevelsort *x1=a1, *x2=a2;
 
 	if ( x1->left > x2->left ) return 1;
 	else if ( x1->left < x2->left) return -1;
@@ -1837,7 +1839,7 @@ static void bevel_list_smooth(BevList *bl, int smooth_iter)
 
 		while (nr--) {
 			/* interpolate quats */
-			float zaxis[3] = {0,0,1}, cross[3], q2[4];
+			float zaxis[3] = {0, 0, 1}, cross[3], q2[4];
 			interp_qt_qtqt(q, bevp0_quat, bevp2->quat, 0.5);
 			normalize_qt(q);
 
@@ -1872,7 +1874,7 @@ static void make_bevel_list_3D_zup(BevList *bl)
 	while (nr--) {
 		/* totally simple */
 		bisect_v3_v3v3v3(bevp1->dir, bevp0->vec, bevp1->vec, bevp2->vec);
-		vec_to_quat( bevp1->quat,bevp1->dir, 5, 1);
+		vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
 
 		bevp0= bevp1;
 		bevp1= bevp2;
@@ -1896,7 +1898,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 	while (nr--) {
 
 		if (nr+4 > bl->nr) { /* first time and second time, otherwise first point adjusts last */
-			vec_to_quat( bevp1->quat,bevp1->dir, 5, 1);
+			vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
 		}
 		else {
 			float angle= angle_normalized_v3v3(bevp0->dir, bevp1->dir);
@@ -1930,7 +1932,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 		 *
 		 * this is why we compare last with second last
 		 * */
-		float vec_1[3]= {0,1,0}, vec_2[3]= {0,1,0}, angle, ang_fac, cross_tmp[3];
+		float vec_1[3]= {0, 1, 0}, vec_2[3]= {0, 1, 0}, angle, ang_fac, cross_tmp[3];
 
 		BevPoint *bevp_first;
 		BevPoint *bevp_last;
@@ -2024,11 +2026,11 @@ static void make_bevel_list_3D_tangent(BevList *bl)
 
 		/* make perpendicular, modify tan in place, is ok */
 		float cross_tmp[3];
-		float zero[3] = {0,0,0};
+		float zero[3] = {0, 0, 0};
 
 		cross_v3_v3v3(cross_tmp, bevp1->tan, bevp1->dir);
 		normalize_v3(cross_tmp);
-		tri_to_quat( bevp1->quat,zero, cross_tmp, bevp1->tan); /* XXX - could be faster */
+		tri_to_quat(bevp1->quat, zero, cross_tmp, bevp1->tan); /* XXX - could be faster */
 
 		/* bevp0= bevp1; */ /* UNUSED */
 		bevp1= bevp2;
@@ -2072,7 +2074,7 @@ static void make_bevel_list_segment_3D(BevList *bl)
 	sub_v3_v3v3(bevp1->dir, bevp1->vec, bevp2->vec);
 	normalize_v3(bevp1->dir);
 
-	vec_to_quat( bevp1->quat,bevp1->dir, 5, 1);
+	vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
 
 	axis_angle_to_quat(q, bevp1->dir, bevp1->alfa);
 	mul_qt_qtqt(bevp1->quat, q, bevp1->quat);
@@ -2201,24 +2203,23 @@ void BKE_curve_bevelList_make(Object *ob)
 						
 						/* BevPoint must stay aligned to 4 so sizeof(BevPoint)/sizeof(float) works */
 						for (j=0; j<3; j++) {
-							BKE_curve_forward_diff_bezier(	prevbezt->vec[1][j],	prevbezt->vec[2][j],
-													bezt->vec[0][j],		bezt->vec[1][j],
-													&(bevp->vec[j]), resolu, sizeof(BevPoint));
+							BKE_curve_forward_diff_bezier(prevbezt->vec[1][j],  prevbezt->vec[2][j],
+							                              bezt->vec[0][j],      bezt->vec[1][j],
+							                              &(bevp->vec[j]), resolu, sizeof(BevPoint));
 						}
 						
 						/* if both arrays are NULL do nothiong */
-						alfa_bezpart(	prevbezt, bezt, nu,
-										 do_tilt	? &bevp->alfa : NULL,
-										 do_radius	? &bevp->radius : NULL,
-										 do_weight	? &bevp->weight : NULL,
-										 resolu, sizeof(BevPoint));
+						alfa_bezpart(prevbezt, bezt, nu,
+						             do_tilt	? &bevp->alfa : NULL,
+						             do_radius	? &bevp->radius : NULL,
+						             do_weight	? &bevp->weight : NULL,
+						             resolu, sizeof(BevPoint));
 
 						
 						if (cu->twist_mode==CU_TWIST_TANGENT) {
-							forward_diff_bezier_cotangent(
-													prevbezt->vec[1],	prevbezt->vec[2],
-													bezt->vec[0],		bezt->vec[1],
-													bevp->tan, resolu, sizeof(BevPoint));
+							forward_diff_bezier_cotangent(prevbezt->vec[1], prevbezt->vec[2],
+							                              bezt->vec[0],     bezt->vec[1],
+							                              bevp->tan, resolu, sizeof(BevPoint));
 						}
 
 						/* indicate with handlecodes double points */
@@ -2256,11 +2257,11 @@ void BKE_curve_bevelList_make(Object *ob)
 					else bl->poly= -1;
 					bevp= (BevPoint *)(bl+1);
 					
-					BKE_nurb_makeCurve(	nu, &bevp->vec[0],
-									do_tilt		? &bevp->alfa : NULL,
-									do_radius	? &bevp->radius : NULL,
-									do_weight	? &bevp->weight : NULL,
-									resolu, sizeof(BevPoint));
+					BKE_nurb_makeCurve(nu, &bevp->vec[0],
+					                   do_tilt      ? &bevp->alfa : NULL,
+					                   do_radius    ? &bevp->radius : NULL,
+					                   do_weight    ? &bevp->weight : NULL,
+					                   resolu, sizeof(BevPoint));
 				}
 			}
 		}
@@ -2299,7 +2300,7 @@ void BKE_curve_bevelList_make(Object *ob)
 			memcpy(blnew, bl, sizeof(BevList));
 			blnew->nr= 0;
 			BLI_remlink(&(cu->bev), bl);
-			BLI_insertlinkbefore(&(cu->bev),blnext,blnew);	/* to make sure bevlijst is tuned with nurblist */
+			BLI_insertlinkbefore(&(cu->bev), blnext, blnew);	/* to make sure bevlijst is tuned with nurblist */
 			bevp0= (BevPoint *)(bl+1);
 			bevp1= (BevPoint *)(blnew+1);
 			nr= bl->nr;
@@ -2367,7 +2368,7 @@ void BKE_curve_bevelList_make(Object *ob)
 
 			bl= bl->next;
 		}
-		qsort(sortdata,poly,sizeof(struct bevelsort), vergxcobev);
+		qsort(sortdata, poly, sizeof(struct bevelsort), vergxcobev);
 
 		sd= sortdata+1;
 		for (a=1; a<poly; a++, sd++) {
@@ -2442,7 +2443,7 @@ void BKE_curve_bevelList_make(Object *ob)
 					/* from: make_bevel_list_3D_zup, could call but avoid a second loop.
 					 * no need for tricky tilt calculation as with 3D curves */
 					bisect_v3_v3v3v3(bevp1->dir, bevp0->vec, bevp1->vec, bevp2->vec);
-					vec_to_quat( bevp1->quat,bevp1->dir, 5, 1);
+					vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
 					/* done with inline make_bevel_list_3D_zup */
 
 					bevp0= bevp1;
@@ -2497,7 +2498,7 @@ void BKE_curve_bevelList_make(Object *ob)
 /* mode: is not zero when FCurve, is 2 when forced horizontal for autohandles */
 static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode, int skip_align)
 {
-	float *p1,*p2,*p3, pt[3];
+	float *p1, *p2, *p3, pt[3];
 	float dvec_a[3], dvec_b[3];
 	float len, len_a, len_b;
 	const float eps= 1e-5;
@@ -2545,7 +2546,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 	if (len_b==0.0f) len_b=1.0f;
 
 
-	if (ELEM(bezt->h1,HD_AUTO,HD_AUTO_ANIM) || ELEM(bezt->h2,HD_AUTO,HD_AUTO_ANIM)) {    /* auto */
+	if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) || ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {    /* auto */
 		float tvec[3];
 		tvec[0]= dvec_b[0]/len_b + dvec_a[0]/len_a;
 		tvec[1]= dvec_b[1]/len_b + dvec_a[1]/len_a;
@@ -2558,7 +2559,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 			if (len_a>5.0f*len_b) len_a= 5.0f*len_b;
 			if (len_b>5.0f*len_a) len_b= 5.0f*len_a;
 			
-			if (ELEM(bezt->h1,HD_AUTO,HD_AUTO_ANIM)) {
+			if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM)) {
 				len_a/=len;
 				madd_v3_v3v3fl(p2-3, p2, tvec, -len_a);
 				
@@ -2584,7 +2585,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 					}
 				}
 			}
-			if (ELEM(bezt->h2,HD_AUTO,HD_AUTO_ANIM)) {
+			if (ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {
 				len_b/=len;
 				madd_v3_v3v3fl(p2+3, p2, tvec,  len_b);
 				
@@ -2795,7 +2796,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 		if (flag==0 || (bezt1->f1 & flag) ) {
 			bezt1->h1= 0;
 			/* distance too short: vectorhandle */
-			if ( len_v3v3( bezt1->vec[1], bezt0->vec[1] ) < 0.0001f) {
+			if (len_v3v3(bezt1->vec[1], bezt0->vec[1]) < 0.0001f) {
 				bezt1->h1= HD_VECT;
 				leftsmall= 1;
 			}
@@ -2815,7 +2816,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 		if (flag==0 || (bezt1->f3 & flag) ) {
 			bezt1->h2= 0;
 			/* distance too short: vectorhandle */
-			if ( len_v3v3( bezt1->vec[1], bezt2->vec[1] ) < 0.0001f) {
+			if (len_v3v3(bezt1->vec[1], bezt2->vec[1]) < 0.0001f) {
 				bezt1->h2= HD_VECT;
 				rightsmall= 1;
 			}
@@ -3075,7 +3076,7 @@ float (*BKE_curve_vertexCos_get(Curve *UNUSED(cu), ListBase *lb, int *numVerts_r
 		if (nu->type == CU_BEZIER) {
 			BezTriple *bezt = nu->bezt;
 
-			for (i=0; i<nu->pntsu; i++,bezt++) {
+			for (i=0; i<nu->pntsu; i++, bezt++) {
 				copy_v3_v3(co, bezt->vec[0]); co+=3;
 				copy_v3_v3(co, bezt->vec[1]); co+=3;
 				copy_v3_v3(co, bezt->vec[2]); co+=3;
@@ -3084,7 +3085,7 @@ float (*BKE_curve_vertexCos_get(Curve *UNUSED(cu), ListBase *lb, int *numVerts_r
 		else {
 			BPoint *bp = nu->bp;
 
-			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
+			for (i=0; i<nu->pntsu*nu->pntsv; i++, bp++) {
 				copy_v3_v3(co, bp->vec); co+=3;
 			}
 		}
@@ -3103,7 +3104,7 @@ void BK_curve_vertexCos_apply(Curve *UNUSED(cu), ListBase *lb, float (*vertexCos
 		if (nu->type == CU_BEZIER) {
 			BezTriple *bezt = nu->bezt;
 
-			for (i=0; i<nu->pntsu; i++,bezt++) {
+			for (i=0; i<nu->pntsu; i++, bezt++) {
 				copy_v3_v3(bezt->vec[0], co); co+=3;
 				copy_v3_v3(bezt->vec[1], co); co+=3;
 				copy_v3_v3(bezt->vec[2], co); co+=3;
@@ -3112,7 +3113,7 @@ void BK_curve_vertexCos_apply(Curve *UNUSED(cu), ListBase *lb, float (*vertexCos
 		else {
 			BPoint *bp = nu->bp;
 
-			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
+			for (i=0; i<nu->pntsu*nu->pntsv; i++, bp++) {
 				copy_v3_v3(bp->vec, co); co+=3;
 			}
 		}
@@ -3132,7 +3133,7 @@ float (*BKE_curve_keyVertexCos_get(Curve *UNUSED(cu), ListBase *lb, float *key))
 		if (nu->type == CU_BEZIER) {
 			BezTriple *bezt = nu->bezt;
 
-			for (i=0; i<nu->pntsu; i++,bezt++) {
+			for (i=0; i<nu->pntsu; i++, bezt++) {
 				copy_v3_v3(co, key); co+=3; key+=3;
 				copy_v3_v3(co, key); co+=3; key+=3;
 				copy_v3_v3(co, key); co+=3; key+=3;
@@ -3142,7 +3143,7 @@ float (*BKE_curve_keyVertexCos_get(Curve *UNUSED(cu), ListBase *lb, float *key))
 		else {
 			BPoint *bp = nu->bp;
 
-			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
+			for (i=0; i<nu->pntsu*nu->pntsv; i++, bp++) {
 				copy_v3_v3(co, key); co+=3; key+=3;
 				key++; /* skip tilt */
 			}
@@ -3161,7 +3162,7 @@ void BKE_curve_keyVertexTilts_apply(Curve *UNUSED(cu), ListBase *lb, float *key)
 		if (nu->type == CU_BEZIER) {
 			BezTriple *bezt = nu->bezt;
 
-			for (i=0; i<nu->pntsu; i++,bezt++) {
+			for (i=0; i<nu->pntsu; i++, bezt++) {
 				key+=3*3;
 				bezt->alfa= *key;
 				key+=3;
@@ -3170,7 +3171,7 @@ void BKE_curve_keyVertexTilts_apply(Curve *UNUSED(cu), ListBase *lb, float *key)
 		else {
 			BPoint *bp = nu->bp;
 
-			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
+			for (i=0; i<nu->pntsu*nu->pntsv; i++, bp++) {
 				key+=3;
 				bp->alfa= *key;
 				key++;
@@ -3179,7 +3180,7 @@ void BKE_curve_keyVertexTilts_apply(Curve *UNUSED(cu), ListBase *lb, float *key)
 	}
 }
 
-int BKE_nurb_check_valid_u( struct Nurb *nu )
+int BKE_nurb_check_valid_u(struct Nurb *nu)
 {
 	if (nu==NULL)						return 0;
 	if (nu->pntsu <= 1)					return 0;
@@ -3194,7 +3195,7 @@ int BKE_nurb_check_valid_u( struct Nurb *nu )
 	}
 	return 1;
 }
-int BKE_nurb_check_valid_v( struct Nurb *nu)
+int BKE_nurb_check_valid_v(struct Nurb *nu)
 {
 	if (nu==NULL)						return 0;
 	if (nu->pntsv <= 1)					return 0;
@@ -3210,7 +3211,7 @@ int BKE_nurb_check_valid_v( struct Nurb *nu)
 	return 1;
 }
 
-int BKE_nurb_order_clamp_u( struct Nurb *nu )
+int BKE_nurb_order_clamp_u(struct Nurb *nu)
 {
 	int change = 0;
 	if (nu->pntsu<nu->orderu) {
@@ -3218,13 +3219,13 @@ int BKE_nurb_order_clamp_u( struct Nurb *nu )
 		change= 1;
 	}
 	if (((nu->flagu & CU_NURB_CYCLIC)==0) && (nu->flagu & CU_NURB_BEZIER)) {
-		CLAMP(nu->orderu, 3,4);
+		CLAMP(nu->orderu, 3, 4);
 		change= 1;
 	}
 	return change;
 }
 
-int BKE_nurb_order_clamp_v( struct Nurb *nu)
+int BKE_nurb_order_clamp_v(struct Nurb *nu)
 {
 	int change = 0;
 	if (nu->pntsv<nu->orderv) {
@@ -3232,7 +3233,7 @@ int BKE_nurb_order_clamp_v( struct Nurb *nu)
 		change= 1;
 	}
 	if (((nu->flagv & CU_NURB_CYCLIC)==0) && (nu->flagv & CU_NURB_BEZIER)) {
-		CLAMP(nu->orderv, 3,4);
+		CLAMP(nu->orderv, 3, 4);
 		change= 1;
 	}
 	return change;

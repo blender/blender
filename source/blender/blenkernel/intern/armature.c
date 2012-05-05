@@ -471,7 +471,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 	next = pchan->child;
 
 	/* find the handle points, since this is inside bone space, the
-	 * first point = (0,0,0)
+	 * first point = (0, 0, 0)
 	 * last point =  (0, length, 0) */
 	if (rest) {
 		invert_m4_m4(imat, pchan->bone->arm_mat);
@@ -1028,13 +1028,13 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 
 				if (armature_weight != 1.0f) {
 					copy_v3_v3(dco, co);
-					mul_v3m3_dq( dco, (defMats) ? summat : NULL,dq);
+					mul_v3m3_dq(dco, (defMats) ? summat : NULL, dq);
 					sub_v3_v3(dco, co);
 					mul_v3_fl(dco, armature_weight);
 					add_v3_v3(co, dco);
 				}
 				else
-					mul_v3m3_dq( co, (defMats) ? summat : NULL,dq);
+					mul_v3m3_dq(co, (defMats) ? summat : NULL, dq);
 
 				smat = summat;
 			}
@@ -1208,9 +1208,8 @@ void pchan_to_pose_mat(bPoseChannel *pchan, float rotscale_mat[][4], float loc_m
 		else
 			mult_m4_m4m4(rotscale_mat, parchan->pose_mat, offs_bone);
 
-# if 1
 		/* Compose the loc matrix for this bone. */
-		/* NOTE: That version deos not modify bone's loc when HINGE/NO_SCALE options are set. */
+		/* NOTE: That version does not modify bone's loc when HINGE/NO_SCALE options are set. */
 
 		/* In this case, use the object's space *orientation*. */
 		if (bone->flag & BONE_NO_LOCAL_LOCATION) {
@@ -1236,58 +1235,6 @@ void pchan_to_pose_mat(bPoseChannel *pchan, float rotscale_mat[][4], float loc_m
 		/* Else (i.e. default, usual case), just use the same matrix for rotation/scaling, and location. */
 		else
 			copy_m4_m4(loc_mat, rotscale_mat);
-# endif
-# if 0
-		/* Compose the loc matrix for this bone. */
-		/* NOTE: That version modifies bone's loc when HINGE/NO_SCALE options are set. */
-
-		/* In these cases we need to compute location separately */
-		if (bone->flag & (BONE_HINGE|BONE_NO_SCALE|BONE_NO_LOCAL_LOCATION)) {
-			float bone_loc[4][4], bone_rotscale[3][3], tmat4[4][4], tmat3[3][3];
-			unit_m4(bone_loc);
-			unit_m4(loc_mat);
-			unit_m4(tmat4);
-
-			mul_v3_m4v3(bone_loc[3], parchan->pose_mat, offs_bone[3]);
-
-			/* "No local location" is not transformed by bone matrix. */
-			/* This only affects orientations (rotations), as scale is always 1.0 here. */
-			if (bone->flag & BONE_NO_LOCAL_LOCATION)
-				unit_m3(bone_rotscale);
-			else
-				/* We could also use bone->bone_mat directly, here... */
-				copy_m3_m4(bone_rotscale, offs_bone);
-
-			if (bone->flag & BONE_HINGE) {
-				copy_m3_m4(tmat3, parbone->arm_mat);
-				/* for hinge-only, we use armature *rotation*, but pose mat *scale*! */
-				if (!(bone->flag & BONE_NO_SCALE)) {
-					float size[3], tsmat[3][3];
-					mat4_to_size(size, parchan->pose_mat);
-					size_to_mat3(tsmat, size);
-					mul_m3_m3m3(tmat3, tsmat, tmat3);
-				}
-				mul_m3_m3m3(bone_rotscale, tmat3, bone_rotscale);
-			}
-			else if (bone->flag & BONE_NO_SCALE) {
-				/* For no-scale only, normalized parent pose mat is enough! */
-				copy_m3_m4(tmat3, parchan->pose_mat);
-				normalize_m3(tmat3);
-				mul_m3_m3m3(bone_rotscale, tmat3, bone_rotscale);
-			}
-			/* NO_LOCAL_LOCATION only. */
-			else {
-				copy_m3_m4(tmat3, parchan->pose_mat);
-				mul_m3_m3m3(bone_rotscale, tmat3, bone_rotscale);
-			}
-
-			copy_m4_m3(tmat4, bone_rotscale);
-			mult_m4_m4m4(loc_mat, bone_loc, tmat4);
-		}
-		/* Else, just use the same matrix for rotation/scaling, and location. */
-		else
-			copy_m4_m4(loc_mat, rotscale_mat);
-# endif
 	}
 	/* Root bones. */
 	else {
@@ -1413,18 +1360,18 @@ void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float
 /* Called from RNA when rotation mode changes
  * - the result should be that the rotations given in the provided pointers have had conversions
  *   applied (as appropriate), such that the rotation of the element hasn't 'visually' changed  */
-void BKE_rotMode_change_values (float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode)
+void BKE_rotMode_change_values(float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode)
 {
 	/* check if any change - if so, need to convert data */
 	if (newMode > 0) { /* to euler */
 		if (oldMode == ROT_MODE_AXISANGLE) {
 			/* axis-angle to euler */
-			axis_angle_to_eulO( eul, newMode,axis, *angle);
+			axis_angle_to_eulO(eul, newMode, axis, *angle);
 		}
 		else if (oldMode == ROT_MODE_QUAT) {
 			/* quat to euler */
 			normalize_qt(quat);
-			quat_to_eulO(eul, newMode,quat);
+			quat_to_eulO(eul, newMode, quat);
 		}
 		/* else { no conversion needed } */
 	}
@@ -1517,7 +1464,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3])
 	 * was 0.000001, causes bug [#30438] (which is same as [#27675, imho).
 	 * Reseting it to org value seems to cause no more [#23954]...
 	 */
-	if (dot_v3v3(axis,axis) > 1.0e-13f) {
+	if (dot_v3v3(axis, axis) > 1.0e-13f) {
 		/* if nor is *not* a multiple of target ... */
 		normalize_v3(axis);
 
@@ -1531,7 +1478,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3])
 		float updown;
 
 		/* point same direction, or opposite? */
-		updown = (dot_v3v3(target,nor) > 0) ? 1.0f : -1.0f;
+		updown = (dot_v3v3(target, nor) > 0) ? 1.0f : -1.0f;
 
 		/* I think this should work... */
 		bMatrix[0][0] = updown; bMatrix[0][1] = 0.0;    bMatrix[0][2] = 0.0;
@@ -2362,8 +2309,8 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 
 						/* make a copy of starting conditions */
 						copy_v3_v3(loc, pchan->pose_mat[3]);
-						mat4_to_eul( eul,pchan->pose_mat);
-						mat4_to_size( size,pchan->pose_mat);
+						mat4_to_eul(eul, pchan->pose_mat);
+						mat4_to_size(size, pchan->pose_mat);
 						copy_v3_v3(eulo, eul);
 						copy_v3_v3(sizeo, size);
 
@@ -2438,16 +2385,6 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 	/* Construct the posemat based on PoseChannels, that we do before applying constraints. */
 	/* pose_mat(b) = pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b) */
 	armature_mat_bone_to_pose(pchan, pchan->chan_mat, pchan->pose_mat);
-#if 0 /* XXX Old code, will remove this later. */
-	{
-		float rotscale_mat[4][4], loc_mat[4][4];
-		pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
-		/* Rotation and scale. */
-		mult_m4_m4m4(pchan->pose_mat, rotscale_mat, pchan->chan_mat);
-		/* Location. */
-		mul_v3_m4v3(pchan->pose_mat[3], loc_mat, pchan->chan_mat[3]);
-	}
-#endif
 
 	/* Only rootbones get the cyclic offset (unless user doesn't want that). */
 	/* XXX That could be a problem for snapping and other "reverse transform" features... */
@@ -2498,7 +2435,7 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 
 /* This only reads anim data from channels, and writes to channels */
 /* This is the only function adding poses */
-void where_is_pose (Scene *scene, Object *ob)
+void where_is_pose(Scene *scene, Object *ob)
 {
 	bArmature *arm;
 	Bone *bone;

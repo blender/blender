@@ -70,7 +70,7 @@ struct direntry{
 
 struct dirlink
 {
-	struct dirlink *next,*prev;
+	struct dirlink *next, *prev;
 	char *name;
 };
 

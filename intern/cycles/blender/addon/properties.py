@@ -278,6 +278,25 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
                 subtype='ANGLE',
                 default=0,
                 )
+        cls.panorama_type = EnumProperty(
+                name="Panorama Type",
+                description="Distortion to use for the calculation",
+                items=enums.panorama_types,
+                default='FISHEYE_EQUISOLID',
+                )
+        cls.fisheye_fov = FloatProperty(
+                name="Field of View",
+                description="Field of view for the fisheye lens",
+                min=0.1745, soft_max=2*math.pi, max=10.0*math.pi,
+                subtype='ANGLE',
+                default=math.pi,
+                )
+        cls.fisheye_lens = FloatProperty(
+                name="Fisheye Lens",
+                description="Lens focal length (mm))",
+                min=0.01, soft_max=15.0, max=100.0,
+                default=10.5,
+                )
 
     @classmethod
     def unregister(cls):

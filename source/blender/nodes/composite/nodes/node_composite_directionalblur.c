@@ -72,7 +72,7 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 			const float cs= cosf(rot), ss= sinf(rot);
 			const float isc= 1.f / (1.f + sc);
 			unsigned int x, y;
-			float col[4]= {0,0,0,0};
+			float col[4]= {0, 0, 0, 0};
 
 			for (y= 0; y < img->y; ++y) {
 				const float v= isc * (y - center_y_pix) + ty;

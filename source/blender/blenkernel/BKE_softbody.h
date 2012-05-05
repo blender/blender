@@ -39,9 +39,9 @@ typedef struct BodyPoint {
 	float origS[3], origE[3], origT[3], pos[3], vec[3], force[3];
 	float goal;
 	float prevpos[3], prevvec[3], prevdx[3], prevdv[3]; /* used for Heun integration */
-	float impdv[3],impdx[3];
+	float impdv[3], impdx[3];
 	int nofsprings; int *springs;
-	float choke,choke2,frozen;
+	float choke, choke2, frozen;
 	float colball;
 	short loc_flag; //reserved by locale module specific states
 	//char octantflag;
@@ -68,7 +68,7 @@ extern void				sbObjectToSoftbody(struct Object *ob);
 /* pass NULL to unlink again */
 extern void             sbSetInterruptCallBack(int (*f)(void));
 
-extern void             SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscale[3][3]);
+extern void             SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float lscale[3][3]);
 
 
 #endif

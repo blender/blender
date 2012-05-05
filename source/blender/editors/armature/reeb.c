@@ -197,7 +197,7 @@ void REEB_freeGraph(ReebGraph *rg)
 	
 	// free arcs
 	arc = rg->arcs.first;
-	while ( arc ) {
+	while (arc) {
 		ReebArc *next = arc->next;
 		REEB_freeArc((BArc*)arc);
 		arc = next;
@@ -1683,7 +1683,7 @@ int filterSmartReebGraph(ReebGraph *UNUSED(rg), float UNUSED(threshold))
 			int merging = 0;
 			int total = BLI_ghash_size(arc->faces);
 			float avg_angle = 0;
-			float avg_vec[3] = {0,0,0};
+			float avg_vec[3] = {0, 0, 0};
 			
 			for (BLI_ghashIterator_init(&ghi, arc->faces);
 				!BLI_ghashIterator_isDone(&ghi);
@@ -1873,7 +1873,7 @@ static void finalizeGraph(ReebGraph *rg, char passes, char method)
 
 /************************************** WEIGHT SPREADING ***********************************************/
 
-static int compareVerts( const void* a, const void* b )
+static int compareVerts(const void* a, const void* b)
 {
 	EditVert *va = *(EditVert**)a;
 	EditVert *vb = *(EditVert**)b;
@@ -2090,7 +2090,7 @@ void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection d
 			e->arc = aDst; // Edge is stolen by new arc
 		}
 		
-		BLI_movelisttolist(&aDst->edges , &aSrc->edges);
+		BLI_movelisttolist(&aDst->edges, &aSrc->edges);
 	}
 	else {
 		for (e = aSrc->edges.first; e; e = e->next) {
@@ -3470,18 +3470,18 @@ void REEB_draw()
 			
 			glColor3f(0, 1, 0);
 			glRasterPos3fv(vec);
-			BMF_DrawString( G.fonts, text);
+			BMF_DrawString(G.fonts, text);
 		}
 
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_INDEX)
 		{
 			sprintf(text, "  %i", arc->head->index);
 			glRasterPos3fv(arc->head->p);
-			BMF_DrawString( G.fonts, text);
+			BMF_DrawString(G.fonts, text);
 	
 			sprintf(text, "  %i", arc->tail->index);
 			glRasterPos3fv(arc->tail->p);
-			BMF_DrawString( G.fonts, text);
+			BMF_DrawString(G.fonts, text);
 		}
 	}
 	glEnable(GL_DEPTH_TEST);

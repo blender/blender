@@ -66,7 +66,7 @@
 #include "anim_intern.h"
 
 /* called by WM */
-void free_anim_drivers_copybuf (void);
+void free_anim_drivers_copybuf(void);
 
 /* ************************************************** */
 /* Animation Data Validation */
@@ -135,7 +135,7 @@ FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_ind
 /* Main Driver Management API calls:
  * 	Add a new driver for the specified property on the given ID block
  */
-short ANIM_add_driver (ReportList *reports, ID *id, const char rna_path[], int array_index, short flag, int type)
+short ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int array_index, short flag, int type)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -229,7 +229,7 @@ short ANIM_add_driver (ReportList *reports, ID *id, const char rna_path[], int a
 /* Main Driver Management API calls:
  * 	Remove the driver for the specified property on the given ID block (if available)
  */
-short ANIM_remove_driver (ReportList *UNUSED(reports), ID *id, const char rna_path[], int array_index, short UNUSED(flag))
+short ANIM_remove_driver(ReportList *UNUSED(reports), ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
 	AnimData *adt;
 	FCurve *fcu;
@@ -281,7 +281,7 @@ static FCurve *channeldriver_copypaste_buf = NULL;
 
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
 // XXX find some header to put this in!
-void free_anim_drivers_copybuf (void)
+void free_anim_drivers_copybuf(void)
 {
 	/* free the buffer F-Curve if it exists, as if it were just another F-Curve */
 	if (channeldriver_copypaste_buf)
@@ -290,7 +290,7 @@ void free_anim_drivers_copybuf (void)
 }
 
 /* Checks if there is a driver in the copy/paste buffer */
-short ANIM_driver_can_paste (void)
+short ANIM_driver_can_paste(void)
 {
 	return (channeldriver_copypaste_buf != NULL);
 }
@@ -300,7 +300,7 @@ short ANIM_driver_can_paste (void)
 /* Main Driver Management API calls:
  * 	Make a copy of the driver for the specified property on the given ID block
  */
-short ANIM_copy_driver (ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
+short ANIM_copy_driver(ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -347,7 +347,7 @@ short ANIM_copy_driver (ReportList *reports, ID *id, const char rna_path[], int 
  * 	Add a new driver for the specified property on the given ID block or replace an existing one
  *	with the driver + driver-curve data from the buffer 
  */
-short ANIM_paste_driver (ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
+short ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -512,7 +512,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_driver_button_add (wmOperatorType *ot)
+void ANIM_OT_driver_button_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Driver";
@@ -564,7 +564,7 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_driver_button_remove (wmOperatorType *ot)
+void ANIM_OT_driver_button_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Driver";
@@ -611,7 +611,7 @@ static int copy_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_copy_driver_button (wmOperatorType *ot)
+void ANIM_OT_copy_driver_button(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Copy Driver";
@@ -655,7 +655,7 @@ static int paste_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_paste_driver_button (wmOperatorType *ot)
+void ANIM_OT_paste_driver_button(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Paste Driver";

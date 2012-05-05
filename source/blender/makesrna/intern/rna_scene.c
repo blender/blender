@@ -152,7 +152,7 @@ EnumPropertyItem snap_element_items[] = {
 #ifdef WITH_CINEON
 #  define R_IMF_ENUM_CINEON {R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", \
                                                   "Output image in Cineon format"},
-#  define R_IMF_ENUM_DPX    {R_IMF_IMTYPE_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
+#  define R_IMF_ENUM_DPX    {R_IMF_IMTYPE_DPX, "DPX", ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
 #else
 #  define R_IMF_ENUM_CINEON
 #  define R_IMF_ENUM_DPX
@@ -1080,8 +1080,11 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSE
 	bNode *node;
 	
 	if (ntree && scene->use_nodes) {
-		/* XXX images are freed here, stop render and preview threads, until Image is threadsafe */
-		WM_jobs_stop_all(bmain->wm.first);
+		/* images are freed here, stop render and preview threads, until
+		 * Image is threadsafe. when we are changing this propery from a
+		 * python script in the render thread, don't stop own thread */
+		if(BLI_thread_is_main())
+			WM_jobs_stop_all(bmain->wm.first);
 		
 		for (node = ntree->nodes.first; node; node = node->next) {
 			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_IMAGE)) {
@@ -1370,7 +1373,7 @@ static void rna_UnifiedPaintSettings_size_set(PointerRNA *ptr, int value)
 	UnifiedPaintSettings* ups = ptr->data;
 
 	/* scale unprojected radius so it stays consistent with brush size */
-	brush_scale_unprojected_radius(&ups->unprojected_radius,
+	BKE_brush_scale_unprojected_radius(&ups->unprojected_radius,
 								   value, ups->size);
 	ups->size = value;
 }
@@ -1380,7 +1383,7 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	UnifiedPaintSettings* ups = ptr->data;
 
 	/* scale brush size so it stays consistent with unprojected_radius */
-	brush_scale_size(&ups->size, value, ups->unprojected_radius);
+	BKE_brush_scale_size(&ups->size, value, ups->unprojected_radius);
 	ups->unprojected_radius = value;
 }
 
@@ -1826,6 +1829,11 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Use Unified Strength",
 	                         "Instead of per-brush strength, the strength is shared across brushes");
 
+	prop = RNA_def_property(srna, "use_unified_weight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_WEIGHT);
+	RNA_def_property_ui_text(prop, "Use Unified Weight",
+	                         "Instead of per-brush weight, the weight is shared across brushes");
+
 	/* unified paint settings that override the equivalent settings
 	 * from the active brush */
 	prop = RNA_def_property(srna, "size", PROP_INT, PROP_DISTANCE);
@@ -1846,6 +1854,13 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Strength", "How powerful the effect of the brush is when applied");
+
+	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "weight");
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+	RNA_def_property_ui_text(prop, "Weight", "Weight to assign in vertex groups");
 
 	prop = RNA_def_property(srna, "use_pressure_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_BRUSH_SIZE_PRESSURE);
@@ -1959,7 +1974,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	if(scene) {
+	if (scene) {
 		prop = RNA_def_property(srna, "samples", PROP_INT, PROP_UNSIGNED);
 		RNA_def_property_ui_text(prop, "Samples", "Override number of render samples for this render layer, 0 will use the scene setting");
 		RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
@@ -3333,7 +3348,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
 		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
 		{CODEC_ID_QTRLE, "QTRLE", 0, "QTRLE", ""},
-		/* {CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},*/ /* disabled for after release */
+		/* {CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""}, */ /* disabled for after release */
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
@@ -4246,14 +4261,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "stamp_foreground", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "fg_stamp");
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_range(prop,0.0,1.0);
+	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Text Color", "Color to use for stamp text");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop = RNA_def_property(srna, "stamp_background", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "bg_stamp");
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_range(prop,0.0,1.0);
+	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Background", "Color to use behind stamp text");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 

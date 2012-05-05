@@ -855,7 +855,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		glDisable(GL_BLEND);
 
 		/* draw vert preview */
-		glPointSize(pointsize * 2.0);
+		glPointSize(pointsize * 2.0f);
 		UI_ThemeColor4(TH_STITCH_PREVIEW_STITCHABLE);
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_stitchable);
 		glDrawArrays(GL_POINTS, 0, stitch_preview->num_stitchable);

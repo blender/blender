@@ -87,6 +87,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
 	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
 	float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
+	float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
 	if (RNA_boolean_get(op->ptr, "quadtri") && 
 	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_STRAIGHT_CUT)
@@ -95,7 +96,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
-	                   smooth, fractal,
+	                   smooth, fractal, along_normal,
 	                   cuts,
 	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
 	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE,
@@ -143,6 +144,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	             "Quad Corner Type", "How to subdivide quad corners (anything other than Straight Cut will prevent ngons)");
 
 	RNA_def_float(ot->srna, "fractal", 0.0f, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "fractal_along_normal", 0.0f, 0.0f, 1.0f, "Along Normal", "Apply fractal displacement along normal only", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
 }
 
@@ -896,7 +898,7 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 	{0, "VERT",      0, "Vertices", ""},
 	{1,  "EDGE",      0, "Edges", ""},
 	{2,  "FACE",      0, "Faces", ""},
-	{3,  "EDGE_FACE", 0, "Edges & Faces", ""},
+	{3,  "EDGE_FACE", 0, "Only Edges & Faces", ""},
 	{4,  "ONLY_FACE", 0, "Only Faces", ""},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -2344,7 +2346,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 			if (!BM_elem_flag_test(ev, BM_ELEM_HIDDEN)) {
 				switch (mode) {
 					case -1: /* aligned */
-						if (fabs(ev->co[axis] - value) < limit)
+						if (fabsf(ev->co[axis] - value) < limit)
 							BM_vert_select_set(em->bm, ev, TRUE);
 						break;
 					case 0: /* neg */
@@ -2591,21 +2593,21 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 				m1 = MAXSLOPE;
 				b1 = x12;
 			}
-			x2max = MAX2(x21, x22) + 0.001; /* prevent missed edges   */
-			x2min = MIN2(x21, x22) - 0.001; /* due to round off error */
-			y2max = MAX2(y21, y22) + 0.001;
-			y2min = MIN2(y21, y22) - 0.001;
+			x2max = MAX2(x21, x22) + 0.001f; /* prevent missed edges   */
+			x2min = MIN2(x21, x22) - 0.001f; /* due to round off error */
+			y2max = MAX2(y21, y22) + 0.001f;
+			y2min = MIN2(y21, y22) - 0.001f;
 			
 			/* Found an intersect,  calc intersect point */
 			if (m1 == m2) { /* co-incident lines */
 				/* cut at 50% of overlap area */
 				x1max = MAX2(x11, x12);
 				x1min = MIN2(x11, x12);
-				xi = (MIN2(x2max, x1max) + MAX2(x2min, x1min)) / 2.0;
+				xi = (MIN2(x2max, x1max) + MAX2(x2min, x1min)) / 2.0f;
 				
 				y1max = MAX2(y11, y12);
 				y1min = MIN2(y11, y12);
-				yi = (MIN2(y2max, y1max) + MAX2(y2min, y1min)) / 2.0;
+				yi = (MIN2(y2max, y1max) + MAX2(y2min, y1min)) / 2.0f;
 			}
 			else if (m2 == MAXSLOPE) {
 				xi = x22;
@@ -2680,7 +2682,8 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	}
 
 	/* get the cut curve */
-	RNA_BEGIN (op->ptr, itemptr, "path") {
+	RNA_BEGIN (op->ptr, itemptr, "path")
+	{
 		RNA_float_get_array(&itemptr, "loc", (float *)&curve[len]);
 		len++;
 		if (len >= MAX_CUTS) {
@@ -3123,10 +3126,22 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
+static void join_triangle_props(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
+	prop = RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
+	                              "Max Angle", "Angle Limit", 0.0f, DEG2RADF(180.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
+
+	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
+	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
+	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
+	RNA_def_boolean(ot->srna, "materials", 0, "Compare Materials", "");
+}
+
+void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
+{
 	/* identifiers */
 	ot->name = "Tris to Quads";
 	ot->idname = "MESH_OT_tris_convert_to_quads";
@@ -3139,14 +3154,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	prop = RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
-	                              "Max Angle", "Angle Limit", 0.0f, DEG2RADF(180.0f));
-	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
-
-	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
-	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
-	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
-	RNA_def_boolean(ot->srna, "materials", 0, "Compare Materials", "");
+	join_triangle_props(ot);
 }
 
 static int edbm_dissolve_exec(bContext *C, wmOperator *op)
@@ -3197,11 +3205,45 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMesh *bm = em->bm;
 	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+
+	char dissolve_flag;
+
+	if (em->selectmode == SCE_SELECT_FACE) {
+		/* flush selection to tags and untag edges/verts with partially selected faces */
+		BMIter iter;
+		BMIter liter;
+
+		BMElem *ele;
+		BMFace *f;
+		BMLoop *l;
+
+		BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+		}
+		BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+		}
+
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+				BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+					BM_elem_flag_disable(l->v, BM_ELEM_TAG);
+					BM_elem_flag_disable(l->e, BM_ELEM_TAG);
+				}
+			}
+		}
+
+		dissolve_flag = BM_ELEM_TAG;
+	}
+	else {
+		dissolve_flag = BM_ELEM_SELECT;
+	}
 
 	if (!EDBM_op_callf(em, op,
 	                   "dissolve_limit edges=%he verts=%hv angle_limit=%f",
-	                   BM_ELEM_SELECT, BM_ELEM_SELECT, angle_limit))
+	                   dissolve_flag, dissolve_flag, angle_limit))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3677,8 +3719,11 @@ static void xsortvert_flag(bContext *C, int flag)
 		}
 	}
 /*	printf("%d verts: %d to be sorted, %d unchanged…\n", totvert, sorted, unchanged);*/
-	if (sorted == 0)
+	if (sorted == 0) {
+		MEM_freeN(sortblock);
+		MEM_freeN(unchangedblock);
 		return;
+	}
 
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, V3D_CLIP_TEST_OFF);
@@ -3936,8 +3981,11 @@ static void hashvert_flag(BMEditMesh *em, int flag, unsigned int seed)
 	}
 /*	protected = totvert - randomized;*/
 /*	printf("%d verts: %d to be randomized, %d protected…\n", totvert, randomized, protected);*/
-	if (randomized == 0)
+	if (randomized == 0) {
+		MEM_freeN(block);
+		MEM_freeN(randblock);
 		return;
+	}
 
 	
 	/* Randomize non-protected vertices indices, and create an array mapping old idx to new
@@ -4020,7 +4068,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 
 	if (tex->type == TEX_STUCCI) {
 		float b2, vec[3];
-		float ofs = tex->turbul / 200.0;
+		float ofs = tex->turbul / 200.0f;
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				b2 = BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]);
@@ -4107,7 +4155,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 		w[i] = s;
 		ftot += s;
 
-		df *= 2.0;
+		df *= 2.0f;
 	}
 
 	mul_vn_fl(w, recursion, 1.0f / (float)ftot);
@@ -4264,6 +4312,169 @@ void MESH_OT_inset(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_outset", FALSE, "Outset", "Outset rather than inset");
 	RNA_def_boolean(ot->srna, "use_select_inset", TRUE, "Select Outer", "Select the new inset faces");
+}
+
+static int edbm_wireframe_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMOperator bmop;
+	const int use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
+	const int use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
+	const int use_replace         = RNA_boolean_get(op->ptr, "use_replace");
+	const int use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
+	const int use_crease          = RNA_boolean_get(op->ptr, "use_crease");
+	const float thickness         = RNA_float_get(op->ptr,   "thickness");
+
+	EDBM_op_init(em, &bmop, op,
+	             "wireframe faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b use_crease=%b "
+	             "thickness=%f",
+	             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, use_crease,
+	             thickness);
+
+	BMO_op_exec(em->bm, &bmop);
+
+	if (use_replace) {
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, FALSE);
+		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+
+		BMO_op_callf(em->bm, "del geom=%hvef context=%i", BM_ELEM_TAG, DEL_FACES);
+	}
+
+	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
+
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		EDBM_update_generic(C, em, TRUE);
+		return OPERATOR_FINISHED;
+	}
+}
+
+void MESH_OT_wireframe(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Wire Frame";
+	ot->idname = "MESH_OT_wireframe";
+	ot->description = "Inset new faces into selected faces";
+
+	/* api callbacks */
+	ot->exec = edbm_wireframe_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "use_boundary",        TRUE,  "Boundary",        "Inset face boundaries");
+	RNA_def_boolean(ot->srna, "use_even_offset",     TRUE,  "Offset Even",     "Scale the offset to give more even thickness");
+	RNA_def_boolean(ot->srna, "use_relative_offset", FALSE, "Offset Relative", "Scale the offset by surrounding geometry");
+	RNA_def_boolean(ot->srna, "use_crease",          FALSE, "Crease",          "Crease hub edges for improved subsurf");
+
+	prop = RNA_def_float(ot->srna, "thickness", 0.01f, 0.0f, FLT_MAX, "Thickness", "", 0.0f, 10.0f);
+	/* use 1 rather then 10 for max else dragging the button moves too far */
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
+
+
+	RNA_def_boolean(ot->srna, "use_replace",         TRUE, "Replace", "Remove original faces");
+}
+
+static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMOperator bmop;
+		
+	EDBM_op_init(em, &bmop, op, "convex_hull input=%hvef "
+				 "use_existing_faces=%b",
+				 BM_ELEM_SELECT,
+				 RNA_boolean_get(op->ptr, "use_existing_faces"));
+	BMO_op_exec(em->bm, &bmop);
+
+	/* Hull fails if input is coplanar */
+	if (BMO_error_occurred(em->bm)) {
+		EDBM_op_finish(em, &bmop, op, TRUE);
+		return OPERATOR_CANCELLED;
+	}
+
+	
+	/* Delete unused vertices, edges, and faces */
+	if (RNA_boolean_get(op->ptr, "delete_unused")) {
+		if (!EDBM_op_callf(em, op, "del geom=%s context=%i",
+		                   &bmop, "unused_geom", DEL_ONLYTAGGED))
+		{
+			EDBM_op_finish(em, &bmop, op, TRUE);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* Delete hole edges/faces */
+	if (RNA_boolean_get(op->ptr, "make_holes")) {
+		if (!EDBM_op_callf(em, op, "del geom=%s context=%i",
+		                   &bmop, "holes_geom", DEL_ONLYTAGGED))
+		{
+			EDBM_op_finish(em, &bmop, op, TRUE);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* Merge adjacent triangles */
+	if (RNA_boolean_get(op->ptr, "join_triangles")) {
+		if (!EDBM_op_callf(em, op, "join_triangles faces=%s limit=%f",
+		                   &bmop, "geomout",
+		                   RNA_float_get(op->ptr, "limit")))
+		{
+			EDBM_op_finish(em, &bmop, op, TRUE);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		EDBM_update_generic(C, em, TRUE);
+		EDBM_selectmode_flush(em);
+		return OPERATOR_FINISHED;
+	}
+}
+
+void MESH_OT_convex_hull(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Convex Hull";
+	ot->description = "Enclose selected vertices in a convex polyhedron";
+	ot->idname = "MESH_OT_convex_hull";
+
+	/* api callbacks */
+	ot->exec = edbm_convex_hull_exec;
+	ot->poll = EM_view3d_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "delete_unused", TRUE,
+					"Delete Unused",
+					"Delete selected elements that are not used by the hull");
+
+	RNA_def_boolean(ot->srna, "use_existing_faces", TRUE,
+					"Use Existing Faces",
+					"Skip hull triangles that are covered by a pre-existing face");
+
+	RNA_def_boolean(ot->srna, "make_holes", FALSE,
+					"Make Holes",
+					"Delete selected faces that are used by the hull");
+
+	RNA_def_boolean(ot->srna, "join_triangles", TRUE,
+					"Join Triangles",
+					"Merge adjacent triangles into quads");
+
+	join_triangle_props(ot);
 }
 
 static int edbm_mark_freestyle_edge(bContext *C, wmOperator *op)

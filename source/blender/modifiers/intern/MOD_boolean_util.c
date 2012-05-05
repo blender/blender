@@ -113,7 +113,7 @@ static void VertexIt_Fill(CSG_IteratorPtr it, CSG_IVertex *vert)
 static void VertexIt_Step(CSG_IteratorPtr it)
 {
 	VertexIt * iterator = (VertexIt *)it;
-	iterator->pos ++;
+	iterator->pos++;
 } 
  
 static void VertexIt_Reset(CSG_IteratorPtr it)
@@ -129,7 +129,7 @@ static void VertexIt_Construct(CSG_VertexIteratorDescriptor *output, DerivedMesh
 	if (output == 0) return;
 
 	// allocate some memory for blender iterator
-	it = (VertexIt *)(MEM_mallocN(sizeof(VertexIt),"Boolean_VIt"));
+	it = (VertexIt *)(MEM_mallocN(sizeof(VertexIt), "Boolean_VIt"));
 	if (it == 0) {
 		return;
 	}
@@ -207,7 +207,7 @@ static void FaceIt_Fill(CSG_IteratorPtr it, CSG_IFace *face)
 static void FaceIt_Step(CSG_IteratorPtr it)
 {
 	FaceIt * face_it = (FaceIt *)it;		
-	face_it->pos ++;
+	face_it->pos++;
 }
 
 static void FaceIt_Reset(CSG_IteratorPtr it)
@@ -223,7 +223,7 @@ static void FaceIt_Construct(
 	if (output == 0) return;
 
 	// allocate some memory for blender iterator
-	it = (FaceIt *)(MEM_mallocN(sizeof(FaceIt),"Boolean_FIt"));
+	it = (FaceIt *)(MEM_mallocN(sizeof(FaceIt), "Boolean_FIt"));
 	if (it == 0) {
 		return;
 	}
@@ -333,7 +333,7 @@ static void InterpCSGFace(
 		else
 			copy_v3_v3(obco, co[j]);
 
-		interp_weights_face_v3( w[j],orig_co[0], orig_co[1], orig_co[2], orig_co[3], obco);
+		interp_weights_face_v3(w[j], orig_co[0], orig_co[1], orig_co[2], orig_co[3], obco);
 	}
 
 	CustomData_interp(&orig_dm->faceData, &dm->faceData, &orig_index, NULL, (float*)w, 1, index);
@@ -441,7 +441,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 
 					mat_nr = 0;
 					for (a = 0; a < ob1->totcol; a++) {
-						if (give_current_material(ob1, a+1) == orig_mat) {
+						if (give_current_material(ob1, a + 1) == orig_mat) {
 							mat_nr = a;
 							break;
 						}
@@ -496,8 +496,8 @@ static void BuildMeshDescriptors(
 	struct CSG_FaceIteratorDescriptor * face_it,
 	struct CSG_VertexIteratorDescriptor * vertex_it)
 {
-	VertexIt_Construct(vertex_it,dm, ob);
-	FaceIt_Construct(face_it,dm,face_offset,ob);
+	VertexIt_Construct(vertex_it, dm, ob);
+	FaceIt_Construct(face_it, dm, face_offset, ob);
 }
 	
 static void FreeMeshDescriptors(
@@ -551,7 +551,7 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 		}
 		
 		BuildMeshDescriptors(dm_select, ob_select, 0, &fd_1, &vd_1);
-		BuildMeshDescriptors(dm, ob, dm_select->getNumTessFaces(dm_select) , &fd_2, &vd_2);
+		BuildMeshDescriptors(dm, ob, dm_select->getNumTessFaces(dm_select), &fd_2, &vd_2);
 
 		bool_op = CSG_NewBooleanFunction();
 
@@ -601,7 +601,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 	dm_select = mesh_create_derived_view(scene, ob_select, 0); // no modifiers in editmode ??
 
 	maxmat= ob->totcol + ob_select->totcol;
-	mat= (Material**)MEM_mallocN(sizeof(Material*)*maxmat, "NewBooleanMeshMat");
+	mat = (Material **)MEM_mallocN(sizeof(Material *) * maxmat, "NewBooleanMeshMat");
 	
 	/* put some checks in for nice user feedback */
 	if (dm == NULL || dm_select == NULL) {
@@ -632,7 +632,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 
 	/* add materials to object */
 	for (a = 0; a < totmat; a++)
-		assign_material(ob_new, mat[a], a+1);
+		assign_material(ob_new, mat[a], a + 1);
 
 	MEM_freeN(mat);
 

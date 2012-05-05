@@ -1,6 +1,4 @@
 /*
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,9 +26,6 @@
 /** \file blender/render/intern/source/imagetexture.c
  *  \ingroup render
  */
-
-
-
 
 #include <stdio.h>
 #include <string.h>
@@ -1482,10 +1477,10 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	
 	/* pixel coordinates */
 
-	minx= MIN3(dxt[0],dyt[0],dxt[0]+dyt[0] );
-	maxx= MAX3(dxt[0],dyt[0],dxt[0]+dyt[0] );
-	miny= MIN3(dxt[1],dyt[1],dxt[1]+dyt[1] );
-	maxy= MAX3(dxt[1],dyt[1],dxt[1]+dyt[1] );
+	minx = MIN3(dxt[0], dyt[0], dxt[0] + dyt[0]);
+	maxx = MAX3(dxt[0], dyt[0], dxt[0] + dyt[0]);
+	miny = MIN3(dxt[1], dyt[1], dxt[1] + dyt[1]);
+	maxy = MAX3(dxt[1], dyt[1], dxt[1] + dyt[1]);
 
 	/* tex_sharper has been removed */
 	minx= (maxx-minx)/2.0f;
