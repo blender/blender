@@ -243,8 +243,37 @@ static bNode *editnode_get_active(bNodeTree *ntree)
 		return nodeGetActive(ntree);
 }
 
-void snode_dag_update(bContext *UNUSED(C), SpaceNode *snode)
+static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 {
+	bNode *node;
+	
+	if (ntree == lookup)
+		return 1;
+	
+	for (node=ntree->nodes.first; node; node=node->next)
+		if (node->type == NODE_GROUP && node->id)
+			if (has_nodetree((bNodeTree*)node->id, lookup))
+				return 1;
+	
+	return 0;
+}
+
+static void snode_dag_update_group(void *calldata, ID *owner_id, bNodeTree *ntree)
+{
+	if (has_nodetree(ntree, calldata))
+		DAG_id_tag_update(owner_id, 0);
+}
+
+void snode_dag_update(bContext *C, SpaceNode *snode)
+{
+	Main *bmain = CTX_data_main(C);
+
+	/* for groups, update all ID's using this */
+	if (snode->edittree!=snode->nodetree) {
+		bNodeTreeType *tti= ntreeGetType(snode->edittree->type);
+		tti->foreach_nodetree(bmain, snode->edittree, snode_dag_update_group);
+	}
+
 	DAG_id_tag_update(snode->id, 0);
 }
 
@@ -583,21 +612,6 @@ static void snode_update(SpaceNode *snode, bNode *node)
 	gnode= node_tree_get_editgroup(snode->nodetree);
 	if (gnode)
 		nodeUpdateID(snode->nodetree, gnode->id);
-}
-
-static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
-{
-	bNode *node;
-	
-	if (ntree == lookup)
-		return 1;
-	
-	for (node=ntree->nodes.first; node; node=node->next)
-		if (node->type == NODE_GROUP && node->id)
-			if (has_nodetree((bNodeTree*)node->id, lookup))
-				return 1;
-	
-	return 0;
 }
 
 void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
