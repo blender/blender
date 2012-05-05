@@ -60,7 +60,7 @@ static void free_group_object(GroupObject *go)
 }
 
 
-void free_group_objects(Group *group)
+void BKE_group_free(Group *group)
 {
 	/* don't free group itself */
 	GroupObject *go;
@@ -72,7 +72,7 @@ void free_group_objects(Group *group)
 	}
 }
 
-void unlink_group(Group *group)
+void BKE_group_unlink(Group *group)
 {
 	Main *bmain= G.main;
 	Material *ma;
@@ -133,7 +133,7 @@ void unlink_group(Group *group)
 	}
 	
 	/* group stays in library, but no members */
-	free_group_objects(group);
+	BKE_group_free(group);
 	group->id.us= 0;
 }
 
@@ -141,12 +141,12 @@ Group *add_group(const char *name)
 {
 	Group *group;
 	
-	group = alloc_libblock(&G.main->group, ID_GR, name);
+	group = BKE_libblock_alloc(&G.main->group, ID_GR, name);
 	group->layer= (1<<20)-1;
 	return group;
 }
 
-Group *copy_group(Group *group)
+Group *BKE_group_copy(Group *group)
 {
 	Group *groupn;
 
@@ -361,7 +361,7 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 				go->ob->recalc= go->recalc;
 				
 				group_replaces_nla(parent, go->ob, 's');
-				object_handle_update(scene, go->ob);
+				BKE_object_handle_update(scene, go->ob);
 				group_replaces_nla(parent, go->ob, 'e');
 				
 				/* leave recalc tags in case group members are in normal scene */
@@ -379,7 +379,7 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 		for (go= group->gobject.first; go; go= go->next) {
 			if (go->ob) {
 				if (go->ob->recalc) {
-					object_handle_update(scene, go->ob);
+					BKE_object_handle_update(scene, go->ob);
 				}
 			}
 		}

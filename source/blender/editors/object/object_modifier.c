@@ -368,7 +368,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	if (totvert == 0) return 0;
 
 	/* add new mesh */
-	obn = add_object(scene, OB_MESH);
+	obn = BKE_object_add(scene, OB_MESH);
 	me = obn->data;
 	
 	me->totvert = totvert;
@@ -661,7 +661,7 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr)
 			if (mti->flags & eModifierTypeFlag_NoUserAdd)
 				continue;
 
-			if (!object_support_modifier_type(ob, md_item->value))
+			if (!BKE_object_support_modifier_type_check(ob, md_item->value))
 				continue;
 		}
 		else {

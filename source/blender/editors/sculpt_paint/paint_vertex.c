@@ -2543,7 +2543,7 @@ static int set_vpaint(bContext *C, wmOperator *op)  /* toggle */
 	
 	me = get_mesh(ob);
 	
-	if (me == NULL || object_data_is_libdata(ob)) {
+	if (me == NULL || BKE_object_obdata_is_libdata(ob)) {
 		ob->mode &= ~OB_MODE_VERTEX_PAINT;
 		return OPERATOR_PASS_THROUGH;
 	}

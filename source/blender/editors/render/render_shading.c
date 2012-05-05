@@ -372,7 +372,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* add or copy material */
 	if (ma) {
-		ma = copy_material(ma);
+		ma = BKE_material_copy(ma);
 	}
 	else {
 		ma = add_material("Material");
@@ -425,7 +425,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* add or copy texture */
 	if (tex)
-		tex = copy_texture(tex);
+		tex = BKE_texture_copy(tex);
 	else
 		tex = add_texture("Texture");
 
@@ -472,7 +472,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* add or copy world */
 	if (wo) {
-		wo = copy_world(wo);
+		wo = BKE_world_copy(wo);
 	}
 	else {
 		wo = add_world("World");

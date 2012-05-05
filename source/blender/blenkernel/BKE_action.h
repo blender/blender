@@ -59,13 +59,13 @@ extern "C" {
 struct bAction *add_empty_action(const char name[]);
 
 /* Allocate a copy of the given Action and all its data */	
-struct bAction *copy_action(struct bAction *src);
+struct bAction *BKE_action_copy(struct bAction *src);
 
 /* Deallocate all of the Action's data, but not the Action itself */
-void free_action(struct bAction *act);
+void BKE_action_free(struct bAction *act);
 
 // XXX is this needed?
-void make_local_action(struct bAction *act);
+void BKE_action_make_local(struct bAction *act);
 
 
 /* Action API ----------------- */

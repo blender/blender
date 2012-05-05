@@ -160,7 +160,7 @@ static void init_undo_text(Text *text)
 	text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
 }
 
-void free_text(Text *text)
+void BKE_text_free(Text *text)
 {
 	TextLine *tmp;
 
@@ -186,7 +186,7 @@ Text *add_empty_text(const char *name)
 	Text *ta;
 	TextLine *tmp;
 	
-	ta= alloc_libblock(&bmain->text, ID_TXT, name);
+	ta= BKE_libblock_alloc(&bmain->text, ID_TXT, name);
 	ta->id.us= 1;
 	
 	ta->name= NULL;
@@ -391,7 +391,7 @@ Text *add_text(const char *file, const char *relpath)
 	fp= BLI_fopen(str, "r");
 	if (fp==NULL) return NULL;
 	
-	ta= alloc_libblock(&bmain->text, ID_TXT, BLI_path_basename(str));
+	ta= BKE_libblock_alloc(&bmain->text, ID_TXT, BLI_path_basename(str));
 	ta->id.us= 1;
 
 	ta->lines.first= ta->lines.last= NULL;
@@ -473,12 +473,12 @@ Text *add_text(const char *file, const char *relpath)
 	return ta;
 }
 
-Text *copy_text(Text *ta)
+Text *BKE_text_copy(Text *ta)
 {
 	Text *tan;
 	TextLine *line, *tmp;
 	
-	tan= copy_libblock(&ta->id);
+	tan= BKE_libblock_copy(&ta->id);
 	
 	/* file name can be NULL */
 	if (ta->name) {
@@ -521,7 +521,7 @@ Text *copy_text(Text *ta)
 	return tan;
 }
 
-void unlink_text(Main *bmain, Text *text)
+void BKE_text_unlink(Main *bmain, Text *text)
 {
 	bScreen *scr;
 	ScrArea *area;

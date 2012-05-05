@@ -130,7 +130,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	
 	/* get info from context */
 	pso->scene= CTX_data_scene(C);
-	pso->ob= object_pose_armature_get(CTX_data_active_object(C));
+	pso->ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	pso->arm= (pso->ob)? pso->ob->data : NULL;
 	pso->sa= CTX_wm_area(C); /* only really needed when doing modal() */
 	pso->ar= CTX_wm_region(C); /* only really needed when doing modal() */
@@ -1165,7 +1165,7 @@ static void pose_propagate_fcurve (wmOperator *op, Object *ob, FCurve *fcu,
 static int pose_propagate_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bAction *act= (ob && ob->adt)? ob->adt->action : NULL;
 	
 	ListBase pflinks = {NULL, NULL};

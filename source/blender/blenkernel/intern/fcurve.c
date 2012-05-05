@@ -1302,7 +1302,7 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 			}
 			else {
 				/* transforms to matrix */
-				object_to_mat4(ob, mat);
+				BKE_object_to_mat4(ob, mat);
 			}
 		}
 		else {

@@ -309,7 +309,7 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 				 *		the constraint is deemed invalid
 				 */
 				/* default IK check ... */
-				if (exist_object(data->tar) == 0) {
+				if (BKE_object_exists_check(data->tar) == 0) {
 					data->tar = NULL;
 					curcon->flag |= CONSTRAINT_DISABLE;
 				}
@@ -320,7 +320,7 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 				}
 				
 				if (data->poletar) {
-					if (exist_object(data->poletar) == 0) {
+					if (BKE_object_exists_check(data->poletar) == 0) {
 						data->poletar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 					}
@@ -339,7 +339,7 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 				bPivotConstraint *data = curcon->data;
 				
 				/* target doesn't have to exist, but if it is non-null, it must exist! */
-				if (data->tar && exist_object(data->tar) == 0) {
+				if (data->tar && BKE_object_exists_check(data->tar) == 0) {
 					data->tar = NULL;
 					curcon->flag |= CONSTRAINT_DISABLE;
 				}
@@ -446,7 +446,7 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 				/* disable and clear constraints targets that are incorrect */
 				for (ct = targets.first; ct; ct = ct->next) {
 					/* general validity checks (for those constraints that need this) */
-					if (exist_object(ct->tar) == 0) {
+					if (BKE_object_exists_check(ct->tar) == 0) {
 						/* object doesn't exist, but constraint requires target */
 						ct->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
@@ -774,8 +774,8 @@ static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con,
 	else if (ob) {
 		Object workob;
 		
-		/* use what_does_parent to find inverse - just like for normal parenting */
-		what_does_parent(scene, ob, &workob);
+		/* use BKE_object_workob_calc_parent to find inverse - just like for normal parenting */
+		BKE_object_workob_calc_parent(scene, ob, &workob);
 		invert_m4_m4(invmat, workob.obmat);
 	}
 }
@@ -1147,7 +1147,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* free constraints for all selected bones */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
@@ -1413,7 +1413,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		Object *obt;
 		
 		/* add new target object */
-		obt = add_object(scene, OB_EMPTY);
+		obt = BKE_object_add(scene, OB_EMPTY);
 		
 		/* set layers OK */
 		newbase = BASACT;
@@ -1434,7 +1434,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 			copy_v3_v3(obt->loc, obact->obmat[3]);
 		}
 
-		/* restore, add_object sets active */
+		/* restore, BKE_object_add sets active */
 		BASACT = base;
 		base->flag |= SELECT;
 		
@@ -1586,7 +1586,7 @@ static int object_constraint_add_exec(bContext *C, wmOperator *op)
 /* dummy operator callback */
 static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = object_pose_armature_get(ED_object_active_context(C));
+	Object *ob = BKE_object_pose_armature_get(ED_object_active_context(C));
 	int type = RNA_enum_get(op->ptr, "type");
 	short with_targets = 0;
 	
@@ -1689,7 +1689,7 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
 /* present menu with options + validation for targets to use */
 static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
-	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bPoseChannel *pchan = get_active_posechannel(ob);
 	bConstraint *con = NULL;
 	
@@ -1773,7 +1773,7 @@ void POSE_OT_ik_add(wmOperatorType *ot)
 /* remove IK constraints from selected bones */
 static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only remove IK Constraints */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)

@@ -188,7 +188,7 @@ Lattice *add_lattice(const char *name)
 {
 	Lattice *lt;
 	
-	lt= alloc_libblock(&G.main->latt, ID_LT, name);
+	lt= BKE_libblock_alloc(&G.main->latt, ID_LT, name);
 	
 	lt->flag= LT_GRID;
 	
@@ -200,14 +200,14 @@ Lattice *add_lattice(const char *name)
 	return lt;
 }
 
-Lattice *copy_lattice(Lattice *lt)
+Lattice *BKE_lattice_copy(Lattice *lt)
 {
 	Lattice *ltn;
 
-	ltn= copy_libblock(&lt->id);
+	ltn= BKE_libblock_copy(&lt->id);
 	ltn->def= MEM_dupallocN(lt->def);
 
-	ltn->key= copy_key(ltn->key);
+	ltn->key= BKE_key_copy(ltn->key);
 	if (ltn->key) ltn->key->from= (ID *)ltn;
 	
 	if (lt->dvert) {
@@ -221,7 +221,7 @@ Lattice *copy_lattice(Lattice *lt)
 	return ltn;
 }
 
-void free_lattice(Lattice *lt)
+void BKE_lattice_free(Lattice *lt)
 {
 	if (lt->def) MEM_freeN(lt->def);
 	if (lt->dvert) free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
@@ -243,7 +243,7 @@ void free_lattice(Lattice *lt)
 }
 
 
-void make_local_lattice(Lattice *lt)
+void BKE_lattice_make_local(Lattice *lt)
 {
 	Main *bmain= G.main;
 	Object *ob;
@@ -271,7 +271,7 @@ void make_local_lattice(Lattice *lt)
 		id_clear_lib_data(bmain, &lt->id);
 	}
 	else if (is_local && is_lib) {
-		Lattice *lt_new= copy_lattice(lt);
+		Lattice *lt_new= BKE_lattice_copy(lt);
 		lt_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */

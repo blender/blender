@@ -914,7 +914,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 
 	set_mesh(ob, uid_mesh_map[*geom_uid]);
 	
-	if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
+	if (old_mesh->id.us == 0) BKE_libblock_free(&G.main->mesh, old_mesh);
 	
 	char layername[100];
 	layername[0] = '\0';

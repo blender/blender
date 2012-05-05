@@ -284,7 +284,7 @@ static void createTransTexspace(TransInfo *t)
 	normalize_m3(td->axismtx);
 	invert_m3_m3(td->smtx, td->mtx);
 
-	if (give_obdata_texspace(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
+	if (BKE_object_obdata_texspace_get(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
 		ob->dtx |= OB_TEXSPACE;
 		*texflag &= ~ME_AUTOSPACE;
 	}
@@ -4258,15 +4258,15 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 	if (skip_invert == 0 && constinv == 0) {
 		if (constinv == 0)
-			ob->transflag |= OB_NO_CONSTRAINTS; /* where_is_object_time checks this */
+			ob->transflag |= OB_NO_CONSTRAINTS; /* BKE_object_where_is_calc_time checks this */
 		
-		where_is_object(t->scene, ob);
+		BKE_object_where_is_calc(t->scene, ob);
 		
 		if (constinv == 0)
 			ob->transflag &= ~OB_NO_CONSTRAINTS;
 	}
 	else
-		where_is_object(t->scene, ob);
+		BKE_object_where_is_calc(t->scene, ob);
 
 	td->ob = ob;
 
@@ -4320,7 +4320,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		 * NOTE: some Constraints, and also Tracking should never get this
 		 *		done, as it doesn't work well.
 		 */
-		object_to_mat3(ob, obmtx);
+		BKE_object_to_mat3(ob, obmtx);
 		copy_m3_m4(totmat, ob->obmat);
 		invert_m3_m3(obinv, totmat);
 		mul_m3_m3m3(td->smtx, obmtx, obinv);
@@ -4362,7 +4362,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 	/* handle pending update events, otherwise they got copied below */
 	for (base= scene->base.first; base; base= base->next) {
 		if (base->object->recalc)
-			object_handle_update(t->scene, base->object);
+			BKE_object_handle_update(t->scene, base->object);
 	}
 
 	for (base= scene->base.first; base; base= base->next) {
@@ -5141,7 +5141,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* recalculating the frame positions means we loose our original transform if its not auto-keyed [#24451]
 			 * this hack re-applies it, which is annoying, only alternatives are...
 			 * - don't recalc paths.
-			 * - have an object_handle_update() which gives is the new transform without touching the objects.
+			 * - have an BKE_object_handle_update() which gives is the new transform without touching the objects.
 			 * - only recalc paths on auto-keying.
 			 * - ED_objects_recalculate_paths could backup/restore transforms.
 			 * - re-apply the transform which is simplest in this case. (2 lines below)

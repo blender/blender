@@ -5868,7 +5868,7 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 				me->msticky= CustomData_add_layer(&me->vdata, CD_MSTICKY,
 					CD_CALLOC, NULL, me->totvert);
 				
-				where_is_object(scene, ob);
+				BKE_object_where_is_calc(scene, ob);
 				mult_m4_m4m4(mat, re->viewmat, ob->obmat);
 				
 				ms= me->msticky;

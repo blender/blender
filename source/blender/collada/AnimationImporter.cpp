@@ -324,7 +324,7 @@ void AnimationImporter::read_node_transform(COLLADAFW::Node *node, Object *ob)
 	TransformReader::get_node_mat(mat, node, &uid_animated_map, ob);
 	if (ob) {
 		copy_m4_m4(ob->obmat, mat);
-		object_apply_mat4(ob, ob->obmat, 0, 0);
+		BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
 	}
 }
 
@@ -1800,7 +1800,7 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::No
 			job->parsubstr[0] = 0;
 		}
 
-		where_is_object(scene, job);
+		BKE_object_where_is_calc(scene, job);
 
 		// after parenting and layer change
 		DAG_scene_sort(CTX_data_main(C), scene);

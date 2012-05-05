@@ -45,15 +45,16 @@ struct bContext;
 struct PointerRNA;
 struct PropertyRNA;
 
-void *alloc_libblock(struct ListBase *lb, short type, const char *name);
-void *copy_libblock(struct ID *id);
-void copy_libblock_data(struct ID *id, const struct ID *id_from, const short do_action);
+void *BKE_libblock_alloc(struct ListBase *lb, short type, const char *name);
+void *BKE_libblock_copy(struct ID *id);
+void  BKE_libblock_copy_data(struct ID *id, const struct ID *id_from, const short do_action);
 
 void BKE_id_lib_local_paths(struct Main *bmain, struct Library *lib, struct ID *id);
 void id_lib_extern(struct ID *id);
 void BKE_library_filepath_set(struct Library *lib, const char *filepath);
 void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
+
 int id_make_local(struct ID *id, int test);
 int id_single_user(struct bContext *C, struct ID *id, struct PointerRNA *ptr, struct PropertyRNA *prop);
 int id_copy(struct ID *id, struct ID **newid, int test);
@@ -68,8 +69,8 @@ struct ListBase *which_libbase(struct Main *mainlib, short type);
 #define MAX_LIBARRAY	40
 int set_listbasepointers(struct Main *main, struct ListBase **lb);
 
-void free_libblock(struct ListBase *lb, void *idv);
-void free_libblock_us(struct ListBase *lb, void *idv);
+void BKE_libblock_free(struct ListBase *lb, void *idv);
+void BKE_libblock_free_us(struct ListBase *lb, void *idv);
 void free_main(struct Main *mainvar);
 
 void tag_main_idcode(struct Main *mainvar, const short type, const short tag);

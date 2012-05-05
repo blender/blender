@@ -147,7 +147,7 @@ void ED_object_base_init_transform(bContext *C, Base *base, float *loc, float *r
 	if (rot)
 		copy_v3_v3(ob->rot, rot);
 	
-	where_is_object(scene, ob);
+	BKE_object_where_is_calc(scene, ob);
 }
 
 /* uses context to figure out transform for primitive */
@@ -325,7 +325,7 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot,
 		ED_object_exit_editmode(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);  /* freedata, and undo */
 	
 	/* deselects all, sets scene->basact */
-	ob = add_object(scene, type);
+	ob = BKE_object_add(scene, type);
 	BASACT->lay = ob->lay = layer;
 	/* editor level activate, notifiers */
 	ED_base_object_activate(C, BASACT);
@@ -891,7 +891,7 @@ void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 {
 	DAG_id_type_tag(bmain, ID_OB);
 	BLI_remlink(&scene->base, base);
-	free_libblock_us(&bmain->object, base->object);
+	BKE_libblock_free_us(&bmain->object, base->object);
 	if (scene->basact == base) scene->basact = NULL;
 	MEM_freeN(base);
 }
@@ -975,7 +975,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 	/* XXX check object pointers */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		object_relink(ob);
+		BKE_object_relink(ob);
 	}
 	CTX_DATA_END;
 	
@@ -993,7 +993,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 							id = (ID *)ma->mtex[a]->tex;
 							if (id) {
 								ID_NEW_US(ma->mtex[a]->tex)
-								else ma->mtex[a]->tex = copy_texture(ma->mtex[a]->tex);
+								else ma->mtex[a]->tex = BKE_texture_copy(ma->mtex[a]->tex);
 								id->us--;
 							}
 						}
@@ -1073,7 +1073,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	
 	for (dob = lb->first; dob; dob = dob->next) {
 		Base *basen;
-		Object *ob = copy_object(dob->ob);
+		Object *ob = BKE_object_copy(dob->ob);
 		/* font duplis can have a totcol without material, we get them from parent
 		 * should be implemented better...
 		 */
@@ -1097,7 +1097,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		ob->lay = base->lay;
 		
 		copy_m4_m4(ob->obmat, dob->mat);
-		object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+		BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 
 		if (dupli_gh)
 			BLI_ghash_insert(dupli_gh, dob, ob);
@@ -1143,7 +1143,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 				/* note, this may be the parent of other objects, but it should
 				 * still work out ok */
-				object_apply_mat4(ob_dst, dob->mat, FALSE, TRUE);
+				BKE_object_apply_mat4(ob_dst, dob->mat, FALSE, TRUE);
 
 				/* to set ob_dst->orig and in case theres any other discrepicies */
 				DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
@@ -1162,7 +1162,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 			/* similer to the code above, see comments */
 			invert_m4_m4(ob_dst->parentinv, dob->mat);
-			object_apply_mat4(ob_dst, dob->mat, FALSE, TRUE);
+			BKE_object_apply_mat4(ob_dst, dob->mat, FALSE, TRUE);
 			DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
 
 
@@ -1244,7 +1244,7 @@ static void curvetomesh(Scene *scene, Object *ob)
 	nurbs_to_mesh(ob); /* also does users */
 
 	if (ob->type == OB_MESH)
-		object_free_modifiers(ob);
+		BKE_object_free_modifiers(ob);
 }
 
 static int convert_poll(bContext *C)
@@ -1265,7 +1265,7 @@ static Base *duplibase_for_convert(Scene *scene, Base *base, Object *ob)
 		ob = base->object;
 	}
 
-	obn = copy_object(ob);
+	obn = BKE_object_copy(ob);
 	obn->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 
 	basen = MEM_mallocN(sizeof(Base), "duplibase");
@@ -1325,7 +1325,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				/* When 2 objects with linked data are selected, converting both
 				 * would keep modifiers on all but the converted object [#26003] */
 				if (ob->type == OB_MESH) {
-					object_free_modifiers(ob);  /* after derivedmesh calls! */
+					BKE_object_free_modifiers(ob);  /* after derivedmesh calls! */
 				}
 			}
 		}
@@ -1341,7 +1341,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				me->id.us--;
 
 				/* make a new copy of the mesh */
-				newob->data = copy_mesh(me);
+				newob->data = BKE_mesh_copy(me);
 			}
 			else {
 				newob = ob;
@@ -1350,7 +1350,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			mesh_to_curve(scene, newob);
 
 			if (newob->type == OB_CURVE)
-				object_free_modifiers(newob);   /* after derivedmesh calls! */
+				BKE_object_free_modifiers(newob);   /* after derivedmesh calls! */
 		}
 		else if (ob->type == OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
 			ob->flag |= OB_DONE;
@@ -1364,7 +1364,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				me->id.us--;
 
 				/* make a new copy of the mesh */
-				newob->data = copy_mesh(me);
+				newob->data = BKE_mesh_copy(me);
 			}
 			else {
 				newob = ob;
@@ -1383,7 +1383,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			/* re-tessellation is called by DM_to_mesh */
 
 			dm->release(dm);
-			object_free_modifiers(newob);   /* after derivedmesh calls! */
+			BKE_object_free_modifiers(newob);   /* after derivedmesh calls! */
 		}
 		else if (ob->type == OB_FONT) {
 			ob->flag |= OB_DONE;
@@ -1631,7 +1631,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 		; /* nothing? */
 	}
 	else {
-		obn = copy_object(ob);
+		obn = BKE_object_copy(ob);
 		obn->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 		
 		basen = MEM_mallocN(sizeof(Base), "duplibase");
@@ -1657,7 +1657,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				id = (ID *)obn->mat[a];
 				if (id) {
 					ID_NEW_US(obn->mat[a])
-					else obn->mat[a] = copy_material(obn->mat[a]);
+					else obn->mat[a] = BKE_material_copy(obn->mat[a]);
 					id->us--;
 					
 					if (dupflag & USER_DUP_ACT) {
@@ -1672,7 +1672,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				id = (ID *) psys->part;
 				if (id) {
 					ID_NEW_US(psys->part)
-					else psys->part = psys_copy_settings(psys->part);
+					else psys->part = BKE_particlesettings_copy(psys->part);
 					
 					if (dupflag & USER_DUP_ACT) {
 						BKE_copy_animdata_id_action(&psys->part->id);
@@ -1691,7 +1691,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag & USER_DUP_MESH) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = copy_mesh(obn->data);
+						obn->data = BKE_mesh_copy(obn->data);
 						
 						if (obn->fluidsimSettings) {
 							obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
@@ -1746,7 +1746,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag & USER_DUP_LAMP) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = copy_lamp(obn->data);
+						obn->data = BKE_lamp_copy(obn->data);
 						didit = 1;
 					}
 					id->us--;
@@ -1760,7 +1760,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag & USER_DUP_ARM) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = copy_armature(obn->data);
+						obn->data = BKE_armature_copy(obn->data);
 						armature_rebuild_pose(obn, obn->data);
 						didit = 1;
 					}
@@ -1773,7 +1773,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag != 0) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = copy_lattice(obn->data);
+						obn->data = BKE_lattice_copy(obn->data);
 						didit = 1;
 					}
 					id->us--;
@@ -1793,7 +1793,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag != 0) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = copy_speaker(obn->data);
+						obn->data = BKE_speaker_copy(obn->data);
 						didit = 1;
 					}
 					id->us--;
@@ -1832,7 +1832,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						id = (ID *)(*matarar)[a];
 						if (id) {
 							ID_NEW_US((*matarar)[a])
-							else (*matarar)[a] = copy_material((*matarar)[a]);
+							else (*matarar)[a] = BKE_material_copy((*matarar)[a]);
 							
 							id->us--;
 						}
@@ -1863,7 +1863,7 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag
 	ob = basen->object;
 
 	/* link own references to the newly duplicated data [#26816] */
-	object_relink(ob);
+	BKE_object_relink(ob);
 	set_sca_new_poins_ob(ob);
 
 	DAG_scene_sort(bmain, scene);
@@ -2033,7 +2033,7 @@ static int join_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode");
 		return OPERATOR_CANCELLED;
 	}
-	else if (object_data_is_libdata(ob)) {
+	else if (BKE_object_obdata_is_libdata(ob)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
 		return OPERATOR_CANCELLED;
 	}
@@ -2086,7 +2086,7 @@ static int join_shapes_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode");
 		return OPERATOR_CANCELLED;
 	}
-	else if (object_data_is_libdata(ob)) {
+	else if (BKE_object_obdata_is_libdata(ob)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
 		return OPERATOR_CANCELLED;
 	}

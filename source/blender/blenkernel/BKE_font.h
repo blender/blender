@@ -73,7 +73,7 @@ typedef struct EditFont {
 
 void BKE_font_register_builtin(void *mem, int size);
 
-void free_vfont(struct VFont *sc); 
+void BKE_vfont_free(struct VFont *sc); 
 void free_ttfont(void);
 struct VFont *get_builtin_font(void);
 struct VFont *load_vfont(struct Main *bmain, const char *name);

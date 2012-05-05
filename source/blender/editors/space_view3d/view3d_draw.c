@@ -1552,7 +1552,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 
 				if (bgpic->flag & V3D_BGPIC_CAMERACLIP) {
 					if (scene->camera)
-						clip = object_get_movieclip(scene, scene->camera, 1);
+						clip = BKE_object_movieclip_get(scene, scene->camera, 1);
 				}
 				else clip = bgpic->clip;
 
@@ -1866,7 +1866,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			    /* lamp drawing messes with matrices, could be handled smarter... but this works */
 			    (dob->ob->type == OB_LAMP) ||
 			    (dob->type == OB_DUPLIGROUP && dob->animated) ||
-			    !(bb_tmp = object_get_boundbox(dob->ob)))
+			    !(bb_tmp = BKE_object_boundbox_get(dob->ob)))
 			{
 				// printf("draw_dupli_objects_color: skipping displist for %s\n", dob->ob->id.name+2);
 				use_displist = 0;
@@ -1876,7 +1876,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				bb = *bb_tmp; /* must make a copy  */
 
 				/* disable boundbox check for list creation */
-				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
+				BKE_object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
 				/* need this for next part of code */
 				unit_m4(dob->ob->obmat);    /* obmat gets restored */
 
@@ -1886,7 +1886,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				glEndList();
 
 				use_displist = 1;
-				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
+				BKE_object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
 			}
 		}
 		if (use_displist) {
@@ -2043,7 +2043,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	RegionView3D *rv3d = ar->regiondata;
 
 	setwinmatrixview3d(ar, v3d, NULL);  /* 0= no pick rect */
-	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls where_is_object for camera... */
+	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
@@ -2078,7 +2078,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *))
 	U.obcenter_dia = 0;
 	
 	setwinmatrixview3d(ar, v3d, NULL);  /* 0= no pick rect */
-	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls where_is_object for camera... */
+	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 	
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
@@ -2367,7 +2367,7 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 	if (viewmat)
 		copy_m4_m4(rv3d->viewmat, viewmat);
 	else
-		setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls where_is_object for camera... */
+		setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 
 	/* update utilitity matrices */
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);

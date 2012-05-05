@@ -202,7 +202,7 @@ static void unlink_group_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEleme
 		}
 	}
 	else {
-		unlink_group(group);
+		BKE_group_unlink(group);
 	}
 }
 

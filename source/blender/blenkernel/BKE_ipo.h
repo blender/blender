@@ -45,7 +45,7 @@ void do_versions_ipos_to_animato(struct Main *main);
 
 /* --------------------- xxx stuff ------------------------ */
 
-void free_ipo(struct Ipo *ipo);
+void BKE_ipo_free(struct Ipo *ipo);
 
 #ifdef __cplusplus
 };

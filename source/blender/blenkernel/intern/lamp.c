@@ -55,7 +55,7 @@ void *add_lamp(const char *name)
 {
 	Lamp *la;
 	
-	la=  alloc_libblock(&G.main->lamp, ID_LA, name);
+	la=  BKE_libblock_alloc(&G.main->lamp, ID_LA, name);
 	
 	la->r= la->g= la->b= la->k= 1.0f;
 	la->haint= la->energy= 1.0f;
@@ -102,12 +102,12 @@ void *add_lamp(const char *name)
 	return la;
 }
 
-Lamp *copy_lamp(Lamp *la)
+Lamp *BKE_lamp_copy(Lamp *la)
 {
 	Lamp *lan;
 	int a;
 	
-	lan= copy_libblock(&la->id);
+	lan= BKE_libblock_copy(&la->id);
 
 	for (a=0; a<MAX_MTEX; a++) {
 		if (lan->mtex[a]) {
@@ -133,7 +133,7 @@ Lamp *localize_lamp(Lamp *la)
 	Lamp *lan;
 	int a;
 	
-	lan= copy_libblock(&la->id);
+	lan= BKE_libblock_copy(&la->id);
 	BLI_remlink(&G.main->lamp, lan);
 
 	for (a=0; a<MAX_MTEX; a++) {
@@ -185,7 +185,7 @@ void make_local_lamp(Lamp *la)
 		id_clear_lib_data(bmain, &la->id);
 	}
 	else if (is_local && is_lib) {
-		Lamp *la_new= copy_lamp(la);
+		Lamp *la_new= BKE_lamp_copy(la);
 		la_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
@@ -206,7 +206,7 @@ void make_local_lamp(Lamp *la)
 	}
 }
 
-void free_lamp(Lamp *la)
+void BKE_lamp_free(Lamp *la)
 {
 	MTex *mtex;
 	int a;

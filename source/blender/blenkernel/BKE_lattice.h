@@ -43,9 +43,9 @@ struct MDeformVert;
 
 void resizelattice(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
 struct Lattice *add_lattice(const char *name);
-struct Lattice *copy_lattice(struct Lattice *lt);
-void free_lattice(struct Lattice *lt);
-void make_local_lattice(struct Lattice *lt);
+struct Lattice *BKE_lattice_copy(struct Lattice *lt);
+void BKE_lattice_free(struct Lattice *lt);
+void BKE_lattice_make_local(struct Lattice *lt);
 void calc_lat_fudu(int flag, int res, float *fu, float *du);
 
 void init_latt_deform(struct Object *oblatt, struct Object *ob);

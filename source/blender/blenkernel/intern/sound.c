@@ -89,21 +89,21 @@ struct bSound* sound_new_file(struct Main *bmain, const char *filename)
 	while (len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
 		len--;
 
-	sound = alloc_libblock(&bmain->sound, ID_SO, filename+len);
+	sound = BKE_libblock_alloc(&bmain->sound, ID_SO, filename+len);
 	BLI_strncpy(sound->name, filename, FILE_MAX);
 // XXX unused currently	sound->type = SOUND_TYPE_FILE;
 
 	sound_load(bmain, sound);
 
 	if (!sound->playback_handle) {
-		free_libblock(&bmain->sound, sound);
+		BKE_libblock_free(&bmain->sound, sound);
 		sound = NULL;
 	}
 
 	return sound;
 }
 
-void sound_free(struct bSound* sound)
+void BKE_sound_free(struct bSound* sound)
 {
 	if (sound->packedfile) {
 		freePackedFile(sound->packedfile);
@@ -231,7 +231,7 @@ struct bSound* sound_new_buffer(struct Main *bmain, struct bSound *source)
 	strcpy(name, "buf_");
 	strcpy(name + 4, source->id.name);
 
-	sound = alloc_libblock(&bmain->sound, ID_SO, name);
+	sound = BKE_libblock_alloc(&bmain->sound, ID_SO, name);
 
 	sound->child_sound = source;
 	sound->type = SOUND_TYPE_BUFFER;
@@ -240,7 +240,7 @@ struct bSound* sound_new_buffer(struct Main *bmain, struct bSound *source)
 
 	if (!sound->playback_handle)
 	{
-		free_libblock(&bmain->sound, sound);
+		BKE_libblock_free(&bmain->sound, sound);
 		sound = NULL;
 	}
 
@@ -255,7 +255,7 @@ struct bSound* sound_new_limiter(struct Main *bmain, struct bSound *source, floa
 	strcpy(name, "lim_");
 	strcpy(name + 4, source->id.name);
 
-	sound = alloc_libblock(&bmain->sound, ID_SO, name);
+	sound = BKE_libblock_alloc(&bmain->sound, ID_SO, name);
 
 	sound->child_sound = source;
 	sound->start = start;
@@ -266,7 +266,7 @@ struct bSound* sound_new_limiter(struct Main *bmain, struct bSound *source, floa
 
 	if (!sound->playback_handle)
 	{
-		free_libblock(&bmain->sound, sound);
+		BKE_libblock_free(&bmain->sound, sound);
 		sound = NULL;
 	}
 
@@ -277,9 +277,9 @@ struct bSound* sound_new_limiter(struct Main *bmain, struct bSound *source, floa
 void sound_delete(struct Main *bmain, struct bSound* sound)
 {
 	if (sound) {
-		sound_free(sound);
+		BKE_sound_free(sound);
 
-		free_libblock(&bmain->sound, sound);
+		BKE_libblock_free(&bmain->sound, sound);
 	}
 }
 

@@ -78,7 +78,7 @@
 int slurph_opt = 1;
 
 
-void free_key(Key *key)
+void BKE_key_free(Key *key)
 {
 	KeyBlock *kb;
 	
@@ -126,7 +126,7 @@ Key *add_key(ID *id)    /* common function */
 	Key *key;
 	char *el;
 	
-	key = alloc_libblock(&G.main->key, ID_KE, "Key");
+	key = BKE_libblock_alloc(&G.main->key, ID_KE, "Key");
 	
 	key->type = KEY_NORMAL;
 	key->from = id;
@@ -170,14 +170,14 @@ Key *add_key(ID *id)    /* common function */
 	return key;
 }
 
-Key *copy_key(Key *key)
+Key *BKE_key_copy(Key *key)
 {
 	Key *keyn;
 	KeyBlock *kbn, *kb;
 	
 	if (key == NULL) return NULL;
 	
-	keyn = copy_libblock(&key->id);
+	keyn = BKE_libblock_copy(&key->id);
 	
 	BLI_duplicatelist(&keyn->block, &key->block);
 	
@@ -223,7 +223,7 @@ Key *copy_key_nolib(Key *key)
 	return keyn;
 }
 
-void make_local_key(Key *key)
+void BKE_key_make_local(Key *key)
 {
 
 	/* - only lib users: do nothing

@@ -347,7 +347,7 @@ int ED_operator_posemode(bContext *C)
 
 	if (obact && !(obact->mode & OB_MODE_EDIT)) {
 		Object *obpose;
-		if ((obpose= object_pose_armature_get(obact))) {
+		if ((obpose= BKE_object_pose_armature_get(obact))) {
 			if ((obact == obpose) || (obact->mode & OB_MODE_WEIGHT_PAINT)) {
 				return 1;
 			}

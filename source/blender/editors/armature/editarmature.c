@@ -632,9 +632,9 @@ static void applyarmature_fix_boneparents (Scene *scene, Object *armob)
 			/* apply current transform from parent (not yet destroyed), 
 			 * then calculate new parent inverse matrix
 			 */
-			object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+			BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 			
-			what_does_parent(scene, ob, &workob);
+			BKE_object_workob_calc_parent(scene, ob, &workob);
 			invert_m4_m4(ob->parentinv, workob.obmat);
 		}
 	}
@@ -644,7 +644,7 @@ static void applyarmature_fix_boneparents (Scene *scene, Object *armob)
 static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
 	bArmature *arm= get_armature(ob);
 	bPose *pose;
 	bPoseChannel *pchan;
@@ -653,7 +653,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	/* don't check if editmode (should be done by caller) */
 	if (ob->type!=OB_ARMATURE)
 		return OPERATOR_CANCELLED;
-	if (object_data_is_libdata(ob)) {
+	if (BKE_object_obdata_is_libdata(ob)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature"); //error_libdata();
 		return OPERATOR_CANCELLED;
 	}
@@ -746,7 +746,7 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
 /* set the current pose as the restpose */
 static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
 
 	/* don't check if editmode (should be done by caller) */
 	if (ob->type!=OB_ARMATURE)
@@ -5088,7 +5088,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 		void (*clear_func)(bPoseChannel*), const char default_ksName[])
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	short autokey = 0;
 	
 	/* sanity checks */
@@ -5292,7 +5292,7 @@ void POSE_OT_select_all(wmOperatorType *ot)
 
 static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bPoseChannel *pchan, *parent;
 
 	/*	Determine if there is an active bone */
@@ -5368,7 +5368,7 @@ static int hide_unselected_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr
 /* active object is armature in posemode, poll checked */
 static int pose_hide_exec(bContext *C, wmOperator *op) 
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
 
 	if (RNA_boolean_get(op->ptr, "unselected"))
@@ -5417,7 +5417,7 @@ static int show_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr))
 /* active object is armature in posemode, poll checked */
 static int pose_reveal_exec(bContext *C, wmOperator *UNUSED(op)) 
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
 	
 	bone_looper(ob, arm->bonebase.first, NULL, show_pose_bone_cb);
@@ -5932,7 +5932,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		ED_armature_edit_free(obedit);
 	}
 	
-	dst = add_object(scene, OB_ARMATURE);
+	dst = BKE_object_add(scene, OB_ARMATURE);
 	ED_object_base_init_transform(NULL, scene->basact, NULL, NULL); 	// XXX NULL is C, loc, rot
 	obedit= scene->basact->object;
 	
@@ -5941,7 +5941,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	mat4_to_eul(dst->rot, src->obmat);
 	mat4_to_size(dst->size, src->obmat);
 	
-	where_is_object(scene, obedit);
+	BKE_object_where_is_calc(scene, obedit);
 	
 	ED_armature_to_edit(obedit);
 

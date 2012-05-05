@@ -235,7 +235,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 					ob->par3 = v3 - 1;
 
 					/* inverse parent matrix */
-					what_does_parent(scene, ob, &workob);
+					BKE_object_workob_calc_parent(scene, ob, &workob);
 					invert_m4_m4(ob->parentinv, workob.obmat);
 				}
 				else {
@@ -243,7 +243,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 					ob->par1 = v1 - 1;
 
 					/* inverse parent matrix */
-					what_does_parent(scene, ob, &workob);
+					BKE_object_workob_calc_parent(scene, ob, &workob);
 					invert_m4_m4(ob->parentinv, workob.obmat);
 				}
 			}
@@ -335,24 +335,24 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 		char name[MAX_ID_NAME + 4];
 		
 		/* Add new object for the proxy */
-		newob = add_object(scene, OB_EMPTY);
+		newob = BKE_object_add(scene, OB_EMPTY);
 
 		BLI_snprintf(name, sizeof(name), "%s_proxy", ((ID *)(gob ? gob : ob))->name + 2);
 
 		rename_id(&newob->id, name);
 		
 		/* set layers OK */
-		newbase = BASACT;    /* add_object sets active... */
+		newbase = BASACT;    /* BKE_object_add sets active... */
 		newbase->lay = oldbase->lay;
 		newob->lay = newbase->lay;
 		
-		/* remove base, leave user count of object, it gets linked in object_make_proxy */
+		/* remove base, leave user count of object, it gets linked in BKE_object_make_proxy */
 		if (gob == NULL) {
 			BLI_remlink(&scene->base, oldbase);
 			MEM_freeN(oldbase);
 		}
 		
-		object_make_proxy(newob, ob, gob);
+		BKE_object_make_proxy(newob, ob, gob);
 		
 		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(bmain, scene);
@@ -439,7 +439,7 @@ void ED_object_parent_clear(bContext *C, int type)
 		}
 		else if (type == 1) {
 			ob->parent = NULL;
-			object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
+			BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
 		}
 		else if (type == 2)
 			unit_m4(ob->parentinv);
@@ -571,7 +571,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			Object workob;
 			
 			/* apply transformation of previous parenting */
-			/* object_apply_mat4(ob, ob->obmat); */ /* removed because of bug [#23577] */
+			/* BKE_object_apply_mat4(ob, ob->obmat); */ /* removed because of bug [#23577] */
 			
 			/* set the parent (except for follow-path constraint option) */
 			if (partype != PAR_PATH_CONST) {
@@ -650,13 +650,13 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				}
 				/* get corrected inverse */
 				ob->partype = PAROBJECT;
-				what_does_parent(scene, ob, &workob);
+				BKE_object_workob_calc_parent(scene, ob, &workob);
 				
 				invert_m4_m4(ob->parentinv, workob.obmat);
 			}
 			else {
 				/* calculate inverse parent matrix */
-				what_does_parent(scene, ob, &workob);
+				BKE_object_workob_calc_parent(scene, ob, &workob);
 				invert_m4_m4(ob->parentinv, workob.obmat);
 			}
 			
@@ -814,7 +814,7 @@ static int object_slow_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 		if (ob->parent) {
 			if (ob->partype & PARSLOW) {
 				ob->partype -= PARSLOW;
-				where_is_object(scene, ob);
+				BKE_object_where_is_calc(scene, ob);
 				ob->partype |= PARSLOW;
 				ob->recalc |= OB_RECALC_OB;
 			}
@@ -920,7 +920,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		}
 		
 		if (type == 1)
-			object_apply_mat4(ob, ob->obmat, TRUE, TRUE);
+			BKE_object_apply_mat4(ob, ob->obmat, TRUE, TRUE);
 	}
 	CTX_DATA_END;
 
@@ -1313,7 +1313,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					case MAKE_LINKS_MODIFIERS:
-						object_link_modifiers(obt, ob);
+						BKE_object_link_modifiers(obt, ob);
 						obt->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 						break;
 				}
@@ -1401,7 +1401,7 @@ static void single_object_users(Scene *scene, View3D *v3d, int flag)
 		if ( (base->flag & flag) == flag) {
 			if (ob->id.lib == NULL && ob->id.us > 1) {
 				/* base gets copy of object */
-				obn = copy_object(ob);
+				obn = BKE_object_copy(ob);
 				base->object = obn;
 				ob->id.us--;
 			}
@@ -1413,7 +1413,7 @@ static void single_object_users(Scene *scene, View3D *v3d, int flag)
 	
 	/* object pointers */
 	for (base = FIRSTBASE; base; base = base->next) {
-		object_relink(base->object);
+		BKE_object_relink(base->object);
 	}
 
 	set_sca_new_poins();
@@ -1447,7 +1447,7 @@ static void new_id_matar(Material **matar, int totcol)
 				id->us--;
 			}
 			else if (id->us > 1) {
-				matar[a] = copy_material(matar[a]);
+				matar[a] = BKE_material_copy(matar[a]);
 				id->us--;
 				id->newid = (ID *)matar[a];
 			}
@@ -1478,7 +1478,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 				
 				switch (ob->type) {
 					case OB_LAMP:
-						ob->data = la = copy_lamp(ob->data);
+						ob->data = la = BKE_lamp_copy(ob->data);
 						for (a = 0; a < MAX_MTEX; a++) {
 							if (la->mtex[a]) {
 								ID_NEW(la->mtex[a]->object);
@@ -1489,7 +1489,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						ob->data = BKE_camera_copy(ob->data);
 						break;
 					case OB_MESH:
-						ob->data = copy_mesh(ob->data);
+						ob->data = BKE_mesh_copy(ob->data);
 						//me= ob->data;
 						//if (me && me->key)
 						//	ipo_idnew(me->key->ipo);	/* drivers */
@@ -1505,15 +1505,15 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						ID_NEW(cu->taperobj);
 						break;
 					case OB_LATTICE:
-						ob->data = copy_lattice(ob->data);
+						ob->data = BKE_lattice_copy(ob->data);
 						break;
 					case OB_ARMATURE:
 						ob->recalc |= OB_RECALC_DATA;
-						ob->data = copy_armature(ob->data);
+						ob->data = BKE_armature_copy(ob->data);
 						armature_rebuild_pose(ob, ob->data);
 						break;
 					case OB_SPEAKER:
-						ob->data = copy_speaker(ob->data);
+						ob->data = BKE_speaker_copy(ob->data);
 						break;
 					default:
 						if (G.debug & G_DEBUG)
@@ -1568,7 +1568,7 @@ static void single_mat_users(Scene *scene, int flag, int do_textures)
 					/* do not test for LIB_NEW: this functions guaranteed delivers single_users! */
 					
 					if (ma->id.us > 1) {
-						man = copy_material(ma);
+						man = BKE_material_copy(ma);
 						BKE_copy_animdata_id_action(&man->id);
 						
 						man->id.us = 0;
@@ -1579,7 +1579,7 @@ static void single_mat_users(Scene *scene, int flag, int do_textures)
 								if (ma->mtex[b] && (tex = ma->mtex[b]->tex)) {
 									if (tex->id.us > 1) {
 										tex->id.us--;
-										tex = copy_texture(tex);
+										tex = BKE_texture_copy(tex);
 										BKE_copy_animdata_id_action(&tex->id);
 										man->mtex[b]->tex = tex;
 									}
@@ -1606,7 +1606,7 @@ static void do_single_tex_user(Tex **from)
 		tex->id.us--;
 	}
 	else if (tex->id.us > 1) {
-		texn = copy_texture(tex);
+		texn = BKE_texture_copy(tex);
 		BKE_copy_animdata_id_action(&texn->id);
 		tex->id.newid = (ID *)texn;
 		tex->id.us--;

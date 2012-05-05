@@ -47,7 +47,7 @@ void *add_speaker(const char *name)
 {
 	Speaker *spk;
 
-	spk=  alloc_libblock(&G.main->speaker, ID_SPK, name);
+	spk=  BKE_libblock_alloc(&G.main->speaker, ID_SPK, name);
 
 	spk->attenuation = 1.0f;
 	spk->cone_angle_inner = 360.0f;
@@ -65,11 +65,11 @@ void *add_speaker(const char *name)
 	return spk;
 }
 
-Speaker *copy_speaker(Speaker *spk)
+Speaker *BKE_speaker_copy(Speaker *spk)
 {
 	Speaker *spkn;
 
-	spkn= copy_libblock(&spk->id);
+	spkn= BKE_libblock_copy(&spk->id);
 	if (spkn->sound)
 		spkn->sound->id.us++;
 
@@ -106,7 +106,7 @@ void make_local_speaker(Speaker *spk)
 		id_clear_lib_data(bmain, &spk->id);
 	}
 	else if (is_local && is_lib) {
-		Speaker *spk_new= copy_speaker(spk);
+		Speaker *spk_new= BKE_speaker_copy(spk);
 		spk_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
@@ -127,7 +127,7 @@ void make_local_speaker(Speaker *spk)
 	}
 }
 
-void free_speaker(Speaker *spk)
+void BKE_speaker_free(Speaker *spk)
 {
 	if (spk->sound)
 		spk->sound->id.us--;

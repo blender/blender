@@ -54,7 +54,7 @@ void *BKE_camera_add(const char *name)
 {
 	Camera *cam;
 	
-	cam=  alloc_libblock(&G.main->camera, ID_CA, name);
+	cam=  BKE_libblock_alloc(&G.main->camera, ID_CA, name);
 
 	cam->lens= 35.0f;
 	cam->sensor_x= 32.0f;
@@ -73,7 +73,7 @@ Camera *BKE_camera_copy(Camera *cam)
 {
 	Camera *camn;
 	
-	camn= copy_libblock(&cam->id);
+	camn= BKE_libblock_copy(&cam->id);
 
 	id_lib_extern((ID *)camn->dof_ob);
 

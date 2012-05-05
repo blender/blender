@@ -485,7 +485,7 @@ static int edbm_extrude_mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 		 * automatically building this data if invalid. Or something.
 		 */
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		object_handle_update(scene, obedit);
+		BKE_object_handle_update(scene, obedit);
 
 		/* individual faces? */
 //		BIF_TransformSetUndo("Extrude");

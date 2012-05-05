@@ -119,12 +119,12 @@ void mesh_flush_hidden_from_verts(const struct MVert *mvert,
 								  struct MPoly *mpoly, int totpoly);
 
 void unlink_mesh(struct Mesh *me);
-void free_mesh(struct Mesh *me, int unlink);
+void BKE_mesh_free(struct Mesh *me, int unlink);
 struct Mesh *add_mesh(const char *name);
-struct Mesh *copy_mesh(struct Mesh *me);
+struct Mesh *BKE_mesh_copy(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me, const short do_ensure_tess_cd);
 
-void make_local_mesh(struct Mesh *me);
+void BKE_mesh_make_local(struct Mesh *me);
 void boundbox_mesh(struct Mesh *me, float *loc, float *size);
 void tex_space_mesh(struct Mesh *me);
 float *get_mesh_orco_verts(struct Object *ob);

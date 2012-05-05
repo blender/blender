@@ -253,8 +253,8 @@ AnimData *BKE_copy_animdata (AnimData *adt, const short do_action)
 	
 	/* make a copy of action - at worst, user has to delete copies... */
 	if (do_action) {
-		dadt->action= copy_action(adt->action);
-		dadt->tmpact= copy_action(adt->tmpact);
+		dadt->action= BKE_action_copy(adt->action);
+		dadt->tmpact= BKE_action_copy(adt->tmpact);
 	}
 	else {
 		id_us_plus((ID *)dadt->action);
@@ -298,11 +298,11 @@ void BKE_copy_animdata_id_action(ID *id)
 	if (adt) {
 		if (adt->action) {
 			id_us_min((ID *)adt->action);
-			adt->action= copy_action(adt->action);
+			adt->action= BKE_action_copy(adt->action);
 		}
 		if (adt->tmpact) {
 			id_us_min((ID *)adt->tmpact);
-			adt->tmpact= copy_action(adt->tmpact);
+			adt->tmpact= BKE_action_copy(adt->tmpact);
 		}
 	}
 }
@@ -314,8 +314,8 @@ static void make_local_strips(ListBase *strips)
 	NlaStrip *strip;
 
 	for (strip=strips->first; strip; strip=strip->next) {
-		if (strip->act) make_local_action(strip->act);
-		if (strip->remap && strip->remap->target) make_local_action(strip->remap->target);
+		if (strip->act) BKE_action_make_local(strip->act);
+		if (strip->remap && strip->remap->target) BKE_action_make_local(strip->remap->target);
 		
 		make_local_strips(&strip->strips);
 	}
@@ -327,10 +327,10 @@ void BKE_animdata_make_local(AnimData *adt)
 	NlaTrack *nlt;
 	
 	/* Actions - Active and Temp */
-	if (adt->action) make_local_action(adt->action);
-	if (adt->tmpact) make_local_action(adt->tmpact);
+	if (adt->action) BKE_action_make_local(adt->action);
+	if (adt->tmpact) BKE_action_make_local(adt->tmpact);
 	/* Remaps */
-	if (adt->remap && adt->remap->target) make_local_action(adt->remap->target);
+	if (adt->remap && adt->remap->target) BKE_action_make_local(adt->remap->target);
 	
 	/* Drivers */
 	// TODO: need to remap the ID-targets too?

@@ -547,7 +547,7 @@ int colorband_element_remove(struct ColorBand *coba, int index)
 
 /* ******************* TEX ************************ */
 
-void free_texture(Tex *tex)
+void BKE_texture_free(Tex *tex)
 {
 	free_plugin_tex(tex->plugin);
 	
@@ -693,7 +693,7 @@ Tex *add_texture(const char *name)
 	Main *bmain= G.main;
 	Tex *tex;
 
-	tex= alloc_libblock(&bmain->tex, ID_TE, name);
+	tex= BKE_libblock_alloc(&bmain->tex, ID_TE, name);
 	
 	default_tex(tex);
 	
@@ -824,11 +824,11 @@ MTex *add_mtex_id(ID *id, int slot)
 
 /* ------------------------------------------------------------------------- */
 
-Tex *copy_texture(Tex *tex)
+Tex *BKE_texture_copy(Tex *tex)
 {
 	Tex *texn;
 	
-	texn= copy_libblock(&tex->id);
+	texn= BKE_libblock_copy(&tex->id);
 	if (texn->type==TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima= NULL;
 	
@@ -859,10 +859,10 @@ Tex *localize_texture(Tex *tex)
 {
 	Tex *texn;
 	
-	texn= copy_libblock(&tex->id);
+	texn= BKE_libblock_copy(&tex->id);
 	BLI_remlink(&G.main->tex, texn);
 	
-	/* image texture: free_texture also doesn't decrease */
+	/* image texture: BKE_texture_free also doesn't decrease */
 	
 	if (texn->plugin) {
 		texn->plugin= MEM_dupallocN(texn->plugin);
@@ -978,7 +978,7 @@ void make_local_texture(Tex *tex)
 		extern_local_texture(tex);
 	}
 	else if (is_local && is_lib) {
-		Tex *tex_new= copy_texture(tex);
+		Tex *tex_new= BKE_texture_copy(tex);
 
 		tex_new->id.us= 0;
 

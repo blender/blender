@@ -1410,7 +1410,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		glPushMatrix();
 		glLoadMatrixf((float *)viewmat);
 		
-		where_is_object_simul(scene, base->object);
+		BKE_object_where_is_calc_simul(scene, base->object);
 		
 		if (la->type==LA_SUN) {
 			/* sun lamp */

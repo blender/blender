@@ -383,7 +383,7 @@ void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4]
 				/* Local space in this case will have to be defined as local to the owner's 
 				 * transform-property-rotated axes. So subtract this rotation component.
 				 */
-				object_to_mat4(ob, diff_mat);
+				BKE_object_to_mat4(ob, diff_mat);
 				normalize_m4(diff_mat);
 				zero_v3(diff_mat[3]);
 				
@@ -402,7 +402,7 @@ void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4]
 				/* Local space in this case will have to be defined as local to the owner's 
 				 * transform-property-rotated axes. So add back this rotation component.
 				 */
-				object_to_mat4(ob, diff_mat);
+				BKE_object_to_mat4(ob, diff_mat);
 				normalize_m4(diff_mat);
 				zero_v3(diff_mat[3]);
 				
@@ -2218,7 +2218,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			/* evaluate using workob */
 			// FIXME: we don't have any consistent standards on limiting effects on object...
 			what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
-			object_to_mat4(&workob, ct->matrix);
+			BKE_object_to_mat4(&workob, ct->matrix);
 		}
 		else {
 			/* behavior undefined... */
@@ -3149,7 +3149,7 @@ static void clampto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		copy_v3_v3(ownLoc, obmat[3]);
 		
 		INIT_MINMAX(curveMin, curveMax)
-		minmax_object(ct->tar, curveMin, curveMax);
+		BKE_object_minmax(ct->tar, curveMin, curveMax);
 		
 		/* get targetmatrix */
 		if (cu->path && cu->path->data) {
@@ -3989,7 +3989,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 		float aspect= (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
 		float len, d;
 
-		where_is_object_mat(scene, camob, mat);
+		BKE_object_where_is_calc_mat4(scene, camob, mat);
 
 		/* camera axis */
 		vec[0] = 0.0f;
@@ -4198,7 +4198,7 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 		if (object) {
 			float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];
 
-			where_is_object_mat(scene, camob, cammat);
+			BKE_object_where_is_calc_mat4(scene, camob, cammat);
 
 			BKE_tracking_get_interpolated_camera(tracking, object, scene->r.cfra, mat);
 

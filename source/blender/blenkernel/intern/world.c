@@ -51,7 +51,7 @@
 #include "BKE_node.h"
 #include "BKE_world.h"
 
-void free_world(World *wrld)
+void BKE_world_free(World *wrld)
 {
 	MTex *mtex;
 	int a;
@@ -81,7 +81,7 @@ World *add_world(const char *name)
 	Main *bmain= G.main;
 	World *wrld;
 
-	wrld= alloc_libblock(&bmain->world, ID_WO, name);
+	wrld= BKE_libblock_alloc(&bmain->world, ID_WO, name);
 	
 	wrld->horr= 0.05f;
 	wrld->horg= 0.05f;
@@ -113,16 +113,16 @@ World *add_world(const char *name)
 	return wrld;
 }
 
-World *copy_world(World *wrld)
+World *BKE_world_copy(World *wrld)
 {
 	World *wrldn;
 	int a;
 	
-	wrldn= copy_libblock(&wrld->id);
+	wrldn= BKE_libblock_copy(&wrld->id);
 	
 	for (a=0; a<MAX_MTEX; a++) {
 		if (wrld->mtex[a]) {
-			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "copy_world");
+			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "BKE_world_copy");
 			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
 			id_us_plus((ID *)wrldn->mtex[a]->tex);
 		}
@@ -142,7 +142,7 @@ World *localize_world(World *wrld)
 	World *wrldn;
 	int a;
 	
-	wrldn= copy_libblock(&wrld->id);
+	wrldn= BKE_libblock_copy(&wrld->id);
 	BLI_remlink(&G.main->world, wrldn);
 	
 	for (a=0; a<MAX_MTEX; a++) {
@@ -162,7 +162,7 @@ World *localize_world(World *wrld)
 	return wrldn;
 }
 
-void make_local_world(World *wrld)
+void BKE_world_make_local(World *wrld)
 {
 	Main *bmain= G.main;
 	Scene *sce;
@@ -190,7 +190,7 @@ void make_local_world(World *wrld)
 		id_clear_lib_data(bmain, &wrld->id);
 	}
 	else if (is_local && is_lib) {
-		World *wrld_new= copy_world(wrld);
+		World *wrld_new= BKE_world_copy(wrld);
 		wrld_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */

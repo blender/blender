@@ -63,7 +63,7 @@
 static ListBase ttfdata= {NULL, NULL};
 
 /* The vfont code */
-void free_vfont(struct VFont *vf)
+void BKE_vfont_free(struct VFont *vf)
 {
 	if (vf == NULL) return;
 
@@ -242,7 +242,7 @@ VFont *load_vfont(Main *bmain, const char *name)
 
 		vfd= BLI_vfontdata_from_freetypefont(pf);
 		if (vfd) {
-			vfont = alloc_libblock(&bmain->vfont, ID_VF, filename);
+			vfont = BKE_libblock_alloc(&bmain->vfont, ID_VF, filename);
 			vfont->data = vfd;
 
 			/* if there's a font name, use it for the ID name */

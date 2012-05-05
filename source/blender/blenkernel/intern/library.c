@@ -188,54 +188,54 @@ int id_make_local(ID *id, int test)
 		case ID_LI:
 			return 0; /* can't be linked */
 		case ID_OB:
-			if (!test) make_local_object((Object*)id);
+			if (!test) BKE_object_make_local((Object *)id);
 			return 1;
 		case ID_ME:
 			if (!test) {
-				make_local_mesh((Mesh*)id);
-				make_local_key(((Mesh*)id)->key);
+				BKE_mesh_make_local((Mesh *)id);
+				BKE_key_make_local(((Mesh *)id)->key);
 			}
 			return 1;
 		case ID_CU:
 			if (!test) {
-				BKE_curve_make_local((Curve*)id);
-				make_local_key(((Curve*)id)->key);
+				BKE_curve_make_local((Curve *)id);
+				BKE_key_make_local(((Curve *)id)->key);
 			}
 			return 1;
 		case ID_MB:
-			if (!test) BKE_metaball_make_local((MetaBall*)id);
+			if (!test) BKE_metaball_make_local((MetaBall *)id);
 			return 1;
 		case ID_MA:
-			if (!test) make_local_material((Material*)id);
+			if (!test) make_local_material((Material *)id);
 			return 1;
 		case ID_TE:
-			if (!test) make_local_texture((Tex*)id);
+			if (!test) make_local_texture((Tex *)id);
 			return 1;
 		case ID_IM:
-			if (!test) make_local_image((Image*)id);
+			if (!test) make_local_image((Image *)id);
 			return 1;
 		case ID_LT:
 			if (!test) {
-				make_local_lattice((Lattice*)id);
-				make_local_key(((Lattice*)id)->key);
+				BKE_lattice_make_local((Lattice *)id);
+				BKE_key_make_local(((Lattice *)id)->key);
 			}
 			return 1;
 		case ID_LA:
-			if (!test) make_local_lamp((Lamp*)id);
+			if (!test) make_local_lamp((Lamp *)id);
 			return 1;
 		case ID_CA:
-			if (!test) BKE_camera_make_local((Camera*)id);
+			if (!test) BKE_camera_make_local((Camera *)id);
 			return 1;
 		case ID_SPK:
-			if (!test) make_local_speaker((Speaker*)id);
+			if (!test) make_local_speaker((Speaker *)id);
 			return 1;
 		case ID_IP:
 			return 0; /* deprecated */
 		case ID_KE:
-			if (!test) make_local_key((Key*)id);
+			if (!test) BKE_key_make_local((Key *)id);
 			return 1;
 		case ID_WO:
-			if (!test) make_local_world((World*)id);
+			if (!test) BKE_world_make_local((World *)id);
 			return 1;
 		case ID_SCR:
 			return 0; /* can't be linked */
@@ -250,18 +250,18 @@ int id_make_local(ID *id, int test)
 		case ID_GR:
 			return 0; /* not implemented */
 		case ID_AR:
-			if (!test) make_local_armature((bArmature*)id);
+			if (!test) BKE_armature_make_local((bArmature *)id);
 			return 1;
 		case ID_AC:
-			if (!test) make_local_action((bAction*)id);
+			if (!test) BKE_action_make_local((bAction *)id);
 			return 1;
 		case ID_NT:
 			return 0; /* not implemented */
 		case ID_BR:
-			if (!test) BKE_brush_make_local((Brush*)id);
+			if (!test) BKE_brush_make_local((Brush *)id);
 			return 1;
 		case ID_PA:
-			if (!test) make_local_particlesettings((ParticleSettings*)id);
+			if (!test) BKE_particlesettings_make_local((ParticleSettings *)id);
 			return 1;
 		case ID_WM:
 			return 0; /* can't be linked */
@@ -285,74 +285,74 @@ int id_copy(ID *id, ID **newid, int test)
 		case ID_LI:
 			return 0; /* can't be copied from here */
 		case ID_OB:
-			if (!test) *newid= (ID*)copy_object((Object*)id);
+			if (!test) *newid = (ID *)BKE_object_copy((Object*)id);
 			return 1;
 		case ID_ME:
-			if (!test) *newid= (ID*)copy_mesh((Mesh*)id);
+			if (!test) *newid = (ID *)BKE_mesh_copy((Mesh*)id);
 			return 1;
 		case ID_CU:
-			if (!test) *newid= (ID*)BKE_curve_copy((Curve*)id);
+			if (!test) *newid = (ID *)BKE_curve_copy((Curve*)id);
 			return 1;
 		case ID_MB:
-			if (!test) *newid= (ID*)BKE_metaball_copy((MetaBall*)id);
+			if (!test) *newid = (ID *)BKE_metaball_copy((MetaBall*)id);
 			return 1;
 		case ID_MA:
-			if (!test) *newid= (ID*)copy_material((Material*)id);
+			if (!test) *newid = (ID *)BKE_material_copy((Material*)id);
 			return 1;
 		case ID_TE:
-			if (!test) *newid= (ID*)copy_texture((Tex*)id);
+			if (!test) *newid = (ID *)BKE_texture_copy((Tex*)id);
 			return 1;
 		case ID_IM:
-			if (!test) *newid= (ID*)copy_image((Image*)id);
+			if (!test) *newid = (ID *)BKE_image_copy((Image*)id);
 			return 1;
 		case ID_LT:
-			if (!test) *newid= (ID*)copy_lattice((Lattice*)id);
+			if (!test) *newid = (ID *)BKE_lattice_copy((Lattice*)id);
 			return 1;
 		case ID_LA:
-			if (!test) *newid= (ID*)copy_lamp((Lamp*)id);
+			if (!test) *newid = (ID *)BKE_lamp_copy((Lamp*)id);
 			return 1;
 		case ID_SPK:
-			if (!test) *newid= (ID*)copy_speaker((Speaker*)id);
+			if (!test) *newid = (ID *)BKE_speaker_copy((Speaker*)id);
 			return 1;
 		case ID_CA:
-			if (!test) *newid= (ID*)BKE_camera_copy((Camera*)id);
+			if (!test) *newid = (ID *)BKE_camera_copy((Camera*)id);
 			return 1;
 		case ID_IP:
 			return 0; /* deprecated */
 		case ID_KE:
-			if (!test) *newid= (ID*)copy_key((Key*)id);
+			if (!test) *newid = (ID *)BKE_key_copy((Key*)id);
 			return 1;
 		case ID_WO:
-			if (!test) *newid= (ID*)copy_world((World*)id);
+			if (!test) *newid = (ID *)BKE_world_copy((World*)id);
 			return 1;
 		case ID_SCR:
 			return 0; /* can't be copied from here */
 		case ID_VF:
 			return 0; /* not implemented */
 		case ID_TXT:
-			if (!test) *newid= (ID*)copy_text((Text*)id);
+			if (!test) *newid = (ID *)BKE_text_copy((Text*)id);
 			return 1;
 		case ID_SCRIPT:
 			return 0; /* deprecated */
 		case ID_SO:
 			return 0; /* not implemented */
 		case ID_GR:
-			if (!test) *newid= (ID*)copy_group((Group*)id);
+			if (!test) *newid = (ID *)BKE_group_copy((Group*)id);
 			return 1;
 		case ID_AR:
-			if (!test) *newid= (ID*)copy_armature((bArmature*)id);
+			if (!test) *newid = (ID *)BKE_armature_copy((bArmature*)id);
 			return 1;
 		case ID_AC:
-			if (!test) *newid= (ID*)copy_action((bAction*)id);
+			if (!test) *newid = (ID *)BKE_action_copy((bAction*)id);
 			return 1;
 		case ID_NT:
-			if (!test) *newid= (ID*)ntreeCopyTree((bNodeTree*)id);
+			if (!test) *newid = (ID *)ntreeCopyTree((bNodeTree*)id);
 			return 1;
 		case ID_BR:
-			if (!test) *newid= (ID*)BKE_brush_copy((Brush*)id);
+			if (!test) *newid = (ID *)BKE_brush_copy((Brush*)id);
 			return 1;
 		case ID_PA:
-			if (!test) *newid= (ID*)psys_copy_settings((ParticleSettings*)id);
+			if (!test) *newid = (ID *)BKE_particlesettings_copy((ParticleSettings*)id);
 			return 1;
 		case ID_WM:
 			return 0; /* can't be copied from here */
@@ -371,15 +371,15 @@ int id_unlink(ID *id, int test)
 	switch (GS(id->name)) {
 		case ID_TXT:
 			if (test) return 1;
-			unlink_text(mainlib, (Text*)id);
+			BKE_text_unlink(mainlib, (Text *)id);
 			break;
 		case ID_GR:
 			if (test) return 1;
-			unlink_group((Group*)id);
+			BKE_group_unlink((Group *)id);
 			break;
 		case ID_OB:
 			if (test) return 1;
-			unlink_object((Object*)id);
+			BKE_object_unlink((Object *)id);
 			break;
 	}
 
@@ -387,7 +387,7 @@ int id_unlink(ID *id, int test)
 		if (test) return 1;
 
 		lb= which_libbase(mainlib, GS(id->name));
-		free_libblock(lb, id);
+		BKE_libblock_free(lb, id);
 
 		return 1;
 	}
@@ -577,10 +577,10 @@ int set_listbasepointers(Main *main, ListBase **lb)
 
 /* *********** ALLOC AND FREE *****************
  *
- * free_libblock(ListBase *lb, ID *id )
+ * BKE_libblock_free(ListBase *lb, ID *id )
  * provide a list-basis and datablock, but only ID is read
  *
- * void *alloc_libblock(ListBase *lb, type, name)
+ * void *BKE_libblock_alloc(ListBase *lb, type, name)
  * inserts in list and returns a new ID
  *
  * **************************** */
@@ -685,7 +685,7 @@ static ID *alloc_libblock_notest(short type)
 }
 
 /* used everywhere in blenkernel and text.c */
-void *alloc_libblock(ListBase *lb, short type, const char *name)
+void *BKE_libblock_alloc(ListBase *lb, short type, const char *name)
 {
 	ID *id= NULL;
 	
@@ -714,7 +714,7 @@ static void id_copy_animdata(ID *id, const short do_action)
 }
 
 /* material nodes use this since they are not treated as libdata */
-void copy_libblock_data(ID *id, const ID *id_from, const short do_action)
+void BKE_libblock_copy_data(ID *id, const ID *id_from, const short do_action)
 {
 	if (id_from->properties)
 		id->properties = IDP_CopyProperty(id_from->properties);
@@ -724,14 +724,14 @@ void copy_libblock_data(ID *id, const ID *id_from, const short do_action)
 }
 
 /* used everywhere in blenkernel */
-void *copy_libblock(ID *id)
+void *BKE_libblock_copy(ID *id)
 {
 	ID *idn;
 	ListBase *lb;
 	size_t idn_len;
 
 	lb= which_libbase(G.main, GS(id->name));
-	idn= alloc_libblock(lb, GS(id->name), id->name+2);
+	idn= BKE_libblock_alloc(lb, GS(id->name), id->name+2);
 
 	assert(idn != NULL);
 
@@ -746,12 +746,12 @@ void *copy_libblock(ID *id)
 	id->newid= idn;
 	idn->flag |= LIB_NEW;
 
-	copy_libblock_data(idn, id, FALSE);
+	BKE_libblock_copy_data(idn, id, FALSE);
 	
 	return idn;
 }
 
-static void free_library(Library *UNUSED(lib))
+static void BKE_library_free(Library *UNUSED(lib))
 {
 	/* no freeing needed for libraries yet */
 }
@@ -788,7 +788,7 @@ static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata
 
 
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
-void free_libblock(ListBase *lb, void *idv)
+void BKE_libblock_free(ListBase *lb, void *idv)
 {
 	ID *id= idv;
 
@@ -798,16 +798,16 @@ void free_libblock(ListBase *lb, void *idv)
 
 	switch ( GS(id->name) ) {	/* GetShort from util.h */
 		case ID_SCE:
-			free_scene((Scene *)id);
+			BKE_scene_free((Scene *)id);
 			break;
 		case ID_LI:
-			free_library((Library *)id);
+			BKE_library_free((Library *)id);
 			break;
 		case ID_OB:
-			free_object((Object *)id);
+			BKE_object_free((Object *)id);
 			break;
 		case ID_ME:
-			free_mesh((Mesh *)id, 1);
+			BKE_mesh_free((Mesh *)id, 1);
 			break;
 		case ID_CU:
 			BKE_curve_free((Curve *)id);
@@ -816,58 +816,58 @@ void free_libblock(ListBase *lb, void *idv)
 			BKE_metaball_free((MetaBall *)id);
 			break;
 		case ID_MA:
-			free_material((Material *)id);
+			BKE_material_free((Material *)id);
 			break;
 		case ID_TE:
-			free_texture((Tex *)id);
+			BKE_texture_free((Tex *)id);
 			break;
 		case ID_IM:
-			free_image((Image *)id);
+			BKE_image_free((Image *)id);
 			break;
 		case ID_LT:
-			free_lattice((Lattice *)id);
+			BKE_lattice_free((Lattice *)id);
 			break;
 		case ID_LA:
-			free_lamp((Lamp *)id);
+			BKE_lamp_free((Lamp *)id);
 			break;
 		case ID_CA:
-			BKE_camera_free((Camera*) id);
+			BKE_camera_free((Camera *) id);
 			break;
 		case ID_IP:
-			free_ipo((Ipo *)id);
+			BKE_ipo_free((Ipo *)id);
 			break;
 		case ID_KE:
-			free_key((Key *)id);
+			BKE_key_free((Key *)id);
 			break;
 		case ID_WO:
-			free_world((World *)id);
+			BKE_world_free((World *)id);
 			break;
 		case ID_SCR:
-			free_screen((bScreen *)id);
+			BKE_screen_free((bScreen *)id);
 			break;
 		case ID_VF:
-			free_vfont((VFont *)id);
+			BKE_vfont_free((VFont *)id);
 			break;
 		case ID_TXT:
-			free_text((Text *)id);
+			BKE_text_free((Text *)id);
 			break;
 		case ID_SCRIPT:
 			//XXX free_script((Script *)id);
 			break;
 		case ID_SPK:
-			free_speaker((Speaker *)id);
+			BKE_speaker_free((Speaker *)id);
 			break;
 		case ID_SO:
-			sound_free((bSound*)id);
+			BKE_sound_free((bSound *)id);
 			break;
 		case ID_GR:
-			free_group_objects((Group *)id);
+			BKE_group_free((Group *)id);
 			break;
 		case ID_AR:
-			free_armature((bArmature *)id);
+			BKE_armature_free((bArmature *)id);
 			break;
 		case ID_AC:
-			free_action((bAction *)id);
+			BKE_action_free((bAction *)id);
 			break;
 		case ID_NT:
 			ntreeFreeTree((bNodeTree *)id);
@@ -876,14 +876,14 @@ void free_libblock(ListBase *lb, void *idv)
 			BKE_brush_free((Brush *)id);
 			break;
 		case ID_PA:
-			psys_free_settings((ParticleSettings *)id);
+			BKE_particlesettings_free((ParticleSettings *)id);
 			break;
 		case ID_WM:
 			if (free_windowmanager_cb)
 				free_windowmanager_cb(NULL, (wmWindowManager *)id);
 			break;
 		case ID_GD:
-			free_gpencil_data((bGPdata *)id);
+			BKE_gpencil_free((bGPdata *)id);
 			break;
 		case ID_MC:
 			BKE_movieclip_free((MovieClip *)id);
@@ -903,7 +903,7 @@ void free_libblock(ListBase *lb, void *idv)
 	MEM_freeN(id);
 }
 
-void free_libblock_us(ListBase *lb, void *idv)		/* test users */
+void BKE_libblock_free_us(ListBase *lb, void *idv)		/* test users */
 {
 	ID *id= idv;
 	
@@ -914,9 +914,9 @@ void free_libblock_us(ListBase *lb, void *idv)		/* test users */
 		else printf("ERROR block %s users %d\n", id->name, id->us);
 	}
 	if (id->us==0) {
-		if ( GS(id->name)==ID_OB ) unlink_object((Object *)id);
+		if ( GS(id->name)==ID_OB ) BKE_object_unlink((Object *)id);
 		
-		free_libblock(lb, id);
+		BKE_libblock_free(lb, id);
 	}
 }
 
@@ -933,7 +933,7 @@ void free_main(Main *mainvar)
 		ID *id;
 		
 		while ( (id= lb->first) ) {
-			free_libblock(lb, id);
+			BKE_libblock_free(lb, id);
 		}
 	}
 

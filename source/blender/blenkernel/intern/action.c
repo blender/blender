@@ -83,14 +83,14 @@ bAction *add_empty_action(const char name[])
 {
 	bAction *act;
 	
-	act= alloc_libblock(&G.main->action, ID_AC, name);
+	act= BKE_libblock_alloc(&G.main->action, ID_AC, name);
 	
 	return act;
 }	
 
 /* .................................. */
 
-/* temp data for make_local_action */
+/* temp data for BKE_action_make_local */
 typedef struct tMakeLocalActionContext {
 	bAction *act;       /* original action */
 	bAction *act_new;   /* new action */
@@ -99,7 +99,7 @@ typedef struct tMakeLocalActionContext {
 	int is_local;       /* some action users were not libraries */
 } tMakeLocalActionContext;
 
-/* helper function for make_local_action() - local/lib init step */
+/* helper function for BKE_action_make_local() - local/lib init step */
 static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
 {
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
@@ -110,7 +110,7 @@ static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
 	}
 }
 
-/* helper function for make_local_action() - change references */
+/* helper function for BKE_action_make_local() - change references */
 static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 {
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
@@ -126,7 +126,7 @@ static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 }
 
 // does copy_fcurve...
-void make_local_action(bAction *act)
+void BKE_action_make_local(bAction *act)
 {
 	tMakeLocalActionContext mlac = {act, NULL, FALSE, FALSE};
 	Main *bmain= G.main;
@@ -146,7 +146,7 @@ void make_local_action(bAction *act)
 		id_clear_lib_data(bmain, &act->id);
 	}
 	else if (mlac.is_local && mlac.is_lib) {
-		mlac.act_new= copy_action(act);
+		mlac.act_new= BKE_action_copy(act);
 		mlac.act_new->id.us= 0;
 
 		BKE_id_lib_local_paths(bmain, act->id.lib, &mlac.act_new->id);
@@ -157,7 +157,7 @@ void make_local_action(bAction *act)
 
 /* .................................. */
 
-void free_action(bAction *act)
+void BKE_action_free(bAction *act)
 {
 	/* sanity check */
 	if (act == NULL)
@@ -177,7 +177,7 @@ void free_action(bAction *act)
 
 /* .................................. */
 
-bAction *copy_action (bAction *src)
+bAction *BKE_action_copy (bAction *src)
 {
 	bAction *dst = NULL;
 	bActionGroup *dgrp, *sgrp;
@@ -185,7 +185,7 @@ bAction *copy_action (bAction *src)
 	
 	if (src == NULL) 
 		return NULL;
-	dst= copy_libblock(&src->id);
+	dst= BKE_libblock_copy(&src->id);
 	
 	/* duplicate the lists of groups and markers */
 	BLI_duplicatelist(&dst->groups, &src->groups);
@@ -1139,7 +1139,7 @@ void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, c
 	bActionGroup *agrp= action_groups_find_named(act, groupname);
 	
 	/* clear workob */
-	clear_workob(workob);
+	BKE_object_workob_clear(workob);
 	
 	/* init workob */
 	copy_m4_m4(workob->obmat, ob->obmat);

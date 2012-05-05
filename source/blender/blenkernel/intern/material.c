@@ -77,7 +77,7 @@ void init_def_material(void)
 }
 
 /* not material itself */
-void free_material(Material *ma)
+void BKE_material_free(Material *ma)
 {
 	MTex *mtex;
 	int a;
@@ -203,7 +203,7 @@ Material *add_material(const char *name)
 {
 	Material *ma;
 
-	ma= alloc_libblock(&G.main->mat, ID_MA, name);
+	ma= BKE_libblock_alloc(&G.main->mat, ID_MA, name);
 	
 	init_material(ma);
 	
@@ -211,12 +211,12 @@ Material *add_material(const char *name)
 }
 
 /* XXX keep synced with next function */
-Material *copy_material(Material *ma)
+Material *BKE_material_copy(Material *ma)
 {
 	Material *man;
 	int a;
 	
-	man= copy_libblock(&ma->id);
+	man= BKE_libblock_copy(&ma->id);
 	
 	id_lib_extern((ID *)man->group);
 	
@@ -248,7 +248,7 @@ Material *localize_material(Material *ma)
 	Material *man;
 	int a;
 	
-	man= copy_libblock(&ma->id);
+	man= BKE_libblock_copy(&ma->id);
 	BLI_remlink(&G.main->mat, man);
 
 	/* no increment for texture ID users, in previewrender.c it prevents decrement */
@@ -365,7 +365,7 @@ void make_local_material(Material *ma)
 	}
 	/* Both user and local, so copy. */
 	else if (is_local && is_lib) {
-		Material *ma_new= copy_material(ma);
+		Material *ma_new= BKE_material_copy(ma);
 
 		ma_new->id.us= 0;
 
@@ -1743,7 +1743,7 @@ static void convert_tfacematerial(Main *main, Material *ma)
 			}
 			/* create a new material */
 			else {
-				mat_new=copy_material(ma);
+				mat_new=BKE_material_copy(ma);
 				if (mat_new) {
 					/* rename the material*/
 					strcpy(mat_new->id.name, idname);

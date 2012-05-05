@@ -77,7 +77,7 @@
 static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, int from_mix)
 {
 	KeyBlock *kb;
-	if ((kb = object_insert_shape_key(scene, ob, NULL, from_mix))) {
+	if ((kb = BKE_object_insert_shape_key(scene, ob, NULL, from_mix))) {
 		Key *key = ob_get_key(ob);
 		/* for absolute shape keys, new keys may not be added last */
 		ob->shapenr = BLI_findindex(&key->block, kb) + 1;
@@ -141,7 +141,7 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 		else if (GS(key->from->name) == ID_CU) ((Curve *)key->from)->key = NULL;
 		else if (GS(key->from->name) == ID_LT) ((Lattice *)key->from)->key = NULL;
 
-		free_libblock_us(&(bmain->key), key);
+		BKE_libblock_free_us(&(bmain->key), key);
 	}
 	
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

@@ -200,7 +200,7 @@ void ED_pose_recalculate_paths(Scene *scene, Object *ob)
 /* show popup to determine settings */
 static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {	
-	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
@@ -227,7 +227,7 @@ static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *UNU
  */
 static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	Scene *scene= CTX_data_scene(C);
 	
 	if (ELEM(NULL, ob, ob->pose))
@@ -320,7 +320,7 @@ static void ED_pose_clear_paths(Object *ob)
 /* operator callback for this */
 static int pose_clear_paths_exec (bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 		
 	/* only continue if there's an object */
 	if (ELEM(NULL, ob, ob->pose))
@@ -354,7 +354,7 @@ void POSE_OT_paths_clear(wmOperatorType *ot)
 
 static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bConstraint *con;
 	int found= 0;
 	
@@ -414,7 +414,7 @@ void POSE_OT_select_constraint_target(wmOperatorType *ot)
 
 static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
 	Bone *curbone, *pabone, *chbone;
 	int direction = RNA_enum_get(op->ptr, "direction");
@@ -674,7 +674,7 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
 
 static int pose_select_grouped_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	short extend= RNA_boolean_get(op->ptr, "extend");
 	short changed = 0;
 	
@@ -741,7 +741,7 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
 static int pose_bone_flip_active_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob_act= CTX_data_active_object(C);
-	Object *ob= object_pose_armature_get(ob_act);
+	Object *ob= BKE_object_pose_armature_get(ob_act);
 
 	if (ob && (ob->mode & OB_MODE_POSE)) {
 		bArmature *arm= ob->data;
@@ -1163,7 +1163,7 @@ static bPoseChannel *pose_bone_do_paste (Object *ob, bPoseChannel *chan, short s
 
 static int pose_copy_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* sanity checking */
 	if (ELEM(NULL, ob, ob->pose)) {
@@ -1201,7 +1201,7 @@ void POSE_OT_copy(wmOperatorType *ot)
 
 static int pose_paste_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	Scene *scene= CTX_data_scene(C);
 	bPoseChannel *chan;
 	int flip= RNA_boolean_get(op->ptr, "flipped");
@@ -1284,7 +1284,7 @@ static int pose_group_add_exec (bContext *C, wmOperator *UNUSED(op))
 	if (sa->spacetype == SPACE_BUTS) 
 		ob= ED_object_context(C);
 	else
-		ob= object_pose_armature_get(CTX_data_active_object(C));
+		ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 		
 	/* only continue if there's an object */
 	if (ob == NULL)
@@ -1324,7 +1324,7 @@ static int pose_group_remove_exec (bContext *C, wmOperator *UNUSED(op))
 	if (sa->spacetype == SPACE_BUTS) 
 		ob= ED_object_context(C);
 	else
-		ob= object_pose_armature_get(CTX_data_active_object(C));
+		ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only continue if there's an object */
 	if (ob == NULL)
@@ -1372,7 +1372,7 @@ static int pose_groups_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 	if (sa->spacetype == SPACE_BUTS) 
 		ob= ED_object_context(C);
 	else
-		ob= object_pose_armature_get(CTX_data_active_object(C));
+		ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose)) 
@@ -1421,7 +1421,7 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	if (sa->spacetype == SPACE_BUTS) 
 		ob= ED_object_context(C);
 	else
-		ob= object_pose_armature_get(CTX_data_active_object(C));
+		ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
@@ -1484,7 +1484,7 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *UNUSED(op))
 	if (sa->spacetype == SPACE_BUTS) 
 		ob= ED_object_context(C);
 	else
-		ob= object_pose_armature_get(CTX_data_active_object(C));
+		ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
@@ -1719,7 +1719,7 @@ static int pose_group_select_exec (bContext *C, wmOperator *UNUSED(op))
 	if (sa->spacetype == SPACE_BUTS) 
 		ob= ED_object_context(C);
 	else
-		ob= object_pose_armature_get(CTX_data_active_object(C));
+		ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
@@ -1757,7 +1757,7 @@ static int pose_group_deselect_exec (bContext *C, wmOperator *UNUSED(op))
 	if (sa->spacetype == SPACE_BUTS) 
 		ob= ED_object_context(C);
 	else
-		ob= object_pose_armature_get(CTX_data_active_object(C));
+		ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
@@ -1790,7 +1790,7 @@ void POSE_OT_group_deselect(wmOperatorType *ot)
 
 static int pose_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm;
 	
 	/* paranoia checks */
@@ -1835,7 +1835,7 @@ void POSE_OT_flip_names(wmOperatorType *ot)
 
 static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm;
 	char newname[MAXBONENAME];
 	short axis= RNA_enum_get(op->ptr, "axis");
@@ -1939,7 +1939,7 @@ static int pose_armature_layers_showall_poll (bContext *C)
 
 static int pose_armature_layers_showall_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm = (ob)? ob->data : NULL;
 	PointerRNA ptr;
 	int maxLayers = (RNA_boolean_get(op->ptr, "all"))? 32 : 16;
@@ -1991,7 +1991,7 @@ void ARMATURE_OT_layers_show_all(wmOperatorType *ot)
 /* Present a popup to get the layers that should be used */
 static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
 	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
@@ -2012,7 +2012,7 @@ static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 /* Set the visible layers for the active armature (edit and pose modes) */
 static int pose_armature_layers_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	PointerRNA ptr;
 	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
@@ -2102,7 +2102,7 @@ static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 /* Set the visible layers for the active armature (edit and pose modes) */
 static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	PointerRNA ptr;
 	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
@@ -2225,7 +2225,7 @@ void ARMATURE_OT_bone_layers(wmOperatorType *ot)
 static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOC_ROT_SCALE_ID);
 	
 	/* loop through all selected pchans, flipping and keying (as needed) */

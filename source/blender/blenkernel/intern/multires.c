@@ -2146,7 +2146,7 @@ void multiresModifier_scale_disp(Scene *scene, Object *ob)
 	float smat[3][3];
 
 	/* object's scale matrix */
-	object_scale_to_mat3(ob, smat);
+	BKE_object_scale_to_mat3(ob, smat);
 
 	multires_apply_smat(scene, ob, smat);
 }
@@ -2157,9 +2157,9 @@ void multiresModifier_prepare_join(Scene *scene, Object *ob, Object *to_ob)
 	multires_sync_levels(scene, ob, to_ob);
 
 	/* construct scale matrix for displacement */
-	object_scale_to_mat3(to_ob, tmat);
+	BKE_object_scale_to_mat3(to_ob, tmat);
 	invert_m3(tmat);
-	object_scale_to_mat3(ob, smat);
+	BKE_object_scale_to_mat3(ob, smat);
 	mul_m3_m3m3(mat, smat, tmat);
 
 	multires_apply_smat(scene, ob, mat);

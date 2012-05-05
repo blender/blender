@@ -155,7 +155,7 @@ Curve *BKE_curve_add(const char *name, int type)
 {
 	Curve *cu;
 
-	cu = alloc_libblock(&G.main->curve, ID_CU, name);
+	cu = BKE_libblock_alloc(&G.main->curve, ID_CU, name);
 	copy_v3_fl(cu->size, 1.0f);
 	cu->flag= CU_FRONT|CU_BACK|CU_DEFORM_BOUNDS_OFF|CU_PATH_RADIUS;
 	cu->pathlen= 100;
@@ -172,7 +172,7 @@ Curve *BKE_curve_add(const char *name, int type)
 	cu->bevfac1= 0.0f;
 	cu->bevfac2= 1.0f;
 	
-	cu->bb= unit_boundbox();
+	cu->bb= BKE_boundbox_alloc_unit();
 	
 	if (type==OB_FONT) {
 		cu->vfont= cu->vfontb= cu->vfonti= cu->vfontbi= get_builtin_font();
@@ -194,7 +194,7 @@ Curve *BKE_curve_copy(Curve *cu)
 	Curve *cun;
 	int a;
 	
-	cun= copy_libblock(&cu->id);
+	cun= BKE_libblock_copy(&cu->id);
 	cun->nurb.first= cun->nurb.last= NULL;
 	BKE_nurbList_duplicate(&(cun->nurb), &(cu->nurb));
 
@@ -208,7 +208,7 @@ Curve *BKE_curve_copy(Curve *cu)
 	cun->tb= MEM_dupallocN(cu->tb);
 	cun->bb= MEM_dupallocN(cu->bb);
 	
-	cun->key= copy_key(cu->key);
+	cun->key= BKE_key_copy(cu->key);
 	if (cun->key) cun->key->from= (ID *)cun;
 	
 	cun->disp.first= cun->disp.last= NULL;
@@ -385,7 +385,7 @@ void BKE_curve_tex_space_calc(Curve *cu)
 		max[0] = max[1] = max[2] = 1.0f;
 	}
 
-	boundbox_set_from_min_max(bb, min, max);
+	BKE_boundbox_init_from_minmax(bb, min, max);
 
 	if (cu->texflag & CU_AUTOSPACE) {
 		mid_v3_v3v3(cu->loc, min, max);

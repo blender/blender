@@ -230,7 +230,7 @@ void DocumentImporter::finish()
 			Base *base = object_in_scene(ob, sce);
 			if (base) {
 				BLI_remlink(&sce->base, base);
-				free_libblock_us(&G.main->object, base->object);
+				BKE_libblock_free_us(&G.main->object, base->object);
 				if (sce->basact==base)
 					sce->basact= NULL;
 				MEM_freeN(base);
@@ -312,7 +312,7 @@ Object* DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 	ob->data = cam;
 	old_cam->id.us--;
 	if (old_cam->id.us == 0)
-		free_libblock(&G.main->camera, old_cam);
+		BKE_libblock_free(&G.main->camera, old_cam);
 	return ob;
 }
 
@@ -330,7 +330,7 @@ Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 	ob->data = la;
 	old_lamp->id.us--;
 	if (old_lamp->id.us == 0)
-		free_libblock(&G.main->lamp, old_lamp);
+		BKE_libblock_free(&G.main->lamp, old_lamp);
 	return ob;
 }
 
@@ -338,7 +338,7 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 {
 	fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ? instance_node->getOriginalId().c_str() : NULL, source_node ? source_node->getOriginalId().c_str() : NULL);
 
-	Object *obn = copy_object(source_ob);
+	Object *obn = BKE_object_copy(source_ob);
 	obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 	scene_add_base(sce, obn);
 
@@ -359,7 +359,7 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 			}
 			// calc new matrix and apply
 			mult_m4_m4m4(obn->obmat, obn->obmat, mat);
-			object_apply_mat4(obn, obn->obmat, 0, 0);
+			BKE_object_apply_mat4(obn, obn->obmat, 0, 0);
 		}
 	}
 	else {

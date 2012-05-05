@@ -46,12 +46,12 @@ struct MTFace;
 /* materials */
 
 void init_def_material(void);
-void free_material(struct Material *sc); 
+void BKE_material_free(struct Material *sc); 
 void test_object_materials(struct ID *id);
 void resize_object_material(struct Object *ob, const short totcol);
 void init_material(struct Material *ma);
 struct Material *add_material(const char *name);
-struct Material *copy_material(struct Material *ma);
+struct Material *BKE_material_copy(struct Material *ma);
 struct Material *localize_material(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */
 void make_local_material(struct Material *ma);

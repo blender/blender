@@ -46,7 +46,7 @@ struct Object;
 struct ImageFormatData;
 
 /* call from library */
-void	free_image(struct Image *me);
+void	BKE_image_free(struct Image *me);
 
 void	BKE_stamp_info(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf);
 void	BKE_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char *rect, float *rectf, int width, int height, int channels);
@@ -176,7 +176,7 @@ void BKE_image_memorypack(struct Image *ima);
 void BKE_image_print_memlist(void);
 
 /* empty image block, of similar type and filename */
-struct Image *copy_image(struct Image *ima);
+struct Image *BKE_image_copy(struct Image *ima);
 
 /* merge source into dest, and free source */
 void BKE_image_merge(struct Image *dest, struct Image *source);

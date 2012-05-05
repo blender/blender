@@ -370,8 +370,8 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob)
 	/* a change was made, adjust the children to compensate */
 	for (ob_child = bmain->object.first; ob_child; ob_child = ob_child->id.next) {
 		if (ob_child->parent == ob) {
-			object_apply_mat4(ob_child, ob_child->obmat, TRUE, FALSE);
-			what_does_parent(scene, ob_child, &workob);
+			BKE_object_apply_mat4(ob_child, ob_child->obmat, TRUE, FALSE);
+			BKE_object_workob_calc_parent(scene, ob_child, &workob);
 			invert_m4_m4(ob_child->parentinv, workob.obmat);
 		}
 	}
@@ -434,17 +434,17 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 		/* calculate rotation/scale matrix */
 		if (apply_scale && apply_rot)
-			object_to_mat3(ob, rsmat);
+			BKE_object_to_mat3(ob, rsmat);
 		else if (apply_scale)
-			object_scale_to_mat3(ob, rsmat);
+			BKE_object_scale_to_mat3(ob, rsmat);
 		else if (apply_rot) {
 			float tmat[3][3], timat[3][3];
 
 			/* simple rotation matrix */
-			object_rot_to_mat3(ob, rsmat);
+			BKE_object_rot_to_mat3(ob, rsmat);
 
 			/* correct for scale, note mul_m3_m3m3 has swapped args! */
-			object_scale_to_mat3(ob, tmat);
+			BKE_object_scale_to_mat3(ob, tmat);
 			invert_m3_m3(timat, tmat);
 			mul_m3_m3m3(rsmat, timat, rsmat);
 			mul_m3_m3m3(rsmat, rsmat, tmat);
@@ -460,7 +460,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 			if (!(apply_scale && apply_rot)) {
 				/* correct for scale and rotation that is still applied */
-				object_to_mat3(ob, obmat);
+				BKE_object_to_mat3(ob, obmat);
 				invert_m3_m3(iobmat, obmat);
 				mul_m3_m3m3(tmat, rsmat, iobmat);
 				mul_m3_v3(tmat, mat[3]);
@@ -546,7 +546,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			unit_axis_angle(ob->rotAxis, &ob->rotAngle);
 		}
 
-		where_is_object(scene, ob);
+		BKE_object_where_is_calc(scene, ob);
 		if (ob->type == OB_ARMATURE) {
 			where_is_pose(scene, ob); /* needed for bone parents */
 		}
@@ -573,9 +573,9 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		where_is_object(scene, ob);
-		object_apply_mat4(ob, ob->obmat, TRUE, TRUE);
-		where_is_object(scene, ob);
+		BKE_object_where_is_calc(scene, ob);
+		BKE_object_apply_mat4(ob, ob->obmat, TRUE, TRUE);
+		BKE_object_where_is_calc(scene, ob);
 
 		/* update for any children that may get moved */
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
@@ -750,7 +750,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						else {
 							/* only bounds support */
 							INIT_MINMAX(min, max);
-							minmax_object_duplis(scene, ob, min, max);
+							BKE_object_minmax_dupli(scene, ob, min, max);
 							mid_v3_v3v3(cent, min, max);
 							invert_m4_m4(ob->imat, ob->obmat);
 							mul_m4_v3(ob->imat, cent);
@@ -854,7 +854,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					arm->id.flag |= LIB_DOIT;
 					/* do_inverse_offset= TRUE; */ /* docenter_armature() handles this */
 
-					where_is_object(scene, ob);
+					BKE_object_where_is_calc(scene, ob);
 					where_is_pose(scene, ob); /* needed for bone parents */
 
 					ignore_parent_tx(bmain, scene, ob);
@@ -893,7 +893,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				mul_mat3_m4_v3(ob->obmat, centn); /* ommit translation part */
 				add_v3_v3(ob->loc, centn);
 
-				where_is_object(scene, ob);
+				BKE_object_where_is_calc(scene, ob);
 				if (ob->type == OB_ARMATURE) {
 					where_is_pose(scene, ob); /* needed for bone parents */
 				}
@@ -915,7 +915,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						mul_mat3_m4_v3(ob_other->obmat, centn); /* ommit translation part */
 						add_v3_v3(ob_other->loc, centn);
 
-						where_is_object(scene, ob_other);
+						BKE_object_where_is_calc(scene, ob_other);
 						if (ob_other->type == OB_ARMATURE) {
 							where_is_pose(scene, ob_other); /* needed for bone parents */
 						}

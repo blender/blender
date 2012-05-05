@@ -369,7 +369,7 @@ static void fluid_free_settings(SPHFluidSettings *fluid)
 		MEM_freeN(fluid); 
 }
 
-void psys_free_settings(ParticleSettings *part)
+void BKE_particlesettings_free(ParticleSettings *part)
 {
 	MTex *mtex;
 	int a;
@@ -3610,19 +3610,19 @@ ParticleSettings *psys_new_settings(const char *name, Main *main)
 	if (main==NULL)
 		main = G.main;
 
-	part= alloc_libblock(&main->particle, ID_PA, name);
+	part= BKE_libblock_alloc(&main->particle, ID_PA, name);
 	
 	default_particle_settings(part);
 
 	return part;
 }
 
-ParticleSettings *psys_copy_settings(ParticleSettings *part)
+ParticleSettings *BKE_particlesettings_copy(ParticleSettings *part)
 {
 	ParticleSettings *partn;
 	int a;
 
-	partn= copy_libblock(&part->id);
+	partn= BKE_libblock_copy(&part->id);
 	partn->pd= MEM_dupallocN(part->pd);
 	partn->pd2= MEM_dupallocN(part->pd2);
 	partn->effector_weights= MEM_dupallocN(part->effector_weights);
@@ -3653,7 +3653,7 @@ static void expand_local_particlesettings(ParticleSettings *part)
 	}
 }
 
-void make_local_particlesettings(ParticleSettings *part)
+void BKE_particlesettings_make_local(ParticleSettings *part)
 {
 	Main *bmain= G.main;
 	Object *ob;
@@ -3687,7 +3687,7 @@ void make_local_particlesettings(ParticleSettings *part)
 		expand_local_particlesettings(part);
 	}
 	else if (is_local && is_lib) {
-		ParticleSettings *part_new= psys_copy_settings(part);
+		ParticleSettings *part_new= BKE_particlesettings_copy(part);
 		part_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */

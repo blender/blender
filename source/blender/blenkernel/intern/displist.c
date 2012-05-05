@@ -1569,7 +1569,7 @@ static void boundbox_displist(Object *ob)
 	}
 	
 	if (bb) {
-		boundbox_set_from_min_max(bb, min, max);
+		BKE_boundbox_init_from_minmax(bb, min, max);
 	}
 }
 

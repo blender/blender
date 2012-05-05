@@ -59,7 +59,7 @@ struct World;
 #define MAXCOLORBAND 32
 
 
-void free_texture(struct Tex *t); 
+void BKE_texture_free(struct Tex *t); 
 int test_dlerr(const char *name,  const char *symbol);
 void open_plugin_tex(struct PluginTex *pit);
 struct PluginTex *add_plugin_tex(char *str);
@@ -79,7 +79,7 @@ void tex_set_type(struct Tex *tex, int type);
 void default_mtex(struct MTex *mtex);
 struct MTex *add_mtex(void);
 struct MTex *add_mtex_id(struct ID *id, int slot);
-struct Tex *copy_texture(struct Tex *tex);
+struct Tex *BKE_texture_copy(struct Tex *tex);
 struct Tex *localize_texture(struct Tex *tex);
 void make_local_texture(struct Tex *tex);
 void autotexname(struct Tex *tex);

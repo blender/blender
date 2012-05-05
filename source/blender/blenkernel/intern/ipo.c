@@ -81,7 +81,7 @@
 
 /* Free data from old IPO-Blocks (those which haven't been converted), but not IPO block itself */
 // XXX this shouldn't be necessary anymore, but may occur while not all data is converted yet
-void free_ipo(Ipo *ipo)
+void BKE_ipo_free(Ipo *ipo)
 {
 	IpoCurve *icu, *icn;
 	int n= 0;

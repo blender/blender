@@ -131,7 +131,7 @@ Scene *copy_scene(Scene *sce, int type)
 		MEM_freeN(scen->toolsettings);
 	}
 	else {
-		scen= copy_libblock(&sce->id);
+		scen= BKE_libblock_copy(&sce->id);
 		BLI_duplicatelist(&(scen->base), &(sce->base));
 		
 		clear_id_newpoins();
@@ -229,7 +229,7 @@ Scene *copy_scene(Scene *sce, int type)
 		BKE_copy_animdata_id_action((ID *)scen);
 		if (scen->world) {
 			id_us_plus((ID *)scen->world);
-			scen->world= copy_world(scen->world);
+			scen->world= BKE_world_copy(scen->world);
 			BKE_copy_animdata_id_action((ID *)scen->world);
 		}
 
@@ -244,7 +244,7 @@ Scene *copy_scene(Scene *sce, int type)
 }
 
 /* do not free scene itself */
-void free_scene(Scene *sce)
+void BKE_scene_free(Scene *sce)
 {
 	Base *base;
 
@@ -339,7 +339,7 @@ Scene *add_scene(const char *name)
 	ParticleEditSettings *pset;
 	int a;
 
-	sce= alloc_libblock(&bmain->scene, ID_SCE, name);
+	sce= BKE_libblock_alloc(&bmain->scene, ID_SCE, name);
 	sce->lay= sce->layact= 1;
 	
 	sce->r.mode= R_GAMMA|R_OSA|R_SHADOW|R_SSS|R_ENVMAP|R_RAYTRACE;
@@ -647,7 +647,7 @@ void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
 		if (sc->scene == sce)
 			sc->scene= newsce;
 
-	free_libblock(&bmain->scene, sce);
+	BKE_libblock_free(&bmain->scene, sce);
 }
 
 /* used by metaballs
@@ -987,7 +987,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 	for (base= scene->base.first; base; base= base->next) {
 		Object *ob= base->object;
 		
-		object_handle_update(scene_parent, ob);
+		BKE_object_handle_update(scene_parent, ob);
 		
 		if (ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
 			group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
@@ -1080,7 +1080,7 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
 	/*...done with recusrive funcs */
 
-	/* object_handle_update() on all objects, groups and sets */
+	/* BKE_object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);
 
 	/* notify editors and python about recalc */
@@ -1215,3 +1215,22 @@ int scene_use_new_shading_nodes(Scene *scene)
 	return (type && type->flag & RE_USE_SHADING_NODES);
 }
 
+void copy_baseflags(struct Scene *scene)
+{
+	Base *base= scene->base.first;
+
+	while (base) {
+		base->object->flag= base->flag;
+		base= base->next;
+	}
+}
+
+void copy_objectflags(struct Scene *scene)
+{
+	Base *base= scene->base.first;
+
+	while (base) {
+		base->flag= base->object->flag;
+		base= base->next;
+	}
+}

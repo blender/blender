@@ -42,15 +42,15 @@ struct Text;
 struct TextLine;
 struct SpaceText;
 
-void			free_text		(struct Text *text);
+void			BKE_text_free		(struct Text *text);
 void 			txt_set_undostate	(int u);
 int 			txt_get_undostate	(void);
 struct Text*	add_empty_text	(const char *name);
 int				txt_extended_ascii_as_utf8(char **str);
 int				reopen_text		(struct Text *text);
 struct Text*	add_text		(const char *file, const char *relpath); 
-struct Text*	copy_text		(struct Text *ta);
-void			unlink_text		(struct Main *bmain, struct Text *text);
+struct Text*	BKE_text_copy		(struct Text *ta);
+void			BKE_text_unlink		(struct Main *bmain, struct Text *text);
 void			clear_text(struct Text *text);
 void			write_text(struct Text *text, const char *str);
 

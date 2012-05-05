@@ -356,7 +356,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			float tmp_mat[3][3];
 			float scale;
 			
-			object_to_mat3(amd->curve_ob, tmp_mat);
+			BKE_object_to_mat3(amd->curve_ob, tmp_mat);
 			scale = mat3_to_scale(tmp_mat);
 				
 			if (!cu->path) {

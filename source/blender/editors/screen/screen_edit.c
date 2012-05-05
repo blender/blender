@@ -419,7 +419,7 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
 	
-	sc= alloc_libblock(&G.main->screen, ID_SCR, name);
+	sc= BKE_libblock_alloc(&G.main->screen, ID_SCR, name);
 	sc->scene= scene;
 	sc->do_refresh= 1;
 	sc->redraws_flag= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
@@ -448,7 +448,7 @@ static void screen_copy(bScreen *to, bScreen *from)
 	ScrArea *sa, *saf;
 	
 	/* free contents of 'to', is from blenkernel screen.c */
-	free_screen(to);
+	BKE_screen_free(to);
 	
 	BLI_duplicatelist(&to->vertbase, &from->vertbase);
 	BLI_duplicatelist(&to->edgebase, &from->edgebase);
@@ -1426,7 +1426,7 @@ void ED_screen_delete(bContext *C, bScreen *sc)
 	ED_screen_set(C, newsc);
 
 	if (delete && win->screen != sc)
-		free_libblock(&bmain->screen, sc);
+		BKE_libblock_free(&bmain->screen, sc);
 }
 
 /* only call outside of area/region loops */
@@ -1654,8 +1654,8 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 
 		ED_screen_set(C, sc);
 
-		free_screen(oldscreen);
-		free_libblock(&CTX_data_main(C)->screen, oldscreen);
+		BKE_screen_free(oldscreen);
+		BKE_libblock_free(&CTX_data_main(C)->screen, oldscreen);
 
 	}
 	else {

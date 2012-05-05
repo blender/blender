@@ -174,7 +174,7 @@ static Object *get_poselib_object (bContext *C)
 	if (sa && (sa->spacetype == SPACE_BUTS)) 
 		return ED_object_context(C);
 	else
-		return object_pose_armature_get(CTX_data_active_object(C));
+		return BKE_object_pose_armature_get(CTX_data_active_object(C));
 }
 
 /* Poll callback for operators that require existing PoseLib data (with poses) to work */
@@ -650,7 +650,7 @@ static int poselib_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int poselib_rename_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
 	char newname[64];

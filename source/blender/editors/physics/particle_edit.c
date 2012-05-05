@@ -4068,7 +4068,7 @@ int PE_minmax(Scene *scene, float min[3], float max[3])
 	}
 
 	if (!ok) {
-		minmax_object(ob, min, max);
+		BKE_object_minmax(ob, min, max);
 		ok= 1;
 	}
   

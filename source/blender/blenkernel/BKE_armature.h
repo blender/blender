@@ -78,9 +78,9 @@ extern "C" {
 struct bArmature *add_armature(const char *name);
 struct bArmature *get_armature(struct Object *ob);
 void free_bonelist (struct ListBase *lb);
-void free_armature(struct bArmature *arm);
-void make_local_armature(struct bArmature *arm);
-struct bArmature *copy_armature(struct bArmature *arm);
+void BKE_armature_free(struct bArmature *arm);
+void BKE_armature_make_local(struct bArmature *arm);
+struct bArmature *BKE_armature_copy(struct bArmature *arm);
 
 /* Bounding box. */
 struct BoundBox *BKE_armature_get_bb(struct Object *ob);

@@ -87,13 +87,13 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 	case OB_SURF:
 
 		/* copies object and modifiers (but not the data) */
-		tmpobj = copy_object(ob);
+		tmpobj = BKE_object_copy(ob);
 		tmpcu = (Curve *)tmpobj->data;
 		tmpcu->id.us--;
 
 		/* if getting the original caged mesh, delete object modifiers */
 		if ( cage )
-			object_free_modifiers(tmpobj);
+			BKE_object_free_modifiers(tmpobj);
 
 		/* copies the data */
 		copycu = tmpobj->data = BKE_curve_copy((Curve *) ob->data );
@@ -114,12 +114,12 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 
 		/* nurbs_to_mesh changes the type to a mesh, check it worked */
 		if (tmpobj->type != OB_MESH) {
-			free_libblock_us(&(G.main->object), tmpobj);
+			BKE_libblock_free_us(&(G.main->object), tmpobj);
 			BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
 			return NULL;
 		}
 		tmpmesh = tmpobj->data;
-		free_libblock_us(&G.main->object, tmpobj);
+		BKE_libblock_free_us(&G.main->object, tmpobj);
 		break;
 
 	case OB_MBALL: {
@@ -148,7 +148,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		/* copies object and modifiers (but not the data) */
 		if (cage) {
 			/* copies the data */
-			tmpmesh = copy_mesh( ob->data );
+			tmpmesh = BKE_mesh_copy( ob->data );
 		/* if not getting the original caged mesh, get final derived mesh */
 		}
 		else {
@@ -328,7 +328,7 @@ static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *
 	Scene *scene = CTX_data_scene(C);
 	KeyBlock *kb = NULL;
 
-	if ((kb = object_insert_shape_key(scene, ob, name, from_mix))) {
+	if ((kb = BKE_object_insert_shape_key(scene, ob, name, from_mix))) {
 		PointerRNA keyptr;
 
 		RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
@@ -473,12 +473,12 @@ void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
 
 int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
 {
-	return object_is_modified(scene, ob) & settings;
+	return BKE_object_is_modified(scene, ob) & settings;
 }
 
 int rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
 {
-	return object_is_deform_modified(scene, ob) & settings;
+	return BKE_object_is_deform_modified(scene, ob) & settings;
 }
 
 #ifndef NDEBUG

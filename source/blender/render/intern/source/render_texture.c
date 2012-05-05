@@ -3644,14 +3644,14 @@ void RE_free_sample_material(Material *mat)
 			MTex *mtex= mat->mtex[tex_nr];
 	
 			if (mtex->tex) {
-				free_texture(mtex->tex);
+				BKE_texture_free(mtex->tex);
 				MEM_freeN(mtex->tex);
 				mtex->tex = NULL;
 			}
 		}
 	}
 
-	free_material(mat);
+	BKE_material_free(mat);
 	MEM_freeN(mat);
 }
 

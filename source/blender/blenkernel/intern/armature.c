@@ -79,7 +79,7 @@ bArmature *add_armature(const char *name)
 {
 	bArmature *arm;
 
-	arm = alloc_libblock (&G.main->armature, ID_AR, name);
+	arm = BKE_libblock_alloc (&G.main->armature, ID_AR, name);
 	arm->deformflag = ARM_DEF_VGROUP|ARM_DEF_ENVELOPE;
 	arm->flag = ARM_COL_CUSTOM; /* custom bone-group colors */
 	arm->layer = 1;
@@ -108,7 +108,7 @@ void free_bonelist(ListBase *lb)
 	BLI_freelistN(lb);
 }
 
-void free_armature(bArmature *arm)
+void BKE_armature_free(bArmature *arm)
 {
 	if (arm) {
 		free_bonelist(&arm->bonebase);
@@ -135,7 +135,7 @@ void free_armature(bArmature *arm)
 	}
 }
 
-void make_local_armature(bArmature *arm)
+void BKE_armature_make_local(bArmature *arm)
 {
 	Main *bmain = G.main;
 	int is_local = FALSE, is_lib = FALSE;
@@ -161,7 +161,7 @@ void make_local_armature(bArmature *arm)
 		id_clear_lib_data(bmain, &arm->id);
 	}
 	else if (is_local && is_lib) {
-		bArmature *arm_new = copy_armature(arm);
+		bArmature *arm_new = BKE_armature_copy(arm);
 		arm_new->id.us = 0;
 
 		/* Remap paths of new ID using old library as base. */
@@ -201,13 +201,13 @@ static void copy_bonechildren(Bone* newBone, Bone* oldBone, Bone* actBone, Bone 
 	}
 }
 
-bArmature *copy_armature(bArmature *arm)
+bArmature *BKE_armature_copy(bArmature *arm)
 {
 	bArmature *newArm;
 	Bone *oldBone, *newBone;
 	Bone *newActBone= NULL;
 
-	newArm = copy_libblock(&arm->id);
+	newArm = BKE_libblock_copy(&arm->id);
 	BLI_duplicatelist(&newArm->bonebase, &arm->bonebase);
 
 	/* Duplicate the childrens' lists*/
@@ -1316,7 +1316,7 @@ void armature_mat_pose_to_bone_ex(Object *ob, bPoseChannel *pchan, float inmat[]
 	armature_mat_pose_to_bone(&work_pchan, inmat, outmat);
 }
 
-/* same as object_mat3_to_rot() */
+/* same as BKE_object_mat3_to_rot() */
 void pchan_mat3_to_rot(bPoseChannel *pchan, float mat[][3], short use_compat)
 {
 	switch (pchan->rotmode) {
@@ -1335,7 +1335,7 @@ void pchan_mat3_to_rot(bPoseChannel *pchan, float mat[][3], short use_compat)
 }
 
 /* Apply a 4x4 matrix to the pose bone,
- * similar to object_apply_mat4() */
+ * similar to BKE_object_apply_mat4() */
 void pchan_apply_mat4(bPoseChannel *pchan, float mat[][4], short use_compat)
 {
 	float rot[3][3];
@@ -1732,7 +1732,7 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 
 	/* synchronize protected layers with proxy */
 	if (ob->proxy) {
-		object_copy_proxy_drivers(ob, ob->proxy);
+		BKE_object_copy_proxy_drivers(ob, ob->proxy);
 		pose_proxy_synchronize(ob, ob->proxy, arm->layer_protected);
 	}
 
@@ -2517,7 +2517,7 @@ int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_tot)
 {
 	bDeformGroup *defgroup;
 	unsigned int i;
-	Object *armob = object_pose_armature_get(ob);
+	Object *armob = BKE_object_pose_armature_get(ob);
 	int dg_flags_sel_tot = 0;
 
 	if (armob) {
@@ -2581,7 +2581,7 @@ void boundbox_armature(Object *ob, float *loc, float *size)
 	size[1] = (max[1] - min[1]) / 2.0f;
 	size[2] = (max[2] - min[2]) / 2.0f;
 
-	boundbox_set_from_min_max(bb, min, max);
+	BKE_boundbox_init_from_minmax(bb, min, max);
 }
 
 BoundBox *BKE_armature_get_bb(Object *ob)

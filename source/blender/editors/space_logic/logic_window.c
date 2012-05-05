@@ -4789,7 +4789,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	}
 	
 	if (ob==NULL) return;
-//	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+//	uiSetButLock(BKE_object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 	BLI_snprintf(numstr, sizeof(numstr), "buttonswin %p", (void *)ar);
 	block= uiBeginBlock(C, ar, numstr, UI_EMBOSS);
@@ -4833,7 +4833,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		
 		ob= (Object *)idar[a];
 //		uiClearButLock();
-//		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+//		uiSetButLock(BKE_object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		if ( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
 
 		/* presume it is only objects for now */
@@ -4970,7 +4970,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 //		uiClearButLock();
-//		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+//		uiSetButLock(BKE_object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		
 		if ( (ob->scavisflag & OB_VIS_SENS) == 0) continue;
 		
@@ -5051,7 +5051,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	for (a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 //		uiClearButLock();
-//		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+//		uiSetButLock(BKE_object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		if ( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
 
 		/* presume it is only objects for now */

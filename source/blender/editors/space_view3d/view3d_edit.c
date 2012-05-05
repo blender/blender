@@ -121,9 +121,9 @@ int ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 
 			mult_m4_m4m4(parent_mat, diff_mat, root_parent->obmat);
 
-			object_tfm_protected_backup(root_parent, &obtfm);
-			object_apply_mat4(root_parent, parent_mat, TRUE, FALSE);
-			object_tfm_protected_restore(root_parent, &obtfm, root_parent->protectflag);
+			BKE_object_tfm_protected_backup(root_parent, &obtfm);
+			BKE_object_apply_mat4(root_parent, parent_mat, TRUE, FALSE);
+			BKE_object_tfm_protected_restore(root_parent, &obtfm, root_parent->protectflag);
 
 			ob_update = v3d->camera;
 			while (ob_update) {
@@ -133,9 +133,9 @@ int ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			}
 		}
 		else {
-			object_tfm_protected_backup(v3d->camera, &obtfm);
+			BKE_object_tfm_protected_backup(v3d->camera, &obtfm);
 			ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-			object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
+			BKE_object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
 
 			DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 			WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, v3d->camera);
@@ -2068,7 +2068,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 				continue;
 			}
 
-			minmax_object(base->object, min, max);
+			BKE_object_minmax(base->object, min, max);
 		}
 	}
 	if (!onedone) {
@@ -2214,8 +2214,8 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 				}
 
 				/* account for duplis */
-				if (minmax_object_duplis(scene, base->object, min, max) == 0)
-					minmax_object(base->object, min, max);  /* use if duplis not found */
+				if (BKE_object_minmax_dupli(scene, base->object, min, max) == 0)
+					BKE_object_minmax(base->object, min, max);  /* use if duplis not found */
 
 				ok = 1;
 			}
@@ -3671,7 +3671,7 @@ void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], co
 {
 	float mat[4][4];
 	ED_view3d_to_m4(mat, ofs, quat, dist);
-	object_apply_mat4(ob, mat, TRUE, TRUE);
+	BKE_object_apply_mat4(ob, mat, TRUE, TRUE);
 }
 
 BGpic *ED_view3D_background_image_new(View3D *v3d)

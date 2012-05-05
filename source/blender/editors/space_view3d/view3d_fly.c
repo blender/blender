@@ -366,9 +366,9 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event
 		/* store the original camera loc and rot */
 		/* TODO. axis angle etc */
 
-		fly->obtfm = object_tfm_backup(ob_back);
+		fly->obtfm = BKE_object_tfm_backup(ob_back);
 
-		where_is_object(fly->scene, fly->v3d->camera);
+		BKE_object_where_is_calc(fly->scene, fly->v3d->camera);
 		negate_v3_v3(fly->rv3d->ofs, fly->v3d->camera->obmat[3]);
 
 		fly->rv3d->dist = 0.0;
@@ -429,7 +429,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 			ob_back = (fly->root_parent) ? fly->root_parent : fly->v3d->camera;
 
 			/* store the original camera loc and rot */
-			object_tfm_restore(ob_back, fly->obtfm);
+			BKE_object_tfm_restore(ob_back, fly->obtfm);
 
 			DAG_id_tag_update(&ob_back->id, OB_RECALC_OB);
 		}
@@ -709,9 +709,9 @@ static void move_camera(bContext *C, RegionView3D *rv3d, FlyInfo *fly, int orien
 		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 		mult_m4_m4m4(diff_mat, view_mat, prev_view_imat);
 		mult_m4_m4m4(parent_mat, diff_mat, fly->root_parent->obmat);
-		object_apply_mat4(fly->root_parent, parent_mat, TRUE, FALSE);
+		BKE_object_apply_mat4(fly->root_parent, parent_mat, TRUE, FALSE);
 
-		// where_is_object(scene, fly->root_parent);
+		// BKE_object_where_is_calc(scene, fly->root_parent);
 
 		ob_update = v3d->camera->parent;
 		while (ob_update) {
@@ -724,7 +724,7 @@ static void move_camera(bContext *C, RegionView3D *rv3d, FlyInfo *fly, int orien
 	else {
 		float view_mat[4][4];
 		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-		object_apply_mat4(v3d->camera, view_mat, TRUE, FALSE);
+		BKE_object_apply_mat4(v3d->camera, view_mat, TRUE, FALSE);
 		id_key = &v3d->camera->id;
 	}
 

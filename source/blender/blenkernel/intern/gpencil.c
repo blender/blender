@@ -108,7 +108,7 @@ void free_gpencil_layers(ListBase *list)
 }
 
 /* Free all of GPencil datablock's related data, but not the block itself */
-void free_gpencil_data(bGPdata *gpd)
+void BKE_gpencil_free(bGPdata *gpd)
 {
 	/* free layers */
 	free_gpencil_layers(&gpd->layers);
@@ -198,7 +198,7 @@ bGPdata *gpencil_data_addnew (const char name[])
 	bGPdata *gpd;
 	
 	/* allocate memory for a new block */
-	gpd= alloc_libblock(&G.main->gpencil, ID_GD, name);
+	gpd= BKE_libblock_alloc(&G.main->gpencil, ID_GD, name);
 	
 	/* initial settings */
 	gpd->flag = (GP_DATA_DISPINFO|GP_DATA_EXPAND);

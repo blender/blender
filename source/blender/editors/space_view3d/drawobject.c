@@ -1740,7 +1740,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	int i;
 	float drawsize;
 	const short is_view = (rv3d->persp == RV3D_CAMOB && ob == v3d->camera);
-	MovieClip *clip = object_get_movieclip(scene, base->object, 0);
+	MovieClip *clip = BKE_object_movieclip_get(scene, base->object, 0);
 
 	/* draw data for movie clip set as active for scene */
 	if (clip) {
@@ -6092,7 +6092,7 @@ static void draw_box(float vec[8][3])
 #if 0
 static void get_local_bounds(Object *ob, float center[3], float size[3])
 {
-	BoundBox *bb = object_get_boundbox(ob);
+	BoundBox *bb = BKE_object_boundbox_get(ob);
 	
 	if (bb == NULL) {
 		zero_v3(center);
@@ -6435,7 +6435,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	view3d_cached_text_draw_begin();
 	
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
-	/* if ( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
+	/* if ( ((int)ob->ctime) != F_(scene->r.cfra)) BKE_object_where_is_calc(scene, ob); */
 	
 	/* draw motion paths (in view space) */
 	if (ob->mpath && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {

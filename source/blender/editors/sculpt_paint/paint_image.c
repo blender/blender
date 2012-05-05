@@ -5554,7 +5554,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 	
-	if (object_data_is_libdata(ob)) {
+	if (BKE_object_obdata_is_libdata(ob)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
 		return OPERATOR_CANCELLED;
 	}

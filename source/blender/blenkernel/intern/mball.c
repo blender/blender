@@ -203,7 +203,7 @@ MetaBall *BKE_metaball_add(const char *name)
 {
 	MetaBall *mb;
 	
-	mb= alloc_libblock(&G.main->mball, ID_MB, name);
+	mb= BKE_libblock_alloc(&G.main->mball, ID_MB, name);
 	
 	mb->size[0]= mb->size[1]= mb->size[2]= 1.0;
 	mb->texflag= MB_AUTOSPACE;
@@ -220,7 +220,7 @@ MetaBall *BKE_metaball_copy(MetaBall *mb)
 	MetaBall *mbn;
 	int a;
 	
-	mbn= copy_libblock(&mb->id);
+	mbn= BKE_libblock_copy(&mb->id);
 
 	BLI_duplicatelist(&mbn->elems, &mb->elems);
 	
@@ -387,7 +387,7 @@ void BKE_metaball_tex_space_calc(Object *ob)
 	size[1]= (max[1]-min[1])/2.0f;
 	size[2]= (max[2]-min[2])/2.0f;
 #endif
-	boundbox_set_from_min_max(bb, min, max);
+	BKE_boundbox_init_from_minmax(bb, min, max);
 }
 
 float *BKE_metaball_make_orco(Object *ob, ListBase *dispbase)

@@ -61,7 +61,7 @@ struct Base *_setlooper_base_step(struct Scene **sce_iter, struct Base *base);
 void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
 
-void free_scene(struct Scene *sce);
+void BKE_scene_free(struct Scene *sce);
 struct Scene *add_scene(const char *name);
 struct Base *object_in_scene(struct Object *ob, struct Scene *sce);
 
@@ -103,6 +103,9 @@ int get_render_shadow_samples(struct RenderData *r, int samples);
 float get_render_aosss_error(struct RenderData *r, float error);
 
 int scene_use_new_shading_nodes(struct Scene *scene);
+
+void copy_baseflags(struct Scene *scene);
+void copy_objectflags(struct Scene *scene);
 
 #ifdef __cplusplus
 }

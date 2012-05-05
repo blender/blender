@@ -254,7 +254,7 @@ static void node_dynamic_rem_all_links(bNodeType *tinfo)
 
 /* node_dynamic_reset: clean a pynode, getting rid of all
  * data dynamically created for it. */
-static void node_dynamic_reset(bNode *node, int unlink_text)
+static void node_dynamic_reset(bNode *node, int BKE_text_unlink)
 {
 	bNodeType *tinfo, *tinfo_default;
 	Material *ma;
@@ -262,7 +262,7 @@ static void node_dynamic_reset(bNode *node, int unlink_text)
 	tinfo = node->typeinfo;
 	tinfo_default = node_dynamic_find_typeinfo(&node_all_shaders, NULL);
 
-	if ((tinfo == tinfo_default) && unlink_text) {
+	if ((tinfo == tinfo_default) && BKE_text_unlink) {
 		ID *textID = node->id;
 	/* already at default (empty) state, which happens if this node's
 	 * script failed to parse at the first stage: definition. We're here
@@ -296,7 +296,7 @@ static void node_dynamic_reset(bNode *node, int unlink_text)
 					node_dynamic_free_sockets(nd);
 					//node_dynamic_update_socket_links(nd, ma->nodetree);
 					nd->typeinfo = tinfo_default;
-					if (unlink_text) {
+					if (BKE_text_unlink) {
 						nd->id = NULL;
 						nd->custom1 = 0;
 						nd->custom1 = BSET(nd->custom1, NODE_DYNAMIC_NEW);

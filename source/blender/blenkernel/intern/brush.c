@@ -126,7 +126,7 @@ Brush *BKE_brush_add(const char *name)
 {
 	Brush *brush;
 
-	brush= alloc_libblock(&G.main->brush, ID_BR, name);
+	brush= BKE_libblock_alloc(&G.main->brush, ID_BR, name);
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
@@ -145,7 +145,7 @@ Brush *BKE_brush_copy(Brush *brush)
 {
 	Brush *brushn;
 	
-	brushn= copy_libblock(&brush->id);
+	brushn= BKE_libblock_copy(&brush->id);
 
 	if (brush->mtex.tex)
 		id_us_plus((ID*)brush->mtex.tex);
@@ -432,7 +432,7 @@ int BKE_brush_texture_set_nr(Brush *brush, int nr)
 
 	idtest= (ID*)BLI_findlink(&G.main->tex, nr-1);
 	if (idtest==NULL) { /* new tex */
-		if (id) idtest= (ID *)copy_texture((Tex *)id);
+		if (id) idtest= (ID *)BKE_texture_copy((Tex *)id);
 		else idtest= (ID *)add_texture("Tex");
 		idtest->us--;
 	}

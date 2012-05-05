@@ -540,11 +540,11 @@ static int subframe_updateObject(Scene *scene, Object *ob, int flags, float fram
 		/* ignore cache clear during subframe updates
 		*  to not mess up cache validity */
 		object_cacheIgnoreClear(ob, 1);
-		object_handle_update(scene, ob);
+		BKE_object_handle_update(scene, ob);
 		object_cacheIgnoreClear(ob, 0);
 	}
 	else
-		where_is_object_time(scene, ob, frame);
+		BKE_object_where_is_calc_time(scene, ob, frame);
 
 	return 0;
 }

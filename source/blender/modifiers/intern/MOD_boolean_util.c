@@ -277,7 +277,7 @@ static Object *AddNewBlenderMesh(Scene *scene, Base *base)
 	// now create a new blender object.
 	// duplicating all the settings from the previous object
 	// to the new one.
-	ob_new= copy_object(base->object);
+	ob_new= BKE_object_copy(base->object);
 
 	// Ok we don't want to use the actual data from the
 	// last object, the above function incremented the 

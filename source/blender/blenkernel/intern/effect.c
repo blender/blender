@@ -202,9 +202,9 @@ static void precalculate_effector(EffectorCache *eff)
 	if (eff->ob) {
 		float old_vel[3];
 
-		where_is_object_time(eff->scene, eff->ob, cfra - 1.0f);
+		BKE_object_where_is_calc_time(eff->scene, eff->ob, cfra - 1.0f);
 		copy_v3_v3(old_vel, eff->ob->obmat[3]);	
-		where_is_object_time(eff->scene, eff->ob, cfra);
+		BKE_object_where_is_calc_time(eff->scene, eff->ob, cfra);
 		sub_v3_v3v3(eff->velocity, eff->ob->obmat[3], old_vel);
 	}
 }

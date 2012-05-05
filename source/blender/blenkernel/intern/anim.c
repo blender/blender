@@ -341,7 +341,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	// is animated but not attached to/updatable from objects
 	for (base=scene->base.first; base; base=base->next) {
 		/* update this object */
-		object_handle_update(scene, base->object);
+		BKE_object_handle_update(scene, base->object);
 		
 		/* if this is the last one we need to update, let's stop to save some time */
 		if (base == last)
@@ -816,7 +816,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 			 * However, this has always been the way that this worked (i.e. pre 2.5), so I guess that it'll be fine!
 			 */
 			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
-			where_is_object_time(scene, ob, (float)scene->r.cfra);
+			BKE_object_where_is_calc_time(scene, ob, (float)scene->r.cfra);
 			
 			dob= new_dupli_object(lb, ob, ob->obmat, ob->lay, scene->r.cfra, OB_DUPLIFRAMES, animated);
 			copy_m4_m4(dob->omat, copyob.obmat);
@@ -831,7 +831,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	scene->r.cfra= cfrao;
 	
 	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
-	where_is_object_time(scene, ob, (float)scene->r.cfra);
+	BKE_object_where_is_calc_time(scene, ob, (float)scene->r.cfra);
 	
 	/* but, to make sure unkeyed object transforms are still sane, 
 	 * let's copy object's original data back over
@@ -1309,7 +1309,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			}
 
 			/* we also copy the actual objects to restore afterwards, since
-			 * where_is_object_time will change the object which breaks transform */
+			 * BKE_object_where_is_calc_time will change the object which breaks transform */
 			oblist = MEM_callocN(totgroup*sizeof(Object *), "dupgroup object list");
 			obcopylist = MEM_callocN(totgroup*sizeof(Object), "dupgroup copy list");
 
@@ -1445,7 +1445,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			}
 			else {
 				/* to give ipos in object correct offset */
-				where_is_object_time(scene, ob, ctime-pa_time);
+				BKE_object_where_is_calc_time(scene, ob, ctime-pa_time);
 
 				copy_v3_v3(vec, obmat[3]);
 				obmat[3][0] = obmat[3][1] = obmat[3][2] = 0.0f;
@@ -1486,7 +1486,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			}
 		}
 
-		/* restore objects since they were changed in where_is_object_time */
+		/* restore objects since they were changed in BKE_object_where_is_calc_time */
 		if (part->ren_as==PART_DRAW_GR) {
 			for (a=0; a<totgroup; a++)
 				*(oblist[a])= obcopylist[a];

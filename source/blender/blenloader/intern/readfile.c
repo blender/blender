@@ -558,7 +558,7 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *filepat
 	m= MEM_callocN(sizeof(Main), "find_main");
 	BLI_addtail(mainlist, m);
 
-	lib= alloc_libblock(&m->library, ID_LI, "lib");
+	lib= BKE_libblock_alloc(&m->library, ID_LI, "lib");
 	BLI_strncpy(lib->name, filepath, sizeof(lib->name));
 	BLI_strncpy(lib->filepath, name1, sizeof(lib->filepath));
 	
@@ -8605,8 +8605,8 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 		if (((group->id.flag & LIB_INDIRECT)==0 && (group->id.flag & LIB_PRE_EXISTING)==0)) {
 			Base *base;
 
-			/* add_object(...) messes with the selection */
-			Object *ob= add_only_object(OB_EMPTY, group->id.name+2);
+			/* BKE_object_add(...) messes with the selection */
+			Object *ob= BKE_object_add_only_object(OB_EMPTY, group->id.name+2);
 			ob->type= OB_EMPTY;
 			ob->lay= scene->lay;
 

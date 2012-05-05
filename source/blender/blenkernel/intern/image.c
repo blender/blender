@@ -198,7 +198,7 @@ static void image_free_buffers(Image *ima)
 }
 
 /* called by library too, do not free ima itself */
-void free_image(Image *ima)
+void BKE_image_free(Image *ima)
 {
 	int a;
 
@@ -225,7 +225,7 @@ static Image *image_alloc(const char *name, short source, short type)
 {
 	Image *ima;
 	
-	ima= alloc_libblock(&G.main->image, ID_IM, name);
+	ima= BKE_libblock_alloc(&G.main->image, ID_IM, name);
 	if (ima) {
 		ima->ok= IMA_OK;
 		
@@ -300,7 +300,7 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 }
 
 /* empty image block, of similar type and filename */
-Image *copy_image(Image *ima)
+Image *BKE_image_copy(Image *ima)
 {
 	Image *nima= image_alloc(ima->id.name+2, ima->source, ima->type);
 
@@ -408,7 +408,7 @@ void make_local_image(struct Image *ima)
 		extern_local_image(ima);
 	}
 	else if (is_local && is_lib) {
-		Image *ima_new= copy_image(ima);
+		Image *ima_new= BKE_image_copy(ima);
 
 		ima_new->id.us= 0;
 
@@ -501,7 +501,7 @@ void BKE_image_merge(Image *dest, Image *source)
 			image_assign_ibuf(dest, ibuf, IMA_INDEX_PASS(ibuf->index), IMA_INDEX_FRAME(ibuf->index));
 		}
 		
-		free_libblock(&G.main->image, source);
+		BKE_libblock_free(&G.main->image, source);
 	}
 }
 

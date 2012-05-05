@@ -34,8 +34,8 @@
  */
 
 void *add_speaker(const char *name);
-struct Speaker *copy_speaker(struct Speaker *spk);
+struct Speaker *BKE_speaker_copy(struct Speaker *spk);
 void make_local_speaker(struct Speaker *spk);
-void free_speaker(struct Speaker *spk);
+void BKE_speaker_free(struct Speaker *spk);
 
 #endif

@@ -358,11 +358,11 @@ static int view3d_camera_to_view_exec(bContext *C, wmOperator *UNUSED(op))
 		rv3d->lpersp = rv3d->persp;
 	}
 
-	object_tfm_protected_backup(v3d->camera, &obtfm);
+	BKE_object_tfm_protected_backup(v3d->camera, &obtfm);
 
 	ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 
-	object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
+	BKE_object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
 
 	DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 	rv3d->persp = RV3D_CAMOB;
@@ -421,9 +421,9 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *UNUSED(o
 		copy_v3_v3(obmat_new[3], r_co);
 
 		/* only touch location */
-		object_tfm_protected_backup(camera_ob, &obtfm);
-		object_apply_mat4(camera_ob, obmat_new, TRUE, TRUE);
-		object_tfm_protected_restore(camera_ob, &obtfm, OB_LOCK_SCALE | OB_LOCK_ROT4D);
+		BKE_object_tfm_protected_backup(camera_ob, &obtfm);
+		BKE_object_apply_mat4(camera_ob, obmat_new, TRUE, TRUE);
+		BKE_object_tfm_protected_restore(camera_ob, &obtfm, OB_LOCK_SCALE | OB_LOCK_ROT4D);
 
 		/* notifiers */
 		DAG_id_tag_update(&camera_ob->id, OB_RECALC_OB);
@@ -1155,7 +1155,7 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
-			where_is_object(scene, v3d->camera);	
+			BKE_object_where_is_calc(scene, v3d->camera);	
 			obmat_to_viewmat(v3d, rv3d, v3d->camera, 0);
 		}
 		else {
@@ -1412,7 +1412,7 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 	}
 	else {
 		if (scene->obedit) {
-			minmax_object(scene->obedit, min, max);
+			BKE_object_minmax(scene->obedit, min, max);
 			
 			ok = 1;
 		
@@ -1422,7 +1422,7 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 		else {
 			for (base = FIRSTBASE; base; base = base->next) {
 				if (TESTBASE(v3d, base)) {
-					minmax_object(base->object, min, max);
+					BKE_object_minmax(base->object, min, max);
 					base->lay |= locallay;
 					base->object->lay = base->lay;
 					ok = 1;
