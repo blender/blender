@@ -2473,10 +2473,19 @@ typedef struct tConstraintLinkData {
 	ID *id;
 } tConstraintLinkData;
 /* callback function used to relink constraint ID-links */
-static void lib_link_constraint_cb(bConstraint *UNUSED(con), ID **idpoin, void *userdata)
+static void lib_link_constraint_cb(bConstraint *UNUSED(con), ID **idpoin, short isReference, void *userdata)
 {
 	tConstraintLinkData *cld= (tConstraintLinkData *)userdata;
-	*idpoin = newlibadr(cld->fd, cld->id->lib, *idpoin);
+	
+	/* for reference types, we need to increment the usercounts on load... */
+	if (isReference) {
+		/* reference type - with usercount */
+		*idpoin = newlibadr_us(cld->fd, cld->id->lib, *idpoin);
+	}
+	else {
+		/* target type - no usercount needed */
+		*idpoin = newlibadr(cld->fd, cld->id->lib, *idpoin);
+	}
 }
 
 static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
@@ -8115,7 +8124,7 @@ typedef struct tConstraintExpandData {
 	Main *mainvar;
 } tConstraintExpandData;
 /* callback function used to expand constraint ID-links */
-static void expand_constraint_cb(bConstraint *UNUSED(con), ID **idpoin, void *userdata)
+static void expand_constraint_cb(bConstraint *UNUSED(con), ID **idpoin, short UNUSED(isReference), void *userdata)
 {
 	tConstraintExpandData *ced= (tConstraintExpandData *)userdata;
 	expand_doit(ced->fd, ced->mainvar, *idpoin);

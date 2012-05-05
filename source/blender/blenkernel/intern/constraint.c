@@ -781,7 +781,7 @@ static void childof_id_looper (bConstraint *con, ConstraintIDFunc func, void *us
 	bChildOfConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int childof_get_tars (bConstraint *con, ListBase *list)
@@ -917,7 +917,7 @@ static void trackto_id_looper (bConstraint *con, ConstraintIDFunc func, void *us
 	bTrackToConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int trackto_get_tars (bConstraint *con, ListBase *list)
@@ -1098,10 +1098,10 @@ static void kinematic_id_looper (bConstraint *con, ConstraintIDFunc func, void *
 	bKinematicConstraint *data= con->data;
 	
 	/* chain target */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 	
 	/* poletarget */
-	func(con, (ID**)&data->poletar, userdata);
+	func(con, (ID**)&data->poletar, FALSE, userdata);
 }
 
 static int kinematic_get_tars (bConstraint *con, ListBase *list)
@@ -1191,7 +1191,7 @@ static void followpath_id_looper (bConstraint *con, ConstraintIDFunc func, void 
 	bFollowPathConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int followpath_get_tars (bConstraint *con, ListBase *list)
@@ -1541,7 +1541,7 @@ static void loclike_id_looper (bConstraint *con, ConstraintIDFunc func, void *us
 	bLocateLikeConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int loclike_get_tars (bConstraint *con, ListBase *list)
@@ -1632,7 +1632,7 @@ static void rotlike_id_looper (bConstraint *con, ConstraintIDFunc func, void *us
 	bChildOfConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int rotlike_get_tars (bConstraint *con, ListBase *list)
@@ -1745,7 +1745,7 @@ static void sizelike_id_looper (bConstraint *con, ConstraintIDFunc func, void *u
 	bSizeLikeConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int sizelike_get_tars (bConstraint *con, ListBase *list)
@@ -1835,7 +1835,7 @@ static void translike_id_looper (bConstraint *con, ConstraintIDFunc func, void *
 	bTransLikeConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int translike_get_tars (bConstraint *con, ListBase *list)
@@ -2007,10 +2007,10 @@ static void pycon_id_looper (bConstraint *con, ConstraintIDFunc func, void *user
 	
 	/* targets */
 	for (ct= data->targets.first; ct; ct= ct->next)
-		func(con, (ID**)&ct->tar, userdata);
+		func(con, (ID**)&ct->tar, FALSE, userdata);
 		
 	/* script */
-	func(con, (ID**)&data->text, userdata);
+	func(con, (ID**)&data->text, TRUE, userdata);
 }
 
 /* Whether this approach is maintained remains to be seen (aligorith) */
@@ -2107,10 +2107,10 @@ static void actcon_id_looper (bConstraint *con, ConstraintIDFunc func, void *use
 	bActionConstraint *data= con->data;
 	
 	/* target */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 	
 	/* action */
-	func(con, (ID**)&data->act, userdata);
+	func(con, (ID**)&data->act, TRUE, userdata);
 }
 
 static int actcon_get_tars (bConstraint *con, ListBase *list)
@@ -2273,7 +2273,7 @@ static void locktrack_id_looper (bConstraint *con, ConstraintIDFunc func, void *
 	bLockTrackConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int locktrack_get_tars (bConstraint *con, ListBase *list)
@@ -2584,7 +2584,7 @@ static void distlimit_id_looper (bConstraint *con, ConstraintIDFunc func, void *
 	bDistLimitConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int distlimit_get_tars (bConstraint *con, ListBase *list)
@@ -2712,7 +2712,7 @@ static void stretchto_id_looper (bConstraint *con, ConstraintIDFunc func, void *
 	bStretchToConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int stretchto_get_tars (bConstraint *con, ListBase *list)
@@ -2887,7 +2887,7 @@ static void minmax_id_looper (bConstraint *con, ConstraintIDFunc func, void *use
 	bMinMaxConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int minmax_get_tars (bConstraint *con, ListBase *list)
@@ -3030,8 +3030,8 @@ static void rbj_id_looper (bConstraint *con, ConstraintIDFunc func, void *userda
 	bRigidBodyJointConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
-	func(con, (ID**)&data->child, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
+	func(con, (ID**)&data->child, FALSE, userdata);
 }
 
 static int rbj_get_tars (bConstraint *con, ListBase *list)
@@ -3083,7 +3083,7 @@ static void clampto_id_looper (bConstraint *con, ConstraintIDFunc func, void *us
 	bClampToConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int clampto_get_tars (bConstraint *con, ListBase *list)
@@ -3268,7 +3268,7 @@ static void transform_id_looper (bConstraint *con, ConstraintIDFunc func, void *
 	bTransformConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int transform_get_tars (bConstraint *con, ListBase *list)
@@ -3403,10 +3403,10 @@ static bConstraintTypeInfo CTI_TRANSFORM = {
 
 static void shrinkwrap_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
-	bShrinkwrapConstraint *data= con->data;
+	bShrinkwrapConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->target, userdata);
+	func(con, (ID**)&data->target, FALSE, userdata);
 }
 
 static int shrinkwrap_get_tars (bConstraint *con, ListBase *list)
@@ -3571,7 +3571,7 @@ static void damptrack_id_looper (bConstraint *con, ConstraintIDFunc func, void *
 	bDampTrackConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int damptrack_get_tars (bConstraint *con, ListBase *list)
@@ -3717,7 +3717,7 @@ static void splineik_id_looper (bConstraint *con, ConstraintIDFunc func, void *u
 	bSplineIKConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int splineik_get_tars (bConstraint *con, ListBase *list)
@@ -3790,7 +3790,7 @@ static void pivotcon_id_looper (bConstraint *con, ConstraintIDFunc func, void *u
 	bPivotConstraint *data= con->data;
 	
 	/* target only */
-	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->tar, FALSE, userdata);
 }
 
 static int pivotcon_get_tars (bConstraint *con, ListBase *list)
@@ -3922,9 +3922,9 @@ static void followtrack_id_looper(bConstraint *con, ConstraintIDFunc func, void 
 {
 	bFollowTrackConstraint *data = con->data;
 
-	func(con, (ID**)&data->clip, userdata);
-	func(con, (ID**)&data->camera, userdata);
-	func(con, (ID**)&data->depth_ob, userdata);
+	func(con, (ID**)&data->clip, TRUE, userdata);
+	func(con, (ID**)&data->camera, FALSE, userdata);
+	func(con, (ID**)&data->depth_ob, FALSE, userdata);
 }
 
 static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -4116,7 +4116,7 @@ static void camerasolver_id_looper(bConstraint *con, ConstraintIDFunc func, void
 {
 	bCameraSolverConstraint *data = con->data;
 
-	func(con, (ID**)&data->clip, userdata);
+	func(con, (ID**)&data->clip, TRUE, userdata);
 }
 
 static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -4172,8 +4172,8 @@ static void objectsolver_id_looper(bConstraint *con, ConstraintIDFunc func, void
 {
 	bObjectSolverConstraint *data= con->data;
 
-	func(con, (ID**)&data->clip, userdata);
-	func(con, (ID**)&data->camera, userdata);
+	func(con, (ID**)&data->clip, FALSE, userdata);
+	func(con, (ID**)&data->camera, FALSE, userdata);
 }
 
 static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -4535,10 +4535,18 @@ void id_loop_constraints(ListBase *conlist, ConstraintIDFunc func, void *userdat
 /* ......... */
 
 /* helper for copy_constraints(), to be used for making sure that ID's are valid */
-static void con_extern_cb(bConstraint *UNUSED(con), ID **idpoin, void *UNUSED(userData))
+static void con_extern_cb(bConstraint *UNUSED(con), ID **idpoin, short UNUSED(isReference), void *UNUSED(userData))
 {
 	if (*idpoin && (*idpoin)->lib)
 		id_lib_extern(*idpoin);
+}
+
+/* helper for copy_constraints(), to be used for making sure that usercounts of copied ID's are fixed up */
+static void con_fix_copied_refs_cb(bConstraint *con, ID **idpoin, short isReference, void *UNUSED(userData))
+{
+	/* increment usercount if this is a reference type */
+	if ((*idpoin) && (isReference))
+		id_us_plus(*idpoin);
 }
 
 /* duplicate all of the constraints in a constraint stack */
@@ -4560,6 +4568,10 @@ void copy_constraints(ListBase *dst, const ListBase *src, int do_extern)
 			/* perform custom copying operations if needed */
 			if (cti->copy_data)
 				cti->copy_data(con, srccon);
+				
+			/* fix usercounts for all referenced data in referenced data */
+			if (cti->id_looper)
+				cti->id_looper(con, con_fix_copied_refs_cb, NULL);
 			
 			/* for proxies we don't want to make extern */
 			if (do_extern) {
