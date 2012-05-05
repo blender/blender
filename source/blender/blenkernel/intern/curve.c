@@ -175,7 +175,7 @@ Curve *BKE_curve_add(const char *name, int type)
 	cu->bb= BKE_boundbox_alloc_unit();
 	
 	if (type==OB_FONT) {
-		cu->vfont= cu->vfontb= cu->vfonti= cu->vfontbi= get_builtin_font();
+		cu->vfont= cu->vfontb= cu->vfonti= cu->vfontbi= BKE_vfont_builtin_get();
 		cu->vfont->id.us+=4;
 		cu->str= MEM_mallocN(12, "str");
 		BLI_strncpy(cu->str, "Text", 12);

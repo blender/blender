@@ -921,7 +921,7 @@ bool DocumentImporter::writeImage( const COLLADAFW::Image* image )
 	
 	BLI_split_dir_part(filename, dir, sizeof(dir));
 	BLI_join_dirfile(full_path, sizeof(full_path), dir, filepath.c_str());
-	Image *ima = BKE_add_image_file(full_path);
+	Image *ima = BKE_image_load_exists(full_path);
 	if (!ima) {
 		fprintf(stderr, "Cannot create image.\n");
 		return true;

@@ -278,7 +278,7 @@ Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, const char
 	Image *ima;
 
 	errno = 0;
-	ima = BKE_add_image_file(filepath);
+	ima = BKE_image_load(filepath);
 
 	if (!ima)
 		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,
@@ -347,7 +347,7 @@ VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepat
 	VFont *font;
 
 	errno = 0;
-	font = load_vfont(bmain, filepath);
+	font = BKE_vfont_load(bmain, filepath);
 
 	if (!font)
 		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,
@@ -443,7 +443,7 @@ void rna_Main_speakers_remove(Main *bmain, ReportList *reports, Speaker *speaker
 
 Text *rna_Main_texts_new(Main *UNUSED(bmain), const char *name)
 {
-	return add_empty_text(name);
+	return BKE_text_add(name);
 }
 void rna_Main_texts_remove(Main *bmain, Text *text)
 {
@@ -457,7 +457,7 @@ Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath
 	Text *txt;
 
 	errno = 0;
-	txt = add_text(filepath, bmain->name);
+	txt = BKE_text_load(filepath, bmain->name);
 
 	if (!txt)
 		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,

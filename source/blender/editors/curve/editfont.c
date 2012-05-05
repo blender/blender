@@ -275,7 +275,7 @@ static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int re
 	if (mode == FO_EDIT)
 		update_string(cu);
 
-	BKE_text_to_curve(bmain, scene, obedit, mode);
+	BKE_vfont_to_curve(bmain, scene, obedit, mode);
 
 	if (recalc)
 		DAG_id_tag_update(obedit->data, 0);
@@ -449,7 +449,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 	obedit->loc[2] += offset[2];
 
 	cu= obedit->data;
-	cu->vfont= get_builtin_font();
+	cu->vfont= BKE_vfont_builtin_get();
 	cu->vfont->id.us++;
 
 	for (tmp=firstline, a=0; cu->len<MAXTEXT && a<totline; tmp=tmp->next, a++)
@@ -556,7 +556,7 @@ static int kill_selection(Object *obedit, int ins)	/* 1 == new character */
 	int offset = 0;
 	int getfrom;
 
-	direction = BKE_font_getselection(obedit, &selstart, &selend);
+	direction = BKE_vfont_select_get(obedit, &selstart, &selend);
 	if (direction) {
 		int size;
 		if (ins) offset = 1;
@@ -593,7 +593,7 @@ static int set_style(bContext *C, const int style, const int clear)
 	EditFont *ef= cu->editfont;
 	int i, selstart, selend;
 
-	if (!BKE_font_getselection(obedit, &selstart, &selend))
+	if (!BKE_vfont_select_get(obedit, &selstart, &selend))
 		return OPERATOR_CANCELLED;
 
 	for (i=selstart; i<=selend; i++) {
@@ -644,7 +644,7 @@ static int toggle_style_exec(bContext *C, wmOperator *op)
 	Curve *cu= obedit->data;
 	int style, clear, selstart, selend;
 
-	if (!BKE_font_getselection(obedit, &selstart, &selend))
+	if (!BKE_vfont_select_get(obedit, &selstart, &selend))
 		return OPERATOR_CANCELLED;
 	
 	style= RNA_enum_get(op->ptr, "style");
@@ -679,7 +679,7 @@ static void copy_selection(Object *obedit)
 {
 	int selstart, selend;
 	
-	if (BKE_font_getselection(obedit, &selstart, &selend)) {
+	if (BKE_vfont_select_get(obedit, &selstart, &selend)) {
 		Curve *cu= obedit->data;
 		EditFont *ef= cu->editfont;
 		
@@ -718,7 +718,7 @@ static int cut_text_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit= CTX_data_edit_object(C);
 	int selstart, selend;
 
-	if (!BKE_font_getselection(obedit, &selstart, &selend))
+	if (!BKE_vfont_select_get(obedit, &selstart, &selend))
 		return OPERATOR_CANCELLED;
 
 	copy_selection(obedit);
@@ -901,7 +901,7 @@ static int move_cursor(bContext *C, int type, int select)
 			struct Main *bmain= CTX_data_main(C);
 			cu->selstart = cu->selend = 0;
 			update_string(cu);
-			BKE_text_to_curve(bmain, scene, obedit, FO_SELCHANGE);
+			BKE_vfont_to_curve(bmain, scene, obedit, FO_SELCHANGE);
 		}
 	}
 
@@ -1121,7 +1121,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 	if (cu->len == 0)
 		return OPERATOR_CANCELLED;
 
-	if (BKE_font_getselection(obedit, &selstart, &selend)) {
+	if (BKE_vfont_select_get(obedit, &selstart, &selend)) {
 		if (type == DEL_NEXT_SEL) type= DEL_SELECTION;
 		else if (type == DEL_PREV_SEL) type= DEL_SELECTION;
 	}
@@ -1634,7 +1634,7 @@ static int font_open_exec(bContext *C, wmOperator *op)
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
 
-	font= load_vfont(bmain, filepath);
+	font= BKE_vfont_load(bmain, filepath);
 
 	if (!font) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -1726,7 +1726,7 @@ static int font_unlink_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	builtin_font = get_builtin_font();
+	builtin_font = BKE_vfont_builtin_get();
 
 	RNA_id_pointer_create(&builtin_font->id, &idptr);
 	RNA_property_pointer_set(&pprop.ptr, pprop.prop, idptr);

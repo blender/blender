@@ -93,7 +93,7 @@ void BKE_vfont_free(struct VFont *vf)
 static void *builtin_font_data= NULL;
 static int builtin_font_size= 0;
 
-void BKE_font_register_builtin(void *mem, int size)
+void BKE_vfont_builtin_register(void *mem, int size)
 {
 	builtin_font_data= mem;
 	builtin_font_size= size;
@@ -115,7 +115,7 @@ static PackedFile *get_builtin_packedfile(void)
 	}
 }
 
-void free_ttfont(void)
+void BKE_vfont_free_global_ttf(void)
 {
 	struct TmpFont *tf;
 
@@ -127,7 +127,7 @@ void free_ttfont(void)
 	BLI_freelistN(&ttfdata);
 }
 
-struct TmpFont *vfont_find_tmpfont(VFont *vfont)
+struct TmpFont *BKE_vfont_find_tmpfont(VFont *vfont)
 {
 	struct TmpFont *tmpfnt = NULL;
 	
@@ -151,7 +151,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 	if (vfont==NULL) return NULL;
 	
 	// Try finding the font from font list
-	tmpfnt = vfont_find_tmpfont(vfont);
+	tmpfnt = BKE_vfont_find_tmpfont(vfont);
 	
 	// And then set the data	
 	if (!vfont->data) {
@@ -210,7 +210,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 	return vfont->data;	
 }
 
-VFont *load_vfont(Main *bmain, const char *name)
+VFont *BKE_vfont_load(Main *bmain, const char *name)
 {
 	char filename[FILE_MAXFILE];
 	VFont *vfont= NULL;
@@ -290,7 +290,7 @@ static VFont *which_vfont(Curve *cu, CharInfo *info)
 	}			
 }
 
-VFont *get_builtin_font(void)
+VFont *BKE_vfont_builtin_get(void)
 {
 	VFont *vf;
 	
@@ -298,7 +298,7 @@ VFont *get_builtin_font(void)
 		if (strcmp(vf->name, FO_BUILTIN_NAME)==0)
 			return vf;
 	
-	return load_vfont(G.main, FO_BUILTIN_NAME);
+	return BKE_vfont_load(G.main, FO_BUILTIN_NAME);
 }
 
 static VChar *find_vfont_char(VFontData *vfd, intptr_t character)
@@ -487,7 +487,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 	}
 }
 
-int BKE_font_getselection(Object *ob, int *start, int *end)
+int BKE_vfont_select_get(Object *ob, int *start, int *end)
 {
 	Curve *cu= ob->data;
 	
@@ -520,7 +520,7 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 	}
 }
 
-struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int mode)
+struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode)
 {
 	VFont *vfont, *oldvfont;
 	VFontData *vfd= NULL;
@@ -605,7 +605,7 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 
 	if (cu->selboxes) MEM_freeN(cu->selboxes);
 	cu->selboxes = NULL;
-	if (BKE_font_getselection(ob, &selstart, &selend))
+	if (BKE_vfont_select_get(ob, &selstart, &selend))
 		cu->selboxes = MEM_callocN((selend-selstart+1)*sizeof(SelBox), "font selboxes");
 
 	tb = &(cu->tb[0]);

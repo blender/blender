@@ -167,7 +167,7 @@ static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 
-	text = add_empty_text("Text");
+	text = BKE_text_add("Text");
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
@@ -236,7 +236,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", str);
 
-	text = add_text(str, G.main->name);
+	text = BKE_text_load(str, G.main->name);
 
 	if (!text) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -320,7 +320,7 @@ static int text_reload_exec(bContext *C, wmOperator *op)
 {
 	Text *text = CTX_data_edit_text(C);
 
-	if (!reopen_text(text)) {
+	if (!BKE_text_reload(text)) {
 		BKE_report(op->reports, RPT_ERROR, "Could not reopen file");
 		return OPERATOR_CANCELLED;
 	}

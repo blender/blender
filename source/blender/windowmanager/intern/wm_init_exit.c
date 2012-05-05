@@ -360,7 +360,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 //	BIF_freeRetarget();
 	BIF_freeTemplates(C);
 	
-	free_ttfont(); /* bke_font.h */
+	BKE_vfont_free_global_ttf(); /* bke_font.h */
 
 	free_openrecent();
 	

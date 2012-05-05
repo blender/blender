@@ -71,17 +71,17 @@ typedef struct EditFont {
 } EditFont;
 
 
-void BKE_font_register_builtin(void *mem, int size);
+void BKE_vfont_builtin_register(void *mem, int size);
 
 void BKE_vfont_free(struct VFont *sc); 
-void free_ttfont(void);
-struct VFont *get_builtin_font(void);
-struct VFont *load_vfont(struct Main *bmain, const char *name);
-struct TmpFont *vfont_find_tmpfont(struct VFont *vfont);
+void BKE_vfont_free_global_ttf(void);
+struct VFont *BKE_vfont_builtin_get(void);
+struct VFont *BKE_vfont_load(struct Main *bmain, const char *name);
+struct TmpFont *BKE_vfont_find_tmpfont(struct VFont *vfont);
 
-struct chartrans *BKE_text_to_curve(struct Main *bmain, struct Scene *scene, struct Object *ob, int mode);
+struct chartrans *BKE_vfont_to_curve(struct Main *bmain, struct Scene *scene, struct Object *ob, int mode);
 
-int BKE_font_getselection(struct Object *ob, int *start, int *end);
+int BKE_vfont_select_get(struct Object *ob, int *start, int *end);
 
 #ifdef __cplusplus
 }

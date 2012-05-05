@@ -507,7 +507,7 @@ static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
 	char *str;
 	
 	/* create new text-block to write to */
-	txt = add_empty_text("Recent Reports");
+	txt = BKE_text_add("Recent Reports");
 	
 	/* convert entire list to a display string, and add this to the text-block
 	 *	- if commandline debug option enabled, show debug reports too
@@ -516,7 +516,7 @@ static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
 	str = BKE_reports_string(reports, (G.debug & G_DEBUG) ? RPT_DEBUG : RPT_INFO);
 
 	if (str) {
-		write_text(txt, str);
+		BKE_text_write(txt, str);
 		MEM_freeN(str);
 
 		return OPERATOR_FINISHED;
@@ -652,7 +652,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 	}
 
 	if (text == NULL) {
-		text = add_text(filepath, bmain->name);
+		text = BKE_text_load(filepath, bmain->name);
 	}
 
 	if (text == NULL) {

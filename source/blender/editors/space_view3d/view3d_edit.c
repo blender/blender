@@ -3094,7 +3094,7 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 		char path[FILE_MAX];
 		
 		RNA_string_get(op->ptr, "filepath", path);
-		ima = BKE_add_image_file(path);
+		ima = BKE_image_load_exists(path);
 	}
 	else if (RNA_struct_property_is_set(op->ptr, "name")) {
 		RNA_string_get(op->ptr, "name", name);

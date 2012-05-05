@@ -327,7 +327,7 @@ static void extern_local_image(Image *UNUSED(ima))
 	 * match id_make_local pattern. */
 }
 
-void make_local_image(struct Image *ima)
+void BKE_image_make_local(struct Image *ima)
 {
 	Main *bmain= G.main;
 	Tex *tex;
@@ -505,26 +505,48 @@ void BKE_image_merge(Image *dest, Image *source)
 	}
 }
 
+Image *BKE_image_load(const char *filepath)
+{
+	Image *ima;
+	int file, len;
+	const char *libname;
+	char str[FILE_MAX];
+
+	BLI_strncpy(str, filepath, sizeof(str));
+	BLI_path_abs(str, G.main->name);
+
+	/* exists? */
+	file= BLI_open(str, O_BINARY|O_RDONLY, 0);
+	if (file== -1) return NULL;
+	close(file);
+
+	/* create a short library name */
+	len= strlen(filepath);
+
+	while (len > 0 && filepath[len - 1] != '/' && filepath[len - 1] != '\\') len--;
+	libname= filepath+len;
+
+	ima= image_alloc(libname, IMA_SRC_FILE, IMA_TYPE_IMAGE);
+	BLI_strncpy(ima->name, filepath, sizeof(ima->name));
+
+	if (BLI_testextensie_array(filepath, imb_ext_movie))
+		ima->source= IMA_SRC_MOVIE;
+
+	return ima;
+}
 
 /* checks if image was already loaded, then returns same image */
 /* otherwise creates new. */
 /* does not load ibuf itself */
 /* pass on optional frame for #name images */
-Image *BKE_add_image_file(const char *name)
+Image *BKE_image_load_exists(const char *filepath)
 {
 	Image *ima;
-	int file, len;
-	const char *libname;
 	char str[FILE_MAX], strtest[FILE_MAX];
 	
-	BLI_strncpy(str, name, sizeof(str));
+	BLI_strncpy(str, filepath, sizeof(str));
 	BLI_path_abs(str, G.main->name);
-	
-	/* exists? */
-	file= BLI_open(str, O_BINARY|O_RDONLY, 0);
-	if (file== -1) return NULL;
-	close(file);
-	
+
 	/* first search an identical image */
 	for (ima= G.main->image.first; ima; ima= ima->id.next) {
 		if (ima->source!=IMA_SRC_VIEWER && ima->source!=IMA_SRC_GENERATED) {
@@ -533,7 +555,7 @@ Image *BKE_add_image_file(const char *name)
 			
 			if (BLI_path_cmp(strtest, str)==0) {
 				if (ima->anim==NULL || ima->id.us==0) {
-					BLI_strncpy(ima->name, name, sizeof(ima->name));	/* for stringcode */
+					BLI_strncpy(ima->name, filepath, sizeof(ima->name));	/* for stringcode */
 					ima->id.us++;										/* officially should not, it doesn't link here! */
 					if (ima->ok==0)
 						ima->ok= IMA_OK;
@@ -543,21 +565,8 @@ Image *BKE_add_image_file(const char *name)
 			}
 		}
 	}
-	/* add new image */
-	
-	/* create a short library name */
-	len= strlen(name);
-	
-	while (len > 0 && name[len - 1] != '/' && name[len - 1] != '\\') len--;
-	libname= name+len;
-	
-	ima= image_alloc(libname, IMA_SRC_FILE, IMA_TYPE_IMAGE);
-	BLI_strncpy(ima->name, name, sizeof(ima->name));
-	
-	if (BLI_testextensie_array(name, imb_ext_movie))
-		ima->source= IMA_SRC_MOVIE;
-	
-	return ima;
+
+	return BKE_image_load(filepath);
 }
 
 static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])

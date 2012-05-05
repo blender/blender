@@ -212,7 +212,7 @@ int id_make_local(ID *id, int test)
 			if (!test) make_local_texture((Tex *)id);
 			return 1;
 		case ID_IM:
-			if (!test) make_local_image((Image *)id);
+			if (!test) BKE_image_make_local((Image *)id);
 			return 1;
 		case ID_LT:
 			if (!test) {

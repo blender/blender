@@ -1271,7 +1271,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if (cu->path) free_path(cu->path);
 		cu->path= NULL;
 
-		if (ob->type==OB_FONT) BKE_text_to_curve(G.main, scene, ob, 0);
+		if (ob->type==OB_FONT) BKE_vfont_to_curve(G.main, scene, ob, 0);
 
 		if (!forOrco) curve_calc_modifiers_pre(scene, ob, forRender, &originalVerts, &deformedVerts, &numVerts);
 

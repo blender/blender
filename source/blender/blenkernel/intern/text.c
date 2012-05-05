@@ -180,7 +180,7 @@ void BKE_text_free(Text *text)
 #endif
 }
 
-Text *add_empty_text(const char *name) 
+Text *BKE_text_add(const char *name) 
 {
 	Main *bmain= G.main;
 	Text *ta;
@@ -278,7 +278,7 @@ static void cleanup_textline(TextLine * tl)
 	tl->len+= txt_extended_ascii_as_utf8(&tl->line);
 }
 
-int reopen_text(Text *text)
+int BKE_text_reload(Text *text)
 {
 	FILE *fp;
 	int i, llen, len;
@@ -373,7 +373,7 @@ int reopen_text(Text *text)
 	return 1;
 }
 
-Text *add_text(const char *file, const char *relpath) 
+Text *BKE_text_load(const char *file, const char *relpath)
 {
 	Main *bmain= G.main;
 	FILE *fp;
@@ -593,7 +593,7 @@ void BKE_text_unlink(Main *bmain, Text *text)
 	text->id.us= 0;
 }
 
-void clear_text(Text *text) /* called directly from rna */
+void BKE_text_clear(Text *text) /* called directly from rna */
 {
 	int oldstate;
 
@@ -606,7 +606,7 @@ void clear_text(Text *text) /* called directly from rna */
 	txt_make_dirty(text);
 }
 
-void write_text(Text *text, const char *str) /* called directly from rna */
+void BKE_text_write(Text *text, const char *str) /* called directly from rna */
 {
 	int oldstate;
 

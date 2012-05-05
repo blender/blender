@@ -833,7 +833,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
 	errno = 0;
 
-	ima = BKE_add_image_file(str);
+	ima = BKE_image_load_exists(str);
 
 	if (!ima) {
 		if (op->customdata) MEM_freeN(op->customdata);

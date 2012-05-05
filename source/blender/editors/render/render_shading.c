@@ -190,7 +190,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 			EditFont *ef = ((Curve *)ob->data)->editfont;
 			int i, selstart, selend;
 
-			if (ef && BKE_font_getselection(ob, &selstart, &selend)) {
+			if (ef && BKE_vfont_select_get(ob, &selstart, &selend)) {
 				for (i = selstart; i <= selend; i++)
 					ef->textbufinfo[i].mat_nr = ob->actcol;
 			}

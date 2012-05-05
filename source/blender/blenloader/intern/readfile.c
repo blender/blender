@@ -2955,7 +2955,7 @@ static void direct_link_text(FileData *fd, Text *text)
 
 #if 0
 	if (text->flags & TXT_ISEXT) {
-		reopen_text(text);
+		BKE_text_reload(text);
 		}
 		else {
 #endif

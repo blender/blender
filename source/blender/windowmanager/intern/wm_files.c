@@ -484,7 +484,7 @@ int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory
 	char tstr[FILE_MAX];
 	int success = 0;
 	
-	free_ttfont(); /* still weird... what does it here? */
+	BKE_vfont_free_global_ttf(); /* still weird... what does it here? */
 		
 	G.relbase_valid = 0;
 	if (!from_memory) {

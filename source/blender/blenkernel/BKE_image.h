@@ -74,7 +74,7 @@ struct anim *openanim(const char *name, int flags, int streamindex);
 
 void	image_de_interlace(struct Image *ima, int odd);
 
-void	make_local_image(struct Image *ima);
+void	BKE_image_make_local(struct Image *ima);
 
 void	tag_image_time(struct Image *ima);
 void	free_old_images(void);
@@ -130,8 +130,10 @@ struct ImBuf *BKE_image_get_ibuf(struct Image *ima, struct ImageUser *iuser);
 struct ImBuf *BKE_image_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, void **lock_r);
 void BKE_image_release_ibuf(struct Image *ima, void *lock);
 
+/* returns a new image or NULL if it can't load */
+struct Image *BKE_image_load(const char *filepath);
 /* returns existing Image when filename/type is same (frame optional) */
-struct Image *BKE_add_image_file(const char *name);
+struct Image *BKE_image_load_exists(const char *filepath);
 
 /* adds image, adds ibuf, generates color or pattern */
 struct Image *BKE_add_image_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4]);
