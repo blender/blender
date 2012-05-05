@@ -91,8 +91,8 @@ __device_inline void sample_uniform_hemisphere(const float3 N,
 											 float3 *omega_in, float *pdf)
 {
 	float z = randu;
-	float r = sqrtf(max(0.f, 1.f - z*z));
-	float phi = 2.f * M_PI_F * randv;
+	float r = sqrtf(max(0.0f, 1.0f - z*z));
+	float phi = 2.0f * M_PI_F * randv;
 	float x = r * cosf(phi);
 	float y = r * sinf(phi);
 
@@ -226,22 +226,20 @@ __device float3 equirectangular_to_direction(float u, float v)
 
 /* Fisheye <- Cartesian direction */
 
-__device float3 fisheye_to_direction(float u, float v, float fov, Ray *ray)
+__device float3 fisheye_to_direction(float u, float v, float fov)
 {
-	u = (u - 0.5f) * 2.f;
-	v = (v - 0.5f) * 2.f;
+	u = (u - 0.5f) * 2.0f;
+	v = (v - 0.5f) * 2.0f;
 
 	float r = sqrt(u*u + v*v);
 
-	if (r > 1.0) {
-		ray->t = 0.f;
-		return make_float3(0.f,0.f,0.f);
-	}
+	if(r > 1.0f)
+		return make_float3(0.0f, 0.0f, 0.0f);
 
-	float phi = acosf((r!=0.f)?u/r:0.f);
+	float phi = acosf((r != 0.0f)? u/r: 0.0f);
 	float theta = asinf(r) * (fov / M_PI_F);
 
-	if (v < 0.f) phi = -phi;
+	if(v < 0.0f) phi = -phi;
 
 	return make_float3(
 		 cosf(theta),
@@ -250,23 +248,21 @@ __device float3 fisheye_to_direction(float u, float v, float fov, Ray *ray)
 	);
 }
 
-__device float3 fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float width, float height, Ray *ray)
+__device float3 fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float width, float height)
 {
 	u = (u - 0.5f) * width;
 	v = (v - 0.5f) * height;
 
-	float rmax = 2.f * lens * sinf(fov * 0.25f);
+	float rmax = 2.0f * lens * sinf(fov * 0.25f);
 	float r = sqrt(u*u + v*v);
 
-	if (r > rmax) {
-		ray->t = 0.f;
-		return make_float3(0.f,0.f,0.f);
-	}
+	if(r > rmax)
+		return make_float3(0.0f, 0.0f, 0.0f);
 
-	float phi = acosf((r!=0.f)?u/r:0.f);
-	float theta = 2.f * asinf(r/(2.f * lens));
+	float phi = acosf((r != 0.0f)? u/r: 0.0f);
+	float theta = 2.0f * asinf(r/(2.0f * lens));
 
-	if (v < 0.f) phi = -phi;
+	if(v < 0.0f) phi = -phi;
 
 	return make_float3(
 		 cosf(theta),
