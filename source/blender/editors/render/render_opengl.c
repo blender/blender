@@ -413,7 +413,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 
 	if (oglrender->timer) { /* exec will not have a timer */
 		scene->r.cfra = oglrender->cfrao;
-		scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
+		BKE_scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
 
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), oglrender->timer);
 	}
@@ -478,7 +478,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	Object *camera = NULL;
 
 	/* update animated image textures for gpu, etc,
-	 * call before scene_update_for_newframe so modifiers with textures don't lag 1 frame */
+	 * call before BKE_scene_update_for_newframe so modifiers with textures don't lag 1 frame */
 	ED_image_update_frame(bmain, scene->r.cfra);
 
 	/* go to next frame */
@@ -488,17 +488,17 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		if (lay & 0xFF000000)
 			lay &= 0xFF000000;
 
-		scene_update_for_newframe(bmain, scene, lay);
+		BKE_scene_update_for_newframe(bmain, scene, lay);
 		CFRA++;
 	}
 
-	scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
+	BKE_scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
 
 	if (view_context) {
 		if (oglrender->rv3d->persp == RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {
-			/* since scene_update_for_newframe() is used rather
+			/* since BKE_scene_update_for_newframe() is used rather
 			 * then ED_update_for_newframe() the camera needs to be set */
-			if (scene_camera_switch_update(scene)) {
+			if (BKE_scene_camera_switch_update(scene)) {
 				oglrender->v3d->camera = scene->camera;
 			}
 
@@ -506,7 +506,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		scene_camera_switch_update(scene);
+		BKE_scene_camera_switch_update(scene);
 
 		camera = scene->camera;
 	}

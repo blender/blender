@@ -377,7 +377,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 	else {
 		ma = add_material("Material");
 
-		if (scene_use_new_shading_nodes(scene)) {
+		if (BKE_scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(scene, &ma->id);
 			ma->use_nodes = 1;
 		}
@@ -477,7 +477,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 	else {
 		wo = add_world("World");
 
-		if (scene_use_new_shading_nodes(scene)) {
+		if (BKE_scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(scene, &wo->id);
 			wo->use_nodes = 1;
 		}
@@ -521,7 +521,7 @@ static int render_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 
-	scene_add_render_layer(scene, NULL);
+	BKE_scene_add_render_layer(scene, NULL);
 	scene->r.actlay = BLI_countlist(&scene->r.layers) - 1;
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
@@ -548,7 +548,7 @@ static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *rl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 
-	if (!scene_remove_render_layer(CTX_data_main(C), scene, rl))
+	if (!BKE_scene_remove_render_layer(CTX_data_main(C), scene, rl))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);

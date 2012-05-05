@@ -263,7 +263,7 @@ static void rna_Object_select_update(Main *UNUSED(bmain), Scene *scene, PointerR
 	if (scene) {
 		Object *ob = (Object*)ptr->id.data;
 		short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
-		ED_base_object_select(object_in_scene(ob, scene), mode);
+		ED_base_object_select(BKE_scene_base_find(scene, ob), mode);
 	}
 }
 
@@ -298,7 +298,7 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Object *ob = (Object*)ptr->id.data;
 	Base *base;
 
-	base = scene ? object_in_scene(ob, scene) : NULL;
+	base = scene ? BKE_scene_base_find(scene, ob) : NULL;
 	if (!base)
 		return;
 	

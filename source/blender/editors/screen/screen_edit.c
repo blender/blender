@@ -1471,8 +1471,8 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 
 						BKE_screen_view3d_sync(v3d, scene);
 
-						if (!v3d->camera || !object_in_scene(v3d->camera, scene)) {
-							v3d->camera= scene_find_camera(sc->scene);
+						if (!v3d->camera || !BKE_scene_base_find(scene, v3d->camera)) {
+							v3d->camera= BKE_scene_camera_find(sc->scene);
 							// XXX if (sc==curscreen) handle_view3d_lock();
 							if (!v3d->camera) {
 								ARegion *ar;
@@ -1495,7 +1495,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	}
 	
 	CTX_data_scene_set(C, scene);
-	set_scene_bg(bmain, scene);
+	BKE_scene_set_background(bmain, scene);
 	
 	ED_render_engine_changed(bmain);
 	ED_update_for_newframe(bmain, scene, screen, 1);
@@ -1520,7 +1520,7 @@ void ED_screen_delete_scene(bContext *C, Scene *scene)
 
 	ED_screen_set_scene(C, CTX_wm_screen(C), newscene);
 
-	unlink_scene(bmain, scene, newscene);
+	BKE_scene_unlink(bmain, scene, newscene);
 }
 
 ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
@@ -1816,7 +1816,7 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUSED(mute))
 {	
 #ifdef DURIAN_CAMERA_SWITCH
-	void *camera= scene_camera_switch_find(scene);
+	void *camera= BKE_scene_camera_switch_find(scene);
 	if (camera && scene->camera != camera) {
 		bScreen *sc;
 		scene->camera= camera;
@@ -1830,14 +1830,14 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUS
 	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
 	/* update animated image textures for gpu, etc,
-	 * call before scene_update_for_newframe so modifiers with textures don't lag 1 frame */
+	 * call before BKE_scene_update_for_newframe so modifiers with textures don't lag 1 frame */
 	ED_image_update_frame(bmain, scene->r.cfra);
 
 	ED_clip_update_frame(bmain, scene->r.cfra);
 
 	/* this function applies the changes too */
 	/* XXX future: do all windows */
-	scene_update_for_newframe(bmain, scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
+	BKE_scene_update_for_newframe(bmain, scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
 	
 	//if ( (CFRA>1) && (!mute) && (scene->r.audio.flag & AUDIO_SCRUB)) 
 	//	audiostream_scrub( CFRA );

@@ -3066,7 +3066,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Scene *scene, Object *ob, Dy
 	scene->r.cfra = prev_fra;
 	scene->r.subframe = prev_sfra;
 
-	subframe_updateObject(scene, ob, UPDATE_EVERYTHING, BKE_curframe(scene));
+	subframe_updateObject(scene, ob, UPDATE_EVERYTHING, BKE_scene_frame_get(scene));
 	dm_p = CDDM_copy(brush->dm);
 	numOfVerts_p = dm_p->getNumVerts(dm_p);
 	mvert_p = dm_p->getVertArray(dm_p);
@@ -3076,7 +3076,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Scene *scene, Object *ob, Dy
 	scene->r.cfra = cur_fra;
 	scene->r.subframe = cur_sfra;
 
-	subframe_updateObject(scene, ob, UPDATE_EVERYTHING, BKE_curframe(scene));
+	subframe_updateObject(scene, ob, UPDATE_EVERYTHING, BKE_scene_frame_get(scene));
 	dm_c = brush->dm;
 	numOfVerts_c = dm_c->getNumVerts(dm_c);
 	mvert_c = dm_p->getVertArray(dm_c);
@@ -3126,13 +3126,13 @@ static void dynamicPaint_brushObjectCalculateVelocity(Scene *scene, Object *ob, 
 	/* previous frame dm */
 	scene->r.cfra = prev_fra;
 	scene->r.subframe = prev_sfra;
-	subframe_updateObject(scene, ob, UPDATE_PARENTS, BKE_curframe(scene));
+	subframe_updateObject(scene, ob, UPDATE_PARENTS, BKE_scene_frame_get(scene));
 	copy_m4_m4(prev_obmat, ob->obmat);
 
 	/* current frame dm */
 	scene->r.cfra = cur_fra;
 	scene->r.subframe = cur_sfra;
-	subframe_updateObject(scene, ob, UPDATE_PARENTS, BKE_curframe(scene));
+	subframe_updateObject(scene, ob, UPDATE_PARENTS, BKE_scene_frame_get(scene));
 
 	/* calculate speed */
 	mul_m4_v3(prev_obmat, prev_loc);
@@ -4841,7 +4841,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					/* update object data on this subframe */
 					if (subframe) {
 						scene_setSubframe(scene, subframe);
-						subframe_updateObject(scene, brushObj, UPDATE_EVERYTHING, BKE_curframe(scene));
+						subframe_updateObject(scene, brushObj, UPDATE_EVERYTHING, BKE_scene_frame_get(scene));
 					}
 					/* Prepare materials if required	*/
 					if (brush_usesMaterial(brush, scene))
@@ -4854,7 +4854,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 							psys_check_enabled(brushObj, brush->psys)) {
 
 							/* Paint a particle system */
-							BKE_animsys_evaluate_animdata(scene, &brush->psys->part->id, brush->psys->part->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
+							BKE_animsys_evaluate_animdata(scene, &brush->psys->part->id, brush->psys->part->adt, BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
 							dynamicPaint_paintParticles(surface, brush->psys, brush, timescale);
 						}
 					}
@@ -4874,7 +4874,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					if (subframe) {
 						scene->r.cfra = scene_frame;
 						scene->r.subframe = scene_subframe;
-						subframe_updateObject(scene, brushObj, UPDATE_EVERYTHING, BKE_curframe(scene));
+						subframe_updateObject(scene, brushObj, UPDATE_EVERYTHING, BKE_scene_frame_get(scene));
 					}
 
 					/* process special brush effects, like smudge */

@@ -599,7 +599,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		struct BMEditMesh *em = me->edit_btmesh;
 		int sloppy = 1; /* partially selected face is ok */
 
-		if (scene_use_new_shading_nodes(scene)) {
+		if (BKE_scene_use_new_shading_nodes(scene)) {
 			/* new shading system, get image from material */
 			BMFace *efa = BM_active_face_get(em->bm, sloppy);
 

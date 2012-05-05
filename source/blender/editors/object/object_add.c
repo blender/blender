@@ -733,7 +733,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	rename_id(&ob->id, get_lamp_defname(type));
 	rename_id(&la->id, get_lamp_defname(type));
 
-	if (scene_use_new_shading_nodes(scene)) {
+	if (BKE_scene_use_new_shading_nodes(scene)) {
 		ED_node_shader_default(scene, &la->id);
 		la->use_nodes = 1;
 	}
@@ -923,7 +923,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 
 			for (scene_iter = bmain->scene.first; scene_iter; scene_iter = scene_iter->id.next) {
 				if (scene_iter != scene && !(scene_iter->id.lib)) {
-					base_other = object_in_scene(base->object, scene_iter);
+					base_other = BKE_scene_base_find(scene_iter, base->object);
 					if (base_other) {
 						ED_base_object_free_and_unlink(bmain, scene_iter, base_other);
 					}

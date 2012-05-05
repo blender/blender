@@ -87,7 +87,7 @@ bool BlenderSync::sync_recalc()
 
 		if(object_is_mesh(*b_ob)) {
 			if(b_ob->is_updated_data() || b_ob->data().is_updated()) {
-				BL::ID key = object_is_modified(*b_ob)? *b_ob: b_ob->data();
+				BL::ID key = BKE_object_is_modified(*b_ob)? *b_ob: b_ob->data();
 				mesh_map.set_recalc(key);
 			}
 		}

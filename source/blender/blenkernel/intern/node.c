@@ -2093,7 +2093,7 @@ void free_nodesystem(void)
 	free_typeinfos(&ntreeGetType(NTREE_TEXTURE)->node_types);
 }
 
-/* called from unlink_scene, when deleting a scene goes over all scenes
+/* called from BKE_scene_unlink, when deleting a scene goes over all scenes
  * other than the input, checks if they have render layer nodes referencing
  * the to-be-deleted scene, and resets them to NULL. */
 

@@ -1398,7 +1398,7 @@ typedef struct Scene {
 #define SCE_FRAME_DROP			(1<<3)
 
 
-	/* return flag next_object function */
+	/* return flag BKE_scene_base_iter_next function */
 #define F_ERROR			-1
 #define F_START			0
 #define F_SCENE			1

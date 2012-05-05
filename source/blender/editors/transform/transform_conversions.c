@@ -4357,7 +4357,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 		return;
 
 	/* makes sure base flags and object flags are identical */
-	copy_baseflags(t->scene);
+	BKE_scene_base_flag_to_objects(t->scene);
 
 	/* handle pending update events, otherwise they got copied below */
 	for (base= scene->base.first; base; base= base->next) {
@@ -4375,7 +4375,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 			/* if parent selected, deselect */
 			while (parsel) {
 				if (parsel->flag & SELECT) {
-					Base *parbase = object_in_scene(parsel, scene);
+					Base *parbase = BKE_scene_base_find(scene, parsel);
 					if (parbase) { /* in rare cases this can fail */
 						if (TESTBASELIB_BGMODE(v3d, scene, parbase)) {
 							break;
@@ -5878,7 +5878,7 @@ void createTransData(bContext *C, TransInfo *t)
 		 * lines below just check is also visible */
 		Object *ob_armature= modifiers_isDeformedByArmature(ob);
 		if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
-			Base *base_arm= object_in_scene(ob_armature, t->scene);
+			Base *base_arm= BKE_scene_base_find(t->scene, ob_armature);
 			if (base_arm) {
 				View3D *v3d = t->view;
 				if (BASE_VISIBLE(v3d, base_arm)) {

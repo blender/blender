@@ -795,7 +795,7 @@ static int set_scene(int argc, const char **argv, void *data)
 {
 	if (argc > 1) {
 		bContext *C = data;
-		Scene *scene = set_scene_name(CTX_data_main(C), argv[1]);
+		Scene *scene = BKE_scene_set_name(CTX_data_main(C), argv[1]);
 		if (scene) {
 			CTX_data_scene_set(C, scene);
 		}

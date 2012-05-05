@@ -333,7 +333,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 	int compatibility= 0;
 
 	if (ntree->type == NTREE_SHADER) {
-		if (scene_use_new_shading_nodes(arg->scene))
+		if (BKE_scene_use_new_shading_nodes(arg->scene))
 			compatibility= NODE_NEW_SHADING;
 		else
 			compatibility= NODE_OLD_SHADING;

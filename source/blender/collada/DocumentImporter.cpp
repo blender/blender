@@ -122,7 +122,7 @@ bool DocumentImporter::import()
 	loader.registerExtraDataCallbackHandler(ehandler);
 
 	// deselect all to select new objects
-	scene_deselect_all(CTX_data_scene(mContext));
+	BKE_scene_base_deselect_all(CTX_data_scene(mContext));
 
 	if (!root.loadDocument(mFilename)) {
 		fprintf(stderr, "COLLADAFW::Root::loadDocument() returned false on 1st pass\n");
@@ -227,7 +227,7 @@ void DocumentImporter::finish()
 		for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
 			Object *ob = *it;
 
-			Base *base = object_in_scene(ob, sce);
+			Base *base = BKE_scene_base_find(sce, ob);
 			if (base) {
 				BLI_remlink(&sce->base, base);
 				BKE_libblock_free_us(&G.main->object, base->object);
@@ -340,7 +340,7 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 
 	Object *obn = BKE_object_copy(source_ob);
 	obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
-	scene_add_base(sce, obn);
+	BKE_scene_base_add(sce, obn);
 
 	if (instance_node) {
 		anim_importer.read_node_transform(instance_node, obn);

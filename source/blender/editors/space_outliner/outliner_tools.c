@@ -242,7 +242,7 @@ static void object_select_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
 {
 	Base *base= (Base *)te->directdata;
 	
-	if (base==NULL) base= object_in_scene((Object *)tselem->id, scene);
+	if (base==NULL) base= BKE_scene_base_find(scene, (Object *)tselem->id);
 	if (base && ((base->object->restrictflag & OB_RESTRICT_VIEW)==0)) {
 		base->flag |= SELECT;
 		base->object->flag |= SELECT;
@@ -253,7 +253,7 @@ static void object_deselect_cb(bContext *UNUSED(C), Scene *scene, TreeElement *t
 {
 	Base *base= (Base *)te->directdata;
 	
-	if (base==NULL) base= object_in_scene((Object *)tselem->id, scene);
+	if (base==NULL) base= BKE_scene_base_find(scene, (Object *)tselem->id);
 	if (base) {
 		base->flag &= ~SELECT;
 		base->object->flag &= ~SELECT;
@@ -265,7 +265,7 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 	Base *base= (Base *)te->directdata;
 	
 	if (base==NULL)
-		base= object_in_scene((Object *)tselem->id, scene);
+		base= BKE_scene_base_find(scene, (Object *)tselem->id);
 	if (base) {
 		// check also library later
 		if (scene->obedit==base->object)
@@ -349,7 +349,7 @@ static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 	Base *base;
 	
 	for (gob=group->gobject.first; gob; gob=gob->next) {
-		base= object_in_scene(gob->ob, scene);
+		base= BKE_scene_base_find(scene, gob->ob);
 		if (base) {
 			base->object->flag |= SELECT;
 			base->flag |= SELECT;

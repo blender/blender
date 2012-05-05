@@ -2150,7 +2150,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiItemL(sub, name, icon);
 		
 		ma = give_current_material(ob, index + 1);
-		if (ma && !scene_use_new_shading_nodes(scene)) {
+		if (ma && !BKE_scene_use_new_shading_nodes(scene)) {
 			manode = give_node_material(ma);
 			if (manode) {
 				char str[MAX_ID_NAME + 12];

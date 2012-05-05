@@ -314,7 +314,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		BLI_strncpy(G.main->name, filepath, FILE_MAX);
 
 	/* baseflags, groups, make depsgraph, etc */
-	set_scene_bg(G.main, CTX_data_scene(C));
+	BKE_scene_set_background(G.main, CTX_data_scene(C));
 	
 	MEM_freeN(bfd);
 

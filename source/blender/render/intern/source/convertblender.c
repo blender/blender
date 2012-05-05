@@ -1574,7 +1574,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float hasize, pa_size, r_tilt, r_length;
 	float pa_time, pa_birthtime, pa_dietime;
 	float random, simplify[2], pa_co[3];
-	const float cfra= BKE_curframe(re->scene);
+	const float cfra= BKE_scene_frame_get(re->scene);
 	int i, a, k, max_k=0, totpart, dosimplify = 0, dosurfacecache = 0, use_duplimat = 0;
 	int totchild=0;
 	int seed, path_nbr=0, orco1=0, num;
@@ -5051,12 +5051,12 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	
 	/* applies changes fully */
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
-		scene_update_for_newframe(re->main, re->scene, lay);
+		BKE_scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
 	if (use_camera_view && camera) {
 		/* called before but need to call again in case of lens animation from the
-		 * above call to scene_update_for_newframe, fixes bug. [#22702].
+		 * above call to BKE_scene_update_for_newframe, fixes bug. [#22702].
 		 * following calls don't depend on 'RE_SetCamera' */
 		RE_SetCamera(re, camera);
 
@@ -5206,7 +5206,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	
 	/* applies changes fully */
 	scene->r.cfra += timeoffset;
-	scene_update_for_newframe(re->main, re->scene, lay);
+	BKE_scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
 	if (camera) {

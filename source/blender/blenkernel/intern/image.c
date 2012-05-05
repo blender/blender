@@ -1222,7 +1222,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	}
 	
 	if (scene->r.stamp & R_STAMP_MARKER) {
-		char *name = scene_find_last_marker_name(scene, CFRA);
+		char *name = BKE_scene_find_last_marker_name(scene, CFRA);
 
 		if (name)	BLI_strncpy(text, name, sizeof(text));
 		else 		BLI_strncpy(text, "<none>", sizeof(text));

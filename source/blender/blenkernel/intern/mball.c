@@ -482,11 +482,11 @@ void BKE_metaball_properties_copy(Scene *scene, Object *active_object)
 	
 	BLI_split_name_num(basisname, &basisnr, active_object->id.name+2, '.');
 
-	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if (F_ERROR==next_object(&sce_iter, 0, NULL, NULL))
+	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
+	if (F_ERROR==BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL))
 		return;
 	
-	while (next_object(&sce_iter, 1, &base, &ob)) {
+	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &ob)) {
 		if (ob->type==OB_MBALL) {
 			if (ob != active_object) {
 				BLI_split_name_num(obname, &obnr, ob->id.name+2, '.');
@@ -528,11 +528,11 @@ Object *BKE_metaball_basis_find(Scene *scene, Object *basis)
 	BLI_split_name_num(basisname, &basisnr, basis->id.name+2, '.');
 	totelem= 0;
 
-	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if (F_ERROR==next_object(&sce_iter, 0, NULL, NULL))
+	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
+	if (F_ERROR==BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL))
 		return NULL;
 	
-	while (next_object(&sce_iter, 1, &base, &ob)) {
+	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &ob)) {
 		
 		if (ob->type==OB_MBALL) {
 			if (ob==bob) {
@@ -1701,15 +1701,15 @@ static float init_meta(Scene *scene, Object *ob)	/* return totsize */
 	int a, obnr, zero_size=0;
 	char obname[MAX_ID_NAME];
 	
-	copy_m4_m4(obmat, ob->obmat);	/* to cope with duplicators from next_object */
+	copy_m4_m4(obmat, ob->obmat);	/* to cope with duplicators from BKE_scene_base_iter_next */
 	invert_m4_m4(obinv, ob->obmat);
 	a= 0;
 	
 	BLI_split_name_num(obname, &obnr, ob->id.name+2, '.');
 	
 	/* make main array */
-	next_object(&sce_iter, 0, NULL, NULL);
-	while (next_object(&sce_iter, 1, &base, &bob)) {
+	BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL);
+	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &bob)) {
 
 		if (bob->type==OB_MBALL) {
 			zero_size= 0;

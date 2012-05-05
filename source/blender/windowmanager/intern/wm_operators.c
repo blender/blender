@@ -1774,7 +1774,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* now we have or selected, or an indicated file */
 	if (RNA_boolean_get(op->ptr, "autoselect"))
-		scene_deselect_all(scene);
+		BKE_scene_base_deselect_all(scene);
 
 	
 	flag = wm_link_append_flag(op);
@@ -3533,7 +3533,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 			
 			if (a & 1) scene->r.cfra--;
 			else scene->r.cfra++;
-			scene_update_for_newframe(bmain, scene, scene->lay);
+			BKE_scene_update_for_newframe(bmain, scene, scene->lay);
 		}
 		else if (type == 5) {
 
@@ -3548,7 +3548,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 				if (scene->r.cfra > scene->r.efra)
 					scene->r.cfra = scene->r.sfra;
 
-				scene_update_for_newframe(bmain, scene, scene->lay);
+				BKE_scene_update_for_newframe(bmain, scene, scene->lay);
 				redraw_timer_window_swap(C);
 			}
 		}

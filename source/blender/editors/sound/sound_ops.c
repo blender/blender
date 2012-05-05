@@ -286,11 +286,11 @@ static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for (cfra = (scene->r.sfra > 0) ? (scene->r.sfra - 1) : 0; cfra <= scene->r.efra + 1; cfra++) {
 		scene->r.cfra = cfra;
-		scene_update_for_newframe(bmain, scene, scene->lay);
+		BKE_scene_update_for_newframe(bmain, scene, scene->lay);
 	}
 
 	scene->r.cfra = oldfra;
-	scene_update_for_newframe(bmain, scene, scene->lay);
+	BKE_scene_update_for_newframe(bmain, scene, scene->lay);
 
 	return OPERATOR_FINISHED;
 }

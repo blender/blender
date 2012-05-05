@@ -106,7 +106,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	ParticleKey state;
 	ParticleSimulationData sim= {NULL};
 	ParticleData *pa=NULL;
-	float cfra = BKE_curframe(re->scene);
+	float cfra = BKE_scene_frame_get(re->scene);
 	int i /*, childexists*/ /* UNUSED */;
 	int total_particles, offset=0;
 	int data_used = point_data_used(pd);

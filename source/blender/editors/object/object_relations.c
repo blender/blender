@@ -1217,7 +1217,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
-		if (!object_in_scene(base->object, scene_to)) {
+		if (!BKE_scene_base_find(scene_to, base->object)) {
 			Base *nbase = MEM_mallocN(sizeof(Base), "newbase");
 			*nbase = *base;
 			BLI_addhead(&(scene_to->base), nbase);

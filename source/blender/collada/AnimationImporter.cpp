@@ -1772,7 +1772,7 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::No
 	if (joint_objects.find(node->getUniqueId()) == joint_objects.end()) {
 		Object *job = bc_add_object(scene, OB_EMPTY, (char*)get_joint_name(node));
 
-		job->lay = object_in_scene(job, scene)->lay = 2;
+		job->lay = BKE_scene_base_find(scene, job)->lay = 2;
 
 		mul_v3_fl(job->size, 0.5f);
 		job->recalc |= OB_RECALC_OB;

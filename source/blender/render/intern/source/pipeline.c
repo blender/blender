@@ -1265,7 +1265,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	
 	sce->r.cfra= cfra;
 
-	scene_camera_switch_update(sce);
+	BKE_scene_camera_switch_update(sce);
 
 	/* exception: scene uses own size (unfinished code) */
 	if (0) {
@@ -1282,7 +1282,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	resc->lay= sce->lay;
 	
 	/* ensure scene has depsgraph, base flags etc OK */
-	set_scene_bg(re->main, sce);
+	BKE_scene_set_background(re->main, sce);
 
 	/* copy callbacks */
 	resc->display_draw= re->display_draw;
@@ -1368,7 +1368,7 @@ static void ntree_render_scenes(Render *re)
 
 	/* restore scene if we rendered another last */
 	if (restore_scene)
-		set_scene_bg(re->main, re->scene);
+		BKE_scene_set_background(re->main, re->scene);
 }
 
 /* bad call... need to think over proper method still */
@@ -1591,7 +1591,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				R.stats_draw= re->stats_draw;
 				
 				if (update_newframe)
-					scene_update_for_newframe(re->main, re->scene, re->lay);
+					BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
 				
 				if (re->r.scemode & R_FULL_SAMPLE)
 					do_merge_fullsample(re, ntree);
@@ -1654,7 +1654,7 @@ static void do_render_seq(Render * re)
 
 	if (recurs_depth==0) {
 		/* otherwise sequencer animation isn't updated */
-		BKE_animsys_evaluate_all_animation(re->main, re->scene, (float)cfra); // XXX, was BKE_curframe(re->scene)
+		BKE_animsys_evaluate_all_animation(re->main, re->scene, (float)cfra); // XXX, was BKE_scene_frame_get(re->scene)
 	}
 
 	recurs_depth++;
@@ -1713,7 +1713,7 @@ static void do_render_seq(Render * re)
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
-	scene_camera_switch_update(re->scene);
+	BKE_scene_camera_switch_update(re->scene);
 
 	re->i.starttime= PIL_check_seconds_timer();
 
@@ -1751,7 +1751,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 	int check_comp= 1;
 
 	if (camera_override == NULL && scene->camera == NULL)
-		scene->camera= scene_find_camera(scene);
+		scene->camera= BKE_scene_camera_find(scene);
 
 	if (scene->r.scemode&R_DOSEQ) {
 		if (scene->ed) {
@@ -1762,7 +1762,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 			while (seq) {
 				if (seq->type == SEQ_SCENE && seq->scene) {
 					if (!seq->scene_camera) {
-						if (!seq->scene->camera && !scene_find_camera(seq->scene)) {
+						if (!seq->scene->camera && !BKE_scene_camera_find(seq->scene)) {
 							if (seq->scene == scene) {
 								/* for current scene camera could be unneeded due to compisite nodes */
 								check_comp= 1;
@@ -1788,7 +1788,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 				if (node->type == CMP_NODE_R_LAYERS) {
 					Scene *sce= node->id ? (Scene*)node->id : scene;
 
-					if (!sce->camera && !scene_find_camera(sce)) {
+					if (!sce->camera && !BKE_scene_camera_find(sce)) {
 						/* all render layers nodes need camera */
 						return 0;
 					}
@@ -2195,7 +2195,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				else
 					updatelay= re->lay;
 
-				scene_update_for_newframe(bmain, scene, updatelay);
+				BKE_scene_update_for_newframe(bmain, scene, updatelay);
 				continue;
 			}
 			else

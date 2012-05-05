@@ -1799,8 +1799,8 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	RestoreState(C, prevwin);
 
 	//XXX restore_all_scene_cfra(scene_cfra_store);
-	set_scene_bg(CTX_data_main(C), startscene);
-	//XXX scene_update_for_newframe(bmain, scene, scene->lay);
+	BKE_scene_set_background(CTX_data_main(C), startscene);
+	//XXX BKE_scene_update_for_newframe(bmain, scene, scene->lay);
 
 	return OPERATOR_FINISHED;
 #else

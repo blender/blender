@@ -348,7 +348,7 @@ void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te, Tre
 	/* add check for edit mode */
 	if (!common_restrict_check(C, ob)) return;
 	
-	if (base || (base= object_in_scene(ob, scene))) {
+	if (base || (base= BKE_scene_base_find(scene, ob))) {
 		if ((base->object->restrictflag ^= OB_RESTRICT_VIEW)) {
 			ED_base_object_select(base, BA_DESELECT);
 		}
@@ -395,7 +395,7 @@ void object_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeEleme
 {
 	Base *base= (Base *)te->directdata;
 	
-	if (base==NULL) base= object_in_scene((Object *)tselem->id, scene);
+	if (base==NULL) base= BKE_scene_base_find(scene, (Object *)tselem->id);
 	if (base) {
 		base->object->restrictflag^=OB_RESTRICT_SELECT;
 	}
@@ -441,7 +441,7 @@ void object_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeEleme
 {
 	Base *base= (Base *)te->directdata;
 	
-	if (base==NULL) base= object_in_scene((Object *)tselem->id, scene);
+	if (base==NULL) base= BKE_scene_base_find(scene, (Object *)tselem->id);
 	if (base) {
 		base->object->restrictflag^=OB_RESTRICT_RENDER;
 	}
@@ -1487,7 +1487,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* check dragged object (child) is active */
 		if (ob != CTX_data_active_object(C))
-			ED_base_object_select(object_in_scene(ob, scene), BA_SELECT);
+			ED_base_object_select(BKE_scene_base_find(scene, ob), BA_SELECT);
 		
 		if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
 			if (ED_object_parent_set(op->reports, bmain, scene, ob, par, partype)) {
@@ -1663,7 +1663,7 @@ static int parent_clear_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 
 	/* check dragged object (child) is active */
 	if (ob != CTX_data_active_object(C))
-		ED_base_object_select(object_in_scene(ob, scene), BA_SELECT);
+		ED_base_object_select(BKE_scene_base_find(scene, ob), BA_SELECT);
 
 	ED_object_parent_clear(C, RNA_enum_get(op->ptr, "type"));
 

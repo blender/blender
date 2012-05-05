@@ -34,10 +34,10 @@ CCL_NAMESPACE_BEGIN
 
 /* Utilities */
 
-bool BlenderSync::object_is_modified(BL::Object b_ob)
+bool BlenderSync::BKE_object_is_modified(BL::Object b_ob)
 {
 	/* test if we can instance or if the object is modified */
-	if(ccl::object_is_modified(b_ob, b_scene, preview)) {
+	if(ccl::BKE_object_is_modified(b_ob, b_scene, preview)) {
 		/* modifiers */
 		return true;
 	}

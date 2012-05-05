@@ -310,7 +310,7 @@ typedef struct ProjPaintState {
 	short do_occlude;               /* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short do_backfacecull;          /* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
 	short do_mask_normal;           /* mask out pixels based on their normals */
-	short do_new_shading_nodes;     /* cache scene_use_new_shading_nodes value */
+	short do_new_shading_nodes;     /* cache BKE_scene_use_new_shading_nodes value */
 	float normal_angle;             /* what angle to mask at*/
 	float normal_angle_inner;
 	float normal_angle_range;       /* difference between normal_angle and normal_angle_inner, for easy access */
@@ -526,7 +526,7 @@ static Image *imapaint_face_image(const ImagePaintState *s, int face_index)
 {
 	Image *ima;
 
-	if (scene_use_new_shading_nodes(s->scene)) {
+	if (BKE_scene_use_new_shading_nodes(s->scene)) {
 		MFace *mf = &s->dm_mface[face_index];
 		ED_object_get_active_image(s->ob, mf->mat_nr + 1, &ima, NULL, NULL);
 	}
@@ -542,7 +542,7 @@ static Image *project_paint_face_image(const ProjPaintState *ps, MTFace *dm_mtfa
 {
 	Image *ima;
 
-	if (ps->do_new_shading_nodes) { /* cached scene_use_new_shading_nodes result */
+	if (ps->do_new_shading_nodes) { /* cached BKE_scene_use_new_shading_nodes result */
 		MFace *mf = ps->dm_mface + face_index;
 		ED_object_get_active_image(ps->ob, mf->mat_nr + 1, &ima, NULL, NULL);
 	}
@@ -4775,7 +4775,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	ps->do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;
 	ps->do_occlude = (settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY) ? 0 : 1;
 	ps->do_mask_normal = (settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT) ? 0 : 1;
-	ps->do_new_shading_nodes = scene_use_new_shading_nodes(scene); /* only cache the value */
+	ps->do_new_shading_nodes = BKE_scene_use_new_shading_nodes(scene); /* only cache the value */
 
 	if (ps->tool == PAINT_TOOL_CLONE)
 		ps->do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);

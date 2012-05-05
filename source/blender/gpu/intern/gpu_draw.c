@@ -1076,7 +1076,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUBlendMode alphablend;
 	int a;
 	int gamma = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
-	int new_shading_nodes = scene_use_new_shading_nodes(scene);
+	int new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	
 	/* initialize state */
 	memset(&GMS, 0, sizeof(GMS));

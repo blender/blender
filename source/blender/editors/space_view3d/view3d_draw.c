@@ -847,7 +847,7 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	short offset = 30;
 	
 	/* get name of marker on current frame (if available) */
-	markern = scene_find_marker_name(scene, CFRA);
+	markern = BKE_scene_find_marker_name(scene, CFRA);
 	
 	/* check if there is an object */
 	if (ob) {
@@ -910,7 +910,7 @@ static void draw_selected_name(Scene *scene, Object *ob)
 		}
 		
 		/* color depends on whether there is a keyframe */
-		if (id_frame_has_keyframe((ID *)ob, /*BKE_curframe(scene)*/ (float)(CFRA), ANIMFILTER_KEYS_LOCAL))
+		if (id_frame_has_keyframe((ID *)ob, /*BKE_scene_frame_get(scene)*/ (float)(CFRA), ANIMFILTER_KEYS_LOCAL))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -2297,7 +2297,7 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 	{
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
-		if (scene_use_new_shading_nodes(scene)) {
+		if (BKE_scene_use_new_shading_nodes(scene)) {
 			if (v3d->drawtype == OB_MATERIAL)
 				mask |= CD_MASK_ORCO;
 		}

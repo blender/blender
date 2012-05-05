@@ -862,9 +862,9 @@ Object *BKE_object_add(struct Scene *scene, int type)
 
 	ob->lay= scene->lay;
 	
-	base= scene_add_base(scene, ob);
-	scene_deselect_all(scene);
-	scene_select_base(scene, base);
+	base= BKE_scene_base_add(scene, ob);
+	BKE_scene_base_deselect_all(scene);
+	BKE_scene_base_select(scene, base);
 	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 
 	return ob;
@@ -1211,7 +1211,7 @@ void BKE_object_make_local(Object *ob)
 	}
 	else {
 		for (sce= bmain->scene.first; sce && ELEM(0, is_lib, is_local); sce= sce->id.next) {
-			if (object_in_scene(ob, sce)) {
+			if (BKE_scene_base_find(sce, ob)) {
 				if (sce->id.lib) is_lib= TRUE;
 				else is_local= TRUE;
 			}

@@ -419,8 +419,8 @@ static Object *add_hook_object_new(Scene *scene, Object *obedit)
 
 	ob = BKE_object_add(scene, OB_EMPTY);
 	
-	basedit = object_in_scene(obedit, scene);
-	base = object_in_scene(ob, scene);
+	basedit = BKE_scene_base_find(scene, obedit);
+	base = BKE_scene_base_find(scene, ob);
 	base->lay = ob->lay = obedit->lay;
 	
 	/* icky, BKE_object_add sets new base as active.

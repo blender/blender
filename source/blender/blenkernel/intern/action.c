@@ -1453,7 +1453,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 	bActionStrip *strip, *striplast=NULL, *stripfirst=NULL;
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
-	float scene_cfra= BKE_curframe(scene);
+	float scene_cfra= BKE_scene_frame_get(scene);
 	int	doit, dostride;
 	
 	if (blocktype==ID_AR) {

@@ -2452,7 +2452,7 @@ void where_is_pose(Scene *scene, Object *ob)
 	if ((ob->pose == NULL) || (ob->pose->flag & POSE_RECALC))
 		armature_rebuild_pose(ob, arm);
 
-	ctime = BKE_curframe(scene); /* not accurate... */
+	ctime = BKE_scene_frame_get(scene); /* not accurate... */
 
 	/* In editmode or restposition we read the data from the bones */
 	if (arm->edbo || (arm->flag & ARM_RESTPOS)) {

@@ -188,7 +188,7 @@ extern "C" {
 #endif
 //XXX #include "BSE_headerbuttons.h"
 //XXX void update_for_newframe();
-//void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
+//void BKE_scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 //#include "BKE_ipo.h"
 //void do_all_data_ipos(void);
 #ifdef __cplusplus

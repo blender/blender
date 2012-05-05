@@ -3319,10 +3319,10 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 	int type= RNA_enum_get(op->ptr, "type");
 
 	if (type == SCE_COPY_NEW) {
-		newscene= add_scene("Scene");
+		newscene= BKE_scene_add("Scene");
 	}
 	else { /* different kinds of copying */
-		newscene= copy_scene(scene, type);
+		newscene= BKE_scene_copy(scene, type);
 
 		/* these can't be handled in blenkernel curently, so do them here */
 		if (type == SCE_COPY_LINK_DATA) {

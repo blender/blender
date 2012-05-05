@@ -289,7 +289,7 @@ void ED_node_shader_default(Scene *scene, ID *id)
 			Material *ma= (Material*)id;
 			ma->nodetree = ntree;
 
-			if (scene_use_new_shading_nodes(scene)) {
+			if (BKE_scene_use_new_shading_nodes(scene)) {
 				output_type = SH_NODE_OUTPUT_MATERIAL;
 				shader_type = SH_NODE_BSDF_DIFFUSE;
 			}
@@ -347,7 +347,7 @@ void ED_node_shader_default(Scene *scene, ID *id)
 	nodeAddLink(ntree, in, fromsock, out, tosock);
 
 	/* default values */
-	if (scene_use_new_shading_nodes(scene)) {
+	if (BKE_scene_use_new_shading_nodes(scene)) {
 		sock= in->inputs.first;
 		copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, color);
 

@@ -2851,7 +2851,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 						v3d->camera = ob;
 					
 					if (v3d->camera == NULL)
-						v3d->camera = scene_find_camera(scene);
+						v3d->camera = BKE_scene_camera_find(scene);
 
 					/* couldnt find any useful camera, bail out */
 					if (v3d->camera == NULL)

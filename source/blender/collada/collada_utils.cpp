@@ -120,7 +120,7 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 	ob->lay= scene->lay;
 	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 
-	scene_select_base(scene, scene_add_base(scene, ob));
+	BKE_scene_base_select(scene, BKE_scene_base_add(scene, ob));
 
 	return ob;
 }

@@ -106,7 +106,7 @@ static void init_render_texture(Render *re, Tex *tex)
 	if (tex->type==TEX_PLUGIN) {
 		if (tex->plugin && tex->plugin->doit) {
 			if (tex->plugin->cfra) {
-				*(tex->plugin->cfra)= (float)cfra; //BKE_curframe(re->scene); // XXX old animsys - timing stuff to be fixed 
+				*(tex->plugin->cfra)= (float)cfra; //BKE_scene_frame_get(re->scene); // XXX old animsys - timing stuff to be fixed 
 			}
 		}
 	}
@@ -3558,7 +3558,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 	mat = localize_material(orig_mat);
 
 	/* update material anims */
-	BKE_animsys_evaluate_animdata(scene, &mat->id, mat->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
+	BKE_animsys_evaluate_animdata(scene, &mat->id, mat->adt, BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
 
 	/* strip material copy from unsupported flags */
 	for (tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
@@ -3605,7 +3605,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 			tex= mtex->tex = localize_texture(mtex->tex);
 
 			/* update texture anims */
-			BKE_animsys_evaluate_animdata(scene, &tex->id, tex->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
+			BKE_animsys_evaluate_animdata(scene, &tex->id, tex->adt, BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
 
 			/* update texture cache if required */
 			if (tex->type==TEX_VOXELDATA) {

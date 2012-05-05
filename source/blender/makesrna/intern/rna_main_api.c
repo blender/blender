@@ -109,7 +109,7 @@ void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *ca
 
 Scene *rna_Main_scenes_new(Main *UNUSED(bmain), const char *name)
 {
-	return add_scene(name);
+	return BKE_scene_add(name);
 }
 void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struct Scene *scene)
 {
@@ -128,7 +128,7 @@ void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struc
 	if (CTX_wm_screen(C)->scene == scene)
 		ED_screen_set_scene(C, CTX_wm_screen(C), newscene);
 
-	unlink_scene(bmain, scene, newscene);
+	BKE_scene_unlink(bmain, scene, newscene);
 }
 
 Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const char *name, ID *data)

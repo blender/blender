@@ -52,7 +52,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_scene.h" /* object_in_scene */
+#include "BKE_scene.h" /* BKE_scene_base_find */
 
 static void free_group_object(GroupObject *go)
 {
@@ -182,7 +182,7 @@ int add_to_group(Group *group, Object *object, Scene *scene, Base *base)
 		if ((object->flag & OB_FROMGROUP)==0) {
 
 			if (scene && base==NULL)
-				base= object_in_scene(object, scene);
+				base= BKE_scene_base_find(scene, object);
 
 			object->flag |= OB_FROMGROUP;
 
@@ -223,7 +223,7 @@ int rem_from_group(Group *group, Object *object, Scene *scene, Base *base)
 		/* object can be NULL */
 		if (object && find_group(object, NULL) == NULL) {
 			if (scene && base==NULL)
-				base= object_in_scene(object, scene);
+				base= BKE_scene_base_find(scene, object);
 
 			object->flag &= ~OB_FROMGROUP;
 

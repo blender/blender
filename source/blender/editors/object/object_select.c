@@ -416,7 +416,7 @@ static short select_grouped_parent(bContext *C) /* Makes parent active and de-se
 
 	if (!basact || !(basact->object->parent)) return 0;  /* we know OBACT is valid */
 
-	baspar = object_in_scene(basact->object->parent, scene);
+	baspar = BKE_scene_base_find(scene, basact->object->parent);
 
 	/* can be NULL if parent in other scene */
 	if (baspar && BASE_SELECTABLE(v3d, baspar)) {
@@ -487,7 +487,7 @@ static short select_grouped_object_hooks(bContext *C, Object *ob)
 		if (md->type == eModifierType_Hook) {
 			hmd = (HookModifierData *) md;
 			if (hmd->object && !(hmd->object->flag & SELECT)) {
-				base = object_in_scene(hmd->object, scene);
+				base = BKE_scene_base_find(scene, hmd->object);
 				if (base && (BASE_SELECTABLE(v3d, base))) {
 					ED_base_object_select(base, BA_SELECT);
 					changed = 1;
@@ -886,7 +886,7 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 		if (strcmp(tmpname, primbase->object->id.name + 2) != 0) { /* names differ */
 			Object *ob = (Object *)find_id("OB", tmpname);
 			if (ob) {
-				Base *secbase = object_in_scene(ob, scene);
+				Base *secbase = BKE_scene_base_find(scene, ob);
 
 				if (secbase) {
 					ED_base_object_select(secbase, BA_SELECT);

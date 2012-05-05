@@ -178,7 +178,7 @@ static void waveModifier_do(WaveModifierData *md,
 	MVert *mvert = NULL;
 	MDeformVert *dvert;
 	int defgrp_index;
-	float ctime = BKE_curframe(scene);
+	float ctime = BKE_scene_frame_get(scene);
 	float minfac =
 			(float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;

@@ -159,7 +159,7 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	}
 	
 	/* find associated base in current scene */
-	base= object_in_scene(ob, scene);
+	base= BKE_scene_base_find(scene, ob);
 
 	if (base) {
 		if (set==2) {
@@ -171,7 +171,7 @@ static int  tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 		}
 		else {
 			/* deleselect all */
-			scene_deselect_all(scene);
+			BKE_scene_base_deselect_all(scene);
 			ED_base_object_select(base, BA_SELECT);
 		}
 		if (C) {
@@ -551,7 +551,7 @@ static int tree_element_active_text(bContext *UNUSED(C), Scene *UNUSED(scene), S
 static int tree_element_active_pose(bContext *C, Scene *scene, TreeElement *UNUSED(te), TreeStoreElem *tselem, int set)
 {
 	Object *ob= (Object *)tselem->id;
-	Base *base= object_in_scene(ob, scene);
+	Base *base= BKE_scene_base_find(scene, ob);
 	
 	if (set) {
 		if (scene->obedit)
@@ -745,15 +745,15 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 						}
 						
 						for (gob= gr->gobject.first; gob; gob= gob->next) {
-							ED_base_object_select(object_in_scene(gob->ob, scene), sel);
+							ED_base_object_select(BKE_scene_base_find(scene, gob->ob), sel);
 						}
 					}
 					else {
-						scene_deselect_all(scene);
+						BKE_scene_base_deselect_all(scene);
 						
 						for (gob= gr->gobject.first; gob; gob= gob->next) {
 							if ((gob->ob->flag & SELECT) == 0)
-								ED_base_object_select(object_in_scene(gob->ob, scene), BA_SELECT);
+								ED_base_object_select(BKE_scene_base_find(scene, gob->ob), BA_SELECT);
 						}
 					}
 					

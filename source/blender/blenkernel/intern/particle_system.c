@@ -4465,7 +4465,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if (!psys_check_enabled(ob, psys))
 		return;
 
-	cfra= BKE_curframe(scene);
+	cfra= BKE_scene_frame_get(scene);
 
 	sim.scene= scene;
 	sim.ob= ob;

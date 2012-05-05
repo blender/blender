@@ -3475,7 +3475,7 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 
 	psys->totpart=0;
 	psys->flag = PSYS_ENABLED|PSYS_CURRENT;
-	psys->cfra = BKE_frame_to_ctime(scene, CFRA + 1);
+	psys->cfra = BKE_scene_frame_get_from_ctime(scene, CFRA + 1);
 
 	DAG_scene_sort(G.main, scene);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -4266,7 +4266,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	float timestep = psys_get_timestep(sim);
 
 	/* negative time means "use current time" */
-	cfra = state->time > 0 ? state->time : BKE_curframe(sim->scene);
+	cfra = state->time > 0 ? state->time : BKE_scene_frame_get(sim->scene);
 
 	if (p>=totpart) {
 		if (!psys->totchild)

@@ -8529,7 +8529,7 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 	Scene *sce;
 	
 	for (sce= mainvar->scene.first; sce; sce= sce->id.next)
-		if (object_in_scene(ob, sce))
+		if (BKE_scene_base_find(sce, ob))
 			return 1;
 	return 0;
 }
@@ -8611,7 +8611,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 			ob->lay= scene->lay;
 
 			/* assign the base */
-			base= scene_add_base(scene, ob);
+			base= BKE_scene_base_add(scene, ob);
 			base->flag |= SELECT;
 			base->object->flag= base->flag;
 			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;

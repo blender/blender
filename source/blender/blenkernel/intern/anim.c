@@ -353,7 +353,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	 * 	  that doesn't force complete update, but for now, this is the
 	 *	  most accurate way!
 	 */
-	scene_update_for_newframe(G.main, scene, scene->lay); // XXX this is the best way we can get anything moving
+	BKE_scene_update_for_newframe(G.main, scene, scene->lay); // XXX this is the best way we can get anything moving
 #endif
 }
 
@@ -1249,7 +1249,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	if (G.rendering == 0)
 		no_draw_flag |= PARS_NO_DISP;
 	
-	ctime = BKE_curframe(scene); /* NOTE: in old animsys, used parent object's timeoffset... */
+	ctime = BKE_scene_frame_get(scene); /* NOTE: in old animsys, used parent object's timeoffset... */
 
 	totpart = psys->totpart;
 	totchild = psys->totchild;

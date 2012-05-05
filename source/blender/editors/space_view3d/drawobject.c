@@ -190,7 +190,7 @@ static int check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
 		return TRUE;
 
 	/* textured solid */
-	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !scene_use_new_shading_nodes(scene))
+	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !BKE_scene_use_new_shading_nodes(scene))
 		return TRUE;
 	
 	return FALSE;
@@ -332,7 +332,7 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 		return 0;
 	if (ob == OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return 0;
-	if (scene_use_new_shading_nodes(scene))
+	if (BKE_scene_use_new_shading_nodes(scene))
 		return 0;
 	
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
@@ -4285,7 +4285,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	totpart = psys->totpart;
 
-	cfra = BKE_curframe(scene);
+	cfra = BKE_scene_frame_get(scene);
 
 	if (draw_as == PART_DRAW_PATH && psys->pathcache == NULL && psys->childcache == NULL)
 		draw_as = PART_DRAW_DOT;
@@ -7141,7 +7141,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					for (ct = targets.first; ct; ct = ct->next) {
 						/* calculate target's matrix */
 						if (cti->get_target_matrix)
-							cti->get_target_matrix(curcon, cob, ct, BKE_curframe(scene));
+							cti->get_target_matrix(curcon, cob, ct, BKE_scene_frame_get(scene));
 						else
 							unit_m4(ct->matrix);
 						
