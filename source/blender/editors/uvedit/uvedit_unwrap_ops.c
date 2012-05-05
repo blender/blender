@@ -1178,7 +1178,8 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_INFO, "Object scale is not 1.0. Unwrap will operate on a non-scaled version of the mesh.");
 
 	/* remember last method for live unwrap */
-	scene->toolsettings->unwrapper = method;
+	if(RNA_struct_property_is_set(op->ptr, "method"))
+		scene->toolsettings->unwrapper = method;
 	
 	scene->toolsettings->uv_subsurf_level = subsurf_level;
 
