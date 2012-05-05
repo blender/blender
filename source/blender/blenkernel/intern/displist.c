@@ -674,7 +674,7 @@ void makeDispListMBall(Scene *scene, Object *ob)
 	if (ob->type==OB_MBALL) {
 		if (ob==BKE_metaball_basis_find(scene, ob)) {
 			BKE_metaball_polygonize(scene, ob, &ob->disp);
-			BKE_metaball_tex_space_calc(ob);
+			BKE_metaball_texspace_calc(ob);
 
 			object_deform_mball(ob, &ob->disp);
 		}
@@ -686,7 +686,7 @@ void makeDispListMBall(Scene *scene, Object *ob)
 void makeDispListMBall_forRender(Scene *scene, Object *ob, ListBase *dispbase)
 {
 	BKE_metaball_polygonize(scene, ob, dispbase);
-	BKE_metaball_tex_space_calc(ob);
+	BKE_metaball_texspace_calc(ob);
 	
 	object_deform_mball(ob, dispbase);
 }
@@ -1182,7 +1182,7 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 	copy_displist(&cu->disp, dispbase);
 
 	if (!forRender) {
-		BKE_curve_tex_space_calc(cu);
+		BKE_curve_texspace_calc(cu);
 	}
 
 	if (!forOrco)
@@ -1451,7 +1451,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		copy_displist(&cu->disp, dispbase);
 
 		if (!forRender) {
-			BKE_curve_tex_space_calc(cu);
+			BKE_curve_texspace_calc(cu);
 		}
 
 		if (!forOrco) curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, originalVerts, deformedVerts);

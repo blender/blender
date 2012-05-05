@@ -51,7 +51,7 @@ int BKE_metaball_is_basis_for(struct Object *ob1, struct Object *ob2);
 int BKE_metaball_is_basis(struct Object *ob);
 struct Object *BKE_metaball_basis_find(struct Scene *scene, struct Object *ob);
 
-void BKE_metaball_tex_space_calc(struct Object *ob);
+void BKE_metaball_texspace_calc(struct Object *ob);
 float *BKE_metaball_make_orco(struct Object *ob, struct ListBase *dispbase);
 
 void BKE_metaball_properties_copy(struct Scene *scene, struct Object *active_object);

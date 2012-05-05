@@ -110,9 +110,9 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		copycu->editfont = NULL;
 		copycu->editnurb = NULL;
 
-		nurbs_to_mesh(tmpobj);
+		BKE_mesh_from_nurbs(tmpobj);
 
-		/* nurbs_to_mesh changes the type to a mesh, check it worked */
+		/* BKE_mesh_from_nurbs changes the type to a mesh, check it worked */
 		if (tmpobj->type != OB_MESH) {
 			BKE_libblock_free_us(&(G.main->object), tmpobj);
 			BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
@@ -136,11 +136,11 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		if (render) {
 			ListBase disp = {NULL, NULL};
 			makeDispListMBall_forRender(sce, ob, &disp);
-			mball_to_mesh(&disp, tmpmesh);
+			BKE_mesh_from_metaball(&disp, tmpmesh);
 			freedisplist(&disp);
 		}
 		else
-			mball_to_mesh(&ob->disp, tmpmesh);
+			BKE_mesh_from_metaball(&ob->disp, tmpmesh);
 		break;
 
 	}

@@ -1521,10 +1521,10 @@ void CDDM_recalc_tessellation_ex(DerivedMesh *dm, const int do_face_nor_cpy)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 
-	dm->numTessFaceData = mesh_recalcTessellation(&dm->faceData, &dm->loopData, &dm->polyData,
-	                                             cddm->mvert,
-	                                             dm->numTessFaceData, dm->numLoopData, dm->numPolyData,
-	                                             do_face_nor_cpy);
+	dm->numTessFaceData = BKE_mesh_recalc_tessellation(&dm->faceData, &dm->loopData, &dm->polyData,
+	                                                   cddm->mvert,
+	                                                   dm->numTessFaceData, dm->numLoopData, dm->numPolyData,
+	                                                   do_face_nor_cpy);
 
 	if (!CustomData_get_layer(&dm->faceData, CD_ORIGINDEX)) {
 		int *polyIndex = CustomData_get_layer(&dm->faceData, CD_POLYINDEX);
@@ -1723,8 +1723,9 @@ DerivedMesh *CDDM_from_curve_customDB(Object *ob, ListBase *dispbase)
 	MPoly *allpoly;
 	int totvert, totedge, totloop, totpoly;
 
-	if (nurbs_to_mdata_customdb(ob, dispbase, &allvert, &totvert, &alledge,
-		&totedge, &allloop, &allpoly, &totloop, &totpoly) != 0) {
+	if (BKE_mesh_nurbs_to_mdata_customdb(ob, dispbase, &allvert, &totvert, &alledge,
+	                                     &totedge, &allloop, &allpoly, &totloop, &totpoly) != 0)
+	{
 		/* Error initializing mdata. This often happens when curve is empty */
 		return CDDM_new(0, 0, 0, 0, 0);
 	}
@@ -2116,10 +2117,10 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const short only_face_normals
 	face_nors = MEM_mallocN(sizeof(float)*3*dm->numTessFaceData, "face_nors");
 
 	/* calculate face normals */
-	mesh_calc_normals_mapping_ex(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
-								 dm->numLoopData, dm->numPolyData, NULL, cddm->mface, dm->numTessFaceData,
-								 CustomData_get_layer(&dm->faceData, CD_POLYINDEX), face_nors,
-								 only_face_normals);
+	BKE_mesh_calc_normals_mapping_ex(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
+	                                 dm->numLoopData, dm->numPolyData, NULL, cddm->mface, dm->numTessFaceData,
+	                                 CustomData_get_layer(&dm->faceData, CD_POLYINDEX), face_nors,
+	                                 only_face_normals);
 
 	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN,
 						 face_nors, dm->numTessFaceData);
@@ -2151,8 +2152,8 @@ void CDDM_calc_normals(DerivedMesh *dm)
 		poly_nors = CustomData_add_layer(&dm->polyData, CD_NORMAL, CD_CALLOC, NULL, dm->numPolyData);
 	}
 
-	mesh_calc_normals(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
-	                  dm->numLoopData, dm->numPolyData, poly_nors);
+	BKE_mesh_calc_normals(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
+	                      dm->numLoopData, dm->numPolyData, poly_nors);
 }
 
 void CDDM_calc_normals_tessface(DerivedMesh *dm)
@@ -2171,8 +2172,8 @@ void CDDM_calc_normals_tessface(DerivedMesh *dm)
 		face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC, NULL, dm->numTessFaceData);
 	}
 
-	mesh_calc_normals_tessface(cddm->mvert, dm->numVertData,
-							   cddm->mface, dm->numTessFaceData, face_nors);
+	BKE_mesh_calc_normals_tessface(cddm->mvert, dm->numVertData,
+	                               cddm->mface, dm->numTessFaceData, face_nors);
 }
 
 #if 1

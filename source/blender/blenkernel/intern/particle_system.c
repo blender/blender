@@ -772,7 +772,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			int w, maxw;
 
 			psys_particle_on_dm(ctx->dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co1, 0, 0, 0, orco1, 0);
-			transform_mesh_orco_verts((Mesh*)ob->data, &orco1, 1, 1);
+			BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco1, 1, 1);
 			maxw = BLI_kdtree_find_n_nearest(ctx->tree, 3, orco1, NULL, ptn);
 
 			for (w=0; w<maxw; w++) {
@@ -895,7 +895,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			float pweight[10];
 
 			psys_particle_on_dm(dm, cfrom, cpa->num, DMCACHE_ISCHILD, cpa->fuv, cpa->foffset, co1, nor1, NULL, NULL, orco1, NULL);
-			transform_mesh_orco_verts((Mesh*)ob->data, &orco1, 1, 1);
+			BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco1, 1, 1);
 			maxw = BLI_kdtree_find_n_nearest(ctx->tree, 4, orco1, NULL, ptn);
 
 			maxd=ptn[maxw-1].dist;
@@ -1086,7 +1086,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 
 		for (p=0, pa=psys->particles; p<totpart; p++, pa++) {
 			psys_particle_on_dm(dm, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, nor, 0, 0, orco, ornor);
-			transform_mesh_orco_verts((Mesh*)ob->data, &orco, 1, 1);
+			BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco, 1, 1);
 			BLI_kdtree_insert(tree, p, orco, ornor);
 		}
 
@@ -1107,7 +1107,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		}
 
 		/* we need orco for consistent distributions */
-		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
+		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob));
 
 		if (from == PART_FROM_VERT) {
 			MVert *mv= dm->getVertDataArray(dm, CD_MVERT);
@@ -1119,7 +1119,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 			for (p=0; p<totvert; p++) {
 				if (orcodata) {
 					copy_v3_v3(co, orcodata[p]);
-					transform_mesh_orco_verts((Mesh*)ob->data, &co, 1, 1);
+					BKE_mesh_orco_verts_transform((Mesh*)ob->data, &co, 1, 1);
 				}
 				else
 					copy_v3_v3(co, mv[p].co);
@@ -1166,12 +1166,12 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 				copy_v3_v3(co1, orcodata[mf->v1]);
 				copy_v3_v3(co2, orcodata[mf->v2]);
 				copy_v3_v3(co3, orcodata[mf->v3]);
-				transform_mesh_orco_verts((Mesh*)ob->data, &co1, 1, 1);
-				transform_mesh_orco_verts((Mesh*)ob->data, &co2, 1, 1);
-				transform_mesh_orco_verts((Mesh*)ob->data, &co3, 1, 1);
+				BKE_mesh_orco_verts_transform((Mesh*)ob->data, &co1, 1, 1);
+				BKE_mesh_orco_verts_transform((Mesh*)ob->data, &co2, 1, 1);
+				BKE_mesh_orco_verts_transform((Mesh*)ob->data, &co3, 1, 1);
 				if (mf->v4) {
 					copy_v3_v3(co4, orcodata[mf->v4]);
-					transform_mesh_orco_verts((Mesh*)ob->data, &co4, 1, 1);
+					BKE_mesh_orco_verts_transform((Mesh*)ob->data, &co4, 1, 1);
 				}
 			}
 			else {

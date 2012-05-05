@@ -779,7 +779,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 			float no[3];
 
 			/* set up poly, loops, and coords in order to call
-			 * mesh_calc_poly_normal_coords() */
+			 * BKE_mesh_calc_poly_normal_coords() */
 			fake_poly.totloop = p->totloop;
 			fake_poly.loopstart = 0;
 			fake_loops = MEM_mallocN(sizeof(MLoop) * p->totloop, "fake_loops");
@@ -796,8 +796,8 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 					copy_v3_v3(fake_co[k], origco[vndx]);
 			}
 			
-			mesh_calc_poly_normal_coords(&fake_poly, fake_loops,
-										 (const float(*)[3])fake_co, no);
+			BKE_mesh_calc_poly_normal_coords(&fake_poly, fake_loops,
+			                                 (const float(*)[3])fake_co, no);
 			MEM_freeN(fake_loops);
 			MEM_freeN(fake_co);
 

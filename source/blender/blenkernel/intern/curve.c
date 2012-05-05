@@ -354,7 +354,7 @@ void BKE_curve_type_test(Object *ob)
 		BKE_curve_curve_dimension_update((Curve *)ob->data);
 }
 
-void BKE_curve_tex_space_calc(Curve *cu)
+void BKE_curve_texspace_calc(Curve *cu)
 {
 	DispList *dl;
 	BoundBox *bb;

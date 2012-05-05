@@ -42,7 +42,7 @@
 #ifdef RNA_RUNTIME
 const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, struct Mesh *mesh2)
 {
-	const char *ret = mesh_cmp(mesh, mesh2, FLT_EPSILON*60);
+	const char *ret = BKE_mesh_cmp(mesh, mesh2, FLT_EPSILON*60);
 	
 	if (!ret)
 		ret = "Same";

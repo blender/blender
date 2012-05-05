@@ -527,7 +527,7 @@ static void data_delete_material_index_id(ID *id, short index)
 {
 	switch (GS(id->name)) {
 	case ID_ME:
-		mesh_delete_material_index((Mesh *)id, index);
+		BKE_mesh_delete_material_index((Mesh *)id, index);
 		break;
 	case ID_CU:
 		BKE_curve_delete_material_index((Curve *)id, index);

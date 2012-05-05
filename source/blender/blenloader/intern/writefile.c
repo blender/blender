@@ -1784,8 +1784,8 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 
 				/* now fill in polys to mfaces*/
-				mesh->totface= mesh_mpoly_to_mface(&mesh->fdata, &backup_mesh.ldata, &backup_mesh.pdata,
-				                                   mesh->totface, backup_mesh.totloop, backup_mesh.totpoly);
+				mesh->totface = BKE_mesh_mpoly_to_mface(&mesh->fdata, &backup_mesh.ldata, &backup_mesh.pdata,
+				                                        mesh->totface, backup_mesh.totloop, backup_mesh.totpoly);
 
 				mesh_update_customdata_pointers(mesh, FALSE);
 

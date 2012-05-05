@@ -325,7 +325,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				float best_dot;
 
 				/* get the untransformed face normal */
-				mesh_calc_poly_normal_coords(mp, mloop + mp->loopstart, (const float (*)[3])coords, face_no);
+				BKE_mesh_calc_poly_normal_coords(mp, mloop + mp->loopstart, (const float (*)[3])coords, face_no);
 
 				/* find the projector which the face points at most directly
 				 * (projector normal with largest dot product is best)

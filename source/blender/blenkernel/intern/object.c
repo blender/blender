@@ -299,7 +299,7 @@ void BKE_object_free(Object *ob)
 		ID *id= ob->data;
 		id->us--;
 		if (id->us==0) {
-			if (ob->type==OB_MESH) unlink_mesh(ob->data);
+			if (ob->type==OB_MESH) BKE_mesh_unlink(ob->data);
 			else if (ob->type==OB_CURVE) BKE_curve_unlink(ob->data);
 			else if (ob->type==OB_MBALL) BKE_metaball_unlink(ob->data);
 		}
@@ -2180,7 +2180,7 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
 	BoundBox *bb= NULL;
 	
 	if (ob->type==OB_MESH) {
-		bb = mesh_get_bb(ob);
+		bb = BKE_mesh_boundbox_get(ob);
 	}
 	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		bb= ob->bb ? ob->bb : ((Curve *)ob->data )->bb;
@@ -2254,7 +2254,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 		{
 			Curve *cu= ob->data;
 
-			if (cu->bb==NULL) BKE_curve_tex_space_calc(cu);
+			if (cu->bb==NULL) BKE_curve_texspace_calc(cu);
 			bb= *(cu->bb);
 
 			for (a=0; a<8; a++) {
@@ -2298,7 +2298,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 			Mesh *me= BKE_mesh_from_object(ob);
 
 			if (me) {
-				bb = *mesh_get_bb(ob);
+				bb = *BKE_mesh_boundbox_get(ob);
 
 				for (a=0; a<8; a++) {
 					mul_m4_v3(ob->obmat, bb.vec[a]);

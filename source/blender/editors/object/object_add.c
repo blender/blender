@@ -1241,7 +1241,7 @@ static void curvetomesh(Scene *scene, Object *ob)
 	if (ob->disp.first == NULL)
 		makeDispListCurveTypes(scene, ob, 0);  /* force creation */
 
-	nurbs_to_mesh(ob); /* also does users */
+	BKE_mesh_from_nurbs(ob); /* also does users */
 
 	if (ob->type == OB_MESH)
 		BKE_object_free_modifiers(ob);
@@ -1347,7 +1347,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				newob = ob;
 			}
 
-			mesh_to_curve(scene, newob);
+			BKE_mesh_from_curve(scene, newob);
 
 			if (newob->type == OB_CURVE)
 				BKE_object_free_modifiers(newob);   /* after derivedmesh calls! */
@@ -1509,7 +1509,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					for (a = 0; a < newob->totcol; a++) id_us_plus((ID *)me->mat[a]);
 				}
 
-				mball_to_mesh(&baseob->disp, newob->data);
+				BKE_mesh_from_metaball(&baseob->disp, newob->data);
 
 				if (obact->type == OB_MBALL) {
 					basact = basen;

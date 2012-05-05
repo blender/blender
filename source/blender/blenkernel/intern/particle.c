@@ -863,7 +863,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 			mul_v3_fl(facecenter[a], 1.0f/facetotvert[a]);
 
 	/* for conversion from BU area / pixel area to reference screen size */
-	mesh_get_texspace(me, 0, 0, size);
+	BKE_mesh_texspace_get(me, 0, 0, size);
 	fac= ((size[0] + size[1] + size[2])/3.0f)/part->simplify_refsize;
 	fac= fac*fac;
 
@@ -3385,7 +3385,7 @@ static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float m
 		/* ugly hack to use non-transformed orcos, since only those
 		 * give symmetric results for mirroring in particle mode */
 		if (DM_get_vert_data_layer(dm, CD_ORIGINDEX))
-			transform_mesh_orco_verts(ob->data, v, 3, 1);
+			BKE_mesh_orco_verts_transform(ob->data, v, 3, 1);
 	}
 	else {
 		dm->getVertCo(dm, mface->v1, v[0]);
@@ -3414,7 +3414,7 @@ void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData
 
 	/* see psys_face_mat for why this function is called */
 	if (DM_get_vert_data_layer(dm, CD_ORIGINDEX))
-		transform_mesh_orco_verts(ob->data, &orco, 1, 1);
+		BKE_mesh_orco_verts_transform(ob->data, &orco, 1, 1);
 	copy_v3_v3(hairmat[3], orco);
 }
 

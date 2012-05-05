@@ -2360,8 +2360,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 6)) {
 		Mesh *me;
 
-		for (me= main->mesh.first; me; me= me->id.next)
-			mesh_calc_normals_tessface(me->mvert, me->totvert, me->mface, me->totface, NULL);
+		for (me = main->mesh.first; me; me = me->id.next)
+			BKE_mesh_calc_normals_tessface(me->mvert, me->totvert, me->mface, me->totface, NULL);
 	}
 
 	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 2)) {
