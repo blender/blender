@@ -478,10 +478,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			bool is_tablet = false;
 #endif
 
-			if(is_tablet == false &&
-			   window->getCursorGrabMode() != GHOST_kGrabDisable &&
-			   window->getCursorGrabMode() != GHOST_kGrabNormal)
-			{
+			if (is_tablet == false && window->getCursorGrabModeIsWarp()) {
 				GHOST_TInt32 x_new= xme.x_root;
 				GHOST_TInt32 y_new= xme.y_root;
 				GHOST_TInt32 x_accum, y_accum;

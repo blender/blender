@@ -652,10 +652,7 @@ GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, 
 	/* TODO: CHECK IF THIS IS A TABLET EVENT */
 	bool is_tablet = false;
 
-	if (is_tablet == false &&
-	    window->getCursorGrabMode() != GHOST_kGrabDisable &&
-	    window->getCursorGrabMode() != GHOST_kGrabNormal)
-	{
+	if (is_tablet == false && window->getCursorGrabModeIsWarp()) {
 		GHOST_TInt32 x_new= x_screen;
 		GHOST_TInt32 y_new= y_screen;
 		GHOST_TInt32 x_accum, y_accum;
