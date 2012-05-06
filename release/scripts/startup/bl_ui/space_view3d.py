@@ -1538,6 +1538,24 @@ class VIEW3D_MT_pose_apply(Menu):
         layout.operator("pose.visual_transform_apply")
 
 
+class VIEW3D_MT_pose_specials(Menu):
+    bl_label = "Specials"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("pose.select_constraint_target")
+        layout.operator("pose.flip_names")
+        layout.operator("pose.paths_calculate")
+        layout.operator("pose.paths_clear")
+        layout.operator("pose.user_transforms_clear")
+        layout.operator("pose.user_transforms_clear", text="Clear User Transforms (All)").only_selected = False
+        layout.operator("pose.relax")
+
+        layout.separator()
+
+        layout.operator_menu_enum("pose.autoside_names", "axis")
+
+
 class BoneOptions:
     def draw(self, context):
         layout = self.layout

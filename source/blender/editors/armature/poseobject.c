@@ -2302,11 +2302,12 @@ void POSE_OT_quaternions_flip(wmOperatorType *ot)
 /* ********************************************** */
 /* Clear User Transforms */
 
-static int pose_clear_user_transforms_exec (bContext *C, wmOperator *UNUSED(op))
+static int pose_clear_user_transforms_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	float cframe = (float)CFRA;
+	const short only_select = RNA_boolean_get(op->ptr, "only_selected");
 	
 	if ((ob->adt) && (ob->adt->action)) {
 		/* XXX: this is just like this to avoid contaminating anything else; 
@@ -2329,7 +2330,7 @@ static int pose_clear_user_transforms_exec (bContext *C, wmOperator *UNUSED(op))
 		
 		/* copy back values, but on selected bones only  */
 		for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
-			pose_bone_do_paste(ob, pchan, 1, 0);
+			pose_bone_do_paste(ob, pchan, only_select, 0);
 		}
 		
 		/* free temp data - free manually as was copied without constraints */
@@ -2373,5 +2374,8 @@ void POSE_OT_user_transforms_clear(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "only_selected", TRUE, "Only Selected", "Only visible/selected bones");
 }
 

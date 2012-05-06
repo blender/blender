@@ -353,11 +353,11 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_knife_tool", KKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "use_occlude_geometry", TRUE);
-	RNA_boolean_set(kmi->ptr, "only_select",          FALSE);
+	RNA_boolean_set(kmi->ptr, "only_selected",          FALSE);
 
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_knife_tool", KKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "use_occlude_geometry", FALSE);
-	RNA_boolean_set(kmi->ptr, "only_select",          TRUE);
+	RNA_boolean_set(kmi->ptr, "only_selected",          TRUE);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 

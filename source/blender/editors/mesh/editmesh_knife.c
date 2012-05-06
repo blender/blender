@@ -2785,7 +2785,7 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	DerivedMesh *cage, *final;
 	SmallHash shash;
 	void *data[3];
-	const short only_select = RNA_boolean_get(op->ptr, "only_select");
+	const short only_select = RNA_boolean_get(op->ptr, "only_selected");
 
 	/* alloc new customdata */
 	kcd = op->customdata = MEM_callocN(sizeof(KnifeTool_OpData), "knifetool Modal Op Data");
@@ -3086,5 +3086,5 @@ void MESH_OT_knife_tool(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	RNA_def_boolean(ot->srna, "use_occlude_geometry", TRUE, "Occlude Geometry", "Only cut the front most geometry");
-	RNA_def_boolean(ot->srna, "only_select", FALSE, "Only Selected", "Only cut selected geometry");
+	RNA_def_boolean(ot->srna, "only_selected", FALSE, "Only Selected", "Only cut selected geometry");
 }
