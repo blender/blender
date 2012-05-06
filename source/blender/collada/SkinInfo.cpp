@@ -218,7 +218,8 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	Scene *scene = CTX_data_scene(C);
 
 	ModifierData *md = ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Armature);
-	((ArmatureModifierData *)md)->object = ob_arm;
+	ArmatureModifierData *amd = (ArmatureModifierData *)md;
+	amd->object = ob_arm;
 
 	copy_m4_m4(ob->obmat, bind_shape_matrix);
 	BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
@@ -239,7 +240,7 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 #endif
 
-	((bArmature*)ob_arm->data)->deformflag = ARM_DEF_VGROUP;
+	amd->deformflag = ARM_DEF_VGROUP;
 
 	// create all vertex groups
 	std::vector<JointData>::iterator it;

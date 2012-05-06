@@ -894,7 +894,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "deform_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gevertdeformer");
 	RNA_def_property_enum_items(prop, prop_vdeformer);
-	RNA_def_property_ui_text(prop, "Vertex Deformer", "");
+	RNA_def_property_ui_text(prop, "Vertex Deformer", "Vertex Deformer Method (Game Engine only)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
@@ -973,30 +973,6 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 /* XXX depreceated ....... old animviz for armatures only */
-	
-		/* deformflag */
-	prop = RNA_def_property(srna, "use_deform_vertex_groups", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_VGROUP);
-	RNA_def_property_ui_text(prop, "Deform Vertex Groups", "Enable Vertex Groups when defining deform");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
-	prop = RNA_def_property(srna, "use_deform_envelopes", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_ENVELOPE);
-	RNA_def_property_ui_text(prop, "Deform Envelopes", "Enable Bone Envelopes when defining deform");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
-	prop = RNA_def_property(srna, "use_deform_preserve_volume", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_QUATERNION);
-	RNA_def_property_ui_text(prop, "Use Dual Quaternion Deformation", "Enable deform rotation with Quaternions");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
-#if 0
-	prop = RNA_def_property(srna, "deform_invert_vertexgroups", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "deformflag", ARM_DEF_INVERT_VGROUP);
-	RNA_def_property_ui_text(prop, "Invert Vertex Group Influence",
-	                         "Invert Vertex Group influence (only for Modifiers)");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-#endif
 
 	/* Number fields */
 /* XXX depreceated ....... old animviz for armatures only */
