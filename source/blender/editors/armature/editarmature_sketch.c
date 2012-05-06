@@ -2595,6 +2595,7 @@ void SKETCH_OT_delete(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Delete";
 	ot->idname = "SKETCH_OT_delete";
+	ot->description = "Delete a sketch stroke";
 
 	/* api callbacks */
 	ot->invoke = sketch_delete;
@@ -2610,6 +2611,7 @@ void SKETCH_OT_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select";
 	ot->idname = "SKETCH_OT_select";
+	ot->description = "Select a sketch stroke";
 
 	/* api callbacks */
 	ot->invoke = sketch_select;
@@ -2625,6 +2627,7 @@ void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Cancel Stroke";
 	ot->idname = "SKETCH_OT_cancel_stroke";
+	ot->description = "Cancel the current sketch stroke";
 
 	/* api callbacks */
 	ot->invoke = sketch_cancel;
@@ -2640,6 +2643,7 @@ void SKETCH_OT_convert(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Convert";
 	ot->idname = "SKETCH_OT_convert";
+	ot->description = "Convert the selected sketch strokes to bone chains";
 
 	/* api callbacks */
 	ot->invoke = sketch_convert;
@@ -2655,6 +2659,7 @@ void SKETCH_OT_finish_stroke(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "End Stroke";
 	ot->idname = "SKETCH_OT_finish_stroke";
+	ot->description = "End and keep the current sketch stroke";
 
 	/* api callbacks */
 	ot->invoke = sketch_finish;
@@ -2670,6 +2675,7 @@ void SKETCH_OT_draw_preview(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Draw Preview";
 	ot->idname = "SKETCH_OT_draw_preview";
+	ot->description = "Draw preview of current sketch stroke (internal use)";
 
 	/* api callbacks */
 	ot->invoke = sketch_draw_preview;
@@ -2687,6 +2693,7 @@ void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Draw Stroke";
 	ot->idname = "SKETCH_OT_draw_stroke";
+	ot->description = "Start to draw a sketch stroke";
 
 	/* api callbacks */
 	ot->invoke = sketch_draw_stroke;
@@ -2706,6 +2713,7 @@ void SKETCH_OT_gesture(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Gesture";
 	ot->idname = "SKETCH_OT_gesture";
+	ot->description = "Start to draw a gesture stroke";
 
 	/* api callbacks */
 	ot->invoke = sketch_draw_gesture;

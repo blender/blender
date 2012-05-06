@@ -1454,7 +1454,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 
 static int wm_search_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 static int wm_search_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
@@ -1488,6 +1488,7 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 {
 	ot->name = "Search Menu";
 	ot->idname = "WM_OT_search_menu";
+	ot->description = "Pop-up a search menu over all available operators in current context";
 	
 	ot->invoke = wm_search_menu_invoke;
 	ot->exec = wm_search_menu_exec;
@@ -3431,6 +3432,7 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 {
 	ot->name = "Radial Control";
 	ot->idname = "WM_OT_radial_control";
+	ot->description = "Set some size property (like e.g. brush size) with mouse wheel";
 
 	ot->invoke = radial_control_invoke;
 	ot->modal = radial_control_modal;

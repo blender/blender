@@ -255,6 +255,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
 	ot->name = "Save Screenshot"; /* weak: opname starting with 'save' makes filewindow give save-over */
 	ot->idname = "SCREEN_OT_screenshot";
+	ot->description = "Capture a picture of the active area or whole Blender window";
 	
 	ot->invoke = screenshot_invoke;
 	ot->check = screenshot_check;
@@ -266,7 +267,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	ot->flag = 0;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
+	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "Screenshot the whole Blender window");
 }
 
 /* *************** screenshot movie job ************************* */
@@ -433,6 +434,7 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 {
 	ot->name = "Make Screencast";
 	ot->idname = "SCREEN_OT_screencast";
+	ot->description = "Capture a video of the active area or whole Blender window";
 	
 	ot->invoke = WM_operator_confirm;
 	ot->exec = screencast_exec;
@@ -441,7 +443,7 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 	ot->flag = 0;
 	
 	RNA_def_property(ot->srna, "filepath", PROP_STRING, PROP_FILEPATH);
-	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
+	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "Screencast the whole Blender window");
 }
 
 

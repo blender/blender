@@ -744,6 +744,8 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Pack Islands";
 	ot->idname = "UV_OT_pack_islands";
+	ot->description = "Transform all islands so that they fill up the UV space as much as possible";
+
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -784,6 +786,8 @@ void UV_OT_average_islands_scale(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Average Islands Scale";
 	ot->idname = "UV_OT_average_islands_scale";
+	ot->description = "Average the size of separate UV islands, based on their area in 3D space";
+
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1324,6 +1328,8 @@ void UV_OT_from_view(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Project From View";
 	ot->idname = "UV_OT_project_from_view";
+	ot->description = "Project the UV vertices of the mesh as seen in current 3D view";
+
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1363,6 +1369,8 @@ void UV_OT_reset(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Reset";
 	ot->idname = "UV_OT_reset";
+	ot->description = "Reset UV projection";
+
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1464,6 +1472,8 @@ void UV_OT_sphere_project(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Sphere Projection";
 	ot->idname = "UV_OT_sphere_project";
+	ot->description = "Project the UV vertices of the mesh over the curved surface of a sphere";
+
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1537,6 +1547,8 @@ void UV_OT_cylinder_project(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Cylinder Projection";
 	ot->idname = "UV_OT_cylinder_project";
+	ot->description = "Project the UV vertices of the mesh over the curved wall of a cylinder";
+
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1615,6 +1627,8 @@ void UV_OT_cube_project(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Cube Projection";
 	ot->idname = "UV_OT_cube_project";
+	ot->description = "Project the UV vertices of the mesh over the six faces of a cube";
+
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
