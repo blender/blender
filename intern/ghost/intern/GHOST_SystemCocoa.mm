@@ -1488,7 +1488,19 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			}
 			
 		case NSMouseMoved:
-				switch (window->getCursorGrabMode()) {
+				GHOST_TGrabCursorMode grab_mode = window->getCursorGrabMode();
+
+				/* TODO: CHECK IF THIS IS A TABLET EVENT */
+				bool is_tablet = false;
+
+				if (is_tablet &&
+				    (grab_mode != GHOST_kGrabDisable) &&
+				    (grab_mode != GHOST_kGrabNormal))
+				{
+					grab_mode = GHOST_kGrabDisable;
+				}
+
+				switch (grab_mode) {
 					case GHOST_kGrabHide: //Cursor hidden grab operation : no cursor move
 					{
 						GHOST_TInt32 x_warp, y_warp, x_accum, y_accum, x, y;

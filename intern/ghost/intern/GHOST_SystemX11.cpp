@@ -471,8 +471,16 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case MotionNotify:
 		{
 			XMotionEvent &xme = xe->xmotion;
-			
-			if(window->getCursorGrabMode() != GHOST_kGrabDisable && window->getCursorGrabMode() != GHOST_kGrabNormal)
+
+#ifdef WITH_X11_XINPUT
+			bool is_tablet = window->GetXTablet().CommonData.Active != GHOST_kTabletModeNone;
+#else
+			bool is_tablet = false;
+#endif
+
+			if(is_tablet == false &&
+			   window->getCursorGrabMode() != GHOST_kGrabDisable &&
+			   window->getCursorGrabMode() != GHOST_kGrabNormal)
 			{
 				GHOST_TInt32 x_new= xme.x_root;
 				GHOST_TInt32 y_new= xme.y_root;

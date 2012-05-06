@@ -649,7 +649,12 @@ GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, 
 	
 	system->getCursorPosition(x_screen, y_screen);
 
-	if(window->getCursorGrabMode() != GHOST_kGrabDisable && window->getCursorGrabMode() != GHOST_kGrabNormal)
+	/* TODO: CHECK IF THIS IS A TABLET EVENT */
+	bool is_tablet = false;
+
+	if (is_tablet == false &&
+	    window->getCursorGrabMode() != GHOST_kGrabDisable &&
+	    window->getCursorGrabMode() != GHOST_kGrabNormal)
 	{
 		GHOST_TInt32 x_new= x_screen;
 		GHOST_TInt32 y_new= y_screen;
