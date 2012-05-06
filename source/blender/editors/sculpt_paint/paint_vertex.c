@@ -239,7 +239,7 @@ static void do_shared_vertex_tesscol(Mesh *me)
 	mface = me->mface;
 	mcol = (char *)me->mcol;
 	for (a = me->totface; a > 0; a--, mface++, mcol += 16) {
-		if ((use_face_sel == FALSE)|| (mface->flag & ME_FACE_SEL)) {
+		if ((use_face_sel == FALSE) || (mface->flag & ME_FACE_SEL)) {
 			scol = scolmain + 4 * mface->v1;
 			mcol[1] = scol[1]; mcol[2] = scol[2]; mcol[3] = scol[3];
 			scol = scolmain + 4 * mface->v2;

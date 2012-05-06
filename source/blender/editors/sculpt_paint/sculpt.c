@@ -108,7 +108,7 @@ float *ED_sculpt_get_last_stroke(struct Object *ob)
 
 int ED_sculpt_minmax(bContext *C, float *min, float *max)
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob = CTX_data_active_object(C);
 
 	if (ob && ob->sculpt && ob->sculpt->last_stroke_valid) {
 		copy_v3_v3(min, ob->sculpt->last_stroke);
@@ -1239,6 +1239,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	float offset[3], area_normal[3];
 	float bstrength = ss->cache->bstrength;
 	float flippedbstrength, crease_correction;
+	float brush_alpha;
 	int n;
 
 	calc_sculpt_normal(sd, ob, area_normal, nodes, totnode);
@@ -1249,11 +1250,10 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	mul_v3_fl(offset, bstrength);
 	
 	/* we divide out the squared alpha and multiply by the squared crease to give us the pinch strength */
-	
-	if (BKE_brush_alpha_get(scene, brush) > 0.0f)
-		crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor / (BKE_brush_alpha_get(scene, brush) * BKE_brush_alpha_get(scene, brush));
-	else
-		crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor;
+	crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor;
+	brush_alpha = BKE_brush_alpha_get(scene, brush);
+	if (brush_alpha > 0.0f)
+		crease_correction /= brush_alpha * brush_alpha;
 
 	/* we always want crease to pinch or blob to relax even when draw is negative */
 	flippedbstrength = (bstrength < 0) ? -crease_correction * bstrength : crease_correction * bstrength;
@@ -1928,7 +1928,8 @@ static void point_plane_project(float intr[3], float co[3], float plane_normal[3
 
 static int plane_trim(StrokeCache *cache, Brush *brush, float val[3])
 {
-	return !(brush->flag & BRUSH_PLANE_TRIM) || (dot_v3v3(val, val) <= cache->radius_squared * cache->plane_trim_squared);
+	return (!(brush->flag & BRUSH_PLANE_TRIM) ||
+			((dot_v3v3(val, val) <= cache->radius_squared * cache->plane_trim_squared)));
 }
 
 static int plane_point_side_flip(float co[3], float plane_normal[3], float plane_center[3], int flip)
@@ -2371,7 +2372,9 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		for (a = 0; a < me->totvert; a++, mvert++)
 			copy_v3_v3(mvert->co, vertCos[a]);
 
-		BKE_mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+		BKE_mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop,
+									  me->mpoly, me->totloop, me->totpoly,
+									  NULL, NULL, 0, NULL, NULL);
 	}
 
 	/* apply new coords on active key block */
@@ -2389,7 +2392,11 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 	data.ss = ss;
 	data.sd = sd;
 	data.radius_squared = ss->cache->radius_squared;
-	data.original = ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB, SCULPT_TOOL_LAYER);
+	data.original = ELEM4(brush->sculpt_tool,
+						  SCULPT_TOOL_GRAB,
+						  SCULPT_TOOL_ROTATE,
+						  SCULPT_TOOL_THUMB,
+						  SCULPT_TOOL_LAYER);
 	BLI_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
 	/* Only act if some verts are inside the brush area */
@@ -3134,7 +3141,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 
 	if (cache->first_time) {
 		if (!BKE_brush_use_locked_size(scene, brush)) {
-			cache->initial_radius = paint_calc_object_space_radius(cache->vc, cache->true_location, BKE_brush_size_get(scene, brush));
+			cache->initial_radius = paint_calc_object_space_radius(cache->vc,
+																   cache->true_location,
+																   BKE_brush_size_get(scene, brush));
 			BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
 		}
 		else {
@@ -3515,7 +3524,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 		}
 
 		/* update last stroke position */
-		ob->sculpt->last_stroke_valid= 1;
+		ob->sculpt->last_stroke_valid = 1;
 		copy_v3_v3(ob->sculpt->last_stroke, ss->cache->true_location);
 		mul_m4_v3(ob->obmat, ob->sculpt->last_stroke);
 
