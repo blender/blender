@@ -258,7 +258,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	dvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MDEFORMVERT, numVerts);
 	/* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
-	if (!dvert)
+	if (!dvert) {
 		/* If not affecting all vertices, just return. */
 		if (wmd->mix_set != MOD_WVG_SET_ALL)
 			return dm;
@@ -268,7 +268,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		/* Ultimate security check. */
 		if (!dvert)
 			return dm;
-
+	}
 	/* Find out which vertices to work on. */
 	tidx = MEM_mallocN(sizeof(int) * numVerts, "WeightVGMix Modifier, tidx");
 	tdw1 = MEM_mallocN(sizeof(MDeformWeight*) * numVerts, "WeightVGMix Modifier, tdw1");
