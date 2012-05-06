@@ -56,8 +56,8 @@ void BKE_world_free(World *wrld)
 	MTex *mtex;
 	int a;
 	
-	for (a=0; a<MAX_MTEX; a++) {
-		mtex= wrld->mtex[a];
+	for (a = 0; a < MAX_MTEX; a++) {
+		mtex = wrld->mtex[a];
 		if (mtex && mtex->tex) mtex->tex->id.us--;
 		if (mtex) MEM_freeN(mtex);
 	}
@@ -71,40 +71,40 @@ void BKE_world_free(World *wrld)
 		MEM_freeN(wrld->nodetree);
 	}
 
-	BKE_icon_delete((struct ID*)wrld);
+	BKE_icon_delete((struct ID *)wrld);
 	wrld->id.icon_id = 0;
 }
 
 
 World *add_world(const char *name)
 {
-	Main *bmain= G.main;
+	Main *bmain = G.main;
 	World *wrld;
 
-	wrld= BKE_libblock_alloc(&bmain->world, ID_WO, name);
+	wrld = BKE_libblock_alloc(&bmain->world, ID_WO, name);
 	
-	wrld->horr= 0.05f;
-	wrld->horg= 0.05f;
-	wrld->horb= 0.05f;
-	wrld->zenr= 0.01f;
-	wrld->zeng= 0.01f;
-	wrld->zenb= 0.01f;
-	wrld->skytype= 0;
-	wrld->stardist= 15.0f;
-	wrld->starsize= 2.0f;
-	
-	wrld->exp= 0.0f;
-	wrld->exposure=wrld->range= 1.0f;
+	wrld->horr = 0.05f;
+	wrld->horg = 0.05f;
+	wrld->horb = 0.05f;
+	wrld->zenr = 0.01f;
+	wrld->zeng = 0.01f;
+	wrld->zenb = 0.01f;
+	wrld->skytype = 0;
+	wrld->stardist = 15.0f;
+	wrld->starsize = 2.0f;
 
-	wrld->aodist= 10.0f;
-	wrld->aosamp= 5;
-	wrld->aoenergy= 1.0f;
-	wrld->ao_env_energy= 1.0f;
-	wrld->ao_indirect_energy= 1.0f;
-	wrld->ao_indirect_bounces= 1;
-	wrld->aobias= 0.05f;
+	wrld->exp = 0.0f;
+	wrld->exposure = wrld->range = 1.0f;
+
+	wrld->aodist = 10.0f;
+	wrld->aosamp = 5;
+	wrld->aoenergy = 1.0f;
+	wrld->ao_env_energy = 1.0f;
+	wrld->ao_indirect_energy = 1.0f;
+	wrld->ao_indirect_bounces = 1;
+	wrld->aobias = 0.05f;
 	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;	
-	wrld->ao_approx_error= 0.25f;
+	wrld->ao_approx_error = 0.25f;
 	
 	wrld->preview = NULL;
 	wrld->miststa = 5.0f;
@@ -118,18 +118,18 @@ World *BKE_world_copy(World *wrld)
 	World *wrldn;
 	int a;
 	
-	wrldn= BKE_libblock_copy(&wrld->id);
+	wrldn = BKE_libblock_copy(&wrld->id);
 	
-	for (a=0; a<MAX_MTEX; a++) {
+	for (a = 0; a < MAX_MTEX; a++) {
 		if (wrld->mtex[a]) {
-			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "BKE_world_copy");
+			wrldn->mtex[a] = MEM_mallocN(sizeof(MTex), "BKE_world_copy");
 			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
 			id_us_plus((ID *)wrldn->mtex[a]->tex);
 		}
 	}
 
 	if (wrld->nodetree)
-		wrldn->nodetree= ntreeCopyTree(wrld->nodetree);
+		wrldn->nodetree = ntreeCopyTree(wrld->nodetree);
 	
 	if (wrld->preview)
 		wrldn->preview = BKE_previewimg_copy(wrld->preview);
@@ -142,12 +142,12 @@ World *localize_world(World *wrld)
 	World *wrldn;
 	int a;
 	
-	wrldn= BKE_libblock_copy(&wrld->id);
+	wrldn = BKE_libblock_copy(&wrld->id);
 	BLI_remlink(&G.main->world, wrldn);
 	
-	for (a=0; a<MAX_MTEX; a++) {
+	for (a = 0; a < MAX_MTEX; a++) {
 		if (wrld->mtex[a]) {
-			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "localize_world");
+			wrldn->mtex[a] = MEM_mallocN(sizeof(MTex), "localize_world");
 			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
 			/* free world decrements */
 			id_us_plus((ID *)wrldn->mtex[a]->tex);
@@ -155,51 +155,51 @@ World *localize_world(World *wrld)
 	}
 
 	if (wrld->nodetree)
-		wrldn->nodetree= ntreeLocalize(wrld->nodetree);
+		wrldn->nodetree = ntreeLocalize(wrld->nodetree);
 	
-	wrldn->preview= NULL;
+	wrldn->preview = NULL;
 	
 	return wrldn;
 }
 
 void BKE_world_make_local(World *wrld)
 {
-	Main *bmain= G.main;
+	Main *bmain = G.main;
 	Scene *sce;
-	int is_local= FALSE, is_lib= FALSE;
+	int is_local = FALSE, is_lib = FALSE;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
 	
-	if (wrld->id.lib==NULL) return;
-	if (wrld->id.us==1) {
+	if (wrld->id.lib == NULL) return;
+	if (wrld->id.us == 1) {
 		id_clear_lib_data(bmain, &wrld->id);
 		return;
 	}
 	
-	for (sce= bmain->scene.first; sce && ELEM(FALSE, is_lib, is_local); sce= sce->id.next) {
+	for (sce = bmain->scene.first; sce && ELEM(FALSE, is_lib, is_local); sce = sce->id.next) {
 		if (sce->world == wrld) {
-			if (sce->id.lib) is_lib= TRUE;
-			else is_local= TRUE;
+			if (sce->id.lib) is_lib = TRUE;
+			else is_local = TRUE;
 		}
 	}
 
-	if (is_local && is_lib==FALSE) {
+	if (is_local && is_lib == FALSE) {
 		id_clear_lib_data(bmain, &wrld->id);
 	}
 	else if (is_local && is_lib) {
-		World *wrld_new= BKE_world_copy(wrld);
-		wrld_new->id.us= 0;
+		World *wrld_new = BKE_world_copy(wrld);
+		wrld_new->id.us = 0;
 
 		/* Remap paths of new ID using old library as base. */
 		BKE_id_lib_local_paths(bmain, wrld->id.lib, &wrld_new->id);
 
-		for (sce= bmain->scene.first; sce; sce= sce->id.next) {
+		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 			if (sce->world == wrld) {
-				if (sce->id.lib==NULL) {
-					sce->world= wrld_new;
+				if (sce->id.lib == NULL) {
+					sce->world = wrld_new;
 					wrld_new->id.us++;
 					wrld->id.us--;
 				}

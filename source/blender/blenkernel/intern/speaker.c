@@ -47,7 +47,7 @@ void *BKE_speaker_add(const char *name)
 {
 	Speaker *spk;
 
-	spk=  BKE_libblock_alloc(&G.main->speaker, ID_SPK, name);
+	spk =  BKE_libblock_alloc(&G.main->speaker, ID_SPK, name);
 
 	spk->attenuation = 1.0f;
 	spk->cone_angle_inner = 360.0f;
@@ -69,7 +69,7 @@ Speaker *BKE_speaker_copy(Speaker *spk)
 {
 	Speaker *spkn;
 
-	spkn= BKE_libblock_copy(&spk->id);
+	spkn = BKE_libblock_copy(&spk->id);
 	if (spkn->sound)
 		spkn->sound->id.us++;
 
@@ -78,51 +78,51 @@ Speaker *BKE_speaker_copy(Speaker *spk)
 
 void BKE_speaker_make_local(Speaker *spk)
 {
-	Main *bmain= G.main;
+	Main *bmain = G.main;
 	Object *ob;
-	int is_local= FALSE, is_lib= FALSE;
+	int is_local = FALSE, is_lib = FALSE;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
 
-	if (spk->id.lib==NULL) return;
-	if (spk->id.us==1) {
+	if (spk->id.lib == NULL) return;
+	if (spk->id.us == 1) {
 		id_clear_lib_data(bmain, &spk->id);
 		return;
 	}
 
-	ob= bmain->object.first;
+	ob = bmain->object.first;
 	while (ob) {
-		if (ob->data==spk) {
-			if (ob->id.lib) is_lib= TRUE;
-			else is_local= TRUE;
+		if (ob->data == spk) {
+			if (ob->id.lib) is_lib = TRUE;
+			else is_local = TRUE;
 		}
-		ob= ob->id.next;
+		ob = ob->id.next;
 	}
 
 	if (is_local && is_lib == FALSE) {
 		id_clear_lib_data(bmain, &spk->id);
 	}
 	else if (is_local && is_lib) {
-		Speaker *spk_new= BKE_speaker_copy(spk);
-		spk_new->id.us= 0;
+		Speaker *spk_new = BKE_speaker_copy(spk);
+		spk_new->id.us = 0;
 
 		/* Remap paths of new ID using old library as base. */
 		BKE_id_lib_local_paths(bmain, spk->id.lib, &spk_new->id);
 
-		ob= bmain->object.first;
+		ob = bmain->object.first;
 		while (ob) {
-			if (ob->data==spk) {
+			if (ob->data == spk) {
 
-				if (ob->id.lib==NULL) {
-					ob->data= spk_new;
+				if (ob->id.lib == NULL) {
+					ob->data = spk_new;
 					spk_new->id.us++;
 					spk->id.us--;
 				}
 			}
-			ob= ob->id.next;
+			ob = ob->id.next;
 		}
 	}
 }
