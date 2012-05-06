@@ -81,10 +81,12 @@ class TIME_HT_header(Header):
 
         row = layout.row(align=True)
         row.prop(toolsettings, "use_keyframe_insert_auto", text="", toggle=True)
-        row.prop(toolsettings, "use_keyframe_insert_keyingset", text="", toggle=True)
-        if screen.is_animation_playing and toolsettings.use_keyframe_insert_auto:
-            subsub = row.row()
-            subsub.prop(toolsettings, "use_record_with_nla", toggle=True)
+        if toolsettings.use_keyframe_insert_auto:
+            row.prop(toolsettings, "use_keyframe_insert_keyingset", text="", toggle=True)
+            
+            if screen.is_animation_playing:
+                subsub = row.row()
+                subsub.prop(toolsettings, "use_record_with_nla", toggle=True)
 
         row = layout.row(align=True)
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
