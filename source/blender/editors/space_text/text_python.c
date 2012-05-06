@@ -367,7 +367,8 @@ static short UNUSED_FUNCTION(do_texttools) (SpaceText * st, char ascii, unsigned
 #if 0
 #ifdef WITH_PYTHON	
 /* Run text plugin scripts if enabled */
-if (st->doplugins && event && val) {
+if (st->doplugins && event && val)
+{
 	if (BPY_menu_do_shortcut(PYMENU_TEXTPLUGIN, event, qual)) {
 		do_draw = 1;
 	}

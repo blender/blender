@@ -327,7 +327,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
 
 			/* TODO - add some --debug-mesh option */
 			if (G.debug & G_DEBUG) {
-				/* note: this warning may be un-called for if we are inirializing the mesh for the
+				/* note: this warning may be un-called for if we are initializing the mesh for the
 				 * first time from bmesh, rather then giving a warning about this we could be smarter
 				 * and check if there was any data to begin with, for now just print the warning with
 				 * some info to help troubleshoot whats going on - campbell */
@@ -1104,7 +1104,7 @@ void mesh_strip_loose_polysloops(Mesh *me)
 			b++;
 		}
 		else {
-			/* XXX Theorically, we should be able to not do this, as no remaining poly
+			/* XXX Theoretically, we should be able to not do this, as no remaining poly
 			 *     should use any stripped loop. But for security's sake... */
 			new_idx[a] = -a;
 		}
@@ -1128,7 +1128,7 @@ void mesh_strip_loose_edges(Mesh *me)
 	MEdge *e;
 	MLoop *l;
 	int a, b;
-	unsigned int *new_idx = MEM_mallocN(sizeof(int) * me->totedge, "strip_loose_edges old2new idx mapping for loops.");
+	unsigned int *new_idx = MEM_mallocN(sizeof(int) * me->totedge, __func__);
 
 	for (a = b = 0, e = me->medge; a < me->totedge; a++, e++) {
 		if (e->v1 != e->v2) {
@@ -1154,6 +1154,8 @@ void mesh_strip_loose_edges(Mesh *me)
 	for (a = 0, l = me->mloop; a < me->totloop; a++, l++) {
 		l->e = new_idx[l->e];
 	}
+
+	MEM_freeN(new_idx);
 }
 
 void mball_to_mesh(ListBase *lb, Mesh *me)

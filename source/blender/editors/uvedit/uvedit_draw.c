@@ -204,7 +204,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				//totuvarea += tf_area(tf, efa->v4!=0);
 				totuvarea += poly_uv_area(tf_uv, efa->len);
 				
-				if (uvedit_face_visible(scene, ima, efa, tf)) {
+				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				}
 				else {
@@ -294,7 +294,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
 				
-				if (uvedit_face_visible(scene, ima, efa, tf)) {
+				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 					nverts = efa->len;
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 					BLI_array_empty(tf_uv);
@@ -506,11 +506,11 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
 			
-			if (uvedit_face_visible(scene, ima, efa, tf)) {
+			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				if (tf == activetf) continue;  /* important the temp boolean is set above */
 
-				if (uvedit_face_selected(scene, em, efa))
+				if (uvedit_face_select_test(scene, em, efa))
 					glColor4ubv((GLubyte *)col2);
 				else
 					glColor4ubv((GLubyte *)col1);
@@ -536,7 +536,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
 
-			if (uvedit_face_visible(scene, ima, efa, tf)) {		
+			if (uvedit_face_visible_test(scene, ima, efa, tf)) {		
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 			}
 			else {
@@ -552,7 +552,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 	if (activef) {
 		tf = CustomData_bmesh_get(&bm->pdata, activef->head.data, CD_MTEXPOLY);
-		if (uvedit_face_visible(scene, ima, activef, tf)) {
+		if (uvedit_face_visible_test(scene, ima, activef, tf)) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			UI_ThemeColor4(TH_EDITMESH_ACTIVE);
@@ -670,7 +670,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 						glBegin(GL_LINE_LOOP);
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-							sel = (uvedit_uv_selected(em, scene, l) ? 1 : 0);
+							sel = (uvedit_uv_select_test(em, scene, l) ? 1 : 0);
 							glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2);
 
 							luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
@@ -688,7 +688,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 						glBegin(GL_LINES);
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-							sel = (uvedit_edge_selected(em, scene, l) ? 1 : 0);
+							sel = (uvedit_edge_select_test(em, scene, l) ? 1 : 0);
 							if (sel != lastsel) {
 								glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2);
 								lastsel = sel;
@@ -741,7 +741,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 				continue;
 
-			if (!uvedit_face_selected(scene, em, efa)) {
+			if (!uvedit_face_select_test(scene, em, efa)) {
 				poly_uv_center(em, efa, cent);
 				bglVertex2fv(cent);
 			}
@@ -756,7 +756,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 				continue;
 
-			if (uvedit_face_selected(scene, em, efa)) {
+			if (uvedit_face_select_test(scene, em, efa)) {
 				poly_uv_center(em, efa, cent);
 				bglVertex2fv(cent);
 			}
@@ -779,7 +779,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-				if (!uvedit_uv_selected(em, scene, l))
+				if (!uvedit_uv_select_test(em, scene, l))
 					bglVertex2fv(luv->uv);
 			}
 		}
@@ -816,7 +816,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
 
-				if (uvedit_uv_selected(em, scene, l))
+				if (uvedit_uv_select_test(em, scene, l))
 					bglVertex2fv(luv->uv);
 			}
 		}

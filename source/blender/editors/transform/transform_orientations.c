@@ -577,9 +577,9 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			float vec[3]= {0,0,0};
 			
 			/* USE LAST SELECTED WITH ACTIVE */
-			if (activeOnly && EDBM_editselection_active_get(em, &ese)) {
-				EDBM_editselection_normal(normal, &ese);
-				EDBM_editselection_plane(em, plane, &ese);
+			if (activeOnly && BM_select_history_active_get(em->bm, &ese)) {
+				BM_editselection_normal(&ese, normal);
+				BM_editselection_plane(&ese, plane);
 				
 				switch (ese.htype)
 				{

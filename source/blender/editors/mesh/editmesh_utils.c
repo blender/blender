@@ -465,39 +465,6 @@ void EDBM_select_less(BMEditMesh *em)
 	EDBM_selectmode_flush(em);
 }
 
-int EDBM_editselection_active_get(BMEditMesh *em, BMEditSelection *ese)
-{
-	BMEditSelection *ese_last = em->bm->selected.last;
-	BMFace *efa = BM_active_face_get(em->bm, FALSE);
-
-	ese->next = ese->prev = NULL;
-	
-	if (ese_last) {
-		if (ese_last->htype == BM_FACE) { /* if there is an active face, use it over the last selected face */
-			if (efa) {
-				ese->ele = (BMElem *)efa;
-			}
-			else {
-				ese->ele = ese_last->ele;
-			}
-			ese->htype = BM_FACE;
-		}
-		else {
-			ese->ele =   ese_last->ele;
-			ese->htype = ese_last->htype;
-		}
-	}
-	else if (efa) { /* no */
-		ese->ele   = (BMElem *)efa;
-		ese->htype = BM_FACE;
-	}
-	else {
-		ese->ele = NULL;
-		return 0;
-	}
-	return 1;
-}
-
 void EDBM_flag_disable_all(BMEditMesh *em, const char hflag)
 {
 	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag, FALSE);
@@ -1272,43 +1239,3 @@ void EDBM_update_generic(bContext *C, BMEditMesh *em, const short do_tessface)
 		BMEdit_RecalcTessellation(em);
 	}
 }
-
-/* * Selection History ***************************************************** */
-/* these wrap equivalent bmesh functions.  I'm in two minds of it we should
- * just use the bm functions directly; on the one hand, there's no real
- * need (at the moment) to wrap them, but on the other hand having these
- * wrapped avoids a confusing mess of mixing BM_ and EDBM_ namespaces. */
-
-void EDBM_editselection_center(float *center, BMEditSelection *ese)
-{
-	BM_editselection_center(center, ese);
-}
-
-void EDBM_editselection_normal(float *normal, BMEditSelection *ese)
-{
-	BM_editselection_normal(normal, ese);
-}
-
-/* Calculate a plane that is rightangles to the edge/vert/faces normal
- * also make the plane run along an axis that is related to the geometry,
- * because this is used for the manipulators Y axis. */
-void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese)
-{
-	BM_editselection_plane(em->bm, plane, ese);
-}
-
-void EDBM_editselection_remove(BMEditMesh *em, BMHeader *ele)
-{
-	BM_select_history_remove(em->bm, (BMElem *)ele);
-}
-
-void EDBM_editselection_store(BMEditMesh *em, BMHeader *ele)
-{
-	BM_select_history_store(em->bm, (BMElem *)ele);
-}
-
-void EDBM_editselection_validate(BMEditMesh *em)
-{
-	BM_select_history_validate(em->bm);
-}
-/* end select history */

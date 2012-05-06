@@ -803,6 +803,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	BMesh *bm_new;
 	BMVert *v, *v2, **vtable = NULL;
 	BMEdge *e, *e2, **edges = NULL, **etable = NULL;
+	BMElem **eletable;
 	BLI_array_declare(edges);
 	BMLoop *l, /* *l2, */ **loops = NULL;
 	BLI_array_declare(loops);
@@ -913,21 +914,29 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
 	/* copy over edit selection history */
 	for (ese = bm_old->selected.first; ese; ese = ese->next) {
-		void *ele = NULL;
+		BMElem *ele = NULL;
 
-		if (ese->htype == BM_VERT)
-			ele = vtable[BM_elem_index_get(ese->ele)];
-		else if (ese->htype == BM_EDGE)
-			ele = etable[BM_elem_index_get(ese->ele)];
-		else if (ese->htype == BM_FACE) {
-			ele = ftable[BM_elem_index_get(ese->ele)];
+		switch (ese->htype) {
+			case BM_VERT:
+				eletable = (BMElem **)vtable;
+				break;
+			case BM_EDGE:
+				eletable = (BMElem **)etable;
+				break;
+			case BM_FACE:
+				eletable = (BMElem **)ftable;
+				break;
+			default:
+				eletable = NULL;
+				break;
 		}
-		else {
-			BLI_assert(0);
+
+		if (eletable) {
+			ele = eletable[BM_elem_index_get(ese->ele)];
+			if (ele) {
+				BM_select_history_store(bm_new, ele);
+			}
 		}
-		
-		if (ele)
-			BM_select_history_store(bm_new, ele);
 	}
 
 	MEM_freeN(etable);

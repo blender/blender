@@ -747,6 +747,7 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
+#if 0 /* disabling for 2.63 release, since we keep getting reports some menu items are leaving props undefined */
 int WM_operator_last_properties_init(wmOperator *op)
 {
 	int change = FALSE;
@@ -804,6 +805,20 @@ int WM_operator_last_properties_store(wmOperator *op)
 		return FALSE;
 	}
 }
+
+#else
+
+int WM_operator_last_properties_init(wmOperator *UNUSED(op))
+{
+	return FALSE;
+}
+
+int WM_operator_last_properties_store(wmOperator *UNUSED(op))
+{
+	return FALSE;
+}
+
+#endif
 
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
 {

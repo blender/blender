@@ -666,8 +666,8 @@ static CollPair* cloth_edge_collision ( ModifierData *md1, ModifierData *md2,
 										BVHTreeOverlap *overlap, CollPair *collpair,
 										GHash *visithash, MemArena *arena)
 {
-	ClothModifierData *clmd = ( ClothModifierData * ) md1;
-	CollisionModifierData *collmd = ( CollisionModifierData * ) md2;
+	ClothModifierData *clmd = (ClothModifierData *)md1;
+	CollisionModifierData *collmd = (CollisionModifierData *) md2;
 	MFace *face1=NULL, *face2 = NULL;
 	ClothVertex *verts1 = clmd->clothObject->verts;
 	double distance = 0;
@@ -1185,8 +1185,8 @@ int cloth_point_tri_moving_v3v3_f(float v1[2][3], int i1, float v2[2][3], int i2
 static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap *overlap, 
 								   CollPair *collpair, double dt, GHash *gh, MemArena *arena)
 {
-	ClothModifierData *clmd = ( ClothModifierData * ) md1;
-	CollisionModifierData *collmd = ( CollisionModifierData * ) md2;
+	ClothModifierData *clmd = (ClothModifierData *)md1;
+	CollisionModifierData *collmd = (CollisionModifierData *) md2;
 	MFace *face1=NULL, *face2 = NULL;
 	ClothVertex *verts1 = clmd->clothObject->verts;
 	double distance = 0;
@@ -1400,8 +1400,8 @@ static void machine_epsilon_offset(Cloth *cloth)
 static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, 
 	BVHTreeOverlap *overlap, CollPair *collpair, float dt )
 {
-	ClothModifierData *clmd = ( ClothModifierData * ) md1;
-	CollisionModifierData *collmd = ( CollisionModifierData * ) md2;
+	ClothModifierData *clmd = (ClothModifierData *)md1;
+	CollisionModifierData *collmd = (CollisionModifierData *) md2;
 	Cloth *cloth = clmd->clothObject;
 	MFace *face1=NULL, *face2 = NULL;
 #ifdef USE_BULLET
@@ -2285,13 +2285,13 @@ static void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, Collis
 
 	for ( i = 0; i < numresult; i++ )
 	{
-		*collisions_index = cloth_collision ( ( ModifierData * ) clmd, ( ModifierData * ) collmd,
+		*collisions_index = cloth_collision ( (ModifierData *)clmd, (ModifierData *)collmd,
 											  overlap+i, *collisions_index, dt, tri_visithash, arena );
 	}
 
 	for ( i = 0; i < numresult; i++ )
 	{
-		*collisions_index = cloth_edge_collision ( ( ModifierData * ) clmd, ( ModifierData * ) collmd,
+		*collisions_index = cloth_edge_collision ( (ModifierData *)clmd, (ModifierData *)collmd,
 												   overlap+i, *collisions_index, visithash, arena );
 	}
 	BLI_ghash_free(visithash, NULL, NULL);
@@ -2300,7 +2300,7 @@ static void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, Collis
 #else /* WITH_ELTOPO */
 	for ( i = 0; i < numresult; i++ )
 	{
-		*collisions_index = cloth_collision ( ( ModifierData * ) clmd, ( ModifierData * ) collmd,
+		*collisions_index = cloth_collision ( (ModifierData *)clmd, (ModifierData *)collmd,
 											  overlap+i, *collisions_index, dt );
 	}
 #endif /* WITH_ELTOPO */

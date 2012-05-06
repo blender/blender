@@ -802,33 +802,35 @@ elseif(WIN32)
 	endif()
 
 	if(MSVC)
-		if(CMAKE_CL_64)
-			set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid)
-		else()
-			set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid)
-		endif()
+		set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid)
 
 		add_definitions(/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_CONSOLE /D_LIB)
 
-		set(CMAKE_CXX_FLAGS "/nologo /J /W1 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013" CACHE STRING "MSVC MT C++ flags " FORCE)
-		set(CMAKE_C_FLAGS   "/nologo /J /W1 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013 /EHsc" CACHE STRING "MSVC MT C++ flags " FORCE)
+		set(CMAKE_CXX_FLAGS "/nologo /J /Gd /EHsc" CACHE STRING "MSVC MT C++ flags " FORCE)
+		set(CMAKE_C_FLAGS   "/nologo /J /Gd"       CACHE STRING "MSVC MT C++ flags " FORCE)
 
 		if(CMAKE_CL_64)
-			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /Zi" CACHE STRING "MSVC MT flags " FORCE)
 		else()
-			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /ZI /J" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /ZI" CACHE STRING "MSVC MT flags " FORCE)
 		endif()
-		set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /Ob1 /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /MT" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /Ob1 /MT" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /MT /Zi" CACHE STRING "MSVC MT flags " FORCE)
 		if(CMAKE_CL_64)
-			set(CMAKE_C_FLAGS_DEBUG "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_C_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /Zi" CACHE STRING "MSVC MT flags " FORCE)
 		else()
-			set(CMAKE_C_FLAGS_DEBUG "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /ZI /J" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_C_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /ZI" CACHE STRING "MSVC MT flags " FORCE)
 		endif()
-		set(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob1 /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /MT" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob1 /MT" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /MT /Zi" CACHE STRING "MSVC MT flags " FORCE)
+
+		# most msvc warnings are C & C++
+		set(_WARNINGS "/W3 /wd4018 /wd4244 /wd4305 /wd4800 /wd4181 /wd4065 /wd4267 /we4013")
+		set(C_WARNINGS "${_WARNINGS}")
+		set(CXX_WARNINGS "${_WARNINGS}")
+		unset(_WARNINGS)
 
 		if(WITH_INTERNATIONAL)
 			set(GETTEXT ${LIBDIR}/gettext)
@@ -1001,6 +1003,9 @@ elseif(WIN32)
 
 		set(PLATFORM_LINKFLAGS_DEBUG "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
+		# used in many places so include globally, like OpenGL
+		blender_include_dirs("${PTHREADS_INCLUDE_DIRS}")
+
 	elseif(CMAKE_COMPILER_IS_GNUCC)
 	# keep GCC specific stuff here		
 		set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi")
@@ -1008,10 +1013,8 @@ elseif(WIN32)
 
 		if(WITH_MINGW64)
 			#Yes, the point for MinGW64 is moar optimization by default :)
-			set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -mmmx -msse -msse2")
-			set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
-			set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-			#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+			set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -mmmx -msse -msse2 -ftree-vectorize")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -lpthread")
 			
 			add_definitions(-DFREE_WINDOWS64 -DMS_WIN64)
@@ -1155,9 +1158,6 @@ elseif(WIN32)
 		# set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-libgcc -static-libstdc++")
 
 	endif()
-
-	# used in many places so include globally, like OpenGL
-	blender_include_dirs("${PTHREADS_INCLUDE_DIRS}")
 
 elseif(APPLE)
 

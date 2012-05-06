@@ -114,12 +114,8 @@ void EDBM_selectmode_set(struct BMEditMesh *em);
 void EDBM_selectmode_convert(struct BMEditMesh *em, short oldmode, short selectmode);
 void undo_push_mesh(struct bContext *C, const char *name);
 
-int  EDBM_editselection_active_get(struct BMEditMesh *em, struct BMEditSelection *ese);
-void EDBM_editselection_center(float *center, struct BMEditSelection *ese);
-void EDBM_editselection_plane(struct BMEditMesh *em, float *plane, struct BMEditSelection *ese);
-void EDBM_editselection_normal(float *normal, struct BMEditSelection *ese);
 int  EDBM_vert_color_check(struct BMEditMesh *em);
-void EDBM_editselection_validate(struct BMEditMesh *em);
+
 
 void EDBM_mesh_hide(struct BMEditMesh *em, int swap);
 void EDBM_mesh_reveal(struct BMEditMesh *em);

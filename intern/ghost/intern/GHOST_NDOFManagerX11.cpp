@@ -75,28 +75,32 @@ bool GHOST_NDOFManagerX11::available()
 
 bool GHOST_NDOFManagerX11::processEvents()
 {
-	GHOST_TUns64 now = m_system.getMilliSeconds();
-
 	bool anyProcessed = false;
-	spnav_event e;
-	while (spnav_poll_event(&e)) {
-		switch (e.type) {
-			case SPNAV_EVENT_MOTION:
-			{
-				/* convert to blender view coords */
-				short t[3] = {e.motion.x, e.motion.y, -e.motion.z};
-				short r[3] = {-e.motion.rx, -e.motion.ry, e.motion.rz};
 
-				updateTranslation(t, now);
-				updateRotation(r, now);
-				break;
+	if (m_available) {
+		GHOST_TUns64 now = m_system.getMilliSeconds();
+
+		spnav_event e;
+		while (spnav_poll_event(&e)) {
+			switch (e.type) {
+				case SPNAV_EVENT_MOTION:
+				{
+					/* convert to blender view coords */
+					short t[3] = {e.motion.x, e.motion.y, -e.motion.z};
+					short r[3] = {-e.motion.rx, -e.motion.ry, e.motion.rz};
+
+					updateTranslation(t, now);
+					updateRotation(r, now);
+					break;
+				}
+				case SPNAV_EVENT_BUTTON:
+					updateButton(e.button.bnum, e.button.press, now);
+					break;
 			}
-			case SPNAV_EVENT_BUTTON:
-				updateButton(e.button.bnum, e.button.press, now);
-				break;
+			anyProcessed = true;
 		}
-		anyProcessed = true;
 	}
+
 	return anyProcessed;
 }
 

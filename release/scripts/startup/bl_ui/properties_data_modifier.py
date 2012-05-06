@@ -440,11 +440,15 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.separator()
 
-        flow = layout.column_flow()
-        flow.prop(md, "time")
-        flow.prop(md, "resolution")
-        flow.prop(md, "spatial_size")
-        flow.prop(md, "depth")
+        split = layout.split()
+        
+        col = split.column()
+        col.prop(md, "time")
+        col.prop(md, "resolution")
+        
+        col = split.column()
+        col.prop(md, "spatial_size")
+        col.prop(md, "depth")
 
         layout.label("Waves:")
 

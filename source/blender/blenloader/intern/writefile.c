@@ -757,24 +757,30 @@ static void current_screen_compat(Main *mainvar, bScreen **screen)
 	*screen= (window)? window->screen: NULL;
 }
 
+typedef struct RenderInfo {
+	int sfra;
+	int efra;
+	char scene_name[MAX_ID_NAME - 2];
+} RenderInfo;
+
 static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon */
 {
 	bScreen *curscreen;
 	Scene *sce;
-	int data[8];
+	RenderInfo data;
 
 	/* XXX in future, handle multiple windows with multiple screnes? */
 	current_screen_compat(mainvar, &curscreen);
 
 	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {
 		if (sce->id.lib==NULL  && ( sce==curscreen->scene || (sce->r.scemode & R_BG_RENDER)) ) {
-			data[0]= sce->r.sfra;
-			data[1]= sce->r.efra;
+			data.sfra = sce->r.sfra;
+			data.efra = sce->r.efra;
+			memset(data.scene_name, 0, sizeof(data.scene_name));
 
-			memset(data+2, 0, sizeof(int)*6);
-			BLI_strncpy((char *)(data+2), sce->id.name+2, sizeof(sce->id.name)-2);
+			BLI_strncpy(data.scene_name, sce->id.name + 2, sizeof(data.scene_name));
 
-			writedata(wd, REND, 32, data);
+			writedata(wd, REND, sizeof(data), &data);
 		}
 	}
 }

@@ -1243,7 +1243,7 @@ static void rna_def_filter_video(StructRNA *srna)
 	prop = RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MAKE_PREMUL);
 	RNA_def_property_ui_text(prop, "Premultiply", "Convert RGB from key alpha to premultiplied alpha");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop = RNA_def_property(srna, "use_flip_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_FLIPX);

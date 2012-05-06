@@ -1,4 +1,13 @@
-.TH "BLENDER" "1" "April 05, 2012" "Blender Blender 2\&.62 (sub 3)"
+.TH "BLENDER" "1" "April 26, 2012" "Blender Blender 2\&.63 (sub 0)
+	build date: 2012-04-26
+	build time: 19:38:31
+	build revision: 45987
+	build platform: Linux
+	build type: Debug
+	build c flags:  -fopenmp  -msse2  -msse -pipe -fPIC -funsigned-char -fno-strict-aliasing  -Wall -Wcast-align -Werror=declaration-after-statement -Werror=implicit-function-declaration -Werror=return-type -Wstrict-prototypes -Wno-char-subscripts -Wno-unknown-pragmas -Wpointer-arith -Wunused-parameter -Wwrite-strings
+	build c++ flags:  -D__STDC_CONSTANT_MACROS -fopenmp  -msse2  -msse -pipe -fPIC -funsigned-char -fno-strict-aliasing  -Wall -Wno-invalid-offsetof -Wno-sign-compare
+	build link flags: -pthread
+	build system: CMake"
 
 .SH NAME
 blender \- a 3D modelling and rendering package
@@ -15,7 +24,7 @@ Use Blender to create TV commercials, to make technical visualizations, business
 http://www.blender.org
 .SH OPTIONS
 
-Blender 2.62 (sub 3)
+Blender 2.63 (sub 0)
 Usage: blender [args ...] [file] [args ...]
 .br
 .SS "Render Options:"
@@ -220,6 +229,12 @@ Enable floating point exceptions
 Enable debug messages from FFmpeg library
 .br
 
+.TP
+.B \-\-debug\-libmv
+.br
+Enable debug messages from libmv library
+.br
+
 .IP
 
 .TP
@@ -406,6 +421,7 @@ Arguments are executed in the order they are given. eg
   \fIBLENDER_SYSTEM_DATAFILES\fR Directory for system wide data files.
   \fIBLENDER_SYSTEM_PYTHON\fR Directory for system python libraries.
   \fITMP\fR or \fITMPDIR\fR Store temporary files here.
+  \fISDL_AUDIODRIVER\fR LibSDL audio driver \- alsa, esd, dma.
   \fIPYTHONHOME\fR Path to the python directory, eg. /usr/lib/python.
 .br
 .br

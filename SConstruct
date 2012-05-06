@@ -774,7 +774,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb.dll')	
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
 
-    if env['WITH_BF_OIIO']:
+    if env['WITH_BF_OIIO'] and env['OURPLATFORM'] != 'win32-mingw':
         dllsources.append('${LCGDIR}/openimageio/bin/OpenImageIO.dll')
 
     dllsources.append('#source/icons/blender.exe.manifest')

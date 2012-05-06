@@ -116,33 +116,38 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	CTX_free(C);
 }
 
+void ED_render_engine_area_exit(ScrArea *sa)
+{
+	/* clear all render engines in this area */
+	ARegion *ar;
+
+	if (sa->spacetype != SPACE_VIEW3D)
+		return;
+
+	for (ar = sa->regionbase.first; ar; ar = ar->next) {
+		RegionView3D *rv3d;
+
+		if (ar->regiontype != RGN_TYPE_WINDOW)
+			continue;
+		
+		rv3d = ar->regiondata;
+
+		if (rv3d->render_engine) {
+			RE_engine_free(rv3d->render_engine);
+			rv3d->render_engine = NULL;
+		}
+	}
+}
+
 void ED_render_engine_changed(Main *bmain)
 {
 	/* on changing the render engine type, clear all running render engines */
 	bScreen *sc;
 	ScrArea *sa;
-	ARegion *ar;
 
-	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-		for (sa = sc->areabase.first; sa; sa = sa->next) {
-			if (sa->spacetype != SPACE_VIEW3D)
-				continue;
-
-			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				RegionView3D *rv3d;
-
-				if (ar->regiontype != RGN_TYPE_WINDOW)
-					continue;
-				
-				rv3d = ar->regiondata;
-
-				if (rv3d->render_engine) {
-					RE_engine_free(rv3d->render_engine);
-					rv3d->render_engine = NULL;
-				}
-			}
-		}
-	}
+	for (sc = bmain->screen.first; sc; sc = sc->id.next)
+		for (sa = sc->areabase.first; sa; sa = sa->next)
+			ED_render_engine_area_exit(sa);
 }
 
 /***************************** Updates ***********************************

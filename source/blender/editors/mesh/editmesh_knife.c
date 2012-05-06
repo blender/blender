@@ -2721,10 +2721,6 @@ static void knifetool_exit(bContext *C, wmOperator *op)
 
 	WM_cursor_restore(CTX_wm_window(C));
 
-	/* remember setting for later */
-	RNA_boolean_set(op->ptr, "use_occlude_geometry", !kcd->cut_through);
-	WM_operator_last_properties_store(op); /* XXX - this is clunky but modal ops wont do this automatic */
-
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(kcd->ar->type, kcd->draw_handle);
 
@@ -2745,6 +2741,9 @@ static void knifetool_exit(bContext *C, wmOperator *op)
 
 	if (kcd->cagecos)
 		MEM_freeN(kcd->cagecos);
+
+	if (kcd->linehits)
+		MEM_freeN(kcd->linehits);
 
 	/* destroy kcd itself */
 	MEM_freeN(kcd);

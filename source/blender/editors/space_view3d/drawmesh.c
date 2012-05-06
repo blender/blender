@@ -349,7 +349,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 
 	/* texture draw is abused for mask selection mode, do this so wire draw
 	 * with face selection in weight paint is not lit. */
-	if ((v3d->drawtype <= OB_WIRE) && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
+	if ((v3d->drawtype <= OB_WIRE) && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))) {
 		solidtex = FALSE;
 		Gtexdraw.islit = 0;
 	}
@@ -953,7 +953,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 
 	glEnable(GL_LIGHTING);
 
-	if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+	if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
 		/* weight paint mode exception */
 		dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions_material,
 		                    GPU_enable_material, NULL, ob->data, DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);

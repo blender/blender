@@ -216,13 +216,13 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 		}
 		else {
 			/* Store in historty if not merging */
-			EDBM_editselection_store(em, &vso->start_vtx->head);
+			BM_select_history_store(em->bm, vso->start_vtx);
 		}
 	}
 	else {
 		/* Store edit selection of the active vertex, allows other
 		 *  ops to run without reselecting */
-		EDBM_editselection_store(em, &vso->start_vtx->head);
+		BM_select_history_store(em->bm, vso->start_vtx);
 	}
 
 	EDBM_selectmode_flush(em);
@@ -664,8 +664,8 @@ static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
 			BM_edge_select_set(bm, vso->sel_edge, TRUE);
 			BM_vert_select_set(bm, vso->start_vtx, TRUE);
 
-			EDBM_editselection_store(em, &vso->sel_edge->head);
-			EDBM_editselection_store(em, &vso->start_vtx->head);			
+			BM_select_history_store(em->bm, vso->sel_edge);
+			BM_select_history_store(em->bm, vso->start_vtx);
 			ese = (BMEditSelection *)em->bm->selected.last;
 		}
 		distance_t = vso->distance;

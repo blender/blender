@@ -3264,7 +3264,8 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 	}	
 }
 
-uiWidgetColors *ui_tooltip_get_theme(void) {
+uiWidgetColors *ui_tooltip_get_theme(void)
+{
 	uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
 	return wt->wcol_theme;
 }

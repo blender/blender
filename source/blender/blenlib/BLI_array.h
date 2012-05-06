@@ -64,7 +64,7 @@
 #define BLI_array_staticdeclare(arr, maxstatic)                               \
 	int   _##arr##_count = 0;                                                 \
 	void *_##arr##_tmp;                                                       \
-	char _##arr##_static[maxstatic * sizeof(arr)]
+	char  _##arr##_static[maxstatic * sizeof(arr)]
 
 
 /* this returns the entire size of the array, including any buffering. */

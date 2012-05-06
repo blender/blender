@@ -384,7 +384,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
 	/* find selected vert - same some time and check history first */
-	if (EDBM_editselection_active_get(em, &ese) && ese.htype == BM_VERT) {
+	if (BM_select_history_active_get(em->bm, &ese) && ese.htype == BM_VERT) {
 		v = (BMVert *)ese.ele;
 	}
 	else {
@@ -450,7 +450,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 			int vi_best = 0;
 
 			if (ese.ele) {
-				EDBM_editselection_remove(em, &ese.ele->head);
+				BM_select_history_remove(em->bm, ese.ele);
 			}
 
 			dist = FLT_MAX;
@@ -480,7 +480,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 			BM_vert_select_set(bm, v, TRUE);
 
 			if (ese.ele) {
-				EDBM_editselection_store(em, &v->head);
+				BM_select_history_store(em->bm, v);
 			}
 
 			/* splice all others back together */
@@ -573,7 +573,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		if (v_best) {
 			BM_vert_select_set(bm, v_best, TRUE);
 			if (ese.ele) {
-				EDBM_editselection_store(em, &v_best->head);
+				BM_select_history_store(em->bm, v_best);
 			}
 		}
 	}

@@ -484,7 +484,7 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 }
 /*
  * replaces a property with the same name in a group, or adds 
- * it if the propery doesn't exist.
+ * it if the properly doesn't exist.
  */
 void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 {
