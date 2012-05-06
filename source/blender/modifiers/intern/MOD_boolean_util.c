@@ -70,7 +70,7 @@ typedef struct {
  * These describe a blender mesh to the CSG module.
  */
 
-static void VertexIt_Destruct(CSG_VertexIteratorDescriptor * iterator)
+static void VertexIt_Destruct(CSG_VertexIteratorDescriptor *iterator)
 {
 	if (iterator->it) {
 		// deallocate memory for iterator
@@ -87,23 +87,23 @@ static void VertexIt_Destruct(CSG_VertexIteratorDescriptor * iterator)
 
 static int VertexIt_Done(CSG_IteratorPtr it)
 {
-	VertexIt * iterator = (VertexIt *)it;
+	VertexIt *iterator = (VertexIt *)it;
 	return(iterator->pos >= iterator->dm->getNumVerts(iterator->dm));
 }
 
 static void VertexIt_Fill(CSG_IteratorPtr it, CSG_IVertex *vert)
 {
-	VertexIt * iterator = (VertexIt *)it;
+	VertexIt *iterator = (VertexIt *)it;
 	MVert *verts = iterator->dm->getVertArray(iterator->dm);
 
 	float global_pos[3];
 
 	/* boolean happens in global space, transform both with obmat */
 	mul_v3_m4v3(
-		global_pos,
-		iterator->ob->obmat, 
-		verts[iterator->pos].co
-	);
+	    global_pos,
+	    iterator->ob->obmat,
+	    verts[iterator->pos].co
+	    );
 
 	vert->position[0] = global_pos[0];
 	vert->position[1] = global_pos[1];
@@ -112,13 +112,13 @@ static void VertexIt_Fill(CSG_IteratorPtr it, CSG_IVertex *vert)
 
 static void VertexIt_Step(CSG_IteratorPtr it)
 {
-	VertexIt * iterator = (VertexIt *)it;
+	VertexIt *iterator = (VertexIt *)it;
 	iterator->pos++;
 } 
  
 static void VertexIt_Reset(CSG_IteratorPtr it)
 {
-	VertexIt * iterator = (VertexIt *)it;
+	VertexIt *iterator = (VertexIt *)it;
 	iterator->pos = 0;
 }
 
@@ -139,7 +139,7 @@ static void VertexIt_Construct(CSG_VertexIteratorDescriptor *output, DerivedMesh
 	
 	it->pos = 0;
 
-	 // assign iterator function pointers.
+	// assign iterator function pointers.
 	output->Step = VertexIt_Step;
 	output->Fill = VertexIt_Fill;
 	output->Done = VertexIt_Done;
@@ -159,7 +159,7 @@ typedef struct {
 	int flip;
 } FaceIt;
 
-static void FaceIt_Destruct(CSG_FaceIteratorDescriptor * iterator)
+static void FaceIt_Destruct(CSG_FaceIteratorDescriptor *iterator)
 {
 	MEM_freeN(iterator->it);
 	iterator->Done = NULL;
@@ -172,7 +172,7 @@ static void FaceIt_Destruct(CSG_FaceIteratorDescriptor * iterator)
 static int FaceIt_Done(CSG_IteratorPtr it)
 {
 	// assume CSG_IteratorPtr is of the correct type.
-	FaceIt * iterator = (FaceIt *)it;
+	FaceIt *iterator = (FaceIt *)it;
 	return(iterator->pos >= iterator->dm->getNumTessFaces(iterator->dm));
 }
 
@@ -185,9 +185,9 @@ static void FaceIt_Fill(CSG_IteratorPtr it, CSG_IFace *face)
 
 	/* reverse face vertices if necessary */
 	face->vertex_index[1] = mface->v2;
-	if ( face_it->flip == 0 ) {
-	face->vertex_index[0] = mface->v1;
-	face->vertex_index[2] = mface->v3;
+	if (face_it->flip == 0) {
+		face->vertex_index[0] = mface->v1;
+		face->vertex_index[2] = mface->v3;
 	}
 	else {
 		face->vertex_index[2] = mface->v1;
@@ -206,18 +206,18 @@ static void FaceIt_Fill(CSG_IteratorPtr it, CSG_IFace *face)
 
 static void FaceIt_Step(CSG_IteratorPtr it)
 {
-	FaceIt * face_it = (FaceIt *)it;		
+	FaceIt *face_it = (FaceIt *)it;
 	face_it->pos++;
 }
 
 static void FaceIt_Reset(CSG_IteratorPtr it)
 {
-	FaceIt * face_it = (FaceIt *)it;		
+	FaceIt *face_it = (FaceIt *)it;
 	face_it->pos = 0;
 }	
 
 static void FaceIt_Construct(
-	CSG_FaceIteratorDescriptor *output, DerivedMesh *dm, int offset, Object *ob)
+        CSG_FaceIteratorDescriptor *output, DerivedMesh *dm, int offset, Object *ob)
 {
 	FaceIt *it;
 	if (output == 0) return;
@@ -277,35 +277,35 @@ static Object *AddNewBlenderMesh(Scene *scene, Base *base)
 	// now create a new blender object.
 	// duplicating all the settings from the previous object
 	// to the new one.
-	ob_new= BKE_object_copy(base->object);
+	ob_new = BKE_object_copy(base->object);
 
 	// Ok we don't want to use the actual data from the
 	// last object, the above function incremented the 
 	// number of users, so decrement it here.
-	old_me= ob_new->data;
+	old_me = ob_new->data;
 	old_me->id.us--;
 
 	// Now create a new base to add into the linked list of 
 	// vase objects.
 	
-	basen= MEM_mallocN(sizeof(Base), "duplibase");
-	*basen= *base;
-	BLI_addhead(&scene->base, basen);	/* addhead: anders oneindige lus */
-	basen->object= ob_new;
+	basen = MEM_mallocN(sizeof(Base), "duplibase");
+	*basen = *base;
+	BLI_addhead(&scene->base, basen);   /* addhead: anders oneindige lus */
+	basen->object = ob_new;
 	basen->flag &= ~SELECT;
 				
 	// Initialize the mesh data associated with this object.						
-	ob_new->data= BKE_mesh_add("Mesh");
+	ob_new->data = BKE_mesh_add("Mesh");
 
 	// Finally assign the object type.
-	ob_new->type= OB_MESH;
+	ob_new->type = OB_MESH;
 
 	return ob_new;
 }
 
 static void InterpCSGFace(
-	DerivedMesh *dm, DerivedMesh *orig_dm, int index, int orig_index, int nr,
-	float mapmat[][4])
+        DerivedMesh *dm, DerivedMesh *orig_dm, int index, int orig_index, int nr,
+        float mapmat[][4])
 {
 	float obco[3], *co[4], *orig_co[4], w[4][4];
 	MFace *mface, *orig_mface;
@@ -318,13 +318,13 @@ static void InterpCSGFace(
 	orig_co[0] = (orig_dm->getVertArray(orig_dm) + orig_mface->v1)->co;
 	orig_co[1] = (orig_dm->getVertArray(orig_dm) + orig_mface->v2)->co;
 	orig_co[2] = (orig_dm->getVertArray(orig_dm) + orig_mface->v3)->co;
-	orig_co[3] = (orig_mface->v4)? (orig_dm->getVertArray(orig_dm) + orig_mface->v4)->co: NULL;
+	orig_co[3] = (orig_mface->v4) ? (orig_dm->getVertArray(orig_dm) + orig_mface->v4)->co : NULL;
 
 	// get the vertex coordinates from the new derivedmesh
 	co[0] = CDDM_get_vert(dm, mface->v1)->co;
 	co[1] = CDDM_get_vert(dm, mface->v2)->co;
 	co[2] = CDDM_get_vert(dm, mface->v3)->co;
-	co[3] = (nr == 4)? CDDM_get_vert(dm, mface->v4)->co: NULL;
+	co[3] = (nr == 4) ? CDDM_get_vert(dm, mface->v4)->co : NULL;
 
 	for (j = 0; j < nr; j++) {
 		// get coordinate into the space of the original mesh
@@ -336,35 +336,35 @@ static void InterpCSGFace(
 		interp_weights_face_v3(w[j], orig_co[0], orig_co[1], orig_co[2], orig_co[3], obco);
 	}
 
-	CustomData_interp(&orig_dm->faceData, &dm->faceData, &orig_index, NULL, (float*)w, 1, index);
+	CustomData_interp(&orig_dm->faceData, &dm->faceData, &orig_index, NULL, (float *)w, 1, index);
 }
 
 /* Iterate over the CSG Output Descriptors and create a new DerivedMesh
  * from them */
 static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
-	CSG_FaceIteratorDescriptor *face_it,
-	CSG_VertexIteratorDescriptor *vertex_it,
-	float parinv[][4],
-	float mapmat[][4],
-	Material **mat,
-	int *totmat,
-	DerivedMesh *dm1,
-	Object *ob1,
-	DerivedMesh *dm2,
-	Object *ob2)
+        CSG_FaceIteratorDescriptor *face_it,
+        CSG_VertexIteratorDescriptor *vertex_it,
+        float parinv[][4],
+        float mapmat[][4],
+        Material **mat,
+        int *totmat,
+        DerivedMesh *dm1,
+        Object *ob1,
+        DerivedMesh *dm2,
+        Object *ob2)
 {
 	DerivedMesh *result, *orig_dm;
 	GHash *material_hash = NULL;
-	Mesh *me1= (Mesh*)ob1->data;
-	Mesh *me2= (Mesh*)ob2->data;
+	Mesh *me1 = (Mesh *)ob1->data;
+	Mesh *me2 = (Mesh *)ob2->data;
 	int i, *origindex_layer;
 
 	// create a new DerivedMesh
 	result = CDDM_new(vertex_it->num_elements, 0, face_it->num_elements, 0, 0);
 	CustomData_merge(&dm1->faceData, &result->faceData, CD_MASK_DERIVEDMESH & ~(CD_MASK_NORMAL | CD_MASK_POLYINDEX | CD_MASK_ORIGINDEX),
-					  CD_DEFAULT, face_it->num_elements); 
+	                 CD_DEFAULT, face_it->num_elements);
 	CustomData_merge(&dm2->faceData, &result->faceData, CD_MASK_DERIVEDMESH & ~(CD_MASK_NORMAL | CD_MASK_POLYINDEX | CD_MASK_ORIGINDEX),
-					  CD_DEFAULT, face_it->num_elements); 
+	                 CD_DEFAULT, face_it->num_elements);
 
 	// step through the vertex iterators:
 	for (i = 0; !vertex_it->Done(vertex_it->it); i++) {
@@ -402,10 +402,10 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		face_it->Step(face_it->it);
 
 		// find the original mesh and data
-		orig_ob = (csgface.orig_face < dm1->getNumTessFaces(dm1))? ob1: ob2;
-		orig_dm = (csgface.orig_face < dm1->getNumTessFaces(dm1))? dm1: dm2;
-		orig_me = (orig_ob == ob1)? me1: me2;
-		orig_index = (orig_ob == ob1)? csgface.orig_face: csgface.orig_face - dm1->getNumTessFaces(dm1);
+		orig_ob = (csgface.orig_face < dm1->getNumTessFaces(dm1)) ? ob1 : ob2;
+		orig_dm = (csgface.orig_face < dm1->getNumTessFaces(dm1)) ? dm1 : dm2;
+		orig_me = (orig_ob == ob1) ? me1 : me2;
+		orig_index = (orig_ob == ob1) ? csgface.orig_face : csgface.orig_face - dm1->getNumTessFaces(dm1);
 
 		// copy all face layers, including mface
 		CustomData_copy_data(&orig_dm->faceData, &result->faceData, orig_index, i, 1);
@@ -415,7 +415,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		mface->v1 = csgface.vertex_index[0];
 		mface->v2 = csgface.vertex_index[1];
 		mface->v3 = csgface.vertex_index[2];
-		mface->v4 = (csgface.vertex_number == 4)? csgface.vertex_index[3]: 0;
+		mface->v4 = (csgface.vertex_number == 4) ? csgface.vertex_index[3] : 0;
 
 		// set material, based on lookup in hash table
 		orig_mat = give_current_material(orig_ob, mface->mat_nr + 1);
@@ -459,7 +459,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 			mface->mat_nr = 0;
 
 		InterpCSGFace(result, orig_dm, i, orig_index, csgface.vertex_number,
-					  (orig_me == me2)? mapmat: NULL);
+		              (orig_me == me2) ? mapmat : NULL);
 
 		test_index_face(mface, &result->faceData, i, csgface.vertex_number);
 
@@ -490,27 +490,27 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 }
 	
 static void BuildMeshDescriptors(
-	struct DerivedMesh *dm,
-	struct Object *ob,
-	int face_offset,
-	struct CSG_FaceIteratorDescriptor * face_it,
-	struct CSG_VertexIteratorDescriptor * vertex_it)
+        struct DerivedMesh *dm,
+        struct Object *ob,
+        int face_offset,
+        struct CSG_FaceIteratorDescriptor *face_it,
+        struct CSG_VertexIteratorDescriptor *vertex_it)
 {
 	VertexIt_Construct(vertex_it, dm, ob);
 	FaceIt_Construct(face_it, dm, face_offset, ob);
 }
 	
 static void FreeMeshDescriptors(
-	struct CSG_FaceIteratorDescriptor *face_it,
-	struct CSG_VertexIteratorDescriptor *vertex_it)
+        struct CSG_FaceIteratorDescriptor *face_it,
+        struct CSG_VertexIteratorDescriptor *vertex_it)
 {
 	VertexIt_Destruct(vertex_it);
 	FaceIt_Destruct(face_it);
 }
 
 static DerivedMesh *NewBooleanDerivedMesh_intern(
-	DerivedMesh *dm, struct Object *ob, DerivedMesh *dm_select, struct Object *ob_select,
-	int int_op_type, Material **mat, int *totmat)
+        DerivedMesh *dm, struct Object *ob, DerivedMesh *dm_select, struct Object *ob_select,
+        int int_op_type, Material **mat, int *totmat)
 {
 
 	float inv_mat[4][4];
@@ -543,11 +543,11 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 		// work out the operation they chose and pick the appropriate 
 		// enum from the csg module.
 		switch (int_op_type) {
-			case 1 : op_type = e_csg_intersection; break;
-			case 2 : op_type = e_csg_union; break;
-			case 3 : op_type = e_csg_difference; break;
-			case 4 : op_type = e_csg_classify; break;
-			default : op_type = e_csg_intersection;
+			case 1: op_type = e_csg_intersection; break;
+			case 2: op_type = e_csg_union; break;
+			case 3: op_type = e_csg_difference; break;
+			case 4: op_type = e_csg_classify; break;
+			default: op_type = e_csg_intersection;
 		}
 		
 		BuildMeshDescriptors(dm_select, ob_select, 0, &fd_1, &vd_1);
@@ -566,7 +566,7 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 			// iterate through results of operation and insert
 			// into new object
 			result = ConvertCSGDescriptorsToDerivedMesh(
-				&fd_o, &vd_o, inv_mat, map_mat, mat, totmat, dm_select, ob_select, dm, ob);
+			    &fd_o, &vd_o, inv_mat, map_mat, mat, totmat, dm_select, ob_select, dm, ob);
 
 			// free up the memory
 			CSG_FreeVertexDescriptor(&vd_o);
@@ -587,20 +587,20 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 {
 	Mesh *me_new;
-	int a, maxmat, totmat= 0;
+	int a, maxmat, totmat = 0;
 	Object *ob_new, *ob, *ob_select;
 	Material **mat;
 	DerivedMesh *result;
 	DerivedMesh *dm_select;
 	DerivedMesh *dm;
 
-	ob= base->object;
-	ob_select= base_select->object;
+	ob = base->object;
+	ob_select = base_select->object;
 
 	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	dm_select = mesh_create_derived_view(scene, ob_select, 0); // no modifiers in editmode ??
 
-	maxmat= ob->totcol + ob_select->totcol;
+	maxmat = ob->totcol + ob_select->totcol;
 	mat = (Material **)MEM_mallocN(sizeof(Material *) * maxmat, "NewBooleanMeshMat");
 	
 	/* put some checks in for nice user feedback */
@@ -613,7 +613,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 		return -1;
 	}
 	
-	result= NewBooleanDerivedMesh_intern(dm, ob, dm_select, ob_select, int_op_type, mat, &totmat);
+	result = NewBooleanDerivedMesh_intern(dm, ob, dm_select, ob_select, int_op_type, mat, &totmat);
 
 	if (result == NULL) {
 		MEM_freeN(mat);
@@ -621,8 +621,8 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 	}
 
 	/* create a new blender mesh object - using 'base' as  a template */
-	ob_new= AddNewBlenderMesh(scene, base_select);
-	me_new= ob_new->data;
+	ob_new = AddNewBlenderMesh(scene, base_select);
+	me_new = ob_new->data;
 
 	DM_to_mesh(result, me_new, ob_new);
 	result->release(result);
@@ -643,7 +643,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 }
 
 DerivedMesh *NewBooleanDerivedMesh(DerivedMesh *dm, struct Object *ob, DerivedMesh *dm_select, struct Object *ob_select,
-								   int int_op_type)
+                                   int int_op_type)
 {
 	return NewBooleanDerivedMesh_intern(dm, ob, dm_select, ob_select, int_op_type, NULL, NULL);
 }

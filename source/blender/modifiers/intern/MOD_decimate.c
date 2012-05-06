@@ -56,26 +56,26 @@
 
 static void initData(ModifierData *md)
 {
-	DecimateModifierData *dmd = (DecimateModifierData*) md;
+	DecimateModifierData *dmd = (DecimateModifierData *) md;
 
 	dmd->percent = 1.0;
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	DecimateModifierData *dmd = (DecimateModifierData*) md;
-	DecimateModifierData *tdmd = (DecimateModifierData*) target;
+	DecimateModifierData *dmd = (DecimateModifierData *) md;
+	DecimateModifierData *tdmd = (DecimateModifierData *) target;
 
 	tdmd->percent = dmd->percent;
 }
 
 #ifdef WITH_MOD_DECIMATE
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
-						DerivedMesh *derivedData,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                                  DerivedMesh *derivedData,
+                                  int UNUSED(useRenderParams),
+                                  int UNUSED(isFinalCalc))
 {
-	DecimateModifierData *dmd = (DecimateModifierData*) md;
+	DecimateModifierData *dmd = (DecimateModifierData *) md;
 	DerivedMesh *dm = derivedData, *result = NULL;
 	MVert *mvert;
 	MFace *mface;
@@ -91,59 +91,59 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	totface = dm->getNumTessFaces(dm);
 
 	numTris = 0;
-	for (a=0; a<totface; a++) {
+	for (a = 0; a < totface; a++) {
 		MFace *mf = &mface[a];
 		numTris++;
 		if (mf->v4) numTris++;
 	}
 
-	if (numTris<3) {
+	if (numTris < 3) {
 		modifier_setError(md, "%s", TIP_("Modifier requires more than 3 input faces (triangles)."));
 		dm = CDDM_copy(dm);
 		return dm;
 	}
 
-	lod.vertex_buffer= MEM_mallocN(3*sizeof(float)*totvert, "vertices");
-	lod.vertex_normal_buffer= MEM_mallocN(3*sizeof(float)*totvert, "normals");
-	lod.triangle_index_buffer= MEM_mallocN(3*sizeof(int)*numTris, "trias");
-	lod.vertex_num= totvert;
-	lod.face_num= numTris;
+	lod.vertex_buffer = MEM_mallocN(3 * sizeof(float) * totvert, "vertices");
+	lod.vertex_normal_buffer = MEM_mallocN(3 * sizeof(float) * totvert, "normals");
+	lod.triangle_index_buffer = MEM_mallocN(3 * sizeof(int) * numTris, "trias");
+	lod.vertex_num = totvert;
+	lod.face_num = numTris;
 
-	for (a=0; a<totvert; a++) {
+	for (a = 0; a < totvert; a++) {
 		MVert *mv = &mvert[a];
-		float *vbCo = &lod.vertex_buffer[a*3];
-		float *vbNo = &lod.vertex_normal_buffer[a*3];
+		float *vbCo = &lod.vertex_buffer[a * 3];
+		float *vbNo = &lod.vertex_normal_buffer[a * 3];
 
 		copy_v3_v3(vbCo, mv->co);
 		normal_short_to_float_v3(vbNo, mv->no);
 	}
 
 	numTris = 0;
-	for (a=0; a<totface; a++) {
+	for (a = 0; a < totface; a++) {
 		MFace *mf = &mface[a];
-		int *tri = &lod.triangle_index_buffer[3*numTris++];
-		tri[0]= mf->v1;
-		tri[1]= mf->v2;
-		tri[2]= mf->v3;
+		int *tri = &lod.triangle_index_buffer[3 * numTris++];
+		tri[0] = mf->v1;
+		tri[1] = mf->v2;
+		tri[2] = mf->v3;
 
 		if (mf->v4) {
-			tri = &lod.triangle_index_buffer[3*numTris++];
-			tri[0]= mf->v1;
-			tri[1]= mf->v3;
-			tri[2]= mf->v4;
+			tri = &lod.triangle_index_buffer[3 * numTris++];
+			tri[0] = mf->v1;
+			tri[1] = mf->v3;
+			tri[2] = mf->v4;
 		}
 	}
 
 	dmd->faceCount = 0;
 	if (LOD_LoadMesh(&lod) ) {
-		if ( LOD_PreprocessMesh(&lod) ) {
+		if (LOD_PreprocessMesh(&lod) ) {
 			/* we assume the decim_faces tells how much to reduce */
 
-			while (lod.face_num > numTris*dmd->percent) {
-				if ( LOD_CollapseEdge(&lod) == 0) break;
+			while (lod.face_num > numTris * dmd->percent) {
+				if (LOD_CollapseEdge(&lod) == 0) break;
 			}
 
-			if (lod.vertex_num>2) {
+			if (lod.vertex_num > 2) {
 				result = CDDM_new(lod.vertex_num, 0, lod.face_num, 0, 0);
 				dmd->faceCount = lod.face_num;
 			}
@@ -151,18 +151,18 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 				result = CDDM_new(lod.vertex_num, 0, 0, 0, 0);
 
 			mvert = CDDM_get_verts(result);
-			for (a=0; a<lod.vertex_num; a++) {
+			for (a = 0; a < lod.vertex_num; a++) {
 				MVert *mv = &mvert[a];
-				float *vbCo = &lod.vertex_buffer[a*3];
+				float *vbCo = &lod.vertex_buffer[a * 3];
 				
 				copy_v3_v3(mv->co, vbCo);
 			}
 
-			if (lod.vertex_num>2) {
+			if (lod.vertex_num > 2) {
 				mface = CDDM_get_tessfaces(result);
 				for (a = 0; a < lod.face_num; a++) {
 					MFace *mf = &mface[a];
-					int *tri = &lod.triangle_index_buffer[a*3];
+					int *tri = &lod.triangle_index_buffer[a * 3];
 					mf->v1 = tri[0];
 					mf->v2 = tri[1];
 					mf->v3 = tri[2];
@@ -195,9 +195,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 }
 #else // WITH_MOD_DECIMATE
 static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
-						DerivedMesh *derivedData,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                                  DerivedMesh *derivedData,
+                                  int UNUSED(useRenderParams),
+                                  int UNUSED(isFinalCalc))
 {
 	return derivedData;
 }

@@ -61,26 +61,26 @@ static float mix_weight(float weight, float weight2, char mix_mode)
 	 */
 	switch (mix_mode)
 	{
-	case MOD_WVG_MIX_ADD:
-		return (weight + weight2);
-	case MOD_WVG_MIX_SUB:
-		return (weight - weight2);
-	case MOD_WVG_MIX_MUL:
-		return (weight * weight2);
-	case MOD_WVG_MIX_DIV:
-		/* Avoid dividing by zero (or really small values). */
-		if (0.0 <= weight2 < MOD_WVG_ZEROFLOOR)
-			weight2 = MOD_WVG_ZEROFLOOR;
-		else if (-MOD_WVG_ZEROFLOOR < weight2)
-			weight2 = -MOD_WVG_ZEROFLOOR;
-		return (weight / weight2);
-	case MOD_WVG_MIX_DIF:
-		return (weight < weight2 ? weight2 - weight : weight - weight2);
-	case MOD_WVG_MIX_AVG:
-		return (weight + weight2) / 2.0;
-	case MOD_WVG_MIX_SET:
-	default:
-		return weight2;
+		case MOD_WVG_MIX_ADD:
+			return (weight + weight2);
+		case MOD_WVG_MIX_SUB:
+			return (weight - weight2);
+		case MOD_WVG_MIX_MUL:
+			return (weight * weight2);
+		case MOD_WVG_MIX_DIV:
+			/* Avoid dividing by zero (or really small values). */
+			if (0.0 <= weight2 < MOD_WVG_ZEROFLOOR)
+				weight2 = MOD_WVG_ZEROFLOOR;
+			else if (-MOD_WVG_ZEROFLOOR < weight2)
+				weight2 = -MOD_WVG_ZEROFLOOR;
+			return (weight / weight2);
+		case MOD_WVG_MIX_DIF:
+			return (weight < weight2 ? weight2 - weight : weight - weight2);
+		case MOD_WVG_MIX_AVG:
+			return (weight + weight2) / 2.0;
+		case MOD_WVG_MIX_SET:
+		default:
+			return weight2;
 	}
 #endif
 	if (mix_mode == MOD_WVG_MIX_SET)
@@ -111,7 +111,7 @@ static float mix_weight(float weight, float weight2, char mix_mode)
  **************************************/
 static void initData(ModifierData *md)
 {
-	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
+	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 
 	wmd->default_weight_a       = 0.0f;
 	wmd->default_weight_b       = 0.0f;
@@ -125,8 +125,8 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	WeightVGMixModifierData *wmd  = (WeightVGMixModifierData*) md;
-	WeightVGMixModifierData *twmd = (WeightVGMixModifierData*) target;
+	WeightVGMixModifierData *wmd  = (WeightVGMixModifierData *) md;
+	WeightVGMixModifierData *twmd = (WeightVGMixModifierData *) target;
 
 	BLI_strncpy(twmd->defgrp_name_a, wmd->defgrp_name_a, sizeof(twmd->defgrp_name_a));
 	BLI_strncpy(twmd->defgrp_name_b, wmd->defgrp_name_b, sizeof(twmd->defgrp_name_b));
@@ -146,7 +146,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
-	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
+	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	CustomDataMask dataMask = 0;
 
 	/* We need vertex groups! */
@@ -163,7 +163,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 static int dependsOnTime(ModifierData *md)
 {
-	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
+	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 
 	if (wmd->mask_texture)
 		return BKE_texture_dependsOnTime(wmd->mask_texture);
@@ -174,13 +174,13 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
                               void (*walk)(void *userData, Object *ob, Object **obpoin),
                               void *userData)
 {
-	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
+	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	walk(userData, ob, &wmd->mask_tex_map_obj);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
-	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
+	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 
 	walk(userData, ob, (ID **)&wmd->mask_texture);
 
@@ -195,24 +195,24 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
 static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UNUSED(scene),
                            Object *UNUSED(ob), DagNode *obNode)
 {
-	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
+	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	DagNode *curNode;
 
 	if (wmd->mask_tex_map_obj && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
 		curNode = dag_get_node(forest, wmd->mask_tex_map_obj);
 
-		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA,
+		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA,
 		                 "WeightVGMix Modifier");
 	}
 
 	if (wmd->mask_tex_mapping == MOD_DISP_MAP_GLOBAL)
-		dag_add_relation(forest, obNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA,
+		dag_add_relation(forest, obNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA,
 		                 "WeightVGMix Modifier");
 }
 
 static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
-	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
+	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	/* If no vertex group, bypass. */
 	return (wmd->defgrp_name_a[0] == '\0');
 }
@@ -220,7 +220,7 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
                                   int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
-	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
+	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	DerivedMesh *dm = derivedData;
 	MDeformVert *dvert = NULL;
 	MDeformWeight **dw1, **tdw1, **dw2, **tdw2;
@@ -271,64 +271,64 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	}
 	/* Find out which vertices to work on. */
 	tidx = MEM_mallocN(sizeof(int) * numVerts, "WeightVGMix Modifier, tidx");
-	tdw1 = MEM_mallocN(sizeof(MDeformWeight*) * numVerts, "WeightVGMix Modifier, tdw1");
-	tdw2 = MEM_mallocN(sizeof(MDeformWeight*) * numVerts, "WeightVGMix Modifier, tdw2");
+	tdw1 = MEM_mallocN(sizeof(MDeformWeight *) * numVerts, "WeightVGMix Modifier, tdw1");
+	tdw2 = MEM_mallocN(sizeof(MDeformWeight *) * numVerts, "WeightVGMix Modifier, tdw2");
 	switch (wmd->mix_set) {
-	case MOD_WVG_SET_A:
-		/* All vertices in first vgroup. */
-		for (i = 0; i < numVerts; i++) {
-			MDeformWeight *dw = defvert_find_index(&dvert[i], defgrp_idx);
-			if (dw) {
-				tdw1[numIdx] = dw;
-				tdw2[numIdx] = defvert_find_index(&dvert[i], defgrp_idx2);
-				tidx[numIdx++] = i;
+		case MOD_WVG_SET_A:
+			/* All vertices in first vgroup. */
+			for (i = 0; i < numVerts; i++) {
+				MDeformWeight *dw = defvert_find_index(&dvert[i], defgrp_idx);
+				if (dw) {
+					tdw1[numIdx] = dw;
+					tdw2[numIdx] = defvert_find_index(&dvert[i], defgrp_idx2);
+					tidx[numIdx++] = i;
+				}
 			}
-		}
-		break;
-	case MOD_WVG_SET_B:
-		/* All vertices in second vgroup. */
-		for (i = 0; i < numVerts; i++) {
-			MDeformWeight *dw = defvert_find_index(&dvert[i], defgrp_idx2);
-			if (dw) {
-				tdw1[numIdx] = defvert_find_index(&dvert[i], defgrp_idx);
-				tdw2[numIdx] = dw;
-				tidx[numIdx++] = i;
+			break;
+		case MOD_WVG_SET_B:
+			/* All vertices in second vgroup. */
+			for (i = 0; i < numVerts; i++) {
+				MDeformWeight *dw = defvert_find_index(&dvert[i], defgrp_idx2);
+				if (dw) {
+					tdw1[numIdx] = defvert_find_index(&dvert[i], defgrp_idx);
+					tdw2[numIdx] = dw;
+					tidx[numIdx++] = i;
+				}
 			}
-		}
-		break;
-	case MOD_WVG_SET_OR:
-		/* All vertices in one vgroup or the other. */
-		for (i = 0; i < numVerts; i++) {
-			MDeformWeight *adw = defvert_find_index(&dvert[i], defgrp_idx);
-			MDeformWeight *bdw = defvert_find_index(&dvert[i], defgrp_idx2);
-			if (adw || bdw) {
-				tdw1[numIdx] = adw;
-				tdw2[numIdx] = bdw;
-				tidx[numIdx++] = i;
+			break;
+		case MOD_WVG_SET_OR:
+			/* All vertices in one vgroup or the other. */
+			for (i = 0; i < numVerts; i++) {
+				MDeformWeight *adw = defvert_find_index(&dvert[i], defgrp_idx);
+				MDeformWeight *bdw = defvert_find_index(&dvert[i], defgrp_idx2);
+				if (adw || bdw) {
+					tdw1[numIdx] = adw;
+					tdw2[numIdx] = bdw;
+					tidx[numIdx++] = i;
+				}
 			}
-		}
-		break;
-	case MOD_WVG_SET_AND:
-		/* All vertices in both vgroups. */
-		for (i = 0; i < numVerts; i++) {
-			MDeformWeight *adw = defvert_find_index(&dvert[i], defgrp_idx);
-			MDeformWeight *bdw = defvert_find_index(&dvert[i], defgrp_idx2);
-			if (adw && bdw) {
-				tdw1[numIdx] = adw;
-				tdw2[numIdx] = bdw;
-				tidx[numIdx++] = i;
+			break;
+		case MOD_WVG_SET_AND:
+			/* All vertices in both vgroups. */
+			for (i = 0; i < numVerts; i++) {
+				MDeformWeight *adw = defvert_find_index(&dvert[i], defgrp_idx);
+				MDeformWeight *bdw = defvert_find_index(&dvert[i], defgrp_idx2);
+				if (adw && bdw) {
+					tdw1[numIdx] = adw;
+					tdw2[numIdx] = bdw;
+					tidx[numIdx++] = i;
+				}
 			}
-		}
-		break;
-	case MOD_WVG_SET_ALL:
-	default:
-		/* Use all vertices. */
-		for (i = 0; i < numVerts; i++) {
-			tdw1[i] = defvert_find_index(&dvert[i], defgrp_idx);
-			tdw2[i] = defvert_find_index(&dvert[i], defgrp_idx2);
-		}
-		numIdx = -1;
-		break;
+			break;
+		case MOD_WVG_SET_ALL:
+		default:
+			/* Use all vertices. */
+			for (i = 0; i < numVerts; i++) {
+				tdw1[i] = defvert_find_index(&dvert[i], defgrp_idx);
+				tdw2[i] = defvert_find_index(&dvert[i], defgrp_idx2);
+			}
+			numIdx = -1;
+			break;
 	}
 	if (numIdx == 0) {
 		/* Use no vertices! Hence, return org data. */
@@ -340,11 +340,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	if (numIdx != -1) {
 		indices = MEM_mallocN(sizeof(int) * numIdx, "WeightVGMix Modifier, indices");
 		memcpy(indices, tidx, sizeof(int) * numIdx);
-		dw1 = MEM_mallocN(sizeof(MDeformWeight*) * numIdx, "WeightVGMix Modifier, dw1");
-		memcpy(dw1, tdw1, sizeof(MDeformWeight*) * numIdx);
+		dw1 = MEM_mallocN(sizeof(MDeformWeight *) * numIdx, "WeightVGMix Modifier, dw1");
+		memcpy(dw1, tdw1, sizeof(MDeformWeight *) * numIdx);
 		MEM_freeN(tdw1);
-		dw2 = MEM_mallocN(sizeof(MDeformWeight*) * numIdx, "WeightVGMix Modifier, dw2");
-		memcpy(dw2, tdw2, sizeof(MDeformWeight*) * numIdx);
+		dw2 = MEM_mallocN(sizeof(MDeformWeight *) * numIdx, "WeightVGMix Modifier, dw2");
+		memcpy(dw2, tdw2, sizeof(MDeformWeight *) * numIdx);
 		MEM_freeN(tdw2);
 	}
 	else {
@@ -411,10 +411,10 @@ ModifierTypeInfo modifierType_WeightVGMix = {
 	/* structName */        "WeightVGMixModifierData",
 	/* structSize */        sizeof(WeightVGMixModifierData),
 	/* type */              eModifierTypeType_NonGeometrical,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-	                       |eModifierTypeFlag_SupportsMapping
-	                       |eModifierTypeFlag_SupportsEditmode
-	                       |eModifierTypeFlag_UsesPreview,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_UsesPreview,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

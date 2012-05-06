@@ -49,7 +49,7 @@
 
 static void initData(ModifierData *md)
 {
-	MultiresModifierData *mmd = (MultiresModifierData*)md;
+	MultiresModifierData *mmd = (MultiresModifierData *)md;
 
 	mmd->lvl = 0;
 	mmd->sculptlvl = 0;
@@ -59,8 +59,8 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	MultiresModifierData *mmd = (MultiresModifierData*) md;
-	MultiresModifierData *tmmd = (MultiresModifierData*) target;
+	MultiresModifierData *mmd = (MultiresModifierData *) md;
+	MultiresModifierData *tmmd = (MultiresModifierData *) target;
 
 	tmmd->lvl = mmd->lvl;
 	tmmd->sculptlvl = mmd->sculptlvl;
@@ -71,11 +71,11 @@ static void copyData(ModifierData *md, ModifierData *target)
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
-						   int useRenderParams, int isFinalCalc)
+                                  int useRenderParams, int isFinalCalc)
 {
-	MultiresModifierData *mmd = (MultiresModifierData*)md;
+	MultiresModifierData *mmd = (MultiresModifierData *)md;
 	DerivedMesh *result;
-	Mesh *me= (Mesh*)ob->data;
+	Mesh *me = (Mesh *)ob->data;
 
 	if (mmd->totlvl) {
 		if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
@@ -92,7 +92,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 	if (useRenderParams || !isFinalCalc) {
 		DerivedMesh *cddm;
 		
-		cddm= CDDM_copy(result);
+		cddm = CDDM_copy(result);
 
 		/* copy hidden flag to vertices */
 		if (!useRenderParams) {
@@ -100,8 +100,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 			mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
 			if (mdisps) {
 				subsurf_copy_grid_hidden(result, me->mpoly,
-										 cddm->getVertArray(cddm),
-										 mdisps);
+				                         cddm->getVertArray(cddm),
+				                         mdisps);
 
 				BKE_mesh_flush_hidden_from_verts(cddm->getVertArray(cddm),
 				                                 cddm->getLoopArray(cddm),
@@ -113,7 +113,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		}
 
 		result->release(result);
-		result= cddm;
+		result = cddm;
 	}
 
 	return result;
@@ -125,9 +125,9 @@ ModifierTypeInfo modifierType_Multires = {
 	/* structName */        "MultiresModifierData",
 	/* structSize */        sizeof(MultiresModifierData),
 	/* type */              eModifierTypeType_Constructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_SupportsMapping
-							| eModifierTypeFlag_RequiresOriginalData,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_RequiresOriginalData,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

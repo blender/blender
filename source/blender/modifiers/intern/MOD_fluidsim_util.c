@@ -177,7 +177,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 	float no[3];
 
 	const short mp_mat_nr = mp_example->mat_nr;
-	const char  mp_flag =   mp_example->flag;
+	const char mp_flag =   mp_example->flag;
 
 	// ------------------------------------------------
 	// get numverts + numfaces first
@@ -231,7 +231,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 	// read vertex position from file
 	mv = CDDM_get_verts(dm);
 
-	for (i=0; i<numverts; i++, mv++)
+	for (i = 0; i < numverts; i++, mv++)
 		gotBytes = gzread(gzf, mv->co, sizeof(float) * 3);
 
 	// should be the same as numverts
@@ -243,7 +243,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 		return NULL;
 	}
 
-	normals = MEM_callocN(sizeof(short) * numverts * 3, "fluid_tmp_normals" );
+	normals = MEM_callocN(sizeof(short) * numverts * 3, "fluid_tmp_normals");
 	if (!normals) {
 		if (dm)
 			dm->release(dm);
@@ -252,7 +252,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 	}
 
 	// read normals from file (but don't save them yet)
-	for (i=numverts, no_s= normals; i>0; i--, no_s += 3) {
+	for (i = numverts, no_s = normals; i > 0; i--, no_s += 3) {
 		gotBytes = gzread(gzf, no, sizeof(float) * 3);
 		normal_float_to_short_v3(no_s, no);
 	}
@@ -260,7 +260,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 	/* read no. of triangles */
 	gotBytes = gzread(gzf, &wri, sizeof(wri));
 
-	if (wri!=numfaces) {
+	if (wri != numfaces) {
 		printf("Fluidsim: error in reading data from file.\n");
 		if (dm)
 			dm->release(dm);
@@ -272,7 +272,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 	// read triangles from file
 	mp = CDDM_get_polys(dm);
 	ml = CDDM_get_loops(dm);
-	for (i=0; i < numfaces; i++, mp++, ml += 3) {
+	for (i = 0; i < numfaces; i++, mp++, ml += 3) {
 		int face[3];
 
 		gotBytes = gzread(gzf, face, sizeof(int) * 3);
@@ -303,10 +303,10 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 
 
 void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
-		 /*RET*/ float start[3], /*RET*/ float size[3] )
+                  /*RET*/ float start[3], /*RET*/ float size[3])
 {
-	float bbsx=0.0, bbsy=0.0, bbsz=0.0;
-	float bbex=1.0, bbey=1.0, bbez=1.0;
+	float bbsx = 0.0, bbsy = 0.0, bbsz = 0.0;
+	float bbex = 1.0, bbey = 1.0, bbez = 1.0;
 	int i;
 	float vec[3];
 
@@ -325,12 +325,12 @@ void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 		copy_v3_v3(vec, mvert[i].co);
 		mul_m4_v3(obmat, vec);
 
-		if (vec[0] < bbsx) { bbsx= vec[0]; }
-		if (vec[1] < bbsy) { bbsy= vec[1]; }
-		if (vec[2] < bbsz) { bbsz= vec[2]; }
-		if (vec[0] > bbex) { bbex= vec[0]; }
-		if (vec[1] > bbey) { bbey= vec[1]; }
-		if (vec[2] > bbez) { bbez= vec[2]; }
+		if (vec[0] < bbsx) { bbsx = vec[0]; }
+		if (vec[1] < bbsy) { bbsy = vec[1]; }
+		if (vec[2] < bbsz) { bbsz = vec[2]; }
+		if (vec[0] > bbex) { bbex = vec[0]; }
+		if (vec[1] > bbey) { bbey = vec[1]; }
+		if (vec[2] > bbez) { bbez = vec[2]; }
 	}
 
 	// return values...
@@ -340,9 +340,9 @@ void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 		start[2] = bbsz;
 	}
 	if (size) {
-		size[0] = bbex-bbsx;
-		size[1] = bbey-bbsy;
-		size[2] = bbez-bbsz;
+		size[0] = bbex - bbsx;
+		size[1] = bbey - bbsy;
+		size[2] = bbez - bbsz;
 	}
 }
 
@@ -354,11 +354,11 @@ void fluid_estimate_memory(Object *ob, FluidsimSettings *fss, char *value)
 {
 	Mesh *mesh;
 
-	value[0]= '\0';
+	value[0] = '\0';
 
 	if (ob->type == OB_MESH) {
 		/* use mesh bounding box and object scaling */
-		mesh= ob->data;
+		mesh = ob->data;
 
 		fluid_get_bb(mesh->mvert, mesh->totvert, ob->obmat, fss->bbStart, fss->bbSize);
 		elbeemEstimateMemreq(fss->resolutionxyz, fss->bbSize[0], fss->bbSize[1], fss->bbSize[2], fss->maxRefine, value);
@@ -386,18 +386,18 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 		return;
 	}
 
-	if (fss->domainNovecgen>0) return;
+	if (fss->domainNovecgen > 0) return;
 
-	fss->meshVelocities = MEM_callocN(sizeof(FluidVertexVelocity)*dm->getNumVerts(dm), "Fluidsim_velocities");
+	fss->meshVelocities = MEM_callocN(sizeof(FluidVertexVelocity) * dm->getNumVerts(dm), "Fluidsim_velocities");
 	fss->totvert = totvert;
 
 	velarray = fss->meshVelocities;
 
 	// .bobj.gz, correct filename
 	// 87654321
-	filename[len-6] = 'v';
-	filename[len-5] = 'e';
-	filename[len-4] = 'l';
+	filename[len - 6] = 'v';
+	filename[len - 5] = 'e';
+	filename[len - 4] = 'l';
 
 	gzf = BLI_gzopen(filename, "rb");
 	if (!gzf) {
@@ -413,8 +413,8 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 		return;
 	}
 
-	for (i=0; i<totvert;i++) {
-		for (j=0; j<3; j++) {
+	for (i = 0; i < totvert; i++) {
+		for (j = 0; j < 3; j++) {
 			gzread(gzf, &wrf, sizeof(wrf));
 			velarray[i].vel[j] = wrf;
 		}
@@ -423,7 +423,8 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 	gzclose(gzf);
 }
 
-static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
+static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm,
+                                        FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
 	int displaymode = 0;
 	int curFrame = framenr - 1 /*scene->r.sfra*/; /* start with 0 at start frame */
@@ -441,17 +442,17 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 	}
 
 	switch (displaymode) {
-	case 1:
-		/* just display original object */
-		return NULL;
-	case 2:
-		/* use preview mesh */
-		BLI_join_dirfile(targetFile, sizeof(targetFile), fss->surfdataPath, OB_FLUIDSIM_SURF_PREVIEW_OBJ_FNAME);
-		break;
-	default: /* 3 */
-		/* 3. use final mesh */
-		BLI_join_dirfile(targetFile, sizeof(targetFile), fss->surfdataPath, OB_FLUIDSIM_SURF_FINAL_OBJ_FNAME);
-		break;
+		case 1:
+			/* just display original object */
+			return NULL;
+		case 2:
+			/* use preview mesh */
+			BLI_join_dirfile(targetFile, sizeof(targetFile), fss->surfdataPath, OB_FLUIDSIM_SURF_PREVIEW_OBJ_FNAME);
+			break;
+		default: /* 3 */
+			/* 3. use final mesh */
+			BLI_join_dirfile(targetFile, sizeof(targetFile), fss->surfdataPath, OB_FLUIDSIM_SURF_FINAL_OBJ_FNAME);
+			break;
 	}
 
 	/* offset baked frame */
@@ -474,11 +475,12 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 		// switch, abort background rendering when fluidsim mesh is missing
 		const char *strEnvName2 = "BLENDER_ELBEEMBOBJABORT"; // from blendercall.cpp
 
-		if (G.background==1) {
+		if (G.background == 1) {
 			if (getenv(strEnvName2)) {
 				int elevel = atoi(getenv(strEnvName2));
-				if (elevel>0) {
-					printf("Env. var %s set, fluid sim mesh '%s' not found, aborting render...\n", strEnvName2, targetFile);
+				if (elevel > 0) {
+					printf("Env. var %s set, fluid sim mesh '%s' not found, aborting render...\n",
+					       strEnvName2, targetFile);
 					exit(1);
 				}
 			}
@@ -491,7 +493,7 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 	// load vertex velocities, if they exist...
 	// TODO? use generate flag as loading flag as well?
 	// warning, needs original .bobj.gz mesh loading filename
-	if (displaymode==3) {
+	if (displaymode == 3) {
 		fluidsim_read_vel_cache(fluidmd, dm, targetFile);
 	}
 	else {
@@ -506,16 +508,16 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 #endif // WITH_MOD_FLUID
 
 DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
-						Object *ob,
-						DerivedMesh *dm,
-						int useRenderParams, int UNUSED(isFinalCalc))
+                                 Object *ob,
+                                 DerivedMesh *dm,
+                                 int useRenderParams, int UNUSED(isFinalCalc))
 {
 #ifdef WITH_MOD_FLUID
 	DerivedMesh *result = NULL;
 	int framenr;
 	FluidsimSettings *fss = NULL;
 
-	framenr= (int)scene->r.cfra;
+	framenr = (int)scene->r.cfra;
 	
 	// only handle fluidsim domains
 	if (fluidmd && fluidmd->fss && (fluidmd->fss->type != OB_FLUIDSIM_DOMAIN))

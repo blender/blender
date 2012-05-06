@@ -49,40 +49,40 @@
 #include "MEM_guardedalloc.h"
 
 static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *UNUSED(derivedData),
-						float (*vertexCos)[3],
-						int numVerts,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                        DerivedMesh *UNUSED(derivedData),
+                        float (*vertexCos)[3],
+                        int numVerts,
+                        int UNUSED(useRenderParams),
+                        int UNUSED(isFinalCalc))
 {
-	KeyBlock *kb= ob_get_keyblock(ob);
+	KeyBlock *kb = ob_get_keyblock(ob);
 	float (*deformedVerts)[3];
 
 	if (kb && kb->totelem == numVerts) {
-		deformedVerts= (float(*)[3])do_ob_key(md->scene, ob);
+		deformedVerts = (float(*)[3])do_ob_key(md->scene, ob);
 		if (deformedVerts) {
-			memcpy(vertexCos, deformedVerts, sizeof(float)*3*numVerts);
+			memcpy(vertexCos, deformedVerts, sizeof(float) * 3 * numVerts);
 			MEM_freeN(deformedVerts);
 		}
 	}
 }
 
 static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedData,
-						   float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
+                           float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
 {
-	Key *key= ob_get_key(ob);
-	KeyBlock *kb= ob_get_keyblock(ob);
+	Key *key = ob_get_key(ob);
+	KeyBlock *kb = ob_get_keyblock(ob);
 	float scale[3][3];
 
 	(void)vertexCos; /* unused */
 
-	if (kb && kb->totelem==numVerts && kb!=key->refkey) {
+	if (kb && kb->totelem == numVerts && kb != key->refkey) {
 		int a;
 
 		if (ob->shapeflag & OB_SHAPE_LOCK) scale_m3_fl(scale, 1);
 		else scale_m3_fl(scale, kb->curval);
 
-		for (a=0; a<numVerts; a++)
+		for (a = 0; a < numVerts; a++)
 			copy_m3_m3(defMats[a], scale);
 	}
 
@@ -90,35 +90,35 @@ static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedDat
 }
 
 static void deformVertsEM(ModifierData *md, Object *ob,
-						struct BMEditMesh *UNUSED(editData),
-						DerivedMesh *derivedData,
-						float (*vertexCos)[3],
-						int numVerts)
+                          struct BMEditMesh *UNUSED(editData),
+                          DerivedMesh *derivedData,
+                          float (*vertexCos)[3],
+                          int numVerts)
 {
-	Key *key= ob_get_key(ob);
+	Key *key = ob_get_key(ob);
 
 	if (key && key->type == KEY_RELATIVE)
 		deformVerts(md, ob, derivedData, vertexCos, numVerts, 0, 0);
 }
 
 static void deformMatricesEM(ModifierData *UNUSED(md), Object *ob,
-						struct BMEditMesh *UNUSED(editData),
-						DerivedMesh *UNUSED(derivedData),
-						float (*vertexCos)[3],
-						float (*defMats)[3][3],
-						int numVerts)
+                             struct BMEditMesh *UNUSED(editData),
+                             DerivedMesh *UNUSED(derivedData),
+                             float (*vertexCos)[3],
+                             float (*defMats)[3][3],
+                             int numVerts)
 {
-	Key *key= ob_get_key(ob);
-	KeyBlock *kb= ob_get_keyblock(ob);
+	Key *key = ob_get_key(ob);
+	KeyBlock *kb = ob_get_keyblock(ob);
 	float scale[3][3];
 
 	(void)vertexCos; /* unused */
 
-	if (kb && kb->totelem==numVerts && kb!=key->refkey) {
+	if (kb && kb->totelem == numVerts && kb != key->refkey) {
 		int a;
 		scale_m3_fl(scale, kb->curval);
 
-		for (a=0; a<numVerts; a++)
+		for (a = 0; a < numVerts; a++)
 			copy_m3_m3(defMats[a], scale);
 	}
 }
@@ -128,8 +128,8 @@ ModifierTypeInfo modifierType_ShapeKey = {
 	/* structName */        "ShapeKeyModifierData",
 	/* structSize */        sizeof(ShapeKeyModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsCVs
-							| eModifierTypeFlag_SupportsEditmode,
+	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          NULL,
 	/* deformVerts */       deformVerts,
