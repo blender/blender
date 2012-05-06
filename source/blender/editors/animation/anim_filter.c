@@ -137,7 +137,7 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 				if (ac->obact && ac->obact->adt)
 					saction->action = ac->obact->adt->action;
 				else
-					saction->action= NULL;
+					saction->action = NULL;
 			}
 			
 			ac->datatype= ANIMCONT_ACTION;
@@ -149,6 +149,16 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 		case SACTCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			ac->datatype= ANIMCONT_SHAPEKEY;
 			ac->data= actedit_get_shapekeys(ac);
+			
+			/* if not pinned, sync with active object */
+			if (/*saction->pin == 0*/1) {
+				Key *key = (Key *)ac->data;
+				
+				if (key && key->adt)
+					saction->action = key->adt->action;
+				else
+					saction->action = NULL;
+			}
 			
 			ac->mode= saction->mode;
 			return 1;
