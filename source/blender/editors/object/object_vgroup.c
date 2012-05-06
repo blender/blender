@@ -421,7 +421,7 @@ int ED_vgroup_copy_single(Object *ob_dst, const Object *ob_src)
 }
 
 /*Copy a single vertex group from source to destination with weights by nearest weight*/
-int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, const Object *ob_src)
+int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, Object *ob_src)
 {
 	bDeformGroup *dg_src, *dg_dst;
 	MDeformVert **dv_array_src, **dv_array_dst;
@@ -432,6 +432,7 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, const Object *ob_src
 	BVHTreeNearest nearest;
 	DerivedMesh *dmesh_src;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
+	float tmp_co[3], tmp_mat[4][4];
 
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -461,6 +462,11 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, const Object *ob_src
 	/*get vertices*/
 	mv_dst= me_dst->mvert;
 
+	/*Prepearing transformation matrix*/
+	/*This can be excluded to make a lazy feature that works better when object centers relative to mesh is the same*/
+	invert_m4_m4(ob_src->imat, ob_src->obmat);
+	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
+
 	/* Loop through the vertices and copy weight from nearest weight*/
 	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
 
@@ -468,8 +474,11 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, const Object *ob_src
 		nearest.index= -1;
 		nearest.dist= FLT_MAX;
 
+		/*Transforming into target space*/
+		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+
 		/*Node tree accelerated search for closest vetex*/
-		BLI_bvhtree_find_nearest(tree_mesh_src.tree, mv_dst->co, &nearest, tree_mesh_src.nearest_callback, &tree_mesh_src);
+		BLI_bvhtree_find_nearest(tree_mesh_src.tree, tmp_co, &nearest, tree_mesh_src.nearest_callback, &tree_mesh_src);
 
 		/*copy weight*/
 		dw_src= defvert_verify_index(dv_array_src[nearest.index], index_src);
@@ -483,6 +492,7 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, const Object *ob_src
 }
 
 /*Copy a single vertex group from source to destination with weights by nearest weight*/
+/*TODO: transform into target space as in by_vertex function. postphoned due to easier testing during development*/
 int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 {
 	bDeformGroup *dg_src, *dg_dst;
@@ -495,7 +505,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	BVHTreeNearest nearest;
 	DerivedMesh *dmesh_src;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
-	float weight;
+	float weight/*, tot_dist*/;
 
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -510,11 +520,12 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	/*get meshes*/
 	me_dst= ob_dst->data;
 	me_src= ob_src->data;
-	dmesh_src= ob_src->derivedDeform;
+	dmesh_src= ob_src->derivedDeform; /*sergey- : this might easily be null?? (using ob_src.deriveddeform*/
 
 	/*make node tree*/
 	DM_ensure_tessface(dmesh_src);
 	bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
+
 
 	/*get vertex group arrays*/
 	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
@@ -529,6 +540,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 	/* Loop through the vertices and copy weight from nearest weight*/
 	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+
 		/*Reset nearest*/
 		nearest.index= -1;
 		nearest.dist= FLT_MAX;
@@ -536,11 +548,27 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		/*Node tree accelerated search for closest face*/
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, mv_dst->co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
-		/*get*/
+		/*get weight*/
 		mface_src= me_src->mface + nearest.index;
+		/*tot_dist= ()+()+(); use a comparable distance
+		if(mface_src->v4){
+			tot_dist+= ();
+		}*/
 		dw_src= defvert_verify_index(dv_array_src[mface_src->v1], index_src);
 		weight= dw_src->weight;
-		weight= 0;
+		dw_src= defvert_verify_index(dv_array_src[mface_src->v2], index_src);
+		weight+= dw_src->weight;
+		dw_src= defvert_verify_index(dv_array_src[mface_src->v3], index_src);
+		weight+= dw_src->weight;
+		if(mface_src->v4){
+			dw_src= defvert_verify_index(dv_array_src[mface_src->v4], index_src);
+			weight+= dw_src->weight;
+			weight/=4;
+		}
+		else{
+			weight/=3;
+		}
+
 
 		/*copy weight*/
 		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
